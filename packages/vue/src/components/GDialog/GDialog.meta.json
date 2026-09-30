@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "name": "GDialog",
+  "tag": "g-dialog",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Diálogo modal genérico con carcasa exterior y superficie inset interior: simple, con pie, secciones, scroll, confirmación, formulario, pantalla completa y adaptativo.",
+  "contract": "design/contracts/dialog.md",
+  "prototype": "design/lab/dialog/r01/",
+  "style": "packages/vue/src/components/GDialog/GDialog.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "inset",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "fullscreen",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "mobile",
+      "type": "String",
+      "default": "sheet",
+      "values": [
+        "sheet",
+        "full-width",
+        "fullscreen"
+      ]
+    },
+    {
+      "name": "role",
+      "type": "String",
+      "default": "dialog",
+      "values": [
+        "dialog",
+        "alertdialog"
+      ]
+    },
+    {
+      "name": "closeLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "closeOnBackdrop",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "El usuario cierra y nadie impidió el dismiss (siempre false); también ante un cierre nativo con el prop en true"
+    },
+    {
+      "name": "dismiss",
+      "payload": "{ reason, preventDefault() }",
+      "trigger": "Esc, clic en el fondo o botón de cierre; reason: escape | backdrop | close. Cancelable"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "El diálogo ya se muestra"
+    },
+    {
+      "name": "closed",
+      "payload": "",
+      "trigger": "El diálogo ya se cerró, por el motivo que sea"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Cuerpo. Alcance: { close }"
+    },
+    {
+      "name": "footer",
+      "purpose": "Acciones. Alcance: { close }. Solo se renderiza si existe"
+    },
+    {
+      "name": "title",
+      "purpose": "Título con contenido rico (sustituye a title)"
+    },
+    {
+      "name": "description",
+      "purpose": "Descripción con contenido rico (sustituye a description)"
+    },
+    {
+      "name": "header",
+      "purpose": "Sustituye título y descripción. Alcance: { titleId, descriptionId }"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono decorativo antes del título (aria-hidden)"
+    }
+  ],
+  "tokens": [
+    "--g-surface-shell",
+    "--g-surface-inset",
+    "--g-surface-gap",
+    "--g-surface-radius",
+    "--g-surface-radius-inset",
+    "--g-surface-backdrop",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-focus",
+    "--g-color-accent",
+    "--g-radius-md",
+    "--g-radius-pill",
+    "--g-space-1..12",
+    "--g-font-ui",
+    "--g-text-{body|body-sm}-{size|line}",
+    "--g-text-title-sm-{size|line|tracking|weight}",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-shadow-1",
+    "--g-shadow-3",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-spin",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-press-scale"
+  ],
+  "states": [
+    "closed",
+    "open",
+    "focus-visible",
+    "hover",
+    "scrolled",
+    "loading",
+    "alertdialog",
+    "fullscreen",
+    "mobile-sheet"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: nombre, descripción, alertdialog y cuerpo desplazable",
+    "Teclado virtual y táctil reales en móvil",
+    "Firefox y Safari (::backdrop con variables, :has())",
+    "Diálogos apilados, no modales y arrastre de la hoja (v0.2)"
+  ]
+}

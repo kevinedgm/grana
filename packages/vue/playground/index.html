@@ -201,6 +201,69 @@
     </g-calendar>
     <pre class="log" style="max-height:160px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
 
+    <h2>Diálogo (GDialog)</h2>
+    <div class="row">
+      <g-btn variant="outline" @click="dlg.simple = true">Simple</g-btn>
+      <g-btn variant="outline" @click="dlg.inset = true">Con inset y pie</g-btn>
+      <g-btn variant="outline" @click="dlg.sections = true">Secciones</g-btn>
+      <g-btn variant="outline" @click="dlg.scroll = true">Con scroll</g-btn>
+      <g-btn variant="outline" @click="dlg.confirm = true">Confirmación</g-btn>
+      <g-btn variant="outline" @click="dlg.form = true">Formulario</g-btn>
+      <g-btn variant="outline" @click="dlg.full = true">Pantalla completa</g-btn>
+      <g-btn variant="outline" @click="dlg.guard = true">Con cambios sin guardar</g-btn>
+    </div>
+    <pre class="log" style="max-height:120px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ dlgLog.join('\n') || 'Sin eventos todavía.' }}</pre>
+
+    <g-dialog v-model="dlg.simple" title="Aviso" description="Un diálogo simple, sin superficie inset." :inset="false" size="sm" close-label="Cerrar" @closed="dlgLog.unshift('closed: simple')">
+      <p>El contenido vive directamente en la carcasa.</p>
+      <template #footer="{ close }"><g-btn @click="close">Entendido</g-btn></template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.inset" title="Guardar cambios" description="El contenido está en la superficie inset." close-label="Cerrar" @dismiss="dlgLog.unshift('dismiss: ' + $event.reason)">
+      <p>El pie pertenece a la inset y lleva las acciones. Cambia el tema de prueba para ver las superficies adaptarse.</p>
+      <template #footer="{ close }">
+        <g-btn variant="outline" @click="close">Cancelar</g-btn>
+        <g-btn @click="dlg.inset = false">Guardar</g-btn>
+      </template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.sections" title="Preferencias" description="Varias secciones en una sola inset." close-label="Cerrar" size="lg">
+      <section class="g-dialog__section"><h3 style="margin:0 0 8px;font-size:1rem">General</h3>Nombre y visibilidad.</section>
+      <section class="g-dialog__section"><h3 style="margin:0 0 8px;font-size:1rem">Avisos</h3><div class="g-dialog__well">Una superficie secundaria agrupa solo lo que lo necesita.</div></section>
+      <section class="g-dialog__section"><h3 style="margin:0 0 8px;font-size:1rem">Zona de riesgo</h3>Acciones que no se pueden deshacer.</section>
+      <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn @click="dlg.sections = false">Aplicar</g-btn></template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.scroll" title="Términos y condiciones" close-label="Cerrar">
+      <p v-for="n in 14" :key="n">Cláusula {{ n }}. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      <template #footer="{ close }"><g-btn variant="outline" @click="close">Rechazar</g-btn><g-btn @click="dlg.scroll = false">Aceptar</g-btn></template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.confirm" role="alertdialog" size="sm" title="¿Eliminar el proyecto?" description="Se borrarán sus 24 archivos. Esta acción no se puede deshacer.">
+      <template #footer="{ close }">
+        <g-btn variant="outline" autofocus @click="close">Cancelar</g-btn>
+        <g-btn color="danger" @click="dlg.confirm = false; dlgLog.unshift('eliminado')">Eliminar</g-btn>
+      </template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.form" title="Nuevo contacto" description="Los campos marcados con * son obligatorios." close-label="Cerrar">
+      <form id="dlg-form" class="col" novalidate @submit.prevent="submitDlgForm">
+        <g-input v-model="dlgName" label="Nombre" required :error="dlgNameError" block></g-input>
+        <g-input v-model="dlgMail" label="Correo" type="email" required block></g-input>
+      </form>
+      <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn type="submit" form="dlg-form">Crear</g-btn></template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.full" fullscreen title="Editor" close-label="Cerrar">
+      <p>Ocupa todo el visor y conserva las dos superficies.</p>
+      <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn @click="dlg.full = false">Listo</g-btn></template>
+    </g-dialog>
+
+    <g-dialog v-model="dlg.guard" title="Cambios sin guardar" description="Esc y el clic en el fondo se impiden mientras haya cambios; el botón de cierre sí cierra." close-label="Cerrar" @dismiss="guardDismiss">
+      <g-checkbox v-model="dlgDirty" label="Hay cambios sin guardar"></g-checkbox>
+      <template #footer="{ close }"><g-btn variant="outline" @click="dlgDirty = false; close()">Descartar y cerrar</g-btn></template>
+    </g-dialog>
+
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
@@ -210,7 +273,7 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
   <script>
-    const { createApp, ref } = Vue
+    const { createApp, ref, reactive } = Vue
     const LUCIDE = {
       mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>',
       lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
@@ -228,6 +291,20 @@
     }
     createApp({
       setup() {
+        const dlg = reactive({ simple: false, inset: false, sections: false, scroll: false, confirm: false, form: false, full: false, guard: false })
+        const dlgLog = ref([])
+        const dlgName = ref('')
+        const dlgMail = ref('')
+        const dlgNameError = ref('')
+        const dlgDirty = ref(true)
+        const submitDlgForm = () => {
+          dlgNameError.value = dlgName.value.trim() ? '' : 'Escribe un nombre.'
+          if (!dlgNameError.value) { dlgLog.value.unshift('creado: ' + dlgName.value); dlg.form = false; dlgName.value = ''; dlgMail.value = '' }
+        }
+        const guardDismiss = (e) => {
+          dlgLog.value.unshift('dismiss: ' + e.reason + (dlgDirty.value && e.reason !== 'close' ? ' (impedido)' : ''))
+          if (dlgDirty.value && e.reason !== 'close') e.preventDefault()
+        }
         const loading = ref(false)
         const count = ref(0)
         const themed = ref(false)
@@ -319,7 +396,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
