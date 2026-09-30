@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDialog",
   "tag": "g-dialog",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Diálogo modal genérico con carcasa exterior y superficie inset interior: simple, con pie, secciones, scroll, confirmación, formulario, pantalla completa y adaptativo.",
   "contract": "design/contracts/dialog.md",
@@ -185,7 +185,6 @@
     "mobile-sheet"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: nombre, descripción, alertdialog y cuerpo desplazable",
     "Teclado virtual y táctil reales en móvil",

@@ -18,7 +18,8 @@
   --_gap: calc(var(--g-surface-gap) * var(--_d));
   --_pad: calc(var(--g-space-1) * var(--_pad-units) * var(--_d));
   --_ring: var(--g-focus-width);
-  --_inset-radius: max(0px, calc(var(--g-surface-radius-inset) - var(--g-border-width)));
+  --_ctl: max(24px, calc(var(--g-space-1) * 9));
+  --_inset-radius: max(0px, calc(var(--g-surface-radius-inset) + var(--g-surface-gap) - var(--_gap) - var(--g-border-width)));
 
   box-sizing: border-box;
   inline-size: min(var(--_w), calc(100vw - var(--g-space-8)));
@@ -82,8 +83,9 @@ html:has(.g-dialog[open]) {
   display: grid;
   place-content: center;
   box-sizing: border-box;
-  inline-size: max(24px, calc(var(--g-space-1) * 9));
-  block-size: max(24px, calc(var(--g-space-1) * 9));
+  inline-size: var(--_ctl);
+  block-size: var(--_ctl);
+  margin-block-start: calc((var(--g-text-title-sm-line) - var(--_ctl)) / 2);
   border: var(--g-border-width) solid var(--g-color-border-control);
   border-radius: var(--g-radius-pill);
   background: var(--g-surface-inset);
@@ -94,8 +96,9 @@ html:has(.g-dialog[open]) {
   position: relative;
   flex: none;
   box-sizing: border-box;
-  inline-size: max(24px, calc(var(--g-space-1) * 9));
-  block-size: max(24px, calc(var(--g-space-1) * 9));
+  inline-size: var(--_ctl);
+  block-size: var(--_ctl);
+  margin-block-start: calc((var(--g-text-title-sm-line) - var(--_ctl)) / 2);
   padding: 0;
   border: var(--g-border-width) solid transparent;
   border-radius: var(--g-radius-md);
@@ -136,10 +139,7 @@ html:has(.g-dialog[open]) {
   outline-offset: var(--g-focus-offset);
 }
 @media (pointer: coarse) {
-  .g-dialog__close {
-    inline-size: 44px;
-    block-size: 44px;
-  }
+  .g-dialog { --_ctl: 44px; }
 }
 
 /* ---------- Superficie inset ---------- */
