@@ -10,12 +10,13 @@ import GTextarea from './components/GTextarea/GTextarea.vue'
 import GSelect from './components/GSelect/GSelect.vue'
 import GBadge from './components/GBadge/GBadge.vue'
 import GDatePicker from './components/GDatePicker/GDatePicker.vue'
+import GSidebar from './components/GSidebar/GSidebar.vue'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker }
+export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar }
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker }
+const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

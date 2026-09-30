@@ -237,6 +237,9 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | `item` | Contenido de un item (sustituye a icono + etiqueta) | `{ item, active, collapsed, level }` | Dentro del enlace o botón; sin interactivos; conserva el **texto de la etiqueta** (nombre accesible) |
 | `user` | Área de usuario al pie | `{ collapsed }` | Dentro de `g-sidebar__foot`; en el riel, solo el avatar **con nombre accesible** que da la aplicación; el menú del usuario es de la aplicación |
 | `header` | Contenido extra bajo el logo | `{ collapsed }` | Dentro de la cabecera |
+| `toggle-icon` | Icono del botón de contraer y expandir (Grana no trae iconos) | `{ collapsed }` | Decorativo, dentro de `g-sidebar__toggle` (su nombre lo da `labels.collapse` o `labels.expand`) |
+| `search-icon` | Icono del disparador de búsqueda | `{ collapsed }` | Decorativo, dentro de `g-sidebar__icon` |
+| `more-icon` | Icono del botón «Más» del navbar | | Decorativo, dentro de `g-sidebar__icon` |
 
 ## Eventos
 
@@ -246,7 +249,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | `update:modelValue` | `id` del destino | Tras `navigate` no cancelado |
 | `update:collapsed` | Boolean | El usuario contrae o expande con el botón |
 | `update:open` | Boolean | El drawer se abre o se cierra |
-| `mode-change` | `{ mode }` | El formato resuelto cambia (`expanded` `rail` `navbar` `drawer`) |
+| `mode-change` | `{ mode, overlay }` | El formato resuelto cambia (`expanded` `rail` `navbar` `drawer`); `overlay` es verdadero cuando el sidebar está **expandido encima del riel** (la aplicación reserva el ancho del riel) |
 | `search` | | El usuario activa el disparador de búsqueda |
 
 **Nota para bruno:** los demás eventos (`click`, `keydown`…) no se declaran; llegan a la raíz. Al elegir en el drawer, el foco vuelve al botón que lo abrió **antes** de emitir. Un item de solo acción (sin `href` ni `children`) emite `navigate` y no cambia `modelValue` si se cancela.

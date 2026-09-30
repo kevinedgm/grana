@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "name": "GSidebar",
+  "tag": "g-sidebar",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Navegación lateral que se transforma con un solo sistema: expandida, riel de iconos, navbar inferior con píldora activa y drawer. Items por arreglo (grupos, un nivel de hijos), destino actual por modelValue, adaptación por el ancho del contenedor y movimiento con transiciones.",
+  "contract": "design/contracts/sidebar.md",
+  "prototype": "design/lab/sidebar/r01/",
+  "style": "packages/vue/src/components/GSidebar/GSidebar.css",
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "modelValue",
+      "type": "String | Number | null",
+      "default": null
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "mode",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "expanded",
+        "rail",
+        "navbar",
+        "drawer"
+      ]
+    },
+    {
+      "name": "mobile",
+      "type": "String",
+      "default": "navbar",
+      "values": [
+        "navbar",
+        "drawer"
+      ]
+    },
+    {
+      "name": "collapsed",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "container",
+      "type": "String | Element",
+      "default": null
+    },
+    {
+      "name": "contained",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "fixed",
+      "values": [
+        "fixed",
+        "floating"
+      ]
+    },
+    {
+      "name": "overlay",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "barCount",
+      "type": "Number",
+      "default": 4,
+      "values": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "name": "search",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "closeOnNavigate",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ item, event }",
+      "trigger": "El usuario elige un destino; event es el evento nativo (preventDefault cancela update:modelValue y el cierre del drawer)"
+    },
+    {
+      "name": "update:modelValue",
+      "payload": "id del destino",
+      "trigger": "Tras navigate no cancelado"
+    },
+    {
+      "name": "update:collapsed",
+      "payload": "Boolean",
+      "trigger": "El usuario contrae o expande con el botón"
+    },
+    {
+      "name": "update:open",
+      "payload": "Boolean",
+      "trigger": "El drawer se abre o se cierra"
+    },
+    {
+      "name": "mode-change",
+      "payload": "{ mode, overlay }",
+      "trigger": "El formato resuelto cambia (y al montar)"
+    },
+    {
+      "name": "search",
+      "payload": "",
+      "trigger": "El usuario activa el disparador de búsqueda"
+    }
+  ],
+  "slots": [
+    {
+      "name": "logo",
+      "purpose": "Identidad en la cabecera. Alcance: { collapsed }"
+    },
+    {
+      "name": "header",
+      "purpose": "Contenido extra bajo el logo. Alcance: { collapsed }"
+    },
+    {
+      "name": "search",
+      "purpose": "Sustituye al disparador de búsqueda. Alcance: { collapsed }"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono de un item (decorativo). Alcance: { item }"
+    },
+    {
+      "name": "item",
+      "purpose": "Contenido de un item (sustituye a icono + etiqueta). Alcance: { item, active, collapsed, level }; conserva el texto de la etiqueta"
+    },
+    {
+      "name": "user",
+      "purpose": "Área de usuario al pie. Alcance: { collapsed }; el nombre accesible del riel lo da la aplicación"
+    },
+    {
+      "name": "toggle-icon",
+      "purpose": "Icono del botón de contraer/expandir. Alcance: { collapsed }"
+    },
+    {
+      "name": "search-icon",
+      "purpose": "Icono del disparador de búsqueda. Alcance: { collapsed }"
+    },
+    {
+      "name": "more-icon",
+      "purpose": "Icono del botón «Más» del navbar"
+    }
+  ],
+  "tokens": [
+    "--g-sidebar-width",
+    "--g-sidebar-rail",
+    "--g-sidebar-bar",
+    "--g-surface-shell",
+    "--g-surface-inset",
+    "--g-surface-radius",
+    "--g-surface-backdrop",
+    "--g-color-{color}",
+    "--g-color-on-{color}",
+    "--g-color-surface",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-space-1..6",
+    "--g-radius-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out"
+  ],
+  "states": [
+    "expanded",
+    "rail",
+    "navbar",
+    "drawer",
+    "floating",
+    "fixed",
+    "overlay",
+    "contained",
+    "item-hover",
+    "item-focus-visible",
+    "item-active",
+    "item-branch",
+    "item-disabled",
+    "parent-open",
+    "flyout-open",
+    "tooltip",
+    "pill-current",
+    "more-branch",
+    "search",
+    "user",
+    "scroll",
+    "entering"
+  ],
+  "pending": [
+    "Estilo del punto (dot) del indicador: clase g-sidebar__badge--dot sin regla en GSidebar.css (coco)",
+    "Lector de pantalla real (riel, ramas, contadores, panel, píldora)",
+    "Firefox y Safari (popover, <dialog>, @starting-style, interpolate-size)",
+    "Auditoría de coco con un tema distinto y con el componente real",
+    "README (mora-docs)",
+    "Formato inicial antes de medir el contenedor (se pinta expandido un instante)"
+  ]
+}
