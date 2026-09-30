@@ -89,7 +89,8 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 - Interlineado: de 1.5 (`body`) a 1.1 (`display`) interpolado por tamaño, redondeado a múltiplos de 4px.
 - Tracking: de 0 (`body`) a −0.03em (`display`).
 - Salida en `rem`.
-- Fuente por defecto: **Instrument Sans** (OFL), incluida en `@grana/vue` y alojada en el propio paquete, no en un CDN de terceros. Como `@font-face` solo descarga una fuente cuando un texto visible la usa, quien define su propio `font` nunca la descarga.
+- Fuente por defecto: **Instrument Sans** (OFL), incluida en `@grana/vue` como archivos `.woff2` separados, con su propia hoja `@grana/vue/fonts.css` (opcional). No se aloja en un CDN de terceros. Como `@font-face` solo descarga una fuente cuando un texto visible la usa, y cada archivo cubre un rango de caracteres, el navegador descarga solo lo necesario.
+- La fuente **no** va dentro de `grana.css`: en modo librería, Vite incrusta en base64 todo archivo que el CSS referencie, y eso obligaría a todos a descargarla.
 - `fontDisplay` por defecto es igual a `font`: sin segunda descarga.
 - Si el usuario solo da un nombre de familia, Grana agrega la pila del sistema sans; para respaldo serif, escribir la pila completa.
 

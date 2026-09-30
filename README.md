@@ -26,6 +26,15 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 
 Todas las claves son opcionales. Sin tema, Grana usa su estilo por defecto. Detalle completo en [docs/contract/tokens.md](docs/contract/tokens.md).
 
+## Uso
+
+```js
+import '@grana/vue/style.css'   // componentes y tema por defecto
+import '@grana/vue/fonts.css'   // fuente por defecto, Instrument Sans (opcional)
+```
+
+Si defines tu propia fuente en el tema, omite `fonts.css`.
+
 ## Estructura
 
 | Ruta | Contenido |

@@ -14,13 +14,14 @@
     ".": {
       "import": "./dist/grana.js"
     },
-    "./style.css": "./dist/grana.css"
+    "./style.css": "./dist/grana.css",
+    "./fonts.css": "./dist/fonts.css"
   },
   "sideEffects": [
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/build-fonts.mjs",
     "test": "vitest run"
   },
   "peerDependencies": {
