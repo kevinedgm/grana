@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "name": "GBadge",
+  "tag": "g-badge",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Insignia no interactiva: texto, texto con figura de estado, icono, solo icono, solo figura y contador con tope; anclada a otro elemento; variantes solid, soft, outline y glass (liquid glass).",
+  "contract": "design/contracts/badge.md",
+  "prototype": "design/lab/badge/r01/",
+  "style": "packages/vue/src/components/GBadge/GBadge.css",
+  "props": [
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "soft",
+      "values": [
+        "solid",
+        "soft",
+        "outline",
+        "glass"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "neutral",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "count",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "max",
+      "type": "Number",
+      "default": 99
+    },
+    {
+      "name": "showZero",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "shape",
+      "type": "String",
+      "default": null,
+      "values": [
+        "circle",
+        "square",
+        "diamond",
+        "triangle"
+      ]
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "placement",
+      "type": "String",
+      "default": "top-end",
+      "values": [
+        "top-end",
+        "top-start",
+        "bottom-end",
+        "bottom-start"
+      ]
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Texto de la insignia (una línea, sin interactivos)"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono decorativo (aria-hidden), delante del texto o solo"
+    },
+    {
+      "name": "anchor",
+      "purpose": "Elemento destino: convierte la raíz en el envoltorio g-badge-anchor; la insignia va en una esquina"
+    }
+  ],
+  "tokens": [
+    "--g-color-{color}",
+    "--g-color-{color}-soft",
+    "--g-color-{color}-text",
+    "--g-color-on-{color}",
+    "--g-color-on-{color}-soft",
+    "--g-glass-tint",
+    "--g-glass-opacity",
+    "--g-glass-filter",
+    "--g-glass-edge",
+    "--g-glass-sheen",
+    "--g-color-text",
+    "--g-color-border",
+    "--g-shadow-2",
+    "--g-radius-pill",
+    "--g-radius-xs",
+    "--g-space-1..3",
+    "--g-font-ui",
+    "--g-text-caption-{size|line}",
+    "--g-text-body-sm-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width"
+  ],
+  "states": [
+    "solid",
+    "soft",
+    "outline",
+    "glass",
+    "kind-text",
+    "kind-count",
+    "kind-figure",
+    "kind-icon",
+    "anchored",
+    "zero-hidden"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: insignia sin texto y anclada junto a su destino",
+    "Firefox y Safari (backdrop-filter, color-mix) y prefers-reduced-transparency real"
+  ]
+}
