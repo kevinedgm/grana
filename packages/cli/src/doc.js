@@ -31,10 +31,10 @@ export const levelOf = (name) => {
 }
 // De dónde sale cada token: la entrada de configuración o el token del que es alias
 const ALIAS = { link: 'accent-text', selection: 'accent-soft', active: 'accent', focus: 'accent-text' }
-const sourceOf = (name, { tinted, hue = 'brand' }) => {
+const sourceOf = (name, { tinted, hue = 'brand', primaryOwn = false }) => {
   if (ALIAS[name]) return ALIAS[name]
   const f = family(name)
-  if (f === 'primary') return name.replace('primary', 'brand')
+  if (f === 'primary') return primaryOwn ? 'primary' : name.replace('primary', 'brand')
   if (f === 'brand') return 'brand'
   if (f === 'accent') return 'accent'
   if (/^cat-\d+$/.test(f)) return 'brand'
@@ -57,7 +57,7 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
     const key = `--g-color-${n}`
     const value = { light: resolveVar(light, light[key]), dark: resolveVar(dk, dk[key]) }
     const tok = { name: n, cssVar: key, level: levelOf(n), value, usage: usageOf(n) }
-    const src = sourceOf(n, { tinted, hue: derived?.neutralsHue ?? 'brand' })
+    const src = sourceOf(n, { tinted, hue: derived?.neutralsHue ?? 'brand', primaryOwn: Boolean(derived?.primary) })
     if (src) tok.source = src
     tok.status = key in overrides ? 'override' : adjusted.has(key) ? 'adjusted' : key in generated ? 'derived' : 'default'
     const against = againstOf(n)

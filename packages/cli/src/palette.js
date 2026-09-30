@@ -35,10 +35,12 @@ export const SEMANTIC = ['danger', 'warning', 'success', 'info']
  * luminosidad (±0.15, pasos de 0.05) que lo consiga; si ninguno basta, elige el de mayor distancia mínima y `ok` es falso.
  * @returns {{ hex: string, changed: boolean, ok: boolean, distance: number, dh: number, dl: number }}
  */
-export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [], min = MIN_DISTANCE, minSibling = MIN_SIBLING_DISTANCE } = {}) => {
+export const separate = (nominalHex, anchors, { darkAnchors = [], names = ['brand', 'accent', 'primary'], siblings = [], min = MIN_DISTANCE, minSibling = MIN_SIBLING_DISTANCE } = {}) => {
   const n = lchOf(nominalHex)
-  const light = anchors.filter(Boolean).map(lchOf)
-  const dark = darkAnchors.filter(Boolean).map(lchOf)
+  // los nombres siguen a su color aunque falte alguno (marca sin acento, etc.)
+  const pair = (list) => list.map((hex, i) => ({ hex, name: names[i] })).filter((p) => p.hex).map((p) => ({ lch: lchOf(p.hex), name: p.name }))
+  const light = pair(anchors)
+  const dark = pair(darkAnchors)
   const sib = siblings.filter(Boolean).map((h) => ({ l: lchOf(h), d: lchOf(deriveDarkColor(h).base) }))
   // Margen respecto a cada umbral (≥ 1: cumple): la marca pide `min`; otro semántico, `minSibling`
   // anchors = [marca, acento]: el índice dice con cuál de los dos choca (light y darkAnchors conservan ese orden)
@@ -46,7 +48,7 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
     const l = lchOf(hex)
     const dl = lchOf(deriveDarkColor(hex).base)
     let best = { d: Infinity, who: null }
-    const consider = (list, c) => list.forEach((a, i) => { const d = distance(c, a); if (d < best.d) best = { d, who: ['brand', 'accent'][i] } })
+    const consider = (list, c) => list.forEach((a) => { const d = distance(c, a.lch); if (d < best.d) best = { d, who: a.name } })
     consider(light, l)
     consider(dark, dl)
     return best
@@ -80,14 +82,14 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
  * claro por defecto. `darkBrand`/`darkAccent` son los colores base del oscuro (por defecto, los derivados de los claros).
  * @returns {Record<string, { hex, ok, distance, dh, dl }>} solo los que cambian, o los que no se pueden separar lo suficiente
  */
-export const semanticAdjustments = ({ brand, accent, darkBrand, darkAccent }) => {
+export const semanticAdjustments = ({ brand, accent, primary, darkBrand, darkAccent, darkPrimary }) => {
   const out = {}
   const darkOf = (hex, explicit) => (explicit ? deriveDarkColor(explicit).base : hex ? deriveDarkColor(hex).base : undefined)
-  const darkAnchors = [darkOf(brand, darkBrand), darkOf(accent, darkAccent)]
+  const darkAnchors = [darkOf(brand, darkBrand), darkOf(accent, darkAccent), darkOf(primary, darkPrimary)]
   const current = Object.fromEntries(SEMANTIC.map((n) => [n, DEFAULTS[`--g-color-${n}`]]))
   for (const name of SEMANTIC) {
     const siblings = SEMANTIC.filter((n) => n !== name).map((n) => current[n])
-    const r = separate(current[name], [brand, accent], { darkAnchors, siblings })
+    const r = separate(current[name], [brand, accent, primary], { darkAnchors, siblings })
     if (r.changed || !r.ok) { out[name] = r; current[name] = r.hex }
   }
   return out
@@ -101,6 +103,7 @@ export const semanticAdjustments = ({ brand, accent, darkBrand, darkAccent }) =>
  * @param {'a'|'de'} [prep] preposición que antecede (con la contracción: «al acento», «del acento»)
  */
 export const anchorLabel = (who, accentDerived, prep = 'a') => {
+  if (who === 'primary') return prep === 'a' ? 'al color primario' : 'del color primario'
   if (who !== 'accent') return `${prep} la marca`
   return accentDerived ? `${prep} la marca (a través del acento derivado)` : prep === 'a' ? 'al acento' : 'del acento'
 }

@@ -22,6 +22,7 @@ Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una
   "fontDisplay": "Instrument Serif",
   "fontSize": 16,
   "typeScale": 1.25,
+  "primary": "#7D1230",
   "neutrals": "tinted",
   "neutralsHue": "brand",
   "semanticCollision": "warn",
@@ -31,7 +32,7 @@ Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una
 }
 ```
 
-De `brand` y `accent` se derivan (en OKLCH) `strong`, `soft`, `on`, `text` y `on-soft` con contraste garantizado. Los colores semánticos y cualquier otro token se ajustan con `overrides`.
+`primary` (opcional) es el color de la acción principal cuando no es la marca: sin él, `primary` es un alias de `brand`. De `brand`, `accent` y `primary` se derivan (en OKLCH) `strong`, `soft`, `on`, `text` y `on-soft` con contraste garantizado. Los colores semánticos y cualquier otro token se ajustan con `overrides`.
 
 ## Derivación de paleta
 
@@ -61,7 +62,7 @@ Por defecto (`dark: true`) el CLI deriva **la variante oscura de lo que cambias*
 | Valor | Efecto |
 | --- | --- |
 | `true` (por defecto) | Deriva el oscuro de `brand` y `accent` (en OKLCH: la base clara se conserva o se refleja y sube hasta 4.5:1 sobre la superficie oscura) |
-| `{ brand, accent, overrides }` | `brand` y `accent` son colores explícitos del oscuro (se derivan con las mismas reglas); `overrides` solo aplica al oscuro |
+| `{ brand, accent, primary, overrides }` | `brand`, `accent` y `primary` son colores explícitos del oscuro (se derivan con las mismas reglas); `overrides` solo aplica al oscuro |
 | `false` | Sin tema oscuro: el tema claro se restablece completo dentro de la consulta oscura (el sistema oscuro no activa el oscuro de los defaults). Avisa: `data-theme="dark"` forzado mezclaría el oscuro de los defaults con tus colores claros |
 
 Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-color-surface`) recibe también su valor oscuro (el de los defaults, o el que pongas en `dark.overrides`): el `tokens.css` no lleva capa y, sin eso, ganaría en el oscuro. **Los dos esquemas se validan** (los mensajes del oscuro empiezan por `[oscuro]`). El oscuro no cambia `radius`, `space`, `font`, `fontSize` ni `typeScale`.

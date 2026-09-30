@@ -380,3 +380,66 @@ describe('colisiones: valor configurado frente a valor derivado', () => {
     expect(explicit.diagnostics.find((x) => x.code === 'semantic-adjusted').message).toContain('se separó del acento')
   })
 })
+
+describe('`primary` como clave propia (tokens.md §17.4, DECISIONS.md #107)', () => {
+  const tok = (r, n) => r.doc.color.tokens.find((t) => t.name === n)
+
+  it('sin `primary`, el rol es un alias de brand y no se emite ningún token primary', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    expect(Object.keys(r.generated).filter((k) => /primary/.test(k))).toEqual([])
+    expect(r.tokens['--g-color-primary']).toBe('var(--g-color-brand)')
+    expect(tok(r, 'primary').source).toBe('brand')
+  })
+
+  it('con `primary`, sus seis tokens se derivan del color dado y brand no cambia', () => {
+    const base = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70', primary: '#7D1230' })
+    expect(r.ok).toBe(true)
+    for (const k of ['', '-strong', '-soft', '-text']) expect(r.generated[`--g-color-primary${k}`]).toBeDefined()
+    expect(r.generated['--g-color-on-primary']).toBeDefined()
+    expect(r.generated['--g-color-on-primary-soft']).toBeDefined()
+    expect(r.generated['--g-color-primary']).toBe('#7D1230')
+    // brand y accent siguen siendo los mismos
+    for (const k of Object.keys(base.generated).filter((x) => /(brand|accent)/.test(x))) expect(r.generated[k]).toBe(base.generated[k])
+    expect(r.generated['--g-color-primary']).not.toBe(r.generated['--g-color-brand'])
+  })
+
+  it('también en oscuro (derivado aparte) y con `dark: { primary }` explícito', () => {
+    const r = buildTheme({ brand: '#9D1635', primary: '#7D1230' })
+    expect(r.dark.generated['--g-color-primary']).toBeDefined()
+    expect(r.dark.generated['--g-color-primary']).not.toBe(r.generated['--g-color-primary'])
+    const e = buildTheme({ brand: '#9D1635', primary: '#7D1230', dark: { primary: '#F2A1B3' } })
+    expect(e.ok).toBe(true)
+    expect(e.dark.generated['--g-color-primary']).not.toBe(r.dark.generated['--g-color-primary'])
+    expect(r.css).toMatch(/--g-color-primary:/)
+  })
+
+  it('se valida como cualquier color (los dos esquemas) y se documenta en tokens.json', () => {
+    const r = buildTheme({ brand: '#9D1635', primary: '#7D1230' })
+    expect(r.issues.filter((i) => i.severity === 'error')).toEqual([])
+    expect(tok(r, 'primary')).toMatchObject({ level: 'semantic', source: 'primary', status: 'derived' })
+    expect(tok(r, 'on-primary').contrast.light).toBeGreaterThanOrEqual(4.5)
+    expect(tok(r, 'brand').source).toBe('brand')
+  })
+
+  it('un `primary` que rompe un mínimo de contraste no puede salir: se deriva siempre con contraste', () => {
+    for (const hex of ['#FFFF00', '#000000', '#7F7F7F', '#FF0000']) {
+      const r = buildTheme({ brand: '#1F1F1F', primary: hex })
+      expect(r.ok, hex).toBe(true)
+    }
+  })
+
+  it('`primary` cuenta como ancla de colisión con los semánticos y el aviso lo nombra', () => {
+    const r = buildTheme({ brand: '#1F1F1F', accent: '#0B63CE', primary: '#CF4030' })
+    const w = r.issues.filter((i) => i.id === 'semantic-close' && i.collidedWith === 'primary')
+    expect(w.length).toBeGreaterThan(0)
+    expect(w[0].message).toContain('al color primario')
+  })
+
+  it('valida la configuración', () => {
+    expect(readConfig({ primary: 'rojo' }).errors).toHaveLength(1)
+    expect(readConfig({ primary: '#7D1230' }).errors).toHaveLength(0)
+    expect(readConfig({ dark: { primary: 'x' } }).errors).toHaveLength(1)
+    expect(readConfig({ dark: { primary: '#F2A1B3' } }).errors).toHaveLength(0)
+  })
+})

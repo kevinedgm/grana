@@ -61,7 +61,7 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 3. `README.md` de `GBtn` (mora-docs) desde `GBtn.meta.json`.
 4. Siguiente componente, empezando por la ronda de kiwi.
 
-**Pendientes que no bloquean:** investigación **Dark Color Presence** (¿basta 4.5:1 en oscuro para `accent` y semánticos? Evidencia reunida con 9 familias y tres hipótesis, decisión pendiente; `design/lab/tema-oscuro/investigacion-dark-color-presence.md`); clave `primary` propia; regla automática «sin saltar niveles»; pruebas manuales en Firefox, Safari y lector de pantalla; `@grana/cli` (Flujo A: derivación OKLCH, validación de mínimos, `shape` → `--g-radius-shape`); tema oscuro; tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; adaptar las skills de kiwi, lima y coco al formato de `.agents/skills/bruno/references/handoffs.md`; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`.
+**Pendientes que no bloquean:** investigación **Dark Color Presence** (¿basta 4.5:1 en oscuro para `accent` y semánticos? Evidencia reunida con 9 familias y tres hipótesis, decisión pendiente; `design/lab/tema-oscuro/investigacion-dark-color-presence.md`); pruebas manuales en lector de pantalla (Firefox y Safari/WebKit se verifican con Playwright); `@grana/cli` (Flujo A: derivación OKLCH, validación de mínimos, `shape` → `--g-radius-shape`); tema oscuro; tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; adaptar las skills de kiwi, lima y coco al formato de `.agents/skills/bruno/references/handoffs.md`; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`.
 
 ## Lecciones ya aprendidas (no repetirlas)
 

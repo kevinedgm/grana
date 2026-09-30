@@ -48,6 +48,8 @@ const generateDark = (config, generated, derived) => {
   if (brand) Object.assign(out, darkColorTokens('brand', brand, surface))
   const accent = cfg.accent ?? config.accent ?? (brand ? out['--g-color-brand-text'] : undefined)
   if (accent) Object.assign(out, darkColorTokens('accent', accent, surface))
+  const primary = cfg.primary ?? config.primary
+  if (primary) Object.assign(out, darkColorTokens('primary', primary, surface))
   for (const k of Object.keys(generated)) {
     if (isColorGroup(k) && !(k in out) && k in DARK) out[k] = DARK[k]
   }
@@ -81,13 +83,15 @@ export const generateTheme = (config = {}) => {
   // accent sin valor: se deriva del `text` de brand (contrato §1)
   const accentBase = config.accent ?? (config.brand ? generated['--g-color-brand-text'] : undefined)
   if (accentBase) Object.assign(generated, colorTokens('accent', accentBase, surface))
+  // `primary` propio (tokens.md §17.4): sin él, `primary` es un alias de `brand` (defaults.css); con él, sus seis tokens se derivan del color dado
+  if (config.primary) Object.assign(generated, colorTokens('primary', config.primary, surface))
   // Derivación de paleta (tokens.md §16)
-  const derived = { semantic: {}, applied: {}, policy: config.semanticCollision ?? 'warn', neutralsBrand: null, categories: [] }
+  const derived = { primary: config.primary ?? null, semantic: {}, applied: {}, policy: config.semanticCollision ?? 'warn', neutralsBrand: null, categories: [] }
   const anchorBrand = config.brand ?? undefined
   const anchorAccent = accentBase
-  if (anchorBrand || anchorAccent) {
+  if (anchorBrand || anchorAccent || config.primary) {
     const darkCfg = typeof config.dark === 'object' ? config.dark : {}
-    derived.semantic = semanticAdjustments({ brand: anchorBrand, accent: anchorAccent, darkBrand: darkCfg.brand, darkAccent: darkCfg.accent })
+    derived.semantic = semanticAdjustments({ brand: anchorBrand, accent: anchorAccent, primary: config.primary, darkBrand: darkCfg.brand, darkAccent: darkCfg.accent, darkPrimary: darkCfg.primary })
     // semanticCollision (tokens.md §17.12): con «warn» (por defecto) solo se propone; con «adjust» se aplica
     if (derived.policy === 'adjust') derived.applied = derived.semantic
     for (const [name, r] of Object.entries(derived.applied)) Object.assign(generated, colorTokens(name, r.hex, surface))

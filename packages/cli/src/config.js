@@ -1,7 +1,7 @@
 // Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides` + `dark`.
 import { parseHex } from './color.js'
 
-export const KEYS = ['name', 'brand', 'accent', 'neutrals', 'neutralsHue', 'semanticCollision', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
+export const KEYS = ['name', 'brand', 'accent', 'primary', 'neutrals', 'neutralsHue', 'semanticCollision', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
 
 /** Devuelve { config, errors }. Rechaza claves desconocidas y tipos incorrectos, con el motivo. */
 export const readConfig = (raw) => {
@@ -48,6 +48,7 @@ export const readConfig = (raw) => {
   num('categories', { min: 0, max: 12, int: true })
   color('brand')
   color('accent')
+  color('primary')
   num('radius', { min: 0, max: 64 })
   num('space', { min: 1, max: 16 })
   num('fontSize', { min: 8, max: 32 })
@@ -80,9 +81,9 @@ export const readConfig = (raw) => {
     else if (d !== null && typeof d === 'object' && !Array.isArray(d)) {
       const o = {}
       for (const key of Object.keys(d)) {
-        if (!['brand', 'accent', 'overrides'].includes(key)) err('unknown-key', `Clave desconocida «dark.${key}». Claves válidas: brand, accent, overrides.`)
+        if (!['brand', 'accent', 'primary', 'overrides'].includes(key)) err('unknown-key', `Clave desconocida «dark.${key}». Claves válidas: brand, accent, primary, overrides.`)
       }
-      for (const key of ['brand', 'accent']) {
+      for (const key of ['brand', 'accent', 'primary']) {
         if (d[key] === undefined) continue
         if (typeof d[key] !== 'string' || !parseHex(d[key])) err('bad-color', `«dark.${key}» debe ser un color hex (#RGB o #RRGGBB); se recibió ${JSON.stringify(d[key])}.`)
         else o[key] = d[key].startsWith('#') ? d[key].toUpperCase() : `#${d[key].toUpperCase()}`
@@ -92,7 +93,7 @@ export const readConfig = (raw) => {
         if (ov) o.overrides = ov
       }
       config.dark = o
-    } else err('bad-dark', '«dark» debe ser true, false o un objeto { brand, accent, overrides }.')
+    } else err('bad-dark', '«dark» debe ser true, false o un objeto { brand, accent, primary, overrides }.')
   }
   return { config, errors }
 }

@@ -10,6 +10,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | --- | --- | --- | --- |
 | `brand` | color hex | `"#F5B940"` | Acción principal |
 | `accent` | color hex | `"#5B3FE0"` | Foco, enlaces, selección, estados activos. Sin valor: se deriva de `brand` (su `text`) |
+| `primary` | color hex | `"#7D1230"` | Color de la **acción principal** cuando es distinto de `brand` (§17.4). Sin valor: `primary` es un alias de `brand`. Con valor, `primary`, `primary-strong`, `-soft`, `-text`, `on-primary` y `on-primary-soft` se derivan de él (claro y oscuro, con `dark: { primary }` opcional) y **cuenta como ancla de colisión** con los semánticos. Los componentes ya leen `primary`, así que no cambia ningún contrato |
 | `radius` | número (px) | `20` | Paso `md` de la escala de radios |
 | `shape` | `"rounded"` \| `"pill"` | `"pill"` | Con `pill`, botones, chips e insignias usan `radius-pill` |
 | `space` | número (px) | `4` | Unidad de espaciado |
@@ -407,7 +408,7 @@ Comparten la misma arquitectura semántica: los componentes no saben qué esquem
 
 ### 17.4 `brand` y `primary` son conceptos distintos
 
-`brand` = identidad. `primary` = acción o jerarquía interactiva principal. En v0.x comparten valor: `primary` es alias de `brand` (y `primary-strong`, `-soft`, `-text`, `on-primary`, `on-primary-soft`, de sus equivalentes). Con solo `{ "brand": … }` se resuelve `primary = derived(brand)`. **Extensión futura:** una clave `primary` propia sin cambiar el contrato de ningún componente (porque ya leen `primary`).
+`brand` = identidad. `primary` = acción o jerarquía interactiva principal. En v0.x comparten valor: `primary` es alias de `brand` (y `primary-strong`, `-soft`, `-text`, `on-primary`, `on-primary-soft`, de sus equivalentes). Con solo `{ "brand": … }` se resuelve `primary = derived(brand)`. **Clave `primary` propia (implementada, DECISIONS.md #107):** `{ "brand": "#9D1635", "primary": "#7D1230" }` deriva los seis tokens `primary*` del color dado sin cambiar el contrato de ningún componente (porque ya leen `primary`); `brand` y sus derivados no cambian.
 
 ### 17.5 Roles derivados de `accent`
 
@@ -470,6 +471,6 @@ La misma derivación alimenta CSS, documentación, Design Hub, validación y CLI
 | §17.14 `categories` documentado como colores categóricos | Hecho |
 | §17.2: **componentes de `--g-color-brand*` / `--g-color-on-brand*` a `primary*`** (16 hojas de estilo, verificado: 0 diferencias en 3290 elementos, claro y oscuro) y el ítem activo de `GSidebar` a `active`; una prueba impide volver a leer `brand` | Hecho |
 | §17.2: variantes `color="accent"` y la barra de carga de `GDialog` | Se quedan en `accent`: la prop `color` elige la **familia** (`brand`, `accent`, `success`…), y `accent` es también un rol semántico (§17.1). `link` y `selection` aún no tienen consumidores en los componentes |
-| §17.4 clave de configuración `primary` propia | Pendiente (futuro) |
-| Regla «sin saltar niveles» y «sin tokens de componente que solo renombran» como comprobación automática | Pendiente (hoy es norma de revisión) |
+| §17.4 clave de configuración `primary` propia | **Hecho** (#107) |
+| Regla «sin saltar niveles» como comprobación automática (`packages/vue/src/tokens/levels.test.js` y `roles.test.js`): los componentes no leen semillas ni `brand`, no escriben colores literales, todo `var(--g-*)` existe en el tema o lo declara el propio componente y ningún componente redeclara un token del tema | **Hecho** (#107). «Sin tokens de componente que solo renombran» sigue siendo norma de revisión (no es decidible automáticamente) |
 | `--g-data-*` para gráficas | Fuera de alcance |

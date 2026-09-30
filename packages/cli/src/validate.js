@@ -67,7 +67,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
   // Cada color: relleno sólido, blando y texto de color
   // Categorías (--g-color-cat-N) presentes en el tema: los mismos pares que el resto de colores
   const cats = [...new Set(Object.keys(tokens).map((k) => /^--g-color-(cat-\d+)$/.exec(k)?.[1]).filter(Boolean))]
-  for (const c of [...COLOR_NAMES, ...cats]) {
+  for (const c of [...COLOR_NAMES, 'primary', ...cats]) {
     pair(`--g-color-on-${c}`, `--g-color-${c}`, 4.5, 'on-solid', `WCAG 1.4.3: el texto sobre el relleno sólido de «${c}» necesita 4.5:1.`)
     pair(`--g-color-on-${c}-soft`, `--g-color-${c}-soft`, 4.5, 'on-soft', `WCAG 1.4.3: el texto sobre el relleno suave de «${c}» necesita 4.5:1.`)
     pair(`--g-color-${c}-text`, '--g-color-surface', 4.5, 'color-text', `WCAG 1.4.3: el texto de color «${c}» sobre la superficie necesita 4.5:1.`)
@@ -113,7 +113,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
     const b = lch(`--g-color-${sem}`)
     if (!b) continue
     let nearest = null
-    for (const anchor of ['brand', 'accent']) {
+    for (const anchor of ['brand', 'accent', 'primary']) {
       const a = lch(`--g-color-${anchor}`)
       if (!a) continue
       const d = distance(a, b)
