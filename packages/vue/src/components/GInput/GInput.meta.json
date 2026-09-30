@@ -49,5 +49,5 @@
     "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"
   ],
   "states": ["default", "hover", "focus-visible", "filled", "disabled", "readonly", "invalid", "loading"],
-  "pending": ["Auditoría de coco del slot action sobre el componente real", "README (mora-docs), incluido el slot action", "Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "Ancho del botón mostrar/ocultar con textos largos"]
+  "pending": ["README (mora-docs), incluido el slot action", "Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "Ancho del botón mostrar/ocultar con textos largos"]
 }

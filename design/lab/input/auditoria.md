@@ -49,3 +49,52 @@ Ninguno bloquea.
 - **Zoom al 200% del navegador** y **dispositivo táctil real**.
 - **Hover del botón mostrar/ocultar** y **contraste en hover del campo** (solo se comprobó el borde del campo).
 - **Autocompletar y gestores de contraseñas.**
+
+---
+
+# Ampliación: auditoría del slot `action` (botón de acción)
+
+**Componente:** `GInput` con un `GBtn` real en el slot `action` (`GInput.vue` + `GInput.css` + `GBtn`), con `dist/` reconstruido.
+**Método:** Chromium, playground. 30 combinaciones montadas con el componente real (5 tamaños × 3 densidades, variantes del botón `solid`, `soft`, `outline` y `ghost`, campo `outline` y `soft`, inválido, deshabilitado, con carga, píldora, solo icono, `color`). Se compararon bajo el tema por defecto y bajo un tema distinto (marca azul marino, superficies ámbar, radio 0 y luego píldora, borde 2px, foco 3px con separación 4px, espacio base 5, Georgia). Hover, Tab y Enter reales.
+
+## Resultado: aprobado, con un ajuste hecho
+
+| Prueba | Resultado |
+| --- | --- |
+| Acoplamiento en las 30 combinaciones, con el tema distinto | Ninguna deja de estar acoplada; misma altura de caja y botón; misma línea superior |
+| Alturas exactas (tamaño × densidad, espacio base 5, borde 2px) | Las 15 combinaciones coinciden con la fórmula (md 45, xl 65…); el botón, igual |
+| Esquinas con radio 0 | Interiores y exteriores a 0 en caja y botón |
+| Esquinas en píldora | Exteriores a 999px en caja y botón; interiores rectas |
+| El botón sigue el tema | Fondo del botón `solid`: de #1F1F1F a #0B1F4D; borde de la caja: de 1px a 2px |
+| Contraste del texto del botón (tema de prueba) | `solid` 15.94 · `soft` 13.95 · `outline` 15.94 · `ghost` 15.94; botón `outline` sobre campo `soft`: 13.26. Todos ≥ 4.5:1 |
+| Borde del botón `outline` contra el fondo | 15.94:1 (mínimo 3:1) |
+| `disabled` | Se propaga por el slot: campo y botón deshabilitados |
+| `loading` del botón | `aria-busy="true"` y `aria-disabled="true"`, sin `disabled` nativo; el campo sigue editable |
+| Error | `aria-invalid` solo en el `<input>`; el mensaje no está dentro de la fila del botón |
+| Umbral de apilado (contenedores de 340, 301, 300, 299 y 220px) | 340 y 301: acoplado. 300, 299 y 220: el botón con texto pasa debajo, a ancho completo. El botón solo icono **nunca** se apila |
+| RTL (`dir="rtl"`) | Botón a la izquierda de la caja; esquinas interiores rectas y exteriores redondeadas espejadas (propiedades lógicas) |
+| Hover real con el ratón | El botón cambia a su color de hover (`#1F1F1F` → `#333333`); la caja no reacciona |
+| Foco con teclado (campo → botón) | Anillo del campo: 3px, color del tema, `z-index: 1`. Anillo del botón: visible, `z-index: 1`, por encima de la caja |
+| `prefers-reduced-motion` y `forced-colors` (bloques del CSS de `GInput` y `GBtn` aplicados sin condición) | Transiciones a `0s` en caja y botón; bordes de caja y botón a `ButtonText` |
+| Táctil (`pointer: coarse`, 375px, conjunto acoplado de 311px) | Botones de al menos 44×44px; sin desborde horizontal |
+| Errores y avisos en la consola | Ninguno |
+
+## Ajuste hecho durante la auditoría
+
+**Defecto:** con `pointer: coarse`, `GBtn` amplía su área de toque a 44×44px con un pseudo-elemento. Un botón acoplado más estrecho de 44px (icono `md` de 36px, `xs` de 26px) invadía hasta 9px de la caja y **robaba los toques** del borde del campo (`elementFromPoint` a 3px y 6px del borde devolvía el botón).
+**Corrección** (`GInput.css`): en táctil, `.g-input__action > *` recibe `min-inline-size: 44px`. Ahora el botón mide 44px reales de ancho y el pseudo-elemento ya no sobresale. Verificado: seis botones de 44×44px como mínimo, y ningún toque a 3, 6 ni 12px del borde llega al botón.
+
+## Hallazgos
+
+Ninguno bloquea.
+
+1. **El botón `soft` junto a un campo `outline`.** Su relleno frente al fondo da 1.14:1 (el texto del botón, 13.95:1). Es el diseño de la variante `soft` de `GBtn`, ya auditado; el botón se identifica por su texto y su posición pegada al campo.
+2. **Botón `icon` estrecho en escritorio.** En ratón, un botón icono `xs` mide 26px de ancho; cumple los 24px mínimos.
+
+## No verificado
+
+- **Emulación real de `prefers-reduced-motion` y `forced-colors`** (la herramienta no la permite): se aplicó el contenido de cada bloque sin su condición.
+- **Lector de pantalla real:** cómo se anuncia el conjunto (etiqueta, botón, error, carga de la acción). Sigue abierto.
+- **Zoom al 200%** del navegador y **dispositivo táctil real** (se usó la emulación de `pointer: coarse`).
+- **Botones `ghost` y `link`** dentro del conjunto: contraste del texto medido; el aspecto acoplado de un botón sin fondo ni borde no se valoró visualmente.
+

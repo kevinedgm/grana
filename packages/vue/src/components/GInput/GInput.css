@@ -188,6 +188,13 @@
   border-start-end-radius: var(--_field-radius);
   border-end-end-radius: var(--_field-radius);
 }
+/* Táctil: el área de toque del GBtn (44px) sobresaldría dentro de la caja y le robaría toques
+   si el botón fuera más estrecho; se le da 44px reales de ancho */
+@media (pointer: coarse) {
+  .g-input__action > * {
+    min-inline-size: 44px;
+  }
+}
 /* El elemento enfocado pasa por encima del vecino: los anillos nunca se tapan */
 .g-input__control:has(.g-input__field:focus-visible),
 .g-input__action > *:focus-visible {
