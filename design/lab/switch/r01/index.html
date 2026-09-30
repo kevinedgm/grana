@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSwitch · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:36px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px} .wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px 24px;align-items:start}
+.frame{border:1px solid var(--wf-line);background:#fff;padding:16px;resize:horizontal;overflow:auto;max-width:100%}
+.cap{font-size:12px;color:var(--wf-2);margin:0 0 4px} .stack{display:grid;gap:10px}
+kbd{border:1px solid var(--wf-3);border-bottom-width:2px;border-radius:3px;padding:0 5px;font-size:12px}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:48px;white-space:pre-wrap;max-width:72ch}
+
+/* ---------- Interruptor ---------- */
+.s{--h:24px;--tw:44px;--th:24px;--pad:2px;--td:calc(var(--th) - var(--pad) * 2 - 3px);position:relative;display:block}
+.s__row{display:flex;align-items:flex-start;gap:12px;min-height:var(--h);cursor:pointer}
+.s--start .s__row{flex-direction:row-reverse;justify-content:space-between}
+/* el <input> ES el riel (appearance:none); el pulgar y su marca son pseudo-elementos */
+.s__input{appearance:none;-webkit-appearance:none;position:relative;flex:none;inline-size:var(--tw);block-size:var(--th);margin:calc((var(--h) - var(--th)) / 2) 0 0;border:1.5px solid var(--wf-2);border-radius:999px;background:#fff;cursor:inherit}
+.s__input::before{content:"";position:absolute;inset-block:var(--pad);inset-inline-start:var(--pad);inline-size:var(--td);border-radius:50%;background:var(--wf-2);transition:inset-inline-start .16s cubic-bezier(.23,1,.32,1)}
+.s__input:checked{background:var(--wf-ink);border-color:var(--wf-ink)}
+.s__input:checked::before{inset-inline-start:calc(100% - var(--pad) - var(--td));background:#fff}
+/* marca dibujada dentro del pulgar: − apagado, ✓ encendido */
+.s__input::after{content:"";position:absolute;inset-block-start:50%;inset-inline-start:calc(var(--pad) + var(--td) / 2);width:calc(var(--td) * .5);height:2px;background:#fff;translate:-50% -50%;transition:inset-inline-start .16s cubic-bezier(.23,1,.32,1)}
+.s__input:checked::after{inset-inline-start:calc(100% - var(--pad) - var(--td) / 2);width:calc(var(--td) * .5);height:calc(var(--td) * .25);background:none;border:solid var(--wf-ink);border-width:0 0 2px 2px;translate:-50% -65%;rotate:-45deg}
+[dir=rtl] .s__input:checked::after{translate:50% -65%}
+[dir=rtl] .s__input::after{translate:50% -50%}
+.s__text{display:flex;flex-direction:column;min-width:0;padding-top:calc((var(--h) - 1.5em) / 2);flex:1 1 auto}
+.s__label{font-size:15px} .s__hint{font-size:13px;color:var(--wf-2)}
+.s__err{font-size:13px;font-weight:600;margin-top:2px} .s__err::before{content:"\26A0\00a0"} .s__err:empty{display:none}
+.s__row:hover .s__input:not(:disabled){border-color:var(--wf-ink);background:var(--wf-fill-2)} .s__row:hover .s__input:checked:not(:disabled){background:#000}
+.s__input:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.s.is-disabled .s__row{cursor:not-allowed} .s.is-disabled .s__text{opacity:.55} .s.is-disabled .s__input{opacity:.45;border-style:dotted}
+.s.is-readonly .s__row{cursor:default} .s.is-readonly .s__input{border-style:dashed}
+.s.is-readonly .s__input:checked{background:var(--wf-2);border-color:var(--wf-2)}
+.s.is-invalid .s__input{border:2px dashed var(--wf-ink)}
+/* Carga: anillo dentro del pulgar; no bloquea */
+.s.is-loading .s__input:not(:checked)::before{background:var(--wf-fill)}
+.s.is-loading .s__input::after{content:"";width:calc(var(--td) * .6);height:calc(var(--td) * .6);border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;background:none;translate:-50% -50%;rotate:0deg;animation:spin .8s linear infinite}
+.s.is-loading .s__input:checked::after{border:2px solid var(--wf-3);border-top-color:var(--wf-ink);width:calc(var(--td) * .6);height:calc(var(--td) * .6);translate:-50% -50%}
+@keyframes spin{to{rotate:360deg}}
+/* tamaños */
+.s--xs{--h:24px;--tw:36px;--th:20px} .s--sm{--h:24px;--tw:40px;--th:22px} .s--lg{--h:32px;--tw:52px;--th:30px} .s--xl{--h:40px;--tw:64px;--th:36px}
+@media (pointer:coarse){.s{--h:44px}}
+@media (prefers-reduced-motion:reduce){.s__input::before,.s__input::after{transition:none}.s.is-loading .s__input::after{animation:none}}
+.show-target .s__row{outline:1px dashed #c00}
+</style>
+</head>
+<body>
+<main>
+<h1>GSwitch · r01</h1>
+<p class="meta">Wireframe F2. Kit neutral; el estilo real es de coco.</p>
+<div class="wf-note">El control es un <code>&lt;input type="checkbox" role="switch"&gt;</code> nativo dibujado con <code>appearance: none</code> (no se oculta ni se sustituye). El pulgar y su marca son pseudo-elementos del propio input. Espacio alterna; Enter no.</div>
+<div id="app"></div>
+<h2>Registro</h2><div class="log" id="log">—</div>
+</main>
+<script>
+let n=0; const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
+function sw(o={}){const id='s'+(++n);const cls=['s',o.size&&`s--${o.size}`,o.start&&'s--start',o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ');
+ const desc=[o.hint&&`${id}-h`,o.error&&`${id}-e`].filter(Boolean).join(' ');
+ return `<div class="${cls}"><label class="s__row" for="${id}"><input class="s__input" type="checkbox" role="switch" id="${id}" aria-labelledby="${id}-l" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true" data-ro':''} ${o.loading?'aria-busy="true"':''} ${o.disabled?'disabled':''} ${o.on?'checked':''}><span class="s__text"><span class="s__label" id="${id}-l">${o.label||'Etiqueta'}</span>${o.hint?`<span class="s__hint" id="${id}-h">${o.hint}</span>`:''}</span></label><div class="s__err" id="${id}-e" aria-live="polite">${o.error||''}</div></div>`}
+const cell=(cap,o)=>`<div><p class="cap">${cap}</p>${sw(o)}</div>`
+const sections=[
+ ['Estados',[['apagado',{}],['encendido',{on:1}],['con ayuda',{on:1,hint:'Te avisamos por correo.',label:'Notificaciones'}],['disabled apagado',{disabled:1,label:'No disponible'}],['disabled encendido',{disabled:1,on:1,label:'Incluido en tu plan'}],['readonly encendido',{readonly:1,on:1,label:'Administrado por tu organización'}],['readonly apagado',{readonly:1,label:'Sin administrar'}],['inválido con error',{error:'Actívalo para continuar.',label:'Aceptar cookies'}],['loading apagado',{loading:1,label:'Guardando…'}],['loading encendido',{loading:1,on:1,label:'Guardando…'}]]],
+ ['Tamaños',['xs','sm','md','lg','xl'].map(z=>[z,{size:z==='md'?undefined:z,on:1,label:z}])],
+ ['Etiqueta al inicio (fila completa)',[['start',{start:1,on:1,label:'Modo avión',hint:'Desactiva la red.'}]]],
+]
+document.getElementById('app').innerHTML=sections.map(([t,items])=>`<h2>${t}</h2><div class="grid">${items.map(([c,o])=>cell(c,o)).join('')}</div>`).join('')+
+ `<h2>Contenedor de 240px y texto largo</h2><div class="frame" style="width:240px">${sw({on:1,label:'Recibir un resumen semanal con las novedades de todos mis proyectos',hint:'Puedes cambiarlo cuando quieras desde tu perfil.'})}</div>`+
+ `<h2>RTL</h2><div class="frame" dir="rtl">${sw({on:1,label:'وضع الطيران',hint:'يعطّل الشبكة'})}${sw({label:'إشعارات'})}</div>`+
+ `<h2>Comportamiento (clic y teclado)</h2><div class="stack" style="max-width:340px" id="beh">${sw({label:'Interruptor normal'})}${sw({readonly:1,on:1,label:'Solo lectura'})}${sw({loading:1,label:'Con carga (no bloquea)'})}</div>`
+document.getElementById('beh').addEventListener('click',e=>{const i=e.target.closest('input');if(i){if(i.hasAttribute('data-ro')){e.preventDefault();log('readonly: cambio cancelado')}else log((i.getAttribute('aria-labelledby')&&document.getElementById(i.getAttribute('aria-labelledby')).textContent)+' → '+(i.checked?'encendido':'apagado'))}})
+</script>
+</body></html>
