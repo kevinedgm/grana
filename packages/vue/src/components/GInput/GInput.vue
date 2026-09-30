@@ -1,7 +1,7 @@
 <script setup>
 // GInput · lógica del campo de texto (dueño: bruno)
 // Contrato: design/contracts/input.md · Estructura: design/lab/input/r01/ · Estilo: GInput.css (coco)
-import { computed, ref, useAttrs, useId, useSlots } from 'vue'
+import { computed, mergeProps, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 
 defineOptions({ name: 'GInput', inheritAttrs: false })
@@ -94,11 +94,13 @@ const controlled = computed(() => ({
   'aria-busy': props.loading ? 'true' : undefined,
   'aria-describedby': describedBy.value
 }))
-const fieldBindings = computed(() => ({ ...inputAttrs.value, ...controlled.value }))
-
 function onInput(event) {
   emit('update:modelValue', event.target.value)
 }
+
+// Nuestro manejador va PRIMERO: así una escucha `@input` del consumidor ya ve el modelo actualizado,
+// igual que con un <input v-model> nativo.
+const fieldBindings = computed(() => mergeProps({ onInput }, { ...inputAttrs.value, ...controlled.value }))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -124,7 +126,7 @@ if (isDev) {
     <div class="g-input__row">
       <div class="g-input__control">
         <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
-        <input v-bind="fieldBindings" class="g-input__field" @input="onInput">
+        <input v-bind="fieldBindings" class="g-input__field">
         <span v-if="slots.append" class="g-input__append" aria-hidden="true"><slot name="append" /></span>
         <span v-if="loading" class="g-input__loader" aria-hidden="true" />
         <button

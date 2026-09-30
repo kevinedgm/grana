@@ -4,3 +4,5 @@
 */
 @import url("../components/GBtn/GBtn.css");
 @import url("../components/GInput/GInput.css");
+@import url("../components/GCheckbox/GCheckbox.css");
+@import url("../components/GCheckboxGroup/GCheckboxGroup.css");

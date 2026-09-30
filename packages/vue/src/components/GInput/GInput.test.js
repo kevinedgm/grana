@@ -335,3 +335,18 @@ describe('GInput · botón de acción (slot action)', () => {
   })
 })
 
+describe('GInput · orden de las escuchas', () => {
+  it('una escucha @input del consumidor ya ve el v-model actualizado (como un <input v-model> nativo)', async () => {
+    let seen = null
+    const Wrap = {
+      components: { GInput },
+      data: () => ({ v: '' }),
+      methods: { onInput() { seen = this.v } },
+      template: '<g-input v-model="v" label="x" @input="onInput"></g-input>'
+    }
+    const w = mount(Wrap)
+    await w.find('input').setValue('hola')
+    expect(seen).toBe('hola')
+  })
+})
+

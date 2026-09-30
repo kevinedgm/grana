@@ -68,4 +68,5 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 - `min-block-size` es un mínimo, no una altura: el padding vertical se calcula desde la altura objetivo.
 - Avisos de desarrollo: `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, nunca `import.meta.env.DEV`.
 - Declarar los eventos en `emits`; si no, el listener del consumidor llega al elemento nativo por `$attrs`.
+- Componentes con `inheritAttrs: false` que pasan `$attrs` al `<input>`: el manejador propio (`@input`, `@change`) debe ir **primero** con `mergeProps({ onX }, attrs)`; si va después, una escucha del consumidor ve el `v-model` sin actualizar (con un `<input v-model>` nativo no pasa). Hay una prueba de orden en `GInput` y `GCheckbox`.
 - La skill de bruno vive en `.agents/skills/bruno/`. Para que Claude Code la descubra como skill: `mkdir -p .claude/skills && ln -s ../../.agents/skills/bruno .claude/skills/bruno`.

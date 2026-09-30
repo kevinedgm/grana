@@ -132,6 +132,58 @@
       </g-input>
     </div>
 
+    <h2>Casillas (GCheckbox)</h2>
+    <div class="col" style="max-width:420px">
+      <g-checkbox v-model="newsletter" label="Recibir novedades"></g-checkbox>
+      <g-checkbox v-model="invoice" label="Factura electrónica" hint="Te la enviamos al correo registrado."></g-checkbox>
+      <g-checkbox v-model="terms" label="Acepto los términos" required :error="termsError" @change="checkTerms"></g-checkbox>
+      <g-checkbox :model-value="true" label="Verificado por administración" readonly></g-checkbox>
+      <g-checkbox :model-value="true" label="Incluido en tu plan" disabled></g-checkbox>
+      <g-checkbox v-model="mixed" :indeterminate="mixedState" label="Algunas opciones (mixta)" @update:indeterminate="mixedState = $event"></g-checkbox>
+      <div class="row">
+        <g-checkbox v-for="c in ['accent','success','warning','danger','info']" :key="c" :color="c" :model-value="true" :label="c"></g-checkbox>
+      </div>
+      <div class="row">
+        <g-checkbox v-for="z in ['xs','sm','md','lg','xl']" :key="z" :size="z" :model-value="true" :label="z"></g-checkbox>
+      </div>
+    </div>
+
+    <h2>Casilla-tarjeta (layout="card")</h2>
+    <g-checkbox-group v-model="extras" label="Extras de tu pedido" layout="card" :count-text="(n, t) => n + ' de ' + t + ' seleccionados'" hint="Puedes cambiarlos hasta el envío.">
+      <g-checkbox value="express" label="Envío express" hint="Llega en 24 horas.">
+        <template #icon><lucide-icon name="mail"></lucide-icon></template><template #meta>$99</template>
+      </g-checkbox>
+      <g-checkbox value="garantia" label="Garantía extendida" hint="Dos años adicionales de cobertura.">
+        <template #icon><lucide-icon name="lock"></lucide-icon></template><template #meta>$149</template>
+      </g-checkbox>
+      <g-checkbox value="instalacion" label="Instalación" hint="No disponible en tu zona." disabled>
+        <template #icon><lucide-icon name="tag"></lucide-icon></template><template #meta>$59</template>
+      </g-checkbox>
+    </g-checkbox-group>
+    <p class="log">Elegidos: {{ extras.join(', ') || '—' }}</p>
+
+    <h2>Grupo con casilla maestra y conteo</h2>
+    <div class="col" style="max-width:420px">
+      <g-checkbox-group v-model="reservas" label="Reservas" select-all select-all-label="Seleccionar todas" :count-text="(n, t) => n + ' de ' + t + ' seleccionadas'" :error="reservasError">
+        <g-checkbox value="ana" label="Ana García · 12 mar"></g-checkbox>
+        <g-checkbox value="luis" label="Luis Pérez · 14 mar"></g-checkbox>
+        <g-checkbox value="marta" label="Marta Ruiz · 15 mar"></g-checkbox>
+        <g-checkbox value="sara" label="Sara Gil · 20 mar (no seleccionable)" disabled></g-checkbox>
+      </g-checkbox-group>
+      <g-btn variant="outline" @click="validarReservas">Continuar</g-btn>
+    </div>
+    <p class="log">Reservas: {{ reservas.join(', ') || '—' }}</p>
+
+    <h2>Casilla-chip (layout="chip")</h2>
+    <g-checkbox-group v-model="servicios" label="Filtrar por servicio" layout="chip" color="accent">
+      <g-checkbox value="wifi" label="Wifi"></g-checkbox>
+      <g-checkbox value="desayuno" label="Desayuno"></g-checkbox>
+      <g-checkbox value="estacionamiento" label="Estacionamiento"></g-checkbox>
+      <g-checkbox value="mascotas" label="Mascotas"></g-checkbox>
+      <g-checkbox value="piscina" label="Piscina" disabled></g-checkbox>
+    </g-checkbox-group>
+    <p class="log">Servicios: {{ servicios.join(', ') || '—' }}</p>
+
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
@@ -171,6 +223,18 @@
         const handle = ref('ana.garcia')
         const coupon = ref('')
         const site = ref('')
+        const newsletter = ref(false)
+        const invoice = ref(false)
+        const terms = ref(false)
+        const termsError = ref('')
+        const checkTerms = () => { termsError.value = terms.value ? '' : 'Debes aceptar los términos para continuar.' }
+        const mixed = ref(false)
+        const mixedState = ref(true)
+        const extras = ref(['garantia'])
+        const reservas = ref(['ana'])
+        const reservasError = ref('')
+        const validarReservas = () => { reservasError.value = reservas.value.length ? '' : 'Elige al menos una reserva.' }
+        const servicios = ref(['wifi', 'estacionamiento'])
         const subEmail = ref('')
         const subError = ref('')
         const subLog = ref('')
@@ -193,7 +257,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
