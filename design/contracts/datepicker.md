@@ -277,6 +277,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-open`, `is-disabled`, `is-readonly`, `is-invalid` | Raíz | Estados |
 | `g-datepicker__label`, `__required`, `__hint`, `__error` | Etiqueta, marca, ayuda, error | Con campo |
 | `g-datepicker__field`, `__icon`, `__value`, `__value--placeholder` | Botón(es) del campo | Con campo |
+| `g-datepicker__fields`, `g-datepicker__item` | Grupo de dos campos y cada uno (etiqueta + botón) | Solo con `split` (`__fields` lleva `role="group"`; cada `__item` una `g-datepicker__label` propia con `labelStart` o `labelEnd`) |
 | `g-datepicker__pop`, `is-up` | Popover | Con campo |
 | `g-datepicker__sheet-head`, `__sheet-close` | Cabecera y cierre de la hoja | Con campo (visible ≤ ~520px) |
 | `g-datepicker__surface` | Superficie | Siempre |

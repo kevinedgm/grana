@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDatePicker · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/datepicker.md con el CSS real y el tema por defecto.
+     Incluye un motor mínimo (meses, rango, teclado, popover por variables) que imita lo que hará bruno. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDatePicker/GDatePicker.css?v=1" id="css-d">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:28px 0 10px} .cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 4px}
+  .row{display:flex;gap:16px 24px;flex-wrap:wrap;align-items:flex-start}
+  .rsz{max-inline-size:100%;overflow:hidden;border:1px dashed var(--g-color-border-strong);padding:8px}
+  .states{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px 20px}
+  .state{display:flex;flex-direction:column;gap:6px;align-items:flex-start;font-size:12px}
+  .state table{border-collapse:collapse} .state td{position:relative;padding:0;inline-size:var(--_cell);block-size:var(--_cell);text-align:center}
+  .stage{--_cell:max(24px,calc(var(--g-space-1)*10));--_soft:var(--g-color-brand-soft);--_on-soft:var(--g-color-on-brand-soft);--_color:var(--g-color-brand);--_on:var(--g-color-on-brand);--_focus:var(--g-color-focus)}
+  .stage td::before{content:"";position:absolute;inset-block:calc(var(--_cell)*.1);inset-inline:0;background:var(--_soft);opacity:0}
+  .stage td.is-in-range::before,.stage td.is-range-start::before,.stage td.is-range-end::before{opacity:1}
+  .stage td.is-range-start::before{inset-inline-start:50%} .stage td.is-range-end::before{inset-inline-end:50%}
+  .stage td.is-preview::before{opacity:.6}
+  .stage td.is-cap-start::before{border-start-start-radius:var(--g-radius-pill);border-end-start-radius:var(--g-radius-pill)}
+  .stage td.is-cap-end::before{border-start-end-radius:var(--g-radius-pill);border-end-end-radius:var(--g-radius-pill)}
+  .stage td:is(.is-in-range,.is-range-start,.is-range-end) .g-datepicker__day:not(.is-selected){color:var(--_on-soft)}
+  .stage .g-datepicker__day.is-hover{background:var(--g-color-surface-sunken)}
+  .stage .g-datepicker__day.is-focus{outline:var(--g-focus-width) solid var(--_focus);outline-offset:var(--g-focus-offset)}
+  .wf{min-height:36px;padding:0 14px}
+  dialog.dlg{border:1px solid var(--g-color-border);border-radius:var(--g-surface-radius);padding:var(--g-surface-gap);background:var(--g-surface-shell);inline-size:min(94vw,640px);color:var(--g-color-text)}
+  dialog.dlg::backdrop{background:var(--g-surface-backdrop)}
+  dialog.dlg .inset{background:var(--g-surface-inset);border-radius:var(--g-surface-radius-inset);padding:var(--g-space-2)}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button" class="wf">Tema de prueba</button>
+
+<h2>1 · Estados de día</h2>
+<div class="states stage" id="states"></div>
+
+<h2>2 · Campos: variantes, tamaños, estados y colores</h2>
+<div class="row" id="fields"></div>
+
+<h2>3 · Rango en línea (uno o dos meses según el ancho)</h2>
+<div class="row" style="align-items:center;margin-bottom:8px"><label for="rw" style="font-size:13px">Ancho</label><input type="range" id="rw" min="300" max="900" value="820"><output id="rwo" style="font-size:13px">820px</output></div>
+<div class="rsz" id="rsz" style="inline-size:820px"><div class="g-datepicker g-datepicker--inline g-datepicker--mode-range g-datepicker--color-brand" id="inl"><div id="p-inl"></div></div></div>
+
+<h2>4 · Colores de la selección</h2>
+<div class="row" id="colors"></div>
+
+<h2>5 · Dentro de un Dialog (superficie hundida)</h2>
+<button type="button" class="wf" id="open-dlg">Abrir Dialog</button>
+<dialog class="dlg" id="dlg" aria-label="Cambiar reserva"><div class="inset"><div class="g-datepicker g-datepicker--inline g-datepicker--mode-range g-datepicker--color-brand"><div id="p-dlg"></div></div></div><p style="text-align:end;margin:8px 0 0"><button type="button" class="wf" id="dlg-x">Cerrar</button></p></dialog>
+
+<script>
+const log=()=>{}
+/* ---------- Fechas (cadenas ISO, sin zona) ---------- */
+const L='es',pad=n=>String(n).padStart(2,'0')
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+const add=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)}
+const addM=(s,n)=>{const d=parse(s),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return iso(d)}
+const first=s=>s.slice(0,8)+'01',dim=s=>{const d=parse(s);return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()}
+const TODAY=iso(new Date())
+const F={day:new Intl.DateTimeFormat(L,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),short:new Intl.DateTimeFormat(L,{day:'numeric',month:'short'}),shortY:new Intl.DateTimeFormat(L,{day:'numeric',month:'short',year:'numeric'}),month:new Intl.DateTimeFormat(L,{month:'long'}),wdN:new Intl.DateTimeFormat(L,{weekday:'narrow'}),wdL:new Intl.DateTimeFormat(L,{weekday:'long'})}
+const fmt=(s,f='shortY')=>F[f].format(parse(s))
+const days=(a,b)=>Math.round((parse(b)-parse(a))/864e5)+1
+const coarse=()=>matchMedia('(pointer:coarse)').matches
+let uid=0
+
+/* ---------- Superficie ---------- */
+class Picker{
+  constructor(host,o={}){
+    this.o={mode:'range',firstDay:1,months:'auto',proximity:[],summary:true,...o};this.id='dp'+(++uid)
+    const s=this.o
+    this.mode=s.mode;this.start=s.start||null;this.end=s.end||null;this.pending=false;this.hover=null
+    this.view=first(this.start||TODAY);this.focus=this.start||TODAY;this.n=1
+    host.innerHTML=`<div class="g-datepicker__surface" id="${this.id}"><div class="g-datepicker__months"></div><div class="g-datepicker__foot"></div><div class="g-datepicker__sr" role="status" aria-live="polite"></div></div>`
+    this.el=host.firstElementChild;this.monthsEl=this.el.querySelector('.g-datepicker__months');this.foot=this.el.querySelector('.g-datepicker__foot');this.live=this.el.querySelector('[role=status]')
+    this.buildFoot();this.fit(true);this.bind()
+    if(s.months==='auto'){const avail=s.avail;if(avail)addEventListener('resize',()=>this.fit());else new ResizeObserver(()=>this.fit()).observe(host)}
+  }
+  need(){return coarse()?704:648}
+  fit(force){
+    const s=this.o;let n=s.months==='auto'?((s.avail?s.avail():this.el.parentElement.clientWidth)>=this.need()?2:1):s.months
+    if(this.mode==='single'&&s.months==='auto')n=(s.avail?s.avail():this.el.parentElement.clientWidth)>=this.need()?2:1
+    if(n!==this.n||force){this.n=n;this.build();this.paint()}
+  }
+  d(s){return this.o.disabled?.(s)||(this.o.min&&s<this.o.min)||(this.o.max&&s>this.o.max)}
+  build(){
+    const hd=this.o.firstDay;this.monthsEl.innerHTML=''
+    for(let i=0;i<this.n;i++){
+      const m=addM(this.view,i),tid=`${this.id}-m${i}`,lead=(parse(m).getDay()-hd+7)%7,cells=[]
+      let rows=''
+      for(let r=0;r<6;r++){let tr='';for(let c=0;c<7;c++){const idx=r*7+c-lead,dt=add(m,idx),inM=idx>=0&&idx<dim(m)
+        if(!inM&&this.n>1){tr+=`<td aria-hidden="true" data-col="${c}"></td>`;continue}
+        tr+=`<td role="gridcell" data-col="${c}"><button type="button" class="g-datepicker__day${inM?'':' is-outside'}" data-d="${dt}" data-m="${inM?1:0}" tabindex="-1">${parse(dt).getDate()}</button></td>`}
+        rows+=`<tr>${tr}</tr>`}
+      let th='';for(let c=0;c<7;c++){const dd=new Date(2024,0,1+((c+hd-1)%7));th+=`<th scope="col"><span aria-hidden="true">${F.wdN.format(dd)}</span><span class="g-datepicker__sr">${F.wdL.format(dd)}</span></th>`}
+      const prev=i===0,next=i===this.n-1
+      const div=document.createElement('section');div.className='g-datepicker__month';div.setAttribute('aria-labelledby',tid)
+      div.innerHTML=`<div class="g-datepicker__head"><button type="button" class="g-datepicker__nav g-datepicker__nav--prev" aria-label="Mes anterior" ${prev?'':'hidden'}><i></i></button><h3 class="g-datepicker__title" id="${tid}" aria-live="polite"><span>${F.month.format(parse(m))}</span> <span>${parse(m).getFullYear()}</span></h3><button type="button" class="g-datepicker__nav g-datepicker__nav--next" aria-label="Mes siguiente" ${next?'':'hidden'}><i></i></button></div><table class="g-datepicker__grid" role="grid" aria-labelledby="${tid}"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table>`
+      div.querySelectorAll('.g-datepicker__nav[hidden]').forEach(b=>{b.tabIndex=-1;b.setAttribute('aria-hidden','true')})
+      div.dataset.m=m;this.monthsEl.append(div)
+    }
+  }
+  buildFoot(){
+    const o=this.o;let h=''
+    if(this.mode==='range'&&o.proximity.length)h+=`<div class="g-datepicker__chips" role="group" aria-label="Ampliar el rango">${'<span class="g-datepicker__chips-l" aria-hidden="true">Ampliar</span>'}${o.proximity.map(n=>`<button type="button" class="g-datepicker__chip" data-n="${n}" aria-label="Ampliar el rango ${n} ${n===1?'día':'días'} por cada lado">± ${n} ${n===1?'día':'días'}</button>`).join('')}</div>`
+    h+=`<div class="g-datepicker__bar"><div class="g-datepicker__summary" data-sum></div><div class="g-datepicker__actions"><button type="button" class="g-datepicker__action" data-clear>Limpiar</button>${o.done?'<button type="button" class="g-datepicker__action g-datepicker__action--primary" data-done>Listo</button>':''}</div></div>`
+    this.foot.innerHTML=h
+  }
+  say(t){this.live.textContent='';setTimeout(()=>{this.live.textContent=t},30)}
+  label(s){
+    let t=F.day.format(parse(s));const{a,b}=this.range()
+    if(s===TODAY)t+=', hoy'
+    if(this.mode==='single'){if(s===this.start)t+=', seleccionada'}
+    else{if(s===this.start&&s===this.end)t+=', inicio y fin del rango';else if(s===this.start)t+=', inicio del rango';else if(s===this.end)t+=', fin del rango';else if(a&&s>a&&s<b&&!this.pending)t+=', dentro del rango'}
+    if(this.d(s))t+=', no disponible'
+    return t
+  }
+  range(){ // rango efectivo (con vista previa mientras se elige el final)
+    if(this.mode!=='range'||!this.start)return{a:null,b:null,prev:false}
+    if(this.pending){if(this.hover&&this.hover>=this.start)return{a:this.start,b:this.hover,prev:true};return{a:this.start,b:this.start,prev:false}}
+    return{a:this.start,b:this.end||this.start,prev:false}
+  }
+  paint(){
+    const{a,b,prev}=this.range(),multi=this.n>1,visible=this.monthsEl.querySelectorAll('.g-datepicker__day')
+    visible.forEach(btn=>{
+      const s=btn.dataset.d,td=btn.parentElement,col=+td.dataset.col,dis=this.d(s)
+      const isS=this.mode==='single'?s===this.start:(s===this.start||s===this.end)
+      const inBand=a&&s>=a&&s<=b&&a!==b
+      const isStart=a&&s===a&&a!==b,isEnd=a&&s===b&&a!==b
+      const lastDay=multi&&btn.dataset.m==='1'&&+s.slice(8)===dim(s),firstDay=multi&&btn.dataset.m==='1'&&+s.slice(8)===1
+      btn.classList.toggle('is-today',s===TODAY)
+      btn.classList.toggle('is-selected',!!isS&&!prev||(prev&&s===this.start))
+      btn.classList.toggle('is-disabled',!!dis)
+      btn.classList.toggle('is-inactive',this.pending&&!!this.start&&s<this.start&&!dis&&btn.dataset.m==='1')
+      btn.setAttribute('aria-label',this.label(s))
+      btn.setAttribute('aria-disabled',dis?'true':'false')
+      td.classList.toggle('is-in-range',!!inBand);td.classList.toggle("is-range-start",!!isStart);td.classList.toggle("is-range-end",!!isEnd);td.classList.toggle('is-preview',!!(inBand&&prev))
+      td.classList.toggle('is-cap-start',!!inBand&&(col===0||firstDay||isStart)&&!isStart);td.classList.toggle('is-cap-end',!!inBand&&(col===6||lastDay)&&!isEnd)
+      if(isStart&&(col===6||lastDay))td.classList.add('is-cap-end');if(isEnd&&(col===0||firstDay))td.classList.add('is-cap-start')
+      td.setAttribute('aria-selected',(this.mode==='single'?s===this.start:(a&&s>=a&&s<=b&&!prev))?'true':'false')
+      btn.tabIndex=s===this.focus?0:-1
+    })
+    // si la fecha con foco no está visible, el primer día visible pasa a ser el tabstop
+    if(!this.monthsEl.querySelector('.g-datepicker__day[tabindex="0"]')){const f=this.monthsEl.querySelector('.g-datepicker__day[data-m="1"]');if(f)f.tabIndex=0}
+    this.paintFoot()
+  }
+  paintFoot(){
+    const sum=this.foot.querySelector('[data-sum]'),o=this.o
+    if(sum&&o.summary){let t=''
+      if(this.mode==='single')t=this.start?fmt(this.start):'Ninguna fecha elegida'
+      else if(!this.start)t='Elige la fecha de inicio'
+      else if(this.pending)t=`Inicio: ${fmt(this.start,'short')} · elige la fecha final`
+      else t=`${fmt(this.start,'short')} – ${fmt(this.end,'shortY')} · ${days(this.start,this.end)} ${days(this.start,this.end)===1?'día':'días'}`
+      sum.textContent=t}
+    this.foot.querySelectorAll('.g-datepicker__chip').forEach(c=>{c.disabled=!(this.start&&!this.pending)})
+    const cl=this.foot.querySelector('[data-clear]');if(cl)cl.hidden=!this.start
+  }
+  ensureVisible(s){
+    const last=addM(this.view,this.n-1)
+    if(s<this.view||s>add(first(last),dim(last)-1)){this.view=s<this.view?first(s):first(addM(s,-(this.n-1)));this.build()}
+  }
+  go(n,focusBtn){this.view=addM(this.view,n);this.focus=addM(this.focus,n);this.build();this.paint();if(focusBtn)this.focusDay()}
+  focusDay(){const b=this.monthsEl.querySelector(`.g-datepicker__day[data-d="${this.focus}"]`)||this.monthsEl.querySelector('.g-datepicker__day[tabindex="0"]');b?.focus()}
+  pick(s){
+    if(this.d(s))return
+    if(this.mode==='single'){this.start=s;this.end=null;this.say(`${fmt(s,'day')} seleccionada`);this.emit(true)}
+    else if(!this.pending){this.start=s;this.end=null;this.pending=true;this.hover=null;this.say(`Inicio del rango: ${fmt(s,'day')}. Elige la fecha final.`);this.emit(false)}
+    else if(s<this.start){this.start=s;this.say(`Nuevo inicio del rango: ${fmt(s,'day')}. Elige la fecha final.`);this.emit(false)}
+    else{this.end=s;this.pending=false;this.hover=null;this.say(`Rango de ${fmt(this.start,'day')} a ${fmt(s,'day')}, ${days(this.start,s)} días.`);this.emit(true)}
+    this.focus=s;this.ensureVisible(s);this.paint();this.focusDay()
+  }
+  widen(n){
+    if(!this.start||this.pending)return
+    const min=this.o.min,max=this.o.max;let a=add(this.start,-n),b=add(this.end||this.start,n)
+    if(min&&a<min)a=min;if(max&&b>max)b=max
+    this.start=a;this.end=b;this.say(`Rango ampliado: ${fmt(a,'day')} a ${fmt(b,'day')}, ${days(a,b)} días.`);this.emit(true);this.paint()
+  }
+  clear(){this.start=this.end=null;this.pending=false;this.hover=null;this.say('Selección borrada.');this.emit(false);this.paint()}
+  set(a,b){this.start=a;this.end=b;this.pending=false;if(a){this.view=first(a);this.focus=a}this.build();this.paint()}
+  emit(done){this.o.onChange?.({start:this.start,end:this.end,mode:this.mode,complete:done});if(done)this.o.onComplete?.()}
+  bind(){
+    const m=this.monthsEl
+    m.addEventListener('click',e=>{const b=e.target.closest('.g-datepicker__day');if(b){this.pick(b.dataset.d);return}
+      const n=e.target.closest('.g-datepicker__nav');if(n){const nx=n.classList.contains('g-datepicker__nav--next');this.go(nx?1:-1);m.querySelector(`.g-datepicker__nav--${nx?'next':'prev'}:not([hidden])`)?.focus()}})
+    m.addEventListener('pointerover',e=>{const b=e.target.closest('.g-datepicker__day');if(b&&this.pending&&this.hover!==b.dataset.d){this.hover=b.dataset.d;this.paint()}})
+    m.addEventListener('pointerleave',()=>{if(this.hover){this.hover=null;this.paint()}})
+    m.addEventListener('focusin',e=>{const b=e.target.closest('.g-datepicker__day');if(b){this.focus=b.dataset.d;m.querySelectorAll('.g-datepicker__day').forEach(x=>x.tabIndex=x===b?0:-1);if(this.pending){this.hover=this.focus;this.paint()}}})
+    m.addEventListener('keydown',e=>{
+      const b=e.target.closest('.g-datepicker__day');if(!b)return
+      const rtl=getComputedStyle(this.el).direction==='rtl',k=e.key;let t=null
+      if(k==='ArrowLeft')t=add(this.focus,rtl?1:-1);else if(k==='ArrowRight')t=add(this.focus,rtl?-1:1)
+      else if(k==='ArrowUp')t=add(this.focus,-7);else if(k==='ArrowDown')t=add(this.focus,7)
+      else if(k==='Home'){const dow=(parse(this.focus).getDay()-this.o.firstDay+7)%7;t=add(this.focus,-dow)}
+      else if(k==='End'){const dow=(parse(this.focus).getDay()-this.o.firstDay+7)%7;t=add(this.focus,6-dow)}
+      else if(k==='PageUp')t=addM(this.focus,e.shiftKey?-12:-1);else if(k==='PageDown')t=addM(this.focus,e.shiftKey?12:1)
+      if(t){e.preventDefault();this.focus=t;this.ensureVisible(t);this.paint();this.focusDay()}
+    })
+    // deslizamiento horizontal (táctil)
+    let x0=null,y0=null
+    m.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){x0=e.clientX;y0=e.clientY}})
+    m.addEventListener('pointerup',e=>{if(x0==null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.5){const rtl=getComputedStyle(this.el).direction==='rtl';this.go((dx<0)!==rtl?1:-1)}})
+    this.foot.addEventListener('click',e=>{
+      const c=e.target.closest('.g-datepicker__chip');if(c){this.widen(+c.dataset.n);return}
+      if(e.target.closest('[data-clear]')){this.clear();return}
+      if(e.target.closest('[data-done]'))this.o.done?.()})
+  }
+}
+
+/* ---------- Popover u hoja, anclado a un campo o una barra ---------- */
+class Pop{
+  constructor(picker,{triggers,anchor,root,title='Elegir fechas'}){
+    this.p=picker;this.triggers=triggers;this.anchor=anchor||triggers[0]
+    const pop=this.pop=document.createElement('div');pop.className='g-datepicker__pop';pop.setAttribute('popover','manual');pop.setAttribute('role','dialog');pop.setAttribute('aria-label',title)
+    pop.innerHTML=`<div class="g-datepicker__sheet-head"><button type="button" class="g-datepicker__sheet-close" aria-label="Cerrar"></button></div>`
+    pop.append(picker.el.parentElement);root.append(pop)
+    triggers.forEach(t=>{t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-expanded','false');t.addEventListener('click',()=>this.pop.matches(':popover-open')?this.close(true):this.open(t))})
+    pop.querySelector('.g-datepicker__sheet-close').addEventListener('click',()=>this.close(true))
+    pop.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();this.close(true)}})
+    pop.addEventListener('focusout',e=>{const r=e.relatedTarget;if(r&&!pop.contains(r)&&!triggers.some(t=>t.contains(r)))this.close(false)})
+    document.addEventListener('pointerdown',e=>{if(pop.matches(':popover-open')&&!pop.contains(e.target)&&!triggers.some(t=>t.contains(e.target)))this.close(false)})
+    addEventListener('resize',()=>{if(pop.matches(':popover-open'))this.place()})
+  }
+  open(t){
+    this.cur=t;this.triggers.forEach(x=>x.setAttribute('aria-expanded',String(x===t)))
+    this.pop.showPopover();this.p.fit();this.place()
+    this.p.focus=this.p.start||TODAY;this.p.ensureVisible(this.p.focus);this.p.paint();this.p.focusDay()
+  }
+  place(){
+    const r=this.anchor.getBoundingClientRect(),pop=this.pop
+    if(matchMedia('(max-width:520px)').matches){pop.style.cssText='';return}
+    pop.style.setProperty('--_max','none');const w=pop.offsetWidth,h=pop.offsetHeight
+    let left=Math.max(8,Math.min(r.left,innerWidth-w-8)),top=r.bottom+8,up=false
+    if(top+h>innerHeight-8&&r.top-h-8>8){up=true}
+    pop.classList.toggle('is-up',up);pop.style.setProperty('--_x',left+'px')
+    if(up){pop.style.setProperty('--_top','auto');pop.style.setProperty('--_bottom',(innerHeight-r.top+8)+'px')}else{pop.style.setProperty('--_top',top+'px');pop.style.setProperty('--_bottom','auto')}
+    pop.style.setProperty('--_max',(up?r.top-16:innerHeight-r.bottom-16)+'px')
+  }
+  close(ret){
+    if(!this.pop.matches(':popover-open'))return
+    this.pop.hidePopover();this.triggers.forEach(x=>x.setAttribute('aria-expanded','false'))
+    if(ret)(this.cur||this.triggers[0]).focus()
+  }
+}
+
+
+const TODAY_=TODAY
+const hol=[add(TODAY,5),add(TODAY,6),add(TODAY,19)]
+const cls=(o)=>['g-datepicker',`g-datepicker--mode-${o.mode||'range'}`,`g-datepicker--variant-${o.variant||'outline'}`,`g-datepicker--size-${o.size||'md'}`,`g-datepicker--color-${o.color||'brand'}`,o.split&&'g-datepicker--split',o.error&&'is-invalid',o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.rounded&&`g-datepicker--rounded-${o.rounded}`,o.density&&`g-datepicker--density-${o.density}`].filter(Boolean).join(' ')
+let fid=0
+function fieldHost(o){
+  const id='gd'+(++fid),host=document.createElement('div')
+  host.className=cls(o)
+  const req=o.required?'<span class="g-datepicker__required" aria-hidden="true">*</span>':''
+  const btn=(bid,lab,ph)=>`<button class="g-datepicker__field" id="${bid}" type="button" ${o.disabled?'disabled':''} ${o.readonly?'aria-readonly="true"':''} aria-labelledby="${bid}-l ${bid}-v"><span class="g-datepicker__icon" aria-hidden="true"></span><span class="g-datepicker__value g-datepicker__value--placeholder" id="${bid}-v">${ph}</span></button>`
+  let h=''
+  if(o.split)h=`<span class="g-datepicker__label">${o.label}</span><div class="g-datepicker__fields" role="group"><div class="g-datepicker__item"><span class="g-datepicker__label" id="${id}a-l">Desde</span>${btn(id+'a','Desde','Fecha de inicio')}</div><div class="g-datepicker__item"><span class="g-datepicker__label" id="${id}b-l">Hasta</span>${btn(id+'b','Hasta','Fecha de fin')}</div></div>`
+  else h=`<span class="g-datepicker__label" id="${id}-l">${o.label}${req}</span>${btn(id,o.label,o.placeholder||'Elige fechas')}`
+  if(o.hint)h+=`<div class="g-datepicker__hint">${o.hint}</div>`
+  h+=`<div class="g-datepicker__error" aria-live="polite">${o.error||''}</div>`
+  host.innerHTML=h
+  return host
+}
+function mount(o){
+  const host=fieldHost(o);document.getElementById('fields').append(host)
+  if(o.disabled||o.readonly)return host
+  const triggers=[...host.querySelectorAll('.g-datepicker__field')],holder=document.createElement('div')
+  const setv=(b,t,ph)=>{const v=b.querySelector('.g-datepicker__value');v.textContent=t||ph;v.classList.toggle('g-datepicker__value--placeholder',!t)}
+  const pk=new Picker(holder,{mode:o.mode||'range',proximity:o.proximity||[],min:TODAY,disabled:s=>hol.includes(s),avail:()=>innerWidth-32,done:()=>pop.close(true),
+    onChange:v=>{if(o.split){setv(triggers[0],v.start&&fmt(v.start),'Fecha de inicio');setv(triggers[1],v.end&&fmt(v.end),'Fecha de fin')}else setv(triggers[0],v.start&&(o.mode==='single'||!v.end?fmt(v.start):`${fmt(v.start,'short')} – ${fmt(v.end)}`),'Elige fechas')},
+    onComplete:o.mode==='single'?()=>setTimeout(()=>pop.close(true),120):null})
+  const pop=new Pop(pk,{triggers,anchor:host,root:host})
+  host.addEventListener('click',e=>{host.classList.toggle('is-open',pop.pop.matches(':popover-open'))})
+  new MutationObserver(()=>host.classList.toggle('is-open',pop.pop.matches(':popover-open'))).observe(pop.pop,{attributes:true})
+  return host
+}
+mount({label:'Fechas',proximity:[1,3,7],hint:'Con proximidad'})
+mount({label:'Fecha',mode:'single',placeholder:'Elige una fecha'})
+mount({label:'Estancia',split:true})
+mount({label:'Fechas (soft)',variant:'soft'})
+mount({label:'Fechas (xs)',size:'xs'}); mount({label:'Fechas (sm)',size:'sm'}); mount({label:'Fechas (lg)',size:'lg'}); mount({label:'Fechas (xl)',size:'xl'})
+mount({label:'Con error',error:'Elige un rango válido',required:true})
+mount({label:'Deshabilitado',disabled:true}); mount({label:'Solo lectura',readonly:true})
+mount({label:'Píldora',rounded:'pill'})
+
+// 1 · estados (mismo marcado del contrato, sin motor)
+;(()=>{const box=document.getElementById('states');let n=14
+  const cell=(c,t,l,tdc='')=>`<td class="${tdc}"><button type="button" class="g-datepicker__day ${c}" tabindex="-1" aria-label="${l||t}">${t}</button></td>`
+  const one=(name,desc,c)=>`<div class="state"><b>${name}</b><table><tr>${cell(c,n++)}</tr></table><span>${desc}</span></div>`
+  box.innerHTML=[['Default','','' ],['Inactive','Antes del inicio','is-inactive'],['Today','Hoy','is-today'],['Hovered','Puntero','is-hover'],['Focused','Foco','is-focus'],['Selected','Círculo','is-selected'],['Selected + Today','Ambos','is-selected is-today'],['Disabled','No disponible','is-disabled'],['Outside Month','Otro mes','is-outside']].map(a=>one(a[0],a[1],a[2])).join('')+
+  `<div class="state" style="grid-column:span 2"><b>Start → In Range → End (salta de fila)</b><table><tr>${cell('is-selected',12,'','is-range-start')}${cell('',13,'','is-in-range')}${cell('',14,'','is-in-range is-cap-end')}${cell('',15,'','is-in-range is-cap-start')}${cell('is-selected',16,'','is-range-end')}</tr></table></div>
+  <div class="state"><b>Inicio = fin</b><table><tr>${cell('is-selected',20,'','is-range-start is-range-end')}</tr></table></div>
+  <div class="state"><b>Vista previa</b><table><tr>${cell('is-selected',9,'','is-range-start')}${cell('',10,'','is-in-range is-preview')}${cell('',11,'','is-in-range is-preview is-cap-end')}</tr></table></div>`})()
+
+// 3 · inline
+const pi=new Picker(document.getElementById('p-inl'),{mode:'range',proximity:[1,3,7],min:TODAY,disabled:s=>hol.includes(s),start:add(TODAY,8),end:add(TODAY,13)})
+document.getElementById('rw').addEventListener('input',e=>{document.getElementById('rsz').style.inlineSize=e.target.value+'px';document.getElementById('rwo').textContent=e.target.value+'px'})
+
+// 4 · colores
+;(()=>{const row=document.getElementById('colors');['brand','accent','neutral','success','warning','danger','info'].forEach((c,i)=>{const h=document.createElement('div');h.style.inlineSize='min(100%,340px)';h.className=`g-datepicker g-datepicker--inline g-datepicker--mode-range g-datepicker--color-${c}`;h.innerHTML='<div></div>';row.append(h)
+  new Picker(h.firstElementChild,{mode:'range',months:1,start:add(TODAY,2+i%3),end:add(TODAY,7+i%3),summary:true})})})()
+
+// 5 · dialog
+new Picker(document.getElementById('p-dlg'),{mode:'range',min:TODAY,proximity:[1,3]})
+document.getElementById('open-dlg').onclick=()=>document.getElementById('dlg').showModal();document.getElementById('dlg-x').onclick=()=>document.getElementById('dlg').close()
+
+// Tema de prueba (ámbar, marrón, radios, foco 3px, espacio 5, Georgia)
+const T=`:root{--g-color-brand:#8A4B08;--g-color-brand-strong:#6B3A06;--g-color-brand-soft:#F6E4D0;--g-color-brand-text:#8A4B08;--g-color-on-brand:#FFFFFF;--g-color-on-brand-soft:#5A3005;--g-color-accent:#0F766E;--g-color-accent-text:#0F766E;--g-color-focus:#0F766E;--g-color-bg:#FFF8EC;--g-color-surface:#FFFDF7;--g-color-surface-sunken:#F3E7D3;--g-color-text:#3B2A1A;--g-color-text-muted:#5F4A35;--g-color-text-subtle:#735C44;--g-color-border:#DCC9AC;--g-color-border-strong:#B39B78;--g-color-border-control:#8A7250;--g-radius-sm:2px;--g-radius-xl:28px;--g-border-width:2px;--g-focus-width:3px;--g-space-1:5px;--g-font-ui:Georgia,serif;--g-surface-backdrop:rgb(59 42 26 / .45)}`
+let tOn=false;document.getElementById('theme-btn').onclick=()=>{tOn=!tOn;document.getElementById('theme').textContent=tOn?T:''}
+</script>
+</body>
+</html>

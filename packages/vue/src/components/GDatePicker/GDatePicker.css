@@ -1,0 +1,825 @@
+/*
+  GDatePicker · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/datepicker.md. Estructura: design/lab/datepicker/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max(), 1px del texto oculto y el
+  umbral de consulta de medios del visor móvil (~520px, excepción DECISIONS.md #42, #56 y #65).
+  Campo: mismo lenguaje que GSelect y GInput. Superficie: uno o dos meses (bruno decide cuántos por
+  la medida real de la celda), con el rango como franja detrás de botones circulares. El popover
+  está en la capa superior; bruno lo coloca con variables CSS dinámicas (--_x, --_top, --_bottom, --_max).
+  En móvil pasa a hoja inferior con las superficies de GDialog (--g-surface-*).
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-datepicker {
+  /* Foco: siempre el del tema (el color del componente es el de la selección, no el del foco) */
+  --_focus: var(--g-color-focus);
+
+  /* Color de la selección (se reasigna por --color-*); por defecto: brand */
+  --_color: var(--g-color-brand);
+  --_on: var(--g-color-on-brand);
+  --_soft: var(--g-color-brand-soft);
+  --_on-soft: var(--g-color-on-brand-soft);
+
+  /* Variante del campo (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+
+  /* Medidas del campo (se reasignan por --size-* y --density-*); por defecto: md. Las mismas que GSelect */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+
+  /* Superficie: la celda deriva de la unidad de espacio; 44px con puntero grueso */
+  --_cell: max(24px, calc(var(--g-space-1) * 10));
+  --_btn: max(24px, calc(var(--g-space-1) * 8));
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+@media (pointer: coarse) {
+  .g-datepicker {
+    --_cell: max(44px, calc(var(--g-space-1) * 10));
+    --_btn: 44px;
+  }
+}
+.g-datepicker--split {
+  inline-size: min(100%, calc(var(--g-space-1) * 100));
+}
+.g-datepicker--inline {
+  display: block;
+  inline-size: 100%;
+}
+
+/* ---------- Etiqueta ---------- */
+.g-datepicker__label {
+  overflow-wrap: anywhere;
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-datepicker__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+
+/* ---------- Campo ---------- */
+.g-datepicker__fields {
+  display: flex;
+  align-items: flex-start;
+}
+.g-datepicker__item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+.g-datepicker__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--_h);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--_px) * var(--_density));
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (pointer: coarse) {
+  .g-datepicker__field {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+/* Anillo de foco pegado al borde, como GInput y GSelect (DECISIONS.md #35). En forced-colors el
+   contorno transparente se volvería visible, por eso la base solo aplica fuera de ese modo. */
+@media (forced-colors: none) {
+  .g-datepicker__field {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+.g-datepicker__field:focus-visible {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-datepicker.is-open .g-datepicker__field[aria-expanded="true"] {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+}
+/* Con split los dos campos comparten un borde: el segundo lo solapa y solo los extremos se redondean */
+.g-datepicker--split .g-datepicker__item:first-child .g-datepicker__field {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.g-datepicker--split .g-datepicker__item:last-child .g-datepicker__field {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  margin-inline-start: calc(var(--g-border-width) * -1);
+}
+.g-datepicker--split .g-datepicker__field:focus-visible,
+.g-datepicker--split .g-datepicker__field[aria-expanded="true"] {
+  z-index: 1;
+}
+/* Icono del campo: por defecto, un calendario dibujado con bordes (sobrevive a forced-colors) */
+.g-datepicker__icon {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  box-sizing: border-box;
+  inline-size: 1.25em;
+  block-size: 1.25em;
+  color: var(--g-color-text-subtle);
+}
+.g-datepicker__icon:empty::before {
+  content: "";
+  box-sizing: border-box;
+  inline-size: 1em;
+  block-size: 1em;
+  border: var(--g-border-width) solid currentColor;
+  border-block-start-width: calc(var(--g-border-width) * 3);
+  border-radius: max(0px, calc(var(--g-radius-xs)));
+}
+.g-datepicker__value {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-datepicker__value--placeholder {
+  color: var(--g-color-text-subtle);
+}
+@media (hover: hover) {
+  .g-datepicker:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-datepicker__field:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+
+/* ---------- Mensajes ---------- */
+.g-datepicker__hint {
+  margin-block-start: var(--g-space-1);
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-datepicker__error {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-datepicker.is-invalid .g-datepicker__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-datepicker.is-invalid .g-datepicker__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Popover (capa superior) ---------- */
+/* Bruno da la posición con variables CSS dinámicas; sin ellas (cerrado) valen "auto". Ancho: el de su
+   contenido (uno o dos meses); nunca más que el visor. */
+.g-datepicker__pop {
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--_x);
+  inset-block-start: var(--_top);
+  inset-block-end: var(--_bottom);
+  box-sizing: border-box;
+  inline-size: max-content;
+  max-inline-size: calc(100vw - var(--g-space-2));
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-surface-radius);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  box-shadow: var(--g-shadow-2);
+}
+.g-datepicker__sheet-head {
+  display: none;
+}
+
+/* ---------- Superficie ---------- */
+.g-datepicker__surface {
+  box-sizing: border-box;
+  display: block;
+  padding: var(--g-space-5) var(--g-space-6) var(--g-space-4);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* En línea, la superficie es la caja: borde sutil y el radio concéntrico del sistema de superficies */
+.g-datepicker--inline .g-datepicker__surface {
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-surface-radius-inset);
+}
+.g-datepicker__pop .g-datepicker__surface {
+  border-radius: max(0px, calc(var(--g-surface-radius) - var(--g-border-width)));
+}
+.g-datepicker__months {
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--g-space-1) * 10);
+  touch-action: pan-y;
+}
+.g-datepicker__month {
+  flex: 1 1 0;
+  min-inline-size: calc(var(--_cell) * 7);
+  max-inline-size: calc(var(--_cell) * 8.5);
+}
+
+/* ---------- Encabezado del mes ---------- */
+.g-datepicker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: var(--_cell);
+  margin-block-end: var(--g-space-2);
+}
+.g-datepicker__title {
+  flex: 1 1 auto;
+  margin: 0;
+  text-align: center;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-body-weight);
+  text-transform: capitalize;
+}
+.g-datepicker__title > span:first-child {
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-datepicker__nav {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_btn);
+  block-size: var(--_btn);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* El botón que no corresponde a este mes conserva su hueco para que el título quede centrado */
+.g-datepicker__nav[hidden] {
+  display: grid;
+  visibility: hidden;
+}
+.g-datepicker__nav > i {
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 2.25);
+  block-size: calc(var(--g-space-1) * 2.25);
+  border: solid currentColor;
+  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
+  rotate: 45deg;
+  translate: calc(var(--g-space-1) * 0.5) 0;
+}
+.g-datepicker__nav--next > i {
+  rotate: -135deg;
+  translate: calc(var(--g-space-1) * -0.5) 0;
+}
+[dir="rtl"] .g-datepicker__nav > i {
+  scale: -1 1;
+}
+.g-datepicker__nav:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+@media (hover: hover) {
+  .g-datepicker__nav:hover {
+    background: var(--g-color-surface-sunken);
+    color: var(--g-color-text);
+  }
+}
+
+/* ---------- Cuadrícula ---------- */
+.g-datepicker__grid {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.g-datepicker__grid th {
+  padding: var(--g-space-1) 0 var(--g-space-2);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+  text-align: center;
+}
+.g-datepicker__grid td {
+  position: relative;
+  padding: 0;
+  block-size: var(--_cell);
+  text-align: center;
+}
+
+/* Franja del rango: detrás del botón; no es un botón. Sale de la celda, no la agranda. */
+.g-datepicker__grid td::before {
+  content: "";
+  position: absolute;
+  inset-block: calc(var(--_cell) * 0.1);
+  inset-inline: 0;
+  z-index: 0;
+  background: var(--_soft);
+  opacity: 0;
+}
+.g-datepicker__grid td.is-in-range::before,
+.g-datepicker__grid td.is-range-start::before,
+.g-datepicker__grid td.is-range-end::before {
+  opacity: 1;
+}
+.g-datepicker__grid td.is-range-start::before {
+  inset-inline-start: 50%;
+}
+.g-datepicker__grid td.is-range-end::before {
+  inset-inline-end: 50%;
+}
+/* Inicio = fin: círculo sin franja */
+.g-datepicker__grid td.is-range-start.is-range-end::before {
+  opacity: 0;
+}
+/* Extremos redondeados al saltar de fila y al terminar o empezar un mes */
+.g-datepicker__grid td.is-cap-start::before {
+  border-start-start-radius: var(--g-radius-pill);
+  border-end-start-radius: var(--g-radius-pill);
+}
+.g-datepicker__grid td.is-cap-end::before {
+  border-start-end-radius: var(--g-radius-pill);
+  border-end-end-radius: var(--g-radius-pill);
+}
+/* Vista previa: la misma franja, más suave */
+.g-datepicker__grid td.is-preview::before {
+  opacity: 0.6;
+}
+
+/* ---------- Día ---------- */
+.g-datepicker__day {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_cell);
+  block-size: var(--_cell);
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-datepicker__day:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (hover: hover) {
+  .g-datepicker__day:hover:not(.is-disabled):not(.is-selected) {
+    background: var(--g-color-surface-sunken);
+  }
+}
+/* Dentro de la franja, el texto usa el color pensado para el tono suave */
+.g-datepicker__grid td:is(.is-in-range, .is-range-start, .is-range-end) .g-datepicker__day:not(.is-selected) {
+  color: var(--_on-soft);
+}
+/* Hoy: aro y punto (forma), sin relleno: no compite con la selección */
+.g-datepicker__day.is-today {
+  font-weight: var(--g-text-action-weight);
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text-muted);
+}
+.g-datepicker__day.is-today::after {
+  content: "";
+  position: absolute;
+  inset-block-end: calc(var(--_cell) * 0.14);
+  inline-size: var(--g-space-1);
+  block-size: var(--g-space-1);
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+}
+/* Seleccionado (fecha única, inicio o fin): círculo relleno; no cambia la celda */
+.g-datepicker__day.is-selected {
+  background: var(--_color);
+  color: var(--_on);
+  font-weight: var(--g-text-action-weight);
+}
+.g-datepicker__day.is-selected.is-today {
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);
+}
+/* Día de otro mes (un mes): atenuado, sigue siendo elegible */
+.g-datepicker__day.is-outside {
+  color: var(--g-color-text-subtle);
+}
+/* Inactivo: antes del inicio pendiente; reinicia el inicio (cursiva: no depende del color) */
+.g-datepicker__day.is-inactive {
+  color: var(--g-color-text-subtle);
+  font-style: italic;
+}
+/* No disponible: tachado, no elegible */
+.g-datepicker__day.is-disabled {
+  color: var(--g-color-text-subtle);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* ---------- Pie: proximidad, resumen y acciones ---------- */
+.g-datepicker__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-3);
+  margin-block-start: var(--g-space-3);
+  padding-block-start: var(--g-space-3);
+}
+.g-datepicker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-datepicker__chip {
+  box-sizing: border-box;
+  min-block-size: var(--_btn);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  .g-datepicker__chip:hover:not(:disabled) {
+    border-color: var(--g-color-text);
+  }
+}
+.g-datepicker__chip:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* Deshabilitado: discontinuo y atenuado (no depende del color) */
+.g-datepicker__chip:disabled {
+  border-style: dashed;
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-datepicker__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-3);
+}
+.g-datepicker__summary {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-datepicker__actions {
+  display: flex;
+  gap: var(--g-space-2);
+  margin-inline-start: auto;
+}
+.g-datepicker__action {
+  box-sizing: border-box;
+  min-block-size: var(--_btn);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-3);
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-decoration: underline;
+  text-underline-offset: var(--g-space-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-datepicker__action--primary {
+  background: var(--_color);
+  color: var(--_on);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: none;
+}
+.g-datepicker__action:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Texto para lectores de pantalla (patrón estándar de texto oculto) */
+.g-datepicker__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Tamaño del campo ---------- */
+.g-datepicker--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-datepicker--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-datepicker--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-datepicker--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-datepicker--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad del campo ---------- */
+.g-datepicker--density-default { --_density: 1; }
+.g-datepicker--density-comfortable { --_density: 0.875; }
+.g-datepicker--density-compact { --_density: 0.75; }
+
+/* ---------- Forma del campo ---------- */
+.g-datepicker--rounded-none { --_radius: var(--g-radius-none); }
+.g-datepicker--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-datepicker--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-datepicker--rounded-md { --_radius: var(--g-radius-md); }
+.g-datepicker--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-datepicker--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-datepicker--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Color de la selección ---------- */
+.g-datepicker--color-brand { --_color: var(--g-color-brand); --_on: var(--g-color-on-brand); --_soft: var(--g-color-brand-soft); --_on-soft: var(--g-color-on-brand-soft); }
+.g-datepicker--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); }
+.g-datepicker--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); }
+.g-datepicker--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); }
+.g-datepicker--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); }
+.g-datepicker--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); }
+.g-datepicker--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); }
+
+/* ---------- Variante del campo ---------- */
+/* outline: los valores por defecto del esqueleto */
+/* soft: caja rellena; conserva la línea inferior con el borde de control (WCAG 1.4.11) */
+.g-datepicker--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Ancho ---------- */
+.g-datepicker--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados del campo ---------- */
+.g-datepicker.is-invalid .g-datepicker__field {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-datepicker.is-invalid .g-datepicker__field:focus-visible,
+.g-datepicker.is-invalid.is-open .g-datepicker__field[aria-expanded="true"] {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+}
+.g-datepicker.is-disabled .g-datepicker__field {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border);
+  --_border-end: var(--g-color-border);
+  border-style: dotted;
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-datepicker.is-disabled .g-datepicker__label {
+  color: var(--g-color-text-subtle);
+}
+.g-datepicker.is-readonly .g-datepicker__field {
+  border-style: dashed;
+  cursor: default;
+}
+
+/* ---------- Aparición del popover ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-datepicker__pop:popover-open {
+    animation: g-datepicker-in var(--g-duration-press) var(--g-ease-out);
+  }
+  @keyframes g-datepicker-in {
+    from { opacity: 0; translate: 0 calc(var(--g-space-1) * -1); }
+  }
+  .g-datepicker__pop.is-up:popover-open {
+    animation-name: g-datepicker-in-up;
+  }
+  @keyframes g-datepicker-in-up {
+    from { opacity: 0; translate: 0 var(--g-space-1); }
+  }
+}
+
+/* ---------- Móvil: hoja inferior (umbral literal, DECISIONS.md #42, #56 y #65) ---------- */
+@media (max-width: 520px) {
+  .g-datepicker__pop {
+    inset: auto;
+    inset-inline: 0;
+    inset-block-end: 0;
+    inline-size: 100%;
+    max-inline-size: none;
+    max-block-size: 92dvh;
+    padding-block-end: max(var(--g-surface-gap), env(safe-area-inset-bottom));
+    border-width: var(--g-border-width) var(--g-border-width) 0;
+    border-radius: var(--g-surface-radius) var(--g-surface-radius) 0 0;
+    background: var(--g-surface-inset);
+    box-shadow: var(--g-shadow-3);
+  }
+  .g-datepicker__pop::backdrop {
+    background: var(--g-surface-backdrop);
+  }
+  .g-datepicker__pop .g-datepicker__surface {
+    padding-inline: var(--g-space-4);
+    border-radius: 0;
+    background: transparent;
+  }
+  .g-datepicker__months {
+    gap: 0;
+  }
+  .g-datepicker__month {
+    max-inline-size: none;
+  }
+  .g-datepicker__sheet-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--g-space-2) var(--g-space-2) 0;
+  }
+  /* Asa de la hoja */
+  .g-datepicker__sheet-head::before {
+    content: "";
+    position: absolute;
+    inset-block-start: var(--g-space-2);
+    inset-inline: 0;
+    inline-size: calc(var(--g-space-1) * 9);
+    margin-inline: auto;
+    border-block-start: calc(var(--g-border-width) * 4) solid var(--g-color-border-strong);
+    border-radius: var(--g-radius-pill);
+  }
+  .g-datepicker__sheet-close {
+    position: relative;
+    box-sizing: border-box;
+    inline-size: 44px;
+    block-size: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--g-radius-pill);
+    background: transparent;
+    color: var(--g-color-text-muted);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .g-datepicker__sheet-close::before,
+  .g-datepicker__sheet-close::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 30%;
+    inline-size: 40%;
+    block-size: 0;
+    border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
+    rotate: 45deg;
+    translate: 0 -50%;
+  }
+  .g-datepicker__sheet-close::after {
+    rotate: -45deg;
+  }
+  .g-datepicker__sheet-close:focus-visible {
+    outline: var(--g-focus-width) solid var(--_focus);
+    outline-offset: calc(var(--g-focus-width) * -1);
+  }
+  /* La hoja sube desde abajo */
+  @media (prefers-reduced-motion: no-preference) {
+    .g-datepicker__pop:popover-open,
+    .g-datepicker__pop.is-up:popover-open {
+      animation-name: g-datepicker-sheet-in;
+    }
+    @keyframes g-datepicker-sheet-in {
+      from { opacity: 0; translate: 0 var(--g-space-6); }
+    }
+  }
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-datepicker__field,
+  .g-datepicker__day,
+  .g-datepicker__chip {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .g-datepicker__field {
+    border-color: ButtonText;
+  }
+  .g-datepicker__field:focus-visible,
+  .g-datepicker__day:focus-visible,
+  .g-datepicker__nav:focus-visible,
+  .g-datepicker__chip:focus-visible,
+  .g-datepicker__action:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-datepicker__pop,
+  .g-datepicker--inline .g-datepicker__surface {
+    border-color: CanvasText;
+  }
+  /* La franja pierde su relleno: conserva borde superior e inferior */
+  .g-datepicker__grid td.is-in-range::before,
+  .g-datepicker__grid td.is-range-start::before,
+  .g-datepicker__grid td.is-range-end::before,
+  .g-datepicker__grid td.is-preview::before {
+    background: transparent;
+    border-block: var(--g-border-width) solid CanvasText;
+  }
+  .g-datepicker__day.is-selected {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+    border: calc(var(--g-border-width) * 2) solid CanvasText;
+  }
+  .g-datepicker__day.is-today {
+    box-shadow: none;
+    border: calc(var(--g-border-width) * 2) solid CanvasText;
+  }
+  .g-datepicker__day.is-disabled,
+  .g-datepicker__chip:disabled {
+    color: GrayText;
+  }
+  .g-datepicker__action--primary {
+    border: var(--g-border-width) solid ButtonText;
+  }
+  .g-datepicker.is-invalid .g-datepicker__field {
+    border-width: calc(var(--g-border-width) * 4);
+  }
+}
