@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GCheckbox · r01 · wireframe F2</title>
+  <style>
+    /* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+    :root { --wf-ink:#1f1f1f; --wf-2:#555; --wf-3:#8a8a8a; --wf-line:#b9b9b9; --wf-fill:#e4e4e4; --wf-fill-2:#f0f0f0; --wf-bg:#fafafa; --wf-note:#fff8d6; --wf-font:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:clamp(12px,4vw,24px); font:15px/1.5 var(--wf-font); color:var(--wf-ink); background:var(--wf-bg); }
+    main { max-width:1100px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:40px 0 12px; padding-top:16px; border-top:1px solid var(--wf-line); }
+    p, li { max-width:72ch; } .meta { color:var(--wf-2); margin:0 0 16px; }
+    .wf-note { background:var(--wf-note); border:1px dashed var(--wf-3); padding:8px 12px; font-size:13px; margin:12px 0; max-width:72ch; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:16px 24px; align-items:start; }
+    .frame { border:1px solid var(--wf-line); background:#fff; padding:16px; resize:horizontal; overflow:auto; max-width:100%; }
+    .cap { font-size:12px; color:var(--wf-2); margin:0 0 4px; }
+    kbd { border:1px solid var(--wf-3); border-bottom-width:2px; border-radius:3px; padding:0 5px; font-size:12px; }
+    .stack { display:grid; gap:8px; }
+
+    /* Casilla base: el <input> nativo se dibuja (appearance:none); no se oculta */
+    .c { --h:24px; --box:20px; position:relative; display:flex; align-items:flex-start; gap:10px; min-height:var(--h); cursor:pointer; }
+    .c__input { appearance:none; -webkit-appearance:none; flex:none; width:var(--box); height:var(--box); margin:calc((var(--h) - var(--box)) / 2) 0 0; border:1.5px solid var(--wf-2); border-radius:3px; background:#fff; display:grid; place-content:center; cursor:inherit; }
+    .c__input:checked { background:var(--wf-ink); border-color:var(--wf-ink); }
+    .c__input:checked::after { content:""; width:10px; height:5px; border:solid #fff; border-width:0 0 2px 2px; transform:rotate(-45deg) translate(1px,-1px); }
+    .c__input:indeterminate { background:var(--wf-ink); border-color:var(--wf-ink); }
+    .c__input:indeterminate::after { content:""; width:10px; height:2px; background:#fff; }
+    .c:hover .c__input:not(:disabled), .c.st-hover .c__input { border-color:var(--wf-ink); background:var(--wf-fill-2); }
+    .c:hover .c__input:checked:not(:disabled) { background:#000; }
+    .c__input:focus-visible, .c.st-focus .c__input { outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .c__text { display:flex; flex-direction:column; min-width:0; padding-top:calc((var(--h) - 1.5em) / 2); }
+    .c__label { font-size:15px; }
+    .c__req { margin-inline-start:2px; }
+    .c__hint { font-size:13px; color:var(--wf-2); }
+    .c__err { font-size:13px; font-weight:600; }
+    .c__err::before { content:"\26A0\00a0"; }
+    .c.is-disabled { cursor:not-allowed; } .c.is-disabled .c__text { opacity:.55; } .c.is-disabled .c__input { opacity:.45; border-style:dotted; }
+    .c.is-readonly { cursor:default; } .c.is-readonly .c__input { border-style:dashed; background:var(--wf-fill-2); }
+    .c.is-readonly .c__input:checked { background:var(--wf-2); border-color:var(--wf-2); }
+    .c.is-invalid .c__input { border:2px dashed var(--wf-ink); }
+    @media (pointer:coarse) { .c { --h:44px; } }
+    .show-target .c { outline:1px dashed #c00; }
+
+    /* Propuesta A · casilla-tarjeta */
+    .c--card { --h:24px; padding:14px; border:1px solid var(--wf-line); border-radius:6px; background:#fff; gap:12px; }
+    .c--card:hover:not(.is-disabled) { border-color:var(--wf-ink); }
+    .c--card:has(.c__input:checked) { border:2px solid var(--wf-ink); background:var(--wf-fill-2); padding:13px; }
+    .c--card:has(.c__input:focus-visible) { outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .c--card .c__input:focus-visible { outline:0; }
+    .c--card .c__icon { flex:none; width:32px; height:32px; border:1.5px solid currentColor; border-radius:6px; display:grid; place-content:center; font-size:11px; }
+    .c--card .c__text { padding-top:0; flex:1 1 auto; }
+    .c--card .c__title { font-weight:600; } .c--card .c__desc { font-size:13px; color:var(--wf-2); }
+    .c--card .c__meta { font-weight:600; white-space:nowrap; }
+    .c--card .c__input { margin-top:2px; order:-1; }                 /* el cuadro va primero (esquina) */
+    .c--card.is-disabled { opacity:.6; }
+
+    /* Propuesta D · casilla-chip: el input cubre el chip (opacity:0, no display:none) */
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .c--chip { --h:32px; display:inline-flex; align-items:center; padding:0 14px; border:1px solid var(--wf-2); border-radius:999px; background:#fff; min-height:var(--h); }
+    .c--chip .c__input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; border-radius:999px; }
+    .c--chip .c__text { padding:0; flex-direction:row; align-items:center; gap:6px; }
+    .c--chip:has(.c__input:checked) { background:var(--wf-ink); color:#fff; border-color:var(--wf-ink); }
+    .c--chip:has(.c__input:checked) .c__text::before { content:"\2713"; font-size:13px; }
+    .c--chip:has(.c__input:focus-visible) { outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .c--chip:hover:not(.is-disabled) { border-color:var(--wf-ink); }
+    @media (pointer:coarse) { .c--chip { --h:44px; } }
+
+    /* Propuesta B · grupo con casilla maestra */
+    .grp { border:1px solid var(--wf-line); background:#fff; padding:12px 16px; border-radius:6px; }
+    .grp__head { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid var(--wf-line); padding-bottom:8px; margin-bottom:8px; flex-wrap:wrap; }
+    .grp__count { font-size:13px; color:var(--wf-2); }
+    .grp__list { display:grid; gap:2px; padding-inline-start:0; }
+
+    /* Propuesta C · detalle condicional */
+    .det { margin-inline-start:30px; margin-top:6px; padding:10px 12px; border-inline-start:3px solid var(--wf-2); background:var(--wf-fill-2); border-radius:0 4px 4px 0; }
+    .det[hidden] { display:none; }
+    .det label { display:block; font-size:13px; font-weight:600; margin-bottom:4px; }
+    .det input { width:100%; min-height:32px; border:1px solid var(--wf-2); border-radius:4px; padding:0 8px; font:inherit; }
+    .log { font-size:12px; color:var(--wf-2); margin:6px 0 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>GCheckbox · ronda r01</h1>
+  <p class="meta">Wireframe F2 sin estilo de marca · Ruta R1 · Casilla base + cuatro propuestas de estructura (A tarjeta · B grupo con maestra · C detalle condicional · D chip)</p>
+
+  <h2>1. Anatomía de la casilla base</h2>
+  <div class="grid"><div class="c st-focus"><input class="c__input" type="checkbox" checked aria-label="ejemplo"><span class="c__text"><span class="c__label">1 · Etiqueta (la fila completa activa la casilla)</span><span class="c__hint">2 · Ayuda</span></span></div></div>
+  <p class="cap">El cuadro es el propio <code>&lt;input type="checkbox"&gt;</code> dibujado (<code>appearance: none</code>), no un <code>div</code>. La marca ✓ / − sale de los estados <code>:checked</code> e <code>:indeterminate</code>.</p>
+
+  <h2>2. Estados</h2>
+  <div class="grid">
+    <div><p class="cap">sin marcar</p><label class="c"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Recibir novedades</span></span></label></div>
+    <div><p class="cap">marcada</p><label class="c"><input class="c__input" type="checkbox" checked><span class="c__text"><span class="c__label">Recibir novedades</span></span></label></div>
+    <div><p class="cap">indeterminada (propiedad del DOM)</p><label class="c"><input class="c__input" type="checkbox" id="indet"><span class="c__text"><span class="c__label">Algunas opciones</span></span></label></div>
+    <div><p class="cap">hover</p><label class="c st-hover"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Recibir novedades</span></span></label></div>
+    <div><p class="cap">focus-visible (real: pulsa Tab)</p><label class="c"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Recibir novedades</span></span></label></div>
+    <div><p class="cap">con ayuda</p><label class="c"><input class="c__input" type="checkbox" aria-describedby="h1"><span class="c__text"><span class="c__label">Factura electrónica</span><span class="c__hint" id="h1">Te la enviamos al correo registrado.</span></span></label></div>
+    <div><p class="cap">obligatoria + inválida</p><div><label class="c is-invalid"><input class="c__input" type="checkbox" required aria-invalid="true" aria-describedby="e1"><span class="c__text"><span class="c__label">Acepto los términos<span class="c__req" aria-hidden="true">*</span></span></span></label><div class="c__err" id="e1" aria-live="polite" style="margin-inline-start:30px">Debes aceptar los términos para continuar.</div></div></div>
+    <div><p class="cap">disabled (sin marcar / marcada)</p><div class="stack"><label class="c is-disabled"><input class="c__input" type="checkbox" disabled><span class="c__text"><span class="c__label">No disponible</span></span></label><label class="c is-disabled"><input class="c__input" type="checkbox" checked disabled><span class="c__text"><span class="c__label">Incluido en tu plan</span></span></label></div></div>
+    <div><p class="cap">readonly (aria-readonly, no cambia)</p><label class="c is-readonly"><input class="c__input" type="checkbox" checked aria-readonly="true" data-ro><span class="c__text"><span class="c__label">Verificado por administración</span></span></label></div>
+  </div>
+
+  <h2>3. Propuesta A · Casilla-tarjeta</h2>
+  <div class="wf-note">Toda la tarjeta es el control. La descripción se enlaza con <code>aria-describedby</code>; el precio o dato destacado forma parte del nombre. <b>No</b> lleva botones ni enlaces dentro (contenido interactivo dentro de un <code>&lt;label&gt;</code> rompe el control).</div>
+  <div class="grid">
+    <label class="c c--card"><input class="c__input" type="checkbox" aria-describedby="ca1"><span class="c__icon" aria-hidden="true">ico</span><span class="c__text"><span class="c__title">Envío express</span><span class="c__desc" id="ca1">Llega en 24 horas.</span></span><span class="c__meta">$99</span></label>
+    <label class="c c--card"><input class="c__input" type="checkbox" checked aria-describedby="ca2"><span class="c__icon" aria-hidden="true">ico</span><span class="c__text"><span class="c__title">Garantía extendida</span><span class="c__desc" id="ca2">Dos años adicionales de cobertura.</span></span><span class="c__meta">$149</span></label>
+    <label class="c c--card is-disabled"><input class="c__input" type="checkbox" disabled aria-describedby="ca3"><span class="c__icon" aria-hidden="true">ico</span><span class="c__text"><span class="c__title">Instalación</span><span class="c__desc" id="ca3">No disponible en tu zona.</span></span><span class="c__meta">$59</span></label>
+  </div>
+
+  <h2>4. Propuesta B · Grupo con casilla maestra y conteo</h2>
+  <div class="wf-note">La maestra se deriva de las hijas: todas marcadas → marcada; ninguna → sin marcar; algunas → <b>mixta</b>. Pulsarla marca o desmarca todas. El conteo vive en una región viva educada (<code>aria-live="polite"</code>) y se actualiza sin mover el foco.</div>
+  <div class="grid"><div class="grp" role="group" aria-labelledby="gl">
+    <div class="grp__head"><label class="c"><input class="c__input" type="checkbox" id="master" aria-controls="l1 l2 l3 l4 l5"><span class="c__text"><span class="c__label" id="gl">Reservas</span></span></label><span class="grp__count" id="count" aria-live="polite"></span></div>
+    <div class="grp__list">
+      <label class="c"><input class="c__input child" type="checkbox" id="l1" checked><span class="c__text"><span class="c__label">Ana García · 12 mar</span></span></label>
+      <label class="c"><input class="c__input child" type="checkbox" id="l2"><span class="c__text"><span class="c__label">Luis Pérez · 14 mar</span></span></label>
+      <label class="c"><input class="c__input child" type="checkbox" id="l3" checked><span class="c__text"><span class="c__label">Marta Ruiz · 15 mar</span></span></label>
+      <label class="c"><input class="c__input child" type="checkbox" id="l4"><span class="c__text"><span class="c__label">Pablo Díaz · 18 mar</span></span></label>
+      <label class="c"><input class="c__input child" type="checkbox" id="l5" disabled><span class="c__text"><span class="c__label">Sara Gil · 20 mar (no seleccionable)</span></span></label>
+    </div>
+  </div></div>
+
+  <h2>5. Propuesta C · Casilla con detalle condicional</h2>
+  <div class="wf-note">Al marcar, el bloque de detalle aparece <b>justo debajo</b>, en el orden natural del documento (Tab llega a él después de la casilla). Al desmarcar, se oculta con <code>hidden</code> (sale del árbol de accesibilidad). La casilla lo enlaza con <code>aria-controls</code>. No se mueve el foco.</div>
+  <div class="grid"><div>
+    <label class="c"><input class="c__input" type="checkbox" id="fact" aria-controls="factd"><span class="c__text"><span class="c__label">Necesito factura</span></span></label>
+    <div class="det" id="factd" hidden><label for="rfc">RFC</label><input id="rfc" placeholder="XAXX010101000" autocomplete="off"></div>
+    <p class="log" id="factlog" aria-hidden="true"></p>
+  </div></div>
+
+  <h2>6. Propuesta D · Casilla-chip</h2>
+  <div class="wf-note">Sigue siendo una casilla (rol <code>checkbox</code>, Espacio la alterna). El input cubre todo el chip con <code>opacity: 0</code> (no <code>display: none</code>), así conserva foco y clic. Marcado, muestra ✓ y cambia de relleno: <b>el estado no depende solo del color</b>.</div>
+  <div class="chips" role="group" aria-label="Filtrar por servicio">
+    <label class="c c--chip"><input class="c__input" type="checkbox" checked><span class="c__text"><span class="c__label">Wifi</span></span></label>
+    <label class="c c--chip"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Desayuno</span></span></label>
+    <label class="c c--chip"><input class="c__input" type="checkbox" checked><span class="c__text"><span class="c__label">Estacionamiento</span></span></label>
+    <label class="c c--chip"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Mascotas</span></span></label>
+    <label class="c c--chip is-disabled"><input class="c__input" type="checkbox" disabled><span class="c__text"><span class="c__label">Piscina</span></span></label>
+  </div>
+
+  <h2>7. Contenedor estrecho y texto largo</h2>
+  <div class="frame" style="width:240px"><div class="stack"><label class="c"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Acepto recibir comunicaciones comerciales y promociones personalizadas en cualquiera de mis dispositivos</span><span class="c__hint">Puedes cambiarlo cuando quieras desde tu perfil.</span></span></label></div></div>
+
+  <h2>8. Área táctil</h2>
+  <p class="wf-note">Con <code>pointer: coarse</code> la fila mide 44px de alto y todo el ancho del texto es objetivo. <label><input type="checkbox" id="tt"> Mostrar áreas (recuadro rojo)</label></p>
+  <div class="frame" style="max-width:360px"><div class="stack"><label class="c"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Campo de prueba</span></span></label></div></div>
+</main>
+<script>
+  const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)]
+  $('#indet').indeterminate = true
+
+  // readonly: la casilla no cambia (el input nativo no admite readonly)
+  $$('[data-ro]').forEach((el) => { const v = el.checked; el.addEventListener('click', (e) => { e.preventDefault(); el.checked = v }) })
+
+  // B · maestra derivada de las hijas y conteo
+  const master = $('#master'), kids = $$('.child'), enabled = kids.filter((k) => !k.disabled), count = $('#count')
+  const sync = () => {
+    const n = enabled.filter((k) => k.checked).length
+    master.checked = n === enabled.length
+    master.indeterminate = n > 0 && n < enabled.length
+    count.textContent = n === 0 ? 'Ninguna seleccionada' : `${n} de ${enabled.length} seleccionadas`
+  }
+  master.addEventListener('change', () => { enabled.forEach((k) => (k.checked = master.checked)); master.indeterminate = false; sync() })
+  kids.forEach((k) => k.addEventListener('change', sync)); sync()
+
+  // C · detalle condicional
+  $('#fact').addEventListener('change', (e) => {
+    $('#factd').hidden = !e.target.checked
+    $('#factlog').textContent = e.target.checked ? 'Detalle visible (aria-controls → factd)' : 'Detalle oculto'
+  })
+  $('#tt').addEventListener('change', (e) => document.body.classList.toggle('show-target', e.target.checked))
+</script>
+</body>
+</html>
