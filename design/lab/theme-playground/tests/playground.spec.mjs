@@ -222,7 +222,9 @@ test.describe('estados reales (no se simula «strong»)', () => {
     await expect.poll(() => btn.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(rest)
   })
 
-  test('focus: Tab enfoca con teclado y muestra el anillo del token de foco', async ({ page }) => {
+  test('focus: Tab enfoca con teclado y muestra el anillo del token de foco', async ({ page, browserName }) => {
+    // Safari (WebKit) no pone los botones en el orden de Tab por defecto (solo con Opción+Tab o una preferencia): no es un fallo de Grana
+    test.skip(browserName === 'webkit', 'WebKit no enfoca botones con Tab por defecto')
     await open(page, { theme: 'stripe', scheme: 'dark', strategy: 'b' })
     await page.getByTestId('sel-surface').focus()
     let found = false

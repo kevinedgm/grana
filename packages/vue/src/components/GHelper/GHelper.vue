@@ -111,11 +111,21 @@ export default defineComponent({
       if (root.value?.contains(t) || content.value?.contains(t)) return
       close(false)
     }
+    // Esc cierra aunque el foco no esté dentro: Safari y Firefox en macOS no enfocan un botón al hacer clic, así que el keydown
+    // del elemento raíz no llega (verificado con Playwright en WebKit). Escucha de documento solo mientras está abierto.
+    const onDocKeydown = (e) => {
+      if (e.key === 'Escape' && isOpen.value && presentation.value === 'popover') {
+        e.preventDefault()
+        e.stopPropagation()
+        close(true)
+      }
+    }
     const onReposition = () => { if (isOpen.value && presentation.value === 'popover') place() }
     const listen = () => {
       if (listening) return
       listening = true
       document.addEventListener('pointerdown', onOutside, true)
+      document.addEventListener('keydown', onDocKeydown, true)
       window.addEventListener('resize', onReposition)
       window.addEventListener('scroll', onReposition, true)
     }
@@ -123,6 +133,7 @@ export default defineComponent({
       if (!listening) return
       listening = false
       document.removeEventListener('pointerdown', onOutside, true)
+      document.removeEventListener('keydown', onDocKeydown, true)
       window.removeEventListener('resize', onReposition)
       window.removeEventListener('scroll', onReposition, true)
     }

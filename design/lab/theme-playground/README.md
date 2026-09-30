@@ -38,7 +38,7 @@ Todo con componentes reales de `@grana/vue` y los tokens del tema activo: **Them
 ## Playwright
 
 ```bash
-npm test                 # 36 pruebas (prepara las fuentes y arranca el servidor solo)
+npm test                 # 134 pruebas en Chromium, Firefox y WebKit (prepara las fuentes y arranca el servidor solo)
 npm run shots            # capturas de demostración en screenshots/   (con el servidor en marcha)
 npm run shots -- --all       # los 11 temas × current/b/c
 npm run shots -- --surfaces  # los 11 temas con C × low/medium/real/high
@@ -136,3 +136,12 @@ Resultados (16 temas × 6 roles por celda):
 - **Visualmente** (`d-sheet.png`), con superficie alta D queda entre B y C: más presencia que A y B en los colores apagados (gris, ocre), pero conserva la saturación que C pierde (la marca de Grana no llega a salmón pálido; el violeta de Stripe no llega a lavanda). Con superficie real es casi igual que C.
 
 Límites: 16 temas (los semánticos por defecto se repiten), indicadores numéricos de lectura (no reglas), una sola persona en la revisión visual, valores de D elegidos a priori y luego comprobados en una rejilla.
+
+## Verificación entre navegadores (Chromium, Firefox y WebKit)
+
+`playwright.config.mjs` define tres proyectos: **Chromium**, **Firefox** y **WebKit** (el motor de Safari; **no** es Safari con su sistema operativo ni VoiceOver). Se instalan con `npx playwright install firefox webkit`.
+
+- `tests/playground.spec.mjs` (playground de temas) y `tests/library.spec.mjs` (playground de la librería: popover del menú y del ayudante, diálogo modal, listbox del select, checkbox y switch, stepper, tema oscuro forzado y soporte de `popover`, `:has`, `dialog`, container queries, `inert` y `color-mix`) pasan en los tres motores: **134 pruebas, 1 omitida a propósito** (WebKit no enfoca botones con Tab por defecto: es una diferencia de Safari, no un fallo).
+- **Hallazgo real:** en WebKit, `GHelper` no se cerraba con Esc tras un clic, porque Safari no enfoca el botón al hacer clic y el `keydown` estaba solo en el elemento raíz. Corregido con una escucha de documento mientras el popover está abierto (DECISIONS.md #108).
+
+Sigue sin cubrirse: **lector de pantalla** (VoiceOver, NVDA) y **Safari real** (la prueba de WebKit es una aproximación), el táctil real y `forced-colors` real.

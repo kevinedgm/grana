@@ -132,6 +132,19 @@ describe('GHelper · abrir y cerrar', () => {
     w.unmount()
   })
 
+  it('Esc cierra aunque el foco no esté dentro (Safari no enfoca el botón al hacer clic); cerrado, Esc no hace nada', async () => {
+    const w = mk({}, { attachTo: document.body })
+    await btn(w).trigger('click'); await flush()
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    document.activeElement?.blur?.()
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await flush()
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    const toggles = w.emitted('toggle').length
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await flush()
+    expect(w.emitted('toggle').length).toBe(toggles)
+    w.unmount()
+  })
+
   it('clic fuera cierra; dentro no', async () => {
     const w = mk()
     await btn(w).trigger('click'); await flush()
