@@ -201,6 +201,19 @@
     </g-calendar>
     <pre class="log" style="max-height:160px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
 
+    <h2>Texto de varias líneas (GTextarea)</h2>
+    <div class="col" style="max-width:420px">
+      <g-textarea v-model="taNote" label="Comentario" hint="Cuéntanos qué pasó." placeholder="Escribe aquí…"></g-textarea>
+      <g-textarea v-model="taAuto" autosize :rows="2" :max-rows="6" label="Autosize (rows 2, maxRows 6)" hint="Escribe varias líneas: crece y luego se desplaza."></g-textarea>
+      <g-textarea v-model="taLimit" counter maxlength="80" label="Con límite" hint="Máximo 80 caracteres." :counter-text="taCounterText" :rows="2"></g-textarea>
+      <g-textarea v-model="taReason" required label="Motivo" :error="taError" @input="taCheck" :rows="2"></g-textarea>
+      <g-textarea model-value="Solo lectura&#10;seleccionable." readonly label="Solo lectura" :rows="2"></g-textarea>
+      <g-textarea model-value="No editable" disabled label="Deshabilitado" :rows="2"></g-textarea>
+      <g-textarea v-model="taSoft" variant="soft" color="accent" label="Variante soft, foco accent" :rows="2"></g-textarea>
+      <g-textarea v-model="taLoad" loading label="Cargando (no bloquea)" :rows="2"></g-textarea>
+      <p class="log">{{ taLog }}</p>
+    </div>
+
     <h2>Interruptores (GSwitch)</h2>
     <div class="col" style="max-width:420px">
       <g-switch v-model="swNotif" label="Notificaciones" hint="Te avisamos por correo."></g-switch>
@@ -340,6 +353,16 @@
           swLog.value = 'Guardando: ' + (swSave.value ? 'encendido' : 'apagado')
           setTimeout(() => { swSaving.value = false; swLog.value = 'Guardado: ' + (swSave.value ? 'encendido' : 'apagado') }, 1200)
         }
+        const taNote = ref('')
+        const taAuto = ref('Escribe y pulsa Enter varias veces.')
+        const taLimit = ref('')
+        const taReason = ref('')
+        const taError = ref('')
+        const taSoft = ref('')
+        const taLoad = ref('Guardando…')
+        const taLog = ref('Sin avisos del contador todavía.')
+        const taCounterText = (nivel, max) => { const t = nivel === 'limit' ? 'Límite alcanzado: ' + max + ' caracteres' : 'Cerca del límite: máximo ' + max + ' caracteres'; taLog.value = 'aviso hablado: ' + t; return t }
+        const taCheck = () => { taError.value = taReason.value.trim().length >= 10 ? '' : 'Escribe al menos 10 caracteres.' }
         const loading = ref(false)
         const count = ref(0)
         const themed = ref(false)
@@ -431,7 +454,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "name": "GTextarea",
+  "tag": "g-textarea",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo de texto de varias líneas con etiqueta, ayuda, error, contador con aviso hablado discreto, filas fijas o autosize.",
+  "contract": "design/contracts/textarea.md",
+  "prototype": "design/lab/textarea/r01/",
+  "style": "packages/vue/src/components/GTextarea/GTextarea.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String",
+      "default": ""
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": null,
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "rows",
+      "type": "Number",
+      "default": 3
+    },
+    {
+      "name": "autosize",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "maxRows",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "resize",
+      "type": "String",
+      "default": "vertical",
+      "values": [
+        "none",
+        "vertical"
+      ]
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "counter",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "counterText",
+      "type": "Function",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String",
+      "trigger": "El usuario cambia el valor (evento input nativo)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico (sustituye a hint)"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo con error"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-border-strong",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-color-{color}-text",
+    "--g-radius-{rounded}",
+    "--g-radius-sm",
+    "--g-radius-lg",
+    "--g-space-1",
+    "--g-space-2..5",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-duration-fast",
+    "--g-duration-spin",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "disabled",
+    "readonly",
+    "invalid",
+    "loading",
+    "autosize",
+    "capped"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: etiqueta, ayuda, error y aviso del contador",
+    "Rendimiento de autosize con textos de miles de líneas",
+    "Firefox y Safari (tirador, :has())"
+  ]
+}
