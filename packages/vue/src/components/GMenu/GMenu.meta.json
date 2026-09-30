@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GMenu",
   "tag": "g-menu",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Menú de acciones anclado a un botón de menú (patrón Menu Button y Menu de APG): acciones, separadores, grupos, casillas, opciones, submenús y elementos peligrosos. Contenido por arreglo de items; presenta y emite intención (select); las marcas son iconos de Lucide.",
   "contract": "design/contracts/menu.md",
