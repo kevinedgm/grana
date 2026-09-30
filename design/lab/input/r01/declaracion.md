@@ -20,7 +20,7 @@
 | 6 | Foco: el anillo va en la **caja completa** (`:has(input:focus-visible)`), no en el `<input>` interior | WCAG 2.4.7 y 2.4.11; el usuario ve el campo entero enfocado |
 | 7 | `disabled` = atributo nativo (no enfocable). `readonly` = enfocable, seleccionable y enviable | Semántica nativa; la API compartida define ambos |
 | 8 | Obligatorio: atributo `required` + marca visual `aria-hidden` | WCAG 3.3.2; el anuncio lo da `required`, la marca es solo visual |
-| 9 | Mostrar/ocultar contraseña: botón `type="button"` **después** del input, con `aria-pressed`, `aria-controls` y nombre accesible que cambia ("Mostrar" / "Ocultar contraseña"); el foco se conserva | WCAG 4.1.2, 2.4.3 |
+| 9 | Mostrar/ocultar contraseña: botón `type="button"` **después** del input, con `aria-controls` y nombre accesible que cambia ("Mostrar" / "Ocultar contraseña"); el foco se conserva. *(La ronda propuso también `aria-pressed`; se quitó en el contrato, ver `input.md` hallazgo 13.)* | WCAG 4.1.2, 2.4.3 |
 | 10 | El botón mostrar/ocultar sale del orden natural: input → botón | WCAG 2.4.3 |
 | 11 | `loading` = indicador + `aria-busy`; **no** bloquea la escritura | Una validación asíncrona no debe impedir corregir el valor (control del usuario) |
 | 12 | Iconos inicial y final siempre `aria-hidden` | El nombre accesible viene de la etiqueta |

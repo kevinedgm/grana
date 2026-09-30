@@ -3,3 +3,4 @@
   Cada archivo se importa aquí y queda dentro de la capa grana.components.
 */
 @import url("../components/GBtn/GBtn.css");
+@import url("../components/GInput/GInput.css");

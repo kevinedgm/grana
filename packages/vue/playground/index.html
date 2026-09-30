@@ -12,6 +12,7 @@
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
     h2 { font-size: var(--g-text-title-sm-size); font-weight: var(--g-text-title-sm-weight); margin: 32px 0 12px; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+      .col { display: grid; gap: 16px; max-width: 320px; }
   </style>
   <style id="theme"></style>
 </head>
@@ -63,6 +64,20 @@
       <g-btn variant="soft"><template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></template>Descargar</g-btn>
     </div>
 
+    <h2>Campos (GInput)</h2>
+    <div class="col">
+      <g-input v-model="email" label="Correo" type="email" required autocomplete="email" hint="Te enviaremos el comprobante." :error="emailError" @blur="checkEmail">
+        <template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg></template>
+      </g-input>
+      <g-input v-model="pass" label="Contraseña" type="password" required autocomplete="new-password" show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" hint="Mínimo 8 caracteres."></g-input>
+      <g-input v-model="nick" label="Apodo" counter maxlength="12" variant="soft"></g-input>
+      <g-input model-value="Oaxaca" label="Ciudad" disabled></g-input>
+      <g-input model-value="A-2041" label="Folio" readonly></g-input>
+      <g-input v-model="user" label="Usuario" loading hint="Comprobando disponibilidad…"></g-input>
+      <g-input v-model="nick" label="Tamaños" size="xs"></g-input><g-input v-model="nick" label="lg" size="lg"></g-input>
+    </div>
+    <p class="log">Valores: {{ email || '—' }} · {{ pass ? '•'.repeat(pass.length) : '—' }} · {{ nick || '—' }}</p>
+
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
@@ -78,6 +93,12 @@
         const loading = ref(false)
         const count = ref(0)
         const themed = ref(false)
+        const email = ref('')
+        const emailError = ref('')
+        const pass = ref('')
+        const nick = ref('')
+        const user = ref('ana')
+        const checkEmail = () => { emailError.value = !email.value ? 'Escribe tu correo.' : /^\S+@\S+\.\S+$/.test(email.value) ? '' : 'Falta el dominio del correo.' }
         const save = () => {
           count.value++
           loading.value = true
@@ -90,7 +111,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { loading, count, themed, save, log, toggleTheme }
+        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, checkEmail }
       }
     }).use(Grana).mount('#app')
   </script>

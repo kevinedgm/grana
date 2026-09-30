@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "name": "GInput",
+  "tag": "g-input",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo de texto de una línea con etiqueta, ayuda, error, iconos y contador.",
+  "contract": "design/contracts/input.md",
+  "prototype": "design/lab/input/r01/",
+  "style": "packages/vue/src/components/GInput/GInput.css",
+  "props": [
+    { "name": "modelValue", "type": "String", "default": "" },
+    { "name": "variant", "type": "String", "default": "outline", "values": ["outline", "soft"] },
+    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
+    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "color", "type": "String", "default": null, "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
+    { "name": "rounded", "type": "String", "default": null, "values": ["none", "xs", "sm", "md", "lg", "xl", "pill"] },
+    { "name": "block", "type": "Boolean", "default": false },
+    { "name": "disabled", "type": "Boolean", "default": false },
+    { "name": "readonly", "type": "Boolean", "default": false },
+    { "name": "loading", "type": "Boolean", "default": false },
+    { "name": "type", "type": "String", "default": "text", "values": ["text", "email", "password", "search", "tel", "url"] },
+    { "name": "label", "type": "String", "default": null },
+    { "name": "hint", "type": "String", "default": null },
+    { "name": "error", "type": "String", "default": null },
+    { "name": "required", "type": "Boolean", "default": false },
+    { "name": "counter", "type": "Boolean", "default": false },
+    { "name": "showPasswordLabel", "type": "String", "default": null },
+    { "name": "hidePasswordLabel", "type": "String", "default": null },
+    { "name": "id", "type": "String", "default": null }
+  ],
+  "events": [
+    { "name": "update:modelValue", "payload": "String", "trigger": "El usuario cambia el valor" }
+  ],
+  "slots": [
+    { "name": "label", "purpose": "Etiqueta con contenido rico (sustituye a label)" },
+    { "name": "prepend", "purpose": "Icono decorativo antes del texto" },
+    { "name": "append", "purpose": "Icono decorativo después del texto" },
+    { "name": "hint", "purpose": "Ayuda con contenido rico (sustituye a hint)" },
+    { "name": "error", "purpose": "Mensaje de error con contenido rico; solo se muestra con error" }
+  ],
+  "tokens": [
+    "--g-color-surface", "--g-color-surface-sunken", "--g-color-border-control", "--g-color-border-strong",
+    "--g-color-text", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-danger-text", "--g-color-focus",
+    "--g-color-{color}-text", "--g-radius-*", "--g-space-1..6", "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}", "--g-text-action-weight",
+    "--g-border-width", "--g-focus-width", "--g-focus-offset",
+    "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"
+  ],
+  "states": ["default", "hover", "focus-visible", "filled", "disabled", "readonly", "invalid", "loading"],
+  "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)", "Lector de pantalla real: aria-live junto a aria-describedby"]
+}
