@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSurface · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{
+ --wf-bg:#f3f3f3; --wf-surface:#ffffff; --wf-sunken:#ececec; --wf-ink:#1f1f1f; --wf-2:#555; --wf-line:rgb(0 0 0 / .09); --wf-line-2:rgb(0 0 0 / .16);
+ --wf-sh-1:0 1px 2px rgb(0 0 0 / .06); --wf-sh-3:0 16px 40px -12px rgb(0 0 0 / .22); --wf-note:#fff8d6;
+ --wf-font:system-ui,-apple-system,"Segoe UI",sans-serif; --r-lg:12px; --r-xl:20px; --r-min:4px;
+}
+:root[data-dark]{--wf-bg:#141414;--wf-surface:#1f1f1f;--wf-sunken:#0d0d0d;--wf-ink:#eee;--wf-2:#aaa;--wf-line:rgb(255 255 255 / .10);--wf-line-2:rgb(255 255 255 / .22);--wf-sh-1:0 1px 2px rgb(0 0 0 / .4);--wf-sh-3:0 16px 40px -12px rgb(0 0 0 / .7);--wf-note:#3a3520}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:960px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px}
+.meta{color:var(--wf-2);margin:0 0 12px} .cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:72ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-2);padding:8px 12px;font-size:13px;margin:12px 0;max-width:80ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+.lbl{font-size:12px;color:var(--wf-2);margin:0 0 6px} .t{font-weight:600;margin:0 0 4px} p{margin:0}
+button{font:inherit}
+
+/* ============ GSurface (estructura) ============ */
+/* Una superficie no-inset PUBLICA a sus descendientes (alias --_pub-*): el tono contrario al suyo,
+   la sombra que debe llevar una inset más clara y su radio concéntrico (su radio − su relleno).
+   La inset solo LEE esos alias: no los redeclara (si lo hiciera, se leería a sí misma: ciclo). */
+.sf{
+  --_pad:16px;
+  --_tone:var(--wf-surface);
+  background:var(--_tone);
+  border:1px solid var(--_border, transparent);
+  border-radius:var(--_radius);
+  box-shadow:var(--_shadow, none);
+  padding:var(--_pad);
+  min-inline-size:0;
+}
+.sf--flat{--_tone:transparent;--_radius:0px;--_border:transparent}
+.sf--outlined{--_border:var(--wf-line-2);--_radius:var(--r-lg)}
+.sf--raised{--_border:var(--wf-line);--_shadow:var(--wf-sh-1);--_radius:var(--r-lg)}
+.sf--floating{--_border:var(--wf-line);--_shadow:var(--wf-sh-3);--_radius:var(--r-xl)}
+.sf--tone-sunken{--_tone:var(--wf-sunken)}
+/* Publicación (solo superficies no-inset) */
+.sf:not(.sf--inset){--_pub-offer:var(--wf-sunken);--_pub-shadow:none;--_pub-radius:calc(var(--_radius) - var(--_pad))}
+.sf--flat{--_pub-radius:var(--r-lg)}
+.sf--tone-sunken:not(.sf--inset){--_pub-offer:var(--wf-surface);--_pub-shadow:var(--wf-sh-1)}
+/* Inset: tono contrario al del padre, borde fino, radio concéntrico (nunca menos del mínimo);
+   sombra mínima solo si es más clara que su padre */
+.sf--inset{--_tone:var(--_pub-offer);--_shadow:var(--_pub-shadow);--_border:var(--wf-line);--_radius:max(var(--r-min), var(--_pub-radius))}
+/* La inset publica a su vez (con otro nombre) para un tercer nivel */
+.sf--inset:not(.sf--inset .sf--inset){--_pub2-radius:calc(var(--_radius) - var(--_pad))}
+/* Tercer nivel: una inset dentro de otra no cambia de tono ni lleva sombra (máximo dos pasos visibles) */
+.sf--inset .sf--inset{--_tone:transparent;--_shadow:none;--_radius:max(var(--r-min), var(--_pub2-radius))}
+/* Inset suelta (sin superficie padre): tono hundido y radio por defecto del sistema */
+.loose > .sf--inset{--_tone:var(--wf-sunken);--_shadow:none;--_radius:var(--r-lg)}
+/* Relleno */
+.sf--pad-none{--_pad:0px} .sf--pad-xs{--_pad:6px} .sf--pad-sm{--_pad:8px} .sf--pad-md{--_pad:16px} .sf--pad-lg{--_pad:24px}
+/* Colores forzados: fondo y sombra desaparecen; el borde se conserva en todo nivel no plano */
+@media (forced-colors:active){.sf:not(.sf--flat){border-color:CanvasText}}
+</style>
+</head>
+<body>
+<main>
+<h1>GSurface · r01</h1>
+<p class="meta">Wireframe F2 · kit neutral. Niveles, anidación y radio concéntrico; los valores finales son de coco. <button type="button" id="dark">Alternar oscuro</button></p>
+<div class="wf-note"><b>Mecanismo:</b> cada superficie publica a sus hijas tres cosas: su <b>tono</b> contrario (claro ↔ hundido), su <b>radio concéntrico</b> (su radio − su relleno) y si la hija, al ser más clara, debe llevar una sombra mínima. La <code>inset</code> solo lee eso: no necesita saber quién es su padre.</div>
+
+<h2 class="sec">1 · Cinco niveles sobre el fondo de página</h2>
+<p class="cap">Cada nivel difiere del fondo en al menos dos señales: flat (ninguna: es layout), outlined (fondo + borde), raised (fondo + borde tenue + sombra corta), floating (fondo + borde + sombra amplia + radio mayor), inset (tono hundido + borde + radio).</p>
+<div class="grid loose">
+  <div class="sf sf--flat" data-level="flat"><p class="lbl">flat</p><p class="t">Sección</p><p>Contenido base.</p></div>
+  <div class="sf sf--outlined" data-level="outlined"><p class="lbl">outlined</p><p class="t">Grupo</p><p>Formulario.</p></div>
+  <div class="sf sf--raised" data-level="raised"><p class="lbl">raised</p><p class="t">Tarjeta</p><p>Widget.</p></div>
+  <div class="sf sf--floating" data-level="floating"><p class="lbl">floating</p><p class="t">Popover</p><p>Menú, diálogo.</p></div>
+  <div class="sf sf--inset" data-level="inset"><p class="lbl">inset (suelta)</p><p class="t">Resumen</p><p>Sin padre: radio por defecto.</p></div>
+</div>
+
+<h2 class="sec">2 · Inset dentro de una tarjeta (más oscura que su padre)</h2>
+<p class="cap">Tarjeta <code>raised</code> (clara) con un resumen <code>inset</code>: toma el tono hundido, borde fino, <b>sin sombra</b>, radio = 12 − 16 → mínimo (4px).</p>
+<div class="sf sf--raised" style="max-width:420px" id="card">
+  <p class="t">Plan Pro</p><p class="meta" style="margin:0 0 12px">Facturación mensual</p>
+  <div class="sf sf--inset sf--pad-sm" id="card-inset"><p class="lbl">Resumen</p><p>3 asientos · $36/mes</p></div>
+</div>
+
+<h2 class="sec">3 · Carcasa de diálogo (la inset es más clara que su padre)</h2>
+<p class="cap">Carcasa <code>floating</code> con <code>tone="sunken"</code> y relleno pequeño (6px); la inset toma el tono claro, una sombra mínima y el radio concéntrico 20 − 6 = <b>14px</b>. Es exactamente la estructura actual de <code>GDialog</code>, sin reglas propias.</p>
+<div class="sf sf--floating sf--tone-sunken sf--pad-xs" style="max-width:460px" id="shell">
+  <div style="padding:10px 12px"><p class="t">Guardar cambios</p><p class="meta" style="margin:0">Se aplicarán a todo el equipo.</p></div>
+  <div class="sf sf--inset" id="shell-inset">
+    <p>Cuerpo del diálogo.</p>
+    <div class="sf sf--inset sf--pad-sm" style="margin-top:12px" id="third"><p class="lbl">Tercer nivel</p><p>Se aplana: sin cambio de tono ni sombra, solo línea.</p></div>
+  </div>
+</div>
+
+<h2 class="sec">4 · Radio concéntrico según el relleno del padre</h2>
+<p class="cap">Mismo padre <code>floating</code> (20px), distinto relleno: 6 → 14, 8 → 12, 16 → 4 (mínimo). Con mucho relleno la inset deja de «abrazar» la curva y se vuelve casi recta: es correcto (el ojo ya no las relaciona).</p>
+<div class="grid">
+  <div class="sf sf--floating sf--tone-sunken sf--pad-xs" data-conc="6"><div class="sf sf--inset"><p>relleno 6</p></div></div>
+  <div class="sf sf--floating sf--tone-sunken sf--pad-sm" data-conc="8"><div class="sf sf--inset"><p>relleno 8</p></div></div>
+  <div class="sf sf--floating sf--tone-sunken sf--pad-md" data-conc="16"><div class="sf sf--inset"><p>relleno 16</p></div></div>
+</div>
+
+<h2 class="sec">5 · Composiciones que deberán apoyarse en GSurface (no se construyen aquí)</h2>
+<p class="cap">Sección <code>flat</code> con un grupo <code>outlined</code> de configuración y, dentro, una zona <code>inset</code>; al lado, un popover <code>floating</code>. Máximo dos pasos de tono visibles.</p>
+<div class="sf sf--flat sf--pad-none" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+  <div class="sf sf--outlined"><p class="t">Notificaciones</p><p class="meta" style="margin:0 0 12px">Cómo te avisamos.</p><div class="sf sf--inset sf--pad-sm"><p>Correo · Diario</p></div></div>
+  <div class="sf sf--floating sf--pad-sm" style="justify-self:start;min-width:200px"><p>Renombrar</p><p>Duplicar</p><p>Eliminar</p></div>
+</div>
+
+<h2 class="sec">6 · 320px</h2>
+<div style="width:320px;max-width:100%"><div class="sf sf--raised"><p class="t">Tarjeta estrecha</p><div class="sf sf--inset sf--pad-sm" style="margin-top:8px"><p>Contenido que se ajusta sin desbordar horizontalmente.</p></div></div></div>
+</main>
+<script>document.getElementById('dark').onclick=()=>document.documentElement.toggleAttribute('data-dark')</script>
+</body>
+</html>

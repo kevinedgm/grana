@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAvatarMotion · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/avatar-motion.md con el CSS real y el tema por defecto. No es documentación.
+     El script solo pinta el SVG del contrato y cambia data-motion (lo que hará bruno). -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GAvatarMotion/GAvatarMotion.css?v=1">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:28px 0 12px}.row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  button{font:inherit}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button> <button id="dark-btn" type="button">Oscuro</button>
+<span>Coreografía: </span><select id="motion"><option>idle</option><option>thinking</option><option>success</option><option>error</option><option>still</option></select>
+<h2>Tamaños (sm · md · lg · xl)</h2><div class="row" id="sizes"></div>
+<h2>Colores (xl)</h2><div class="row" id="colors"></div>
+<script>
+const SVG=`<svg viewBox="0 0 160 160" focusable="false">
+<g class="g-avatar-motion__antenna g-avatar-motion__antenna--start"><path class="g-avatar-motion__line" d="M67 45 Q54 20 42 29" stroke-width="6" stroke-linecap="round"/><circle class="g-avatar-motion__tip" cx="41" cy="29" r="4.5"/></g>
+<g class="g-avatar-motion__antenna g-avatar-motion__antenna--end"><path class="g-avatar-motion__line" d="M93 45 Q106 20 118 29" stroke-width="6" stroke-linecap="round"/><circle class="g-avatar-motion__tip" cx="119" cy="29" r="4.5"/></g>
+<g class="g-avatar-motion__legs g-avatar-motion__legs--start"><path class="g-avatar-motion__line" d="M52 75 Q32 68 25 58" stroke-width="6" stroke-linecap="round"/><path class="g-avatar-motion__line" d="M49 92 Q28 94 21 104" stroke-width="6" stroke-linecap="round"/><path class="g-avatar-motion__line" d="M55 110 Q38 121 35 132" stroke-width="6" stroke-linecap="round"/></g>
+<g class="g-avatar-motion__legs g-avatar-motion__legs--end"><path class="g-avatar-motion__line" d="M108 75 Q128 68 135 58" stroke-width="6" stroke-linecap="round"/><path class="g-avatar-motion__line" d="M111 92 Q132 94 139 104" stroke-width="6" stroke-linecap="round"/><path class="g-avatar-motion__line" d="M105 110 Q122 121 125 132" stroke-width="6" stroke-linecap="round"/></g>
+<g class="g-avatar-motion__body"><ellipse class="g-avatar-motion__shell" cx="80" cy="88" rx="39" ry="52"/><ellipse class="g-avatar-motion__core" cx="80" cy="88" rx="31" ry="44"/>
+<path class="g-avatar-motion__band" d="M51 67 Q80 76 109 67" stroke-width="5" stroke-linecap="round"/><path class="g-avatar-motion__band" d="M49 87 Q80 96 111 87" stroke-width="5" stroke-linecap="round"/><path class="g-avatar-motion__band" d="M52 107 Q80 116 108 107" stroke-width="5" stroke-linecap="round"/>
+<g class="g-avatar-motion__eyes"><ellipse class="g-avatar-motion__eye" cx="68" cy="55" rx="5" ry="6"/><ellipse class="g-avatar-motion__eye" cx="92" cy="55" rx="5" ry="6"/><circle class="g-avatar-motion__pupil" cx="69" cy="56" r="2"/><circle class="g-avatar-motion__pupil" cx="93" cy="56" r="2"/></g></g></svg>`;
+const mk=(size,color)=>`<span class="g-avatar-motion g-avatar-motion--size-${size} g-avatar-motion--color-${color}" data-motion="idle" aria-hidden="true" data-c="${color}">${SVG}</span>`;
+document.getElementById('sizes').innerHTML=['sm','md','lg','xl'].map(s=>mk(s,'brand')).join('');
+document.getElementById('colors').innerHTML=['brand','accent','neutral','success','warning','danger','info'].map(c=>mk('xl',c)).join('');
+document.getElementById('motion').onchange=(e)=>document.querySelectorAll('.g-avatar-motion').forEach(a=>{a.dataset.motion='';void a.offsetWidth;a.dataset.motion=e.target.value});
+const theme=document.getElementById('theme'); let on=false;
+document.getElementById('theme-btn').onclick=()=>{on=!on; theme.textContent=on?':root{--g-color-primary:#0F5F52;--g-color-primary-strong:#0A4A40;--g-color-primary-soft:#D7F0EA;--g-color-on-primary:#FFFFFF;--g-space-1:5px}':''};
+document.getElementById('dark-btn').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'};
+</script>
+</body>
+</html>

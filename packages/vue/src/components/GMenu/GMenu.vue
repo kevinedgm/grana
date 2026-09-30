@@ -6,6 +6,7 @@
 import { defineComponent, h, nextTick, onBeforeUnmount, ref, useAttrs, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
+import { placeBlock, placeSubmenu, viewport } from '../../utils/anchor.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const TYPES = ['item', 'checkbox', 'radio', 'separator', 'group']
@@ -97,30 +98,10 @@ export default defineComponent({
       menu.style.setProperty('--_max', '9999px')
       if (typeof menu.showPopover === 'function' && !menu.matches?.(':popover-open')) menu.showPopover()
       const a = anchor.getBoundingClientRect()
-      const vw = window.innerWidth
-      const vh = window.innerHeight
-      const pad = 8
+      const { width: vw, height: vh } = viewport()
       const rtl = getComputedStyle(anchor).direction === 'rtl'
-      const mw = menu.offsetWidth
-      const nat = menu.scrollHeight + 4
-      let x, y, room
-      if (sub) {
-        x = rtl ? a.left - mw + 4 : a.right - 4
-        if (!rtl && x + mw > vw - pad) x = Math.max(pad, a.left - mw + 4)
-        if (rtl && x < pad) x = Math.min(vw - pad - mw, a.right - 4)
-        room = vh - 2 * pad
-        const hh = Math.min(nat, room)
-        y = a.top - 6
-        if (y + hh > vh - pad) y = vh - pad - hh
-      } else {
-        const atEnd = props.align === 'end'
-        const left = (rtl ? !atEnd : atEnd) ? a.right - mw : a.left
-        x = Math.min(Math.max(pad, left), vw - pad - mw)
-        const below = vh - a.bottom - pad - 4
-        const above = a.top - pad - 4
-        const preferTop = props.side === 'top' || (props.side === 'auto' && nat > below && above > below)
-        if (!preferTop) { room = below; y = a.bottom + 4 } else { room = above; y = a.top - 4 - Math.min(nat, above) }
-      }
+      const opts = { width: menu.offsetWidth, naturalHeight: menu.scrollHeight + 4, vw, vh, rtl }
+      const { x, y, room } = sub ? placeSubmenu(a, opts) : placeBlock(a, { ...opts, align: props.align, side: props.side })
       menu.style.setProperty('--_max', `${Math.max(96, room)}px`)
       menu.style.setProperty('--_x', `${x}px`)
       menu.style.setProperty('--_y', `${y}px`)

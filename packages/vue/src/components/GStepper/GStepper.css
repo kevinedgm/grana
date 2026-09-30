@@ -1,0 +1,508 @@
+/*
+  GStepper · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/stepper.md. Estructura: design/lab/stepper/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Estado = forma + peso + subrayado + icono, nunca solo tono (WCAG 1.4.1).
+  En compacto (g-stepper--is-compact) las reglas de variante no aplican: la lista desplegada
+  siempre es vertical y numerada, sea cual sea el indicador de la raíz.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-stepper {
+  /* Color (se reasigna por modificador --color-*) */
+  --_base: var(--g-color-primary);
+  --_strong: var(--g-color-primary-strong);
+  --_soft: var(--g-color-primary-soft);
+  --_text: var(--g-color-primary-text);
+  --_on: var(--g-color-on-primary);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  --_units: 6;
+  --_dot: calc(var(--g-space-1) * 3);
+  --_density: 1;
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_ind: calc(var(--g-space-1) * var(--_units));
+  --_off: calc(var(--g-space-1) * 0);
+  --_line: calc(var(--g-border-width) * 2);
+  --_pad: calc(var(--g-space-1) * var(--_density));
+  --_gap: calc(var(--g-space-2) * var(--_density));
+  --_angle: 90deg;
+
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  color: var(--g-color-text);
+}
+.g-stepper:dir(rtl) { --_angle: 270deg; }
+.g-stepper *,
+.g-stepper *::before,
+.g-stepper *::after { box-sizing: border-box; }
+
+.g-stepper__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-stepper__step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+/* El último paso no lleva conector hacia nadie */
+.g-stepper__step:last-child > .g-stepper__connector { display: none; }
+
+/* ---------- Paso: área de pulsación y texto ---------- */
+.g-stepper__hit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--_gap);
+  min-inline-size: 0;
+  margin: 0;
+  padding: var(--_pad) 0;
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+button.g-stepper__hit {
+  min-block-size: 24px;
+  cursor: pointer;
+  appearance: none;
+}
+button.g-stepper__hit:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-stepper__text {
+  /* Etiqueta y «opcional» en la misma línea (la etiqueta cede con elipsis); la descripción, debajo */
+  display: grid;
+  grid-template-columns: minmax(0, max-content) max-content;
+  justify-content: start;
+  align-items: baseline;
+  min-inline-size: 0;
+}
+.g-stepper__description { grid-column: 1 / -1; }
+.g-stepper__label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--g-color-text-muted);
+}
+.g-stepper__description {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-stepper__optional {
+  margin-inline-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  font-weight: var(--g-text-caption-weight);
+  color: var(--g-color-text-muted);
+}
+/* Texto de estado solo para lectores de pantalla */
+.g-stepper__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Indicador (círculo con número o icono) ---------- */
+.g-stepper__indicator {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--_ind);
+  block-size: var(--_ind);
+  border: var(--_line) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: 1;
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-stepper__indicator .g-icon {
+  inline-size: calc(var(--_ind) * 0.6);
+  block-size: calc(var(--_ind) * 0.6);
+}
+
+/* ---------- Estados derivados ---------- */
+.g-stepper__step.is-complete .g-stepper__label { color: var(--g-color-text); }
+.g-stepper__step.is-complete .g-stepper__indicator {
+  border-color: var(--_base);
+  background: var(--_base);
+  color: var(--_on);
+}
+.g-stepper__step.is-current .g-stepper__label {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-title-weight);
+}
+.g-stepper__step.is-current .g-stepper__indicator {
+  border-color: var(--_base);
+  background: var(--g-color-surface);
+  color: var(--_text);
+  box-shadow: 0 0 0 calc(var(--g-space-1) * 0.75) var(--_soft);
+}
+
+/* ---------- Marcas del consumidor (se combinan con lo derivado) ---------- */
+.g-stepper__step.is-error .g-stepper__indicator {
+  border-width: calc(var(--g-border-width) * 3);
+  border-style: double;
+  border-color: var(--g-color-danger);
+  background: var(--g-color-surface);
+  color: var(--g-color-danger-text);
+  box-shadow: none;
+}
+.g-stepper__step.is-error .g-stepper__label {
+  color: var(--g-color-danger-text);
+  text-decoration: underline wavy;
+  text-underline-offset: var(--g-space-1);
+}
+.g-stepper__step.is-warning .g-stepper__indicator {
+  border-style: dashed;
+  border-color: var(--g-color-warning);
+  background: var(--g-color-surface);
+  color: var(--g-color-warning-text);
+  box-shadow: none;
+}
+.g-stepper__step.is-warning .g-stepper__label {
+  color: var(--g-color-warning-text);
+  text-decoration: underline dashed;
+  text-underline-offset: var(--g-space-1);
+}
+/* Bloqueado: exento de contraste (WCAG 1.4.3), pero conserva candado y no es botón */
+.g-stepper__step.is-disabled .g-stepper__indicator {
+  border-color: var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-subtle);
+  box-shadow: none;
+}
+.g-stepper__step.is-disabled .g-stepper__label,
+.g-stepper__step.is-disabled .g-stepper__description { color: var(--g-color-text-subtle); }
+
+/* ---------- Conector ---------- */
+.g-stepper__connector {
+  flex: 1 1 auto;
+  align-self: flex-start;
+  min-inline-size: calc(var(--g-space-1) * 4);
+  block-size: var(--_line);
+  margin-block-start: calc(var(--_pad) + var(--_off) + (var(--_ind) - var(--_line)) / 2);
+  margin-inline: var(--_gap);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-border);
+}
+.g-stepper__connector.is-done { background: var(--_base); }
+.g-stepper__connector.is-toward {
+  background: linear-gradient(var(--_angle), var(--_base) 35%, var(--g-color-border) 35%);
+}
+
+/* ---------- Adaptación: sin descripciones ---------- */
+.g-stepper--condensed .g-stepper__description { display: none; }
+
+/* ---------- Variante: puntos ---------- */
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) {
+  --_ind: var(--_dot);
+  /* El punto se centra en la primera línea de texto y deja aire para su anillo */
+  --_off: calc((var(--_lh) - var(--_dot)) / 2);
+}
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__hit { gap: calc(var(--_gap) + var(--g-space-1)); }
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__indicator { margin-block-start: var(--_off); }
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__indicator {
+  border-width: var(--_line);
+  font-size: 0;
+}
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__indicator .g-icon { display: none; }
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator {
+  background: var(--_base);
+}
+/* El actual es un punto con anillo concéntrico: se distingue en escala de grises */
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator {
+  background: var(--_base);
+  box-shadow:
+    0 0 0 var(--g-space-1) var(--g-color-surface),
+    0 0 0 calc(var(--g-space-1) + var(--_line)) var(--_base);
+}
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-error .g-stepper__indicator {
+  border-color: var(--g-color-danger);
+  background: var(--g-color-danger);
+}
+.g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-warning .g-stepper__indicator {
+  border-color: var(--g-color-warning);
+  background: var(--g-color-surface);
+}
+
+/* ---------- Variante: línea (mínima) ---------- */
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__list { gap: var(--_gap); }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__connector { display: none; }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__hit {
+  flex-direction: column;
+  gap: 0;
+  inline-size: 100%;
+  border-radius: 0;
+  border-block-end: var(--_line) solid var(--g-color-border-control);
+  padding-block-end: var(--_pad);
+}
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__hit { border-block-end-color: var(--_base); }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__hit {
+  border-block-end-color: var(--_base);
+  border-block-end-width: calc(var(--_line) * 2);
+  padding-block-end: calc(var(--_pad) - var(--_line));
+}
+/* Sin círculo: el indicador solo aparece para error y advertencia, como icono suelto */
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__indicator { display: none; }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) :is(.is-error, .is-warning) .g-stepper__indicator {
+  display: inline-flex;
+  inline-size: auto;
+  block-size: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: var(--_fs);
+}
+.g-stepper--indicator-line:not(.g-stepper--is-compact) :is(.is-error, .is-warning) .g-stepper__indicator .g-icon {
+  inline-size: 1em;
+  block-size: 1em;
+}
+.g-stepper--indicator-line:not(.g-stepper--is-compact) :is(.is-error, .is-warning) .g-stepper__hit {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--g-space-1);
+}
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-error .g-stepper__hit { border-block-end-color: var(--g-color-danger); }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-warning .g-stepper__hit { border-block-end-color: var(--g-color-warning); }
+
+/* ---------- Variante: segmentada (cada paso es un tramo de una sola barra) ---------- */
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__list { gap: calc(var(--g-border-width) * 2); }
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__connector { display: none; }
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__hit {
+  flex-direction: column;
+  gap: var(--g-space-2);
+  inline-size: 100%;
+}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator {
+  inline-size: 100%;
+  block-size: calc(var(--g-space-1) * 1.5);
+  border: 0;
+  border-radius: 0;
+  background: var(--g-color-border-control);
+  box-shadow: none;
+  font-size: 0;
+}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator .g-icon { display: none; }
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step:first-child .g-stepper__indicator {
+  border-start-start-radius: var(--g-radius-pill);
+  border-end-start-radius: var(--g-radius-pill);
+}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step:last-child .g-stepper__indicator {
+  border-start-end-radius: var(--g-radius-pill);
+  border-end-end-radius: var(--g-radius-pill);
+}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator { background: var(--_base); }
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator {
+  background: linear-gradient(var(--_angle), var(--_base) 50%, var(--g-color-border-control) 50%);
+}
+/* Tramas distintas para error y advertencia (no dependen del tono) */
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-error .g-stepper__indicator {
+  background: repeating-linear-gradient(45deg, var(--g-color-danger) 0 var(--g-space-1), var(--g-color-surface) 0 calc(var(--g-space-1) * 1.5));
+}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-warning .g-stepper__indicator {
+  background: repeating-linear-gradient(var(--_angle), var(--g-color-warning) 0 calc(var(--g-space-1) * 1.5), var(--g-color-surface) 0 calc(var(--g-space-1) * 2.5));
+}
+
+/* ---------- Vertical (y lista desplegada del compacto) ---------- */
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__list { flex-direction: column; }
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__step {
+  flex-direction: column;
+  flex: none;
+}
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__hit {
+  inline-size: 100%;
+  padding-block-end: calc(var(--g-space-3) * var(--_density));
+}
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__label,
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__description {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__connector {
+  position: absolute;
+  inset-inline-start: calc((var(--_ind) - var(--_line)) / 2);
+  inset-block: calc(var(--_pad) + var(--_off) + var(--_ind) + var(--g-space-1)) 0;
+  inline-size: var(--_line);
+  block-size: auto;
+  min-inline-size: 0;
+  margin: 0;
+  align-self: auto;
+}
+:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__connector.is-toward {
+  background: linear-gradient(180deg, var(--_base) 35%, var(--g-color-border) 35%);
+}
+.g-stepper__content {
+  margin-inline-start: calc(var(--_ind) + var(--_gap));
+  padding-block: 0 calc(var(--g-space-4) * var(--_density));
+}
+/* Con punto en vertical, el conector sigue el centro del punto */
+.g-stepper--indicator-dot.g-stepper--vertical:not(.g-stepper--is-compact) .g-stepper__connector {
+  inset-inline-start: calc((var(--_dot) - var(--_line)) / 2);
+}
+
+/* ---------- Compacto ---------- */
+.g-stepper__compact { display: none; }
+.g-stepper--is-compact > .g-stepper__compact { display: block; }
+.g-stepper--is-compact > .g-stepper__list { display: none; }
+.g-stepper__summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--_gap);
+}
+.g-stepper__summary-name {
+  min-inline-size: 0;
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+.g-stepper__summary-count {
+  flex: none;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-stepper__bar {
+  display: flex;
+  gap: calc(var(--g-border-width) * 2);
+  margin-block: var(--_gap);
+}
+.g-stepper__bar-seg {
+  flex: 1 1 0;
+  block-size: var(--g-space-1);
+  background: var(--g-color-border);
+}
+.g-stepper__bar-seg:first-child { border-start-start-radius: var(--g-radius-pill); border-end-start-radius: var(--g-radius-pill); }
+.g-stepper__bar-seg:last-child { border-start-end-radius: var(--g-radius-pill); border-end-end-radius: var(--g-radius-pill); }
+.g-stepper__bar-seg.is-done { background: var(--_base); }
+.g-stepper__bar-seg.is-toward { background: linear-gradient(var(--_angle), var(--_base) 50%, var(--g-color-border) 50%); }
+.g-stepper__toggle {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  text-decoration: underline;
+  text-underline-offset: var(--g-space-1);
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-stepper__toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-stepper__compact .g-stepper__list { margin-block-start: var(--_gap); }
+
+/* ---------- Tamaños y densidad ---------- */
+.g-stepper--size-sm { --_units: 5; --_dot: calc(var(--g-space-1) * 2.5); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-stepper--size-md { --_units: 6; --_dot: calc(var(--g-space-1) * 3);   --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-stepper--size-lg { --_units: 8; --_dot: calc(var(--g-space-1) * 3.5); --_fs: var(--g-text-body-size);    --_lh: var(--g-text-body-line); }
+.g-stepper--density-default { --_density: 1; }
+.g-stepper--density-comfortable { --_density: 0.875; }
+.g-stepper--density-compact { --_density: 0.75; }
+
+/* ---------- Color (la prop elige la familia) ---------- */
+.g-stepper--color-brand { --_base: var(--g-color-primary); --_strong: var(--g-color-primary-strong); --_soft: var(--g-color-primary-soft); --_text: var(--g-color-primary-text); --_on: var(--g-color-on-primary); }
+.g-stepper--color-accent { --_base: var(--g-color-accent); --_strong: var(--g-color-accent-strong); --_soft: var(--g-color-accent-soft); --_text: var(--g-color-accent-text); --_on: var(--g-color-on-accent); }
+.g-stepper--color-neutral { --_base: var(--g-color-neutral); --_strong: var(--g-color-neutral-strong); --_soft: var(--g-color-neutral-soft); --_text: var(--g-color-neutral-text); --_on: var(--g-color-on-neutral); }
+.g-stepper--color-success { --_base: var(--g-color-success); --_strong: var(--g-color-success-strong); --_soft: var(--g-color-success-soft); --_text: var(--g-color-success-text); --_on: var(--g-color-on-success); }
+.g-stepper--color-warning { --_base: var(--g-color-warning); --_strong: var(--g-color-warning-strong); --_soft: var(--g-color-warning-soft); --_text: var(--g-color-warning-text); --_on: var(--g-color-on-warning); }
+.g-stepper--color-danger { --_base: var(--g-color-danger); --_strong: var(--g-color-danger-strong); --_soft: var(--g-color-danger-soft); --_text: var(--g-color-danger-text); --_on: var(--g-color-on-danger); }
+.g-stepper--color-info { --_base: var(--g-color-info); --_strong: var(--g-color-info-strong); --_soft: var(--g-color-info-soft); --_text: var(--g-color-info-text); --_on: var(--g-color-on-info); }
+
+/* ---------- Interacción ---------- */
+@media (hover: hover) {
+  button.g-stepper__hit:hover .g-stepper__label { text-decoration: underline; text-underline-offset: var(--g-space-1); }
+  .g-stepper__step.is-complete button.g-stepper__hit:hover .g-stepper__indicator {
+    border-color: var(--_strong);
+    background: var(--_strong);
+  }
+  .g-stepper__toggle:hover { text-decoration-thickness: calc(var(--g-border-width) * 2); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-stepper__step button.g-stepper__hit:active .g-stepper__indicator {
+    transform: scale(var(--g-press-scale));
+    transition: transform var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-stepper__connector,
+  .g-stepper__bar-seg {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-stepper__indicator { transition: none; }
+}
+
+/* ---------- Área táctil ---------- */
+@media (pointer: coarse) {
+  button.g-stepper__hit,
+  .g-stepper__toggle { min-block-size: 44px; }
+}
+
+/* ---------- Colores forzados (alto contraste) ---------- */
+@media (forced-colors: active) {
+  .g-stepper__indicator {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+  .g-stepper__step.is-complete .g-stepper__indicator {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+  .g-stepper__step.is-current .g-stepper__indicator { border-color: Highlight; color: CanvasText; outline: var(--_line) solid Highlight; outline-offset: var(--_line); }
+  .g-stepper__step.is-disabled .g-stepper__indicator { border-color: GrayText; color: GrayText; }
+  .g-stepper__step.is-disabled .g-stepper__label,
+  .g-stepper__step.is-disabled .g-stepper__description { color: GrayText; }
+  .g-stepper__label,
+  .g-stepper__description,
+  .g-stepper__optional { color: CanvasText; }
+  .g-stepper__connector,
+  .g-stepper__bar-seg { background: GrayText; forced-color-adjust: none; }
+  .g-stepper__connector.is-done,
+  .g-stepper__bar-seg.is-done { background: Highlight; }
+  .g-stepper__connector.is-toward,
+  .g-stepper__bar-seg.is-toward { background: linear-gradient(var(--_angle), Highlight 50%, GrayText 50%); }
+  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator { border: 0; background: GrayText; forced-color-adjust: none; }
+  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator { background: Highlight; }
+  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator { background: linear-gradient(var(--_angle), Highlight 50%, GrayText 50%); outline: 0; }
+  .g-stepper__toggle { color: LinkText; }
+}

@@ -448,6 +448,68 @@
       </g-menu>
       <span>Último: <b>{{ mnLog }}</b></span>
     </div>
+    <h2>Avatar (GAvatarMotion)</h2>
+    <div class="row">
+      <g-avatar-motion v-model:state="avState" size="xl" color="danger" label="Asistente"></g-avatar-motion>
+      <g-btn v-for="s in ['idle','thinking','success','error']" :key="s" size="sm" :variant="avState === s ? 'solid' : 'outline'" @click="avState = s">{{ s }}</g-btn>
+      <g-helper aria-label="Abrir asistente" content-label="Asistente" close-label="Cerrar" @toggle="avHelper($event)">
+        <template #trigger><g-avatar-motion :state="avHelperState" size="md" color="danger"></g-avatar-motion></template>
+        <template #content>{{ avHelperState === 'thinking' ? 'Pensando…' : 'Listo: puedo ayudarte con este formulario.' }}</template>
+      </g-helper>
+    </div>
+    <h2>Ayuda contextual (GHelper, GHelperScope)</h2>
+    <div class="row">
+      <g-btn variant="outline">Guardar</g-btn>
+      <g-helper aria-label="Abrir ayuda" content-label="Ayuda" close-label="Cerrar">
+        <template #content="{ close }">
+          <p style="margin:0 0 8px">Puedo ayudarte con este formulario.</p>
+          <g-btn variant="ghost" size="sm" @click="close">Explicar</g-btn>
+        </template>
+      </g-helper>
+    </div>
+    <g-helper-scope style="max-width:520px;margin:32px 0;padding:24px;border:1px solid var(--g-color-border);border-radius:12px">
+      <p style="margin:0">Formulario de alta: el disparador flota sobre el borde superior y el contenido se abre hacia abajo.</p>
+      <g-helper mode="float" placement="top-end" attach="edge" content-placement="bottom-end" aria-label="Ayuda del formulario" content-label="Ayuda del formulario" close-label="Cerrar">
+        <template #content>Completa los campos obligatorios.</template>
+      </g-helper>
+    </g-helper-scope>
+    <h2>Superficies (GSurface)</h2>
+    <div class="row" style="align-items:stretch">
+      <g-surface level="flat">flat</g-surface>
+      <g-surface level="outlined">outlined</g-surface>
+      <g-surface level="raised">raised</g-surface>
+      <g-surface level="floating">floating</g-surface>
+      <g-surface level="inset">inset</g-surface>
+    </div>
+    <div class="row" style="align-items:flex-start">
+      <g-surface level="raised" as="article" style="max-width:320px">
+        <b>Plan Pro</b>
+        <g-surface level="inset" padding="sm" style="margin-top:12px">3 asientos · $36/mes</g-surface>
+      </g-surface>
+      <g-surface level="floating" tone="sunken" padding="xs" rounded="xl" style="max-width:360px">
+        <div style="padding:8px 12px"><b>Guardar cambios</b></div>
+        <g-surface level="inset">Cuerpo del diálogo sobre la carcasa hundida.</g-surface>
+      </g-surface>
+    </div>
+    <h2>Stepper (GStepper)</h2>
+    <div class="col" style="max-width:720px">
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta" @select="stpLog = 'select · ' + $event.id"></g-stepper>
+      <div class="row">
+        <g-btn variant="outline" size="sm" :disabled="stpIdx === 0" @click="stpMove(-1)">Anterior</g-btn>
+        <g-btn size="sm" :disabled="stpIdx === stpSteps.length - 1" @click="stpMove(1)">Siguiente</g-btn>
+        <span>Actual: <b>{{ stpCur }}</b> · {{ stpLog }}</span>
+      </div>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="segment" aria-label="Registro de cuenta (segmentos)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="dot" aria-label="Registro de cuenta (puntos)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="line" aria-label="Registro de cuenta (línea)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="icon" aria-label="Registro de cuenta (iconos)">
+        <template #icon="{ step }"><lucide-icon :name="step.icon"></lucide-icon></template>
+      </g-stepper>
+      <div style="max-width:320px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta (estrecho)"></g-stepper></div>
+      <div style="max-width:360px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" orientation="vertical" navigation="back" aria-label="Registro de cuenta (vertical)">
+        <template #content="{ step }">Contenido del paso «{{ step.label }}».</template>
+      </g-stepper></div>
+    </div>
     <h2>Widgets (GWidget, GWidgetGrid)</h2>
     <div class="col" style="max-width:1100px">
       <div class="row" style="align-items:center">
@@ -568,6 +630,21 @@
         const selLoad = ref(null)
         const bdgCount = ref(12)
         const bdgLog = ref('')
+        const avState = ref('idle')
+        const avHelperState = ref('idle')
+        const avHelper = (e) => { if (!e.open) { avHelperState.value = 'idle'; return } avHelperState.value = 'thinking'; setTimeout(() => { avHelperState.value = 'success' }, 1200) }
+        const stpSteps = [
+          { id: 'plan', label: 'Plan', description: 'Elige tu plan', icon: 'tag' },
+          { id: 'cuenta', label: 'Cuenta', description: 'Datos de acceso', icon: 'user' },
+          { id: 'pago', label: 'Pago', description: 'Tarjeta o transferencia', icon: 'folder' },
+          { id: 'fin', label: 'Confirmación', description: 'Revisa y acepta', icon: 'check' },
+          { id: 'rev', label: 'Revisión', description: 'Seguimiento', icon: 'search' }
+        ]
+        const stpLabels = { complete: 'completado', current: 'paso actual', pending: 'pendiente', error: 'con error', warning: 'con advertencia', disabled: 'bloqueado', optional: 'opcional', progress: 'Paso {current} de {total}', showAll: 'Ver todos los pasos', hideAll: 'Ocultar pasos' }
+        const stpCur = ref('cuenta')
+        const stpLog = ref('—')
+        const stpIdx = computed(() => stpSteps.findIndex((s) => s.id === stpCur.value))
+        const stpMove = (d) => { stpCur.value = stpSteps[stpIdx.value + d].id }
         const mnOpen = ref(false)
         const mnLog = ref('—')
         const mnItems = ref([
@@ -796,7 +873,7 @@
             ? ":root { --g-radius-xs: 6px; --g-radius-sm: 9px; --g-radius-md: 12px; --g-radius-lg: 17px; --g-radius-xl: 24px; --g-radius-shape: var(--g-radius-pill); } :root, [data-theme=\"light\"] { --g-color-brand: #0B1F4D; --g-color-brand-strong: #1E3464; --g-color-brand-soft: #E9F0FF; --g-color-brand-text: #0B1F4D; --g-color-on-brand: #FFFFFF; --g-color-on-brand-soft: #0B1F4D; --g-color-accent: #6D28D9; --g-color-accent-strong: #5700B8; --g-color-accent-soft: #F0EEFF; --g-color-accent-text: #6D28D9; --g-color-on-accent: #FFFFFF; --g-color-on-accent-soft: #6D28D9; --g-color-surface-sunken: #F4F6FB; --g-color-text: #181A1D; --g-color-text-muted: #535559; --g-color-text-subtle: #6C6E72; --g-color-border-control: #5B6B8C; --g-color-border: rgb(24 26 29 / 0.08); --g-color-border-strong: rgb(24 26 29 / 0.16); --g-color-neutral: #696B6F; --g-color-neutral-strong: #535558; --g-color-neutral-soft: #EFF0F1; --g-color-neutral-text: #696B6F; --g-color-on-neutral: #FFFFFF; --g-color-on-neutral-soft: #696B6F; } @media (prefers-color-scheme: dark) { :root:not([data-theme=\"light\"]) { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; } } [data-theme=\"dark\"] { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; }"
             : ''
         }
-        return { mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

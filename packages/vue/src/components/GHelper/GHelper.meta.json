@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "name": "GHelper",
+  "tag": "g-helper",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Ayuda contextual anclada a una región: disparador en línea o flotante (placement × attach × offset) que abre un contenido agnóstico como popover no modal o, si no cabe, como hoja (GDialog).",
+  "contract": "design/contracts/helper.md",
+  "prototype": "design/lab/helper/r01/",
+  "style": "packages/vue/src/components/GHelper/GHelper.css",
+  "props": [
+    {
+      "name": "mode",
+      "type": "String",
+      "default": "inline",
+      "values": [
+        "inline",
+        "float"
+      ]
+    },
+    {
+      "name": "placement",
+      "type": "String",
+      "default": "bottom-end",
+      "values": [
+        "top-start",
+        "top",
+        "top-end",
+        "right-start",
+        "right",
+        "right-end",
+        "bottom-end",
+        "bottom",
+        "bottom-start",
+        "left-end",
+        "left",
+        "left-start"
+      ]
+    },
+    {
+      "name": "attach",
+      "type": "String",
+      "default": "inside",
+      "values": [
+        "inside",
+        "edge",
+        "outside"
+      ]
+    },
+    {
+      "name": "offset",
+      "type": "Number",
+      "default": 2
+    },
+    {
+      "name": "contentPlacement",
+      "type": "String",
+      "default": null,
+      "values": [
+        "top-start",
+        "top",
+        "top-end",
+        "right-start",
+        "right",
+        "right-end",
+        "bottom-end",
+        "bottom",
+        "bottom-start",
+        "left-end",
+        "left",
+        "left-start"
+      ]
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "adaptive",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "ariaLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "contentLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "closeLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:open",
+      "payload": "Boolean",
+      "trigger": "El usuario abre o cierra (botón, Esc, clic fuera, foco que sale, cierre de la hoja)"
+    },
+    {
+      "name": "toggle",
+      "payload": "{ open, presentation }",
+      "trigger": "Tras abrir o cerrar; presentation: popover | sheet"
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger",
+      "purpose": "Contenido del botón (icono, texto, avatar); sin controles. Alcance: { open }"
+    },
+    {
+      "name": "content",
+      "purpose": "Contenido agnóstico. Alcance: { close, presentation }"
+    },
+    {
+      "name": "default",
+      "purpose": "Alias de content (content gana)"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-radius-pill",
+    "--g-radius-lg",
+    "--g-radius-sm",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-space-1",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-font-ui",
+    "--g-text-body-sm-{size|line}",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out"
+  ],
+  "states": [
+    "closed",
+    "open",
+    "hover",
+    "focus-visible",
+    "disabled",
+    "popover",
+    "sheet"
+  ],
+  "pending": [
+    "Lector de pantalla real",
+    "Firefox y Safari (@starting-style, popover)",
+    "Táctil real y zoom al 200%",
+    "GAvatarMotion (DECISIONS.md #104)"
+  ]
+}

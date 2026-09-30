@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GHelper · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--sp:4px;--trig:32px}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:78ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:80ch}
+.b{font:inherit;min-height:36px;padding:0 14px;border:1px solid var(--wf-2);border-radius:8px;background:#fff;cursor:pointer}
+.region{border:1px dashed var(--wf-3);background:#fff;padding:24px;min-height:120px;display:grid;place-items:center;color:var(--wf-2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:56px 40px;margin:48px 0}
+.toolbar{display:flex;gap:8px;align-items:center;padding:8px;border:1px dashed var(--wf-3);background:#fff}
+.clip{overflow:hidden}
+
+/* ============ GHelperScope ============ */
+.hs{position:relative}
+
+/* ============ GHelper ============ */
+.hp{display:inline-flex}
+.hp__trigger{font:inherit;display:inline-grid;place-items:center;min-inline-size:var(--trig);min-block-size:var(--trig);padding:0;border:1px solid var(--wf-2);border-radius:999px;background:#fff;color:var(--wf-ink);cursor:pointer}
+.hp__trigger svg{inline-size:18px;block-size:18px}
+.hp__trigger:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.hp__trigger[aria-expanded="true"]{background:var(--wf-ink);color:#fff}
+@media (pointer:coarse){.hp__trigger{min-inline-size:44px;min-block-size:44px}}
+.hp__trigger.custom{border-radius:8px;padding:0 10px;min-inline-size:0}
+
+/* float: el disparador se posiciona respecto al ancestro posicionado más cercano (el scope).
+   side left/right se leen como lógicos (inline-start/end): en RTL se reflejan. --_dir invierte los desplazamientos horizontales en RTL. */
+.hp--float{position:absolute;z-index:1;--_o:calc(var(--sp) * var(--_offset));--_tx:0%;--_ty:0%;--_dir:1;translate:calc(var(--_tx) * var(--_dir)) var(--_ty)}
+.hp--float:dir(rtl){--_dir:-1}
+.hp--float[data-side=top][data-attach=inside]{inset-block-start:var(--_o)}
+.hp--float[data-side=top][data-attach=edge]{inset-block-start:0;--_ty:-50%}
+.hp--float[data-side=top][data-attach=outside]{inset-block-end:calc(100% + var(--_o))}
+.hp--float[data-side=bottom][data-attach=inside]{inset-block-end:var(--_o)}
+.hp--float[data-side=bottom][data-attach=edge]{inset-block-end:0;--_ty:50%}
+.hp--float[data-side=bottom][data-attach=outside]{inset-block-start:calc(100% + var(--_o))}
+.hp--float[data-side=left][data-attach=inside]{inset-inline-start:var(--_o)}
+.hp--float[data-side=left][data-attach=edge]{inset-inline-start:0;--_tx:-50%}
+.hp--float[data-side=left][data-attach=outside]{inset-inline-end:calc(100% + var(--_o))}
+.hp--float[data-side=right][data-attach=inside]{inset-inline-end:var(--_o)}
+.hp--float[data-side=right][data-attach=edge]{inset-inline-end:0;--_tx:50%}
+.hp--float[data-side=right][data-attach=outside]{inset-inline-start:calc(100% + var(--_o))}
+/* Alineación secundaria: start / centro / end (a offset del borde, salvo el centro) */
+.hp--float:is([data-side=top],[data-side=bottom])[data-align=start]{inset-inline-start:var(--_o)}
+.hp--float:is([data-side=top],[data-side=bottom])[data-align=end]{inset-inline-end:var(--_o)}
+.hp--float:is([data-side=top],[data-side=bottom])[data-align=center]{inset-inline-start:50%;--_tx:-50%}
+.hp--float:is([data-side=left],[data-side=right])[data-align=start]{inset-block-start:var(--_o)}
+.hp--float:is([data-side=left],[data-side=right])[data-align=end]{inset-block-end:var(--_o)}
+.hp--float:is([data-side=left],[data-side=right])[data-align=center]{inset-block-start:50%;--_ty:-50%}
+
+/* Contenido: popover en la capa superior (no lo recorta ningún overflow), posición fija calculada */
+.hp__content{position:fixed;inset:auto;margin:0;inset-inline-start:var(--_x);inset-block-start:var(--_y);inline-size:max-content;max-inline-size:min(320px,calc(100vw - 16px));max-block-size:var(--_max,60vh);overflow:auto;padding:12px 14px;border:1px solid var(--wf-2);border-radius:10px;background:#fff;box-shadow:0 8px 24px -8px rgb(0 0 0 / .3)}
+.hp__content:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.hp__content .t{font-weight:600;margin:0 0 6px}
+.hp__content p{margin:0 0 8px}
+/* Hoja (sustituye a GDialog mobile="sheet" en el prototipo) */
+dialog.sheet{position:fixed;inset:auto 0 0 0;margin:0;inline-size:100%;max-inline-size:100%;border:1px solid var(--wf-2);border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+dialog.sheet::backdrop{background:rgb(0 0 0 / .32)}
+.sheet__h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.log{font:12px ui-monospace,monospace;color:var(--wf-2);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+<h1>GHelper · r01</h1>
+<p class="meta">Wireframe F2 · kit neutral. Geometría, contenido flotante, colisión, adaptación y teclado; el estilo final es de coco.</p>
+<div class="wf-note"><b>Mecanismo:</b> el <b>disparador</b> se coloca con CSS (sin JavaScript) respecto al ancestro posicionado más cercano: <code>GHelperScope</code> o, sin él, el que haya. El <b>contenido</b> se abre en la capa superior (<code>popover="manual"</code>) con posición fija calculada: prueba la posición pedida, luego la opuesta, luego las perpendiculares, y desplaza sobre el eje secundario. Si <b>ninguna</b> cabe en el visor, o el visor no ofrece el ancho cómodo del contenido (320px = <code>space × 80</code>), abre una hoja inferior.</div>
+
+<h2 class="sec">1 · Inline en una barra de herramientas</h2>
+<p class="cap">El disparador ocupa su sitio en el flujo: sin <code>position: absolute</code>.</p>
+<div class="toolbar"><button class="b" type="button">Guardar</button><span data-helper='{"mode":"inline"}'></span></div>
+
+<h2 class="sec">2 · Float: placement × attach</h2>
+<p class="cap">Tres regiones con <code>GHelperScope</code>, placement <code>top-end</code> y attach <code>inside</code>, <code>edge</code> y <code>outside</code> (offset 2 = 8px).</p>
+<div class="grid">
+  <div class="hs region" data-k="inside">inside<span data-helper='{"mode":"float","placement":"top-end","attach":"inside"}'></span></div>
+  <div class="hs region" data-k="edge">edge<span data-helper='{"mode":"float","placement":"top-end","attach":"edge"}'></span></div>
+  <div class="hs region" data-k="outside">outside<span data-helper='{"mode":"float","placement":"top-end","attach":"outside"}'></span></div>
+</div>
+
+<h2 class="sec">3 · Los 12 placement (attach edge)</h2>
+<div class="hs region" style="min-height:220px;margin:40px 24px" id="twelve">12 placement</div>
+
+<h2 class="sec">4 · Contenido con otra orientación y región recortada</h2>
+<p class="cap">Disparador en <code>top-end</code> (edge) y contenido en <code>bottom-end</code>. La región tiene <code>overflow: hidden</code>: el contenido no se recorta porque vive en la capa superior.</p>
+<div class="hs region clip" style="margin-top:32px">Formulario con overflow hidden<span data-helper='{"mode":"float","placement":"top-end","attach":"inside","contentPlacement":"bottom-end"}'></span></div>
+
+<h2 class="sec">5 · Colisión (abajo al final de la página)</h2>
+<p class="cap">Contenido pedido en <code>bottom-end</code> cerca del borde inferior del visor: se voltea a <code>top-end</code>. Desplaza la página para que la región quede abajo y ábrelo.</p>
+<div class="hs region" style="margin-top:32px">Región<span data-helper='{"mode":"float","placement":"bottom-end","attach":"inside","contentPlacement":"bottom-end"}'></span></div>
+
+<h2 class="sec">6 · Scope implícito</h2>
+<p class="cap">Sin <code>GHelperScope</code>: el disparador flota respecto al ancestro posicionado más cercano (aquí, una tarjeta con <code>position: relative</code> que no es un scope).</p>
+<div class="region" style="position:relative">Tarjeta posicionada<span data-helper='{"mode":"float","placement":"bottom-start","attach":"inside"}'></span></div>
+
+<h2 class="sec">7 · Disparador personalizado</h2>
+<div class="toolbar"><span>Formulario de alta</span><span data-helper='{"mode":"inline","custom":"¿Ayuda?"}'></span></div>
+<p class="log" id="log">—</p>
+</main>
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-t"><div class="sheet__h"><b id="sheet-t">Ayuda</b><button class="b" type="button" id="sheet-x" aria-label="Cerrar">×</button></div><div id="sheet-body"></div></dialog>
+<script src="../../lucide-icons.js"></script>
+<script>
+let uid=0, openH=null;
+const log=(m)=>{document.getElementById('log').textContent=m};
+const SIDES=['top','right','bottom','left'];
+const parse=(pl)=>{const [side,align='center']=pl.split('-');return {side,align}};
+const CONTENT=()=>'<p class="t">Ayuda</p><p>Puedo ayudarte con esta región.</p><button class="b" type="button">Explicar</button> <button class="b" type="button">Sugerir</button>';
+function make(host,o){
+  o={mode:'inline',placement:'bottom-end',attach:'inside',offset:2,...o};
+  const id='hp'+(++uid), {side,align}=parse(o.placement);
+  host.outerHTML='<span class="hp hp--'+o.mode+'" data-side="'+side+'" data-align="'+align+'" data-attach="'+o.attach+'" style="--_offset:'+o.offset+'" id="'+id+'" data-cp="'+(o.contentPlacement||o.placement)+'">'
+   +'<button type="button" class="hp__trigger'+(o.custom?' custom':'')+'" aria-expanded="false" aria-controls="'+id+'-c" aria-haspopup="dialog" '+(o.custom?'':'aria-label="Abrir ayuda"')+'>'+(o.custom||window.lucide('circle-help'))+'</button>'
+   +'<div class="hp__content" id="'+id+'-c" popover="manual" role="dialog" aria-label="Ayuda" tabindex="-1">'+CONTENT()+'</div></span>';
+  const el=document.getElementById(id); const btn=el.querySelector('.hp__trigger'); const c=el.querySelector('.hp__content');
+  btn.addEventListener('click',()=>toggle(el));
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'&&btn.getAttribute('aria-expanded')==='true'){e.preventDefault();close(el,true)}});
+  el.addEventListener('focusout',e=>{if(!el.contains(e.relatedTarget)&&e.relatedTarget)close(el,false)});
+}
+document.querySelectorAll('[data-helper]').forEach(h=>make(h,JSON.parse(h.dataset.helper)));
+const tw=document.getElementById('twelve');
+['top-start','top','top-end','right-start','right','right-end','bottom-end','bottom','bottom-start','left-end','left','left-start'].forEach(p=>{const s=document.createElement('span');tw.appendChild(s);make(s,{mode:'float',placement:p,attach:'edge'})});
+document.addEventListener('pointerdown',e=>{if(openH&&!openH.contains(e.target))close(openH,false)},true);
+window.addEventListener('resize',()=>openH&&place(openH));
+window.addEventListener('scroll',()=>openH&&place(openH),true);
+
+// ---- Posición del contenido: pedida → opuesta → perpendiculares; desplazamiento en el eje secundario ----
+const PAD=8, GAP=8, PREF=320; // PREF: ancho cómodo del contenido (space × 80)
+function candidate(a,w,h,side,align,rtl){
+  let x,y; const al=rtl&&align!=='center'?(align==='start'?'end':'start'):align;
+  if(side==='top'||side==='bottom'){y=side==='top'?a.top-GAP-h:a.bottom+GAP; x=al==='start'?a.left:al==='end'?a.right-w:a.left+a.width/2-w/2}
+  else{const phys=rtl?(side==='left'?'right':'left'):side; x=phys==='left'?a.left-GAP-w:a.right+GAP; y=align==='start'?a.top:align==='end'?a.bottom-h:a.top+a.height/2-h/2}
+  return {x,y};
+}
+function place(el){
+  const c=el.querySelector('.hp__content'), a=el.querySelector('.hp__trigger').getBoundingClientRect();
+  const vw=innerWidth, vh=innerHeight, w=c.offsetWidth, h=c.offsetHeight, rtl=getComputedStyle(el).direction==='rtl';
+  // Espacio real: si el visor no ofrece el ancho cómodo del contenido, no se intenta un popover estrecho
+  if(vw-2*PAD<PREF) return false;
+  const {side,align}=parse(el.dataset.cp); const opp={top:'bottom',bottom:'top',left:'right',right:'left'}[side];
+  const order=[side,opp,...SIDES.filter(s=>s!==side&&s!==opp)];
+  for(const s of order){
+    let {x,y}=candidate(a,w,h,s,align,rtl);
+    const fitsMain = (s==='top'||s==='bottom') ? (y>=PAD&&y+h<=vh-PAD) : (x>=PAD&&x+w<=vw-PAD);
+    if(!fitsMain) continue;
+    // desplazamiento en el eje secundario
+    x=Math.min(Math.max(PAD,x),vw-PAD-w); y=Math.min(Math.max(PAD,y),vh-PAD-h);
+    if(w>vw-2*PAD||h>vh-2*PAD) continue;
+    c.style.setProperty('--_x',x+'px'); c.style.setProperty('--_y',y+'px'); el.dataset.used=s; return true;
+  }
+  return false; // no cabe en ninguna: hoja
+}
+function toggle(el){ el.querySelector('.hp__trigger').getAttribute('aria-expanded')==='true'?close(el,false):open(el) }
+function open(el){
+  if(openH&&openH!==el) close(openH,false);
+  const btn=el.querySelector('.hp__trigger'), c=el.querySelector('.hp__content');
+  c.showPopover(); btn.setAttribute('aria-expanded','true'); openH=el;
+  if(!place(el)){ // adaptativo: hoja inferior modal
+    c.hidePopover(); const d=document.getElementById('sheet'); document.getElementById('sheet-body').innerHTML=CONTENT(); d.showModal(); d._owner=el;
+    log('abierto como hoja (no cabe en ninguna posición)'); return;
+  }
+  log('abierto como popover: pedido '+el.dataset.cp+' → usado '+el.dataset.used);
+}
+function close(el,focus){
+  const btn=el.querySelector('.hp__trigger'), c=el.querySelector('.hp__content');
+  if(c.matches(':popover-open')) c.hidePopover(); btn.setAttribute('aria-expanded','false'); if(openH===el) openH=null;
+  if(focus) btn.focus(); log('cerrado');
+}
+const sheet=document.getElementById('sheet');
+document.getElementById('sheet-x').onclick=()=>sheet.close();
+sheet.addEventListener('close',()=>{const el=sheet._owner; if(el){el.querySelector('.hp__trigger').setAttribute('aria-expanded','false'); el.querySelector('.hp__trigger').focus(); openH=null}});
+</script>
+</body>
+</html>

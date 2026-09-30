@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GHelper · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/helper.md con el CSS real y el tema por defecto. No es documentación.
+     El script solo abre el popover y le da --_x/--_y/--_max (lo que hará bruno). -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GHelperScope/GHelperScope.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GHelper/GHelper.css?v=1">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:32px 0 16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:48px 32px;margin-top:40px}
+  .region{background:var(--g-color-surface);border:1px solid var(--g-color-border-strong);border-radius:12px;min-height:120px;padding:16px}
+  .toolbar{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button> <button id="dark-btn" type="button">Oscuro</button>
+<h2>Inline</h2>
+<div class="toolbar" id="tb"><span>Guardar</span>
+  <span class="g-helper g-helper--inline" data-k="inline"><button class="g-helper__trigger g-helper__trigger--default" type="button" aria-label="Abrir ayuda" aria-expanded="false" aria-controls="c1" aria-haspopup="dialog"></button><div class="g-helper__content" id="c1" role="dialog" aria-label="Ayuda" popover="manual" tabindex="-1" data-side="bottom"><strong>Ayuda</strong><p style="margin:4px 0 0">Puedo ayudarte con este formulario. Completa los campos obligatorios.</p></div></span>
+  <span class="g-helper g-helper--inline" data-k="custom"><button class="g-helper__trigger g-helper__trigger--custom" type="button" aria-expanded="false" aria-controls="c2" aria-haspopup="dialog">¿Ayuda?</button></span>
+</div>
+<h2>Float · attach (top-end, offset 2)</h2>
+<div class="grid">
+  <div class="g-helper-scope region" data-r="inside">inside<span class="g-helper g-helper--float g-helper--side-top g-helper--align-end g-helper--attach-inside" style="--_offset: 2"><button class="g-helper__trigger g-helper__trigger--default" type="button" aria-label="Abrir ayuda" aria-expanded="false"></button></span></div>
+  <div class="g-helper-scope region" data-r="edge">edge<span class="g-helper g-helper--float g-helper--side-top g-helper--align-end g-helper--attach-edge" style="--_offset: 2"><button class="g-helper__trigger g-helper__trigger--default" type="button" aria-label="Abrir ayuda" aria-expanded="false"></button></span></div>
+  <div class="g-helper-scope region" data-r="outside">outside<span class="g-helper g-helper--float g-helper--side-top g-helper--align-end g-helper--attach-outside" style="--_offset: 2"><button class="g-helper__trigger g-helper__trigger--default" type="button" aria-label="Abrir ayuda" aria-expanded="false"></button></span></div>
+  <div class="g-helper-scope region" data-r="center">bottom · edge<span class="g-helper g-helper--float g-helper--side-bottom g-helper--align-center g-helper--attach-edge" style="--_offset: 2"><button class="g-helper__trigger g-helper__trigger--default" type="button" aria-label="Abrir ayuda" aria-expanded="false" disabled></button></span></div>
+</div>
+<script>
+document.querySelectorAll('.g-helper__trigger--default').forEach(b=>b.innerHTML=window.lucide('circle-help'));
+const h=document.querySelector('[data-k=inline]'), btn=h.querySelector('button'), c=h.querySelector('.g-helper__content');
+btn.onclick=()=>{ if(c.matches(':popover-open')){c.hidePopover();h.classList.remove('is-open');btn.setAttribute('aria-expanded','false');return}
+  c.showPopover(); h.classList.add('is-open'); btn.setAttribute('aria-expanded','true'); const a=btn.getBoundingClientRect();
+  c.style.setProperty('--_x',(a.left)+'px'); c.style.setProperty('--_y',(a.bottom+8)+'px'); c.style.setProperty('--_max',(innerHeight-a.bottom-16)+'px') };
+const theme=document.getElementById('theme'); let on=false;
+document.getElementById('theme-btn').onclick=()=>{on=!on; theme.textContent=on?':root{--g-color-surface:#fffaf2;--g-color-border:rgb(80 50 20 / .14);--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-focus:#0f6e5f;--g-shadow-2:0 6px 16px -6px rgb(80 50 20 / .25);--g-radius-lg:16px;--g-space-1:5px;--g-border-width:2px;--g-font-ui:Georgia,serif}':''};
+document.getElementById('dark-btn').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'};
+</script>
+</body>
+</html>

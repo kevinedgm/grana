@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "name": "GAvatarMotion",
+  "tag": "g-avatar-motion",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Avatar ilustrado que responde a estados semánticos (idle, thinking, success, error…): el consumidor dice qué ocurre y el avatar elige la coreografía. Decorativo por defecto; no es un icono.",
+  "contract": "design/contracts/avatar-motion.md",
+  "prototype": "design/lab/avatar-motion/r01/",
+  "style": "packages/vue/src/components/GAvatarMotion/GAvatarMotion.css",
+  "props": [
+    {
+      "name": "state",
+      "type": "String",
+      "default": "idle",
+      "values": [
+        "idle",
+        "hover",
+        "attention",
+        "open",
+        "thinking",
+        "working",
+        "success",
+        "warning",
+        "error"
+      ]
+    },
+    {
+      "name": "idleLoop",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "done",
+      "payload": "estado terminado (success | warning | error)",
+      "trigger": "Termina una coreografía finita (o su pose, con movimiento reducido)"
+    },
+    {
+      "name": "update:state",
+      "payload": "'idle'",
+      "trigger": "Tras done (efecto solo con v-model:state)"
+    }
+  ],
+  "slots": [],
+  "tokens": [
+    "--g-color-{primary|accent|neutral|success|warning|danger|info}",
+    "--g-color-{…}-strong",
+    "--g-color-{…}-soft",
+    "--g-color-on-{…}",
+    "--g-space-1",
+    "--g-duration-spin",
+    "--g-ease-out"
+  ],
+  "states": [
+    "idle",
+    "thinking",
+    "success",
+    "error",
+    "still",
+    "reduced-motion"
+  ],
+  "pending": [
+    "Lector de pantalla con label (role img)",
+    "Rendimiento con muchos avatares animados",
+    "Parpadeo con variación pseudoaleatoria (especificación §30)",
+    "Coreografías propias para hover, attention, open, working y warning",
+    "Firefox y Safari (transform-box: fill-box en SVG); rendimiento en móvil de gama baja"
+  ]
+}

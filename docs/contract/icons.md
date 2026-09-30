@@ -12,6 +12,8 @@ Un **icono** es cualquier pictograma cuyo significado se lee por su forma: una m
 
 No son iconos (y se siguen dibujando con CSS): rellenos, bordes, pistas y pulgares de controles (el riel de un interruptor, la pista de una barra de progreso, el círculo de un radio), sombras, contornos de foco, el esqueleto de carga y las **barras de asa de una sola pieza** (la asa de una hoja inferior y la de un evento del calendario: un borde redondeado, sin forma de pictograma).
 
+**Ilustraciones y mascotas (DECISIONS.md #105):** tampoco son iconos. Una ilustración es un **dibujo compuesto** con partes (cuerpo, ojos, extremidades) que el componente anima por separado, y que **no tiene significado de pictograma**: no sustituye a ningún icono ni se usa como tal (no es «ayuda», «alerta» ni «cerrar»). Puede escribirse como SVG propio dentro de su componente (hoy solo `GAvatarMotion`), con colores de tokens. Si una ilustración empezara a usarse para comunicar una acción o un estado sin texto, deja de ser ilustración: se usa el icono de Lucide correspondiente.
+
 ### Formas de estado (insignias, leyendas)
 
 Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y triángulo de `GBadge` y de la leyenda de `GDataList`, y el punto de estado) **también son Lucide** (`circle`, `square`, `diamond`, `triangle`, rellenas con `currentColor`): una sola fuente, sin excepciones.
@@ -51,6 +53,8 @@ Nombre de Lucide entre comillas.
 | `GWidget` | Botón del menú de acciones | `ellipsis-vertical` |
 | `GWidgetGrid` | Asa de mover · asa de redimensionar | `grip-vertical` · `move-diagonal-2` |
 | `GWidgetGallery` | Marca de la categoría elegida | `check` |
+| `GStepper` | Paso hecho · con error · con advertencia · bloqueado | `check` · `circle-alert` · `triangle-alert` · `lock` |
+| `GHelper` | Disparador por defecto | `circle-help` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
 `GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.

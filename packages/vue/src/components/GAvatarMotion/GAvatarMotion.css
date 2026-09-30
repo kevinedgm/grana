@@ -1,0 +1,129 @@
+/*
+  GAvatarMotion · estilo y coreografía
+  Dueño: coco. Contrato: design/contracts/avatar-motion.md. Estructura: design/lab/avatar-motion/r01/.
+  Colores: solo var(--g-*) y alias locales. Tamaño: desde --g-space-1.
+  EXCEPCIÓN DOCUMENTADA (DECISIONS.md #106, tokens.md §7): las constantes de coreografía (duraciones, distancias
+  y ángulos de los fotogramas clave, en unidades del viewBox) son parte del dibujo y se escriben literales aquí.
+  Son las del prototipo del usuario (design/lab/avatar-motion/r01/referencia-usuario.html).
+*/
+
+/* ---------- Raíz ---------- */
+.g-avatar-motion {
+  /* Color (se reasigna por --color-*) */
+  --_base: var(--g-color-primary);
+  --_strong: var(--g-color-primary-strong);
+  --_soft: var(--g-color-primary-soft);
+  --_on: var(--g-color-on-primary);
+  /* Tamaño en unidades de space (se reasigna por --size-*) */
+  --_units: 8;
+  --_idle-iterations: 2;
+
+  display: inline-block;
+  flex: none;
+  inline-size: calc(var(--g-space-1) * var(--_units));
+  block-size: calc(var(--g-space-1) * var(--_units));
+  vertical-align: middle;
+  line-height: 0;
+}
+.g-avatar-motion svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+/* ---------- Partes: color por clase (nunca atributos fill/stroke literales) ---------- */
+.g-avatar-motion__shell { fill: var(--_strong); }
+.g-avatar-motion__core { fill: var(--_base); }
+.g-avatar-motion__band {
+  fill: none;
+  stroke: color-mix(in oklab, var(--_base) 45%, var(--_soft));
+}
+.g-avatar-motion__tip { fill: color-mix(in oklab, var(--_base) 45%, var(--_soft)); }
+.g-avatar-motion__line {
+  fill: none;
+  stroke: var(--_strong);
+}
+.g-avatar-motion__eye { fill: var(--_on); }
+.g-avatar-motion__pupil { fill: var(--_strong); }
+
+/* Pivotes: cada parte gira o escala sobre sí misma; las antenas desde su base */
+.g-avatar-motion__body,
+.g-avatar-motion__eyes,
+.g-avatar-motion__legs {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.g-avatar-motion__antenna {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+/* ---------- Coreografía (solo sin movimiento reducido) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-avatar-motion[data-motion="idle"] .g-avatar-motion__body { animation: g-avatar-breathe 3s ease-in-out var(--_idle-iterations); }
+  .g-avatar-motion[data-motion="idle"] .g-avatar-motion__eyes { animation: g-avatar-blink 4.2s ease-in-out var(--_idle-iterations); }
+
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__body { animation: g-avatar-think-body 0.62s ease-in-out infinite alternate; }
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__antenna--start { animation: g-avatar-antenna-start 0.45s ease-in-out infinite alternate; }
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__antenna--end { animation: g-avatar-antenna-end 0.45s ease-in-out infinite alternate; }
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__eyes { animation: g-avatar-look 0.72s ease-in-out infinite alternate; }
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__legs--start { animation: g-avatar-legs-start 0.55s ease-in-out infinite alternate; }
+  .g-avatar-motion[data-motion="thinking"] .g-avatar-motion__legs--end { animation: g-avatar-legs-end 0.55s ease-in-out infinite alternate; }
+
+  .g-avatar-motion[data-motion="success"] svg { animation: g-avatar-success 0.7s var(--g-ease-out) 1; }
+  .g-avatar-motion[data-motion="error"] svg { animation: g-avatar-error 0.45s ease-in-out 1; }
+}
+.g-avatar-motion--idle-loop { --_idle-iterations: infinite; }
+
+/* Poses (valen con y sin movimiento): comunican el estado aunque no haya animación */
+.g-avatar-motion[data-motion="success"] .g-avatar-motion__eyes { transform: scaleY(0.35); }
+.g-avatar-motion[data-motion="error"] .g-avatar-motion__eyes { transform: scale(0.8, 0.7); }
+
+/* Las antenas y patas del lado «end» son espejo del «start»: en RTL el dibujo no se refleja (es una figura, no texto) */
+@keyframes g-avatar-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+@keyframes g-avatar-blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(0.08); } }
+@keyframes g-avatar-think-body { from { transform: translateY(-3px) rotate(-1deg); } to { transform: translateY(4px) rotate(1deg); } }
+@keyframes g-avatar-antenna-start { from { transform: rotate(0deg); } to { transform: rotate(-14deg); } }
+@keyframes g-avatar-antenna-end { from { transform: rotate(0deg); } to { transform: rotate(14deg); } }
+@keyframes g-avatar-look { from { transform: translateX(-4px); } to { transform: translateX(4px); } }
+@keyframes g-avatar-legs-start { from { transform: rotate(0deg); } to { transform: rotate(-7deg); } }
+@keyframes g-avatar-legs-end { from { transform: rotate(0deg); } to { transform: rotate(7deg); } }
+@keyframes g-avatar-success {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.88, 1.12) translateY(5px); }
+  65% { transform: scale(1.1, 0.92) translateY(-7px); }
+  100% { transform: scale(1); }
+}
+@keyframes g-avatar-error {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px) rotate(-3deg); }
+  40% { transform: translateX(7px) rotate(3deg); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+/* ---------- Tamaños (unidades de space) ---------- */
+.g-avatar-motion--size-sm { --_units: 6; }
+.g-avatar-motion--size-md { --_units: 8; }
+.g-avatar-motion--size-lg { --_units: 12; }
+.g-avatar-motion--size-xl { --_units: 24; }
+
+/* ---------- Color (la prop elige la familia) ---------- */
+.g-avatar-motion--color-brand { --_base: var(--g-color-primary); --_strong: var(--g-color-primary-strong); --_soft: var(--g-color-primary-soft); --_on: var(--g-color-on-primary); }
+.g-avatar-motion--color-accent { --_base: var(--g-color-accent); --_strong: var(--g-color-accent-strong); --_soft: var(--g-color-accent-soft); --_on: var(--g-color-on-accent); }
+.g-avatar-motion--color-neutral { --_base: var(--g-color-neutral); --_strong: var(--g-color-neutral-strong); --_soft: var(--g-color-neutral-soft); --_on: var(--g-color-on-neutral); }
+.g-avatar-motion--color-success { --_base: var(--g-color-success); --_strong: var(--g-color-success-strong); --_soft: var(--g-color-success-soft); --_on: var(--g-color-on-success); }
+.g-avatar-motion--color-warning { --_base: var(--g-color-warning); --_strong: var(--g-color-warning-strong); --_soft: var(--g-color-warning-soft); --_on: var(--g-color-on-warning); }
+.g-avatar-motion--color-danger { --_base: var(--g-color-danger); --_strong: var(--g-color-danger-strong); --_soft: var(--g-color-danger-soft); --_on: var(--g-color-on-danger); }
+.g-avatar-motion--color-info { --_base: var(--g-color-info); --_strong: var(--g-color-info-strong); --_soft: var(--g-color-info-soft); --_on: var(--g-color-on-info); }
+
+/* ---------- Colores forzados: silueta en color de texto, ojos en fondo ---------- */
+@media (forced-colors: active) {
+  .g-avatar-motion { forced-color-adjust: none; }
+  .g-avatar-motion__shell, .g-avatar-motion__core, .g-avatar-motion__tip, .g-avatar-motion__pupil { fill: CanvasText; }
+  .g-avatar-motion__line, .g-avatar-motion__band { stroke: CanvasText; }
+  .g-avatar-motion__band { stroke: Canvas; }
+  .g-avatar-motion__eye { fill: Canvas; }
+  .g-avatar-motion__pupil { fill: CanvasText; }
+}
