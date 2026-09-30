@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSelect · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:36px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px} .wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:20px 24px;align-items:start}
+.cap{font-size:12px;color:var(--wf-2);margin:0 0 4px}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:48px;white-space:pre-wrap;max-width:72ch}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+button{font:inherit}
+
+/* ---------- Campo ---------- */
+.sel{--h:40px;position:relative;display:block}
+.sel__label{display:block;margin-bottom:4px;font-size:14px;font-weight:600} .sel__req{margin-inline-start:2px}
+.sel__control{position:relative;display:flex;align-items:stretch;border:1.5px solid var(--wf-2);border-radius:6px;background:#fff;min-height:var(--h)}
+.sel--soft .sel__control{background:var(--wf-fill-2);border-color:transparent;border-bottom-color:var(--wf-2);border-radius:6px 6px 0 0}
+.sel__btn{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;border-radius:inherit;background:transparent;color:inherit;text-align:start;cursor:pointer}
+.sel__value{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sel__value.is-ph{color:var(--wf-3)}
+.sel__arrow{flex:none;width:8px;height:8px;border:solid currentColor;border-width:0 2px 2px 0;rotate:45deg;translate:0 -2px}
+.sel.is-open .sel__arrow{rotate:225deg;translate:0 2px}
+.sel__btn:focus{outline:0}
+.sel__control:has(.sel__btn:focus-visible){outline:3px solid var(--wf-ink);outline-offset:-1.5px}
+.sel__control:hover:not(:has(:disabled)){border-color:var(--wf-ink)}
+.sel__clear{flex:none;min-width:32px;border:0;background:transparent;cursor:pointer;color:var(--wf-2);font-size:18px;line-height:1}
+.sel__clear:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.sel__msgs{margin-top:4px;font-size:13px;color:var(--wf-2);overflow-wrap:anywhere}
+.sel__err{font-size:13px;font-weight:600;margin-top:2px;overflow-wrap:anywhere} .sel__err::before{content:"\26A0\00a0"} .sel__err:empty{display:none}
+.sel.is-invalid .sel__control{border:2px dashed var(--wf-ink)}
+.sel.is-disabled .sel__control{border-style:dotted;opacity:.55;background:var(--wf-fill)} .sel.is-disabled .sel__label{opacity:.55} .sel.is-disabled .sel__btn{cursor:not-allowed}
+.sel.is-readonly .sel__control{border-style:dashed;background:var(--wf-fill-2)} .sel.is-readonly .sel__btn{cursor:default}
+.sel.is-loading .sel__control::after{content:"";align-self:center;margin-inline-end:8px;width:14px;height:14px;border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{rotate:360deg}}
+.sel--sm{--h:32px} .sel--lg{--h:48px}
+
+/* ---------- Lista (capa superior) ---------- */
+.sel__list{position:fixed;inset:auto;margin:0;padding:4px;list-style:none;min-width:0;max-height:min(320px,60vh);overflow:auto;border:1.5px solid var(--wf-2);border-radius:8px;background:#fff;color:var(--wf-ink);overscroll-behavior:contain}
+.sel__list:not(:popover-open){display:none}
+.sel__opt{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 10px;border-radius:5px;cursor:pointer;overflow-wrap:anywhere}
+.sel__opt[aria-selected=true]{font-weight:600}
+.sel__opt[aria-selected=true]::after{content:"";flex:none;margin-inline-start:auto;width:10px;height:5px;border:solid currentColor;border-width:0 0 2px 2px;rotate:-45deg;translate:0 -2px}
+.sel__opt.is-active{background:var(--wf-fill);outline:2px solid var(--wf-ink);outline-offset:-2px}
+.sel__opt[aria-disabled=true]{opacity:.5;cursor:not-allowed;text-decoration:line-through}
+.sel__grp{padding:6px 10px 2px;font-size:12px;font-weight:700;color:var(--wf-2);text-transform:none}
+.sel__empty{padding:10px;color:var(--wf-2);font-size:14px}
+@media (pointer:coarse){.sel__control,.sel__opt{min-height:44px}.sel__clear{min-width:44px}}
+/* Móvil: hoja inferior */
+@media (max-width:520px){
+  .sel__list{inset:auto 0 0 0 !important;width:100vw !important;max-height:60vh;border-radius:16px 16px 0 0;border-bottom:0;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+  .sel__list::backdrop{background:rgb(0 0 0 / .32)}
+  .sel__opt{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){.sel.is-loading .sel__control::after{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>GSelect · r01</h1>
+<p class="meta">Wireframe F2. Kit neutral; el estilo real es de coco. Patrón: combobox de solo selección (APG). Cambia el ancho de la ventana a ≤520px para ver la hoja inferior.</p>
+<div class="wf-note">El selector es un <code>&lt;button role="combobox"&gt;</code> y la lista un <code>&lt;ul role="listbox" popover="manual"&gt;</code> en la capa superior. El foco no sale del selector: la opción activa se indica con <code>aria-activedescendant</code>. Un <code>&lt;input type="hidden"&gt;</code> lleva el valor a los formularios.</div>
+<div id="app"></div>
+<h2>Registro</h2><div class="log" id="log">—</div>
+</main>
+<script>
+const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
+let uid=0
+class GSel{
+  constructor(host,o){this.o=o;this.id='sel'+(++uid);this.value=o.value??null;this.open=false;this.active=null;this.typed='';this.typedT=null
+    this.flat=[];const walk=(arr,g)=>arr.forEach(x=>x.options?walk(x.options,x):this.flat.push({...x,group:g&&g.label}));walk(o.options||[])
+    this.render(host);this.bind()}
+  get opts(){return this.flat}
+  get sel(){return this.flat.find(x=>x.value===this.value)}
+  render(host){const o=this.o,id=this.id
+    const desc=[o.hint&&`${id}-h`,o.error&&`${id}-e`].filter(Boolean).join(' ')
+    const cls=['sel',o.soft&&'sel--soft',o.size&&`sel--${o.size}`,o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ')
+    host.innerHTML=`<div class="${cls}" id="${id}"><label class="sel__label" id="${id}-l" for="${id}-b">${o.label}${o.required?'<span class="sel__req" aria-hidden="true">*</span>':''}</label><div class="sel__control"><button class="sel__btn" type="button" role="combobox" id="${id}-b" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-lb" aria-labelledby="${id}-l ${id}-b" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true"':''} ${o.loading?'aria-busy="true"':''} ${o.required?'aria-required="true"':''} ${o.disabled?'disabled':''}><span class="sel__value"></span><span class="sel__arrow" aria-hidden="true"></span></button>${o.clearable?`<button class="sel__clear" type="button" aria-label="Limpiar ${o.label}" ${o.disabled?'disabled':''}>×</button>`:''}</div><input type="hidden" name="${o.name||id}"><ul class="sel__list" id="${id}-lb" role="listbox" popover="manual" aria-labelledby="${id}-l"></ul>${o.hint?`<div class="sel__msgs" id="${id}-h">${o.hint}</div>`:''}<div class="sel__err" id="${id}-e" aria-live="polite">${o.error||''}</div></div>`
+    this.root=host.firstElementChild;this.btn=this.root.querySelector('.sel__btn');this.list=this.root.querySelector('.sel__list');this.clear=this.root.querySelector('.sel__clear');this.hidden=this.root.querySelector('input[type=hidden]')
+    this.paintValue();this.paintList()}
+  paintValue(){const s=this.sel,v=this.root.querySelector('.sel__value');v.textContent=s?s.label:(this.o.placeholder||'');v.classList.toggle('is-ph',!s);this.hidden.value=s?s.value:'';if(this.clear)this.clear.hidden=!s
+    /* el nombre accesible del combobox incluye el valor mostrado (aria-labelledby: etiqueta + él mismo) */}
+  paintList(){const id=this.id;let n=0,html=''
+    const optHtml=x=>`<li class="sel__opt" role="option" id="${id}-o${n++}" data-v="${x.value}" aria-selected="${x.value===this.value}" ${x.disabled?'aria-disabled="true"':''}>${x.label}</li>`
+    const walk=(arr)=>arr.forEach(x=>{if(x.options){const gid=`${id}-g${n}`;html+=`<li role="presentation" class="sel__grpwrap"><ul role="group" aria-labelledby="${gid}" style="list-style:none;margin:0;padding:0"><li role="presentation" class="sel__grp" id="${gid}">${x.label}</li>${x.options.map(optHtml).join('')}</ul></li>`}else html+=optHtml(x)})
+    walk(this.o.options||[]);this.list.innerHTML=html||`<li class="sel__empty" role="presentation">${this.o.empty||'Sin opciones'}</li>`;this.els=[...this.list.querySelectorAll('[role=option]')]}
+  bind(){
+    this.btn.addEventListener('click',()=>{if(this.o.readonly)return;this.open?this.close():this.show()})
+    this.btn.addEventListener('keydown',e=>this.key(e))
+    this.list.addEventListener('pointerdown',e=>e.preventDefault()) /* el foco no sale del selector */
+    this.list.addEventListener('click',e=>{const li=e.target.closest('[role=option]');if(!li)return;const x=this.flat.find(f=>String(f.value)===li.dataset.v);if(x.disabled)return;this.choose(x);})
+    this.list.addEventListener('pointermove',e=>{const li=e.target.closest('[role=option]');if(li&&li.getAttribute('aria-disabled')!=='true')this.setActive(li,false)})
+    if(this.clear)this.clear.addEventListener('click',()=>{this.value=null;this.paintValue();this.paintList();this.btn.focus();log(this.o.label+' → (limpio)')})
+    this.out=e=>{if(!this.open)return;const r=this.list.getBoundingClientRect();const inList=this.list.contains(e.target)&&e.target!==this.list;const onBackdrop=e.target===this.list&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(this.btn.contains(e.target)||inList)return;if(!this.list.contains(e.target)||onBackdrop)this.close()}
+    document.addEventListener('pointerdown',this.out)
+    addEventListener('resize',()=>this.open&&this.place());addEventListener('scroll',()=>this.open&&this.place(),true)}
+  enabledEls(){return this.els.filter(e=>e.getAttribute('aria-disabled')!=='true')}
+  show(){this.open=true;this.root.classList.add('is-open');this.btn.setAttribute('aria-expanded','true');this.list.showPopover();this.place()
+    const cur=this.els.find(e=>e.getAttribute('aria-selected')==='true')||this.enabledEls()[0];if(cur)this.setActive(cur,true);log(this.o.label+': abre')}
+  close(){if(!this.open)return;this.open=false;this.root.classList.remove('is-open');this.btn.setAttribute('aria-expanded','false');this.btn.removeAttribute('aria-activedescendant');this.list.hidePopover();this.els.forEach(e=>e.classList.remove('is-active'));this.active=null;log(this.o.label+': cierra')}
+  place(){if(matchMedia('(max-width:520px)').matches){this.list.style.cssText='';return}
+    const r=this.btn.closest('.sel__control').getBoundingClientRect(),vh=innerHeight;this.list.style.minWidth=r.width+'px';this.list.style.width='';const lh=Math.min(this.list.scrollHeight+4,320);const below=vh-r.bottom-8,above=r.top-8;const up=below<lh&&above>below
+    this.list.style.left=Math.max(4,Math.min(r.left,innerWidth-this.list.offsetWidth-4))+'px';this.list.style.maxHeight=Math.min(320,up?above:below)+'px';this.list.style.top=up?'auto':(r.bottom+4)+'px';this.list.style.bottom=up?(vh-r.top+4)+'px':'auto';this.list.dataset.dir=up?'up':'down'}
+  setActive(li,scroll){this.els.forEach(e=>e.classList.remove('is-active'));li.classList.add('is-active');this.active=li;this.btn.setAttribute('aria-activedescendant',li.id);if(scroll)li.scrollIntoView({block:'nearest'})}
+  move(step){const en=this.enabledEls(),i=en.indexOf(this.active);const n=step==='first'?0:step==='last'?en.length-1:Math.max(0,Math.min(en.length-1,(i<0?0:i)+step));this.setActive(en[n],true)}
+  choose(x){const changed=x.value!==this.value;this.value=x.value;this.paintValue();this.paintList();this.close();if(changed)log(this.o.label+' → '+x.label);this.btn.focus()}
+  key(e){if(this.o.readonly&&!['Tab'].includes(e.key))return;const k=e.key
+    if(!this.open){if(['ArrowDown','ArrowUp','Enter',' '].includes(k)||(k==='ArrowDown'&&e.altKey)){e.preventDefault();this.show();return}
+      if(k.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();this.show();this.type(k)}return}
+    if(k==='ArrowDown'){e.preventDefault();this.move(1)}else if(k==='ArrowUp'){e.preventDefault();this.move(-1)}else if(k==='Home'){e.preventDefault();this.move('first')}else if(k==='End'){e.preventDefault();this.move('last')}
+    else if(k==='PageDown'){e.preventDefault();this.move(10)}else if(k==='PageUp'){e.preventDefault();this.move(-10)}
+    else if(k==='Enter'||k===' '){if(k===' '&&this.typed){this.type(' ');e.preventDefault();return}e.preventDefault();const x=this.flat.find(f=>String(f.value)===this.active.dataset.v);this.choose(x)}
+    else if(k==='Escape'){e.preventDefault();this.close()}
+    else if(k==='Tab'){const x=this.active&&this.flat.find(f=>String(f.value)===this.active.dataset.v);if(x&&x.value!==this.value){this.value=x.value;this.paintValue();this.paintList();log(this.o.label+' → '+x.label+' (Tab)')}this.close()}
+    else if(k.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();this.type(k)}}
+  type(ch){clearTimeout(this.typedT);this.typed+=ch.toLowerCase();this.typedT=setTimeout(()=>this.typed='',500);const en=this.enabledEls();const start=Math.max(0,en.indexOf(this.active))+(this.typed.length===1?1:0);const order=[...en.slice(start),...en.slice(0,start)];const hit=order.find(e=>e.textContent.toLowerCase().startsWith(this.typed));if(hit)this.setActive(hit,true)}
+}
+const countries=[{group:0,label:'Norteamérica',options:[{value:'mx',label:'México'},{value:'us',label:'Estados Unidos'},{value:'ca',label:'Canadá'}]},{label:'Europa',options:[{value:'es',label:'España'},{value:'fr',label:'Francia'},{value:'de',label:'Alemania',disabled:true},{value:'it',label:'Italia'}]},{label:'Sudamérica',options:[{value:'ar',label:'Argentina'},{value:'br',label:'Brasil'},{value:'cl',label:'Chile'},{value:'co',label:'Colombia'}]}]
+const flat=['Bajo','Medio','Alto','Urgente'].map((l,i)=>({value:i,label:l}))
+const many=Array.from({length:40},(_, i)=>({value:i,label:'Opción '+(i+1)}))
+const cases=[
+ ['Sin valor (placeholder)',{label:'País',options:countries,placeholder:'Elige un país'}],
+ ['Con valor y limpiar',{label:'Prioridad',options:flat,value:2,clearable:true}],
+ ['Con ayuda',{label:'Categoría',options:flat,hint:'Puedes cambiarla después.',placeholder:'Elige'}],
+ ['Requerido + inválido',{label:'Estado',options:flat,required:true,error:'Elige una opción para continuar.',placeholder:'Elige'}],
+ ['Deshabilitado',{label:'Deshabilitado',options:flat,value:1,disabled:true}],
+ ['Solo lectura',{label:'Solo lectura',options:flat,value:1,readonly:true}],
+ ['Cargando',{label:'Cargando',options:flat,loading:true,placeholder:'Espera…'}],
+ ['Soft',{label:'Variante soft',options:flat,soft:true,value:0}],
+ ['Lista larga (40, con scroll)',{label:'Muchas opciones',options:many,placeholder:'Elige'}],
+ ['Sin opciones',{label:'Vacío',options:[],placeholder:'Sin nada',empty:'No hay opciones disponibles.'}],
+ ['Texto largo',{label:'Un texto muy largo sin espacios: Supercalifragilisticoespialidosoextraordinariamentelargo',options:[{value:1,label:'Una opción con un texto muy largo sin espacios: Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad'},{value:2,label:'Corta'}],value:1}],
+ ['Tamaños sm / lg',{label:'sm',options:flat,size:'sm',value:1}],
+]
+const app=document.getElementById('app');app.className='grid'
+const insts=cases.map(([cap,o])=>{const d=document.createElement('div');d.innerHTML=`<p class="cap">${cap}</p><div></div>`;app.appendChild(d);return new GSel(d.lastElementChild,o)})
+const lg=document.createElement('div');lg.innerHTML=`<p class="cap">lg</p><div></div>`;app.appendChild(lg);insts.push(new GSel(lg.lastElementChild,{label:'lg',options:flat,size:'lg',value:2}))
+const bottom=document.createElement('div');bottom.style.cssText='height:0';document.body.appendChild(bottom)
+// selector pegado al fondo para probar "hacia arriba"
+const low=document.createElement('div');low.style.cssText='position:fixed;bottom:12px;right:12px;width:220px';document.body.appendChild(low);insts.push(new GSel(low,{label:'Al fondo (abre hacia arriba)',options:flat,value:1}))
+window.insts=insts
+</script>
+</body></html>
