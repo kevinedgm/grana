@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GAvatarMotion",
   "tag": "g-avatar-motion",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Avatar ilustrado que responde a estados semánticos (idle, thinking, success, error…): el consumidor dice qué ocurre y el avatar elige la coreografía. Decorativo por defecto; no es un icono.",
   "contract": "design/contracts/avatar-motion.md",
@@ -92,11 +92,10 @@
     "reduced-motion"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla con label (role img)",
     "Rendimiento con muchos avatares animados",
     "Parpadeo con variación pseudoaleatoria (especificación §30)",
-    "Coreografías propias para hover, attention, open, working y warning"
+    "Coreografías propias para hover, attention, open, working y warning",
+    "Firefox y Safari (transform-box: fill-box en SVG); rendimiento en móvil de gama baja"
   ]
 }
