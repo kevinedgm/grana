@@ -85,3 +85,20 @@
 - El slot real de Vue (`GInput.vue` aún no lo implementa): bruno.
 - Hover del botón en el conjunto y contraste de un botón `soft`/`outline` sobre el fondo del tema.
 
+---
+
+## Ajuste de foco (comentario del usuario)
+
+**Problema:** el foco se sentía tosco y, con botón de acción, el botón quedaba fuera del anillo. Causa: un anillo separado 2px del borde **y** el borde también en color de foco (dos líneas), que terminaba donde empezaba el botón.
+
+**Cambio en `GInput.css`:**
+- El anillo va en la **fila** (`.g-input__row`), no en la caja: rodea caja y botón cuando el foco está en el campo. Sin acción, la fila es la caja.
+- **Pegado al borde:** `outline-offset: calc(var(--g-border-width) * -1)` con `outline` de `--g-focus-width`: una sola línea del grosor del token, sin hueco.
+- **Transición** de `outline-color` en `--g-duration-fast`; la base transparente solo existe fuera de `forced-colors` (allí un contorno transparente se volvería visible).
+- El botón de acción enfocado usa el mismo trazo pegado (no el separado de `GBtn`).
+- Apilado (botón debajo): el anillo vuelve a rodear solo la caja. Solo icono: sigue rodeando el conjunto.
+- `--g-focus-offset` ya no lo lee la caja (solo el botón mostrar/ocultar).
+
+**Verificado en Chromium:** sin acción, con acción, `soft`, inválido (el borde de error queda dentro del anillo), apilado con texto (anillo solo en la caja) y apilado con icono (anillo del conjunto). Con tema (borde 2px, foco 3px violeta, radio 12px): anillo de 3px, `offset -2px`, esquinas de 12px. Botón de acción enfocado: anillo de 2px pegado, `z-index: 1`.
+**No verificado:** `forced-colors` real (el bloque cambia el color a `Highlight`; la base transparente no aplica en ese modo por diseño).
+

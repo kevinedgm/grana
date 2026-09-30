@@ -63,6 +63,17 @@
 .g-input__row {
   display: flex;
   align-items: stretch;
+  border-radius: var(--_field-radius);
+}
+/* Anillo de foco: pegado al borde (sin hueco), del grosor de --g-focus-width, y con transición de
+   color. Rodea el conjunto: la caja sola o, con botón de acción, caja + botón. En forced-colors el
+   contorno transparente se volvería visible, por eso la base solo aplica fuera de ese modo. */
+@media (forced-colors: none) {
+  .g-input__row {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition: outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
 }
 
 /* ---------- Caja ---------- */
@@ -196,10 +207,15 @@
   }
 }
 /* El elemento enfocado pasa por encima del vecino: los anillos nunca se tapan */
+.g-input__row:has(.g-input__field:focus-visible),
 .g-input__control:has(.g-input__field:focus-visible),
 .g-input__action > *:focus-visible {
   position: relative;
   z-index: 1;
+}
+/* El botón de acción enfocado usa el mismo anillo pegado que el campo, no el separado de GBtn */
+.g-input__action > *:focus-visible {
+  outline-offset: calc(var(--g-border-width) * -1);
 }
 
 /* Contenedor estrecho: el botón con texto pasa debajo, a ancho completo y separado.
@@ -235,6 +251,17 @@
     border-end-start-radius: 0;
     border-start-end-radius: var(--_field-radius);
     border-end-end-radius: var(--_field-radius);
+  }
+  /* Apilado: el anillo rodea solo la caja, no el botón que quedó debajo */
+  .g-input--has-action .g-input__row:not(:has(> .g-input__action > .g-btn--icon)) {
+    outline: none;
+  }
+  .g-input--has-action .g-input__row:not(:has(> .g-input__action > .g-btn--icon)):has(.g-input__field:focus-visible) {
+    outline: none;
+  }
+  .g-input--has-action .g-input__row:not(:has(> .g-input__action > .g-btn--icon)) .g-input__control:has(.g-input__field:focus-visible) {
+    outline: var(--g-focus-width) solid var(--_focus);
+    outline-offset: calc(var(--g-border-width) * -1);
   }
 }
 
@@ -325,10 +352,13 @@
     --_border-end: var(--g-color-text-muted);
   }
 }
-/* Foco: el anillo rodea la caja completa (el <input> no lleva contorno propio) */
-.g-input__control:has(.g-input__field:focus-visible) {
+/* Foco: el anillo rodea el conjunto (el <input> no lleva contorno propio) y el borde de la caja
+   toma el color de foco, así se lee como una sola línea */
+.g-input__row:has(.g-input__field:focus-visible) {
   outline: var(--g-focus-width) solid var(--_focus);
-  outline-offset: var(--g-focus-offset);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-input__control:has(.g-input__field:focus-visible) {
   --_border: var(--_focus);
   --_border-end: var(--_focus);
 }
@@ -388,6 +418,7 @@
   .g-input__control {
     border-color: ButtonText;
   }
+  .g-input__row:has(.g-input__field:focus-visible),
   .g-input__control:has(.g-input__field:focus-visible),
   .g-input__toggle:focus-visible {
     outline-color: Highlight;
