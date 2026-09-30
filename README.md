@@ -49,6 +49,7 @@ Grana trae un tema oscuro por defecto (gris casi negro; lo elevado es más claro
 
 - **Sin cambios en tus componentes:** el oscuro redeclara los mismos tokens de color; los componentes solo leen `var(--g-*)`.
 - **Tu tema también tiene oscuro:** con `dark: true` (por defecto), el CLI deriva la variante oscura de tu `brand` y `accent` con el mismo contraste garantizado (4.5:1 para texto, 3:1 para controles) y valida **los dos esquemas**. Puedes fijar colores propios del oscuro con `"dark": { "brand": "#8FACE5", "accent": "#5CC1B6" }` (y `overrides` solo para el oscuro).
+- **Genera el tema con el CLI (o el plugin de Vite), no a mano:** un `:root { --g-color-… }` con solo colores claros **no lleva capa y pisa el oscuro** (la superficie y el texto quedarían claros en modo oscuro). Si aun así lo escribes a mano, repite cada token de color dentro de `[data-theme="dark"]` y de `@media (prefers-color-scheme: dark)`.
 - **Si no quieres oscuro:** `"dark": false` en el CLI (el sistema oscuro no lo activa), o `data-theme="light"` en `<html>`.
 - **Quien use solo los defaults** y no ponga `data-theme` verá el oscuro en un sistema oscuro.
 - **Guardar la preferencia** (un interruptor de tema) es de tu aplicación: alterna el atributo y guárdalo donde prefieras.

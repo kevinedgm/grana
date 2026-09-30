@@ -3,6 +3,7 @@ import { deriveColor, deriveDarkColor } from './derive.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
 import { fontStack, radii, spacing, typography } from './scales.js'
+import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
 
 // Superficie contra la que se calcula `text` (el tema claro por defecto; con `overrides` de surface se respeta)
 const surfaceOf = (overrides = {}) => overrides['--g-color-surface'] ?? DEFAULTS['--g-color-surface']
@@ -19,6 +20,9 @@ const colorTokens = (name, base, surface) => {
   }
 }
 
+// Base clara de `neutral` teñida (de ella se deriva también la variante oscura, como con los demás colores)
+const lightNeutral = (brand) => tintedNeutralBase(brand)
+
 const darkColorTokens = (name, base, surface) => {
   const d = deriveDarkColor(base, { surface })
   return {
@@ -33,7 +37,7 @@ const darkColorTokens = (name, base, surface) => {
 
 // Variante oscura de lo que el usuario cambia (tokens.md §15). Todo token del grupo de color que el usuario
 // toca en el claro necesita su valor oscuro: el `tokens.css` no lleva capa y, sin él, ganaría también en el oscuro.
-const generateDark = (config, generated) => {
+const generateDark = (config, generated, derived) => {
   const opt = config.dark === undefined ? true : config.dark
   if (opt === false) return { enabled: false, generated: {}, tokens: null }
   const cfg = typeof opt === 'object' ? opt : {}
@@ -46,6 +50,17 @@ const generateDark = (config, generated) => {
   if (accent) Object.assign(out, darkColorTokens('accent', accent, surface))
   for (const k of Object.keys(generated)) {
     if (isColorGroup(k) && !(k in out) && k in DARK) out[k] = DARK[k]
+  }
+  // Derivación de paleta (tokens.md §16): los mismos semánticos ajustados, neutros teñidos y categorías, en su variante oscura
+  const d = derived
+  if (d) {
+    for (const [name, r] of Object.entries(d.semantic)) Object.assign(out, darkColorTokens(name, r.hex, surface))
+    if (d.neutralsBrand) {
+      Object.assign(out, tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true }))
+      const nb = lightNeutral(cfg.brand ?? d.neutralsBrand)
+      if (nb) Object.assign(out, darkColorTokens('neutral', nb, surface))
+    }
+    d.categories.forEach((hex, k) => Object.assign(out, darkColorTokens(`cat-${k + 1}`, hex, surface)))
   }
   Object.assign(out, overrides)
   const { other } = splitColorGroup(generated)
@@ -66,6 +81,25 @@ export const generateTheme = (config = {}) => {
   // accent sin valor: se deriva del `text` de brand (contrato §1)
   const accentBase = config.accent ?? (config.brand ? generated['--g-color-brand-text'] : undefined)
   if (accentBase) Object.assign(generated, colorTokens('accent', accentBase, surface))
+  // Derivación de paleta (tokens.md §16)
+  const derived = { semantic: {}, neutralsBrand: null, categories: [] }
+  const anchorBrand = config.brand ?? undefined
+  const anchorAccent = accentBase
+  if (anchorBrand || anchorAccent) {
+    const darkCfg = typeof config.dark === 'object' ? config.dark : {}
+    derived.semantic = semanticAdjustments({ brand: anchorBrand, accent: anchorAccent, darkBrand: darkCfg.brand, darkAccent: darkCfg.accent })
+    for (const [name, r] of Object.entries(derived.semantic)) Object.assign(generated, colorTokens(name, r.hex, surface))
+  }
+  if (config.brand && config.neutrals !== 'pure') {
+    derived.neutralsBrand = config.brand
+    Object.assign(generated, tintedNeutrals(config.brand))
+    const nb = tintedNeutralBase(config.brand)
+    if (nb) Object.assign(generated, colorTokens('neutral', nb, surface))
+  }
+  if (config.categories > 0) {
+    derived.categories = categoryBases(config.categories, config.brand)
+    derived.categories.forEach((hex, k) => Object.assign(generated, colorTokens(`cat-${k + 1}`, hex, surface)))
+  }
   if (config.radius !== undefined || config.shape !== undefined) {
     const r = radii(config.radius ?? 6, config.shape)
     if (config.radius !== undefined) Object.assign(generated, r)
@@ -78,7 +112,7 @@ export const generateTheme = (config = {}) => {
     Object.assign(generated, typography(config.fontSize ?? 16, config.typeScale ?? 1.25))
   }
   Object.assign(generated, overrides)
-  return { generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated) }
+  return { generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }
 }
 
 /** tokens.css: sin capa (el tema del usuario gana siempre, contrato §8). Con tema oscuro, tres bloques (contrato §15). */

@@ -1,7 +1,7 @@
 // Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides` + `dark`.
 import { parseHex } from './color.js'
 
-export const KEYS = ['brand', 'accent', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
+export const KEYS = ['name', 'brand', 'accent', 'neutrals', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
 
 /** Devuelve { config, errors }. Rechaza claves desconocidas y tipos incorrectos, con el motivo. */
 export const readConfig = (raw) => {
@@ -32,6 +32,12 @@ export const readConfig = (raw) => {
     if (typeof raw[key] !== 'string' || !raw[key].trim()) err('bad-string', `«${key}» debe ser un texto no vacío.`)
     else config[key] = raw[key].trim()
   }
+  str('name')
+  if (raw.neutrals !== undefined) {
+    if (raw.neutrals !== 'tinted' && raw.neutrals !== 'pure') err('bad-neutrals', `«neutrals» debe ser "tinted" o "pure"; se recibió ${JSON.stringify(raw.neutrals)}.`)
+    else config.neutrals = raw.neutrals
+  }
+  num('categories', { min: 0, max: 12, int: true })
   color('brand')
   color('accent')
   num('radius', { min: 0, max: 64 })

@@ -2,6 +2,8 @@
 // Cada problema explica QUÉ se rompió y POR QUÉ importa.
 import { contrast, parseHex, toHex } from './color.js'
 import { DEFAULTS } from './defaults.js'
+import { MIN_DISTANCE, SEMANTIC, distance } from './palette.js'
+import { toOklch } from './color.js'
 
 export const COLOR_NAMES = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const BLACK = [0, 0, 0]
@@ -63,7 +65,9 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {})
   }
 
   // Cada color: relleno sólido, blando y texto de color
-  for (const c of COLOR_NAMES) {
+  // Categorías (--g-color-cat-N) presentes en el tema: los mismos pares que el resto de colores
+  const cats = [...new Set(Object.keys(tokens).map((k) => /^--g-color-(cat-\d+)$/.exec(k)?.[1]).filter(Boolean))]
+  for (const c of [...COLOR_NAMES, ...cats]) {
     pair(`--g-color-on-${c}`, `--g-color-${c}`, 4.5, 'on-solid', `WCAG 1.4.3: el texto sobre el relleno sólido de «${c}» necesita 4.5:1.`)
     pair(`--g-color-on-${c}-soft`, `--g-color-${c}-soft`, 4.5, 'on-soft', `WCAG 1.4.3: el texto sobre el relleno suave de «${c}» necesita 4.5:1.`)
     pair(`--g-color-${c}-text`, '--g-color-surface', 4.5, 'color-text', `WCAG 1.4.3: el texto de color «${c}» sobre la superficie necesita 4.5:1.`)
@@ -103,9 +107,22 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {})
   const unit = lengthPx(tokens['--g-space-1'])
   if (!dark && unit !== null && unit < 4) add('space-small', 'warning', `--g-space-1 es ${fmt(unit)}px: los controles xs (6 unidades) medirían ${fmt(unit * 6)}px.`, 'Los componentes aplican un piso de 24px (WCAG 2.5.8), así que los tamaños pequeños dejan de diferenciarse.', { tokens: ['--g-space-1'] })
 
+  // Semánticos demasiado parecidos a la marca o al acento (tokens.md §16): si el usuario los fija con `overrides`, o si no hubo forma de separarlos
+  const lch = (name) => { const c = colorOf(tokens, name); return c ? toOklch(c) : null }
+  for (const anchor of ['brand', 'accent']) {
+    const a = lch(`--g-color-${anchor}`)
+    if (!a) continue
+    for (const sem of SEMANTIC) {
+      const b = lch(`--g-color-${sem}`)
+      if (!b) continue
+      const d = distance(a, b)
+      if (d > 0.005 && d < MIN_DISTANCE - 1e-9) add('semantic-close', 'warning', `«${sem}» se parece a «${anchor}» (distancia ${fmt(d)}; mínimo ${MIN_DISTANCE}).`, `Un ${sem === 'danger' ? 'error' : 'estado'} que se confunde con el color de marca deja de leerse como tal. Cambia el tono de «${sem}» con overrides o ajusta «${anchor}».`, { tokens: [`--g-color-${sem}`, `--g-color-${anchor}`], distance: +d.toFixed(3), min: MIN_DISTANCE })
+    }
+  }
+
   // Tokens explícitos que no existen (erratas)
   for (const k of Object.keys(generated)) {
-    if (!(k in DEFAULTS)) add('unknown-token', 'warning', `«${k}» no es un token de Grana.`, 'Puede ser una errata: ningún componente lo lee.', { tokens: [k] })
+    if (!(k in DEFAULTS) && !/^--g-color-(on-)?cat-\d+(-|$)/.test(k)) add('unknown-token', 'warning', `«${k}» no es un token de Grana.`, 'Puede ser una errata: ningún componente lo lee.', { tokens: [k] })
   }
   return dark ? issues.map((i) => ({ ...i, scheme: 'dark', message: `[oscuro] ${i.message}` })) : issues
 }

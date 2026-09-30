@@ -8,6 +8,7 @@ export const HELP = `grana · genera y valida el tema de Grana
 Uso:
   grana theme <configuración.json> [--out tokens.css] [--stdout]
       Deriva el tema, lo valida y escribe tokens.css (sin capa CSS).
+      Con --doc[=archivo] escribe también tokens.json: cada token con su valor claro y oscuro, su uso y el contraste medido.
   grana check <configuración.json> [--json]
       Solo valida: no escribe nada. Con --json, imprime el informe como JSON.
   grana --help | --version
@@ -22,6 +23,8 @@ const parseArgs = (argv) => {
     const a = argv[i]
     if (a === '--out' || a === '-o') args.flags.out = argv[++i]
     else if (a === '--stdout') args.flags.stdout = true
+    else if (a === '--doc') args.flags.doc = 'tokens.json'
+    else if (a.startsWith('--doc=')) args.flags.doc = a.slice('--doc='.length) || 'tokens.json'
     else if (a === '--json') args.flags.json = true
     else if (a === '--help' || a === '-h') args.flags.help = true
     else if (a === '--version' || a === '-v') args.flags.version = true
@@ -82,9 +85,14 @@ export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.wri
     out(`✔ El tema cumple los mínimos de accesibilidad (${count} ${count === 1 ? 'token' : 'tokens'} generados, ${warnings.length} ${warnings.length === 1 ? 'aviso' : 'avisos'}).\n`)
     return 0
   }
+  if (result.notes.length) out(`${result.notes.map((n) => `ℹ ${n.message}`).join('\n')}\n`)
   if (args.flags.stdout) { out(result.css); return 0 }
   const target = resolve(cwd, args.flags.out ?? 'tokens.css')
   writeFileSync(target, result.css)
+  if (args.flags.doc) {
+    writeFileSync(resolve(cwd, args.flags.doc), `${JSON.stringify(result.doc, null, 2)}\n`)
+    out(`✔ ${args.flags.doc}: ${result.doc.color.tokens.length} tokens de color documentados.\n`)
+  }
   out(`✔ ${args.flags.out ?? 'tokens.css'}: ${count} ${count === 1 ? 'token' : 'tokens'} (${warnings.length} ${warnings.length === 1 ? 'aviso' : 'avisos'}).\n`)
   return 0
 }

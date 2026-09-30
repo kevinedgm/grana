@@ -17,6 +17,9 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
 | `typeScale` | número | `1.4` | Razón de la escala de títulos |
+| `name` | texto | `"Lustre"` | Nombre del sistema en `tokens.json` (§16). Por defecto «Grana» |
+| `neutrals` | `"tinted"` \| `"pure"` | `"pure"` | Neutros teñidos con el tono de la marca (§16). `tinted` (por defecto); `pure`: los grises por defecto |
+| `categories` | entero 0 a 12 | `6` | Serie de colores de categoría `--g-color-cat-1` a `cat-N` (§16). Por defecto 0 (ninguna) |
 | `dark` | `true` \| `false` \| objeto | `{ "brand": "#F5B940" }` | Tema oscuro (§15). `true` (por defecto): el CLI deriva la variante oscura de `brand` y `accent`. `false`: sin tema oscuro (el sistema oscuro no lo activa). Objeto: `brand`, `accent` (colores del oscuro, en lugar de los derivados) y `overrides` (solo para el oscuro) |
 
 Cualquier token derivado puede sobrescribirse explícitamente (uso avanzado). En el CLI, la clave `overrides` es un objeto `{ "--g-token": "valor" }`; se aplica después de generar y el resultado se valida igual. Los colores semánticos (`success`, `warning`, `danger`, `info`, `neutral`) no tienen entrada propia: se cambian con `overrides`.
@@ -336,3 +339,33 @@ El `tokens.css` del usuario va **sin capa y gana siempre** (§8): si define `bra
 - **Sin cambio de tema animado** ni persistencia: alternar `data-theme` y guardar la preferencia es de la aplicación.
 - **Imágenes e iconos** de la aplicación no se adaptan solos.
 - **Usuarios actuales:** sin `data-theme`, una aplicación que use solo los defaults pasará a oscuro en un sistema oscuro. Quien no lo quiera debe fijar `data-theme="light"` (o `dark: false`).
+
+## 16. Derivación de paleta (DECISIONS.md #93)
+
+**Dueño:** lima (reglas) · bruno (implementación en `@grana/cli`, `palette.js`). **Estado:** candidate. Todo en OKLCH, determinista y validado como el resto del tema (§7, §12 y §15): la derivación **nunca** rompe un mínimo de accesibilidad, y cualquier token se puede fijar con `overrides` (que gana a la derivación).
+
+### 16.1 Semánticos sin choque con la marca
+
+`success`, `warning`, `danger` e `info` parten de su color claro por defecto. Si el más cercano de `brand` o `accent` (claros **y** sus variantes oscuras derivadas) queda a una **distancia OKLab < 0.12**, o si el semántico resultante se parecería a otro semántico (< 0.09; el tema por defecto ya está en ≈ 0.10), se busca el **menor giro**: tono ±45° (pasos de 5°) y luminosidad ±0.15 (pasos de 0.05), con el coste `|Δtono| / 45 + 0.6 · |ΔL| / 0.15`. Se conserva el croma, se reduce a la gama sRGB y se derivan `strong`, `soft`, `text`, `on-*` y su variante oscura como cualquier color (§2, §15). Si ningún giro llega a 0.12, se elige el de mayor distancia y se avisa (`semantic-close`). **Los semánticos que no chocan no se tocan** (no se emiten). Si el usuario fija uno con `overrides` y queda a < 0.12 de la marca, también avisa.
+
+### 16.2 Neutros teñidos (`neutrals: "tinted"`, por defecto con `brand`)
+
+`text`, `text-muted`, `text-subtle`, `border`, `border-strong`, `border-control`, `surface-sunken` y la base de `neutral` (y, en el oscuro, también `bg` y `surface`) conservan la **luminosidad del tema por defecto** y toman el **tono de `brand`** con croma = 8 % del de la marca, entre 0.006 y 0.02 (0.008 sobre L > 0.9 y 0.01 bajo L < 0.3, donde el mismo croma se nota más). Después se aleja L, paso a paso, hasta cumplir: texto ≥ 7:1 (`text`) y ≥ 4.5:1 (`muted`, `subtle`) sobre `surface` y `surface-sunken`; `border-control` ≥ 3:1. Los bordes son la tinta del texto con la transparencia por defecto. Con una marca casi gris (croma < 0.02) no se tiñe nada. `surface` y `bg` claros siguen siendo blancos.
+
+### 16.3 Categorías (`categories: N`)
+
+`--g-color-cat-k`, `-strong`, `-soft`, `-text`, `on-cat-k`, `on-cat-k-soft` (k = 1 a N), para iconos, etiquetas y gráficas. Mismo **L = 0.52** y **C = 0.12**; tonos repartidos por igual (**360° / N**) empezando **medio paso** después del de la marca. Hasta 8 categorías los vecinos se distinguen bien (pasos ≥ 45°); hasta 12 es el máximo aceptado. Los seis derivados siguen las reglas de §2 y §15 y se validan como cualquier color.
+
+### 16.4 Hover (`strong`)
+
+`strong` siempre se **aleja del fondo de su texto**: más oscuro si lleva texto blanco, más claro si lleva texto oscuro (la regla ya vigente de §2, ahora con prueba: ΔL ≥ 0.05 y en la dirección correcta).
+
+### 16.5 `tokens.json` (`grana theme --doc[=archivo]`)
+
+Documento con el formato de un sistema de diseño: `{ name, version, color: { themes, tokens[] }, radius, spacing, meta }`. Cada token de color lleva `name`, `cssVar`, `value: { light, dark }`, `usage` (texto, en `usage.js`) y, si es texto o control, `contrast: { against, light, dark }` (razón WCAG medida). `buildTheme` lo devuelve como `doc`.
+
+### 16.6 Límites
+
+- Es una propuesta calculada, no una decisión de diseño: si una marca roja obliga a un «danger» anaranjado, el CLI lo dice (`notes`) y el usuario puede fijarlo con `overrides`.
+- Con `dark: false` no se deriva el oscuro de nada de esto.
+- Los colores de gráficas de datos (series) no se derivan: las categorías son para iconos y etiquetas.
