@@ -21,3 +21,7 @@ Cada entrada: qué se decidió, por qué, y qué alternativa se descartó.
 | 15 | `density` reduce altura, padding y separación, con piso de 24px | Una interfaz compacta con controles de altura completa no gana densidad | Solo padding |
 | 16 | Mínimos de accesibilidad como literales (`24px`, `44px`), no como tokens | Un token sería sobrescribible por el tema del usuario | Tokens `--g-a11y-*` |
 | 17 | `loading` usa `aria-disabled`, no `disabled` | Deshabilitar un botón enfocado hace perder el foco | `disabled` nativo |
+| 18 | Tema por defecto **neutro y minimalista** (referencias: Notion, Medium, Apple): `brand` tinta #1F1F1F, `accent` azul #0B63CE, grises neutros, radio 6 | Un tema neutro no compite con la marca de quien instala Grana | Grana + añil como tema por defecto (queda como tema opcional) |
+| 19 | Fuente por defecto **Instrument Sans**, incluida en el paquete (fontsource, OFL) | Personalidad sin costo para quien usa su propia fuente: `@font-face` es perezoso | Pila del sistema; Google Fonts por CDN (privacidad y dependencia externa) |
+| 20 | Sin serif por defecto (`fontDisplay` = `font`) | Evita una segunda descarga a todos; la personalidad la da Instrument Sans | Fraunces como `fontDisplay` por defecto |
+| 21 | Regla de `strong` corregida: oscurece; aclara solo si L < 0.3; invierte si el contraste con `on` baja de 4.5:1 | La regla anterior dejaba texto blanco en 4.4:1 sobre el hover de un azul medio | Moverse "hacia el centro" |

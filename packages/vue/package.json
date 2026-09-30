@@ -4,15 +4,21 @@
   "description": "Componentes Vue 3 con tema por tokens. The only bug you'll want in your UI.",
   "license": "MIT",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "module": "./dist/grana.js",
   "unpkg": "./dist/grana.umd.js",
   "jsdelivr": "./dist/grana.umd.js",
   "exports": {
-    ".": { "import": "./dist/grana.js" },
+    ".": {
+      "import": "./dist/grana.js"
+    },
     "./style.css": "./dist/grana.css"
   },
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "build": "vite build",
     "test": "vitest run"
@@ -21,6 +27,7 @@
     "vue": "^3.4.0"
   },
   "devDependencies": {
+    "@fontsource-variable/instrument-sans": "^5.3.0",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/test-utils": "^2.4.0",
     "jsdom": "^25.0.0",

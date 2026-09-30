@@ -28,7 +28,7 @@ Se calculan en OKLCH conservando el tono (H). Aplican a `brand`, `accent` y a ca
 
 | Derivado | Regla |
 | --- | --- |
-| `strong` | L ± 0.08 hacia el centro: oscurece si L > 0.5, aclara si L ≤ 0.5 |
+| `strong` | Oscurece L 0.08. Si la base es muy oscura (L < 0.3), aclara L 0.08. Si el resultado baja de 4.5:1 con su `on`, usa la dirección contraria |
 | `soft` | L = 0.955, C × 0.3 |
 | `on` | Casi negro (`#17151A`) o blanco: el de mayor contraste WCAG |
 | `text` | Baja L en pasos de 0.01 hasta contraste ≥ 4.5:1 sobre `surface` |
@@ -36,11 +36,11 @@ Se calculan en OKLCH conservando el tono (H). Aplican a `brand`, `accent` y a ca
 
 Si al reducir L el color sale de la gama sRGB, se reduce C hasta volver a ella.
 
-Valores iniciales (0.08, 0.955, 0.3): **supuestos a validar** con colores reales. Casos extremos conocidos: bases muy claras producen un `soft` casi igual a la base (aceptable).
+Valores iniciales (0.08, 0.955, 0.3): validados con los colores del tema por defecto y con casos extremos (azul marino, amarillo pálido, gris medio): todos los pares pasan 4.5:1. La regla de `strong` se corrigió tras encontrar que aclarar un azul de L 0.49 dejaba el texto blanco en 4.4:1. Caso conocido: bases muy claras producen un `soft` casi igual a la base (aceptable).
 
 ### Semánticos (fijos por defecto)
 
-`success`, `warning`, `danger`, `info`, con los mismos derivados.
+`neutral`, `success`, `warning`, `danger`, `info`, con los mismos derivados. (`neutral` faltaba en esta lista aunque ya era un valor del prop `color`.)
 
 ### Neutros (fijos por defecto)
 
@@ -89,7 +89,9 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 - Interlineado: de 1.5 (`body`) a 1.1 (`display`) interpolado por tamaño, redondeado a múltiplos de 4px.
 - Tracking: de 0 (`body`) a −0.03em (`display`).
 - Salida en `rem`.
-- Grana no descarga fuentes. Si solo se da un nombre, se agrega la pila del sistema sans; para respaldo serif, escribir la pila completa.
+- Fuente por defecto: **Instrument Sans** (OFL), incluida en `@grana/vue` y alojada en el propio paquete, no en un CDN de terceros. Como `@font-face` solo descarga una fuente cuando un texto visible la usa, quien define su propio `font` nunca la descarga.
+- `fontDisplay` por defecto es igual a `font`: sin segunda descarga.
+- Si el usuario solo da un nombre de familia, Grana agrega la pila del sistema sans; para respaldo serif, escribir la pila completa.
 
 ## 6. Nombres en CSS
 
@@ -134,7 +136,7 @@ Modo principal: en build (`npx @grana/cli theme grana.config.json` o plugin de V
 
 ## 9. Pendiente (no bloquea la v0.1)
 
-- **coco:** valores por defecto de Grana (sugerencia: `brand` carmín de grana cochinilla), neutros y sombras.
+- Tema opcional **grana + añil** (`brand` #9E1452, `accent` #2E3A8C, neutros cálidos), ya verificado en contraste; se publicará como tema alternativo.
 - Tema oscuro: mismas entradas con las reglas de L invertidas.
 - Sombras configurables (`elevation`).
 

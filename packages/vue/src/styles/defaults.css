@@ -1,54 +1,89 @@
 /*
-  Tema por defecto de Grana · PROVISIONAL
-  Dueño: coco. Estos valores son un marcador para que el paquete funcione.
-  Se reemplazan por la salida de @grana/cli a partir de la configuración por defecto que decida coco.
-  Este es el ÚNICO archivo del paquete donde se permiten valores literales.
+  Tema por defecto de Grana · v1 · neutro y minimalista
+  Dueño: coco. Aprobado por el usuario.
+  Valores derivados con las reglas de docs/contract/tokens.md y verificados:
+  todo texto ≥ 4.5:1, borde de control ≥ 3:1 sobre surface y surface-sunken.
+  Este es el ÚNICO archivo del paquete donde se permiten valores literales de tema.
 */
 :root {
-  /* Marca (sugerencia pendiente de coco: carmín de grana cochinilla) */
-  --g-color-brand: #B3123B;
-  --g-color-brand-strong: color-mix(in oklch, var(--g-color-brand) 88%, white);
-  --g-color-brand-soft: color-mix(in oklch, var(--g-color-brand) 12%, white);
-  --g-color-brand-text: var(--g-color-brand);
+  /* brand · tinta (acción principal). L 0.24 < 0.3: strong aclara */
+  --g-color-brand: #1F1F1F;
+  --g-color-brand-strong: #333333;
+  --g-color-brand-soft: #F0F0F0;
+  --g-color-brand-text: #1F1F1F;
   --g-color-on-brand: #FFFFFF;
-  --g-color-on-brand-soft: var(--g-color-brand-text);
+  --g-color-on-brand-soft: #1F1F1F;
 
-  /* Acento: sin valor propio, se deriva de brand (contrato §2) */
-  --g-color-accent: var(--g-color-brand-text);
-  --g-color-accent-strong: var(--g-color-brand-strong);
-  --g-color-accent-soft: var(--g-color-brand-soft);
-  --g-color-accent-text: var(--g-color-brand-text);
-  --g-color-on-accent: var(--g-color-on-brand);
-  --g-color-on-accent-soft: var(--g-color-brand-text);
+  /* accent · azul (foco, enlaces, selección) */
+  --g-color-accent: #0B63CE;
+  --g-color-accent-strong: #024DA7;
+  --g-color-accent-soft: #E9F1FD;
+  --g-color-accent-text: #0B63CE;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #0B63CE;
 
-  /* Semánticos */
-  --g-color-success: #1A7F4E;
-  --g-color-warning: #9A5B00;
-  --g-color-danger: #C0262D;
-  --g-color-info: #2457C5;
+  /* neutral */
+  --g-color-neutral: #6B6B6B;
+  --g-color-neutral-strong: #555555;
+  --g-color-neutral-soft: #F0F0F0;
+  --g-color-neutral-text: #6B6B6B;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #555555;
 
-  /* Neutros */
-  --g-color-bg: #F6F5F3;
+  /* success */
+  --g-color-success: #1E7A46;
+  --g-color-success-strong: #026133;
+  --g-color-success-soft: #DFF8E5;
+  --g-color-success-text: #1E7A46;
+  --g-color-on-success: #FFFFFF;
+  --g-color-on-success-soft: #1E7A46;
+
+  /* warning */
+  --g-color-warning: #8F5B00;
+  --g-color-warning-strong: #704806;
+  --g-color-warning-soft: #FFEDD9;
+  --g-color-warning-text: #8F5B00;
+  --g-color-on-warning: #FFFFFF;
+  --g-color-on-warning-soft: #8F5B00;
+
+  /* danger */
+  --g-color-danger: #C4321F;
+  --g-color-danger-strong: #A51603;
+  --g-color-danger-soft: #FDECE8;
+  --g-color-danger-text: #C4321F;
+  --g-color-on-danger: #FFFFFF;
+  --g-color-on-danger-soft: #C4321F;
+
+  /* info · coincide con accent solo en el tema por defecto; son tokens independientes */
+  --g-color-info: #0B63CE;
+  --g-color-info-strong: #024DA7;
+  --g-color-info-soft: #E9F1FD;
+  --g-color-info-text: #0B63CE;
+  --g-color-on-info: #FFFFFF;
+  --g-color-on-info-soft: #0B63CE;
+
+  /* Neutros de superficie y texto */
+  --g-color-bg: #FFFFFF;
   --g-color-surface: #FFFFFF;
-  --g-color-surface-sunken: #F2F1EE;
-  --g-color-text: #1A1A1E;
-  --g-color-text-muted: #4B4B55;
-  --g-color-text-subtle: #6B6B75;
-  --g-color-border: color-mix(in srgb, var(--g-color-text) 10%, transparent);
-  --g-color-border-strong: color-mix(in srgb, var(--g-color-text) 22%, transparent);
-  --g-color-border-control: #8A8A93;
+  --g-color-surface-sunken: #F6F6F6;
+  --g-color-text: #1A1A1A;
+  --g-color-text-muted: #555555;
+  --g-color-text-subtle: #6E6E6E;
+  --g-color-border: rgb(0 0 0 / 0.08);
+  --g-color-border-strong: rgb(0 0 0 / 0.16);
+  --g-color-border-control: #8A8A8A;
   --g-color-focus: var(--g-color-accent-text);
 
-  /* Radios (radius 8, razón 1.4) */
+  /* Radios · radius 6, razón 1.4, shape rounded */
   --g-radius-none: 0;
-  --g-radius-xs: 4px;
-  --g-radius-sm: 6px;
-  --g-radius-md: 8px;
-  --g-radius-lg: 11px;
-  --g-radius-xl: 16px;
+  --g-radius-xs: 3px;
+  --g-radius-sm: 4px;
+  --g-radius-md: 6px;
+  --g-radius-lg: 8px;
+  --g-radius-xl: 12px;
   --g-radius-pill: 999px;
 
-  /* Espaciado (space 4) */
+  /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;
   --g-space-3: 12px;
@@ -59,22 +94,49 @@
   --g-space-12: 48px;
   --g-space-16: 64px;
 
-  /* Familias */
-  --g-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Familias · Instrument Sans (OFL), incluida en el paquete; solo se descarga si se usa */
+  --g-font-ui: "Instrument Sans Variable", "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --g-font-title: var(--g-font-ui);
   --g-font-display: var(--g-font-ui);
 
-  /* Tamaños (fontSize 16, typeScale 1.25) */
+  /* Tipografía · fontSize 16, typeScale 1.25 */
   --g-text-caption-size: 0.75rem;
-  --g-text-body-sm-size: 0.875rem;
-  --g-text-body-size: 1rem;
-  --g-text-title-sm-size: 1.25rem;
-  --g-text-title-size: 1.5625rem;
-  --g-text-title-lg-size: 1.9531rem;
-  --g-text-display-size: 2.4414rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
 
-  /* Sombras */
-  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.06);
-  --g-shadow-2: 0 6px 20px -8px rgb(0 0 0 / 0.2);
-  --g-shadow-3: 0 24px 60px -24px rgb(0 0 0 / 0.34);
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-sm-line: 1.25rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+
+  --g-text-body-size: 1rem;
+  --g-text-body-line: 1.5rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+
+  --g-text-title-sm-size: 1.25rem;
+  --g-text-title-sm-line: 1.75rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+
+  --g-text-title-size: 1.5625rem;
+  --g-text-title-line: 2.25rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+
+  --g-text-title-lg-size: 1.9531rem;
+  --g-text-title-lg-line: 2.5rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+
+  --g-text-display-size: 2.4414rem;
+  --g-text-display-line: 3rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+
+  /* Sombras · discretas: el tema prefiere bordes */
+  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.10);
+  --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.18);
 }

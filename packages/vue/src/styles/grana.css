@@ -1,9 +1,12 @@
 /*
-  Punto de entrada de estilos de Grana.
+  Punto de entrada de estilos de Grana (dueño: bruno).
   El orden de las capas decide quién gana: components sobre defaults.
   El tokens.css del usuario va SIN capa, así que gana sobre ambas sin importar el orden de carga.
 */
 @layer grana.defaults, grana.components;
+
+/* Fuente por defecto (OFL). @font-face no descarga nada hasta que un texto visible la usa. */
+@import "@fontsource-variable/instrument-sans";
 
 @import url("./defaults.css") layer(grana.defaults);
 @import url("./components.css") layer(grana.components);
