@@ -1,6 +1,6 @@
 # Contrato · GSelect
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/select/r01/` (kiwi)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/select/r01/` y `design/lab/select/r02/` (kiwi)
 **Tag:** `g-select` · **Categoría:** entradas
 
 Selector de una opción con lista propia (patrón *select-only combobox* de WAI-ARIA APG), con el mismo lenguaje que `GInput`: etiqueta, ayuda, error y estados. Alcance decidido por el usuario (DECISIONS.md #53 a #56): lista propia, selección única con campo completo (sin selección múltiple ni búsqueda) y hoja inferior en móvil.
@@ -31,6 +31,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 | `clearable` | Boolean | | `false` | propia |
 | `clearLabel` | String | texto libre | sin valor | propia |
 | `emptyText` | String | texto libre | sin valor | propia |
+| `createLabel` | String | texto libre | sin valor | propia |
 | `label` | String | texto libre | sin valor | propia |
 | `hint` | String | texto libre | sin valor | propia |
 | `error` | String | texto libre | sin valor | propia |
@@ -61,6 +62,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 - **`placeholder`:** texto del selector sin valor. Sin él, el selector sin valor queda vacío (la etiqueta lo nombra igualmente).
 - **`clearable`:** con valor, muestra un botón aparte para borrar (`null`). **Solo se renderiza si se da `clearLabel`** (su nombre accesible; sin valor por defecto) y, en desarrollo, `clearable` sin `clearLabel` emite `console.warn`. Con `readonly` o `disabled`, no se muestra activo.
 - **`emptyText`:** mensaje de la lista sin opciones. Sin él, una lista vacía no muestra nada.
+- **`createLabel`:** con texto, la lista termina con una **fila de acción** «Agregar nuevo…» (ver "Fila de agregar"). **Sin valor por defecto** (Grana es internacional); sin él no hay fila. Se recomienda un texto explícito («Agregar nuevo país…»): un lector de pantalla la anuncia como una opción más. Con `readonly` o `disabled` no hay lista, luego no hay fila.
 - **`label`:** el selector exige nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby` (en `$attrs`), en desarrollo se emite `console.warn`.
 - **`error`:** con valor, el selector está inválido (`aria-invalid="true"`, clase `is-invalid`, mensaje visible). **El componente no valida.**
 - **`required`:** `aria-required="true"` y una marca visual `aria-hidden`. **Límite:** el `<input type="hidden">` no participa en la validación nativa de un `<form>` (los navegadores no validan campos ocultos); quien necesite bloquear el envío lo valida y usa `error`.
@@ -81,7 +83,11 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
             aria-haspopup="listbox" aria-expanded="true" aria-controls="ID-list" aria-activedescendant="ID-opt-3"
             aria-labelledby="ID-label ID" aria-describedby="ID-hint ID-error"
             aria-invalid="true" aria-required="true" aria-readonly="true" aria-busy="true">
-      <span class="g-select__value">México</span>          <!-- con placeholder: además g-select__value--placeholder -->
+      <span class="g-select__prepend" aria-hidden="true">…</span>    <!-- solo con el slot prepend -->
+      <span class="g-select__value">                                   <!-- con placeholder: además g-select__value--placeholder -->
+        <span class="g-select__icon" aria-hidden="true">…</span>       <!-- solo con el slot icon y contenido para la opción -->
+        México
+      </span>
       <span class="g-select__arrow" aria-hidden="true"></span>
     </button>
     <button class="g-select__clear" type="button" aria-label="Limpiar País">…</button>   <!-- clearable + clearLabel + valor -->
@@ -89,12 +95,13 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
   </div>
   <input type="hidden" name="pais" value="mx">                                              <!-- solo con name -->
   <ul class="g-select__list" id="ID-list" role="listbox" popover="manual" aria-labelledby="ID-label">
-    <li class="g-select__option" id="ID-opt-0" role="option" aria-selected="true" aria-disabled="true">México</li>
+    <li class="g-select__option" id="ID-opt-0" role="option" aria-selected="true" aria-disabled="true"><span class="g-select__icon" aria-hidden="true">…</span>México</li>
     <li role="presentation"><ul class="g-select__group" role="group" aria-labelledby="ID-grp-0">
       <li class="g-select__group-label" id="ID-grp-0" role="presentation">Europa</li>
       <li class="g-select__option" id="ID-opt-1" role="option" aria-selected="false">España</li>
     </ul></li>
     <li class="g-select__empty" role="presentation">No hay opciones.</li>                 <!-- sin opciones y con emptyText -->
+    <li class="g-select__option g-select__create" id="ID-opt-create" role="option" aria-selected="false">Agregar nuevo país…</li>   <!-- solo con createLabel; siempre la última -->
   </ul>
   <div class="g-select__hint" id="ID-hint">…</div>
   <div class="g-select__error" id="ID-error" aria-live="polite">…</div>
@@ -108,6 +115,17 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 - La región `ID-error` (`aria-live="polite"`) **se renderiza siempre**, vacía mientras no hay error (WCAG 4.1.3), con señal no cromática (marca ⚠ que un lector no lee), como `GInput`.
 - **Altura real ≥ 44px con `pointer: coarse`** en el selector y en las opciones, sin importar `density`.
 - **El estado no depende solo del color:** la elegida lleva ✓ y más peso, la activa un contorno, la deshabilitada opacidad y tachado.
+
+## Fila de agregar (`createLabel`)
+
+Para catálogos cerrados pero incompletos: la lista termina con una fila de acción que **pide** una opción nueva; el selector **no** crea nada por sí mismo (ni tiene búsqueda ni escritura).
+
+- **Es un `role="option"`**, hijo directo del `listbox` y **fuera de los grupos**, con `aria-selected="false"`, `id` `ID-opt-create`, las clases `g-select__option` y `g-select__create`, y **siempre la última fila**. El listbox solo admite `option` y `group`: un botón dentro rompería el patrón y la navegación por `aria-activedescendant`. No es una opción de `options`: no tiene `value`, no entra en `modelValue` ni en la escritura rápida.
+- **Navegación:** es la última fila **navegable**: ↓ llega a ella desde la última opción habilitada, Fin va a ella y Av Pág la cuenta como una opción más. Se resalta con `is-active`.
+- **Activarla** (Enter, Espacio o clic): cierra la lista, **no cambia el valor**, devuelve el foco al botón del selector y **emite `create`** (en ese orden: el foco vuelve **antes** de emitir, así una `GDialog` que la aplicación abra desde `create` restaura el foco al selector al cerrarse). La aplicación agrega la opción a `options` y, si quiere, actualiza `modelValue`.
+- **Tab** con la fila activa cierra **sin crear** (una acción no se dispara por pasar de largo); **Esc** cierra sin hacer nada.
+- **Con la lista vacía**, la fila sigue visible: se muestra `emptyText` (si hay) y **debajo** la fila, activa por defecto. Con `readonly` o `disabled` no hay lista, luego no hay fila.
+- **Visual (lo decide coco):** línea superior de separación, un «+» dibujado con bordes y peso de acción; en la hoja inferior, 44px.
 
 ## Posición y capa superior
 
@@ -123,6 +141,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 | `update:modelValue` | `String \| Number \| null` | El usuario elige una opción distinta, o borra con `clearable` (`null`) |
 | `open` | | La lista se abre |
 | `close` | | La lista se cierra, por el motivo que sea |
+| `create` | | El usuario activa la fila «Agregar nuevo…» (`createLabel`). No cambia el valor; el foco ya volvió al selector |
 
 **Nota para bruno:** los demás eventos (`focus`, `blur`, `keydown`…) **no se declaran**: como los atributos van al botón, las escuchas del consumidor llegan al elemento nativo. Elegir la opción ya elegida cierra sin emitir. Con `readonly` no se emite nada.
 
@@ -130,15 +149,15 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 
 | Tecla | Acción |
 | --- | --- |
-| Tab / Shift+Tab | Entra y sale en el orden del documento: botón → botón de limpiar. Con la lista abierta, **elige la opción activa**, cierra y sigue el orden |
+| Tab / Shift+Tab | Entra y sale en el orden del documento: botón → botón de limpiar. Con la lista abierta, **elige la opción activa**, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra **sin crear**) |
 | Enter / Espacio / ↓ / ↑ / Alt+↓ | Con la lista cerrada: abre, con la elegida (o la primera habilitada) activa |
-| ↓ / ↑ | Con la lista abierta: siguiente o anterior opción **habilitada** (no cicla; saltan encabezados y deshabilitadas) |
-| Inicio / Fin | Primera o última opción habilitada |
+| ↓ / ↑ | Con la lista abierta: siguiente o anterior opción **habilitada** (no cicla; saltan encabezados y deshabilitadas). La fila «Agregar nuevo…» cuenta como la última |
+| Inicio / Fin | Primera o última fila habilitada (con `createLabel`, Fin va a la fila «Agregar nuevo…») |
 | Re Pág / Av Pág | Diez opciones habilitadas hacia atrás o adelante |
-| Enter | Con la lista abierta: elige la activa, cierra y devuelve el foco al selector |
+| Enter | Con la lista abierta: elige la activa, cierra y devuelve el foco al selector. Sobre la fila «Agregar nuevo…»: cierra, devuelve el foco y emite `create` (sin cambiar el valor) |
 | Espacio | Con la lista abierta: elige, salvo que se esté escribiendo un prefijo (entonces es un carácter más) |
 | Esc | Cierra **sin cambiar**; el foco sigue en el selector |
-| Carácter imprimible | Abre la lista si estaba cerrada y activa la siguiente opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo; sin coincidencia, no cambia |
+| Carácter imprimible | Abre la lista si estaba cerrada y activa la siguiente opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo; sin coincidencia, no cambia. **No considera la fila «Agregar nuevo…»** |
 | Enter / Espacio en el botón de limpiar | Borra el valor y devuelve el foco al selector |
 
 El foco **nunca** sale del selector mientras la lista está abierta. Sin manejadores de teclado propios en las opciones.
@@ -153,8 +172,10 @@ El foco **nunca** sale del selector mientras la lista está abierta. Sin manejad
 | `option` | Contenido de una opción | `{ option, selected, active }` | Dentro del `<li role="option">`; nunca interactivos; el texto sigue siendo `option.label` para el typeahead |
 | `value` | Contenido del valor mostrado | `{ option }` | Solo con una opción elegida; dentro de `g-select__value`; sin interactivos |
 | `empty` | Contenido de la lista vacía | | Sustituye a `emptyText` |
+| `prepend` | Icono antes del valor | | Decorativo: el componente lo envuelve en `g-select__prepend` (`aria-hidden`), **dentro del botón**, antes del valor. Con una opción elegida que tenga icono, este último **sustituye al prefijo** (una sola posición inicial) |
+| `icon` | Icono de una opción | `{ option }` | Decorativo: se envuelve en `g-select__icon` (`aria-hidden`) y se usa **antes del texto de cada opción** y **junto al valor mostrado**. El `span` solo se renderiza si el slot devuelve contenido para esa opción (una opción sin icono no reserva espacio). Si se usa el slot `option` (o `value`), este reemplaza el contenido completo y el `icon` no se usa en esa zona |
 
-Los iconos de `option` y `value` son decorativos (el consumidor los marca `aria-hidden`).
+Los iconos de `prepend`, `icon`, `option` y `value` son decorativos. Los de `prepend` e `icon` los envuelve el componente con `aria-hidden`; los que el consumidor ponga dentro de `option` y `value` los marca él. **Los iconos no forman parte del nombre accesible:** el selector sigue anunciándose como etiqueta + texto del valor.
 
 ## Tokens consumidos
 
@@ -193,6 +214,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-select__button` | Botón `combobox` | Siempre |
 | `g-select__value` | Valor mostrado | Siempre |
 | `g-select__value--placeholder` | Valor mostrado | Sin opción elegida |
+| `g-select__prepend` | Prefijo decorativo (`aria-hidden`) | Con el slot `prepend` |
+| `g-select__icon` | Icono decorativo (`aria-hidden`) de una opción y del valor mostrado | Con el slot `icon` y contenido para esa opción |
 | `g-select__arrow` | Flecha decorativa | Siempre |
 | `g-select__clear` | Botón de limpiar | `clearable` con `clearLabel` y valor |
 | `g-select__loader` | Anillo | `loading` |
@@ -202,6 +225,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-active` | Opción | Opción activa |
 | `g-select__group`, `g-select__group-label` | Grupo y su encabezado | Por cada grupo |
 | `g-select__empty` | Mensaje de lista vacía | Sin opciones y con `emptyText` o slot `empty` |
+| `g-select__create` | La fila «Agregar nuevo…» (además de `g-select__option`; también lleva `is-active` cuando está activa) | Con `createLabel` |
 | `g-select__hint`, `g-select__error` | Ayuda; región viva del error | Si hay ayuda; siempre |
 
 El estado elegida y deshabilitada de una opción se estiliza con `aria-selected` y `aria-disabled`, sin clases propias.
@@ -222,9 +246,24 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 | 10 | Superficie de la lista | Lista flotante con `--g-color-surface` y `--g-shadow-2`; hoja móvil con `--g-surface-*` | Reutiliza el sistema de superficies (DECISIONS.md #43) |
 | 11 | Lector táctil en móvil | Por verificar en la auditoría; alternativa: foco real en la lista | Riesgo conocido de `aria-activedescendant` |
 
+## Resolución de hallazgos de r02
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| 1 | Cómo se pide la fila | Prop `createLabel` (sin valor por defecto) y evento `create` sin datos | Decisión del usuario (DECISIONS.md #57) |
+| 2 | La fila en el modelo | `role="option"` con `aria-selected="false"`, sin `value`, fuera de los grupos y siempre última; no entra en `options`, en `modelValue` ni en el typeahead | Patrón APG: el listbox solo admite `option` y `group` |
+| 3 | Prefijo | Slot `prepend` dentro del botón | Decisión del usuario (DECISIONS.md #58); como `GInput` |
+| 4 | Icono de opción | Slot `icon` con `{ option }`, para la lista y el valor; el de la opción elegida sustituye al prefijo | Decisión del usuario (DECISIONS.md #58) |
+| 5 | Relación con `option`/`value` | Si se usan, reemplazan el contenido completo; `icon` no se usa en esa zona | Evitar dos iconos |
+| 6 | Teclado | ↓ y Fin alcanzan la fila; Enter, Espacio y clic la activan; Tab y Esc no crean; el typeahead la ignora | Una acción no se dispara por pasar de largo |
+| 7 | Foco tras `create` | Vuelve al botón antes de emitir | WCAG 2.4.3; un diálogo de la aplicación restaura el foco al selector |
+| 8 | Sin lista con `readonly` o `disabled` | Sin fila | Coherencia |
+
 ## Límites conocidos
 
-- **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA: combobox editable / listbox múltiple).
+- **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA: combobox editable / listbox múltiple). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
+- **La fila «Agregar nuevo…» se anuncia como una opción más** («…, opción 7 de 7»); el texto de `createLabel` debe ser explícito. Por verificar con lectores reales.
+- **Sin sufijo** antes de la flecha en v0.1.
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
 - **Sin virtualización:** listas de miles de opciones pueden ser lentas.
 - **Lectores de pantalla táctiles en móvil:** `aria-activedescendant` puede no exponer las opciones de la hoja inferior (por verificar).
