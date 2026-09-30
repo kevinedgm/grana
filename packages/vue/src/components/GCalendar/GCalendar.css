@@ -1,0 +1,917 @@
+/*
+  GCalendar · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/calendar.md. Estructura: design/lab/calendar/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), el patrón de texto oculto accesible y
+  los dos umbrales de ancho de contenedor (~700px y ~520px: excepción de DECISIONS.md #34 y #39).
+
+  El componente pasa los datos de posición como VARIABLES DINÁMICAS sin unidad (minutos), nunca como
+  píxeles; el CSS los convierte con la escala de la densidad:
+    --_minutes  en .g-calendar__grid y en .g-calendar__timeline (lo heredan el eje, las filas y las pistas) :
+                minutos visibles (rango × 60)
+    --_cols     en .g-calendar__grid                      : número de columnas
+    --_grid     en .g-calendar                            : gridInterval (minutos)
+    --_start    en li de eventos/bloqueos, franjas de disponibilidad, etiquetas del eje y línea de ahora :
+                minutos desde el inicio visible
+    --_dur      en li de eventos/bloqueos y franjas      : duración en minutos
+    --_lane, --_lanes  en li de eventos                  : carril y total de carriles de su grupo
+    --_lanes    en .g-calendar__row (Timeline)           : carriles de la fila
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-calendar {
+  /* Color de la línea de ahora, cuadrícula e indisponibilidad: tokens propios */
+  --_grid-color: var(--g-calendar-grid-color);
+  --_unavail: var(--g-calendar-unavailable-color);
+  --_now: var(--g-calendar-now-color);
+
+  /* Densidad (se reasigna por --density-*); por defecto: comfortable */
+  --_hour-units: 15;
+  --_hourw-units: 28;
+  --_pad: var(--g-space-2);
+  --_hour: calc(var(--g-space-1) * var(--_hour-units));
+  --_ppm: calc(var(--_hour) / 60);                                  /* píxeles por minuto (vertical) */
+  --_ppmx: calc(var(--g-space-1) * var(--_hourw-units) / 60);        /* píxeles por minuto (Timeline) */
+  --_axis: calc(var(--g-space-1) * 14);
+  --_colmin: calc(var(--g-space-1) * 33);
+  --_labw: calc(var(--g-space-1) * 38);
+  --_evmin: max(24px, calc(var(--g-space-1) * 6));                   /* alto mínimo de evento (contrato) */
+  --_laneh: calc(var(--_evmin) + var(--g-space-1));                  /* alto de un carril en Timeline: sigue al alto mínimo del evento (el índice de carril es --_lane) */
+  --_gridpx: calc(var(--_grid) * var(--_ppm));
+  --_gridpxx: calc(var(--_grid) * var(--_ppmx));
+
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  overflow: hidden;
+}
+@media (pointer: coarse) {
+  .g-calendar {
+    --_evmin: 44px;
+  }
+}
+.g-calendar--density-compact { --_hour-units: 11; --_hourw-units: 20; --_pad: var(--g-space-1); }
+.g-calendar--density-comfortable { --_hour-units: 15; --_hourw-units: 28; --_pad: var(--g-space-2); }
+.g-calendar--density-spacious { --_hour-units: 20; --_hourw-units: 38; --_pad: var(--g-space-3); }
+
+/* ---------- Barra de herramientas ---------- */
+.g-calendar__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  padding: var(--_pad);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__toolbar button {
+  box-sizing: border-box;
+  min-inline-size: max(24px, calc(var(--g-space-1) * 8));
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (pointer: coarse) {
+  .g-calendar__toolbar button {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+@media (hover: hover) {
+  .g-calendar__toolbar button:hover {
+    background: var(--g-color-surface-sunken);
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-calendar__toolbar button[aria-pressed="true"] {
+  background: var(--g-color-brand);
+  border-color: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+.g-calendar__toolbar button:disabled {
+  cursor: not-allowed;
+  color: var(--g-color-text-subtle);
+  background: var(--g-color-surface-sunken);
+}
+.g-calendar__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  padding-inline: var(--g-space-2);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-action-weight);
+}
+.g-calendar__views {
+  display: inline-flex;
+}
+.g-calendar__views button {
+  border-radius: 0;
+  margin-inline-start: calc(var(--g-border-width) * -1);
+}
+.g-calendar__views button:first-child {
+  border-start-start-radius: var(--g-radius-sm);
+  border-end-start-radius: var(--g-radius-sm);
+  margin-inline-start: 0;
+}
+.g-calendar__views button:last-child {
+  border-start-end-radius: var(--g-radius-sm);
+  border-end-end-radius: var(--g-radius-sm);
+}
+.g-calendar__toolbar button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Aviso de estado (siempre presente; vacío no ocupa espacio) ---------- */
+.g-calendar__status {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-calendar__status:not(:empty) {
+  padding: var(--g-space-2) var(--_pad);
+  background: var(--g-color-surface-sunken);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+}
+.g-calendar.is-error .g-calendar__status:not(:empty) {
+  color: var(--g-color-danger-text);
+  font-weight: var(--g-text-action-weight);
+}
+
+/* ---------- Ventana ---------- */
+.g-calendar__viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: auto;
+}
+
+/* ---------- Día y Semana: cuadrícula de tiempo ---------- */
+.g-calendar__grid {
+  display: grid;
+  grid-template-columns: var(--_axis) repeat(var(--_cols), minmax(var(--_colmin), 1fr));
+  min-inline-size: min-content;
+}
+.g-calendar__head {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
+  padding: var(--g-space-2) var(--g-space-3);
+  background: var(--g-color-surface);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+  border-inline-start: var(--g-border-width) solid var(--_grid-color);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-calendar__head-title {
+  display: block;
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+}
+/* Hoy: sin texto propio (no depende del idioma); se marca con relleno y con aria-current */
+.g-calendar__head.is-today .g-calendar__head-title,
+.g-calendar__head[aria-current="date"] .g-calendar__head-title {
+  display: inline-block;
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+.g-calendar__allday {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: var(--_axis) repeat(var(--_cols), minmax(var(--_colmin), 1fr));
+  /* la primera marca del eje (media línea por encima de la rejilla) cabe en este espacio y no pisa la etiqueta */
+  padding-block-end: calc(var(--g-text-caption-line) / 2);
+  background: var(--g-color-surface-sunken);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-calendar__allday > * {
+  min-block-size: var(--_evmin);
+  padding: var(--g-space-1);
+  border-inline-start: var(--g-border-width) solid var(--_grid-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-1);
+}
+.g-calendar__allday > :first-child {
+  border-inline-start: 0;
+  color: var(--g-color-text-muted);
+}
+.g-calendar__axis {
+  position: relative;
+  block-size: calc(var(--_minutes) * var(--_ppm));
+}
+.g-calendar__axis > * {
+  position: absolute;
+  inset-inline-end: var(--g-space-2);
+  inset-block-start: calc(var(--_start) * var(--_ppm));
+  translate: 0 -50%;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-variant-numeric: tabular-nums;
+}
+.g-calendar__col {
+  position: relative;
+  block-size: calc(var(--_minutes) * var(--_ppm));
+  border-inline-start: var(--g-border-width) solid var(--_grid-color);
+  background:
+    repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--_gridpx) - var(--g-border-width)), var(--_grid-color) calc(var(--_gridpx) - var(--g-border-width)), var(--_grid-color) var(--_gridpx));
+}
+.g-calendar__col.is-today {
+  background-color: var(--g-color-surface-sunken);
+}
+
+/* Disponibilidad: franjas no disponibles, con patrón (no dependen solo del color) */
+.g-calendar__availability {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.g-calendar__availability > * {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(var(--_start) * var(--_ppm));
+  block-size: calc(var(--_dur) * var(--_ppm));
+  background-color: var(--g-color-surface-sunken);
+  background-image: repeating-linear-gradient(135deg, var(--_unavail) 0, var(--_unavail) var(--g-border-width), transparent var(--g-border-width), transparent calc(var(--g-space-1) * 2));
+  opacity: 0.8;
+}
+
+/* ---------- Eventos y bloqueos: una lista, posición por minutos ---------- */
+.g-calendar__events {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-calendar__events > li {
+  position: absolute;
+  inset-block-start: calc(var(--_start) * var(--_ppm));
+  block-size: max(calc(var(--_dur) * var(--_ppm)), var(--_evmin));
+  inset-inline-start: calc(100% * var(--_lane, 0) / var(--_lanes, 1));
+  inline-size: calc(100% / var(--_lanes, 1));
+  box-sizing: border-box;
+  padding-inline: var(--g-border-width);
+}
+.g-calendar__events > li:has(:focus-visible),
+.g-calendar__events > li.is-selected {
+  z-index: 3;
+}
+.g-calendar__events > .g-calendar__block {
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: calc(var(--_dur) * var(--_ppm));
+  pointer-events: none;
+  padding: var(--g-space-1) var(--g-space-2);
+  border: var(--g-border-width) dashed var(--_unavail);
+  background-color: var(--g-color-surface-sunken);
+  background-image: repeating-linear-gradient(45deg, var(--_unavail) 0, var(--_unavail) var(--g-border-width), transparent var(--g-border-width), transparent var(--g-space-2));
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  overflow: hidden;
+}
+.g-calendar__event {
+  --_ec: var(--g-color-text-muted);
+  --_eb: var(--g-color-surface);
+  --_ef: var(--g-color-text);
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  padding: var(--g-space-1) var(--g-space-2);
+  overflow: hidden;
+  text-align: start;
+  border: var(--g-border-width) solid var(--_ec);
+  border-inline-start-width: calc(var(--g-border-width) * 4);
+  border-radius: var(--g-radius-sm);
+  background: var(--_eb);
+  color: var(--_ef);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Color semántico del evento (data-color): borde, relleno suave y texto derivados de los tokens */
+.g-calendar__event[data-color="brand"] { --_ec: var(--g-color-brand-text); --_eb: var(--g-color-brand-soft); --_ef: var(--g-color-on-brand-soft); }
+.g-calendar__event[data-color="accent"] { --_ec: var(--g-color-accent-text); --_eb: var(--g-color-accent-soft); --_ef: var(--g-color-on-accent-soft); }
+.g-calendar__event[data-color="neutral"] { --_ec: var(--g-color-neutral-text); --_eb: var(--g-color-neutral-soft); --_ef: var(--g-color-on-neutral-soft); }
+.g-calendar__event[data-color="success"] { --_ec: var(--g-color-success-text); --_eb: var(--g-color-success-soft); --_ef: var(--g-color-on-success-soft); }
+.g-calendar__event[data-color="warning"] { --_ec: var(--g-color-warning-text); --_eb: var(--g-color-warning-soft); --_ef: var(--g-color-on-warning-soft); }
+.g-calendar__event[data-color="danger"] { --_ec: var(--g-color-danger-text); --_eb: var(--g-color-danger-soft); --_ef: var(--g-color-on-danger-soft); }
+.g-calendar__event[data-color="info"] { --_ec: var(--g-color-info-text); --_eb: var(--g-color-info-soft); --_ef: var(--g-color-on-info-soft); }
+.g-calendar__event-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--g-text-action-weight);
+}
+.g-calendar__event-time {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.g-calendar__event--sm {
+  padding-block: 0;
+}
+.g-calendar__event--sm .g-calendar__event-time {
+  display: none;
+}
+/* Estados que no dependen del color: patrón y forma */
+.g-calendar__event[data-status="tentative"] {
+  border-style: dotted;
+  opacity: 0.85;
+}
+.g-calendar__event--open,
+.g-calendar__event[data-status="active"] {
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent var(--g-space-2), var(--_grid-color) var(--g-space-2), var(--_grid-color) calc(var(--g-space-2) * 2));
+  border-block-end-style: dotted;
+  border-block-end-width: calc(var(--g-border-width) * 3);
+}
+@media (hover: hover) {
+  .g-calendar__event:hover {
+    background-color: var(--g-color-surface-sunken);
+  }
+}
+.g-calendar__event:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+  position: relative;
+  z-index: 1;
+}
+.g-calendar__event.is-selected {
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_ec);
+  background-color: var(--g-color-surface-sunken);
+}
+.g-calendar__event.is-conflict {
+  border-color: var(--g-color-danger-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+
+/* Tirador de redimensión: visible con hover, selección o foco; su zona de toque respeta el mínimo */
+.g-calendar__handle {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: max(24px, calc(var(--g-space-1) * 4));
+  display: none;
+  cursor: ns-resize;
+  touch-action: none;
+}
+@media (pointer: coarse) {
+  .g-calendar__handle {
+    block-size: 44px;
+  }
+}
+.g-calendar__handle::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-end: var(--g-space-1);
+  inline-size: calc(var(--g-space-1) * 6);
+  block-size: calc(var(--g-space-1) * 1.5);
+  translate: -50% 0;
+  border: var(--g-border-width) solid var(--_hc, var(--g-color-text-muted));
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+}
+.g-calendar__events > li:hover > .g-calendar__handle,
+.g-calendar__events > li:focus-within > .g-calendar__handle,
+.g-calendar__events > li.is-selected > .g-calendar__handle {
+  display: block;
+}
+
+/* Vista previa del arrastre */
+.g-calendar__ghost {
+  position: absolute;
+  z-index: 6;
+  box-sizing: border-box;
+  border: calc(var(--g-border-width) * 2) dashed var(--g-color-text);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  opacity: 0.85;
+  padding: 0 var(--g-space-2);
+  color: var(--g-color-text);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  pointer-events: none;
+}
+.g-calendar__ghost.is-conflict {
+  border-color: var(--g-color-danger-text);
+  color: var(--g-color-danger-text);
+}
+
+/* Línea de ahora (una por ventana) */
+.g-calendar__now {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(var(--_start) * var(--_ppm));
+  z-index: 4;
+  block-size: 0;
+  border-block-start: calc(var(--g-border-width) * 2) solid var(--_now);
+  pointer-events: none;
+}
+.g-calendar__now::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--g-space-1) * -1.5);
+  inset-block-start: calc(var(--g-space-1) * -2);
+  inline-size: calc(var(--g-space-1) * 3);
+  block-size: calc(var(--g-space-1) * 3);
+  border-radius: var(--g-radius-pill);
+  background: var(--_now);
+}
+.g-calendar__now > * {
+  position: absolute;
+  inset-inline-end: var(--g-space-1);
+  inset-block-start: 0;
+  translate: 0 -50%;
+  padding-inline: var(--g-space-1);
+  border-radius: var(--g-radius-xs);
+  background: var(--_now);
+  color: var(--g-color-on-danger);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+
+/* Botón de creación por teclado (visualmente oculto) y texto solo para lectores */
+.g-calendar__sr,
+.g-calendar__create {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.g-calendar__create:focus-visible {
+  clip-path: none;
+  inset-inline: var(--g-space-1);
+  inset-block-start: var(--g-space-1);
+  inline-size: auto;
+  block-size: auto;
+  margin: 0;
+  padding: var(--g-space-1) var(--g-space-2);
+  background: var(--g-color-surface);
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  z-index: 7;
+}
+
+/* ---------- Timeline: recursos en filas, tiempo horizontal ---------- */
+.g-calendar__timeline {
+  min-inline-size: min-content;
+}
+.g-calendar__timeline > .g-calendar__axis {
+  display: grid;
+  grid-template-columns: var(--_labw) calc(var(--_minutes) * var(--_ppmx));
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
+  block-size: auto;
+  background: var(--g-color-surface);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__timeline .g-calendar__axis > * {
+  position: absolute;
+  inset-inline-end: auto;
+  inset-inline-start: calc(var(--_labw) + var(--_start) * var(--_ppmx));
+  inset-block-start: var(--g-space-2);
+  translate: -50% 0;
+}
+.g-calendar__timeline > .g-calendar__axis::after {
+  content: "";
+  grid-column: 2;
+  block-size: calc(var(--g-space-1) * 7);
+}
+.g-calendar__row {
+  display: grid;
+  grid-template-columns: var(--_labw) calc(var(--_minutes) * var(--_ppmx));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__label {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 3;
+  padding: var(--g-space-2) var(--g-space-3);
+  background: var(--g-color-surface);
+  border-inline-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__label-title {
+  display: block;
+  font-weight: var(--g-text-action-weight);
+}
+.g-calendar__label-sub {
+  display: block;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-calendar__track {
+  position: relative;
+  block-size: calc(var(--_lanes, 1) * var(--_laneh) + var(--g-space-2));
+  background:
+    repeating-linear-gradient(to right, transparent 0, transparent calc(var(--_gridpxx) - var(--g-border-width)), var(--_grid-color) calc(var(--_gridpxx) - var(--g-border-width)), var(--_grid-color) var(--_gridpxx));
+}
+.g-calendar__timeline .g-calendar__availability > * {
+  inset-inline: auto;
+  inset-block: 0;
+  inset-inline-start: calc(var(--_start) * var(--_ppmx));
+  inline-size: calc(var(--_dur) * var(--_ppmx));
+  block-size: auto;
+}
+.g-calendar__timeline .g-calendar__events > li {
+  inset-block-start: calc(var(--g-space-1) + var(--_lane, 0) * var(--_laneh));
+  inset-inline-start: calc(var(--_start) * var(--_ppmx));
+  inline-size: max(calc(var(--_dur) * var(--_ppmx)), var(--_evmin));
+  block-size: calc(var(--_laneh) - var(--g-space-1));
+  padding: 0;
+}
+.g-calendar__timeline .g-calendar__events > .g-calendar__block {
+  inset-block-start: 0;
+  block-size: 100%;
+  inline-size: calc(var(--_dur) * var(--_ppmx));
+  inset-inline-start: calc(var(--_start) * var(--_ppmx));
+}
+.g-calendar__timeline .g-calendar__event {
+  padding-block: 0;
+}
+.g-calendar__timeline .g-calendar__event-time {
+  display: none;
+}
+.g-calendar__timeline .g-calendar__handle {
+  inset-inline: auto;
+  inset-inline-end: 0;
+  inset-block: 0;
+  block-size: auto;
+  inline-size: max(24px, calc(var(--g-space-1) * 4));
+  cursor: ew-resize;
+}
+.g-calendar__timeline .g-calendar__handle::after {
+  inset-inline-start: auto;
+  inset-inline-end: var(--g-space-1);
+  inset-block-end: auto;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  inline-size: calc(var(--g-space-1) * 1.5);
+  block-size: calc(var(--g-space-1) * 6);
+}
+.g-calendar__timeline .g-calendar__now {
+  inset-inline: auto;
+  inset-block: 0;
+  inset-inline-start: calc(var(--_labw) + var(--_start) * var(--_ppmx));
+  block-size: auto;
+  border-block-start: 0;
+  border-inline-start: calc(var(--g-border-width) * 2) solid var(--_now);
+}
+.g-calendar__timeline .g-calendar__now::before {
+  inset-inline-start: calc(var(--g-space-1) * -2);
+  inset-block-start: calc(var(--g-space-1) * -1);
+}
+
+/* ---------- Mes ---------- */
+.g-calendar__month {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.g-calendar__month th {
+  padding: var(--g-space-2);
+  text-align: start;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__month td {
+  vertical-align: top;
+  block-size: calc(var(--_hour) * 1.9);
+  padding: var(--g-space-1);
+  border: var(--g-border-width) solid var(--_grid-color);
+}
+.g-calendar__month td.is-outside {
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-subtle);
+}
+.g-calendar__day {
+  min-inline-size: 24px;
+  min-block-size: 24px;
+  padding-inline: var(--g-space-2);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  .g-calendar__day {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+.g-calendar__month td.is-today .g-calendar__day,
+.g-calendar__month td[aria-current="date"] .g-calendar__day {
+  background: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+.g-calendar__day:focus-visible,
+.g-calendar__more:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-calendar--view-month .g-calendar__events {
+  position: static;
+  display: grid;
+  gap: var(--g-space-1);
+  margin-block-start: var(--g-space-1);
+}
+.g-calendar--view-month .g-calendar__events > li {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  padding: 0;
+}
+.g-calendar--view-month .g-calendar__event {
+  block-size: auto;
+  min-block-size: var(--_evmin);
+  padding-block: 0;
+  border-inline-start-width: calc(var(--g-border-width) * 3);
+}
+.g-calendar--view-month .g-calendar__event-time {
+  display: inline;
+  margin-inline-end: var(--g-space-1);
+}
+.g-calendar--view-month .g-calendar__event-title {
+  display: inline;
+}
+.g-calendar__more {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--_evmin);
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  font-weight: var(--g-text-action-weight);
+  text-align: start;
+  cursor: pointer;
+}
+.g-calendar__dots {
+  display: none;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+}
+
+/* ---------- Teléfono: la estructura cambia ---------- */
+.g-calendar--mode-phone .g-calendar__month td {
+  block-size: calc(var(--g-space-1) * 13);
+}
+.g-calendar--mode-phone .g-calendar--view-month .g-calendar__events,
+.g-calendar--mode-phone.g-calendar--view-month .g-calendar__events {
+  display: none;
+}
+.g-calendar--mode-phone .g-calendar__dots {
+  display: block;
+}
+.g-calendar__resources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-calendar__resource {
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: max(44px, calc(var(--g-space-1) * 14));
+  padding: var(--g-space-3) var(--g-space-4);
+  border: 0;
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.g-calendar__resource > :first-child {
+  display: block;
+  font-weight: var(--g-text-action-weight);
+}
+.g-calendar__resource > :last-child {
+  display: block;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-calendar__resource:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-calendar__strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-calendar__strip > button {
+  min-block-size: max(44px, calc(var(--g-space-1) * 14));
+  padding: var(--g-space-1);
+  border: 0;
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  cursor: pointer;
+}
+.g-calendar__strip > button[aria-pressed="true"] {
+  background: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+.g-calendar__strip > button:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-calendar__agenda {
+  display: grid;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: var(--_pad);
+  list-style: none;
+}
+.g-calendar__agenda .g-calendar__event {
+  block-size: auto;
+  min-block-size: 44px;
+  padding: var(--g-space-2) var(--g-space-3);
+}
+.g-calendar__agenda .g-calendar__event-title,
+.g-calendar__agenda .g-calendar__event-time {
+  white-space: normal;
+}
+.g-calendar__sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 20;
+  max-block-size: calc(var(--g-space-1) * 130);
+  overflow: auto;
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-xl) var(--g-radius-xl) 0 0;
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-3);
+}
+
+/* ---------- Detalle del evento ---------- */
+.g-calendar__detail {
+  position: absolute;
+  z-index: 15;
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 52);
+  max-inline-size: calc(var(--g-space-1) * 75);
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+}
+
+/* ---------- Estado cargando: conserva la estructura ---------- */
+.g-calendar__skeleton {
+  display: grid;
+  gap: var(--g-space-3);
+  padding: var(--_pad);
+}
+.g-calendar__skeleton > * {
+  display: block;
+  block-size: calc(var(--g-space-1) * 6);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  animation: g-calendar-pulse calc(var(--g-duration-spin) * 2) ease-in-out infinite alternate;
+}
+@keyframes g-calendar-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* ---------- Estados de la raíz ---------- */
+.g-calendar.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ---------- Umbrales de ancho de contenedor (constantes literales: DECISIONS.md #34 y #39) ---------- */
+@container (max-inline-size: 700px) {
+  .g-calendar__toolbar {
+    gap: var(--g-space-2);
+  }
+}
+@container (max-inline-size: 520px) {
+  .g-calendar__title {
+    flex-basis: 100%;
+    order: 5;
+    padding-inline: 0;
+  }
+  .g-calendar {
+    --_axis: calc(var(--g-space-1) * 11);
+    --_colmin: 0;
+  }
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-calendar__toolbar button,
+  .g-calendar__event {
+    transition: none;
+  }
+  .g-calendar__skeleton > * {
+    animation: none;
+  }
+}
+@media (forced-colors: active) {
+  .g-calendar,
+  .g-calendar__head,
+  .g-calendar__col,
+  .g-calendar__allday > *,
+  .g-calendar__month td {
+    border-color: CanvasText;
+  }
+  .g-calendar__event {
+    border-color: ButtonText;
+    forced-color-adjust: none;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .g-calendar__event.is-selected,
+  .g-calendar__event:focus-visible {
+    outline-color: Highlight;
+    border-color: Highlight;
+  }
+  .g-calendar__event.is-conflict {
+    border-width: calc(var(--g-border-width) * 3);
+  }
+  .g-calendar__events > .g-calendar__block,
+  .g-calendar__availability > * {
+    border-color: GrayText;
+    background-image: repeating-linear-gradient(45deg, GrayText 0, GrayText var(--g-border-width), transparent var(--g-border-width), transparent var(--g-space-2));
+  }
+  .g-calendar__now {
+    border-color: Highlight;
+  }
+  .g-calendar__now::before {
+    background: Highlight;
+  }
+  .g-calendar__toolbar button[aria-pressed="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    border-color: Highlight;
+  }
+}

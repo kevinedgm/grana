@@ -98,6 +98,11 @@
   --g-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --g-press-scale: 0.97;
 
+  /* Calendario */
+  --g-calendar-grid-color: var(--g-color-border);
+  --g-calendar-unavailable-color: var(--g-color-border-strong);
+  --g-calendar-now-color: var(--g-color-danger);
+
   /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;
