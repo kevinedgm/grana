@@ -14,9 +14,9 @@ const BENCH_THEMES = [
 ]
 const THEMES = SET === 'gaps' ? GAP_THEMES : BENCH_THEMES
 const ROLES = ['brand', 'accent', 'success', 'warning', 'danger', 'info']
-const STRATEGY_TO_VARIANT = { current: 'A', b: 'B', c: 'C' }
+const STRATEGY_TO_VARIANT = { current: 'A', b: 'B', c: 'C', d: 'D' }
 const SURFACE_TO_ATTR = { low: 'low', real: 'actual', medium: 'medium', high: 'high' }
-const STRATEGY_LABEL = { current: 'Current (A · solo 4.5:1)', b: 'B · piso L ≥ 0.70 (simulación)', c: 'C · ΔE ≥ 0.50 (simulación)' }
+const STRATEGY_LABEL = { current: 'Current (A · solo 4.5:1)', b: 'B · piso L ≥ 0.70 (simulación)', c: 'C · ΔE ≥ 0.50 (simulación)', d: 'D · C + tope L 0.74 + croma ≥ 0.80 (experimento)' }
 
 // ---------- Color: OKLab/OKLCH y contraste (solo para leer valores vivos; no derivan nada) ----------
 const toLin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
@@ -35,7 +35,7 @@ const pick = (key, allowed, fallback) => { const v = params.get(key); return all
 const initial = {
   theme: pick('theme', THEMES.map((t) => t.id), THEMES[THEMES.length === 5 ? 0 : 9].id),
   scheme: pick('scheme', ['light', 'dark'], 'dark'),
-  strategy: pick('strategy', ['current', 'b', 'c'], 'current'),
+  strategy: pick('strategy', ['current', 'b', 'c', 'd'], 'current'),
   surface: pick('surface', ['low', 'real', 'medium', 'high'], 'real')
 }
 

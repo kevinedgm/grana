@@ -2,6 +2,8 @@
 
 **Estado:** propuesta para revisión. **No** modifica el contrato de tokens, el Theme Engine, `primary`, la regla de niveles ni los semánticos. Se apoya en la Fase 1 (31 muestras × 9 familias) y en la Fase 2 (11 temas, componentes reales, 4 superficies). Detalle en `analysis.md`.
 
+> **Actualización (Fase 5, `../../theme-playground/` → «experimento D»):** se simuló la restricción compuesta (**D = C + tope de L 0.74 + croma conservado ≥ 0.80**, valores exploratorios). Con 16 temas y superficies de L 0.10 a 0.32, **D es la única variante sin fallos grandes en todo el rango** (corto ≤ 3 % hasta L 0.30, «claro» 9 %, pastel ≤ 4 %) y **casi no depende de los valores exactos** (rejilla de tope 0.74 a 0.78 y croma 0.75 a 0.85). Cada límite cubre un caso distinto: el croma frena el pastel de los saturados y el tope frena la luminosidad de los grises y cremas. **Mi recomendación (decisión delegada): D es la dirección preferida a validar; sigue sin adoptarse ni implementarse.** Antes de una especificación faltan: la hoja ciega de una segunda persona, revisar D en más temas a superficie alta y escribir pruebas del motor.
+
 ## Estado de la decisión
 
 | Hipótesis | Estado |

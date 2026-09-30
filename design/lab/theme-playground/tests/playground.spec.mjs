@@ -14,7 +14,7 @@ const PAGE = '/design/lab/theme-playground/index.html'
 
 const sample = (theme, role) => results.samples.find((s) => s.theme === theme && s.role === role)
 const hexToRgb = (h) => { const m = /^#?([0-9a-f]{6})$/i.exec(h); const n = parseInt(m[1], 16); return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})` }
-const STRAT = { current: 'A', b: 'B', c: 'C' }
+const STRAT = { current: 'A', b: 'B', c: 'C', d: 'D' }
 const expectedDark = (theme, role, strategy) => sample(theme, role).hypotheses[STRAT[strategy]].darkHex
 
 async function open(page, q = {}) {
@@ -116,7 +116,7 @@ test.describe('cambios dinámicos, sin recargar', () => {
     await open(page, { theme: 'grana', scheme: 'dark', strategy: 'current' })
     const a = await allTokens(page)
     const values = {}
-    for (const s of ['b', 'c', 'current']) {
+    for (const s of ['b', 'c', 'd', 'current']) {
       await change(page, 'sel-strategy', s)
       await expect(page.locator('html')).toHaveAttribute('data-variant', STRAT[s])
       for (const role of ROLES) {
@@ -134,7 +134,7 @@ test.describe('cambios dinámicos, sin recargar', () => {
   test('3b · en Light, Current / B / C no cambian ningún token', async ({ page }) => {
     await open(page, { theme: 'stripe', scheme: 'light', strategy: 'current' })
     const base = await allTokens(page)
-    for (const s of ['b', 'c']) { await change(page, 'sel-strategy', s); expect(await allTokens(page)).toEqual(base) }
+    for (const s of ['b', 'c', 'd']) { await change(page, 'sel-strategy', s); expect(await allTokens(page)).toEqual(base) }
     await expect(page.getByTestId('note')).toContainText('solo afectan a Dark')
   })
 
@@ -142,7 +142,7 @@ test.describe('cambios dinámicos, sin recargar', () => {
     await open(page, { theme: 'grana', scheme: 'dark', strategy: 'current' })
     const base = await structure(page)
     expect(base.length).toBeGreaterThan(2000)
-    for (const [testid, value] of [['sel-theme', 'spotify'], ['sel-theme', 'caracol-purpura'], ['sel-scheme', 'light'], ['sel-scheme', 'dark'], ['sel-strategy', 'b'], ['sel-strategy', 'c'], ['sel-surface', 'high'], ['sel-surface', 'low'], ['sel-theme', 'grana'], ['sel-strategy', 'current'], ['sel-surface', 'real']]) {
+    for (const [testid, value] of [['sel-theme', 'spotify'], ['sel-theme', 'caracol-purpura'], ['sel-scheme', 'light'], ['sel-scheme', 'dark'], ['sel-strategy', 'b'], ['sel-strategy', 'c'], ['sel-strategy', 'd'], ['sel-surface', 'high'], ['sel-surface', 'low'], ['sel-theme', 'grana'], ['sel-strategy', 'current'], ['sel-surface', 'real']]) {
       await change(page, testid, value)
       expect(await structure(page), `tras ${testid} = ${value}`).toBe(base)
     }
@@ -185,7 +185,7 @@ test.describe('cambios dinámicos, sin recargar', () => {
 test.describe('los componentes reales reaccionan', () => {
   test('botón, badge, switch y checkbox leen el token del rol activo', async ({ page }) => {
     await open(page, { theme: 'linear', scheme: 'dark', strategy: 'current' })
-    for (const s of ['current', 'b', 'c']) {
+    for (const s of ['current', 'b', 'c', 'd']) {
       await change(page, 'sel-strategy', s)
       const primary = hexToRgb(expectedDark('linear', 'brand', s))
       await expect.poll(() => page.getByTestId('btn-primary').evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(primary)
@@ -321,12 +321,15 @@ test.describe('Fase 4 · temas de huecos de evidencia (?set=gaps)', () => {
 
   test('la estrategia B y C, y la superficie, funcionan también en este conjunto', async ({ page }) => {
     await openGaps(page, { theme: 'gris-medio', scheme: 'dark', strategy: 'current' })
-    for (const s of ['b', 'c']) {
+    for (const s of ['b', 'c', 'd']) {
       await change(page, 'sel-strategy', s)
       for (const role of ROLES) expect(await tok(page, `--g-color-${role}`)).toBe(gsample('gris-medio', role).hypotheses[STRAT[s]].darkHex)
     }
+    await change(page, 'sel-strategy', 'c')
     await change(page, 'sel-surface', 'high')
     expect((await tok(page, '--g-color-brand')).toUpperCase()).toBe(gsample('gris-medio', 'brand').surfaces.high.C.darkHex.toUpperCase())
+    await change(page, 'sel-strategy', 'd')
+    expect((await tok(page, '--g-color-brand')).toUpperCase()).toBe(gsample('gris-medio', 'brand').surfaces.high.D.darkHex.toUpperCase())
   })
 
   test('las superficies tintadas con el tono del acento son distintas de las tintadas con el de la marca', async ({ page }) => {

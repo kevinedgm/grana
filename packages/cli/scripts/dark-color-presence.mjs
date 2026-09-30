@@ -36,7 +36,20 @@ const deriveC = (light, surface) => {
   for (let l = lch(d.base).l; distance(lch(d.base), s) < MIN_DE && l < 0.97; l += 0.005) d = deriveA(withL(light, l), surface)
   return d
 }
-const HYP = { A: deriveA, B: deriveB, C: deriveC }
+// D · restricción compuesta EXPLORATORIA (Fase 5): como C, pero sin pasar de L 0.74 y sin seguir aclarando si el croma conservado caería de 0.80.
+// Son valores de experimento, no de producción.
+const deriveD = (light, surface) => {
+  const s = lch(surface), o = lch(light)
+  const keptOf = (d) => (o.c < 0.03 ? 1 : lch(d.base).c / o.c)
+  let d = deriveA(light, surface)
+  for (let l = lch(d.base).l + 0.005; distance(lch(d.base), s) < MIN_DE && l <= 0.74 + 1e-9 && l < 0.97; l += 0.005) {
+    const cand = deriveA(withL(light, l), surface)
+    if (keptOf(cand) < 0.8) break
+    d = cand
+  }
+  return d
+}
+const HYP = { A: deriveA, B: deriveB, C: deriveC, D: deriveD }
 
 const measure = (light, d, surface) => {
   const o = lch(light), k = lch(d.base), s = lch(surface)
@@ -99,12 +112,12 @@ for (const file of themeFiles) {
     const start = o.l >= 0.5 ? o.l : 1 - o.l
     info.adjustments[role] = { gamutReduced: o.c > 0.02 && k.c / o.c < 0.97, raisedForContrast: k.l - start > 0.005, reflected: o.l < 0.5 }
     row.visualResult = visual[`${id}/${role}/A/actual`] ?? 'pending'
-    for (const h of ['B', 'C']) row.hypotheses[h].visualResult = visual[`${id}/${role}/${h}/actual`] ?? 'pending'
-    for (const sn of Object.keys(SURFACES)) for (const h of ['A', 'B', 'C']) row.surfaces[sn][h].visualResult = visual[`${id}/${role}/${h}/${sn}`] ?? 'pending'
+    for (const h of ['B', 'C', 'D']) row.hypotheses[h].visualResult = visual[`${id}/${role}/${h}/actual`] ?? 'pending'
+    for (const sn of Object.keys(SURFACES)) for (const h of ['A', 'B', 'C', 'D']) row.surfaces[sn][h].visualResult = visual[`${id}/${role}/${h}/${sn}`] ?? 'pending'
     results.samples.push(row)
   }
   // CSS de variantes para benchmark.html: [data-variant][data-surface] sobre el tema oscuro
-  for (const variant of ['A', 'B', 'C']) {
+  for (const variant of ['A', 'B', 'C', 'D']) {
     for (const sn of ['actual', ...Object.keys(SURFACES)]) {
       if (variant === 'A' && sn === 'actual') continue // A en la superficie real es el tema tal cual
       const surface = sn === 'actual' ? surfaceHex : surfaceSet(surfaceHex, SURFACES[sn])['--g-color-surface']

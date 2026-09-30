@@ -531,6 +531,19 @@
           "hueShift": 0,
           "onContrast": 7.62,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5EB991",
+          "darkOKLCH": "L 0.718 C 0.106 h 163",
+          "L": 0.718,
+          "C": 0.106,
+          "deltaL": 0.493,
+          "contrast": 7.16,
+          "oklabDistance": 0.502,
+          "chromaKept": 0.991,
+          "hueShift": 0,
+          "onContrast": 7.62,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -575,6 +588,19 @@
             "hueShift": 0,
             "onContrast": 5.44,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#409D76",
+            "darkOKLCH": "L 0.629 C 0.107 h 163",
+            "L": 0.629,
+            "C": 0.107,
+            "deltaL": 0.495,
+            "contrast": 6,
+            "oklabDistance": 0.505,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.44,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -618,6 +644,19 @@
             "hueShift": 0,
             "onContrast": 6.86,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#54B088",
+            "darkOKLCH": "L 0.69 C 0.107 h 163",
+            "L": 0.69,
+            "C": 0.107,
+            "deltaL": 0.49,
+            "contrast": 6.84,
+            "oklabDistance": 0.5,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.86,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -661,6 +700,19 @@
             "hueShift": 0,
             "onContrast": 9.17,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#63BF96",
+            "darkOKLCH": "L 0.736 C 0.108 h 163",
+            "L": 0.736,
+            "C": 0.108,
+            "deltaL": 0.46,
+            "contrast": 6.61,
+            "oklabDistance": 0.471,
+            "chromaKept": 1.003,
+            "hueShift": 0,
+            "onContrast": 8.13,
+            "visualResult": "pending"
           }
         }
       },
@@ -719,6 +771,19 @@
           "hueShift": 0,
           "onContrast": 6.11,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FA664F",
+          "darkOKLCH": "L 0.693 C 0.186 h 31",
+          "L": 0.693,
+          "C": 0.186,
+          "deltaL": 0.468,
+          "contrast": 5.74,
+          "oklabDistance": 0.505,
+          "chromaKept": 1.001,
+          "hueShift": 0,
+          "onContrast": 6.11,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -763,6 +828,19 @@
             "hueShift": 0,
             "onContrast": 4.34,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D84632",
+            "darkOKLCH": "L 0.598 C 0.186 h 31",
+            "L": 0.598,
+            "C": 0.186,
+            "deltaL": 0.464,
+            "contrast": 4.61,
+            "oklabDistance": 0.501,
+            "chromaKept": 1.001,
+            "hueShift": 0,
+            "onContrast": 4.34,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -806,6 +884,19 @@
             "hueShift": 0,
             "onContrast": 5.49,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F05D47",
+            "darkOKLCH": "L 0.666 C 0.185 h 31",
+            "L": 0.666,
+            "C": 0.185,
+            "deltaL": 0.466,
+            "contrast": 5.48,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 5.49,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -849,6 +940,19 @@
             "hueShift": 0,
             "onContrast": 7.73,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E68",
+            "darkOKLCH": "L 0.737 C 0.162 h 31",
+            "L": 0.737,
+            "C": 0.162,
+            "deltaL": 0.461,
+            "contrast": 5.92,
+            "oklabDistance": 0.49,
+            "chromaKept": 0.87,
+            "hueShift": 0,
+            "onContrast": 7.28,
+            "visualResult": "pending"
           }
         }
       },
@@ -907,6 +1011,19 @@
           "hueShift": 0,
           "onContrast": 7.3,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#A9A94A",
+          "darkOKLCH": "L 0.715 C 0.118 h 109",
+          "L": 0.715,
+          "C": 0.118,
+          "deltaL": 0.49,
+          "contrast": 6.86,
+          "oklabDistance": 0.503,
+          "chromaKept": 1.003,
+          "hueShift": 0,
+          "onContrast": 7.3,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -951,6 +1068,19 @@
             "hueShift": 0,
             "onContrast": 6.03,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#9A9939",
+            "darkOKLCH": "L 0.665 C 0.118 h 109",
+            "L": 0.665,
+            "C": 0.118,
+            "deltaL": 0.53,
+            "contrast": 6.66,
+            "oklabDistance": 0.542,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 6.03,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -994,6 +1124,19 @@
             "hueShift": 0,
             "onContrast": 6.66,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#A2A142",
+            "darkOKLCH": "L 0.691 C 0.117 h 109",
+            "L": 0.691,
+            "C": 0.117,
+            "deltaL": 0.491,
+            "contrast": 6.64,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 6.66,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1037,6 +1180,19 @@
             "hueShift": 0,
             "onContrast": 8.69,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#B1B152",
+            "darkOKLCH": "L 0.741 C 0.118 h 109",
+            "L": 0.741,
+            "C": 0.118,
+            "deltaL": 0.465,
+            "contrast": 6.51,
+            "oklabDistance": 0.479,
+            "chromaKept": 1.005,
+            "hueShift": 0,
+            "onContrast": 8.01,
+            "visualResult": "pending"
           }
         }
       },
@@ -1095,6 +1251,19 @@
           "hueShift": 1,
           "onContrast": 7.13,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#CF9850",
+          "darkOKLCH": "L 0.718 C 0.111 h 72",
+          "L": 0.718,
+          "C": 0.111,
+          "deltaL": 0.492,
+          "contrast": 6.7,
+          "oklabDistance": 0.505,
+          "chromaKept": 0.998,
+          "hueShift": 1,
+          "onContrast": 7.13,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -1139,6 +1308,19 @@
             "hueShift": 0,
             "onContrast": 5.03,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B27C33",
+            "darkOKLCH": "L 0.628 C 0.111 h 71",
+            "L": 0.628,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 5.55,
+            "oklabDistance": 0.505,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.03,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -1182,6 +1364,19 @@
             "hueShift": 0,
             "onContrast": 6.48,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#C79048",
+            "darkOKLCH": "L 0.693 C 0.111 h 71",
+            "L": 0.693,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 6.47,
+            "oklabDistance": 0.506,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.48,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1225,6 +1420,19 @@
             "hueShift": 0,
             "onContrast": 8.52,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D69D56",
+            "darkOKLCH": "L 0.736 C 0.111 h 71",
+            "L": 0.736,
+            "C": 0.111,
+            "deltaL": 0.46,
+            "contrast": 6.19,
+            "oklabDistance": 0.473,
+            "chromaKept": 1.003,
+            "hueShift": -1,
+            "onContrast": 7.61,
+            "visualResult": "pending"
           }
         }
       },
@@ -1283,6 +1491,19 @@
           "hueShift": 0,
           "onContrast": 5.94,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#EC62A8",
+          "darkOKLCH": "L 0.689 C 0.185 h -9",
+          "L": 0.689,
+          "C": 0.185,
+          "deltaL": 0.463,
+          "contrast": 5.58,
+          "oklabDistance": 0.501,
+          "chromaKept": 0.997,
+          "hueShift": 0,
+          "onContrast": 5.94,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -1327,6 +1548,19 @@
             "hueShift": 0,
             "onContrast": 4.29,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#CE468E",
+            "darkOKLCH": "L 0.604 C 0.185 h -9",
+            "L": 0.604,
+            "C": 0.185,
+            "deltaL": 0.469,
+            "contrast": 4.66,
+            "oklabDistance": 0.507,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 4.29,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -1370,6 +1604,19 @@
             "hueShift": 0,
             "onContrast": 5.35,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#E359A0",
+            "darkOKLCH": "L 0.663 C 0.186 h -9",
+            "L": 0.663,
+            "C": 0.186,
+            "deltaL": 0.463,
+            "contrast": 5.34,
+            "oklabDistance": 0.502,
+            "chromaKept": 1.003,
+            "hueShift": 0,
+            "onContrast": 5.35,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1413,6 +1660,19 @@
             "hueShift": 0,
             "onContrast": 7.25,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FD72B8",
+            "darkOKLCH": "L 0.738 C 0.184 h -9",
+            "L": 0.738,
+            "C": 0.184,
+            "deltaL": 0.462,
+            "contrast": 5.81,
+            "oklabDistance": 0.5,
+            "chromaKept": 0.995,
+            "hueShift": 0,
+            "onContrast": 7.14,
+            "visualResult": "pending"
           }
         }
       },
@@ -1471,6 +1731,19 @@
           "hueShift": 0,
           "onContrast": 6.85,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5DA0FF",
+          "darkOKLCH": "L 0.705 C 0.156 h -103",
+          "L": 0.705,
+          "C": 0.156,
+          "deltaL": 0.479,
+          "contrast": 6.44,
+          "oklabDistance": 0.504,
+          "chromaKept": 0.856,
+          "hueShift": 0,
+          "onContrast": 6.85,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -1515,6 +1788,19 @@
             "hueShift": 0,
             "onContrast": 4.57,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#2E7EEB",
+            "darkOKLCH": "L 0.603 C 0.182 h -103",
+            "L": 0.603,
+            "C": 0.182,
+            "deltaL": 0.469,
+            "contrast": 5.05,
+            "oklabDistance": 0.503,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 4.57,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -1558,6 +1844,19 @@
             "hueShift": 0,
             "onContrast": 5.94,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#4693FF",
+            "darkOKLCH": "L 0.668 C 0.177 h -103",
+            "L": 0.668,
+            "C": 0.177,
+            "deltaL": 0.469,
+            "contrast": 5.92,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.974,
+            "hueShift": 0,
+            "onContrast": 5.94,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1601,6 +1900,19 @@
             "hueShift": 0,
             "onContrast": 8.45,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65A4FF",
+            "darkOKLCH": "L 0.717 C 0.149 h -102",
+            "L": 0.717,
+            "C": 0.149,
+            "deltaL": 0.44,
+            "contrast": 5.83,
+            "oklabDistance": 0.465,
+            "chromaKept": 0.816,
+            "hueShift": 0,
+            "onContrast": 7.17,
+            "visualResult": "pending"
           }
         }
       },
@@ -1659,6 +1971,19 @@
           "hueShift": -1,
           "onContrast": 7.56,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#A0A8B5",
+          "darkOKLCH": "L 0.729 C 0.021 h -100",
+          "L": 0.729,
+          "C": 0.021,
+          "deltaL": 0.504,
+          "contrast": 7.13,
+          "oklabDistance": 0.504,
+          "chromaKept": 1.003,
+          "hueShift": -1,
+          "onContrast": 7.56,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -1703,6 +2028,19 @@
             "hueShift": 2,
             "onContrast": 5.36,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#858C99",
+            "darkOKLCH": "L 0.639 C 0.021 h -97",
+            "L": 0.639,
+            "C": 0.021,
+            "deltaL": 0.504,
+            "contrast": 5.92,
+            "oklabDistance": 0.504,
+            "chromaKept": 1.014,
+            "hueShift": 2,
+            "onContrast": 5.36,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -1746,6 +2084,19 @@
             "hueShift": -1,
             "onContrast": 6.88,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#98A0AD",
+            "darkOKLCH": "L 0.703 C 0.021 h -100",
+            "L": 0.703,
+            "C": 0.021,
+            "deltaL": 0.504,
+            "contrast": 6.88,
+            "oklabDistance": 0.504,
+            "chromaKept": 1.012,
+            "hueShift": -1,
+            "onContrast": 6.88,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1789,6 +2140,19 @@
             "hueShift": 3,
             "onContrast": 9,
             "visualResult": "excessive"
+          },
+          "D": {
+            "darkHex": "#A3ABB8",
+            "darkOKLCH": "L 0.739 C 0.021 h -100",
+            "L": 0.739,
+            "C": 0.021,
+            "deltaL": 0.463,
+            "contrast": 6.39,
+            "oklabDistance": 0.463,
+            "chromaKept": 1,
+            "hueShift": -1,
+            "onContrast": 7.83,
+            "visualResult": "pending"
           }
         }
       },
@@ -1847,6 +2211,19 @@
           "hueShift": 0,
           "onContrast": 7.45,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5BB1CF",
+          "darkOKLCH": "L 0.718 C 0.094 h -137",
+          "L": 0.718,
+          "C": 0.094,
+          "deltaL": 0.493,
+          "contrast": 7.02,
+          "oklabDistance": 0.501,
+          "chromaKept": 1,
+          "hueShift": 0,
+          "onContrast": 7.45,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -1891,6 +2268,19 @@
             "hueShift": 0,
             "onContrast": 5.3,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#3D95B2",
+            "darkOKLCH": "L 0.629 C 0.093 h -137",
+            "L": 0.629,
+            "C": 0.093,
+            "deltaL": 0.494,
+            "contrast": 5.86,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 5.3,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -1934,6 +2324,19 @@
             "hueShift": -1,
             "onContrast": 6.86,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#53AAC7",
+            "darkOKLCH": "L 0.696 C 0.093 h -137",
+            "L": 0.696,
+            "C": 0.093,
+            "deltaL": 0.496,
+            "contrast": 6.86,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.999,
+            "hueShift": -1,
+            "onContrast": 6.86,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -1977,6 +2380,19 @@
             "hueShift": 0,
             "onContrast": 9.1,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#61B8D6",
+            "darkOKLCH": "L 0.74 C 0.094 h -137",
+            "L": 0.74,
+            "C": 0.094,
+            "deltaL": 0.464,
+            "contrast": 6.57,
+            "oklabDistance": 0.472,
+            "chromaKept": 1.007,
+            "hueShift": 0,
+            "onContrast": 8.06,
+            "visualResult": "pending"
           }
         }
       },
@@ -2035,6 +2451,19 @@
           "hueShift": 0,
           "onContrast": 7.5,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#62B880",
+          "darkOKLCH": "L 0.714 C 0.118 h 154",
+          "L": 0.714,
+          "C": 0.118,
+          "deltaL": 0.488,
+          "contrast": 7.06,
+          "oklabDistance": 0.502,
+          "chromaKept": 1.002,
+          "hueShift": 0,
+          "onContrast": 7.5,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -2079,6 +2508,19 @@
             "hueShift": 0,
             "onContrast": 5.29,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#459B65",
+            "darkOKLCH": "L 0.622 C 0.117 h 154",
+            "L": 0.622,
+            "C": 0.117,
+            "deltaL": 0.487,
+            "contrast": 5.85,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.29,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -2122,6 +2564,19 @@
             "hueShift": 0,
             "onContrast": 6.83,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#5AB078",
+            "darkOKLCH": "L 0.688 C 0.118 h 153",
+            "L": 0.688,
+            "C": 0.118,
+            "deltaL": 0.489,
+            "contrast": 6.83,
+            "oklabDistance": 0.504,
+            "chromaKept": 1.006,
+            "hueShift": 0,
+            "onContrast": 6.83,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -2165,6 +2620,19 @@
             "hueShift": 0,
             "onContrast": 8.97,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#6BC088",
+            "darkOKLCH": "L 0.739 C 0.117 h 154",
+            "L": 0.739,
+            "C": 0.117,
+            "deltaL": 0.463,
+            "contrast": 6.7,
+            "oklabDistance": 0.478,
+            "chromaKept": 0.993,
+            "hueShift": 0,
+            "onContrast": 8.22,
+            "visualResult": "pending"
           }
         }
       },
@@ -2223,6 +2691,19 @@
           "hueShift": 0,
           "onContrast": 6.99,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#CE964F",
+          "darkOKLCH": "L 0.713 C 0.111 h 71",
+          "L": 0.713,
+          "C": 0.111,
+          "deltaL": 0.487,
+          "contrast": 6.59,
+          "oklabDistance": 0.501,
+          "chromaKept": 0.998,
+          "hueShift": 0,
+          "onContrast": 6.99,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -2267,6 +2748,19 @@
             "hueShift": 0,
             "onContrast": 4.9,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B07A31",
+            "darkOKLCH": "L 0.621 C 0.111 h 71",
+            "L": 0.621,
+            "C": 0.111,
+            "deltaL": 0.487,
+            "contrast": 5.41,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.996,
+            "hueShift": 0,
+            "onContrast": 4.9,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -2310,6 +2804,19 @@
             "hueShift": 0,
             "onContrast": 6.33,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#C58E46",
+            "darkOKLCH": "L 0.687 C 0.111 h 71",
+            "L": 0.687,
+            "C": 0.111,
+            "deltaL": 0.487,
+            "contrast": 6.33,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.33,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -2353,6 +2860,19 @@
             "hueShift": 0,
             "onContrast": 8.52,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D69D56",
+            "darkOKLCH": "L 0.736 C 0.111 h 71",
+            "L": 0.736,
+            "C": 0.111,
+            "deltaL": 0.46,
+            "contrast": 6.21,
+            "oklabDistance": 0.475,
+            "chromaKept": 1.003,
+            "hueShift": -1,
+            "onContrast": 7.61,
+            "visualResult": "pending"
           }
         }
       },
@@ -2411,6 +2931,19 @@
           "hueShift": 0,
           "onContrast": 6.11,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FA664F",
+          "darkOKLCH": "L 0.693 C 0.186 h 31",
+          "L": 0.693,
+          "C": 0.186,
+          "deltaL": 0.468,
+          "contrast": 5.76,
+          "oklabDistance": 0.505,
+          "chromaKept": 1.001,
+          "hueShift": 0,
+          "onContrast": 6.11,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -2455,6 +2988,19 @@
             "hueShift": 0,
             "onContrast": 4.34,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D84632",
+            "darkOKLCH": "L 0.598 C 0.186 h 31",
+            "L": 0.598,
+            "C": 0.186,
+            "deltaL": 0.464,
+            "contrast": 4.62,
+            "oklabDistance": 0.501,
+            "chromaKept": 1.001,
+            "hueShift": 0,
+            "onContrast": 4.34,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -2498,6 +3044,19 @@
             "hueShift": 0,
             "onContrast": 5.49,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F05D47",
+            "darkOKLCH": "L 0.666 C 0.185 h 31",
+            "L": 0.666,
+            "C": 0.185,
+            "deltaL": 0.467,
+            "contrast": 5.49,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 5.49,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -2541,6 +3100,19 @@
             "hueShift": 0,
             "onContrast": 7.73,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E68",
+            "darkOKLCH": "L 0.737 C 0.162 h 31",
+            "L": 0.737,
+            "C": 0.162,
+            "deltaL": 0.461,
+            "contrast": 5.94,
+            "oklabDistance": 0.49,
+            "chromaKept": 0.87,
+            "hueShift": 0,
+            "onContrast": 7.28,
+            "visualResult": "pending"
           }
         }
       },
@@ -2599,6 +3171,19 @@
           "hueShift": 0,
           "onContrast": 6.85,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5DA0FF",
+          "darkOKLCH": "L 0.705 C 0.156 h -103",
+          "L": 0.705,
+          "C": 0.156,
+          "deltaL": 0.479,
+          "contrast": 6.45,
+          "oklabDistance": 0.502,
+          "chromaKept": 0.856,
+          "hueShift": 0,
+          "onContrast": 6.85,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -2643,6 +3228,19 @@
             "hueShift": 0,
             "onContrast": 4.57,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#2E7EEB",
+            "darkOKLCH": "L 0.603 C 0.182 h -103",
+            "L": 0.603,
+            "C": 0.182,
+            "deltaL": 0.469,
+            "contrast": 5.05,
+            "oklabDistance": 0.5,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 4.57,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -2686,6 +3284,19 @@
             "hueShift": 0,
             "onContrast": 6.01,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#4994FF",
+            "darkOKLCH": "L 0.671 C 0.175 h -102",
+            "L": 0.671,
+            "C": 0.175,
+            "deltaL": 0.472,
+            "contrast": 6.01,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.963,
+            "hueShift": 0,
+            "onContrast": 6.01,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -2729,6 +3340,19 @@
             "hueShift": 0,
             "onContrast": 8.63,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65A4FF",
+            "darkOKLCH": "L 0.717 C 0.149 h -102",
+            "L": 0.717,
+            "C": 0.149,
+            "deltaL": 0.441,
+            "contrast": 5.85,
+            "oklabDistance": 0.463,
+            "chromaKept": 0.816,
+            "hueShift": 0,
+            "onContrast": 7.17,
+            "visualResult": "pending"
           }
         }
       },
@@ -2787,6 +3411,19 @@
           "hueShift": 0,
           "onContrast": 7.33,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#B9A451",
+          "darkOKLCH": "L 0.72 C 0.106 h 95",
+          "L": 0.72,
+          "C": 0.106,
+          "deltaL": 0.494,
+          "contrast": 6.9,
+          "oklabDistance": 0.504,
+          "chromaKept": 0.998,
+          "hueShift": 0,
+          "onContrast": 7.33,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -2831,6 +3468,19 @@
             "hueShift": 0,
             "onContrast": 5.18,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#9D8833",
+            "darkOKLCH": "L 0.629 C 0.107 h 95",
+            "L": 0.629,
+            "C": 0.107,
+            "deltaL": 0.495,
+            "contrast": 5.73,
+            "oklabDistance": 0.505,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 5.18,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -2874,6 +3524,19 @@
             "hueShift": 0,
             "onContrast": 6.68,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B29C49",
+            "darkOKLCH": "L 0.695 C 0.106 h 95",
+            "L": 0.695,
+            "C": 0.106,
+            "deltaL": 0.496,
+            "contrast": 6.68,
+            "oklabDistance": 0.505,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 6.68,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -2917,6 +3580,19 @@
             "hueShift": 0,
             "onContrast": 8.72,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#C0AA57",
+            "darkOKLCH": "L 0.74 C 0.107 h 95",
+            "L": 0.74,
+            "C": 0.107,
+            "deltaL": 0.464,
+            "contrast": 6.42,
+            "oklabDistance": 0.474,
+            "chromaKept": 1.001,
+            "hueShift": 0,
+            "onContrast": 7.88,
+            "visualResult": "pending"
           }
         }
       },
@@ -2975,6 +3651,19 @@
           "hueShift": 0,
           "onContrast": 6.9,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#D79138",
+          "darkOKLCH": "L 0.712 C 0.132 h 69",
+          "L": 0.712,
+          "C": 0.132,
+          "deltaL": 0.485,
+          "contrast": 6.49,
+          "oklabDistance": 0.501,
+          "chromaKept": 1,
+          "hueShift": 0,
+          "onContrast": 6.9,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3019,6 +3708,19 @@
             "hueShift": 0,
             "onContrast": 4.91,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#BA760F",
+            "darkOKLCH": "L 0.624 C 0.132 h 69",
+            "L": 0.624,
+            "C": 0.132,
+            "deltaL": 0.489,
+            "contrast": 5.42,
+            "oklabDistance": 0.505,
+            "chromaKept": 1.001,
+            "hueShift": 0,
+            "onContrast": 4.91,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -3062,6 +3764,19 @@
             "hueShift": 0,
             "onContrast": 6.28,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#CF892F",
+            "darkOKLCH": "L 0.687 C 0.132 h 68",
+            "L": 0.687,
+            "C": 0.132,
+            "deltaL": 0.487,
+            "contrast": 6.27,
+            "oklabDistance": 0.503,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 6.28,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -3105,6 +3820,19 @@
             "hueShift": 0,
             "onContrast": 8.31,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#E09941",
+            "darkOKLCH": "L 0.738 C 0.133 h 69",
+            "L": 0.738,
+            "C": 0.133,
+            "deltaL": 0.461,
+            "contrast": 6.19,
+            "oklabDistance": 0.478,
+            "chromaKept": 1.004,
+            "hueShift": 0,
+            "onContrast": 7.6,
+            "visualResult": "pending"
           }
         }
       },
@@ -3163,6 +3891,19 @@
           "hueShift": 0,
           "onContrast": 7.5,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#62B880",
+          "darkOKLCH": "L 0.714 C 0.118 h 154",
+          "L": 0.714,
+          "C": 0.118,
+          "deltaL": 0.487,
+          "contrast": 7.05,
+          "oklabDistance": 0.501,
+          "chromaKept": 1.002,
+          "hueShift": 0,
+          "onContrast": 7.5,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3207,6 +3948,19 @@
             "hueShift": 0,
             "onContrast": 5.29,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#459B65",
+            "darkOKLCH": "L 0.622 C 0.117 h 154",
+            "L": 0.622,
+            "C": 0.117,
+            "deltaL": 0.488,
+            "contrast": 5.85,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.29,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -3250,6 +4004,19 @@
             "hueShift": 0,
             "onContrast": 6.83,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#5AB078",
+            "darkOKLCH": "L 0.688 C 0.118 h 153",
+            "L": 0.688,
+            "C": 0.118,
+            "deltaL": 0.489,
+            "contrast": 6.82,
+            "oklabDistance": 0.502,
+            "chromaKept": 1.006,
+            "hueShift": 0,
+            "onContrast": 6.83,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -3293,6 +4060,19 @@
             "hueShift": 0,
             "onContrast": 8.97,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#6BC088",
+            "darkOKLCH": "L 0.739 C 0.117 h 154",
+            "L": 0.739,
+            "C": 0.117,
+            "deltaL": 0.463,
+            "contrast": 6.69,
+            "oklabDistance": 0.476,
+            "chromaKept": 0.993,
+            "hueShift": 0,
+            "onContrast": 8.22,
+            "visualResult": "pending"
           }
         }
       },
@@ -3351,6 +4131,19 @@
           "hueShift": 1,
           "onContrast": 7.13,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#CF9850",
+          "darkOKLCH": "L 0.718 C 0.111 h 72",
+          "L": 0.718,
+          "C": 0.111,
+          "deltaL": 0.492,
+          "contrast": 6.71,
+          "oklabDistance": 0.503,
+          "chromaKept": 0.998,
+          "hueShift": 1,
+          "onContrast": 7.13,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3395,6 +4188,19 @@
             "hueShift": 0,
             "onContrast": 5.03,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B27C33",
+            "darkOKLCH": "L 0.628 C 0.111 h 71",
+            "L": 0.628,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 5.55,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.03,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -3438,6 +4244,19 @@
             "hueShift": 0,
             "onContrast": 6.48,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#C79048",
+            "darkOKLCH": "L 0.693 C 0.111 h 71",
+            "L": 0.693,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 6.48,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.48,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -3481,6 +4300,19 @@
             "hueShift": 0,
             "onContrast": 8.52,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D69D56",
+            "darkOKLCH": "L 0.736 C 0.111 h 71",
+            "L": 0.736,
+            "C": 0.111,
+            "deltaL": 0.46,
+            "contrast": 6.2,
+            "oklabDistance": 0.472,
+            "chromaKept": 1.003,
+            "hueShift": -1,
+            "onContrast": 7.61,
+            "visualResult": "pending"
           }
         }
       },
@@ -3539,6 +4371,19 @@
           "hueShift": 0,
           "onContrast": 6.11,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FA664F",
+          "darkOKLCH": "L 0.693 C 0.186 h 31",
+          "L": 0.693,
+          "C": 0.186,
+          "deltaL": 0.467,
+          "contrast": 5.75,
+          "oklabDistance": 0.502,
+          "chromaKept": 1.001,
+          "hueShift": 0,
+          "onContrast": 6.11,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3583,6 +4428,19 @@
             "hueShift": 0,
             "onContrast": 4.26,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D94833",
+            "darkOKLCH": "L 0.602 C 0.185 h 31",
+            "L": 0.602,
+            "C": 0.185,
+            "deltaL": 0.468,
+            "contrast": 4.7,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.996,
+            "hueShift": 0,
+            "onContrast": 4.26,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -3626,6 +4484,19 @@
             "hueShift": 0,
             "onContrast": 5.49,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F05D47",
+            "darkOKLCH": "L 0.666 C 0.185 h 31",
+            "L": 0.666,
+            "C": 0.185,
+            "deltaL": 0.466,
+            "contrast": 5.48,
+            "oklabDistance": 0.5,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 5.49,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -3669,6 +4540,19 @@
             "hueShift": 0,
             "onContrast": 7.89,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E68",
+            "darkOKLCH": "L 0.737 C 0.162 h 31",
+            "L": 0.737,
+            "C": 0.162,
+            "deltaL": 0.461,
+            "contrast": 5.93,
+            "oklabDistance": 0.487,
+            "chromaKept": 0.87,
+            "hueShift": 0,
+            "onContrast": 7.28,
+            "visualResult": "pending"
           }
         }
       },
@@ -3727,6 +4611,19 @@
           "hueShift": 0,
           "onContrast": 6.71,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5A9EFF",
+          "darkOKLCH": "L 0.699 C 0.159 h -103",
+          "L": 0.699,
+          "C": 0.159,
+          "deltaL": 0.473,
+          "contrast": 6.31,
+          "oklabDistance": 0.501,
+          "chromaKept": 0.873,
+          "hueShift": 0,
+          "onContrast": 6.71,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3771,6 +4668,19 @@
             "hueShift": 0,
             "onContrast": 4.47,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#2D7CEA",
+            "darkOKLCH": "L 0.598 C 0.183 h -102",
+            "L": 0.598,
+            "C": 0.183,
+            "deltaL": 0.464,
+            "contrast": 4.94,
+            "oklabDistance": 0.502,
+            "chromaKept": 1.005,
+            "hueShift": 0,
+            "onContrast": 4.47,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -3814,6 +4724,19 @@
             "hueShift": 0,
             "onContrast": 5.94,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#4693FF",
+            "darkOKLCH": "L 0.668 C 0.177 h -103",
+            "L": 0.668,
+            "C": 0.177,
+            "deltaL": 0.468,
+            "contrast": 5.93,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.974,
+            "hueShift": 0,
+            "onContrast": 5.94,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -3857,6 +4780,19 @@
             "hueShift": 0,
             "onContrast": 8.45,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65A4FF",
+            "darkOKLCH": "L 0.717 C 0.149 h -102",
+            "L": 0.717,
+            "C": 0.149,
+            "deltaL": 0.44,
+            "contrast": 5.84,
+            "oklabDistance": 0.468,
+            "chromaKept": 0.816,
+            "hueShift": 0,
+            "onContrast": 7.17,
+            "visualResult": "pending"
           }
         }
       },
@@ -3915,6 +4851,19 @@
           "hueShift": -1,
           "onContrast": 7.65,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5FB7AD",
+          "darkOKLCH": "L 0.722 C 0.087 h -174",
+          "L": 0.722,
+          "C": 0.087,
+          "deltaL": 0.496,
+          "contrast": 7.21,
+          "oklabDistance": 0.504,
+          "chromaKept": 1.005,
+          "hueShift": -1,
+          "onContrast": 7.65,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -3959,6 +4908,19 @@
             "hueShift": 0,
             "onContrast": 5.33,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#3F9990",
+            "darkOKLCH": "L 0.626 C 0.086 h -174",
+            "L": 0.626,
+            "C": 0.086,
+            "deltaL": 0.492,
+            "contrast": 5.89,
+            "oklabDistance": 0.501,
+            "chromaKept": 1.005,
+            "hueShift": 0,
+            "onContrast": 5.33,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4002,6 +4964,19 @@
             "hueShift": -1,
             "onContrast": 6.97,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#57AFA5",
+            "darkOKLCH": "L 0.697 C 0.086 h -174",
+            "L": 0.697,
+            "C": 0.086,
+            "deltaL": 0.497,
+            "contrast": 6.97,
+            "oklabDistance": 0.505,
+            "chromaKept": 1.004,
+            "hueShift": -1,
+            "onContrast": 6.97,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4045,6 +5020,19 @@
             "hueShift": 1,
             "onContrast": 9.05,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65BDB3",
+            "darkOKLCH": "L 0.741 C 0.087 h -174",
+            "L": 0.741,
+            "C": 0.087,
+            "deltaL": 0.464,
+            "contrast": 6.68,
+            "oklabDistance": 0.473,
+            "chromaKept": 1.006,
+            "hueShift": 0,
+            "onContrast": 8.19,
+            "visualResult": "pending"
           }
         }
       },
@@ -4103,6 +5091,19 @@
           "hueShift": 0,
           "onContrast": 5.98,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FD5F4E",
+          "darkOKLCH": "L 0.689 C 0.196 h 29",
+          "L": 0.689,
+          "C": 0.196,
+          "deltaL": 0.463,
+          "contrast": 5.63,
+          "oklabDistance": 0.5,
+          "chromaKept": 1,
+          "hueShift": 0,
+          "onContrast": 5.98,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -4147,6 +5148,19 @@
             "hueShift": 0,
             "onContrast": 4.59,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#E5483A",
+            "darkOKLCH": "L 0.623 C 0.196 h 29",
+            "L": 0.623,
+            "C": 0.196,
+            "deltaL": 0.488,
+            "contrast": 5.08,
+            "oklabDistance": 0.523,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 4.59,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4190,6 +5204,19 @@
             "hueShift": 0,
             "onContrast": 5.5,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F55848",
+            "darkOKLCH": "L 0.668 C 0.195 h 29",
+            "L": 0.668,
+            "C": 0.195,
+            "deltaL": 0.468,
+            "contrast": 5.5,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.5,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4233,6 +5260,19 @@
             "hueShift": 0,
             "onContrast": 7.91,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E6D",
+            "darkOKLCH": "L 0.738 C 0.16 h 29",
+            "L": 0.738,
+            "C": 0.16,
+            "deltaL": 0.462,
+            "contrast": 5.96,
+            "oklabDistance": 0.487,
+            "chromaKept": 0.819,
+            "hueShift": 0,
+            "onContrast": 7.3,
+            "visualResult": "pending"
           }
         }
       },
@@ -4291,6 +5331,19 @@
           "hueShift": 0,
           "onContrast": 7.5,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#62B880",
+          "darkOKLCH": "L 0.714 C 0.118 h 154",
+          "L": 0.714,
+          "C": 0.118,
+          "deltaL": 0.487,
+          "contrast": 7.06,
+          "oklabDistance": 0.502,
+          "chromaKept": 1.002,
+          "hueShift": 0,
+          "onContrast": 7.5,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -4335,6 +5388,19 @@
             "hueShift": 0,
             "onContrast": 5.29,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#459B65",
+            "darkOKLCH": "L 0.622 C 0.117 h 154",
+            "L": 0.622,
+            "C": 0.117,
+            "deltaL": 0.487,
+            "contrast": 5.85,
+            "oklabDistance": 0.503,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.29,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4378,6 +5444,19 @@
             "hueShift": 0,
             "onContrast": 6.83,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#5AB078",
+            "darkOKLCH": "L 0.688 C 0.118 h 153",
+            "L": 0.688,
+            "C": 0.118,
+            "deltaL": 0.488,
+            "contrast": 6.83,
+            "oklabDistance": 0.503,
+            "chromaKept": 1.006,
+            "hueShift": 0,
+            "onContrast": 6.83,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4421,6 +5500,19 @@
             "hueShift": 0,
             "onContrast": 8.97,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#6BC088",
+            "darkOKLCH": "L 0.739 C 0.117 h 154",
+            "L": 0.739,
+            "C": 0.117,
+            "deltaL": 0.463,
+            "contrast": 6.71,
+            "oklabDistance": 0.478,
+            "chromaKept": 0.993,
+            "hueShift": 0,
+            "onContrast": 8.22,
+            "visualResult": "pending"
           }
         }
       },
@@ -4479,6 +5571,19 @@
           "hueShift": 1,
           "onContrast": 7.13,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#CF9850",
+          "darkOKLCH": "L 0.718 C 0.111 h 72",
+          "L": 0.718,
+          "C": 0.111,
+          "deltaL": 0.492,
+          "contrast": 6.72,
+          "oklabDistance": 0.503,
+          "chromaKept": 0.998,
+          "hueShift": 1,
+          "onContrast": 7.13,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -4523,6 +5628,19 @@
             "hueShift": 0,
             "onContrast": 5.03,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B27C33",
+            "darkOKLCH": "L 0.628 C 0.111 h 71",
+            "L": 0.628,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 5.56,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.03,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4566,6 +5684,19 @@
             "hueShift": 0,
             "onContrast": 6.48,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#C79048",
+            "darkOKLCH": "L 0.693 C 0.111 h 71",
+            "L": 0.693,
+            "C": 0.111,
+            "deltaL": 0.493,
+            "contrast": 6.48,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.48,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4609,6 +5740,19 @@
             "hueShift": 0,
             "onContrast": 8.52,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D69D56",
+            "darkOKLCH": "L 0.736 C 0.111 h 71",
+            "L": 0.736,
+            "C": 0.111,
+            "deltaL": 0.46,
+            "contrast": 6.21,
+            "oklabDistance": 0.472,
+            "chromaKept": 1.003,
+            "hueShift": -1,
+            "onContrast": 7.61,
+            "visualResult": "pending"
           }
         }
       },
@@ -4667,6 +5811,19 @@
           "hueShift": 0,
           "onContrast": 6.11,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FA664F",
+          "darkOKLCH": "L 0.693 C 0.186 h 31",
+          "L": 0.693,
+          "C": 0.186,
+          "deltaL": 0.467,
+          "contrast": 5.75,
+          "oklabDistance": 0.5,
+          "chromaKept": 1.001,
+          "hueShift": 0,
+          "onContrast": 6.11,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -4711,6 +5868,19 @@
             "hueShift": 0,
             "onContrast": 4.26,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D94833",
+            "darkOKLCH": "L 0.602 C 0.185 h 31",
+            "L": 0.602,
+            "C": 0.185,
+            "deltaL": 0.468,
+            "contrast": 4.7,
+            "oklabDistance": 0.5,
+            "chromaKept": 0.996,
+            "hueShift": 0,
+            "onContrast": 4.26,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4754,6 +5924,19 @@
             "hueShift": 0,
             "onContrast": 5.62,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F25F49",
+            "darkOKLCH": "L 0.672 C 0.185 h 31",
+            "L": 0.672,
+            "C": 0.185,
+            "deltaL": 0.472,
+            "contrast": 5.62,
+            "oklabDistance": 0.504,
+            "chromaKept": 0.998,
+            "hueShift": 0,
+            "onContrast": 5.62,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4797,6 +5980,19 @@
             "hueShift": 0,
             "onContrast": 7.89,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E68",
+            "darkOKLCH": "L 0.737 C 0.162 h 31",
+            "L": 0.737,
+            "C": 0.162,
+            "deltaL": 0.461,
+            "contrast": 5.94,
+            "oklabDistance": 0.486,
+            "chromaKept": 0.87,
+            "hueShift": 0,
+            "onContrast": 7.28,
+            "visualResult": "pending"
           }
         }
       },
@@ -4855,6 +6051,19 @@
           "hueShift": 0,
           "onContrast": 6.71,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#5A9EFF",
+          "darkOKLCH": "L 0.699 C 0.159 h -103",
+          "L": 0.699,
+          "C": 0.159,
+          "deltaL": 0.473,
+          "contrast": 6.32,
+          "oklabDistance": 0.5,
+          "chromaKept": 0.873,
+          "hueShift": 0,
+          "onContrast": 6.71,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -4899,6 +6108,19 @@
             "hueShift": 0,
             "onContrast": 4.47,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#2D7CEA",
+            "darkOKLCH": "L 0.598 C 0.183 h -102",
+            "L": 0.598,
+            "C": 0.183,
+            "deltaL": 0.464,
+            "contrast": 4.95,
+            "oklabDistance": 0.5,
+            "chromaKept": 1.005,
+            "hueShift": 0,
+            "onContrast": 4.47,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -4942,6 +6164,19 @@
             "hueShift": 0,
             "onContrast": 5.94,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#4693FF",
+            "darkOKLCH": "L 0.668 C 0.177 h -103",
+            "L": 0.668,
+            "C": 0.177,
+            "deltaL": 0.468,
+            "contrast": 5.94,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.974,
+            "hueShift": 0,
+            "onContrast": 5.94,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -4985,6 +6220,19 @@
             "hueShift": 0,
             "onContrast": 8.45,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65A4FF",
+            "darkOKLCH": "L 0.717 C 0.149 h -102",
+            "L": 0.717,
+            "C": 0.149,
+            "deltaL": 0.44,
+            "contrast": 5.85,
+            "oklabDistance": 0.467,
+            "chromaKept": 0.816,
+            "hueShift": 0,
+            "onContrast": 7.17,
+            "visualResult": "pending"
           }
         }
       },
@@ -5043,6 +6291,19 @@
           "hueShift": 0,
           "onContrast": 10.27,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#F5B940",
+          "darkOKLCH": "L 0.821 C 0.148 h 81",
+          "L": 0.821,
+          "C": 0.148,
+          "deltaL": 0.593,
+          "contrast": 9.64,
+          "oklabDistance": 0.614,
+          "chromaKept": 1,
+          "hueShift": 0,
+          "onContrast": 10.27,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -5087,6 +6348,19 @@
             "hueShift": 0,
             "onContrast": 10.27,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F5B940",
+            "darkOKLCH": "L 0.821 C 0.148 h 81",
+            "L": 0.821,
+            "C": 0.148,
+            "deltaL": 0.686,
+            "contrast": 11.34,
+            "oklabDistance": 0.703,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 10.27,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -5130,6 +6404,19 @@
             "hueShift": 0,
             "onContrast": 10.27,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F5B940",
+            "darkOKLCH": "L 0.821 C 0.148 h 81",
+            "L": 0.821,
+            "C": 0.148,
+            "deltaL": 0.619,
+            "contrast": 10.23,
+            "oklabDistance": 0.639,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 10.27,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -5173,6 +6460,19 @@
             "hueShift": 0,
             "onContrast": 10.27,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F5B940",
+            "darkOKLCH": "L 0.821 C 0.148 h 81",
+            "L": 0.821,
+            "C": 0.148,
+            "deltaL": 0.546,
+            "contrast": 8.43,
+            "oklabDistance": 0.569,
+            "chromaKept": 1,
+            "hueShift": 0,
+            "onContrast": 10.27,
+            "visualResult": "pending"
           }
         }
       },
@@ -5231,6 +6531,19 @@
           "hueShift": 0,
           "onContrast": 6.74,
           "visualResult": "pastel"
+        },
+        "D": {
+          "darkHex": "#867FFF",
+          "darkOKLCH": "L 0.664 C 0.184 h -77",
+          "L": 0.664,
+          "C": 0.184,
+          "deltaL": 0.436,
+          "contrast": 5.26,
+          "oklabDistance": 0.47,
+          "chromaKept": 0.804,
+          "hueShift": 0,
+          "onContrast": 5.6,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -5275,6 +6588,19 @@
             "hueShift": 0,
             "onContrast": 4.38,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#725FFF",
+            "darkOKLCH": "L 0.596 C 0.227 h -78",
+            "L": 0.596,
+            "C": 0.227,
+            "deltaL": 0.46,
+            "contrast": 4.57,
+            "oklabDistance": 0.51,
+            "chromaKept": 0.993,
+            "hueShift": 0,
+            "onContrast": 4.38,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -5318,6 +6644,19 @@
             "hueShift": 0,
             "onContrast": 5.88,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#847EFF",
+            "darkOKLCH": "L 0.661 C 0.186 h -78",
+            "L": 0.661,
+            "C": 0.186,
+            "deltaL": 0.459,
+            "contrast": 5.51,
+            "oklabDistance": 0.492,
+            "chromaKept": 0.811,
+            "hueShift": 0,
+            "onContrast": 5.53,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -5361,6 +6700,19 @@
             "hueShift": 0,
             "onContrast": 8.26,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#8680FF",
+            "darkOKLCH": "L 0.666 C 0.183 h -78",
+            "L": 0.666,
+            "C": 0.183,
+            "deltaL": 0.392,
+            "contrast": 4.64,
+            "oklabDistance": 0.428,
+            "chromaKept": 0.798,
+            "hueShift": 0,
+            "onContrast": 5.65,
+            "visualResult": "pending"
           }
         }
       },
@@ -5419,6 +6771,19 @@
           "hueShift": 0,
           "onContrast": 7.5,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#62B880",
+          "darkOKLCH": "L 0.714 C 0.118 h 154",
+          "L": 0.714,
+          "C": 0.118,
+          "deltaL": 0.486,
+          "contrast": 7.04,
+          "oklabDistance": 0.501,
+          "chromaKept": 1.002,
+          "hueShift": 0,
+          "onContrast": 7.5,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -5463,6 +6828,19 @@
             "hueShift": 0,
             "onContrast": 5.29,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#459B65",
+            "darkOKLCH": "L 0.622 C 0.117 h 154",
+            "L": 0.622,
+            "C": 0.117,
+            "deltaL": 0.487,
+            "contrast": 5.84,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 5.29,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -5506,6 +6884,19 @@
             "hueShift": 0,
             "onContrast": 6.83,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#5AB078",
+            "darkOKLCH": "L 0.688 C 0.118 h 153",
+            "L": 0.688,
+            "C": 0.118,
+            "deltaL": 0.487,
+            "contrast": 6.81,
+            "oklabDistance": 0.503,
+            "chromaKept": 1.006,
+            "hueShift": 0,
+            "onContrast": 6.83,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -5549,6 +6940,19 @@
             "hueShift": 0,
             "onContrast": 8.86,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#6BC088",
+            "darkOKLCH": "L 0.739 C 0.117 h 154",
+            "L": 0.739,
+            "C": 0.117,
+            "deltaL": 0.465,
+            "contrast": 6.75,
+            "oklabDistance": 0.481,
+            "chromaKept": 0.993,
+            "hueShift": 0,
+            "onContrast": 8.22,
+            "visualResult": "pending"
           }
         }
       },
@@ -5607,6 +7011,19 @@
           "hueShift": 0,
           "onContrast": 6.99,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#CE964F",
+          "darkOKLCH": "L 0.713 C 0.111 h 71",
+          "L": 0.713,
+          "C": 0.111,
+          "deltaL": 0.486,
+          "contrast": 6.56,
+          "oklabDistance": 0.5,
+          "chromaKept": 0.998,
+          "hueShift": 0,
+          "onContrast": 6.99,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -5651,6 +7068,19 @@
             "hueShift": 0,
             "onContrast": 4.9,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#B07A31",
+            "darkOKLCH": "L 0.621 C 0.111 h 71",
+            "L": 0.621,
+            "C": 0.111,
+            "deltaL": 0.486,
+            "contrast": 5.41,
+            "oklabDistance": 0.501,
+            "chromaKept": 0.996,
+            "hueShift": 0,
+            "onContrast": 4.9,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -5694,6 +7124,19 @@
             "hueShift": 0,
             "onContrast": 6.48,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#C79048",
+            "darkOKLCH": "L 0.693 C 0.111 h 71",
+            "L": 0.693,
+            "C": 0.111,
+            "deltaL": 0.492,
+            "contrast": 6.46,
+            "oklabDistance": 0.506,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 6.48,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -5737,6 +7180,19 @@
             "hueShift": 0,
             "onContrast": 8.33,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D69D56",
+            "darkOKLCH": "L 0.736 C 0.111 h 71",
+            "L": 0.736,
+            "C": 0.111,
+            "deltaL": 0.462,
+            "contrast": 6.25,
+            "oklabDistance": 0.478,
+            "chromaKept": 1.003,
+            "hueShift": -1,
+            "onContrast": 7.61,
+            "visualResult": "pending"
           }
         }
       },
@@ -5795,6 +7251,19 @@
           "hueShift": 0,
           "onContrast": 6.11,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#FA664F",
+          "darkOKLCH": "L 0.693 C 0.186 h 31",
+          "L": 0.693,
+          "C": 0.186,
+          "deltaL": 0.466,
+          "contrast": 5.73,
+          "oklabDistance": 0.503,
+          "chromaKept": 1.001,
+          "hueShift": 0,
+          "onContrast": 6.11,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -5839,6 +7308,19 @@
             "hueShift": 0,
             "onContrast": 4.34,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#D84632",
+            "darkOKLCH": "L 0.598 C 0.186 h 31",
+            "L": 0.598,
+            "C": 0.186,
+            "deltaL": 0.463,
+            "contrast": 4.62,
+            "oklabDistance": 0.501,
+            "chromaKept": 1.001,
+            "hueShift": 0,
+            "onContrast": 4.34,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -5882,6 +7364,19 @@
             "hueShift": 0,
             "onContrast": 5.49,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#F05D47",
+            "darkOKLCH": "L 0.666 C 0.185 h 31",
+            "L": 0.666,
+            "C": 0.185,
+            "deltaL": 0.465,
+            "contrast": 5.47,
+            "oklabDistance": 0.502,
+            "chromaKept": 0.999,
+            "hueShift": 0,
+            "onContrast": 5.49,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -5925,6 +7420,19 @@
             "hueShift": 0,
             "onContrast": 7.73,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#FF7E68",
+            "darkOKLCH": "L 0.737 C 0.162 h 31",
+            "L": 0.737,
+            "C": 0.162,
+            "deltaL": 0.463,
+            "contrast": 5.98,
+            "oklabDistance": 0.492,
+            "chromaKept": 0.87,
+            "hueShift": 0,
+            "onContrast": 7.28,
+            "visualResult": "pending"
           }
         }
       },
@@ -5983,6 +7491,19 @@
           "hueShift": 0,
           "onContrast": 6.94,
           "visualResult": "adequate"
+        },
+        "D": {
+          "darkHex": "#60A1FF",
+          "darkOKLCH": "L 0.708 C 0.154 h -102",
+          "L": 0.708,
+          "C": 0.154,
+          "deltaL": 0.48,
+          "contrast": 6.51,
+          "oklabDistance": 0.502,
+          "chromaKept": 0.844,
+          "hueShift": 0,
+          "onContrast": 6.94,
+          "visualResult": "pending"
         }
       },
       "surfaces": {
@@ -6027,6 +7548,19 @@
             "hueShift": 0,
             "onContrast": 4.69,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#3080ED",
+            "darkOKLCH": "L 0.61 C 0.182 h -103",
+            "L": 0.61,
+            "C": 0.182,
+            "deltaL": 0.474,
+            "contrast": 5.18,
+            "oklabDistance": 0.505,
+            "chromaKept": 0.997,
+            "hueShift": 0,
+            "onContrast": 4.69,
+            "visualResult": "pending"
           }
         },
         "medium": {
@@ -6070,6 +7604,19 @@
             "hueShift": 0,
             "onContrast": 6.15,
             "visualResult": "adequate"
+          },
+          "D": {
+            "darkHex": "#4D96FF",
+            "darkOKLCH": "L 0.677 C 0.172 h -102",
+            "L": 0.677,
+            "C": 0.172,
+            "deltaL": 0.476,
+            "contrast": 6.13,
+            "oklabDistance": 0.503,
+            "chromaKept": 0.944,
+            "hueShift": 0,
+            "onContrast": 6.15,
+            "visualResult": "pending"
           }
         },
         "high": {
@@ -6113,6 +7660,19 @@
             "hueShift": 0,
             "onContrast": 8.63,
             "visualResult": "pastel"
+          },
+          "D": {
+            "darkHex": "#65A4FF",
+            "darkOKLCH": "L 0.717 C 0.149 h -102",
+            "L": 0.717,
+            "C": 0.149,
+            "deltaL": 0.442,
+            "contrast": 5.89,
+            "oklabDistance": 0.463,
+            "chromaKept": 0.816,
+            "hueShift": 0,
+            "onContrast": 7.17,
+            "visualResult": "pending"
           }
         }
       },

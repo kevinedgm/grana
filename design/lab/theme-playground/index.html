@@ -9,7 +9,7 @@
   Estado por URL:  ?theme=grana&scheme=dark&strategy=current&surface=real
     theme    notion | apple | medium | stripe | caracol-purpura | amazon | github | spotify | linear | grana | lustre
     scheme   light | dark
-    strategy current | b | c        (A actual · B piso L ≥ 0.70 · C ΔE ≥ 0.50; solo en Dark)
+    strategy current | b | c | d    (A actual · B piso L ≥ 0.70 · C ΔE ≥ 0.50 · D experimento C + límite; solo en Dark)
     surface  low | real | medium | high   (condiciones experimentales; no son tokens ni opciones públicas)
   Los selectores de la interfaz cambian el estado SIN recargar la página y actualizan la URL.
   Los datos (tokens.css de cada tema y las variantes B/C) salen de ../tema-oscuro/dark-color-presence/generated/.
@@ -32,7 +32,7 @@
       <select v-model="state.scheme" data-testid="sel-scheme" @change="apply"><option value="light">Light</option><option value="dark">Dark</option></select>
     </label>
     <label>Strategy
-      <select v-model="state.strategy" data-testid="sel-strategy" @change="apply"><option value="current">Current (A)</option><option value="b">B · L ≥ 0.70</option><option value="c">C · ΔE ≥ 0.50</option></select>
+      <select v-model="state.strategy" data-testid="sel-strategy" @change="apply"><option value="current">Current (A)</option><option value="b">B · L ≥ 0.70</option><option value="c">C · ΔE ≥ 0.50</option><option value="d">D · experimento (C + límite)</option></select>
     </label>
     <label>Surface
       <select v-model="state.surface" data-testid="sel-surface" @change="apply"><option value="low">low</option><option value="real">real</option><option value="medium">medium</option><option value="high">high</option></select>

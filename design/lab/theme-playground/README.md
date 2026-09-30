@@ -108,3 +108,31 @@ Mismo barrido para las tres hipótesis (66 observaciones por celda; recuerda que
 - `?set=gaps` carga los 5 temas de `../tema-oscuro/dark-color-presence-gaps/` (gris de luminosidad media, ocre y oliva, semánticos ajustados por colisión y superficies tintadas con el tono del acento). Las 5 pruebas nuevas de Playwright (36 en total) comprueban sus tokens, las estrategias y la superficie, que el DOM estructural es el mismo y que sus fuentes se cargan.
 - `node scripts/gaps-sheet.mjs` genera `screenshots/gaps-sheet.png` (A, B y C con superficie real y alta).
 - **Evaluación ciega** para una segunda persona: `node scripts/blind-sheet.mjs` genera `blind/` (39 imágenes al azar, plantilla CSV y clave) y `node scripts/score-blind.mjs ratings.csv` mide el acuerdo con la clasificación actual (ver `blind/README.md`). **Falta que una persona la rellene.**
+
+## Fase 5 · experimento D (restricción compuesta, solo simulación)
+
+`strategy=d` en el playground (y `D` en `results.json` y en `generated/*.variants.css`) simula **D = C + límite superior**: sube la base oscura hasta ΔE ≥ 0.50 (como C) **pero** sin pasar de L 0.74 y sin seguir aclarando si el croma conservado caería por debajo de 0.80. **Los dos límites son exploratorios**; no se adopta D ni se implementa en el Theme Engine.
+
+- `node scripts/strategy-d.mjs` → `strategy-d.md`: A, B, C y tres variantes de D (solo tope, solo croma, ambos) sobre 16 temas (los 11 del benchmark y los 5 de la Fase 4) y superficies de L 0.10 a 0.32.
+- `node scripts/strategy-d-grid.mjs` → `strategy-d-grid.md`: sensibilidad de D a sus parámetros (tope 0.72 a 1 y croma mínimo 0 a 0.85).
+- `node scripts/d-sheet.mjs` → `screenshots/d-sheet.png`: A, B, C y D con superficie alta y real.
+
+Resultados (16 temas × 6 roles por celda):
+
+| Indicador | Estrategia | real | L 0.25 | L 0.30 | L 0.32 |
+| --- | --- | --- | --- | --- | --- |
+| corto (ΔE < 0.42) | A | 40 % | 44 % | 71 % | 73 % |
+| corto | B | 0 % | 0 % | 40 % | 73 % |
+| corto | C | 0 % | 0 % | 0 % | 0 % |
+| corto | **D (ambos)** | 0 % | 0 % | 3 % | 8 % |
+| claro (L > 0.74) | C | 7 % | 28 % | 100 % | 100 % |
+| claro | **D (ambos)** | 7 % | 9 % | 8 % | 8 % |
+| pastel (croma < 0.75) | C | 4 % | 5 % | 44 % | 46 % |
+| pastel | **D (ambos)** | 0 % | 0 % | 3 % | 4 % |
+
+- **D (ambos) es la única variante sin fallos grandes en todo el rango:** casi nunca se queda corta (≤ 3 % hasta L 0.30), no exagera la luminosidad (9 %, que son los colores que ya entraban luminosos) y casi no produce pasteles (≤ 4 %). Cuesta algo de distancia a superficie real (ΔE mínimo 0.458 en lugar de 0.50).
+- **Cada límite cubre un caso distinto:** el tope de L frena a los colores de poco croma (grises, cremas: sin él, «claro» sigue en 76 % a 0.30); la condición de croma frena a los saturados (azules, violetas, rosas: sin ella, «pastel» sube a 5 % con el tope solo).
+- **No depende de los valores exactos:** en la rejilla, con un tope de 0.74 a 0.78 y un croma mínimo de 0.75 a 0.85, el resultado casi no cambia (corto ≤ 4 % hasta 0.30, pastel ≤ 3 %). El croma mínimo **por encima de 0.75** es lo que mueve el pastel de 4 % a 0; el tope **a 0.76 o más sin croma** no contiene el efecto a 0.30 (24 % a 43 % pastel).
+- **Visualmente** (`d-sheet.png`), con superficie alta D queda entre B y C: más presencia que A y B en los colores apagados (gris, ocre), pero conserva la saturación que C pierde (la marca de Grana no llega a salmón pálido; el violeta de Stripe no llega a lavanda). Con superficie real es casi igual que C.
+
+Límites: 16 temas (los semánticos por defecto se repiten), indicadores numéricos de lectura (no reglas), una sola persona en la revisión visual, valores de D elegidos a priori y luego comprobados en una rejilla.
