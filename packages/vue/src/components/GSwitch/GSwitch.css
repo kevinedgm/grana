@@ -1,0 +1,399 @@
+/*
+  GSwitch · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/switch.md. Estructura: design/lab/switch/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max().
+  Carácter propio: el riel es el propio <input>; el pulgar y su marca (✓ / −) son sus pseudo-elementos
+  y se deslizan con `translate` (sentido lógico: en RTL se espejan). Al pulsar, el riel se hunde como
+  el botón. Con `loading`, la marca se convierte en un anillo giratorio (sin bloquear el cambio).
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-switch {
+  /* Color (se reasigna por --color-*); por defecto: brand */
+  --_c: var(--g-color-brand);
+  --_c-strong: var(--g-color-brand-strong);
+  --_on: var(--g-color-on-brand);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Alto y ancho del riel en unidades de space */
+  --_th-units: 6;
+  --_tw-units: 11;
+  --_row-units: 6;
+  --_density: 1;
+  --_gap: var(--g-space-3);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_th: calc(var(--g-space-1) * var(--_th-units));
+  --_tw: calc(var(--g-space-1) * var(--_tw-units));
+  --_inset: calc(var(--g-space-1) * 0.5);
+  /* Pulgar: el alto del riel menos borde y separación de cada lado */
+  --_edge: calc(var(--g-border-width) + var(--_inset));
+  --_td: calc(var(--_th) - var(--_edge) * 2);
+  --_travel: calc(var(--_tw) - var(--_edge) * 2 - var(--_td));
+  /* La fila nunca es menor que el riel */
+  --_row: max(24px, var(--_th), calc(var(--g-space-1) * var(--_row-units) * var(--_density)));
+  --_x: 0px;
+  --_dir: 1;
+  /* Colores de pulgar y marca (apagado por defecto) */
+  --_thumb: var(--g-color-border-control);
+  --_mark: var(--g-color-surface);
+
+  display: block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* La fila completa es el objetivo de toque; con puntero grueso mide 44px reales */
+.g-switch__row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  min-block-size: var(--_row);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-switch--label-start .g-switch__row {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+@media (pointer: coarse) {
+  .g-switch__row {
+    min-block-size: max(44px, var(--_row));
+  }
+}
+
+/* ---------- Riel: el propio <input>, dibujado ---------- */
+.g-switch__control {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--_tw);
+  block-size: var(--_th);
+  margin-block-start: max(0px, calc((var(--_row) - var(--_th)) / 2));
+}
+.g-switch__control:dir(rtl) {
+  --_dir: -1;
+}
+@media (pointer: coarse) {
+  .g-switch__row .g-switch__control {
+    margin-block-start: max(0px, calc((max(44px, var(--_row)) - var(--_th)) / 2));
+  }
+}
+.g-switch__input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--_mark);
+  cursor: inherit;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    scale var(--g-duration-press) var(--g-ease-out);
+}
+
+/* Pulgar */
+.g-switch__input::before {
+  content: "";
+  position: absolute;
+  inset-block-start: var(--_inset);
+  inset-inline-start: var(--_inset);
+  box-sizing: border-box;
+  inline-size: var(--_td);
+  block-size: var(--_td);
+  border-radius: var(--g-radius-pill);
+  background: var(--_thumb);
+  box-shadow: var(--g-shadow-1);
+  translate: calc(var(--_dir) * var(--_x)) 0;
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Marca: − apagado, ✓ encendido; centrada en el pulgar y con él */
+.g-switch__input::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(var(--_inset) + var(--_td) / 2);
+  box-sizing: border-box;
+  inline-size: calc(var(--_td) * 0.5);
+  block-size: 0;
+  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
+  translate: calc(var(--_dir) * (var(--_x) - 50%)) -50%;
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-switch__input:checked {
+  --_x: var(--_travel);
+  background: var(--_c);
+  border-color: var(--_c);
+  color: var(--_c);
+}
+.g-switch__input:checked::before {
+  --_thumb: var(--_on);
+  background: var(--_on);
+}
+.g-switch__input:checked::after {
+  inline-size: calc(var(--_td) * 0.55);
+  block-size: calc(var(--_td) * 0.28);
+  border: solid currentColor;
+  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
+  rotate: -45deg;
+  translate: calc(var(--_dir) * (var(--_travel) - 50%)) calc(-50% - var(--_td) * 0.07);
+}
+
+/* Iconos opcionales: van sobre el pulgar y con él; sustituyen a la marca de su estado */
+.g-switch__icon {
+  position: absolute;
+  inset-block-start: var(--_edge);
+  inset-inline-start: var(--_edge);
+  display: grid;
+  place-content: center;
+  box-sizing: border-box;
+  inline-size: var(--_td);
+  block-size: var(--_td);
+  font-size: calc(var(--_td) * 0.65);
+  line-height: 1;
+  pointer-events: none;
+  color: var(--g-color-surface);
+  transition: translate var(--g-duration-press) var(--g-ease-out);
+}
+.g-switch__icon--on {
+  color: var(--_c);
+  translate: calc(var(--_dir) * var(--_travel)) 0;
+}
+.g-switch__input:not(:checked) ~ .g-switch__icon--on,
+.g-switch__input:checked ~ .g-switch__icon--off {
+  display: none;
+}
+.g-switch:not(.is-loading) .g-switch__input:checked:has(~ .g-switch__icon--on)::after,
+.g-switch:not(.is-loading) .g-switch__input:not(:checked):has(~ .g-switch__icon--off)::after {
+  display: none;
+}
+.g-switch.is-loading .g-switch__icon {
+  display: none;
+}
+
+/* ---------- Texto ---------- */
+.g-switch__text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  padding-block-start: max(0px, calc((var(--_row) - var(--_lh)) / 2));
+}
+@media (pointer: coarse) {
+  .g-switch__text {
+    padding-block-start: max(0px, calc((max(44px, var(--_row)) - var(--_lh)) / 2));
+  }
+}
+.g-switch__label {
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  color: var(--g-color-text);
+}
+.g-switch__hint {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Error ---------- */
+/* La región viva existe siempre; vacía no ocupa espacio */
+.g-switch__error {
+  padding-inline-start: calc(var(--_tw) + var(--_gap) * var(--_density));
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-switch--label-start .g-switch__error {
+  padding-inline-start: 0;
+}
+.g-switch.is-invalid .g-switch__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-switch.is-invalid .g-switch__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Tamaño (alto × ancho del riel, tokens.md §4) ---------- */
+.g-switch--size-xs { --_th-units: 5;   --_tw-units: 9;  --_row-units: 6;  --_gap: var(--g-space-2); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-switch--size-sm { --_th-units: 5.5; --_tw-units: 10; --_row-units: 6;  --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-switch--size-md { --_th-units: 6;   --_tw-units: 11; --_row-units: 6;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-switch--size-lg { --_th-units: 7.5; --_tw-units: 13; --_row-units: 8;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-switch--size-xl { --_th-units: 9;   --_tw-units: 16; --_row-units: 10; --_gap: var(--g-space-4); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-switch--density-default { --_density: 1; }
+.g-switch--density-comfortable { --_density: 0.875; }
+.g-switch--density-compact { --_density: 0.75; }
+
+/* ---------- Color (relleno del riel encendido) ---------- */
+.g-switch--color-brand { --_c: var(--g-color-brand); --_c-strong: var(--g-color-brand-strong); --_on: var(--g-color-on-brand); }
+.g-switch--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); }
+.g-switch--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); }
+.g-switch--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); }
+.g-switch--color-warning { --_c: var(--g-color-warning); --_c-strong: var(--g-color-warning-strong); --_on: var(--g-color-on-warning); }
+.g-switch--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); }
+.g-switch--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); }
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:hover .g-switch__input:not(:checked) {
+    border-color: var(--g-color-text-muted);
+    --_thumb: var(--g-color-text-muted);
+  }
+  .g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:hover .g-switch__input:not(:checked)::before {
+    background: var(--g-color-text-muted);
+  }
+  .g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:hover .g-switch__input:checked {
+    background: var(--_c-strong);
+    border-color: var(--_c-strong);
+  }
+}
+/* Pulsar: el riel se hunde un poco (mismo gesto que el botón) */
+.g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:active .g-switch__input {
+  scale: var(--g-press-scale);
+}
+/* Foco: el anillo se abre desde el borde hasta su separación */
+@media (forced-colors: none) {
+  .g-switch__input {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: 0;
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      scale var(--g-duration-press) var(--g-ease-out),
+      outline-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-offset var(--g-duration-press) var(--g-ease-out);
+  }
+}
+.g-switch__input:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-switch.is-invalid .g-switch__input:not(:checked) {
+  border-color: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-switch.is-invalid .g-switch__input:checked {
+  border-color: var(--g-color-danger-text);
+  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-switch.is-readonly .g-switch__row {
+  cursor: default;
+}
+.g-switch.is-readonly .g-switch__input:not(:checked) {
+  background: var(--g-color-surface-sunken);
+  border-style: dashed;
+}
+.g-switch.is-readonly .g-switch__input:checked {
+  border-style: dashed;
+  background: var(--g-color-text-muted);
+  border-color: var(--g-color-text-muted);
+  color: var(--g-color-text-muted);
+}
+.g-switch.is-disabled .g-switch__row {
+  cursor: not-allowed;
+}
+.g-switch.is-disabled .g-switch__label {
+  color: var(--g-color-text-subtle);
+}
+.g-switch.is-disabled .g-switch__input {
+  border-color: var(--g-color-border-strong);
+  background: var(--g-color-surface-sunken);
+  --_thumb: var(--g-color-border-strong);
+  --_mark: var(--g-color-surface-sunken);
+}
+.g-switch.is-disabled .g-switch__input::before {
+  background: var(--g-color-border-strong);
+  box-shadow: none;
+}
+.g-switch.is-disabled .g-switch__input:checked {
+  background: var(--g-color-text-subtle);
+  border-color: var(--g-color-text-subtle);
+  color: var(--g-color-text-subtle);
+}
+.g-switch.is-disabled .g-switch__input:checked::before {
+  background: var(--g-color-surface);
+}
+
+/* ---------- Cargando: la marca se convierte en un anillo; no bloquea ---------- */
+.g-switch.is-loading .g-switch__input::after {
+  inline-size: calc(var(--_td) * 0.55);
+  block-size: calc(var(--_td) * 0.55);
+  border: calc(var(--g-border-width) * 2) solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: var(--g-radius-pill);
+  rotate: 0deg;
+  translate: calc(var(--_dir) * (var(--_x) - 50%)) -50%;
+}
+.g-switch.is-loading .g-switch__input:not(:checked)::before {
+  background: var(--g-color-surface-sunken);
+}
+.g-switch.is-loading .g-switch__input:not(:checked) {
+  color: var(--g-color-text-muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-switch.is-loading .g-switch__input::after {
+    animation: g-switch-spin var(--g-duration-spin) linear infinite;
+  }
+  @keyframes g-switch-spin {
+    to { rotate: 360deg; }
+  }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-switch__input,
+  .g-switch__input::before,
+  .g-switch__input::after,
+  .g-switch__icon {
+    transition: none;
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-switch__input {
+    forced-color-adjust: none;
+    border-color: ButtonText;
+    background: Canvas;
+    color: Canvas;
+  }
+  .g-switch__input::before { background: ButtonText; box-shadow: none; }
+  .g-switch__input:checked {
+    background: Highlight;
+    border-color: Highlight;
+    color: Highlight;
+  }
+  .g-switch__input:checked::before { background: HighlightText; }
+  .g-switch__input:focus-visible { outline-color: Highlight; }
+  .g-switch.is-invalid .g-switch__input { border-width: calc(var(--g-border-width) * 2); }
+  .g-switch.is-disabled .g-switch__input,
+  .g-switch.is-disabled .g-switch__input:checked {
+    border-color: GrayText;
+    background: Canvas;
+    color: GrayText;
+  }
+  .g-switch.is-disabled .g-switch__input::before,
+  .g-switch.is-disabled .g-switch__input:checked::before { background: GrayText; }
+  .g-switch.is-loading .g-switch__input:not(:checked)::before { background: ButtonText; }
+  .g-switch.is-loading .g-switch__input:not(:checked) { color: Canvas; }
+}

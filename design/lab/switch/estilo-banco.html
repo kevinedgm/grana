@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSwitch · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/switch.md con el CSS real y el tema por defecto. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GSwitch/GSwitch.css?v=1" id="css-s">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:16px 24px;align-items:start}
+  h2{font-size:15px;margin:28px 0 10px} .cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 4px}
+  .frame{border:1px solid var(--g-color-border);padding:12px;resize:horizontal;overflow:auto;max-width:100%}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button>
+<div id="app"></div>
+<script>
+let n=0
+const ico=(d)=>`<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`
+function sw(o={}){
+  const id='w'+(++n)
+  const cls=['g-switch',`g-switch--size-${o.size||'md'}`,`g-switch--density-${o.density||'default'}`,`g-switch--color-${o.color||'brand'}`,`g-switch--label-${o.start?'start':'end'}`]
+  if(o.icons)cls.push('g-switch--icons'); if(o.disabled)cls.push('is-disabled'); if(o.readonly)cls.push('is-readonly'); if(o.error)cls.push('is-invalid'); if(o.loading)cls.push('is-loading')
+  const desc=[o.hint&&`${id}-hint`,o.error&&`${id}-error`].filter(Boolean).join(' ')
+  return `<div class="${cls.join(' ')}" data-t="${o.t||''}"><label class="g-switch__row" for="${id}"><span class="g-switch__control"><input class="g-switch__input" type="checkbox" role="switch" id="${id}" aria-labelledby="${id}-label" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true" data-ro':''} ${o.loading?'aria-busy="true"':''} ${o.disabled?'disabled':''} ${o.on?'checked':''}>${o.icons?`<span class="g-switch__icon g-switch__icon--on" aria-hidden="true">${ico('<path d="M20 6 9 17l-5-5"/>')}</span><span class="g-switch__icon g-switch__icon--off" aria-hidden="true">${ico('<path d="M18 6 6 18M6 6l12 12"/>')}</span>`:''}</span><span class="g-switch__text"><span class="g-switch__label" id="${id}-label">${o.label||'Etiqueta'}</span>${o.hint?`<span class="g-switch__hint" id="${id}-hint">${o.hint}</span>`:''}</span></label><div class="g-switch__error" id="${id}-error" aria-live="polite">${o.error||''}</div></div>`
+}
+const cell=(c,o)=>`<div><p class="cap">${c}</p>${sw(o)}</div>`
+const S=[
+ ['Estados',[['apagado',{}],['encendido',{on:1}],['con ayuda',{on:1,hint:'Te avisamos por correo.',label:'Notificaciones'}],['disabled apagado',{disabled:1,label:'No disponible'}],['disabled encendido',{disabled:1,on:1,label:'Incluido en tu plan'}],['readonly encendido',{readonly:1,on:1,label:'Administrado por tu organización'}],['readonly apagado',{readonly:1,label:'Sin administrar'}],['inválido apagado',{error:'Actívalo para continuar.',label:'Aceptar cookies'}],['inválido encendido',{error:'Revisa esta opción.',on:1,label:'Compartir datos'}],['loading apagado',{loading:1,label:'Guardando…'}],['loading encendido',{loading:1,on:1,label:'Guardando…'}]]],
+ ['Colores (encendido)',['brand','accent','neutral','success','warning','danger','info'].map(c=>[c,{color:c,on:1,label:c}])],
+ ['Tamaños × densidad',['xs','sm','md','lg','xl'].flatMap(z=>['default','comfortable','compact'].map(d=>[`${z} ${d}`,{size:z,density:d,on:1,label:z}]))],
+ ['Iconos on/off',[['icono encendido',{on:1,icons:1,label:'Con iconos'}],['icono apagado',{icons:1,label:'Con iconos'}],['xl con iconos',{on:1,icons:1,size:'xl',label:'XL'}]]],
+ ['Etiqueta al inicio',[['start',{start:1,on:1,label:'Modo avión',hint:'Desactiva la red.'}],['start con error',{start:1,error:'Error de ejemplo.',label:'Modo avión'}]]],
+]
+document.getElementById('app').innerHTML=S.map(([t,i])=>`<h2>${t}</h2><div class="grid">${i.map(([c,o])=>cell(c,o)).join('')}</div>`).join('')+
+ `<h2>240px y texto largo</h2><div class="frame" style="width:240px">${sw({on:1,label:'Recibir un resumen semanal con las novedades de todos mis proyectos',hint:'Puedes cambiarlo cuando quieras desde tu perfil.'})}</div>`+
+ `<h2>RTL</h2><div class="frame" dir="rtl">${sw({on:1,label:'وضع الطيران',hint:'يعطّل الشبكة'})}${sw({label:'إشعارات'})}${sw({start:1,on:1,label:'مع أيقونات',icons:1})}</div>`
+document.querySelectorAll('[data-ro]').forEach(i=>i.addEventListener('click',e=>e.preventDefault()))
+const T=`:root{--g-color-brand:#7A1F5C;--g-color-brand-strong:#5E184A;--g-color-on-brand:#fff;--g-color-accent:#0F766E;--g-color-accent-strong:#0B5A54;--g-color-on-accent:#fff;--g-color-success:#1F6B3A;--g-color-success-strong:#17522C;--g-color-warning:#8A5A00;--g-color-warning-strong:#6B4500;--g-color-danger:#A61B1B;--g-color-danger-strong:#831414;--g-color-danger-text:#8A0F00;--g-color-info:#1C4E80;--g-color-info-strong:#153B61;--g-color-focus:#0F766E;--g-color-bg:#FFF6E5;--g-color-surface:#FFFBF2;--g-color-surface-sunken:#F1DDB6;--g-color-text:#3B2A1A;--g-color-text-muted:#6B4E33;--g-color-text-subtle:#7A5C3E;--g-color-border:#D8BE8A;--g-color-border-strong:#B99A62;--g-color-border-control:#8A6A30;--g-border-width:2px;--g-focus-width:3px;--g-space-1:5px;--g-space-2:10px;--g-space-3:15px;--g-space-4:20px;--g-font-ui:Georgia,serif}`
+document.getElementById('theme-btn').addEventListener('click',()=>{const s=document.getElementById('theme');s.textContent=s.textContent?'':T})
+</script>
+</body></html>
