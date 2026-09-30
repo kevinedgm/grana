@@ -347,7 +347,6 @@
     "disabled"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: lista cronológica, conteos, solicitudes y conflictos",
     "Táctil real: arrastre, tirador y hoja inferior con dedos",
     "Horario de verano en la fecha visible con componente montado",
