@@ -84,10 +84,14 @@ button.g-stepper__hit:focus-visible {
   outline-offset: var(--g-focus-offset);
 }
 .g-stepper__text {
-  display: flex;
-  flex-direction: column;
+  /* Etiqueta y «opcional» en la misma línea (la etiqueta cede con elipsis); la descripción, debajo */
+  display: grid;
+  grid-template-columns: minmax(0, max-content) max-content;
+  justify-content: start;
+  align-items: baseline;
   min-inline-size: 0;
 }
+.g-stepper__description { grid-column: 1 / -1; }
 .g-stepper__label {
   overflow: hidden;
   white-space: nowrap;

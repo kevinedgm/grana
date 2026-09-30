@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GStepper",
   "tag": "g-stepper",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Indicador de avance por pasos discretos: horizontal y vertical, indicadores de número, punto, icono, segmento y línea, estados (hecho, actual, pendiente, error, advertencia, bloqueado, opcional), navegación opcional y adaptación por el ancho del contenedor (compacto «Paso N de M»).",
   "contract": "design/contracts/stepper.md",
@@ -230,11 +230,11 @@
     "condensed"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real con un tema distinto al por defecto (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: lista, aria-current y texto de estado",
     "Medición por contenedor en un navegador real (las pruebas de jsdom la simulan)",
     "RTL, forced-colors real, táctil real y zoom al 200%",
-    "Sin scroll horizontal ni condensar pasos completados en v0.1"
+    "Sin scroll horizontal ni condensar pasos completados en v0.1",
+    "Firefox y Safari (:dir(), gradientes, rejilla del texto del paso)"
   ]
 }
