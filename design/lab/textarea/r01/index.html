@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTextarea · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:36px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px} .wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:20px 24px;align-items:start}
+.cap{font-size:12px;color:var(--wf-2);margin:0 0 4px} .frame{border:1px solid var(--wf-line);background:#fff;padding:16px;resize:horizontal;overflow:auto;max-width:100%}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:48px;white-space:pre-wrap;max-width:72ch}
+
+/* ---------- Campo ---------- */
+.t{--lh:22px;--padv:8px;--rows:3;display:block}
+.t__label{display:block;margin-bottom:4px;font-size:14px;font-weight:600} .t__req{margin-inline-start:2px}
+.t__box{position:relative;background:#fff;border:1.5px solid var(--wf-2);border-radius:6px}
+.t--soft .t__box{background:var(--wf-fill-2);border-color:transparent;border-bottom-color:var(--wf-2);border-radius:6px 6px 0 0}
+.t__field{display:block;width:100%;margin:0;padding:var(--padv) 12px;border:0;border-radius:inherit;background:transparent;color:inherit;font:inherit;line-height:var(--lh);resize:vertical;min-block-size:calc(var(--lh) * var(--rows) + var(--padv) * 2);overflow-wrap:break-word}
+.t--auto .t__field{resize:none;overflow-y:hidden}
+.t__field::placeholder{color:var(--wf-3)}
+.t__field:focus{outline:0}
+.t__box:has(.t__field:focus-visible){outline:3px solid var(--wf-ink);outline-offset:-1.5px}
+.t__box:hover:not(:has(:disabled)){border-color:var(--wf-ink)}
+.t__msgs{display:flex;gap:12px;justify-content:space-between;margin-top:4px;font-size:13px;color:var(--wf-2)}
+.t__hint{min-width:0;overflow-wrap:anywhere}
+.t__count{flex:none;margin-inline-start:auto;font-variant-numeric:tabular-nums} .t__count.is-near{font-weight:700}
+.t__err{font-size:13px;font-weight:600;margin-top:2px;overflow-wrap:anywhere} .t__err::before{content:"\26A0\00a0"} .t__err:empty{display:none}
+.t.is-invalid .t__box{border:2px dashed var(--wf-ink)}
+.t.is-disabled .t__box{border-style:dotted;opacity:.55;background:var(--wf-fill)} .t.is-disabled .t__label{opacity:.55}
+.t.is-readonly .t__box{border-style:dashed;background:var(--wf-fill-2)}
+.t.is-loading .t__box::after{content:"";position:absolute;inset-block-start:10px;inset-inline-end:10px;width:14px;height:14px;border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{rotate:360deg}}
+.t--sm{--lh:20px;--padv:6px} .t--lg{--lh:26px;--padv:10px}
+@media (pointer:coarse){.t__field{min-block-size:max(44px,calc(var(--lh) * var(--rows) + var(--padv) * 2))}}
+@media (prefers-reduced-motion:reduce){.t.is-loading .t__box::after{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>GTextarea · r01</h1>
+<p class="meta">Wireframe F2. Kit neutral; el estilo real es de coco.</p>
+<div class="wf-note">El control es un <code>&lt;textarea&gt;</code> nativo. <code>autosize</code> mide <code>scrollHeight</code> entre <code>rows</code> y <code>maxRows</code> (sin animación). El contador es visual (<code>aria-hidden</code>); una región viva discreta solo habla al 90% y en el límite.</div>
+<div id="app"></div>
+<h2>Registro (región viva del contador)</h2><div class="log" id="log">—</div>
+</main>
+<script>
+let n=0; const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
+function ta(o={}){const id='t'+(++n);
+ const cls=['t',o.soft&&'t--soft',o.auto&&'t--auto',o.size&&`t--${o.size}`,o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ');
+ const desc=[o.hint&&`${id}-h`,o.error&&`${id}-e`].filter(Boolean).join(' ');
+ return `<div class="${cls}" data-max="${o.max||''}" data-maxrows="${o.maxrows||''}" data-rows="${o.rows||3}" style="--rows:${o.rows||3}"><label class="t__label" for="${id}">${o.label||'Comentario'}${o.req?'<span class="t__req" aria-hidden="true">*</span>':''}</label><div class="t__box"><textarea class="t__field" id="${id}" rows="${o.rows||3}" ${o.max?`maxlength="${o.max}"`:''} ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'readonly':''} ${o.disabled?'disabled':''} ${o.loading?'aria-busy="true"':''} ${o.req?'required':''} ${o.ph?`placeholder="${o.ph}"`:''}>${o.value||''}</textarea></div><div class="t__msgs"><span class="t__hint" id="${id}-h">${o.hint||''}</span>${o.max?`<span class="t__count" aria-hidden="true">${(o.value||'').length}/${o.max}</span><span class="sr" aria-live="polite" data-live></span>`:''}</div><div class="t__err" id="${id}-e" aria-live="polite">${o.error||''}</div></div>`}
+const cell=(c,o)=>`<div><p class="cap">${c}</p>${ta(o)}</div>`
+const long='Línea uno\nLínea dos\nLínea tres\nLínea cuatro\nLínea cinco\nLínea seis\nLínea siete\nLínea ocho'
+const S=[
+ ['Estados',[['vacío con placeholder',{ph:'Escribe tu comentario…'}],['con texto',{value:'Un comentario de ejemplo\ncon dos líneas.'}],['con ayuda',{hint:'Máximo tres frases.',label:'Descripción'}],['requerido',{req:1,label:'Motivo'}],['disabled',{disabled:1,value:'No editable'}],['readonly',{readonly:1,value:'Solo lectura\nseleccionable.'}],['inválido con error',{error:'Escribe al menos 10 caracteres.',value:'Hola'}],['loading',{loading:1,value:'Guardando…'}],['soft',{soft:1,value:'Variante soft'}]]],
+ ['Filas y tirador (rows fijo)',[['rows 2',{rows:2}],['rows 6',{rows:6}],['rows 1 (mínimo táctil 44px)',{rows:1}]]],
+ ['Autosize (rows 2, maxRows 6): escribe varias líneas',[['crece con el contenido',{auto:1,rows:2,maxrows:6,value:'Escribe y pulsa Enter varias veces.'}],['con texto largo → llega al máximo y se desplaza',{auto:1,rows:2,maxrows:4,value:long}]]],
+ ['Contador (maxlength 120)',[['bajo el 90%',{max:120,value:'Un texto corto.',hint:'Cuéntanos más.'}],['al 90% (108)',{max:120,value:'x'.repeat(108)}],['en el límite',{max:120,value:'y'.repeat(120)}]]],
+ ['Tamaños',[['sm',{size:'sm',rows:2}],['md',{rows:2}],['lg',{size:'lg',rows:2}]]],
+]
+document.getElementById('app').innerHTML=S.map(([t,i])=>`<h2>${t}</h2><div class="grid">${i.map(([c,o])=>cell(c,o)).join('')}</div>`).join('')+
+ `<h2>240px y palabra larguísima</h2><div class="frame" style="width:240px">${ta({value:'Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad_aaaaaaaaaaaaaaaaaaaaaaaaaa',hint:'Ayuda con Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad',max:200})}</div>`
+// autosize + contador
+function fit(t){const f=t.querySelector('.t__field');if(!t.classList.contains('t--auto'))return;const cs=getComputedStyle(f);const lh=parseFloat(cs.lineHeight),pv=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);const max=+t.dataset.maxrows*lh+pv;f.style.height='auto';const h=Math.min(f.scrollHeight,max);f.style.height=h+'px';f.style.overflowY=f.scrollHeight>max?'auto':'hidden'}
+function count(t){const m=+t.dataset.max;if(!m)return;const f=t.querySelector('.t__field'),c=t.querySelector('.t__count'),l=t.querySelector('[data-live]');const len=f.value.length;c.textContent=len+'/'+m;const near=len>=Math.ceil(m*.9);c.classList.toggle('is-near',near);
+ /* la región viva habla solo al CAMBIAR de nivel (90% y límite), no en cada tecla */
+ const level=len>=m?'limit':near?'near':'ok';if(level===t._level)return;t._level=level;
+ const msg=level==='limit'?'Límite alcanzado: '+m+' caracteres':level==='near'?'Cerca del límite: máximo '+m+' caracteres':'';l.textContent=msg;if(msg)log('live: '+msg)}
+document.querySelectorAll('.t').forEach(t=>{fit(t);count(t);t.querySelector('.t__field').addEventListener('input',()=>{fit(t);count(t)})})
+</script>
+</body></html>
