@@ -115,6 +115,33 @@
   border-color: var(--g-color-brand);
   color: var(--g-color-on-brand);
 }
+.g-calendar__resource-select select {
+  box-sizing: border-box;
+  min-inline-size: max(24px, calc(var(--g-space-1) * 8));
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  .g-calendar__resource-select select {
+    min-block-size: 44px;
+  }
+}
+.g-calendar__resource-select select:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-calendar__resource-select select:disabled {
+  cursor: not-allowed;
+  color: var(--g-color-text-subtle);
+  background: var(--g-color-surface-sunken);
+}
 .g-calendar__toolbar button:disabled {
   cursor: not-allowed;
   color: var(--g-color-text-subtle);
@@ -167,6 +194,7 @@
 }
 .g-calendar.is-error .g-calendar__status:not(:empty) {
   color: var(--g-color-danger-text);
+  background: var(--g-color-surface);
   font-weight: var(--g-text-action-weight);
 }
 
@@ -913,6 +941,8 @@
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
   .g-calendar__toolbar button,
+  .g-calendar__retry,
+  .g-calendar__sheet-close,
   .g-calendar__event {
     transition: none;
   }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GCalendar",
   "tag": "g-calendar",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Calendario y planificador genérico de uno o varios recursos: Día, Semana, Mes y Timeline. Representa y manipula tiempo; emite solicitudes, no muta.",
   "contract": "design/contracts/calendar.md",
@@ -347,7 +347,6 @@
     "disabled"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: lista cronológica, conteos, solicitudes y conflictos",
     "Táctil real: arrastre, tirador y hoja inferior con dedos",
