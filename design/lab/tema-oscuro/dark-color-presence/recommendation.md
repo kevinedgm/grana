@@ -52,6 +52,8 @@ Una regla de **tres condiciones**, en el orden conceptual del propio experimento
 
 ## Lo que falta antes de decidir
 
+> **Actualización (Fase 4, `../dark-color-presence-gaps/`):** el gris de luminosidad media dentro de un tema completo (1), el semántico ajustado por colisión (5) y las superficies tintadas con otro tono (nuevo) **ya se probaron** y **no cambian** la dirección. Siguen pendientes la segunda persona evaluadora (hoja ciega preparada en `../../theme-playground/blind/`), los estados reales (resueltos en el playground de la Fase 3) y la revisión por rol de más temas a superficie alta.
+
 1. Un **gris de luminosidad media** (y otros colores de croma bajo: amarillos, cian) dentro de un tema completo: la Fase 2 solo tuvo marcas neutras muy oscuras o muy claras, que la derivación refleja.
 2. **Revisión visual por rol** de las superficies experimentales en más temas (solo `stripe` y `grana` se revisaron a ojo; B a superficie alta es el resultado menos firme).
 3. **Una segunda persona** (o pantalla distinta) que repita la clasificación visual; hoy es un solo evaluador.

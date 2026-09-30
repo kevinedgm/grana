@@ -1,0 +1,13 @@
+{
+  "brand": "#0F7A55",
+  "accent": "#C4321F",
+  "semanticCollision": "adjust",
+  "radius": 10,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "Inter",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}

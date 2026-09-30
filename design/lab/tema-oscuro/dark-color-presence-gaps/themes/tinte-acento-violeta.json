@@ -1,0 +1,13 @@
+{
+  "brand": "#F5B940",
+  "accent": "#5B3FE0",
+  "neutralsHue": "accent",
+  "radius": 10,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "Inter",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}

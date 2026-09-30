@@ -1,0 +1,236 @@
+{
+  "001": {
+    "set": "benchmark",
+    "theme": "lustre",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "002": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "c",
+    "surface": "high"
+  },
+  "003": {
+    "set": "benchmark",
+    "theme": "spotify",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "004": {
+    "set": "gaps",
+    "theme": "tinte-acento-rojo",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "005": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "c",
+    "surface": "high"
+  },
+  "006": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "current",
+    "surface": "high"
+  },
+  "007": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "current",
+    "surface": "high"
+  },
+  "008": {
+    "set": "gaps",
+    "theme": "tinte-acento-rojo",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "009": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "010": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "011": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "c",
+    "surface": "high"
+  },
+  "012": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "013": {
+    "set": "gaps",
+    "theme": "colision-ajustada",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "014": {
+    "set": "gaps",
+    "theme": "colision-ajustada",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "015": {
+    "set": "gaps",
+    "theme": "tinte-acento-rojo",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "016": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "017": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "018": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "019": {
+    "set": "benchmark",
+    "theme": "lustre",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "020": {
+    "set": "gaps",
+    "theme": "ocre-oliva",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "021": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "current",
+    "surface": "high"
+  },
+  "022": {
+    "set": "gaps",
+    "theme": "ocre-oliva",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "023": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "b",
+    "surface": "high"
+  },
+  "024": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "current",
+    "surface": "high"
+  },
+  "025": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "b",
+    "surface": "high"
+  },
+  "026": {
+    "set": "benchmark",
+    "theme": "grana",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "027": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "b",
+    "surface": "high"
+  },
+  "028": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "029": {
+    "set": "benchmark",
+    "theme": "lustre",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "030": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "031": {
+    "set": "benchmark",
+    "theme": "spotify",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "032": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "current",
+    "surface": "real"
+  },
+  "033": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "c",
+    "surface": "high"
+  },
+  "034": {
+    "set": "benchmark",
+    "theme": "stripe",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "035": {
+    "set": "gaps",
+    "theme": "colision-ajustada",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "036": {
+    "set": "gaps",
+    "theme": "tinte-acento-violeta",
+    "strategy": "c",
+    "surface": "real"
+  },
+  "037": {
+    "set": "benchmark",
+    "theme": "spotify",
+    "strategy": "b",
+    "surface": "real"
+  },
+  "038": {
+    "set": "gaps",
+    "theme": "gris-medio",
+    "strategy": "b",
+    "surface": "high"
+  },
+  "039": {
+    "set": "gaps",
+    "theme": "ocre-oliva",
+    "strategy": "current",
+    "surface": "real"
+  }
+}

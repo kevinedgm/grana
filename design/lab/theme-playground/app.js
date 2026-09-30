@@ -1,11 +1,18 @@
 // Theme Playground (Fase 3 de Dark Color Presence). Solo investigación: no toca el Theme Engine ni ninguna regla.
-const BASE = '../tema-oscuro/dark-color-presence/'
-const THEMES = [
+// ?set=gaps carga los 5 temas de la Fase 4 (huecos de evidencia) en lugar de los 11 del benchmark
+const SET = new URLSearchParams(location.search).get('set') === 'gaps' ? 'gaps' : 'benchmark'
+const BASE = SET === 'gaps' ? '../tema-oscuro/dark-color-presence-gaps/' : '../tema-oscuro/dark-color-presence/'
+const GAP_THEMES = [
+  { id: 'gris-medio', name: 'Gris medio' }, { id: 'ocre-oliva', name: 'Ocre y oliva' }, { id: 'colision-ajustada', name: 'Colisión ajustada (adjust)' },
+  { id: 'tinte-acento-violeta', name: 'Tinte del acento · violeta' }, { id: 'tinte-acento-rojo', name: 'Tinte del acento · rojo' }
+]
+const BENCH_THEMES = [
   { id: 'notion', name: 'Notion Inspired' }, { id: 'apple', name: 'Apple Inspired' }, { id: 'medium', name: 'Medium Inspired' },
   { id: 'stripe', name: 'Stripe Inspired' }, { id: 'caracol-purpura', name: 'Caracol Púrpura' }, { id: 'amazon', name: 'Amazon Inspired' },
   { id: 'github', name: 'GitHub Inspired' }, { id: 'spotify', name: 'Spotify Inspired' }, { id: 'linear', name: 'Linear Inspired' },
   { id: 'grana', name: 'Grana' }, { id: 'lustre', name: 'Lustre (control)' }
 ]
+const THEMES = SET === 'gaps' ? GAP_THEMES : BENCH_THEMES
 const ROLES = ['brand', 'accent', 'success', 'warning', 'danger', 'info']
 const STRATEGY_TO_VARIANT = { current: 'A', b: 'B', c: 'C' }
 const SURFACE_TO_ATTR = { low: 'low', real: 'actual', medium: 'medium', high: 'high' }
@@ -26,7 +33,7 @@ const r3 = (n) => Math.round(n * 1000) / 1000
 const params = new URLSearchParams(location.search)
 const pick = (key, allowed, fallback) => { const v = params.get(key); return allowed.includes(v) ? v : fallback }
 const initial = {
-  theme: pick('theme', THEMES.map((t) => t.id), 'grana'),
+  theme: pick('theme', THEMES.map((t) => t.id), THEMES[THEMES.length === 5 ? 0 : 9].id),
   scheme: pick('scheme', ['light', 'dark'], 'dark'),
   strategy: pick('strategy', ['current', 'b', 'c'], 'current'),
   surface: pick('surface', ['low', 'real', 'medium', 'high'], 'real')
@@ -104,7 +111,7 @@ const app = createApp({
       await nextTick()
       readTokens()
       const url = new URL(location.href)
-      for (const k of ['theme', 'scheme', 'strategy', 'surface']) url.searchParams.set(k, state[k])
+      for (const k of ['theme', 'scheme', 'strategy', 'surface']) url.searchParams.set(k, state[k]) // `set` se conserva tal cual
       history.replaceState(null, '', url)
       window.__playground = { ...state, variant: STRATEGY_TO_VARIANT[state.strategy], fonts: JSON.parse(JSON.stringify(fonts)), version: (window.__playground?.version ?? 0) + 1 }
       document.body.dataset.ready = '1'

@@ -1,0 +1,12 @@
+{
+  "brand": "#7C6700",
+  "accent": "#B8740B",
+  "radius": 8,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "Source Serif 4",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}

@@ -40,11 +40,11 @@ const allTokens = (page) => page.evaluate(() => {
 })
 const diff = (a, b) => Object.keys({ ...a, ...b }).filter((k) => a[k] !== b[k])
 // Estructura del DOM: etiqueta + clases que no son de estado, sin texto ni atributos dinámicos
-const structure = (page) => page.evaluate(() => {
+const structure = (page, { ignoreThemeOptions = false } = {}) => page.evaluate((ignore) => {
   const skip = /^(is-|g-.*--(checked|focus))/
-  const walk = (el) => `${el.tagName.toLowerCase()}.${[...el.classList].filter((c) => !skip.test(c)).sort().join('.')}[${el.getAttribute('data-testid') ?? ''}](${[...el.children].map(walk).join(',')})`
+  const walk = (el) => `${el.tagName.toLowerCase()}.${[...el.classList].filter((c) => !skip.test(c)).sort().join('.')}[${el.getAttribute('data-testid') ?? ''}](${[...el.children].filter((c) => !(ignore && c.tagName === 'OPTION' && el.dataset.testid === 'sel-theme')).map(walk).join(',')})`
   return walk(document.getElementById('app'))
-})
+}, ignoreThemeOptions)
 const COLOR_GROUP = /^--g-(color-|calendar-|glass-|shadow-|surface-(shell|inset|backdrop))/
 
 test.describe('estado por URL y selectores', () => {
@@ -211,6 +211,7 @@ test.describe('estados reales (no se simula «strong»)', () => {
   test('hover: el botón pasa al token primary-strong', async ({ page }) => {
     await open(page, { theme: 'grana', scheme: 'dark', strategy: 'current' })
     const btn = page.getByTestId('btn-primary')
+    await page.evaluate(() => document.getAnimations().forEach((x) => x.finish())) // transiciones de carga terminadas antes de medir el reposo
     const rest = await btn.evaluate((e) => getComputedStyle(e).backgroundColor)
     expect(rest).toBe(hexToRgb(expectedDark('grana', 'brand', 'current')))
     await btn.hover()
@@ -302,5 +303,54 @@ test.describe('fuentes', () => {
     await expect(page.getByTestId('info-fallback')).toContainText('fallback')
     await expect(page.getByTestId('info-fallback')).toContainText('Inter')
     await expect(page.getByTestId('info-font-ui').locator('.pg-tag')).toHaveAttribute('data-status', 'fallback')
+  })
+})
+
+test.describe('Fase 4 · temas de huecos de evidencia (?set=gaps)', () => {
+  const gaps = JSON.parse(readFileSync(join(here, '../../tema-oscuro/dark-color-presence-gaps/results.json'), 'utf8'))
+  const gsample = (theme, role) => gaps.samples.find((s) => s.theme === theme && s.role === role)
+  const openGaps = async (page, q) => { await open(page, { set: 'gaps', ...q }) }
+
+  test('carga los 5 temas y sus tokens coinciden con lo medido', async ({ page }) => {
+    await openGaps(page, { theme: 'colision-ajustada', scheme: 'dark', strategy: 'current' })
+    await expect(page.getByTestId('sel-theme').locator('option')).toHaveCount(5)
+    for (const role of ROLES) expect(await tok(page, `--g-color-${role}`)).toBe(gsample('colision-ajustada', role).hypotheses.A.darkHex)
+    // con semanticCollision: "adjust" los semánticos ajustados son distintos a los del tema por defecto
+    expect(await tok(page, '--g-color-danger')).not.toBe('#E4523D')
+  })
+
+  test('la estrategia B y C, y la superficie, funcionan también en este conjunto', async ({ page }) => {
+    await openGaps(page, { theme: 'gris-medio', scheme: 'dark', strategy: 'current' })
+    for (const s of ['b', 'c']) {
+      await change(page, 'sel-strategy', s)
+      for (const role of ROLES) expect(await tok(page, `--g-color-${role}`)).toBe(gsample('gris-medio', role).hypotheses[STRAT[s]].darkHex)
+    }
+    await change(page, 'sel-surface', 'high')
+    expect((await tok(page, '--g-color-brand')).toUpperCase()).toBe(gsample('gris-medio', 'brand').surfaces.high.C.darkHex.toUpperCase())
+  })
+
+  test('las superficies tintadas con el tono del acento son distintas de las tintadas con el de la marca', async ({ page }) => {
+    await openGaps(page, { theme: 'tinte-acento-rojo', scheme: 'dark' })
+    const red = (await tok(page, '--g-color-surface')).toUpperCase()
+    expect(red).toBe(gaps.themes['tinte-acento-rojo'].surfaceHex.toUpperCase())
+    await change(page, 'sel-theme', 'tinte-acento-violeta')
+    expect((await tok(page, '--g-color-surface')).toUpperCase()).toBe(gaps.themes['tinte-acento-violeta'].surfaceHex.toUpperCase())
+    expect((await tok(page, '--g-color-surface')).toUpperCase()).not.toBe(red)
+  })
+
+  test('el DOM estructural es el mismo que en el conjunto del benchmark', async ({ page }) => {
+    await open(page, { theme: 'grana', scheme: 'dark', strategy: 'current' })
+    const bench = await structure(page, { ignoreThemeOptions: true }) // la lista de temas (las opciones) es lo único que difiere entre conjuntos
+    await openGaps(page, { theme: 'gris-medio', scheme: 'dark', strategy: 'current' })
+    expect(await structure(page, { ignoreThemeOptions: true })).toBe(bench)
+  })
+
+  test('las fuentes de los temas nuevos se cargan', async ({ page }) => {
+    for (const theme of ['gris-medio', 'ocre-oliva']) {
+      await openGaps(page, { theme, scheme: 'dark' })
+      const fonts = await page.evaluate(() => window.__playground.fonts)
+      expect(fonts.ui.status).toBe('loaded')
+      expect(fonts.display.status).toBe('loaded')
+    }
   })
 })

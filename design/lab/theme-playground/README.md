@@ -38,7 +38,7 @@ Todo con componentes reales de `@grana/vue` y los tokens del tema activo: **Them
 ## Playwright
 
 ```bash
-npm test                 # 31 pruebas (prepara las fuentes y arranca el servidor solo)
+npm test                 # 36 pruebas (prepara las fuentes y arranca el servidor solo)
 npm run shots            # capturas de demostración en screenshots/   (con el servidor en marcha)
 npm run shots -- --all       # los 11 temas × current/b/c
 npm run shots -- --surfaces  # los 11 temas con C × low/medium/real/high
@@ -102,3 +102,9 @@ Mismo barrido para las tres hipótesis (66 observaciones por celda; recuerda que
 2. **B aguanta hasta L ≈ 0.25** (0 % cortos) y **se queda corta a 0.30** (35 %): el piso de L es constante, pero la presencia que da depende de la superficie.
 3. **C nunca se queda corta** (0 % en todo el rango), pero **a 0.25 ya vuelve «claro» al 26 % y a 0.30 al 100 %, con 45 % pastel**: exagera.
 4. **Hay una zona común de buen comportamiento de B y C: superficies de L ≈ 0.10 a 0.25**, que contiene la superficie real (0.226). **Fuera de ella fallan de formas opuestas:** B por defecto (no presencia suficiente) y C por exceso (aclara de más). Esto es lo que motiva estudiar una restricción compuesta con un límite superior, que **sigue sin definirse**.
+
+## Fase 4 · huecos de evidencia
+
+- `?set=gaps` carga los 5 temas de `../tema-oscuro/dark-color-presence-gaps/` (gris de luminosidad media, ocre y oliva, semánticos ajustados por colisión y superficies tintadas con el tono del acento). Las 5 pruebas nuevas de Playwright (36 en total) comprueban sus tokens, las estrategias y la superficie, que el DOM estructural es el mismo y que sus fuentes se cargan.
+- `node scripts/gaps-sheet.mjs` genera `screenshots/gaps-sheet.png` (A, B y C con superficie real y alta).
+- **Evaluación ciega** para una segunda persona: `node scripts/blind-sheet.mjs` genera `blind/` (39 imágenes al azar, plantilla CSV y clave) y `node scripts/score-blind.mjs ratings.csv` mide el acuerdo con la clasificación actual (ver `blind/README.md`). **Falta que una persona la rellene.**
