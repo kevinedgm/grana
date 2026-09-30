@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "name": "GSwitch",
+  "tag": "g-switch",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Interruptor de efecto inmediato con marca de estado en el pulgar, ayuda, error, iconos on/off y carga sin bloqueo.",
+  "contract": "design/contracts/switch.md",
+  "prototype": "design/lab/switch/r01/",
+  "style": "packages/vue/src/components/GSwitch/GSwitch.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "labelPosition",
+      "type": "String",
+      "default": "end",
+      "values": [
+        "end",
+        "start"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "El usuario alterna el interruptor (no con readonly)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico (sustituye a hint)"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo con error"
+    },
+    {
+      "name": "icon-on",
+      "purpose": "Icono del pulgar encendido (decorativo, aria-hidden)"
+    },
+    {
+      "name": "icon-off",
+      "purpose": "Icono del pulgar apagado (decorativo, aria-hidden)"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-border-strong",
+    "--g-color-{color}",
+    "--g-color-{color}-strong",
+    "--g-color-on-{color}",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-radius-pill",
+    "--g-space-1",
+    "--g-space-2..4",
+    "--g-font-ui",
+    "--g-text-caption-{size|line}",
+    "--g-text-body-sm-{size|line}",
+    "--g-text-body-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-shadow-1",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-spin",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-press-scale"
+  ],
+  "states": [
+    "off",
+    "on",
+    "hover",
+    "focus-visible",
+    "disabled",
+    "readonly",
+    "invalid",
+    "loading"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: rol switch, activado/desactivado, ayuda, error y aria-busy",
+    "Firefox y Safari (pseudo-elementos del input, :dir(), :has())"
+  ]
+}

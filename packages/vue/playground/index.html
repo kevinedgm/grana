@@ -201,6 +201,27 @@
     </g-calendar>
     <pre class="log" style="max-height:160px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
 
+    <h2>Interruptores (GSwitch)</h2>
+    <div class="col" style="max-width:420px">
+      <g-switch v-model="swNotif" label="Notificaciones" hint="Te avisamos por correo."></g-switch>
+      <g-switch v-model="swSave" :loading="swSaving" label="Guardado automático" hint="Simula un guardado de 1,2 s; el interruptor no se bloquea." @change="swSaveNow"></g-switch>
+      <g-switch v-model="swAir" label-position="start" label="Modo avión" hint="Desactiva la red."></g-switch>
+      <g-switch v-model="swCookies" label="Aceptar cookies" :error="swError" @change="swCheck"></g-switch>
+      <g-switch :model-value="true" label="Administrado por tu organización" readonly></g-switch>
+      <g-switch :model-value="true" label="Incluido en tu plan" disabled></g-switch>
+      <g-switch v-model="swIcons" label="Con iconos on/off" size="lg">
+        <template #icon-on><lucide-icon name="circle-check"></lucide-icon></template>
+        <template #icon-off><lucide-icon name="lock"></lucide-icon></template>
+      </g-switch>
+      <div class="row">
+        <g-switch v-for="c in ['accent','success','warning','danger','info']" :key="c" :color="c" :model-value="true" :label="c"></g-switch>
+      </div>
+      <div class="row">
+        <g-switch v-for="z in ['xs','sm','md','lg','xl']" :key="z" :size="z" :model-value="true" :label="z"></g-switch>
+      </div>
+      <p class="log">{{ swLog }}</p>
+    </div>
+
     <h2>Diálogo (GDialog)</h2>
     <div class="row">
       <g-btn variant="outline" @click="dlg.simple = true">Simple</g-btn>
@@ -305,6 +326,20 @@
           dlgLog.value.unshift('dismiss: ' + e.reason + (dlgDirty.value && e.reason !== 'close' ? ' (impedido)' : ''))
           if (dlgDirty.value && e.reason !== 'close') e.preventDefault()
         }
+        const swNotif = ref(true)
+        const swSave = ref(false)
+        const swSaving = ref(false)
+        const swAir = ref(false)
+        const swCookies = ref(false)
+        const swError = ref('')
+        const swIcons = ref(true)
+        const swLog = ref('Sin cambios todavía.')
+        const swCheck = () => { swError.value = swCookies.value ? '' : 'Actívalo para continuar.' }
+        const swSaveNow = () => {
+          swSaving.value = true
+          swLog.value = 'Guardando: ' + (swSave.value ? 'encendido' : 'apagado')
+          setTimeout(() => { swSaving.value = false; swLog.value = 'Guardado: ' + (swSave.value ? 'encendido' : 'apagado') }, 1200)
+        }
         const loading = ref(false)
         const count = ref(0)
         const themed = ref(false)
@@ -396,7 +431,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
