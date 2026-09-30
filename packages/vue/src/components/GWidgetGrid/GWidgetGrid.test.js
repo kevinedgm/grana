@@ -338,3 +338,53 @@ describe('GWidgetGrid · avisos y validadores', () => {
     expect(p.density.validator('dense')).toBe(false)
   })
 })
+
+describe('GWidgetGrid · animación del reordenamiento (FLIP)', () => {
+  const setup = (reduced = false) => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: reduced })
+    const animate = vi.fn()
+    HTMLElement.prototype.animate = animate
+    // la posición de cada celda es su índice en el DOM
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      const i = this.parentElement && this.dataset && this.dataset.id !== undefined ? [...this.parentElement.children].indexOf(this) : 0
+      return { left: i * 100, top: 0, width: 100, height: 100, right: 0, bottom: 0 }
+    })
+    return animate
+  }
+  afterEach(() => {
+    delete HTMLElement.prototype.animate
+  })
+
+  it('al reordenar anima cada celda que cambió de sitio, del anterior al nuevo, con la duración del token', async () => {
+    const animate = setup()
+    const w = mk({ modelValue: [...LAYOUT] })
+    w.element.style.setProperty('--g-duration-press', '160ms') // jsdom no hereda propiedades personalizadas
+    w.element.style.setProperty('--g-ease-out', 'ease-out')
+    await settle()
+    await w.setProps({ modelValue: [LAYOUT[1], LAYOUT[0], LAYOUT[2], LAYOUT[3]] })
+    await settle()
+    expect(animate).toHaveBeenCalledTimes(2)
+    const [frames, opts] = animate.mock.calls[0]
+    expect(frames[1]).toEqual({ transform: 'none' })
+    expect(frames[0].transform).toMatch(/^translate\(-?\d+px, 0px\)$/)
+    expect(opts.duration).toBe(160)
+  })
+
+  it('no anima con prefers-reduced-motion ni cuando nada cambia de sitio', async () => {
+    let animate = setup(true)
+    let w = mk({ modelValue: [...LAYOUT] })
+    w.element.style.setProperty('--g-duration-press', '160ms')
+    await settle()
+    await w.setProps({ modelValue: [LAYOUT[1], LAYOUT[0], LAYOUT[2], LAYOUT[3]] })
+    await settle()
+    expect(animate).not.toHaveBeenCalled()
+    w.unmount()
+    animate = setup(false)
+    w = mk({ modelValue: [...LAYOUT] })
+    w.element.style.setProperty('--g-duration-press', '160ms')
+    await settle()
+    await w.setProps({ label: 'Otro nombre' })
+    await settle()
+    expect(animate).not.toHaveBeenCalled()
+  })
+})

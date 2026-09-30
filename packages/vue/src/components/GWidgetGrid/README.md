@@ -150,7 +150,7 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{position}`, `{count}`,
 ## Límites conocidos
 
 - Sin colocación libre por coordenadas, sin widgets de más de 4 columnas, sin galería para añadir widgets ni panel de configuración (segunda entrega), sin deshacer.
-- **Reordenar no se anima** (con `order` de CSS no hay transición); pendiente decidir entre FLIP o aceptarlo.
+- **Reordenar se anima con FLIP** (Web Animations API, `translate` desde el sitio anterior al nuevo); la duración y la curva salen de `--g-duration-press` y `--g-ease-out`, y se omite con `prefers-reduced-motion`, sin `Element.animate` o sin duración legible. Verificado en Chromium; no en Firefox ni Safari.
 - Sin verificar: lectores de pantalla reales, arrastre táctil real, Firefox y Safari, RTL con un idioma RTL real.
 
 ## Fuentes

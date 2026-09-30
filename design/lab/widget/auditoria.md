@@ -31,4 +31,4 @@
 
 ## Sin verificar (no bloquea `candidate`)
 
-Lector de pantalla real (menú, anuncios de la rejilla, `aria-roledescription`); `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` reales (solo se comprobó su presencia); arrastre con puntero y táctil reales (solo eventos sintéticos); Firefox y Safari (`popover`, `inert`, `@starting-style`); animación al reordenar (con `order` CSS no hay; decisión de bruno: FLIP o aceptarlo); RTL con datos en un idioma RTL real; tema oscuro (no existe).
+Lector de pantalla real (menú, anuncios de la rejilla, `aria-roledescription`); `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` reales (solo se comprobó su presencia); arrastre con puntero y táctil reales (solo eventos sintéticos); Firefox y Safari (`popover`, `inert`, `@starting-style`); animación al reordenar (resuelta con FLIP, DECISIONS #91); RTL con datos en un idioma RTL real; tema oscuro (no existe).

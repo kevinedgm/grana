@@ -4,7 +4,7 @@
 // El layout es un dato ([{ id, w, h }]): la posición se deriva del orden. Se previsualiza un movimiento (puntero o
 // teclado) y se emite al confirmar; si el prop no se actualiza, la rejilla vuelve al valor del prop. El orden visual se
 // da con `order` mientras dura el movimiento; al confirmar, el DOM sigue al layout (el foco se restaura).
-import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useSlots, watch } from 'vue'
+import { computed, defineComponent, h, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, provide, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
@@ -303,6 +303,37 @@ export default defineComponent({
       announce('removed', { title, position: index + 1, count: b.length })
       const next = b[Math.min(index, b.length - 1)]
       if (next) focusMenu(next.id)
+    })
+
+    // ---------- Animación del reordenamiento (FLIP) ----------
+    // Antes de pintar se guardan las posiciones; después se anima cada celda desde su sitio anterior al nuevo con la
+    // Web Animations API. Duración y curva salen de los tokens (--g-duration-press, --g-ease-out); se omite con
+    // prefers-reduced-motion, sin API de animación o sin duración legible.
+    let firstRects = null
+    const itemEls = () => (listEl.value ? [...listEl.value.children].filter((n) => n.dataset && n.dataset.id !== undefined) : [])
+    onBeforeUpdate(() => {
+      firstRects = new Map(itemEls().map((el) => [el.dataset.id, el.getBoundingClientRect()]))
+    })
+    onUpdated(() => {
+      const before = firstRects
+      firstRects = null
+      if (!before || typeof window === 'undefined' || typeof window.matchMedia === 'undefined') return
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const cs = getComputedStyle(rootEl.value)
+      const raw = cs.getPropertyValue('--g-duration-press').trim()
+      const ms = raw.endsWith('ms') ? parseFloat(raw) : raw.endsWith('s') ? parseFloat(raw) * 1000 : NaN
+      const easing = cs.getPropertyValue('--g-ease-out').trim() || 'ease-out'
+      if (!(ms > 0)) return
+      for (const el of itemEls()) {
+        if (typeof el.animate !== 'function') return
+        const from = before.get(el.dataset.id)
+        if (!from) continue
+        const to = el.getBoundingClientRect()
+        const dx = from.left - to.left
+        const dy = from.top - to.top
+        if (!dx && !dy) continue
+        el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: ms, easing })
+      }
     })
 
     // ---------- Contexto para los widgets ----------

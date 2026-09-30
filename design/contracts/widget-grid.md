@@ -55,7 +55,7 @@ Rejilla adaptable para dashboards: coloca widgets de distintos tamaños (columna
 - **Anuncios** (región `role="status"` de la rejilla, `aria-live="polite"`): al recoger, mover, soltar, cancelar, redimensionar y quitar, con `labels` (ver más abajo). Cada movimiento dice la **posición** («Posición 2 de 5»).
 - **Orden visual y DOM:** mientras dura un movimiento, la posición visual cambia con `order` de CSS (para no perder el foco); **al soltar, cancelar o terminar el arrastre, el DOM se reordena para coincidir** y el foco se restaura en el asa.
 - **Confirmar** emite `update:modelValue` con el layout nuevo y `change` con `{ layout, reason: 'move', id }`. **Cancelar no emite.**
-- El movimiento visual se anima con una transición corta de posición (coco); con `prefers-reduced-motion` no.
+- El movimiento visual se anima con FLIP (bruno, DECISIONS #91): posición anterior → nueva con la duración y curva de los tokens; con `prefers-reduced-motion` no.
 
 ## Redimensionar
 
