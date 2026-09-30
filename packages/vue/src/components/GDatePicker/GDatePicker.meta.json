@@ -364,7 +364,6 @@
     "RTL completo, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",
     "Hoja móvil con teclado virtual y deslizamiento en táctil real",
     "Franja del rango tenue (1.14:1 con el tema por defecto, 1.22:1 con el de prueba): decisión pendiente (ver auditoria.md)",
-    "README (mora-docs)",
     "Escribir la fecha a mano (fuera de v0.1)"
   ]
 }
