@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GHelperScope",
   "tag": "g-helper-scope",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Contenedor sin aspecto propio que fija el contexto de posición de los GHelper flotantes.",
   "contract": "design/contracts/helper.md",
@@ -24,8 +24,5 @@
   ],
   "tokens": [],
   "states": [],
-  "pending": [
-    "Auditoría de coco (paso 5)",
-    "README (mora-docs)"
-  ]
+  "pending": []
 }

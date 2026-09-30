@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GHelper",
   "tag": "g-helper",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Ayuda contextual anclada a una región: disparador en línea o flotante (placement × attach × offset) que abre un contenido agnóstico como popover no modal o, si no cabe, como hoja (GDialog).",
   "contract": "design/contracts/helper.md",
@@ -166,8 +166,6 @@
     "sheet"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real",
     "Firefox y Safari (@starting-style, popover)",
     "Táctil real y zoom al 200%",
