@@ -266,7 +266,6 @@
     "Hoja inferior con teclado virtual y táctil reales",
     "Firefox y Safari (popover, ::backdrop, :popover-open, :has())",
     "Selección múltiple, búsqueda y virtualización (v0.2)",
-    "Auditoría de coco de la ronda r02 (prefijo, iconos y fila crear) sobre el componente real",
     "README de GSelect (mora-docs), incluida la ronda r02"
   ]
 }
