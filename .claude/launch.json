@@ -24,6 +24,16 @@
         "design"
       ],
       "port": 4174
+    },
+    {
+      "name": "grana-root",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4175"
+      ],
+      "port": 4175
     }
   ]
 }

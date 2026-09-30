@@ -1,0 +1,310 @@
+/*
+  GInput · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/input.md. Estructura: design/lab/input/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-input {
+  /* Color de foco (se reasigna por modificador --color-*); sin modificador: el foco del tema */
+  --_focus: var(--g-color-focus);
+
+  /* Variante (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* ---------- Etiqueta ---------- */
+.g-input__label {
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-input__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+
+/* ---------- Caja ---------- */
+.g-input__control {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  padding-inline: calc(var(--_px) * var(--_density));
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Con puntero grueso la caja es el objetivo táctil: altura real, sin importar la densidad */
+@media (pointer: coarse) {
+  .g-input__control {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+
+.g-input__field {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  text-overflow: ellipsis;
+}
+.g-input__field::placeholder {
+  color: var(--g-color-text-subtle);
+  opacity: 1;
+}
+
+.g-input__prepend,
+.g-input__append {
+  display: inline-flex;
+  flex: none;
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Indicador de carga ---------- */
+.g-input__loader {
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  border: calc(var(--g-border-width) * 2) solid var(--g-color-text-subtle);
+  border-inline-end-color: transparent;
+  border-radius: var(--g-radius-pill);
+  animation: g-input-spin var(--g-duration-spin) linear infinite;
+}
+@keyframes g-input-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Botón mostrar/ocultar contraseña ---------- */
+.g-input__toggle {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: 24px;
+  min-block-size: 24px;
+  margin: 0;
+  padding-inline: var(--g-space-2);
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  .g-input__toggle {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+.g-input__toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-offset) * -1);
+}
+
+/* ---------- Mensajes ---------- */
+.g-input__messages {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--g-space-3);
+  margin-block-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-input__hint {
+  min-inline-size: 0;
+}
+.g-input__counter {
+  flex: none;
+  margin-inline-start: auto;
+}
+/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-input__error {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-input.is-invalid .g-input__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-input.is-invalid .g-input__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Tamaño ---------- */
+.g-input--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-input--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-input--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-input--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-input--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-input--density-default { --_density: 1; }
+.g-input--density-comfortable { --_density: 0.875; }
+.g-input--density-compact { --_density: 0.75; }
+
+/* ---------- Forma ---------- */
+.g-input--rounded-none { --_radius: var(--g-radius-none); }
+.g-input--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-input--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-input--rounded-md { --_radius: var(--g-radius-md); }
+.g-input--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-input--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-input--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Color (solo el foco) ---------- */
+.g-input--color-brand { --_focus: var(--g-color-brand-text); }
+.g-input--color-accent { --_focus: var(--g-color-accent-text); }
+.g-input--color-neutral { --_focus: var(--g-color-neutral-text); }
+.g-input--color-success { --_focus: var(--g-color-success-text); }
+.g-input--color-warning { --_focus: var(--g-color-warning-text); }
+.g-input--color-danger { --_focus: var(--g-color-danger-text); }
+.g-input--color-info { --_focus: var(--g-color-info-text); }
+
+/* ---------- Variante ---------- */
+/* outline: los valores por defecto del esqueleto */
+/* soft: caja rellena. Como el relleno solo no llega a 3:1 contra la superficie, conserva
+   la línea inferior con el borde de control (WCAG 1.4.11) */
+.g-input--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Ancho ---------- */
+.g-input--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-input:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-input__control:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+/* Foco: el anillo rodea la caja completa (el <input> no lleva contorno propio) */
+.g-input__control:has(.g-input__field:focus-visible) {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+}
+.g-input.is-invalid .g-input__control {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-input.is-invalid .g-input__control:has(.g-input__field:focus-visible) {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+}
+.g-input.is-readonly .g-input__control {
+  --_bg: var(--g-color-surface-sunken);
+  border-style: dashed;
+}
+.g-input.is-disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-input.is-disabled .g-input__label {
+  color: var(--g-color-text-subtle);
+}
+.g-input.is-disabled .g-input__control {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+}
+.g-input.is-disabled .g-input__field {
+  cursor: not-allowed;
+}
+.g-input.is-disabled .g-input__field,
+.g-input.is-disabled .g-input__toggle {
+  color: var(--g-color-text-subtle);
+}
+@media (hover: hover) {
+  .g-input__toggle:hover {
+    color: var(--g-color-text);
+    text-decoration: underline;
+  }
+}
+.g-input__toggle:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-input__control {
+    transition: none;
+  }
+  .g-input__loader {
+    animation-duration: calc(var(--g-duration-spin) * 2.5);
+  }
+}
+@media (forced-colors: active) {
+  .g-input__control {
+    border-color: ButtonText;
+  }
+  .g-input__control:has(.g-input__field:focus-visible),
+  .g-input__toggle:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-input.is-disabled .g-input__control {
+    border-color: GrayText;
+  }
+  .g-input.is-invalid .g-input__control {
+    border-color: Mark;
+  }
+}

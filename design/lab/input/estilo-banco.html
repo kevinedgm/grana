@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GInput · banco de pruebas de estilo (coco)</title>
+  <!-- Banco de coco: marcado exacto de design/contracts/input.md con GInput.css real y el tema por defecto.
+       Sirve para verificar el CSS antes de que exista GInput.vue. No es documentación. -->
+  <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+  <link rel="stylesheet" href="../../../packages/vue/src/components/GInput/GInput.css">
+  <style>
+    body { margin: 0; padding: 24px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 20px 24px; align-items: start; }
+    h2 { font-size: 15px; margin: 28px 0 10px; }
+    .cap { font-size: 12px; color: var(--g-color-text-muted); margin: 0 0 4px; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+  let n = 0
+  // Genera el marcado del contrato. o: {label, hint, error, required, counter, max, value, type, cls, disabled, readonly, loading, prepend, append, toggle, ph}
+  function field(o = {}) {
+    const id = 'f' + (++n), cls = ['g-input', `g-input--variant-${o.variant || 'outline'}`, `g-input--size-${o.size || 'md'}`, `g-input--density-${o.density || 'default'}`]
+    if (o.color) cls.push(`g-input--color-${o.color}`)
+    if (o.rounded) cls.push(`g-input--rounded-${o.rounded}`)
+    if (o.block) cls.push('g-input--block')
+    if (o.disabled) cls.push('is-disabled'); if (o.readonly) cls.push('is-readonly'); if (o.error) cls.push('is-invalid'); if (o.loading) cls.push('is-loading')
+    const desc = [o.hint && id + '-hint', o.error && id + '-error'].filter(Boolean).join(' ')
+    const ico = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'
+    return `<div class="${cls.join(' ')}" data-t="${o.t || ''}">
+      <label class="g-input__label" for="${id}">${o.label ?? 'Etiqueta'}${o.required ? '<span class="g-input__required" aria-hidden="true">*</span>' : ''}</label>
+      <div class="g-input__control">
+        ${o.prepend ? `<span class="g-input__prepend" aria-hidden="true">${ico}</span>` : ''}
+        <input class="g-input__field" id="${id}" type="${o.type || 'text'}" value="${o.value ?? ''}" placeholder="${o.ph ?? ''}" ${desc ? `aria-describedby="${desc}"` : ''} ${o.error ? 'aria-invalid="true"' : ''} ${o.loading ? 'aria-busy="true"' : ''} ${o.required ? 'required' : ''} ${o.disabled ? 'disabled' : ''} ${o.readonly ? 'readonly' : ''} ${o.max ? `maxlength="${o.max}"` : ''}>
+        ${o.append ? `<span class="g-input__append" aria-hidden="true">${ico}</span>` : ''}
+        ${o.loading ? '<span class="g-input__loader" aria-hidden="true"></span>' : ''}
+        ${o.toggle ? `<button class="g-input__toggle" type="button" aria-pressed="false" aria-controls="${id}" aria-label="Mostrar contraseña">Mostrar</button>` : ''}
+      </div>
+      ${(o.hint || o.counter) ? `<div class="g-input__messages">${o.hint ? `<span class="g-input__hint" id="${id}-hint">${o.hint}</span>` : ''}${o.counter ? `<span class="g-input__counter" aria-hidden="true">${(o.value || '').length}/${o.max}</span>` : ''}</div>` : ''}
+      <div class="g-input__error" id="${id}-error" aria-live="polite">${o.error || ''}</div>
+    </div>`
+  }
+  window.field = field
+  const cases = [
+    ['default', { ph: 'Ana García' }], ['filled + ayuda + contador', { value: 'ana.garcia', hint: 'Solo letras y puntos.', counter: true, max: 20 }],
+    ['obligatorio', { required: true, type: 'email', label: 'Correo' }], ['invalid', { error: 'Falta el dominio del correo.', value: 'ana@', label: 'Correo' }],
+    ['disabled', { disabled: true, value: 'Oaxaca', label: 'Ciudad' }], ['readonly', { readonly: true, value: 'A-2041', label: 'Folio' }],
+    ['loading', { loading: true, value: 'ana', label: 'Usuario' }], ['iconos', { prepend: true, append: true, label: 'Buscar', type: 'search' }],
+    ['password + mostrar', { type: 'password', toggle: true, label: 'Contraseña', value: 'secreto123' }], ['soft', { variant: 'soft', value: 'Relleno', label: 'Nombre' }],
+    ['soft + invalid', { variant: 'soft', error: 'Campo obligatorio.', label: 'Nombre' }], ['color=danger (foco)', { color: 'danger', label: 'Foco danger' }],
+    ['rounded pill', { rounded: 'pill', label: 'Píldora', value: 'Texto' }],
+  ]
+  document.getElementById('app').innerHTML =
+    `<h2>Estados</h2><div class="grid">${cases.map(([c, o]) => `<div><p class="cap">${c}</p>${field({ ...o, t: 'estado' })}</div>`).join('')}</div>` +
+    `<h2>Tamaños × densidades</h2><div class="grid" id="sd">${['xs', 'sm', 'md', 'lg', 'xl'].flatMap(s => ['compact', 'default', 'comfortable'].map(d => `<div><p class="cap">${s} · ${d}</p>${field({ size: s, density: d, value: 'Texto', label: 'Etiqueta', t: `sd:${s}:${d}` })}</div>`)).join('')}</div>` +
+    `<h2>Ancho</h2><div style="width:220px;border:1px dashed #999;padding:8px">${field({ block: true, label: 'Dirección de correo electrónico del titular de la reserva', value: 'una.direccion.muy.larga@ejemplo-de-dominio-largo.com', error: 'El dominio no acepta mensajes; prueba con otra dirección o contacta a soporte.', hint: 'Ayuda larga que también debe saltar de línea sin desbordar.', t: 'ancho' })}</div>`
+</script>
+</body>
+</html>
