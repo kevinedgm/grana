@@ -108,8 +108,9 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-radius-shape
 --g-border-width
 --g-focus-{width|offset}
---g-duration-{fast|spin}
---g-ease-standard
+--g-duration-{fast|press|spin}
+--g-ease-{standard|out}
+--g-press-scale
 --g-text-action-weight
 ```
 
@@ -123,8 +124,11 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | `--g-border-width` | 1px | Grosor de bordes de controles |
 | `--g-focus-width` / `--g-focus-offset` | 2px / 2px | Anillo de foco |
 | `--g-duration-fast` | 120ms | Cambios de estado (hover, activo) |
+| `--g-duration-press` | 160ms | Respuesta al pulsar |
 | `--g-duration-spin` | 800ms | Una vuelta del indicador de carga |
 | `--g-ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Curva de los cambios de estado |
+| `--g-ease-out` | `cubic-bezier(0.23, 1, 0.32, 1)` | Curva de entradas y respuesta al pulsar |
+| `--g-press-scale` | 0.97 | Escala al pulsar (1 lo desactiva) |
 | `--g-text-action-weight` | 500 | Peso de las etiquetas de acción |
 
 **Límite:** `--g-focus-width` es sobrescribible, pero el CLI rechaza un tema con valor menor a 2px (WCAG 2.4.13 recomienda al menos 2px).

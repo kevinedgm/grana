@@ -92,8 +92,11 @@
 
   /* Movimiento */
   --g-duration-fast: 120ms;
+  --g-duration-press: 160ms;
   --g-duration-spin: 800ms;
   --g-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --g-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --g-press-scale: 0.97;
 
   /* Espaciado · space 4 */
   --g-space-1: 4px;

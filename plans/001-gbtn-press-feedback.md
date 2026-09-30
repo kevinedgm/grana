@@ -1,6 +1,6 @@
 # 001 — Añadir respuesta al pulsar en GBtn
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 34d80bb
 - **Severity**: MEDIUM
 - **Category**: Physicality & origin

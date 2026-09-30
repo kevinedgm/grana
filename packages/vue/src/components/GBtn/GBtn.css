@@ -64,7 +64,8 @@
   transition:
     background-color var(--g-duration-fast) var(--g-ease-standard),
     border-color var(--g-duration-fast) var(--g-ease-standard),
-    color var(--g-duration-fast) var(--g-ease-standard);
+    color var(--g-duration-fast) var(--g-ease-standard),
+    transform var(--g-duration-press) var(--g-ease-out);
 }
 
 /* Área táctil: no cambia el aspecto, solo la zona que recibe el toque */
@@ -233,6 +234,9 @@
   background: var(--_bg-hover);
   border-color: var(--_border-hover);
 }
+.g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+  transform: scale(var(--g-press-scale));
+}
 .g-btn:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
@@ -270,6 +274,9 @@
 @media (prefers-reduced-motion: reduce) {
   .g-btn {
     transition: none;
+  }
+  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+    transform: none;
   }
   .g-btn__loader {
     animation-duration: calc(var(--g-duration-spin) * 2.5);

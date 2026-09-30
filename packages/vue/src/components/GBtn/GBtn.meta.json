@@ -35,7 +35,7 @@
     "--g-color-on-{color}", "--g-color-on-{color}-soft", "--g-color-focus", "--g-color-neutral-soft", "--g-color-text-subtle",
     "--g-radius-*", "--g-radius-shape", "--g-space-1..6", "--g-font-ui", "--g-text-{caption|body-sm|body}-{size|line}",
     "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset",
-    "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"
+    "--g-duration-fast", "--g-duration-press", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-press-scale"
   ],
   "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
   "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)"]
