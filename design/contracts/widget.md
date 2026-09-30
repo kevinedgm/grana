@@ -44,7 +44,7 @@
   - **`loading`:** esqueleto con la estructura del **nivel actual** (mismas zonas que con datos), `aria-busy="true"` y un aviso oculto `role="status"` con `labels.loading`. El encabezado se conserva; las acciones del menú siguen disponibles.
   - **`empty`:** el área de contenido muestra el slot `empty` (o un mensaje con `labels.empty`).
   - **`error`:** el área de contenido muestra el slot `error` (o `labels.error` y un botón con `labels.retry` que emite `retry`); `role="alert"`.
-  - **`stale`:** conserva los datos y añade una **marca** (texto `labels.stale` en el badge, con forma) y, desde el nivel medio, una línea con `labels.staleText`; no oculta el contenido.
+  - **`stale`:** conserva los datos y añade una **marca** (texto `labels.stale` en el badge, con forma) y, desde el nivel medio, `labels.staleText` **en el pie, en lugar de `updatedText`** (no añade alto al cuerpo); no oculta el contenido. El slot `footer` recibe `state` para decidir.
   - **`disabled`:** `aria-disabled="true"`, atenuado, y el cuerpo pasa a `inert` (sin foco ni interacción); el menú de acciones sigue disponible.
 - **`level`:** con `auto` el widget lo mide (ver «Niveles»); `s`, `m` o `l` lo fijan (vistas previas, pruebas o contenedores de tamaño conocido).
 - **`badge`:** texto o número corto, **con forma y texto** (no solo color); en el nivel `s` no se muestra. El estado del widget puede sustituirlo (`stale`, `disabled`, `error`).
@@ -65,6 +65,7 @@ Se miden el **ancho y el alto propios** con un observador de tamaño (sobre la r
 | `m` | ≥ `space × 60` y < `space × 110` (440px) | Categoría, título, subtítulo, badge, pie | Métrica, contexto y una visualización pequeña |
 | `l` | ≥ `space × 110` | Todo | Varias métricas, visualización completa, acciones y detalle |
 
+- **El alto también limita el nivel (DECISIONS #90):** con alto propio < `space × 36` (144px) el nivel es `s`; < `space × 64` (256px), como mucho `m`; el nivel final es el menor entre el del ancho y el del alto. Así un widget de una fila nunca pierde su cuerpo. Con `level` fijo no se aplica.
 - **Forma:** `wide` si el ancho ≥ 1.9 × el alto; `tall` si el alto ≥ 1.3 × el ancho y el alto ≥ `space × 80` (320px); si no, `square`. Sirve para reorganizar columnas y filas **dentro** del contenido.
 - El widget expone `data-level` y `data-shape` en la raíz, las clases `g-widget--level-*` y `--shape-*`, y el alcance `{ level, shape, state }` en sus slots.
 - Los niveles **no dependen del tipo de puntero ni de la ventana**: el mismo widget cambia de nivel cuando cambia de sitio o de tamaño.

@@ -75,8 +75,10 @@ export default defineComponent({
     const levelAuto = computed(() => {
       const w = size.value.w
       if (!w) return 'm'
-      if (w < unit.value * 60) return 's'
-      if (w < unit.value * 110) return 'm'
+      const h = size.value.h
+      // el alto también limita el nivel (DECISIONS #90): con poca altura el cuerpo se quedaría en 0
+      if (w < unit.value * 60 || (h && h < unit.value * 36)) return 's'
+      if (w < unit.value * 110 || (h && h < unit.value * 64)) return 'm'
       return 'l'
     })
     const level = computed(() => (props.level === 'auto' ? levelAuto.value : props.level))
@@ -236,7 +238,6 @@ export default defineComponent({
         ])]
       }
       const content = levelContent()
-      if (st === 'stale' && lv !== 's' && L.value.staleText) return [...content, h('p', { class: 'g-widget__stale' }, L.value.staleText)]
       return content
     }
 
@@ -246,15 +247,18 @@ export default defineComponent({
     const renderFoot = () => {
       const lv = level.value
       if (lv === 's') return null
-      if (slots.footer) return h('footer', { class: 'g-widget__foot' }, slots.footer({ level: lv }))
+      if (slots.footer) return h('footer', { class: 'g-widget__foot' }, slots.footer({ level: lv, state: props.state }))
       if (props.state === 'loading') return h('footer', { class: 'g-widget__foot' }, [h('span', { class: 'g-widget__line', 'aria-hidden': 'true', style: { inlineSize: '40%' } })])
       const link = props.drilldownLabel
         ? (props.href
             ? h('a', { class: 'g-widget__link', href: props.href, onClick: onDrill }, props.drilldownLabel)
             : h('button', { type: 'button', class: 'g-widget__link', onClick: onDrill }, props.drilldownLabel))
         : null
-      if (!props.updatedText && !link) return null
-      return h('footer', { class: 'g-widget__foot' }, [h('span', props.updatedText), props.state === 'populated' || props.state === 'stale' ? link : null])
+      // Desactualizado: la hora del dato sustituye al texto de actualización en el pie, sin añadir una línea al cuerpo (DECISIONS #90)
+      const stale = props.state === 'stale' && L.value.staleText
+      const note = stale ? h('span', { class: 'g-widget__stale' }, L.value.staleText) : h('span', props.updatedText)
+      if (!stale && !props.updatedText && !link) return null
+      return h('footer', { class: 'g-widget__foot' }, [note, props.state === 'populated' || props.state === 'stale' ? link : null])
     }
 
     expose({ focusMenu: () => btnEl.value?.focus(), level, shape })

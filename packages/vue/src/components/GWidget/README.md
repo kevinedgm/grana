@@ -46,7 +46,7 @@ El widget mide su **propio ancho y alto** con un observador de tamaño (no la ve
 
 - **Forma:** `wide` (ancho ≥ 1.9 × alto), `tall` (alto ≥ 1.3 × ancho y ≥ `space × 80`) o `square`. Sirve para reorganizar el contenido.
 - En la raíz: `data-level`, `data-shape` y las clases `g-widget--level-*` y `g-widget--shape-*`. `level="s|m|l"` fija el nivel (vistas previas, pruebas) y evita medir.
-- **El cuerpo recorta** lo que no cabe (`overflow: hidden`): el contenido debe adaptarse a su nivel. **Un widget de una sola fila con categoría, subtítulo y pie puede quedarse sin espacio para el cuerpo**; dale al menos dos filas (ver la auditoría).
+- **El cuerpo recorta** lo que no cabe (`overflow: hidden`): el contenido debe adaptarse a su nivel. **El alto también limita el nivel** (DECISIONS #90): con alto propio < `space × 36` (144px) el nivel es `s`, y < `space × 64` (256px), como mucho `m`; se toma el menor entre el del ancho y el del alto, así un widget de una fila no pierde su cuerpo. Con `level` fijo no se aplica.
 
 ## Estados
 
@@ -56,7 +56,7 @@ El widget mide su **propio ancho y alto** con un observador de tamaño (no la ve
 | `loading` | Esqueleto con la estructura del nivel (slot `loading` para uno propio), `aria-busy` y un aviso oculto con `labels.loading` |
 | `empty` | Slot `empty` o `labels.empty` |
 | `error` | `role="alert"` con `labels.error` y un botón `labels.retry` que emite `retry` (slot `error` con `{ level, retry }`) |
-| `stale` | **Conserva los datos**; badge con `labels.stale` y, desde el nivel `m`, la línea `labels.staleText` |
+| `stale` | **Conserva los datos**; badge con `labels.stale` y, desde el nivel `m`, `labels.staleText` en el pie (en lugar de `updatedText`; no añade alto) |
 | `disabled` | `aria-disabled`, atenuado y el cuerpo `inert`; el menú sigue disponible |
 
 Los estados **no cambian el tamaño** del widget. El estado es un prop: no hay `update:state`.

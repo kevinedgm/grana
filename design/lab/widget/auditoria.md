@@ -25,8 +25,8 @@
 
 ## Observaciones (no bloquean; requieren decisión de kiwi o lima)
 
-- **Un widget demasiado bajo pierde su contenido sin aviso.** El nivel depende solo del ancho (contrato, DECISIONS #73); con una fila de alto (forma `wide`, nivel m o l) la cabecera y el pie ocupan todo y el cuerpo queda en 0px, recortado (`overflow: hidden`). El componente no falla, pero el usuario no ve datos. Salidas posibles: que la forma `wide` de alto limitado omita subtítulo y pie, que el nivel dependa también del alto, o una altura mínima documentada (2 filas para `m` y `l`). Es una decisión de estructura.
-- **El estado `stale` añade una línea (`labels.staleText`) y consume alto:** con 2 filas (tema por defecto) el cuerpo `m` pasa de 114px disponibles a 147 necesarios y se recorta. Mismo origen: el contrato dice que los estados no cambian el espacio, pero el contenido sí compite por él.
+- **(Resuelto, DECISIONS #90: el alto limita el nivel)** Un widget demasiado bajo pierde su contenido sin aviso. El nivel depende solo del ancho (contrato, DECISIONS #73); con una fila de alto (forma `wide`, nivel m o l) la cabecera y el pie ocupan todo y el cuerpo queda en 0px, recortado (`overflow: hidden`). El componente no falla, pero el usuario no ve datos. Salidas posibles: que la forma `wide` de alto limitado omita subtítulo y pie, que el nivel dependa también del alto, o una altura mínima documentada (2 filas para `m` y `l`). Es una decisión de estructura.
+- **(Resuelto, DECISIONS #90: la hora va en el pie)** El estado `stale` añade una línea (`labels.staleText`) y consume alto:** con 2 filas (tema por defecto) el cuerpo `m` pasa de 114px disponibles a 147 necesarios y se recorta. Mismo origen: el contrato dice que los estados no cambian el espacio, pero el contenido sí compite por él.
 - **La pista del progreso (`g-progress__track`) sobre la superficie es de 1.08:1 (1.23 con el tema propio).** No es información: el relleno tiene 15:1 y el valor va en texto; se mantiene como decoración. Si se quiere que se vea la barra vacía, sería `border-control` (decisión de estética).
 
 ## Sin verificar (no bloquea `candidate`)

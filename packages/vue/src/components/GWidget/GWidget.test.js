@@ -53,18 +53,29 @@ describe('GWidget · estructura', () => {
   })
 })
 
+describe('GWidget · el alto limita el nivel (DECISIONS #90)', () => {
+  it('con poca altura baja de nivel aunque haya ancho: < 144 s, < 256 m, ≥ 256 l (space 4)', async () => {
+    for (const [h, lv] of [[112, 's'], [200, 'm'], [256, 'l']]) {
+      vi.restoreAllMocks(); sizeMock(600, h)
+      const w = mk(); await nextTick()
+      expect(w.classes()).toContain(`g-widget--level-${lv}`)
+    }
+    vi.restoreAllMocks()
+  })
+})
+
 describe('GWidget · niveles y forma por su propio tamaño', () => {
   it('nivel por el ancho propio: < 240 s, < 440 m, ≥ 440 l (con space 4)', async () => {
-    let spy = sizeMock(200, 200)
+    let spy = sizeMock(200, 300)
     const w = mk()
     await nextTick()
     expect(w.classes()).toContain('g-widget--level-s')
     expect(w.attributes('data-level')).toBe('s')
-    spy.mockRestore(); sizeMock(240, 200)
+    spy.mockRestore(); sizeMock(240, 300)
     const b = mk(); await nextTick(); expect(b.classes()).toContain('g-widget--level-m')
-    vi.restoreAllMocks(); sizeMock(439, 200)
+    vi.restoreAllMocks(); sizeMock(439, 300)
     const c = mk(); await nextTick(); expect(c.classes()).toContain('g-widget--level-m')
-    vi.restoreAllMocks(); sizeMock(440, 200)
+    vi.restoreAllMocks(); sizeMock(440, 300)
     const d = mk(); await nextTick(); expect(d.classes()).toContain('g-widget--level-l')
   })
 
@@ -84,7 +95,7 @@ describe('GWidget · niveles y forma por su propio tamaño', () => {
     let cb
     globalThis.ResizeObserver = class { constructor(f) { cb = f } observe() {} disconnect() {} }
     let width = 500
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.classList?.contains('g-widget') ? width : 0, height: 200, top: 0, left: 0, right: 0, bottom: 0 } })
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.classList?.contains('g-widget') ? width : 0, height: 300, top: 0, left: 0, right: 0, bottom: 0 } })
     const w = mk(); await nextTick()
     expect(w.classes()).toContain('g-widget--level-l')
     width = 150; cb(); await nextTick()
@@ -152,12 +163,13 @@ describe('GWidget · estados', () => {
     expect(typeof r).toBe('function')
   })
 
-  it('stale: conserva los datos, badge con texto y línea de hora (desde el nivel m)', () => {
+  it('stale: conserva los datos, badge con texto y hora en el pie (desde el nivel m)', () => {
     const w = mk({ state: 'stale', level: 'l' }, { slots: slotsFor() })
     expect(w.find('.x').exists()).toBe(true)
     expect(w.find('.g-widget__badge').text()).toBe('Desactualizado')
     expect(w.find('.g-widget__badge').classes()).toContain('g-widget__badge--color-warning')
-    expect(w.find('.g-widget__stale').text()).toBe('Datos de hace 2 h')
+    expect(w.find('.g-widget__foot .g-widget__stale').text()).toBe('Datos de hace 2 h')
+    expect(w.find('.g-widget__body .g-widget__stale').exists()).toBe(false)
     expect(mk({ state: 'stale', level: 's' }, { slots: slotsFor() }).find('.g-widget__stale').exists()).toBe(false)
   })
 
