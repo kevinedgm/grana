@@ -111,18 +111,38 @@ Se decide por el **ancho del contenedor** (`container`), medido con un observado
 - **Un solo estado de navegación:** el destino actual y las ramas abiertas se conservan al cambiar de formato.
 - **Consulta de medios:** no hay ninguna; `pointer: coarse` y `prefers-reduced-motion` son preferencias del navegador, no umbrales de tema.
 
+## Movimiento
+
+El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario puede interrumpir o revertir, y con tokens de duración y curva del sistema (`--g-duration-*`, `--g-ease-*`); **no hay curvas ni duraciones propias**. Todo lo anima coco (`GSidebar.css`); bruno solo alterna clases y atributos **sobre el mismo DOM** (no reconstruye el sidebar al contraer, expandir, navegar o abrir un submenú: se perderían las transiciones).
+
+| Movimiento | Qué se anima | Notas |
+| --- | --- | --- |
+| Expandir y contraer | Ancho de la raíz; las etiquetas, títulos y atajo **entran** un instante después, ya con sitio | La raíz es la misma en `expanded` y `rail` (cambia solo la clase `--mode-*`); el icono del botón se voltea |
+| Submenú en línea | Altura y opacidad (`is-open`) | `interpolate-size`; sin soporte, abre sin animar |
+| Item activo | Fondo, contorno y peso pasan de un item al otro con un fundido corto | Sin re-render |
+| Pulsación | Encogimiento mínimo (`scale`) de items y celdas del navbar | Suelta más rápido que aprieta |
+| Panel flotante | Nace de la muesca (`transform-origin`), con opacidad, escala y un desplazamiento corto; **también se anima al cerrar** | Persistente; sin `scale(0)` |
+| Pista | Solo un fundido; instantánea tras otra reciente | |
+| Navbar | La barra **sube desde el borde** al pasar a este formato (`is-entering`); la celda actual **crece** y la etiqueta entra tras ella | La píldora se anima cambiando `is-current` en el mismo `<li>` |
+| Drawer | El panel **se desliza desde su borde de origen** (su propio ancho, sin píxeles; espejado en RTL) con el fondo fundiéndose; **también se anima al cerrar**; los grupos entran escalonados (~30ms) | `<dialog>` con `allow-discrete` |
+| Indicadores | Aparecen con un pequeño crecimiento | |
+
+- **Duraciones:** de 120ms (color, pista) a 160ms (panel, chevrón, etiquetas) y 240ms (ancho, altura, píldora, drawer); ninguna supera los 300ms.
+- **Movimiento reducido:** se conservan los **fundidos** y se quitan los desplazamientos, las escalas y los escalonados (menos y más suave, no cero).
+- **Frecuencia:** el hover de un item es solo color (sin movimiento); nada anima al navegar con el teclado más allá del cambio de estado.
+
 ## Formatos
 
 ### Expandida
 
-Cabecera (logo, botón de contraer, búsqueda opcional), región de navegación con scroll, pie (usuario). Los grupos muestran su título (menos peso que los items); un padre abre sus hijos **en línea** (`aria-expanded`, `aria-controls`), con sangría corta y una línea de conexión sutil. Ancho: `--g-sidebar-width`.
+Cabecera (logo, botón de contraer, búsqueda opcional), región de navegación con scroll, pie (usuario). Los grupos muestran su título (menos peso que los items); un padre abre sus hijos **en línea** (`aria-expanded`, `aria-controls`), con sangría corta y una línea de conexión sutil. **El submenú cerrado no lleva `hidden`: lleva `inert` (sin foco ni lectura) y le falta la clase `is-open`**, para poder animar la altura; abrir y cerrar solo alterna `is-open`, `inert` y `aria-expanded` sobre el mismo elemento. Ancho: `--g-sidebar-width`.
 
 ### Riel
 
 Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (siguen en el DOM); iconos de **44px**; el estado activo se conserva; un contador o punto pasa a una marca sobre el icono. Un padre lleva `aria-haspopup="true"` y una marca de submenú.
 
 - **Panel flotante** (`popover="manual"`, `role="group"`, `aria-label` = etiqueta del padre): título visible con el nombre del padre y sus hijos, **pegado al item** con un hueco de 4px y una muesca que lo conecta; se abre con **clic, Enter, Espacio o →** y con el **puntero encima** (retardo de **150ms**); **el foco solo no lo abre**. Al abrir con teclado, el foco va al hijo actual (o al primero); ↑ ↓ Inicio Fin se mueven; **Esc o ←** cierran y devuelven el foco al padre; Tab hacia fuera lo cierra; clic fuera lo cierra. Con el puntero, salir del item o del panel da **220ms de gracia** para llegar al otro.
-- **Pista** (un solo elemento `popover`, `aria-hidden`): el nombre del item, junto a él; aparece con el puntero tras **350ms** y **sin retardo** con `:focus-visible`; no aparece en padres (su panel ya lleva el nombre).
+- **Pista** (un solo elemento `popover`, `aria-hidden`): el nombre del item, junto a él; aparece con el puntero tras **350ms** y **sin retardo** con `:focus-visible`; **si ya se mostró otra hace menos de ~600ms, aparece al instante** (sin retardo ni fundido: clase `is-instant`); no aparece en padres (su panel ya lleva el nombre).
 - **Superpuesto (`overlay`):** la expansión ocurre encima del contenido.
 
 ### Navbar inferior («píldora activa»)
@@ -165,7 +185,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
           </li>
           <li class="g-sidebar__item">
             <button class="g-sidebar__link g-sidebar__parent is-branch" type="button" aria-expanded="true" aria-controls="ID-proj"><span class="g-sidebar__icon" aria-hidden="true">…</span><span class="g-sidebar__label">Proyectos</span><span class="g-sidebar__chevron" aria-hidden="true"></span></button>
-            <ul class="g-sidebar__sub" id="ID-proj"><li><a class="g-sidebar__link" href="/p">…</a></li></ul>
+            <ul class="g-sidebar__sub is-open" id="ID-proj"><li><a class="g-sidebar__link" href="/p">…</a></li></ul>   <!-- cerrado: sin is-open y con inert -->
           </li>
         </ul>
       </li>
@@ -192,7 +212,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 - **`<nav>` con solo enlaces y botones de submenú**: la cabecera y el pie van fuera de la región de navegación. En el navbar, el `<nav>` es la raíz.
 - **Nombre accesible = texto real.** Las etiquetas ocultas visualmente usan el patrón estándar de texto oculto; **no** se sustituyen por `aria-label`. Los indicadores visibles son `aria-hidden` y el texto para lectores es `g-sidebar__sr` (`badgeLabel`).
 - **Los grupos** son `<ul>` con `aria-labelledby` (título), también en el riel (título oculto visualmente, presente).
-- **Panel y pista:** `popover="manual"`; el panel se crea al abrirse y se cierra al salir; la pista es una sola instancia.
+- **Panel y pista:** `popover="manual"`; **son elementos persistentes** (uno por sidebar; el panel cambia de contenido y de nombre al abrirse para otro padre; la pista es una sola instancia): se muestran con `showPopover()` y se ocultan con `hidePopover()`, **sin quitarlos del DOM**, para que su salida se anime.
 
 ## Teclado
 
@@ -280,6 +300,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__fly`, `__fly-title`, `g-sidebar__tip` | Panel flotante y pista | Solo riel |
 | `g-sidebar__bar`, `__tab` (+ `is-current` en el `li`), `__more`, `g-sidebar__label--hidden` | Navbar | Solo navbar |
 | `g-sidebar__drawer` | `<dialog>` | Drawer |
+| `is-open` | `g-sidebar__sub` | Submenú abierto (cerrado: sin la clase y con `inert`) |
+| `is-instant` | `g-sidebar__tip` | La pista aparece sin fundido (otra se mostró hace un momento) |
+| `is-entering` | Raíz en `navbar` | Solo mientras la barra entra al pasar a este formato (bruno la pone y la quita al terminar la animación) |
 
 ## Resolución de hallazgos de r01
 

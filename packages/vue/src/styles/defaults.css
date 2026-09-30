@@ -118,6 +118,11 @@
   --g-surface-radius-inset: max(0px, calc(var(--g-surface-radius) - var(--g-surface-gap)));
   --g-surface-backdrop: rgb(0 0 0 / 0.32);
 
+  /* Sidebar · estructura (tokens.md §13): la aplicación reserva este espacio */
+  --g-sidebar-width: calc(var(--g-space-1) * 66);
+  --g-sidebar-rail: calc(var(--g-space-1) * 16);
+  --g-sidebar-bar: calc(var(--g-space-1) * 17);
+
   /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;

@@ -1,0 +1,944 @@
+/*
+  GSidebar · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/sidebar.md. Estructura: design/lab/sidebar/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max(), 1px del texto oculto.
+  No hay consultas de medios de ancho: el formato lo decide bruno por el ancho del contenedor
+  (DECISIONS.md #69) y llega como clase g-sidebar--mode-*. Una sola superficie vertical continua
+  (expandida y riel), un navbar flotante con «píldora activa» y un drawer (<dialog>).
+  Bruno da la posición del panel flotante y de la pista con variables CSS dinámicas
+  (--_x, --_top, --_bottom, --_notch).
+*/
+
+/* ---------- Esqueleto ---------- */
+/* Movimiento: todo deriva de los tokens de duración y de curva (cohesión con el resto del sistema).
+   El drawer (el <dialog>) envuelve a la raíz, así que también los define. */
+.g-sidebar,
+.g-sidebar__drawer {
+  --_t: var(--g-duration-press);
+  --_t-slow: calc(var(--g-duration-press) * 1.5);
+  --_stagger: calc(var(--g-duration-fast) * 0.25);
+}
+.g-sidebar {
+  /* Color de la selección (se reasigna por --color-*); por defecto: brand */
+  --_color: var(--g-color-brand);
+  --_on: var(--g-color-on-brand);
+
+  /* Medidas (se reasignan por --density-*) */
+  --_density: 1;
+  --_item: max(24px, calc(var(--g-space-1) * 10 * var(--_density)));
+  --_sub: max(24px, calc(var(--g-space-1) * 9 * var(--_density)));
+  --_ico: calc(var(--g-space-1) * 5);
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-3);
+  --_radius: var(--g-radius-md);
+  --_focus: var(--g-color-focus);
+
+  interpolate-size: allow-keywords;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--g-sidebar-width);
+  block-size: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+  background: var(--g-surface-shell);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  border-inline-end: var(--g-border-width) solid var(--g-color-border);
+}
+@media (pointer: coarse) {
+  .g-sidebar {
+    --_item: max(44px, calc(var(--g-space-1) * 10 * var(--_density)));
+    --_sub: max(44px, calc(var(--g-space-1) * 9 * var(--_density)));
+  }
+}
+.g-sidebar--mode-rail {
+  inline-size: var(--g-sidebar-rail);
+}
+/* Flotante: margen, radio y sombra (una superficie que flota) */
+.g-sidebar--variant-floating {
+  margin: var(--g-space-3);
+  block-size: calc(100% - var(--g-space-3) * 2);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-surface-radius);
+  box-shadow: var(--g-shadow-2);
+}
+/* Superpuesto: la expansión ocurre encima del contenido y no desplaza el diseño */
+.g-sidebar--overlay.g-sidebar--mode-expanded {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 2;
+  box-shadow: var(--g-shadow-3);
+}
+/* Expandir y contraer: el ancho se mueve con una curva suave y las etiquetas entran un instante después,
+   cuando la barra ya se abre (no antes de que haya sitio) */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar--mode-expanded,
+  .g-sidebar--mode-rail {
+    transition: inline-size var(--_t-slow) var(--g-ease-standard);
+  }
+  .g-sidebar--mode-expanded .g-sidebar__nav .g-sidebar__label,
+  .g-sidebar--mode-expanded .g-sidebar__nav .g-sidebar__group-title,
+  .g-sidebar--mode-expanded .g-sidebar__head .g-sidebar__label,
+  .g-sidebar--mode-expanded .g-sidebar__hint {
+    animation: g-sidebar-label-in var(--_t) var(--g-ease-out) calc(var(--_stagger) * 1.5) both;
+  }
+  @keyframes g-sidebar-label-in {
+    from { opacity: 0; translate: calc(var(--g-space-1) * -2) 0; }
+  }
+}
+
+/* ---------- Cabecera ---------- */
+.g-sidebar__head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-2);
+  padding: var(--g-space-3) var(--g-space-3) var(--g-space-2);
+}
+.g-sidebar__top {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-block-size: var(--_item);
+}
+.g-sidebar__logo {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-sidebar--mode-rail .g-sidebar__top {
+  flex-direction: column;
+  gap: var(--g-space-2);
+}
+.g-sidebar--mode-rail .g-sidebar__logo {
+  flex: none;
+}
+.g-sidebar__toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_item);
+  block-size: var(--_item);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--_radius);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__toggle > svg {
+    transition: scale var(--_t-slow) var(--g-ease-out);
+  }
+}
+.g-sidebar--mode-rail .g-sidebar__toggle > svg {
+  scale: -1 1;
+}
+@media (hover: hover) {
+  .g-sidebar__toggle:hover {
+    background: var(--g-color-border);
+    color: var(--g-color-text);
+  }
+}
+.g-sidebar__toggle:focus-visible,
+.g-sidebar__search:focus-visible,
+.g-sidebar__link:focus-visible,
+.g-sidebar__tab:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+/* Búsqueda: un botón con aspecto de campo compacto; en riel, un botón de icono */
+.g-sidebar__search {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  inline-size: 100%;
+  min-block-size: var(--_item);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--_px);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--_radius);
+  background: var(--g-surface-inset);
+  color: var(--g-color-text-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .g-sidebar__search:hover {
+    border-color: var(--g-color-text-muted);
+    color: var(--g-color-text);
+  }
+}
+.g-sidebar__hint {
+  margin-inline-start: auto;
+  padding: 0 var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-xs);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-sidebar--mode-rail .g-sidebar__search {
+  inline-size: max(44px, var(--_item));
+  block-size: max(44px, var(--_item));
+  padding: 0;
+  justify-content: center;
+  margin-inline: auto;
+  border-color: transparent;
+  background: transparent;
+}
+.g-sidebar--mode-rail .g-sidebar__hint {
+  display: none;
+}
+/* En riel, el texto del disparador se oculta visualmente y sigue dando el nombre */
+.g-sidebar--mode-rail .g-sidebar__search .g-sidebar__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Región de navegación ---------- */
+.g-sidebar__nav {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--g-space-1) var(--g-space-3);
+}
+.g-sidebar__groups,
+.g-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.g-sidebar__group {
+  margin: 0 0 var(--g-space-2);
+  padding: 0;
+}
+.g-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-space-1) * 0.5);
+}
+/* Título de grupo: menos peso que los items; en riel se oculta visualmente y sigue en el DOM */
+.g-sidebar__group-title {
+  display: block;
+  padding: var(--g-space-3) calc(var(--_px) - var(--g-space-1)) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-subtle);
+}
+.g-sidebar__item {
+  position: relative;
+}
+
+/* ---------- Item ---------- */
+.g-sidebar__link {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--_gap);
+  inline-size: 100%;
+  min-block-size: var(--_item);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--_px);
+  border: 0;
+  border-radius: var(--_radius);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard),
+    scale var(--g-duration-fast) var(--g-ease-out);
+}
+/* Feedback de pulsación: un encogimiento mínimo, que suelta más lento que aprieta */
+.g-sidebar__link:active:not([aria-disabled="true"]) {
+  scale: 0.98;
+}
+@media (hover: hover) {
+  .g-sidebar__link:hover:not([aria-disabled="true"]) {
+    background: var(--g-color-border);
+    color: var(--g-color-text);
+  }
+}
+/* Activo: una superficie apenas elevada (fondo, contorno tenue y sombra mínima) y más peso; sin acentos */
+.g-sidebar__link[aria-current="page"],
+.g-sidebar__link.is-active {
+  background: var(--g-surface-inset);
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-border-strong), var(--g-shadow-1);
+}
+/* Rama activa: un padre con un hijo activo; peso y color, sin superficie */
+.g-sidebar__link.is-branch {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+/* Deshabilitado: atenuado y tachado (no depende del color) */
+.g-sidebar__link[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.g-sidebar__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--_ico);
+  block-size: var(--_ico);
+}
+.g-sidebar__icon > svg,
+.g-sidebar__toggle > svg {
+  inline-size: var(--_ico);
+  block-size: var(--_ico);
+}
+.g-sidebar__label {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-sidebar__chevron {
+  flex: none;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 2);
+  block-size: calc(var(--g-space-1) * 2);
+  border: solid currentColor;
+  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
+  rotate: -45deg;
+  transition: rotate var(--_t) var(--g-ease-out);
+}
+[dir="rtl"] .g-sidebar__chevron {
+  rotate: 135deg;
+}
+.g-sidebar__parent[aria-expanded="true"] .g-sidebar__chevron {
+  rotate: 45deg;
+}
+/* Indicador: contador o punto; su texto para lectores es g-sidebar__sr */
+.g-sidebar__badge {
+  flex: none;
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 5);
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--_color);
+  color: var(--_on);
+  font-size: var(--g-text-caption-size);
+  line-height: calc(var(--g-space-1) * 5);
+  text-align: center;
+  transition:
+    scale var(--_t) var(--g-ease-out),
+    opacity var(--_t) var(--g-ease-out);
+}
+@starting-style {
+  .g-sidebar__badge {
+    scale: 0.6;
+    opacity: 0;
+  }
+}
+.g-sidebar__sr,
+.g-sidebar__label--hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Submenú en línea: un nivel, sangría corta y una línea de conexión sutil.
+   Cerrado = `inert` (sin foco ni lectura) y sin altura; abrir y cerrar es una transición, así
+   se interrumpe y se revierte a mitad de camino. `interpolate-size` permite animar hasta `auto`; sin
+   soporte, el submenú abre y cierra sin animación. */
+.g-sidebar__sub {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-space-1) * 0.5);
+  block-size: 0;
+  margin: 0 0 0 var(--g-space-5);
+  padding: 0 0 0 var(--g-space-3);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+}
+[dir="rtl"] .g-sidebar__sub {
+  margin: 0 var(--g-space-5) 0 0;
+  padding: 0 var(--g-space-3) 0 0;
+}
+.g-sidebar__sub.is-open {
+  block-size: auto;
+  margin-block: var(--g-space-1);
+  opacity: 1;
+  visibility: visible;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__sub {
+    transition:
+      block-size var(--_t-slow) var(--g-ease-out),
+      margin-block var(--_t-slow) var(--g-ease-out),
+      opacity var(--_t) var(--g-ease-out),
+      visibility 0s linear var(--_t-slow);
+  }
+  .g-sidebar__sub.is-open {
+    transition:
+      block-size var(--_t-slow) var(--g-ease-out),
+      margin-block var(--_t-slow) var(--g-ease-out),
+      opacity var(--_t) var(--g-ease-out) calc(var(--_stagger)),
+      visibility 0s;
+  }
+}
+.g-sidebar__sub .g-sidebar__link {
+  min-block-size: var(--_sub);
+}
+
+/* ---------- Pie (el contenido es de la aplicación) ---------- */
+.g-sidebar__foot {
+  flex: none;
+  padding: var(--g-space-2) var(--g-space-3) var(--g-space-3);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+
+/* ---------- Riel: etiquetas visualmente ocultas (siguen en el DOM) ---------- */
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__label,
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__chevron,
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__sub,
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__group-title {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.g-sidebar--mode-rail .g-sidebar__nav,
+.g-sidebar--mode-rail .g-sidebar__head,
+.g-sidebar--mode-rail .g-sidebar__foot {
+  padding-inline: var(--g-space-2);
+}
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__group + .g-sidebar__group {
+  margin-block-start: var(--g-space-2);
+  padding-block-start: var(--g-space-2);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__link {
+  inline-size: max(44px, var(--_item));
+  block-size: max(44px, var(--_item));
+  margin-inline: auto;
+  padding: 0;
+  justify-content: center;
+}
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__badge {
+  position: absolute;
+  inset-block-start: var(--g-space-1);
+  inset-inline-end: var(--g-space-1);
+  min-inline-size: calc(var(--g-space-1) * 3.5);
+  padding-inline: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: calc(var(--g-space-1) * 3.5);
+}
+/* Un padre del riel abre un panel: una marca discreta lo indica */
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__link[aria-haspopup]::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: var(--g-space-1);
+  inset-block-end: var(--g-space-1);
+  inline-size: var(--g-space-1);
+  block-size: var(--g-space-1);
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+}
+
+/* ---------- Panel flotante y pista (riel) ---------- */
+.g-sidebar__fly {
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--_x);
+  inset-block-start: var(--_top);
+  inset-block-end: var(--_bottom);
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 50);
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-2);
+  overflow: visible;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  box-shadow: var(--g-shadow-2);
+  /* Nace del item: crece desde la muesca, con un desplazamiento corto hacia fuera */
+  transform-origin: 0 var(--_notch);
+  opacity: 0;
+  scale: 0.96;
+  translate: calc(var(--g-space-1) * -1.5) 0;
+}
+[dir="rtl"] .g-sidebar__fly {
+  transform-origin: 100% var(--_notch);
+  translate: calc(var(--g-space-1) * 1.5) 0;
+}
+.g-sidebar__fly:popover-open {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__fly {
+    transition:
+      opacity var(--_t) var(--g-ease-out),
+      scale var(--_t) var(--g-ease-out),
+      translate var(--_t) var(--g-ease-out),
+      overlay var(--_t) allow-discrete,
+      display var(--_t) allow-discrete;
+  }
+}
+@starting-style {
+  .g-sidebar__fly:popover-open {
+    opacity: 0;
+    scale: 0.96;
+    translate: calc(var(--g-space-1) * -1.5) 0;
+  }
+  [dir="rtl"] .g-sidebar__fly:popover-open {
+    translate: calc(var(--g-space-1) * 1.5) 0;
+  }
+}
+.g-sidebar__fly-title {
+  padding: var(--g-space-2) var(--g-space-3) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-subtle);
+}
+.g-sidebar__fly ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-space-1) * 0.5);
+}
+.g-sidebar__fly .g-sidebar__link {
+  min-block-size: var(--_sub);
+  padding-inline: var(--g-space-3);
+}
+/* Muesca que conecta el panel con su item */
+.g-sidebar__fly::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--g-space-1) * -1.5 - var(--g-border-width));
+  inset-block-start: var(--_notch);
+  inline-size: calc(var(--g-space-1) * 2.5);
+  block-size: calc(var(--g-space-1) * 2.5);
+  box-sizing: border-box;
+  background: var(--g-color-surface);
+  border: solid var(--g-color-border-control);
+  border-width: 0 0 var(--g-border-width) var(--g-border-width);
+  rotate: 45deg;
+}
+[dir="rtl"] .g-sidebar__fly::before {
+  inset-inline-start: auto;
+  inset-inline-end: calc(var(--g-space-1) * -1.5 - var(--g-border-width));
+  rotate: -135deg;
+}
+.g-sidebar__tip {
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--_x);
+  inset-block-start: var(--_top);
+  margin: 0;
+  padding: var(--g-space-1) var(--g-space-3);
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-text);
+  color: var(--g-color-surface);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+.g-sidebar__tip:popover-open {
+  opacity: 1;
+}
+/* Solo un fundido corto; si ya se mostró otra pista hace un momento (is-instant), aparece al instante */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__tip {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-sidebar__tip.is-instant {
+    transition-duration: 0s;
+  }
+}
+@starting-style {
+  .g-sidebar__tip:popover-open {
+    opacity: 0;
+  }
+}
+
+/* ---------- Navbar inferior · «píldora activa» ---------- */
+.g-sidebar--mode-navbar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 2;
+  inline-size: auto;
+  block-size: auto;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.g-sidebar--mode-navbar.g-sidebar--contained {
+  position: absolute;
+}
+.g-sidebar__bar {
+  pointer-events: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  gap: var(--g-space-1);
+  list-style: none;
+  margin: 0 var(--g-space-3) calc(var(--g-space-1) * 2.5 + env(safe-area-inset-bottom));
+  padding: var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-xl);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-3);
+}
+.g-sidebar__bar > li {
+  flex: 1 1 0;
+  min-inline-size: 44px;
+  display: flex;
+}
+.g-sidebar__tab {
+  position: relative;
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  min-block-size: max(44px, calc(var(--g-space-1) * 12));
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-2);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .g-sidebar__tab:hover {
+    background: var(--g-color-surface-sunken);
+    color: var(--g-color-text);
+  }
+}
+.g-sidebar__tab .g-sidebar__icon {
+  position: relative;
+}
+.g-sidebar__tab .g-sidebar__label {
+  flex: 0 1 auto;
+  font-size: var(--g-text-body-sm-size);
+  font-weight: var(--g-text-action-weight);
+}
+/* La píldora: el item actual (o la rama, o «Más») se rellena y muestra icono y etiqueta */
+.g-sidebar__bar > li.is-current {
+  flex-grow: 3.2;
+}
+.g-sidebar__bar > li.is-current .g-sidebar__tab {
+  background: var(--_color);
+  color: var(--_on);
+}
+.g-sidebar--mode-navbar .g-sidebar__badge {
+  position: absolute;
+  inset-block-start: var(--g-space-1);
+  inset-inline-end: var(--g-space-1);
+  min-inline-size: calc(var(--g-space-1) * 4);
+  padding-inline: var(--g-space-1);
+  line-height: calc(var(--g-space-1) * 4);
+  outline: var(--g-border-width) solid var(--g-color-surface);
+}
+.g-sidebar--mode-navbar .g-sidebar__bar > li.is-current .g-sidebar__badge {
+  background: var(--_on);
+  color: var(--_color);
+  outline-color: var(--_color);
+}
+/* Píldora activa: la celda crece con una curva de movimiento en pantalla y la etiqueta entra tras ella;
+   el color del relleno se cruza (transición, no keyframes: se interrumpe si el usuario cambia otra vez) */
+.g-sidebar__tab:active {
+  scale: 0.95;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__bar > li {
+    transition: flex-grow var(--_t-slow) var(--g-ease-standard);
+  }
+  .g-sidebar__tab {
+    transition:
+      background-color var(--_t) var(--g-ease-standard),
+      color var(--_t) var(--g-ease-standard),
+      scale var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-sidebar__bar > li.is-current .g-sidebar__label {
+    animation: g-sidebar-tab-label-in var(--_t) var(--g-ease-out) calc(var(--_stagger)) both;
+  }
+  @keyframes g-sidebar-tab-label-in {
+    from { opacity: 0; translate: calc(var(--g-space-1) * -2) 0; }
+  }
+  /* Al pasar a este formato, la barra sube desde el borde (bruno pone is-entering y la quita al terminar) */
+  .g-sidebar--mode-navbar.is-entering .g-sidebar__bar {
+    animation: g-sidebar-bar-in var(--_t-slow) var(--g-ease-out) both;
+  }
+  @keyframes g-sidebar-bar-in {
+    from { opacity: 0; translate: 0 calc(100% + var(--g-space-3)); }
+  }
+}
+
+/* ---------- Drawer ---------- */
+.g-sidebar__drawer {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  inline-size: min(calc(var(--g-space-1) * 80), 86vw);
+  max-inline-size: none;
+  block-size: 100dvh;
+  max-block-size: none;
+  overflow: hidden;
+  border: 0;
+  border-start-end-radius: var(--g-surface-radius);
+  border-end-end-radius: var(--g-surface-radius);
+  background: var(--g-surface-shell);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-3);
+}
+.g-sidebar__drawer::backdrop {
+  background: var(--g-surface-backdrop);
+  opacity: 0;
+}
+.g-sidebar__drawer[open]::backdrop {
+  opacity: 1;
+}
+.g-sidebar__drawer .g-sidebar {
+  inline-size: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.g-sidebar__drawer .g-sidebar__nav {
+  padding-inline: var(--g-space-3);
+}
+/* Entrada y salida: el panel se desliza desde el borde de origen (no hay valores en píxeles: su propio ancho) y
+   el fondo se funde. Como transición se interrumpe bien y `allow-discrete` permite animar también el cierre. */
+.g-sidebar__drawer {
+  translate: -100% 0;
+  opacity: 0;
+}
+[dir="rtl"] .g-sidebar__drawer {
+  translate: 100% 0;
+}
+.g-sidebar__drawer[open] {
+  translate: 0 0;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__drawer {
+    transition:
+      translate var(--_t-slow) var(--g-ease-out),
+      opacity var(--_t) var(--g-ease-out),
+      overlay var(--_t-slow) allow-discrete,
+      display var(--_t-slow) allow-discrete;
+  }
+  .g-sidebar__drawer::backdrop {
+    transition:
+      opacity var(--_t-slow) var(--g-ease-out),
+      overlay var(--_t-slow) allow-discrete,
+      display var(--_t-slow) allow-discrete;
+  }
+  /* Los grupos entran escalonados (30ms) tras el panel; es decorativo y nunca bloquea la interacción */
+  .g-sidebar__drawer[open] .g-sidebar__group {
+    animation: g-sidebar-group-in var(--_t-slow) var(--g-ease-out) both;
+  }
+  .g-sidebar__drawer[open] .g-sidebar__group:nth-child(1) { animation-delay: calc(var(--_stagger) * 2); }
+  .g-sidebar__drawer[open] .g-sidebar__group:nth-child(2) { animation-delay: calc(var(--_stagger) * 3); }
+  .g-sidebar__drawer[open] .g-sidebar__group:nth-child(3) { animation-delay: calc(var(--_stagger) * 4); }
+  .g-sidebar__drawer[open] .g-sidebar__group:nth-child(4) { animation-delay: calc(var(--_stagger) * 5); }
+  .g-sidebar__drawer[open] .g-sidebar__group:nth-child(n + 5) { animation-delay: calc(var(--_stagger) * 6); }
+  @keyframes g-sidebar-group-in {
+    from { opacity: 0; translate: calc(var(--g-space-1) * -3) 0; }
+  }
+}
+@starting-style {
+  .g-sidebar__drawer[open] {
+    translate: -100% 0;
+    opacity: 0;
+  }
+  [dir="rtl"] .g-sidebar__drawer[open] {
+    translate: 100% 0;
+  }
+  .g-sidebar__drawer[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* ---------- Densidad y color ---------- */
+.g-sidebar--density-default { --_density: 1; }
+.g-sidebar--density-comfortable { --_density: 0.875; }
+.g-sidebar--density-compact { --_density: 0.75; }
+
+.g-sidebar--color-brand { --_color: var(--g-color-brand); --_on: var(--g-color-on-brand); }
+.g-sidebar--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); }
+.g-sidebar--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); }
+.g-sidebar--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); }
+.g-sidebar--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); }
+.g-sidebar--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); }
+.g-sidebar--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); }
+
+/* ---------- Preferencias del sistema ---------- */
+/* Movimiento reducido = menos y más suave, no cero: se conservan los fundidos y se quitan los desplazamientos y escalas */
+@media (prefers-reduced-motion: reduce) {
+  .g-sidebar,
+  .g-sidebar__chevron,
+  .g-sidebar__toggle > svg,
+  .g-sidebar__bar > li {
+    transition: none;
+  }
+  .g-sidebar__link,
+  .g-sidebar__tab {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard), color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-sidebar__link:active,
+  .g-sidebar__tab:active {
+    scale: none;
+  }
+  .g-sidebar--mode-rail .g-sidebar__toggle > svg {
+    scale: none;
+  }
+  .g-sidebar__sub,
+  .g-sidebar__sub.is-open {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-sidebar__fly,
+  .g-sidebar__fly:popover-open,
+  .g-sidebar__drawer,
+  .g-sidebar__drawer[open] {
+    scale: none;
+    translate: none;
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-sidebar__tip {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-sidebar__drawer::backdrop {
+    transition: opacity var(--g-duration-fast) linear, overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete;
+  }
+  .g-sidebar__badge {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  @starting-style {
+    .g-sidebar__fly:popover-open,
+    .g-sidebar__drawer[open] {
+      opacity: 0;
+      scale: none;
+      translate: none;
+    }
+  }
+}
+@media (forced-colors: active) {
+  .g-sidebar {
+    border-color: CanvasText;
+  }
+  .g-sidebar__link[aria-current="page"],
+  .g-sidebar__link.is-active {
+    outline: var(--g-border-width) solid CanvasText;
+    outline-offset: calc(var(--g-border-width) * -1);
+    box-shadow: none;
+  }
+  .g-sidebar__toggle:focus-visible,
+  .g-sidebar__search:focus-visible,
+  .g-sidebar__link:focus-visible,
+  .g-sidebar__tab:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-sidebar__link[aria-disabled="true"] {
+    color: GrayText;
+  }
+  .g-sidebar__bar,
+  .g-sidebar__fly,
+  .g-sidebar__drawer {
+    border: var(--g-border-width) solid CanvasText;
+  }
+  .g-sidebar__bar > li.is-current .g-sidebar__tab {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+    border: calc(var(--g-border-width) * 2) solid CanvasText;
+  }
+  .g-sidebar__badge {
+    border: var(--g-border-width) solid CanvasText;
+  }
+  .g-sidebar__tip {
+    border: var(--g-border-width) solid CanvasText;
+  }
+}

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSidebar · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/sidebar.md con el CSS real y el tema por defecto.
+     Incluye un motor mínimo (formatos, panel, pista, navbar, drawer) que imita lo que hará bruno. No es documentación.
+     El contenido de la aplicación (logo, usuario, menú) se estiliza aquí con clases bk-*. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GSidebar/GSidebar.css?v=1" id="css-s">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:20px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:24px 0 8px} .cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 6px}
+  .ctl{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-bottom:10px;font-size:13px}
+  .ctl label{display:inline-flex;gap:6px;align-items:center}
+  .wf-btn{min-height:32px;padding:0 12px;border:1px solid var(--g-color-border-control);border-radius:8px;background:var(--g-color-surface);color:inherit;font:inherit;cursor:pointer}
+  .g-sidebar__sr,.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .log{font:12px ui-monospace,monospace;background:var(--g-color-surface);border:1px solid var(--g-color-border);padding:8px;min-height:40px;max-height:110px;overflow:auto;white-space:pre-wrap}
+  .stage{position:relative;max-inline-size:100%;overflow:hidden;border:1px dashed var(--g-color-border-strong);background:var(--g-color-surface)}
+  .shell{position:relative;display:flex;block-size:560px;background:var(--g-color-surface-sunken)}
+  .shell__side{flex:none;position:relative;z-index:2;block-size:100%}
+  .shell__side{transition:inline-size var(--g-duration-press) var(--g-ease-standard)}
+  .shell--m-expanded .shell__side{inline-size:var(--g-sidebar-width)}
+  .shell--m-rail .shell__side{inline-size:var(--g-sidebar-rail)}
+  .shell--overlay.shell--m-expanded .shell__side{inline-size:var(--g-sidebar-rail)}
+  .shell--overlay:has(.g-sidebar--variant-floating).shell--m-expanded .shell__side{inline-size:calc(var(--g-sidebar-rail) + var(--g-space-3) * 2)}
+  .shell--m-navbar .shell__side{position:static;inline-size:0}
+  .shell--m-drawer .shell__side{display:none}
+  .shell__main{flex:1 1 auto;min-width:0;overflow:auto;padding:16px 20px}
+  .shell--m-navbar .shell__main{padding-block-end:var(--g-sidebar-bar)}
+  .shell__bar{display:none;align-items:center;gap:10px;margin:-16px -20px 16px;padding:8px 12px;background:var(--g-color-surface);border-bottom:1px solid var(--g-color-border)}
+  .shell--m-drawer .shell__bar{display:flex}
+  .fake{height:10px;border-radius:5px;background:var(--g-color-border);margin:10px 0;max-inline-size:var(--w,100%)}
+  .shell:has(.g-sidebar--variant-floating).shell--m-expanded .shell__side{inline-size:calc(var(--g-sidebar-width) + var(--g-space-3) * 2)}
+  .shell:has(.g-sidebar--variant-floating).shell--m-rail .shell__side{inline-size:calc(var(--g-sidebar-rail) + var(--g-space-3) * 2)}
+  /* Iconos de la aplicación (trazo lineal, como Lucide) */
+  .g-sidebar svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .g-sidebar__chevron svg{display:none}
+  /* Contenido de la aplicación */
+  .bk-mark{flex:none;display:inline-block;inline-size:28px;block-size:28px;border-radius:8px;background:var(--g-color-brand)}
+  .g-sidebar--mode-rail .bk-word{display:none}
+  .bk-user{display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:48px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+  .bk-user:hover{background:var(--g-color-surface-sunken)} .bk-user:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:-2px}
+  .bk-avatar{flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600}
+  .bk-who{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+  .bk-who small{color:var(--g-color-text-muted);font-size:12px}
+  .g-sidebar--mode-rail .bk-user{inline-size:44px;block-size:44px;padding:0;margin-inline:auto;justify-content:center}
+  .g-sidebar--mode-rail .bk-who,.g-sidebar--mode-rail .bk-user .g-sidebar__chevron{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)}
+  .bk-menu{position:fixed;inset:auto;margin:0;padding:6px;min-inline-size:200px;border:1px solid var(--g-color-border-control);border-radius:12px;background:var(--g-color-surface);box-shadow:var(--g-shadow-2)}
+  .bk-menu:not(:popover-open){display:none}
+  .bk-menu button{display:flex;inline-size:100%;min-block-size:36px;align-items:center;padding:0 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+  .states{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px 16px}
+  .states .g-sidebar{inline-size:100%;block-size:auto;border:var(--g-border-width) solid var(--g-color-border);border-radius:12px;padding:6px}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button" class="wf-btn">Tema de prueba</button>
+<h2>1 · Sistema completo</h2>
+<div class="ctl">
+  <label>Ancho <input type="range" id="w" min="320" max="1100" value="1000"><output id="wo">1000px</output></label>
+  <label><input type="checkbox" id="c-float"> flotante</label>
+  <label><input type="checkbox" id="c-over"> superpuesto</label>
+  <label>modo <select id="c-mode"><option value="auto">automático</option><option value="expanded">expandida</option><option value="rail">riel</option><option value="navbar">navbar</option><option value="drawer">drawer</option></select></label>
+  <label>en móvil <select id="c-mobile"><option value="navbar">navbar</option><option value="drawer">drawer</option></select></label>
+  <label>items barra <select id="c-n"><option>3</option><option selected>4</option><option>5</option></select></label>
+  <label><input type="checkbox" id="c-search" checked> búsqueda</label>
+  <label><input type="checkbox" id="c-user" checked> usuario</label>
+  <label><input type="checkbox" id="c-many"> muchos items</label>
+</div>
+<div class="stage" id="stage" style="inline-size:1000px"><div class="shell" id="shell"></div></div>
+<p class="cap" id="state-cap"></p>
+<h2>2 · Estados de un item</h2>
+<div class="states" id="states"></div>
+<h2>Registro</h2><div class="log" id="log">—</div>
+<script>
+const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
+const P={home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',cog:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',panel:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',chev:'<path d="M9 6l6 6-6 6"/>',msg:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>'}
+const svg=n=>`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${P[n]||''}</svg>`
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
+const NAV=[
+ {group:'Principal',items:[{id:'home',label:'Inicio',icon:'home'},{id:'inbox',label:'Bandeja',icon:'inbox',badge:12,badgeLabel:'12 sin leer'},{id:'msg',label:'Mensajes',icon:'msg',dot:true,badgeLabel:'Hay mensajes nuevos'}]},
+ {group:'Espacio de trabajo',items:[{id:'proj',label:'Proyectos',icon:'folder',children:[{id:'p1',label:'Todos'},{id:'p2',label:'Archivados'},{id:'p3',label:'Plantillas'}]},{id:'team',label:'Equipo',icon:'users'},{id:'cal',label:'Calendario',icon:'calendar'}]},
+ {group:'Gestión',items:[{id:'rep',label:'Reportes',icon:'chart',children:[{id:'r1',label:'Ventas'},{id:'r2',label:'Usuarios'}]},{id:'bill',label:'Facturación',icon:'card',disabled:true}]},
+ {group:'Ajustes',items:[{id:'set',label:'Ajustes',icon:'cog'}]}
+]
+const MANY=[{group:'Documentos',items:Array.from({length:14},(_,i)=>({id:'d'+i,label:'Documento '+(i+1),icon:'doc'}))}]
+let uid=0
+class Sidebar{
+  constructor(host,o={}){this.host=host;this.o={search:true,user:true,nav:NAV,...o};this.id='sb'+(++uid);this.sh=o.shared||{active:'home',open:new Set(['proj'])};this.state='expanded';this.flyFor=null;this.render()}
+  get active(){return this.sh.active} set active(v){this.sh.active=v} get open(){return this.sh.open}
+  set(state){if(state===this.state)return;const prev=this.state;this.state=state;this.closeFly();const root=this.host.querySelector('.g-sidebar');if(!root||state==='navbar'||prev==='navbar'){this.render();return}this.patch(root)}
+  patch(root){const rail=this.state==='rail';root.className=root.className.replace(/g-sidebar--mode-\w+/,'g-sidebar--mode-'+this.state);root.dataset.state=this.state
+    const tgl=root.querySelector('.g-sidebar__toggle');if(tgl){tgl.setAttribute('aria-expanded',String(!rail));tgl.setAttribute('aria-label',rail?'Expandir la barra lateral':'Contraer la barra lateral')}
+    root.querySelectorAll('.g-sidebar__parent').forEach(b=>{const id=b.dataset.id;if(rail){b.setAttribute('aria-haspopup','true');b.removeAttribute('aria-controls');b.setAttribute('aria-expanded','false')}else{b.removeAttribute('aria-haspopup');b.setAttribute('aria-controls',`${this.id}-${id}`);b.setAttribute('aria-expanded',String(this.open.has(id)))}})
+    this.syncSubs(root)}
+  syncSubs(root=this.host){const rail=this.state==='rail';root.querySelectorAll('.g-sidebar__sub').forEach(u=>{const on=!rail&&this.open.has(u.dataset.for);u.classList.toggle('is-open',on);u.inert=!on})}
+  syncActive(){const root=this.host;root.querySelectorAll('[aria-current]').forEach(e=>e.removeAttribute('aria-current'));root.querySelectorAll('.is-branch').forEach(e=>e.classList.remove('is-branch'))
+    const a=root.querySelector(`.g-sidebar__nav [data-id="${this.active}"]`);if(a&&a.tagName==='A')a.setAttribute('aria-current','page')
+    const br=this.branchOf(this.active);if(br)root.querySelector(`.g-sidebar__parent[data-id="${br}"]`)?.classList.add('is-branch')}
+  find(id,nav=this.o.nav){for(const g of nav)for(const it of g.items){if(it.id===id)return it;for(const c of it.children||[])if(c.id===id)return c}}
+  branchOf(id){for(const g of this.o.nav)for(const it of g.items)if((it.children||[]).some(c=>c.id===id))return it.id}
+  linkHtml(it,sub){
+    const rail=this.state==='rail',cur=this.active===it.id,badge=it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?'<span class="g-sidebar__badge" aria-hidden="true" style="min-inline-size:8px;block-size:8px;padding:0"></span>':''
+    const sr=it.badgeLabel?`<span class="g-sidebar__sr">, ${esc(it.badgeLabel)}</span>`:''
+    const inner=`${sub?'':`<span class="g-sidebar__icon">${svg(it.icon)}</span>`}<span class="g-sidebar__label">${esc(it.label)}</span>${badge}${sr}`
+    if(it.children){const exp=this.open.has(it.id),branch=it.children.some(c=>c.id===this.active)
+      return `<button type="button" class="g-sidebar__link g-sidebar__parent${branch?' is-branch':''}" data-id="${it.id}" aria-expanded="${rail?String(this.flyFor===it.id):String(exp)}" ${rail?'aria-haspopup="true"':`aria-controls="${this.id}-${it.id}"`}><span class="g-sidebar__icon">${svg(it.icon)}</span><span class="g-sidebar__label">${esc(it.label)}</span><span class="g-sidebar__chevron" aria-hidden="true">${svg('chev')}</span></button>`}
+    if(it.disabled)return `<a class="g-sidebar__link" role="link" aria-disabled="true" data-id="${it.id}">${inner}</a>`
+    return `<a class="g-sidebar__link" href="#${it.id}" data-id="${it.id}" ${cur?'aria-current="page"':''}>${inner}</a>`}
+  render(){
+    this.flyEl=null;if(this.state==='navbar'){this.renderBar();return}
+    const rail=this.state==='rail',o=this.o,restore=document.activeElement?.dataset?.id&&this.host.contains(document.activeElement)?document.activeElement.dataset.id:null
+    const groups=o.nav.map((g,gi)=>`<li class="g-sidebar__group" role="presentation"><span class="g-sidebar__group-title" id="${this.id}-g${gi}">${esc(g.group)}</span><ul class="g-sidebar__list" aria-labelledby="${this.id}-g${gi}">${g.items.map(it=>`<li class="g-sidebar__item">${this.linkHtml(it)}${it.children?`<ul class="g-sidebar__sub${(!rail&&this.open.has(it.id))?' is-open':''}" id="${this.id}-${it.id}" data-for="${it.id}" ${(!rail&&this.open.has(it.id))?'':'inert'}>${it.children.map(c=>`<li>${this.linkHtml(c,true)}</li>`).join('')}</ul>`:''}</li>`).join('')}</ul></li>`).join('')
+    this.host.innerHTML=`<div class="g-sidebar g-sidebar--mode-${this.state} g-sidebar--variant-${o.variant||'fixed'} g-sidebar--color-brand g-sidebar--density-default${o.overlay?' g-sidebar--overlay':''}" data-state="${this.state}">
+      <div class="g-sidebar__head"><div class="g-sidebar__top"><div class="g-sidebar__logo"><span class="bk-mark" role="img" aria-label="Grana"></span><span class="bk-word">Grana</span></div><button type="button" class="g-sidebar__toggle" data-act="toggle" aria-expanded="${!rail}" aria-label="${rail?'Expandir la barra lateral':'Contraer la barra lateral'}">${svg('panel')}</button></div>
+      ${o.search?`<button type="button" class="g-sidebar__search" data-act="search" aria-haspopup="dialog"><span class="g-sidebar__icon">${svg('search')}</span><span class="g-sidebar__label">Buscar</span><kbd class="g-sidebar__hint" aria-hidden="true">⌘K</kbd></button>`:''}</div>
+      <nav class="g-sidebar__nav" aria-label="Principal"><ul class="g-sidebar__groups" role="list">${groups}</ul></nav>
+      ${o.user?`<div class="g-sidebar__foot"><button type="button" class="bk-user" data-act="user" aria-haspopup="true" aria-expanded="false"><span class="bk-avatar" aria-hidden="true">AG</span><span class="bk-who"><b>Ana García</b><small>Administradora</small></span><span class="g-sidebar__chevron" aria-hidden="true">${svg('chev')}</span></button></div>`:''}</div>`
+    this.bind(); if(restore){this.host.querySelector(`[data-id="${restore}"]`)?.focus()}
+  }
+  barItems(){const flat=this.o.nav.flatMap(g=>g.items);const n=this.o.barN||4;const flagged=flat.filter(i=>i.primary);return (flagged.length?flagged:flat.filter(i=>!i.disabled)).slice(0,n)}
+  renderBar(){
+    const items=this.barItems(),inBar=new Set(items.map(i=>i.id)),restore=document.activeElement?.dataset?.id&&this.host.contains(document.activeElement)?document.activeElement.dataset.id:null
+    const flat=this.o.nav.flatMap(g=>g.items),activeTop=flat.find(i=>i.id===this.active||(i.children||[]).some(c=>c.id===this.active))
+    const moreActive=activeTop&&!inBar.has(activeTop.id),curKey=activeTop&&inBar.has(activeTop.id)?activeTop.id:(moreActive?'more':null)
+    const prevKey=Sidebar._prevCur
+    const badge=it=>it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?'<span class="g-sidebar__badge" aria-hidden="true" style="min-inline-size:8px;block-size:8px;padding:0"></span>':''
+    const sr=it=>it.badgeLabel?`<span class="g-sidebar__sr">, ${esc(it.badgeLabel)}</span>`:''
+    const start=(prevKey&&prevKey!==curKey&&!matchMedia('(prefers-reduced-motion:reduce)').matches)?prevKey:curKey
+    const li=items.map(it=>{const cur=it.id===start,branch=it.children&&it.children.some(c=>c.id===this.active)
+      const lab=`<span class="g-sidebar__label${cur?'':' g-sidebar__label--hidden'}">${esc(it.label)}</span>`
+      if(it.children)return `<li data-key="${it.id}"${cur?' class="is-current"':''}><button type="button" class="g-sidebar__tab${branch?' is-branch':''}" data-id="${it.id}" data-more="${it.id}" aria-haspopup="dialog"><span class="g-sidebar__icon" aria-hidden="true">${svg(it.icon)}</span>${lab}${branch?'<span class="g-sidebar__sr">, contiene la página actual</span>':''}</button></li>`
+      return `<li data-key="${it.id}"${cur?' class="is-current"':''}><a class="g-sidebar__tab" href="#${it.id}" data-id="${it.id}" ${this.active===it.id?'aria-current="page"':''}><span class="g-sidebar__icon" aria-hidden="true">${svg(it.icon)}</span>${lab}${badge(it)}${sr(it)}</a></li>`})
+    const mcur=start==='more'
+    li.push(`<li data-key="more"${mcur?' class="is-current"':''}><button type="button" class="g-sidebar__tab g-sidebar__more${moreActive?' is-branch':''}" data-act="more" aria-haspopup="dialog"><span class="g-sidebar__icon" aria-hidden="true">${svg('menu')}</span><span class="g-sidebar__label${mcur?'':' g-sidebar__label--hidden'}">Más</span>${moreActive?'<span class="g-sidebar__sr">, contiene la página actual</span>':''}</button></li>`)
+    this.host.innerHTML=`<nav class="g-sidebar g-sidebar--mode-navbar g-sidebar--variant-fixed g-sidebar--color-brand g-sidebar--contained" aria-label="Principal"><ul class="g-sidebar__bar" role="list">${li.join('')}</ul></nav>`
+    const nb=this.host.querySelector('nav')
+    const setCur=key=>nb.querySelectorAll('li').forEach(l=>{const on=l.dataset.key===key;l.classList.toggle('is-current',on);l.querySelector('.g-sidebar__label').classList.toggle('g-sidebar__label--hidden',!on)})
+    if(start!==curKey){nb.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>setCur(curKey)))}
+    Sidebar._prevCur=curKey
+    nb.querySelectorAll('a.g-sidebar__tab').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();this.go(a.dataset.id)}))
+    nb.querySelectorAll('[data-act=more],[data-more]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.more)this.sh.open.add(b.dataset.more);this.o.onMore?.(b,b.dataset.more)}))
+    nb.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;const all=[...nb.querySelectorAll('.g-sidebar__tab')],i=all.indexOf(document.activeElement);if(i<0)return;const rtl=getComputedStyle(nb).direction==='rtl',d=e.key==='ArrowRight'?(rtl?-1:1):e.key==='ArrowLeft'?(rtl?1:-1):0;e.preventDefault();all[e.key==='Home'?0:e.key==='End'?all.length-1:Math.max(0,Math.min(all.length-1,i+d))].focus()})
+    if(restore)this.host.querySelector(`[data-id="${restore}"]`)?.focus()
+  }
+  bind(){
+    const h=this.host
+    h.querySelectorAll('.g-sidebar__link').forEach(el=>{
+      el.addEventListener('click',e=>{const id=el.dataset.id,it=this.find(id);if(el.getAttribute('aria-disabled')==='true'){e.preventDefault();return}
+        if(it.children){e.preventDefault();if(this.state==='rail'){this.flyFor===id?this.closeFly(true):this.openFly(el,it,true)}else{this.open.has(id)?this.open.delete(id):this.open.add(id);el.setAttribute('aria-expanded',String(this.open.has(id)));this.syncSubs()}return}
+        e.preventDefault();this.go(id)})
+      el.addEventListener('pointerenter',()=>this.hoverIn(el))
+      el.addEventListener('pointerleave',()=>this.hoverOut(el))
+      el.addEventListener('focus',()=>{if(el.matches(':focus-visible'))this.tipFor(el,0)})
+      el.addEventListener('blur',()=>this.tipHide())
+    })
+    h.querySelector('[data-act=toggle]')?.addEventListener('click',()=>{this.o.onToggle?.(this.state==='rail'?'expanded':'rail')})
+    h.querySelector('[data-act=search]')?.addEventListener('click',()=>log('search → la aplicación abre su paleta'))
+    h.querySelector('[data-act=user]')?.addEventListener('click',e=>this.userMenu(e.currentTarget))
+    h.querySelector('.g-sidebar__nav').addEventListener('keydown',e=>this.key(e))
+  }
+  go(id){this.active=id;log('navega → '+id);this.closeFly();if(this.state==='navbar')this.render();else this.syncActive();this.o.onGo?.(id)}
+  key(e){
+    const k=e.key,link=e.target.closest('.g-sidebar__link');if(!link)return
+    if(k==='ArrowRight'&&this.state==='rail'&&link.classList.contains('g-sidebar__parent')){e.preventDefault();this.openFly(link,this.find(link.dataset.id),true);return}
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(k))return
+    const all=[...this.host.querySelectorAll('.g-sidebar__nav .g-sidebar__link')].filter(x=>x.getAttribute('aria-disabled')!=='true'&&x.offsetParent!==null)
+    const i=all.indexOf(link);let n=k==='ArrowDown'?i+1:k==='ArrowUp'?i-1:k==='Home'?0:all.length-1
+    e.preventDefault();all[Math.max(0,Math.min(all.length-1,n))]?.focus()
+  }
+  /* pista */
+  tipFor(el,delay=350){if(this.state!=='rail'||el.classList.contains('g-sidebar__parent')||el.classList.contains('bk-user'))return;clearTimeout(this.tipT);const recent=Date.now()-(Sidebar._tipLast||0)<600;this.tipT=setTimeout(()=>{const t=Sidebar.tip(),r=el.getBoundingClientRect();t.classList.toggle('is-instant',recent);Sidebar._tipLast=Date.now();t.textContent=el.querySelector('.g-sidebar__label')?.textContent||'';t.showPopover();const rtl=getComputedStyle(el).direction==='rtl';t.style.setProperty('--_top',(r.top+r.height/2-t.offsetHeight/2)+'px');t.style.setProperty('--_x',(rtl?innerWidth-(r.left-8):r.right+8)+'px')},recent?0:delay)}
+  tipHide(){clearTimeout(this.tipT);const t=Sidebar._tip;if(t?.matches(':popover-open')){t.hidePopover();Sidebar._tipLast=Date.now()}}
+  static tip(){if(!Sidebar._tip){const t=document.createElement('div');t.className='g-sidebar__tip';t.setAttribute('popover','manual');t.setAttribute('aria-hidden','true');document.body.append(t);Sidebar._tip=t}return Sidebar._tip}
+  /* panel flotante */
+  hoverIn(el){if(this.state!=='rail')return;clearTimeout(this.leaveT);if(el.classList.contains('g-sidebar__parent')){clearTimeout(this.hoverT);this.hoverT=setTimeout(()=>this.openFly(el,this.find(el.dataset.id),false),150)}else this.tipFor(el)}
+  hoverOut(el){clearTimeout(this.hoverT);this.tipHide();if(this.flyFor){clearTimeout(this.leaveT);this.leaveT=setTimeout(()=>{if(!this.flyPinned)this.closeFly()},220)}}
+  openFly(el,it,byKey){
+    this.closeFly();let f=this.flyEl,fresh=false;if(!f||!f.isConnected){f=this.flyEl=document.createElement('div');f.className='g-sidebar__fly';f.setAttribute('popover','manual');f.setAttribute('role','group');this.host.querySelector('.g-sidebar').append(f);fresh=true}this.fly=f;f.setAttribute('aria-label',it.label)
+    f.innerHTML=`<div class="g-sidebar__fly-title">${esc(it.label)}</div><ul>${it.children.map(c=>`<li><a class="g-sidebar__link" href="#${c.id}" data-id="${c.id}" ${this.active===c.id?'aria-current="page"':''}><span class="g-sidebar__label">${esc(c.label)}</span></a></li>`).join('')}</ul>`
+    f.showPopover();const r=el.getBoundingClientRect(),rtl=getComputedStyle(el).direction==='rtl'
+    const top=Math.max(8,Math.min(r.top-6,innerHeight-f.offsetHeight-8));f.style.setProperty('--_x',(rtl?innerWidth-(r.left-4):r.right+4)+'px');f.style.setProperty('--_top',top+'px');f.style.setProperty('--_notch',(r.top+r.height/2-top-5)+'px')
+    this.flyFor=it.id;this.flyPinned=byKey;el.setAttribute('aria-expanded','true');this.flyBtn=el
+    if(fresh){f.addEventListener('pointerenter',()=>{clearTimeout(this.leaveT)});f.addEventListener('pointerleave',()=>{this.leaveT=setTimeout(()=>{if(!this.flyPinned)this.closeFly()},220)})
+    f.addEventListener('click',e=>{const a=e.target.closest('a');if(a){e.preventDefault();this.go(a.dataset.id)}})
+    f.addEventListener('keydown',e=>{const links=[...f.querySelectorAll('a')],i=links.indexOf(document.activeElement)
+      if(e.key==='Escape'||e.key==='ArrowLeft'){e.preventDefault();e.stopPropagation();this.closeFly(true)}
+      else if(e.key==='ArrowDown'){e.preventDefault();links[Math.min(links.length-1,i+1)].focus()}else if(e.key==='ArrowUp'){e.preventDefault();links[Math.max(0,i-1)].focus()}
+      else if(e.key==='Home'){e.preventDefault();links[0].focus()}else if(e.key==='End'){e.preventDefault();links.at(-1).focus()}})
+    f.addEventListener('focusout',e=>{if(e.relatedTarget&&!f.contains(e.relatedTarget)&&e.relatedTarget!==this.flyBtn)this.closeFly()})}
+    if(byKey)(f.querySelector('[aria-current]')||f.querySelector('a')).focus()
+    document.removeEventListener('pointerdown',this._out);this._out=ev=>{if(this.fly&&!this.fly.contains(ev.target)&&!this.flyBtn.contains(ev.target))this.closeFly()};document.addEventListener('pointerdown',this._out)
+  }
+  closeFly(ret){
+    clearTimeout(this.hoverT);if(!this.fly)return;const b=this.flyBtn;if(this.fly.matches(':popover-open'))this.fly.hidePopover();this.fly=null;this.flyFor=null;this.flyPinned=false;document.removeEventListener('pointerdown',this._out)
+    b?.setAttribute('aria-expanded','false');if(ret)b?.focus()
+  }
+  userMenu(btn){
+    if(!Sidebar._menu){const m=document.createElement('div');m.className='bk-menu';m.setAttribute('popover','manual');m.innerHTML='<button type="button">Perfil</button><button type="button">Preferencias</button><button type="button">Cerrar sesión</button>';document.body.append(m);Sidebar._menu=m
+      m.addEventListener('click',e=>{if(e.target.closest('button')){log('usuario → '+e.target.textContent);m.hidePopover();Sidebar._menuBtn?.focus()}})
+      m.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();m.hidePopover();Sidebar._menuBtn?.focus()}})
+      document.addEventListener('pointerdown',e=>{if(m.matches(':popover-open')&&!m.contains(e.target)&&!Sidebar._menuBtn?.contains(e.target))m.hidePopover()})}
+    const m=Sidebar._menu;Sidebar._menuBtn=btn;if(m.matches(':popover-open')){m.hidePopover();return}
+    m.showPopover();const r=btn.getBoundingClientRect(),rail=this.state==='rail';m.style.insetInlineStart=(rail?r.right+8:r.left)+'px';m.style.insetBlockStart=(r.top-m.offsetHeight-8)+'px';m.querySelector('button').focus()
+  }
+}
+
+/* ---------- Escenario ---------- */
+const stage=document.getElementById('stage'),shell=document.getElementById('shell')
+const cfg={mode:'auto',manual:null,cls:null,float:false,over:false,mobile:'navbar',n:4,navStyle:'pill',shared:{active:'home',open:new Set(['proj'])}}
+let sb,drawer,dlg
+const resolve=()=>{const w=stage.clientWidth;const auto=w>=960?'expanded':w>=600?'rail':cfg.mobile;const cls=auto
+  if(cfg.mode!=='auto')return cfg.mode
+  if(cfg.cls!==cls){cfg.cls=cls;cfg.manual=null} // el ancho cambió de clase: se descarta la elección manual
+  return cfg.manual||auto}
+function build(){
+  const mode=resolve(),nav=document.getElementById('c-many').checked?[...NAV,...MANY]:NAV
+  const mob=mode==='drawer'||mode==='navbar'
+  const opts={search:document.getElementById('c-search').checked,user:document.getElementById('c-user').checked,nav,shared:cfg.shared,barN:cfg.n,variant:cfg.float?'floating':'fixed',overlay:cfg.over,
+    onGo:()=>{if(dlg?.open)dlg.close();build.refresh?.()},
+    onToggle:(to)=>{cfg.manual=to;if(cfg.mode!=='auto'){cfg.mode=to;document.getElementById('c-mode').value=to};inPlace(resolve())},
+    onMore:()=>openDrawer()}
+  const wasBar=shell.classList.contains('shell--m-navbar');shell.className='shell shell--m-'+mode+(cfg.over?' shell--overlay':'')+(mode==='drawer'?' shell--drawer':'')+(mode==='navbar'?' shell--navbar':'')
+  sb?.closeFly();
+  shell.innerHTML=`<div class="shell__side" id="side"></div><div class="shell__main"><div class="shell__bar"><button type="button" class="wf-btn" id="burger" aria-haspopup="dialog" aria-label="Abrir navegación">${svg('menu')}</button><b>Página</b></div><h3 style="margin:0 0 8px">Contenido principal</h3><p class="cap">El contenido cede el ancho al sidebar; el escenario mide ${stage.clientWidth}px. Página actual: <b>${cfg.shared.active}</b></p>${'<div class="fake"></div><div class="fake" style="--w:80%"></div><div class="fake" style="--w:65%"></div>'.repeat(5)}</div>`
+  dlg=null;drawerSb=null
+  if(mob){
+    dlg=document.createElement('dialog');dlg.className='g-sidebar__drawer';dlg.setAttribute('aria-label','Navegación');shell.append(dlg)
+    const host=document.createElement('div');host.style.blockSize='100%';dlg.append(host);drawerSb=new Sidebar(host,{...opts,onGo:()=>{const op=dlg.opener;const d=dlg;d.close();setTimeout(()=>{build();const sel=op&&op.dataset&&op.dataset.more?`[data-more="${op.dataset.more}"]`:mode==='navbar'?'.g-sidebar__more':'#burger';document.querySelector(sel)?.focus()},320)}});drawerSb.set('expanded')
+    dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()})
+    dlg.addEventListener('close',()=>{const b=dlg.opener||document.getElementById('burger');(b&&b.isConnected?b:document.querySelector('.g-sidebar__more')||document.getElementById('burger'))?.focus()})
+  }
+  if(mode==='drawer'){document.getElementById('burger').addEventListener('click',e=>{dlg.opener=e.currentTarget;dlg.showModal()})}
+  if(mode==='navbar'){sb=new Sidebar(document.getElementById('side'),{...opts,onGo:()=>{const b=document.querySelector('.shell__main .cap b');if(b)b.textContent=cfg.shared.active}});sb.set('navbar');if(!wasBar){const nb=document.querySelector('.g-sidebar--mode-navbar');nb.classList.add('is-entering');setTimeout(()=>nb.classList.remove('is-entering'),600)}sb.o.onMore=(b)=>{dlg.opener=b;drawerSb.render();dlg.showModal()}}
+  else if(mode==='drawer'){sb=drawerSb}
+  else{sb=new Sidebar(document.getElementById('side'),opts);sb.set(mode==='rail'?'rail':'expanded');if(mode==='rail')sb.render()}
+  document.getElementById('state-cap').textContent=`Estado resuelto: ${mode}${cfg.mode==='auto'?' (automático por el ancho'+(cfg.manual?', con elección manual':'')+')':' (fijo)'} · ${stage.clientWidth}px`
+}
+let drawerSb
+function openDrawer(){}
+function inPlace(mode){const cur=shell.className.match(/shell--m-(\w+)/)?.[1];if(cur==='navbar'||cur==='drawer'||mode==='navbar'||mode==='drawer'){build();return}
+  shell.className=shell.className.replace(/shell--m-\w+/,'shell--m-'+mode);sb.set(mode==='rail'?'rail':'expanded');document.getElementById('state-cap').textContent='Estado resuelto: '+mode+' · '+stage.clientWidth+'px'}
+function closeDrawer(){if(dlg?.open)dlg.close()}
+document.getElementById('w').addEventListener('input',e=>{stage.style.inlineSize=e.target.value+'px';document.getElementById('wo').textContent=e.target.value+'px';build()})
+document.getElementById('c-float').addEventListener('change',e=>{cfg.float=e.target.checked;build()})
+document.getElementById('c-over').addEventListener('change',e=>{cfg.over=e.target.checked;build()})
+document.getElementById('c-mobile').addEventListener('change',e=>{cfg.mobile=e.target.value;cfg.cls=null;build()})
+document.getElementById('c-n').addEventListener('change',e=>{cfg.n=+e.target.value;build()})
+document.getElementById('c-mode').addEventListener('change',e=>{cfg.mode=e.target.value;cfg.manual=null;build()})
+for(const id of ['c-search','c-user','c-many'])document.getElementById(id).addEventListener('change',build)
+new ResizeObserver(()=>{const w=stage.clientWidth;if(build.w!==w){build.w=w;const m=resolve();const cur=shell.className.match(/shell--m-(\w+)/)?.[1]||'';if(!shell.firstElementChild||cur==='')build();else if(cur!==m)inPlace(m)}}).observe(stage)
+build()
+
+
+/* ---------- Muestrario de estados ---------- */
+;(()=>{const box=document.getElementById('states')
+  const wrap=(t,inner)=>`<div><p class="cap">${t}</p><div class="g-sidebar g-sidebar--mode-expanded g-sidebar--variant-fixed g-sidebar--color-brand g-sidebar--density-default"><ul class="g-sidebar__list"><li class="g-sidebar__item">${inner}</li></ul></div></div>`
+  const link=(cls,cur)=>`<a class="g-sidebar__link ${cls}" href="#x" ${cur?'aria-current="page"':''}><span class="g-sidebar__icon" aria-hidden="true">${svg('inbox')}</span><span class="g-sidebar__label">Bandeja</span><span class="g-sidebar__badge" aria-hidden="true">12</span></a>`
+  const par=(ex,extra='')=>`<button type="button" class="g-sidebar__link g-sidebar__parent ${extra}" aria-expanded="${ex}"><span class="g-sidebar__icon" aria-hidden="true">${svg('folder')}</span><span class="g-sidebar__label">Proyectos</span><span class="g-sidebar__chevron" aria-hidden="true"></span></button>`
+  box.innerHTML=wrap('Default',link(''))+wrap('Hover (puntero)',link(''))+wrap('Active (aria-current)',link('is-active',true))+
+   wrap('Rama activa',par('true','is-branch')+`<ul class="g-sidebar__sub"><li><a class="g-sidebar__link" href="#a"><span class="g-sidebar__label">Todos</span></a></li><li><a class="g-sidebar__link is-active" href="#b" aria-current="page"><span class="g-sidebar__label">Archivados</span></a></li></ul>`)+
+   wrap('Expanded',par('true'))+wrap('Collapsed',par('false'))+
+   wrap('Disabled',`<a class="g-sidebar__link" role="link" aria-disabled="true"><span class="g-sidebar__icon" aria-hidden="true">${svg('card')}</span><span class="g-sidebar__label">Facturación</span></a>`)
+})()
+build.w=0
+const T=`:root{--g-color-brand:#8A4B08;--g-color-brand-strong:#6B3A06;--g-color-brand-soft:#F6E4D0;--g-color-brand-text:#8A4B08;--g-color-on-brand:#FFFFFF;--g-color-accent:#0F766E;--g-color-accent-text:#0F766E;--g-color-focus:#0F766E;--g-color-bg:#FFF8EC;--g-color-surface:#FFFDF7;--g-color-surface-sunken:#F3E7D3;--g-color-text:#3B2A1A;--g-color-text-muted:#5F4A35;--g-color-text-subtle:#735C44;--g-color-border:#DCC9AC;--g-color-border-strong:#B39B78;--g-color-border-control:#8A7250;--g-radius-md:2px;--g-radius-lg:4px;--g-radius-xl:28px;--g-border-width:2px;--g-focus-width:3px;--g-space-1:5px;--g-font-ui:Georgia,serif;--g-surface-backdrop:rgb(59 42 26 / .45)}`
+let tOn=false;document.getElementById('theme-btn').onclick=()=>{tOn=!tOn;document.getElementById('theme').textContent=tOn?T:''}
+</script>
+</body>
+</html>
