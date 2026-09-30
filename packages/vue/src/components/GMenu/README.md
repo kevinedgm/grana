@@ -2,7 +2,7 @@
 
 Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Menu* de APG): acciones, separadores, grupos con título, **casillas y opciones**, **submenús** y elementos **peligrosos**. El contenido es un arreglo de `items`; el disparador es tuyo (slot `trigger`). **Presenta y emite intención:** el estado de casillas y opciones lo guarda tu aplicación.
 
-**Etiqueta:** `<g-menu>` · **Estado:** `draft` (pendiente la auditoría de coco) · **Desde:** 0.1.0
+**Etiqueta:** `<g-menu>` · **Estado:** `candidate` (auditado por coco con un tema propio: `design/lab/menu/auditoria.md`) · **Desde:** 0.1.0
 
 > `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`.
 
@@ -128,7 +128,7 @@ Solo lee `var(--g-*)`; **sin tokens nuevos**. El ancho mínimo y máximo de la l
 
 - Sin menú contextual ni anclaje a un elemento arbitrario; sin barra de menús ni elementos con contenido libre.
 - El componente **no fuerza la exclusividad** de las opciones: la aplicación marca `checked`.
-- Sin verificar: lector de pantalla real, Firefox y Safari (`popover`, `:dir()`), táctil real. Pendiente: la auditoría de coco con un tema propio.
+- Sin verificar: lector de pantalla real, Firefox y Safari (`popover`, `:dir()`), táctil real. Auditado con un tema propio (contrastes ≥ 7:1, foco de 3px, alto por token); `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` solo se comprobaron por presencia en la hoja.
 
 ## Fuentes
 
