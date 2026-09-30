@@ -1,0 +1,179 @@
+/*
+  GHelper · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/helper.md. Estructura: design/lab/helper/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer; únicos literales: 24px y 44px (área táctil).
+  Bruno da: --_offset (número, en línea) en la raíz, y --_x, --_y, --_max (longitudes) en el contenido.
+*/
+
+/* ---------- Raíz ---------- */
+.g-helper {
+  --_trigger: calc(var(--g-space-1) * 8);
+  --_icon: calc(var(--_trigger) * 0.56);
+
+  display: inline-flex;
+  vertical-align: middle;
+  font-family: var(--g-font-ui);
+}
+
+/* ---------- Float: posición del disparador respecto al ancestro posicionado ---------- */
+.g-helper--float {
+  --_o: calc(var(--g-space-1) * var(--_offset));
+  --_tx: 0%;
+  --_ty: 0%;
+  --_dir: 1;
+
+  position: absolute;
+  z-index: 1;
+  translate: calc(var(--_tx) * var(--_dir)) var(--_ty);
+}
+.g-helper--float:dir(rtl) { --_dir: -1; }
+
+/* Lado + attach (left/right son lógicos: inicio y fin de línea) */
+.g-helper--side-top.g-helper--attach-inside { inset-block-start: var(--_o); }
+.g-helper--side-top.g-helper--attach-edge { inset-block-start: 0; --_ty: -50%; }
+.g-helper--side-top.g-helper--attach-outside { inset-block-end: calc(100% + var(--_o)); }
+.g-helper--side-bottom.g-helper--attach-inside { inset-block-end: var(--_o); }
+.g-helper--side-bottom.g-helper--attach-edge { inset-block-end: 0; --_ty: 50%; }
+.g-helper--side-bottom.g-helper--attach-outside { inset-block-start: calc(100% + var(--_o)); }
+.g-helper--side-left.g-helper--attach-inside { inset-inline-start: var(--_o); }
+.g-helper--side-left.g-helper--attach-edge { inset-inline-start: 0; --_tx: -50%; }
+.g-helper--side-left.g-helper--attach-outside { inset-inline-end: calc(100% + var(--_o)); }
+.g-helper--side-right.g-helper--attach-inside { inset-inline-end: var(--_o); }
+.g-helper--side-right.g-helper--attach-edge { inset-inline-end: 0; --_tx: 50%; }
+.g-helper--side-right.g-helper--attach-outside { inset-inline-start: calc(100% + var(--_o)); }
+
+/* Alineación sobre el otro eje: start y end a offset del borde; centro, centrado */
+:is(.g-helper--side-top, .g-helper--side-bottom).g-helper--align-start { inset-inline-start: var(--_o); }
+:is(.g-helper--side-top, .g-helper--side-bottom).g-helper--align-end { inset-inline-end: var(--_o); }
+:is(.g-helper--side-top, .g-helper--side-bottom).g-helper--align-center { inset-inline-start: 50%; --_tx: -50%; }
+:is(.g-helper--side-left, .g-helper--side-right).g-helper--align-start { inset-block-start: var(--_o); }
+:is(.g-helper--side-left, .g-helper--side-right).g-helper--align-end { inset-block-end: var(--_o); }
+:is(.g-helper--side-left, .g-helper--side-right).g-helper--align-center { inset-block-start: 50%; --_ty: -50%; }
+
+/* ---------- Disparador ---------- */
+.g-helper__trigger {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--g-color-text-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Área táctil mínima sin cambiar el aspecto */
+.g-helper__trigger::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: max(100%, 24px);
+  block-size: max(100%, 24px);
+}
+.g-helper__trigger:dir(rtl)::after { translate: 50% -50%; }
+.g-helper__trigger:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-helper__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Por defecto: círculo discreto con el icono de ayuda */
+.g-helper__trigger--default {
+  inline-size: var(--_trigger);
+  block-size: var(--_trigger);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-1);
+}
+.g-helper__trigger--default .g-icon {
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
+}
+.g-helper.is-open .g-helper__trigger--default {
+  color: var(--g-color-text);
+  border-color: var(--g-color-text);
+}
+/* Personalizado: el consumidor pone el aspecto; el botón solo aporta foco, área y cursor */
+.g-helper__trigger--custom {
+  min-block-size: 24px;
+  border-radius: var(--g-radius-sm);
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .g-helper:not(.is-open) .g-helper__trigger--default:not(:disabled):hover {
+    color: var(--g-color-text);
+    border-color: var(--g-color-text-muted);
+  }
+}
+@media (pointer: coarse) {
+  .g-helper__trigger::after {
+    inline-size: max(100%, 44px);
+    block-size: max(100%, 44px);
+  }
+}
+
+/* ---------- Contenido (popover en la capa superior) ---------- */
+.g-helper__content {
+  /* Coordenadas físicas de visor calculadas por el componente: por eso left/top (como GMenu) */
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  inline-size: max-content;
+  max-inline-size: calc(var(--g-space-1) * 80);
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+  background: var(--g-color-surface);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  box-shadow: var(--g-shadow-2);
+}
+.g-helper__content:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Entrada breve desde el lado del disparador; sin movimiento con reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  .g-helper__content:popover-open {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-helper__content:popover-open { opacity: 0; }
+    .g-helper__content[data-side="bottom"]:popover-open { translate: 0 calc(var(--g-space-1) * -1); }
+    .g-helper__content[data-side="top"]:popover-open { translate: 0 var(--g-space-1); }
+    .g-helper__content[data-side="left"]:popover-open { translate: var(--g-space-1) 0; }
+    .g-helper__content[data-side="right"]:popover-open { translate: calc(var(--g-space-1) * -1) 0; }
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-helper__trigger--default { border-color: ButtonText; color: ButtonText; background: ButtonFace; }
+  .g-helper__content { border-color: CanvasText; }
+}

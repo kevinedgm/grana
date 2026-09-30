@@ -1,0 +1,7 @@
+/*
+  GHelperScope · contexto de posición para los GHelper flotantes.
+  Dueño: coco. Contrato: design/contracts/helper.md. Sin aspecto propio: solo establece el ancestro posicionado.
+*/
+.g-helper-scope {
+  position: relative;
+}
