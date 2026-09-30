@@ -89,10 +89,12 @@ Con `adaptive`, al **abrir** se decide la presentación por el **espacio real**:
 
 | Condición | Presentación |
 | --- | --- |
-| El visor ofrece el **ancho cómodo del contenido** (`space × 80` = 320px, más márgenes) **y** alguna posición cabe | Popover |
+| El visor mide al menos **`space × 130`** (520px con `space` 4: el umbral en que `GDialog` pasa a hoja) **y** alguna posición cabe | Popover |
 | Si no | Hoja (`GDialog` con `mobile="sheet"`; por encima de ~520px, `GDialog` se muestra centrado) |
 
 La presentación se mantiene mientras está abierto (un cambio de tamaño solo reposiciona el popover). El umbral deriva de `space`; no es un token.
+
+**Corrección de bruno (al construir):** la propuesta de kiwi («ancho cómodo del contenido = `space × 80`», 320px más márgenes) dejaba un popover de 320px en móviles de 360px o más: nunca se veía la hoja que pide la especificación (§21, móvil → hoja). Se alinea con el umbral de `GDialog`: así la hoja es siempre una hoja inferior, nunca un diálogo centrado por falta de ancho. Verificado: 360px → hoja, 520px → popover.
 
 ## Eventos
 
@@ -155,7 +157,7 @@ Variable dinámica en línea: `--_offset` (número).
 | 5 | Slot `trigger` | Dentro del botón; sin controles; alcance `{ open }` | WCAG 4.1.2 (sin botones anidados); ejemplos de la especificación |
 | 6 | Slot `default` | Alias de `content` | Especificación §14 |
 | 7 | Hoja | `GDialog` con `title` = `contentLabel` y `closeLabel` | Decisión del usuario (DECISIONS.md #103) |
-| 8 | Umbral de adaptación | `space × 80`, derivado; no token | `tokens.md` §17.6 |
+| 8 | Umbral de adaptación | `space × 130` (umbral de hoja de `GDialog`), derivado; no token. Corregido al construir: `space × 80` no llegaba a hoja en móviles | `tokens.md` §17.6; especificación §21 |
 | 9 | `offset` | Unidades de `space`, variable en línea `--_offset` | Especificación §12 |
 | 10 | Eventos | `update:open` y `toggle` | Patrón de Grana |
 | 11 | Posicionamiento compartido | `src/utils/anchor.js` extraído de `GMenu`; `GMenu` lo usa | Decisión del usuario (DECISIONS.md #102) |

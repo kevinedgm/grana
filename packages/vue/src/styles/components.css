@@ -24,4 +24,6 @@
 @import url("../components/GMenu/GMenu.css");
 @import url("../components/GStepper/GStepper.css");
 @import url("../components/GSurface/GSurface.css");
+@import url("../components/GHelperScope/GHelperScope.css");
+@import url("../components/GHelper/GHelper.css");
 @import url("../components/GIcon/GIcon.css");

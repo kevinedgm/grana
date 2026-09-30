@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "name": "GHelperScope",
+  "tag": "g-helper-scope",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Contenedor sin aspecto propio que fija el contexto de posición de los GHelper flotantes.",
+  "contract": "design/contracts/helper.md",
+  "prototype": "design/lab/helper/r01/",
+  "style": "packages/vue/src/components/GHelperScope/GHelperScope.css",
+  "props": [
+    {
+      "name": "as",
+      "type": "String",
+      "default": "div"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Contenido de la región"
+    }
+  ],
+  "tokens": [],
+  "states": [],
+  "pending": [
+    "Auditoría de coco (paso 5)",
+    "README (mora-docs)"
+  ]
+}

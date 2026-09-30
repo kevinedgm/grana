@@ -448,6 +448,22 @@
       </g-menu>
       <span>Último: <b>{{ mnLog }}</b></span>
     </div>
+    <h2>Ayuda contextual (GHelper, GHelperScope)</h2>
+    <div class="row">
+      <g-btn variant="outline">Guardar</g-btn>
+      <g-helper aria-label="Abrir ayuda" content-label="Ayuda" close-label="Cerrar">
+        <template #content="{ close }">
+          <p style="margin:0 0 8px">Puedo ayudarte con este formulario.</p>
+          <g-btn variant="ghost" size="sm" @click="close">Explicar</g-btn>
+        </template>
+      </g-helper>
+    </div>
+    <g-helper-scope style="max-width:520px;margin:32px 0;padding:24px;border:1px solid var(--g-color-border);border-radius:12px">
+      <p style="margin:0">Formulario de alta: el disparador flota sobre el borde superior y el contenido se abre hacia abajo.</p>
+      <g-helper mode="float" placement="top-end" attach="edge" content-placement="bottom-end" aria-label="Ayuda del formulario" content-label="Ayuda del formulario" close-label="Cerrar">
+        <template #content>Completa los campos obligatorios.</template>
+      </g-helper>
+    </g-helper-scope>
     <h2>Superficies (GSurface)</h2>
     <div class="row" style="align-items:stretch">
       <g-surface level="flat">flat</g-surface>
