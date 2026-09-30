@@ -448,6 +448,24 @@
       </g-menu>
       <span>Último: <b>{{ mnLog }}</b></span>
     </div>
+    <h2>Superficies (GSurface)</h2>
+    <div class="row" style="align-items:stretch">
+      <g-surface level="flat">flat</g-surface>
+      <g-surface level="outlined">outlined</g-surface>
+      <g-surface level="raised">raised</g-surface>
+      <g-surface level="floating">floating</g-surface>
+      <g-surface level="inset">inset</g-surface>
+    </div>
+    <div class="row" style="align-items:flex-start">
+      <g-surface level="raised" as="article" style="max-width:320px">
+        <b>Plan Pro</b>
+        <g-surface level="inset" padding="sm" style="margin-top:12px">3 asientos · $36/mes</g-surface>
+      </g-surface>
+      <g-surface level="floating" tone="sunken" padding="xs" rounded="xl" style="max-width:360px">
+        <div style="padding:8px 12px"><b>Guardar cambios</b></div>
+        <g-surface level="inset">Cuerpo del diálogo sobre la carcasa hundida.</g-surface>
+      </g-surface>
+    </div>
     <h2>Stepper (GStepper)</h2>
     <div class="col" style="max-width:720px">
       <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta" @select="stpLog = 'select · ' + $event.id"></g-stepper>

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "name": "GSurface",
+  "tag": "g-surface",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Superficie visual genérica, sin rol ni estructura: niveles flat, outlined, raised, floating e inset; la inset da un paso de tono respecto a su superficie padre y toma su radio concéntrico.",
+  "contract": "design/contracts/surface.md",
+  "prototype": "design/lab/surface/r01/",
+  "style": "packages/vue/src/components/GSurface/GSurface.css",
+  "props": [
+    {
+      "name": "level",
+      "type": "String",
+      "default": "outlined",
+      "values": [
+        "flat",
+        "outlined",
+        "raised",
+        "floating",
+        "inset"
+      ]
+    },
+    {
+      "name": "tone",
+      "type": "String",
+      "default": "surface",
+      "values": [
+        "surface",
+        "sunken"
+      ]
+    },
+    {
+      "name": "padding",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "as",
+      "type": "String",
+      "default": "div"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Contenido libre"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-surface-shell",
+    "--g-surface-inset",
+    "--g-surface-gap",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-text",
+    "--g-radius-{none|xs|sm|md|lg|xl|pill}",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-space-1",
+    "--g-border-width"
+  ],
+  "states": [
+    "flat",
+    "outlined",
+    "raised",
+    "floating",
+    "inset",
+    "inset-on-sunken",
+    "inset-nested"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real con un tema distinto al por defecto (paso 5)",
+    "README (mora-docs)",
+    "Superficie no-inset dentro de una inset (no diseñado en r01)",
+    "Firefox y Safari (:not() con selectores complejos)",
+    "forced-colors real y zoom al 200%",
+    "Migración de GDialog, GWidget, GMenu, GSelect y GSidebar (rondas propias)"
+  ]
+}
