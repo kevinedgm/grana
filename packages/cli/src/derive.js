@@ -43,3 +43,35 @@ export const deriveColor = (baseHex, { surface = '#FFFFFF' } = {}) => {
   const onSoft = shiftUntil(base, soft, 4.5)
   return { base: toHex(base), strong: toHex(strong), soft: toHex(soft), on: toHex(on), text: toHex(text), onSoft: toHex(onSoft) }
 }
+
+/**
+ * Variante oscura de un color (docs/contract/tokens.md §15). `surface` es la superficie oscura.
+ * Base: se conserva si L ≥ 0.5 y se refleja (1 − L) si es menor; luego sube L hasta 4.5:1 sobre la superficie.
+ * strong: sube L 0.06 (se aleja del fondo); si baja de 4.5:1 con `on`, baja L 0.08.
+ * soft: L 0.26 y C × 0.35. text: la base, subiendo L hasta 4.5:1 sobre la superficie. on-soft: sube L hasta 4.5:1 sobre soft.
+ * @returns {{ base, strong, soft, on, text, onSoft }} en hex mayúsculas
+ */
+export const deriveDarkColor = (baseHex, { surface = '#1C1C1C' } = {}) => {
+  const light = parseHex(baseHex)
+  if (!light) throw new Error(`Color inválido: ${baseHex}`)
+  const surf = parseHex(surface)
+  const k = toOklch(light)
+  const raise = (l0, against, min) => {
+    let l = l0
+    let cur = round(fromOklch({ l, c: k.c, h: k.h }))
+    while (contrast(cur, against) < min && l < 0.99) {
+      l += 0.01
+      cur = round(fromOklch({ l, c: k.c, h: k.h }))
+    }
+    return { cur, l }
+  }
+  const start = k.l >= 0.5 ? k.l : 1 - k.l
+  const { cur: base, l } = raise(start, surf, 4.5)
+  const on = pickOn(base)
+  let strong = round(fromOklch({ l: Math.min(l + 0.06, 1), c: k.c, h: k.h }))
+  if (contrast(strong, on) < 4.5) strong = round(fromOklch({ l: l - 0.08, c: k.c, h: k.h }))
+  const soft = round(fromOklch({ l: 0.26, c: k.c * 0.35, h: k.h }))
+  const text = raise(l, surf, 4.5).cur
+  const onSoft = raise(l, soft, 4.5).cur
+  return { base: toHex(base), strong: toHex(strong), soft: toHex(soft), on: toHex(on), text: toHex(text), onSoft: toHex(onSoft) }
+}

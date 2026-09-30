@@ -5,6 +5,7 @@ import { DEFAULTS } from './defaults.js'
 
 export const COLOR_NAMES = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const BLACK = [0, 0, 0]
+const WHITE = [255, 255, 255]
 
 // Resuelve `var(--x)` recursivamente y devuelve el valor final como texto
 const resolve = (tokens, value, depth = 0) => {
@@ -31,7 +32,8 @@ const lengthPx = (v) => {
 const fmt = (n) => (Math.round(n * 100) / 100).toString()
 
 /** @param {Record<string,string>} tokens tema completo (defaults + generado + overrides) */
-export const validateTheme = (tokens, { generated = {} } = {}) => {
+export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {}) => {
+  const dark = scheme === 'dark'
   const issues = []
   const add = (id, severity, message, why, extra = {}) => issues.push({ id, severity, message, why, ...extra })
   const unreadable = (name) => add('unverifiable', 'warning', `No se pudo leer el color de ${name} («${tokens[name]}»): no se verificó su contraste.`, 'Usa hex (#RRGGBB) o rgb() para que el CLI pueda comprobarlo.', { tokens: [name] })
@@ -48,7 +50,7 @@ export const validateTheme = (tokens, { generated = {} } = {}) => {
 
   // Foco (§7): siempre visible y de al menos 2px
   const fw = lengthPx(tokens['--g-focus-width'])
-  if (fw === null) unreadable('--g-focus-width')
+  if (dark) { /* el ancho del foco no cambia con el esquema: ya se validó en el claro */ } else if (fw === null) unreadable('--g-focus-width')
   else if (fw < 2) add('focus-width', 'error', `--g-focus-width es ${fmt(fw)}px; el mínimo es 2px.`, 'WCAG 2.4.13 pide un indicador de foco de al menos 2px: con menos, el foco deja de verse.', { tokens: ['--g-focus-width'] })
   pair('--g-color-focus', '--g-color-surface', 3, 'focus-contrast', 'WCAG 1.4.11: el anillo de foco necesita 3:1 contra la superficie.')
 
@@ -69,7 +71,7 @@ export const validateTheme = (tokens, { generated = {} } = {}) => {
   }
 
   // Tamaño mínimo de texto (§7): 12px
-  for (const [k, v] of Object.entries(tokens)) {
+  for (const [k, v] of dark ? [] : Object.entries(tokens)) {
     if (!/^--g-text-[a-z-]+-size$/.test(k)) continue
     const px = lengthPx(v)
     if (px !== null && px < 12 - 1e-9) add('font-size', 'error', `${k} es ${fmt(px)}px; el mínimo es 12px.`, 'Texto por debajo de 12px es ilegible para muchos usuarios (mínimo de accesibilidad de Grana, contrato §7).', { tokens: [k] })
@@ -86,24 +88,24 @@ export const validateTheme = (tokens, { generated = {} } = {}) => {
       for (const v of veils) {
         const tint = colorOf(tokens, v)
         if (!tint) { unreadable(v); continue }
-        const composite = over(tint, Math.min(1, Math.max(0, opacity)), BLACK)
+        const composite = over(tint, Math.min(1, Math.max(0, opacity)), dark ? WHITE : BLACK)
         const ratio = contrast(text, composite)
         if (ratio + 1e-9 < 4.5) failing.push({ v, ratio, composite })
       }
       if (failing.length) {
         const worst = failing.reduce((a, b) => (b.ratio < a.ratio ? b : a))
-        add('glass-contrast', 'error', `Texto sobre cristal (opacidad ${fmt(opacity)}) sobre un fondo negro: contraste ${fmt(worst.ratio)}:1 en el peor velo (${worst.v}, compuesto ${toHex(worst.composite)}); mínimo 4.5:1. Fallan ${failing.length} de ${veils.length} velos: ${failing.map((f) => f.v).join(', ')}.`, 'WCAG 1.4.3: el cristal deja pasar el fondo; el peor caso es el negro. Sube --g-glass-opacity o usa un velo más claro / un texto más oscuro.', { tokens: ['--g-glass-opacity', '--g-color-text', ...failing.map((f) => f.v)], ratio: +worst.ratio.toFixed(2), min: 4.5 })
+        add('glass-contrast', 'error', `Texto sobre cristal (opacidad ${fmt(opacity)}) sobre un fondo ${dark ? 'blanco' : 'negro'}: contraste ${fmt(worst.ratio)}:1 en el peor velo (${worst.v}, compuesto ${toHex(worst.composite)}); mínimo 4.5:1. Fallan ${failing.length} de ${veils.length} velos: ${failing.map((f) => f.v).join(', ')}.`, 'WCAG 1.4.3: el cristal deja pasar el fondo; el peor caso es el negro. Sube --g-glass-opacity o usa un velo más claro / un texto más oscuro.', { tokens: ['--g-glass-opacity', '--g-color-text', ...failing.map((f) => f.v)], ratio: +worst.ratio.toFixed(2), min: 4.5 })
       }
     } else unreadable('--g-color-text')
   } else add('unverifiable', 'warning', `No se pudo leer --g-glass-opacity («${tokens['--g-glass-opacity']}»).`, 'Debe ser un número entre 0 y 1.', { tokens: ['--g-glass-opacity'] })
 
   // Espaciado: los controles tienen piso de 24px, pero con una unidad muy pequeña se pierde densidad
   const unit = lengthPx(tokens['--g-space-1'])
-  if (unit !== null && unit < 4) add('space-small', 'warning', `--g-space-1 es ${fmt(unit)}px: los controles xs (6 unidades) medirían ${fmt(unit * 6)}px.`, 'Los componentes aplican un piso de 24px (WCAG 2.5.8), así que los tamaños pequeños dejan de diferenciarse.', { tokens: ['--g-space-1'] })
+  if (!dark && unit !== null && unit < 4) add('space-small', 'warning', `--g-space-1 es ${fmt(unit)}px: los controles xs (6 unidades) medirían ${fmt(unit * 6)}px.`, 'Los componentes aplican un piso de 24px (WCAG 2.5.8), así que los tamaños pequeños dejan de diferenciarse.', { tokens: ['--g-space-1'] })
 
   // Tokens explícitos que no existen (erratas)
   for (const k of Object.keys(generated)) {
     if (!(k in DEFAULTS)) add('unknown-token', 'warning', `«${k}» no es un token de Grana.`, 'Puede ser una errata: ningún componente lo lee.', { tokens: [k] })
   }
-  return issues
+  return dark ? issues.map((i) => ({ ...i, scheme: 'dark', message: `[oscuro] ${i.message}` })) : issues
 }

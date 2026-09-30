@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { contrast, parseHex } from '../src/color.js'
 import { deriveColor, pickOn } from '../src/derive.js'
-import { DEFAULTS } from '../src/defaults.js'
+import { DEFAULTS, DARK } from '../src/defaults.js'
 
 const near = (a, b, tol) => parseHex(a).every((v, i) => Math.abs(v - parseHex(b)[i]) <= tol)
 
@@ -68,5 +68,13 @@ describe('defaults.js', () => {
     const parsed = {}
     for (const m of css.matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) parsed[m[1]] = m[2].trim().replace(/\s+/g, ' ')
     expect(DEFAULTS).toEqual(parsed)
+  })
+
+  it('DARK coincide con el bloque [data-theme="dark"] de defaults.css', () => {
+    const raw = readFileSync(fileURLToPath(new URL('../../vue/src/styles/defaults.css', import.meta.url)), 'utf8')
+    const block = raw.split('/* === OSCURO')[1].split('[data-theme="dark"] {')[1].split('}')[0].replace(/\/\*[\s\S]*?\*\//g, '')
+    const parsed = {}
+    for (const m of block.matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) parsed[m[1]] = m[2].trim().replace(/\s+/g, ' ')
+    expect(DARK).toEqual(parsed)
   })
 })

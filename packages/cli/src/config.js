@@ -1,7 +1,7 @@
-// Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides`.
+// Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides` + `dark`.
 import { parseHex } from './color.js'
 
-export const KEYS = ['brand', 'accent', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides']
+export const KEYS = ['brand', 'accent', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
 
 /** Devuelve { config, errors }. Rechaza claves desconocidas y tipos incorrectos, con el motivo. */
 export const readConfig = (raw) => {
@@ -44,17 +44,41 @@ export const readConfig = (raw) => {
     if (raw.shape !== 'rounded' && raw.shape !== 'pill') err('bad-shape', `«shape» debe ser "rounded" o "pill"; se recibió ${JSON.stringify(raw.shape)}.`)
     else config.shape = raw.shape
   }
-  if (raw.overrides !== undefined) {
-    if (raw.overrides === null || typeof raw.overrides !== 'object' || Array.isArray(raw.overrides)) err('bad-overrides', '«overrides» debe ser un objeto { "--g-token": "valor" }.')
-    else {
-      const o = {}
-      for (const [k, v] of Object.entries(raw.overrides)) {
-        if (!/^--g-[a-z0-9-]+$/.test(k)) err('bad-override', `«overrides» solo admite tokens «--g-*»; «${k}» no lo es.`)
-        else if (typeof v !== 'string' || !v.trim()) err('bad-override', `El valor de «${k}» en «overrides» debe ser un texto no vacío.`)
-        else o[k] = v.trim()
-      }
-      config.overrides = o
+  // { "--g-token": "valor" } de tokens «--g-*»
+  const readOverrides = (value, label) => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) { err('bad-overrides', `«${label}» debe ser un objeto { "--g-token": "valor" }.`); return undefined }
+    const o = {}
+    for (const [k, v] of Object.entries(value)) {
+      if (!/^--g-[a-z0-9-]+$/.test(k)) err('bad-override', `«${label}» solo admite tokens «--g-*»; «${k}» no lo es.`)
+      else if (typeof v !== 'string' || !v.trim()) err('bad-override', `El valor de «${k}» en «${label}» debe ser un texto no vacío.`)
+      else o[k] = v.trim()
     }
+    return o
+  }
+  if (raw.overrides !== undefined) {
+    const o = readOverrides(raw.overrides, 'overrides')
+    if (o) config.overrides = o
+  }
+  // dark: true (por defecto) | false | { brand?, accent?, overrides? } (docs/contract/tokens.md §15)
+  if (raw.dark !== undefined) {
+    const d = raw.dark
+    if (typeof d === 'boolean') config.dark = d
+    else if (d !== null && typeof d === 'object' && !Array.isArray(d)) {
+      const o = {}
+      for (const key of Object.keys(d)) {
+        if (!['brand', 'accent', 'overrides'].includes(key)) err('unknown-key', `Clave desconocida «dark.${key}». Claves válidas: brand, accent, overrides.`)
+      }
+      for (const key of ['brand', 'accent']) {
+        if (d[key] === undefined) continue
+        if (typeof d[key] !== 'string' || !parseHex(d[key])) err('bad-color', `«dark.${key}» debe ser un color hex (#RGB o #RRGGBB); se recibió ${JSON.stringify(d[key])}.`)
+        else o[key] = d[key].startsWith('#') ? d[key].toUpperCase() : `#${d[key].toUpperCase()}`
+      }
+      if (d.overrides !== undefined) {
+        const ov = readOverrides(d.overrides, 'dark.overrides')
+        if (ov) o.overrides = ov
+      }
+      config.dark = o
+    } else err('bad-dark', '«dark» debe ser true, false o un objeto { brand, accent, overrides }.')
   }
   return { config, errors }
 }

@@ -22,11 +22,36 @@ Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una
   "fontDisplay": "Instrument Serif",
   "fontSize": 16,
   "typeScale": 1.25,
+  "dark": true,
   "overrides": { "--g-glass-opacity": "0.7" }
 }
 ```
 
 De `brand` y `accent` se derivan (en OKLCH) `strong`, `soft`, `on`, `text` y `on-soft` con contraste garantizado. Los colores semánticos y cualquier otro token se ajustan con `overrides`.
+
+## Tema oscuro (`dark`)
+
+Por defecto (`dark: true`) el CLI deriva **la variante oscura de lo que cambias** y la emite junto al claro (contrato `docs/contract/tokens.md` §15): el tema sigue al sistema (`prefers-color-scheme`) y se puede forzar con `data-theme="dark"` o `"light"` en cualquier elemento.
+
+```json
+{ "brand": "#0B1F4D", "dark": { "brand": "#8FACE5", "overrides": { "--g-color-text": "#ECECEC" } } }
+```
+
+| Valor | Efecto |
+| --- | --- |
+| `true` (por defecto) | Deriva el oscuro de `brand` y `accent` (en OKLCH: la base clara se conserva o se refleja y sube hasta 4.5:1 sobre la superficie oscura) |
+| `{ brand, accent, overrides }` | `brand` y `accent` son colores explícitos del oscuro (se derivan con las mismas reglas); `overrides` solo aplica al oscuro |
+| `false` | Sin tema oscuro: el tema claro se restablece completo dentro de la consulta oscura (el sistema oscuro no activa el oscuro de los defaults). Avisa: `data-theme="dark"` forzado mezclaría el oscuro de los defaults con tus colores claros |
+
+Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-color-surface`) recibe también su valor oscuro (el de los defaults, o el que pongas en `dark.overrides`): el `tokens.css` no lleva capa y, sin eso, ganaría en el oscuro. **Los dos esquemas se validan** (los mensajes del oscuro empiezan por `[oscuro]`). El oscuro no cambia `radius`, `space`, `font`, `fontSize` ni `typeScale`.
+
+```css
+/* tokens.css generado (resumen) */
+:root { /* lo que no es de color */ }
+:root, [data-theme="light"] { /* colores claros */ }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; /* colores oscuros */ } }
+[data-theme="dark"] { color-scheme: dark; /* colores oscuros */ }
+```
 
 ## Comandos
 
@@ -40,7 +65,7 @@ De `brand` y `accent` se derivan (en OKLCH) `strong`, `soft`, `on`, `text` y `on
 
 ## Qué valida (contrato §7 y §12)
 
-Foco ≥ 2px · contraste de texto ≥ 4.5:1 y de bordes de control ≥ 3:1 · texto ≥ 12px · pares `on-*`/`*-text` ≥ 4.5:1 · cristal: opacidad ≥ 0.55 y velo ≥ 4.5:1 sobre negro. Avisa (sin bloquear) de tokens desconocidos, colores que no puede medir y `space` < 4.
+**En los dos esquemas (claro y oscuro):** foco ≥ 2px · contraste de texto ≥ 4.5:1 y de bordes de control ≥ 3:1 · texto ≥ 12px · pares `on-*`/`*-text` ≥ 4.5:1 · cristal: opacidad ≥ 0.55 y velo ≥ 4.5:1 sobre negro. Avisa (sin bloquear) de tokens desconocidos, colores que no puede medir y `space` < 4.
 
 ## Uso programático
 
@@ -51,4 +76,4 @@ const { ok, css, issues } = buildTheme({ brand: '#7A1F5C' })
 
 ## Mantenimiento
 
-`src/defaults.js` es copia de `packages/vue/src/styles/defaults.css`. Tras cambiar los defaults: `node packages/cli/scripts/sync-defaults.mjs` (una prueba falla si se desfasan).
+`src/defaults.js` es copia de `packages/vue/src/styles/defaults.css` (`DEFAULTS`: el tema claro; `DARK`: el grupo de color del bloque `[data-theme="dark"]`). Tras cambiar los defaults: `node packages/cli/scripts/sync-defaults.mjs` (una prueba falla si se desfasan).

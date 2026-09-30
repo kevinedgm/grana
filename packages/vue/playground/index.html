@@ -431,6 +431,13 @@
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
+      <label>Esquema de color
+        <select v-model="scheme" @change="setScheme">
+          <option value="auto">Automático (sigue al sistema)</option>
+          <option value="light">Claro (data-theme="light")</option>
+          <option value="dark">Oscuro (data-theme="dark")</option>
+        </select>
+      </label>
     </div>
       <h2>Widgets (GWidget, GWidgetGrid)</h2>
     <div class="col" style="max-width:1100px">
@@ -769,13 +776,18 @@
           setTimeout(() => { loading.value = false }, 2000)
         }
         const log = (label) => console.log('click:', label)
+        const scheme = ref('auto')
+        const setScheme = () => {
+          if (scheme.value === 'auto') delete document.documentElement.dataset.theme
+          else document.documentElement.dataset.theme = scheme.value
+        }
         const toggleTheme = () => {
           themed.value = !themed.value
           document.getElementById('theme').textContent = themed.value
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
