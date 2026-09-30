@@ -99,6 +99,17 @@
 }
 
 /* ---------- Modos ---------- */
+/* Un contador, un icono o una figura nunca se encogen ni se recortan (en una fila flex, `overflow` en el texto
+   permitiría que el contenedor los aplaste hasta «1…»); solo el texto de una insignia de texto lleva elipsis. */
+.g-badge--kind-count,
+.g-badge--kind-icon,
+.g-badge--kind-figure {
+  flex: none;
+}
+.g-badge--kind-count .g-badge__text {
+  overflow: visible;
+  text-overflow: clip;
+}
 .g-badge--kind-count {
   justify-content: center;
   min-inline-size: var(--_h);

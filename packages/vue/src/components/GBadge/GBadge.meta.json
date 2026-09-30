@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GBadge",
   "tag": "g-badge",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Insignia no interactiva: texto, texto con figura de estado, icono, solo icono, solo figura y contador con tope; anclada a otro elemento; variantes solid, soft, outline y glass (liquid glass).",
   "contract": "design/contracts/badge.md",
@@ -138,7 +138,6 @@
     "zero-hidden"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: insignia sin texto y anclada junto a su destino",
     "Firefox y Safari (backdrop-filter, color-mix) y prefers-reduced-transparency real"
