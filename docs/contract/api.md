@@ -11,7 +11,7 @@
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según rol y `shape` del tema | La instancia gana sobre el tema |
 | `block` | Boolean | | `false` | Ancho completo |
 | `disabled` | Boolean | | `false` | `disabled` nativo, o `aria-disabled` si debe seguir enfocable |
-| `readonly` | Boolean | | `false` | Solo controles de entrada |
+| `readonly` | Boolean | | `false` | Solo controles de entrada. En `GCheckbox` (el `<input type="checkbox">` no admite `readonly` nativo): `aria-readonly="true"` y el cambio se bloquea; la casilla sigue enfocable |
 | `loading` | Boolean | | `false` | Bloquea la acción, `aria-busy="true"`, no cambia el tamaño. En **controles de entrada** (`GInput`) solo muestra el indicador y `aria-busy`: no bloquea la escritura |
 | `modelValue` | según componente | | | Con `update:modelValue` |
 
