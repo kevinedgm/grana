@@ -233,3 +233,16 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 **Límite:** los tokens se resuelven en `:root` (§10): si alguien cambia `--g-space-1` solo dentro de una sección, los tokens de sidebar no lo siguen.
 
+## 14. Widgets (`--g-widget-*`)
+
+**Tokens de estructura** de `GWidgetGrid` (la rejilla del dashboard), para que la aplicación pueda alinear su propio diseño con la celda. Derivan de `--g-space-1`. *(Agregados con el contrato del sistema de widgets; los valores por defecto los escribe coco en `defaults.css`.)*
+
+| Token | Defecto | Para qué |
+| --- | --- | --- |
+| `--g-widget-row` | `calc(var(--g-space-1) * 28)` | Alto de una fila de la rejilla (112px con `space` 4) |
+| `--g-widget-gap` | `calc(var(--g-space-1) * 4)` | Separación entre celdas (16px) |
+
+**Umbrales de adaptación** (no son tokens; los miden los componentes): **niveles de `GWidget`** por su ancho propio: `s` < `space × 60`, `m` < `space × 110`, `l` a partir de ahí; **forma** `tall` a partir de un alto de `space × 80`; **columnas de `GWidgetGrid`** por su ancho: 4 a partir de `space × 240`, 2 a partir de `space × 140`, 1 por debajo. Con `space` 5, todos suben un 25%.
+
+**Límite:** los tokens se resuelven en `:root` (§10).
+
