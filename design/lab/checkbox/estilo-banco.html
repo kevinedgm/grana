@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GCheckbox · banco de pruebas de estilo (coco)</title>
+  <!-- Banco de coco: marcado exacto de design/contracts/checkbox.md con el CSS real y el tema por defecto.
+       Sirve para verificar el CSS antes de que existan los .vue. No es documentación. -->
+  <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+  <link rel="stylesheet" href="../../../packages/vue/src/components/GCheckbox/GCheckbox.css">
+  <link rel="stylesheet" href="../../../packages/vue/src/components/GCheckboxGroup/GCheckboxGroup.css">
+  <style>
+    body { margin: 0; padding: 24px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px 24px; align-items: start; }
+    h2 { font-size: 15px; margin: 28px 0 10px; } .cap { font-size: 12px; color: var(--g-color-text-muted); margin: 0 0 4px; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+  let n = 0
+  const ico = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="12" x="2" y="6" rx="2"/></svg>'
+  function cb(o = {}) {
+    const id = 'c' + (++n)
+    const cls = ['g-checkbox', `g-checkbox--layout-${o.layout || 'default'}`, `g-checkbox--size-${o.size || 'md'}`, `g-checkbox--density-${o.density || 'default'}`, `g-checkbox--color-${o.color || 'brand'}`]
+    if (o.disabled) cls.push('is-disabled'); if (o.readonly) cls.push('is-readonly'); if (o.error) cls.push('is-invalid')
+    const lab = [`${id}-label`, o.meta && `${id}-meta`].filter(Boolean).join(' ')
+    const desc = [o.hint && `${id}-hint`, o.error && `${id}-error`].filter(Boolean).join(' ')
+    return `<div class="${cls.join(' ')}" data-t="${o.t || ''}"><label class="g-checkbox__row" for="${id}"><input class="g-checkbox__input" type="checkbox" id="${id}" value="${o.value || ''}" aria-labelledby="${lab}" ${desc ? `aria-describedby="${desc}"` : ''} ${o.error ? 'aria-invalid="true"' : ''} ${o.readonly ? 'aria-readonly="true" data-ro' : ''} ${o.required ? 'required' : ''} ${o.disabled ? 'disabled' : ''} ${o.checked ? 'checked' : ''} ${o.indeterminate ? 'data-indet' : ''}>${o.icon ? `<span class="g-checkbox__icon" aria-hidden="true">${ico}</span>` : ''}<span class="g-checkbox__text"><span class="g-checkbox__label" id="${id}-label">${o.label || 'Etiqueta'}${o.required ? '<span class="g-checkbox__required" aria-hidden="true">*</span>' : ''}</span>${o.hint ? `<span class="g-checkbox__hint" id="${id}-hint">${o.hint}</span>` : ''}</span>${o.meta ? `<span class="g-checkbox__meta" id="${id}-meta">${o.meta}</span>` : ''}</label><div class="g-checkbox__error" id="${id}-error" aria-live="polite">${o.error || ''}</div></div>`
+  }
+  window.cb = cb
+  const estados = [
+    ['sin marcar', {}], ['marcada', { checked: true }], ['indeterminada', { indeterminate: true, label: 'Algunas opciones' }],
+    ['con ayuda', { hint: 'Te la enviamos al correo registrado.', label: 'Factura electrónica' }],
+    ['obligatoria + inválida', { required: true, error: 'Debes aceptar los términos para continuar.', label: 'Acepto los términos' }],
+    ['disabled sin marcar', { disabled: true, label: 'No disponible' }], ['disabled marcada', { disabled: true, checked: true, label: 'Incluido en tu plan' }],
+    ['readonly marcada', { readonly: true, checked: true, label: 'Verificado por administración' }], ['readonly sin marcar', { readonly: true, label: 'Sin verificar' }],
+    ['color accent', { color: 'accent', checked: true }], ['color success', { color: 'success', checked: true }], ['color danger', { color: 'danger', checked: true }],
+  ]
+  const cards = [
+    ['card sin marcar', { layout: 'card', icon: true, label: 'Envío express', hint: 'Llega en 24 horas.', meta: '$99' }],
+    ['card marcada', { layout: 'card', icon: true, checked: true, label: 'Garantía extendida', hint: 'Dos años adicionales de cobertura.', meta: '$149' }],
+    ['card disabled', { layout: 'card', icon: true, disabled: true, label: 'Instalación', hint: 'No disponible en tu zona.', meta: '$59' }],
+    ['card inválida', { layout: 'card', icon: true, error: 'Elige un método de envío.', label: 'Envío estándar', hint: '3 a 5 días.', meta: 'Gratis' }],
+    ['card accent marcada', { layout: 'card', color: 'accent', icon: true, checked: true, label: 'Plan anual', hint: 'Ahorra dos meses.', meta: '$990' }],
+  ]
+  const chips = ['Wifi', 'Desayuno', 'Estacionamiento', 'Mascotas', 'Piscina'].map((t, i) => cb({ layout: 'chip', label: t, checked: i % 2 === 0, disabled: i === 4, t: 'chip' }))
+  const group = `<fieldset class="g-checkbox-group g-checkbox-group--layout-default" id="grp" aria-describedby="grp-hint grp-error"><legend class="g-checkbox-group__label">Reservas</legend>
+    <div class="g-checkbox-group__head">${cb({ label: 'Seleccionar todas', t: 'master' })}<span class="g-checkbox-group__count" id="cnt" aria-live="polite"></span></div>
+    <div class="g-checkbox-group__list">${['Ana García · 12 mar', 'Luis Pérez · 14 mar', 'Marta Ruiz · 15 mar', 'Pablo Díaz · 18 mar'].map((t, i) => cb({ label: t, checked: i % 2 === 0, t: 'kid' })).join('')}${cb({ label: 'Sara Gil · 20 mar', disabled: true, t: 'kid' })}</div>
+    <div class="g-checkbox-group__hint" id="grp-hint">Puedes cambiar tu selección hasta el día anterior.</div><div class="g-checkbox-group__error" id="grp-error" aria-live="polite"></div></fieldset>`
+  const sd = ['xs', 'sm', 'md', 'lg', 'xl'].flatMap((s) => ['compact', 'default', 'comfortable'].map((d) => `<div><p class="cap">${s} · ${d}</p>${cb({ size: s, density: d, checked: true, label: 'Etiqueta', t: `sd:${s}:${d}` })}</div>`)).join('')
+  document.getElementById('app').innerHTML =
+    `<h2>Estados</h2><div class="grid">${estados.map(([c, o]) => `<div><p class="cap">${c}</p>${cb({ ...o, t: 'estado' })}</div>`).join('')}</div>` +
+    `<h2>Tarjeta</h2><div class="grid">${cards.map(([c, o]) => `<div><p class="cap">${c}</p>${cb({ ...o, t: 'card' })}</div>`).join('')}</div>` +
+    `<h2>Chip</h2><div style="display:flex;flex-wrap:wrap;gap:8px" role="group" aria-label="Servicios">${chips.join('')}</div>` +
+    `<h2>Grupo con maestra y conteo</h2><div style="max-width:360px">${group}</div>` +
+    `<h2>Tamaños × densidades</h2><div class="grid">${sd}</div>` +
+    `<h2>Ancho estrecho</h2><div style="width:220px;border:1px dashed #999;padding:8px">${cb({ label: 'Acepto recibir comunicaciones comerciales y promociones personalizadas en cualquiera de mis dispositivos', hint: 'Puedes cambiarlo cuando quieras desde tu perfil.', t: 'estrecho' })}</div>`
+  document.querySelectorAll('[data-indet]').forEach((i) => (i.indeterminate = true))
+  document.querySelectorAll('[data-ro]').forEach((el) => { const v = el.checked; el.addEventListener('click', (e) => { e.preventDefault(); el.checked = v }) })
+  // Grupo: maestra derivada y conteo
+  const master = document.querySelector('[data-t="master"] input'), kids = [...document.querySelectorAll('[data-t="kid"] input')].filter((k) => !k.disabled), cnt = document.getElementById('cnt')
+  const sync = () => { const c = kids.filter((k) => k.checked).length; master.checked = c === kids.length; master.indeterminate = c > 0 && c < kids.length; cnt.textContent = `${c} de ${kids.length} seleccionadas` }
+  master.addEventListener('change', () => { kids.forEach((k) => (k.checked = master.checked)); master.indeterminate = false; sync() }); kids.forEach((k) => k.addEventListener('change', sync)); sync()
+</script>
+</body>
+</html>

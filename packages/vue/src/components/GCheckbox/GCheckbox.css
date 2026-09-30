@@ -1,0 +1,495 @@
+/*
+  GCheckbox · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/checkbox.md. Estructura: design/lab/checkbox/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Carácter propio: la marca se DIBUJA al marcar (revelado de izquierda a derecha), la mixta se abre
+  desde el centro, el icono de la tarjeta se rellena y el ✓ del chip se desliza.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-checkbox {
+  /* Color (se reasigna por --color-*); por defecto: brand */
+  --_c: var(--g-color-brand);
+  --_c-strong: var(--g-color-brand-strong);
+  --_on: var(--g-color-on-brand);
+  --_soft: var(--g-color-brand-soft);
+  --_on-soft: var(--g-color-on-brand-soft);
+  --_text: var(--g-color-brand-text);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  --_box-units: 5;
+  --_row-units: 7;
+  --_density: 1;
+  --_gap: var(--g-space-3);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_box: calc(var(--g-space-1) * var(--_box-units));
+  /* La fila nunca es menor que el cuadro (con densidad compacta, el cuadro podría superarla) */
+  --_row: max(24px, var(--_box), calc(var(--g-space-1) * var(--_row-units) * var(--_density)));
+
+  display: block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* La fila completa es el objetivo de toque; con puntero grueso mide 44px reales */
+.g-checkbox__row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  min-block-size: var(--_row);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  .g-checkbox__row {
+    min-block-size: max(44px, var(--_row));
+  }
+}
+
+/* ---------- Cuadro: el propio <input>, dibujado ---------- */
+.g-checkbox__input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  box-sizing: border-box;
+  inline-size: var(--_box);
+  block-size: var(--_box);
+  margin: 0;
+  margin-block-start: max(0px, calc((var(--_row) - var(--_box)) / 2));
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+  color: var(--_on);
+  cursor: inherit;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    scale var(--g-duration-press) var(--g-ease-out);
+}
+@media (pointer: coarse) {
+  .g-checkbox__row .g-checkbox__input {
+    margin-block-start: max(0px, calc((max(44px, var(--_row)) - var(--_box)) / 2));
+  }
+}
+
+/* Marca: ✓ dibujada con dos bordes; se revela de izquierda a derecha */
+.g-checkbox__input::after {
+  content: "";
+  box-sizing: border-box;
+  inline-size: calc(var(--_box) * 0.55);
+  block-size: calc(var(--_box) * 0.28);
+  border: solid currentColor;
+  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
+  rotate: -45deg;
+  translate: 0 calc(var(--_box) * -0.07);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--g-duration-press) var(--g-ease-out);
+}
+.g-checkbox__input:checked {
+  background: var(--_c);
+  border-color: var(--_c);
+}
+.g-checkbox__input:checked::after {
+  clip-path: inset(0);
+}
+/* Mixta: raya que se abre desde el centro */
+.g-checkbox__input:indeterminate {
+  background: var(--_c);
+  border-color: var(--_c);
+}
+.g-checkbox__input:indeterminate::after {
+  inline-size: calc(var(--_box) * 0.55);
+  block-size: calc(var(--g-border-width) * 2);
+  border: 0;
+  rotate: 0deg;
+  translate: 0 0;
+  background: currentColor;
+  clip-path: inset(0 50% 0 50%);
+}
+.g-checkbox__input:indeterminate:not(:checked)::after,
+.g-checkbox__input:indeterminate:checked::after {
+  clip-path: inset(0);
+}
+
+/* ---------- Texto ---------- */
+.g-checkbox__text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  padding-block-start: max(0px, calc((var(--_row) - var(--_lh)) / 2));
+}
+@media (pointer: coarse) {
+  .g-checkbox__text {
+    padding-block-start: max(0px, calc((max(44px, var(--_row)) - var(--_lh)) / 2));
+  }
+}
+.g-checkbox__label {
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  color: var(--g-color-text);
+}
+.g-checkbox__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+.g-checkbox__hint {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-checkbox__meta {
+  flex: none;
+  padding-block-start: max(0px, calc((var(--_row) - var(--_lh)) / 2));
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+}
+.g-checkbox__icon {
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  box-sizing: border-box;
+  inline-size: calc(var(--_box) * 2);
+  block-size: calc(var(--_box) * 2);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+
+/* ---------- Error ---------- */
+/* La región viva existe siempre; vacía no ocupa espacio */
+.g-checkbox__error {
+  padding-inline-start: calc(var(--_box) + var(--_gap) * var(--_density));
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-checkbox.is-invalid .g-checkbox__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-checkbox.is-invalid .g-checkbox__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Tamaño ---------- */
+.g-checkbox--size-xs { --_box-units: 4; --_row-units: 6;  --_gap: var(--g-space-2); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-checkbox--size-sm { --_box-units: 4; --_row-units: 6;  --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-checkbox--size-md { --_box-units: 5; --_row-units: 7;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-checkbox--size-lg { --_box-units: 6; --_row-units: 8;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-checkbox--size-xl { --_box-units: 7; --_row-units: 9;  --_gap: var(--g-space-4); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-checkbox--density-default { --_density: 1; }
+.g-checkbox--density-comfortable { --_density: 0.875; }
+.g-checkbox--density-compact { --_density: 0.75; }
+
+/* ---------- Color (relleno de lo marcado) ---------- */
+.g-checkbox--color-brand { --_c: var(--g-color-brand); --_c-strong: var(--g-color-brand-strong); --_on: var(--g-color-on-brand); --_soft: var(--g-color-brand-soft); --_on-soft: var(--g-color-on-brand-soft); --_text: var(--g-color-brand-text); }
+.g-checkbox--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); --_text: var(--g-color-accent-text); }
+.g-checkbox--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); --_text: var(--g-color-neutral-text); }
+.g-checkbox--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); --_text: var(--g-color-success-text); }
+.g-checkbox--color-warning { --_c: var(--g-color-warning); --_c-strong: var(--g-color-warning-strong); --_on: var(--g-color-on-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); --_text: var(--g-color-warning-text); }
+.g-checkbox--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); --_text: var(--g-color-danger-text); }
+.g-checkbox--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); --_text: var(--g-color-info-text); }
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:not(:checked):not(:indeterminate) {
+    border-color: var(--g-color-text-muted);
+  }
+  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:checked,
+  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:indeterminate {
+    background: var(--_c-strong);
+    border-color: var(--_c-strong);
+  }
+}
+/* Pulsar: el cuadro se hunde un poco (mismo gesto que el botón) */
+.g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__input {
+  scale: var(--g-press-scale);
+}
+/* Foco: el anillo se abre desde el borde hasta su separación */
+@media (forced-colors: none) {
+  .g-checkbox__input {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: 0;
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      scale var(--g-duration-press) var(--g-ease-out),
+      outline-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-offset var(--g-duration-press) var(--g-ease-out);
+  }
+}
+.g-checkbox__input:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-checkbox.is-invalid .g-checkbox__input:not(:checked):not(:indeterminate) {
+  border-color: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-checkbox.is-readonly .g-checkbox__row {
+  cursor: default;
+}
+.g-checkbox.is-readonly .g-checkbox__input:not(:checked):not(:indeterminate) {
+  background: var(--g-color-surface-sunken);
+  border-style: dashed;
+}
+.g-checkbox.is-readonly .g-checkbox__input:checked,
+.g-checkbox.is-readonly .g-checkbox__input:indeterminate {
+  border-style: dashed;
+  background: var(--g-color-text-muted);
+  border-color: var(--g-color-text-muted);
+}
+.g-checkbox.is-disabled .g-checkbox__row {
+  cursor: not-allowed;
+}
+.g-checkbox.is-disabled .g-checkbox__label,
+.g-checkbox.is-disabled .g-checkbox__meta {
+  color: var(--g-color-text-subtle);
+}
+.g-checkbox.is-disabled .g-checkbox__input {
+  border-color: var(--g-color-border-strong);
+  background: var(--g-color-surface-sunken);
+}
+.g-checkbox.is-disabled .g-checkbox__input:checked,
+.g-checkbox.is-disabled .g-checkbox__input:indeterminate {
+  background: var(--g-color-text-subtle);
+  border-color: var(--g-color-text-subtle);
+}
+
+/* ---------- Estructura: tarjeta ---------- */
+/* Toda la tarjeta es el control. Seleccionada: borde de doble grosor sin mover el contenido,
+   fondo suave y el icono se rellena con el color. */
+.g-checkbox--layout-card .g-checkbox__row {
+  align-items: center;
+  padding: calc(var(--g-space-3) * var(--_density));
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-checkbox--layout-card .g-checkbox__input {
+  margin-block-start: 0;
+  align-self: flex-start;
+}
+.g-checkbox--layout-card .g-checkbox__text {
+  padding-block-start: 0;
+}
+.g-checkbox--layout-card .g-checkbox__label {
+  font-weight: var(--g-text-action-weight);
+}
+.g-checkbox--layout-card .g-checkbox__meta {
+  padding-block-start: 0;
+}
+@media (hover: hover) {
+  .g-checkbox--layout-card:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover {
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:checked) {
+  border-color: var(--_text);
+  background: var(--_soft);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
+}
+.g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__icon {
+  background: var(--_c);
+  color: var(--_on);
+}
+.g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label,
+.g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__meta {
+  color: var(--_on-soft);
+}
+/* El anillo rodea la tarjeta, no el cuadro */
+.g-checkbox--layout-card .g-checkbox__input:focus-visible {
+  outline: none;
+}
+.g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:focus-visible) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-checkbox--layout-card.is-invalid .g-checkbox__row {
+  border-color: var(--g-color-danger-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-checkbox--layout-card.is-disabled .g-checkbox__row {
+  background: var(--g-color-surface-sunken);
+}
+.g-checkbox--layout-card .g-checkbox__error {
+  padding-inline-start: 0;
+}
+
+/* ---------- Estructura: chip ---------- */
+/* El input cubre el chip con opacity:0 (nunca display:none): conserva foco y clic.
+   Marcado, el ✓ se desliza desde la izquierda y el chip se rellena. */
+.g-checkbox--layout-chip {
+  display: inline-block;
+  vertical-align: top;
+}
+.g-checkbox--layout-chip .g-checkbox__row {
+  align-items: center;
+  padding-inline: var(--g-space-3);
+  /* El chip no tiene cuadro interior: su contorno identifica al control y debe llegar a 3:1 */
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-checkbox--layout-chip .g-checkbox__input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  border-radius: var(--g-radius-pill);
+}
+.g-checkbox--layout-chip .g-checkbox__input::after {
+  content: none;
+}
+.g-checkbox--layout-chip .g-checkbox__text {
+  flex-direction: row;
+  align-items: center;
+  flex: none;
+  padding-block-start: 0;
+}
+.g-checkbox--layout-chip .g-checkbox__label {
+  display: inline-flex;
+  align-items: center;
+  font-weight: var(--g-text-action-weight);
+}
+.g-checkbox--layout-chip .g-checkbox__label::before {
+  content: "\2713" / "";
+  display: inline-block;
+  overflow: hidden;
+  inline-size: 0;
+  opacity: 0;
+  margin-inline-end: 0;
+  white-space: nowrap;
+  transition:
+    inline-size var(--g-duration-press) var(--g-ease-out),
+    margin-inline-end var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) {
+  background: var(--_c);
+  border-color: var(--_c);
+  color: var(--_on);
+}
+.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label {
+  color: var(--_on);
+}
+.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label::before {
+  inline-size: var(--_fs);
+  margin-inline-end: var(--g-space-1);
+  opacity: 1;
+}
+@media (hover: hover) {
+  .g-checkbox--layout-chip:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover {
+    border-color: var(--g-color-text-muted);
+  }
+  .g-checkbox--layout-chip:not(.is-disabled):not(.is-readonly) .g-checkbox__row:has(.g-checkbox__input:checked):hover {
+    background: var(--_c-strong);
+    border-color: var(--_c-strong);
+  }
+}
+.g-checkbox--layout-chip .g-checkbox__input:focus-visible {
+  outline: none;
+}
+.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:focus-visible) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-checkbox--layout-chip.is-invalid .g-checkbox__row {
+  border-color: var(--g-color-danger-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-checkbox--layout-chip.is-disabled .g-checkbox__row {
+  background: var(--g-color-surface-sunken);
+  border-color: var(--g-color-border-strong);
+}
+.g-checkbox--layout-chip.is-disabled .g-checkbox__row:has(.g-checkbox__input:checked) {
+  background: var(--g-color-text-subtle);
+  border-color: var(--g-color-text-subtle);
+}
+.g-checkbox--layout-chip .g-checkbox__error {
+  padding-inline-start: var(--g-space-3);
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-checkbox__input,
+  .g-checkbox__row,
+  .g-checkbox__icon,
+  .g-checkbox--layout-card .g-checkbox__row,
+  .g-checkbox--layout-chip .g-checkbox__row,
+  .g-checkbox--layout-chip .g-checkbox__label::before {
+    transition: none;
+  }
+  .g-checkbox__input::after {
+    transition: none;
+  }
+  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__input {
+    scale: 1;
+  }
+}
+@media (forced-colors: active) {
+  .g-checkbox__input {
+    border-color: ButtonText;
+    forced-color-adjust: none;
+    background: Canvas;
+    color: HighlightText;
+  }
+  .g-checkbox__input:checked,
+  .g-checkbox__input:indeterminate {
+    background: Highlight;
+    border-color: Highlight;
+  }
+  .g-checkbox__input:focus-visible,
+  .g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:focus-visible),
+  .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:focus-visible) {
+    outline-color: Highlight;
+  }
+  .g-checkbox--layout-card .g-checkbox__row,
+  .g-checkbox--layout-chip .g-checkbox__row {
+    border-color: ButtonText;
+  }
+  .g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:checked),
+  .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) {
+    border-color: Highlight;
+  }
+  .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked),
+  .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label {
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-checkbox.is-disabled .g-checkbox__input {
+    border-color: GrayText;
+  }
+  .g-checkbox.is-invalid .g-checkbox__input:not(:checked):not(:indeterminate) {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+}
