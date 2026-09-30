@@ -125,6 +125,7 @@
   flex-direction: column;
   min-inline-size: 0;
   flex: 1 1 auto;
+  overflow-wrap: anywhere;
   padding-block-start: max(0px, calc((var(--_row) - var(--_lh)) / 2));
 }
 @media (pointer: coarse) {
@@ -172,6 +173,7 @@
 /* ---------- Error ---------- */
 /* La región viva existe siempre; vacía no ocupa espacio */
 .g-checkbox__error {
+  overflow-wrap: anywhere;
   padding-inline-start: calc(var(--_box) + var(--_gap) * var(--_density));
   font-size: var(--g-text-caption-size);
   line-height: var(--g-text-caption-line);
@@ -373,7 +375,7 @@
 .g-checkbox--layout-chip .g-checkbox__text {
   flex-direction: row;
   align-items: center;
-  flex: none;
+  flex: 0 1 auto;
   padding-block-start: 0;
 }
 .g-checkbox--layout-chip .g-checkbox__label {

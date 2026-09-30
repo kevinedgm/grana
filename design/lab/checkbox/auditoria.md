@@ -43,3 +43,7 @@ Ninguno bloquea; **ningún ajuste de CSS fue necesario** en esta auditoría (los
 - **Zoom al 200%** y **dispositivo táctil real** (se usó la emulación de `pointer: coarse`).
 - **Hover real con el ratón sobre los componentes montados:** verificado en el banco de pruebas con el mismo CSS; no se repitió en el playground.
 - **Casilla `card` o `chip` dentro de un grupo con `disabled` heredado**, visualmente: se comprobó el grupo deshabilitado con casillas por defecto.
+
+## Corrección posterior: palabras largas sin espacios
+
+Una etiqueta, ayuda, error o conteo sin puntos de corte (una URL, un identificador) desbordaba en `GCheckbox` (por defecto y tarjeta) y en `GCheckboxGroup` (encabezado, conteo, ayuda y error). Se agregó `overflow-wrap: anywhere` a `g-checkbox__text`, `g-checkbox__error`, `g-checkbox-group__label`, `__count`, `__hint` y `__error`, y el chip ya puede encogerse (`flex: 0 1 auto` en su texto). Comprobado a 300px con una palabra de 90 caracteres, con y sin la regla: sin ella desbordaban 6 elementos por casilla; con ella, ninguno (WCAG 1.4.10).

@@ -98,3 +98,7 @@ Ninguno bloquea.
 - **Zoom al 200%** del navegador y **dispositivo táctil real** (se usó la emulación de `pointer: coarse`).
 - **Botones `ghost` y `link`** dentro del conjunto: contraste del texto medido; el aspecto acoplado de un botón sin fondo ni borde no se valoró visualmente.
 
+
+## Corrección posterior: palabras largas sin espacios
+
+Una etiqueta, ayuda o error sin puntos de corte (una URL, un identificador) desbordaba la caja. Se agregó `overflow-wrap: anywhere` a `g-input__label`, `__hint` y `__error`. Comprobado a 300px con una palabra de 90 caracteres, con y sin la regla: sin ella desbordaban 5 elementos; con ella, ninguno (WCAG 1.4.10).

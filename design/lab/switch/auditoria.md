@@ -27,9 +27,9 @@
 
 1. **Una palabra larguísima sin espacios desbordaba.** Una etiqueta (o ayuda) sin puntos de corte, como una URL o un identificador, sacaba el contenido de la columna y aparecía scroll horizontal (WCAG 1.4.10). Corregido en `GSwitch.css`: `overflow-wrap: anywhere` en `g-switch__text`.
 
-## Observación para otros componentes
+## Observación para otros componentes (resuelta)
 
-`GCheckbox.css` y `GInput.css` no tienen `overflow-wrap`, así que probablemente les pase lo mismo con una palabra larguísima. No se toca aquí (cada CSS es de su auditoría); queda anotado para revisarlo.
+`GCheckbox`, `GCheckboxGroup` e `GInput` tenían el mismo defecto con una palabra larguísima sin espacios; se corrigió en su propio CSS (ver la nota "Corrección posterior" de sus auditorías).
 
 ## Sin verificar (no bloquea `candidate`)
 
