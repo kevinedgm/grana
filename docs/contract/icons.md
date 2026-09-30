@@ -36,7 +36,7 @@ Nombre de Lucide entre comillas.
 
 | Componente | Dónde | Icono |
 | --- | --- | --- |
-| `GBtn` | Indicador de carga | `loader-circle` (gira) |
+| `GBtn`, `GInput`, `GTextarea`, `GSelect`, `GSwitch` | Indicador de carga (en `GSwitch`, sobre el pulgar) | `loader-circle` (gira) |
 | `GCheckbox` | Marca marcada · mixta · ✓ del chip | `check` · `minus` · `check` |
 | `GCheckbox`, `GCheckboxGroup`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GDatePicker` | Mensaje de error (antes «⚠») | `triangle-alert` |
 | `GSwitch` | Marca del pulgar: encendido · apagado | `check` · `minus` |

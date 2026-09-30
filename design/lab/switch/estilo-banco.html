@@ -7,6 +7,8 @@
 <!-- Banco de coco: marcado exacto de design/contracts/switch.md con el CSS real y el tema por defecto. No es documentación. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GSwitch/GSwitch.css?v=1" id="css-s">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -20,13 +22,12 @@
 <div id="app"></div>
 <script>
 let n=0
-const ico=(d)=>`<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`
 function sw(o={}){
   const id='w'+(++n)
   const cls=['g-switch',`g-switch--size-${o.size||'md'}`,`g-switch--density-${o.density||'default'}`,`g-switch--color-${o.color||'brand'}`,`g-switch--label-${o.start?'start':'end'}`]
   if(o.icons)cls.push('g-switch--icons'); if(o.disabled)cls.push('is-disabled'); if(o.readonly)cls.push('is-readonly'); if(o.error)cls.push('is-invalid'); if(o.loading)cls.push('is-loading')
   const desc=[o.hint&&`${id}-hint`,o.error&&`${id}-error`].filter(Boolean).join(' ')
-  return `<div class="${cls.join(' ')}" data-t="${o.t||''}"><label class="g-switch__row" for="${id}"><span class="g-switch__control"><input class="g-switch__input" type="checkbox" role="switch" id="${id}" aria-labelledby="${id}-label" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true" data-ro':''} ${o.loading?'aria-busy="true"':''} ${o.disabled?'disabled':''} ${o.on?'checked':''}>${o.icons?`<span class="g-switch__icon g-switch__icon--on" aria-hidden="true">${ico('<path d="M20 6 9 17l-5-5"/>')}</span><span class="g-switch__icon g-switch__icon--off" aria-hidden="true">${ico('<path d="M18 6 6 18M6 6l12 12"/>')}</span>`:''}</span><span class="g-switch__text"><span class="g-switch__label" id="${id}-label">${o.label||'Etiqueta'}</span>${o.hint?`<span class="g-switch__hint" id="${id}-hint">${o.hint}</span>`:''}</span></label><div class="g-switch__error" id="${id}-error" aria-live="polite">${o.error||''}</div></div>`
+  return `<div class="${cls.join(' ')}" data-t="${o.t||''}"><label class="g-switch__row" for="${id}"><span class="g-switch__control"><input class="g-switch__input" type="checkbox" role="switch" id="${id}" aria-labelledby="${id}-label" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true" data-ro':''} ${o.loading?'aria-busy="true"':''} ${o.disabled?'disabled':''} ${o.on?'checked':''}>${window.lucide('minus','g-switch__mark g-switch__mark--off')}${window.lucide('check','g-switch__mark g-switch__mark--on')}${window.lucide('loader-circle','g-switch__mark g-switch__mark--busy')}${o.icons?`<span class="g-switch__icon g-switch__icon--on" aria-hidden="true">${window.lucide('check')}</span><span class="g-switch__icon g-switch__icon--off" aria-hidden="true">${window.lucide('x')}</span>`:''}</span><span class="g-switch__text"><span class="g-switch__label" id="${id}-label">${o.label||'Etiqueta'}</span>${o.hint?`<span class="g-switch__hint" id="${id}-hint">${o.hint}</span>`:''}</span></label><div class="g-switch__error" id="${id}-error" aria-live="polite">${o.error?window.lucide('triangle-alert','g-switch__error-icon'):''}${o.error||''}</div></div>`
 }
 const cell=(c,o)=>`<div><p class="cap">${c}</p>${sw(o)}</div>`
 const S=[

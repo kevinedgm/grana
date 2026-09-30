@@ -130,15 +130,12 @@
   color: var(--g-color-text-subtle);
 }
 
-/* ---------- Indicador de carga ---------- */
+/* ---------- Indicador de carga: loader-circle de Lucide que gira ---------- */
 .g-input__loader {
   flex: none;
-  box-sizing: border-box;
   inline-size: var(--_fs);
   block-size: var(--_fs);
-  border: calc(var(--g-border-width) * 2) solid var(--g-color-text-subtle);
-  border-inline-end-color: transparent;
-  border-radius: var(--g-radius-pill);
+  color: var(--g-color-text-subtle);
   animation: g-input-spin var(--g-duration-spin) linear infinite;
 }
 @keyframes g-input-spin {
@@ -296,10 +293,10 @@
 .g-input.is-invalid .g-input__error {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-input.is-invalid .g-input__error::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-input__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Tamaño ---------- */

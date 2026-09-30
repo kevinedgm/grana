@@ -82,7 +82,7 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 - **Agrupamiento nativo:** `<fieldset>`/`<legend>`, sin roles ARIA añadidos.
 - **Teclado:** Tab recorre la maestra y las hijas en el orden del documento; Espacio alterna. Sin flechas (no es un grupo de radios).
 - **Conteo:** el texto vive en una región `aria-live="polite"` que se actualiza sin mover el foco.
-- **Error del grupo:** región viva, siempre presente (vacía si no hay error), con marca ⚠ que los lectores no leen.
+- **Error del grupo:** región viva, siempre presente (vacía si no hay error), con un icono `triangle-alert` de Lucide que los lectores no leen.
 - **Deshabilitado:** con `disabled`, el `<fieldset>` deshabilita a todas las hijas y a la maestra.
 - **Táctil:** las filas del grupo miden al menos 44px con `pointer: coarse`.
 - El grupo hereda el foco, el contraste y el movimiento de `GCheckbox`.

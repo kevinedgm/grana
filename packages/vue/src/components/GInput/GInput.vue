@@ -3,6 +3,7 @@
 // Contrato: design/contracts/input.md · Estructura: design/lab/input/r01/ · Estilo: GInput.css (coco)
 import { computed, mergeProps, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GInput', inheritAttrs: false })
 
@@ -128,7 +129,7 @@ if (isDev) {
         <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
         <input v-bind="fieldBindings" class="g-input__field">
         <span v-if="slots.append" class="g-input__append" aria-hidden="true"><slot name="append" /></span>
-        <span v-if="loading" class="g-input__loader" aria-hidden="true" />
+        <GIcon v-if="loading" class="g-input__loader" name="loader-circle" />
         <button
           v-if="showToggle"
           class="g-input__toggle"
@@ -146,6 +147,6 @@ if (isDev) {
       <span v-if="hasHint" :id="hintId" class="g-input__hint"><slot name="hint">{{ hint }}</slot></span>
       <span v-if="showCounter" class="g-input__counter" aria-hidden="true">{{ modelValue.length }}/{{ maxlength }}</span>
     </div>
-    <div :id="errorId" class="g-input__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-input__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-input__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </div>
 </template>

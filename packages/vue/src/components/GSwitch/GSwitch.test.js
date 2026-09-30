@@ -24,7 +24,20 @@ describe('GSwitch · render y clases', () => {
     const w = mount(GSwitch, { props: { label: 'x' }, slots: { 'icon-on': '✓', 'icon-off': '✕' } })
     const control = w.find('.g-switch__control').element
     expect(control.firstElementChild.tagName).toBe('INPUT')
-    expect([...control.children].map((c) => c.className)).toEqual(['g-switch__input', 'g-switch__icon g-switch__icon--on', 'g-switch__icon g-switch__icon--off'])
+    expect([...control.children].map((c) => c.getAttribute('class'))).toEqual([
+      'g-switch__input',
+      'g-icon g-switch__mark g-switch__mark--off', 'g-icon g-switch__mark g-switch__mark--on', 'g-icon g-switch__mark g-switch__mark--busy',
+      'g-switch__icon g-switch__icon--on', 'g-switch__icon g-switch__icon--off'
+    ])
+  })
+
+  it('las marcas del riel son iconos de Lucide decorativos (minus, check y loader-circle)', () => {
+    const w = mount(GSwitch, { props: { label: 'x' } })
+    const marks = w.findAll('.g-switch__control svg.g-switch__mark')
+    expect(marks).toHaveLength(3)
+    for (const m of marks) expect(m.attributes('aria-hidden')).toBe('true')
+    expect(marks[0].html()).toContain('M5 12h14')
+    expect(marks[1].html()).toContain('M20 6 9 17l-5-5')
   })
 
   it('las clases siguen a las props', () => {

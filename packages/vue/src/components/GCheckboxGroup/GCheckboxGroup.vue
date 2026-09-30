@@ -3,6 +3,7 @@
 // Contrato: design/contracts/checkbox.md · Estructura: design/lab/checkbox/r01/ · Estilo: GCheckboxGroup.css (coco)
 import { computed, defineComponent, provide, reactive, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import GCheckbox from '../GCheckbox/GCheckbox.vue'
 import { GROUP_KEY } from './groupKey.js'
 
@@ -140,6 +141,6 @@ if (isDev) {
     </div>
     <div class="g-checkbox-group__list"><slot /></div>
     <div v-if="hasHint" :id="hintId" class="g-checkbox-group__hint"><slot name="hint">{{ hint }}</slot></div>
-    <div :id="errorId" class="g-checkbox-group__error" aria-live="polite"><template v-if="hasError"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-checkbox-group__error" aria-live="polite"><template v-if="hasError"><GIcon class="g-checkbox-group__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </fieldset>
 </template>

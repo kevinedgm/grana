@@ -3,9 +3,10 @@
   Dueño: coco. Contrato: design/contracts/switch.md. Estructura: design/lab/switch/r01/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil), 0px en max().
-  Carácter propio: el riel es el propio <input>; el pulgar y su marca (✓ / −) son sus pseudo-elementos
-  y se deslizan con `translate` (sentido lógico: en RTL se espejan). Al pulsar, el riel se hunde como
-  el botón. Con `loading`, la marca se convierte en un anillo giratorio (sin bloquear el cambio).
+  Carácter propio: el riel es el propio <input> y el pulgar su pseudo-elemento; las marcas (check, minus y
+  loader-circle) son iconos de Lucide (GIcon, docs/contract/icons.md) que se deslizan con el pulgar con
+  `translate` (sentido lógico: en RTL se espejan). Al pulsar, el riel se hunde como el botón. Con
+  `loading`, la marca pasa a un loader-circle giratorio (sin bloquear el cambio).
 */
 
 /* ---------- Esqueleto ---------- */
@@ -120,21 +121,6 @@
     translate var(--g-duration-press) var(--g-ease-out),
     background-color var(--g-duration-fast) var(--g-ease-standard);
 }
-/* Marca: − apagado, ✓ encendido; centrada en el pulgar y con él */
-.g-switch__input::after {
-  content: "";
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: calc(var(--_inset) + var(--_td) / 2);
-  box-sizing: border-box;
-  inline-size: calc(var(--_td) * 0.5);
-  block-size: 0;
-  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
-  translate: calc(var(--_dir) * (var(--_x) - 50%)) -50%;
-  transition:
-    translate var(--g-duration-press) var(--g-ease-out),
-    color var(--g-duration-fast) var(--g-ease-standard);
-}
 .g-switch__input:checked {
   --_x: var(--_travel);
   background: var(--_c);
@@ -145,13 +131,36 @@
   --_thumb: var(--_on);
   background: var(--_on);
 }
-.g-switch__input:checked::after {
-  inline-size: calc(var(--_td) * 0.55);
-  block-size: calc(var(--_td) * 0.28);
-  border: solid currentColor;
-  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
-  rotate: -45deg;
-  translate: calc(var(--_dir) * (var(--_travel) - 50%)) calc(-50% - var(--_td) * 0.07);
+
+/* Marcas de Lucide sobre el pulgar y con él: minus (apagado), check (encendido) y loader-circle (cargando).
+   Se ven por opacidad (no por display) para que se deslicen con el pulgar. */
+.g-switch__mark {
+  position: absolute;
+  inset-block-start: calc(var(--_inset) + var(--_td) * 0.2);
+  inset-inline-start: calc(var(--_inset) + var(--_td) * 0.2);
+  inline-size: calc(var(--_td) * 0.6);
+  block-size: calc(var(--_td) * 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-switch__input:checked ~ .g-switch__mark {
+  translate: calc(var(--_dir) * var(--_travel)) 0;
+}
+.g-switch__mark--off { color: var(--_mark); }
+.g-switch__mark--on { color: var(--_c); }
+.g-switch__mark--busy { color: var(--_c); }
+.g-switch__input:not(:checked) ~ .g-switch__mark--off,
+.g-switch__input:checked ~ .g-switch__mark--on {
+  opacity: 1;
+}
+/* Con un icono propio del consumidor, la marca de Lucide de ese estado se oculta */
+.g-switch:not(.is-loading) .g-switch__input:checked:has(~ .g-switch__icon--on) ~ .g-switch__mark--on,
+.g-switch:not(.is-loading) .g-switch__input:not(:checked):has(~ .g-switch__icon--off) ~ .g-switch__mark--off {
+  opacity: 0;
 }
 
 /* Iconos opcionales: van sobre el pulgar y con él; sustituyen a la marca de su estado */
@@ -176,10 +185,6 @@
 }
 .g-switch__input:not(:checked) ~ .g-switch__icon--on,
 .g-switch__input:checked ~ .g-switch__icon--off {
-  display: none;
-}
-.g-switch:not(.is-loading) .g-switch__input:checked:has(~ .g-switch__icon--on)::after,
-.g-switch:not(.is-loading) .g-switch__input:not(:checked):has(~ .g-switch__icon--off)::after {
   display: none;
 }
 .g-switch.is-loading .g-switch__icon {
@@ -226,10 +231,10 @@
 .g-switch.is-invalid .g-switch__error {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-switch.is-invalid .g-switch__error::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-switch__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Tamaño (alto × ancho del riel, tokens.md §4) ---------- */
@@ -335,15 +340,16 @@
   background: var(--g-color-surface);
 }
 
-/* ---------- Cargando: la marca se convierte en un anillo; no bloquea ---------- */
-.g-switch.is-loading .g-switch__input::after {
-  inline-size: calc(var(--_td) * 0.55);
-  block-size: calc(var(--_td) * 0.55);
-  border: calc(var(--g-border-width) * 2) solid currentColor;
-  border-inline-end-color: transparent;
-  border-radius: var(--g-radius-pill);
-  rotate: 0deg;
-  translate: calc(var(--_dir) * (var(--_x) - 50%)) -50%;
+/* ---------- Cargando: la marca se convierte en un loader-circle de Lucide que gira; no bloquea ---------- */
+.g-switch.is-loading .g-switch__mark--off,
+.g-switch.is-loading .g-switch__mark--on {
+  opacity: 0;
+}
+.g-switch.is-loading .g-switch__mark--busy {
+  opacity: 1;
+}
+.g-switch.is-loading .g-switch__input:not(:checked) ~ .g-switch__mark--busy {
+  color: var(--g-color-text-muted);
 }
 .g-switch.is-loading .g-switch__input:not(:checked)::before {
   background: var(--g-color-surface-sunken);
@@ -352,7 +358,7 @@
   color: var(--g-color-text-muted);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .g-switch.is-loading .g-switch__input::after {
+  .g-switch.is-loading .g-switch__mark--busy {
     animation: g-switch-spin var(--g-duration-spin) linear infinite;
   }
   @keyframes g-switch-spin {
@@ -364,7 +370,7 @@
 @media (prefers-reduced-motion: reduce) {
   .g-switch__input,
   .g-switch__input::before,
-  .g-switch__input::after,
+  .g-switch__mark,
   .g-switch__icon {
     transition: none;
   }

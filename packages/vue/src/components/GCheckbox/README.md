@@ -67,7 +67,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 
 - **`default`:** cuadro y texto en fila. La **fila completa** es el objetivo de toque (24px como mínimo; 44px con puntero grueso).
 - **`card`:** toda la tarjeta es el control, con el cuadro, un icono decorativo, el título, la descripción (`hint`) y un dato destacado. Seleccionada, el borde se engrosa, el fondo se suaviza y el icono se rellena con el color.
-- **`chip`:** un chip con forma de píldora. Marcado, muestra un ✓ que se desliza desde la izquierda y se rellena. Sigue siendo una casilla: Espacio la alterna.
+- **`chip`:** un chip con forma de píldora. Marcado, muestra un icono `check` de Lucide que se desliza desde la izquierda y se rellena. Sigue siendo una casilla: Espacio la alterna.
 
 ```vue
 <g-checkbox v-model="extras" value="express" layout="card" label="Envío express" hint="Llega en 24 horas.">
@@ -106,14 +106,14 @@ Grana no trae iconos: usa el SVG o el componente de icono que prefieras; el play
 - **Control nativo:** un `<input type="checkbox">`, dibujado con `appearance: none`. Teclado (Espacio), foco, formularios y estado los resuelve el navegador. Enter **no** alterna una casilla (comportamiento nativo).
 - **Nombre:** la etiqueta se asocia con `for`/`id` y `aria-labelledby`. En la tarjeta, el nombre es **título + dato destacado**; la descripción va aparte, como descripción (`aria-describedby`).
 - **Ayuda y error:** se enlazan con `aria-describedby`. La región del error existe siempre (vacía si no hay error), está fuera del `<label>` y es `aria-live="polite"`.
-- **El estado no depende solo del color:** la marca cambia de forma (✓ o −), el chip muestra ✓, la tarjeta cambia el grosor del borde y el error lleva una marca ⚠ que los lectores no leen.
+- **El estado no depende solo del color:** la marca cambia de forma (los iconos `check` o `minus` de Lucide), el chip muestra `check`, la tarjeta cambia el grosor del borde y el error lleva un icono `triangle-alert` que los lectores no leen.
 - **Foco:** anillo de `--g-focus-width` alrededor del cuadro (en tarjeta y chip, alrededor de toda la pieza), con transición de apertura.
 - **Área táctil:** con `pointer: coarse`, la fila mide al menos 44px reales y el texto también activa la casilla. El cuadro sigue pequeño y centrado.
 - **Contraste:** con el tema por defecto y con el de prueba de la auditoría, texto, ayuda y error llegan a 4.5:1 o más; el borde del cuadro y el contorno del chip, a 3:1 o más (3.45:1 con el tema por defecto); la marca sobre el relleno, a 5:1 o más.
 
 ## Movimiento
 
-- **La marca se dibuja:** el ✓ se revela de izquierda a derecha y la raya mixta se abre desde el centro (`--g-duration-press`, `--g-ease-out`).
+- **La marca se revela:** el icono `check` de Lucide se revela de izquierda a derecha y la raya mixta se abre desde el centro (`--g-duration-press`, `--g-ease-out`).
 - **Pulsar:** el cuadro se hunde un poco (`--g-press-scale`), igual que el botón.
 - **Foco:** el anillo se abre desde el borde hasta su separación.
 - **Cambio de color:** en `--g-duration-fast`.

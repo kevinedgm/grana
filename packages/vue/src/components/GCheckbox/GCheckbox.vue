@@ -3,6 +3,7 @@
 // Contrato: design/contracts/checkbox.md · Estructura: design/lab/checkbox/r01/ · Estilo: GCheckbox.css (coco)
 import { computed, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import { GROUP_KEY } from '../GCheckboxGroup/groupKey.js'
 
 defineOptions({ name: 'GCheckbox', inheritAttrs: false })
@@ -157,14 +158,18 @@ if (isDev) {
 <template>
   <div v-bind="rootAttrs" :class="classes">
     <label class="g-checkbox__row" :for="inputId">
-      <input ref="input" v-bind="fieldBindings" class="g-checkbox__input" type="checkbox">
+      <span class="g-checkbox__box">
+        <input ref="input" v-bind="fieldBindings" class="g-checkbox__input" type="checkbox">
+        <GIcon class="g-checkbox__mark g-checkbox__check" name="check" />
+        <GIcon class="g-checkbox__mark g-checkbox__dash" name="minus" />
+      </span>
       <span v-if="hasIcon" class="g-checkbox__icon" aria-hidden="true"><slot name="icon" /></span>
       <span class="g-checkbox__text">
-        <span v-if="hasLabel" :id="labelId" class="g-checkbox__label"><slot name="label">{{ label }}</slot><span v-if="required" class="g-checkbox__required" aria-hidden="true">*</span></span>
+        <span v-if="hasLabel" :id="labelId" class="g-checkbox__label"><GIcon v-if="layout === 'chip'" class="g-checkbox__chip-mark" name="check" /><slot name="label">{{ label }}</slot><span v-if="required" class="g-checkbox__required" aria-hidden="true">*</span></span>
         <span v-if="hasHint" :id="hintId" class="g-checkbox__hint"><slot name="hint">{{ hint }}</slot></span>
       </span>
       <span v-if="hasMeta" :id="metaId" class="g-checkbox__meta"><slot name="meta" /></span>
     </label>
-    <div :id="errorId" class="g-checkbox__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-checkbox__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-checkbox__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </div>
 </template>

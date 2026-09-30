@@ -3,6 +3,7 @@
 // Contrato: design/contracts/textarea.md · Estructura: design/lab/textarea/r01/ · Estilo: GTextarea.css (coco)
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GTextarea', inheritAttrs: false })
 
@@ -198,13 +199,13 @@ if (isDev) {
     </label>
     <div class="g-textarea__control">
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />
-      <span v-if="loading" class="g-textarea__loader" aria-hidden="true" />
+      <GIcon v-if="loading" class="g-textarea__loader" name="loader-circle" />
     </div>
     <div v-if="hasHint || showCounter" class="g-textarea__messages">
       <span v-if="hasHint" :id="hintId" class="g-textarea__hint"><slot name="hint">{{ hint }}</slot></span>
       <span v-if="showCounter" class="g-textarea__counter" aria-hidden="true">{{ length }}/{{ maxlength }}</span>
     </div>
     <span class="g-textarea__count-live" aria-live="polite">{{ liveText }}</span>
-    <div :id="errorId" class="g-textarea__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-textarea__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-textarea__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </div>
 </template>

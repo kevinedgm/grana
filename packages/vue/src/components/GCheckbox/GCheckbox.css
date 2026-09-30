@@ -4,7 +4,8 @@
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
   Carácter propio: la marca se DIBUJA al marcar (revelado de izquierda a derecha), la mixta se abre
-  desde el centro, el icono de la tarjeta se rellena y el ✓ del chip se desliza.
+  desde el centro, el icono de la tarjeta se rellena y el ✓ del chip se desliza. Las marcas son iconos de Lucide
+  (GIcon, docs/contract/icons.md): `check` y `minus` se revelan con clip-path; el ⚠ de los errores es `triangle-alert`.
 */
 
 /* ---------- Esqueleto ---------- */
@@ -52,7 +53,14 @@
   }
 }
 
-/* ---------- Cuadro: el propio <input>, dibujado ---------- */
+/* ---------- Cuadro: un contenedor con el <input> (dibujado) y las marcas de Lucide encima ---------- */
+.g-checkbox__box {
+  position: relative;
+  flex: none;
+  display: grid;
+  margin-block-start: max(0px, calc((var(--_row) - var(--_box)) / 2));
+  transition: scale var(--g-duration-press) var(--g-ease-out);
+}
 .g-checkbox__input {
   appearance: none;
   -webkit-appearance: none;
@@ -63,7 +71,6 @@
   inline-size: var(--_box);
   block-size: var(--_box);
   margin: 0;
-  margin-block-start: max(0px, calc((var(--_row) - var(--_box)) / 2));
   border: var(--g-border-width) solid var(--g-color-border-control);
   border-radius: var(--g-radius-xs);
   background: var(--g-color-surface);
@@ -75,47 +82,39 @@
     scale var(--g-duration-press) var(--g-ease-out);
 }
 @media (pointer: coarse) {
-  .g-checkbox__row .g-checkbox__input {
+  .g-checkbox__row .g-checkbox__box {
     margin-block-start: max(0px, calc((max(44px, var(--_row)) - var(--_box)) / 2));
   }
 }
 
-/* Marca: ✓ dibujada con dos bordes; se revela de izquierda a derecha */
-.g-checkbox__input::after {
-  content: "";
-  box-sizing: border-box;
-  inline-size: calc(var(--_box) * 0.55);
-  block-size: calc(var(--_box) * 0.28);
-  border: solid currentColor;
-  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
-  rotate: -45deg;
-  translate: 0 calc(var(--_box) * -0.07);
+/* Marcas de Lucide (check y minus): se revelan con clip-path; la mixta se abre desde el centro */
+.g-checkbox__mark {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: calc(var(--_box) * 0.72);
+  block-size: calc(var(--_box) * 0.72);
+  color: var(--_on);
+  pointer-events: none;
   clip-path: inset(0 100% 0 0);
   transition: clip-path var(--g-duration-press) var(--g-ease-out);
 }
+.g-checkbox__dash { clip-path: inset(0 50% 0 50%); }
 .g-checkbox__input:checked {
   background: var(--_c);
   border-color: var(--_c);
 }
-.g-checkbox__input:checked::after {
+.g-checkbox__input:checked ~ .g-checkbox__check {
   clip-path: inset(0);
 }
-/* Mixta: raya que se abre desde el centro */
 .g-checkbox__input:indeterminate {
   background: var(--_c);
   border-color: var(--_c);
 }
-.g-checkbox__input:indeterminate::after {
-  inline-size: calc(var(--_box) * 0.55);
-  block-size: calc(var(--g-border-width) * 2);
-  border: 0;
-  rotate: 0deg;
-  translate: 0 0;
-  background: currentColor;
-  clip-path: inset(0 50% 0 50%);
+.g-checkbox__input:indeterminate ~ .g-checkbox__check {
+  clip-path: inset(0 100% 0 0);
 }
-.g-checkbox__input:indeterminate:not(:checked)::after,
-.g-checkbox__input:indeterminate:checked::after {
+.g-checkbox__input:indeterminate ~ .g-checkbox__dash {
   clip-path: inset(0);
 }
 
@@ -183,10 +182,10 @@
 .g-checkbox.is-invalid .g-checkbox__error {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-checkbox.is-invalid .g-checkbox__error::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-checkbox__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Tamaño ---------- */
@@ -222,7 +221,7 @@
   }
 }
 /* Pulsar: el cuadro se hunde un poco (mismo gesto que el botón) */
-.g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__input {
+.g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__box {
   scale: var(--g-press-scale);
 }
 /* Foco: el anillo se abre desde el borde hasta su separación */
@@ -291,7 +290,7 @@
     border-color var(--g-duration-fast) var(--g-ease-standard),
     box-shadow var(--g-duration-fast) var(--g-ease-standard);
 }
-.g-checkbox--layout-card .g-checkbox__input {
+.g-checkbox--layout-card .g-checkbox__box {
   margin-block-start: 0;
   align-self: flex-start;
 }
@@ -360,17 +359,22 @@
     border-color var(--g-duration-fast) var(--g-ease-standard),
     color var(--g-duration-fast) var(--g-ease-standard);
 }
-.g-checkbox--layout-chip .g-checkbox__input {
+.g-checkbox--layout-chip .g-checkbox__box {
   position: absolute;
   inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+}
+.g-checkbox--layout-chip .g-checkbox__input {
   inline-size: 100%;
   block-size: 100%;
   margin: 0;
   opacity: 0;
   border-radius: var(--g-radius-pill);
 }
-.g-checkbox--layout-chip .g-checkbox__input::after {
-  content: none;
+.g-checkbox--layout-chip .g-checkbox__mark {
+  display: none;
 }
 .g-checkbox--layout-chip .g-checkbox__text {
   flex-direction: row;
@@ -383,8 +387,7 @@
   align-items: center;
   font-weight: var(--g-text-action-weight);
 }
-.g-checkbox--layout-chip .g-checkbox__label::before {
-  content: "\2713" / "";
+.g-checkbox--layout-chip .g-checkbox__chip-mark {
   display: inline-block;
   overflow: hidden;
   inline-size: 0;
@@ -404,7 +407,7 @@
 .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label {
   color: var(--_on);
 }
-.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label::before {
+.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__chip-mark {
   inline-size: var(--_fs);
   margin-inline-end: var(--g-space-1);
   opacity: 1;
@@ -448,13 +451,12 @@
   .g-checkbox__icon,
   .g-checkbox--layout-card .g-checkbox__row,
   .g-checkbox--layout-chip .g-checkbox__row,
-  .g-checkbox--layout-chip .g-checkbox__label::before {
+  .g-checkbox--layout-chip .g-checkbox__chip-mark,
+  .g-checkbox__box,
+  .g-checkbox__mark {
     transition: none;
   }
-  .g-checkbox__input::after {
-    transition: none;
-  }
-  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__input {
+  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__box {
     scale: 1;
   }
 }
@@ -470,6 +472,7 @@
     background: Highlight;
     border-color: Highlight;
   }
+  .g-checkbox__mark { color: HighlightText; }
   .g-checkbox__input:focus-visible,
   .g-checkbox--layout-card .g-checkbox__row:has(.g-checkbox__input:focus-visible),
   .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:focus-visible) {

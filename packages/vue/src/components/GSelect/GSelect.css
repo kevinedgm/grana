@@ -151,30 +151,24 @@
 .g-select__button:has(.g-select__value > .g-select__icon) .g-select__prepend {
   display: none;
 }
-/* Flecha decorativa: dos bordes rotados (sobrevive a forced-colors) */
+/* Flecha: chevron-down de Lucide (GIcon, decorativo); gira al abrir */
 .g-select__arrow {
   flex: none;
-  box-sizing: border-box;
-  inline-size: calc(var(--_fs) * 0.5);
-  block-size: calc(var(--_fs) * 0.5);
-  border: solid currentColor;
-  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
   color: var(--g-color-text-muted);
-  rotate: 45deg;
-  translate: 0 calc(var(--_fs) * -0.12);
-  transition:
-    rotate var(--g-duration-press) var(--g-ease-out),
-    translate var(--g-duration-press) var(--g-ease-out);
+  transition: rotate var(--g-duration-press) var(--g-ease-out);
 }
 .g-select.is-open .g-select__arrow {
-  rotate: 225deg;
-  translate: 0 calc(var(--_fs) * 0.12);
+  rotate: 180deg;
 }
 
-/* Limpiar: botón aparte; la cruz son dos barras de borde */
+/* Limpiar: botón aparte; la cruz es el x de Lucide */
 .g-select__clear {
   position: relative;
   flex: none;
+  display: grid;
+  place-items: center;
   box-sizing: border-box;
   align-self: center;
   inline-size: max(24px, calc(var(--_h) * 0.7));
@@ -188,19 +182,10 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.g-select__clear::before,
-.g-select__clear::after {
-  content: "";
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 30%;
-  inline-size: 40%;
-  block-size: 0;
-  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
-  rotate: 45deg;
-  translate: 0 -50%;
+.g-select__clear > .g-icon {
+  inline-size: calc(var(--_fs) * 0.9);
+  block-size: calc(var(--_fs) * 0.9);
 }
-.g-select__clear::after { rotate: -45deg; }
 @media (pointer: coarse) {
   .g-select__clear {
     inline-size: 44px;
@@ -221,17 +206,14 @@
   }
 }
 
-/* ---------- Indicador de carga ---------- */
+/* ---------- Indicador de carga: loader-circle de Lucide que gira ---------- */
 .g-select__loader {
   flex: none;
   align-self: center;
-  box-sizing: border-box;
   inline-size: var(--_fs);
   block-size: var(--_fs);
   margin-inline-end: calc(var(--_px) * var(--_density));
-  border: calc(var(--g-border-width) * 2) solid var(--g-color-text-subtle);
-  border-inline-end-color: transparent;
-  border-radius: var(--g-radius-pill);
+  color: var(--g-color-text-subtle);
   animation: g-select-spin var(--g-duration-spin) linear infinite;
 }
 @keyframes g-select-spin {
@@ -296,21 +278,15 @@
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-focus-width) * -1);
 }
-/* Elegida: más peso y una marca ✓ dibujada con bordes (no depende del color) */
+/* Elegida: más peso y una marca check de Lucide al final (no depende del color) */
 .g-select__option[aria-selected="true"] {
   font-weight: var(--g-text-action-weight);
 }
-.g-select__option[aria-selected="true"]::after {
-  content: "";
+.g-select__check {
   flex: none;
-  box-sizing: border-box;
   margin-inline-start: auto;
-  inline-size: calc(var(--_fs) * 0.7);
-  block-size: calc(var(--_fs) * 0.35);
-  border: solid currentColor;
-  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
-  rotate: -45deg;
-  translate: 0 calc(var(--_fs) * -0.1);
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
 }
 .g-select__option[aria-disabled="true"] {
   color: var(--g-color-text-subtle);
@@ -321,38 +297,25 @@
   padding: var(--g-space-3) calc(var(--_px) * var(--_density));
   color: var(--g-color-text-muted);
 }
-/* Fila «Agregar nuevo…»: una fila de acción al final; línea superior, «+» dibujado con dos bordes (sobrevive
-   a forced-colors) y peso de acción. No depende del color para distinguirse. */
+/* Fila «Agregar nuevo…»: una fila de acción al final; línea superior, «+» (plus de Lucide) y peso de acción.
+   No depende del color para distinguirse. */
 .g-select__create {
   position: relative;
   margin-block-start: var(--g-space-1);
-  padding-inline-start: calc(var(--_px) * var(--_density) + var(--_fs) * 0.8 + var(--_gap) * var(--_density));
+  padding-inline-start: calc(var(--_px) * var(--_density) + var(--_fs) + var(--_gap) * var(--_density));
   border-block-start: var(--g-border-width) solid var(--g-color-border);
   border-start-start-radius: 0;
   border-start-end-radius: 0;
   font-weight: var(--g-text-action-weight);
 }
-.g-select__create::before,
-.g-select__create::after {
-  content: "";
+.g-select__create-icon {
   position: absolute;
   inset-inline-start: calc(var(--_px) * var(--_density));
   inset-block-start: 50%;
-  box-sizing: border-box;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  translate: 0 -50%;
   color: var(--g-color-text);
-}
-.g-select__create::before {
-  inline-size: calc(var(--_fs) * 0.8);
-  block-size: 0;
-  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
-  translate: 0 -50%;
-}
-.g-select__create::after {
-  inline-size: 0;
-  block-size: calc(var(--_fs) * 0.8);
-  margin-inline-start: calc(var(--_fs) * 0.4 - var(--g-border-width));
-  border-inline-start: calc(var(--g-border-width) * 2) solid currentColor;
-  translate: 0 -50%;
 }
 @media (prefers-reduced-motion: no-preference) {
   .g-select__list:popover-open {
@@ -389,10 +352,10 @@
 .g-select.is-invalid .g-select__error {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-select.is-invalid .g-select__error::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-select__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Tamaño ---------- */

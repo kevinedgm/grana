@@ -109,7 +109,7 @@ Sin prefijo, sufijo ni acción en v0.1. No pongas botones, enlaces ni campos den
 - **Control nativo:** un `<textarea>`; foco, valor, selección, portapapeles y formularios los resuelve el navegador. **Enter inserta un salto de línea**; enviar es decisión tuya.
 - **Nombre:** la etiqueta se asocia con `for`/`id`.
 - **Ayuda y error:** se enlazan con `aria-describedby` (se suman a uno tuyo si lo pasas). La región del error existe siempre (vacía si no hay error) y es `aria-live="polite"`. El aviso del contador es otra región viva aparte, también siempre presente, que **no** entra en `aria-describedby`.
-- **El error no depende solo del color:** contorno de doble trazo y una marca ⚠ que los lectores no leen.
+- **El error no depende solo del color:** contorno de doble trazo y un icono `triangle-alert` de Lucide que los lectores no leen.
 - **Foco:** anillo fino y pegado al borde de la caja, del grosor de `--g-focus-width`, con transición de color.
 - **Área táctil:** con `pointer: coarse`, la caja mide al menos 44px reales aunque `rows` sea 1.
 - **Contraste:** con el tema por defecto, el borde llega a 3.45:1 y el texto, a 4.5:1 o más; con el tema de prueba de la auditoría, 4.86:1 y 4.5:1 o más.

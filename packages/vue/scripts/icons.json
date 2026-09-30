@@ -1,4 +1,52 @@
 {
-  "library": ["arrow-down", "arrow-up", "calendar", "check", "chevron-down", "chevron-left", "chevron-right", "circle", "diamond", "ellipsis-vertical", "grip-vertical", "loader-circle", "minus", "move-diagonal-2", "plus", "square", "triangle", "triangle-alert", "x"],
-  "playground": ["calendar", "chart-column", "check", "circle-check", "credit-card", "globe", "house", "inbox", "folder", "lock", "mail", "menu", "message-circle", "panel-left", "search", "settings", "tag", "user", "users"]
+  "library": [
+    "arrow-down",
+    "arrow-up",
+    "calendar",
+    "check",
+    "chevron-down",
+    "chevron-left",
+    "chevron-right",
+    "circle",
+    "diamond",
+    "ellipsis-vertical",
+    "grip-vertical",
+    "loader-circle",
+    "minus",
+    "move-diagonal-2",
+    "plus",
+    "square",
+    "triangle",
+    "triangle-alert",
+    "x"
+  ],
+  "playground": [
+    "calendar",
+    "chart-column",
+    "check",
+    "circle-check",
+    "credit-card",
+    "globe",
+    "house",
+    "inbox",
+    "folder",
+    "lock",
+    "mail",
+    "menu",
+    "message-circle",
+    "panel-left",
+    "search",
+    "settings",
+    "tag",
+    "user",
+    "users"
+  ],
+  "lab": [
+    "building-2",
+    "circle-check",
+    "mail",
+    "search",
+    "tag",
+    "user"
+  ]
 }

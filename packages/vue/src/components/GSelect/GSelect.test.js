@@ -500,10 +500,24 @@ describe('GSelect · prefijo e iconos (r02)', () => {
     const pre = btn(w).find('.g-select__prepend')
     expect(pre.exists()).toBe(true)
     expect(pre.attributes('aria-hidden')).toBe('true')
-    const kids = [...btn(w).element.children].map((c) => c.className.split(' ')[0])
+    const kids = [...btn(w).element.children].map((c) => (c.getAttribute('class') ?? '').split(' ')[0])
     expect(kids.indexOf('g-select__prepend')).toBeLessThan(kids.indexOf('g-select__value'))
     w.unmount()
     expect(mk().find('.g-select__prepend').exists()).toBe(false)
+  })
+
+  it('las marcas son iconos de Lucide decorativos: flecha, limpiar, elegida, cargando y agregar', async () => {
+    const w = mk({ modelValue: 'us', clearable: true, clearLabel: 'Limpiar', loading: true, createLabel: 'Agregar' })
+    expect(w.find('svg.g-select__arrow').attributes('aria-hidden')).toBe('true')
+    expect(w.find('svg.g-select__arrow').html()).toContain('m6 9 6 6 6-6')
+    expect(w.find('.g-select__clear svg').html()).toContain('M18 6 6 18')
+    expect(w.find('svg.g-select__loader').html()).toContain('M21 12a9 9 0 1 1-6.219-8.56')
+    await btn(w).trigger('click')
+    const sel = w.find('.g-select__option[aria-selected="true"]')
+    expect(sel.find('svg.g-select__check').html()).toContain('M20 6 9 17l-5-5')
+    expect(w.find('.g-select__create svg.g-select__create-icon').html()).toContain('M5 12h14')
+    expect(w.findAll('.g-select__option[aria-selected="false"] svg.g-select__check')).toHaveLength(0)
+    w.unmount()
   })
 
   it('el slot icon se pinta en cada opción y junto al valor, decorativo, con la opción como alcance', () => {

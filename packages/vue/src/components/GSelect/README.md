@@ -160,7 +160,7 @@ Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige 
 
 - **Patrón APG:** `<button role="combobox" aria-haspopup="listbox" aria-expanded aria-controls>` y `<ul role="listbox">` con `role="option"` (`aria-selected`, `aria-disabled`) y `role="group"` para los grupos.
 - **Ayuda y error:** `aria-describedby` (se suma a uno tuyo). La región del error existe siempre (vacía si no hay error) y es `aria-live="polite"`.
-- **El estado no depende solo del color:** la elegida lleva ✓ y más peso, la activa un contorno, la deshabilitada opacidad y tachado, el error engrosa el contorno y lleva ⚠.
+- **El estado no depende solo del color:** la elegida lleva un icono `check` de Lucide y más peso, la activa un contorno, la deshabilitada opacidad y tachado, el error engrosa el contorno y lleva un icono `triangle-alert`.
 - **Foco:** anillo fino y pegado al borde de la caja, con transición de color.
 - **Área táctil:** con `pointer: coarse`, la caja, las opciones, la fila crear y el botón de limpiar miden al menos 44px.
 - **Contraste:** con el tema por defecto, el borde y el contorno de la lista llegan a 3.45:1 y el texto a 4.5:1 o más; con el tema de prueba de la auditoría, 4.86:1.

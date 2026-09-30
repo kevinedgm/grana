@@ -49,6 +49,7 @@ describe('iconos generados', () => {
     const out = generate()
     expect(readFileSync(resolve(pkg, 'src/icons/lucide.js'), 'utf8')).toBe(out.lib)
     expect(readFileSync(resolve(pkg, 'playground/lucide-icons.js'), 'utf8')).toBe(out.playground)
+    expect(readFileSync(resolve(ROOT, 'design/lab/lucide-icons.js'), 'utf8')).toBe(out.lab)
   })
 
   it('la lista de la librería es la de docs/contract/icons.md §4', () => {
@@ -78,23 +79,11 @@ describe('iconos generados', () => {
 const DEUDA = [
   'packages/vue/src/components/GBadge/GBadge.css',
   'packages/vue/src/components/GCalendar/GCalendar.vue',
-  'packages/vue/src/components/GCheckbox/GCheckbox.css',
-  'packages/vue/src/components/GCheckbox/README.md',
-  'packages/vue/src/components/GCheckboxGroup/GCheckboxGroup.css',
-  'packages/vue/src/components/GCheckboxGroup/README.md',
   'packages/vue/src/components/GDataList/GDataList.css',
   'packages/vue/src/components/GDatePicker/GDatePicker.css',
-  'packages/vue/src/components/GInput/GInput.css',
-  'packages/vue/src/components/GInput/README.md',
   'packages/vue/src/components/GMenu/GMenu.css',
   'packages/vue/src/components/GMetric/GMetric.css',
   'packages/vue/src/components/GMetric/README.md',
-  'packages/vue/src/components/GSelect/GSelect.css',
-  'packages/vue/src/components/GSelect/README.md',
-  'packages/vue/src/components/GSwitch/GSwitch.css',
-  'packages/vue/src/components/GSwitch/README.md',
-  'packages/vue/src/components/GTextarea/GTextarea.css',
-  'packages/vue/src/components/GTextarea/README.md',
   'packages/vue/src/components/GWidgetConfig/README.md',
   'packages/vue/src/components/GWidgetGallery/GWidgetGallery.css',
   'packages/vue/src/components/GWidgetGallery/README.md',

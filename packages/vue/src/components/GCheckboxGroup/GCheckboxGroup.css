@@ -82,10 +82,10 @@
 .g-checkbox-group__error:not(:empty) {
   margin-block-start: var(--g-space-2);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-checkbox-group__error:not(:empty)::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-checkbox-group__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Deshabilitado (el <fieldset disabled> ya deshabilita a las hijas) ---------- */

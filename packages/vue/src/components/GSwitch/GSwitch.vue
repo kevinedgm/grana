@@ -3,6 +3,7 @@
 // Contrato: design/contracts/switch.md · Estructura: design/lab/switch/r01/ · Estilo: GSwitch.css (coco)
 import { computed, mergeProps, nextTick, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GSwitch', inheritAttrs: false })
 
@@ -113,6 +114,9 @@ if (isDev && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby'
     <label class="g-switch__row" :for="inputId">
       <span class="g-switch__control">
         <input ref="input" v-bind="fieldBindings" class="g-switch__input" type="checkbox">
+        <GIcon class="g-switch__mark g-switch__mark--off" name="minus" />
+        <GIcon class="g-switch__mark g-switch__mark--on" name="check" />
+        <GIcon class="g-switch__mark g-switch__mark--busy" name="loader-circle" />
         <span v-if="hasIconOn" class="g-switch__icon g-switch__icon--on" aria-hidden="true"><slot name="icon-on" /></span>
         <span v-if="hasIconOff" class="g-switch__icon g-switch__icon--off" aria-hidden="true"><slot name="icon-off" /></span>
       </span>
@@ -121,6 +125,6 @@ if (isDev && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby'
         <span v-if="hasHint" :id="hintId" class="g-switch__hint"><slot name="hint">{{ hint }}</slot></span>
       </span>
     </label>
-    <div :id="errorId" class="g-switch__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-switch__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-switch__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </div>
 </template>

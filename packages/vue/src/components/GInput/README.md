@@ -125,7 +125,7 @@ Un slot con alcance: recibe `size`, `density` y `disabled` del campo, para que e
 
 - **Etiqueta y `input`:** asociados con `for`/`id`. Nunca se sustituye la etiqueta por el `placeholder`.
 - **Ayuda y error:** se enlazan al `<input>` con `aria-describedby`. La región del error existe siempre (vacía si no hay error) con `aria-live="polite"`.
-- **El error no depende solo del color:** lleva texto, una marca ⚠ que los lectores de pantalla no leen, y un borde de doble grosor.
+- **El error no depende solo del color:** lleva texto, un icono `triangle-alert` de Lucide que los lectores de pantalla no leen, y un borde de doble grosor.
 - **Botón mostrar/ocultar:** su texto visible es su nombre accesible (`showPasswordLabel` u `hidePasswordLabel`), sin `aria-pressed` (un botón cuyo nombre cambia con el estado no debe llevarlo). Va **después** del campo en el orden de tabulación y conserva el foco.
 - **Teclado:** Tab y Shift+Tab recorren campo → botón mostrar → acción. Sin manejadores propios: escritura, selección y portapapeles son los del `<input>`.
 - **Foco:** anillo de `--g-focus-width` pegado al borde (sin hueco), con transición de color. Con botón de acción, un solo anillo rodea caja y botón cuando el foco está en el campo; el botón enfocado tiene el suyo. El botón mostrar tiene el suyo.

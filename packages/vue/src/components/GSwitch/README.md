@@ -82,7 +82,7 @@ Los demás eventos (`focus`, `blur`, `change`, `keydown`…) no se declaran: tus
 | `icon-on` | Icono del pulgar encendido. Decorativo: el componente lo marca con `aria-hidden="true"` |
 | `icon-off` | Icono del pulgar apagado. Decorativo: igual |
 
-Sin iconos, el pulgar lleva una marca dibujada (✓ encendido, − apagado). Con `icon-on` o `icon-off`, el icono sustituye a la marca de **su** estado. Los iconos se dimensionan al pulgar (`1em` de un SVG funciona bien). Grana no trae iconos; el playground usa SVG de [Lucide](https://lucide.dev).
+Sin iconos, el pulgar lleva un icono de Lucide (`check` encendido, `minus` apagado; `loader-circle` mientras carga). Con `icon-on` o `icon-off`, el icono sustituye a la marca de **su** estado. Los iconos se dimensionan al pulgar (`1em` de un SVG funciona bien). Grana no trae iconos; el playground usa SVG de [Lucide](https://lucide.dev).
 
 ```vue
 <g-switch v-model="bloqueado" label="Bloqueo" size="lg">
@@ -98,7 +98,7 @@ No pongas botones, enlaces ni campos dentro de la etiqueta, la ayuda ni el error
 - **Control nativo:** un `<input type="checkbox" role="switch">`, dibujado con `appearance: none`. Teclado, foco, formularios y estado los resuelve el navegador. **Espacio** alterna; **Enter no** (comportamiento nativo del checkbox).
 - **Nombre:** la etiqueta se asocia con `for`/`id` y `aria-labelledby`. La ayuda va aparte, como descripción (`aria-describedby`).
 - **Ayuda y error:** se enlazan con `aria-describedby`, sumándose a uno tuyo si lo pasas. La región del error existe siempre (vacía si no hay error), está fuera del `<label>` y es `aria-live="polite"`.
-- **El estado no depende solo del color ni de la posición:** el pulgar lleva una marca que cambia de forma (✓ o −), el error engrosa el contorno y lleva una marca ⚠ que los lectores no leen, y `readonly` usa contorno discontinuo.
+- **El estado no depende solo del color ni de la posición:** el pulgar lleva un icono que cambia de forma (`check` o `minus`), el error engrosa el contorno y lleva un icono `triangle-alert` que los lectores no leen, y `readonly` usa contorno discontinuo.
 - **Foco:** anillo de `--g-focus-width` alrededor del riel, con transición de apertura.
 - **Área táctil:** la fila completa (riel y texto) es el objetivo; con `pointer: coarse` mide al menos 44px reales y el riel queda centrado con la etiqueta.
 - **Contraste:** con el tema por defecto, el riel apagado, el pulgar y la marca llegan a 3.45:1 y el encendido a 5.33:1 o más; el texto, a 5.49:1 o más. Con el tema de prueba de la auditoría, 4.86:1 y 5.16:1 o más.

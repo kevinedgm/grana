@@ -5,6 +5,7 @@
 // indica con aria-activedescendant.
 import { Comment, Fragment, Text, computed, mergeProps, nextTick, onBeforeUnmount, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
 
@@ -374,10 +375,10 @@ if (isDev) {
       <button ref="button" v-bind="buttonBindings" class="g-select__button">
         <span v-if="slots.prepend" class="g-select__prepend" aria-hidden="true"><slot name="prepend" /></span>
         <span class="g-select__value" :class="{ 'g-select__value--placeholder': !selected }"><template v-if="selected"><span v-if="!slots.value && hasIcon(selected.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="selected.raw" /></span><slot name="value" :option="selected.raw">{{ selected.label }}</slot></template><template v-else>{{ placeholder }}</template></span>
-        <span class="g-select__arrow" aria-hidden="true" />
+        <GIcon class="g-select__arrow" name="chevron-down" />
       </button>
-      <button v-if="showClear" class="g-select__clear" type="button" :aria-label="clearLabel" @click="clear" />
-      <span v-if="loading" class="g-select__loader" aria-hidden="true" />
+      <button v-if="showClear" class="g-select__clear" type="button" :aria-label="clearLabel" @click="clear"><GIcon name="x" /></button>
+      <GIcon v-if="loading" class="g-select__loader" name="loader-circle" />
     </div>
     <input v-if="name" type="hidden" :name="name" :value="hiddenValue" :disabled="disabled || undefined">
     <ul
@@ -407,7 +408,7 @@ if (isDev) {
               :data-index="item.index"
               :aria-selected="selected && selected.index === item.index ? 'true' : 'false'"
               :aria-disabled="item.disabled ? 'true' : undefined"
-            ><span v-if="!slots.option && hasIcon(item.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="item.raw" /></span><slot name="option" :option="item.raw" :selected="Boolean(selected && selected.index === item.index)" :active="item.index === activeIndex">{{ item.label }}</slot></li>
+            ><span v-if="!slots.option && hasIcon(item.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="item.raw" /></span><slot name="option" :option="item.raw" :selected="Boolean(selected && selected.index === item.index)" :active="item.index === activeIndex">{{ item.label }}</slot><GIcon v-if="selected && selected.index === item.index" class="g-select__check" name="check" /></li>
           </ul>
         </li>
         <li
@@ -419,7 +420,7 @@ if (isDev) {
           :data-index="entry.index"
           :aria-selected="selected && selected.index === entry.index ? 'true' : 'false'"
           :aria-disabled="entry.disabled ? 'true' : undefined"
-        ><span v-if="!slots.option && hasIcon(entry.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="entry.raw" /></span><slot name="option" :option="entry.raw" :selected="Boolean(selected && selected.index === entry.index)" :active="entry.index === activeIndex">{{ entry.label }}</slot></li>
+        ><span v-if="!slots.option && hasIcon(entry.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="entry.raw" /></span><slot name="option" :option="entry.raw" :selected="Boolean(selected && selected.index === entry.index)" :active="entry.index === activeIndex">{{ entry.label }}</slot><GIcon v-if="selected && selected.index === entry.index" class="g-select__check" name="check" /></li>
       </template>
       <li v-if="emptyVisible" class="g-select__empty" role="presentation"><slot name="empty">{{ emptyText }}</slot></li>
       <li
@@ -430,9 +431,9 @@ if (isDev) {
         role="option"
         :data-index="createIndex"
         aria-selected="false"
-      >{{ createLabel }}</li>
+      ><GIcon class="g-select__create-icon" name="plus" />{{ createLabel }}</li>
     </ul>
     <div v-if="hasHint" :id="hintId" class="g-select__hint"><slot name="hint">{{ hint }}</slot></div>
-    <div :id="errorId" class="g-select__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+    <div :id="errorId" class="g-select__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-select__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
   </div>
 </template>
