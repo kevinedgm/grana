@@ -114,6 +114,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-ease-{standard|out}
 --g-press-scale
 --g-text-action-weight
+--g-calendar-{grid-color|unavailable-color|now-color}
 ```
 
 ### Tokens de estructura (agregados al escribir `GBtn.css`)
@@ -132,6 +133,9 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | `--g-ease-out` | `cubic-bezier(0.23, 1, 0.32, 1)` | Curva de entradas y respuesta al pulsar |
 | `--g-press-scale` | 0.97 | Escala al pulsar (1 lo desactiva) |
 | `--g-text-action-weight` | 500 | Peso de las etiquetas de acción |
+| `--g-calendar-grid-color` | `var(--g-color-border)` | Líneas de la cuadrícula de `GCalendar` |
+| `--g-calendar-unavailable-color` | `var(--g-color-border-strong)` | Patrón de indisponibilidad y de bloqueo de `GCalendar` |
+| `--g-calendar-now-color` | `var(--g-color-danger)` | Línea y marca de la hora actual de `GCalendar` (≥ 3:1 contra la superficie) |
 
 **Límite:** `--g-focus-width` es sobrescribible, pero el CLI rechaza un tema con valor menor a 2px (WCAG 2.4.13 recomienda al menos 2px).
 
