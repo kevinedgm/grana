@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSelect · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/select.md con el CSS real y el tema por defecto.
+     Incluye un motor mínimo (abrir, teclado, posición por variables) que imita lo que hará bruno. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GInput/GInput.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GSelect/GSelect.css?v=1" id="css-s">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px 24px;align-items:start}
+  h2{font-size:15px;margin:28px 0 10px} .cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 4px}
+  .pair{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button>
+<div id="app"></div>
+<script>
+let uid=0
+class Sel{
+  constructor(host,o){this.o=o;this.id='s'+(++uid);this.value=o.value??null;this.open=false;this.active=null;this.typed='';this.flat=[];const w=(a)=>a.forEach(x=>x.options?w(x.options):this.flat.push(x));w(o.options||[]);this.render(host);this.bind()}
+  get sel(){return this.flat.find(x=>x.value===this.value)}
+  render(host){const o=this.o,id=this.id;const desc=[o.hint&&`${id}-hint`,o.error&&`${id}-error`].filter(Boolean).join(' ')
+    const cls=['g-select',`g-select--variant-${o.variant||'outline'}`,`g-select--size-${o.size||'md'}`,`g-select--density-${o.density||'default'}`,o.color&&`g-select--color-${o.color}`,o.rounded&&`g-select--rounded-${o.rounded}`,o.block&&'g-select--block',o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ')
+    host.innerHTML=`<div class="${cls}" id="${id}-root"><label class="g-select__label" id="${id}-label" for="${id}">${o.label}${o.required?'<span class="g-select__required" aria-hidden="true">*</span>':''}</label><div class="g-select__control"><button class="g-select__button" id="${id}" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label ${id}" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.required?'aria-required="true"':''} ${o.readonly?'aria-readonly="true"':''} ${o.loading?'aria-busy="true"':''} ${o.disabled?'disabled':''}><span class="g-select__value"></span><span class="g-select__arrow" aria-hidden="true"></span></button>${o.clearable?`<button class="g-select__clear" type="button" aria-label="Limpiar ${o.label}"></button>`:''}${o.loading?'<span class="g-select__loader" aria-hidden="true"></span>':''}</div><ul class="g-select__list" id="${id}-list" role="listbox" popover="manual" aria-labelledby="${id}-label"></ul>${o.hint?`<div class="g-select__hint" id="${id}-hint">${o.hint}</div>`:''}<div class="g-select__error" id="${id}-error" aria-live="polite">${o.error||''}</div></div>`
+    this.root=host.firstElementChild;this.btn=this.root.querySelector('.g-select__button');this.list=this.root.querySelector('.g-select__list');this.clear=this.root.querySelector('.g-select__clear');this.ctl=this.root.querySelector('.g-select__control');this.paint()}
+  paint(){const s=this.sel,v=this.root.querySelector('.g-select__value');v.textContent=s?s.label:(this.o.placeholder||'');v.classList.toggle('g-select__value--placeholder',!s);if(this.clear)this.clear.hidden=!s
+    let n=0;const opt=x=>`<li class="g-select__option" role="option" id="${this.id}-o${n++}" data-v="${x.value}" aria-selected="${x.value===this.value}" ${x.disabled?'aria-disabled="true"':''}>${x.label}</li>`
+    let html='';(this.o.options||[]).forEach(x=>{if(x.options){const g=`${this.id}-g${n}`;html+=`<li role="presentation"><ul class="g-select__group" role="group" aria-labelledby="${g}"><li class="g-select__group-label" id="${g}" role="presentation">${x.label}</li>${x.options.map(opt).join('')}</ul></li>`}else html+=opt(x)})
+    this.list.innerHTML=html||`<li class="g-select__empty" role="presentation">${this.o.empty||''}</li>`;this.els=[...this.list.querySelectorAll('[role=option]')]}
+  en(){return this.els.filter(e=>e.getAttribute('aria-disabled')!=='true')}
+  bind(){this.btn.addEventListener('click',()=>{if(this.o.readonly)return;this.open?this.close():this.show()});this.btn.addEventListener('keydown',e=>this.key(e))
+    this.list.addEventListener('pointerdown',e=>e.preventDefault())
+    this.list.addEventListener('click',e=>{const li=e.target.closest('[role=option]');if(!li||li.getAttribute('aria-disabled')==='true')return;this.value=this.flat.find(f=>String(f.value)===li.dataset.v).value;this.paint();this.close();this.btn.focus()})
+    this.list.addEventListener('pointermove',e=>{const li=e.target.closest('[role=option]');if(li&&li.getAttribute('aria-disabled')!=='true')this.setActive(li)})
+    if(this.clear)this.clear.addEventListener('click',()=>{this.value=null;this.paint();this.btn.focus()})
+    document.addEventListener('pointerdown',e=>{if(!this.open)return;const r=this.list.getBoundingClientRect();const inList=this.list.contains(e.target)&&e.target!==this.list;const bd=e.target===this.list&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(this.btn.contains(e.target)||inList)return;if(!this.list.contains(e.target)||bd)this.close()})
+    addEventListener('resize',()=>this.open&&this.place())}
+  show(){this.open=true;this.root.classList.add('is-open');this.btn.setAttribute('aria-expanded','true');this.list.showPopover();this.place();const c=this.els.find(e=>e.getAttribute('aria-selected')==='true')||this.en()[0];if(c)this.setActive(c,true)}
+  close(){if(!this.open)return;this.open=false;this.root.classList.remove('is-open');this.btn.setAttribute('aria-expanded','false');this.btn.removeAttribute('aria-activedescendant');this.list.hidePopover();this.els.forEach(e=>e.classList.remove('is-active'))}
+  place(){const r=this.ctl.getBoundingClientRect(),vh=innerHeight,s=this.list.style;s.setProperty('--_x',r.left+'px');s.setProperty('--_min',r.width+'px');const lh=this.list.scrollHeight+4;const below=vh-r.bottom-8,above=r.top-8;const up=below<lh&&above>below;this.list.classList.toggle('is-up',up);
+    if(up){s.setProperty('--_top','auto');s.setProperty('--_bottom',(vh-r.top+4)+'px');s.setProperty('--_max',above+'px')}else{s.setProperty('--_top',(r.bottom+4)+'px');s.setProperty('--_bottom','auto');s.setProperty('--_max',below+'px')}}
+  setActive(li,scroll){this.els.forEach(e=>e.classList.remove('is-active'));li.classList.add('is-active');this.active=li;this.btn.setAttribute('aria-activedescendant',li.id);if(scroll)li.scrollIntoView({block:'nearest'})}
+  move(k){const e=this.en(),i=e.indexOf(this.active);const n=k==='first'?0:k==='last'?e.length-1:Math.max(0,Math.min(e.length-1,(i<0?0:i)+k));this.setActive(e[n],true)}
+  key(e){const k=e.key;if(!this.open){if(['ArrowDown','ArrowUp','Enter',' '].includes(k)){e.preventDefault();if(!this.o.readonly)this.show()}return}
+    if(k==='ArrowDown'){e.preventDefault();this.move(1)}else if(k==='ArrowUp'){e.preventDefault();this.move(-1)}else if(k==='Home'){e.preventDefault();this.move('first')}else if(k==='End'){e.preventDefault();this.move('last')}
+    else if(k==='Enter'||k===' '){e.preventDefault();this.value=this.flat.find(f=>String(f.value)===this.active.dataset.v).value;this.paint();this.close()}else if(k==='Escape'){e.preventDefault();this.close()}else if(k==='Tab'){this.close()}}
+}
+const countries=[{label:'Norteamérica',options:[{value:'mx',label:'México'},{value:'us',label:'Estados Unidos'},{value:'ca',label:'Canadá'}]},{label:'Europa',options:[{value:'es',label:'España'},{value:'fr',label:'Francia'},{value:'de',label:'Alemania',disabled:true},{value:'it',label:'Italia'}]},{label:'Sudamérica',options:[{value:'ar',label:'Argentina'},{value:'br',label:'Brasil'},{value:'cl',label:'Chile'}]}]
+const flat=['Bajo','Medio','Alto','Urgente'].map((l,i)=>({value:i,label:l}))
+const many=Array.from({length:40},(_, i)=>({value:i,label:'Opción '+(i+1)}))
+const cases=[
+ ['sin valor (placeholder)',{label:'País',options:countries,placeholder:'Elige un país'}],['con valor + limpiar',{label:'Prioridad',options:flat,value:2,clearable:true}],
+ ['con ayuda',{label:'Categoría',options:flat,hint:'Puedes cambiarla después.',placeholder:'Elige'}],['requerido + inválido',{label:'Estado',options:flat,required:true,error:'Elige una opción para continuar.',placeholder:'Elige'}],
+ ['deshabilitado',{label:'Deshabilitado',options:flat,value:1,disabled:true}],['solo lectura',{label:'Solo lectura',options:flat,value:1,readonly:true}],
+ ['cargando',{label:'Cargando',options:flat,loading:true,placeholder:'Espera…'}],['soft',{label:'Soft',options:flat,variant:'soft',value:0}],['soft inválido',{label:'Soft inválido',options:flat,variant:'soft',error:'Error de ejemplo.',placeholder:'Elige'}],
+ ['color success (foco)',{label:'Foco success',options:flat,color:'success',value:1}],['lista larga (40)',{label:'Muchas opciones',options:many,placeholder:'Elige'}],['sin opciones',{label:'Vacío',options:[],placeholder:'Sin nada',empty:'No hay opciones disponibles.'}],
+ ['formas',{label:'rounded lg',options:flat,rounded:'lg',value:1}],['pill',{label:'rounded pill',options:flat,rounded:'pill',value:1}],
+ ['texto largo',{label:'Un texto largo sin espacios: Supercalifragilisticoespialidosoextraordinariamentelargo',options:[{value:1,label:'Una opción con un texto muy largo sin espacios: Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad'},{value:2,label:'Corta'}],value:1,hint:'Ayuda Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad'}],
+]
+const app=document.getElementById('app');window.sels=[]
+const grid=document.createElement('div');grid.className='grid';app.appendChild(grid)
+cases.forEach(([c,o])=>{const d=document.createElement('div');d.innerHTML=`<p class="cap">${c}</p><div></div>`;grid.appendChild(d);sels.push(new Sel(d.lastElementChild,o))})
+const h2=document.createElement('h2');h2.textContent='Altura frente a GInput (5 tamaños × 3 densidades)';app.appendChild(h2)
+const cmp=document.createElement('div');cmp.className='grid';cmp.id='cmp';app.appendChild(cmp)
+;['xs','sm','md','lg','xl'].forEach(z=>['default','comfortable','compact'].forEach(d=>{const p=document.createElement('div');p.className='pair';p.dataset.z=z;p.dataset.d=d;p.innerHTML=`<div style="flex:1;min-width:130px"></div><div style="flex:1;min-width:130px"><div class="g-input g-input--variant-outline g-input--size-${z} g-input--density-${d}"><label class="g-input__label">${z} ${d}</label><div class="g-input__row"><div class="g-input__control"><input class="g-input__field" value="Una línea" aria-label="x"></div></div></div></div>`;cmp.appendChild(p);sels.push(new Sel(p.firstElementChild,{label:z+' '+d,options:flat,size:z,density:d,value:1}))}))
+const low=document.createElement('div');low.style.cssText='position:fixed;bottom:12px;right:12px;width:220px';document.body.appendChild(low);sels.push(new Sel(low,{label:'Al fondo (abre hacia arriba)',options:flat,value:1}))
+const T=`:root{--g-color-brand:#7A1F5C;--g-color-brand-text:#7A1F5C;--g-color-accent-text:#0F766E;--g-color-success-text:#1F6B3A;--g-color-danger-text:#8A0F00;--g-color-focus:#0F766E;--g-color-bg:#FFF6E5;--g-color-surface:#FFFBF2;--g-color-surface-sunken:#F1DDB6;--g-color-text:#3B2A1A;--g-color-text-muted:#6B4E33;--g-color-text-subtle:#7A5C3E;--g-color-border:#D8BE8A;--g-color-border-strong:#B99A62;--g-color-border-control:#8A6A30;--g-radius-sm:0px;--g-radius-md:2px;--g-radius-lg:14px;--g-radius-xl:28px;--g-border-width:2px;--g-focus-width:3px;--g-space-1:5px;--g-space-2:10px;--g-space-3:15px;--g-space-4:20px;--g-space-5:25px;--g-space-6:30px;--g-font-ui:Georgia,serif;--g-surface-backdrop:rgb(59 42 26 / .45)}`
+document.getElementById('theme-btn').addEventListener('click',()=>{const s=document.getElementById('theme');s.textContent=s.textContent?'':T})
+</script>
+</body></html>

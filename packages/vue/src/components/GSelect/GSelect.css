@@ -1,0 +1,509 @@
+/*
+  GSelect · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/select.md. Estructura: design/lab/select/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el umbral de consulta de
+  medios del visor móvil (~520px, excepción DECISIONS.md #42 y #56; @media no admite var()).
+  Mismo lenguaje que GInput (caja, foco, variantes, error). La lista es un popover en la capa
+  superior; bruno la coloca con variables CSS dinámicas (--_x, --_top, --_bottom, --_min, --_max).
+  En móvil pasa a hoja inferior con las superficies de GDialog (--g-surface-*).
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-select {
+  /* Color de foco (se reasigna por modificador --color-*); sin modificador: el foco del tema */
+  --_focus: var(--g-color-focus);
+
+  /* Variante (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las mismas unidades que GInput */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+  /* Opción: como la caja, con piso de 24px (44px con puntero grueso) */
+  --_opt: var(--_h);
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+@media (pointer: coarse) {
+  .g-select {
+    --_opt: max(44px, var(--_h));
+  }
+}
+
+/* ---------- Etiqueta ---------- */
+.g-select__label {
+  overflow-wrap: anywhere;
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-select__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+
+/* ---------- Caja ---------- */
+.g-select__control {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Anillo de foco: pegado al borde (sin hueco), del grosor de --g-focus-width, con transición de color
+   (mismo gesto que GInput, DECISIONS.md #35). En forced-colors el contorno transparente se volvería
+   visible, por eso la base solo aplica fuera de ese modo. */
+@media (forced-colors: none) {
+  .g-select__control {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (pointer: coarse) {
+  .g-select__control {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+
+.g-select__button {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--_px) * var(--_density));
+  border: 0;
+  outline: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-select__value {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-select__value--placeholder {
+  color: var(--g-color-text-subtle);
+}
+/* Flecha decorativa: dos bordes rotados (sobrevive a forced-colors) */
+.g-select__arrow {
+  flex: none;
+  box-sizing: border-box;
+  inline-size: calc(var(--_fs) * 0.5);
+  block-size: calc(var(--_fs) * 0.5);
+  border: solid currentColor;
+  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
+  color: var(--g-color-text-muted);
+  rotate: 45deg;
+  translate: 0 calc(var(--_fs) * -0.12);
+  transition:
+    rotate var(--g-duration-press) var(--g-ease-out),
+    translate var(--g-duration-press) var(--g-ease-out);
+}
+.g-select.is-open .g-select__arrow {
+  rotate: 225deg;
+  translate: 0 calc(var(--_fs) * 0.12);
+}
+
+/* Limpiar: botón aparte; la cruz son dos barras de borde */
+.g-select__clear {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  align-self: center;
+  inline-size: max(24px, calc(var(--_h) * 0.7));
+  block-size: max(24px, calc(var(--_h) * 0.7));
+  margin-inline-end: var(--g-space-1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-select__clear::before,
+.g-select__clear::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 30%;
+  inline-size: 40%;
+  block-size: 0;
+  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
+  rotate: 45deg;
+  translate: 0 -50%;
+}
+.g-select__clear::after { rotate: -45deg; }
+@media (pointer: coarse) {
+  .g-select__clear {
+    inline-size: 44px;
+    block-size: 44px;
+    margin-inline-end: 0;
+  }
+}
+.g-select__clear:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+@media (hover: hover) {
+  .g-select__clear:hover {
+    background: var(--g-color-surface-sunken);
+    color: var(--g-color-text);
+  }
+}
+
+/* ---------- Indicador de carga ---------- */
+.g-select__loader {
+  flex: none;
+  align-self: center;
+  box-sizing: border-box;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  margin-inline-end: calc(var(--_px) * var(--_density));
+  border: calc(var(--g-border-width) * 2) solid var(--g-color-text-subtle);
+  border-inline-end-color: transparent;
+  border-radius: var(--g-radius-pill);
+  animation: g-select-spin var(--g-duration-spin) linear infinite;
+}
+@keyframes g-select-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Lista (capa superior) ---------- */
+/* Bruno da la posición con variables CSS dinámicas; sin ellas (lista cerrada) valen "auto". El ancho
+   mínimo es el de la caja. Alto máximo: unas 8 opciones o el 60% del visor, lo que sea menor. */
+.g-select__list {
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--_x);
+  inset-block-start: var(--_top);
+  inset-block-end: var(--_bottom);
+  box-sizing: border-box;
+  min-inline-size: var(--_min);
+  max-inline-size: calc(100vw - var(--g-space-2));
+  max-block-size: min(var(--_max), calc(var(--_opt) * 8 + var(--g-space-2)), 60dvh);
+  margin: 0;
+  padding: var(--g-space-1);
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  /* El contorno de la lista llega a 3:1 (WCAG 1.4.11): con border-strong (~1.5:1) una lista blanca sobre
+     una página blanca dependería solo de la sombra */
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  box-shadow: var(--g-shadow-2);
+}
+.g-select__group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-select__group-label {
+  padding: var(--g-space-2) calc(var(--_px) * var(--_density)) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+}
+.g-select__option {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  min-block-size: var(--_opt);
+  padding-inline: calc(var(--_px) * var(--_density));
+  border-radius: max(0px, calc(var(--g-radius-md) - var(--g-space-1)));
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+/* Activa: relleno y contorno (WCAG 2.4.7: el foco vive en el selector, la activa lo señala) */
+.g-select__option.is-active {
+  background: var(--g-color-surface-sunken);
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Elegida: más peso y una marca ✓ dibujada con bordes (no depende del color) */
+.g-select__option[aria-selected="true"] {
+  font-weight: var(--g-text-action-weight);
+}
+.g-select__option[aria-selected="true"]::after {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  margin-inline-start: auto;
+  inline-size: calc(var(--_fs) * 0.7);
+  block-size: calc(var(--_fs) * 0.35);
+  border: solid currentColor;
+  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
+  rotate: -45deg;
+  translate: 0 calc(var(--_fs) * -0.1);
+}
+.g-select__option[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.g-select__empty {
+  padding: var(--g-space-3) calc(var(--_px) * var(--_density));
+  color: var(--g-color-text-muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-select__list:popover-open {
+    animation: g-select-in var(--g-duration-press) var(--g-ease-out);
+  }
+  @keyframes g-select-in {
+    from { opacity: 0; translate: 0 calc(var(--g-space-1) * -1); }
+  }
+  .g-select__list.is-up:popover-open {
+    animation-name: g-select-in-up;
+  }
+  @keyframes g-select-in-up {
+    from { opacity: 0; translate: 0 var(--g-space-1); }
+  }
+}
+
+/* ---------- Mensajes ---------- */
+.g-select__hint {
+  margin-block-start: var(--g-space-1);
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-select__error {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-select.is-invalid .g-select__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-select.is-invalid .g-select__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Tamaño ---------- */
+.g-select--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-select--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-select--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-select--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-select--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-select--density-default { --_density: 1; }
+.g-select--density-comfortable { --_density: 0.875; }
+.g-select--density-compact { --_density: 0.75; }
+
+/* ---------- Forma ---------- */
+.g-select--rounded-none { --_radius: var(--g-radius-none); }
+.g-select--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-select--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-select--rounded-md { --_radius: var(--g-radius-md); }
+.g-select--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-select--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-select--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Color (solo el foco) ---------- */
+.g-select--color-brand { --_focus: var(--g-color-brand-text); }
+.g-select--color-accent { --_focus: var(--g-color-accent-text); }
+.g-select--color-neutral { --_focus: var(--g-color-neutral-text); }
+.g-select--color-success { --_focus: var(--g-color-success-text); }
+.g-select--color-warning { --_focus: var(--g-color-warning-text); }
+.g-select--color-danger { --_focus: var(--g-color-danger-text); }
+.g-select--color-info { --_focus: var(--g-color-info-text); }
+
+/* ---------- Variante ---------- */
+/* outline: los valores por defecto del esqueleto */
+/* soft: caja rellena. Como el relleno solo no llega a 3:1 contra la superficie, conserva
+   la línea inferior con el borde de control (WCAG 1.4.11) */
+.g-select--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Ancho ---------- */
+.g-select--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-select:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-select__control:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+/* Foco: el anillo rodea la caja (el botón no lleva contorno propio) y el borde toma el color de foco */
+.g-select__control:has(.g-select__button:focus-visible) {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+/* Abierta: el borde se mantiene en el color de foco aunque el foco venga del ratón */
+.g-select.is-open .g-select__control {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+}
+.g-select.is-invalid .g-select__control {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-select.is-invalid .g-select__control:has(.g-select__button:focus-visible),
+.g-select.is-invalid.is-open .g-select__control {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+}
+.g-select.is-readonly .g-select__control {
+  --_bg: var(--g-color-surface-sunken);
+  border-style: dashed;
+}
+.g-select.is-readonly .g-select__button {
+  cursor: default;
+}
+.g-select.is-disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-select.is-disabled .g-select__label {
+  color: var(--g-color-text-subtle);
+}
+.g-select.is-disabled .g-select__control {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+}
+.g-select.is-disabled .g-select__button {
+  cursor: not-allowed;
+  color: var(--g-color-text-subtle);
+}
+.g-select.is-disabled .g-select__arrow {
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Móvil: hoja inferior (umbral literal, DECISIONS.md #42 y #56) ---------- */
+@media (max-width: 520px) {
+  .g-select__list {
+    inset: auto;
+    inset-inline: 0;
+    inset-block-end: 0;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: none;
+    max-block-size: 60dvh;
+    padding: var(--g-surface-gap) var(--g-surface-gap) max(var(--g-surface-gap), env(safe-area-inset-bottom));
+    border-width: var(--g-border-width) var(--g-border-width) 0;
+    border-color: var(--g-color-border);
+    border-radius: var(--g-surface-radius) var(--g-surface-radius) 0 0;
+    background: var(--g-surface-inset);
+    box-shadow: var(--g-shadow-3);
+  }
+  .g-select__list::backdrop {
+    background: var(--g-surface-backdrop);
+  }
+  .g-select__option {
+    min-block-size: max(44px, var(--_opt));
+  }
+}
+@media (max-width: 520px) and (prefers-reduced-motion: no-preference) {
+  .g-select__list:popover-open,
+  .g-select__list.is-up:popover-open {
+    animation-name: g-select-sheet-in;
+  }
+  @keyframes g-select-sheet-in {
+    from { opacity: 0; translate: 0 var(--g-space-6); }
+  }
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-select__control,
+  .g-select__arrow {
+    transition: none;
+  }
+  .g-select__loader {
+    animation-duration: calc(var(--g-duration-spin) * 2.5);
+  }
+}
+@media (forced-colors: active) {
+  .g-select__control {
+    border-color: ButtonText;
+  }
+  .g-select__control:has(.g-select__button:focus-visible),
+  .g-select__clear:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-select__list {
+    border-color: CanvasText;
+  }
+  .g-select__option.is-active {
+    outline-color: Highlight;
+  }
+  .g-select.is-disabled .g-select__control,
+  .g-select__option[aria-disabled="true"] {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  /* El navegador quita box-shadow en este modo: el error se distingue con un borde más grueso */
+  .g-select.is-invalid .g-select__control {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+}
