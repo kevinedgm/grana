@@ -186,7 +186,6 @@
     "invalid"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: estado mixto, conteo del grupo, error y nombre de la tarjeta",
     "Marca dibujada en Firefox y Safari"
   ]

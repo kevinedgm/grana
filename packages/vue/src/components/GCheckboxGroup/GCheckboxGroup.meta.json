@@ -144,7 +144,6 @@
     "error"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: conteo y estado mixto de la maestra"
   ]
 }
