@@ -17,6 +17,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
 | `typeScale` | número | `1.4` | Razón de la escala de títulos |
+| `dark` | `true` \| `false` \| objeto | `{ "brand": "#F5B940" }` | Tema oscuro (§15). `true` (por defecto): el CLI deriva la variante oscura de `brand` y `accent`. `false`: sin tema oscuro (el sistema oscuro no lo activa). Objeto: `brand`, `accent` (colores del oscuro, en lugar de los derivados) y `overrides` (solo para el oscuro) |
 
 Cualquier token derivado puede sobrescribirse explícitamente (uso avanzado). En el CLI, la clave `overrides` es un objeto `{ "--g-token": "valor" }`; se aplica después de generar y el resultado se valida igual. Los colores semánticos (`success`, `warning`, `danger`, `info`, `neutral`) no tienen entrada propia: se cambian con `overrides`.
 
@@ -188,7 +189,7 @@ Modo principal: en build (`npx @grana/cli theme grana.config.json` o plugin de V
 ## 9. Pendiente (no bloquea la v0.1)
 
 - Tema opcional **grana + añil** (`brand` #9E1452, `accent` #2E3A8C, neutros cálidos), ya verificado en contraste; se publicará como tema alternativo.
-- Tema oscuro: mismas entradas con las reglas de L invertidas.
+- ~~Tema oscuro~~: definido en §15 (DECISIONS.md #79 a #81).
 - Sombras configurables (`elevation`).
 
 ## 10. Límites conocidos
@@ -246,3 +247,92 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 **Límite:** los tokens se resuelven en `:root` (§10).
 
+## 15. Tema oscuro
+
+**Dueño:** lima (reglas) · coco (valores de `defaults.css`) · bruno (derivación en el CLI). DECISIONS.md #79 a #81. **Sin tokens nuevos**: el tema oscuro redeclara los mismos tokens de color; los componentes no cambian (solo leen `var(--g-*)`).
+
+### Activación (automática y forzable)
+
+| Situación | Resultado |
+| --- | --- |
+| Sin atributo | **Sigue el sistema** (`prefers-color-scheme: dark`) |
+| `data-theme="dark"` en un elemento | Oscuro en ese elemento y sus descendientes (`<html>`, un contenedor, una sección) |
+| `data-theme="light"` en un elemento | Claro en ese elemento, **aunque el sistema sea oscuro** (y dentro de un oscuro) |
+
+- **Atributo, no clase:** `data-theme` con los valores `light` y `dark` (sin otros; `auto` es la ausencia del atributo).
+- **Anidado:** una sección `data-theme="dark"` dentro de una página clara (y al revés) funciona: cada elemento con el atributo **redeclara todos los tokens de color**.
+- **`color-scheme`:** el tema declara `color-scheme: light` (o `dark`) junto a los tokens, para que los controles nativos, los selectores y las barras de desplazamiento sigan el tema.
+- **Quien no quiera oscuro:** `data-theme="light"` en `<html>`, o `dark: false` en el CLI.
+
+### Qué redeclara el oscuro (el «grupo de color»)
+
+Los tokens que cambian con el tema, **todos** (incluidos los que se definen con `var()`: se resuelven donde se declaran, así que una sección no los hereda):
+
+`--g-color-*` (marca, semánticos, neutros, foco) · `--g-surface-shell`, `--g-surface-inset`, `--g-surface-backdrop` · `--g-shadow-1..3` · `--g-glass-*` · `--g-calendar-*-color`.
+
+Lo demás (radios, espaciado, tipografía, movimiento, bordes, estructura) **no cambia** y no se repite.
+
+### Reglas de los valores del oscuro
+
+**Neutros (fijos por defecto; los decide coco dentro de estas reglas):**
+
+| Regla | Valor |
+| --- | --- |
+| Fondo | Gris casi negro (~`#141414`), no negro puro (decisión del usuario) |
+| Orden de superficies | `surface-sunken` ≤ `bg` < `surface`: **lo elevado es más claro**; la profundidad sale de la luminosidad, no de sombras |
+| `text`, `text-muted`, `text-subtle` | ≥ 4.5:1 sobre `bg`, `surface` y `surface-sunken` |
+| `border-control` | ≥ 3:1 sobre `surface` y `surface-sunken` |
+| `border`, `border-strong` | Blanco translúcido (mismo principio que el claro) |
+| `surface-backdrop` | Negro con alfa ≥ 0.5 |
+| Sombras | Las del claro con el alfa duplicado aproximadamente (sobre oscuro se ven menos); el tema sigue prefiriendo bordes |
+| Cristal | `tint` oscuro y opacidad tal que el peor caso (sobre blanco) dé ≥ 4.5:1 con `text` (más alta que la del claro) |
+
+**Colores (`brand`, `accent` y semánticos), reglas de derivación en OKLCH (las usa el CLI; los semánticos por defecto están fijos, derivados con las mismas):**
+
+| Derivado | Regla en el oscuro (S = `surface` oscuro) |
+| --- | --- |
+| Base | Si L de la base clara ≥ 0.5, se conserva; si es menor, se **refleja** (L' = 1 − L). Luego sube L en pasos de 0.01 hasta ≥ 4.5:1 con S (sirve de relleno y de texto). Si sale de la gama, baja C |
+| `on` | Casi negro (`#17151A`) o blanco: el de mayor contraste WCAG con la base |
+| `strong` | Sube L 0.06 (se aleja del fondo); si el contraste con `on` baja de 4.5:1, baja L 0.08 |
+| `soft` | L = 0.26, C × 0.35 (un velo oscuro del color) |
+| `text` | La base, subiendo L hasta ≥ 4.5:1 sobre S |
+| `on-soft` | Sube L desde la base hasta ≥ 4.5:1 sobre `soft` |
+
+- **`brand` de tinta** (oscuro en el claro): se refleja a un tono claro; el tema por defecto fija `brand` en un casi blanco y `on-brand` casi negro.
+- **`focus`** sigue siendo `accent-text` (oscuro).
+
+### Mecanismo y capas
+
+```css
+/* defaults.css, capa grana.defaults (coco) */
+:root, [data-theme="light"] { color-scheme: light; /* grupo de color, claro */ }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; /* grupo de color, oscuro */ }
+}
+[data-theme="dark"] { color-scheme: dark; /* grupo de color, oscuro */ }
+```
+
+El `:root` de los tokens no relacionados con el color no cambia. **Orden obligatorio:** claro, consulta oscura, `[data-theme="dark"]` (con igual especificidad, el último gana).
+
+### Lo que emite el CLI (sin capa)
+
+El `tokens.css` del usuario va **sin capa y gana siempre** (§8): si define `brand` claro y el oscuro de los defaults se activa, el `brand` claro **ganaría también en el oscuro** y no tendría contraste. Por eso, **con `dark: true` (por defecto) el CLI emite la variante oscura de lo que el usuario cambia**:
+
+```css
+:root, [data-theme="light"] { /* derivados claros (hoy solo :root) */ }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { /* derivados oscuros */ } }
+[data-theme="dark"] { /* derivados oscuros */ }
+```
+
+- **`dark: { brand, accent }`** sustituye a los derivados automáticos (colores explícitos del oscuro, derivados con las mismas reglas). **`dark.overrides`** se aplica solo al oscuro y se valida igual.
+- **`dark: false`:** no hay tema oscuro. El CLI emite, dentro de la consulta oscura y con `:root:not([data-theme="dark"])`, el **grupo de color claro completo** (defaults y derivados), para que el sistema oscuro no active el oscuro de los defaults. `data-theme="dark"` sigue funcionando (oscuro de los defaults, con los avisos del CLI).
+- **`check` valida los dos esquemas** con los mínimos de §7 (texto 4.5:1, controles 3:1): un tema cuyo oscuro no los cumpla se rechaza igual que uno claro.
+- El tema oscuro **no** cambia `radius`, `space`, `font`, `fontSize` ni `typeScale` (valen para ambos).
+
+### Límites
+
+- Como en §10, **los derivados se resuelven donde se declaran**: cambiar `--g-color-brand` solo dentro de una sección no mueve sus derivados (en el oscuro tampoco).
+- **Sin tercer esquema** (alto contraste o sepia) ni modo «automático por hora»: solo claro y oscuro.
+- **Sin cambio de tema animado** ni persistencia: alternar `data-theme` y guardar la preferencia es de la aplicación.
+- **Imágenes e iconos** de la aplicación no se adaptan solos.
+- **Usuarios actuales:** sin `data-theme`, una aplicación que use solo los defaults pasará a oscuro en un sistema oscuro. Quien no lo quiera debe fijar `data-theme="light"` (o `dark: false`).
