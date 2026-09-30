@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GStepper · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/stepper.md con el CSS real y el tema por defecto. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GStepper/GStepper.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:28px 0 8px}.cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 8px}
+  .frame{box-sizing:border-box;border:1px solid var(--g-color-border);background:var(--g-color-surface);padding:16px;resize:horizontal;overflow:auto;max-width:100%}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button>
+<div id="demos"></div>
+<script>
+const I = n => window.lucide(n);
+const STEPS = [
+  {label:'Plan', description:'Elige tu plan', icon:'list'},
+  {label:'Cuenta', description:'Datos de acceso', icon:'user'},
+  {label:'Pago', description:'Tarjeta o transferencia', icon:'credit-card'},
+  {label:'Confirmación', description:'Revisa y acepta', icon:'circle-check'},
+  {label:'Revisión', description:'Seguimiento', icon:'flag'}
+];
+const T = {complete:'completado', current:'paso actual', pending:'pendiente', error:'con error', warning:'con advertencia', disabled:'bloqueado', optional:'opcional'};
+let uid = 0;
+function indicator(i, s, st, o, forceNumber){
+  const kind = forceNumber ? 'number' : o.indicator;
+  if (s.status === 'error') return I('circle-alert');
+  if (s.status === 'warning') return I('triangle-alert');
+  if (s.disabled) return I('lock');
+  if (st === 'complete') return I('check');
+  if (kind === 'icon' && s.icon) return I(s.icon);
+  return String(i+1);
+}
+function listHtml(o, forceNumber){
+  const {steps, current} = o;
+  return '<ol class="g-stepper__list">' + steps.map((s,i)=>{
+    const st = i<current?'complete':i===current?'current':'pending';
+    const cls = ['g-stepper__step','is-'+st]; if(s.status) cls.push('is-'+s.status); if(s.disabled) cls.push('is-disabled'); if(s.optional) cls.push('is-optional');
+    const nav = o.navigation==='free'||(o.navigation==='back'&&i<current);
+    const can = nav && st!=='current' && !s.disabled;
+    const tag = can?'button type="button"':'span'; const end = can?'button':'span';
+    const flags=[st]; if(s.status)flags.push(s.status); if(s.disabled)flags.push('disabled'); if(s.optional)flags.push('optional');
+    const conn = i<current-1?'is-done':i===current-1?'is-toward':'is-pending';
+    const content = o.orientation==='vertical'&&st==='current' ? '<div class="g-stepper__content">Contenido del paso «'+s.label+'».</div>' : '';
+    return '<li class="'+cls.join(' ')+'"><'+tag+' class="g-stepper__hit"'+(st==='current'?' aria-current="step"':'')+'><span class="g-stepper__indicator" aria-hidden="true">'+indicator(i,s,st,o,forceNumber)+'</span><span class="g-stepper__text"><span class="g-stepper__label">'+s.label+'</span>'+(s.optional?'<span class="g-stepper__optional">(opcional)</span>':'')+(s.description?'<span class="g-stepper__description">'+s.description+'</span>':'')+'<span class="g-stepper__status">, '+flags.map(f=>T[f]).join(', ')+'</span></span></'+end+'><span class="g-stepper__connector '+(i<current?'is-done':i===current?'is-toward':'is-pending')+'" aria-hidden="true"></span>'+content+'</li>';
+  }).join('') + '</ol>';
+}
+function mk(o){
+  o = {orientation:'horizontal', indicator:'number', navigation:'none', color:'brand', size:'md', density:'default', current:1, steps:STEPS, compact:false, condensed:false, ...o};
+  const cls = ['g-stepper','g-stepper--'+o.orientation,'g-stepper--indicator-'+o.indicator,'g-stepper--color-'+o.color,'g-stepper--size-'+o.size,'g-stepper--density-'+o.density];
+  if(o.navigation!=='none') cls.push('g-stepper--navigable'); if(o.condensed) cls.push('g-stepper--condensed'); if(o.compact) cls.push('g-stepper--is-compact');
+  const id='gs'+(++uid);
+  const n=o.steps.length;
+  const compact = '<div class="g-stepper__compact"><div class="g-stepper__summary"><span class="g-stepper__summary-name">'+o.steps[o.current].label+'</span><span class="g-stepper__summary-count">Paso '+(o.current+1)+' de '+n+'</span></div><div class="g-stepper__bar" aria-hidden="true">'+o.steps.map((s,i)=>'<span class="g-stepper__bar-seg '+(i<o.current?'is-done':i===o.current?'is-toward':'is-pending')+'"></span>').join('')+'</div><button class="g-stepper__toggle" type="button" aria-expanded="'+(!!o.open)+'" aria-controls="'+id+'-list">Ver todos los pasos</button>'+(o.open?'<div id="'+id+'-list">'+listHtml({...o,orientation:'vertical',indicator:'number'},true)+'</div>':'')+'</div>';
+  return '<nav class="'+cls.join(' ')+'" aria-label="Registro">'+compact+(o.compact?'':listHtml(o))+'</nav>';
+}
+const DEMOS = [
+ ['Horizontal · línea', {indicator:'line'}],
+ ['Horizontal · puntos', {indicator:'dot'}],
+ ['Horizontal · numerado', {indicator:'number'}],
+ ['Horizontal · iconos', {indicator:'icon'}],
+ ['Segmentado', {indicator:'segment', steps:STEPS.map((s,i)=>i===1?{...s,status:'warning'}:i===3?{...s,status:'error'}:s), current:2}],
+ ['Estados especiales (número)', {current:2, steps:STEPS.map((s,i)=>i===1?{...s,status:'error'}:i===2?{...s,status:'warning'}:i===3?{...s,disabled:true}:i===4?{...s,optional:true}:s)}],
+ ['Estados especiales (puntos)', {indicator:'dot', current:2, steps:STEPS.map((s,i)=>i===1?{...s,status:'error'}:i===2?{...s,status:'warning'}:i===3?{...s,disabled:true}:i===4?{...s,optional:true}:s)}],
+ ['Estados especiales (línea)', {indicator:'line', current:2, steps:STEPS.map((s,i)=>i===1?{...s,status:'error'}:i===2?{...s,status:'warning'}:i===3?{...s,disabled:true}:i===4?{...s,optional:true}:s)}],
+ ['Navegable (volver)', {navigation:'back', current:2}],
+ ['Sin descripciones (condensado)', {navigation:'back', current:2, condensed:true}],
+ ['Vertical', {orientation:'vertical', navigation:'back', current:1, w:360}],
+ ['Vertical · puntos', {orientation:'vertical', indicator:'dot', current:1, w:360}],
+ ['Compacto', {compact:true, current:1, navigation:'back', w:360}],
+ ['Compacto desplegado', {compact:true, open:true, current:2, navigation:'back', w:360}],
+ ['Tamaño sm · density compact', {size:'sm', density:'compact'}],
+ ['Tamaño lg · color accent', {size:'lg', color:'accent'}],
+ ['Color success', {color:'success', current:3}],
+];
+const box=document.getElementById('demos');
+DEMOS.forEach(([t,o])=>box.insertAdjacentHTML('beforeend','<h2>'+t+'</h2><div class="frame" style="width:'+(o.w?o.w+'px':'100%')+'">'+mk(o)+'</div>'));
+const theme=document.getElementById('theme'); let on=false;
+document.getElementById('theme-btn').onclick=()=>{on=!on; theme.textContent=on?':root{--g-color-primary:#0B1F4D;--g-color-primary-strong:#06122e;--g-color-primary-soft:#dde5f7;--g-color-primary-text:#0B1F4D;--g-color-on-primary:#fff;--g-radius-pill:0;--g-radius-xs:0;--g-border-width:2px;--g-space-1:5px;--g-font-ui:Georgia,serif}':''};
+</script>
+</body>
+</html>
