@@ -1,6 +1,6 @@
 # 002 — Mantener el indicador de carga visible con movimiento reducido
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 34d80bb
 - **Severity**: MEDIUM
 - **Category**: Accessibility

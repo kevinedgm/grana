@@ -5,7 +5,7 @@ Generados con la skill `improve-animations` sobre el commit 34d80bb.
 | # | Título | Severidad | Estado |
 | --- | --- | --- | --- |
 | 001 | Añadir respuesta al pulsar en GBtn | Media | TODO |
-| 002 | Mantener el indicador de carga visible con movimiento reducido | Media | TODO |
+| 002 | Mantener el indicador de carga visible con movimiento reducido | Media | DONE |
 
 ## Orden recomendado
 

@@ -272,7 +272,7 @@
     transition: none;
   }
   .g-btn__loader {
-    animation: none;
+    animation-duration: calc(var(--g-duration-spin) * 2.5);
   }
 }
 @media (forced-colors: active) {
