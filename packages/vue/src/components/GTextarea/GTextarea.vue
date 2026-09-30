@@ -67,11 +67,12 @@ const showCounter = computed(() => props.counter && maxlength.value !== null)
 const field = ref(null)
 const autoH = ref(null)
 const capped = ref(false)
-let lastWidth = -1
+let measuring = false
 
 function measure() {
   const el = field.value
-  if (!props.autosize || !el) return
+  if (!props.autosize || !el || measuring) return
+  measuring = true
   const cs = getComputedStyle(el)
   const fs = parseFloat(cs.fontSize) || 16
   const lh = parseFloat(cs.lineHeight) || fs * 1.2
@@ -84,6 +85,7 @@ function measure() {
   el.style.setProperty('--_autoh', `${h}px`)
   autoH.value = h
   capped.value = need > cap + 0.5
+  measuring = false
 }
 
 let resizeObserver = null
@@ -91,13 +93,9 @@ onMounted(() => {
   nextTick(measure)
   if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) document.fonts.ready.then(measure)
   if (typeof ResizeObserver !== 'undefined' && field.value) {
-    resizeObserver = new ResizeObserver((entries) => {
-      const w = entries[0].contentRect.width
-      if (w !== lastWidth) {
-        lastWidth = w
-        measure()
-      }
-    })
+    // Cualquier cambio de tamaño (ancho, relleno o interlineado por el tema) vuelve a medir; medir de
+    // nuevo da la misma altura, así que el ciclo termina solo.
+    resizeObserver = new ResizeObserver(() => measure())
     resizeObserver.observe(field.value)
   }
 })

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTextarea",
   "tag": "g-textarea",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo de texto de varias líneas con etiqueta, ayuda, error, contador con aviso hablado discreto, filas fijas o autosize.",
   "contract": "design/contracts/textarea.md",
@@ -211,7 +211,6 @@
     "capped"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: etiqueta, ayuda, error y aviso del contador",
     "Rendimiento de autosize con textos de miles de líneas",

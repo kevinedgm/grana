@@ -142,6 +142,22 @@ describe('GTextarea · filas, autosize y tirador', () => {
     expect(root(w).classes()).not.toContain('is-capped')
   })
 
+  it('vuelve a medir ante cualquier cambio de tamaño (ResizeObserver), no solo del ancho', async () => {
+    let notify
+    const RO = class { constructor(cb) { notify = cb } observe() {} disconnect() {} }
+    vi.stubGlobal('ResizeObserver', RO)
+    const scrollHeight = { value: 56 }
+    const w = mount(GTextarea, { props: { label: 'x', autosize: true, rows: 2, modelValue: 'a' } })
+    const el = prepare(w, { scrollHeight })
+    await nextTick()
+    // el tema cambia el interlineado (mismo ancho): el observador avisa y la altura se recalcula
+    el.style.lineHeight = '36px'
+    scrollHeight.value = 88 // 2 × 36 + 16
+    notify([{ contentRect: { width: 300 } }])
+    expect(el.style.getPropertyValue('--_autoh')).toBe('88px')
+    vi.unstubAllGlobals()
+  })
+
   it('sin autosize no hay --_autoh ni is-capped', async () => {
     const w = mount(GTextarea, { props: { label: 'x', modelValue: '' } })
     await w.setProps({ modelValue: 'a\nb\nc' })
