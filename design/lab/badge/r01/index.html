@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBadge · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:32px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px} .wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.row{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.cell{display:grid;gap:4px;justify-items:start} .cap{font-size:12px;color:var(--wf-2);margin:0}
+.sr-toggle{margin-bottom:8px;font-size:13px}
+button{font:inherit}
+
+/* ---------- Insignia ---------- */
+.b{--h:24px;--fs:13px;--px:8px;display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;min-block-size:var(--h);max-inline-size:100%;padding:0 var(--px);border:1.5px solid var(--wf-ink);border-radius:999px;background:var(--wf-ink);color:#fff;font-size:var(--fs);line-height:1.2;font-weight:600;white-space:nowrap;vertical-align:middle}
+.b__text{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.b--soft{background:var(--wf-fill);color:var(--wf-ink);border-color:var(--wf-fill)}
+.b--outline{background:transparent;color:var(--wf-ink);border-color:var(--wf-ink)}
+.b--sm{--h:20px;--fs:12px;--px:6px} .b--lg{--h:28px;--fs:14px;--px:10px}
+/* icono */
+.b__ico{flex:none;display:inline-grid;place-content:center;width:1.1em;height:1.1em}.b__ico svg{width:1em;height:1em}
+/* figuras (forma = significado; se dibujan con bordes/clip, no con color solo) */
+.b__shape{flex:none;display:inline-block;width:.7em;height:.7em;background:currentColor}
+.b__shape--circle{border-radius:50%}
+.b__shape--square{border-radius:1px}
+.b__shape--diamond{rotate:45deg;width:.6em;height:.6em}
+.b__shape--triangle{background:none;width:0;height:0;border-left:.4em solid transparent;border-right:.4em solid transparent;border-bottom:.7em solid currentColor}
+/* solo figura / solo icono / contador */
+.b--only{padding:0;justify-content:center;inline-size:var(--h)}
+.b--only.b--shape{background:transparent;border-color:transparent;color:var(--wf-ink)}
+.b--count{min-inline-size:var(--h);justify-content:center;padding-inline:calc(var(--px) - 2px);font-variant-numeric:tabular-nums}
+.b--figure{--h:16px;padding:0;inline-size:var(--h);block-size:var(--h);min-block-size:var(--h);background:transparent;border-color:transparent;color:var(--wf-ink);justify-content:center}
+.b--figure.b--sm{--h:12px}.b--figure.b--lg{--h:20px}
+.b--figure .b__shape{width:100%;height:100%}
+.b--figure .b__shape--diamond{width:70%;height:70%}
+.b--figure .b__shape--triangle{border-left-width:.55em;border-right-width:.55em;border-bottom-width:.95em}
+.b__sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+body.show-sr .b__sr{position:static;inline-size:auto;block-size:auto;margin:0 0 0 6px;overflow:visible;clip-path:none;font:11px ui-monospace,monospace;background:var(--wf-note);color:var(--wf-ink);border:1px dashed var(--wf-3);padding:0 4px;white-space:normal}
+/* ---------- Ancla ---------- */
+.anchor{position:relative;display:inline-flex;vertical-align:middle}
+.anchor .b{position:absolute;pointer-events:none;translate:var(--tx) var(--ty);z-index:1}
+.anchor--top-end .b{inset-block-start:0;inset-inline-end:0;--tx:50%;--ty:-50%}
+.anchor--top-start .b{inset-block-start:0;inset-inline-start:0;--tx:-50%;--ty:-50%}
+.anchor--bottom-end .b{inset-block-end:0;inset-inline-end:0;--tx:50%;--ty:50%}
+.anchor--bottom-start .b{inset-block-end:0;inset-inline-start:0;--tx:-50%;--ty:50%}
+[dir=rtl] .anchor--top-end .b,[dir=rtl] .anchor--bottom-end .b{--tx:-50%}
+[dir=rtl] .anchor--top-start .b,[dir=rtl] .anchor--bottom-start .b{--tx:50%}
+.avatar{display:inline-grid;place-content:center;width:40px;height:40px;border-radius:50%;background:var(--wf-fill);border:1.5px solid var(--wf-2);font-weight:700}
+.iconbtn{display:inline-grid;place-content:center;width:44px;height:44px;border-radius:8px;background:#fff;border:1.5px solid var(--wf-2);cursor:pointer}
+.iconbtn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.frame{border:1px solid var(--wf-line);background:#fff;padding:12px;resize:horizontal;overflow:auto;max-width:100%}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:36px;white-space:pre-wrap;max-width:72ch}
+</style>
+</head>
+<body>
+<main>
+<h1>GBadge · r01</h1>
+<p class="meta">Wireframe F2. Kit neutral (sin color: el significado se lee por texto, figura o icono); el estilo real es de coco.</p>
+<div class="wf-note">Insignia <b>no interactiva</b> (<code>&lt;span&gt;</code>, sin <code>tabindex</code>). Sin texto visible (icono, figura, contador) lleva un texto oculto para lectores (<code>g-badge__sr</code>) y su parte visible es <code>aria-hidden</code>. Activa el interruptor para ver esos textos.</div>
+<label class="sr-toggle"><input type="checkbox" id="srt"> Mostrar el texto para lectores de pantalla</label>
+<div id="app"></div>
+<h2>Registro</h2><div class="log" id="log">Pulsa el botón anclado: el clic debe llegar al botón, no a la insignia.</div>
+</main>
+<script>
+const I={bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',check:'<path d="M20 6 9 17l-5-5"/>',alert:'<path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="10"/>',mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>',lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'}
+const ico=n=>`<span class="b__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg></span>`
+const sr=t=>t?`<span class="b__sr">${t}</span>`:''
+const cls=(...a)=>a.filter(Boolean).join(' ')
+// texto / punto / icono
+const text=(t,o={})=>`<span class="${cls('b',o.v&&`b--${o.v}`,o.s&&`b--${o.s}`)}">${o.shape?`<span class="b__shape b__shape--${o.shape}" aria-hidden="true"></span>`:''}${o.icon?ico(o.icon):''}<span class="b__text">${t}</span></span>`
+// solo icono
+const iconOnly=(icon,label,o={})=>`<span class="${cls('b','b--only',o.v&&`b--${o.v}`,o.s&&`b--${o.s}`)}">${ico(icon)}${sr(label)}</span>`
+// solo figura
+const figure=(shape,label,o={})=>`<span class="${cls('b','b--figure',o.s&&`b--${o.s}`)}"><span class="b__shape b__shape--${shape}" aria-hidden="true"></span>${sr(label)}</span>`
+// contador con tope
+const count=(n,label,o={})=>{const max=o.max??99;if(n===0&&!o.showZero)return '<span class="cap">(0: no se muestra)</span>';return `<span class="${cls('b','b--count',o.v&&`b--${o.v}`,o.s&&`b--${o.s}`)}"><span aria-hidden="true">${n>max?max+'+':n}</span>${sr(label)}</span>`}
+const anchor=(target,badge,pos='top-end')=>`<span class="anchor anchor--${pos}">${target}${badge}</span>`
+const cell=(c,h)=>`<div class="cell"><p class="cap">${c}</p>${h}</div>`
+const sec=(t,items)=>`<h2>${t}</h2><div class="row">${items.map(([c,h])=>cell(c,h)).join('')}</div>`
+const html=[
+ sec('Texto (solid, soft, outline) y tamaños',[['solid',text('Activo')],['soft',text('Activo',{v:'soft'})],['outline',text('Activo',{v:'outline'})],['sm',text('Beta',{s:'sm'})],['md',text('Beta')],['lg',text('Beta',{s:'lg'})]]),
+ sec('Texto + punto de estado (la forma del punto cambia)',[['círculo',text('Activo',{v:'soft',shape:'circle'})],['cuadrado',text('Detenido',{v:'soft',shape:'square'})],['rombo',text('Advertencia',{v:'soft',shape:'diamond'})],['triángulo',text('Error',{v:'soft',shape:'triangle'})],['outline + círculo',text('Pendiente',{v:'outline',shape:'circle'})]]),
+ sec('Texto + icono',[['icono + texto',text('Verificado',{v:'soft',icon:'check'})],['sm',text('Nuevo',{s:'sm',icon:'mail'})],['lg outline',text('Privado',{s:'lg',v:'outline',icon:'lock'})]]),
+ sec('Solo icono (nombre accesible obligatorio)',[['solid',iconOnly('bell','Notificaciones activadas')],['soft',iconOnly('check','Verificado',{v:'soft'})],['outline',iconOnly('alert','Requiere atención',{v:'outline'})],['sm',iconOnly('mail','Correo',{s:'sm'})],['lg',iconOnly('lock','Privado',{s:'lg',v:'soft'})]]),
+ sec('Solo figura (estatus; nombre accesible obligatorio)',[['círculo · en línea',figure('circle','En línea')],['cuadrado · detenido',figure('square','Detenido')],['rombo · advertencia',figure('diamond','Advertencia')],['triángulo · error',figure('triangle','Error')],['sm',figure('circle','En línea',{s:'sm'})],['lg',figure('triangle','Error',{s:'lg'})]]),
+ sec('Contador (tope 99; 0 oculto)',[['0',count(0,'Sin mensajes')],['1',count(1,'1 mensaje sin leer')],['12',count(12,'12 mensajes sin leer')],['99',count(99,'99 mensajes sin leer')],['100 → 99+',count(100,'100 mensajes sin leer')],['showZero',count(0,'0 mensajes',{showZero:true,v:'soft'})],['sm',count(7,'7 sin leer',{s:'sm'})],['lg',count(120,'120 sin leer',{s:'lg',max:99})],['tope 9',count(15,'15 sin leer',{max:9})]]),
+ sec('Anclada (cuatro esquinas)',[['top-end · contador',anchor('<span class="avatar" aria-label="Ana">A</span>',count(3,'3 sin leer',{s:'sm'}))],['top-start · punto',anchor('<span class="avatar" aria-label="Luis">L</span>',figure('circle','En línea',{s:'sm'}),'top-start')],['bottom-end · figura',anchor('<span class="avatar" aria-label="Eva">E</span>',figure('triangle','Error',{s:'sm'}),'bottom-end')],['bottom-start · icono',anchor('<span class="avatar" aria-label="Rey">R</span>',iconOnly('check','Verificado',{s:'sm'}),'bottom-start')],['sobre un botón',anchor('<button class="iconbtn" id="bt" type="button" aria-label="Bandeja de entrada"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+I.mail+'</svg></button>',count(120,'120 mensajes sin leer',{s:'sm'}))]]),
+ `<h2>RTL</h2><div class="row" dir="rtl">${cell('top-end en RTL (a la izquierda)',anchor('<span class="avatar" aria-label="أنا">أ</span>',count(3,'3 غير مقروءة',{s:'sm'})))}${cell('نص',text('نشط',{v:'soft',shape:'circle'}))}</div>`,
+ `<h2>Texto largo (160px)</h2><div class="frame" style="width:160px">${text('Un texto de insignia demasiado largo para caber',{v:'soft'})}</div>`
+].join('')
+document.getElementById('app').innerHTML=html
+document.getElementById('srt').addEventListener('change',e=>document.body.classList.toggle('show-sr',e.target.checked))
+document.getElementById('bt').addEventListener('click',()=>{document.getElementById('log').textContent='clic en el botón (llegó al botón, no a la insignia)'})
+</script>
+</body></html>
