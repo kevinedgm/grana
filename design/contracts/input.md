@@ -57,7 +57,7 @@ Campo completo de una línea: etiqueta, ayuda, error, iconos, contador y (en `pa
     <input class="g-input__field" id="ID" aria-describedby="ID-hint ID-error" aria-invalid="true" aria-busy="true" required …>
     <span class="g-input__append" aria-hidden="true">…</span>
     <span class="g-input__loader" aria-hidden="true"></span>
-    <button class="g-input__toggle" type="button" aria-pressed="false" aria-controls="ID" aria-label="Mostrar contraseña">…</button>
+    <button class="g-input__toggle" type="button" aria-pressed="false" aria-controls="ID">Mostrar contraseña</button>
   </div>
   <div class="g-input__messages">
     <span class="g-input__hint" id="ID-hint">Te enviaremos el comprobante.</span>
@@ -70,7 +70,7 @@ Campo completo de una línea: etiqueta, ayuda, error, iconos, contador y (en `pa
 - La etiqueta se asocia con `for`/`id`; nunca se sustituye por `placeholder`.
 - `aria-describedby` lista `ID-hint` si hay ayuda e `ID-error` solo mientras hay error.
 - La región `ID-error` (`aria-live="polite"`) **se renderiza siempre**, vacía mientras no hay error, para que el anuncio sea fiable (WCAG 4.1.3). El error se muestra con texto y una **señal no cromática** (marca y estilo de borde distinto); nunca solo con color (WCAG 1.4.1).
-- El botón mostrar/ocultar va **después** del `<input>` en el orden de tabulación; alterna `type` entre `password` y `text`, `aria-pressed` y su nombre (`hidePasswordLabel` cuando la contraseña está visible, `showPasswordLabel` cuando está oculta). El foco se conserva en el botón.
+- El botón mostrar/ocultar va **después** del `<input>` en el orden de tabulación; alterna `type` entre `password` y `text`, `aria-pressed` y su **texto visible**: `hidePasswordLabel` cuando la contraseña está visible, `showPasswordLabel` cuando está oculta. El texto visible es también su nombre accesible (sin `aria-label` aparte, así el nombre coincide con lo que se ve, WCAG 2.5.3). Sin icono ni slot: Grana no trae iconos. El foco se conserva en el botón.
 - Iconos de los slots `prepend` y `append`: envueltos con `aria-hidden="true"`. El contador también es `aria-hidden`.
 - **Altura real ≥ 44px con `pointer: coarse`**, sin importar `density`: la caja es el objetivo táctil; no se usa pseudo-elemento porque se solaparía con el mensaje y con los campos vecinos. Fuera de `coarse`, la altura sale de la tabla de tamaños (`tokens.md` §4) con piso de 24px.
 - El anillo de foco rodea la **caja completa** (`:has(.g-input__field:focus-visible)`, escrito por coco), no el `<input>` interior. El botón mostrar/ocultar tiene su propio anillo.
@@ -140,7 +140,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-input__prepend` / `g-input__append` | Envoltura del slot | Si hay slot |
 | `g-input__field` | `<input>` | Siempre |
 | `g-input__loader` | `span` `aria-hidden` | Solo con `loading` |
-| `g-input__toggle` | `button` | `type="password"` con las dos etiquetas |
+| `g-input__toggle` | `button` (contiene el texto de la etiqueta) | `type="password"` con las dos etiquetas |
 | `g-input__messages` | Contenedor de ayuda y contador | Si hay `hint`, slot `hint` o `counter` |
 | `g-input__hint` | Ayuda | Si hay ayuda |
 | `g-input__counter` | Contador | `counter` con `maxlength` |
@@ -170,6 +170,12 @@ Sin manejadores de teclado propios.
 | 8 | `id` para enlazar etiqueta, ayuda y error | Generado y estable; se puede pasar `id` | WCAG 1.3.1 |
 | 9 | Altura real con `pointer: coarse` | ≥ 44px reales, sin importar `density` | `tokens.md` §7; un pseudo-elemento se solaparía |
 | 10 | Tokens nuevos | Ninguno | Todo sale de tokens vigentes |
+| 11 (coco) | Contenido del botón mostrar/ocultar | Texto visible con la propia etiqueta (`showPasswordLabel` / `hidePasswordLabel`), sin icono, sin slot y sin `aria-label` | WCAG 2.5.3 (la etiqueta en el nombre); internacionalización; Grana no trae iconos |
+| 12 (coco) | Texto de 14px en táctil (zoom de iOS) | Límite conocido, sin regla por dispositivo | El tamaño de texto es del tema; `lg` y `xl` ya usan 16px por defecto |
+
+## Límites conocidos
+
+- **Táctil y tamaño de texto:** con `pointer: coarse` la caja mide 44px, pero el texto conserva el tamaño del tema (`body-sm`, 14px por defecto). iOS Safari amplía la página al enfocar un campo con texto menor de 16px. No se cambia el tamaño por dispositivo: quien lo necesite sube `fontSize` del tema a 16 o más, o usa `size="lg"`/`"xl"` (`body`).
 
 ## Abierto (no bloquea el paso siguiente)
 

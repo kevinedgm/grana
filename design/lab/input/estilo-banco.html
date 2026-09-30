@@ -35,7 +35,7 @@
         <input class="g-input__field" id="${id}" type="${o.type || 'text'}" value="${o.value ?? ''}" placeholder="${o.ph ?? ''}" ${desc ? `aria-describedby="${desc}"` : ''} ${o.error ? 'aria-invalid="true"' : ''} ${o.loading ? 'aria-busy="true"' : ''} ${o.required ? 'required' : ''} ${o.disabled ? 'disabled' : ''} ${o.readonly ? 'readonly' : ''} ${o.max ? `maxlength="${o.max}"` : ''}>
         ${o.append ? `<span class="g-input__append" aria-hidden="true">${ico}</span>` : ''}
         ${o.loading ? '<span class="g-input__loader" aria-hidden="true"></span>' : ''}
-        ${o.toggle ? `<button class="g-input__toggle" type="button" aria-pressed="false" aria-controls="${id}" aria-label="Mostrar contraseña">Mostrar</button>` : ''}
+        ${o.toggle ? `<button class="g-input__toggle" type="button" aria-pressed="false" aria-controls="${id}">Mostrar contraseña</button>` : ''}
       </div>
       ${(o.hint || o.counter) ? `<div class="g-input__messages">${o.hint ? `<span class="g-input__hint" id="${id}-hint">${o.hint}</span>` : ''}${o.counter ? `<span class="g-input__counter" aria-hidden="true">${(o.value || '').length}/${o.max}</span>` : ''}</div>` : ''}
       <div class="g-input__error" id="${id}-error" aria-live="polite">${o.error || ''}</div>

@@ -37,8 +37,8 @@
 
 | # | Hallazgo | Severidad | Propuesta |
 | --- | --- | --- | --- |
-| 1 | El contrato no dice **qué contiene** el botón mostrar/ocultar (`g-input__toggle`). Grana no trae iconos y el nombre accesible ya está en `aria-label` | Media | El botón muestra como texto visible la propia etiqueta (`showPasswordLabel` / `hidePasswordLabel`), sin icono ni slot nuevo. El CSS ya está listo para texto |
-| 2 | Con `pointer: coarse` la caja mide 44px, pero el texto sigue a 14px (`body-sm`); iOS Safari amplía la página al enfocar un campo con menos de 16px | Baja | Decidir si `size` `md` en táctil pasa a `body` (16px), o se documenta como limitación |
+| 1 | El contrato no dice **qué contiene** el botón mostrar/ocultar (`g-input__toggle`). Grana no trae iconos y el nombre accesible ya está en `aria-label` | Media | El botón muestra como texto visible la propia etiqueta (`showPasswordLabel` / `hidePasswordLabel`), sin icono ni slot nuevo. El CSS ya está listo para texto. **Resuelto por lima** (`design/contracts/input.md`, hallazgo 11) |
+| 2 | Con `pointer: coarse` la caja mide 44px, pero el texto sigue a 14px (`body-sm`); iOS Safari amplía la página al enfocar un campo con menos de 16px | Baja | Decidir si `size` `md` en táctil pasa a `body` (16px), o se documenta como limitación. **Resuelto por lima:** límite conocido (hallazgo 12) |
 
 ## No verificado
 
