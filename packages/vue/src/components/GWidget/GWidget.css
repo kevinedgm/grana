@@ -1,0 +1,406 @@
+/*
+  GWidget · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/widget.md. Estructura: design/lab/widget/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el 1px del texto oculto.
+  Sin consultas de medios de ancho: el nivel (s/m/l) y la forma los decide bruno por el tamaño propio del
+  widget (DECISIONS.md #73) y llegan como clases g-widget--level-* y --shape-*. Superficie suave: sin
+  sombras fuertes; la jerarquía sale del espaciado, la tipografía y el contraste.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-widget {
+  --_density: 1;
+  --_pad: calc(var(--g-space-1) * 4 * var(--_density));
+  --_gap: calc(var(--g-space-1) * 3 * var(--_density));
+  --_focus: var(--g-color-focus);
+  --_menu: max(24px, calc(var(--g-space-1) * 8));
+  --_badge-bg: var(--g-color-surface-sunken);
+  --_badge-fg: var(--g-color-text-muted);
+
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+  padding: var(--_pad);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+}
+@media (pointer: coarse) {
+  .g-widget {
+    --_menu: 44px;
+  }
+}
+/* Nivel pequeño: menos relleno; el DOM ya no trae categoría, subtítulo, badge ni pie */
+.g-widget--level-s {
+  --_pad: calc(var(--g-space-1) * 3 * var(--_density));
+  --_gap: calc(var(--g-space-1) * 2 * var(--_density));
+}
+.g-widget--density-default { --_density: 1; }
+.g-widget--density-comfortable { --_density: 0.875; }
+.g-widget--density-compact { --_density: 0.75; }
+
+/* ---------- Encabezado ---------- */
+.g-widget__head {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+}
+.g-widget__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 7);
+  block-size: calc(var(--g-space-1) * 7);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+}
+.g-widget__icon > svg {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+.g-widget__titles {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+.g-widget__eyebrow {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-subtle);
+}
+.g-widget__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+}
+.g-widget__sub {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* Badge: texto con forma de píldora (no solo color) */
+.g-widget__badge {
+  flex: none;
+  box-sizing: border-box;
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--_badge-bg);
+  color: var(--_badge-fg);
+  font-size: var(--g-text-caption-size);
+  line-height: calc(var(--g-space-1) * 5);
+  white-space: nowrap;
+}
+.g-widget__badge--color-brand { --_badge-bg: var(--g-color-brand-soft); --_badge-fg: var(--g-color-on-brand-soft); }
+.g-widget__badge--color-accent { --_badge-bg: var(--g-color-accent-soft); --_badge-fg: var(--g-color-on-accent-soft); }
+.g-widget__badge--color-neutral { --_badge-bg: var(--g-color-neutral-soft); --_badge-fg: var(--g-color-on-neutral-soft); }
+.g-widget__badge--color-success { --_badge-bg: var(--g-color-success-soft); --_badge-fg: var(--g-color-on-success-soft); }
+.g-widget__badge--color-warning { --_badge-bg: var(--g-color-warning-soft); --_badge-fg: var(--g-color-on-warning-soft); }
+.g-widget__badge--color-danger { --_badge-bg: var(--g-color-danger-soft); --_badge-fg: var(--g-color-on-danger-soft); }
+.g-widget__badge--color-info { --_badge-bg: var(--g-color-info-soft); --_badge-fg: var(--g-color-on-info-soft); }
+
+/* ---------- Menú de acciones ---------- */
+.g-widget__menu {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_menu);
+  block-size: var(--_menu);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-md);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Tres puntos dibujados con CSS (Grana no trae iconos): un punto y dos sombras */
+.g-widget__menu:empty::before {
+  content: "";
+  inline-size: var(--g-space-1);
+  block-size: var(--g-space-1);
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+  box-shadow:
+    0 calc(var(--g-space-1) * -1.75) currentColor,
+    0 calc(var(--g-space-1) * 1.75) currentColor;
+}
+@media (hover: hover) {
+  .g-widget__menu:hover {
+    background: var(--g-color-surface-sunken);
+    color: var(--g-color-text);
+  }
+}
+.g-widget__menu:focus-visible,
+.g-widget__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-widget__actions {
+  position: fixed;
+  inset: auto;
+  inset-inline-start: var(--_x);
+  inset-block-start: var(--_top);
+  inset-block-end: var(--_bottom);
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 50);
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-2);
+  overflow: auto;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  box-shadow: var(--g-shadow-2);
+  transform-origin: 100% 0;
+  opacity: 0;
+  scale: 0.96;
+}
+[dir="rtl"] .g-widget__actions {
+  transform-origin: 0 0;
+}
+.g-widget__actions:popover-open {
+  opacity: 1;
+  scale: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-widget__actions {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      scale var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+}
+@starting-style {
+  .g-widget__actions:popover-open {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+.g-widget__action {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: max(24px, calc(var(--g-space-1) * 9));
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-3);
+  border: 0;
+  border-radius: var(--g-radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  .g-widget__action {
+    min-block-size: 44px;
+  }
+}
+.g-widget__action:hover,
+.g-widget__action:focus {
+  background: var(--g-color-surface-sunken);
+  outline: 0;
+}
+.g-widget__action:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-widget__action[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-widget__actions hr {
+  margin: var(--g-space-1) 0;
+  border: 0;
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-widget__actions [role="presentation"] {
+  display: block;
+  padding: var(--g-space-1) var(--g-space-3) 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Cuerpo ---------- */
+.g-widget__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  overflow: hidden;
+}
+
+/* ---------- Pie ---------- */
+.g-widget__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-subtle);
+}
+.g-widget__link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--g-color-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: var(--g-space-1);
+  cursor: pointer;
+}
+
+/* ---------- Estados ---------- */
+.g-widget__state {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-2);
+  padding: var(--g-space-2);
+  text-align: center;
+  color: var(--g-color-text-muted);
+}
+.g-widget__state > b,
+.g-widget__state > strong {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+/* Desactualizado: los datos se conservan; una línea discontinua con el texto */
+.g-widget__stale {
+  margin: 0;
+  padding-block-start: var(--g-space-2);
+  border-block-start: var(--g-border-width) dashed var(--g-color-border-strong);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* Deshabilitado: atenuado y sin interacción en el cuerpo (el menú sigue disponible) */
+.g-widget--state-disabled {
+  border-style: dotted;
+}
+.g-widget--state-disabled .g-widget__body {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.g-widget--state-disabled .g-widget__title,
+.g-widget--state-disabled .g-widget__sub {
+  color: var(--g-color-text-subtle);
+}
+/* Cargando: esqueleto con la estructura del nivel (misma altura que con datos) */
+.g-widget__skeleton {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+}
+.g-widget__line,
+.g-widget__block {
+  display: block;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+}
+.g-widget__line {
+  flex: none;
+  block-size: calc(var(--g-space-1) * 3);
+}
+.g-widget__line:nth-child(1) { inline-size: 40%; }
+.g-widget__line:nth-child(2) { block-size: calc(var(--g-space-1) * 9); inline-size: 60%; }
+.g-widget__line:nth-child(n + 3) { inline-size: 90%; }
+.g-widget__block {
+  flex: 1 1 auto;
+  min-block-size: calc(var(--g-space-1) * 10);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-widget__line,
+  .g-widget__block {
+    animation: g-widget-pulse calc(var(--g-duration-spin) * 1.75) ease-in-out infinite;
+  }
+  @keyframes g-widget-pulse {
+    50% { opacity: 0.5; }
+  }
+}
+.g-widget__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Dentro de una rejilla en edición: las asas ocupan el sitio del badge y del enlace ---------- */
+.g-widget.is-editing {
+  border-style: dashed;
+  border-color: var(--g-color-border-control);
+}
+.g-widget.is-editing .g-widget__badge {
+  display: none;
+}
+.g-widget.is-editing .g-widget__link {
+  visibility: hidden;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-widget__actions {
+    scale: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+@media (forced-colors: active) {
+  .g-widget,
+  .g-widget__actions {
+    border-color: CanvasText;
+  }
+  .g-widget__menu:focus-visible,
+  .g-widget__link:focus-visible,
+  .g-widget__action:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-widget__action[aria-disabled="true"] {
+    color: GrayText;
+  }
+  .g-widget__badge {
+    border: var(--g-border-width) solid CanvasText;
+  }
+}

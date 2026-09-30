@@ -87,6 +87,8 @@ export const DEFAULTS = {
   "--g-sidebar-width": "calc(var(--g-space-1) * 66)",
   "--g-sidebar-rail": "calc(var(--g-space-1) * 16)",
   "--g-sidebar-bar": "calc(var(--g-space-1) * 17)",
+  "--g-widget-row": "calc(var(--g-space-1) * 28)",
+  "--g-widget-gap": "calc(var(--g-space-1) * 4)",
   "--g-space-1": "4px",
   "--g-space-2": "8px",
   "--g-space-3": "12px",

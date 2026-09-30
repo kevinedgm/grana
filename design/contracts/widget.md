@@ -214,13 +214,13 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | --- | --- | --- |
 | `g-widget` | Raíz (`article`) | Siempre |
 | `g-widget--level-{s\|m\|l}`, `--shape-{square\|wide\|tall}`, `--state-{…}`, `--density-*`, `--headless`, `is-editing` | Raíz | Siempre (`is-editing` dentro de una rejilla en edición) |
-| `g-widget__head`, `__icon`, `__titles`, `__eyebrow`, `__title`, `__sub`, `__badge` | Encabezado | Según nivel y props |
+| `g-widget__head`, `__icon`, `__titles`, `__eyebrow`, `__title`, `__sub`, `__badge` (+ `--color-{color}`) | Encabezado | Según nivel y props (el color del badge sale de `badgeColor`) |
 | `g-widget__menu`, `__actions`, `__action` | Menú de acciones | Con acciones |
 | `g-widget__body`, `__state`, `__stale`, `__skeleton`, `__line`, `__block`, `__sr` | Cuerpo y estados | Según estado |
 | `g-widget__foot`, `__link` | Pie | Desde el nivel `m` |
-| `g-metric` (+ `__label`, `__value`, `__unit`, `__trend`, `--size-*`) | Métrica | Siempre |
-| `g-progress` (+ `__row`, `__bar`, `__fill`, `--color-*`, `--size-*`) | Progreso | Siempre |
-| `g-data-list` (+ `__swatch`, `__label`, `__value`) | Lista de datos | Siempre |
+| `g-metric` (+ `__label`, `__value`, `__unit`, `__trend`, `--size-*`, `--trend-{color}`) | Métrica | Siempre (`--trend-*` sale de `trendColor`) |
+| `g-progress` (+ `__row`, `__bar`, `__fill`, `--color-*`, `--size-*`) | Progreso | Siempre; bruno da el avance al relleno con la variable dinámica `--_value` (porcentaje) |
+| `g-data-list` (+ `__swatch` con `data-swatch="0"` a `"3"`, `__label`, `__value`) | Lista de datos | Siempre |
 
 ## Resolución de hallazgos de r01
 

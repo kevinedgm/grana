@@ -1,0 +1,174 @@
+/*
+  GWidgetGrid · estilo de la rejilla del dashboard
+  Dueño: coco. Contrato: design/contracts/widget-grid.md. Estructura: design/lab/widget/r01/.
+  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales de medida: 24px y 44px (área táctil),
+  0px en max() y el 1px del texto oculto. Sin consultas de medios de ancho: bruno da el número de columnas con
+  la variable --_cols (por el ancho de la propia rejilla) y a cada celda su span de columnas y filas y su order.
+*/
+.g-widget-grid {
+  --_focus: var(--g-color-focus);
+  --_density: 1;
+  --_gap: calc(var(--g-widget-gap) * var(--_density));
+  --_handle: max(24px, calc(var(--g-space-1) * 7));
+
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+@media (pointer: coarse) {
+  .g-widget-grid {
+    --_handle: 44px;
+  }
+}
+.g-widget-grid--density-default { --_density: 1; }
+.g-widget-grid--density-comfortable { --_density: 0.875; }
+.g-widget-grid--density-compact { --_density: 0.75; }
+
+.g-widget-grid__list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(var(--_cols), minmax(0, 1fr));
+  grid-auto-rows: var(--g-widget-row);
+  grid-auto-flow: row dense;
+  gap: var(--_gap);
+  margin: 0;
+  padding: 0;
+}
+.g-widget-grid__item {
+  position: relative;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+/* La celda llena su espacio: el contenido (normalmente un GWidget) mide el 100% */
+.g-widget-grid__item > :first-child {
+  block-size: 100%;
+}
+/* Recogido con el teclado o arrastrado con el puntero */
+.g-widget-grid__item.is-grabbed {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+  border-radius: var(--g-radius-lg);
+}
+.g-widget-grid__item.is-dragging {
+  opacity: 0.55;
+}
+
+/* ---------- Asas (solo con editable) ---------- */
+.g-widget-grid__controls,
+.g-widget-grid__resize {
+  display: none;
+}
+.g-widget-grid.is-editing .g-widget-grid__controls {
+  position: absolute;
+  inset-block-start: calc(var(--g-space-1) * 4 * var(--_density));
+  inset-inline-end: calc(var(--g-space-1) * 4 * var(--_density) + max(24px, calc(var(--g-space-1) * 8)) + var(--g-space-2));
+  z-index: 2;
+  display: flex;
+  gap: var(--g-space-1);
+}
+.g-widget-grid.is-editing .g-widget-grid__resize {
+  position: absolute;
+  inset-block-end: var(--g-space-2);
+  inset-inline-end: var(--g-space-2);
+  z-index: 2;
+  display: grid;
+}
+.g-widget-grid__grab,
+.g-widget-grid__resize {
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_handle);
+  block-size: var(--_handle);
+  margin: 0;
+  padding: 0;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-muted);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-widget-grid__grab {
+  display: grid;
+  cursor: grab;
+}
+.g-widget-grid__resize {
+  cursor: nwse-resize;
+}
+[dir="rtl"] .g-widget-grid__resize {
+  cursor: nesw-resize;
+}
+/* Glifos dibujados con CSS: tres barras (mover) y una esquina (redimensionar) */
+.g-widget-grid__grab:empty::before {
+  content: "";
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: 0;
+  border-block-start: var(--g-border-width) solid currentColor;
+  box-shadow:
+    0 calc(var(--g-space-1) * -1.25) currentColor,
+    0 calc(var(--g-space-1) * 1.25) currentColor;
+}
+.g-widget-grid__resize:empty::before {
+  content: "";
+  inline-size: calc(var(--g-space-1) * 2.5);
+  block-size: calc(var(--g-space-1) * 2.5);
+  border: solid currentColor;
+  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
+  translate: calc(var(--g-space-1) * 0.5) calc(var(--g-space-1) * 0.5);
+}
+[dir="rtl"] .g-widget-grid__resize:empty::before {
+  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
+  translate: calc(var(--g-space-1) * -0.5) calc(var(--g-space-1) * 0.5);
+}
+.g-widget-grid__grab[aria-pressed="true"] {
+  background: var(--g-color-text);
+  border-color: var(--g-color-text);
+  color: var(--g-color-surface);
+}
+@media (hover: hover) {
+  .g-widget-grid__grab:hover,
+  .g-widget-grid__resize:hover {
+    border-color: var(--g-color-text);
+    color: var(--g-color-text);
+  }
+  .g-widget-grid__grab[aria-pressed="true"]:hover {
+    color: var(--g-color-surface);
+  }
+}
+.g-widget-grid__grab:focus-visible,
+.g-widget-grid__resize:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-widget-grid__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (forced-colors: active) {
+  .g-widget-grid__grab,
+  .g-widget-grid__resize {
+    border-color: ButtonText;
+  }
+  .g-widget-grid__grab:focus-visible,
+  .g-widget-grid__resize:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-widget-grid__grab[aria-pressed="true"] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+  .g-widget-grid__item.is-grabbed {
+    outline-color: Highlight;
+  }
+}
