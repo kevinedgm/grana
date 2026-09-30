@@ -119,3 +119,48 @@ describe('GDialog, GSidebar, GBtn y GBadge · iconos de Lucide', () => {
     w.unmount()
   })
 })
+
+describe('GMetric, GDataList, GWidgetGrid y GWidgetGallery · iconos de Lucide', () => {
+  it('GMetric: la tendencia lleva arrow-up, arrow-down o minus antes del texto', async () => {
+    const { default: GMetric } = await import('../components/GMetric/GMetric.vue')
+    const paths = { up: 'm5 12 7-7 7 7', down: 'm19 12-7 7-7-7', flat: 'M5 12h14' }
+    for (const [direction, path] of Object.entries(paths)) {
+      const w = mount(GMetric, { props: { label: 'x', value: 1, trend: '+1%', direction } })
+      const t = w.find('.g-metric__trend')
+      expect(t.element.firstElementChild.tagName.toLowerCase(), direction).toBe('svg')
+      expect(t.find('svg').attributes('aria-hidden')).toBe('true')
+      expect(t.find('svg').html(), direction).toContain(path)
+    }
+  })
+
+  it('GDataList: las muestras son circle, square, diamond y triangle de Lucide rellenos', async () => {
+    const { default: GDataList } = await import('../components/GDataList/GDataList.vue')
+    const w = mount(GDataList, { props: { swatches: true, rows: [0, 1, 2, 3].map((i) => ({ label: `f${i}`, value: i })) } })
+    const sw = w.findAll('svg.g-data-list__swatch')
+    expect(sw.map((s) => s.attributes('data-swatch'))).toEqual(['0', '1', '2', '3'])
+    for (const s of sw) { expect(s.attributes('fill')).toBe('currentColor'); expect(s.attributes('aria-hidden')).toBe('true') }
+    expect(new Set(sw.map((s) => s.html())).size).toBe(4)
+  })
+
+  it('GWidgetGrid: las asas llevan grip-vertical y move-diagonal-2 (nombre accesible intacto)', async () => {
+    const { default: GWidgetGrid } = await import('../components/GWidgetGrid/GWidgetGrid.vue')
+    const w = mount(GWidgetGrid, { props: { label: 'P', editable: true, modelValue: [{ id: 'a', w: 1, h: 1 }], labels: { grab: 'Mover {title}', resize: 'Tamaño {title}' } }, slots: { item: () => 'x' } })
+    const grab = w.find('.g-widget-grid__grab')
+    const rz = w.find('.g-widget-grid__resize')
+    expect(grab.find('svg').exists()).toBe(true)
+    expect(rz.find('svg').exists()).toBe(true)
+    expect(grab.attributes('aria-label')).toBeTruthy()
+    expect(grab.find('svg').attributes('aria-hidden')).toBe('true')
+  })
+
+  it('GWidgetGallery: cada categoría lleva su check de Lucide (se ve solo en la elegida por CSS)', async () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+    const { default: GWidgetGallery } = await import('../components/GWidgetGallery/GWidgetGallery.vue')
+    const w = mount(GWidgetGallery, { attachTo: document.body, props: { modelValue: true, title: 'T', items: [{ id: 'a', title: 'A', category: 'X' }], labels: { search: 's', add: 'a', results: '{count}', close: 'c', all: 'Todas', categories: 'C' } } })
+    const marks = w.findAll('.g-widget-gallery__cat svg.g-widget-gallery__cat-mark')
+    expect(marks).toHaveLength(2)
+    expect(marks[0].html()).toContain('M20 6 9 17l-5-5')
+    w.unmount()
+  })
+})

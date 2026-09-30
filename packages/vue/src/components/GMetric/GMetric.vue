@@ -3,6 +3,7 @@
 // Contrato: design/contracts/widget.md · Estilo: GMetric.css (coco). La tendencia lleva símbolo y texto (nunca solo color).
 import { computed } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GMetric', inheritAttrs: false })
 
@@ -21,13 +22,14 @@ const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_
 if (isDev && !props.label) console.warn('[Grana] <GMetric> necesita label (nombre accesible del valor).')
 
 const classes = computed(() => ['g-metric', `g-metric--size-${props.size}`, props.trend && `g-metric--trend-${props.trendColor}`])
+const trendIcon = computed(() => ({ up: 'arrow-up', down: 'arrow-down' })[props.direction] ?? 'minus')
 </script>
 
 <template>
   <div :class="classes">
     <span v-if="label" class="g-metric__label">{{ label }}</span>
     <span class="g-metric__value">{{ value }}<span v-if="unit" class="g-metric__unit">{{ unit }}</span></span>
-    <span v-if="trend" class="g-metric__trend" :data-direction="direction">{{ trend }}<small v-if="context"> {{ context }}</small></span>
+    <span v-if="trend" class="g-metric__trend" :data-direction="direction"><GIcon class="g-metric__trend-icon" :name="trendIcon" />{{ trend }}<small v-if="context"> {{ context }}</small></span>
     <small v-else-if="context" class="g-metric__context">{{ context }}</small>
   </div>
 </template>

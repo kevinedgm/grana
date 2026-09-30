@@ -5,6 +5,7 @@
 import { computed, nextTick, reactive, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import GDialog from '../GDialog/GDialog.vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import { fill } from '../../utils/template.js'
 
 defineOptions({ name: 'GWidgetGallery', inheritAttrs: false })
@@ -146,11 +147,11 @@ const cardId = (item, part) => `${rootId.value}-${String(item.id)}-${part}`
       <legend class="g-widget-gallery__sr">{{ L.categories }}</legend>
       <label class="g-widget-gallery__cat">
         <input type="radio" :name="`${rootId}-cat`" value="all" :checked="category === 'all'" @change="category = 'all'">
-        <span>{{ L.all }}</span>
+        <span><GIcon class="g-widget-gallery__cat-mark" name="check" />{{ L.all }}</span>
       </label>
       <label v-for="c in categoryList" :key="c.id" class="g-widget-gallery__cat">
         <input type="radio" :name="`${rootId}-cat`" :value="c.id" :checked="category === c.id" @change="category = c.id">
-        <span>{{ c.label }}</span>
+        <span><GIcon class="g-widget-gallery__cat-mark" name="check" />{{ c.label }}</span>
       </label>
     </fieldset>
 

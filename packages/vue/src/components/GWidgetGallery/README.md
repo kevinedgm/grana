@@ -106,7 +106,7 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{count}`.
 | `search` | Etiqueta del campo de búsqueda | Sí |
 | `add` | Texto del botón Añadir | Sí |
 | `results` | Contador («{count} widgets») | Sí |
-| `close` | Botón Cerrar y nombre de la ✕ | Sí |
+| `close` | Botón Cerrar y nombre del botón de cierre (el icono `x`) | Sí |
 | `all`, `categories` | Categoría «Todas» y leyenda (oculta) del grupo | Sí, con categorías |
 | `size` | Etiqueta del selector de tamaño | Sí, con más de un tamaño |
 | `empty` | Mensaje sin resultados | Sí |
@@ -126,7 +126,7 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{count}`.
 ## Accesibilidad
 
 - Hoja modal de `GDialog`: nombre por el título, foco atrapado, Esc, hoja inferior en móvil.
-- Categorías: radios nativos con **relleno y una marca ✓** (no solo color). La marca de añadido es **texto**.
+- Categorías: radios nativos con **relleno y un icono `check` de Lucide** (no solo color). La marca de añadido es **texto**.
 - Cada tarjeta es un `<article>` con nombre y descripción; el botón lleva el título como texto oculto.
 - Campos nativos con etiqueta visible; controles de 36px (44px con puntero táctil).
 

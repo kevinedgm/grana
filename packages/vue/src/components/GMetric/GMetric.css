@@ -1,6 +1,6 @@
 /*
   GMetric · estilo (primitiva de GWidget). Dueño: coco. Contrato: design/contracts/widget.md.
-  Solo var(--g-*) y alias locales; sin literales de tema. La tendencia lleva SIEMPRE un símbolo dibujado
+  Solo var(--g-*) y alias locales; sin literales de tema. La tendencia lleva SIEMPRE un símbolo de Lucide
   (▲ ▼ ■) y texto: nunca depende solo del color.
 */
 .g-metric {
@@ -46,22 +46,10 @@
   line-height: var(--g-text-caption-line);
   font-weight: var(--g-text-action-weight);
 }
-/* El símbolo: triángulo hacia arriba, hacia abajo o cuadrado; se recorta con clip-path, sin depender de un glifo */
-.g-metric__trend::before {
-  content: "";
-  flex: none;
-  inline-size: calc(var(--g-space-1) * 2);
-  block-size: calc(var(--g-space-1) * 2);
-  background: currentColor;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-.g-metric__trend[data-direction="down"]::before {
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-.g-metric__trend[data-direction="flat"]::before {
-  clip-path: none;
-  block-size: var(--g-space-1);
-  inline-size: calc(var(--g-space-1) * 2);
+/* El símbolo: arrow-up, arrow-down o minus de Lucide (GIcon), siempre junto al texto: la tendencia nunca es solo color */
+.g-metric__trend-icon {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
 }
 .g-metric__trend small {
   font-weight: var(--g-text-body-weight);
@@ -74,9 +62,3 @@
 .g-metric--trend-warning { --_trend: var(--g-color-warning-text); }
 .g-metric--trend-danger { --_trend: var(--g-color-danger-text); }
 .g-metric--trend-info { --_trend: var(--g-color-info-text); }
-@media (forced-colors: active) {
-  .g-metric__trend::before {
-    forced-color-adjust: none;
-    background: CanvasText;
-  }
-}

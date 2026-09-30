@@ -23,7 +23,7 @@ Primitiva de widget: un **valor** con su etiqueta, unidad, **tendencia** y conte
 
 ## Accesibilidad
 
-- **La tendencia nunca depende solo del color:** lleva un símbolo dibujado (▲ ▼ ■) y el texto. `direction` no dice si es bueno o malo: eso lo indica `trendColor` (una subida de costos puede ser `danger`).
+- **La tendencia nunca depende solo del color:** lleva un icono de Lucide (`arrow-up`, `arrow-down` o `minus`) y el texto. `direction` no dice si es bueno o malo: eso lo indica `trendColor` (una subida de costos puede ser `danger`).
 - El valor no se anuncia como región viva; si cambia y quieres anunciarlo, hazlo desde tu aplicación.
 - El color de la tendencia debe cumplir contraste de texto sobre la superficie (4.5:1); con el tema por defecto, 5.35:1.
 

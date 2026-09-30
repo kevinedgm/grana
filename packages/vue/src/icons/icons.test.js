@@ -77,13 +77,7 @@ describe('iconos generados', () => {
 // dibujados con CSS. La lista solo puede **encogerse**: un archivo nuevo con infracciones hace fallar la prueba, y
 // uno corregido debe salir de la lista.
 const DEUDA = [
-  'packages/vue/src/components/GDataList/GDataList.css',
   'packages/vue/src/components/GMenu/GMenu.css',
-  'packages/vue/src/components/GMetric/GMetric.css',
-  'packages/vue/src/components/GMetric/README.md',
-  'packages/vue/src/components/GWidgetConfig/README.md',
-  'packages/vue/src/components/GWidgetGallery/GWidgetGallery.css',
-  'packages/vue/src/components/GWidgetGallery/README.md',
   'design/lab/calendar/r01/index.html',
   'design/lab/checkbox/r01/index.html',
   'design/lab/menu/estilo-banco.html',

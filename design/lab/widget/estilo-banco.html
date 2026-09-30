@@ -9,6 +9,8 @@
      Los gráficos y el contenido de la aplicación se estilizan aquí con clases bk-*. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GWidget/GWidget.css?v=2" id="css-w">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GMetric/GMetric.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GProgress/GProgress.css?v=1">
@@ -34,7 +36,6 @@
   .bk-bars{display:flex;align-items:flex-end;gap:4px;flex:1;min-block-size:56px}
   .bk-bars i{flex:1;background:var(--g-color-border-strong);border-radius:3px 3px 0 0} .bk-bars i:last-child{background:var(--g-color-text)}
   .g-widget__icon svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  .g-widget-grid__grab svg,.g-widget-grid__resize svg{display:none}
   .g-widget__menu svg{display:none}
 </style>
 </head>
@@ -56,13 +57,13 @@
 <script>
 const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
 const say=t=>{const l=document.getElementById('live');l.textContent='';setTimeout(()=>{l.textContent=t},30);log('anuncio: '+t)}
-const P={chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',pulse:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',dots:'<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>',move:'<path d="M5 9h14M5 15h14"/>',size:'<path d="M15 21h6v-6M9 3H3v6M21 3l-7 7M3 21l7-7"/>'}
-const svg=n=>`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${P[n]}</svg>`
+const MAP={chart:'chart-column',pulse:'activity'}
+const svg=n=>window.lucide(MAP[n]||n)
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
 /* ---------- Primitivas (marcado) ---------- */
-const metric=(o,size)=>`<div class="g-metric g-metric--size-${size||'md'}${o.trend?` g-metric--trend-${o.tone||'neutral'}`:''}"><span class="g-metric__label">${esc(o.label)}</span><span class="g-metric__value">${esc(o.value)}${o.unit?`<span class="g-metric__unit">${esc(o.unit)}</span>`:''}</span>${o.trend?`<span class="g-metric__trend" data-direction="${o.dir||'up'}">${esc(o.trend)}${o.ctx?` <small>${esc(o.ctx)}</small>`:''}</span>`:''}</div>`
+const metric=(o,size)=>`<div class="g-metric g-metric--size-${size||'md'}${o.trend?` g-metric--trend-${o.tone||'neutral'}`:''}"><span class="g-metric__label">${esc(o.label)}</span><span class="g-metric__value">${esc(o.value)}${o.unit?`<span class="g-metric__unit">${esc(o.unit)}</span>`:''}</span>${o.trend?`<span class="g-metric__trend" data-direction="${o.dir||'up'}">${window.lucide({up:'arrow-up',down:'arrow-down'}[o.dir||'up']||'minus','g-metric__trend-icon')}${esc(o.trend)}${o.ctx?` <small>${esc(o.ctx)}</small>`:''}</span>`:''}</div>`
 const progress=(o)=>`<div class="g-progress g-progress--size-md g-progress--color-brand"><div class="g-progress__row"><span>${esc(o.label)}</span><span>${o.value}%</span></div><div class="g-progress__bar" role="progressbar" aria-valuenow="${o.value}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="${o.value}%" aria-label="${esc(o.label)}"><span class="g-progress__fill" style="--_value:${o.value}%"></span></div></div>`
-const dlist=(rows)=>`<ul class="g-data-list">${rows.map((r,i)=>`<li>${r.sw!==false?`<span class="g-data-list__swatch" data-swatch="${i%4}" aria-hidden="true"></span>`:''}<span class="g-data-list__label">${esc(r.label)}</span><span class="g-data-list__value">${esc(r.value)}</span></li>`).join('')}</ul>`
+const dlist=(rows)=>`<ul class="g-data-list">${rows.map((r,i)=>`<li>${r.sw!==false?`${window.lucide(['circle','square','diamond','triangle'][i%4],'g-data-list__swatch',true).replace('<svg ','<svg data-swatch="'+(i%4)+'" ')}`:''}<span class="g-data-list__label">${esc(r.label)}</span><span class="g-data-list__value">${esc(r.value)}</span></li>`).join('')}</ul>`
 const spark=(pts)=>{const mx=Math.max(...pts),mn=Math.min(...pts);return `<svg class="bk-spark" viewBox="0 0 100 36" preserveAspectRatio="none" role="img" aria-label="Tendencia de los últimos ${pts.length} periodos"><polyline points="${pts.map((v,i)=>`${(i/(pts.length-1)*100).toFixed(1)},${(34-(v-mn)/(mx-mn||1)*30).toFixed(1)}`).join(' ')}"/></svg>`}
 const bars=(v)=>`<div class="bk-bars" role="img" aria-label="Ingresos por mes">${v.map(x=>`<i style="height:${x}%"></i>`).join('')}</div>`
 /* ---------- Definiciones de widget (contenido de la aplicación, por nivel) ---------- */
@@ -166,8 +167,8 @@ class Grid{
   commitDom(){const a=document.activeElement;this.items.forEach(it=>{const li=this.ul.querySelector(`li[data-id="${it.id}"]`);if(li)this.ul.append(li)});if(a&&a.isConnected&&a!==document.activeElement)a.focus()} // el orden del DOM sigue al visual (2.4.3)
   layout(){this.items.forEach((it,i)=>{const li=this.ul.querySelector(`li[data-id="${it.id}"]`);if(li){li.style.gridColumn=`span ${this.span(it)}`;li.style.gridRow=`span ${it.h}`;li.style.order=i}});this.widgets.forEach(w=>w.grid&&w.level&&this.refreshCtrl(w));document.getElementById('layout').textContent=JSON.stringify(this.items)}
   decorate(w){const li=this.ul.querySelector(`li[data-id="${w.id}"]`);if(!li)return
-    if(!li.querySelector('.g-widget-grid__controls')){const c=document.createElement('div');c.className='g-widget-grid__controls';c.innerHTML=`<button type="button" class="g-widget-grid__grab" aria-roledescription="elemento reordenable"></button>`
-      const rz=document.createElement('button');rz.type='button';rz.className='g-widget-grid__resize';rz.innerHTML='';li.append(c,rz)
+    if(!li.querySelector('.g-widget-grid__controls')){const c=document.createElement('div');c.className='g-widget-grid__controls';c.innerHTML=`<button type="button" class="g-widget-grid__grab" aria-roledescription="elemento reordenable">${window.lucide('grip-vertical')}</button>`
+      const rz=document.createElement('button');rz.type='button';rz.className='g-widget-grid__resize';rz.innerHTML=window.lucide('move-diagonal-2');li.append(c,rz)
       const g=c.querySelector('.g-widget-grid__grab');g.addEventListener('keydown',e=>this.grabKey(e,w));g.addEventListener('blur',e=>{if(this.grab&&this.grab.id===w.id&&e.relatedTarget&&!li.contains(e.relatedTarget))this.cancel(w,true)})
       g.addEventListener('pointerdown',e=>this.dragStart(e,w));rz.addEventListener('keydown',e=>this.rzKey(e,w));rz.addEventListener('pointerdown',e=>this.rzStart(e,w))}
     this.refreshCtrl(w)}

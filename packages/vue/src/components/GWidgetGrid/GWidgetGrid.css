@@ -101,27 +101,14 @@
 [dir="rtl"] .g-widget-grid__resize {
   cursor: nesw-resize;
 }
-/* Glifos dibujados con CSS: tres barras (mover) y una esquina (redimensionar) */
-.g-widget-grid__grab:empty::before {
-  content: "";
-  inline-size: calc(var(--g-space-1) * 3.5);
-  block-size: 0;
-  border-block-start: var(--g-border-width) solid currentColor;
-  box-shadow:
-    0 calc(var(--g-space-1) * -1.25) currentColor,
-    0 calc(var(--g-space-1) * 1.25) currentColor;
+/* Iconos de Lucide (GIcon): grip-vertical (mover) y move-diagonal-2 (redimensionar, espejado en RTL) */
+.g-widget-grid__grab > .g-icon,
+.g-widget-grid__resize > .g-icon {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
 }
-.g-widget-grid__resize:empty::before {
-  content: "";
-  inline-size: calc(var(--g-space-1) * 2.5);
-  block-size: calc(var(--g-space-1) * 2.5);
-  border: solid currentColor;
-  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
-  translate: calc(var(--g-space-1) * 0.5) calc(var(--g-space-1) * 0.5);
-}
-[dir="rtl"] .g-widget-grid__resize:empty::before {
-  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
-  translate: calc(var(--g-space-1) * -0.5) calc(var(--g-space-1) * 0.5);
+[dir="rtl"] .g-widget-grid__resize > .g-icon {
+  scale: -1 1;
 }
 .g-widget-grid__grab[aria-pressed="true"] {
   background: var(--g-color-text);

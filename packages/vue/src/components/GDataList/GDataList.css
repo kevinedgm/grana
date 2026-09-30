@@ -33,31 +33,18 @@
   font-variant-numeric: tabular-nums;
   color: var(--g-color-text-muted);
 }
+/* Muestra de la leyenda: círculo, cuadrado, rombo o triángulo de Lucide rellenos (GIcon filled); tono y forma */
 .g-data-list__swatch {
-  flex: none;
-  box-sizing: border-box;
-  inline-size: calc(var(--g-space-1) * 2.5);
-  block-size: calc(var(--g-space-1) * 2.5);
-  background: var(--g-color-text);
-  border-radius: var(--g-radius-pill);
+  inline-size: calc(var(--g-space-1) * 3);
+  block-size: calc(var(--g-space-1) * 3);
+  color: var(--g-color-text);
 }
-.g-data-list__swatch[data-swatch="1"] {
-  background: var(--g-color-text-muted);
-  border-radius: var(--g-radius-xs);
-}
-.g-data-list__swatch[data-swatch="2"] {
-  background: var(--g-color-text-subtle);
-  border-radius: var(--g-radius-none);
-  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-}
-.g-data-list__swatch[data-swatch="3"] {
-  background: var(--g-color-border-strong);
-  border-radius: var(--g-radius-none);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
+.g-data-list__swatch[data-swatch="1"] { color: var(--g-color-text-muted); }
+.g-data-list__swatch[data-swatch="2"] { color: var(--g-color-text-subtle); }
+.g-data-list__swatch[data-swatch="3"] { color: var(--g-color-border-strong); }
 @media (forced-colors: active) {
   .g-data-list__swatch {
     forced-color-adjust: none;
-    background: CanvasText;
+    color: CanvasText;
   }
 }

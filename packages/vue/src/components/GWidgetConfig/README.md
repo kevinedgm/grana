@@ -66,7 +66,7 @@ const aplicar = () => {                                  // la validación es tu
 - **Al abrir**, el foco va a la **primera pestaña** (o al primer control si no hay pestañas) y se muestra la primera pestaña (o la del primer error). Si controlas `tab`, el componente te pide el cambio con `update:tab`. Al cerrar, el foco vuelve al elemento que abrió la hoja (**debe seguir en el DOM**).
 - **Aplicar** es un botón de envío asociado al formulario de la hoja: Enter dentro de un campo también aplica. Emite `apply` y **no cierra**: lo haces tú si no hay errores.
 - **Errores:** cuando rellenas `errors`, aparece el **resumen** (`role="alert"`) y recibe el foco **una vez por cada `apply`** que termina con errores (no al validar en vivo). Cada mensaje es un enlace que activa la pestaña y enfoca el campo (`field`: el `id` del elemento). Cada pestaña con errores muestra su **cantidad en texto**.
-- **Cancelar, ✕ y Esc:** sin `dirty`, cierran (`cancel` y `update:modelValue`); con `dirty`, el **pie cambia** a «¿Descartar los cambios? · Seguir editando · Descartar», con el foco en «Seguir editando». Sin un diálogo dentro de otro.
+- **Cancelar, el botón de cierre (`x`) y Esc:** sin `dirty`, cierran (`cancel` y `update:modelValue`); con `dirty`, el **pie cambia** a «¿Descartar los cambios? · Seguir editando · Descartar», con el foco en «Seguir editando». Sin un diálogo dentro de otro.
 - **Restablecer** (con `resettable`) emite `reset`: tú devuelves el borrador a los valores con que se abrió.
 - **`applying`:** mientras guardas, `aria-busy` y «Aplicar» en `aria-disabled` (sigue enfocable); no vuelve a emitir.
 - **Las pestañas no se desmontan** al cambiar: el borrador y los errores no se pierden.
@@ -121,7 +121,7 @@ Ninguno tiene valor por defecto. Marcador: `{count}`.
 | Clave | Uso | Requerido |
 | --- | --- | --- |
 | `apply`, `cancel` | Botones Aplicar y Cancelar | Sí |
-| `close` | Nombre de la ✕ («Cerrar sin aplicar») | Sí |
+| `close` | Nombre del botón de cierre («Cerrar sin aplicar») | Sí |
 | `tabs` | Nombre de la lista de pestañas | Sí, con dos o más pestañas |
 | `reset` | Botón Restablecer | Sí, con `resettable` |
 | `discardTitle`, `keepEditing`, `discard` | Confirmación de descarte | Sí, si usas `dirty` |

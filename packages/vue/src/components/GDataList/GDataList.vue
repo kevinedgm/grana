@@ -2,6 +2,7 @@
 // GDataList · lista compacta etiqueta–valor, también leyenda (primitiva de GWidget; dueño: bruno)
 // Contrato: design/contracts/widget.md · Estilo: GDataList.css (coco). Las muestras son tono + forma (0 a 3).
 import { computed } from 'vue'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GDataList', inheritAttrs: false })
 
@@ -25,12 +26,13 @@ const items = computed(() => {
   })
   return out
 })
+const SWATCHES = ['circle', 'square', 'diamond', 'triangle']
 </script>
 
 <template>
   <ul class="g-data-list" :aria-label="label">
     <li v-for="r in items" :key="r.key">
-      <span v-if="swatches" class="g-data-list__swatch" :data-swatch="r.swatch" aria-hidden="true" />
+      <GIcon v-if="swatches" class="g-data-list__swatch" :data-swatch="r.swatch" :name="SWATCHES[r.swatch] ?? SWATCHES[0]" filled />
       <span class="g-data-list__label">{{ r.label }}</span>
       <span v-if="r.value !== undefined" class="g-data-list__value">{{ r.value }}</span>
     </li>

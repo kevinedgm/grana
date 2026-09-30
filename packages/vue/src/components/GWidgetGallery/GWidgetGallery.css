@@ -109,9 +109,13 @@
   color: var(--g-color-on-brand);
   font-weight: var(--g-text-action-weight);
 }
-.g-widget-gallery__cat > input:checked + span::before {
-  content: "\2713";
+/* La marca es el check de Lucide (GIcon): solo se ve en la categoría elegida */
+.g-widget-gallery__cat-mark {
+  display: none;
   margin-inline-end: var(--g-space-1);
+}
+.g-widget-gallery__cat > input:checked + span > .g-widget-gallery__cat-mark {
+  display: inline-block;
 }
 @media (hover: hover) {
   .g-widget-gallery__cat > input:not(:checked):hover + span {

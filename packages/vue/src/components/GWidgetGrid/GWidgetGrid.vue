@@ -6,6 +6,7 @@
 // da con `order` mientras dura el movimiento; al confirmar, el DOM sigue al layout (el foco se restaura).
 import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -360,7 +361,7 @@ export default defineComponent({
                   onKeydown: (ev) => onGrabKeydown(ev, e.id),
                   onBlur: (ev) => onGrabBlur(ev, e.id),
                   onPointerdown: (ev) => onGrabPointerdown(ev, e.id)
-                })
+                }, [h(GIcon, { name: 'grip-vertical' })])
               ]),
               h('button', {
                 type: 'button',
@@ -369,7 +370,7 @@ export default defineComponent({
                 'aria-label': fill(L.value.resize, vars),
                 onKeydown: (ev) => onResizeKeydown(ev, e.id),
                 onPointerdown: (ev) => onResizePointerdown(ev, e.id)
-              })
+              }, [h(GIcon, { name: 'move-diagonal-2' })])
             ]
           : []
         return h('li', {

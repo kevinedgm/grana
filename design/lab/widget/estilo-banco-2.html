@@ -11,6 +11,8 @@
 <link rel="stylesheet" href="../../../packages/vue/src/components/GWidget/GWidget.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GMetric/GMetric.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GWidgetGallery/GWidgetGallery.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <link rel="stylesheet" href="../../../packages/vue/src/components/GWidgetConfig/GWidgetConfig.css?v=1">
 <style id="theme"></style>
 <style>
@@ -22,7 +24,7 @@
   .bk-field label{font-weight:600}
   .bk-in{min-height:36px;padding:0 10px;border:1px solid var(--g-color-border-control);border-radius:8px;background:var(--g-color-surface);color:inherit;font:inherit}
   .bk-in[aria-invalid=true]{border-width:3px;border-style:double;border-color:var(--g-color-danger)}
-  .bk-err{font-size:12px;font-weight:600;color:var(--g-color-danger-text)}.bk-err::before{content:"\25B2 "}
+  .bk-err{font-size:12px;font-weight:600;color:var(--g-color-danger-text)}.bk-err .g-icon{margin-inline-end:4px;vertical-align:-0.125em}
   .bk-panel{max-inline-size:760px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;grid-auto-rows:var(--g-widget-row)}
 </style>
 </head>
@@ -39,15 +41,15 @@
 
 <!-- ===== Galería ===== -->
 <dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--density-default g-dialog--placement-end g-dialog--mobile-sheet g-widget-gallery g-widget-gallery--density-default" id="gal" aria-labelledby="gal-title" aria-describedby="gal-desc">
-  <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="gal-title">Añadir widget</h2><p class="g-dialog__description" id="gal-desc">Elige un widget y su tamaño inicial; se añade al final del panel.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="gal-title">Añadir widget</h2><p class="g-dialog__description" id="gal-desc">Elige un widget y su tamaño inicial; se añade al final del panel.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close><svg class="g-icon"></svg></button></div>
   <div class="g-dialog__inset">
     <div class="g-dialog__body" tabindex="0" role="region" aria-labelledby="gal-title">
       <div class="g-widget-gallery__search"><label for="gal-q">Buscar widgets</label><input id="gal-q" type="search" autocomplete="off" aria-controls="gal-list"></div>
       <fieldset class="g-widget-gallery__cats"><legend class="g-widget-gallery__sr">Categoría</legend>
-        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat" checked><span>Todas</span></label>
-        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Finanzas</span></label>
-        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Equipo</span></label>
-        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Operaciones</span></label></fieldset>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat" checked><span><svg class="g-icon g-widget-gallery__cat-mark"></svg>Todas</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span><svg class="g-icon g-widget-gallery__cat-mark"></svg>Finanzas</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span><svg class="g-icon g-widget-gallery__cat-mark"></svg>Equipo</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span><svg class="g-icon g-widget-gallery__cat-mark"></svg>Operaciones</span></label></fieldset>
       <p class="g-widget-gallery__status" role="status">3 widgets</p>
       <ul class="g-widget-gallery__list" id="gal-list" aria-label="Widgets disponibles">
         <li><article class="g-widget-gallery__card is-added" aria-labelledby="c1-t" aria-describedby="c1-d">
@@ -79,7 +81,7 @@
 <!-- ===== Configuración ===== -->
 <dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--density-default g-dialog--placement-end g-dialog--mobile-sheet g-widget-config g-widget-config--density-default" id="cfg" aria-labelledby="cfg-title" aria-describedby="cfg-desc">
   <form class="g-widget-config__form" id="cfg-form" novalidate>
-    <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="cfg-title">Configurar Ingresos</h2><p class="g-dialog__description" id="cfg-desc">Los cambios se ven en la vista previa y se aplican al pulsar Aplicar.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar sin aplicar" data-cancel></button></div>
+    <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="cfg-title">Configurar Ingresos</h2><p class="g-dialog__description" id="cfg-desc">Los cambios se ven en la vista previa y se aplican al pulsar Aplicar.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar sin aplicar" data-cancel><svg class="g-icon"></svg></button></div>
     <div class="g-dialog__inset">
       <div class="g-dialog__body" tabindex="0" role="region" aria-labelledby="cfg-title">
         <div class="g-widget-config__sr" role="status" aria-live="polite"></div>
@@ -91,11 +93,11 @@
           <button role="tab" type="button" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1">Ajustes<span class="g-widget-config__mark" hidden>1 error</span></button></div>
         <div class="g-widget-config__panel" role="tabpanel" id="p1" aria-labelledby="t1" tabindex="0">
           <div class="bk-field"><label for="f-period">Periodo</label><select class="bk-in" id="f-period"><option>Últimos 30 días</option></select></div>
-          <div class="bk-field"><label for="f-goal">Meta mensual</label><input class="bk-in" id="f-goal" value="0" aria-describedby="f-goal-e"><span class="bk-err" id="f-goal-e" hidden>La meta debe ser un número mayor que 0.</span></div></div>
+          <div class="bk-field"><label for="f-goal">Meta mensual</label><input class="bk-in" id="f-goal" value="0" aria-describedby="f-goal-e"><span class="bk-err" id="f-goal-e" hidden><svg class="g-icon" data-i="triangle-alert"></svg>La meta debe ser un número mayor que 0.</span></div></div>
         <div class="g-widget-config__panel" role="tabpanel" id="p2" aria-labelledby="t2" tabindex="0" hidden>
           <div class="bk-field"><label for="f-dens">Densidad</label><select class="bk-in" id="f-dens"><option>Normal</option></select></div></div>
         <div class="g-widget-config__panel" role="tabpanel" id="p3" aria-labelledby="t3" tabindex="0" hidden>
-          <div class="bk-field"><label for="f-title">Título</label><input class="bk-in" id="f-title" value="" aria-describedby="f-title-e"><span class="bk-err" id="f-title-e" hidden>El título es obligatorio.</span></div></div>
+          <div class="bk-field"><label for="f-title">Título</label><input class="bk-in" id="f-title" value="" aria-describedby="f-title-e"><span class="bk-err" id="f-title-e" hidden><svg class="g-icon" data-i="triangle-alert"></svg>El título es obligatorio.</span></div></div>
       </div>
       <div class="g-dialog__footer">
         <button class="g-widget-config__btn g-widget-config__btn--reset" type="button">Restablecer</button>
@@ -106,9 +108,11 @@
   </form>
 </dialog>
 
-<dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--placement-center g-dialog--mobile-sheet" id="ctr" aria-labelledby="ctr-t"><div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="ctr-t">Centrado (placement por defecto)</h2></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close></button></div><div class="g-dialog__inset"><div class="g-dialog__body">Sin cambios respecto a GDialog.</div></div></dialog>
+<dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--placement-center g-dialog--mobile-sheet" id="ctr" aria-labelledby="ctr-t"><div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="ctr-t">Centrado (placement por defecto)</h2></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close><svg class="g-icon"></svg></button></div><div class="g-dialog__inset"><div class="g-dialog__body">Sin cambios respecto a GDialog.</div></div></dialog>
 
 <script>
+// Iconos de Lucide: los marcadores vacíos se sustituyen por el svg real
+window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('svg.g-widget-gallery__cat-mark').forEach(e=>e.outerHTML=window.lucide('check','g-widget-gallery__cat-mark'));document.querySelectorAll('[data-close]>svg,[data-cancel]>svg.g-icon').forEach(e=>e.outerHTML=window.lucide('x'));document.querySelectorAll('svg[data-i]').forEach(e=>e.outerHTML=window.lucide(e.dataset.i))})
 const $=s=>document.querySelector(s), log=t=>{$('#log').textContent=t+'\n'+($('#log').textContent==='—'?'':$('#log').textContent)}
 // widgets de ejemplo (contenido de la aplicación) dentro de las vistas previas
 const mini=s=>{const[t,e,v,u]=s.split('|');return `<article class="g-widget g-widget--level-m g-widget--shape-wide g-widget--state-populated g-widget--density-default" aria-hidden="true"><header class="g-widget__head"><div class="g-widget__titles"><span class="g-widget__eyebrow">${e}</span><h3 class="g-widget__title">${t}</h3></div></header><div class="g-widget__body"><div class="g-metric g-metric--size-lg"><span class="g-metric__label">${t}</span><span class="g-metric__value">${v}<span class="g-metric__unit">${u}</span></span></div></div></article>`}
