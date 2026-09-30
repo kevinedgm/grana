@@ -4,8 +4,15 @@
   Valores derivados con las reglas de docs/contract/tokens.md y verificados:
   todo texto ≥ 4.5:1, borde de control ≥ 3:1 sobre surface y surface-sunken.
   Este es el ÚNICO archivo del paquete donde se permiten valores literales de tema.
+
+  Tema oscuro (tokens.md §15, DECISIONS.md #79 a #81): al final del archivo, tras la marca OSCURO.
+  Orden obligatorio: claro, consulta oscura, [data-theme="dark"]. Los tokens que no son de color
+  (radios, espaciado, tipografía, movimiento, estructura) no cambian y no se repiten.
 */
-:root {
+/* Grupo de color, claro: también en [data-theme="light"] (un claro dentro de un oscuro) */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
   /* brand · tinta (acción principal). L 0.24 < 0.3: strong aclara */
   --g-color-brand: #1F1F1F;
   --g-color-brand-strong: #333333;
@@ -74,7 +81,31 @@
   --g-color-border-control: #8A8A8A;
   --g-color-focus: var(--g-color-accent-text);
 
-  /* Radios · radius 6, razón 1.4, shape rounded */
+  /* Calendario */
+  --g-calendar-grid-color: var(--g-color-border);
+  --g-calendar-unavailable-color: var(--g-color-border-strong);
+  --g-calendar-now-color: var(--g-color-danger);
+
+  /* Cristal (liquid glass): velo translúcido. Opacidad mínima 0.55 con texto oscuro (peor caso sobre negro: 6.15:1) */
+  --g-glass-tint: #FFFFFF;
+  --g-glass-opacity: 0.62;
+  --g-glass-filter: blur(14px) saturate(1.8);
+  --g-glass-edge: rgb(255 255 255 / 0.75);
+  --g-glass-sheen: rgb(255 255 255 / 0.55);
+
+  /* Superficies anidadas (carcasa + inset): profundidad por diferencias mínimas */
+  --g-surface-shell: var(--g-color-surface-sunken);
+  --g-surface-inset: var(--g-color-surface);
+  --g-surface-backdrop: rgb(0 0 0 / 0.32);
+
+  /* Sombras · discretas: el tema prefiere bordes */
+  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.10);
+  --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.18);
+}
+
+/* Resto del tema: no depende del esquema de color */
+:root {  /* Radios · radius 6, razón 1.4, shape rounded */
   --g-radius-none: 0;
   --g-radius-xs: 3px;
   --g-radius-sm: 4px;
@@ -98,25 +129,9 @@
   --g-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --g-press-scale: 0.97;
 
-  /* Calendario */
-  --g-calendar-grid-color: var(--g-color-border);
-  --g-calendar-unavailable-color: var(--g-color-border-strong);
-  --g-calendar-now-color: var(--g-color-danger);
-
-  /* Cristal (liquid glass): velo translúcido. Opacidad mínima 0.55 con texto oscuro (peor caso sobre negro: 6.15:1) */
-  --g-glass-tint: #FFFFFF;
-  --g-glass-opacity: 0.62;
-  --g-glass-filter: blur(14px) saturate(1.8);
-  --g-glass-edge: rgb(255 255 255 / 0.75);
-  --g-glass-sheen: rgb(255 255 255 / 0.55);
-
-  /* Superficies anidadas (carcasa + inset): profundidad por diferencias mínimas */
-  --g-surface-shell: var(--g-color-surface-sunken);
-  --g-surface-inset: var(--g-color-surface);
   --g-surface-gap: calc(var(--g-space-1) * 1.5);
   --g-surface-radius: var(--g-radius-xl);
   --g-surface-radius-inset: max(0px, calc(var(--g-surface-radius) - var(--g-surface-gap)));
-  --g-surface-backdrop: rgb(0 0 0 / 0.32);
 
   /* Sidebar · estructura (tokens.md §13): la aplicación reserva este espacio */
   --g-sidebar-width: calc(var(--g-space-1) * 66);
@@ -181,9 +196,195 @@
 
   /* Peso de las etiquetas de acción (botones, pestañas) */
   --g-text-action-weight: 500;
+}
 
-  /* Sombras · discretas: el tema prefiere bordes */
-  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
-  --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.10);
-  --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.18);
+/* === OSCURO (tokens.md §15) · al final, para ganar al claro con igual especificidad === */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    /* brand · tinta invertida: casi blanco con texto casi negro (la tinta oscura del claro no se ve sobre un fondo oscuro) */
+    --g-color-brand: #F2F2F2;
+    --g-color-brand-strong: #FFFFFF;
+    --g-color-brand-soft: #2A2A2A;
+    --g-color-brand-text: #F2F2F2;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #F2F2F2;
+
+    /* accent · azul aclarado hasta 4.5:1 sobre la superficie */
+    --g-color-accent: #3383F0;
+    --g-color-accent-strong: #4D96FF;
+    --g-color-accent-soft: #0E2442;
+    --g-color-accent-text: #3383F0;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #3A89F7;
+
+    /* neutral */
+    --g-color-neutral: #858585;
+    --g-color-neutral-strong: #979797;
+    --g-color-neutral-soft: #242424;
+    --g-color-neutral-text: #858585;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #8B8B8B;
+
+    /* success */
+    --g-color-success: #3F9560;
+    --g-color-success-strong: #52A871;
+    --g-color-success-soft: #132A1B;
+    --g-color-success-text: #3F9560;
+    --g-color-on-success: #17151A;
+    --g-color-on-success-soft: #459C65;
+
+    /* warning */
+    --g-color-warning: #AF792F;
+    --g-color-warning-strong: #C28B43;
+    --g-color-warning-soft: #30210D;
+    --g-color-warning-text: #AF792F;
+    --g-color-on-warning: #17151A;
+    --g-color-on-warning-soft: #B88239;
+
+    /* danger */
+    --g-color-danger: #E4523D;
+    --g-color-danger-strong: #FA664F;
+    --g-color-danger-soft: #3E160F;
+    --g-color-danger-text: #E4523D;
+    --g-color-on-danger: #17151A;
+    --g-color-on-danger-soft: #EB5843;
+
+    /* info · coincide con accent solo en el tema por defecto */
+    --g-color-info: #3383F0;
+    --g-color-info-strong: #4D96FF;
+    --g-color-info-soft: #0E2442;
+    --g-color-info-text: #3383F0;
+    --g-color-on-info: #17151A;
+    --g-color-on-info-soft: #3A89F7;
+
+    /* Neutros · fondo gris casi negro; lo elevado es más claro (surface > bg > sunken) */
+    --g-color-bg: #141414;
+    --g-color-surface: #1C1C1C;
+    --g-color-surface-sunken: #101010;
+    --g-color-text: #F2F2F2;
+    --g-color-text-muted: #B8B8B8;
+    --g-color-text-subtle: #9C9C9C;
+    --g-color-border: rgb(255 255 255 / 0.10);
+    --g-color-border-strong: rgb(255 255 255 / 0.20);
+    --g-color-border-control: #808080;
+    --g-color-focus: var(--g-color-accent-text);
+
+    /* Calendario */
+    --g-calendar-grid-color: var(--g-color-border);
+    --g-calendar-unavailable-color: var(--g-color-border-strong);
+    --g-calendar-now-color: var(--g-color-danger);
+
+    /* Cristal: velo oscuro; opacidad ≥ 0.63 para texto claro (peor caso sobre blanco ≥ 4.5:1); aquí 0.72 */
+    --g-glass-tint: #1C1C1C;
+    --g-glass-opacity: 0.72;
+    --g-glass-filter: blur(14px) saturate(1.8);
+    --g-glass-edge: rgb(255 255 255 / 0.18);
+    --g-glass-sheen: rgb(255 255 255 / 0.10);
+
+    /* Superficies anidadas: la carcasa es la más hundida, la inset es la elevada */
+    --g-surface-shell: var(--g-color-surface-sunken);
+    --g-surface-inset: var(--g-color-surface);
+    --g-surface-backdrop: rgb(0 0 0 / 0.6);
+
+    /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
+    --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
+    --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
+    --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.60);
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* brand · tinta invertida: casi blanco con texto casi negro (la tinta oscura del claro no se ve sobre un fondo oscuro) */
+  --g-color-brand: #F2F2F2;
+  --g-color-brand-strong: #FFFFFF;
+  --g-color-brand-soft: #2A2A2A;
+  --g-color-brand-text: #F2F2F2;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #F2F2F2;
+
+  /* accent · azul aclarado hasta 4.5:1 sobre la superficie */
+  --g-color-accent: #3383F0;
+  --g-color-accent-strong: #4D96FF;
+  --g-color-accent-soft: #0E2442;
+  --g-color-accent-text: #3383F0;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #3A89F7;
+
+  /* neutral */
+  --g-color-neutral: #858585;
+  --g-color-neutral-strong: #979797;
+  --g-color-neutral-soft: #242424;
+  --g-color-neutral-text: #858585;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #8B8B8B;
+
+  /* success */
+  --g-color-success: #3F9560;
+  --g-color-success-strong: #52A871;
+  --g-color-success-soft: #132A1B;
+  --g-color-success-text: #3F9560;
+  --g-color-on-success: #17151A;
+  --g-color-on-success-soft: #459C65;
+
+  /* warning */
+  --g-color-warning: #AF792F;
+  --g-color-warning-strong: #C28B43;
+  --g-color-warning-soft: #30210D;
+  --g-color-warning-text: #AF792F;
+  --g-color-on-warning: #17151A;
+  --g-color-on-warning-soft: #B88239;
+
+  /* danger */
+  --g-color-danger: #E4523D;
+  --g-color-danger-strong: #FA664F;
+  --g-color-danger-soft: #3E160F;
+  --g-color-danger-text: #E4523D;
+  --g-color-on-danger: #17151A;
+  --g-color-on-danger-soft: #EB5843;
+
+  /* info · coincide con accent solo en el tema por defecto */
+  --g-color-info: #3383F0;
+  --g-color-info-strong: #4D96FF;
+  --g-color-info-soft: #0E2442;
+  --g-color-info-text: #3383F0;
+  --g-color-on-info: #17151A;
+  --g-color-on-info-soft: #3A89F7;
+
+  /* Neutros · fondo gris casi negro; lo elevado es más claro (surface > bg > sunken) */
+  --g-color-bg: #141414;
+  --g-color-surface: #1C1C1C;
+  --g-color-surface-sunken: #101010;
+  --g-color-text: #F2F2F2;
+  --g-color-text-muted: #B8B8B8;
+  --g-color-text-subtle: #9C9C9C;
+  --g-color-border: rgb(255 255 255 / 0.10);
+  --g-color-border-strong: rgb(255 255 255 / 0.20);
+  --g-color-border-control: #808080;
+  --g-color-focus: var(--g-color-accent-text);
+
+  /* Calendario */
+  --g-calendar-grid-color: var(--g-color-border);
+  --g-calendar-unavailable-color: var(--g-color-border-strong);
+  --g-calendar-now-color: var(--g-color-danger);
+
+  /* Cristal: velo oscuro; opacidad ≥ 0.63 para texto claro (peor caso sobre blanco ≥ 4.5:1); aquí 0.72 */
+  --g-glass-tint: #1C1C1C;
+  --g-glass-opacity: 0.72;
+  --g-glass-filter: blur(14px) saturate(1.8);
+  --g-glass-edge: rgb(255 255 255 / 0.18);
+  --g-glass-sheen: rgb(255 255 255 / 0.10);
+
+  /* Superficies anidadas: la carcasa es la más hundida, la inset es la elevada */
+  --g-surface-shell: var(--g-color-surface-sunken);
+  --g-surface-inset: var(--g-color-surface);
+  --g-surface-backdrop: rgb(0 0 0 / 0.6);
+
+  /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
+  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
+  --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
+  --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.60);
 }

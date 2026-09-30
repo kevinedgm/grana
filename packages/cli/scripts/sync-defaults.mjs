@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const css = readFileSync(resolve(here, '../../vue/src/styles/defaults.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+// Solo el tema claro: lo anterior a la marca «=== OSCURO» (el bloque oscuro redeclara los mismos nombres; su extracción es de bruno)
+const css = readFileSync(resolve(here, '../../vue/src/styles/defaults.css'), 'utf8').split('/* === OSCURO')[0].replace(/\/\*[\s\S]*?\*\//g, '')
 const tokens = {}
 for (const m of css.matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) tokens[m[1]] = m[2].trim().replace(/\s+/g, ' ')
 const body = Object.entries(tokens).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')

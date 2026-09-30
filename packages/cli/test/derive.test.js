@@ -64,7 +64,7 @@ describe('deriveColor', () => {
 
 describe('defaults.js', () => {
   it('coincide con packages/vue/src/styles/defaults.css (si se desfasa, ejecuta scripts/sync-defaults.mjs)', () => {
-    const css = readFileSync(fileURLToPath(new URL('../../vue/src/styles/defaults.css', import.meta.url)), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+    const css = readFileSync(fileURLToPath(new URL('../../vue/src/styles/defaults.css', import.meta.url)), 'utf8').split('/* === OSCURO')[0].replace(/\/\*[\s\S]*?\*\//g, '')
     const parsed = {}
     for (const m of css.matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) parsed[m[1]] = m[2].trim().replace(/\s+/g, ' ')
     expect(DEFAULTS).toEqual(parsed)

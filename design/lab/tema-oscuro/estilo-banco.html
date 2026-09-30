@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tema oscuro · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: el tema claro y el oscuro de defaults.css lado a lado (data-theme en cada panel), con los pares de
+     contraste del contrato (tokens.md §15) calculados en vivo desde los valores computados. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h1{font-size:18px;margin:0 0 12px}.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+  .panel{padding:16px;background:var(--g-color-bg);color:var(--g-color-text);border:1px solid var(--g-color-border);border-radius:12px}
+  .panel h2{font-size:14px;margin:0 0 10px}.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .sw div{padding:8px;border:1px solid var(--g-color-border);border-radius:8px;font-size:12px;line-height:1.3}
+  .btn{display:inline-block;padding:6px 12px;border-radius:6px;font-size:14px;margin:4px 4px 0 0}
+  table{border-collapse:collapse;width:100%;font-size:12px;margin-top:12px}td{padding:2px 6px;border-bottom:1px solid var(--g-color-border)}
+  .ok{color:var(--g-color-success-text)}.no{color:var(--g-color-danger-text);font-weight:700}
+  .tog{margin:0 0 12px;display:flex;gap:8px}.tog button{padding:6px 12px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text);font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>Tema claro y oscuro · defaults.css</h1>
+<div class="tog"><button data-set="">Automático (sigue al sistema)</button><button data-set="light">Forzar claro</button><button data-set="dark">Forzar oscuro</button></div>
+<div class="cols" id="cols"></div>
+<script>
+const NAMES=['brand','accent','neutral','success','warning','danger','info']
+const cols=document.getElementById('cols')
+for(const mode of ['light','dark']){
+  const p=document.createElement('section');p.className='panel';p.dataset.theme=mode;p.id='p-'+mode
+  p.innerHTML=`<h2>data-theme="${mode}"</h2><div class="sw">`+
+   ['bg','surface','surface-sunken','text','text-muted','text-subtle','border-control','focus'].map(k=>`<div style="background:var(--g-color-surface);color:var(--g-color-text)"><span style="display:inline-block;inline-size:14px;block-size:14px;border:1px solid var(--g-color-border-strong);background:var(--g-color-${k});vertical-align:-2px"></span> ${k}</div>`).join('')+
+   `</div><p>`+NAMES.map(n=>`<span class="btn" style="background:var(--g-color-${n});color:var(--g-color-on-${n})">${n}</span><span class="btn" style="background:var(--g-color-${n}-soft);color:var(--g-color-on-${n}-soft)">${n} soft</span><span class="btn" style="color:var(--g-color-${n}-text);border:1px solid var(--g-color-border)">${n} text</span>`).join('')+
+   `</p><table id="t-${mode}"></table>`
+  cols.appendChild(p)
+}
+const rgba=c=>{const m=c.match(/[\d.]+/g).map(Number);return [m[0],m[1],m[2],m[3]===undefined?1:m[3]]}
+const over=(t,b)=>[0,1,2].map(i=>t[i]*t[3]+b[i]*(1-t[3]))
+const lum=c=>{const f=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])}
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+function calc(){
+  for(const mode of ['light','dark']){
+    const el=document.getElementById('p-'+mode),cs=getComputedStyle(el)
+    const v=k=>{const probe=document.createElement('i');probe.style.color=`var(--g-color-${k})`;el.appendChild(probe);const c=rgba(getComputedStyle(probe).color);probe.remove();return c}
+    const B={bg:v('bg'),surface:v('surface'),sunken:v('surface-sunken')}
+    const rows=[]
+    const add=(name,fgK,bgs,min)=>{const fg=v(fgK);const cells=Object.entries(bgs).map(([n,b])=>{const flat=over(fg,b.slice(0,3).concat(1));const r=cr(flat,b);return [n,r]});const bad=cells.some(c=>c[1]<min);rows.push(`<tr><td class="${bad?'no':'ok'}">${bad?'✗':'✓'} ${name} (≥${min})</td><td>${cells.map(c=>c[0]+' '+c[1].toFixed(2)).join(' · ')}</td></tr>`)}
+    for(const k of ['text','text-muted','text-subtle'])add(k,k,B,4.5)
+    add('border-control','border-control',B,3)
+    add('focus','focus',B,3)
+    for(const n of NAMES){add(n+'-text',n+'-text',B,4.5);add(`on-${n} / ${n}`,'on-'+n,{[n]:v(n)},4.5);add(`on-${n}-soft / soft`,`on-${n}-soft`,{soft:v(n+'-soft')},4.5)}
+    document.getElementById('t-'+mode).innerHTML=rows.join('')
+  }
+}
+calc()
+document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{const v=b.dataset.set;if(v)document.documentElement.dataset.theme=v;else delete document.documentElement.dataset.theme})
+</script>
+</body>
+</html>
