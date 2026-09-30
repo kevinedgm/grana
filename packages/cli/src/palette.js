@@ -41,16 +41,27 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
   const dark = darkAnchors.filter(Boolean).map(lchOf)
   const sib = siblings.filter(Boolean).map((h) => ({ l: lchOf(h), d: lchOf(deriveDarkColor(h).base) }))
   // Margen respecto a cada umbral (≥ 1: cumple): la marca pide `min`; otro semántico, `minSibling`
+  // anchors = [marca, acento]: el índice dice con cuál de los dos choca (light y darkAnchors conservan ese orden)
+  const nearestAnchor = (hex) => {
+    const l = lchOf(hex)
+    const dl = lchOf(deriveDarkColor(hex).base)
+    let best = { d: Infinity, who: null }
+    const consider = (list, c) => list.forEach((a, i) => { const d = distance(c, a); if (d < best.d) best = { d, who: ['brand', 'accent'][i] } })
+    consider(light, l)
+    consider(dark, dl)
+    return best
+  }
   const minDist = (hex) => {
     const l = lchOf(hex)
     const dl = lchOf(deriveDarkColor(hex).base)
-    const anchorsD = Math.min(...light.map((a) => distance(l, a)), ...dark.map((a) => distance(dl, a)), Infinity)
+    const anchorsD = nearestAnchor(hex).d
     const sibD = Math.min(...sib.map((x) => Math.min(distance(l, x.l), distance(dl, x.d))), Infinity)
     return Math.min(anchorsD, (sibD / minSibling) * min)
   }
   const nominal = toHex(round(fromOklch(n)))
   const d0 = minDist(nominal)
-  if (d0 >= min) return { hex: nominal, changed: false, ok: true, distance: d0, before: d0, dh: 0, dl: 0 }
+  const collidedWith = nearestAnchor(nominal).who
+  if (d0 >= min) return { hex: nominal, changed: false, ok: true, distance: d0, before: d0, collidedWith, dh: 0, dl: 0 }
   let best = null
   for (let dh = -MAX_HUE_SHIFT; dh <= MAX_HUE_SHIFT; dh += 5) {
     for (const dlum of [0, -0.05, 0.05, -0.1, 0.1, -MAX_L_SHIFT, MAX_L_SHIFT]) {
@@ -58,10 +69,10 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
       const dist = minDist(hex)
       const cost = Math.abs(dh) / MAX_HUE_SHIFT + (Math.abs(dlum) / MAX_L_SHIFT) * 0.6
       const ok = dist >= min
-      if (!best || (ok && !best.ok) || (ok === best.ok && (ok ? cost < best.cost : dist > best.distance))) best = { hex, cost, ok, distance: dist, before: d0, dh, dl: dlum }
+      if (!best || (ok && !best.ok) || (ok === best.ok && (ok ? cost < best.cost : dist > best.distance))) best = { hex, cost, ok, distance: dist, before: d0, collidedWith, dh, dl: dlum }
     }
   }
-  return { hex: best.hex, changed: best.dh !== 0 || best.dl !== 0, ok: best.ok, distance: best.distance, before: d0, dh: best.dh, dl: best.dl }
+  return { hex: best.hex, changed: best.dh !== 0 || best.dl !== 0, ok: best.ok, distance: best.distance, before: d0, collidedWith, dh: best.dh, dl: best.dl }
 }
 
 /**
@@ -80,6 +91,18 @@ export const semanticAdjustments = ({ brand, accent, darkBrand, darkAccent }) =>
     if (r.changed || !r.ok) { out[name] = r; current[name] = r.hex }
   }
   return out
+}
+
+/**
+ * Cómo nombrar, en un mensaje, el color con el que choca un semántico. Distingue un acento configurado por el usuario
+ * de uno derivado de la marca (contrato §1: sin `accent`, se deriva del `text` de `brand`).
+ * @param {'brand'|'accent'} who
+ * @param {boolean} accentDerived el usuario no definió `accent`
+ * @param {'a'|'de'} [prep] preposición que antecede (con la contracción: «al acento», «del acento»)
+ */
+export const anchorLabel = (who, accentDerived, prep = 'a') => {
+  if (who !== 'accent') return `${prep} la marca`
+  return accentDerived ? `${prep} la marca (a través del acento derivado)` : prep === 'a' ? 'al acento' : 'del acento'
 }
 
 // ---------- Neutros teñidos ----------
@@ -110,14 +133,14 @@ const alphaOf = (value) => {
 }
 
 /**
- * Neutros (texto, bordes, superficies hundidas y `neutral`) con el tono de la marca a croma muy bajo, en claro o en oscuro.
+ * Neutros (texto, bordes, superficies hundidas y `neutral`) con el tono de `hueHex` (por defecto, la marca) a croma muy bajo, en claro o en oscuro.
  * Conservan la luminosidad del tema por defecto y garantizan contraste (texto 4.5:1; borde de control 3:1).
  * @returns {Record<string,string>} tokens `--g-color-*` (vacío si la marca es casi gris)
  */
-export const tintedNeutrals = (brandHex, { dark = false } = {}) => {
-  const chroma = tintChroma(brandHex)
+export const tintedNeutrals = (brandHex, { dark = false, hueHex = brandHex } = {}) => {
+  const chroma = tintChroma(brandHex) // el croma siempre sale de la marca; `hueHex` solo decide el tono (neutralsHue)
   if (!chroma) return {}
-  const hue = lchOf(brandHex).h
+  const hue = lchOf(hueHex).h
   const base = dark ? DARK : DEFAULTS
   const hexTok = (name) => tint(base[name], hue, chroma)
   const out = {}
@@ -143,10 +166,10 @@ export const tintedNeutrals = (brandHex, { dark = false } = {}) => {
 }
 
 /** Base de `neutral` (gris de insignias y estados sin significado) teñida con el tono de la marca; null si no se tiñe. */
-export const tintedNeutralBase = (brandHex, { dark = false } = {}) => {
+export const tintedNeutralBase = (brandHex, { dark = false, hueHex = brandHex } = {}) => {
   const chroma = tintChroma(brandHex)
   if (!chroma) return null
-  return toHex(tint((dark ? DARK : DEFAULTS)['--g-color-neutral'], lchOf(brandHex).h, chroma))
+  return toHex(tint((dark ? DARK : DEFAULTS)['--g-color-neutral'], lchOf(hueHex).h, chroma))
 }
 
 // ---------- Categorías ----------

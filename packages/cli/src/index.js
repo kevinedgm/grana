@@ -4,7 +4,7 @@ import { generateTheme, toCss } from './theme.js'
 import { validateTheme } from './validate.js'
 import { buildDoc } from './doc.js'
 import { DEFAULTS } from './defaults.js'
-import { MIN_DISTANCE } from './palette.js'
+import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
 export { readConfig, KEYS } from './config.js'
 export { generateTheme, toCss } from './theme.js'
@@ -12,7 +12,7 @@ export { validateTheme, COLOR_NAMES } from './validate.js'
 export { deriveColor, deriveDarkColor } from './derive.js'
 export { buildDoc } from './doc.js'
 export { usageOf } from './usage.js'
-export { semanticAdjustments, tintedNeutrals, categoryBases, separate, distance, MIN_DISTANCE } from './palette.js'
+export { anchorLabel, semanticAdjustments, tintedNeutrals, categoryBases, separate, distance, MIN_DISTANCE } from './palette.js'
 export { contrast, parseHex, toHex, toOklch, fromOklch } from './color.js'
 export { DEFAULTS, DARK } from './defaults.js'
 export { isColorGroup, splitColorGroup } from './scheme.js'
@@ -27,11 +27,13 @@ export const buildTheme = (raw, { source } = {}) => {
     return { ok: false, css: null, generated: {}, tokens: {}, notes: [], diagnostics: [], issues: errors.map((e) => ({ severity: 'error', kind: 'config', why: 'La configuración no es válida: corrígela y vuelve a ejecutar.', ...e })) }
   }
   const { generated, tokens, dark, derived } = generateTheme(config)
-  const issues = validateTheme(tokens, { generated: config.overrides ?? {} })
+  // Sin `accent` del usuario, el acento se deriva de la marca: los avisos lo dicen (tokens.md §17.12)
+  const accentDerived = config.accent === undefined && config.brand !== undefined
+  const issues = validateTheme(tokens, { generated: config.overrides ?? {}, accentDerived })
   // Los dos esquemas cumplen los mismos mínimos (tokens.md §15)
   if (dark.enabled) {
     const darkOverrides = typeof config.dark === 'object' ? (config.dark.overrides ?? {}) : {}
-    issues.push(...validateTheme(dark.tokens, { generated: darkOverrides, scheme: 'dark' }))
+    issues.push(...validateTheme(dark.tokens, { generated: darkOverrides, scheme: 'dark', accentDerived }))
   } else if (Object.keys(generated).some((k) => k.startsWith('--g-color-'))) {
     issues.push({ id: 'dark-disabled', severity: 'warning', message: '`dark: false`: el oscuro queda desactivado (también con el sistema oscuro).', why: 'Con `data-theme="dark"` forzado se aplicaría el oscuro de los defaults mezclado con los colores de tu tema claro, sin garantía de contraste. No uses `data-theme="dark"` o activa `dark`.' })
   }
@@ -42,18 +44,21 @@ export const buildTheme = (raw, { source } = {}) => {
   for (const [name, r] of Object.entries(derived.semantic)) {
     const cssVar = `--g-color-${name}`
     const applied = derived.policy === 'adjust'
+    const who = r.collidedWith
+    const labelA = anchorLabel(who, accentDerived, 'a')
+    const labelDe = anchorLabel(who, accentDerived, 'de')
     const change = [r.dh ? `tono ${r.dh > 0 ? '+' : ''}${r.dh}°` : '', r.dl ? `luminosidad ${r.dl > 0 ? '+' : ''}${r.dl}` : ''].filter(Boolean).join(', ')
     diagnostics.push({
       code: applied ? 'semantic-adjusted' : 'semantic-close', token: name, cssVar, source: 'semantic', input: DEFAULTS[cssVar],
       value: applied ? r.hex : DEFAULTS[cssVar], status: applied ? 'adjusted' : 'default', reason: 'semantic-close',
-      distance: r3(r.before), recommended: r.hex, recommendedDistance: r3(r.distance), ok: r.ok,
+      distance: r3(r.before), collidedWith: who, accentDerived: who === 'accent' && accentDerived, recommended: r.hex, recommendedDistance: r3(r.distance), ok: r.ok,
       message: applied
-        ? `«${name}» se separó de la marca y el acento (estaba a ${r3(r.before)}; mínimo ${MIN_DISTANCE}): ${change} → ${r.hex} (distancia ${r3(r.distance)}).`
-        : `«${name}» se parece a la marca o al acento (distancia ${r3(r.before)}; mínimo ${MIN_DISTANCE}). Alternativa calculada: ${r.hex}${r.ok ? '' : ` (distancia ${r3(r.distance)}: no hay separación suficiente dentro de ±45° y ±0.15)`}. Aplícala con "semanticCollision": "adjust" o con overrides.`
+        ? `«${name}» se separó ${labelDe} (estaba a ${r3(r.before)}; mínimo ${MIN_DISTANCE}): ${change} → ${r.hex} (distancia ${r3(r.distance)}).`
+        : `«${name}» se parece ${labelA} (distancia ${r3(r.before)}; mínimo ${MIN_DISTANCE}). Alternativa calculada: ${r.hex}${r.ok ? '' : ` (distancia ${r3(r.distance)}: no hay separación suficiente dentro de ±45° y ±0.15)`}. Aplícala con "semanticCollision": "adjust" o con overrides.`
     })
   }
   for (const [token, value] of Object.entries(config.overrides ?? {})) diagnostics.push({ code: 'override', token: token.replace('--g-color-', ''), cssVar: token, source: 'overrides', value, status: 'override', message: `${token} fijado por overrides: ${value}.` })
-  if (derived.neutralsBrand) diagnostics.push({ code: 'neutrals-tinted', source: 'brand', status: 'derived', message: 'Neutros (texto, bordes, superficie hundida y «neutral») teñidos con el tono de la marca. Desactívalo con "neutrals": "pure".' })
+  if (derived.neutralsBrand) diagnostics.push({ code: 'neutrals-tinted', source: derived.neutralsHue ?? 'brand', status: 'derived', message: `Neutros (texto, bordes, superficie hundida y «neutral») teñidos con el tono ${derived.neutralsHue === 'accent' ? 'del acento' : 'de la marca'}. Desactívalo con "neutrals": "pure".` })
   if (derived.categories.length) diagnostics.push({ code: 'categories', source: 'brand', status: 'derived', message: `${derived.categories.length} categorías (--g-color-cat-1 a cat-${derived.categories.length}): mismo L y C, tonos cada ${Math.round(360 / derived.categories.length)}°. Son colores categóricos de interfaz, no una paleta de gráficas.` })
   // Las colisiones sin aplicar llegan al usuario como aviso (con la alternativa); el resto, como nota
   for (const d of diagnostics) {

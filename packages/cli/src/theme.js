@@ -21,7 +21,7 @@ const colorTokens = (name, base, surface) => {
 }
 
 // Base clara de `neutral` teñida (de ella se deriva también la variante oscura, como con los demás colores)
-const lightNeutral = (brand) => tintedNeutralBase(brand)
+const lightNeutral = (brand, hueHex) => tintedNeutralBase(brand, { hueHex })
 
 const darkColorTokens = (name, base, surface) => {
   const d = deriveDarkColor(base, { surface })
@@ -56,8 +56,8 @@ const generateDark = (config, generated, derived) => {
   if (d) {
     for (const [name, r] of Object.entries(d.applied)) Object.assign(out, darkColorTokens(name, r.hex, surface))
     if (d.neutralsBrand) {
-      Object.assign(out, tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true }))
-      const nb = lightNeutral(cfg.brand ?? d.neutralsBrand)
+      Object.assign(out, tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true, hueHex: d.neutralsHue === 'accent' ? cfg.accent ?? d.neutralsHueHex : cfg.brand ?? d.neutralsBrand }))
+      const nb = lightNeutral(cfg.brand ?? d.neutralsBrand, d.neutralsHueHex)
       if (nb) Object.assign(out, darkColorTokens('neutral', nb, surface))
     }
     d.categories.forEach((hex, k) => Object.assign(out, darkColorTokens(`cat-${k + 1}`, hex, surface)))
@@ -94,8 +94,11 @@ export const generateTheme = (config = {}) => {
   }
   if (config.brand && config.neutrals !== 'pure') {
     derived.neutralsBrand = config.brand
-    Object.assign(generated, tintedNeutrals(config.brand))
-    const nb = tintedNeutralBase(config.brand)
+    // neutralsHue (§16.2): solo decide de qué color se toma el tono; el croma y el resto de reglas no cambian
+    derived.neutralsHue = config.neutralsHue ?? 'brand'
+    derived.neutralsHueHex = derived.neutralsHue === 'accent' ? accentBase : config.brand
+    Object.assign(generated, tintedNeutrals(config.brand, { hueHex: derived.neutralsHueHex }))
+    const nb = tintedNeutralBase(config.brand, { hueHex: derived.neutralsHueHex })
     if (nb) Object.assign(generated, colorTokens('neutral', nb, surface))
   }
   if (config.categories > 0) {

@@ -23,6 +23,7 @@ Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una
   "fontSize": 16,
   "typeScale": 1.25,
   "neutrals": "tinted",
+  "neutralsHue": "brand",
   "semanticCollision": "warn",
   "categories": 6,
   "dark": true,
@@ -39,7 +40,7 @@ Además de `strong`, `soft`, `text` y `on` de `brand` y `accent`, el CLI calcula
 | Qué | Regla | Cómo controlarla |
 | --- | --- | --- |
 | **Semánticos sin choque** | Si `success`, `warning`, `danger` o `info` quedan a una distancia OKLab < 0.12 de `brand`/`accent` (en claro u oscuro), el CLI **avisa y propone la alternativa** (la separación mínima: tono ±45°, luminosidad ±0.15). Con `"semanticCollision": "adjust"` la aplica sola | `semanticCollision` (`warn` por defecto, `adjust`) y `overrides` del token (gana) |
-| **Neutros teñidos** | Texto, bordes, superficie hundida y `neutral` con el tono de la marca a croma muy bajo, con contraste garantizado (texto ≥ 4.5:1, control ≥ 3:1) | `"neutrals": "pure"` |
+| **Neutros teñidos** | Texto, bordes, superficie hundida y `neutral` con el tono de la marca a croma muy bajo, con contraste garantizado (texto ≥ 4.5:1, control ≥ 3:1) | `"neutrals": "pure"`; `"neutralsHue": "accent"` toma el tono del acento en lugar de la marca (solo el tono; no se infiere) |
 | **Categorías** | `--g-color-cat-1` a `cat-N`: mismo L y C, tonos cada 360°/N | `"categories": 6` (0 a 12) |
 | **Hover** | `strong` siempre se aleja del fondo de su texto | (regla fija) |
 

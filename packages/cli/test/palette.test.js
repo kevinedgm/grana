@@ -265,3 +265,118 @@ describe('roles de interfaz (alias, tokens.md §17.4 y §17.7)', () => {
     expect(t.find((x) => x.name === 'link').contrast.light).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+describe('neutralsHue: de qué color se toma el tono de los neutros', () => {
+  const cfg = { brand: '#F5B940', accent: '#5B3FE0' }
+  const n = (hue) => buildTheme({ ...cfg, ...(hue ? { neutralsHue: hue } : {}) })
+  const hueOf = (hex) => lch(hex).h
+
+  it('por defecto es «brand»: sin la clave, el resultado es idéntico a neutralsHue: "brand"', () => {
+    expect(n().css).toBe(n('brand').css)
+    expect(n().doc.color.tokens).toEqual(n('brand').doc.color.tokens)
+  })
+
+  it('«brand» toma el tono de la marca y «accent» el del acento', () => {
+    const t = (r) => r.generated['--g-color-text-muted']
+    expect(hueOf(t(n('brand')))).toBeGreaterThan(60)
+    expect(hueOf(t(n('brand')))).toBeLessThan(100)
+    expect(hueDiff(hueOf(t(n('accent'))), lch('#5B3FE0').h)).toBeLessThan(8)
+    expect(hueDiff(hueOf(n('accent').dark.generated['--g-color-surface']), lch('#5B3FE0').h)).toBeLessThan(10)
+  })
+
+  it('solo cambia el tono: la luminosidad, el croma y el contraste siguen las mismas reglas', () => {
+    const a = n('brand'), b = n('accent')
+    for (const scheme of ['light', 'dark']) {
+      const ta = scheme === 'light' ? a.generated : a.dark.generated
+      const tb = scheme === 'light' ? b.generated : b.dark.generated
+      for (const k of ['--g-color-surface-sunken', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-border-control']) {
+        const x = lch(ta[k]), y = lch(tb[k])
+        expect(Math.abs(x.l - y.l)).toBeLessThan(0.03)
+        expect(Math.abs(x.c - y.c)).toBeLessThan(0.006)
+      }
+      const surface = parseHex(scheme === 'light' ? '#FFFFFF' : tb['--g-color-surface'])
+      for (const k of ['--g-color-text', '--g-color-text-muted', '--g-color-text-subtle']) expect(contrast(parseHex(tb[k]), surface)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(parseHex(tb['--g-color-border-control']), surface)).toBeGreaterThanOrEqual(3)
+    }
+    expect(b.issues.filter((i) => i.severity === 'error')).toEqual([])
+  })
+
+  it('no se infiere: sin `neutralsHue` siempre es la marca, aunque el acento sea más cromático', () => {
+    const r = buildTheme({ brand: '#1F3A5F', accent: '#FF3B30' })
+    expect(Math.abs(hueOf(r.generated['--g-color-text-muted']) - lch('#1F3A5F').h)).toBeLessThan(8)
+  })
+
+  it('el croma sigue saliendo de la marca aunque el tono sea del acento', () => {
+    const brandChromaRule = (hex) => Math.min(0.02, Math.max(0.006, lch(hex).c * 0.08))
+    const r = buildTheme({ brand: '#F5B940', accent: '#5B3FE0', neutralsHue: 'accent' })
+    expect(lch(r.generated['--g-color-text-muted']).c).toBeLessThanOrEqual(brandChromaRule('#F5B940') + 0.002)
+  })
+
+  it('tokens.json y diagnostics indican de dónde sale el tono', () => {
+    const r = n('accent')
+    expect(r.doc.color.tokens.find((t) => t.name === 'text').source).toBe('accent')
+    expect(r.doc.color.tokens.find((t) => t.name === 'brand').source).toBe('brand')
+    expect(r.diagnostics.find((d) => d.code === 'neutrals-tinted')).toMatchObject({ source: 'accent' })
+    expect(r.diagnostics.find((d) => d.code === 'neutrals-tinted').message).toContain('del acento')
+    expect(n('brand').doc.color.tokens.find((t) => t.name === 'text').source).toBe('brand')
+  })
+
+  it('valida la configuración', () => {
+    expect(readConfig({ neutralsHue: 'otro' }).errors).toHaveLength(1)
+    expect(readConfig({ neutralsHue: 'accent' }).errors).toHaveLength(0)
+    expect(readConfig({ neutralsHue: 'brand' }).errors).toHaveLength(0)
+  })
+
+  it('con "neutrals": "pure" no se tiñe nada, sea cual sea neutralsHue', () => {
+    expect(buildTheme({ ...cfg, neutrals: 'pure', neutralsHue: 'accent' }).generated['--g-color-text']).toBeUndefined()
+  })
+})
+
+describe('colisiones: valor configurado frente a valor derivado', () => {
+  const close = (r, token = '--g-color-danger') => r.issues.filter((i) => i.id === 'semantic-close' && i.tokens[0] === token)
+
+  it('sin `accent` del usuario, el aviso habla de la marca a través del acento derivado (no «accent»)', () => {
+    const r = buildTheme({ brand: '#E5483A' })
+    const w = close(r)
+    expect(w.length).toBeGreaterThan(0)
+    for (const i of w) expect(i.message).not.toMatch(/«accent»|\bal acento|se separó del acento/)
+    const viaAccent = w.filter((i) => i.collidedWith === 'accent')
+    expect(viaAccent.length).toBeGreaterThan(0)
+    expect(viaAccent[0].message).toContain('a la marca (a través del acento derivado)')
+    expect(viaAccent[0].accentDerived).toBe(true)
+    expect(viaAccent[0].why).toContain('define «accent»')
+    expect(viaAccent[0].tokens).toContain('--g-color-accent') // internamente la colisión sigue siendo con accent
+  })
+
+  it('con `accent` definido por el usuario sigue diciendo «el acento»', () => {
+    const r = buildTheme({ brand: '#1F1F1F', accent: '#E5483A' })
+    const w = close(r).filter((i) => i.collidedWith === 'accent')
+    expect(w.length).toBeGreaterThan(0)
+    expect(w[0].message).toContain('se parece al acento')
+    expect(w[0].message).not.toContain('derivado')
+    expect(w[0].accentDerived).toBe(false)
+  })
+
+  it('cuando choca con la marca directamente, dice «la marca» (con o sin acento)', () => {
+    const r = buildTheme({ brand: '#E5483A', accent: '#0B63CE' })
+    const w = close(r).filter((i) => i.collidedWith === 'brand')
+    expect(w.length).toBeGreaterThan(0)
+    expect(w[0].message).toMatch(/se parece a la marca \(distancia/)
+    expect(w[0].accentDerived).toBe(false)
+  })
+
+  it('diagnostics y tokens.json conservan con quién chocó y si el acento era derivado', () => {
+    const warn = buildTheme({ brand: '#E5483A' })
+    const d = warn.diagnostics.find((x) => x.code === 'semantic-close')
+    expect(d.collidedWith).toBeDefined()
+    if (d.collidedWith === 'accent') {
+      expect(d.accentDerived).toBe(true)
+      expect(d.message).toContain('a través del acento derivado')
+    }
+    const adj = buildTheme({ brand: '#E5483A', semanticCollision: 'adjust' })
+    const a = adj.diagnostics.find((x) => x.code === 'semantic-adjusted')
+    expect(a.message).not.toMatch(/«accent»|\bal acento|se separó del acento/)
+    const explicit = buildTheme({ brand: '#1F1F1F', accent: '#E5483A', semanticCollision: 'adjust' })
+    expect(explicit.diagnostics.find((x) => x.code === 'semantic-adjusted').message).toContain('se separó del acento')
+  })
+})

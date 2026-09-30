@@ -2,7 +2,7 @@
 // Cada problema explica QUÉ se rompió y POR QUÉ importa.
 import { contrast, parseHex, toHex } from './color.js'
 import { DEFAULTS } from './defaults.js'
-import { MIN_DISTANCE, SEMANTIC, distance } from './palette.js'
+import { MIN_DISTANCE, SEMANTIC, anchorLabel, distance } from './palette.js'
 import { toOklch } from './color.js'
 
 export const COLOR_NAMES = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -34,7 +34,7 @@ const lengthPx = (v) => {
 const fmt = (n) => (Math.round(n * 100) / 100).toString()
 
 /** @param {Record<string,string>} tokens tema completo (defaults + generado + overrides) */
-export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {}) => {
+export const validateTheme = (tokens, { generated = {}, scheme = 'light', accentDerived = false } = {}) => {
   const dark = scheme === 'dark'
   const issues = []
   const add = (id, severity, message, why, extra = {}) => issues.push({ id, severity, message, why, ...extra })
@@ -120,7 +120,11 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {})
       if (d > 0.005 && (!nearest || d < nearest.d)) nearest = { anchor, d } // d ≈ 0: idéntico a propósito (p. ej. el acento por defecto y «info»)
     }
     if (nearest && nearest.d < MIN_DISTANCE - 1e-9) {
-      add('semantic-close', 'warning', `«${sem}» se parece a «${nearest.anchor}» (distancia ${fmt(nearest.d)}; mínimo ${MIN_DISTANCE}).`, `Un ${sem === 'danger' ? 'error' : 'estado'} que se confunde con el color de marca deja de leerse como tal. Cambia el tono de «${sem}» con overrides o ajusta «${nearest.anchor}».`, { tokens: [`--g-color-${sem}`, `--g-color-${nearest.anchor}`], distance: +nearest.d.toFixed(3), min: MIN_DISTANCE })
+      // El origen real: un acento que el usuario no definió viene de la marca, y el mensaje lo dice (la colisión concreta sigue siendo con `accent`)
+      const derivedAccent = nearest.anchor === 'accent' && accentDerived
+      const label = anchorLabel(nearest.anchor, accentDerived)
+      const fix = derivedAccent ? `ajusta «brand» (el acento se deriva de ella) o define «accent»` : `ajusta «${nearest.anchor}»`
+      add('semantic-close', 'warning', `«${sem}» se parece ${label} (distancia ${fmt(nearest.d)}; mínimo ${MIN_DISTANCE}).`, `Un ${sem === 'danger' ? 'error' : 'estado'} que se confunde con el color de marca deja de leerse como tal. Cambia el tono de «${sem}» con overrides o ${fix}.`, { tokens: [`--g-color-${sem}`, `--g-color-${nearest.anchor}`], distance: +nearest.d.toFixed(3), min: MIN_DISTANCE, collidedWith: nearest.anchor, accentDerived: derivedAccent })
     }
   }
 
