@@ -1,0 +1,22 @@
+{
+  "name": "grana-theme-playground",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Laboratorio visual de Dark Color Presence (Fase 3): Theme Playground din\u00e1mico con Playwright. Solo investigaci\u00f3n; no forma parte de los paquetes publicados.",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup-fonts.mjs",
+    "serve": "python3 -m http.server 4180 --directory ../../..",
+    "test": "npm run setup && playwright test",
+    "shots": "node scripts/shots.mjs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/dm-sans": "^5.0.0",
+    "@fontsource-variable/inter": "^5.0.0",
+    "@fontsource-variable/instrument-sans": "^5.0.0",
+    "@fontsource-variable/source-sans-3": "^5.0.0",
+    "@fontsource-variable/source-serif-4": "^5.0.0",
+    "@fontsource/instrument-serif": "^5.0.0",
+    "@playwright/test": "^1.50.0"
+  }
+}

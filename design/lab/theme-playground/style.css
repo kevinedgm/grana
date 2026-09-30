@@ -1,0 +1,37 @@
+/* Estilos del playground (solo disposición; los colores salen de los tokens del tema activo). */
+body { margin: 0; padding: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-sm-size); line-height: 1.45; }
+.pg-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; padding: 10px 16px; background: var(--g-color-surface-sunken); border-block-end: 1px solid var(--g-color-border); }
+.pg-bar label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--g-color-text-muted); }
+.pg-bar select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--g-color-border-control); background: var(--g-color-surface); color: var(--g-color-text); }
+.pg-note { font-size: 11px; color: var(--g-color-text-subtle); margin-inline-start: auto; }
+.pg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px; align-items: start; }
+.pg-card { background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); padding: 14px; min-width: 0; }
+.pg-wide { grid-column: span 2; }
+.pg-card h2 { margin: 0 0 10px; font-family: var(--g-font-display, var(--g-font-ui)); font-size: var(--g-text-title-sm-size); font-weight: 600; }
+.pg-card h2 small { font-family: var(--g-font-ui); font-size: 11px; font-weight: 400; color: var(--g-color-text-subtle); }
+.pg-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-block: 6px; }
+.pg-between { justify-content: space-between; }
+.pg-stack { display: grid; gap: 10px; }
+.pg-muted { color: var(--g-color-text-muted); margin: 4px 0 8px; }
+.pg-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.pg-dl dt { color: var(--g-color-text-subtle); }
+.pg-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pg-tag { margin-inline-start: 6px; padding: 1px 6px; border-radius: 99px; font-size: 10px; background: var(--g-color-surface-sunken); color: var(--g-color-text-muted); }
+.pg-tag[data-status="loaded"] { background: var(--g-color-success-soft); color: var(--g-color-on-success-soft); }
+.pg-tag[data-status="fallback"] { background: var(--g-color-warning-soft); color: var(--g-color-on-warning-soft); }
+.pg-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pg-table th, .pg-table td { text-align: start; padding: 4px 8px; border-block-end: 1px solid var(--g-color-border); white-space: nowrap; }
+.pg-table th { font-weight: 500; color: var(--g-color-text-subtle); font-size: 11px; }
+.pg-sw { display: inline-block; inline-size: 28px; block-size: 14px; border-radius: 4px; vertical-align: middle; border: 1px solid var(--g-color-border); }
+.pg-alert { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--g-radius-md); background: var(--_soft); color: var(--_fg); border-inline-start: 3px solid var(--_c); }
+.pg-inner { display: grid; gap: 4px; padding: 10px; border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); }
+.pg-ladder { display: grid; gap: 8px; }
+.pg-step { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: var(--g-radius-md); border: 1px solid var(--g-color-border); color: var(--g-color-text); }
+.pg-step code { font-size: 11px; color: var(--g-color-text-muted); }
+.pg-stress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.pg-stress-col { padding: 8px; border-radius: var(--g-radius-md); border: 1px solid var(--g-color-border); min-width: 0; }
+.pg-stress-col h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--g-color-text-subtle); font-weight: 600; }
+.pg-stress-cell { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-block: 4px; }
+.pg-txt { font-weight: 600; font-size: 12px; inline-size: 52px; }
+.pg-chip { padding: 2px 7px; border-radius: 99px; font-size: 11px; font-weight: 600; border: 1.5px solid transparent; }
+.pg-line { background: transparent; }

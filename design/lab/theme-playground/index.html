@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme Playground · Dark Color Presence</title>
+<!--
+  Theme Playground (Fase 3 de Dark Color Presence). Laboratorio de investigación: NO cambia el Theme Engine ni ninguna regla.
+  Estado por URL:  ?theme=grana&scheme=dark&strategy=current&surface=real
+    theme    notion | apple | medium | stripe | caracol-purpura | amazon | github | spotify | linear | grana | lustre
+    scheme   light | dark
+    strategy current | b | c        (A actual · B piso L ≥ 0.70 · C ΔE ≥ 0.50; solo en Dark)
+    surface  low | real | medium | high   (condiciones experimentales; no son tokens ni opciones públicas)
+  Los selectores de la interfaz cambian el estado SIN recargar la página y actualizan la URL.
+  Los datos (tokens.css de cada tema y las variantes B/C) salen de ../tema-oscuro/dark-color-presence/generated/.
+-->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" id="theme-css" href="">
+<link rel="stylesheet" id="variants-css" href="">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" data-testid="app">
+  <header class="pg-bar" data-testid="controls">
+    <label>Theme
+      <select v-model="state.theme" data-testid="sel-theme" @change="apply">
+        <option v-for="t in themes" :key="t.id" :value="t.id">{{ t.name }}</option>
+      </select>
+    </label>
+    <label>Scheme
+      <select v-model="state.scheme" data-testid="sel-scheme" @change="apply"><option value="light">Light</option><option value="dark">Dark</option></select>
+    </label>
+    <label>Strategy
+      <select v-model="state.strategy" data-testid="sel-strategy" @change="apply"><option value="current">Current (A)</option><option value="b">B · L ≥ 0.70</option><option value="c">C · ΔE ≥ 0.50</option></select>
+    </label>
+    <label>Surface
+      <select v-model="state.surface" data-testid="sel-surface" @change="apply"><option value="low">low</option><option value="real">real</option><option value="medium">medium</option><option value="high">high</option></select>
+    </label>
+    <span class="pg-note" data-testid="note">{{ note }}</span>
+  </header>
+
+  <main class="pg-grid">
+    <!-- 1 · Theme Information Card -->
+    <section class="pg-card" data-testid="card-theme-info">
+      <h2>Theme Information</h2>
+      <dl class="pg-dl">
+        <dt>Theme</dt><dd data-testid="info-theme">{{ info.name }}</dd>
+        <dt>brand · accent</dt><dd data-testid="info-colors">{{ info.brand }} · {{ info.accent }}</dd>
+        <dt>radius · shape</dt><dd data-testid="info-shape">{{ info.radius }}px · {{ info.shape }}</dd>
+        <dt>font UI</dt><dd data-testid="info-font-ui">{{ info.fontUi }}<span class="pg-tag" :data-status="fonts.ui.status">{{ fonts.ui.status }}</span></dd>
+        <dt>font display</dt><dd data-testid="info-font-display">{{ info.fontDisplay }}<span class="pg-tag" :data-status="fonts.display.status">{{ fonts.display.status }}</span></dd>
+        <dt>fallback</dt><dd data-testid="info-fallback">{{ fonts.fallbackNote }}</dd>
+        <dt>scheme · strategy</dt><dd data-testid="info-mode">{{ state.scheme }} · {{ strategyLabel }}</dd>
+        <dt>surface</dt><dd data-testid="info-surface">{{ live.surfaceHex }} · L {{ live.surfaceL }}</dd>
+        <dt>semantic-close</dt><dd data-testid="info-collision">{{ info.collision }}</dd>
+      </dl>
+    </section>
+
+    <!-- 2 · Semantic Color Card -->
+    <section class="pg-card pg-wide" data-testid="card-semantic">
+      <h2>Semantic Colors <small>(valores vivos leídos del DOM)</small></h2>
+      <table class="pg-table">
+        <thead><tr><th>rol</th><th></th><th>HEX</th><th>L</th><th>C</th><th>contraste</th><th>ΔL</th><th>ΔE</th></tr></thead>
+        <tbody>
+          <tr v-for="r in roles" :key="r" :data-testid="'row-' + r">
+            <td>{{ r }}</td>
+            <td><span class="pg-sw" :style="{ background: 'var(--g-color-' + r + ')' }"></span></td>
+            <td :data-testid="'hex-' + r">{{ live.roles[r].hex }}</td><td>{{ live.roles[r].L }}</td><td>{{ live.roles[r].C }}</td>
+            <td>{{ live.roles[r].contrast }}:1</td><td>{{ live.roles[r].dL }}</td><td :data-testid="'de-' + r">{{ live.roles[r].dE }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3 · Botones -->
+    <section class="pg-card" data-testid="card-buttons">
+      <h2>Botones</h2>
+      <div class="pg-row">
+        <g-btn data-testid="btn-primary">Primary</g-btn>
+        <g-btn color="accent" variant="soft" data-testid="btn-secondary">Secondary</g-btn>
+        <g-btn variant="ghost" data-testid="btn-text">Text</g-btn>
+        <g-btn color="danger" data-testid="btn-danger">Danger</g-btn>
+      </div>
+      <div class="pg-row">
+        <g-btn variant="outline" data-testid="btn-outline">Outline</g-btn>
+        <g-btn variant="soft" data-testid="btn-soft">Soft</g-btn>
+        <g-btn disabled data-testid="btn-disabled">Disabled</g-btn>
+        <g-btn size="sm" data-testid="btn-sm">Small</g-btn>
+      </div>
+    </section>
+
+    <!-- 4 · Inputs -->
+    <section class="pg-card" data-testid="card-inputs">
+      <h2>Inputs</h2>
+      <div class="pg-stack">
+        <g-input label="Input" v-model="f.txt" placeholder="Escribe aquí" data-testid="input-text"></g-input>
+        <g-textarea label="Textarea" v-model="f.area" :rows="2" data-testid="input-area"></g-textarea>
+        <g-select label="Select" v-model="f.sel" :options="opts" data-testid="input-select"></g-select>
+        <g-input label="Disabled" model-value="No editable" disabled data-testid="input-disabled"></g-input>
+      </div>
+    </section>
+
+    <!-- 5 · Checkbox y switch -->
+    <section class="pg-card" data-testid="card-toggles">
+      <h2>Checkbox · Switch</h2>
+      <div class="pg-stack">
+        <g-checkbox v-model="f.chk1" label="Checkbox (marcada)" data-testid="chk-on"></g-checkbox>
+        <g-checkbox v-model="f.chk2" label="Checkbox (vacía)" data-testid="chk-off"></g-checkbox>
+        <g-checkbox :model-value="false" disabled label="Checkbox deshabilitada" data-testid="chk-disabled"></g-checkbox>
+        <g-switch v-model="f.sw1" label="Switch (encendido)" data-testid="sw-on"></g-switch>
+        <g-switch v-model="f.sw2" label="Switch (apagado)" data-testid="sw-off"></g-switch>
+      </div>
+    </section>
+
+    <!-- 6 · Badges -->
+    <section class="pg-card" data-testid="card-badges">
+      <h2>Badges</h2>
+      <div class="pg-row"><g-badge v-for="r in roles" :key="r" :color="r" variant="solid" :data-testid="'badge-solid-' + r">{{ r }}</g-badge></div>
+      <div class="pg-row"><g-badge v-for="r in roles" :key="'s' + r" :color="r" :data-testid="'badge-soft-' + r">{{ r }}</g-badge></div>
+      <div class="pg-row"><g-badge v-for="r in roles" :key="'o' + r" :color="r" variant="outline" :data-testid="'badge-outline-' + r">{{ r }}</g-badge></div>
+    </section>
+
+    <!-- 7 · Feedback semántico -->
+    <section class="pg-card" data-testid="card-feedback">
+      <h2>Feedback semántico</h2>
+      <div class="pg-stack">
+        <div v-for="r in feedback" :key="r.role" class="pg-alert" :style="{ '--_c': 'var(--g-color-' + r.role + ')', '--_soft': 'var(--g-color-' + r.role + '-soft)', '--_fg': 'var(--g-color-on-' + r.role + '-soft)' }" :data-testid="'alert-' + r.role" role="status">
+          <strong>{{ r.title }}</strong><span>{{ r.text }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 · Card con primary + status + danger -->
+    <section class="pg-card" data-testid="card-status">
+      <h2>Card · primary + status + danger</h2>
+      <article class="pg-inner" data-testid="status-article">
+        <header class="pg-row pg-between"><strong>Reserva #1042</strong><g-badge color="warning" data-testid="status-badge">Por confirmar</g-badge></header>
+        <p class="pg-muted">Corte y peinado · 60 min · $380</p>
+        <div class="pg-row"><g-btn data-testid="status-primary">Confirmar</g-btn><g-btn variant="outline" color="danger" data-testid="status-danger">Cancelar cita</g-btn></div>
+      </article>
+    </section>
+
+    <!-- 9 · Form Card -->
+    <section class="pg-card" data-testid="card-form">
+      <h2>Form Card</h2>
+      <form class="pg-stack" @submit.prevent>
+        <g-input label="Correo" v-model="f.mail" placeholder="nombre@correo.com" error="Escribe un correo válido" data-testid="form-mail"></g-input>
+        <g-checkbox v-model="f.terms" label="Acepto los términos" data-testid="form-terms"></g-checkbox>
+        <g-switch v-model="f.news" label="Recibir novedades" data-testid="form-news"></g-switch>
+        <div class="pg-row"><g-btn type="submit" data-testid="form-submit">Enviar</g-btn><g-btn variant="ghost" type="reset">Limpiar</g-btn></div>
+      </form>
+    </section>
+
+    <!-- 10 · Surface Ladder -->
+    <section class="pg-card" data-testid="card-ladder">
+      <h2>Surface Ladder</h2>
+      <div class="pg-ladder">
+        <div v-for="s in ladder" :key="s.token" class="pg-step" :style="{ background: 'var(' + s.token + ')' }" :data-testid="'step-' + s.id">
+          <span>{{ s.label }}</span><code>{{ live.ladder[s.id] }}</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · Semantic Stress Test -->
+    <section class="pg-card pg-wide" data-testid="card-stress">
+      <h2>Semantic Stress Test <small>(cada semántico sobre cada nivel de superficie)</small></h2>
+      <div class="pg-stress">
+        <div v-for="s in ladder" :key="s.id" class="pg-stress-col" :style="{ background: 'var(' + s.token + ')' }" :data-testid="'stress-' + s.id">
+          <h3>{{ s.label }}</h3>
+          <div v-for="r in semantics" :key="r" class="pg-stress-cell">
+            <span class="pg-txt" :style="{ color: 'var(--g-color-' + r + '-text)' }">{{ r }}</span>
+            <span class="pg-chip" :style="{ background: 'var(--g-color-' + r + ')', color: 'var(--g-color-on-' + r + ')' }">solid</span>
+            <span class="pg-chip" :style="{ background: 'var(--g-color-' + r + '-soft)', color: 'var(--g-color-on-' + r + '-soft)' }">soft</span>
+            <span class="pg-chip pg-line" :style="{ borderColor: 'var(--g-color-' + r + ')', color: 'var(--g-color-' + r + '-text)' }">línea</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

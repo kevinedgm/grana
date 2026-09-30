@@ -1,0 +1,4 @@
+node_modules/
+fonts/
+test-results/
+playwright-report/

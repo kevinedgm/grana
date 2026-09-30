@@ -5,6 +5,8 @@
 **Fase 1** (`../dark-presence/`, informe en `../investigacion-dark-color-presence.md`): 31 muestras aisladas × 9 familias cromáticas sobre una sola superficie (`#1C1C1C`). Sirve para entender el comportamiento matemático y perceptual de la derivación.
 **Fase 2** (esta carpeta): 11 temas completos (10 de benchmark y Lustre como control), renderizados con componentes reales de `@grana/vue`, en Light y Dark, con las hipótesis A, B y C, y con tres condiciones de superficie oscura.
 
+**Fase 3:** el laboratorio dinámico con Playwright y componentes reales está en `../../theme-playground/` (`README.md`). Corrige dos limitaciones de esta fase: las fuentes de los temas se cargan de verdad (o se registra el fallback) y los estados hover, focus, checked, disabled y active son reales.
+
 ## Hipótesis
 
 | | Qué es | Dónde se aplica |
