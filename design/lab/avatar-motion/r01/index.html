@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAvatarMotion · r01 · wireframe F2</title>
+<style>
+/* Kit neutral: el avatar en grises (la forma y el movimiento son la estructura; el color lo pone coco con tokens). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;
+ /* alias que coco mapeará a tokens */
+ --av-body:#3a3a3a; --av-body-2:#4a4a4a; --av-line:#3a3a3a; --av-accent:#9a9a9a; --av-eye:#fff; --av-pupil:#111}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:900px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:78ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:80ch}
+.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.b{font:inherit;min-height:36px;padding:0 14px;border:1px solid var(--wf-2);border-radius:8px;background:#fff;cursor:pointer}
+.b[aria-pressed="true"]{background:var(--wf-ink);color:#fff}
+.log{font:12px ui-monospace,monospace;color:var(--wf-2)}
+
+/* ============ GAvatarMotion (estructura) ============ */
+.av{display:inline-block;inline-size:var(--_size);block-size:var(--_size);overflow:visible;flex:none}
+.av svg{display:block;inline-size:100%;block-size:100%;overflow:visible}
+.av .body,.av .antenna,.av .eyes,.av .leg{transform-box:fill-box;transform-origin:center}
+.av .antenna{transform-origin:bottom center} /* las antenas giran desde su base, no desde su centro */
+/* Coreografía por estado (duraciones del prototipo del usuario) */
+@media (prefers-reduced-motion:no-preference){
+  .av[data-anim="idle"] .body{animation:breathe 3s ease-in-out var(--_idle-iterations)}
+  .av[data-anim="idle"] .eyes{animation:blink 4.2s ease-in-out var(--_idle-iterations)}
+  .av[data-anim="thinking"] .body{animation:thinkBody .62s ease-in-out infinite alternate}
+  .av[data-anim="thinking"] .antenna-left{animation:antL .45s ease-in-out infinite alternate}
+  .av[data-anim="thinking"] .antenna-right{animation:antR .45s ease-in-out infinite alternate}
+  .av[data-anim="thinking"] .eyes{animation:look .72s ease-in-out infinite alternate}
+  .av[data-anim="thinking"] .leg-left{animation:legL .55s ease-in-out infinite alternate}
+  .av[data-anim="thinking"] .leg-right{animation:legR .55s ease-in-out infinite alternate}
+  .av[data-anim="success"] svg{animation:success .7s cubic-bezier(.23,1,.32,1) 1}
+  .av[data-anim="error"] svg{animation:shake .45s ease-in-out 1}
+}
+/* Poses (valen con y sin movimiento): success entrecierra los ojos; error los achica en horizontal */
+.av[data-anim="success"] .eyes{transform:scaleY(.35)}
+.av[data-anim="error"] .eyes{transform:scaleX(.8) scaleY(.7)}
+/* Idle limitado: 2 ciclos (~6-8s) y reposo; «infinite» solo si la aplicación lo pide */
+.av{--_idle-iterations:2}
+.av[data-idle="loop"]{--_idle-iterations:infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes blink{0%,44%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.08)}}
+@keyframes thinkBody{from{transform:translateY(-3px) rotate(-1deg)}to{transform:translateY(4px) rotate(1deg)}}
+@keyframes antL{from{transform:rotate(0)}to{transform:rotate(-14deg)}}
+@keyframes antR{from{transform:rotate(0)}to{transform:rotate(14deg)}}
+@keyframes look{from{transform:translateX(-4px)}to{transform:translateX(4px)}}
+@keyframes legL{from{transform:rotate(0)}to{transform:rotate(-7deg)}}
+@keyframes legR{from{transform:rotate(0)}to{transform:rotate(7deg)}}
+@keyframes success{0%{transform:scale(1)}35%{transform:scale(.88,1.12) translateY(5px)}65%{transform:scale(1.1,.92) translateY(-7px)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px) rotate(-3deg)}40%{transform:translateX(7px) rotate(3deg)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* Dentro del disparador de GHelper (32px): el avatar llena el botón, sin borde de círculo */
+.trigger{display:inline-grid;place-items:center;inline-size:40px;block-size:40px;padding:2px;border:0;border-radius:999px;background:none;cursor:pointer}
+.trigger:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.sim-reduce .av *{animation:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>GAvatarMotion · r01</h1>
+<p class="meta">Wireframe F2 · kit neutral, con la forma y la coreografía del prototipo del usuario (<a href="referencia-usuario.html">referencia-usuario.html</a>). El color final es de coco.</p>
+<div class="wf-note"><b>Mecanismo:</b> el consumidor da <code>state</code>; el avatar elige la animación (<code>data-anim</code>). <code>success</code> y <code>error</code> son finitas: al terminar (<code>animationend</code>, no un temporizador) el avatar vuelve a su reposo y avisa. <code>idle</code> respira dos ciclos y se queda quieto (WCAG 2.2.2); <code>thinking</code> se mueve mientras dure la actividad real.</div>
+
+<h2 class="sec">1 · Estados</h2>
+<div class="row">
+  <span class="av" id="main" style="--_size:150px" data-anim="idle"></span>
+  <div>
+    <div class="row" id="ctl">
+      <button class="b" type="button" data-s="idle" aria-pressed="true">idle</button>
+      <button class="b" type="button" data-s="thinking" aria-pressed="false">thinking</button>
+      <button class="b" type="button" data-s="success" aria-pressed="false">success</button>
+      <button class="b" type="button" data-s="error" aria-pressed="false">error</button>
+      <button class="b" type="button" data-s="warning" aria-pressed="false">warning (→ error)</button>
+      <button class="b" type="button" data-s="working" aria-pressed="false">working (→ thinking)</button>
+    </div>
+    <p class="log">estado pedido: <b id="req">idle</b> · animación: <b id="anim">idle</b> · eventos: <span id="ev">—</span></p>
+    <label><input type="checkbox" id="reduce"> Simular movimiento reducido</label>
+  </div>
+</div>
+
+<h2 class="sec">2 · Tamaños</h2>
+<p class="cap">24 · 32 · 48 · 96 · 150px. A 24px se reconoce por la silueta (cuerpo, antenas, patas); las bandas y las pupilas dejan de leerse (hallazgo 6).</p>
+<div class="row" id="sizes"></div>
+
+<h2 class="sec">3 · Dentro del disparador de GHelper</h2>
+<p class="cap">El avatar es <b>decorativo</b> (<code>aria-hidden</code>): el nombre lo da el botón. Al abrir, el helper puede pasarle <code>thinking</code> mientras carga y <code>success</code> al responder.</p>
+<div class="row"><button class="trigger" type="button" aria-label="Abrir asistente" aria-expanded="false" id="tr"><span class="av" style="--_size:36px" data-anim="idle"></span></button><span class="log" id="trlog">cerrado</span></div>
+</main>
+<script>
+// SVG del prototipo del usuario, con los colores cambiados por alias (var(--av-*))
+const SVG=`<svg viewBox="0 0 160 160" aria-hidden="true" focusable="false">
+<g class="antenna antenna-left"><path d="M67 45 Q54 20 42 29" fill="none" stroke="var(--av-line)" stroke-width="6" stroke-linecap="round"/><circle cx="41" cy="29" r="4.5" fill="var(--av-accent)"/></g>
+<g class="antenna antenna-right"><path d="M93 45 Q106 20 118 29" fill="none" stroke="var(--av-line)" stroke-width="6" stroke-linecap="round"/><circle cx="119" cy="29" r="4.5" fill="var(--av-accent)"/></g>
+<g class="leg leg-left" fill="none" stroke="var(--av-line)" stroke-width="6" stroke-linecap="round"><path d="M52 75 Q32 68 25 58"/><path d="M49 92 Q28 94 21 104"/><path d="M55 110 Q38 121 35 132"/></g>
+<g class="leg leg-right" fill="none" stroke="var(--av-line)" stroke-width="6" stroke-linecap="round"><path d="M108 75 Q128 68 135 58"/><path d="M111 92 Q132 94 139 104"/><path d="M105 110 Q122 121 125 132"/></g>
+<g class="body"><ellipse cx="80" cy="88" rx="39" ry="52" fill="var(--av-body)"/><ellipse cx="80" cy="88" rx="31" ry="44" fill="var(--av-body-2)"/>
+<path d="M51 67 Q80 76 109 67" fill="none" stroke="var(--av-accent)" stroke-width="5" stroke-linecap="round"/><path d="M49 87 Q80 96 111 87" fill="none" stroke="var(--av-accent)" stroke-width="5" stroke-linecap="round"/><path d="M52 107 Q80 116 108 107" fill="none" stroke="var(--av-accent)" stroke-width="5" stroke-linecap="round"/>
+<g class="eyes"><ellipse cx="68" cy="55" rx="5" ry="6" fill="var(--av-eye)"/><ellipse cx="92" cy="55" rx="5" ry="6" fill="var(--av-eye)"/><circle cx="69" cy="56" r="2" fill="var(--av-pupil)"/><circle cx="93" cy="56" r="2" fill="var(--av-pupil)"/></g></g></svg>`;
+// Estado semántico → animación (§27: estados que comparten comportamiento)
+const MAP={idle:'idle',hover:'idle',attention:'idle',open:'idle',thinking:'thinking',working:'thinking',success:'success',warning:'error',error:'error'};
+const FINITE=new Set(['success','error']);
+const ev=[];const logEv=(e)=>{ev.push(e);document.getElementById('ev').textContent=ev.slice(-4).join(' · ')};
+function avatar(el){
+  el.innerHTML=SVG; const svg=el.querySelector('svg');
+  // Fin de una animación finita: se mide en el svg (success/error), no con temporizador
+  svg.addEventListener('animationend',(e)=>{ if(e.target!==svg) return; const a=el.dataset.anim; if(FINITE.has(a)){ el.dataset.anim='idle'; el.dispatchEvent(new CustomEvent('done',{detail:a})) } });
+  el.setState=(s)=>{ const a=MAP[s]||'idle'; el.dataset.anim=''; void el.offsetWidth; el.dataset.anim=a;
+    // Con movimiento reducido no hay animationend: la pose se mantiene un momento y vuelve (lo decide bruno; aquí 800ms)
+    if(FINITE.has(a) && matchMedia('(prefers-reduced-motion: reduce)').matches || FINITE.has(a) && document.body.classList.contains('sim-reduce')) setTimeout(()=>{ if(el.dataset.anim===a){el.dataset.anim='idle';el.dispatchEvent(new CustomEvent('done',{detail:a}))} },800);
+  };
+  return el;
+}
+const main=avatar(document.getElementById('main'));
+main.addEventListener('done',e=>{logEv('done:'+e.detail); document.getElementById('anim').textContent=main.dataset.anim});
+document.getElementById('ctl').addEventListener('click',e=>{const s=e.target.dataset.s; if(!s) return;
+  document.querySelectorAll('#ctl .b').forEach(b=>b.setAttribute('aria-pressed',String(b===e.target)));
+  document.getElementById('req').textContent=s; main.setState(s); document.getElementById('anim').textContent=main.dataset.anim});
+document.getElementById('reduce').onchange=(e)=>document.body.classList.toggle('sim-reduce',e.target.checked);
+[24,32,48,96,150].forEach(n=>{const s=document.createElement('span');s.className='av';s.style.setProperty('--_size',n+'px');s.dataset.anim='idle';document.getElementById('sizes').appendChild(s);avatar(s)});
+const trAv=avatar(document.querySelector('#tr .av')); const tr=document.getElementById('tr');
+tr.onclick=()=>{const open=tr.getAttribute('aria-expanded')!=='true'; tr.setAttribute('aria-expanded',String(open));
+  if(open){trAv.setState('thinking'); document.getElementById('trlog').textContent='abierto · thinking (cargando)'; setTimeout(()=>{trAv.setState('success');document.getElementById('trlog').textContent='abierto · success (respuesta lista)'},1500)}
+  else{trAv.setState('idle');document.getElementById('trlog').textContent='cerrado'}};
+</script>
+</body>
+</html>
