@@ -25,6 +25,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
 | `inset` | Boolean | | `true` | propia |
 | `fullscreen` | Boolean | | `false` | propia |
+| `placement` | String | `center` `end` | `center` | propia |
 | `mobile` | String | `sheet` `full-width` `fullscreen` | `sheet` | propia |
 | `role` | String | `dialog` `alertdialog` | `dialog` | propia |
 | `closeLabel` | String | texto libre | sin valor | propia |
@@ -41,6 +42,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 - **`density`:** multiplica relleno y separación de la carcasa y la inset (1×, 0.875×, 0.75×). La tipografía no cambia.
 - **`inset`:** con `true`, cuerpo y pie viven en la superficie inset. Con `false`, en la carcasa (diálogo simple).
 - **`fullscreen`:** ocupa todo el visor, en todos los anchos, sin esquinas redondeadas exteriores; conserva las dos superficies.
+- **`placement`:** dónde se ancla la carcasa en escritorio y tableta. `center` (por defecto), centrada. **`end`: hoja lateral** pegada al borde final (derecha en LTR, izquierda en RTL), **de alto completo** del visor, con el ancho de `size` (sin esquinas exteriores del lado del borde) y una entrada deslizando desde ese borde; cuerpo desplazable y pie fijo. En móvil (≤ ~520px) **actúa `mobile`** (hoja inferior por defecto): `placement` no cambia nada. Con `fullscreen`, gana `fullscreen`. Lo usan `GWidgetGallery` y `GWidgetConfig` (DECISIONS.md #77).
 - **`mobile`:** estructura con un visor de hasta ~520px de ancho: `sheet` (hoja inferior, pegada abajo, esquinas superiores redondeadas), `full-width` (ancho completo centrado con un margen pequeño) o `fullscreen`. Fuera de móvil no actúa. `fullscreen` gana sobre `mobile`.
 - **`role`:** `alertdialog` para una confirmación que exige decisión. Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignora), y **no se renderiza el botón de cierre del encabezado** (las acciones del pie son la salida). Esc sigue cerrando, con `reason: 'escape'`.
 - **`closeLabel`:** nombre accesible del botón de cierre. **Sin valor por defecto** (Grana es internacional). Sin él, el botón no se renderiza y, en desarrollo, se emite `console.warn` (salvo en `alertdialog`).
@@ -155,6 +157,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-dialog--density-{default\|comfortable\|compact}` | Raíz | Siempre |
 | `g-dialog--inset` | Raíz | Con `inset` |
 | `g-dialog--fullscreen` | Raíz | Con `fullscreen` |
+| `g-dialog--placement-{center\|end}` | Raíz | Siempre |
 | `g-dialog--mobile-{sheet\|full-width\|fullscreen}` | Raíz | Siempre |
 | `g-dialog--alert` | Raíz | Con `role="alertdialog"` |
 | `is-loading` | Raíz | Con `loading` |

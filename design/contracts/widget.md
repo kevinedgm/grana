@@ -236,7 +236,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | 10 | Tokens | `--g-widget-row` y `--g-widget-gap` en `tokens.md` §14 | DECISIONS.md #75 |
 | 11 | Persistencia | Un dato; la aplicación guarda | — |
 | 12 | Modo de edición | Con `is-editing` el widget oculta el badge y el enlace de detalle (las asas ocupan su sitio) | DECISIONS.md #75 |
-| 13 | Segunda entrega | Un widget configurable usa una acción del menú `configure` de la aplicación; galería y panel, después | — |
+| 13 | Segunda entrega | **Sin cambios en `GWidget`:** un widget configurable incluye `{ id: 'configure', label }` en `actions` y la aplicación abre `GWidgetConfig` al recibir `action` con ese `id` (convención, no API). La galería es `GWidgetGallery` (`widget-gallery.md`) y el panel, `GWidgetConfig` (`widget-config.md`) | DECISIONS.md #76 |
 
 ## Límites conocidos
 
