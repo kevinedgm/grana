@@ -67,6 +67,23 @@ Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-col
 
 **En los dos esquemas (claro y oscuro):** foco ≥ 2px · contraste de texto ≥ 4.5:1 y de bordes de control ≥ 3:1 · texto ≥ 12px · pares `on-*`/`*-text` ≥ 4.5:1 · cristal: opacidad ≥ 0.55 y velo ≥ 4.5:1 sobre negro. Avisa (sin bloquear) de tokens desconocidos, colores que no puede medir y `space` < 4.
 
+## Plugin de Vite
+
+Genera el tema **en build**, sin archivo intermedio: se importa como módulo virtual.
+
+```js
+// vite.config.js
+import grana from '@grana/cli/vite'
+export default { plugins: [grana({ config: 'grana.config.json' })] }   // la ruta es relativa a la raíz; también acepta el objeto
+```
+
+```js
+// main.js
+import 'virtual:grana/tokens.css'
+```
+
+Aplica las mismas reglas que la línea de comandos: si la configuración no es válida o el tema rompe un mínimo de accesibilidad, **la compilación falla** con el motivo (los avisos se muestran sin bloquear). El archivo de configuración se vigila: en desarrollo, al guardarlo se regenera. Sin dependencias (no importa `vite`).
+
 ## Uso programático
 
 ```js
