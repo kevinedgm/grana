@@ -1,0 +1,255 @@
+/*
+  GBadge · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/badge.md. Estructura: design/lab/badge/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 0px en max() y el patrón de texto oculto accesible (1px, -1px, clip-path).
+  No es interactiva: sin hover, foco ni pulsación. El significado no depende solo del color: texto,
+  figura (círculo, cuadrado, rombo, triángulo) o icono. Las figuras van rellenas con CanvasText en
+  forced-colors. La variante glass (liquid glass) usa --g-glass-*; su velo lleva el tono suave del color
+  (siempre claro: el texto oscuro conserva ≥ 4.5:1 sobre cualquier fondo) y tiene respaldo opaco.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-badge {
+  /* Color (se reasigna por modificador --color-*); por defecto: neutral */
+  --_base: var(--g-color-neutral);
+  --_soft: var(--g-color-neutral-soft);
+  --_text: var(--g-color-neutral-text);
+  --_on: var(--g-color-on-neutral);
+  --_on-soft: var(--g-color-on-neutral-soft);
+
+  /* Variante (se reasigna por --variant-*); por defecto: soft */
+  --_bg: var(--_soft);
+  --_fg: var(--_on-soft);
+  --_border: transparent;
+  --_mark: var(--_text);
+
+  /* Medidas (se reasignan por --size-*); por defecto: md */
+  --_units: 6;
+  --_fig-units: 4;
+  --_fs: var(--g-text-caption-size);
+  --_lh: var(--g-text-caption-line);
+  --_px: var(--g-space-2);
+  --_gap: calc(var(--g-space-1) * 1.5);
+  --_h: calc(var(--g-space-1) * var(--_units));
+  --_fig: calc(var(--g-space-1) * var(--_fig-units));
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--_gap);
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  max-inline-size: 100%;
+  padding-inline: var(--_px);
+  border: var(--g-border-width) solid var(--_border);
+  border-radius: var(--g-radius-pill);
+  background: var(--_bg);
+  color: var(--_fg);
+  font-family: var(--g-font-ui);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Texto: una línea con elipsis; el texto completo sigue en el DOM */
+.g-badge__text {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Icono decorativo */
+.g-badge__icon {
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+  color: var(--_mark);
+}
+
+/* Figuras y punto de estado: formas dibujadas con CSS, no con un color solo */
+.g-badge__shape {
+  flex: none;
+  display: inline-block;
+  box-sizing: border-box;
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--_mark);
+}
+.g-badge__shape--circle { border-radius: var(--g-radius-pill); }
+.g-badge__shape--square { border-radius: var(--g-radius-xs); }
+.g-badge__shape--diamond { inline-size: 0.6em; block-size: 0.6em; rotate: 45deg; }
+.g-badge__shape--triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+/* Texto para lectores de pantalla (patrón estándar de texto oculto) */
+.g-badge__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Modos ---------- */
+.g-badge--kind-count {
+  justify-content: center;
+  min-inline-size: var(--_h);
+  padding-inline: calc(var(--_px) - var(--g-space-1));
+  font-variant-numeric: tabular-nums;
+}
+.g-badge--kind-icon {
+  justify-content: center;
+  inline-size: var(--_h);
+  padding-inline: 0;
+}
+/* Solo figura: la insignia es la forma; sin caja */
+.g-badge--kind-figure {
+  justify-content: center;
+  inline-size: var(--_fig);
+  block-size: var(--_fig);
+  min-block-size: var(--_fig);
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+.g-badge--kind-figure .g-badge__shape {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.g-badge--kind-figure .g-badge__shape--diamond {
+  inline-size: 72%;
+  block-size: 72%;
+}
+
+/* ---------- Tamaño ---------- */
+.g-badge--size-sm { --_units: 5; --_fig-units: 3; --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); --_px: var(--g-space-2); }
+.g-badge--size-md { --_units: 6; --_fig-units: 4; --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); --_px: var(--g-space-2); }
+.g-badge--size-lg { --_units: 7; --_fig-units: 5; --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); --_px: var(--g-space-3); }
+
+/* ---------- Color ---------- */
+.g-badge--color-brand { --_base: var(--g-color-brand); --_soft: var(--g-color-brand-soft); --_text: var(--g-color-brand-text); --_on: var(--g-color-on-brand); --_on-soft: var(--g-color-on-brand-soft); }
+.g-badge--color-accent { --_base: var(--g-color-accent); --_soft: var(--g-color-accent-soft); --_text: var(--g-color-accent-text); --_on: var(--g-color-on-accent); --_on-soft: var(--g-color-on-accent-soft); }
+.g-badge--color-neutral { --_base: var(--g-color-neutral); --_soft: var(--g-color-neutral-soft); --_text: var(--g-color-neutral-text); --_on: var(--g-color-on-neutral); --_on-soft: var(--g-color-on-neutral-soft); }
+.g-badge--color-success { --_base: var(--g-color-success); --_soft: var(--g-color-success-soft); --_text: var(--g-color-success-text); --_on: var(--g-color-on-success); --_on-soft: var(--g-color-on-success-soft); }
+.g-badge--color-warning { --_base: var(--g-color-warning); --_soft: var(--g-color-warning-soft); --_text: var(--g-color-warning-text); --_on: var(--g-color-on-warning); --_on-soft: var(--g-color-on-warning-soft); }
+.g-badge--color-danger { --_base: var(--g-color-danger); --_soft: var(--g-color-danger-soft); --_text: var(--g-color-danger-text); --_on: var(--g-color-on-danger); --_on-soft: var(--g-color-on-danger-soft); }
+.g-badge--color-info { --_base: var(--g-color-info); --_soft: var(--g-color-info-soft); --_text: var(--g-color-info-text); --_on: var(--g-color-on-info); --_on-soft: var(--g-color-on-info-soft); }
+
+/* ---------- Variante ---------- */
+/* soft: los valores por defecto del esqueleto */
+.g-badge--variant-solid {
+  --_bg: var(--_base);
+  --_fg: var(--_on);
+  --_mark: var(--_on);
+}
+.g-badge--variant-outline {
+  --_bg: transparent;
+  --_fg: var(--_text);
+  --_border: var(--_text);
+  --_mark: var(--_text);
+}
+/* Una figura sola no tiene caja: su color sale de la variante */
+.g-badge--kind-figure.g-badge--variant-solid { --_mark: var(--_base); }
+
+/* ---------- Cristal (liquid glass) ---------- */
+/* Velo neutro (--g-glass-tint) o, con color, el tono suave de ese color (siempre claro); opacidad mínima 0.55
+   (regla de tokens.md §12). El texto y las marcas usan el color de texto del tema: ≥ 4.5:1 sobre cualquier fondo. */
+.g-badge--variant-glass {
+  --_veil: var(--_soft);
+  --_bg: color-mix(in srgb, var(--_veil) calc(var(--g-glass-opacity) * 100%), transparent);
+  --_fg: var(--g-color-text);
+  --_border: var(--g-glass-edge);
+  --_mark: var(--g-color-text);
+  isolation: isolate;
+  overflow: hidden;
+  -webkit-backdrop-filter: var(--g-glass-filter);
+  backdrop-filter: var(--g-glass-filter);
+  box-shadow:
+    inset 0 var(--g-border-width) 0 var(--g-glass-edge),
+    inset 0 calc(var(--g-border-width) * -1) 0 var(--g-color-border),
+    var(--g-shadow-2);
+}
+.g-badge--variant-glass.g-badge--color-neutral { --_veil: var(--g-glass-tint); }
+.g-badge--variant-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--g-glass-sheen), transparent 55%);
+}
+/* Una figura sola en cristal necesita una placa: sin ella, su contraste dependería del fondo */
+.g-badge--kind-figure.g-badge--variant-glass {
+  inline-size: calc(var(--_fig) + var(--g-space-2));
+  block-size: calc(var(--_fig) + var(--g-space-2));
+  min-block-size: 0;
+  padding: var(--g-space-1);
+  border-color: var(--_border);
+  background: var(--_bg);
+}
+/* Respaldo opaco: sin backdrop-filter, con transparencia reducida y con colores forzados */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .g-badge--variant-glass {
+    --_bg: var(--_soft);
+    --_border: var(--g-color-border);
+    box-shadow: none;
+  }
+  .g-badge--variant-glass::before { display: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .g-badge--variant-glass {
+    --_bg: var(--_soft);
+    --_border: var(--g-color-border);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .g-badge--variant-glass::before { display: none; }
+}
+
+/* ---------- Anclada ---------- */
+.g-badge-anchor {
+  --_dir: 1;
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+.g-badge-anchor:dir(rtl) { --_dir: -1; }
+/* La insignia no captura el puntero ni el foco: el destino conserva su clic */
+.g-badge-anchor > .g-badge {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+.g-badge-anchor--top-end > .g-badge { inset-block-start: 0; inset-inline-end: 0; translate: calc(var(--_dir) * 50%) -50%; }
+.g-badge-anchor--top-start > .g-badge { inset-block-start: 0; inset-inline-start: 0; translate: calc(var(--_dir) * -50%) -50%; }
+.g-badge-anchor--bottom-end > .g-badge { inset-block-end: 0; inset-inline-end: 0; translate: calc(var(--_dir) * 50%) 50%; }
+.g-badge-anchor--bottom-start > .g-badge { inset-block-end: 0; inset-inline-start: 0; translate: calc(var(--_dir) * -50%) 50%; }
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-badge {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .g-badge::before { display: none; }
+  .g-badge__shape,
+  .g-badge__icon {
+    forced-color-adjust: none;
+    color: CanvasText;
+  }
+  .g-badge__shape { background: CanvasText; }
+  .g-badge--kind-figure { border-color: transparent; background: transparent; }
+}

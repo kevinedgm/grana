@@ -40,7 +40,7 @@ Precedencia si hay varios: `count` > texto > figura > icono. Con `count`, el slo
 ### Reglas de props
 
 - **`variant`:** `ghost` y `link` no aplican a una insignia. `glass` es el cristal (ver "Variante `glass`").
-- **`color`:** en `solid` y `soft` da el relleno; en `outline`, el borde y el texto; en `glass`, **solo** tiñe la figura, el punto y el icono (el velo y el texto no cambian: así el contraste no depende del color).
+- **`color`:** en `solid` y `soft` da el relleno; en `outline`, el borde y el texto; en `glass`, tiñe **el velo con el tono suave del color** (`--g-color-{color}-soft`, siempre claro: el texto oscuro conserva el contraste); el texto, la figura, el punto y el icono usan el color de texto del tema (un color saturado no llega a 3:1 sobre un velo claro con fondo negro).
 - **`size`:** `sm`, `md` y `lg`. La altura sale de `--g-space-1` (5, 6 y 7 unidades; las figuras solas, 3, 4 y 5). No hay piso táctil: no es interactiva.
 - **`count`, `max`, `showZero`:** con `count` > `max`, se muestra `max+` (`99+`). Con `count` 0 y sin `showZero`, **no se renderiza la insignia** (anclada: solo el destino). El texto para lectores es `label` (el número real), nunca «99+».
 - **`shape`:** con texto, es el punto de estado delante del texto; sin texto (ni `count` ni icono), es la insignia entera. Las formas se dibujan con CSS (no con un relleno que `forced-colors` elimine). Convención sugerida para estatus (la aplicación la ratifica): círculo = en línea o correcto, cuadrado = detenido, rombo = advertencia, triángulo = error.
@@ -75,11 +75,11 @@ Precedencia si hay varios: `count` > texto > figura > icono. Con `count`, el slo
 
 Cristal líquido: un **velo** blanco translúcido que desenfoca y satura lo que hay detrás, con borde luminoso, brillo en la mitad superior y sombra suave. Decisiones de contrato (DECISIONS.md #60):
 
-- **El cristal no puede hacer ilegible el texto.** El velo tiene una **opacidad mínima de 0.55** con el texto oscuro del tema: con `rgb(255 255 255 / 0.62)` y `--g-color-text` (#1F1F1F) el contraste **peor caso** (fondo negro) es 6.15:1. La opacidad mínima es una **regla del contrato**, no un valor de gusto: el CLI rechaza un tema cuyo `--g-glass-tint` tenga opacidad < 0.55 o cuyo texto, compuesto sobre negro, baje de 4.5:1. (Un tema oscuro futuro invertirá el velo y el texto.)
+- **El cristal no puede hacer ilegible el texto.** El velo tiene una **opacidad mínima de 0.55** con el texto oscuro del tema: con `#FFFFFF` a 0.62 y `--g-color-text` (#1F1F1F) el contraste **peor caso** (fondo negro) es 6.15:1 (5.77:1 con los tonos suaves de los siete colores). **La regla real es el contraste (≥ 4.5:1 sobre negro), no la opacidad sola:** el CLI calcula el compuesto del velo neutro y de cada tono suave y rechaza el tema que baje de 4.5:1 o cuya `--g-glass-opacity` sea < 0.55. (Un tema oscuro futuro invertirá el velo y el texto.)
 - **Respaldo opaco** en tres casos: navegador sin `backdrop-filter` (`@supports`), `prefers-reduced-transparency: reduce` y `forced-colors: active`. En ellos, `glass` se ve como `soft`: relleno sólido, sin desenfoque ni sombra.
-- **`color` solo tiñe la figura, el punto y el icono**; el velo y el texto son neutros.
+- **`color` tiñe el velo** con el tono suave del color; el texto, la figura, el punto y el icono usan el color de texto del tema (≥ 3:1 sobre el peor fondo).
 - **Sobre un fondo claro, el borde casi desaparece:** la insignia se reconoce por su texto, su brillo y su sombra, no por el borde (una insignia no interactiva no exige contorno de 3:1).
-- **Tokens nuevos** (`tokens.md` §12): `--g-glass-tint`, `--g-glass-filter`, `--g-glass-edge` y `--g-glass-sheen`; reutilizables por otros componentes con superficies de cristal.
+- **Tokens nuevos** (`tokens.md` §12): `--g-glass-tint` (color opaco del velo), `--g-glass-opacity`, `--g-glass-filter`, `--g-glass-edge` y `--g-glass-sheen`; reutilizables por otros componentes con superficies de cristal.
 
 ## Slots
 
@@ -104,7 +104,7 @@ Ninguno: la insignia no recibe foco. (Tab pasa al destino anclado, si es enfocab
 | `--g-color-{color}`, `--g-color-on-{color}` | `solid`: relleno y texto; figura, punto e icono |
 | `--g-color-{color}-soft`, `--g-color-on-{color}-soft` | `soft`: relleno y texto |
 | `--g-color-{color}-text` | `outline`: borde y texto; figura e icono sobre superficies claras |
-| `--g-glass-tint`, `--g-glass-filter`, `--g-glass-edge`, `--g-glass-sheen` | Variante `glass` (`tokens.md` §12) |
+| `--g-glass-tint`, `--g-glass-opacity`, `--g-glass-filter`, `--g-glass-edge`, `--g-glass-sheen` | Variante `glass` (`tokens.md` §12) |
 | `--g-color-text`, `--g-color-surface-sunken` | Texto y respaldo opaco de `glass` |
 | `--g-shadow-2` | Sombra de `glass` |
 | `--g-radius-pill` | Forma de la insignia |
@@ -113,7 +113,7 @@ Ninguno: la insignia no recibe foco. (Tab pasa al destino anclado, si es enfocab
 | `--g-text-caption-{size|line}`, `--g-text-body-sm-{size|line}`, `--g-text-action-weight` | Texto y contador |
 | `--g-border-width` | `outline`, borde de `glass` y líneas del brillo |
 
-**Tokens nuevos:** `--g-glass-tint`, `--g-glass-filter`, `--g-glass-edge`, `--g-glass-sheen` (ver `tokens.md` §12). El resto sale del contrato vigente.
+**Tokens nuevos:** `--g-glass-tint`, `--g-glass-opacity`, `--g-glass-filter`, `--g-glass-edge`, `--g-glass-sheen` (ver `tokens.md` §12). El resto sale del contrato vigente.
 
 ## Clases (contrato entre bruno y coco)
 

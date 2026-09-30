@@ -103,6 +103,13 @@
   --g-calendar-unavailable-color: var(--g-color-border-strong);
   --g-calendar-now-color: var(--g-color-danger);
 
+  /* Cristal (liquid glass): velo translúcido. Opacidad mínima 0.55 con texto oscuro (peor caso sobre negro: 6.15:1) */
+  --g-glass-tint: #FFFFFF;
+  --g-glass-opacity: 0.62;
+  --g-glass-filter: blur(14px) saturate(1.8);
+  --g-glass-edge: rgb(255 255 255 / 0.75);
+  --g-glass-sheen: rgb(255 255 255 / 0.55);
+
   /* Superficies anidadas (carcasa + inset): profundidad por diferencias mínimas */
   --g-surface-shell: var(--g-color-surface-sunken);
   --g-surface-inset: var(--g-color-surface);

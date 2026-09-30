@@ -122,7 +122,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-text-action-weight
 --g-calendar-{grid-color|unavailable-color|now-color}
 --g-surface-{shell|inset|gap|radius|radius-inset|backdrop}
---g-glass-{tint|filter|edge|sheen}
+--g-glass-{tint|opacity|filter|edge|sheen}
 ```
 
 ### Tokens de estructura (agregados al escribir `GBtn.css`)
@@ -206,12 +206,13 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 | Token | Defecto | Para qué |
 | --- | --- | --- |
-| `--g-glass-tint` | `rgb(255 255 255 / 0.62)` | Velo del cristal. **Opacidad mínima 0.55** con texto oscuro (ver regla) |
+| `--g-glass-tint` | `#FFFFFF` | Color del velo, **opaco** (con `color`, el velo usa el tono suave del color: siempre claro) |
+| `--g-glass-opacity` | `0.62` | Opacidad del velo (número de 0 a 1). Ver regla de legibilidad |
 | `--g-glass-filter` | `blur(14px) saturate(1.8)` | Filtro de fondo (`backdrop-filter`); `none` lo desactiva |
 | `--g-glass-edge` | `rgb(255 255 255 / 0.75)` | Borde luminoso y línea de luz superior |
 | `--g-glass-sheen` | `rgb(255 255 255 / 0.55)` | Inicio del brillo especular (degradado de arriba hacia transparente) |
 
-**Regla de legibilidad (no es tema):** el texto sobre cristal debe llegar a **4.5:1 contra el peor fondo posible**, que es el negro. Con el velo por defecto (0.62) y `--g-color-text` (#1F1F1F) el peor caso es **6.15:1** (10.58 sobre gris, 16.48 sobre blanco). El CLI rechaza un tema cuyo `--g-glass-tint` tenga opacidad < 0.55, o cuyo texto, compuesto sobre negro con ese velo, baje de 4.5:1.
+**Regla de legibilidad (no es tema):** el texto sobre cristal debe llegar a **4.5:1 contra el peor fondo posible**, que es el negro. Con el velo por defecto (0.62) y `--g-color-text` (#1F1F1F) el peor caso es **6.15:1** (10.58 sobre gris, 16.48 sobre blanco). El CLI rechaza un tema cuyo `--g-glass-opacity` sea < 0.55, o cuyo texto, compuesto sobre negro con ese velo (neutro y con cada tono suave de color), baje de 4.5:1. **La regla real es el contraste, no la opacidad sola:** con un texto más claro o un velo teñido, hace falta más opacidad (con texto #3B2A1A y velo #FFF6E5, 0.60 dio 4.06:1 y **no** cumple; 0.72 sí).
 
 **Respaldos:** sin `backdrop-filter` (`@supports`), con `prefers-reduced-transparency: reduce` y con `forced-colors: active`, un componente de cristal se ve **opaco** (su variante `soft`). Estas condiciones son consultas del navegador, no umbrales de tema.
 
