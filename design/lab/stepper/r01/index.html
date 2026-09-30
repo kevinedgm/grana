@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GStepper · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;
+ --ind:24px; --line:2px}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:900px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.sec{font-size:17px;margin:32px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.frame{max-inline-size:100%;border:1px dashed var(--wf-3);padding:16px;background:#fff;margin:8px 0 4px;resize:horizontal;overflow:auto}
+.cap{font-size:12px;color:var(--wf-2);margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.b{font:inherit;min-height:36px;padding:0 14px;border:1px solid var(--wf-2);border-radius:8px;background:#fff;color:var(--wf-ink);cursor:pointer}
+.b:focus-visible,.st__hit:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- Stepper ---------- */
+.sp{container-type:inline-size}
+.sp ol{list-style:none;margin:0;padding:0;display:flex}
+.st{position:relative;display:flex;min-inline-size:0;flex:1 1 0}
+.st__hit{all:unset;box-sizing:border-box;display:flex;gap:8px;align-items:flex-start;min-inline-size:0;padding:4px 0}
+button.st__hit{cursor:pointer}
+.st__ind{flex:none;inline-size:var(--ind);block-size:var(--ind);border:var(--line) solid var(--wf-line);border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;background:#fff;color:var(--wf-2)}
+.st__ind .g-icon{inline-size:14px;block-size:14px}
+.st__text{min-inline-size:0;display:flex;flex-direction:column}
+.st__label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;color:var(--wf-2)}
+.st__desc{font-size:12px;color:var(--wf-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st__line{flex:1 1 auto;align-self:flex-start;margin:calc(var(--ind)/2 + 4px - var(--line)/2) 8px 0;min-inline-size:16px;block-size:var(--line);background:var(--wf-fill)}
+.st:last-child .st__line{display:none}
+/* estados: forma + peso + posición, no solo tono */
+.st--complete .st__ind{background:var(--wf-ink);border-color:var(--wf-ink);color:#fff}
+.st--complete .st__label{color:var(--wf-ink)}
+.st--complete .st__line{background:var(--wf-ink)}
+.st--current .st__ind{border-color:var(--wf-ink);color:var(--wf-ink);box-shadow:0 0 0 3px var(--wf-fill)}
+.st--current .st__label{color:var(--wf-ink);font-weight:700}
+.st--current .st__line{background:linear-gradient(90deg,var(--wf-ink) 35%,var(--wf-fill) 35%)}
+.st--error .st__ind{border-style:double;border-width:4px;color:var(--wf-ink);background:#fff}
+.st--error .st__label{color:var(--wf-ink);text-decoration:underline wavy;text-underline-offset:3px}
+.st--warning .st__ind{border-style:dashed;color:var(--wf-ink);background:#fff}
+.st--disabled .st__label,.st--disabled .st__ind{opacity:.5}
+.st--optional .st__label::after{content:attr(data-opt);font-size:12px;margin-inline-start:6px;color:var(--wf-3)}
+/* indicador: punto */
+.sp--dot{--ind:12px}
+.sp--dot .st__ind{font-size:0}
+.sp--dot .st__ind .g-icon{display:none}
+.sp--dot .st__line{margin-top:calc(6px + 4px - 1px)}
+.sp--dot .st--current .st__ind{--ind:12px;background:var(--wf-ink)}
+/* indicador: línea (minimal): sin círculo, solo etiqueta y subrayado */
+.sp--line .st__ind{display:none}
+.sp--line .st__hit{flex-direction:column;inline-size:100%;gap:0;border-block-end:var(--line) solid var(--wf-fill);padding-block-end:6px}
+.sp--line .st__line{display:none}
+.sp--line .st--complete .st__hit{border-color:var(--wf-ink)}
+.sp--line .st--current .st__hit{border-color:var(--wf-ink);border-block-end-width:4px;padding-block-end:4px}
+.sp--line ol{gap:8px}
+/* segmentado: el tramo es el indicador */
+.sp--segment ol{gap:2px}
+.sp--segment .st__hit{flex-direction:column;inline-size:100%;gap:6px}
+.sp--segment .st__ind{inline-size:100%;block-size:6px;border:0;border-radius:0;background:var(--wf-fill);font-size:0}
+.sp--segment .st__ind .g-icon{display:none}
+.sp--segment .st:first-child .st__ind{border-start-start-radius:3px;border-end-start-radius:3px}
+.sp--segment .st:last-child .st__ind{border-start-end-radius:3px;border-end-end-radius:3px}
+.sp--segment .st__line{display:none}
+.sp--segment .st--complete .st__ind{background:var(--wf-ink)}
+.sp--segment .st--current .st__ind{background:linear-gradient(90deg,var(--wf-ink) 50%,var(--wf-fill) 50%);box-shadow:none}
+.sp--segment .st--error .st__ind{background:repeating-linear-gradient(45deg,var(--wf-ink) 0 4px,#fff 4px 6px)}
+.sp--segment .st--warning .st__ind{background:repeating-linear-gradient(90deg,var(--wf-ink) 0 6px,#fff 6px 9px)}
+/* vertical */
+.sp--vertical ol{flex-direction:column}
+.sp--vertical .st{flex-direction:column;flex:none}
+.sp--vertical .st__hit{inline-size:100%}
+.sp--vertical .st__label,.sp--vertical .st__desc{white-space:normal}
+.sp--vertical .st__line{position:absolute;inset-inline-start:calc(var(--ind)/2 - var(--line)/2);inset-block:calc(var(--ind) + 8px) 4px;inline-size:var(--line);block-size:auto;margin:0;min-inline-size:0;align-self:auto}
+.sp--vertical .st__body{margin-inline-start:calc(var(--ind) + 8px);padding-block:4px 16px;font-size:14px}
+.sp--vertical .st:not(.st--current) .st__body{display:none}
+.sp--vertical .st:last-child{padding-block-end:0}
+.sp--vertical .st__hit{padding-block-end:12px}
+.sp--dot.sp--vertical .st__line{inset-inline-start:calc(6px - 1px);inset-block-start:calc(12px + 8px)}
+/* compacto */
+.cmp{display:none}
+.cmp__top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cmp__n{font-size:12px;color:var(--wf-2)}
+.cmp__name{font-weight:700}
+.cmp__bar{display:flex;gap:2px;margin-block:8px}
+.cmp__bar span{flex:1;block-size:4px;background:var(--wf-fill)}
+.cmp__bar .on{background:var(--wf-ink)}
+.cmp__bar .cur{background:linear-gradient(90deg,var(--wf-ink) 50%,var(--wf-fill) 50%)}
+.cmp__tog{font:inherit;font-size:13px;min-block-size:44px;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;color:var(--wf-ink)}
+.cmp__tog:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.cmp__list{display:none;margin-block-start:8px}
+.cmp.open .cmp__list{display:block}
+.sp--forcecompact .cmp{display:block} .sp--forcecompact .full{display:none}
+/* adaptativo por ancho del contenedor (no de la ventana) */
+.auto .full .st__desc{display:block}
+@container (max-width:640px){.auto .full .st__desc{display:none}.auto .full{--ind:20px}}
+@container (max-width:560px){.auto .full{display:none}.auto .cmp{display:block}}
+</style>
+</head>
+<body>
+<main>
+<h1>GStepper · r01</h1>
+<p class="meta">Wireframe F2 · kit neutral. Estructura, estados y comportamiento; el estilo final es de coco. Arrastra la esquina de cada marco para cambiar su ancho.</p>
+<div class="wf-note">Estados: <b>hecho</b> = relleno sólido + check · <b>actual</b> = anillo + negrita + conector a medias · <b>pendiente</b> = vacío · <b>error</b> = borde doble + subrayado ondulado + texto · <b>advertencia</b> = borde discontinuo + texto · <b>bloqueado</b> = atenuado y sin botón · <b>opcional</b> = texto «opcional». Ningún estado depende solo del tono.</div>
+
+<div id="demos"></div>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+const T = {complete:'completado', current:'paso actual', pending:'pendiente', error:'con error', warning:'con advertencia', disabled:'bloqueado', optional:'opcional'};
+const STEPS = [
+  {label:'Plan', desc:'Elige tu plan', icon:'list'},
+  {label:'Cuenta', desc:'Datos de acceso', icon:'user'},
+  {label:'Pago', desc:'Tarjeta o transferencia', icon:'credit-card'},
+  {label:'Confirmación', desc:'Revisa y acepta', icon:'circle-check'},
+  {label:'Revisión', desc:'Seguimiento', icon:'flag'}
+];
+function stateOf(i, cur, s){ return i < cur ? 'complete' : i === cur ? 'current' : 'pending'; }
+function ind(i, s, st, withIcon){
+  if (st === 'complete' && !s.status) return window.lucide('check');
+  if (s.status === 'error') return window.lucide('circle-alert');
+  if (s.status === 'warning') return window.lucide('triangle-alert');
+  if (s.status === 'disabled') return window.lucide('lock');
+  if (st === 'complete') return window.lucide('check');
+  return withIcon && s.icon ? window.lucide(s.icon) : String(i+1);
+}
+function stepper(host, o){
+  const {steps=STEPS, current=1, indicator='number', orientation='horizontal', nav='none', allowed=()=>true, icons=false, compact=false, auto=false, body=false, name='Progreso del registro'} = o;
+  const cls = ['sp','sp--'+indicator,'sp--'+orientation]; if (compact) cls.push('sp--forcecompact'); if (auto) cls.push('auto');
+  const total = steps.length;
+  let html = '<nav class="'+cls.join(' ')+'" aria-label="'+name+'"><div class="cmp" data-cmp><div class="cmp__top"><span class="cmp__name">'+steps[current].label+'</span><span class="cmp__n">Paso '+(current+1)+' de '+total+'</span></div><div class="cmp__bar" aria-hidden="true">'+steps.map((s,i)=>'<span class="'+(i<current?'on':i===current?'cur':'')+'"></span>').join('')+'</div><button type="button" class="cmp__tog" aria-expanded="false">Ver todos los pasos</button><div class="cmp__list"></div></div><div class="full"><ol>';
+  steps.forEach((s,i)=>{
+    const st = stateOf(i,current,s);
+    const flags = [st]; if (s.status) flags.push(s.status); if (s.optional) flags.push('optional');
+    const css = 'st st--'+st+(s.status?' st--'+s.status:'')+(s.optional?' st--optional':'');
+    const can = nav !== 'none' && st !== 'current' && s.status !== 'disabled' && allowed(i,current);
+    const tag = can ? 'button type="button"' : 'span';
+    const end = can ? 'button' : 'span';
+    const stxt = flags.map(f=>T[f]).join(', ');
+    html += '<li class="'+css+'"><'+tag+' class="st__hit"'+(st==='current'?' aria-current="step"':'')+'><span class="st__ind" aria-hidden="true">'+ind(i,s,st,icons)+'</span><span class="st__text"><span class="st__label" data-opt="(opcional)">'+s.label+'</span>'+(s.desc?'<span class="st__desc">'+s.desc+'</span>':'')+'<span class="sr">, '+stxt+'</span></span></'+end+'><span class="st__line" aria-hidden="true"></span>'+(body&&st==='current'?'<div class="st__body">Contenido del paso «'+s.label+'» (slot).</div>':'')+'</li>';
+  });
+  html += '</ol></div></nav>';
+  host.innerHTML = html;
+  const cmp = host.querySelector('[data-cmp]'), tog = cmp.querySelector('.cmp__tog');
+  tog.addEventListener('click',()=>{ const open = cmp.classList.toggle('open'); tog.setAttribute('aria-expanded',open); tog.textContent = open?'Ocultar pasos':'Ver todos los pasos';
+    if(open && !cmp.querySelector('.cmp__list').innerHTML){ const v=document.createElement('div'); stepper(v,{...o,orientation:'vertical',indicator:'number',compact:false,auto:false,body:false}); cmp.querySelector('.cmp__list').appendChild(v.firstChild); } });
+  host.querySelectorAll('button.st__hit').forEach((b,k)=>{});
+  host.querySelectorAll('button.st__hit').forEach(b=>b.addEventListener('click',()=>{
+    const li = b.closest('li'); const idx=[...li.parentNode.children].indexOf(li); stepper(host,{...o,current:idx});
+    host.querySelector('.st--current .st__hit').setAttribute('tabindex','-1'); host.querySelector('.st--current .st__hit').focus();
+  }));
+}
+const DEMOS = [
+ ['1 · Horizontal · línea (minimal)', 'Etiquetas + tramo inferior; el actual, más grueso y en negrita.', {indicator:'line'}],
+ ['2 · Horizontal · puntos', 'Nodos de 12px conectados; sin numeración.', {indicator:'dot'}],
+ ['3 · Horizontal · numerado', 'Número en el indicador; check al completar.', {indicator:'number'}],
+ ['4 · Horizontal · iconos (opcionales)', 'Icono de Lucide por paso; sin icono, número. El icono nunca es lo único: la etiqueta siempre está.', {indicator:'number', icons:true}],
+ ['5 · Segmentado', 'Una sola barra de tramos unidos; etiqueta debajo. El tramo de error va rayado, el de advertencia a rayas cortas.', {indicator:'segment', current:2, steps:STEPS.map((s,i)=>i===1?{...s,status:'warning'}:i===3?{...s,status:'error'}:s)}],
+ ['6 · Estados especiales', 'Error en «Cuenta», advertencia en «Pago», «Confirmación» bloqueado y «Revisión» opcional.', {indicator:'number', current:2, steps:STEPS.map((s,i)=>i===1?{...s,status:'error'}:i===2?{...s,status:'warning'}:i===3?{...s,status:'disabled'}:i===4?{...s,optional:true}:s)}],
+ ['7 · Navegable (volver a pasos hechos)', 'Solo los pasos completados son botones (Tab + Enter/Espacio). El actual y los pendientes no lo son: la regla la recibe el componente.', {indicator:'number', current:2, nav:'back', allowed:(i,c)=>i<c}],
+ ['8 · Vertical con descripción y contenido', 'Para formularios largos, paneles y móvil. El contenido solo se muestra bajo el paso actual.', {indicator:'number', orientation:'vertical', body:true, current:1, nav:'back', allowed:(i,c)=>i<c}],
+ ['9 · Compacto / móvil', 'Paso N de M + barra segmentada + nombre; el botón despliega la lista completa en vertical.', {indicator:'number', compact:true, current:1, nav:'back', allowed:(i,c)=>i<c}]
+];
+const MANY = Array.from({length:9},(_,i)=>({label:'Paso '+(i+1)+' con título largo',desc:''}));
+const box = document.getElementById('demos');
+DEMOS.forEach(([t,c,o])=>{ box.insertAdjacentHTML('beforeend','<h2 class="sec">'+t+'</h2><p class="cap">'+c+'</p><div class="frame" style="width:'+(o.orientation==='vertical'||o.compact?'360px':'100%')+'"><div></div></div>'); stepper(box.lastElementChild.firstElementChild,o); });
+box.insertAdjacentHTML('beforeend','<h2 class="sec">10 · Adaptativo por ancho del contenedor</h2><p class="cap">El mismo stepper en 720 / 600 / 340px: completo con descripciones → sin descripciones → compacto. Decide el ancho del contenedor, no el de la ventana.</p>');
+[720,600,340].forEach(w=>{ box.insertAdjacentHTML('beforeend','<div class="frame" style="width:'+w+'px"><div></div></div>'); stepper(box.lastElementChild.firstElementChild,{indicator:'number',auto:true,current:1,nav:'back',allowed:(i,c)=>i<c}); });
+box.insertAdjacentHTML('beforeend','<h2 class="sec">11 · Muchos pasos (overflow)</h2><p class="cap">Nueve pasos con títulos largos en 340px: pasa a compacto y el detalle queda en la lista vertical. Sin scroll horizontal.</p><div class="frame" style="width:340px"><div></div></div>');
+stepper(box.lastElementChild.firstElementChild,{steps:MANY,indicator:'number',auto:true,current:4,nav:'back',allowed:(i,c)=>i<c});
+</script>
+</body>
+</html>
