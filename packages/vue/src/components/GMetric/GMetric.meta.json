@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GMetric",
   "tag": "g-metric",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Primitiva de widget: valor con etiqueta, unidad, tendencia (texto, no solo flecha ni color) y contexto.",
   "contract": "design/contracts/widget.md",

@@ -544,7 +544,7 @@
         const wgState = ref('populated')
         const wgLog = ref('—')
         const wgTitles = { a: 'Ingresos', b: 'Meta', c: 'Servicios', d: 'Actividad' }
-        const wgLayout = ref([{ id: 'a', w: 2, h: 2 }, { id: 'b', w: 1, h: 1 }, { id: 'c', w: 1, h: 1 }, { id: 'd', w: 2, h: 1 }])
+        const wgLayout = ref([{ id: 'a', w: 2, h: 3 }, { id: 'b', w: 1, h: 2 }, { id: 'c', w: 1, h: 2 }, { id: 'd', w: 2, h: 3 }])
         const wgRemove = (id) => { wgLayout.value = wgLayout.value.filter((e) => e.id !== id) }
         const wgLabels = { actions: 'Acciones de', loading: 'Cargando', empty: 'Sin datos', error: 'No se pudo cargar', retry: 'Reintentar', stale: 'Desactualizado', staleText: 'Datos de hace 2 h', disabled: 'Deshabilitado' }
         const wgGridLabels = { grab: 'Mover {title}. Posición {position} de {count}', grabRole: 'elemento reordenable', resize: 'Cambiar el tamaño de {title}: {columns} × {rows}', grabbed: '{title} recogido. Posición {position} de {count}.', moved: 'Posición {position} de {count}', dropped: '{title} soltado en la posición {position} de {count}', cancelled: 'Movimiento cancelado. {title} vuelve a la posición {position}', resized: '{title}: {columns} × {rows}', removed: '{title} quitado', moveBefore: 'Mover antes', moveAfter: 'Mover después', size: 'Tamaño', remove: 'Quitar', presets: { s: 'Pequeño', m: 'Mediano', l: 'Grande', wide: 'Ancho', tall: 'Alto' }, empty: 'Sin widgets' }

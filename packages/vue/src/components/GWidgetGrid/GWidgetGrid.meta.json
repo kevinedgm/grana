@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GWidgetGrid",
   "tag": "g-widget-grid",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Rejilla de widgets con columnas por su propio ancho, layout ordenado [{id,w,h}], reordenar y redimensionar con puntero y teclado (alternativa sin arrastre desde el menú de cada widget) y anuncios para lectores de pantalla.",
   "contract": "design/contracts/widget-grid.md",

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GWidget",
   "tag": "g-widget",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Carcasa de un widget de panel: encabezado, cuerpo por nivel (s/m/l según su propio ancho) y pie, con estados populated, loading, empty, error, stale y disabled que no cambian el espacio, menú de acciones propio e integración con GWidgetGrid.",
   "contract": "design/contracts/widget.md",

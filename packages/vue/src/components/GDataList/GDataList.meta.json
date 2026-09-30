@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDataList",
   "tag": "g-data-list",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Primitiva de widget: lista compacta de pares etiqueta–valor, con muestras de color decorativas opcionales.",
   "contract": "design/contracts/widget.md",
