@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galería y configuración de widgets · r02 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--ink:#1f1f1f;--2:#555;--3:#6b6b6b;--line:#b9b9b9;--soft:#dcdcdc;--fill:#e9e9e9;--fill2:#f3f3f3;--bg:#fafafa;--note:#fff8d6;--err:#1f1f1f;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;padding:clamp(12px,3vw,24px);font:15px/1.5 var(--font);color:var(--ink);background:var(--bg)}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:28px 0 12px}
+.meta{color:var(--2);margin:0 0 12px} .note{background:var(--note);border:1px dashed var(--3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:80ch}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--line);padding:8px;min-height:40px;max-height:110px;overflow:auto;white-space:pre-wrap}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{min-height:36px;padding:0 14px;border:1.5px solid var(--2);border-radius:8px;background:#fff;cursor:pointer}
+.btn--primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn[aria-disabled=true]{opacity:.55;cursor:not-allowed}
+:is(button,input,select,textarea,a,[tabindex]):focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:12px}
+
+/* ---------- Panel de ejemplo (rejilla simplificada) ---------- */
+.grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:92px;gap:12px}
+.grid>li{min-inline-size:0}.grid>li[data-size=m]{grid-column:span 2}.grid>li[data-size=l]{grid-column:span 2;grid-row:span 2}
+@media (max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+.w{block-size:100%;display:flex;flex-direction:column;gap:6px;padding:12px;background:#fff;border:1px solid var(--soft);border-radius:14px;overflow:hidden}
+.w__head{display:flex;gap:8px;align-items:flex-start}
+.w__titles{flex:1;min-inline-size:0}.w__eyebrow{font-size:12px;color:var(--3);line-height:1.2;display:block}
+.w__title{margin:0;font-size:14px;line-height:1.3;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w__sub{margin:0;font-size:12px;color:var(--2)}
+.w__badge{font-size:12px;padding:0 8px;border-radius:999px;background:var(--fill);line-height:20px;white-space:nowrap}
+.w__cfg{flex:none;inline-size:32px;block-size:32px;border:0;border-radius:8px;background:transparent;cursor:pointer;display:grid;place-items:center}
+.w__cfg:hover{background:var(--fill2)}
+.w__val{font-size:26px;font-weight:700;line-height:1.1} .w__val small{font-size:12px;font-weight:400;color:var(--2);margin-inline-start:4px}
+.w[data-density=compact]{padding:8px;gap:3px}.w[data-density=comfortable]{padding:16px;gap:9px}
+.w[data-badge=outline] .w__badge{background:#fff;border:1.5px solid var(--2)}
+.w[data-badge=solid] .w__badge{background:var(--ink);color:#fff}
+@media (pointer:coarse){.w__cfg{inline-size:44px;block-size:44px}}
+
+/* ---------- Hoja lateral (dialog) ---------- */
+dialog.sheet{margin:0 0 0 auto;inset-block:0;inset-inline-end:0;block-size:100dvh;max-block-size:100dvh;inline-size:min(440px,100vw);padding:0;border:0;border-inline-start:1px solid var(--line);background:#fff;color:var(--ink);display:none;flex-direction:column}
+dialog.sheet[open]{display:flex}
+dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
+@media (max-width:600px){dialog.sheet{inset-block-start:auto;inline-size:100vw;block-size:92dvh;max-block-size:92dvh;border-radius:16px 16px 0 0;border-inline-start:0;border-block-start:1px solid var(--line)}}
+.sheet__head{display:flex;gap:8px;align-items:flex-start;padding:16px;border-block-end:1px solid var(--soft)}
+.sheet__head h2{flex:1;margin:0;font-size:17px}.sheet__head p{margin:2px 0 0;font-size:13px;color:var(--2)}
+.sheet__x{flex:none;inline-size:36px;block-size:36px;border:0;border-radius:8px;background:transparent;cursor:pointer;font-size:18px}
+.sheet__body{flex:1;overflow:auto;padding:16px;min-block-size:0}
+.sheet__foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center;padding:12px 16px;border-block-start:1px solid var(--soft)}
+.sheet__foot .spacer{margin-inline-end:auto;font-size:13px}
+@media (pointer:coarse){.sheet__x,.btn{min-block-size:44px;min-inline-size:44px}}
+
+/* ---------- Galería ---------- */
+.field{display:flex;flex-direction:column;gap:4px;margin:0 0 12px}.field>label,.field>legend{font-size:13px;font-weight:600;padding:0}
+.in{min-height:36px;padding:4px 10px;border:1.5px solid var(--2);border-radius:8px;background:#fff;inline-size:100%}
+.in[aria-invalid=true]{border-width:3px;border-style:double}
+.hint{font-size:12px;color:var(--2)}.err{font-size:12px;font-weight:600}.err::before{content:"▲ "}
+fieldset.cats{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.cats label{position:relative}.cats input{position:absolute;opacity:0;inset:0;margin:0}
+.cats span{display:inline-block;padding:4px 12px;border:1.5px solid var(--2);border-radius:999px;font-size:13px}
+.cats input:checked+span{background:var(--ink);color:#fff}.cats input:checked+span::before{content:"✓ "}
+.cats input:focus-visible+span{outline:3px solid var(--ink);outline-offset:2px}
+.cards{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.card{border:1px solid var(--soft);border-radius:12px;padding:12px;display:grid;gap:8px}
+.card h3{margin:0;font-size:15px}.card .cat{font-size:12px;color:var(--3)}
+.card p{margin:0;font-size:13px;color:var(--2)}
+.card__prev{border:1px dashed var(--line);border-radius:10px;padding:8px;background:var(--fill2);pointer-events:none}
+.card__prev .w{block-size:auto;min-block-size:84px}
+.card__row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.card__row .field{margin:0;flex:1;min-inline-size:130px}
+.tag{font-size:12px;padding:0 8px;border-radius:999px;border:1.5px solid var(--2);line-height:20px;white-space:nowrap}
+.empty{padding:24px 8px;text-align:center;color:var(--2)}
+
+/* ---------- Configuración ---------- */
+.cfg-prev{border:1px dashed var(--line);border-radius:10px;padding:8px;background:var(--fill2);margin-block-end:12px;block-size:126px}
+.cfg-prev .w{block-size:100%}
+.tabs{display:flex;gap:4px;border-block-end:1px solid var(--soft);margin-block-end:12px;overflow-x:auto}
+.tabs [role=tab]{min-height:36px;padding:0 12px;border:0;border-block-end:3px solid transparent;background:transparent;cursor:pointer;white-space:nowrap}
+.tabs [role=tab][aria-selected=true]{border-block-end-color:var(--ink);font-weight:700}
+.tabs .mark{font-size:12px;border:1.5px solid var(--ink);border-radius:999px;padding:0 6px;margin-inline-start:4px}
+.sw{display:flex;gap:10px;align-items:center;min-height:36px}.sw input{inline-size:20px;block-size:20px}
+.summary{border:1.5px solid var(--ink);border-radius:10px;padding:8px 12px;margin-block-end:12px;font-size:13px}
+.summary:focus{outline:3px solid var(--ink);outline-offset:2px}
+.summary ul{margin:4px 0 0;padding-inline-start:18px}
+.confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center;inline-size:100%;justify-content:flex-end}
+</style>
+</head>
+<body>
+<main>
+  <h1>Galería y configuración de widgets · r02</h1>
+  <p class="meta">Wireframe F2 (kiwi) · segunda entrega del sistema de widgets · kit neutral de grises</p>
+  <p class="note">Flujo: «Añadir widget» abre la <b>galería</b> (hoja lateral modal); el botón «Configurar» de cada widget (en Grana, la acción «Configurar» de su menú) abre el <b>panel de configuración</b> (hoja lateral con pestañas Datos, Estilo y Ajustes, vista previa en vivo, Aplicar y Cancelar). Todos los textos son de ejemplo: en Grana los pone la aplicación.</p>
+
+  <div class="bar">
+    <button class="btn btn--primary" id="open-gallery" type="button">Añadir widget</button>
+    <span id="count" class="hint"></span>
+  </div>
+  <ul class="grid" id="grid" aria-label="Panel de ejemplo"></ul>
+  <h2>Registro de eventos</h2>
+  <div class="log" id="log" aria-live="off">—</div>
+  <div class="sr" id="announce" role="status" aria-live="polite"></div>
+
+  <!-- ===== Galería ===== -->
+  <dialog class="sheet" id="gallery" aria-labelledby="g-title" aria-describedby="g-desc">
+    <div class="sheet__head">
+      <div><h2 id="g-title">Añadir widget</h2><p id="g-desc">Elige un widget y su tamaño inicial; se añade al final del panel.</p></div>
+      <button class="sheet__x" type="button" data-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sheet__body" id="g-body">
+      <div class="field"><label for="g-q">Buscar widgets</label><input class="in" id="g-q" type="search" autocomplete="off" aria-controls="g-list"></div>
+      <fieldset class="cats" id="g-cats"><legend class="sr">Categoría</legend></fieldset>
+      <p class="hint" id="g-status" role="status"></p>
+      <ul class="cards" id="g-list" aria-label="Widgets disponibles"></ul>
+      <div class="sr" role="status" aria-live="polite" data-say></div>
+      <p class="empty" id="g-empty" hidden>Ningún widget coincide con la búsqueda.</p>
+    </div>
+    <div class="sheet__foot"><button class="btn" type="button" data-close>Cerrar</button></div>
+  </dialog>
+
+  <!-- ===== Configuración ===== -->
+  <dialog class="sheet" id="config" aria-labelledby="c-title" aria-describedby="c-desc">
+    <form method="dialog" id="c-form" novalidate style="display:contents">
+      <div class="sheet__head">
+        <div><h2 id="c-title">Configurar</h2><p id="c-desc">Los cambios se ven en la vista previa y se aplican al pulsar Aplicar.</p></div>
+        <button class="sheet__x" type="button" id="c-x" aria-label="Cerrar sin aplicar">✕</button>
+      </div>
+      <div class="sheet__body" id="c-body">
+        <div class="sr" role="status" aria-live="polite" data-say></div>
+        <div class="cfg-prev" aria-hidden="true" id="c-prev"></div>
+        <div class="summary" id="c-summary" tabindex="-1" role="alert" hidden></div>
+        <div class="tabs" role="tablist" aria-label="Secciones de la configuración" id="c-tabs">
+          <button role="tab" type="button" id="t-data" aria-controls="p-data" aria-selected="true">Datos<span class="mark" hidden></span></button>
+          <button role="tab" type="button" id="t-style" aria-controls="p-style" aria-selected="false" tabindex="-1">Estilo<span class="mark" hidden></span></button>
+          <button role="tab" type="button" id="t-set" aria-controls="p-set" aria-selected="false" tabindex="-1">Ajustes<span class="mark" hidden></span></button>
+        </div>
+        <div role="tabpanel" id="p-data" aria-labelledby="t-data" tabindex="0">
+          <div class="field"><label for="f-period">Periodo</label>
+            <select class="in" id="f-period"><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option></select></div>
+          <div class="field"><label for="f-goal">Meta mensual</label>
+            <input class="in" id="f-goal" type="number" inputmode="numeric" min="1" aria-describedby="f-goal-h f-goal-e" required>
+            <span class="hint" id="f-goal-h">Un número mayor que 0.</span><span class="err" id="f-goal-e" hidden></span></div>
+        </div>
+        <div role="tabpanel" id="p-style" aria-labelledby="t-style" tabindex="0" hidden>
+          <div class="field"><label for="f-density">Densidad</label>
+            <select class="in" id="f-density"><option value="default">Normal</option><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select></div>
+          <div class="field"><label for="f-badge">Estilo del badge</label>
+            <select class="in" id="f-badge"><option value="soft">Suave</option><option value="outline">Contorno</option><option value="solid">Sólido</option></select></div>
+          <label class="sw"><input type="checkbox" id="f-sub" role="switch"> Mostrar el subtítulo</label>
+        </div>
+        <div role="tabpanel" id="p-set" aria-labelledby="t-set" tabindex="0" hidden>
+          <div class="field"><label for="f-title">Título</label>
+            <input class="in" id="f-title" type="text" aria-describedby="f-title-e" required><span class="err" id="f-title-e" hidden></span></div>
+          <div class="field"><label for="f-refresh">Actualizar cada</label>
+            <select class="in" id="f-refresh"><option value="0">Nunca</option><option value="5">5 minutos</option><option value="15">15 minutos</option></select></div>
+        </div>
+      </div>
+      <div class="sheet__foot" id="c-foot">
+        <button class="btn spacer" type="button" id="c-reset">Restablecer</button>
+        <span class="confirm" id="c-confirm" hidden role="alert"><span>¿Descartar los cambios?</span><button class="btn" type="button" id="c-keep">Seguir editando</button><button class="btn" type="button" id="c-discard">Descartar</button></span>
+        <span id="c-actions" style="display:contents"><button class="btn" type="button" id="c-cancel">Cancelar</button><button class="btn btn--primary" type="submit" id="c-apply">Aplicar</button></span>
+      </div>
+    </form>
+  </dialog>
+</main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s)
+const log = (m) => { $('#log').textContent = m }
+const say = (m) => { const r = document.querySelector('dialog[open] [data-say]') || $('#announce'); r.textContent = ''; setTimeout(() => { r.textContent = m }, 30) }
+const SIZES = { s: 'Pequeño (1×1)', m: 'Mediano (2×1)', l: 'Grande (2×2)' }
+const CATALOG = [
+  { id: 'revenue', cat: 'Finanzas', title: 'Ingresos', desc: 'Ingresos del periodo con tendencia y meta.', val: '$48.2k', unit: 'USD', unique: true, sizes: ['s', 'm', 'l'] },
+  { id: 'goal', cat: 'Finanzas', title: 'Meta mensual', desc: 'Avance hacia la meta con barra de progreso.', val: '72 %', unit: '', sizes: ['s', 'm'] },
+  { id: 'tasks', cat: 'Equipo', title: 'Tareas abiertas', desc: 'Tareas pendientes por persona o proyecto.', val: '23', unit: 'tareas', sizes: ['s', 'm', 'l'] },
+  { id: 'support', cat: 'Equipo', title: 'Tickets de soporte', desc: 'Tickets nuevos y tiempo de respuesta.', val: '14', unit: 'nuevos', sizes: ['m', 'l'] },
+  { id: 'uptime', cat: 'Operaciones', title: 'Disponibilidad', desc: 'Estado de los servicios críticos.', val: '99.9 %', unit: '', unique: true, sizes: ['s', 'm'] },
+  { id: 'traffic', cat: 'Marketing', title: 'Visitas', desc: 'Visitas por canal de origen.', val: '12.4k', unit: 'visitas', sizes: ['s', 'm', 'l'] }
+]
+let panel = [{ uid: 1, id: 'revenue', size: 'l', title: 'Ingresos', period: '30', goal: 50000, density: 'default', badge: 'soft', sub: true, refresh: '0' },
+             { uid: 2, id: 'tasks', size: 's', title: 'Tareas abiertas', period: '7', goal: 30, density: 'default', badge: 'soft', sub: true, refresh: '0' }]
+let uid = 3, lastTrigger = null
+
+/* ---- widget mínimo ---- */
+const widgetHTML = (w, { cfg = true } = {}) => { const c = CATALOG.find(x => x.id === w.id)
+  return `<article class="w" data-density="${w.density}" data-badge="${w.badge}" aria-labelledby="w${w.uid}-t">
+  <header class="w__head"><div class="w__titles"><span class="w__eyebrow">${c.cat}</span><h3 class="w__title" id="w${w.uid}-t">${w.title}</h3>${w.sub && w.size !== 's' ? `<p class="w__sub">${w.period === '7' ? 'Últimos 7 días' : w.period === '90' ? 'Últimos 90 días' : 'Últimos 30 días'}</p>` : ''}</div>
+  ${w.size !== 's' ? '<span class="w__badge">Mensual</span>' : ''}
+  ${cfg ? `<button class="w__cfg" type="button" data-cfg="${w.uid}" aria-label="Configurar ${w.title}">⚙</button>` : ''}</header>
+  <div class="w__val">${c.val}<small>${c.unit}</small></div></article>` }
+const renderGrid = () => {
+  $('#grid').innerHTML = panel.map(w => `<li data-size="${w.size}">${widgetHTML(w)}</li>`).join('')
+  $('#count').textContent = `${panel.length} widgets en el panel`
+}
+
+/* ---- galería ---- */
+const gal = $('#gallery'); let cat = 'all'
+const cats = ['all', ...new Set(CATALOG.map(c => c.cat))]
+$('#g-cats').insertAdjacentHTML('beforeend', cats.map((c, i) => `<label><input type="radio" name="cat" value="${c}" ${i === 0 ? 'checked' : ''}><span>${c === 'all' ? 'Todas' : c}</span></label>`).join(''))
+const renderGallery = () => {
+  const q = $('#g-q').value.trim().toLowerCase()
+  const list = CATALOG.filter(c => (cat === 'all' || c.cat === cat) && (!q || (c.title + ' ' + c.desc + ' ' + c.cat).toLowerCase().includes(q)))
+  $('#g-list').innerHTML = list.map(c => { const n = panel.filter(w => w.id === c.id).length; const blocked = c.unique && n > 0
+    const prev = { uid: 'p' + c.id, id: c.id, size: c.sizes[0], title: c.title, period: '30', density: 'default', badge: 'soft', sub: true }
+    return `<li><article class="card" aria-labelledby="c-${c.id}-t" aria-describedby="c-${c.id}-d">
+      <div><span class="cat">${c.cat}</span>${n ? ` <span class="tag">${c.unique ? 'Ya añadido' : 'En el panel: ' + n}</span>` : ''}<h3 id="c-${c.id}-t">${c.title}</h3></div>
+      <p id="c-${c.id}-d">${c.desc}</p>
+      <div class="card__prev" aria-hidden="true" inert>${widgetHTML(prev, { cfg: false })}</div>
+      <div class="card__row">
+        <div class="field"><label for="s-${c.id}">Tamaño inicial</label><select class="in" id="s-${c.id}">${c.sizes.map(s => `<option value="${s}">${SIZES[s]}</option>`).join('')}</select></div>
+        <button class="btn btn--primary" type="button" data-add="${c.id}" aria-describedby="c-${c.id}-d" ${blocked ? 'aria-disabled="true"' : ''}>${blocked ? 'Añadido' : 'Añadir'}<span class="sr"> ${c.title}</span></button>
+      </div></article></li>` }).join('')
+  $('#g-empty').hidden = list.length > 0
+  $('#g-status').textContent = `${list.length} ${list.length === 1 ? 'widget' : 'widgets'}`
+}
+$('#open-gallery').addEventListener('click', e => { lastTrigger = e.currentTarget; renderGallery(); gal.showModal(); $('#g-q').focus() })
+$('#g-q').addEventListener('input', renderGallery)
+$('#g-cats').addEventListener('change', e => { cat = e.target.value; renderGallery() })
+$('#g-list').addEventListener('click', e => { const b = e.target.closest('[data-add]'); if (!b) return
+  if (b.getAttribute('aria-disabled') === 'true') { say(`${CATALOG.find(c => c.id === b.dataset.add).title} ya está en el panel.`); return }
+  const c = CATALOG.find(x => x.id === b.dataset.add), size = $('#s-' + c.id).value
+  panel.push({ uid: uid++, id: c.id, size, title: c.title, period: '30', goal: 1000, density: 'default', badge: 'soft', sub: true, refresh: '0' })
+  renderGrid(); renderGallery(); $(`[data-add="${c.id}"]`).focus()
+  say(`${c.title} añadido al final. Posición ${panel.length} de ${panel.length}.`); log(`add · ${c.id} · ${size}`) })
+gal.addEventListener('click', e => { if (e.target.closest('[data-close]')) gal.close() })
+gal.addEventListener('close', () => lastTrigger?.focus())
+
+/* ---- configuración ---- */
+const cfg = $('#config'), F = { goal: $('#f-goal'), title: $('#f-title') }
+let cur = null, base = null, draft = null
+const tabs = [...document.querySelectorAll('#c-tabs [role=tab]')]
+const panelOf = t => $('#' + t.getAttribute('aria-controls'))
+const selectTab = (t, focus) => { tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; panelOf(x).hidden = !on }); if (focus) t.focus() }
+$('#c-tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) selectTab(t) })
+$('#c-tabs').addEventListener('keydown', e => { const i = tabs.indexOf(document.activeElement); if (i < 0) return
+  const k = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key]; if (k === undefined) return
+  e.preventDefault(); selectTab(tabs[(k + tabs.length) % tabs.length], true) })
+const fields = { period: '#f-period', goal: '#f-goal', density: '#f-density', badge: '#f-badge', refresh: '#f-refresh', title: '#f-title' }
+const fill = d => { for (const [k, s] of Object.entries(fields)) $(s).value = d[k] ?? ''; $('#f-sub').checked = !!d.sub }
+const read = () => ({ ...draft, ...Object.fromEntries(Object.entries(fields).map(([k, s]) => [k, $(s).value])), sub: $('#f-sub').checked })
+const isDirty = () => JSON.stringify(Object.fromEntries(Object.keys({ ...fields, sub: 1 }).map(k => [k, String(k === 'sub' ? $('#f-sub').checked : $(fields[k]).value)]))) !== JSON.stringify(Object.fromEntries(Object.keys({ ...fields, sub: 1 }).map(k => [k, String(base[k] ?? '')])))
+const preview = () => { const d = read(); $('#c-prev').innerHTML = widgetHTML({ ...d, uid: 'pv', title: d.title || '—' }, { cfg: false }) }
+const errors = () => { const e = []
+  if (!(Number(F.goal.value) > 0)) e.push({ f: F.goal, tab: tabs[0], err: $('#f-goal-e'), msg: 'La meta debe ser un número mayor que 0.' })
+  if (!F.title.value.trim()) e.push({ f: F.title, tab: tabs[2], err: $('#f-title-e'), msg: 'El título es obligatorio.' }); return e }
+const showErrors = (list, focus) => {
+  [F.goal, F.title].forEach(f => { f.removeAttribute('aria-invalid') }); ['#f-goal-e', '#f-title-e'].forEach(s => { $(s).hidden = true })
+  tabs.forEach(t => { const n = list.filter(x => x.tab === t).length; const m = $('.mark', t); m.hidden = !n; m.textContent = n ? `${n} ${n === 1 ? 'error' : 'errores'}` : '' })
+  list.forEach(x => { x.f.setAttribute('aria-invalid', 'true'); x.err.hidden = false; x.err.textContent = x.msg })
+  const s = $('#c-summary'); s.hidden = !list.length
+  s.innerHTML = list.length ? `<b>Corrige ${list.length} ${list.length === 1 ? 'campo' : 'campos'}:</b><ul>${list.map((x, i) => `<li><a href="#" data-err="${i}">${x.msg}</a></li>`).join('')}</ul>` : ''
+  if (list.length && focus) s.focus() }
+$('#c-summary').addEventListener('click', e => { const a = e.target.closest('[data-err]'); if (!a) return; e.preventDefault(); const x = errors()[a.dataset.err]; selectTab(x.tab); x.f.focus() })
+document.addEventListener('click', e => { const b = e.target.closest('[data-cfg]'); if (!b) return
+  lastTrigger = b; cur = panel.find(w => w.uid == b.dataset.cfg); base = { ...cur }; draft = { ...cur }
+  $('#c-title').textContent = `Configurar ${cur.title}`; fill(cur); showErrors([]); selectTab(tabs[0]); $('#c-confirm').hidden = true; $('#c-actions').hidden = false; preview()
+  cfg.showModal(); tabs[0].focus() })
+$('#c-form').addEventListener('input', () => { preview(); if ($('#c-summary').hidden === false) showErrors(errors()) })
+$('#c-form').addEventListener('change', preview)
+$('#c-reset').addEventListener('click', () => { fill(base); showErrors([]); preview() })
+const askClose = () => { if (!isDirty()) { cfg.close(); log(`cancel · ${cur.id}`); return }
+  $('#c-actions').hidden = true; $('#c-confirm').hidden = false; $('#c-keep').focus() }
+$('#c-cancel').addEventListener('click', askClose); $('#c-x').addEventListener('click', askClose)
+cfg.addEventListener('cancel', e => { e.preventDefault(); askClose() })
+$('#c-keep').addEventListener('click', () => { $('#c-confirm').hidden = true; $('#c-actions').hidden = false; $('#c-cancel').focus() })
+$('#c-discard').addEventListener('click', () => { cfg.close(); log(`cancel · descartados · ${cur.id}`) })
+$('#c-form').addEventListener('submit', e => { e.preventDefault(); const list = errors(); showErrors(list, true); if (list.length) { say(`Corrige ${list.length} ${list.length === 1 ? 'campo' : 'campos'}.`); return }
+  Object.assign(cur, read(), { goal: Number(F.goal.value) }); cfg.close(); renderGrid(); log(`apply · ${cur.id} · ${JSON.stringify(read())}`); say(`${cur.title} configurado.`) })
+cfg.addEventListener('close', () => { const t = document.querySelector(`[data-cfg="${cur.uid}"]`) || lastTrigger; t?.focus() })
+renderGrid()
+</script>
+</body>
+</html>
