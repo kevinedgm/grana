@@ -82,3 +82,23 @@ Hallazgos:
 6. **Los 6 roles reaccionan juntos:** a `high`, C lleva los cuatro semánticos a L > 0.74 en los 11 temas, por lo que el efecto es sobre toda la paleta, no solo sobre `brand` y `accent`.
 
 Esto **no define** `max L`, `max ΔE`, reducción de croma ni fórmulas por tono: indica **dónde** hay que mirar si se estudia una segunda restricción.
+
+### A, B y C a lo largo de la superficie (`scripts/strategies-onset.mjs`, `strategies-onset.md`)
+
+Mismo barrido para las tres hipótesis (66 observaciones por celda; recuerda que los 4 semánticos se repiten en los 11 temas). Indicadores de lectura, **no reglas**: «corto» = ΔE < 0.42, «claro» = L > 0.74, «pastel» = croma conservado < 0.75.
+
+| Indicador | Estrategia | L 0.10 | L 0.15 | L 0.20 | real (0.226) | L 0.25 | L 0.30 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| corto | A | 0 % | 0 % | 20 % | 36 % | 41 % | 70 % |
+| corto | B | 0 % | 0 % | 0 % | 0 % | 0 % | 35 % |
+| corto | C | 0 % | 0 % | 0 % | 0 % | 0 % | 0 % |
+| claro | C | 9 % | 9 % | 9 % | 9 % | 26 % | **100 %** |
+| pastel | B | 5 % | 5 % | 5 % | 5 % | 5 % | 5 % |
+| pastel | C | 0 % | 0 % | 2 % | 5 % | 6 % | **45 %** |
+
+(A y B tienen 9 % «claro» en todas las superficies: son los colores que ya entraban luminosos, como el neón de Spotify. En «pastel», A llega solo a 3 % a L 0.30.)
+
+1. **A se queda corta desde L 0.20** (20 % de las observaciones; 36 % con la superficie real; 70 % a 0.30). Confirma que depender solo del contraste falla, y falla **más** cuanto más clara es la superficie.
+2. **B aguanta hasta L ≈ 0.25** (0 % cortos) y **se queda corta a 0.30** (35 %): el piso de L es constante, pero la presencia que da depende de la superficie.
+3. **C nunca se queda corta** (0 % en todo el rango), pero **a 0.25 ya vuelve «claro» al 26 % y a 0.30 al 100 %, con 45 % pastel**: exagera.
+4. **Hay una zona común de buen comportamiento de B y C: superficies de L ≈ 0.10 a 0.25**, que contiene la superficie real (0.226). **Fuera de ella fallan de formas opuestas:** B por defecto (no presencia suficiente) y C por exceso (aclara de más). Esto es lo que motiva estudiar una restricción compuesta con un límite superior, que **sigue sin definirse**.

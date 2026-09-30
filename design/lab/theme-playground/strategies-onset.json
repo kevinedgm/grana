@@ -1,0 +1,134 @@
+{
+  "A": {
+    "0.1": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.606
+    },
+    "0.15": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.614
+    },
+    "0.2": {
+      "n": 66,
+      "short": 13,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.63
+    },
+    "real": {
+      "n": 66,
+      "short": 24,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.641
+    },
+    "0.25": {
+      "n": 66,
+      "short": 27,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.656
+    },
+    "0.3": {
+      "n": 66,
+      "short": 46,
+      "bright": 6,
+      "pastel": 2,
+      "meanL": 0.69
+    }
+  },
+  "B": {
+    "0.1": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    },
+    "0.15": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    },
+    "0.2": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    },
+    "real": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    },
+    "0.25": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    },
+    "0.3": {
+      "n": 66,
+      "short": 23,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.709
+    }
+  },
+  "C": {
+    "0.1": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.614
+    },
+    "0.15": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 0,
+      "meanL": 0.647
+    },
+    "0.2": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 1,
+      "meanL": 0.691
+    },
+    "real": {
+      "n": 66,
+      "short": 0,
+      "bright": 6,
+      "pastel": 3,
+      "meanL": 0.716
+    },
+    "0.25": {
+      "n": 66,
+      "short": 0,
+      "bright": 17,
+      "pastel": 4,
+      "meanL": 0.74
+    },
+    "0.3": {
+      "n": 66,
+      "short": 0,
+      "bright": 66,
+      "pastel": 30,
+      "meanL": 0.792
+    }
+  }
+}
