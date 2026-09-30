@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GInput con acción · r02 · wireframe F2</title>
+  <style>
+    /* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+    :root { --wf-ink:#1f1f1f; --wf-2:#555; --wf-3:#8a8a8a; --wf-line:#b9b9b9; --wf-fill:#e4e4e4; --wf-fill-2:#f0f0f0; --wf-bg:#fafafa; --wf-note:#fff8d6; --wf-font:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:clamp(12px,4vw,24px); font:15px/1.5 var(--wf-font); color:var(--wf-ink); background:var(--wf-bg); }
+    main { max-width:1100px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:40px 0 12px; padding-top:16px; border-top:1px solid var(--wf-line); }
+    p, li { max-width:72ch; } .meta { color:var(--wf-2); margin:0 0 16px; }
+    .wf-note { background:var(--wf-note); border:1px dashed var(--wf-3); padding:8px 12px; font-size:13px; margin:12px 0; max-width:72ch; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr)); gap:20px 24px; align-items:start; }
+    .frame { border:1px solid var(--wf-line); background:#fff; padding:16px; resize:horizontal; overflow:auto; max-width:100%; }
+    kbd { border:1px solid var(--wf-3); border-bottom-width:2px; border-radius:3px; padding:0 5px; font-size:12px; }
+    .cap { font-size:12px; color:var(--wf-2); margin:0 0 4px; }
+
+    /* Campo (igual que r01) */
+    .f { --h:36px; --px:12px; --gap:8px; display:block; min-width:0; container-type:inline-size; }
+    .f__label { display:block; font-size:14px; font-weight:600; margin-bottom:4px; }
+    .f__row { display:flex; align-items:stretch; }                                   /* NUEVO: conjunto caja + acción */
+    .f__box { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:var(--gap); min-height:var(--h); padding:0 var(--px); background:#fff; border:1px solid var(--wf-2); border-radius:4px; }
+    .f__box:hover, .f.st-hover .f__box { border-color:var(--wf-ink); background:var(--wf-fill-2); }
+    .f__box:has(.f__input:focus-visible), .f.st-focus .f__box { position:relative; z-index:1; outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .f__input { flex:1 1 auto; min-width:0; align-self:stretch; padding:0; border:0; outline:0; background:transparent; font:inherit; color:inherit; }
+    .f__input::placeholder { color:var(--wf-2); opacity:1; }
+    .f__ico { width:16px; height:16px; flex:none; border:1.5px solid currentColor; border-radius:3px; }
+    .f__msgs { display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-size:13px; color:var(--wf-2); }
+    .f__err { color:var(--wf-ink); font-weight:600; margin-top:4px; font-size:13px; } .f__err::before { content:"\26A0\00a0"; }
+    .f.is-invalid .f__box { border:2px solid var(--wf-ink); border-style:dashed; }
+    .f.is-disabled .f__box { opacity:.45; border-style:dotted; background:var(--wf-fill); cursor:not-allowed; }
+
+    /* Acción: botón de wireframe pegado a la caja */
+    .f__act { flex:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:var(--h); padding:4px 16px; margin-inline-start:-1px;
+      font:inherit; font-size:14px; font-weight:600; white-space:nowrap; cursor:pointer; background:var(--wf-ink); color:#fff; border:1px solid var(--wf-ink);
+      border-radius:0 4px 4px 0; position:relative; }
+    .f__row > .f__box { border-start-end-radius:0; border-end-end-radius:0; }       /* esquinas interiores rectas */
+    .f__act:hover { filter:brightness(1.35); }
+    .f__act:focus-visible { z-index:2; outline:3px solid var(--wf-ink); outline-offset:-5px; box-shadow:inset 0 0 0 4px #fff; }
+    .f__act--icon { padding:0; inline-size:var(--h); }
+    .f__act[aria-disabled="true"], .f__act:disabled { opacity:.4; cursor:not-allowed; }
+    .f__act.is-loading { cursor:progress; } .f__act.is-loading .lbl, .f__act.is-loading .f__ico { visibility:hidden; }
+    .f__act .spin { position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-size:12px; } .f__act.is-loading .spin { display:flex; }
+    .f.is-disabled .f__act { opacity:.4; }
+    .f--lg { --h:44px; } .f--xs { --h:24px; --px:8px; } .f--xs .f__act { font-size:12px; padding-inline:8px; }
+    @media (pointer:coarse) { .f { --h:44px; } }
+    .show-target .f__act, .show-target .f__box { outline:1px dashed #c00; }
+    .log { font-size:12px; color:var(--wf-2); margin:6px 0 0; }
+    /* Contenedor estrecho: el botón pasa debajo, a ancho completo y separado (esquinas completas) */
+    @container (max-width: 300px) {
+      .f__row { flex-wrap: wrap; row-gap: 8px; }
+      .f__row > .f__box { flex-basis: 100%; border-radius: 4px; }
+      .f__act { flex: 1 1 100%; margin-inline-start: 0; border-radius: 4px; }
+      .f__act--icon { flex: 0 0 var(--h); }   /* el solo icono no se estira: sigue a la derecha, cuadrado */
+      .f__row > .f__box:has(+ .f__act--icon) { flex-basis: auto; flex: 1 1 0; border-radius: 4px 0 0 4px; }
+      .f__act--icon { margin-inline-start: -1px; border-radius: 0 4px 4px 0; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>GInput con botón de acción · ronda r02</h1>
+  <p class="meta">Wireframe F2 sin estilo de marca · Ruta R1 · Extiende r01 (campo completo) · Acción = un <code>GBtn</code> acoplado al final</p>
+
+  <h2>1. Anatomía</h2>
+  <div class="grid">
+    <div class="f"><label class="f__label" for="a1">1 · Etiqueta (una para el conjunto)</label>
+      <div class="f__row"><div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="a1" placeholder="2 · caja del campo"></div><button class="f__act" type="button">3 · Acción</button></div>
+      <div class="f__msgs"><span>4 · Ayuda</span><span>5 · Contador</span></div>
+    </div>
+  </div>
+  <p class="cap">Misma altura para caja y botón; esquinas exteriores redondeadas, interiores rectas. Orden de tabulación: campo → botón.</p>
+
+  <h2>2. Casos de uso</h2>
+  <div class="grid">
+    <div><p class="cap">Suscripción (acción con texto)</p><form class="f" data-demo><label class="f__label" for="c1">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="c1" type="email" placeholder="ana@ejemplo.com" required></div><button class="f__act" type="submit">Suscribirse</button></div><div class="f__msgs"><span>Sin spam, puedes salir cuando quieras.</span></div><p class="log" aria-live="polite"></p></form></div>
+    <div><p class="cap">Búsqueda (acción solo icono, con nombre accesible)</p><form class="f" role="search" data-demo><label class="f__label" for="c2">Buscar reservas</label><div class="f__row"><div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="c2" type="search" placeholder="Nombre o folio"></div><button class="f__act f__act--icon" type="submit" aria-label="Buscar"><span class="f__ico" aria-hidden="true"></span></button></div><p class="log" aria-live="polite"></p></form></div>
+    <div><p class="cap">Cupón (acción que puede tardar: loading)</p><form class="f" data-demo data-slow><label class="f__label" for="c3">Cupón de descuento</label><div class="f__row"><div class="f__box"><input class="f__input" id="c3" placeholder="VERANO24"></div><button class="f__act" type="submit"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true">…</span></button></div><p class="log" aria-live="polite"></p></form></div>
+    <div><p class="cap">Sin formulario: la acción no depende de Enter</p><div class="f"><label class="f__label" for="c4">Invitar por correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="c4" type="email"></div><button class="f__act" type="button" data-alone>Invitar</button></div><p class="log" aria-live="polite" id="alone-log"></p></div></div>
+  </div>
+  <div class="wf-note">Prueba con teclado: <kbd>Tab</kbd> campo → botón; <kbd>Enter</kbd> en el campo envía el formulario (solo con botón <code>type="submit"</code> dentro de un <code>&lt;form&gt;</code>); <kbd>Enter</kbd>/<kbd>Espacio</kbd> en el botón lo activa. Con la carga activa, un segundo Enter no envía de nuevo.</div>
+
+  <h2>3. Estados</h2>
+  <div class="grid">
+    <div><p class="cap">foco en el campo</p><div class="f st-focus"><label class="f__label">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" value="ana@"></div><button class="f__act" type="button">Suscribirse</button></div></div></div>
+    <div><p class="cap">foco en el botón (real: pulsa Tab)</p><div class="f"><label class="f__label" for="s2">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s2" value="ana@ejemplo.com"></div><button class="f__act" id="s2b" type="button">Suscribirse</button></div></div></div>
+    <div><p class="cap">inválido (el error es del campo)</p><div class="f is-invalid"><label class="f__label" for="s3">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s3" value="ana@" aria-invalid="true" aria-describedby="s3e"></div><button class="f__act" type="button">Suscribirse</button></div><div class="f__err" id="s3e">Falta el dominio del correo.</div></div></div>
+    <div><p class="cap">deshabilitado (campo y botón)</p><div class="f is-disabled"><label class="f__label" for="s4">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s4" disabled value="ana@ejemplo.com"></div><button class="f__act" type="button" disabled>Suscribirse</button></div></div></div>
+    <div><p class="cap">acción en carga (aria-disabled + aria-busy)</p><div class="f"><label class="f__label" for="s5">Cupón</label><div class="f__row"><div class="f__box"><input class="f__input" id="s5" value="VERANO24"></div><button class="f__act is-loading" type="button" aria-disabled="true" aria-busy="true"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true">…</span></button></div></div></div>
+    <div><p class="cap">tamaños xs y lg (misma altura en caja y botón)</p><div class="f f--xs" style="margin-bottom:12px"><div class="f__row"><div class="f__box"><input class="f__input" aria-label="xs" value="xs"></div><button class="f__act" type="button">Ir</button></div></div><div class="f f--lg"><div class="f__row"><div class="f__box"><input class="f__input" aria-label="lg" value="lg"></div><button class="f__act" type="button">Ir</button></div></div></div>
+  </div>
+
+  <h2>4. Contenedor estrecho</h2>
+  <p class="wf-note">Arrastra la esquina inferior derecha del marco. Por debajo de ~300px de ancho, un botón con texto pasa debajo del campo, a ancho completo; el botón solo icono se queda a la derecha porque es cuadrado y cabe.</p>
+  <div class="frame" style="width:220px"><div class="f"><label class="f__label" for="n1">Dirección de correo del titular</label><div class="f__row"><div class="f__box"><input class="f__input" id="n1" value="una.direccion.larga@ejemplo.com"></div><button class="f__act" type="button">Suscribirse</button></div></div></div>
+  <div class="frame" style="width:220px;margin-top:12px"><div class="f"><label class="f__label" for="n2">Buscar</label><div class="f__row"><div class="f__box"><input class="f__input" id="n2" placeholder="Nombre o folio"></div><button class="f__act f__act--icon" type="button" aria-label="Buscar"><span class="f__ico" aria-hidden="true"></span></button></div></div></div>
+
+  <h2>5. Área táctil</h2>
+  <p class="wf-note">Con <code>pointer: coarse</code> la altura de caja y botón es de 44px. <label><input type="checkbox" id="tt"> Mostrar áreas (recuadro rojo)</label></p>
+  <div class="frame" style="max-width:420px"><div class="f"><label class="f__label" for="t1">Campo</label><div class="f__row"><div class="f__box"><input class="f__input" id="t1"></div><button class="f__act" type="button">Enviar</button></div></div></div>
+</main>
+<script>
+  const run = (form) => {
+    const log = form.querySelector('.log'), btn = form.querySelector('.f__act'), inp = form.querySelector('.f__input')
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      if (btn.getAttribute('aria-busy') === 'true') { log.textContent = 'Ignorado: la acción ya está en curso'; return }
+      if (!form.reportValidity()) return
+      log.textContent = 'Acción ejecutada con «' + inp.value + '»'
+      if (form.hasAttribute('data-slow')) {
+        btn.classList.add('is-loading'); btn.setAttribute('aria-busy', 'true'); btn.setAttribute('aria-disabled', 'true')
+        setTimeout(() => { btn.classList.remove('is-loading'); btn.removeAttribute('aria-busy'); btn.removeAttribute('aria-disabled') }, 1500)
+      }
+    })
+    // El botón aria-disabled no bloquea el clic nativo: se cancela aquí, como hace GBtn
+    btn.addEventListener('click', (e) => { if (btn.getAttribute('aria-disabled') === 'true') { e.preventDefault(); log.textContent = 'Ignorado: la acción ya está en curso' } })
+  }
+  document.querySelectorAll('form[data-demo]').forEach(run)
+  document.querySelector('[data-alone]').addEventListener('click', () => { document.getElementById('alone-log').textContent = 'Acción ejecutada con «' + document.getElementById('c4').value + '»' })
+  document.getElementById('tt').addEventListener('change', (e) => document.body.classList.toggle('show-target', e.target.checked))
+</script>
+</body>
+</html>

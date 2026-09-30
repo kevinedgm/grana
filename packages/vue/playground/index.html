@@ -67,14 +67,37 @@
     <h2>Campos (GInput)</h2>
     <div class="col">
       <g-input v-model="email" label="Correo" type="email" required autocomplete="email" hint="Te enviaremos el comprobante." :error="emailError" @blur="checkEmail">
-        <template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg></template>
+        <template #prepend><lucide-icon name="mail"></lucide-icon></template>
       </g-input>
-      <g-input v-model="pass" label="Contraseña" type="password" required autocomplete="new-password" show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" hint="Mínimo 8 caracteres."></g-input>
+      <g-input v-model="pass" label="Contraseña" type="password" required autocomplete="new-password" show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" hint="Mínimo 8 caracteres.">
+        <template #prepend><lucide-icon name="lock"></lucide-icon></template>
+      </g-input>
       <g-input v-model="nick" label="Apodo" counter maxlength="12" variant="soft"></g-input>
       <g-input model-value="Oaxaca" label="Ciudad" disabled></g-input>
       <g-input model-value="A-2041" label="Folio" readonly></g-input>
       <g-input v-model="user" label="Usuario" loading hint="Comprobando disponibilidad…"></g-input>
-      <g-input v-model="nick" label="Tamaños" size="xs"></g-input><g-input v-model="nick" label="lg" size="lg"></g-input>
+    </div>
+
+    <h2>Campos con prefijo y sufijo (Lucide)</h2>
+    <p class="log">Los slots <code>prepend</code> y <code>append</code> son decorativos (<code>aria-hidden</code>): sirven para iconos, no para texto que el usuario deba leer.</p>
+    <div class="col">
+      <g-input v-model="q" label="Buscar" type="search" placeholder="Reservas, clientes…">
+        <template #prepend><lucide-icon name="search"></lucide-icon></template>
+      </g-input>
+      <g-input v-model="handle" label="Usuario" autocomplete="username">
+        <template #prepend><lucide-icon name="user"></lucide-icon></template>
+        <template #append><lucide-icon name="circle-check"></lucide-icon></template>
+      </g-input>
+      <g-input v-model="coupon" label="Cupón" variant="soft">
+        <template #prepend><lucide-icon name="tag"></lucide-icon></template>
+      </g-input>
+      <g-input v-model="site" label="Sitio web" type="url" placeholder="https://">
+        <template #append><lucide-icon name="globe"></lucide-icon></template>
+      </g-input>
+      <g-input v-for="z in ['xs','sm','md','lg','xl']" :key="z" v-model="q" :label="'Tamaño ' + z" :size="z">
+        <template #prepend><lucide-icon name="search"></lucide-icon></template>
+        <template #append><lucide-icon name="circle-check"></lucide-icon></template>
+      </g-input>
     </div>
     <p class="log">Valores: {{ email || '—' }} · {{ pass ? '•'.repeat(pass.length) : '—' }} · {{ nick || '—' }}</p>
 
@@ -88,6 +111,21 @@
   <script src="../dist/grana.umd.js"></script>
   <script>
     const { createApp, ref } = Vue
+    const LUCIDE = {
+      mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>',
+      lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      'circle-check': '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+      tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
+      globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>'
+    }
+    // Iconos de Lucide (ISC) solo para este playground: Grana no trae iconos.
+    const LucideIcon = {
+      props: { name: String },
+      template: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
+      computed: { paths() { return LUCIDE[this.name] || '' } }
+    }
     createApp({
       setup() {
         const loading = ref(false)
@@ -98,6 +136,10 @@
         const pass = ref('')
         const nick = ref('')
         const user = ref('ana')
+        const q = ref('')
+        const handle = ref('ana.garcia')
+        const coupon = ref('')
+        const site = ref('')
         const checkEmail = () => { emailError.value = !email.value ? 'Escribe tu correo.' : /^\S+@\S+\.\S+$/.test(email.value) ? '' : 'Falta el dominio del correo.' }
         const save = () => {
           count.value++
@@ -108,12 +150,12 @@
         const toggleTheme = () => {
           themed.value = !themed.value
           document.getElementById('theme').textContent = themed.value
-            ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-radius-shape:var(--g-radius-pill)}'
+            ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, checkEmail }
+        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail }
       }
-    }).use(Grana).mount('#app')
+    }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
 </body>
 </html>

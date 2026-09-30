@@ -304,7 +304,9 @@
   .g-input.is-disabled .g-input__control {
     border-color: GrayText;
   }
+  /* El navegador quita box-shadow en este modo: el error se distingue con un borde más grueso
+     (además del texto y la marca) y sin depender de un color de sistema poco fiable */
   .g-input.is-invalid .g-input__control {
-    border-color: Mark;
+    border-width: calc(var(--g-border-width) * 2);
   }
 }
