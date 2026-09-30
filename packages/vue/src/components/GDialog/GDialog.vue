@@ -14,6 +14,7 @@ const props = defineProps({
   density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
   inset: { type: Boolean, default: true },
   fullscreen: Boolean,
+  placement: { type: String, default: 'center', validator: oneOf(['center', 'end']) },
   mobile: { type: String, default: 'sheet', validator: oneOf(['sheet', 'full-width', 'fullscreen']) },
   role: { type: String, default: 'dialog', validator: oneOf(['dialog', 'alertdialog']) },
   closeLabel: { type: String, default: undefined },
@@ -161,6 +162,7 @@ const classes = computed(() => [
   'g-dialog',
   `g-dialog--size-${props.size}`,
   `g-dialog--density-${props.density}`,
+  `g-dialog--placement-${props.placement}`,
   `g-dialog--mobile-${props.mobile}`,
   {
     'g-dialog--inset': props.inset,

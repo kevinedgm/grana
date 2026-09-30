@@ -16,12 +16,14 @@ import GMetric from './components/GMetric/GMetric.vue'
 import GProgress from './components/GProgress/GProgress.vue'
 import GDataList from './components/GDataList/GDataList.vue'
 import GWidgetGrid from './components/GWidgetGrid/GWidgetGrid.vue'
+import GWidgetGallery from './components/GWidgetGallery/GWidgetGallery.vue'
+import GWidgetConfig from './components/GWidgetConfig/GWidgetConfig.vue'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid }
+export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig }
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid }
+const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

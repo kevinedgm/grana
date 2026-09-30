@@ -55,6 +55,15 @@
       "default": false
     },
     {
+      "name": "placement",
+      "type": "String",
+      "default": "center",
+      "values": [
+        "center",
+        "end"
+      ]
+    },
+    {
       "name": "mobile",
       "type": "String",
       "default": "sheet",

@@ -93,29 +93,31 @@ Ninguno tiene valor por defecto. Marcador: `{count}`.
 
 ```html
 <dialog class="g-dialog g-dialog--placement-end g-widget-config" aria-busy="true" …>
-  <form class="g-widget-config__form" id="ID-form" novalidate>
-    <div class="g-dialog__header">… <h2>Configurar Ingresos</h2> …</div>
+  <div class="g-dialog__header">… <h2>Configurar Ingresos</h2> …</div>
+  <div class="g-dialog__inset">
     <div class="g-dialog__body">
-      <div class="g-widget-config__sr" role="status" aria-live="polite"></div>
-      <div class="g-widget-config__preview" aria-hidden="true" inert>…slot preview…</div>
-      <div class="g-widget-config__summary" role="alert" tabindex="-1">
-        <b>Corrige 2 campos:</b><ul><li><a href="#campo-meta">La meta debe ser un número mayor que 0.</a></li></ul></div>
-      <div class="g-widget-config__tabs" role="tablist" aria-label="Secciones de la configuración">
-        <button role="tab" type="button" id="ID-t-data" aria-controls="ID-p-data" aria-selected="true">Datos</button>
-        <button role="tab" type="button" id="ID-t-set" aria-controls="ID-p-set" aria-selected="false" tabindex="-1">Ajustes <span class="g-widget-config__mark">1 error</span></button></div>
-      <div class="g-widget-config__panel" role="tabpanel" id="ID-p-data" aria-labelledby="ID-t-data" tabindex="0">…slot tab-data…</div>
-      <div class="g-widget-config__panel" role="tabpanel" id="ID-p-set" aria-labelledby="ID-t-set" tabindex="0" hidden>…</div>
+      <form class="g-widget-config__form" id="ID-form" novalidate>
+        <div class="g-widget-config__sr" role="status" aria-live="polite"></div>
+        <div class="g-widget-config__preview" aria-hidden="true" inert>…slot preview…</div>
+        <div class="g-widget-config__summary" role="alert" tabindex="-1">
+          <b>Corrige 2 campos</b><ul><li><a href="#campo-meta">La meta debe ser un número mayor que 0.</a></li></ul></div>
+        <div class="g-widget-config__tabs" role="tablist" aria-label="Secciones de la configuración">
+          <button role="tab" type="button" id="ID-t-data" aria-controls="ID-p-data" aria-selected="true">Datos</button>
+          <button role="tab" type="button" id="ID-t-set" aria-controls="ID-p-set" aria-selected="false" tabindex="-1">Ajustes <span class="g-widget-config__mark">1 errores</span></button></div>
+        <div class="g-widget-config__panel" role="tabpanel" id="ID-p-data" aria-labelledby="ID-t-data" tabindex="0">…slot tab-data…</div>
+        <div class="g-widget-config__panel" role="tabpanel" id="ID-p-set" aria-labelledby="ID-t-set" tabindex="0" hidden>…</div>
+      </form>
     </div>
     <div class="g-dialog__footer">
       <button type="button">Restablecer</button>
       <span class="g-widget-config__confirm" role="alert"><span>¿Descartar los cambios?</span> <button type="button">Seguir editando</button> <button type="button">Descartar</button></span>
-      <button type="button">Cancelar</button> <button type="submit" aria-disabled="true">Aplicar</button>
+      <button type="button">Cancelar</button> <button type="submit" form="ID-form" aria-disabled="true">Aplicar</button>
     </div>
-  </form>
+  </div>
 </dialog>
 ```
 
-- **El formulario** envuelve cuerpo y pie (`display: contents`), sin validación nativa (`novalidate`): la validación es de la aplicación.
+- **El formulario** vive **dentro del cuerpo** (envuelve la región de estado, la vista previa, el resumen, las pestañas y los paneles; `display: contents`), sin validación nativa (`novalidate`); el botón **Aplicar** del pie se asocia con `form="ID-form"` (el pie de `GDialog` queda fuera del formulario, como en el contrato de `GDialog`). La validación es de la aplicación.
 - **El error de cada campo** lo marca la aplicación en su propio campo (`aria-invalid`, texto con el símbolo ▲ y `aria-describedby`); **la carcasa pone el resumen y las marcas de pestaña**.
 - **Objetivos ≥ 24px, 44px con `pointer: coarse`;** foco siempre visible.
 

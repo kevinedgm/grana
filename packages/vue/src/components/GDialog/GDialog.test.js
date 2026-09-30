@@ -38,8 +38,17 @@ describe('GDialog · render y clases', () => {
     w.unmount()
   })
 
+  it('placement: center por defecto y end añade la clase de la hoja lateral', () => {
+    const a = mountOpen()
+    expect(a.find('dialog').classes()).toContain('g-dialog--placement-center')
+    const b = mountOpen({ placement: 'end' })
+    expect(b.find('dialog').classes()).toContain('g-dialog--placement-end')
+    expect(b.find('dialog').classes()).not.toContain('g-dialog--placement-center')
+    a.unmount(); b.unmount()
+  })
+
   it('cada prop enumerada tiene validador', () => {
-    for (const name of ['size', 'density', 'mobile', 'role']) expect(GDialog.props[name].validator('valor-invalido')).toBe(false)
+    for (const name of ['size', 'density', 'mobile', 'role', 'placement']) expect(GDialog.props[name].validator('valor-invalido')).toBe(false)
   })
 
   it('estructura con inset: encabezado, inset con cuerpo y pie', () => {

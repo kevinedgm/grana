@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "name": "GWidgetGallery",
+  "tag": "g-widget-gallery",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Galería para añadir widgets a un panel: hoja lateral (GDialog placement=end) con búsqueda, categorías, contador, tarjetas con vista previa por slot, tamaño inicial y marca de los ya añadidos. Emite add; no crea widgets ni guarda el layout.",
+  "contract": "design/contracts/widget-gallery.md",
+  "prototype": "design/lab/widget/r02/",
+  "style": "packages/vue/src/components/GWidgetGallery/GWidgetGallery.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "added",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "sizes",
+      "type": "Array",
+      "default": null
+    },
+    {
+      "name": "categories",
+      "type": "Array",
+      "default": null
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "sm",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "El usuario cierra la hoja"
+    },
+    {
+      "name": "add",
+      "payload": "{ id, size }",
+      "trigger": "Pulsa Añadir (no se emite para un único ya añadido)"
+    },
+    {
+      "name": "search",
+      "payload": "{ query, category, count }",
+      "trigger": "Cambia el filtro"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "Como en GDialog"
+    },
+    {
+      "name": "closed",
+      "payload": "",
+      "trigger": "Como en GDialog"
+    }
+  ],
+  "slots": [
+    {
+      "name": "preview",
+      "purpose": "Vista previa de la tarjeta. Alcance { item, size }; el componente la hace aria-hidden e inert"
+    },
+    {
+      "name": "card",
+      "purpose": "Sustituye el contenido de la tarjeta. Alcance { item, added, size }"
+    },
+    {
+      "name": "empty",
+      "purpose": "Estado vacío. Alcance { query }"
+    },
+    {
+      "name": "footer",
+      "purpose": "Pie de la hoja. Alcance { close }"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-brand",
+    "--g-color-on-brand",
+    "--g-color-focus",
+    "--g-radius-*",
+    "--g-space-*",
+    "--g-text-*"
+  ],
+  "states": [
+    "open",
+    "filtered",
+    "empty",
+    "added",
+    "added-unique-disabled"
+  ],
+  "pending": [
+    "Lector de pantalla real (anuncios y resumen de errores)",
+    "Firefox y Safari (<dialog>, inert, :dir())",
+    "Táctil real y teclado virtual (hoja inferior)"
+  ]
+}

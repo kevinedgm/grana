@@ -438,11 +438,12 @@
         <label>Ancho <input type="range" v-model.number="wgW" min="300" max="1100"> {{ wgW }}px</label>
         <label><input type="checkbox" v-model="wgEdit"> editar</label>
         <label>estado <select v-model="wgState"><option>populated</option><option>loading</option><option>empty</option><option>error</option><option>stale</option><option>disabled</option></select></label>
+        <g-btn size="sm" variant="outline" @click="galOpen = true">Añadir widget</g-btn>
       </div>
       <div :style="{ inlineSize: wgW + 'px', maxInlineSize: '100%' }">
         <g-widget-grid v-model="wgLayout" label="Panel de ejemplo" :editable="wgEdit" :labels="wgGridLabels" @change="wgLog = $event.reason + ' · ' + $event.id" @remove-request="wgRemove($event.id)">
           <template #item="{ id }">
-            <g-widget :title="wgTitles[id]" :eyebrow="'Resumen'" description="Últimos 30 días" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgLog = 'acción · ' + $event.id" @retry="wgState = 'populated'">
+            <g-widget :title="wgTitleOf(id)" :eyebrow="'Resumen'" :description="wgPeriods[wgCfgOf(id).period]" :density="wgCfgOf(id).density" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }, { id: 'configure', label: 'Configurar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgAction(id, $event.id)" @retry="wgState = 'populated'">
               <template #icon><lucide-icon name="chart"></lucide-icon></template>
               <template #compact><g-metric label="Ingresos" value="$48k" trend="+12%" direction="up" trend-color="success"></g-metric></template>
               <template #default><g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric><g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress></template>
@@ -457,13 +458,42 @@
         </g-widget-grid>
       </div>
       <p>Último cambio: <b>{{ wgLog }}</b></p>
+      <div role="status" style="min-height:1.5em">{{ wgAnn }}</div>
+
+      <g-widget-gallery ref="galRef" v-model="galOpen" title="Añadir widget" description="Elige un widget y su tamaño inicial; se añade al final del panel." :items="galItems" :sizes="galSizes" :added="galAdded" :labels="galLabels" @add="galAdd">
+        <template #preview="{ item }">
+          <g-widget :title="item.title" :eyebrow="item.category" level="m" :labels="wgLabels"><g-metric :label="item.title" :value="item.value" size="lg"></g-metric></g-widget>
+        </template>
+      </g-widget-gallery>
+
+      <g-widget-config v-model="cfgOpen" v-model:tab="cfgTab" :title="'Configurar ' + cfgTitle" :tabs="cfgTabs" :errors="cfgErrors" :dirty="cfgDirty" resettable :labels="cfgLabels" @apply="cfgApply" @reset="cfgReset" @cancel="cfgErrors = []">
+        <template #preview>
+          <g-widget :title="cfgDraft.title || '—'" eyebrow="Resumen" :description="wgPeriods[cfgDraft.period]" :density="cfgDraft.density" level="m" :labels="wgLabels"><g-metric label="Ingresos" value="$48.2k" size="lg"></g-metric></g-widget>
+        </template>
+        <template #tab-data="{ errors }">
+          <div class="col">
+            <label>Periodo <select v-model="cfgDraft.period"><option v-for="(t, k) in wgPeriods" :key="k" :value="k">{{ t }}</option></select></label>
+            <label>Meta mensual <input id="cfg-goal" v-model="cfgDraft.goal" inputmode="numeric" :aria-invalid="errors.length ? 'true' : undefined"></label>
+          </div>
+        </template>
+        <template #tab-style>
+          <div class="col">
+            <label>Densidad <select v-model="cfgDraft.density"><option value="default">Normal</option><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select></label>
+          </div>
+        </template>
+        <template #tab-set="{ errors }">
+          <div class="col">
+            <label>Título <input id="cfg-title" v-model="cfgDraft.title" :aria-invalid="errors.length ? 'true' : undefined"></label>
+          </div>
+        </template>
+      </g-widget-config>
     </div>
 </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
   <script>
-    const { createApp, ref, reactive } = Vue
+    const { createApp, ref, reactive, computed } = Vue
     const LUCIDE = {
       home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
       inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
@@ -539,6 +569,63 @@
         const selLoad = ref(null)
         const bdgCount = ref(12)
         const bdgLog = ref('')
+        const galOpen = ref(false)
+        const wgPeriods = { 7: 'Últimos 7 días', 30: 'Últimos 30 días', 90: 'Últimos 90 días' }
+        const wgCfg = reactive({})
+        const wgCfgOf = (id) => ({ period: '30', density: 'default', goal: 1000, ...(wgCfg[id] || {}) })
+        const wgTitleOf = (id) => wgCfg[id]?.title || wgTitles[id] || wgExtra[id] || id
+        const wgExtra = reactive({})
+        const wgKinds = { a: 'revenue', b: 'goal', c: 'uptime', d: 'traffic' }
+        const wgPresets = { s: [1, 2], m: [2, 2], l: [2, 3] }
+        const galSizes = [{ id: 's', label: 'Pequeño (1×2)' }, { id: 'm', label: 'Mediano (2×2)' }, { id: 'l', label: 'Grande (2×3)' }]
+        const galItems = [
+          { id: 'revenue', title: 'Ingresos', category: 'Finanzas', description: 'Ingresos del periodo con tendencia y meta.', sizes: ['m', 'l'], unique: true, value: '$48.2k' },
+          { id: 'goal', title: 'Meta mensual', category: 'Finanzas', description: 'Avance hacia la meta con barra de progreso.', sizes: ['s', 'm'], value: '72 %' },
+          { id: 'tasks', title: 'Tareas abiertas', category: 'Equipo', description: 'Tareas pendientes por persona o proyecto.', sizes: ['s', 'm', 'l'], value: '23' },
+          { id: 'uptime', title: 'Disponibilidad', category: 'Operaciones', description: 'Estado de los servicios críticos.', sizes: ['s', 'm'], unique: true, value: '99.9 %' },
+          { id: 'traffic', title: 'Visitas', category: 'Marketing', description: 'Visitas por canal de origen.', sizes: ['s', 'm', 'l'], value: '12.4k' }
+        ]
+        const galAdded = computed(() => { const o = {}; for (const e of wgLayout.value) { const k = wgKinds[e.id] || e.kind; if (k) o[k] = (o[k] || 0) + 1 } return o })
+        let wgN = 0
+        const wgAnn = ref('')
+        const galAdd = ({ id, size }) => {
+          const it = galItems.find((x) => x.id === id); const [w, h] = wgPresets[size]; const nid = id + '-' + (++wgN)
+          wgExtra[nid] = it.title
+          wgLayout.value = [...wgLayout.value, { id: nid, w, h, kind: id }]
+          wgLog.value = 'add · ' + id + ' · ' + size
+          galRef.value?.announce?.(it.title + ' añadido al final. Posición ' + wgLayout.value.length + ' de ' + wgLayout.value.length + '.')
+        }
+        const galRef = ref(null)
+        const galLabels = { search: 'Buscar widgets', all: 'Todas', categories: 'Categoría', add: 'Añadir', size: 'Tamaño inicial', results: '{count} widgets', empty: 'Ningún widget coincide con la búsqueda.', added: 'Ya añadido', addedCount: 'En el panel: {count}', addedShort: 'Añadido', addedToPanel: '{title} añadido', alreadyAdded: '{title} ya está en el panel', close: 'Cerrar', list: 'Widgets disponibles' }
+        const cfgOpen = ref(false)
+        const cfgTab = ref('data')
+        const cfgId = ref(null)
+        const cfgDraft = reactive({ title: '', period: '30', goal: '1000', density: 'default' })
+        let cfgBase = {}
+        const cfgTitle = computed(() => wgTitleOf(cfgId.value))
+        const cfgTabs = [{ id: 'data', label: 'Datos' }, { id: 'style', label: 'Estilo' }, { id: 'set', label: 'Ajustes' }]
+        const cfgErrors = ref([])
+        const cfgDirty = computed(() => JSON.stringify({ ...cfgDraft }) !== JSON.stringify(cfgBase))
+        const cfgLabels = { tabs: 'Secciones de la configuración', apply: 'Aplicar', cancel: 'Cancelar', close: 'Cerrar sin aplicar', reset: 'Restablecer', discardTitle: '¿Descartar los cambios?', keepEditing: 'Seguir editando', discard: 'Descartar', errorSummary: 'Corrige {count} campos', errorCount: '{count} errores' }
+        const wgAction = (id, action) => {
+          wgLog.value = 'acción · ' + action + ' · ' + id
+          if (action !== 'configure') return
+          cfgId.value = id; const c = wgCfgOf(id)
+          Object.assign(cfgDraft, { title: wgTitleOf(id), period: String(c.period), goal: String(c.goal), density: c.density })
+          cfgBase = { ...cfgDraft }; cfgErrors.value = []; cfgOpen.value = true
+        }
+        const cfgReset = () => { Object.assign(cfgDraft, cfgBase); cfgErrors.value = [] }
+        const cfgApply = () => {
+          const e = []
+          if (!(Number(cfgDraft.goal) > 0)) e.push({ tab: 'data', field: 'cfg-goal', message: 'La meta debe ser un número mayor que 0.' })
+          if (!String(cfgDraft.title).trim()) e.push({ tab: 'set', field: 'cfg-title', message: 'El título es obligatorio.' })
+          cfgErrors.value = e
+          if (e.length) return
+          wgCfg[cfgId.value] = { title: cfgDraft.title.trim(), period: cfgDraft.period, goal: Number(cfgDraft.goal), density: cfgDraft.density }
+          cfgOpen.value = false
+          wgAnn.value = ''; setTimeout(() => { wgAnn.value = cfgDraft.title.trim() + ' configurado.' }, 30)
+          wgLog.value = 'apply · ' + cfgId.value
+        }
         const wgW = ref(1000)
         const wgEdit = ref(true)
         const wgState = ref('populated')
@@ -688,7 +775,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

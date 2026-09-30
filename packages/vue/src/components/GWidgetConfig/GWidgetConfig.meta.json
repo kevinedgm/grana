@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "name": "GWidgetConfig",
+  "tag": "g-widget-config",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Carcasa del panel de configuración de un widget: hoja lateral con vista previa en vivo, pestañas (APG), resumen de errores, Restablecer, Cancelar y Aplicar, y confirmación de descarte en el pie. El contenido de las pestañas y la validación los pone la aplicación.",
+  "contract": "design/contracts/widget-config.md",
+  "prototype": "design/lab/widget/r02/",
+  "style": "packages/vue/src/components/GWidgetConfig/GWidgetConfig.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "tabs",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "tab",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "errors",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "dirty",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "resettable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "applying",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "sm",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "El usuario cierra (sin cambios, o tras Descartar)"
+    },
+    {
+      "name": "update:tab",
+      "payload": "id",
+      "trigger": "Cambia la pestaña activa"
+    },
+    {
+      "name": "apply",
+      "payload": "",
+      "trigger": "Pulsa Aplicar (o Enter en un campo); la aplicación valida y cierra"
+    },
+    {
+      "name": "reset",
+      "payload": "",
+      "trigger": "Pulsa Restablecer"
+    },
+    {
+      "name": "cancel",
+      "payload": "",
+      "trigger": "El usuario cierra sin aplicar"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "Como en GDialog"
+    },
+    {
+      "name": "closed",
+      "payload": "",
+      "trigger": "Como en GDialog"
+    }
+  ],
+  "slots": [
+    {
+      "name": "tab-<id>",
+      "purpose": "Contenido de la pestaña <id>. Alcance { errors }; permanece montado"
+    },
+    {
+      "name": "default",
+      "purpose": "Contenido sin pestañas (una o ninguna). Alcance { errors }"
+    },
+    {
+      "name": "preview",
+      "purpose": "Vista previa en vivo (aria-hidden e inert)"
+    },
+    {
+      "name": "footer-start",
+      "purpose": "Acciones extra a la izquierda del pie"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-brand",
+    "--g-color-on-brand",
+    "--g-color-danger*",
+    "--g-color-focus",
+    "--g-radius-*",
+    "--g-space-*",
+    "--g-text-*"
+  ],
+  "states": [
+    "open",
+    "tabs",
+    "errors",
+    "dirty",
+    "confirming-discard",
+    "applying"
+  ],
+  "pending": [
+    "Lector de pantalla real (anuncios y resumen de errores)",
+    "Firefox y Safari (<dialog>, inert, :dir())",
+    "Táctil real y teclado virtual (hoja inferior)",
+    "Formulario dentro del cuerpo con Aplicar asociado por form= (el contrato lo dibujaba envolviendo la cabecera)"
+  ]
+}
