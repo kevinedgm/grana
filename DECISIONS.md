@@ -17,3 +17,7 @@ Cada entrada: qué se decidió, por qué, y qué alternativa se descartó.
 | 11 | Dos familias: `font` y `fontDisplay` (solo rol `display` y acentos) | Personalidad sin forzar títulos serif | Una sola familia |
 | 12 | Mínimos de accesibilidad **fuera del tema** | Protegen al usuario final | Mínimos configurables |
 | 13 | Sombras fijas y tema oscuro derivado en la v0.1 | No bloquean la primera versión | Diseñarlos antes de tener un componente |
+| 14 | `GBtn` con `loadingText`, anunciado en una región `role="status"` **fuera** del botón | Los hijos de un botón son presentacionales; la región debe existir antes del cambio | Solo `aria-busy`; región viva dentro del botón |
+| 15 | `density` reduce altura, padding y separación, con piso de 24px | Una interfaz compacta con controles de altura completa no gana densidad | Solo padding |
+| 16 | Mínimos de accesibilidad como literales (`24px`, `44px`), no como tokens | Un token sería sobrescribible por el tema del usuario | Tokens `--g-a11y-*` |
+| 17 | `loading` usa `aria-disabled`, no `disabled` | Deshabilitar un botón enfocado hace perder el foco | `disabled` nativo |

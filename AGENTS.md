@@ -31,6 +31,12 @@ Regla de oro: **un archivo, un dueño.** Ningún agente edita un archivo que per
 
 Si falta una entrega previa, el siguiente agente **se detiene** e invoca al dueño. Nadie rellena el hueco de otro.
 
+## Aprobación autónoma
+
+Una entrega se aprueba sin preguntar al usuario cuando **todas** sus decisiones se derivan de un estándar (WCAG 2.2 AA, heurísticas de usabilidad) o de un contrato vigente, y la declaración lo demuestra con su tabla de criterios.
+
+Se pregunta al usuario solo cuando una decisión es de **producto o identidad**: API nueva que no deriva de un estándar, valores estéticos por defecto, alcance. Ejemplo: `loadingText` en `GBtn` fue decisión del usuario; su mecanismo (región viva externa) se derivó de WCAG 4.1.3.
+
 ## Reglas que ningún agente puede romper
 
 - Los componentes solo leen `var(--g-*)`, **sin valores de respaldo**. Los valores por defecto viven en un solo lugar: la capa `grana.defaults`.

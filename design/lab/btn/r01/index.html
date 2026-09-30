@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GBtn · r01 · wireframe F2</title>
+  <style>
+    /* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+    :root {
+      --wf-ink: #1f1f1f;
+      --wf-2: #555;
+      --wf-3: #8a8a8a;
+      --wf-line: #b9b9b9;
+      --wf-fill: #e4e4e4;
+      --wf-fill-2: #f0f0f0;
+      --wf-bg: #fafafa;
+      --wf-note: #fff8d6;
+      --wf-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: clamp(12px, 4vw, 24px); font: 15px/1.5 var(--wf-font); color: var(--wf-ink); background: var(--wf-bg); }
+    main { max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    h2 { font-size: 17px; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--wf-line); }
+    p, li { max-width: 72ch; }
+    .meta { color: var(--wf-2); margin: 0 0 16px; }
+    .wf-note { background: var(--wf-note); border: 1px dashed var(--wf-3); padding: 8px 12px; font-size: 13px; margin: 12px 0; max-width: 72ch; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--wf-line); padding: 10px; text-align: left; vertical-align: middle; }
+    th { background: var(--wf-fill-2); font-weight: 600; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+    /* Botón de wireframe: estructura, no estética */
+    .b {
+      --h: 36px; --px: 16px; --gap: 8px;
+      position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap);
+      min-height: var(--h); padding: 4px var(--px); font: inherit; font-size: 14px; font-weight: 600;
+      border: 1px solid transparent; border-radius: 4px; cursor: pointer; text-align: center;
+      background: var(--wf-ink); color: #fff;
+    }
+    .b::after { content: ""; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); min-width: max(100%, 24px); min-height: max(100%, 24px); }
+    .show-target .b::after { outline: 1px dashed #c00; }
+    @media (pointer: coarse) { .b::after { min-width: max(100%, 44px); min-height: max(100%, 44px); } }
+    .b--soft { background: var(--wf-fill); color: var(--wf-ink); }
+    .b--outline { background: transparent; color: var(--wf-ink); border-color: var(--wf-2); }
+    .b--ghost { background: transparent; color: var(--wf-ink); }
+    .b--link { background: transparent; color: var(--wf-ink); text-decoration: underline; padding-inline: 2px; min-height: auto; }
+    .b.st-hover { filter: brightness(1.35); }
+    .b--soft.st-hover, .b--outline.st-hover, .b--ghost.st-hover { background: var(--wf-fill-2); filter: none; }
+    .b--link.st-hover { text-decoration-thickness: 2px; filter: none; background: transparent; }
+    .b.st-focus, .b:focus-visible { outline: 3px solid var(--wf-ink); outline-offset: 3px; }
+    .b.st-active { transform: translateY(1px); }
+    .b.st-disabled, .b[aria-disabled="true"].is-disabled { opacity: .4; cursor: not-allowed; }
+    .b.is-loading { cursor: progress; }
+    .b.is-loading .lbl, .b.is-loading .ico { visibility: hidden; }
+    .spin { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 12px; }
+    .b.is-loading .spin { display: flex; }
+    .ico { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 3px; flex: none; }
+    .b--icon { padding: 0; width: var(--h); }
+    .b--block { display: flex; width: 100%; }
+    .lbl { min-width: 0; }
+
+    .anat { display: inline-flex; flex-wrap: wrap; max-width: 100%; gap: 6px; align-items: center; padding: 10px 18px; border: 2px dashed var(--wf-2); border-radius: 4px; background: var(--wf-fill-2); }
+    .anat > span { border: 1px dashed var(--wf-3); padding: 6px 8px; font-size: 12px; background: #fff; }
+    .legend { font-size: 13px; color: var(--wf-2); }
+    .frame { border: 1px solid var(--wf-line); background: #fff; padding: 16px; resize: horizontal; overflow: auto; max-width: 100%; }
+    kbd { border: 1px solid var(--wf-3); border-bottom-width: 2px; border-radius: 3px; padding: 0 5px; font-size: 12px; }
+    @media (prefers-reduced-motion: reduce) { .b.st-active { transform: none; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>GBtn · ronda r01</h1>
+  <p class="meta">Wireframe F2 · kit neutral · ruta R1. Resuelve estructura, estados y comportamiento. El color, los radios y la tipografía finales son de coco; aquí los grises solo distinguen jerarquía.</p>
+  <p class="wf-note">Cómo leer esta ronda: cada sección responde una pregunta del brief. Las notas amarillas son decisiones que pasan a lima (contrato) y a bruno (implementación).</p>
+
+  <h2>1. Anatomía</h2>
+  <div class="anat" aria-hidden="true">
+    <span>raíz &lt;button type="button"&gt; · &lt;a&gt; con href</span>
+    <span>icono inicial (opcional)</span>
+    <span>etiqueta</span>
+    <span>icono final (opcional)</span>
+  </div>
+  <p class="legend">Superpuestos, sin ocupar espacio propio: el indicador de carga (solo en <code>loading</code>) y el área táctil (pseudo-elemento).</p>
+  <p class="wf-note">Decisión: el indicador de carga se superpone y la etiqueta queda con <code>visibility: hidden</code>. La etiqueta sigue ocupando su espacio, así que el botón no cambia de ancho al cargar (ver sección 5).</p>
+
+  <h2>2. Variantes × estados</h2>
+  <p>Las cinco variantes del contrato compartido, en los seis estados. Las columnas de hover, foco y activo son simulaciones estáticas; los botones reales de la sección 5 responden al puntero y al teclado.</p>
+  <div class="scroll">
+    <table id="matrix">
+      <thead><tr><th>variant</th><th>default</th><th>hover</th><th>focus-visible</th><th>active</th><th>disabled</th><th>loading</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="wf-note">Jerarquía: <code>solid</code> es la acción principal (una por vista). <code>soft</code> y <code>outline</code> son secundarias. <code>ghost</code> se usa en barras de herramientas y filas densas. <code>link</code> se usa para acciones dentro de texto. El <code>color</code> no cambia la estructura: solo cambia a qué token apunta cada variante, y eso lo define lima.</p>
+
+  <h2>3. Tamaños × densidad</h2>
+  <p>La altura se deriva de <code>space</code> (6, 7, 9, 11 y 13 unidades). La densidad la multiplica, con un piso de 24px. En pantallas táctiles el área de toque siempre es ≥ 44px, aunque el aspecto visual sea menor. Activa la casilla para ver el área táctil.</p>
+  <label><input type="checkbox" id="showTarget"> Mostrar área táctil</label>
+  <div class="scroll" id="sizesWrap">
+    <table id="sizes">
+      <thead><tr><th>size</th><th>default (1×)</th><th>comfortable (0.875×)</th><th>compact (0.75×)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="wf-note">Incógnita para lima: ¿<code>density</code> reduce la altura o solo el padding? Esta ronda propone que reduzca la altura, porque una tabla compacta con botones de altura completa no gana densidad. El piso de 24px es absoluto (WCAG 2.5.8).</p>
+
+  <h2>4. Iconos y solo icono</h2>
+  <div class="row">
+    <button class="b" type="button"><span class="ico" aria-hidden="true"></span><span class="lbl">Con icono inicial</span></button>
+    <button class="b b--outline" type="button"><span class="lbl">Con icono final</span><span class="ico" aria-hidden="true"></span></button>
+    <button class="b b--ghost b--icon" type="button" aria-label="Eliminar reserva"><span class="ico" aria-hidden="true"></span></button>
+    <button class="b b--soft b--icon" type="button" aria-label="Agregar a favoritos" style="--h:28px"><span class="ico" aria-hidden="true"></span></button>
+  </div>
+  <p class="wf-note">Solo icono: el botón es cuadrado (ancho igual a la altura) y <strong>exige</strong> <code>aria-label</code>. Bruno debe avisar en desarrollo si falta. Los iconos siempre son decorativos (<code>aria-hidden</code>); el nombre accesible lo da la etiqueta o el <code>aria-label</code>.</p>
+
+  <h2>5. Carga sin cambio de tamaño ni pérdida de foco</h2>
+  <p>Enfoca el botón con <kbd>Tab</kbd> y actívalo con <kbd>Enter</kbd> o <kbd>Espacio</kbd>. Entra en carga durante 2 segundos: el ancho no cambia, el foco se queda en el botón y las activaciones repetidas se ignoran.</p>
+  <div class="row">
+    <button class="b" type="button" id="demoLoad"><span class="ico" aria-hidden="true"></span><span class="lbl">Confirmar reserva</span><span class="spin" aria-hidden="true">cargando…</span></button>
+    <span class="legend">Activaciones emitidas: <strong id="count">0</strong> · ignoradas: <strong id="ignored">0</strong></span>
+  </div>
+  <p class="wf-note">Decisión: <code>loading</code> usa <code>aria-disabled="true"</code> y <code>aria-busy="true"</code>, no <code>disabled</code> nativo, porque deshabilitar un botón enfocado hace que el navegador pierda el foco. En cambio, <code>disabled</code> sí usa el atributo nativo, porque en ese caso el botón no debe recibir foco.</p>
+
+  <h2>6. Contenedor estrecho y texto largo</h2>
+  <p>Arrastra la esquina del marco para estrecharlo, o usa el control. La etiqueta salta de línea en lugar de cortarse: la altura es mínima, no fija.</p>
+  <label>Ancho del contenedor: <input type="range" id="w" min="160" max="640" value="360" step="10"> <span id="wOut">360</span>px</label>
+  <div class="frame" id="frame" style="width:360px">
+    <div class="row">
+      <button class="b" type="button"><span class="lbl">Guardar y enviar la solicitud de reembolso</span></button>
+      <button class="b b--outline" type="button"><span class="lbl">Cancelar</span></button>
+    </div>
+    <p class="legend" style="margin-top:16px">Con <code>block</code>:</p>
+    <button class="b b--block" type="button"><span class="lbl">Continuar al pago</span></button>
+  </div>
+  <p class="wf-note">Decisión: salto de línea y no puntos suspensivos. Truncar esconde el significado de la acción, y el zoom al 200% o una traducción larga (por ejemplo, al alemán) lo volverían común. Base: WCAG 1.4.4 (cambio de tamaño del texto) y 1.4.10 (reajuste).</p>
+
+  <h2>7. Botón o enlace</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Caso</th><th>Elemento</th><th>Teclado</th><th>Por qué</th></tr></thead>
+      <tbody>
+        <tr><td>Ejecuta una acción en la página</td><td><code>&lt;button type="button"&gt;</code></td><td><kbd>Enter</kbd> y <kbd>Espacio</kbd></td><td>Semántica de acción</td></tr>
+        <tr><td>Envía un formulario</td><td><code>&lt;button type="submit"&gt;</code></td><td><kbd>Enter</kbd> y <kbd>Espacio</kbd></td><td>El consumidor lo pide explícitamente con <code>type</code></td></tr>
+        <tr><td>Navega a otra URL (<code>href</code>)</td><td><code>&lt;a href&gt;</code></td><td>Solo <kbd>Enter</kbd></td><td>Permite abrir en otra pestaña, copiar el enlace y el historial</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="wf-note">Con <code>href</code> y <code>disabled</code> a la vez: un enlace no tiene estado deshabilitado nativo. Se renderiza sin <code>href</code>, con <code>aria-disabled="true"</code> y fuera del orden de tabulación. Esta regla pasa a lima como parte del contrato.</p>
+
+  <h2>8. Teclado y foco</h2>
+  <ul>
+    <li><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>: entra y sale en el orden del documento. Sin <code>tabindex</code> positivo.</li>
+    <li><kbd>Enter</kbd> y <kbd>Espacio</kbd> activan el botón (comportamiento nativo, sin manejadores de teclado propios).</li>
+    <li>Foco visible solo con teclado (<code>:focus-visible</code>), con separación del borde y sin quedar oculto por otros elementos (WCAG 2.4.11).</li>
+    <li>En <code>loading</code>, el foco permanece y la activación se ignora.</li>
+    <li>Con <code>prefers-reduced-motion</code>, sin desplazamiento al presionar; el indicador de carga no gira (coco define la alternativa).</li>
+  </ul>
+</main>
+
+<script>
+  var variants = ['solid', 'soft', 'outline', 'ghost', 'link'];
+  var states = [['', ''], ['st-hover', ''], ['st-focus', ''], ['st-active', ''], ['st-disabled', 'disabled'], ['is-loading', 'loading']];
+  var tbody = document.querySelector('#matrix tbody');
+  variants.forEach(function (v) {
+    var tr = document.createElement('tr');
+    var th = document.createElement('th');
+    th.textContent = v;
+    tr.appendChild(th);
+    states.forEach(function (s) {
+      var td = document.createElement('td');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'b' + (v === 'solid' ? '' : ' b--' + v) + (s[0] ? ' ' + s[0] : '');
+      b.innerHTML = '<span class="lbl">Guardar</span><span class="spin" aria-hidden="true">…</span>';
+      b.tabIndex = -1;
+      if (s[1] === 'disabled') b.disabled = true;
+      if (s[1] === 'loading') { b.setAttribute('aria-disabled', 'true'); b.setAttribute('aria-busy', 'true'); }
+      td.appendChild(b);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  var sizes = [['xs', 24], ['sm', 28], ['md', 36], ['lg', 44], ['xl', 52]];
+  var dens = [1, 0.875, 0.75];
+  var sb = document.querySelector('#sizes tbody');
+  sizes.forEach(function (s) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<th>' + s[0] + '</th>';
+    dens.forEach(function (d) {
+      var h = Math.max(24, Math.round(s[1] * d));
+      var td = document.createElement('td');
+      td.innerHTML = '<button class="b b--outline" type="button" tabindex="-1" style="--h:' + h + 'px;--px:' + Math.round(16 * d) + 'px"><span class="lbl">Guardar</span></button> <span class="legend">' + h + 'px</span>';
+      tr.appendChild(td);
+    });
+    sb.appendChild(tr);
+  });
+
+  document.getElementById('showTarget').addEventListener('change', function (e) {
+    document.body.classList.toggle('show-target', e.target.checked);
+  });
+
+  var demo = document.getElementById('demoLoad');
+  var count = 0, ignored = 0;
+  demo.addEventListener('click', function () {
+    if (demo.getAttribute('aria-disabled') === 'true') {
+      ignored++;
+      document.getElementById('ignored').textContent = ignored;
+      return;
+    }
+    count++;
+    document.getElementById('count').textContent = count;
+    demo.classList.add('is-loading');
+    demo.setAttribute('aria-disabled', 'true');
+    demo.setAttribute('aria-busy', 'true');
+    setTimeout(function () {
+      demo.classList.remove('is-loading');
+      demo.removeAttribute('aria-disabled');
+      demo.removeAttribute('aria-busy');
+    }, 2000);
+  });
+
+  var w = document.getElementById('w');
+  w.addEventListener('input', function () {
+    document.getElementById('frame').style.width = w.value + 'px';
+    document.getElementById('wOut').textContent = w.value;
+  });
+</script>
+</body>
+</html>

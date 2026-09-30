@@ -7,7 +7,7 @@
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | según componente (`GBtn`: `brand`) | Semántico, nunca hex. Lee `--g-color-<valor>` y sus derivados |
 | `variant` | String | `solid` `soft` `outline` `ghost` `link` | según componente | `solid` usa base + `on`; `soft` usa `soft` + `on-soft`; `outline`, `ghost` y `link` usan `text` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | Altura desde `space` (ver contrato de tokens §4) |
-| `density` | String | `default` `comfortable` `compact` | `default` | Multiplica padding y gap: 1×, 0.875×, 0.75×. No cambia la tipografía |
+| `density` | String | `default` `comfortable` `compact` | `default` | Multiplica altura, padding y gap: 1×, 0.875×, 0.75×, con piso de 24px. No cambia la tipografía |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según rol y `shape` del tema | La instancia gana sobre el tema |
 | `block` | Boolean | | `false` | Ancho completo |
 | `disabled` | Boolean | | `false` | `disabled` nativo, o `aria-disabled` si debe seguir enfocable |

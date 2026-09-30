@@ -70,7 +70,9 @@ Paso por rol: campo → `sm`; tarjeta → `lg`; botón, chip, insignia → `md` 
 
 `space-n` = `space` × n, n ∈ {1, 2, 3, 4, 5, 6, 8, 12, 16}.
 
-Alturas de control por tamaño: `xs` 6, `sm` 7, `md` 9, `lg` 11, `xl` 13 unidades de `space`, **nunca por debajo de los mínimos de accesibilidad** (sección 7). El prop `density` multiplica localmente (1×, 0.875×, 0.75×); `space` es global.
+Alturas de control por tamaño: `xs` 6, `sm` 7, `md` 9, `lg` 11, `xl` 13 unidades de `space`, **nunca por debajo de los mínimos de accesibilidad** (sección 7).
+
+El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía. La altura resultante tiene piso de 24px. `space` es global; `density` es local. (Precisado tras la ronda r01 de `GBtn`.)
 
 ## 5. Tipografía
 
@@ -115,6 +117,8 @@ Tokens de componente (`--g-btn-radius`) solo cuando un caso real lo justifique, 
 | Foco | Siempre visible |
 
 El CLI rechaza un tema que no los cumpla.
+
+Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil). Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`.
 
 ## 8. Mecanismo
 

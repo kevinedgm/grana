@@ -10,7 +10,7 @@ Qué espera Bruno de cada miembro y cómo verifica que la entrega está completa
 | --- | --- |
 | `brief.md` | Usuario, tarea, contexto de uso, qué problema resuelve |
 | `index.html` | Prototipo sin estilo de marca: anatomía, estados y comportamiento en contenedores estrechos y anchos |
-| `declaracion.md` | Estado (`aprobada` / `en revisión`), tabla de criterios (WCAG 2.2 AA, heurísticas) y lista de estados |
+| `declaracion.md` | Estado (`aprobada` / `en revisión`), tabla de criterios (WCAG 2.2 AA, heurísticas), lista de estados, comprobaciones ejecutadas y **no** ejecutadas, y sección obligatoria **Hallazgos para lima** (vacía si no hay) |
 
 Bruno toma de kiwi: la **anatomía** (qué elementos existen y en qué orden), los **estados** y el **comportamiento** con teclado y en tamaños de contenedor.
 
@@ -39,9 +39,13 @@ Bruno toma de kiwi: la **anatomía** (qué elementos existen y en qué orden), l
 
 ## Teclado
 | Tecla | Acción |
+
+## Resolución de hallazgos
+| # | Hallazgo | Resolución | Base |
+(Uno por cada hallazgo de la declaración de kiwi.)
 ```
 
-**Completa si:** cada prop propia tiene tipo, valores y default, y cada token consumido existe en `docs/contract/tokens.md`.
+**Completa si:** cada prop propia tiene tipo, valores y default; cada token consumido existe en `docs/contract/tokens.md`; y cada hallazgo de kiwi tiene resolución.
 
 ## coco → estilo
 
@@ -50,7 +54,7 @@ Bruno toma de kiwi: la **anatomía** (qué elementos existen y en qué orden), l
 Reglas que Bruno verifica (no corrige; si fallan, devuelve a coco):
 
 - Solo `var(--g-*)` y alias locales `var(--_*)`.
-- Sin literales de color, radio, sombra ni duración, y sin valores de respaldo.
+- Sin literales de color, radio, sombra ni duración, y sin valores de respaldo. Única excepción: los mínimos de accesibilidad `24px` y `44px` (contrato de tokens §7).
 - Sin `@layer` dentro del archivo (el registro lo mete en `grana.components`).
 - Clases que coinciden con las que emite el componente (`g-<tag>--variant-*`, `is-loading`…).
 - Estados cubiertos: hover (dentro de `@media (hover: hover)`), `:focus-visible`, active, disabled, loading, `prefers-reduced-motion`, `forced-colors`.
