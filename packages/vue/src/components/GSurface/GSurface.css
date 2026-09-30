@@ -1,0 +1,114 @@
+/*
+  GSurface · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/surface.md. Estructura: design/lab/surface/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin literales de medida.
+
+  Mecanismo de anidación (sin JavaScript): una superficie no-inset PUBLICA a sus descendientes
+  (alias --_pub-*) el tono que ofrece a una inset, la sombra de esa inset y su radio concéntrico.
+  La inset solo LEE esos alias y nunca los redeclara con el mismo nombre (se leería a sí misma: ciclo).
+  Para un tercer nivel, la inset publica con otro nombre (--_pub2-radius).
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-surface {
+  --_density: 1;
+  --_pad: calc(var(--g-space-1) * 4 * var(--_density));
+  --_tone: var(--g-color-surface);
+  --_border: transparent;
+  --_shadow: none;
+  --_radius: var(--g-radius-lg);
+
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding: var(--_pad);
+  border: var(--g-border-width) solid var(--_border);
+  border-radius: var(--_radius);
+  background: var(--_tone);
+  box-shadow: var(--_shadow);
+  color: var(--g-color-text);
+}
+
+/* ---------- Niveles ---------- */
+.g-surface--level-flat {
+  --_tone: transparent;
+  --_radius: var(--g-radius-none);
+  /* Sin borde (ni siquiera transparente: en colores forzados se pintaría) */
+  border-style: none;
+}
+.g-surface--level-outlined { --_border: var(--g-color-border-strong); }
+.g-surface--level-raised {
+  --_border: var(--g-color-border);
+  --_shadow: var(--g-shadow-1);
+}
+.g-surface--level-floating {
+  --_border: var(--g-color-border);
+  --_shadow: var(--g-shadow-2);
+}
+
+/* ---------- Tono (no aplica a inset: su tono lo decide el padre) ---------- */
+.g-surface--tone-sunken:not(.g-surface--level-inset, .g-surface--level-flat) { --_tone: var(--g-surface-shell); }
+
+/* ---------- Publicación hacia las inset descendientes ---------- */
+.g-surface:not(.g-surface--level-inset) {
+  --_pub-offer: var(--g-color-surface-sunken);
+  --_pub-shadow: none;
+  --_pub-radius: max(var(--g-radius-xs), calc(var(--_radius) - var(--_pad)));
+}
+/* flat no tiene radio: su inset usa el del sistema (más específico que la regla general) */
+.g-surface.g-surface--level-flat { --_pub-radius: var(--g-radius-lg); }
+/* Un padre hundido ofrece el tono claro de la inset y una sombra mínima (estructura de GDialog) */
+.g-surface--tone-sunken:not(.g-surface--level-inset, .g-surface--level-flat) {
+  --_pub-offer: var(--g-surface-inset);
+  --_pub-shadow: var(--g-shadow-1);
+}
+
+/* ---------- Inset ---------- */
+.g-surface--level-inset {
+  --_tone: var(--_pub-offer);
+  --_shadow: var(--_pub-shadow);
+  --_border: var(--g-color-border);
+  --_radius: var(--_pub-radius);
+}
+/* Sin superficie padre: tono hundido y radio del sistema */
+.g-surface--level-inset:not(.g-surface .g-surface--level-inset) {
+  --_tone: var(--g-color-surface-sunken);
+  --_shadow: none;
+  --_radius: var(--g-radius-lg);
+}
+/* La inset (segundo nivel) publica su radio concéntrico para un tercer nivel */
+.g-surface--level-inset:not(.g-surface--level-inset .g-surface--level-inset) {
+  --_pub2-radius: max(var(--g-radius-xs), calc(var(--_radius) - var(--_pad)));
+}
+/* Tercer nivel: sin cambio de tono ni sombra (máximo dos pasos visibles); conserva línea y radio */
+.g-surface--level-inset .g-surface--level-inset {
+  --_tone: transparent;
+  --_shadow: none;
+  --_radius: var(--_pub2-radius);
+}
+
+/* ---------- Relleno y densidad ---------- */
+.g-surface--padding-none { --_pad: calc(var(--g-space-1) * 0); }
+.g-surface--padding-xs { --_pad: calc(var(--g-surface-gap) * var(--_density)); }
+.g-surface--padding-sm { --_pad: calc(var(--g-space-1) * 2 * var(--_density)); }
+.g-surface--padding-md { --_pad: calc(var(--g-space-1) * 4 * var(--_density)); }
+.g-surface--padding-lg { --_pad: calc(var(--g-space-1) * 6 * var(--_density)); }
+.g-surface--density-default { --_density: 1; }
+.g-surface--density-comfortable { --_density: 0.875; }
+.g-surface--density-compact { --_density: 0.75; }
+
+/* ---------- Radio de la instancia (gana siempre, también en inset; va al final) ---------- */
+.g-surface.g-surface--rounded-none { --_radius: var(--g-radius-none); }
+/* --g-radius-none es 0 sin unidad: no entra en calc() con longitudes; la inset hija usa el mínimo */
+.g-surface.g-surface--rounded-none:not(.g-surface--level-inset) { --_pub-radius: var(--g-radius-xs); }
+.g-surface--level-inset.g-surface--rounded-none { --_pub2-radius: var(--g-radius-xs); }
+.g-surface.g-surface--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-surface.g-surface--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-surface.g-surface--rounded-md { --_radius: var(--g-radius-md); }
+.g-surface.g-surface--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-surface.g-surface--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-surface.g-surface--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Colores forzados: fondo y sombra desaparecen; todo nivel no plano conserva el borde ---------- */
+@media (forced-colors: active) {
+  .g-surface:not(.g-surface--level-flat) { border-color: CanvasText; }
+}
