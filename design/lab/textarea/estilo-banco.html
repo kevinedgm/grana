@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTextarea · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/textarea.md con el CSS real y el tema por defecto.
+     Simula la medición de autosize de bruno (--_autoh). No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GInput/GInput.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GTextarea/GTextarea.css?v=1" id="css-t">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:16px 24px;align-items:start}
+  h2{font-size:15px;margin:28px 0 10px} .cap{font-size:12px;color:var(--g-color-text-muted);margin:0 0 4px}
+  .frame{border:1px solid var(--g-color-border);padding:12px;resize:horizontal;overflow:auto;max-width:100%}
+  .pair{display:flex;gap:12px;align-items:flex-start}
+</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button>
+<div id="app"></div>
+<script>
+let n=0
+function ta(o={}){
+  const id='a'+(++n)
+  const cls=['g-textarea',`g-textarea--variant-${o.variant||'outline'}`,`g-textarea--size-${o.size||'md'}`,`g-textarea--density-${o.density||'default'}`,o.color&&`g-textarea--color-${o.color}`,o.rounded&&`g-textarea--rounded-${o.rounded}`,o.auto&&'g-textarea--autosize',`g-textarea--resize-${o.auto?'none':(o.resize||'vertical')}`,o.block&&'g-textarea--block',o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ')
+  const desc=[o.hint&&`${id}-hint`,o.error&&`${id}-error`].filter(Boolean).join(' ')
+  return `<div class="${cls}" data-auto="${o.auto?1:''}" data-maxrows="${o.maxrows||''}" data-max="${o.max||''}"><label class="g-textarea__label" for="${id}">${o.label||'Comentario'}${o.req?'<span class="g-textarea__required" aria-hidden="true">*</span>':''}</label><div class="g-textarea__control"><textarea class="g-textarea__field" id="${id}" rows="${o.rows||3}" ${o.max?`maxlength="${o.max}"`:''} ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'readonly':''} ${o.disabled?'disabled':''} ${o.loading?'aria-busy="true"':''} ${o.req?'required':''} ${o.ph?`placeholder="${o.ph}"`:''}>${o.value||''}</textarea>${o.loading?'<span class="g-textarea__loader" aria-hidden="true"></span>':''}</div>${(o.hint||o.max)?`<div class="g-textarea__messages">${o.hint?`<span class="g-textarea__hint" id="${id}-hint">${o.hint}</span>`:''}${o.max?`<span class="g-textarea__counter" aria-hidden="true">${(o.value||'').length}/${o.max}</span>`:''}</div>`:''}<span class="g-textarea__count-live" aria-live="polite"></span><div class="g-textarea__error" id="${id}-error" aria-live="polite">${o.error||''}</div></div>`
+}
+function inp(o={}){const id='i'+(++n);return `<div class="g-input g-input--variant-${o.variant||'outline'} g-input--size-${o.size||'md'} g-input--density-${o.density||'default'}"><label class="g-input__label" for="${id}">Campo</label><div class="g-input__row"><div class="g-input__control"><input class="g-input__field" id="${id}" value="Una línea"></div></div><div class="g-input__error" aria-live="polite"></div></div>`}
+const cell=(c,o)=>`<div><p class="cap">${c}</p>${ta(o)}</div>`
+const long='Línea uno\nLínea dos\nLínea tres\nLínea cuatro\nLínea cinco\nLínea seis\nLínea siete\nLínea ocho'
+const S=[
+ ['Estados',[['vacío con placeholder',{ph:'Escribe tu comentario…'}],['con texto',{value:'Un comentario de ejemplo\ncon dos líneas.'}],['con ayuda',{hint:'Máximo tres frases.',label:'Descripción'}],['requerido',{req:1,label:'Motivo'}],['disabled',{disabled:1,value:'No editable'}],['readonly',{readonly:1,value:'Solo lectura\nseleccionable.'}],['inválido',{error:'Escribe al menos 10 caracteres.',value:'Hola'}],['loading',{loading:1,value:'Guardando…'}],['soft',{variant:'soft',value:'Variante soft'}],['soft inválido',{variant:'soft',error:'Error de ejemplo.',value:'x'}]]],
+ ['Colores de foco (enfoca cada uno)',['brand','accent','success','danger'].map(c=>[c,{color:c,rows:2}])],
+ ['Autosize (rows 2, maxRows 5)',[['crece',{auto:1,rows:2,maxrows:5,value:'Escribe y pulsa Enter varias veces.'}],['en el máximo: se desplaza',{auto:1,rows:2,maxrows:4,value:long}],['sin maxRows',{auto:1,rows:2,value:long}]]],
+ ['Contador',[['contador',{max:120,value:'Un texto corto.',hint:'Cuéntanos más.'}]]],
+ ['Formas',['none','sm','lg','pill'].map(r=>[r,{rounded:r,rows:2,value:'rounded '+r}])],
+]
+document.getElementById('app').innerHTML=S.map(([t,i])=>`<h2>${t}</h2><div class="grid">${i.map(([c,o])=>cell(c,o)).join('')}</div>`).join('')+
+ `<h2>rows 1 frente a GInput (misma altura por tamaño y densidad)</h2><div class="grid" id="cmp">${['xs','sm','md','lg','xl'].flatMap(z=>['default','comfortable','compact'].map(d=>`<div class="pair" data-z="${z}" data-d="${d}" style="flex-wrap:wrap"><div style="flex:1;min-width:150px">${ta({size:z,density:d,rows:1,value:'Una línea',label:z+' '+d})}</div><div style="flex:1;min-width:150px">${inp({size:z,density:d})}</div></div>`)).join('')}</div>`+
+ `<h2>240px y palabra larguísima</h2><div class="frame" style="width:240px">${ta({block:1,value:'Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad_aaaaaaaaaaaaaaaaaaaaaaa',hint:'Ayuda con Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad',max:200,error:'Error Supercalifragilisticoespialidosoextraordinariamentelargo_de_verdad'})}</div>`+
+ `<h2>Tamaños × densidad, 3 filas</h2><div class="grid">${['xs','sm','md','lg','xl'].map(z=>['default','compact'].map(d=>cell(z+' '+d,{size:z,density:d,rows:3,value:'texto'})).join('')).join('')}</div>`
+function fit(t){const f=t.querySelector('textarea');if(!t.dataset.auto)return;const cs=getComputedStyle(f);const lh=parseFloat(cs.lineHeight),pv=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);const rows=+f.rows;f.style.setProperty('--_autoh','auto');f.style.blockSize='auto';const need=f.scrollHeight;f.style.blockSize='';const max=t.dataset.maxrows?(+t.dataset.maxrows*lh+pv):Infinity;const h=Math.min(Math.max(need,rows*lh+pv),max);f.style.setProperty('--_autoh',h+'px');t.classList.toggle('is-capped',need>max)}
+document.querySelectorAll('.g-textarea[data-auto="1"]').forEach(t=>{fit(t);t.querySelector('textarea').addEventListener('input',()=>fit(t))})
+const T=`:root{--g-color-brand:#7A1F5C;--g-color-accent:#0F766E;--g-color-success:#1F6B3A;--g-color-danger:#A61B1B;--g-color-danger-text:#8A0F00;--g-color-brand-text:#7A1F5C;--g-color-accent-text:#0F766E;--g-color-success-text:#1F6B3A;--g-color-focus:#0F766E;--g-color-bg:#FFF6E5;--g-color-surface:#FFFBF2;--g-color-surface-sunken:#F1DDB6;--g-color-text:#3B2A1A;--g-color-text-muted:#6B4E33;--g-color-text-subtle:#7A5C3E;--g-color-border:#D8BE8A;--g-color-border-strong:#B99A62;--g-color-border-control:#8A6A30;--g-radius-sm:0px;--g-radius-lg:14px;--g-border-width:2px;--g-focus-width:3px;--g-space-1:5px;--g-space-2:10px;--g-space-3:15px;--g-space-4:20px;--g-space-5:25px;--g-font-ui:Georgia,serif}`
+document.getElementById('theme-btn').addEventListener('click',()=>{const s=document.getElementById('theme');s.textContent=s.textContent?'':T;document.querySelectorAll('.g-textarea[data-auto="1"]').forEach(fit)})
+</script>
+</body></html>

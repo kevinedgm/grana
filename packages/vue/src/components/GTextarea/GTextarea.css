@@ -1,0 +1,319 @@
+/*
+  GTextarea · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/textarea.md. Estructura: design/lab/textarea/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el patrón de texto oculto
+  accesible (1px, -1px, clip-path).
+  Mismo lenguaje que GInput: con `rows` 1, la altura iguala la de un GInput del mismo tamaño y densidad.
+  `--_autoh` (variable CSS dinámica que pone bruno con `autosize`) es la altura medida del campo.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-textarea {
+  /* Color de foco (se reasigna por modificador --color-*); sin modificador: el foco del tema */
+  --_focus: var(--g-color-focus);
+
+  /* Variante (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las unidades son las de la
+     altura de GInput: con una fila, la caja mide lo mismo */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  /* Relleno vertical: reparte lo que sobra de la altura de una fila alrededor del interlineado */
+  --_padv: max(0px, calc((var(--_h) - var(--g-border-width) * 2 - var(--_lh)) / 2));
+  --_radius: var(--g-radius-sm);
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* ---------- Etiqueta ---------- */
+.g-textarea__label {
+  overflow-wrap: anywhere;
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-textarea__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+
+/* ---------- Caja ---------- */
+.g-textarea__control {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Anillo de foco: pegado al borde (sin hueco), del grosor de --g-focus-width, con transición de color
+   (mismo gesto que GInput, DECISIONS.md #35). En forced-colors el contorno transparente se volvería
+   visible, por eso la base solo aplica fuera de ese modo. */
+@media (forced-colors: none) {
+  .g-textarea__control {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+.g-textarea__field {
+  display: block;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  /* Con puntero grueso la caja es el objetivo táctil: altura real, sin importar la densidad */
+  min-block-size: calc(var(--_h) - var(--g-border-width) * 2);
+  margin: 0;
+  padding-block: var(--_padv);
+  padding-inline: calc(var(--_px) * var(--_density));
+  border: 0;
+  outline: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  overflow-wrap: break-word;
+}
+@media (pointer: coarse) {
+  .g-textarea__field {
+    min-block-size: calc(max(44px, var(--_h)) - var(--g-border-width) * 2);
+  }
+}
+.g-textarea__field::placeholder {
+  color: var(--g-color-text-subtle);
+  opacity: 1;
+}
+
+/* ---------- Altura: tirador y autosize ---------- */
+.g-textarea--resize-vertical .g-textarea__field { resize: vertical; }
+.g-textarea--resize-none .g-textarea__field { resize: none; }
+/* autosize: la altura la mide bruno; hasta el máximo no hay barra, y el crecimiento no se anima.
+   Sin medir aún, --_autoh no existe y la altura queda automática. */
+.g-textarea--autosize .g-textarea__field {
+  block-size: var(--_autoh);
+  overflow-y: hidden;
+}
+.g-textarea--autosize.is-capped .g-textarea__field {
+  overflow-y: auto;
+}
+
+/* ---------- Indicador de carga ---------- */
+.g-textarea__loader {
+  position: absolute;
+  inset-block-start: var(--_padv);
+  inset-inline-end: calc(var(--_px) * var(--_density));
+  box-sizing: border-box;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  /* Se alinea con la primera línea */
+  margin-block-start: calc((var(--_lh) - var(--_fs)) / 2);
+  border: calc(var(--g-border-width) * 2) solid var(--g-color-text-subtle);
+  border-inline-end-color: transparent;
+  border-radius: var(--g-radius-pill);
+  animation: g-textarea-spin var(--g-duration-spin) linear infinite;
+  pointer-events: none;
+}
+.g-textarea.is-loading .g-textarea__field {
+  padding-inline-end: calc(var(--_px) * var(--_density) + var(--_fs) + var(--_gap) * var(--_density));
+}
+@keyframes g-textarea-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Mensajes ---------- */
+.g-textarea__messages {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--g-space-3);
+  margin-block-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-textarea__hint {
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+.g-textarea__counter {
+  flex: none;
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}
+/* Región viva del contador: siempre presente, visualmente oculta (patrón estándar de texto oculto) */
+.g-textarea__count-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-textarea__error {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-textarea.is-invalid .g-textarea__error {
+  margin-block-start: var(--g-space-1);
+}
+/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
+.g-textarea.is-invalid .g-textarea__error::before {
+  content: "\26A0\00a0";
+  content: "\26A0\00a0" / "";
+}
+
+/* ---------- Tamaño ---------- */
+.g-textarea--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-textarea--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-textarea--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-textarea--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-textarea--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-textarea--density-default { --_density: 1; }
+.g-textarea--density-comfortable { --_density: 0.875; }
+.g-textarea--density-compact { --_density: 0.75; }
+
+/* ---------- Forma ---------- */
+.g-textarea--rounded-none { --_radius: var(--g-radius-none); }
+.g-textarea--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-textarea--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-textarea--rounded-md { --_radius: var(--g-radius-md); }
+.g-textarea--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-textarea--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-textarea--rounded-pill { --_radius: var(--g-radius-lg); }
+
+/* ---------- Color (solo el foco) ---------- */
+.g-textarea--color-brand { --_focus: var(--g-color-brand-text); }
+.g-textarea--color-accent { --_focus: var(--g-color-accent-text); }
+.g-textarea--color-neutral { --_focus: var(--g-color-neutral-text); }
+.g-textarea--color-success { --_focus: var(--g-color-success-text); }
+.g-textarea--color-warning { --_focus: var(--g-color-warning-text); }
+.g-textarea--color-danger { --_focus: var(--g-color-danger-text); }
+.g-textarea--color-info { --_focus: var(--g-color-info-text); }
+
+/* ---------- Variante ---------- */
+/* outline: los valores por defecto del esqueleto */
+/* soft: caja rellena. Como el relleno solo no llega a 3:1 contra la superficie, conserva
+   la línea inferior con el borde de control (WCAG 1.4.11) */
+.g-textarea--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Ancho ---------- */
+.g-textarea--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-textarea:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-textarea__control:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+/* Foco: el anillo rodea la caja (el <textarea> no lleva contorno propio) y el borde toma el color de
+   foco, así se lee como una sola línea */
+.g-textarea__control:has(.g-textarea__field:focus-visible) {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-textarea.is-invalid .g-textarea__control {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-textarea.is-invalid .g-textarea__control:has(.g-textarea__field:focus-visible) {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+}
+.g-textarea.is-readonly .g-textarea__control {
+  --_bg: var(--g-color-surface-sunken);
+  border-style: dashed;
+}
+.g-textarea.is-disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-textarea.is-disabled .g-textarea__label {
+  color: var(--g-color-text-subtle);
+}
+.g-textarea.is-disabled .g-textarea__control {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+}
+.g-textarea.is-disabled .g-textarea__field {
+  cursor: not-allowed;
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-textarea__control {
+    transition: none;
+  }
+  .g-textarea__loader {
+    animation-duration: calc(var(--g-duration-spin) * 2.5);
+  }
+}
+@media (forced-colors: active) {
+  .g-textarea__control {
+    border-color: ButtonText;
+  }
+  .g-textarea__control:has(.g-textarea__field:focus-visible) {
+    outline-color: Highlight;
+  }
+  .g-textarea.is-disabled .g-textarea__control {
+    border-color: GrayText;
+  }
+  /* El navegador quita box-shadow en este modo: el error se distingue con un borde más grueso
+     (además del texto y la marca) */
+  .g-textarea.is-invalid .g-textarea__control {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+}
