@@ -87,3 +87,35 @@ describe('GDatePicker y GCalendar · iconos de Lucide', () => {
     expect(w.find('.g-calendar__next svg').html()).toContain('m9 18 6-6-6-6')
   })
 })
+
+describe('GDialog, GSidebar, GBtn y GBadge · iconos de Lucide', () => {
+  it('GBtn: el indicador de carga es el loader-circle de Lucide', async () => {
+    const { default: GBtn } = await import('../components/GBtn/GBtn.vue')
+    const w = mount(GBtn, { props: { loading: true }, slots: { default: 'Guardar' } })
+    const svg = w.find('svg.g-btn__loader')
+    expect(svg.exists()).toBe(true)
+    expect(svg.attributes('aria-hidden')).toBe('true')
+    expect(svg.html()).toContain('M21 12a9 9 0 1 1-6.219-8.56')
+  })
+
+  it('GBadge: cada figura es su icono de Lucide relleno', async () => {
+    const { default: GBadge } = await import('../components/GBadge/GBadge.vue')
+    for (const shape of ['circle', 'square', 'diamond', 'triangle']) {
+      const w = mount(GBadge, { props: { shape, label: shape } })
+      const svg = w.find(`svg.g-badge__shape--${shape}`)
+      expect(svg.exists(), shape).toBe(true)
+      expect(svg.attributes('fill')).toBe('currentColor')
+    }
+  })
+
+  it('GSidebar: chevron de los padres, punto de estado y cierre del drawer son Lucide', async () => {
+    const { default: GSidebar } = await import('../components/GSidebar/GSidebar.vue')
+    const items = [{ id: 'a', label: 'A', icon: 'x', children: [{ id: 'a1', label: 'A1', href: '#a1' }] }, { id: 'b', label: 'B', href: '#b', dot: true, badgeLabel: 'nuevo' }]
+    const w = mount(GSidebar, { attachTo: document.body, props: { items, label: 'Principal', mode: 'expanded', labels: { collapse: 'Contraer', expand: 'Expandir', more: 'Más', drawer: 'Menú', close: 'Cerrar' } } })
+    expect(w.find('svg.g-sidebar__chevron').html()).toContain('m9 18 6-6-6-6')
+    const dot = w.find('svg.g-sidebar__badge--dot')
+    expect(dot.attributes('fill')).toBe('currentColor')
+    expect(dot.attributes('aria-hidden')).toBe('true')
+    w.unmount()
+  })
+})

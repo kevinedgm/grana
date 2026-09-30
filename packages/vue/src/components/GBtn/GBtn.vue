@@ -3,6 +3,7 @@
 // Contrato: design/contracts/btn.md · Estructura: design/lab/btn/r01/ · Estilo: GBtn.css (coco)
 import { computed, useAttrs, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GBtn', inheritAttrs: false })
 
@@ -89,7 +90,7 @@ if (isDev && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby']) {
     <span v-if="slots.prepend" class="g-btn__prepend" aria-hidden="true"><slot name="prepend" /></span>
     <span class="g-btn__label"><slot /></span>
     <span v-if="slots.append" class="g-btn__append" aria-hidden="true"><slot name="append" /></span>
-    <span class="g-btn__loader" aria-hidden="true" />
+    <GIcon class="g-btn__loader" name="loader-circle" />
   </component>
   <span class="g-btn__status" role="status">{{ statusText }}</span>
 </template>

@@ -71,19 +71,13 @@
   color: var(--_mark);
 }
 
-/* Figuras y punto de estado: formas dibujadas con CSS, no con un color solo */
+/* Figuras y punto de estado: círculo, cuadrado, rombo y triángulo de Lucide rellenos (GIcon filled), no un color solo */
 .g-badge__shape {
   flex: none;
-  display: inline-block;
-  box-sizing: border-box;
-  inline-size: 0.7em;
-  block-size: 0.7em;
-  background: var(--_mark);
+  inline-size: 0.75em;
+  block-size: 0.75em;
+  color: var(--_mark);
 }
-.g-badge__shape--circle { border-radius: var(--g-radius-pill); }
-.g-badge__shape--square { border-radius: var(--g-radius-xs); }
-.g-badge__shape--diamond { inline-size: 0.6em; block-size: 0.6em; rotate: 45deg; }
-.g-badge__shape--triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 
 /* Texto para lectores de pantalla (patrón estándar de texto oculto) */
 .g-badge__sr {
@@ -134,10 +128,6 @@
 .g-badge--kind-figure .g-badge__shape {
   inline-size: 100%;
   block-size: 100%;
-}
-.g-badge--kind-figure .g-badge__shape--diamond {
-  inline-size: 72%;
-  block-size: 72%;
 }
 
 /* ---------- Tamaño ---------- */
@@ -261,6 +251,5 @@
     forced-color-adjust: none;
     color: CanvasText;
   }
-  .g-badge__shape { background: CanvasText; }
   .g-badge--kind-figure { border-color: transparent; background: transparent; }
 }

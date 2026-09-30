@@ -9,6 +9,8 @@
      El contenido de la aplicación (logo, usuario, menú) se estiliza aquí con clases bk-*. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GSidebar/GSidebar.css?v=1" id="css-s">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:20px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -37,7 +39,6 @@
   .shell:has(.g-sidebar--variant-floating).shell--m-rail .shell__side{inline-size:calc(var(--g-sidebar-rail) + var(--g-space-3) * 2)}
   /* Iconos de la aplicación (trazo lineal, como Lucide) */
   .g-sidebar svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-  .g-sidebar__chevron svg{display:none}
   /* Contenido de la aplicación */
   .bk-mark{flex:none;display:inline-block;inline-size:28px;block-size:28px;border-radius:8px;background:var(--g-color-brand)}
   .g-sidebar--mode-rail .bk-word{display:none}
@@ -76,8 +77,8 @@
 <h2>Registro</h2><div class="log" id="log">—</div>
 <script>
 const log=t=>{const l=document.getElementById('log');l.textContent=t+'\n'+(l.textContent==='—'?'':l.textContent)}
-const P={home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',cog:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',panel:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',chev:'<path d="M9 6l6 6-6 6"/>',msg:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>'}
-const svg=n=>`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${P[n]||''}</svg>`
+const MAP={home:'house',chart:'chart-column',card:'credit-card',cog:'settings',panel:'panel-left',msg:'message-circle',doc:'file-text',chev:'chevron-right'}
+const svg=n=>window.lucide(MAP[n]||n)
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
 const NAV=[
  {group:'Principal',items:[{id:'home',label:'Inicio',icon:'home'},{id:'inbox',label:'Bandeja',icon:'inbox',badge:12,badgeLabel:'12 sin leer'},{id:'msg',label:'Mensajes',icon:'msg',dot:true,badgeLabel:'Hay mensajes nuevos'}]},
@@ -102,11 +103,11 @@ class Sidebar{
   find(id,nav=this.o.nav){for(const g of nav)for(const it of g.items){if(it.id===id)return it;for(const c of it.children||[])if(c.id===id)return c}}
   branchOf(id){for(const g of this.o.nav)for(const it of g.items)if((it.children||[]).some(c=>c.id===id))return it.id}
   linkHtml(it,sub){
-    const rail=this.state==='rail',cur=this.active===it.id,badge=it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?'<span class="g-sidebar__badge" aria-hidden="true" style="min-inline-size:8px;block-size:8px;padding:0"></span>':''
+    const rail=this.state==='rail',cur=this.active===it.id,badge=it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?window.lucide('circle','g-sidebar__badge g-sidebar__badge--dot',true):''
     const sr=it.badgeLabel?`<span class="g-sidebar__sr">, ${esc(it.badgeLabel)}</span>`:''
     const inner=`${sub?'':`<span class="g-sidebar__icon">${svg(it.icon)}</span>`}<span class="g-sidebar__label">${esc(it.label)}</span>${badge}${sr}`
     if(it.children){const exp=this.open.has(it.id),branch=it.children.some(c=>c.id===this.active)
-      return `<button type="button" class="g-sidebar__link g-sidebar__parent${branch?' is-branch':''}" data-id="${it.id}" aria-expanded="${rail?String(this.flyFor===it.id):String(exp)}" ${rail?'aria-haspopup="true"':`aria-controls="${this.id}-${it.id}"`}><span class="g-sidebar__icon">${svg(it.icon)}</span><span class="g-sidebar__label">${esc(it.label)}</span><span class="g-sidebar__chevron" aria-hidden="true">${svg('chev')}</span></button>`}
+      return `<button type="button" class="g-sidebar__link g-sidebar__parent${branch?' is-branch':''}" data-id="${it.id}" aria-expanded="${rail?String(this.flyFor===it.id):String(exp)}" ${rail?'aria-haspopup="true"':`aria-controls="${this.id}-${it.id}"`}><span class="g-sidebar__icon">${svg(it.icon)}</span><span class="g-sidebar__label">${esc(it.label)}</span>${window.lucide('chevron-right','g-sidebar__chevron')}</button>`}
     if(it.disabled)return `<a class="g-sidebar__link" role="link" aria-disabled="true" data-id="${it.id}">${inner}</a>`
     return `<a class="g-sidebar__link" href="#${it.id}" data-id="${it.id}" ${cur?'aria-current="page"':''}>${inner}</a>`}
   render(){
@@ -117,7 +118,7 @@ class Sidebar{
       <div class="g-sidebar__head"><div class="g-sidebar__top"><div class="g-sidebar__logo"><span class="bk-mark" role="img" aria-label="Grana"></span><span class="bk-word">Grana</span></div><button type="button" class="g-sidebar__toggle" data-act="toggle" aria-expanded="${!rail}" aria-label="${rail?'Expandir la barra lateral':'Contraer la barra lateral'}">${svg('panel')}</button></div>
       ${o.search?`<button type="button" class="g-sidebar__search" data-act="search" aria-haspopup="dialog"><span class="g-sidebar__icon">${svg('search')}</span><span class="g-sidebar__label">Buscar</span><kbd class="g-sidebar__hint" aria-hidden="true">⌘K</kbd></button>`:''}</div>
       <nav class="g-sidebar__nav" aria-label="Principal"><ul class="g-sidebar__groups" role="list">${groups}</ul></nav>
-      ${o.user?`<div class="g-sidebar__foot"><button type="button" class="bk-user" data-act="user" aria-haspopup="true" aria-expanded="false"><span class="bk-avatar" aria-hidden="true">AG</span><span class="bk-who"><b>Ana García</b><small>Administradora</small></span><span class="g-sidebar__chevron" aria-hidden="true">${svg('chev')}</span></button></div>`:''}</div>`
+      ${o.user?`<div class="g-sidebar__foot"><button type="button" class="bk-user" data-act="user" aria-haspopup="true" aria-expanded="false"><span class="bk-avatar" aria-hidden="true">AG</span><span class="bk-who"><b>Ana García</b><small>Administradora</small></span>${window.lucide('chevron-right','g-sidebar__chevron')}</button></div>`:''}</div>`
     this.bind(); if(restore){this.host.querySelector(`[data-id="${restore}"]`)?.focus()}
   }
   barItems(){const flat=this.o.nav.flatMap(g=>g.items);const n=this.o.barN||4;const flagged=flat.filter(i=>i.primary);return (flagged.length?flagged:flat.filter(i=>!i.disabled)).slice(0,n)}
@@ -126,7 +127,7 @@ class Sidebar{
     const flat=this.o.nav.flatMap(g=>g.items),activeTop=flat.find(i=>i.id===this.active||(i.children||[]).some(c=>c.id===this.active))
     const moreActive=activeTop&&!inBar.has(activeTop.id),curKey=activeTop&&inBar.has(activeTop.id)?activeTop.id:(moreActive?'more':null)
     const prevKey=Sidebar._prevCur
-    const badge=it=>it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?'<span class="g-sidebar__badge" aria-hidden="true" style="min-inline-size:8px;block-size:8px;padding:0"></span>':''
+    const badge=it=>it.badge!=null?`<span class="g-sidebar__badge" aria-hidden="true">${it.badge}</span>`:it.dot?window.lucide('circle','g-sidebar__badge g-sidebar__badge--dot',true):''
     const sr=it=>it.badgeLabel?`<span class="g-sidebar__sr">, ${esc(it.badgeLabel)}</span>`:''
     const start=(prevKey&&prevKey!==curKey&&!matchMedia('(prefers-reduced-motion:reduce)').matches)?prevKey:curKey
     const li=items.map(it=>{const cur=it.id===start,branch=it.children&&it.children.some(c=>c.id===this.active)
@@ -258,7 +259,7 @@ build()
 ;(()=>{const box=document.getElementById('states')
   const wrap=(t,inner)=>`<div><p class="cap">${t}</p><div class="g-sidebar g-sidebar--mode-expanded g-sidebar--variant-fixed g-sidebar--color-brand g-sidebar--density-default"><ul class="g-sidebar__list"><li class="g-sidebar__item">${inner}</li></ul></div></div>`
   const link=(cls,cur)=>`<a class="g-sidebar__link ${cls}" href="#x" ${cur?'aria-current="page"':''}><span class="g-sidebar__icon" aria-hidden="true">${svg('inbox')}</span><span class="g-sidebar__label">Bandeja</span><span class="g-sidebar__badge" aria-hidden="true">12</span></a>`
-  const par=(ex,extra='')=>`<button type="button" class="g-sidebar__link g-sidebar__parent ${extra}" aria-expanded="${ex}"><span class="g-sidebar__icon" aria-hidden="true">${svg('folder')}</span><span class="g-sidebar__label">Proyectos</span><span class="g-sidebar__chevron" aria-hidden="true"></span></button>`
+  const par=(ex,extra='')=>`<button type="button" class="g-sidebar__link g-sidebar__parent ${extra}" aria-expanded="${ex}"><span class="g-sidebar__icon" aria-hidden="true">${svg('folder')}</span><span class="g-sidebar__label">Proyectos</span>${window.lucide('chevron-right','g-sidebar__chevron')}</button>`
   box.innerHTML=wrap('Default',link(''))+wrap('Hover (puntero)',link(''))+wrap('Active (aria-current)',link('is-active',true))+
    wrap('Rama activa',par('true','is-branch')+`<ul class="g-sidebar__sub"><li><a class="g-sidebar__link" href="#a"><span class="g-sidebar__label">Todos</span></a></li><li><a class="g-sidebar__link is-active" href="#b" aria-current="page"><span class="g-sidebar__label">Archivados</span></a></li></ul>`)+
    wrap('Expanded',par('true'))+wrap('Collapsed',par('false'))+

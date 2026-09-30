@@ -155,7 +155,7 @@ Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignor
 
 - **Nombre y descripción:** `aria-labelledby` (título) y `aria-describedby` (descripción, si la hay; se suma al tuyo). Un `aria-label` o `aria-labelledby` tuyo sustituye al título como nombre. El rol nativo de `<dialog>` no se repite; solo se anuncia `alertdialog`.
 - **Cuerpo desplazable:** solo cuando su contenido no cabe recibe `tabindex="0"`, `role="region"` y el nombre del título, para que el teclado pueda desplazarlo. Cuando cabe, no es tabulable.
-- **Cierre:** botón con nombre (`closeLabel`); la cruz la dibuja el CSS con bordes, así que se ve también con colores forzados. Con `pointer: coarse` mide 44×44px.
+- **Cierre:** botón con nombre (`closeLabel`); la cruz es el icono `x` de Lucide (decorativo, toma `currentColor`), así que se ve también con colores forzados. Con `pointer: coarse` mide 44×44px.
 - **Contraste:** con el tema por defecto y con el de prueba de la auditoría, todo texto llega a 4.5:1 o más; el borde del icono de alerta, a 3:1 o más.
 - **Movimiento:** la entrada es breve (`--g-duration-press`, `--g-ease-out`) y solo existe con `prefers-reduced-motion: no-preference`. No hay animación de salida.
 - **Colores forzados:** carcasa, inset, pie y secciones usan `CanvasText`; el cierre, `ButtonText`.

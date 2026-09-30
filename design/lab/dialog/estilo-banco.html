@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css" id="css-d">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css" id="css-b">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GDialog/GDialog.css" id="css-g">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -21,7 +23,7 @@
 <div id="host"></div>
 <script>
 const btn=(t,o={})=>`<button class="g-btn g-btn--variant-${o.v||'outline'} g-btn--color-${o.c||'brand'} g-btn--size-md g-btn--density-default" type="${o.type||'button'}" ${o.attr||''}><span class="g-btn__label">${t}</span></button>`
-const close='<button class="g-dialog__close" type="button" aria-label="Cerrar" data-close></button>'
+const close='<button class="g-dialog__close" type="button" aria-label="Cerrar" data-close>'+window.lucide('x')+'</button>'
 const dlg=(id,cls,inner,attrs='')=>`<dialog class="g-dialog ${cls}" id="d-${id}" aria-labelledby="d-${id}-title" ${attrs}>${inner}</dialog>`
 const head=(id,t,desc,o={})=>`<div class="g-dialog__header">${o.icon?'<span class="g-dialog__icon" aria-hidden="true">!</span>':''}<div class="g-dialog__titles"><h2 class="g-dialog__title" id="d-${id}-title">${t}</h2>${desc?`<p class="g-dialog__description" id="d-${id}-desc">${desc}</p>`:''}</div>${o.noclose?'':close}</div>`
 const D=[

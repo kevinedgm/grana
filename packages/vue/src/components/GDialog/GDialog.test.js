@@ -237,12 +237,14 @@ describe('GDialog · accesibilidad', () => {
     w.unmount()
   })
 
-  it('el botón de cierre usa closeLabel y va vacío; sin closeLabel no se renderiza', () => {
+  it('el botón de cierre usa closeLabel, sin texto y con un x de Lucide decorativo; sin closeLabel no se renderiza', () => {
     const w = mountOpen({ closeLabel: 'Cerrar ventana' })
     const b = w.find('.g-dialog__close')
     expect(b.attributes('aria-label')).toBe('Cerrar ventana')
     expect(b.text()).toBe('')
-    expect(b.element.children.length).toBe(0)
+    expect(b.element.children.length).toBe(1)
+    expect(b.find('svg.g-icon').attributes('aria-hidden')).toBe('true')
+    expect(b.find('svg').html()).toContain('M18 6 6 18')
     w.unmount()
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const s = mountOpen({ closeLabel: undefined })

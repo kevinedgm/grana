@@ -56,7 +56,7 @@ Precedencia si hay varios: `count` > texto > figura > icono. Con `count`, el slo
 Un valor fuera de la lista muestra una advertencia en desarrollo. `ghost` y `link` no son variantes de una insignia.
 
 - **`count`, `max`, `showZero`:** con `count` mayor que `max` se muestra `max+` (`99+`). Con `count` 0 y sin `showZero`, **no se renderiza la insignia** (anclada: solo el destino). El texto para lectores es `label` (el número real), nunca «99+».
-- **`shape`:** con texto, es el punto de estado delante del texto; sin texto (ni `count` ni icono), es la insignia entera. Convención sugerida (la aplicación la ratifica): círculo = en línea o correcto, cuadrado = detenido, rombo = advertencia, triángulo = error. Las formas se dibujan con CSS y **se conservan con colores forzados**.
+- **`shape`:** con texto, es el punto de estado delante del texto (un icono de Lucide relleno: `circle`, `square`, `diamond` o `triangle`); sin texto (ni `count` ni icono), es la insignia entera. Convención sugerida (la aplicación la ratifica): círculo = en línea o correcto, cuadrado = detenido, rombo = advertencia, triángulo = error. Las formas se dibujan con CSS y **se conservan con colores forzados**.
 - **`label`:** nombre accesible. **Obligatorio** en contador, figura sola e icono solo (sin él, en desarrollo hay `console.warn`; un contador sin `label` deja su número visible para lectores). En una insignia con texto visible es opcional, y si se da, **se lee en lugar del texto visible** (no se duplica). No tiene valor por defecto: Grana es internacional.
 - **`size`:** `sm`, `md` y `lg` (la altura sale de `--g-space-1`). No hay piso táctil: no es interactiva.
 - **`placement`:** esquina lógica (`top-end` por defecto; en RTL se espeja). Solo actúa con el slot `anchor`.

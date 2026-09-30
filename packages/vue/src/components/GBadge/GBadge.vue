@@ -4,6 +4,7 @@
 // Función de render: el contenido (texto, icono, ancla) se lee de los slots dentro del render, como pide Vue.
 import { Comment, Fragment, Text, defineComponent, h } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 // Un slot cuenta como contenido solo si devuelve algo (no comentarios ni texto vacío)
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
@@ -64,7 +65,7 @@ export default defineComponent({
       if (visible) {
         const body = []
         if (props.shape && (kind === 'text' || kind === 'figure')) {
-          body.push(h('span', { class: ['g-badge__shape', `g-badge__shape--${props.shape}`], 'aria-hidden': 'true' }))
+          body.push(h(GIcon, { class: ['g-badge__shape', `g-badge__shape--${props.shape}`], name: props.shape, filled: true }))
         }
         if (icon.length && (kind === 'text' || kind === 'icon')) {
           body.push(h('span', { class: 'g-badge__icon', 'aria-hidden': 'true' }, icon))

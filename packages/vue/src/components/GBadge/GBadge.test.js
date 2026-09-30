@@ -40,10 +40,11 @@ describe('GBadge · render y clases', () => {
 describe('GBadge · modos', () => {
   it('texto con figura (punto) y con icono, en ese orden', () => {
     const w = mk({ shape: 'circle' }, { default: 'Activo', icon: () => h('i', 'I') })
-    const kids = [...badge(w).element.children].map((c) => c.className.split(' ')[0])
+    const kids = [...badge(w).element.children].map((c) => (c.getAttribute('class') ?? '').split(' ').find((x) => x.startsWith('g-badge__')))
     expect(kids).toEqual(['g-badge__shape', 'g-badge__icon', 'g-badge__text'])
     expect(w.find('.g-badge__shape').classes()).toContain('g-badge__shape--circle')
     expect(w.find('.g-badge__shape').attributes('aria-hidden')).toBe('true')
+    expect(w.find('svg.g-badge__shape').attributes('fill')).toBe('currentColor')
     expect(w.find('.g-badge__icon').attributes('aria-hidden')).toBe('true')
   })
 

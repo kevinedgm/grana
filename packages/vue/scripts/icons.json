@@ -42,11 +42,26 @@
     "users"
   ],
   "lab": [
+    "bell",
     "building-2",
+    "calendar",
+    "chart-column",
+    "check",
+    "chevron-right",
     "circle-check",
+    "credit-card",
+    "file-text",
+    "folder",
+    "house",
+    "inbox",
     "mail",
+    "menu",
+    "message-circle",
+    "panel-left",
     "search",
+    "settings",
     "tag",
-    "user"
+    "user",
+    "users"
   ]
 }

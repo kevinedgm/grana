@@ -7,6 +7,8 @@
 <!-- Banco de coco: marcado exacto de design/contracts/badge.md con el CSS real y el tema por defecto. No es documentación. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css?v=1" id="css-b">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -24,13 +26,13 @@
 <div id="app"></div>
 <script>
 const COLORS=['brand','accent','neutral','success','warning','danger','info'],VARS=['solid','soft','outline','glass']
-const P={bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',check:'<path d="M20 6 9 17l-5-5"/>',mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>'}
-const ico=n=>`<span class="g-badge__icon" aria-hidden="true"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg></span>`
+const P_NAMES={bell:'bell',check:'check',mail:'mail'}
+const ico=n=>`<span class="g-badge__icon" aria-hidden="true">${window.lucide(P_NAMES[n]||n)}</span>`
 const cls=(o,kind)=>['g-badge',`g-badge--variant-${o.v||'soft'}`,`g-badge--color-${o.c||'neutral'}`,`g-badge--size-${o.s||'md'}`,`g-badge--kind-${kind}`].join(' ')
 const sr=t=>t?`<span class="g-badge__sr">${t}</span>`:''
-const text=(t,o={})=>`<span class="${cls(o,'text')}">${o.shape?`<span class="g-badge__shape g-badge__shape--${o.shape}" aria-hidden="true"></span>`:''}${o.icon?ico(o.icon):''}<span class="g-badge__text">${t}</span></span>`
+const text=(t,o={})=>`<span class="${cls(o,'text')}">${o.shape?`${window.lucide(o.shape,'g-badge__shape g-badge__shape--'+o.shape,true)}`:''}${o.icon?ico(o.icon):''}<span class="g-badge__text">${t}</span></span>`
 const iconOnly=(i,l,o={})=>`<span class="${cls(o,'icon')}">${ico(i)}${sr(l)}</span>`
-const figure=(sh,l,o={})=>`<span class="${cls(o,'figure')}"><span class="g-badge__shape g-badge__shape--${sh}" aria-hidden="true"></span>${sr(l)}</span>`
+const figure=(sh,l,o={})=>`<span class="${cls(o,'figure')}">${window.lucide(sh,'g-badge__shape g-badge__shape--'+sh,true)}${sr(l)}</span>`
 const count=(n,l,o={})=>`<span class="${cls(o,'count')}"><span class="g-badge__text" aria-hidden="true">${n>(o.max||99)?(o.max||99)+'+':n}</span>${sr(l)}</span>`
 const anchor=(t,b,p='top-end')=>`<span class="g-badge-anchor g-badge-anchor--${p}">${t}${b}</span>`
 const sec=(t,h)=>`<h2>${t}</h2><div class="row">${h}</div>`
@@ -41,7 +43,7 @@ const html=[
  sec('Texto + figura / icono',['circle','square','diamond','triangle'].map(sh=>text('Estado',{v:'soft',c:'warning',shape:sh})).join('')+text('Verificado',{v:'soft',c:'success',icon:'check'})+text('Nuevo',{v:'solid',c:'accent',icon:'mail'})),
  sec('Contador',[0,1,12,99,100,1000].map(n=>n===0?'':count(n,String(n),{v:'solid',c:'danger'})).join('')),
  `<h2>Liquid glass sobre distintos fondos (× 7 colores)</h2>`+['dark','photo','stripes','white'].map(b=>`<div class="bg bg--${b}" data-bg="${b}" style="margin-bottom:8px">${COLORS.map(c=>text(c,{v:'glass',c})+figure('circle',c,{v:'glass',c})+iconOnly('bell',c,{v:'glass',c})+count(12,c,{v:'glass',c})).join('')}${anchor('<span class="avatar" aria-label="Ana">A</span>',count(3,'3',{s:'sm',v:'glass'}))}</div>`).join(''),
- sec('Anclada (cuatro esquinas)',['top-end','top-start','bottom-end','bottom-start'].map(p=>anchor('<span class="avatar" aria-label="x">A</span>',count(3,'3',{s:'sm',v:'solid',c:'danger'}),p)).join('')+anchor('<button class="iconbtn" id="bt" type="button" aria-label="Bandeja"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+P.mail+'</svg></button>',count(120,'120',{s:'sm',v:'solid',c:'danger'}))),
+ sec('Anclada (cuatro esquinas)',['top-end','top-start','bottom-end','bottom-start'].map(p=>anchor('<span class="avatar" aria-label="x">A</span>',count(3,'3',{s:'sm',v:'solid',c:'danger'}),p)).join('')+anchor('<button class="iconbtn" id="bt" type="button" aria-label="Bandeja">'+window.lucide('mail')+'</button>',count(120,'120',{s:'sm',v:'solid',c:'danger'}))),
  `<h2>RTL</h2><div class="row" dir="rtl">${anchor('<span class="avatar" aria-label="x">أ</span>',count(3,'3',{s:'sm',v:'solid',c:'danger'}))}${text('نشط',{v:'soft',c:'success',shape:'circle'})}</div>`,
  `<h2>Texto largo (160px)</h2><div class="frame" style="width:160px">${text('Un texto de insignia demasiado largo para caber',{v:'soft'})}</div>`
 ].join('')

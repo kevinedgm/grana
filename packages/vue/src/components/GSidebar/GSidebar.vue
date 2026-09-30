@@ -6,6 +6,7 @@
 // submenú solo se alternan clases y atributos sobre el mismo DOM (así corren las transiciones de coco).
 import { Fragment, computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -412,7 +413,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
     const badgeNodes = (item) => {
       const out = []
       if (item.badge !== undefined && item.badge !== null) out.push(h('span', { class: 'g-sidebar__badge', 'aria-hidden': 'true' }, String(item.badge)))
-      else if (item.dot) out.push(h('span', { class: 'g-sidebar__badge g-sidebar__badge--dot', 'aria-hidden': 'true' }))
+      else if (item.dot) out.push(h(GIcon, { class: 'g-sidebar__badge g-sidebar__badge--dot', name: 'circle', filled: true }))
       if (item.badgeLabel) out.push(h('span', { class: 'g-sidebar__sr' }, `, ${item.badgeLabel}`))
       return out
     }
@@ -454,7 +455,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
         }, [
           level === 0 ? h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, iconNode(item)) : null,
           h('span', { class: 'g-sidebar__label' }, item.label),
-          h('span', { class: 'g-sidebar__chevron', 'aria-hidden': 'true' })
+          h(GIcon, { class: 'g-sidebar__chevron', name: 'chevron-right' })
         ])
       }
       if (item.disabled) {
@@ -506,7 +507,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
               onClick: toggleCollapsed
             }, slots['toggle-icon'] ? slots['toggle-icon'](scope) : null)
           : (L.value.close
-              ? h('button', { type: 'button', class: 'g-sidebar__toggle', 'aria-label': L.value.close, onClick: () => setDrawer(false) }, [h('span', { 'aria-hidden': 'true' }, '×')])
+              ? h('button', { type: 'button', class: 'g-sidebar__toggle', 'aria-label': L.value.close, onClick: () => setDrawer(false) }, [h(GIcon, { name: 'x' })])
               : null)
       ])
       let search = null

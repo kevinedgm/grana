@@ -6,7 +6,7 @@
   consulta de medios (~900px y ~520px, excepción DECISIONS.md #42; @media no admite var()).
   Carácter propio: una carcasa y, dentro, una superficie inset a poca distancia con radio
   concéntrico. La profundidad sale de diferencias mínimas de fondo, bordes finos y sombras suaves.
-  El botón de cierre va vacío: la cruz la dibuja este CSS con bordes (visible en forced-colors).
+  El botón de cierre lleva el x de Lucide (GIcon).
 */
 
 /* ---------- Carcasa ---------- */
@@ -91,10 +91,12 @@ html:has(.g-dialog[open]) {
   background: var(--g-surface-inset);
 }
 
-/* Cierre: botón vacío; la cruz son dos barras de borde */
+/* Cierre: botón con el x de Lucide (GIcon, docs/contract/icons.md) */
 .g-dialog__close {
   position: relative;
   flex: none;
+  display: grid;
+  place-items: center;
   box-sizing: border-box;
   inline-size: var(--_ctl);
   block-size: var(--_ctl);
@@ -112,20 +114,10 @@ html:has(.g-dialog[open]) {
     color var(--g-duration-fast) var(--g-ease-standard),
     scale var(--g-duration-press) var(--g-ease-out);
 }
-.g-dialog__close::before,
-.g-dialog__close::after {
-  content: "";
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 25%;
-  inline-size: 50%;
-  block-size: 0;
-  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
-  border-radius: var(--g-radius-pill);
-  rotate: 45deg;
-  translate: 0 -50%;
+.g-dialog__close > .g-icon {
+  inline-size: 55%;
+  block-size: 55%;
 }
-.g-dialog__close::after { rotate: -45deg; }
 @media (hover: hover) {
   .g-dialog__close:hover {
     background: var(--g-surface-inset);

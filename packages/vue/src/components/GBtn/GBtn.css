@@ -95,16 +95,13 @@
   min-inline-size: 0;
 }
 .g-btn__loader {
+  /* loader-circle de Lucide (GIcon, docs/contract/icons.md): gira y toma currentColor */
   display: none;
   position: absolute;
   inset: 0;
   margin: auto;
   inline-size: var(--_fs);
   block-size: var(--_fs);
-  box-sizing: border-box;
-  border: calc(var(--g-border-width) * 2) solid currentColor;
-  border-inline-end-color: transparent;
-  border-radius: var(--g-radius-pill);
   animation: g-btn-spin var(--g-duration-spin) linear infinite;
 }
 .g-btn__status {

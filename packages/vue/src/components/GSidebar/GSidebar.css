@@ -334,21 +334,21 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Chevron de Lucide (chevron-right): apunta al inicio del contenido; en RTL se espeja; abierto, apunta abajo */
 .g-sidebar__chevron {
   flex: none;
-  box-sizing: border-box;
-  inline-size: calc(var(--g-space-1) * 2);
-  block-size: calc(var(--g-space-1) * 2);
-  border: solid currentColor;
-  border-width: 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2) 0;
-  rotate: -45deg;
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
   transition: rotate var(--_t) var(--g-ease-out);
 }
 [dir="rtl"] .g-sidebar__chevron {
-  rotate: 135deg;
+  scale: -1 1;
 }
 .g-sidebar__parent[aria-expanded="true"] .g-sidebar__chevron {
-  rotate: 45deg;
+  rotate: 90deg;
+}
+[dir="rtl"] .g-sidebar__parent[aria-expanded="true"] .g-sidebar__chevron {
+  rotate: -90deg;
 }
 /* Indicador: contador o punto; su texto para lectores es g-sidebar__sr */
 .g-sidebar__badge {
@@ -372,14 +372,17 @@
     opacity: 0;
   }
 }
-/* Punto de estado (sin número): la misma píldora, reducida a un círculo */
+/* Punto de estado (sin número): el circle de Lucide relleno (GIcon filled), con el color del indicador */
 .g-sidebar__badge.g-sidebar__badge--dot,
 .g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__badge.g-sidebar__badge--dot,
 .g-sidebar--mode-navbar .g-sidebar__badge.g-sidebar__badge--dot {
-  inline-size: calc(var(--g-space-1) * 2);
-  block-size: calc(var(--g-space-1) * 2);
+  inline-size: calc(var(--g-space-1) * 2.4);
+  block-size: calc(var(--g-space-1) * 2.4);
   min-inline-size: 0;
   padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--_color);
   line-height: 0;
 }
 .g-sidebar__sr,

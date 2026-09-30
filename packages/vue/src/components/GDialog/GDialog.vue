@@ -3,6 +3,7 @@
 // Contrato: design/contracts/dialog.md · Estructura: design/lab/dialog/r01/ · Estilo: GDialog.css (coco)
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GDialog', inheritAttrs: false })
 
@@ -230,7 +231,7 @@ if (isDev) {
             <p v-if="hasDescription" :id="descId" class="g-dialog__description"><slot name="description">{{ description }}</slot></p>
           </slot>
         </div>
-        <button v-if="showClose" class="g-dialog__close" type="button" :aria-label="closeLabel" @click="close" />
+        <button v-if="showClose" class="g-dialog__close" type="button" :aria-label="closeLabel" @click="close"><GIcon name="x" /></button>
       </div>
       <div v-if="inset" :class="insetClasses">
         <div ref="body" :class="bodyClasses" v-bind="bodyAttrs" @scroll.passive="measure"><slot :close="close" /></div>
