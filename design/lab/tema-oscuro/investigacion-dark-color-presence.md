@@ -225,6 +225,10 @@ La **ventana válida es estrecha**: por debajo de B·0.66 / C·0.45 los casos ap
 2. Decidir el objetivo y el alcance (arriba) y, si se adopta una regla, escribirla en `tokens.md` §15 y §16 con su prueba.
 3. Si no se adopta, dejar 4.5:1 como suelo y documentar `dark: { accent, overrides }` como la salida para quien quiera más presencia.
 
+## Fase 2 (hecha, sin decisión)
+
+Comprobación en 11 temas completos, con componentes reales, Light y Dark, hipótesis A, B y C y cuatro condiciones de superficie oscura: ver `dark-color-presence/` (`README.md`, `analysis.md` y `recommendation.md`). La Fase 1 (arriba) se conserva como **Color-family benchmark**.
+
 ## Resultado
 
 **Medición, revisión visual y ampliación a 9 familias hechas; decisión pendiente.** Ninguna regla de derivación cambió. La ampliación **corrige** la lectura provisional anterior: con 9 familias **no hay evidencia de que `danger` o `warning` necesiten una regla propia**, y **B (L ≥ 0.70) y C (ΔE ≥ 0.50) dan resultados casi idénticos**; lo decisivo es el umbral, con una ventana estrecha (0.74 / 0.55 sobrecorrigen).

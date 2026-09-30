@@ -1,0 +1,12 @@
+{
+  "brand": "#635BFF",
+  "accent": "#00AFC7",
+  "radius": 10,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "DM Sans",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}

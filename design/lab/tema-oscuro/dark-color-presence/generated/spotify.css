@@ -1,0 +1,139 @@
+/* Generado por @grana/cli a partir de themes/spotify.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 10px;
+  --g-radius-sm: 14px;
+  --g-radius-md: 20px;
+  --g-radius-lg: 28px;
+  --g-radius-xl: 39px;
+  --g-radius-shape: var(--g-radius-pill);
+  --g-space-1: 4px;
+  --g-space-2: 8px;
+  --g-space-3: 12px;
+  --g-space-4: 16px;
+  --g-space-5: 20px;
+  --g-space-6: 24px;
+  --g-space-8: 32px;
+  --g-space-12: 48px;
+  --g-space-16: 64px;
+  --g-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-font-display: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-text-caption-size: 0.75rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-sm-line: 1.25rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 1rem;
+  --g-text-body-line: 1.5rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.25rem;
+  --g-text-title-sm-line: 1.75rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.5625rem;
+  --g-text-title-line: 2.25rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 1.9531rem;
+  --g-text-title-lg-line: 2.5rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 2.4414rem;
+  --g-text-display-line: 3rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #1ED760;
+  --g-color-brand-strong: #00BA4F;
+  --g-color-brand-soft: #D4FDD9;
+  --g-color-brand-text: #008938;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #007F33;
+  --g-color-accent: #A7F3C1;
+  --g-color-accent-strong: #8DD8A8;
+  --g-color-accent-soft: #E1F7E7;
+  --g-color-accent-text: #398357;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #2F7A4F;
+  --g-color-surface-sunken: #F3F8F3;
+  --g-color-text: #171B18;
+  --g-color-text-muted: #4F5850;
+  --g-color-text-subtle: #687169;
+  --g-color-border-control: #838D85;
+  --g-color-border: rgb(23 27 24 / 0.08);
+  --g-color-border-strong: rgb(23 27 24 / 0.16);
+  --g-color-neutral: #656E66;
+  --g-color-neutral-strong: #4F5750;
+  --g-color-neutral-soft: #EEF1EE;
+  --g-color-neutral-text: #656E66;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #656E66;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --g-color-brand: #1ED760;
+    --g-color-brand-strong: #42EB73;
+    --g-color-brand-soft: #002D0D;
+    --g-color-brand-text: #1ED760;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #1ED760;
+    --g-color-accent: #A7F3C1;
+    --g-color-accent-strong: #D3FFE1;
+    --g-color-accent-soft: #15291C;
+    --g-color-accent-text: #A7F3C1;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #A7F3C1;
+    --g-color-surface-sunken: #0D110E;
+    --g-color-text: #EFF4EF;
+    --g-color-text-muted: #B1BBB2;
+    --g-color-text-subtle: #959F96;
+    --g-color-border-control: #7A837B;
+    --g-color-border: rgb(239 244 239 / 0.10);
+    --g-color-border-strong: rgb(239 244 239 / 0.20);
+    --g-color-neutral: #7F8880;
+    --g-color-neutral-strong: #919B92;
+    --g-color-neutral-soft: #222522;
+    --g-color-neutral-text: #7F8880;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #858E86;
+    --g-color-bg: #111512;
+    --g-color-surface: #191D1A;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #1ED760;
+  --g-color-brand-strong: #42EB73;
+  --g-color-brand-soft: #002D0D;
+  --g-color-brand-text: #1ED760;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #1ED760;
+  --g-color-accent: #A7F3C1;
+  --g-color-accent-strong: #D3FFE1;
+  --g-color-accent-soft: #15291C;
+  --g-color-accent-text: #A7F3C1;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #A7F3C1;
+  --g-color-surface-sunken: #0D110E;
+  --g-color-text: #EFF4EF;
+  --g-color-text-muted: #B1BBB2;
+  --g-color-text-subtle: #959F96;
+  --g-color-border-control: #7A837B;
+  --g-color-border: rgb(239 244 239 / 0.10);
+  --g-color-border-strong: rgb(239 244 239 / 0.20);
+  --g-color-neutral: #7F8880;
+  --g-color-neutral-strong: #919B92;
+  --g-color-neutral-soft: #222522;
+  --g-color-neutral-text: #7F8880;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #858E86;
+  --g-color-bg: #111512;
+  --g-color-surface: #191D1A;
+}

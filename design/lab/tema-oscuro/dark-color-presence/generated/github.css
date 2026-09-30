@@ -1,0 +1,96 @@
+/* Generado por @grana/cli a partir de themes/github.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 3px;
+  --g-radius-sm: 4px;
+  --g-radius-md: 6px;
+  --g-radius-lg: 8px;
+  --g-radius-xl: 12px;
+  --g-radius-shape: var(--g-radius-md);
+  --g-space-1: 4px;
+  --g-space-2: 8px;
+  --g-space-3: 12px;
+  --g-space-4: 16px;
+  --g-space-5: 20px;
+  --g-space-6: 24px;
+  --g-space-8: 32px;
+  --g-space-12: 48px;
+  --g-space-16: 64px;
+  --g-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-text-caption-size: 0.75rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-sm-line: 1.25rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 1rem;
+  --g-text-body-line: 1.5rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.2rem;
+  --g-text-title-sm-line: 1.75rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.44rem;
+  --g-text-title-line: 2rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 1.728rem;
+  --g-text-title-lg-line: 2.25rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 2.0736rem;
+  --g-text-display-line: 2.5rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #24292F;
+  --g-color-brand-strong: #383D44;
+  --g-color-brand-soft: #EEF0F3;
+  --g-color-brand-text: #24292F;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #24292F;
+  --g-color-accent: #0969DA;
+  --g-color-accent-strong: #0053B2;
+  --g-color-accent-soft: #E7F1FF;
+  --g-color-accent-text: #0969DA;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #0969DA;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --g-color-brand: #9FA6AD;
+    --g-color-brand-strong: #B2B9C0;
+    --g-color-brand-soft: #222426;
+    --g-color-brand-text: #9FA6AD;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #9FA6AD;
+    --g-color-accent: #2D82F6;
+    --g-color-accent-strong: #4E97FF;
+    --g-color-accent-soft: #0D2444;
+    --g-color-accent-text: #2D82F6;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #3489FD;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #9FA6AD;
+  --g-color-brand-strong: #B2B9C0;
+  --g-color-brand-soft: #222426;
+  --g-color-brand-text: #9FA6AD;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #9FA6AD;
+  --g-color-accent: #2D82F6;
+  --g-color-accent-strong: #4E97FF;
+  --g-color-accent-soft: #0D2444;
+  --g-color-accent-text: #2D82F6;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #3489FD;
+}

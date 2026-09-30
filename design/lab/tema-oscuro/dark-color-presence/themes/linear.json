@@ -1,0 +1,12 @@
+{
+  "brand": "#5E6AD2",
+  "accent": "#8A7CFF",
+  "radius": 10,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "Inter",
+  "fontSize": 15,
+  "typeScale": 1.2,
+  "dark": true
+}

@@ -1,0 +1,12 @@
+{
+  "brand": "#F5B940",
+  "accent": "#5B3FE0",
+  "radius": 20,
+  "shape": "pill",
+  "space": 4,
+  "font": "Instrument Sans",
+  "fontDisplay": "Instrument Serif",
+  "fontSize": 16,
+  "typeScale": 1.4,
+  "dark": true
+}

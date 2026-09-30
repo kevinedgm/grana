@@ -1,0 +1,12 @@
+{
+  "brand": "#242424",
+  "accent": "#1A8917",
+  "radius": 4,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Source Sans 3",
+  "fontDisplay": "Source Serif 4",
+  "fontSize": 16,
+  "typeScale": 1.333,
+  "dark": true
+}

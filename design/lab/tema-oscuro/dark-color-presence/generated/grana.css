@@ -1,0 +1,139 @@
+/* Generado por @grana/cli a partir de themes/grana.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 8px;
+  --g-radius-sm: 11px;
+  --g-radius-md: 16px;
+  --g-radius-lg: 22px;
+  --g-radius-xl: 31px;
+  --g-radius-shape: var(--g-radius-md);
+  --g-space-1: 4px;
+  --g-space-2: 8px;
+  --g-space-3: 12px;
+  --g-space-4: 16px;
+  --g-space-5: 20px;
+  --g-space-6: 24px;
+  --g-space-8: 32px;
+  --g-space-12: 48px;
+  --g-space-16: 64px;
+  --g-font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-font-display: "Instrument Serif", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-text-caption-size: 0.75rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-sm-line: 1.25rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 1rem;
+  --g-text-body-line: 1.5rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.25rem;
+  --g-text-title-sm-line: 1.75rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.5625rem;
+  --g-text-title-line: 2.25rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 1.9531rem;
+  --g-text-title-lg-line: 2.5rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 2.4414rem;
+  --g-text-display-line: 3rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #9D1635;
+  --g-color-brand-strong: #7C0024;
+  --g-color-brand-soft: #FFEAEB;
+  --g-color-brand-text: #9D1635;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #9D1635;
+  --g-color-accent: #D85A70;
+  --g-color-accent-strong: #F47388;
+  --g-color-accent-soft: #FFEAEC;
+  --g-color-accent-text: #C74A62;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #BC4159;
+  --g-color-surface-sunken: #FCF4F4;
+  --g-color-text: #1F1818;
+  --g-color-text-muted: #5C5253;
+  --g-color-text-subtle: #766B6B;
+  --g-color-border-control: #928787;
+  --g-color-border: rgb(31 24 24 / 0.08);
+  --g-color-border-strong: rgb(31 24 24 / 0.16);
+  --g-color-neutral: #736868;
+  --g-color-neutral-strong: #5C5252;
+  --g-color-neutral-soft: #F3EFEF;
+  --g-color-neutral-text: #736868;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #736868;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --g-color-brand: #DE5869;
+    --g-color-brand-strong: #F36B7A;
+    --g-color-brand-soft: #3C171A;
+    --g-color-brand-text: #DE5869;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #E55F6E;
+    --g-color-accent: #D85A70;
+    --g-color-accent-strong: #ED6D82;
+    --g-color-accent-soft: #3A171D;
+    --g-color-accent-text: #D85A70;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #DF6076;
+    --g-color-surface-sunken: #140E0F;
+    --g-color-text: #F7F0F0;
+    --g-color-text-muted: #C1B5B5;
+    --g-color-text-subtle: #A49999;
+    --g-color-border-control: #887D7D;
+    --g-color-border: rgb(247 240 240 / 0.10);
+    --g-color-border-strong: rgb(247 240 240 / 0.20);
+    --g-color-neutral: #8E8282;
+    --g-color-neutral-strong: #A09494;
+    --g-color-neutral-soft: #262323;
+    --g-color-neutral-text: #8E8282;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #948888;
+    --g-color-bg: #181213;
+    --g-color-surface: #211A1A;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #DE5869;
+  --g-color-brand-strong: #F36B7A;
+  --g-color-brand-soft: #3C171A;
+  --g-color-brand-text: #DE5869;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #E55F6E;
+  --g-color-accent: #D85A70;
+  --g-color-accent-strong: #ED6D82;
+  --g-color-accent-soft: #3A171D;
+  --g-color-accent-text: #D85A70;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #DF6076;
+  --g-color-surface-sunken: #140E0F;
+  --g-color-text: #F7F0F0;
+  --g-color-text-muted: #C1B5B5;
+  --g-color-text-subtle: #A49999;
+  --g-color-border-control: #887D7D;
+  --g-color-border: rgb(247 240 240 / 0.10);
+  --g-color-border-strong: rgb(247 240 240 / 0.20);
+  --g-color-neutral: #8E8282;
+  --g-color-neutral-strong: #A09494;
+  --g-color-neutral-soft: #262323;
+  --g-color-neutral-text: #8E8282;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #948888;
+  --g-color-bg: #181213;
+  --g-color-surface: #211A1A;
+}

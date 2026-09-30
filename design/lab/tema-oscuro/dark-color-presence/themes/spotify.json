@@ -1,0 +1,12 @@
+{
+  "brand": "#1ED760",
+  "accent": "#A7F3C1",
+  "radius": 20,
+  "shape": "pill",
+  "space": 4,
+  "font": "Inter",
+  "fontDisplay": "DM Sans",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Color Presence · página de benchmark</title>
+<!--
+  Página COMÚN del benchmark (Fase 2): el mismo DOM y los mismos componentes para todos los temas. No hay páginas por tema.
+  Parámetros (URL):  t = tema (notion, apple, …, lustre)  ·  m = light | dark  ·  v = A | B | C  ·  s = actual | low | medium | high
+  A = lo que emite el Theme Engine. B y C = simulaciones (generated/<tema>.variants.css). s = condición experimental de superficie oscura.
+  Las fuentes de cada tema (Inter, Source Sans 3…) no se cargan: solo Instrument Sans viene con Grana; el resto cae a la pila del sistema.
+-->
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<style>
+  body { margin: 0; padding: 14px 18px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-sm-size); line-height: 1.4; }
+  .bar { display: flex; gap: 10px; align-items: center; margin: 0 0 8px; font-size: 11px; color: var(--g-color-text-muted); }
+  .bar b { color: var(--g-color-text); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .sec { min-width: 0; }
+  .sec > h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--g-color-text-subtle); font-weight: 600; }
+  .stack { display: grid; gap: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .display { font-family: var(--g-font-display, var(--g-font-ui)); font-size: var(--g-text-display-size); line-height: 1.05; margin: 0; font-weight: 600; }
+  .title { font-size: var(--g-text-title-size); line-height: 1.15; margin: 0; font-weight: 600; }
+  .body { margin: 0; }
+  .muted { margin: 0; color: var(--g-color-text-muted); }
+  .link { color: var(--g-color-link); text-decoration: underline; }
+  .card { background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); padding: 10px; }
+  .sunken { background: var(--g-color-surface-sunken); border-radius: var(--g-radius-md); padding: 8px; }
+  .tile { flex: 1 1 0; min-width: 0; padding: 6px 8px; border-radius: var(--g-radius-md); font-size: 11px; border: var(--g-border-width) solid var(--g-color-border); }
+  .sw { display: inline-flex; align-items: center; justify-content: center; padding: 5px 10px; border-radius: var(--g-radius-md); font-weight: 600; font-size: 12px; }
+  .dlg { position: static !important; margin: 0 !important; inline-size: auto !important; max-inline-size: none !important; }
+</style>
+<style id="dyn"></style>
+</head>
+<body>
+<div id="app">
+  <div class="bar"><b>{{ label }}</b><span>surface {{ surface }}</span></div>
+  <div class="grid">
+    <!-- Columna 1: tipografía, botones, campos -->
+    <div class="stack">
+      <div class="sec"><h3>Tipografía</h3>
+        <div class="stack">
+          <p class="display">Display</p><p class="title">Title</p>
+          <p class="body">Body: el texto principal de la interfaz.</p><p class="muted">Muted: texto de apoyo y metadatos.</p>
+          <p class="body"><a class="link" href="#" @click.prevent>Link de ejemplo</a></p>
+        </div>
+      </div>
+      <div class="sec"><h3>Botones</h3>
+        <div class="row">
+          <g-btn id="primary">Primary</g-btn>
+          <g-btn color="accent" variant="soft">Secondary</g-btn>
+          <g-btn variant="ghost">Text</g-btn>
+          <g-btn color="danger">Danger</g-btn>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <g-btn variant="outline">Outline</g-btn>
+          <g-btn variant="soft">Soft</g-btn>
+          <g-btn disabled>Disabled</g-btn>
+        </div>
+      </div>
+      <div class="sec"><h3>Campos</h3>
+        <div class="stack">
+          <g-input label="Input" v-model="txt" placeholder="Escribe aquí"></g-input>
+          <g-textarea label="Textarea" v-model="area" :rows="2"></g-textarea>
+          <g-select label="Select" v-model="sel" :options="opts"></g-select>
+          <div class="row"><g-checkbox v-model="chk" label="Checkbox"></g-checkbox><g-switch v-model="sw" label="Switch"></g-switch><g-switch :model-value="true" disabled label="Disabled"></g-switch></div>
+        </div>
+      </div>
+    </div>
+    <!-- Columna 2: semánticos y roles -->
+    <div class="stack">
+      <div class="sec"><h3>Brand · Accent</h3>
+        <div class="row"><g-badge color="brand" variant="solid">brand</g-badge><g-badge color="brand">brand soft</g-badge><g-badge color="accent" variant="solid">accent</g-badge><g-badge color="accent">accent soft</g-badge></div>
+        <div class="row" style="margin-top:6px"><g-btn size="sm">Primary sm</g-btn><g-btn size="sm" color="accent">Accent sm</g-btn><g-btn size="sm" variant="outline">Outline</g-btn></div>
+      </div>
+      <div class="sec"><h3>Success · Warning · Danger · Info</h3>
+        <div class="row"><g-badge color="success" variant="solid">success</g-badge><g-badge color="warning" variant="solid">warning</g-badge><g-badge color="danger" variant="solid">danger</g-badge><g-badge color="info" variant="solid">info</g-badge></div>
+        <div class="row" style="margin-top:6px"><g-badge color="success">Confirmado</g-badge><g-badge color="warning">Por confirmar</g-badge><g-badge color="danger">Cancelada</g-badge><g-badge color="info">Aviso</g-badge></div>
+        <div class="row" style="margin-top:6px"><g-btn size="sm" color="success">Success</g-btn><g-btn size="sm" color="warning">Warning</g-btn><g-btn size="sm" color="danger">Danger</g-btn><g-btn size="sm" color="info">Info</g-btn></div>
+        <div class="row" style="margin-top:6px"><g-btn size="sm" color="success" variant="outline">Success</g-btn><g-btn size="sm" color="warning" variant="outline">Warning</g-btn><g-btn size="sm" color="danger" variant="outline">Danger</g-btn><g-btn size="sm" color="info" variant="outline">Info</g-btn></div>
+      </div>
+      <div class="sec"><h3>Texto de color (sobre surface)</h3>
+        <div class="row"><span style="color:var(--g-color-primary-text);font-weight:600">primary</span><span style="color:var(--g-color-accent-text);font-weight:600">accent</span><span style="color:var(--g-color-success-text);font-weight:600">success</span><span style="color:var(--g-color-warning-text);font-weight:600">warning</span><span style="color:var(--g-color-danger-text);font-weight:600">danger</span><span style="color:var(--g-color-info-text);font-weight:600">info</span></div>
+      </div>
+      <div class="sec"><h3>Estados (hover / active = «strong»)</h3>
+        <div class="row"><span class="sw" style="background:var(--g-color-primary);color:var(--g-color-on-primary)">reposo</span><span class="sw" style="background:var(--g-color-primary-strong);color:var(--g-color-on-primary)">hover</span><span class="sw" style="background:var(--g-color-primary-strong);color:var(--g-color-on-primary);outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:2px">foco</span><span class="sw" style="background:var(--g-color-surface-sunken);color:var(--g-color-text-subtle)">disabled</span></div>
+      </div>
+    </div>
+    <!-- Columna 3: superficies -->
+    <div class="stack">
+      <div class="sec"><h3>Superficies</h3>
+        <div class="stack">
+          <div class="row"><div class="tile" style="background:var(--g-color-bg)">Background</div><div class="tile" style="background:var(--g-color-surface)">Surface</div><div class="tile" style="background:var(--g-color-surface-sunken)">Sunken</div></div>
+          <div class="card"><b>Card</b><p class="muted" style="margin:2px 0 6px">Tarjeta sobre el fondo.</p><div class="sunken"><span class="muted">Surface sunken dentro de la tarjeta</span></div></div>
+        </div>
+      </div>
+      <div class="sec"><h3>Dialog</h3>
+        <g-dialog :model-value="dlgOpen" @update:model-value="() => {}" title="Dialog" description="Superficie flotante con borde y sombra." close-label="Cerrar" class="dlg">
+          <p class="body">Contenido del diálogo con <span class="link">un enlace</span>.</p>
+          <template #footer><g-btn variant="ghost">Cancelar</g-btn><g-btn>Aceptar</g-btn></template>
+        </g-dialog>
+      </div>
+      <div class="sec"><h3>Popover (menú)</h3>
+        <g-menu v-model="menuOpen" :items="menuItems" label="Acciones" side="bottom">
+          <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Menú abierto</g-btn></template>
+        </g-menu>
+        <div style="height:150px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const q = new URLSearchParams(location.search)
+const t = q.get('t') || 'grana', m = q.get('m') || 'dark', v = q.get('v') || 'A', s = q.get('s') || 'actual'
+const de = document.documentElement
+de.dataset.theme = m; de.dataset.variant = v; de.dataset.surface = s
+for (const f of [`generated/${t}.css`, `generated/${t}.variants.css`]) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = f; document.head.append(l) }
+const { createApp, ref, nextTick, onMounted } = Vue
+createApp({
+  setup() {
+    const dlgOpen = ref(false), menuOpen = ref(false)
+    onMounted(async () => {
+      // Dialog: se muestra sin modal (show) para que se vea en la página; el menú queda abierto junto a su botón
+      await new Promise((r) => setTimeout(r, 150))
+      dlgOpen.value = true
+      await nextTick(); await new Promise((r) => setTimeout(r, 250))
+      const d = document.querySelector('dialog.g-dialog'); if (d) { try { d.close() } catch (e) {} d.show() }
+      await new Promise((r) => setTimeout(r, 250))
+      menuOpen.value = true // el menú se abre al final: abrir el diálogo le quita el foco y lo cerraría
+      await new Promise((r) => setTimeout(r, 400))
+      document.body.dataset.ready = '1'
+    })
+    return {
+      label: `${t} · ${m}${m === 'dark' ? ` · ${v} · surface ${s}` : ''}`, surface: 'var(--g-color-surface)',
+      txt: ref(''), area: ref('Texto de ejemplo'), sel: ref('b'), chk: ref(true), sw: ref(true), dlgOpen, menuOpen,
+      opts: [{ value: 'a', label: 'Opción A' }, { value: 'b', label: 'Opción B' }],
+      menuItems: [{ id: 'edit', label: 'Renombrar' }, { id: 'dup', label: 'Duplicar' }, { type: 'separator' }, { id: 'del', label: 'Eliminar', danger: true }]
+    }
+  }
+}).use(Grana).mount('#app')
+</script>
+</body>
+</html>

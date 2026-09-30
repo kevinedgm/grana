@@ -1,0 +1,980 @@
+{
+  "name": "Grana",
+  "version": 1,
+  "color": {
+    "themes": [
+      {
+        "id": "light",
+        "name": "Claro"
+      },
+      {
+        "id": "dark",
+        "name": "Oscuro"
+      }
+    ],
+    "tokens": [
+      {
+        "name": "brand",
+        "cssVar": "--g-color-brand",
+        "level": "reference",
+        "value": {
+          "light": "#F5B940",
+          "dark": "#F5B940"
+        },
+        "usage": "Color de marca: acción principal, elemento activo y énfasis de la interfaz. Relleno sólido; siempre con «on-brand».",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "brand-strong",
+        "cssVar": "--g-color-brand-strong",
+        "level": "reference",
+        "value": {
+          "light": "#DA9F18",
+          "dark": "#FFD07B"
+        },
+        "usage": "Hover y presionado del relleno sólido de «brand».",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "brand-soft",
+        "cssVar": "--g-color-brand-soft",
+        "level": "reference",
+        "value": {
+          "light": "#FFEED1",
+          "dark": "#312101"
+        },
+        "usage": "Fondo suave de «brand»: insignias, avisos y estados.",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "brand-text",
+        "cssVar": "--g-color-brand-text",
+        "level": "reference",
+        "value": {
+          "light": "#976C00",
+          "dark": "#F5B940"
+        },
+        "usage": "Texto, iconos y enlaces de color de «brand» sobre la superficie (≥ 4.5:1).",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 4.71,
+          "dark": 9.64
+        }
+      },
+      {
+        "name": "on-brand",
+        "cssVar": "--g-color-on-brand",
+        "level": "reference",
+        "value": {
+          "light": "#17151A",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «brand».",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-brand",
+          "light": 10.27,
+          "dark": 10.27
+        }
+      },
+      {
+        "name": "on-brand-soft",
+        "cssVar": "--g-color-on-brand-soft",
+        "level": "reference",
+        "value": {
+          "light": "#8C6400",
+          "dark": "#F5B940"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «brand».",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-brand-soft",
+          "light": 4.67,
+          "dark": 8.82
+        }
+      },
+      {
+        "name": "accent",
+        "cssVar": "--g-color-accent",
+        "level": "reference",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#7D72FF"
+        },
+        "usage": "Acento: selección, foco, enlaces y un segundo énfasis junto a la marca. Relleno sólido; siempre con «on-accent».",
+        "source": "accent",
+        "status": "derived"
+      },
+      {
+        "name": "accent-strong",
+        "cssVar": "--g-color-accent-strong",
+        "level": "reference",
+        "value": {
+          "light": "#481EC4",
+          "dark": "#8F8CFF"
+        },
+        "usage": "Hover y presionado del relleno sólido de «accent».",
+        "source": "accent",
+        "status": "derived"
+      },
+      {
+        "name": "accent-soft",
+        "cssVar": "--g-color-accent-soft",
+        "level": "reference",
+        "value": {
+          "light": "#EDEFFF",
+          "dark": "#201C49"
+        },
+        "usage": "Fondo suave de «accent»: insignias, avisos y estados.",
+        "source": "accent",
+        "status": "derived"
+      },
+      {
+        "name": "accent-text",
+        "cssVar": "--g-color-accent-text",
+        "level": "reference",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#7D72FF"
+        },
+        "usage": "Texto, iconos y enlaces de color de «accent» sobre la superficie (≥ 4.5:1).",
+        "source": "accent",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 6.5,
+          "dark": 4.64
+        }
+      },
+      {
+        "name": "on-accent",
+        "cssVar": "--g-color-on-accent",
+        "level": "reference",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «accent».",
+        "source": "accent",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-accent",
+          "light": 6.5,
+          "dark": 4.94
+        }
+      },
+      {
+        "name": "on-accent-soft",
+        "cssVar": "--g-color-on-accent-soft",
+        "level": "reference",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#8077FF"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «accent».",
+        "source": "accent",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-accent-soft",
+          "light": 5.69,
+          "dark": 4.53
+        }
+      },
+      {
+        "name": "neutral",
+        "cssVar": "--g-color-neutral",
+        "level": "reference",
+        "value": {
+          "light": "#6F6B64",
+          "dark": "#89857E"
+        },
+        "usage": "Sin significado de estado: insignias, etiquetas y acciones secundarias. Relleno sólido; siempre con «on-neutral».",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "neutral-strong",
+        "cssVar": "--g-color-neutral-strong",
+        "level": "reference",
+        "value": {
+          "light": "#58554E",
+          "dark": "#9C9790"
+        },
+        "usage": "Hover y presionado del relleno sólido de «neutral».",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "neutral-soft",
+        "cssVar": "--g-color-neutral-soft",
+        "level": "reference",
+        "value": {
+          "light": "#F1F0ED",
+          "dark": "#252422"
+        },
+        "usage": "Fondo suave de «neutral»: insignias, avisos y estados.",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "neutral-text",
+        "cssVar": "--g-color-neutral-text",
+        "level": "reference",
+        "value": {
+          "light": "#6F6B64",
+          "dark": "#89857E"
+        },
+        "usage": "Texto, iconos y enlaces de color de «neutral» sobre la superficie (≥ 4.5:1).",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.3,
+          "dark": 4.64
+        }
+      },
+      {
+        "name": "on-neutral",
+        "cssVar": "--g-color-on-neutral",
+        "level": "reference",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «neutral».",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-neutral",
+          "light": 5.3,
+          "dark": 4.94
+        }
+      },
+      {
+        "name": "on-neutral-soft",
+        "cssVar": "--g-color-on-neutral-soft",
+        "level": "reference",
+        "value": {
+          "light": "#6F6B64",
+          "dark": "#908B84"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «neutral».",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-neutral-soft",
+          "light": 4.65,
+          "dark": 4.59
+        }
+      },
+      {
+        "name": "success",
+        "cssVar": "--g-color-success",
+        "level": "semantic",
+        "value": {
+          "light": "#1E7A46",
+          "dark": "#3F9560"
+        },
+        "usage": "Estados positivos: confirmado, completado, cambios al alza. Relleno sólido; siempre con «on-success».",
+        "status": "default"
+      },
+      {
+        "name": "success-strong",
+        "cssVar": "--g-color-success-strong",
+        "level": "semantic",
+        "value": {
+          "light": "#026133",
+          "dark": "#52A871"
+        },
+        "usage": "Hover y presionado del relleno sólido de «success».",
+        "status": "default"
+      },
+      {
+        "name": "success-soft",
+        "cssVar": "--g-color-success-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#DFF8E5",
+          "dark": "#132A1B"
+        },
+        "usage": "Fondo suave de «success»: insignias, avisos y estados.",
+        "status": "default"
+      },
+      {
+        "name": "success-text",
+        "cssVar": "--g-color-success-text",
+        "level": "semantic",
+        "value": {
+          "light": "#1E7A46",
+          "dark": "#3F9560"
+        },
+        "usage": "Texto, iconos y enlaces de color de «success» sobre la superficie (≥ 4.5:1).",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.35,
+          "dark": 4.6
+        }
+      },
+      {
+        "name": "on-success",
+        "cssVar": "--g-color-on-success",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «success».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-success",
+          "light": 5.35,
+          "dark": 4.9
+        }
+      },
+      {
+        "name": "on-success-soft",
+        "cssVar": "--g-color-on-success-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#1E7A46",
+          "dark": "#459C65"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «success».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-success-soft",
+          "light": 4.76,
+          "dark": 4.51
+        }
+      },
+      {
+        "name": "warning",
+        "cssVar": "--g-color-warning",
+        "level": "semantic",
+        "value": {
+          "light": "#8F5B00",
+          "dark": "#AF792F"
+        },
+        "usage": "Estados que piden atención sin ser un error: por confirmar, pendiente. Relleno sólido; siempre con «on-warning».",
+        "status": "default"
+      },
+      {
+        "name": "warning-strong",
+        "cssVar": "--g-color-warning-strong",
+        "level": "semantic",
+        "value": {
+          "light": "#704806",
+          "dark": "#C28B43"
+        },
+        "usage": "Hover y presionado del relleno sólido de «warning».",
+        "status": "default"
+      },
+      {
+        "name": "warning-soft",
+        "cssVar": "--g-color-warning-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#FFEDD9",
+          "dark": "#30210D"
+        },
+        "usage": "Fondo suave de «warning»: insignias, avisos y estados.",
+        "status": "default"
+      },
+      {
+        "name": "warning-text",
+        "cssVar": "--g-color-warning-text",
+        "level": "semantic",
+        "value": {
+          "light": "#8F5B00",
+          "dark": "#AF792F"
+        },
+        "usage": "Texto, iconos y enlaces de color de «warning» sobre la superficie (≥ 4.5:1).",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.73,
+          "dark": 4.54
+        }
+      },
+      {
+        "name": "on-warning",
+        "cssVar": "--g-color-on-warning",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «warning».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-warning",
+          "light": 5.73,
+          "dark": 4.83
+        }
+      },
+      {
+        "name": "on-warning-soft",
+        "cssVar": "--g-color-on-warning-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#8F5B00",
+          "dark": "#B88239"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «warning».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-warning-soft",
+          "light": 5.01,
+          "dark": 4.66
+        }
+      },
+      {
+        "name": "danger",
+        "cssVar": "--g-color-danger",
+        "level": "semantic",
+        "value": {
+          "light": "#C4321F",
+          "dark": "#E4523D"
+        },
+        "usage": "Errores de formulario, acciones destructivas y cancelaciones. Siempre acompañado de texto o icono. Relleno sólido; siempre con «on-danger».",
+        "status": "default"
+      },
+      {
+        "name": "danger-strong",
+        "cssVar": "--g-color-danger-strong",
+        "level": "semantic",
+        "value": {
+          "light": "#A51603",
+          "dark": "#FA664F"
+        },
+        "usage": "Hover y presionado del relleno sólido de «danger».",
+        "status": "default"
+      },
+      {
+        "name": "danger-soft",
+        "cssVar": "--g-color-danger-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#FDECE8",
+          "dark": "#3E160F"
+        },
+        "usage": "Fondo suave de «danger»: insignias, avisos y estados.",
+        "status": "default"
+      },
+      {
+        "name": "danger-text",
+        "cssVar": "--g-color-danger-text",
+        "level": "semantic",
+        "value": {
+          "light": "#C4321F",
+          "dark": "#E4523D"
+        },
+        "usage": "Texto, iconos y enlaces de color de «danger» sobre la superficie (≥ 4.5:1).",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.49,
+          "dark": 4.52
+        }
+      },
+      {
+        "name": "on-danger",
+        "cssVar": "--g-color-on-danger",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «danger».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-danger",
+          "light": 5.49,
+          "dark": 4.81
+        }
+      },
+      {
+        "name": "on-danger-soft",
+        "cssVar": "--g-color-on-danger-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#C4321F",
+          "dark": "#EB5843"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «danger».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-danger-soft",
+          "light": 4.8,
+          "dark": 4.53
+        }
+      },
+      {
+        "name": "info",
+        "cssVar": "--g-color-info",
+        "level": "semantic",
+        "value": {
+          "light": "#0B63CE",
+          "dark": "#3383F0"
+        },
+        "usage": "Información neutral: avisos y ayudas que no cambian el estado. Relleno sólido; siempre con «on-info».",
+        "status": "default",
+        "recommended": {
+          "value": "#006CB3",
+          "distance": 0.087,
+          "reason": "semantic-close"
+        },
+        "notes": "«info» se parece al acento (distancia 0.087; mínimo 0.12). Alternativa calculada: #006CB3. Aplícala con \"semanticCollision\": \"adjust\" o con overrides."
+      },
+      {
+        "name": "info-strong",
+        "cssVar": "--g-color-info-strong",
+        "level": "semantic",
+        "value": {
+          "light": "#024DA7",
+          "dark": "#4D96FF"
+        },
+        "usage": "Hover y presionado del relleno sólido de «info».",
+        "status": "default"
+      },
+      {
+        "name": "info-soft",
+        "cssVar": "--g-color-info-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#E9F1FD",
+          "dark": "#0E2442"
+        },
+        "usage": "Fondo suave de «info»: insignias, avisos y estados.",
+        "status": "default"
+      },
+      {
+        "name": "info-text",
+        "cssVar": "--g-color-info-text",
+        "level": "semantic",
+        "value": {
+          "light": "#0B63CE",
+          "dark": "#3383F0"
+        },
+        "usage": "Texto, iconos y enlaces de color de «info» sobre la superficie (≥ 4.5:1).",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.69,
+          "dark": 4.58
+        }
+      },
+      {
+        "name": "on-info",
+        "cssVar": "--g-color-on-info",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «info».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-info",
+          "light": 5.69,
+          "dark": 4.87
+        }
+      },
+      {
+        "name": "on-info-soft",
+        "cssVar": "--g-color-on-info-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#0B63CE",
+          "dark": "#3A89F7"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «info».",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-info-soft",
+          "light": 5,
+          "dark": 4.52
+        }
+      },
+      {
+        "name": "bg",
+        "cssVar": "--g-color-bg",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#16140F"
+        },
+        "usage": "Fondo de la página. Nunca para tarjetas.",
+        "source": "brand",
+        "status": "default"
+      },
+      {
+        "name": "surface",
+        "cssVar": "--g-color-surface",
+        "level": "semantic",
+        "value": {
+          "light": "#FFFFFF",
+          "dark": "#1E1C17"
+        },
+        "usage": "Superficie de tarjetas, formularios, cabeceras y paneles.",
+        "source": "brand",
+        "status": "default"
+      },
+      {
+        "name": "surface-sunken",
+        "cssVar": "--g-color-surface-sunken",
+        "level": "semantic",
+        "value": {
+          "light": "#F9F6F0",
+          "dark": "#12100B"
+        },
+        "usage": "Superficie que se lee como «dentro» de otra: resúmenes, selectores, carcasas.",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "text",
+        "cssVar": "--g-color-text",
+        "level": "semantic",
+        "value": {
+          "light": "#1C1A15",
+          "dark": "#F5F2EC"
+        },
+        "usage": "Texto principal y títulos sobre la superficie, la superficie hundida y el fondo.",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 17.38,
+          "dark": 15.23
+        }
+      },
+      {
+        "name": "text-muted",
+        "cssVar": "--g-color-text-muted",
+        "level": "semantic",
+        "value": {
+          "light": "#59554E",
+          "dark": "#BCB8B0"
+        },
+        "usage": "Texto de apoyo: descripciones, metadatos y párrafos secundarios.",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 7.41,
+          "dark": 8.61
+        }
+      },
+      {
+        "name": "text-subtle",
+        "cssVar": "--g-color-text-subtle",
+        "level": "semantic",
+        "value": {
+          "light": "#726E67",
+          "dark": "#A09C94"
+        },
+        "usage": "Leyendas, contadores y marcas de tiempo. No usar por debajo de 12px.",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 5.07,
+          "dark": 6.22
+        }
+      },
+      {
+        "name": "border",
+        "cssVar": "--g-color-border",
+        "level": "semantic",
+        "value": {
+          "light": "rgb(28 26 21 / 0.08)",
+          "dark": "rgb(245 242 236 / 0.10)"
+        },
+        "usage": "Divisores y contorno de tarjetas en reposo.",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "border-strong",
+        "cssVar": "--g-color-border-strong",
+        "level": "semantic",
+        "value": {
+          "light": "rgb(28 26 21 / 0.16)",
+          "dark": "rgb(245 242 236 / 0.20)"
+        },
+        "usage": "Contorno en hover, botón de línea y chips.",
+        "source": "brand",
+        "status": "derived"
+      },
+      {
+        "name": "border-control",
+        "cssVar": "--g-color-border-control",
+        "level": "semantic",
+        "value": {
+          "light": "#8E8A82",
+          "dark": "#848078"
+        },
+        "usage": "Contorno de campos de texto, casillas y selectores (3:1 sobre la superficie).",
+        "source": "brand",
+        "status": "derived",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 3.44,
+          "dark": 4.33
+        }
+      },
+      {
+        "name": "focus",
+        "cssVar": "--g-color-focus",
+        "level": "semantic",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#7D72FF"
+        },
+        "usage": "Anillo de foco de teclado; siempre visible.",
+        "source": "accent-text",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 6.5,
+          "dark": 4.64
+        }
+      },
+      {
+        "name": "primary",
+        "cssVar": "--g-color-primary",
+        "level": "semantic",
+        "value": {
+          "light": "#F5B940",
+          "dark": "#F5B940"
+        },
+        "usage": "Acción principal y jerarquía interactiva de la interfaz. Hoy vale lo mismo que «brand» (alias); los componentes migrarán a este rol.",
+        "source": "brand",
+        "status": "default"
+      },
+      {
+        "name": "primary-strong",
+        "cssVar": "--g-color-primary-strong",
+        "level": "semantic",
+        "value": {
+          "light": "#DA9F18",
+          "dark": "#FFD07B"
+        },
+        "usage": "Hover y presionado de «primary».",
+        "source": "brand-strong",
+        "status": "default"
+      },
+      {
+        "name": "primary-soft",
+        "cssVar": "--g-color-primary-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#FFEED1",
+          "dark": "#312101"
+        },
+        "usage": "Fondo suave de «primary».",
+        "source": "brand-soft",
+        "status": "default"
+      },
+      {
+        "name": "primary-text",
+        "cssVar": "--g-color-primary-text",
+        "level": "semantic",
+        "value": {
+          "light": "#976C00",
+          "dark": "#F5B940"
+        },
+        "usage": "Texto y enlaces de «primary» sobre la superficie (≥ 4.5:1).",
+        "source": "brand-text",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 4.71,
+          "dark": 9.64
+        }
+      },
+      {
+        "name": "on-primary",
+        "cssVar": "--g-color-on-primary",
+        "level": "semantic",
+        "value": {
+          "light": "#17151A",
+          "dark": "#17151A"
+        },
+        "usage": "Texto e iconos sobre el relleno sólido de «primary».",
+        "source": "on-brand",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-primary",
+          "light": 10.27,
+          "dark": 10.27
+        }
+      },
+      {
+        "name": "on-primary-soft",
+        "cssVar": "--g-color-on-primary-soft",
+        "level": "semantic",
+        "value": {
+          "light": "#8C6400",
+          "dark": "#F5B940"
+        },
+        "usage": "Texto e iconos sobre el fondo suave de «primary».",
+        "source": "on-brand-soft",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-primary-soft",
+          "light": 4.67,
+          "dark": 8.82
+        }
+      },
+      {
+        "name": "link",
+        "cssVar": "--g-color-link",
+        "level": "semantic",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#7D72FF"
+        },
+        "usage": "Enlaces de la interfaz. Alias de «accent-text».",
+        "source": "accent-text",
+        "status": "default",
+        "contrast": {
+          "against": "--g-color-surface",
+          "light": 6.5,
+          "dark": 4.64
+        }
+      },
+      {
+        "name": "selection",
+        "cssVar": "--g-color-selection",
+        "level": "semantic",
+        "value": {
+          "light": "#EDEFFF",
+          "dark": "#201C49"
+        },
+        "usage": "Fondo de lo seleccionado. Alias de «accent-soft».",
+        "source": "accent-soft",
+        "status": "default"
+      },
+      {
+        "name": "active",
+        "cssVar": "--g-color-active",
+        "level": "semantic",
+        "value": {
+          "light": "#5B3FE0",
+          "dark": "#7D72FF"
+        },
+        "usage": "Elemento activo o en uso. Alias de «accent».",
+        "source": "accent",
+        "status": "default"
+      }
+    ]
+  },
+  "radius": {
+    "tokens": [
+      {
+        "name": "g-radius-xs",
+        "cssVar": "--g-radius-xs",
+        "value": "10px"
+      },
+      {
+        "name": "g-radius-sm",
+        "cssVar": "--g-radius-sm",
+        "value": "14px"
+      },
+      {
+        "name": "g-radius-md",
+        "cssVar": "--g-radius-md",
+        "value": "20px"
+      },
+      {
+        "name": "g-radius-lg",
+        "cssVar": "--g-radius-lg",
+        "value": "28px"
+      },
+      {
+        "name": "g-radius-xl",
+        "cssVar": "--g-radius-xl",
+        "value": "39px"
+      },
+      {
+        "name": "g-radius-shape",
+        "cssVar": "--g-radius-shape",
+        "value": "var(--g-radius-pill)"
+      }
+    ]
+  },
+  "spacing": {
+    "tokens": [
+      {
+        "name": "g-space-1",
+        "cssVar": "--g-space-1",
+        "value": "4px"
+      },
+      {
+        "name": "g-space-2",
+        "cssVar": "--g-space-2",
+        "value": "8px"
+      },
+      {
+        "name": "g-space-3",
+        "cssVar": "--g-space-3",
+        "value": "12px"
+      },
+      {
+        "name": "g-space-4",
+        "cssVar": "--g-space-4",
+        "value": "16px"
+      },
+      {
+        "name": "g-space-5",
+        "cssVar": "--g-space-5",
+        "value": "20px"
+      },
+      {
+        "name": "g-space-6",
+        "cssVar": "--g-space-6",
+        "value": "24px"
+      },
+      {
+        "name": "g-space-8",
+        "cssVar": "--g-space-8",
+        "value": "32px"
+      },
+      {
+        "name": "g-space-12",
+        "cssVar": "--g-space-12",
+        "value": "48px"
+      },
+      {
+        "name": "g-space-16",
+        "cssVar": "--g-space-16",
+        "value": "64px"
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "semantic-close",
+      "cssVar": "--g-color-info",
+      "token": "info",
+      "distance": 0.087,
+      "recommended": "#006CB3",
+      "message": "«info» se parece al acento (distancia 0.087; mínimo 0.12). Alternativa calculada: #006CB3. Aplícala con \"semanticCollision\": \"adjust\" o con overrides."
+    }
+  ],
+  "meta": {
+    "source": "@grana/cli",
+    "generatedFrom": "themes/lustre.json",
+    "categories": "Los colores cat-* son colores categóricos de interfaz (iconos, etiquetas), no una paleta de visualización de datos."
+  }
+}

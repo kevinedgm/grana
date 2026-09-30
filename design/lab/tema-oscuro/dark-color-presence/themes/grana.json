@@ -1,0 +1,12 @@
+{
+  "brand": "#9D1635",
+  "accent": "#D85A70",
+  "radius": 16,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Instrument Sans",
+  "fontDisplay": "Instrument Serif",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}
