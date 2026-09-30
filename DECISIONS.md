@@ -30,3 +30,5 @@ Cada entrada: qué se decidió, por qué, y qué alternativa se descartó.
 | 25 | Avisos de desarrollo con `typeof process` y `process.env.NODE_ENV`, no `import.meta.env.DEV` | Vite reemplaza `import.meta.env.DEV` al construir la librería; `process` no existe en el UMD | `import.meta.env.DEV` |
 | 26 | Enlace deshabilitado con `role="link"` | Un `<a>` sin `href` pierde su rol | Solo `aria-disabled` |
 | 21 | Regla de `strong` corregida: oscurece; aclara solo si L < 0.3; invierte si el contraste con `on` baja de 4.5:1 | La regla anterior dejaba texto blanco en 4.4:1 sobre el hover de un azul medio | Moverse "hacia el centro" |
+| 27 | `GInput`: campo completo (etiqueta, ayuda, error, iconos, contador) en un solo componente; tipos `text email password search tel url` | Decisión del usuario: sale accesible sin que el desarrollador conecte etiqueta, ayuda y error a mano | `GField` aparte; solo el control; todos los tipos nativos |
+| 28 | `GInput` acepta `variant` `outline` (por defecto) y `soft`; `solid`, `ghost` y `link` no aplican a un campo | Decisión del usuario | Aceptar las cinco variantes de la API compartida |

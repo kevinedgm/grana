@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GInput · r01 · wireframe F2</title>
+  <style>
+    /* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+    :root { --wf-ink:#1f1f1f; --wf-2:#555; --wf-3:#8a8a8a; --wf-line:#b9b9b9; --wf-fill:#e4e4e4; --wf-fill-2:#f0f0f0; --wf-bg:#fafafa; --wf-note:#fff8d6; --wf-font:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:clamp(12px,4vw,24px); font:15px/1.5 var(--wf-font); color:var(--wf-ink); background:var(--wf-bg); }
+    main { max-width:1100px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 4px; }
+    h2 { font-size:17px; margin:40px 0 12px; padding-top:16px; border-top:1px solid var(--wf-line); }
+    p, li { max-width:72ch; }
+    .meta { color:var(--wf-2); margin:0 0 16px; }
+    .wf-note { background:var(--wf-note); border:1px dashed var(--wf-3); padding:8px 12px; font-size:13px; margin:12px 0; max-width:72ch; }
+    .scroll { overflow-x:auto; }
+    table { border-collapse:collapse; font-size:13px; }
+    th, td { border:1px solid var(--wf-line); padding:10px; text-align:left; vertical-align:top; }
+    th { background:var(--wf-fill-2); font-weight:600; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:20px 24px; }
+    .frame { border:1px solid var(--wf-line); background:#fff; padding:16px; resize:horizontal; overflow:auto; max-width:100%; width:100%; }
+    kbd { border:1px solid var(--wf-3); border-bottom-width:2px; border-radius:3px; padding:0 5px; font-size:12px; }
+    .cap { font-size:12px; color:var(--wf-2); margin:0 0 4px; }
+
+    /* Campo de wireframe: estructura, no estética */
+    .f { --h:36px; --px:12px; --gap:8px; display:block; min-width:0; }
+    .f__label { display:block; font-size:14px; font-weight:600; margin-bottom:4px; }
+    .f__req { margin-inline-start:2px; }
+    .f__box { display:flex; align-items:center; gap:var(--gap); min-height:var(--h); padding:0 var(--px); background:#fff; border:1px solid var(--wf-2); border-radius:4px; }
+    .f__box:hover, .f.st-hover .f__box { border-color:var(--wf-ink); background:var(--wf-fill-2); }
+    .f__box:has(.f__input:focus-visible), .f.st-focus .f__box { outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .f__input { flex:1 1 auto; min-width:0; min-height:calc(var(--h) - 2px); padding:0; border:0; outline:0; background:transparent; font:inherit; color:inherit; }
+    .f__input::placeholder { color:var(--wf-2); opacity:1; }
+    .f__ico { width:16px; height:16px; flex:none; border:1.5px solid currentColor; border-radius:3px; }
+    .f__tog { flex:none; min-height:24px; min-width:24px; padding:0 6px; font:inherit; font-size:12px; border:1px solid var(--wf-2); border-radius:3px; background:transparent; cursor:pointer; }
+    .f__tog:focus-visible { outline:3px solid var(--wf-ink); outline-offset:1px; }
+    .f__spin { flex:none; font-size:12px; color:var(--wf-2); }
+    .f__msgs { display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-size:13px; color:var(--wf-2); }
+    .f__hint, .f__err { min-width:0; }
+    .f__err { color:var(--wf-ink); font-weight:600; }
+    .f__err::before { content:"\26A0\00a0"; }            /* marca no solo de color */
+    .f__count { flex:none; }
+    .f.is-invalid .f__box { border:2px solid var(--wf-ink); border-style:dashed; }
+    .f.is-disabled .f__box, .f.st-disabled .f__box { opacity:.45; border-style:dotted; background:var(--wf-fill); cursor:not-allowed; }
+    .f.is-readonly .f__box { background:var(--wf-fill-2); border-style:dashed; border-color:var(--wf-3); }
+    .f.is-disabled .f__label { opacity:.6; }
+    @media (pointer:coarse) { .f { --h:44px; } .f__tog { min-height:44px; min-width:44px; } }
+    .show-target .f__box { outline:1px dashed #c00; }
+    .anat { padding:14px; border:2px dashed var(--wf-2); border-radius:4px; background:var(--wf-fill-2); max-width:420px; }
+    .anat span.tag { display:inline-block; border:1px dashed var(--wf-3); background:#fff; padding:2px 6px; font-size:11px; margin:2px 4px 2px 0; }
+    .legend { font-size:13px; color:var(--wf-2); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>GInput · ronda r01</h1>
+  <p class="meta">Wireframe F2 sin estilo de marca · Ruta R1 · Alcance: campo completo; tipos <code>text email password search tel url</code></p>
+
+  <h2>1. Anatomía</h2>
+  <div class="anat" aria-label="Diagrama de anatomía">
+    <div><span class="tag">1 etiqueta</span><span class="tag">2 obligatorio *</span></div>
+    <div class="f" style="margin:6px 0"><div class="f__box"><span class="f__ico" aria-hidden="true"></span><span style="flex:1;color:var(--wf-2)">3 input nativo</span><span class="f__ico" aria-hidden="true"></span></div></div>
+    <div><span class="tag">4 icono inicial</span><span class="tag">5 zona final (icono, carga, mostrar/ocultar)</span></div>
+    <div><span class="tag">6 ayuda</span><span class="tag">7 error</span><span class="tag">8 contador</span></div>
+  </div>
+  <p class="legend">Orden de lectura y de tabulación: etiqueta → input → (botón mostrar/ocultar). Ayuda y error se leen al enfocar el input vía <code>aria-describedby</code>.</p>
+
+  <h2>2. Estados</h2>
+  <p class="wf-note">Simulados con clases <code>st-*</code>; el foco, el error y el desactivado reales se ven también en el formulario de la sección 3.</p>
+  <div class="grid">
+    <div><p class="cap">default</p><label class="f"><span class="f__label">Nombre</span><span class="f__box"><input class="f__input" placeholder="Ana García"></span></label></div>
+    <div><p class="cap">hover</p><label class="f st-hover"><span class="f__label">Nombre</span><span class="f__box"><input class="f__input" placeholder="Ana García"></span></label></div>
+    <div><p class="cap">focus-visible</p><label class="f st-focus"><span class="f__label">Nombre</span><span class="f__box"><input class="f__input" placeholder="Ana García"></span></label></div>
+    <div><p class="cap">filled + ayuda + contador</p><div class="f"><label class="f__label" for="s1">Usuario</label><div class="f__box"><input class="f__input" id="s1" value="ana.garcia" maxlength="20" aria-describedby="s1h"></div><div class="f__msgs"><span class="f__hint" id="s1h">Solo letras y puntos.</span><span class="f__count" aria-hidden="true">10/20</span></div></div></div>
+    <div><p class="cap">invalid</p><div class="f is-invalid"><label class="f__label" for="s2">Correo</label><div class="f__box"><input class="f__input" id="s2" value="ana@" aria-invalid="true" aria-describedby="s2e"></div><div class="f__msgs"><span class="f__err" id="s2e">Falta el dominio del correo.</span></div></div></div>
+    <div><p class="cap">disabled</p><div class="f is-disabled"><label class="f__label" for="s3">Ciudad</label><div class="f__box"><input class="f__input" id="s3" value="Oaxaca" disabled></div></div></div>
+    <div><p class="cap">readonly</p><div class="f is-readonly"><label class="f__label" for="s4">Folio</label><div class="f__box"><input class="f__input" id="s4" value="A-2041" readonly></div></div></div>
+    <div><p class="cap">loading (sigue escribible)</p><div class="f"><label class="f__label" for="s5">Usuario</label><div class="f__box"><input class="f__input" id="s5" value="ana" aria-busy="true"><span class="f__spin" aria-hidden="true">…</span></div></div></div>
+    <div><p class="cap">iconos inicial y final</p><div class="f"><label class="f__label" for="s6">Buscar</label><div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="s6" type="search" placeholder="Reservas"><span class="f__ico" aria-hidden="true"></span></div></div></div>
+    <div><p class="cap">obligatorio</p><div class="f"><label class="f__label" for="s7">Correo<span class="f__req" aria-hidden="true">*</span></label><div class="f__box"><input class="f__input" id="s7" type="email" required></div></div></div>
+  </div>
+
+  <h2>3. Formulario interactivo</h2>
+  <p class="wf-note">Prueba con teclado: <kbd>Tab</kbd> recorre etiqueta → input → botón mostrar. El error aparece al salir del campo del correo y se anuncia en una región viva que ya existe en el DOM.</p>
+  <form id="demo" class="frame" novalidate style="max-width:420px">
+    <div class="f is-required" id="fe" style="margin-bottom:16px">
+      <label class="f__label" for="email">Correo<span class="f__req" aria-hidden="true">*</span></label>
+      <div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="email" type="email" autocomplete="email" required aria-describedby="email-h email-e"></div>
+      <div class="f__msgs"><span class="f__hint" id="email-h">Te enviaremos el comprobante.</span></div>
+      <div class="f__msgs"><span class="f__err" id="email-e" aria-live="polite"></span></div>
+    </div>
+    <div class="f" style="margin-bottom:16px">
+      <label class="f__label" for="pw">Contraseña<span class="f__req" aria-hidden="true">*</span></label>
+      <div class="f__box"><input class="f__input" id="pw" type="password" autocomplete="new-password" required minlength="8" aria-describedby="pw-h"><button class="f__tog" type="button" id="tog" aria-controls="pw" aria-pressed="false" aria-label="Mostrar contraseña">ojo</button></div>
+      <div class="f__msgs"><span class="f__hint" id="pw-h">Mínimo 8 caracteres.</span></div>
+    </div>
+    <div class="f" style="margin-bottom:16px">
+      <label class="f__label" for="bio">Apodo</label>
+      <div class="f__box"><input class="f__input" id="bio" maxlength="12" aria-describedby="bio-c"></div>
+      <div class="f__msgs"><span></span><span class="f__count" id="bio-c" aria-hidden="true">0/12</span></div>
+    </div>
+    <div class="f is-disabled"><label class="f__label" for="dis">Campo deshabilitado</label><div class="f__box"><input class="f__input" id="dis" disabled value="No editable"></div></div>
+  </form>
+  <p class="cap" style="margin-top:8px" id="log" aria-hidden="true">Registro: —</p>
+
+  <h2>4. Contenedor estrecho y texto largo</h2>
+  <p class="wf-note">Arrastra la esquina inferior derecha del marco para reducir el ancho.</p>
+  <div class="frame" style="max-width:100%;width:340px">
+    <div class="f is-invalid"><label class="f__label" for="long1">Dirección de correo electrónico del titular de la reserva</label><div class="f__box"><input class="f__input" id="long1" value="una.direccion.de.correo.muy.larga.que.no.cabe@ejemplo-de-dominio-largo.com" aria-invalid="true" aria-describedby="long1e"></div><div class="f__msgs"><span class="f__err" id="long1e">El dominio no acepta mensajes de este tipo; prueba con otra dirección o contacta a soporte.</span></div></div>
+  </div>
+
+  <h2>5. Área táctil</h2>
+  <p class="wf-note">Con <code>pointer: coarse</code> la caja mide al menos 44px de alto (es el objetivo real, no un pseudo-elemento). <label><input type="checkbox" id="tt"> Mostrar el área táctil (recuadro rojo)</label></p>
+  <div class="frame" style="max-width:420px" id="tframe"><div class="f"><label class="f__label" for="t1">Campo</label><div class="f__box"><input class="f__input" id="t1"></div></div></div>
+</main>
+<script>
+  const $ = (s) => document.querySelector(s)
+  const email = $('#email'), err = $('#email-e'), fe = $('#fe'), log = $('#log')
+  const validate = () => {
+    const v = email.value.trim()
+    const msg = !v ? 'Escribe tu correo.' : !email.checkValidity() ? 'Falta el dominio del correo.' : ''
+    err.textContent = msg
+    email.toggleAttribute('aria-invalid', !!msg); if (msg) email.setAttribute('aria-invalid', 'true'); else email.removeAttribute('aria-invalid')
+    fe.classList.toggle('is-invalid', !!msg)
+    return !msg
+  }
+  email.addEventListener('blur', validate)
+  email.addEventListener('input', () => { if (fe.classList.contains('is-invalid')) validate() })
+  const pw = $('#pw'), tog = $('#tog')
+  tog.addEventListener('click', () => {
+    const show = pw.type === 'password'
+    pw.type = show ? 'text' : 'password'
+    tog.setAttribute('aria-pressed', String(show))
+    tog.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña')
+    log.textContent = 'Registro: contraseña ' + (show ? 'visible' : 'oculta') + '; foco en ' + document.activeElement.id
+  })
+  const bio = $('#bio'), bc = $('#bio-c')
+  bio.addEventListener('input', () => { bc.textContent = bio.value.length + '/' + bio.maxLength })
+  $('#tt').addEventListener('change', (e) => document.body.classList.toggle('show-target', e.target.checked))
+</script>
+</body>
+</html>

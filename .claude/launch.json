@@ -4,8 +4,26 @@
     {
       "name": "grana-playground",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4173", "-d", "packages/vue"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4173",
+        "-d",
+        "packages/vue"
+      ],
       "port": 4173
+    },
+    {
+      "name": "grana-lab",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4174",
+        "-d",
+        "design"
+      ],
+      "port": 4174
     }
   ]
 }
