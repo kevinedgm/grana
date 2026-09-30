@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "name": "GStepper",
+  "tag": "g-stepper",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Indicador de avance por pasos discretos: horizontal y vertical, indicadores de número, punto, icono, segmento y línea, estados (hecho, actual, pendiente, error, advertencia, bloqueado, opcional), navegación opcional y adaptación por el ancho del contenedor (compacto «Paso N de M»).",
+  "contract": "design/contracts/stepper.md",
+  "prototype": "design/lab/stepper/r01/",
+  "style": "packages/vue/src/components/GStepper/GStepper.css",
+  "props": [
+    {
+      "name": "steps",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "modelValue",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "orientation",
+      "type": "String",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "name": "indicator",
+      "type": "String",
+      "default": "number",
+      "values": [
+        "number",
+        "dot",
+        "icon",
+        "segment",
+        "line"
+      ]
+    },
+    {
+      "name": "navigation",
+      "type": "String",
+      "default": "none",
+      "values": [
+        "none",
+        "back",
+        "free"
+      ]
+    },
+    {
+      "name": "responsive",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "never",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "expandAll",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    }
+  ],
+  "steps": [
+    {
+      "field": "id",
+      "type": "String | Number",
+      "note": "Opcional; si falta, el índice"
+    },
+    {
+      "field": "label",
+      "type": "String",
+      "note": "Obligatorio; nombre accesible del paso"
+    },
+    {
+      "field": "description",
+      "type": "String"
+    },
+    {
+      "field": "status",
+      "type": "String",
+      "values": [
+        "error",
+        "warning"
+      ]
+    },
+    {
+      "field": "optional",
+      "type": "Boolean"
+    },
+    {
+      "field": "disabled",
+      "type": "Boolean",
+      "note": "Bloqueado: nunca es botón"
+    }
+  ],
+  "labels": [
+    "complete",
+    "current",
+    "pending",
+    "error",
+    "warning",
+    "disabled",
+    "optional",
+    "progress",
+    "showAll",
+    "hideAll"
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "id del paso",
+      "trigger": "El usuario activa un paso navegable y nadie impidió select"
+    },
+    {
+      "name": "select",
+      "payload": "{ id, index, preventDefault() }",
+      "trigger": "El usuario activa un paso navegable. Cancelable"
+    }
+  ],
+  "slots": [
+    {
+      "name": "content",
+      "purpose": "Contenido asociado a un paso (solo vertical). Alcance: { step, index, state }"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono del paso con indicator=\"icon\" (Lucide, decorativo). Alcance: { step, index, state }"
+    },
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico. Alcance: { step, index, state }"
+    },
+    {
+      "name": "description",
+      "purpose": "Descripción con contenido rico. Alcance: { step, index, state }"
+    }
+  ],
+  "tokens": [
+    "--g-color-primary[-strong|-soft|-text]",
+    "--g-color-on-primary",
+    "--g-color-{accent|neutral|success|warning|danger|info}[-strong|-soft|-text]",
+    "--g-color-on-{accent|neutral|success|warning|danger|info}",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-focus",
+    "--g-radius-pill",
+    "--g-radius-xs",
+    "--g-space-1..4",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-caption-weight",
+    "--g-text-title-weight",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-press-scale"
+  ],
+  "states": [
+    "complete",
+    "current",
+    "pending",
+    "error",
+    "warning",
+    "disabled",
+    "optional",
+    "focus-visible",
+    "hover",
+    "navigable",
+    "compact",
+    "condensed"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real con un tema distinto al por defecto (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: lista, aria-current y texto de estado",
+    "Medición por contenedor en un navegador real (las pruebas de jsdom la simulan)",
+    "RTL, forced-colors real, táctil real y zoom al 200%",
+    "Sin scroll horizontal ni condensar pasos completados en v0.1"
+  ]
+}

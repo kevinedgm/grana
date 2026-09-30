@@ -19,7 +19,7 @@ Indicador de avance para procesos de **pasos discretos y conocidos** (formulario
 
 | Prop | Tipo | Valores | Default | Origen |
 | --- | --- | --- | --- | --- |
-| `steps` | Array | `{ id?, label, description?, icon?, status?, optional?, disabled? }` | `[]` (función) | propia |
+| `steps` | Array | `{ id?, label, description?, status?, optional?, disabled? }` | `[]` (función) | propia |
 | `modelValue` | String \| Number | `id` del paso actual | primer paso | compartida |
 | `orientation` | String | `horizontal` `vertical` | `horizontal` | propia |
 | `indicator` | String | `number` `dot` `icon` `segment` `line` | `number` | propia |
@@ -39,7 +39,6 @@ Indicador de avance para procesos de **pasos discretos y conocidos** (formulario
 | `id` | String \| Number | único | Si falta, el `id` es el **índice** (0, 1, 2…) |
 | `label` | String | texto libre | Obligatorio; nombre accesible del paso |
 | `description` | String | texto libre | Opcional; segunda línea |
-| `icon` | String | nombre de Lucide | Opcional; solo lo usa `indicator="icon"`; sin icono, el paso muestra su número |
 | `status` | String | `error` `warning` | Marca del consumidor que se **combina** con el estado derivado |
 | `optional` | Boolean | | Paso opcional (texto de `labels.optional` junto a la etiqueta) |
 | `disabled` | Boolean | | Paso bloqueado: nunca es botón, aunque `navigation` lo permitiría |
@@ -49,7 +48,7 @@ Indicador de avance para procesos de **pasos discretos y conocidos** (formulario
 - **Estado derivado.** Con `i` el índice del paso y `c` el del actual: `i < c` → `complete`; `i = c` → `current`; `i > c` → `pending`. `status`, `optional` y `disabled` se suman a eso (un paso `complete` puede tener `warning`; uno `pending`, ser `optional` o `disabled`). Un `status` `error` o `warning` gana sobre el aspecto de `complete`.
 - **`modelValue`:** `id` del paso actual. Si no coincide con ningún paso, **ninguno** es el actual (todos `pending`) y, en desarrollo, se emite `console.warn`. Sin `v-model`, el componente es **solo informativo** de lo que reciba; nunca cambia el prop por su cuenta.
 - **`orientation`:** `horizontal` para procesos cortos o medianos; `vertical` para formularios largos, paneles, diálogos y cuando cada paso lleva descripción o contenido.
-- **`indicator`:** `number` (círculo con número; `check` al completar), `dot` (nodo pequeño, sin número), `icon` (icono opcional por paso; el número como respaldo), `segment` (cada paso es un tramo de una barra única con la etiqueta debajo) y `line` (mínimo: solo etiqueta y subrayado). Ningún indicador es lo único que nombra al paso.
+- **`indicator`:** `number` (círculo con número; `check` al completar), `dot` (nodo pequeño, sin número), `icon` (el icono de cada paso lo pone la aplicación en el slot `icon`; sin él, el número), `segment` (cada paso es un tramo de una barra única con la etiqueta debajo) y `line` (mínimo: solo etiqueta y subrayado). Ningún indicador es lo único que nombra al paso.
 - **`navigation`:** `none` (informativo: ningún paso es control), `back` (los pasos anteriores al actual son botones) o `free` (cualquiera, salvo el actual y los `disabled`). **Avanzar solo en secuencia** lo impone el consumidor mediante `modelValue`; el componente no valida pasos. El paso actual **nunca** es botón.
 - **`responsive`:** `auto` (el componente elige según el ancho **de su contenedor**, ver Adaptación), `never` (siempre completo, sin pasar a compacto) o `compact` (siempre compacto). En `vertical`, `auto` no pasa a compacto.
 - **`color`:** color de los indicadores hechos y actual y del conector hecho. `brand` lee `--g-color-primary*` (DECISIONS.md #95), como `GProgress`. **Error y advertencia** usan siempre `danger` y `warning`, sea cual sea `color`.
@@ -88,6 +87,7 @@ El **nombre del `<nav>`** no va en `labels`: se pasa como `aria-label` o `aria-l
         <span class="g-stepper__indicator" aria-hidden="true">…</span>
         <span class="g-stepper__text">
           <span class="g-stepper__label">Plan</span>
+          <span class="g-stepper__optional">(opcional)</span>         <!-- solo con optional y labels.optional -->
           <span class="g-stepper__description">Elige tu plan</span>
           <span class="g-stepper__status">, completado</span>         <!-- oculto visualmente -->
         </span>
@@ -121,6 +121,7 @@ El **nombre del `<nav>`** no va en `labels`: se pasa como `aria-label` o `aria-l
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
 | `content` | Contenido asociado a un paso (solo `vertical`) | `{ step, index, state }` | Dentro de `g-stepper__content`; se renderiza solo para el actual (todos con `expandAll`) |
+| `icon` | Icono del paso con `indicator="icon"` (Lucide, lo pone la aplicación; decorativo, `aria-hidden`) | `{ step, index, state }` | Dentro de `g-stepper__indicator`; sin él, el número |
 | `label` | Etiqueta con contenido rico | `{ step, index, state }` | Dentro de `g-stepper__label`; sin interactivos |
 | `description` | Descripción con contenido rico | `{ step, index, state }` | Dentro de `g-stepper__description`; sin interactivos |
 
@@ -175,8 +176,8 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 | `is-complete`, `is-current`, `is-pending` | `<li>` | Estado derivado (uno de los tres) |
 | `is-error`, `is-warning`, `is-disabled`, `is-optional` | `<li>` | Marcas del paso |
 | `g-stepper__hit` | Botón o `<span>` | Por paso |
-| `g-stepper__indicator`, `__text`, `__label`, `__description`, `__status`, `__connector`, `__content` | Partes del paso | Según variante |
-| `is-done`, `is-toward`, `is-pending` | `__connector` y `__bar-seg` | Conector o tramo **hecho**, **hacia el actual** (a medias) o pendiente |
+| `g-stepper__indicator`, `__text`, `__label`, `__optional`, `__description`, `__status`, `__connector`, `__content` | Partes del paso | Según variante. El indicador siempre está en el DOM (el CSS decide qué muestra) |
+| `is-done`, `is-toward`, `is-pending` | `__connector` y `__bar-seg` | Conector o tramo **hecho**, **saliente del actual** (a medias, entre el actual y el siguiente) o pendiente. Solo uno por elemento |
 
 ## Resolución de hallazgos
 
@@ -189,14 +190,14 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 | 5 | Textos accesibles | `labels` sin valores por defecto; `aria-label` del `<nav>` por `$attrs`; avisos en desarrollo | Grana internacional; decisión de producto confirmada por el usuario |
 | 6 | Adaptación | `responsive` `auto` \| `never` \| `compact`; umbrales derivados de `space` y del número de pasos, medidos por bruno; sin literales nuevos | DECISIONS.md #34 y #39 evitados: no hay consultas con valores fijos; cubre el *overflow* de muchos pasos |
 | 7 | Tokens | Ninguno nuevo; derivaciones propuestas a coco | `tokens.md` §17.6: no se crea un token cuando basta uno existente |
-| 8 | Iconos | El paso usa `icon` (Lucide) solo con `indicator="icon"`; los de estado son fijos (`check`, `circle-alert`, `triangle-alert`, `lock`) y los dibuja `GIcon` | `icons.md` (Lucide, DECISIONS.md #85 a #87) |
+| 8 | Iconos | El icono de cada paso lo pone la aplicación con el slot `icon` (solo con `indicator="icon"`); los de estado son fijos (`check`, `circle-alert`, `triangle-alert`, `lock`) y los dibuja `GIcon`, añadidos a `icons.md` §4 | `icons.md` §5: Grana no trae colección de iconos de la aplicación (DECISIONS.md #85 a #87) |
 | 9 | Progreso continuo | Fuera de este contrato: componente aparte (DECISIONS.md #97). Su nombre **no puede ser `GProgress`**; queda abierto | Decisión del usuario; `GProgress` ya existe |
 | 10 | Contenido por paso | Slot `content` con alcance, por paso; solo el actual salvo `expandAll` | Brief: vertical con contexto adicional |
 
 ## Límites conocidos
 
 - **Sin scroll horizontal** ni «condensar pasos completados» en v0.1; el *overflow* se resuelve con el compacto.
-- **Sin iconos personalizados por estado**: los cuatro de estado son fijos.
+- **Sin iconos personalizados por estado**: los cuatro de estado son fijos (los del paso, con `indicator="icon"`, sí los pone la aplicación).
 - **Sin animación de progreso** entre pasos más allá del cambio de estado que fije coco.
 - **Lector de pantalla y RTL:** sin verificar con lectores reales ni en escritura de derecha a izquierda.
 - El compacto **no** es un `progressbar` (no hay valor continuo): comunica con texto.
