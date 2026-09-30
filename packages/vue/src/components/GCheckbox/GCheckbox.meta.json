@@ -2,49 +2,192 @@
   "schemaVersion": 1,
   "name": "GCheckbox",
   "tag": "g-checkbox",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Casilla de verificación con tres estructuras (default, card, chip), estado mixto, ayuda y error.",
   "contract": "design/contracts/checkbox.md",
   "prototype": "design/lab/checkbox/r01/",
   "style": "packages/vue/src/components/GCheckbox/GCheckbox.css",
   "props": [
-    { "name": "modelValue", "type": "Boolean | Array", "default": false },
-    { "name": "value", "type": "String | Number", "default": null },
-    { "name": "indeterminate", "type": "Boolean", "default": false },
-    { "name": "layout", "type": "String", "default": "default", "values": ["default", "card", "chip"] },
-    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
-    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
-    { "name": "color", "type": "String", "default": "brand", "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
-    { "name": "disabled", "type": "Boolean", "default": false },
-    { "name": "readonly", "type": "Boolean", "default": false },
-    { "name": "required", "type": "Boolean", "default": false },
-    { "name": "label", "type": "String", "default": null },
-    { "name": "hint", "type": "String", "default": null },
-    { "name": "error", "type": "String", "default": null },
-    { "name": "id", "type": "String", "default": null }
+    {
+      "name": "modelValue",
+      "type": "Boolean | Array",
+      "default": false
+    },
+    {
+      "name": "value",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "indeterminate",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "layout",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "card",
+        "chip"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
   ],
   "events": [
-    { "name": "update:modelValue", "payload": "Boolean | Array", "trigger": "El usuario alterna la casilla (no con readonly)" },
-    { "name": "update:indeterminate", "payload": "false", "trigger": "El usuario activa una casilla indeterminada" }
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean | Array",
+      "trigger": "El usuario alterna la casilla (no con readonly)"
+    },
+    {
+      "name": "update:indeterminate",
+      "payload": "false",
+      "trigger": "El usuario activa una casilla indeterminada"
+    }
   ],
   "slots": [
-    { "name": "label", "purpose": "Etiqueta con contenido rico (sustituye a label)" },
-    { "name": "hint", "purpose": "Ayuda o descripción con contenido rico (sustituye a hint)" },
-    { "name": "error", "purpose": "Mensaje de error con contenido rico; solo se muestra con error" },
-    { "name": "icon", "purpose": "Icono decorativo de la tarjeta (solo layout card)" },
-    { "name": "meta", "purpose": "Dato destacado de la tarjeta, parte del nombre accesible (solo layout card)" }
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda o descripción con contenido rico (sustituye a hint)"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo se muestra con error"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono decorativo de la tarjeta (solo layout card)"
+    },
+    {
+      "name": "meta",
+      "purpose": "Dato destacado de la tarjeta, parte del nombre accesible (solo layout card)"
+    }
   ],
   "tokens": [
-    "--g-color-surface", "--g-color-surface-sunken", "--g-color-border-control", "--g-color-border-strong", "--g-color-border",
-    "--g-color-{color}", "--g-color-{color}-strong", "--g-color-{color}-soft", "--g-color-{color}-text",
-    "--g-color-on-{color}", "--g-color-on-{color}-soft",
-    "--g-color-text", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-danger-text", "--g-color-focus",
-    "--g-radius-xs", "--g-radius-md", "--g-radius-lg", "--g-radius-pill", "--g-space-1..6", "--g-font-ui",
-    "--g-text-{caption|body-sm|body}-{size|line}", "--g-text-action-weight",
-    "--g-border-width", "--g-focus-width", "--g-focus-offset",
-    "--g-duration-fast", "--g-duration-press", "--g-ease-standard", "--g-ease-out", "--g-press-scale"
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-border-strong",
+    "--g-color-border",
+    "--g-color-{color}",
+    "--g-color-{color}-strong",
+    "--g-color-{color}-soft",
+    "--g-color-{color}-text",
+    "--g-color-on-{color}",
+    "--g-color-on-{color}-soft",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-radius-xs",
+    "--g-radius-md",
+    "--g-radius-lg",
+    "--g-radius-pill",
+    "--g-space-1..6",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-press-scale"
   ],
-  "states": ["unchecked", "checked", "indeterminate", "hover", "focus-visible", "active", "disabled", "readonly", "invalid"],
-  "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)", "Lector de pantalla real: estado mixto, conteo del grupo y error", "Marca dibujada en Firefox y Safari"]
+  "states": [
+    "unchecked",
+    "checked",
+    "indeterminate",
+    "hover",
+    "focus-visible",
+    "active",
+    "disabled",
+    "readonly",
+    "invalid"
+  ],
+  "pending": [
+    "README (mora-docs)",
+    "Lector de pantalla real: estado mixto, conteo del grupo, error y nombre de la tarjeta",
+    "Marca dibujada en Firefox y Safari"
+  ]
 }

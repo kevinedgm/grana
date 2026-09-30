@@ -2,40 +2,149 @@
   "schemaVersion": 1,
   "name": "GCheckboxGroup",
   "tag": "g-checkbox-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Grupo de casillas con modelo de arreglo, casilla maestra derivada de las hijas y conteo en región viva.",
   "contract": "design/contracts/checkbox.md",
   "prototype": "design/lab/checkbox/r01/",
   "style": "packages/vue/src/components/GCheckboxGroup/GCheckboxGroup.css",
   "props": [
-    { "name": "modelValue", "type": "Array", "default": [] },
-    { "name": "label", "type": "String", "default": null },
-    { "name": "hint", "type": "String", "default": null },
-    { "name": "error", "type": "String", "default": null },
-    { "name": "selectAll", "type": "Boolean", "default": false },
-    { "name": "selectAllLabel", "type": "String", "default": null },
-    { "name": "countText", "type": "Function", "default": null },
-    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
-    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
-    { "name": "color", "type": "String", "default": "brand", "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
-    { "name": "layout", "type": "String", "default": "default", "values": ["default", "card", "chip"] },
-    { "name": "disabled", "type": "Boolean", "default": false },
-    { "name": "id", "type": "String", "default": null }
+    {
+      "name": "modelValue",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "selectAll",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "selectAllLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "countText",
+      "type": "Function",
+      "default": null
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "layout",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "card",
+        "chip"
+      ]
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
   ],
   "events": [
-    { "name": "update:modelValue", "payload": "Array", "trigger": "El usuario alterna una hija o la maestra" }
+    {
+      "name": "update:modelValue",
+      "payload": "Array",
+      "trigger": "El usuario alterna una hija o la maestra"
+    }
   ],
   "slots": [
-    { "name": "default", "purpose": "Las casillas hijas (GCheckbox con value)" },
-    { "name": "label", "purpose": "Título del grupo con contenido rico (sustituye a label)" },
-    { "name": "hint", "purpose": "Ayuda del grupo con contenido rico" },
-    { "name": "error", "purpose": "Error del grupo con contenido rico; solo se muestra con error" }
+    {
+      "name": "default",
+      "purpose": "Las casillas hijas (GCheckbox con value)"
+    },
+    {
+      "name": "label",
+      "purpose": "Título del grupo con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda del grupo con contenido rico"
+    },
+    {
+      "name": "error",
+      "purpose": "Error del grupo con contenido rico; solo se muestra con error"
+    }
   ],
   "tokens": [
-    "--g-color-border", "--g-color-text", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-danger-text",
-    "--g-space-1..4", "--g-font-ui", "--g-text-{caption|body-sm}-{size|line}", "--g-text-action-weight", "--g-border-width"
+    "--g-color-border",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger-text",
+    "--g-space-1..4",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm}-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width"
   ],
-  "states": ["default", "disabled", "error"],
-  "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)", "Lector de pantalla real: conteo y estado mixto de la maestra"]
+  "states": [
+    "default",
+    "disabled",
+    "error"
+  ],
+  "pending": [
+    "README (mora-docs)",
+    "Lector de pantalla real: conteo y estado mixto de la maestra"
+  ]
 }
