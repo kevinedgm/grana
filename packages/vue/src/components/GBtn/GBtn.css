@@ -210,6 +210,12 @@
   inline-size: var(--_h);
   padding-inline: 0;
 }
+/* El icono (svg inline) se posaría en la línea base del texto: se centra como flex. */
+.g-btn--icon .g-btn__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ---------- Estados ---------- */
 @media (hover: hover) {
