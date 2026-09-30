@@ -103,6 +103,14 @@
   --g-calendar-unavailable-color: var(--g-color-border-strong);
   --g-calendar-now-color: var(--g-color-danger);
 
+  /* Superficies anidadas (carcasa + inset): profundidad por diferencias mínimas */
+  --g-surface-shell: var(--g-color-surface-sunken);
+  --g-surface-inset: var(--g-color-surface);
+  --g-surface-gap: calc(var(--g-space-1) * 1.5);
+  --g-surface-radius: var(--g-radius-xl);
+  --g-surface-radius-inset: max(0px, calc(var(--g-surface-radius) - var(--g-surface-gap)));
+  --g-surface-backdrop: rgb(0 0 0 / 0.32);
+
   /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;
