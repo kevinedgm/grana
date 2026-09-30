@@ -246,6 +246,38 @@
       </div>
     </div>
 
+    <h2>Selector de fechas (GDatePicker)</h2>
+    <div class="col" style="max-width:820px">
+      <div class="row" style="align-items:flex-start">
+        <g-datepicker v-model="dpRange" mode="range" label="Fechas" placeholder="Elige fechas" :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked" name="fechas" hint="Con proximidad y fechas bloqueadas" @start="dpLog = 'start ' + $event.date" @change="dpLog = 'change ' + JSON.stringify($event)" @navigate="dpLog = 'navigate ' + $event.month"></g-datepicker>
+        <g-datepicker v-model="dpRange" mode="range" split label="Estancia" label-start="Desde" label-end="Hasta" placeholder-start="Fecha de inicio" placeholder-end="Fecha de fin" :labels="dpLabels" :min="dpToday"></g-datepicker>
+        <g-datepicker v-model="dpSingle" label="Fecha de entrega" placeholder="Elige una fecha" :labels="dpLabels" variant="soft" color="accent"></g-datepicker>
+      </div>
+      <div class="row" style="align-items:flex-start">
+        <g-datepicker v-model="dpRange" mode="range" label="Con error" placeholder="Elige fechas" :labels="dpLabels" error="Elige un rango válido" required></g-datepicker>
+        <g-datepicker :model-value="dpSingle" label="Solo lectura" :labels="dpLabels" readonly></g-datepicker>
+        <g-datepicker label="Deshabilitado" :labels="dpLabels" disabled></g-datepicker>
+      </div>
+      <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:nowrap;align-items:center">
+        <input aria-label="Destino" placeholder="¿A dónde vas?" style="flex:1;border:0;background:transparent;padding:0 16px;font:inherit;min-inline-size:0">
+        <g-datepicker v-model="dpRange" mode="range" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
+          <template #trigger="{ controls, expanded, toggle, text }">
+            <g-btn variant="ghost" aria-haspopup="dialog" :aria-expanded="String(expanded)" :aria-controls="controls" @click="toggle">{{ text || 'Agrega fechas' }}</g-btn>
+          </template>
+        </g-datepicker>
+        <g-btn>Buscar</g-btn>
+      </div>
+      <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked">
+        <template #summary="{ start, end, pending, days }">{{ pending ? 'Elige la fecha final' : days ? days + ' días' : 'Elige la fecha de inicio' }}</template>
+        <template #day="{ date }"><span v-if="date.endsWith('-15')" class="g-datepicker__sr"> · precio bajo</span></template>
+      </g-datepicker>
+      <g-btn variant="outline" @click="dlg.dates = true">Abrir Dialog con fechas</g-btn>
+      <g-dialog v-model="dlg.dates" title="Cambiar reserva" description="Elige las nuevas fechas." close-label="Cerrar">
+        <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday"></g-datepicker>
+      </g-dialog>
+      <pre class="log" style="background:#fff;border:1px solid #ddd;padding:8px">{{ dpLog }}  |  valor: {{ JSON.stringify(dpRange) }}</pre>
+    </div>
+
     <h2>Selector (GSelect)</h2>
     <div class="col" style="max-width:420px">
       <g-select v-model="selCountry" :options="selCountries" label="País" placeholder="Elige un país" name="pais" hint="Usa las flechas y escribe para saltar." @open="selLog = 'abre'" @close="selLog = 'cierra'"></g-select>
@@ -391,7 +423,7 @@
     }
     createApp({
       setup() {
-        const dlg = reactive({ simple: false, inset: false, sections: false, scroll: false, confirm: false, form: false, full: false, guard: false })
+        const dlg = reactive({ dates: false, simple: false, inset: false, sections: false, scroll: false, confirm: false, form: false, full: false, guard: false })
         const dlgLog = ref([])
         const dlgName = ref('')
         const dlgMail = ref('')
@@ -437,6 +469,18 @@
         const selLoad = ref(null)
         const bdgCount = ref(12)
         const bdgLog = ref('')
+        const dpRange = ref(null)
+        const dpSingle = ref(null)
+        const dpLog = ref('')
+        const dpToday = new Date().toISOString().slice(0, 10)
+        const dpBlocked = (iso) => iso.endsWith('-13') || iso.endsWith('-14')
+        const dpProx = [{ days: 1, label: '± 1 día', ariaLabel: 'Ampliar el rango 1 día por cada lado' }, { days: 3, label: '± 3 días', ariaLabel: 'Ampliar el rango 3 días por cada lado' }, { days: 7, label: '± 7 días', ariaLabel: 'Ampliar el rango 7 días por cada lado' }]
+        const dpLabels = {
+          prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar',
+          today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
+          clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
+          announceStart: 'Inicio del rango: {date}. Elige la fecha final.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado: {start} a {end}, {days} días.', announceClear: 'Selección borrada.'
+        }
         const selClient = ref(null)
         const selClients = ref([{ value: 'a', label: 'Acme S.A.', icon: 'tag' }, { value: 'g', label: 'Globex', icon: 'tag' }, { value: 'i', label: 'Initech', icon: 'tag' }])
         const selCreate = () => {
@@ -548,7 +592,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

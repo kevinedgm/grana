@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 1,
+  "name": "GDatePicker",
+  "tag": "g-datepicker",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): uno o dos meses según el ancho, campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua, proximidad ± N días, teclado APG y textos por labels.",
+  "contract": "design/contracts/datepicker.md",
+  "prototype": "design/lab/datepicker/r01/",
+  "style": "packages/vue/src/components/GDatePicker/GDatePicker.css",
+  "tagAlias": "GDatepicker (Vue resuelve <g-datepicker> como GDatepicker; el registro incluye ese alias además de GDatePicker)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | Object | null",
+      "default": null
+    },
+    {
+      "name": "mode",
+      "type": "String",
+      "default": "single",
+      "values": [
+        "single",
+        "range"
+      ]
+    },
+    {
+      "name": "inline",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "min",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "max",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "disabledDates",
+      "type": "Function",
+      "default": null
+    },
+    {
+      "name": "months",
+      "type": "String | Number",
+      "default": "auto",
+      "values": [
+        "auto",
+        1,
+        2
+      ]
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "firstDay",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "proximity",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "summary",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "closeOnSelect",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "anchor",
+      "type": "String | Element",
+      "default": null
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "placeholder",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "split",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "labelStart",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "labelEnd",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "placeholderStart",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "placeholderEnd",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "ISO | { start, end } | null",
+      "trigger": "El valor completo cambia: elegir en single, completar un rango, ampliar con proximidad, limpiar (null). Un inicio pendiente NO lo emite"
+    },
+    {
+      "name": "change",
+      "payload": "igual",
+      "trigger": "Igual que update:modelValue"
+    },
+    {
+      "name": "start",
+      "payload": "{ date }",
+      "trigger": "Solo range: se elige el inicio (pendiente)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ month }",
+      "trigger": "Cambia el mes visible (botones, teclado, deslizamiento)"
+    },
+    {
+      "name": "update:open",
+      "payload": "Boolean",
+      "trigger": "El popover se abre o se cierra"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "El popover se abre"
+    },
+    {
+      "name": "close",
+      "payload": "",
+      "trigger": "El popover se cierra, por el motivo que sea"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo con error"
+    },
+    {
+      "name": "trigger",
+      "purpose": "Sustituye al campo por el botón de la aplicación. Alcance: { id, expanded, controls, toggle, open, close, value, text }. La aplicación pone aria-haspopup, aria-expanded, aria-controls y llama a toggle"
+    },
+    {
+      "name": "summary",
+      "purpose": "Sustituye al resumen. Alcance: { start, end, pending, days }"
+    },
+    {
+      "name": "day",
+      "purpose": "Contenido tras el número del día. Alcance: { date, day, selected, inRange, disabled, outside }. No cambia el nombre accesible ni el tamaño"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono del campo (sustituye al calendario dibujado); decorativo"
+    }
+  ],
+  "tokens": [
+    "--g-color-{color}",
+    "--g-color-on-{color}",
+    "--g-color-{color}-soft",
+    "--g-color-on-{color}-soft",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-border-strong",
+    "--g-color-focus",
+    "--g-color-danger-text",
+    "--g-surface-inset",
+    "--g-surface-gap",
+    "--g-surface-radius",
+    "--g-surface-radius-inset",
+    "--g-surface-backdrop",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-radius-*",
+    "--g-space-1..6",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-title-sm-weight",
+    "--g-text-body-weight",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out"
+  ],
+  "states": [
+    "closed",
+    "open",
+    "hover",
+    "focus-visible",
+    "disabled",
+    "readonly",
+    "invalid",
+    "day-default",
+    "day-today",
+    "day-selected",
+    "day-in-range",
+    "day-range-start",
+    "day-range-end",
+    "day-preview",
+    "day-inactive",
+    "day-disabled",
+    "day-outside",
+    "one-month",
+    "two-months",
+    "sheet",
+    "split",
+    "inline",
+    "with-proximity",
+    "trigger-slot"
+  ],
+  "pending": [
+    "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",
+    "RTL, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",
+    "Hoja móvil con teclado virtual y deslizamiento en táctil real",
+    "Auditoría de coco con un tema distinto (franja del rango 1.14:1 con el tema por defecto)",
+    "README (mora-docs)",
+    "Escribir la fecha a mano (fuera de v0.1)"
+  ]
+}

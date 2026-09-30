@@ -1,7 +1,7 @@
 # Contrato · GDatePicker
 
 **Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/datepicker/r01/` (kiwi)
-**Tag:** `g-datepicker` · **Categoría:** entradas
+**Tag:** `g-datepicker` (Vue lo resuelve como `GDatepicker`: el registro incluye ese alias además de `GDatePicker`) · **Categoría:** entradas
 
 Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* de WAI-ARIA APG). Un solo componente con dos formas: **con campo(s)** (un botón que abre la superficie en un popover, o en una hoja inferior en móvil) y **`inline`** (solo la superficie, para un Dialog o una página). Muestra uno o dos meses según el ancho disponible. Alcance decidido por el usuario (DECISIONS.md #63): un componente con campo + popover + superficie en línea, valor como cadena ISO `YYYY-MM-DD` y hoja inferior con un mes en móvil. **Distinto de `GCalendar`** (planificador de eventos).
 
@@ -95,7 +95,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 
 ## Uno o dos meses
 
-- Con `months="auto"`: **dos** meses si el ancho disponible los deja con celdas cómodas, **uno** si no. El umbral **no es un número literal**: es `2 × (7 × celda + relleno) + separación + relleno de la superficie`, con la **celda medida** (`--g-space-1 × 10`, y `44px` con `pointer: coarse`). Con `space` 4 son ≈ 648px (≈ 704px táctil). El ancho disponible es el del contenedor (en línea), el del ancla (popover) o el del visor menos el margen (hoja).
+- Con `months="auto"`: **dos** meses si el ancho disponible los deja con celdas cómodas, **uno** si no. El umbral **no es un número literal**: es `2 × (7 × celda + relleno) + separación + relleno de la superficie`, con la **celda medida** (`--g-space-1 × 10`, y `44px` con `pointer: coarse`). Con `space` 4 son ≈ 648px (≈ 704px táctil). El ancho disponible es el del contenedor (en línea); en el popover, **el del visor menos el margen**, o el del ancla **solo si se da `anchor`** (una barra de búsqueda); en la hoja móvil, el del visor menos el margen.
 - Se recalcula al redimensionar (observador de tamaño); **cambiar el número de meses no pierde el foco ni la selección**.
 - Es preferible **un mes bien resuelto** a dos comprimidos: la celda **nunca** baja de `24px` (mínimo del contrato) y con puntero táctil de `44px`.
 - **En dos meses**, los días de un mes vecino se dejan **en blanco** (no repiten fechas visibles del otro mes); **en un mes**, se muestran atenuados y elegibles (Outside Month).
