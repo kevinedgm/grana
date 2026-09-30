@@ -1,6 +1,6 @@
 # Declaración de cumplimiento · GAvatarMotion · r01
 
-**Estado:** en revisión. La estructura y la coreografía vienen del prototipo del usuario (`referencia-usuario.html`) y de su especificación (§25–33). Las adaptaciones a las reglas de Grana se derivan de estándares (WCAG 2.2 AA: 1.1.1, 2.2.2, 2.3.3) y contratos vigentes. **Queda una decisión de producto** (hallazgo 2: `idle` limitado frente a continuo), que pasa a aprobada cuando el usuario la confirme.
+**Estado:** aprobada (el usuario eligió la opción A del hallazgo 2: `idle` limitado a dos ciclos, bucle solo si la aplicación lo pide). La estructura y la coreografía vienen del prototipo del usuario (`referencia-usuario.html`) y de su especificación (§25–33). Las adaptaciones a las reglas de Grana se derivan de estándares (WCAG 2.2 AA: 1.1.1, 2.2.2, 2.3.3) y contratos vigentes. La decisión de producto del hallazgo 2 ya está tomada: opción A.
 **Ruta:** R1 · **Fidelidad:** F2 · **Material:** kit neutral de grises con la forma y la coreografía exactas del prototipo del usuario.
 **Siguiente dueño:** lima → excepción en `icons.md` y `design/contracts/avatar-motion.md`.
 
