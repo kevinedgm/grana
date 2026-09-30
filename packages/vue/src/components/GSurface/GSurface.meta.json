@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSurface",
   "tag": "g-surface",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Superficie visual genérica, sin rol ni estructura: niveles flat, outlined, raised, floating e inset; la inset da un paso de tono respecto a su superficie padre y toma su radio concéntrico.",
   "contract": "design/contracts/surface.md",
@@ -104,8 +104,6 @@
     "inset-nested"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real con un tema distinto al por defecto (paso 5)",
-    "README (mora-docs)",
     "Superficie no-inset dentro de una inset (no diseñado en r01)",
     "Firefox y Safari (:not() con selectores complejos)",
     "forced-colors real y zoom al 200%",
