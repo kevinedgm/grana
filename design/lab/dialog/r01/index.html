@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDialog · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#b9b9b9;--wf-fill:#e4e4e4;--wf-fill-2:#f0f0f0;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;
+ /* geometría del sistema de superficies */
+ --gap:6px;            /* separación carcasa -> inset */
+ --r-outer:20px;       /* radio de la carcasa */
+ --r-inner:calc(var(--r-outer) - var(--gap)); /* radio concéntrico de la inset */
+ --pad:20px;           /* relleno de cabecera y contenido */
+}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:900px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.sec{font-size:17px;margin:32px 0 12px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 16px}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:72ch}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit}
+.b{min-height:36px;padding:0 14px;border:1px solid var(--wf-2);border-radius:8px;background:#fff;color:var(--wf-ink);cursor:pointer}
+.b:hover{background:var(--wf-fill-2)} .b--solid{background:var(--wf-ink);color:#fff;border-color:var(--wf-ink)} .b--solid:hover{background:#000}
+.b--danger{border:2px solid var(--wf-ink);font-weight:700}
+.b:focus-visible,.d__close:focus-visible,.d__body:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.b:disabled{opacity:.5;cursor:not-allowed}
+kbd{border:1px solid var(--wf-3);border-bottom-width:2px;border-radius:3px;padding:0 5px;font-size:12px}
+label.f{display:grid;gap:4px;font-size:14px} input.f,select.f{min-height:36px;border:1px solid var(--wf-2);border-radius:6px;padding:0 10px;font:inherit;background:#fff}
+input.f:focus-visible{outline:3px solid var(--wf-ink);outline-offset:1px}
+
+/* ---------- Carcasa: <dialog> nativo modal ---------- */
+.d{ --w:min(560px, calc(100vw - 32px)); padding:var(--gap); border:1px solid var(--wf-line); border-radius:var(--r-outer);
+    background:var(--wf-fill-2); color:var(--wf-ink); width:var(--w); max-height:min(720px, calc(100dvh - 32px));
+    margin:auto; overflow:hidden; box-shadow:none; }
+.d[open]{display:flex;flex-direction:column}
+.d::backdrop{background:rgb(0 0 0 / .32)}
+html:has(dialog[open]){overflow:hidden}
+.d--sm{--w:min(400px, calc(100vw - 32px))} .d--lg{--w:min(760px, calc(100vw - 32px))}
+.d__head{display:flex;gap:12px;align-items:flex-start;padding:calc(var(--pad) - var(--gap)) calc(var(--pad) - var(--gap)) 14px}
+.d__titles{flex:1 1 auto;min-width:0}
+.d__title{margin:0;font-size:18px;line-height:1.3}
+.d__desc{margin:4px 0 0;color:var(--wf-2);font-size:14px}
+.d__close{flex:none;width:36px;height:36px;border:1px solid transparent;border-radius:8px;background:transparent;cursor:pointer;display:grid;place-content:center}
+.d__close:hover{background:var(--wf-fill);border-color:var(--wf-line)}
+.d__close::before{content:"\00d7";font-size:22px;line-height:1}
+
+/* ---------- Superficie inset ---------- */
+.d__inset{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;background:#fff;border:1px solid var(--wf-line);border-radius:var(--r-inner);overflow:hidden}
+.d__body{padding:var(--pad);overflow:auto;flex:1 1 auto;min-height:0}
+.d__body>*:first-child{margin-top:0} .d__body>*:last-child{margin-bottom:0}
+.d__foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding:14px var(--pad);border-top:1px solid var(--wf-line);background:#fff}
+.d__foot--split{justify-content:space-between}
+.d__inset.is-scrolled .d__foot{background:var(--wf-fill-2)}
+.d__sec{padding:var(--pad);border-top:1px solid var(--wf-line)} .d__sec:first-child{border-top:0}
+.d__sec h3{margin:0 0 8px;font-size:14px}
+.d__body--sections{padding:0}
+/* Sin inset: el contenido vive en la carcasa */
+.d__plain{padding:0 calc(var(--pad) - var(--gap)) calc(var(--pad) - var(--gap));overflow:auto;min-height:0}
+/* Superficie secundaria (hundida), solo cuando agrupa */
+.d__sunken{background:var(--wf-fill-2);border:1px solid var(--wf-line);border-radius:calc(var(--r-inner) - 8px);padding:12px 14px}
+
+/* Confirmación */
+.d--alert .d__icon{flex:none;width:36px;height:36px;border:1.5px solid var(--wf-ink);border-radius:50%;display:grid;place-content:center;font-weight:700}
+
+/* Pantalla completa */
+.d--full{--w:100vw;width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border-width:0;--r-outer:0px}
+.d--full .d__inset{border-radius:var(--r-inner)}
+
+/* Adaptación: tableta */
+@media (max-width:900px){ .d{--pad:18px} .d--lg{--w:min(680px, calc(100vw - 24px))} }
+/* Móvil: hoja inferior por defecto; data-mobile cambia la composición */
+@media (max-width:520px){
+  .d{--pad:16px;--r-outer:20px}
+  .d[data-mobile="sheet"]{margin:auto 0 0;width:100vw;max-width:none;max-height:calc(100dvh - 48px);border-radius:var(--r-outer) var(--r-outer) 0 0;border-bottom-width:0;padding-bottom:max(var(--gap),env(safe-area-inset-bottom))}
+  .d[data-mobile="sheet"] .d__inset{border-radius:var(--r-inner) var(--r-inner) 0 0}
+  .d[data-mobile="full-width"]{width:calc(100vw - 16px);--w:calc(100vw - 16px)}
+  .d[data-mobile="fullscreen"]{width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border-width:0;--r-outer:0px}
+}
+@media (pointer:coarse){.b,.d__close{min-height:44px}.d__close{min-width:44px}}
+@media (prefers-reduced-motion:no-preference){
+  .d[open]{animation:in .18s cubic-bezier(.23,1,.32,1)}
+  @keyframes in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+}
+.log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:60px;white-space:pre-wrap;max-width:72ch}
+</style>
+</head>
+<body>
+<main>
+<h1>GDialog · r01</h1>
+<p class="meta">Wireframe F2. Carcasa exterior + superficie inset. Kit neutral; el estilo real es de coco. Cambia el ancho de la ventana para ver tableta (≤900px) y móvil (≤520px).</p>
+<div class="wf-note">Carcasa: <code>&lt;dialog&gt;</code> nativo con <code>showModal()</code> (foco atrapado, resto inerte, Esc, capa superior). Inset a <b>6px</b> de la carcasa con <b>radio concéntrico</b> (exterior 20 − separación 6 = 14). Sin sombras en el wireframe.</div>
+
+<h2 class="sec">Composiciones</h2>
+<div class="row" id="openers">
+  <button class="b" data-open="simple">1 · Simple</button>
+  <button class="b" data-open="inset">2 · Con inset</button>
+  <button class="b" data-open="foot">3 · Con pie</button>
+  <button class="b" data-open="sections">4 · Secciones</button>
+  <button class="b" data-open="scroll">5 · Con scroll</button>
+  <button class="b" data-open="confirm">6 · Confirmación</button>
+  <button class="b" data-open="form">7 · Formulario</button>
+  <button class="b" data-open="full">8 · Pantalla completa</button>
+  <button class="b" data-open="sheet-full">9a · Móvil: ancho completo</button>
+  <button class="b" data-open="sheet-fs">9b · Móvil: pantalla completa</button>
+</div>
+<h2 class="sec">Registro</h2>
+<div class="log" id="log" aria-live="off">—</div>
+
+<!-- 1 · Simple -->
+<dialog class="d d--sm" id="d-simple" aria-labelledby="t-simple" aria-describedby="s-simple">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-simple">Aviso</h2><p class="d__desc" id="s-simple">Un diálogo simple, sin superficie inset.</p></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__plain"><p>El contenido vive directamente en la carcasa. Útil para mensajes cortos.</p><div class="d__foot" style="border:0;padding:0"><button class="b b--solid" type="button" data-close>Entendido</button></div></div>
+</dialog>
+
+<!-- 2 · Con inset -->
+<dialog class="d" id="d-inset" aria-labelledby="t-inset" aria-describedby="s-inset">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-inset">Resumen</h2><p class="d__desc" id="s-inset">El contenido está alojado en la superficie inset.</p></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body"><p>Esta superficie queda a 6px del borde de la carcasa y comparte su centro de curvatura: se siente incrustada, no colocada encima.</p><p>Puede contener texto, listas, resúmenes o controles.</p></div></div>
+</dialog>
+
+<!-- 3 · Con pie -->
+<dialog class="d" id="d-foot" aria-labelledby="t-foot">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-foot">Guardar cambios</h2></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body"><p>El pie pertenece a la inset y lleva las acciones.</p></div>
+    <div class="d__foot"><button class="b" type="button" data-close>Cancelar</button><button class="b b--solid" type="button" data-close>Guardar</button></div></div>
+</dialog>
+
+<!-- 4 · Secciones -->
+<dialog class="d" id="d-sections" aria-labelledby="t-sections" aria-describedby="s-sections">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-sections">Preferencias</h2><p class="d__desc" id="s-sections">Varias secciones en una sola inset, separadas por línea.</p></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body d__body--sections">
+    <section class="d__sec" aria-labelledby="sa"><h3 id="sa">General</h3><p style="margin:0">Nombre y visibilidad.</p></section>
+    <section class="d__sec" aria-labelledby="sb"><h3 id="sb">Avisos</h3><div class="d__sunken">Una superficie secundaria agrupa solo lo que lo necesita.</div></section>
+    <section class="d__sec" aria-labelledby="sc"><h3 id="sc">Zona de riesgo</h3><p style="margin:0">Acciones que no se pueden deshacer.</p></section>
+  </div>
+  <div class="d__foot d__foot--split"><button class="b" type="button" data-close>Restablecer</button><span class="row"><button class="b" type="button" data-close>Cancelar</button><button class="b b--solid" type="button" data-close>Aplicar</button></span></div></div>
+</dialog>
+
+<!-- 5 · Scroll -->
+<dialog class="d" id="d-scroll" aria-labelledby="t-scroll">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-scroll">Términos y condiciones</h2></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body" tabindex="0" role="region" aria-labelledby="t-scroll" data-scroll>
+    <p>Cláusula 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 3. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 4. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 5. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 6. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 7. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 8. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 9. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 10. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 11. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><p>Cláusula 12. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+  </div>
+  <div class="d__foot"><button class="b" type="button" data-close>Rechazar</button><button class="b b--solid" type="button" data-close>Aceptar</button></div></div>
+</dialog>
+
+<!-- 6 · Confirmación -->
+<dialog class="d d--sm d--alert" id="d-confirm" role="alertdialog" aria-labelledby="t-confirm" aria-describedby="s-confirm" data-no-backdrop-close>
+  <div class="d__head"><span class="d__icon" aria-hidden="true">!</span><div class="d__titles"><h2 class="d__title" id="t-confirm">¿Eliminar el proyecto?</h2><p class="d__desc" id="s-confirm">Se borrarán sus 24 archivos. Esta acción no se puede deshacer.</p></div></div>
+  <div class="d__inset"><div class="d__foot"><button class="b" type="button" data-close autofocus>Cancelar</button><button class="b b--solid b--danger" type="button" data-close data-confirm>Eliminar</button></div></div>
+</dialog>
+
+<!-- 7 · Formulario -->
+<dialog class="d" id="d-form" aria-labelledby="t-form" aria-describedby="s-form">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-form">Nuevo contacto</h2><p class="d__desc" id="s-form">Los campos marcados con * son obligatorios.</p></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body">
+    <form id="f1" method="dialog" style="display:grid;gap:14px" novalidate>
+      <label class="f">Nombre *<input class="f" name="n" required></label>
+      <label class="f">Correo *<input class="f" name="e" type="email" required></label>
+    </form></div>
+    <div class="d__foot"><button class="b" type="button" data-close>Cancelar</button><button class="b b--solid" type="submit" form="f1">Crear</button></div></div>
+</dialog>
+
+<!-- 8 · Pantalla completa -->
+<dialog class="d d--full" id="d-full" aria-labelledby="t-full">
+  <div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-full">Editor</h2></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="d__inset"><div class="d__body"><p>Ocupa todo el visor y conserva la carcasa y la inset.</p></div>
+  <div class="d__foot"><button class="b" type="button" data-close>Cancelar</button><button class="b b--solid" type="button" data-close>Listo</button></div></div>
+</dialog>
+
+<dialog class="d" id="d-sheet-full" data-mobile="full-width" aria-labelledby="t-sf"><div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-sf">Móvil · ancho completo</h2></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div><div class="d__inset"><div class="d__body"><p>En ≤520px ocupa el ancho menos 8px por lado, centrado.</p></div><div class="d__foot"><button class="b b--solid" type="button" data-close>Listo</button></div></div></dialog>
+<dialog class="d" id="d-sheet-fs" data-mobile="fullscreen" aria-labelledby="t-sfs"><div class="d__head"><div class="d__titles"><h2 class="d__title" id="t-sfs">Móvil · pantalla completa</h2></div><button class="d__close" type="button" aria-label="Cerrar" data-close></button></div><div class="d__inset"><div class="d__body"><p>En ≤520px ocupa todo el visor.</p></div><div class="d__foot"><button class="b b--solid" type="button" data-close>Listo</button></div></div></dialog>
+</main>
+<script>
+const log=t=>{const l=document.getElementById('log');l.textContent=(new Date().toLocaleTimeString())+' '+t+'\n'+(l.textContent==='—'?'':l.textContent)};
+document.querySelectorAll('.d:not([data-mobile])').forEach(d=>{if(!d.dataset.mobile)d.dataset.mobile='sheet'});
+let opener=null;
+document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{opener=b;const d=document.getElementById('d-'+b.dataset.open);d.showModal();log('abre '+d.id+' · foco en '+(document.activeElement.textContent.trim()||document.activeElement.className));syncScroll(d)}));
+document.querySelectorAll('dialog').forEach(d=>{
+  d.addEventListener('click',e=>{ if(e.target.closest('[data-close]')) {d.close('close');return}
+    if(e.target===d && !d.hasAttribute('data-no-backdrop-close')){d.close('backdrop')} });
+  d.addEventListener('close',()=>{log('cierra '+d.id+' ('+(d.returnValue||'esc')+') · foco vuelve a '+(document.activeElement.textContent.trim().slice(0,20)));d.returnValue=''});
+  d.addEventListener('cancel',()=>log('cancel (Esc) '+d.id));
+});
+document.getElementById('f1').addEventListener('submit',e=>{const f=e.target;const bad=[...f.elements].find(x=>x.willValidate&&!x.checkValidity());if(bad){e.preventDefault();bad.focus();log('formulario inválido: no se cierra')}else log('formulario válido: envía')});
+function syncScroll(d){const b=d.querySelector('[data-scroll]');if(!b)return;const i=b.closest('.d__inset');const f=()=>i.classList.toggle('is-scrolled',b.scrollTop+b.clientHeight<b.scrollHeight-1);b.onscroll=f;f()}
+</script>
+</body></html>
