@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSidebar",
   "tag": "g-sidebar",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Navegación lateral que se transforma con un solo sistema: expandida, riel de iconos, navbar inferior con píldora activa y drawer. Items por arreglo (grupos, un nivel de hijos), destino actual por modelValue, adaptación por el ancho del contenedor y movimiento con transiciones.",
   "contract": "design/contracts/sidebar.md",
@@ -249,11 +249,11 @@
     "entering"
   ],
   "pending": [
-    "Estilo del punto (dot) del indicador: clase g-sidebar__badge--dot sin regla en GSidebar.css (coco)",
-    "Lector de pantalla real (riel, ramas, contadores, panel, píldora)",
+    "Lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer)",
     "Firefox y Safari (popover, <dialog>, @starting-style, interpolate-size)",
-    "Auditoría de coco con un tema distinto y con el componente real",
-    "README (mora-docs)",
-    "Formato inicial antes de medir el contenedor (se pinta expandido un instante)"
+    "Táctil real y teclado virtual (navbar y drawer)",
+    "La superficie del item activo es tenue (1.08:1 por defecto): decisión pendiente si se refuerza (ver auditoria.md)",
+    "Formato inicial antes de medir el contenedor (se pinta expandido un instante)",
+    "README (mora-docs)"
   ]
 }

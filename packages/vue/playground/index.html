@@ -268,7 +268,7 @@
             <template #more-icon><lucide-icon name="menu"></lucide-icon></template>
             <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><span style="flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600">AG</span><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
           </g-sidebar>
-          <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px' }">
+          <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px', paddingInlineStart: sbMode.overlay ? 'calc(var(--g-sidebar-rail) + 20px)' : '20px' }">
             <h3 style="margin:0 0 8px">Contenido principal</h3>
             <p>Página actual: <b>{{ sbActive }}</b> · formato: <b>{{ sbMode.mode }}</b><span v-if="sbMode.overlay"> (superpuesto)</span></p>
             <div v-for="n in 8" :key="n" style="height:10px;border-radius:5px;background:var(--g-color-border);margin:10px 0" :style="{ inlineSize: (100 - n * 6) + '%' }"></div>

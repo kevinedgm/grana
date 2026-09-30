@@ -372,6 +372,16 @@
     opacity: 0;
   }
 }
+/* Punto de estado (sin número): la misma píldora, reducida a un círculo */
+.g-sidebar__badge.g-sidebar__badge--dot,
+.g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__badge.g-sidebar__badge--dot,
+.g-sidebar--mode-navbar .g-sidebar__badge.g-sidebar__badge--dot {
+  inline-size: calc(var(--g-space-1) * 2);
+  block-size: calc(var(--g-space-1) * 2);
+  min-inline-size: 0;
+  padding: 0;
+  line-height: 0;
+}
 .g-sidebar__sr,
 .g-sidebar__label--hidden {
   position: absolute;
