@@ -38,5 +38,5 @@
     "--g-duration-fast", "--g-duration-press", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-press-scale"
   ],
   "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
-  "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)"]
+  "pending": ["Verificación manual: escala al pulsar, prefers-reduced-motion y forced-colors emulados", "Alturas fraccionarias (round())", "Tamaño de icono por token"]
 }
