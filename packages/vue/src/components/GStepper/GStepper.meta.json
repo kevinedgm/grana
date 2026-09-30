@@ -230,7 +230,6 @@
     "condensed"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: lista, aria-current y texto de estado",
     "Medición por contenedor en un navegador real (las pruebas de jsdom la simulan)",
     "RTL, forced-colors real, táctil real y zoom al 200%",
