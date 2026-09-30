@@ -185,7 +185,6 @@
     "mobile-sheet"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: nombre, descripción, alertdialog y cuerpo desplazable",
     "Teclado virtual y táctil reales en móvil",
     "Firefox y Safari (::backdrop con variables, :has())",
