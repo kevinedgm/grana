@@ -201,6 +201,23 @@
     </g-calendar>
     <pre class="log" style="max-height:160px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
 
+    <h2>Selector (GSelect)</h2>
+    <div class="col" style="max-width:420px">
+      <g-select v-model="selCountry" :options="selCountries" label="País" placeholder="Elige un país" name="pais" hint="Usa las flechas y escribe para saltar." @open="selLog = 'abre'" @close="selLog = 'cierra'"></g-select>
+      <g-select v-model="selPriority" :options="selPriorities" label="Prioridad" placeholder="Elige" clearable clear-label="Limpiar prioridad"></g-select>
+      <g-select v-model="selState" :options="selPriorities" label="Estado" placeholder="Elige" required :error="selError" @update:model-value="selError = ''"></g-select>
+      <g-select v-model="selMany" :options="selManyOptions" label="Muchas opciones (40)" placeholder="Elige"></g-select>
+      <g-select v-model="selSoft" :options="selPriorities" label="Variante soft" variant="soft" color="accent"></g-select>
+      <g-select :model-value="1" :options="selPriorities" label="Solo lectura" readonly></g-select>
+      <g-select :model-value="1" :options="selPriorities" label="Deshabilitado" disabled></g-select>
+      <g-select v-model="selLoad" :options="selPriorities" label="Cargando (no bloquea)" loading placeholder="Elige"></g-select>
+      <g-select v-model="selRich" :options="selRichOptions" label="Con contenido rico" placeholder="Elige">
+        <template #option="{ option }"><span>{{ option.label }}</span><small style="margin-inline-start:auto;opacity:.7">{{ option.meta }}</small></template>
+      </g-select>
+      <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
+      <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
+    </div>
+
     <h2>Texto de varias líneas (GTextarea)</h2>
     <div class="col" style="max-width:420px">
       <g-textarea v-model="taNote" label="Comentario" hint="Cuéntanos qué pasó." placeholder="Escribe aquí…"></g-textarea>
@@ -363,6 +380,23 @@
         const taLog = ref('Sin avisos del contador todavía.')
         const taCounterText = (nivel, max) => { const t = nivel === 'limit' ? 'Límite alcanzado: ' + max + ' caracteres' : 'Cerca del límite: máximo ' + max + ' caracteres'; taLog.value = 'aviso hablado: ' + t; return t }
         const taCheck = () => { taError.value = taReason.value.trim().length >= 10 ? '' : 'Escribe al menos 10 caracteres.' }
+        const selCountry = ref(null)
+        const selPriority = ref(2)
+        const selState = ref(null)
+        const selMany = ref(null)
+        const selSoft = ref(0)
+        const selLoad = ref(null)
+        const selRich = ref(null)
+        const selError = ref('')
+        const selLog = ref('cerrada')
+        const selCountries = [
+          { label: 'Norteamérica', options: [{ value: 'mx', label: 'México' }, { value: 'us', label: 'Estados Unidos' }, { value: 'ca', label: 'Canadá' }] },
+          { label: 'Europa', options: [{ value: 'es', label: 'España' }, { value: 'fr', label: 'Francia' }, { value: 'de', label: 'Alemania', disabled: true }, { value: 'it', label: 'Italia' }] },
+          { label: 'Sudamérica', options: [{ value: 'ar', label: 'Argentina' }, { value: 'br', label: 'Brasil' }, { value: 'cl', label: 'Chile' }] }
+        ]
+        const selPriorities = [{ value: 0, label: 'Bajo' }, { value: 1, label: 'Medio' }, { value: 2, label: 'Alto' }, { value: 3, label: 'Urgente' }]
+        const selManyOptions = Array.from({ length: 40 }, (_, i) => ({ value: i, label: 'Opción ' + (i + 1) }))
+        const selRichOptions = [{ value: 'a', label: 'Plan Básico', meta: '$0' }, { value: 'b', label: 'Plan Pro', meta: '$12' }, { value: 'c', label: 'Plan Equipo', meta: '$39' }]
         const loading = ref(false)
         const count = ref(0)
         const themed = ref(false)
@@ -454,7 +488,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

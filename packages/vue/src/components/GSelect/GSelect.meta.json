@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "name": "GSelect",
+  "tag": "g-select",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Selector de una opción con lista propia (combobox de solo selección): grupos, opciones deshabilitadas, teclado completo con typeahead, hoja inferior en móvil.",
+  "contract": "design/contracts/select.md",
+  "prototype": "design/lab/select/r01/",
+  "style": "packages/vue/src/components/GSelect/GSelect.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | Number | null",
+      "default": null
+    },
+    {
+      "name": "options",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": null,
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "placeholder",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "clearable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "clearLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "emptyText",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | Number | null",
+      "trigger": "El usuario elige una opción distinta o borra con clearable (null)"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "La lista se abre"
+    },
+    {
+      "name": "close",
+      "payload": "",
+      "trigger": "La lista se cierra, por el motivo que sea"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (sustituye a label)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo con error"
+    },
+    {
+      "name": "option",
+      "purpose": "Contenido de una opción. Alcance: { option, selected, active }. Sin interactivos"
+    },
+    {
+      "name": "value",
+      "purpose": "Contenido del valor mostrado. Alcance: { option }. Solo con una opción elegida"
+    },
+    {
+      "name": "empty",
+      "purpose": "Contenido de la lista vacía (sustituye a emptyText)"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-color-{color}-text",
+    "--g-radius-{rounded}",
+    "--g-radius-sm",
+    "--g-radius-md",
+    "--g-radius-pill",
+    "--g-space-1..6",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-surface-inset",
+    "--g-surface-gap",
+    "--g-surface-radius",
+    "--g-surface-backdrop",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-spin",
+    "--g-ease-standard",
+    "--g-ease-out"
+  ],
+  "states": [
+    "closed",
+    "open",
+    "hover",
+    "focus-visible",
+    "disabled",
+    "readonly",
+    "invalid",
+    "loading",
+    "option-active",
+    "option-selected",
+    "option-disabled",
+    "list-up",
+    "sheet"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real (incluido aria-activedescendant en la hoja móvil)",
+    "Hoja inferior con teclado virtual y táctil reales",
+    "Firefox y Safari (popover, ::backdrop, :popover-open, :has())",
+    "Selección múltiple, búsqueda y virtualización (v0.2)"
+  ]
+}
