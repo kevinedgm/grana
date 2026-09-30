@@ -89,6 +89,7 @@ Los bloqueos recurrentes llegan como **ocurrencias concretas** (el componente no
 | `timezone` | String | zona IANA | sin valor | propia |
 | `locale` | String | BCP 47 | sin valor | propia |
 | `weekStartsOn` | Number | 0 a 6 | `1` | propia |
+| `hour12` | Boolean | | `false` | propia |
 | `startHour` | Number | 0 a 23 | `7` | propia |
 | `endHour` | Number | 1 a 24 | `22` | propia |
 | `gridInterval` | Number | minutos | `30` | propia |
@@ -120,6 +121,7 @@ Los bloqueos recurrentes llegan como **ocurrencias concretas** (el componente no
   - **Semana:** un recurso; con varios, la barra ofrece elegir cuál (es estado interno de la barra y se anuncia al cambiar).
   - **Mes:** los eventos de todos los recursos se mezclan y cada uno lleva la inicial de su recurso (el mes agregado con métricas queda para v0.2).
   - **Timeline:** todos los recursos, sobre el mismo eje. Sin virtualización en v0.1.
+- **`hour12`:** las horas se muestran en 24 horas (`HH:mm`); con `hour12`, en 12 horas según la `locale`. Los nombres de días y meses siempre siguen la `locale`.
 - **`startHour`/`endHour`:** rango visible de las vistas con eje horario. Un evento fuera del rango no se dibuja en el eje; se cuenta en un aviso "N eventos fuera del rango visible".
 - **`gridInterval`:** guía visual de la cuadrícula. **No** limita la posición de los eventos.
 - **`snapInterval`:** paso de las interacciones (arrastrar, redimensionar, crear, teclado). Distinto de `gridInterval` y del intervalo de disponibilidad.
@@ -206,12 +208,15 @@ Los bloqueos recurrentes llegan como **ocurrencias concretas** (el componente no
 | `views` | Texto | Nombre del grupo del selector de vista |
 | `resources` | Texto | Panel o lista de recursos; encabezado de Timeline |
 | `allDay` | Texto | Región de día completo |
+| `tooManyResources` | Texto | Aviso cuando la vista Día recibe más de 5 recursos |
 | `now` | Texto | Indicador de hora actual |
 | `moreEvents` | `(n) => texto` | `+N` de la vista Mes |
 | `outOfRange` | `(n, desde, hasta) => texto` | Aviso de eventos fuera del rango visible |
 | `noEvents` | Texto | Estado vacío |
 | `loading` | Texto | Nombre accesible del esqueleto |
 | `retry` | Texto | Botón de reintento |
+| `close` | Texto | Cerrar la hoja del día (teléfono) |
+| `monthDay` | `(fecha, n) => texto` | Nombre accesible de cada día del Mes ("martes 29 de septiembre, 3 eventos") |
 | `unavailable` | `(inicio, fin, motivo) => texto` | Bloqueo, para lectores de pantalla |
 | `eventName` | `(evento, recurso, inicio, fin, estado) => texto` | Nombre accesible de cada evento |
 | `openEnded` | `(inicio) => texto` | Evento sin hora final |
@@ -292,7 +297,7 @@ Los umbrales (~700px y ~520px) son **constantes literales de contenedor** (excep
 
 | Tecla | Acción |
 | --- | --- |
-| Tab / Shift+Tab | La vista tiene **un solo punto de tabulación** (tabulación itinerante); la barra y las cabeceras tienen los suyos |
+| Tab / Shift+Tab | **Día, Semana y Timeline** tienen **un solo punto de tabulación** (tabulación itinerante, con los eventos de día completo incluidos); **Mes y la agenda móvil** usan el orden natural del documento; la barra y las cabeceras tienen los suyos |
 | ↑ / ↓ (en Timeline: ← / →) | Evento anterior o siguiente de la misma lista |
 | → / ← (en Timeline: ↓ / ↑) | Primer evento de la lista vecina (día o recurso) |
 | Inicio / Fin | Primer o último evento de la vista |
@@ -344,11 +349,14 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-calendar--mode-{desktop\|tablet\|phone}` | Raíz | Según el ancho de la raíz |
 | `is-readonly`, `is-disabled`, `is-loading`, `is-error` | Raíz | Según las props |
 | `g-calendar__toolbar`, `__prev`, `__today`, `__next`, `__title`, `__views` | Barra | Siempre |
+| `g-calendar__retry`, `__sheet-close` | Botón de reintento; botón de cerrar la hoja | Con `error`; con la hoja abierta |
+| `g-calendar__resource-select` | Selector de recurso de la Semana | Vista `week` con varios recursos |
 | `g-calendar__status` | Aviso de estado | Siempre presente (vacío si no hay aviso) |
 | `g-calendar__viewport` | Ventana | Siempre |
 | `g-calendar__grid`, `__axis`, `__col`, `__head`, `__allday` | Vistas Día y Semana | Según la vista |
 | `g-calendar__availability` | Capa de disponibilidad | Si hay reglas |
 | `g-calendar__events` | Lista de eventos y bloqueos | Siempre |
+| `g-calendar__allday-events` | Lista de eventos de día completo de una columna | Si hay eventos de día completo |
 | `g-calendar__event` | Botón del evento | Siempre |
 | `g-calendar__event--sm` | Botón del evento | Alto menor que el necesario para la hora |
 | `g-calendar__event--open` | Botón del evento | Evento abierto |
@@ -363,6 +371,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-calendar__month`, `__day`, `__more`, `__dots` | Mes | Vista `month` |
 | `g-calendar__resources`, `__resource`, `__agenda`, `__strip`, `__sheet` | Teléfono | Modo `phone` |
 | `g-calendar__detail` | Detalle del evento | Con el slot `detail` |
+| `g-calendar__event-title`, `__event-time` | Título y hora dentro del botón del evento | Siempre |
+| `g-calendar__head-title`, `__label-title`, `__label-sub`, `__rows` | Interior de cabeceras, etiquetas de recurso y lista de filas de Timeline | Según la vista |
+| `is-today`, `is-outside` | Cabecera, columna y celda de Mes | Hoy, o fuera del mes mostrado (con `aria-current="date"` en hoy) |
 | `g-calendar__skeleton` | Esqueleto | `loading` |
 | `g-calendar__sr` | Texto solo para lectores de pantalla | Bloqueos y botones de creación |
 | `g-calendar__live` | Región viva | Siempre |

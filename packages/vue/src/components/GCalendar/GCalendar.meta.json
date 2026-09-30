@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "name": "GCalendar",
+  "tag": "g-calendar",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Calendario y planificador genérico de uno o varios recursos: Día, Semana, Mes y Timeline. Representa y manipula tiempo; emite solicitudes, no muta.",
+  "contract": "design/contracts/calendar.md",
+  "prototype": "design/lab/calendar/r01/",
+  "style": "packages/vue/src/components/GCalendar/GCalendar.css",
+  "props": [
+    {
+      "name": "events",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "resources",
+      "type": "Array",
+      "default": null
+    },
+    {
+      "name": "availability",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "blocks",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "view",
+      "type": "String",
+      "default": "week",
+      "values": [
+        "day",
+        "week",
+        "month",
+        "timeline"
+      ]
+    },
+    {
+      "name": "date",
+      "type": "Date | String",
+      "default": null
+    },
+    {
+      "name": "selectedEventId",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "timezone",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "weekStartsOn",
+      "type": "Number",
+      "default": 1
+    },
+    {
+      "name": "hour12",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "startHour",
+      "type": "Number",
+      "default": 7
+    },
+    {
+      "name": "endHour",
+      "type": "Number",
+      "default": 22
+    },
+    {
+      "name": "gridInterval",
+      "type": "Number",
+      "default": 30
+    },
+    {
+      "name": "snapInterval",
+      "type": "Number",
+      "default": 5
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "comfortable",
+      "values": [
+        "compact",
+        "comfortable",
+        "spacious"
+      ]
+    },
+    {
+      "name": "editable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "draggable",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "resizable",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "showNowIndicator",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "now",
+      "type": "Date | String",
+      "default": null
+    },
+    {
+      "name": "refreshInterval",
+      "type": "Number",
+      "default": 60000
+    },
+    {
+      "name": "monthMaxVisibleEvents",
+      "type": "Number",
+      "default": 3
+    },
+    {
+      "name": "detectConflicts",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:view",
+      "payload": "String",
+      "trigger": "Cambia la vista"
+    },
+    {
+      "name": "update:date",
+      "payload": "Date",
+      "trigger": "Navega; Date en la medianoche del día, en la zona del calendario"
+    },
+    {
+      "name": "update:selectedEventId",
+      "payload": "String | null",
+      "trigger": "Se selecciona o se deselecciona un evento"
+    },
+    {
+      "name": "range-change",
+      "payload": "{ start, end, view, timezone }",
+      "trigger": "Cambia el rango visible (también al montar); end es exclusivo"
+    },
+    {
+      "name": "create-request",
+      "payload": "{ resourceId, start, end?, timezone, source }",
+      "trigger": "Clic o arrastre en un hueco, o el botón de teclado"
+    },
+    {
+      "name": "event-move-request",
+      "payload": "{ event, resourceId, previousStart, previousEnd, newStart, newEnd, newResourceId, conflicts }",
+      "trigger": "Se suelta un evento arrastrado o Alt+flecha"
+    },
+    {
+      "name": "event-resize-request",
+      "payload": "{ event, resourceId, previousEnd, newEnd, conflicts }",
+      "trigger": "Se suelta el tirador o Shift+flecha"
+    },
+    {
+      "name": "event-click",
+      "payload": "{ event, resourceId }",
+      "trigger": "Clic, toque o Enter sobre un evento"
+    },
+    {
+      "name": "event-double-click",
+      "payload": "{ event, resourceId }",
+      "trigger": "Doble clic"
+    },
+    {
+      "name": "conflict",
+      "payload": "{ type, event, conflicts }",
+      "trigger": "Una solicitud tiene conflictos (además de la solicitud)"
+    },
+    {
+      "name": "block-conflict",
+      "payload": "{ block, impactedEvents }",
+      "trigger": "Un bloqueo recibido cubre eventos existentes"
+    },
+    {
+      "name": "resource-click",
+      "payload": "{ resourceId }",
+      "trigger": "Clic sobre un recurso"
+    },
+    {
+      "name": "date-click",
+      "payload": "{ date }",
+      "trigger": "Clic sobre un día del Mes"
+    },
+    {
+      "name": "time-click",
+      "payload": "{ resourceId, start }",
+      "trigger": "Clic sobre una hora vacía"
+    },
+    {
+      "name": "more-events-click",
+      "payload": "{ date, hidden }",
+      "trigger": "Clic en +N"
+    },
+    {
+      "name": "retry",
+      "payload": "",
+      "trigger": "Botón de reintento del estado de error"
+    }
+  ],
+  "slots": [
+    {
+      "name": "resource",
+      "purpose": "Cabecera de un recurso. Alcance: { resource }"
+    },
+    {
+      "name": "event",
+      "purpose": "Sustituye todo el contenido del evento. Alcance: { event, resource, segment }. Sin interactivos"
+    },
+    {
+      "name": "event-content",
+      "purpose": "Contenido interior del evento. Alcance: { event, resource, segment }. Sin interactivos"
+    },
+    {
+      "name": "day-header",
+      "purpose": "Encabezado de un día. Alcance: { date }"
+    },
+    {
+      "name": "month-day",
+      "purpose": "Contenido adicional de una celda del Mes. Alcance: { date, events }"
+    },
+    {
+      "name": "all-day-event",
+      "purpose": "Evento de día completo. Alcance: { event }"
+    },
+    {
+      "name": "detail",
+      "purpose": "Detalle del evento seleccionado. Alcance: { event, resource, close }"
+    },
+    {
+      "name": "toolbar-end",
+      "purpose": "Contenido extra al final de la barra"
+    },
+    {
+      "name": "empty",
+      "purpose": "Estado vacío"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-bg",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-{color}",
+    "--g-color-{color}-soft",
+    "--g-color-{color}-text",
+    "--g-color-on-{color}",
+    "--g-color-on-{color}-soft",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-danger",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-radius-*",
+    "--g-space-1..6",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body|title-sm}-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-duration-fast",
+    "--g-duration-spin",
+    "--g-ease-standard",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-calendar-grid-color",
+    "--g-calendar-unavailable-color",
+    "--g-calendar-now-color"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "selected",
+    "conflict",
+    "dragging",
+    "resizing",
+    "selecting",
+    "loading",
+    "error",
+    "empty",
+    "readonly",
+    "disabled"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real: lista cronológica, conteos, solicitudes y conflictos",
+    "Táctil real: arrastre, tirador y hoja inferior con dedos",
+    "Horario de verano en la fecha visible con componente montado",
+    "Rendimiento con 1000+ eventos y 100+ recursos (virtualización en v0.2)"
+  ]
+}

@@ -184,6 +184,23 @@
     </g-checkbox-group>
     <p class="log">Servicios: {{ servicios.join(', ') || '—' }}</p>
 
+    <h2>Calendario (GCalendar)</h2>
+    <p class="log">Solo lectura de datos: el calendario emite <b>solicitudes</b>; aquí la "aplicación" las aplica si no hay conflicto (o si marcas que se permiten). <b>Alt</b>+flecha mueve, <b>Shift</b>+flecha cambia la duración.</p>
+    <label class="log"><input type="checkbox" v-model="calAllow"> La aplicación permite conflictos</label>
+    <g-calendar
+      v-model:view="calView" v-model:date="calDate" v-model:selected-event-id="calSel"
+      :events="calEvents" :resources="calResources" :availability="calAvail" :blocks="calBlocks"
+      timezone="America/Mexico_City" locale="es-MX" :now="'2026-09-29T10:10'" label="Calendario de demostración"
+      editable :labels="calLabels"
+      @create-request="onCalCreate" @event-move-request="onCalMove" @event-resize-request="onCalResize" @range-change="onCalRange" @conflict="onCalConflict">
+      <template #detail="{ event, close }">
+        <strong>{{ event.title }}</strong>
+        <p style="margin:4px 0">Slot <code>detail</code> del consumidor.</p>
+        <g-btn size="sm" variant="outline" @click="close">Cerrar</g-btn>
+      </template>
+    </g-calendar>
+    <pre class="log" style="max-height:160px;overflow:auto;background:#fff;border:1px solid #ddd;padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
+
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
@@ -223,6 +240,51 @@
         const handle = ref('ana.garcia')
         const coupon = ref('')
         const site = ref('')
+        const calView = ref('day')
+        const calDate = ref(new Date('2026-09-29T12:00:00Z'))
+        const calSel = ref(null)
+        const calAllow = ref(false)
+        const calLog = ref([])
+        const at = (hm, day = '2026-09-29') => day + 'T' + hm
+        const calEvents = ref([
+          { id: 'e1', resourceId: 'a', title: 'Reunión de equipo', start: at('09:00'), end: at('10:00'), color: 'accent' },
+          { id: 'e2', resourceId: 'a', title: 'Revisión', start: at('10:15'), end: at('11:00'), color: 'success', status: 'tentative' },
+          { id: 'e3', resourceId: 'a', title: 'Llamada', start: at('10:30'), end: at('11:15'), color: 'info' },
+          { id: 'e4', resourceId: 'a', title: 'Cita corta', start: at('12:43'), end: at('13:12'), color: 'danger' },
+          { id: 'e5', resourceId: 'a', title: 'Trámite', start: at('09:03'), end: at('09:08'), color: 'warning' },
+          { id: 'e6', resourceId: 'a', title: 'Turno activo', start: at('09:37'), color: 'brand' },
+          { id: 'e7', resourceId: 'a', title: 'Feriado', allDay: true, start: at('00:00'), end: at('00:00', '2026-09-30') },
+          { id: 'e8', resourceId: 'b', title: 'Inspección', start: at('09:30'), end: at('10:00') },
+          { id: 'e9', resourceId: 'b', title: 'Mantenimiento', start: at('11:00'), end: at('13:00'), color: 'warning' },
+          { id: 'e10', resourceId: 'd', title: 'Ruta 12', start: at('09:00'), end: at('12:00'), color: 'accent' },
+          { id: 'e11', resourceId: 'a', title: 'Planeación', start: at('09:00', '2026-09-28'), end: at('10:30', '2026-09-28') },
+          { id: 'e12', resourceId: 'a', title: 'Visita', start: at('10:00', '2026-09-30'), end: at('11:00', '2026-09-30') }
+        ])
+        const calResources = [{ id: 'a', title: 'Recurso A', subtitle: 'Sala 1' }, { id: 'b', title: 'Recurso B', subtitle: 'Sala 2' }, { id: 'c', title: 'Recurso C', subtitle: 'Taller' }, { id: 'd', title: 'Recurso D', subtitle: 'Vehículo' }]
+        const calAvail = [
+          { resourceId: 'a', startTime: '09:00', endTime: '18:00', pauses: [{ startTime: '14:00', endTime: '15:00' }], slotDuration: 30 },
+          { resourceId: 'b', startTime: '09:00', endTime: '18:00' }, { resourceId: 'c', dayOfWeek: 2, startTime: '10:00', endTime: '16:00' }, { resourceId: 'd', startTime: '08:00', endTime: '17:00' }
+        ]
+        const calBlocks = [{ id: 'k1', resourceId: 'a', start: at('14:00'), end: at('15:00'), reason: 'Descanso' }, { id: 'k2', resourceId: 'c', start: at('10:00'), end: at('13:00'), reason: 'Mantenimiento' }]
+        const hm = (d) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', hour12: false }).format(d)
+        const calLabels = {
+          calendar: 'Calendario', previous: 'Anterior', next: 'Siguiente', today: 'Hoy', views: 'Vista', day: 'Día', week: 'Semana', month: 'Mes', timeline: 'Timeline',
+          resources: 'Recursos', allDay: 'Día completo', now: 'ahora', noEvents: 'No hay eventos para este periodo.', loading: 'Cargando', retry: 'Reintentar', close: 'Cerrar',
+          tooManyResources: 'Demasiados recursos para columnas: usa Timeline.', moreEvents: (n) => '+' + n + ' más', outOfRange: (n, a, b) => n + ' evento(s) fuera del rango visible (' + a + '–' + b + ')',
+          unavailable: (a, b, why) => 'No disponible, ' + a + ' a ' + b + ', ' + why, createEvent: (r, d, t) => 'Crear evento en ' + (r ? r.title : '') + ', ' + d + ', a las ' + t,
+          monthDay: (d, n) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' }).format(d) + ', ' + n + ' evento(s)',
+          eventName: (e, r, a, b, st) => e.title + ', ' + a + (b ? ' a ' + b : ', sin hora final') + ', ' + (r ? r.title : '') + (st ? ', ' + st : ''),
+          conflict: { overlap: 'Se traslapa con otro evento', blockedTime: 'El periodo está bloqueado', outsideAvailability: 'Fuera de la disponibilidad', invalidDuration: 'Duración no válida', resourceConflict: 'Conflicto en otro recurso' },
+          resourceStatus: { busyUntil: (h) => 'Ocupado hasta ' + h, available: 'Disponible', availableNext: (h) => 'Disponible · próximo evento ' + h, blocked: 'Bloqueado', activeEvent: 'Ocupado · evento activo' }
+        }
+        const logCal = (t) => { calLog.value = [t, ...calLog.value].slice(0, 30) }
+        const findCal = (raw) => calEvents.value.find((e) => e.id === raw.id)
+        const applyCal = (raw, patch, conflicts) => { if (conflicts.length && !calAllow.value) return logCal('   → la aplicación NO lo permitió'); Object.assign(findCal(raw), patch); logCal('   → cambio aplicado') }
+        const onCalMove = (r) => { logCal('event-move-request ' + r.event.title + ' ' + hm(r.newStart) + '–' + hm(r.newEnd) + (r.conflicts.length ? ' [' + r.conflicts.map((c) => c.type).join(',') + ']' : '')); applyCal(r.event, { start: r.newStart, end: r.newEnd, resourceId: r.newResourceId }, r.conflicts) }
+        const onCalResize = (r) => { logCal('event-resize-request ' + r.event.title + ' fin ' + hm(r.newEnd) + (r.conflicts.length ? ' [' + r.conflicts.map((c) => c.type).join(',') + ']' : '')); applyCal(r.event, { end: r.newEnd }, r.conflicts) }
+        const onCalCreate = (r) => logCal('create-request ' + r.resourceId + ' ' + hm(r.start) + (r.end ? '–' + hm(r.end) : '') + ' (' + r.source + ')')
+        const onCalRange = (r) => logCal('range-change ' + r.view + ' ' + r.start.toISOString().slice(0, 10) + ' → ' + r.end.toISOString().slice(0, 10))
+        const onCalConflict = (c) => logCal('conflict ' + c.type)
         const newsletter = ref(false)
         const invoice = ref(false)
         const terms = ref(false)
@@ -257,7 +319,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

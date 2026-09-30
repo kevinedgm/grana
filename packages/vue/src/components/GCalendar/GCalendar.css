@@ -11,7 +11,9 @@
                 minutos visibles (rango × 60)
     --_cols     en .g-calendar__grid                      : número de columnas
     --_grid     en .g-calendar                            : gridInterval (minutos)
-    --_start    en li de eventos/bloqueos, franjas de disponibilidad, etiquetas del eje y línea de ahora :
+    --_x, --_y  en .g-calendar__detail                    : posición en píxeles (única medida en px dinámica)
+    --_span     en .g-calendar__now (Día/Semana)         : columnas de hoy que abarca la única línea de ahora
+    --_start    en li de eventos/bloqueos, franjas de disponibilidad, etiquetas del eje, línea de ahora y fantasma :
                 minutos desde el inicio visible
     --_dur      en li de eventos/bloqueos y franjas      : duración en minutos
     --_lane, --_lanes  en li de eventos                  : carril y total de carriles de su grupo
@@ -41,6 +43,7 @@
   --_gridpxx: calc(var(--_grid) * var(--_ppmx));
 
   container-type: inline-size;
+  position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -72,7 +75,9 @@
   padding: var(--_pad);
   border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
 }
-.g-calendar__toolbar button {
+.g-calendar__toolbar button,
+.g-calendar__retry,
+.g-calendar__sheet-close {
   box-sizing: border-box;
   min-inline-size: max(24px, calc(var(--g-space-1) * 8));
   min-block-size: max(24px, calc(var(--g-space-1) * 8));
@@ -90,13 +95,17 @@
     border-color var(--g-duration-fast) var(--g-ease-standard);
 }
 @media (pointer: coarse) {
-  .g-calendar__toolbar button {
+  .g-calendar__toolbar button,
+  .g-calendar__retry,
+  .g-calendar__sheet-close {
     min-inline-size: 44px;
     min-block-size: 44px;
   }
 }
 @media (hover: hover) {
-  .g-calendar__toolbar button:hover {
+  .g-calendar__toolbar button:hover,
+  .g-calendar__retry:hover,
+  .g-calendar__sheet-close:hover {
     background: var(--g-color-surface-sunken);
     border-color: var(--g-color-text-muted);
   }
@@ -136,7 +145,9 @@
   border-start-end-radius: var(--g-radius-sm);
   border-end-end-radius: var(--g-radius-sm);
 }
-.g-calendar__toolbar button:focus-visible {
+.g-calendar__toolbar button:focus-visible,
+.g-calendar__retry:focus-visible,
+.g-calendar__sheet-close:focus-visible {
   position: relative;
   z-index: 1;
   outline: var(--g-focus-width) solid var(--g-color-focus);
@@ -223,6 +234,18 @@
 .g-calendar__allday > :first-child {
   border-inline-start: 0;
   color: var(--g-color-text-muted);
+}
+.g-calendar__allday-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-calendar__allday-events .g-calendar__event {
+  block-size: auto;
+  min-block-size: var(--_evmin);
 }
 .g-calendar__axis {
   position: relative;
@@ -436,6 +459,18 @@
   line-height: var(--g-text-caption-line);
   pointer-events: none;
 }
+.g-calendar__ghost {
+  inset-block-start: calc(var(--_start) * var(--_ppm));
+  block-size: calc(var(--_dur) * var(--_ppm));
+  inset-inline: var(--g-border-width);
+}
+.g-calendar__timeline .g-calendar__ghost {
+  inset-block: var(--g-space-1);
+  block-size: auto;
+  inset-inline-start: calc(var(--_start) * var(--_ppmx));
+  inset-inline-end: auto;
+  inline-size: calc(var(--_dur) * var(--_ppmx));
+}
 .g-calendar__ghost.is-conflict {
   border-color: var(--g-color-danger-text);
   color: var(--g-color-danger-text);
@@ -444,7 +479,8 @@
 /* Línea de ahora (una por ventana) */
 .g-calendar__now {
   position: absolute;
-  inset-inline: 0;
+  inset-inline-start: 0;
+  inline-size: calc(100% * var(--_span, 1));
   inset-block-start: calc(var(--_start) * var(--_ppm));
   z-index: 4;
   block-size: 0;
@@ -526,6 +562,12 @@
   grid-column: 2;
   block-size: calc(var(--g-space-1) * 7);
 }
+.g-calendar__rows {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .g-calendar__row {
   display: grid;
   grid-template-columns: var(--_labw) calc(var(--_minutes) * var(--_ppmx));
@@ -602,6 +644,7 @@
   block-size: calc(var(--g-space-1) * 6);
 }
 .g-calendar__timeline .g-calendar__now {
+  inline-size: 0;
   inset-inline: auto;
   inset-block: 0;
   inset-inline-start: calc(var(--_labw) + var(--_start) * var(--_ppmx));
@@ -814,6 +857,8 @@
   position: absolute;
   z-index: 15;
   box-sizing: border-box;
+  inset-inline-start: var(--_x, 0);
+  inset-block-start: var(--_y, 0);
   min-inline-size: calc(var(--g-space-1) * 52);
   max-inline-size: calc(var(--g-space-1) * 75);
   padding: var(--g-space-3) var(--g-space-4);
