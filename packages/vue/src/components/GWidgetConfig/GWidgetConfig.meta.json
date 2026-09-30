@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GWidgetConfig",
   "tag": "g-widget-config",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Carcasa del panel de configuración de un widget: hoja lateral con vista previa en vivo, pestañas (APG), resumen de errores, Restablecer, Cancelar y Aplicar, y confirmación de descarte en el pie. El contenido de las pestañas y la validación los pone la aplicación.",
   "contract": "design/contracts/widget-config.md",

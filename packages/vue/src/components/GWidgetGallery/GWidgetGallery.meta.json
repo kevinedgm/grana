@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GWidgetGallery",
   "tag": "g-widget-gallery",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Galería para añadir widgets a un panel: hoja lateral (GDialog placement=end) con búsqueda, categorías, contador, tarjetas con vista previa por slot, tamaño inicial y marca de los ya añadidos. Emite add; no crea widgets ni guarda el layout.",
   "contract": "design/contracts/widget-gallery.md",
