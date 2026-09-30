@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GBtn",
   "tag": "g-btn",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Botón de acción; se renderiza como enlace si recibe href.",
   "contract": "design/contracts/btn.md",
