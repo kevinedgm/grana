@@ -261,11 +261,9 @@
     "with-icons"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real (incluido aria-activedescendant en la hoja móvil)",
     "Hoja inferior con teclado virtual y táctil reales",
     "Firefox y Safari (popover, ::backdrop, :popover-open, :has())",
-    "Selección múltiple, búsqueda y virtualización (v0.2)",
-    "README de GSelect (mora-docs), incluida la ronda r02"
+    "Selección múltiple, búsqueda y virtualización (v0.2)"
   ]
 }
