@@ -27,4 +27,6 @@ Cada entrada: qué se decidió, por qué, y qué alternativa se descartó.
 | 22 | Fuente en `dist/fonts.css` + `dist/fonts/*.woff2`, generados por `scripts/build-fonts.mjs` fuera de Vite | Vite en modo librería incrustaba la fuente en base64 dentro de `grana.css` (1.98 kB → 58.84 kB) y anulaba la descarga perezosa | Importar fontsource desde `grana.css` |
 | 23 | Tokens de estructura: `radius-shape`, `border-width`, `focus-width/offset`, `duration-fast/spin`, `ease-standard`, `text-action-weight` | Sin ellos, el CSS de un componente necesita literales | Literales en el CSS de cada componente |
 | 24 | Padding vertical calculado desde la altura objetivo | `min-block-size` es un mínimo: con padding fijo, los tamaños pequeños crecían y la densidad no actuaba | Padding fijo |
+| 25 | Avisos de desarrollo con `typeof process` y `process.env.NODE_ENV`, no `import.meta.env.DEV` | Vite reemplaza `import.meta.env.DEV` al construir la librería; `process` no existe en el UMD | `import.meta.env.DEV` |
+| 26 | Enlace deshabilitado con `role="link"` | Un `<a>` sin `href` pierde su rol | Solo `aria-disabled` |
 | 21 | Regla de `strong` corregida: oscurece; aclara solo si L < 0.3; invierte si el contraste con `on` baja de 4.5:1 | La regla anterior dejaba texto blanco en 4.4:1 sobre el hover de un azul medio | Moverse "hacia el centro" |

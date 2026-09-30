@@ -70,6 +70,8 @@ Si durante la construcción aparece una decisión no cubierta, Bruno se detiene 
 
 Vue es `peerDependency`. En el código fuente se importa desde `'vue'` con normalidad; el build lo externaliza (`external: ['vue']`) y el UMD lo toma de `window.Vue`.
 
+Avisos solo de desarrollo: usar `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`. No usar `import.meta.env.DEV`, porque Vite lo reemplaza por `false` al construir la librería y el aviso nunca llegaría al consumidor. La comprobación de `typeof process` evita un error en el UMD, donde `process` no existe.
+
 ## Flujo A · mecanismo del tema
 
 Cuando se pida construir el CLI, el plugin de Vite o las capas CSS, Bruno sigue `docs/contract/tokens.md` al pie de la letra: derivaciones en OKLCH, cálculo de contraste WCAG, validación de mínimos de accesibilidad, rechazo de temas que no los cumplan, y salida sin capa para el tema del usuario. Los valores por defecto los da coco; Bruno solo los materializa.
@@ -77,6 +79,9 @@ Cuando se pida construir el CLI, el plugin de Vite o las capas CSS, Bruno sigue 
 ## Verificación antes de reportar
 
 1. `npm run build -w @grana/vue` sin errores. `dist/grana.umd.js` no contiene el código de Vue (buscar `createApp`).
+   **Comprobar también lo que NO debe estar en `dist/`**, no solo lo que debe (lección del tema v1, donde la fuente terminó incrustada en base64 y ninguna comprobación positiva lo detectó):
+   - `! grep -q "data:font" packages/vue/dist/grana.css`
+   - `grana.css` sin crecimientos inesperados (comparar su peso con el build anterior).
 2. `npm test -w @grana/vue` en verde.
 3. Revisar que el componente no contenga literales: `grep -nE "#[0-9a-fA-F]{3,8}|[0-9]+px|var\(--[a-z-]+," packages/vue/src/components/G<Nombre>/G<Nombre>.vue` no debe devolver nada.
 4. Recorrido con teclado: Tab, Shift+Tab, Enter y Espacio donde aplique; foco visible.

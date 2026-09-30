@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grana · playground</title>
+  <!-- Uso por CDN: exactamente lo que haría un proyecto sin build -->
+  <link rel="stylesheet" href="../dist/grana.css">
+  <link rel="stylesheet" href="../dist/fonts.css">
+  <style>
+    body { margin: 0; padding: 32px; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
+    h2 { font-size: var(--g-text-title-sm-size); font-weight: var(--g-text-title-sm-weight); margin: 32px 0 12px; }
+    #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+  </style>
+  <style id="theme"></style>
+</head>
+<body>
+  <div id="app">
+    <h2>Variantes</h2>
+    <div class="row">
+      <g-btn @click="log('Guardar')">Guardar</g-btn>
+      <g-btn variant="soft">Vista previa</g-btn>
+      <g-btn variant="outline">Duplicar</g-btn>
+      <g-btn variant="ghost">Cancelar</g-btn>
+      <g-btn variant="link" href="#">Ver política</g-btn>
+      <g-btn color="danger">Eliminar</g-btn>
+    </div>
+
+    <h2>Carga (prueba con Tab y Enter)</h2>
+    <div class="row">
+      <g-btn :loading="loading" loading-text="Guardando reserva…" @click="save">Confirmar reserva</g-btn>
+      <span id="log">Clics emitidos: {{ count }}</span>
+    </div>
+
+    <h2>Tamaños y densidad</h2>
+    <div class="row">
+      <g-btn v-for="s in ['xs', 'sm', 'md', 'lg', 'xl']" :key="s" :size="s" variant="outline">{{ s }}</g-btn>
+    </div>
+    <div class="row">
+      <g-btn v-for="d in ['default', 'comfortable', 'compact']" :key="d" :density="d" variant="soft">{{ d }}</g-btn>
+    </div>
+
+    <h2>Estados</h2>
+    <div class="row">
+      <g-btn disabled>Deshabilitado</g-btn>
+      <g-btn href="/reservas" disabled>Enlace deshabilitado</g-btn>
+      <g-btn icon aria-label="Cerrar">×</g-btn>
+    </div>
+
+    <h2>Tema</h2>
+    <div class="row">
+      <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="../dist/grana.umd.js"></script>
+  <script>
+    const { createApp, ref } = Vue
+    createApp({
+      setup() {
+        const loading = ref(false)
+        const count = ref(0)
+        const themed = ref(false)
+        const save = () => {
+          count.value++
+          loading.value = true
+          setTimeout(() => { loading.value = false }, 2000)
+        }
+        const log = (label) => console.log('click:', label)
+        const toggleTheme = () => {
+          themed.value = !themed.value
+          document.getElementById('theme').textContent = themed.value
+            ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-radius-shape:var(--g-radius-pill)}'
+            : ''
+        }
+        return { loading, count, themed, save, log, toggleTheme }
+      }
+    }).use(Grana).mount('#app')
+  </script>
+</body>
+</html>

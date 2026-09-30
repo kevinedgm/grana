@@ -23,7 +23,7 @@
 ### Reglas de props propias
 
 - **`type`:** se ignora cuando hay `href`.
-- **`href`:** renderiza `<a>`. Con `disabled` (o `loading`), el `<a>` se renderiza **sin** `href`, con `aria-disabled="true"` y `tabindex="-1"`.
+- **`href`:** renderiza `<a>`. Con `disabled` (o `loading`), el `<a>` se renderiza **sin** `href`, con `aria-disabled="true"`, `tabindex="-1"` y `role="link"` (un `<a>` sin `href` pierde su rol de enlace; WCAG 4.1.2).
 - **`icon`:** botón cuadrado (ancho = altura). Exige `aria-label`; en desarrollo, si falta, se emite `console.warn`. En producción no hay advertencia.
 - **`loadingText`:** texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. **Sin valor por defecto**, porque Grana es internacional: un texto fijo estaría en el idioma equivocado para la mayoría. Sin `loadingText`, solo queda `aria-busy`.
 

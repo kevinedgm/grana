@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "name": "GBtn",
+  "tag": "g-btn",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Botón de acción; se renderiza como enlace si recibe href.",
+  "contract": "design/contracts/btn.md",
+  "prototype": "design/lab/btn/r01/",
+  "style": "packages/vue/src/components/GBtn/GBtn.css",
+  "props": [
+    { "name": "color", "type": "String", "default": "brand", "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
+    { "name": "variant", "type": "String", "default": "solid", "values": ["solid", "soft", "outline", "ghost", "link"] },
+    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
+    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "rounded", "type": "String", "default": null, "values": ["none", "xs", "sm", "md", "lg", "xl", "pill"] },
+    { "name": "block", "type": "Boolean", "default": false },
+    { "name": "disabled", "type": "Boolean", "default": false },
+    { "name": "loading", "type": "Boolean", "default": false },
+    { "name": "type", "type": "String", "default": "button", "values": ["button", "submit", "reset"] },
+    { "name": "href", "type": "String", "default": null },
+    { "name": "icon", "type": "Boolean", "default": false },
+    { "name": "loadingText", "type": "String", "default": null }
+  ],
+  "events": [
+    { "name": "click", "payload": "MouseEvent", "trigger": "Activación con puntero o teclado, nunca con disabled o loading" }
+  ],
+  "slots": [
+    { "name": "default", "purpose": "Etiqueta, o el icono si icon" },
+    { "name": "prepend", "purpose": "Icono decorativo antes de la etiqueta" },
+    { "name": "append", "purpose": "Icono decorativo después de la etiqueta" }
+  ],
+  "tokens": [
+    "--g-color-{color}", "--g-color-{color}-strong", "--g-color-{color}-soft", "--g-color-{color}-text",
+    "--g-color-on-{color}", "--g-color-on-{color}-soft", "--g-color-focus", "--g-color-neutral-soft", "--g-color-text-subtle",
+    "--g-radius-*", "--g-radius-shape", "--g-space-1..6", "--g-font-ui", "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset",
+    "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"
+  ],
+  "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
+  "pending": ["Auditoría de coco sobre el componente real (paso 5)", "README (mora-docs)"]
+}
