@@ -139,6 +139,7 @@ Los de `GDialog` y los controles (como `GWidgetGallery`); **sin tokens nuevos**.
 | `g-widget-config` (+ `--density-*`, `is-applying`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre |
 | `g-widget-config__form`, `__preview`, `__summary`, `__tabs`, `__panel`, `__mark`, `__sr` | Partes | Según el estado |
 | `g-widget-config__confirm` | Confirmación de descarte en el pie | Con `dirty` y cierre pedido |
+| `g-widget-config__btn` (+ `--primary`, `--reset`) | Botones propios (Restablecer, Cancelar, Aplicar, Seguir editando, Descartar) | Siempre |
 
 ## Resolución de hallazgos de r02
 

@@ -1,0 +1,275 @@
+/*
+  GWidgetGallery · estilo
+  Dueño: coco. Contrato: design/contracts/widget-gallery.md. Estructura: design/lab/widget/r02/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el 1px del texto oculto. Sin consultas de
+  medios de ancho: la hoja (y su versión inferior en móvil) es de GDialog (placement="end").
+  Va dentro del cuerpo de GDialog: hereda su superficie y su relleno. Controles propios (sin importar
+  GInput, GSelect ni GBtn: un componente no importa a otro).
+*/
+
+.g-widget-gallery {
+  --_d: 1;
+  --_ctl: max(24px, calc(var(--g-space-1) * 9));
+  --_ring: var(--g-focus-width);
+}
+.g-widget-gallery--density-comfortable { --_d: 0.875; }
+.g-widget-gallery--density-compact { --_d: 0.75; }
+@media (pointer: coarse) {
+  .g-widget-gallery { --_ctl: 44px; }
+}
+
+.g-widget-gallery__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Búsqueda y categorías ---------- */
+.g-widget-gallery__search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-1);
+  margin-block-end: calc(var(--g-space-3) * var(--_d));
+}
+.g-widget-gallery__search > label,
+.g-widget-gallery__row > label {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-widget-gallery__search input,
+.g-widget-gallery__row select {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--_ctl);
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+}
+.g-widget-gallery__search input:focus-visible,
+.g-widget-gallery__row select:focus-visible,
+.g-widget-gallery__btn:focus-visible {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+.g-widget-gallery__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-2);
+  margin: 0 0 calc(var(--g-space-3) * var(--_d));
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+.g-widget-gallery__cat {
+  position: relative;
+  display: inline-flex;
+}
+/* El radio nativo cubre la píldora (recibe clic y foco) y no se ve */
+.g-widget-gallery__cat > input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.g-widget-gallery__cat > span {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: var(--_ctl);
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Seleccionada: relleno y una marca (no solo el color) */
+.g-widget-gallery__cat > input:checked + span {
+  background: var(--g-color-brand);
+  border-color: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+  font-weight: var(--g-text-action-weight);
+}
+.g-widget-gallery__cat > input:checked + span::before {
+  content: "\2713";
+  margin-inline-end: var(--g-space-1);
+}
+@media (hover: hover) {
+  .g-widget-gallery__cat > input:not(:checked):hover + span {
+    background: var(--g-color-surface-sunken);
+  }
+}
+.g-widget-gallery__cat > input:focus-visible + span {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+.g-widget-gallery__status {
+  margin: 0 0 calc(var(--g-space-3) * var(--_d));
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Lista y tarjeta ---------- */
+.g-widget-gallery__list {
+  display: grid;
+  gap: calc(var(--g-space-3) * var(--_d));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-widget-gallery__card {
+  display: grid;
+  gap: calc(var(--g-space-2) * var(--_d));
+  padding: calc(var(--g-space-3) * var(--_d));
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+}
+.g-widget-gallery__card > h3 {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-widget-gallery__card > p {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-widget-gallery__category {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-subtle);
+}
+/* Marca de añadido: texto con forma de píldora (no solo color) */
+.g-widget-gallery__tag {
+  display: inline-block;
+  box-sizing: border-box;
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  font-size: var(--g-text-caption-size);
+  line-height: calc(var(--g-space-1) * 5);
+  color: var(--g-color-text);
+  white-space: nowrap;
+}
+.g-widget-gallery__card.is-added { background: var(--g-color-surface-sunken); }
+
+/* Vista previa: decorativa, sin interacción; el widget conserva su aspecto */
+.g-widget-gallery__preview {
+  box-sizing: border-box;
+  min-block-size: var(--g-widget-row);
+  padding: var(--g-space-2);
+  overflow: hidden;
+  border: var(--g-border-width) dashed var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  pointer-events: none;
+  user-select: none;
+}
+
+.g-widget-gallery__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--g-space-2);
+}
+.g-widget-gallery__row > label { flex: 1 0 100%; }
+.g-widget-gallery__row > select { flex: 1 1 calc(var(--g-space-1) * 30); inline-size: auto; }
+
+.g-widget-gallery__empty {
+  margin: 0;
+  padding: calc(var(--g-space-6) * var(--_d)) var(--g-space-2);
+  text-align: center;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Botones (propios) ---------- */
+.g-widget-gallery__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-block-size: var(--_ctl);
+  min-inline-size: var(--_ctl);
+  margin: 0;
+  padding-inline: var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    scale var(--g-duration-press) var(--g-ease-out);
+}
+.g-widget-gallery__btn--primary {
+  border-color: var(--g-color-brand);
+  background: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+@media (hover: hover) {
+  .g-widget-gallery__btn:hover { background: var(--g-color-surface-sunken); }
+  .g-widget-gallery__btn--primary:hover { background: var(--g-color-brand-strong); }
+}
+.g-widget-gallery__btn:active { scale: var(--g-press-scale); }
+/* Un widget único ya añadido: sigue enfocable, sin parecer un botón activo */
+.g-widget-gallery__btn[aria-disabled="true"] {
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  cursor: not-allowed;
+}
+.g-widget-gallery__btn[aria-disabled="true"]:active { scale: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .g-widget-gallery__cat > span,
+  .g-widget-gallery__btn { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .g-widget-gallery__card,
+  .g-widget-gallery__preview,
+  .g-widget-gallery__tag,
+  .g-widget-gallery__cat > span,
+  .g-widget-gallery__btn { border-color: CanvasText; }
+  .g-widget-gallery__cat > input:checked + span {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+  .g-widget-gallery__btn--primary { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  .g-widget-gallery__btn[aria-disabled="true"] { color: GrayText; border-color: GrayText; }
+  .g-widget-gallery__search input:focus-visible,
+  .g-widget-gallery__row select:focus-visible,
+  .g-widget-gallery__btn:focus-visible,
+  .g-widget-gallery__cat > input:focus-visible + span { outline-color: Highlight; }
+}

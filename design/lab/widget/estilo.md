@@ -66,3 +66,51 @@ Colores, radios, tipografía y medidas solo de tokens y de `space`. Únicos lite
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; `forced-colors` y `prefers-reduced-motion` reales (bloques aplicados sin condición); RTL con datos en un idioma RTL real; Firefox y Safari; el arrastre y el redimensionado con un dedo (`touch-action`); muchos widgets; tema oscuro (no existe).
+
+---
+
+# Entrega de coco · galería y configuración de widgets (segunda entrega)
+
+**Archivos:** `packages/vue/src/components/GWidgetGallery/GWidgetGallery.css`, `GWidgetConfig/GWidgetConfig.css` y la colocación `placement="end"` en `GDialog/GDialog.css` · **Sin tokens nuevos** (ni cambios en `defaults.css`).
+**Contratos:** `design/contracts/widget-gallery.md`, `widget-config.md` y `dialog.md` (DECISIONS.md #76 a #78).
+**Estado:** listo para bruno (registro en `components.css`; los `.vue` aún no existen; `GDialog.vue` necesita la prop `placement` y la clase `g-dialog--placement-*`).
+**Banco de pruebas:** `design/lab/widget/estilo-banco-2.html` (desde la raíz: `/design/lab/widget/estilo-banco-2.html`): marcado exacto de los contratos con el CSS real; botones para abrir la galería, la configuración (normal, con errores y con la confirmación de descarte) y un `GDialog` centrado; «Tema de prueba».
+
+## Decisiones estéticas
+
+| Detalle | Cómo |
+| --- | --- |
+| **Hoja lateral** | `placement="end"`: pegada al borde final, **alto completo**, ancho de `size` (400px con `space` 4), sin borde ni esquinas del lado del borde; esquinas redondeadas solo del lado interior (espejadas en RTL: verificado). Entra deslizando desde el borde con `translate` (`--_dir` invierte el sentido en RTL con `:dir(rtl)`) y un fundido; sin `no-preference` no hay movimiento. Solo fuera del móvil: a ≤ 520px actúa `mobile` (hoja inferior) |
+| **Categorías** | Píldoras con el radio nativo invisible encima (clic y foco correctos). Seleccionada: relleno de `--g-color-brand`, texto `on-brand`, peso de acción y una **marca ✓**; no seleccionada: borde `border-control` (3:1) sobre la superficie |
+| **Tarjeta** | Borde fino y `--g-radius-lg`; categoría en `caption`/`text-subtle`; nombre en `body` con peso de título; descripción en `body-sm`/`text-muted`. Con la marca de añadido, la tarjeta pasa a `surface-sunken` |
+| **Marca de añadido** | Texto en píldora con borde `border-control` (no solo color) |
+| **Vista previa** | Recuadro discontinuo sobre `surface-sunken`, sin interacción; el widget conserva su aspecto real (nivel `m` por el ancho de la tarjeta) |
+| **Botones** | Propios (un componente no importa a otro): borde `border-control`, radio `md`; el principal, `brand` con `on-brand`; **`aria-disabled`** (widget único ya añadido o aplicando): fondo hundido y texto atenuado, cursor `not-allowed` o `progress`, sin perder el foco |
+| **Pestañas** | Subrayado de `border-width × 3` (en `--g-color-text` la activa), texto pleno y peso de título; las inactivas en `text-muted`; línea base fina. Marca de errores: píldora con borde `danger` y texto `danger-text` |
+| **Resumen de errores** | Borde doble grosor en `--g-color-danger`, fondo `danger-soft`, texto `on-danger-soft`; los mensajes son enlaces subrayados; foco visible en el resumen y en cada enlace |
+| **Vista previa de la configuración** | Alto fijo de `--g-widget-row × 1.75` (no salta al cambiar los valores) |
+| **Pie y confirmación** | «Restablecer» a la izquierda (`margin-inline-end: auto`); la confirmación ocupa todo el pie y alinea al final |
+| **Sin literales de tema** | Solo tokens y `space`; literales de medida: `24px` y `44px` (área táctil) y el `1px` del texto oculto. Sin consultas de medios de ancho (salvo el `min-width: 521px` de la hoja, el mismo umbral de `GDialog`) |
+
+## Verificación en Chromium (banco de pruebas)
+
+| Prueba | Resultado |
+| --- | --- |
+| Hoja lateral | 400×737px en un visor de 688×737 (alto completo) pegada a la derecha; con `space` 5, 500px; en RTL, a la izquierda con radios `12px 0 0 12px` (lado interior) |
+| Móvil (375px) | Hoja inferior de 375×622 pegada abajo, sin desborde horizontal (`scrollWidth` 375) |
+| Contraste (tema por defecto) | Categoría activa 16.48:1 · inactiva 17.4 · contador 7.46 · categoría del widget 4.72 · marca de añadido 16.1 · botón principal 16.48 · botón con `aria-disabled` 6.9 · pestaña activa 17.4 · inactiva 7.46 · marca de errores 5.49 · texto del resumen **4.8** |
+| Contraste de controles (3:1) | Borde de la búsqueda y de las píldoras **3.45:1** · marca de añadido 3.19 · borde del resumen 5.49 |
+| Contraste (tema de prueba) | Categoría activa 5.02 · inactiva 13.3 · contador 8.91 · botón principal 5.02 · pestaña inactiva 8.91 · bordes 6.05 |
+| Áreas de acción | Búsqueda 36px, píldoras 36px, selector 36px, Añadir 36px, cerrar 36px, pestañas 36px, Aplicar 36px (todas ≥ 24px; con `space` 5, 45px); el bloque `pointer: coarse` los lleva a 44px |
+| Estados | Galería (con un único ya añadido, un repetible y uno nuevo), configuración normal, con errores (resumen, marcas de pestaña y campo con error) y con la confirmación de descarte |
+| Consola | Sin errores |
+
+## Hallazgos y observaciones
+
+1. **Los botones de los pies (Restablecer, Cancelar, Aplicar, Cerrar y Añadir) no tenían clase en los contratos.** Coco añadió las clases a las tablas de los contratos de lima (`g-widget-gallery__btn`, `g-widget-config__btn`, con `--primary` y `--reset`): **lima debe revisarlo**; bruno debe emitirlas. Sin ellas, los botones saldrían sin estilo (un componente no importa `GBtn`).
+2. **Texto del resumen de errores a 4.8:1** con los tokens actuales (`on-danger-soft` sobre `danger-soft`): cumple 4.5, pero con poco margen; un tema con un `danger-soft` más intenso podría bajarlo (no es del componente).
+3. **La marca de añadido (3.19:1 de borde) y la pista de la vista previa** no son información que dependa del color: el texto dice lo mismo.
+
+## Sin verificar (no bloquea `candidate`)
+
+Lector de pantalla real; `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` reales (solo comprobé que las reglas existen); Firefox y Safari (`:dir()`, `<dialog>`, `inert`); el movimiento de entrada de la hoja en un dispositivo real; teclado virtual en móvil; textos largos o traducidos en las píldoras.

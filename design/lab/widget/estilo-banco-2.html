@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galería y configuración de widgets · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/widget-gallery.md, widget-config.md y dialog.md (placement="end")
+     con el CSS real y el tema por defecto. Motor mínimo (abrir, pestañas, resumen, confirmación) que imita lo que hará bruno. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDialog/GDialog.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GWidget/GWidget.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GMetric/GMetric.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GWidgetGallery/GWidgetGallery.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GWidgetConfig/GWidgetConfig.css?v=1">
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .bk-btn{min-height:32px;padding:0 14px;border:1px solid var(--g-color-border-control);border-radius:8px;background:var(--g-color-surface);color:inherit;font:inherit;font-size:13px;cursor:pointer;margin:0 8px 8px 0}
+  .bk-btn:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:2px}
+  .log{font:12px ui-monospace,monospace;background:var(--g-color-surface);border:1px solid var(--g-color-border);padding:8px;min-height:40px;max-height:100px;overflow:auto;white-space:pre-wrap}
+  .bk-field{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;font-size:13px}
+  .bk-field label{font-weight:600}
+  .bk-in{min-height:36px;padding:0 10px;border:1px solid var(--g-color-border-control);border-radius:8px;background:var(--g-color-surface);color:inherit;font:inherit}
+  .bk-in[aria-invalid=true]{border-width:3px;border-style:double;border-color:var(--g-color-danger)}
+  .bk-err{font-size:12px;font-weight:600;color:var(--g-color-danger-text)}.bk-err::before{content:"\25B2 "}
+  .bk-panel{max-inline-size:760px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;grid-auto-rows:var(--g-widget-row)}
+</style>
+</head>
+<body>
+<h1 style="font-size:18px;margin:0 0 12px">Galería y configuración · banco de estilo</h1>
+<button class="bk-btn" id="b-gal">Abrir galería (hoja lateral)</button>
+<button class="bk-btn" id="b-cfg">Abrir configuración</button>
+<button class="bk-btn" id="b-err">Configuración con errores</button>
+<button class="bk-btn" id="b-cnf">Configuración con confirmación</button>
+<button class="bk-btn" id="b-ctr">Galería centrada (placement center)</button>
+<button class="bk-btn" id="b-theme">Tema de prueba</button>
+<div class="bk-panel" id="panel"></div>
+<h2 style="font-size:15px">Registro</h2><div class="log" id="log">—</div>
+
+<!-- ===== Galería ===== -->
+<dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--density-default g-dialog--placement-end g-dialog--mobile-sheet g-widget-gallery g-widget-gallery--density-default" id="gal" aria-labelledby="gal-title" aria-describedby="gal-desc">
+  <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="gal-title">Añadir widget</h2><p class="g-dialog__description" id="gal-desc">Elige un widget y su tamaño inicial; se añade al final del panel.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close></button></div>
+  <div class="g-dialog__inset">
+    <div class="g-dialog__body" tabindex="0" role="region" aria-labelledby="gal-title">
+      <div class="g-widget-gallery__search"><label for="gal-q">Buscar widgets</label><input id="gal-q" type="search" autocomplete="off" aria-controls="gal-list"></div>
+      <fieldset class="g-widget-gallery__cats"><legend class="g-widget-gallery__sr">Categoría</legend>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat" checked><span>Todas</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Finanzas</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Equipo</span></label>
+        <label class="g-widget-gallery__cat"><input type="radio" name="gal-cat"><span>Operaciones</span></label></fieldset>
+      <p class="g-widget-gallery__status" role="status">3 widgets</p>
+      <ul class="g-widget-gallery__list" id="gal-list" aria-label="Widgets disponibles">
+        <li><article class="g-widget-gallery__card is-added" aria-labelledby="c1-t" aria-describedby="c1-d">
+          <div><span class="g-widget-gallery__category">Finanzas</span> <span class="g-widget-gallery__tag">Ya añadido</span></div>
+          <h3 id="c1-t">Ingresos</h3><p id="c1-d">Ingresos del periodo con tendencia y meta.</p>
+          <div class="g-widget-gallery__preview" aria-hidden="true" inert data-w="Ingresos|Finanzas|$48.2k|USD"></div>
+          <div class="g-widget-gallery__row"><label for="c1-s">Tamaño inicial</label><select id="c1-s"><option>Mediano (2×1)</option><option>Grande (2×2)</option></select>
+            <button class="g-widget-gallery__btn g-widget-gallery__btn--primary" type="button" aria-describedby="c1-d" aria-disabled="true">Añadido<span class="g-widget-gallery__sr"> Ingresos</span></button></div></article></li>
+        <li><article class="g-widget-gallery__card" aria-labelledby="c2-t" aria-describedby="c2-d">
+          <div><span class="g-widget-gallery__category">Equipo</span> <span class="g-widget-gallery__tag">En el panel: 1</span></div>
+          <h3 id="c2-t">Tareas abiertas</h3><p id="c2-d">Tareas pendientes por persona o proyecto.</p>
+          <div class="g-widget-gallery__preview" aria-hidden="true" inert data-w="Tareas abiertas|Equipo|23|tareas"></div>
+          <div class="g-widget-gallery__row"><label for="c2-s">Tamaño inicial</label><select id="c2-s"><option>Pequeño (1×1)</option><option>Mediano (2×1)</option></select>
+            <button class="g-widget-gallery__btn g-widget-gallery__btn--primary" type="button" aria-describedby="c2-d">Añadir<span class="g-widget-gallery__sr"> Tareas abiertas</span></button></div></article></li>
+        <li><article class="g-widget-gallery__card" aria-labelledby="c3-t" aria-describedby="c3-d">
+          <div><span class="g-widget-gallery__category">Operaciones</span></div>
+          <h3 id="c3-t">Disponibilidad</h3><p id="c3-d">Estado de los servicios críticos.</p>
+          <div class="g-widget-gallery__preview" aria-hidden="true" inert data-w="Disponibilidad|Operaciones|99.9 %|"></div>
+          <div class="g-widget-gallery__row"><label for="c3-s">Tamaño inicial</label><select id="c3-s"><option>Pequeño (1×1)</option></select>
+            <button class="g-widget-gallery__btn g-widget-gallery__btn--primary" type="button" aria-describedby="c3-d">Añadir<span class="g-widget-gallery__sr"> Disponibilidad</span></button></div></article></li>
+      </ul>
+      <p class="g-widget-gallery__empty" hidden>Ningún widget coincide con la búsqueda.</p>
+      <div class="g-widget-gallery__sr" role="status" aria-live="polite"></div>
+    </div>
+    <div class="g-dialog__footer"><button class="g-widget-gallery__btn" type="button" data-close>Cerrar</button></div>
+  </div>
+</dialog>
+
+<!-- ===== Configuración ===== -->
+<dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--density-default g-dialog--placement-end g-dialog--mobile-sheet g-widget-config g-widget-config--density-default" id="cfg" aria-labelledby="cfg-title" aria-describedby="cfg-desc">
+  <form class="g-widget-config__form" id="cfg-form" novalidate>
+    <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="cfg-title">Configurar Ingresos</h2><p class="g-dialog__description" id="cfg-desc">Los cambios se ven en la vista previa y se aplican al pulsar Aplicar.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar sin aplicar" data-cancel></button></div>
+    <div class="g-dialog__inset">
+      <div class="g-dialog__body" tabindex="0" role="region" aria-labelledby="cfg-title">
+        <div class="g-widget-config__sr" role="status" aria-live="polite"></div>
+        <div class="g-widget-config__preview" aria-hidden="true" inert data-w="Ingresos|Finanzas|$48.2k|USD"></div>
+        <div class="g-widget-config__summary" role="alert" tabindex="-1" id="cfg-sum" hidden><b>Corrige 2 campos:</b><ul><li><a href="#f-goal">La meta debe ser un número mayor que 0.</a></li><li><a href="#f-title">El título es obligatorio.</a></li></ul></div>
+        <div class="g-widget-config__tabs" role="tablist" aria-label="Secciones de la configuración">
+          <button role="tab" type="button" id="t1" aria-controls="p1" aria-selected="true">Datos<span class="g-widget-config__mark" hidden>1 error</span></button>
+          <button role="tab" type="button" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1">Estilo</button>
+          <button role="tab" type="button" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1">Ajustes<span class="g-widget-config__mark" hidden>1 error</span></button></div>
+        <div class="g-widget-config__panel" role="tabpanel" id="p1" aria-labelledby="t1" tabindex="0">
+          <div class="bk-field"><label for="f-period">Periodo</label><select class="bk-in" id="f-period"><option>Últimos 30 días</option></select></div>
+          <div class="bk-field"><label for="f-goal">Meta mensual</label><input class="bk-in" id="f-goal" value="0" aria-describedby="f-goal-e"><span class="bk-err" id="f-goal-e" hidden>La meta debe ser un número mayor que 0.</span></div></div>
+        <div class="g-widget-config__panel" role="tabpanel" id="p2" aria-labelledby="t2" tabindex="0" hidden>
+          <div class="bk-field"><label for="f-dens">Densidad</label><select class="bk-in" id="f-dens"><option>Normal</option></select></div></div>
+        <div class="g-widget-config__panel" role="tabpanel" id="p3" aria-labelledby="t3" tabindex="0" hidden>
+          <div class="bk-field"><label for="f-title">Título</label><input class="bk-in" id="f-title" value="" aria-describedby="f-title-e"><span class="bk-err" id="f-title-e" hidden>El título es obligatorio.</span></div></div>
+      </div>
+      <div class="g-dialog__footer">
+        <button class="g-widget-config__btn g-widget-config__btn--reset" type="button">Restablecer</button>
+        <span class="g-widget-config__confirm" role="alert" id="cfg-conf" hidden><span>¿Descartar los cambios?</span><button class="g-widget-config__btn" type="button" id="keep">Seguir editando</button><button class="g-widget-config__btn" type="button" data-cancel2>Descartar</button></span>
+        <span id="cfg-act" style="display:contents"><button class="g-widget-config__btn" type="button" data-cancel>Cancelar</button><button class="g-widget-config__btn g-widget-config__btn--primary" type="submit" id="apply">Aplicar</button></span>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--placement-center g-dialog--mobile-sheet" id="ctr" aria-labelledby="ctr-t"><div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="ctr-t">Centrado (placement por defecto)</h2></div><button class="g-dialog__close" type="button" aria-label="Cerrar" data-close></button></div><div class="g-dialog__inset"><div class="g-dialog__body">Sin cambios respecto a GDialog.</div></div></dialog>
+
+<script>
+const $=s=>document.querySelector(s), log=t=>{$('#log').textContent=t+'\n'+($('#log').textContent==='—'?'':$('#log').textContent)}
+// widgets de ejemplo (contenido de la aplicación) dentro de las vistas previas
+const mini=s=>{const[t,e,v,u]=s.split('|');return `<article class="g-widget g-widget--level-m g-widget--shape-wide g-widget--state-populated g-widget--density-default" aria-hidden="true"><header class="g-widget__head"><div class="g-widget__titles"><span class="g-widget__eyebrow">${e}</span><h3 class="g-widget__title">${t}</h3></div></header><div class="g-widget__body"><div class="g-metric g-metric--size-lg"><span class="g-metric__label">${t}</span><span class="g-metric__value">${v}<span class="g-metric__unit">${u}</span></span></div></div></article>`}
+document.querySelectorAll('[data-w]').forEach(e=>{e.innerHTML=mini(e.dataset.w)})
+$('#panel').innerHTML=['Ingresos|Finanzas|$48.2k|USD','Tareas abiertas|Equipo|23|tareas'].map(mini).join('')
+document.querySelectorAll('#panel .g-widget').forEach(w=>{w.style.blockSize='100%'})
+// abrir/cerrar
+const open=id=>{$(id).showModal()};$('#b-gal').onclick=()=>{open('#gal');$('#gal-q').focus()};$('#b-ctr').onclick=()=>open('#ctr')
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close())
+// configuración
+const tabs=[...document.querySelectorAll('[role=tab]')]
+const sel=t=>tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;$('#'+x.getAttribute('aria-controls')).hidden=!on})
+tabs.forEach(t=>t.onclick=()=>sel(t))
+tabs.forEach((t,i)=>t.onkeydown=e=>{const k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:2}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+3)%3];sel(n);n.focus()})
+const reset=()=>{sel(tabs[0]);$('#cfg-sum').hidden=true;document.querySelectorAll('.g-widget-config__mark').forEach(m=>m.hidden=true);document.querySelectorAll('.bk-err').forEach(e=>e.hidden=true);document.querySelectorAll('.bk-in').forEach(i=>i.removeAttribute('aria-invalid'));$('#cfg-conf').hidden=true;$('#cfg-act').hidden=false}
+const showErr=()=>{$('#cfg-sum').hidden=false;document.querySelectorAll('.g-widget-config__mark').forEach(m=>m.hidden=false);['#f-goal-e','#f-title-e'].forEach(s=>$(s).hidden=false);['#f-goal','#f-title'].forEach(s=>$(s).setAttribute('aria-invalid','true'))}
+$('#b-cfg').onclick=()=>{reset();$('#f-goal').value='50000';$('#f-title').value='Ingresos';open('#cfg');tabs[0].focus()}
+$('#b-err').onclick=()=>{reset();$('#f-goal').value='0';$('#f-title').value='';open('#cfg');showErr();$('#cfg-sum').focus()}
+$('#b-cnf').onclick=()=>{reset();$('#f-goal').value='50000';$('#f-title').value='Ingresos';open('#cfg');$('#cfg-conf').hidden=false;$('#cfg-act').hidden=true;$('#keep').focus()}
+$('#cfg-form').onsubmit=e=>{e.preventDefault();log('apply')}
+document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>{$('#cfg-conf').hidden=false;$('#cfg-act').hidden=true;$('#keep').focus()})
+$('#keep').onclick=()=>{$('#cfg-conf').hidden=true;$('#cfg-act').hidden=false;$('#cfg-act button').focus()}
+$('[data-cancel2]').onclick=()=>$('#cfg').close()
+// tema de prueba
+let th=false;$('#b-theme').onclick=()=>{th=!th;$('#theme').textContent=th?':root{--g-space-1:5px;--g-border-width:2px;--g-font-ui:Georgia,serif;--g-color-surface:#FFF4DC;--g-color-bg:#F5E3BC;--g-color-surface-sunken:#F0DDB0;--g-color-text:#3B2410;--g-color-text-muted:#5E4128;--g-color-text-subtle:#6B4A2C;--g-color-border:#A9803F;--g-color-border-strong:#7A5620;--g-color-border-control:#7A5620;--g-color-brand:#B45309;--g-color-brand-strong:#92400E;--g-color-on-brand:#FFFFFF;--g-color-focus:#0F766E;--g-focus-width:3px;--g-radius-md:2px;--g-radius-lg:2px;--g-radius-sm:2px;--g-surface-shell:#FFF4DC;--g-surface-inset:#FFFAEE}':''}
+</script>
+</body>
+</html>

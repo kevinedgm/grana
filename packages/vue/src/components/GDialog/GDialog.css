@@ -243,6 +243,33 @@ html:has(.g-dialog[open]) {
   box-shadow: none;
 }
 
+/* ---------- Hoja lateral (placement="end", DECISIONS.md #77) ----------
+   Pegada al borde final (derecha en LTR, izquierda en RTL), de alto completo y con el ancho de size.
+   Solo fuera del móvil: con el visor angosto actúa `mobile` (hoja inferior por defecto). */
+@media (min-width: 521px) {
+  .g-dialog--placement-end:not(.g-dialog--fullscreen) {
+    --_dir: 1;
+    margin-block: 0;
+    margin-inline: auto 0;
+    block-size: 100dvh;
+    max-block-size: 100dvh;
+    border-block-width: 0;
+    border-inline-end-width: 0;
+    border-end-start-radius: var(--g-surface-radius);
+    border-end-end-radius: 0;
+    border-start-end-radius: 0;
+    box-shadow: var(--g-shadow-3);
+  }
+  .g-dialog--placement-end:not(.g-dialog--fullscreen):dir(rtl) { --_dir: -1; }
+  .g-dialog--placement-end:not(.g-dialog--fullscreen) .g-dialog__inset {
+    border-block-end-width: 0;
+    border-inline-end-width: 0;
+    border-end-start-radius: var(--_inset-radius);
+    border-end-end-radius: 0;
+    border-start-end-radius: 0;
+  }
+}
+
 /* ---------- Adaptación (visor; umbrales literales, DECISIONS.md #42) ---------- */
 @media (max-width: 900px) {
   .g-dialog { --_pad-units: 4.5; }
@@ -294,6 +321,14 @@ html:has(.g-dialog[open]) {
   }
   @keyframes g-dialog-in {
     from { opacity: 0; translate: 0 var(--g-space-2); scale: var(--g-press-scale); }
+  }
+  @media (min-width: 521px) {
+    .g-dialog--placement-end[open]:not(.g-dialog--fullscreen) {
+      animation-name: g-dialog-in-end;
+    }
+  }
+  @keyframes g-dialog-in-end {
+    from { opacity: 0; translate: calc(var(--_dir) * var(--g-space-8)) 0; }
   }
   @keyframes g-dialog-fade {
     from { opacity: 0; }

@@ -143,6 +143,7 @@ Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface
 | `g-widget-gallery` (+ `--density-*`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre |
 | `g-widget-gallery__search`, `__cats`, `__cat`, `__status`, `__list`, `__empty`, `__sr` | Búsqueda, categorías, contador, lista, estado vacío y texto oculto | Según el estado |
 | `g-widget-gallery__card`, `__category`, `__tag`, `__preview`, `__row` | Tarjeta y sus partes | Por widget |
+| `g-widget-gallery__btn` (+ `--primary`) | Botones propios (Añadir, Cerrar) | Siempre |
 | `is-added` | Tarjeta | Con `added[id] > 0` |
 
 ## Resolución de hallazgos de r02
