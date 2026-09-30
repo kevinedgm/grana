@@ -138,7 +138,6 @@
     "zero-hidden"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: insignia sin texto y anclada junto a su destino",
     "Firefox y Safari (backdrop-filter, color-mix) y prefers-reduced-transparency real"
   ]
