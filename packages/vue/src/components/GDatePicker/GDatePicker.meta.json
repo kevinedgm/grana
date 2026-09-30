@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDatePicker",
   "tag": "g-datepicker",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): uno o dos meses según el ancho, campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua, proximidad ± N días, teclado APG y textos por labels.",
   "contract": "design/contracts/datepicker.md",
@@ -361,9 +361,9 @@
   ],
   "pending": [
     "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",
-    "RTL, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",
+    "RTL completo, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",
     "Hoja móvil con teclado virtual y deslizamiento en táctil real",
-    "Auditoría de coco con un tema distinto (franja del rango 1.14:1 con el tema por defecto)",
+    "Franja del rango tenue (1.14:1 con el tema por defecto, 1.22:1 con el de prueba): decisión pendiente (ver auditoria.md)",
     "README (mora-docs)",
     "Escribir la fecha a mano (fuera de v0.1)"
   ]

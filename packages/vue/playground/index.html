@@ -258,7 +258,7 @@
         <g-datepicker :model-value="dpSingle" label="Solo lectura" :labels="dpLabels" readonly></g-datepicker>
         <g-datepicker label="Deshabilitado" :labels="dpLabels" disabled></g-datepicker>
       </div>
-      <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:nowrap;align-items:center">
+      <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:wrap;align-items:center">
         <input aria-label="Destino" placeholder="¿A dónde vas?" style="flex:1;border:0;background:transparent;padding:0 16px;font:inherit;min-inline-size:0">
         <g-datepicker v-model="dpRange" mode="range" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
           <template #trigger="{ controls, expanded, toggle, text }">
