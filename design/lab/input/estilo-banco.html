@@ -7,6 +7,7 @@
   <!-- Banco de coco: marcado exacto de design/contracts/input.md con GInput.css real y el tema por defecto.
        Sirve para verificar el CSS antes de que exista GInput.vue. No es documentación. -->
   <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+  <link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
   <link rel="stylesheet" href="../../../packages/vue/src/components/GInput/GInput.css">
   <style>
     body { margin: 0; padding: 24px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
@@ -25,18 +26,20 @@
     if (o.color) cls.push(`g-input--color-${o.color}`)
     if (o.rounded) cls.push(`g-input--rounded-${o.rounded}`)
     if (o.block) cls.push('g-input--block')
-    if (o.disabled) cls.push('is-disabled'); if (o.readonly) cls.push('is-readonly'); if (o.error) cls.push('is-invalid'); if (o.loading) cls.push('is-loading')
+    if (o.disabled) cls.push('is-disabled'); if (o.readonly) cls.push('is-readonly'); if (o.error) cls.push('is-invalid'); if (o.loading) cls.push('is-loading'); if (o.action) cls.push('g-input--has-action')
     const desc = [o.hint && id + '-hint', o.error && id + '-error'].filter(Boolean).join(' ')
+    const a = o.action, sz = o.size || 'md', dn = o.density || 'default'
+    const btn = !a ? '' : `<div class="g-input__action"><button class="g-btn g-btn--color-brand g-btn--variant-${a.variant || 'solid'} g-btn--size-${sz} g-btn--density-${dn}${a.icon ? ' g-btn--icon' : ''}${a.loading ? ' is-loading' : ''}${o.disabled ? ' is-disabled' : ''}" type="${a.submit ? 'submit' : 'button'}" ${a.icon ? 'aria-label="Buscar"' : ''} ${o.disabled ? 'disabled' : ''} ${a.loading ? 'aria-busy="true" aria-disabled="true"' : ''}><span class="g-btn__label">${a.icon ? '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>' : (a.text || 'Acción')}</span><span class="g-btn__loader" aria-hidden="true"></span></button></div>`
     const ico = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'
     return `<div class="${cls.join(' ')}" data-t="${o.t || ''}">
       <label class="g-input__label" for="${id}">${o.label ?? 'Etiqueta'}${o.required ? '<span class="g-input__required" aria-hidden="true">*</span>' : ''}</label>
-      <div class="g-input__control">
+      <div class="g-input__row"><div class="g-input__control">
         ${o.prepend ? `<span class="g-input__prepend" aria-hidden="true">${ico}</span>` : ''}
         <input class="g-input__field" id="${id}" type="${o.type || 'text'}" value="${o.value ?? ''}" placeholder="${o.ph ?? ''}" ${desc ? `aria-describedby="${desc}"` : ''} ${o.error ? 'aria-invalid="true"' : ''} ${o.loading ? 'aria-busy="true"' : ''} ${o.required ? 'required' : ''} ${o.disabled ? 'disabled' : ''} ${o.readonly ? 'readonly' : ''} ${o.max ? `maxlength="${o.max}"` : ''}>
         ${o.append ? `<span class="g-input__append" aria-hidden="true">${ico}</span>` : ''}
         ${o.loading ? '<span class="g-input__loader" aria-hidden="true"></span>' : ''}
         ${o.toggle ? `<button class="g-input__toggle" type="button" aria-controls="${id}">Mostrar contraseña</button>` : ''}
-      </div>
+      </div>${btn}</div>
       ${(o.hint || o.counter) ? `<div class="g-input__messages">${o.hint ? `<span class="g-input__hint" id="${id}-hint">${o.hint}</span>` : ''}${o.counter ? `<span class="g-input__counter" aria-hidden="true">${(o.value || '').length}/${o.max}</span>` : ''}</div>` : ''}
       <div class="g-input__error" id="${id}-error" aria-live="polite">${o.error || ''}</div>
     </div>`
@@ -50,10 +53,20 @@
     ['password + mostrar', { type: 'password', toggle: true, label: 'Contraseña', value: 'secreto123' }], ['soft', { variant: 'soft', value: 'Relleno', label: 'Nombre' }],
     ['soft + invalid', { variant: 'soft', error: 'Campo obligatorio.', label: 'Nombre' }], ['color=danger (foco)', { color: 'danger', label: 'Foco danger' }],
     ['rounded pill', { rounded: 'pill', label: 'Píldora', value: 'Texto' }],
+    ['acción con texto', { label: 'Correo', type: 'email', value: 'ana@ejemplo.com', hint: 'Sin spam.', action: { text: 'Suscribirse', submit: true } }],
+    ['acción solo icono', { label: 'Buscar', type: 'search', prepend: true, action: { icon: true } }],
+    ['acción + invalid', { label: 'Correo', value: 'ana@', error: 'Falta el dominio.', action: { text: 'Suscribirse' } }],
+    ['acción disabled', { label: 'Correo', value: 'ana@ejemplo.com', disabled: true, action: { text: 'Suscribirse' } }],
+    ['acción en carga', { label: 'Cupón', value: 'VERANO24', action: { text: 'Aplicar', loading: true } }],
+    ['acción variante outline', { label: 'Invitar', action: { text: 'Invitar', variant: 'outline' } }],
+    ['soft + acción', { variant: 'soft', label: 'Correo', value: 'ana', action: { text: 'Enviar' } }],
+    ['pill + acción', { rounded: 'pill', label: 'Correo', value: 'ana', action: { text: 'Enviar' } }],
   ]
   document.getElementById('app').innerHTML =
     `<h2>Estados</h2><div class="grid">${cases.map(([c, o]) => `<div><p class="cap">${c}</p>${field({ ...o, t: 'estado' })}</div>`).join('')}</div>` +
     `<h2>Tamaños × densidades</h2><div class="grid" id="sd">${['xs', 'sm', 'md', 'lg', 'xl'].flatMap(s => ['compact', 'default', 'comfortable'].map(d => `<div><p class="cap">${s} · ${d}</p>${field({ size: s, density: d, value: 'Texto', label: 'Etiqueta', t: `sd:${s}:${d}` })}</div>`)).join('')}</div>` +
+    `<h2>Acción: tamaños × densidades</h2><div class="grid">${['xs', 'sm', 'md', 'lg', 'xl'].flatMap(z => ['compact', 'default', 'comfortable'].map(d => `<div><p class="cap">${z} · ${d}</p>${field({ size: z, density: d, value: 'Texto', label: 'Etiqueta', action: { text: 'Ir' }, t: `ac:${z}:${d}` })}</div>`)).join('')}</div>` +
+    `<h2>Acción en contenedor estrecho</h2><div style="width:220px;border:1px dashed #999;padding:8px;margin-bottom:12px">${field({ block: true, label: 'Correo del titular', value: 'una.direccion.larga@ejemplo.com', action: { text: 'Suscribirse' }, t: 'estrecho-texto' })}</div><div style="width:220px;border:1px dashed #999;padding:8px">${field({ block: true, label: 'Buscar', action: { icon: true }, t: 'estrecho-icono' })}</div>` +
     `<h2>Ancho</h2><div style="width:220px;border:1px dashed #999;padding:8px">${field({ block: true, label: 'Dirección de correo electrónico del titular de la reserva', value: 'una.direccion.muy.larga@ejemplo-de-dominio-largo.com', error: 'El dominio no acepta mensajes; prueba con otra dirección o contacta a soporte.', hint: 'Ayuda larga que también debe saltar de línea sin desbordar.', t: 'ancho' })}</div>`
 </script>
 </body>

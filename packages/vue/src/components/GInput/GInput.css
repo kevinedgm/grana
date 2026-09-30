@@ -24,7 +24,11 @@
   --_lh: var(--g-text-body-sm-line);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
+  /* Copia con otro nombre: el botón del slot action define su propio --_radius */
+  --_field-radius: var(--_radius);
 
+  /* Contenedor de la consulta que apila el botón de acción en anchos estrechos */
+  container-type: inline-size;
   display: inline-flex;
   flex-direction: column;
   vertical-align: top;
@@ -49,8 +53,22 @@
   color: var(--g-color-danger-text);
 }
 
+/* Con botón de acción, el ancho por defecto es mayor: con 240px quedaría siempre bajo el umbral
+   de apilado y el botón nunca iría junto al campo */
+.g-input--has-action {
+  inline-size: min(100%, calc(var(--g-space-1) * 90));
+}
+
+/* ---------- Conjunto: caja + acción ---------- */
+.g-input__row {
+  display: flex;
+  align-items: stretch;
+}
+
 /* ---------- Caja ---------- */
 .g-input__control {
+  flex: 1 1 auto;
+  min-inline-size: 0;
   display: flex;
   align-items: center;
   gap: calc(var(--_gap) * var(--_density));
@@ -145,6 +163,72 @@
 .g-input__toggle:focus-visible {
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-focus-offset) * -1);
+}
+
+/* ---------- Botón de acción (slot action) ---------- */
+/* El GBtn del consumidor queda pegado a la caja con la misma altura; este archivo solo le ajusta
+   esquinas, solapamiento de bordes y orden de apilado (DECISIONS.md #33). */
+.g-input__action {
+  display: flex;
+  align-items: stretch;
+  flex: none;
+  margin-inline-start: calc(var(--g-border-width) * -1);
+}
+.g-input__action > * {
+  align-self: stretch;
+  white-space: nowrap;
+}
+.g-input--has-action .g-input__control {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.g-input--has-action .g-input__action > * {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: var(--_field-radius);
+  border-end-end-radius: var(--_field-radius);
+}
+/* El elemento enfocado pasa por encima del vecino: los anillos nunca se tapan */
+.g-input__control:has(.g-input__field:focus-visible),
+.g-input__action > *:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+/* Contenedor estrecho: el botón con texto pasa debajo, a ancho completo y separado.
+   Umbral literal (excepción documentada: DECISIONS.md #34, tokens.md §7): una consulta de
+   contenedor no admite var(). Un botón solo icono es cuadrado y sigue a la derecha. */
+@container (max-inline-size: 300px) {
+  .g-input__row {
+    flex-wrap: wrap;
+    row-gap: var(--g-space-2);
+  }
+  .g-input--has-action .g-input__control {
+    flex-basis: 100%;
+    border-radius: var(--_field-radius);
+  }
+  .g-input--has-action .g-input__action {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+  }
+  .g-input--has-action .g-input__action > * {
+    border-radius: var(--_field-radius);
+  }
+  .g-input--has-action .g-input__control:has(+ .g-input__action > .g-btn--icon) {
+    flex: 1 1 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .g-input--has-action .g-input__action:has(> .g-btn--icon) {
+    flex: none;
+    margin-inline-start: calc(var(--g-border-width) * -1);
+  }
+  .g-input--has-action .g-input__action > .g-btn--icon {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--_field-radius);
+    border-end-end-radius: var(--_field-radius);
+  }
 }
 
 /* ---------- Mensajes ---------- */

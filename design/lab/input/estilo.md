@@ -47,3 +47,41 @@
 - Estados con el `.vue` real: falta el componente de bruno.
 - Lector de pantalla real: el ⚠ oculto con `content: … / ""` no se probó en Firefox anterior a 128 (allí no se muestra, pero tampoco se lee).
 - Tema oscuro: no existe aún.
+
+---
+
+## Ampliación: botón de acción (slot `action`)
+
+**Contrato:** `design/contracts/input.md`, sección "Botón de acción" (DECISIONS.md #33 y #34). Banco: `design/lab/input/estilo-banco.html` (ahora carga también `GBtn.css` y usa `.g-input__row`).
+
+### Verificación en Chromium
+
+| Prueba | Resultado |
+| --- | --- |
+| Acoplamiento: 8 combinaciones (texto, solo icono, inválido, deshabilitado, carga, `outline`, `soft`, píldora) | Botón pegado a la caja (bordes solapados exactamente 1 borde), misma altura, mismo borde superior |
+| Altura caja = botón: 5 tamaños × 3 densidades | Iguales en las 15 combinaciones |
+| Esquinas | Caja: exteriores redondeadas, interiores rectas. Botón: interiores rectas y exteriores con **el radio del campo** (no el del botón); en píldora, 999px |
+| Foco con Tab (campo → botón) | Anillo del botón visible, por encima de la caja (`z-index: 1`); el del campo, igual con su caja |
+| Tema distinto (radio `sm` 14px, borde 2px, espacio base 5, `brand` azul marino) | Esquinas exteriores de caja y botón a 14px, interiores a 0; solapamiento de 2px (= borde); ambas alturas 45px; el botón toma el color de la marca |
+| Contenedor estrecho de 220px | Botón con texto: debajo, a ancho completo (220px) con 8px de separación, todas las esquinas redondeadas. Botón solo icono: sigue a la derecha (185 + 36px), cuadrado |
+| Táctil (`pointer: coarse`, 320px) | Acoplado: botón de 44px de alto (se estira a la altura de la caja); sin desborde. Apilado: el botón mide su alto normal y su zona táctil de 44px la da `GBtn` |
+| Literales en `GInput.css` | Ningún color; medidas: `24px`, `44px` y el umbral `300px` de la consulta de contenedor (excepción de DECISIONS.md #34) |
+
+### Hallazgos propios (corregidos durante la ampliación)
+
+1. **Ancho por defecto.** El campo mide 240px por defecto (menos que el umbral de 300px), así que con la consulta sobre `.g-input` un botón con texto **siempre** se apilaba. Con `g-input--has-action`, el ancho por defecto pasa a 360px (`--g-space-1` × 90); si el contenedor es más estrecho, el campo ocupa el 100% y se apila por debajo de 300px.
+2. **Colisión de nombres.** `GBtn` define su propio `--_radius`; para que el botón use el radio del campo, `GInput` lo copia en `--_field-radius` y el botón lo lee de ahí.
+
+### Decisiones
+
+| # | Decisión | Por qué |
+| --- | --- | --- |
+| 1 | El anillo del botón se deja hacia **fuera** (el de `GBtn`), con `z-index: 1`, en vez de hacia dentro como en el prototipo de kiwi | Un anillo hacia dentro sobre un botón sólido oscuro no contrasta (el prototipo lo resolvía con un relleno blanco); el anillo exterior sigue visible sobre la caja porque el elemento enfocado queda por encima |
+| 2 | El botón toma las esquinas exteriores del **campo**, no las suyas | Conjunto visual coherente: caja y botón forman un solo rectángulo redondeado |
+
+### No verificado
+
+- `prefers-reduced-motion` y `forced-colors` con acción: no cambian respecto a lo ya auditado; el botón hereda las reglas de `GBtn`.
+- El slot real de Vue (`GInput.vue` aún no lo implementa): bruno.
+- Hover del botón en el conjunto y contraste de un botón `soft`/`outline` sobre el fondo del tema.
+
