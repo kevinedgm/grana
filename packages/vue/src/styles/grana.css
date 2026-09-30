@@ -1,0 +1,9 @@
+/*
+  Punto de entrada de estilos de Grana.
+  El orden de las capas decide quién gana: components sobre defaults.
+  El tokens.css del usuario va SIN capa, así que gana sobre ambas sin importar el orden de carga.
+*/
+@layer grana.defaults, grana.components;
+
+@import url("./defaults.css") layer(grana.defaults);
+@import url("./components.css") layer(grana.components);

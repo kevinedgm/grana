@@ -1,0 +1,8 @@
+---
+interface:
+  display_name: "Bruno"
+  short_description: "Construye componentes Vue 3 de Grana (g-*): funcionalidad, API, accesibilidad y empaquetado"
+  default_prompt: "Usa $bruno para construir un componente g-* de Grana a partir de las entregas de kiwi, lima y coco."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,80 @@
+/*
+  Tema por defecto de Grana · PROVISIONAL
+  Dueño: coco. Estos valores son un marcador para que el paquete funcione.
+  Se reemplazan por la salida de @grana/cli a partir de la configuración por defecto que decida coco.
+  Este es el ÚNICO archivo del paquete donde se permiten valores literales.
+*/
+:root {
+  /* Marca (sugerencia pendiente de coco: carmín de grana cochinilla) */
+  --g-color-brand: #B3123B;
+  --g-color-brand-strong: color-mix(in oklch, var(--g-color-brand) 88%, white);
+  --g-color-brand-soft: color-mix(in oklch, var(--g-color-brand) 12%, white);
+  --g-color-brand-text: var(--g-color-brand);
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: var(--g-color-brand-text);
+
+  /* Acento: sin valor propio, se deriva de brand (contrato §2) */
+  --g-color-accent: var(--g-color-brand-text);
+  --g-color-accent-strong: var(--g-color-brand-strong);
+  --g-color-accent-soft: var(--g-color-brand-soft);
+  --g-color-accent-text: var(--g-color-brand-text);
+  --g-color-on-accent: var(--g-color-on-brand);
+  --g-color-on-accent-soft: var(--g-color-brand-text);
+
+  /* Semánticos */
+  --g-color-success: #1A7F4E;
+  --g-color-warning: #9A5B00;
+  --g-color-danger: #C0262D;
+  --g-color-info: #2457C5;
+
+  /* Neutros */
+  --g-color-bg: #F6F5F3;
+  --g-color-surface: #FFFFFF;
+  --g-color-surface-sunken: #F2F1EE;
+  --g-color-text: #1A1A1E;
+  --g-color-text-muted: #4B4B55;
+  --g-color-text-subtle: #6B6B75;
+  --g-color-border: color-mix(in srgb, var(--g-color-text) 10%, transparent);
+  --g-color-border-strong: color-mix(in srgb, var(--g-color-text) 22%, transparent);
+  --g-color-border-control: #8A8A93;
+  --g-color-focus: var(--g-color-accent-text);
+
+  /* Radios (radius 8, razón 1.4) */
+  --g-radius-none: 0;
+  --g-radius-xs: 4px;
+  --g-radius-sm: 6px;
+  --g-radius-md: 8px;
+  --g-radius-lg: 11px;
+  --g-radius-xl: 16px;
+  --g-radius-pill: 999px;
+
+  /* Espaciado (space 4) */
+  --g-space-1: 4px;
+  --g-space-2: 8px;
+  --g-space-3: 12px;
+  --g-space-4: 16px;
+  --g-space-5: 20px;
+  --g-space-6: 24px;
+  --g-space-8: 32px;
+  --g-space-12: 48px;
+  --g-space-16: 64px;
+
+  /* Familias */
+  --g-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --g-font-title: var(--g-font-ui);
+  --g-font-display: var(--g-font-ui);
+
+  /* Tamaños (fontSize 16, typeScale 1.25) */
+  --g-text-caption-size: 0.75rem;
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-size: 1rem;
+  --g-text-title-sm-size: 1.25rem;
+  --g-text-title-size: 1.5625rem;
+  --g-text-title-lg-size: 1.9531rem;
+  --g-text-display-size: 2.4414rem;
+
+  /* Sombras */
+  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.06);
+  --g-shadow-2: 0 6px 20px -8px rgb(0 0 0 / 0.2);
+  --g-shadow-3: 0 24px 60px -24px rgb(0 0 0 / 0.34);
+}
