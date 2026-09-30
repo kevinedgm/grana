@@ -3,7 +3,7 @@
 // Contrato: design/contracts/select.md · Estructura: design/lab/select/r01/ · Estilo: GSelect.css (coco)
 // Patrón: combobox de solo selección (WAI-ARIA APG). El foco no sale del botón: la opción activa se
 // indica con aria-activedescendant.
-import { computed, mergeProps, nextTick, onBeforeUnmount, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { Comment, Fragment, Text, computed, mergeProps, nextTick, onBeforeUnmount, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
@@ -24,6 +24,7 @@ const props = defineProps({
   clearable: Boolean,
   clearLabel: { type: String, default: undefined },
   emptyText: { type: String, default: undefined },
+  createLabel: { type: String, default: undefined },
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
@@ -33,7 +34,7 @@ const props = defineProps({
 })
 
 // Solo estos eventos se declaran: el resto llega al botón por $attrs.
-const emit = defineEmits(['update:modelValue', 'open', 'close'])
+const emit = defineEmits(['update:modelValue', 'open', 'close', 'create'])
 
 const attrs = useAttrs()
 const slots = useSlots()
@@ -44,7 +45,7 @@ const labelId = computed(() => `${buttonId.value}-label`)
 const listId = computed(() => `${buttonId.value}-list`)
 const hintId = computed(() => `${buttonId.value}-hint`)
 const errorId = computed(() => `${buttonId.value}-error`)
-const optId = (i) => `${buttonId.value}-opt-${i}`
+const optId = (i) => (i === createIndex.value ? `${buttonId.value}-opt-create` : `${buttonId.value}-opt-${i}`)
 const groupId = (g) => `${buttonId.value}-grp-${g}`
 
 const invalid = computed(() => Boolean(props.error))
@@ -85,6 +86,12 @@ const model = computed(() => {
 const items = computed(() => model.value.items)
 const selected = computed(() => (props.modelValue === null || props.modelValue === undefined ? null : items.value.find((i) => i.value === props.modelValue) ?? null))
 const enabled = computed(() => items.value.filter((i) => !i.disabled))
+// Fila «Agregar nuevo…»: un elemento virtual, siempre el último; no está en `options`, ni en `modelValue`, ni en la escritura rápida
+const createVisible = computed(() => Boolean(props.createLabel) && !props.disabled && !props.readonly)
+const createIndex = computed(() => items.value.length)
+const createItem = computed(() => ({ index: createIndex.value, label: props.createLabel, disabled: false, create: true }))
+const navigable = computed(() => (createVisible.value ? [...enabled.value, createItem.value] : enabled.value))
+const itemAt = (i) => (i === createIndex.value ? (createVisible.value ? createItem.value : undefined) : items.value[i])
 const showClear = computed(() => props.clearable && Boolean(props.clearLabel) && Boolean(selected.value) && !props.disabled && !props.readonly)
 
 // ---------- Estado ----------
@@ -139,7 +146,7 @@ function scrollActive() {
 function show() {
   if (open.value || props.disabled || props.readonly) return
   open.value = true
-  const start = selected.value && !selected.value.disabled ? selected.value : enabled.value[0]
+  const start = selected.value && !selected.value.disabled ? selected.value : (enabled.value[0] ?? (createVisible.value ? createItem.value : null))
   activeIndex.value = start ? start.index : -1
   nextTick(() => {
     const el = list.value
@@ -168,6 +175,13 @@ function hide() {
 
 function choose(item, { refocus = true } = {}) {
   if (!item || item.disabled) return
+  if (item.create) {
+    // Cierra, devuelve el foco al selector y DESPUÉS emite: un diálogo de la aplicación restaura el foco aquí
+    hide()
+    button.value?.focus()
+    emit('create')
+    return
+  }
   if (item.value !== props.modelValue) emitChange(item.value)
   hide()
   if (refocus) button.value?.focus()
@@ -198,7 +212,7 @@ let typed = ''
 let typedTimer = null
 
 function moveActive(step) {
-  const list_ = enabled.value
+  const list_ = navigable.value
   if (!list_.length) return
   const cur = list_.findIndex((i) => i.index === activeIndex.value)
   let next
@@ -246,7 +260,7 @@ function onKeydown(event) {
   else if (k === 'End') { event.preventDefault(); moveActive('last') }
   else if (k === 'PageDown') { event.preventDefault(); moveActive(10) }
   else if (k === 'PageUp') { event.preventDefault(); moveActive(-10) }
-  else if (k === 'Enter' || (k === ' ' && !typed)) { event.preventDefault(); choose(items.value[activeIndex.value]) }
+  else if (k === 'Enter' || (k === ' ' && !typed)) { event.preventDefault(); choose(itemAt(activeIndex.value)) }
   else if (k === 'Escape') {
     // Esc cierra solo la lista: no debe llegar a un GDialog (u otro ancestro) que también escuche Esc
     event.preventDefault()
@@ -255,8 +269,8 @@ function onKeydown(event) {
   }
   else if (k === 'Tab') {
     // Elige la activa y sigue el orden del documento (sin devolver el foco al botón)
-    const it = items.value[activeIndex.value]
-    if (it && !it.disabled && it.value !== props.modelValue) emitChange(it.value)
+    const it = itemAt(activeIndex.value)
+    if (it && !it.create && !it.disabled && it.value !== props.modelValue) emitChange(it.value)
     hide()
   } else if (printable) { event.preventDefault(); typeahead(k) }
 }
@@ -274,13 +288,13 @@ function onListPointerdown(event) {
 function onListClick(event) {
   const li = event.target.closest?.('[role="option"]')
   if (!li) return
-  const item = items.value[Number(li.dataset.index)]
+  const item = itemAt(Number(li.dataset.index))
   if (item) choose(item)
 }
 function onListPointermove(event) {
   const li = event.target.closest?.('[role="option"]')
   if (!li) return
-  const item = items.value[Number(li.dataset.index)]
+  const item = itemAt(Number(li.dataset.index))
   if (item && !item.disabled) activeIndex.value = item.index
 }
 
@@ -335,6 +349,9 @@ const buttonBindings = computed(() => mergeProps({ onClick: onButtonClick, onKey
 
 const listLabelledBy = computed(() => (hasLabel.value ? labelId.value : attrs['aria-labelledby']))
 const hiddenValue = computed(() => (selected.value ? String(selected.value.value) : ''))
+// Un icono solo se pinta si el slot devuelve contenido para esa opción (una opción sin icono no reserva espacio)
+const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
+const hasIcon = (raw) => Boolean(slots.icon) && slots.icon({ option: raw }).some((v) => !isEmptyNode(v))
 const emptyVisible = computed(() => items.value.length === 0 && Boolean(props.emptyText || slots.empty))
 
 if (isDev) {
@@ -355,7 +372,8 @@ if (isDev) {
     </label>
     <div ref="control" class="g-select__control">
       <button ref="button" v-bind="buttonBindings" class="g-select__button">
-        <span class="g-select__value" :class="{ 'g-select__value--placeholder': !selected }"><slot v-if="selected" name="value" :option="selected.raw">{{ selected.label }}</slot><template v-else>{{ placeholder }}</template></span>
+        <span v-if="slots.prepend" class="g-select__prepend" aria-hidden="true"><slot name="prepend" /></span>
+        <span class="g-select__value" :class="{ 'g-select__value--placeholder': !selected }"><template v-if="selected"><span v-if="!slots.value && hasIcon(selected.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="selected.raw" /></span><slot name="value" :option="selected.raw">{{ selected.label }}</slot></template><template v-else>{{ placeholder }}</template></span>
         <span class="g-select__arrow" aria-hidden="true" />
       </button>
       <button v-if="showClear" class="g-select__clear" type="button" :aria-label="clearLabel" @click="clear" />
@@ -389,7 +407,7 @@ if (isDev) {
               :data-index="item.index"
               :aria-selected="selected && selected.index === item.index ? 'true' : 'false'"
               :aria-disabled="item.disabled ? 'true' : undefined"
-            ><slot name="option" :option="item.raw" :selected="Boolean(selected && selected.index === item.index)" :active="item.index === activeIndex">{{ item.label }}</slot></li>
+            ><span v-if="!slots.option && hasIcon(item.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="item.raw" /></span><slot name="option" :option="item.raw" :selected="Boolean(selected && selected.index === item.index)" :active="item.index === activeIndex">{{ item.label }}</slot></li>
           </ul>
         </li>
         <li
@@ -401,9 +419,18 @@ if (isDev) {
           :data-index="entry.index"
           :aria-selected="selected && selected.index === entry.index ? 'true' : 'false'"
           :aria-disabled="entry.disabled ? 'true' : undefined"
-        ><slot name="option" :option="entry.raw" :selected="Boolean(selected && selected.index === entry.index)" :active="entry.index === activeIndex">{{ entry.label }}</slot></li>
+        ><span v-if="!slots.option && hasIcon(entry.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="entry.raw" /></span><slot name="option" :option="entry.raw" :selected="Boolean(selected && selected.index === entry.index)" :active="entry.index === activeIndex">{{ entry.label }}</slot></li>
       </template>
       <li v-if="emptyVisible" class="g-select__empty" role="presentation"><slot name="empty">{{ emptyText }}</slot></li>
+      <li
+        v-if="createVisible"
+        :id="optId(createIndex)"
+        class="g-select__option g-select__create"
+        :class="{ 'is-active': activeIndex === createIndex }"
+        role="option"
+        :data-index="createIndex"
+        aria-selected="false"
+      >{{ createLabel }}</li>
     </ul>
     <div v-if="hasHint" :id="hintId" class="g-select__hint"><slot name="hint">{{ hint }}</slot></div>
     <div :id="errorId" class="g-select__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>

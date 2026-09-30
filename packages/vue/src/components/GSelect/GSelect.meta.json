@@ -119,6 +119,11 @@
       "default": null
     },
     {
+      "name": "createLabel",
+      "type": "String",
+      "default": null
+    },
+    {
       "name": "label",
       "type": "String",
       "default": null
@@ -164,6 +169,11 @@
       "name": "close",
       "payload": "",
       "trigger": "La lista se cierra, por el motivo que sea"
+    },
+    {
+      "name": "create",
+      "payload": "",
+      "trigger": "El usuario activa la fila «Agregar nuevo…» (createLabel). No cambia el valor; el foco ya volvió al selector"
     }
   ],
   "slots": [
@@ -190,6 +200,14 @@
     {
       "name": "empty",
       "purpose": "Contenido de la lista vacía (sustituye a emptyText)"
+    },
+    {
+      "name": "prepend",
+      "purpose": "Icono decorativo antes del valor, dentro del botón (aria-hidden). Lo sustituye el icono de la opción elegida"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono decorativo de una opción y del valor mostrado. Alcance: { option }. Solo se pinta si devuelve contenido; no se usa si se usan los slots option o value"
     }
   ],
   "tokens": [
@@ -237,7 +255,10 @@
     "option-selected",
     "option-disabled",
     "list-up",
-    "sheet"
+    "sheet",
+    "create-row",
+    "with-prefix",
+    "with-icons"
   ],
   "pending": [
     "README (mora-docs)",
@@ -245,6 +266,7 @@
     "Hoja inferior con teclado virtual y táctil reales",
     "Firefox y Safari (popover, ::backdrop, :popover-open, :has())",
     "Selección múltiple, búsqueda y virtualización (v0.2)",
-    "Ronda r02: prefijo (prepend), iconos en las opciones y fila «Agregar nuevo…» (create)"
+    "Auditoría de coco de la ronda r02 (prefijo, iconos y fila crear) sobre el componente real",
+    "README de GSelect (mora-docs), incluida la ronda r02"
   ]
 }

@@ -493,3 +493,183 @@ describe('GSelect · nombre accesible y atributos', () => {
     w.unmount()
   })
 })
+
+describe('GSelect · prefijo e iconos (r02)', () => {
+  it('el slot prepend va dentro del botón, antes del valor, y es decorativo', () => {
+    const w = mk({}, { slots: { prepend: '<i class="p">P</i>' } })
+    const pre = btn(w).find('.g-select__prepend')
+    expect(pre.exists()).toBe(true)
+    expect(pre.attributes('aria-hidden')).toBe('true')
+    const kids = [...btn(w).element.children].map((c) => c.className.split(' ')[0])
+    expect(kids.indexOf('g-select__prepend')).toBeLessThan(kids.indexOf('g-select__value'))
+    w.unmount()
+    expect(mk().find('.g-select__prepend').exists()).toBe(false)
+  })
+
+  it('el slot icon se pinta en cada opción y junto al valor, decorativo, con la opción como alcance', () => {
+    const icon = '<template #icon="{ option }"><i class="ic">{{ option.value }}</i></template>'
+    const w = mk({ modelValue: 'mx' }, { slots: { icon } })
+    const inOpts = w.findAll('[role="option"] .g-select__icon')
+    expect(inOpts.length).toBe(6)
+    expect(inOpts[0].attributes('aria-hidden')).toBe('true')
+    expect(inOpts[0].text()).toBe('mx')
+    const val = w.find('.g-select__value > .g-select__icon')
+    expect(val.exists()).toBe(true)
+    expect(val.text()).toBe('mx')
+    w.unmount()
+  })
+
+  it('el icono solo se pinta si el slot devuelve contenido para esa opción (sin reservar espacio)', () => {
+    const icon = '<template #icon="{ option }"><i v-if="option.value === \'us\'" class="ic">US</i></template>'
+    const w = mk({}, { slots: { icon } })
+    const rows = opts(w)
+    expect(rows[0].find('.g-select__icon').exists()).toBe(false)
+    expect(rows[1].find('.g-select__icon').exists()).toBe(true)
+    expect(rows[3].find('.g-select__icon').exists()).toBe(false)
+    w.unmount()
+  })
+
+  it('sin opción elegida no hay icono en el valor; con una sin icono, tampoco', async () => {
+    const icon = '<template #icon="{ option }"><i v-if="option.value === \'us\'" class="ic">US</i></template>'
+    const w = mk({}, { slots: { icon } })
+    expect(w.find('.g-select__value > .g-select__icon').exists()).toBe(false)
+    await w.setProps({ modelValue: 'mx' })
+    expect(w.find('.g-select__value > .g-select__icon').exists()).toBe(false)
+    await w.setProps({ modelValue: 'us' })
+    expect(w.find('.g-select__value > .g-select__icon').exists()).toBe(true)
+    w.unmount()
+  })
+
+  it('con los slots option o value, el slot icon no se usa en esa zona', () => {
+    const w = mk({ modelValue: 'mx' }, { slots: { icon: '<template #icon><i class="ic">I</i></template>', option: '<template #option="{ option }"><b class="o">{{ option.label }}</b></template>', value: '<template #value="{ option }"><b class="v">{{ option.label }}</b></template>' } })
+    expect(w.findAll('[role="option"] .g-select__icon').length).toBe(0)
+    expect(w.find('.g-select__value > .g-select__icon').exists()).toBe(false)
+    expect(w.find('.v').exists()).toBe(true)
+    w.unmount()
+  })
+
+  it('los iconos no cambian el nombre accesible (aria-labelledby: etiqueta + botón)', () => {
+    const w = mk({ id: 's', modelValue: 'mx' }, { slots: { icon: '<template #icon><i class="ic">I</i></template>', prepend: '<i>P</i>' } })
+    expect(btn(w).attributes('aria-labelledby')).toBe('s-label s')
+    w.unmount()
+  })
+})
+
+describe('GSelect · fila «Agregar nuevo…» (r02)', () => {
+  const mkc = (props = {}, opts = {}) => mk({ createLabel: 'Agregar nuevo país…', ...props }, opts)
+  const createRow = (w) => w.find('.g-select__create')
+
+  it('con createLabel hay una fila al final: role option, aria-selected false, id create, clases; sin él, no', () => {
+    const w = mkc({ id: 's' })
+    const row = createRow(w)
+    expect(row.exists()).toBe(true)
+    expect(row.attributes('role')).toBe('option')
+    expect(row.attributes('aria-selected')).toBe('false')
+    expect(row.attributes('id')).toBe('s-opt-create')
+    expect(row.classes()).toEqual(expect.arrayContaining(['g-select__option', 'g-select__create']))
+    expect(row.text()).toBe('Agregar nuevo país…')
+    expect(w.find('[role="listbox"]').element.lastElementChild).toBe(row.element)
+    expect(row.element.parentElement.getAttribute('role')).toBe('listbox') // hijo directo, fuera de los grupos
+    w.unmount()
+    expect(mk().find('.g-select__create').exists()).toBe(false)
+  })
+
+  it('no hay fila con readonly ni disabled', () => {
+    expect(mkc({ readonly: true }).find('.g-select__create').exists()).toBe(false)
+    expect(mkc({ disabled: true }).find('.g-select__create').exists()).toBe(false)
+  })
+
+  it('↓ y Fin llegan a la fila, que se resalta (is-active y aria-activedescendant)', async () => {
+    const w = mkc({ id: 's' })
+    await key(w, 'ArrowDown')
+    await key(w, 'End')
+    expect(btn(w).attributes('aria-activedescendant')).toBe('s-opt-create')
+    expect(createRow(w).classes()).toContain('is-active')
+    await key(w, 'ArrowUp')
+    expect(activeText(w)).toBe('España')
+    await key(w, 'ArrowDown')
+    expect(btn(w).attributes('aria-activedescendant')).toBe('s-opt-create')
+    w.unmount()
+  })
+
+  it('Enter sobre la fila: cierra, NO cambia el valor, devuelve el foco y emite create', async () => {
+    const w = mkc({ modelValue: 'mx' })
+    btn(w).element.focus()
+    await key(w, 'ArrowDown')
+    await key(w, 'End')
+    await key(w, 'Enter')
+    expect(w.emitted('create')).toHaveLength(1)
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(btn(w).element)
+    expect(w.find('.g-select__value').text()).toBe('México')
+    w.unmount()
+  })
+
+  it('el foco vuelve al selector ANTES de emitir create', async () => {
+    let focusAtCreate = null
+    const w = mkc({}, { attrs: { onCreate: () => { focusAtCreate = document.activeElement } } })
+    btn(w).element.focus()
+    await key(w, 'ArrowDown'); await key(w, 'End'); await key(w, 'Enter')
+    expect(focusAtCreate).toBe(btn(w).element)
+    w.unmount()
+  })
+
+  it('Espacio y el clic también la activan', async () => {
+    const w = mkc()
+    await key(w, 'ArrowDown'); await key(w, 'End'); await key(w, ' ')
+    expect(w.emitted('create')).toHaveLength(1)
+    await btn(w).trigger('click')
+    await createRow(w).trigger('click')
+    expect(w.emitted('create')).toHaveLength(2)
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('Tab sobre la fila cierra SIN crear; Esc cierra sin hacer nada', async () => {
+    const w = mkc({ modelValue: 'mx' })
+    await key(w, 'ArrowDown'); await key(w, 'End'); await key(w, 'Tab')
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('create')).toBeUndefined()
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await key(w, 'ArrowDown'); await key(w, 'End'); await key(w, 'Escape')
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('create')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('el typeahead no considera la fila', async () => {
+    vi.useFakeTimers()
+    const w = mkc()
+    await key(w, 'ArrowDown') // abre: México
+    await key(w, 'a') // «Agregar…» también empieza por a, pero no cuenta: salta Alemania (deshabilitada) y llega a Argentina
+    expect(activeText(w)).toBe('Argentina')
+    await vi.advanceTimersByTimeAsync(600)
+    await key(w, 'a') // otra vez: no hay más opciones con «a» tras Argentina (Alemania está deshabilitada); da la vuelta a Argentina y no cae en la fila
+    expect(activeText(w)).toBe('Argentina')
+    await vi.advanceTimersByTimeAsync(600)
+    vi.useRealTimers()
+    w.unmount()
+  })
+
+  it('con la lista vacía, la fila sigue visible y es la activa por defecto; con emptyText, el mensaje va antes', async () => {
+    const w = mkc({ options: [], emptyText: 'No hay países.', id: 's' })
+    expect(w.find('.g-select__empty').text()).toBe('No hay países.')
+    expect(createRow(w).exists()).toBe(true)
+    const kids = [...w.find('[role="listbox"]').element.children]
+    expect(kids.indexOf(w.find('.g-select__empty').element)).toBeLessThan(kids.indexOf(createRow(w).element))
+    await btn(w).trigger('click')
+    await nextTick()
+    expect(btn(w).attributes('aria-activedescendant')).toBe('s-opt-create')
+    w.unmount()
+  })
+
+  it('el ratón sobre la fila la vuelve activa; el elegido no se marca en ella', async () => {
+    const w = mkc({ modelValue: 'mx', id: 's' })
+    await btn(w).trigger('click')
+    await createRow(w).trigger('pointermove')
+    expect(btn(w).attributes('aria-activedescendant')).toBe('s-opt-create')
+    expect(createRow(w).attributes('aria-selected')).toBe('false')
+    w.unmount()
+  })
+})

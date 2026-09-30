@@ -214,6 +214,10 @@
       <g-select v-model="selRich" :options="selRichOptions" label="Con contenido rico" placeholder="Elige">
         <template #option="{ option }"><span>{{ option.label }}</span><small style="margin-inline-start:auto;opacity:.7">{{ option.meta }}</small></template>
       </g-select>
+      <g-select v-model="selClient" :options="selClients" label="Cliente (prefijo, iconos y agregar nuevo)" placeholder="Elige un cliente" create-label="Agregar nuevo cliente…" @create="selCreate">
+        <template #prepend><lucide-icon name="user"></lucide-icon></template>
+        <template #icon="{ option }"><lucide-icon :name="option.icon"></lucide-icon></template>
+      </g-select>
       <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
       <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
     </div>
@@ -386,6 +390,15 @@
         const selMany = ref(null)
         const selSoft = ref(0)
         const selLoad = ref(null)
+        const selClient = ref(null)
+        const selClients = ref([{ value: 'a', label: 'Acme S.A.', icon: 'tag' }, { value: 'g', label: 'Globex', icon: 'tag' }, { value: 'i', label: 'Initech', icon: 'tag' }])
+        const selCreate = () => {
+          const n = selClients.value.length + 1
+          const value = 'n' + n
+          selClients.value = [...selClients.value, { value, label: 'Cliente nuevo ' + n, icon: 'tag' }]
+          selClient.value = value
+          selLog.value = 'create → la app agregó «Cliente nuevo ' + n + '» y lo eligió'
+        }
         const selRich = ref(null)
         const selError = ref('')
         const selLog = ref('cerrada')
@@ -488,7 +501,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
