@@ -532,7 +532,8 @@
   box-sizing: border-box;
   position: absolute;
   inset-inline-start: calc(var(--g-space-1) * -1.8);
-  inset-block-start: calc(var(--g-space-1) * -2.3);
+  /* centrado sobre el eje de la línea: el origen es el borde interior, y el eje está a medio borde */
+  inset-block-start: calc(var(--g-border-width) * -1 - var(--g-space-1) * 1.8);
   inset-inline-end: auto;
   inline-size: calc(var(--g-space-1) * 3.6);
   block-size: calc(var(--g-space-1) * 3.6);
@@ -687,7 +688,7 @@
   border-inline-start: calc(var(--g-border-width) * 2) solid var(--_now);
 }
 .g-calendar__timeline .g-calendar__now > .g-calendar__now-dot {
-  inset-inline-start: calc(var(--g-space-1) * -2.3);
+  inset-inline-start: calc(var(--g-border-width) * -1 - var(--g-space-1) * 1.8);
   inset-block-start: calc(var(--g-space-1) * -1.3);
 }
 
@@ -783,6 +784,12 @@
   font-weight: var(--g-text-action-weight);
   text-align: start;
   cursor: pointer;
+}
+/* El icono va centrado en el botón (el botón es de bloque y el icono en línea quedaba 1px bajo el centro) */
+.g-calendar__prev,
+.g-calendar__next {
+  display: grid;
+  place-items: center;
 }
 .g-calendar__prev > .g-icon,
 .g-calendar__next > .g-icon {
