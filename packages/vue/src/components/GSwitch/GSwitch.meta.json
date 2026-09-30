@@ -167,7 +167,6 @@
     "loading"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: rol switch, activado/desactivado, ayuda, error y aria-busy",
     "Firefox y Safari (pseudo-elementos del input, :dir(), :has())"
   ]
