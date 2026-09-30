@@ -8,12 +8,12 @@
 /* ---------- Esqueleto ---------- */
 .g-btn {
   /* Color (se reasigna por modificador --color-*) */
-  --_base: var(--g-color-brand);
-  --_strong: var(--g-color-brand-strong);
-  --_soft: var(--g-color-brand-soft);
-  --_text: var(--g-color-brand-text);
-  --_on: var(--g-color-on-brand);
-  --_on-soft: var(--g-color-on-brand-soft);
+  --_base: var(--g-color-primary);
+  --_strong: var(--g-color-primary-strong);
+  --_soft: var(--g-color-primary-soft);
+  --_text: var(--g-color-primary-text);
+  --_on: var(--g-color-on-primary);
+  --_on-soft: var(--g-color-on-primary-soft);
 
   /* Variante (se reasigna por modificador --variant-*); por defecto: solid */
   --_bg: var(--_base);
@@ -121,8 +121,8 @@
 
 /* ---------- Color ---------- */
 .g-btn--color-brand {
-  --_base: var(--g-color-brand); --_strong: var(--g-color-brand-strong); --_soft: var(--g-color-brand-soft);
-  --_text: var(--g-color-brand-text); --_on: var(--g-color-on-brand); --_on-soft: var(--g-color-on-brand-soft);
+  --_base: var(--g-color-primary); --_strong: var(--g-color-primary-strong); --_soft: var(--g-color-primary-soft);
+  --_text: var(--g-color-primary-text); --_on: var(--g-color-on-primary); --_on-soft: var(--g-color-on-primary-soft);
 }
 .g-btn--color-accent {
   --_base: var(--g-color-accent); --_strong: var(--g-color-accent-strong); --_soft: var(--g-color-accent-soft);

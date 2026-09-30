@@ -11,12 +11,12 @@
 /* ---------- Esqueleto ---------- */
 .g-checkbox {
   /* Color (se reasigna por --color-*); por defecto: brand */
-  --_c: var(--g-color-brand);
-  --_c-strong: var(--g-color-brand-strong);
-  --_on: var(--g-color-on-brand);
-  --_soft: var(--g-color-brand-soft);
-  --_on-soft: var(--g-color-on-brand-soft);
-  --_text: var(--g-color-brand-text);
+  --_c: var(--g-color-primary);
+  --_c-strong: var(--g-color-primary-strong);
+  --_on: var(--g-color-on-primary);
+  --_soft: var(--g-color-primary-soft);
+  --_on-soft: var(--g-color-on-primary-soft);
+  --_text: var(--g-color-primary-text);
 
   /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
   --_box-units: 5;
@@ -201,7 +201,7 @@
 .g-checkbox--density-compact { --_density: 0.75; }
 
 /* ---------- Color (relleno de lo marcado) ---------- */
-.g-checkbox--color-brand { --_c: var(--g-color-brand); --_c-strong: var(--g-color-brand-strong); --_on: var(--g-color-on-brand); --_soft: var(--g-color-brand-soft); --_on-soft: var(--g-color-on-brand-soft); --_text: var(--g-color-brand-text); }
+.g-checkbox--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); --_text: var(--g-color-primary-text); }
 .g-checkbox--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); --_text: var(--g-color-accent-text); }
 .g-checkbox--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); --_text: var(--g-color-neutral-text); }
 .g-checkbox--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); --_text: var(--g-color-success-text); }

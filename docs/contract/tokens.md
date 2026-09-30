@@ -397,6 +397,8 @@ Un nivel consume tokens de los anteriores y **no se salta niveles** sin una exce
 
 Un componente lee `var(--g-color-primary)`, nunca un seed ni (a largo plazo) `var(--g-color-brand)`.
 
+**Alcance de un override en una sección.** Los roles son alias resueltos donde se declaran (§10): para cambiar el color principal dentro de una sección hay que fijar `--g-color-primary` y sus derivados (`primary-strong`, `primary-soft`, `primary-text`, `on-primary`, `on-primary-soft`), no `--g-color-brand`.
+
 ### 17.3 Tema claro y oscuro
 
 Comparten la misma arquitectura semántica: los componentes no saben qué esquema está activo; el cambio ocurre **solo** por la redeclaración de tokens (§15).
@@ -462,7 +464,8 @@ La misma derivación alimenta CSS, documentación, Design Hub, validación y CLI
 | §17.12 `semanticCollision` (`warn` por defecto, `adjust`) | Hecho |
 | §17.13 `diagnostics` y §17.18 `level` / `source` / `status` / `recommended` en `tokens.json` | Hecho |
 | §17.14 `categories` documentado como colores categóricos | Hecho |
-| §17.2 y §17.3: **migrar los componentes** de `--g-color-brand` y `--g-color-accent` a `primary`, `link`, `selection`, `active` | **Pendiente** (un lote por componente; los alias ya existen) |
+| §17.2: **componentes de `--g-color-brand*` / `--g-color-on-brand*` a `primary*`** (16 hojas de estilo, verificado: 0 diferencias en 3290 elementos, claro y oscuro) y el ítem activo de `GSidebar` a `active`; una prueba impide volver a leer `brand` | Hecho |
+| §17.2: variantes `color="accent"` y la barra de carga de `GDialog` | Se quedan en `accent`: la prop `color` elige la **familia** (`brand`, `accent`, `success`…), y `accent` es también un rol semántico (§17.1). `link` y `selection` aún no tienen consumidores en los componentes |
 | §17.4 clave de configuración `primary` propia | Pendiente (futuro) |
 | Regla «sin saltar niveles» y «sin tokens de componente que solo renombran» como comprobación automática | Pendiente (hoy es norma de revisión) |
 | `--g-data-*` para gráficas | Fuera de alcance |

@@ -118,8 +118,8 @@ El componente solo lee tokens `--g-*`. **`brand` sí cambia los interruptores** 
 
 ```css
 :root {
-  --g-color-brand: #7a1f5c;          /* relleno del riel encendido */
-  --g-color-brand-strong: #5e184a;   /* al pasar el ratón */
+  --g-color-primary: #7a1f5c;          /* relleno del riel encendido */
+  --g-color-primary-strong: #5e184a;   /* al pasar el ratón */
   --g-color-border-control: #8a6a30; /* contorno del riel apagado y pulgar apagado (≥ 3:1) */
 }
 ```

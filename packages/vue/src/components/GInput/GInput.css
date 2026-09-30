@@ -321,7 +321,7 @@
 .g-input--rounded-pill { --_radius: var(--g-radius-pill); }
 
 /* ---------- Color (solo el foco) ---------- */
-.g-input--color-brand { --_focus: var(--g-color-brand-text); }
+.g-input--color-brand { --_focus: var(--g-color-primary-text); }
 .g-input--color-accent { --_focus: var(--g-color-accent-text); }
 .g-input--color-neutral { --_focus: var(--g-color-neutral-text); }
 .g-input--color-success { --_focus: var(--g-color-success-text); }

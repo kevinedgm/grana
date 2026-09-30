@@ -94,11 +94,11 @@ El componente solo lee tokens `--g-*`; no lleva colores ni medidas propias. Para
 
 ```css
 :root {
-  --g-color-brand: #0b1f4d;
-  --g-color-brand-strong: #1e3464;
-  --g-color-brand-soft: #eaf0fd;
-  --g-color-brand-text: #0b1f4d;
-  --g-color-on-brand-soft: #0b1f4d;
+  --g-color-primary: #0b1f4d;
+  --g-color-primary-strong: #1e3464;
+  --g-color-primary-soft: #eaf0fd;
+  --g-color-primary-text: #0b1f4d;
+  --g-color-on-primary-soft: #0b1f4d;
   --g-radius-shape: var(--g-radius-pill); /* botones de píldora */
 }
 ```

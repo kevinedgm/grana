@@ -136,7 +136,7 @@
 .g-badge--size-lg { --_units: 7; --_fig-units: 5; --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); --_px: var(--g-space-3); }
 
 /* ---------- Color ---------- */
-.g-badge--color-brand { --_base: var(--g-color-brand); --_soft: var(--g-color-brand-soft); --_text: var(--g-color-brand-text); --_on: var(--g-color-on-brand); --_on-soft: var(--g-color-on-brand-soft); }
+.g-badge--color-brand { --_base: var(--g-color-primary); --_soft: var(--g-color-primary-soft); --_text: var(--g-color-primary-text); --_on: var(--g-color-on-primary); --_on-soft: var(--g-color-on-primary-soft); }
 .g-badge--color-accent { --_base: var(--g-color-accent); --_soft: var(--g-color-accent-soft); --_text: var(--g-color-accent-text); --_on: var(--g-color-on-accent); --_on-soft: var(--g-color-on-accent-soft); }
 .g-badge--color-neutral { --_base: var(--g-color-neutral); --_soft: var(--g-color-neutral-soft); --_text: var(--g-color-neutral-text); --_on: var(--g-color-on-neutral); --_on-soft: var(--g-color-on-neutral-soft); }
 .g-badge--color-success { --_base: var(--g-color-success); --_soft: var(--g-color-success-soft); --_text: var(--g-color-success-text); --_on: var(--g-color-on-success); --_on-soft: var(--g-color-on-success-soft); }

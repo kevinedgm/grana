@@ -163,14 +163,14 @@
     scale var(--g-duration-press) var(--g-ease-out);
 }
 .g-widget-config__btn--primary {
-  border-color: var(--g-color-brand);
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  border-color: var(--g-color-primary);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 .g-widget-config__btn--reset { margin-inline-end: auto; }
 @media (hover: hover) {
   .g-widget-config__btn:hover { background: var(--g-color-surface-sunken); }
-  .g-widget-config__btn--primary:hover { background: var(--g-color-brand-strong); }
+  .g-widget-config__btn--primary:hover { background: var(--g-color-primary-strong); }
 }
 .g-widget-config__btn:active { scale: var(--g-press-scale); }
 .g-widget-config__btn:focus-visible {

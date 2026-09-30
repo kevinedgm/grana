@@ -125,8 +125,8 @@ El componente solo lee tokens `--g-*`. A diferencia de los campos, **`brand` sí
 
 ```css
 :root {
-  --g-color-brand: #0b1f4d;          /* relleno de lo marcado */
-  --g-color-brand-strong: #1e3464;   /* al pasar el ratón */
+  --g-color-primary: #0b1f4d;          /* relleno de lo marcado */
+  --g-color-primary-strong: #1e3464;   /* al pasar el ratón */
   --g-color-border-control: #5b6b8c; /* borde del cuadro y del chip sin marcar */
   --g-radius-xs: 2px;                /* esquinas del cuadro */
 }

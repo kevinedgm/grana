@@ -21,8 +21,8 @@
 }
 .g-sidebar {
   /* Color de la selección (se reasigna por --color-*); por defecto: brand */
-  --_color: var(--g-color-brand);
-  --_on: var(--g-color-on-brand);
+  --_color: var(--g-color-primary);
+  --_on: var(--g-color-on-primary);
 
   /* Medidas (se reasignan por --density-*) */
   --_density: 1;
@@ -313,7 +313,7 @@
   inset-block: 20%;
   inline-size: calc(var(--g-border-width) * 2);
   border-radius: var(--g-radius-pill);
-  background: var(--g-color-accent);
+  background: var(--g-color-active);
 }
 /* Rama activa: un padre con un hijo activo; peso y color, sin superficie */
 .g-sidebar__link.is-branch {
@@ -868,7 +868,7 @@
 .g-sidebar--density-comfortable { --_density: 0.875; }
 .g-sidebar--density-compact { --_density: 0.75; }
 
-.g-sidebar--color-brand { --_color: var(--g-color-brand); --_on: var(--g-color-on-brand); }
+.g-sidebar--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); }
 .g-sidebar--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); }
 .g-sidebar--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); }
 .g-sidebar--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); }

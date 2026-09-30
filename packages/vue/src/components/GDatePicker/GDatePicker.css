@@ -16,10 +16,10 @@
   --_focus: var(--g-color-focus);
 
   /* Color de la selección (se reasigna por --color-*); por defecto: brand */
-  --_color: var(--g-color-brand);
-  --_on: var(--g-color-on-brand);
-  --_soft: var(--g-color-brand-soft);
-  --_on-soft: var(--g-color-on-brand-soft);
+  --_color: var(--g-color-primary);
+  --_on: var(--g-color-on-primary);
+  --_soft: var(--g-color-primary-soft);
+  --_on-soft: var(--g-color-on-primary-soft);
 
   /* Variante del campo (se reasigna por --variant-*); por defecto: outline */
   --_bg: var(--g-color-surface);
@@ -600,7 +600,7 @@
 .g-datepicker--rounded-pill { --_radius: var(--g-radius-pill); }
 
 /* ---------- Color de la selección ---------- */
-.g-datepicker--color-brand { --_color: var(--g-color-brand); --_on: var(--g-color-on-brand); --_soft: var(--g-color-brand-soft); --_on-soft: var(--g-color-on-brand-soft); }
+.g-datepicker--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); }
 .g-datepicker--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); }
 .g-datepicker--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); }
 .g-datepicker--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); }

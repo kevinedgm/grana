@@ -3,7 +3,7 @@
   Solo var(--g-*) y alias locales. Bruno da el avance con la variable dinámica --_value (porcentaje) en el relleno.
 */
 .g-progress {
-  --_color: var(--g-color-brand);
+  --_color: var(--g-color-primary);
   --_h: calc(var(--g-space-1) * 2);
 
   display: flex;
@@ -45,7 +45,7 @@
     transition: inline-size var(--g-duration-press) var(--g-ease-out);
   }
 }
-.g-progress--color-brand { --_color: var(--g-color-brand); }
+.g-progress--color-brand { --_color: var(--g-color-primary); }
 .g-progress--color-accent { --_color: var(--g-color-accent); }
 .g-progress--color-neutral { --_color: var(--g-color-neutral); }
 .g-progress--color-success { --_color: var(--g-color-success); }

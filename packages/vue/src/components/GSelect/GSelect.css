@@ -380,7 +380,7 @@
 .g-select--rounded-pill { --_radius: var(--g-radius-pill); }
 
 /* ---------- Color (solo el foco) ---------- */
-.g-select--color-brand { --_focus: var(--g-color-brand-text); }
+.g-select--color-brand { --_focus: var(--g-color-primary-text); }
 .g-select--color-accent { --_focus: var(--g-color-accent-text); }
 .g-select--color-neutral { --_focus: var(--g-color-neutral-text); }
 .g-select--color-success { --_focus: var(--g-color-success-text); }

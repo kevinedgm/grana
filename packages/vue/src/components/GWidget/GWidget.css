@@ -111,7 +111,7 @@
   line-height: calc(var(--g-space-1) * 5);
   white-space: nowrap;
 }
-.g-widget__badge--color-brand { --_badge-bg: var(--g-color-brand-soft); --_badge-fg: var(--g-color-on-brand-soft); }
+.g-widget__badge--color-brand { --_badge-bg: var(--g-color-primary-soft); --_badge-fg: var(--g-color-on-primary-soft); }
 .g-widget__badge--color-accent { --_badge-bg: var(--g-color-accent-soft); --_badge-fg: var(--g-color-on-accent-soft); }
 .g-widget__badge--color-neutral { --_badge-bg: var(--g-color-neutral-soft); --_badge-fg: var(--g-color-on-neutral-soft); }
 .g-widget__badge--color-success { --_badge-bg: var(--g-color-success-soft); --_badge-fg: var(--g-color-on-success-soft); }

@@ -104,9 +104,9 @@
 }
 /* Seleccionada: relleno y una marca (no solo el color) */
 .g-widget-gallery__cat > input:checked + span {
-  background: var(--g-color-brand);
-  border-color: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  background: var(--g-color-primary);
+  border-color: var(--g-color-primary);
+  color: var(--g-color-on-primary);
   font-weight: var(--g-text-action-weight);
 }
 /* La marca es el check de Lucide (GIcon): solo se ve en la categoría elegida */
@@ -237,13 +237,13 @@
     scale var(--g-duration-press) var(--g-ease-out);
 }
 .g-widget-gallery__btn--primary {
-  border-color: var(--g-color-brand);
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  border-color: var(--g-color-primary);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 @media (hover: hover) {
   .g-widget-gallery__btn:hover { background: var(--g-color-surface-sunken); }
-  .g-widget-gallery__btn--primary:hover { background: var(--g-color-brand-strong); }
+  .g-widget-gallery__btn--primary:hover { background: var(--g-color-primary-strong); }
 }
 .g-widget-gallery__btn:active { scale: var(--g-press-scale); }
 /* Un widget único ya añadido: sigue enfocable, sin parecer un botón activo */

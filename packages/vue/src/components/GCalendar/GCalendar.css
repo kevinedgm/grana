@@ -111,9 +111,9 @@
   }
 }
 .g-calendar__toolbar button[aria-pressed="true"] {
-  background: var(--g-color-brand);
-  border-color: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  background: var(--g-color-primary);
+  border-color: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 .g-calendar__resource-select select {
   box-sizing: border-box;
@@ -237,8 +237,8 @@
   display: inline-block;
   padding-inline: var(--g-space-2);
   border-radius: var(--g-radius-pill);
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 .g-calendar__allday {
   display: grid;
@@ -380,7 +380,7 @@
     box-shadow var(--g-duration-fast) var(--g-ease-standard);
 }
 /* Color semántico del evento (data-color): borde, relleno suave y texto derivados de los tokens */
-.g-calendar__event[data-color="brand"] { --_ec: var(--g-color-brand-text); --_eb: var(--g-color-brand-soft); --_ef: var(--g-color-on-brand-soft); }
+.g-calendar__event[data-color="brand"] { --_ec: var(--g-color-primary-text); --_eb: var(--g-color-primary-soft); --_ef: var(--g-color-on-primary-soft); }
 .g-calendar__event[data-color="accent"] { --_ec: var(--g-color-accent-text); --_eb: var(--g-color-accent-soft); --_ef: var(--g-color-on-accent-soft); }
 .g-calendar__event[data-color="neutral"] { --_ec: var(--g-color-neutral-text); --_eb: var(--g-color-neutral-soft); --_ef: var(--g-color-on-neutral-soft); }
 .g-calendar__event[data-color="success"] { --_ec: var(--g-color-success-text); --_eb: var(--g-color-success-soft); --_ef: var(--g-color-on-success-soft); }
@@ -737,8 +737,8 @@
 }
 .g-calendar__month td.is-today .g-calendar__day,
 .g-calendar__month td[aria-current="date"] .g-calendar__day {
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 .g-calendar__day:focus-visible,
 .g-calendar__more:focus-visible {
@@ -876,8 +876,8 @@
   cursor: pointer;
 }
 .g-calendar__strip > button[aria-pressed="true"] {
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 .g-calendar__strip > button:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);

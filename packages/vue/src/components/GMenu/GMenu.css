@@ -166,9 +166,9 @@
 }
 [role="menuitemradio"] > .g-menu__mark { border-radius: var(--g-radius-pill); }
 [aria-checked="true"] > .g-menu__mark {
-  border-color: var(--g-color-brand);
-  background: var(--g-color-brand);
-  color: var(--g-color-on-brand);
+  border-color: var(--g-color-primary);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
 }
 /* Marcas de Lucide (GIcon): check en la casilla y circle relleno en la opción; solo se ven marcadas */
 .g-menu__mark > .g-icon {

@@ -55,7 +55,7 @@
   font-weight: var(--g-text-body-weight);
   color: var(--g-color-text-subtle);
 }
-.g-metric--trend-brand { --_trend: var(--g-color-brand-text); }
+.g-metric--trend-brand { --_trend: var(--g-color-primary-text); }
 .g-metric--trend-accent { --_trend: var(--g-color-accent-text); }
 .g-metric--trend-neutral { --_trend: var(--g-color-neutral-text); }
 .g-metric--trend-success { --_trend: var(--g-color-success-text); }

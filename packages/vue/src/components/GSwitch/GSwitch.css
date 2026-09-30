@@ -12,9 +12,9 @@
 /* ---------- Esqueleto ---------- */
 .g-switch {
   /* Color (se reasigna por --color-*); por defecto: brand */
-  --_c: var(--g-color-brand);
-  --_c-strong: var(--g-color-brand-strong);
-  --_on: var(--g-color-on-brand);
+  --_c: var(--g-color-primary);
+  --_c-strong: var(--g-color-primary-strong);
+  --_on: var(--g-color-on-primary);
 
   /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Alto y ancho del riel en unidades de space */
   --_th-units: 6;
@@ -250,7 +250,7 @@
 .g-switch--density-compact { --_density: 0.75; }
 
 /* ---------- Color (relleno del riel encendido) ---------- */
-.g-switch--color-brand { --_c: var(--g-color-brand); --_c-strong: var(--g-color-brand-strong); --_on: var(--g-color-on-brand); }
+.g-switch--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); }
 .g-switch--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); }
 .g-switch--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); }
 .g-switch--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); }
