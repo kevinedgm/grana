@@ -25,6 +25,18 @@ export default function grana({ config = 'grana.config.json' } = {}) {
     name: 'grana',
     enforce: 'pre',
     configResolved(resolved) { if (resolved?.root) root = resolved.root },
+    // Desarrollo: al guardar la configuración se invalida el módulo virtual y se recarga la página (el tema es global)
+    configureServer(server) {
+      if (typeof config !== 'string') return
+      const path = resolve(root, config)
+      server.watcher.add(path)
+      server.watcher.on('change', (file) => {
+        if (resolve(file) !== path) return
+        const mod = server.moduleGraph.getModuleById(RESOLVED)
+        if (mod) server.moduleGraph.invalidateModule(mod)
+        server.ws.send({ type: 'full-reload' })
+      })
+    },
     resolveId(id) { return id === VIRTUAL_ID ? RESOLVED : null },
     load(id) {
       if (id !== RESOLVED) return null

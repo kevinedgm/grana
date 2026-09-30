@@ -136,8 +136,8 @@
    Se ven por opacidad (no por display) para que se deslicen con el pulgar. */
 .g-switch__mark {
   position: absolute;
-  inset-block-start: calc(var(--_inset) + var(--_td) * 0.2);
-  inset-inline-start: calc(var(--_inset) + var(--_td) * 0.2);
+  inset-block-start: calc(var(--_edge) + var(--_td) * 0.2);
+  inset-inline-start: calc(var(--_edge) + var(--_td) * 0.2);
   inline-size: calc(var(--_td) * 0.6);
   block-size: calc(var(--_td) * 0.6);
   pointer-events: none;

@@ -66,4 +66,30 @@ describe('plugin de Vite', () => {
     expect(c.warnings.length).toBeGreaterThan(0)
     expect(c.warnings[0]).toMatch(/^\[grana\]/)
   })
+
+  it('en desarrollo vigila la configuración: al cambiar invalida el módulo y recarga; ignora otros archivos', () => {
+    const p = start()
+    let onChange
+    const invalidated = []
+    const sent = []
+    const added = []
+    const server = {
+      watcher: { add: (f) => added.push(f), on: (ev, fn) => { if (ev === 'change') onChange = fn } },
+      moduleGraph: { getModuleById: (id) => (id === '\0virtual:grana/tokens.css' ? { id } : undefined), invalidateModule: (m) => invalidated.push(m.id) },
+      ws: { send: (m) => sent.push(m) }
+    }
+    p.configureServer(server)
+    expect(added).toEqual([join(dir, 'grana.config.json')])
+    onChange(join(dir, 'otro.json'))
+    expect(sent).toEqual([])
+    onChange(join(dir, 'grana.config.json'))
+    expect(invalidated).toEqual(['\0virtual:grana/tokens.css'])
+    expect(sent).toEqual([{ type: 'full-reload' }])
+  })
+
+  it('con configuración en línea no vigila nada', () => {
+    const p = start({ config: { space: 4 } })
+    const server = { watcher: { add: () => { throw new Error('no debe vigilar') }, on: () => {} } }
+    expect(() => p.configureServer(server)).not.toThrow()
+  })
 })

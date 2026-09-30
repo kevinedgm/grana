@@ -82,7 +82,7 @@ export default { plugins: [grana({ config: 'grana.config.json' })] }   // la rut
 import 'virtual:grana/tokens.css'
 ```
 
-Aplica las mismas reglas que la línea de comandos: si la configuración no es válida o el tema rompe un mínimo de accesibilidad, **la compilación falla** con el motivo (los avisos se muestran sin bloquear). El archivo de configuración se vigila: en desarrollo, al guardarlo se regenera. Sin dependencias (no importa `vite`).
+Aplica las mismas reglas que la línea de comandos: si la configuración no es válida o el tema rompe un mínimo de accesibilidad, **la compilación falla** con el motivo (los avisos se muestran sin bloquear). El archivo de configuración se vigila: en desarrollo, al guardarlo se regenera el tema y se recarga la página; si queda inválido, el servidor responde con el error y se recupera al corregirlo. Sin dependencias (no importa `vite`).
 
 ## Uso programático
 
