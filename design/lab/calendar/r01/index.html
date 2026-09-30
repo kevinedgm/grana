@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GCalendar · r01 · wireframe F2</title>
+  <style>
+    /* Kit neutral de wireframe: solo grises, una familia. No es el estilo de Grana. */
+    :root { --wf-ink:#1f1f1f; --wf-2:#555; --wf-3:#8a8a8a; --wf-line:#b9b9b9; --wf-fill:#e4e4e4; --wf-fill-2:#f0f0f0; --wf-bg:#fafafa; --wf-note:#fff8d6; --wf-font:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:clamp(12px,3vw,24px); font:14px/1.4 var(--wf-font); color:var(--wf-ink); background:var(--wf-bg); }
+    main { max-width:1200px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:32px 0 10px; padding-top:14px; border-top:1px solid var(--wf-line); }
+    p, li { max-width:80ch; } .meta { color:var(--wf-2); margin:0 0 14px; }
+    .wf-note { background:var(--wf-note); border:1px dashed var(--wf-3); padding:8px 12px; font-size:13px; margin:10px 0; max-width:90ch; }
+    kbd { border:1px solid var(--wf-3); border-bottom-width:2px; border-radius:3px; padding:0 5px; font-size:12px; }
+    button, select { font:inherit; color:inherit; }
+    .sr { position:absolute; inline-size:1px; block-size:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+
+    /* Panel de control del prototipo (no es parte del componente) */
+    .panel { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:10px 12px; border:1px dashed var(--wf-3); background:#fff; margin-bottom:10px; font-size:13px; }
+    .panel label { display:inline-flex; gap:6px; align-items:center; }
+    .devs button { padding:3px 10px; border:1px solid var(--wf-2); background:#fff; border-radius:4px; cursor:pointer; }
+    .devs button[aria-pressed="true"] { background:var(--wf-ink); color:#fff; }
+
+    /* Marco del dispositivo simulado */
+    .frame { margin-inline:auto; max-width:100%; border:1px solid var(--wf-line); background:#fff; container-type:inline-size; resize:horizontal; overflow:auto; }
+    .frame[data-device="desktop"] { width:1160px; } .frame[data-device="tablet"] { width:760px; } .frame[data-device="phone"] { width:360px; }
+
+    /* ===== Calendario ===== */
+    .cal { --axis:56px; --colmin:132px; --hourh:60px; --evmin:20px; display:flex; flex-direction:column; min-height:560px; }
+    .cal__body { display:flex; min-height:0; flex:1; }
+    .cal__side { flex:none; inline-size:190px; border-inline-end:1px solid var(--wf-line); padding:10px; background:var(--wf-fill-2); }
+    .cal__side h3 { font-size:12px; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em; color:var(--wf-2); }
+    .cal__side label { display:flex; gap:6px; align-items:center; padding:3px 0; font-size:13px; }
+    .cal__main { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .bar { display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; padding:8px 10px; border-bottom:1px solid var(--wf-line); }
+    .bar__title { font-weight:600; font-size:15px; margin-inline:4px; min-width:0; }
+    .bar__sp { flex:1; }
+    .btn { min-block-size:32px; min-inline-size:32px; padding:0 10px; border:1px solid var(--wf-2); background:#fff; border-radius:4px; cursor:pointer; }
+    .btn:hover { background:var(--wf-fill-2); }
+    .btn:focus-visible, .ev:focus-visible, .mday:focus-visible, .more:focus-visible, .mev:focus-visible, .rs:focus-visible, .wkday:focus-visible { outline:3px solid var(--wf-ink); outline-offset:2px; }
+    .seg { display:inline-flex; } .seg .btn { border-radius:0; margin-inline-start:-1px; } .seg .btn:first-child { border-radius:4px 0 0 4px; margin:0; } .seg .btn:last-child { border-radius:0 4px 4px 0; }
+    .seg .btn[aria-pressed="true"] { background:var(--wf-ink); color:#fff; }
+    .tzl { font-size:12px; color:var(--wf-2); }
+    .state { padding:10px 12px; font-size:13px; border-bottom:1px solid var(--wf-line); background:var(--wf-fill-2); }
+    .scroll { overflow:auto; flex:1; position:relative; }
+
+    /* Vista de columnas de tiempo (Día, Semana) */
+    .tg { display:grid; grid-template-columns:var(--axis) repeat(var(--cols),minmax(var(--colmin),1fr)); min-width:min-content; }
+    .tg__corner { position:sticky; inset-block-start:0; z-index:5; background:#fff; border-bottom:1px solid var(--wf-line); }
+    .tg__h { position:sticky; inset-block-start:0; z-index:5; background:#fff; padding:6px 8px; border-bottom:1px solid var(--wf-line); border-inline-start:1px solid var(--wf-line); }
+    .tg__h b { display:block; font-size:13px; } .tg__h span { font-size:12px; color:var(--wf-2); }
+    .tg__h.is-today b::after { content:" · hoy"; font-weight:400; }
+    .tg__ad { grid-column:1 / -1; display:grid; grid-template-columns:var(--axis) repeat(var(--cols),minmax(var(--colmin),1fr)); border-bottom:1px solid var(--wf-line); background:var(--wf-fill-2); }
+    .tg__adl { padding:4px; font-size:11px; color:var(--wf-2); }
+    .tg__adc { border-inline-start:1px solid var(--wf-line); padding:3px; display:flex; flex-direction:column; gap:3px; min-height:28px; }
+    .adev { border:1px solid var(--wf-ink); background:#fff; border-radius:3px; padding:1px 6px; font-size:12px; cursor:pointer; text-align:start; }
+    .axis { position:relative; }
+    .axis span { position:absolute; inset-inline-end:6px; transform:translateY(-50%); font-size:11px; color:var(--wf-2); }
+    .col { position:relative; border-inline-start:1px solid var(--wf-line); background:
+        repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--gridpx) - 1px), var(--wf-fill) calc(var(--gridpx) - 1px), var(--wf-fill) var(--gridpx)); }
+    .col.is-today { background-color:#fdfdf3; }
+    .av { position:absolute; inset-inline:0; background:repeating-linear-gradient(135deg, var(--wf-fill) 0 6px, transparent 6px 12px); opacity:.85; pointer-events:none; }
+    .evl { list-style:none; margin:0; padding:0; position:absolute; inset:0; }
+    .evl > li { position:absolute; max-width:none; }
+    .blk { background:repeating-linear-gradient(45deg, #ddd 0 5px, #f3f3f3 5px 10px); border:1px dashed var(--wf-3); font-size:11px; color:var(--wf-2); overflow:hidden; padding:1px 4px; pointer-events:none; }
+    .ev { display:block; inline-size:100%; block-size:100%; overflow:hidden; text-align:start; border:1px solid var(--wf-ink); border-inline-start-width:4px; background:#fff; border-radius:3px; padding:2px 5px; font-size:12px; line-height:1.25; cursor:grab; touch-action:none; }
+    .ev:hover { background:var(--wf-fill-2); }
+    .ev__t { display:block; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .ev__m { display:block; color:var(--wf-2); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ev--sm { padding:0 4px; line-height:1.1; } .ev--sm .ev__m { display:none; }
+    .ev[data-type="task"] { border-style:dashed; border-inline-start-style:solid; }
+    .ev[data-type="call"] { border-radius:10px; }
+    .ev[data-status="active"] { background:repeating-linear-gradient(90deg, #fff 0 8px, var(--wf-fill-2) 8px 16px); border-block-end-style:dotted; border-block-end-width:3px; }
+    .ev[data-status="tentative"] { opacity:.8; border-style:dotted; }
+    .ev.is-cont-before { border-start-start-radius:0; border-start-end-radius:0; } .ev.is-cont-after { border-end-start-radius:0; border-end-end-radius:0; }
+    .ev.is-sel { outline:2px solid var(--wf-ink); outline-offset:1px; background:var(--wf-fill); }
+    .ev.is-conflict { border-color:#a00; }
+    .ev__h { position:absolute; inset-inline:0; inset-block-end:-3px; block-size:8px; cursor:ns-resize; touch-action:none; display:none; }
+    .ev__h::after { content:""; position:absolute; inset-inline-start:50%; inset-block-start:0; inline-size:22px; block-size:6px; margin-inline-start:-11px; border:1px solid var(--wf-ink); background:#fff; border-radius:3px; }
+    li:hover > .ev__h, li:focus-within > .ev__h, .is-selli > .ev__h { display:block; }
+    .ghost { position:absolute; z-index:6; border:2px dashed var(--wf-ink); background:rgba(31,31,31,.12); border-radius:3px; pointer-events:none; font-size:11px; padding:1px 4px; }
+    .ghost.is-bad { border-color:#a00; background:rgba(160,0,0,.12); }
+    .now { position:absolute; inset-inline:0; block-size:0; border-block-start:2px solid var(--wf-ink); z-index:4; pointer-events:none; }
+    .now::before { content:""; position:absolute; inset-inline-start:-5px; inset-block-start:-6px; inline-size:10px; block-size:10px; border-radius:50%; background:var(--wf-ink); }
+    .nowlbl { position:absolute; z-index:4; inset-inline-end:2px; transform:translateY(-50%); font-size:10px; background:var(--wf-ink); color:#fff; padding:0 4px; border-radius:2px; }
+    .oor { grid-column:1 / -1; padding:4px 10px; font-size:12px; color:var(--wf-2); border-block-start:1px dashed var(--wf-line); }
+
+    /* Timeline (recursos en filas, tiempo horizontal) */
+    .tl { --labw:150px; min-width:min-content; }
+    .tl__head { display:grid; grid-template-columns:var(--labw) 1fr; position:sticky; inset-block-start:0; z-index:5; background:#fff; border-bottom:1px solid var(--wf-line); }
+    .tl__axis { position:relative; block-size:28px; } .tl__axis span { position:absolute; inset-block-start:6px; font-size:11px; color:var(--wf-2); transform:translateX(-50%); }
+    .tl__rows { list-style:none; margin:0; padding:0; position:relative; }
+    .tl__row { display:grid; grid-template-columns:var(--labw) 1fr; border-bottom:1px solid var(--wf-line); max-width:none; }
+    .tl__lab { padding:6px 8px; border-inline-end:1px solid var(--wf-line); background:#fff; position:sticky; inset-inline-start:0; z-index:3; }
+    .tl__lab b { display:block; font-size:13px; } .tl__lab span { font-size:12px; color:var(--wf-2); }
+    .tl__track { position:relative; background:repeating-linear-gradient(to right, transparent 0, transparent calc(var(--gridpx) - 1px), var(--wf-fill) calc(var(--gridpx) - 1px), var(--wf-fill) var(--gridpx)); }
+    .tl__track .av { inset-inline:auto; inset-block:0; }
+    .tl__track .evl > li { }
+    .tl__now { position:absolute; inset-block:0; border-inline-start:2px solid var(--wf-ink); z-index:4; pointer-events:none; }
+    .tl .ev__h { inset-inline:auto; inset-inline-end:-3px; inset-block:0; inline-size:8px; block-size:auto; cursor:ew-resize; } .tl .ev__h::after { inset-inline-start:0; inset-block-start:50%; margin:-11px 0 0 0; inline-size:6px; block-size:22px; }
+
+    /* Mes */
+    table.month { inline-size:100%; border-collapse:collapse; table-layout:fixed; }
+    .month th { padding:6px; font-size:12px; text-align:start; border-bottom:1px solid var(--wf-line); background:#fff; }
+    .month td { vertical-align:top; border:1px solid var(--wf-line); block-size:112px; padding:2px; }
+    .month td.is-out { background:var(--wf-fill-2); color:var(--wf-3); } .month td.is-today .mday { background:var(--wf-ink); color:#fff; }
+    .mday { border:0; background:transparent; font-weight:600; font-size:13px; padding:1px 6px; border-radius:10px; cursor:pointer; }
+    .mlist { list-style:none; margin:2px 0 0; padding:0; display:grid; gap:2px; } .mlist li { max-width:none; }
+    .mev, .more { display:block; inline-size:100%; text-align:start; font-size:12px; padding:1px 4px; border:1px solid var(--wf-line); border-inline-start:3px solid var(--wf-ink); background:#fff; border-radius:3px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .more { border-style:dashed; font-weight:600; }
+    .mdots { display:none; font-size:11px; color:var(--wf-2); padding:0 4px; }
+
+    /* Teléfono: la estructura cambia */
+    .rslist { list-style:none; margin:0; padding:0; } .rslist li { max-width:none; border-bottom:1px solid var(--wf-line); }
+    .rs { display:block; inline-size:100%; text-align:start; padding:12px; min-block-size:56px; border:0; background:#fff; cursor:pointer; }
+    .rs b { display:block; } .rs span { color:var(--wf-2); font-size:13px; }
+    .wkstrip { display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--wf-line); }
+    .wkday { min-block-size:56px; border:0; background:#fff; cursor:pointer; padding:4px; } .wkday[aria-pressed="true"] { background:var(--wf-ink); color:#fff; } .wkday i { display:block; font-style:normal; font-size:10px; min-block-size:12px; }
+    .agenda { list-style:none; margin:0; padding:8px; display:grid; gap:6px; } .agenda li { max-width:none; }
+    .sheet { position:fixed; inset-inline:0; inset-block-end:0; z-index:20; background:#fff; border:1px solid var(--wf-ink); border-radius:12px 12px 0 0; padding:12px 16px; max-height:60vh; overflow:auto; box-shadow:0 -6px 20px rgba(0,0,0,.15); }
+    .pop { position:absolute; z-index:15; background:#fff; border:1px solid var(--wf-ink); border-radius:4px; padding:10px 12px; box-shadow:0 4px 14px rgba(0,0,0,.18); min-inline-size:210px; max-inline-size:300px; font-size:13px; }
+    .pop h4 { margin:0 0 4px; font-size:14px; } .pop p { margin:2px 0; }
+    .skl { display:grid; gap:10px; padding:14px; } .skl i { display:block; block-size:22px; background:linear-gradient(90deg, var(--wf-fill) 0 40%, var(--wf-fill-2) 40% 100%); border-radius:4px; }
+    .device-note { font-size:12px; color:var(--wf-2); margin-block:6px; }
+    #log { max-height:220px; overflow:auto; background:#fff; border:1px solid var(--wf-line); padding:8px; font-size:12px; white-space:pre-wrap; }
+    @container (max-width: 700px) { .cal__side { display:none; } .cal__side.is-open { display:block; position:absolute; z-index:12; block-size:100%; } .cal__main { position:relative; } }
+    @container (max-width: 520px) { .bar__title { flex-basis:100%; order:5; } .tzl { display:none; } .month td { block-size:52px; } .mlist { display:none; } .mdots { display:block; } .cal { --axis:44px; --colmin:0px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>GCalendar · ronda r01</h1>
+  <p class="meta">Wireframe F2 sin estilo de marca · Ruta R2 · <b>Motor de layout real</b>: las posiciones salen de los minutos del evento, la zona horaria se lee con <code>Intl</code>, y crear/mover/redimensionar <b>solo emiten solicitudes</b> (el "consumidor" de esta página decide si las aplica).</p>
+
+  <div class="panel" aria-label="Controles del prototipo (no son parte del componente)">
+    <span class="devs" role="group" aria-label="Dispositivo simulado"><button type="button" data-dev="desktop" aria-pressed="true">Escritorio</button> <button type="button" data-dev="tablet" aria-pressed="false">Tableta</button> <button type="button" data-dev="phone" aria-pressed="false">Teléfono</button></span>
+    <label>Zona horaria <select id="tz"><option>America/Mexico_City</option><option>Europe/Madrid</option><option>Asia/Tokyo</option></select></label>
+    <label>Snap <select id="snap"><option>1</option><option selected>5</option><option>15</option></select> min</label>
+    <label>Cuadrícula <select id="grid"><option>5</option><option>15</option><option selected>30</option><option>60</option></select> min</label>
+    <label>Densidad <select id="dens"><option value="compact">compact</option><option value="comfortable" selected>comfortable</option><option value="spacious">spacious</option></select></label>
+    <label>Estado <select id="st"><option value="normal">normal</option><option value="loading">loading</option><option value="empty">empty</option><option value="error">error</option><option value="readonly">readonly</option></select></label>
+    <label><input type="checkbox" id="realnow"> Hora real (si no, ahora = 10:10 del 29 sep)</label>
+    <label><input type="checkbox" id="allowc"> La aplicación permite conflictos</label>
+  </div>
+  <p class="device-note" id="devnote"></p>
+
+  <div class="frame" id="frame" data-device="desktop"><div id="cal"></div></div>
+  <p id="live" class="sr" aria-live="polite"></p>
+
+  <h2>Registro de solicitudes emitidas</h2>
+  <div class="wf-note">El calendario <b>no muta</b> los datos: emite <code>create-request</code>, <code>event-move-request</code>, <code>event-resize-request</code>, <code>event-click</code>, <code>range-change</code>, <code>conflict</code>, <code>more-events-click</code>. Aquí, la "aplicación" aplica el cambio solo si no hay conflicto o si marcas "permite conflictos".</div>
+  <pre id="log" aria-label="Registro de eventos emitidos"></pre>
+
+  <h2>Cómo probar con teclado</h2>
+  <ul>
+    <li><kbd>Tab</kbd> entra a los eventos de la vista (un solo punto de tabulación); <kbd>↑</kbd><kbd>↓</kbd> pasan al evento anterior o siguiente de la misma lista; <kbd>←</kbd><kbd>→</kbd> a la lista vecina (día o recurso).</li>
+    <li><kbd>Enter</kbd> abre el detalle; <kbd>Esc</kbd> lo cierra y devuelve el foco.</li>
+    <li><kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> (o <kbd>←</kbd>/<kbd>→</kbd> en Timeline) <b>mueve</b> el evento un <code>snap</code>; <kbd>Shift</kbd>+flechas <b>cambia la duración</b>. Es la alternativa al arrastre (WCAG 2.5.7).</li>
+    <li><kbd>Enter</kbd> sobre una celda vacía (<kbd>Tab</kbd> a "Crear aquí") emite <code>create-request</code>.</li>
+  </ul>
+</main>
+<script>
+'use strict'
+// ============================ Utilidades de tiempo (zona horaria explícita, sin bibliotecas) ============================
+const pad = (n) => String(n).padStart(2, '0')
+const fmtCache = {}
+const dtf = (tz) => (fmtCache[tz] ||= new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
+function parts(d, tz) { const o = {}; for (const p of dtf(tz).formatToParts(d)) o[p.type] = p.value; let h = +o.hour; if (h === 24) h = 0; return { y: +o.year, m: +o.month, d: +o.day, h, mi: +o.minute, s: +o.second } }
+const dayKey = (d, tz) => { const p = parts(d, tz); return `${p.y}-${pad(p.m)}-${pad(p.d)}` }
+function tzOffsetMin(d, tz) { const p = parts(d, tz); return (Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi, p.s) - Math.floor(d.getTime() / 1000) * 1000) / 60000 }
+function zoned(key, minutes, tz) { const [y, m, dd] = key.split('-').map(Number); const guess = Date.UTC(y, m - 1, dd, 0, 0, 0) + minutes * 60000; let off = tzOffsetMin(new Date(guess), tz); const t = guess - off * 60000; off = tzOffsetMin(new Date(t), tz); return new Date(guess - off * 60000) }
+const addDays = (key, n) => { const [y, m, d] = key.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d + n)); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}` }
+const dow = (key) => { const [y, m, d] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay() }   // 0 = domingo
+const weekStart = (key) => addDays(key, -((dow(key) + 6) % 7))                                                             // lunes
+const hhmm = (d, tz) => { const p = parts(d, tz); return `${pad(p.h)}:${pad(p.mi)}` }
+const minToHHMM = (m) => `${pad(Math.floor(m / 60))}:${pad(Math.round(m % 60))}`
+const L = { es: (o) => new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', ...o }) }
+const keyToDate = (key) => { const [y, m, d] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d, 12)) }
+const longDay = (key) => L.es({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(keyToDate(key))
+const shortDay = (key) => L.es({ weekday: 'short', day: 'numeric' }).format(keyToDate(key))
+
+// ============================ Datos de la "aplicación" (el calendario no los muta) ============================
+const iso = (day, hm) => new Date(`${day}T${hm}:00-06:00`)     // el autor escribe en hora de Ciudad de México (-06:00)
+const RES = [
+  { id: 'a', title: 'Recurso A', subtitle: 'Sala 1' }, { id: 'b', title: 'Recurso B', subtitle: 'Sala 2' },
+  { id: 'c', title: 'Recurso C', subtitle: 'Taller' }, { id: 'd', title: 'Recurso D', subtitle: 'Vehículo' }
+]
+let seq = 100
+const EV = []
+const add = (r, day, s, e, title, o = {}) => EV.push({ id: 'e' + ++seq, resourceId: r, title, start: iso(day, s), end: e ? iso(day, e) : null, ...o })
+const T = '2026-09-29'
+add('a', T, '09:00', '10:00', 'Reunión de equipo', { type: 'meeting' }); add('a', T, '10:15', '11:00', 'Revisión', { type: 'task' })
+add('a', T, '10:30', '11:15', 'Llamada', { type: 'call' }); add('a', T, '10:45', '11:30', 'Enfoque', { type: 'task', status: 'tentative' })
+add('a', T, '12:43', '13:12', 'Cita corta (12:43)', { type: 'meeting' }); add('a', T, '09:03', '09:08', 'Trámite (5 min)', { type: 'task' })
+add('a', T, '09:37', null, 'Turno activo (sin hora final)', { type: 'meeting', status: 'active' }); add('a', T, '06:30', '06:50', 'Fuera del rango visible', { type: 'task' })
+EV.push({ id: 'e' + ++seq, resourceId: 'a', title: 'Feriado', allDay: true, start: iso(T, '00:00'), end: iso('2026-09-30', '00:00') })
+add('b', T, '11:00', '13:00', 'Mantenimiento', { type: 'task' }); add('b', T, '15:30', '16:30', 'Servicio', { type: 'meeting' }); add('b', T, '09:30', '10:00', 'Inspección', { type: 'call' })
+add('c', T, '15:00', '16:00', 'Entrega', { type: 'meeting' }); add('d', T, '09:00', '12:00', 'Ruta 12', { type: 'meeting' }); add('d', T, '13:00', '13:45', 'Carga', { type: 'task' })
+;[['2026-09-28', ['09:00', '10:30', 'Planeación'], ['14:00', '15:00', 'Seguimiento']], ['2026-09-30', ['10:00', '11:00', 'Visita'], ['11:30', '12:15', 'Análisis'], ['16:00', '17:00', 'Cierre']],
+  ['2026-10-01', ['09:00', '09:45', 'Sesión'], ['09:30', '10:30', 'Taller'], ['12:00', '13:00', 'Comida de trabajo']], ['2026-10-02', ['11:00', '12:00', 'Presentación']]].forEach(([d, ...xs]) => xs.forEach(([s, e, t]) => add('a', d, s, e, t, { type: 'meeting' })))
+;[3, 5, 8, 9, 12, 15, 16, 19, 22, 23, 26].forEach((n, i) => { for (let k = 0; k < (i % 5) + 1; k++) add('a', `2026-09-${pad(n)}`, `${pad(9 + k)}:00`, `${pad(9 + k)}:45`, `Evento ${n}.${k + 1}`, { type: 'task' }) })
+;[1, 6, 7, 13, 14].forEach((n) => add('a', `2026-10-${pad(n)}`, '10:00', '11:00', `Evento oct ${n}`, { type: 'meeting' }))
+;['28', '29', '30'].forEach((d, i) => add('b', `2026-09-${d}`, '13:00', '14:00', `Taller B${i + 1}`, { type: 'task' }))
+const BLK = [{ id: 'k1', resourceId: 'a', start: iso(T, '14:00'), end: iso(T, '15:00'), reason: 'Descanso' }, { id: 'k2', resourceId: 'c', start: iso(T, '10:00'), end: iso(T, '13:00'), reason: 'Mantenimiento' }, { id: 'k3', resourceId: 'd', start: iso('2026-09-30', '00:00'), end: iso('2026-10-01', '00:00'), reason: 'Verificación', allDay: true }]
+const AVAIL = { a: { days: [1, 2, 3, 4, 5], s: '09:00', e: '18:00', pause: ['14:00', '15:00'], slot: 15 }, b: { days: [1, 2, 3, 4, 5], s: '09:00', e: '18:00', slot: 15 }, c: { days: [1, 2, 3], s: '10:00', e: '16:00', slot: 30 }, d: { days: [1, 2, 3, 4, 5], s: '08:00', e: '17:00', slot: 15 } }
+const REAL = () => EV
+const VIS = () => (S.st === 'empty' ? [] : EV)   // el estado empty simula un periodo sin eventos (la validación usa los datos reales)
+const hmToMin = (s) => +s.slice(0, 2) * 60 + +s.slice(3, 5)
+
+// ============================ Estado del calendario ============================
+const S = { view: 'day', date: T, selected: ['a'], weekRes: 'a', tz: 'America/Mexico_City', snap: 5, grid: 30, dens: 'comfortable', st: 'normal', startH: 7, endH: 22, maxVisible: 3, allow: false, real: false, device: 'desktop', sel: null, focusId: null, sheetKey: null, tlDay: null }
+const HOURH = { compact: 44, comfortable: 60, spacious: 80 }
+const nowDate = () => (S.real ? new Date() : iso(T, '10:10'))
+const rtitle = (id) => RES.find((r) => r.id === id).title
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith('aria-') && typeof v === 'boolean') { n.setAttribute(k, String(v)); continue } if (v == null || v === false) continue; if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? '' : v) } for (const c of kids.flat()) if (c != null) n.append(c); return n }
+const logEl = $('#log'); const live = $('#live')
+function emit(name, payload) { const s = JSON.stringify(payload, (k, v) => (v instanceof Date ? v.toISOString() : v)); logEl.textContent = `${new Date().toLocaleTimeString()}  ${name}  ${s}\n` + logEl.textContent; if (name === 'conflict') say('Conflicto: ' + payload.conflicts.map((c) => c.type).join(', ')) }
+const say = (t) => { live.textContent = ''; setTimeout(() => (live.textContent = t), 30) }
+const mode = () => (S.device === 'phone' ? 'phone' : S.device)
+
+// ============================ Motor de layout ============================
+// Segmento de un evento dentro de un día (en minutos desde 00:00 de ese día, según la zona horaria)
+function segment(ev, key, now) {
+  const ds = zoned(key, 0, S.tz), de = zoned(addDays(key, 1), 0, S.tz)
+  let e = ev.end ? +ev.end : Math.max(+now, +ev.start + 30 * 60000)                       // evento abierto: hasta ahora (mínimo 30 min)
+  const s = +ev.start; if (e <= +ds || s >= +de) return null
+  const cs = Math.max(s, +ds), ce = Math.min(e, +de)
+  return { ev, startMin: (cs - +ds) / 60000, endMin: (ce - +ds) / 60000, contBefore: s < +ds, contAfter: e > +de, open: !ev.end }
+}
+// Carriles: grupos de traslape; el alto mínimo cuenta para no solapar visualmente
+function assignLanes(segs, minMin) {
+  segs.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin)
+  let cluster = [], clusterEnd = -1, laneEnds = []
+  const close = () => { cluster.forEach((s) => (s.lanes = laneEnds.length)); cluster = []; laneEnds = []; clusterEnd = -1 }
+  for (const s of segs) {
+    if (cluster.length && s.startMin >= clusterEnd) close()
+    const vend = Math.max(s.endMin, s.startMin + minMin)
+    let lane = laneEnds.findIndex((le) => le <= s.startMin); if (lane < 0) { lane = laneEnds.length; laneEnds.push(0) }
+    laneEnds[lane] = vend; s.lane = lane; cluster.push(s); clusterEnd = Math.max(clusterEnd, vend)
+  }
+  close(); return segs
+}
+const evLabel = (ev, tz, res) => `${ev.title}, ${ev.allDay ? 'día completo' : ev.end ? hhmm(ev.start, tz) + ' a ' + hhmm(ev.end, tz) : 'desde ' + hhmm(ev.start, tz) + ', sin hora final'}, ${res}${ev.status ? ', ' + ev.status : ''}`
+
+// Validación (el componente detecta; la aplicación decide)
+function validate(ev, start, end, resourceId) {
+  const out = []
+  if (!(end > start) || (end - start) < 60000) out.push({ type: 'invalidDuration' })
+  const others = REAL().filter((o) => o.id !== ev.id && o.resourceId === resourceId && !o.allDay && o.end)
+  const hit = others.filter((o) => +start < +o.end && +end > +o.start); if (hit.length) out.push({ type: 'overlap', conflictingEvents: hit.map((o) => o.id) })
+  if (BLK.some((b) => b.resourceId === resourceId && +start < +b.end && +end > +b.start)) out.push({ type: 'blockedTime' })
+  const av = AVAIL[resourceId]; if (av) { const key = dayKey(start, S.tz), sm = (start - zoned(key, 0, S.tz)) / 60000, em = (end - zoned(key, 0, S.tz)) / 60000; const okDay = av.days.includes(dow(key)); if (!okDay || sm < hmToMin(av.s) || em > hmToMin(av.e)) out.push({ type: 'outsideAvailability' }) }
+  return out
+}
+
+// ============================ Render ============================
+const root = $('#cal')
+let popEl = null, popFor = null
+function render() {
+  const now = nowDate(); const frame = $('#frame'); const ppm = HOURH[S.dens] / 60
+  root.replaceChildren()
+  const cal = el('div', { class: 'cal', role: 'region', 'aria-label': 'Calendario', style: `--hourh:${HOURH[S.dens]}px` })
+  const side = el('div', { class: 'cal__side' + (S.sideOpen ? ' is-open' : ''), id: 'side' }, el('h3', { text: 'Recursos' }), ...RES.map((r) => el('label', {}, el('input', { type: 'checkbox', checked: S.selected.includes(r.id), onchange: (e) => { S.selected = e.target.checked ? [...S.selected, r.id] : S.selected.filter((x) => x !== r.id); if (!S.selected.length) S.selected = [r.id]; S.weekRes = S.selected.includes(S.weekRes) ? S.weekRes : S.selected[0]; render(); rangeChange() } }), `${r.title} `, el('small', { text: r.subtitle }))))
+  const main = el('div', { class: 'cal__main' })
+  main.append(toolbar(), stateBar())
+  const body = el('div', { class: 'scroll', id: 'scroll' })
+  if (S.st === 'loading') body.append(skeleton())
+  else if (S.st === 'error') body.append(el('div', { class: 'state', role: 'alert' }, 'No fue posible cargar los eventos. ', el('button', { class: 'btn', type: 'button', onclick: () => { S.st = 'normal'; $('#st').value = 'normal'; render() } }, 'Reintentar')))
+  else {
+    const ph = mode() === 'phone'
+    if (S.view === 'day') body.append(ph && S.selected.length > 1 ? phoneResources() : columnsView(dayCols(), ppm, now))
+    else if (S.view === 'week') body.append(ph ? phoneWeek(now) : columnsView(weekCols(), ppm, now))
+    else if (S.view === 'month') body.append(monthView(now))
+    else body.append(ph ? phoneResources() : timelineView(ppm, now))
+    if (S.st === 'empty') body.prepend(el('div', { class: 'state', role: 'status' }, 'No hay eventos para este periodo. (Esto no significa que no haya disponibilidad: la cuadrícula y las franjas siguen visibles.)'))
+  }
+  main.append(body)
+  const inner = el('div', { class: 'cal__body' }, mode() === 'phone' ? null : side, main)
+  cal.append(inner); root.append(cal)
+  if (S.focusId) { const b = $(`[data-id="${S.focusId}"]`); if (b) b.focus(); S.focusId = null }
+  const dn = { desktop: 'Escritorio: recursos en panel fijo, varios recursos a la vez, arrastrar y soltar.', tablet: 'Tableta: calendario y recursos seleccionados; los recursos pasan a un panel plegable.', phone: 'Teléfono: la estructura cambia: lista de recursos con estado, semana como tira de días + agenda del día, mes compacto con hoja inferior.' }[S.device]
+  $('#devnote').textContent = dn
+}
+function toolbar() {
+  const title = S.view === 'month' ? new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(keyToDate(S.date)) : S.view === 'week' ? `${shortDay(weekStart(S.date))} – ${shortDay(addDays(weekStart(S.date), 6))} · ${keyToDate(S.date).getUTCFullYear()}` : longDay(S.date)
+  const v = (id, t) => el('button', { class: 'btn', type: 'button', 'aria-pressed': S.view === id, onclick: () => { S.view = id; render(); rangeChange(); say('Vista ' + t) } }, t)
+  const nav = (n) => () => { const u = S.view; S.date = u === 'month' ? (() => { const [y, m, d] = S.date.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1 + n, 1)); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-01` })() : addDays(S.date, n * (u === 'week' ? 7 : 1)); render(); rangeChange(); say(title) }
+  return el('div', { class: 'bar', role: 'toolbar', 'aria-label': 'Navegación del calendario' },
+    mode() === 'tablet' ? el('button', { class: 'btn', type: 'button', 'aria-expanded': !!S.sideOpen, 'aria-controls': 'side', onclick: () => { S.sideOpen = !S.sideOpen; render() } }, `Recursos (${S.selected.length})`) : null,
+    el('button', { class: 'btn', type: 'button', 'aria-label': 'Anterior', onclick: nav(-1) }, '‹'), el('button', { class: 'btn', type: 'button', onclick: () => { S.date = dayKey(nowDate(), S.tz); render(); rangeChange() } }, 'Hoy'), el('button', { class: 'btn', type: 'button', 'aria-label': 'Siguiente', onclick: nav(1) }, '›'),
+    el('h2', { class: 'bar__title', text: title, style: 'border:0;padding:0;margin:0 4px;font-size:15px' }), el('span', { class: 'bar__sp' }),
+    S.view === 'week' && S.selected.length > 1 ? el('label', { class: 'tzl' }, 'Recurso ', el('select', { onchange: (e) => { S.weekRes = e.target.value; render() } }, ...S.selected.map((id) => el('option', { value: id, selected: id === S.weekRes, text: rtitle(id) })))) : null,
+    el('span', { class: 'seg', role: 'group', 'aria-label': 'Vista' }, v('day', 'Día'), v('week', 'Semana'), v('month', 'Mes'), v('timeline', 'Timeline')),
+    el('span', { class: 'tzl', text: S.tz }))
+}
+function stateBar() {
+  const n = S.selected.length
+  const msg = S.view === 'day' && n > 5 ? 'Demasiados recursos para columnas: usa Timeline.' : S.view === 'month' && n > 1 ? 'Mes con varios recursos: los eventos se mezclan y cada uno lleva la inicial de su recurso (el mes agregado con métricas llega en v0.2).' : S.st === 'readonly' ? 'Solo lectura: no se puede crear, mover ni redimensionar.' : ''
+  return msg ? el('div', { class: 'state', role: 'status', text: msg }) : el('span')
+}
+const skeleton = () => el('div', { class: 'skl', 'aria-busy': 'true', 'aria-label': 'Cargando eventos' }, ...RES.map(() => el('i')))
+
+// ---- Vista de columnas de tiempo (Día con 1..5 recursos, Semana de un recurso)
+const dayCols = () => S.selected.slice(0, 5).map((id) => ({ key: S.date, res: id, head: rtitle(id), sub: shortDay(S.date) }))
+const weekCols = () => { const id = S.selected.includes(S.weekRes) ? S.weekRes : S.selected[0]; const ws = weekStart(S.date); return [...Array(7)].map((_, i) => { const k = addDays(ws, i); return { key: k, res: id, head: shortDay(k), sub: rtitle(id) } }) }
+function columnsView(cols, ppm, now) {
+  const H = (S.endH - S.startH) * 60, hpx = H * ppm, todayKey = dayKey(now, S.tz), gridpx = S.grid * ppm
+  const wrap = el('div', { class: 'tg', style: `--cols:${cols.length};--gridpx:${gridpx}px` })
+  wrap.append(el('div', { class: 'tg__corner' }))
+  cols.forEach((c) => wrap.append(el('div', { class: 'tg__h' + (c.key === todayKey ? ' is-today' : '') }, el('b', { text: c.head }), el('span', { text: c.sub }))))
+  // región de día completo (fuera del eje horario)
+  const ad = el('div', { class: 'tg__ad' }, el('div', { class: 'tg__adl', text: 'Día completo' }))
+  cols.forEach((c) => { const ds = zoned(c.key, 0, S.tz), de = zoned(addDays(c.key, 1), 0, S.tz); const items = VIS().filter((e) => e.allDay && e.resourceId === c.res && +e.start < +de && +e.end > +ds).concat(BLK.filter((b) => b.allDay && b.resourceId === c.res && +b.start < +de && +b.end > +ds).map((b) => ({ ...b, title: 'No disponible · ' + b.reason, isBlock: true })))
+    ad.append(el('div', { class: 'tg__adc' }, items.map((e) => e.isBlock ? el('span', { class: 'adev blk', style: 'pointer-events:auto', text: e.title }) : el('button', { class: 'adev', type: 'button', 'data-id': e.id, onclick: (ev) => openDetail(e, ev.currentTarget) }, e.title)))) })
+  wrap.append(ad)
+  const axis = el('div', { class: 'axis', 'aria-hidden': 'true', style: `height:${hpx}px` }); for (let h = S.startH; h <= S.endH; h++) axis.append(el('span', { style: `top:${(h - S.startH) * 60 * ppm}px`, text: pad(h) + ':00' }))
+  wrap.append(axis)
+  let oor = 0
+  cols.forEach((c, ci) => {
+    const isToday = c.key === todayKey
+    const col = el('div', { class: 'col' + (isToday ? ' is-today' : ''), style: `height:${hpx}px`, 'data-key': c.key, 'data-res': c.res })
+    // capa de disponibilidad
+    const av = AVAIL[c.res]; const dws = dow(c.key), sm = S.startH * 60, em = S.endH * 60
+    const shade = (a, b) => { a = Math.max(a, sm); b = Math.min(b, em); if (b > a) col.append(el('div', { class: 'av', 'aria-hidden': 'true', style: `top:${(a - sm) * ppm}px;height:${(b - a) * ppm}px` })) }
+    if (av) { if (!av.days.includes(dws)) shade(sm, em); else { shade(sm, hmToMin(av.s)); shade(hmToMin(av.e), em); if (av.pause) shade(hmToMin(av.pause[0]), hmToMin(av.pause[1])) } }
+    // eventos y bloqueos: UNA lista en orden cronológico (orden del DOM = orden temporal)
+    const list = el('ul', { class: 'evl', 'aria-label': `${c.head}, ${rtitle(c.res)}` })
+    const segs = VIS().filter((e) => e.resourceId === c.res && !e.allDay).map((e) => segment(e, c.key, now)).filter(Boolean)
+    const vis = segs.filter((s) => s.endMin > sm && s.startMin < em); oor += segs.length - vis.length
+    const bsegs = BLK.filter((b) => b.resourceId === c.res && !b.allDay).map((b) => { const ds = zoned(c.key, 0, S.tz), de = zoned(addDays(c.key, 1), 0, S.tz); if (+b.end <= +ds || +b.start >= +de) return null; return { b, startMin: (Math.max(+b.start, +ds) - +ds) / 60000, endMin: (Math.min(+b.end, +de) - +ds) / 60000 } }).filter(Boolean)
+    const minMin = 20 / ppm
+    assignLanes(vis, minMin)
+    const items = [...vis.map((s) => ({ t: s.startMin, seg: s })), ...bsegs.map((s) => ({ t: s.startMin, blk: s }))].sort((a, b) => a.t - b.t)
+    items.forEach((it) => {
+      if (it.blk) { const a = Math.max(it.blk.startMin, sm), b = Math.min(it.blk.endMin, em); if (b <= a) return
+        list.append(el('li', { class: 'blk', style: `top:${(a - sm) * ppm}px;height:${(b - a) * ppm}px;left:0;right:0` }, el('span', { 'aria-hidden': 'true', text: it.blk.b.reason }), el('span', { class: 'sr', text: `No disponible, ${minToHHMM(a)} a ${minToHHMM(b)}, ${it.blk.b.reason}` }))); return }
+      const s = it.seg, a = Math.max(s.startMin, sm), b = Math.min(s.endMin, em), top = (a - sm) * ppm, h = Math.max((b - a) * ppm, 20), lw = 100 / s.lanes
+      const big = h >= 34
+      const li = el('li', { class: S.sel === s.ev.id ? 'is-selli' : null, style: `top:${top}px;height:${h}px;left:calc(${s.lane * lw}% + 1px);width:calc(${lw}% - 3px)` })
+      const btn = el('button', { class: 'ev' + (S.sel === s.ev.id ? ' is-sel' : '') + (big ? '' : ' ev--sm') + (s.contBefore ? ' is-cont-before' : '') + (s.contAfter ? ' is-cont-after' : ''), type: 'button', 'data-id': s.ev.id, 'data-type': s.ev.type, 'data-status': s.open ? 'active' : s.ev.status, tabindex: '-1', 'aria-label': evLabel(s.ev, S.tz, rtitle(s.ev.resourceId)) },
+        el('span', { class: 'ev__t', text: (s.open ? '⏵ ' : '') + s.ev.title }), el('span', { class: 'ev__m', text: s.open ? `${hhmm(s.ev.start, S.tz)} – ahora` : `${hhmm(s.ev.start, S.tz)}–${hhmm(s.ev.end, S.tz)}` }))
+      li.append(btn); if (!s.open && S.st !== 'readonly') li.append(el('span', { class: 'ev__h', 'aria-hidden': 'true', 'data-h': s.ev.id }))
+      list.append(li)
+    })
+    col.append(list)
+    if (isToday) { const nm = (nowMinIn(now)); if (nm >= sm && nm <= em) { col.append(el('div', { class: 'now', 'aria-hidden': 'true', style: `top:${(nm - sm) * ppm}px` })); if (ci === cols.length - 1 || cols.length === 1) col.append(el('span', { class: 'nowlbl', 'aria-hidden': 'true', style: `top:${(nm - sm) * ppm}px`, text: 'ahora ' + hhmm(now, S.tz) })) } }
+    wrap.append(col)
+  })
+  if (oor) wrap.append(el('div', { class: 'oor', text: `${oor} evento${oor > 1 ? 's' : ''} fuera del rango visible (${pad(S.startH)}:00–${pad(S.endH)}:00).` }))
+  wireColumns(wrap, cols, ppm)
+  return wrap
+}
+const nowMinIn = (now) => { const p = parts(now, S.tz); return p.h * 60 + p.mi + p.s / 60 }
+
+// ---- Timeline (recursos en filas)
+function timelineView(ppm, now) {
+  const hourW = { compact: 80, comfortable: 110, spacious: 150 }[S.dens], ppmx = hourW / 60, sm = S.startH * 60, em = S.endH * 60, key = S.date, W = (em - sm) * ppmx, gridpx = S.grid * ppmx
+  const wrap = el('div', { class: 'tl', style: `--gridpx:${gridpx}px` })
+  const axis = el('div', { class: 'tl__axis', 'aria-hidden': 'true', style: `width:${W}px` }); for (let h = S.startH; h <= S.endH; h++) axis.append(el('span', { style: `left:${(h - S.startH) * hourW}px`, text: pad(h) + ':00' }))
+  wrap.append(el('div', { class: 'tl__head' }, el('div', { class: 'tl__lab', style: 'border:0' }, el('b', { text: 'Recursos' }), el('span', { text: shortDay(key) })), axis))
+  const rows = el('ul', { class: 'tl__rows', 'aria-label': 'Recursos' })
+  const nm = nowMinIn(now), isToday = key === dayKey(now, S.tz)
+  S.selected.forEach((id) => {
+    const track = el('div', { class: 'tl__track', style: `width:${W}px`, 'data-key': key, 'data-res': id })
+    const av = AVAIL[id], dws = dow(key)
+    const shade = (a, b) => { a = Math.max(a, sm); b = Math.min(b, em); if (b > a) track.append(el('div', { class: 'av', 'aria-hidden': 'true', style: `left:${(a - sm) * ppmx}px;width:${(b - a) * ppmx}px` })) }
+    if (av) { if (!av.days.includes(dws)) shade(sm, em); else { shade(sm, hmToMin(av.s)); shade(hmToMin(av.e), em); if (av.pause) shade(hmToMin(av.pause[0]), hmToMin(av.pause[1])) } }
+    const segs = VIS().filter((e) => e.resourceId === id && !e.allDay).map((e) => segment(e, key, now)).filter((s) => s && s.endMin > sm && s.startMin < em)
+    const minMin = 28 / ppmx; assignLanes(segs, minMin); const lanes = Math.max(1, ...segs.map((s) => s.lane + 1)), laneH = 26
+    track.style.height = `${lanes * laneH + 8}px`
+    const ds = zoned(key, 0, S.tz), de = zoned(addDays(key, 1), 0, S.tz)
+    const blks = BLK.filter((b) => b.resourceId === id && +b.start < +de && +b.end > +ds).map((b) => ({ b, a: Math.max((Math.max(+b.start, +ds) - +ds) / 60000, sm), z: Math.min((Math.min(+b.end, +de) - +ds) / 60000, em) })).filter((x) => x.z > x.a)
+    const list = el('ul', { class: 'evl', 'aria-label': `${rtitle(id)}, ${shortDay(key)}` })
+    const items = [...segs.map((s) => ({ t: s.startMin, s })), ...blks.map((x) => ({ t: x.a, x }))].sort((a, b) => a.t - b.t)
+    items.forEach((it) => {
+      if (it.x) { list.append(el('li', { class: 'blk', style: `left:${(it.x.a - sm) * ppmx}px;width:${(it.x.z - it.x.a) * ppmx}px;top:0;bottom:0` }, el('span', { 'aria-hidden': 'true', text: it.x.b.reason }), el('span', { class: 'sr', text: `No disponible, ${minToHHMM(it.x.a)} a ${minToHHMM(it.x.z)}, ${it.x.b.reason}` }))); return }
+      const s = it.s, a = Math.max(s.startMin, sm), b = Math.min(s.endMin, em)
+      const li = el('li', { class: S.sel === s.ev.id ? 'is-selli' : null, style: `left:${(a - sm) * ppmx}px;width:${Math.max((b - a) * ppmx, 28)}px;top:${4 + s.lane * laneH}px;height:${laneH - 3}px` })
+      li.append(el('button', { class: 'ev ev--sm' + (S.sel === s.ev.id ? ' is-sel' : ''), type: 'button', 'data-id': s.ev.id, 'data-type': s.ev.type, 'data-status': s.open ? 'active' : s.ev.status, tabindex: '-1', 'aria-label': evLabel(s.ev, S.tz, rtitle(id)) }, el('span', { class: 'ev__t', text: (s.open ? '⏵ ' : '') + s.ev.title })))
+      if (!s.open && S.st !== 'readonly') li.append(el('span', { class: 'ev__h', 'aria-hidden': 'true', 'data-h': s.ev.id })); list.append(li)
+    })
+    track.append(list)
+    const ad = VIS().filter((e) => e.allDay && e.resourceId === id && +e.start < +de && +e.end > +ds)
+    rows.append(el('li', { class: 'tl__row', 'data-res': id }, el('div', { class: 'tl__lab' }, el('b', { text: rtitle(id) }), el('span', { text: RES.find((r) => r.id === id).subtitle + (ad.length ? ' · ' + ad.map((e) => e.title).join(', ') : '') })), track))
+  })
+  // UNA sola línea de ahora por ventana: cruza todas las filas de recursos
+  if (isToday && nm >= sm && nm <= em) rows.append(el('div', { class: 'tl__now', 'aria-hidden': 'true', style: `left:calc(var(--labw) + ${(nm - sm) * ppmx}px)` }))
+  wrap.append(rows)
+  wireColumns(wrap, null, ppmx, true)
+  return wrap
+}
+
+// ---- Mes
+function monthView(now) {
+  const first = S.date.slice(0, 8) + '01', start = weekStart(first), todayKey = dayKey(now, S.tz), curMonth = first.slice(0, 7)
+  const table = el('table', { class: 'month', 'aria-label': 'Mes' }); const thead = el('thead', {}, el('tr', {}, ...['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'].map((d) => el('th', { scope: 'col', text: d })))); table.append(thead)
+  const tb = el('tbody'); const multi = S.selected.length > 1
+  for (let w = 0; w < 6; w++) { const tr = el('tr'); for (let d = 0; d < 7; d++) {
+    const key = addDays(start, w * 7 + d), ds = zoned(key, 0, S.tz), de = zoned(addDays(key, 1), 0, S.tz)
+    const evs = VIS().filter((e) => S.selected.includes(e.resourceId) && +e.start < +de && +(e.end || e.start) >= +ds).sort((a, b) => (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || +a.start - +b.start)
+    const shown = evs.slice(0, S.maxVisible), rest = evs.length - shown.length
+    const td = el('td', { class: (key.slice(0, 7) === curMonth ? '' : 'is-out ') + (key === todayKey ? 'is-today' : '') })
+    td.append(el('button', { class: 'mday', type: 'button', tabindex: '-1', 'data-cell': key, 'aria-label': `${longDay(key)}, ${evs.length} evento${evs.length === 1 ? '' : 's'}`, onclick: (e) => { emit('date-click', { date: key }); if (mode() === 'phone') openSheet(key, evs); else { S.view = 'day'; S.date = key; render(); rangeChange() } } }, String(+key.slice(8))))
+    td.append(el('span', { class: 'mdots', 'aria-hidden': 'true', text: evs.length ? '● ' + evs.length : '' }))
+    const ul = el('ul', { class: 'mlist' })
+    shown.forEach((e) => ul.append(el('li', {}, el('button', { class: 'mev', type: 'button', 'data-id': e.id, tabindex: '-1', title: e.title, onclick: (ev) => openDetail(e, ev.currentTarget), 'aria-label': evLabel(e, S.tz, rtitle(e.resourceId)) }, (multi ? `[${rtitle(e.resourceId).slice(-1)}] ` : '') + (e.allDay ? '' : hhmm(e.start, S.tz) + ' ') + e.title))))
+    if (rest > 0) ul.append(el('li', {}, el('button', { class: 'more', type: 'button', tabindex: '-1', onclick: () => { emit('more-events-click', { date: key, hidden: rest }); openSheet(key, evs) } }, `+${rest} más`)))
+    td.append(ul); tr.append(td) } tb.append(tr) }
+  table.append(tb); wireRoving(table); return table
+}
+
+// ---- Teléfono: estructura propia
+function statusOf(id, now) {
+  const key = dayKey(now, S.tz), ds = zoned(key, 0, S.tz), de = zoned(addDays(key, 1), 0, S.tz)
+  if (BLK.some((b) => b.resourceId === id && +b.start <= +now && +b.end > +now)) return 'Bloqueado'
+  const evs = VIS().filter((e) => e.resourceId === id && !e.allDay && +e.start < +de && +(e.end || now) > +ds).sort((a, b) => +a.start - +b.start)
+  const cur = evs.find((e) => +e.start <= +now && (!e.end || +e.end > +now)); if (cur) return cur.end ? `Ocupado hasta ${hhmm(cur.end, S.tz)}` : 'Ocupado · evento activo'
+  const nx = evs.find((e) => +e.start > +now); return nx ? `Disponible · próximo evento ${hhmm(nx.start, S.tz)}` : 'Disponible'
+}
+function phoneResources() {
+  const now = nowDate(); const ul = el('ul', { class: 'rslist', 'aria-label': 'Recursos' })
+  S.selected.forEach((id) => ul.append(el('li', {}, el('button', { class: 'rs', type: 'button', 'data-id': 'res-' + id, tabindex: '-1', onclick: () => { emit('resource-click', { resourceId: id }); S.selected = [id]; S.view = 'day'; render(); rangeChange() } }, el('b', { text: rtitle(id) }), el('span', { text: statusOf(id, now) })))))
+  wireRoving(ul); return ul
+}
+function phoneWeek(now) {
+  const id = S.selected.includes(S.weekRes) ? S.weekRes : S.selected[0], ws = weekStart(S.date), wrap = el('div'), strip = el('div', { class: 'wkstrip', role: 'group', 'aria-label': 'Días de la semana' })
+  for (let i = 0; i < 7; i++) { const k = addDays(ws, i), ds = zoned(k, 0, S.tz), de = zoned(addDays(k, 1), 0, S.tz), n = VIS().filter((e) => e.resourceId === id && +e.start < +de && +(e.end || e.start) >= +ds).length
+    strip.append(el('button', { class: 'wkday', type: 'button', 'aria-pressed': k === S.date, 'aria-label': `${longDay(k)}, ${n} eventos`, onclick: () => { S.date = k; render(); rangeChange() } }, ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i] + ' ' + +k.slice(8), el('i', { text: n ? '●'.repeat(Math.min(n, 3)) : '' }))) }
+  wrap.append(strip, el('h3', { style: 'margin:8px 10px 0;font-size:14px', text: 'Agenda del ' + longDay(S.date) }))
+  const ds = zoned(S.date, 0, S.tz), de = zoned(addDays(S.date, 1), 0, S.tz), evs = VIS().filter((e) => e.resourceId === id && +e.start < +de && +(e.end || e.start) >= +ds).sort((a, b) => +a.start - +b.start)
+  const ul = el('ul', { class: 'agenda', 'aria-label': `Agenda, ${rtitle(id)}` }); if (!evs.length) ul.append(el('li', { text: 'Sin eventos este día.' }))
+  evs.forEach((e) => ul.append(el('li', {}, el('button', { class: 'mev', type: 'button', 'data-id': e.id, tabindex: '-1', style: 'padding:8px 10px;font-size:13px;white-space:normal', 'aria-label': evLabel(e, S.tz, rtitle(id)), onclick: (ev) => openDetail(e, ev.currentTarget) }, `${e.allDay ? 'Día completo' : hhmm(e.start, S.tz) + (e.end ? '–' + hhmm(e.end, S.tz) : ' – ahora')}  ${e.title}`))))
+  wrap.append(ul); wireRoving(ul); return wrap
+}
+function openSheet(key, evs) {
+  closePop(); const sheet = el('div', { class: 'sheet', role: 'dialog', 'aria-label': 'Eventos del ' + longDay(key), id: 'sheetdlg' }, el('button', { class: 'btn', type: 'button', style: 'float:right', onclick: closePop }, 'Cerrar'), el('h4', { text: longDay(key), style: 'margin:0 0 6px' }), el('p', { text: `${evs.length} evento${evs.length === 1 ? '' : 's'}`, style: 'margin:0 0 6px' }), el('ul', { style: 'list-style:none;padding:0;margin:0;display:grid;gap:6px' }, ...evs.map((e) => el('li', { style: 'max-width:none' }, `${e.allDay ? 'Día completo' : hhmm(e.start, S.tz)} · ${e.title} · ${rtitle(e.resourceId)}`))))
+  document.body.append(sheet); popEl = sheet; popFor = document.activeElement; $('button', sheet).focus()
+}
+
+// ============================ Detalle (popover) ============================
+function openDetail(ev, anchor) {
+  closePop(); emit('event-click', { event: { id: ev.id, title: ev.title, resourceId: ev.resourceId } })
+  const r = anchor.getBoundingClientRect(), fr = $('#frame').getBoundingClientRect()
+  const pop = el('div', { class: 'pop', role: 'dialog', 'aria-label': 'Detalle: ' + ev.title, style: `position:fixed;left:${Math.min(Math.max(r.left, 8), innerWidth - 310)}px;top:${Math.min(r.bottom + 6, innerHeight - 170)}px` }, el('h4', { text: ev.title }), el('p', { text: ev.allDay ? 'Día completo' : ev.end ? `${hhmm(ev.start, S.tz)} a ${hhmm(ev.end, S.tz)}` : `Desde ${hhmm(ev.start, S.tz)} · sin hora final` }), el('p', { text: rtitle(ev.resourceId) }), el('p', { text: '(slot del consumidor: aquí va su detalle)', style: 'color:#555;font-size:12px' }), el('button', { class: 'btn', type: 'button', onclick: closePop }, 'Cerrar'))
+  pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closePop() } })
+  document.body.append(pop); popEl = pop; popFor = anchor; $('button', pop).focus()
+}
+function closePop() { if (!popEl) return; const f = popFor; popEl.remove(); popEl = null; if (f && f.isConnected) f.focus() }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && popEl) closePop() })
+
+// ============================ Interacción ============================
+function rangeChange() {
+  let s, e
+  if (S.view === 'month') { const f = S.date.slice(0, 8) + '01'; s = weekStart(f); e = addDays(s, 42) } else if (S.view === 'week') { s = weekStart(S.date); e = addDays(s, 7) } else { s = S.date; e = addDays(S.date, 1) }
+  emit('range-change', { start: zoned(s, 0, S.tz), end: zoned(e, 0, S.tz), view: S.view, timezone: S.tz })
+}
+function findEv(id) { return EV.find((e) => e.id === id) }
+// Solicitud de cambio: la "aplicación" decide
+function request(kind, ev, ns, ne, res) {
+  const before = { start: ev.start, end: ev.end, resourceId: ev.resourceId }
+  const conflicts = validate(ev, ns, ne, res)
+  const payload = kind === 'move' ? { event: ev.id, previousStart: before.start, newStart: ns, previousResource: before.resourceId, newResource: res, conflicts } : { event: ev.id, previousEnd: before.end, newEnd: ne, conflicts }
+  emit(kind === 'move' ? 'event-move-request' : 'event-resize-request', payload)
+  if (conflicts.length) emit('conflict', { type: conflicts[0].type, event: ev.id, conflicts })
+  const blockedByInvalid = conflicts.some((c) => c.type === 'invalidDuration')
+  if (blockedByInvalid || (conflicts.length && !S.allow)) { say(conflicts.length ? 'La aplicación no permitió el cambio: ' + conflicts.map((c) => c.type).join(', ') : ''); $('#live').textContent = 'La aplicación no permitió el cambio.'; S.focusId = ev.id; render(); return false }
+  ev.start = ns; ev.end = ne; ev.resourceId = res; S.focusId = ev.id; render(); say(`Cambio aplicado: ${ev.title}, ${hhmm(ns, S.tz)} a ${hhmm(ne, S.tz)}`); return true
+}
+const snapMin = (m) => Math.round(m / S.snap) * S.snap
+function wireRoving(container) { const items = () => $$('[data-id],[data-cell],.more', container).filter((b) => b.tagName === 'BUTTON'); const its = items(); if (its[0]) its[0].tabIndex = 0
+  container.addEventListener('keydown', (e) => { const b = e.target.closest('button'); if (!b || e.altKey || e.shiftKey) return; const list = items(), i = list.indexOf(b); let n = -1
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') n = Math.min(i + 1, list.length - 1); else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') n = Math.max(i - 1, 0); else if (e.key === 'Home') n = 0; else if (e.key === 'End') n = list.length - 1
+    if (n >= 0) { e.preventDefault(); list.forEach((x) => (x.tabIndex = -1)); list[n].tabIndex = 0; list[n].focus() } }) }
+
+function wireColumns(wrap, cols, ppm, horizontal) {
+  const sm = S.startH * 60, ro = S.st === 'readonly'
+  const cells = () => $$(horizontal ? '.tl__track' : '.col', wrap)
+  const posToMin = (cell, ev) => { const r = cell.getBoundingClientRect(); const p = horizontal ? ev.clientX - r.left : ev.clientY - r.top; return sm + p / ppm }
+  const dateAt = (cell, min) => zoned(cell.dataset.key, min, S.tz)
+  // roving tabindex por lista
+  const evbtns = () => $$('.ev', wrap); const first = evbtns()[0]; if (first) first.tabIndex = 0
+  wrap.addEventListener('keydown', (e) => {
+    const b = e.target.closest('.ev'); if (!b) return; const ev = findEv(b.dataset.id); if (!ev || !ev.end) { if (e.key === 'Enter') openDetail(ev, b); return }
+    const dir = horizontal ? { back: 'ArrowLeft', fwd: 'ArrowRight' } : { back: 'ArrowUp', fwd: 'ArrowDown' }, step = S.snap * 60000
+    const sign = e.key === dir.fwd ? 1 : e.key === dir.back ? -1 : 0
+    if (e.altKey && sign && !ro) { e.preventDefault(); request('move', ev, new Date(+ev.start + sign * step), new Date(+ev.end + sign * step), ev.resourceId); return }
+    if (e.shiftKey && sign && !ro) { e.preventDefault(); request('resize', ev, ev.start, new Date(+ev.end + sign * step), ev.resourceId); return }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(ev, b); return }
+    const all = evbtns(); const i = all.indexOf(b); let n = -1
+    const list = $$('.ev', b.closest('ul')); const li = list.indexOf(b)
+    if (e.key === dir.fwd) n = li < list.length - 1 ? all.indexOf(list[li + 1]) : -1; else if (e.key === dir.back) n = li > 0 ? all.indexOf(list[li - 1]) : -1
+    else if (e.key === (horizontal ? 'ArrowDown' : 'ArrowRight') || e.key === (horizontal ? 'ArrowUp' : 'ArrowLeft')) { const lists = $$('ul.evl', wrap).filter((u) => $('.ev', u)); const ui = lists.indexOf(b.closest('ul')); const step2 = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1; const nu = lists[ui + step2]; if (nu) n = all.indexOf($('.ev', nu)) }
+    if (e.key === 'Home') n = 0; if (e.key === 'End') n = all.length - 1
+    if (n >= 0) { e.preventDefault(); all.forEach((x) => (x.tabIndex = -1)); all[n].tabIndex = 0; all[n].focus() }
+  })
+  // puntero: crear / mover / redimensionar
+  wrap.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || ro) return
+    const handle = e.target.closest('.ev__h'), btn = e.target.closest('.ev'), cell = e.target.closest(horizontal ? '.tl__track' : '.col')
+    if (handle) { startDrag(e, findEv(handle.dataset.h), 'resize'); return }
+    if (btn) { startDrag(e, findEv(btn.dataset.id), 'move'); return }
+    if (cell && !e.target.closest('.blk')) { const m = snapMin(posToMin(cell, e)); startDragCreate(e, cell, m) }
+  })
+  function ghostFor(cell, a, b, bad, text) {
+    const g = $('.ghost', cell) || cell.appendChild(el('div', { class: 'ghost' })); g.className = 'ghost' + (bad ? ' is-bad' : ''); g.textContent = text
+    if (horizontal) { g.style.left = (a - sm) * ppm + 'px'; g.style.width = Math.max((b - a) * ppm, 6) + 'px'; g.style.top = '2px'; g.style.height = '22px' } else { g.style.top = (a - sm) * ppm + 'px'; g.style.height = Math.max((b - a) * ppm, 6) + 'px'; g.style.left = '2px'; g.style.right = '2px' } return g
+  }
+  function startDragCreate(e0, cell0, m0) {
+    let moved = false, m1 = m0, cell = cell0
+    const mv = (e) => { const d = horizontal ? Math.abs(e.clientX - e0.clientX) : Math.abs(e.clientY - e0.clientY); if (d < 4) return; moved = true; m1 = snapMin(posToMin(cell, e)); const a = Math.min(m0, m1), b = Math.max(m0, m1) || a + S.snap; ghostFor(cell, a, b, false, `${minToHHMM(a)}–${minToHHMM(b)}`) }
+    const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); $$('.ghost', wrap).forEach((g) => g.remove())
+      const a = Math.min(m0, m1), b = moved ? Math.max(m0, m1) : null
+      emit('create-request', { resourceId: cell.dataset.res, start: dateAt(cell, a), ...(b && b > a ? { end: dateAt(cell, b) } : {}), timezone: S.tz }); say(`Solicitud de crear evento en ${minToHHMM(a)}`) }
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up)
+  }
+  function startDrag(e0, ev, kind) {
+    if (!ev) return; const cellOf = (e) => { const t = document.elementFromPoint(e.clientX, e.clientY); return (t && t.closest(horizontal ? '.tl__track' : '.col')) || null }
+    const dur = ev.end ? +ev.end - +ev.start : 0, cell0 = cellOf(e0) || $$(horizontal ? '.tl__track' : '.col', wrap).find((c) => c.dataset.res === ev.resourceId), off = posToMin(cell0, e0) - (((+ev.start - +zoned(cell0.dataset.key, 0, S.tz)) / 60000)); let started = false, target = null, cur = null
+    const mv = (e) => { const d = Math.hypot(e.clientX - e0.clientX, e.clientY - e0.clientY); if (!started && d < 4) return; started = true
+      const cell = kind === 'resize' ? cell0 : (cellOf(e) || cell0)
+      if (kind === 'move') { const m = snapMin(posToMin(cell, e) - off); const ns = dateAt(cell, m), ne = new Date(+ns + dur); const bad = validate(ev, ns, ne, cell.dataset.res).length > 0; $$('.ghost', wrap).forEach((g) => g.remove()); ghostFor(cell, m, m + dur / 60000, bad, `${minToHHMM(m)}${bad ? ' · conflicto' : ''}`); cur = { ns, ne, res: cell.dataset.res } }
+      else { const dsm = (+ev.start - +zoned(cell.dataset.key, 0, S.tz)) / 60000, m = Math.max(snapMin(posToMin(cell, e)), dsm + 1); const ne = dateAt(cell, m); const bad = validate(ev, ev.start, ne, ev.resourceId).length > 0; ghostFor(cell, dsm, m, bad, `${minToHHMM(dsm)}–${minToHHMM(m)}${bad ? ' · conflicto' : ''}`); cur = { ne } } }
+    const up = (e) => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); $$('.ghost', wrap).forEach((g) => g.remove())
+      if (!started) return
+      suppressClick = true; setTimeout(() => (suppressClick = false), 0)
+      if (kind === 'move' && cur) request('move', ev, cur.ns, cur.ne, cur.res); else if (kind === 'resize' && cur) request('resize', ev, ev.start, cur.ne, ev.resourceId) }
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up)
+  }
+  // clic sencillo en un evento
+  // selección: un clic o un toque en un evento lo selecciona (muestra el tirador aunque no haya hover, p. ej. en táctil)
+  const select = (b) => { $$('.ev.is-sel, li.is-selli', wrap).forEach((x) => x.classList.remove('is-sel', 'is-selli')); if (b) { b.classList.add('is-sel'); b.closest('li').classList.add('is-selli'); S.sel = b.dataset.id } }
+  wrap.addEventListener('click', (e) => { if (suppressClick) return; const b = e.target.closest('.ev'); if (b) { select(b); const ev = findEv(b.dataset.id); if (ev) openDetail(ev, b) } })
+  // celda vacía accesible por teclado: botón "Crear aquí" oculto visualmente (una por columna)
+  $$(horizontal ? '.tl__track' : '.col', wrap).forEach((cell) => { if (ro) return; const btn = el('button', { class: 'sr', type: 'button', tabindex: '0', onclick: () => { const m = S.startH * 60 + 9 * 60 - sm; emit('create-request', { resourceId: cell.dataset.res, start: dateAt(cell, 9 * 60), timezone: S.tz, source: 'teclado' }); say('Solicitud de crear evento a las 09:00') } }, `Crear evento en ${rtitle(cell.dataset.res)}, ${shortDay(cell.dataset.key)}, a las 09:00`); cell.append(btn) })
+}
+let suppressClick = false
+
+// ============================ Panel de control ============================
+$$('.devs button').forEach((b) => b.addEventListener('click', () => { S.device = b.dataset.dev; $$('.devs button').forEach((x) => x.setAttribute('aria-pressed', x === b)); $('#frame').dataset.device = S.device; if (S.device === 'phone' && S.view === 'week' && S.selected.length > 1) S.weekRes = S.selected[0]; closePop(); render() }))
+$('#tz').addEventListener('change', (e) => { S.tz = e.target.value; render(); say('Zona horaria ' + S.tz) }); $('#snap').addEventListener('change', (e) => (S.snap = +e.target.value)); $('#grid').addEventListener('change', (e) => { S.grid = +e.target.value; render() })
+$('#dens').addEventListener('change', (e) => { S.dens = e.target.value; render() }); $('#st').addEventListener('change', (e) => { S.st = e.target.value; render() })
+$('#realnow').addEventListener('change', (e) => { S.real = e.target.checked; if (S.real) S.date = dayKey(new Date(), S.tz); else S.date = T; render() }); $('#allowc').addEventListener('change', (e) => (S.allow = e.target.checked))
+window.__S = S; window.__EV = EV; window.__render = render
+render(); rangeChange()
+</script>
+</body>
+</html>
