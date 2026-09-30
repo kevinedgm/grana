@@ -432,7 +432,33 @@
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
     </div>
-  </div>
+      <h2>Widgets (GWidget, GWidgetGrid)</h2>
+    <div class="col" style="max-width:1100px">
+      <div class="row" style="align-items:center">
+        <label>Ancho <input type="range" v-model.number="wgW" min="300" max="1100"> {{ wgW }}px</label>
+        <label><input type="checkbox" v-model="wgEdit"> editar</label>
+        <label>estado <select v-model="wgState"><option>populated</option><option>loading</option><option>empty</option><option>error</option><option>stale</option><option>disabled</option></select></label>
+      </div>
+      <div :style="{ inlineSize: wgW + 'px', maxInlineSize: '100%' }">
+        <g-widget-grid v-model="wgLayout" label="Panel de ejemplo" :editable="wgEdit" :labels="wgGridLabels" @change="wgLog = $event.reason + ' · ' + $event.id" @remove-request="wgRemove($event.id)">
+          <template #item="{ id }">
+            <g-widget :title="wgTitles[id]" :eyebrow="'Resumen'" description="Últimos 30 días" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgLog = 'acción · ' + $event.id" @retry="wgState = 'populated'">
+              <template #icon><lucide-icon name="chart"></lucide-icon></template>
+              <template #compact><g-metric label="Ingresos" value="$48k" trend="+12%" direction="up" trend-color="success"></g-metric></template>
+              <template #default><g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric><g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress></template>
+              <template #detail>
+                <g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
+                <g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress>
+                <g-data-list swatches label="Por canal" :rows="[{ label: 'Directo', value: '48%' }, { label: 'Búsqueda', value: '31%' }, { label: 'Referidos', value: '21%' }]"></g-data-list>
+              </template>
+            </g-widget>
+          </template>
+          <template #empty>Sin widgets</template>
+        </g-widget-grid>
+      </div>
+      <p>Último cambio: <b>{{ wgLog }}</b></p>
+    </div>
+</div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
@@ -513,6 +539,15 @@
         const selLoad = ref(null)
         const bdgCount = ref(12)
         const bdgLog = ref('')
+        const wgW = ref(1000)
+        const wgEdit = ref(true)
+        const wgState = ref('populated')
+        const wgLog = ref('—')
+        const wgTitles = { a: 'Ingresos', b: 'Meta', c: 'Servicios', d: 'Actividad' }
+        const wgLayout = ref([{ id: 'a', w: 2, h: 2 }, { id: 'b', w: 1, h: 1 }, { id: 'c', w: 1, h: 1 }, { id: 'd', w: 2, h: 1 }])
+        const wgRemove = (id) => { wgLayout.value = wgLayout.value.filter((e) => e.id !== id) }
+        const wgLabels = { actions: 'Acciones de', loading: 'Cargando', empty: 'Sin datos', error: 'No se pudo cargar', retry: 'Reintentar', stale: 'Desactualizado', staleText: 'Datos de hace 2 h', disabled: 'Deshabilitado' }
+        const wgGridLabels = { grab: 'Mover {title}. Posición {position} de {count}', grabRole: 'elemento reordenable', resize: 'Cambiar el tamaño de {title}: {columns} × {rows}', grabbed: '{title} recogido. Posición {position} de {count}.', moved: 'Posición {position} de {count}', dropped: '{title} soltado en la posición {position} de {count}', cancelled: 'Movimiento cancelado. {title} vuelve a la posición {position}', resized: '{title}: {columns} × {rows}', removed: '{title} quitado', moveBefore: 'Mover antes', moveAfter: 'Mover después', size: 'Tamaño', remove: 'Quitar', presets: { s: 'Pequeño', m: 'Mediano', l: 'Grande', wide: 'Ancho', tall: 'Alto' }, empty: 'Sin widgets' }
         const sbW = ref(1000)
         const sbActive = ref('home')
         const sbOpen = ref(false)
@@ -653,7 +688,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

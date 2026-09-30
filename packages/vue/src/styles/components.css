@@ -14,3 +14,8 @@
 @import url("../components/GBadge/GBadge.css");
 @import url("../components/GDatePicker/GDatePicker.css");
 @import url("../components/GSidebar/GSidebar.css");
+@import url("../components/GWidget/GWidget.css");
+@import url("../components/GMetric/GMetric.css");
+@import url("../components/GProgress/GProgress.css");
+@import url("../components/GDataList/GDataList.css");
+@import url("../components/GWidgetGrid/GWidgetGrid.css");

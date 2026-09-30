@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "name": "GWidgetGrid",
+  "tag": "g-widget-grid",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Rejilla de widgets con columnas por su propio ancho, layout ordenado [{id,w,h}], reordenar y redimensionar con puntero y teclado (alternativa sin arrastre desde el menú de cada widget) y anuncios para lectores de pantalla.",
+  "contract": "design/contracts/widget-grid.md",
+  "prototype": "design/lab/widget/r01/",
+  "style": "packages/vue/src/components/GWidgetGrid/GWidgetGrid.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "editable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "columns",
+      "type": "Number",
+      "default": null,
+      "values": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "name": "maxColumns",
+      "type": "Number",
+      "default": 4,
+      "values": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "name": "maxRows",
+      "type": "Number",
+      "default": 4,
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "name": "presets",
+      "type": "Array",
+      "default": "s,m,l,wide,tall"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "layout",
+      "trigger": "Al confirmar un movimiento o tamaño"
+    },
+    {
+      "name": "change",
+      "payload": "{ layout, reason, id }",
+      "trigger": "Junto al anterior; reason: move | resize"
+    },
+    {
+      "name": "remove-request",
+      "payload": "{ id }",
+      "trigger": "El usuario pide quitar un widget; lo decide la aplicación"
+    }
+  ],
+  "slots": [
+    {
+      "name": "item",
+      "purpose": "Widget de cada celda; alcance { id, index, count, editing }"
+    },
+    {
+      "name": "empty",
+      "purpose": "Contenido sin widgets"
+    }
+  ],
+  "tokens": [
+    "--g-widget-row",
+    "--g-widget-gap",
+    "--g-space-1"
+  ],
+  "states": [
+    "editing",
+    "grabbed",
+    "dragging",
+    "resizing",
+    "empty"
+  ],
+  "pending": [
+    "Lector de pantalla real",
+    "Firefox y Safari",
+    "Táctil real",
+    "Reordenar sin animación (order CSS): decidir FLIP",
+    "Arrastre táctil real"
+  ]
+}

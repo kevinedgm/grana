@@ -104,6 +104,7 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{position}`, `{count}`,
 
 | Clave | Uso | Requerido |
 | --- | --- | --- |
+| `grabRole` | Descripción del rol del asa (`aria-roledescription`, p. ej. «elemento reordenable»); si falta, no se pone | Recomendado |
 | `grab` | Nombre del asa de mover («Mover {title}. Posición {position} de {count}») | Sí |
 | `resize` | Nombre del asa de redimensionar («Cambiar el tamaño de {title}: {columns} × {rows}») | Sí |
 | `grabbed` | Anuncio al recoger («{title} recogido. Posición {position} de {count}. Usa las flechas…») | Recomendado |
@@ -171,6 +172,7 @@ Sin los `announce*` recomendados, la rejilla **no anuncia** ese paso (los nombre
 | `g-widget-grid__item` (+ `is-grabbed`, `is-dragging`) | Celda `<li>` | Siempre |
 | `g-widget-grid__controls`, `__grab`, `__resize` | Asas | Con `editable` |
 | `g-widget-grid__sr` | Región de anuncios | Siempre |
+| `g-widget-grid__empty` | Contenedor del slot `empty` | Sin widgets |
 
 ## Resolución de hallazgos de r01
 

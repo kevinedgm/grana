@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "name": "GProgress",
+  "tag": "g-progress",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Primitiva de widget: barra de progreso (role progressbar) con nombre, valor y texto propios.",
+  "contract": "design/contracts/widget.md",
+  "prototype": "design/lab/widget/r01/",
+  "style": "packages/vue/src/components/GProgress/GProgress.css",
+  "props": [
+    {
+      "name": "value",
+      "type": "Number",
+      "default": 0
+    },
+    {
+      "name": "max",
+      "type": "Number",
+      "default": 100
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "valueText",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md"
+      ]
+    },
+    {
+      "name": "showValue",
+      "type": "Boolean",
+      "default": true
+    }
+  ],
+  "events": [],
+  "slots": [],
+  "tokens": [
+    "--g-color-{color}",
+    "--g-color-border"
+  ],
+  "states": [
+    "empty",
+    "partial",
+    "full"
+  ],
+  "pending": [
+    "Lector de pantalla real"
+  ]
+}

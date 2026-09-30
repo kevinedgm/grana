@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "name": "GDataList",
+  "tag": "g-data-list",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Primitiva de widget: lista compacta de pares etiqueta–valor, con muestras de color decorativas opcionales.",
+  "contract": "design/contracts/widget.md",
+  "prototype": "design/lab/widget/r01/",
+  "style": "packages/vue/src/components/GDataList/GDataList.css",
+  "props": [
+    {
+      "name": "rows",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "swatches",
+      "type": "Boolean",
+      "default": false
+    }
+  ],
+  "events": [],
+  "slots": [],
+  "tokens": [
+    "--g-color-border",
+    "--g-color-{color}"
+  ],
+  "states": [
+    "with-swatches"
+  ],
+  "pending": [
+    "Lector de pantalla real"
+  ]
+}

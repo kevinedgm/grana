@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "name": "GMetric",
+  "tag": "g-metric",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Primitiva de widget: valor con etiqueta, unidad, tendencia (texto, no solo flecha ni color) y contexto.",
+  "contract": "design/contracts/widget.md",
+  "prototype": "design/lab/widget/r01/",
+  "style": "packages/vue/src/components/GMetric/GMetric.css",
+  "props": [
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "value",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "unit",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "trend",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "direction",
+      "type": "String",
+      "default": "flat",
+      "values": [
+        "up",
+        "down",
+        "flat"
+      ]
+    },
+    {
+      "name": "trendColor",
+      "type": "String",
+      "default": "neutral",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "context",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    }
+  ],
+  "events": [],
+  "slots": [],
+  "tokens": [
+    "--g-color-{color}",
+    "--g-font-size-*"
+  ],
+  "states": [
+    "trend-up",
+    "trend-down",
+    "trend-flat"
+  ],
+  "pending": [
+    "Lector de pantalla real"
+  ]
+}

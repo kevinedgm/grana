@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "name": "GWidget",
+  "tag": "g-widget",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Carcasa de un widget de panel: encabezado, cuerpo por nivel (s/m/l según su propio ancho) y pie, con estados populated, loading, empty, error, stale y disabled que no cambian el espacio, menú de acciones propio e integración con GWidgetGrid.",
+  "contract": "design/contracts/widget.md",
+  "prototype": "design/lab/widget/r01/",
+  "style": "packages/vue/src/components/GWidget/GWidget.css",
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "eyebrow",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": 3,
+      "values": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "name": "state",
+      "type": "String",
+      "default": "populated",
+      "values": [
+        "populated",
+        "loading",
+        "empty",
+        "error",
+        "stale",
+        "disabled"
+      ]
+    },
+    {
+      "name": "level",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "s",
+        "m",
+        "l"
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "badgeColor",
+      "type": "String",
+      "default": "neutral",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "href",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "drilldownLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "updatedText",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "headless",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "action",
+      "payload": "{ id }",
+      "trigger": "El usuario elige una acción del menú"
+    },
+    {
+      "name": "retry",
+      "payload": "",
+      "trigger": "Pulsa «Reintentar» en el estado error"
+    },
+    {
+      "name": "drilldown",
+      "payload": "{ event }",
+      "trigger": "Pide el detalle (sin href, o con href y preventDefault)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "icon",
+      "purpose": "Icono decorativo del encabezado"
+    },
+    {
+      "name": "eyebrow",
+      "purpose": "Categoría rica"
+    },
+    {
+      "name": "title",
+      "purpose": "Título rico"
+    },
+    {
+      "name": "badge",
+      "purpose": "Sustituye al badge"
+    },
+    {
+      "name": "actions",
+      "purpose": "Sustituye al menú"
+    },
+    {
+      "name": "compact",
+      "purpose": "Contenido del nivel s"
+    },
+    {
+      "name": "default",
+      "purpose": "Contenido del nivel m y respaldo"
+    },
+    {
+      "name": "detail",
+      "purpose": "Contenido del nivel l"
+    },
+    {
+      "name": "empty",
+      "purpose": "Estado vacío"
+    },
+    {
+      "name": "error",
+      "purpose": "Estado de error; alcance { level, retry }"
+    },
+    {
+      "name": "loading",
+      "purpose": "Esqueleto propio"
+    },
+    {
+      "name": "footer",
+      "purpose": "Pie propio"
+    }
+  ],
+  "tokens": [
+    "--g-widget-row",
+    "--g-widget-gap",
+    "--g-color-surface",
+    "--g-color-border",
+    "--g-color-{color}",
+    "--g-space-1"
+  ],
+  "states": [
+    "level-s",
+    "level-m",
+    "level-l",
+    "shape-wide",
+    "shape-tall",
+    "shape-square",
+    "populated",
+    "loading",
+    "empty",
+    "error",
+    "stale",
+    "disabled",
+    "menu-open",
+    "is-editing"
+  ],
+  "pending": [
+    "Lector de pantalla real",
+    "Firefox y Safari",
+    "Táctil real",
+    "Menú de acciones con lector de pantalla (menu button de APG)"
+  ]
+}
