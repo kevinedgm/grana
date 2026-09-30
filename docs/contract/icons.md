@@ -10,7 +10,7 @@ Un **icono** es cualquier pictograma cuyo significado se lee por su forma: una m
 - **Pictogramas dibujados con CSS:** marcas hechas con bordes girados, `clip-path: polygon`, `box-shadow` para puntos, pseudo-elementos que forman una cruz o una flecha, barras que forman un «hamburguesa».
 - **Iconos dibujados a mano o copiados de otra colección.**
 
-No son iconos (y se siguen dibujando con CSS): rellenos, bordes, pistas y pulgares de controles (el riel de un interruptor, la pista de una barra de progreso, el círculo de un radio), sombras, contornos de foco y el esqueleto de carga.
+No son iconos (y se siguen dibujando con CSS): rellenos, bordes, pistas y pulgares de controles (el riel de un interruptor, la pista de una barra de progreso, el círculo de un radio), sombras, contornos de foco, el esqueleto de carga y las **barras de asa de una sola pieza** (la asa de una hoja inferior y la de un evento del calendario: un borde redondeado, sin forma de pictograma).
 
 ### Formas de estado (insignias, leyendas)
 
@@ -41,8 +41,8 @@ Nombre de Lucide entre comillas.
 | `GCheckbox`, `GCheckboxGroup`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GDatePicker` | Mensaje de error (antes «⚠») | `triangle-alert` |
 | `GSwitch` | Marca del pulgar: encendido · apagado | `check` · `minus` |
 | `GSelect` | Flecha · limpiar · elegida · «Agregar nuevo…» | `chevron-down` · `x` · `check` · `plus` |
-| `GDatePicker` | Icono del campo · mes anterior · siguiente | `calendar` · `chevron-left` · `chevron-right` |
-| `GCalendar` | Anterior · siguiente · puntos de eventos | `chevron-left` · `chevron-right` · `circle` (rellena) |
+| `GDatePicker` | Icono del campo · mes anterior · siguiente · cierre de la hoja · punto de hoy | `calendar` · `chevron-left` · `chevron-right` · `x` · `circle` (rellena) |
+| `GCalendar` | Anterior · siguiente · puntos de eventos · punto de la línea de ahora | `chevron-left` · `chevron-right` · `circle` (rellena) · `circle` (rellena) |
 | `GDialog` | Cierre | `x` |
 | `GSidebar` | Chevron de un padre · cierre del drawer | `chevron-right` (gira) · `x` |
 | `GBadge` | Figuras: círculo · cuadrado · rombo · triángulo · punto de estado | `circle` · `square` · `diamond` · `triangle` · `circle` (rellenas) |

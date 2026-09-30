@@ -4,6 +4,7 @@
 // Representa y manipula tiempo; NO muta el modelo del consumidor: crear, mover y redimensionar emiten solicitudes.
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import CalendarEvent from './CalendarEvent.vue'
 import { CALENDAR_KEY } from './context.js'
 import { addDays, addMonths, dayKey, dow, formatDay, formatTime, minToHHMM, monthStart, toDate, weekStart, zoned } from './time.js'
@@ -645,9 +646,9 @@ const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.valu
     :style="{ '--_grid': gridInterval }"
   >
     <div class="g-calendar__toolbar" role="toolbar" :aria-label="regionLabel">
-      <button class="g-calendar__prev" type="button" :aria-label="text('previous')" :disabled="disabled" @click="move(-1)"><span aria-hidden="true">‹</span></button>
+      <button class="g-calendar__prev" type="button" :aria-label="text('previous')" :disabled="disabled" @click="move(-1)"><GIcon name="chevron-left" /></button>
       <button class="g-calendar__today" type="button" :disabled="disabled" @click="goToday">{{ text('today') }}</button>
-      <button class="g-calendar__next" type="button" :aria-label="text('next')" :disabled="disabled" @click="move(1)"><span aria-hidden="true">›</span></button>
+      <button class="g-calendar__next" type="button" :aria-label="text('next')" :disabled="disabled" @click="move(1)"><GIcon name="chevron-right" /></button>
       <h2 class="g-calendar__title">{{ title }}</h2>
       <label v-if="viewId === 'week' && resList.length > 1" class="g-calendar__resource-select">
         <span class="g-calendar__sr">{{ text('resources') }}</span>
@@ -709,7 +710,7 @@ const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.valu
               </li>
             </template>
           </ul>
-          <div v-if="nowColumn && nowColumn.id === c.id && nowRel != null" class="g-calendar__now" aria-hidden="true" :style="{ '--_start': nowRel, '--_span': nowSpan }"><span>{{ text('now') }} {{ time(current) }}</span></div>
+          <div v-if="nowColumn && nowColumn.id === c.id && nowRel != null" class="g-calendar__now" aria-hidden="true" :style="{ '--_start': nowRel, '--_span': nowSpan }"><GIcon class="g-calendar__now-dot" name="circle" filled /><span>{{ text('now') }} {{ time(current) }}</span></div>
           <div v-if="ghostFor2(c.id)" class="g-calendar__ghost" :class="{ 'is-conflict': ghostFor2(c.id).conflict }" aria-hidden="true" :style="{ '--_start': ghostFor2(c.id).start, '--_dur': ghostFor2(c.id).dur }">{{ ghostFor2(c.id).label }}</div>
           <button v-if="canCreate" class="g-calendar__create" type="button" @click="createFromKeyboard(c)">{{ fn('createEvent', c.res.raw, c.key, '09:00') }}</button>
         </div>
@@ -719,7 +720,7 @@ const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.valu
       <!-- Semana en teléfono: tira de días + agenda -->
       <div v-else-if="viewId === 'week' && phone">
         <div class="g-calendar__strip" role="group" :aria-label="text('week')">
-          <button v-for="d in weekStripDays" :key="d.key" type="button" :aria-pressed="d.key === dateKey ? 'true' : 'false'" @click="setDate(d.key)">{{ d.label }}<span v-if="d.n" aria-hidden="true">{{ '●'.repeat(Math.min(d.n, 3)) }}</span></button>
+          <button v-for="d in weekStripDays" :key="d.key" type="button" :aria-pressed="d.key === dateKey ? 'true' : 'false'" @click="setDate(d.key)">{{ d.label }}<span v-if="d.n" class="g-calendar__strip-dots" aria-hidden="true"><GIcon v-for="i in Math.min(d.n, 3)" :key="i" name="circle" filled /></span></button>
         </div>
         <ul class="g-calendar__agenda" :aria-label="resourceOf(weekRes).title">
           <li v-for="e in phoneAgenda" :key="e.id">
@@ -754,7 +755,7 @@ const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.valu
               <button v-if="canCreate" class="g-calendar__create" type="button" @click="createFromKeyboardTimeline(r)">{{ fn('createEvent', r.res.raw, dateKey, '09:00') }}</button>
             </div>
           </li>
-          <div v-if="nowRel != null && dateKey === todayKey" class="g-calendar__now" aria-hidden="true" :style="{ '--_start': nowRel }" />
+          <div v-if="nowRel != null && dateKey === todayKey" class="g-calendar__now" aria-hidden="true" :style="{ '--_start': nowRel }"><GIcon class="g-calendar__now-dot" name="circle" filled /></div>
         </ul>
       </div>
 
@@ -766,7 +767,7 @@ const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.valu
             <td v-for="c in week" :key="c.key" :class="{ 'is-outside': c.outside, 'is-today': c.today }" :aria-current="c.today ? 'date' : undefined">
               <button class="g-calendar__day" type="button" :data-date="c.key" :aria-label="fn('monthDay', zoned(c.key, 0, tz), c.events.length) || String(Number(c.key.slice(8)))">{{ Number(c.key.slice(8)) }}</button>
               <slot name="month-day" :date="zoned(c.key, 0, tz)" :events="c.events.map((e) => e.raw)" />
-              <span class="g-calendar__dots" aria-hidden="true">{{ c.events.length ? '● ' + c.events.length : '' }}</span>
+              <span class="g-calendar__dots" aria-hidden="true"><template v-if="c.events.length"><GIcon name="circle" filled /> {{ c.events.length }}</template></span>
               <ul class="g-calendar__events">
                 <li v-for="e in c.shown" :key="e.id">
                   <CalendarEvent :seg="{ ev: e, start: e.start, end: e.end || e.start, open: !e.end, continuesBefore: false, continuesAfter: false }" :resource-id="e.resources[0]" :data-key="e.id + '|' + c.key" :selected="selectedId === e.id" natural />

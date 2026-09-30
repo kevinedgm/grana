@@ -158,7 +158,7 @@
 .g-datepicker--split .g-datepicker__field[aria-expanded="true"] {
   z-index: 1;
 }
-/* Icono del campo: por defecto, un calendario dibujado con bordes (sobrevive a forced-colors) */
+/* Icono del campo: por defecto, el calendar de Lucide (GIcon); el slot `icon` lo sustituye */
 .g-datepicker__icon {
   position: relative;
   flex: none;
@@ -168,15 +168,6 @@
   inline-size: 1.25em;
   block-size: 1.25em;
   color: var(--g-color-text-subtle);
-}
-.g-datepicker__icon:empty::before {
-  content: "";
-  box-sizing: border-box;
-  inline-size: 1em;
-  block-size: 1em;
-  border: var(--g-border-width) solid currentColor;
-  border-block-start-width: calc(var(--g-border-width) * 3);
-  border-radius: max(0px, calc(var(--g-radius-xs)));
 }
 .g-datepicker__value {
   flex: 1 1 auto;
@@ -215,10 +206,10 @@
 .g-datepicker.is-invalid .g-datepicker__error {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1); la sintaxis con "/" la oculta a lectores de pantalla */
-.g-datepicker.is-invalid .g-datepicker__error::before {
-  content: "\26A0\00a0";
-  content: "\26A0\00a0" / "";
+/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-datepicker__error-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
 }
 
 /* ---------- Popover (capa superior) ---------- */
@@ -321,20 +312,12 @@
   display: grid;
   visibility: hidden;
 }
-.g-datepicker__nav > i {
-  box-sizing: border-box;
-  inline-size: calc(var(--g-space-1) * 2.25);
-  block-size: calc(var(--g-space-1) * 2.25);
-  border: solid currentColor;
-  border-width: 0 0 calc(var(--g-border-width) * 2) calc(var(--g-border-width) * 2);
-  rotate: 45deg;
-  translate: calc(var(--g-space-1) * 0.5) 0;
+/* Chevron de Lucide (chevron-left / chevron-right); en RTL se espeja */
+.g-datepicker__nav > .g-icon {
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
 }
-.g-datepicker__nav--next > i {
-  rotate: -135deg;
-  translate: calc(var(--g-space-1) * -0.5) 0;
-}
-[dir="rtl"] .g-datepicker__nav > i {
+[dir="rtl"] .g-datepicker__nav > .g-icon {
   scale: -1 1;
 }
 .g-datepicker__nav:focus-visible {
@@ -449,14 +432,12 @@
   font-weight: var(--g-text-action-weight);
   box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text-muted);
 }
-.g-datepicker__day.is-today::after {
-  content: "";
+/* Punto del día de hoy: el circle de Lucide relleno (GIcon filled) */
+.g-datepicker__today-dot {
   position: absolute;
   inset-block-end: calc(var(--_cell) * 0.14);
-  inline-size: var(--g-space-1);
-  block-size: var(--g-space-1);
-  border-radius: var(--g-radius-pill);
-  background: currentColor;
+  inline-size: calc(var(--g-space-1) * 1.25);
+  block-size: calc(var(--g-space-1) * 1.25);
 }
 /* Seleccionado (fecha única, inicio o fin): círculo relleno; no cambia la celda */
 .g-datepicker__day.is-selected {
@@ -715,7 +696,7 @@
     justify-content: flex-end;
     padding: var(--g-space-2) var(--g-space-2) 0;
   }
-  /* Asa de la hoja */
+  /* Asa de la hoja: una barra de relleno (adorno de la hoja, no un pictograma) */
   .g-datepicker__sheet-head::before {
     content: "";
     position: absolute;
@@ -740,20 +721,13 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .g-datepicker__sheet-close::before,
-  .g-datepicker__sheet-close::after {
-    content: "";
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 30%;
-    inline-size: 40%;
-    block-size: 0;
-    border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
-    rotate: 45deg;
-    translate: 0 -50%;
+  .g-datepicker__sheet-close {
+    display: grid;
+    place-items: center;
   }
-  .g-datepicker__sheet-close::after {
-    rotate: -45deg;
+  .g-datepicker__sheet-close > .g-icon {
+    inline-size: calc(var(--g-space-1) * 5);
+    block-size: calc(var(--g-space-1) * 5);
   }
   .g-datepicker__sheet-close:focus-visible {
     outline: var(--g-focus-width) solid var(--_focus);

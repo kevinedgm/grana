@@ -5,6 +5,7 @@
 // nombre completo por día. El valor es una cadena ISO (YYYY-MM-DD) o { start, end }; solo se emiten valores completos.
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
 import { addDays, addMonths, daysBetween, daysInMonth, firstOfMonth, isISO, monthKey, parseISO, todayISO, weekday } from '../../utils/dates.js'
 
 defineOptions({ name: 'GDatePicker', inheritAttrs: false })
@@ -708,7 +709,7 @@ defineExpose({
             <div v-for="side in [0, 1]" :key="side" class="g-datepicker__item">
               <span :id="`${baseId}-${side === 0 ? 'start' : 'end'}-label`" class="g-datepicker__label">{{ side === 0 ? labelStart : labelEnd }}</span>
               <button :ref="(el) => setFieldRef(el, side)" v-bind="fieldBindings(side)" class="g-datepicker__field">
-                <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon" /></span>
+                <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon"><GIcon name="calendar" /></slot></span>
                 <span :id="`${baseId}-${side === 0 ? 'start' : 'end'}-value`" class="g-datepicker__value" :class="{ 'g-datepicker__value--placeholder': !(side === 0 ? normalized.start : normalized.end) }">{{ (side === 0 ? normalized.start : normalized.end) ? short(side === 0 ? normalized.start : normalized.end) : (side === 0 ? placeholderStart : placeholderEnd) }}</span>
               </button>
             </div>
@@ -717,13 +718,13 @@ defineExpose({
         <template v-else>
           <span v-if="hasLabel" :id="labelId" class="g-datepicker__label"><slot name="label">{{ label }}</slot><span v-if="required" class="g-datepicker__required" aria-hidden="true">*</span></span>
           <button :ref="(el) => setFieldRef(el, 0)" v-bind="fieldBindings()" class="g-datepicker__field">
-            <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon" /></span>
+            <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon"><GIcon name="calendar" /></slot></span>
             <span :id="`${baseId}-value`" class="g-datepicker__value" :class="{ 'g-datepicker__value--placeholder': !fieldText }">{{ fieldText || placeholder }}</span>
           </button>
         </template>
         <input v-for="h in hiddenFields" :key="h.name" type="hidden" :name="h.name" :value="h.value" :disabled="disabled || undefined">
         <div v-if="hasHint" :id="hintId" class="g-datepicker__hint"><slot name="hint">{{ hint }}</slot></div>
-        <div :id="errorId" class="g-datepicker__error" aria-live="polite"><template v-if="invalid"><slot name="error">{{ error }}</slot></template></div>
+        <div :id="errorId" class="g-datepicker__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-datepicker__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
       </template>
     </template>
 
@@ -738,7 +739,7 @@ defineExpose({
       @focusout="!inline && onPopFocusout($event)"
     >
       <div v-if="sheetVisibleClose" class="g-datepicker__sheet-head">
-        <button class="g-datepicker__sheet-close" type="button" :aria-label="L.close" @click="close(true)" />
+        <button class="g-datepicker__sheet-close" type="button" :aria-label="L.close" @click="close(true)"><GIcon name="x" /></button>
       </div>
       <div ref="surfaceEl" class="g-datepicker__surface">
         <div class="g-datepicker__months" @pointerdown="onSwipeDown" @pointerup="onSwipeUp">
@@ -752,7 +753,7 @@ defineExpose({
                 :tabindex="m.index !== 0 ? -1 : undefined"
                 :aria-label="L.prev"
                 @click="go(-1)"
-              ><i aria-hidden="true" /></button>
+              ><GIcon name="chevron-left" /></button>
               <h3 :id="monthId(m.index)" class="g-datepicker__title" aria-live="polite"><span>{{ m.name }}</span> <span>{{ m.year }}</span></h3>
               <button
                 class="g-datepicker__nav g-datepicker__nav--next"
@@ -762,7 +763,7 @@ defineExpose({
                 :tabindex="m.index !== grid.length - 1 ? -1 : undefined"
                 :aria-label="L.next"
                 @click="go(1)"
-              ><i aria-hidden="true" /></button>
+              ><GIcon name="chevron-right" /></button>
             </div>
             <table class="g-datepicker__grid" role="grid" :aria-labelledby="monthId(m.index)" @click="onGridClick" @keydown="onGridKeydown" @pointerover="onGridPointerover" @pointerleave="onGridPointerleave">
               <thead>
@@ -803,7 +804,7 @@ defineExpose({
                         :aria-disabled="cell.st.disabled ? 'true' : undefined"
                         :disabled="disabled || undefined"
                         @focus="onDayFocus(cell.iso)"
-                      >{{ nf.format(cell.day) }}<slot name="day" :date="cell.iso" :day="cell.day" :selected="cell.st.selected" :in-range="cell.st.inBand" :disabled="cell.st.disabled" :outside="cell.st.outside" /></button>
+                      >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" :date="cell.iso" :day="cell.day" :selected="cell.st.selected" :in-range="cell.st.inBand" :disabled="cell.st.disabled" :outside="cell.st.outside" /></button>
                     </td>
                   </template>
                 </tr>

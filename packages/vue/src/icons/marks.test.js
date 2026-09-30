@@ -66,3 +66,24 @@ describe('indicadores de carga · loader-circle de Lucide', () => {
     }
   })
 })
+
+describe('GDatePicker y GCalendar · iconos de Lucide', () => {
+  it('GDatePicker: calendar en el campo, chevrons de navegación, x de la hoja, punto de hoy y error', async () => {
+    const { default: GDatePicker } = await import('../components/GDatePicker/GDatePicker.vue')
+    const w = mount(GDatePicker, { attachTo: document.body, props: { label: 'Fecha', inline: true, modelValue: null, error: 'Mal', invalid: true, labels: { prev: 'Mes anterior', next: 'Mes siguiente' } } })
+    expect(w.find('.g-datepicker__nav--prev svg').html()).toContain('m15 18-6-6 6-6')
+    expect(w.find('.g-datepicker__nav--next svg').html()).toContain('m9 18 6-6-6-6')
+    w.unmount()
+    const f = mount(GDatePicker, { attachTo: document.body, props: { label: 'Fecha', modelValue: null, error: 'Mal', invalid: true } })
+    expect(f.find('.g-datepicker__icon svg').html()).toContain('M8 2v3')
+    expect(f.find('svg.g-datepicker__error-icon').exists()).toBe(true)
+    f.unmount()
+  })
+
+  it('GCalendar: chevrons de la barra y punto de la línea de ahora (circle relleno)', async () => {
+    const { default: GCalendar } = await import('../components/GCalendar/GCalendar.vue')
+    const w = mount(GCalendar, { props: { events: [], resources: [{ id: 'a', title: 'A' }], modelValue: new Date(), view: 'day', labels: { previous: 'Anterior', next: 'Siguiente' } } })
+    expect(w.find('.g-calendar__prev svg').html()).toContain('m15 18-6-6 6-6')
+    expect(w.find('.g-calendar__next svg').html()).toContain('m9 18 6-6-6-6')
+  })
+})

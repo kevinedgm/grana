@@ -8,6 +8,8 @@
      Incluye un motor mínimo (meses, rango, teclado, popover por variables) que imita lo que hará bruno. No es documentación. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GDatePicker/GDatePicker.css?v=1" id="css-d">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -100,7 +102,7 @@ class Picker{
       let th='';for(let c=0;c<7;c++){const dd=new Date(2024,0,1+((c+hd-1)%7));th+=`<th scope="col"><span aria-hidden="true">${F.wdN.format(dd)}</span><span class="g-datepicker__sr">${F.wdL.format(dd)}</span></th>`}
       const prev=i===0,next=i===this.n-1
       const div=document.createElement('section');div.className='g-datepicker__month';div.setAttribute('aria-labelledby',tid)
-      div.innerHTML=`<div class="g-datepicker__head"><button type="button" class="g-datepicker__nav g-datepicker__nav--prev" aria-label="Mes anterior" ${prev?'':'hidden'}><i></i></button><h3 class="g-datepicker__title" id="${tid}" aria-live="polite"><span>${F.month.format(parse(m))}</span> <span>${parse(m).getFullYear()}</span></h3><button type="button" class="g-datepicker__nav g-datepicker__nav--next" aria-label="Mes siguiente" ${next?'':'hidden'}><i></i></button></div><table class="g-datepicker__grid" role="grid" aria-labelledby="${tid}"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table>`
+      div.innerHTML=`<div class="g-datepicker__head"><button type="button" class="g-datepicker__nav g-datepicker__nav--prev" aria-label="Mes anterior" ${prev?'':'hidden'}>${window.lucide('chevron-left')}</button><h3 class="g-datepicker__title" id="${tid}" aria-live="polite"><span>${F.month.format(parse(m))}</span> <span>${parse(m).getFullYear()}</span></h3><button type="button" class="g-datepicker__nav g-datepicker__nav--next" aria-label="Mes siguiente" ${next?'':'hidden'}>${window.lucide('chevron-right')}</button></div><table class="g-datepicker__grid" role="grid" aria-labelledby="${tid}"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table>`
       div.querySelectorAll('.g-datepicker__nav[hidden]').forEach(b=>{b.tabIndex=-1;b.setAttribute('aria-hidden','true')})
       div.dataset.m=m;this.monthsEl.append(div)
     }
@@ -134,6 +136,7 @@ class Picker{
       const isStart=a&&s===a&&a!==b,isEnd=a&&s===b&&a!==b
       const lastDay=multi&&btn.dataset.m==='1'&&+s.slice(8)===dim(s),firstDay=multi&&btn.dataset.m==='1'&&+s.slice(8)===1
       btn.classList.toggle('is-today',s===TODAY)
+      const dot=btn.querySelector('.g-datepicker__today-dot');if(s===TODAY&&!dot)btn.insertAdjacentHTML('beforeend',window.lucide('circle','g-datepicker__today-dot',true));if(s!==TODAY&&dot)dot.remove()
       btn.classList.toggle('is-selected',!!isS&&!prev||(prev&&s===this.start))
       btn.classList.toggle('is-disabled',!!dis)
       btn.classList.toggle('is-inactive',this.pending&&!!this.start&&s<this.start&&!dis&&btn.dataset.m==='1')
@@ -216,7 +219,7 @@ class Pop{
   constructor(picker,{triggers,anchor,root,title='Elegir fechas'}){
     this.p=picker;this.triggers=triggers;this.anchor=anchor||triggers[0]
     const pop=this.pop=document.createElement('div');pop.className='g-datepicker__pop';pop.setAttribute('popover','manual');pop.setAttribute('role','dialog');pop.setAttribute('aria-label',title)
-    pop.innerHTML=`<div class="g-datepicker__sheet-head"><button type="button" class="g-datepicker__sheet-close" aria-label="Cerrar"></button></div>`
+    pop.innerHTML=`<div class="g-datepicker__sheet-head"><button type="button" class="g-datepicker__sheet-close" aria-label="Cerrar">${window.lucide('x')}</button></div>`
     pop.append(picker.el.parentElement);root.append(pop)
     triggers.forEach(t=>{t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-expanded','false');t.addEventListener('click',()=>this.pop.matches(':popover-open')?this.close(true):this.open(t))})
     pop.querySelector('.g-datepicker__sheet-close').addEventListener('click',()=>this.close(true))
@@ -256,12 +259,12 @@ function fieldHost(o){
   const id='gd'+(++fid),host=document.createElement('div')
   host.className=cls(o)
   const req=o.required?'<span class="g-datepicker__required" aria-hidden="true">*</span>':''
-  const btn=(bid,lab,ph)=>`<button class="g-datepicker__field" id="${bid}" type="button" ${o.disabled?'disabled':''} ${o.readonly?'aria-readonly="true"':''} aria-labelledby="${bid}-l ${bid}-v"><span class="g-datepicker__icon" aria-hidden="true"></span><span class="g-datepicker__value g-datepicker__value--placeholder" id="${bid}-v">${ph}</span></button>`
+  const btn=(bid,lab,ph)=>`<button class="g-datepicker__field" id="${bid}" type="button" ${o.disabled?'disabled':''} ${o.readonly?'aria-readonly="true"':''} aria-labelledby="${bid}-l ${bid}-v"><span class="g-datepicker__icon" aria-hidden="true">${window.lucide('calendar')}</span><span class="g-datepicker__value g-datepicker__value--placeholder" id="${bid}-v">${ph}</span></button>`
   let h=''
   if(o.split)h=`<span class="g-datepicker__label">${o.label}</span><div class="g-datepicker__fields" role="group"><div class="g-datepicker__item"><span class="g-datepicker__label" id="${id}a-l">Desde</span>${btn(id+'a','Desde','Fecha de inicio')}</div><div class="g-datepicker__item"><span class="g-datepicker__label" id="${id}b-l">Hasta</span>${btn(id+'b','Hasta','Fecha de fin')}</div></div>`
   else h=`<span class="g-datepicker__label" id="${id}-l">${o.label}${req}</span>${btn(id,o.label,o.placeholder||'Elige fechas')}`
   if(o.hint)h+=`<div class="g-datepicker__hint">${o.hint}</div>`
-  h+=`<div class="g-datepicker__error" aria-live="polite">${o.error||''}</div>`
+  h+=`<div class="g-datepicker__error" aria-live="polite">${o.error?window.lucide('triangle-alert','g-datepicker__error-icon'):''}${o.error||''}</div>`
   host.innerHTML=h
   return host
 }
@@ -289,7 +292,7 @@ mount({label:'Píldora',rounded:'pill'})
 
 // 1 · estados (mismo marcado del contrato, sin motor)
 ;(()=>{const box=document.getElementById('states');let n=14
-  const cell=(c,t,l,tdc='')=>`<td class="${tdc}"><button type="button" class="g-datepicker__day ${c}" tabindex="-1" aria-label="${l||t}">${t}</button></td>`
+  const cell=(c,t,l,tdc='')=>`<td class="${tdc}"><button type="button" class="g-datepicker__day ${c}" tabindex="-1" aria-label="${l||t}">${t}${/is-today/.test(c)?window.lucide('circle','g-datepicker__today-dot',true):''}</button></td>`
   const one=(name,desc,c)=>`<div class="state"><b>${name}</b><table><tr>${cell(c,n++)}</tr></table><span>${desc}</span></div>`
   box.innerHTML=[['Default','','' ],['Inactive','Antes del inicio','is-inactive'],['Today','Hoy','is-today'],['Hovered','Puntero','is-hover'],['Focused','Foco','is-focus'],['Selected','Círculo','is-selected'],['Selected + Today','Ambos','is-selected is-today'],['Disabled','No disponible','is-disabled'],['Outside Month','Otro mes','is-outside']].map(a=>one(a[0],a[1],a[2])).join('')+
   `<div class="state" style="grid-column:span 2"><b>Start → In Range → End (salta de fila)</b><table><tr>${cell('is-selected',12,'','is-range-start')}${cell('',13,'','is-in-range')}${cell('',14,'','is-in-range is-cap-end')}${cell('',15,'','is-in-range is-cap-start')}${cell('is-selected',16,'','is-range-end')}</tr></table></div>
