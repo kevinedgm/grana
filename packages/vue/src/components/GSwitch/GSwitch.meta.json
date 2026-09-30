@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSwitch",
   "tag": "g-switch",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Interruptor de efecto inmediato con marca de estado en el pulgar, ayuda, error, iconos on/off y carga sin bloqueo.",
   "contract": "design/contracts/switch.md",
@@ -167,7 +167,6 @@
     "loading"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real: rol switch, activado/desactivado, ayuda, error y aria-busy",
     "Firefox y Safari (pseudo-elementos del input, :dir(), :has())"
