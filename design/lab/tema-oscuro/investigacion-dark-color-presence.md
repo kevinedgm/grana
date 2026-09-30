@@ -69,11 +69,23 @@ L mínimo para llegar a |Lc| 45: **0.66 a 0.70** según el tono; a |Lc| 60: **0.
 
 Conclusiones de la simulación: (a) un piso de L de 0.66 a 0.74 **no rompe** `on-*` ni el contraste y conserva casi todo el croma en la mayoría de los tonos; (b) el piso necesario **depende ligeramente del tono** (0.66 en verdes azulados, 0.70 en rojos), así que un piso de L único es una aproximación y una regla basada en ΔE o APCA lo absorbería mejor; (c) el mayor coste es el croma en algunos tonos (mínimo 76 % a 0.66, en cian y azul).
 
+### Revisión visual (paso 1 del plan, hecha)
+
+Herramienta: `packages/cli/scripts/dark-presence-variants.mjs` y `dark-presence-compare.html` (se generan el CSS actual y tres variantes con un piso de L de 0.66, 0.70 y 0.74 en la base oscura de `brand`, `accent` y los cuatro semánticos, **sin tocar la derivación del CLI**). Se compararon cuatro columnas en el playground, tema oscuro, con tres marcas: **carmesí** (`#9D1635` / `#D85A70`), **Lustre** (oro / violeta) y **azul marino** (`#0B1F4D` / `#6D28D9`). Revisión de una sola persona (la del asistente) sobre capturas del playground, **no** una prueba con usuarios.
+
+- **Piso 0.66:** casi indistinguible de la regla actual (la base actual ya queda en L 0.60 a 0.64). Es la menor diferencia y la menor presencia ganada.
+- **Piso 0.70:** botones, enlaces e insignias se ven más claros y más «presentes»; el coral de la marca carmesí sigue leyéndose como rojo.
+- **Piso 0.74:** la presencia sube, pero con **coste de identidad**: el coral de la marca carmesí tira a **rosa salmón**, y **`danger` se vuelve un salmón pastel** (pierde la urgencia: el peligro se reconoce por saturación y por oscuridad relativa, no solo por contraste). Con marino y Lustre la marca no cambia (ya estaba clara), pero `danger` sí.
+- **El piso solo afecta a los colores de luminosidad media**: el oro y el azul marino reflejado no cambian con ningún piso; los que cambian son `accent`, los rojos y los semánticos.
+- **Hallazgo de método:** la primera versión de la variante subía también las bases que la reflexión ya había subido (azul marino) y las **bajaba**; se corrigió para subir solo lo que queda por debajo del piso. Un piso mal definido puede empeorar colores que ya estaban bien.
+
+**Lectura provisional (no es una decisión):** un piso de L uniforme para todo **no es lo ideal**: a 0.66 casi no cambia nada, a 0.74 cuesta identidad y urgencia en rojos y semánticos. Los datos sugieren un punto intermedio (≈ 0.70) y, sobre todo, que los **semánticos de alerta** (`danger`, `warning`) necesitan una regla distinta de la de `accent` (que priorice el croma), o un criterio de ΔE / APCA que no los empuje a pastel.
+
 ### Lo que esta fase NO prueba
 
 - Es una sola superficie oscura (`#1C1C1C`) y croma fijo 0.15 en la simulación.
 - APCA es una segunda opinión **no normativa**; WCAG 2 sigue siendo el suelo del contrato.
-- **No hay revisión visual ni con personas.** Las cifras sugieren menor presencia, pero «se ve apagado» es un juicio estético que falta comprobar en el playground.
+- **La revisión visual es de una sola persona y sobre capturas** (ver arriba); no hay prueba con usuarios ni con pantallas distintas. «Se ve apagado» sigue siendo un juicio estético.
 - No se simuló el efecto sobre `strong` (hover), `soft`, `text` y `on-soft`, ni sobre los semánticos que sí se derivan.
 
 ### Decisiones abiertas (para el usuario y lima)
@@ -84,10 +96,10 @@ Conclusiones de la simulación: (a) un piso de L de 0.66 a 0.74 **no rompe** `on
 
 ### Siguientes pasos
 
-1. Revisión visual en el playground con una rama de pruebas (piso de L 0.66, 0.70 y 0.74) en las 20 marcas y los 4 semánticos.
+1. ~~Revisión visual en el playground (pisos 0.66, 0.70 y 0.74)~~ hecha con 3 temas; falta ampliarla a más marcas (amarillos, verdes, magentas, grises) y a los estados `strong`, `soft` y `text`.
 2. Decidir el objetivo y el alcance (arriba) y, si se adopta una regla, escribirla en `tokens.md` §15 y §16 con su prueba.
 3. Si no se adopta, dejar 4.5:1 como suelo y documentar `dark: { accent, overrides }` como la salida para quien quiera más presencia.
 
 ## Resultado
 
-**Medición hecha; decisión pendiente.** Ninguna regla de derivación cambió.
+**Medición y primera revisión visual hechas; decisión pendiente.** Ninguna regla de derivación cambió. Candidato provisional a evaluar: piso cercano a L 0.70 para `accent`/`brand` y una regla propia (con tope de croma/saturación) para `danger` y `warning`.
