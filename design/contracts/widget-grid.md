@@ -76,7 +76,7 @@ Rejilla adaptable para dashboards: coloca widgets de distintos tamaños (columna
 
 `GWidgetGrid` **proporciona** un contexto (provide/inject) que un `GWidget` dentro de una celda usa **automáticamente**:
 
-- **Acciones:** el widget añade a su menú, después de las suyas y tras un separador, «Mover antes», «Mover después», el encabezado «Tamaño» con los `presets` y «Quitar» (solo con `editable`); y las resuelve solo (emite lo que corresponda a la rejilla).
+- **Acciones:** el widget añade a su menú, después de las suyas y tras un separador, «Mover antes», «Mover después», un **grupo «Tamaño» de opciones** (`type: 'radio'`, una por cada `preset`, con la **marcada la que coincide con el tamaño actual**, si alguna coincide) y un elemento **peligroso** «Quitar» (solo con `editable`); y las resuelve solo (emite lo que corresponda a la rejilla).
 - **Título:** el widget **registra su título** en la rejilla para los anuncios y los nombres de las asas.
 - **Modo de edición:** el widget recibe `is-editing` (oculta el badge y el enlace de detalle, donde van las asas).
 - **Sin rejilla:** un `GWidget` funciona igual, sin nada de lo anterior.

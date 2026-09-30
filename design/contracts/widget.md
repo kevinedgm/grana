@@ -27,7 +27,7 @@
 | `level` | String | `auto` `s` `m` `l` | `auto` | propia (fija el nivel; `auto` lo mide) |
 | `badge` | String \| Number | texto corto | sin valor | propia |
 | `badgeColor` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `neutral` | compartida |
-| `actions` | Array | `[{ id, label, disabled? }]` | `[]` | propia |
+| `actions` | Array | `items` de `GMenu` (`[{ id, label, disabled?, icon?, shortcut?, danger?, type?, checked?, items? }]`) | `[]` | propia |
 | `href` | String | URL del detalle | sin valor | propia |
 | `drilldownLabel` | String | texto libre | sin valor | propia |
 | `updatedText` | String | texto libre («Actualizado hace 5 min») | sin valor | propia |
@@ -48,7 +48,7 @@
   - **`disabled`:** `aria-disabled="true"`, atenuado, y el cuerpo pasa a `inert` (sin foco ni interacción); el menú de acciones sigue disponible.
 - **`level`:** con `auto` el widget lo mide (ver «Niveles»); `s`, `m` o `l` lo fijan (vistas previas, pruebas o contenedores de tamaño conocido).
 - **`badge`:** texto o número corto, **con forma y texto** (no solo color); en el nivel `s` no se muestra. El estado del widget puede sustituirlo (`stale`, `disabled`, `error`).
-- **`actions`:** las acciones del **menú contextual** del encabezado; sin valor por defecto (sin acciones no hay botón de menú). Cada una emite `action` con su `id`.
+- **`actions`:** los elementos del **menú de acciones** del encabezado: el mismo arreglo que los `items` de [`GMenu`](menu.md) (acciones, separadores, grupos, casillas, opciones, submenús y peligrosos); `{ id, label, disabled? }` sigue siendo válido. Sin valor por defecto (sin acciones no hay botón de menú). Cada elemento que se activa emite `action` con `{ id }` (y `checked` si es una casilla u opción).
 - **`href`, `drilldownLabel`:** el pie muestra un enlace de detalle (desde el nivel medio) con `drilldownLabel`; con `href` es un `<a>`; sin `href`, un botón que emite `drilldown`. Solo pide el detalle: **la aplicación abre la página, el diálogo o el panel**.
 - **`updatedText`:** texto de pie («Actualizado hace 5 min»); la aplicación lo compone.
 - **`headless`:** sin encabezado (título, icono, badge, menú); el nombre accesible sigue saliendo de `title`/`aria-label`.
@@ -99,12 +99,15 @@ Se miden el **ancho y el alto propios** con un observador de tamaño (sobre la r
 
 **Nota para bruno:** el estado es un prop (no hay `update:state`); los demás eventos (`click`, `keydown`…) no se declaran. Dentro de una rejilla (`GWidgetGrid`), el widget **añade al menú las acciones de la rejilla** (mover antes, mover después, tamaños y quitar) y las resuelve por sí solo; el resto sigue emitiendo `action`.
 
-## Menú de acciones (patrón *menu button* de APG)
+## Menú de acciones (`GMenu`)
 
-- **Botón** (`g-widget__menu`): `aria-haspopup="menu"`, `aria-expanded`, `aria-controls` y nombre `labels.actions` + título («Acciones de Ingresos»); Enter, Espacio y ↓ abren con el foco en el primero, ↑ en el último.
-- **Lista** (`popover="manual"`, `role="menu"`, `aria-label` con el título): `menuitem`s; ↑ ↓ Inicio Fin se mueven (cíclico); escritura rápida por la inicial; Enter y Espacio eligen; **Esc** cierra y devuelve el foco al botón (y **no** llega a un ancestro); Tab cierra sin devolver el foco; clic fuera cierra. Los deshabilitados son `aria-disabled="true"` y siguen enfocables. Elegir emite `action` y cierra devolviendo el foco (salvo que la acción lo mueva, como «Quitar»).
-- **Posición:** debajo del botón (encima si no cabe), variables CSS dinámicas `--_x`, `--_top`, `--_bottom`, `--_max`.
-- Un **separador** (`role="separator"`) y un **encabezado de grupo** (`role="presentation"`) pueden aparecer cuando la rejilla añade sus acciones.
+`GWidget` **usa [`GMenu`](menu.md)** (DECISIONS.md #82 a #84): el comportamiento (patrón *Menu Button* de APG, teclado, posición, submenús, casillas y opciones) es el de ese contrato.
+
+- **Disparador:** el botón del encabezado (`g-widget__menu`, tres puntos dibujados con CSS) es el slot `trigger` de `GMenu`; su nombre es `labels.actions` + el título («Acciones de Ingresos»).
+- **Lista:** la de `GMenu` (`g-menu__list` y `g-menu__item`); **ya no existen** `g-widget__actions` ni `g-widget__action`. La lista se nombra por el botón.
+- **`action`** se emite con `{ id }` al activar un elemento; en una casilla u opción, con `{ id, checked }`. **El widget no guarda el estado:** la aplicación actualiza `actions`.
+- **Cierre:** como en `GMenu` (`closeOnSelect="auto"`): las acciones cierran y devuelven el foco al botón, salvo que muevan el widget (por ejemplo «Quitar»).
+- Dentro de una rejilla, el widget **añade** las acciones de la rejilla (ver `widget-grid.md`).
 
 ## Textos (`labels`)
 
@@ -135,10 +138,7 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
     </div>
     <span class="g-widget__badge">Mensual</span>
     <button class="g-widget__menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="ID-menu" aria-label="Acciones de Ingresos">…</button>
-    <div class="g-widget__actions" id="ID-menu" role="menu" popover="manual" aria-label="Acciones de Ingresos">
-      <button class="g-widget__action" role="menuitem" tabindex="-1" data-id="refresh">Actualizar</button>
-      <hr role="separator"> …
-    </div>
+    <ul class="g-menu__list" id="ID-menu" role="menu" popover="manual" aria-labelledby="ID-trigger">…</ul>   <!-- GMenu, ver menu.md -->
   </header>
   <div class="g-widget__body"> … slot por nivel, esqueleto, vacío, error … </div>
   <footer class="g-widget__foot"><span>Actualizado hace 5 min</span><a class="g-widget__link" href="/ingresos">Ver detalle</a></footer>
@@ -215,7 +215,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-widget` | Raíz (`article`) | Siempre |
 | `g-widget--level-{s\|m\|l}`, `--shape-{square\|wide\|tall}`, `--state-{…}`, `--density-*`, `--headless`, `is-editing` | Raíz | Siempre (`is-editing` dentro de una rejilla en edición) |
 | `g-widget__head`, `__icon`, `__titles`, `__eyebrow`, `__title`, `__sub`, `__badge` (+ `--color-{color}`) | Encabezado | Según nivel y props (el color del badge sale de `badgeColor`) |
-| `g-widget__menu`, `__actions`, `__action` | Menú de acciones | Con acciones |
+| `g-widget__menu` | Botón del menú de acciones (el resto de clases del menú son de `g-menu__*`) | Con acciones |
 | `g-widget__body`, `__state`, `__stale`, `__skeleton`, `__line`, `__block`, `__sr` | Cuerpo y estados | Según estado |
 | `g-widget__foot`, `__link` | Pie | Desde el nivel `m` |
 | `g-metric` (+ `__label`, `__value`, `__unit`, `__trend`, `--size-*`, `--trend-{color}`) | Métrica | Siempre (`--trend-*` sale de `trendColor`) |
