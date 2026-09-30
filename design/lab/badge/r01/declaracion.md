@@ -1,10 +1,10 @@
 # Declaración de cumplimiento · GBadge · r01
 
-**Estado:** aprobada. Las decisiones de estructura y accesibilidad se derivan de estándares (WCAG 2.2 AA: 1.1.1, 1.3.1, 1.4.1, 1.4.11, 4.1.2). El usuario decidió el alcance: **insignia no interactiva**; entran **texto + punto de estado, contador numérico con tope, icono opcional, anclada a otro elemento**, y además **insignias de figura o icono solo, para estatus**.
+**Estado:** aprobada. Las decisiones de estructura y accesibilidad se derivan de estándares (WCAG 2.2 AA: 1.1.1, 1.3.1, 1.4.1, 1.4.11, 4.1.2). El usuario decidió el alcance: **insignia no interactiva**; entran **texto + punto de estado, contador numérico con tope, icono opcional, anclada a otro elemento**, y además **insignias de figura o icono solo, para estatus**. Después el usuario pidió una **variante `glass` (liquid glass)**: entra en esta misma ronda (decisiones 14 a 17).
 **Ruta:** R1 · **Fidelidad:** F2 · **Material:** kit neutral de grises (sin color: el significado se lee por texto, figura o icono, que es justo lo que se quiere demostrar).
 **Siguiente dueño:** lima → `design/contracts/badge.md`.
 
-`solid`, `soft`, `outline` × tamaños `sm`, `md`, `lg`; texto + punto (círculo, cuadrado, rombo, triángulo); texto + icono; solo icono (`solid`, `soft`, `outline`, 3 tamaños); solo figura (4 formas, 3 tamaños); contador (0 oculto, 1, 12, 99, 100 → 99+, `showZero`, tope 9); anclada (cuatro esquinas, sobre avatar y sobre botón); RTL; texto largo (elipsis a 160px).
+`solid`, `soft`, `outline` y **`glass`** × tamaños `sm`, `md`, `lg`; texto + punto (círculo, cuadrado, rombo, triángulo); texto + icono; solo icono (`solid`, `soft`, `outline`, 3 tamaños); solo figura (4 formas, 3 tamaños); contador (0 oculto, 1, 12, 99, 100 → 99+, `showZero`, tope 9); anclada (cuatro esquinas, sobre avatar y sobre botón); RTL; texto largo (elipsis a 160px).
 
 ## Decisiones de estructura
 
@@ -22,6 +22,10 @@
 | 10 | El destino conserva su nombre (`aria-label` del botón o avatar); la insignia se lee **después** («Bandeja de entrada, 120 mensajes sin leer») | WCAG 4.1.2 |
 | 11 | Texto largo: una línea con elipsis (`text-overflow`), el texto completo sigue en el DOM para lectores (verificado a 160px) | WCAG 1.4.10 |
 | 12 | Las figuras se dibujan con formas de CSS, no con un relleno de fondo que `forced-colors` elimine (círculo y cuadrado con `currentColor`, rombo girado, triángulo con bordes) | WCAG 1.4.1 con colores forzados |
+| 14 | **Variante `glass` (liquid glass):** velo blanco translúcido de **al menos 60%**, desenfoque y saturación del fondo (`backdrop-filter`), borde luminoso, brillo especular en la mitad superior y sombra suave; texto oscuro. Se prueba sobre fondo oscuro, tipo foto, de rayas (el peor caso) y claro (verificado: legible en los cuatro) | Petición del usuario; lenguaje de superficies del sistema con profundidad sutil |
+| 15 | **El cristal no puede hacer ilegible el texto:** con el velo al 62% y el texto oscuro, el contraste **peor caso** (fondo negro) es **6.15:1**, y 10.17:1 sobre un rojo saturado, 10.58 sobre gris y 16.48 sobre blanco (cálculo del compuesto; el desenfoque promedia el fondo, así que un fondo de rayas no baja de la mezcla gris) | WCAG 1.4.3: un fondo arbitrario detrás no debe romper el 4.5:1; el velo mínimo es una regla de diseño, no un valor de gusto |
+| 16 | **Respaldo opaco** en tres casos: sin `backdrop-filter` (`@supports`), con `prefers-reduced-transparency: reduce` y con colores forzados: relleno sólido `soft`, sin desenfoque ni sombra (verificado con el interruptor «sin transparencia»: `backdrop-filter: none` y fondo `rgb(228 228 228)`) | Accesibilidad (transparencia reducida, navegadores sin soporte); WCAG 1.4.1 con colores forzados |
+| 17 | En `glass` el color no tiñe el cristal: el **significado** lo siguen dando el texto, la figura o el icono (con su color en la figura y el punto); el velo se mantiene blanco para conservar el contraste. Sobre un fondo claro, el borde del cristal casi desaparece: la insignia se reconoce por su texto, su sombra y su brillo, no por el borde | WCAG 1.4.1 y 1.4.3; una insignia no interactiva no exige contorno de 3:1 |
 | 13 | Convención de figuras para estatus (la aplicación la ratifica): círculo = en línea o correcto, cuadrado = detenido, rombo = advertencia, triángulo = error | Diferenciar por forma cuando el color no basta |
 
 ## Criterios revisados
@@ -34,6 +38,7 @@
 | WCAG 1.4.10 Reajuste | Cumple | Elipsis a 160px, sin desborde horizontal |
 | WCAG 2.4.3 Orden del foco | Cumple | 0 insignias enfocables; Tab pasa al botón anclado sin detenerse en la insignia |
 | WCAG 4.1.2 Nombre, función, valor | Cumple por diseño, sin confirmar con lector real | Sin rol interactivo; nombre por texto oculto |
+| WCAG 1.4.3 Contraste del texto sobre cristal | Cumple por cálculo (peor caso 6.15:1) | Compuesto del velo al 62% sobre negro, gris, blanco y rojo saturado; a confirmar por coco con el tema real |
 | WCAG 1.4.11 Contraste no textual | Sin verificar | Lo audita coco con el tema real (figuras e iconos ≥ 3:1) |
 
 ## Comprobaciones ejecutadas
@@ -45,10 +50,13 @@
 - Texto largo: elipsis y sin desborde.
 - Corregido durante la ronda: las figuras solas medían 0 de alto (`min-block-size` no da una altura definida al `100%` interior); se les dio `block-size`.
 
+- Cristal: 28 insignias `glass` sobre fondo oscuro, tipo foto, de rayas y claro (legibles); 0 enfocables; las que no llevan texto visible, con texto para lectores; `backdrop-filter: blur(14px) saturate(1.8)` activo; con «sin transparencia», `backdrop-filter: none` y relleno opaco.
+
 ## Comprobaciones NO ejecutadas
 
 - **Lector de pantalla real** (VoiceOver, NVDA, TalkBack): cómo se anuncian la insignia sin texto y la anclada junto a su destino.
 - **Contraste** (texto 4.5:1; figuras e iconos 3:1), colores reales y `forced-colors`: lo audita coco.
+- **`prefers-reduced-transparency` real** (el prototipo usa un interruptor; la consulta no está en todos los navegadores) y `backdrop-filter` en Firefox y Safari.
 - Zoom al 200% y dispositivo táctil (no aplica: no hay interacción).
 
 ## Hallazgos para lima
@@ -66,3 +74,8 @@
 | 9 | Anuncios | Media | Sin región viva |
 | 10 | Atributos | Baja | `class`, `style` y `data-*` a la raíz (la insignia, o el envoltorio si es anclada); sin eventos declarados (no es interactiva) |
 | 11 | Elipsis | Baja | Una línea, `max-inline-size: 100%` |
+| 12 | Variante `glass` | Alta | `variant`: `solid`, `soft`, `outline` y `glass`. Con `glass`, la insignia lleva velo blanco de ≥ 60% de opacidad, `backdrop-filter`, borde y brillo; **el velo mínimo se define con un token** (lima) para que el texto oscuro no baje de 4.5:1 sobre un fondo negro |
+| 13 | Tokens del cristal | Alta | Tokens nuevos para lima: al menos el velo (`--g-glass-tint`, con su opacidad) y el desenfoque (`--g-glass-blur`); el brillo y la sombra pueden salir de tokens vigentes (`--g-shadow-1`). Reutilizables por otros componentes (dialog, popover, barra) |
+| 14 | Respaldos | Alta | Sin `backdrop-filter` (`@supports`), con `prefers-reduced-transparency: reduce` y con `forced-colors`, `glass` se ve como `soft` (opaco, sin desenfoque) |
+| 15 | `color` en `glass` | Media | El velo es neutro; `color` solo tiñe la figura, el punto y el icono. Decisión de lima si `glass` acepta `color` o lo ignora con aviso |
+| 16 | Contraste | Media | El texto de `glass` usa el color de texto del tema; coco verifica ≥ 4.5:1 con el peor fondo (negro) con el tema por defecto y con el de prueba |

@@ -7,7 +7,7 @@
 
 Un **desarrollador que usa Grana** necesita **mostrar un estado, una categoría o una cantidad en un espacio mínimo** (Activo, Pendiente, «Nuevo», 12 mensajes sin leer, un punto de conexión) porque casi toda lista, tabla, tarjeta y barra de navegación lo usa, y cada insignia debe **comunicar su significado sin depender solo del color** y llegar con nombre accesible cuando no lleva texto, sin que el desarrollador lo reconstruya.
 
-Decisiones del usuario (respuestas de alcance): **insignia no interactiva**; entran **texto + punto de estado, contador numérico con tope, icono opcional en la insignia, superponer sobre otro elemento (anclada)** y, además, **insignias que sean figuras o que sirvan para estatus, solo iconos o figuras**.
+Decisiones del usuario (respuestas de alcance, y después la variante **`glass`** / liquid glass): **insignia no interactiva**; entran **texto + punto de estado, contador numérico con tope, icono opcional en la insignia, superponer sobre otro elemento (anclada)** y, además, **insignias que sean figuras o que sirvan para estatus, solo iconos o figuras**.
 
 ## Pregunta de diseño
 
@@ -69,6 +69,6 @@ Ninguna (solo presentación). El riesgo es de **significado**: una insignia solo
 
 | Must | Should | Could | Won't (v0.1) |
 | --- | --- | --- | --- |
-| Insignia de texto (`solid`, `soft`, `outline`, 7 colores, 3 tamaños) | Punto de estado con forma | Animación al cambiar el contador | Insignia interactiva o cerrable (chip) |
+| Insignia de texto (`solid`, `soft`, `outline`, **`glass`**, 7 colores, 3 tamaños) | Punto de estado con forma | Animación al cambiar el contador | Insignia interactiva o cerrable (chip) |
 | Solo icono y solo figura, con nombre accesible obligatorio | Contador con tope y `showZero` | | Avatar (componente aparte) |
 | Anclada a otro elemento (cuatro esquinas) | Icono junto al texto | | Anuncios automáticos (región viva) |
