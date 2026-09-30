@@ -53,3 +53,51 @@
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real (incluido el riesgo de `aria-activedescendant` en la hoja móvil); la hoja con el teclado virtual; preferencias reales de `prefers-reduced-motion` y `forced-colors`; Firefox y Safari (`popover`, `::backdrop`, `:popover-open`, `:has()`); tema oscuro (no existe).
+
+---
+
+# Ronda r02 · prefijo, iconos y fila «Agregar nuevo…»
+
+**Contrato:** `design/contracts/select.md` (DECISIONS.md #57 y #58). **Banco:** los casos `r02 · …` de `estilo-banco.html` (motor con prefijo, iconos y la fila).
+
+## Carácter propio
+
+| Detalle | Cómo |
+| --- | --- |
+| **Prefijo** (`g-select__prepend`) | Icono decorativo dentro del botón, antes del valor, en `--g-color-text-subtle` (como `prepend` de `GInput`) |
+| **Icono de opción y de valor** (`g-select__icon`) | Caja de `1.25em` centrada, en `--g-color-text-muted`; en el valor se alinea con el texto (`vertical-align`) y no rompe la elipsis |
+| **El icono del valor sustituye al prefijo** | `:has(.g-select__value > .g-select__icon)` oculta el prefijo: una sola posición inicial, sin dos iconos seguidos |
+| **Fila «Agregar nuevo…»** (`g-select__create`) | Línea superior de separación (`--g-color-border`), peso de acción, esquinas superiores rectas y **«+» dibujado con dos pseudo-elementos de borde** (sobrevive a `forced-colors`; en RTL se coloca con propiedades lógicas) |
+| **Altura** | La misma que una opción (`--_opt`, 44px con puntero grueso); si el texto es largo, la fila crece y el «+» sigue centrado |
+| **Activa** | Igual que una opción activa (relleno + contorno de foco) |
+
+## Verificación en Chromium (banco de pruebas)
+
+| Prueba | Resultado |
+| --- | --- |
+| Literales | Sin colores; medidas solo `24px`, `44px`, `0px` y `520px`; sin `var()` con respaldo, sin `@layer` |
+| Alturas | Con prefijo, la caja mide igual que sin él (45px con `space` 5): el icono no cambia la altura |
+| Contraste (tema por defecto) | Texto de la fila 17.4:1 · «+» 17.4 · icono de opción 6.9 · prefijo 5.1 · fila activa 16.1 |
+| Contraste (tema de prueba) | Texto de la fila 13.27 · «+» 13.27 · icono de opción 5.7 · prefijo 5.93 · fila activa 10.29 |
+| Cambio de tema | Las **576** propiedades medidas cambian; ninguna conserva el valor por defecto |
+| Fila con el tema | 45px, separador de 2px (`--g-border-width`), relleno inicial de 36.2px (`--_px` + «+» + separación) |
+| Táctil (`pointer: coarse`) | Fila y opciones de 45px (≥ 44px) |
+| Colores forzados (bloque aplicado sin condición) | Separador `CanvasText`; el «+» (bordes de 4px) se mantiene |
+| RTL | El «+» pasa a la derecha y el relleno al lado derecho (36.2px); a la izquierda, 15px |
+| Lista vacía + crear | Mensaje y debajo la fila, activa por defecto |
+| Texto largo | La fila parte el texto y crece; sin desborde horizontal en la lista ni en la página |
+| Errores de consola | Ninguno |
+
+## Observación
+
+El **separador** de la fila (`--g-color-border`) no llega a 3:1 (1.75:1 con el tema de prueba) porque es un refuerzo decorativo: la fila se identifica por su texto (13:1 o más) y por el «+» dibujado (13:1 o más), no por la línea.
+
+## Notas para bruno
+
+- `g-select__create` va **además** de `g-select__option` en el `li`; `is-active` se pone igual que en una opción.
+- `g-select__prepend` va dentro del botón, **antes** de `g-select__value`; `g-select__icon` va como primer hijo de `g-select__value` (valor) y de cada `li` de opción.
+- El «+» lo dibuja el CSS: la fila solo lleva el texto de `createLabel`.
+
+## Sin verificar
+
+Lector de pantalla real (cómo anuncia la fila crear y los iconos); Firefox y Safari; preferencias reales del sistema.

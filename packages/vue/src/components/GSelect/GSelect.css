@@ -127,6 +127,30 @@
 .g-select__value--placeholder {
   color: var(--g-color-text-subtle);
 }
+/* Prefijo (slot prepend): icono decorativo dentro del botón, antes del valor */
+.g-select__prepend {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--g-color-text-subtle);
+}
+/* Icono de una opción y del valor mostrado (slot icon). El del valor sustituye al prefijo: una sola
+   posición inicial, sin dos iconos seguidos. */
+.g-select__icon {
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  inline-size: 1.25em;
+  block-size: 1.25em;
+  color: var(--g-color-text-muted);
+}
+.g-select__value > .g-select__icon {
+  vertical-align: -0.25em;
+  margin-inline-end: calc(var(--_gap) * var(--_density));
+}
+.g-select__button:has(.g-select__value > .g-select__icon) .g-select__prepend {
+  display: none;
+}
 /* Flecha decorativa: dos bordes rotados (sobrevive a forced-colors) */
 .g-select__arrow {
   flex: none;
@@ -296,6 +320,39 @@
 .g-select__empty {
   padding: var(--g-space-3) calc(var(--_px) * var(--_density));
   color: var(--g-color-text-muted);
+}
+/* Fila «Agregar nuevo…»: una fila de acción al final; línea superior, «+» dibujado con dos bordes (sobrevive
+   a forced-colors) y peso de acción. No depende del color para distinguirse. */
+.g-select__create {
+  position: relative;
+  margin-block-start: var(--g-space-1);
+  padding-inline-start: calc(var(--_px) * var(--_density) + var(--_fs) * 0.8 + var(--_gap) * var(--_density));
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  font-weight: var(--g-text-action-weight);
+}
+.g-select__create::before,
+.g-select__create::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--_px) * var(--_density));
+  inset-block-start: 50%;
+  box-sizing: border-box;
+  color: var(--g-color-text);
+}
+.g-select__create::before {
+  inline-size: calc(var(--_fs) * 0.8);
+  block-size: 0;
+  border-block-start: calc(var(--g-border-width) * 2) solid currentColor;
+  translate: 0 -50%;
+}
+.g-select__create::after {
+  inline-size: 0;
+  block-size: calc(var(--_fs) * 0.8);
+  margin-inline-start: calc(var(--_fs) * 0.4 - var(--g-border-width));
+  border-inline-start: calc(var(--g-border-width) * 2) solid currentColor;
+  translate: 0 -50%;
 }
 @media (prefers-reduced-motion: no-preference) {
   .g-select__list:popover-open {
@@ -498,6 +555,9 @@
   }
   .g-select__option.is-active {
     outline-color: Highlight;
+  }
+  .g-select__create {
+    border-color: CanvasText;
   }
   .g-select.is-disabled .g-select__control,
   .g-select__option[aria-disabled="true"] {
