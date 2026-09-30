@@ -1,0 +1,26 @@
+{
+  "name": "@grana/cli",
+  "version": "0.0.0",
+  "description": "Genera y valida el tema de Grana: deriva color en OKLCH y rechaza temas que rompan los mínimos de accesibilidad.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "grana": "./bin/grana.mjs"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

@@ -18,7 +18,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `fontSize` | número (px) | `16` | Tamaño `body` |
 | `typeScale` | número | `1.4` | Razón de la escala de títulos |
 
-Cualquier token derivado puede sobrescribirse explícitamente (uso avanzado).
+Cualquier token derivado puede sobrescribirse explícitamente (uso avanzado). En el CLI, la clave `overrides` es un objeto `{ "--g-token": "valor" }`; se aplica después de generar y el resultado se valida igual. Los colores semánticos (`success`, `warning`, `danger`, `info`, `neutral`) no tienen entrada propia: se cambian con `overrides`.
 
 ## 2. Color
 
@@ -94,8 +94,9 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 | `title-lg` | fontSize × typeScale³ |
 | `display` | fontSize × typeScale⁴, familia `fontDisplay` |
 
-- Interlineado: de 1.5 (`body`) a 1.1 (`display`) interpolado por tamaño, redondeado a múltiplos de 4px.
-- Tracking: de 0 (`body`) a −0.03em (`display`).
+- Interlineado: razón fija por rol × tamaño, redondeado a múltiplos de 4px (mínimo 4px). Razones: `caption` 1.333, `body-sm` 1.43, `body` 1.5, `title-sm` 1.4, `title` 1.44, `title-lg` 1.28, `display` 1.23. (Sustituye a la regla «interpolado»: no reproducía el tema por defecto; la tabla sí, exactamente.)
+- Tracking (em): `caption`/`body-sm`/`body` 0, `title-sm` −0.004, `title` −0.008, `title-lg` −0.014, `display` −0.022.
+- Peso: `caption` 500, `body-sm`/`body` 400, títulos y `display` 600.
 - Salida en `rem`.
 - Fuente por defecto: **Instrument Sans** (OFL), incluida en `@grana/vue` como archivos `.woff2` separados, con su propia hoja `@grana/vue/fonts.css` (opcional). No se aloja en un CDN de terceros. Como `@font-face` solo descarga una fuente cuando un texto visible la usa, y cada archivo cubre un rango de caracteres, el navegador descarga solo lo necesario.
 - La fuente **no** va dentro de `grana.css`: en modo librería, Vite incrusta en base64 todo archivo que el CSS referencie, y eso obligaría a todos a descargarla.
@@ -178,7 +179,7 @@ Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin ca
 @layer grana.defaults, grana.components;
 ```
 
-- `grana.defaults`: tema por defecto (lo genera el CLI desde la configuración propia de Grana).
+- `grana.defaults`: tema por defecto. Sigue siendo de coco (`styles/defaults.css`); el CLI **no** lo regenera. Al revés: `packages/cli/src/defaults.js` se copia de `defaults.css` (`node packages/cli/scripts/sync-defaults.mjs`) y una prueba falla si se desfasan.
 - `grana.components`: CSS de los componentes.
 - El `tokens.css` del usuario va **sin capa**: gana siempre, sin importar el orden de carga.
 
