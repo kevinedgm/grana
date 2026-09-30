@@ -1,0 +1,284 @@
+/*
+  GBtn · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/btn.md. Estructura: design/lab/btn/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-btn {
+  /* Color (se reasigna por modificador --color-*) */
+  --_base: var(--g-color-brand);
+  --_strong: var(--g-color-brand-strong);
+  --_soft: var(--g-color-brand-soft);
+  --_text: var(--g-color-brand-text);
+  --_on: var(--g-color-on-brand);
+  --_on-soft: var(--g-color-on-brand-soft);
+
+  /* Variante (se reasigna por modificador --variant-*); por defecto: solid */
+  --_bg: var(--_base);
+  --_fg: var(--_on);
+  --_border: transparent;
+  --_bg-hover: var(--_strong);
+  --_fg-hover: var(--_on);
+  --_border-hover: transparent;
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-4);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-shape);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  /* El padding sale de la altura objetivo: así el alto es exacto y la densidad sí lo reduce.
+     Con varias líneas, el botón crece. Si el cálculo diera negativo, el navegador lo recorta a 0. */
+  padding-block: calc((var(--_h) - var(--_lh)) / 2 - var(--g-border-width));
+  padding-inline: calc(var(--_px) * var(--_density));
+  vertical-align: middle;
+
+  font-family: var(--g-font-ui);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-weight: var(--g-text-action-weight);
+  text-align: center;
+  text-decoration: none;
+
+  color: var(--_fg);
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-radius: var(--_radius);
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+
+/* Área táctil: no cambia el aspecto, solo la zona que recibe el toque */
+.g-btn::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: max(100%, 24px);
+  block-size: max(100%, 24px);
+}
+@media (pointer: coarse) {
+  .g-btn::after {
+    inline-size: max(100%, 44px);
+    block-size: max(100%, 44px);
+  }
+}
+
+/* ---------- Anatomía ---------- */
+.g-btn__prepend,
+.g-btn__append {
+  display: inline-flex;
+  flex: none;
+}
+.g-btn__label {
+  min-inline-size: 0;
+}
+.g-btn__loader {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  box-sizing: border-box;
+  border: calc(var(--g-border-width) * 2) solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: var(--g-radius-pill);
+  animation: g-btn-spin var(--g-duration-spin) linear infinite;
+}
+.g-btn__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@keyframes g-btn-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Color ---------- */
+.g-btn--color-brand {
+  --_base: var(--g-color-brand); --_strong: var(--g-color-brand-strong); --_soft: var(--g-color-brand-soft);
+  --_text: var(--g-color-brand-text); --_on: var(--g-color-on-brand); --_on-soft: var(--g-color-on-brand-soft);
+}
+.g-btn--color-accent {
+  --_base: var(--g-color-accent); --_strong: var(--g-color-accent-strong); --_soft: var(--g-color-accent-soft);
+  --_text: var(--g-color-accent-text); --_on: var(--g-color-on-accent); --_on-soft: var(--g-color-on-accent-soft);
+}
+.g-btn--color-neutral {
+  --_base: var(--g-color-neutral); --_strong: var(--g-color-neutral-strong); --_soft: var(--g-color-neutral-soft);
+  --_text: var(--g-color-neutral-text); --_on: var(--g-color-on-neutral); --_on-soft: var(--g-color-on-neutral-soft);
+}
+.g-btn--color-success {
+  --_base: var(--g-color-success); --_strong: var(--g-color-success-strong); --_soft: var(--g-color-success-soft);
+  --_text: var(--g-color-success-text); --_on: var(--g-color-on-success); --_on-soft: var(--g-color-on-success-soft);
+}
+.g-btn--color-warning {
+  --_base: var(--g-color-warning); --_strong: var(--g-color-warning-strong); --_soft: var(--g-color-warning-soft);
+  --_text: var(--g-color-warning-text); --_on: var(--g-color-on-warning); --_on-soft: var(--g-color-on-warning-soft);
+}
+.g-btn--color-danger {
+  --_base: var(--g-color-danger); --_strong: var(--g-color-danger-strong); --_soft: var(--g-color-danger-soft);
+  --_text: var(--g-color-danger-text); --_on: var(--g-color-on-danger); --_on-soft: var(--g-color-on-danger-soft);
+}
+.g-btn--color-info {
+  --_base: var(--g-color-info); --_strong: var(--g-color-info-strong); --_soft: var(--g-color-info-soft);
+  --_text: var(--g-color-info-text); --_on: var(--g-color-on-info); --_on-soft: var(--g-color-on-info-soft);
+}
+
+/* ---------- Variante: solo reasigna a qué color apunta cada propiedad ---------- */
+.g-btn--variant-solid {
+  --_bg: var(--_base); --_fg: var(--_on); --_border: transparent;
+  --_bg-hover: var(--_strong); --_fg-hover: var(--_on); --_border-hover: transparent;
+}
+.g-btn--variant-soft {
+  --_bg: var(--_soft); --_fg: var(--_on-soft); --_border: transparent;
+  --_bg-hover: var(--_soft); --_fg-hover: var(--_on-soft);
+  --_border-hover: color-mix(in srgb, var(--_on-soft) 30%, transparent);
+}
+.g-btn--variant-outline {
+  --_bg: transparent; --_fg: var(--_text); --_border: var(--_text);
+  --_bg-hover: var(--_soft); --_fg-hover: var(--_on-soft); --_border-hover: var(--_text);
+}
+.g-btn--variant-ghost {
+  --_bg: transparent; --_fg: var(--_text); --_border: transparent;
+  --_bg-hover: var(--_soft); --_fg-hover: var(--_on-soft); --_border-hover: transparent;
+}
+.g-btn--variant-link {
+  --_bg: transparent; --_fg: var(--_text); --_border: transparent;
+  --_bg-hover: transparent; --_fg-hover: var(--_text); --_border-hover: transparent;
+  min-block-size: 0;
+  padding-inline: 0;
+  padding-block: 0;
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Tamaño ---------- */
+.g-btn--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-btn--size-sm { --_units: 7;  --_px: var(--g-space-3); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-btn--size-md { --_units: 9;  --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-btn--size-lg { --_units: 11; --_px: var(--g-space-5); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-btn--size-xl { --_units: 13; --_px: var(--g-space-6); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-btn--density-default { --_density: 1; }
+.g-btn--density-comfortable { --_density: 0.875; }
+.g-btn--density-compact { --_density: 0.75; }
+
+/* ---------- Forma ---------- */
+.g-btn--rounded-none { --_radius: var(--g-radius-none); }
+.g-btn--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-btn--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-btn--rounded-md { --_radius: var(--g-radius-md); }
+.g-btn--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-btn--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-btn--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Modificadores ---------- */
+.g-btn--block {
+  display: flex;
+  inline-size: 100%;
+}
+.g-btn--icon {
+  inline-size: var(--_h);
+  padding-inline: 0;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-btn:hover {
+    color: var(--_fg-hover);
+    background: var(--_bg-hover);
+    border-color: var(--_border-hover);
+  }
+  .g-btn--variant-link:hover {
+    text-decoration-thickness: calc(var(--g-border-width) * 2);
+  }
+}
+.g-btn:active {
+  color: var(--_fg-hover);
+  background: var(--_bg-hover);
+  border-color: var(--_border-hover);
+}
+.g-btn:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* disabled: fuera del contraste mínimo por norma (WCAG 1.4.3 exime controles inactivos), pero legible */
+.g-btn:disabled,
+.g-btn.is-disabled {
+  --_bg: var(--g-color-neutral-soft); --_fg: var(--g-color-text-subtle); --_border: transparent;
+  --_bg-hover: var(--g-color-neutral-soft); --_fg-hover: var(--g-color-text-subtle); --_border-hover: transparent;
+  cursor: not-allowed;
+}
+.g-btn--variant-ghost:disabled,
+.g-btn--variant-ghost.is-disabled,
+.g-btn--variant-link:disabled,
+.g-btn--variant-link.is-disabled {
+  --_bg: transparent;
+  --_bg-hover: transparent;
+}
+
+/* loading: conserva el color y el ancho; la etiqueta ocupa su espacio sin verse */
+.g-btn.is-loading {
+  cursor: progress;
+}
+.g-btn.is-loading .g-btn__loader {
+  display: block;
+}
+.g-btn.is-loading .g-btn__label,
+.g-btn.is-loading .g-btn__prepend,
+.g-btn.is-loading .g-btn__append {
+  visibility: hidden;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-btn {
+    transition: none;
+  }
+  .g-btn__loader {
+    animation: none;
+  }
+}
+@media (forced-colors: active) {
+  .g-btn {
+    border-color: ButtonText;
+  }
+  .g-btn:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-btn:disabled,
+  .g-btn.is-disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

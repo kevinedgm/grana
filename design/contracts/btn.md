@@ -76,7 +76,29 @@
 | `--g-font-ui` | Familia |
 | `--g-text-caption-size` (`xs`), `--g-text-body-sm-size` (`sm`, `md`), `--g-text-body-size` (`lg`, `xl`) | Tamaño de la etiqueta |
 
-**Tokens nuevos:** ninguno.
+**Tokens nuevos:** `--g-radius-shape`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-spin`, `--g-ease-standard`, `--g-text-action-weight`. Surgieron al escribir el CSS (coco) y se agregaron al contrato global (lima).
+
+## Clases (contrato entre bruno y coco)
+
+Bruno las emite; coco las estiliza. Ninguno usa otras.
+
+| Clase | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-btn` | Raíz (`button` o `a`) | Siempre |
+| `g-btn--color-{color}` | Raíz | Siempre (valor del prop, incluido el defecto) |
+| `g-btn--variant-{variant}` | Raíz | Siempre |
+| `g-btn--size-{size}` | Raíz | Siempre |
+| `g-btn--density-{density}` | Raíz | Siempre |
+| `g-btn--rounded-{rounded}` | Raíz | Solo si el prop tiene valor; si no, rige `--g-radius-shape` |
+| `g-btn--block` | Raíz | `block` |
+| `g-btn--icon` | Raíz | `icon` |
+| `is-disabled` | Raíz | `disabled` (junto al atributo nativo o a `aria-disabled` en `<a>`) |
+| `is-loading` | Raíz | `loading` |
+| `g-btn__prepend` | Envoltura del slot `prepend` | Si hay slot |
+| `g-btn__label` | Envoltura del slot `default` | Siempre |
+| `g-btn__append` | Envoltura del slot `append` | Si hay slot |
+| `g-btn__loader` | `span` vacío, `aria-hidden="true"` | Siempre presente; visible solo con `is-loading` |
+| `g-btn__status` | Región `role="status"`, hermana de la raíz | Siempre presente |
 
 ## Teclado
 

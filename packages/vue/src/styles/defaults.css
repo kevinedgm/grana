@@ -82,6 +82,18 @@
   --g-radius-lg: 8px;
   --g-radius-xl: 12px;
   --g-radius-pill: 999px;
+  /* Radio de piezas con forma (botón, chip, insignia): md, o pill si el tema pide shape: "pill" */
+  --g-radius-shape: var(--g-radius-md);
+
+  /* Bordes y foco */
+  --g-border-width: 1px;
+  --g-focus-width: 2px;
+  --g-focus-offset: 2px;
+
+  /* Movimiento */
+  --g-duration-fast: 120ms;
+  --g-duration-spin: 800ms;
+  --g-ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
   /* Espaciado · space 4 */
   --g-space-1: 4px;
@@ -134,6 +146,9 @@
   --g-text-display-line: 3rem;
   --g-text-display-tracking: -0.022em;
   --g-text-display-weight: 600;
+
+  /* Peso de las etiquetas de acción (botones, pestañas) */
+  --g-text-action-weight: 500;
 
   /* Sombras · discretas: el tema prefiere bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);

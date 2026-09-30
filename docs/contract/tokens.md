@@ -105,7 +105,29 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-font-{ui|title|display}
 --g-text-{caption|body-sm|body|title-sm|title|title-lg|display}-{size|line|tracking|weight}
 --g-shadow-{1|2|3}
+--g-radius-shape
+--g-border-width
+--g-focus-{width|offset}
+--g-duration-{fast|spin}
+--g-ease-standard
+--g-text-action-weight
 ```
+
+### Tokens de estructura (agregados al escribir `GBtn.css`)
+
+El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS de un componente tendría que usar literales.
+
+| Token | Defecto | Para qué |
+| --- | --- | --- |
+| `--g-radius-shape` | `var(--g-radius-md)` | Radio de botón, chip e insignia. El CLI lo pone en `var(--g-radius-pill)` si el tema tiene `shape: "pill"` |
+| `--g-border-width` | 1px | Grosor de bordes de controles |
+| `--g-focus-width` / `--g-focus-offset` | 2px / 2px | Anillo de foco |
+| `--g-duration-fast` | 120ms | Cambios de estado (hover, activo) |
+| `--g-duration-spin` | 800ms | Una vuelta del indicador de carga |
+| `--g-ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Curva de los cambios de estado |
+| `--g-text-action-weight` | 500 | Peso de las etiquetas de acción |
+
+**Límite:** `--g-focus-width` es sobrescribible, pero el CLI rechaza un tema con valor menor a 2px (WCAG 2.4.13 recomienda al menos 2px).
 
 Tokens de componente (`--g-btn-radius`) solo cuando un caso real lo justifique, y se registran aquí.
 
@@ -121,7 +143,7 @@ Tokens de componente (`--g-btn-radius`) solo cuando un caso real lo justifique, 
 
 El CLI rechaza un tema que no los cumpla.
 
-Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil). Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`.
+Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil). También se permite el patrón estándar de texto oculto para lectores de pantalla (`1px`, `-1px`, `clip-path: inset(50%)`), que es una técnica de accesibilidad y no un valor estético. Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`.
 
 ## 8. Mecanismo
 
