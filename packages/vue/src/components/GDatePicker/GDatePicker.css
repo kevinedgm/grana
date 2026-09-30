@@ -359,8 +359,15 @@
   inset-block: calc(var(--_cell) * 0.1);
   inset-inline: 0;
   z-index: 0;
+  box-sizing: border-box;
   background: var(--_soft);
   opacity: 0;
+}
+/* Bordes superior e inferior en border-control (3:1): la franja es un elemento gráfico y su relleno suave solo no llega a 3:1 (DECISIONS #89) */
+.g-datepicker__grid td.is-in-range::before,
+.g-datepicker__grid td.is-range-start::before,
+.g-datepicker__grid td.is-range-end::before {
+  border-block: var(--g-border-width) solid var(--g-color-border-control);
 }
 .g-datepicker__grid td.is-in-range::before,
 .g-datepicker__grid td.is-range-start::before,

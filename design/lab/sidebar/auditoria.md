@@ -32,7 +32,7 @@
 
 ## Observaciones (no bloquean; requieren decisión)
 
-- **La superficie del item activo es tenue frente a la carcasa:** **1.08:1** con el tema por defecto y **1.20:1** con el de prueba. Lo sostienen el contorno de `--g-color-border-strong`, el peso, el texto pleno (frente al atenuado) y, semánticamente, `aria-current`. Es lo que pidió el usuario («superficie ligeramente elevada, sin indicadores estridentes»). La salida, si no basta, es un contorno más fuerte (`border-control`), no un color de acento: decisión de estética.
+- **(Resuelto, DECISIONS #89: barra de acento al inicio)** La superficie del item activo es tenue frente a la carcasa:** **1.08:1** con el tema por defecto y **1.20:1** con el de prueba. Lo sostienen el contorno de `--g-color-border-strong`, el peso, el texto pleno (frente al atenuado) y, semánticamente, `aria-current`. Es lo que pidió el usuario («superficie ligeramente elevada, sin indicadores estridentes»). La salida, si no basta, es un contorno más fuerte (`border-control`), no un color de acento: decisión de estética.
 - **El navbar con la píldora activa deja a los items inactivos sin nombre visible:** un usuario nuevo no ve sus etiquetas (existen para lectores y en la píldora del actual). Ya está documentado en el contrato como límite conocido.
 - **Etiquetas del navbar largas:** con 5 celdas en ~340px se recortan con elipsis; deben ser de una palabra o la barra, de 4 items o menos.
 

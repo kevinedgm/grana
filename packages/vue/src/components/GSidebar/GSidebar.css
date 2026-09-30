@@ -296,13 +296,24 @@
     color: var(--g-color-text);
   }
 }
-/* Activo: una superficie apenas elevada (fondo, contorno tenue y sombra mínima) y más peso; sin acentos */
+/* Activo: una superficie apenas elevada (fondo, contorno tenue y sombra mínima) y más peso; la barra de acento va aparte */
 .g-sidebar__link[aria-current="page"],
 .g-sidebar__link.is-active {
   background: var(--g-surface-inset);
   color: var(--g-color-text);
   font-weight: var(--g-text-action-weight);
   box-shadow: 0 0 0 var(--g-border-width) var(--g-color-border-strong), var(--g-shadow-1);
+}
+/* Barra de acento al inicio del ítem activo: elemento gráfico con contraste ≥ 3:1 (DECISIONS #89) */
+.g-sidebar__link[aria-current="page"]::before,
+.g-sidebar__link.is-active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 20%;
+  inline-size: calc(var(--g-border-width) * 2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent);
 }
 /* Rama activa: un padre con un hijo activo; peso y color, sin superficie */
 .g-sidebar__link.is-branch {
@@ -927,6 +938,11 @@
     outline: var(--g-border-width) solid CanvasText;
     outline-offset: calc(var(--g-border-width) * -1);
     box-shadow: none;
+  }
+  .g-sidebar__link[aria-current="page"]::before,
+  .g-sidebar__link.is-active::before {
+    background: Highlight;
+    forced-color-adjust: none;
   }
   .g-sidebar__toggle:focus-visible,
   .g-sidebar__search:focus-visible,
