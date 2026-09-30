@@ -1,0 +1,38 @@
+// Genera los módulos de iconos desde lucide-static (ISC): docs/contract/icons.md §2.
+//   src/icons/lucide.js           · solo los iconos de la librería (lista «library» de scripts/icons.json)
+//   playground/lucide-icons.js    · los iconos de ejemplo que pone «la aplicación» en el playground (lista «playground»)
+// Uso: node scripts/build-icons.mjs   (una prueba comprueba que los archivos no se desfasen)
+import { readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+const pkgDir = dirname(require.resolve('lucide-static/package.json'))
+const version = JSON.parse(readFileSync(resolve(pkgDir, 'package.json'), 'utf8')).version
+
+/** Trazos de un icono de Lucide (lo que hay dentro de <svg>), en una sola línea */
+export const readIcon = (name) => {
+  const svg = readFileSync(resolve(pkgDir, 'icons', `${name}.svg`), 'utf8')
+  const inner = svg.slice(svg.indexOf('>', svg.indexOf('<svg')) + 1, svg.lastIndexOf('</svg>'))
+  return inner.replace(/\s*\n\s*/g, '').replace(/\s+\/>/g, '/>').trim()
+}
+
+const literal = (names) => names.map((n) => `  ${JSON.stringify(n)}: ${JSON.stringify(readIcon(n))}`).join(',\n')
+const banner = `// GENERADO por scripts/build-icons.mjs desde lucide-static v${version} (ISC). No editar a mano.\n// Iconos de Lucide (https://lucide.dev): ver THIRD-PARTY-NOTICES.md. Una prueba comprueba que no se desfase.\n`
+
+export const generate = () => {
+  const lists = JSON.parse(readFileSync(resolve(here, 'icons.json'), 'utf8'))
+  return {
+    lib: `${banner}export const ICONS = {\n${literal(lists.library)}\n}\n`,
+    playground: `${banner}// Iconos de ejemplo del playground (los que «la aplicación» pone en los slots).\nwindow.LUCIDE_ICONS = {\n${literal(lists.playground)}\n}\n`
+  }
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const out = generate()
+  writeFileSync(resolve(here, '../src/icons/lucide.js'), out.lib)
+  writeFileSync(resolve(here, '../playground/lucide-icons.js'), out.playground)
+  console.log('iconos de Lucide generados (v' + version + ')')
+}

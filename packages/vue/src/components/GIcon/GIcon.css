@@ -1,0 +1,13 @@
+/*
+  GIcon · estilo base (interno). Dueño: coco (lo escribió bruno como infraestructura; coco lo revisa).
+  Contrato: docs/contract/icons.md. Color: currentColor; tamaño 1em por defecto, que cada componente
+  ajusta con un selector descendiente (.g-componente__x .g-icon). Sin tokens ni literales de tema.
+*/
+.g-icon {
+  flex: none;
+  display: inline-block;
+  inline-size: 1em;
+  block-size: 1em;
+  vertical-align: middle;
+  overflow: visible;
+}
