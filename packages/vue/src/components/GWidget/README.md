@@ -90,17 +90,11 @@ Desde el nivel `m`, el pie muestra `updatedText` y un enlace con `drilldownLabel
 
 ## Menú de acciones
 
-Patrón *menu button* de APG. Con `actions` aparece un botón con `aria-haspopup="menu"` y una lista `role="menu"` (`popover`).
+El menú es [`GMenu`](../GMenu/README.md): el mismo comportamiento (patrón *menu button* de APG, teclado, posición, submenús) y los mismos elementos. **`actions` acepta todos los `items` de `GMenu`**: acciones, separadores, grupos, casillas, opciones, submenús y elementos peligrosos (`{ id, label, disabled? }` sigue siendo válido). El botón lleva el `ellipsis-vertical` de Lucide y el nombre «`labels.actions` + título».
 
-| Tecla | Acción |
-| --- | --- |
-| Enter / Espacio / ↓ | Abre con el foco en el primero (↑: en el último) |
-| ↑ ↓ / Inicio / Fin | Mueven (cíclico); la inicial salta al elemento que empieza por ella |
-| Enter / Espacio | Elige, emite `action` y devuelve el foco al botón |
-| Esc | Cierra y devuelve el foco (no llega a un ancestro) |
-| Tab / clic fuera | Cierra |
-
-Los elementos deshabilitados son `aria-disabled` y siguen enfocables. Se coloca bajo el botón (encima si no cabe).
+- **`action`** se emite con `{ id }`; en una casilla u opción, con `{ id, checked }` (el valor nuevo). **El widget no guarda el estado:** actualizas `actions`.
+- Elegir un elemento **cierra** el menú y devuelve el foco al botón.
+- Con el slot `actions`, el menú entero es tuyo (accesibilidad incluida).
 
 ## Textos (`labels`)
 

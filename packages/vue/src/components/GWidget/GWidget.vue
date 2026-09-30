@@ -5,6 +5,8 @@
 // widget mide. Dentro de un GWidgetGrid añade a su menú las acciones de la rejilla (provide/inject).
 import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import GIcon from '../GIcon/GIcon.vue'
+import GMenu from '../GMenu/GMenu.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -92,107 +94,54 @@ export default defineComponent({
         ro.observe(rootEl.value)
       }
     })
-    onBeforeUnmount(() => { ro?.disconnect(); closeMenu(false) })
+    onBeforeUnmount(() => { ro?.disconnect() })
 
     // ---------- Contexto de la rejilla ----------
     const editing = computed(() => Boolean(grid && grid.editing.value))
     watch(() => props.title, (t) => { if (grid && item) grid.registerTitle(item.id, t) }, { immediate: true })
 
-    // ---------- Menú de acciones (patrón menu button de APG) ----------
+    // ---------- Menú de acciones (GMenu, design/contracts/menu.md) ----------
     const btnEl = ref(null)
-    const menuEl = ref(null)
     const menuOpen = ref(false)
-    let outside = null
     const gridActions = computed(() => {
       if (!grid || !item || !grid.editing.value) return []
       const gl = grid.labels.value
       const i = grid.indexOf(item.id)
-      const out = [{ sep: true }, { id: 'grid:before', label: gl.moveBefore, disabled: i <= 0 }, { id: 'grid:after', label: gl.moveAfter, disabled: i >= grid.count.value - 1 }, { sep: true }, { heading: gl.size }]
-      for (const p of grid.presets.value) out.push({ id: `grid:size:${p.id}`, label: `${gl.presets?.[p.id] ?? p.id} (${p.w} × ${p.h})` })
-      out.push({ sep: true }, { id: 'grid:remove', label: gl.remove })
-      return out
+      const cur = grid.sizeOf?.(item.id)
+      return [
+        { type: 'separator' },
+        { id: 'grid:before', label: gl.moveBefore, disabled: i <= 0 },
+        { id: 'grid:after', label: gl.moveAfter, disabled: i >= grid.count.value - 1 },
+        { type: 'separator' },
+        {
+          type: 'group',
+          label: gl.size,
+          items: grid.presets.value.map((p) => ({
+            type: 'radio',
+            id: `grid:size:${p.id}`,
+            label: `${gl.presets?.[p.id] ?? p.id} (${p.w} × ${p.h})`,
+            checked: Boolean(cur) && cur.w === p.w && cur.h === p.h
+          }))
+        },
+        { type: 'separator' },
+        { id: 'grid:remove', label: gl.remove, danger: true }
+      ]
     })
     const menuItems = computed(() => {
-      const own = props.actions.filter((a) => a && a.id !== undefined && typeof a.label === 'string')
+      const own = props.actions.filter((a) => a && typeof a === 'object')
       return own.length || gridActions.value.length ? [...own, ...gridActions.value] : []
     })
     const hasMenu = computed(() => menuItems.value.length > 0 && !props.headless)
-    const itemEls = () => (menuEl.value ? [...menuEl.value.querySelectorAll('[role="menuitem"]')] : [])
-
-    const placeMenu = () => {
-      const m = menuEl.value
-      const b = btnEl.value
-      if (!m || !b) return
-      const r = b.getBoundingClientRect()
-      const rtl = getComputedStyle(b).direction === 'rtl'
-      const vw = document.documentElement.clientWidth || window.innerWidth
-      const vh = window.innerHeight
-      m.style.setProperty('--_max', 'none')
-      const w = m.offsetWidth
-      const hh = m.offsetHeight
-      const x = rtl ? Math.max(8, Math.min(vw - r.right, vw - w - 8)) : Math.max(8, Math.min(r.right - w, vw - w - 8))
-      const below = vh - r.bottom - 8
-      const up = hh > below && r.top > below
-      m.style.setProperty('--_x', `${x}px`)
-      if (up) { m.style.setProperty('--_top', 'auto'); m.style.setProperty('--_bottom', `${vh - r.top + 4}px`); m.style.setProperty('--_max', `${Math.max(r.top - 12, 0)}px`) }
-      else { m.style.setProperty('--_top', `${r.bottom + 4}px`); m.style.setProperty('--_bottom', 'auto'); m.style.setProperty('--_max', `${Math.max(below, 0)}px`) }
-    }
-    const openMenu = async (at = 'first') => {
-      if (menuOpen.value || !hasMenu.value) return
-      menuOpen.value = true
-      await nextTick()
-      const m = menuEl.value
-      if (!m) return
-      if (typeof m.showPopover === 'function') m.showPopover()
-      placeMenu()
-      outside = (ev) => { if (!m.contains(ev.target) && !btnEl.value?.contains(ev.target)) closeMenu(false) }
-      document.addEventListener('pointerdown', outside)
-      const its = itemEls()
-      ;(at === 'last' ? its[its.length - 1] : its[0])?.focus()
-    }
-    function closeMenu(returnFocus = false) {
-      if (!menuOpen.value) return
-      menuOpen.value = false
-      const m = menuEl.value
-      if (m && typeof m.hidePopover === 'function' && m.matches?.(':popover-open')) m.hidePopover()
-      if (outside) { document.removeEventListener('pointerdown', outside); outside = null }
-      if (returnFocus) btnEl.value?.focus()
-    }
-    const chooseAction = (a) => {
-      if (!a || a.disabled) return
-      closeMenu(false)
-      if (String(a.id).startsWith('grid:')) {
-        grid.run(item.id, String(a.id).slice(5))
+    const menuLabel = computed(() => `${L.value.actions ?? ''} ${props.title ?? ''}`.trim())
+    const onSelect = (e) => {
+      const id = String(e.id)
+      if (id.startsWith('grid:')) {
+        grid.run(item.id, id.slice(5))
         return
       }
-      emit('action', { id: a.id })
-      btnEl.value?.focus()
+      emit('action', e.checked === undefined ? { id: e.id } : { id: e.id, checked: e.checked })
     }
-    const onMenuKeydown = (e) => {
-      const its = itemEls()
-      const i = its.indexOf(document.activeElement)
-      const go = (n) => its[(n + its.length) % its.length]?.focus()
-      const k = e.key
-      if (k === 'ArrowDown') { e.preventDefault(); go(i + 1) }
-      else if (k === 'ArrowUp') { e.preventDefault(); go(i - 1) }
-      else if (k === 'Home') { e.preventDefault(); go(0) }
-      else if (k === 'End') { e.preventDefault(); go(its.length - 1) }
-      else if (k === 'Escape') {
-        // Esc cierra solo el menú: no debe llegar a un GDialog ni a otro ancestro
-        e.preventDefault()
-        e.stopPropagation()
-        closeMenu(true)
-      } else if (k === 'Tab') closeMenu(false)
-      else if (k === 'Enter' || k === ' ') {
-        e.preventDefault()
-        const el = document.activeElement
-        const a = menuItems.value.filter((x) => !x.sep && !x.heading)[its.indexOf(el)]
-        if (a) chooseAction(a)
-      } else if (k.length === 1) {
-        its.find((x) => x.textContent.toLowerCase().startsWith(k.toLowerCase()))?.focus()
-      }
-    }
-    watch(hasMenu, (v) => { if (!v) closeMenu(false) })
+    watch(hasMenu, (v) => { if (!v) menuOpen.value = false })
     if (grid && item) grid.registerMenu(item.id, () => btnEl.value)
 
     // ---------- Contenido por nivel ----------
@@ -250,30 +199,22 @@ export default defineComponent({
         hasMenu.value
           ? (slots.actions
               ? slots.actions()
-              : [
-                  h('button', {
-                    ref: btnEl,
+              : h(GMenu, {
+                  modelValue: menuOpen.value,
+                  'onUpdate:modelValue': (open) => { menuOpen.value = open },
+                  items: menuItems.value,
+                  align: 'end',
+                  closeOnSelect: 'always',
+                  onSelect
+                }, {
+                  trigger: ({ attrs: t }) => h('button', {
+                    ...t,
+                    ref: (el) => { t.ref?.(el); btnEl.value = el },
                     type: 'button',
                     class: 'g-widget__menu',
-                    'aria-haspopup': 'menu',
-                    'aria-expanded': menuOpen.value ? 'true' : 'false',
-                    'aria-controls': menuId.value,
-                    'aria-label': `${L.value.actions ?? ''} ${props.title ?? ''}`.trim(),
-                    onClick: () => (menuOpen.value ? closeMenu(true) : openMenu('first')),
-                    onKeydown: (e) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu('first') }
-                      else if (e.key === 'ArrowUp') { e.preventDefault(); openMenu('last') }
-                    }
-                  }),
-                  h('div', { ref: menuEl, id: menuId.value, class: 'g-widget__actions', role: 'menu', popover: 'manual', 'aria-label': `${L.value.actions ?? ''} ${props.title ?? ''}`.trim(), onKeydown: onMenuKeydown },
-                    menuOpen.value
-                      ? menuItems.value.map((a, i) => (a.sep
-                          ? h('hr', { role: 'separator', key: `s${i}` })
-                          : a.heading
-                            ? h('small', { role: 'presentation', key: `h${i}` }, a.heading)
-                            : h('button', { type: 'button', class: 'g-widget__action', role: 'menuitem', tabindex: -1, 'data-id': String(a.id), 'aria-disabled': a.disabled ? 'true' : undefined, key: String(a.id), onClick: () => chooseAction(a) }, a.label)))
-                      : [])
-                ])
+                    'aria-label': menuLabel.value
+                  }, [h(GIcon, { name: 'ellipsis-vertical' })])
+                }))
           : null
       ])
     }

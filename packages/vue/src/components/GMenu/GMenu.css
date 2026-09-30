@@ -4,8 +4,9 @@
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil). Sin consultas de medios de ancho.
   La lista se coloca con coordenadas físicas (--_x, --_y) calculadas por el componente: por eso `left` y `top`,
-  no propiedades lógicas. Las marcas (✓, ●, ▲ y el chevron) se dibujan con CSS (Grana no trae iconos) y
-  sobreviven a forced-colors. El significado nunca depende solo del color.
+  no propiedades lógicas. Las marcas (check, circle, triangle-alert y chevron-right) son iconos de Lucide
+  (GIcon, docs/contract/icons.md) y toman currentColor, también en forced-colors. El significado nunca
+  depende solo del color.
 */
 
 /* ---------- Lista (y submenús) ---------- */
@@ -130,37 +131,27 @@
 .g-menu__item[aria-disabled="true"]:hover { background: transparent; }
 .g-menu__item[aria-disabled="true"]:focus { background: var(--g-color-surface-sunken); }
 
-/* Peligroso: triángulo dibujado y negrita, además del color */
+/* Peligroso: triangle-alert de Lucide (GIcon) y negrita, además del color */
 .g-menu__item--danger { color: var(--g-color-danger-text); }
 .g-menu__item--danger .g-menu__label {
   font-weight: var(--g-text-title-sm-weight);
 }
-.g-menu__item--danger .g-menu__label::before {
-  content: "";
-  display: inline-block;
-  inline-size: calc(var(--g-space-1) * 2.5);
-  block-size: calc(var(--g-space-1) * 2.25);
+.g-menu__danger-icon {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
   margin-inline-end: var(--g-space-2);
-  background: currentColor;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  vertical-align: 0.05em;
+  vertical-align: -0.125em;
 }
 .g-menu__item--danger .g-menu__icon { color: inherit; }
 
-/* Padre de submenú: chevron dibujado con dos bordes, espejado en RTL */
-.g-menu__item[aria-haspopup="menu"]::after {
-  content: "";
+/* Padre de submenú: chevron-right de Lucide (GIcon), espejado en RTL */
+.g-menu__chevron {
   flex: none;
-  box-sizing: border-box;
-  inline-size: calc(var(--g-space-1) * 1.75);
-  block-size: calc(var(--g-space-1) * 1.75);
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
   margin-inline-start: var(--g-space-2);
-  border-inline-end: calc(var(--g-border-width) * 2) solid currentColor;
-  border-block-end: calc(var(--g-border-width) * 2) solid currentColor;
-  rotate: -45deg;
 }
-/* Los bordes son lógicos: en RTL la esquina ya está en el lado contrario, así que +45° apunta a la izquierda */
-.g-menu__item[aria-haspopup="menu"]:dir(rtl)::after { rotate: 45deg; }
+.g-menu__chevron:dir(rtl) { scale: -1 1; }
 
 /* ---------- Casilla y opción: marca dibujada ---------- */
 .g-menu__mark {
@@ -179,25 +170,19 @@
   background: var(--g-color-brand);
   color: var(--g-color-on-brand);
 }
-/* ✓ de la casilla: dos bordes girados */
-[role="menuitemcheckbox"][aria-checked="true"] > .g-menu__mark::before {
-  content: "";
+/* Marcas de Lucide (GIcon): check en la casilla y circle relleno en la opción; solo se ven marcadas */
+.g-menu__mark > .g-icon {
   position: absolute;
-  inset-inline-start: 34%;
-  inset-block-start: 14%;
-  inline-size: 28%;
-  block-size: 52%;
-  border-inline-end: calc(var(--g-border-width) * 2) solid currentColor;
-  border-block-end: calc(var(--g-border-width) * 2) solid currentColor;
-  rotate: 45deg;
+  inset: 12%;
+  inline-size: 76%;
+  block-size: 76%;
+  opacity: 0;
 }
-/* ● de la opción */
-[role="menuitemradio"][aria-checked="true"] > .g-menu__mark::before {
-  content: "";
-  position: absolute;
-  inset: 28%;
-  border-radius: var(--g-radius-pill);
-  background: currentColor;
+[aria-checked="true"] > .g-menu__mark > .g-icon { opacity: 1; }
+[role="menuitemradio"] > .g-menu__mark > .g-icon {
+  inset: 26%;
+  inline-size: 48%;
+  block-size: 48%;
 }
 
 /* ---------- Grupo y separador ---------- */
@@ -253,6 +238,6 @@
   .g-menu__item[aria-disabled="true"] { color: GrayText; }
   .g-menu__mark { border-color: CanvasText; background: Canvas; color: CanvasText; }
   [aria-checked="true"] > .g-menu__mark { border-color: CanvasText; background: Canvas; color: CanvasText; }
-  [role="menuitemradio"][aria-checked="true"] > .g-menu__mark::before { background: CanvasText; }
   .g-menu__item--danger { color: LinkText; }
+  .g-menu__mark > .g-icon { color: CanvasText; }
 }

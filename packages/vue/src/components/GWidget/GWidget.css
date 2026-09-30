@@ -137,16 +137,10 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-/* Tres puntos dibujados con CSS (Grana no trae iconos): un punto y dos sombras */
-.g-widget__menu:empty::before {
-  content: "";
-  inline-size: var(--g-space-1);
-  block-size: var(--g-space-1);
-  border-radius: var(--g-radius-pill);
-  background: currentColor;
-  box-shadow:
-    0 calc(var(--g-space-1) * -1.75) currentColor,
-    0 calc(var(--g-space-1) * 1.75) currentColor;
+/* Tres puntos: el ellipsis-vertical de Lucide (GIcon, docs/contract/icons.md) */
+.g-widget__menu > .g-icon {
+  inline-size: calc(var(--g-space-1) * 5);
+  block-size: calc(var(--g-space-1) * 5);
 }
 @media (hover: hover) {
   .g-widget__menu:hover {

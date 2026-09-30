@@ -312,6 +312,7 @@ export default defineComponent({
       presets: computed(() => props.presets),
       count,
       indexOf,
+      sizeOf: (id) => { const e = base.value.find((x) => x.id === id); return e ? { w: e.w, h: e.h } : null },
       registerTitle,
       registerMenu,
       run

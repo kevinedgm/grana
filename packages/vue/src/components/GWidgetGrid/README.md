@@ -102,7 +102,7 @@ Solo desde el menú del widget («Quitar»), nunca desde un asa. Emite `remove-r
 
 ## Integración con GWidget
 
-La rejilla provee un contexto que un `GWidget` de una celda usa solo: añade a su menú «Mover antes», «Mover después», «Tamaño» con los `presets` y «Quitar» (con `editable`); registra su título para los anuncios y los nombres de las asas; y recibe `is-editing` (oculta badge y enlace, donde van las asas). Sin rejilla, un `GWidget` funciona igual.
+La rejilla provee un contexto que un `GWidget` de una celda usa solo: añade a su menú «Mover antes», «Mover después», un grupo «Tamaño» de opciones con los `presets` (**marcada la que coincide con el tamaño actual**) y «Quitar» como elemento peligroso (con `editable`); registra su título para los anuncios y los nombres de las asas; y recibe `is-editing` (oculta badge y enlace, donde van las asas). Sin rejilla, un `GWidget` funciona igual.
 
 ## Eventos
 

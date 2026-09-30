@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "name": "GMenu",
+  "tag": "g-menu",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Menú de acciones anclado a un botón de menú (patrón Menu Button y Menu de APG): acciones, separadores, grupos, casillas, opciones, submenús y elementos peligrosos. Contenido por arreglo de items; presenta y emite intención (select); las marcas son iconos de Lucide.",
+  "contract": "design/contracts/menu.md",
+  "prototype": "design/lab/menu/r01/",
+  "style": "packages/vue/src/components/GMenu/GMenu.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "align",
+      "type": "String",
+      "default": "start",
+      "values": [
+        "start",
+        "end"
+      ]
+    },
+    {
+      "name": "side",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "bottom",
+        "top"
+      ]
+    },
+    {
+      "name": "closeOnSelect",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "always",
+        "never"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "select",
+      "payload": "{ id, item, type, checked?, group?, event }",
+      "trigger": "El usuario activa un elemento (no un padre de submenú ni uno deshabilitado); event.preventDefault() impide el cierre"
+    },
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "El menú se abre o cierra por una vía de usuario"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "La lista ya se muestra"
+    },
+    {
+      "name": "closed",
+      "payload": "",
+      "trigger": "La lista ya se ocultó"
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger",
+      "purpose": "El disparador (obligatorio). Alcance { open, attrs }: se enlaza con v-bind=\"attrs\""
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono de un elemento (decorativo). Alcance { item }"
+    },
+    {
+      "name": "item",
+      "purpose": "Contenido de un elemento, conservando el texto como nombre accesible. Alcance { item, active, checked }"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-border",
+    "--g-color-text*",
+    "--g-color-danger-text",
+    "--g-color-brand",
+    "--g-color-on-brand",
+    "--g-color-focus",
+    "--g-radius-*",
+    "--g-shadow-2",
+    "--g-space-*"
+  ],
+  "states": [
+    "open",
+    "item-hover",
+    "item-focus",
+    "item-disabled",
+    "item-danger",
+    "checked",
+    "submenu-open"
+  ],
+  "pending": [
+    "Lector de pantalla real (submenús, grupos, opciones)",
+    "Firefox y Safari (popover, :dir())",
+    "Táctil real"
+  ]
+}

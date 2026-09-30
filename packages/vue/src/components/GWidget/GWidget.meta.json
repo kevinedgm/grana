@@ -81,7 +81,7 @@
     },
     {
       "name": "actions",
-      "type": "Array",
+      "type": "Array (items de GMenu)",
       "default": []
     },
     {
@@ -128,8 +128,8 @@
   "events": [
     {
       "name": "action",
-      "payload": "{ id }",
-      "trigger": "El usuario elige una acción del menú"
+      "payload": "{ id, checked? }",
+      "trigger": "El usuario elige un elemento del menú (checked en una casilla u opción)"
     },
     {
       "name": "retry",

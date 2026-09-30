@@ -189,69 +189,55 @@ describe('GWidget · pie y drill-down', () => {
   })
 })
 
-describe('GWidget · menú de acciones (menu button de APG)', () => {
+describe('GWidget · menú de acciones (GMenu)', () => {
   const ACTIONS = [{ id: 'refresh', label: 'Actualizar' }, { id: 'config', label: 'Configurar', disabled: true }, { id: 'export', label: 'Exportar' }]
   const withMenu = (props = {}) => mk({ actions: ACTIONS, ...props })
-  const menu = (w) => w.find('.g-widget__actions')
+  const menu = (w) => w.find('ul.g-menu__list[role="menu"]')
+  const its = (w) => w.findAll('.g-menu__item')
   const open = async (w) => { await w.find('.g-widget__menu').trigger('click'); await nextTick(); await nextTick() }
 
   it('sin acciones no hay botón de menú', () => {
     expect(mk().find('.g-widget__menu').exists()).toBe(false)
   })
 
-  it('botón con aria-haspopup, aria-expanded, aria-controls y nombre; lista role=menu con popover', () => {
+  it('el botón lleva aria-haspopup, aria-expanded, aria-controls, su nombre y el ellipsis-vertical de Lucide', () => {
     const w = withMenu()
     const b = w.find('.g-widget__menu')
     expect(b.attributes('aria-haspopup')).toBe('menu')
     expect(b.attributes('aria-expanded')).toBe('false')
     expect(b.attributes('aria-label')).toBe('Acciones de Ingresos')
-    expect(b.attributes('aria-controls')).toBe(menu(w).attributes('id'))
-    expect(menu(w).attributes('role')).toBe('menu')
-    expect(menu(w).attributes('popover')).toBe('manual')
-    expect(menu(w).attributes('aria-label')).toBe('Acciones de Ingresos')
+    expect(b.attributes('aria-controls')).toBeTruthy()
+    expect(b.find('svg.g-icon').attributes('aria-hidden')).toBe('true')
+    expect(b.find('svg').html()).toContain('cx="12" cy="5"')
+    expect(menu(w).exists()).toBe(false)
   })
 
-  it('abrir con clic: foco en el primer elemento; los deshabilitados son aria-disabled', async () => {
+  it('al abrir, la lista de GMenu se nombra por el botón y el foco va al primero; los deshabilitados son aria-disabled', async () => {
     const w = withMenu()
     await open(w)
-    expect(menu(w).element.hasAttribute('data-popover-open')).toBe(true)
+    expect(menu(w).attributes('popover')).toBe('manual')
+    expect(menu(w).attributes('aria-labelledby')).toBe(w.find('.g-widget__menu').attributes('id'))
     expect(w.find('.g-widget__menu').attributes('aria-expanded')).toBe('true')
-    expect(document.activeElement.textContent).toBe('Actualizar')
-    const its = menu(w).findAll('[role="menuitem"]')
-    expect(its).toHaveLength(3)
-    expect(its[1].attributes('aria-disabled')).toBe('true')
+    expect(document.activeElement.textContent.trim()).toBe('Actualizar')
+    expect(its(w)).toHaveLength(3)
+    expect(its(w)[1].attributes('aria-disabled')).toBe('true')
   })
 
-  it('↓ y Enter abren desde el botón; ↑ abre con el foco en el último', async () => {
+  it('↑ abre con el foco en el último', async () => {
     const w = withMenu()
     await w.find('.g-widget__menu').trigger('keydown', { key: 'ArrowUp' }); await nextTick(); await nextTick()
-    expect(document.activeElement.textContent).toBe('Exportar')
-    const b = withMenu()
-    await b.find('.g-widget__menu').trigger('keydown', { key: 'ArrowDown' }); await nextTick(); await nextTick()
-    expect(document.activeElement.textContent).toBe('Actualizar')
+    expect(document.activeElement.textContent.trim()).toBe('Exportar')
   })
 
-  it('↑ ↓ Inicio Fin se mueven (cíclico) y la escritura rápida salta por la inicial', async () => {
+  it('elegir una acción emite action { id }, cierra y devuelve el foco al botón; una deshabilitada no', async () => {
     const w = withMenu()
     await open(w)
-    const m = menu(w)
-    await m.trigger('keydown', { key: 'ArrowDown' }); expect(document.activeElement.textContent).toBe('Configurar')
-    await m.trigger('keydown', { key: 'End' }); expect(document.activeElement.textContent).toBe('Exportar')
-    await m.trigger('keydown', { key: 'ArrowDown' }); expect(document.activeElement.textContent).toBe('Actualizar')
-    await m.trigger('keydown', { key: 'ArrowUp' }); expect(document.activeElement.textContent).toBe('Exportar')
-    await m.trigger('keydown', { key: 'a' }); expect(document.activeElement.textContent).toBe('Actualizar')
-  })
-
-  it('Enter y Espacio eligen y emiten action; un elemento deshabilitado no', async () => {
-    const w = withMenu()
-    await open(w)
-    await menu(w).trigger('keydown', { key: 'Enter' }); await nextTick()
+    await its(w)[0].trigger('click'); await nextTick(); await nextTick()
     expect(w.emitted('action')[0][0]).toEqual({ id: 'refresh' })
-    expect(menu(w).element.hasAttribute('data-popover-open')).toBe(false)
+    expect(menu(w).exists()).toBe(false)
     expect(document.activeElement).toBe(w.find('.g-widget__menu').element)
     await open(w)
-    await menu(w).trigger('keydown', { key: 'ArrowDown' })
-    await menu(w).trigger('keydown', { key: ' ' }); await nextTick()
+    await its(w)[1].trigger('click'); await nextTick()
     expect(w.emitted('action')).toHaveLength(1)
   })
 
@@ -259,27 +245,36 @@ describe('GWidget · menú de acciones (menu button de APG)', () => {
     const parent = vi.fn()
     const w = mount({ render: () => h('div', { onKeydown: parent }, [h(GWidget, { ...base, actions: ACTIONS })]) }, { attachTo: document.body })
     await w.find('.g-widget__menu').trigger('click'); await nextTick(); await nextTick()
-    await w.find('.g-widget__actions').trigger('keydown', { key: 'Escape' }); await nextTick()
-    expect(w.find('.g-widget__actions').element.hasAttribute('data-popover-open')).toBe(false)
+    await w.find('.g-menu__item').trigger('keydown', { key: 'Escape' }); await nextTick(); await nextTick()
+    expect(w.find('ul.g-menu__list').exists()).toBe(false)
     expect(document.activeElement).toBe(w.find('.g-widget__menu').element)
     expect(parent).not.toHaveBeenCalled()
   })
 
-  it('clic fuera cierra; clic en el botón alterna', async () => {
-    const w = withMenu()
+  it('actions admite los items de GMenu: separador, grupo, casilla, opción y peligroso; action trae checked', async () => {
+    const w = mk({ actions: [
+      { id: 'a', label: 'Actualizar' }, { type: 'separator' },
+      { type: 'group', label: 'Ver', items: [{ type: 'checkbox', id: 'leg', label: 'Leyenda', checked: false }, { type: 'radio', id: 'bar', label: 'Barras', checked: true }] },
+      { id: 'del', label: 'Quitar', danger: true }
+    ] })
     await open(w)
-    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true })); await nextTick()
-    expect(menu(w).element.hasAttribute('data-popover-open')).toBe(false)
-    await open(w)
-    await w.find('.g-widget__menu').trigger('click'); await nextTick()
-    expect(menu(w).element.hasAttribute('data-popover-open')).toBe(false)
+    expect(w.find('[role="separator"]').exists()).toBe(true)
+    expect(w.find('.g-menu__group-title').text()).toBe('Ver')
+    expect(its(w).find((i) => i.text().includes('Quitar')).classes()).toContain('g-menu__item--danger')
+    await its(w).find((i) => i.text().includes('Leyenda')).trigger('click'); await nextTick(); await nextTick()
+    expect(w.emitted('action')[0][0]).toEqual({ id: 'leg', checked: true })
   })
 
   it('el slot actions sustituye al botón y a la lista', () => {
-    const w = withMenu({}) ; expect(w.find('.g-widget__menu').exists()).toBe(true)
     const s = mk({ actions: ACTIONS }, { slots: { actions: () => h('button', { class: 'mio' }, '…') } })
     expect(s.find('.g-widget__menu').exists()).toBe(false)
     expect(s.find('.mio').exists()).toBe(true)
+  })
+
+  it('expone focusMenu: enfoca el botón del menú', async () => {
+    const w = withMenu()
+    w.vm.focusMenu()
+    expect(document.activeElement).toBe(w.find('.g-widget__menu').element)
   })
 })
 

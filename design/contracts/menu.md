@@ -55,7 +55,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | Campo | Tipo | Uso |
 | --- | --- | --- |
 | `type` | `item` (por defecto) · `checkbox` · `radio` · `separator` · `group` | Un elemento con `items` es un **submenú** (su `type` es `item`) |
-| `id` | String \| Number | **Obligatorio** en `item`, `checkbox` y `radio` (si no, se ignora y avisa); único en todo el menú |
+| `id` | String \| Number | **Obligatorio** en `item` (que no sea un padre de submenú), `checkbox` y `radio` (si no, se ignora y avisa); único en todo el menú. Un padre de submenú no emite `select`: su `id` es opcional |
 | `label` | String | **Obligatorio** salvo en `separator`; es el **nombre accesible** del elemento |
 | `icon` | cualquier valor | De la aplicación: llega al slot `icon` (Grana no trae iconos); decorativo |
 | `shortcut` | String | Texto visible al final («Ctrl+D»), `aria-hidden` |

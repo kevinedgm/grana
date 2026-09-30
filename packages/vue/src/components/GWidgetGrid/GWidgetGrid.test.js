@@ -218,15 +218,27 @@ describe('GWidgetGrid · redimensionar', () => {
 
 describe('GWidgetGrid · menú del widget (sin arrastrar)', () => {
   const openMenu = async (w, id) => { await li(w, id).find('.g-widget__menu').trigger('click'); await settle() }
-  const item = (w, id, text) => li(w, id).findAll('[role="menuitem"]').find((x) => x.text().startsWith(text))
+  const item = (w, id, text) => li(w, id).findAll('.g-menu__item').find((x) => x.find('.g-menu__label').text().startsWith(text))
 
-  it('el widget de una celda añade las acciones de la rejilla tras un separador, con tamaños y «Quitar»', async () => {
+  it('el widget de una celda añade las acciones de la rejilla: separador, mover, un grupo «Tamaño» de opciones y «Quitar» peligroso', async () => {
     const w = mk(); await settle()
     await openMenu(w, 'b')
     const menu = li(w, 'b').find('[role="menu"]')
-    expect(menu.findAll('[role="menuitem"]').map((x) => x.text())).toEqual(['Mover antes', 'Mover después', 'Pequeño (1 × 1)', 'Mediano (2 × 1)', 'Grande (2 × 2)', 'Ancho (4 × 1)', 'Alto (1 × 2)', 'Quitar'])
+    expect(menu.findAll('.g-menu__item').map((x) => x.find('.g-menu__label').text())).toEqual(['Mover antes', 'Mover después', 'Pequeño (1 × 1)', 'Mediano (2 × 1)', 'Grande (2 × 2)', 'Ancho (4 × 1)', 'Alto (1 × 2)', 'Quitar'])
     expect(menu.find('[role="separator"]').exists()).toBe(true)
-    expect(menu.find('[role="presentation"]').text()).toBe('Tamaño')
+    expect(menu.find('.g-menu__group-title').text()).toBe('Tamaño')
+    expect(menu.findAll('[role="menuitemradio"]')).toHaveLength(5)
+    expect(item(w, 'b', 'Quitar').classes()).toContain('g-menu__item--danger')
+  })
+
+  it('la opción de tamaño que coincide con el actual aparece marcada', async () => {
+    const w = mk(); await settle()
+    await openMenu(w, 'b') // 1 × 1
+    expect(item(w, 'b', 'Pequeño').attributes('aria-checked')).toBe('true')
+    expect(item(w, 'b', 'Mediano').attributes('aria-checked')).toBe('false')
+    await li(w, 'b').find('.g-menu__item').trigger('keydown', { key: 'Escape' }); await settle()
+    await openMenu(w, 'a') // 2 × 2
+    expect(item(w, 'a', 'Grande').attributes('aria-checked')).toBe('true')
   })
 
   it('«Mover antes» está deshabilitado en el primero y «Mover después» en el último', async () => {
@@ -234,7 +246,7 @@ describe('GWidgetGrid · menú del widget (sin arrastrar)', () => {
     await openMenu(w, 'a')
     expect(item(w, 'a', 'Mover antes').attributes('aria-disabled')).toBe('true')
     expect(item(w, 'a', 'Mover después').attributes('aria-disabled')).toBeUndefined()
-    await li(w, 'a').find('[role="menu"]').trigger('keydown', { key: 'Escape' })
+    await li(w, 'a').find('.g-menu__item').trigger('keydown', { key: 'Escape' }); await settle()
     await openMenu(w, 'd')
     expect(item(w, 'd', 'Mover después').attributes('aria-disabled')).toBe('true')
   })
@@ -248,13 +260,14 @@ describe('GWidgetGrid · menú del widget (sin arrastrar)', () => {
     expect(live(w)).toBe('Posición 3 de 4')
   })
 
-  it('un tamaño predefinido emite el tamaño y lo anuncia', async () => {
+  it('un tamaño predefinido emite el tamaño, lo anuncia y cierra el menú', async () => {
     const w = mk(); await settle()
     await openMenu(w, 'b')
     await item(w, 'b', 'Ancho').trigger('click'); await settle()
     expect(last(w, 'update:modelValue').find((e) => e.id === 'b')).toEqual({ id: 'b', w: 4, h: 1 })
     expect(last(w, 'change').reason).toBe('resize')
     expect(live(w)).toBe('Meta: 4 × 1')
+    expect(li(w, 'b').find('ul.g-menu__list').exists()).toBe(false)
   })
 
   it('«Quitar» emite remove-request; al quitarla la aplicación, se anuncia y el foco pasa al menú del siguiente', async () => {

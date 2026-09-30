@@ -8,6 +8,8 @@
      El motor (abrir, foco, submenús, casillas, posición) imita lo que hará bruno; no es documentación. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 <style id="theme"></style>
 <style>
   body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
@@ -55,11 +57,11 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
       if(it.shortcut)b.setAttribute('aria-keyshortcuts',it.shortcut)
       b.dataset.id=it.id??''
       const lead=document.createElement('span');
-      if(it.type==='checkbox'||it.type==='radio'){lead.className='g-menu__mark';lead.setAttribute('aria-hidden','true')}else{lead.className='g-menu__icon';lead.setAttribute('aria-hidden','true');if(it.icon)lead.textContent=it.icon}
-      b.appendChild(lead);const l=document.createElement('span');l.className='g-menu__label';l.textContent=it.label;b.appendChild(l)
+      if(it.type==='checkbox'||it.type==='radio'){lead.className='g-menu__mark';lead.setAttribute('aria-hidden','true');lead.innerHTML=it.type==='checkbox'?window.lucide('check'):window.lucide('circle','',true)}else{lead.className='g-menu__icon';lead.setAttribute('aria-hidden','true');if(it.icon)lead.innerHTML=window.lucide(it.icon)}
+      b.appendChild(lead);const l=document.createElement('span');l.className='g-menu__label';if(it.danger)l.insertAdjacentHTML('beforeend',window.lucide('triangle-alert','g-menu__danger-icon'));l.append(it.label);b.appendChild(l)
       if(it.shortcut){const s=document.createElement('span');s.className='g-menu__shortcut';s.setAttribute('aria-hidden','true');s.textContent=it.shortcut;b.appendChild(s)}
       li.appendChild(b)
-      if(it.items){const sid='m'+(++uid);b.setAttribute('aria-haspopup','menu');b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls',sid);b.id='i'+sid;const sub=build(it.items,sid,false);sub.setAttribute('aria-labelledby',b.id);li.appendChild(sub)}
+      if(it.items){const sid='m'+(++uid);b.insertAdjacentHTML('beforeend',window.lucide('chevron-right','g-menu__chevron'));b.setAttribute('aria-haspopup','menu');b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls',sid);b.id='i'+sid;const sub=build(it.items,sid,false);sub.setAttribute('aria-labelledby',b.id);li.appendChild(sub)}
       parent.appendChild(li)
     }
     list.forEach(it=>addItem(it,ul));return ul
@@ -140,11 +142,11 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
 
 /* ============ Ejemplos ============ */
 new Menu($('#b1'),[
-  {id:'rename',label:'Renombrar',icon:'✎',shortcut:'F2'},
-  {id:'dup',label:'Duplicar',icon:'⧉',shortcut:'Ctrl+D'},
-  {id:'move',label:'Mover a…',icon:'➜',disabled:true},
+  {id:'rename',label:'Renombrar',icon:'pencil',shortcut:'F2'},
+  {id:'dup',label:'Duplicar',icon:'copy',shortcut:'Ctrl+D'},
+  {id:'move',label:'Mover a…',icon:'arrow-right',disabled:true},
   {type:'separator'},
-  {id:'share',label:'Compartir',icon:'↗'},
+  {id:'share',label:'Compartir',icon:'share-2'},
   {type:'separator'},
   {id:'del',label:'Eliminar',danger:true,shortcut:'Supr'}
 ])
