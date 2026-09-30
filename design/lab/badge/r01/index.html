@@ -43,11 +43,11 @@ body.no-transparency .b--glass::before{display:none}
 /* icono */
 .b__ico{flex:none;display:inline-grid;place-content:center;width:1.1em;height:1.1em}.b__ico svg{width:1em;height:1em}
 /* figuras (forma = significado; se dibujan con bordes/clip, no con color solo) */
-.b__shape{flex:none;display:inline-block;width:.7em;height:.7em;background:currentColor}
-.b__shape--circle{border-radius:50%}
-.b__shape--square{border-radius:1px}
-.b__shape--diamond{rotate:45deg;width:.6em;height:.6em}
-.b__shape--triangle{background:none;width:0;height:0;border-left:.4em solid transparent;border-right:.4em solid transparent;border-bottom:.7em solid currentColor}
+.b__shape{flex:none;display:inline-block;width:.8em;height:.8em;background:currentColor}
+.b__shape--circle{mask:var(--if-circle) center/contain no-repeat}
+.b__shape--square{mask:var(--if-square) center/contain no-repeat}
+.b__shape--diamond{mask:var(--if-diamond) center/contain no-repeat}
+.b__shape--triangle{mask:var(--if-triangle) center/contain no-repeat}
 /* solo figura / solo icono / contador */
 .b--only{padding:0;justify-content:center;inline-size:var(--h)}
 .b--only.b--shape{background:transparent;border-color:transparent;color:var(--wf-ink)}
@@ -55,8 +55,8 @@ body.no-transparency .b--glass::before{display:none}
 .b--figure{--h:16px;padding:0;inline-size:var(--h);block-size:var(--h);min-block-size:var(--h);background:transparent;border-color:transparent;color:var(--wf-ink);justify-content:center}
 .b--figure.b--sm{--h:12px}.b--figure.b--lg{--h:20px}
 .b--figure .b__shape{width:100%;height:100%}
-.b--figure .b__shape--diamond{width:70%;height:70%}
-.b--figure .b__shape--triangle{border-left-width:.55em;border-right-width:.55em;border-bottom-width:.95em}
+
+
 .b__sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 body.show-sr .b__sr{position:static;inline-size:auto;block-size:auto;margin:0 0 0 6px;overflow:visible;clip-path:none;font:11px ui-monospace,monospace;background:var(--wf-note);color:var(--wf-ink);border:1px dashed var(--wf-3);padding:0 4px;white-space:normal}
 /* ---------- Ancla ---------- */
@@ -74,6 +74,9 @@ body.show-sr .b__sr{position:static;inline-size:auto;block-size:auto;margin:0 0 
 .frame{border:1px solid var(--wf-line);background:#fff;padding:12px;resize:horizontal;overflow:auto;max-width:100%}
 .log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:36px;white-space:pre-wrap;max-width:72ch}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(["circle","square","diamond","triangle"],true)</script>
 </head>
 <body>
 <main>
@@ -85,8 +88,8 @@ body.show-sr .b__sr{position:static;inline-size:auto;block-size:auto;margin:0 0 
 <h2>Registro</h2><div class="log" id="log">Pulsa el botón anclado: el clic debe llegar al botón, no a la insignia.</div>
 </main>
 <script>
-const I={bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',check:'<path d="M20 6 9 17l-5-5"/>',alert:'<path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="10"/>',mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/>',lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'}
-const ico=n=>`<span class="b__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg></span>`
+const I={bell:'bell',check:'check',alert:'circle-alert',mail:'mail',lock:'lock'}
+const ico=n=>`<span class="b__ico" aria-hidden="true">${window.lucide(I[n])}</span>`
 const sr=t=>t?`<span class="b__sr">${t}</span>`:''
 const cls=(...a)=>a.filter(Boolean).join(' ')
 // texto / punto / icono

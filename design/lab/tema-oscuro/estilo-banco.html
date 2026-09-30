@@ -18,6 +18,8 @@
   .ok{color:var(--g-color-success-text)}.no{color:var(--g-color-danger-text);font-weight:700}
   .tog{margin:0 0 12px;display:flex;gap:8px}.tog button{padding:6px 12px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text);font:inherit;cursor:pointer}
 </style>
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../lucide-icons.js"></script>
 </head>
 <body>
 <h1>Tema claro y oscuro · defaults.css</h1>
@@ -44,7 +46,7 @@ function calc(){
     const v=k=>{const probe=document.createElement('i');probe.style.color=`var(--g-color-${k})`;el.appendChild(probe);const c=rgba(getComputedStyle(probe).color);probe.remove();return c}
     const B={bg:v('bg'),surface:v('surface'),sunken:v('surface-sunken')}
     const rows=[]
-    const add=(name,fgK,bgs,min)=>{const fg=v(fgK);const cells=Object.entries(bgs).map(([n,b])=>{const flat=over(fg,b.slice(0,3).concat(1));const r=cr(flat,b);return [n,r]});const bad=cells.some(c=>c[1]<min);rows.push(`<tr><td class="${bad?'no':'ok'}">${bad?'✗':'✓'} ${name} (≥${min})</td><td>${cells.map(c=>c[0]+' '+c[1].toFixed(2)).join(' · ')}</td></tr>`)}
+    const add=(name,fgK,bgs,min)=>{const fg=v(fgK);const cells=Object.entries(bgs).map(([n,b])=>{const flat=over(fg,b.slice(0,3).concat(1));const r=cr(flat,b);return [n,r]});const bad=cells.some(c=>c[1]<min);rows.push(`<tr><td class="${bad?'no':'ok'}">${window.lucide(bad?'x':'check')} ${name} (≥${min})</td><td>${cells.map(c=>c[0]+' '+c[1].toFixed(2)).join(' · ')}</td></tr>`)}
     for(const k of ['text','text-muted','text-subtle'])add(k,k,B,4.5)
     add('border-control','border-control',B,3)
     add('focus','focus',B,3)

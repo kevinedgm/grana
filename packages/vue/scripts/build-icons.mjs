@@ -24,6 +24,8 @@ const literal = (names) => names.map((n) => `  ${JSON.stringify(n)}: ${JSON.stri
 const banner = `// GENERADO por scripts/build-icons.mjs desde lucide-static v${version} (ISC). No editar a mano.\n// Iconos de Lucide (https://lucide.dev): ver THIRD-PARTY-NOTICES.md. Una prueba comprueba que no se desfase.\n`
 
 
+const VARS = String.raw`window.lucideVars = (names, filled = false) => names.forEach((n) => document.documentElement.style.setProperty((filled ? '--if-' : '--i-') + n, "url('data:image/svg+xml," + encodeURIComponent(window.lucide(n, '', filled).replace(' class="g-icon' + (filled ? ' g-icon--filled' : '') + '"', '').replace(/currentColor/g, 'black')) + "')"))`
+
 // Módulo de los bancos: los iconos y el ayudante window.lucide(nombre, clase, rellena) que devuelve el <svg>
 const labModule = (banner, names) => [
   banner.trimEnd(),
@@ -34,6 +36,8 @@ const labModule = (banner, names) => [
   "// window.lucide('check', 'clase', false) → el <svg> de Lucide (decorativo, currentColor); con GIcon.css se dimensiona a 1em",
   'window.lucide = (name, cls = \'\', filled = false) =>',
   '  \'<svg class="g-icon\' + (cls ? \' \' + cls : \'\') + (filled ? \' g-icon--filled\' : \'\') + \'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="\' + (filled ? \'currentColor\' : \'none\') + \'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">\' + (window.LUCIDE_ICONS[name] || \'\') + \'</svg>\'',
+  "// window.lucideVars(['check']) → define --i-check en :root (con `true` de segundo argumento, --if-<nombre> con el icono relleno): el mismo trazo de Lucide como máscara (marcas de pseudo-elementos: background: currentColor; mask: var(--i-check) center / contain no-repeat)",
+  VARS,
   ''
 ].join('\n')
 

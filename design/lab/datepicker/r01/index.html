@@ -43,8 +43,8 @@ button{font:inherit;color:inherit}
 .dp__nav{flex:none;inline-size:var(--cell);block-size:var(--cell);display:grid;place-items:center;border:0;border-radius:50%;background:transparent;cursor:pointer;color:var(--wf-2)}
 .dp__nav:hover{background:var(--wf-fill-2);color:var(--wf-ink)} .dp__nav:focus-visible{outline:3px solid var(--wf-ink);outline-offset:1px}
 .dp__nav[hidden]{display:block;visibility:hidden}
-.dp__nav i{inline-size:9px;block-size:9px;border:solid currentColor;border-width:0 0 2px 2px;rotate:45deg;translate:2px 0}
-.dp__nav--next i{rotate:-135deg;translate:-2px 0}
+.dp__nav i{inline-size:18px;block-size:18px;background:currentColor;mask:var(--i-chevron-left) center/contain no-repeat}
+.dp__nav--next i{mask-image:var(--i-chevron-right)}
 [dir=rtl] .dp__nav i{scale:-1 1}
 .dp__grid{inline-size:100%;border-collapse:collapse;table-layout:fixed}
 .dp__grid th{font-size:12px;font-weight:500;color:var(--wf-2);padding:4px 0 8px;text-align:center}
@@ -95,7 +95,7 @@ td.is-preview::before{background:var(--wf-fill-2)}
   .dp-pop__head{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 0 20px;position:relative}
   .dp-pop__head::before{content:"";position:absolute;inset-block-start:6px;inset-inline:0;margin:auto;inline-size:36px;block-size:4px;border-radius:2px;background:var(--wf-line)}
   .dp-pop__title{font-weight:700;padding-top:10px}
-  .dp-pop__close{inline-size:44px;block-size:44px;border:0;border-radius:50%;background:transparent;font-size:22px;cursor:pointer}
+  .dp-pop__close::before{content:"";display:block;margin:auto;inline-size:22px;block-size:22px;background:currentColor;mask:var(--i-x) center/contain no-repeat}.dp-pop__close{inline-size:44px;block-size:44px;border:0;border-radius:50%;background:transparent;font-size:22px;cursor:pointer}
   .dp-pop__close:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
 }
 
@@ -125,6 +125,9 @@ dialog.wf-dlg h3{margin:0 0 4px;font-size:18px}
 .state b{font-size:13px} .state span{font-size:12px;color:var(--wf-2)}
 @media (max-width:520px){.dp__months{gap:0}}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['chevron-left', 'chevron-right', 'x'])</script>
 </head>
 <body>
 <main>
@@ -164,7 +167,7 @@ dialog.wf-dlg h3{margin:0 0 4px;font-size:18px}
 
 <h2>7 · Hoja inferior en móvil (un mes, objetivos de 44px)</h2>
 <div class="phone" id="phone"><div class="phone__page">Página de la aplicación<br>(detrás de la hoja)</div>
-  <div class="dp-pop-static"><div class="dp-pop__head"><span class="dp-pop__title">Elegir fechas</span><button class="dp-pop__close" type="button" aria-label="Cerrar">×</button></div><div id="p-phone"></div></div></div>
+  <div class="dp-pop-static"><div class="dp-pop__head"><span class="dp-pop__title">Elegir fechas</span><button class="dp-pop__close" type="button" aria-label="Cerrar"></button></div><div id="p-phone"></div></div></div>
 
 <h2>Registro</h2><div class="log" id="log" aria-live="off">—</div>
 </main>
@@ -331,7 +334,7 @@ class Pop{
   constructor(picker,{triggers,anchor,title='Elegir fechas'}){
     this.p=picker;this.triggers=triggers;this.anchor=anchor||triggers[0]
     const pop=this.pop=document.createElement('div');pop.className='dp-pop';pop.setAttribute('popover','manual');pop.setAttribute('role','dialog');pop.setAttribute('aria-label',title)
-    pop.innerHTML=`<div class="dp-pop__head"><span class="dp-pop__title">${title}</span><button type="button" class="dp-pop__close" aria-label="Cerrar">×</button></div>`
+    pop.innerHTML=`<div class="dp-pop__head"><span class="dp-pop__title">${title}</span><button type="button" class="dp-pop__close" aria-label="Cerrar"></button></div>`
     pop.append(picker.el.parentElement);document.body.append(pop)
     triggers.forEach(t=>{t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-expanded','false');t.addEventListener('click',()=>this.pop.matches(':popover-open')?this.close(true):this.open(t))})
     pop.querySelector('.dp-pop__close').addEventListener('click',()=>this.close(true))

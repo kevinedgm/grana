@@ -23,9 +23,9 @@
     .c { --h:24px; --box:20px; position:relative; display:flex; align-items:flex-start; gap:10px; min-height:var(--h); cursor:pointer; }
     .c__input { appearance:none; -webkit-appearance:none; flex:none; width:var(--box); height:var(--box); margin:calc((var(--h) - var(--box)) / 2) 0 0; border:1.5px solid var(--wf-2); border-radius:3px; background:#fff; display:grid; place-content:center; cursor:inherit; }
     .c__input:checked { background:var(--wf-ink); border-color:var(--wf-ink); }
-    .c__input:checked::after { content:""; width:10px; height:5px; border:solid #fff; border-width:0 0 2px 2px; transform:rotate(-45deg) translate(1px,-1px); }
+    .c__input:checked::after { content:""; width:14px; height:14px; background:#fff; mask:var(--i-check) center/contain no-repeat; }
     .c__input:indeterminate { background:var(--wf-ink); border-color:var(--wf-ink); }
-    .c__input:indeterminate::after { content:""; width:10px; height:2px; background:#fff; }
+    .c__input:indeterminate::after { content:""; width:14px; height:14px; background:#fff; mask:var(--i-minus) center/contain no-repeat; }
     .c:hover .c__input:not(:disabled), .c.st-hover .c__input { border-color:var(--wf-ink); background:var(--wf-fill-2); }
     .c:hover .c__input:checked:not(:disabled) { background:#000; }
     .c__input:focus-visible, .c.st-focus .c__input { outline:3px solid var(--wf-ink); outline-offset:2px; }
@@ -34,7 +34,7 @@
     .c__req { margin-inline-start:2px; }
     .c__hint { font-size:13px; color:var(--wf-2); }
     .c__err { font-size:13px; font-weight:600; }
-    .c__err::before { content:"\26A0\00a0"; }
+    .c__err::before { content:"";display:inline-block;inline-size:13px;block-size:13px;margin-inline-end:4px;vertical-align:-2px;background:currentColor;mask:var(--i-triangle-alert) center/contain no-repeat; }
     .c.is-disabled { cursor:not-allowed; } .c.is-disabled .c__text { opacity:.55; } .c.is-disabled .c__input { opacity:.45; border-style:dotted; }
     .c.is-readonly { cursor:default; } .c.is-readonly .c__input { border-style:dashed; background:var(--wf-fill-2); }
     .c.is-readonly .c__input:checked { background:var(--wf-2); border-color:var(--wf-2); }
@@ -61,7 +61,7 @@
     .c--chip .c__input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; border-radius:999px; }
     .c--chip .c__text { padding:0; flex-direction:row; align-items:center; gap:6px; }
     .c--chip:has(.c__input:checked) { background:var(--wf-ink); color:#fff; border-color:var(--wf-ink); }
-    .c--chip:has(.c__input:checked) .c__text::before { content:"\2713"; font-size:13px; }
+    .c--chip:has(.c__input:checked) .c__text::before { content:"";display:inline-block;inline-size:14px;block-size:14px;margin-inline-end:4px;vertical-align:-2px;background:currentColor;mask:var(--i-check) center/contain no-repeat; }
     .c--chip:has(.c__input:focus-visible) { outline:3px solid var(--wf-ink); outline-offset:2px; }
     .c--chip:hover:not(.is-disabled) { border-color:var(--wf-ink); }
     @media (pointer:coarse) { .c--chip { --h:44px; } }
@@ -79,6 +79,9 @@
     .det input { width:100%; min-height:32px; border:1px solid var(--wf-2); border-radius:4px; padding:0 8px; font:inherit; }
     .log { font-size:12px; color:var(--wf-2); margin:6px 0 0; }
   </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['check', 'minus', 'triangle-alert'])</script>
 </head>
 <body>
 <main>
@@ -87,7 +90,7 @@
 
   <h2>1. Anatomía de la casilla base</h2>
   <div class="grid"><div class="c st-focus"><input class="c__input" type="checkbox" checked aria-label="ejemplo"><span class="c__text"><span class="c__label">1 · Etiqueta (la fila completa activa la casilla)</span><span class="c__hint">2 · Ayuda</span></span></div></div>
-  <p class="cap">El cuadro es el propio <code>&lt;input type="checkbox"&gt;</code> dibujado (<code>appearance: none</code>), no un <code>div</code>. La marca ✓ / − sale de los estados <code>:checked</code> e <code>:indeterminate</code>.</p>
+  <p class="cap">El cuadro es el propio <code>&lt;input type="checkbox"&gt;</code> dibujado (<code>appearance: none</code>), no un <code>div</code>. La marca (<code>check</code> / <code>minus</code> de Lucide) sale de los estados <code>:checked</code> e <code>:indeterminate</code>.</p>
 
   <h2>2. Estados</h2>
   <div class="grid">
@@ -132,7 +135,7 @@
   </div></div>
 
   <h2>6. Propuesta D · Casilla-chip</h2>
-  <div class="wf-note">Sigue siendo una casilla (rol <code>checkbox</code>, Espacio la alterna). El input cubre todo el chip con <code>opacity: 0</code> (no <code>display: none</code>), así conserva foco y clic. Marcado, muestra ✓ y cambia de relleno: <b>el estado no depende solo del color</b>.</div>
+  <div class="wf-note">Sigue siendo una casilla (rol <code>checkbox</code>, Espacio la alterna). El input cubre todo el chip con <code>opacity: 0</code> (no <code>display: none</code>), así conserva foco y clic. Marcado, muestra la marca <code>check</code> de Lucide y cambia de relleno: <b>el estado no depende solo del color</b>.</div>
   <div class="chips" role="group" aria-label="Filtrar por servicio">
     <label class="c c--chip"><input class="c__input" type="checkbox" checked><span class="c__text"><span class="c__label">Wifi</span></span></label>
     <label class="c c--chip"><input class="c__input" type="checkbox"><span class="c__text"><span class="c__label">Desayuno</span></span></label>

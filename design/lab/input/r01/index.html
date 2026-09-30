@@ -33,10 +33,10 @@
     .f__box:has(.f__input:focus-visible), .f.st-focus .f__box { outline:3px solid var(--wf-ink); outline-offset:2px; }
     .f__input { flex:1 1 auto; min-width:0; min-height:calc(var(--h) - 2px); padding:0; border:0; outline:0; background:transparent; font:inherit; color:inherit; }
     .f__input::placeholder { color:var(--wf-2); opacity:1; }
-    .f__ico { width:16px; height:16px; flex:none; border:1.5px solid currentColor; border-radius:3px; }
+    .f__ico { width:16px; height:16px; flex:none; background:currentColor;mask:var(--i-search) center/contain no-repeat; }
     .f__tog { flex:none; min-height:24px; min-width:24px; padding:0 6px; font:inherit; font-size:12px; border:1px solid var(--wf-2); border-radius:3px; background:transparent; cursor:pointer; }
     .f__tog:focus-visible { outline:3px solid var(--wf-ink); outline-offset:1px; }
-    .f__spin { flex:none; font-size:12px; color:var(--wf-2); }
+    .f__spin { flex:none; width:16px; height:16px; color:var(--wf-2); background:currentColor;mask:var(--i-loader-circle) center/contain no-repeat; animation:spin .8s linear infinite; } @keyframes spin{to{rotate:360deg}}
     .f__msgs { display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-size:13px; color:var(--wf-2); }
     .f__hint, .f__err { min-width:0; }
     .f__err { color:var(--wf-ink); font-weight:600; }
@@ -52,6 +52,9 @@
     .anat span.tag { display:inline-block; border:1px dashed var(--wf-3); background:#fff; padding:2px 6px; font-size:11px; margin:2px 4px 2px 0; }
     .legend { font-size:13px; color:var(--wf-2); }
   </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['loader-circle', 'search'])</script>
 </head>
 <body>
 <main>
@@ -77,7 +80,7 @@
     <div><p class="cap">invalid</p><div class="f is-invalid"><label class="f__label" for="s2">Correo</label><div class="f__box"><input class="f__input" id="s2" value="ana@" aria-invalid="true" aria-describedby="s2e"></div><div class="f__msgs"><span class="f__err" id="s2e">Falta el dominio del correo.</span></div></div></div>
     <div><p class="cap">disabled</p><div class="f is-disabled"><label class="f__label" for="s3">Ciudad</label><div class="f__box"><input class="f__input" id="s3" value="Oaxaca" disabled></div></div></div>
     <div><p class="cap">readonly</p><div class="f is-readonly"><label class="f__label" for="s4">Folio</label><div class="f__box"><input class="f__input" id="s4" value="A-2041" readonly></div></div></div>
-    <div><p class="cap">loading (sigue escribible)</p><div class="f"><label class="f__label" for="s5">Usuario</label><div class="f__box"><input class="f__input" id="s5" value="ana" aria-busy="true"><span class="f__spin" aria-hidden="true">…</span></div></div></div>
+    <div><p class="cap">loading (sigue escribible)</p><div class="f"><label class="f__label" for="s5">Usuario</label><div class="f__box"><input class="f__input" id="s5" value="ana" aria-busy="true"><span class="f__spin" aria-hidden="true"></span></div></div></div>
     <div><p class="cap">iconos inicial y final</p><div class="f"><label class="f__label" for="s6">Buscar</label><div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="s6" type="search" placeholder="Reservas"><span class="f__ico" aria-hidden="true"></span></div></div></div>
     <div><p class="cap">obligatorio</p><div class="f"><label class="f__label" for="s7">Correo<span class="f__req" aria-hidden="true">*</span></label><div class="f__box"><input class="f__input" id="s7" type="email" required></div></div></div>
   </div>

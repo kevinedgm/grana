@@ -35,12 +35,15 @@ h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:36px 0 12px;padding-t
 .t.is-invalid .t__box{border:2px dashed var(--wf-ink)}
 .t.is-disabled .t__box{border-style:dotted;opacity:.55;background:var(--wf-fill)} .t.is-disabled .t__label{opacity:.55}
 .t.is-readonly .t__box{border-style:dashed;background:var(--wf-fill-2)}
-.t.is-loading .t__box::after{content:"";position:absolute;inset-block-start:10px;inset-inline-end:10px;width:14px;height:14px;border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;animation:spin .8s linear infinite}
+.t.is-loading .t__box::after{content:"";position:absolute;inset-block-start:10px;inset-inline-end:10px;width:16px;height:16px;background:currentColor;mask:var(--i-loader-circle) center/contain no-repeat;animation:spin .8s linear infinite}
 @keyframes spin{to{rotate:360deg}}
 .t--sm{--lh:20px;--padv:6px} .t--lg{--lh:26px;--padv:10px}
 @media (pointer:coarse){.t__field{min-block-size:max(44px,calc(var(--lh) * var(--rows) + var(--padv) * 2))}}
 @media (prefers-reduced-motion:reduce){.t.is-loading .t__box::after{animation:none}}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['loader-circle'])</script>
 </head>
 <body>
 <main>

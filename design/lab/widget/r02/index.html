@@ -47,7 +47,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 @media (max-width:600px){dialog.sheet{inset-block-start:auto;inline-size:100vw;block-size:92dvh;max-block-size:92dvh;border-radius:16px 16px 0 0;border-inline-start:0;border-block-start:1px solid var(--line)}}
 .sheet__head{display:flex;gap:8px;align-items:flex-start;padding:16px;border-block-end:1px solid var(--soft)}
 .sheet__head h2{flex:1;margin:0;font-size:17px}.sheet__head p{margin:2px 0 0;font-size:13px;color:var(--2)}
-.sheet__x{flex:none;inline-size:36px;block-size:36px;border:0;border-radius:8px;background:transparent;cursor:pointer;font-size:18px}
+.sheet__x{flex:none;inline-size:36px;block-size:36px;border:0;border-radius:8px;background:transparent;cursor:pointer;display:grid;place-items:center}.sheet__x::before{content:"";inline-size:18px;block-size:18px;background:currentColor;mask:var(--i-x) center/contain no-repeat}
 .sheet__body{flex:1;overflow:auto;padding:16px;min-block-size:0}
 .sheet__foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center;padding:12px 16px;border-block-start:1px solid var(--soft)}
 .sheet__foot .spacer{margin-inline-end:auto;font-size:13px}
@@ -57,11 +57,11 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .field{display:flex;flex-direction:column;gap:4px;margin:0 0 12px}.field>label,.field>legend{font-size:13px;font-weight:600;padding:0}
 .in{min-height:36px;padding:4px 10px;border:1.5px solid var(--2);border-radius:8px;background:#fff;inline-size:100%}
 .in[aria-invalid=true]{border-width:3px;border-style:double}
-.hint{font-size:12px;color:var(--2)}.err{font-size:12px;font-weight:600}.err::before{content:"▲ "}
+.hint{font-size:12px;color:var(--2)}.err{font-size:12px;font-weight:600}.err::before{content:"";display:inline-block;inline-size:12px;block-size:12px;margin-inline-end:4px;vertical-align:-1px;background:currentColor;mask:var(--i-triangle-alert) center/contain no-repeat}
 fieldset.cats{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 .cats label{position:relative}.cats input{position:absolute;opacity:0;inset:0;margin:0}
 .cats span{display:inline-block;padding:4px 12px;border:1.5px solid var(--2);border-radius:999px;font-size:13px}
-.cats input:checked+span{background:var(--ink);color:#fff}.cats input:checked+span::before{content:"✓ "}
+.cats input:checked+span{background:var(--ink);color:#fff}.cats input:checked+span::before{content:"";display:inline-block;inline-size:12px;block-size:12px;margin-inline-end:4px;vertical-align:-1px;background:currentColor;mask:var(--i-check) center/contain no-repeat}
 .cats input:focus-visible+span{outline:3px solid var(--ink);outline-offset:2px}
 .cards{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .card{border:1px solid var(--soft);border-radius:12px;padding:12px;display:grid;gap:8px}
@@ -87,6 +87,9 @@ fieldset.cats{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:
 .summary ul{margin:4px 0 0;padding-inline-start:18px}
 .confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center;inline-size:100%;justify-content:flex-end}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['x', 'triangle-alert', 'check'])</script>
 </head>
 <body>
 <main>
@@ -107,7 +110,7 @@ fieldset.cats{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:
   <dialog class="sheet" id="gallery" aria-labelledby="g-title" aria-describedby="g-desc">
     <div class="sheet__head">
       <div><h2 id="g-title">Añadir widget</h2><p id="g-desc">Elige un widget y su tamaño inicial; se añade al final del panel.</p></div>
-      <button class="sheet__x" type="button" data-close aria-label="Cerrar">✕</button>
+      <button class="sheet__x" type="button" data-close aria-label="Cerrar"></button>
     </div>
     <div class="sheet__body" id="g-body">
       <div class="field"><label for="g-q">Buscar widgets</label><input class="in" id="g-q" type="search" autocomplete="off" aria-controls="g-list"></div>
@@ -125,7 +128,7 @@ fieldset.cats{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:
     <form method="dialog" id="c-form" novalidate style="display:contents">
       <div class="sheet__head">
         <div><h2 id="c-title">Configurar</h2><p id="c-desc">Los cambios se ven en la vista previa y se aplican al pulsar Aplicar.</p></div>
-        <button class="sheet__x" type="button" id="c-x" aria-label="Cerrar sin aplicar">✕</button>
+        <button class="sheet__x" type="button" id="c-x" aria-label="Cerrar sin aplicar"></button>
       </div>
       <div class="sheet__body" id="c-body">
         <div class="sr" role="status" aria-live="polite" data-say></div>

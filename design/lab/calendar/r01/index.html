@@ -82,7 +82,8 @@
     .ghost { position:absolute; z-index:6; border:2px dashed var(--wf-ink); background:rgba(31,31,31,.12); border-radius:3px; pointer-events:none; font-size:11px; padding:1px 4px; }
     .ghost.is-bad { border-color:#a00; background:rgba(160,0,0,.12); }
     .now { position:absolute; inset-inline:0; block-size:0; border-block-start:2px solid var(--wf-ink); z-index:4; pointer-events:none; }
-    .now::before { content:""; position:absolute; inset-inline-start:-5px; inset-block-start:-6px; inline-size:10px; block-size:10px; border-radius:50%; background:var(--wf-ink); }
+    .now::before { content:""; position:absolute; inset-inline-start:-5px; inset-block-start:-6px; inline-size:10px; block-size:10px; background:var(--wf-ink); mask:var(--if-circle) center/contain no-repeat; }
+    .mdots .g-icon, .wkday i .g-icon { inline-size:.7em; block-size:.7em; }
     .nowlbl { position:absolute; z-index:4; inset-inline-end:2px; transform:translateY(-50%); font-size:10px; background:var(--wf-ink); color:#fff; padding:0 4px; border-radius:2px; }
     .oor { grid-column:1 / -1; padding:4px 10px; font-size:12px; color:var(--wf-2); border-block-start:1px dashed var(--wf-line); }
 
@@ -127,6 +128,9 @@
     @container (max-width: 700px) { .cal__side { display:none; } .cal__side.is-open { display:block; position:absolute; z-index:12; block-size:100%; } .cal__main { position:relative; } }
     @container (max-width: 520px) { .bar__title { flex-basis:100%; order:5; } .tzl { display:none; } .month td { block-size:52px; } .mlist { display:none; } .mdots { display:block; } .cal { --axis:44px; --colmin:0px; } }
   </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(["circle"],true)</script>
 </head>
 <body>
 <main>
@@ -215,6 +219,7 @@ const nowDate = () => (S.real ? new Date() : iso(T, '10:10'))
 const rtitle = (id) => RES.find((r) => r.id === id).title
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)]
 const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith('aria-') && typeof v === 'boolean') { n.setAttribute(k, String(v)); continue } if (v == null || v === false) continue; if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? '' : v) } for (const c of kids.flat()) if (c != null) n.append(c); return n }
+const ico = (n, filled = false) => { const t = document.createElement('span'); t.innerHTML = window.lucide(n, '', filled); return t.firstChild }
 const logEl = $('#log'); const live = $('#live')
 function emit(name, payload) { const s = JSON.stringify(payload, (k, v) => (v instanceof Date ? v.toISOString() : v)); logEl.textContent = `${new Date().toLocaleTimeString()}  ${name}  ${s}\n` + logEl.textContent; if (name === 'conflict') say('Conflicto: ' + payload.conflicts.map((c) => c.type).join(', ')) }
 const say = (t) => { live.textContent = ''; setTimeout(() => (live.textContent = t), 30) }
@@ -289,7 +294,7 @@ function toolbar() {
   const nav = (n) => () => { const u = S.view; S.date = u === 'month' ? (() => { const [y, m, d] = S.date.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1 + n, 1)); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-01` })() : addDays(S.date, n * (u === 'week' ? 7 : 1)); render(); rangeChange(); say(title) }
   return el('div', { class: 'bar', role: 'toolbar', 'aria-label': 'Navegación del calendario' },
     mode() === 'tablet' ? el('button', { class: 'btn', type: 'button', 'aria-expanded': !!S.sideOpen, 'aria-controls': 'side', onclick: () => { S.sideOpen = !S.sideOpen; render() } }, `Recursos (${S.selected.length})`) : null,
-    el('button', { class: 'btn', type: 'button', 'aria-label': 'Anterior', onclick: nav(-1) }, '‹'), el('button', { class: 'btn', type: 'button', onclick: () => { S.date = dayKey(nowDate(), S.tz); render(); rangeChange() } }, 'Hoy'), el('button', { class: 'btn', type: 'button', 'aria-label': 'Siguiente', onclick: nav(1) }, '›'),
+    el('button', { class: 'btn', type: 'button', 'aria-label': 'Anterior', onclick: nav(-1) }, ico('chevron-left')), el('button', { class: 'btn', type: 'button', onclick: () => { S.date = dayKey(nowDate(), S.tz); render(); rangeChange() } }, 'Hoy'), el('button', { class: 'btn', type: 'button', 'aria-label': 'Siguiente', onclick: nav(1) }, ico('chevron-right')),
     el('h2', { class: 'bar__title', text: title, style: 'border:0;padding:0;margin:0 4px;font-size:15px' }), el('span', { class: 'bar__sp' }),
     S.view === 'week' && S.selected.length > 1 ? el('label', { class: 'tzl' }, 'Recurso ', el('select', { onchange: (e) => { S.weekRes = e.target.value; render() } }, ...S.selected.map((id) => el('option', { value: id, selected: id === S.weekRes, text: rtitle(id) })))) : null,
     el('span', { class: 'seg', role: 'group', 'aria-label': 'Vista' }, v('day', 'Día'), v('week', 'Semana'), v('month', 'Mes'), v('timeline', 'Timeline')),
@@ -403,7 +408,7 @@ function monthView(now) {
     const shown = evs.slice(0, S.maxVisible), rest = evs.length - shown.length
     const td = el('td', { class: (key.slice(0, 7) === curMonth ? '' : 'is-out ') + (key === todayKey ? 'is-today' : '') })
     td.append(el('button', { class: 'mday', type: 'button', tabindex: '-1', 'data-cell': key, 'aria-label': `${longDay(key)}, ${evs.length} evento${evs.length === 1 ? '' : 's'}`, onclick: (e) => { emit('date-click', { date: key }); if (mode() === 'phone') openSheet(key, evs); else { S.view = 'day'; S.date = key; render(); rangeChange() } } }, String(+key.slice(8))))
-    td.append(el('span', { class: 'mdots', 'aria-hidden': 'true', text: evs.length ? '● ' + evs.length : '' }))
+    td.append(el('span', { class: 'mdots', 'aria-hidden': 'true', }, evs.length ? [ico('circle', true), ' ' + evs.length] : []))
     const ul = el('ul', { class: 'mlist' })
     shown.forEach((e) => ul.append(el('li', {}, el('button', { class: 'mev', type: 'button', 'data-id': e.id, tabindex: '-1', title: e.title, onclick: (ev) => openDetail(e, ev.currentTarget), 'aria-label': evLabel(e, S.tz, rtitle(e.resourceId)) }, (multi ? `[${rtitle(e.resourceId).slice(-1)}] ` : '') + (e.allDay ? '' : hhmm(e.start, S.tz) + ' ') + e.title))))
     if (rest > 0) ul.append(el('li', {}, el('button', { class: 'more', type: 'button', tabindex: '-1', onclick: () => { emit('more-events-click', { date: key, hidden: rest }); openSheet(key, evs) } }, `+${rest} más`)))
@@ -427,7 +432,7 @@ function phoneResources() {
 function phoneWeek(now) {
   const id = S.selected.includes(S.weekRes) ? S.weekRes : S.selected[0], ws = weekStart(S.date), wrap = el('div'), strip = el('div', { class: 'wkstrip', role: 'group', 'aria-label': 'Días de la semana' })
   for (let i = 0; i < 7; i++) { const k = addDays(ws, i), ds = zoned(k, 0, S.tz), de = zoned(addDays(k, 1), 0, S.tz), n = VIS().filter((e) => e.resourceId === id && +e.start < +de && +(e.end || e.start) >= +ds).length
-    strip.append(el('button', { class: 'wkday', type: 'button', 'aria-pressed': k === S.date, 'aria-label': `${longDay(k)}, ${n} eventos`, onclick: () => { S.date = k; render(); rangeChange() } }, ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i] + ' ' + +k.slice(8), el('i', { text: n ? '●'.repeat(Math.min(n, 3)) : '' }))) }
+    strip.append(el('button', { class: 'wkday', type: 'button', 'aria-pressed': k === S.date, 'aria-label': `${longDay(k)}, ${n} eventos`, onclick: () => { S.date = k; render(); rangeChange() } }, ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i] + ' ' + +k.slice(8), el('i', {}, ...Array.from({ length: Math.min(n, 3) }, () => ico('circle', true))))) }
   wrap.append(strip, el('h3', { style: 'margin:8px 10px 0;font-size:14px', text: 'Agenda del ' + longDay(S.date) }))
   const ds = zoned(S.date, 0, S.tz), de = zoned(addDays(S.date, 1), 0, S.tz), evs = VIS().filter((e) => e.resourceId === id && +e.start < +de && +(e.end || e.start) >= +ds).sort((a, b) => +a.start - +b.start)
   const ul = el('ul', { class: 'agenda', 'aria-label': `Agenda, ${rtitle(id)}` }); if (!evs.length) ul.append(el('li', { text: 'Sin eventos este día.' }))

@@ -45,7 +45,7 @@ html:has(dialog[open]){overflow:hidden}
 .d__desc{margin:4px 0 0;color:var(--wf-2);font-size:14px}
 .d__close{flex:none;width:36px;height:36px;border:1px solid transparent;border-radius:8px;background:transparent;cursor:pointer;display:grid;place-content:center}
 .d__close:hover{background:var(--wf-fill);border-color:var(--wf-line)}
-.d__close::before{content:"\00d7";font-size:22px;line-height:1}
+.d__close::before{content:"";width:20px;height:20px;background:currentColor;mask:var(--i-x) center/contain no-repeat}
 
 /* ---------- Superficie inset ---------- */
 .d__inset{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;background:#fff;border:1px solid var(--wf-line);border-radius:var(--r-inner);overflow:hidden}
@@ -63,7 +63,7 @@ html:has(dialog[open]){overflow:hidden}
 .d__sunken{background:var(--wf-fill-2);border:1px solid var(--wf-line);border-radius:calc(var(--r-inner) - 8px);padding:12px 14px}
 
 /* Confirmación */
-.d--alert .d__icon{flex:none;width:36px;height:36px;border:1.5px solid var(--wf-ink);border-radius:50%;display:grid;place-content:center;font-weight:700}
+.d--alert .d__icon{flex:none;width:36px;height:36px;display:grid;place-content:center}.d--alert .d__icon::before{content:"";width:28px;height:28px;background:currentColor;mask:var(--i-triangle-alert) center/contain no-repeat}
 
 /* Pantalla completa */
 .d--full{--w:100vw;width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border-width:0;--r-outer:0px}
@@ -86,6 +86,9 @@ html:has(dialog[open]){overflow:hidden}
 }
 .log{font:12px ui-monospace,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px;min-height:60px;white-space:pre-wrap;max-width:72ch}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['x', 'triangle-alert'])</script>
 </head>
 <body>
 <main>
@@ -150,7 +153,7 @@ html:has(dialog[open]){overflow:hidden}
 
 <!-- 6 · Confirmación -->
 <dialog class="d d--sm d--alert" id="d-confirm" role="alertdialog" aria-labelledby="t-confirm" aria-describedby="s-confirm" data-no-backdrop-close>
-  <div class="d__head"><span class="d__icon" aria-hidden="true">!</span><div class="d__titles"><h2 class="d__title" id="t-confirm">¿Eliminar el proyecto?</h2><p class="d__desc" id="s-confirm">Se borrarán sus 24 archivos. Esta acción no se puede deshacer.</p></div></div>
+  <div class="d__head"><span class="d__icon" aria-hidden="true"></span><div class="d__titles"><h2 class="d__title" id="t-confirm">¿Eliminar el proyecto?</h2><p class="d__desc" id="s-confirm">Se borrarán sus 24 archivos. Esta acción no se puede deshacer.</p></div></div>
   <div class="d__inset"><div class="d__foot"><button class="b" type="button" data-close autofocus>Cancelar</button><button class="b b--solid b--danger" type="button" data-close data-confirm>Eliminar</button></div></div>
 </dialog>
 

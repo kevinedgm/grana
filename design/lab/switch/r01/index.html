@@ -27,14 +27,14 @@ kbd{border:1px solid var(--wf-3);border-bottom-width:2px;border-radius:3px;paddi
 .s__input::before{content:"";position:absolute;inset-block:var(--pad);inset-inline-start:var(--pad);inline-size:var(--td);border-radius:50%;background:var(--wf-2);transition:inset-inline-start .16s cubic-bezier(.23,1,.32,1)}
 .s__input:checked{background:var(--wf-ink);border-color:var(--wf-ink)}
 .s__input:checked::before{inset-inline-start:calc(100% - var(--pad) - var(--td));background:#fff}
-/* marca dibujada dentro del pulgar: − apagado, ✓ encendido */
-.s__input::after{content:"";position:absolute;inset-block-start:50%;inset-inline-start:calc(var(--pad) + var(--td) / 2);width:calc(var(--td) * .5);height:2px;background:#fff;translate:-50% -50%;transition:inset-inline-start .16s cubic-bezier(.23,1,.32,1)}
-.s__input:checked::after{inset-inline-start:calc(100% - var(--pad) - var(--td) / 2);width:calc(var(--td) * .5);height:calc(var(--td) * .25);background:none;border:solid var(--wf-ink);border-width:0 0 2px 2px;translate:-50% -65%;rotate:-45deg}
-[dir=rtl] .s__input:checked::after{translate:50% -65%}
+/* marca dentro del pulgar: minus (apagado), check (encendido), loader-circle (carga); trazos de Lucide */
+.s__input::after{content:"";position:absolute;inset-block-start:50%;inset-inline-start:calc(var(--pad) + var(--td) / 2);width:calc(var(--td) * .6);height:calc(var(--td) * .6);background:#fff;mask:var(--i-minus) center/contain no-repeat;translate:-50% -50%;transition:inset-inline-start .16s cubic-bezier(.23,1,.32,1)}
+.s__input:checked::after{inset-inline-start:calc(100% - var(--pad) - var(--td) / 2);background:var(--wf-ink);mask:var(--i-check) center/contain no-repeat;translate:-50% -50%}
+[dir=rtl] .s__input:checked::after{translate:50% -50%}
 [dir=rtl] .s__input::after{translate:50% -50%}
 .s__text{display:flex;flex-direction:column;min-width:0;padding-top:calc((var(--h) - 1.5em) / 2);flex:1 1 auto}
 .s__label{font-size:15px} .s__hint{font-size:13px;color:var(--wf-2)}
-.s__err{font-size:13px;font-weight:600;margin-top:2px} .s__err::before{content:"\26A0\00a0"} .s__err:empty{display:none}
+.s__err{font-size:13px;font-weight:600;margin-top:2px} .s__err::before{content:"";display:inline-block;inline-size:13px;block-size:13px;margin-inline-end:4px;vertical-align:-2px;background:currentColor;mask:var(--i-triangle-alert) center/contain no-repeat} .s__err:empty{display:none}
 .s__row:hover .s__input:not(:disabled){border-color:var(--wf-ink);background:var(--wf-fill-2)} .s__row:hover .s__input:checked:not(:disabled){background:#000}
 .s__input:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
 .s.is-disabled .s__row{cursor:not-allowed} .s.is-disabled .s__text{opacity:.55} .s.is-disabled .s__input{opacity:.45;border-style:dotted}
@@ -43,8 +43,8 @@ kbd{border:1px solid var(--wf-3);border-bottom-width:2px;border-radius:3px;paddi
 .s.is-invalid .s__input{border:2px dashed var(--wf-ink)}
 /* Carga: anillo dentro del pulgar; no bloquea */
 .s.is-loading .s__input:not(:checked)::before{background:var(--wf-fill)}
-.s.is-loading .s__input::after{content:"";width:calc(var(--td) * .6);height:calc(var(--td) * .6);border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;background:none;translate:-50% -50%;rotate:0deg;animation:spin .8s linear infinite}
-.s.is-loading .s__input:checked::after{border:2px solid var(--wf-3);border-top-color:var(--wf-ink);width:calc(var(--td) * .6);height:calc(var(--td) * .6);translate:-50% -50%}
+.s.is-loading .s__input::after{content:"";width:calc(var(--td) * .7);height:calc(var(--td) * .7);background:var(--wf-ink);mask:var(--i-loader-circle) center/contain no-repeat;translate:-50% -50%;animation:spin .8s linear infinite}
+.s.is-loading .s__input:checked::after{mask:var(--i-loader-circle) center/contain no-repeat;width:calc(var(--td) * .7);height:calc(var(--td) * .7);translate:-50% -50%}
 @keyframes spin{to{rotate:360deg}}
 /* tamaños */
 .s--xs{--h:24px;--tw:36px;--th:20px} .s--sm{--h:24px;--tw:40px;--th:22px} .s--lg{--h:32px;--tw:52px;--th:30px} .s--xl{--h:40px;--tw:64px;--th:36px}
@@ -52,6 +52,9 @@ kbd{border:1px solid var(--wf-3);border-bottom-width:2px;border-radius:3px;paddi
 @media (prefers-reduced-motion:reduce){.s__input::before,.s__input::after{transition:none}.s.is-loading .s__input::after{animation:none}}
 .show-target .s__row{outline:1px dashed #c00}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['check', 'minus', 'triangle-alert', 'loader-circle'])</script>
 </head>
 <body>
 <main>

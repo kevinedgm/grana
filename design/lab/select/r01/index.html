@@ -26,19 +26,19 @@ button{font:inherit}
 .sel__btn{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;border-radius:inherit;background:transparent;color:inherit;text-align:start;cursor:pointer}
 .sel__value{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sel__value.is-ph{color:var(--wf-3)}
-.sel__arrow{flex:none;width:8px;height:8px;border:solid currentColor;border-width:0 2px 2px 0;rotate:45deg;translate:0 -2px}
-.sel.is-open .sel__arrow{rotate:225deg;translate:0 2px}
+.sel__arrow{flex:none;width:16px;height:16px;background:currentColor;mask:var(--i-chevron-down) center/contain no-repeat}
+.sel.is-open .sel__arrow{rotate:180deg}
 .sel__btn:focus{outline:0}
 .sel__control:has(.sel__btn:focus-visible){outline:3px solid var(--wf-ink);outline-offset:-1.5px}
 .sel__control:hover:not(:has(:disabled)){border-color:var(--wf-ink)}
-.sel__clear{flex:none;min-width:32px;border:0;background:transparent;cursor:pointer;color:var(--wf-2);font-size:18px;line-height:1}
+.sel__clear{flex:none;min-width:32px;border:0;background:transparent;cursor:pointer;color:var(--wf-2);display:grid;place-items:center}.sel__clear::before{content:"";width:16px;height:16px;background:currentColor;mask:var(--i-x) center/contain no-repeat}
 .sel__clear:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
 .sel__msgs{margin-top:4px;font-size:13px;color:var(--wf-2);overflow-wrap:anywhere}
 .sel__err{font-size:13px;font-weight:600;margin-top:2px;overflow-wrap:anywhere} .sel__err::before{content:"\26A0\00a0"} .sel__err:empty{display:none}
 .sel.is-invalid .sel__control{border:2px dashed var(--wf-ink)}
 .sel.is-disabled .sel__control{border-style:dotted;opacity:.55;background:var(--wf-fill)} .sel.is-disabled .sel__label{opacity:.55} .sel.is-disabled .sel__btn{cursor:not-allowed}
 .sel.is-readonly .sel__control{border-style:dashed;background:var(--wf-fill-2)} .sel.is-readonly .sel__btn{cursor:default}
-.sel.is-loading .sel__control::after{content:"";align-self:center;margin-inline-end:8px;width:14px;height:14px;border:2px solid var(--wf-3);border-top-color:var(--wf-ink);border-radius:50%;animation:spin .8s linear infinite}
+.sel.is-loading .sel__control::after{content:"";align-self:center;margin-inline-end:8px;width:16px;height:16px;background:currentColor;mask:var(--i-loader-circle) center/contain no-repeat;animation:spin .8s linear infinite}
 @keyframes spin{to{rotate:360deg}}
 .sel--sm{--h:32px} .sel--lg{--h:48px}
 
@@ -47,7 +47,7 @@ button{font:inherit}
 .sel__list:not(:popover-open){display:none}
 .sel__opt{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 10px;border-radius:5px;cursor:pointer;overflow-wrap:anywhere}
 .sel__opt[aria-selected=true]{font-weight:600}
-.sel__opt[aria-selected=true]::after{content:"";flex:none;margin-inline-start:auto;width:10px;height:5px;border:solid currentColor;border-width:0 0 2px 2px;rotate:-45deg;translate:0 -2px}
+.sel__opt[aria-selected=true]::after{content:"";flex:none;margin-inline-start:auto;width:16px;height:16px;background:currentColor;mask:var(--i-check) center/contain no-repeat}
 .sel__opt.is-active{background:var(--wf-fill);outline:2px solid var(--wf-ink);outline-offset:-2px}
 .sel__opt[aria-disabled=true]{opacity:.5;cursor:not-allowed;text-decoration:line-through}
 .sel__grp{padding:6px 10px 2px;font-size:12px;font-weight:700;color:var(--wf-2);text-transform:none}
@@ -61,6 +61,9 @@ button{font:inherit}
 }
 @media (prefers-reduced-motion:reduce){.sel.is-loading .sel__control::after{animation:none}}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['chevron-down', 'check', 'x', 'loader-circle'])</script>
 </head>
 <body>
 <main>
@@ -82,7 +85,7 @@ class GSel{
   render(host){const o=this.o,id=this.id
     const desc=[o.hint&&`${id}-h`,o.error&&`${id}-e`].filter(Boolean).join(' ')
     const cls=['sel',o.soft&&'sel--soft',o.size&&`sel--${o.size}`,o.disabled&&'is-disabled',o.readonly&&'is-readonly',o.error&&'is-invalid',o.loading&&'is-loading'].filter(Boolean).join(' ')
-    host.innerHTML=`<div class="${cls}" id="${id}"><label class="sel__label" id="${id}-l" for="${id}-b">${o.label}${o.required?'<span class="sel__req" aria-hidden="true">*</span>':''}</label><div class="sel__control"><button class="sel__btn" type="button" role="combobox" id="${id}-b" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-lb" aria-labelledby="${id}-l ${id}-b" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true"':''} ${o.loading?'aria-busy="true"':''} ${o.required?'aria-required="true"':''} ${o.disabled?'disabled':''}><span class="sel__value"></span><span class="sel__arrow" aria-hidden="true"></span></button>${o.clearable?`<button class="sel__clear" type="button" aria-label="Limpiar ${o.label}" ${o.disabled?'disabled':''}>×</button>`:''}</div><input type="hidden" name="${o.name||id}"><ul class="sel__list" id="${id}-lb" role="listbox" popover="manual" aria-labelledby="${id}-l"></ul>${o.hint?`<div class="sel__msgs" id="${id}-h">${o.hint}</div>`:''}<div class="sel__err" id="${id}-e" aria-live="polite">${o.error||''}</div></div>`
+    host.innerHTML=`<div class="${cls}" id="${id}"><label class="sel__label" id="${id}-l" for="${id}-b">${o.label}${o.required?'<span class="sel__req" aria-hidden="true">*</span>':''}</label><div class="sel__control"><button class="sel__btn" type="button" role="combobox" id="${id}-b" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-lb" aria-labelledby="${id}-l ${id}-b" ${desc?`aria-describedby="${desc}"`:''} ${o.error?'aria-invalid="true"':''} ${o.readonly?'aria-readonly="true"':''} ${o.loading?'aria-busy="true"':''} ${o.required?'aria-required="true"':''} ${o.disabled?'disabled':''}><span class="sel__value"></span><span class="sel__arrow" aria-hidden="true"></span></button>${o.clearable?`<button class="sel__clear" type="button" aria-label="Limpiar ${o.label}" ${o.disabled?'disabled':''}></button>`:''}</div><input type="hidden" name="${o.name||id}"><ul class="sel__list" id="${id}-lb" role="listbox" popover="manual" aria-labelledby="${id}-l"></ul>${o.hint?`<div class="sel__msgs" id="${id}-h">${o.hint}</div>`:''}<div class="sel__err" id="${id}-e" aria-live="polite">${o.error||''}</div></div>`
     this.root=host.firstElementChild;this.btn=this.root.querySelector('.sel__btn');this.list=this.root.querySelector('.sel__list');this.clear=this.root.querySelector('.sel__clear');this.hidden=this.root.querySelector('input[type=hidden]')
     this.paintValue();this.paintList()}
   paintValue(){const s=this.sel,v=this.root.querySelector('.sel__value');v.textContent=s?s.label:(this.o.placeholder||'');v.classList.toggle('is-ph',!s);this.hidden.value=s?s.value:'';if(this.clear)this.clear.hidden=!s

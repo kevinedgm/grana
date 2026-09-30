@@ -31,18 +31,21 @@ button{font:inherit;color:inherit}
 .mi .lbl{flex:1;min-inline-size:0}
 .mi .sc{flex:none;font-size:12px;color:var(--2);margin-inline-start:16px}
 .mi .chev{flex:none;font-size:12px}
-.mi[aria-haspopup]::after{content:"›";flex:none;font-size:16px;line-height:1}
+.mi[aria-haspopup]::after{content:"";flex:none;inline-size:16px;block-size:16px;background:currentColor;mask:var(--i-chevron-right) center/contain no-repeat}
 .mi[aria-expanded=true]{background:var(--fill)}
 /* casilla y opción: marca de texto y forma */
 .mark{flex:none;inline-size:18px;block-size:18px;display:grid;place-items:center;border:1.5px solid var(--2);font-size:13px;line-height:1}
 [role=menuitemcheckbox] .mark{border-radius:4px}[role=menuitemradio] .mark{border-radius:50%}
-[aria-checked=true] .mark{background:var(--ink);color:#fff}[role=menuitemcheckbox][aria-checked=true] .mark::before{content:"✓"}[role=menuitemradio][aria-checked=true] .mark::before{content:"●";font-size:9px}
+[aria-checked=true] .mark{background:var(--ink);color:#fff}.mark .g-icon{display:none;inline-size:12px;block-size:12px}[aria-checked=true] .mark .g-icon{display:block}
 /* peligro: marca de forma (triángulo) y peso, no solo color */
-.mi--danger .lbl{font-weight:700}.mi--danger .ico::before{content:"▲";font-size:11px}
+.mi--danger .lbl{font-weight:700}.mi .ico .g-icon{inline-size:16px;block-size:16px}
 .grp-t{padding:6px 10px 2px;font-size:12px;color:var(--2);font-weight:600}
 .sep{height:0;border-block-start:1.5px solid var(--soft);margin:6px 4px}
 @media (pointer:coarse){.mi{min-height:44px}}
 </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['chevron-right'])</script>
 </head>
 <body>
 <main>
@@ -88,7 +91,7 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
       if(it.shortcut)b.setAttribute('aria-keyshortcuts',it.shortcut)
       b.dataset.id=it.id??''
       const lead=document.createElement('span');
-      if(it.type==='checkbox'||it.type==='radio'){lead.className='mark';lead.setAttribute('aria-hidden','true')}else{lead.className='ico';lead.setAttribute('aria-hidden','true');if(it.icon)lead.textContent=it.icon}
+      if(it.type==='checkbox'||it.type==='radio'){lead.className='mark';lead.setAttribute('aria-hidden','true');lead.innerHTML=it.type==='radio'?window.lucide('circle','',true):window.lucide('check')}else{lead.className='ico';lead.setAttribute('aria-hidden','true');if(it.danger)lead.innerHTML=window.lucide('triangle-alert');else if(it.icon)lead.innerHTML=window.lucide(it.icon)}
       b.appendChild(lead);const l=document.createElement('span');l.className='lbl';l.textContent=it.label;b.appendChild(l)
       if(it.shortcut){const s=document.createElement('span');s.className='sc';s.setAttribute('aria-hidden','true');s.textContent=it.shortcut;b.appendChild(s)}
       li.appendChild(b)
@@ -173,11 +176,11 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
 
 /* ============ Ejemplos ============ */
 new Menu($('#b1'),[
-  {id:'rename',label:'Renombrar',icon:'✎',shortcut:'F2'},
-  {id:'dup',label:'Duplicar',icon:'⧉',shortcut:'Ctrl+D'},
-  {id:'move',label:'Mover a…',icon:'➜',disabled:true},
+  {id:'rename',label:'Renombrar',icon:'pencil',shortcut:'F2'},
+  {id:'dup',label:'Duplicar',icon:'copy',shortcut:'Ctrl+D'},
+  {id:'move',label:'Mover a…',icon:'arrow-right',disabled:true},
   {type:'separator'},
-  {id:'share',label:'Compartir',icon:'↗'},
+  {id:'share',label:'Compartir',icon:'share-2'},
   {type:'separator'},
   {id:'del',label:'Eliminar',danger:true,shortcut:'Supr'}
 ])

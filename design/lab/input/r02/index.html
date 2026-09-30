@@ -27,7 +27,7 @@
     .f__box:has(.f__input:focus-visible), .f.st-focus .f__box { position:relative; z-index:1; outline:3px solid var(--wf-ink); outline-offset:2px; }
     .f__input { flex:1 1 auto; min-width:0; align-self:stretch; padding:0; border:0; outline:0; background:transparent; font:inherit; color:inherit; }
     .f__input::placeholder { color:var(--wf-2); opacity:1; }
-    .f__ico { width:16px; height:16px; flex:none; border:1.5px solid currentColor; border-radius:3px; }
+    .f__ico { width:16px; height:16px; flex:none; background:currentColor;mask:var(--i-search) center/contain no-repeat; }
     .f__msgs { display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-size:13px; color:var(--wf-2); }
     .f__err { color:var(--wf-ink); font-weight:600; margin-top:4px; font-size:13px; } .f__err::before { content:"\26A0\00a0"; }
     .f.is-invalid .f__box { border:2px solid var(--wf-ink); border-style:dashed; }
@@ -43,7 +43,7 @@
     .f__act--icon { padding:0; inline-size:var(--h); }
     .f__act[aria-disabled="true"], .f__act:disabled { opacity:.4; cursor:not-allowed; }
     .f__act.is-loading { cursor:progress; } .f__act.is-loading .lbl, .f__act.is-loading .f__ico { visibility:hidden; }
-    .f__act .spin { position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-size:12px; } .f__act.is-loading .spin { display:flex; }
+    .f__act .spin { position:absolute; inset:0; display:none; align-items:center; justify-content:center; } .f__act .spin::before { content:""; width:16px; height:16px; background:currentColor;mask:var(--i-loader-circle) center/contain no-repeat; animation:spin .8s linear infinite; } @keyframes spin{to{rotate:360deg}} .f__act.is-loading .spin { display:flex; }
     .f.is-disabled .f__act { opacity:.4; }
     .f--lg { --h:44px; } .f--xs { --h:24px; --px:8px; } .f--xs .f__act { font-size:12px; padding-inline:8px; }
     @media (pointer:coarse) { .f { --h:44px; } }
@@ -59,6 +59,9 @@
       .f__act--icon { margin-inline-start: -1px; border-radius: 0 4px 4px 0; }
     }
   </style>
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<script src="../../lucide-icons.js"></script>
+<script>window.lucideVars(['loader-circle', 'search'])</script>
 </head>
 <body>
 <main>
@@ -78,7 +81,7 @@
   <div class="grid">
     <div><p class="cap">Suscripción (acción con texto)</p><form class="f" data-demo><label class="f__label" for="c1">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="c1" type="email" placeholder="ana@ejemplo.com" required></div><button class="f__act" type="submit">Suscribirse</button></div><div class="f__msgs"><span>Sin spam, puedes salir cuando quieras.</span></div><p class="log" aria-live="polite"></p></form></div>
     <div><p class="cap">Búsqueda (acción solo icono, con nombre accesible)</p><form class="f" role="search" data-demo><label class="f__label" for="c2">Buscar reservas</label><div class="f__row"><div class="f__box"><span class="f__ico" aria-hidden="true"></span><input class="f__input" id="c2" type="search" placeholder="Nombre o folio"></div><button class="f__act f__act--icon" type="submit" aria-label="Buscar"><span class="f__ico" aria-hidden="true"></span></button></div><p class="log" aria-live="polite"></p></form></div>
-    <div><p class="cap">Cupón (acción que puede tardar: loading)</p><form class="f" data-demo data-slow><label class="f__label" for="c3">Cupón de descuento</label><div class="f__row"><div class="f__box"><input class="f__input" id="c3" placeholder="VERANO24"></div><button class="f__act" type="submit"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true">…</span></button></div><p class="log" aria-live="polite"></p></form></div>
+    <div><p class="cap">Cupón (acción que puede tardar: loading)</p><form class="f" data-demo data-slow><label class="f__label" for="c3">Cupón de descuento</label><div class="f__row"><div class="f__box"><input class="f__input" id="c3" placeholder="VERANO24"></div><button class="f__act" type="submit"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true"></span></button></div><p class="log" aria-live="polite"></p></form></div>
     <div><p class="cap">Sin formulario: la acción no depende de Enter</p><div class="f"><label class="f__label" for="c4">Invitar por correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="c4" type="email"></div><button class="f__act" type="button" data-alone>Invitar</button></div><p class="log" aria-live="polite" id="alone-log"></p></div></div>
   </div>
   <div class="wf-note">Prueba con teclado: <kbd>Tab</kbd> campo → botón; <kbd>Enter</kbd> en el campo envía el formulario (solo con botón <code>type="submit"</code> dentro de un <code>&lt;form&gt;</code>); <kbd>Enter</kbd>/<kbd>Espacio</kbd> en el botón lo activa. Con la carga activa, un segundo Enter no envía de nuevo.</div>
@@ -89,7 +92,7 @@
     <div><p class="cap">foco en el botón (real: pulsa Tab)</p><div class="f"><label class="f__label" for="s2">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s2" value="ana@ejemplo.com"></div><button class="f__act" id="s2b" type="button">Suscribirse</button></div></div></div>
     <div><p class="cap">inválido (el error es del campo)</p><div class="f is-invalid"><label class="f__label" for="s3">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s3" value="ana@" aria-invalid="true" aria-describedby="s3e"></div><button class="f__act" type="button">Suscribirse</button></div><div class="f__err" id="s3e">Falta el dominio del correo.</div></div></div>
     <div><p class="cap">deshabilitado (campo y botón)</p><div class="f is-disabled"><label class="f__label" for="s4">Correo</label><div class="f__row"><div class="f__box"><input class="f__input" id="s4" disabled value="ana@ejemplo.com"></div><button class="f__act" type="button" disabled>Suscribirse</button></div></div></div>
-    <div><p class="cap">acción en carga (aria-disabled + aria-busy)</p><div class="f"><label class="f__label" for="s5">Cupón</label><div class="f__row"><div class="f__box"><input class="f__input" id="s5" value="VERANO24"></div><button class="f__act is-loading" type="button" aria-disabled="true" aria-busy="true"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true">…</span></button></div></div></div>
+    <div><p class="cap">acción en carga (aria-disabled + aria-busy)</p><div class="f"><label class="f__label" for="s5">Cupón</label><div class="f__row"><div class="f__box"><input class="f__input" id="s5" value="VERANO24"></div><button class="f__act is-loading" type="button" aria-disabled="true" aria-busy="true"><span class="lbl">Aplicar</span><span class="spin" aria-hidden="true"></span></button></div></div></div>
     <div><p class="cap">tamaños xs y lg (misma altura en caja y botón)</p><div class="f f--xs" style="margin-bottom:12px"><div class="f__row"><div class="f__box"><input class="f__input" aria-label="xs" value="xs"></div><button class="f__act" type="button">Ir</button></div></div><div class="f f--lg"><div class="f__row"><div class="f__box"><input class="f__input" aria-label="lg" value="lg"></div><button class="f__act" type="button">Ir</button></div></div></div>
   </div>
 

@@ -76,14 +76,7 @@ describe('iconos generados', () => {
 // Deuda conocida de la migración a Lucide (docs/contract/icons.md): archivos que aún tienen glifos o pictogramas
 // dibujados con CSS. La lista solo puede **encogerse**: un archivo nuevo con infracciones hace fallar la prueba, y
 // uno corregido debe salir de la lista.
-const DEUDA = [
-  'design/lab/calendar/r01/index.html',
-  'design/lab/checkbox/r01/index.html',
-  'design/lab/menu/r01/index.html',
-  'design/lab/tema-oscuro/estilo-banco.html',
-  'design/lab/widget/r01/index.html',
-  'design/lab/widget/r02/index.html'
-]
+const DEUDA = []
 
 describe('regla «Lucide es la única fuente de iconos»', () => {
   const found = scan()
