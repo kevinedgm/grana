@@ -29,6 +29,7 @@ Flujo por componente: kiwi → lima → coco → bruno → coco (auditoría) →
 - Mínimos de accesibilidad fuera del tema: área táctil ≥ 24px (≥ 44px táctil), texto ≥ 12px, contraste ≥ 4.5:1 (controles 3:1), foco siempre visible.
 - El `.vue` no lleva `<style>`: el CSS es de coco, en su propio archivo.
 - Sin `fetch` ni globals de la app en componentes.
+- **Iconos: solo Lucide** (`docs/contract/icons.md`, DECISIONS #85 a #87): nada de caracteres `✓ ▲ ● › ⚠…`, ni pictogramas dibujados con CSS, ni trazos escritos a mano; en los componentes se usa el `GIcon` interno.
 
 ## Comandos
 

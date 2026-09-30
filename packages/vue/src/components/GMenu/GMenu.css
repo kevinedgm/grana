@@ -1,0 +1,258 @@
+/*
+  GMenu · estilo
+  Dueño: coco. Contrato: design/contracts/menu.md. Estructura: design/lab/menu/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil). Sin consultas de medios de ancho.
+  La lista se coloca con coordenadas físicas (--_x, --_y) calculadas por el componente: por eso `left` y `top`,
+  no propiedades lógicas. Las marcas (✓, ●, ▲ y el chevron) se dibujan con CSS (Grana no trae iconos) y
+  sobreviven a forced-colors. El significado nunca depende solo del color.
+*/
+
+/* ---------- Lista (y submenús) ---------- */
+.g-menu__list {
+  --_d: 1;
+  --_ctl: max(24px, calc(var(--g-space-1) * 9 * var(--_d)));
+  --_mark: calc(var(--g-space-1) * 4.5);
+  --_ring: var(--g-focus-width);
+
+  position: fixed;
+  inset: auto;
+  left: var(--_x, 0px);
+  top: var(--_y, 0px);
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 50);
+  max-inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - var(--g-space-4)));
+  max-block-size: var(--_max, 60vh);
+  margin: 0;
+  padding: calc(var(--g-space-1) * 1.5);
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  box-shadow: var(--g-shadow-2);
+  transform-origin: 0 0;
+  opacity: 0;
+  scale: 0.96;
+}
+.g-menu__list:dir(rtl) { transform-origin: 100% 0; }
+.g-menu__list:popover-open {
+  opacity: 1;
+  scale: 1;
+}
+.g-menu__list--density-comfortable { --_d: 0.875; }
+.g-menu__list--density-compact { --_d: 0.75; }
+.g-menu__list ul,
+.g-menu__list li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (pointer: coarse) {
+  .g-menu__list { --_ctl: 44px; }
+}
+
+/* ---------- Elemento ---------- */
+.g-menu__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--_ctl);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-3);
+  border: 0;
+  border-radius: var(--g-radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .g-menu__item:hover { background: var(--g-color-surface-sunken); }
+}
+.g-menu__item:focus { outline: 0; background: var(--g-color-surface-sunken); }
+.g-menu__item:focus-visible {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: calc(var(--_ring) * -1);
+}
+.g-menu__item.is-expanded,
+.g-menu__item[aria-expanded="true"] { background: var(--g-color-surface-sunken); }
+
+.g-menu__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--_mark);
+  block-size: var(--_mark);
+  color: var(--g-color-text-muted);
+}
+.g-menu__icon:empty { display: none; }
+.g-menu__icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.g-menu__label {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-menu__shortcut {
+  flex: none;
+  margin-inline-start: var(--g-space-4);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-subtle);
+  white-space: nowrap;
+}
+
+/* Deshabilitado: atenuado y tachado (no solo color); sigue enfocable */
+.g-menu__item[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-menu__item[aria-disabled="true"] .g-menu__label {
+  text-decoration: line-through;
+  text-decoration-color: var(--g-color-border-strong);
+}
+.g-menu__item[aria-disabled="true"]:hover { background: transparent; }
+.g-menu__item[aria-disabled="true"]:focus { background: var(--g-color-surface-sunken); }
+
+/* Peligroso: triángulo dibujado y negrita, además del color */
+.g-menu__item--danger { color: var(--g-color-danger-text); }
+.g-menu__item--danger .g-menu__label {
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-menu__item--danger .g-menu__label::before {
+  content: "";
+  display: inline-block;
+  inline-size: calc(var(--g-space-1) * 2.5);
+  block-size: calc(var(--g-space-1) * 2.25);
+  margin-inline-end: var(--g-space-2);
+  background: currentColor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  vertical-align: 0.05em;
+}
+.g-menu__item--danger .g-menu__icon { color: inherit; }
+
+/* Padre de submenú: chevron dibujado con dos bordes, espejado en RTL */
+.g-menu__item[aria-haspopup="menu"]::after {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 1.75);
+  block-size: calc(var(--g-space-1) * 1.75);
+  margin-inline-start: var(--g-space-2);
+  border-inline-end: calc(var(--g-border-width) * 2) solid currentColor;
+  border-block-end: calc(var(--g-border-width) * 2) solid currentColor;
+  rotate: -45deg;
+}
+/* Los bordes son lógicos: en RTL la esquina ya está en el lado contrario, así que +45° apunta a la izquierda */
+.g-menu__item[aria-haspopup="menu"]:dir(rtl)::after { rotate: 45deg; }
+
+/* ---------- Casilla y opción: marca dibujada ---------- */
+.g-menu__mark {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--_mark);
+  block-size: var(--_mark);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+}
+[role="menuitemradio"] > .g-menu__mark { border-radius: var(--g-radius-pill); }
+[aria-checked="true"] > .g-menu__mark {
+  border-color: var(--g-color-brand);
+  background: var(--g-color-brand);
+  color: var(--g-color-on-brand);
+}
+/* ✓ de la casilla: dos bordes girados */
+[role="menuitemcheckbox"][aria-checked="true"] > .g-menu__mark::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 34%;
+  inset-block-start: 14%;
+  inline-size: 28%;
+  block-size: 52%;
+  border-inline-end: calc(var(--g-border-width) * 2) solid currentColor;
+  border-block-end: calc(var(--g-border-width) * 2) solid currentColor;
+  rotate: 45deg;
+}
+/* ● de la opción */
+[role="menuitemradio"][aria-checked="true"] > .g-menu__mark::before {
+  content: "";
+  position: absolute;
+  inset: 28%;
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+}
+
+/* ---------- Grupo y separador ---------- */
+.g-menu__group-title {
+  display: block;
+  padding: calc(var(--g-space-1) * 1.5) var(--g-space-3) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  color: var(--g-color-text-subtle);
+}
+.g-menu__separator {
+  block-size: 0;
+  margin: calc(var(--g-space-1) * 1.5) var(--g-space-1);
+  border: 0;
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+}
+
+/* ---------- Movimiento ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-menu__list {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      scale var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-menu__item {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-menu__list {
+    scale: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+@starting-style {
+  .g-menu__list:popover-open {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-menu__list,
+  .g-menu__separator { border-color: CanvasText; }
+  .g-menu__item:focus-visible { outline-color: Highlight; }
+  .g-menu__item:focus,
+  .g-menu__item.is-expanded,
+  .g-menu__item[aria-expanded="true"] { outline: var(--_ring) solid Highlight; outline-offset: calc(var(--_ring) * -1); }
+  .g-menu__item[aria-disabled="true"] { color: GrayText; }
+  .g-menu__mark { border-color: CanvasText; background: Canvas; color: CanvasText; }
+  [aria-checked="true"] > .g-menu__mark { border-color: CanvasText; background: Canvas; color: CanvasText; }
+  [role="menuitemradio"][aria-checked="true"] > .g-menu__mark::before { background: CanvasText; }
+  .g-menu__item--danger { color: LinkText; }
+}

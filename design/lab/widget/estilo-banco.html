@@ -8,7 +8,8 @@
      Incluye un motor mínimo (niveles, estados, menú, rejilla con puntero y teclado) que imita lo que hará bruno. No es documentación.
      Los gráficos y el contenido de la aplicación se estilizan aquí con clases bk-*. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
-<link rel="stylesheet" href="../../../packages/vue/src/components/GWidget/GWidget.css?v=1" id="css-w">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GWidget/GWidget.css?v=2" id="css-w">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GMetric/GMetric.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GProgress/GProgress.css?v=1">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GDataList/GDataList.css?v=1">
@@ -102,9 +103,9 @@ class Widget{
   set(state){this.state=state;this.paint()}
   render(){const d=this.def,id=this.id
     this.host.innerHTML=`<article class="g-widget g-widget--level-m g-widget--shape-square g-widget--state-${this.state} g-widget--density-default" id="${id}" data-level="m" data-shape="square" aria-labelledby="${id}-t">
-      <header class="g-widget__head"><span class="g-widget__icon" aria-hidden="true">${svg(d.icon)}</span><div class="g-widget__titles"><span class="g-widget__eyebrow">${esc(d.eyebrow)}</span><h3 class="g-widget__title" id="${id}-t">${esc(d.title)}</h3><p class="g-widget__sub">${esc(d.sub)}</p></div><span class="g-widget__badge g-widget__badge--color-neutral">${esc(d.badge)}</span><button type="button" class="g-widget__menu" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}-menu" aria-label="Acciones de ${esc(d.title)}"></button><div class="g-widget__actions" id="${id}-menu" role="menu" popover="manual" aria-label="Acciones de ${esc(d.title)}"></div></header>
+      <header class="g-widget__head"><span class="g-widget__icon" aria-hidden="true">${svg(d.icon)}</span><div class="g-widget__titles"><span class="g-widget__eyebrow">${esc(d.eyebrow)}</span><h3 class="g-widget__title" id="${id}-t">${esc(d.title)}</h3><p class="g-widget__sub">${esc(d.sub)}</p></div><span class="g-widget__badge g-widget__badge--color-neutral">${esc(d.badge)}</span><button type="button" class="g-widget__menu" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}-menu" aria-label="Acciones de ${esc(d.title)}"></button><div class="g-menu__list" id="${id}-menu" role="menu" popover="manual" aria-label="Acciones de ${esc(d.title)}"></div></header>
       <div class="g-widget__body"></div><footer class="g-widget__foot"></footer></article>`
-    this.el=this.host.querySelector('.g-widget');this.body=this.el.querySelector('.g-widget__body');this.foot=this.el.querySelector('.g-widget__foot');this.menuEl=this.el.querySelector('.g-widget__actions')
+    this.el=this.host.querySelector('.g-widget');this.body=this.el.querySelector('.g-widget__body');this.foot=this.el.querySelector('.g-widget__foot');this.menuEl=this.el.querySelector('.g-menu__list')
     this.menuBtn=this.el.querySelector('.g-widget__menu')
     this.menuBtn.addEventListener('click',e=>Menu.toggle(e.currentTarget,this))
     this.menuBtn.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','Enter',' '].includes(e.key)){e.preventDefault();Menu.open(e.currentTarget,this,e.key==='ArrowUp'?'last':'first')}})
@@ -130,9 +131,9 @@ const Menu={el:null,btn:null,w:null,
     if(g&&g.edit){list.push({sep:1},{a:'before',l:'Mover antes',dis:g.index(w)===0},{a:'after',l:'Mover después',dis:g.index(w)===g.items.length-1},{sep:1},{h:'Tamaño'});for(const [k,v] of Object.entries(PRESETS))list.push({a:'size:'+k,l:v.label+' ('+v.w+' × '+v.h+')'});list.push({sep:1},{a:'remove',l:'Quitar'})}
     return list},
   open(btn,w,at='first'){this.close(false);this.btn=btn;this.w=w;const m=this.el=w.menuEl
-    m.innerHTML=this.items(w).map(i=>i.sep?'<hr role="separator">':i.h?`<small role="presentation">${i.h}</small>`:`<button type="button" class="g-widget__action" role="menuitem" tabindex="-1" data-a="${i.a}" ${i.dis?'aria-disabled="true"':''}>${esc(i.l)}</button>`).join('')
+    m.innerHTML=this.items(w).map(i=>i.sep?'<div class="g-menu__separator" role="separator"></div>':i.h?`<div class="g-menu__group-title" role="presentation">${i.h}</div>`:`<button type="button" class="g-menu__item" role="menuitem" tabindex="-1" data-a="${i.a}" ${i.dis?'aria-disabled="true"':''}><span class="g-menu__label">${esc(i.l)}</span></button>`).join('')
     m.showPopover();btn.setAttribute('aria-expanded','true');const r=btn.getBoundingClientRect()
-    m.style.setProperty('--_x',Math.max(8,Math.min(r.right-m.offsetWidth,innerWidth-m.offsetWidth-8))+'px');m.style.setProperty('--_top',Math.min(r.bottom+4,innerHeight-m.offsetHeight-8)+'px');m.style.setProperty('--_bottom','auto');m.style.setProperty('--_max','none')
+    m.style.setProperty('--_x',Math.max(8,Math.min(r.right-m.offsetWidth,innerWidth-m.offsetWidth-8))+'px');m.style.setProperty('--_y',Math.min(r.bottom+4,innerHeight-m.offsetHeight-8)+'px');m.style.setProperty('--_max','none')
     if(!this._out){this._out=e=>{if(this.el?.matches(':popover-open')&&!this.el.contains(e.target)&&!this.btn?.contains(e.target))this.close(false)};document.addEventListener('pointerdown',this._out)}
     const its=[...m.querySelectorAll('[role=menuitem]')];(at==='last'?its[its.length-1]:its[0]).focus()},
   toggle(btn,w){this.el?.matches(':popover-open')&&this.btn===btn?this.close(true):this.open(btn,w)},
