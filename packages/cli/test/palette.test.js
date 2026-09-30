@@ -48,18 +48,18 @@ describe('semánticos sin choque con la marca', () => {
     expect(r.ok).toBe(true)
   })
 
-  it('el tema emite los seis tokens del semántico ajustado, en claro y en oscuro, con contraste', () => {
-    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+  it('el tema emite los seis tokens del semántico ajustado, en claro y en oscuro, con contraste (con "semanticCollision": "adjust")', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70', semanticCollision: 'adjust' })
     expect(r.ok).toBe(true)
     expect(r.generated['--g-color-danger']).not.toBe('#C4321F')
     for (const k of ['', '-strong', '-soft', '-text']) expect(r.generated[`--g-color-danger${k}`]).toBeDefined()
     expect(r.dark.generated['--g-color-danger']).toBeDefined()
-    expect(r.notes.some((n) => n.id === 'semantic-adjusted' && /danger/.test(n.message))).toBe(true)
+    expect(r.notes.some((n) => n.code === 'semantic-adjusted' && /danger/.test(n.message))).toBe(true)
     expect(r.issues.filter((i) => i.severity === 'error')).toEqual([])
   })
 
   it('un override de «danger» gana a la derivación (y se avisa si queda pegado a la marca)', () => {
-    const r = buildTheme({ brand: '#9D1635', overrides: { '--g-color-danger': '#C4321F' } })
+    const r = buildTheme({ brand: '#9D1635', semanticCollision: 'adjust', overrides: { '--g-color-danger': '#C4321F' } })
     expect(r.generated['--g-color-danger']).toBe('#C4321F')
     expect(r.issues.some((i) => i.id === 'semantic-close')).toBe(true)
   })
@@ -175,11 +175,93 @@ describe('grana theme --doc', () => {
     const r = exec(['theme', 'grana.config.json', '--doc'])
     expect(r.code).toBe(0)
     expect(r.out).toContain('tokens.json')
-    expect(r.out).toContain('«danger» se separó')
     const doc = JSON.parse(readFileSync(join(dir, 'tokens.json'), 'utf8'))
     expect(doc.color.tokens.length).toBeGreaterThan(40)
     const r2 = exec(['theme', 'grana.config.json', '--doc=docs.json', '--out', 'x.css'])
     expect(r2.code).toBe(0)
     expect(JSON.parse(readFileSync(join(dir, 'docs.json'), 'utf8')).meta.source).toBe('@grana/cli')
+    expect(r.out + r.err).toContain('Alternativa calculada')
+  })
+})
+
+describe('política semanticCollision (tokens.md §17.12)', () => {
+  it('por defecto es «warn»: conserva el semántico, avisa con la alternativa calculada y no cambia el CSS', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    expect(r.ok).toBe(true)
+    expect(r.generated['--g-color-danger']).toBeUndefined()
+    const w = r.issues.filter((i) => i.id === 'semantic-close' && i.tokens[0] === '--g-color-danger')
+    expect(w.length).toBeGreaterThan(0)
+    expect(w[0].recommended).toMatch(/^#[0-9A-F]{6}$/)
+    expect(w[0].message).toContain('Alternativa calculada')
+    const d = r.diagnostics.find((x) => x.code === 'semantic-close')
+    expect(d).toMatchObject({ token: 'danger', status: 'default', reason: 'semantic-close', source: 'semantic' })
+    expect(d.recommended).toBe(w[0].recommended)
+  })
+
+  it('la alternativa de «warn» es la misma que aplica «adjust»', () => {
+    const warn = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    const adj = buildTheme({ brand: '#9D1635', accent: '#D85A70', semanticCollision: 'adjust' })
+    expect(adj.generated['--g-color-danger']).toBe(warn.diagnostics.find((x) => x.code === 'semantic-close').recommended)
+    expect(adj.diagnostics.find((x) => x.token === 'danger')).toMatchObject({ code: 'semantic-adjusted', status: 'adjusted', input: '#C4321F' })
+    expect(adj.issues.filter((i) => i.severity === 'error')).toEqual([])
+  })
+
+  it('valida la configuración', () => {
+    expect(readConfig({ semanticCollision: 'otra' }).errors).toHaveLength(1)
+    expect(readConfig({ semanticCollision: 'adjust' }).errors).toHaveLength(0)
+  })
+
+  it('sin choque no hay diagnóstico ni aviso de colisión', () => {
+    const r = buildTheme({ brand: '#0B1F4D', accent: '#6D28D9' })
+    expect(r.diagnostics.filter((d) => d.code.startsWith('semantic'))).toEqual([])
+    expect(r.issues.some((i) => i.id === 'semantic-close')).toBe(false)
+  })
+})
+
+describe('transparencia y arquitectura en tokens.json (§17.13, §17.18)', () => {
+  const tok = (r, n) => r.doc.color.tokens.find((t) => t.name === n)
+
+  it('cada token lleva level, source y status', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70', categories: 2, overrides: { '--g-color-focus': '#5B3FE0' } })
+    expect(tok(r, 'brand')).toMatchObject({ level: 'reference', source: 'brand', status: 'derived' })
+    expect(tok(r, 'accent-soft')).toMatchObject({ level: 'reference', source: 'accent', status: 'derived' })
+    expect(tok(r, 'surface')).toMatchObject({ level: 'semantic', status: 'default' })
+    expect(tok(r, 'text')).toMatchObject({ level: 'semantic', source: 'brand', status: 'derived' }) // neutro teñido
+    expect(tok(r, 'cat-1')).toMatchObject({ level: 'reference', source: 'brand', status: 'derived' })
+    expect(tok(r, 'danger')).toMatchObject({ level: 'semantic', status: 'default' })
+    expect(tok(r, 'focus')).toMatchObject({ level: 'semantic', status: 'override' })
+    expect(r.doc.color.tokens.every((t) => ['reference', 'semantic'].includes(t.level) && ['default', 'derived', 'adjusted', 'override'].includes(t.status))).toBe(true)
+  })
+
+  it('la colisión sin aplicar queda documentada en el token y en diagnostics', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    expect(tok(r, 'danger').recommended).toMatchObject({ reason: 'semantic-close' })
+    expect(tok(r, 'danger').recommended.value).toMatch(/^#[0-9A-F]{6}$/)
+    expect(r.doc.diagnostics.some((d) => d.code === 'semantic-close' && d.token === 'danger')).toBe(true)
+    const adj = buildTheme({ brand: '#9D1635', accent: '#D85A70', semanticCollision: 'adjust' })
+    expect(tok(adj, 'danger').status).toBe('adjusted')
+    expect(tok(adj, 'danger-soft').status).toBe('adjusted')
+  })
+
+  it('«categories» se documenta como colores categóricos, no paleta de datos', () => {
+    const r = buildTheme({ brand: '#9D1635', categories: 2 })
+    expect(r.doc.meta.categories).toMatch(/no una paleta de visualización de datos/)
+    expect(tok(r, 'cat-1').usage).toMatch(/no es una paleta de gráficas/)
+  })
+})
+
+describe('roles de interfaz (alias, tokens.md §17.4 y §17.7)', () => {
+  it('primary, link, selection y active son alias de brand y accent y siguen al tema, claro y oscuro', () => {
+    const r = buildTheme({ brand: '#9D1635', accent: '#D85A70' })
+    expect(r.tokens['--g-color-primary']).toBe('var(--g-color-brand)')
+    expect(r.tokens['--g-color-link']).toBe('var(--g-color-accent-text)')
+    expect(r.tokens['--g-color-selection']).toBe('var(--g-color-accent-soft)')
+    expect(r.tokens['--g-color-active']).toBe('var(--g-color-accent)')
+    expect(r.dark.tokens['--g-color-primary']).toBe('var(--g-color-brand)')
+    const t = r.doc.color.tokens
+    expect(t.find((x) => x.name === 'primary').value.light).toBe('#9D1635')
+    expect(t.find((x) => x.name === 'primary').value.dark).toBe(r.dark.generated['--g-color-brand'])
+    expect(t.find((x) => x.name === 'on-primary').contrast.against).toBe('--g-color-primary')
+    expect(t.find((x) => x.name === 'link').contrast.light).toBeGreaterThanOrEqual(4.5)
   })
 })

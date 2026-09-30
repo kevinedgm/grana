@@ -1,7 +1,7 @@
 // Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides` + `dark`.
 import { parseHex } from './color.js'
 
-export const KEYS = ['name', 'brand', 'accent', 'neutrals', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
+export const KEYS = ['name', 'brand', 'accent', 'neutrals', 'semanticCollision', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
 
 /** Devuelve { config, errors }. Rechaza claves desconocidas y tipos incorrectos, con el motivo. */
 export const readConfig = (raw) => {
@@ -36,6 +36,10 @@ export const readConfig = (raw) => {
   if (raw.neutrals !== undefined) {
     if (raw.neutrals !== 'tinted' && raw.neutrals !== 'pure') err('bad-neutrals', `«neutrals» debe ser "tinted" o "pure"; se recibió ${JSON.stringify(raw.neutrals)}.`)
     else config.neutrals = raw.neutrals
+  }
+  if (raw.semanticCollision !== undefined) {
+    if (raw.semanticCollision !== 'warn' && raw.semanticCollision !== 'adjust') err('bad-collision', `«semanticCollision» debe ser "warn" o "adjust"; se recibió ${JSON.stringify(raw.semanticCollision)}.`)
+    else config.semanticCollision = raw.semanticCollision
   }
   num('categories', { min: 0, max: 12, int: true })
   color('brand')

@@ -54,7 +54,7 @@ const generateDark = (config, generated, derived) => {
   // Derivación de paleta (tokens.md §16): los mismos semánticos ajustados, neutros teñidos y categorías, en su variante oscura
   const d = derived
   if (d) {
-    for (const [name, r] of Object.entries(d.semantic)) Object.assign(out, darkColorTokens(name, r.hex, surface))
+    for (const [name, r] of Object.entries(d.applied)) Object.assign(out, darkColorTokens(name, r.hex, surface))
     if (d.neutralsBrand) {
       Object.assign(out, tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true }))
       const nb = lightNeutral(cfg.brand ?? d.neutralsBrand)
@@ -82,13 +82,15 @@ export const generateTheme = (config = {}) => {
   const accentBase = config.accent ?? (config.brand ? generated['--g-color-brand-text'] : undefined)
   if (accentBase) Object.assign(generated, colorTokens('accent', accentBase, surface))
   // Derivación de paleta (tokens.md §16)
-  const derived = { semantic: {}, neutralsBrand: null, categories: [] }
+  const derived = { semantic: {}, applied: {}, policy: config.semanticCollision ?? 'warn', neutralsBrand: null, categories: [] }
   const anchorBrand = config.brand ?? undefined
   const anchorAccent = accentBase
   if (anchorBrand || anchorAccent) {
     const darkCfg = typeof config.dark === 'object' ? config.dark : {}
     derived.semantic = semanticAdjustments({ brand: anchorBrand, accent: anchorAccent, darkBrand: darkCfg.brand, darkAccent: darkCfg.accent })
-    for (const [name, r] of Object.entries(derived.semantic)) Object.assign(generated, colorTokens(name, r.hex, surface))
+    // semanticCollision (tokens.md §17.12): con «warn» (por defecto) solo se propone; con «adjust» se aplica
+    if (derived.policy === 'adjust') derived.applied = derived.semantic
+    for (const [name, r] of Object.entries(derived.applied)) Object.assign(generated, colorTokens(name, r.hex, surface))
   }
   if (config.brand && config.neutrals !== 'pure') {
     derived.neutralsBrand = config.brand

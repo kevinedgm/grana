@@ -18,6 +18,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `fontSize` | número (px) | `16` | Tamaño `body` |
 | `typeScale` | número | `1.4` | Razón de la escala de títulos |
 | `name` | texto | `"Lustre"` | Nombre del sistema en `tokens.json` (§16). Por defecto «Grana» |
+| `semanticCollision` | `"warn"` \| `"adjust"` | `"adjust"` | Qué hace el CLI si un semántico se parece a la marca o al acento (§16.1, §17.12). `warn` (por defecto): avisa y propone la alternativa; `adjust`: la aplica |
 | `neutrals` | `"tinted"` \| `"pure"` | `"pure"` | Neutros teñidos con el tono de la marca (§16). `tinted` (por defecto); `pure`: los grises por defecto |
 | `categories` | entero 0 a 12 | `6` | Serie de colores de categoría `--g-color-cat-1` a `cat-N` (§16). Por defecto 0 (ninguna) |
 | `dark` | `true` \| `false` \| objeto | `{ "brand": "#F5B940" }` | Tema oscuro (§15). `true` (por defecto): el CLI deriva la variante oscura de `brand` y `accent`. `false`: sin tema oscuro (el sistema oscuro no lo activa). Objeto: `brand`, `accent` (colores del oscuro, en lugar de los derivados) y `overrides` (solo para el oscuro) |
@@ -346,7 +347,9 @@ El `tokens.css` del usuario va **sin capa y gana siempre** (§8): si define `bra
 
 ### 16.1 Semánticos sin choque con la marca
 
-`success`, `warning`, `danger` e `info` parten de su color claro por defecto. Si el más cercano de `brand` o `accent` (claros **y** sus variantes oscuras derivadas) queda a una **distancia OKLab < 0.12**, o si el semántico resultante se parecería a otro semántico (< 0.09; el tema por defecto ya está en ≈ 0.10), se busca el **menor giro**: tono ±45° (pasos de 5°) y luminosidad ±0.15 (pasos de 0.05), con el coste `|Δtono| / 45 + 0.6 · |ΔL| / 0.15`. Se conserva el croma, se reduce a la gama sRGB y se derivan `strong`, `soft`, `text`, `on-*` y su variante oscura como cualquier color (§2, §15). Si ningún giro llega a 0.12, se elige el de mayor distancia y se avisa (`semantic-close`). **Los semánticos que no chocan no se tocan** (no se emiten). Si el usuario fija uno con `overrides` y queda a < 0.12 de la marca, también avisa.
+> **Política (DECISIONS.md #94):** por defecto es `semanticCollision: "warn"`: el CLI **no cambia** el semántico, avisa y propone la alternativa calculada (la misma que aplica `adjust`). Lo de abajo describe cómo se calcula esa alternativa.
+
+`success`, `warning`, `danger` e `info` parten de su color claro por defecto. Si el más cercano de `brand` o `accent` (claros **y** sus variantes oscuras derivadas) queda a una **distancia OKLab < 0.12**, o si el semántico resultante se parecería a otro semántico (< 0.09; el tema por defecto ya está en ≈ 0.10), se busca el **menor giro**: tono ±45° (pasos de 5°) y luminosidad ±0.15 (pasos de 0.05), con el coste `|Δtono| / 45 + 0.6 · |ΔL| / 0.15`. Se conserva el croma, se reduce a la gama sRGB y se derivan `strong`, `soft`, `text`, `on-*` y su variante oscura como cualquier color (§2, §15). Si ningún giro llega a 0.12, se elige el de mayor distancia y se avisa (`semantic-close`). **Los semánticos que no chocan no se tocan** (no se emiten), y con `warn` tampoco los que chocan. Si el usuario fija uno con `overrides` y queda a < 0.12 de la marca, también avisa.
 
 ### 16.2 Neutros teñidos (`neutrals: "tinted"`, por defecto con `brand`)
 
@@ -369,3 +372,97 @@ Documento con el formato de un sistema de diseño: `{ name, version, color: { th
 - Es una propuesta calculada, no una decisión de diseño: si una marca roja obliga a un «danger» anaranjado, el CLI lo dice (`notes`) y el usuario puede fijarlo con `overrides`.
 - Con `dark: false` no se deriva el oscuro de nada de esto.
 - Los colores de gráficas de datos (series) no se derivan: las categorías son para iconos y etiquetas.
+
+## 17. Arquitectura de tokens y roles de color (propuesta v0.2)
+
+**Estado:** Proposed (parcialmente implementado, ver §17.23) · **Dueño:** lima · **Ámbito:** `@grana/cli`, `@grana/vue`, Design Hub. No reemplaza §1 a §16: formaliza sus relaciones para que las equivalencias de v0.1 (`brand ≈ primary`, `accent → focus`) no se vuelvan dependencias permanentes. DECISIONS.md #94.
+
+### 17.1 Cinco niveles
+
+```
+Seed (config) → Reference → Semantic → Component → Instance
+```
+
+| Nivel | Qué es | Ejemplos | Consume |
+| --- | --- | --- | --- |
+| 1 · **Seed** | Decisiones de identidad que da el usuario (`grana.config.json`). No las leen los componentes | `brand`, `accent`, `radius`, `space`, `font`, `fontSize`, `typeScale` | — |
+| 2 · **Reference** | Escalas y valores derivados de los seeds; materia prima, sin intención de interfaz | `brand`, `brand-strong`, `-soft`, `-text`, `on-brand`, `accent-*`, `neutral-*`, `cat-*`, `radius-*`, `space-*`, `text-*` | Seed |
+| 3 · **Semantic** | Intención de interfaz: responde «¿para qué se usa?», no «¿qué color es?». **Los componentes dependen sobre todo de este nivel** | `primary`, `on-primary`, `link`, `selection`, `active`, `focus`, `surface`, `surface-sunken`, `text*`, `border*`, `success`, `warning`, `danger`, `info` | Reference |
+| 4 · **Component** | Solo si el componente tiene una necesidad que no cabe en un token semántico | `--g-btn-radius`, `--g-dialog-surface`, `--g-sidebar-width`, `--g-widget-gap` | Semantic |
+| 5 · **Instance** | Props, variantes y overrides locales de una instancia | `<g-btn color="danger">`, `rounded="pill"` | Component / Semantic |
+
+Un nivel consume tokens de los anteriores y **no se salta niveles** sin una excepción documentada. La **precedencia efectiva es la inversa**: Instance > Component > Semantic > Reference > Seed, y un nivel más específico solo sobrescribe a uno anterior si el contrato del componente lo permite.
+
+### 17.2 Los componentes no leen seeds
+
+Un componente lee `var(--g-color-primary)`, nunca un seed ni (a largo plazo) `var(--g-color-brand)`.
+
+### 17.3 Tema claro y oscuro
+
+Comparten la misma arquitectura semántica: los componentes no saben qué esquema está activo; el cambio ocurre **solo** por la redeclaración de tokens (§15).
+
+### 17.4 `brand` y `primary` son conceptos distintos
+
+`brand` = identidad. `primary` = acción o jerarquía interactiva principal. En v0.x comparten valor: `primary` es alias de `brand` (y `primary-strong`, `-soft`, `-text`, `on-primary`, `on-primary-soft`, de sus equivalentes). Con solo `{ "brand": … }` se resuelve `primary = derived(brand)`. **Extensión futura:** una clave `primary` propia sin cambiar el contrato de ningún componente (porque ya leen `primary`).
+
+### 17.5 Roles derivados de `accent`
+
+`accent` sigue siendo una sola entrada. Internamente se separan los roles: `focus ← accent-text`, `link ← accent-text`, `selection ← accent-soft`, `active ← accent`. Se pueden sobrescribir con `overrides` (`--g-color-focus`, `--g-color-link`…) y la validación corre **después** del override.
+
+### 17.6 Tokens de componente
+
+Un token `--g-{componente}-{nombre}` solo se crea cuando no basta (en este orden) un Reference, un Semantic, un token estructural existente o una prop. **No se crea para renombrar** un semántico (`--g-btn-primary-color: var(--g-color-primary)` es incorrecto). Antes de usarse, se registra en el contrato.
+
+### 17.7 Semánticos de estado
+
+`success`, `warning`, `danger`, `info` y `neutral` conservan su significado aunque cambie su color: `danger` significa siempre crítico o destructivo.
+
+### 17.12 Colisiones entre marca y semánticos: `semanticCollision`
+
+Se detecta con la distancia OKLab (§16.1). La **corrección** es una política:
+
+| Valor | Comportamiento |
+| --- | --- |
+| **`warn`** (por defecto) | Conserva el semántico, **calcula la alternativa**, avisa (`semantic-close`, con `recommended`) y la documenta en `tokens.json` (`recommended` en el token y en `diagnostics`). No cambia en silencio el significado visual que fijó el diseñador |
+| `adjust` | Aplica la separación de §16.1 (tono ±45°, luminosidad ±0.15, croma ≈ original; el cambio mínimo que cumpla). Sigue sujeto a validación de contraste |
+
+### 17.13 Transparencia del motor
+
+Toda decisión cromática automática relevante es observable: `buildTheme` devuelve `diagnostics` (`code`, `token`, `source`, `input`, `value`, `status`, `reason`, `message`; y `recommended`/`distance` en colisiones), el CLI imprime las notas y `tokens.json` las incluye. Estados posibles: `default`, `derived`, `adjusted`, `override`. **No se hacen cambios cromáticos significativos en silencio.**
+
+### 17.14 Categorías ≠ paleta de datos
+
+`categories` genera **colores categóricos de interfaz** (iconos, badges, etiquetas, estados categóricos, identificación visual). **No son una paleta de visualización de datos**, que exige además discriminación perceptual, daltonismo, orden secuencial, escalas divergentes y contraste entre series. Una futura especificación podrá definir `--g-data-series-*`, `--g-data-sequential-*` y `--g-data-diverging-*` sin tocar `--g-color-cat-*`.
+
+### 17.16 Neutros
+
+`neutrals: "tinted" | "pure"` (§16.2). Los teñidos mantienen croma bajo: una superficie neutral **no** debe percibirse claramente como superficie de marca; la identidad se siente antes de identificarse.
+
+### 17.17 La accesibilidad es una restricción de la generación
+
+`generar → validar → ¿pasa? → sí: emitir; no: ajustar y volver a validar`. El motor no emite un tema como válido si incumple los mínimos (§7, §12, §15): en el CLI, un error de contraste impide escribir nada.
+
+### 17.18 `tokens.json` como representación del sistema
+
+No es solo una exportación: cada token de color documenta `name`, `cssVar`, **`level`** (`reference` o `semantic`), **`source`** (la entrada o el token del que sale), `value` (`light`/`dark`), `usage`, `contrast` (si es texto o control), **`status`** (`default`, `derived`, `adjusted`, `override`) y, en colisiones, `recommended` y `notes`. La raíz añade `diagnostics`.
+
+### 17.20 Fuente única
+
+```
+grana.config.json → Theme Engine → tokens.css · tokens.json · diagnostics → @grana/vue · Design Hub · tooling
+```
+
+La misma derivación alimenta CSS, documentación, Design Hub, validación y CLI: **no hay implementaciones independientes** de las reglas cromáticas en cada consumidor.
+
+### 17.23 Estado de implementación (v0.1.x)
+
+| Parte | Estado |
+| --- | --- |
+| §17.4 y §17.5: tokens `primary*`, `on-primary*`, `link`, `selection`, `active` como **alias** (en los tres bloques de `defaults.css`, `@layer grana.defaults`) | Hecho |
+| §17.12 `semanticCollision` (`warn` por defecto, `adjust`) | Hecho |
+| §17.13 `diagnostics` y §17.18 `level` / `source` / `status` / `recommended` en `tokens.json` | Hecho |
+| §17.14 `categories` documentado como colores categóricos | Hecho |
+| §17.2 y §17.3: **migrar los componentes** de `--g-color-brand` y `--g-color-accent` a `primary`, `link`, `selection`, `active` | **Pendiente** (un lote por componente; los alias ya existen) |
+| §17.4 clave de configuración `primary` propia | Pendiente (futuro) |
+| Regla «sin saltar niveles» y «sin tokens de componente que solo renombran» como comprobación automática | Pendiente (hoy es norma de revisión) |
+| `--g-data-*` para gráficas | Fuera de alcance |

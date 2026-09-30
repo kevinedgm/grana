@@ -109,14 +109,18 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light' } = {})
 
   // Semánticos demasiado parecidos a la marca o al acento (tokens.md §16): si el usuario los fija con `overrides`, o si no hubo forma de separarlos
   const lch = (name) => { const c = colorOf(tokens, name); return c ? toOklch(c) : null }
-  for (const anchor of ['brand', 'accent']) {
-    const a = lch(`--g-color-${anchor}`)
-    if (!a) continue
-    for (const sem of SEMANTIC) {
-      const b = lch(`--g-color-${sem}`)
-      if (!b) continue
+  for (const sem of SEMANTIC) {
+    const b = lch(`--g-color-${sem}`)
+    if (!b) continue
+    let nearest = null
+    for (const anchor of ['brand', 'accent']) {
+      const a = lch(`--g-color-${anchor}`)
+      if (!a) continue
       const d = distance(a, b)
-      if (d > 0.005 && d < MIN_DISTANCE - 1e-9) add('semantic-close', 'warning', `«${sem}» se parece a «${anchor}» (distancia ${fmt(d)}; mínimo ${MIN_DISTANCE}).`, `Un ${sem === 'danger' ? 'error' : 'estado'} que se confunde con el color de marca deja de leerse como tal. Cambia el tono de «${sem}» con overrides o ajusta «${anchor}».`, { tokens: [`--g-color-${sem}`, `--g-color-${anchor}`], distance: +d.toFixed(3), min: MIN_DISTANCE })
+      if (d > 0.005 && (!nearest || d < nearest.d)) nearest = { anchor, d } // d ≈ 0: idéntico a propósito (p. ej. el acento por defecto y «info»)
+    }
+    if (nearest && nearest.d < MIN_DISTANCE - 1e-9) {
+      add('semantic-close', 'warning', `«${sem}» se parece a «${nearest.anchor}» (distancia ${fmt(nearest.d)}; mínimo ${MIN_DISTANCE}).`, `Un ${sem === 'danger' ? 'error' : 'estado'} que se confunde con el color de marca deja de leerse como tal. Cambia el tono de «${sem}» con overrides o ajusta «${nearest.anchor}».`, { tokens: [`--g-color-${sem}`, `--g-color-${nearest.anchor}`], distance: +nearest.d.toFixed(3), min: MIN_DISTANCE })
     }
   }
 

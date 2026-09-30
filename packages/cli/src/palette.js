@@ -50,7 +50,7 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
   }
   const nominal = toHex(round(fromOklch(n)))
   const d0 = minDist(nominal)
-  if (d0 >= min) return { hex: nominal, changed: false, ok: true, distance: d0, dh: 0, dl: 0 }
+  if (d0 >= min) return { hex: nominal, changed: false, ok: true, distance: d0, before: d0, dh: 0, dl: 0 }
   let best = null
   for (let dh = -MAX_HUE_SHIFT; dh <= MAX_HUE_SHIFT; dh += 5) {
     for (const dlum of [0, -0.05, 0.05, -0.1, 0.1, -MAX_L_SHIFT, MAX_L_SHIFT]) {
@@ -58,10 +58,10 @@ export const separate = (nominalHex, anchors, { darkAnchors = [], siblings = [],
       const dist = minDist(hex)
       const cost = Math.abs(dh) / MAX_HUE_SHIFT + (Math.abs(dlum) / MAX_L_SHIFT) * 0.6
       const ok = dist >= min
-      if (!best || (ok && !best.ok) || (ok === best.ok && (ok ? cost < best.cost : dist > best.distance))) best = { hex, cost, ok, distance: dist, dh, dl: dlum }
+      if (!best || (ok && !best.ok) || (ok === best.ok && (ok ? cost < best.cost : dist > best.distance))) best = { hex, cost, ok, distance: dist, before: d0, dh, dl: dlum }
     }
   }
-  return { hex: best.hex, changed: best.dh !== 0 || best.dl !== 0, ok: best.ok, distance: best.distance, dh: best.dh, dl: best.dl }
+  return { hex: best.hex, changed: best.dh !== 0 || best.dl !== 0, ok: best.ok, distance: best.distance, before: d0, dh: best.dh, dl: best.dl }
 }
 
 /**

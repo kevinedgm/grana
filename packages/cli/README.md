@@ -23,6 +23,7 @@ Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una
   "fontSize": 16,
   "typeScale": 1.25,
   "neutrals": "tinted",
+  "semanticCollision": "warn",
   "categories": 6,
   "dark": true,
   "overrides": { "--g-glass-opacity": "0.7" }
@@ -37,7 +38,7 @@ Además de `strong`, `soft`, `text` y `on` de `brand` y `accent`, el CLI calcula
 
 | Qué | Regla | Cómo controlarla |
 | --- | --- | --- |
-| **Semánticos sin choque** | Si `success`, `warning`, `danger` o `info` quedan a una distancia OKLab < 0.12 de `brand`/`accent` (en claro u oscuro), se giran lo mínimo (tono ±45°, luminosidad ±0.15) y el CLI lo cuenta. Si no hay forma, avisa | `overrides` del token (gana) |
+| **Semánticos sin choque** | Si `success`, `warning`, `danger` o `info` quedan a una distancia OKLab < 0.12 de `brand`/`accent` (en claro u oscuro), el CLI **avisa y propone la alternativa** (la separación mínima: tono ±45°, luminosidad ±0.15). Con `"semanticCollision": "adjust"` la aplica sola | `semanticCollision` (`warn` por defecto, `adjust`) y `overrides` del token (gana) |
 | **Neutros teñidos** | Texto, bordes, superficie hundida y `neutral` con el tono de la marca a croma muy bajo, con contraste garantizado (texto ≥ 4.5:1, control ≥ 3:1) | `"neutrals": "pure"` |
 | **Categorías** | `--g-color-cat-1` a `cat-N`: mismo L y C, tonos cada 360°/N | `"categories": 6` (0 a 12) |
 | **Hover** | `strong` siempre se aleja del fondo de su texto | (regla fija) |
@@ -46,7 +47,7 @@ Además de `strong`, `soft`, `text` y `on` de `brand` y `accent`, el CLI calcula
 npx @grana/cli theme grana.config.json --doc     # además de tokens.css, escribe tokens.json
 ```
 
-`tokens.json` documenta cada token: valor claro y oscuro, **uso** y contraste medido (`{ "name": "on-brand", "value": { "light": "#FFFFFF", "dark": "#17151A" }, "usage": "…", "contrast": { "against": "--g-color-brand", "light": 8.08, "dark": 7.1 } }`). También lo devuelve `buildTheme` como `doc`.
+`tokens.json` documenta cada token: **nivel** (`reference` o `semantic`), **origen**, valor claro y oscuro, **uso**, contraste medido y **estado** (`default`, `derived`, `adjusted`, `override`); las colisiones sin aplicar llevan `recommended`, y la raíz trae `diagnostics` (`{ "name": "on-brand", "value": { "light": "#FFFFFF", "dark": "#17151A" }, "usage": "…", "contrast": { "against": "--g-color-brand", "light": 8.08, "dark": 7.1 } }`). También lo devuelve `buildTheme` como `doc`.
 
 ## Tema oscuro (`dark`)
 
