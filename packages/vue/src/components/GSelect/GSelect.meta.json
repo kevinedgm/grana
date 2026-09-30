@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSelect",
   "tag": "g-select",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Selector de una opción con lista propia (combobox de solo selección): grupos, opciones deshabilitadas, teclado completo con typeahead, hoja inferior en móvil.",
   "contract": "design/contracts/select.md",
@@ -240,11 +240,11 @@
     "sheet"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "README (mora-docs)",
     "Lector de pantalla real (incluido aria-activedescendant en la hoja móvil)",
     "Hoja inferior con teclado virtual y táctil reales",
     "Firefox y Safari (popover, ::backdrop, :popover-open, :has())",
-    "Selección múltiple, búsqueda y virtualización (v0.2)"
+    "Selección múltiple, búsqueda y virtualización (v0.2)",
+    "Ronda r02: prefijo (prepend), iconos en las opciones y fila «Agregar nuevo…» (create)"
   ]
 }

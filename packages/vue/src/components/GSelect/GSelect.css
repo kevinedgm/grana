@@ -182,6 +182,8 @@
     inline-size: 44px;
     block-size: 44px;
     margin-inline-end: 0;
+    /* Los 44px del botón no deben agrandar la caja: el margen negativo lo deja del alto interior */
+    margin-block: calc((max(44px, var(--_h)) - var(--g-border-width) * 2 - 44px) / 2);
   }
 }
 .g-select__clear:focus-visible {

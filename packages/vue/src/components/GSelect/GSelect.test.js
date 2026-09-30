@@ -291,6 +291,21 @@ describe('GSelect · teclado', () => {
     w.unmount()
   })
 
+  it('Esc con la lista abierta NO se propaga (un GDialog contenedor no debe cerrarse); cerrada, sí', async () => {
+    const parent = vi.fn()
+    const w = mount({ components: { GSelect }, template: '<div @keydown="parent"><g-select label="x" :options="o"></g-select></div>', data: () => ({ o: OPTIONS }), methods: { parent } }, { attachTo: document.body })
+    const b = w.find('button.g-select__button')
+    await b.trigger('keydown', { key: 'ArrowDown' })
+    await nextTick()
+    parent.mockClear()
+    await b.trigger('keydown', { key: 'Escape' })
+    expect(parent).not.toHaveBeenCalled()
+    expect(b.attributes('aria-expanded')).toBe('false')
+    await b.trigger('keydown', { key: 'Escape' })
+    expect(parent).toHaveBeenCalledTimes(1)
+    w.unmount()
+  })
+
   it('Tab elige la activa y cierra (sin cancelar el Tab)', async () => {
     const w = mk({ modelValue: 'mx' })
     await key(w, 'ArrowDown'); await key(w, 'ArrowDown')

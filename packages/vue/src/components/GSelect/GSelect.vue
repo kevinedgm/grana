@@ -247,7 +247,12 @@ function onKeydown(event) {
   else if (k === 'PageDown') { event.preventDefault(); moveActive(10) }
   else if (k === 'PageUp') { event.preventDefault(); moveActive(-10) }
   else if (k === 'Enter' || (k === ' ' && !typed)) { event.preventDefault(); choose(items.value[activeIndex.value]) }
-  else if (k === 'Escape') { event.preventDefault(); hide() }
+  else if (k === 'Escape') {
+    // Esc cierra solo la lista: no debe llegar a un GDialog (u otro ancestro) que también escuche Esc
+    event.preventDefault()
+    event.stopPropagation()
+    hide()
+  }
   else if (k === 'Tab') {
     // Elige la activa y sigue el orden del documento (sin devolver el foco al botón)
     const it = items.value[activeIndex.value]
