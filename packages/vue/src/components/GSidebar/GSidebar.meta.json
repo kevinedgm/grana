@@ -253,7 +253,6 @@
     "Firefox y Safari (popover, <dialog>, @starting-style, interpolate-size)",
     "Táctil real y teclado virtual (navbar y drawer)",
     "La superficie del item activo es tenue (1.08:1 por defecto): decisión pendiente si se refuerza (ver auditoria.md)",
-    "Formato inicial antes de medir el contenedor (se pinta expandido un instante)",
-    "README (mora-docs)"
+    "Formato inicial antes de medir el contenedor (se pinta expandido un instante)"
   ]
 }
