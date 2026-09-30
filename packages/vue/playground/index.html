@@ -101,6 +101,37 @@
     </div>
     <p class="log">Valores: {{ email || '—' }} · {{ pass ? '•'.repeat(pass.length) : '—' }} · {{ nick || '—' }}</p>
 
+    <h2>Campo con botón de acción</h2>
+    <p class="log">El botón es un <code>GBtn</code> del consumidor en el slot <code>action</code>; recibe <code>size</code>, <code>density</code> y <code>disabled</code>. Con un <code>&lt;form&gt;</code> y <code>type="submit"</code>, Enter en el campo ejecuta la acción.</p>
+    <div class="col" style="max-width:420px">
+      <form @submit.prevent="subscribe" novalidate>
+        <g-input v-model="subEmail" label="Correo" type="email" required autocomplete="email" hint="Sin spam, puedes salir cuando quieras." :error="subError" block>
+          <template #prepend><lucide-icon name="mail"></lucide-icon></template>
+          <template #action="{ size, density, disabled }"><g-btn type="submit" :size="size" :density="density" :disabled="disabled">Suscribirse</g-btn></template>
+        </g-input>
+        <p class="log">{{ subLog }}</p>
+      </form>
+      <form @submit.prevent="search">
+        <g-input v-model="q" label="Buscar reservas" type="search" placeholder="Nombre o folio" block>
+          <template #prepend><lucide-icon name="search"></lucide-icon></template>
+          <template #action="{ size, density, disabled }"><g-btn type="submit" icon aria-label="Buscar" :size="size" :density="density" :disabled="disabled"><lucide-icon name="search"></lucide-icon></g-btn></template>
+        </g-input>
+        <p class="log">{{ searchLog }}</p>
+      </form>
+      <form @submit.prevent="applyCoupon">
+        <g-input v-model="coupon" label="Cupón" variant="soft" block>
+          <template #action="{ size, density, disabled }"><g-btn type="submit" variant="outline" :loading="couponLoading" :size="size" :density="density" :disabled="disabled">Aplicar</g-btn></template>
+        </g-input>
+        <p class="log">{{ couponLog }}</p>
+      </form>
+      <g-input model-value="ana@ejemplo.com" label="Deshabilitado" disabled block>
+        <template #action="{ size, density, disabled }"><g-btn :size="size" :density="density" :disabled="disabled">Invitar</g-btn></template>
+      </g-input>
+      <g-input v-for="z in ['xs','lg']" :key="z" v-model="q" :label="'Tamaño ' + z" :size="z" block>
+        <template #action="{ size, density, disabled }"><g-btn :size="size" :density="density" :disabled="disabled">Ir</g-btn></template>
+      </g-input>
+    </div>
+
     <h2>Tema</h2>
     <div class="row">
       <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
@@ -140,6 +171,15 @@
         const handle = ref('ana.garcia')
         const coupon = ref('')
         const site = ref('')
+        const subEmail = ref('')
+        const subError = ref('')
+        const subLog = ref('')
+        const searchLog = ref('')
+        const couponLoading = ref(false)
+        const couponLog = ref('')
+        const subscribe = () => { subError.value = /^\S+@\S+\.\S+$/.test(subEmail.value) ? '' : 'Escribe un correo válido.'; subLog.value = subError.value ? '' : 'Suscrito: ' + subEmail.value }
+        const search = () => { searchLog.value = 'Buscando «' + q.value + '»' }
+        const applyCoupon = () => { couponLoading.value = true; couponLog.value = 'Aplicando «' + coupon.value + '»…'; setTimeout(() => { couponLoading.value = false; couponLog.value = 'Cupón aplicado' }, 1500) }
         const checkEmail = () => { emailError.value = !email.value ? 'Escribe tu correo.' : /^\S+@\S+\.\S+$/.test(email.value) ? '' : 'Falta el dominio del correo.' }
         const save = () => {
           count.value++
@@ -153,7 +193,7 @@
             ? ':root{--g-color-brand:#0B1F4D;--g-color-brand-strong:#1E3464;--g-color-brand-soft:#EAF0FD;--g-color-brand-text:#0B1F4D;--g-color-on-brand-soft:#0B1F4D;--g-color-accent:#6D28D9;--g-color-accent-strong:#5B21B6;--g-color-accent-soft:#EFE9FE;--g-color-accent-text:#6D28D9;--g-color-on-accent-soft:#5B21B6;--g-color-border-control:#5B6B8C;--g-color-surface-sunken:#EAF0FD;--g-radius-xs:6px;--g-radius-sm:9px;--g-radius-md:12px;--g-radius-lg:17px;--g-radius-xl:24px;--g-radius-shape:var(--g-radius-pill)}'
             : ''
         }
-        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail }
+        return { loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>

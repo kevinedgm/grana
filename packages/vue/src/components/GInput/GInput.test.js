@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { h } from 'vue'
 import GInput from './GInput.vue'
+import GBtn from '../GBtn/GBtn.vue'
 
 const root = (w) => w.find('.g-input')
 const field = (w) => w.find('input')
@@ -252,3 +254,84 @@ describe('GInput · nombre accesible (aviso en desarrollo)', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+describe('GInput · botón de acción (slot action)', () => {
+  const withAction = (props = {}) => mount(GInput, {
+    props: { label: 'Correo', ...props },
+    slots: { action: (scope) => h('button', { type: 'submit', class: 'mi-btn', 'data-size': scope.size, 'data-density': scope.density, disabled: scope.disabled || undefined }, 'Ir') }
+  })
+
+  it('la fila existe siempre; sin slot no hay acción ni clase', () => {
+    const w = mount(GInput, { props: { label: 'x' } })
+    expect(w.find('.g-input__row').exists()).toBe(true)
+    expect(w.find('.g-input__row > .g-input__control').exists()).toBe(true)
+    expect(w.find('.g-input__action').exists()).toBe(false)
+    expect(root(w).classes()).not.toContain('g-input--has-action')
+  })
+
+  it('con el slot: envoltura después de la caja, dentro de la fila, y clase en la raíz', () => {
+    const w = withAction()
+    expect(root(w).classes()).toContain('g-input--has-action')
+    const kids = w.find('.g-input__row').element.children
+    expect(kids[0].className).toBe('g-input__control')
+    expect(kids[1].className).toBe('g-input__action')
+    expect(w.find('.g-input__action .mi-btn').exists()).toBe(true)
+  })
+
+  it('el slot recibe size, density y disabled del campo y los actualiza', async () => {
+    const w = withAction({ size: 'lg', density: 'compact' })
+    let b = w.find('.mi-btn')
+    expect(b.attributes('data-size')).toBe('lg')
+    expect(b.attributes('data-density')).toBe('compact')
+    expect(b.attributes('disabled')).toBeUndefined()
+    await w.setProps({ disabled: true, size: 'xs' })
+    b = w.find('.mi-btn')
+    expect(b.attributes('disabled')).toBeDefined()
+    expect(b.attributes('data-size')).toBe('xs')
+  })
+
+  it('la acción NO se oculta a tecnologías de apoyo (no es decorativa)', () => {
+    const w = withAction()
+    expect(w.find('.g-input__action').attributes('aria-hidden')).toBeUndefined()
+  })
+
+  it('orden del documento: input, botón mostrar y luego la acción', () => {
+    const w = mount(GInput, {
+      props: { label: 'Clave', type: 'password', showPasswordLabel: 'Mostrar', hidePasswordLabel: 'Ocultar' },
+      slots: { action: () => h('button', { class: 'mi-btn' }, 'Ir') }
+    })
+    const html = w.find('.g-input__row').html()
+    expect(html.indexOf('<input')).toBeLessThan(html.indexOf('g-input__toggle'))
+    expect(html.indexOf('g-input__toggle')).toBeLessThan(html.indexOf('mi-btn'))
+  })
+
+  it('un click en la acción no emite update:modelValue', async () => {
+    const w = withAction()
+    await w.find('.mi-btn').trigger('click')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('el error describe al campo y no toca la acción', () => {
+    const w = withAction({ id: 'c', error: 'Mal' })
+    expect(w.find('input').attributes('aria-invalid')).toBe('true')
+    expect(w.find('.mi-btn').attributes('aria-invalid')).toBeUndefined()
+    expect(w.find('.g-input__row').text()).not.toContain('Mal')
+  })
+
+  it('integración con un GBtn real: hereda tamaño y densidad, y el submit del formulario ejecuta la acción una vez', async () => {
+    const onSubmit = vi.fn((e) => e.preventDefault())
+    const Wrap = {
+      components: { GInput, GBtn },
+      setup: () => ({ onSubmit }),
+      template: `<form @submit="onSubmit"><g-input label="Correo" size="sm" density="compact"><template #action="{ size, density, disabled }"><g-btn type="submit" :size="size" :density="density" :disabled="disabled">Suscribirse</g-btn></template></g-input></form>`
+    }
+    const w = mount(Wrap, { attachTo: document.body })
+    const btn = w.find('.g-input__action .g-btn')
+    expect(btn.classes()).toEqual(expect.arrayContaining(['g-btn--size-sm', 'g-btn--density-compact']))
+    expect(btn.attributes('type')).toBe('submit')
+    await btn.trigger('click')
+    expect(onSubmit).toHaveBeenCalledTimes(1)
+    w.unmount()
+  })
+})
+

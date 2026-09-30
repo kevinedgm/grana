@@ -37,7 +37,8 @@
     { "name": "prepend", "purpose": "Icono decorativo antes del texto" },
     { "name": "append", "purpose": "Icono decorativo después del texto" },
     { "name": "hint", "purpose": "Ayuda con contenido rico (sustituye a hint)" },
-    { "name": "error", "purpose": "Mensaje de error con contenido rico; solo se muestra con error" }
+    { "name": "error", "purpose": "Mensaje de error con contenido rico; solo se muestra con error" },
+    { "name": "action", "purpose": "Botón de acción acoplado al final de la caja. Slot con alcance: { size, density, disabled }; el consumidor pone un GBtn" }
   ],
   "tokens": [
     "--g-color-surface", "--g-color-surface-sunken", "--g-color-border-control", "--g-color-border-strong",
@@ -48,5 +49,5 @@
     "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"
   ],
   "states": ["default", "hover", "focus-visible", "filled", "disabled", "readonly", "invalid", "loading"],
-  "pending": ["README (mora-docs)", "Lector de pantalla real: aria-live junto a aria-describedby", "Ancho del botón mostrar/ocultar con textos largos"]
+  "pending": ["Auditoría de coco del slot action sobre el componente real", "README (mora-docs), incluido el slot action", "Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "Ancho del botón mostrar/ocultar con textos largos"]
 }

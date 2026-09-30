@@ -50,6 +50,8 @@ const inputAttrs = computed(() => {
   return rest
 })
 
+const hasAction = computed(() => Boolean(slots.action))
+
 const classes = computed(() => [
   'g-input',
   `g-input--variant-${props.variant}`,
@@ -59,6 +61,7 @@ const classes = computed(() => [
   props.rounded && `g-input--rounded-${props.rounded}`,
   {
     'g-input--block': props.block,
+    'g-input--has-action': hasAction.value,
     'is-disabled': props.disabled,
     'is-readonly': props.readonly,
     'is-invalid': invalid.value,
@@ -118,19 +121,24 @@ if (isDev) {
       <slot name="label">{{ label }}</slot>
       <span v-if="required" class="g-input__required" aria-hidden="true">*</span>
     </label>
-    <div class="g-input__control">
-      <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
-      <input v-bind="fieldBindings" class="g-input__field" @input="onInput">
-      <span v-if="slots.append" class="g-input__append" aria-hidden="true"><slot name="append" /></span>
-      <span v-if="loading" class="g-input__loader" aria-hidden="true" />
-      <button
-        v-if="showToggle"
-        class="g-input__toggle"
-        type="button"
-        :aria-controls="inputId"
-        :disabled="disabled"
-        @click="visible = !visible"
-      >{{ visible ? hidePasswordLabel : showPasswordLabel }}</button>
+    <div class="g-input__row">
+      <div class="g-input__control">
+        <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
+        <input v-bind="fieldBindings" class="g-input__field" @input="onInput">
+        <span v-if="slots.append" class="g-input__append" aria-hidden="true"><slot name="append" /></span>
+        <span v-if="loading" class="g-input__loader" aria-hidden="true" />
+        <button
+          v-if="showToggle"
+          class="g-input__toggle"
+          type="button"
+          :aria-controls="inputId"
+          :disabled="disabled"
+          @click="visible = !visible"
+        >{{ visible ? hidePasswordLabel : showPasswordLabel }}</button>
+      </div>
+      <div v-if="hasAction" class="g-input__action">
+        <slot name="action" :size="size" :density="density" :disabled="disabled" />
+      </div>
     </div>
     <div v-if="hasHint || showCounter" class="g-input__messages">
       <span v-if="hasHint" :id="hintId" class="g-input__hint"><slot name="hint">{{ hint }}</slot></span>
