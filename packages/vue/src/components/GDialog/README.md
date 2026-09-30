@@ -52,6 +52,7 @@ La profundidad viene de diferencias mínimas de fondo, bordes finos y sombras su
 | `density` | String | `default` `comfortable` `compact` | `default` |
 | `inset` | Boolean | | `true` |
 | `fullscreen` | Boolean | | `false` |
+| `placement` | String | `center` `end` | `center` |
 | `mobile` | String | `sheet` `full-width` `fullscreen` | `sheet` |
 | `role` | String | `dialog` `alertdialog` | `dialog` |
 | `closeLabel` | String | | sin valor |
@@ -66,6 +67,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 - **`size`:** ancho de la carcasa en escritorio, derivado de `space` (con `space` 4: 400, 560 y 760px), siempre menor que el visor menos 8 unidades de `space`. No usa `xs`…`xl`, que son de controles.
 - **`density`:** multiplica relleno y separación de la carcasa y la inset (1×, 0.875×, 0.75×). La tipografía no cambia, y el radio de la inset sigue siendo concéntrico.
 - **`fullscreen`:** ocupa todo el visor en todos los anchos y conserva las dos superficies.
+- **`placement`:** dónde se ancla en escritorio y tableta. `center` (por defecto), centrado. **`end`: hoja lateral** pegada al borde final (derecha en LTR, izquierda en RTL), de alto completo y con el ancho de `size` (400px con `space` 4 y `size="sm"`); entra deslizando desde el borde. Con un visor de hasta ~520px actúa `mobile` (hoja inferior por defecto) y `placement` no cambia nada; `fullscreen` gana sobre `placement`. Lo usan [`GWidgetGallery`](../GWidgetGallery/README.md) y [`GWidgetConfig`](../GWidgetConfig/README.md).
 - **`mobile`:** estructura con un visor de hasta ~520px: `sheet` (hoja inferior pegada abajo, con esquinas superiores redondeadas y `safe-area-inset-bottom`), `full-width` (ancho completo con un margen pequeño) o `fullscreen`. `fullscreen` gana sobre `mobile`.
 - **`role`:** `alertdialog` para una confirmación que exige decisión. Ver "Confirmaciones".
 - **`closeOnBackdrop`:** un clic en el fondo emite `dismiss` con `reason: 'backdrop'`. Debe empezar y terminar en el fondo: un arrastre que empieza dentro no cuenta, y un clic en el relleno de la carcasa tampoco.
@@ -112,6 +114,7 @@ Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `c
 - **Superficie secundaria:** `g-dialog__well` agrupa algo que lo necesite (un nivel, no se anida).
 - **Con scroll:** si el contenido no cabe, solo el cuerpo se desplaza; el encabezado y el pie quedan fijos. Mientras queda contenido por desplazar, el pie se funde con la carcasa.
 - **Formulario:** el pie está fuera del `<form>`; asocia el botón con `form="id"`. Si el formulario no valida, el diálogo **no se cierra**: cerrarlo es decisión tuya.
+- **Hoja lateral:** `placement="end"` (con `size="sm"` para una hoja de 400px): paneles de filtros, configuración o galerías que dejan el contenido a la vista.
 - **Pantalla completa:** `fullscreen`.
 - **Adaptativo:** escritorio centrado, tableta (≤ ~900px) con relleno menor y móvil (≤ ~520px) según `mobile`.
 
@@ -175,7 +178,7 @@ El componente solo lee tokens `--g-*`. La superficie inset forma parte de un sis
 
 ## Clases
 
-Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset). Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
+Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset). Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
 
 ## Limitaciones conocidas
 
