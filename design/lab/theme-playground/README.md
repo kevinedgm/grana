@@ -67,3 +67,18 @@ Las fuentes de los temas (Inter, Source Sans 3, Source Serif 4, DM Sans, Instrum
 - No se define ningún límite superior (`max L`, `max ΔE`, reducción de croma ni fórmulas por tono); el playground sirve para **verlo**.
 - El feedback semántico usa marcado propio con los tokens (Grana no tiene un componente «alert»).
 - Los estados `active` se comprueban en el botón; no se prueba cada estado de cada componente.
+
+## Observación: dónde empieza C a sobrecorregir (11 temas, sin definir ningún límite)
+
+Herramientas: `npm run shots`-style con `node scripts/surface-sheet.mjs c` (con el servidor en :4180; hojas de contacto `screenshots/surfaces-c-1.png` a `-3.png`: los 11 temas × superficies low, real, medium y high, con Botones, Badges y Feedback de componentes reales) y `node scripts/c-onset.mjs` (barrido fino de `surface` L 0.10 a 0.32; resultados en `c-onset.md` y `c-onset.json`). **Solo medición.**
+
+Hallazgos:
+
+1. **El punto de inflexión es casi el mismo en los 11 temas y está muy cerca de la superficie real (L ≈ 0.226).** La luminosidad media de los 6 roles con C supera 0.74 a una superficie de **L 0.22 a 0.26** (mediana 0.26), el primer rol «nuevo» con L > 0.74 aparece en **0.24 a 0.26**, y el primer rol con croma conservado < 0.75 en **0.20 a 0.26** (Stripe ya en 0.20).
+2. **Dos o más roles pastel** (croma < 0.75) aparecen a **0.26 a 0.29** en los 11 temas; a 0.30 hay 2 a 4 roles por tema (Linear, 4).
+3. **La superficie real queda a solo 0.02 a 0.04 de L por debajo de ese punto.** Es decir, con la superficie tintada por defecto, C funciona, pero **con poco margen**: una superficie algo más clara (por ejemplo una personalizada) ya entra en la zona donde C eleva L por encima de 0.74.
+4. **Con superficies bajas C se comporta como A** (L media 0.59 a 0.67, sin roles pastel): aquí no sobrecorrige.
+5. **Visualmente** (hojas de contacto), de low a high: `danger` pasa de rojo anaranjado a salmón, las marcas rosas (Grana, Caracol Púrpura) tiran a rosa claro, las violetas (Stripe, Linear) a lavanda y `info` a celeste. No es catastrófico, pero el carácter del tono se diluye. **Spotify** ya tiene roles muy claros desde low (neón, menta): C no los cambia.
+6. **Los 6 roles reaccionan juntos:** a `high`, C lleva los cuatro semánticos a L > 0.74 en los 11 temas, por lo que el efecto es sobre toda la paleta, no solo sobre `brand` y `accent`.
+
+Esto **no define** `max L`, `max ΔE`, reducción de croma ni fórmulas por tono: indica **dónde** hay que mirar si se estudia una segunda restricción.
