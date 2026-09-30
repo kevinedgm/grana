@@ -211,7 +211,6 @@
     "capped"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real: etiqueta, ayuda, error y aviso del contador",
     "Rendimiento de autosize con textos de miles de líneas",
     "Firefox y Safari (tirador, :has())"
