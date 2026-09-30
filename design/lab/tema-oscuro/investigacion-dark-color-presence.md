@@ -1,6 +1,6 @@
 # Investigación pendiente · Dark Color Presence
 
-**Estado:** abierta, sin cambios de código. **Dueño de la pregunta:** lima (reglas) · **Pruebas:** bruno (CLI) y coco (estética). **Abierta:** ver DECISIONS.md #96.
+**Estado:** abierta; **fase de medición hecha** (sin cambios de código ni de reglas). **Dueño de la pregunta:** lima (reglas) · **Pruebas:** bruno (CLI) y coco (estética). **Abierta:** ver DECISIONS.md #96.
 
 ## Pregunta
 
@@ -44,6 +44,50 @@ Un único ejemplo no justifica modificar una regla global que afecta a todas las
 
 Tema claro, colores de gráficas de datos (§17.14) y cualquier cambio del mínimo de 4.5:1.
 
+## Resultado de la fase de medición
+
+Herramienta: `packages/cli/scripts/dark-presence.mjs` (`node scripts/dark-presence.mjs [--simulate] [--json]`). **Solo mide**: deriva el oscuro con el CLI actual sobre 32 muestras (rueda de 12 tonos a L 0.52 y C 0.15, más 20 marcas reales de familias distintas) como `accent` y como `brand`, y mide contra la superficie oscura `#1C1C1C`: contraste WCAG, **APCA** (segunda opinión, informativa), L y C en OKLCH y distancia OKLab (ΔE) a la superficie.
+
+### Hallazgos
+
+1. **Todo lo derivado queda en el mínimo WCAG, sea cual sea el tono.** Con la regla actual (subir L solo hasta 4.5:1), los 12 tonos de la rueda y las marcas de luminosidad media terminan en **WCAG 4.5 a 4.7, L 0.60 a 0.64, ΔE 0.38 a 0.45 y |APCA Lc| 35 a 37**. Los 4 semánticos oscuros por defecto también (WCAG 4.5 a 4.6, |Lc| 35 a 36). No hay una familia de tono «peor»: el suelo de 4.5:1 iguala a todos.
+2. **Lo que cambia la presencia es la luminosidad de partida, no el tono.** Los colores que ya eran claros (oro `#F5B940` y amarillo, L 0.82) se conservan y llegan a WCAG 9.7 y |Lc| 69; los muy oscuros (azul marino, casi negro) se **reflejan** (1 − L) y terminan en WCAG 7.5 a 8 y |Lc| 56 a 59. Los de luminosidad media, que son la mayoría de las marcas, quedan en el mínimo.
+3. **La referencia hecha a mano (Lustre) está bastante por encima:** L 0.76 a 0.82, WCAG 7.6 a 9.8, |Lc| 56 a 69, ΔE 0.56 a 0.62. Es decir, el diseñador no se quedó en el mínimo en ninguno de los cuatro colores.
+4. **Lectura de APCA (no normativo):** un |Lc| de 35 está por debajo de los 45 (texto grande) y 60 (texto de contenido) que APCA suele recomendar, y cerca de su mínimo para elementos no textuales. Es coherente con la duda original: 4.5:1 de WCAG 2 puede ser poco exigente en oscuro.
+
+### Simulación de reglas candidatas (solo medición)
+
+Subir L de la base oscura hasta un piso, con C = 0.15 fijo y gama sRGB:
+
+| Piso de L | WCAG | \|Lc\| APCA | Croma conservado (media / mín.) | `on-*` (ink `#17151A`) |
+| --- | --- | --- | --- | --- |
+| 0.66 | 5.1 a 5.8 | 39 a 45 | 95 % / 76 % | ≥ 5.4:1 |
+| 0.70 | 5.9 a 6.8 | 45 a 52 | 97 % / 81 % | ≥ 6.3:1 |
+| 0.74 | 6.9 a 7.9 | 52 a 59 | 97 % / 85 % | ≥ 7.3:1 |
+
+L mínimo para llegar a |Lc| 45: **0.66 a 0.70** según el tono; a |Lc| 60: **0.75 a 0.79**. Los tonos verdes azulados (150 a 210) necesitan menos L y los rojos y magentas (300 a 30) más.
+
+Conclusiones de la simulación: (a) un piso de L de 0.66 a 0.74 **no rompe** `on-*` ni el contraste y conserva casi todo el croma en la mayoría de los tonos; (b) el piso necesario **depende ligeramente del tono** (0.66 en verdes azulados, 0.70 en rojos), así que un piso de L único es una aproximación y una regla basada en ΔE o APCA lo absorbería mejor; (c) el mayor coste es el croma en algunos tonos (mínimo 76 % a 0.66, en cian y azul).
+
+### Lo que esta fase NO prueba
+
+- Es una sola superficie oscura (`#1C1C1C`) y croma fijo 0.15 en la simulación.
+- APCA es una segunda opinión **no normativa**; WCAG 2 sigue siendo el suelo del contrato.
+- **No hay revisión visual ni con personas.** Las cifras sugieren menor presencia, pero «se ve apagado» es un juicio estético que falta comprobar en el playground.
+- No se simuló el efecto sobre `strong` (hover), `soft`, `text` y `on-soft`, ni sobre los semánticos que sí se derivan.
+
+### Decisiones abiertas (para el usuario y lima)
+
+1. **Objetivo de presencia:** un piso de L (p. ej. 0.70), un ΔE mínimo a la superficie (p. ej. ≥ 0.50), o un APCA mínimo (p. ej. |Lc| ≥ 45). Recomendación provisional: un ΔE mínimo, que no depende de la norma APCA y cubre el tono.
+2. **Alcance:** solo `accent` y `brand` derivados, o también los semánticos por defecto del oscuro (que son parte del tema de `coco`, `defaults.css`).
+3. **Interacción con `strong`:** hoy `strong` oscuro sube L +0.06; con un piso más alto se acerca a 1 y habría que revisar su dirección.
+
+### Siguientes pasos
+
+1. Revisión visual en el playground con una rama de pruebas (piso de L 0.66, 0.70 y 0.74) en las 20 marcas y los 4 semánticos.
+2. Decidir el objetivo y el alcance (arriba) y, si se adopta una regla, escribirla en `tokens.md` §15 y §16 con su prueba.
+3. Si no se adopta, dejar 4.5:1 como suelo y documentar `dark: { accent, overrides }` como la salida para quien quiera más presencia.
+
 ## Resultado
 
-Pendiente.
+**Medición hecha; decisión pendiente.** Ninguna regla de derivación cambió.
