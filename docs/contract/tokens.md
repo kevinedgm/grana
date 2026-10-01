@@ -486,8 +486,10 @@ La misma derivación alimenta CSS, documentación, Design Hub, validación y CLI
 | `--g-tabs-band` | Fondo de la banda de pestañas de `contained` | Relativo a la anfitriona; se redeclara en el oscuro |
 | `--g-tabs-panel` | Tono de la pestaña activa fundida con el panel (`contained`) | Debe coincidir con la superficie del panel contiguo |
 | `--g-tabs-mark-default`, `--g-tabs-mark-comfortable`, `--g-tabs-mark-compact` | Grosor de la marca (línea de `underline` y vertical) por `density` | La densidad elige uno; no se multiplica un único valor; piso de 24px del área táctil no se ve afectado (la marca no es el objetivo táctil) |
-| `--g-tabs-inset` | Sangrado inline de la cabecera dentro de su anfitrión | Lo define la **anfitriona** (`GDialog` en `g-dialog__tabs`, un panel) para alinear con su contenido; sin definir, cero. Es la única que un componente anfitrión escribe |
+| `--g-tabs-inset` | Sangrado inline de la cabecera dentro de su anfitrión | Vive en `GTabs.css` con valor `0px` (excepción a `levels.test.js`); lo sobrescribe la **anfitriona** con un selector más cercano (`GDialog` en `g-dialog__tabs`, un panel) para alinear con su contenido; sin definir, cero. Es la única que un componente anfitrión escribe |
 
 Duración y curva de la marca y de la entrada del contenido: los existentes (`--g-duration-press`, `--g-ease-standard`, `--g-ease-out`); tamaños de contador e insignia: los de `GBadge` `sm`. **Umbral de adaptación** (no es token; lo mide bruno): vertical pasa a horizontal con un ancho de contenedor menor que `--g-space-1 × 120` (480px con `space` 4).
 
 **Límite:** como el resto, los tokens se resuelven en `:root` (§10) salvo `--g-tabs-inset`, que se declara en el anfitrión y se hereda.
+
+**Pendiente no bloqueante:** el CLI no emite `--g-tabs-*`; los temas de usuario usan los valores de `defaults.css`.

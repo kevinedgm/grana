@@ -136,7 +136,7 @@ El **nombre accesible** de cada pestaña es etiqueta + `statusLabel` + insignia 
       <div class="g-tabs__list" role="tablist" aria-orientation="horizontal" aria-label="Perfil">
         <button class="g-tabs__tab is-active" role="tab" type="button" id="ID-tab-a" aria-selected="true" aria-controls="ID-panel-a" tabindex="0">
           <span class="g-tabs__icon" aria-hidden="true">…</span>                  <!-- solo con slot icon -->
-          <span class="g-tabs__label">Mensajes</span>
+          <span class="g-tabs__label" data-text="Mensajes">Mensajes</span>   <!-- data-text = etiqueta: reserva el ancho en negrita -->
           <span class="g-tabs__status" aria-hidden="true">…</span><span class="g-tabs__sr">, cargando</span>   <!-- solo con status -->
           <span class="g-badge …">…</span>                                       <!-- GBadge: insignia o contador -->
         </button>
@@ -232,6 +232,9 @@ Renderiza el mismo `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VA
 - Táctil: ≥ 44px con `pointer: coarse` y ≥ 24px siempre. **Momentum** nativo, `overscroll-behavior-inline: contain` (deslizar la lista no dispara «atrás» ni arrastra el contenido), `snap` opcional. Sin hover para nada esencial.
 - **Sin swipe entre paneles** en v0.1 (#117): choca con contenido desplazable en horizontal (tablas, carruseles) y exigiría una alternativa (WCAG 2.5.1); la lista deslizable cubre el caso.
 - **Marca:** una sola, `aria-hidden`, fuera del `tablist`, que se desliza entre pestañas; bruno la posiciona con variables CSS dinámicas `--_mark-x`, `--_mark-y`, `--_mark-w` y `--_mark-h` (excepción justificada a «sin estilos en línea», como `GMenu`) y las recoloca con `ResizeObserver` y al cargar las fuentes. **No se anima el primer posicionamiento** (clase `is-ready` tras el primero) ni el cambio de apariencia o densidad.
+- **Convención de la marca:** `--_mark-x`, `--_mark-y`, `--_mark-w` y `--_mark-h` en **px**, medidos contra la **caja de relleno de `g-tabs__scroller`** e incluyendo su desplazamiento; en RTL, `x` se mide desde el borde **derecho**; sin pestaña activa, `w` y `h` valen `0px`.
+- **Rueda:** con `overflow="scroll"`, la rueda vertical del ratón sobre la lista se convierte en desplazamiento horizontal.
+- **`GIcon`** es **hijo directo** de `g-tabs__icon`, `g-tabs__status` y `g-tabs__edge`. `g-tabs__label` lleva `data-text` con la etiqueta (reserva de negrita).
 - **Movimiento:** solo `transform`, tamaño y opacidad; transiciones, no *keyframes* (#71), con los tokens existentes (`--g-duration-press`, `--g-ease-standard`; la entrada del contenido, `--g-duration-press` y `--g-ease-out`): **sin tokens de duración nuevos**. Con `prefers-reduced-motion: reduce`: la marca salta, sin entrada de contenido, sin giro del icono y desplazamiento programático instantáneo.
 
 ## Persistencia
@@ -255,7 +258,7 @@ Existentes: `--g-color-primary[-strong|-soft|-text]`, `--g-color-on-primary[-sof
 | `--g-tabs-band` | Fondo de la **banda** de pestañas de `contained` |
 | `--g-tabs-panel` | Tono de la pestaña activa **fundida** con el panel y del panel contiguo en `contained` (debe coincidir con la superficie anfitriona) |
 | `--g-tabs-mark-{default\|comfortable\|compact}` | **Grosor de la marca** de `underline` y de la línea vertical, por densidad |
-| `--g-tabs-inset` | Sangrado inline de la cabecera dentro de su anfitrión: lo define la **anfitriona** (`GDialog`, panel) para alinear con su contenido; sin definir, cero |
+| `--g-tabs-inset` | Sangrado inline de la cabecera dentro de su anfitrión. **Vive en `GTabs.css` con valor `0px`** (excepción documentada a `levels.test.js`); la anfitriona (`GDialog`, panel) lo sobrescribe con un selector más cercano para alinear con su contenido |
 
 Tamaño de contador e insignia: los de `GBadge` `sm`, sin token. Duración y curva de la marca: los existentes.
 
