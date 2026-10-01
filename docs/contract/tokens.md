@@ -511,3 +511,9 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 **Propiedad pública de `GSurface`: `--g-surface-padding`** (`design/contracts/surface.md`, «Cambio aparte»; #131). La declara `GSurface.css` en cada `.g-surface` con el relleno **ya resuelto** (escala de `padding` × `density`) para que una región a sangre de un componente que la compone (`GCard`) pueda calcular su margen negativo. **Solo lectura**: no es del tema, el usuario no la sobrescribe y no se emite en `tokens.json`; la superficie más cercana gana. Excepción documentada a `levels.test.js` (un componente puede leerla sin declararla; es el caso inverso de `--g-tabs-inset`, que el anfitrión escribe).
 
 **Pendiente no bloqueante:** el CLI no emite `--g-card-*`; los temas de usuario usan los valores de `defaults.css`.
+
+## 20. Toast (sin tokens nuevos)
+
+**`GToast`/`GToaster` no añade tokens** (`design/contracts/toast.md`, DECISIONS.md #146; §17.6: ningún existente se queda corto). Cada aviso es una `GSurface level="floating"` (sombra `--g-shadow-2`, radio y borde de `floating`, #100); tipo con `--g-color-{info|success|warning|danger}-text`/`-soft` y `--g-color-neutral*`; movimiento con `--g-duration-*` y `--g-ease-*`; objetivos de `GBtn`.
+
+**No son tokens** (constantes de diseño derivadas de `space`, las fija coco en `GToast.css`): ancho máximo del aviso (propuesta `space × 90`), separación entre avisos (propuesta `space × 2`), margen al borde del visor (propuesta `space × 4`; `space × 2` en móvil) combinado con `env(safe-area-inset-*)`, y distancia de entrada. **Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_mark-*` de `GTabs`): `--_toaster-offset-top`, `--_toaster-offset-bottom` (opción `offset` de la aplicación) y `--_toast-swipe` (arrastre). **Umbral móvil** `space × 130` (el de `GDialog`, #103), medido por bruno. Las duraciones de autocierre son **comportamiento** del gestor, no tema.

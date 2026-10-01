@@ -60,6 +60,7 @@ Nombre de Lucide entre comillas.
 | `GFilterBar` | Sugerir o agregar filtro · quitar filtro | `plus` · `x` |
 | `GTabs` | Cargando (gira) · requiere atención · botones de borde · botón «Más» | `loader-circle` · `circle-alert` · `chevron-left` / `chevron-right` · `chevron-down` |
 | `GCard` | Casilla / alternar · radio · menú de acciones · estados `error` / `warning` / `success` / `info` · marca de «actual» · «mostrar más» | `check` · `circle` (rellena) · `ellipsis-vertical` · `circle-alert` / `triangle-alert` / `circle-check` / `info` · `chevron-right` (espejado en RTL) · `chevron-down` |
+| `GToast` | Tipos `info` · `success` · `warning` · `error` · `loading` (gira) · cerrar (`neutral` no lleva icono) | `info` · `circle-check` · `triangle-alert` · `circle-alert` · `loader-circle` · `x` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
 `GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
