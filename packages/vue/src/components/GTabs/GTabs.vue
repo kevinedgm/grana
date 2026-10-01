@@ -205,6 +205,7 @@ export default defineComponent({
     // ---------- Medición ----------
     let ro = null
     let observedScroller = null
+    let observedList = null
     let animHost = null
     let unmounted = false
     const listEl = () => rootEl.value?.querySelector('.g-tabs__list') || null
@@ -371,6 +372,8 @@ export default defineComponent({
         ro = new ResizeObserver(() => fit())
         ro.observe(rootEl.value)
         if (scrollerEl.value) { ro.observe(scrollerEl.value); observedScroller = scrollerEl.value }
+        observedList = listEl()
+        if (observedList) ro.observe(observedList) // el ancho de las pestañas cambia (p. ej. otra fuente) sin cambiar raíz ni scroller
       }
       if (typeof document !== 'undefined' && document.fonts) {
         document.fonts.ready?.then(() => fit())
@@ -387,6 +390,11 @@ export default defineComponent({
         if (observedScroller) ro.unobserve(observedScroller)
         if (scrollerEl.value) ro.observe(scrollerEl.value)
         observedScroller = scrollerEl.value
+      }
+      if (ro && listEl() !== observedList) {
+        if (observedList) ro.unobserve(observedList)
+        observedList = listEl()
+        if (observedList) ro.observe(observedList)
       }
       refresh()
     })

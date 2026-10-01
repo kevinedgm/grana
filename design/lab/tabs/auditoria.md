@@ -56,3 +56,7 @@ El peor caso de marca (4.53, Spotify claro) y de texto activo en píldora (5.14)
 - **`forced-colors` real de Windows** (solo emulado) y `prefers-contrast: more` con un tema real de alto contraste.
 - **Rendimiento** con decenas de pestañas y redimensionar con «Más» abierto.
 - Tooltip para solo iconos: no existe todavía (decisión #113).
+
+## Seguimiento (bruno)
+
+El `ResizeObserver` de `GTabs.vue` observa ahora también la lista de pestañas (se vuelve a observar si cambia el elemento), de modo que un cambio de ancho de las pestañas sin cambiar raíz ni scroller (p. ej. otra fuente en caliente) recoloca la marca. Hallazgo menor cerrado; 1006 pruebas, build y compuertas bien.
