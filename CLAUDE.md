@@ -22,6 +22,26 @@ Librería open source de componentes **Vue 3** con tema por tokens (tipo Vuetify
 
 Flujo por componente: kiwi → lima → coco → bruno → coco (auditoría) → mora-docs. Si falta una entrega previa, detente e invoca al dueño. Las aprobaciones se dan solas si todo deriva de un estándar; decisiones de producto o identidad se preguntan al usuario.
 
+## Modelos por rol
+
+Cada rol es un agente en `.claude/agents/` con su modelo por defecto:
+
+| Rol | Modelo por defecto | Por qué |
+| --- | --- | --- |
+| kiwi | Opus | Decisiones de arquitectura que luego cuestan caro de cambiar |
+| lima | Opus | API y tokens: el contrato del que dependen los demás |
+| coco | Sonnet | Sigue el contrato; lo verifica con mediciones |
+| bruno | Sonnet | Sigue contrato y CSS; las pruebas detectan los errores |
+| mora-docs | Sonnet | Documenta lo verificado |
+
+**Componente complejo → coco y bruno también en Opus** (al lanzar el agente, `model: "opus"`). Cuenta como complejo si cumple al menos uno:
+- compone dos o más componentes existentes o se solapa con ellos (p. ej. `GCard` con `GSurface`, `GMetric`, `GWidget`);
+- tiene teclado compuesto propio (tabs, menú, listbox, grid, árbol);
+- se posiciona sobre otros elementos (popover, menú, tooltip, hoja);
+- lleva un motor de datos o de estado (filtros, orden, paginación, fechas).
+
+**Fable** solo si el usuario lo pide o si Opus falla dos veces en lo mismo. **Haiku** para tareas mecánicas sin criterio (renumerar, actualizar índices, regenerar con un script existente).
+
 ## Reglas que no se rompen
 
 - Los componentes solo leen `var(--g-*)` y alias locales `var(--_*)`. **Sin valores de respaldo** y sin literales de tema. Únicas medidas literales permitidas: `24px`, `44px` (área táctil) y el patrón de texto oculto accesible.
