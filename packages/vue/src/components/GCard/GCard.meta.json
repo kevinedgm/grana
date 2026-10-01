@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GCard",
   "tag": "g-card",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Superficie de contenido contenida (compone GSurface) con regiones opcionales por slots y props de atajo; acción principal por enlace estirado dentro del título (link, button, toggle o select), menú de acciones con GMenu, estado de contenido, vacío, esqueleto derivado de las regiones y adaptación medida por su propio ancho.",
   "contract": "design/contracts/card.md",

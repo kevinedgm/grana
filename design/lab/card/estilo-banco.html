@@ -265,10 +265,10 @@ function Card(o) {
     const header = (titles || o.lead || sel || aside || o.interaction === 'toggle') ? '<div class="g-card__header">' + selectbox() + lead() + titles + aside + '</div>' : '';
     const st = o.status ? '<div class="g-card__status" role="' + (o.status.type === 'error' ? 'alert' : 'status') + '">' + I(STATUS_ICON[o.status.type]) + '<span>' + esc(o.status.text) + '</span>' + (o.status.retry ? btn({ id: 'retry', label: o.status.retry, level: 'secondary' }).replace('data-act="action"', 'data-act="retry"') : '') + '</div>' : '';
     const emp = o.empty ? '<div class="g-card__empty">' + (o.empty.icon ? I(o.empty.icon) : '') + '<span>' + esc(o.empty.text) + '</span>' + (o.empty.action ? btn({ id: 'emp', label: o.empty.action, level: 'secondary' }) : '') + '</div>' : '';
-    const desc = o.description ? '<p class="g-card__description" id="' + did + '" data-lines="' + (o.descLines || 'none') + '">' + esc(o.description) + '</p>' + (o.expandable ? '<button type="button" class="g-card__expand" data-act="expand" aria-expanded="false" aria-controls="' + did + '" hidden>' + esc(L.expand || 'Mostrar más') + '</button>' : '') : '';
+    const desc = o.description ? '<p class="g-card__description" id="' + did + '" data-lines="' + (o.descLines || 'none') + '">' + esc(o.description) + '</p>' + (o.expandable ? '<button type="button" class="g-card__expand" data-act="expand" aria-expanded="false" aria-controls="' + did + '" hidden>' + esc(L.expand || 'Mostrar más') + I('chevron-down') + '</button>' : '') : '';
     const content = (desc || st || emp || o.body || pos === 'inline') ? '<div class="g-card__content">' + (pos === 'inline' ? media() : '') + desc + st + emp + (o.empty ? '' : (typeof o.body === 'function' ? o.body(tid) : (o.body || ''))) + '</div>' : '';
     const meta = (o.meta || []).filter(m => !(density === 'compact' && m.priority === 'low')).length ? '<dl class="g-card__meta">' + o.meta.filter(m => !(density === 'compact' && m.priority === 'low')).map(m => '<div class="g-card__meta-item' + (m.priority === 'low' ? ' g-card__meta-item--low' : '') + '"><dt>' + esc(m.label) + '</dt><dd>' + esc(m.value) + '</dd></div>').join('') + '</dl>' : '';
-    const more = o.more ? '<div class="g-card__more" id="' + id + '-more">' + o.more + '</div><button type="button" class="g-card__more-toggle" data-act="more" aria-expanded="false" aria-controls="' + id + '-more" hidden>' + esc(L.more || 'Más detalles') + '</button>' : '';
+    const more = o.more ? '<div class="g-card__more" id="' + id + '-more">' + o.more + '</div><button type="button" class="g-card__more-toggle" data-act="more" aria-expanded="false" aria-controls="' + id + '-more" hidden>' + esc(L.more || 'Más detalles') + I('chevron-down') + '</button>' : '';
     const acts = (o.actions || []).length ? '<div class="g-card__actions">' + o.actions.map(a => btn(a)).join('') + '</div>' : '';
     const foot = o.footer ? '<div class="g-card__footer">' + o.footer + '</div>' : '';
     root.innerHTML = (pos && pos !== 'inline' ? media() : '') + '<div class="g-card__main"><div class="g-card__body"><div class="g-card__stack">' + header + content + meta + more + '</div>' + acts + '</div>' + foot + '</div>' + live;
@@ -289,7 +289,7 @@ function Card(o) {
     if (a === 'primary') { e.preventDefault(); log('principal → «' + nm + '»'); }
     else if (a === 'action') { e.preventDefault(); log('acción «' + t.dataset.id + '» en «' + nm + '» (la principal NO se activó)'); }
     else if (a === 'toggle') { state.pressed = !state.pressed; t.setAttribute('aria-pressed', state.pressed); root.className = cls(); log('alternar → ' + state.pressed); }
-    else if (a === 'expand') { state.expanded = !state.expanded; t.setAttribute('aria-expanded', state.expanded); t.textContent = state.expanded ? (L.collapse || 'Mostrar menos') : (L.expand || 'Mostrar más'); root.className = cls(); }
+    else if (a === 'expand') { state.expanded = !state.expanded; t.setAttribute('aria-expanded', state.expanded); t.innerHTML = esc(state.expanded ? (L.collapse || 'Mostrar menos') : (L.expand || 'Mostrar más')) + I('chevron-down'); root.className = cls(); }
     else if (a === 'more') { state.moreOpen = !state.moreOpen; t.setAttribute('aria-expanded', state.moreOpen); syncMore(); }
     else if (a === 'retry') log('reintentar');
   });

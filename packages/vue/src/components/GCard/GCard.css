@@ -109,17 +109,21 @@
   gap: var(--_gap);
   min-inline-size: 0;
 }
+/* Prioridad en el encabezado (auditoría, hallazgo 1): el título conserva siempre un mínimo de space × 24 (≈ 8 caracteres);
+   la casilla, el lead y el menú son fijos; si aun así no cabe el lateral (insignia larga en 320px), el lateral pasa a una
+   segunda línea alineado al final, en lugar de comerse el título letra a letra. */
 .g-card__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--_gap);
   min-inline-size: 0;
 }
 .g-card__titles {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
-  min-inline-size: 0;
+  min-inline-size: min(100%, calc(var(--g-space-1) * 24));
 }
 .g-card__content {
   display: flex;
@@ -195,6 +199,17 @@
   text-underline-offset: var(--g-focus-offset);
   cursor: pointer;
 }
+/* Chevron (Lucide chevron-down, icons.md §4) tras el texto; apunta hacia arriba con aria-expanded="true". Solo se dibuja si bruno lo renderiza */
+.g-card__expand > .g-icon,
+.g-card__more-toggle > .g-icon {
+  flex: none;
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+  margin-inline-start: var(--g-space-1);
+  transition: rotate var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-card__expand[aria-expanded="true"] > .g-icon,
+.g-card__more-toggle[aria-expanded="true"] > .g-icon { rotate: 180deg; }
 .g-card__expand[hidden],
 .g-card__more-toggle[hidden],
 .g-card__more[hidden] { display: none; }
@@ -214,6 +229,7 @@
   flex: none;
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   inline-size: var(--_lead);
   block-size: var(--_lead);
   border-radius: var(--g-radius-md);
@@ -234,8 +250,9 @@
   align-items: center;
   gap: var(--g-space-1);
   min-block-size: var(--_btn);
-  /* Centrado con la primera línea del título */
+  /* Centrado con la primera línea del título; al final de su línea si el encabezado tuvo que partirse */
   margin-block: calc((var(--g-text-body-line) - var(--_btn)) / 2);
+  margin-inline-start: auto;
 }
 .g-card__aside:has(.g-card__menu) { margin-inline-end: calc(var(--g-space-1) * -2); }
 .g-card__current {
@@ -416,6 +433,13 @@
   color: var(--_sm);
 }
 .g-card__status > :not(.g-icon):not(.g-btn) { flex: 1 1 auto; min-inline-size: 0; }
+/* «Reintentar» (GBtn outline) sobre el fondo -soft del aviso: con una marca pálida (Spotify, lustre) el texto de la familia primary
+   bajaba de 4.5:1 (3.96). Se reasignan los alias de GBtn al texto neutro: ≥ 4.5:1 en claro y oscuro, borde ≥ 3:1 (auditoría, hallazgo 2). */
+.g-card__status .g-btn {
+  --_text: var(--g-color-text);
+  --_on-soft: var(--g-color-text);
+  --_soft: var(--g-card-pressed);
+}
 
 /* ---------- Vacío ---------- */
 .g-card__empty {
@@ -743,7 +767,9 @@ li.g-card.g-card--orientation-horizontal.g-surface--level-flat.g-card--size-narr
   .g-card,
   .g-card::before,
   .g-card__tick,
-  .g-card__menu { transition: none; }
+  .g-card__menu,
+  .g-card__expand > .g-icon,
+  .g-card__more-toggle > .g-icon { transition: none; }
 }
 @media (prefers-contrast: more) {
   /* El hover y la selección no dependen de un velo tenue: el borde pasa al de los controles, la línea del pie y el contorno del vacío también */
