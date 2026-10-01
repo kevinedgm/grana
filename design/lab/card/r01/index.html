@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCard · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-strong:#a8a8a8;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--space:4px;--tmin:24px;--dur:140ms;--ease:cubic-bezier(.2,0,0,1)}
+:root[data-touch]{--tmin:44px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:36px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)} h3.sub{font-size:14px;margin:16px 0 6px}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:90ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:96ch}
+.ctl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);padding:4px 8px;margin-top:8px;min-block-size:1.4em;white-space:pre-wrap;overflow-wrap:anywhere}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+code{font-size:.92em}
+select,input[type=text]{font:inherit;padding:4px 6px}
+.frame{border:1px dashed var(--wf-3);padding:12px;background:#fff;resize:horizontal;overflow:auto;max-inline-size:100%;min-inline-size:200px}
+.frame.sunken,.host.sunken{background:var(--wf-fill-2)}
+.out{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--wf-2);margin:6px 0}
+.grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px;align-items:start}
+.grid[data-heights=equal]{align-items:stretch}
+.grid>li{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.grid[data-heights=equal]>li>.gcard,.grid>li>.cellbody{flex:1}
+.cellbody{display:flex;min-inline-size:0}.cellbody>.gcard{flex:1}
+.cell-label{font-size:12px;color:var(--wf-2);line-height:16px}
+.cell-label b{color:var(--wf-ink)}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.row>*{max-inline-size:100%;min-inline-size:0}
+.host{background:#fff;border:1px solid var(--wf-line);border-radius:14px;padding:12px;min-inline-size:0}
+.host.sunken{--inset-bg:#fff}
+.shell{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px;border:1px dashed var(--wf-3);padding:12px;background:#fff}
+@media (max-width:560px){.shell{grid-template-columns:minmax(0,1fr)}}
+.shell aside{background:var(--wf-fill-2);padding:8px;border:1px solid var(--wf-line);border-radius:10px;min-inline-size:0}
+.skmsg{font-size:12px;color:var(--wf-2)}
+
+/* ============ Botones del kit (los reales son GBtn) ============ */
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-block-size:max(32px,var(--tmin));min-inline-size:max(32px,var(--tmin));padding:0 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;line-height:20px;white-space:nowrap}
+.wf-btn--primary{background:var(--wf-ink);color:#fff}
+.wf-btn--tertiary{border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:0 8px}
+.wf-btn:disabled,.wf-btn[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.wf-ibtn{display:inline-grid;place-items:center;inline-size:max(32px,var(--tmin));block-size:max(32px,var(--tmin));border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;padding:0}
+.wf-ibtn:hover{background:rgba(0,0,0,.06)}
+.wf-ibtn:disabled{opacity:.45;cursor:not-allowed}
+.wf-link{color:inherit;text-underline-offset:3px;display:inline-flex;align-items:center;min-block-size:max(24px,var(--tmin))}
+.wf-expand{all:unset;cursor:pointer;font-size:13px;text-decoration:underline;text-underline-offset:3px;color:var(--wf-2);display:inline-flex;align-items:center;min-block-size:max(24px,var(--tmin))}
+.wf-expand:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.wf-expand[hidden]{display:none}
+.gbadge{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:16px;padding:2px 8px;border:1px solid var(--wf-strong);border-radius:999px;color:var(--wf-ink);background:#fff;white-space:nowrap}
+.gbadge .g-icon{inline-size:12px;block-size:12px}
+
+/* ============ GCard (estructura; la forma final es de coco) ============ */
+.gcard{--m:1;--r:12px;--pad:calc(var(--space)*4*var(--m));--gap:calc(var(--space)*3*var(--m));--media-w:calc(var(--space)*40*var(--m));--lh:20px;--lh-title:22px;--btn-h:32px;
+  position:relative;isolation:isolate;display:flex;flex-direction:column;inline-size:100%;min-inline-size:0;overflow:clip;
+  background:#fff;border:1px solid var(--wf-strong);border-radius:var(--r);color:var(--wf-ink);font-size:14px;line-height:var(--lh);text-align:start;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.gcard[data-density=comfortable]{--m:.875}.gcard[data-density=compact]{--m:.75;--r:10px}
+/* superficie (se delega en GSurface: level) */
+.gcard[data-level=flat]{background:transparent;border-color:transparent}
+.gcard[data-level=outlined]{border-color:var(--wf-strong)}
+.gcard[data-level=raised]{border-color:var(--wf-line);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.gcard[data-level=inset]{background:var(--inset-bg,var(--wf-fill-2));border-color:var(--wf-line)}
+.gcard[data-level=inset] .gcard__media{background:var(--wf-fill)}
+/* regiones */
+.gcard__media{position:relative;flex:none;background:var(--wf-fill);display:grid;place-items:center;overflow:hidden;color:var(--wf-2);font-size:12px}
+.gcard__media[data-pos=top]{inline-size:100%;aspect-ratio:var(--ratio,16/9)}
+.gcard__media[data-pos=inline]{inline-size:100%;aspect-ratio:var(--ratio,16/9);border-radius:calc(var(--r) - var(--pad)/2);border:1px solid var(--wf-line)}
+.gcard__media[data-pos=start],.gcard__media[data-pos=end]{inline-size:var(--media-w);align-self:stretch}
+.gcard__media[data-pos=background]{position:absolute;inset:0;z-index:-1}
+.gcard__media .ph{display:grid;gap:4px;place-items:center;text-align:center;padding:8px}
+.gcard__media[data-kind=illustration] .ph{display:flex;gap:6px}
+.gcard__media[data-kind=illustration] .g-icon{inline-size:36px;block-size:36px;color:var(--wf-3)}
+.gcard__media[data-kind=map]{background:repeating-linear-gradient(0deg,#e4e4e4 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,#e4e4e4 0 1px,transparent 1px 24px),var(--wf-fill-2)}
+.gcard__media[data-kind=chart] .bars{display:flex;align-items:flex-end;gap:6px;block-size:70%;inline-size:70%}
+.gcard__media[data-kind=chart] .bars i{flex:1;background:var(--wf-3);border-radius:3px 3px 0 0}
+.gcard__media .chip{position:absolute;inset-inline-end:8px;inset-block-end:8px;background:#fff;border:1px solid var(--wf-line);border-radius:4px;padding:0 6px;font-size:12px;line-height:18px;color:var(--wf-ink)}
+.gcard__main{flex:1;min-inline-size:0;display:flex;flex-direction:column}
+.gcard__body{flex:1;display:flex;flex-direction:column;gap:var(--gap);padding:var(--pad);min-inline-size:0}
+.gcard__stack{flex:1;display:flex;flex-direction:column;gap:var(--gap);min-inline-size:0}
+.gcard__actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block-start:auto}
+.gcard__header{display:flex;align-items:flex-start;gap:calc(var(--gap) - 2px);min-inline-size:0}
+.gcard__lead{flex:none;inline-size:calc(var(--space)*10);block-size:calc(var(--space)*10);border-radius:8px;background:var(--wf-fill);display:grid;place-items:center;font-weight:600;font-size:14px;color:var(--wf-ink)}
+.gcard__lead .g-icon{inline-size:20px;block-size:20px}
+.gcard__lead[data-kind=avatar]{border-radius:50%}
+.gcard__lead[data-lead-size=lg]{inline-size:calc(var(--space)*14);block-size:calc(var(--space)*14);font-size:18px}
+.gcard__titles{flex:1;min-inline-size:0;display:flex;flex-direction:column}
+.gcard__eyebrow{margin:0;font-size:12px;line-height:16px;color:var(--wf-2)}
+.gcard__title{margin:0;font-size:15px;line-height:var(--lh-title);font-weight:600;overflow-wrap:anywhere}
+.gcard__subtitle{margin:0;font-size:13px;line-height:18px;color:var(--wf-2)}
+.gcard__aside{flex:none;display:flex;align-items:center;gap:4px;margin-block:-4px;margin-inline-end:-6px}
+.gcard__aside .gbadge{margin-inline-end:4px}
+.gcard__content{display:flex;flex-direction:column;gap:var(--gap);min-inline-size:0}
+.gcard__desc{margin:0;color:var(--wf-2);overflow-wrap:anywhere}
+/* recorte de líneas: titulo y descripción */
+[data-lines]:not([data-lines=none]){display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;-webkit-line-clamp:var(--n)}
+[data-lines="1"]{--n:1}[data-lines="2"]{--n:2}[data-lines="3"]{--n:3}[data-lines="4"]{--n:4}
+.gcard__meta{margin:0;display:flex;flex-wrap:wrap;gap:4px calc(var(--gap)*1.5);font-size:13px;line-height:18px}
+.gcard__mi{display:flex;gap:4px}.gcard__mi dt{color:var(--wf-2)}.gcard__mi dd{margin:0;font-weight:500}
+.gcard[data-density=compact] .gcard__mi[data-low]{display:none}
+.gcard__more{display:flex;flex-direction:column;gap:var(--gap)}
+.gcard__more[hidden]{display:none}
+.gcard__footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;padding:calc(var(--pad)*.625) var(--pad);border-top:1px solid var(--wf-line);font-size:13px;line-height:18px;color:var(--wf-2)}
+.gcard__list{margin:0;padding-inline-start:18px;color:var(--wf-2)}
+.gcard__inset{--inset-r:max(4px,calc(var(--r) - var(--pad)));background:var(--wf-fill-2);border:1px solid var(--wf-line);border-radius:var(--inset-r);padding:calc(var(--pad)*.75);display:flex;flex-direction:column;gap:var(--gap);min-inline-size:0}
+.gcard__inset .gcard__inset{background:transparent;box-shadow:none}
+.gcard__inset[data-depth="3"]{background:transparent}
+.gcard__inset .row3{display:flex;flex-wrap:wrap;gap:8px 20px}
+.gcard__inset .row3>div{display:flex;flex-direction:column}.gcard__inset .row3 b{font-size:16px;line-height:22px}.gcard__inset .row3 span{font-size:12px;line-height:16px;color:var(--wf-2)}
+/* estado de la card */
+.gcard__status{margin:0;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--wf-strong);border-radius:8px;font-size:13px;line-height:18px;background:var(--wf-fill-2)}
+.gcard__status .g-icon{margin-block-start:1px}.gcard__status>span:nth-child(2){flex:1}
+.gcard[data-status=error] .gcard__status{border-style:solid;border-width:1px 1px 1px 4px;border-color:var(--wf-ink)}
+.gcard[data-status=warning] .gcard__status{border-style:dashed;border-width:1px 1px 1px 4px;border-color:var(--wf-ink)}
+.gcard[data-status=success] .gcard__status{border-color:var(--wf-strong)}
+.gcard__empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:16px 8px;border:1px dashed var(--wf-strong);border-radius:8px;color:var(--wf-2)}
+.gcard__empty .g-icon{inline-size:24px;block-size:24px}
+/* métrica (GMetric dentro del contenido) */
+.gmetric{display:flex;flex-direction:column;gap:4px}
+.gmetric__value{margin:0;font-size:32px;line-height:40px;font-weight:600;font-variant-numeric:tabular-nums}
+.gmetric__trend{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:13px;line-height:18px}
+.gmetric__trend .g-icon{inline-size:14px;block-size:14px}.gmetric__trend span{color:var(--wf-2)}
+.spark{display:flex;align-items:flex-end;gap:3px;block-size:32px;margin-block-start:4px}.spark i{flex:1;background:var(--wf-3);border-radius:2px 2px 0 0}
+
+/* ---- selección real: el input es el control; la caja es su dibujo ---- */
+.gcard__selectbox{position:relative;flex:none;inline-size:max(24px,var(--tmin));block-size:max(24px,var(--tmin));display:grid;place-items:center;margin-inline-start:-4px;margin-block:-2px}
+.gcard .gcard__selectbox>.gcard__select.gcard__select{position:absolute;inset:0;z-index:2;margin:0;opacity:0;cursor:pointer;appearance:none;inline-size:100%;block-size:100%}
+.gcard__tick{inline-size:20px;block-size:20px;border:2px solid var(--wf-ink);border-radius:4px;display:grid;place-items:center;background:#fff;color:transparent;pointer-events:none;flex:none}
+.gcard__tick .g-icon{inline-size:14px;block-size:14px}
+.gcard__selectbox[data-type=radio] .gcard__tick{border-radius:50%}
+.gcard__select:checked+.gcard__tick,.gcard[data-selected=true] .gcard__tick--static{background:var(--wf-ink);color:#fff}
+.gcard__select:focus-visible+.gcard__tick{outline:3px solid var(--wf-ink);outline-offset:3px}
+.gcard__select:disabled{cursor:not-allowed}.gcard__select:disabled+.gcard__tick{opacity:.45}
+.gcard__tick--static{margin-block-start:2px}
+
+/* ---- acción principal: elemento real en el título; ::after cubre la card (enlace estirado) ---- */
+.gcard__primary{color:inherit;text-decoration:none;cursor:pointer;background:none;border:0;padding:0;font:inherit;text-align:start;display:inline;overflow-wrap:anywhere}
+.gcard__primary::after{content:"";position:absolute;inset:0;z-index:0;border-radius:var(--r)}
+.gcard__primary:is(button){cursor:pointer}
+.gcard__primary[aria-disabled=true]{cursor:not-allowed}
+.gcard__primary:focus-visible{outline:none}
+.gcard__primary:focus-visible::after,.gcard[data-force~=focus] .gcard__primary::after{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gcard:has(.gcard__select:focus-visible){outline:3px solid var(--wf-ink);outline-offset:-3px}
+/* lo demás interactivo va por encima del estirado: no activa la principal */
+.gcard :is(a,button,input,select,textarea,summary,[tabindex],label):not(.gcard__primary){position:relative;z-index:1}
+.gcard__titles :is(a,button).gcard__primary{position:static}
+/* estados */
+@media (hover:hover){
+  .gcard:has(.gcard__primary:hover):not([data-disabled]):not([data-loading]){background:var(--wf-fill-2);border-color:var(--wf-ink)}
+  .gcard[data-level=flat]:has(.gcard__primary:hover):not([data-disabled]){background:var(--wf-fill-2);border-color:transparent}
+}
+.gcard[data-force~=hover]{background:var(--wf-fill-2);border-color:var(--wf-ink)}
+.gcard:has(.gcard__primary:active):not([data-disabled]),.gcard[data-force~=pressed]{background:var(--wf-fill);border-color:var(--wf-ink)}
+.gcard[data-selected=true]{background:#efefef;border-color:var(--wf-ink);box-shadow:inset 0 0 0 1px var(--wf-ink)}
+.gcard[data-level=flat][data-selected=true]{border-color:var(--wf-ink)}
+.gcard[aria-current-card=true]{border-color:var(--wf-ink);box-shadow:inset 0 0 0 1px var(--wf-ink);background:#efefef}
+.gcard[data-disabled]{opacity:.55}
+.gcard[data-disabled] .gcard__primary,.gcard[data-disabled] .gcard__select{cursor:not-allowed}
+.gcard[data-disabled] .gcard__primary:hover{text-decoration:none}
+.gcard__primary:hover{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.gcard[data-disabled] .gcard__primary{text-decoration:line-through;text-decoration-thickness:1px}
+/* escáner del fondo: media de fondo con escrim */
+.gcard[data-media=background]{min-block-size:220px;justify-content:flex-end;color:#fff;border-color:var(--wf-ink)}
+.gcard[data-media=background]::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.8))}
+.gcard[data-media=background] .gcard__media{background:#6b6b6b;z-index:-2}
+.gcard[data-media=background] .gcard__media .ph{display:none}
+.gcard[data-media=background] :is(.gcard__eyebrow,.gcard__subtitle,.gcard__desc,.gcard__mi dt,.gcard__footer){color:#e6e6e6}
+.gcard[data-media=background] .gcard__footer{border-color:rgba(255,255,255,.35)}
+.gcard[data-media=background] .gcard__body{padding-block-start:calc(var(--pad)*3)}
+.gcard[data-media=background] .wf-btn:not(.wf-btn--primary){background:rgba(255,255,255,.14);border-color:#fff;color:#fff}
+.gcard[data-media=background] .wf-btn--primary{background:#fff;color:var(--wf-ink);border-color:#fff}
+.gcard[data-media=background] .wf-ibtn{color:#fff}
+.gcard[data-media=background] .wf-expand{color:#fff}
+/* ---- layout por contenedor (data-layout y data-size los pone el observador de tamaño) ---- */
+.gcard[data-layout=row]{flex-direction:row}
+.gcard[data-layout=row][data-media=end]{flex-direction:row}
+.gcard[data-layout=row] .gcard__media[data-pos=start],.gcard[data-layout=row] .gcard__media[data-pos=end]{aspect-ratio:auto;min-block-size:calc(var(--space)*28)}
+.gcard[data-layout=row][data-size=medium]{--media-w:calc(var(--space)*28*var(--m))}
+.gcard[data-layout=row][data-size=wide] .gcard__body{flex-direction:row;align-items:center;gap:calc(var(--gap)*2)}
+.gcard[data-layout=row][data-size=wide] .gcard__stack{align-self:stretch}
+.gcard[data-layout=row][data-size=wide] .gcard__actions{flex:none;flex-direction:column;align-items:stretch;margin:0}
+.gcard[data-layout=column] .gcard__media[data-pos=start],.gcard[data-layout=column] .gcard__media[data-pos=end]{inline-size:100%;aspect-ratio:var(--ratio,16/9);align-self:auto;order:-1}
+.gcard[data-size=narrow] .gcard__actions{flex-direction:column;align-items:stretch}
+.gcard[data-size=narrow] .gcard__actions .wf-btn:not(.wf-btn--tertiary){inline-size:100%;min-block-size:max(40px,var(--tmin))}
+.gcard[data-size=narrow] .gcard__actions .wf-ibtn{align-self:flex-end}
+.gcard[data-size=narrow]{--lh-title:22px}
+/* modo lista (se acerca a un ListItem sin ser otro componente) */
+.gcard[data-row=list]{--r:6px}
+.gcard[data-row=list][data-level=flat]{border-radius:0;border-width:0 0 1px 0;border-color:var(--wf-line)}
+.gcard[data-row=list][data-layout=row][data-size=wide] .gcard__body{align-items:center}
+.gcard[data-row=list] .gcard__stack{flex-direction:row;flex-wrap:wrap;align-items:center;gap:var(--gap) calc(var(--gap)*1.5)}
+.gcard[data-row=list] .gcard__header{display:contents}
+.gcard[data-row=list] .gcard__lead{order:0}
+.gcard[data-row=list] .gcard__titles{order:1;flex:1 1 160px}
+.gcard[data-row=list] .gcard__meta{order:2;flex:0 1 auto}
+.gcard[data-row=list] .gcard__aside{order:3;margin-block:0}
+.gcard[data-row=list] .gcard__content{order:4;flex:1 1 100%}
+.gcard[data-row=list][data-size=narrow] .gcard__body{padding-block:calc(var(--pad)*.75)}
+/* esqueleto: misma anatomía (mismas alturas de línea), líneas por región, no una caja gris */
+.sk{display:block;block-size:var(--sk-h,var(--lh));background:linear-gradient(var(--wf-fill),var(--wf-fill)) 0 50%/var(--w,100%) 60% no-repeat;border-radius:4px}
+.sk--btn{block-size:var(--btn-h);background:var(--wf-fill);border-radius:6px;inline-size:var(--w,96px);flex:none}
+.sk--circle{border-radius:50%}
+.gcard[data-loading] .gcard__media>*{visibility:hidden}
+.gcard[data-loading] .gcard__lead{background:var(--wf-fill);color:transparent}
+.gcard[data-loading] .gcard__lead>*{visibility:hidden}
+@media (prefers-reduced-motion:no-preference){:root:not([data-motion=off]) .gcard[data-loading] :is(.sk,.sk--btn,.gcard__media,.gcard__lead){animation:gc-pulse 1.4s ease-in-out infinite}}
+@keyframes gc-pulse{50%{opacity:.55}}
+/* anatomía: capa de depuración */
+.show-regions [data-region]{outline:1px dashed #666;outline-offset:-1px}
+.show-regions [data-region]::before{content:attr(data-region);position:absolute;z-index:3;font:11px/14px ui-monospace,Menlo,monospace;background:#fff;color:#000;padding:0 3px;border:1px solid #666;pointer-events:none;margin:1px}
+.show-regions [data-region]{position:relative}
+.show-regions .gcard__media[data-region]{position:relative}
+/* orden de foco */
+.fo{position:absolute;z-index:50;inline-size:20px;block-size:20px;border-radius:50%;background:#000;color:#fff;font:700 12px/20px var(--wf-font);text-align:center;pointer-events:none;box-shadow:0 0 0 2px #fff}
+/* menú de acciones (el real es GMenu: patrón Menu Button de APG, en capa superior) */
+.wf-menu{position:fixed;inset:auto;margin:0;padding:4px;list-style:none;background:#fff;border:1px solid var(--wf-ink);border-radius:8px;min-inline-size:180px;color:var(--wf-ink)}
+.wf-menu li{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:6px;cursor:pointer;min-block-size:max(32px,var(--tmin))}
+.wf-menu li:hover,.wf-menu li:focus{background:var(--wf-fill);outline:none}
+.wf-menu li:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.wf-menu li[data-danger]{font-weight:600}
+.wf-menu li[aria-disabled=true]{opacity:.45;text-decoration:line-through}
+/* diálogo del kit */
+dialog.dlg{padding:0;border:1px solid var(--wf-ink);border-radius:14px;max-inline-size:calc(100vw - 24px);max-block-size:calc(100dvh - 32px);color:inherit;background:#fff;overflow:auto}
+dialog.dlg::backdrop{background:rgba(0,0,0,.4)}
+.dlg__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 8px}.dlg__head h2{margin:0;font-size:18px}
+.dlg__body{padding:8px 16px 16px}
+@media (forced-colors:active){.gcard{border-color:CanvasText}.gcard[data-selected=true]{outline:2px solid Highlight}}
+</style>
+</head>
+<body>
+<main>
+<h1>GCard · r01</h1>
+<p class="meta">Wireframe F2 (kit neutral, solo estructura y comportamiento). Kiwi propone; color, forma, sombra y movimiento finales son de coco. Todo lo de abajo es <strong>el mismo marcado base</strong> (una fábrica con regiones opcionales) y funciona: teclado, enlace estirado, selección real, menú, esqueleto, adaptación por contenedor.</p>
+<div class="wf-note"><strong>Modelo de interacción:</strong> la acción principal es un elemento real (<code>&lt;a&gt;</code> o <code>&lt;button&gt;</code>) <em>dentro del título</em>; su <code>::after</code> cubre la card (enlace estirado). Las demás acciones van por encima (<code>z-index</code>) y son hermanas, no hijas: no se anidan interactivos y un clic en ellas <em>no</em> activa la principal. Una card <em>no</em> es un <code>&lt;button&gt;</code>. Tab recorre: casilla (si hay) → título → menú → acciones → pie.</div>
+<div class="ctl" id="globals">
+  <label><input type="checkbox" id="g-motion"> Simular «reducir movimiento»</label>
+  <label><input type="checkbox" id="g-touch"> Simular objetivos táctiles (44px)</label>
+  <label>Dirección <select id="g-dir"><option value="ltr">ltr</option><option value="rtl">rtl</option></select></label>
+</div>
+
+<h2 class="sec">1 · Anatomía: un solo marcado, regiones opcionales</h2>
+<p class="cap">Card Surface → Header (lead · eyebrow/título/subtítulo · aside: badge, menú) → Media → Content (descripción, estado, contenido libre) → Metadata → More (región expandible) → Actions → Footer. Ninguna región es obligatoria salvo un nombre (título). El título lleva la acción principal. <code>media</code> admite cinco posiciones (arriba, inicio, fin, fondo, dentro del cuerpo).</p>
+<div class="ctl"><label><input type="checkbox" id="an-regions"> Mostrar regiones</label><label><input type="checkbox" id="an-focus"> Mostrar orden de foco</label></div>
+<div id="s-anatomy" class="row"><div style="inline-size:min(100%,420px)" id="an-card"></div>
+<pre class="log" style="flex:1;min-inline-size:260px;margin:0">&lt;article class="g-card" data-level data-density data-layout data-size …&gt;
+  &lt;span role="status" class="sr"&gt;       (aviso de carga, existe antes del cambio)
+  &lt;div class="g-card__media" data-pos&gt;     (top | start | end | background)
+  &lt;div class="g-card__main"&gt;
+    &lt;div class="g-card__body"&gt;
+      &lt;div class="g-card__stack"&gt;
+        &lt;header class="g-card__header"&gt;
+          [select] [lead] 
+          &lt;div titles&gt; eyebrow · &lt;h3 title&gt;&lt;a|button primary&gt; · subtitle
+          &lt;div aside&gt; badge · menu button
+        &lt;div class="g-card__content"&gt; media(inline)? · description · status · slot
+        &lt;dl class="g-card__meta"&gt;
+        &lt;div class="g-card__more"&gt;  (se pliega en estrecho)
+      &lt;div class="g-card__actions"&gt;
+    &lt;footer class="g-card__footer"&gt;
+</pre></div>
+<output class="log" id="an-log"></output>
+
+<h2 class="sec">2 · Las doce composiciones con el mismo marcado</h2>
+<p class="cap">Cada celda indica las regiones que realmente tiene (calculadas del DOM). Ninguna es una implementación aparte: Basic es header+content; Metric, Profile, Status y los demás cambian qué regiones se llenan y qué lleva el slot de contenido.</p>
+<ul class="grid" id="s-compose"></ul>
+<output class="log" id="compose-log"></output>
+
+<h2 class="sec">3 · Variantes de superficie (separadas de la estructura)</h2>
+<p class="cap">La misma card con <code>level</code> = <code>flat</code>, <code>outlined</code>, <code>raised</code> (el «elevated» del brief, <code>GSurface</code>), <code>inset</code>; y las dos variantes de <em>comportamiento</em> (no son niveles de superficie): <strong>interactive</strong> (título con enlace) y <strong>selected</strong>. Arriba, sobre fondo base; abajo, sobre una superficie hundida (la <code>inset</code> toma un paso de tono relativo al padre).</p>
+<div class="host" id="s-surf-a"><ul class="grid" id="surf-a"></ul></div>
+<div class="host sunken" id="s-surf-b" style="margin-top:12px"><ul class="grid" id="surf-b"></ul></div>
+
+<h2 class="sec">4 · Densidades</h2>
+<p class="cap">La prop compartida <code>density</code> (<code>default</code> · <code>comfortable</code> · <code>compact</code>; el «spacious» del brief equivale a <code>default</code>, como en GTabs, DECISIONS #114). Cambian relleno, separación, tamaño de media y metadata marcada como secundaria (en <code>compact</code> desaparece la «Actualizado»). No cambian la semántica ni la tipografía; objetivos ≥ 24px siempre.</p>
+<ul class="grid" id="s-density"></ul>
+
+<h2 class="sec">5 · Matriz de estados</h2>
+<p class="cap">Default · hover (forzado) · foco (forzado: anillo sobre toda la card) · pressed (forzado) · selected (borde grueso + casilla marcada + fondo, <strong>no solo color</strong>) · disabled · loading (esqueleto con la misma anatomía y altura) · error · warning · success (estado con icono y texto). Hover, foco y selected son distinguibles entre sí.</p>
+<ul class="grid" id="s-states"></ul>
+<div class="ctl"><button class="wf-btn" id="st-load" type="button">Alternar cargando en «Cargando»</button><output class="out" id="st-size"></output></div>
+
+<h2 class="sec">6 · Media: arriba, lateral, fondo, dentro; y tipos</h2>
+<p class="cap">La media es una región con <code>pos</code> (<code>top</code>, <code>start</code>, <code>end</code>, <code>background</code>, <code>inline</code>) y una naturaleza (imagen, ilustración, vídeo, mapa, gráfico). Decorativa (<code>aria-hidden</code>) si el título ya dice lo mismo; informativa con <code>role="img"</code> y nombre. En <code>background</code> el texto necesita escrim y contraste verificado (lo audita coco).</p>
+<ul class="grid" id="s-media"></ul>
+
+<h2 class="sec">7 · Adaptación por el espacio del propio contenedor</h2>
+<p class="cap">Una sola card (<code>orientation="auto"</code>) mide su <em>propio ancho</em> (no el del visor) con un observador de tamaño y pone <code>data-size</code> (<code>wide</code> ≥ <code>space × 130</code>, <code>medium</code> ≥ <code>space × 80</code>, <code>narrow</code> por debajo) y <code>data-layout</code> (<code>row</code>/<code>column</code>). Amplio: media lateral + contenido + acciones al final; intermedio: media arriba + contenido; estrecho: vertical simplificada, acciones apiladas y la región «más» plegada. Arrastra la esquina del marco.</p>
+<div class="frame" id="fr-main" style="inline-size:680px"><div id="fr-card"></div></div>
+<output class="out" id="fr-out"></output>
+<h3 class="sub">Tres anchos fijos de la misma card</h3>
+<div class="row" id="fr-fixed"></div>
+<h3 class="sub">En una rejilla, en un sidebar y en un diálogo (el visor no cambia; la card sí)</h3>
+<ul class="grid" id="fr-grid" data-heights="equal" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))"></ul>
+<div class="shell" id="fr-shell" style="margin-top:12px"><aside id="fr-aside"></aside><div id="fr-main2"></div></div>
+<div class="ctl"><button class="wf-btn" id="dlg-open-s" type="button">Abrir diálogo estrecho</button><button class="wf-btn" id="dlg-open-l" type="button">Abrir diálogo ancho</button><output class="out" id="dlg-out"></output></div>
+<dialog class="dlg" id="dlg" aria-labelledby="dlg-t"><div class="dlg__head"><h2 id="dlg-t">Resultado</h2><button class="wf-ibtn" id="dlg-x" type="button" aria-label="Cerrar"></button></div><div class="dlg__body" id="dlg-body"></div></dialog>
+
+<h2 class="sec">8 · Rejilla: alturas iguales o naturales</h2>
+<p class="cap">La card no sabe cuántas columnas hay. Con alturas iguales, las acciones y el pie se anclan al fondo (<code>actions</code> con margen automático); con alturas naturales cada card mide lo suyo.</p>
+<div class="ctl"><label><input type="radio" name="gh" value="equal" checked> Alturas iguales</label><label><input type="radio" name="gh" value="natural"> Alturas naturales</label></div>
+<ul class="grid" id="s-grid" data-heights="equal"></ul>
+
+<h2 class="sec">9 · Lista vertical (se acerca a un ListItem)</h2>
+<p class="cap">La misma card con <code>orientation="horizontal"</code>, <code>density="compact"</code>, <code>level="flat"</code> y <code>data-row="list"</code>: <code>lead</code> + título/subtítulo + metadata al final + menú. Raíz <code>li</code> dentro de <code>ul</code>. El elemento «actual» usa <code>aria-current="true"</code> en el enlace (no <code>aria-selected</code>), con marca de forma. Sin <em>roving tabindex</em>: es una lista de enlaces; Tab recorre enlace → menú de cada fila.</p>
+<div class="frame" style="inline-size:100%;resize:horizontal"><ul class="grid" style="display:block" id="s-list"></ul></div>
+<output class="log" id="list-log"></output>
+
+<h2 class="sec">10 · Contenido truncado</h2>
+<p class="cap">Título: 1, 2 o N líneas, o completo (<code>titleLines</code>); descripción: <code>descLines</code> y «Mostrar más» (<code>aria-expanded</code>, <code>aria-controls</code>) que solo aparece si realmente se recorta. El texto completo sigue en el DOM. Evita que el único modo sea el recorte: la card con título completo (<code>none</code>) crece.</p>
+<ul class="grid" id="s-trunc"></ul>
+
+<h2 class="sec">11 · Vacío, error de carga y métrica sin datos</h2>
+<ul class="grid" id="s-empty"></ul>
+<output class="log" id="empty-log"></output>
+
+<h2 class="sec">12 · Interacción: navegar, actuar, seleccionar, menú</h2>
+<p class="cap">Seis modelos con el mismo marcado. Cada acción interna registra su evento; un clic en el vacío de la card activa <em>solo</em> la principal. <strong>Navegable</strong> (enlace) · <strong>acción</strong> (botón; una card con un solo propósito) · <strong>seleccionable</strong> (casilla o radio real, la card entera es su etiqueta) · <strong>alternar</strong> (<code>aria-pressed</code>, filtros) · <strong>navegable + casilla</strong> (la casilla es explícita y va por encima) · <strong>navegable + varias acciones</strong>.</p>
+<div class="ctl"><label><input type="checkbox" id="in-focus"> Mostrar orden de foco</label></div>
+<div id="s-interact"><ul class="grid" id="in-grid"></ul>
+<h3 class="sub">Grupo de selección única (radio real, <code>role="radiogroup"</code>: flechas mueven y seleccionan)</h3>
+<div role="radiogroup" aria-label="Plan" id="in-radios" class="grid" style="display:grid"></div></div>
+<output class="log" id="in-log"></output>
+
+<h2 class="sec">13 · Acciones: jerarquía y solo-icono</h2>
+<p class="cap">Una principal (sólida), secundarias (contorno), terciarias (texto) y solo-icono (<code>aria-label</code> obligatorio, aviso en desarrollo si falta); el menú desborda lo demás. Con puntero táctil el objetivo sube a 44px; en estrecho las acciones se apilan a ancho completo.</p>
+<ul class="grid" id="s-actions"></ul>
+<output class="log" id="act-log"></output>
+
+<h2 class="sec">14 · Superficies anidadas (máximo dos niveles)</h2>
+<p class="cap">Una región <code>inset</code> con razón funcional (resumen, métricas, estado) con radio <strong>concéntrico</strong> (radio de la card − su relleno). Un segundo <code>inset</code> dentro del primero se aplana (sin tono propio); un tercero no existe: <strong>Card dentro de Card dentro de Card no es el lenguaje</strong>.</p>
+<ul class="grid" id="s-nest"></ul>
+<div class="wf-note"><strong>Aviso en desarrollo (verificado):</strong> <button class="wf-btn" id="warn-btn" type="button">Provocar usos incorrectos</button> <output class="log" id="warn-log" style="margin-top:6px"></output></div>
+
+<h2 class="sec">15 · Región expandible en estrecho (móvil)</h2>
+<p class="cap">Con menos de <code>space × 80</code> el contenido secundario (<code>more</code>) pasa a una región plegada con botón «Más detalles» (<code>aria-expanded</code>, <code>aria-controls</code>); con más espacio siempre se ve y el botón no existe. Marco de 300px.</p>
+<div class="row"><div class="frame" style="inline-size:300px;min-inline-size:200px"><div id="s-more"></div></div><div class="frame" style="inline-size:440px"><div id="s-more2"></div></div></div>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = (n, f) => window.lucide(n, '', !!f);
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+let uid = 0;
+const DEVWARN = [];
+const _warn = console.warn.bind(console);
+function warn(m, quiet) { DEVWARN.push(m); if (!quiet) _warn('[GCard] ' + m); }
+
+/* ===== Textos de muestra (domain-agnostic) ===== */
+const T = {
+  short: 'Un resumen breve de lo que contiene esta tarjeta.',
+  two: 'Una descripción lo bastante larga como para ocupar exactamente dos líneas en la mayoría de los anchos de esta página, y seguir siendo clara para quien la lee con lector de pantalla.',
+  long: 'Texto descriptivo más largo que ocupa varias líneas para comprobar el recorte, la lectura y la jerarquía visual cuando el contenido real no es tan corto como en un ejemplo de diseño, y que sigue siendo completo en el DOM para quien lo lee con un lector de pantalla o amplía la página.',
+  titleLong: 'Un título extraordinariamente largo que no cabe en una sola línea y que obliga a decidir entre recortar, limitar líneas o mostrarlo completo'
+};
+const MENU = [
+  { id: 'rename', label: 'Renombrar', icon: 'pencil' },
+  { id: 'dup', label: 'Duplicar', icon: 'copy' },
+  { id: 'move', label: 'Mover a…', disabled: true },
+  { id: 'del', label: 'Eliminar', danger: true }
+];
+const META = [{ k: 'Responsable', v: 'Ana Pérez' }, { k: 'Tareas', v: '12' }, { k: 'Actualizado', v: 'hace 2 h', low: true }];
+
+/* ===== Menú de acciones (patrón Menu Button de APG; el real es GMenu) ===== */
+function buildMenu(card, btn, items, log) {
+  const mid = btn.getAttribute('aria-controls');
+  const ul = document.createElement('ul');
+  ul.className = 'wf-menu'; ul.id = mid; ul.setAttribute('role', 'menu'); ul.setAttribute('popover', 'manual');
+  ul.setAttribute('aria-labelledby', btn.id);
+  ul.innerHTML = items.map(m => '<li role="menuitem" tabindex="-1" data-id="' + m.id + '"' + (m.danger ? ' data-danger' : '') + (m.disabled ? ' aria-disabled="true"' : '') + '>' +
+    (m.danger ? '<span aria-hidden="true">' + I('triangle-alert') + '</span>' : (m.icon ? '<span aria-hidden="true">' + I(m.icon) + '</span>' : '')) + '<span>' + esc(m.label) + '</span></li>').join('');
+  btn.after(ul);
+  const lis = () => [...ul.children];
+  let open = false;
+  function place() { const r = btn.getBoundingClientRect(); const w = ul.offsetWidth || 180; const rtl = getComputedStyle(btn).direction === 'rtl';
+    ul.style.top = Math.min(r.bottom + 4, innerHeight - ul.offsetHeight - 4) + 'px';
+    ul.style.left = Math.max(4, Math.min(rtl ? r.left : r.right - w, innerWidth - w - 4)) + 'px'; }
+  function show(which) { if (open) return; open = true; ul.showPopover(); place(); btn.setAttribute('aria-expanded', 'true'); const l = lis(); (which === 'last' ? l[l.length - 1] : l[0]).focus(); }
+  function hide(ret) { if (!open) return; open = false; ul.hidePopover(); btn.setAttribute('aria-expanded', 'false'); if (ret) btn.focus(); }
+  btn.addEventListener('click', () => open ? hide(true) : show('first'));
+  btn.addEventListener('keydown', e => { if (e.key === 'ArrowDown') { e.preventDefault(); show('first'); } else if (e.key === 'ArrowUp') { e.preventDefault(); show('last'); } });
+  ul.addEventListener('keydown', e => {
+    const l = lis(), i = l.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); l[(i + 1) % l.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); l[(i - 1 + l.length) % l.length].focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); l[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); l[l.length - 1].focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); hide(true); }
+    else if (e.key === 'Tab') { hide(false); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(document.activeElement); }
+  });
+  ul.addEventListener('click', e => { const li = e.target.closest('li'); if (li) act(li); });
+  function act(li) { if (li.getAttribute('aria-disabled') === 'true') return; hide(true); log('menú «' + li.textContent.trim() + '» en «' + card.querySelector('.gcard__title').textContent.trim() + '»'); }
+  document.addEventListener('pointerdown', e => { if (open && !ul.contains(e.target) && !btn.contains(e.target)) hide(false); });
+}
+
+/* ===== Fábrica de prototipo: la misma card, regiones opcionales =====
+   Opciones: as, level, density, orientation('vertical'|'horizontal'|'auto'), media{pos,kind,label,decor,ratio,chip}, lead{kind,icon,text,size},
+   eyebrow, title, headingLevel, subtitle, description, titleLines, descLines, expandable, status{type,text,retry}, body, empty{icon,text,action},
+   meta[{k,v,low}], more(html), actions[{id,label,level,icon,iconOnly,href,disabled}], menu[items], badge{text,shape|icon},
+   footer(html), primary{type:'link'|'button'|'toggle'|'select'|'none'}, select{type:'checkbox'|'radio',name,checked,mode:'card'|'corner'},
+   current, disabled, loading, force, row, log(el|fn), quiet, labels{...} */
+function Card(o) {
+  const id = 'gc' + ++uid, tid = id + '-t', did = id + '-d', mid = id + '-m', xid = id + '-x';
+  const root = document.createElement(o.as || 'article');
+  root.className = 'gcard'; root.id = id;
+  const L = o.labels || {};
+  const pos = o.media && o.media.pos;
+  const orient = o.orientation || (pos === 'start' || pos === 'end' ? 'auto' : 'vertical');
+  const sel = o.select;
+  const hasPrimary = o.primary && ['link', 'button', 'toggle'].includes(o.primary.type);
+  const state = { loading: !!o.loading, disabled: !!o.disabled, expanded: false, moreOpen: false, pressed: !!(o.primary && o.primary.pressed), checked: !!(sel && sel.checked) };
+  const logf = m => { const t = typeof o.log === 'function' ? o.log : (o.log ? (x => o.log.textContent = x) : (x => { const out = root.closest('section,main')?.querySelector('output.log'); if (out) out.textContent = x; })); t(m); };
+
+  /* avisos de desarrollo */
+  if (!o.title && !o.ariaLabel) warn('la card necesita un nombre: título o aria-label.', o.quiet);
+  if (hasPrimary && sel && sel.mode !== 'corner') warn('acción principal y selección de card completa compiten por el clic: use la casilla explícita (mode="corner").', o.quiet);
+  (o.actions || []).forEach(a => { if (a.iconOnly && !a.label) warn('un botón solo de icono necesita su etiqueta accesible (aria-label).', o.quiet); });
+  if (!hasPrimary && !sel && !(o.actions || []).length && !o.menu && /<a |<button/i.test(o.body || '') && (o.primary || {}).type === 'card-as-button') warn('no convierta toda la card en botón si contiene varios controles.', o.quiet);
+  root.dataset.level = o.level || 'outlined';
+  root.dataset.density = o.density || 'default';
+  root.dataset.orientation = orient;
+  root.dataset.layout = 'column'; root.dataset.size = 'medium';
+  if (pos) root.dataset.media = pos;
+  if (o.row) root.dataset.row = 'list';
+  if (o.force) root.dataset.force = o.force;
+
+  function primaryHTML() {
+    const p = o.primary || { type: 'none' }, t = esc(o.title || '');
+    if (state.disabled && (p.type === 'link' || p.type === 'button' || p.type === 'toggle'))
+      return '<a class="gcard__primary" role="link" aria-disabled="true">' + t + '</a>';
+    if (p.type === 'link') return '<a class="gcard__primary" href="#' + id + '" data-act="primary"' + (o.description ? ' aria-describedby="' + did + '"' : '') + (o.current ? ' aria-current="true"' : '') + '>' + t + '</a>';
+    if (p.type === 'button') return '<button type="button" class="gcard__primary" data-act="primary"' + (o.description ? ' aria-describedby="' + did + '"' : '') + '>' + t + '</button>';
+    if (p.type === 'toggle') return '<button type="button" class="gcard__primary" data-act="toggle" aria-pressed="' + state.pressed + '">' + t + '</button>';
+    if (p.type === 'select' || (sel && sel.mode === 'card')) return '<label class="gcard__primary" for="' + id + '-in">' + t + '</label>';
+    return '<span class="gcard__name">' + t + '</span>';
+  }
+  function selectHTML() {
+    if (!sel) return '';
+    const type = sel.type || 'checkbox';
+    return '<span class="gcard__selectbox" data-type="' + type + '"><input class="gcard__select" id="' + id + '-in" type="' + type + '" name="' + (sel.name || '') + '"' + (state.checked ? ' checked' : '') + (state.disabled ? ' disabled' : '') + (sel.mode === 'corner' ? ' aria-labelledby="' + tid + '"' : '') + '><span class="gcard__tick" aria-hidden="true">' + (type === 'radio' ? I('circle', true) : I('check')) + '</span></span>';
+  }
+  function mediaHTML() {
+    const m = o.media; if (!m) return '';
+    const inner = {
+      image: '<div class="ph"><b>Imagen</b><span>' + esc(m.ratio || '16 / 9') + '</span></div>',
+      illustration: '<div class="ph">' + I('circle', true) + I('square', true) + I('triangle', true) + '</div>',
+      video: '<div class="ph"><b>Vídeo</b></div><span class="chip">3:42</span>',
+      map: '<div class="ph"><b>Mapa</b></div>',
+      chart: '<div class="bars"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:65%"></i></div>'
+    }[m.kind || 'image'];
+    return '<div class="gcard__media" data-region="media" data-pos="' + m.pos + '" data-kind="' + (m.kind || 'image') + '"' + (m.decor ? ' aria-hidden="true"' : ' role="img" aria-label="' + esc(m.label || '') + '"') + (m.ratio ? ' style="--ratio:' + m.ratio + '"' : '') + '>' + inner + '</div>';
+  }
+  function leadHTML() {
+    const l = o.lead; if (!l) return '';
+    return '<span class="gcard__lead" data-region="lead" data-kind="' + (l.kind || 'icon') + '"' + (l.size ? ' data-lead-size="' + l.size + '"' : '') + ' aria-hidden="true">' + (l.icon ? I(l.icon) : esc(l.text || '')) + '</span>';
+  }
+  function badgeHTML() {
+    const b = o.badge; if (!b) return '';
+    const ic = b.icon ? '<span aria-hidden="true">' + I(b.icon) + '</span>' : (b.shape ? '<span aria-hidden="true">' + I(b.shape, true) + '</span>' : '');
+    return '<span class="gbadge">' + ic + '<span>' + esc(b.text) + '</span></span>';
+  }
+  const STATUS = { error: 'circle-alert', warning: 'triangle-alert', success: 'circle-check', info: 'circle-help' };
+  function skeleton() {
+    const tl = o.titleLines && o.titleLines !== 'none' ? 1 : 1;
+    const lines = n => Array.from({ length: n }, (_, i) => '<span class="sk" style="--w:' + (i === n - 1 && n > 1 ? 60 : 100) + '%"></span>').join('');
+    const nd = o.skelDesc ?? (o.description ? (o.descLines && o.descLines !== 'none' ? +o.descLines : 2) : 0);
+    const header = (o.title || o.lead || o.eyebrow) ? '<header class="gcard__header" data-region="header">' + leadHTML() + '<div class="gcard__titles">' + (o.eyebrow ? '<p class="gcard__eyebrow"><span class="sk" style="--w:30%;--sk-h:16px"></span></p>' : '') + '<h3 class="gcard__title" data-lines="1"><span class="sk" style="--w:62%;--sk-h:var(--lh-title)"></span></h3>' + (o.subtitle ? '<p class="gcard__subtitle"><span class="sk" style="--w:40%;--sk-h:18px"></span></p>' : '') + '</div></header>' : '';
+    const content = (nd || o.skelBody) ? '<div class="gcard__content" data-region="content">' + (nd ? '<p class="gcard__desc">' + lines(nd) + '</p>' : '') + (o.skelBody || '') + '</div>' : '';
+    const meta = (o.meta || []).length ? '<dl class="gcard__meta" data-region="meta">' + o.meta.map(m => '<div class="gcard__mi"' + (m.low ? ' data-low' : '') + '><span class="sk" style="inline-size:' + (m.skw || 88) + 'px;--sk-h:18px"></span></div>').join('') + '</dl>' : '';
+    const acts = (o.actions || []).length ? '<div class="gcard__actions" data-region="actions">' + o.actions.map(a => '<span class="sk--btn sk" style="--w:' + (a.iconOnly ? 32 : 88) + 'px"></span>').join('') + '</div>' : '';
+    const foot = o.footer ? '<footer class="gcard__footer" data-region="footer"><span class="sk" style="--w:140px;--sk-h:18px;inline-size:140px"></span></footer>' : '';
+    const media = o.media ? mediaHTML().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true"') : '';
+    const mediaPre = pos === 'end' ? '' : media, mediaPost = pos === 'end' ? media : '';
+    return mediaPre + '<div class="gcard__main"><div class="gcard__body" aria-hidden="true"><div class="gcard__stack">' + header + content + meta + '</div>' + acts + '</div>' + foot + '</div>' + mediaPost;
+  }
+  function render() {
+    const live = root.querySelector('[data-region=live]');
+    [...root.children].forEach(c => { if (c !== live) c.remove(); });
+    root.toggleAttribute('data-loading', state.loading);
+    root.toggleAttribute('data-disabled', state.disabled);
+    root.dataset.selected = String(!!(sel ? state.checked : (o.primary && o.primary.type === 'toggle' ? state.pressed : false)));
+    root.dataset.status = o.status ? o.status.type : '';
+    if (!o.status) delete root.dataset.status;
+    if (o.current) root.setAttribute('aria-current-card', 'true');
+    if (state.loading) { root.setAttribute('aria-busy', 'true'); root.insertAdjacentHTML('beforeend', skeleton()); wire(); return; }
+    root.removeAttribute('aria-busy');
+    const hl = o.headingLevel || 3;
+    const titles = (o.eyebrow || o.title || o.subtitle) ? '<div class="gcard__titles">' + (o.eyebrow ? '<p class="gcard__eyebrow" data-region="eyebrow">' + esc(o.eyebrow) + '</p>' : '') +
+      (o.title ? '<h' + hl + ' class="gcard__title" id="' + tid + '" data-region="title" data-lines="' + (o.titleLines || 2) + '">' + primaryHTML() + '</h' + hl + '>' : '') +
+      (o.subtitle ? '<p class="gcard__subtitle" data-region="subtitle">' + esc(o.subtitle) + '</p>' : '') + '</div>' : '';
+    const staticTick = (o.primary && o.primary.type === 'toggle') ? '<span class="gcard__tick gcard__tick--static" aria-hidden="true">' + I('check') + '</span>' : '';
+    const currentMark = o.current ? '<span aria-hidden="true">' + I('chevron-right') + '</span>' : '';
+    const aside = (o.badge || o.menu || currentMark) ? '<div class="gcard__aside" data-region="aside">' + badgeHTML() + currentMark +
+      (o.menu ? '<button type="button" class="wf-ibtn" id="' + id + '-mb" aria-haspopup="menu" aria-expanded="false" aria-controls="' + mid + '" aria-label="' + esc((L.menu || 'Acciones de') + ' ' + (o.title || '')) + '">' + I('ellipsis-vertical') + '</button>' : '') + '</div>' : '';
+    const header = (titles || o.lead || sel || aside) ? '<header class="gcard__header" data-region="header">' + selectHTML() + staticTick + leadHTML() + titles + aside + '</header>' : '';
+    const stat = o.status ? '<p class="gcard__status" data-status="' + o.status.type + '" data-region="status"' + (o.status.role ? ' role="' + o.status.role + '"' : '') + '><span aria-hidden="true">' + I(STATUS[o.status.type]) + '</span><span>' + esc(o.status.text) + '</span>' + (o.status.retry ? '<button type="button" class="wf-btn" data-act="retry">' + esc(o.status.retry) + '</button>' : '') + '</p>' : '';
+    const emp = o.empty ? '<div class="gcard__empty" data-region="empty">' + (o.empty.icon ? '<span aria-hidden="true">' + I(o.empty.icon) + '</span>' : '') + '<span>' + esc(o.empty.text) + '</span>' + (o.empty.action ? '<button type="button" class="wf-btn" data-act="empty">' + esc(o.empty.action) + '</button>' : '') + '</div>' : '';
+    const desc = o.description ? '<p class="gcard__desc" id="' + did + '" data-lines="' + (o.descLines || 'none') + '">' + esc(o.description) + '</p>' + (o.expandable ? '<button type="button" class="wf-expand" data-act="expand" aria-expanded="false" aria-controls="' + did + '" hidden>' + esc(L.expand || 'Mostrar más') + '</button>' : '') : '';
+    const inlineMedia = pos === 'inline' ? mediaHTML() : '';
+    const content = (desc || stat || emp || o.body || inlineMedia) ? '<div class="gcard__content" data-region="content">' + inlineMedia + desc + stat + emp + (o.body || '') + '</div>' : '';
+    const meta = (o.meta || []).length ? '<dl class="gcard__meta" data-region="meta">' + o.meta.map(m => '<div class="gcard__mi"' + (m.low ? ' data-low' : '') + '><dt>' + esc(m.k) + '</dt><dd>' + esc(m.v) + '</dd></div>').join('') + '</dl>' : '';
+    const more = o.more ? '<div class="gcard__more" id="' + xid + '" data-region="more">' + o.more + '</div>' + '<button type="button" class="wf-expand" data-act="more" aria-expanded="false" aria-controls="' + xid + '" hidden>' + esc(L.more || 'Más detalles') + '</button>' : '';
+    const acts = (o.actions || []).length ? '<div class="gcard__actions" data-region="actions">' + o.actions.map(a => {
+      if (a.iconOnly) return '<button type="button" class="wf-ibtn" data-act="action" data-id="' + a.id + '" aria-label="' + esc(a.label || '') + '"' + (state.disabled || a.disabled ? ' disabled' : '') + '>' + I(a.icon) + '</button>';
+      const cls = 'wf-btn wf-btn--' + (a.level || 'secondary');
+      if (a.href) return '<a class="' + cls + '" href="#' + a.id + '" data-act="action" data-id="' + a.id + '">' + (a.icon ? '<span aria-hidden="true">' + I(a.icon) + '</span>' : '') + esc(a.label) + '</a>';
+      return '<button type="button" class="' + cls + '" data-act="action" data-id="' + a.id + '"' + (state.disabled || a.disabled ? ' disabled' : '') + '>' + (a.icon ? '<span aria-hidden="true">' + I(a.icon) + '</span>' : '') + esc(a.label) + '</button>';
+    }).join('') + '</div>' : '';
+    const foot = o.footer ? '<footer class="gcard__footer" data-region="footer">' + o.footer + '</footer>' : '';
+    const media = pos && pos !== 'inline' ? mediaHTML() : '';
+    const mediaPre = pos === 'end' ? '' : media, mediaPost = pos === 'end' ? media : '';
+    const main = '<div class="gcard__main"><div class="gcard__body"><div class="gcard__stack">' + header + content + meta + more + '</div>' + acts + '</div>' + foot + '</div>';
+    root.insertAdjacentHTML('beforeend', mediaPre + main + mediaPost);
+    if (o.menu) buildMenu(root, root.querySelector('#' + id + '-mb'), o.menu, logf);
+    wire(); measure(); clamp();
+  }
+  function wire() { if (!root.dataset.wired) { root.dataset.wired = '1'; bindOnce(); } }
+  function bindOnce() {
+    root.addEventListener('click', e => {
+      const t = e.target.closest('[data-act]'); if (!t || !root.contains(t)) return;
+      const a = t.dataset.act, name = (o.title || '').slice(0, 40);
+      if (a === 'primary') { e.preventDefault(); logf('principal → «' + name + '»  (' + (o.primary.type === 'button' ? 'botón' : 'enlace') + ')'); }
+      else if (a === 'action') { e.preventDefault(); logf('acción «' + t.dataset.id + '» en «' + name + '»  (la principal NO se activó)'); }
+      else if (a === 'toggle') { state.pressed = !state.pressed; t.setAttribute('aria-pressed', state.pressed); root.dataset.selected = String(state.pressed); logf('alternar «' + name + '» → aria-pressed=' + state.pressed); }
+      else if (a === 'expand') { const d = root.querySelector('.gcard__desc'); state.expanded = !state.expanded; d.dataset.lines = state.expanded ? 'none' : (o.descLines || 'none'); t.setAttribute('aria-expanded', state.expanded); t.textContent = state.expanded ? (L.collapse || 'Mostrar menos') : (L.expand || 'Mostrar más'); }
+      else if (a === 'more') { state.moreOpen = !state.moreOpen; t.setAttribute('aria-expanded', state.moreOpen); syncMore(); }
+      else if (a === 'retry') { logf('reintentar «' + name + '»'); }
+      else if (a === 'empty') { logf('acción del estado vacío en «' + name + '»'); }
+    });
+    root.addEventListener('change', e => {
+      const i = e.target.closest('.gcard__select'); if (!i) return;
+      state.checked = i.checked; root.dataset.selected = String(i.checked);
+      if (i.type === 'radio') $$('input[type=radio][name="' + i.name + '"]').forEach(r => { const c = r.closest('.gcard'); if (c) c.dataset.selected = String(r.checked); });
+      logf('seleccionar «' + (o.title || '').slice(0, 40) + '» → ' + i.type + ' ' + (i.checked ? 'marcada' : 'desmarcada'));
+    });
+    if (o.expandable) {}
+  }
+  function syncMore() {
+    const m = root.querySelector('.gcard__more'), b = root.querySelector('[data-act=more]'); if (!m || !b) return;
+    const narrow = root.dataset.size === 'narrow';
+    b.hidden = !narrow; m.hidden = narrow && !state.moreOpen;
+  }
+  function clamp() {
+    const d = root.querySelector('.gcard__desc'), b = root.querySelector('[data-act=expand]'); if (!d || !b) return;
+    const clipped = d.scrollHeight > d.clientHeight + 1;
+    b.hidden = !(clipped || state.expanded);
+  }
+  function measure() {
+    const S = parseFloat(getComputedStyle(root).getPropertyValue('--space')) || 4;
+    const w = root.getBoundingClientRect().width; if (!w) return;
+    const size = w >= S * 130 ? 'wide' : w >= S * 80 ? 'medium' : 'narrow';
+    const ori = root.dataset.orientation;
+    const lay = ori === 'vertical' ? 'column' : ori === 'horizontal' ? (size === 'narrow' ? 'column' : 'row') : (size === 'wide' ? 'row' : 'column');
+    if (root.dataset.size !== size) root.dataset.size = size;
+    if (root.dataset.layout !== lay) root.dataset.layout = lay;
+    syncMore(); clamp();
+  }
+  root.insertAdjacentHTML('afterbegin', '<span class="sr" role="status" data-region="live"></span>');
+  render();
+  new ResizeObserver(() => measure()).observe(root);
+  return {
+    el: root, state,
+    set(patch) { Object.assign(state, patch); const live = root.querySelector('[data-region=live]'); render();
+      if ('loading' in patch && live) live.textContent = patch.loading ? (L.loading || 'Cargando') : ''; },
+    log: logf
+  };
+}
+const mount = (host, o) => { const c = Card(o); host.append(c.el); return c; };
+const cell = (ul, label, build, extra) => { const li = document.createElement('li'); li.innerHTML = '<div class="cellbody"></div><div class="cell-label">' + label + '</div>'; ul.append(li); const c = build($('.cellbody', li)); if (extra) extra(li, c); return c; };
+const regionsOf = c => [...new Set($$('[data-region]', c.el).map(e => e.dataset.region).filter(r => r !== 'live'))].join(' · ');
+const globalLog = id => ({ log: m => { $(id).textContent = m; } });
+
+/* ===== 1 · Anatomía ===== */
+const anCard = Card({ eyebrow: 'Categoría', title: 'Título de la card', subtitle: 'Subtítulo o dato de apoyo', lead: { kind: 'icon', icon: 'folder' }, badge: { text: 'Activa', shape: 'circle' }, menu: MENU, description: T.short, status: { type: 'success', text: 'Estado con icono y texto' }, meta: META, more: '<p class="gcard__desc">Información auxiliar que se pliega en estrecho.</p>', actions: [{ id: 'a', label: 'Principal', level: 'primary' }, { id: 'b', label: 'Secundaria' }, { id: 'c', label: 'Compartir', icon: 'share-2', iconOnly: true }], footer: '<span>Metadata de pie</span><a class="wf-link" href="#an">Navegación secundaria</a>', primary: { type: 'link' }, log: m => { $('#an-log').textContent = m; } });
+$('#an-card').append(anCard.el);
+$('#an-regions').addEventListener('change', e => $('#s-anatomy').classList.toggle('show-regions', e.target.checked));
+
+/* ===== 2 · Doce composiciones ===== */
+{
+  const ul = $('#s-compose');
+  const lg = globalLog('#compose-log');
+  const defs = [
+    ['01', 'Basic', { title: 'Notas de la versión', description: T.short }],
+    ['02', 'Content', { eyebrow: 'Guía', title: 'Cómo organizar tus proyectos', subtitle: 'Lectura de 6 min', description: T.long, descLines: 3, expandable: true, body: '<ul class="gcard__list"><li>Define un objetivo por proyecto.</li><li>Reparte responsables.</li><li>Revisa cada semana.</li></ul>', footer: '<span>Actualizado hace 2 días</span>' }],
+    ['03', 'Media', { media: { pos: 'top', kind: 'image', decor: true }, eyebrow: 'Artículo', title: 'Un paseo por el mercado', description: T.two, descLines: 2, primary: { type: 'link' }, footer: '<span>5 min de lectura</span><span>12 jun</span>' }],
+    ['04', 'Entity', { lead: { kind: 'icon', icon: 'building-2' }, title: 'Proyecto Atlas', subtitle: 'Equipo de datos', badge: { text: 'Activo', shape: 'circle' }, meta: META, primary: { type: 'link' }, menu: MENU, actions: [{ id: 'edit', label: 'Editar' }] }],
+    ['05', 'Profile', { lead: { kind: 'avatar', text: 'MR', size: 'lg' }, title: 'María Ramírez', subtitle: 'Diseñadora de producto', description: 'Ayuda a equipos a convertir ideas en productos claros.', descLines: 2, meta: [{ k: 'Zona', v: 'CDMX' }, { k: 'Equipo', v: 'Diseño' }], primary: { type: 'link' }, actions: [{ id: 'msg', label: 'Mensaje', level: 'primary' }, { id: 'follow', label: 'Seguir' }, { id: 'mail', label: 'Enviar correo', icon: 'mail', iconOnly: true }] }],
+    ['06', 'Metric', { title: 'Ingresos mensuales', primary: { type: 'link' }, menu: MENU.slice(0, 2), body: '<div class="gmetric" role="group" aria-labelledby="METRIC-T"><p class="gmetric__value">$48,200</p><p class="gmetric__trend"><span aria-hidden="true" style="color:inherit">' + I('arrow-up') + '</span><b>+12%</b><span>vs. mes anterior</span></p><div class="spark" role="img" aria-label="Ingresos diarios del mes, tendencia creciente"><i style="height:30%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:60%"></i><i style="height:55%"></i><i style="height:80%"></i><i style="height:95%"></i></div></div>', footer: '<span>Actualizado 09:41</span>' }],
+    ['07', 'Status', { lead: { kind: 'icon', icon: 'globe' }, title: 'API de pagos', badge: { text: 'Degradado', icon: 'triangle-alert' }, status: { type: 'warning', text: 'Latencia alta desde las 09:10' }, meta: [{ k: 'Región', v: 'us-east' }, { k: 'Disponibilidad', v: '99,2 %' }], footer: '<span>Verificado hace 1 min</span><a class="wf-link" href="#hist">Historial</a>' }],
+    ['08', 'Interactive', { eyebrow: 'Documento', title: 'Plan trimestral', description: T.two, descLines: 2, meta: META.slice(0, 2), primary: { type: 'link' }, menu: MENU, actions: [{ id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }] }],
+    ['09', 'Selectable', { title: 'Informe semanal', subtitle: 'Se puede seleccionar', description: T.short, meta: META.slice(0, 2), select: { type: 'checkbox', mode: 'card', checked: true }, primary: { type: 'select' } }],
+    ['10', 'Horizontal', { media: { pos: 'start', kind: 'image', decor: true }, eyebrow: 'Resultado', title: 'Recorrido por el centro histórico', description: T.two, descLines: 2, meta: [{ k: 'Duración', v: '3 h' }, { k: 'Idioma', v: 'ES' }], primary: { type: 'link' }, actions: [{ id: 'save', label: 'Guardar', level: 'primary' }, { id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }] }],
+    ['11', 'Action', { lead: { kind: 'icon', icon: 'plus' }, title: 'Nuevo proyecto', description: 'Empieza desde cero o con una plantilla.', primary: { type: 'button' } }],
+    ['12', 'Inset', { level: 'inset', title: 'Resumen incrustado', description: 'Parece integrada en la superficie que la contiene.', meta: META.slice(0, 2) }]
+  ];
+  defs.forEach(([n, name, o]) => {
+    o.log = lg.log; o.level = o.level || 'outlined';
+    const li = document.createElement('li');
+    li.innerHTML = '<div class="cellbody"></div><div class="cell-label"></div>';
+    ul.append(li);
+    const body = $('.cellbody', li);
+    let host = body;
+    if (name === 'Inset') { body.innerHTML = '<div class="host sunken" style="inline-size:100%"></div>'; host = $('.host', body); }
+    const c = Card(o); host.append(c.el);
+    if (name === 'Metric') { const t = $('.gcard__title', c.el); const g = $('.gmetric', c.el); g.setAttribute('aria-labelledby', t.id); }
+    $('.cell-label', li).innerHTML = '<b>' + n + ' · ' + name + '</b> — ' + regionsOf(c);
+  });
+}
+
+/* ===== 3 · Superficies ===== */
+{
+  const mk = (ul, level, extra) => {
+    const li = document.createElement('li'); li.innerHTML = '<div class="cellbody"></div><div class="cell-label"></div>'; ul.append(li);
+    const o = Object.assign({ level, eyebrow: 'Variante', title: 'Misma estructura', description: T.short, meta: META.slice(0, 2), log: globalLog('#s-surf-a ~ output, body').log }, extra);
+    o.log = () => {};
+    const c = Card(o); $('.cellbody', li).append(c.el); return [li, c];
+  };
+  ['surf-a', 'surf-b'].forEach(idu => {
+    const ul = $('#' + idu);
+    const list = [['flat', 'flat', {}], ['outlined', 'outlined', {}], ['raised', 'raised (elevated)', {}], ['inset', 'inset', {}],
+      ['outlined', 'interactive (enlace)', { primary: { type: 'link' } }], ['outlined', 'selected', { select: { type: 'checkbox', mode: 'card', checked: true }, primary: { type: 'select' } }]];
+    list.forEach(([lv, lab, ex]) => { const [li] = mk(ul, lv, ex); $('.cell-label', li).innerHTML = '<b>' + lab + '</b>'; });
+  });
+}
+
+/* ===== 4 · Densidades ===== */
+{
+  const ul = $('#s-density');
+  [['compact', 'compact (0,75×)'], ['comfortable', 'comfortable (0,875×)'], ['default', 'default (1×; «spacious» del brief)']].forEach(([d, lab]) => {
+    cell(ul, '<b>' + lab + '</b>', h => mount(h, { density: d, media: { pos: 'top', kind: 'image', decor: true, ratio: '16/9' }, lead: { kind: 'icon', icon: 'building-2' }, title: 'Proyecto Atlas', subtitle: 'Equipo de datos', badge: { text: 'Activo', shape: 'circle' }, description: T.two, descLines: 2, meta: META, primary: { type: 'link' }, actions: [{ id: 'e', label: 'Editar' }, { id: 's', label: 'Compartir', icon: 'share-2', iconOnly: true }], footer: '<span>Pie</span>', log: () => {} }));
+  });
+}
+
+/* ===== 5 · Estados ===== */
+let loadingDemo;
+{
+  const ul = $('#s-states');
+  const base = (extra) => Object.assign({ eyebrow: 'Estado', title: 'Informe mensual', subtitle: 'Resumen de actividad', description: T.two, descLines: 2, titleLines: 1, meta: [{ k: 'Páginas', v: '24' }, { k: 'Autor', v: 'Ana' }], primary: { type: 'link' }, actions: [{ id: 'dl', label: 'Descargar' }, { id: 'sh', label: 'Compartir', icon: 'share-2', iconOnly: true }], log: () => {} }, extra);
+  const defs = [
+    ['default', base({})], ['hover (forzado)', base({ force: 'hover' })], ['focus (forzado)', base({ force: 'focus' })], ['pressed (forzado)', base({ force: 'pressed' })],
+    ['selected', base({ select: { type: 'checkbox', mode: 'card', checked: true }, primary: { type: 'select' } })],
+    ['disabled', base({ disabled: true })], ['loading', base({ loading: true, labels: { loading: 'Cargando informe' } })],
+    ['error', base({ status: { type: 'error', text: 'No se pudo cargar el informe.', retry: 'Reintentar', role: 'alert' }, primary: { type: 'none' } })],
+    ['warning', base({ status: { type: 'warning', text: 'Faltan datos de la semana 3.' } })],
+    ['success', base({ status: { type: 'success', text: 'Informe publicado.' } })]
+  ];
+  defs.forEach(([lab, o]) => { const c = cell(ul, '<b>' + lab + '</b>', h => mount(h, o)); if (lab === 'loading') loadingDemo = c; });
+  $('#st-load').addEventListener('click', () => { loadingDemo.set({ loading: !loadingDemo.state.loading }); });
+}
+
+/* ===== 6 · Media ===== */
+{
+  const ul = $('#s-media');
+  const base = { eyebrow: 'Media', title: 'Una card con media', description: T.two, descLines: 2, titleLines: 1, primary: { type: 'link' }, log: () => {} };
+  [['top · imagen decorativa', { media: { pos: 'top', kind: 'image', decor: true } }],
+   ['top · ilustración', { media: { pos: 'top', kind: 'illustration', decor: true } }],
+   ['top · vídeo (informativa)', { media: { pos: 'top', kind: 'video', label: 'Vista previa del vídeo: introducción, 3 minutos 42 segundos', ratio: '16/9' } }],
+   ['top · mapa', { media: { pos: 'top', kind: 'map', label: 'Mapa de la ubicación: centro de la ciudad' } }],
+   ['top · gráfico', { media: { pos: 'top', kind: 'chart', label: 'Gráfico de barras: ventas por trimestre, creciente' } }],
+   ['lateral · start (auto)', { media: { pos: 'start', kind: 'image', decor: true } }],
+   ['lateral · end (auto)', { media: { pos: 'end', kind: 'image', decor: true } }],
+   ['fondo (con escrim)', { media: { pos: 'background', kind: 'image', decor: true }, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }] }],
+   ['dentro del cuerpo (inline)', { media: { pos: 'inline', kind: 'image', decor: true } }]
+  ].forEach(([lab, ex]) => cell(ul, '<b>' + lab + '</b>', h => mount(h, Object.assign({}, base, ex))));
+}
+
+/* ===== 7 · Contenedor ===== */
+const wideCard = (log) => ({ media: { pos: 'start', kind: 'image', decor: true }, eyebrow: 'Resultado', title: 'Recorrido por el centro histórico', description: T.two, descLines: 2, meta: [{ k: 'Duración', v: '3 h' }, { k: 'Idioma', v: 'ES' }], more: '<dl class="gcard__meta"><div class="gcard__mi"><dt>Punto de encuentro</dt><dd>Plaza principal</dd></div><div class="gcard__mi"><dt>Cancelación</dt><dd>Gratuita hasta 24 h antes</dd></div></dl>', primary: { type: 'link' }, actions: [{ id: 'save', label: 'Guardar', level: 'primary' }, { id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }], footer: '<span>Actualizado hoy</span>', log });
+const frCard = Card(wideCard(m => { $('#fr-out').dataset.last = m; }));
+$('#fr-card').append(frCard.el);
+const updOut = () => { const r = frCard.el; $('#fr-out').textContent = 'ancho de la card ' + Math.round(r.getBoundingClientRect().width) + 'px → data-size=' + r.dataset.size + ' · data-layout=' + r.dataset.layout; };
+new ResizeObserver(updOut).observe(frCard.el); updOut();
+[560, 380, 260].forEach(w => { const d = document.createElement('div'); d.style.inlineSize = w + 'px'; d.innerHTML = '<div class="out">' + w + 'px</div>'; $('#fr-fixed').append(d); mount(d, wideCard(() => {})); });
+{
+  const ul = $('#fr-grid');
+  for (let i = 0; i < 3; i++) cell(ul, '', h => mount(h, { media: { pos: 'start', kind: 'image', decor: true }, title: ['Café de altura', 'Ruta de los pueblos mágicos y sus mercados tradicionales', 'Taller de cerámica'][i], description: T.two, descLines: 2, primary: { type: 'link' }, actions: [{ id: 'go', label: 'Ver', level: 'primary' }], log: () => {} }));
+  mount($('#fr-aside'), { media: { pos: 'start', kind: 'image', decor: true }, title: 'Guardado', description: 'En el sidebar (estrecho).', primary: { type: 'link' }, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }], log: () => {} });
+  mount($('#fr-main2'), { media: { pos: 'start', kind: 'image', decor: true }, title: 'Guardado', description: 'En el área principal (amplio).', primary: { type: 'link' }, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }], log: () => {} });
+  $('#dlg-x').innerHTML = I('x');
+  const dlg = $('#dlg'); let dc = null;
+  const open = w => { dlg.style.inlineSize = w + 'px'; $('#dlg-body').replaceChildren(); dc = mount($('#dlg-body'), wideCard(() => {})); dlg.showModal(); requestAnimationFrame(() => requestAnimationFrame(() => { $('#dlg-out').textContent = 'diálogo ' + w + 'px → card ' + Math.round(dc.el.getBoundingClientRect().width) + 'px · data-size=' + dc.el.dataset.size + ' · data-layout=' + dc.el.dataset.layout; })); };
+  $('#dlg-open-s').addEventListener('click', () => open(360)); $('#dlg-open-l').addEventListener('click', () => open(680));
+  $('#dlg-x').addEventListener('click', () => dlg.close());
+}
+
+/* ===== 8 · Rejilla ===== */
+{
+  const ul = $('#s-grid');
+  const items = [
+    { title: 'Café de altura', description: T.short },
+    { title: 'Ruta de los pueblos mágicos', description: T.long, descLines: 'none' },
+    { title: 'Taller de cerámica', description: T.two, descLines: 2 },
+    { title: 'Mercado nocturno', description: T.short },
+    { title: 'Paseo en bicicleta por la ribera del río y los barrios históricos del norte', description: T.two, descLines: 2 },
+    { title: 'Cata de mezcal', description: T.long, descLines: 3 }
+  ];
+  items.forEach((it, i) => cell(ul, '', h => mount(h, Object.assign({ media: i % 2 ? undefined : { pos: 'top', kind: 'image', decor: true }, eyebrow: 'Experiencia', primary: { type: 'link' }, actions: [{ id: 'go', label: 'Reservar', level: 'primary' }], footer: '<span>Desde $350</span>', log: () => {} }, it))));
+  $$('input[name=gh]').forEach(r => r.addEventListener('change', () => { ul.dataset.heights = r.value; }));
+}
+
+/* ===== 9 · Lista ===== */
+{
+  const ul = $('#s-list'); const out = $('#list-log');
+  const rows = [['Atlas', 'Equipo de datos', 'AT', '12 tareas'], ['Brújula', 'Equipo de producto', 'BR', '4 tareas'], ['Cierzo', 'Equipo de diseño con un nombre largo que se recorta', 'CI', '31 tareas'], ['Delta', 'Operaciones', 'DE', '0 tareas'], ['Eclipse', 'Finanzas', 'EC', '8 tareas']];
+  rows.forEach(([t, s, ab, m], i) => {
+    const li = Card({ as: 'li', row: true, level: 'flat', density: 'compact', orientation: 'horizontal', lead: { kind: 'avatar', text: ab }, title: t, titleLines: 1, subtitle: s, meta: [{ k: 'Abiertas', v: m }], primary: { type: 'link' }, menu: MENU, current: i === 1, headingLevel: 3, log: x => { out.textContent = x; } });
+    li.el.style.listStyle = 'none';
+    ul.append(li.el);
+  });
+  $$('.gcard__primary', ul)[1].setAttribute('aria-current', 'true');
+}
+
+/* ===== 10 · Truncado ===== */
+{
+  const ul = $('#s-trunc');
+  const b = { eyebrow: 'Recorte', description: T.long, primary: { type: 'link' }, log: () => {} };
+  cell(ul, '<b>Título 1 línea + descripción 2 líneas con «Mostrar más»</b>', h => mount(h, Object.assign({}, b, { title: T.titleLong, titleLines: 1, descLines: 2, expandable: true })));
+  cell(ul, '<b>Título 2 líneas + descripción 3 líneas</b>', h => mount(h, Object.assign({}, b, { title: T.titleLong, titleLines: 2, descLines: 3, expandable: true })));
+  cell(ul, '<b>Título y descripción completos (none)</b>', h => mount(h, Object.assign({}, b, { title: T.titleLong, titleLines: 'none', descLines: 'none' })));
+  cell(ul, '<b>Título corto: «Mostrar más» no aparece (no se recorta)</b>', h => mount(h, Object.assign({}, b, { title: 'Corto', description: T.short, descLines: 3, expandable: true })));
+}
+
+/* ===== 11 · Vacío / error ===== */
+{
+  const ul = $('#s-empty'); const lg = globalLog('#empty-log');
+  cell(ul, '<b>Vacío (con acción)</b>', h => mount(h, { title: 'Actividad reciente', subtitle: 'Últimos 7 días', empty: { icon: 'inbox', text: 'Aún no hay actividad en este período.', action: 'Crear actividad' }, log: lg.log }));
+  cell(ul, '<b>Error de carga con reintento (role=alert)</b>', h => mount(h, { title: 'Ventas por región', status: { type: 'error', text: 'No se pudieron cargar los datos.', retry: 'Reintentar', role: 'alert' }, log: lg.log }));
+  cell(ul, '<b>Métrica sin datos (la métrica deja su sitio)</b>', h => mount(h, { title: 'Ingresos mensuales', primary: { type: 'link' }, empty: { icon: 'chart-column', text: 'Sin datos en este período.' }, footer: '<span>Actualizado 09:41</span>', log: lg.log }));
+}
+
+/* ===== 12 · Interacción ===== */
+{
+  const ul = $('#in-grid'); const L = globalLog('#in-log');
+  const b = { description: T.short, log: L.log };
+  cell(ul, '<b>Navegable</b> · enlace en el título', h => mount(h, Object.assign({}, b, { eyebrow: 'Enlace', title: 'Plan trimestral', primary: { type: 'link' } })));
+  cell(ul, '<b>Acción</b> · botón en el título (un solo propósito)', h => mount(h, Object.assign({}, b, { lead: { kind: 'icon', icon: 'plus' }, title: 'Nuevo proyecto', primary: { type: 'button' } })));
+  cell(ul, '<b>Seleccionable</b> · casilla real, la card es su etiqueta', h => mount(h, Object.assign({}, b, { title: 'Informe semanal', select: { type: 'checkbox', mode: 'card' }, primary: { type: 'select' } })));
+  cell(ul, '<b>Alternar</b> · <code>aria-pressed</code> (filtro)', h => mount(h, Object.assign({}, b, { lead: { kind: 'icon', icon: 'flag' }, title: 'Solo pendientes', primary: { type: 'toggle' } })));
+  cell(ul, '<b>Navegable + casilla</b> · la casilla va por encima del enlace', h => mount(h, Object.assign({}, b, { title: 'Contrato de servicio', eyebrow: 'Documento', select: { type: 'checkbox', mode: 'corner' }, primary: { type: 'link' }, menu: MENU })));
+  cell(ul, '<b>Navegable + varias acciones</b> · principal + secundarias + menú', h => mount(h, Object.assign({}, b, { title: 'Propuesta comercial', eyebrow: 'Documento', meta: META.slice(0, 2), primary: { type: 'link' }, menu: MENU, actions: [{ id: 'open', label: 'Abrir', level: 'primary' }, { id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }] })));
+  const rg = $('#in-radios');
+  ['Básico', 'Plus', 'Equipo'].forEach((p, i) => { const w = document.createElement('div'); rg.append(w); mount(w, Object.assign({}, b, { title: p, description: ['Para empezar', 'Para crecer', 'Para organizaciones'][i], select: { type: 'radio', mode: 'card', name: 'plan', checked: i === 1 }, primary: { type: 'select' } })); });
+}
+
+/* ===== 13 · Acciones ===== */
+{
+  const ul = $('#s-actions'); const L = globalLog('#act-log');
+  const b = { log: L.log, description: T.short };
+  cell(ul, '<b>Jerarquía</b>: principal · secundaria · terciaria · solo-icono · menú', h => mount(h, Object.assign({}, b, { title: 'Propuesta comercial', menu: MENU, actions: [{ id: 'send', label: 'Enviar', level: 'primary', icon: 'arrow-right' }, { id: 'edit', label: 'Editar', level: 'secondary' }, { id: 'prev', label: 'Vista previa', level: 'tertiary' }, { id: 'share', label: 'Compartir propuesta', icon: 'share-2', iconOnly: true }] })));
+  cell(ul, '<b>Solo iconos</b> con etiqueta accesible (aria-label); objetivo ≥ 24px, 44px táctil', h => mount(h, Object.assign({}, b, { title: 'Imagen del mes', actions: [{ id: 'fav', label: 'Marcar como favorita', icon: 'flag', iconOnly: true }, { id: 'share', label: 'Compartir imagen', icon: 'share-2', iconOnly: true }, { id: 'copy', label: 'Copiar enlace', icon: 'copy', iconOnly: true }] })));
+  cell(ul, '<b>Pie con acciones y metadata</b>', h => mount(h, Object.assign({}, b, { title: 'Reunión de equipo', footer: '<span>Mañana, 10:00</span><span><button type="button" class="wf-btn wf-btn--tertiary" data-act="action" data-id="rsvp">Confirmar asistencia</button></span>' })));
+}
+
+/* ===== 14 · Anidadas ===== */
+{
+  const ul = $('#s-nest');
+  const sum = (n) => '<div class="gcard__inset" data-region="inset" data-depth="' + n + '"><div class="row3"><div><b>128</b><span>Tareas</span></div><div><b>94%</b><span>A tiempo</span></div><div><b>3</b><span>Riesgos</span></div></div></div>';
+  cell(ul, '<b>Card con inset funcional</b> (resumen de métricas; radio concéntrico)', h => mount(h, { title: 'Proyecto Atlas', description: T.short, body: sum(2), primary: { type: 'link' }, log: () => {} }));
+  cell(ul, '<b>Dos niveles de tono</b>: la inset dentro de la inset se aplana', h => mount(h, { title: 'Proyecto Atlas', description: T.short, body: '<div class="gcard__inset" data-region="inset" data-depth="2"><span class="skmsg">Nivel 1 · inset</span><div class="gcard__inset" data-depth="3"><span class="skmsg">Nivel 2 · plano, solo contorno</span></div></div>', log: () => {} }));
+  cell(ul, '<b>Inset card sobre superficie</b>', h => { const w = document.createElement('div'); w.className = 'host sunken'; w.style.inlineSize = '100%'; h.append(w); return mount(w, { level: 'inset', title: 'Estado general', description: T.short, meta: META.slice(0, 2), log: () => {} }); });
+}
+$('#warn-btn').addEventListener('click', () => {
+  DEVWARN.length = 0;
+  const tmp = document.createElement('div'); tmp.style.display = 'none'; document.body.append(tmp);
+  Card({ description: 'sin título', quiet: false });
+  Card({ title: 'Doble clic', description: 'x', select: { type: 'checkbox', mode: 'card' }, primary: { type: 'link' } });
+  Card({ title: 'Icono sin etiqueta', actions: [{ id: 'x', icon: 'share-2', iconOnly: true }] });
+  const outer = Card({ title: 'Nivel 1', quiet: true }), mid = Card({ title: 'Nivel 2', quiet: true }), inner = Card({ title: 'Nivel 3', quiet: true });
+  outer.el.querySelector('.gcard__body').append(mid.el); mid.el.querySelector('.gcard__body').append(inner.el); tmp.append(outer.el);
+  const depth = $$('.gcard', tmp).filter(c => c.parentElement.closest('.gcard') && c.parentElement.closest('.gcard').parentElement.closest('.gcard')).length;
+  if (depth) warn('Card dentro de Card dentro de Card: no es el lenguaje visual; use una región inset (máx. 2 niveles).');
+  tmp.remove();
+  $('#warn-log').textContent = DEVWARN.join('\n');
+});
+
+/* ===== 15 · Región expandible ===== */
+{
+  const o = () => ({ lead: { kind: 'icon', icon: 'folder' }, title: 'Proyecto Atlas', subtitle: 'Equipo de datos', description: T.two, descLines: 2, meta: META.slice(0, 2), more: '<dl class="gcard__meta"><div class="gcard__mi"><dt>Creado</dt><dd>12 ene</dd></div><div class="gcard__mi"><dt>Cliente</dt><dd>Interno</dd></div><div class="gcard__mi"><dt>Presupuesto</dt><dd>$120 000</dd></div></dl>', primary: { type: 'link' }, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }], log: () => {} });
+  mount($('#s-more'), o()); mount($('#s-more2'), o());
+}
+
+/* ===== Globales ===== */
+const R = document.documentElement;
+$('#g-motion').addEventListener('change', e => e.target.checked ? R.setAttribute('data-motion', 'off') : R.removeAttribute('data-motion'));
+$('#g-touch').addEventListener('change', e => e.target.checked ? R.setAttribute('data-touch', '') : R.removeAttribute('data-touch'));
+$('#g-dir').addEventListener('change', e => { R.dir = e.target.value; });
+
+/* ===== Orden de foco (superposición) ===== */
+function focusOrder(scope, on) {
+  $$('.fo', document).forEach(n => n.remove());
+  if (!on) return;
+  const els = $$(FOCUSABLE, scope).filter(e => !e.closest('[hidden],[inert]') && e.offsetParent !== null && e.tabIndex >= 0);
+  els.forEach((e, i) => { const r = e.getBoundingClientRect(); const d = document.createElement('span'); d.className = 'fo'; d.textContent = i + 1; d.style.left = (r.left + scrollX - 6) + 'px'; d.style.top = (r.top + scrollY - 6) + 'px'; document.body.append(d); });
+}
+$('#an-focus').addEventListener('change', e => focusOrder($('#an-card'), e.target.checked));
+$('#in-focus').addEventListener('change', e => focusOrder($('#s-interact'), e.target.checked));
+window.__ready = true;
+</script>
+</body>
+</html>
