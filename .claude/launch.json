@@ -19,11 +19,10 @@
       "runtimeArgs": [
         "-m",
         "http.server",
-        "4174",
-        "-d",
-        "design"
+        "4174"
       ],
-      "port": 4174
+      "port": 4174,
+      "url": "http://localhost:4174"
     },
     {
       "name": "grana-root",
