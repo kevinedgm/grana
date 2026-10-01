@@ -93,3 +93,17 @@ Leyenda: ✅ cumple · ⚠️ parcial · ❌ falta · 🔁 desviación justifica
 ## Veredicto
 
 **Cumple con reservas.** La anatomía, el modelo campo ≠ columna, los roles ARIA, el modo tarjetas por contenedor, el orden, la selección, la paginación, el editor de filtros (reglas por tipo, validación, Y/O, foco al aplicar, cancelar y quitar) y los estados de vacío, cargando y vacío por filtros están implementados y probados (50 pruebas) y los puntos dudosos se confirmaron en Chromium. Quedan una pérdida de foco (hallazgo 1) y varios detalles de anuncios para lectores de pantalla, ninguno bloqueante estructuralmente.
+
+## Seguimiento: correcciones de bruno
+
+Aplicadas tras esta auditoría (913 pruebas pasan; build y compuertas bien):
+
+| Hallazgo | Corrección |
+| --- | --- |
+| ❌ Foco perdido al «Limpiar filtros» desde el vacío | `GTable` pasa el foco a «Agregar filtro» (o a la tabla) cuando el botón enfocado desaparece; con prueba |
+| ❌ `GPagination` no anunciaba el rango | El rango es `role="status"` (región viva) |
+| ⚠️ Recuento anunciado dos veces | `GTable` provee `g-table-announces-results`; la `GFilterBar` integrada no lo repite (la suelta sigue anunciando); con prueba |
+| ⚠️ Recuento de seleccionados no era región viva | `role="status"`; con prueba |
+| ⚠️ Anuncios de orden y selección dependían de textos opcionales sin aviso | Avisos de desarrollo si faltan `labels.sorted` (con columnas ordenables) o `labels.selectedCount` (con selección) |
+
+Siguen abiertos: hoja móvil del editor en un visor móvil real, lector de pantalla real, etiqueta de las filas esqueleto en tarjetas y «Enter aplica» desde el `select` de regla y las casillas.

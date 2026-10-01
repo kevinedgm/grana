@@ -4,7 +4,7 @@
 // Chips sugeridos y «Agregar filtro» (GMenu) abren un editor de regla + valor: popover no modal en la capa superior
 // (posición con utils/anchor.js) o, por debajo de space × 130, hoja con GDialog (como GHelper, DECISIONS.md #103).
 // Produce `filters` ({ key, op, value }); Y entre filtros, O dentro de un enum. El motor vive en utils/filters.js.
-import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId } from 'vue'
+import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, inject } from 'vue'
 import { OPS, parseValue, summarize } from '../../utils/filters.js'
 import { placeAround, viewport } from '../../utils/anchor.js'
 import { fill } from '../../utils/template.js'
@@ -39,6 +39,7 @@ export default defineComponent({
     const addBtn = ref(null)
     const menuOpen = ref(false)
     const live = ref('')
+    const tableAnnounces = inject('g-table-announces-results', false)
     // Editor: { key, presentation: 'popover' | 'sheet' } + borrador
     const editing = ref(null)
     const draftOp = ref('')
@@ -57,7 +58,7 @@ export default defineComponent({
     const isApplied = (key) => applied.value.some((f) => f.key === key)
     const summaryOf = (f) => summarize(fieldOf(f.key), f, props.labels, locale())
     const announce = (filters) => {
-      if (props.labels.results && props.count !== undefined) nextTick(() => { live.value = fill(props.labels.results, { count: props.count }) })
+      if (!tableAnnounces && props.labels.results && props.count !== undefined) nextTick(() => { live.value = fill(props.labels.results, { count: props.count }) })
       return filters
     }
     const commit = (filters) => emit('update:filters', announce(filters))

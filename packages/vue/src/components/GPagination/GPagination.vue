@@ -92,7 +92,7 @@ export default defineComponent({
         onClick: () => go(current.value + dir)
       }, [h(GIcon, { name: dir < 0 ? 'chevron-left' : 'chevron-right' })])
       return h('nav', { ref: root, class: ['g-pagination', { 'g-pagination--compact': compact.value }], 'aria-label': L.nav }, [
-        h('span', { class: 'g-pagination__range' }, L.range ? fill(L.range, { from, to, total: props.total }) : `${from}–${to} / ${props.total}`),
+        h('span', { class: 'g-pagination__range', role: 'status' }, L.range ? fill(L.range, { from, to, total: props.total }) : `${from}–${to} / ${props.total}`),
         h('div', { class: 'g-pagination__controls' }, [
           step(-1),
           h('ol', { class: 'g-pagination__pages' }, items.value.map((p, i) => h('li', { key: p ?? `gap-${i}` }, [

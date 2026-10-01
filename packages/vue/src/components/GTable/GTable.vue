@@ -3,7 +3,7 @@
 // Contrato: design/contracts/table.md · Estilo: GTable.css (coco) · Estructura: design/lab/table/r01/ y r02/.
 // Campos ≠ columnas: una columna puede componer varios campos (leading + title + subtitle). Un solo <table> con roles
 // explícitos se dibuja como tabla o como tarjetas según el ancho del contenedor (DECISIONS.md #109 a #111).
-import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUnmount, provide } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { applyFilters } from '../../utils/filters.js'
@@ -64,6 +64,13 @@ export default defineComponent({
     const [filtersState, setFilters] = mirror('filters', 'update:filters')
     const [pageState, setPage] = mirror('page', 'update:page')
     const live = ref('')
+    provide('g-table-announces-results', true) // la tabla anuncia el recuento: la barra de filtros integrada no lo repite
+    if (isDev && props.labels && !props.labels.sorted && Array.isArray(props.columns) && props.columns.some((c) => c.sortable)) {
+      console.warn('[Grana] <GTable> tiene columnas ordenables: define labels.sorted para anunciar el cambio de orden.')
+    }
+    if (isDev && props.selectable && props.labels && !props.labels.selectedCount) {
+      console.warn('[Grana] <GTable> con selección: define labels.selectedCount para anunciar cuántas filas hay seleccionadas.')
+    }
 
     // ---- Columnas ----
     const cols = computed(() => props.columns)
@@ -129,7 +136,12 @@ export default defineComponent({
       if (pageState.value !== 1) setPage(1)
       nextTick(() => { if (props.labels.results) live.value = fill(props.labels.results, { count: totalCount.value }) })
     }
-    const clearFilters = () => onFilters([])
+    const clearFilters = () => {
+      const lost = root.value && root.value.querySelector('.g-table__empty')?.contains(document.activeElement)
+      onFilters([])
+      // El botón «Limpiar» desaparece con el vacío: el foco pasa a «Agregar filtro» (o a la tabla) en vez de caer en body
+      if (lost) nextTick(() => (root.value?.querySelector('.g-filter-bar button') || root.value?.querySelector('table'))?.focus?.())
+    }
     // Filtros cambiados desde fuera: también vuelven a la página 1
     watch(() => props.filters, () => { if (pageState.value !== 1) setPage(1) })
 
@@ -273,7 +285,7 @@ export default defineComponent({
         ]))
       }
       if (slots.toolbar) kids.push(...slots.toolbar())
-      if (props.selectable && L().selectedCount) kids.push(h('span', { class: 'g-table__count' }, fill(L().selectedCount, { count: selectedState.value.length })))
+      if (props.selectable && L().selectedCount) kids.push(h('span', { class: 'g-table__count', role: 'status' }, fill(L().selectedCount, { count: selectedState.value.length })))
       return kids.length ? h('div', { class: 'g-table__bar' }, kids) : null
     }
 
