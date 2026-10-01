@@ -1,0 +1,781 @@
+/*
+  GCard · estilo
+  Dueño: coco. Contrato: design/contracts/card.md (+ surface.md «Cambio aparte», tokens.md §19). Estructura: design/lab/card/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo ni colores
+  literales. Únicas medidas literales: 24px y 44px (área táctil), la proporción 16 / 9 de la media (sin unidades) y el patrón
+  de texto oculto accesible.
+
+  La raíz ES una GSurface (clases g-surface--level-*, --padding-*, --density-*): fondo, borde, sombra, radio y relleno son de
+  GSurface.css. Aquí solo se añade: regiones, estados, enlace estirado, selección y esqueleto. Para eso se reasignan los alias
+  de la superficie (--_border, --_shadow) con especificidad mayor (.g-card.g-surface), nunca se copian sus valores.
+
+  Mecanismo del hover (sin transform, solo sobre la acción principal): un velo translúcido (--g-card-hover/pressed) en
+  ::before bajo el contenido; la selección (--g-card-selected) es una capa de fondo de la raíz. Anillos en ::before/::after de la raíz:
+  el de foco hacia dentro (la raíz recorta), el de selección de doble grosor sin cambiar el tamaño.
+*/
+
+/* ---------- Raíz ---------- */
+.g-card {
+  /* Familia de la marca (selección, «actual», indicador): se reasigna por --color-* */
+  --_mark: var(--g-color-primary-text);
+  --_fill: var(--g-color-primary);
+  --_on-fill: var(--g-color-on-primary);
+
+  /* Medidas derivadas del relleno publicado por la superficie (propiedad pública, solo lectura) */
+  --_bleed: calc(-1 * var(--g-surface-padding));
+  --_gap: calc(var(--_pad) * 0.75);
+  --_lead: calc(var(--g-space-1) * 10);
+  --_media-w: calc(var(--g-space-1) * 40 * var(--_density));
+  --_box: calc(var(--g-space-1) * 5);
+  --_tap: 24px;
+  --_btn: max(var(--_tap), calc(var(--g-space-1) * 8));
+  --_inset: max(var(--g-focus-width), var(--g-focus-offset));
+
+  /* Radio interior de la raíz (el borde ocupa un grosor) y radio concéntrico de lo que va dentro del relleno.
+     Con rounded="none" el cálculo no es válido y la propiedad vuelve a su valor inicial (0): es lo correcto. */
+  --_radius-in: calc(var(--_radius) - var(--g-border-width));
+  --_inner: var(--_pub-radius);
+
+  /* Velo de interacción y tono de las formas del esqueleto */
+  --_veil: transparent;
+  --_border-hover: color-mix(in srgb, var(--g-color-border-control) 70%, transparent);
+  --_sk-tone: var(--g-color-border-strong);
+  --_ring: var(--g-color-focus);
+  --_halo: var(--g-color-surface);
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_pad);
+  inline-size: 100%;
+  min-inline-size: 0;
+  overflow: clip;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-align: start;
+  transition:
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Una inset se mide con el segundo radio publicado por la superficie */
+.g-card.g-surface--level-inset { --_inner: var(--_pub2-radius); }
+
+.g-card--color-brand { --_mark: var(--g-color-primary-text); --_fill: var(--g-color-primary); --_on-fill: var(--g-color-on-primary); }
+.g-card--color-accent { --_mark: var(--g-color-accent-text); --_fill: var(--g-color-accent); --_on-fill: var(--g-color-on-accent); }
+.g-card--color-neutral { --_mark: var(--g-color-neutral-text); --_fill: var(--g-color-neutral); --_on-fill: var(--g-color-on-neutral); }
+
+/* Velo de interacción: capa bajo el contenido y sobre el fondo; el hover y la pulsación solo cambian su color */
+.g-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--_radius-in);
+  background-color: var(--_veil);
+  pointer-events: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Anillos (foco y selección): sobre el contenido y sin capturar el puntero */
+.g-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--_radius-in);
+  pointer-events: none;
+}
+
+/* ---------- Estructura ---------- */
+.g-card__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+.g-card__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  min-inline-size: 0;
+}
+.g-card__stack {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  min-inline-size: 0;
+}
+.g-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--_gap);
+  min-inline-size: 0;
+}
+.g-card__titles {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+.g-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  min-inline-size: 0;
+}
+.g-card__content > * { min-inline-size: 0; }
+
+/* ---------- Texto ---------- */
+.g-card__eyebrow {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-weight: var(--g-text-caption-weight);
+  color: var(--g-color-text-muted);
+}
+.g-card__title {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+  overflow-wrap: anywhere;
+}
+.g-card__subtitle {
+  margin: 0;
+  color: var(--g-color-text-muted);
+}
+.g-card__description {
+  margin: 0;
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+/* Recorte por líneas: solo visual, el texto completo sigue en el DOM (data-lines="1" a "4" o "none") */
+.g-card [data-lines="1"],
+.g-card [data-lines="2"],
+.g-card [data-lines="3"],
+.g-card [data-lines="4"] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.g-card [data-lines="1"] { -webkit-line-clamp: 1; line-clamp: 1; }
+.g-card [data-lines="2"] { -webkit-line-clamp: 2; line-clamp: 2; }
+.g-card [data-lines="3"] { -webkit-line-clamp: 3; line-clamp: 3; }
+.g-card [data-lines="4"] { -webkit-line-clamp: 4; line-clamp: 4; }
+.g-card.is-expanded .g-card__description[data-lines] {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+/* Botones de texto de la tarjeta (mostrar más, más detalles): sin color de acento, así llegan a 4.5:1 también sobre los velos */
+.g-card__expand,
+.g-card__more-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--_tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  color: var(--g-color-text-muted);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
+  cursor: pointer;
+}
+.g-card__expand[hidden],
+.g-card__more-toggle[hidden],
+.g-card__more[hidden] { display: none; }
+@media (hover: hover) {
+  .g-card__expand:hover,
+  .g-card__more-toggle:hover { color: var(--g-color-text); }
+}
+.g-card__expand:focus-visible,
+.g-card__more-toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+  border-radius: var(--g-radius-xs);
+}
+
+/* ---------- Encabezado: lead, aside, menú ---------- */
+.g-card__lead {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--_lead);
+  block-size: var(--_lead);
+  border-radius: var(--g-radius-md);
+  border: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-text);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow: hidden;
+}
+/* El contenido del consumidor (avatar, imagen) llena la caja; un icono conserva su tamaño */
+.g-card__lead > * { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.g-card__lead > .g-icon { inline-size: calc(var(--g-space-1) * 5); block-size: calc(var(--g-space-1) * 5); }
+
+.g-card__aside {
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-block-size: var(--_btn);
+  /* Centrado con la primera línea del título */
+  margin-block: calc((var(--g-text-body-line) - var(--_btn)) / 2);
+}
+.g-card__aside:has(.g-card__menu) { margin-inline-end: calc(var(--g-space-1) * -2); }
+.g-card__current {
+  display: inline-grid;
+  place-items: center;
+  color: var(--_mark);
+}
+.g-card__current > .g-icon { inline-size: calc(var(--g-space-1) * 4); block-size: calc(var(--g-space-1) * 4); }
+.g-card__current:dir(rtl) > .g-icon { scale: -1 1; }
+
+.g-card__menu {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_btn);
+  block-size: var(--_btn);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-shape);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-card__menu > .g-icon { inline-size: calc(var(--g-space-1) * 5); block-size: calc(var(--g-space-1) * 5); }
+@media (hover: hover) {
+  .g-card__menu:hover { background: var(--g-color-border); color: var(--g-color-text); }
+}
+.g-card__menu[aria-expanded="true"] { background: var(--g-color-border); color: var(--g-color-text); }
+/* Anillo hacia dentro: el botón queda en la esquina, junto al borde recortado de la tarjeta */
+.g-card__menu:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+
+/* ---------- Acción principal: enlace estirado ---------- */
+.g-card__primary {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: start;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+/* El pseudo-elemento cubre toda la tarjeta (la raíz crea el contexto de apilamiento) */
+.g-card__primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--_radius-in);
+}
+.g-card__primary:focus-visible { outline: none; }
+/* Todo lo demás interactivo va por encima del estirado: no activa la principal. Especificidad mínima (:where) para no pisar al componente anfitrión */
+.g-card :where(a, button, input, select, textarea, summary, label, [tabindex]):where(:not(.g-card__primary)) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Selección explícita (casilla o radio real, hermana antes del título) ---------- */
+.g-card__selectbox {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--_tap);
+  block-size: var(--_tap);
+  margin-block: calc((var(--g-text-body-line) - var(--_tap)) / 2);
+  margin-inline-start: calc((var(--_box) - var(--_tap)) / 2);
+}
+/* El <input> es el control (estado, teclado, formulario); invisible pero con toda el área táctil */
+.g-card .g-card__selectbox > .g-card__select {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  appearance: none;
+  cursor: pointer;
+}
+.g-card__tick {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_box);
+  block-size: var(--_box);
+  border: calc(var(--g-border-width) * 2) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+  color: transparent;
+  pointer-events: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-card__tick > .g-icon { inline-size: calc(var(--_box) * 0.7); block-size: calc(var(--_box) * 0.7); opacity: 0; }
+.g-card__selectbox[data-type="radio"] .g-card__tick { border-radius: var(--g-radius-pill); }
+.g-card__selectbox[data-type="radio"] .g-card__tick > .g-icon { inline-size: calc(var(--_box) * 0.45); block-size: calc(var(--_box) * 0.45); }
+.g-card__select:checked + .g-card__tick,
+.g-card.is-selected .g-card__tick {
+  border-color: var(--_mark);
+  background: var(--_fill);
+  color: var(--_on-fill);
+}
+.g-card__select:checked + .g-card__tick > .g-icon,
+.g-card.is-selected .g-card__tick > .g-icon { opacity: 1; }
+/* Alternar (aria-pressed): el indicador no es un campo y no recibe puntero */
+.g-card__tick--static { margin-block-start: calc((var(--g-text-body-line) - var(--_box)) / 2); }
+.g-card__select:disabled { cursor: not-allowed; }
+
+/* ---------- Metadata ---------- */
+.g-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-1) calc(var(--_gap) * 1.5);
+  margin: 0;
+}
+.g-card__meta > * {
+  display: flex;
+  gap: var(--g-space-1);
+  margin: 0;
+  min-inline-size: 0;
+}
+.g-card__meta dt { margin: 0; color: var(--g-color-text-muted); }
+.g-card__meta dd { margin: 0; font-weight: var(--g-text-action-weight); color: var(--g-color-text); overflow-wrap: anywhere; }
+
+.g-card__more { display: flex; flex-direction: column; gap: var(--_gap); }
+
+/* ---------- Estado de contenido (aviso de la tarjeta, no de un campo) ---------- */
+/* La marca del borde de inicio cambia de FORMA según el valor (error sólida, aviso discontinua, información de puntos, éxito doble), no solo de color */
+.g-card__status {
+  --_sm: var(--g-color-info-text);
+  --_sb: var(--g-color-info-soft);
+  --_mk: var(--_sm);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-3);
+  padding-inline-start: calc(var(--g-space-3) + var(--g-space-1));
+  overflow: clip;
+  border-radius: var(--_inner);
+  background: var(--_sb);
+  color: var(--g-color-text);
+}
+.g-card__status::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--g-space-1);
+  background: var(--_mk);
+}
+.g-card--status-info .g-card__status { --_sm: var(--g-color-info-text); --_sb: var(--g-color-info-soft); }
+.g-card--status-success .g-card__status {
+  --_sm: var(--g-color-success-text); --_sb: var(--g-color-success-soft);
+  --_mk: linear-gradient(to right, var(--_sm) 0 25%, transparent 25% 50%, var(--_sm) 50% 75%, transparent 75%);
+}
+.g-card--status-warning .g-card__status {
+  --_sm: var(--g-color-warning-text); --_sb: var(--g-color-warning-soft);
+  --_mk: repeating-linear-gradient(to bottom, var(--_sm) 0 calc(var(--g-space-1) * 2), transparent calc(var(--g-space-1) * 2) calc(var(--g-space-1) * 3));
+}
+.g-card--status-error .g-card__status { --_sm: var(--g-color-danger-text); --_sb: var(--g-color-danger-soft); --_mk: var(--_sm); }
+.g-card--status-info .g-card__status {
+  --_mk: repeating-linear-gradient(to bottom, var(--_sm) 0 var(--g-space-1), transparent var(--g-space-1) calc(var(--g-space-1) * 2));
+}
+.g-card__status > .g-icon {
+  flex: none;
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
+  margin-block-start: calc((var(--g-text-body-sm-line) - var(--g-space-1) * 4.5) / 2);
+  color: var(--_sm);
+}
+.g-card__status > :not(.g-icon):not(.g-btn) { flex: 1 1 auto; min-inline-size: 0; }
+
+/* ---------- Vacío ---------- */
+.g-card__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--g-space-2);
+  padding: var(--_pad) var(--g-space-2);
+  border: var(--g-border-width) dashed var(--g-color-border-strong);
+  border-radius: var(--_inner);
+  color: var(--g-color-text-muted);
+  text-align: center;
+}
+.g-card__empty > .g-icon { inline-size: var(--g-space-6); block-size: var(--g-space-6); }
+
+/* ---------- Acciones ---------- */
+.g-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--g-space-2) * var(--_density));
+  margin-block-start: auto;
+}
+
+/* ---------- Pie: a sangre, con línea fina ---------- */
+.g-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-1) var(--g-space-3);
+  margin-block-start: var(--_gap);
+  margin-block-end: var(--_bleed);
+  margin-inline: var(--_bleed);
+  padding: calc(var(--_pad) * 0.5) var(--_pad);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-card__footer a:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--_tap);
+  color: var(--g-color-text);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
+}
+.g-card__footer a:not([class]):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+  border-radius: var(--g-radius-xs);
+}
+
+/* ---------- Media ---------- */
+.g-card__media {
+  position: relative;
+  flex: none;
+  min-inline-size: 0;
+  overflow: hidden;
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-text-muted);
+}
+.g-card__media > :where(img, video, picture, canvas, svg:not(.g-icon)) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+/* top, y start/end cuando la tarjeta es columna: a sangre arriba, siguiendo las esquinas interiores de la raíz */
+.g-card__media:not(.g-card__media--inline) {
+  margin-block-start: var(--_bleed);
+  margin-inline: var(--_bleed);
+  aspect-ratio: 16 / 9;
+  order: -1;
+}
+/* Dentro del cuerpo: no sangra y toma el radio concéntrico */
+.g-card__media--inline {
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--_inner);
+}
+/* Lateral (layout fila): a sangre en tres lados, alto de la tarjeta, lado lógico */
+.g-card--layout-row:not(.g-card--media-top, .g-card--media-inline, .g-card--media-background) { flex-direction: row; }
+.g-card--layout-row.g-card--media-start > .g-card__media:not(.g-card__media--inline),
+.g-card--layout-row.g-card--media-end > .g-card__media:not(.g-card__media--inline) {
+  inline-size: var(--_media-w);
+  aspect-ratio: auto;
+  align-self: stretch;
+  order: 0;
+  margin-block: var(--_bleed);
+  margin-inline-start: var(--_bleed);
+  margin-inline-end: 0;
+}
+.g-card--layout-row.g-card--media-end > .g-card__media:not(.g-card__media--inline) {
+  order: 1;
+  margin-inline-start: 0;
+  margin-inline-end: var(--_bleed);
+}
+.g-card--layout-row.g-card--size-medium { --_media-w: calc(var(--g-space-1) * 28 * var(--_density)); }
+
+/* Fondo: detrás de todo el contenido, con velo y texto de color propio */
+.g-card.g-card--media-background {
+  min-block-size: calc(var(--g-space-1) * 56);
+  color: var(--g-card-on-scrim);
+  --_ring: var(--g-card-on-scrim);
+  --_halo: var(--g-card-scrim);
+  --_border-hover: color-mix(in srgb, var(--g-card-on-scrim) 70%, transparent);
+}
+.g-card--media-background > .g-card__media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  margin: 0;
+  aspect-ratio: auto;
+  order: 0;
+}
+.g-card__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(to bottom, transparent, var(--g-card-scrim)),
+    var(--g-card-scrim);
+  pointer-events: none;
+}
+.g-card--media-background::before { display: none; }
+.g-card--media-background > .g-card__main { justify-content: flex-end; }
+.g-card--media-background .g-card__body { flex: 0 1 auto; padding-block-start: calc(var(--_pad) * 2); }
+.g-card--media-background :is(.g-card__title, .g-card__eyebrow, .g-card__subtitle, .g-card__description, .g-card__meta dt, .g-card__meta dd, .g-card__footer, .g-card__menu, .g-card__expand, .g-card__more-toggle, .g-card__footer a:not([class])) { color: inherit; }
+.g-card--media-background .g-card__footer { border-block-start-color: color-mix(in srgb, var(--g-card-on-scrim) 35%, transparent); }
+.g-card--media-background .g-card__menu:hover,
+.g-card--media-background .g-card__menu[aria-expanded="true"] { background: color-mix(in srgb, var(--g-card-on-scrim) 18%, transparent); }
+.g-card--media-background :is(.g-card__menu, .g-card__expand, .g-card__more-toggle, .g-btn, .g-card__footer a:not([class])):focus-visible { outline-color: var(--g-card-on-scrim); }
+/* Los botones de GBtn se reasignan por sus alias: un plano del color del texto sobre el velo, con el tono del velo (opaco) como texto; contorno o texto del color del velo en el resto.
+   Sin color relativo (navegadores antiguos), el texto es el velo translúcido: sobre el plano claro sigue llegando al contraste que garantiza el velo. */
+.g-card--media-background .g-btn--variant-solid {
+  --_bg: var(--g-card-on-scrim); --_fg: var(--g-card-scrim); --_border: transparent;
+  --_bg-hover: color-mix(in srgb, var(--g-card-on-scrim) 86%, transparent); --_fg-hover: var(--g-card-scrim); --_border-hover: transparent;
+}
+@supports (color: rgb(from red r g b)) {
+  .g-card--media-background .g-btn--variant-solid {
+    --_fg: rgb(from var(--g-card-scrim) r g b / 1);
+    --_fg-hover: rgb(from var(--g-card-scrim) r g b / 1);
+  }
+}
+.g-card--media-background :is(.g-btn--variant-outline, .g-btn--variant-soft) {
+  --_bg: transparent; --_fg: var(--g-card-on-scrim); --_border: var(--g-card-on-scrim);
+  --_bg-hover: color-mix(in srgb, var(--g-card-on-scrim) 18%, transparent); --_fg-hover: var(--g-card-on-scrim); --_border-hover: var(--g-card-on-scrim);
+}
+.g-card--media-background :is(.g-btn--variant-ghost, .g-btn--variant-link) {
+  --_bg: transparent; --_fg: var(--g-card-on-scrim); --_border: transparent;
+  --_bg-hover: color-mix(in srgb, var(--g-card-on-scrim) 18%, transparent); --_fg-hover: var(--g-card-on-scrim); --_border-hover: transparent;
+}
+.g-card--media-background .g-btn--variant-link { --_bg-hover: transparent; }
+
+/* ---------- Estados ---------- */
+/* Hover: solo con puntero real y solo si está sobre la acción principal (el ::after cubre la tarjeta); sin transform */
+@media (hover: hover) {
+  .g-card.g-surface:where(:has(.g-card__primary:hover):not(.is-disabled, .is-loading)) {
+    --_veil: var(--g-card-hover);
+    --_border: var(--_border-hover);
+  }
+  .g-card.g-surface.g-surface--level-raised:where(:has(.g-card__primary:hover):not(.is-disabled, .is-loading)) { --_shadow: var(--g-shadow-2); }
+  .g-card:where(:has(.g-card__primary:hover):not(.is-disabled, .is-loading)) .g-card__title .g-card__primary {
+    text-decoration: underline;
+    text-decoration-thickness: var(--g-border-width);
+    text-underline-offset: var(--g-focus-offset);
+  }
+}
+.g-card.g-surface:where(:has(.g-card__primary:active):not(.is-disabled, .is-loading)) {
+  --_veil: var(--g-card-pressed);
+  --_border: var(--g-color-border-control);
+}
+
+/* Foco: anillo sobre toda la tarjeta, hacia dentro (la raíz recorta); con halo para verse sobre cualquier media */
+.g-card:has(.g-card__primary:focus-visible, .g-card__select:focus-visible)::after {
+  border-color: transparent;
+  outline: var(--g-focus-width) solid var(--_ring);
+  outline-offset: calc(-1 * var(--_inset));
+  box-shadow: inset 0 0 0 calc(var(--g-focus-width) * 2) var(--_halo);
+  z-index: 3;
+}
+
+/* Seleccionada: borde de doble grosor (el de la raíz + un anillo interior, sin cambiar el tamaño), indicador y fondo */
+.g-card.g-surface.is-selected {
+  --_border: var(--_mark);
+  background-image: linear-gradient(var(--g-card-selected), var(--g-card-selected));
+}
+.g-card.is-selected::after { border-color: var(--_mark); }
+/* Actual (lista maestro-detalle): borde, fondo y marca de chevron; sin el anillo doble ni el indicador de selección */
+.g-card.g-surface.is-current {
+  --_border: var(--_mark);
+  background-image: linear-gradient(var(--g-card-selected), var(--g-card-selected));
+}
+.g-card.is-selected.is-current::after { border-color: var(--_mark); }
+.g-card.is-current:not(.is-selected)::after { border-color: transparent; }
+
+/* Deshabilitada: atenuada y con el título tachado (exenta de contraste en WCAG 1.4.3) */
+.g-card.is-disabled { opacity: 0.55; }
+.g-card.is-disabled .g-card__primary,
+.g-card.is-disabled .g-card__select { cursor: not-allowed; }
+.g-card.is-disabled .g-card__title {
+  text-decoration: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+.g-card.is-disabled .g-card__title .g-card__primary { text-decoration: inherit; }
+
+/* ---------- Carga: esqueleto con la anatomía declarada (mismas cajas y alturas de línea) ---------- */
+.g-card__skeleton {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  min-inline-size: 0;
+}
+.g-card__sk {
+  --_sk-line: var(--g-text-body-sm-line);
+  display: flex;
+  align-items: center;
+  block-size: var(--_sk-line);
+}
+.g-card__sk::before {
+  content: "";
+  flex: none;
+  inline-size: var(--_sk-w, 100%);
+  max-inline-size: 100%;
+  block-size: 60%;
+  border-radius: var(--g-radius-sm);
+  background: var(--_sk-tone);
+}
+.g-card__sk--eyebrow { --_sk-line: var(--g-text-caption-line); }
+.g-card__sk--title { --_sk-line: var(--g-text-body-line); }
+.g-card__sk--meta { --_sk-line: var(--g-text-body-sm-line); }
+.g-card__sk--footer { --_sk-line: var(--g-text-caption-line); }
+/* Botón y círculo: formas llenas con la altura real del control */
+.g-card__sk--btn {
+  --_sk-line: calc(var(--g-space-1) * 9 * var(--_density));
+  inline-size: var(--_sk-w, calc(var(--g-space-1) * 22));
+  flex: none;
+}
+.g-card__sk--btn::before { block-size: 100%; border-radius: var(--g-radius-shape); }
+.g-card__sk--circle::before { border-radius: var(--g-radius-pill); }
+.g-card.is-loading .g-card__media > * { visibility: hidden; }
+.g-card.is-loading .g-card__media,
+.g-card.is-loading .g-card__lead { background: var(--_sk-tone); border-color: transparent; }
+.g-card.is-loading .g-card__lead > * { visibility: hidden; }
+.g-card.is-loading .g-card__footer { border-block-start-color: var(--g-color-border); }
+@media (prefers-reduced-motion: no-preference) {
+  .g-card.is-loading :is(.g-card__lead, .g-card__media),
+  .g-card.is-loading .g-card__sk::before {
+    animation: g-card-pulse calc(var(--g-duration-spin) * 1.75) ease-in-out infinite;
+  }
+  @keyframes g-card-pulse {
+    50% { opacity: 0.5; }
+  }
+}
+
+/* ---------- Adaptación (medida por la propia raíz: data-size y data-layout) ---------- */
+/* Amplio en fila: contenido a la izquierda y acciones al final, en columna */
+.g-card--layout-row.g-card--size-wide .g-card__body {
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--_gap) * 2);
+}
+.g-card--layout-row.g-card--size-wide .g-card__stack { align-self: stretch; }
+.g-card--layout-row.g-card--size-wide .g-card__actions {
+  flex: none;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0;
+}
+/* Estrecho: acciones apiladas a ancho completo (objetivo ≥ 40px, 44px en táctil) y media lateral arriba (ya la pinta la regla de columna) */
+.g-card--size-narrow .g-card__actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+.g-card--size-narrow .g-card__actions > .g-btn:not(.g-btn--variant-link, .g-btn--icon) {
+  inline-size: 100%;
+  min-block-size: max(var(--_tap), calc(var(--g-space-1) * 10));
+}
+.g-card--size-narrow .g-card__actions > .g-btn--icon { align-self: flex-end; }
+
+/* ---------- Modo lista (li, horizontal y plana): se acerca a un ListItem sin ser otro componente ---------- */
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat {
+  border-block-end-style: solid;
+  border-block-end-color: var(--g-color-border);
+}
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__stack {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--_gap);
+}
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__header { display: contents; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__selectbox { order: -1; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__lead { order: 0; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__titles { order: 1; flex: 1 1 calc(var(--g-space-1) * 40); }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__meta { order: 2; flex: 0 1 auto; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__aside { order: 3; margin-block: 0; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__content { order: 4; flex: 1 1 100%; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat .g-card__more { order: 5; flex: 1 1 100%; }
+li.g-card.g-card--orientation-horizontal.g-surface--level-flat.g-card--size-narrow .g-card__stack { gap: var(--g-space-1) var(--g-space-3); }
+
+/* ---------- Texto oculto (región viva) ---------- */
+.g-card__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (pointer: coarse) {
+  .g-card { --_tap: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-card,
+  .g-card::before,
+  .g-card__tick,
+  .g-card__menu { transition: none; }
+}
+@media (prefers-contrast: more) {
+  /* El hover y la selección no dependen de un velo tenue: el borde pasa al de los controles, la línea del pie y el contorno del vacío también */
+  .g-card.g-surface:not(.g-surface--level-flat) { --_border: var(--g-color-border-control); }
+  .g-card { --_border-hover: var(--g-color-text); }
+  .g-card__footer { border-block-start-color: var(--g-color-border-control); }
+  .g-card__empty { border-color: var(--g-color-border-control); }
+  .g-card__lead { border-color: var(--g-color-border-control); }
+  .g-card.g-surface.is-selected::after { border-width: calc(var(--g-border-width) * 2); }
+}
+@media (forced-colors: active) {
+  .g-card.g-surface:not(.g-surface--level-flat) { border-color: CanvasText; }
+  .g-card::before { display: none; }
+  .g-card:has(.g-card__primary:focus-visible, .g-card__select:focus-visible)::after { outline-color: Highlight; box-shadow: none; }
+  .g-card.is-selected::after { border-color: Highlight; border-width: calc(var(--g-border-width) * 2); }
+  .g-card.is-current:not(.is-selected)::after { border-color: Highlight; }
+  .g-card__tick { forced-color-adjust: none; border-color: ButtonText; background: Canvas; color: Canvas; }
+  .g-card__select:checked + .g-card__tick,
+  .g-card.is-selected .g-card__tick { border-color: Highlight; background: Highlight; color: HighlightText; }
+  .g-card__current { color: CanvasText; }
+  .g-card__status { background: Canvas; }
+  .g-card__status::before { forced-color-adjust: none; --_sm: CanvasText; }
+  .g-card__status > .g-icon { color: CanvasText; }
+  .g-card__sk::before { background: GrayText; }
+  .g-card.is-disabled { color: GrayText; }
+  /* La media de fondo no se ve con colores forzados: el texto vuelve a Canvas */
+  .g-card.g-card--media-background { color: CanvasText; }
+  .g-card--media-background > .g-card__media,
+  .g-card__scrim { display: none; }
+  .g-card--media-background .g-card__menu,
+  .g-card--media-background .g-card__expand { color: ButtonText; }
+  .g-card__menu:focus-visible,
+  .g-card__expand:focus-visible,
+  .g-card__more-toggle:focus-visible { outline-color: Highlight; }
+}

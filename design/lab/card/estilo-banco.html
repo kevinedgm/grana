@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCard · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/card.md (BEM g-card__*, g-card--*, is-*, data-size, data-layout) con el CSS real y el tema
+     por defecto. El script solo pinta el marcado y hace lo que hará bruno (medir con ResizeObserver, is-selected, aria-pressed, is-expanded,
+     recorte, menú, plegado de «más»). No es documentación. Desde la raíz del repo:
+       python3 -m http.server 4173  →  /design/lab/card/estilo-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?test=1 (el «Tema de prueba») -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link id="gen" rel="stylesheet" href="">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GMetric/GMetric.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GSurface/GSurface.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GCard/GCard.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h1{font-size:18px;margin:0 0 8px} h2{font-size:15px;margin:36px 0 12px} h3{font-size:12px;font-weight:500;margin:20px 0 8px;color:var(--g-color-text-muted)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-width:90ch}
+  .grid{list-style:none;margin:0;padding:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));align-items:stretch}
+  .grid[data-heights=natural]{align-items:start}
+  .grid.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr))}
+  .cell{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+  .cell>.g-card,.cell>.hostbox{flex:1}
+  .lab{font-size:12px;color:var(--g-color-text-muted)}
+  .lab b{color:var(--g-color-text)}
+  .hostbox{min-inline-size:0}
+  .frame{box-sizing:border-box;border:1px dashed var(--g-color-border-strong);padding:12px;resize:horizontal;overflow:auto;max-inline-size:100%;min-inline-size:200px}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.row>*{min-inline-size:0;max-inline-size:100%}
+  .shell{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px}
+  .shell aside{background:var(--g-surface-shell);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:8px;min-inline-size:0}
+  @media (max-width:560px){.shell{grid-template-columns:minmax(0,1fr)}}
+  .log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:8px 0;min-block-size:1.4em;white-space:pre-wrap;overflow-wrap:anywhere}
+  button.tool{font:inherit;padding:4px 10px;border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text);cursor:pointer}
+  /* Contenido del consumidor (no son componentes de Grana): placeholders de media y gráficos */
+  .ph{display:grid;place-items:center;inline-size:100%;block-size:100%;min-block-size:100%;background:linear-gradient(135deg,var(--g-color-accent-soft),var(--g-color-neutral-soft));color:var(--g-color-text-muted)}
+  .ph .g-icon{inline-size:28px;block-size:28px}
+  .ph--illu{display:flex;gap:8px;align-items:center;justify-content:center}
+  .ph--map{background:repeating-linear-gradient(0deg,var(--g-color-border) 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,var(--g-color-border) 0 1px,transparent 1px 24px),var(--g-color-surface-sunken)}
+  .ph--white{background:#fff;color:#444}.ph--black{background:#000;color:#bbb}.ph--mid{background:#8a8a8a;color:#fff}
+  .ph--chart{display:flex;align-items:flex-end;justify-content:center;gap:6px;padding:12px}
+  .ph--chart i{flex:1;max-inline-size:28px;background:var(--g-color-neutral);border-radius:3px 3px 0 0}
+  .spark{display:flex;align-items:flex-end;gap:3px;block-size:32px}.spark i{flex:1;background:var(--g-color-neutral);border-radius:2px 2px 0 0}
+  .plain-list{margin:0;padding-inline-start:18px;color:var(--g-color-text-muted)}
+  dialog.dlg{padding:0;border:1px solid var(--g-color-border-strong);border-radius:var(--g-radius-xl);max-inline-size:calc(100vw - 24px);background:var(--g-color-surface);color:var(--g-color-text)}
+  dialog.dlg::backdrop{background:var(--g-surface-backdrop)}
+  .dlg__head{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px}.dlg__head h2{margin:0}
+  .dlg__body{padding:8px 16px 16px}
+</style>
+</head>
+<body>
+<h1>GCard · banco de estilo</h1>
+<div class="tools">
+  <button class="tool" id="theme-btn" type="button">Tema de prueba</button>
+  <button class="tool" id="dark-btn" type="button">Oscuro</button>
+  <button class="tool" id="rtl-btn" type="button">RTL</button>
+  <button class="tool" id="load-btn" type="button">Alternar carga</button>
+  <output class="log" id="log"></output>
+</div>
+
+<h2>1 · Las doce composiciones del brief (el mismo componente)</h2>
+<ul class="grid" id="s-compose" data-heights="natural"></ul>
+
+<h2>2 · Niveles de superficie sobre fondo, superficie y superficie hundida</h2>
+<p class="cap">flat, outlined, raised e inset; cada uno con su variante interactiva y seleccionada.</p>
+<div id="s-levels"></div>
+
+<h2>3 · Densidades</h2>
+<ul class="grid" id="s-density"></ul>
+
+<h2>4 · Estados</h2>
+<p class="cap">Hover y pulsación: puntero real sobre la tarjeta «interactiva». Foco: Tab.</p>
+<ul class="grid" id="s-states"></ul>
+
+<h2>5 · Media</h2>
+<ul class="grid" id="s-media"></ul>
+
+<h2>6 · Peor caso del velo (media de fondo blanca, gris y negra)</h2>
+<ul class="grid" id="s-scrim"></ul>
+
+<h2>7 · Adaptación al contenedor</h2>
+<div class="frame" id="fr-main" style="inline-size:680px"><div id="fr-card"></div></div>
+<output class="log" id="fr-out"></output>
+<h3>Tres anchos fijos de la misma tarjeta</h3>
+<div class="row" id="fr-fixed"></div>
+<h3>Rejilla, sidebar y diálogo</h3>
+<ul class="grid wide" id="fr-grid"></ul>
+<div class="shell" style="margin-top:12px"><aside id="fr-aside"></aside><div id="fr-main2"></div></div>
+<div class="tools" style="margin-top:12px"><button class="tool" id="dlg-s" type="button">Diálogo estrecho (360)</button><button class="tool" id="dlg-l" type="button">Diálogo ancho (680)</button><output class="log" id="dlg-out"></output></div>
+<dialog class="dlg" id="dlg" aria-labelledby="dlg-t"><div class="dlg__head"><h2 id="dlg-t">Resultado</h2><button class="tool" id="dlg-x" type="button" aria-label="Cerrar"></button></div><div class="dlg__body" id="dlg-body"></div></dialog>
+
+<h2>8 · Rejilla: alturas iguales y naturales</h2>
+<div class="tools"><label><input type="radio" name="gh" value="equal" checked> iguales</label><label><input type="radio" name="gh" value="natural"> naturales</label></div>
+<ul class="grid" id="s-grid"></ul>
+
+<h2>9 · Lista (li, horizontal, plana, compacta)</h2>
+<div class="frame" style="inline-size:100%"><ul class="grid" style="display:block" id="s-list"></ul></div>
+
+<h2>10 · Contenido truncado</h2>
+<ul class="grid" id="s-trunc"></ul>
+
+<h2>11 · Vacío, error de carga y métrica</h2>
+<ul class="grid" id="s-empty"></ul>
+
+<h2>12 · Interacción</h2>
+<ul class="grid" id="s-interact"></ul>
+<h3>Grupo de selección única (radio con name común)</h3>
+<div role="radiogroup" aria-label="Plan" class="grid" id="s-radios"></div>
+
+<h2>13 · Acciones</h2>
+<ul class="grid" id="s-actions"></ul>
+
+<h2>14 · Superficies anidadas</h2>
+<ul class="grid" id="s-nest"></ul>
+
+<h2>15 · Colores de la marca (selección)</h2>
+<ul class="grid" id="s-colors"></ul>
+
+<script>
+/* ---------- utilidades ---------- */
+Object.assign(window.LUCIDE_ICONS, {
+  /* Lucide (ISC): faltan en design/lab/lucide-icons.js; se añaden aquí solo para el banco (ver estilo.md, hallazgos para bruno) */
+  'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  'image': '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
+  'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>'
+});
+const I = (n, cls, filled) => window.lucide(n, cls || '', !!filled);
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let uid = 0;
+const log = m => { $('#log').textContent = m; };
+const T = {
+  short: 'Un resumen breve de lo que contiene esta tarjeta.',
+  two: 'Una descripción lo bastante larga como para ocupar dos líneas en la mayoría de los anchos de esta página, y seguir siendo clara para quien la lee con lector de pantalla.',
+  long: 'Texto descriptivo más largo que ocupa varias líneas para comprobar el recorte, la lectura y la jerarquía visual cuando el contenido real no es tan corto como en un ejemplo de diseño, y que sigue siendo completo en el DOM para quien lo lee con un lector de pantalla o amplía la página.',
+  titleLong: 'Un título extraordinariamente largo que no cabe en una sola línea y que obliga a decidir entre recortar, limitar líneas o mostrarlo completo'
+};
+const MENU = [{ id: 'rename', label: 'Renombrar' }, { id: 'dup', label: 'Duplicar' }, { id: 'move', label: 'Mover a…', disabled: true }, { id: 'del', label: 'Eliminar', danger: true }];
+const META = [{ label: 'Responsable', value: 'Ana Pérez' }, { label: 'Tareas', value: '12' }, { label: 'Actualizado', value: 'hace 2 h', priority: 'low' }];
+
+/* ---------- GBtn y GBadge con su marcado real ---------- */
+const btn = (a, extra = '') => {
+  const v = a.level === 'primary' ? 'solid' : a.level === 'tertiary' ? 'link' : 'outline';
+  const icon = a.icon ? '<span class="g-btn__prepend" aria-hidden="true">' + I(a.icon) + '</span>' : '';
+  const cls = 'g-btn g-btn--color-brand g-btn--variant-' + (a.iconOnly ? 'ghost' : v) + ' g-btn--size-md g-btn--density-default' + (a.iconOnly ? ' g-btn--icon' : '') + (extra ? ' ' + extra : '');
+  const inner = a.iconOnly ? '<span class="g-btn__label">' + I(a.icon) + '</span>' : icon + '<span class="g-btn__label">' + esc(a.label) + '</span>';
+  const attrs = ' data-act="action" data-id="' + a.id + '"' + (a.iconOnly ? ' aria-label="' + esc(a.label) + '"' : '') + (a.disabled ? ' disabled' : '');
+  return a.href ? '<a class="' + cls + '" href="#' + a.id + '"' + attrs + '>' + inner + '</a>' : '<button type="button" class="' + cls + '"' + attrs + '>' + inner + '</button>';
+};
+const badge = b => '<span class="g-badge g-badge--variant-soft g-badge--color-' + (b.color || 'neutral') + ' g-badge--size-sm g-badge--kind-text">' +
+  (b.shape ? I(b.shape, 'g-badge__shape', true) : (b.icon ? '<span class="g-badge__icon" aria-hidden="true">' + I(b.icon) + '</span>' : '')) + '<span class="g-badge__text">' + esc(b.text) + '</span></span>';
+
+/* ---------- menú (patrón Menu Button; el real es GMenu) ---------- */
+function wireMenu(root, btnEl, items) {
+  const id = btnEl.getAttribute('aria-controls');
+  const ul = document.createElement('ul');
+  ul.className = 'g-menu__list g-menu__list--density-default'; ul.id = id; ul.setAttribute('role', 'menu'); ul.setAttribute('popover', 'manual'); ul.setAttribute('aria-labelledby', btnEl.id);
+  ul.innerHTML = items.map((it, i) => '<li role="none"><button type="button" class="g-menu__item' + (it.danger ? ' g-menu__item--danger' : '') + '" role="menuitem" tabindex="-1" data-key="' + it.id + '"' + (it.disabled ? ' aria-disabled="true"' : '') + '><span class="g-menu__label">' + (it.danger ? I('triangle-alert', 'g-menu__danger-icon') : '') + esc(it.label) + '</span></button></li>').join('');
+  btnEl.after(ul);
+  const its = () => $$('.g-menu__item', ul);
+  let open = false;
+  const show = which => {
+    if (open) return; open = true; ul.showPopover(); const r = btnEl.getBoundingClientRect();
+    ul.style.setProperty('--_x', Math.max(4, Math.min(r.right - ul.offsetWidth, innerWidth - ul.offsetWidth - 4)) + 'px');
+    ul.style.setProperty('--_y', (r.bottom + 4) + 'px'); btnEl.setAttribute('aria-expanded', 'true'); const l = its(); (which === 'last' ? l[l.length - 1] : l[0]).focus();
+  };
+  const hide = ret => { if (!open) return; open = false; ul.hidePopover(); btnEl.setAttribute('aria-expanded', 'false'); if (ret) btnEl.focus(); };
+  btnEl.addEventListener('click', () => open ? hide(true) : show('first'));
+  ul.addEventListener('keydown', e => {
+    const l = its(), i = l.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); l[(i + 1) % l.length].focus(); } else if (e.key === 'ArrowUp') { e.preventDefault(); l[(i - 1 + l.length) % l.length].focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); hide(true); } else if (e.key === 'Tab') hide(false);
+  });
+  ul.addEventListener('click', e => { const b = e.target.closest('.g-menu__item'); if (b && b.getAttribute('aria-disabled') !== 'true') { log('menú «' + b.textContent.trim() + '»'); hide(true); } });
+  document.addEventListener('pointerdown', e => { if (open && !ul.contains(e.target) && !btnEl.contains(e.target)) hide(false); });
+}
+
+/* ---------- la tarjeta: marcado exacto del contrato ---------- */
+const SIZE_W = { wide: 130, medium: 80 };
+function Card(o) {
+  const id = 'gc' + ++uid, tid = id + '-title', did = id + '-desc';
+  const tag = o.as || 'article';
+  const root = document.createElement(tag);
+  const level = o.level || 'outlined', density = o.density || 'default', padding = o.padding || 'md', color = o.color || 'brand';
+  const pos = o.media && (o.media.pos || 'top');
+  const orient = o.orientation || (pos === 'start' || pos === 'end' ? 'auto' : 'vertical');
+  const inter = o.interaction || (o.href ? 'link' : 'none');
+  const selMode = inter === 'select';
+  const sel = selMode || o.selectable;
+  const checked = !!o.checked;
+  const pressed = !!o.pressed;
+  const hasPrimary = ['link', 'button', 'toggle', 'select'].includes(inter);
+  const L = o.labels || {};
+  root.id = id;
+  root.dataset.size = 'medium'; root.dataset.layout = 'column';
+  const state = { checked, pressed, expanded: false, moreOpen: false, loading: !!o.loading };
+  const cls = () => ['g-card', 'g-surface', 'g-surface--level-' + level, 'g-surface--tone-surface', 'g-surface--padding-' + padding, 'g-surface--density-' + density,
+    'g-card--orientation-' + orient, 'g-card--color-' + color, pos ? 'g-card--media-' + pos : '', 'g-card--interaction-' + inter, 'g-card--size-' + root.dataset.size, 'g-card--layout-' + root.dataset.layout,
+    o.rounded ? 'g-surface--rounded-' + o.rounded : '', o.status ? 'g-card--status-' + o.status.type + ' has-status' : '',
+    hasPrimary ? 'is-interactive' : '', (sel ? state.checked : (inter === 'toggle' && state.pressed)) ? 'is-selected' : '', o.current ? 'is-current' : '', o.disabled ? 'is-disabled' : '', state.loading ? 'is-loading' : '', o.empty ? 'is-empty' : '', state.expanded ? 'is-expanded' : ''].filter(Boolean).join(' ');
+  root.className = cls();
+
+  const media = () => {
+    const m = o.media; if (!m) return '';
+    const inner = {
+      image: '<div class="ph">' + I('image') + '</div>', illustration: '<div class="ph ph--illu">' + I('circle', '', true) + I('square', '', true) + I('triangle', '', true) + '</div>',
+      video: '<div class="ph">' + I('play') + '</div>', map: '<div class="ph ph--map">' + I('map-pin') + '</div>',
+      chart: '<div class="ph ph--chart"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:65%"></i></div>',
+      white: '<div class="ph ph--white"></div>', black: '<div class="ph ph--black"></div>', mid: '<div class="ph ph--mid"></div>'
+    }[m.kind || 'image'];
+    const a = m.decor === false ? ' role="img" aria-label="' + esc(m.label || '') + '"' : ' aria-hidden="true"';
+    return '<div class="g-card__media' + (pos === 'inline' ? ' g-card__media--inline' : '') + '"' + a + '>' + inner + '</div>' + (pos === 'background' ? '<div class="g-card__scrim" aria-hidden="true"></div>' : '');
+  };
+  const lead = () => o.lead ? '<span class="g-card__lead" aria-hidden="true">' + (o.lead.icon ? I(o.lead.icon) : esc(o.lead.text || '')) + '</span>' : '';
+  const primary = () => {
+    const t = esc(o.title || '');
+    if (!o.title) return '';
+    if (o.disabled && ['link', 'button', 'toggle'].includes(inter)) return '<a class="g-card__primary" role="link" aria-disabled="true">' + t + '</a>';
+    const d = o.description ? ' aria-describedby="' + did + '"' : '';
+    if (inter === 'link') return '<a class="g-card__primary" href="' + (o.href || '#' + id) + '" data-act="primary"' + d + (o.current ? ' aria-current="true"' : '') + '>' + t + '</a>';
+    if (inter === 'button') return '<button type="button" class="g-card__primary" data-act="primary"' + d + '>' + t + '</button>';
+    if (inter === 'toggle') return '<button type="button" class="g-card__primary" data-act="toggle" aria-pressed="' + state.pressed + '">' + t + '</button>';
+    if (selMode) return '<label class="g-card__primary" for="' + id + '-in">' + t + '</label>';
+    return t;
+  };
+  const selectbox = () => {
+    if (!sel) return o.interaction === 'toggle' ? '<span class="g-card__tick g-card__tick--static" aria-hidden="true">' + I('check') + '</span>' : '';
+    const type = o.selectType || 'checkbox';
+    return '<span class="g-card__selectbox" data-type="' + type + '"><input class="g-card__select" id="' + id + '-in" type="' + type + '" name="' + (o.name || '') + '" value="' + (o.value || '') + '"' + (state.checked ? ' checked' : '') + (o.disabled ? ' disabled' : '') + (!selMode ? ' aria-labelledby="' + tid + '"' : '') + '><span class="g-card__tick" aria-hidden="true">' + (type === 'radio' ? I('circle', '', true) : I('check')) + '</span></span>';
+  };
+  const STATUS_ICON = { error: 'circle-alert', warning: 'triangle-alert', success: 'circle-check', info: 'info' };
+  const skeleton = () => {
+    const nd = o.skeleton && 'descriptionLines' in o.skeleton ? o.skeleton.descriptionLines : (o.description ? (o.descLines && o.descLines !== 'none' ? +o.descLines : 2) : 0);
+    const sk = (c, w) => '<span class="g-card__sk ' + c + '"' + (w ? ' style="--_sk-w:' + w + '"' : '') + '></span>';
+    const header = '<div class="g-card__header">' + (o.lead ? '<span class="g-card__lead"></span>' : '') + '<div class="g-card__titles">' +
+      (o.eyebrow ? '<p class="g-card__eyebrow">' + sk('g-card__sk--eyebrow', '30%') + '</p>' : '') + '<h3 class="g-card__title">' + sk('g-card__sk--title', '62%') + '</h3>' +
+      (o.subtitle ? '<p class="g-card__subtitle">' + sk('', '40%') + '</p>' : '') + '</div></div>';
+    const desc = nd ? '<div class="g-card__content"><p class="g-card__description">' + Array.from({ length: nd }, (_, i) => sk('', i === nd - 1 && nd > 1 ? '60%' : '100%')).join('') + '</p></div>' : '';
+    const meta = (o.meta || []).length ? '<dl class="g-card__meta">' + o.meta.map(() => '<div><span class="g-card__sk g-card__sk--meta" style="--_sk-w:88px;inline-size:88px"></span></div>').join('') + '</dl>' : '';
+    const acts = (o.actions || []).length ? '<div class="g-card__actions">' + o.actions.map(a => sk('g-card__sk--btn' + (a.iconOnly ? ' g-card__sk--circle' : ''), a.iconOnly ? 'calc(var(--g-space-1) * 8)' : '')).join('') + '</div>' : '';
+    const foot = o.footer ? '<div class="g-card__footer"><span class="g-card__sk g-card__sk--footer" style="--_sk-w:140px;inline-size:140px"></span></div>' : '';
+    const m = o.media ? media().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true"') : '';
+    return m + '<div class="g-card__main"><div class="g-card__skeleton" aria-hidden="true"><div class="g-card__stack">' + header + desc + meta + '</div>' + acts + '</div>' + foot + '</div>';
+  };
+  function render() {
+    root.className = cls();
+    const live = '<div class="g-card__live" role="status"></div>';
+    if (state.loading) { root.setAttribute('aria-busy', 'true'); root.innerHTML = skeleton() + live; return; }
+    root.removeAttribute('aria-busy');
+    const hl = o.headingLevel || 3;
+    const titles = (o.eyebrow || o.title || o.subtitle) ? '<div class="g-card__titles">' + (o.eyebrow ? '<p class="g-card__eyebrow">' + esc(o.eyebrow) + '</p>' : '') +
+      (o.title ? '<h' + hl + ' class="g-card__title" id="' + tid + '" data-lines="' + (o.titleLines || 2) + '">' + primary() + '</h' + hl + '>' : '') + (o.subtitle ? '<p class="g-card__subtitle">' + esc(o.subtitle) + '</p>' : '') + '</div>' : '';
+    const aside = (o.badge || o.menu || o.current) ? '<div class="g-card__aside">' + (o.badge ? badge(o.badge) : '') + (o.current ? '<span class="g-card__current" aria-hidden="true">' + I('chevron-right') + '</span>' : '') +
+      (o.menu ? '<button class="g-card__menu" type="button" id="' + id + '-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="' + id + '-ml" aria-label="Acciones de" aria-labelledby="' + id + '-menu ' + tid + '"' + (o.disabled ? ' disabled' : '') + '>' + I('ellipsis-vertical') + '</button>' : '') + '</div>' : '';
+    const header = (titles || o.lead || sel || aside || o.interaction === 'toggle') ? '<div class="g-card__header">' + selectbox() + lead() + titles + aside + '</div>' : '';
+    const st = o.status ? '<div class="g-card__status" role="' + (o.status.type === 'error' ? 'alert' : 'status') + '">' + I(STATUS_ICON[o.status.type]) + '<span>' + esc(o.status.text) + '</span>' + (o.status.retry ? btn({ id: 'retry', label: o.status.retry, level: 'secondary' }).replace('data-act="action"', 'data-act="retry"') : '') + '</div>' : '';
+    const emp = o.empty ? '<div class="g-card__empty">' + (o.empty.icon ? I(o.empty.icon) : '') + '<span>' + esc(o.empty.text) + '</span>' + (o.empty.action ? btn({ id: 'emp', label: o.empty.action, level: 'secondary' }) : '') + '</div>' : '';
+    const desc = o.description ? '<p class="g-card__description" id="' + did + '" data-lines="' + (o.descLines || 'none') + '">' + esc(o.description) + '</p>' + (o.expandable ? '<button type="button" class="g-card__expand" data-act="expand" aria-expanded="false" aria-controls="' + did + '" hidden>' + esc(L.expand || 'Mostrar más') + '</button>' : '') : '';
+    const content = (desc || st || emp || o.body || pos === 'inline') ? '<div class="g-card__content">' + (pos === 'inline' ? media() : '') + desc + st + emp + (o.empty ? '' : (typeof o.body === 'function' ? o.body(tid) : (o.body || ''))) + '</div>' : '';
+    const meta = (o.meta || []).filter(m => !(density === 'compact' && m.priority === 'low')).length ? '<dl class="g-card__meta">' + o.meta.filter(m => !(density === 'compact' && m.priority === 'low')).map(m => '<div class="g-card__meta-item' + (m.priority === 'low' ? ' g-card__meta-item--low' : '') + '"><dt>' + esc(m.label) + '</dt><dd>' + esc(m.value) + '</dd></div>').join('') + '</dl>' : '';
+    const more = o.more ? '<div class="g-card__more" id="' + id + '-more">' + o.more + '</div><button type="button" class="g-card__more-toggle" data-act="more" aria-expanded="false" aria-controls="' + id + '-more" hidden>' + esc(L.more || 'Más detalles') + '</button>' : '';
+    const acts = (o.actions || []).length ? '<div class="g-card__actions">' + o.actions.map(a => btn(a)).join('') + '</div>' : '';
+    const foot = o.footer ? '<div class="g-card__footer">' + o.footer + '</div>' : '';
+    root.innerHTML = (pos && pos !== 'inline' ? media() : '') + '<div class="g-card__main"><div class="g-card__body"><div class="g-card__stack">' + header + content + meta + more + '</div>' + acts + '</div>' + foot + '</div>' + live;
+    if (o.menu) wireMenu(root, $('.g-card__menu', root), o.menu);
+    syncMore(); clamp();
+  }
+  function syncMore() { const m = $('.g-card__more', root), b = $('.g-card__more-toggle', root); if (!m || !b) return; const n = root.dataset.size === 'narrow'; b.hidden = !n; m.hidden = n && !state.moreOpen; }
+  function clamp() { const d = $('.g-card__description', root), b = $('.g-card__expand', root); if (!d || !b) return; const was = state.expanded; if (was) root.classList.remove('is-expanded'); const clipped = d.scrollHeight > d.clientHeight + 1; if (was) root.classList.add('is-expanded'); b.hidden = !(clipped || state.expanded); }
+  function measure() {
+    const S = parseFloat(getComputedStyle(root).getPropertyValue('--g-space-1')) || 4; const w = root.getBoundingClientRect().width; if (!w) return;
+    const size = w >= S * SIZE_W.wide ? 'wide' : w >= S * SIZE_W.medium ? 'medium' : 'narrow';
+    const lay = orient === 'vertical' ? 'column' : orient === 'horizontal' ? (size === 'narrow' ? 'column' : 'row') : (size === 'wide' ? 'row' : 'column');
+    if (root.dataset.size !== size || root.dataset.layout !== lay) { root.dataset.size = size; root.dataset.layout = lay; root.className = cls(); syncMore(); }
+    clamp();
+  }
+  root.addEventListener('click', e => {
+    const t = e.target.closest('[data-act]'); if (!t || !root.contains(t)) return; const a = t.dataset.act, nm = (o.title || '').slice(0, 30);
+    if (a === 'primary') { e.preventDefault(); log('principal → «' + nm + '»'); }
+    else if (a === 'action') { e.preventDefault(); log('acción «' + t.dataset.id + '» en «' + nm + '» (la principal NO se activó)'); }
+    else if (a === 'toggle') { state.pressed = !state.pressed; t.setAttribute('aria-pressed', state.pressed); root.className = cls(); log('alternar → ' + state.pressed); }
+    else if (a === 'expand') { state.expanded = !state.expanded; t.setAttribute('aria-expanded', state.expanded); t.textContent = state.expanded ? (L.collapse || 'Mostrar menos') : (L.expand || 'Mostrar más'); root.className = cls(); }
+    else if (a === 'more') { state.moreOpen = !state.moreOpen; t.setAttribute('aria-expanded', state.moreOpen); syncMore(); }
+    else if (a === 'retry') log('reintentar');
+  });
+  root.addEventListener('change', e => {
+    const i = e.target.closest('.g-card__select'); if (!i) return; state.checked = i.checked; root.className = cls();
+    if (i.type === 'radio') $$('input[type=radio][name="' + i.name + '"]').forEach(r => r.closest('.g-card').classList.toggle('is-selected', r.checked));
+    log('seleccionar «' + (o.title || '').slice(0, 30) + '» → ' + i.checked);
+  });
+  render(); new ResizeObserver(measure).observe(root);
+  return { el: root, state, set(p) { Object.assign(state, p); render(); } };
+}
+const cell = (ul, label, build) => { const li = document.createElement('li'); li.className = 'cell'; ul.append(li); const c = build(li); const l = document.createElement('div'); l.className = 'lab'; l.innerHTML = label; li.append(l); return c; };
+const mount = (host, o) => { const c = Card(o); host.append(c.el); return c; };
+
+/* ---------- 1 · composiciones ---------- */
+const composes = [
+  ['01 · Basic', { title: 'Notas de la versión', description: T.short }],
+  ['02 · Content', { eyebrow: 'Guía', title: 'Cómo organizar tus proyectos', subtitle: 'Lectura de 6 min', description: T.long, descLines: 3, expandable: true, body: '<ul class="plain-list"><li>Define un objetivo por proyecto.</li><li>Reparte responsables.</li><li>Revisa cada semana.</li></ul>', footer: '<span>Actualizado hace 2 días</span>' }],
+  ['03 · Media', { media: { pos: 'top', kind: 'image' }, eyebrow: 'Artículo', title: 'Un paseo por el mercado', description: T.two, descLines: 2, interaction: 'link', footer: '<span>5 min de lectura</span><span>12 jun</span>' }],
+  ['04 · Entity', { lead: { icon: 'building-2' }, title: 'Proyecto Atlas', subtitle: 'Equipo de datos', badge: { text: 'Activo', shape: 'circle', color: 'success' }, meta: META, interaction: 'link', menu: MENU, actions: [{ id: 'edit', label: 'Editar' }] }],
+  ['05 · Profile', { lead: { text: 'MR' }, title: 'María Ramírez', subtitle: 'Diseñadora de producto', description: 'Ayuda a equipos a convertir ideas en productos claros.', descLines: 2, meta: [{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: 'Diseño' }], interaction: 'link', actions: [{ id: 'msg', label: 'Mensaje', level: 'primary' }, { id: 'follow', label: 'Seguir' }, { id: 'mail', label: 'Enviar correo', icon: 'mail', iconOnly: true }] }],
+  ['06 · Metric', { title: 'Ingresos mensuales', interaction: 'link', menu: MENU.slice(0, 2), body: tid => METRIC(tid), footer: '<span>Actualizado 09:41</span>' }],
+  ['07 · Status', { lead: { icon: 'globe' }, title: 'API de pagos', badge: { text: 'Degradado', icon: 'triangle-alert', color: 'warning' }, status: { type: 'warning', text: 'Latencia alta desde las 09:10' }, meta: [{ label: 'Región', value: 'us-east' }, { label: 'Disponibilidad', value: '99,2 %' }], footer: '<span>Verificado hace 1 min</span><a href="#hist">Historial</a>' }],
+  ['08 · Interactive', { eyebrow: 'Documento', title: 'Plan trimestral', description: T.two, descLines: 2, meta: META.slice(0, 2), interaction: 'link', menu: MENU, actions: [{ id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }] }],
+  ['09 · Selectable', { title: 'Informe semanal', subtitle: 'Se puede seleccionar', description: T.short, meta: META.slice(0, 2), interaction: 'select', checked: true }],
+  ['10 · Horizontal', { media: { pos: 'start', kind: 'image' }, eyebrow: 'Resultado', title: 'Recorrido por el centro histórico', description: T.two, descLines: 2, meta: [{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }], interaction: 'link', actions: [{ id: 'save', label: 'Guardar', level: 'primary' }, { id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }] }],
+  ['11 · Action', { lead: { icon: 'plus' }, title: 'Nuevo proyecto', description: 'Empieza desde cero o con una plantilla.', interaction: 'button' }],
+  ['12 · Inset', { level: 'inset', title: 'Resumen incrustado', description: 'Parece integrada en la superficie que la contiene.', meta: META.slice(0, 2), host: 'sunken' }]
+];
+function METRIC(tid){ return  '<div class="g-metric g-metric--size-lg g-metric--trend-success" role="group" aria-labelledby="' + tid + '"><span class="g-metric__value">$48,200</span><span class="g-metric__trend" data-direction="up">' + I('arrow-up', 'g-metric__trend-icon') + '+12%<small> vs. mes anterior</small></span></div><div class="spark" role="img" aria-label="Ingresos diarios, tendencia creciente"><i style="height:30%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:60%"></i><i style="height:55%"></i><i style="height:80%"></i><i style="height:95%"></i></div>'; }
+{
+  const ul = $('#s-compose');
+  composes.forEach(([n, o]) => cell(ul, '<b>' + n + '</b>', li => {
+    let host = li; if (o.host === 'sunken') { host = document.createElement('div'); host.className = 'hostbox g-surface g-surface--level-outlined g-surface--tone-sunken g-surface--padding-sm g-surface--density-default'; li.append(host); }
+    return mount(host, o);
+  }));
+}
+
+/* ---------- 2 · niveles ---------- */
+{
+  const host = $('#s-levels');
+  [['bg', 'sobre el fondo'], ['surface', 'sobre una superficie'], ['sunken', 'sobre una superficie hundida']].forEach(([k, lab]) => {
+    host.insertAdjacentHTML('beforeend', '<h3>' + lab + '</h3><div class="hostbox g-surface g-surface--padding-sm g-surface--density-default ' + (k === 'bg' ? 'g-surface--level-flat' : 'g-surface--level-outlined g-surface--tone-' + (k === 'sunken' ? 'sunken' : 'surface')) + '"><ul class="grid" id="lv-' + k + '"></ul></div>');
+    const ul = $('#lv-' + k);
+    [['flat', {}], ['outlined', {}], ['raised', {}], ['inset', {}], ['outlined', { interaction: 'link', label: ' · interactiva' }], ['outlined', { interaction: 'select', checked: true, label: ' · seleccionada' }]].forEach(([lv, ex]) =>
+      cell(ul, '<b>' + lv + '</b>' + (ex.label || ''), li => mount(li, Object.assign({ level: lv, eyebrow: 'Variante', title: 'Misma estructura', description: T.short, meta: META.slice(0, 2) }, ex))));
+  });
+}
+/* ---------- 3 · densidades ---------- */
+['compact', 'comfortable', 'default'].forEach(d => cell($('#s-density'), '<b>' + d + '</b>', li => mount(li, { density: d, media: { pos: 'top', kind: 'image' }, lead: { icon: 'building-2' }, title: 'Proyecto Atlas', subtitle: 'Equipo de datos', badge: { text: 'Activo', shape: 'circle' }, description: T.two, descLines: 2, meta: META, interaction: 'link', actions: [{ id: 'e', label: 'Editar' }, { id: 's', label: 'Compartir', icon: 'share-2', iconOnly: true }], footer: '<span>Pie</span>' })));
+/* ---------- 4 · estados ---------- */
+let loadingDemo;
+{
+  const base = x => Object.assign({ eyebrow: 'Estado', title: 'Informe mensual', subtitle: 'Resumen de actividad', description: T.two, descLines: 2, titleLines: 1, meta: [{ label: 'Páginas', value: '24' }, { label: 'Autor', value: 'Ana' }], interaction: 'link', actions: [{ id: 'dl', label: 'Descargar' }, { id: 'sh', label: 'Compartir', icon: 'share-2', iconOnly: true }] }, x);
+  [['default (interactiva)', base({})], ['selected', base({ interaction: 'select', checked: true })], ['current', base({ current: true })], ['selected + current', base({ interaction: 'select', checked: true, current: true })],
+    ['toggle (aria-pressed)', base({ interaction: 'toggle', pressed: true })], ['disabled', base({ disabled: true })], ['loading', base({ loading: true, lead: { icon: 'folder' } })],
+    ['error + reintentar', base({ interaction: 'none', status: { type: 'error', text: 'No se pudo cargar el informe.', retry: 'Reintentar' } })],
+    ['warning', base({ status: { type: 'warning', text: 'Faltan datos de la semana 3.' } })], ['success', base({ status: { type: 'success', text: 'Informe publicado.' } })],
+    ['info', base({ status: { type: 'info', text: 'Se actualiza cada hora.' } })], ['empty', base({ description: undefined, meta: [], empty: { text: 'Sin datos todavía', icon: 'folder', action: 'Importar' } })],
+    ['raised + interactiva', base({ level: 'raised' })], ['flat + interactiva', base({ level: 'flat' })], ['inset + interactiva', base({ level: 'inset' })]
+  ].forEach(([lab, o]) => { const c = cell($('#s-states'), '<b>' + lab + '</b>', li => mount(li, o)); if (lab === 'loading') loadingDemo = c; });
+  $('#load-btn').onclick = () => loadingDemo.set({ loading: !loadingDemo.state.loading });
+}
+/* ---------- 5 · media ---------- */
+{
+  const base = { eyebrow: 'Media', title: 'Una tarjeta con media', description: T.two, descLines: 2, titleLines: 1, interaction: 'link' };
+  [['top · imagen', { media: { pos: 'top', kind: 'image' } }], ['top · ilustración', { media: { pos: 'top', kind: 'illustration' } }], ['top · vídeo (informativa)', { media: { pos: 'top', kind: 'video', decor: false, label: 'Vista previa del vídeo' } }],
+    ['top · mapa', { media: { pos: 'top', kind: 'map', decor: false, label: 'Mapa del centro' } }], ['top · gráfico', { media: { pos: 'top', kind: 'chart', decor: false, label: 'Gráfico de barras creciente' } }],
+    ['start (orientation auto)', { media: { pos: 'start', kind: 'image' } }], ['end (orientation auto)', { media: { pos: 'end', kind: 'image' } }],
+    ['start en vertical (se pinta arriba)', { media: { pos: 'start', kind: 'image' }, orientation: 'vertical' }],
+    ['background con velo', { media: { pos: 'background', kind: 'mid' }, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }, { id: 'sv', label: 'Guardar' }, { id: 'sh', label: 'Compartir', icon: 'share-2', iconOnly: true }], menu: MENU, footer: '<span>Pie</span><a href="#x">Enlace</a>' }],
+    ['inline (dentro del cuerpo)', { media: { pos: 'inline', kind: 'image' } }]
+  ].forEach(([lab, ex]) => cell($('#s-media'), '<b>' + lab + '</b>', li => mount(li, Object.assign({}, base, ex))));
+}
+/* ---------- 6 · velo ---------- */
+['white', 'mid', 'black'].forEach(k => cell($('#s-scrim'), '<b>media ' + k + '</b>', li => mount(li, { media: { pos: 'background', kind: k }, eyebrow: 'Categoría', title: 'Título sobre el velo', subtitle: 'Subtítulo', description: T.two, meta: [{ label: 'Duración', value: '3 h' }], interaction: 'link', badge: { text: 'Nuevo', color: 'neutral' }, menu: MENU, actions: [{ id: 'go', label: 'Abrir', level: 'primary' }, { id: 'sv', label: 'Guardar' }, { id: 't', label: 'Más', level: 'tertiary' }], footer: '<span>Pie del velo</span>' })));
+
+/* ---------- 7 · contenedor ---------- */
+const wideCard = () => ({ media: { pos: 'start', kind: 'image' }, eyebrow: 'Resultado', title: 'Recorrido por el centro histórico', description: T.two, descLines: 2, meta: [{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }], more: '<dl class="g-card__meta"><div><dt>Punto de encuentro</dt><dd>Plaza principal</dd></div><div><dt>Cancelación</dt><dd>Gratuita hasta 24 h antes</dd></div></dl>', interaction: 'link', actions: [{ id: 'save', label: 'Guardar', level: 'primary' }, { id: 'share', label: 'Compartir', icon: 'share-2', iconOnly: true }], footer: '<span>Actualizado hoy</span>', labels: { more: 'Más detalles' } });
+{
+  const c = mount($('#fr-card'), wideCard());
+  const upd = () => { $('#fr-out').textContent = 'ancho ' + Math.round(c.el.getBoundingClientRect().width) + 'px → data-size=' + c.el.dataset.size + ' · data-layout=' + c.el.dataset.layout; };
+  new ResizeObserver(upd).observe(c.el); upd();
+  [560, 380, 260].forEach(w => { const d = document.createElement('div'); d.style.inlineSize = w + 'px'; $('#fr-fixed').append(d); mount(d, wideCard()); });
+  for (let i = 0; i < 3; i++) cell($('#fr-grid'), '', li => mount(li, { media: { pos: 'start', kind: 'image' }, title: ['Café de altura', 'Ruta de los pueblos mágicos y sus mercados tradicionales', 'Taller de cerámica'][i], description: T.two, descLines: 2, interaction: 'link', actions: [{ id: 'go', label: 'Ver', level: 'primary' }] }));
+  mount($('#fr-aside'), { media: { pos: 'start', kind: 'image' }, title: 'Guardado', description: 'En el sidebar (estrecho).', interaction: 'link', actions: [{ id: 'go', label: 'Abrir', level: 'primary' }] });
+  mount($('#fr-main2'), { media: { pos: 'start', kind: 'image' }, title: 'Guardado', description: 'En el área principal (amplio).', interaction: 'link', actions: [{ id: 'go', label: 'Abrir', level: 'primary' }] });
+  $('#dlg-x').innerHTML = I('x');
+  const dlg = $('#dlg');
+  const open = w => { dlg.style.inlineSize = w + 'px'; $('#dlg-body').replaceChildren(); const d = mount($('#dlg-body'), wideCard()); dlg.showModal(); requestAnimationFrame(() => requestAnimationFrame(() => { $('#dlg-out').textContent = 'diálogo ' + w + 'px → card ' + Math.round(d.el.getBoundingClientRect().width) + 'px · ' + d.el.dataset.size + ' · ' + d.el.dataset.layout; })); };
+  $('#dlg-s').onclick = () => open(360); $('#dlg-l').onclick = () => open(680); $('#dlg-x').onclick = () => dlg.close();
+}
+/* ---------- 8 · rejilla ---------- */
+{
+  const items = [{ title: 'Café de altura', description: T.short }, { title: 'Ruta de los pueblos mágicos', description: T.long, descLines: 'none' }, { title: 'Taller de cerámica', description: T.two, descLines: 2 }, { title: 'Un título más largo para ver cómo se reparte el espacio', description: T.short }];
+  items.forEach(o => cell($('#s-grid'), '', li => mount(li, Object.assign({ lead: { icon: 'folder' }, interaction: 'link', actions: [{ id: 'go', label: 'Abrir', level: 'primary' }], footer: '<span>Pie anclado al fondo</span>' }, o))));
+  $$('input[name=gh]').forEach(r => r.onchange = () => { $('#s-grid').dataset.heights = r.value; });
+}
+/* ---------- 9 · lista ---------- */
+{
+  const ul = $('#s-list');
+  [['Ana Pérez', 'Diseño', 'AP', true], ['Luis Torres', 'Ingeniería', 'LT'], ['Marta Gil', 'Operaciones con un cargo largo que obliga a pensar el recorte', 'MG']].forEach(([n, s, ini, cur]) => {
+    const c = Card({ as: 'li', level: 'flat', density: 'compact', orientation: 'horizontal', lead: { text: ini }, title: n, titleLines: 1, subtitle: s, interaction: 'link', current: !!cur, badge: { text: 'Activo', shape: 'circle', color: 'success' }, meta: [{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: 'Diseño', priority: 'low' }], menu: MENU });
+    ul.append(c.el);
+  });
+}
+/* ---------- 10 · truncado ---------- */
+[['titleLines 1', { titleLines: 1 }], ['titleLines 2 (defecto)', {}], ['titleLines none', { titleLines: 'none' }], ['descLines 2 + expandir', { descLines: 2, expandable: true }], ['descLines 3 + expandir', { descLines: 3, expandable: true }], ['descLines 4 (corta, sin botón)', { descLines: 4, expandable: true, description: T.short }]].forEach(([lab, ex]) =>
+  cell($('#s-trunc'), '<b>' + lab + '</b>', li => mount(li, Object.assign({ title: T.titleLong, description: T.long, interaction: 'link' }, ex))));
+/* ---------- 11 · vacío y métrica ---------- */
+cell($('#s-empty'), '<b>empty con acción</b>', li => mount(li, { title: 'Proyectos', empty: { text: 'Aún no hay proyectos', icon: 'folder', action: 'Crear proyecto' }, menu: MENU.slice(0, 2) }));
+cell($('#s-empty'), '<b>error de carga</b>', li => mount(li, { title: 'Ingresos', status: { type: 'error', text: 'No se pudo cargar la métrica.', retry: 'Reintentar' } }));
+cell($('#s-empty'), '<b>métrica sin datos</b>', li => mount(li, { title: 'Ingresos mensuales', empty: { text: 'Sin datos para este periodo' }, footer: '<span>Actualizado 09:41</span>' }));
+/* ---------- 12 · interacción ---------- */
+[['link', { interaction: 'link', menu: MENU, actions: [{ id: 'a', label: 'Acción' }] }], ['button (Action Card)', { interaction: 'button' }], ['toggle', { interaction: 'toggle' }], ['select (checkbox)', { interaction: 'select' }],
+  ['link + casilla explícita', { interaction: 'link', selectable: true, checked: true }], ['none con acciones', { interaction: 'none', actions: [{ id: 'a', label: 'Abrir', level: 'primary' }, { id: 'b', label: 'Más', level: 'tertiary' }] }]].forEach(([lab, ex]) =>
+  cell($('#s-interact'), '<b>' + lab + '</b>', li => mount(li, Object.assign({ eyebrow: 'Modelo', title: 'Modelo de interacción', description: T.short }, ex))));
+['Básico', 'Equipo', 'Empresa'].forEach((p, i) => { const li = document.createElement('div'); $('#s-radios').append(li); li.className = 'cell'; mount(li, { title: 'Plan ' + p, description: 'Para ' + ['empezar', 'crecer', 'escalar'][i] + '.', interaction: 'select', selectType: 'radio', name: 'plan', value: p, checked: i === 1 }); });
+/* ---------- 13 · acciones ---------- */
+[['principal + secundaria + solo icono', [{ id: 'a', label: 'Principal', level: 'primary' }, { id: 'b', label: 'Secundaria' }, { id: 'c', label: 'Compartir', icon: 'share-2', iconOnly: true }]], ['solo terciaria', [{ id: 'a', label: 'Ver detalle', level: 'tertiary' }]], ['dos solo icono', [{ id: 'a', label: 'Editar', icon: 'pencil', iconOnly: true }, { id: 'b', label: 'Copiar', icon: 'copy', iconOnly: true }]]].forEach(([lab, a]) =>
+  cell($('#s-actions'), '<b>' + lab + '</b>', li => mount(li, { title: 'Acciones', description: T.short, interaction: 'link', actions: a })));
+/* ---------- 14 · anidadas ---------- */
+{
+  const inner = '<section class="g-surface g-surface--level-inset g-surface--tone-surface g-surface--padding-sm g-surface--density-default"><div class="g-metric g-metric--size-md"><span class="g-metric__label">Resumen</span><span class="g-metric__value">24</span></div></section>';
+  cell($('#s-nest'), '<b>inset interna (radio concéntrico)</b>', li => mount(li, { title: 'Tarjeta con resumen', description: T.short, body: inner }));
+  cell($('#s-nest'), '<b>dos inset anidadas (la tercera se aplana)</b>', li => mount(li, { title: 'Tarjeta con dos niveles', body: '<section class="g-surface g-surface--level-inset g-surface--tone-surface g-surface--padding-sm g-surface--density-default"><span>Nivel 2</span><section class="g-surface g-surface--level-inset g-surface--tone-surface g-surface--padding-sm g-surface--density-default" style="margin-top:8px"><span>Nivel 3 (sin tono)</span></section></section>' }));
+  cell($('#s-nest'), '<b>tarjeta dentro de una inset</b>', li => { const h = document.createElement('div'); h.className = 'g-surface g-surface--level-inset g-surface--tone-surface g-surface--padding-sm g-surface--density-default'; li.append(h); return mount(h, { title: 'Tarjeta nueva', description: T.short, body: inner }); });
+}
+/* ---------- 15 · colores ---------- */
+['brand', 'accent', 'neutral'].forEach(c => cell($('#s-colors'), '<b>color ' + c + '</b>', li => mount(li, { color: c, interaction: 'select', checked: true, title: 'Selección ' + c, description: T.short, current: false })));
+
+/* ---------- herramientas ---------- */
+const themeEl = $('#theme'); let on = false;
+$('#theme-btn').onclick = () => { on = !on; themeEl.textContent = on ? ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-lg:4px;--g-radius-xl:6px;--g-radius-md:3px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-primary-soft:#f7dde5;--g-color-on-primary-soft:#5a0f26;--g-color-accent:#1C6E6E;--g-color-accent-text:#1C6E6E;--g-color-accent-soft:#d8efef;--g-color-on-accent-soft:#0d4545;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-border:rgb(80 50 20 / .14);--g-color-border-strong:rgb(80 50 20 / .3);--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#7a5f44;--g-color-focus:#1C6E6E;--g-space-1:5px}' : ''; };
+$('#dark-btn').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#rtl-btn').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+const q = new URLSearchParams(location.search);
+if (q.get('theme')) $('#gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css';
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+if (q.get('test')) $('#theme-btn').click();
+</script>
+</body>
+</html>

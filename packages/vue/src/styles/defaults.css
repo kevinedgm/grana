@@ -115,6 +115,15 @@
   --g-tabs-band: rgb(0 0 0 / 0.04);
   --g-tabs-panel: var(--g-color-surface);
 
+  /* Card (tokens.md §19, DECISIONS.md #134): velos translúcidos sobre la anfitriona (un paso más oscuro sobre una superficie clara,
+     más claro sobre una oscura), en orden hover < selected < pressed. El velo de la media de fondo se mide contra su peor caso
+     (media blanca): 0.62 de negro deja el blanco a 6.1:1 */
+  --g-card-hover: rgb(0 0 0 / 0.03);
+  --g-card-pressed: rgb(0 0 0 / 0.07);
+  --g-card-selected: rgb(0 0 0 / 0.045);
+  --g-card-scrim: rgb(0 0 0 / 0.62);
+  --g-card-on-scrim: #FFFFFF;
+
   /* Sombras · discretas: el tema prefiere bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.10);
@@ -326,6 +335,13 @@
     --g-tabs-band: rgb(255 255 255 / 0.05);
     --g-tabs-panel: var(--g-color-surface);
 
+    /* Card (tokens.md §19): velos claros sobre la anfitriona oscura; el velo de la media de fondo sube a 0.68 */
+    --g-card-hover: rgb(255 255 255 / 0.04);
+    --g-card-pressed: rgb(255 255 255 / 0.09);
+    --g-card-selected: rgb(255 255 255 / 0.06);
+    --g-card-scrim: rgb(0 0 0 / 0.68);
+    --g-card-on-scrim: #FFFFFF;
+
     /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
     --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
     --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
@@ -436,6 +452,13 @@
   --g-tabs-thumb: rgb(255 255 255 / 0.12);
   --g-tabs-band: rgb(255 255 255 / 0.05);
   --g-tabs-panel: var(--g-color-surface);
+
+  /* Card (tokens.md §19): velos claros sobre la anfitriona oscura; el velo de la media de fondo sube a 0.68 */
+  --g-card-hover: rgb(255 255 255 / 0.04);
+  --g-card-pressed: rgb(255 255 255 / 0.09);
+  --g-card-selected: rgb(255 255 255 / 0.06);
+  --g-card-scrim: rgb(0 0 0 / 0.68);
+  --g-card-on-scrim: #FFFFFF;
 
   /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);

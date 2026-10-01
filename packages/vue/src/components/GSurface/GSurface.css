@@ -17,6 +17,9 @@
   --_border: transparent;
   --_shadow: none;
   --_radius: var(--g-radius-lg);
+  /* Relleno real (escala de padding × density) publicado a los descendientes: solo lectura, lo usan las regiones a sangre
+     de GCard (DECISIONS.md #131). La superficie más cercana gana. No cambia ningún valor ni el radio concéntrico. */
+  --g-surface-padding: var(--_pad);
 
   box-sizing: border-box;
   min-inline-size: 0;
