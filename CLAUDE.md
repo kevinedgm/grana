@@ -50,7 +50,7 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 
 ## Estado actual
 
-**Hecho y en GitHub** (todo `candidate`, con contrato, CSS, pruebas, `meta.json` y README): `GBtn`, `GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GBadge`, `GProgress`, `GMetric`, `GDialog`, `GMenu`, `GCalendar`, `GDatePicker`, `GDataList`, `GSidebar`, `GWidget` (+ `Config`, `Gallery`, `Grid`), `GStepper`, `GSurface`, `GHelper`, `GHelperScope`, `GAvatarMotion`, `GTable`, `GFilterBar`, `GPagination`; `GIcon` es interno (Lucide). Utilidades: `anchor.js`, `filters.js`. `@grana/cli` con motor de tema OKLCH (claves `primary`, `neutrals`, `categories`, `dark`, etc., #107). Decisiones hasta la **#111**.
+**Hecho y en GitHub** (todo `candidate`, con contrato, CSS, pruebas, `meta.json` y README): `GBtn`, `GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GBadge`, `GProgress`, `GMetric`, `GDialog`, `GMenu`, `GCalendar`, `GDatePicker`, `GDataList`, `GSidebar`, `GWidget` (+ `Config`, `Gallery`, `Grid`), `GStepper`, `GSurface`, `GHelper`, `GHelperScope`, `GAvatarMotion`, `GTable`, `GFilterBar`, `GPagination`, `GTabs` (+ `GTabPanel` y el slot `tabs` de `GDialog`); `GIcon` es interno (Lucide). Utilidades: `anchor.js`, `filters.js`. `@grana/cli` con motor de tema OKLCH (claves `primary`, `neutrals`, `categories`, `dark`, etc., #107). Decisiones hasta la **#122**.
 
 **Verificación:** `npm test` (vitest, ~914 pruebas en `@grana/vue`; 136 en `@grana/cli`), `npm run build` y las tres compuertas. Pruebas de navegador con Playwright en Chromium, Firefox y WebKit en `design/lab/theme-playground/` (`npm test` allí; 134 pruebas, #108).
 

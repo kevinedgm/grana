@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTabs",
   "tag": "g-tabs",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Navegación entre vistas del mismo nivel (patrón Tabs de APG): cuatro apariencias (underline, pill, segmented, contained) por dos orientaciones, marca deslizante, activación automática o manual, desbordamiento por scroll, botones de borde o menú «Más», solo icono según el espacio, contador, insignia y estados, paneles integrados, perezosos o separados (GTabPanel).",
   "contract": "design/contracts/tabs.md",
