@@ -1,6 +1,6 @@
 # Declaración de cumplimiento · GTabs · r01
 
-**Estado:** en revisión (aprobada para pasar a lima salvo las preguntas de la última sección; las marcadas «recomendada» se asumen si el usuario no responde).
+**Estado:** superada por r02 (`../r02/declaracion.md`); se conserva como historial. Antes: en revisión (aprobada para pasar a lima salvo las preguntas de la última sección; las marcadas «recomendada» se asumen si el usuario no responde).
 **Ruta:** R1 · **Fidelidad:** F2 · **Material:** kit neutral de grises (sin colores de Grana).
 **Siguiente dueño:** lima → `design/contracts/tabs.md`.
 **Prototipo:** `index.html` (siete composiciones funcionales).

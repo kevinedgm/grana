@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTabs · r02 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px;--dur:200ms;--ease:cubic-bezier(.2,0,0,1)}
+:root[data-touch]{--tmin:44px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)} h3{font-size:14px;margin:16px 0 6px}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:84ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:90ch}
+.ctl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.frame{border:1px dashed var(--wf-3);padding:12px;background:#fff;resize:horizontal;overflow:auto;max-inline-size:100%;min-inline-size:200px}
+.frame.fill{background:var(--wf-fill-2)}
+.log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);padding:4px 8px;margin-top:8px;min-block-size:1.4em;white-space:pre-wrap}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.row>*{max-inline-size:100%;min-inline-size:0}
+.wf-field{display:flex;flex-direction:column;gap:4px;margin:8px 0;max-inline-size:280px;font-size:14px}
+.wf-field input,.wf-field select{font:inherit;padding:6px 8px;border:1px solid var(--wf-3);border-radius:4px;background:#fff}
+.wf-btn{padding:6px 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;min-block-size:var(--tmin)}
+.wf-btn:disabled{opacity:.45}
+.tbl{border-collapse:collapse;font-size:14px;inline-size:100%}.tbl th,.tbl td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--wf-line)}
+.bars{display:flex;align-items:flex-end;gap:6px;block-size:90px}.bars i{flex:1;background:var(--wf-3);border-radius:3px 3px 0 0}
+.skel{block-size:12px;border-radius:6px;background:var(--wf-fill);margin:8px 0;inline-size:min(100%,320px)}.skel+.skel{inline-size:min(100%,220px)}
+.empty{text-align:center;color:var(--wf-2);padding:32px;border:1px dashed var(--wf-line)}
+.list{list-style:none;margin:0;padding:0}.list li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--wf-line);font-size:14px}
+/* Superficies de contexto (kit) */
+.card{background:#fff;border:1px solid var(--wf-line);border-radius:12px;overflow:hidden}
+.inset-host{background:var(--wf-fill-2);border:1px solid var(--wf-line);border-radius:12px;padding:8px;--tabs-track:#e0e0e0}
+.inset-host .inner{background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:12px}
+.side{background:var(--wf-fill-2);border:1px solid var(--wf-line);border-radius:12px;padding:8px}
+
+/* ============ GTabs (estructura; la forma final es de coco) ============ */
+.gtabs{--h:40px;--px:14px;--gap:4px;--tabs-track:var(--wf-fill);display:flex;flex-direction:column;gap:12px;min-inline-size:0}
+.gtabs[data-density=compact]{--h:32px;--px:10px;--gap:2px}
+.gtabs[data-density=spacious]{--h:48px;--px:20px;--gap:6px}
+.gtabs[data-orientation=vertical]{flex-direction:row;align-items:flex-start}
+.gtabs__head{display:flex;align-items:stretch;min-inline-size:0;position:relative}
+.gtabs[data-orientation=vertical] .gtabs__head{flex-direction:column;flex:none;inline-size:var(--vw,200px)}
+.gtabs__scroller{flex:1 1 auto;min-inline-size:0;overflow:auto hidden;scrollbar-width:none;overscroll-behavior-inline:contain}
+.gtabs__scroller::-webkit-scrollbar{display:none}
+.gtabs[data-orientation=vertical] .gtabs__scroller{overflow:hidden auto;max-block-size:var(--maxh,none)}
+.gtabs[data-snap] .gtabs__scroller{scroll-snap-type:x proximity;scroll-padding-inline:16px}
+.gtabs[data-snap] .gtabs__list>*{scroll-snap-align:start}
+/* cue de contenido oculto (único cue en overflow=scroll) */
+.gtabs__scroller[data-fade~=l]{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px);mask-image:linear-gradient(to right,transparent,#000 28px)}
+.gtabs__scroller[data-fade~=r]{-webkit-mask-image:linear-gradient(to left,transparent,#000 28px);mask-image:linear-gradient(to left,transparent,#000 28px)}
+.gtabs__scroller[data-fade~=l][data-fade~=r]{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
+.gtabs[data-orientation=vertical] .gtabs__scroller[data-fade~=t]{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 24px);mask-image:linear-gradient(to bottom,transparent,#000 24px)}
+.gtabs[data-orientation=vertical] .gtabs__scroller[data-fade~=b]{-webkit-mask-image:linear-gradient(to top,transparent,#000 24px);mask-image:linear-gradient(to top,transparent,#000 24px)}
+.gtabs__track{position:relative;display:flex;min-inline-size:100%;inline-size:max-content;padding-inline:var(--inset,0)}
+.gtabs[data-orientation=vertical] .gtabs__track{inline-size:100%;min-inline-size:0}
+.gtabs__list{display:flex;gap:var(--gap);min-inline-size:100%;inline-size:max-content}
+.gtabs[data-orientation=vertical] .gtabs__list{flex-direction:column;inline-size:100%}
+.gtabs.is-measuring .gtabs__list{min-inline-size:0}.gtabs.is-measuring .gtabs__list>*{flex:none!important}
+/* alineación */
+.gtabs[data-align=center] .gtabs__list{justify-content:center}
+.gtabs[data-align=distribute] .gtabs__list{justify-content:space-between}
+.gtabs[data-align=fill] .gtabs__list>*{flex:1 0 0;min-inline-size:max-content}
+.gtabs[data-align=fill] .gtab{justify-content:center}
+.gtabs[data-align=fill] .gtabs__item .gtab{flex:1}
+.gtabs[data-orientation=vertical] .gtabs__list>*{flex:none}
+.gtabs__item{display:flex;align-items:center}
+.gtabs__item .gtab{padding-inline-end:4px;flex:none}
+/* pestaña */
+.gtab{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 var(--px);min-block-size:max(var(--h),var(--tmin));white-space:nowrap;color:var(--wf-2);position:relative;z-index:1;border-radius:6px;font-size:14px}
+.gtab[hidden],.gtabs__item[hidden]{display:none}
+.gtabs[data-orientation=vertical] .gtab{justify-content:flex-start;inline-size:100%}
+.gtab__label{display:inline-flex;flex-direction:column;align-items:center}
+.gtab__label::after{content:attr(data-label);font-weight:600;visibility:hidden;block-size:0;overflow:hidden;pointer-events:none}   /* reserva el ancho en negrita: la activa no mueve a las demás */
+.gtab[aria-selected=true]{color:var(--wf-ink);font-weight:600}
+.gtab[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+@media (hover:hover){.gtab:hover:not([aria-selected=true]):not([aria-disabled=true]){color:var(--wf-ink);background:rgba(0,0,0,.05)}}
+.gtab[data-force~=hover]:not([aria-selected=true]){color:var(--wf-ink);background:rgba(0,0,0,.05)}
+.gtab:focus-visible,.gtab[data-force~=focus]{outline:3px solid var(--wf-ink);outline-offset:-3px}
+/* información secundaria: más pequeña y más pálida que la etiqueta */
+.gtab__status{display:inline-flex;color:var(--wf-2)}
+.gtab__status[data-status=loading] .g-icon{animation:gt-spin 1s linear infinite}
+.gtab__count{font-size:12px;line-height:16px;font-weight:500;min-inline-size:20px;text-align:center;padding:0 6px;border-radius:999px;background:var(--wf-fill);color:var(--wf-2);font-variant-numeric:tabular-nums}
+.gtab__badge{font-size:12px;line-height:16px;font-weight:500;padding:0 6px;border:1px solid var(--wf-line);border-radius:4px;color:var(--wf-2)}
+.gtab[aria-selected=true] .gtab__count{color:var(--wf-ink)}
+@keyframes gt-spin{to{transform:rotate(360deg)}}
+/* acción secundaria (cerrar): hermana de la pestaña, fuera de su rol, fuera del orden de Tab */
+.gtab__close{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;inline-size:24px;block-size:24px;border-radius:999px;color:var(--wf-3);margin-inline-end:calc(var(--px)/2);position:relative;z-index:1;flex:none}
+.gtab__close::before{content:"";position:absolute;inset:-10px calc(var(--tmin) / -4 - 2px)}
+.gtab__close:hover{color:var(--wf-ink);background:rgba(0,0,0,.08)}
+.gtab__close:focus-visible{outline:3px solid var(--wf-ink);outline-offset:0}
+/* etiquetas auto: las inactivas se reducen a icono */
+.gtabs[data-labels=icons] .gtab .gtab__label,.gtabs[data-labels=active] .gtab[aria-selected=false] .gtab__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+.gtabs[data-labels=icons] .gtab,.gtabs[data-labels=active] .gtab[aria-selected=false]{gap:4px}
+/* indicador deslizante: un único elemento, fuera del tablist, que se mueve entre pestañas */
+.gtabs__ind{position:absolute;left:0;top:0;pointer-events:none;inline-size:var(--iw,0);block-size:var(--ih,0);transform:translate(var(--ix,0),var(--iy,0));opacity:0}
+.gtabs[data-ready] .gtabs__ind{opacity:1}
+.gtabs[data-animate] .gtabs__ind{transition:transform var(--dur) var(--ease),inline-size var(--dur) var(--ease),block-size var(--dur) var(--ease)}
+/* underline */
+.gtabs[data-appearance=underline] .gtabs__head{background:linear-gradient(var(--wf-line),var(--wf-line)) bottom/100% 1px no-repeat}
+.gtabs[data-appearance=underline][data-orientation=vertical] .gtabs__head{background:linear-gradient(var(--wf-line),var(--wf-line)) right/1px 100% no-repeat}
+.gtabs[data-appearance=underline][data-orientation=vertical] .gtabs__head:dir(rtl){background-position:left}
+.gtabs[data-appearance=underline] .gtabs__ind{background:linear-gradient(var(--wf-ink),var(--wf-ink)) bottom/100% 2px no-repeat}
+.gtabs[data-appearance=underline][data-orientation=vertical] .gtabs__ind{background:linear-gradient(var(--wf-ink),var(--wf-ink)) right/2px 100% no-repeat}
+.gtabs[data-appearance=underline][data-orientation=vertical] .gtabs__ind:dir(rtl){background-position:left}
+.gtabs[data-appearance=underline] .gtab{border-end-start-radius:0;border-end-end-radius:0}
+/* pill */
+.gtabs[data-appearance=pill] .gtab{border-radius:999px}
+.gtabs[data-appearance=pill] .gtabs__ind{background:var(--wf-fill);border-radius:999px}
+.gtabs[data-appearance=pill][data-orientation=vertical] .gtab{border-radius:8px}.gtabs[data-appearance=pill][data-orientation=vertical] .gtabs__ind{border-radius:8px}
+/* segmented: una superficie común; la activa se eleva dentro de ella */
+.gtabs[data-appearance=segmented] .gtabs__scroller{background:var(--tabs-track);border-radius:9px}
+.gtabs[data-appearance=segmented] .gtabs__track{padding:3px}
+.gtabs[data-appearance=segmented] .gtabs__list{gap:2px}
+.gtabs[data-appearance=segmented] .gtabs__ind{background:#fff;border:1px solid var(--wf-line);border-radius:7px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.gtabs[data-appearance=segmented][data-align=start]{align-items:flex-start}
+.gtabs[data-appearance=segmented][data-align=start] .gtabs__head{max-inline-size:100%}
+.gtabs[data-appearance=segmented] .gtab{border-radius:7px}
+/* contained: banda a sangre dentro de la superficie anfitriona; la activa se funde con el panel */
+.gtabs[data-appearance=contained]{gap:0}
+.gtabs[data-appearance=contained] .gtabs__head{background:linear-gradient(var(--wf-line),var(--wf-line)) bottom/100% 1px no-repeat,var(--wf-fill-2)}
+.gtabs[data-appearance=contained] .gtabs__list{gap:0}
+.gtabs[data-appearance=contained] .gtab{border-radius:0}
+.gtabs[data-appearance=contained] .gtabs__ind{background:#fff;border:1px solid var(--wf-line);border-bottom:0;border-top:2px solid var(--wf-ink);margin-inline:-1px}
+.gtabs[data-appearance=contained] .gtabs__panel{padding:16px}
+/* botones de borde (solo puntero) y «Más» */
+.gtabs__edge,.gtabs__more{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;flex:none;color:var(--wf-2)}
+.gtabs__edge{inline-size:max(32px,var(--tmin));block-size:auto}
+.gtabs__edge[data-dim]{opacity:.3;pointer-events:none}
+.gtabs__edge[hidden],.gtabs__more[hidden]{display:none}
+.gtabs__edge:hover,.gtabs__more:hover{color:var(--wf-ink)}
+.gtabs__edge:focus-visible,.gtabs__more:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gtabs:dir(rtl) .gtabs__edge .g-icon{transform:scaleX(-1)}
+.gtabs__more{display:inline-flex;gap:4px;padding:0 10px;min-block-size:max(var(--h),var(--tmin));font-size:14px;border-radius:6px;margin-inline-start:4px}
+.gtabs__more[aria-expanded=true]{background:rgba(0,0,0,.06);color:var(--wf-ink)}
+.gtabs__menu{position:absolute;inset-inline-end:0;inset-block-start:100%;z-index:5;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid var(--wf-ink);border-radius:8px;min-inline-size:200px;max-block-size:260px;overflow:auto;font-size:14px}
+.gtabs__menu[hidden]{display:none}
+.gtabs__menu [role=menuitemradio]{display:flex;gap:8px;align-items:center;padding:8px 10px;cursor:pointer;border-radius:6px;min-block-size:max(32px,var(--tmin))}
+.gtabs__menu [role=menuitemradio]:hover{background:var(--wf-fill)}
+.gtabs__menu [role=menuitemradio][aria-checked=true]{font-weight:600}
+.gtabs__menu [role=menuitemradio][aria-disabled=true]{opacity:.45}
+.gtabs__menu [role=menuitemradio]:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gtabs__menu .g-icon.check{margin-inline-start:auto}
+/* paneles */
+.gtabs__panels{flex:1;min-inline-size:0;min-block-size:0}
+.gtabs__panel{padding:8px 0}
+.gtabs__panel[hidden]{display:none}
+.gtabs__panel:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.gtabs__panel.is-entering{animation:gt-in 160ms var(--ease)}
+@keyframes gt-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.gtabs__panel[aria-busy=true] .loaded{display:none}
+.gtabs__panel:not([aria-busy=true]) .skeletons{display:none}
+.gtabs__empty{padding:24px;color:var(--wf-2);text-align:center;border:1px dashed var(--wf-line)}
+/* movimiento reducido: sin deslizamiento, sin entrada, sin giro (también por el interruptor de la demo) */
+@media (prefers-reduced-motion:reduce){
+  .gtabs[data-animate] .gtabs__ind{transition:none}.gtabs__panel.is-entering{animation:none}.gtab__status[data-status=loading] .g-icon{animation:none}}
+:root[data-motion=off] .gtabs[data-animate] .gtabs__ind{transition:none}
+:root[data-motion=off] .gtabs__panel.is-entering{animation:none}
+:root[data-motion=off] .gtab__status[data-status=loading] .g-icon{animation:none}
+@media (forced-colors:active){.gtabs__ind{forced-color-adjust:none;outline:2px solid CanvasText}}
+
+/* Diálogo del kit (GDialog real: carcasa + inset) */
+dialog.dlg{padding:0;border:1px solid var(--wf-ink);border-radius:14px;inline-size:min(560px,calc(100vw - 24px));max-block-size:calc(100dvh - 32px);color:inherit;background:#fff;overflow:hidden}
+dialog.dlg[open]{display:flex;flex-direction:column}
+dialog.dlg::backdrop{background:rgba(0,0,0,.4)}
+.dlg__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 8px}
+.dlg__head h2{margin:0;font-size:18px;font-weight:600}
+.dlg__x{all:unset;cursor:pointer;display:grid;place-items:center;inline-size:max(32px,var(--tmin));block-size:max(32px,var(--tmin));border-radius:8px}
+.dlg__x:hover{background:var(--wf-fill)}.dlg__x:focus-visible{outline:3px solid var(--wf-ink)}
+.dlg__inset{margin:0 8px;background:#fff;border:1px solid var(--wf-line);border-radius:8px;display:flex;flex-direction:column;min-block-size:0;flex:1;overflow:hidden}
+.dlg__inset .gtabs{flex:1;min-block-size:0}
+.dlg__inset .gtabs__panels{overflow:auto;max-block-size:280px;padding:0 16px}
+.dlg__foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px}
+</style>
+</head>
+<body>
+<main>
+<h1>GTabs · r02</h1>
+<p class="meta">Wireframe F2 (kit neutral, solo estructura y comportamiento). Kiwi propone; color, forma, grosor y movimiento finales son de coco. Patrón: WAI-ARIA APG <em>Tabs</em>. Todo es funcional: usa el teclado, estrecha los marcos (esquina inferior derecha) y prueba los interruptores.</p>
+<div class="wf-note"><strong>Teclado (horizontal):</strong> Tab entra en la pestaña activa y sale al panel; ←/→ mueven con vuelta; Home/End; Enter o Espacio activan en modo manual; <kbd>Supr</kbd> cierra una pestaña cerrable. <strong>Vertical:</strong> ↑/↓. Los registros grises muestran los eventos.</div>
+<div class="ctl" id="globals">
+  <label><input type="checkbox" id="g-motion"> Simular «reducir movimiento»</label>
+  <label><input type="checkbox" id="g-touch"> Simular objetivos táctiles (44px)</label>
+  <label>Dirección <select id="g-dir"><option value="ltr">ltr</option><option value="rtl">rtl</option></select></label>
+</div>
+
+<h2 class="sec">1 · Las cinco variantes con la misma anatomía</h2>
+<p class="cap">Mismo componente, mismos datos; solo cambia <code>appearance</code> (<code>underline</code>, <code>pill</code>, <code>segmented</code>, <code>contained</code>) y <code>orientation="vertical"</code>. La activa se distingue por <strong>forma</strong> (línea, superficie, segmento elevado, pestaña fundida con el panel) <strong>y</strong> peso tipográfico, nunca solo por color. La marca es un único elemento que se desliza (ver §4).</p>
+<div class="grid2">
+  <div><h3>underline</h3><div class="frame"><div id="a1"></div></div></div>
+  <div><h3>pill</h3><div class="frame"><div id="a2"></div></div></div>
+  <div><h3>segmented</h3><div class="frame"><div id="a3"></div></div></div>
+  <div><h3>contained (dentro de una card)</h3><div class="card"><div id="a4"></div></div></div>
+</div>
+<h3>vertical (underline y pill)</h3>
+<div class="grid2">
+  <div class="frame"><div id="a5"></div></div>
+  <div class="frame"><div id="a6"></div></div>
+</div>
+<div class="wf-note"><strong>Jerarquía (regla):</strong> los tabs son navegación entre vistas <em>del mismo nivel</em>. No se anidan: un <code>GTabs</code> dentro del panel de otro <code>GTabs</code> es un error de uso (aviso en desarrollo; verificado abajo). Subnavegación dentro de una pestaña: <code>GSidebar</code>, lista de enlaces, secciones con encabezados, <code>GStepper</code> o filtros (<code>GFilterBar</code>). Tampoco son enlaces de navegación entre páginas: eso es <code>GSidebar</code>/enlaces; con router, el tab sigue siendo <code>role="tab"</code> y el router solo sincroniza el valor (§12).</div>
+
+<h2 class="sec">2 · Densidad</h2>
+<p class="cap">Tres niveles que solo cambian altura, relleno, separación y grosor de la marca; la lógica no cambia. En táctil, el objetivo nunca baja de 44px (interruptor arriba) y siempre ≥ 24px.</p>
+<div class="ctl"><label>Apariencia <select id="d-app"><option>underline</option><option>pill</option><option>segmented</option><option>contained</option></select></label></div>
+<div class="grid2">
+  <div><h3>compact</h3><div class="frame"><div id="d1"></div></div></div>
+  <div><h3>comfortable (por defecto)</h3><div class="frame"><div id="d2"></div></div></div>
+  <div><h3>spacious</h3><div class="frame"><div id="d3"></div></div></div>
+</div>
+
+<h2 class="sec">3 · Matriz de estados (por apariencia)</h2>
+<p class="cap">Activa · hover (forzado) · foco (forzado; <strong>distinto de la activa</strong>: la activa es la primera y el anillo de foco está en otra) · deshabilitada · cargando · atención · con insignia · con contador. Hover y foco forzados con <code>data-force</code> solo para mostrarlos juntos; son reales con ratón y teclado. El estado de pestaña <code>loading</code> no la deshabilita; <code>attention</code> usa icono (forma), no solo color.</p>
+<div id="matrix"></div>
+
+<h2 class="sec">4 · Indicador deslizante y movimiento</h2>
+<p class="cap">La marca se desliza entre pestañas con <code>transform</code> + tamaño (≈200ms, curva estándar) y el panel entra con un fundido de 160ms. Con <code>prefers-reduced-motion: reduce</code> (o el interruptor de arriba) la marca salta sin transición, el panel aparece sin animar y el giro de «cargando» se detiene; el estado sigue siendo evidente por la forma. La marca se recoloca al redimensionar, al cambiar la densidad y al cambiar de apariencia.</p>
+<div class="ctl"><label>Apariencia <select id="m-app"><option>underline</option><option>pill</option><option>segmented</option><option>contained</option></select></label>
+<label>Densidad <select id="m-den"><option>comfortable</option><option>compact</option><option>spacious</option></select></label></div>
+<div class="frame" style="inline-size:560px"><div id="m1"></div></div><output class="log" id="m1-log"></output>
+
+<h2 class="sec">5 · Desbordamiento: cinco estrategias, un solo modelo</h2>
+<p class="cap">No se reduce el ancho de las pestañas: se desplazan o se agrupan. <code>scroll</code> (táctil/trackpad; cue = degradado en el borde), <code>arrows</code> (scroll + botones anterior/siguiente solo de puntero), <code>more</code> (visibles + menú «Más» con las ocultas), <code>combined</code> (scroll + botones + «Más» con <em>todas</em> las pestañas) y <code>auto</code> (propuesta: puntero táctil → <code>scroll</code>; con puntero fino → <code>combined</code>). Estrecha cada marco.</p>
+<h3>scroll</h3><div class="frame" style="inline-size:420px"><div id="o1"></div></div>
+<h3>arrows</h3><div class="frame" style="inline-size:420px"><div id="o2"></div></div>
+<h3>more</h3><div class="frame" style="inline-size:420px"><div id="o3"></div></div>
+<h3>combined</h3><div class="frame" style="inline-size:420px"><div id="o4"></div></div>
+<h3>auto</h3><div class="frame" style="inline-size:420px"><div id="o5"></div></div><output class="log" id="o5-log"></output>
+<h3>La activa siempre visible</h3>
+<p class="cap">Activar desde fuera (como haría un <code>v-model</code>, una ruta o una acción) una pestaña que está fuera de vista: en <code>scroll</code>/<code>arrows</code>/<code>combined</code> se desplaza hasta ella; en <code>more</code> sale del menú y entra en la barra. Prueba con las cuatro estrategias de arriba.</p>
+<div class="ctl"><label>Activar <select id="ext-id"></select></label><label>en <select id="ext-ex"><option value="o1">scroll</option><option value="o2">arrows</option><option value="o3">more</option><option value="o4">combined</option></select></label><button class="wf-btn" id="ext-go" type="button">Activar desde fuera</button></div>
+
+<h2 class="sec">6 · Móvil: snap, segmented que degrada y etiquetas que se reducen a icono</h2>
+<p class="cap">Marco de 360px. <code>snap</code> opcional (<code>scroll-snap-type: x proximity</code>), momentum nativo, <code>overscroll-behavior-inline: contain</code> (deslizar la lista no dispara «atrás» ni mueve el contenido) y objetivo táctil de 44px. <code>segmented</code> con pocas opciones se reparte el ancho; con más de las que caben <strong>degrada a scroll</strong> sin cambiar de apariencia (a 320px: 3 opciones caben, 7 no). <code>labels="auto"</code> (propuesta): si todas las pestañas tienen icono y no caben, las inactivas pasan a solo icono (la activa conserva icono + etiqueta; las etiquetas siguen en el DOM) antes de recurrir al desbordamiento, igual que la píldora activa de <code>GSidebar</code> (#68).</p>
+<div class="row">
+  <div><h3>snap + scroll (táctil)</h3><div class="frame" style="inline-size:360px"><div id="s1"></div></div></div>
+  <div><h3>segmented · 3 opciones · 320px</h3><div class="frame" style="inline-size:320px"><div id="s2"></div></div></div>
+  <div><h3>segmented · 7 opciones · 320px</h3><div class="frame" style="inline-size:320px"><div id="s3"></div></div></div>
+  <div><h3>labels="auto" · 360px</h3><div class="frame" style="inline-size:360px"><div id="s4"></div></div></div>
+</div>
+
+<h2 class="sec">7 · Alineación</h2>
+<p class="cap"><code>align</code>: <code>start</code>, <code>center</code>, <code>distribute</code> (contenido a su tamaño, huecos iguales) y <code>fill</code> (columnas iguales a todo el ancho). Aplica a las cuatro apariencias horizontales.</p>
+<div class="ctl"><label>Apariencia <select id="al-app"><option>underline</option><option>pill</option><option>segmented</option><option>contained</option></select></label></div>
+<div class="grid2">
+  <div><h3>start</h3><div class="frame"><div id="al1"></div></div></div>
+  <div><h3>center</h3><div class="frame"><div id="al2"></div></div></div>
+  <div><h3>distribute</h3><div class="frame"><div id="al3"></div></div></div>
+  <div><h3>fill</h3><div class="frame"><div id="al4"></div></div></div>
+</div>
+
+<h2 class="sec">8 · Superficies: plana, card, inset, dialog, sidebar</h2>
+<p class="cap">El comportamiento es idéntico; solo se adaptan los tonos relativos a la superficie anfitriona (la pista del segmented toma un paso más oscuro que el fondo donde vive, como la <code>inset</code> de <code>GSurface</code>).</p>
+<div class="grid2">
+  <div><h3>Fondo plano (underline)</h3><div id="f1"></div></div>
+  <div><h3>Card (contained, a sangre)</h3><div class="card"><div id="f2"></div></div></div>
+  <div><h3>Inset surface (segmented)</h3><div class="inset-host"><div id="f3"></div><div class="inner" style="margin-top:8px">Contenido de la inset: el segmented usa una pista un paso más oscura que su anfitriona.</div></div></div>
+  <div><h3>Dialog real, tabs bajo el encabezado</h3><button class="wf-btn" id="open-dlg" type="button">Abrir diálogo «Editar proyecto»</button><p class="cap" style="margin-top:8px">Esc cierra el diálogo; el foco queda atrapado. Las pestañas no compiten con el título: más pequeñas, sin color, línea fina a sangre.</p></div>
+</div>
+<h3>Sidebar / panel lateral: vertical con etiquetas y solo iconos</h3>
+<div class="row">
+  <div class="side" style="inline-size:230px"><div id="f5"></div></div>
+  <div class="side" style="inline-size:76px"><div id="f6"></div></div>
+</div>
+<output class="log" id="f5-log"></output>
+
+<h2 class="sec">9 · Solo iconos con etiqueta accesible</h2>
+<p class="cap">La etiqueta es <strong>obligatoria</strong> aunque no se vea (<code>labels="icons"</code>): sigue en el DOM como texto oculto y es el nombre accesible. En vez de <code>title</code> (no existe en táctil ni es fiable con lector), la etiqueta visible al pasar el ratón o enfocar será un tooltip del sistema si lo hay (pregunta abierta). Aquí se usa <code>title</code> solo como ayuda del prototipo.</p>
+<div class="row">
+  <div class="frame"><div id="i1"></div></div>
+  <div class="frame"><div id="i2"></div></div>
+</div>
+
+<h2 class="sec">10 · Acción secundaria opcional: cerrar</h2>
+<p class="cap">Solo cuando tiene sentido (pestañas creadas por el usuario: archivos, documentos). Va <em>fuera</em> del <code>role="tab"</code> (un botón dentro de una pestaña es un control interactivo anidado), como hermana en un contenedor <code>role="presentation"</code>, con nombre propio, <code>tabindex="-1"</code> (no entra en Tab ni cambia el foco itinerante) y su equivalente de teclado es <kbd>Supr</kbd> sobre la pestaña (<code>aria-keyshortcuts="Delete"</code>). Al cerrar la activa, se activa la vecina y el foco va a ella; el cierre es cancelable y se anuncia. No aplica a <code>segmented</code> ni a pestañas deshabilitadas.</p>
+<div class="frame"><div id="c1"></div></div><output class="log" id="c1-log"></output>
+<div class="ctl"><button class="wf-btn" id="c-reset" type="button">Restablecer pestañas</button><label><input type="checkbox" id="c-block"> Cancelar el cierre de «Notas» («cambios sin guardar»)</label></div>
+
+<h2 class="sec">11 · Contenido dinámico y relación tab ↔ panel</h2>
+<p class="cap">Tabla, formulario (borrador que se conserva al cambiar), gráfico (carga: la pestaña muestra <code>loading</code> y su panel <code>aria-busy</code> con esqueleto), lista y estado vacío. El panel está enlazado por <code>aria-controls</code>/<code>aria-labelledby</code>, queda pegado a su marca y entra con un fundido. Con «cambios sin guardar» el cambio es cancelable.</p>
+<div class="ctl"><label><input type="checkbox" id="dyn-dirty"> Simular «cambios sin guardar» (cancela el cambio)</label></div>
+<div class="frame"><div id="dy"></div></div><output class="log" id="dy-log"></output>
+
+<h2 class="sec">12 · Persistencia opcional en la URL (hash)</h2>
+<p class="cap">El componente solo tiene <code>v-model</code>; la sincronización es externa y opcional (aquí un enlazador de ~15 líneas sobre <code>#clave=id</code> con <code>pushState</code>): recargar, «atrás» y compartir el enlace restauran la pestaña; un id desconocido o deshabilitado se ignora. Con un router se usaría la ruta o el <em>query</em> en su lugar sin que <code>GTabs</code> lo sepa.</p>
+<div class="frame"><div id="u1"></div></div><output class="log" id="u1-log"></output>
+<p class="cap" style="margin-top:8px">URL actual: <code id="u-url"></code></p>
+</main>
+
+<dialog class="dlg" id="dlg" aria-labelledby="dlg-t">
+  <div class="dlg__head"><h2 id="dlg-t">Editar proyecto</h2><button class="dlg__x" id="dlg-x" type="button" aria-label="Cerrar" ></button></div>
+  <div class="dlg__inset"><div id="dlg-tabs"></div></div>
+  <div class="dlg__foot"><button class="wf-btn" id="dlg-c" type="button">Cancelar</button><button class="wf-btn" id="dlg-s" type="button" style="background:var(--wf-ink);color:#fff">Guardar</button></div>
+</dialog>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = n => window.lucide(n);
+document.getElementById('dlg-x').innerHTML = I('x');
+let uid = 0;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const coarse = () => matchMedia('(pointer:coarse)').matches || document.documentElement.hasAttribute('data-touch');
+const reduced = () => matchMedia('(prefers-reduced-motion:reduce)').matches || document.documentElement.dataset.motion === 'off';
+
+/* Fábrica de prototipo. Ítem: {id,label,icon?,count?,countLabel?,badge?,badgeLabel?,status?:'loading'|'attention',statusLabel?,disabled?,closable?,closeLabel?}
+   Opciones: label, tabs, value, appearance, density, align, orientation, activation, overflow, labels, snap, lazy, maxh,
+   panel(id,t,ctx), beforeChange(next,prev,src)->bool, onChange(id,src), onLog(msg), onFirstShow(id,ctx), onClose({id,source})->bool */
+function Tabs(host, o) {
+  const id = 'gt' + ++uid;
+  const warn = m => !o.quiet && typeof console !== 'undefined' && console.warn('[GTabs] ' + m);
+  let tabs = o.tabs.map(t => ({ ...t }));
+  const cfg = { appearance: o.appearance || 'underline', density: o.density || 'comfortable', orientation: o.orientation || 'horizontal', labels: o.labels || 'full' };
+  cfg.align = o.align || (cfg.appearance === 'segmented' ? 'fill' : 'start');
+  let value = o.value ?? (tabs.find(t => !t.disabled) || {}).id, focused = value, menuOpen = false;
+  const log = m => o.onLog && o.onLog(m);
+  /* avisos de desarrollo */
+  if (!o.label) warn('el tablist necesita un nombre (label).');
+  if (host.closest('.gtabs__panel')) warn('no se anidan tabs: usa otro patrón para la subnavegación.');
+  if (cfg.appearance === 'segmented' && tabs.length > 6) warn('segmented es para pocas opciones (≤ 6); degrada a scroll.');
+  if (cfg.appearance === 'segmented' && tabs.some(t => t.closable)) warn('segmented no admite pestañas cerrables; se ignoran.');
+  if (cfg.orientation === 'vertical' && (cfg.appearance === 'segmented' || cfg.appearance === 'contained')) { warn('vertical solo admite underline y pill; se usa pill.'); cfg.appearance = 'pill'; }
+  tabs.forEach(t => { if (t.count != null && t.badge) warn('«' + t.label + '»: contador y badge a la vez compiten con la etiqueta.'); if (cfg.appearance === 'segmented') t.closable = false; });
+  if (cfg.labels !== 'full' && tabs.some(t => !t.icon)) warn('labels distinto de full exige un icono en todas las pestañas.');
+  const resolveOverflow = () => { const v = o.overflow || 'scroll'; return v === 'auto' ? (coarse() ? 'scroll' : 'combined') : v; };
+  host.innerHTML = '';
+  const root = document.createElement('div');
+  root.className = 'gtabs';
+  const sync = () => { root.dataset.appearance = cfg.appearance; root.dataset.density = cfg.density; root.dataset.orientation = cfg.orientation; root.dataset.align = cfg.align; root.dataset.labels = cfg.labels === 'auto' ? 'full' : cfg.labels; root.dataset.overflow = resolveOverflow(); };
+  sync();
+  if (o.snap) root.dataset.snap = '';
+  if (o.maxh) root.style.setProperty('--maxh', o.maxh);
+  root.innerHTML =
+    '<div class="gtabs__head">' +
+      '<button type="button" class="gtabs__edge" data-edge="start" tabindex="-1" aria-hidden="true" hidden>' + I('chevron-left') + '</button>' +
+      '<div class="gtabs__scroller"><div class="gtabs__track"><span class="gtabs__ind" aria-hidden="true"></span><div class="gtabs__list" role="tablist" aria-label="' + esc(o.label || '') + '" aria-orientation="' + cfg.orientation + '"></div></div></div>' +
+      '<button type="button" class="gtabs__edge" data-edge="end" tabindex="-1" aria-hidden="true" hidden>' + I('chevron-right') + '</button>' +
+      '<button type="button" class="gtabs__more" hidden aria-haspopup="menu" aria-expanded="false" aria-controls="' + id + '-menu"><span class="sr"></span><span aria-hidden="true">Más</span>' + I('chevron-down') + '</button>' +
+      '<ul class="gtabs__menu" role="menu" id="' + id + '-menu" aria-label="Más pestañas" hidden></ul>' +
+    '</div><div class="gtabs__panels"></div><div class="gtabs__empty" hidden>Sin pestañas.</div><span class="sr" role="status" aria-live="polite"></span>';
+  host.appendChild(root);
+  const head = $('.gtabs__head', root), list = $('.gtabs__list', root), scroller = $('.gtabs__scroller', root), track = $('.gtabs__track', root), ind = $('.gtabs__ind', root),
+        panels = $('.gtabs__panels', root), live = $('[role=status]', root), more = $('.gtabs__more', root), menu = $('.gtabs__menu', root),
+        edgeS = $('[data-edge=start]', root), edgeE = $('[data-edge=end]', root);
+  const T = {}, P = {}, W = {};   // tab, panel, wrapper (solo si es cerrable)
+  const el = tid => W[tid] || T[tid];
+  const rtl = () => getComputedStyle(root).direction === 'rtl';
+
+  function fill(t) {
+    const b = T[t.id];
+    const lbl = esc(t.label);
+    b.innerHTML = (t.icon ? I(t.icon) : '') + '<span class="gtab__label" data-label="' + lbl + '">' + lbl + '</span>' +
+      (t.status ? '<span class="gtab__status" data-status="' + t.status + '" aria-hidden="true">' + I(t.status === 'loading' ? 'loader-circle' : 'circle-alert') + '</span><span class="sr">' + esc(t.statusLabel || t.status) + '</span>' : '') +
+      (t.badge ? '<span class="gtab__badge" aria-hidden="true">' + esc(t.badge) + '</span><span class="sr">' + esc(t.badgeLabel || t.badge) + '</span>' : '') +
+      (t.count != null ? '<span class="gtab__count" aria-hidden="true">' + t.count + '</span><span class="sr">' + esc(t.countLabel || t.count) + '</span>' : '');
+    if (cfg.labels === 'icons' || cfg.labels === 'auto') b.title = t.label; else b.removeAttribute('title');
+  }
+  function build() {
+    Object.keys(T).forEach(k => { if (!tabs.some(t => t.id === k)) { (W[k] || T[k]).remove(); P[k].remove(); delete T[k]; delete P[k]; delete W[k]; } });
+    tabs.forEach((t, i) => {
+      if (!T[t.id]) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.setAttribute('role', 'tab'); b.id = id + '-t-' + t.id; b.dataset.id = t.id; b.className = 'gtab';
+        b.setAttribute('aria-controls', id + '-p-' + t.id);
+        T[t.id] = b;
+        if (t.closable) {
+          const w = document.createElement('div'); w.className = 'gtabs__item'; w.setAttribute('role', 'presentation');
+          const x = document.createElement('button'); x.type = 'button'; x.className = 'gtab__close'; x.tabIndex = -1; x.dataset.close = t.id;
+          x.setAttribute('aria-label', t.closeLabel || ('Cerrar ' + t.label)); x.innerHTML = I('x');
+          b.setAttribute('aria-keyshortcuts', 'Delete');
+          w.append(b, x); W[t.id] = w;
+        }
+        const p = document.createElement('div');
+        p.className = 'gtabs__panel'; p.setAttribute('role', 'tabpanel'); p.id = id + '-p-' + t.id; p.setAttribute('aria-labelledby', b.id); p.hidden = true;
+        P[t.id] = p; panels.appendChild(p);
+        if (!o.lazy) mount(t);
+      }
+      const b = T[t.id];
+      fill(t);
+      if (t.disabled) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled');
+      b.setAttribute('aria-setsize', tabs.length); b.setAttribute('aria-posinset', i + 1);
+      list.appendChild(el(t.id));      // reordena
+    });
+  }
+  function mount(t) {
+    const p = P[t.id]; if (p.dataset.mounted) return; p.dataset.mounted = '1';
+    const c = o.panel ? o.panel(t.id, t, { panel: p }) : '<p>Contenido de ' + esc(t.label) + '.</p>';
+    if (typeof c === 'string') p.innerHTML = c; else p.replaceChildren(c);
+  }
+  function announce(m) { live.textContent = ''; setTimeout(() => live.textContent = m, 30); }
+  function fixPanel(p) { if (p.querySelector(FOCUSABLE)) p.removeAttribute('tabindex'); else p.tabIndex = 0; }
+  const enabled = () => tabs.filter(t => !t.disabled && !el(t.id).hidden);
+
+  function render(entering) {
+    tabs.forEach(t => {
+      const sel = t.id === value, b = T[t.id];
+      b.setAttribute('aria-selected', sel);
+      b.tabIndex = (t.id === focused && !t.disabled) ? 0 : -1;
+      if (sel && entering && P[t.id].hidden) { P[t.id].classList.remove('is-entering'); void P[t.id].offsetWidth; P[t.id].classList.add('is-entering'); }
+      P[t.id].hidden = !sel;
+      P[t.id].setAttribute('aria-busy', sel && t.status === 'loading' ? 'true' : 'false');
+    });
+    if (value) fixPanel(P[value]);
+    layout(); reveal(value);
+  }
+  function select(tid, source, opt = {}) {
+    const t = tabs.find(x => x.id === tid);
+    if (!t || t.disabled) return false;
+    if (tid !== value) {
+      if (o.beforeChange && o.beforeChange(tid, value, source) === false) { log('change cancelado (' + source + '): el valor y el foco no cambian'); return false; }
+      const prev = value; value = tid; focused = tid;
+      mount(t);
+      if (o.lazy && !P[tid].dataset.visited) { P[tid].dataset.visited = '1'; o.onFirstShow && o.onFirstShow(tid, { api, panel: P[tid] }); }
+      log('update:modelValue "' + tid + '"  (antes "' + prev + '", ' + source + ')');
+      render(true);
+      if (!opt.silent && o.onChange) o.onChange(tid, source);
+    } else { focused = tid; render(false); }
+    return true;
+  }
+  function moveFocus(tid, source) {
+    focused = tid; T[tid].tabIndex = 0; T[tid].focus({ preventScroll: true }); reveal(tid);
+    tabs.forEach(t => { if (t.id !== tid && t.id !== value) T[t.id].tabIndex = -1; });
+    if ((o.activation || 'auto') === 'auto') select(tid, source); else { render(false); T[tid].tabIndex = 0; log('foco → "' + tid + '" (sin activar)'); }
+  }
+  function close(tid, source) {
+    const i = tabs.findIndex(t => t.id === tid), t = tabs[i];
+    if (!t || !t.closable || t.disabled) return;
+    if (o.onClose && o.onClose({ id: tid, source }) === false) { log('close cancelado "' + tid + '"'); return; }
+    const wasActive = tid === value;
+    const rest = tabs.filter(x => x.id !== tid);
+    const next = rest.filter(x => !x.disabled)[Math.min(i, rest.filter(x => !x.disabled).length - 1)];
+    tabs = rest;
+    log('close "' + tid + '" (' + source + ')');
+    if (!tabs.length) { build(); root.querySelector('.gtabs__head').hidden = true; $('.gtabs__empty', root).hidden = false; value = focused = null; announce(t.label + ' cerrada. No quedan pestañas'); o.onEmpty && o.onEmpty(); return; }
+    if (wasActive) { value = next.id; mount(next); }
+    if (focused === tid || wasActive) focused = next ? next.id : value;
+    build(); render(wasActive);
+    announce(t.label + ' cerrada');
+    if (source !== 'program' && next) T[next.id].focus({ preventScroll: true });
+    if (wasActive && o.onChange) o.onChange(value, 'close');
+  }
+  list.addEventListener('click', e => {
+    const b = e.target.closest('[role=tab]'); if (!b || b.getAttribute('aria-disabled') === 'true') return;
+    select(b.dataset.id, 'puntero'); b.focus({ preventScroll: true });
+  });
+  root.addEventListener('click', e => { const x = e.target.closest('[data-close]'); if (x) close(x.dataset.close, 'puntero'); });
+  list.addEventListener('keydown', e => {
+    const b = e.target.closest('[role=tab]'); if (!b) return;
+    const vert = cfg.orientation === 'vertical', r = rtl();
+    const next = vert ? 'ArrowDown' : (r ? 'ArrowLeft' : 'ArrowRight'), prev = vert ? 'ArrowUp' : (r ? 'ArrowRight' : 'ArrowLeft');
+    const en = enabled(), i = en.findIndex(t => t.id === b.dataset.id);
+    let to = null;
+    if (e.key === next) to = en[(i + 1) % en.length];
+    else if (e.key === prev) to = en[(i - 1 + en.length) % en.length];
+    else if (e.key === 'Home') to = en[0];
+    else if (e.key === 'End') to = en[en.length - 1];
+    else if (e.key === 'Delete') { e.preventDefault(); close(b.dataset.id, 'teclado'); return; }
+    else if ((e.key === 'Enter' || e.key === ' ') && o.activation === 'manual') { e.preventDefault(); select(b.dataset.id, 'teclado'); return; }
+    if (to) { e.preventDefault(); moveFocus(to.id, 'teclado'); }
+  });
+
+  /* ---- medidas ---- */
+  function natural() { root.classList.add('is-measuring'); const w = list.offsetWidth + (track.offsetWidth - list.offsetWidth > 0 ? 0 : 0) + parseFloat(getComputedStyle(track).paddingLeft) + parseFloat(getComputedStyle(track).paddingRight); root.classList.remove('is-measuring'); return w; }
+  function layout() {
+    if (!tabs.length) return;
+    const mode = resolveOverflow(); root.dataset.overflow = mode;
+    if (cfg.orientation === 'horizontal') {
+      if (cfg.labels === 'auto') { root.dataset.labels = 'full'; if (natural() > head.clientWidth && tabs.every(t => t.icon)) root.dataset.labels = 'active'; }
+      if (mode === 'more') layoutMore(); else { tabs.forEach(t => el(t.id).hidden = false); more.hidden = mode !== 'combined'; if (mode === 'combined') fillMenu(true); else { more.hidden = true; closeMenu(false); } }
+    } else { more.hidden = true; tabs.forEach(t => el(t.id).hidden = false); }
+    updateEdges(); updateInd();
+  }
+  function updateEdges() {
+    const mode = resolveOverflow(), vert = cfg.orientation === 'vertical', s = scroller;
+    const arrows = !vert && (mode === 'arrows' || mode === 'combined');
+    const ov = !vert && mode !== 'more' && (s.scrollWidth > head.clientWidth + 1 || s.scrollWidth > s.clientWidth + 1);
+    const fade = [];
+    if (vert) { const max = s.scrollHeight - s.clientHeight; if (max > 1) { if (s.scrollTop > 1) fade.push('t'); if (s.scrollTop < max - 1) fade.push('b'); } }
+    else if (ov) {
+      const max = s.scrollWidth - s.clientWidth, left = s.scrollLeft + (rtl() ? max : 0);
+      if (left > 1) fade.push('l'); if (max - left > 1) fade.push('r');
+      const startHas = rtl() ? (max - left > 1) : (left > 1), endHas = rtl() ? (left > 1) : (max - left > 1);
+      edgeS.hidden = edgeE.hidden = !arrows;
+      startHas ? edgeS.removeAttribute('data-dim') : edgeS.setAttribute('data-dim', '');
+      endHas ? edgeE.removeAttribute('data-dim') : edgeE.setAttribute('data-dim', '');
+    }
+    if (!ov) { edgeS.hidden = edgeE.hidden = true; }
+    scroller.dataset.fade = fade.join(' ');
+  }
+  function updateInd() {
+    const e = el(value); if (!e || e.hidden || !e.offsetWidth) return;
+    ind.style.setProperty('--ix', e.offsetLeft + 'px'); ind.style.setProperty('--iy', e.offsetTop + 'px');
+    ind.style.setProperty('--iw', e.offsetWidth + 'px'); ind.style.setProperty('--ih', e.offsetHeight + 'px');
+    if (!root.hasAttribute('data-ready')) { root.setAttribute('data-ready', ''); requestAnimationFrame(() => requestAnimationFrame(() => root.setAttribute('data-animate', ''))); }
+  }
+  function reveal(tid) {
+    if (!tid || !el(tid) || cfg.orientation === 'vertical' && !o.maxh) return;
+    const r = el(tid).getBoundingClientRect(), s = scroller.getBoundingClientRect(), beh = reduced() ? 'auto' : 'smooth', pad = 12;
+    if (cfg.orientation === 'vertical') { if (r.top < s.top) scroller.scrollBy({ top: r.top - s.top - pad, behavior: beh }); else if (r.bottom > s.bottom) scroller.scrollBy({ top: r.bottom - s.bottom + pad, behavior: beh }); return; }
+    if (r.left < s.left + 24 && scroller.scrollWidth > scroller.clientWidth) scroller.scrollBy({ left: r.left - s.left - 24 - pad, behavior: beh });
+    else if (r.right > s.right - 24 && scroller.scrollWidth > scroller.clientWidth) scroller.scrollBy({ left: r.right - s.right + 24 + pad, behavior: beh });
+  }
+  scroller.addEventListener('scroll', updateEdges, { passive: true });
+  root.addEventListener('click', e => {
+    const ed = e.target.closest('[data-edge]'); if (!ed) return;
+    const dir = ed.dataset.edge === 'start' ? -1 : 1;
+    scroller.scrollBy({ left: dir * (rtl() ? -1 : 1) * scroller.clientWidth * .7, behavior: reduced() ? 'auto' : 'smooth' });
+  });
+
+  /* ---- «Más» ---- */
+  function layoutMore() {
+    tabs.forEach(t => el(t.id).hidden = false);
+    root.classList.add('is-measuring');
+    const gap = parseFloat(getComputedStyle(list).columnGap) || 0, w = tabs.map(t => el(t.id).offsetWidth), pad = parseFloat(getComputedStyle(track).paddingLeft) * 2;
+    root.classList.remove('is-measuring');
+    const total = w.reduce((a, b) => a + b, 0) + gap * (tabs.length - 1) + pad;
+    if (total <= head.clientWidth) { more.hidden = true; closeMenu(false); menu.innerHTML = ''; return; }
+    more.hidden = false;
+    const avail = head.clientWidth - more.offsetWidth - 8 - pad;
+    const vis = new Set([value]); let used = w[tabs.findIndex(t => t.id === value)] || 0;
+    tabs.forEach((t, i) => { if (!vis.has(t.id) && used + gap + w[i] <= avail) { vis.add(t.id); used += gap + w[i]; } });
+    tabs.forEach(t => el(t.id).hidden = !vis.has(t.id));
+    if (!enabled().some(t => t.id === focused)) focused = value;
+    tabs.forEach(t => { T[t.id].tabIndex = (t.id === focused && !t.disabled) ? 0 : -1; });
+    fillMenu(false, vis);
+  }
+  function fillMenu(all, vis) {
+    menu.innerHTML = '';
+    tabs.filter(t => all || !vis.has(t.id)).forEach(t => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'menuitemradio'); li.setAttribute('aria-checked', t.id === value); li.tabIndex = -1; li.dataset.id = t.id;
+      if (t.disabled) li.setAttribute('aria-disabled', 'true');
+      li.innerHTML = (t.icon ? I(t.icon) : '') + esc(t.label) + (t.count != null ? ' (' + t.count + ')' : '') + (t.id === value ? I('check').replace('g-icon', 'g-icon check') : '');
+      menu.appendChild(li);
+    });
+    more.querySelector('.sr').textContent = (all ? 'Todas las pestañas' : 'Más pestañas') + ' (' + menu.children.length + ')';
+  }
+  const mitems = () => [...menu.querySelectorAll('[role=menuitemradio]')].filter(x => x.getAttribute('aria-disabled') !== 'true');
+  function openMenu(first) { menuOpen = true; menu.hidden = false; more.setAttribute('aria-expanded', 'true'); const it = mitems(); (first === 'last' ? it[it.length - 1] : (it.find(x => x.getAttribute('aria-checked') === 'true') || it[0]))?.focus(); }
+  function closeMenu(refocus) { if (!menuOpen) return; menuOpen = false; menu.hidden = true; more.setAttribute('aria-expanded', 'false'); if (refocus) more.focus(); }
+  more.addEventListener('click', () => menuOpen ? closeMenu(true) : openMenu());
+  more.addEventListener('keydown', e => { if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(); } else if (e.key === 'ArrowUp') { e.preventDefault(); openMenu('last'); } });
+  menu.addEventListener('keydown', e => {
+    const it = mitems(), i = it.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); it[(i + 1) % it.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); it[(i - 1 + it.length) % it.length].focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); it[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); it[it.length - 1].focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+    else if (e.key === 'Tab') closeMenu(false);
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.activeElement.click(); }
+  });
+  menu.addEventListener('click', e => {
+    const li = e.target.closest('[role=menuitemradio]'); if (!li || li.getAttribute('aria-disabled') === 'true') return;
+    closeMenu(false); const ok = select(li.dataset.id, 'menú'); layout(); if (ok) { T[li.dataset.id].focus({ preventScroll: true }); reveal(li.dataset.id); } else more.focus();
+  });
+  document.addEventListener('click', e => { if (menuOpen && !root.contains(e.target)) closeMenu(false); });
+  new ResizeObserver(() => layout()).observe(root);
+  document.fonts && document.fonts.ready.then(layout);
+
+  build(); if (value) { render(false); }
+  const api = {
+    root, select, close, get value() { return value; }, get tabs() { return tabs; },
+    set(k, v) { cfg[k] = v; if (k === 'appearance' && !('align' in (o.fixedAlign || {})) && !o.align) cfg.align = v === 'segmented' ? 'fill' : 'start'; sync(); list.setAttribute('aria-orientation', cfg.orientation); build(); render(false); },
+    setTab(tid, patch) { const t = tabs.find(x => x.id === tid); Object.assign(t, patch); build(); render(false); if (patch.status !== undefined && tid === value) P[tid].setAttribute('aria-busy', patch.status === 'loading'); if (patch.status === 'loading') announce('Cargando ' + t.label); else if (patch.status === null) announce('Listo: ' + t.label); },
+    reset(newTabs, v) { tabs = newTabs.map(t => ({ ...t })); root.querySelector('.gtabs__head').hidden = false; $('.gtabs__empty', root).hidden = true; build(); value = focused = v ?? tabs[0].id; tabs.forEach(t => mount(t)); render(false); }
+  };
+  if (o.lazy && value) { P[value].dataset.visited = '1'; mount(tabs.find(t => t.id === value)); fixPanel(P[value]); o.onFirstShow && o.onFirstShow(value, { api, panel: P[value] }); }
+  return api;
+}
+const L = n => m => { const e = $('#' + n + '-log'); if (!e) return; e.textContent = m + '\n' + e.textContent.split('\n').slice(0, 3).join('\n'); };
+const para = t => '<p>' + t + '</p>';
+const Tx = (r, extra = {}) => Object.assign({ label: 'Ejemplo', panel: (id, t) => para('Panel «' + esc(t.label) + '».') }, extra, r);
+
+/* globales de la demo */
+$('#g-motion').addEventListener('change', e => e.target.checked ? document.documentElement.dataset.motion = 'off' : delete document.documentElement.dataset.motion);
+$('#g-touch').addEventListener('change', e => { document.documentElement.toggleAttribute('data-touch', e.target.checked); window.dispatchEvent(new Event('resize')); });
+$('#g-dir').addEventListener('change', e => { document.querySelector('main').dir = e.target.value; });
+
+/* datos comunes */
+const base = [
+  { id: 'msg', label: 'Mensajes', icon: 'message-circle', count: 8, countLabel: '8 sin leer' },
+  { id: 'err', label: 'Errores', icon: 'triangle-alert', count: 2, countLabel: '2 errores' },
+  { id: 'upd', label: 'Novedades', icon: 'bell', badge: 'Nuevo', badgeLabel: 'contenido nuevo' },
+  { id: 'arc', label: 'Archivo', icon: 'folder' }
+];
+const many = ['Resumen', 'Actividad', 'Miembros', 'Archivos', 'Facturación', 'Integraciones', 'Seguridad', 'Registro de auditoría', 'Avanzado'].map((l, i) => ({ id: 't' + i, label: l }));
+const manyIcons = [['Inicio', 'house'], ['Bandeja', 'inbox'], ['Correo', 'mail'], ['Calendario', 'calendar'], ['Archivos', 'folder'], ['Equipo', 'users'], ['Ajustes', 'settings'], ['Reportes', 'chart-column']].map(([l, ic]) => ({ id: ic, label: l, icon: ic }));
+
+/* 1 · variantes */
+const A = {};
+A.a1 = Tabs($('#a1'), Tx({ label: 'Bandeja (underline)', appearance: 'underline', tabs: base }));
+A.a2 = Tabs($('#a2'), Tx({ label: 'Bandeja (pill)', appearance: 'pill', tabs: base }));
+A.a3 = Tabs($('#a3'), Tx({ label: 'Vista (segmented)', appearance: 'segmented', tabs: base.slice(0, 3).map(t => ({ ...t, icon: undefined })) }));
+A.a4 = Tabs($('#a4'), Tx({ label: 'Bandeja (contained)', appearance: 'contained', tabs: base }));
+A.a5 = Tabs($('#a5'), Tx({ label: 'Preferencias (vertical, underline)', appearance: 'underline', orientation: 'vertical', tabs: [{ id: 'g', label: 'General', icon: 'settings' }, { id: 'p', label: 'Perfil', icon: 'user' }, { id: 'e', label: 'Equipos', icon: 'users', count: 2, countLabel: '2 invitaciones' }, { id: 'n', label: 'Notificaciones', icon: 'bell' }, { id: 'pr', label: 'Privacidad', icon: 'lock', disabled: true }] }));
+A.a6 = Tabs($('#a6'), Tx({ label: 'Preferencias (vertical, pill)', appearance: 'pill', orientation: 'vertical', tabs: [{ id: 'g', label: 'General', icon: 'settings' }, { id: 'p', label: 'Perfil', icon: 'user' }, { id: 'e', label: 'Equipos', icon: 'users', count: 2, countLabel: '2 invitaciones' }, { id: 'n', label: 'Notificaciones', icon: 'bell' }] }));
+
+/* 2 · densidades */
+const DD = ['compact', 'comfortable', 'spacious'].map((d, i) => Tabs($('#d' + (i + 1)), Tx({ label: 'Densidad ' + d, density: d, appearance: 'underline', tabs: base.slice(0, 3) })));
+$('#d-app').addEventListener('change', e => DD.forEach(a => a.set('appearance', e.target.value)));
+
+/* 3 · matriz de estados */
+(function () {
+  const mx = $('#matrix');
+  ['underline', 'pill', 'segmented', 'contained'].forEach(app => {
+    const h = document.createElement('h3'); h.textContent = app; mx.appendChild(h);
+    const f = document.createElement('div'); f.className = app === 'contained' ? 'card' : 'frame'; if (app === 'contained') f.style.overflow = 'auto'; mx.appendChild(f);
+    const d = document.createElement('div'); f.appendChild(d);
+    const a = Tabs(d, Tx({ label: 'Estados (' + app + ')', appearance: app, overflow: 'scroll', align: 'start', quiet: true,
+      tabs: [{ id: 'act', label: 'Activa' }, { id: 'hov', label: 'Hover' }, { id: 'foc', label: 'Foco' }, { id: 'dis', label: 'Deshabilitada', disabled: true },
+             { id: 'load', label: 'Cargando', status: 'loading', statusLabel: 'cargando' }, { id: 'att', label: 'Atención', status: 'attention', statusLabel: 'requiere atención' },
+             { id: 'bad', label: 'Novedades', badge: 'Nuevo', badgeLabel: 'contenido nuevo' }, { id: 'cnt', label: 'Mensajes', count: 8, countLabel: '8 sin leer' }] }));
+    a.root.querySelector('[data-id=hov]').dataset.force = 'hover'; a.root.querySelector('[data-id=foc]').dataset.force = 'focus';
+  });
+})();
+
+/* 4 · movimiento */
+const M1 = Tabs($('#m1'), Tx({ label: 'Indicador deslizante', tabs: [{ id: 'a', label: 'Resumen' }, { id: 'b', label: 'Actividad', count: 12, countLabel: '12 nuevas' }, { id: 'c', label: 'Miembros' }, { id: 'd', label: 'Facturación y planes' }, { id: 'e', label: 'Ajustes' }], onLog: L('m1') }));
+$('#m-app').addEventListener('change', e => M1.set('appearance', e.target.value));
+$('#m-den').addEventListener('change', e => M1.set('density', e.target.value));
+
+/* 5 · desbordamiento */
+const OV = {};
+['scroll', 'arrows', 'more', 'combined', 'auto'].forEach((m, i) => { OV['o' + (i + 1)] = Tabs($('#o' + (i + 1)), Tx({ label: 'Organización (' + m + ')', overflow: m, tabs: many, onLog: i === 4 ? L('o5') : null })); });
+many.forEach(t => $('#ext-id').add(new Option(t.label, t.id)));
+$('#ext-id').value = 't7';
+$('#ext-go').addEventListener('click', () => OV[$('#ext-ex').value].select($('#ext-id').value, 'program'));
+
+/* 6 · móvil */
+Tabs($('#s1'), Tx({ label: 'Secciones (snap)', overflow: 'scroll', snap: true, tabs: many }));
+Tabs($('#s2'), Tx({ label: 'Vista (3 opciones)', appearance: 'segmented', tabs: [{ id: 'd', label: 'Día' }, { id: 's', label: 'Semana' }, { id: 'm', label: 'Mes' }] }));
+Tabs($('#s3'), Tx({ label: 'Vista (7 opciones)', appearance: 'segmented', overflow: 'scroll', quiet: true, tabs: ['Hoy', 'Ayer', 'Semana', 'Mes', 'Trimestre', 'Año', 'Todo'].map((l, i) => ({ id: 'x' + i, label: l })) }));
+Tabs($('#s4'), Tx({ label: 'Secciones (etiquetas auto)', appearance: 'pill', labels: 'auto', overflow: 'scroll', tabs: manyIcons.slice(0, 6) }));
+
+/* 7 · alineación */
+const AL = ['start', 'center', 'distribute', 'fill'].map((a, i) => Tabs($('#al' + (i + 1)), Tx({ label: 'Alineación ' + a, align: a, tabs: [{ id: 'a', label: 'General' }, { id: 'b', label: 'Permisos' }, { id: 'c', label: 'Actividad' }] })));
+$('#al-app').addEventListener('change', e => AL.forEach((a, i) => { a.set('appearance', e.target.value); a.set('align', ['start', 'center', 'distribute', 'fill'][i]); }));
+
+/* 8 · superficies */
+Tabs($('#f1'), Tx({ label: 'Superficie plana', tabs: base.slice(0, 3) }));
+Tabs($('#f2'), Tx({ label: 'Dentro de una card', appearance: 'contained', tabs: base.slice(0, 3) }));
+Tabs($('#f3'), Tx({ label: 'Dentro de una inset', appearance: 'segmented', tabs: base.slice(0, 3).map(t => ({ ...t, icon: undefined })), panel: () => '' }));
+const side = [{ id: 'g', label: 'General', icon: 'settings' }, { id: 'e', label: 'Equipos', icon: 'users', count: 2, countLabel: '2 invitaciones' }, { id: 'n', label: 'Notificaciones', icon: 'bell' }, { id: 'p', label: 'Privacidad', icon: 'lock' }];
+Tabs($('#f5'), Tx({ label: 'Panel lateral', appearance: 'pill', orientation: 'vertical', tabs: side, onLog: L('f5'), panel: () => '' }));
+Tabs($('#f6'), Tx({ label: 'Panel lateral (solo iconos)', appearance: 'pill', orientation: 'vertical', labels: 'icons', tabs: side, panel: () => '' }));
+$('#f5').closest('.side').querySelectorAll('.gtabs')[0].style.setProperty('--vw', '100%');
+$('#f6').closest('.side').querySelectorAll('.gtabs')[0].style.setProperty('--vw', '100%');
+
+/* dialog */
+let dlgTabs;
+$('#open-dlg').addEventListener('click', () => {
+  $('#dlg').showModal();
+  if (!dlgTabs) dlgTabs = Tabs($('#dlg-tabs'), Tx({ label: 'Secciones de Editar proyecto', appearance: 'underline', density: 'compact', tabs: [
+    { id: 'gen', label: 'General' }, { id: 'perm', label: 'Permisos', count: 3, countLabel: '3 pendientes' }, { id: 'act', label: 'Actividad', badge: 'Nuevo', badgeLabel: 'contenido nuevo' }],
+    panel: id => ({
+      gen: '<label class="wf-field">Nombre<input value="Proyecto Alfa"></label><label class="wf-field">Descripción<input></label>',
+      perm: '<ul class="list"><li>Ana · Editora<span>Activo</span></li><li>Luis · Lector<span>Pendiente</span></li><li>Marta · Lectora<span>Pendiente</span></li><li>Pablo · Lector<span>Pendiente</span></li><li>Eva · Editora<span>Activo</span></li><li>Raúl · Lector<span>Activo</span></li><li>Sara · Lectora<span>Activo</span></li></ul>',
+      act: '<ul class="list"><li>Creado el proyecto<span>Hoy</span></li><li>Añadido Luis<span>Ayer</span></li></ul>' })[id] }));
+  dlgTabs.root.style.setProperty('--inset', '12px');
+});
+$('#dlg-x').addEventListener('click', () => $('#dlg').close()); $('#dlg-c').addEventListener('click', () => $('#dlg').close()); $('#dlg-s').addEventListener('click', () => $('#dlg').close());
+
+/* 9 · solo iconos */
+Tabs($('#i1'), Tx({ label: 'Vistas (solo iconos, underline)', labels: 'icons', tabs: [{ id: 'l', label: 'Lista', icon: 'list' }, { id: 't', label: 'Tabla', icon: 'table' }, { id: 'c', label: 'Gráfico', icon: 'chart-column' }, { id: 'k', label: 'Calendario', icon: 'calendar' }] }));
+Tabs($('#i2'), Tx({ label: 'Vistas (solo iconos, segmented)', labels: 'icons', appearance: 'segmented', tabs: [{ id: 'l', label: 'Lista', icon: 'list' }, { id: 't', label: 'Tabla', icon: 'table' }, { id: 'c', label: 'Gráfico', icon: 'chart-column', count: 3, countLabel: '3 alertas' }] }));
+
+/* 10 · cerrar */
+const closeSet = [{ id: 'a', label: 'index.js', icon: 'file-text', closable: true }, { id: 'b', label: 'Notas', icon: 'file-text', closable: true, status: 'attention', statusLabel: 'cambios sin guardar' }, { id: 'c', label: 'README', icon: 'file-text', closable: true }, { id: 'd', label: 'Ajustes', icon: 'settings' }];
+const C1 = Tabs($('#c1'), Tx({ label: 'Documentos abiertos', appearance: 'underline', tabs: closeSet, onLog: L('c1'), onEmpty: () => {}, onClose: e => !(e.id === 'b' && $('#c-block').checked) }));
+$('#c-reset').addEventListener('click', () => C1.reset(closeSet));
+
+/* 11 · dinámico */
+const rows = [['Ana', 'Activa', 120], ['Luis', 'Pausada', 80], ['Marta', 'Activa', 64], ['Pablo', 'Vencida', 15]];
+const DY = Tabs($('#dy'), Tx({ label: 'Pedidos (contenido dinámico)', appearance: 'underline', lazy: true, onLog: L('dy'),
+  tabs: [{ id: 'tab', label: 'Tabla' }, { id: 'frm', label: 'Formulario' }, { id: 'gra', label: 'Gráfico' }, { id: 'lis', label: 'Lista' }, { id: 'vac', label: 'Archivo' }],
+  beforeChange: () => !$('#dyn-dirty').checked,
+  panel: id => ({
+    tab: '<table class="tbl"><thead><tr><th>Cliente</th><th>Estado</th><th>Total</th></tr></thead><tbody>' + rows.map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('') + '</tbody></table>',
+    frm: '<label class="wf-field">Nombre<input></label><p class="cap">Escribe algo y cambia de pestaña: el borrador sigue (paneles montados).</p>',
+    gra: '<div class="skeletons"><div class="skel"></div><div class="skel"></div></div><div class="loaded"><div class="bars"><i style="height:30%"></i><i style="height:60%"></i><i style="height:45%"></i><i style="height:90%"></i><i style="height:70%"></i></div></div>',
+    lis: '<ul class="list"><li>Pedido 1001<span>Enviado</span></li><li>Pedido 1002<span>Pendiente</span></li></ul>',
+    vac: '<div class="empty">Sin archivos todavía.</div>' })[id],
+  onFirstShow: (id, { api }) => { if (id !== 'gra') return; api.setTab('gra', { status: 'loading', statusLabel: 'cargando' }); setTimeout(() => api.setTab('gra', { status: null }), 900); } }));
+
+/* 12 · URL hash */
+function bindHash(api, key, ids, log) {
+  const read = () => new URLSearchParams(location.hash.slice(1)).get(key);
+  const def = api.value, apply = src => { const v = read(), t = api.tabs.find(x => x.id === v); if (t && !t.disabled) api.select(v, src, { silent: true }); else if (!v) api.select(def, src, { silent: true }); else log && log('url: «' + v + '» no es una pestaña válida; se ignora'); };
+  apply('url');
+  ['popstate', 'hashchange'].forEach(ev => window.addEventListener(ev, () => { apply('url'); showUrl(); }));
+  return id => { const p = new URLSearchParams(location.hash.slice(1)); if (p.get(key) === id) return; p.set(key, id); history.pushState(null, '', '#' + p.toString()); showUrl(); };
+}
+const showUrl = () => { $('#u-url').textContent = location.pathname.split('/').pop() + location.hash; };
+let pushHash;
+const U1 = Tabs($('#u1'), Tx({ label: 'Perfil (URL)', appearance: 'pill', onLog: L('u1'), tabs: [{ id: 'datos', label: 'Datos' }, { id: 'seg', label: 'Seguridad' }, { id: 'act', label: 'Actividad' }, { id: 'bloq', label: 'Bloqueada', disabled: true }],
+  onChange: (id, src) => { if (src !== 'url') pushHash(id); } }));
+pushHash = bindHash(U1, 'perfil', null, L('u1')); showUrl();
+</script>
+</body>
+</html>
