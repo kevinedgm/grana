@@ -1,0 +1,321 @@
+/*
+  GToast · estilo de la región (g-toaster) y de cada aviso (g-toast)
+  Dueño: coco. Contrato: design/contracts/toast.md. Estructura: design/lab/toast/r01/. Notas: design/lab/toast/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §20).
+  Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Cada aviso es una GSurface level="floating" (borde, radio, sombra --g-shadow-2): este archivo va DESPUÉS de GSurface.css.
+
+  Constantes de diseño derivadas de space (no son tokens):
+    ancho máximo del aviso  space × 90  (360px con space 4)
+    separación entre avisos space × 2
+    margen al borde         space × 4   (space × 2 con data-mobile), combinado con env(safe-area-inset-*) y --_toaster-offset-*
+    altura de fila          space × 7   (la del GBtn sm: el título se centra con la acción y el cierre)
+    distancia de entrada    space × 4
+
+  Variables dinámicas que escribe bruno en línea (se declaran aquí con su valor neutro; la de línea gana):
+    --_toaster-offset-top, --_toaster-offset-bottom (raíz; opción offset)
+    --_toast-swipe (aviso; px del arrastre, y el destino de salida al soltar fuera)
+    --_toast-y     (aviso; al pasar a leaving, px desde el borde de la lista del lado de data-edge: con top, su offsetTop;
+                    con bottom, alto de la lista − offsetTop − su alto. Lo fija en su sitio para que el resto se recoloque con FLIP)
+*/
+
+/* ---------- Raíz: capa superior (popover="manual"), fija al visor ---------- */
+.g-toaster {
+  --_w: calc(var(--g-space-1) * 90);
+  --_m: calc(var(--g-space-1) * 4);
+  --_gap: calc(var(--g-space-1) * 2);
+  --_toaster-offset-top: 0px;
+  --_toaster-offset-bottom: 0px;
+  /* safe-area por lado lógico (inicio y fin de línea se invierten en RTL) */
+  --_safe-start: env(safe-area-inset-left);
+  --_safe-end: env(safe-area-inset-right);
+
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  inline-size: min(var(--_w), calc(100% - var(--_m) * 2));
+  block-size: auto;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-align: start;
+  /* La raíz no captura el puntero: solo la pila de avisos (ver lista) */
+  pointer-events: none;
+}
+.g-toaster:dir(rtl) {
+  --_safe-start: env(safe-area-inset-right);
+  --_safe-end: env(safe-area-inset-left);
+}
+
+/* Borde vertical efectivo (data-edge ya viene invertido con data-flipped y forzado a bottom con data-mobile) */
+.g-toaster[data-edge="top"] {
+  inset-block-start: calc(max(var(--_m), env(safe-area-inset-top)) + var(--_toaster-offset-top));
+}
+.g-toaster[data-edge="bottom"] {
+  inset-block-end: calc(max(var(--_m), env(safe-area-inset-bottom)) + var(--_toaster-offset-bottom));
+}
+/* Alineación lógica */
+.g-toaster[data-align="start"] { inset-inline-start: max(var(--_m), var(--_safe-start)); }
+.g-toaster[data-align="end"] { inset-inline-end: max(var(--_m), var(--_safe-end)); }
+.g-toaster[data-align="center"] {
+  inset-inline: max(var(--_m), var(--_safe-start)) max(var(--_m), var(--_safe-end));
+  margin-inline: auto;
+}
+/* Móvil (visor < space × 130, medido por bruno): ancho completo menos el margen, en cualquier alineación */
+.g-toaster[data-mobile] {
+  --_m: calc(var(--g-space-1) * 2);
+  inline-size: auto;
+  inset-inline: max(var(--_m), var(--_safe-start)) max(var(--_m), var(--_safe-end));
+  margin-inline: 0;
+}
+
+/* ---------- Canales vivos (texto oculto accesible; fuera de la section) ---------- */
+.g-toaster__live,
+.g-toast__type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Lista: la pila captura el puntero, también en los huecos entre avisos (la pausa no salta al cruzarlos) ---------- */
+.g-toaster__list {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+}
+
+/* ---------- Texto de cola: ficha propia (está fuera de los avisos, sobre una página de color desconocido) ---------- */
+.g-toaster__queued {
+  box-sizing: border-box;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  margin-block: var(--_gap) 0;
+  margin-inline: auto 0;
+  padding: calc(var(--g-space-1) / 2) var(--g-space-3);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  color: var(--g-color-text-muted);
+  background: var(--g-color-surface);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  box-shadow: var(--g-shadow-1);
+}
+/* Se alinea con la pila (por defecto al final de línea) */
+.g-toaster[data-align="start"] .g-toaster__queued { margin-inline: 0 auto; }
+.g-toaster[data-align="center"] .g-toaster__queued { margin-inline: auto; }
+
+/* ---------- Aviso (GSurface floating) ---------- */
+.g-toast {
+  --_row: calc(var(--g-space-1) * 7);
+  --_pis: var(--g-space-3);
+  --_mark-w: var(--g-border-width);
+  --_kind: var(--g-color-text-muted);
+  --_enter: calc(var(--g-space-1) * 4);
+  --_toast-swipe: 0px;
+  --_toast-y: auto;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: [icon-start] auto [icon-end content-start] minmax(0, 1fr) [content-end actions-start] auto [actions-end];
+  align-items: start;
+  column-gap: var(--g-space-3);
+  row-gap: var(--g-space-2);
+  box-sizing: border-box;
+  inline-size: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  touch-action: pan-y;
+  translate: var(--_toast-swipe) 0;
+  opacity: 1;
+}
+/* Relleno compacto: la fila mide lo que el GBtn sm; el inicio respira un paso más que el final (el cierre es un botón fantasma) */
+.g-toast.g-surface {
+  padding-block: var(--g-space-2);
+  padding-inline: calc(var(--_pis) - var(--_mark-w) + var(--g-border-width)) var(--g-space-2);
+}
+/* Separación: solo entre avisos que ocupan sitio (el que sale va fuera del flujo) */
+.g-toast:not([data-state="leaving"]) ~ .g-toast:not([data-state="leaving"]) { margin-block-start: var(--_gap); }
+
+/* ---------- Tipo: icono Lucide (forma) + su color; error y aviso suman una marca de inicio de forma distinta ---------- */
+.g-toast--type-info { --_kind: var(--g-color-info-text); }
+.g-toast--type-success { --_kind: var(--g-color-success-text); }
+.g-toast--type-warning { --_kind: var(--g-color-warning-text); }
+.g-toast--type-error { --_kind: var(--g-color-danger-text); }
+.g-toast--type-loading { --_kind: var(--g-color-text-muted); }
+/* Marca de borde de inicio: sólida en error, discontinua en aviso (mismo lenguaje que el estado de GCard). Se lee sin color */
+.g-toast--type-error.g-surface,
+.g-toast--type-warning.g-surface {
+  --_mark-w: var(--g-space-1);
+  border-inline-start: var(--_mark-w) solid var(--_kind);
+}
+.g-toast--type-warning.g-surface { border-inline-start-style: dashed; }
+
+.g-toast__icon {
+  grid-column: icon;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: var(--_row);
+  color: var(--_kind);
+}
+.g-toast__icon > .g-icon {
+  inline-size: calc(var(--g-space-1) * 5);
+  block-size: calc(var(--g-space-1) * 5);
+}
+
+/* ---------- Texto ---------- */
+.g-toast__content {
+  grid-column: content;
+  grid-row: 1;
+  min-inline-size: 0;
+  /* El título queda centrado en la fila de los botones */
+  padding-block: calc((var(--_row) - var(--g-text-body-sm-line)) / 2);
+}
+/* Sin icono (neutral): el texto empieza en el borde de inicio */
+.g-toast--type-neutral .g-toast__content { grid-column: icon-start / content-end; }
+.g-toast__title {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+.g-toast__count {
+  margin-inline-start: var(--g-space-1);
+  vertical-align: top;
+  font-weight: var(--g-text-caption-weight);
+}
+.g-toast__description {
+  margin: calc(var(--g-space-1) / 2) 0 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Acción y cierre (GBtn sm; bruno aplica outline + neutral en la acción y ghost + neutral en el cierre) ---------- */
+.g-toast__actions {
+  grid-column: actions;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+}
+/* La acción, en el color del texto con el borde de control (≥ 3:1): sobria y legible con cualquier marca */
+.g-toast__action.g-btn {
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+  white-space: nowrap;
+}
+.g-toast__close.g-btn {
+  --_fg: var(--g-color-text-muted);
+  --_fg-hover: var(--g-color-text);
+}
+.g-toast__close .g-icon {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+
+/* Móvil: la acción baja bajo el texto; el cierre se queda arriba al final */
+.g-toaster[data-mobile] .g-toast.has-action .g-toast__actions { display: contents; }
+.g-toaster[data-mobile] .g-toast.has-action .g-toast__action {
+  grid-column: content;
+  grid-row: 2;
+  justify-self: start;
+}
+.g-toaster[data-mobile] .g-toast--type-neutral.has-action .g-toast__action { grid-column: icon-start / content-end; }
+.g-toaster[data-mobile] .g-toast.has-action .g-toast__close {
+  grid-column: actions;
+  grid-row: 1;
+}
+
+/* ---------- Ciclo de vida: entrada (desplazamiento corto desde el borde + fundido), salida (fundido), deslizar ---------- */
+.g-toaster[data-edge="top"] .g-toast { --_enter: calc(var(--g-space-1) * -4); }
+.g-toast[data-state="entering"] {
+  opacity: 0;
+  translate: 0 var(--_enter);
+}
+.g-toast[data-state="leaving"] {
+  /* Fuera del flujo, fijo donde estaba (bruno escribe --_toast-y): el resto se recoloca con FLIP */
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: var(--_toast-y);
+  opacity: 0;
+  pointer-events: none;
+}
+/* Abajo la lista crece hacia arriba: el que sale se ancla por el final (--_toast-y = distancia a su borde inferior) */
+.g-toaster[data-edge="bottom"] .g-toast[data-state="leaving"] {
+  inset-block-start: auto;
+  inset-block-end: var(--_toast-y);
+}
+.g-toast.is-swiping {
+  transition: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .g-toast {
+    /* transform: recolocación FLIP de la pila (bruno, TransitionGroup); translate: entrada, salida y vuelta del arrastre */
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out),
+      transform var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-toast[data-state="leaving"] {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-toast.is-swiping { transition: none; }
+  .g-toast.is-loading .g-toast__icon > .g-icon {
+    animation: g-toast-spin var(--g-duration-spin) linear infinite;
+  }
+  @keyframes g-toast-spin {
+    to { rotate: 1turn; }
+  }
+}
+/* Movimiento reducido: solo fundido; ni desplazamiento de entrada ni giro (el arrastre sigue al dedo: no es animación) */
+@media (prefers-reduced-motion: reduce) {
+  .g-toast {
+    transition: opacity var(--g-duration-press) linear;
+  }
+  .g-toast[data-state="entering"] { translate: var(--_toast-swipe) 0; }
+  .g-toast.is-swiping { transition: none; }
+}
+
+/* ---------- Objetivos táctiles: más aire entre acción y cierre (sus áreas de 44px no se pisan) ---------- */
+@media (pointer: coarse) {
+  .g-toast__actions { gap: var(--g-space-2); }
+  .g-toaster[data-mobile] .g-toast.has-action { row-gap: var(--g-space-3); }
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-toast.g-surface { --_border: var(--g-color-border-control); }
+  .g-toast__description { color: var(--g-color-text); }
+  .g-toaster__queued { border-color: var(--g-color-border-control); color: var(--g-color-text); }
+}
+@media (forced-colors: active) {
+  /* GSurface ya pinta el borde en CanvasText; la marca de inicio conserva su forma (sólida o discontinua) */
+  .g-toast__icon { color: CanvasText; }
+  .g-toaster__queued { border-color: CanvasText; }
+}

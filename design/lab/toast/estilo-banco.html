@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GToast · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/toast.md (g-toaster*, g-toast*, data-*, is-*, has-*) con el CSS real y el tema por defecto.
+     El script solo pinta el marcado y hace lo mínimo que hará bruno (entering → visible → leaving, fijar el que sale con --_toast-y,
+     recolocar con FLIP, cola, data-mobile medido, traslado al <dialog> modal, Esc, deslizar). No hay temporizadores: no es el gestor.
+     Desde la raíz del repo:  python3 -m http.server 4173  →  /design/lab/toast/estilo-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+                 ?pos=<top|bottom>-<start|center|end>  ?demo=1 (pila de ejemplo con cola)  ?offset=<px abajo> -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link id="gen" rel="stylesheet" href="">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GSurface/GSurface.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GToast/GToast.css">
+<script src="../lucide-icons.js"></script>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h1{font-size:18px;margin:0 0 8px} h2{font-size:15px;margin:36px 0 12px} h3{font-size:12px;font-weight:500;margin:16px 0 8px;color:var(--g-color-text-muted)}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-width:90ch}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .tools label{font-size:13px;display:inline-flex;gap:6px;align-items:center}
+  .tools select,.tools input{font:inherit;font-size:13px;padding:2px 6px;background:var(--g-color-surface);color:var(--g-color-text);border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-sm);max-inline-size:8em}
+  button.tool{font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text);cursor:pointer}
+  .log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);min-block-size:1.4em;white-space:pre-wrap;overflow-wrap:anywhere}
+  /* Galería estática: la raíz deja de ser fija (solo en el banco) para ver muchos avisos a la vez */
+  .gallery{display:grid;gap:20px 16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));align-items:start}
+  .bench .g-toaster{position:relative!important;inset:auto!important;margin:0!important;inline-size:100%!important;max-inline-size:calc(var(--g-space-1) * 90)}
+  .bench .g-toaster[data-mobile]{max-inline-size:none}
+  .lab{font-size:12px;color:var(--g-color-text-muted);margin:0 0 6px}
+  .pages{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr))}
+  .page{padding:16px;border-radius:var(--g-radius-lg);border:1px dashed var(--g-color-border-strong)}
+  .page--photo{background:linear-gradient(135deg,#0b3b2e,#d9a441 55%,#f4f1ea)}
+  .page--sunken{background:var(--g-color-surface-sunken)}
+  .phone{inline-size:320px;max-inline-size:100%;box-sizing:border-box;padding:0;border:1px dashed var(--g-color-border-strong);border-radius:var(--g-radius-lg);background:var(--g-color-surface-sunken);min-block-size:120px;display:flex;flex-direction:column;justify-content:flex-end}
+  .phone .g-toaster{margin:8px!important;inline-size:auto!important}
+  .filler{block-size:40vh}
+  .fieldrow{display:flex;gap:8px;align-items:center;margin-block-start:16px}
+  .fieldrow input{font:inherit;padding:6px 8px;border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text)}
+  dialog.dlg{padding:0;border:1px solid var(--g-color-border-strong);border-radius:var(--g-radius-xl);inline-size:min(480px,calc(100vw - 24px));background:var(--g-color-surface);color:var(--g-color-text)}
+  dialog.dlg::backdrop{background:var(--g-surface-backdrop)}
+  .dlg__head{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px}.dlg__head h2{margin:0}
+  .dlg__body{padding:8px 16px 16px;display:flex;flex-direction:column;gap:12px}
+</style>
+</head>
+<body>
+<h1>GToast · banco de estilo</h1>
+<p class="cap">Avisos con el CSS real. Galería estática arriba; la región viva real (popover en la capa superior) se controla en la sección 6.</p>
+<div class="tools">
+  <button class="tool" id="dark-btn" type="button">Oscuro</button>
+  <button class="tool" id="rtl-btn" type="button">RTL</button>
+  <output class="log" id="log"></output>
+</div>
+
+<h2>1 · Tipos, con y sin descripción</h2>
+<div class="gallery bench" id="s-types" inert></div>
+
+<h2>2 · Acción, contador de repetidos, textos largos</h2>
+<div class="gallery bench" id="s-action" inert></div>
+
+<h2>3 · Pila con cola (3 visibles + texto de cola), alineaciones</h2>
+<div class="gallery bench" id="s-queue" inert></div>
+
+<h2>4 · Sobre fondos distintos (la cola es una ficha: no depende del fondo)</h2>
+<div class="pages bench" id="s-pages" inert></div>
+
+<h2>5 · Móvil (data-mobile, 320px): ancho completo, la acción baja</h2>
+<div class="tools bench" id="s-mobile" inert style="align-items:flex-start;gap:16px"></div>
+
+<h2>6 · Región viva real (capa superior)</h2>
+<p class="cap">Posición, cola (límite 3; 1 en móvil), traslado al diálogo modal, Esc (cierra el aviso enfocado y no el diálogo), deslizar con táctil o lápiz. Sin autocierre en el banco.</p>
+<div class="tools">
+  <label>Posición <select id="pos">
+    <option>top-start</option><option>top-center</option><option>top-end</option>
+    <option>bottom-start</option><option>bottom-center</option><option selected>bottom-end</option>
+  </select></label>
+  <label>offset abajo <input id="off" type="number" value="0" min="0" step="8"></label>
+  <label><input id="flip" type="checkbox"> data-flipped</label>
+</div>
+<div class="tools" id="launch">
+  <button class="tool" type="button" data-l="success">Éxito</button>
+  <button class="tool" type="button" data-l="info">Info</button>
+  <button class="tool" type="button" data-l="warning">Aviso</button>
+  <button class="tool" type="button" data-l="error">Error con acción</button>
+  <button class="tool" type="button" data-l="neutral">Neutral con Deshacer</button>
+  <button class="tool" type="button" data-l="loading">Promesa</button>
+  <button class="tool" type="button" data-l="repeat">Copiar (repetible)</button>
+  <button class="tool" type="button" data-l="burst">Ráfaga de 6</button>
+  <button class="tool" type="button" data-l="clear">Cerrar todos</button>
+  <button class="tool" type="button" id="open-dlg">Abrir diálogo modal</button>
+</div>
+<div class="filler"></div>
+<div class="fieldrow"><label for="last">Último campo</label><input id="last" value="Campo al pie"></div>
+
+<dialog class="dlg" id="dlg" aria-labelledby="dlg-t">
+  <div class="dlg__head"><h2 id="dlg-t">Editar proyecto</h2><button class="tool" id="dlg-x" type="button" aria-label="Cerrar diálogo"></button></div>
+  <div class="dlg__body">
+    <label>Nombre <input id="dlg-name" value="Informe anual"></label>
+    <div class="tools"><button class="tool" type="button" id="dlg-save">Guardar</button><button class="tool" type="button" id="dlg-fail">Simular error</button></div>
+  </div>
+</dialog>
+
+<script>
+const I = (n, cls) => window.lucide(n, cls || '');
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const log = m => { $('#log').textContent = m; };
+const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert', loading: 'loader-circle' };
+const TYPE = { info: 'Información: ', success: 'Correcto: ', warning: 'Atención: ', error: 'Error: ', loading: 'Cargando: ' };
+let uid = 0;
+
+/* ---------- marcado exacto del contrato (lo que pintará GToaster) ---------- */
+function toastHTML(o, rootId) {
+  const id = rootId + '-t' + (++uid);
+  const type = o.type || 'neutral';
+  const cls = ['g-toast', 'g-surface', 'g-surface--level-floating', 'g-surface--tone-surface', 'g-surface--padding-sm', 'g-surface--density-default', 'g-toast--type-' + type];
+  if (o.action) cls.push('has-action');
+  if (o.description) cls.push('has-description');
+  if (type === 'loading') cls.push('is-loading');
+  const count = o.count > 1 ? '<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-count g-toast__count"><span class="g-badge__text" aria-hidden="true">' + o.count + '</span><span class="g-badge__sr">' + o.count + ' veces</span></span>' : '';
+  return '<li class="' + cls.join(' ') + '" id="' + id + '" data-type="' + type + '" data-state="' + (o.state || 'visible') + '"' + (type === 'loading' ? ' aria-busy="true"' : '') + ' data-key="' + (o.key || id) + '">' +
+    (ICON[type] ? '<span class="g-toast__icon" aria-hidden="true">' + I(ICON[type]) + '</span>' : '') +
+    '<div class="g-toast__content"><p class="g-toast__title" id="' + id + '-title">' + (TYPE[type] ? '<span class="g-toast__type">' + TYPE[type] + '</span>' : '') + esc(o.title) + count + '</p>' +
+    (o.description ? '<p class="g-toast__description" id="' + id + '-desc">' + esc(o.description) + '</p>' : '') + '</div>' +
+    '<div class="g-toast__actions">' +
+    (o.action ? '<button class="g-btn g-btn--color-neutral g-btn--variant-outline g-btn--size-sm g-btn--density-default g-toast__action" type="button" data-act="action"><span class="g-btn__label">' + esc(o.action) + '</span></button>' : '') +
+    '<button class="g-btn g-btn--color-neutral g-btn--variant-ghost g-btn--size-sm g-btn--density-default g-btn--icon g-toast__close" type="button" data-act="close" aria-label="Cerrar" aria-describedby="' + id + '-title' + (o.description ? ' ' + id + '-desc' : '') + '"><span class="g-btn__label">' + I('x') + '</span></button>' +
+    '</div></li>';
+}
+function rootHTML(pos, toasts, opts = {}) {
+  const [edge, align] = pos.split('-');
+  const rid = 'gt' + (++uid);
+  return '<div class="g-toaster g-toaster--position-' + pos + '" id="' + rid + '" data-position="' + pos + '" data-edge="' + edge + '" data-align="' + align + '"' + (opts.mobile ? ' data-mobile' : '') + '>' +
+    '<div class="g-toaster__live" role="status" aria-live="polite" aria-atomic="true"></div><div class="g-toaster__live" role="alert" aria-atomic="true"></div>' +
+    '<section class="g-toaster__region" aria-label="Notificaciones (F8)" aria-keyshortcuts="F8"><ol class="g-toaster__list">' + toasts.map(t => toastHTML(t, rid)).join('') + '</ol>' +
+    (opts.queued ? '<p class="g-toaster__queued">' + opts.queued + ' más en espera</p>' : '') + '</section></div>';
+}
+const cell = (host, label, html) => { const d = document.createElement('div'); d.innerHTML = '<p class="lab">' + label + '</p>' + html; host.append(d); };
+
+/* ---------- 1 · tipos ---------- */
+const D = { short: 'Los cambios se verán en todos los dispositivos.', long: 'El archivo supera el tamaño máximo permitido. Comprime las imágenes o divide el informe en partes más pequeñas.' };
+[['neutral', 'Borrador guardado'], ['info', 'Hay una nueva versión disponible'], ['success', 'Cambios guardados'], ['warning', 'Sin conexión'], ['error', 'No se pudo sincronizar'], ['loading', 'Subiendo informe…']].forEach(([type, title]) => {
+  cell($('#s-types'), '<b>' + type + '</b>', rootHTML('bottom-end', [{ type, title }]));
+  cell($('#s-types'), '<b>' + type + '</b> + descripción', rootHTML('bottom-end', [{ type, title, description: type === 'error' ? D.long : D.short }]));
+});
+/* ---------- 2 · acción, contador, largos ---------- */
+cell($('#s-action'), '<b>neutral + Deshacer</b>', rootHTML('bottom-end', [{ type: 'neutral', title: 'Proyecto archivado', action: 'Deshacer' }]));
+cell($('#s-action'), '<b>error + descripción + Reintentar</b>', rootHTML('bottom-end', [{ type: 'error', title: 'No se pudo subir el archivo', description: D.long, action: 'Reintentar' }]));
+cell($('#s-action'), '<b>success + contador 3</b>', rootHTML('bottom-end', [{ type: 'success', title: 'Copiado al portapapeles', count: 3 }]));
+cell($('#s-action'), '<b>info + acción larga</b>', rootHTML('bottom-end', [{ type: 'info', title: 'Nueva versión disponible', description: 'Recarga para usar la última versión.', action: 'Recargar ahora' }]));
+cell($('#s-action'), '<b>título largo (60) + descripción larga (140)</b>', rootHTML('bottom-end', [{ type: 'warning', title: 'La sincronización del calendario compartido está en pausa', description: 'Volverá a intentarlo cuando recuperes la conexión. Los cambios que hagas mientras tanto se guardarán en este dispositivo.', action: 'Reintentar' }]));
+cell($('#s-action'), '<b>palabra sin cortes</b>', rootHTML('bottom-end', [{ type: 'success', title: 'Informe_anual_2026_version_definitiva_revisada.pdf subido', count: 12 }]));
+/* ---------- 3 · cola y alineaciones ---------- */
+const STACK = [{ type: 'success', title: 'Cambios guardados' }, { type: 'warning', title: 'Sin conexión', description: D.short }, { type: 'error', title: 'No se pudo sincronizar', action: 'Reintentar' }];
+['bottom-end', 'bottom-start', 'top-center'].forEach(p => cell($('#s-queue'), '<b>' + p + '</b> · 3 en cola', rootHTML(p, p.startsWith('top') ? STACK.slice().reverse() : STACK, { queued: 3 })));
+/* ---------- 4 · fondos ---------- */
+[['page', 'fondo bg'], ['page page--sunken', 'fondo sunken'], ['page page--photo', 'foto (cola sobre imagen)']].forEach(([c, l]) => {
+  const d = document.createElement('div'); d.className = c; d.innerHTML = '<p class="lab">' + l + '</p>' + rootHTML('bottom-end', STACK.slice(1), { queued: 2 }); $('#s-pages').append(d);
+});
+/* ---------- 5 · móvil ---------- */
+[[{ type: 'error', title: 'No se pudo sincronizar', description: D.long, action: 'Reintentar' }, 4], [{ type: 'neutral', title: 'Proyecto archivado', action: 'Deshacer' }, 0], [{ type: 'success', title: 'Cambios guardados', count: 2 }, 0]].forEach(([t, q]) => {
+  const d = document.createElement('div'); d.className = 'phone'; d.innerHTML = rootHTML('bottom-end', [t], { mobile: true, queued: q }); $('#s-mobile').append(d);
+});
+
+/* ---------- 6 · región viva (lo mínimo de bruno) ---------- */
+const root = document.createElement('div');
+root.setAttribute('popover', 'manual');
+root.innerHTML = '<div class="g-toaster__live" role="status" aria-live="polite" aria-atomic="true"></div><div class="g-toaster__live" role="alert" aria-atomic="true"></div>' +
+  '<section class="g-toaster__region" aria-label="Notificaciones (F8)" aria-keyshortcuts="F8" hidden><ol class="g-toaster__list"></ol><p class="g-toaster__queued" hidden></p></section>';
+root.id = 'live';
+document.body.append(root);
+const list = $('.g-toaster__list', root), region = $('.g-toaster__region', root), queuedEl = $('.g-toaster__queued', root);
+let toasts = []; // {key,type,title,description,action,count}
+let mobile = false;
+const q = new URLSearchParams(location.search);
+function setPos(p) {
+  const flipped = $('#flip').checked;
+  let [edge, align] = p.split('-');
+  if (mobile) edge = 'bottom';
+  if (flipped) edge = edge === 'top' ? 'bottom' : 'top';
+  root.className = 'g-toaster g-toaster--position-' + p;
+  root.dataset.position = p; root.dataset.edge = edge; root.dataset.align = align;
+  root.toggleAttribute('data-mobile', mobile); root.toggleAttribute('data-flipped', flipped);
+  render();
+}
+function measureMobile() {
+  const s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1'));
+  mobile = innerWidth < s * 130; setPos($('#pos').value);
+}
+const rects = () => new Map($$('.g-toast:not([data-state=leaving])', list).map(el => [el, el.getBoundingClientRect()]));
+function flip(before) {
+  $$('.g-toast:not([data-state=leaving])', list).forEach(el => {
+    const a = before.get(el); if (!a) return; const b = el.getBoundingClientRect(); const dy = a.top - b.top; if (!dy) return;
+    el.style.transition = 'none'; el.style.transform = 'translateY(' + dy + 'px)';
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = ''; el.style.transform = ''; }));
+  });
+}
+function render() {
+  const limit = mobile ? 1 : 3;
+  const vis = toasts.slice(0, limit), rest = toasts.length - vis.length;
+  const ordered = root.dataset.edge === 'top' ? vis.slice().reverse() : vis;
+  const before = rects();
+  const existing = new Map($$('.g-toast:not([data-state=leaving])', list).map(el => [el.dataset.key, el]));
+  existing.forEach((el, k) => { if (!vis.find(t => t.key === k)) leave(el); });
+  ordered.forEach(t => {
+    let el = existing.get(t.key);
+    const html = toastHTML(Object.assign({}, t, { state: el ? 'visible' : 'entering' }), 'live');
+    const tmp = document.createElement('ol'); tmp.innerHTML = html; const fresh = tmp.firstChild;
+    if (el) { el.className = fresh.className; el.dataset.type = fresh.dataset.type; el.replaceChildren(...fresh.childNodes); fresh.getAttribute('aria-busy') ? el.setAttribute('aria-busy', 'true') : el.removeAttribute('aria-busy'); }
+    else { el = fresh; requestAnimationFrame(() => requestAnimationFrame(() => { if (el.dataset.state === 'entering') el.dataset.state = 'visible'; })); }
+    list.append(el); // orden del DOM = orden visual
+  });
+  $$('.g-toast[data-state=leaving]', list).forEach(el => list.append(el));
+  region.hidden = vis.length === 0 && !list.children.length;
+  queuedEl.hidden = rest <= 0; queuedEl.textContent = rest + ' más en espera';
+  flip(before);
+}
+function leave(el, swipeTo) {
+  const before = rects(); before.delete(el);
+  el.style.setProperty('--_toast-y', (root.dataset.edge === 'bottom' ? list.clientHeight - el.offsetTop - el.offsetHeight : el.offsetTop) + 'px');
+  if (swipeTo != null) el.style.setProperty('--_toast-swipe', swipeTo + 'px');
+  el.dataset.state = 'leaving';
+  flip(before);
+  const done = () => { el.remove(); if (!list.children.length) region.hidden = true; };
+  const ms = parseFloat(getComputedStyle(el).transitionDuration) * 1000 || 0;
+  setTimeout(done, ms + 60); // no espera eventos que con movimiento reducido no llegan
+}
+let n = 0;
+function show(o) {
+  const same = toasts.find(t => t.type === o.type && t.title === o.title && t.description === o.description);
+  if (same && !o.key) { same.count = (same.count || 1) + 1; render(); return same.key; }
+  const t = Object.assign({ key: o.key || 'k' + (++n), count: 1 }, o);
+  if (t.type === 'error') { const i = toasts.findIndex((x, j) => j >= (mobile ? 1 : 3)); toasts.splice(i < 0 ? toasts.length : i, 0, t); } else toasts.push(t);
+  render(); return t.key;
+}
+function dismiss(key) { toasts = toasts.filter(t => t.key !== key); render(); }
+const L = {
+  success: () => show({ type: 'success', title: 'Cambios guardados' }),
+  info: () => show({ type: 'info', title: 'Nueva versión disponible', description: 'Recarga para usar la última versión.' }),
+  warning: () => show({ type: 'warning', title: 'Sin conexión', description: D.short }),
+  error: () => show({ type: 'error', title: 'No se pudo sincronizar', description: D.long, action: 'Reintentar' }),
+  neutral: () => show({ type: 'neutral', title: 'Proyecto archivado', action: 'Deshacer' }),
+  loading: () => { const k = show({ type: 'loading', title: 'Subiendo informe…' }); setTimeout(() => { const t = toasts.find(x => x.key === k); if (t) { Object.assign(t, { type: 'success', title: 'Informe subido', description: 'informe-anual.pdf' }); render(); } }, 2500); },
+  repeat: () => show({ type: 'success', title: 'Copiado al portapapeles' }),
+  burst: () => ['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis'].forEach((x, i) => show({ type: ['info', 'success', 'warning', 'neutral', 'success', 'info'][i], title: 'Aviso ' + x })),
+  clear: () => { toasts = []; render(); }
+};
+$('#launch').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) L[b.dataset.l](); });
+list.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; const li = b.closest('.g-toast'); log(b.dataset.act + ' · ' + li.dataset.key); dismiss(li.dataset.key); });
+region.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || e.isComposing) return; const li = e.target.closest('.g-toast'); if (!li) return;
+  e.preventDefault(); e.stopPropagation();
+  const idx = toasts.findIndex(t => t.key === li.dataset.key); dismiss(li.dataset.key);
+  const next = $$('.g-toast:not([data-state=leaving]) .g-toast__close', list).pop(); (next || $('#dlg[open] input') || document.body).focus?.(); log('Esc cerró ' + li.dataset.key + ' (' + idx + ')');
+});
+/* deslizar: solo touch/pen, horizontal; umbral un tercio del ancho */
+list.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' || e.target.closest('button')) return; const li = e.target.closest('.g-toast'); if (!li) return;
+  const x0 = e.clientX, w = li.offsetWidth; li.setPointerCapture(e.pointerId); li.classList.add('is-swiping');
+  const mv = ev => li.style.setProperty('--_toast-swipe', (ev.clientX - x0) + 'px');
+  const up = ev => { li.removeEventListener('pointermove', mv); li.removeEventListener('pointerup', up); li.classList.remove('is-swiping'); const dx = ev.clientX - x0;
+    if (Math.abs(dx) > w / 3) { toasts = toasts.filter(t => t.key !== li.dataset.key); leave(li, Math.sign(dx) * w); render(); } else li.style.setProperty('--_toast-swipe', '0px'); };
+  li.addEventListener('pointermove', mv); li.addEventListener('pointerup', up);
+});
+/* convivencia con el modal: la raíz se traslada al <dialog> y vuelve a abrirse encima */
+const dlg = $('#dlg');
+$('#dlg-x').innerHTML = I('x');
+$('#open-dlg').onclick = () => { dlg.showModal(); dlg.append(root); root.showPopover(); };
+$('#dlg-x').onclick = () => dlg.close();
+dlg.addEventListener('close', () => { document.body.append(root); root.showPopover(); });
+dlg.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) { log('Esc del diálogo'); } });
+$('#dlg-save').onclick = () => show({ type: 'success', title: 'Proyecto guardado' });
+$('#dlg-fail').onclick = () => show({ type: 'error', title: 'No se pudo guardar', description: 'Revisa la conexión e inténtalo de nuevo.', action: 'Reintentar' });
+$('#pos').onchange = () => setPos($('#pos').value);
+$('#flip').onchange = () => setPos($('#pos').value);
+$('#off').oninput = () => root.style.setProperty('--_toaster-offset-bottom', ($('#off').value || 0) + 'px');
+addEventListener('resize', measureMobile);
+
+/* ---------- herramientas ---------- */
+$('#dark-btn').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#rtl-btn').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+if (q.get('theme')) $('#gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css';
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+if (q.get('pos')) $('#pos').value = q.get('pos');
+if (q.get('offset')) { $('#off').value = q.get('offset'); $('#off').oninput(); }
+root.showPopover();
+measureMobile();
+if (q.get('demo')) { L.success(); L.warning(); L.error(); L.info(); L.neutral(); }
+window.bench = { show, dismiss, L, root, render, leave };
+</script>
+</body>
+</html>
