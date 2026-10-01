@@ -226,6 +226,7 @@ describe('GTable · acciones, estados y modo', () => {
     const w = mk({ loading: true, loadingRows: 2 })
     expect(w.find('table').attributes('aria-busy')).toBe('true')
     expect(w.classes()).toContain('is-loading')
+    expect(w.findAll('tbody tr').every((r) => r.attributes('aria-hidden') === 'true')).toBe(true)
     expect(w.findAll('tbody tr')).toHaveLength(2)
     expect(w.findAll('.g-table__skeleton')).toHaveLength(8)
     w.unmount()

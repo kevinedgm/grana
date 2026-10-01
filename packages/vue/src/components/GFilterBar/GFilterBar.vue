@@ -145,7 +145,7 @@ export default defineComponent({
     }
     const onEditorKeydown = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeEditor(true) }
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') { e.preventDefault(); apply() }
+      if (e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) { e.preventDefault(); apply() }
     }
 
     // ---------- Quitar y limpiar ----------

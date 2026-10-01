@@ -222,7 +222,7 @@ export default defineComponent({
     const colCount = () => cols.value.length + (props.selectable ? 1 : 0) + (slots['row-actions'] ? 1 : 0)
     const body = () => {
       if (props.loading) {
-        return Array.from({ length: props.loadingRows }, (_, i) => h('tr', { role: 'row', class: 'g-table__row', key: `sk-${i}` }, [
+        return Array.from({ length: props.loadingRows }, (_, i) => h('tr', { role: 'row', class: 'g-table__row', 'aria-hidden': 'true', key: `sk-${i}` }, [
           props.selectable ? h('td', { role: 'cell', class: 'g-table__select' }) : null,
           ...cols.value.map((c) => h('td', { role: 'cell', class: ['g-table__cell', { 'g-table__cell--primary': c === primary.value }], key: c.key }, [h('span', { class: 'g-table__skeleton' })])),
           slots['row-actions'] ? h('td', { role: 'cell', class: 'g-table__actions' }) : null

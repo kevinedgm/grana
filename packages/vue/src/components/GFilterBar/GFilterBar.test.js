@@ -88,6 +88,16 @@ describe('GFilterBar · editor', () => {
     await input.setValue('100'); await input.trigger('keydown', { key: 'Enter' }); await flush()
     expect(w.emitted('update:filters')[0][0]).toEqual([{ key: 'total', op: 'gt', value: 100 }])
   })
+  it('Enter aplica también desde el select de regla', async () => {
+    const w = mk()
+    await w.findAll('.g-filter-bar__suggest')[1].trigger('click'); await flush()
+    const ed = editor(w)
+    await ed.find('input').setValue('100')
+    const sel = ed.find('select')
+    expect(sel.exists()).toBe(true)
+    await sel.trigger('keydown', { key: 'Enter' }); await flush()
+    expect(w.emitted('update:filters')[0][0]).toEqual([{ key: 'total', op: 'gt', value: 100 }])
+  })
   it('entre: dos campos y rango inválido', async () => {
     const w = mk()
     await w.findAll('.g-filter-bar__suggest')[1].trigger('click'); await flush()

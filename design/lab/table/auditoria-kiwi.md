@@ -106,4 +106,6 @@ Aplicadas tras esta auditoría (913 pruebas pasan; build y compuertas bien):
 | ⚠️ Recuento de seleccionados no era región viva | `role="status"`; con prueba |
 | ⚠️ Anuncios de orden y selección dependían de textos opcionales sin aviso | Avisos de desarrollo si faltan `labels.sorted` (con columnas ordenables) o `labels.selectedCount` (con selección) |
 
-Siguen abiertos: hoja móvil del editor en un visor móvil real, lector de pantalla real, etiqueta de las filas esqueleto en tarjetas y «Enter aplica» desde el `select` de regla y las casillas.
+Después, las dos reservas menores: las filas esqueleto llevan `aria-hidden` (el estado lo da `aria-busy` de la tabla; no se añadió texto para no ampliar el contrato) y «Enter aplica» actúa también desde el `select` de regla y las casillas (914 pruebas).
+
+Siguen abiertos solo los que requieren entorno real: hoja móvil del editor en un visor móvil y lector de pantalla.
