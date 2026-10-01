@@ -1,0 +1,191 @@
+/*
+  GFilterBar · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/filter-bar.md. Estructura: design/lab/table/r02/.
+  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px y 44px.
+  Bruno da --_x, --_y, --_max en el editor (popover), como en GHelper.
+*/
+.g-filter-bar {
+  --_h: calc(var(--g-space-1) * 8);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  margin-block-end: var(--g-space-3);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+}
+
+/* Botones comunes de la barra */
+.g-filter-bar__edit,
+.g-filter-bar__remove,
+.g-filter-bar__suggest,
+.g-filter-bar__add,
+.g-filter-bar__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-block-size: max(24px, var(--_h));
+  margin: 0;
+  padding: 0 var(--g-space-3);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-filter-bar .g-icon {
+  inline-size: 1.1em;
+  block-size: 1.1em;
+}
+:is(.g-filter-bar__edit, .g-filter-bar__remove, .g-filter-bar__suggest, .g-filter-bar__add, .g-filter-bar__clear):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Chip aplicado: dos botones en una píldora */
+.g-filter-bar__chip {
+  display: inline-flex;
+  align-items: stretch;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+}
+.g-filter-bar__edit {
+  border-start-start-radius: var(--g-radius-pill);
+  border-end-start-radius: var(--g-radius-pill);
+}
+.g-filter-bar__edit b { font-weight: var(--g-text-title-weight); }
+.g-filter-bar__remove {
+  padding-inline: var(--g-space-2);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  border-start-end-radius: var(--g-radius-pill);
+  border-end-end-radius: var(--g-radius-pill);
+  color: var(--g-color-text-muted);
+}
+
+/* Chip sugerido: punteado, sin peso */
+.g-filter-bar__suggest {
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  color: var(--g-color-text-muted);
+}
+.g-filter-bar__add {
+  border-radius: var(--g-radius-pill);
+  font-weight: var(--g-text-action-weight);
+}
+.g-filter-bar__clear {
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-sm);
+  color: var(--g-color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: var(--g-space-1);
+}
+.g-filter-bar__count {
+  margin-inline-start: auto;
+  color: var(--g-color-text-muted);
+}
+@media (hover: hover) {
+  .g-filter-bar__edit:hover,
+  .g-filter-bar__remove:hover,
+  .g-filter-bar__add:hover { background: var(--g-color-surface-sunken); }
+  .g-filter-bar__suggest:hover {
+    border-color: var(--g-color-text-muted);
+    color: var(--g-color-text);
+  }
+  .g-filter-bar__clear:hover { color: var(--g-color-text); }
+}
+
+/* ---------- Editor (popover; en hoja lo estiliza GDialog) ---------- */
+.g-filter-bar__editor {
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--g-space-3);
+  inline-size: calc(var(--g-space-1) * 72);
+  max-inline-size: calc(100vw - var(--g-space-1) * 4);
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-4);
+  overflow: auto;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+/* display solo cuando está abierto: un display propio anularía el ocultamiento nativo del popover */
+.g-filter-bar__editor:popover-open { display: flex; }
+.g-filter-bar__editor-title {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  font-weight: var(--g-text-title-weight);
+}
+.g-filter-bar__rule,
+.g-filter-bar__value input:not([type="checkbox"]) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: max(24px, calc(var(--g-space-1) * 9));
+  padding: 0 var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+}
+.g-filter-bar__value {
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-2);
+}
+.g-filter-bar__range {
+  display: flex;
+  gap: var(--g-space-2);
+}
+.g-filter-bar__value label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-filter-bar__value input[type="checkbox"] {
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
+  margin: 0;
+  accent-color: var(--g-color-primary);
+}
+.g-filter-bar__rule:focus-visible,
+.g-filter-bar__value input:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-filter-bar__error {
+  margin: 0;
+  color: var(--g-color-danger-text);
+  font-size: var(--g-text-caption-size);
+}
+.g-filter-bar__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--g-space-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-filter-bar__editor:popover-open { transition: opacity var(--g-duration-press) var(--g-ease-out); }
+  @starting-style { .g-filter-bar__editor:popover-open { opacity: 0; } }
+}
+@media (pointer: coarse) {
+  :is(.g-filter-bar__edit, .g-filter-bar__remove, .g-filter-bar__suggest, .g-filter-bar__add, .g-filter-bar__clear) { min-block-size: 44px; }
+}
+@media (forced-colors: active) {
+  .g-filter-bar__chip, .g-filter-bar__suggest, .g-filter-bar__editor { border-color: CanvasText; }
+}

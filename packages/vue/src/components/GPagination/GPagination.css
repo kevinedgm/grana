@@ -1,0 +1,95 @@
+/*
+  GPagination · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/pagination.md.
+  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px y 44px. Bruno da g-pagination--compact (medido).
+*/
+.g-pagination {
+  --_size: calc(var(--g-space-1) * 8);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-2) var(--g-space-4);
+  margin-block-start: var(--g-space-3);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+}
+.g-pagination__pages {
+  display: flex;
+  gap: var(--g-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-pagination__step,
+.g-pagination__page {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: max(24px, var(--_size));
+  min-block-size: max(24px, var(--_size));
+  margin: 0;
+  padding: 0 var(--g-space-2);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-md);
+  background: none;
+  color: var(--g-color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-pagination__step .g-icon {
+  inline-size: 1.15em;
+  block-size: 1.15em;
+}
+.g-pagination__page[aria-current="page"] {
+  border-color: var(--g-color-border-strong);
+  font-weight: var(--g-text-action-weight);
+}
+.g-pagination__step:disabled {
+  color: var(--g-color-text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.g-pagination__step:focus-visible,
+.g-pagination__page:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (hover: hover) {
+  .g-pagination__step:not(:disabled):hover,
+  .g-pagination__page:not([aria-current="page"]):hover { background: var(--g-color-surface-sunken); }
+}
+.g-pagination__ellipsis {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: var(--_size);
+  color: var(--g-color-text-muted);
+}
+.g-pagination__compact {
+  display: none;
+  padding-inline: var(--g-space-2);
+  color: var(--g-color-text);
+}
+.g-pagination--compact .g-pagination__pages { display: none; }
+.g-pagination--compact .g-pagination__compact { display: inline; }
+@media (pointer: coarse) {
+  .g-pagination__step,
+  .g-pagination__page {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+@media (forced-colors: active) {
+  .g-pagination__page[aria-current="page"] { border-color: CanvasText; }
+}

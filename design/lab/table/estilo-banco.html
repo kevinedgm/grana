@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTable · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/table.md, pagination.md y filter-bar.md con el CSS real y el tema por defecto.
+     El script solo pinta el marcado (lo que hará bruno). No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GTable/GTable.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GPagination/GPagination.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GFilterBar/GFilterBar.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)} h2{font-size:15px;margin:28px 0 12px} .frame{max-width:100%}</style>
+</head>
+<body>
+<button id="theme-btn" type="button">Tema de prueba</button> <button id="dark-btn" type="button">Oscuro</button>
+<h2>Tabla · líneas · default</h2><div class="frame" id="t1"></div>
+<h2>Tabla · superficie · compact</h2><div class="frame" id="t2"></div>
+<h2>Tarjetas (360px)</h2><div class="frame" id="t3" style="width:360px"></div>
+<h2>Paginación compacta</h2><div id="p2" style="width:300px"></div>
+<script>
+const I=n=>window.lucide(n);
+const rows=[['Ana Torres','ana@correo.com','AT','Pro','activo',3393],['Bruno Díaz','bruno@correo.com','BD','Básico','pausado',1931],['Carla Ruiz','carla@correo.com','CR','Equipo','vencido',2662]];
+const filterBar=`<div class="g-filter-bar" role="group" aria-label="Filtros">
+ <span class="g-filter-bar__chip"><button class="g-filter-bar__edit" type="button" aria-haspopup="dialog" aria-label="Editar filtro: Total mayor que $2,000"><b>Total</b> mayor que $2,000</button><button class="g-filter-bar__remove" type="button" aria-label="Quitar filtro: Total mayor que $2,000">${I('x')}</button></span>
+ <button class="g-filter-bar__suggest" type="button" aria-haspopup="dialog">${I('plus')} Estado</button>
+ <button class="g-filter-bar__add" type="button" aria-haspopup="menu">${I('plus')} Agregar filtro</button>
+ <button class="g-filter-bar__clear" type="button">Limpiar filtros</button><span class="g-filter-bar__count">3 resultados</span>
+ <div class="g-filter-bar__editor" role="dialog" aria-labelledby="ed-t" popover="manual"><h3 class="g-filter-bar__editor-title" id="ed-t">Filtrar por Estado</h3>
+  <div class="g-filter-bar__value"><label><input type="checkbox" checked> activo</label><label><input type="checkbox"> pausado</label><label><input type="checkbox"> vencido</label></div>
+  <p class="g-filter-bar__error">Indica un valor para aplicar el filtro.</p><div class="g-filter-bar__actions"><button type="button">Cancelar</button><button type="button">Aplicar</button></div></div></div>`;
+const table=(mode,app,den)=>`<div class="g-table g-table--mode-${mode} g-table--appearance-${app} g-table--density-${den}">${filterBar}
+ <div class="g-table__bar"><label class="g-table__bar-cards"><input type="checkbox"> Seleccionar todo</label><label class="g-table__bar-cards">Ordenar por <select><option>Cliente</option></select></label><span class="g-table__count">1 seleccionado</span></div>
+ <div class="g-table__scroll"><table class="g-table__table" role="table"><caption class="g-table__caption">Clientes</caption>
+ <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="g-table__select"><input type="checkbox" aria-label="Seleccionar todas"></th>
+ <th role="columnheader" scope="col" aria-sort="ascending"><button class="g-table__sort" type="button">Cliente ${I('arrow-up')}</button></th>
+ <th role="columnheader" scope="col"><button class="g-table__sort" type="button">Plan ${I('chevrons-up-down')}</button></th>
+ <th role="columnheader" scope="col">Estado</th><th role="columnheader" scope="col" class="g-table__cell--end"><button class="g-table__sort" type="button">Total ${I('chevrons-up-down')}</button></th>
+ <th role="columnheader" scope="col" class="g-table__actions"><span class="g-table__sr">Acciones</span></th></tr></thead><tbody role="rowgroup">
+ ${rows.map((r,i)=>`<tr role="row" class="g-table__row${i===0?' is-selected':''}"><td role="cell" class="g-table__select"><input type="checkbox"${i===0?' checked':''} aria-label="Seleccionar ${r[0]}"></td>
+  <td role="cell" class="g-table__cell g-table__cell--composite g-table__cell--primary"><span class="g-table__label" aria-hidden="true">Cliente</span><span class="g-table__composite"><span class="g-table__leading" aria-hidden="true">${r[2]}</span><span class="g-table__text"><span class="g-table__title">${r[0]}</span><span class="g-table__subtitle">${r[1]}</span></span></span></td>
+  <td role="cell" class="g-table__cell"><span class="g-table__label" aria-hidden="true">Plan</span>${r[3]}</td>
+  <td role="cell" class="g-table__cell"><span class="g-table__label" aria-hidden="true">Estado</span><span class="g-badge g-badge--variant-soft g-badge--color-${['success','warning','danger'][i]} g-badge--size-sm g-badge--kind-text">${r[4]}</span></td>
+  <td role="cell" class="g-table__cell g-table__cell--end"><span class="g-table__label" aria-hidden="true">Total</span>$${r[5].toLocaleString('es-MX')}</td>
+  <td role="cell" class="g-table__actions"><button type="button" class="g-filter-bar__clear" aria-label="Acciones de ${r[0]}" style="text-decoration:none">${I('ellipsis-vertical')}</button></td></tr>`).join('')}
+ </tbody></table></div>
+ <nav class="g-pagination" aria-label="Paginación"><span class="g-pagination__range">1–3 de 12</span><div class="g-pagination__controls"><button class="g-pagination__step" type="button" aria-label="Anterior" disabled>${I('chevron-left')}</button><ol class="g-pagination__pages"><li><button class="g-pagination__page" type="button" aria-current="page">1</button></li><li><button class="g-pagination__page" type="button">2</button></li><li><span class="g-pagination__ellipsis" aria-hidden="true">…</span></li><li><button class="g-pagination__page" type="button">4</button></li></ol><span class="g-pagination__compact">Página 1 de 4</span><button class="g-pagination__step" type="button" aria-label="Siguiente">${I('chevron-right')}</button></div></nav></div>`;
+document.getElementById('t1').innerHTML=table('table','lines','default');
+document.getElementById('t2').innerHTML=table('table','surface','compact');
+document.getElementById('t3').innerHTML=table('cards','lines','default');
+document.getElementById('p2').innerHTML=`<nav class="g-pagination g-pagination--compact" aria-label="Paginación"><span class="g-pagination__range">1–3 de 12</span><div class="g-pagination__controls"><button class="g-pagination__step" type="button" disabled>${I('chevron-left')}</button><ol class="g-pagination__pages"><li><button class="g-pagination__page" type="button">1</button></li></ol><span class="g-pagination__compact">Página 1 de 4</span><button class="g-pagination__step" type="button">${I('chevron-right')}</button></div></nav>`;
+// Abrir el editor del primer bloque junto al chip sugerido
+const ed=document.querySelector('#t1 .g-filter-bar__editor'); ed.showPopover(); const a=document.querySelector('#t1 .g-filter-bar__suggest').getBoundingClientRect(); ed.style.setProperty('--_x',a.left+'px'); ed.style.setProperty('--_y',(a.bottom+8)+'px'); ed.style.setProperty('--_max','400px');
+const theme=document.getElementById('theme'); let on=false;
+document.getElementById('theme-btn').onclick=()=>{on=!on; theme.textContent=on?':root{--g-color-primary:#7A1E3A;--g-color-primary-soft:#f7dde5;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-border:rgb(80 50 20 / .14);--g-color-border-strong:rgb(80 50 20 / .3);--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-radius-lg:16px;--g-radius-md:12px;--g-radius-pill:6px;--g-space-1:5px;--g-border-width:2px;--g-font-ui:Georgia,serif}':''};
+document.getElementById('dark-btn').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'};
+</script>
+</body>
+</html>
