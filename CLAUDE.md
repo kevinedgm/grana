@@ -1,6 +1,6 @@
 # Grana · contexto para Claude Code
 
-Librería open source de componentes **Vue 3** con tema por tokens (tipo Vuetify, pero la estructura es de la librería y el color lo pone cada proyecto). Repo: https://github.com/kevinedgm/grana. Paquetes: `@grana/vue` (componentes) y `@grana/cli` (pendiente). Prefijo `g-` (`<g-btn>`, `GBtn`, `--g-*`).
+Librería open source de componentes **Vue 3** con tema por tokens (tipo Vuetify, pero la estructura es de la librería y el color lo pone cada proyecto). Repo: https://github.com/kevinedgm/grana. Paquetes: `@grana/vue` (componentes) y `@grana/cli` (Theme Engine: deriva el tema desde la configuración). Prefijo `g-` (`<g-btn>`, `GBtn`, `--g-*`).
 
 ## Lee esto antes de tocar código
 
@@ -48,20 +48,21 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 ! grep -q "createApp" packages/vue/dist/grana.umd.js        # Vue no quedó empaquetado
 ```
 
-## Estado al pasar a Claude Code
+## Estado actual
 
-**Hecho y en GitHub:** contrato de tokens v0.1; tema por defecto neutro (Notion/Medium/Apple): `brand` #1F1F1F, `accent` #0B63CE, Instrument Sans en `dist/fonts/`; `GBtn`: prototipo (kiwi), contrato (lima) y `GBtn.css` verificado en Chromium (coco).
+**Hecho y en GitHub** (todo `candidate`, con contrato, CSS, pruebas, `meta.json` y README): `GBtn`, `GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GBadge`, `GProgress`, `GMetric`, `GDialog`, `GMenu`, `GCalendar`, `GDatePicker`, `GDataList`, `GSidebar`, `GWidget` (+ `Config`, `Gallery`, `Grid`), `GStepper`, `GSurface`, `GHelper`, `GHelperScope`, `GAvatarMotion`, `GTable`, `GFilterBar`, `GPagination`; `GIcon` es interno (Lucide). Utilidades: `anchor.js`, `filters.js`. `@grana/cli` con motor de tema OKLCH (claves `primary`, `neutrals`, `categories`, `dark`, etc., #107). Decisiones hasta la **#111**.
 
-**Entregado pero quizá sin aplicar:** la parte de bruno de `GBtn` (`GBtn.vue`, `GBtn.test.js` con 17 pruebas, `GBtn.meta.json`, registro en `index.js` y `components.css`, `playground/index.html`). Si `packages/vue/src/components/GBtn/GBtn.vue` no existe, está en `~/Downloads/grana-gbtn-vue.zip`: `unzip -o ~/Downloads/grana-gbtn-vue.zip` en la raíz. **Estas pruebas nunca se han ejecutado**; es probable que alguna falle por detalles de la librería de pruebas.
+**Verificación:** `npm test` (vitest, ~914 pruebas en `@grana/vue`; 136 en `@grana/cli`), `npm run build` y las tres compuertas. Pruebas de navegador con Playwright en Chromium, Firefox y WebKit en `design/lab/theme-playground/` (`npm test` allí; 134 pruebas, #108).
 
-## Siguientes pasos, en orden
+**Qué comprobar antes de dar algo por hecho:** el flujo completo kiwi → lima → coco → bruno → coco → mora-docs, y las auditorías de kiwi (`design/lab/table/auditoria-kiwi.md`) y de coco.
 
-1. Aplicar y verificar la entrega de bruno de `GBtn`: `npm test`, build, compuertas, playground.
-2. Paso 5, auditoría de coco sobre el componente real, con un tema distinto al por defecto. Resultado en `design/lab/btn/auditoria.md`; luego `status: "candidate"` en `GBtn.meta.json`.
-3. `README.md` de `GBtn` (mora-docs) desde `GBtn.meta.json`.
-4. Siguiente componente, empezando por la ronda de kiwi.
+## Siguientes pasos
 
-**Pendientes que no bloquean:** investigación **Dark Color Presence** (¿basta 4.5:1 en oscuro para `accent` y semánticos? Evidencia reunida con 9 familias y tres hipótesis, decisión pendiente; `design/lab/tema-oscuro/investigacion-dark-color-presence.md`); pruebas manuales en lector de pantalla (Firefox y Safari/WebKit se verifican con Playwright); `@grana/cli` (Flujo A: derivación OKLCH, validación de mínimos, `shape` → `--g-radius-shape`); tema oscuro; tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; adaptar las skills de kiwi, lima y coco al formato de `.agents/skills/bruno/references/handoffs.md`; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`.
+1. **Siguiente componente**, empezando por la ronda de kiwi (decisión de producto del usuario).
+2. **Dark Color Presence:** la evidencia está reunida (`design/lab/tema-oscuro/dark-color-presence/`, `recommendation.md`). D es la opción preferida **pero no está adoptada**; adoptarla exige especificación y pruebas del motor, y decisión del usuario. No tocar el Theme Engine ni el contrato por esto sin esa decisión.
+3. **Solo en entorno real** (no automatizable): lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros y `GHelper`; hoja móvil del editor de filtros en móvil real; Safari, táctil y `forced-colors` reales; evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
+
+**Pendientes que no bloquean:** tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; adaptar las skills de kiwi, lima y coco al formato de `.agents/skills/bruno/references/handoffs.md`; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`; texto de «cargando» para las filas esqueleto de `GTable` (requiere lima).
 
 ## Lecciones ya aprendidas (no repetirlas)
 
