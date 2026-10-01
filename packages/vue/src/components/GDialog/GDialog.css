@@ -134,6 +134,19 @@ html:has(.g-dialog[open]) {
   .g-dialog { --_ctl: 44px; }
 }
 
+/* ---------- Cabecera de pestañas fija (slot tabs, DECISIONS.md #119; contrato tabs.md) ----------
+   A sangre (llega al borde de la carcasa) y fuera del cuerpo: solo el cuerpo se desplaza. Define --g-tabs-inset
+   con su relleno inline para que el texto de la primera pestaña alinee con el del título. */
+.g-dialog__tabs {
+  --g-tabs-inset: var(--_pad);
+  flex: none;
+  margin-inline: calc(var(--_gap) * -1);
+}
+/* Con inset, la superficie hundida de abajo ya trae su borde: la línea base de las pestañas no se duplica */
+.g-dialog--inset > .g-dialog__tabs .g-tabs__header::after { display: none; }
+/* Sin inset, el cuerpo vive en la carcasa y necesita aire bajo la línea base */
+.g-dialog:not(.g-dialog--inset) > .g-dialog__tabs + .g-dialog__body { padding-block-start: var(--g-space-4); }
+
 /* ---------- Superficie inset ---------- */
 .g-dialog__inset {
   position: relative;

@@ -1,0 +1,591 @@
+/*
+  GTabs · estilo del esqueleto (incluye GTabPanel: el panel suelto usa las mismas clases g-tabs__panel)
+  Dueño: coco. Contrato: design/contracts/tabs.md. Estructura: design/lab/tabs/r02/. Estética: design/lab/tabs/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo;
+  únicos literales de medida: 24px y 44px (área táctil), 0px (sangrado cero y piso de max()) y el patrón de texto oculto.
+  Los valores de --g-tabs-* (pista, segmento, banda, panel, grosor de la marca) viven en defaults.css.
+  Carácter: silencioso. Sin bordes por pestaña; la activa se marca con UNA marca que se desliza (línea, superficie
+  suave, segmento, pestaña fundida) y con más peso; el foco es un anillo interior, distinto de la marca.
+
+  Lo que bruno debe dar (ver estilo.md):
+   · --_mark-x / --_mark-y / --_mark-w / --_mark-h en px, relativos al borde de INICIO y de BLOQUE del
+     `g-tabs__scroller` (su caja de relleno, con el desplazamiento incluido); en RTL, x se mide desde el borde derecho.
+   · `data-text` en `g-tabs__label` con el mismo texto (reserva el ancho de la negrita para que la activa no desplace a las demás).
+   · La marca solo se anima con `is-ready` en la raíz; sin él, la pestaña activa dibuja su propia marca.
+*/
+
+/* Sangrado inline de la cabecera dentro de su anfitrión; lo redefine la anfitriona (GDialog, un panel). Sin definir, cero. */
+:root { --g-tabs-inset: 0px; }
+
+/* ---------- Raíz ---------- */
+.g-tabs {
+  --_d: 1;
+  --_dir: 1;
+  --_tap: 24px;
+  --_h: max(var(--_tap), calc(var(--g-space-1) * 10 * var(--_d)));
+  --_th: var(--_h);
+  --_px: calc(var(--g-space-1) * 3 * var(--_d));
+  --_sep: calc(var(--g-space-1) * var(--_d));
+  --_in: calc(var(--g-space-1) * 1.5 * var(--_d));
+  --_fade: calc(var(--g-space-1) * 6);
+  --_fade-s: 0px;
+  --_fade-e: 0px;
+  --_to: to right;
+  --_ring: var(--g-focus-width);
+  --_line: var(--g-color-border);
+  --_mark-t: var(--g-tabs-mark-default);
+  --_radius: var(--g-radius-sm);
+  --_pad-track: max(var(--g-space-1), var(--g-focus-width));
+  --_list-pad: max(0px, calc(var(--g-tabs-inset) - var(--_px)));
+  --_mark-x: 0px;
+  --_mark-y: 0px;
+  --_mark-w: 0px;
+  --_mark-h: 0px;
+  /* Color de la marca (familia; se reasigna por modificador). Por defecto: brand. La marca lee el rol -text: es el que el tema garantiza ≥ 4.5:1 sobre la superficie (≥ 3:1 exigido a la marca) */
+  --_base: var(--g-color-primary-text);
+  --_soft: var(--g-color-primary-soft);
+  --_on-soft: var(--g-color-on-primary-soft);
+  /* Tipografía: neutra; la activa sube a text */
+  --_fg: var(--g-color-text-muted);
+  --_fg-hover: var(--g-color-text);
+  --_fg-active: var(--g-color-text);
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+}
+.g-tabs:dir(rtl) { --_dir: -1; --_to: to left; }
+
+/* Densidad: altura, relleno, separación y grosor de la marca (tipografía y lógica no cambian) */
+.g-tabs--density-comfortable { --_d: 0.875; --_mark-t: var(--g-tabs-mark-comfortable); }
+.g-tabs--density-compact { --_d: 0.75; --_mark-t: var(--g-tabs-mark-compact); }
+
+/* Color: familia de la marca de selección y de la superficie de la activa en pill */
+.g-tabs--color-brand { --_base: var(--g-color-primary-text); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); }
+.g-tabs--color-accent { --_base: var(--g-color-accent-text); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); }
+.g-tabs--color-neutral { --_base: var(--g-color-neutral-text); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); }
+
+/* Texto oculto accesible */
+.g-tabs__sr,
+.g-tabs__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Cabecera, desplazador y lista ---------- */
+.g-tabs__header {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: stretch;
+  min-inline-size: 0;
+}
+/* Línea base (solo underline y contained): fina, bajo toda la fila; la marca pasa por encima */
+.g-tabs__header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-block-end: var(--g-border-width) solid var(--_line);
+}
+.g-tabs--appearance-pill .g-tabs__header::after,
+.g-tabs--appearance-segmented .g-tabs__header::after { display: none; }
+
+.g-tabs__scroller {
+  position: relative;
+  isolation: isolate;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: var(--_fade);
+  scrollbar-width: none;
+}
+.g-tabs__scroller::-webkit-scrollbar { display: none; }
+.g-tabs--snap .g-tabs__scroller { scroll-snap-type: x proximity; }
+.g-tabs--snap .g-tabs__tab { scroll-snap-align: center; }
+
+/* Indicio de que hay más: degradado en el borde (solo el borde con lista fuera de vista) */
+.g-tabs.is-scrollable-start { --_fade-s: var(--_fade); }
+.g-tabs.is-scrollable-end { --_fade-e: var(--_fade); }
+.g-tabs.is-scrollable-start .g-tabs__scroller,
+.g-tabs.is-scrollable-end .g-tabs__scroller {
+  -webkit-mask-image: linear-gradient(var(--_to), transparent 0, CanvasText var(--_fade-s), CanvasText calc(100% - var(--_fade-e)), transparent 100%);
+  mask-image: linear-gradient(var(--_to), transparent 0, CanvasText var(--_fade-s), CanvasText calc(100% - var(--_fade-e)), transparent 100%);
+}
+
+.g-tabs__list {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  gap: var(--_sep);
+  inline-size: max-content;
+  min-inline-size: 100%;
+  padding-inline: var(--_list-pad);
+}
+.g-tabs--align-center .g-tabs__list { justify-content: center; }
+.g-tabs--align-distribute .g-tabs__list { justify-content: space-evenly; }
+.g-tabs--align-fill .g-tabs__tab {
+  flex: 1 1 0;
+  min-inline-size: max-content;
+}
+
+/* ---------- Pestaña ---------- */
+.g-tabs__tab {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--_in);
+  box-sizing: border-box;
+  min-block-size: var(--_th);
+  min-inline-size: var(--_tap);
+  margin: 0;
+  /* min-block-size es un mínimo, no una altura: el relleno vertical sale de la altura objetivo */
+  padding-block: max(0px, calc((var(--_th) - var(--g-text-body-sm-line)) / 2));
+  padding-inline: var(--_px);
+  border: 0;
+  border-radius: var(--_radius);
+  background: transparent;
+  color: var(--_fg);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-tabs__tab:focus-visible,
+.g-tabs__edge:focus-visible,
+.g-tabs__more:focus-visible,
+.g-tabs__panel:focus-visible {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: calc(var(--_ring) * -1);
+}
+.g-tabs__panel:focus-visible { --_ring: var(--g-focus-width); }
+@media (hover: hover) {
+  .g-tabs__tab:hover:not(.is-active, .is-disabled, [aria-disabled="true"]),
+  .g-tabs__more:hover,
+  .g-tabs__edge:hover {
+    background: var(--g-color-border);
+    color: var(--_fg-hover);
+  }
+}
+/* Activa: peso y color de texto además de la marca (nunca solo color) */
+.g-tabs__tab.is-active,
+.g-tabs__tab[aria-selected="true"] {
+  color: var(--_fg-active);
+  font-weight: var(--g-text-title-weight);
+}
+
+/* Etiqueta: reserva el ancho de la negrita (data-text) para que la activa no desplace a las demás */
+.g-tabs__label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 0;
+}
+.g-tabs__label::after {
+  content: attr(data-text);
+  block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  font-weight: var(--g-text-title-weight);
+}
+
+/* Icono de la pestaña (decorativo) y estado (icono + texto oculto) */
+.g-tabs__icon,
+.g-tabs__status {
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  inline-size: 1.15em;
+  block-size: 1.15em;
+}
+.g-tabs__icon > svg,
+.g-tabs__status > svg { inline-size: 100%; block-size: 100%; }
+/* Lo secundario es más pálido y pequeño que la etiqueta: jerarquía por contraste y tamaño, no por color fuerte */
+.g-tabs__status { inline-size: 1.05em; block-size: 1.05em; color: var(--g-color-text-subtle); }
+.g-tabs__tab.is-attention .g-tabs__status { color: var(--g-color-warning-text); }
+.g-tabs__tab .g-badge { flex: none; }
+/* Sobre la superficie suave de la activa en pill, la insignia sube a surface para no fundirse con ella */
+.g-tabs--appearance-pill .g-tabs__tab.is-active .g-badge { background: var(--g-color-surface); }
+
+/* Solo icono: la etiqueta sigue en el DOM como texto oculto y es el nombre accesible */
+.g-tabs__tab.is-icon-only { padding-inline: calc(var(--_px) * 0.8); min-inline-size: max(var(--_tap), var(--_th)); }
+.g-tabs__tab.is-icon-only .g-tabs__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.g-tabs__tab.is-icon-only .g-tabs__icon { inline-size: 1.3em; block-size: 1.3em; }
+
+/* Deshabilitada: atenuada (exenta de contraste en WCAG 1.4.3) */
+.g-tabs__tab.is-disabled,
+.g-tabs__tab[aria-disabled="true"],
+.g-tabs.is-disabled .g-tabs__tab {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Marca de selección (única, fuera del tablist) ---------- */
+.g-tabs__mark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 0;
+  box-sizing: border-box;
+  inline-size: var(--_mark-w);
+  block-size: var(--_mark-h);
+  translate: calc(var(--_dir) * var(--_mark-x)) var(--_mark-y);
+  pointer-events: none;
+}
+/* Antes del primer posicionamiento la marca no se ve: la pestaña activa dibuja la suya (SSR, sin medición) */
+.g-tabs:not(.is-ready) .g-tabs__mark { visibility: hidden; }
+.g-tabs.is-ready .g-tabs__tab.is-active::before,
+.g-tabs.is-ready .g-tabs__tab[aria-selected="true"]::before { display: none; }
+.g-tabs:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* underline · línea bajo la activa */
+.g-tabs--appearance-underline { --_radius: var(--g-radius-sm); }
+.g-tabs--appearance-underline .g-tabs__mark {
+  block-size: var(--_mark-t);
+  translate: calc(var(--_dir) * var(--_mark-x)) calc(var(--_mark-y) + var(--_mark-h) - var(--_mark-t));
+  background: var(--_base);
+  border-start-start-radius: var(--_mark-t);
+  border-start-end-radius: var(--_mark-t);
+}
+.g-tabs--appearance-underline:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--appearance-underline:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  inset-block: auto 0;
+  block-size: var(--_mark-t);
+  background: var(--_base);
+  border-start-start-radius: var(--_mark-t);
+  border-start-end-radius: var(--_mark-t);
+}
+
+/* pill · superficie suave redondeada */
+.g-tabs--appearance-pill { --_radius: var(--g-radius-pill); --_fg-active: var(--_on-soft); }
+.g-tabs--appearance-pill .g-tabs__mark {
+  background: var(--_soft);
+  border-radius: var(--g-radius-pill);
+  /* Contorno ≥ 3:1 (#89): la superficie suave sola no llega; el peso y el color del texto siguen siendo las señales primarias */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control);
+}
+.g-tabs--appearance-pill:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--appearance-pill:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  background: var(--_soft);
+  border-radius: var(--g-radius-pill);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control);
+}
+
+/* segmented · pista común y segmento elevado (más de 6 o sin cabida: degrada a scroll, sin botones) */
+.g-tabs--appearance-segmented {
+  --_radius: max(var(--g-radius-xs), calc(var(--g-radius-shape) - var(--_pad-track)));
+  --_th: max(var(--_tap), calc(var(--_h) - var(--_pad-track) * 2));
+}
+.g-tabs--appearance-segmented { align-items: flex-start; }
+.g-tabs--appearance-segmented .g-tabs__header {
+  max-inline-size: 100%;
+  padding-inline: var(--g-tabs-inset);
+}
+.g-tabs--appearance-segmented.g-tabs--align-fill .g-tabs__header,
+.g-tabs--appearance-segmented.g-tabs--align-distribute .g-tabs__header { align-self: stretch; }
+.g-tabs--appearance-segmented .g-tabs__panels { align-self: stretch; }
+.g-tabs--appearance-segmented .g-tabs__scroller {
+  padding: var(--_pad-track);
+  border-radius: var(--g-radius-shape);
+  background: var(--g-tabs-track);
+}
+.g-tabs--appearance-segmented .g-tabs__list { padding-inline: 0; }
+.g-tabs--appearance-segmented .g-tabs__mark {
+  background: var(--g-tabs-thumb);
+  border-radius: var(--_radius);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control), var(--g-shadow-1);
+}
+.g-tabs--appearance-segmented:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--appearance-segmented:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  background: var(--g-tabs-thumb);
+  border-radius: var(--_radius);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control), var(--g-shadow-1);
+}
+/* El anillo cae sobre la pista (en el hueco de su relleno), no sobre el segmento: así contrasta también con la activa */
+.g-tabs--appearance-segmented .g-tabs__tab:focus-visible { outline-offset: 0; }
+@media (hover: hover) {
+  .g-tabs--appearance-segmented .g-tabs__tab:hover:not(.is-active, .is-disabled, [aria-disabled="true"]) { background: var(--g-color-border); }
+}
+
+/* contained · banda a sangre con la activa fundida con el panel (no dibuja borde propio: vive en su anfitriona) */
+.g-tabs--appearance-contained { --_radius: var(--g-radius-md) var(--g-radius-md) 0 0; }
+.g-tabs--appearance-contained .g-tabs__header {
+  padding-block-start: var(--g-space-2);
+  background: var(--g-tabs-band);
+}
+.g-tabs--appearance-contained .g-tabs__tab { border-end-start-radius: 0; border-end-end-radius: 0; }
+.g-tabs--appearance-contained .g-tabs__mark {
+  background: var(--g-tabs-panel);
+  border-start-start-radius: var(--g-radius-md);
+  border-start-end-radius: var(--g-radius-md);
+  /* línea de color arriba (marca ≥ 3:1) y filetes tenues a los lados */
+  box-shadow:
+    inset 0 var(--_mark-t) 0 var(--_base),
+    inset var(--g-border-width) 0 0 var(--g-color-border),
+    inset calc(var(--g-border-width) * -1) 0 0 var(--g-color-border);
+}
+.g-tabs--appearance-contained:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--appearance-contained:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  background: var(--g-tabs-panel);
+  border-start-start-radius: var(--g-radius-md);
+  border-start-end-radius: var(--g-radius-md);
+  box-shadow:
+    inset 0 var(--_mark-t) 0 var(--_base),
+    inset var(--g-border-width) 0 0 var(--g-color-border),
+    inset calc(var(--g-border-width) * -1) 0 0 var(--g-color-border);
+}
+.g-tabs--appearance-contained .g-tabs__panel {
+  padding: var(--g-space-4) max(var(--_px), var(--g-tabs-inset));
+  background: var(--g-tabs-panel);
+}
+.g-tabs--appearance-contained .g-tabs__panels { margin: 0; }
+
+/* Movimiento de la marca: solo posición y tamaño; sin él, la marca salta (también el primer posicionamiento) */
+@media (prefers-reduced-motion: no-preference) {
+  .g-tabs__tab {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-tabs.is-ready .g-tabs__mark {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-standard),
+      inline-size var(--g-duration-press) var(--g-ease-standard),
+      block-size var(--g-duration-press) var(--g-ease-standard);
+  }
+  .g-tabs__tab.is-loading .g-tabs__status > svg {
+    animation: g-tabs-spin var(--g-duration-spin) linear infinite;
+  }
+  @keyframes g-tabs-spin {
+    to { rotate: 1turn; }
+  }
+}
+
+/* ---------- Botones de borde («arrows»): solo puntero ---------- */
+.g-tabs__edge,
+.g-tabs__more {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  min-inline-size: max(var(--_tap), calc(var(--g-space-1) * 8 * var(--_d)));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--_radius);
+  background: transparent;
+  color: var(--_fg);
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-tabs__edge > svg { inline-size: 1.25em; block-size: 1.25em; }
+.g-tabs:dir(rtl) .g-tabs__edge > svg { scale: -1 1; }
+/* Sin lista fuera de vista en ese extremo: el botón queda atenuado y no recibe el puntero (conserva su hueco) */
+.g-tabs:not(.is-scrollable-start) .g-tabs__edge--prev,
+.g-tabs:not(.is-scrollable-end) .g-tabs__edge--next {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.g-tabs--appearance-segmented .g-tabs__edge,
+.g-tabs--appearance-segmented .g-tabs__more { display: none; }
+
+/* ---------- «Más» (GMenu con disparador propio) ---------- */
+.g-tabs__more {
+  display: inline-flex;
+  gap: var(--_in);
+  margin-inline-start: var(--_sep);
+  padding-inline: calc(var(--_px) * 0.8);
+}
+.g-tabs__more > svg { inline-size: 1.15em; block-size: 1.15em; }
+.g-tabs__more[aria-expanded="true"] { background: var(--g-color-border); color: var(--_fg-hover); }
+
+/* ---------- Vertical ---------- */
+.g-tabs--orientation-vertical {
+  flex-direction: row;
+  align-items: stretch;
+  --_to: to bottom;
+}
+.g-tabs--orientation-vertical .g-tabs__header {
+  flex: none;
+  inline-size: fit-content;
+  /* Ancho de la columna de pestañas: de 160px a 256px con space 4, y nunca más de la mitad del contenedor */
+  min-inline-size: min(calc(var(--g-space-1) * 40), 50%);
+  max-inline-size: min(calc(var(--g-space-1) * 64), 50%);
+  min-block-size: 0;
+}
+.g-tabs--orientation-vertical.g-tabs--icon-only .g-tabs__header { min-inline-size: 0; }
+.g-tabs--orientation-vertical .g-tabs__header::after {
+  border-block-end: 0;
+  border-inline-start: var(--g-border-width) solid var(--_line);
+}
+.g-tabs--orientation-vertical .g-tabs__scroller {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-block: contain;
+  scroll-padding-block: var(--_fade);
+  scrollbar-width: thin;
+}
+.g-tabs--orientation-vertical .g-tabs__scroller::-webkit-scrollbar { display: initial; }
+.g-tabs--orientation-vertical .g-tabs__list {
+  flex-direction: column;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: max-content;
+  min-block-size: 100%;
+  padding-inline: 0;
+}
+.g-tabs--orientation-vertical .g-tabs__tab {
+  justify-content: flex-start;
+  inline-size: 100%;
+  text-align: start;
+}
+.g-tabs--orientation-vertical .g-tabs__label { align-items: flex-start; }
+.g-tabs--orientation-vertical.g-tabs--align-fill .g-tabs__tab { flex: 1 1 0; min-block-size: var(--_th); min-inline-size: 0; }
+.g-tabs--orientation-vertical.is-scrollable-start .g-tabs__scroller,
+.g-tabs--orientation-vertical.is-scrollable-end .g-tabs__scroller { scroll-snap-type: none; }
+/* La marca vertical: línea al borde de inicio (underline) o superficie (pill) */
+.g-tabs--orientation-vertical.g-tabs--appearance-underline .g-tabs__mark {
+  inline-size: var(--_mark-t);
+  block-size: var(--_mark-h);
+  translate: 0 var(--_mark-y);
+  border-radius: 0;
+  border-start-end-radius: var(--_mark-t);
+  border-end-end-radius: var(--_mark-t);
+}
+.g-tabs--orientation-vertical.g-tabs--appearance-underline:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--orientation-vertical.g-tabs--appearance-underline:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+  inset-block: 0;
+  inset-inline: 0 auto;
+  inline-size: var(--_mark-t);
+  block-size: auto;
+  border-radius: 0;
+  border-start-end-radius: var(--_mark-t);
+  border-end-end-radius: var(--_mark-t);
+}
+.g-tabs--orientation-vertical.g-tabs--appearance-pill { --_radius: var(--g-radius-md); }
+.g-tabs--orientation-vertical.g-tabs--appearance-pill .g-tabs__mark,
+.g-tabs--orientation-vertical.g-tabs--appearance-pill:not(.is-ready) .g-tabs__tab.is-active::before,
+.g-tabs--orientation-vertical.g-tabs--appearance-pill:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before { border-radius: var(--g-radius-md); }
+
+/* ---------- Paneles ---------- */
+.g-tabs__panels { min-inline-size: 0; }
+.g-tabs--orientation-horizontal .g-tabs__panels { margin-block-start: var(--g-space-4); }
+.g-tabs--orientation-vertical .g-tabs__panels {
+  flex: 1 1 auto;
+  margin-inline-start: var(--g-space-6);
+}
+.g-tabs__panel { min-inline-size: 0; }
+.g-tabs__panel[aria-busy="true"] { cursor: progress; }
+/* Entrada del contenido: fundido corto con un desplazamiento de un paso de espacio (sin movimiento reducido) */
+@media (prefers-reduced-motion: no-preference) {
+  .g-tabs__panel {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-tabs__panel:not([hidden]) {
+      opacity: 0;
+      translate: 0 var(--g-space-1);
+    }
+  }
+}
+
+/* ---------- Área táctil: ≥ 44px reales con puntero grueso, sin importar la densidad ---------- */
+@media (pointer: coarse) {
+  .g-tabs { --_tap: 44px; }
+}
+
+/* ---------- Mayor contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-tabs {
+    --_line: var(--g-color-border-control);
+    --_fg: var(--g-color-text);
+  }
+  .g-tabs--appearance-pill .g-tabs__mark,
+  .g-tabs--appearance-pill:not(.is-ready) .g-tabs__tab.is-active::before {
+    box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-border-control);
+  }
+  .g-tabs--appearance-segmented .g-tabs__mark,
+  .g-tabs--appearance-segmented:not(.is-ready) .g-tabs__tab.is-active::before {
+    box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-border-control), var(--g-shadow-1);
+  }
+  .g-tabs--appearance-segmented .g-tabs__scroller { box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control); }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-tabs__header::after { border-color: GrayText; }
+  /* Especificidad alta a propósito: debe ganar a la apariencia y a la orientación */
+  .g-tabs.g-tabs.g-tabs .g-tabs__mark,
+  .g-tabs.g-tabs.g-tabs:not(.is-ready) .g-tabs__tab.is-active::before,
+  .g-tabs.g-tabs.g-tabs:not(.is-ready) .g-tabs__tab[aria-selected="true"]::before {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: none;
+  }
+  .g-tabs--appearance-segmented .g-tabs__scroller { outline: var(--g-border-width) solid GrayText; outline-offset: calc(var(--g-border-width) * -1); }
+  /* Con superficie (pill, segmented, contained) el texto de la activa pasa al par de Highlight */
+  .g-tabs--appearance-pill .g-tabs__tab.is-active,
+  .g-tabs--appearance-segmented .g-tabs__tab.is-active,
+  .g-tabs--appearance-contained .g-tabs__tab.is-active,
+  .g-tabs--appearance-pill .g-tabs__tab[aria-selected="true"],
+  .g-tabs--appearance-segmented .g-tabs__tab[aria-selected="true"],
+  .g-tabs--appearance-contained .g-tabs__tab[aria-selected="true"] {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+  .g-tabs__tab:focus-visible,
+  .g-tabs__edge:focus-visible,
+  .g-tabs__more:focus-visible,
+  .g-tabs__panel:focus-visible { outline-color: CanvasText; }
+  .g-tabs__tab.is-disabled,
+  .g-tabs__tab[aria-disabled="true"],
+  .g-tabs.is-disabled .g-tabs__tab {
+    opacity: 1;
+    color: GrayText;
+  }
+  .g-tabs__status { color: CanvasText; }
+}

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTabs · banco de pruebas de estilo (coco)</title>
+<!-- Banco de coco: marcado exacto de design/contracts/tabs.md (clases BEM g-tabs__*, g-tabs--appearance-*, is-*) con el CSS real
+     y el tema por defecto. El script solo pinta el marcado y hace lo que hará bruno (posicionar la marca con --_mark-*, is-ready,
+     indicios de desplazamiento, activación y flechas). No es documentación. Desde la raíz del repo:
+     python3 -m http.server 4173  →  /design/lab/tabs/estilo-banco.html -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDialog/GDialog.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GTabs/GTabs.css?v=1">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:32px 0 12px} h3{font-size:12px;font-weight:500;margin:20px 0 8px;color:var(--g-color-text-muted)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap}
+  .frame{max-width:100%;min-width:0}
+  .card{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:16px}
+  .inset{background:var(--g-color-surface-sunken);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:12px}
+  .shell{background:var(--g-surface-shell)}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+  .panel-p{margin:0;color:var(--g-color-text-muted)}
+  .rail{display:flex;gap:16px;align-items:flex-start}
+  .side{flex:none;background:var(--g-surface-shell);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:8px}
+  dialog.g-dialog{position:relative;inset:auto;margin:0}
+  .sk{height:8px;border-radius:99px;background:var(--g-color-surface-sunken);margin:8px 0;width:60%}
+</style>
+</head>
+<body>
+<div class="tools"><button id="theme-btn" type="button">Tema de prueba</button> <button id="dark-btn" type="button">Oscuro</button> <button id="rtl-btn" type="button">RTL</button></div>
+
+<h2>1 · Apariencias (densidad por defecto)</h2>
+<div class="grid">
+  <div><h3>underline</h3><div class="frame card" id="a-underline"></div></div>
+  <div><h3>pill</h3><div class="frame card" id="a-pill"></div></div>
+  <div><h3>segmented (4 opciones)</h3><div class="frame card" id="a-segmented"></div></div>
+  <div><h3>contained (dentro de una card sin relleno)</h3><div class="frame card" style="padding:0;overflow:hidden" id="a-contained"></div></div>
+</div>
+
+<h2>2 · Color de la marca</h2>
+<div class="grid">
+  <div><h3>underline accent</h3><div class="frame card" id="c-accent"></div></div>
+  <div><h3>underline neutral</h3><div class="frame card" id="c-neutral"></div></div>
+  <div><h3>pill accent</h3><div class="frame card" id="c-pill-accent"></div></div>
+  <div><h3>contained accent</h3><div class="frame card" style="padding:0;overflow:hidden" id="c-cont-accent"></div></div>
+</div>
+
+<h2>3 · Densidades</h2>
+<div class="grid">
+  <div><h3>underline · default</h3><div class="frame card" id="d-default"></div></div>
+  <div><h3>underline · comfortable</h3><div class="frame card" id="d-comfortable"></div></div>
+  <div><h3>underline · compact</h3><div class="frame card" id="d-compact"></div></div>
+  <div><h3>pill · compact</h3><div class="frame card" id="d-pill-compact"></div></div>
+  <div><h3>segmented · compact</h3><div class="frame card" id="d-seg-compact"></div></div>
+</div>
+
+<h2>4 · Alineaciones</h2>
+<div class="grid">
+  <div><h3>center</h3><div class="frame card" id="al-center"></div></div>
+  <div><h3>distribute</h3><div class="frame card" id="al-distribute"></div></div>
+  <div><h3>fill</h3><div class="frame card" id="al-fill"></div></div>
+  <div><h3>segmented fill</h3><div class="frame card" id="al-seg-fill"></div></div>
+</div>
+
+<h2>5 · Overflow (contenedor angosto)</h2>
+<div class="grid">
+  <div><h3>scroll (320px)</h3><div class="frame card" style="width:320px" id="o-scroll"></div></div>
+  <div><h3>arrows (320px)</h3><div class="frame card" style="width:320px" id="o-arrows"></div></div>
+  <div><h3>more (320px; las que no caben salen al menú)</h3><div class="frame card" style="width:320px" id="o-more"></div></div>
+  <div><h3>segmented degradada a scroll (240px)</h3><div class="frame card" style="width:240px" id="o-seg"></div></div>
+  <div><h3>snap + táctil (320px)</h3><div class="frame card" style="width:320px" id="o-snap"></div></div>
+</div>
+
+<h2>6 · labelMode</h2>
+<div class="grid">
+  <div><h3>icon (todas solo icono)</h3><div class="frame card" id="l-icon"></div></div>
+  <div><h3>auto (inactivas a icono, activa conserva etiqueta)</h3><div class="frame card" id="l-auto"></div></div>
+  <div><h3>pill · icon</h3><div class="frame card" id="l-pill-icon"></div></div>
+</div>
+
+<h2>7 · Contexto (superficies)</h2>
+<div class="grid">
+  <div><h3>plano (sobre el fondo)</h3><div class="frame" id="s-flat"></div></div>
+  <div><h3>inset (superficie hundida) · segmented</h3><div class="frame inset" id="s-inset"></div></div>
+  <div><h3>inset · pill</h3><div class="frame inset" id="s-inset-pill"></div></div>
+  <div><h3>sobre la carcasa hundida · segmented</h3><div class="frame card shell" id="s-shell"></div></div>
+</div>
+<div class="grid">
+  <div><h3>GDialog con slot tabs · inset (underline compact)</h3><div class="frame" id="dlg-inset"></div></div>
+  <div><h3>GDialog con slot tabs · sin inset</h3><div class="frame" id="dlg-flat"></div></div>
+</div>
+
+<h2>8 · Vertical y riel</h2>
+<div class="grid">
+  <div><h3>vertical underline (con paneles)</h3><div class="frame card" id="v-underline"></div></div>
+  <div><h3>vertical pill</h3><div class="frame card" id="v-pill"></div></div>
+  <div><h3>riel de iconos (labelMode icon) en sidebar</h3><div class="rail"><div class="frame side" id="v-rail"></div><p class="panel-p">Contenido de la zona principal.</p></div></div>
+  <div><h3>vertical con scroll (alto 150px)</h3><div class="frame card" id="v-scroll"></div></div>
+</div>
+
+<h2>9 · RTL</h2>
+<div class="grid" dir="rtl">
+  <div><h3>underline RTL</h3><div class="frame card" id="r-underline"></div></div>
+  <div><h3>pill arrows RTL</h3><div class="frame card" style="width:320px" id="r-arrows"></div></div>
+  <div><h3>vertical RTL</h3><div class="frame card" id="r-vertical"></div></div>
+</div>
+
+<script>
+const I=(n,c='')=>window.lucide(n,c);
+const BASE=[
+  {id:'general',label:'General',icon:'house'},
+  {id:'msgs',label:'Mensajes',icon:'mail',count:8,countLabel:'8 sin leer'},
+  {id:'news',label:'Novedades',icon:'bell',badge:'Nuevo'},
+  {id:'errs',label:'Errores',icon:'triangle-alert',status:'attention',statusLabel:'requiere atención'},
+  {id:'rep',label:'Informe',icon:'file-text',status:'loading',statusLabel:'cargando'},
+  {id:'perm',label:'Permisos',icon:'lock',disabled:true}
+];
+const LONG=[...BASE.slice(0,5),
+  {id:'t7',label:'Facturación',icon:'credit-card'},{id:'t8',label:'Integraciones',icon:'globe'},{id:'t9',label:'Equipo',icon:'users'},
+  {id:'t10',label:'Auditoría',icon:'list'},{id:'t11',label:'Etiquetas',icon:'tag'},{id:'perm',label:'Permisos',icon:'lock',disabled:true}];
+const FOUR=[{id:'a',label:'Día'},{id:'b',label:'Semana'},{id:'c',label:'Mes'},{id:'d',label:'Año'}];
+let uid=0;
+function tabHTML(t,active,id,opt){
+  const iconOnly=opt.labelMode==='icon'||(opt.labelMode==='auto'&&t.id!==active);
+  const cls=['g-tabs__tab',t.id===active?'is-active':'',t.disabled?'is-disabled':'',t.status==='loading'?'is-loading':'',t.status==='attention'?'is-attention':'',iconOnly&&t.icon?'is-icon-only':''].filter(Boolean).join(' ');
+  const badge=t.count!=null?`<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-count"><span class="g-badge__text" aria-hidden="true">${t.count}</span><span class="g-badge__sr">${t.countLabel}</span></span>`
+    :t.badge?`<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-text"><span class="g-badge__text">${t.badge}</span></span>`:'';
+  const st=t.status?`<span class="g-tabs__status" aria-hidden="true">${I(t.status==='loading'?'loader-circle':'circle-alert')}</span><span class="g-tabs__sr">, ${t.statusLabel}</span>`:'';
+  return `<button class="${cls}" role="tab" type="button" id="${id}-tab-${t.id}" aria-selected="${t.id===active}" aria-controls="${id}-panel-${t.id}" tabindex="${t.id===active?0:-1}"${t.disabled?' aria-disabled="true"':''}>${t.icon?`<span class="g-tabs__icon" aria-hidden="true">${I(t.icon)}</span>`:''}<span class="g-tabs__label" data-text="${t.label}">${t.label}</span>${st}${badge}</button>`;
+}
+function tabs(o={}){
+  const id='t'+(++uid), items=o.items||BASE, active=o.active||items.find(t=>!t.disabled).id;
+  const orient=o.orientation||'horizontal', app=o.appearance||'underline', ov=o.overflow||'scroll';
+  const iconOnlyRoot=(o.labelMode==='icon'||o.labelMode==='auto')?' g-tabs--icon-only':'';
+  const cls=`g-tabs g-tabs--appearance-${app} g-tabs--orientation-${orient} g-tabs--color-${o.color||'brand'} g-tabs--density-${o.density||'default'} g-tabs--align-${o.align||'start'} g-tabs--overflow-${ov}${iconOnlyRoot}${o.snap?' g-tabs--snap':''}${o.cls?' '+o.cls:''}`;
+  const shown=o.visible?items.filter((t,i)=>i<o.visible||t.id===active):items;
+  const panels=o.detached?'':`<div class="g-tabs__panels">${items.map(t=>`<div class="g-tabs__panel" role="tabpanel" id="${id}-panel-${t.id}" aria-labelledby="${id}-tab-${t.id}" tabindex="0"${t.id===active?'':' hidden'}><p class="panel-p">Contenido de «${t.label}». ${t.status==='loading'?'<span class="sk"></span><span class="sk"></span>':''}</p></div>`).join('')}</div>`;
+  const prev=ov==='arrows'&&orient==='horizontal'?`<button class="g-tabs__edge g-tabs__edge--prev" type="button" tabindex="-1" aria-hidden="true">${I('chevron-left')}</button>`:'';
+  const next=ov==='arrows'&&orient==='horizontal'?`<button class="g-tabs__edge g-tabs__edge--next" type="button" tabindex="-1" aria-hidden="true">${I('chevron-right')}</button>`:'';
+  const more=ov==='more'&&orient==='horizontal'?`<button class="g-tabs__more" type="button" aria-label="Más pestañas" aria-haspopup="menu" aria-expanded="false">${I('chevron-down')}</button>`:'';
+  return `<div class="${cls}" id="${id}" data-active="${active}"><div class="g-tabs__header">${prev}<div class="g-tabs__scroller"><div class="g-tabs__list" role="tablist" aria-orientation="${orient}" aria-label="Demostración">${shown.map(t=>tabHTML(t,active,id,o)).join('')}</div><span class="g-tabs__mark" aria-hidden="true"></span></div>${next}${more}</div>${panels}<div class="g-tabs__live" role="status"></div></div>`;
+}
+/* Lo que hará bruno: marca, is-ready, indicios, activación, flechas */
+function position(root){
+  const sc=root.querySelector('.g-tabs__scroller'), tab=root.querySelector('.g-tabs__tab.is-active');
+  if(!tab){root.style.setProperty('--_mark-w','0px');root.style.setProperty('--_mark-h','0px');return}
+  const rtl=getComputedStyle(root).direction==='rtl', a=sc.getBoundingClientRect(), b=tab.getBoundingClientRect();
+  const x=rtl?(a.right-b.right)-sc.scrollLeft:(b.left-a.left-sc.clientLeft)+sc.scrollLeft;
+  const y=(b.top-a.top-sc.clientTop)+sc.scrollTop;
+  const s=root.style; s.setProperty('--_mark-x',x+'px');s.setProperty('--_mark-y',y+'px');s.setProperty('--_mark-w',b.width+'px');s.setProperty('--_mark-h',b.height+'px');
+}
+function cues(root){
+  const sc=root.querySelector('.g-tabs__scroller'), v=root.classList.contains('g-tabs--orientation-vertical');
+  const pos=Math.abs(v?sc.scrollTop:sc.scrollLeft), max=(v?sc.scrollHeight-sc.clientHeight:sc.scrollWidth-sc.clientWidth);
+  root.classList.toggle('is-scrollable-start',pos>1); root.classList.toggle('is-scrollable-end',max-pos>1);
+}
+function activate(root,tab){
+  root.querySelectorAll('.g-tabs__tab').forEach(t=>{const on=t===tab;t.classList.toggle('is-active',on);t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1});
+  root.querySelectorAll('.g-tabs__panel').forEach(p=>p.hidden=p.id!==tab.getAttribute('aria-controls'));
+  tab.scrollIntoView({block:'nearest',inline:'nearest'}); position(root); cues(root);
+}
+function init(root){
+  const sc=root.querySelector('.g-tabs__scroller');
+  const run=()=>{position(root);cues(root)};
+  run(); requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('is-ready')));
+  sc.addEventListener('scroll',()=>cues(root),{passive:true});
+  new ResizeObserver(run).observe(root); document.fonts&&document.fonts.ready.then(run);
+  const list=root.querySelector('.g-tabs__list'), enabled=()=>[...list.querySelectorAll('.g-tabs__tab:not(.is-disabled)')];
+  list.addEventListener('click',e=>{const t=e.target.closest('.g-tabs__tab');if(t&&!t.classList.contains('is-disabled'))activate(root,t)});
+  list.addEventListener('keydown',e=>{
+    const v=root.classList.contains('g-tabs--orientation-vertical'), rtl=getComputedStyle(root).direction==='rtl';
+    const nx=v?'ArrowDown':(rtl?'ArrowLeft':'ArrowRight'), pv=v?'ArrowUp':(rtl?'ArrowRight':'ArrowLeft');
+    const tabs=enabled(), i=tabs.indexOf(document.activeElement); if(i<0)return;
+    let n=null; if(e.key===nx)n=tabs[(i+1)%tabs.length]; else if(e.key===pv)n=tabs[(i-1+tabs.length)%tabs.length]; else if(e.key==='Home')n=tabs[0]; else if(e.key==='End')n=tabs.at(-1);
+    if(n){e.preventDefault();n.focus();activate(root,n)}
+  });
+  root.querySelectorAll('.g-tabs__edge').forEach(b=>b.addEventListener('click',()=>sc.scrollBy({left:(b.classList.contains('g-tabs__edge--prev')?-1:1)*sc.clientWidth*0.6*(getComputedStyle(root).direction==='rtl'?-1:1),behavior:'smooth'})));
+}
+const mount=(id,o)=>{const el=document.getElementById(id);el.innerHTML=tabs(o);init(el.querySelector('.g-tabs'))};
+mount('a-underline',{});
+mount('a-pill',{appearance:'pill'});
+mount('a-segmented',{appearance:'segmented',items:FOUR,active:'b'});
+mount('a-contained',{appearance:'contained',cls:''});
+mount('c-accent',{color:'accent'});
+mount('c-neutral',{color:'neutral'});
+mount('c-pill-accent',{appearance:'pill',color:'accent'});
+mount('c-cont-accent',{appearance:'contained',color:'accent'});
+mount('d-default',{});
+mount('d-comfortable',{density:'comfortable'});
+mount('d-compact',{density:'compact'});
+mount('d-pill-compact',{appearance:'pill',density:'compact'});
+mount('d-seg-compact',{appearance:'segmented',density:'compact',items:FOUR});
+mount('al-center',{align:'center',items:BASE.slice(0,3)});
+mount('al-distribute',{align:'distribute',items:BASE.slice(0,3)});
+mount('al-fill',{align:'fill',items:BASE.slice(0,3)});
+mount('al-seg-fill',{appearance:'segmented',align:'fill',items:FOUR});
+mount('o-scroll',{items:LONG,overflow:'scroll'});
+mount('o-arrows',{items:LONG,overflow:'arrows'});
+mount('o-more',{items:LONG,overflow:'more',visible:2,active:'general'});
+mount('o-seg',{appearance:'segmented',items:FOUR.concat([{id:'e',label:'Trimestre'},{id:'f',label:'Histórico'}]),overflow:'scroll'});
+mount('o-snap',{items:LONG,snap:true});
+mount('l-icon',{labelMode:'icon',items:BASE.map(t=>({...t,badge:undefined}))});
+mount('l-auto',{labelMode:'auto',items:BASE.slice(0,5)});
+mount('l-pill-icon',{labelMode:'icon',appearance:'pill',items:BASE.slice(0,5)});
+mount('s-flat',{appearance:'pill',items:BASE.slice(0,5)});
+mount('s-inset',{appearance:'segmented',items:FOUR});
+mount('s-inset-pill',{appearance:'pill',items:BASE.slice(0,4)});
+mount('s-shell',{appearance:'segmented',items:FOUR});
+const dlg=(inset)=>{const t=tabs({detached:true,density:'compact',items:BASE.slice(0,4).concat(BASE.slice(5)),active:'general'});
+ return `<dialog class="g-dialog${inset?' g-dialog--inset':''}" open style="inline-size:100%;max-inline-size:520px"><div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title">Ajustes del equipo</h2></div><button class="g-dialog__close" type="button" aria-label="Cerrar">${I('x')}</button></div>
+ <div class="g-dialog__tabs">${t}</div>
+ ${inset?`<div class="g-dialog__inset"><div class="g-dialog__body"><p class="panel-p">Contenido del panel «General». Aquí solo se desplaza el cuerpo; la cabecera de pestañas queda fija.</p></div><div class="g-dialog__footer"><button type="button">Cancelar</button><button type="button">Guardar</button></div></div>`
+ :`<div class="g-dialog__body"><p class="panel-p">Contenido del panel «General». Aquí solo se desplaza el cuerpo; la cabecera de pestañas queda fija.</p></div><div class="g-dialog__footer"><button type="button">Cancelar</button><button type="button">Guardar</button></div>`}</dialog>`};
+document.getElementById('dlg-inset').innerHTML=dlg(true); document.getElementById('dlg-flat').innerHTML=dlg(false);
+document.querySelectorAll('#dlg-inset .g-tabs, #dlg-flat .g-tabs').forEach(init);
+mount('v-underline',{orientation:'vertical',items:BASE.slice(0,4)});
+mount('v-pill',{orientation:'vertical',appearance:'pill',items:BASE.slice(0,4)});
+mount('v-rail',{orientation:'vertical',labelMode:'icon',detached:true,items:BASE.slice(0,5).map(t=>({...t,badge:undefined}))});
+mount('v-scroll',{orientation:'vertical',items:LONG,cls:''}); document.querySelector('#v-scroll .g-tabs').style.blockSize='150px';
+mount('r-underline',{items:BASE.slice(0,5)});
+mount('r-arrows',{appearance:'pill',items:LONG,overflow:'arrows'});
+mount('r-vertical',{orientation:'vertical',items:BASE.slice(0,4)});
+const theme=document.getElementById('theme'); let on=false;
+document.getElementById('theme-btn').onclick=()=>{on=!on; theme.textContent=on?':root{--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-primary-soft:#f7dde5;--g-color-on-primary-soft:#5a0f26;--g-color-accent:#1C6E6E;--g-color-accent-text:#1C6E6E;--g-color-accent-soft:#d8efef;--g-color-on-accent-soft:#0d4545;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-border:rgb(80 50 20 / .14);--g-color-border-strong:rgb(80 50 20 / .3);--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#7a6247;--g-color-focus:#1C6E6E;--g-radius-lg:16px;--g-radius-md:12px;--g-radius-sm:8px;--g-radius-shape:12px;--g-radius-pill:6px;--g-space-1:5px;--g-border-width:2px;--g-font-ui:Georgia,serif}':''; document.querySelectorAll('.g-tabs').forEach(r=>position(r))};
+document.getElementById('dark-btn').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'};
+document.getElementById('rtl-btn').onclick=()=>{document.documentElement.dir=document.documentElement.dir==='rtl'?'ltr':'rtl'; document.querySelectorAll('.g-tabs').forEach(r=>position(r))};
+</script>
+</body>
+</html>

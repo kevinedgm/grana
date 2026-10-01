@@ -108,6 +108,13 @@
   --g-surface-inset: var(--g-color-surface);
   --g-surface-backdrop: rgb(0 0 0 / 0.32);
 
+  /* Tabs (tokens.md §18, DECISIONS.md #120): pista, segmento, banda y panel. Velos translúcidos sobre la anfitriona:
+     un paso más oscuro que ella sobre una superficie clara, un paso más claro sobre una oscura */
+  --g-tabs-track: rgb(0 0 0 / 0.05);
+  --g-tabs-thumb: var(--g-color-surface);
+  --g-tabs-band: rgb(0 0 0 / 0.04);
+  --g-tabs-panel: var(--g-color-surface);
+
   /* Sombras · discretas: el tema prefiere bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.10);
@@ -138,6 +145,11 @@
   --g-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --g-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --g-press-scale: 0.97;
+
+  /* Tabs · grosor de la marca por densidad (tokens.md §18); sigue al grosor de borde del tema */
+  --g-tabs-mark-default: calc(var(--g-border-width) * 3);
+  --g-tabs-mark-comfortable: calc(var(--g-border-width) * 2);
+  --g-tabs-mark-compact: calc(var(--g-border-width) * 2);
 
   --g-surface-gap: calc(var(--g-space-1) * 1.5);
   --g-surface-radius: var(--g-radius-xl);
@@ -308,6 +320,12 @@
     --g-surface-inset: var(--g-color-surface);
     --g-surface-backdrop: rgb(0 0 0 / 0.6);
 
+    /* Tabs (tokens.md §18): sobre una anfitriona oscura la pista y la banda aclaran un paso y el segmento sube otro */
+    --g-tabs-track: rgb(255 255 255 / 0.08);
+    --g-tabs-thumb: rgb(255 255 255 / 0.12);
+    --g-tabs-band: rgb(255 255 255 / 0.05);
+    --g-tabs-panel: var(--g-color-surface);
+
     /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
     --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
     --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
@@ -412,6 +430,12 @@
   --g-surface-shell: var(--g-color-surface-sunken);
   --g-surface-inset: var(--g-color-surface);
   --g-surface-backdrop: rgb(0 0 0 / 0.6);
+
+  /* Tabs (tokens.md §18): sobre una anfitriona oscura la pista y la banda aclaran un paso y el segmento sube otro */
+  --g-tabs-track: rgb(255 255 255 / 0.08);
+  --g-tabs-thumb: rgb(255 255 255 / 0.12);
+  --g-tabs-band: rgb(255 255 255 / 0.05);
+  --g-tabs-panel: var(--g-color-surface);
 
   /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
