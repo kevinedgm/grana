@@ -105,6 +105,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `description` | Descripción con contenido rico (sustituye a `description`) | | Dentro de `p#ID-desc`; sin interactivos |
 | `header` | Sustituye **título y descripción** por completo | `{ titleId, descriptionId }` | El consumidor debe usar esos ids si quiere el nombre accesible; el botón de cierre se conserva |
 | `icon` | Icono decorativo antes del título | | Se envuelve con `aria-hidden="true"` |
+| `tabs` | **Cabecera de pestañas fija** (`GTabs` con `detached`, DECISIONS.md #119; ver `tabs.md`), a sangre, entre el encabezado y el cuerpo; **no se desplaza** (solo el cuerpo lo hace) | | Dentro de `g-dialog__tabs`, fuera del cuerpo y de la inset. La carcasa define `--g-tabs-inset` con su relleno inline para alinear la primera pestaña con el título; con el slot, `role="region"` y `tabindex` pasan del cuerpo a los `tabpanel` |
 
 `close()` (en el alcance) cierra por la vía `close`: emite `dismiss` (cancelable) y luego `update:modelValue`. Para cerrar sin `dismiss`, el consumidor cambia `modelValue`.
 
@@ -167,6 +168,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-scrollable` | Cuerpo | Cuando su contenido no cabe |
 | `is-scrolled` | Superficie inset (o carcasa sin inset) | Mientras queda contenido por desplazar tras el cuerpo |
 | `g-dialog__footer` | Pie | Con slot `footer` |
+| `g-dialog__tabs` | Cabecera de pestañas fija | Con slot `tabs` |
 | `g-dialog__section`, `g-dialog__well` | Utilitarias del consumidor | Las pone el consumidor |
 
 ## Límites conocidos

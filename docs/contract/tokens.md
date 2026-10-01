@@ -474,3 +474,20 @@ La misma derivación alimenta CSS, documentación, Design Hub, validación y CLI
 | §17.4 clave de configuración `primary` propia | **Hecho** (#107) |
 | Regla «sin saltar niveles» como comprobación automática (`packages/vue/src/tokens/levels.test.js` y `roles.test.js`): los componentes no leen semillas ni `brand`, no escriben colores literales, todo `var(--g-*)` existe en el tema o lo declara el propio componente y ningún componente redeclara un token del tema | **Hecho** (#107). «Sin tokens de componente que solo renombran» sigue siendo norma de revisión (no es decidible automáticamente) |
 | `--g-data-*` para gráficas | Fuera de alcance |
+
+## 18. Tabs (`--g-tabs-*`)
+
+**Tokens de componente de `GTabs`** (`design/contracts/tabs.md`, DECISIONS.md #120). Se agregan porque el aspecto de `segmented` y `contained` depende de la **superficie anfitriona** y de la densidad, y ningún token existente lo expresa sin literales. Los **valores** los fija coco en `defaults.css` (capa `grana.defaults`); aquí solo se nombran y se acota la regla. Sin valores de respaldo en el componente.
+
+| Token | Para qué | Regla |
+| --- | --- | --- |
+| `--g-tabs-track` | Fondo de la pista de `segmented` | Un paso de tono **relativo a la superficie anfitriona** (más oscuro sobre superficie clara; más claro sobre oscura), como la `inset` de `GSurface` (#99); se redeclara en el tema oscuro (§15) |
+| `--g-tabs-thumb` | Fondo del segmento seleccionado de `segmented` | Distinto de la pista y del anfitrión; borde o contorno ≥ 3:1 si el contraste de fondo no basta (#89) |
+| `--g-tabs-band` | Fondo de la banda de pestañas de `contained` | Relativo a la anfitriona; se redeclara en el oscuro |
+| `--g-tabs-panel` | Tono de la pestaña activa fundida con el panel (`contained`) | Debe coincidir con la superficie del panel contiguo |
+| `--g-tabs-mark-default`, `--g-tabs-mark-comfortable`, `--g-tabs-mark-compact` | Grosor de la marca (línea de `underline` y vertical) por `density` | La densidad elige uno; no se multiplica un único valor; piso de 24px del área táctil no se ve afectado (la marca no es el objetivo táctil) |
+| `--g-tabs-inset` | Sangrado inline de la cabecera dentro de su anfitrión | Lo define la **anfitriona** (`GDialog` en `g-dialog__tabs`, un panel) para alinear con su contenido; sin definir, cero. Es la única que un componente anfitrión escribe |
+
+Duración y curva de la marca y de la entrada del contenido: los existentes (`--g-duration-press`, `--g-ease-standard`, `--g-ease-out`); tamaños de contador e insignia: los de `GBadge` `sm`. **Umbral de adaptación** (no es token; lo mide bruno): vertical pasa a horizontal con un ancho de contenedor menor que `--g-space-1 × 120` (480px con `space` 4).
+
+**Límite:** como el resto, los tokens se resuelven en `:root` (§10) salvo `--g-tabs-inset`, que se declara en el anfitrión y se hereda.
