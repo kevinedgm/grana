@@ -137,11 +137,14 @@ Orden del DOM = orden de lectura = orden de foco:
     <div class="g-card__body">
       <div class="g-card__stack">
         <div class="g-card__header">
-          <input class="g-card__select" type="checkbox" aria-labelledby="ID-title">   <!-- solo con selectable (casilla explícita) -->
+          <span class="g-card__selectbox">                                            <!-- solo con selectable (casilla explícita) -->
+            <input class="g-card__select" type="checkbox" aria-labelledby="ID-title">
+            <span class="g-card__tick" aria-hidden="true"><svg class="g-icon">…</svg></span>   <!-- GIcon check (radio: circle rellena); hermano inmediato del input -->
+          </span>
           <span class="g-card__lead" aria-hidden="true">…</span>                      <!-- slot lead -->
           <div class="g-card__titles">
             <p class="g-card__eyebrow">…</p>
-            <h3 class="g-card__title" id="ID-title"><a class="g-card__primary" href="…" aria-describedby="ID-desc">Título</a></h3>
+            <h3 class="g-card__title" id="ID-title" data-lines="2"><a class="g-card__primary" href="…" aria-describedby="ID-desc">Título</a></h3>
             <p class="g-card__subtitle">…</p>
           </div>
           <div class="g-card__aside">
@@ -152,13 +155,13 @@ Orden del DOM = orden de lectura = orden de foco:
         </div>
         <div class="g-card__content">
           <div class="g-card__media g-card__media--inline">…</div>                    <!-- mediaPosition="inline" -->
-          <p class="g-card__description" id="ID-desc">…</p>
+          <p class="g-card__description" id="ID-desc" data-lines="none">…</p>
           <button class="g-card__expand" type="button" aria-expanded="false" aria-controls="ID-desc">…</button>   <!-- expandable y recortada -->
           <div class="g-card__status" role="status">…</div>                           <!-- status; role="alert" si error -->
           <div class="g-card__empty">…</div>                                          <!-- empty -->
           <!-- slot default: GMetric, GProgress, GDataList, gráfico con role="img"… -->
         </div>
-        <dl class="g-card__meta">…</dl>
+        <dl class="g-card__meta"><div class="g-card__meta-item"><dt>…</dt><dd>…</dd></div>…</dl>   <!-- priority low: + g-card__meta-item--low -->
         <div class="g-card__more" id="ID-more" hidden>…</div>                         <!-- slot more; plegada solo en narrow -->
         <button class="g-card__more-toggle" type="button" aria-expanded="false" aria-controls="ID-more">…</button>
       </div>
@@ -172,8 +175,10 @@ Orden del DOM = orden de lectura = orden de foco:
 
 - **Título y principal:** el título es un `h2`–`h6` que **contiene** el `<a>`, el `<button>` o el `<label>` (un encabezado puede contener un control; un control no contiene un encabezado). El nombre del control es el título.
 - **Enlace estirado:** el `::after` de `g-card__primary` cubre la tarjeta (`position: absolute; inset: 0`); la raíz crea el contexto de apilamiento. **Por encima del estirado** va todo control que no sea la principal, con una regla **genérica** (`a`, `button`, `input`, `select`, `textarea`, `summary`, `label`, `[tabindex]` dentro de la tarjeta, salvo `g-card__primary`) para que valga con contenido libre del consumidor. **Nada interactivo dentro de otro** (verificado por kiwi: 0 anidados). Concesión asumida: el enlace estirado **impide seleccionar texto con el puntero** en una tarjeta navegable (el brief pide el clic en toda la tarjeta).
-- **Modo lista:** `ul > li.g-card`; el modo lista reordena visualmente (metadata antes del menú) con `order`, sin cambiar el DOM; la metadata no es interactiva.
-- **Textos largos:** el recorte (`line-clamp`) no quita texto del DOM; `titleLines` y `descriptionLines` son solo visuales.
+- **Colección:** `ul > li.g-card`; el modo lista reordena visualmente (metadata antes del menú) con `order`, sin cambiar el DOM; la metadata no es interactiva.
+- **Textos largos:** el recorte (`line-clamp`) no quita texto del DOM; `titleLines` y `descriptionLines` son solo visuales y llegan al CSS como **`data-lines="1|2|3|4|none"`** en `g-card__title` y `g-card__description`; `is-expanded` en la raíz anula el recorte de la descripción.
+- **Indicador de selección:** un `<input>` no puede contener un icono, así que el control va en un envoltorio `g-card__selectbox` con el `<input class="g-card__select">` (real, sin `appearance` nativa) seguido **inmediatamente** de su hermano `g-card__tick` (`aria-hidden`, con `GIcon` `check` o `circle` rellena). En `select` el envoltorio está dentro del `<label>` del título; en `selectable`, antes del título. En `toggle` no hay `<input>`: el indicador es `g-card__tick g-card__tick--static` dentro del `<button aria-pressed>`, y su estado sale de `aria-pressed`/`is-selected`.
+- **Modo lista:** no hay clase propia; el CSS lo reconoce por `li.g-card.g-card--orientation-horizontal.g-surface--level-flat` (`as="li"`, `orientation="horizontal"`, `level="flat"`).
 
 ## ARIA
 
@@ -218,7 +223,9 @@ La combinación `selected` + `current` + `disabled` es válida; coco decide la p
 3. **Slot `loading`:** sustituye **solo el cuerpo** del esqueleto (la tarjeta conserva su superficie, `aria-busy` y la región `role="status"`); recibe `{ size, layout }`. Debe ser decorativo (`aria-hidden`) y conservar el tamaño esperado.
 4. **Sin ninguna de las anteriores** (tarjeta sin props ni slots declarados): forma mínima (título + dos líneas).
 
-Con `loading` no se renderizan principal, menú, acciones ni controles enfocables (`inert` si el consumidor los dejó en slots). El esqueleto **no promete** la misma altura que la tarjeta cargada (la altura real depende de los datos): kiwi la verificó construyéndola desde las mismas props; con `skeleton` declarado con fidelidad el salto es mínimo, pero **no hay prueba con datos reales** (pendiente; ver «Verificación»). Sin animación con `prefers-reduced-motion`. Tono del esqueleto: el existente (`--g-color-surface-sunken`, como `GWidget`); coco resuelve el caso de una tarjeta `inset` cuyo fondo es ese mismo token.
+Con `loading` no se renderizan principal, menú, acciones ni controles enfocables (`inert` si el consumidor los dejó en slots). El esqueleto **no promete** la misma altura que la tarjeta cargada (la altura real depende de los datos): kiwi la verificó construyéndola desde las mismas props; con `skeleton` declarado con fidelidad el salto es mínimo, pero **no hay prueba con datos reales** (pendiente; ver «Verificación»). Sin animación con `prefers-reduced-motion`. **Tono del esqueleto: `--g-color-border-strong`** (#136), no `--g-color-surface-sunken` como `GWidget`: este da 1.07:1 sobre blanco (invisible) y es justo el fondo de una `inset`.
+
+**Marcado del esqueleto:** `g-card__skeleton` sustituye a `g-card__body` (con `aria-hidden="true"`) y usa **dentro las clases reales de región** (`g-card__header`, `__meta`, `__actions`…) para conservar la colocación; cada forma es `g-card__sk` con un modificador `--eyebrow`, `--title`, `--meta`, `--footer`, `--btn` o `--circle` (sin modificador: línea de texto). El ancho de cada línea va en la variable dinámica `--_sk-w` (en línea; excepción justificada como las `--_mark-*` de `GTabs`).
 
 ## Adaptación al contenedor (un solo sistema; #130)
 
@@ -243,7 +250,7 @@ Con `loading` no se renderizan principal, menú, acciones ni controles enfocable
 
 Una tarjeta es **un nivel de superficie** (la raíz `GSurface`); una región `inset` dentro (`GSurface level="inset"` por slot) es el **segundo** y toma el **radio concéntrico** del relleno publicado por `GSurface`. **Máximo dos pasos de tono** (#99); un tercer nivel se aplana. **Tarjeta dentro de tarjeta dentro de tarjeta** avisa en desarrollo (la guía es una región `inset` o una lista). Una tarjeta `level="inset"` sobre una superficie hundida toma el tono contrario al padre (`surface.md`).
 
-**Límite conocido de `surface.md` («no-inset dentro de una inset») aplicado a `GCard`:** una tarjeta `outlined`/`raised`/`flat` **dentro de una región `inset`** vuelve a publicar su tono y su radio; **se resuelve así:** la tarjeta es una **superficie nueva** (su propio fondo y borde), sus propias `inset` son de segundo nivel respecto a ella; la regla de «tercer nivel» de `GSurface` (selector de descendientes) aplana cualquier `inset` que además tenga una `inset` ascendiente. Lo que queda **abierto** es el radio concéntrico de esa tercera `inset` (lee el de la primera, no el de la tarjeta intermedia): coco lo verifica en la auditoría y, si falla, el consumidor fija `rounded`.
+**Límite conocido de `surface.md` («no-inset dentro de una inset») aplicado a `GCard`:** una tarjeta `outlined`/`raised`/`flat` **dentro de una región `inset`** vuelve a publicar su tono y su radio; **se resuelve así:** la tarjeta es una **superficie nueva** (su propio fondo y borde), sus propias `inset` son de segundo nivel respecto a ella; la regla de «tercer nivel» de `GSurface` (selector de descendientes) aplana cualquier `inset` que además tenga una `inset` ascendiente. **Verificado por coco** (banco `design/lab/card/estilo-banco.html`, sección 14): la tarjeta nueva dentro de una `inset` y sus regiones se ven con el radio concéntrico correcto **sin `rounded`** del consumidor (#136).
 
 Jerarquía visual (brief): 1 información principal (título, valor de la métrica) · 2 estado o métrica · 3 metadata · 4 auxiliar (`more`, pie) · 5 acciones secundarias. Por tamaño y peso, no por color.
 
@@ -326,7 +333,7 @@ Existentes: `--g-color-{primary|accent|neutral}[-soft|-text]`, `--g-color-on-pri
 | `--g-card-scrim` | **Velo** sobre la media de fondo (`mediaPosition="background"`); con `--g-card-on-scrim`, el texto cumple ≥ 4.5:1 sobre el peor caso del velo |
 | `--g-card-on-scrim` | Color del texto y los iconos sobre el velo |
 
-Del hallazgo 10 de kiwi **no** son tokens (reglas o alias locales `--_*`; `tokens.md` §17.6): grosor doble del borde de selected (`2 × --g-border-width`), anillo de foco **hacia dentro** (`calc(-1 * var(--g-focus-offset))`), línea del pie (`--g-color-border`), tono del esqueleto (`--g-color-surface-sunken`) y **ancho de la media lateral** (derivado de `space` y `density`: propuesta `space × 40`, 160px a `default`; lo fija coco como alias). Derivaciones propuestas para coco: caja de `lead` = `space × 10`; separación entre regiones = relleno de la superficie × 0.75.
+Del hallazgo 10 de kiwi **no** son tokens (reglas o alias locales `--_*`; `tokens.md` §17.6): grosor doble del borde de selected (`2 × --g-border-width`, borde de la raíz + anillo interior, sin cambiar el tamaño), anillo de foco **hacia dentro** (`outline-offset` negativo de `max(--g-focus-width, --g-focus-offset)`), línea del pie (`--g-color-border`: **separador decorativo**, no exige 3:1; con `prefers-contrast: more` sube a `--g-color-border-control`; #136), tono del esqueleto (`--g-color-border-strong`, #136) y **ancho de la media lateral** (derivado de `space` y `density`: propuesta `space × 40`, 160px a `default`; lo fija coco como alias). Derivaciones propuestas para coco: caja de `lead` = `space × 10`; separación entre regiones = relleno de la superficie × 0.75.
 
 **Propiedad pública que consume y no declara:** `--g-surface-padding` (declarada por `GSurface.css`, ver `surface.md` y `tokens.md` §19; `levels.test.js` debe aceptar que un componente lea una propiedad declarada por la superficie que compone).
 
@@ -339,13 +346,18 @@ Del hallazgo 10 de kiwi **no** son tokens (reglas o alias locales `--_*`; `token
 | `g-card--color-{brand\|accent\|neutral}` | Raíz | Siempre |
 | `g-card--media-{top\|start\|end\|background\|inline}` | Raíz | Con slot `media` |
 | `g-card--interaction-{none\|link\|button\|toggle\|select}` | Raíz | Siempre (la **efectiva**, tras `auto`) |
-| `g-card--size-{wide\|medium\|narrow}` y `g-card--layout-{row\|column}` | Raíz | Siempre (con `data-size` y `data-layout`) |
+| `g-card--size-{wide\|medium\|narrow}` y `g-card--layout-{row\|column}` | Raíz | Siempre: **las clases y además** `data-size`/`data-layout` (el CSS lee ambas formas) |
 | `g-card--status-{info\|success\|warning\|error}` | Raíz | Con `status` |
-| `is-interactive`, `is-selected`, `is-current`, `is-disabled`, `is-loading`, `is-empty`, `has-status`, `is-expanded` | Raíz | Estado |
+| `is-interactive`, `is-selected`, `is-current`, `is-disabled`, `is-loading`, `is-empty`, `has-status` | Raíz | Estado |
+| `is-expanded` | **Raíz** | Descripción desplegada (anula `data-lines`) |
 | `g-card__media`, `__media--inline`, `__scrim`, `__main`, `__body`, `__stack`, `__header`, `__lead`, `__titles`, `__eyebrow`, `__title`, `__primary`, `__subtitle`, `__aside`, `__current`, `__menu`, `__select`, `__content`, `__description`, `__expand`, `__status`, `__empty`, `__meta`, `__more`, `__more-toggle`, `__actions`, `__footer`, `__skeleton`, `__live` | Partes | Según prop o slot |
-| `g-card__meta-item--low` | Elemento de `meta` | `priority: 'low'` |
+| `g-card__meta-item` (+ `--low`) | Elemento de `meta` (envuelve `dt` + `dd`) | Siempre; `--low` con `priority: 'low'` |
+| `g-card__selectbox`, `g-card__tick`, `g-card__tick--static` | Indicador de selección | `select` y `selectable` (envoltorio + `input` + `tick` hermano); `--static` en `toggle` (sin `input`) |
+| `data-lines="1\|2\|3\|4\|none"` | `g-card__title`, `g-card__description` | Siempre (de `titleLines` y `descriptionLines`) |
+| `g-card__skeleton`, `g-card__sk`, `g-card__sk--{eyebrow\|title\|meta\|footer\|btn\|circle}` | Esqueleto | Con `loading` (ancho por `--_sk-w`) |
+| Modo lista | `li.g-card.g-card--orientation-horizontal.g-surface--level-flat` | Sin clase propia |
 
-Una `GBadge`, `GMenu` o `GBtn` interna lleva sus propias clases; no existe `g-card__badge`. `GIcon` es **hijo directo** de `g-card__current`, `g-card__menu`, `g-card__status` y del indicador de selección.
+Una `GBadge`, `GMenu` o `GBtn` interna lleva sus propias clases; no existe `g-card__badge`. `GIcon` es **hijo directo** de `g-card__current`, `g-card__menu`, `g-card__status`, `g-card__tick` y `g-card__empty`.
 
 ## Iconos (solo Lucide, vía `GIcon`; #134)
 
@@ -373,7 +385,7 @@ Se añaden a `icons.md` §4: `check` (casilla y alternar), `circle` rellena (rad
 | 12 | Subgrid | **Diferido** (la tarjeta no asume la rejilla) | Hallazgo de baja severidad |
 | 13 | Selección de grupo | Radios con `name` común y `role="radiogroup"` del **consumidor**; **`GCardGroup` diferido** (#124) | Decisión del usuario |
 | 14 | `GWidget` | Independiente; frontera documentada aquí y en `widget.md` (#125) | Decisión del usuario |
-| 15 | Contraste y forma | Para coco: marca de `selected`, anillo de foco, casilla y línea del pie ≥ 3:1; texto ≥ 4.5:1 sobre el velo; `forced-colors`; `prefers-contrast`; el hover no basta como único cambio de la selección | #89 |
+| 15 | Contraste y forma | Para coco: marca de `selected`, anillo de foco y casilla ≥ 3:1 (la **línea del pie es decorativa**: `--g-color-border`, sin 3:1, #136); texto ≥ 4.5:1 sobre el velo; `forced-colors`; `prefers-contrast`; el hover no basta como único cambio de la selección | #89 |
 
 ## Verificación (qué y cómo)
 

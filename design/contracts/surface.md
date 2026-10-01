@@ -119,7 +119,7 @@ Una región **a sangre** (la media y el pie de `GCard`) necesita conocer el rell
 
 ## Límites conocidos
 
-- Una superficie **no-inset dentro de una `inset`** (por ejemplo, una tarjeta dentro de un resumen) vuelve a publicar y puede romper el límite de dos pasos de tono. Para `GCard` se resuelve como superficie nueva y el tercer nivel se aplana (`card.md`, «Jerarquía de superficies»); queda abierto el radio concéntrico de una `inset` con una `inset` ascendiente y una superficie intermedia (lo verifica coco).
+- Una superficie **no-inset dentro de una `inset`** (por ejemplo, una tarjeta dentro de un resumen) vuelve a publicar y puede romper el límite de dos pasos de tono. Para `GCard` se resuelve como superficie nueva y el tercer nivel se aplana (`card.md`, «Jerarquía de superficies»); el radio concéntrico de ese caso lo verificó coco sin `rounded` del consumidor (DECISIONS.md #136).
 - `--g-surface-radius-inset` (§11) no se usa: el radio concéntrico de `GSurface` se calcula con el relleno real, no con la separación fija.
 - Colores forzados, zoom al 200% y la distinción `outlined`/`raised` están por verificar con el estilo real (coco).
 
