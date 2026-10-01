@@ -149,6 +149,10 @@
     {
       "name": "icon",
       "purpose": "Icono decorativo antes del título (aria-hidden)"
+    },
+    {
+      "name": "tabs",
+      "purpose": "Cabecera de pestañas fija (GTabs con detached; DECISIONS.md #119), a sangre, entre el encabezado y el cuerpo; no se desplaza. Con el slot, role=\"region\" y tabindex pasan del cuerpo a los tabpanel (GTabPanel)"
     }
   ],
   "tokens": [

@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "name": "GTabs",
+  "tag": "g-tabs",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Navegación entre vistas del mismo nivel (patrón Tabs de APG): cuatro apariencias (underline, pill, segmented, contained) por dos orientaciones, marca deslizante, activación automática o manual, desbordamiento por scroll, botones de borde o menú «Más», solo icono según el espacio, contador, insignia y estados, paneles integrados, perezosos o separados (GTabPanel).",
+  "contract": "design/contracts/tabs.md",
+  "prototype": "design/lab/tabs/r02/",
+  "style": "packages/vue/src/components/GTabs/GTabs.css",
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "modelValue",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "underline",
+      "values": [
+        "underline",
+        "pill",
+        "segmented",
+        "contained"
+      ]
+    },
+    {
+      "name": "orientation",
+      "type": "String",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "align",
+      "type": "String",
+      "default": "start",
+      "values": [
+        "start",
+        "center",
+        "distribute",
+        "fill"
+      ]
+    },
+    {
+      "name": "activation",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "manual"
+      ]
+    },
+    {
+      "name": "overflow",
+      "type": "String",
+      "default": "scroll",
+      "values": [
+        "scroll",
+        "arrows",
+        "more"
+      ]
+    },
+    {
+      "name": "labelMode",
+      "type": "String",
+      "default": "full",
+      "values": [
+        "full",
+        "icon",
+        "auto"
+      ]
+    },
+    {
+      "name": "snap",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "lazy",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "responsive",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "never"
+      ]
+    },
+    {
+      "name": "detached",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "labelledby",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "id de la pestaña elegida",
+      "trigger": "El usuario activa una pestaña y nadie impidió change"
+    },
+    {
+      "name": "change",
+      "payload": "{ id, index, source: 'keyboard' | 'pointer' | 'menu', preventDefault() }",
+      "trigger": "El usuario activa una pestaña; cancelable: con preventDefault() no cambian ni el valor, ni la marca, ni el foco"
+    }
+  ],
+  "slots": [
+    {
+      "name": "panel-{id}",
+      "purpose": "Contenido del panel de esa pestaña. Alcance: { item, active }"
+    },
+    {
+      "name": "panel",
+      "purpose": "Contenido genérico de panel (si no hay panel-{id}). Alcance: { item, active }"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono de la pestaña (valor item.icon). Alcance: { item, index, active }; decorativo"
+    },
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico, sin interactivos. Alcance: { item, index, active }; el nombre accesible sigue saliendo de item.label"
+    },
+    {
+      "name": "empty",
+      "purpose": "Vacío (sin pestañas): se renderiza en lugar de la cabecera"
+    }
+  ],
+  "items": [
+    {
+      "name": "id",
+      "type": "String | Number",
+      "purpose": "Obligatorio y único; sin id la pestaña se ignora"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "purpose": "Obligatorio; nombre accesible"
+    },
+    {
+      "name": "icon",
+      "type": "any",
+      "purpose": "Llega al slot icon; decorativo"
+    },
+    {
+      "name": "count",
+      "type": "Number",
+      "purpose": "Contador (GBadge); 0 no se pinta; exige countLabel"
+    },
+    {
+      "name": "countLabel",
+      "type": "String",
+      "purpose": "Texto accesible del contador"
+    },
+    {
+      "name": "badge",
+      "type": "String",
+      "purpose": "Insignia de texto breve"
+    },
+    {
+      "name": "badgeLabel",
+      "type": "String",
+      "purpose": "Se lee en lugar del texto visible de la insignia"
+    },
+    {
+      "name": "status",
+      "type": "'loading' | 'attention'",
+      "purpose": "Estado con icono y texto oculto; exige statusLabel"
+    },
+    {
+      "name": "statusLabel",
+      "type": "String",
+      "purpose": "Texto oculto del estado"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "purpose": "aria-disabled, omitida por flechas, Home y End"
+    }
+  ],
+  "labels": [
+    "more",
+    "menu",
+    "loading",
+    "loaded"
+  ],
+  "related": [
+    {
+      "name": "GTabPanel",
+      "tag": "g-tab-panel",
+      "file": "packages/vue/src/components/GTabs/GTabPanel.vue",
+      "purpose": "Panel suelto para GTabs con detached, enlazado por id",
+      "props": [
+        {
+          "name": "tabs",
+          "type": "String",
+          "default": null
+        },
+        {
+          "name": "value",
+          "type": "String | Number",
+          "default": null
+        },
+        {
+          "name": "active",
+          "type": "Boolean",
+          "default": false
+        },
+        {
+          "name": "lazy",
+          "type": "Boolean",
+          "default": false
+        },
+        {
+          "name": "busy",
+          "type": "Boolean",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "tokens": [
+    "--g-tabs-track",
+    "--g-tabs-thumb",
+    "--g-tabs-band",
+    "--g-tabs-panel",
+    "--g-tabs-mark-default",
+    "--g-tabs-mark-comfortable",
+    "--g-tabs-mark-compact",
+    "--g-tabs-inset",
+    "--g-color-primary-text",
+    "--g-color-primary-soft",
+    "--g-color-on-primary-soft",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-space-1",
+    "--g-duration-press",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "active",
+    "disabled",
+    "loading",
+    "attention"
+  ],
+  "pending": [
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack): anuncio de estado y contador, menú «Más»",
+    "Táctil real, snap con dedo y zoom al 200%",
+    "Rendimiento con decenas de pestañas y redimensionar con «Más» abierto",
+    "Tooltip para solo iconos (hasta que exista un componente de tooltip)",
+    "Fuera de v0.1: closable/close, overflow combined y auto, swipe entre paneles, unmount de paneles inactivos",
+    "CLI: no emite todavía los --g-tabs-*"
+  ]
+}

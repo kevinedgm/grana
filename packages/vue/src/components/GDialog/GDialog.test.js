@@ -354,3 +354,43 @@ describe('GDialog · atributos', () => {
     g.unmount()
   })
 })
+
+describe('GDialog · slot tabs (cabecera de pestañas fija, DECISIONS.md #119)', () => {
+  const tabsSlot = () => h('div', { class: 'mi-cabecera' }, 'pestañas')
+
+  it('se dibuja entre el encabezado y el cuerpo, fuera de la inset, con g-dialog__tabs', () => {
+    const w = mountOpen({}, { slots: { default: 'cuerpo', tabs: tabsSlot } })
+    const kids = [...w.find('dialog').element.children].map((c) => c.className.split(' ')[0])
+    expect(kids).toEqual(['g-dialog__header', 'g-dialog__tabs', 'g-dialog__inset'])
+    expect(w.find('.g-dialog__tabs .mi-cabecera').exists()).toBe(true)
+    expect(w.find('.g-dialog__inset').element.contains(w.find('.g-dialog__tabs').element)).toBe(false)
+    w.unmount()
+  })
+
+  it('sin inset: pestañas, cuerpo y pie son hijos de la carcasa, en ese orden', () => {
+    const w = mountOpen({ inset: false }, { slots: { default: 'cuerpo', tabs: tabsSlot, footer: 'pie' } })
+    const kids = [...w.find('dialog').element.children].map((c) => c.className.split(' ')[0])
+    expect(kids).toEqual(['g-dialog__header', 'g-dialog__tabs', 'g-dialog__body', 'g-dialog__footer'])
+    w.unmount()
+  })
+
+  it('sin el slot no existe g-dialog__tabs', () => {
+    const w = mountOpen({}, { slots: { default: 'x' } })
+    expect(w.find('.g-dialog__tabs').exists()).toBe(false)
+    w.unmount()
+  })
+
+  it('con el slot, el cuerpo que desborda no es región ni tabulable (lo son los tabpanel)', async () => {
+    const w = mountOpen({}, { slots: { default: 'x', tabs: tabsSlot } })
+    const el = w.find('.g-dialog__body').element
+    Object.defineProperty(el, 'scrollHeight', { configurable: true, value: 500 })
+    Object.defineProperty(el, 'clientHeight', { configurable: true, value: 200 })
+    el.dispatchEvent(new Event('scroll'))
+    await nextTick()
+    const body = w.find('.g-dialog__body')
+    expect(body.classes()).toContain('is-scrollable')
+    expect(body.attributes('tabindex')).toBeUndefined()
+    expect(body.attributes('role')).toBeUndefined()
+    w.unmount()
+  })
+})

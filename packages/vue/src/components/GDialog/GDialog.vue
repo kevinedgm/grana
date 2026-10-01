@@ -1,8 +1,9 @@
 <script setup>
 // GDialog · diálogo modal con carcasa e inset (dueño: bruno)
 // Contrato: design/contracts/dialog.md · Estructura: design/lab/dialog/r01/ · Estilo: GDialog.css (coco)
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { TABS_NEST } from '../../utils/tabs.js'
 import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GDialog', inheritAttrs: false })
@@ -40,6 +41,9 @@ const hasDescription = computed(() => Boolean(props.description || slots.descrip
 const hasHeaderSlot = computed(() => Boolean(slots.header))
 const hasFooter = computed(() => Boolean(slots.footer))
 const hasIcon = computed(() => Boolean(slots.icon))
+const hasTabs = computed(() => Boolean(slots.tabs))
+// Un diálogo abierto desde un panel de GTabs puede llevar sus propias pestañas: no cuenta como anidamiento
+provide(TABS_NEST, false)
 const showClose = computed(() => Boolean(props.closeLabel) && !isAlert.value)
 
 const dialog = ref(null)
@@ -188,8 +192,9 @@ const describedBy = computed(() => {
 const roleAttr = computed(() => (isAlert.value ? 'alertdialog' : undefined))
 
 // Un cuerpo que se desplaza debe poder recibir el foco para que el teclado lo alcance.
+// Con el slot `tabs`, role="region" y tabindex pasan a los tabpanel (GTabs / GTabPanel): el cuerpo no se anuncia como región propia.
 const bodyAttrs = computed(() => {
-  if (!scrollable.value) return {}
+  if (!scrollable.value || hasTabs.value) return {}
   const named = hasTitle.value || hasHeaderSlot.value
   return { tabindex: 0, ...(named ? { role: 'region', 'aria-labelledby': titleId.value } : {}) }
 })
@@ -233,6 +238,7 @@ if (isDev) {
         </div>
         <button v-if="showClose" class="g-dialog__close" type="button" :aria-label="closeLabel" @click="close"><GIcon name="x" /></button>
       </div>
+      <div v-if="hasTabs" class="g-dialog__tabs"><slot name="tabs" /></div>
       <div v-if="inset" :class="insetClasses">
         <div ref="body" :class="bodyClasses" v-bind="bodyAttrs" @scroll.passive="measure"><slot :close="close" /></div>
         <div v-if="hasFooter" class="g-dialog__footer"><slot name="footer" :close="close" /></div>
