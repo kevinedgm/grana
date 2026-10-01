@@ -493,3 +493,21 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 **Límite:** como el resto, los tokens se resuelven en `:root` (§10) salvo `--g-tabs-inset`, que se declara en el anfitrión y se hereda.
 
 **Pendiente no bloqueante:** el CLI no emite `--g-tabs-*`; los temas de usuario usan los valores de `defaults.css`.
+
+## 19. Card y superficie (`--g-card-*`, `--g-surface-padding`)
+
+**Tokens de componente de `GCard`** (`design/contracts/card.md`, DECISIONS.md #134). Se agregan porque el hover, la pulsación y la selección dependen de la **superficie anfitriona** y la media de fondo necesita un velo con contraste, y ningún token existente lo expresa sin literales. Los **valores** los fija coco en `defaults.css` (capa `grana.defaults`); aquí solo se nombran y se acota la regla. Sin valores de respaldo en el componente.
+
+| Token | Para qué | Regla |
+| --- | --- | --- |
+| `--g-card-hover` | Fondo en hover de una tarjeta interactiva | Un paso de tono **relativo a la superficie anfitriona** (patrón de §18, #120); se redeclara en el oscuro (§15) |
+| `--g-card-pressed` | Fondo mientras se pulsa | Un paso más fuerte que el hover |
+| `--g-card-selected` | Fondo de la tarjeta seleccionada o «actual» | Relativo a la anfitriona; nunca es la única señal (borde de doble grosor + indicador con icono; #89) |
+| `--g-card-scrim` | Velo sobre la media de fondo | Con `--g-card-on-scrim`, el texto cumple ≥ 4.5:1 sobre el peor caso del velo; se redeclara en el oscuro |
+| `--g-card-on-scrim` | Color del texto e iconos sobre el velo | |
+
+**No son tokens** (reglas o alias locales `--_*`, §17.6): grosor doble del borde de selected (`2 × --g-border-width`), anillo de foco hacia dentro (`calc(-1 * var(--g-focus-offset))`), línea del pie (`--g-color-border`), tono del esqueleto (`--g-color-surface-sunken`), ancho de la media lateral (derivado de `space` y `density`) y caja de `lead` (`space × 10`). Los umbrales de adaptación (`space × 130` y `space × 80`) tampoco: los mide bruno.
+
+**Propiedad pública de `GSurface`: `--g-surface-padding`** (`design/contracts/surface.md`, «Cambio aparte»; #131). La declara `GSurface.css` en cada `.g-surface` con el relleno **ya resuelto** (escala de `padding` × `density`) para que una región a sangre de un componente que la compone (`GCard`) pueda calcular su margen negativo. **Solo lectura**: no es del tema, el usuario no la sobrescribe y no se emite en `tokens.json`; la superficie más cercana gana. Excepción documentada a `levels.test.js` (un componente puede leerla sin declararla; es el caso inverso de `--g-tabs-inset`, que el anfitrión escribe).
+
+**Pendiente no bloqueante:** el CLI no emite `--g-card-*`; los temas de usuario usan los valores de `defaults.css`.

@@ -5,6 +5,8 @@
 
 **`GWidget`** es una **carcasa reutilizable**: una unidad visual independiente con encabezado, contenido, pie y acciones, que muestra información de un vistazo. **No conoce el significado de su contenido** (métricas, listas, gráficos, tablas…): lo pone la aplicación. **Mide su propio tamaño** y elige un **nivel de detalle** (divulgación progresiva): menos espacio, menos detalle. Soporta los estados *cargando*, *con datos*, *vacío*, *error*, *desactualizado* y *deshabilitado* **sin cambiar su estructura**. Las **primitivas** (`GMetric`, `GProgress`, `GDataList`) son piezas para componer el contenido. La rejilla del dashboard es `GWidgetGrid` (`design/contracts/widget-grid.md`). Alcance decidido por el usuario (DECISIONS.md #72 a #75): carcasa con estados, primitivas y rejilla; **galería y panel de configuración quedan para una segunda entrega**.
 
+> **Frontera con `GCard` (DECISIONS.md #125, decisión del usuario):** `GWidget` y `GCard` son **independientes** en v0.1. `GWidget` es la carcasa de dashboard (niveles `s`/`m`/`l`, estados propios, rejilla, galería); `GCard` (`card.md`) es la primitiva general que se reorganiza. `GWidgetGallery` no ofrece tarjetas como widgets sin pasar por la carcasa. Se revisará una convergencia cuando `GCard` esté verificada.
+
 ## Principios
 
 - **La carcasa no interpreta su contenido.** Nada de «métrica», «gráfico» o «lista» en su API: el contenido va en slots por nivel.

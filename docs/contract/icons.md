@@ -59,9 +59,12 @@ Nombre de Lucide entre comillas.
 | `GPagination` | Anterior · siguiente | `chevron-left` · `chevron-right` |
 | `GFilterBar` | Sugerir o agregar filtro · quitar filtro | `plus` · `x` |
 | `GTabs` | Cargando (gira) · requiere atención · botones de borde · botón «Más» | `loader-circle` · `circle-alert` · `chevron-left` / `chevron-right` · `chevron-down` |
+| `GCard` | Casilla / alternar · radio · menú de acciones · estados `error` / `warning` / `success` / `info` · marca de «actual» · «mostrar más» | `check` · `circle` (rellena) · `ellipsis-vertical` · `circle-alert` / `triangle-alert` / `circle-check` / `info` · `chevron-right` (espejado en RTL) · `chevron-down` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
 `GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
+
+**Pendiente para quien edite las listas (kiwi: `design/lab/lucide-icons.js`; bruno: `scripts/build-icons.mjs`):** `info` **no está** en ninguna de las dos y `GCard` lo usa (DECISIONS.md #134); el resto de los de `GCard` ya existen. Los ejemplos de documentación de `GCard` (media, `lead`) usan `image`, `play` y `map-pin` de la aplicación (§5), que no entran en la lista del paquete.
 
 **Regla:** añadir un icono exige **añadirlo a esta tabla** y a la lista del script antes de usarlo.
 

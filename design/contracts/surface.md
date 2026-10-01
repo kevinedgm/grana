@@ -11,7 +11,7 @@ Superficie visual genérica sobre la que vive cualquier contenido. **No tiene si
 
 - **Un solo elemento, sin estructura.** Sin encabezado, cuerpo ni pie: organizar contenido es de `GPanel`.
 - **Sin semántica propia.** El consumidor elige el elemento (`as`); `GSurface` no añade `role` ni `aria-*`.
-- **No es interactiva.** Sin hover, foco ni pulsación. Una tarjeta pulsable será otro componente.
+- **No es interactiva.** Sin hover, foco ni pulsación. Una tarjeta pulsable es otro componente: `GCard` (`design/contracts/card.md`), que compone `GSurface`.
 - **La profundidad es relativa al padre.** Una `inset` da **un paso de tono respecto a su superficie padre** y toma su **radio concéntrico**, sin JavaScript (propiedades CSS heredadas).
 - **Dos pasos de tono como máximo.** Una `inset` dentro de otra no vuelve a cambiar de tono.
 
@@ -76,7 +76,7 @@ No aplica: `GSurface` no es interactiva ni enfocable. El contenido conserva su p
 
 Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-surface-shell`, `--g-surface-inset`, `--g-surface-gap`, `--g-color-border`, `--g-color-border-strong`, `--g-radius-{none|xs|sm|md|lg|xl|pill}`, `--g-shadow-1`, `--g-shadow-2`, `--g-space-1`, `--g-border-width`.
 
-**Sin tokens nuevos.** El radio mínimo de una `inset` es `--g-radius-xs`; los rellenos derivan de `space` y `--g-surface-gap`.
+**Sin tokens de tema nuevos.** (Hay una propiedad pública derivada, `--g-surface-padding`: ver «Cambio aparte».) El radio mínimo de una `inset` es `--g-radius-xs`; los rellenos derivan de `space` y `--g-surface-gap`.
 
 ## Clases (contrato entre bruno y coco)
 
@@ -108,9 +108,18 @@ Los alias con los que una superficie **publica** a sus descendientes (tono contr
 
 **Default de `level`: `outlined`.** Es el nivel no plano más neutro (sin sombra), coherente con el brief («sin sombras excesivas»). Decisión de producto propuesta por lima: se confirma con el usuario.
 
+## Cambio aparte: relleno publicado (DECISIONS.md #131, por `GCard`)
+
+Una región **a sangre** (la media y el pie de `GCard`) necesita conocer el relleno **real** de la superficie que la contiene, y hasta ahora ese valor era un alias privado (`--_pad`). Cambio, **solo de CSS**:
+
+- `GSurface.css` declara en cada `.g-surface` la propiedad **pública** `--g-surface-padding: var(--_pad)` (ya multiplicada por `density`). Es **solo lectura** para los descendientes: nadie la sobrescribe; la superficie más cercana gana (una superficie anidada la redeclara para los suyos).
+- No cambia ningún valor, prop, clase ni el `.vue`. El radio concéntrico sigue calculándose con `--_pad`.
+- Quién: **coco** (`GSurface.css`, auditoría de que no cambia nada visible), **bruno** (`levels.test.js` debe aceptar que un componente lea una propiedad `--g-*` que **declara la superficie que compone**; registro en `tokens.md` §19). Sin cambios en `GSurface.vue`.
+- Alternativa descartada: `padding="none"` con relleno propio por región (rompe el radio concéntrico de las `inset` hijas).
+
 ## Límites conocidos
 
-- Una superficie **no-inset dentro de una `inset`** (por ejemplo, una tarjeta dentro de un resumen) vuelve a publicar y puede romper el límite de dos pasos de tono. No se diseñó en r01.
+- Una superficie **no-inset dentro de una `inset`** (por ejemplo, una tarjeta dentro de un resumen) vuelve a publicar y puede romper el límite de dos pasos de tono. Para `GCard` se resuelve como superficie nueva y el tercer nivel se aplana (`card.md`, «Jerarquía de superficies»); queda abierto el radio concéntrico de una `inset` con una `inset` ascendiente y una superficie intermedia (lo verifica coco).
 - `--g-surface-radius-inset` (§11) no se usa: el radio concéntrico de `GSurface` se calcula con el relleno real, no con la separación fija.
 - Colores forzados, zoom al 200% y la distinción `outlined`/`raised` están por verificar con el estilo real (coco).
 
