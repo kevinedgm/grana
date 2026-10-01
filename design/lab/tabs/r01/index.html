@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTabs · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--sp:4px}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:28px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:80ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:86ch}
+.ctl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.frame{border:1px dashed var(--wf-3);padding:12px;background:#fff;resize:horizontal;overflow:auto;max-inline-size:100%;min-inline-size:200px}
+.log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);padding:4px 8px;margin-top:8px;min-block-size:1.4em;white-space:pre-wrap}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+
+/* ============ GTabs (estructura) ============ */
+.gtabs{container-type:inline-size;display:flex;flex-direction:column;gap:12px}
+.gtabs[data-orientation=vertical]{flex-direction:row;align-items:flex-start}
+.gtabs__head{display:flex;align-items:stretch;min-inline-size:0;position:relative;border-bottom:1px solid var(--wf-line)}
+.gtabs[data-orientation=vertical] .gtabs__head{flex-direction:column;border-bottom:0;border-inline-end:1px solid var(--wf-line);flex:none;inline-size:200px;max-block-size:var(--_maxh,none)}
+.gtabs__scroller{display:flex;overflow:auto hidden;scrollbar-width:none;min-inline-size:0;flex:1}
+.gtabs__scroller::-webkit-scrollbar{display:none}
+.gtabs[data-orientation=vertical] .gtabs__scroller{flex-direction:column;overflow:hidden auto}
+.gtabs__list{display:flex;gap:calc(var(--sp)*2);position:relative;min-inline-size:max-content}
+.gtabs[data-orientation=vertical] .gtabs__list{flex-direction:column;min-inline-size:0;inline-size:100%}
+.gtabs[data-stretch] .gtabs__list{inline-size:100%}
+.gtabs[data-stretch] .gtab{flex:1;justify-content:center}
+.gtab{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:calc(var(--sp)*2.5) calc(var(--sp)*3);white-space:nowrap;color:var(--wf-2);min-block-size:40px;position:relative}
+.gtab[hidden]{display:none}
+.gtab:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gtab[aria-selected=true]{color:var(--wf-ink);font-weight:600}
+.gtab[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.gtab__count{font-size:12px;font-weight:600;min-inline-size:20px;text-align:center;padding:0 6px;border:1px solid var(--wf-2);border-radius:999px;color:var(--wf-ink)}
+/* Marca de selección: aquí una línea; "enclosed" la convierte en caja. El estilo real es de coco. */
+.gtab[aria-selected=true]::after{content:"";position:absolute;inset-inline:0;inset-block-end:-1px;block-size:3px;background:var(--wf-ink)}
+.gtabs[data-orientation=vertical] .gtab{justify-content:flex-start}
+.gtabs[data-orientation=vertical] .gtab[aria-selected=true]::after{inset-inline:auto;inset-inline-end:-1px;inset-block:0;block-size:auto;inline-size:3px}
+.gtabs[data-appearance=enclosed] .gtabs__head{border-bottom:0;background:var(--wf-fill);border-radius:8px;padding:var(--sp)}
+.gtabs[data-appearance=enclosed] .gtab{border-radius:6px}
+.gtabs[data-appearance=enclosed] .gtab[aria-selected=true]{background:#fff;box-shadow:0 0 0 1px var(--wf-line)}
+.gtabs[data-appearance=enclosed] .gtab[aria-selected=true]::after{display:none}
+.gtabs[data-density=compact] .gtab{min-block-size:32px;padding:var(--sp) calc(var(--sp)*2)}
+.gtabs[data-density=comfortable] .gtab{min-block-size:48px;padding:calc(var(--sp)*3) calc(var(--sp)*4)}
+/* Botones de borde (solo puntero; el teclado ya llega a todo con las flechas) */
+.gtabs__edge,.gtabs__more{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;min-inline-size:32px;flex:none;background:#fff}
+.gtabs__edge:focus-visible,.gtabs__more:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gtabs__edge[hidden],.gtabs__more[hidden]{display:none}
+.gtabs__more{display:inline-flex;gap:4px;padding:0 8px;border:1px solid var(--wf-line);margin-inline-start:4px;font-size:14px}
+.gtabs__more[hidden]{display:none}
+.gtabs__menu{position:absolute;inset-inline-end:0;inset-block-start:100%;z-index:3;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid var(--wf-ink);min-inline-size:180px;max-block-size:240px;overflow:auto}
+.gtabs__menu[hidden]{display:none}
+.gtabs__menu [role=menuitemradio]{display:flex;gap:8px;align-items:center;padding:8px 10px;cursor:pointer}
+.gtabs__menu [role=menuitemradio][aria-checked=true]{font-weight:600}
+.gtabs__menu [role=menuitemradio][aria-disabled=true]{opacity:.45}
+.gtabs__menu [role=menuitemradio]:focus-visible,.gtabs__menu [role=menuitemradio].is-active{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.gtabs__panels{flex:1;min-inline-size:0}
+.gtabs__panel{padding:calc(var(--sp)*2) 0}
+.gtabs__panel[hidden]{display:none}
+.gtabs__panel:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.gtabs__panel[aria-busy=true] .skel{display:block}
+.skel{display:none;block-size:12px;border-radius:6px;background:var(--wf-fill);margin:8px 0;inline-size:min(100%,320px)}
+.skel + .skel{inline-size:min(100%,220px)}
+.empty{text-align:center;color:var(--wf-2);padding:32px;border:1px dashed var(--wf-line)}
+.wf-field{display:flex;flex-direction:column;gap:4px;margin:8px 0;max-inline-size:280px;font-size:14px}
+.wf-field input,.wf-field select{font:inherit;padding:6px 8px;border:1px solid var(--wf-3);border-radius:4px}
+.wf-btn{padding:6px 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+<h1>GTabs · r01</h1>
+<p class="meta">Wireframe F2 (kit neutral). Kiwi: estructura y comportamiento; color, forma y movimiento son de coco. Patrón: WAI-ARIA APG <em>Tabs</em>. Todos los ejemplos son funcionales: usa el teclado.</p>
+<div class="wf-note"><strong>Teclado (horizontal):</strong> Tab entra en la pestaña activa y sale al panel; ←/→ mueven (con vuelta al final); Home/End; Enter/Espacio activan en modo manual. <strong>Vertical:</strong> ↑/↓. Cada ejemplo escribe sus eventos en el registro gris.</div>
+
+<h2 class="sec">1 · Activación automática (por defecto)</h2>
+<p class="cap">Enfocar con las flechas activa la pestaña. Paneles montados y ocultos (<code>keepMounted</code>): lo escrito en el campo del panel «Cuenta» no se pierde al cambiar.</p>
+<div class="ctl"><label>Marca <select data-for="ex1" data-opt="appearance"><option value="line">line</option><option value="enclosed">enclosed</option></select></label>
+<label>Densidad <select data-for="ex1" data-opt="density"><option>default</option><option>compact</option><option>comfortable</option></select></label>
+<label><input type="checkbox" data-for="ex1" data-opt="stretch"> ocupar todo el ancho</label>
+<label>Dirección <select id="dir"><option value="ltr">ltr</option><option value="rtl">rtl</option></select></label></div>
+<div class="frame" id="ex1-frame"><div id="ex1"></div></div><output class="log" id="ex1-log"></output>
+
+<h2 class="sec">2 · Activación manual</h2>
+<p class="cap">Las flechas solo mueven el foco (aquí cada panel «tarda» en cargar); Enter o Espacio activan. <code>aria-selected</code> no cambia hasta activar.</p>
+<div class="frame"><div id="ex2"></div></div><output class="log" id="ex2-log"></output>
+
+<h2 class="sec">3 · Icono, contador y pestañas deshabilitadas</h2>
+<p class="cap">Las pestañas deshabilitadas llevan <code>aria-disabled="true"</code>, se omiten con las flechas y no activan. El contador forma parte del nombre accesible (texto oculto «3 sin leer»).</p>
+<div class="frame"><div id="ex3"></div></div><output class="log" id="ex3-log"></output>
+
+<h2 class="sec">4 · Desbordamiento: desplazamiento (por defecto)</h2>
+<p class="cap">Arrastra la esquina del marco para estrechar. Los botones de borde son solo de puntero (<code>aria-hidden</code>, fuera del orden de Tab): el teclado ya llega a todas las pestañas y la enfocada se desplaza a la vista.</p>
+<div class="frame" style="inline-size:420px"><div id="ex4"></div></div><output class="log" id="ex4-log"></output>
+
+<h2 class="sec">5 · Desbordamiento: menú «Más»</h2>
+<p class="cap">Las pestañas que no caben salen del <code>tablist</code> (<code>hidden</code>, con <code>aria-setsize</code> y <code>aria-posinset</code> para que el total siga siendo correcto) y pasan a un menú. La pestaña activa siempre queda visible. El botón del menú está <em>fuera</em> del <code>tablist</code>.</p>
+<div class="frame" style="inline-size:420px"><div id="ex5"></div></div><output class="log" id="ex5-log"></output>
+
+<h2 class="sec">6 · Vertical y adaptación</h2>
+<p class="cap">↑/↓ en lugar de ←/→. Por debajo de un ancho de contenedor pasa a horizontal con desplazamiento y <code>aria-orientation</code> sigue al diseño real. Estrecha el marco.</p>
+<div class="frame" style="inline-size:620px"><div id="ex6"></div></div><output class="log" id="ex6-log"></output>
+
+<h2 class="sec">7 · Contenido del panel: enfocable, simple, cargando, vacío</h2>
+<p class="cap">«Formulario» tiene controles enfocables: el panel <strong>no</strong> entra en el orden de Tab y Tab pasa directo al primer campo. «Texto» no tiene ninguno: el panel lleva <code>tabindex="0"</code> para que un usuario de teclado llegue a él. «Informe» carga bajo demanda (<code>lazy</code> + <code>aria-busy</code>, la pestaña sigue habilitada). «Archivo» está vacío.</p>
+<div class="frame"><div id="ex7"></div></div><output class="log" id="ex7-log"></output>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = n => window.lucide(n);
+let uid = 0;
+const $ = (s, r = document) => r.querySelector(s);
+
+/* Fábrica de prototipo. Opciones:
+   tabs[{id,label,icon?,count?,countLabel?,disabled?}], label, orientation, activation 'auto'|'manual',
+   overflow 'scroll'|'menu', lazy, responsive, panel(id,tab)->HTMLElement|string, onLog(msg), value */
+function Tabs(host, o) {
+  const id = 'gt' + ++uid, tabs = o.tabs, orient0 = o.orientation || 'horizontal';
+  let orientation = orient0, value = o.value ?? tabs.find(t => !t.disabled).id, focused = value, menuOpen = false;
+  const log = m => o.onLog && o.onLog(m);
+  host.innerHTML = '';
+  const root = document.createElement('div');
+  root.className = 'gtabs';
+  root.dataset.orientation = orientation;
+  root.dataset.appearance = 'line';
+  root.innerHTML =
+    '<div class="gtabs__head">' +
+      (o.overflow !== 'menu' ? '<button type="button" class="gtabs__edge" data-edge="start" tabindex="-1" aria-hidden="true" hidden>' + I('chevron-left') + '</button>' : '') +
+      '<div class="gtabs__scroller"><div class="gtabs__list" role="tablist" aria-label="' + o.label + '" aria-orientation="' + orientation + '"></div></div>' +
+      (o.overflow !== 'menu' ? '<button type="button" class="gtabs__edge" data-edge="end" tabindex="-1" aria-hidden="true" hidden>' + I('chevron-right') + '</button>' : '') +
+      (o.overflow === 'menu' ? '<button type="button" class="gtabs__more" hidden aria-haspopup="menu" aria-expanded="false" aria-controls="' + id + '-menu"><span class="sr">Más pestañas</span><span aria-hidden="true">Más</span>' + I('chevron-down') + '</button><ul class="gtabs__menu" role="menu" id="' + id + '-menu" aria-label="Más pestañas" hidden></ul>' : '') +
+    '</div><div class="gtabs__panels"></div><span class="sr" role="status" aria-live="polite"></span>';
+  host.appendChild(root);
+  const list = $('.gtabs__list', root), scroller = $('.gtabs__scroller', root), panels = $('.gtabs__panels', root),
+        live = $('[role=status]', root), more = $('.gtabs__more', root), menu = $('.gtabs__menu', root);
+  const T = {}, P = {};
+  tabs.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('role', 'tab'); b.id = id + '-t-' + t.id; b.dataset.id = t.id;
+    b.setAttribute('aria-controls', id + '-p-' + t.id);
+    b.setAttribute('aria-setsize', tabs.length); b.setAttribute('aria-posinset', i + 1);
+    if (t.disabled) b.setAttribute('aria-disabled', 'true');
+    b.className = 'gtab';
+    b.innerHTML = (t.icon ? I(t.icon) : '') + '<span class="gtab__label">' + t.label + '</span>' +
+      (t.count != null ? '<span class="gtab__count" aria-hidden="true">' + t.count + '</span><span class="sr">' + (t.countLabel || t.count) + '</span>' : '');
+    list.appendChild(b); T[t.id] = b;
+    const p = document.createElement('div');
+    p.className = 'gtabs__panel'; p.setAttribute('role', 'tabpanel'); p.id = id + '-p-' + t.id;
+    p.setAttribute('aria-labelledby', b.id); p.hidden = true;
+    panels.appendChild(p); P[t.id] = p;
+    if (!o.lazy) mount(t);
+  });
+  function mount(t) {
+    const p = P[t.id]; if (p.dataset.mounted) return; p.dataset.mounted = '1';
+    const c = o.panel ? o.panel(t.id, t, { setBusy: v => setBusy(t.id, v), root }) : '<p>Contenido de ' + t.label + '.</p>';
+    if (typeof c === 'string') p.innerHTML = c; else p.replaceChildren(c);
+  }
+  function setBusy(tid, v) {
+    P[tid].setAttribute('aria-busy', v);
+    live.textContent = v ? 'Cargando ' + tabs.find(t => t.id === tid).label : 'Listo';
+  }
+  /* Panel sin nada enfocable dentro → tabindex=0 (APG) */
+  const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  function fixPanelTabindex(p) { if (p.querySelector(FOCUSABLE)) p.removeAttribute('tabindex'); else p.tabIndex = 0; }
+
+  const enabled = () => tabs.filter(t => !t.disabled && !T[t.id].hidden);
+  function render() {
+    tabs.forEach(t => {
+      const sel = t.id === value, b = T[t.id];
+      b.setAttribute('aria-selected', sel);
+      b.tabIndex = (t.id === focused && !t.disabled) ? 0 : -1;
+      b.dataset.state = sel ? 'active' : 'inactive';
+      P[t.id].hidden = !sel;
+    });
+    if (o.overflow === 'menu') layoutMenu();
+    updateEdges();
+  }
+  function select(tid, source) {
+    const t = tabs.find(x => x.id === tid);
+    if (!t || t.disabled) return;
+    focused = tid;
+    if (tid !== value) {
+      const prev = value; value = tid;
+      mount(t);
+      if (o.lazy && !P[tid].dataset.visited && o.onFirstShow) { P[tid].dataset.visited = '1'; o.onFirstShow(tid, { setBusy: v => setBusy(tid, v), panel: P[tid] }); }
+      log('update:modelValue "' + tid + '"  (antes "' + prev + '", ' + source + ')');
+      render(); fixPanelTabindex(P[tid]);
+    } else render();
+  }
+  function moveFocus(tid, source) {
+    focused = tid; render();
+    T[tid].focus({ preventScroll: true });
+    T[tid].scrollIntoView({ inline: 'nearest', block: 'nearest' });
+    if ((o.activation || 'auto') === 'auto') select(tid, source); else log('foco → "' + tid + '" (sin activar)');
+  }
+  list.addEventListener('click', e => {
+    const b = e.target.closest('[role=tab]'); if (!b || b.getAttribute('aria-disabled') === 'true') return;
+    select(b.dataset.id, 'puntero'); b.focus({ preventScroll: true });
+  });
+  list.addEventListener('keydown', e => {
+    const b = e.target.closest('[role=tab]'); if (!b) return;
+    const vert = orientation === 'vertical', rtl = getComputedStyle(root).direction === 'rtl';
+    const next = vert ? 'ArrowDown' : (rtl ? 'ArrowLeft' : 'ArrowRight'), prev = vert ? 'ArrowUp' : (rtl ? 'ArrowRight' : 'ArrowLeft');
+    const en = enabled(), i = en.findIndex(t => t.id === b.dataset.id);
+    let to = null;
+    if (e.key === next) to = en[(i + 1) % en.length];
+    else if (e.key === prev) to = en[(i - 1 + en.length) % en.length];
+    else if (e.key === 'Home') to = en[0];
+    else if (e.key === 'End') to = en[en.length - 1];
+    else if ((e.key === 'Enter' || e.key === ' ') && (o.activation === 'manual')) { e.preventDefault(); select(b.dataset.id, 'teclado'); return; }
+    else if (e.key === 'ArrowDown' && o.overflow === 'menu' && !vert) { /* reservado: no se usa */ }
+    if (to) { e.preventDefault(); moveFocus(to.id, 'teclado'); }
+  });
+  /* Desplazamiento */
+  function updateEdges() {
+    if (o.overflow === 'menu') return;
+    const vert = orientation === 'vertical', s = scroller;
+    const max = vert ? 0 : s.scrollWidth - s.clientWidth, pos = Math.abs(s.scrollLeft);
+    const st = $('[data-edge=start]', root), en = $('[data-edge=end]', root);
+    st.hidden = !(max > 1 && pos > 1); en.hidden = !(max > 1 && pos < max - 1);
+  }
+  scroller.addEventListener('scroll', updateEdges);
+  root.addEventListener('click', e => {
+    const ed = e.target.closest('[data-edge]'); if (!ed) return;
+    const dir = ed.dataset.edge === 'start' ? -1 : 1, rtl = getComputedStyle(root).direction === 'rtl';
+    scroller.scrollBy({ left: dir * (rtl ? -1 : 1) * scroller.clientWidth * .7, behavior: 'smooth' });
+  });
+  /* Menú «Más» */
+  function layoutMenu() {
+    tabs.forEach(t => T[t.id].hidden = false);
+    if (orientation === 'vertical') { more.hidden = true; menu.hidden = true; return; }
+    const head = $('.gtabs__head', root), gap = 8, w = tabs.map(t => T[t.id].offsetWidth);
+    const total = w.reduce((a, b) => a + b, 0) + gap * (tabs.length - 1);
+    if (total <= head.clientWidth) { more.hidden = true; closeMenu(false); menu.innerHTML = ''; return; }
+    more.hidden = false;
+    const avail = head.clientWidth - more.offsetWidth - 8;
+    const vis = new Set([value]); let used = w[tabs.findIndex(t => t.id === value)];
+    tabs.forEach((t, i) => { if (!vis.has(t.id) && used + gap + w[i] <= avail) { vis.add(t.id); used += gap + w[i]; } });
+    tabs.forEach(t => T[t.id].hidden = !vis.has(t.id));
+    if (!enabled().some(t => t.id === focused)) focused = value;
+    tabs.forEach(t => { T[t.id].tabIndex = (t.id === focused && !t.disabled) ? 0 : -1; });
+    menu.innerHTML = '';
+    tabs.filter(t => !vis.has(t.id)).forEach(t => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'menuitemradio'); li.setAttribute('aria-checked', 'false'); li.tabIndex = -1; li.dataset.id = t.id;
+      if (t.disabled) li.setAttribute('aria-disabled', 'true');
+      li.innerHTML = (t.icon ? I(t.icon) : '') + t.label + (t.count != null ? ' (' + t.count + ')' : '');
+      menu.appendChild(li);
+    });
+    more.querySelector('.sr').textContent = 'Más pestañas (' + menu.children.length + ')';
+  }
+  const mitems = () => [...menu.querySelectorAll('[role=menuitemradio]')].filter(x => x.getAttribute('aria-disabled') !== 'true');
+  function openMenu(first) { menuOpen = true; menu.hidden = false; more.setAttribute('aria-expanded', 'true'); const it = mitems(); (first === 'last' ? it[it.length - 1] : it[0])?.focus(); }
+  function closeMenu(refocus) { if (!menuOpen) return; menuOpen = false; menu.hidden = true; more.setAttribute('aria-expanded', 'false'); if (refocus) more.focus(); }
+  if (more) {
+    more.addEventListener('click', () => menuOpen ? closeMenu(true) : openMenu());
+    more.addEventListener('keydown', e => { if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(); } else if (e.key === 'ArrowUp') { e.preventDefault(); openMenu('last'); } });
+    menu.addEventListener('keydown', e => {
+      const it = mitems(), i = it.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); it[(i + 1) % it.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); it[(i - 1 + it.length) % it.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); it[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); it[it.length - 1].focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+      else if (e.key === 'Tab') closeMenu(false);
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.activeElement.click(); }
+    });
+    menu.addEventListener('click', e => {
+      const li = e.target.closest('[role=menuitemradio]'); if (!li || li.getAttribute('aria-disabled') === 'true') return;
+      closeMenu(false); select(li.dataset.id, 'menú'); layoutMenu(); T[li.dataset.id].focus();
+    });
+    document.addEventListener('click', e => { if (menuOpen && !root.contains(e.target)) closeMenu(false); });
+  }
+  /* Adaptación por ancho del contenedor (el umbral final lo deriva bruno de `space`) */
+  const ro = new ResizeObserver(() => {
+    if (o.responsive && orient0 === 'vertical') {
+      const o2 = root.getBoundingClientRect().width < 480 ? 'horizontal' : 'vertical';
+      if (o2 !== orientation) { orientation = o2; root.dataset.orientation = o2; list.setAttribute('aria-orientation', o2); log('layout → ' + o2 + ' (aria-orientation sigue al diseño)'); }
+    }
+    if (o.overflow === 'menu') layoutMenu(); else updateEdges();
+  });
+  ro.observe(root);
+  render(); fixPanelTabindex(P[value]);
+  if (o.lazy) { P[value].dataset.visited = '1'; mount(tabs.find(t => t.id === value)); fixPanelTabindex(P[value]); }
+  const api = { root, select, set(k, v) { if (k === 'stretch') v ? root.setAttribute('data-stretch', '') : root.removeAttribute('data-stretch'); else root.dataset[k] = v; if (o.overflow === 'menu') layoutMenu(); updateEdges(); } };
+  return api;
+}
+const L = n => m => { const e = $('#' + n + '-log'); e.textContent = m + '\n' + e.textContent.split('\n').slice(0, 3).join('\n'); };
+const para = t => '<p>' + t + '</p>';
+const ES = ['Resumen', 'Actividad', 'Miembros', 'Archivos', 'Facturación', 'Integraciones', 'Seguridad', 'Registro de auditoría', 'Avanzado'];
+const many = ES.map((l, i) => ({ id: 't' + i, label: l }));
+
+/* 1 */
+const ex1 = Tabs($('#ex1'), { label: 'Ajustes de proyecto', onLog: L('ex1'),
+  tabs: [{ id: 'cuenta', label: 'Cuenta' }, { id: 'equipo', label: 'Equipo' }, { id: 'avisos', label: 'Avisos' }, { id: 'api', label: 'API' }],
+  panel: (id, t) => id === 'cuenta' ? '<label class="wf-field">Nombre del proyecto<input value=""></label><p>Escribe algo, cambia de pestaña y vuelve: el borrador sigue ahí.</p>' : para('Contenido de «' + t.label + '». Sin controles: el panel entra en el orden de Tab.') });
+document.querySelectorAll('[data-for=ex1]').forEach(c => c.addEventListener('change', () => ex1.set(c.dataset.opt, c.type === 'checkbox' ? c.checked : c.value)));
+$('#dir').addEventListener('change', e => $('#ex1-frame').dir = e.target.value);
+/* 2 */
+Tabs($('#ex2'), { label: 'Informes (activación manual)', activation: 'manual', lazy: true, onLog: L('ex2'),
+  tabs: [{ id: 'dia', label: 'Hoy' }, { id: 'sem', label: 'Semana' }, { id: 'mes', label: 'Mes' }],
+  panel: (id, t) => para('Informe de «' + t.label + '».'),
+  onFirstShow: (id, { setBusy }) => { setBusy(true); setTimeout(() => setBusy(false), 800); } });
+/* 3 */
+Tabs($('#ex3'), { label: 'Bandeja', onLog: L('ex3'),
+  tabs: [{ id: 'in', label: 'Recibidos', icon: 'inbox', count: 3, countLabel: '3 sin leer' }, { id: 'env', label: 'Enviados', icon: 'mail' },
+         { id: 'arch', label: 'Archivados', icon: 'folder', disabled: true }, { id: 'conf', label: 'Ajustes', icon: 'settings' }],
+  panel: (id, t) => para('Panel «' + t.label + '».') });
+/* 4 */
+Tabs($('#ex4'), { label: 'Organización (desplazamiento)', onLog: L('ex4'), tabs: many, panel: (id, t) => para('Panel «' + t.label + '».') });
+/* 5 */
+Tabs($('#ex5'), { label: 'Organización (menú)', overflow: 'menu', onLog: L('ex5'), tabs: many, panel: (id, t) => para('Panel «' + t.label + '».') });
+/* 6 */
+Tabs($('#ex6'), { label: 'Preferencias', orientation: 'vertical', responsive: true, onLog: L('ex6'),
+  tabs: [{ id: 'gen', label: 'General', icon: 'settings' }, { id: 'per', label: 'Perfil', icon: 'user' }, { id: 'eq', label: 'Equipos', icon: 'users', count: 2, countLabel: '2 invitaciones' }, { id: 'no', label: 'Notificaciones', icon: 'bell' }, { id: 'pr', label: 'Privacidad', icon: 'lock', disabled: true }],
+  panel: (id, t) => para('Panel «' + t.label + '».') });
+/* 7 */
+Tabs($('#ex7'), { label: 'Contenido de panel', lazy: true, onLog: L('ex7'),
+  tabs: [{ id: 'form', label: 'Formulario' }, { id: 'txt', label: 'Texto' }, { id: 'inf', label: 'Informe' }, { id: 'vac', label: 'Archivo' }],
+  panel: (id, t) => ({
+    form: '<label class="wf-field">Correo<input type="email"></label><label class="wf-field">Rol<select><option>Editor</option><option>Lector</option></select></label>',
+    txt: para('Solo texto. Este panel tiene <code>tabindex="0"</code> para que el teclado llegue a él.'),
+    inf: '<div class="skel"></div><div class="skel"></div>' + '<p class="inf-body" hidden>Informe cargado.</p>',
+    vac: '<div class="empty">Sin archivos todavía.</div>' })[id],
+  onFirstShow: (id, { setBusy, panel }) => { if (id !== 'inf') return; setBusy(true); setTimeout(() => { setBusy(false); panel.querySelector('.inf-body').hidden = false; panel.querySelectorAll('.skel').forEach(s => s.remove()); }, 900); } });
+</script>
+</body>
+</html>
