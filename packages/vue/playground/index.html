@@ -8,21 +8,101 @@
   <link rel="stylesheet" href="../dist/grana.css">
   <link rel="stylesheet" href="../dist/fonts.css">
   <style>
-    body { margin: 0; padding: 32px; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
+    /* Armazón del playground (no es un componente): solo tokens var(--g-*), así respeta claro/oscuro y el tema de prueba. */
+    html { scroll-padding-top: 76px; scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body { margin: 0; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
-    h2:not(.g-dialog__title) { font-size: var(--g-text-title-sm-size); font-weight: var(--g-text-title-sm-weight); margin: 32px 0 12px; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
-      .col { display: grid; gap: 16px; max-width: 320px; }
+    .col { display: grid; gap: 16px; max-width: 320px; }
     .cd-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: stretch; margin: 0 0 20px; }
     .cd-ph { display: grid; place-items: center; inline-size: 100%; block-size: 100%; background: linear-gradient(135deg, var(--g-color-accent-soft), var(--g-color-neutral-soft)); color: var(--g-color-text-muted); font-size: var(--g-text-title-size); }
     .cd-ph--dark { background: var(--g-color-neutral); color: var(--g-color-on-neutral); }
     .cd-list { list-style: none; margin: 0 0 20px; padding: 0; max-width: 720px; }
+
+    .pg-bar { position: sticky; inset-block-start: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--g-color-surface); border-block-end: var(--g-border-width) solid var(--g-color-border-strong); box-sizing: border-box; }
+    .pg-brand { margin: 0; font-size: var(--g-text-body-size); font-weight: 700; margin-inline-end: auto; display: flex; align-items: center; gap: 8px; }
+    .pg-brand span { font-weight: 400; color: var(--g-color-text-muted); }
+    .pg-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-inline-size: 0; max-inline-size: 100%; }
+    .pg-ctl-label { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+    .pg-seg { display: inline-flex; flex-wrap: wrap; max-inline-size: 100%; box-sizing: border-box; gap: 2px; padding: 2px; background: var(--g-color-surface-sunken); border-radius: var(--g-radius-md); border: var(--g-border-width) solid var(--g-color-border); }
+    .pg-seg .g-btn { white-space: normal; }
+    .pg-index-btn { display: none; align-items: center; min-block-size: 44px; padding: 0 14px; font: inherit; font-size: var(--g-text-body-sm-size); font-weight: 600; color: var(--g-color-text); background: var(--g-color-bg); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-md); cursor: pointer; }
+    .pg-index-btn:focus-visible { outline: 2px solid var(--g-color-accent); outline-offset: 2px; }
+
+    .pg-layout { display: grid; grid-template-columns: 264px minmax(0, 1fr); align-items: start; max-inline-size: 1560px; margin-inline: auto; }
+    .pg-nav { position: sticky; inset-block-start: 61px; max-block-size: calc(100vh - 61px); overflow-y: auto; padding: 16px; box-sizing: border-box; border-inline-end: var(--g-border-width) solid var(--g-color-border); }
+    .pg-search { display: block; inline-size: 100%; box-sizing: border-box; padding: 8px 10px; margin: 0 0 12px; font: inherit; font-size: var(--g-text-body-sm-size); color: var(--g-color-text); background: var(--g-color-bg); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-md); }
+    .pg-search:focus-visible, .pg-nav a:focus-visible { outline: 2px solid var(--g-color-accent); outline-offset: 2px; }
+    .pg-nav-cat { margin: 14px 0 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--g-color-text-muted); }
+    .pg-nav ul { list-style: none; margin: 0; padding: 0; }
+    .pg-nav a { display: block; padding: 5px 10px; min-block-size: 24px; box-sizing: border-box; border-radius: var(--g-radius-sm); font-size: var(--g-text-body-sm-size); color: var(--g-color-text); text-decoration: none; overflow-wrap: anywhere; }
+    .pg-nav a:hover { background: var(--g-color-neutral-soft); }
+    .pg-nav a[aria-current="true"] { background: var(--g-color-accent-soft); color: var(--g-color-on-accent-soft); font-weight: 600; }
+    .pg-empty { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+
+    .pg-main { min-inline-size: 0; padding: 24px 32px 96px; }
+    .pg-group { max-inline-size: 1180px; margin-inline: auto; }
+    .pg-cat { margin: 48px 0 8px; padding-block-end: 8px; font-size: var(--g-text-body-sm-size); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--g-color-text-muted); border-block-end: var(--g-border-width) solid var(--g-color-border-strong); }
+    .pg-group:first-child .pg-cat { margin-block-start: 0; }
+    .pg-section { margin: 0 0 56px; min-inline-size: 0; }
+    .pg-section > h2 { margin: 28px 0 4px; font-size: var(--g-text-title-size); font-weight: var(--g-text-title-sm-weight); overflow-wrap: anywhere; }
+    .pg-lead { margin: 0 0 16px; max-inline-size: 70ch; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+    .pg-section > h3 { margin: 24px 0 8px; font-size: var(--g-text-body-size); font-weight: 600; color: var(--g-color-text-muted); }
+    .pg-panel { padding: 20px; min-inline-size: 0; position: relative; overflow-x: auto; background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-lg); }
+    .pg-panel > :last-child { margin-block-end: 0; }
+
+    @media (max-width: 899px) {
+      .pg-layout { grid-template-columns: minmax(0, 1fr); }
+      .pg-index-btn { display: inline-flex; }
+      .pg-nav { display: none; position: fixed; inset-block-start: var(--pg-bar-h, 61px); inset-inline: 0; z-index: 19; max-block-size: calc(100vh - var(--pg-bar-h, 61px)); background: var(--g-color-surface); border-inline-end: 0; border-block-end: var(--g-border-width) solid var(--g-color-border-strong); }
+      .pg-nav[data-open="true"] { display: block; }
+      .pg-main { padding: 16px 16px 80px; }
+      .pg-panel { padding: 12px; }
+      .pg-brand span, .pg-ctl-label { display: none; }
+      .pg-bar { padding: 6px 12px; gap: 6px 10px; }
+    }
   </style>
   <style id="theme"></style>
 </head>
 <body>
   <div id="app">
-    <h2>Variantes</h2>
+    <header class="pg-bar" ref="pgBar">
+      <button type="button" class="pg-index-btn" id="pg-index-btn" aria-controls="pg-nav" :aria-expanded="pgNavOpen ? 'true' : 'false'" @click="pgNavOpen = !pgNavOpen">Índice</button>
+      <p class="pg-brand">Grana <span>playground</span></p>
+      <div class="pg-ctl" role="group" aria-label="Modo de color">
+        <span class="pg-ctl-label">Modo</span>
+        <div class="pg-seg">
+          <g-btn v-for="m in pgModes" :key="m.value" size="sm" :variant="scheme === m.value ? 'soft' : 'ghost'" :aria-pressed="scheme === m.value ? 'true' : 'false'" :id="'pg-scheme-' + m.value" @click="scheme = m.value; setScheme()">{{ m.label }}</g-btn>
+        </div>
+      </div>
+      <div class="pg-ctl" role="group" aria-label="Tema">
+        <span class="pg-ctl-label">Tema</span>
+        <div class="pg-seg">
+          <g-btn size="sm" :variant="!themed ? 'soft' : 'ghost'" :aria-pressed="!themed ? 'true' : 'false'" id="pg-theme-default" @click="pgSetThemed(false)">Por defecto</g-btn>
+          <g-btn size="sm" :variant="themed ? 'soft' : 'ghost'" :aria-pressed="themed ? 'true' : 'false'" id="pg-theme-test" @click="pgSetThemed(true)">Tema de prueba (personalizado)</g-btn>
+        </div>
+      </div>
+    </header>
+    <div class="pg-layout">
+      <nav class="pg-nav" id="pg-nav" aria-label="Índice de componentes" :data-open="pgNavOpen ? 'true' : 'false'">
+        <input class="pg-search" type="search" v-model="pgQuery" placeholder="Buscar componente…" aria-label="Buscar componente" autocomplete="off">
+        <template v-for="g in pgNavFiltered" :key="g.cat">
+          <p class="pg-nav-cat">{{ g.cat }}</p>
+          <ul>
+            <li v-for="it in g.items" :key="it.id"><a :href="'#sec-' + it.id" :aria-current="pgActive === 'sec-' + it.id ? 'true' : undefined" @click="pgNavOpen = false">{{ it.name }}</a></li>
+          </ul>
+        </template>
+        <p class="pg-empty" v-if="!pgNavFiltered.length">Sin resultados.</p>
+      </nav>
+      <main class="pg-main">
+      <div class="pg-group" id="cat-0">
+        <p class="pg-cat">Acciones</p>
+        <section class="pg-section" id="sec-btn" data-pg-section>
+          <h2>GBtn</h2>
+          <p class="pg-lead">Botón con variantes, color, tamaño, densidad, carga y estados.</p>
+          <h3>Variantes</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn @click="log('Guardar')">Guardar</g-btn>
       <g-btn variant="soft">Vista previa</g-btn>
@@ -32,13 +112,17 @@
       <g-btn color="danger">Eliminar</g-btn>
     </div>
 
-    <h2>Carga (prueba con Tab y Enter)</h2>
+          </div>
+          <h3>Carga (prueba con Tab y Enter)</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn :loading="loading" loading-text="Guardando reserva…" @click="save">Confirmar reserva</g-btn>
       <span id="log">Clics emitidos: {{ count }}</span>
     </div>
 
-    <h2>Tamaños y densidad</h2>
+          </div>
+          <h3>Tamaños y densidad</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn v-for="s in ['xs', 'sm', 'md', 'lg', 'xl']" :key="s" :size="s" variant="outline">{{ s }}</g-btn>
     </div>
@@ -46,14 +130,22 @@
       <g-btn v-for="d in ['default', 'comfortable', 'compact']" :key="d" :density="d" variant="soft">{{ d }}</g-btn>
     </div>
 
-    <h2>Estados</h2>
+          </div>
+          <h3>Estados</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn disabled>Deshabilitado</g-btn>
       <g-btn href="/reservas" disabled>Enlace deshabilitado</g-btn>
       <g-btn icon aria-label="Cerrar" disabled><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></g-btn>
     </div>
 
-    <h2>Iconos (Lucide)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-icons" data-pg-section>
+          <h2>Iconos (Lucide)</h2>
+          <p class="pg-lead">Botones de solo icono y con icono antes o después del texto. Grana no trae iconos: son Lucide.</p>
+          <h3>Iconos (Lucide)</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn icon aria-label="Añadir"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></g-btn>
       <g-btn icon variant="soft" aria-label="Descargar"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></g-btn>
@@ -68,7 +160,16 @@
       <g-btn variant="soft"><template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></template>Descargar</g-btn>
     </div>
 
-    <h2>Campos (GInput)</h2>
+          </div>
+        </section>
+      </div>
+      <div class="pg-group" id="cat-1">
+        <p class="pg-cat">Formularios</p>
+        <section class="pg-section" id="sec-input" data-pg-section>
+          <h2>GInput</h2>
+          <p class="pg-lead">Campo de texto con etiqueta, ayuda, error, prefijo y sufijo.</p>
+          <h3>Campos (GInput)</h3>
+          <div class="pg-panel">
     <div class="col">
       <g-input v-model="email" label="Correo" type="email" required autocomplete="email" hint="Te enviaremos el comprobante." :error="emailError" @blur="checkEmail">
         <template #prepend><lucide-icon name="mail"></lucide-icon></template>
@@ -82,7 +183,9 @@
       <g-input v-model="user" label="Usuario" loading hint="Comprobando disponibilidad…"></g-input>
     </div>
 
-    <h2>Campos con prefijo y sufijo (Lucide)</h2>
+          </div>
+          <h3>Campos con prefijo y sufijo (Lucide)</h3>
+          <div class="pg-panel">
     <p class="log">Los slots <code>prepend</code> y <code>append</code> son decorativos (<code>aria-hidden</code>): sirven para iconos, no para texto que el usuario deba leer.</p>
     <div class="col">
       <g-input v-model="q" label="Buscar" type="search" placeholder="Reservas, clientes…">
@@ -105,7 +208,9 @@
     </div>
     <p class="log">Valores: {{ email || '—' }} · {{ pass ? '•'.repeat(pass.length) : '—' }} · {{ nick || '—' }}</p>
 
-    <h2>Campo con botón de acción</h2>
+          </div>
+          <h3>Campo con botón de acción</h3>
+          <div class="pg-panel">
     <p class="log">El botón es un <code>GBtn</code> del consumidor en el slot <code>action</code>; recibe <code>size</code>, <code>density</code> y <code>disabled</code>. Con un <code>&lt;form&gt;</code> y <code>type="submit"</code>, Enter en el campo ejecuta la acción.</p>
     <div class="col" style="max-width:420px">
       <form @submit.prevent="subscribe" novalidate>
@@ -136,7 +241,59 @@
       </g-input>
     </div>
 
-    <h2>Casillas (GCheckbox)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-textarea" data-pg-section>
+          <h2>GTextarea</h2>
+          <p class="pg-lead">Texto de varias líneas con contador, autoajuste y estados.</p>
+          <h3>Texto de varias líneas (GTextarea)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-textarea v-model="taNote" label="Comentario" hint="Cuéntanos qué pasó." placeholder="Escribe aquí…"></g-textarea>
+      <g-textarea v-model="taAuto" autosize :rows="2" :max-rows="6" label="Autosize (rows 2, maxRows 6)" hint="Escribe varias líneas: crece y luego se desplaza."></g-textarea>
+      <g-textarea v-model="taLimit" counter maxlength="80" label="Con límite" hint="Máximo 80 caracteres." :counter-text="taCounterText" :rows="2"></g-textarea>
+      <g-textarea v-model="taReason" required label="Motivo" :error="taError" @input="taCheck" :rows="2"></g-textarea>
+      <g-textarea model-value="Solo lectura&#10;seleccionable." readonly label="Solo lectura" :rows="2"></g-textarea>
+      <g-textarea model-value="No editable" disabled label="Deshabilitado" :rows="2"></g-textarea>
+      <g-textarea v-model="taSoft" variant="soft" color="accent" label="Variante soft, foco accent" :rows="2"></g-textarea>
+      <g-textarea v-model="taLoad" loading label="Cargando (no bloquea)" :rows="2"></g-textarea>
+      <p class="log">{{ taLog }}</p>
+    </div>
+
+          </div>
+        </section>
+        <section class="pg-section" id="sec-select" data-pg-section>
+          <h2>GSelect</h2>
+          <p class="pg-lead">Selector con búsqueda, creación, selección múltiple y opciones ricas.</p>
+          <h3>Selector (GSelect)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-select v-model="selCountry" :options="selCountries" label="País" placeholder="Elige un país" name="pais" hint="Usa las flechas y escribe para saltar." @open="selLog = 'abre'" @close="selLog = 'cierra'"></g-select>
+      <g-select v-model="selPriority" :options="selPriorities" label="Prioridad" placeholder="Elige" clearable clear-label="Limpiar prioridad"></g-select>
+      <g-select v-model="selState" :options="selPriorities" label="Estado" placeholder="Elige" required :error="selError" @update:model-value="selError = ''"></g-select>
+      <g-select v-model="selMany" :options="selManyOptions" label="Muchas opciones (40)" placeholder="Elige"></g-select>
+      <g-select v-model="selSoft" :options="selPriorities" label="Variante soft" variant="soft" color="accent"></g-select>
+      <g-select :model-value="1" :options="selPriorities" label="Solo lectura" readonly></g-select>
+      <g-select :model-value="1" :options="selPriorities" label="Deshabilitado" disabled></g-select>
+      <g-select v-model="selLoad" :options="selPriorities" label="Cargando (no bloquea)" loading placeholder="Elige"></g-select>
+      <g-select v-model="selRich" :options="selRichOptions" label="Con contenido rico" placeholder="Elige">
+        <template #option="{ option }"><span>{{ option.label }}</span><small style="margin-inline-start:auto;opacity:.7">{{ option.meta }}</small></template>
+      </g-select>
+      <g-select v-model="selClient" :options="selClients" label="Cliente (prefijo, iconos y agregar nuevo)" placeholder="Elige un cliente" create-label="Agregar nuevo cliente…" @create="selCreate">
+        <template #prepend><lucide-icon name="user"></lucide-icon></template>
+        <template #icon="{ option }"><lucide-icon :name="option.icon"></lucide-icon></template>
+      </g-select>
+      <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
+      <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
+    </div>
+
+          </div>
+        </section>
+        <section class="pg-section" id="sec-checkbox" data-pg-section>
+          <h2>GCheckbox y GCheckboxGroup</h2>
+          <p class="pg-lead">Casillas sueltas, en tarjeta, en chip y en grupo con casilla maestra.</p>
+          <h3>Casillas (GCheckbox)</h3>
+          <div class="pg-panel">
     <div class="col" style="max-width:420px">
       <g-checkbox v-model="newsletter" label="Recibir novedades"></g-checkbox>
       <g-checkbox v-model="invoice" label="Factura electrónica" hint="Te la enviamos al correo registrado."></g-checkbox>
@@ -152,7 +309,9 @@
       </div>
     </div>
 
-    <h2>Casilla-tarjeta (layout="card")</h2>
+          </div>
+          <h3>Casilla-tarjeta (layout="card")</h3>
+          <div class="pg-panel">
     <g-checkbox-group v-model="extras" label="Extras de tu pedido" layout="card" :count-text="(n, t) => n + ' de ' + t + ' seleccionados'" hint="Puedes cambiarlos hasta el envío.">
       <g-checkbox value="express" label="Envío express" hint="Llega en 24 horas.">
         <template #icon><lucide-icon name="mail"></lucide-icon></template><template #meta>$99</template>
@@ -166,7 +325,9 @@
     </g-checkbox-group>
     <p class="log">Elegidos: {{ extras.join(', ') || '—' }}</p>
 
-    <h2>Grupo con casilla maestra y conteo</h2>
+          </div>
+          <h3>Grupo con casilla maestra y conteo</h3>
+          <div class="pg-panel">
     <div class="col" style="max-width:420px">
       <g-checkbox-group v-model="reservas" label="Reservas" select-all select-all-label="Seleccionar todas" :count-text="(n, t) => n + ' de ' + t + ' seleccionadas'" :error="reservasError">
         <g-checkbox value="ana" label="Ana García · 12 mar"></g-checkbox>
@@ -178,7 +339,9 @@
     </div>
     <p class="log">Reservas: {{ reservas.join(', ') || '—' }}</p>
 
-    <h2>Casilla-chip (layout="chip")</h2>
+          </div>
+          <h3>Casilla-chip (layout="chip")</h3>
+          <div class="pg-panel">
     <g-checkbox-group v-model="servicios" label="Filtrar por servicio" layout="chip" color="accent">
       <g-checkbox value="wifi" label="Wifi"></g-checkbox>
       <g-checkbox value="desayuno" label="Desayuno"></g-checkbox>
@@ -188,7 +351,43 @@
     </g-checkbox-group>
     <p class="log">Servicios: {{ servicios.join(', ') || '—' }}</p>
 
-    <h2>Calendario (GCalendar)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-switch" data-pg-section>
+          <h2>GSwitch</h2>
+          <p class="pg-lead">Interruptores con estados de guardado, error e iconos.</p>
+          <h3>Interruptores (GSwitch)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-switch v-model="swNotif" label="Notificaciones" hint="Te avisamos por correo."></g-switch>
+      <g-switch v-model="swSave" :loading="swSaving" label="Guardado automático" hint="Simula un guardado de 1,2 s; el interruptor no se bloquea." @change="swSaveNow"></g-switch>
+      <g-switch v-model="swAir" label-position="start" label="Modo avión" hint="Desactiva la red."></g-switch>
+      <g-switch v-model="swCookies" label="Aceptar cookies" :error="swError" @change="swCheck"></g-switch>
+      <g-switch :model-value="true" label="Administrado por tu organización" readonly></g-switch>
+      <g-switch :model-value="true" label="Incluido en tu plan" disabled></g-switch>
+      <g-switch v-model="swIcons" label="Con iconos on/off" size="lg">
+        <template #icon-on><lucide-icon name="circle-check"></lucide-icon></template>
+        <template #icon-off><lucide-icon name="lock"></lucide-icon></template>
+      </g-switch>
+      <div class="row">
+        <g-switch v-for="c in ['accent','success','warning','danger','info']" :key="c" :color="c" :model-value="true" :label="c"></g-switch>
+      </div>
+      <div class="row">
+        <g-switch v-for="z in ['xs','sm','md','lg','xl']" :key="z" :size="z" :model-value="true" :label="z"></g-switch>
+      </div>
+      <p class="log">{{ swLog }}</p>
+    </div>
+
+          </div>
+        </section>
+      </div>
+      <div class="pg-group" id="cat-2">
+        <p class="pg-cat">Fechas</p>
+        <section class="pg-section" id="sec-calendar" data-pg-section>
+          <h2>GCalendar</h2>
+          <p class="pg-lead">Calendario con eventos, recursos, disponibilidad y arrastre.</p>
+          <h3>Calendario (GCalendar)</h3>
+          <div class="pg-panel">
     <p class="log">Solo lectura de datos: el calendario emite <b>solicitudes</b>; aquí la "aplicación" las aplica si no hay conflicto (o si marcas que se permiten). <b>Alt</b>+flecha mueve, <b>Shift</b>+flecha cambia la duración.</p>
     <label class="log"><input type="checkbox" v-model="calAllow"> La aplicación permite conflictos</label>
     <g-calendar
@@ -205,7 +404,265 @@
     </g-calendar>
     <pre class="log" style="max-height:160px;overflow:auto;background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ calLog.join('\n') || 'Sin solicitudes todavía.' }}</pre>
 
-    <h2>Insignias (GBadge)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-datepicker" data-pg-section>
+          <h2>GDatePicker</h2>
+          <p class="pg-lead">Selector de fecha o de rango, con días bloqueados y atajos.</p>
+          <h3>Selector de fechas (GDatePicker)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:820px">
+      <div class="row" style="align-items:flex-start">
+        <g-datepicker v-model="dpRange" mode="range" label="Fechas" placeholder="Elige fechas" :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked" name="fechas" hint="Con proximidad y fechas bloqueadas" @start="dpLog = 'start ' + $event.date" @change="dpLog = 'change ' + JSON.stringify($event)" @navigate="dpLog = 'navigate ' + $event.month"></g-datepicker>
+        <g-datepicker v-model="dpRange" mode="range" split label="Estancia" label-start="Desde" label-end="Hasta" placeholder-start="Fecha de inicio" placeholder-end="Fecha de fin" :labels="dpLabels" :min="dpToday"></g-datepicker>
+        <g-datepicker v-model="dpSingle" label="Fecha de entrega" placeholder="Elige una fecha" :labels="dpLabels" variant="soft" color="accent"></g-datepicker>
+      </div>
+      <div class="row" style="align-items:flex-start">
+        <g-datepicker v-model="dpRange" mode="range" label="Con error" placeholder="Elige fechas" :labels="dpLabels" error="Elige un rango válido" required></g-datepicker>
+        <g-datepicker :model-value="dpSingle" label="Solo lectura" :labels="dpLabels" readonly></g-datepicker>
+        <g-datepicker label="Deshabilitado" :labels="dpLabels" disabled></g-datepicker>
+      </div>
+      <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:wrap;align-items:center">
+        <input aria-label="Destino" placeholder="¿A dónde vas?" style="flex:1;border:0;background:transparent;padding:0 16px;font:inherit;min-inline-size:0">
+        <g-datepicker v-model="dpRange" mode="range" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
+          <template #trigger="{ controls, expanded, toggle, text }">
+            <g-btn variant="ghost" aria-haspopup="dialog" :aria-expanded="String(expanded)" :aria-controls="controls" @click="toggle">{{ text || 'Agrega fechas' }}</g-btn>
+          </template>
+        </g-datepicker>
+        <g-btn>Buscar</g-btn>
+      </div>
+      <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked">
+        <template #summary="{ start, end, pending, days }">{{ pending ? 'Elige la fecha final' : days ? days + ' días' : 'Elige la fecha de inicio' }}</template>
+        <template #day="{ date }"><span v-if="date.endsWith('-15')" class="g-datepicker__sr"> · precio bajo</span></template>
+      </g-datepicker>
+      <g-btn variant="outline" @click="dlg.dates = true">Abrir Dialog con fechas</g-btn>
+      <g-dialog v-model="dlg.dates" title="Cambiar reserva" description="Elige las nuevas fechas." close-label="Cerrar">
+        <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday"></g-datepicker>
+      </g-dialog>
+      <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ dpLog }}  |  valor: {{ JSON.stringify(dpRange) }}</pre>
+    </div>
+
+          </div>
+        </section>
+      </div>
+      <div class="pg-group" id="cat-3">
+        <p class="pg-cat">Navegación</p>
+        <section class="pg-section" id="sec-sidebar" data-pg-section>
+          <h2>GSidebar</h2>
+          <p class="pg-lead">Barra lateral con modos, carril, flotante y móvil.</p>
+          <h3>Barra lateral (GSidebar)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:1100px">
+      <div class="row" style="align-items:center">
+        <label>Ancho del contenedor <input type="range" v-model.number="sbW" min="320" max="1100"> {{ sbW }}px</label>
+        <label><input type="checkbox" v-model="sbFloat"> flotante</label>
+        <label><input type="checkbox" v-model="sbOver"> superpuesto</label>
+        <label><input type="checkbox" v-model="sbSearch"> búsqueda</label>
+        <label>modo <select v-model="sbModeSel"><option>auto</option><option>expanded</option><option>rail</option><option>navbar</option><option>drawer</option></select></label>
+        <label>móvil <select v-model="sbMobile"><option>navbar</option><option>drawer</option></select></label>
+        <g-btn size="sm" variant="outline" @click="sbOpen = true">Abrir drawer</g-btn>
+      </div>
+      <div :style="{ inlineSize: sbW + 'px', maxInlineSize: '100%', overflow: 'hidden', border: '1px dashed var(--g-color-border-strong)' }">
+        <div style="position:relative;display:flex;block-size:520px;background:var(--g-color-surface-sunken)">
+          <g-sidebar v-model="sbActive" v-model:open="sbOpen" :items="sbItems" label="Principal" :labels="sbLabels" :mode="sbModeSel" :mobile="sbMobile" :variant="sbFloat ? 'floating' : 'fixed'" :overlay="sbOver" :search="sbSearch" contained style="flex:none"
+            @mode-change="sbMode = $event" @search="sbLog = 'search → la aplicación abre su paleta'" @navigate="sbLog = 'navigate → ' + $event.item.id">
+            <template #logo="{ collapsed }"><span style="display:inline-block;inline-size:28px;block-size:28px;border-radius:8px;background:var(--g-color-brand);flex:none"></span><span v-if="!collapsed">Grana</span></template>
+            <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
+            <template #toggle-icon><lucide-icon name="panel"></lucide-icon></template>
+            <template #search-icon><lucide-icon name="search"></lucide-icon></template>
+            <template #more-icon><lucide-icon name="menu"></lucide-icon></template>
+            <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><span style="flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600">AG</span><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
+          </g-sidebar>
+          <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px', paddingInlineStart: sbMode.overlay ? 'calc(var(--g-sidebar-rail) + 20px)' : '20px' }">
+            <h3 style="margin:0 0 8px">Contenido principal</h3>
+            <p>Página actual: <b>{{ sbActive }}</b> · formato: <b>{{ sbMode.mode }}</b><span v-if="sbMode.overlay"> (superpuesto)</span></p>
+            <div v-for="n in 8" :key="n" style="height:10px;border-radius:5px;background:var(--g-color-border);margin:10px 0" :style="{ inlineSize: (100 - n * 6) + '%' }"></div>
+          </main>
+        </div>
+      </div>
+      <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ sbLog }}</pre>
+    </div>
+
+          </div>
+        </section>
+        <section class="pg-section" id="sec-tabs" data-pg-section>
+          <h2>GTabs y GTabPanel</h2>
+          <p class="pg-lead">Pestañas en varias apariencias, con desbordamiento, paneles sueltos y dentro de un diálogo.</p>
+          <h3>Pestañas (GTabs, GTabPanel)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:820px" id="tabs-demo">
+      <g-tabs v-model="gtTab" :items="gtItems" :labels="gtLabels" label="Cuenta" @change="gtChange">
+        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
+        <template #panel="{ item }"><p style="margin:0">Contenido de «{{ item.label }}». <g-btn size="sm" variant="outline">Un control</g-btn></p></template>
+      </g-tabs>
+      <div class="row">
+        <label><input type="checkbox" v-model="gtBlock"> bloquear cambios (change cancelable)</label>
+        <span>Activa: <b>{{ gtTab }}</b> · {{ gtLog }}</span>
+      </div>
+      <g-tabs v-model="gtTab" :items="gtItems" :labels="gtLabels" appearance="pill" color="accent" label="Cuenta (pill)" density="comfortable"></g-tabs>
+      <g-tabs v-model="gtSeg" :items="gtSegItems" appearance="segmented" label="Periodo" activation="manual"></g-tabs>
+      <g-surface level="raised" padding="none" style="overflow:hidden">
+        <g-tabs v-model="gtTab" :items="gtItems.slice(0, 4)" :labels="gtLabels" appearance="contained" label="Cuenta (contained)">
+          <template #panel="{ item }">Panel fundido con la pestaña «{{ item.label }}».</template>
+        </g-tabs>
+      </g-surface>
+      <g-tabs v-model="gtTab" :items="gtItems.slice(0, 4)" :labels="gtLabels" orientation="vertical" label="Cuenta (vertical)">
+        <template #panel="{ item }">Contenido vertical de «{{ item.label }}».</template>
+      </g-tabs>
+      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="scroll" label="Desbordamiento: scroll" density="compact"></g-tabs></div>
+      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="arrows" label="Desbordamiento: flechas" appearance="pill"></g-tabs></div>
+      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="more" label="Desbordamiento: más"></g-tabs></div>
+      <div style="max-width:340px"><g-tabs v-model="gtIcon" :items="gtIconItems" :labels="gtLabels" label-mode="auto" label="Etiquetas según el espacio" appearance="pill">
+        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
+      </g-tabs></div>
+      <div dir="rtl" style="max-width:520px"><g-tabs v-model="gtRtl" :items="gtRtlItems" :labels="gtLabels" label="الإعدادات" overflow="arrows"></g-tabs></div>
+      <g-tabs v-model="gtDet" :items="gtSegItems" detached id="tb-detached" label="Paneles separados" appearance="pill"></g-tabs>
+      <div class="row" style="border:1px dashed var(--g-color-border-strong);padding:8px">
+        <g-tab-panel v-for="it in gtSegItems" :key="it.id" tabs="tb-detached" :value="it.id" :active="gtDet === it.id" lazy>Panel suelto de «{{ it.label }}».</g-tab-panel>
+      </div>
+      <div class="row"><g-btn variant="outline" @click="dlg.tabs = true">Diálogo con pestañas</g-btn></div>
+    </div>
+    <g-dialog v-model="dlg.tabs" title="Ajustes del equipo" description="Cabecera de pestañas fija; solo el cuerpo se desplaza." close-label="Cerrar" size="md">
+      <template #tabs><g-tabs v-model="gtDlg" :items="gtDlgItems" detached id="tb-dlg" label="Ajustes del equipo" density="compact"></g-tabs></template>
+      <g-tab-panel v-for="it in gtDlgItems" :key="it.id" tabs="tb-dlg" :value="it.id" :active="gtDlg === it.id">
+        <p v-for="n in 14" :key="n" style="margin:0 0 8px">Contenido de «{{ it.label }}», línea {{ n }}.</p>
+      </g-tab-panel>
+      <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn @click="close">Guardar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-stepper" data-pg-section>
+          <h2>GStepper</h2>
+          <p class="pg-lead">Pasos de un proceso con navegación hacia atrás.</p>
+          <h3>Stepper (GStepper)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta" @select="stpLog = 'select · ' + $event.id"></g-stepper>
+      <div class="row">
+        <g-btn variant="outline" size="sm" :disabled="stpIdx === 0" @click="stpMove(-1)">Anterior</g-btn>
+        <g-btn size="sm" :disabled="stpIdx === stpSteps.length - 1" @click="stpMove(1)">Siguiente</g-btn>
+        <span>Actual: <b>{{ stpCur }}</b> · {{ stpLog }}</span>
+      </div>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="segment" aria-label="Registro de cuenta (segmentos)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="dot" aria-label="Registro de cuenta (puntos)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="line" aria-label="Registro de cuenta (línea)"></g-stepper>
+      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="icon" aria-label="Registro de cuenta (iconos)">
+        <template #icon="{ step }"><lucide-icon :name="step.icon"></lucide-icon></template>
+      </g-stepper>
+      <div style="max-width:320px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta (estrecho)"></g-stepper></div>
+      <div style="max-width:360px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" orientation="vertical" navigation="back" aria-label="Registro de cuenta (vertical)">
+        <template #content="{ step }">Contenido del paso «{{ step.label }}».</template>
+      </g-stepper></div>
+    </div>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-menu" data-pg-section>
+          <h2>GMenu</h2>
+          <p class="pg-lead">Menú de acciones anclado a un disparador.</p>
+          <h3>Menú (GMenu)</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <g-menu v-model="mnOpen" :items="mnItems" label="Acciones del archivo" @select="mnSelect">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
+        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
+      </g-menu>
+      <span>Último: <b>{{ mnLog }}</b></span>
+    </div>
+          </div>
+        </section>
+      </div>
+      <div class="pg-group" id="cat-4">
+        <p class="pg-cat">Superficies y contenido</p>
+        <section class="pg-section" id="sec-surface" data-pg-section>
+          <h2>GSurface</h2>
+          <p class="pg-lead">Superficie base y anidada.</p>
+          <h3>Superficies (GSurface)</h3>
+          <div class="pg-panel">
+    <div class="row" style="align-items:stretch">
+      <g-surface level="flat">flat</g-surface>
+      <g-surface level="outlined">outlined</g-surface>
+      <g-surface level="raised">raised</g-surface>
+      <g-surface level="floating">floating</g-surface>
+      <g-surface level="inset">inset</g-surface>
+    </div>
+    <div class="row" style="align-items:flex-start">
+      <g-surface level="raised" as="article" style="max-width:320px">
+        <b>Plan Pro</b>
+        <g-surface level="inset" padding="sm" style="margin-top:12px">3 asientos · $36/mes</g-surface>
+      </g-surface>
+      <g-surface level="floating" tone="sunken" padding="xs" rounded="xl" style="max-width:360px">
+        <div style="padding:8px 12px"><b>Guardar cambios</b></div>
+        <g-surface level="inset">Cuerpo del diálogo sobre la carcasa hundida.</g-surface>
+      </g-surface>
+    </div>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-card" data-pg-section>
+          <h2>GCard</h2>
+          <p class="pg-lead">Tarjetas con medios, selección, menú y disposición adaptable.</p>
+          <h3>Tarjetas (GCard)</h3>
+          <div class="pg-panel">
+    <div id="card-demo">
+      <div class="row">
+        <label>Ancho <input type="range" v-model.number="cdW" min="240" max="1100"> {{ cdW }}px</label>
+        <label><input type="checkbox" v-model="cdLoading"> cargando</label>
+        <span id="cd-log" role="status">{{ cdLog }}</span>
+      </div>
+      <div class="cd-grid" :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
+        <g-card id="cd-basic" title="Notas de la versión" description="Un resumen breve de lo que contiene esta tarjeta." :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-media" href="#articulo" eyebrow="Artículo" title="Un paseo por el mercado" description="Una descripción lo bastante larga como para ocupar dos líneas en la mayoría de los anchos, y seguir siendo clara para quien la lee con lector de pantalla." :description-lines="2" expandable :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #footer><span>5 min de lectura</span><span>12 jun</span></template>
+        </g-card>
+        <g-card id="cd-entity" href="#atlas" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" badge-color="success" :meta="cdMeta" :menu="cdMenu" :labels="cdLabels" :loading="cdLoading" selectable v-model="cdSel" @navigate="cdNavigate" @action="cdLog = 'acción: ' + $event.id">
+          <template #lead><lucide-icon class="g-icon" name="building-2"></lucide-icon></template>
+          <template #actions>
+            <g-btn variant="outline" id="cd-edit" @click="cdLog = 'acción interna: editar'">Editar</g-btn>
+            <g-btn variant="ghost" icon aria-label="Compartir" @click="cdLog = 'acción interna: compartir'"><lucide-icon name="share-2"></lucide-icon></g-btn>
+          </template>
+          <template #footer><span>Actualizado hace 2 h</span><a href="#historial">Historial</a></template>
+        </g-card>
+        <g-card id="cd-action" interaction="button" title="Nuevo proyecto" description="Empieza desde cero o con una plantilla." :labels="cdLabels" :loading="cdLoading" @activate="cdLog = 'activate: nuevo proyecto'">
+          <template #lead><lucide-icon class="g-icon" name="plus"></lucide-icon></template>
+        </g-card>
+        <g-card id="cd-toggle" interaction="toggle" title="Solo pendientes" description="Filtro de la vista." v-model="cdFav" :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-status" title="Ingresos" status="error" status-text="No se pudo cargar la métrica." retryable :labels="cdLabels" :loading="cdLoading" @retry="cdLog = 'retry'"></g-card>
+        <g-card id="cd-metric" href="#ingresos" title="Ingresos mensuales" :menu="cdMenu.slice(0, 2)" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <g-metric label="Ingresos" value="$48,200" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
+          <template #footer><span>Actualizado 09:41</span></template>
+        </g-card>
+        <g-card id="cd-empty" title="Proyectos" empty :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-bg" href="#ruta" media-position="background" eyebrow="Ruta" title="Recorrido por el centro histórico" subtitle="3 h · ES" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph cd-ph--dark"><lucide-icon name="map-pin"></lucide-icon></div></template>
+          <template #actions><g-btn>Reservar</g-btn></template>
+        </g-card>
+      </div>
+      <h3>Horizontal con media lateral (orientation auto)</h3>
+      <div :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
+        <g-card id="cd-horizontal" href="#centro" orientation="auto" media-position="start" eyebrow="Resultado" title="Recorrido por el centro histórico" description="Un recorrido a pie por las plazas y mercados." :meta="[{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }]" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #more><p style="margin:0">Punto de encuentro: plaza principal. Cancelación gratuita hasta 24 h antes.</p></template>
+          <template #actions><g-btn>Guardar</g-btn></template>
+        </g-card>
+      </div>
+      <h3>Selección única (radio con name común)</h3>
+      <div role="radiogroup" aria-label="Plan" class="cd-grid">
+        <g-card v-for="p in cdPlans" :key="p.id" :id="'cd-plan-' + p.id" interaction="select" select-type="radio" name="cd-plan" :value="p.id" v-model="cdPlan" :title="'Plan ' + p.label" :description="p.text" color="accent" :labels="cdLabels"></g-card>
+      </div>
+      <h3>Lista (li, horizontal, plana, compacta)</h3>
+      <ul class="cd-list">
+        <g-card v-for="(m, i) in cdPeople" :key="m.name" as="li" level="flat" density="compact" orientation="horizontal" :href="'#' + m.ini" :current="i === 0" :title="m.name" :title-lines="1" :subtitle="m.team" badge="Activo" badge-color="success" :meta="[{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: m.team, priority: 'low' }]" :menu="cdMenu" :labels="cdLabels" @navigate="cdNavigate">
+          <template #lead>{{ m.ini }}</template>
+        </g-card>
+      </ul>
+    </div>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-badge" data-pg-section>
+          <h2>GBadge</h2>
+          <p class="pg-lead">Insignias con colores, variantes y contadores.</p>
+          <h3>Insignias (GBadge)</h3>
+          <div class="pg-panel">
     <div class="col" style="max-width:560px">
       <div class="row">
         <g-badge v-for="v in ['solid','soft','outline']" :key="v" :variant="v" color="success">{{ v }}</g-badge>
@@ -250,126 +707,100 @@
       </div>
     </div>
 
-    <h2>Barra lateral (GSidebar)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-widget" data-pg-section>
+          <h2>GWidget, GWidgetGrid, GMetric, GProgress y GDataList</h2>
+          <p class="pg-lead">Widgets de panel con rejilla editable, galería y configuración; incluye métrica, progreso y lista de datos.</p>
+          <h3>Widgets (GWidget, GWidgetGrid)</h3>
+          <div class="pg-panel">
     <div class="col" style="max-width:1100px">
       <div class="row" style="align-items:center">
-        <label>Ancho del contenedor <input type="range" v-model.number="sbW" min="320" max="1100"> {{ sbW }}px</label>
-        <label><input type="checkbox" v-model="sbFloat"> flotante</label>
-        <label><input type="checkbox" v-model="sbOver"> superpuesto</label>
-        <label><input type="checkbox" v-model="sbSearch"> búsqueda</label>
-        <label>modo <select v-model="sbModeSel"><option>auto</option><option>expanded</option><option>rail</option><option>navbar</option><option>drawer</option></select></label>
-        <label>móvil <select v-model="sbMobile"><option>navbar</option><option>drawer</option></select></label>
-        <g-btn size="sm" variant="outline" @click="sbOpen = true">Abrir drawer</g-btn>
+        <label>Ancho <input type="range" v-model.number="wgW" min="300" max="1100"> {{ wgW }}px</label>
+        <label><input type="checkbox" v-model="wgEdit"> editar</label>
+        <label>estado <select v-model="wgState"><option>populated</option><option>loading</option><option>empty</option><option>error</option><option>stale</option><option>disabled</option></select></label>
+        <g-btn size="sm" variant="outline" @click="galOpen = true">Añadir widget</g-btn>
       </div>
-      <div :style="{ inlineSize: sbW + 'px', maxInlineSize: '100%', overflow: 'hidden', border: '1px dashed var(--g-color-border-strong)' }">
-        <div style="position:relative;display:flex;block-size:520px;background:var(--g-color-surface-sunken)">
-          <g-sidebar v-model="sbActive" v-model:open="sbOpen" :items="sbItems" label="Principal" :labels="sbLabels" :mode="sbModeSel" :mobile="sbMobile" :variant="sbFloat ? 'floating' : 'fixed'" :overlay="sbOver" :search="sbSearch" contained style="flex:none"
-            @mode-change="sbMode = $event" @search="sbLog = 'search → la aplicación abre su paleta'" @navigate="sbLog = 'navigate → ' + $event.item.id">
-            <template #logo="{ collapsed }"><span style="display:inline-block;inline-size:28px;block-size:28px;border-radius:8px;background:var(--g-color-brand);flex:none"></span><span v-if="!collapsed">Grana</span></template>
-            <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
-            <template #toggle-icon><lucide-icon name="panel"></lucide-icon></template>
-            <template #search-icon><lucide-icon name="search"></lucide-icon></template>
-            <template #more-icon><lucide-icon name="menu"></lucide-icon></template>
-            <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><span style="flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600">AG</span><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
-          </g-sidebar>
-          <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px', paddingInlineStart: sbMode.overlay ? 'calc(var(--g-sidebar-rail) + 20px)' : '20px' }">
-            <h3 style="margin:0 0 8px">Contenido principal</h3>
-            <p>Página actual: <b>{{ sbActive }}</b> · formato: <b>{{ sbMode.mode }}</b><span v-if="sbMode.overlay"> (superpuesto)</span></p>
-            <div v-for="n in 8" :key="n" style="height:10px;border-radius:5px;background:var(--g-color-border);margin:10px 0" :style="{ inlineSize: (100 - n * 6) + '%' }"></div>
-          </main>
-        </div>
-      </div>
-      <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ sbLog }}</pre>
-    </div>
-
-    <h2>Selector de fechas (GDatePicker)</h2>
-    <div class="col" style="max-width:820px">
-      <div class="row" style="align-items:flex-start">
-        <g-datepicker v-model="dpRange" mode="range" label="Fechas" placeholder="Elige fechas" :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked" name="fechas" hint="Con proximidad y fechas bloqueadas" @start="dpLog = 'start ' + $event.date" @change="dpLog = 'change ' + JSON.stringify($event)" @navigate="dpLog = 'navigate ' + $event.month"></g-datepicker>
-        <g-datepicker v-model="dpRange" mode="range" split label="Estancia" label-start="Desde" label-end="Hasta" placeholder-start="Fecha de inicio" placeholder-end="Fecha de fin" :labels="dpLabels" :min="dpToday"></g-datepicker>
-        <g-datepicker v-model="dpSingle" label="Fecha de entrega" placeholder="Elige una fecha" :labels="dpLabels" variant="soft" color="accent"></g-datepicker>
-      </div>
-      <div class="row" style="align-items:flex-start">
-        <g-datepicker v-model="dpRange" mode="range" label="Con error" placeholder="Elige fechas" :labels="dpLabels" error="Elige un rango válido" required></g-datepicker>
-        <g-datepicker :model-value="dpSingle" label="Solo lectura" :labels="dpLabels" readonly></g-datepicker>
-        <g-datepicker label="Deshabilitado" :labels="dpLabels" disabled></g-datepicker>
-      </div>
-      <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:wrap;align-items:center">
-        <input aria-label="Destino" placeholder="¿A dónde vas?" style="flex:1;border:0;background:transparent;padding:0 16px;font:inherit;min-inline-size:0">
-        <g-datepicker v-model="dpRange" mode="range" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
-          <template #trigger="{ controls, expanded, toggle, text }">
-            <g-btn variant="ghost" aria-haspopup="dialog" :aria-expanded="String(expanded)" :aria-controls="controls" @click="toggle">{{ text || 'Agrega fechas' }}</g-btn>
+      <div :style="{ inlineSize: wgW + 'px', maxInlineSize: '100%' }">
+        <g-widget-grid v-model="wgLayout" label="Panel de ejemplo" :editable="wgEdit" :labels="wgGridLabels" @change="wgLog = $event.reason + ' · ' + $event.id" @remove-request="wgRemove($event.id)">
+          <template #item="{ id }">
+            <g-widget :title="wgTitleOf(id)" :eyebrow="'Resumen'" :description="wgPeriods[wgCfgOf(id).period]" :density="wgCfgOf(id).density" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }, { id: 'configure', label: 'Configurar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgAction(id, $event.id)" @retry="wgState = 'populated'">
+              <template #icon><lucide-icon name="chart"></lucide-icon></template>
+              <template #compact><g-metric label="Ingresos" value="$48k" trend="+12%" direction="up" trend-color="success"></g-metric></template>
+              <template #default><g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric><g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress></template>
+              <template #detail>
+                <g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
+                <g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress>
+                <g-data-list swatches label="Por canal" :rows="[{ label: 'Directo', value: '48%' }, { label: 'Búsqueda', value: '31%' }, { label: 'Referidos', value: '21%' }]"></g-data-list>
+              </template>
+            </g-widget>
           </template>
-        </g-datepicker>
-        <g-btn>Buscar</g-btn>
+          <template #empty>Sin widgets</template>
+        </g-widget-grid>
       </div>
-      <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked">
-        <template #summary="{ start, end, pending, days }">{{ pending ? 'Elige la fecha final' : days ? days + ' días' : 'Elige la fecha de inicio' }}</template>
-        <template #day="{ date }"><span v-if="date.endsWith('-15')" class="g-datepicker__sr"> · precio bajo</span></template>
-      </g-datepicker>
-      <g-btn variant="outline" @click="dlg.dates = true">Abrir Dialog con fechas</g-btn>
-      <g-dialog v-model="dlg.dates" title="Cambiar reserva" description="Elige las nuevas fechas." close-label="Cerrar">
-        <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday"></g-datepicker>
-      </g-dialog>
-      <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ dpLog }}  |  valor: {{ JSON.stringify(dpRange) }}</pre>
-    </div>
+      <p>Último cambio: <b>{{ wgLog }}</b></p>
+      <div role="status" style="min-height:1.5em">{{ wgAnn }}</div>
 
-    <h2>Selector (GSelect)</h2>
-    <div class="col" style="max-width:420px">
-      <g-select v-model="selCountry" :options="selCountries" label="País" placeholder="Elige un país" name="pais" hint="Usa las flechas y escribe para saltar." @open="selLog = 'abre'" @close="selLog = 'cierra'"></g-select>
-      <g-select v-model="selPriority" :options="selPriorities" label="Prioridad" placeholder="Elige" clearable clear-label="Limpiar prioridad"></g-select>
-      <g-select v-model="selState" :options="selPriorities" label="Estado" placeholder="Elige" required :error="selError" @update:model-value="selError = ''"></g-select>
-      <g-select v-model="selMany" :options="selManyOptions" label="Muchas opciones (40)" placeholder="Elige"></g-select>
-      <g-select v-model="selSoft" :options="selPriorities" label="Variante soft" variant="soft" color="accent"></g-select>
-      <g-select :model-value="1" :options="selPriorities" label="Solo lectura" readonly></g-select>
-      <g-select :model-value="1" :options="selPriorities" label="Deshabilitado" disabled></g-select>
-      <g-select v-model="selLoad" :options="selPriorities" label="Cargando (no bloquea)" loading placeholder="Elige"></g-select>
-      <g-select v-model="selRich" :options="selRichOptions" label="Con contenido rico" placeholder="Elige">
-        <template #option="{ option }"><span>{{ option.label }}</span><small style="margin-inline-start:auto;opacity:.7">{{ option.meta }}</small></template>
-      </g-select>
-      <g-select v-model="selClient" :options="selClients" label="Cliente (prefijo, iconos y agregar nuevo)" placeholder="Elige un cliente" create-label="Agregar nuevo cliente…" @create="selCreate">
-        <template #prepend><lucide-icon name="user"></lucide-icon></template>
-        <template #icon="{ option }"><lucide-icon :name="option.icon"></lucide-icon></template>
-      </g-select>
-      <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
-      <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
-    </div>
+      <g-widget-gallery ref="galRef" v-model="galOpen" title="Añadir widget" description="Elige un widget y su tamaño inicial; se añade al final del panel." :items="galItems" :sizes="galSizes" :added="galAdded" :labels="galLabels" @add="galAdd">
+        <template #preview="{ item }">
+          <g-widget :title="item.title" :eyebrow="item.category" level="m" :labels="wgLabels"><g-metric :label="item.title" :value="item.value" size="lg"></g-metric></g-widget>
+        </template>
+      </g-widget-gallery>
 
-    <h2>Texto de varias líneas (GTextarea)</h2>
-    <div class="col" style="max-width:420px">
-      <g-textarea v-model="taNote" label="Comentario" hint="Cuéntanos qué pasó." placeholder="Escribe aquí…"></g-textarea>
-      <g-textarea v-model="taAuto" autosize :rows="2" :max-rows="6" label="Autosize (rows 2, maxRows 6)" hint="Escribe varias líneas: crece y luego se desplaza."></g-textarea>
-      <g-textarea v-model="taLimit" counter maxlength="80" label="Con límite" hint="Máximo 80 caracteres." :counter-text="taCounterText" :rows="2"></g-textarea>
-      <g-textarea v-model="taReason" required label="Motivo" :error="taError" @input="taCheck" :rows="2"></g-textarea>
-      <g-textarea model-value="Solo lectura&#10;seleccionable." readonly label="Solo lectura" :rows="2"></g-textarea>
-      <g-textarea model-value="No editable" disabled label="Deshabilitado" :rows="2"></g-textarea>
-      <g-textarea v-model="taSoft" variant="soft" color="accent" label="Variante soft, foco accent" :rows="2"></g-textarea>
-      <g-textarea v-model="taLoad" loading label="Cargando (no bloquea)" :rows="2"></g-textarea>
-      <p class="log">{{ taLog }}</p>
+      <g-widget-config v-model="cfgOpen" v-model:tab="cfgTab" :title="'Configurar ' + cfgTitle" :tabs="cfgTabs" :errors="cfgErrors" :dirty="cfgDirty" resettable :labels="cfgLabels" @apply="cfgApply" @reset="cfgReset" @cancel="cfgErrors = []">
+        <template #preview>
+          <g-widget :title="cfgDraft.title || '—'" eyebrow="Resumen" :description="wgPeriods[cfgDraft.period]" :density="cfgDraft.density" level="m" :labels="wgLabels"><g-metric label="Ingresos" value="$48.2k" size="lg"></g-metric></g-widget>
+        </template>
+        <template #tab-data="{ errors }">
+          <div class="col">
+            <label>Periodo <select v-model="cfgDraft.period"><option v-for="(t, k) in wgPeriods" :key="k" :value="k">{{ t }}</option></select></label>
+            <label>Meta mensual <input id="cfg-goal" v-model="cfgDraft.goal" inputmode="numeric" :aria-invalid="errors.length ? 'true' : undefined"></label>
+          </div>
+        </template>
+        <template #tab-style>
+          <div class="col">
+            <label>Densidad <select v-model="cfgDraft.density"><option value="default">Normal</option><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select></label>
+          </div>
+        </template>
+        <template #tab-set="{ errors }">
+          <div class="col">
+            <label>Título <input id="cfg-title" v-model="cfgDraft.title" :aria-invalid="errors.length ? 'true' : undefined"></label>
+          </div>
+        </template>
+      </g-widget-config>
     </div>
-
-    <h2>Interruptores (GSwitch)</h2>
-    <div class="col" style="max-width:420px">
-      <g-switch v-model="swNotif" label="Notificaciones" hint="Te avisamos por correo."></g-switch>
-      <g-switch v-model="swSave" :loading="swSaving" label="Guardado automático" hint="Simula un guardado de 1,2 s; el interruptor no se bloquea." @change="swSaveNow"></g-switch>
-      <g-switch v-model="swAir" label-position="start" label="Modo avión" hint="Desactiva la red."></g-switch>
-      <g-switch v-model="swCookies" label="Aceptar cookies" :error="swError" @change="swCheck"></g-switch>
-      <g-switch :model-value="true" label="Administrado por tu organización" readonly></g-switch>
-      <g-switch :model-value="true" label="Incluido en tu plan" disabled></g-switch>
-      <g-switch v-model="swIcons" label="Con iconos on/off" size="lg">
-        <template #icon-on><lucide-icon name="circle-check"></lucide-icon></template>
-        <template #icon-off><lucide-icon name="lock"></lucide-icon></template>
-      </g-switch>
-      <div class="row">
-        <g-switch v-for="c in ['accent','success','warning','danger','info']" :key="c" :color="c" :model-value="true" :label="c"></g-switch>
+          </div>
+        </section>
       </div>
-      <div class="row">
-        <g-switch v-for="z in ['xs','sm','md','lg','xl']" :key="z" :size="z" :model-value="true" :label="z"></g-switch>
-      </div>
-      <p class="log">{{ swLog }}</p>
+      <div class="pg-group" id="cat-5">
+        <p class="pg-cat">Datos</p>
+        <section class="pg-section" id="sec-table" data-pg-section>
+          <h2>GTable, GFilterBar y GPagination</h2>
+          <p class="pg-lead">Tabla con orden, selección, filtros y paginación.</p>
+          <h3>Tabla (GTable, GFilterBar, GPagination)</h3>
+          <div class="pg-panel">
+    <div style="max-width:1100px">
+      <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" selectable :page-size="5" :labels="tbLabels"
+               v-model:sort="tbSort" v-model:selected="tbSelected" v-model:filters="tbFilters" v-model:page="tbPage">
+        <template #cell-estado="{ value }"><g-badge variant="soft" :color="tbColors[value]" size="sm">{{ value }}</g-badge></template>
+        <template #row-actions="{ row }">
+          <g-menu :items="[{ id: 'ver', label: 'Ver' }, { id: 'editar', label: 'Editar' }]" @select="tbLog = $event.id + ' · ' + row.nombre">
+            <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="ghost" size="sm" :aria-label="'Acciones de ' + row.nombre"><lucide-icon name="ellipsis-vertical"></lucide-icon></g-btn></template>
+          </g-menu>
+        </template>
+      </g-table>
+      <p>Última acción: <b>{{ tbLog }}</b> · Filtros: <code>{{ JSON.stringify(tbFilters) }}</code></p>
     </div>
-
-    <h2>Diálogo (GDialog)</h2>
+          </div>
+        </section>
+      </div>
+      <div class="pg-group" id="cat-6">
+        <p class="pg-cat">Diálogos y ayuda</p>
+        <section class="pg-section" id="sec-dialog" data-pg-section>
+          <h2>GDialog</h2>
+          <p class="pg-lead">Diálogos: simple, con secciones, scroll, confirmación, formulario, pantalla completa y con cambios sin guardar.</p>
+          <h3>Diálogo (GDialog)</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn variant="outline" @click="dlg.simple = true">Simple</g-btn>
       <g-btn variant="outline" @click="dlg.inset = true">Con inset y pie</g-btn>
@@ -432,49 +863,13 @@
       <template #footer="{ close }"><g-btn variant="outline" @click="dlgDirty = false; close()">Descartar y cerrar</g-btn></template>
     </g-dialog>
 
-    <h2>Tema</h2>
-    <div class="row">
-      <g-btn variant="outline" @click="toggleTheme">{{ themed ? 'Volver al tema por defecto' : 'Aplicar tema de prueba' }}</g-btn>
-      <label>Esquema de color
-        <select v-model="scheme" @change="setScheme">
-          <option value="auto">Automático (sigue al sistema)</option>
-          <option value="light">Claro (data-theme="light")</option>
-          <option value="dark">Oscuro (data-theme="dark")</option>
-        </select>
-      </label>
-    </div>
-  
-    <h2>Menú (GMenu)</h2>
-    <div class="row">
-      <g-menu v-model="mnOpen" :items="mnItems" label="Acciones del archivo" @select="mnSelect">
-        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
-      </g-menu>
-      <span>Último: <b>{{ mnLog }}</b></span>
-    </div>
-    <h2>Tabla (GTable, GFilterBar, GPagination)</h2>
-    <div style="max-width:1100px">
-      <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" selectable :page-size="5" :labels="tbLabels"
-               v-model:sort="tbSort" v-model:selected="tbSelected" v-model:filters="tbFilters" v-model:page="tbPage">
-        <template #cell-estado="{ value }"><g-badge variant="soft" :color="tbColors[value]" size="sm">{{ value }}</g-badge></template>
-        <template #row-actions="{ row }">
-          <g-menu :items="[{ id: 'ver', label: 'Ver' }, { id: 'editar', label: 'Editar' }]" @select="tbLog = $event.id + ' · ' + row.nombre">
-            <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="ghost" size="sm" :aria-label="'Acciones de ' + row.nombre"><lucide-icon name="ellipsis-vertical"></lucide-icon></g-btn></template>
-          </g-menu>
-        </template>
-      </g-table>
-      <p>Última acción: <b>{{ tbLog }}</b> · Filtros: <code>{{ JSON.stringify(tbFilters) }}</code></p>
-    </div>
-    <h2>Avatar (GAvatarMotion)</h2>
-    <div class="row">
-      <g-avatar-motion v-model:state="avState" size="xl" color="danger" label="Asistente"></g-avatar-motion>
-      <g-btn v-for="s in ['idle','thinking','success','error']" :key="s" size="sm" :variant="avState === s ? 'solid' : 'outline'" @click="avState = s">{{ s }}</g-btn>
-      <g-helper aria-label="Abrir asistente" content-label="Asistente" close-label="Cerrar" @toggle="avHelper($event)">
-        <template #trigger><g-avatar-motion :state="avHelperState" size="md" color="danger"></g-avatar-motion></template>
-        <template #content>{{ avHelperState === 'thinking' ? 'Pensando…' : 'Listo: puedo ayudarte con este formulario.' }}</template>
-      </g-helper>
-    </div>
-    <h2>Ayuda contextual (GHelper, GHelperScope)</h2>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-helper" data-pg-section>
+          <h2>GHelper y GHelperScope</h2>
+          <p class="pg-lead">Ayuda contextual anclada a un elemento.</p>
+          <h3>Ayuda contextual (GHelper, GHelperScope)</h3>
+          <div class="pg-panel">
     <div class="row">
       <g-btn variant="outline">Guardar</g-btn>
       <g-helper aria-label="Abrir ayuda" content-label="Ayuda" close-label="Cerrar">
@@ -490,139 +885,16 @@
         <template #content>Completa los campos obligatorios.</template>
       </g-helper>
     </g-helper-scope>
-    <h2>Superficies (GSurface)</h2>
-    <div class="row" style="align-items:stretch">
-      <g-surface level="flat">flat</g-surface>
-      <g-surface level="outlined">outlined</g-surface>
-      <g-surface level="raised">raised</g-surface>
-      <g-surface level="floating">floating</g-surface>
-      <g-surface level="inset">inset</g-surface>
-    </div>
-    <div class="row" style="align-items:flex-start">
-      <g-surface level="raised" as="article" style="max-width:320px">
-        <b>Plan Pro</b>
-        <g-surface level="inset" padding="sm" style="margin-top:12px">3 asientos · $36/mes</g-surface>
-      </g-surface>
-      <g-surface level="floating" tone="sunken" padding="xs" rounded="xl" style="max-width:360px">
-        <div style="padding:8px 12px"><b>Guardar cambios</b></div>
-        <g-surface level="inset">Cuerpo del diálogo sobre la carcasa hundida.</g-surface>
-      </g-surface>
-    </div>
-    <h2>Stepper (GStepper)</h2>
-    <div class="col" style="max-width:720px">
-      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta" @select="stpLog = 'select · ' + $event.id"></g-stepper>
-      <div class="row">
-        <g-btn variant="outline" size="sm" :disabled="stpIdx === 0" @click="stpMove(-1)">Anterior</g-btn>
-        <g-btn size="sm" :disabled="stpIdx === stpSteps.length - 1" @click="stpMove(1)">Siguiente</g-btn>
-        <span>Actual: <b>{{ stpCur }}</b> · {{ stpLog }}</span>
+          </div>
+        </section>
       </div>
-      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="segment" aria-label="Registro de cuenta (segmentos)"></g-stepper>
-      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="dot" aria-label="Registro de cuenta (puntos)"></g-stepper>
-      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="line" aria-label="Registro de cuenta (línea)"></g-stepper>
-      <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="icon" aria-label="Registro de cuenta (iconos)">
-        <template #icon="{ step }"><lucide-icon :name="step.icon"></lucide-icon></template>
-      </g-stepper>
-      <div style="max-width:320px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta (estrecho)"></g-stepper></div>
-      <div style="max-width:360px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" orientation="vertical" navigation="back" aria-label="Registro de cuenta (vertical)">
-        <template #content="{ step }">Contenido del paso «{{ step.label }}».</template>
-      </g-stepper></div>
-    </div>
-    <h2>Pestañas (GTabs, GTabPanel)</h2>
-    <div class="col" style="max-width:820px" id="tabs-demo">
-      <g-tabs v-model="gtTab" :items="gtItems" :labels="gtLabels" label="Cuenta" @change="gtChange">
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
-        <template #panel="{ item }"><p style="margin:0">Contenido de «{{ item.label }}». <g-btn size="sm" variant="outline">Un control</g-btn></p></template>
-      </g-tabs>
-      <div class="row">
-        <label><input type="checkbox" v-model="gtBlock"> bloquear cambios (change cancelable)</label>
-        <span>Activa: <b>{{ gtTab }}</b> · {{ gtLog }}</span>
-      </div>
-      <g-tabs v-model="gtTab" :items="gtItems" :labels="gtLabels" appearance="pill" color="accent" label="Cuenta (pill)" density="comfortable"></g-tabs>
-      <g-tabs v-model="gtSeg" :items="gtSegItems" appearance="segmented" label="Periodo" activation="manual"></g-tabs>
-      <g-surface level="raised" padding="none" style="overflow:hidden">
-        <g-tabs v-model="gtTab" :items="gtItems.slice(0, 4)" :labels="gtLabels" appearance="contained" label="Cuenta (contained)">
-          <template #panel="{ item }">Panel fundido con la pestaña «{{ item.label }}».</template>
-        </g-tabs>
-      </g-surface>
-      <g-tabs v-model="gtTab" :items="gtItems.slice(0, 4)" :labels="gtLabels" orientation="vertical" label="Cuenta (vertical)">
-        <template #panel="{ item }">Contenido vertical de «{{ item.label }}».</template>
-      </g-tabs>
-      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="scroll" label="Desbordamiento: scroll" density="compact"></g-tabs></div>
-      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="arrows" label="Desbordamiento: flechas" appearance="pill"></g-tabs></div>
-      <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="more" label="Desbordamiento: más"></g-tabs></div>
-      <div style="max-width:340px"><g-tabs v-model="gtIcon" :items="gtIconItems" :labels="gtLabels" label-mode="auto" label="Etiquetas según el espacio" appearance="pill">
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
-      </g-tabs></div>
-      <div dir="rtl" style="max-width:520px"><g-tabs v-model="gtRtl" :items="gtRtlItems" :labels="gtLabels" label="الإعدادات" overflow="arrows"></g-tabs></div>
-      <g-tabs v-model="gtDet" :items="gtSegItems" detached id="tb-detached" label="Paneles separados" appearance="pill"></g-tabs>
-      <div class="row" style="border:1px dashed var(--g-color-border-strong);padding:8px">
-        <g-tab-panel v-for="it in gtSegItems" :key="it.id" tabs="tb-detached" :value="it.id" :active="gtDet === it.id" lazy>Panel suelto de «{{ it.label }}».</g-tab-panel>
-      </div>
-      <div class="row"><g-btn variant="outline" @click="dlg.tabs = true">Diálogo con pestañas</g-btn></div>
-    </div>
-    <g-dialog v-model="dlg.tabs" title="Ajustes del equipo" description="Cabecera de pestañas fija; solo el cuerpo se desplaza." close-label="Cerrar" size="md">
-      <template #tabs><g-tabs v-model="gtDlg" :items="gtDlgItems" detached id="tb-dlg" label="Ajustes del equipo" density="compact"></g-tabs></template>
-      <g-tab-panel v-for="it in gtDlgItems" :key="it.id" tabs="tb-dlg" :value="it.id" :active="gtDlg === it.id">
-        <p v-for="n in 14" :key="n" style="margin:0 0 8px">Contenido de «{{ it.label }}», línea {{ n }}.</p>
-      </g-tab-panel>
-      <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn @click="close">Guardar</g-btn></template>
-    </g-dialog>
-    <h2>Tarjetas (GCard)</h2>
-    <div id="card-demo">
-      <div class="row">
-        <label>Ancho <input type="range" v-model.number="cdW" min="240" max="1100"> {{ cdW }}px</label>
-        <label><input type="checkbox" v-model="cdLoading"> cargando</label>
-        <span id="cd-log" role="status">{{ cdLog }}</span>
-      </div>
-      <div class="cd-grid" :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
-        <g-card id="cd-basic" title="Notas de la versión" description="Un resumen breve de lo que contiene esta tarjeta." :labels="cdLabels" :loading="cdLoading"></g-card>
-        <g-card id="cd-media" href="#articulo" eyebrow="Artículo" title="Un paseo por el mercado" description="Una descripción lo bastante larga como para ocupar dos líneas en la mayoría de los anchos, y seguir siendo clara para quien la lee con lector de pantalla." :description-lines="2" expandable :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
-          <template #footer><span>5 min de lectura</span><span>12 jun</span></template>
-        </g-card>
-        <g-card id="cd-entity" href="#atlas" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" badge-color="success" :meta="cdMeta" :menu="cdMenu" :labels="cdLabels" :loading="cdLoading" selectable v-model="cdSel" @navigate="cdNavigate" @action="cdLog = 'acción: ' + $event.id">
-          <template #lead><lucide-icon class="g-icon" name="building-2"></lucide-icon></template>
-          <template #actions>
-            <g-btn variant="outline" id="cd-edit" @click="cdLog = 'acción interna: editar'">Editar</g-btn>
-            <g-btn variant="ghost" icon aria-label="Compartir" @click="cdLog = 'acción interna: compartir'"><lucide-icon name="share-2"></lucide-icon></g-btn>
-          </template>
-          <template #footer><span>Actualizado hace 2 h</span><a href="#historial">Historial</a></template>
-        </g-card>
-        <g-card id="cd-action" interaction="button" title="Nuevo proyecto" description="Empieza desde cero o con una plantilla." :labels="cdLabels" :loading="cdLoading" @activate="cdLog = 'activate: nuevo proyecto'">
-          <template #lead><lucide-icon class="g-icon" name="plus"></lucide-icon></template>
-        </g-card>
-        <g-card id="cd-toggle" interaction="toggle" title="Solo pendientes" description="Filtro de la vista." v-model="cdFav" :labels="cdLabels" :loading="cdLoading"></g-card>
-        <g-card id="cd-status" title="Ingresos" status="error" status-text="No se pudo cargar la métrica." retryable :labels="cdLabels" :loading="cdLoading" @retry="cdLog = 'retry'"></g-card>
-        <g-card id="cd-metric" href="#ingresos" title="Ingresos mensuales" :menu="cdMenu.slice(0, 2)" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <g-metric label="Ingresos" value="$48,200" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
-          <template #footer><span>Actualizado 09:41</span></template>
-        </g-card>
-        <g-card id="cd-empty" title="Proyectos" empty :labels="cdLabels" :loading="cdLoading"></g-card>
-        <g-card id="cd-bg" href="#ruta" media-position="background" eyebrow="Ruta" title="Recorrido por el centro histórico" subtitle="3 h · ES" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph cd-ph--dark"><lucide-icon name="map-pin"></lucide-icon></div></template>
-          <template #actions><g-btn>Reservar</g-btn></template>
-        </g-card>
-      </div>
-      <h3>Horizontal con media lateral (orientation auto)</h3>
-      <div :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
-        <g-card id="cd-horizontal" href="#centro" orientation="auto" media-position="start" eyebrow="Resultado" title="Recorrido por el centro histórico" description="Un recorrido a pie por las plazas y mercados." :meta="[{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }]" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
-          <template #more><p style="margin:0">Punto de encuentro: plaza principal. Cancelación gratuita hasta 24 h antes.</p></template>
-          <template #actions><g-btn>Guardar</g-btn></template>
-        </g-card>
-      </div>
-      <h3>Selección única (radio con name común)</h3>
-      <div role="radiogroup" aria-label="Plan" class="cd-grid">
-        <g-card v-for="p in cdPlans" :key="p.id" :id="'cd-plan-' + p.id" interaction="select" select-type="radio" name="cd-plan" :value="p.id" v-model="cdPlan" :title="'Plan ' + p.label" :description="p.text" color="accent" :labels="cdLabels"></g-card>
-      </div>
-      <h3>Lista (li, horizontal, plana, compacta)</h3>
-      <ul class="cd-list">
-        <g-card v-for="(m, i) in cdPeople" :key="m.name" as="li" level="flat" density="compact" orientation="horizontal" :href="'#' + m.ini" :current="i === 0" :title="m.name" :title-lines="1" :subtitle="m.team" badge="Activo" badge-color="success" :meta="[{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: m.team, priority: 'low' }]" :menu="cdMenu" :labels="cdLabels" @navigate="cdNavigate">
-          <template #lead>{{ m.ini }}</template>
-        </g-card>
-      </ul>
-    </div>
-    <h2>Avisos (GToaster)</h2>
+      <div class="pg-group" id="cat-7">
+        <p class="pg-cat">Avisos</p>
+        <section class="pg-section" id="sec-toaster" data-pg-section>
+          <h2>GToaster</h2>
+          <p class="pg-lead">Avisos temporales (toasts) con acciones, promesas, posición y apilado.</p>
+          <h3>Avisos (GToaster)</h3>
+          <div class="pg-panel">
     <div id="toast-demo">
       <p style="max-width:70ch;color:var(--g-color-text-muted)">Los avisos no reciben el foco: <b>F8</b> lleva a la acción del más reciente y vuelve; <b>Esc</b> cierra el enfocado. Los anuncios van a dos canales vivos permanentes.</p>
       <div class="row">
@@ -654,62 +926,30 @@
       </template>
     </g-dialog>
 
-    <h2>Widgets (GWidget, GWidgetGrid)</h2>
-    <div class="col" style="max-width:1100px">
-      <div class="row" style="align-items:center">
-        <label>Ancho <input type="range" v-model.number="wgW" min="300" max="1100"> {{ wgW }}px</label>
-        <label><input type="checkbox" v-model="wgEdit"> editar</label>
-        <label>estado <select v-model="wgState"><option>populated</option><option>loading</option><option>empty</option><option>error</option><option>stale</option><option>disabled</option></select></label>
-        <g-btn size="sm" variant="outline" @click="galOpen = true">Añadir widget</g-btn>
+          </div>
+        </section>
       </div>
-      <div :style="{ inlineSize: wgW + 'px', maxInlineSize: '100%' }">
-        <g-widget-grid v-model="wgLayout" label="Panel de ejemplo" :editable="wgEdit" :labels="wgGridLabels" @change="wgLog = $event.reason + ' · ' + $event.id" @remove-request="wgRemove($event.id)">
-          <template #item="{ id }">
-            <g-widget :title="wgTitleOf(id)" :eyebrow="'Resumen'" :description="wgPeriods[wgCfgOf(id).period]" :density="wgCfgOf(id).density" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }, { id: 'configure', label: 'Configurar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgAction(id, $event.id)" @retry="wgState = 'populated'">
-              <template #icon><lucide-icon name="chart"></lucide-icon></template>
-              <template #compact><g-metric label="Ingresos" value="$48k" trend="+12%" direction="up" trend-color="success"></g-metric></template>
-              <template #default><g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric><g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress></template>
-              <template #detail>
-                <g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
-                <g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress>
-                <g-data-list swatches label="Por canal" :rows="[{ label: 'Directo', value: '48%' }, { label: 'Búsqueda', value: '31%' }, { label: 'Referidos', value: '21%' }]"></g-data-list>
-              </template>
-            </g-widget>
-          </template>
-          <template #empty>Sin widgets</template>
-        </g-widget-grid>
-      </div>
-      <p>Último cambio: <b>{{ wgLog }}</b></p>
-      <div role="status" style="min-height:1.5em">{{ wgAnn }}</div>
-
-      <g-widget-gallery ref="galRef" v-model="galOpen" title="Añadir widget" description="Elige un widget y su tamaño inicial; se añade al final del panel." :items="galItems" :sizes="galSizes" :added="galAdded" :labels="galLabels" @add="galAdd">
-        <template #preview="{ item }">
-          <g-widget :title="item.title" :eyebrow="item.category" level="m" :labels="wgLabels"><g-metric :label="item.title" :value="item.value" size="lg"></g-metric></g-widget>
-        </template>
-      </g-widget-gallery>
-
-      <g-widget-config v-model="cfgOpen" v-model:tab="cfgTab" :title="'Configurar ' + cfgTitle" :tabs="cfgTabs" :errors="cfgErrors" :dirty="cfgDirty" resettable :labels="cfgLabels" @apply="cfgApply" @reset="cfgReset" @cancel="cfgErrors = []">
-        <template #preview>
-          <g-widget :title="cfgDraft.title || '—'" eyebrow="Resumen" :description="wgPeriods[cfgDraft.period]" :density="cfgDraft.density" level="m" :labels="wgLabels"><g-metric label="Ingresos" value="$48.2k" size="lg"></g-metric></g-widget>
-        </template>
-        <template #tab-data="{ errors }">
-          <div class="col">
-            <label>Periodo <select v-model="cfgDraft.period"><option v-for="(t, k) in wgPeriods" :key="k" :value="k">{{ t }}</option></select></label>
-            <label>Meta mensual <input id="cfg-goal" v-model="cfgDraft.goal" inputmode="numeric" :aria-invalid="errors.length ? 'true' : undefined"></label>
-          </div>
-        </template>
-        <template #tab-style>
-          <div class="col">
-            <label>Densidad <select v-model="cfgDraft.density"><option value="default">Normal</option><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select></label>
-          </div>
-        </template>
-        <template #tab-set="{ errors }">
-          <div class="col">
-            <label>Título <input id="cfg-title" v-model="cfgDraft.title" :aria-invalid="errors.length ? 'true' : undefined"></label>
-          </div>
-        </template>
-      </g-widget-config>
+      <div class="pg-group" id="cat-8">
+        <p class="pg-cat">Avatar</p>
+        <section class="pg-section" id="sec-avatar" data-pg-section>
+          <h2>GAvatarMotion</h2>
+          <p class="pg-lead">Avatar animado con estados.</p>
+          <h3>Avatar (GAvatarMotion)</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <g-avatar-motion v-model:state="avState" size="xl" color="danger" label="Asistente"></g-avatar-motion>
+      <g-btn v-for="s in ['idle','thinking','success','error']" :key="s" size="sm" :variant="avState === s ? 'solid' : 'outline'" @click="avState = s">{{ s }}</g-btn>
+      <g-helper aria-label="Abrir asistente" content-label="Asistente" close-label="Cerrar" @toggle="avHelper($event)">
+        <template #trigger><g-avatar-motion :state="avHelperState" size="md" color="danger"></g-avatar-motion></template>
+        <template #content>{{ avHelperState === 'thinking' ? 'Pensando…' : 'Listo: puedo ayudarte con este formulario.' }}</template>
+      </g-helper>
     </div>
+          </div>
+        </section>
+      </div>
+      </main>
+    </div>
+
     <g-toaster></g-toaster>
 </div>
 
@@ -717,7 +957,7 @@
   <script src="../dist/grana.umd.js"></script>
   <script src="./lucide-icons.js"></script>
   <script>
-    const { createApp, ref, reactive, computed } = Vue
+    const { createApp, ref, reactive, computed, watch, onMounted, onBeforeUnmount } = Vue
     // Iconos de Lucide (ISC) exactos, de lucide-icons.js (generado por scripts/build-icons.mjs): Grana no trae iconos
     // y los de «la aplicación» también son Lucide (docs/contract/icons.md). Alias: nombres cortos de los ejemplos → Lucide.
     const LUCIDE_ALIAS = { home: 'house', chart: 'chart-column', card: 'credit-card', cog: 'settings', panel: 'panel-left', msg: 'message-circle' }
@@ -1092,7 +1332,46 @@
             ? ":root { --g-radius-xs: 6px; --g-radius-sm: 9px; --g-radius-md: 12px; --g-radius-lg: 17px; --g-radius-xl: 24px; --g-radius-shape: var(--g-radius-pill); } :root, [data-theme=\"light\"] { --g-color-brand: #0B1F4D; --g-color-brand-strong: #1E3464; --g-color-brand-soft: #E9F0FF; --g-color-brand-text: #0B1F4D; --g-color-on-brand: #FFFFFF; --g-color-on-brand-soft: #0B1F4D; --g-color-accent: #6D28D9; --g-color-accent-strong: #5700B8; --g-color-accent-soft: #F0EEFF; --g-color-accent-text: #6D28D9; --g-color-on-accent: #FFFFFF; --g-color-on-accent-soft: #6D28D9; --g-color-surface-sunken: #F4F6FB; --g-color-text: #181A1D; --g-color-text-muted: #535559; --g-color-text-subtle: #6C6E72; --g-color-border-control: #5B6B8C; --g-color-border: rgb(24 26 29 / 0.08); --g-color-border-strong: rgb(24 26 29 / 0.16); --g-color-neutral: #696B6F; --g-color-neutral-strong: #535558; --g-color-neutral-soft: #EFF0F1; --g-color-neutral-text: #696B6F; --g-color-on-neutral: #FFFFFF; --g-color-on-neutral-soft: #696B6F; } @media (prefers-color-scheme: dark) { :root:not([data-theme=\"light\"]) { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; } } [data-theme=\"dark\"] { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; }"
             : ''
         }
-        return { toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+
+        // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}]
+        const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
+        const pgQuery = ref('')
+        const pgNavOpen = ref(false)
+        const pgActive = ref('')
+        const pgBar = ref(null)
+        const norm = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        const pgNavFiltered = computed(() => {
+          const q = norm(pgQuery.value.trim())
+          return pgNav.map((g) => ({ cat: g.cat, items: g.items.filter((it) => !q || norm(it.name).includes(q) || norm(g.cat).includes(q)) })).filter((g) => g.items.length)
+        })
+        const PG_KEY = 'grana-playground'
+        const pgSave = () => { try { localStorage.setItem(PG_KEY, JSON.stringify({ scheme: scheme.value, themed: themed.value })) } catch (e) {} }
+        const pgSetThemed = (v) => { if (themed.value !== v) toggleTheme(); pgSave() }
+        watch(scheme, pgSave)
+        try {
+          const saved = JSON.parse(localStorage.getItem(PG_KEY) || 'null')
+          if (saved && ['auto', 'light', 'dark'].includes(saved.scheme)) { scheme.value = saved.scheme; setScheme() }
+          if (saved && saved.themed) toggleTheme()
+        } catch (e) {}
+        let pgObserver
+        onMounted(() => {
+          const bar = pgBar.value
+          const setH = () => { if (bar) document.documentElement.style.setProperty('--pg-bar-h', bar.offsetHeight + 'px') }
+          setH(); window.addEventListener('resize', setH)
+          const secs = [...document.querySelectorAll('[data-pg-section]')]
+          const visible = new Set()
+          pgObserver = new IntersectionObserver((entries) => {
+            for (const e of entries) e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)
+            const first = secs.find((x) => visible.has(x.id))
+            if (first) pgActive.value = first.id
+          }, { rootMargin: '-80px 0px -60% 0px' })
+          secs.forEach((x) => pgObserver.observe(x))
+          if (location.hash.startsWith('#sec-')) pgActive.value = location.hash.slice(1)
+        })
+        onBeforeUnmount(() => pgObserver && pgObserver.disconnect())
+
+        return { pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).use(toaster).mount('#app')
   </script>
