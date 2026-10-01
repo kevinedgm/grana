@@ -55,6 +55,9 @@ Nombre de Lucide entre comillas.
 | `GWidgetGallery` | Marca de la categoría elegida | `check` |
 | `GStepper` | Paso hecho · con error · con advertencia · bloqueado | `check` · `circle-alert` · `triangle-alert` · `lock` |
 | `GHelper` | Disparador por defecto | `circle-help` |
+| `GTable` | Orden: sin orden · ascendente · descendente | `chevrons-up-down` · `arrow-up` · `arrow-down` |
+| `GPagination` | Anterior · siguiente | `chevron-left` · `chevron-right` |
+| `GFilterBar` | Sugerir o agregar filtro · quitar filtro | `plus` · `x` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
 `GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
