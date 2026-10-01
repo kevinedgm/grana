@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "name": "GTable",
+  "tag": "g-table",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Tabla de datos con columnas compuestas (varios campos en una columna), celdas ricas por slot, filtros por columna con reglas (GFilterBar), orden, selección, paginación (GPagination) y acciones por fila; en contenedores estrechos se convierte en tarjetas sin cambiar de DOM.",
+  "contract": "design/contracts/table.md",
+  "prototype": "design/lab/table/r02/",
+  "style": "packages/vue/src/components/GTable/GTable.css",
+  "props": [
+    {
+      "name": "columns",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "rows",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "rowKey",
+      "type": "String",
+      "default": "id"
+    },
+    {
+      "name": "caption",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "sort",
+      "type": "Object",
+      "default": null
+    },
+    {
+      "name": "sortMode",
+      "type": "String",
+      "default": "local",
+      "values": [
+        "local",
+        "external"
+      ]
+    },
+    {
+      "name": "selectable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "selected",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "filters",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "filterMode",
+      "type": "String",
+      "default": "local",
+      "values": [
+        "local",
+        "external"
+      ]
+    },
+    {
+      "name": "page",
+      "type": "Number",
+      "default": 1
+    },
+    {
+      "name": "pageSize",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "responsive",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "table",
+        "cards"
+      ]
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "lines",
+      "values": [
+        "lines",
+        "surface"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "maxHeight",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loadingRows",
+      "type": "Number",
+      "default": 3
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "update:sort",
+      "payload": "{ key, direction }",
+      "trigger": "El usuario ordena"
+    },
+    {
+      "name": "update:selected",
+      "payload": "claves",
+      "trigger": "Cambia la selección"
+    },
+    {
+      "name": "update:filters",
+      "payload": "filtros",
+      "trigger": "Aplicar, quitar o limpiar filtros"
+    },
+    {
+      "name": "update:page",
+      "payload": "número",
+      "trigger": "Cambia de página (o vuelve a 1 al filtrar)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "cell-{key}",
+      "purpose": "Celda rica. Alcance: { row, value, column }"
+    },
+    {
+      "name": "leading-{key}",
+      "purpose": "Inicio de una columna compuesta (avatar, icono). Alcance: { row }"
+    },
+    {
+      "name": "row-actions",
+      "purpose": "Acciones de la fila. Alcance: { row }"
+    },
+    {
+      "name": "empty",
+      "purpose": "Estado vacío. Alcance: { filtered, clear }"
+    },
+    {
+      "name": "toolbar",
+      "purpose": "Acciones extra en la barra"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-color-primary",
+    "--g-color-primary-soft",
+    "--g-radius-{xs|sm|lg|pill}",
+    "--g-space-1..4",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-title-weight",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-{width|offset}",
+    "--g-duration-{fast|spin}",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "table",
+    "cards",
+    "lines",
+    "surface",
+    "density",
+    "sorted",
+    "selected",
+    "mixed",
+    "filtered",
+    "empty",
+    "empty-filtered",
+    "loading"
+  ],
+  "pending": [
+    "Lector de pantalla real",
+    "Firefox y Safari",
+    "Táctil real y zoom al 200%",
+    "Selección de todas las páginas, columnas fijas, virtualización, edición en celda (fuera de v0.1)"
+  ]
+}

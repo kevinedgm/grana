@@ -27,4 +27,7 @@
 @import url("../components/GHelperScope/GHelperScope.css");
 @import url("../components/GHelper/GHelper.css");
 @import url("../components/GAvatarMotion/GAvatarMotion.css");
+@import url("../components/GTable/GTable.css");
+@import url("../components/GPagination/GPagination.css");
+@import url("../components/GFilterBar/GFilterBar.css");
 @import url("../components/GIcon/GIcon.css");

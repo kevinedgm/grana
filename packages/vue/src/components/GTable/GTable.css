@@ -1,0 +1,305 @@
+/*
+  GTable · estilo del esqueleto
+  Dueño: coco. Contrato: design/contracts/table.md. Estructura: design/lab/table/r01/ y r02/.
+  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px, 44px y el patrón de texto oculto.
+  Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional).
+*/
+
+/* ---------- Raíz ---------- */
+.g-table {
+  --_density: 1;
+  --_pad-block: calc(var(--g-space-1) * 3 * var(--_density));
+  --_pad-inline: calc(var(--g-space-1) * 3);
+  --_lead: calc(var(--g-space-1) * 8);
+
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+}
+.g-table--density-default { --_density: 1; }
+.g-table--density-comfortable { --_density: 0.875; }
+.g-table--density-compact { --_density: 0.75; }
+
+/* Texto oculto accesible */
+.g-table__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Barra (selección, orden en tarjetas, recuento) ---------- */
+.g-table__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2) var(--g-space-4);
+  min-block-size: calc(var(--g-space-1) * 9);
+  margin-block-end: var(--g-space-2);
+  color: var(--g-color-text-muted);
+}
+.g-table__bar label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-table__bar select {
+  font: inherit;
+  color: var(--g-color-text);
+  padding: var(--g-space-1) var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+}
+.g-table__count { margin-inline-start: auto; }
+/* Controles que solo existen en tarjetas (la cabecera no se ve) */
+.g-table__bar .g-table__bar-cards { display: none; }
+
+/* ---------- Área desplazable y tabla ---------- */
+.g-table__scroll {
+  max-block-size: var(--_max-height);
+  overflow: auto;
+}
+.g-table__table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.g-table__caption {
+  padding-block-end: var(--g-space-3);
+  text-align: start;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+
+/* Encabezado pegajoso */
+.g-table__table th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  padding: var(--_pad-block) var(--_pad-inline);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+  background: var(--g-color-surface);
+  text-align: start;
+  white-space: nowrap;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+}
+.g-table__table td {
+  padding: var(--_pad-block) var(--_pad-inline);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  vertical-align: middle;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-table__table th.g-table__cell--end,
+.g-table__cell--end {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.g-table__select,
+.g-table__actions { inline-size: 1%; }
+.g-table__actions { text-align: end; }
+.g-table__select input[type="checkbox"] {
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
+  margin: 0;
+  vertical-align: middle;
+  accent-color: var(--g-color-primary);
+  cursor: pointer;
+}
+
+/* Botón de orden */
+.g-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+.g-table__sort .g-icon {
+  inline-size: 1.15em;
+  block-size: 1.15em;
+  opacity: 0.6;
+}
+th[aria-sort] .g-table__sort { color: var(--g-color-text); }
+th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
+.g-table__sort:focus-visible,
+.g-table__select input:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Filas */
+.g-table__row.is-selected > td { background: var(--g-color-primary-soft); }
+@media (hover: hover) {
+  .g-table__row:hover > td { background: var(--g-color-surface-sunken); }
+  .g-table__row.is-selected:hover > td { background: var(--g-color-primary-soft); }
+  .g-table__sort:hover { color: var(--g-color-text); }
+}
+
+/* ---------- Columna compuesta ---------- */
+.g-table__composite {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+}
+.g-table__leading {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--_lead);
+  block-size: var(--_lead);
+  overflow: hidden;
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  font-weight: var(--g-text-action-weight);
+}
+.g-table__text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+.g-table__title,
+.g-table__subtitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.g-table__title {
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+.g-table__subtitle {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-table__label { display: none; }
+
+/* ---------- Apariencia «surface»: cada fila es una superficie ---------- */
+.g-table--appearance-surface .g-table__table { border-spacing: 0 var(--g-space-2); }
+.g-table--appearance-surface .g-table__table th { border-block-end: 0; }
+.g-table--appearance-surface .g-table__table td {
+  background: var(--g-color-surface);
+  border-block: var(--g-border-width) solid var(--g-color-border);
+}
+.g-table--appearance-surface .g-table__table td:first-child {
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  border-start-start-radius: var(--g-radius-lg);
+  border-end-start-radius: var(--g-radius-lg);
+}
+.g-table--appearance-surface .g-table__table td:last-child {
+  border-inline-end: var(--g-border-width) solid var(--g-color-border);
+  border-start-end-radius: var(--g-radius-lg);
+  border-end-end-radius: var(--g-radius-lg);
+}
+
+/* ---------- Estados ---------- */
+.g-table__skeleton {
+  display: block;
+  inline-size: 60%;
+  block-size: var(--g-space-3);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface-sunken);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-table.is-loading .g-table__skeleton {
+    animation: g-table-pulse calc(var(--g-duration-spin) * 1.5) var(--g-ease-standard) infinite alternate;
+  }
+}
+@keyframes g-table-pulse { to { opacity: 0.45; } }
+.g-table__table td.g-table__empty {
+  padding: calc(var(--g-space-1) * 10) var(--_pad-inline);
+  text-align: center;
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Modo tarjetas ---------- */
+.g-table--mode-cards .g-table__bar .g-table__bar-cards { display: inline-flex; }
+.g-table--mode-cards .g-table__scroll { max-block-size: none; overflow: visible; }
+/* El encabezado se oculta a la vista y se conserva para los lectores */
+.g-table--mode-cards thead {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.g-table--mode-cards .g-table__table,
+.g-table--mode-cards tbody { display: block; }
+.g-table--mode-cards .g-table__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--g-space-1) var(--g-space-3);
+  margin-block-end: var(--g-space-2);
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+}
+.g-table--mode-cards .g-table__row.is-selected {
+  border-color: var(--g-color-primary);
+  background: var(--g-color-primary-soft);
+}
+.g-table--mode-cards .g-table__table td {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  padding: var(--g-space-1) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: start;
+}
+.g-table--mode-cards .g-table__table td.g-table__select { grid-column: 1; grid-row: 1; align-self: center; }
+.g-table--mode-cards .g-table__table td.g-table__cell--primary { grid-column: 2; grid-row: 1; padding-block-end: var(--g-space-2); }
+.g-table--mode-cards .g-table__table td.g-table__actions { grid-column: 3; grid-row: 1; align-self: start; }
+.g-table--mode-cards .g-table__table td.g-table__cell--primary .g-table__label { display: none; }
+.g-table--mode-cards .g-table__table td:not(.g-table__select, .g-table__actions, .g-table__cell--primary) .g-table__label {
+  display: inline;
+  flex: none;
+  font-size: var(--g-text-caption-size);
+  color: var(--g-color-text-muted);
+}
+.g-table--mode-cards .g-table__title,
+.g-table--mode-cards .g-table__subtitle { white-space: normal; }
+.g-table--mode-cards .g-table__table td.g-table__empty { display: block; }
+
+/* ---------- Área táctil ---------- */
+@media (pointer: coarse) {
+  .g-table__select input[type="checkbox"] {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+  .g-table__sort { min-block-size: 44px; }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-table__table th { border-color: CanvasText; }
+  .g-table__table td { border-color: GrayText; }
+  .g-table__row.is-selected > td { outline: var(--g-focus-width) solid Highlight; outline-offset: calc(var(--g-focus-width) * -1); }
+  .g-table--mode-cards .g-table__row { border-color: CanvasText; }
+  .g-table--mode-cards .g-table__row.is-selected { outline: var(--g-focus-width) solid Highlight; }
+}
