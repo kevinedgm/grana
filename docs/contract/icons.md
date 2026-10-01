@@ -64,7 +64,7 @@ Nombre de Lucide entre comillas.
 
 `GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
 
-**Pendiente para quien edite las listas (kiwi: `design/lab/lucide-icons.js`; bruno: `scripts/build-icons.mjs`):** `info` **no está** en ninguna de las dos y `GCard` lo usa (DECISIONS.md #134); el resto de los de `GCard` ya existen. Los ejemplos de documentación de `GCard` (media, `lead`) usan `image`, `play` y `map-pin` de la aplicación (§5), que no entran en la lista del paquete.
+**Resuelto (DECISIONS.md #137):** `info` y `circle-check` están en la lista de la librería (`packages/vue/scripts/icons.json`, clave `library`) y en `design/lab/lucide-icons.js`. `image`, `map-pin` y `play` son iconos **de la aplicación** (§5): los usan los ejemplos de `GCard` (media, `lead`) y por eso viven solo en las listas del playground y del laboratorio (clave `playground` de `icons.json` y `design/lab/lucide-icons.js`), **nunca en el paquete**.
 
 **Regla:** añadir un icono exige **añadirlo a esta tabla** y a la lista del script antes de usarlo.
 
