@@ -1,6 +1,6 @@
 # Contrato · GToast (gestor `createToaster`, región `GToaster`)
 
-**Dueño:** lima · **Estado:** aprobado (pendiente de CSS y construcción) · **Basado en:** `design/lab/toast/r01/` (kiwi; `brief.md`, `declaracion.md` con 16 puntos, `index.html` con el gestor de prueba) · **Compone:** `surface.md` (`level="floating"`), `btn.md`, `badge.md`, `GIcon` (interno) · **Convive con:** `dialog.md` (región dentro del modal superior; Esc)
+**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (`GToast.css`, `design/lab/toast/estilo.md`; #148) · pendiente de construcción · **Basado en:** `design/lab/toast/r01/` (kiwi; `brief.md`, `declaracion.md` con 16 puntos, `index.html` con el gestor de prueba) · **Compone:** `surface.md` (`level="floating"`), `btn.md`, `badge.md`, `GIcon` (interno) · **Convive con:** `dialog.md` (región dentro del modal superior; Esc)
 **Tag:** `g-toaster` (región) · `g-toast` (cada aviso, sin componente público) · **Categoría:** comunicación y estado
 
 Un **aviso breve y no modal** que confirma o informa del resultado de algo que el usuario acaba de hacer o que acaba de pasar en segundo plano («Cambios guardados», «No se pudo subir el archivo», «Proyecto archivado · Deshacer»). Aparece en una zona fija del visor, **no interrumpe la tarea y nunca recibe el foco por su cuenta**. Decisiones delegadas por el usuario («decide tú»): DECISIONS.md #138 y #139; propuestas de kiwi aprobadas y derivadas de estándar: #140 a #147.
@@ -221,13 +221,14 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 </div>
 ```
 
-- **Raíz `g-toaster`:** `popover="manual"`, **abierta siempre** desde el montaje (`showPopover()`), capa superior como `GSelect` (#55) y `GHelper` (#101). Sin rol. No captura el puntero fuera de los avisos (coco: `pointer-events` solo en `g-toast`).
+- **Raíz `g-toaster`:** `popover="manual"`, **abierta siempre** desde el montaje (`showPopover()`), capa superior como `GSelect` (#55) y `GHelper` (#101). Sin rol. La raíz no captura el puntero; **la lista `g-toaster__list` sí** (mide exactamente la pila: cruzar el hueco entre avisos no reanuda los temporizadores; #148). El texto de cola no captura.
 - **Canales:** dos `g-toaster__live` con el patrón de texto oculto accesible, **presentes y vacíos** desde el montaje; nunca se desmontan mientras viva `GToaster`.
 - **Región:** `section` con nombre (`labels.region`) y `aria-keyshortcuts` (= `hotkey`; sin atributo con `hotkey: false`). Con **cero** avisos visibles, `hidden` (no se deja un hito vacío). Los canales están **fuera** de la `section` para que `hidden` no los afecte.
-- **Aviso `g-toast`:** es una **`GSurface as="li" level="floating"`** (#146; sombra `--g-shadow-2` y radio de `floating`, #100); el relleno lo fija coco (`padding` de la superficie). Sin rol propio (es un elemento de lista). `id` estable derivado del `id` del aviso.
+- **Aviso `g-toast`:** es una **`GSurface as="li" level="floating" padding="sm"`** (#146; sombra `--g-shadow-2` y radio de `floating`, #100) y lleva **todas** las clases de `GSurface` (`g-surface g-surface--level-floating g-surface--padding-sm …`): `GToast.css` reasigna su relleno y su borde de inicio (por eso se registra después de `GSurface.css`).
+- **Icono:** `.g-icon` es **hijo directo** de `.g-toast__icon` (el giro de `loading` lo selecciona así). Sin rol propio (es un elemento de lista). `id` estable derivado del `id` del aviso.
 - **Prefijo de tipo** `g-toast__type`: texto oculto accesible dentro del título; no visible.
 - **Contador:** `GBadge` con `count` y `label = fill(labels.repeated, { count })`, `size="sm"`, `variant="soft"`, `color="neutral"`; el número es `aria-hidden` y el nombre va en `g-badge__sr` (`badge.md`). Solo con `count > 1`.
-- **Acción:** `GBtn size="sm"` (variante y color los fija coco; bruno los aplica). **Cerrar:** `GBtn icon size="sm"` con `GIcon x`, `aria-label = labels.close`, `aria-describedby` → título (+ descripción). La acción va **antes** del cierre.
+- **Acción:** `GBtn size="sm" variant="outline" color="neutral"` (fijado por coco; `GToast.css` reasigna texto a `--g-color-text` y borde a `--g-color-border-control`). **Cerrar:** `GBtn icon size="sm" variant="ghost" color="neutral"` con `GIcon x`, `aria-label = labels.close`, `aria-describedby` → título (+ descripción). La acción va **antes** del cierre.
 - **Texto de cola** `g-toaster__queued`: texto plano, no vivo.
 - **Sin interactivos anidados** y **sin contenido del consumidor** (solo texto, #139).
 
@@ -290,7 +291,11 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 ## Movimiento
 
 - Entrada: desplazamiento corto desde el borde (derivado de `space`) + fundido; salida: fundido (y desplazamiento lateral si se deslizó); recolocación de la pila con transición. Tokens **existentes** `--g-duration-*` y `--g-ease-*` (#71); coco elige cuáles. Nada se repite ni parpadea (2.2.2).
-- `data-state` en el aviso: `entering` → `visible` → `leaving` (el aviso sale del DOM al terminar la transición o, si no hay transición, en el siguiente ciclo; bruno no espera eventos que con movimiento reducido no llegan).
+- `data-state` en el aviso: `entering` → `visible` **dos fotogramas después de insertar** (dos `requestAnimationFrame`) → `leaving`. El nodo se retira al acabar la transición o tras `--g-duration-press`; bruno no espera `transitionend` (con movimiento reducido o sin cambio no llega).
+- **Recolocación (FLIP):** la lista es un `TransitionGroup` (escribe `transform`; la entrada y el arrastre usan `translate`, no se pisan). `move-class` libre (p. ej. `is-moving`).
+- **Salida sin salto:** al pasar a `leaving`, el aviso sale del flujo y bruno escribe en línea **`--_toast-y`**: con `data-edge="top"`, su `offsetTop`; con `bottom`, `lista.clientHeight − offsetTop − offsetHeight` (px). El resto se recoloca con FLIP.
+- **Deslizar:** mientras se arrastra, `is-swiping` (sin transición) y `--_toast-swipe`. Al soltar: si cierra, `--_toast-swipe` = ± el ancho del aviso, se quita `is-swiping` y luego `leaving`; si no, `--_toast-swipe: 0px` y se quita `is-swiping`.
+- **Valores de coco:** entrada `space × 4` desde el borde + fundido; entrada y recolocación `--g-duration-press` + `--g-ease-out`; salida `--g-duration-fast` + `--g-ease-standard`; giro `--g-duration-spin`.
 - **`prefers-reduced-motion: reduce`:** solo fundido; sin desplazamiento ni giro del `loader-circle`.
 
 ## Tokens consumidos
@@ -300,12 +305,12 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 | Necesidad | Fuente |
 | --- | --- |
 | Superficie, sombra, radio, borde, relleno | `GSurface level="floating"` (`--g-shadow-2`, radio de `floating`, `--g-color-border`, escala de `padding`) |
-| Marca e icono de tipo | `--g-color-{info\|success\|warning\|danger}-text` y `-soft`, `--g-color-neutral*` (la forma de la marca, p. ej. borde de inicio sólido o discontinuo, la decide coco; nunca solo color) |
+| Marca e icono de tipo | Icono en `--g-color-{info\|success\|warning\|danger}-text`; `loading` en `--g-color-text-muted`. **Marca de borde de inicio solo en `error` (sólida) y `warning` (discontinua)**, de `space-1`; `info`, `success` y `neutral` sin marca (fijado por coco, #148) |
 | Texto | `--g-color-text`, `--g-color-text-muted`, `--g-font-ui`, `--g-text-{body-sm\|body\|caption}-{size\|line}`, `--g-text-title-weight` |
 | Foco | `--g-color-focus`, `--g-focus-width`, `--g-focus-offset` |
 | Movimiento | `--g-duration-*`, `--g-ease-*` |
-| Ancho máximo del aviso | **Derivado de `space`** (propuesta: `space × 90`, 360px con `space` 4; coco lo fija), y nunca mayor que el visor menos los márgenes |
-| Separación entre avisos y margen al borde | `--g-space-*` (propuesta: separación `space × 2`, margen `space × 4`, `space × 2` en móvil; coco lo fija) |
+| Ancho del aviso | `min(space × 90, 100% − 2 × margen)` (360px con `space` 4; fijado por coco) |
+| Separación entre avisos y margen al borde | Separación `space × 2`; margen `space × 4`, `space × 2` con `data-mobile` (fijados por coco) |
 | Objetivos | Los de `GBtn` (≥ 24px; ≥ 44px con `pointer: coarse`) |
 
 ## Clases (contrato entre bruno y coco)
@@ -314,21 +319,22 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 | --- | --- | --- |
 | `g-toaster` | Raíz (`popover`) | Siempre |
 | `g-toaster--position-{top\|bottom}-{start\|center\|end}` y `data-position` | Raíz | Siempre (el valor de `position`) |
-| `data-edge="top\|bottom"`, `data-align="start\|center\|end"` | Raíz | Siempre; **efectivos** (con `data-mobile`: `bottom`; con `data-flipped`: borde invertido) |
+| `data-edge="top\|bottom"`, `data-align="start\|center\|end"` | Raíz | **Siempre presentes** (el CSS los necesita); **efectivos** (con `data-mobile`: `bottom`; con `data-flipped`: borde invertido) |
 | `data-mobile` | Raíz | Visor < `space × 130` |
 | `data-flipped` | Raíz | Pasó al borde contrario para no tapar el foco |
 | `is-paused` | Raíz | Temporizadores en pausa (informativa; coco no la necesita) |
 | `g-toaster__live` | Canales vivos | Siempre (2) |
 | `g-toaster__region` | `section` | Siempre; `hidden` sin avisos visibles |
 | `g-toaster__list` | `ol` | Siempre |
-| `g-toaster__queued` | Texto de cola | Con cola y `labels.queued` |
+| `g-toaster__queued` | Texto de cola | Con cola y `labels.queued`; cuando se muestra, **sin `hidden`** (si no hay cola, no se renderiza) |
 | `g-toast` (+ clases de `GSurface floating`) | `li` | Cada aviso visible |
 | `g-toast--type-{neutral\|info\|success\|warning\|error\|loading}` y `data-type` | `li` | Siempre |
 | `data-state="entering\|visible\|leaving"` | `li` | Ciclo de vida |
 | `has-action`, `has-description` | `li` | Según contenido |
 | `is-loading` (+ `aria-busy="true"`) | `li` | `type: 'loading'` |
-| `is-swiping` y `--_toast-swipe` | `li` | Durante el arrastre |
-| `g-toast__icon`, `__content`, `__title`, `__type`, `__count`, `__description`, `__actions`, `__action`, `__close` | Partes | Según contenido |
+| `is-swiping` y `--_toast-swipe` | `li` | Durante el arrastre (ver «Movimiento») |
+| `--_toast-y` | `li` (en línea) | Al pasar a `leaving` (ver «Movimiento») |
+| `g-toast__icon` (con `.g-icon` hijo directo), `__content`, `__title`, `__type`, `__count`, `__description`, `__actions`, `__action`, `__close` | Partes | Según contenido |
 | `--_toaster-offset-top`, `--_toaster-offset-bottom` | Raíz (en línea) | Con `offset` |
 
 ## Avisos de desarrollo
