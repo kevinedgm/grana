@@ -14,7 +14,7 @@ Silencioso: superficie `floating` blanca (o `surface` del tema), sin fondos de c
 | Separación entre avisos | `space × 2` | 8px |
 | Margen al borde | `space × 4`; `space × 2` con `data-mobile` | 16 / 8px |
 | Márgenes reales | `max(margen, env(safe-area-inset-*))` + `--_toaster-offset-*` (inicio/fin de `safe-area` se intercambian con `:dir(rtl)`) | |
-| Altura de fila | `space × 7` (= `GBtn` sm): título centrado con acción y cierre; un aviso de una línea mide 44px | 28px |
+| Altura de fila | `space × 7` (= `GBtn` sm): título centrado con acción y cierre; un aviso de una línea mide 46px (44 + el borde de `GSurface`; auditoría, hallazgo 2) | 28px |
 | Relleno | bloque `space-2`; inicio `space-3`, fin `space-2` (el cierre es fantasma) | |
 | Icono / icono de cerrar | `space × 5` / `space × 4` | 20 / 16px |
 | Marca de inicio | `space-1` (resta del relleno: el icono no se mueve) | 4px |

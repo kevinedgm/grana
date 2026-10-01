@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GToaster",
   "tag": "g-toaster",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Avisos breves y no modales como servicio imperativo: la aplicación crea su gestor (createToaster, también plugin de Vue), lo usa con useToast() y monta una región <GToaster />. Región viva única y permanente (dos canales vivos fuera de la lista), nunca roba el foco (F8 va y vuelve, Esc cierra el aviso enfocado sin cerrar el diálogo anfitrión), tiempo pausable con resto conservado, cola FIFO con el error adelantado, deduplicación por id y por contenido, promesa, traslado al <dialog> modal superior y SSR sin DOM.",
   "contract": "design/contracts/toast.md",
