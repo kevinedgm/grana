@@ -1,6 +1,6 @@
 # Contrato · GToast (gestor `createToaster`, región `GToaster`)
 
-**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (`GToast.css`, `design/lab/toast/estilo.md`; #148) · pendiente de construcción · **Basado en:** `design/lab/toast/r01/` (kiwi; `brief.md`, `declaracion.md` con 16 puntos, `index.html` con el gestor de prueba) · **Compone:** `surface.md` (`level="floating"`), `btn.md`, `badge.md`, `GIcon` (interno) · **Convive con:** `dialog.md` (región dentro del modal superior; Esc)
+**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (`GToast.css`, `design/lab/toast/estilo.md`; #148) · construido por bruno (`GToast.meta.json`; reconciliado en #149) · pendiente de auditoría de coco · **Basado en:** `design/lab/toast/r01/` (kiwi; `brief.md`, `declaracion.md` con 16 puntos, `index.html` con el gestor de prueba) · **Compone:** `surface.md` (`level="floating"`), `btn.md`, `badge.md`, `GIcon` (interno) · **Convive con:** `dialog.md` (región dentro del modal superior; Esc)
 **Tag:** `g-toaster` (región) · `g-toast` (cada aviso, sin componente público) · **Categoría:** comunicación y estado
 
 Un **aviso breve y no modal** que confirma o informa del resultado de algo que el usuario acaba de hacer o que acaba de pasar en segundo plano («Cambios guardados», «No se pudo subir el archivo», «Proyecto archivado · Deshacer»). Aparece en una zona fija del visor, **no interrumpe la tarea y nunca recibe el foco por su cuenta**. Decisiones delegadas por el usuario («decide tú»): DECISIONS.md #138 y #139; propuestas de kiwi aprobadas y derivadas de estándar: #140 a #147.
@@ -183,7 +183,7 @@ Nunca solo color (WCAG 1.4.1): el tipo se distingue por la **forma del icono** y
 ## Anuncio (canales vivos)
 
 - El texto anunciado es: `[types.<type>:] título[.] [descripción] [repeated] [actionHint]`, unidos por espacios (se añade «.» al título si no termina en `.`, `!` o `?`).
-- Canal: el de `politeness` resuelta. Escritura: se **vacía** el canal y se escribe el texto en el siguiente ciclo (bruno fija el retardo, del orden de decenas de ms, y lo prueba), para que un texto idéntico se vuelva a anunciar. El canal se **vacía** pasado un tiempo (constante de bruno; el prototipo usa 5 s) para no dejar texto que el cursor virtual relea. **Pendiente de lector real.**
+- Canal: el de `politeness` resuelta. Escritura: se **vacía** el canal y se escribe el texto en el siguiente ciclo (bruno fija el retardo, del orden de decenas de ms, y lo prueba), para que un texto idéntico se vuelva a anunciar (`ANNOUNCE.delay` = 50 ms). **Los anuncios del mismo ciclo y del mismo canal se unen en un solo texto** (separados por espacio, en orden de llegada): escribir dos veces seguidas haría que el lector perdiera el primero (#149). El canal se **vacía** pasado `ANNOUNCE.clear` = 5000 ms para no dejar texto que el cursor virtual relea. **Pendiente de lector real.**
 - **Se anuncia** al hacerse visible (un aviso en cola, cuando sale de la cola), al deduplicarse (repetido) y al actualizarse con cambio de `type`, `title` o `description` (así la promesa anuncia su resultado). **No** se anuncia al cambiar solo `duration` o `action`.
 - **Antes de montar la región** (o en SSR) no se anuncia nada: los avisos visibles pendientes se anuncian tras montar la región y esperar un ciclo (la región debe estar en el árbol de accesibilidad antes del cambio).
 - La lista visible **no** tiene `aria-live`: si lo tuviera se leerían los nombres de los botones y los cambios de orden.
@@ -228,6 +228,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 - **Icono:** `.g-icon` es **hijo directo** de `.g-toast__icon` (el giro de `loading` lo selecciona así). Sin rol propio (es un elemento de lista). `id` estable derivado del `id` del aviso.
 - **Prefijo de tipo** `g-toast__type`: texto oculto accesible dentro del título; no visible.
 - **Contador:** `GBadge` con `count` y `label = fill(labels.repeated, { count })`, `size="sm"`, `variant="soft"`, `color="neutral"`; el número es `aria-hidden` y el nombre va en `g-badge__sr` (`badge.md`). Solo con `count > 1`.
+- **`g-btn__status` y `g-btn__loader` de `GBtn` se aceptan dentro del aviso** (#149): el aviso **nunca** pone `loading` en sus botones, así que la región `role="status"` de cada `GBtn` queda vacía siempre y no anuncia nada (una región viva vacía que no cambia no habla); el `loader` está oculto sin `loading`. `GBtn` no cambia: su región debe existir antes de la carga (#14). La lista sigue sin `aria-live` propio. Verificar con lector real que esas regiones vacías no añaden ruido al recorrer.
 - **Acción:** `GBtn size="sm" variant="outline" color="neutral"` (fijado por coco; `GToast.css` reasigna texto a `--g-color-text` y borde a `--g-color-border-control`). **Cerrar:** `GBtn icon size="sm" variant="ghost" color="neutral"` con `GIcon x`, `aria-label = labels.close`, `aria-describedby` → título (+ descripción). La acción va **antes** del cierre.
 - **Texto de cola** `g-toaster__queued`: texto plano, no vivo.
 - **Sin interactivos anidados** y **sin contenido del consumidor** (solo texto, #139).
@@ -253,7 +254,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 ## Apilado, límite y cola (#144)
 
 - Pila **desplegada**: sin montón 3D que se abra con hover (sería contenido que aparece al pasar, WCAG 1.4.13).
-- Visibles: `limit` (escritorio) o `mobileLimit` (móvil). El resto, en **cola FIFO**; un `error` **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola.
+- Visibles: `limit` (escritorio) o `mobileLimit` (móvil). **Al bajar el límite** (paso a móvil o `configure`), los visibles sobrantes (los más antiguos) vuelven **al principio de la cola**, en su orden, **conservando su tiempo restante**, y se **reanuncian** al volver a hacerse visibles (#149). El resto, en **cola FIFO**; un `error` **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola.
 - Un aviso en cola **no se anuncia** hasta hacerse visible y **su tiempo no corre**.
 - `g-toaster__queued` muestra cuántos esperan (`labels.queued`).
 
@@ -269,6 +270,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 
 - Cada mensaje es **String** (título), **Object** (opciones de aviso sin `type`) o **Function** (`(valor | error) => String | Object`). `loading` es obligatorio; sin `success` o `error`, ese desenlace **cierra** el aviso (motivo `api`) en vez de transformarlo.
 - Crea un aviso `type: 'loading'` (cortés, sin autocierre, `aria-busy`). Al resolverse pasa **en su sitio** a `success` (cortés, con autocierre); al rechazarse, a `error` (enérgico, sin autocierre). `options.id` permite fijar el `id`.
+- **`options.duration` solo aplica a `success`** (`loading` y `error` no se cierran solos). **Cada desenlace sustituye `description` y `action`**: lo que no traiga el mensaje del desenlace queda vacío (no se hereda la descripción de «Subiendo…») (#149).
 - **Devuelve la misma promesa `p`** (no la envuelve ni traga el rechazo: el rechazo sigue siendo del llamador).
 - **Cerrar el aviso en `loading` no cancela la promesa** y el desenlace **no lo vuelve a mostrar** (el usuario ya lo descartó). Si el `id` se reutiliza después, es un aviso nuevo.
 
@@ -277,7 +279,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 - `position` → `data-edge` (`top`/`bottom`) y `data-align` (`start`/`center`/`end`), clase `g-toaster--position-*`. Propiedades lógicas: `start`/`end` siguen el `dir` heredado por la raíz (el de `<html>`, o el del modal cuando la región está dentro).
 - **Móvil:** visor de ancho < `--g-space-1 × 130` (520px con `space` 4; el umbral de hoja de `GDialog`, #103), **medido** (excepción vigente #42/#56/#103) → `data-mobile`: **siempre abajo, ancho completo** menos el margen, `mobileLimit` visibles, la acción baja bajo el texto. Se reevalúa con `resize`.
 - **Márgenes:** `max(margen, env(safe-area-inset-*))` por lado, más `offset.top`/`offset.bottom`. `offset` llega al CSS como variables dinámicas en línea `--_toaster-offset-top` y `--_toaster-offset-bottom` (excepción justificada como `--_mark-*` de `GTabs`). `env()` exige `viewport-fit=cover` en la app (README).
-- **Deslizar para cerrar** (`swipe: true`): solo `pointerType` `touch` o `pen`, **horizontal** en cualquier sentido, `touch-action: pan-y` en el aviso (no roba el desplazamiento vertical). Cierra si el desplazamiento supera **un tercio del ancho** del aviso o la velocidad supera **0,5 px/ms**; si no, vuelve a su sitio. Mientras se arrastra: `is-swiping` y la variable dinámica `--_toast-swipe` (px). Constantes de comportamiento de bruno. **Alternativa no gestual siempre presente:** el botón cerrar (2.5.1).
+- **Deslizar para cerrar** (`swipe: true`): solo `pointerType` `touch` o `pen`, **horizontal** en cualquier sentido, `touch-action: pan-y` en el aviso (no roba el desplazamiento vertical). Cierra si el desplazamiento supera **un tercio del ancho** del aviso o la velocidad supera **0,5 px/ms con un recorrido de al menos el 10 % del ancho** (un toque rápido no cierra; #149); si no, vuelve a su sitio. Mientras se arrastra: `is-swiping` y la variable dinámica `--_toast-swipe` (px). Constantes de comportamiento de bruno. **Alternativa no gestual siempre presente:** el botón cerrar (2.5.1).
 - **No tapar el foco** (WCAG 2.4.11/2.4.12): si el elemento enfocado **fuera** de la región se solapa con la lista, la región pasa al **borde vertical contrario** (`data-flipped`, que invierte `data-edge`) mientras siga así; vuelve cuando el foco va a otra cosa. Con el foco **dentro** de la región no se mueve. Si en ningún borde queda libre, se queda donde estaba.
 - **Teclado virtual:** no se trata en v0.1 (no verificado).
 
@@ -291,8 +293,9 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 ## Movimiento
 
 - Entrada: desplazamiento corto desde el borde (derivado de `space`) + fundido; salida: fundido (y desplazamiento lateral si se deslizó); recolocación de la pila con transición. Tokens **existentes** `--g-duration-*` y `--g-ease-*` (#71); coco elige cuáles. Nada se repite ni parpadea (2.2.2).
-- `data-state` en el aviso: `entering` → `visible` **dos fotogramas después de insertar** (dos `requestAnimationFrame`) → `leaving`. El nodo se retira al acabar la transición o tras `--g-duration-press`; bruno no espera `transitionend` (con movimiento reducido o sin cambio no llega).
-- **Recolocación (FLIP):** la lista es un `TransitionGroup` (escribe `transform`; la entrada y el arrastre usan `translate`, no se pisan). `move-class` libre (p. ej. `is-moving`).
+- `data-state` en el aviso: `entering` → `visible` **dos fotogramas después de insertar** (dos `requestAnimationFrame`) → `leaving`. **Retirada por tiempo fijo:** el nodo sale del DOM tras la duración de transición **calculada** del propio aviso (`getComputedStyle`: duración + retardo máximos); si es 0 (movimiento reducido sin transición, jsdom), en el siguiente ciclo. No se espera `transitionend` (#149).
+- **El aviso en `leaving` es `inert`** (no recibe foco ni clics mientras sale; el foco ya se movió según «Foco tras cerrar»; #149).
+- **Recolocación (FLIP propio, no `TransitionGroup`):** bruno mide las posiciones antes y después del cambio y escribe `transform` en los avisos que se mueven (la entrada y el arrastre usan `translate`, no se pisan). `TransitionGroup` no sirve: decide la clase de movimiento por el primer hijo y un aviso en `leaving` (fuera del flujo) no transiciona `transform` (#149).
 - **Salida sin salto:** al pasar a `leaving`, el aviso sale del flujo y bruno escribe en línea **`--_toast-y`**: con `data-edge="top"`, su `offsetTop`; con `bottom`, `lista.clientHeight − offsetTop − offsetHeight` (px). El resto se recoloca con FLIP.
 - **Deslizar:** mientras se arrastra, `is-swiping` (sin transición) y `--_toast-swipe`. Al soltar: si cierra, `--_toast-swipe` = ± el ancho del aviso, se quita `is-swiping` y luego `leaving`; si no, `--_toast-swipe: 0px` y se quita `is-swiping`.
 - **Valores de coco:** entrada `space × 4` desde el borde + fundido; entrada y recolocación `--g-duration-press` + `--g-ease-out`; salida `--g-duration-fast` + `--g-ease-standard`; giro `--g-duration-spin`.
@@ -353,7 +356,7 @@ Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, `
 10. `error` con `politeness: 'polite'`.
 11. Falta `labels.region` o `labels.close` (al montar); falta `labels.types.<type>` al usar ese tipo; falta `labels.repeated`, `labels.queued` o `labels.actionHint` la primera vez que se necesitan.
 12. Descripción de más de **140 caracteres** o título de más de **60** (un aviso no es para textos largos; no se recorta).
-13. `hotkey` igual a `F6`, o con una sintaxis que no se puede interpretar.
+13. `hotkey` igual a `F6`, o con una sintaxis que no se puede interpretar: **se rechaza y se conserva el anterior** (en `createToaster`, el de defecto `F8`; #149).
 
 En producción no hay avisos ni comprobaciones extra.
 
