@@ -26,6 +26,8 @@
 @import url("../components/GSurface/GSurface.css");
 /* GCard compone GSurface (lee --g-surface-padding y reasigna sus alias): va después */
 @import url("../components/GCard/GCard.css");
+/* GToast: cada aviso es una GSurface floating (reasigna su relleno y su borde de inicio): va después de GSurface.css */
+@import url("../components/GToast/GToast.css");
 @import url("../components/GHelperScope/GHelperScope.css");
 @import url("../components/GHelper/GHelper.css");
 @import url("../components/GAvatarMotion/GAvatarMotion.css");

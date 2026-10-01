@@ -142,6 +142,19 @@ describe('GDialog · dismiss', () => {
     w.unmount()
   })
 
+  it('un Esc que un descendiente ya canceló (aviso, menú) no es para el diálogo; uno sin cancelar sí', () => {
+    const w = mountOpen({}, { slots: { default: '<button id="inner">x</button>' } })
+    const inner = w.find('#inner').element
+    inner.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.target.dataset.free) e.preventDefault() })
+    const ev = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    inner.dispatchEvent(ev)
+    expect(w.emitted('dismiss')).toBeFalsy()
+    inner.dataset.free = '1'
+    inner.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+    expect(w.emitted('dismiss')).toHaveLength(1)
+    w.unmount()
+  })
+
   it('preventDefault() en dismiss mantiene el diálogo abierto (no hay update:modelValue)', () => {
     const w = mountOpen({}, { attrs: { onDismiss: (e) => e.preventDefault() } })
     dlg(w).dispatchEvent(new Event('cancel', { cancelable: true }))

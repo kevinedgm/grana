@@ -12,7 +12,7 @@ test.describe('playground de la librería', () => {
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
     await ready(page)
-    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs', 'g-card']) {
+    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs', 'g-card', 'g-toaster']) {
       expect(await page.locator(`[class*="${c}"]`).count(), c).toBeGreaterThan(0)
     }
     expect(errors).toEqual([])
@@ -213,5 +213,57 @@ test.describe('playground de la librería', () => {
     await expect(page.locator('#cd-horizontal')).toHaveAttribute('data-size', 'wide')
     await expect(page.locator('#cd-horizontal')).toHaveAttribute('data-layout', 'row')
     expect(errors).toEqual([])
+  })
+  test('los avisos (GToaster): región viva previa, canales, no roba el foco, F8, Esc dentro del modal sin cerrarlo y traslado', async ({ page, browserName }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
+    page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
+    await ready(page)
+    const root = page.locator('.g-toaster')
+    // La región existe antes del primer aviso: popover abierto en body y dos canales vivos vacíos
+    await expect(root).toHaveCount(1)
+    expect(await root.evaluate((r) => ({ parent: r.parentElement.localName, open: r.matches(':popover-open') }))).toEqual({ parent: 'body', open: true })
+    await expect(root.locator('.g-toaster__live[role="status"][aria-live="polite"]')).toHaveText('')
+    await expect(root.locator('.g-toaster__live[role="alert"]')).toHaveText('')
+    await expect(root.locator('section.g-toaster__region')).toBeHidden()
+    // No roba el foco; el texto compuesto llega al canal cortés
+    const field = page.locator('#ts-field')
+    await field.scrollIntoViewIfNeeded()
+    await field.focus()
+    await page.evaluate(() => document.getElementById('ts-success').click())
+    await expect(root.locator('.g-toaster__live[role="status"]')).toHaveText('Correcto: Cambios guardados.')
+    await expect(field).toBeFocused()
+    // Error con acción: canal enérgico; F8 va a la acción del más reciente y vuelve
+    await page.evaluate(() => document.getElementById('ts-error').click())
+    await expect(root.locator('.g-toaster__live[role="alert"]')).toHaveText('Error: No se pudo sincronizar. Revisa la conexión. Pulsa F8 para Reintentar.')
+    await page.keyboard.press('F8')
+    await expect(root.locator('.g-toast__action')).toBeFocused()
+    await page.keyboard.press('F8')
+    await expect(field).toBeFocused()
+    await page.evaluate(() => window.toaster.clear())
+    await expect(root.locator('.g-toast')).toHaveCount(0)
+    // Modal: la región se traslada al <dialog>, sigue abierta y pulsable; Esc en el aviso no cierra el diálogo
+    await page.evaluate(() => document.getElementById('ts-dialog').click())
+    const dlg = page.locator('dialog.g-dialog[open]')
+    await expect(dlg).toBeVisible()
+    await dlg.locator('#ts-dlg-error').click()
+    await expect(dlg.locator('.g-toaster .g-toast')).toHaveCount(1)
+    expect(await root.evaluate((r) => r.matches(':popover-open'))).toBe(true)
+    await page.keyboard.press('F8')
+    await expect(dlg.locator('.g-toast__action')).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.g-toast[data-state="visible"]')).toHaveCount(0)
+    await expect(dlg).toBeVisible()
+    // Esc fuera de los avisos sí cierra el diálogo; la región vuelve a body y sigue abierta
+    await dlg.locator('input').first().focus()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('dialog.g-dialog[open]')).toHaveCount(0)
+    await expect.poll(() => root.evaluate((r) => r.parentElement.localName + ':' + r.matches(':popover-open'))).toBe('body:true')
+    // Cola: 6 → 3 visibles y texto de cola
+    await page.evaluate(() => document.getElementById('ts-burst').click())
+    await expect(root.locator('.g-toast')).toHaveCount(3)
+    await expect(root.locator('.g-toaster__queued')).toHaveText('3 más en espera')
+    await page.evaluate(() => window.toaster.clear())
+    expect(errors, browserName).toEqual([])
   })
 })

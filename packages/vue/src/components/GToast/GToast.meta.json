@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "name": "GToaster",
+  "tag": "g-toaster",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Avisos breves y no modales como servicio imperativo: la aplicación crea su gestor (createToaster, también plugin de Vue), lo usa con useToast() y monta una región <GToaster />. Región viva única y permanente (dos canales vivos fuera de la lista), nunca roba el foco (F8 va y vuelve, Esc cierra el aviso enfocado sin cerrar el diálogo anfitrión), tiempo pausable con resto conservado, cola FIFO con el error adelantado, deduplicación por id y por contenido, promesa, traslado al <dialog> modal superior y SSR sin DOM.",
+  "contract": "design/contracts/toast.md",
+  "prototype": "design/lab/toast/r01/",
+  "style": "packages/vue/src/components/GToast/GToast.css",
+  "exports": [
+    { "name": "createToaster", "signature": "createToaster(options?) → Toaster", "purpose": "Crea el gestor de la aplicación; es plugin (app.use(toaster) hace provide(toasterKey, toaster))" },
+    { "name": "useToast", "signature": "useToast() → Toaster | undefined", "purpose": "Inyecta el gestor provisto; sin gestor o fuera de setup: aviso en desarrollo y undefined" },
+    { "name": "GToaster", "signature": "<GToaster :toaster? />", "purpose": "Pinta la región del gestor (una por gestor; la segunda no pinta nada)" },
+    { "name": "toasterKey", "signature": "InjectionKey (Symbol)", "purpose": "provide manual (pruebas, microfrontends)" }
+  ],
+  "options": [
+    { "name": "position", "type": "String", "default": "bottom-end", "values": ["top-start", "top-center", "top-end", "bottom-start", "bottom-center", "bottom-end"] },
+    { "name": "limit", "type": "Number", "default": 3, "values": "entero ≥ 1" },
+    { "name": "mobileLimit", "type": "Number", "default": 1, "values": "entero ≥ 1" },
+    { "name": "duration", "type": "String | Number", "default": "auto", "values": "'auto' · ms > 0 · Infinity" },
+    { "name": "autoClose", "type": "Boolean", "default": true },
+    { "name": "hotkey", "type": "String | false", "default": "F8", "values": "sintaxis de aria-keyshortcuts; F6 se rechaza" },
+    { "name": "swipe", "type": "Boolean", "default": true },
+    { "name": "offset", "type": "Object", "default": "{}", "values": "{ top?, bottom? }: Number (px) o longitud CSS" },
+    { "name": "labels", "type": "Object", "default": "{}", "values": "ver labels" }
+  ],
+  "toastOptions": [
+    { "name": "id", "type": "String | Number", "default": "toast-<n>" },
+    { "name": "type", "type": "String", "default": "neutral", "values": ["neutral", "info", "success", "warning", "error", "loading"] },
+    { "name": "title", "type": "String", "required": true },
+    { "name": "description", "type": "String" },
+    { "name": "action", "type": "Object", "values": "{ label: String, onClick(toast) }; una como máximo" },
+    { "name": "duration", "type": "String | Number", "default": "la del gestor", "values": "'auto' · ms · Infinity; se ignora en error, loading y con action" },
+    { "name": "politeness", "type": "String", "default": "según type", "values": ["polite", "assertive"] },
+    { "name": "onDismiss", "type": "Function", "values": "(reason, toast) => void; reason ∈ timeout, close, escape, swipe, action, api, clear" }
+  ],
+  "methods": [
+    { "name": "show", "signature": "show(options) → id | null" },
+    { "name": "info · success · warning · error", "signature": "(title, options?) → id" },
+    { "name": "promise", "signature": "promise(p, { loading, success, error }, options?) → p" },
+    { "name": "update", "signature": "update(id, patch) → Boolean" },
+    { "name": "dismiss", "signature": "dismiss(id?)" },
+    { "name": "clear", "signature": "clear()" },
+    { "name": "configure", "signature": "configure(patch)" },
+    { "name": "toasts", "signature": "propiedad de solo lectura (reactiva): Toast[] congelados" },
+    { "name": "install", "signature": "install(app)" }
+  ],
+  "props": [
+    { "name": "toaster", "type": "Object", "default": null, "values": "gestor de createToaster; por defecto, el inyectado" }
+  ],
+  "events": [],
+  "slots": [],
+  "labels": ["region", "close", "types.info", "types.success", "types.warning", "types.error", "types.loading", "repeated", "queued", "actionHint"],
+  "markup": {
+    "root": "g-toaster g-toaster--position-*; popover=\"manual\" abierto siempre; data-position, data-edge, data-align (efectivos, siempre), data-mobile, data-flipped, is-paused; --_toaster-offset-top/-bottom en línea con offset",
+    "live": "2 × g-toaster__live (role=status aria-live=polite aria-atomic=true; role=alert aria-atomic=true), fuera de la section",
+    "region": "section.g-toaster__region (aria-label = labels.region, aria-keyshortcuts = hotkey; hidden sin avisos) > ol.g-toaster__list; p.g-toaster__queued con cola y labels.queued",
+    "toast": "li = GSurface as=li level=floating padding=sm (g-surface g-surface--level-floating g-surface--tone-surface g-surface--padding-sm g-surface--density-default) + g-toast g-toast--type-*; data-type, data-state (entering → visible → leaving), has-action, has-description, is-loading + aria-busy, is-swiping + --_toast-swipe, --_toast-y al salir, inert al salir",
+    "parts": "g-toast__icon (aria-hidden) > svg.g-icon hijo directo; g-toast__content > p.g-toast__title (> span.g-toast__type oculto + GBadge.g-toast__count con count > 1) + p.g-toast__description; g-toast__actions > GBtn.g-toast__action (sm outline neutral) + GBtn.g-toast__close (icon sm ghost neutral, GIcon x, aria-label = labels.close, aria-describedby = título + descripción)"
+  },
+  "tokens": [],
+  "icons": ["info", "circle-check", "triangle-alert", "circle-alert", "loader-circle", "x"],
+  "states": ["entering", "visible", "leaving", "queued", "paused", "swiping", "loading", "mobile", "flipped", "inside-modal"],
+  "constants": {
+    "TOAST_DURATION": "{ min: 5000, base: 2000, perChar: 60, max: 12000 } ms",
+    "RESUME_MIN": "1000 ms",
+    "ANNOUNCE": "{ delay: 50, clear: 5000 } ms",
+    "SWIPE": "{ distance: 1/3 del ancho, velocity: 0.5 px/ms (con al menos 10 % del ancho) }",
+    "TEXT_LIMITS": "{ title: 60, description: 140 } (avisos de desarrollo)",
+    "MOBILE_SPACES": "130 (visor < --g-space-1 × 130)"
+  },
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
+    "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): lectura tras vaciar y reescribir el canal, interrupción del alert, que el traslado al modal no repita ni pierda anuncios, retardos de escritura (50 ms) y vaciado (5 s), duplicación con el cursor virtual",
+    "Cada GBtn del aviso trae su g-btn__status (role=status, vacío: el aviso nunca pone loading en sus botones): la lista no tiene aria-live explícito, pero sí esos role=status vacíos heredados de GBtn",
+    "Táctil real (inercia, gesto «atrás» del sistema en los bordes), teclado virtual, varios modales apilados, un GMenu abierto sobre un aviso, rendimiento del MutationObserver en apps grandes, 2.4.12 en general"
+  ]
+}

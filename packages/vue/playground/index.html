@@ -622,6 +622,38 @@
         </g-card>
       </ul>
     </div>
+    <h2>Avisos (GToaster)</h2>
+    <div id="toast-demo">
+      <p style="max-width:70ch;color:var(--g-color-text-muted)">Los avisos no reciben el foco: <b>F8</b> lleva a la acción del más reciente y vuelve; <b>Esc</b> cierra el enfocado. Los anuncios van a dos canales vivos permanentes.</p>
+      <div class="row">
+        <g-btn variant="outline" id="ts-success" @click="toast.success('Cambios guardados')">Éxito</g-btn>
+        <g-btn variant="outline" id="ts-info" @click="toast.info('Nueva versión disponible', { description: 'Recarga para usar la última versión.' })">Información</g-btn>
+        <g-btn variant="outline" id="ts-warning" @click="toast.warning('Sin conexión', { description: 'Los cambios se guardarán al volver.' })">Advertencia</g-btn>
+        <g-btn variant="outline" id="ts-error" @click="toast.error('No se pudo sincronizar', { description: 'Revisa la conexión.', action: { label: 'Reintentar', onClick: () => (tsLog = 'acción: Reintentar') } })">Error con acción</g-btn>
+        <g-btn variant="outline" id="ts-undo" @click="toast.show({ title: 'Proyecto archivado', action: { label: 'Deshacer', onClick: () => (tsLog = 'acción: Deshacer') }, onDismiss: (r) => (tsLog = 'cerrado: ' + r) })">Neutral con Deshacer</g-btn>
+        <g-btn variant="outline" id="ts-promise" @click="tsPromise(true)">Promesa que se cumple</g-btn>
+        <g-btn variant="outline" id="ts-promise-ko" @click="tsPromise(false)">Promesa que falla</g-btn>
+        <g-btn variant="outline" id="ts-repeat" @click="toast.success('Enlace copiado')">Copiar (repetible)</g-btn>
+        <g-btn variant="outline" id="ts-burst" @click="['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis'].forEach((n) => toast.info('Archivo ' + n + ' movido'))">Ráfaga de 6</g-btn>
+        <g-btn variant="ghost" id="ts-clear" @click="toast.dismiss()">Cerrar todos</g-btn>
+        <g-btn variant="outline" id="ts-dialog" @click="dlg.toast = true">Diálogo con avisos</g-btn>
+      </div>
+      <div class="row">
+        <label>Posición <select id="ts-pos" v-model="tsPos" @change="toast.configure({ position: $event.target.value })"><option v-for="p in ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end']" :key="p">{{ p }}</option></select></label>
+        <label><input type="checkbox" v-model="tsKeep" @change="toast.configure({ autoClose: !$event.target.checked })"> No cerrar solos</label>
+        <label>Campo <input id="ts-field" value="Para probar F8"></label>
+        <span id="ts-log">{{ tsLog }}</span>
+      </div>
+    </div>
+
+    <g-dialog v-model="dlg.toast" title="Editar proyecto" description="Los avisos se muestran dentro del diálogo; Esc en un aviso no lo cierra." close-label="Cerrar">
+      <g-input label="Nombre" model-value="Informe anual" block></g-input>
+      <template #footer>
+        <g-btn variant="outline" id="ts-dlg-error" @click="toast.error('No se pudo guardar', { description: 'El nombre ya existe.', action: { label: 'Reintentar' } })">Simular error</g-btn>
+        <g-btn id="ts-dlg-save" @click="toast.success('Proyecto guardado')">Guardar</g-btn>
+      </template>
+    </g-dialog>
+
     <h2>Widgets (GWidget, GWidgetGrid)</h2>
     <div class="col" style="max-width:1100px">
       <div class="row" style="align-items:center">
@@ -678,6 +710,7 @@
         </template>
       </g-widget-config>
     </div>
+    <g-toaster></g-toaster>
 </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -694,9 +727,27 @@
       template: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
       computed: { paths() { return LUCIDE[this.name] || '' } }
     }
+    // Avisos: el gestor es de la aplicación (Grana no trae instancia global ni textos por defecto)
+    const toaster = Grana.createToaster({
+      labels: {
+        region: 'Notificaciones ({hotkey})',
+        close: 'Cerrar notificación',
+        types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' },
+        repeated: '{count} veces',
+        queued: '{count} más en espera',
+        actionHint: 'Pulsa {hotkey} para {action}.'
+      }
+    })
+    window.toaster = toaster
     createApp({
       setup() {
-        const dlg = reactive({ dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false })
+        const toast = Grana.useToast()
+        const tsLog = ref('')
+        const tsPos = ref('bottom-end')
+        const tsKeep = ref(false)
+        const later = (ok) => new Promise((res, rej) => setTimeout(() => (ok ? res('informe-anual.pdf') : rej(new Error('413'))), 1500))
+        const tsPromise = (ok) => toast.promise(later(ok), { loading: 'Subiendo informe…', success: (n) => ({ title: 'Informe subido', description: n }), error: 'No se pudo subir el informe' }).catch(() => {})
+        const dlg = reactive({ toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false })
         const dlgLog = ref([])
         const dlgName = ref('')
         const dlgMail = ref('')
@@ -1041,9 +1092,9 @@
             ? ":root { --g-radius-xs: 6px; --g-radius-sm: 9px; --g-radius-md: 12px; --g-radius-lg: 17px; --g-radius-xl: 24px; --g-radius-shape: var(--g-radius-pill); } :root, [data-theme=\"light\"] { --g-color-brand: #0B1F4D; --g-color-brand-strong: #1E3464; --g-color-brand-soft: #E9F0FF; --g-color-brand-text: #0B1F4D; --g-color-on-brand: #FFFFFF; --g-color-on-brand-soft: #0B1F4D; --g-color-accent: #6D28D9; --g-color-accent-strong: #5700B8; --g-color-accent-soft: #F0EEFF; --g-color-accent-text: #6D28D9; --g-color-on-accent: #FFFFFF; --g-color-on-accent-soft: #6D28D9; --g-color-surface-sunken: #F4F6FB; --g-color-text: #181A1D; --g-color-text-muted: #535559; --g-color-text-subtle: #6C6E72; --g-color-border-control: #5B6B8C; --g-color-border: rgb(24 26 29 / 0.08); --g-color-border-strong: rgb(24 26 29 / 0.16); --g-color-neutral: #696B6F; --g-color-neutral-strong: #535558; --g-color-neutral-soft: #EFF0F1; --g-color-neutral-text: #696B6F; --g-color-on-neutral: #FFFFFF; --g-color-on-neutral-soft: #696B6F; } @media (prefers-color-scheme: dark) { :root:not([data-theme=\"light\"]) { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; } } [data-theme=\"dark\"] { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; }"
             : ''
         }
-        return { cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
-    }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
+    }).component('LucideIcon', LucideIcon).use(Grana).use(toaster).mount('#app')
   </script>
 </body>
 </html>

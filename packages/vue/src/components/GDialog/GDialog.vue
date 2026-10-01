@@ -91,6 +91,8 @@ function markEsc() {
   setTimeout(() => { escHandled = false }, 0)
 }
 function onKeydown(event) {
+  // Un descendiente que ya trató Esc (un aviso de GToaster, GMenu, GSelect) lo cancela: no es para el diálogo
+  if (event.defaultPrevented) return
   if (event.key !== 'Escape' || event.isComposing) return
   event.preventDefault()
   markEsc()
