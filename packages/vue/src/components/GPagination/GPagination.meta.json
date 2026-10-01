@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "name": "GPagination",
+  "tag": "g-pagination",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Paginación de una colección: primera, última, la actual y sus vecinas con elipsis; forma compacta («Página N de M») cuando no caben los botones.",
+  "contract": "design/contracts/pagination.md",
+  "prototype": "design/lab/table/r01/",
+  "style": "packages/vue/src/components/GPagination/GPagination.css",
+  "props": [
+    {
+      "name": "page",
+      "type": "Number",
+      "default": 1
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "default": 0
+    },
+    {
+      "name": "pageSize",
+      "type": "Number",
+      "default": 10
+    },
+    {
+      "name": "siblings",
+      "type": "Number",
+      "default": 1
+    },
+    {
+      "name": "responsive",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "full",
+        "compact"
+      ]
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "update:page",
+      "payload": "número",
+      "trigger": "El usuario cambia de página"
+    }
+  ],
+  "slots": [],
+  "tokens": [
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border-strong",
+    "--g-color-surface-sunken",
+    "--g-color-focus",
+    "--g-radius-md",
+    "--g-space-1..4",
+    "--g-text-body-sm-{size|line}",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-{width|offset}"
+  ],
+  "states": [
+    "full",
+    "compact",
+    "current",
+    "disabled"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real",
+    "Firefox y Safari",
+    "Táctil real y zoom al 200%"
+  ]
+}

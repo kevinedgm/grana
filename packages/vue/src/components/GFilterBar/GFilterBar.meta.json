@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "name": "GFilterBar",
+  "tag": "g-filter-bar",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Filtros no fijos al estilo Stripe: chips sugeridos, «Agregar filtro», editor de regla + valor (popover o hoja) y chips aplicados; produce filters como datos (Y entre filtros, O dentro de una lista).",
+  "contract": "design/contracts/filter-bar.md",
+  "prototype": "design/lab/table/r02/",
+  "style": "packages/vue/src/components/GFilterBar/GFilterBar.css",
+  "props": [
+    {
+      "name": "fields",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "filters",
+      "type": "Array",
+      "default": []
+    },
+    {
+      "name": "count",
+      "type": "Number",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "update:filters",
+      "payload": "filtros",
+      "trigger": "Aplicar, quitar o limpiar"
+    }
+  ],
+  "slots": [],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-color-primary",
+    "--g-radius-{sm|md|lg|pill}",
+    "--g-shadow-2",
+    "--g-space-1..4",
+    "--g-text-{caption|body-sm}-{size|line}",
+    "--g-text-{title|action}-weight",
+    "--g-border-width",
+    "--g-focus-{width|offset}",
+    "--g-duration-{fast|press}",
+    "--g-ease-{standard|out}"
+  ],
+  "states": [
+    "suggested",
+    "applied",
+    "editor-popover",
+    "editor-sheet",
+    "error"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real",
+    "Firefox y Safari",
+    "Táctil real y zoom al 200%",
+    "Constructor de reglas Y/O anidado, filtros en la URL (fuera de v0.1)"
+  ]
+}
