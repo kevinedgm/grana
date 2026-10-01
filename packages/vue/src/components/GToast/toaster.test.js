@@ -317,10 +317,23 @@ describe('GToast · cola, límite y deduplicación', () => {
     const { t } = make()
     t.info('a'); t.info('b'); t.info('c')
     t[INTERNAL].setMobile(true)
-    expect(ids(t, 'visible')).toEqual(['a'])
-    expect(ids(t, 'queued')).toEqual(['b', 'c'])
+    expect(ids(t, 'visible')).toEqual(['c'])
+    expect(ids(t, 'queued')).toEqual(['a', 'b'])
     t[INTERNAL].setMobile(false)
-    expect(ids(t, 'visible')).toEqual(['a', 'b', 'c'])
+    expect(ids(t, 'visible').sort()).toEqual(['a', 'b', 'c'])
+  })
+
+  it('al bajar el límite, un error sigue visible y los errores que vuelven a la cola van delante', () => {
+    const { t } = make({ limit: 4 })
+    t.info('a'); t.error('e1'); t.info('b'); t.error('e2')
+    t.configure({ limit: 1 })
+    expect(ids(t, 'visible')).toEqual(['e2'])
+    expect(ids(t, 'queued').sort()).toEqual(['a', 'b', 'e1'])
+    // orden de la cola: lo que se promueve al cerrar el visible
+    const next = () => { t.dismiss(t.toasts.find((x) => x.state === 'visible').id); return ids(t, 'visible') }
+    expect(next()).toEqual(['e1'])
+    expect(next()).toEqual(['a'])
+    expect(next()).toEqual(['b'])
   })
 
   it('mismo contenido: count + 1, mismo id, reinicia el tiempo; action y onDismiss nuevos sustituyen', () => {

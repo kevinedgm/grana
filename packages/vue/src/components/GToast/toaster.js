@@ -292,10 +292,12 @@ export function createToaster(options = {}) {
       if (r && r.state === 'queued') reveal(r)
     }
   }
-  // Si el límite baja (móvil), los visibles que sobran vuelven al principio de la cola conservando su resto (FIFO: se quedan los más antiguos)
+  // Si el límite baja (móvil), se quedan visibles los errores y, después, los más recientes; los sobrantes
+  // vuelven al principio de la cola conservando su resto, en su orden y con los errores delante (contrato, #150)
   function demote() {
-    const vis = visible().sort((a, b) => a.revealSeq - b.revealSeq)
-    const extra = vis.slice(limit())
+    const isErr = (r) => (r.type === 'error' ? 1 : 0)
+    const keepFirst = visible().sort((a, b) => isErr(b) - isErr(a) || b.revealSeq - a.revealSeq)
+    const extra = keepFirst.slice(limit()).sort((a, b) => isErr(b) - isErr(a) || a.revealSeq - b.revealSeq)
     for (let i = extra.length - 1; i >= 0; i--) {
       stopTimer(extra[i], true)
       enqueue(extra[i], true)

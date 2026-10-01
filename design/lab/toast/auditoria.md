@@ -64,3 +64,7 @@ La marca y los iconos leen `-text` de la familia semántica, que los temas gener
 - **Teclado virtual**, **varios modales apilados**, un **`GMenu` abierto sobre un aviso**, **zoom al 200 %** real (cubierto de forma aproximada por la prueba a 320px).
 - **`forced-colors` real de Windows** y `prefers-contrast: more` con un tema de alto contraste real (solo emulados).
 - **Rendimiento del `MutationObserver`** en una aplicación grande.
+
+## Seguimiento
+
+- **Hallazgo 1, cerrado** (bruno, decisión #150): `demote` deja visibles los `error` y después los más recientes; los sobrantes vuelven al principio de la cola con los `error` delante. Prueba nueva en `toaster.test.js` (orden de la cola comprobado por promoción). 1172 pruebas, build y compuertas bien.

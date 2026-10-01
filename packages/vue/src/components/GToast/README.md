@@ -133,7 +133,7 @@ toast.update('sync', { description: '12 archivos' })                 // true si 
 // 3 visibles (limit) y «3 más en espera» (labels.queued)
 ```
 
-Visibles a la vez: `limit` (3) en escritorio y `mobileLimit` (1) en móvil; el resto espera en **cola FIFO**, sin anunciarse y sin que corra su tiempo. Un `error` nuevo **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola, que entonces se anuncia. La pila está siempre desplegada (sin montón que se abra al pasar el puntero).
+Visibles a la vez: `limit` (3) en escritorio y `mobileLimit` (1) en móvil; el resto espera en **cola FIFO**, sin anunciarse y sin que corra su tiempo. Un `error` nuevo **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola, que entonces se anuncia. Al bajar el límite (paso a móvil o `configure`) se quedan visibles los `error` y después los más recientes; los demás vuelven al principio de la cola, con los `error` delante y su tiempo restante. La pila está siempre desplegada (sin montón que se abra al pasar el puntero).
 
 ### Posiciones, móvil y `safe-area`
 
@@ -278,7 +278,6 @@ Importar `@grana/vue` y llamar a `createToaster` no toca `document`, `window` ni
 
 - **Sin historial ni bandeja:** un aviso cerrado no se recupera (`toaster.toasts` solo tiene visibles y en cola).
 - **Solo texto:** sin enlaces en la descripción, avatar, iconos propios, slots ni varias acciones.
-- **Al bajar el límite** (paso a móvil, `configure`), hoy se quedan visibles los avisos más antiguos y los recientes vuelven a la cola, también un `error` recién mostrado; el contrato dice lo contrario. Pendiente de decisión (auditoría, hallazgo 1).
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): la lectura tras vaciar y reescribir el canal, la interrupción del `alert`, que el traslado al modal no repita ni pierda anuncios y que las regiones vacías de los botones no añadan ruido. Es el riesgo principal.
 - **Sin verificar en táctil real** (inercia del gesto, gesto «atrás» del sistema en los bordes), con **teclado virtual** (la región no se recoloca sobre él), con **varios modales apilados** ni con un `GMenu` abierto sobre un aviso; `safe-area` solo emulada en Chromium.
 - **Rendimiento:** un `MutationObserver` sobre todo el documento filtrado al atributo `open` (para seguir los modales); sin medir en aplicaciones grandes.

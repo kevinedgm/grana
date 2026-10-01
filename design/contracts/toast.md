@@ -254,7 +254,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 ## Apilado, límite y cola (#144)
 
 - Pila **desplegada**: sin montón 3D que se abra con hover (sería contenido que aparece al pasar, WCAG 1.4.13).
-- Visibles: `limit` (escritorio) o `mobileLimit` (móvil). **Al bajar el límite** (paso a móvil o `configure`), los visibles sobrantes (los más antiguos) vuelven **al principio de la cola**, en su orden, **conservando su tiempo restante**, y se **reanuncian** al volver a hacerse visibles (#149). El resto, en **cola FIFO**; un `error` **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola.
+- Visibles: `limit` (escritorio) o `mobileLimit` (móvil). **Al bajar el límite** (paso a móvil o `configure`) se quedan visibles **los `error` primero y, después, los más recientes**; los sobrantes vuelven **al principio de la cola**, en su orden y **con los `error` delante**, **conservando su tiempo restante**, y se **reanuncian** al volver a hacerse visibles (#149, #150). El resto, en **cola FIFO**; un `error` **se adelanta** al primer puesto de la cola (no expulsa a ningún visible). Cerrar un visible promueve el primero de la cola.
 - Un aviso en cola **no se anuncia** hasta hacerse visible y **su tiempo no corre**.
 - `g-toaster__queued` muestra cuántos esperan (`labels.queued`).
 
