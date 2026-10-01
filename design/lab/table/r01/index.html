@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTable · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--sp:4px;--pad:12px}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:28px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:80ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:86ch}
+.ctl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.frame{border:1px dashed var(--wf-3);padding:12px;background:#fff;resize:horizontal;overflow:auto;max-inline-size:100%}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button{font:inherit}
+.g-icon{inline-size:16px;block-size:16px;vertical-align:middle}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+
+/* ============ GTable (estructura) ============ */
+.gt{container-type:inline-size;--_pad:calc(var(--pad) * var(--_d,1))}
+.gt[data-density=comfortable]{--_d:1.35}.gt[data-density=compact]{--_d:.66}
+.gt__bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-block-size:40px;margin-bottom:8px;font-size:14px}
+.gt__bar [data-cards-only]{display:none}
+.gt__scroll{max-block-size:var(--_maxh,none);overflow:auto}
+.gt table{inline-size:100%;border-collapse:separate;border-spacing:0}
+.gt caption{text-align:start;font-weight:600;padding:0 0 8px}
+.gt th{position:sticky;top:0;z-index:1;background:#fff;text-align:start;font-weight:600;font-size:13px;color:var(--wf-2);padding:var(--_pad);border-bottom:1px solid var(--wf-ink);white-space:nowrap}
+.gt td{padding:var(--_pad);border-bottom:1px solid var(--wf-line);vertical-align:middle}
+.gt .num{text-align:end;font-variant-numeric:tabular-nums}
+.gt tbody tr:hover td{background:var(--wf-fill-2)}
+.gt tr.is-selected td{background:var(--wf-fill)}
+.gt .sel{inline-size:1%;}
+.gt input[type=checkbox]{inline-size:18px;block-size:18px;margin:0;vertical-align:middle}
+.gt .act{inline-size:1%;text-align:end}
+.sortbtn{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+.sortbtn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+th[aria-sort] .sortbtn{color:var(--wf-ink)}
+/* Columna compuesta: leading + título + subtítulo */
+.cmp{display:flex;gap:10px;align-items:center;min-inline-size:0}
+.cmp__lead{flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--wf-fill);display:grid;place-items:center;font-size:12px;font-weight:600}
+.cmp__t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp__s{font-size:13px;color:var(--wf-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp__txt{min-inline-size:0;display:flex;flex-direction:column}
+/* Celdas ricas */
+.badge{display:inline-flex;gap:6px;align-items:center;font-size:13px;padding:1px 8px;border:1px solid var(--wf-2);border-radius:999px}
+.badge::before{content:"";inline-size:8px;block-size:8px;background:var(--wf-ink)}
+.badge[data-s=activo]::before{border-radius:50%}.badge[data-s=pausado]::before{background:none;border:2px solid var(--wf-ink);border-radius:50%;inline-size:4px;block-size:4px}.badge[data-s=vencido]::before{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.bar{display:flex;gap:8px;align-items:center}.bar__track{display:block;flex:1;min-inline-size:48px;block-size:6px;background:var(--wf-fill);border-radius:3px}.bar__fill{display:block;block-size:100%;background:var(--wf-ink);border-radius:3px}
+.kebab{all:unset;cursor:pointer;display:inline-grid;place-items:center;inline-size:32px;block-size:32px;border-radius:8px}
+.kebab:focus-visible{outline:3px solid var(--wf-ink)}
+.menu{position:absolute;background:#fff;border:1px solid var(--wf-2);border-radius:8px;padding:4px;margin:0;list-style:none;z-index:5;box-shadow:0 8px 20px -8px rgb(0 0 0/.3)}
+.menu button{all:unset;display:block;padding:6px 12px;cursor:pointer}.menu button:focus-visible{outline:2px solid var(--wf-ink)}
+.cell-label{display:none}
+/* Filas como superficie: variante «surface» (filas separadas y redondeadas) */
+.gt[data-appearance=surface] table{border-spacing:0 6px}
+.gt[data-appearance=surface] td{border-bottom:0;background:#fff;border-block:1px solid var(--wf-line)}
+.gt[data-appearance=surface] td:first-child{border-inline-start:1px solid var(--wf-line);border-radius:10px 0 0 10px}
+.gt[data-appearance=surface] td:last-child{border-inline-end:1px solid var(--wf-line);border-radius:0 10px 10px 0}
+.gt[data-appearance=surface] th{border-bottom:0}
+/* Estados */
+.skel{display:block;block-size:12px;border-radius:6px;background:var(--wf-fill)}
+.empty{text-align:center;color:var(--wf-2);padding:32px!important}
+
+/* ============ Modo tarjetas (lo activa el componente por el ancho del contenedor) ============ */
+.gt[data-mode=cards] .gt__bar [data-cards-only]{display:inline-flex}
+.gt[data-mode=cards] .gt__scroll{max-block-size:none}
+.gt[data-mode=cards] thead{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)} /* oculto a la vista, presente para los lectores */
+.gt[data-mode=cards] table,.gt[data-mode=cards] tbody{display:block}
+.gt[data-mode=cards] tbody tr{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;padding:12px;margin-bottom:8px;border:1px solid var(--wf-line);border-radius:12px;background:#fff}
+.gt[data-mode=cards] td{display:flex;gap:8px;justify-content:space-between;align-items:baseline;padding:2px 0;border:0;background:none!important;grid-column:1 / -1;text-align:start}
+.gt[data-mode=cards] td.sel{grid-column:1;grid-row:1;align-self:center}
+.gt[data-mode=cards] td.cmpcell{grid-column:2;grid-row:1;padding-bottom:8px}
+.gt[data-mode=cards] td.act{grid-column:3;grid-row:1}
+.gt[data-mode=cards] td:not(.sel):not(.cmpcell):not(.act) .cell-label{display:inline;color:var(--wf-2);font-size:13px}
+.gt[data-mode=cards] td.num{text-align:start}
+.gt[data-mode=cards] .bar{flex:1;max-inline-size:60%}
+.gt[data-mode=cards] tr.is-selected{background:var(--wf-fill);border-color:var(--wf-ink)}
+.gt[data-mode=cards] .cmp__t,.gt[data-mode=cards] .cmp__s{white-space:normal}
+
+/* ============ GPagination ============ */
+.gp{display:flex;gap:6px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px;font-size:14px;container-type:inline-size}
+.gp ol{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.gp__b{all:unset;cursor:pointer;min-inline-size:32px;block-size:32px;padding:0 8px;display:inline-grid;place-items:center;border-radius:8px;border:1px solid transparent;box-sizing:border-box}
+.gp__b[aria-current=page]{border-color:var(--wf-ink);font-weight:700}
+.gp__b:disabled,.gp__b[aria-disabled=true]{opacity:.4;cursor:default}
+.gp__b:focus-visible{outline:3px solid var(--wf-ink)}
+.gp__compact{display:none}
+@container (max-width: 420px){.gp ol{display:none}.gp__compact{display:inline}}
+@media (pointer:coarse){.gp__b,.kebab{min-inline-size:44px;block-size:44px}.gt input[type=checkbox]{inline-size:24px;block-size:24px}}
+.log{font:12px ui-monospace,monospace;color:var(--wf-2)}
+</style>
+</head>
+<body>
+<main>
+<h1>GTable + GPagination · r01</h1>
+<p class="meta">Wireframe F2 · kit neutral. Modelo de columnas, celdas ricas, orden, selección, acciones, paginación y tarjetas en móvil; el estilo final es de coco. Arrastra la esquina del marco para cambiar su ancho.</p>
+<div class="wf-note"><b>Modelo:</b> los <b>campos</b> son los datos (<code>nombre</code>, <code>correo</code>, <code>plan</code>…); las <b>columnas</b> son lo que se ve. La columna «Cliente» compone tres campos: <code>leading</code> (iniciales), <code>title</code> (<code>nombre</code>) y <code>subtitle</code> (<code>correo</code>). Una sola definición produce la tabla y las tarjetas: en tarjetas, la columna compuesta es el encabezado y el resto son «etiqueta: valor». <b>Es el mismo <code>&lt;table&gt;</code></b> con roles explícitos; el modo lo decide el ancho del contenedor.</div>
+
+<div class="ctl">
+  <label>Apariencia <select id="appearance"><option value="lines">líneas</option><option value="surface">superficie (filas tarjeta)</option></select></label>
+  <label>Densidad <select id="density"><option>default</option><option>comfortable</option><option>compact</option></select></label>
+  <label>Estado <select id="state"><option value="data">con datos</option><option value="loading">cargando</option><option value="empty">vacío</option></select></label>
+  <label><input type="checkbox" id="sticky"> Altura limitada (cabecera pegajosa)</label>
+</div>
+<div class="frame" id="frame" style="width:100%"><div id="host"></div></div>
+<p class="log" id="log">—</p>
+<div class="ctl"><button type="button" id="w1000">1000px</button><button type="button" id="w640">640px</button><button type="button" id="w360">360px</button></div>
+<p class="sr" aria-live="polite" id="live"></p>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+const I=n=>window.lucide(n);
+const COLUMNS=[
+  {key:'cliente',label:'Cliente',title:'nombre',subtitle:'correo',leading:'iniciales',sortable:true,sortBy:'nombre',min:40},
+  {key:'plan',label:'Plan',sortable:true,min:20},
+  {key:'estado',label:'Estado',cell:'badge',sortable:true,min:24},
+  {key:'uso',label:'Uso',cell:'progress',sortable:true,min:28},
+  {key:'total',label:'Total',align:'end',format:v=>'$'+v.toLocaleString('es-MX'),sortable:true,min:22},
+];
+const NAMES=['Ana Torres','Bruno Díaz','Carla Ruiz','Diego Mora','Elena Vega','Fabián Soto','Gina Paz','Hugo León','Iris Cano','Javier Gil','Karla Mesa','Luis Peña'];
+const ROWS=NAMES.map((n,i)=>({id:'c'+i,nombre:n,correo:n.split(' ')[0].toLowerCase()+'@correo.com',iniciales:n.split(' ').map(x=>x[0]).join(''),plan:['Básico','Pro','Equipo'][i%3],estado:['activo','pausado','vencido'][i%3],uso:(i*37)%100,total:1200+i*731%5000}));
+const S={sort:null,dir:'ascending',selected:new Set(),page:1,pageSize:5,menu:null};
+const SELECT_MIN=10, ACT_MIN=10;
+let mode='table';
+const host=document.getElementById('host'), frame=document.getElementById('frame');
+function sorted(){ if(!S.sort) return ROWS; const c=COLUMNS.find(c=>c.key===S.sort), f=c.sortBy||c.key, m=S.dir==='ascending'?1:-1; return [...ROWS].sort((a,b)=>a[f]>b[f]?m:a[f]<b[f]?-m:0) }
+function cellHTML(c,r){
+  if(c.title) return '<div class="cmp">'+(c.leading?'<span class="cmp__lead" aria-hidden="true">'+r[c.leading]+'</span>':'')+'<span class="cmp__txt"><span class="cmp__t">'+r[c.title]+'</span>'+(c.subtitle?'<span class="cmp__s">'+r[c.subtitle]+'</span>':'')+'</span></div>';
+  if(c.cell==='badge') return '<span class="badge" data-s="'+r[c.key]+'">'+r[c.key]+'</span>';
+  if(c.cell==='progress') return '<span class="bar"><span class="bar__track" aria-hidden="true"><span class="bar__fill" style="inline-size:'+r[c.key]+'%"></span></span><span>'+r[c.key]+' %</span></span>';
+  return c.format?c.format(r[c.key]):r[c.key];
+}
+function render(){
+  const state=document.getElementById('state').value;
+  const all=sorted(), pages=Math.max(1,Math.ceil(all.length/S.pageSize)); S.page=Math.min(S.page,pages);
+  const rows=all.slice((S.page-1)*S.pageSize,S.page*S.pageSize);
+  const pageIds=rows.map(r=>r.id), selCount=pageIds.filter(id=>S.selected.has(id)).length;
+  const sortOpts=COLUMNS.filter(c=>c.sortable).map(c=>'<option value="'+c.key+'"'+(S.sort===c.key?' selected':'')+'>'+c.label+'</option>').join('');
+  let h='<div class="gt" data-mode="'+mode+'" data-appearance="'+document.getElementById('appearance').value+'" data-density="'+document.getElementById('density').value+'">'
+   +'<div class="gt__bar"><label data-cards-only><input type="checkbox" id="all-c"> Seleccionar todo</label>'
+   +'<label data-cards-only>Ordenar por <select id="sort-c"><option value="">—</option>'+sortOpts+'</select></label>'
+   +'<label data-cards-only><select id="dir-c" aria-label="Dirección"><option value="ascending"'+(S.dir==='ascending'?' selected':'')+'>ascendente</option><option value="descending"'+(S.dir==='descending'?' selected':'')+'>descendente</option></select></label>'
+   +'<span>'+S.selected.size+' seleccionados</span></div>'
+   +'<div class="gt__scroll"'+(document.getElementById('sticky').checked?' style="--_maxh:260px"':'')+'><table role="table" aria-busy="'+(state==='loading')+'"><caption>Clientes</caption>'
+   +'<thead role="rowgroup"><tr role="row"><th role="columnheader" class="sel" scope="col"><input type="checkbox" id="all" aria-label="Seleccionar todas las filas de la página"></th>';
+  COLUMNS.forEach(c=>{ const s=S.sort===c.key; h+='<th role="columnheader" scope="col"'+(c.align==='end'?' class="num"':'')+(s?' aria-sort="'+S.dir+'"':'')+'>'+(c.sortable?'<button type="button" class="sortbtn" data-sort="'+c.key+'">'+c.label+' '+I(s?(S.dir==='ascending'?'arrow-up':'arrow-down'):'chevrons-up-down')+'</button>':c.label)+'</th>' });
+  h+='<th role="columnheader" class="act" scope="col"><span class="sr">Acciones</span></th></tr></thead><tbody role="rowgroup">';
+  if(state==='loading') for(let i=0;i<3;i++) h+='<tr role="row"><td role="cell" class="sel"></td>'+COLUMNS.map(c=>'<td role="cell"'+(c.title?' class="cmpcell"':'')+'><span class="skel" style="inline-size:'+(40+i*15)+'%"></span></td>').join('')+'<td role="cell" class="act"></td></tr>';
+  else if(state==='empty') h+='<tr role="row"><td role="cell" class="empty" colspan="'+(COLUMNS.length+2)+'">Sin clientes todavía.</td></tr>';
+  else rows.forEach(r=>{ const sel=S.selected.has(r.id), name=r.nombre;
+    h+='<tr role="row"'+(sel?' class="is-selected"':'')+' data-id="'+r.id+'"><td role="cell" class="sel"><input type="checkbox" data-row="'+r.id+'"'+(sel?' checked':'')+' aria-label="Seleccionar '+name+'"></td>';
+    COLUMNS.forEach(c=>{ h+='<td role="cell" class="'+(c.title?'cmpcell':'')+(c.align==='end'?' num':'')+'"><span class="cell-label" aria-hidden="true">'+c.label+'</span>'+cellHTML(c,r)+'</td>' });
+    h+='<td role="cell" class="act"><button type="button" class="kebab" data-menu="'+r.id+'" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de '+name+'">'+I('ellipsis-vertical')+'</button></td></tr>' });
+  h+='</tbody></table></div>';
+  // GPagination
+  const prev=S.page>1, next=S.page<pages;
+  h+='<nav class="gp" aria-label="Paginación de clientes"><span>'+((S.page-1)*S.pageSize+1)+'–'+Math.min(S.page*S.pageSize,all.length)+' de '+all.length+'</span><span style="display:flex;gap:4px;align-items:center">'
+   +'<button type="button" class="gp__b" data-page="'+(S.page-1)+'"'+(prev?'':' disabled')+' aria-label="Página anterior">'+I('chevron-left')+'</button>'
+   +'<ol>'+Array.from({length:pages},(_,i)=>'<li><button type="button" class="gp__b" data-page="'+(i+1)+'"'+(i+1===S.page?' aria-current="page"':'')+' aria-label="Página '+(i+1)+'">'+(i+1)+'</button></li>').join('')+'</ol>'
+   +'<span class="gp__compact">Página '+S.page+' de '+pages+'</span>'
+   +'<button type="button" class="gp__b" data-page="'+(S.page+1)+'"'+(next?'':' disabled')+' aria-label="Página siguiente">'+I('chevron-right')+'</button></span></nav></div>';
+  host.innerHTML=h;
+  // estado mixto de «todo»
+  ['all','all-c'].forEach(id=>{const a=document.getElementById(id); if(!a) return; a.checked=selCount>0&&selCount===pageIds.length; a.indeterminate=selCount>0&&selCount<pageIds.length});
+}
+// ---- Modo por el ancho del contenedor: suma de mínimos de columna (en unidades de space) ----
+const need=()=>(SELECT_MIN+ACT_MIN+COLUMNS.reduce((s,c)=>s+(c.min||24),0))*4;
+function measure(){ const w=host.getBoundingClientRect().width; const m=w<need()?'cards':'table'; document.getElementById('log').textContent='contenedor '+Math.round(w)+'px · umbral '+need()+'px (suma de mínimos × space) → '+m; if(m!==mode){mode=m;render()} }
+new ResizeObserver(measure).observe(host);
+host.addEventListener('click',e=>{
+  const sb=e.target.closest('[data-sort]'); if(sb){const k=sb.dataset.sort; if(S.sort===k) S.dir=S.dir==='ascending'?'descending':'ascending'; else {S.sort=k;S.dir='ascending'} render(); host.querySelector('[data-sort="'+k+'"]').focus(); document.getElementById('live').textContent='Ordenado por '+COLUMNS.find(c=>c.key===k).label+', '+(S.dir==='ascending'?'ascendente':'descendente'); return}
+  const pb=e.target.closest('[data-page]'); if(pb&&!pb.disabled){S.page=+pb.dataset.page; render(); (host.querySelector('[aria-current=page]')||host.querySelector('.gp__b:not(:disabled)')).focus(); return}
+  const mb=e.target.closest('[data-menu]'); if(mb){openMenu(mb); return}
+});
+host.addEventListener('change',e=>{
+  if(e.target.dataset.row){const id=e.target.dataset.row; e.target.checked?S.selected.add(id):S.selected.delete(id); render(); host.querySelector('[data-row="'+id+'"]').focus(); return}
+  if(e.target.id==='all'||e.target.id==='all-c'){const ids=[...host.querySelectorAll('[data-row]')].map(x=>x.dataset.row); const allOn=ids.every(id=>S.selected.has(id)); ids.forEach(id=>allOn?S.selected.delete(id):S.selected.add(id)); const id=e.target.id; render(); document.getElementById(id).focus(); return}
+  if(e.target.id==='sort-c'){S.sort=e.target.value||null; render(); document.getElementById('sort-c').focus(); return}
+  if(e.target.id==='dir-c'){S.dir=e.target.value; render(); document.getElementById('dir-c').focus()}
+});
+function openMenu(btn){ closeMenu(); const r=btn.getBoundingClientRect(); const m=document.createElement('ul'); m.className='menu'; m.setAttribute('role','menu'); m.innerHTML=['Ver','Editar','Eliminar'].map(t=>'<li role="none"><button role="menuitem" type="button">'+t+'</button></li>').join(''); document.body.appendChild(m); m.style.left=(r.right+scrollX-140)+'px'; m.style.top=(r.bottom+scrollY+4)+'px'; btn.setAttribute('aria-expanded','true'); S.menu={m,btn}; m.querySelector('button').focus();
+  m.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu(true)}}); m.addEventListener('click',e=>{if(e.target.closest('button')){document.getElementById('log').textContent='acción «'+e.target.textContent+'» en '+btn.getAttribute('aria-label').replace('Acciones de ',''); closeMenu(true)}}) }
+function closeMenu(focus){ if(!S.menu) return; S.menu.m.remove(); S.menu.btn.setAttribute('aria-expanded','false'); if(focus) S.menu.btn.focus(); S.menu=null }
+document.addEventListener('pointerdown',e=>{if(S.menu&&!S.menu.m.contains(e.target)&&e.target!==S.menu.btn) closeMenu()});
+['appearance','density','state','sticky'].forEach(id=>document.getElementById(id).onchange=render);
+[['w1000',1000],['w640',640],['w360',360]].forEach(([id,w])=>document.getElementById(id).onclick=()=>{frame.style.width=w+'px'});
+render(); measure();
+</script>
+</body>
+</html>
