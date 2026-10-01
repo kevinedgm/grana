@@ -752,6 +752,7 @@ describe('GCard · truncado y región plegable', () => {
     const b = w.find('button.g-card__expand')
     expect(b.exists()).toBe(true)
     expect(b.text()).toBe('Mostrar más')
+    expect(b.find('.g-icon').exists()).toBe(true) // chevron-down (auditoría de coco)
     expect(b.attributes('aria-expanded')).toBe('false')
     expect(b.attributes('aria-controls')).toBe(w.find('.g-card__description').attributes('id'))
     await b.trigger('click')

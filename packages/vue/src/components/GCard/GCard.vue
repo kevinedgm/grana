@@ -427,7 +427,7 @@ export default defineComponent({
             'aria-expanded': String(expanded.value),
             'aria-controls': descId.value,
             onClick: toggleExpand
-          }, expanded.value ? L.value.collapse : L.value.expand))
+          }, [expanded.value ? L.value.collapse : L.value.expand, h(GIcon, { name: 'chevron-down' })]))
         }
       }
       const st = renderStatus()
@@ -455,7 +455,7 @@ export default defineComponent({
       return [
         h('div', { class: 'g-card__more', id: moreId.value, hidden: fold && !moreOpen.value ? '' : undefined, inert: props.disabled ? '' : undefined }, c),
         fold
-          ? h('button', { type: 'button', class: 'g-card__more-toggle', 'aria-expanded': String(moreOpen.value), 'aria-controls': moreId.value, onClick: toggleMore }, moreOpen.value ? L.value.less : L.value.more)
+          ? h('button', { type: 'button', class: 'g-card__more-toggle', 'aria-expanded': String(moreOpen.value), 'aria-controls': moreId.value, onClick: toggleMore }, [moreOpen.value ? L.value.less : L.value.more, h(GIcon, { name: 'chevron-down' })])
           : null
       ]
     }

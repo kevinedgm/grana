@@ -449,7 +449,8 @@
     "triangle-alert",
     "circle-check",
     "info",
-    "chevron-right"
+    "chevron-right",
+    "chevron-down"
   ],
   "states": [
     "default",
@@ -473,7 +474,6 @@
     "Táctil real (pulsación larga sobre el enlace estirado) y zoom al 200%",
     "Rendimiento con cientos de tarjetas (un ResizeObserver por tarjeta)",
     "Esqueleto con datos ausentes reales (la altura no se promete)",
-    "chevron-down en «Mostrar más»/«Más detalles» (icons.md §4) no está en el banco ni en GCard.css: no se dibuja hasta que coco lo decida",
     "Fuera de v0.1: GCardGroup, GAvatar, menú de clic derecho, subgrid, tooltip de solo iconos"
   ]
 }
