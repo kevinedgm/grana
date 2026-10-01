@@ -47,7 +47,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 
 ## Textos (`labels`, sin valores por defecto)
 
-`group` (nombre del grupo), `add`, `clear`, `filterBy` (plantilla `{label}`), `edit` y `remove` (plantilla `{summary}`), `apply`, `cancel`, `required` (validación), `range` (validación de «entre»), `and` (unión en resúmenes de «entre»), `days` (plantilla `{n}`), `results` (plantilla `{count}`), y `ops` (objeto con el nombre de cada `op`: `contains`, `is`, `starts`, `gt`, `lt`, `eq`, `between`, `after`, `before`, `last`, `in`). Sin textos, `console.warn` en desarrollo.
+`group` (nombre del grupo), `add`, `clear`, `rule`, `value`, `from` y `to` (nombres de los campos del editor), `range` (validación de «entre»), `filterBy` (plantilla `{label}`), `edit` y `remove` (plantilla `{summary}`), `apply`, `cancel`, `required` (validación), `and` (unión en resúmenes de «entre»), `days` (plantilla `{n}`), `results` (plantilla `{count}`), y `ops` (objeto con el nombre de cada `op`: `contains`, `is`, `starts`, `gt`, `lt`, `eq`, `between`, `after`, `before`, `last`, `in`). Sin textos, `console.warn` en desarrollo.
 
 ## Estructura
 
@@ -77,7 +77,9 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 
 ## Clases
 
-`g-filter-bar`, `__chip`, `__edit`, `__remove`, `__suggest`, `__add`, `__clear`, `__count`, `__editor`, `__editor-title`, `__rule`, `__value`, `__error`, `__actions`.
+`g-filter-bar`, `__chip`, `__edit`, `__remove`, `__suggest`, `__add`, `__clear`, `__count`, `__editor`, `__editor-title`, `__rule`, `__value`, `__range`, `__input`, `__error`, `__actions`, `__sheet` y `__sr` (texto oculto propio, para que la barra funcione sin `GTable`).
+
+**Añadido al construir (bruno):** los textos `rule`, `value`, `from`, `to` y `range` (los campos del editor necesitan nombre accesible, WCAG 4.1.2) y las clases `__range`, `__input`, `__sheet` y `__sr`.
 
 ## Límites conocidos
 

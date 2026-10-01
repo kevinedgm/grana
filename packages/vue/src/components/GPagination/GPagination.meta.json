@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GPagination",
   "tag": "g-pagination",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Paginación de una colección: primera, última, la actual y sus vecinas con elipsis; forma compacta («Página N de M») cuando no caben los botones.",
   "contract": "design/contracts/pagination.md",
@@ -73,8 +73,6 @@
     "disabled"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real",
     "Firefox y Safari",
     "Táctil real y zoom al 200%"

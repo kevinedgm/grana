@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTable",
   "tag": "g-table",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Tabla de datos con columnas compuestas (varios campos en una columna), celdas ricas por slot, filtros por columna con reglas (GFilterBar), orden, selección, paginación (GPagination) y acciones por fila; en contenedores estrechos se convierte en tarjetas sin cambiar de DOM.",
   "contract": "design/contracts/table.md",
@@ -213,8 +213,6 @@
     "loading"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real",
     "Firefox y Safari",
     "Táctil real y zoom al 200%",

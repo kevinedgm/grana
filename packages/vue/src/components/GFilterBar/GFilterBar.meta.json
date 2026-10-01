@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFilterBar",
   "tag": "g-filter-bar",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Filtros no fijos al estilo Stripe: chips sugeridos, «Agregar filtro», editor de regla + valor (popover o hoja) y chips aplicados; produce filters como datos (Y entre filtros, O dentro de una lista).",
   "contract": "design/contracts/filter-bar.md",
@@ -67,8 +67,6 @@
     "error"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real",
     "Firefox y Safari",
     "Táctil real y zoom al 200%",
