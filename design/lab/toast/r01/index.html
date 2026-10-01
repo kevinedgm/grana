@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GToast · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px;--dur:200ms;--ease:cubic-bezier(.2,0,0,1)}
+:root[data-touch]{--tmin:44px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)} h3{font-size:14px;margin:16px 0 6px}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:84ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:90ch}
+.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin)}
+.ctl fieldset{border:1px solid var(--wf-line);border-radius:6px;padding:4px 10px;margin:0;display:flex;gap:4px 12px;flex-wrap:wrap}
+.ctl legend{font-size:12px;color:var(--wf-2);padding:0 4px}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.wf-field{display:flex;flex-direction:column;gap:4px;font-size:14px;min-inline-size:0}
+.wf-field input,.wf-field select,.wf-field textarea{font:inherit;padding:6px 8px;border:1px solid var(--wf-3);border-radius:4px;background:#fff;min-block-size:var(--tmin);inline-size:100%}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px 16px;margin:8px 0}
+.wf-btn{padding:6px 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;min-block-size:var(--tmin)}
+.wf-btn[data-kind=primary]{background:var(--wf-ink);color:#fff}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.log{list-style:none;margin:8px 0 0;padding:6px 8px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);max-block-size:180px;overflow:auto;min-block-size:3em}
+.log li[data-ch=assertive]{color:var(--wf-ink);font-weight:600}
+.tbl{border-collapse:collapse;font-size:13px;inline-size:100%}.tbl th,.tbl td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--wf-line);vertical-align:top}
+.scroll-x{overflow-x:auto}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;padding:12px;border:1px dashed var(--wf-3);background:var(--wf-fill-2)}
+.gallery figure{margin:0}.gallery figcaption{font-size:12px;color:var(--wf-2);margin-block-end:4px}
+.longform{display:grid;gap:12px;margin-block-start:12px}
+.appbar{position:fixed;inset-inline:0;inset-block-end:0;block-size:56px;background:#fff;border-top:1px solid var(--wf-line);display:flex;align-items:center;justify-content:space-around;font-size:13px;color:var(--wf-2);z-index:5}
+.appbar[hidden]{display:none}
+/* Diálogo modal del kit (imita GDialog: <dialog> nativo + showModal, Esc decidido por el componente) */
+.wf-dialog{border:1px solid var(--wf-line);border-radius:12px;padding:0;inline-size:min(520px,calc(100vw - 32px));background:#fff;color:var(--wf-ink)}
+.wf-dialog::backdrop{background:rgba(0,0,0,.35)}
+.wf-dialog header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--wf-line)}
+.wf-dialog header h2{font-size:16px;margin:0}
+.wf-dialog .body{padding:16px}.wf-dialog footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--wf-line)}
+.icon-btn{all:unset;box-sizing:border-box;display:grid;place-items:center;inline-size:var(--tmin);block-size:var(--tmin);min-inline-size:24px;min-block-size:24px;border-radius:6px;cursor:pointer;color:var(--wf-2)}
+.icon-btn:hover{background:rgba(0,0,0,.06);color:var(--wf-ink)}
+.icon-btn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:0}
+
+/* ============ GToaster / GToast (estructura; la forma final es de coco) ============ */
+/* Raíz: popover="manual" siempre abierto (capa superior). Quita los estilos del navegador para popover. */
+.gt{--gutter:16px;--gap:8px;--w:360px;--off-start:0px;--off-end:0px;position:fixed;margin:0;padding:0;border:0;background:transparent;overflow:visible;color:inherit;
+  inset:auto;inline-size:min(var(--w),calc(100vw - 2 * var(--gutter)));block-size:auto;pointer-events:none;font:14px/1.4 var(--wf-font)}
+/* Seis posiciones lógicas (start/end se invierten en RTL); márgenes con safe-area */
+.gt[data-edge=top]{inset-block-start:max(var(--gutter),env(safe-area-inset-top))}
+.gt[data-edge=bottom]{inset-block-end:calc(max(var(--gutter),env(safe-area-inset-bottom)) + var(--off-end))}
+.gt[data-align=start]{inset-inline-start:max(var(--gutter),env(safe-area-inset-left))}
+.gt[data-align=end]{inset-inline-end:max(var(--gutter),env(safe-area-inset-right))}
+.gt[data-align=center]{inset-inline:0;margin-inline:auto}
+/* Móvil (visor < space × 130): siempre abajo, ancho completo menos el margen */
+.gt[data-mobile]{inline-size:auto;inset-inline:max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right));margin-inline:0;--gutter:8px}
+.gt__region{display:block}
+.gt__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.gt__queue{margin:0;padding:4px 8px;font-size:12px;color:var(--wf-2);text-align:end;pointer-events:auto}
+.gt__queue[hidden]{display:none}
+/* Cada aviso: el li es transparente y su relleno cubre el hueco (sin huecos que reanuden el temporizador) */
+.gt-toast{pointer-events:auto;padding-block:calc(var(--gap) / 2);transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease)}
+.gt-toast[data-state=entering]{opacity:0;transform:translateY(calc(var(--dir) * 16px))}
+.gt[data-edge=bottom]{--dir:1}.gt[data-edge=top]{--dir:-1}
+.gt-toast[data-state=closing]{opacity:0;transform:translateX(var(--exit-x,0)) translateY(calc(var(--dir) * 8px))}
+.gt-toast[data-swiping]{transition:none}
+.gt-card{display:grid;grid-template-columns:auto 1fr auto auto;align-items:start;gap:8px 10px;padding:10px 8px 10px 12px;background:#fff;border:1px solid var(--wf-line);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);touch-action:pan-y;transform:translateX(var(--sx,0px))}
+.gt-card[data-type=error]{border-inline-start:4px solid var(--wf-ink)}
+.gt-card[data-type=warning]{border-inline-start:4px dashed var(--wf-ink)}
+.gt-icon{display:grid;place-items:center;block-size:20px;color:var(--wf-ink)}
+.gt-icon .g-icon{inline-size:18px;block-size:18px}
+.gt-card[data-type=loading] .gt-icon .g-icon{animation:gt-spin 1s linear infinite}
+@keyframes gt-spin{to{transform:rotate(360deg)}}
+.gt-text{min-inline-size:0;overflow-wrap:anywhere}
+.gt-title{margin:0;font-weight:600;color:var(--wf-ink)}
+.gt-desc{margin:2px 0 0;color:var(--wf-2)}
+.gt-count{display:inline-block;margin-inline-start:6px;padding:0 6px;border-radius:999px;background:var(--wf-fill);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;vertical-align:1px}
+.gt-count[hidden]{display:none}
+.gt-action{padding:2px 10px;border:1px solid var(--wf-ink);border-radius:6px;background:#fff;cursor:pointer;min-block-size:var(--tmin);font-weight:600;align-self:center;white-space:nowrap}
+.gt-action:focus-visible,.gt-close:focus-visible{outline:3px solid var(--wf-ink);outline-offset:1px}
+.gt-close{all:unset;box-sizing:border-box;display:grid;place-items:center;inline-size:var(--tmin);block-size:var(--tmin);border-radius:6px;cursor:pointer;color:var(--wf-2);align-self:start;position:relative}
+.gt-close::before{content:"";position:absolute;inset:calc((var(--tmin) - 24px) / -2)}
+.gt-close:hover{background:rgba(0,0,0,.06);color:var(--wf-ink)}
+.gt-card:not(:has(.gt-action)){grid-template-columns:auto 1fr auto}
+/* Estrecho: la acción baja debajo del texto */
+.gt[data-mobile] .gt-card:has(.gt-action),.gt-card[data-wrap]{grid-template-columns:auto 1fr auto}
+.gt[data-mobile] .gt-action,.gt-card[data-wrap] .gt-action{grid-column:2;grid-row:2;justify-self:start}
+.gt[data-mobile] .gt-close,.gt-card[data-wrap] .gt-close{grid-column:3;grid-row:1}
+/* Movimiento reducido: sin desplazamiento ni giro; solo fundido corto */
+@media (prefers-reduced-motion:reduce){.gt-toast{transition:opacity var(--dur) linear}.gt-toast[data-state]{transform:none}.gt-card[data-type=loading] .gt-icon .g-icon{animation:none}}
+:root[data-rm] .gt-toast{transition:opacity var(--dur) linear}:root[data-rm] .gt-toast[data-state]{transform:none}:root[data-rm] .gt-card[data-type=loading] .gt-icon .g-icon{animation:none}
+@media (forced-colors:active){.gt-card{border:1px solid CanvasText}}
+.gallery .gt-toast{padding:0}
+</style>
+</head>
+<body>
+<main>
+<h1>GToast · r01</h1>
+<p class="meta">Ronda de estructura (kiwi) · Ruta R1 · Fidelidad F2 · kit gris, iconos solo Lucide. Brief en <code>brief.md</code>, decisiones en <code>declaracion.md</code>.</p>
+<p class="wf-note">Prototipo funcional: la API imperativa (<code>toaster.show()</code>, <code>success()</code>, <code>error()</code>, <code>promise()</code>…) está implementada abajo en JavaScript simple para probar el comportamiento; los valores de color, sombra, radio y duración son de wireframe, no propuestas. El registro de anuncios muestra lo que se escribe en los canales vivos (no es una región viva).</p>
+
+<h2 class="sec" id="s1">1. Lanzar avisos</h2>
+<p class="cap">Un solo gestor (<code>createToaster()</code>) y una sola región (<code>GToaster</code>). Los avisos no reciben el foco. <strong>F8</strong> lleva el foco al aviso más reciente; F8 de nuevo o Esc (que lo cierra) devuelven el foco a donde estaba.</p>
+<div class="fields">
+  <label class="wf-field">Tipo<select id="f-type"><option value="neutral">neutral</option><option value="info">info</option><option value="success" selected>success</option><option value="warning">warning</option><option value="error">error</option></select></label>
+  <label class="wf-field">Título<input id="f-title" value="Cambios guardados"></label>
+  <label class="wf-field">Descripción (opcional)<input id="f-desc" value=""></label>
+  <label class="wf-field">Acción (opcional)<input id="f-action" value="" placeholder="Deshacer"></label>
+  <label class="wf-field">Duración<select id="f-dur"><option value="auto" selected>auto (por longitud)</option><option value="3000">3 s</option><option value="8000">8 s</option><option value="Infinity">sin autocierre</option></select></label>
+</div>
+<div class="btns">
+  <button class="wf-btn" data-kind="primary" id="b-show" type="button">Mostrar aviso</button>
+  <button class="wf-btn" id="b-undo" type="button">Archivar (con Deshacer)</button>
+  <button class="wf-btn" id="b-error" type="button">Error</button>
+  <button class="wf-btn" id="b-ok" type="button">Promesa que se cumple</button>
+  <button class="wf-btn" id="b-ko" type="button">Promesa que falla</button>
+  <button class="wf-btn" id="b-dup" type="button">Copiar (repetible)</button>
+  <button class="wf-btn" id="b-burst" type="button">Ráfaga de 6</button>
+  <button class="wf-btn" id="b-clear" type="button">Cerrar todos</button>
+</div>
+<h3>Registro de anuncios (lo escrito en los canales vivos)</h3>
+<ol class="log" id="annlog" aria-label="Registro de anuncios"></ol>
+
+<h2 class="sec" id="s2">2. Opciones del gestor</h2>
+<div class="ctl">
+  <fieldset><legend>Posición</legend>
+    <label><input type="radio" name="pos" value="top-start">top-start</label>
+    <label><input type="radio" name="pos" value="top-center">top-center</label>
+    <label><input type="radio" name="pos" value="top-end">top-end</label>
+    <label><input type="radio" name="pos" value="bottom-start">bottom-start</label>
+    <label><input type="radio" name="pos" value="bottom-center">bottom-center</label>
+    <label><input type="radio" name="pos" value="bottom-end" checked>bottom-end</label>
+  </fieldset>
+  <label>Límite visible <select id="o-limit"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+  <label><input type="checkbox" id="o-rtl"> RTL</label>
+  <label><input type="checkbox" id="o-rm"> Reducir movimiento</label>
+  <label><input type="checkbox" id="o-touch"> Objetivos táctiles</label>
+  <label><input type="checkbox" id="o-persist"> Preferencia del usuario: no cerrar solos</label>
+  <label><input type="checkbox" id="o-swipe" checked> Deslizar para cerrar</label>
+  <label><input type="checkbox" id="o-appbar"> Barra inferior fija de la app (desplazamiento)</label>
+</div>
+<p class="cap">En un visor de menos de 520px (<code>space × 130</code>, el umbral de hoja de <code>GDialog</code>) la región va siempre abajo, a ancho completo, y muestra un aviso cada vez.</p>
+
+<h2 class="sec" id="s3">3. Dentro de un diálogo modal</h2>
+<p class="cap">Con <code>showModal()</code> todo lo que está fuera del diálogo es inerte y sale del árbol de accesibilidad, también un popover abierto después. La región se <strong>traslada al diálogo modal superior</strong> mientras está abierto y vuelve al cerrarlo; Esc en un aviso lo cierra a él y no al diálogo.</p>
+<div class="btns"><button class="wf-btn" id="b-dialog" type="button">Abrir diálogo modal</button></div>
+<dialog class="wf-dialog" id="dlg" aria-labelledby="dlg-t">
+  <header><h2 id="dlg-t">Editar proyecto</h2><button class="icon-btn" type="button" id="dlg-x" aria-label="Cerrar diálogo"></button></header>
+  <div class="body"><label class="wf-field">Nombre<input id="dlg-name" value="Informe anual"></label></div>
+  <footer>
+    <button class="wf-btn" type="button" id="dlg-fail">Simular error</button>
+    <button class="wf-btn" type="button" id="dlg-archive">Archivar adjunto</button>
+    <button class="wf-btn" data-kind="primary" type="button" id="dlg-save">Guardar</button>
+  </footer>
+</dialog>
+
+<h2 class="sec" id="s4">4. Anatomía y tipos (ilustración estática, sin región viva)</h2>
+<p class="cap">El tipo se reconoce por la <strong>forma del icono</strong> y por el texto oculto que precede al título («Error:»); el color es refuerzo. Con acción, la acción va antes del cierre; el cierre siempre es visible.</p>
+<div class="gallery" id="gallery" inert></div>
+
+<h2 class="sec" id="s5">5. No tapar el foco (WCAG 2.4.11)</h2>
+<p class="cap">Si el elemento enfocado queda debajo de la pila, la región pasa al borde contrario mientras dure el foco. Prueba: lanza dos avisos, desplázate hasta el final y enfoca el último campo.</p>
+<div class="longform" id="longform"></div>
+
+<h2 class="sec" id="s6">6. Reglas de comportamiento</h2>
+<div class="scroll-x"><table class="tbl">
+<thead><tr><th>Tipo</th><th>Canal</th><th>Autocierre</th><th>Icono (Lucide)</th></tr></thead>
+<tbody>
+<tr><td>neutral</td><td>cortés (<code>status</code>)</td><td>sí, por longitud</td><td>ninguno</td></tr>
+<tr><td>info</td><td>cortés</td><td>sí</td><td><code>info</code></td></tr>
+<tr><td>success</td><td>cortés</td><td>sí</td><td><code>circle-check</code></td></tr>
+<tr><td>warning</td><td>cortés</td><td>sí</td><td><code>triangle-alert</code></td></tr>
+<tr><td>error (color <code>danger</code>)</td><td>enérgico (<code>alert</code>)</td><td>no</td><td><code>circle-alert</code></td></tr>
+<tr><td>loading (promesa)</td><td>cortés</td><td>no, hasta resolverse</td><td><code>loader-circle</code> (gira)</td></tr>
+<tr><td>cualquiera con acción</td><td>el de su tipo</td><td>no</td><td>el de su tipo</td></tr>
+</tbody></table></div>
+</main>
+<nav class="appbar" id="appbar" hidden aria-label="Barra de la app (simulada)"><span>Inicio</span><span>Buscar</span><span>Perfil</span></nav>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = (n, cls) => window.lucide(n, cls || '')
+const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert', loading: 'loader-circle' }
+const POLITE = { error: false }
+const rmQuery = matchMedia('(prefers-reduced-motion: reduce)')
+const reduced = () => rmQuery.matches || document.documentElement.hasAttribute('data-rm')
+
+// ======================================================================
+// createToaster: el gestor (lo crea la aplicación; Grana no tiene instancia global).
+// En Vue sería también un plugin (app.use) que lo provee; useToast() lo inyecta; <GToaster> lo pinta.
+// ======================================================================
+function createToaster (options = {}) {
+  const o = Object.assign({ position: 'bottom-end', limit: 3, mobileLimit: 1, hotkey: 'F8', autoClose: true, swipe: true, offset: 0, labels: {} }, options)
+  const L = o.labels
+  let seq = 0
+  const items = [] // { id, key, type, title, description, action, duration, count, state: 'queued'|'visible'|'closing', remaining, startedAt, timer, el }
+  const paused = { hover: false, focus: false, hidden: false, press: false }
+  let returnFocus = null
+  let flipped = false
+  const modalStack = []
+
+  // ---------- Región única: raíz popover (capa superior) con dos canales vivos permanentes ----------
+  const root = document.createElement('div')
+  root.className = 'gt'
+  root.setAttribute('popover', 'manual')
+  root.dataset.toaster = ''
+  root.innerHTML = '<div class="sr" role="status" aria-live="polite" aria-atomic="true" data-ch="polite"></div>' +
+    '<div class="sr" role="alert" aria-atomic="true" data-ch="assertive"></div>' +
+    '<section class="gt__region" hidden><ol class="gt__list"></ol><p class="gt__queue" hidden></p></section>'
+  const chPolite = root.querySelector('[data-ch=polite]')
+  const chAssertive = root.querySelector('[data-ch=assertive]')
+  const region = root.querySelector('section')
+  const list = root.querySelector('ol')
+  const queueEl = root.querySelector('.gt__queue')
+  document.body.append(root)
+  root.showPopover()
+
+  const fill = (t, v) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => (v[k] == null ? m : v[k]))
+  const isMobile = () => window.innerWidth < 520 // space × 130 con space 4
+  const limit = () => (isMobile() ? o.mobileLimit : o.limit)
+  const visible = () => items.filter((t) => t.state === 'visible')
+  const queued = () => items.filter((t) => t.state === 'queued')
+
+  function applyPosition () {
+    let [edge, align] = o.position.split('-')
+    if (isMobile()) { edge = 'bottom'; align = 'center' }
+    if (flipped) edge = edge === 'top' ? 'bottom' : 'top'
+    const changed = root.dataset.edge && root.dataset.edge !== edge
+    root.dataset.edge = edge
+    root.dataset.align = align
+    root.toggleAttribute('data-mobile', isMobile())
+    root.style.setProperty('--off-end', (edge === 'bottom' ? o.offset : 0) + 'px')
+    region.setAttribute('aria-label', fill(L.region, { hotkey: o.hotkey }))
+    region.setAttribute('aria-keyshortcuts', o.hotkey)
+    if (changed) order()
+  }
+  // Orden del DOM = orden visual: el más reciente queda junto al borde
+  function order () {
+    const els = visible().concat(items.filter((t) => t.state === 'closing')).sort((a, b) => a.seq - b.seq).map((t) => t.el)
+    if (root.dataset.edge === 'top') els.reverse()
+    const focused = document.activeElement
+    els.forEach((el) => list.append(el))
+    if (focused && list.contains(focused) && document.activeElement !== focused) focused.focus({ preventScroll: true })
+  }
+
+  // ---------- Anuncios: limpiar y escribir (repite el mismo texto si hace falta) ----------
+  function announce (t) {
+    const assertive = t.type === 'error' || t.politeness === 'assertive'
+    const ch = assertive ? chAssertive : chPolite
+    const parts = [L.types && L.types[t.type] ? L.types[t.type] + ':' : '', t.title + (/[.!?]$/.test(t.title) ? '' : '.'), t.description || '']
+    if (t.count > 1 && L.repeated) parts.push(fill(L.repeated, { count: t.count }))
+    if (t.action && L.actionHint) parts.push(fill(L.actionHint, { action: t.action.label, hotkey: o.hotkey }))
+    const text = parts.filter(Boolean).join(' ')
+    ch.textContent = ''
+    clearTimeout(ch._clear)
+    setTimeout(() => { ch.textContent = text; logAnn(assertive ? 'assertive' : 'polite', text) }, 60)
+    ch._clear = setTimeout(() => { ch.textContent = '' }, 5000)
+  }
+
+  // ---------- Duración (WCAG 2.2.1) ----------
+  function durationOf (t) {
+    if (!o.autoClose || t.action || t.type === 'error' || t.type === 'loading') return Infinity
+    if (t.duration != null && t.duration !== 'auto') return Number(t.duration)
+    const chars = (t.title + ' ' + (t.description || '')).length
+    return Math.min(12000, Math.max(5000, 1500 + chars * 60)) // tiempo de lectura; valores de wireframe
+  }
+  const isPaused = () => paused.hover || paused.focus || paused.hidden || paused.press
+  function startTimer (t) {
+    clearTimeout(t.timer)
+    t.el.dataset.duration = String(durationOf(t))
+    if (!Number.isFinite(t.remaining) || isPaused()) { t.el.dataset.remaining = String(t.remaining); return }
+    t.startedAt = performance.now()
+    t.timer = setTimeout(() => dismiss(t.id, 'timeout'), t.remaining)
+  }
+  function pauseAll () {
+    const now = performance.now()
+    visible().forEach((t) => { if (Number.isFinite(t.remaining) && t.timer) { clearTimeout(t.timer); t.timer = null; t.remaining = Math.max(0, t.remaining - (now - t.startedAt)); t.el.dataset.remaining = String(Math.round(t.remaining)) } })
+    root.dataset.paused = ''
+  }
+  function resumeAll () {
+    delete root.dataset.paused
+    visible().forEach((t) => { if (Number.isFinite(t.remaining) && !t.timer) { t.remaining = Math.max(t.remaining, 1000); startTimer(t) } })
+  }
+  function setPause (k, v) { const was = isPaused(); paused[k] = v; const now = isPaused(); if (now && !was) pauseAll(); else if (!now && was) resumeAll() }
+
+  // ---------- Pintar un aviso ----------
+  function render (t) {
+    const el = t.el || document.createElement('li')
+    t.el = el
+    el.className = 'gt-toast'
+    el.id = t.domId
+    const tid = t.domId + '-t'
+    const did = t.domId + '-d'
+    const typeText = L.types && L.types[t.type] ? '<span class="sr">' + L.types[t.type] + ': </span>' : ''
+    const count = '<span class="gt-count"' + (t.count > 1 ? '' : ' hidden') + '><span aria-hidden="true">' + t.count + '</span><span class="sr"> (' + fill(L.repeated, { count: t.count }) + ')</span></span>'
+    el.innerHTML = '<div class="gt-card" data-type="' + t.type + '">' +
+      (ICON[t.type] ? '<span class="gt-icon">' + I(ICON[t.type]) + '</span>' : '<span></span>') +
+      '<div class="gt-text"><p class="gt-title" id="' + tid + '">' + typeText + esc(t.title) + count + '</p>' +
+      (t.description ? '<p class="gt-desc" id="' + did + '">' + esc(t.description) + '</p>' : '') + '</div>' +
+      (t.action ? '<button type="button" class="gt-action">' + esc(t.action.label) + '</button>' : '') +
+      '<button type="button" class="gt-close" aria-label="' + esc(L.close) + '" aria-describedby="' + tid + (t.description ? ' ' + did : '') + '">' + I('x') + '</button></div>'
+    el.querySelector('.gt-close').addEventListener('click', () => dismiss(t.id, 'close'))
+    const a = el.querySelector('.gt-action')
+    if (a) a.addEventListener('click', (e) => { t.action.onClick && t.action.onClick(e); dismiss(t.id, 'action') })
+    if (t.type === 'loading') el.setAttribute('aria-busy', 'true'); else el.removeAttribute('aria-busy')
+    el.dataset.type = t.type
+    bindSwipe(t)
+  }
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+
+  function reveal (t) {
+    t.state = 'visible'
+    render(t)
+    t.remaining = durationOf(t)
+    if (!reduced()) t.el.dataset.state = 'entering'
+    if (root.dataset.edge === 'top') list.prepend(t.el); else list.append(t.el)
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (t.el.dataset.state === 'entering') delete t.el.dataset.state }))
+    startTimer(t)
+    announce(t)
+    sync()
+  }
+  function sync () {
+    region.hidden = items.length === 0
+    const q = queued().length
+    queueEl.hidden = q === 0
+    queueEl.textContent = q ? fill(L.queued, { count: q }) : ''
+    applyPosition()
+    requestAnimationFrame(avoidFocus)
+  }
+
+  // ---------- API pública ----------
+  function show (input) {
+    const t = Object.assign({ type: 'neutral', title: '', description: '', action: null, duration: 'auto' }, input)
+    if (!t.title) { console.warn('[Grana] toast sin title: un aviso necesita un mensaje.'); return null }
+    if (t.action && !t.action.label) { console.warn('[Grana] toast: action necesita label.'); t.action = null }
+    t.key = t.id != null ? 'id:' + t.id : t.type + '|' + t.title + '|' + (t.description || '')
+    // Deduplicación: mismo id → actualiza; mismo contenido visible o en cola → cuenta, reinicia y vuelve a anunciar
+    const same = items.find((x) => x.key === t.key && x.state !== 'closing')
+    if (same) {
+      if (t.id != null) return update(same.id, input)
+      same.count += 1
+      if (same.state === 'visible') { render(same); same.remaining = durationOf(same); startTimer(same); announce(same) }
+      return same.id
+    }
+    t.id = t.id != null ? t.id : 't' + (++seq)
+    t.seq = ++seq
+    t.domId = 'gt-' + String(t.id).replace(/[^\w-]/g, '')
+    t.count = 1
+    items.push(t)
+    if (visible().length < limit()) reveal(t)
+    else {
+      t.state = 'queued'
+      if (t.type === 'error') { items.splice(items.indexOf(t), 1); const firstQ = items.findIndex((x) => x.state === 'queued' && x.type !== 'error'); items.splice(firstQ < 0 ? items.length : firstQ, 0, t) } // el error se adelanta en la cola
+      sync()
+    }
+    return t.id
+  }
+  function update (id, patch) {
+    const t = items.find((x) => x.id === id)
+    if (!t) return show(Object.assign({ id }, patch))
+    const before = t.type + t.title + t.description
+    Object.assign(t, patch)
+    if (t.state === 'visible') {
+      const f = t.el.contains(document.activeElement) ? (document.activeElement.classList.contains('gt-action') ? '.gt-action' : '.gt-close') : null
+      render(t)
+      if (f) (t.el.querySelector(f) || t.el.querySelector('.gt-close')).focus()
+      t.remaining = durationOf(t)
+      startTimer(t)
+      if (before !== t.type + t.title + t.description) announce(t)
+    }
+    return id
+  }
+  function dismiss (id, reason = 'api') {
+    if (id == null) { items.slice().forEach((t) => dismiss(t.id, reason)); return }
+    const t = items.find((x) => x.id === id)
+    if (!t || t.state === 'closing') return
+    clearTimeout(t.timer)
+    if (t.state === 'queued') { items.splice(items.indexOf(t), 1); sync(); return }
+    const hadFocus = t.el.contains(document.activeElement)
+    t.state = 'closing'
+    if (hadFocus) moveFocusAfterClose(t) // antes de volverlo inerte, para no perder el foco
+    t.el.inert = true
+    t.onDismiss && t.onDismiss(reason)
+    log('cerrado ' + t.id + ' (' + reason + ')')
+    const done = () => { t.el.remove(); items.splice(items.indexOf(t), 1); promote(); sync() }
+    if (reduced() || reason === 'api-clear') done()
+    else { t.el.dataset.state = 'closing'; setTimeout(done, 200) }
+  }
+  function promote () {
+    while (visible().length < limit() && queued().length) reveal(queued()[0])
+  }
+  function moveFocusAfterClose (t) {
+    const others = visible().filter((x) => x !== t)
+    if (others.length) { others[others.length - 1].el.querySelector('.gt-close').focus(); return }
+    const back = returnFocus && returnFocus.isConnected && !returnFocus.closest('[inert]') ? returnFocus : null
+    returnFocus = null
+    if (back) back.focus()
+    else { const host = root.parentElement; const f = host.querySelector('button,[href],input,select,textarea'); (f || document.body).focus() }
+  }
+
+  // ---------- Foco: atajo, Esc, pausa ----------
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== o.hotkey || e.altKey || e.ctrlKey || e.metaKey) return
+    const v = visible()
+    if (!v.length) return
+    e.preventDefault()
+    if (root.contains(document.activeElement)) { const b = returnFocus; returnFocus = null; if (b && b.isConnected) b.focus(); return }
+    returnFocus = document.activeElement
+    const newest = v.slice().sort((a, b) => b.seq - a.seq)[0]
+    ;(newest.el.querySelector('.gt-action') || newest.el.querySelector('.gt-close')).focus()
+  })
+  root.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.isComposing) return
+    const li = e.target.closest('.gt-toast')
+    if (!li) return
+    e.preventDefault(); e.stopPropagation() // no cierra el diálogo anfitrión
+    const t = items.find((x) => x.el === li)
+    if (t) dismiss(t.id, 'escape')
+  })
+  root.addEventListener('focusin', (e) => {
+    if (!root.contains(e.relatedTarget) && e.relatedTarget && !returnFocus) returnFocus = e.relatedTarget
+    setPause('focus', true)
+  })
+  root.addEventListener('focusout', (e) => { if (!root.contains(e.relatedTarget)) { setPause('focus', false); if (e.relatedTarget) returnFocus = null } })
+  list.addEventListener('pointerenter', () => setPause('hover', true))
+  list.addEventListener('pointerleave', () => setPause('hover', false))
+  document.addEventListener('visibilitychange', () => setPause('hidden', document.visibilityState === 'hidden'))
+  window.addEventListener('resize', () => { applyPosition(); promote(); sync() })
+
+  // ---------- Convivencia con <dialog> modal: la región sigue al modal superior ----------
+  function syncHost () {
+    const host = modalStack[modalStack.length - 1] || document.body
+    if (root.parentElement === host) return
+    host.append(root) // quitarla del documento la saca de la capa superior
+    root.showPopover()  // volver a mostrarla la deja por encima del modal
+    log('región trasladada a ' + (host === document.body ? 'body' : 'dialog#' + host.id))
+  }
+  new MutationObserver((muts) => {
+    muts.forEach((m) => {
+      const d = m.target
+      if (d.localName !== 'dialog') return
+      const i = modalStack.indexOf(d)
+      if (d.matches(':modal')) { if (i < 0) modalStack.push(d) } else if (i >= 0) modalStack.splice(i, 1)
+    })
+    syncHost()
+  }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['open'] })
+
+  // ---------- No tapar el foco (2.4.11): pasar al borde contrario ----------
+  function overlaps (el) {
+    const r = el.getBoundingClientRect(); const s = list.getBoundingClientRect()
+    if (!s.height) return false
+    return r.left < s.right && r.right > s.left && r.top < s.bottom && r.bottom > s.top
+  }
+  function avoidFocus () {
+    if (!visible().length) { if (flipped) { flipped = false; applyPosition() } return }
+    const f = document.activeElement
+    if (!f || f === document.body || root.contains(f)) return // con el foco en la región no se mueve bajo el usuario
+    if (flipped) { flipped = false; applyPosition(); if (!overlaps(f)) return; flipped = true; applyPosition() }
+    if (overlaps(f)) {
+      flipped = !flipped; applyPosition()
+      if (overlaps(f)) { flipped = !flipped; applyPosition() } else log('región al borde ' + root.dataset.edge + ' para no tapar el foco')
+    }
+  }
+  document.addEventListener('focusin', (e) => { if (!root.contains(e.target)) requestAnimationFrame(avoidFocus) })
+
+  // ---------- Deslizar para cerrar (opcional; el botón Cerrar es la alternativa, WCAG 2.5.1) ----------
+  function bindSwipe (t) {
+    const card = t.el.querySelector('.gt-card')
+    let x0 = null; let dx = 0; let t0 = 0
+    card.addEventListener('pointerdown', (e) => {
+      if (!o.swipe || e.pointerType === 'mouse' || e.target.closest('button')) return
+      x0 = e.clientX; dx = 0; t0 = performance.now(); t.el.dataset.swiping = ''; setPause('press', true)
+      try { card.setPointerCapture(e.pointerId) } catch (_) {}
+    })
+    card.addEventListener('pointermove', (e) => { if (x0 == null) return; dx = e.clientX - x0; card.style.setProperty('--sx', dx + 'px') })
+    const end = () => {
+      if (x0 == null) return
+      x0 = null; delete t.el.dataset.swiping; setPause('press', false)
+      const w = card.getBoundingClientRect().width
+      const v = Math.abs(dx) / Math.max(1, performance.now() - t0)
+      if (Math.abs(dx) > w * 0.4 || v > 0.6) { t.el.style.setProperty('--exit-x', (dx > 0 ? 1 : -1) * w + 'px'); dismiss(t.id, 'swipe') } else card.style.setProperty('--sx', '0px')
+    }
+    card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end)
+  }
+
+  applyPosition()
+  const api = {
+    show,
+    info: (title, opts) => show(Object.assign({ type: 'info', title }, opts)),
+    success: (title, opts) => show(Object.assign({ type: 'success', title }, opts)),
+    warning: (title, opts) => show(Object.assign({ type: 'warning', title }, opts)),
+    error: (title, opts) => show(Object.assign({ type: 'error', title }, opts)),
+    promise (p, m) {
+      const id = show(Object.assign({ type: 'loading' }, typeof m.loading === 'string' ? { title: m.loading } : m.loading))
+      p.then((v) => update(id, Object.assign({ type: 'success', description: '' }, norm(m.success, v))), (e) => update(id, Object.assign({ type: 'error', description: '' }, norm(m.error, e))))
+      return p
+    },
+    update,
+    dismiss,
+    clear: () => dismiss(null, 'api'),
+    configure (patch) { Object.assign(o, patch); applyPosition(); promote(); sync(); visible().forEach((t) => { t.remaining = durationOf(t); startTimer(t) }) },
+    // solo para el banco de pruebas
+    _state: () => ({ items: items.map(({ id, type, state, count, remaining, title }) => ({ id, type, state, count, remaining, title })), paused: Object.assign({}, paused), edge: root.dataset.edge, host: root.parentElement.localName, flipped }),
+    _root: root
+  }
+  const norm = (m, v) => (typeof m === 'function' ? norm(m(v)) : typeof m === 'string' ? { title: m } : m)
+  return api
+}
+
+// ======================================================================
+// Banco de pruebas
+// ======================================================================
+const annlog = document.getElementById('annlog')
+function logAnn (ch, text) { const li = document.createElement('li'); li.dataset.ch = ch; li.textContent = '[' + (ch === 'assertive' ? 'enérgico' : 'cortés') + '] ' + text; annlog.prepend(li) }
+function log (text) { const li = document.createElement('li'); li.textContent = '· ' + text; annlog.prepend(li); console.debug(text) }
+
+const toaster = createToaster({
+  position: 'bottom-end', limit: 3, mobileLimit: 1, hotkey: 'F8',
+  labels: {
+    region: 'Notificaciones ({hotkey})',
+    close: 'Cerrar notificación',
+    types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' },
+    repeated: '{count} veces',
+    queued: '{count} más en espera',
+    actionHint: 'Pulsa {hotkey} para {action}.'
+  }
+})
+window.toaster = toaster
+
+const $ = (id) => document.getElementById(id)
+$('b-show').onclick = () => {
+  const d = $('f-dur').value
+  toaster.show({ type: $('f-type').value, title: $('f-title').value, description: $('f-desc').value, duration: d === 'auto' ? 'auto' : Number(d), action: $('f-action').value ? { label: $('f-action').value, onClick: () => log('acción: ' + $('f-action').value) } : null })
+}
+$('b-undo').onclick = () => toaster.success('Proyecto archivado', { action: { label: 'Deshacer', onClick: () => { log('acción Deshacer'); toaster.info('Proyecto restaurado') } } })
+$('b-error').onclick = () => toaster.error('No se pudo sincronizar', { description: 'Revisa la conexión. Los cambios siguen en este dispositivo.' })
+const later = (ok, ms = 1200) => new Promise((res, rej) => setTimeout(() => (ok ? res('informe.pdf') : rej(new Error('413'))), ms))
+$('b-ok').onclick = () => toaster.promise(later(true), { loading: 'Subiendo informe', success: (n) => ({ title: 'Informe subido', description: n }), error: 'No se pudo subir el informe' }).catch(() => {})
+$('b-ko').onclick = () => toaster.promise(later(false), { loading: 'Subiendo informe', success: 'Informe subido', error: (e) => ({ title: 'No se pudo subir el informe', description: 'El archivo supera el tamaño permitido.' }) }).catch(() => {})
+$('b-dup').onclick = () => toaster.success('Enlace copiado')
+$('b-burst').onclick = () => ['Archivo 1 movido', 'Archivo 2 movido', 'Archivo 3 movido', 'Archivo 4 movido', 'Archivo 5 movido', 'Archivo 6 movido'].forEach((t) => toaster.info(t))
+$('b-clear').onclick = () => toaster.clear()
+
+document.querySelectorAll('input[name=pos]').forEach((r) => r.addEventListener('change', () => toaster.configure({ position: r.value })))
+$('o-limit').onchange = (e) => toaster.configure({ limit: Number(e.target.value) })
+$('o-rtl').onchange = (e) => { document.documentElement.dir = e.target.checked ? 'rtl' : 'ltr' }
+$('o-rm').onchange = (e) => document.documentElement.toggleAttribute('data-rm', e.target.checked)
+$('o-touch').onchange = (e) => document.documentElement.toggleAttribute('data-touch', e.target.checked)
+$('o-persist').onchange = (e) => toaster.configure({ autoClose: !e.target.checked })
+$('o-swipe').onchange = (e) => toaster.configure({ swipe: e.target.checked })
+$('o-appbar').onchange = (e) => { $('appbar').hidden = !e.target.checked; toaster.configure({ offset: e.target.checked ? 56 : 0 }) }
+
+// Diálogo modal (imita GDialog: Esc lo decide el componente)
+const dlg = $('dlg')
+$('dlg-x').innerHTML = I('x')
+$('b-dialog').onclick = () => dlg.showModal()
+$('dlg-x').onclick = () => dlg.close()
+dlg.addEventListener('cancel', (e) => e.preventDefault())
+dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); log('diálogo cerrado por Esc'); dlg.close() } })
+$('dlg-save').onclick = () => toaster.success('Proyecto guardado')
+$('dlg-fail').onclick = () => toaster.error('No se pudo guardar', { description: 'El nombre ya existe.' })
+$('dlg-archive').onclick = () => toaster.success('Adjunto archivado', { action: { label: 'Deshacer', onClick: () => log('acción Deshacer (diálogo)') } })
+
+// Galería estática (misma estructura, sin región viva)
+const G = [
+  ['neutral · solo título', { type: 'neutral', title: 'Borrador guardado' }],
+  ['info · con descripción', { type: 'info', title: 'Nueva versión disponible', description: 'Se aplicará al recargar.' }],
+  ['success · con acción', { type: 'success', title: 'Proyecto archivado', action: 'Deshacer' }],
+  ['warning', { type: 'warning', title: 'Sin conexión', description: 'Los cambios se guardarán al volver.' }],
+  ['error (danger) · enérgico, sin autocierre', { type: 'error', title: 'No se pudo subir el informe', description: 'El archivo supera el tamaño permitido.' }],
+  ['loading (promesa)', { type: 'loading', title: 'Subiendo informe' }],
+  ['repetido (contador con GBadge)', { type: 'success', title: 'Enlace copiado', count: 3 }],
+  ['texto largo: se ajusta, nunca se recorta', { type: 'info', title: 'Sincronización completada con advertencias', description: 'Se sincronizaron 1.284 elementos; 3 no se pudieron leer y se omitieron. Puedes revisarlos en el registro de actividad.' }]
+]
+$('gallery').innerHTML = G.map(([cap, g]) => '<figure><figcaption>' + cap + '</figcaption><div class="gt-toast"><div class="gt-card" data-type="' + g.type + '">' +
+  (ICON[g.type] ? '<span class="gt-icon">' + I(ICON[g.type]) + '</span>' : '<span></span>') +
+  '<div class="gt-text"><p class="gt-title">' + g.title + (g.count ? '<span class="gt-count">' + g.count + '</span>' : '') + '</p>' + (g.description ? '<p class="gt-desc">' + g.description + '</p>' : '') + '</div>' +
+  (g.action ? '<button type="button" class="gt-action">' + g.action + '</button>' : '') + '<button type="button" class="gt-close" aria-label="Cerrar notificación">' + I('x') + '</button></div></div></figure>').join('')
+
+// Formulario largo para la prueba de foco tapado
+$('longform').innerHTML = Array.from({ length: 8 }, (_, i) => '<label class="wf-field">Campo ' + (i + 1) + '<input id="lf' + (i + 1) + '"></label>').join('') + '<label class="wf-field">Comentario final<textarea id="lf-last" rows="2"></textarea></label>'
+</script>
+</body>
+</html>
