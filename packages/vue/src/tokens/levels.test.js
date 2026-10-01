@@ -27,10 +27,28 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
     expect(bad).toEqual([])
   })
 
-  it('todo var(--g-*) existe en defaults.css o lo declara el propio componente', () => {
+  // Propiedades públicas de solo lectura que publica una primitiva para los componentes que la componen (su raíz ES esa
+  // primitiva). Excepción acotada y nombrada, no un comodín: `--g-surface-padding` la declara GSurface.css (DECISIONS.md
+  // #131, surface.md «Cambio aparte», tokens.md §19) y solo la lee GCard, cuya raíz es una GSurface.
+  const PUBLISHED = { 'GSurface/GSurface.css': ['--g-surface-padding'] }
+  const COMPOSES = { 'GCard/GCard.css': ['GSurface/GSurface.css'] }
+
+  it('las propiedades publicadas existen en su primitiva y no son tokens del tema', () => {
+    for (const [sheet, names] of Object.entries(PUBLISHED)) {
+      const s = sheets.find((x) => x.name === sheet)
+      expect(s, sheet).toBeTruthy()
+      for (const n of names) {
+        expect(s.css, `${sheet} declara ${n}`).toMatch(new RegExp(`${n}\\s*:`))
+        expect(defined.has(n), `${n} no es un token de defaults.css`).toBe(false)
+      }
+    }
+  })
+
+  it('todo var(--g-*) existe en defaults.css o lo declara el propio componente (o la primitiva que compone, si la publica)', () => {
     const bad = {}
     for (const s of sheets) {
       const declared = new Set([...s.css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
+      for (const p of COMPOSES[s.name] ?? []) for (const n of PUBLISHED[p] ?? []) declared.add(n)
       for (const m of s.css.matchAll(/var\((--g-[a-z0-9-]+)/g)) if (!defined.has(m[1]) && !declared.has(m[1])) (bad[s.name] ??= new Set()).add(m[1])
     }
     expect(Object.fromEntries(Object.entries(bad).map(([k, v]) => [k, [...v]]))).toEqual({})

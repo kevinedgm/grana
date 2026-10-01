@@ -45,7 +45,8 @@ const structure = (page, { ignoreThemeOptions = false } = {}) => page.evaluate((
   const walk = (el) => `${el.tagName.toLowerCase()}.${[...el.classList].filter((c) => !skip.test(c)).sort().join('.')}[${el.getAttribute('data-testid') ?? ''}](${[...el.children].filter((c) => !(ignore && c.tagName === 'OPTION' && el.dataset.testid === 'sel-theme')).map(walk).join(',')})`
   return walk(document.getElementById('app'))
 }, ignoreThemeOptions)
-const COLOR_GROUP = /^--g-(color-|calendar-|glass-|shadow-|surface-(shell|inset|backdrop))/
+// Grupo de color del tema: también los velos relativos a la superficie anfitriona de GTabs (#120) y GCard (#134), que cambian con el esquema
+const COLOR_GROUP = /^--g-(color-|calendar-|glass-|shadow-|surface-(shell|inset|backdrop)|tabs-(track|thumb|band|panel)|card-(hover|pressed|selected|scrim|on-scrim))/
 
 test.describe('estado por URL y selectores', () => {
   for (const [q, label] of [

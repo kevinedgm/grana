@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "name": "GCard",
+  "tag": "g-card",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Superficie de contenido contenida (compone GSurface) con regiones opcionales por slots y props de atajo; acción principal por enlace estirado dentro del título (link, button, toggle o select), menú de acciones con GMenu, estado de contenido, vacío, esqueleto derivado de las regiones y adaptación medida por su propio ancho.",
+  "contract": "design/contracts/card.md",
+  "prototype": "design/lab/card/r01/",
+  "style": "packages/vue/src/components/GCard/GCard.css",
+  "props": [
+    {
+      "name": "as",
+      "type": "String",
+      "default": "article",
+      "values": [
+        "article",
+        "li",
+        "div",
+        "section"
+      ]
+    },
+    {
+      "name": "level",
+      "type": "String",
+      "default": "outlined",
+      "values": [
+        "flat",
+        "outlined",
+        "raised",
+        "inset"
+      ]
+    },
+    {
+      "name": "padding",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral"
+      ]
+    },
+    {
+      "name": "orientation",
+      "type": "String",
+      "default": "vertical",
+      "values": [
+        "vertical",
+        "horizontal",
+        "auto"
+      ]
+    },
+    {
+      "name": "mediaPosition",
+      "type": "String",
+      "default": "top",
+      "values": [
+        "top",
+        "start",
+        "end",
+        "background",
+        "inline"
+      ]
+    },
+    {
+      "name": "eyebrow",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "subtitle",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": 3,
+      "values": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "name": "titleLines",
+      "type": "Number | String",
+      "default": 2,
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        "none"
+      ]
+    },
+    {
+      "name": "descriptionLines",
+      "type": "Number | String",
+      "default": "none",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        "none"
+      ]
+    },
+    {
+      "name": "expandable",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "badge",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "badgeColor",
+      "type": "String",
+      "default": "neutral",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "meta",
+      "type": "Array",
+      "default": [],
+      "note": "[{ label, value, priority?: \"high\" | \"low\" }]; los de priority \"low\" no se renderizan con density=\"compact\""
+    },
+    {
+      "name": "menu",
+      "type": "Array",
+      "default": [],
+      "note": "items de GMenu (menu.md)"
+    },
+    {
+      "name": "status",
+      "type": "String",
+      "default": null,
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "error"
+      ]
+    },
+    {
+      "name": "statusText",
+      "type": "String",
+      "default": null,
+      "note": "Obligatorio con status"
+    },
+    {
+      "name": "retryable",
+      "type": "Boolean",
+      "default": false,
+      "note": "Solo con status=\"error\""
+    },
+    {
+      "name": "empty",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "skeleton",
+      "type": "Object",
+      "default": null,
+      "note": "{ media, lead, eyebrow, subtitle, badge, menu: Boolean; descriptionLines: 0-6; meta, actions: Number; footer: Boolean }"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "interaction",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "none",
+        "link",
+        "button",
+        "toggle",
+        "select"
+      ],
+      "note": "auto = link con href, none sin href"
+    },
+    {
+      "name": "href",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "target",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "rel",
+      "type": "String",
+      "default": null,
+      "note": "Con target=\"_blank\" y sin rel: \"noopener noreferrer\""
+    },
+    {
+      "name": "current",
+      "type": "Boolean",
+      "default": false,
+      "note": "Solo con enlace: aria-current=\"true\""
+    },
+    {
+      "name": "modelValue",
+      "type": "Boolean | Array | String | Number",
+      "default": false,
+      "note": "checkbox/toggle sin value: Boolean; checkbox con value: Array; radio: valor elegido (modelValue === value)"
+    },
+    {
+      "name": "selectable",
+      "type": "Boolean",
+      "default": false,
+      "note": "Casilla explícita antes del título en una tarjeta link o button"
+    },
+    {
+      "name": "selectType",
+      "type": "String",
+      "default": "checkbox",
+      "values": [
+        "checkbox",
+        "radio"
+      ]
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "value",
+      "type": "String | Number",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "Ver labels; sin valores por defecto"
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "Generado si falta"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href }",
+      "trigger": "interaction=\"link\": el usuario activa el enlace principal; event.preventDefault() (síncrono) evita la navegación (router). No se emite con disabled ni loading"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event }",
+      "trigger": "interaction=\"button\": el usuario activa el botón principal"
+    },
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean | Array | valor de value",
+      "trigger": "El usuario marca o desmarca (select, toggle, selectable); nunca con disabled ni loading"
+    },
+    {
+      "name": "action",
+      "payload": "{ id } (y checked en casillas y opciones)",
+      "trigger": "El usuario elige un elemento del menú (GMenu)"
+    },
+    {
+      "name": "retry",
+      "payload": "{ event }",
+      "trigger": "El usuario pulsa «Reintentar» (status=\"error\" + retryable)"
+    },
+    {
+      "name": "expand",
+      "payload": "{ expanded, region: 'description' | 'more' }",
+      "trigger": "Se despliega o pliega la descripción recortada o la región more"
+    }
+  ],
+  "slots": [
+    {
+      "name": "media",
+      "scope": "{ size, layout }",
+      "purpose": "Imagen, vídeo, mapa, gráfico; decorativa (aria-hidden) salvo que el contenido lleve role=\"img\""
+    },
+    {
+      "name": "lead",
+      "scope": "{ size, layout }",
+      "purpose": "Icono o avatar del consumidor (decorativo)"
+    },
+    {
+      "name": "eyebrow",
+      "purpose": "Categoría con contenido rico"
+    },
+    {
+      "name": "title",
+      "purpose": "Título con contenido rico (sustituye a title); la tarjeta lo envuelve con la principal"
+    },
+    {
+      "name": "subtitle",
+      "purpose": "Subtítulo con contenido rico"
+    },
+    {
+      "name": "description",
+      "purpose": "Descripción con contenido rico"
+    },
+    {
+      "name": "badge",
+      "scope": "{ state }",
+      "purpose": "Sustituye al badge"
+    },
+    {
+      "name": "default",
+      "scope": "{ size, layout, state, selected }",
+      "purpose": "Contenido libre (GMetric, GProgress, GDataList, gráfico con role=\"img\")"
+    },
+    {
+      "name": "status",
+      "scope": "{ status }",
+      "purpose": "Sustituye al icono y al texto del aviso (mantiene el rol)"
+    },
+    {
+      "name": "empty",
+      "scope": "{ size }",
+      "purpose": "Estado vacío; sustituye a labels.empty y al slot default"
+    },
+    {
+      "name": "meta",
+      "purpose": "Metadata con estructura propia (sustituye a la lista de meta)"
+    },
+    {
+      "name": "more",
+      "scope": "{ size }",
+      "purpose": "Región secundaria que se pliega en narrow (con labels.more y labels.less)"
+    },
+    {
+      "name": "actions",
+      "scope": "{ size, layout }",
+      "purpose": "Acciones (GBtn); anclado al fondo"
+    },
+    {
+      "name": "footer",
+      "scope": "{ size }",
+      "purpose": "Pie a sangre con línea fina"
+    },
+    {
+      "name": "loading",
+      "scope": "{ size, layout }",
+      "purpose": "Esqueleto propio: sustituye solo el cuerpo del esqueleto; decorativo"
+    }
+  ],
+  "labels": [
+    "menu",
+    "loading",
+    "loaded",
+    "expand",
+    "collapse",
+    "more",
+    "less",
+    "retry",
+    "empty"
+  ],
+  "markup": {
+    "root": "g-card + g-surface--*; g-card--orientation-*, --color-*, --media-*, --interaction-* (efectiva), --size-*, --layout-*, --status-*; data-size, data-layout; is-interactive, is-selected, is-current, is-disabled, is-loading, is-empty, has-status, is-expanded",
+    "parts": "g-card__media(--inline), __scrim, __main, __body, __stack, __header, __selectbox[data-type] > __select + __tick, __tick--static (toggle), __lead, __titles, __eyebrow, __title[data-lines], __primary, __subtitle, __aside, __current, __menu, __content, __description[data-lines], __expand, __status, __empty, __meta > __meta-item(--low), __more, __more-toggle, __actions, __footer, __skeleton, __sk(--eyebrow|title|meta|footer|btn|circle) con --_sk-w, __live"
+  },
+  "tokens": [
+    "--g-card-hover",
+    "--g-card-pressed",
+    "--g-card-selected",
+    "--g-card-scrim",
+    "--g-card-on-scrim",
+    "--g-surface-padding (publicada por GSurface, solo lectura)"
+  ],
+  "icons": [
+    "check",
+    "circle",
+    "ellipsis-vertical",
+    "circle-alert",
+    "triangle-alert",
+    "circle-check",
+    "info",
+    "chevron-right"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "pressed",
+    "selected",
+    "current",
+    "disabled",
+    "loading",
+    "empty",
+    "status-info",
+    "status-success",
+    "status-warning",
+    "status-error",
+    "expanded"
+  ],
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack): nombre del article sin aria-labelledby con principal, título-enlace, aria-busy, role=\"status\" y role=\"alert\"",
+    "Táctil real (pulsación larga sobre el enlace estirado) y zoom al 200%",
+    "Rendimiento con cientos de tarjetas (un ResizeObserver por tarjeta)",
+    "Esqueleto con datos ausentes reales (la altura no se promete)",
+    "chevron-down en «Mostrar más»/«Más detalles» (icons.md §4) no está en el banco ni en GCard.css: no se dibuja hasta que coco lo decida",
+    "Fuera de v0.1: GCardGroup, GAvatar, menú de clic derecho, subgrid, tooltip de solo iconos"
+  ]
+}

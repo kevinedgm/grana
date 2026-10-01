@@ -12,7 +12,7 @@ test.describe('playground de la librería', () => {
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
     await ready(page)
-    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs']) {
+    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs', 'g-card']) {
       expect(await page.locator(`[class*="${c}"]`).count(), c).toBeGreaterThan(0)
     }
     expect(errors).toEqual([])
@@ -157,6 +157,61 @@ test.describe('playground de la librería', () => {
     await expect(dlg.locator('[role="tabpanel"]:not([hidden])')).toContainText('Facturación')
     await page.keyboard.press('Escape')
     await expect(page.locator('dialog.g-dialog[open]')).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('las tarjetas (GCard): enlace estirado, acciones internas, selección, teclado y medición propia', async ({ page, browserName }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
+    page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
+    await ready(page)
+    const log = page.locator('#cd-log')
+    const clickAt = async (loc) => { await loc.scrollIntoViewIfNeeded(); const b = await loc.boundingBox(); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2) }
+    // Enlace estirado: un clic en la descripción o en la media activa el enlace real del título (el router cancela con navigate)
+    await clickAt(page.locator('#cd-media .g-card__description'))
+    await expect(log).toHaveText('navigate: #articulo')
+    await clickAt(page.locator('#cd-media .g-card__media'))
+    await expect(log).toHaveText('navigate: #articulo')
+    // Las acciones internas van por encima y no activan la principal
+    await page.locator('#cd-edit').click()
+    await expect(log).toHaveText('acción interna: editar')
+    // Casilla explícita: selecciona sin navegar
+    const entity = page.locator('#cd-entity')
+    await entity.locator('.g-card__selectbox').click()
+    await expect(entity).toHaveClass(/is-selected/)
+    await expect(log).toHaveText('acción interna: editar')
+    // Orden de foco: casilla → título → menú → acciones. WebKit en macOS no tabula a enlaces ni botones por defecto
+    // (preferencia del sistema «Tab resalta cada elemento»): ahí el orden se comprueba en Chromium y Firefox.
+    if (browserName !== 'webkit') {
+      await entity.locator('.g-card__select').focus()
+      const order = []
+      for (let i = 0; i < 5; i++) { order.push(await page.evaluate(() => document.activeElement.className.split(' ')[0] || document.activeElement.tagName)); await page.keyboard.press('Tab') }
+      expect(order).toEqual(['g-card__select', 'g-card__primary', 'g-card__menu', 'g-btn', 'g-btn'])
+    }
+    // Enter en el título navega; el menú abre en la capa superior y Esc devuelve el foco
+    await entity.locator('.g-card__primary').focus()
+    await page.keyboard.press('Enter')
+    await expect(log).toHaveText('navigate: #atlas')
+    await entity.locator('.g-card__menu').click()
+    await expect(page.locator('.g-menu__list:popover-open')).toHaveCount(1)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.g-menu__list:popover-open')).toHaveCount(0)
+    await expect(entity.locator('.g-card__menu')).toBeFocused()
+    // Radios nativos: clic en la tarjeta y flechas
+    await clickAt(page.locator('#cd-plan-basic .g-card__description'))
+    await expect(page.locator('#cd-plan-basic')).toHaveClass(/is-selected/)
+    // (Safari no enfoca un radio al pulsar su etiqueta: el foco se pone en el radio elegido, como al entrar con Tab)
+    await page.locator('#cd-plan-basic input').focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.locator('#cd-plan-team')).toHaveClass(/is-selected/)
+    await expect(page.locator('#cd-plan-basic')).not.toHaveClass(/is-selected/)
+    // Medición por el ancho de la propia tarjeta
+    await page.locator('#card-demo input[type="range"]').fill('300')
+    await expect(page.locator('#cd-horizontal')).toHaveAttribute('data-size', 'narrow')
+    await expect(page.locator('#cd-horizontal .g-card__more-toggle')).toBeVisible()
+    await page.locator('#card-demo input[type="range"]').fill('900')
+    await expect(page.locator('#cd-horizontal')).toHaveAttribute('data-size', 'wide')
+    await expect(page.locator('#cd-horizontal')).toHaveAttribute('data-layout', 'row')
     expect(errors).toEqual([])
   })
 })

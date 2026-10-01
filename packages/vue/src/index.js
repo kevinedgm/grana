@@ -29,12 +29,13 @@ import GPagination from './components/GPagination/GPagination.vue'
 import GFilterBar from './components/GFilterBar/GFilterBar.vue'
 import GTabs from './components/GTabs/GTabs.vue'
 import GTabPanel from './components/GTabs/GTabPanel.vue'
+import GCard from './components/GCard/GCard.vue'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel }
+export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard }
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel }
+const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

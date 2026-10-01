@@ -13,6 +13,10 @@
     h2:not(.g-dialog__title) { font-size: var(--g-text-title-sm-size); font-weight: var(--g-text-title-sm-weight); margin: 32px 0 12px; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
       .col { display: grid; gap: 16px; max-width: 320px; }
+    .cd-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: stretch; margin: 0 0 20px; }
+    .cd-ph { display: grid; place-items: center; inline-size: 100%; block-size: 100%; background: linear-gradient(135deg, var(--g-color-accent-soft), var(--g-color-neutral-soft)); color: var(--g-color-text-muted); font-size: var(--g-text-title-size); }
+    .cd-ph--dark { background: var(--g-color-neutral); color: var(--g-color-on-neutral); }
+    .cd-list { list-style: none; margin: 0 0 20px; padding: 0; max-width: 720px; }
   </style>
   <style id="theme"></style>
 </head>
@@ -563,6 +567,61 @@
       </g-tab-panel>
       <template #footer="{ close }"><g-btn variant="outline" @click="close">Cancelar</g-btn><g-btn @click="close">Guardar</g-btn></template>
     </g-dialog>
+    <h2>Tarjetas (GCard)</h2>
+    <div id="card-demo">
+      <div class="row">
+        <label>Ancho <input type="range" v-model.number="cdW" min="240" max="1100"> {{ cdW }}px</label>
+        <label><input type="checkbox" v-model="cdLoading"> cargando</label>
+        <span id="cd-log" role="status">{{ cdLog }}</span>
+      </div>
+      <div class="cd-grid" :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
+        <g-card id="cd-basic" title="Notas de la versión" description="Un resumen breve de lo que contiene esta tarjeta." :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-media" href="#articulo" eyebrow="Artículo" title="Un paseo por el mercado" description="Una descripción lo bastante larga como para ocupar dos líneas en la mayoría de los anchos, y seguir siendo clara para quien la lee con lector de pantalla." :description-lines="2" expandable :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #footer><span>5 min de lectura</span><span>12 jun</span></template>
+        </g-card>
+        <g-card id="cd-entity" href="#atlas" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" badge-color="success" :meta="cdMeta" :menu="cdMenu" :labels="cdLabels" :loading="cdLoading" selectable v-model="cdSel" @navigate="cdNavigate" @action="cdLog = 'acción: ' + $event.id">
+          <template #lead><lucide-icon class="g-icon" name="building-2"></lucide-icon></template>
+          <template #actions>
+            <g-btn variant="outline" id="cd-edit" @click="cdLog = 'acción interna: editar'">Editar</g-btn>
+            <g-btn variant="ghost" icon aria-label="Compartir" @click="cdLog = 'acción interna: compartir'"><lucide-icon name="share-2"></lucide-icon></g-btn>
+          </template>
+          <template #footer><span>Actualizado hace 2 h</span><a href="#historial">Historial</a></template>
+        </g-card>
+        <g-card id="cd-action" interaction="button" title="Nuevo proyecto" description="Empieza desde cero o con una plantilla." :labels="cdLabels" :loading="cdLoading" @activate="cdLog = 'activate: nuevo proyecto'">
+          <template #lead><lucide-icon class="g-icon" name="plus"></lucide-icon></template>
+        </g-card>
+        <g-card id="cd-toggle" interaction="toggle" title="Solo pendientes" description="Filtro de la vista." v-model="cdFav" :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-status" title="Ingresos" status="error" status-text="No se pudo cargar la métrica." retryable :labels="cdLabels" :loading="cdLoading" @retry="cdLog = 'retry'"></g-card>
+        <g-card id="cd-metric" href="#ingresos" title="Ingresos mensuales" :menu="cdMenu.slice(0, 2)" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <g-metric label="Ingresos" value="$48,200" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
+          <template #footer><span>Actualizado 09:41</span></template>
+        </g-card>
+        <g-card id="cd-empty" title="Proyectos" empty :labels="cdLabels" :loading="cdLoading"></g-card>
+        <g-card id="cd-bg" href="#ruta" media-position="background" eyebrow="Ruta" title="Recorrido por el centro histórico" subtitle="3 h · ES" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph cd-ph--dark"><lucide-icon name="map-pin"></lucide-icon></div></template>
+          <template #actions><g-btn>Reservar</g-btn></template>
+        </g-card>
+      </div>
+      <h3>Horizontal con media lateral (orientation auto)</h3>
+      <div :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
+        <g-card id="cd-horizontal" href="#centro" orientation="auto" media-position="start" eyebrow="Resultado" title="Recorrido por el centro histórico" description="Un recorrido a pie por las plazas y mercados." :meta="[{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }]" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
+          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #more><p style="margin:0">Punto de encuentro: plaza principal. Cancelación gratuita hasta 24 h antes.</p></template>
+          <template #actions><g-btn>Guardar</g-btn></template>
+        </g-card>
+      </div>
+      <h3>Selección única (radio con name común)</h3>
+      <div role="radiogroup" aria-label="Plan" class="cd-grid">
+        <g-card v-for="p in cdPlans" :key="p.id" :id="'cd-plan-' + p.id" interaction="select" select-type="radio" name="cd-plan" :value="p.id" v-model="cdPlan" :title="'Plan ' + p.label" :description="p.text" color="accent" :labels="cdLabels"></g-card>
+      </div>
+      <h3>Lista (li, horizontal, plana, compacta)</h3>
+      <ul class="cd-list">
+        <g-card v-for="(m, i) in cdPeople" :key="m.name" as="li" level="flat" density="compact" orientation="horizontal" :href="'#' + m.ini" :current="i === 0" :title="m.name" :title-lines="1" :subtitle="m.team" badge="Activo" badge-color="success" :meta="[{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: m.team, priority: 'low' }]" :menu="cdMenu" :labels="cdLabels" @navigate="cdNavigate">
+          <template #lead>{{ m.ini }}</template>
+        </g-card>
+      </ul>
+    </div>
     <h2>Widgets (GWidget, GWidgetGrid)</h2>
     <div class="col" style="max-width:1100px">
       <div class="row" style="align-items:center">
@@ -704,6 +763,20 @@
         const avState = ref('idle')
         const avHelperState = ref('idle')
         const avHelper = (e) => { if (!e.open) { avHelperState.value = 'idle'; return } avHelperState.value = 'thinking'; setTimeout(() => { avHelperState.value = 'success' }, 1200) }
+        // GCard (design/contracts/card.md): textos sin valores por defecto, los pone la aplicación
+        const cdW = ref(900)
+        const cdLoading = ref(false)
+        const cdLog = ref('')
+        const cdSel = ref(false)
+        const cdFav = ref(true)
+        const cdPlan = ref('team')
+        const cdLabels = { menu: 'Acciones de', loading: 'Cargando tarjeta', loaded: 'Tarjeta cargada', expand: 'Mostrar más', collapse: 'Mostrar menos', more: 'Más detalles', less: 'Menos detalles', retry: 'Reintentar', empty: 'Aún no hay proyectos' }
+        const cdMenu = [{ id: 'rename', label: 'Renombrar' }, { id: 'dup', label: 'Duplicar' }, { id: 'move', label: 'Mover a…', disabled: true }, { id: 'del', label: 'Eliminar', danger: true }]
+        const cdMeta = [{ label: 'Responsable', value: 'Ana Pérez' }, { label: 'Tareas', value: '12' }, { label: 'Actualizado', value: 'hace 2 h', priority: 'low' }]
+        const cdPlans = [{ id: 'basic', label: 'Básico', text: 'Para empezar.' }, { id: 'team', label: 'Equipo', text: 'Para crecer.' }, { id: 'company', label: 'Empresa', text: 'Para escalar.' }]
+        const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP' }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
+        // El router de la aplicación cancela la navegación del enlace real (evento cancelable, #70)
+        const cdNavigate = ({ event, href }) => { event.preventDefault(); cdLog.value = 'navigate: ' + href }
         const gtTab = ref('general')
         const gtBlock = ref(false)
         const gtLog = ref('—')
@@ -968,7 +1041,7 @@
             ? ":root { --g-radius-xs: 6px; --g-radius-sm: 9px; --g-radius-md: 12px; --g-radius-lg: 17px; --g-radius-xl: 24px; --g-radius-shape: var(--g-radius-pill); } :root, [data-theme=\"light\"] { --g-color-brand: #0B1F4D; --g-color-brand-strong: #1E3464; --g-color-brand-soft: #E9F0FF; --g-color-brand-text: #0B1F4D; --g-color-on-brand: #FFFFFF; --g-color-on-brand-soft: #0B1F4D; --g-color-accent: #6D28D9; --g-color-accent-strong: #5700B8; --g-color-accent-soft: #F0EEFF; --g-color-accent-text: #6D28D9; --g-color-on-accent: #FFFFFF; --g-color-on-accent-soft: #6D28D9; --g-color-surface-sunken: #F4F6FB; --g-color-text: #181A1D; --g-color-text-muted: #535559; --g-color-text-subtle: #6C6E72; --g-color-border-control: #5B6B8C; --g-color-border: rgb(24 26 29 / 0.08); --g-color-border-strong: rgb(24 26 29 / 0.16); --g-color-neutral: #696B6F; --g-color-neutral-strong: #535558; --g-color-neutral-soft: #EFF0F1; --g-color-neutral-text: #696B6F; --g-color-on-neutral: #FFFFFF; --g-color-on-neutral-soft: #696B6F; } @media (prefers-color-scheme: dark) { :root:not([data-theme=\"light\"]) { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; } } [data-theme=\"dark\"] { color-scheme: dark; --g-color-brand: #8FACE5; --g-color-brand-strong: #A2BFF9; --g-color-brand-soft: #1C2433; --g-color-brand-text: #8FACE5; --g-color-on-brand: #17151A; --g-color-on-brand-soft: #8FACE5; --g-color-accent: #9469FF; --g-color-accent-strong: #A386FF; --g-color-accent-soft: #261948; --g-color-accent-text: #9469FF; --g-color-on-accent: #17151A; --g-color-on-accent-soft: #966EFF; --g-color-surface-sunken: #0E1013; --g-color-text: #F0F2F7; --g-color-text-muted: #B6B8BD; --g-color-text-subtle: #9A9CA1; --g-color-border-control: #7E8085; --g-color-border: rgb(240 242 247 / 0.10); --g-color-border-strong: rgb(240 242 247 / 0.20); --g-color-neutral: #838589; --g-color-neutral-strong: #95979C; --g-color-neutral-soft: #232425; --g-color-neutral-text: #838589; --g-color-on-neutral: #17151A; --g-color-on-neutral-soft: #898B90; --g-color-bg: #121417; --g-color-surface: #1A1C20; }"
             : ''
         }
-        return { gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
+        return { cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).mount('#app')
   </script>
