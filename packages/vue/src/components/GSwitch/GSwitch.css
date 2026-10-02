@@ -216,25 +216,49 @@
   color: var(--g-color-text-muted);
 }
 
-/* ---------- Error ---------- */
-/* La región viva existe siempre; vacía no ocupa espacio */
+/* ---------- Mensaje de estado (form.md C4/C5) ---------- */
+/* Un solo hueco para error, advertencia o válido, alineado con el texto. La región viva existe siempre; vacía no
+   ocupa espacio. Transición: g-switch__error es el nombre anterior (se quita cuando bruno renombre la región; coco
+   lo retira en la auditoría) */
+.g-switch__message,
 .g-switch__error {
+  overflow-wrap: anywhere;
   padding-inline-start: calc(var(--_tw) + var(--_gap) * var(--_density));
   font-size: var(--g-text-caption-size);
   line-height: var(--g-text-caption-line);
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
+.g-switch--label-start .g-switch__message,
 .g-switch--label-start .g-switch__error {
   padding-inline-start: 0;
 }
-.g-switch.is-invalid .g-switch__error {
+.g-switch__message:not(:empty),
+.g-switch__error:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-switch.is-warning .g-switch__message { color: var(--g-color-warning-text); }
+.g-switch.is-valid .g-switch__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
+.g-switch__message-icon,
 .g-switch__error-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
+}
+/* Prefijo «Error: » / «Advertencia: » / «Correcto: »: solo para lectores (patrón estándar de texto oculto) */
+.g-switch__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Tamaño (alto × ancho del riel, tokens.md §4) ---------- */
@@ -260,7 +284,7 @@
 
 /* ---------- Estados ---------- */
 @media (hover: hover) {
-  .g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:hover .g-switch__input:not(:checked) {
+  .g-switch:not(.is-disabled):not(.is-readonly):not(.is-warning):not(.is-valid) .g-switch__row:hover .g-switch__input:not(:checked) {
     border-color: var(--g-color-text-muted);
     --_thumb: var(--g-color-text-muted);
   }
@@ -302,18 +326,38 @@
   border-color: var(--g-color-danger-text);
   box-shadow: 0 0 0 var(--g-border-width) var(--g-color-danger-text);
 }
+/* Advertencia (C5): el riel apagado con borde discontinuo del color de advertencia (el error es continuo y doble) */
+.g-switch.is-warning .g-switch__input:not(:checked) {
+  border-color: var(--g-color-warning-text);
+  border-style: dashed;
+}
+/* Válido (C5): borde del color de éxito con el riel apagado; lo distinguen el icono, el prefijo y el mensaje */
+.g-switch.is-valid .g-switch__input:not(:checked) {
+  border-color: var(--g-color-success-text);
+}
+/* Solo lectura (C7, #165): riel hundido con borde discontinuo; el pulgar encendido con el texto pleno (nunca
+   atenuado) y su marca recortada en el color del riel. Se distingue de deshabilitado por el borde y el contraste */
+.g-switch.is-readonly {
+  --_mark: var(--g-color-surface-sunken);
+}
 .g-switch.is-readonly .g-switch__row {
   cursor: default;
 }
-.g-switch.is-readonly .g-switch__input:not(:checked) {
-  background: var(--g-color-surface-sunken);
-  border-style: dashed;
-}
+.g-switch.is-readonly .g-switch__input,
 .g-switch.is-readonly .g-switch__input:checked {
   border-style: dashed;
-  background: var(--g-color-text-muted);
-  border-color: var(--g-color-text-muted);
-  color: var(--g-color-text-muted);
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-surface-sunken);
+}
+.g-switch.is-readonly .g-switch__input:checked::before {
+  background: var(--g-color-text);
+}
+.g-switch.is-readonly .g-switch__mark--on {
+  color: var(--g-color-surface-sunken);
+}
+.g-switch.is-readonly .g-switch__label {
+  color: var(--g-color-text);
 }
 .g-switch.is-disabled .g-switch__row {
   cursor: not-allowed;
@@ -391,6 +435,17 @@
   }
 }
 
+/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
+/* Como la casilla: la fila ocupa la pista de la caja y el mensaje la suya */
+.g-form-row > .g-switch {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-form-row > .g-switch > * { grid-column: 1; }
+.g-form-row > .g-switch > .g-switch__row { grid-row: box; }
+.g-form-row > .g-switch > :is(.g-switch__message, .g-switch__error) { grid-row: message; }
+
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {
   .g-switch__input {
@@ -418,4 +473,14 @@
   .g-switch.is-disabled .g-switch__input:checked::before { background: GrayText; }
   .g-switch.is-loading .g-switch__input:not(:checked)::before { background: ButtonText; }
   .g-switch.is-loading .g-switch__input:not(:checked) { color: Canvas; }
+  /* Solo lectura: riel Canvas con el discontinuo en CanvasText; encendido, el pulgar en CanvasText (sin relleno de sistema) */
+  .g-switch.is-readonly .g-switch__input,
+  .g-switch.is-readonly .g-switch__input:checked {
+    border-color: CanvasText;
+    background: Canvas;
+    color: Canvas;
+  }
+  .g-switch.is-readonly .g-switch__input::before,
+  .g-switch.is-readonly .g-switch__input:checked::before { background: CanvasText; }
+  .g-switch.is-readonly .g-switch__mark--on { color: Canvas; }
 }

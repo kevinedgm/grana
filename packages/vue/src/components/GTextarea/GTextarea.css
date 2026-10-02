@@ -56,6 +56,12 @@
   margin-inline-start: var(--g-space-1);
   color: var(--g-color-danger-text);
 }
+/* «(opcional)» de GForm (form.md C3): parte del nombre accesible, en voz baja. Sin margen: el espacio
+   lo pone el texto (en el nombre accesible tiene que haber un espacio entre la etiqueta y «(opcional)») */
+.g-textarea__optional {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
 
 /* ---------- Caja ---------- */
 .g-textarea__control {
@@ -181,7 +187,10 @@
   white-space: nowrap;
   border: 0;
 }
-/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+/* Mensaje de estado (form.md C4/C5): un solo hueco para error, advertencia o válido. La región viva existe siempre;
+   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores). Transición: g-textarea__error es el
+   nombre anterior (se quita cuando bruno renombre la región; coco lo retira en la auditoría) */
+.g-textarea__message,
 .g-textarea__error {
   overflow-wrap: anywhere;
   font-size: var(--g-text-caption-size);
@@ -189,13 +198,32 @@
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-textarea.is-invalid .g-textarea__error {
+.g-textarea__message:not(:empty),
+.g-textarea__error:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-textarea.is-warning .g-textarea__message { color: var(--g-color-warning-text); }
+.g-textarea.is-valid .g-textarea__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
+.g-textarea__message-icon,
 .g-textarea__error-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
+}
+/* Prefijo «Error: » / «Advertencia: » / «Correcto: »: solo para lectores (patrón estándar de texto oculto) */
+.g-textarea__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Tamaño ---------- */
@@ -246,7 +274,7 @@
 
 /* ---------- Estados ---------- */
 @media (hover: hover) {
-  .g-textarea:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-textarea__control:hover {
+  .g-textarea:not(.is-disabled):not(.is-readonly):not(.is-invalid):not(.is-warning):not(.is-valid) .g-textarea__control:hover {
     --_border: var(--g-color-text-muted);
     --_border-end: var(--g-color-text-muted);
   }
@@ -269,9 +297,36 @@
   --_border: var(--g-color-danger-text);
   --_border-end: var(--g-color-danger-text);
 }
+/* Advertencia (C5): borde discontinuo de doble grosor (no solo otro color que el error, que es continuo; precedente
+   GToast y GCard). El relleno y el alto se descuentan del grosor extra: ni el texto ni la caja se mueven */
+.g-textarea.is-warning .g-textarea__control {
+  --_border: var(--g-color-warning-text);
+  --_border-end: var(--g-color-warning-text);
+  border-style: dashed;
+  border-width: calc(var(--g-border-width) * 2);
+}
+.g-textarea.is-warning .g-textarea__field {
+  min-block-size: calc(var(--_h) - var(--g-border-width) * 4);
+  padding-block: calc(var(--_padv) - var(--g-border-width));
+  padding-inline-start: calc(var(--_px) * var(--_density) - var(--g-border-width));
+}
+@media (pointer: coarse) {
+  .g-textarea.is-warning .g-textarea__field {
+    min-block-size: calc(max(44px, var(--_h)) - var(--g-border-width) * 4);
+  }
+}
+/* Válido (C5): borde sencillo del color de éxito; lo distinguen el icono, el prefijo y el mensaje */
+.g-textarea.is-valid .g-textarea__control {
+  --_border: var(--g-color-success-text);
+  --_border-end: var(--g-color-success-text);
+}
+/* Solo lectura (C7, #165): contraste completo, fondo hundido y borde discontinuo; enfocable y seleccionable */
 .g-textarea.is-readonly .g-textarea__control {
   --_bg: var(--g-color-surface-sunken);
   border-style: dashed;
+}
+.g-textarea.is-readonly .g-textarea__field {
+  color: var(--g-color-text);
 }
 .g-textarea.is-disabled {
   color: var(--g-color-text-subtle);
@@ -289,6 +344,25 @@
   cursor: not-allowed;
   color: var(--g-color-text-subtle);
 }
+
+/* ---------- Parte de un GFieldGroup (form.md §5): el <legend> nombra la pregunta; la etiqueta de la parte, su dato ---------- */
+/* Un paso por debajo de la pregunta (peso normal, texto muted ≥ 4.5:1): se lee «Teléfono → País · Número · Extensión» */
+.g-field-group__parts > .g-textarea > .g-textarea__label {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
+.g-form-row > .g-textarea {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-form-row > .g-textarea > * { grid-column: 1; }
+.g-form-row > .g-textarea > .g-textarea__label { grid-row: label; align-self: end; }
+.g-form-row > .g-textarea > .g-textarea__control { grid-row: box; }
+.g-form-row > .g-textarea > .g-textarea__messages { grid-row: hint; }
+.g-form-row > .g-textarea > :is(.g-textarea__message, .g-textarea__error) { grid-row: message; }
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {

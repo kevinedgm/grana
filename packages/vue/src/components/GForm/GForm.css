@@ -1,0 +1,55 @@
+/*
+  GForm · estilo del formulario (composición)
+  Dueño: coco. Contrato: design/contracts/form.md §1 y §6 (DECISIONS.md #153 a #168). Estructura: design/lab/form/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px y el patrón de texto oculto accesible.
+  Carácter: el formulario no dibuja nada propio. Ordena sus hijos (resumen, secciones, rejillas, pie) con el
+  aire de sección y deja que la jerarquía la den el espacio y la tipografía, sin cajas ni divisores.
+*/
+
+.g-form {
+  /* Propiedad pública de solo lectura (tokens.md §21, #163): GForm la escribe en línea con la altura medida
+     de su GFormActions sticky; aquí, el valor sin pie fijo */
+  --g-form-actions-size: 0px;
+
+  /* Densidad (se reasigna por --density-*) */
+  --_density: 1;
+
+  display: flex;
+  flex-direction: column;
+  /* Aire entre los hijos directos: resumen, secciones, rejillas sueltas y pie. Un hijo oculto (resumen sin
+     errores, con hidden) no deja hueco: flex no reparte separación a lo que no se pinta */
+  gap: calc(var(--g-form-section-gap) * var(--_density));
+  box-sizing: border-box;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* ---------- Densidad ---------- */
+.g-form--density-default { --_density: 1; }
+.g-form--density-comfortable { --_density: 0.875; }
+.g-form--density-compact { --_density: 0.75; }
+
+/* ---------- Frase de la convención «obligatorios» (marks="required") ---------- */
+/* Pertenece a lo que sigue: se acerca al primer bloque con el aire de una fila, no el de una sección */
+.g-form__required-hint {
+  margin: 0;
+  margin-block-end: calc((var(--g-form-gap) - var(--g-form-section-gap)) * var(--_density));
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Pie fijo: el foco nunca queda debajo (WCAG 2.2 2.4.11, #163) ---------- */
+/* Regla de desplazamiento, no de aspecto: cuando el navegador lleva a la vista un elemento enfocable, deja libre
+   la altura del pie más una fila de aire. Los controles del propio pie quedan fuera (ya están a la vista). */
+.g-form--sticky-actions :is(input:not([type="hidden"]), select, textarea, button, a[href], summary, [tabindex], [contenteditable]):not(.g-form-actions--sticky *) {
+  scroll-margin-block-end: calc(var(--g-form-actions-size) + var(--g-space-4));
+}
+
+/* ---------- Estados de todo el formulario ---------- */
+/* readonly y disabled no dibujan nada aquí: cada campo los recibe por el contexto y los pinta él (C7).
+   Sin movimiento propio: el desplazamiento al primer error lo hace bruno (con movimiento reducido, sin suavizado). */

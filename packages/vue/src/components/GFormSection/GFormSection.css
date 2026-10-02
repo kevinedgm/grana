@@ -1,0 +1,93 @@
+/*
+  GFormSection · estilo de la sección fija (Fase 1)
+  Dueño: coco. Contrato: design/contracts/form.md §3 (DECISIONS.md #161).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Carácter: sin tarjeta, sin fondo y sin línea. Una sección se reconoce por el aire que la separa de la anterior
+  (--g-form-section-gap, ≈ 2× el de una fila) y por su título; la descripción es una línea tenue debajo.
+*/
+
+.g-form-section {
+  /* La sección no tiene densidad propia: sigue la del GForm que la contiene (por defecto, 1) */
+  --_d: 1;
+
+  display: flex;
+  flex-direction: column;
+  /* Encabezado → campos: algo menos que una fila, para que el título pertenezca a sus campos */
+  gap: calc(var(--g-space-4) * var(--_d));
+  box-sizing: border-box;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.g-form--density-comfortable .g-form-section { --_d: 0.875; }
+.g-form--density-compact .g-form-section { --_d: 0.75; }
+
+/* Dentro de GForm la separación entre secciones la pone el formulario (gap de sus hijos). Fuera de él, o dentro de
+   un envoltorio propio (panel de pestañas, cuerpo de un diálogo), la pone la propia sección */
+:not(.g-form) > .g-form-section + .g-form-section {
+  margin-block-start: calc(var(--g-form-section-gap) * var(--_d));
+}
+
+/* ---------- Encabezado: título (+ insignia) · acciones al final; descripción y ayuda debajo ---------- */
+.g-form-section__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--g-space-4);
+  min-inline-size: 0;
+}
+.g-form-section__heading {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-form-section__title {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+  overflow-wrap: anywhere;
+}
+/* Fase 3: el título recibirá el foco al «Agregar…» (tabindex="-1"); el anillo se ve igual que el resto */
+.g-form-section__title:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+  border-radius: var(--g-radius-xs);
+}
+.g-form-section__description {
+  grid-column: 1 / -1;
+  margin: 0;
+  margin-block-start: calc(var(--g-space-1) * 0.5);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+/* Acciones secundarias (GBtn ghost u outline): al final de la línea del título, sin estirarse */
+.g-form-section__actions {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+}
+.g-form-section__help {
+  grid-column: 1 / -1;
+  min-inline-size: 0;
+  margin-block-start: var(--g-space-2);
+}
+
+.g-form-section__body {
+  min-inline-size: 0;
+}

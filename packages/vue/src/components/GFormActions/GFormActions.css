@@ -1,0 +1,99 @@
+/*
+  GFormActions · pie de acciones (normal o fijo)
+  Dueño: coco. Contrato: design/contracts/form.md §6 (DECISIONS.md #155, #163).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Orden (decisión del usuario, #155): secundarias antes y primaria la última, alineadas al final; en estrecho
+  (data-stacked, lo mide bruno) se apilan a ancho completo con la primaria arriba (column-reverse).
+  Fijo: pegado al borde inferior del contenedor que se desplaza, con fondo de superficie y una línea fina arriba.
+  Nunca tapa el foco: GForm.css reserva su altura (--g-form-actions-size) al llevar un control a la vista.
+*/
+
+.g-form-actions {
+  --_density: 1;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2) var(--g-space-4);
+  box-sizing: border-box;
+  /* Ocupa la fila también dentro de un pie flexible (el de GDialog): su ancho decide si se apila */
+  inline-size: 100%;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.g-form-actions--density-default { --_density: 1; }
+.g-form-actions--density-comfortable { --_density: 0.875; }
+.g-form-actions--density-compact { --_density: 0.75; }
+
+/* ---------- Estado («Cambios sin guardar», «Guardado a las 10:42»): región viva siempre presente (#14) ---------- */
+.g-form-actions__status {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Botones: al final, primaria la última ---------- */
+.g-form-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+/* ---------- Estrecho: apilado a ancho completo, primaria arriba ---------- */
+.g-form-actions--stacked,
+.g-form-actions[data-stacked] {
+  flex-direction: column;
+  align-items: stretch;
+}
+.g-form-actions--stacked > .g-form-actions__buttons,
+.g-form-actions[data-stacked] > .g-form-actions__buttons {
+  flex-direction: column-reverse;
+  align-items: stretch;
+  margin-inline-start: 0;
+}
+/* (la región de estado oculta de cada GBtn, hermana del botón, queda fuera) */
+.g-form-actions--stacked > .g-form-actions__buttons > :not([role="status"]),
+.g-form-actions[data-stacked] > .g-form-actions__buttons > :not([role="status"]) {
+  inline-size: 100%;
+}
+/* Sin estado, la región vacía no deja hueco encima de los botones */
+.g-form-actions--stacked > .g-form-actions__status:empty,
+.g-form-actions[data-stacked] > .g-form-actions__status:empty {
+  margin-block-end: calc(var(--g-space-2) * -1);
+}
+
+/* ---------- Fijo ---------- */
+.g-form-actions--sticky {
+  position: sticky;
+  inset-block-end: 0;
+  /* Por encima de los campos (el enfocado sube a z-index 1) y por debajo de la capa superior (listas, popovers) */
+  z-index: 2;
+  padding-block: calc(var(--g-space-3) * var(--_density));
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+}
+/* Dentro de GForm el aire de sección ya lo separa del último campo; pegado, la línea basta */
+.g-form > .g-form-actions--sticky {
+  margin-block-start: calc(var(--g-form-section-gap) * var(--_density) * -0.5);
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-contrast: more) {
+  .g-form-actions--sticky {
+    border-block-start-color: var(--g-color-border-control);
+  }
+}
+@media (forced-colors: active) {
+  .g-form-actions--sticky {
+    border-block-start-color: CanvasText;
+  }
+}

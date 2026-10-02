@@ -1,0 +1,111 @@
+/*
+  GErrorSummary · resumen de errores (patrón GOV.UK, generaliza #78)
+  Dueño: coco. Contrato: design/contracts/form.md §7 (DECISIONS.md #162).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Carácter: la única pieza del formulario con caja, porque interrumpe: borde fino del color de error con una marca
+  gruesa al inicio (la misma forma que el estado de error de GCard y GToast), fondo de superficie, título con
+  circle-alert y una lista de enlaces subrayados con el mismo texto que el error en línea. Sin relleno de color: el
+  texto se lee sobre la superficie con su contraste completo.
+*/
+
+.g-error-summary {
+  display: block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding: var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-danger-text);
+  border-inline-start-width: calc(var(--g-border-width) * 4);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+  /* Al recibir el foco por script, que se vea entero con un poco de aire arriba */
+  scroll-margin-block: var(--g-space-4);
+}
+.g-error-summary[hidden] {
+  display: none;
+}
+/* Recibe el foco por script (tabindex="-1") tras un envío con errores: el anillo se ve aunque el envío fuera con
+   el ratón (:focus, no :focus-visible), como en GOV.UK */
+.g-error-summary:focus {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Título ---------- */
+.g-error-summary__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+  overflow-wrap: anywhere;
+}
+/* circle-alert del tamaño del texto, centrado en la primera línea */
+.g-error-summary__icon {
+  flex: none;
+  inline-size: var(--g-text-body-size);
+  block-size: var(--g-text-body-size);
+  margin-block-start: calc((var(--g-text-body-line) - var(--g-text-body-size)) / 2);
+  color: var(--g-color-danger-text);
+}
+
+/* ---------- Lista ---------- */
+.g-error-summary__list {
+  margin: 0;
+  margin-block-start: var(--g-space-2);
+  padding: 0;
+  padding-inline-start: calc(var(--g-text-body-size) + var(--g-space-2));
+  list-style: none;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-error-summary__list > li + li {
+  margin-block-start: var(--g-space-1);
+}
+/* Enlace: objetivo ≥ 24px de alto (WCAG 2.5.8); color de error con subrayado (no depende solo del color) */
+.g-error-summary__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  border-radius: var(--g-radius-xs);
+  color: var(--g-color-danger-text);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: calc(var(--g-border-width) * 3);
+  overflow-wrap: anywhere;
+}
+@media (hover: hover) {
+  .g-error-summary__link:hover {
+    text-decoration-thickness: calc(var(--g-border-width) * 2);
+  }
+}
+.g-error-summary__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* Error general (sin campo al que llevar): texto, sin enlace */
+.g-error-summary__item {
+  color: var(--g-color-text);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (forced-colors: active) {
+  .g-error-summary {
+    border-color: CanvasText;
+  }
+  .g-error-summary:focus,
+  .g-error-summary__link:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-error-summary__icon {
+    color: CanvasText;
+  }
+}

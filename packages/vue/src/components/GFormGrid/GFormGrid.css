@@ -1,0 +1,105 @@
+/*
+  GFormGrid · rejilla de formulario y clases públicas de colocación
+  Dueño: coco. Contrato: design/contracts/form.md §4 (DECISIONS.md #159, #167).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  El tramo (12 / 6 / 1 columnas) lo decide bruno midiendo el ancho propio (clase g-form-grid--{tramo}); aquí solo
+  se reparte. Sin `order`, sin `dense`, sin posiciones que reordenen: orden del DOM = lectura = Tab = visual.
+  Ninguna regla toca .g-input ni otros campos: cada campo llena su celda porque la rejilla le da `block`.
+*/
+
+/* ---------- Rejilla ---------- */
+.g-form-grid {
+  /* Columnas del tramo y densidad (se reasignan por modificador). Sin tramo medido (SSR, antes de medir): una */
+  --_form-cols: 1;
+  --_density: 1;
+
+  display: grid;
+  grid-template-columns: repeat(var(--_form-cols), minmax(0, 1fr));
+  row-gap: calc(var(--g-form-gap) * var(--_density));
+  column-gap: calc(var(--g-form-column-gap) * var(--_density));
+  /* Alineación superior: una etiqueta de dos líneas no empuja a la vecina (en la rejilla general no hay subgrid) */
+  align-items: start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-form-grid--wide { --_form-cols: 12; }
+.g-form-grid--medium { --_form-cols: 6; }
+.g-form-grid--narrow,
+.g-form-grid--stack { --_form-cols: 1; }
+
+.g-form-grid--density-default { --_density: 1; }
+.g-form-grid--density-comfortable { --_density: 0.875; }
+.g-form-grid--density-compact { --_density: 0.75; }
+
+/* ---------- Hijos: ancho completo por defecto (g-form-w-full) ---------- */
+.g-form-grid > * {
+  --_form-span: var(--_form-cols);
+  grid-column: auto / span var(--_form-span);
+  min-inline-size: 0;
+}
+
+/* ---------- Clases de ancho: el ancho expresa el contenido esperado, no la simetría ---------- */
+/* ancho (12) */
+.g-form-grid--wide:not(.g-form-grid--stack) > .g-form-w-xs { --_form-span: 2; }
+.g-form-grid--wide:not(.g-form-grid--stack) > .g-form-w-sm { --_form-span: 3; }
+.g-form-grid--wide:not(.g-form-grid--stack) > .g-form-w-md { --_form-span: 4; }
+.g-form-grid--wide:not(.g-form-grid--stack) > .g-form-w-lg { --_form-span: 8; }
+/* medio (6) */
+.g-form-grid--medium:not(.g-form-grid--stack) > .g-form-w-xs,
+.g-form-grid--medium:not(.g-form-grid--stack) > .g-form-w-sm { --_form-span: 2; }
+.g-form-grid--medium:not(.g-form-grid--stack) > .g-form-w-md { --_form-span: 3; }
+.g-form-grid--medium:not(.g-form-grid--stack) > .g-form-w-lg { --_form-span: 6; }
+/* estrecho (1): todo a una columna, pero lo compacto conserva su máximo (36.5 no se estira a 320px; con puntero
+   grueso el objetivo crece en altura, no en ancho). También sin tramo medido y con stack */
+.g-form-grid:not(.g-form-grid--wide):not(.g-form-grid--medium) > .g-form-w-xs,
+.g-form-grid--stack > .g-form-w-xs {
+  max-inline-size: var(--g-form-max-xs);
+}
+.g-form-grid:not(.g-form-grid--wide):not(.g-form-grid--medium) > .g-form-w-sm,
+.g-form-grid--stack > .g-form-w-sm {
+  max-inline-size: var(--g-form-max-sm);
+}
+
+/* Salto de fila: el campo empieza otra idea en la primera columna (se combina con su clase de ancho) */
+.g-form-grid > .g-form-break {
+  grid-column-start: 1;
+}
+
+/* ---------- Fila unida (g-form-row): preguntas ligadas que comparten fila en los tres tramos ---------- */
+/* Hijos en partes iguales; un hijo con g-form-part-xs|sm fija su columna a ese máximo. Máximo recomendado: 3 hijos
+   (más avisa en desarrollo; los que sobren reparten lo que quede). Sin salto de línea: con subgrid, un hijo en una
+   segunda línea perdería las pistas con nombre. */
+.g-form-row {
+  --_c1: minmax(0, 1fr);
+  --_c2: minmax(0, 1fr);
+  --_c3: minmax(0, 1fr);
+  --_density: 1;
+
+  display: grid;
+  grid-template-columns: var(--_c1) var(--_c2);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  /* Cuatro pistas con nombre que cada campo hijo comparte por subgrid (form.md §4, C10/C12): etiqueta · caja · ayuda
+     · mensaje. El CSS de cada campo coloca sus partes por nombre; una parte ausente deja su pista vacía */
+  grid-template-rows: [label-start] auto [label-end box-start] auto [box-end hint-start] auto [hint-end message-start] auto [message-end];
+  column-gap: calc(var(--g-form-column-gap) * var(--_density));
+  row-gap: 0;
+  align-items: start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-form-grid--density-comfortable > .g-form-row { --_density: 0.875; }
+.g-form-grid--density-compact > .g-form-row { --_density: 0.75; }
+.g-form-row:not(:has(> :nth-child(2))) { grid-template-columns: var(--_c1); }
+.g-form-row:has(> :nth-child(3)) { grid-template-columns: var(--_c1) var(--_c2) var(--_c3); }
+.g-form-row:has(> .g-form-part-xs:nth-child(1)) { --_c1: minmax(0, var(--g-form-max-xs)); }
+.g-form-row:has(> .g-form-part-xs:nth-child(2)) { --_c2: minmax(0, var(--g-form-max-xs)); }
+.g-form-row:has(> .g-form-part-xs:nth-child(3)) { --_c3: minmax(0, var(--g-form-max-xs)); }
+.g-form-row:has(> .g-form-part-sm:nth-child(1)) { --_c1: minmax(0, var(--g-form-max-sm)); }
+.g-form-row:has(> .g-form-part-sm:nth-child(2)) { --_c2: minmax(0, var(--g-form-max-sm)); }
+.g-form-row:has(> .g-form-part-sm:nth-child(3)) { --_c3: minmax(0, var(--g-form-max-sm)); }
+.g-form-row > * {
+  grid-row: label-start / message-end;
+  min-inline-size: 0;
+}

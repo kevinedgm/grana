@@ -78,6 +78,12 @@
   margin-inline-start: var(--g-space-1);
   color: var(--g-color-danger-text);
 }
+/* «(opcional)» de GForm (form.md C3): parte del nombre accesible, en voz baja. Sin margen: el espacio
+   lo pone el texto (en el nombre accesible tiene que haber un espacio entre la etiqueta y «(opcional)») */
+.g-datepicker__optional {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
 
 /* ---------- Campo ---------- */
 .g-datepicker__fields {
@@ -180,7 +186,7 @@
   color: var(--g-color-text-subtle);
 }
 @media (hover: hover) {
-  .g-datepicker:not(.is-disabled):not(.is-readonly):not(.is-invalid) .g-datepicker__field:hover {
+  .g-datepicker:not(.is-disabled):not(.is-readonly):not(.is-invalid):not(.is-warning):not(.is-valid) .g-datepicker__field:hover {
     --_border: var(--g-color-text-muted);
     --_border-end: var(--g-color-text-muted);
   }
@@ -195,7 +201,10 @@
   line-height: var(--g-text-caption-line);
   color: var(--g-color-text-muted);
 }
-/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+/* Mensaje de estado (form.md C4/C5): un solo hueco para error, advertencia o válido. La región viva existe siempre;
+   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores). Transición: g-datepicker__error es el
+   nombre anterior (se quita cuando bruno renombre la región; coco lo retira en la auditoría) */
+.g-datepicker__message,
 .g-datepicker__error {
   overflow-wrap: anywhere;
   font-size: var(--g-text-caption-size);
@@ -203,13 +212,32 @@
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-datepicker.is-invalid .g-datepicker__error {
+.g-datepicker__message:not(:empty),
+.g-datepicker__error:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-datepicker.is-warning .g-datepicker__message { color: var(--g-color-warning-text); }
+.g-datepicker.is-valid .g-datepicker__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
+.g-datepicker__message-icon,
 .g-datepicker__error-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
+}
+/* Prefijo «Error: » / «Advertencia: » / «Correcto: »: solo para lectores (patrón estándar de texto oculto) */
+.g-datepicker__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Popover (capa superior) ---------- */
@@ -646,10 +674,52 @@
 .g-datepicker.is-disabled .g-datepicker__label {
   color: var(--g-color-text-subtle);
 }
-.g-datepicker.is-readonly .g-datepicker__field {
+/* Advertencia (C5): borde discontinuo de doble grosor (no solo otro color que el error, que es continuo; precedente
+   GToast y GCard). El relleno se descuenta del grosor extra: el valor no se mueve al aparecer */
+.g-datepicker.is-warning .g-datepicker__field {
+  --_border: var(--g-color-warning-text);
+  --_border-end: var(--g-color-warning-text);
   border-style: dashed;
+  border-width: calc(var(--g-border-width) * 2);
+  padding-inline: calc(var(--_px) * var(--_density) - var(--g-border-width));
+}
+/* Válido (C5): borde sencillo del color de éxito; lo distinguen el icono, el prefijo y el mensaje */
+.g-datepicker.is-valid .g-datepicker__field {
+  --_border: var(--g-color-success-text);
+  --_border-end: var(--g-color-success-text);
+}
+/* Solo lectura (C7, #165): contraste completo, fondo hundido y borde discontinuo; enfocable (no abre) y el valor
+   seleccionable donde el navegador lo permite dentro del botón */
+.g-datepicker.is-readonly .g-datepicker__field {
+  --_bg: var(--g-color-surface-sunken);
+  border-style: dashed;
+  color: var(--g-color-text);
   cursor: default;
 }
+.g-datepicker.is-readonly .g-datepicker__value {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* ---------- Parte de un GFieldGroup (form.md §5): el <legend> nombra la pregunta; la etiqueta de la parte, su dato ---------- */
+/* Un paso por debajo de la pregunta (peso normal, texto muted ≥ 4.5:1): se lee «Teléfono → País · Número · Extensión» */
+.g-field-group__parts > .g-datepicker > .g-datepicker__label {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > * { grid-column: 1; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__label { grid-row: label; align-self: end; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__field, .g-datepicker__fields) { grid-row: box; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__hint { grid-row: hint; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__message, .g-datepicker__error) { grid-row: message; }
 
 /* ---------- Aparición del popover ---------- */
 /* Salida: fundido corto sin desplazamiento (el popover sigue en el DOM; overlay y display discretos lo mantienen pintado) */

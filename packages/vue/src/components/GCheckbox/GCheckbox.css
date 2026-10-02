@@ -169,8 +169,11 @@
     color var(--g-duration-fast) var(--g-ease-standard);
 }
 
-/* ---------- Error ---------- */
-/* La región viva existe siempre; vacía no ocupa espacio */
+/* ---------- Mensaje de estado (form.md C4/C5) ---------- */
+/* Un solo hueco para error, advertencia o válido, alineado con el texto. La región viva existe siempre; vacía no
+   ocupa espacio. Transición: g-checkbox__error es el nombre anterior (se quita cuando bruno renombre la región;
+   coco lo retira en la auditoría) */
+.g-checkbox__message,
 .g-checkbox__error {
   overflow-wrap: anywhere;
   padding-inline-start: calc(var(--_box) + var(--_gap) * var(--_density));
@@ -179,13 +182,32 @@
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-checkbox.is-invalid .g-checkbox__error {
+.g-checkbox__message:not(:empty),
+.g-checkbox__error:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
-/* Señal que no depende del color (WCAG 1.4.1): el triangle-alert de Lucide (GIcon, decorativo) */
+.g-checkbox.is-warning .g-checkbox__message { color: var(--g-color-warning-text); }
+.g-checkbox.is-valid .g-checkbox__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
+.g-checkbox__message-icon,
 .g-checkbox__error-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
+}
+/* Prefijo «Error: » / «Advertencia: » / «Correcto: »: solo para lectores (patrón estándar de texto oculto) */
+.g-checkbox__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Tamaño ---------- */
@@ -211,7 +233,7 @@
 
 /* ---------- Estados ---------- */
 @media (hover: hover) {
-  .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:not(:checked):not(:indeterminate) {
+  .g-checkbox:not(.is-disabled):not(.is-readonly):not(.is-warning):not(.is-valid) .g-checkbox__row:hover .g-checkbox__input:not(:checked):not(:indeterminate) {
     border-color: var(--g-color-text-muted);
   }
   .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:checked,
@@ -246,18 +268,33 @@
   /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
   box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
 }
+/* Advertencia (C5): el cuadro sin marcar con borde discontinuo (el error es continuo y doble). En un cuadro tan
+   pequeño un discontinuo doble se leería como puntos: un trazo basta, con el icono y el texto del mensaje */
+.g-checkbox.is-warning .g-checkbox__input:not(:checked):not(:indeterminate) {
+  border-color: var(--g-color-warning-text);
+  border-style: dashed;
+}
+/* Válido (C5): borde del color de éxito sin marcar; lo distinguen el icono, el prefijo y el mensaje */
+.g-checkbox.is-valid .g-checkbox__input:not(:checked):not(:indeterminate) {
+  border-color: var(--g-color-success-text);
+}
+/* Solo lectura (C7, #165): fondo hundido, borde discontinuo y la marca con el texto pleno (nunca atenuada):
+   se distingue de deshabilitado por la forma del borde y el contraste, no por el color */
 .g-checkbox.is-readonly .g-checkbox__row {
   cursor: default;
 }
-.g-checkbox.is-readonly .g-checkbox__input:not(:checked):not(:indeterminate) {
-  background: var(--g-color-surface-sunken);
-  border-style: dashed;
-}
+.g-checkbox.is-readonly .g-checkbox__input,
 .g-checkbox.is-readonly .g-checkbox__input:checked,
 .g-checkbox.is-readonly .g-checkbox__input:indeterminate {
   border-style: dashed;
-  background: var(--g-color-text-muted);
-  border-color: var(--g-color-text-muted);
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+}
+.g-checkbox.is-readonly .g-checkbox__mark {
+  color: var(--g-color-text);
+}
+.g-checkbox.is-readonly .g-checkbox__label {
+  color: var(--g-color-text);
 }
 .g-checkbox.is-disabled .g-checkbox__row {
   cursor: not-allowed;
@@ -336,8 +373,28 @@
 .g-checkbox--layout-card.is-disabled .g-checkbox__row {
   background: var(--g-color-surface-sunken);
 }
+.g-checkbox--layout-card .g-checkbox__message,
 .g-checkbox--layout-card .g-checkbox__error {
   padding-inline-start: 0;
+}
+/* Solo lectura en tarjeta: la tarjeta entera se lee como el campo (fondo hundido, borde discontinuo); marcada,
+   conserva el doble trazo pero en el color del texto */
+.g-checkbox--layout-card.is-readonly .g-checkbox__row {
+  border-style: dashed;
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+}
+.g-checkbox--layout-card.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) {
+  border-color: var(--g-color-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-text);
+}
+.g-checkbox--layout-card.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label,
+.g-checkbox--layout-card.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__meta {
+  color: var(--g-color-text);
+}
+.g-checkbox--layout-card.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__icon {
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
 }
 
 /* ---------- Estructura: chip ---------- */
@@ -440,9 +497,33 @@
   background: var(--g-color-text-subtle);
   border-color: var(--g-color-text-subtle);
 }
+.g-checkbox--layout-chip .g-checkbox__message,
 .g-checkbox--layout-chip .g-checkbox__error {
   padding-inline-start: var(--g-space-3);
 }
+/* Solo lectura en chip: fondo hundido y contorno discontinuo; marcado, el ✓ visible y el texto pleno (sin relleno) */
+.g-checkbox--layout-chip.is-readonly .g-checkbox__row,
+.g-checkbox--layout-chip.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) {
+  border-style: dashed;
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+}
+.g-checkbox--layout-chip.is-readonly .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label {
+  color: var(--g-color-text);
+}
+
+/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
+/* La casilla no tiene etiqueta encima ni ayuda aparte (van en la fila): la fila ocupa la pista de la caja y el
+   mensaje la suya; etiqueta y ayuda quedan vacías */
+.g-form-row > .g-checkbox {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-form-row > .g-checkbox > * { grid-column: 1; }
+.g-form-row > .g-checkbox > .g-checkbox__row { grid-row: box; }
+.g-form-row > .g-checkbox > :is(.g-checkbox__message, .g-checkbox__error) { grid-row: message; }
 
 /* ---------- Preferencias del sistema ---------- */
 /* Movimiento reducido: sin escala, sin trazo del ✓, sin apertura del anillo ni ancho animado del chip; los fundidos de color se conservan */
@@ -501,4 +582,12 @@
   .g-checkbox.is-invalid .g-checkbox__input:not(:checked):not(:indeterminate) {
     border-width: calc(var(--g-border-width) * 2);
   }
+  /* Solo lectura: marcado sin relleno de sistema (el discontinuo y la marca en CanvasText lo distinguen) */
+  .g-checkbox.is-readonly .g-checkbox__input,
+  .g-checkbox.is-readonly .g-checkbox__input:checked,
+  .g-checkbox.is-readonly .g-checkbox__input:indeterminate {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .g-checkbox.is-readonly .g-checkbox__mark { color: CanvasText; }
 }
