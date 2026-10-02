@@ -53,11 +53,12 @@
   position: relative;
   display: flex;
   /* Cada paso parte de su ancho natural y el sobrante se reparte por igual entre los conectores.
-     Si falta sitio, el paso actual es el último en ceder (adaptación: auditoria-adaptacion.md) */
-  flex: 1 1 auto;
+     Si falta sitio, los demás ceden diez veces más que el actual (adaptación: auditoria-adaptacion.md) */
+  flex: 1 10 auto;
   min-inline-size: calc(var(--_ind) + var(--_conn) + var(--_gap) * 2);
 }
-.g-stepper__step.is-current { flex-shrink: 0.1; }
+/* Factores enteros: con una suma menor que 1 (p. ej. 0.1 solo en el actual) el reparto deja espacio sin ceder y desborda */
+.g-stepper__step.is-current { flex-shrink: 1; }
 /* El último paso no lleva conector hacia nadie: ocupa lo suyo y la fila llega al borde */
 .g-stepper__step:last-child { flex-grow: 0; min-inline-size: var(--_ind); }
 .g-stepper__step:last-child > .g-stepper__connector { display: none; }
@@ -333,6 +334,8 @@ button.g-stepper__hit:focus-visible {
   gap: var(--g-space-2);
   inline-size: 100%;
 }
+/* Los tramos van casi pegados: el texto deja su propio aire para no tocar el del paso siguiente */
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__text { padding-inline-end: var(--_gap); }
 .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator {
   inline-size: 100%;
   block-size: calc(var(--g-space-1) * 1.5);

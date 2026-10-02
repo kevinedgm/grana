@@ -84,7 +84,9 @@
     // ---- Medición: invariantes que deben cumplirse en cualquier tramo ----
     const px = (v) => parseFloat(v) || 0
     const clipped = (el) => el.scrollWidth > el.clientWidth + 1
-    const shown = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width >= 1 && !el.closest('.g-stepper__status')
+    // Visible = con caja y fuera del patrón de texto oculto (el estado, y el texto de los pasos no actuales en --current-only)
+    const srOnly = (el) => { for (let e = el; e && !e.classList.contains('g-stepper'); e = e.parentElement) if (getComputedStyle(e).clipPath === 'inset(50%)') return true; return false }
+    const shown = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width >= 1 && !srOnly(el)
     window.measure = () => {
       const space = px(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1'))
       return [...document.querySelectorAll('.case')].map((box) => {
@@ -127,7 +129,7 @@
             if (s.label && s.label.clipped && s.label.w < space * 12) issues.push(`título muñón en paso ${i + 1} (${s.label.w}px)`)
             if (s.desc && s.label && s.desc.w > s.label.need + 1 && s.label.clipped) issues.push(`descripción más ancha que su título en paso ${i + 1}`)
             if (s.opt && s.opt.w + 1 < s.opt.need) issues.push(`«opcional» recortado en paso ${i + 1}`)
-            if (s.conn !== null && s.conn < space * 6) issues.push(`conector corto en paso ${i + 1} (${s.conn}px)`)
+            if (s.conn !== null && !nav.classList.contains('g-stepper--vertical') && s.conn < space * 6) issues.push(`conector corto en paso ${i + 1} (${s.conn}px)`)
           })
           // Texto visible fuera de lugar (p. ej. un «(» suelto): cualquier nodo de texto visible con menos de 2 caracteres legibles
           nav.querySelectorAll('.g-stepper__text > span').forEach((sp) => {
