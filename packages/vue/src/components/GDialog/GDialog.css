@@ -313,35 +313,95 @@ html:has(.g-dialog[open]) {
 }
 
 /* ---------- Movimiento ---------- */
+/* ---------- Movimiento (#152) ---------- */
+/* Entrada y salida con transiciones: abrir parte del estado cerrado (@starting-style) y cerrar vuelve a él, así una
+   apertura a mitad de la salida se revierte desde donde está. `overlay` y `display` discretos mantienen el diálogo
+   en la capa superior mientras sale; sin soporte, cierra al instante. La salida es más corta que la entrada. */
+.g-dialog,
+.g-dialog::backdrop {
+  opacity: 0;
+}
+.g-dialog[open],
+.g-dialog[open]::backdrop {
+  opacity: 1;
+}
 @media (prefers-reduced-motion: no-preference) {
+  .g-dialog {
+    scale: var(--g-press-scale);
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      scale var(--g-duration-fast) var(--g-ease-out),
+      translate var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
   .g-dialog[open] {
-    animation: g-dialog-in var(--g-duration-press) var(--g-ease-out);
+    scale: 1;
+    translate: 0 0;
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      scale var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out),
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
+  }
+  .g-dialog::backdrop {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
   }
   .g-dialog[open]::backdrop {
-    animation: g-dialog-fade var(--g-duration-press) var(--g-ease-out);
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
+  }
+  @starting-style {
+    .g-dialog[open] { opacity: 0; translate: 0 var(--g-space-2); scale: var(--g-press-scale); }
+    .g-dialog[open]::backdrop { opacity: 0; }
+  }
+  @media (min-width: 521px) {
+    .g-dialog--placement-end:not(.g-dialog--fullscreen) {
+      scale: 1;
+      translate: calc(var(--_dir) * var(--g-space-8)) 0;
+    }
+    .g-dialog--placement-end[open]:not(.g-dialog--fullscreen) {
+      translate: 0 0;
+    }
+    @starting-style {
+      .g-dialog--placement-end[open]:not(.g-dialog--fullscreen) {
+        opacity: 0;
+        scale: 1;
+        translate: calc(var(--_dir) * var(--g-space-8)) 0;
+      }
+    }
+  }
+  @media (max-width: 520px) {
+    .g-dialog--mobile-sheet:not(.g-dialog--fullscreen) {
+      scale: 1;
+      translate: 0 var(--g-space-6);
+    }
+    .g-dialog--mobile-sheet[open]:not(.g-dialog--fullscreen) {
+      translate: 0 0;
+    }
+    @starting-style {
+      .g-dialog--mobile-sheet[open]:not(.g-dialog--fullscreen) {
+        opacity: 0;
+        scale: 1;
+        translate: 0 var(--g-space-6);
+      }
+    }
   }
   .g-dialog.is-loading .g-dialog__inset::before,
   .g-dialog:not(.g-dialog--inset).is-loading::after {
     animation: g-dialog-pulse var(--g-duration-spin) var(--g-ease-standard) infinite alternate;
   }
-  @keyframes g-dialog-in {
-    from { opacity: 0; translate: 0 var(--g-space-2); scale: var(--g-press-scale); }
-  }
-  @media (min-width: 521px) {
-    .g-dialog--placement-end[open]:not(.g-dialog--fullscreen) {
-      animation-name: g-dialog-in-end;
-    }
-  }
-  @keyframes g-dialog-in-end {
-    from { opacity: 0; translate: calc(var(--_dir) * var(--g-space-8)) 0; }
-  }
-  @keyframes g-dialog-fade {
-    from { opacity: 0; }
-  }
   @keyframes g-dialog-pulse {
     from { opacity: 0.35; }
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .g-dialog__close {
     transition:
@@ -350,6 +410,18 @@ html:has(.g-dialog[open]) {
       color var(--g-duration-fast) var(--g-ease-standard);
   }
   .g-dialog__close:active { scale: none; }
+  /* Diálogo y fondo: solo fundido, al entrar y al salir */
+  .g-dialog,
+  .g-dialog::backdrop {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  @starting-style {
+    .g-dialog[open],
+    .g-dialog[open]::backdrop { opacity: 0; }
+  }
 }
 
 /* ---------- Colores forzados ---------- */

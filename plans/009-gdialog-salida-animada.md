@@ -1,6 +1,6 @@
 # 009 — GDialog: salida animada (y entrada por transición), fundido con movimiento reducido
 
-- **Status**: TODO — **requiere el visto bueno del usuario** (reabre «Sin salida animada» de `design/lab/dialog/estilo.md:17`; ver Problem)
+- **Status**: DONE — confirmado por el usuario en el chat; decisión #152
 - **Dueños**: lima (pasos 1–2: `design/contracts/dialog.md`, `DECISIONS.md`), bruno (pasos 3–7: `GDialog.vue`, `GDialog.test.js`, `src/utils/motion.js`, `GHelper.vue`, `GFilterBar.vue`), coco (pasos 8–10: `GDialog.css`, `design/lab/dialog/estilo.md`). Sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: MEDIUM
@@ -332,3 +332,8 @@
   - `GHelper` adaptable (`#sec-helper`, visor de 400 px) y la hoja de `GFilterBar` (visor de 400 px, chip «Estado»): al cerrar, la hoja baja y se funde **con su contenido** (no se ve vacía).
 - **Feel check**: DevTools > Animations al 10 %: el diálogo centrado se encoge un poco y se desvanece; la hoja lateral vuelve hacia su borde; la salida se siente más rápida que la entrada. El foco vuelve al botón que abrió el diálogo. Rendering > `prefers-reduced-motion: reduce`: solo fundidos.
 - **Done when**: en Chromium el diálogo, el fondo, la hoja lateral y la hoja móvil salen animados en 120 ms con su contenido; en Firefox y WebKit cierran como hoy sin defectos; con `reduce` se funden; `closed` se emite al terminar la salida; contrato, DECISIONS y `estilo.md` lo dicen.
+
+## Nota de ejecución
+
+- Ejecutado tal cual (commits de lima, bruno y coco). Añadido: en `GFilterBar` el título de la hoja también usa `sheetKey` durante la salida (si no, cambiaba a `labels.group` mientras se desvanecía).
+- Medido con Playwright: Chromium, al pulsar Esc el `<dialog>` sigue con `display: flex`, el cuerpo montado y transiciones de `opacity`, `scale`, `translate`, `overlay` y `display` de 120 ms; con `reduce`, solo `opacity`, `overlay` y `display`. A los 300 ms el contenido está desmontado y el foco vuelve a «Simple». Firefox y WebKit cierran al instante (sin `overlay`), sin errores; en WebKit el foco no vuelve al botón porque Safari no lo enfoca al hacer clic (comportamiento previo). 1190 pruebas, build, compuertas y theme-playground (143 / 1 omitida).

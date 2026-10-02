@@ -14,7 +14,7 @@
 | **Pie que se funde** | Mientras queda contenido por desplazar (`is-scrolled`), el pie pasa del fondo de la inset al de la carcasa; al llegar al final, vuelve |
 | **Secciones sin cajas** | `g-dialog__section` se separa con una línea; `g-dialog__well` es la única superficie secundaria (un nivel, radio concéntrico con la inset) |
 | **Cierre dibujado con bordes** | El botón va vacío; la cruz son dos barras de `border`, que **sobreviven a `forced-colors`** (un fondo no) |
-| **Entrada** | Aparece con `opacity`, un desplazamiento de `--g-space-2` y `--g-press-scale`, en `--g-duration-press` con `--g-ease-out`; el fondo se desvanece. Sin salida animada |
+| **Entrada y salida** (#152) | Entra desde `@starting-style` con `opacity`, un desplazamiento de `--g-space-2` y `--g-press-scale` (hoja lateral: desde su borde; hoja móvil: `--g-space-6` desde abajo), en `--g-duration-press` con `--g-ease-out`; **sale** en `--g-duration-fast` hacia `--g-press-scale` y opacidad 0 (la hoja, hacia su borde); el fondo se funde en ambos sentidos. Con movimiento reducido, solo fundido de 120 ms. Sin `overlay` (Firefox, Safari) cierra al instante |
 | **Cargando** | Barra fina de `--g-color-accent` (un borde, no un fondo) sobre la inset, que pulsa; `cursor: progress` |
 | **Móvil** | Hoja: pegada abajo, esquinas superiores redondeadas, la inset llega al borde inferior y el pie suma `env(safe-area-inset-bottom)`; ancho completo con margen; pantalla completa exacta |
 
@@ -35,7 +35,7 @@
 | Confirmación | Sin botón de cierre; foco inicial en "Cancelar"; inset con solo pie (el cuerpo vacío no ocupa espacio) |
 | Móvil 375px | Hoja de 375px de ancho pegada abajo (812px), pantalla completa exacta, ancho completo con margen, sin desborde horizontal |
 | Táctil (`pointer: coarse`, bloque aplicado sin condición) | Cierre de 44×44px |
-| Movimiento reducido (bloque aplicado sin condición) | El botón de cierre conserva el fundido de color y no escala al pulsar; la animación de entrada solo existe con `no-preference` |
+| Movimiento reducido (bloque aplicado sin condición) | El botón de cierre conserva el fundido de color y no escala al pulsar; diálogo y fondo se funden (120 ms) al entrar y al salir, sin desplazamiento ni escala |
 | Colores forzados (bloque aplicado sin condición) | Carcasa, inset, pie, secciones y cierre en `CanvasText`/`ButtonText`; la cruz (borde de 2px) se mantiene |
 | Consola | Sin errores |
 
