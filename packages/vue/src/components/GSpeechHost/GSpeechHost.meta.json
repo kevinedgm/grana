@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSpeechHost",
   "tag": "g-speech-host",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Captura de voz y transcripción como servicio por aplicación: la aplicación crea su gestor (createSpeech, también plugin de Vue) con un adaptador del motor (Grana no hace red), monta UN <GSpeechHost /> y coloca disparadores (GSpeechTrigger) y, si quiere, una pill (GSpeechPill). El anfitrión pinta los dos únicos canales que anuncian (presentes desde el montaje), la pill flotante de respaldo (garantía de una pill visible y operable), el panel no modal anclado a la pill visible y la hoja móvil; se traslada al <dialog> modal superior; Mayús+F8 va y vuelve. Sin anfitrión montado no se abre el micrófono.",
   "entry": "@grana/vue/speech → dist/speech.js (ES) y dist/speech.umd.js (global GranaSpeech; requiere Vue y Grana). No está en @grana/vue (#238): app.use(speech) lo registra; lo compartido con el paquete principal (GBtn, GIcon, topModal, reservas de borde, canales) llega de @grana/vue sin copia",

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSpeechPill",
   "tag": "g-speech-pill",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Pill colocable de la captura de voz (cabecera, barra de herramientas). Opcional y una por gestor: sin ella solo existe la flotante de GSpeechHost. Muestra el estado con icono y texto, la duración, alternar (pausar/reanudar/reintentar) y finalizar; su botón principal abre el panel. El anfitrión garantiza exactamente una pill visible y operable: esta si se ve (≥ 95 %), no es inerte y está dentro del modal superior si lo hay; si no, la flotante.",
   "entry": "@grana/vue/speech → dist/speech.js (ES) y dist/speech.umd.js (global GranaSpeech; requiere Vue y Grana). No está en @grana/vue (#238): app.use(speech) lo registra; lo compartido con el paquete principal (GBtn, GIcon, topModal, reservas de borde, canales) llega de @grana/vue sin copia",

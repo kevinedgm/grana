@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSpeechTrigger",
   "tag": "g-speech-trigger",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Disparador de la captura de voz, hermano del campo e inmediatamente después de él: dictado a un textarea o input (botón conmutable de solo icono, con su nota bajo el campo: provisional, «Insertar», «Deshacer dictado») o conversación (botón con texto que prepara la sesión y abre el panel). No lleva la sesión: si se desmonta, la sesión sigue en el gestor y al volver se reconoce por modo y campo. Con otra sesión activa no crea otra: aria-disabled, descripción, anuncio y foco a la pill visible.",
   "entry": "@grana/vue/speech → dist/speech.js (ES) y dist/speech.umd.js (global GranaSpeech; requiere Vue y Grana). No está en @grana/vue (#238): app.use(speech) lo registra; lo compartido con el paquete principal (GBtn, GIcon, topModal, reservas de borde, canales) llega de @grana/vue sin copia",
