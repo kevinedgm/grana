@@ -88,7 +88,7 @@ const activa = ref('general')
 const vistas = [
   { id: 'perfil', label: 'Perfil', icon: 'user' },        // icon cadena: nombre de Lucide
   { id: 'acceso', label: 'Acceso', icon: 'lock-open' },   // user y lock-open no están en la librería: createIcons
-  { id: 'ayuda', label: 'Ayuda', icon: 'circle-help' }    // circle-help sí está (lo usa GHelper)
+  { id: 'ayuda', label: 'Ayuda', icon: 'circle-question-mark' } // circle-question-mark sí está (lo usa GHelper)
 ]
 </script>
 

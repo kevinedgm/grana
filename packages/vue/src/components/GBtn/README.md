@@ -73,7 +73,8 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 ```
 
 - El `GIcon` dentro del botón va **decorativo** (sin `label`): el nombre lo da el texto o, en solo icono, el `aria-label` del botón.
-- El botón no fija el tamaño del icono: `GIcon` mide **1em del texto del botón** (14px en `md`) y toma su color (`currentColor`), también al pasar el puntero y en `forced-colors`.
+- **Tamaño del icono:** el botón lo fija con el `svg` hijo directo del hueco, en `em` del texto del botón (alias local `--_icon`, sin token): **1.15em en `prepend` y `append`** (13,8px en `xs`, 16,1px en `sm` y `md`, 18,4px en `lg` y `xl`) y **1.4em en el modo solo icono** (16,8px en `xs`, 19,6px en `sm` y `md`, 22,4px en `lg` y `xl`). Sigue a `size` y **no** a `density`; cabe sin tocar el borde en todos los tamaños y densidades, también con el piso de 24px (`xs` y `sm` en `compact`: holgura mínima de 2px entre el trazo y el borde), y no cambia la altura del botón. El indicador de carga mide lo mismo que el icono al que sustituye, así que el icono no encoge al cargar. Medido en Chromium, Firefox y WebKit. Otro contenido del hueco (una imagen, un logotipo) lo dimensionas tú. El icono toma su color (`currentColor`), también al pasar el puntero y en `forced-colors`.
+- **No pongas clases de tamaño al icono del botón:** tu clase gana siempre (va sin capa; el CSS de Grana va en `grana.components`). Para otro tamaño, cambia `size` del botón.
 - Flechas de avance o retroceso: `flip-rtl` las espeja en RTL.
 - Un **logotipo** u otro dibujo que no sea Lucide va en el mismo slot con tu propio marcado (decorativo); `GIcon` solo dibuja Lucide.
 

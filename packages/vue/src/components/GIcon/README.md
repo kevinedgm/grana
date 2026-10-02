@@ -84,8 +84,8 @@ La librería trae solo los iconos que usan sus componentes (ver «Lista de la li
 | Importas | Se registra | Nota |
 | --- | --- | --- |
 | `LockOpen` o `Unlock` | `lock-open` | `<g-icon name="unlock">` **no** existe |
-| `CircleHelp` o `HelpCircle` | `circle-question-mark` | La librería trae este mismo dibujo con el nombre `circle-help` (lo usa `GHelper`): `name="circle-help"` funciona sin registrar nada |
-| `Building2` | `building-complex` | |
+| `CircleHelp`, `HelpCircle` o `CircleQuestionMark` | `circle-question-mark` | Es el nombre canónico (el que muestra lucide.dev) y ya viene en la librería (lo usa `GHelper`): `name="circle-question-mark"` funciona sin registrar nada. `circle-help` también funciona (alias de compatibilidad obsoleto, mismo dibujo; se retira en la siguiente versión mayor) |
+| `Building2` o `BuildingComplex` | `building-complex` | |
 | `Trash2` o `Trash` | `trash` | |
 | `House` o `Home` | `house` | |
 
@@ -184,13 +184,13 @@ No hay CLI (`grana icons add`) ni importación desde una CDN de `lucide-static` 
   .icono-grande { inline-size: 3rem; block-size: 3rem; }
   ```
 
-- **Dentro de un hueco de un componente, el tamaño lo pone el hueco** (medido con el tema por defecto: `GTabs` 1,15em de la pestaña, 16px a 14px; `GMenu` el tamaño de su marca, ≈ 18px; `GSidebar` 20px en expandido, riel y navbar; `lead` de `GFormSection` = tamaño del título, 16px). `GBtn` y `GInput` no lo fijan: ahí el icono mide 1em de su texto (14px en un `GBtn` `md`, 16px en un `GInput`).
-- **No pongas clases de tamaño a un icono dentro de un hueco:** el CSS de Grana va en la capa `grana.components` y el tuyo sin capa, así que **tu clase gana también dentro del hueco** (medido: 48px en el slot `icon` de `GTabs`, que desborda su caja de 16px). El tamaño del hueco ya sigue al del componente (su `size`, su texto, su densidad).
+- **Dentro de un hueco de un componente, el tamaño lo pone el hueco** (medido con el tema por defecto: `GTabs` 1,15em de la pestaña, 16px a 14px; `GMenu` el tamaño de su marca, ≈ 18px; `GSidebar` 20px en expandido, riel y navbar; `lead` de `GFormSection` = tamaño del título, 16px; `GBtn` 1,15em de su texto en `prepend` y `append`, 16,1px en `md`, y 1,4em en el solo icono, 19,6px en `md`). `GInput` no lo fija: ahí el icono mide 1em de su texto (16px).
+- **No pongas clases de tamaño a un icono dentro de un hueco.** **Tu clase gana siempre, también dentro de un hueco, y gana por capa, no por especificidad:** el CSS de Grana va en la capa `grana.components` y el tuyo sin capa, así que ninguna regla de un hueco puede ganarle (medido: 48px en el slot `icon` de `GTabs`, que desborda su caja de 16px, y en el `prepend` de `GBtn`). El tamaño del hueco ya sigue al del componente (su `size`, su texto, su densidad): si necesitas otro, **cambia el contenedor** (`size`, `density`, el tema) y no el icono.
 - **Grosor:** el de Lucide (2 en una caja de 24). **Sin giro propio:** los componentes que lo necesitan (carga) ya lo resuelven.
 
 ## Lista de la librería
 
-Los iconos que trae `@grana/vue` sin registrar nada son **API pública**: la lista puede crecer (cambio menor) y **quitar uno es un cambio mayor**. Son los que usan los componentes: `loader-circle`, `check`, `minus`, `circle-alert`, `triangle-alert`, `circle-check`, `chevron-down`, `chevron-left`, `chevron-right`, `chevrons-up-down`, `x`, `plus`, `calendar`, `circle`, `square`, `diamond`, `triangle`, `arrow-up`, `arrow-down`, `ellipsis-vertical`, `grip-vertical`, `move-diagonal-2`, `lock`, `circle-help` e `info`. La tabla completa (qué componente usa cada uno) está en [`docs/contract/icons.md` §4](../../../../../docs/contract/icons.md). Un icono que pide una aplicación **no** entra en la lista: lo registra ella (así el paquete no crece con cada aplicación).
+Los iconos que trae `@grana/vue` sin registrar nada son **API pública**: la lista puede crecer (cambio menor) y **quitar uno es un cambio mayor**. Son los que usan los componentes: `loader-circle`, `check`, `minus`, `circle-alert`, `triangle-alert`, `circle-check`, `chevron-down`, `chevron-left`, `chevron-right`, `chevrons-up-down`, `x`, `plus`, `calendar`, `circle`, `square`, `diamond`, `triangle`, `arrow-up`, `arrow-down`, `ellipsis-vertical`, `grip-vertical`, `move-diagonal-2`, `lock`, `circle-question-mark` e `info`. `circle-help` sigue funcionando como **alias obsoleto** de `circle-question-mark` (mismo dibujo, sin aviso); se retira en la siguiente versión mayor, así que usa el canónico. La tabla completa (qué componente usa cada uno) está en [`docs/contract/icons.md` §4](../../../../../docs/contract/icons.md). Un icono que pide una aplicación **no** entra en la lista: lo registra ella (así el paquete no crece con cada aplicación).
 
 ## Accesibilidad
 
@@ -228,7 +228,7 @@ Sin tokens propios: `GIcon` solo hereda `color` y `font-size`. El tamaño en un 
 - **Empaquetadores:** la poda de `lucide-static` (solo se lleva lo importado) está verificada con **Vite**; no con webpack, Rollup puro ni esbuild.
 - **Sin empaquetador** no hay un camino de una línea: hay que importar el módulo ES de cada icono o generar un archivo con las cadenas (ver «Sin empaquetador»).
 - **Formato de la marca:** verificado con `lucide-static` 1.49.0 (las 2117 exportaciones); una prueba falla si Lucide cambia el formato.
-- **Alias:** el nombre es el canónico de la marca, no el de la exportación (`Trash2` → `trash`); y la librería trae `circle-help` (nombre de archivo de Lucide) mientras que `import { CircleHelp }` registra `circle-question-mark`, el mismo dibujo con otro nombre.
+- **Alias:** el nombre es el canónico de la marca, no el de la exportación (`Trash2` → `trash`; `import { CircleHelp }` registra `circle-question-mark`). La librería trae un solo alias, `circle-help` (obsoleto, mismo dibujo que `circle-question-mark`, se retira en la siguiente mayor).
 - **Sin tipos de TypeScript** para los nombres (sin autocompletado).
 - **Sin tooltip** para un icono solo; el nombre accesible sí está (en el control o en `label`).
 
