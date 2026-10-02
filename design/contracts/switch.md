@@ -166,7 +166,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 | # | Cambio | Detalle |
 | --- | --- | --- |
 | C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled` y `error` pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
-| C2 | `block` en la rejilla | Sin cambio visual; dentro de la rejilla ocupa su celda. |
+| C2 | `block` en la rejilla | **`GSwitch` no tiene `block`** (la fila ya ocupa su ancho; no se añade la prop, #170) |
 | C3 | Marcas | **Nunca lleva marca** (no tiene `required`, #47), en ninguna convención. |
 | C4 | Región de mensaje unificada | `g-switch__error` / `ID-error` pasa a **`g-switch__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-switch__message-icon`) + prefijo oculto `g-switch__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Vacía = **sin nodos de texto** (el CSS usa `:not(:empty)`; un comentario de Vue vale, un espacio no). |
 | C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |

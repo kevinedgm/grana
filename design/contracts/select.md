@@ -294,3 +294,5 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 **«(opcional)»:** un espacio de texto antes del `<span>` de la marca (sin margen en CSS). Advertencia en cajas: borde discontinuo doble; error, continuo doble; válido, continuo sencillo (coco, #169).
 
 **Clases nuevas** (contrato bruno–coco): `g-select__optional`, `g-select__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-select__error` desaparece).
+
+**Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.

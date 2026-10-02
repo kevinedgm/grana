@@ -185,3 +185,5 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **«(opcional)»:** un espacio de texto antes del `<span>` de la marca (sin margen en CSS). Advertencia en cajas: borde discontinuo doble; error, continuo doble; válido, continuo sencillo (coco, #169).
 
 **Clases nuevas** (contrato bruno–coco): `g-textarea__optional`, `g-textarea__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-textarea__error` desaparece). Sin prefijo ni sufijo (#50).
+
+**Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.

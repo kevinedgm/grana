@@ -1,6 +1,6 @@
 # Contrato · Sistema de formularios · Fase 1 (núcleo de composición)
 
-**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (commit 9d3d57f, `design/lab/form/estilo.md`; ajustes en #169) · pendiente de construcción de bruno y de auditoría de coco · **Basado en:** `design/lab/form/r01/` (kiwi; `brief.md` del usuario, `declaracion.md` con 17 puntos y 20 hallazgos en §15, `index.html`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker` (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
+**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (commit 9d3d57f, `design/lab/form/estilo.md`; ajustes en #169) · construido por bruno (commits b4db77c…4a778c7, `*.meta.json`; reconciliado en #170) · pendiente de auditoría de coco · **Basado en:** `design/lab/form/r01/` (kiwi; `brief.md` del usuario, `declaracion.md` con 17 puntos y 20 hallazgos en §15, `index.html`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker` (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
 **Tags:** `g-form`, `g-form-section`, `g-form-grid`, `g-field-group`, `g-form-actions`, `g-error-summary` · composable `useFormField()` · **Categoría:** entradas (composición)
 
 Una **capa de composición** sobre los campos que ya existen: decide **cómo** se reparten, agrupan, marcan, cuándo enseñan sus errores y cómo se envían, sin duplicar ningún campo. La Fase 1 cubre formularios cortos, medianos y en dialog o drawer; los largos con navegación y secciones plegables llegan en la Fase 3 (ver «Fases siguientes»). Decisiones del usuario: DECISIONS.md #153 a #155; derivadas de estándar o de contratos vigentes: #156 a #168.
@@ -202,6 +202,8 @@ Para los campos de Grana y **para campos propios del consumidor** (el slot «cus
 | `control` | `Ref<HTMLElement>` | Elemento enfocable (destino del resumen y del foco al primer inválido) |
 | `root` | `Ref<HTMLElement>` | Raíz del campo (para desplazar con la etiqueta a la vista) |
 
+**Opciones internas** (no contractuales, solo para los campos de Grana; pueden cambiar sin aviso y la documentación pública no las menciona; #170): `markRule` (`both` · `required` · `none`: qué marcas admite el campo; `GSwitch` `none`, `GCheckbox` suelto `required`), `role` (`field` · `group`: `GFieldGroup`/`GCheckboxGroup` no se inyectan a sí mismos como grupo) y `register` (`false`: no se registra, p. ej. casillas de un grupo). Un campo propio del consumidor no las necesita.
+
 **Devuelve** (computados de solo lectura salvo las funciones):
 
 | Clave | Qué |
@@ -221,7 +223,7 @@ Para los campos de Grana y **para campos propios del consumidor** (el slot «cus
 
 **Reglas de marca** (`mark`):
 
-- Solo campos **editables** (ni `readonly` ni `disabled`, propios o heredados) llevan marca.
+- **Dentro de `GForm`**, solo campos **editables** (ni `readonly` ni `disabled`, propios o heredados) llevan marca. **Fuera de `GForm`** la marca no mira `readonly`/`disabled`: el asterisco con `required` sigue exactamente como antes (#170).
 - `marks="optional"`: `'optional'` si el campo no es `required`; `null` si lo es.
 - `marks="required"`: `'required'` si es `required`; `null` si no.
 - **Fuera de `GForm`** (sin contexto): `'required'` con `required`, como hoy.
@@ -354,8 +356,8 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 | `name` | String | | sin valor | propia (clave del grupo en `errors`) |
 | `error`, `warning`, `valid` | String | texto libre | sin valor | propia |
 | `required` | Boolean | | `false` | propia (marca de la pregunta) |
-| `disabled` | Boolean | | `false` | compartida (nativo del `fieldset`) |
-| `readonly` | Boolean | | `false` | compartida (se propaga a las partes) |
+| `disabled` | Boolean | | `undefined` → `false` | compartida (nativo del `fieldset`; la prop explícita gana al contexto, #170) |
+| `readonly` | Boolean | | `undefined` → `false` | compartida (se propaga a las partes; la prop explícita gana al contexto, #170) |
 | `density` | String | | la de `GForm` | compartida |
 
 **Reservada para la Fase 2:** `joined` (partes fusionadas en una sola caja: «Temperatura [36.5 | °C]»), que llega con `GNumberField`; exige reglas de esquinas y foco sobre las cajas de las partes y merece su propia verificación.
@@ -364,6 +366,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 
 - **Elemento:** `<fieldset>` + `<legend>` (rol `group` con nombre; WCAG 1.3.1). Sin `label` ni slot `label` avisa en desarrollo.
 - **Partes:** campos de Grana (o propios con `useFormField`) como hijos. Cada parte conserva **su etiqueta visible** (País, Número, Extensión): el grupo nombra la pregunta y la parte nombra su dato.
+- **Momento de los errores del grupo:** `errors[name]` del grupo se revela al **salir** de cualquier parte de texto tras haber escrito en ella, o al **cambiar** cualquier parte de elección (además de al enviar), con la misma tabla de §1 (#170).
 - **Un solo mensaje:** el del grupo (`error` propio, o `errors[name]`, o el **primer** error visible de sus partes en orden del DOM). Las partes **no pintan** texto de mensaje (su región sigue existiendo, vacía) pero las inválidas llevan `aria-invalid="true"` y su borde de error. El `fieldset` lleva `aria-describedby` → ayuda y mensaje del grupo. **Sin `aria-invalid` en el `fieldset`** (no es un atributo admitido en el rol `group` en ARIA 1.3); lo llevan los controles.
 - **Marcas:** el `<legend>` lleva la marca de la pregunta según `required` y la convención. Una parte lleva su propia marca **solo si difiere** de la del grupo (la extensión opcional de un teléfono obligatorio: «Extensión (opcional)»).
 - **Resumen y foco:** el grupo es **un** elemento del resumen (una pregunta, un enlace), que lleva a la **primera parte inválida** (o a la primera parte si el error es del grupo).
@@ -501,12 +504,13 @@ Las partes de una dirección o un teléfono **dependen del país**: un component
 
 ```vue
 <GFieldGroup class="g-form-w-lg" label="Teléfono" name="telefono" required>
-  <GSelect class="g-form-part-sm" label="País" name="tel-pais" :options="paises" />
-  <GInput label="Número" name="tel-numero" type="tel" autocomplete="tel-national" placeholder="951 123 4567" />
+  <GSelect class="g-form-part-sm" label="País" name="tel-pais" :options="paises" required />
+  <GInput label="Número" name="tel-numero" type="tel" required autocomplete="tel-national" placeholder="951 123 4567" />
   <GInput class="g-form-part-sm" label="Extensión" name="tel-ext" inputmode="numeric" autocomplete="tel-extension" />
 </GFieldGroup>
 ```
 
+- **País y Número llevan `required`** aunque el grupo ya lo sea: una parte se marca solo si **difiere** del grupo, así que sin `required` saldrían con «(opcional)»; la Extensión, sin `required`, sale «Extensión (opcional)» (#170).
 - País y número comparten fila también en 320px; la extensión pasa debajo si no cabe.
 - **Límite:** `GSelect` no participa en el autocompletado del navegador (es un `combobox` con `<input type="hidden">`, #54). Si importa, el prefijo puede ser un `GInput` con `autocomplete="tel-country-code"` e `inputmode="tel"`. Un campo de teléfono dedicado con formato por país es de una ronda propia (Fase 5).
 
@@ -566,7 +570,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
 | # | Cambio | Detalle | Dueño |
 | --- | --- | --- | --- |
 | C1 | **Leen el contexto con `useFormField()`** | `density`, `readonly`, `disabled`, `block` y `error` pasan a default `undefined`; precedencia prop › contexto › default de siempre. Fuera de `GForm`, sin cambios visibles | bruno |
-| C2 | **`block` dentro de la rejilla** | `GFormGrid` (y `GFieldGroup`) proveen `block: true`; la prop explícita gana. `GCheckbox`/`GSwitch` ya ocupan su fila; para ellos `block` no cambia nada visual | bruno |
+| C2 | **`block` dentro de la rejilla** | `GFormGrid` (y `GFieldGroup`) proveen `block: true`; la prop explícita gana. **`GCheckbox` y `GSwitch` no tienen `block`** (ya ocupan su fila; no se añade la prop, #170) | bruno |
 | C3 | **Marcas** | `GForm` decide: «(opcional)» como texto visible dentro de la etiqueta (`g-<tag>__optional`) o asterisco `aria-hidden` (`g-<tag>__required`), nunca ambos; nueva prop **`mark`** (Boolean, default `undefined`; `false` la quita). Reglas y excepciones en §2 | bruno (marcado), coco (aspecto de `__optional`: texto `--g-color-text-muted`, peso normal) |
 | C4 | **Región de mensaje unificada** | La región viva `g-<tag>__error` (`id` `ID-error`) pasa a **`g-<tag>__message`** (`id` `ID-message`): **un** hueco para error, advertencia o válido, siempre presente, `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío). Dentro: icono `GIcon` + prefijo oculto `g-<tag>__message-type` (`labels.error|warning|valid`) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. El slot `error` se conserva (contenido rico del error) | bruno, coco |
 | C5 | **Estados `warning` y `valid`** | Props nuevas **`warning`** y **`valid`** (String). Sin `aria-invalid`; no bloquean; prioridad error > advertencia > válido. Clases de raíz `is-warning`, `is-valid` (`is-invalid` sigue para el error). Señal no cromática: icono distinto y borde de **estilo** distinto (coco; precedente `GToast`: error sólida, advertencia discontinua), además del prefijo. «Válido» solo con un mensaje útil (no un check gratuito) | bruno, coco |
@@ -575,7 +579,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
 | C8 | **Silencio al enviar** | Ver C4: el mensaje revelado por un envío no se anuncia por la región del campo (lo anuncia el resumen o el foco al primer inválido); el revelado al salir del campo **sí** se anuncia | bruno |
 | C9 | **Manejadores primero** | `mergeProps(handlers, propios, attrs)`; prueba de orden en los seis | bruno |
 | C10 | **Registro** | Cada campo con `name` se registra (`control`, `root`, `required`, `disabled`, error explícito). `GInput`/`GTextarea`/`GCheckbox`/`GSwitch` toman `name` de `$attrs`; `GSelect`/`GDatePicker` de su prop. `GSelect` y `GDatePicker` llaman a `notifyChange()` al elegir (no tienen `input` nativo que burbujee) | bruno |
-| C11 | **`GCheckboxGroup` gana `name`** | String: clave del grupo en `errors` y `name` por defecto de sus casillas (la casilla con `name` propio lo conserva). Las casillas de un grupo **no** se registran sueltas | bruno |
+| C11 | **`GCheckboxGroup` gana `name` y `required`** (#170) | `required` (Boolean): marca en la `<legend>` según la convención (`g-checkbox-group__required` u `__optional`); el `fieldset` lleva `is-disabled`, `is-invalid`, `is-warning`, `is-valid`. `name`: String: clave del grupo en `errors` y `name` por defecto de sus casillas (la casilla con `name` propio lo conserva). Las casillas de un grupo **no** se registran sueltas | bruno |
 | C12 | **Pistas para *subgrid*** | La raíz de cada campo tiene como hijos directos etiqueta, caja (fila), ayuda y mensaje, para que coco las coloque por nombre de pista dentro de `g-form-row` (§4) | bruno (estructura), coco (CSS) |
 | C13 | **`GInput`: prefijo y sufijo de texto** | Props nuevas **`prefix`**, **`suffix`** (texto visible dentro de la caja: `$`, `kg`, `%`) y **`prefixLabel`**, **`suffixLabel`** (expansión accesible: «kilogramos»). Ver abajo. Los slots `prepend`/`append` siguen siendo **iconos decorativos** | bruno, coco |
 

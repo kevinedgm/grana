@@ -269,7 +269,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 | # | Cambio | Detalle |
 | --- | --- | --- |
 | C1 | Lee el contexto con `useFormField()` | En `GCheckbox`: `density`, `readonly`, `disabled` y `error`. En `GCheckboxGroup`: `density`, `disabled`, `error` y `readonly` (si el grupo lo tiene) pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
-| C2 | `block` en la rejilla | Sin cambio visual (la fila ya ocupa su ancho); dentro de la rejilla ocupan su celda. |
+| C2 | `block` en la rejilla | **`GCheckbox` no tiene `block`** (la fila ya ocupa su ancho; no se añade la prop, #170) |
 | C3 | Marcas | **`GCheckbox` suelto:** nunca «(opcional)» (sin marcar ya es una respuesta); asterisco con `required` en la convención `required`. **`GCheckboxGroup`:** marca en el `<legend>` según su `required` y la convención. Las casillas de un grupo no llevan marca. Prop nueva **`mark`** en ambos. |
 | C4 | Región de mensaje unificada | `g-checkbox__error` / `ID-error` pasa a **`g-checkbox__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-checkbox__message-icon`) + prefijo oculto `g-checkbox__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Vacía = **sin nodos de texto** (el CSS usa `:not(:empty)`; un comentario de Vue vale, un espacio no). Aplica a `g-checkbox__error` y `g-checkbox-group__error` (→ `__message`). La región del conteo no cambia. |
 | C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
@@ -281,4 +281,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 
 **Advertencia (#169):** en la casilla, borde **discontinuo de un solo trazo** (no doble, como en las cajas de texto: el cuadro es pequeño).
 
+**`GCheckboxGroup` gana `required`** (Boolean, #170): marca en la `<legend>` según la convención de `GForm` (fuera de `GForm`, asterisco como en los campos); el `fieldset` lleva `is-disabled`, `is-invalid`, `is-warning` e `is-valid`.
+
 **Clases nuevas** (contrato bruno–coco): `g-checkbox-group__required` (asterisco del `<legend>` con `marks="required"`), `g-checkbox__message`, `g-checkbox-group__message`, `__message-icon`, `__message-type`, `g-checkbox-group__optional`, `is-warning`, `is-valid` (los `__error` desaparecen).
+
+**Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
