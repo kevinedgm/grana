@@ -1,6 +1,6 @@
 # 013 — GProgress: avance con `translate` en lugar de `inline-size`
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GProgress.css`, `design/lab/widget/estilo.md`). Sin `.vue` (la variable `--_value` de bruno no cambia), sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: LOW
@@ -84,3 +84,7 @@ La barra (`.g-progress__bar`, `:26-35`) ya tiene `overflow: hidden` y radio de p
   - Con `reducedMotion: 'reduce'`: el cambio es inmediato (sin transiciones).
 - **Feel check**: compara capturas antes/después con 0 %, 3 %, 50 % y 100 %: el extremo del avance sigue redondeado y la barra no muestra relleno fuera de su contorno. DevTools > Performance mientras cambias el valor: sin «Layout» en los cuadros de la transición.
 - **Done when**: el avance se anima con `translate` en los tres navegadores, se ve igual que antes (salvo, quizá, valores < 4 %) y respeta RTL.
+
+## Nota de ejecución
+
+Verificado con Playwright (3 navegadores): visible 72% = 329.8 px de 458, tras 90% = 412.2 px; una transición de `translate` de 160 ms (ninguna de `width`); con `reduce`, sin transiciones; RTL alinea a la derecha.

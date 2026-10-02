@@ -5,6 +5,7 @@
 .g-progress {
   --_color: var(--g-color-primary);
   --_h: calc(var(--g-space-1) * 2);
+  --_dir: 1;
 
   display: flex;
   flex-direction: column;
@@ -13,6 +14,7 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
+.g-progress:dir(rtl) { --_dir: -1; }
 .g-progress--size-sm { --_h: calc(var(--g-space-1) * 1.5); }
 .g-progress--size-md { --_h: calc(var(--g-space-1) * 2); }
 .g-progress__row {
@@ -33,16 +35,18 @@
   outline: var(--g-border-width) solid var(--g-color-border);
   outline-offset: calc(var(--g-border-width) * -1);
 }
+/* El relleno mide lo que la barra y se desplaza hasta el avance (la barra recorta lo que sobra): sin layout al animar */
 .g-progress__fill {
   display: block;
-  inline-size: var(--_value);
+  inline-size: 100%;
   block-size: 100%;
   border-radius: var(--g-radius-pill);
   background: var(--_color);
+  translate: calc((var(--_value) - 100%) * var(--_dir)) 0;
 }
 @media (prefers-reduced-motion: no-preference) {
   .g-progress__fill {
-    transition: inline-size var(--g-duration-press) var(--g-ease-out);
+    transition: translate var(--g-duration-press) var(--g-ease-out);
   }
 }
 .g-progress--color-brand { --_color: var(--g-color-primary); }
