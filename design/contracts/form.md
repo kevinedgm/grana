@@ -1,6 +1,6 @@
 # Contrato · Sistema de formularios · Fase 1 (núcleo de composición)
 
-**Dueño:** lima · **Estado:** aprobado (pendiente de CSS de coco y construcción de bruno) · **Basado en:** `design/lab/form/r01/` (kiwi; `brief.md` del usuario, `declaracion.md` con 17 puntos y 20 hallazgos en §15, `index.html`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker` (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
+**Dueño:** lima · **Estado:** aprobado · CSS entregado por coco (commit 9d3d57f, `design/lab/form/estilo.md`; ajustes en #169) · pendiente de construcción de bruno y de auditoría de coco · **Basado en:** `design/lab/form/r01/` (kiwi; `brief.md` del usuario, `declaracion.md` con 17 puntos y 20 hallazgos en §15, `index.html`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker` (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
 **Tags:** `g-form`, `g-form-section`, `g-form-grid`, `g-field-group`, `g-form-actions`, `g-error-summary` · composable `useFormField()` · **Categoría:** entradas (composición)
 
 Una **capa de composición** sobre los campos que ya existen: decide **cómo** se reparten, agrupan, marcan, cuándo enseñan sus errores y cómo se envían, sin duplicar ningún campo. La Fase 1 cubre formularios cortos, medianos y en dialog o drawer; los largos con navegación y secciones plegables llegan en la Fase 3 (ver «Fases siguientes»). Decisiones del usuario: DECISIONS.md #153 a #155; derivadas de estándar o de contratos vigentes: #156 a #168.
@@ -145,6 +145,8 @@ Los textos del resumen son de `GErrorSummary` (su propia `labels`).
 
 - **`novalidate` siempre**: la validación nativa del navegador (burbujas, foco propio) no convive con mensajes en línea y resumen. Los atributos `required` de los campos se mantienen (exponen «obligatorio» a la tecnología de apoyo).
 - **Formularios anidados:** HTML no los permite; un `GForm` dentro de otro avisa en desarrollo y el interior **no** pinta `<form>` (pinta `div`), pero sigue proveyendo su contexto.
+- **Región `__message` de los campos y de `GFieldGroup` vacía = sin nodos de texto** (un comentario de Vue vale; un espacio no): el CSS usa `:not(:empty)` (#169).
+- **«(opcional)»:** un **espacio de texto** antes del `<span class="g-*__optional">` dentro del `<label>`/`<legend>` (el CSS no pone margen; el nombre accesible necesita el espacio: «Segundo apellido (opcional)»).
 - `GForm` **no** añade `aria-describedby` ni rol: un `<form>` con nombre ya es un punto de referencia `form`.
 
 ### Clases
@@ -319,7 +321,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 
 - Contenedor con su propia clase de ancho (`g-form-row g-form-w-md`) cuyos hijos se reparten la fila **en partes iguales** en los tres tramos (con `g-form-part-*`, §5, pueden fijar la suya).
 - **Alineación de cajas con *subgrid*** (hallazgo 12): cada campo hijo directo de `.g-form-row` coloca sus partes en **cuatro pistas con nombre** compartidas: etiqueta · caja · ayuda · mensaje. Lo escribe **coco en el CSS de cada campo** (`.g-form-row > .g-input { … }`: el campo estiliza su propia raíz según dónde está), colocando cada parte **por nombre de pista**, no por orden (una ayuda ausente deja su pista vacía). Bruno garantiza que la raíz de cada campo tiene esas partes como hijos directos (§10).
-- Máximo recomendado: **3 hijos**; con más, aviso en desarrollo (brief: «sin filas con demasiados controles»).
+- **No salta de línea** (las pistas del *subgrid* son una sola fila): con tres hijos a 320px cada uno mide ~80px. Regla de uso: **hasta 2 hijos si la fila debe verse en móvil**; 3 solo con contenidos muy cortos. Con más de 3, aviso en desarrollo (brief: «sin filas con demasiados controles»; #169).
 - **En la rejilla general no hay subgrid** en la Fase 1 (un `<legend>` no participa en la rejilla): alineación superior y la regla de contenido «etiquetas cortas en filas compartidas», documentada.
 
 ### Clases y atributos de `GFormGrid`
@@ -328,7 +330,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 | --- | --- |
 | `g-form-grid` | Siempre |
 | `g-form-grid--{wide\|medium\|narrow}` y `data-tier` | Tramo medido |
-| `g-form-grid--stack` | `stack` |
+| `g-form-grid--stack` | `stack` (se emite **junto con** `g-form-grid--narrow` y `data-tier="narrow"`; el CSS fuerza una columna con cualquiera de los dos; #169) |
 | `g-form-grid--density-{density}` | Siempre (resuelta) |
 
 ### Avisos de desarrollo (`[Grana GFormGrid]`, una vez, al montar)
@@ -365,7 +367,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 - **Un solo mensaje:** el del grupo (`error` propio, o `errors[name]`, o el **primer** error visible de sus partes en orden del DOM). Las partes **no pintan** texto de mensaje (su región sigue existiendo, vacía) pero las inválidas llevan `aria-invalid="true"` y su borde de error. El `fieldset` lleva `aria-describedby` → ayuda y mensaje del grupo. **Sin `aria-invalid` en el `fieldset`** (no es un atributo admitido en el rol `group` en ARIA 1.3); lo llevan los controles.
 - **Marcas:** el `<legend>` lleva la marca de la pregunta según `required` y la convención. Una parte lleva su propia marca **solo si difiere** de la del grupo (la extensión opcional de un teléfono obligatorio: «Extensión (opcional)»).
 - **Resumen y foco:** el grupo es **un** elemento del resumen (una pregunta, un enlace), que lleva a la **primera parte inválida** (o a la primera parte si el error es del grupo).
-- **Colocación de partes:** fila que salta de línea; cada parte crece salvo que lleve `g-form-part-xs` o `g-form-part-sm` (base y máximo `--g-form-max-xs`/`-sm`). Una parte que no cabe **pasa debajo** (la extensión en 320px). Orden del DOM = lectura.
+- **Colocación de partes:** fila que salta de línea, con separación de **la mitad** de `--g-form-gap` (bloque) y `--g-form-column-gap` (línea) × densidad (proximidad: las partes son una pregunta; su etiqueta baja un paso bajo el `<legend>`; #169); cada parte crece salvo que lleve `g-form-part-xs` o `g-form-part-sm` (base y máximo `--g-form-max-xs`/`-sm`). Una parte que no cabe **pasa debajo** (la extensión en 320px). Orden del DOM = lectura.
 - El grupo se coloca en la rejilla como cualquier hijo (`class="g-form-w-lg"`) y es `block` en su celda.
 
 ### Estructura
@@ -385,7 +387,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 
 ### Clases
 
-`g-field-group`, `g-field-group--density-{d}`, `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid`, `__label`, `__optional`, `__required`, `__parts`, `__hint`, `__message`, `__message-type` (prefijo oculto), `__message-icon`; clases de parte `g-form-part-xs`, `g-form-part-sm`.
+`g-field-group`, `g-field-group--density-{d}`, `is-disabled` (además del `:disabled` nativo del `fieldset`; las partes reciben su propio `is-disabled` por contexto), `is-readonly`, `is-invalid`, `is-warning`, `is-valid`, `__label`, `__optional`, `__required` (asterisco del `<legend>` con `marks="required"`), `__parts`, `__hint`, `__message`, `__message-type` (prefijo oculto), `__message-icon`; clases de parte `g-form-part-xs`, `g-form-part-sm`.
 
 ---
 
@@ -406,7 +408,7 @@ Pie de acciones con jerarquía, estado y, opcionalmente, fijo.
 - **Jerarquía:** **una** primaria (`GBtn` `solid`: Guardar, Registrar, Crear), secundaria con borde (Guardar borrador, con `formnovalidate` si no debe validar), terciaria `ghost`/`link` (Cancelar). Más de una primaria → aviso en desarrollo.
 - **Orden (decisión del usuario, #155):** en el DOM, **secundarias antes y la primaria al final**; en ancho, alineadas **al final** (a la derecha en LTR), primaria la última, como el pie de `GDialog`. **En estrecho** (ancho propio < `space × 104`, medido, el mismo umbral que el tramo `narrow` de la rejilla) se **apilan a ancho completo con la primaria arriba** (`column-reverse` sobre el orden del DOM). Excepción acotada a «DOM = visual»: en ese apilado el orden de Tab (Cancelar → … → primaria) va de abajo arriba. Se acepta porque son acciones adyacentes de un mismo grupo cuyo significado no depende del orden (WCAG 2.4.3 pide un orden que conserve significado y operabilidad) y es decisión del usuario; queda en la verificación con lector real. Una primaria que **no** sea el último botón avisa en desarrollo.
 - **Estado:** región `role="status"` **siempre presente** (vacía si no hay nada; #14) al inicio del pie: «Cambios sin guardar», «Guardado a las 10:42». Texto por `status` o slot `status`; la aplicación lo escribe (no hay textos por defecto). La máquina de autoguardado es de la Fase 4.
-- **`sticky`:** pegado al borde inferior del contenedor que se desplaza (`position: sticky`), con fondo propio y línea superior (valores de coco). **Nunca tapa el campo enfocado** (WCAG 2.2 **2.4.11**): `GFormActions` mide su altura (`ResizeObserver`) y la comunica a `GForm` (`setActionsSize`), que la escribe en línea como **`--g-form-actions-size`** (propiedad pública de solo lectura, como `--g-surface-padding`, #131) y añade `g-form--sticky-actions`; **`GForm.css`** da `scroll-margin-block-end: calc(var(--g-form-actions-size) + margen)` a los elementos enfocables de su interior (regla de desplazamiento, no de aspecto de los campos). **Respaldo JS** (bruno): en `focusin`, si el elemento queda bajo el pie, desplaza la diferencia. Kiwi verificó 29 focos sin tapar, también solo con CSS.
+- **`sticky`:** pegado al borde inferior del contenedor que se desplaza (`position: sticky`), con fondo propio y línea superior (valores de coco). **Nunca tapa el campo enfocado** (WCAG 2.2 **2.4.11**): `GFormActions` mide su altura (`ResizeObserver`) y la comunica a `GForm` (`setActionsSize`), que la escribe en línea como **`--g-form-actions-size`** (propiedad pública de solo lectura, como `--g-surface-padding`, #131) y añade `g-form--sticky-actions`; **`GForm.css`** da `scroll-margin-block-end: calc(var(--g-form-actions-size) + margen)` a los elementos enfocables de su interior (regla de desplazamiento, no de aspecto de los campos). **Respaldo JS obligatorio** (bruno; #169): en `focusin`, si el elemento queda bajo el pie, desplaza la diferencia más el margen. No es opcional: WebKit ignora `scroll-margin` al enfocar y Chromium deja tapado un `<textarea>` final (lleva a la vista el cursor, no la caja; coco, `design/lab/form/estilo.md`). **La escritura de `--g-form-actions-size` y de `g-form--sticky-actions` va fuera de la devolución del `ResizeObserver`** (en `requestAnimationFrame`) y solo si el valor cambia; si no, WebKit da «ResizeObserver loop completed with undelivered notifications».
 - **En `GDialog`** las acciones van en su slot `footer` (ya fijo; el envío con `form="id"`). Se puede usar `GFormActions` (sin `sticky`) dentro del pie del dialog para tener la misma jerarquía, el estado y el apilado; el pie de `GDialog` **no cambia** en esta fase.
 - Fuera de `GForm` funciona igual (sin publicar altura).
 
@@ -425,7 +427,7 @@ Pie de acciones con jerarquía, estado y, opcionalmente, fijo.
 
 ### Clases
 
-`g-form-actions`, `g-form-actions--sticky`, `g-form-actions--stacked` (+ `data-stacked`), `g-form-actions--density-{d}`, `__status`, `__buttons`.
+`g-form-actions`, `g-form-actions--sticky`, `g-form-actions--stacked` y `data-stacked` (bruno emite **los dos**; el CSS acepta cualquiera; dentro del pie de `GDialog` mide el ancho de la fila del pie), `g-form-actions--density-{d}`, `__status`, `__buttons`.
 
 ### Avisos de desarrollo (`[Grana GFormActions]`)
 
@@ -539,7 +541,7 @@ Las partes de una dirección o un teléfono **dependen del país**: un component
 
 | Token | Para qué | Regla |
 | --- | --- | --- |
-| `--g-form-gap` | Separación entre filas de campos en `GFormGrid` y entre partes de `GFieldGroup` | × densidad (1, 0.875, 0.75) |
+| `--g-form-gap` | Separación entre filas de campos en `GFormGrid`; las partes de `GFieldGroup` usan **la mitad** (de este y de `--g-form-column-gap`; proximidad: una sola pregunta, #169) | × densidad (1, 0.875, 0.75) |
 | `--g-form-column-gap` | Separación entre columnas de `GFormGrid` y de `g-form-row` | × densidad |
 | `--g-form-section-gap` | Separación entre `GFormSection` consecutivas y entre la última sección y `GFormActions` | × densidad; del orden de 2× `--g-form-gap` (kiwi §3.1) |
 | `--g-form-max-xs` | Ancho máximo de `g-form-w-xs` en una columna y base/máximo de `g-form-part-xs` | No cambia con la densidad (el ancho expresa el contenido) |
@@ -582,6 +584,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
 - Orden en la caja: `prepend` (icono) · **`prefix`** · `<input>` · **`suffix`** · `append` (icono) · indicador de carga · botón mostrar/ocultar.
 - Accesibilidad: una unidad es **información** (hallazgo 9). Sin `*Label`, el texto visible (`g-input__prefix`/`__suffix`, con `id`) entra en `aria-describedby` **antes** de ayuda y mensaje. Con `*Label`, el texto visible es `aria-hidden` y un texto oculto (`g-input__prefix-label`/`__suffix-label`, con `id`) con la expansión entra en `aria-describedby`. Así «Peso, editar texto, kilogramos».
 - Pulsar sobre el prefijo o el sufijo enfoca el `<input>` (comodidad de puntero; no son interactivos ni enfocables).
+- **Ubicación de `__prefix-label`/`__suffix-label`:** dentro de `g-input__control`, justo después de su texto visible (`aria-hidden`); es texto oculto accesible, sin efecto en la caja (#169).
 - Clases: `g-input--has-prefix`, `g-input--has-suffix`, `g-input__prefix`, `__suffix`, `__prefix-label`, `__suffix-label`. Texto en `--g-color-text-muted` (≥ 4.5:1), tamaño del texto escrito.
 - `GTextarea` no gana prefijo ni sufijo (#50). `GNumberField` (Fase 2) reutiliza esta misma regla.
 
@@ -620,6 +623,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
   - **Orden de manejadores** en los seis campos; **`GInput` `prefix`/`suffix`** en `aria-describedby` (con y sin `*Label`).
   - `check-icons.mjs` y `levels.test.js` sin infracciones (incluida la excepción de `--g-form-actions-size`).
 - **coco** (auditoría con un tema distinto al de defecto): ritmo de secciones y campos en las tres densidades; «(opcional)» y asterisco legibles (4.5:1); advertencia y válido distinguibles en escala de grises; solo lectura frente a deshabilitado frente a editable sin color; `forced-colors` (bordes discontinuos visibles); subgrid de `g-form-row` con etiqueta en dos líneas; pie fijo en claro y oscuro; 320px sin desborde; zoom 200 % (reflujo, 1.4.10); `prefers-contrast: more`.
+- **Para la auditoría de coco** (#169): el pie fijo **apilado** mide 177px a 320px con tres botones (42 % de un contenedor de 420px); no tapa el foco, pero en drawers bajos pesa: valorar alternativas (p. ej. terciaria en línea) sin romper #155.
 - **No verificado y pendiente:** lector de pantalla real (VoiceOver, NVDA, TalkBack): doble lectura del resumen (`alert` + foco), silencio `off` → `polite`, «(opcional)» en el nombre, prefijo y sufijo en la descripción, orden del pie apilado; Firefox y WebKit (subgrid, `scroll-margin` al enfocar, `ResizeObserver`; Playwright cubre lo automatizable, #108); teclado virtual tapando campos; autocompletado del navegador en compuestos; rendimiento con cientos de campos registrados.
 
 ## Fases siguientes (reservado; no forma parte de este contrato)

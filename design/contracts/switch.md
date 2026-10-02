@@ -168,12 +168,14 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 | C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled` y `error` pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
 | C2 | `block` en la rejilla | Sin cambio visual; dentro de la rejilla ocupa su celda. |
 | C3 | Marcas | **Nunca lleva marca** (no tiene `required`, #47), en ninguna convención. |
-| C4 | Región de mensaje unificada | `g-switch__error` / `ID-error` pasa a **`g-switch__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-switch__message-icon`) + prefijo oculto `g-switch__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. |
+| C4 | Región de mensaje unificada | `g-switch__error` / `ID-error` pasa a **`g-switch__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-switch__message-icon`) + prefijo oculto `g-switch__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Vacía = **sin nodos de texto** (el CSS usa `:not(:empty)`; un comentario de Vue vale, un espacio no). |
 | C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
 | C6 | Iconos | Error **`circle-alert`** (antes `triangle-alert`), advertencia `triangle-alert`, válido `circle-check` (`icons.md`) |
 | C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). Ya usaba `surface-sunken`; se añade el borde discontinuo. `aria-readonly` sin cambios. |
 | C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` con prueba de orden. |
 | C9 | Registro | Con `name` en `$attrs`, se registra (control de elección: revela al cambiar). Recordatorio de la guía: en un formulario con Guardar se usa `GCheckbox`, no `GSwitch`. |
 | C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+
+**Advertencia (#169):** en el riel, borde **discontinuo de un solo trazo** (no doble).
 
 **Clases nuevas** (contrato bruno–coco): `g-switch__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-switch__error` desaparece).
