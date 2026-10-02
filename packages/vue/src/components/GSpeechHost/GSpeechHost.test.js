@@ -536,6 +536,27 @@ describe('GSpeechHost · modal, hoja móvil y borde compartido (§6.6, §6.7)', 
     window.innerWidth = w0
   })
 
+  it('sin --g-space-1 medible (jsdom): la reserva de la pill flotante es solo su alto, sin margen inventado', async () => {
+    const w0 = window.innerWidth
+    window.innerWidth = 400 // sin unidad medible no es móvil, aunque el visor sea estrecho
+    const oh = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function () {
+      return this.classList && this.classList.contains('g-speech-host__float') ? 38 : 0
+    })
+    const toaster = createToaster({ labels: { region: 'Avisos', close: 'Cerrar' }, offset: { bottom: 10 } })
+    const { speech } = await setup({ toaster, options: { position: 'bottom-center' } })
+    window.dispatchEvent(new Event('resize'))
+    await flush()
+    expect(root().hasAttribute('data-mobile')).toBe(false) // unidad 0: no es móvil, igual que GToaster y GDialog
+    await speech.start({ mode: 'conversation' })
+    await flush()
+    await flush()
+    const tr = document.querySelector('.g-toaster')
+    expect(tr.dataset.edge).toBe('bottom')
+    expect(tr.style.getPropertyValue('--_toaster-offset-bottom')).toBe('calc(10px + 38px)') // 38 + 0 × margen, no 38 + 4 × 2
+    oh.mockRestore()
+    window.innerWidth = w0
+  })
+
   it('movimiento reducido: data-reduced-motion en la raíz y onda de 5 segmentos con data-on', async () => {
     window.matchMedia = vi.fn((q) => ({ matches: q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {} }))
     const { speech } = await setup()

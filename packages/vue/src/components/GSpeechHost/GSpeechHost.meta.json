@@ -92,7 +92,7 @@
     "Al desmontar el anfitrión con la captura viva, la captura se detiene y la sesión pasa a paused (sin indicador no hay micrófono)",
     "Panel: foco al título al abrir; al cerrar, a quien lo abrió o a la pill visible; cierre ligero (pointerdown fuera de panel, pill y disparadores) sin mover el foco; Esc con preventDefault + stopPropagation; si un cambio de estado retira el control enfocado del panel, el foco pasa al título",
     "Garantía de pill: la colocada si se ve ≥ 95 % (IntersectionObserver), no es inerte y está dentro del modal superior si lo hay; si no, la flotante. La flotante pasa al borde contrario si tapa el elemento enfocado",
-    "Borde compartido con GToaster (#225): con la flotante visible, su alto + margen (space × 4; × 2 en móvil) se publica en el registro interno utils/edgeReserve.js y GToaster lo suma a --_toaster-offset-* de su borde efectivo",
+    "Borde compartido con GToaster (#225): con la flotante visible, su alto + margen (space × 4; × 2 en móvil; sin unidad medible, como en jsdom o SSR, el margen es 0, sin valor de respaldo) se publica en el registro interno utils/edgeReserve.js y GToaster lo suma a --_toaster-offset-* de su borde efectivo",
     "Anuncios: cola cortés con POLITE_GAP_MS (900 ms) entre textos; cambios de estado agrupados (announceGroupMs, gana el último; uno sin texto cancela el pendiente); el enérgico vacía la cola; escritura con utils/liveRegion.js (la de GToaster)"
   ],
   "tokens": [],

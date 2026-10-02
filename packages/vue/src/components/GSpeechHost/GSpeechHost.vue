@@ -211,7 +211,7 @@ function place() {
   const pill = visiblePillEl()
   if (!p || !pill || p.hidden) return
   const a = pill.getBoundingClientRect()
-  const space = spaceUnit() || 4
+  const space = spaceUnit() // 0 si no se puede medir (jsdom, SSR): sin margen, sin inventar una unidad (como GToaster y GDialog)
   const rtl = getComputedStyle(rootEl.value || document.documentElement).direction === 'rtl'
   p.style.setProperty('--_speech-max-block', 'none')
   const natural = p.scrollHeight
@@ -234,7 +234,7 @@ async function publishReserve() {
   if (!active.value) return
   const f = floatEl.value
   if (!floatShown.value || !f || f.hidden) { clearEdgeReserve(owner); return }
-  const space = spaceUnit() || 4
+  const space = spaceUnit() // 0 si no se puede medir (jsdom, SSR): sin margen, sin inventar una unidad (como GToaster y GDialog)
   const h = f.offsetHeight
   setEdgeReserve(owner, edge.value, h > 0 ? h + space * (mobile.value ? 2 : 4) : 0)
 }
