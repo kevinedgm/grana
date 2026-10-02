@@ -18,8 +18,8 @@ describe('DARK (defaults.js)', () => {
   })
 
   it('isColorGroup: colores, superficies, sombras, cristal y calendario sí; radios, espaciado y tipografía no', () => {
-    for (const k of ['--g-color-brand', '--g-surface-shell', '--g-surface-backdrop', '--g-shadow-2', '--g-glass-tint', '--g-calendar-grid-color']) expect(isColorGroup(k), k).toBe(true)
-    for (const k of ['--g-radius-md', '--g-space-1', '--g-text-body-size', '--g-surface-gap', '--g-surface-radius', '--g-sidebar-width', '--g-widget-row', '--g-focus-width']) expect(isColorGroup(k), k).toBe(false)
+    for (const k of ['--g-color-brand', '--g-surface-shell', '--g-surface-backdrop', '--g-shadow-2', '--g-glass-tint', '--g-calendar-grid-color', '--g-tabs-track', '--g-card-scrim']) expect(isColorGroup(k), k).toBe(true)
+    for (const k of ['--g-radius-md', '--g-space-1', '--g-text-body-size', '--g-surface-gap', '--g-surface-radius', '--g-sidebar-width', '--g-widget-row', '--g-focus-width', '--g-tabs-mark-default', '--g-tabs-inset']) expect(isColorGroup(k), k).toBe(false)
   })
 
   it('el tema oscuro por defecto cumple los mínimos (sin errores ni avisos)', () => {
