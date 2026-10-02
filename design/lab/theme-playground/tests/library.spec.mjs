@@ -331,10 +331,9 @@ test.describe('playground de la librería', () => {
     expect(covered, browserName).toBe(0)
     expect(await page.locator('#fm-sticky').evaluate((f) => f.style.getPropertyValue('--g-form-actions-size'))).toMatch(/px$/)
     expect(errors, browserName).toEqual([])
-    // 320px en una página nueva cargada a ese ancho. En WebKit, GCalendar da un «ResizeObserver loop» a 320px (y al girar
-    // el visor, también GTable) que existe sin el formulario: se excluye solo ese mensaje en esta página y se reporta aparte.
+    // 320px en una página nueva cargada a ese ancho (sin errores, tampoco «ResizeObserver loop» en WebKit)
     const narrow = await page.context().newPage()
-    narrow.on('pageerror', (e) => { if (!/ResizeObserver loop/.test(e.message)) errors.push(`pageerror 320: ${e.message}`) })
+    narrow.on('pageerror', (e) => errors.push(`pageerror 320: ${e.message}`))
     narrow.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console 320: ${m.text()}`) })
     await narrow.setViewportSize({ width: 320, height: 800 })
     await ready(narrow)

@@ -587,12 +587,23 @@ function pickResource(id) {
 // ---- Ciclo de vida
 let ro = null
 let timer = null
+let frame = 0
+let pendingMode = null
+const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
+const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
 onMounted(() => {
   measure()
   if (typeof ResizeObserver !== 'undefined' && rootEl.value) {
+    // La escritura va al cuadro siguiente y solo si cambia: dentro de la devolución, WebKit avisa «ResizeObserver loop completed» (#169)
     ro = new ResizeObserver((entries) => {
-      const w = entries[0].contentRect.width
-      mode.value = w > 0 && w <= MODE_PHONE_MAX ? 'phone' : w > 0 && w <= MODE_TABLET_MAX ? 'tablet' : 'desktop'
+      const w = entries[entries.length - 1].contentRect.width
+      pendingMode = w > 0 && w <= MODE_PHONE_MAX ? 'phone' : w > 0 && w <= MODE_TABLET_MAX ? 'tablet' : 'desktop'
+      if (frame) return
+      frame = raf(() => {
+        frame = 0
+        if (pendingMode !== null && pendingMode !== mode.value) mode.value = pendingMode
+        pendingMode = null
+      })
     })
     ro.observe(rootEl.value)
   }
@@ -600,6 +611,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (ro) ro.disconnect()
+  if (frame) caf(frame)
   if (timer) clearInterval(timer)
   if (drag) drag.finish(false)
 })
