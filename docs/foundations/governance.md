@@ -1,7 +1,5 @@
 # Vocabulario y versionado de Grana
 
-> **Estado:** propuesta para la Fase 0. Este documento convierte palabras ya usadas en el repositorio en reglas públicas; debe aprobarse antes de declararse contrato estable.
-
 ## Por qué existe
 
 Una librería pública necesita que la misma palabra signifique lo mismo para quien la usa, quien la mantiene y quien revisa un cambio. En Grana, el contrato, los tokens, las pruebas y la documentación deben usar este vocabulario.
@@ -84,7 +82,7 @@ Grana usa tres niveles de madurez. Un componente muestra su estado junto a su do
 
 La progresión es la misma que define el flujo interno: **draft → candidate → stable**. Un componente no se marca como estable por estar terminado visualmente: debe cumplir su contrato.
 
-## Propuesta de versionado
+## Versionado
 
 ### Paquetes
 
@@ -130,9 +128,9 @@ Cada release público debe incluir:
 - cambios en tokens, validación o accesibilidad;
 - enlaces a las páginas de documentación afectadas.
 
-## Qué falta decidir
+## Decisiones de publicación pendientes
 
-Antes de congelar esta propuesta se requiere decisión de producto sobre:
+Antes de la primera publicación pública se requiere decidir:
 
 - el criterio exacto para pasar de `0.x` a `1.0.0`;
 - si todos los paquetes se publicarán de forma sincronizada o tendrán versiones independientes;
