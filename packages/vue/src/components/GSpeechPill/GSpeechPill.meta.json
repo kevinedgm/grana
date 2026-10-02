@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "name": "GSpeechPill",
+  "tag": "g-speech-pill",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Pill colocable de la captura de voz (cabecera, barra de herramientas). Opcional y una por gestor: sin ella solo existe la flotante de GSpeechHost. Muestra el estado con icono y texto, la duración, alternar (pausar/reanudar/reintentar) y finalizar; su botón principal abre el panel. El anfitrión garantiza exactamente una pill visible y operable: esta si se ve (≥ 95 %), no es inerte y está dentro del modal superior si lo hay; si no, la flotante.",
+  "contract": "design/contracts/speech.md",
+  "prototype": "design/lab/speech/r01/",
+  "style": "packages/vue/src/components/GSpeechPill/GSpeechPill.css",
+  "props": [
+    { "name": "speech", "type": "Object", "default": null, "values": "gestor de createSpeech; por defecto, el inyectado" }
+  ],
+  "events": [],
+  "slots": [],
+  "markup": {
+    "root": "div.g-speech-pill.g-speech-pill--status-<status> data-placement=\"placed\" (\"floating\" la del anfitrión) data-status role=group aria-label = labels.region; is-live (captura viva, también en reconnecting con captura), is-problem (denied, unavailable, error); hidden en idle (también en el servidor)",
+    "main": "GBtn.g-speech-pill__main (ghost neutral sm) aria-expanded = panel abierto, aria-controls = <host>-panel, aria-keyshortcuts = hotkey (sin atributo con hotkey false); en su hueco: span.__icon aria-hidden (svg.g-icon hijo directo; is-spinning en processing) + span.__text (states.<status>.short; reconnecting con captura: shortLive) + span.__sr («, » + labels.openPanel) + span.g-speech-meter aria-hidden (4 i.__bar con --_speech-bar 0..1; data-on con movimiento reducido; hidden sin captura viva o con activityHidden) + span.__chevron (chevron-down)",
+    "time": "span.__time role=timer (span.__sr con labels.duration + mm:ss / h:mm:ss); hidden en requesting y ready",
+    "toggle": "GBtn icon .__toggle (ghost neutral sm): pause «Pausar» con captura viva; mic «Reanudar» en paused o problema recuperable con algo capturado; rotate-ccw «Reintentar» en problema recuperable sin captura; hidden en el resto (el mismo botón cambia de nombre e icono)",
+    "finish": "GBtn icon .__finish (ghost neutral sm, square relleno, labels.actions.finish): visible con captura, paused, reconnecting y problema con algo capturado"
+  },
+  "behaviour": [
+    "Una por gestor: la segunda no pinta nada y avisa; sin gestor no pinta nada y avisa",
+    "El medidor se pinta en el DOM desde onLevel (el nivel no es reactivo); con movimiento reducido, barras encendidas o apagadas a ≤ 4 Hz",
+    "Ningún GBtn usa loading ni loadingText: sus g-btn__status existen y quedan vacías siempre (#227)"
+  ],
+  "tokens": [],
+  "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check", "pause", "rotate-ccw", "square", "chevron-down"],
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
+    "Pill colocada tapada por otra capa de la aplicación sin salir del visor: no se detecta (IntersectionObserver v1)",
+    "Lector de pantalla real: cambio de nombre de alternar con el foco encima, role=timer"
+  ]
+}

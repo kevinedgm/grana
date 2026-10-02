@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "name": "GSpeechHost",
+  "tag": "g-speech-host",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Captura de voz y transcripción como servicio por aplicación: la aplicación crea su gestor (createSpeech, también plugin de Vue) con un adaptador del motor (Grana no hace red), monta UN <GSpeechHost /> y coloca disparadores (GSpeechTrigger) y, si quiere, una pill (GSpeechPill). El anfitrión pinta los dos únicos canales que anuncian (presentes desde el montaje), la pill flotante de respaldo (garantía de una pill visible y operable), el panel no modal anclado a la pill visible y la hoja móvil; se traslada al <dialog> modal superior; Mayús+F8 va y vuelve. Sin anfitrión montado no se abre el micrófono.",
+  "contract": "design/contracts/speech.md",
+  "prototype": "design/lab/speech/r01/",
+  "style": "packages/vue/src/components/GSpeechHost/GSpeechHost.css",
+  "exports": [
+    { "name": "createSpeech", "signature": "createSpeech(options) → Speech", "purpose": "Crea el gestor de la aplicación; es plugin (app.use(speech) hace provide(speechKey, speech)). Importarlo y llamarlo no toca document, window, navigator, matchMedia ni AudioContext (SSR)" },
+    { "name": "useSpeech", "signature": "useSpeech() → Speech | undefined", "purpose": "Inyecta el gestor provisto; sin gestor o fuera de setup: aviso en desarrollo y undefined" },
+    { "name": "speechKey", "signature": "InjectionKey (Symbol)", "purpose": "provide manual (pruebas, microfrontends)" },
+    { "name": "GSpeechHost", "signature": "<GSpeechHost :speech? />", "purpose": "Anfitrión (uno por gestor; el segundo no pinta nada y avisa)" },
+    { "name": "GSpeechTrigger", "signature": "<GSpeechTrigger :mode :for :target-label :size :density :disabled :speech? />", "purpose": "Disparador (GSpeechTrigger.meta.json)" },
+    { "name": "GSpeechPill", "signature": "<GSpeechPill :speech? />", "purpose": "Pill colocable, una por gestor (GSpeechPill.meta.json)" },
+    { "name": "createSimulatedSpeechAdapter", "signature": "import { createSimulatedSpeechAdapter } from '@grana/vue/testing'", "purpose": "Adaptador simulado para pruebas y documentación; NO viaja en el paquete principal (ver «testing»)" }
+  ],
+  "options": [
+    { "name": "adapter", "type": "Object", "required": true, "values": "interfaz de speech.md §4: { id, capabilities, check?(), open(ctx) }; solo se cambia en idle" },
+    { "name": "allowRemote", "type": "Boolean", "default": false, "values": "permite capabilities.location 'remote'; sin él se rechaza sin abrir el micrófono (#208)" },
+    { "name": "requireConsent", "type": "Boolean", "default": false, "values": "la conversación no empieza sin la casilla de aviso (#207)" },
+    { "name": "language", "type": "String", "default": null, "values": "BCP 47; se pasa tal cual al adaptador (ctx.language)" },
+    { "name": "expectedSpeakers", "type": "Number | String", "default": "many", "values": [1, 2, "many"] },
+    { "name": "hotkey", "type": "String | false", "default": "Shift+F8", "values": "sintaxis de aria-keyshortcuts; F6 se rechaza; F8 se acepta con aviso (atajo de GToaster)" },
+    { "name": "position", "type": "String", "default": "top-center", "values": ["top-start", "top-center", "top-end", "bottom-start", "bottom-center", "bottom-end"] },
+    { "name": "offset", "type": "Object", "default": "{}", "values": "{ top?, bottom? }: Number (px) o longitud CSS → --_speech-offset-* en la raíz" },
+    { "name": "guardUnload", "type": "Boolean", "default": true, "values": "beforeunload solo con una sesión fuera de idle" },
+    { "name": "wakeLock", "type": "Boolean", "default": true, "values": "pantalla encendida solo durante la captura de una conversación" },
+    { "name": "labels", "type": "Object", "default": "{}", "values": "ver labels; sin valores por defecto" },
+    { "name": "onComplete", "type": "Function", "values": "(transcript.toJSON()) => void, al cerrar una sesión completed" },
+    { "name": "onDiscard", "type": "Function", "values": "({ audioDeleted }) => void" },
+    { "name": "onError", "type": "Function", "values": "(copia del error) => void; también los fallos no fatales (issues); nunca con texto transcrito" }
+  ],
+  "methods": [
+    { "name": "prepare", "signature": "prepare({ expectedSpeakers? }?) → Promise<Boolean>", "from": "idle", "to": "ready (o denied/error); sin abrir el micrófono" },
+    { "name": "start", "signature": "start({ mode, target? }) → Promise<Boolean>", "from": "idle", "to": "dictado: requesting → captura (target { id, label? }); conversación: prepare() y begin() si no hace falta consentimiento" },
+    { "name": "begin", "signature": "begin() → Promise<Boolean>", "from": "ready", "to": "requesting → captura; false sin consentimiento con requireConsent" },
+    { "name": "setConsent", "signature": "setConsent(Boolean) → Promise<Boolean>", "from": "ready" },
+    { "name": "setExpectedSpeakers", "signature": "setExpectedSpeakers(1 | 2 | 'many') → Promise<Boolean>", "from": "ready" },
+    { "name": "pause", "signature": "pause() → Promise<Boolean>", "from": "captura; reconnecting con captura viva", "to": "paused (pistas detenidas)" },
+    { "name": "resume", "signature": "resume() → Promise<Boolean>", "from": "paused; denied/unavailable/error recuperables", "to": "requesting → captura" },
+    { "name": "finish", "signature": "finish() → Promise<Boolean>", "from": "captura, paused, reconnecting, error con algo capturado", "to": "processing → completed (6 pasos)" },
+    { "name": "discard", "signature": "discard() → Promise<Boolean>", "from": "cualquiera salvo idle y processing", "to": "idle; engine.abort(); sin confirmación (la confirmación es del panel)" },
+    { "name": "close", "signature": "close() → Promise<Boolean>", "from": "completed", "to": "idle; onComplete(toJSON())" },
+    { "name": "cancel", "signature": "cancel() → Promise<Boolean>", "from": "ready, requesting", "to": "idle" },
+    { "name": "openPanel · closePanel", "signature": "() → Promise<Boolean>", "from": "sesión no idle" },
+    { "name": "retrySegment", "signature": "retrySegment(segmentId) → Promise<Boolean>" },
+    { "name": "insertPending", "signature": "insertPending(fieldId) → Promise<Boolean>", "purpose": "dictado: inserta en orden lo que quedó sin insertar (en el cursor si el campo tiene el foco; si no, al final)" },
+    { "name": "undoDictation", "signature": "undoDictation(fieldId) → Promise<Boolean>", "purpose": "deshace las inserciones del último dictado del campo; false si el campo cambió" },
+    { "name": "onLevel", "signature": "onLevel((level 0..1, live) => void) → off()", "purpose": "nivel por fotograma; NO reactivo" },
+    { "name": "configure", "signature": "configure(patch)", "purpose": "fusión superficial (labels y offset por clave); adapter y allowRemote para la siguiente sesión" },
+    { "name": "state", "signature": "propiedad de solo lectura (reactiva)", "purpose": "status, sessionId, mode, target, permission, capture, voice, signal, duration, pending, engine, attempt, error, issues, transcript, result, consent, expectedSpeakers, panelOpen, activityHidden" },
+    { "name": "capabilities", "signature": "propiedad de solo lectura", "purpose": "las del adaptador, normalizadas (null si no son válidas)" },
+    { "name": "install", "signature": "install(app)" }
+  ],
+  "props": [
+    { "name": "speech", "type": "Object", "default": null, "values": "gestor de createSpeech; por defecto, el inyectado" }
+  ],
+  "events": [],
+  "slots": [],
+  "statuses": ["idle", "requesting", "ready", "listening", "speech", "transcribing", "paused", "processing", "reconnecting", "denied", "unavailable", "error", "completed"],
+  "labels": [
+    "region", "openPanel", "closePanel", "duration",
+    "actions.start", "actions.cancel", "actions.pause", "actions.resume", "actions.retry", "actions.finish", "actions.discard", "actions.discardAsk", "actions.discardConfirm", "actions.closeSession", "actions.dismiss", "actions.retrySegment", "actions.hideActivity",
+    "states.<status>.short", "states.<status>.long", "states.requesting.longGranted", "states.reconnecting.shortLive", "states.reconnecting.longLive",
+    "mode.dictation ({target})", "mode.conversation ({speakers})", "expectedSpeakers.label", "expectedSpeakers.options.1", "expectedSpeakers.options.2", "expectedSpeakers.options.many",
+    "noDiarization", "consent.label", "consent.required", "speaker ({letter})", "unassigned", "attempt ({attempt})", "signalFlat", "pending (plural, {count})", "pendingNone", "progress",
+    "privacy.device", "privacy.local", "privacy.remote", "audio.none", "audio.memory", "audio.disk", "audio.deleted", "audio.notConfirmed",
+    "transcript.title", "transcript.empty", "transcript.partialFlag", "transcript.partialPrefix", "transcript.failed", "transcript.failedLost",
+    "announce.requesting", "announce.ready", "announce.startDictation ({target})", "announce.startConversation", "announce.resumed", "announce.paused", "announce.processing", "announce.completedDictation ({target})", "announce.completedConversation (plural, {count}, {time})", "announce.reconnecting", "announce.reconnectingHeld", "announce.restored", "announce.restoredHeld", "announce.inserted ({target})", "announce.undone", "announce.undoFailed", "announce.discarded", "announce.discardedUnconfirmed", "announce.closed", "announce.signalFlat", "announce.segmentFailed", "announce.busy", "announce.consentRequired",
+    "errors.<kind>.title", "errors.<kind>.what ({at}, {range})", "errors.<kind>.fix (opcional)", "capture.continues", "capture.paused", "capture.stopped", "capture.none", "audioFate.processing", "audioFate.kept", "audioFate.lost", "kept"
+  ],
+  "labelNotes": [
+    "Las claves plurales admiten String con {count} o Function (count) => String; una Function recibe solo count (completedConversation como función no recibe {time})",
+    "openPanel se pinta como sufijo oculto con «, » delante salvo que ya empiece por puntuación; duration y los prefijos de provisional se pintan con un espacio detrás si no lo traen"
+  ],
+  "markup": {
+    "root": "div.g-speech-host popover=\"manual\" abierto siempre (capa superior); data-edge (top|bottom) y data-align (start|center|end) efectivos y siempre; data-mobile (visor < --g-space-1 × 130), data-flipped (la flotante tapaba el foco), data-reduced-motion; --_speech-offset-top/-bottom en línea con offset. En el servidor no pinta nada",
+    "live": "2 × .g-speech-host__live (role=status aria-live=polite aria-atomic=true; role=alert aria-atomic=true), presentes y vacíos desde el montaje; los únicos que anuncian (#227: las g-btn__status de los GBtn de la captura quedan vacías siempre)",
+    "float": ".g-speech-host__float.g-surface.g-surface--level-floating (hidden salvo que no haya pill colocada visible y operable) > .g-speech-pill[data-placement=floating]",
+    "panel": ".g-speech-panel.g-surface.g-surface--level-floating#<id>-panel role=dialog aria-labelledby (sin aria-modal), hidden cerrado; data-status, is-live, is-problem; --_speech-x, --_speech-y (físicas, placeBlock) y --_speech-max-block en línea. Partes: __head (h2.__title tabindex=-1, p.__mode, GBtn.__close icon sm ghost neutral x), __status (__status-icon con is-spinning en processing, __status-text, __time role=timer con __sr), __sub (p; la señal plana con is-warning), __privacy (GIcon lock|globe + p), __activity (.g-speech-wave aria-hidden con 32 __bar --_speech-bar, 5 con data-on en movimiento reducido; GBtn sm ghost neutral aria-pressed), __setup (GSelect, p sin diarización, GCheckbox de consentimiento), __error (hijo fatal: p con GIcon circle-alert + título, p con el texto compuesto; .__issue por fallo no fatal), __progress (GProgress neutral), __confirm, __controls (GBtn según estado, §13.1), __transcript (h3 + p vacío | ol.g-speech-transcript tabindex=0 > li.g-speech-segment[.is-partial|.is-failed] > __meta (time.__time, __speaker, __flag) + p.__text, __sr del provisional)",
+    "sheet": "dialog.g-speech-sheet aria-labelledby = título del panel; en móvil con el panel abierto: showModal() y el panel dentro (Teleport); cancel → preventDefault y cierra el panel"
+  },
+  "behaviour": [
+    "Una sesión por gestor; los métodos devuelven Promise<Boolean> y nunca rechazan; transición ilegal → false y aviso que nombra los dos estados",
+    "Captura por Grana (getUserMedia → AudioContext con AnalyserNode, AudioWorklet con remuestreo a PCM en trozos de chunkMs o MediaRecorder con el primer mimeType admitido); el AudioContext se crea en el gesto del usuario (WebKit). input 'self': el adaptador captura y emite level/capture; Grana no consulta el permiso del navegador",
+    "Vigilante: sin fotogramas en watchdogMs → error interrupted (comprobación cada watchdogTickMs; < 2,5 s). Un fotograma exige contexto running, pista viva no silenciada y reloj de audio que avanza",
+    "Pausa = pistas detenidas (track.stop()); sin reanudación automática; push no se espera (si lanza: fallo no fatal processing-failed con audio lost, tramos seguidos unidos)",
+    "Al desmontar el anfitrión con la captura viva, la captura se detiene y la sesión pasa a paused (sin indicador no hay micrófono)",
+    "Panel: foco al título al abrir; al cerrar, a quien lo abrió o a la pill visible; cierre ligero (pointerdown fuera de panel, pill y disparadores) sin mover el foco; Esc con preventDefault + stopPropagation; si un cambio de estado retira el control enfocado del panel, el foco pasa al título",
+    "Garantía de pill: la colocada si se ve ≥ 95 % (IntersectionObserver), no es inerte y está dentro del modal superior si lo hay; si no, la flotante. La flotante pasa al borde contrario si tapa el elemento enfocado",
+    "Borde compartido con GToaster (#225): con la flotante visible, su alto + margen (space × 4; × 2 en móvil) se publica en el registro interno utils/edgeReserve.js y GToaster lo suma a --_toaster-offset-* de su borde efectivo",
+    "Anuncios: cola cortés con POLITE_GAP_MS (900 ms) entre textos; cambios de estado agrupados (announceGroupMs, gana el último; uno sin texto cancela el pendiente); el enérgico vacía la cola; escritura con utils/liveRegion.js (la de GToaster)"
+  ],
+  "tokens": [],
+  "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check", "pause", "rotate-ccw", "square", "chevron-down", "x", "triangle-alert", "lock", "globe"],
+  "constants": {
+    "SPEECH_TIMING": "{ frameMs: 100, chunkMs: 300, watchdogMs: 1500, watchdogTickMs: 250, flatMs: 2500, voiceThreshold: 0.12, voiceHoldMs: 450, announceGroupMs: 300, insertAnnounceMs: 2500, autoCloseMs: 1500, reducedMotionHz: 4, levelMinDb: -60, levelMaxDb: -10 } (interno, speech.js)",
+    "POLITE_GAP_MS": "900 ms (separación de la cola cortés; del prototipo de kiwi, fuera de §3.7)",
+    "MOBILE_SPACES": "130 (de GToaster)",
+    "ANNOUNCE": "{ delay: 50, clear: 5000 } ms (de GToaster)"
+  },
+  "testing": {
+    "entry": "@grana/vue/testing → dist/testing.js (ES) y dist/testing.umd.js (global GranaTesting); no importa Vue",
+    "options": [
+      { "name": "id", "default": "simulated" },
+      { "name": "location", "default": "local", "values": ["device", "local", "remote"] },
+      { "name": "input", "default": "{ format: 'pcm', sampleRate: 16000, channels: 1 }", "values": "pcm · encoded · self (con self emite capture live y level con voz y silencio alternos)" },
+      { "name": "partials · vad · diarization · offlineBuffer", "default": "true · false · true · true" },
+      { "name": "storesAudio", "default": "memory", "values": ["none", "memory", "disk"] },
+      { "name": "maxSpeakers", "default": 4 },
+      { "name": "latency", "default": 1000, "values": "ms entre el fin de un fragmento y su final" },
+      { "name": "checkDelay · openDelay", "default": "0 · 0" },
+      { "name": "retryInterval · maxRetries", "default": "1500 · 3", "values": "reconexión simulada; tras maxRetries con el servicio caído, error service-unavailable fatal" },
+      { "name": "script", "default": "{ dictation: [lorem…], conversation: [{ speaker, text }…] }", "values": "un fragmento por tramo de voz; provisional palabra a palabra con cada trozo con voz" },
+      { "name": "selfPattern", "default": "{ speak: [2400, 3000, 2000], silence: 1200 }", "values": "solo self" }
+    ],
+    "control": [
+      "setCapabilities(patch): para la siguiente sesión",
+      "setServiceDown(Boolean): check/open/reconnect rechazan; con sesión, conexión perdida y reintentos",
+      "goOffline() · goOnline(): connection lost / restored",
+      "failNextSegment({ retryable? }): el siguiente fragmento falla (no fatal; retryable por defecto con offlineBuffer)",
+      "storageFull(): error storage-full fatal",
+      "failFinish(kind | null): finish() rechaza con { kind, audio: 'kept' }",
+      "confirmDeletion(Boolean): audioDeleted que devuelven finish()/abort()",
+      "emit(type, payload): evento cualquiera en la sesión en curso",
+      "endCapture() · muteCapture() · freezeCapture(Boolean): solo self",
+      "log: { opened, checks, pushed[], aborted, finished, paused, resumed, retried[] }",
+      "session: la sesión del motor en curso"
+    ]
+  },
+  "deviations": [
+    "Con requireConsent, «Empezar a grabar» sin la casilla muestra el error del campo (GCheckbox, con su propio mensaje vivo) y lleva el foco a la casilla sin anunciar además consentRequired por el canal (sería doble lectura); begin() programático con el panel cerrado sí lo anuncia (lima: confirmar)",
+    "POLITE_GAP_MS (900 ms) no está en SPEECH_TIMING del contrato (§3.7): lima decide si entra",
+    "Con input 'self' no se consulta la Permissions API (el adaptador captura; en WebKit de Playwright la API dice denied al micrófono)",
+    "Al desmontar el anfitrión con la captura viva, la sesión pasa a paused con las pistas detenidas (el contrato fija «sin anfitrión no se abre el micrófono» al iniciar; esto lo extiende a la captura en curso)",
+    "discard() pasa a idle antes de esperar a engine.abort() (la captura ya no existe); el anuncio de descarte y onDiscard llegan cuando el adaptador resuelve"
+  ],
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto, claro y oscuro, sobre los componentes reales (playground, sección #sec-speech); status candidate lo pone coco",
+    "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): cola cortés y alert, cambio de nombre de pausar/reanudar con el foco encima, role=timer, traslado de canales al modal, g-btn__status vacías al recorrer (#227)",
+    "Safari real (no WebKit de Playwright): permiso al reanudar tras detener las pistas, Permissions API de microphone, MediaRecorder y formatos, wakeLock, AudioContext en el gesto",
+    "Motores reales (Whisper, whisper.cpp, faster-whisper, pyannote) y PCM real a 16 kHz contra un servicio",
+    "Móvil real: llamada entrante, segundo plano, safe-area, teclado virtual con la hoja, orientación; permiso revocado a mitad de sesión; varios modales apilados; pill colocada tapada por otra capa; sesiones de una hora o más; beforeunload en cada navegador; constantes de §3.7 con usuarios"
+  ]
+}

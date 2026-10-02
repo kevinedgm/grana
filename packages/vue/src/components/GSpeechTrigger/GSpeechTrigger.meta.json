@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "name": "GSpeechTrigger",
+  "tag": "g-speech-trigger",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Disparador de la captura de voz, hermano del campo e inmediatamente después de él: dictado a un textarea o input (botón conmutable de solo icono, con su nota bajo el campo: provisional, «Insertar», «Deshacer dictado») o conversación (botón con texto que prepara la sesión y abre el panel). No lleva la sesión: si se desmonta, la sesión sigue en el gestor y al volver se reconoce por modo y campo. Con otra sesión activa no crea otra: aria-disabled, descripción, anuncio y foco a la pill visible.",
+  "contract": "design/contracts/speech.md",
+  "prototype": "design/lab/speech/r01/",
+  "style": "packages/vue/src/components/GSpeechTrigger/GSpeechTrigger.css",
+  "props": [
+    { "name": "mode", "type": "String", "default": "dictation", "values": ["dictation", "conversation"] },
+    { "name": "for", "type": "String", "default": null, "values": "id de un <textarea> o un <input> text, search, url o tel; obligatorio en dictado (aviso si falta, no existe o es de otro tipo: password, email, number…)" },
+    { "name": "targetLabel", "type": "String", "default": null, "values": "nombre del campo para {target}; por defecto el texto de el.labels[0] (al montar y al iniciar); sin nombre: aviso y {target} vacío" },
+    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
+    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "disabled", "type": "Boolean", "default": false },
+    { "name": "speech", "type": "Object", "default": null, "values": "gestor de createSpeech; por defecto, el inyectado" }
+  ],
+  "events": [],
+  "slots": [],
+  "markup": {
+    "root": "div.g-speech-trigger.g-speech-trigger--mode-{dictation|conversation} data-status (el de su sesión o idle); is-busy con otra sesión",
+    "button": "dictado: GBtn icon .g-speech-trigger__btn (ghost neutral, size/density) aria-label = labels.trigger.dictate con {target} (fijo), aria-pressed (su sesión y no completed); icono mic sin sesión o el del estado. Conversación: GBtn .g-speech-trigger__btn (outline neutral, size/density) con el icono en prepend y labels.trigger.conversation o labels.trigger.view. Con otra sesión: aria-disabled=true y aria-describedby → __busy",
+    "busy": "span.g-speech-trigger__busy (texto oculto; labels.trigger.busy; hidden sin otra sesión)",
+    "note": "solo dictado: p.g-speech-trigger__note (no es región viva; hidden sin contenido; is-partial con provisional) > span.g-speech-trigger__sr (labels.note.partialPrefix) + span.__note-text + GBtn.__note-action (sm outline neutral; labels.note.insert o labels.note.undo)"
+  },
+  "behaviour": [
+    "Dictado, según el estado de SU sesión: sin sesión → start({ mode: 'dictation', target }); requesting → cancel(); captura, paused, reconnecting → finish(); denied/unavailable/error → resume(); processing, completed → abre el panel",
+    "Conversación: sin sesión → prepare() y, en ready, abre el panel con el foco en su título; con su sesión → abre el panel",
+    "Inserción: solo el confirmado, con setRangeText + evento input (sirve a v-model) y sin mover el foco; punto de inserción: cursor o selección del campo si tiene el foco; si no, el del inicio (la selección inicial se sustituye con el primer texto) avanzando; espacio separador si el carácter anterior no es espacio; el campo se busca por id en cada inserción",
+    "Campo desmontado: el fragmento queda sin insertar y todos los siguientes esperan (orden); al volver, la nota ofrece «Insertar» (en el cursor si el campo tiene el foco, si no al final); el dictado no se cierra solo con fragmentos sin insertar",
+    "Deshacer propio: registro de las inserciones del último dictado del campo; lo invalida cualquier input en ese campo que no venga de Grana, un dictado nuevo en el campo o discard(); deshacer revierte en orden inverso, emite input, anuncia y devuelve el foco al campo; si el campo cambió, no toca nada y anuncia undoFailed",
+    "Ningún GBtn usa loading ni loadingText (#227)"
+  ],
+  "tokens": [],
+  "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check"],
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
+    "GBtn ahora respeta el aria-disabled del consumidor cuando no hay loading (para el disparador con otra sesión): btn.md no lo menciona (lima: reflejarlo si procede)",
+    "Lector de pantalla real: descripción de «grabación en curso», nota no viva, cambio de aria-pressed",
+    "Teclado virtual y móvil real con el dictado al cursor"
+  ]
+}
