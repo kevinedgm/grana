@@ -44,6 +44,7 @@
 - La región `role="status"` (educada, `aria-live="polite"` implícito) se renderiza **siempre**. Está vacía mientras no hay carga.
 - Al entrar en `loading`, recibe `loadingText`. Al salir, se vacía.
 - El nombre accesible del botón no cambia: sigue siendo su etiqueta.
+- **Dentro de otros componentes que nunca ponen `loading`** (los avisos de `GToast`, #149; la pill, el panel, el disparador y la nota de la captura de voz, #227) la región sigue presente y **vacía siempre**: una región viva vacía que no cambia no anuncia nada. Se acepta en lugar de condicionar su presencia, que reabriría #14 (la región debe existir antes de la carga).
 - El componente tiene **dos nodos raíz**. Por eso usa `inheritAttrs: false` y pasa `$attrs` al botón (o enlace), no a la región.
 
 ## Eventos

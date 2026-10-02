@@ -1,6 +1,6 @@
 # Contrato · Captura de voz · Fase 1 (gestor `createSpeech`, anfitrión `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`)
 
-**Dueño:** lima · **Estado:** aprobado (Fase 1) · pendiente de coco (CSS de anfitrión, pill, panel, hoja y disparador) y de bruno (gestor, captura, componentes, adaptador simulado, útiles compartidos) · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
+**Dueño:** lima · **Estado:** aprobado (Fase 1) · CSS entregado por coco (commit a70f366; `GSpeechPill.css`, `GSpeechHost.css`, `GSpeechTrigger.css`; `design/lab/speech/estilo.md`, 47 070/47 070 en los tres motores) y reconciliado aquí (#227 a #229) · pendiente de bruno (gestor, captura, componentes, adaptador simulado, útiles compartidos) y de la auditoría de coco · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
 **Tags:** `g-speech-host` (anfitrión) · `g-speech-pill` (pill colocable) · `g-speech-trigger` (disparador) · **Categoría:** comunicación y estado (entrada de datos por voz)
 
 Un **sistema de captura de voz y transcripción** pensado para información sensible: una **sesión compartida por aplicación** que sobrevive a cambios de pestaña, paso, acordeón o diálogo; un **indicador siempre visible** mientras el micrófono está en uso; transcripción **provisional y confirmada**; dictado directo a un campo y conversaciones largas con varios hablantes. **Grana no conoce el motor ni hace red:** la aplicación aporta un **adaptador** (Whisper, whisper.cpp, faster-whisper, diarización local…) y Grana pone la captura, el estado, la interfaz y la accesibilidad.
@@ -454,7 +454,7 @@ Sin eventos públicos ni slots en F1 (todo va por el gestor, como `GToaster`). *
 ```
 
 - **Raíz `popover="manual"` abierta siempre** desde el montaje (`showPopover()`), capa superior como `GToaster` (#141), `GSelect` (#55) y `GHelper` (#101): ningún `overflow`, `z-index` ni cabecera fija la tapa. La raíz no captura el puntero; la pill flotante y el panel sí.
-- **Canales vivos:** dos `g-speech-host__live` con el patrón de texto oculto accesible, **presentes y vacíos desde el montaje** y durante toda la vida del anfitrión (una región viva solo se anuncia si existe antes del cambio; #14, #137, #141). Son los **únicos** de la captura: ni la pill, ni el panel, ni el disparador, ni la nota tienen `aria-live`.
+- **Canales vivos:** dos `g-speech-host__live` con el patrón de texto oculto accesible, **presentes y vacíos desde el montaje** y durante toda la vida del anfitrión (una región viva solo se anuncia si existe antes del cambio; #14, #137, #141). Son los **únicos que anuncian** algo de la captura: ni la pill, ni el panel, ni el disparador, ni la nota tienen `aria-live` propio. **Excepción aceptada (#227, como #149):** cada `GBtn` de la pill, el panel, el disparador y la nota trae su `g-btn__status` (`role="status"`, #14); los componentes de voz **nunca** ponen `loading` ni `loadingText` en sus `GBtn`, así que esas regiones quedan **vacías siempre** y no anuncian nada.
 - **Pill flotante:** la misma pill de §7 con `data-placement="floating"`, dentro de una `GSurface level="floating"`.
 
 ### 6.3 Pill visible: la garantía del indicador
@@ -498,7 +498,17 @@ Contenido en F1, en orden de lectura:
 | `processing` | ninguna |
 | `completed` | **Cerrar sesión** (`circle-check`; principal) · Descartar |
 
-Descartar y su confirmación van **sin icono** en F1 (`trash` queda reservado a F2). Botones: `GBtn` (variantes y tamaños, de coco).
+Descartar y su confirmación van **sin icono** en F1 (`trash` queda reservado a F2). Botones: `GBtn` con las props de §13.1 (fijadas por coco).
+
+**Marcado del panel que el CSS necesita** (#229):
+- La raíz `.g-speech-panel` lleva los mismos `data-status`, `is-live` e `is-problem` que la pill.
+- En `__sub`, la línea de señal plana lleva `is-warning`.
+- En `__error`, el **mensaje fatal** es el hijo que **no** es `__issue`: su **primer hijo es el título** (icono `circle-alert` + título del error) y después el texto compuesto (§9.3). Cada fallo no fatal es un `__issue`.
+- `__status-icon` lleva `is-spinning` en `processing` (como el icono de la pill).
+- La duración del panel (`__time`, `role="timer"`) lleva su prefijo oculto en `g-speech-panel__sr`.
+- Posición: `--_speech-x` y `--_speech-y` (coordenadas **físicas** `left`/`top`, las que devuelve `placeBlock` de `utils/anchor.js`) y `--_speech-max-block` (alto disponible), en línea en el panel. Con zoom alto el panel entero se desplaza dentro de ese alto.
+- `__confirm` puede ser parte del panel o ir dentro de `__controls` (ocupa su fila).
+- `hidden` en `__time`, `__toggle`, `__finish`, `g-speech-meter`, `g-speech-wave`, la envoltura flotante y el panel cuando no proceden (el CSS lo respeta).
 
 **Cierre ligero:** un `pointerdown` fuera del panel, de la pill y de los disparadores cierra el panel **sin mover el foco**. Tab no está atrapado (no modal).
 
@@ -509,7 +519,8 @@ Descartar y su confirmación van **sin icono** en F1 (`trash` queda reservado a 
 - **Confirmado** `g-speech-segment`: hora (`<time>`, `mm:ss`), en conversación el hablante del motor (`labels.speaker` con `{letter}`, o `labels.unassigned`) y el texto.
 - **Provisional** (uno solo, al final) `g-speech-segment is-partial`: etiqueta visible `labels.transcript.partialFlag`, prefijo oculto `labels.transcript.partialPrefix`, texto **más claro y en cursiva (coco) pero ≥ 4.5:1**. El `final` con el mismo `id` lo sustituye **en su sitio**.
 - **Fallido** `g-speech-segment is-failed`: intervalo, `labels.transcript.failed` (icono `triangle-alert`) y «Reintentar fragmento» (`labels.actions.retrySegment`) si `retryable`; si no, `labels.transcript.failedLost`.
-- Vacío: `labels.transcript.empty`.
+- Vacío: **un `<p>`** con `labels.transcript.empty` dentro de `__transcript`, en lugar de la lista vacía (#229).
+- La lista es su **propio contenedor de desplazamiento**: `tabindex="0"` para llegar con el teclado y desplazarla (WCAG 2.1.1; nombre por `aria-labelledby` al título).
 - La lista se desplaza sola al final **solo** si ya estaba al final.
 - **Rendimiento:** el texto confirmado no se reescribe si no cambió (lista con clave; no se rehace el DOM a cada provisional).
 
@@ -588,14 +599,16 @@ Sin eventos públicos ni slots (todo va por el gestor).
 ### 8.2 Estructura y comportamiento
 
 ```html
-<span class="g-speech-trigger g-speech-trigger--mode-dictation" data-status="idle">
+<div class="g-speech-trigger g-speech-trigger--mode-dictation" data-status="idle">                  <!-- raíz <div> (#229) -->
   <button class="g-btn g-btn--icon … g-speech-trigger__btn" type="button"
           aria-label="Dictar en Observaciones" aria-pressed="false">                 <!-- + aria-disabled y aria-describedby si hay otra sesión -->
     <svg class="g-icon" aria-hidden="true">mic</svg>
   </button>
   <span class="g-speech-trigger__busy" id="ID-busy" hidden>…</span>                 <!-- texto oculto: labels.trigger.busy, solo con otra sesión -->
-  <p class="g-speech-trigger__note" id="ID-note">…</p>                               <!-- solo dictado; sin contenido: hidden (§8.4) -->
-</span>
+  <p class="g-speech-trigger__note" id="ID-note">                                   <!-- solo dictado; sin contenido: hidden (§8.4) -->
+    <span class="g-speech-trigger__sr">Texto provisional: </span><span class="g-speech-trigger__note-text">…</span>
+  </p>
+</div>
 ```
 
 **Dictado** (botón conmutable de **solo icono**): nombre fijo `labels.trigger.dictate` con `{target}` (el nombre no cambia; cambia `aria-pressed`, patrón APG). `aria-pressed="true"` mientras la sesión es suya y no está `completed`. Icono: `mic` sin sesión; el del estado con su sesión.
@@ -744,7 +757,7 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 | Necesidad | Fuente |
 | --- | --- |
 | Pill flotante y panel | `GSurface level="floating"` (`--g-shadow-2`, radio y borde de `floating`, #100) |
-| **Énfasis del estado activo** (captura viva) | Rol **`active`** (`--g-color-active`, alias de `accent`; `tokens.md` §17.5 y §17.23, precedente: ítem activo de `GSidebar`; `accent` señala, #6) para el punto, el borde o el medidor; `--g-color-accent-soft` / `--g-color-on-accent-soft` si coco rellena. **Nunca `danger`**: grabar no es un error ni una acción destructiva (§17.7). Más una **señal de forma** (coco; kiwi: borde más grueso) para no depender del color. coco cuida que no se confunda con el anillo de foco (`focus ← accent-text`) |
+| **Énfasis del estado activo** (captura viva) | **La lámpara** (disco relleno detrás del icono de estado) en el rol **`active`** (`--g-color-active`, alias de `accent`; `tokens.md` §17.5, §17.23; `accent` señala, #6) con el icono en **`on-accent`** (par que el motor garantiza); tinte de la pill `--g-color-accent-soft`. **Los trazos no usan `active`** (#228): el borde vivo (doble de grosor) y el medidor van en **`--g-color-on-accent-soft`** (≥ 4.5:1 sobre `accent-soft` por derivación, §2) y la onda del panel, sobre la superficie, en **`--g-color-accent-text`** (≥ 4.5:1 sobre `surface`). En el tema por defecto los tres son el mismo azul. **Nunca `danger`**: grabar no es un error ni una acción destructiva (§17.7). El anillo de foco dentro de la pill es **interior** al botón y queda a ≥ 2px del borde vivo (coco) |
 | Problema (`denied`, `unavailable`, `error`) | `--g-color-danger-text` (icono y texto) + señal de forma (kiwi: borde discontinuo) |
 | Aviso (`reconnecting`, señal plana, fragmento fallido) | `--g-color-warning-text` |
 | `completed` | `--g-color-success-text` |
@@ -755,9 +768,30 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 | Separaciones, ancho del panel (kiwi: 440px ≈ `space × 110`), barras, márgenes | Derivados de `space` en el CSS de coco |
 | Objetivos | Los de `GBtn` (≥ 24px; ≥ 44px con `pointer: coarse`) |
 
-**Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_toaster-offset-*`): `--_speech-offset-top`, `--_speech-offset-bottom` (opción `offset`), `--_speech-bar` (nivel de cada barra), `--_speech-max-block` (alto disponible del panel) y las de posición del panel si bruno usa `utils/anchor.js`.
+**Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_toaster-offset-*`): `--_speech-offset-top`, `--_speech-offset-bottom` (opción `offset`), `--_speech-bar` (nivel de cada barra, 0..1), `--_speech-x` y `--_speech-y` (posición física del panel, de `placeBlock`) y `--_speech-max-block` (alto disponible del panel). Con movimiento reducido, cada barra o segmento lleva además `data-on` (encendido o apagado).
 
 **Iconos** (`icons.md` §4; #224): los de §2.1, §6.4 y §7 — nuevos en la librería: `mic`, `mic-off`, `pause`, `circle-pause`, `audio-lines`, `captions`, `shield-question-mark`, `refresh-cw`, `unplug`, `rotate-ccw`, `globe` (comprobados como canónicos en `lucide-static` 1.49.0); ya en la librería: `circle`, `square`, `loader-circle`, `circle-alert`, `circle-check`, `chevron-down`, `x`, `triangle-alert`, `lock`. **Reservados para F2** (no entran hasta que un componente los use): `text-cursor-input`, `undo-2`, `trash`, `pencil`, `copy`.
+
+### 13.1 Composición de `GBtn` (fijada por coco, #229)
+
+| Dónde | Props de `GBtn` |
+| --- | --- |
+| Pill: principal | `variant="ghost" color="neutral" size="sm"`; icono, texto, `__sr`, medidor y chevron en el slot por defecto (dentro de `g-btn__label`, que el CSS vuelve fila) |
+| Pill: alternar · finalizar | `icon variant="ghost" color="neutral" size="sm"`; `pause` / `mic` / `rotate-ccw` · `square` relleno |
+| Panel: cerrar | `icon variant="ghost" color="neutral" size="sm"`, `x` |
+| Panel: acción principal (Empezar a grabar; Finalizar en captura, pausa o reconexión; Cerrar sesión; Reanudar o Reintentar en un problema) | `size="md"`, sólido por defecto (`color` por defecto de `GBtn`), icono en `prepend` |
+| Panel: secundarias (Pausar; Reanudar en pausa; Cancelar; Finalizar en un problema) | `size="md" variant="outline" color="neutral"` (el CSS las pasa a `text` + `border-control`, como la acción de `GToast`) |
+| Panel: Descartar · Cerrar (`dismiss`) | `size="md" variant="ghost" color="neutral"`, sin icono |
+| Confirmación de descarte | Cancelar `variant="outline" color="neutral"` · Sí, descartar `variant="solid" color="danger"` (destructivo, §17.7), `size="md"` |
+| Ocultar actividad | `size="sm" variant="ghost" color="neutral"` con `aria-pressed` |
+| Reintentar fragmento · Insertar · Deshacer dictado | `size="sm" variant="outline" color="neutral"` |
+| Disparador de dictado | `icon variant="ghost" color="neutral"` + `size`/`density` de sus props |
+| Disparador de conversación | `variant="outline" color="neutral"`, icono en `prepend`, + `size`/`density` |
+| `GProgress` del procesamiento | `color="neutral"` |
+
+**Ningún `GBtn` de la captura usa `loading` ni `loadingText`** (#227): su `g-btn__status` queda vacío siempre.
+
+**Medidas fijadas por coco** (constantes de `space`, no tokens; `estilo.md`): pill de 34px con `space` 4 (`GBtn sm` + relleno `space × 0.5` + borde), lámpara `space × 5`; panel `min(space × 110, 100vw − space × 8)`; margen de la flotante `space × 4` (`× 2` con `data-mobile`); onda de 32 barras (5 segmentos con movimiento reducido); hoja `88dvh`. Con una pill de menos de ~`space × 40` de ancho, la pill colocada desborda: la ranura de cabecera la dimensiona la aplicación.
 
 ---
 
@@ -775,11 +809,13 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 | `is-problem` | Pill | `denied`, `unavailable`, `error` |
 | `g-speech-pill__main`, `__icon` (`.g-icon` hijo directo; `is-spinning` en `processing`), `__text`, `__sr`, `__chevron`, `__time`, `__toggle`, `__finish` | Partes | Según estado |
 | `g-speech-meter`, `__bar` (`--_speech-bar`), `data-on` en cada barra con movimiento reducido | Medidor | Captura viva y sin `activityHidden` |
-| `g-speech-panel` (+ `GSurface floating`), `__head`, `__title`, `__mode`, `__close`, `__status`, `__status-icon`, `__status-text`, `__time`, `__sub`, `__privacy`, `__activity`, `__setup`, `__error`, `__issue`, `__progress`, `__controls`, `__confirm` | Panel | Según §6.4 |
+| `g-speech-panel` (+ `GSurface floating`), `__head`, `__title`, `__mode`, `__close`, `__status`, `__status-icon` (`is-spinning` en `processing`), `__status-text`, `__time`, `__sr`, `__sub` (la línea de señal plana con `is-warning`), `__privacy`, `__activity`, `__setup`, `__error` (mensaje fatal = hijo que no es `__issue`, título primero), `__issue`, `__progress`, `__controls`, `__confirm`, `__transcript` | Panel | Según §6.4 |
+| `data-status`, `is-live`, `is-problem` | Panel | Como en la pill (#229) |
+| `--_speech-x`, `--_speech-y`, `--_speech-max-block` | Panel (en línea) | Posición y alto disponible |
 | `g-speech-wave`, `__bar` (`--_speech-bar`; `data-on` con movimiento reducido) | Onda | Sin `activityHidden` |
 | `g-speech-sheet` | `<dialog>` de la hoja | Siempre en el DOM; abierto en móvil con el panel abierto |
-| `g-speech-transcript`, `g-speech-segment`, `is-partial`, `is-failed`, `__meta`, `__time`, `__speaker`, `__flag`, `__text`, `__sr` | Lista | §6.5 |
-| `g-speech-trigger`, `g-speech-trigger--mode-{dictation\|conversation}`, `data-status` (de su sesión, o `idle`), `is-busy` (otra sesión), `__btn`, `__busy`, `__note` (`is-partial` con provisional), `__note-text`, `__note-action` | Disparador | Según §8 |
+| `g-speech-transcript` (`tabindex="0"`), `g-speech-segment`, `is-partial`, `is-failed`, `__meta`, `__time`, `__speaker`, `__flag`, `__text`, `__sr`; vacío: `<p>` dentro de `g-speech-panel__transcript` | Lista | §6.5 |
+| `g-speech-trigger` (raíz `<div>`), `g-speech-trigger--mode-{dictation\|conversation}`, `data-status` (de su sesión, o `idle`), `is-busy` (otra sesión), `__btn`, `__busy`, `__note` (`<p>`; `is-partial` con provisional), `__note-text`, `__note-action`, `__sr` (prefijo oculto del provisional) | Disparador | Según §8 |
 | `--_speech-offset-top`, `--_speech-offset-bottom` | Raíz (en línea) | Con `offset` |
 
 ---
@@ -823,7 +859,7 @@ En producción no hay avisos ni comprobaciones extra (las reglas de seguridad �
   - **Captura:** `ready` sin pista; pausa con pista **detenida** (`readyState: 'ended'`); vigilante: captura congelada → `error` `interrupted` en < 2,5 s y la pill deja de decir «Grabando»; señal plana; `ended`/`mute`; mapeo de errores de `getUserMedia`; nivel > 0 con el micrófono falso; PCM a la `sampleRate` pedida y `chunkMs`; codificado con `mimeType` admitido; `self`.
   - **Adaptador:** `partial` → `final` en su sitio; `pending`; `connection` con y sin `offlineBuffer` (captura viva frente a retenida; restablecido retenido → `paused`, no reanuda solo); `error` no fatal → `issues` + «Reintentar fragmento»; fatal → estado y cuatro respuestas; `storage-full`; `push` que lanza.
   - **Finalización:** los 6 pasos en orden; `processing` sin acciones de cierre; `discard()` rechazado en `processing`; `finish` rechazada → `error`; `audioDeleted` confirmado frente a no confirmado (texto y aviso); dictado que se cierra solo; conversación que espera a `close()` → `onComplete` con `toJSON()` sin `partial`.
-  - **Anfitrión:** raíz `popover` abierta y 2 canales **antes** de la primera sesión y durante ella (ninguna otra región viva en la página); garantía de una pill (colocada visible → flotante oculta; colocada fuera del visor o inerte → flotante); `data-flipped` con un campo enfocado bajo la flotante; traslado a un **`GDialog` real** (flotante operable, panel dentro, Esc del panel no cierra el diálogo, vuelta a `body`); la hoja propia no dispara el traslado; móvil bajo `space × 130` (hoja, foco al título, Esc, reapertura al cruzar el umbral); `topModal.js` compartido con `GToaster` sin romper sus pruebas.
+  - **Anfitrión:** raíz `popover` abierta y 2 canales **antes** de la primera sesión y durante ella; **ninguna otra región viva con contenido** en toda una sesión (las `g-btn__status` de los `GBtn` de la captura existen y siguen **vacías** de principio a fin, #227); garantía de una pill (colocada visible → flotante oculta; colocada fuera del visor o inerte → flotante); `data-flipped` con un campo enfocado bajo la flotante; traslado a un **`GDialog` real** (flotante operable, panel dentro, Esc del panel no cierra el diálogo, vuelta a `body`); la hoja propia no dispara el traslado; móvil bajo `space × 130` (hoja, foco al título, Esc, reapertura al cruzar el umbral); `topModal.js` compartido con `GToaster` sin romper sus pruebas.
   - **Disparador:** dictado conmutable (`aria-pressed`, nombre fijo); conversación (`prepare` → panel); otra sesión → `aria-disabled`, descripción, anuncio y foco a la pill, **sin** sesión nueva; el disparador se desmonta y la sesión sigue (misma `sessionId`).
   - **Dictado:** inserción del confirmado en el cursor sin mover el foco; sustitución de la selección inicial; provisional fuera del valor; `v-model` actualizado; campo desmontado → orden conservado y «Insertar»; deshacer (válido, invalidado por edición, foco al campo); tipos de campo no admitidos.
   - **Anuncios:** textos y canales de §10; nada transcrito en los canales; agrupación de estados e inserciones.
@@ -833,7 +869,7 @@ En producción no hay avisos ni comprobaciones extra (las reglas de seguridad �
   - **Avisos de desarrollo** de §15 y **SSR** (render en servidor sin errores ni markup del anfitrión).
   - `check-icons.mjs`, prueba 9 de `icons.md` §7 (nombres canónicos) y `levels.test.js` sin infracciones.
 - **coco** (auditoría con un tema distinto al de defecto, claro y oscuro): texto 4.5:1 (provisional incluido) y bordes, iconos y medidores 3:1 sobre `floating` y sobre la cabecera de la app; estado activo reconocible sin color y distinto del anillo de foco; problema distinguible en escala de grises; `forced-colors` (bordes y barras visibles); `prefers-contrast: more`; objetivos 24/44px en pill, panel, disparador y nota; foco visible dentro de la capa superior y de la hoja; movimiento reducido; 320×640 sin desbordamiento (página y hoja) con pill de cabecera y flotante dentro del visor; RTL; zoom 200 %.
-- **No verificado y pendiente:** **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cola cortés y `alert`, cambio de nombre de pausar/reanudar con el foco encima, `role="timer"`, traslado de canales al modal, descripción de «grabación en curso» (**riesgo principal**); **Safari**: si reanudar tras detener las pistas vuelve a pedir permiso (la reanudación pasa por `requesting` y lo anuncia, así que el contrato no cambia), Permissions API de `microphone`, `MediaRecorder` y sus formatos, `wakeLock`; **motores reales** (Whisper, whisper.cpp, faster-whisper, pyannote) y la entrega PCM real a 16 kHz; **móvil real** (llamada entrante, segundo plano en iOS/Android, `safe-area`, teclado virtual con la hoja, orientación); permiso revocado a mitad de sesión; varios modales apilados; pill colocada tapada por otra capa; sesiones de una hora o más (memoria, deriva del reloj); `beforeunload` en cada navegador; las constantes de §3.7 con usuarios.
+- **No verificado y pendiente:** **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cola cortés y `alert`, cambio de nombre de pausar/reanudar con el foco encima, `role="timer"`, traslado de canales al modal, descripción de «grabación en curso», que las `g-btn__status` vacías de los `GBtn` (#227) no añaden ruido al recorrer (**riesgo principal**); **Safari**: si reanudar tras detener las pistas vuelve a pedir permiso (la reanudación pasa por `requesting` y lo anuncia, así que el contrato no cambia), Permissions API de `microphone`, `MediaRecorder` y sus formatos, `wakeLock`; **motores reales** (Whisper, whisper.cpp, faster-whisper, pyannote) y la entrega PCM real a 16 kHz; **móvil real** (llamada entrante, segundo plano en iOS/Android, `safe-area`, teclado virtual con la hoja, orientación); permiso revocado a mitad de sesión; varios modales apilados; pill colocada tapada por otra capa; sesiones de una hora o más (memoria, deriva del reloj); `beforeunload` en cada navegador; las constantes de §3.7 con usuarios.
 
 ---
 
