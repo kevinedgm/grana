@@ -1,0 +1,601 @@
+/*
+  GSpeechHost · estilo del anfitrión de la captura de voz: raíz (capa superior), canales vivos, envoltura de la pill
+  flotante, panel (diálogo no modal anclado), onda, transcript de solo lectura y hoja móvil
+  Dueño: coco. Contrato: design/contracts/speech.md §6, §12, §13 y §14. Estructura: design/lab/speech/r01/. Notas: design/lab/speech/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §24).
+  Únicos literales: 24px y 44px (área táctil), el patrón de texto oculto accesible y los porcentajes de visor de la hoja.
+  La envoltura flotante y el panel son GSurface floating: este archivo va DESPUÉS de GSurface.css (reasigna su relleno,
+  su radio y su borde). La pill (GSpeechPill.css) va antes o después: no se pisan.
+
+  Constantes de diseño derivadas de space (no son tokens):
+    margen al borde          space × 4 (space × 2 con data-mobile), con env(safe-area-inset-*) y --_speech-offset-*
+    ancho del panel          space × 110 (440px con space 4; el del prototipo de kiwi), recortado al visor
+    relleno del panel        space × 4 en línea; separación entre partes space × 3
+    onda                     alto space × 8; barras de space × 0.75 separadas space × 0.5 (32 en el prototipo)
+    onda discreta            5 segmentos de alto space × 2 (movimiento reducido)
+    lista del transcript     alto mínimo space × 20; crece con el panel hasta --_speech-max-block
+    hoja móvil               alto máximo 88 % del visor dinámico (excepción de visor, como GDialog #42)
+
+  Variables dinámicas que escribe bruno en línea (se declaran aquí con su valor neutro; la de línea gana):
+    --_speech-offset-top, --_speech-offset-bottom   (raíz; opción offset)
+    --_speech-x, --_speech-y                        (panel; coordenadas FÍSICAS de visor de utils/anchor.js placeBlock,
+                                                     como --_x/--_y de GMenu y GHelper: `left`/`top`)
+    --_speech-max-block                             (panel; alto disponible)
+    --_speech-bar                                   (cada barra de la onda; 0..1)
+  Estado del panel (marcado que este CSS espera además del contrato, ver estilo.md): data-status, is-live e is-problem
+  en .g-speech-panel, con los mismos valores que la pill.
+*/
+
+/* ---------- Raíz: capa superior (popover="manual" siempre abierto), cubre el visor sin capturar el puntero ---------- */
+.g-speech-host {
+  --_m: calc(var(--g-space-1) * 4);
+  --_speech-offset-top: 0px;
+  --_speech-offset-bottom: 0px;
+  /* safe-area por lado lógico (inicio y fin de línea se invierten en RTL) */
+  --_safe-start: env(safe-area-inset-left);
+  --_safe-end: env(safe-area-inset-right);
+
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-align: start;
+  pointer-events: none;
+}
+.g-speech-host:dir(rtl) {
+  --_safe-start: env(safe-area-inset-right);
+  --_safe-end: env(safe-area-inset-left);
+}
+.g-speech-host[data-mobile] { --_m: calc(var(--g-space-1) * 2); }
+/* Solo la pill flotante, el panel y la hoja capturan el puntero */
+.g-speech-host__float,
+.g-speech-panel,
+.g-speech-sheet { pointer-events: auto; }
+
+/* ---------- Canales vivos (texto oculto accesible) ---------- */
+.g-speech-host__live,
+.g-speech-panel__sr,
+.g-speech-segment__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Pill flotante: la envoltura es la GSurface floating (sombra); el borde de estado lo pinta la pill ---------- */
+.g-speech-host__float.g-surface {
+  --_tone: transparent;
+  --_radius: var(--g-radius-pill);
+  position: absolute;
+  inline-size: fit-content;
+  max-inline-size: calc(100% - var(--_m) * 2);
+  padding: 0;
+  /* Sin borde propio (ni en colores forzados): el de la pill es el que lleva el estado */
+  border-style: none;
+}
+.g-speech-host__float[hidden] { display: none; }
+.g-speech-host__float > .g-speech-pill { max-inline-size: 100%; }
+/* Borde vertical efectivo (data-edge ya viene invertido con data-flipped y forzado a bottom con data-mobile) */
+.g-speech-host[data-edge="top"] > .g-speech-host__float {
+  inset-block-start: calc(max(var(--_m), env(safe-area-inset-top)) + var(--_speech-offset-top));
+}
+.g-speech-host[data-edge="bottom"] > .g-speech-host__float {
+  inset-block-end: calc(max(var(--_m), env(safe-area-inset-bottom)) + var(--_speech-offset-bottom));
+}
+/* Alineación lógica */
+.g-speech-host[data-align="start"] > .g-speech-host__float { inset-inline-start: max(var(--_m), var(--_safe-start)); }
+.g-speech-host[data-align="end"] > .g-speech-host__float { inset-inline-end: max(var(--_m), var(--_safe-end)); }
+.g-speech-host[data-align="center"] > .g-speech-host__float {
+  inset-inline: max(var(--_m), var(--_safe-start)) max(var(--_m), var(--_safe-end));
+  margin-inline: auto;
+}
+
+/* ---------- Panel: diálogo no modal, GSurface floating anclada a la pill visible ---------- */
+.g-speech-panel {
+  --_w: calc(var(--g-space-1) * 110);
+  --_px: var(--g-space-4);
+  --_gap: var(--g-space-3);
+  --_ink: var(--g-color-text-muted);
+  --_lamp: transparent;
+  --_lamp-ink: var(--_ink);
+  --_slot: calc(var(--g-space-1) * 5);
+  --_glyph: calc(var(--g-space-1) * 4);
+  --_speech-x: 0px;
+  --_speech-y: 0px;
+  --_speech-max-block: calc(100dvh - var(--g-space-1) * 8);
+
+  position: absolute;
+  left: var(--_speech-x);
+  top: var(--_speech-y);
+  display: flex;
+  flex-direction: column;
+  inline-size: min(var(--_w), calc(100vw - var(--g-space-1) * 8));
+  max-block-size: var(--_speech-max-block);
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.g-speech-panel.g-surface {
+  padding: 0 0 var(--_px);
+}
+.g-speech-panel[hidden] { display: none; }
+/* Partes: relleno en línea y separación uniforme (el encabezado va a sangre) */
+.g-speech-panel > :not(.g-speech-panel__head) {
+  flex: none;
+  margin-block: var(--_gap) 0;
+  padding-inline: var(--_px);
+}
+.g-speech-panel > [hidden] { display: none; }
+
+/* Tono del estado (mismas reglas que la pill) */
+.g-speech-panel[data-status="reconnecting"] { --_ink: var(--g-color-warning-text); }
+.g-speech-panel[data-status="completed"] { --_ink: var(--g-color-success-text); }
+.g-speech-panel.is-problem { --_ink: var(--g-color-danger-text); }
+.g-speech-panel[data-status="listening"],
+.g-speech-panel[data-status="speech"],
+.g-speech-panel[data-status="transcribing"] {
+  --_lamp: var(--g-color-active);
+  --_lamp-ink: var(--g-color-on-accent);
+  --_glyph: calc(var(--g-space-1) * 3.5);
+}
+.g-speech-panel[data-status="listening"] { --_glyph: calc(var(--g-space-1) * 2.5); }
+/* Botones secundarios del panel (GBtn outline + neutral): en el color del texto con el borde de control (≥ 3:1), como la
+   acción de GToast; sobrios e independientes de la marca */
+.g-speech-panel .g-btn--variant-outline.g-btn--color-neutral {
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+}
+
+/* ---------- Encabezado (fijo al desplazar el panel) ---------- */
+.g-speech-panel__head {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--g-space-2);
+  padding-block: var(--g-space-3);
+  padding-inline: var(--_px) var(--g-space-2);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+}
+.g-speech-panel__title {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  border-radius: var(--g-radius-xs);
+}
+/* Recibe el foco al abrir (tabindex="-1"): anillo solo si el foco llegó por teclado */
+.g-speech-panel__title:focus { outline: none; }
+.g-speech-panel__title:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-speech-panel__mode {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+/* Cerrar: GBtn icon sm ghost neutral, centrado con la línea del título */
+.g-speech-panel__close.g-btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  margin-block-start: calc((var(--g-text-body-line) - var(--_h)) / 2);
+  --_fg: var(--g-color-text-muted);
+  --_fg-hover: var(--g-color-text);
+}
+
+/* ---------- Estado: icono + texto largo + duración ---------- */
+.g-speech-panel__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--g-space-2);
+  font-weight: var(--g-text-title-weight);
+}
+.g-speech-panel__status-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_slot);
+  block-size: var(--_slot);
+  border-radius: var(--g-radius-pill);
+  background: var(--_lamp);
+  color: var(--_lamp-ink);
+}
+.g-speech-panel__status-icon > .g-icon {
+  inline-size: var(--_glyph);
+  block-size: var(--_glyph);
+}
+.g-speech-panel__status-text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.g-speech-panel__time {
+  flex: none;
+  margin-inline-start: auto;
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.g-speech-panel__time[hidden] { display: none; }
+
+/* ---------- Datos secundarios (intento, señal plana, pendientes): pegados al estado ---------- */
+.g-speech-panel > .g-speech-panel__sub {
+  margin-block-start: var(--g-space-1);
+  color: var(--g-color-text-muted);
+}
+.g-speech-panel__sub > * { margin: 0; }
+/* La señal plana es un aviso (tokens.md §24): bruno marca su línea con is-warning (ver estilo.md) */
+.g-speech-panel__sub .is-warning,
+.g-speech-panel__sub.is-warning { color: var(--g-color-warning-text); }
+
+/* ---------- Privacidad: siempre visible, legible y discreta (icono lock o globe + texto) ---------- */
+.g-speech-panel__privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+.g-speech-panel__privacy > .g-icon {
+  flex: none;
+  inline-size: var(--g-text-caption-line);
+  block-size: var(--g-text-caption-line);
+}
+.g-speech-panel__privacy p { margin: 0; }
+
+/* ---------- Actividad: onda + «Ocultar actividad» ---------- */
+.g-speech-panel__activity {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+}
+/* «Ocultar actividad» con aria-pressed: pulsado = fondo neutro suave y texto pleno (no depende del color: cambia el relleno) */
+.g-speech-panel__activity .g-btn {
+  flex: none;
+  margin-inline-start: auto;
+}
+.g-speech-panel__activity .g-btn[aria-pressed="true"] {
+  --_bg: var(--g-color-neutral-soft);
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_bg-hover: var(--g-color-neutral-soft);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+}
+
+.g-speech-wave {
+  --_bar-w: calc(var(--g-space-1) * 0.75);
+  --_floor: 0.08;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--g-space-1) / 2);
+  min-inline-size: 0;
+  block-size: calc(var(--g-space-1) * 8);
+  overflow: hidden;
+  /* Sin captura viva la onda queda plana y en neutro de control (≥ 3:1) */
+  color: var(--g-color-border-control);
+}
+.g-speech-wave[hidden] { display: none; }
+/* Con captura viva, el acento en su papel de texto sobre la superficie (≥ 4.5:1 también con un acento pálido) */
+.g-speech-panel.is-live .g-speech-wave { color: var(--g-color-accent-text); }
+.g-speech-wave__bar {
+  --_speech-bar: 0;
+  flex: 0 1 var(--_bar-w);
+  min-inline-size: var(--g-border-width);
+  block-size: 100%;
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+  scale: 1 calc(var(--_floor) + (1 - var(--_floor)) * var(--_speech-bar));
+}
+/* Onda discreta (movimiento reducido, §12): 5 segmentos encendidos (rellenos) o apagados (solo contorno), sin historial */
+.g-speech-host[data-reduced-motion] .g-speech-wave { justify-content: flex-start; gap: var(--g-space-1); }
+.g-speech-host[data-reduced-motion] .g-speech-wave__bar {
+  flex: 1 1 0;
+  max-inline-size: calc(var(--g-space-1) * 8);
+  block-size: calc(var(--g-space-1) * 2);
+  scale: none;
+  box-sizing: border-box;
+  border-radius: var(--g-radius-xs);
+  border: var(--g-border-width) solid currentColor;
+  background: transparent;
+}
+.g-speech-host[data-reduced-motion] .g-speech-wave__bar[data-on] { background: currentColor; }
+@media (prefers-reduced-motion: reduce) {
+  .g-speech-wave__bar { scale: 1 var(--_floor); }
+}
+
+/* ---------- Preparación (solo ready): participantes previstos, aviso sin diarización, consentimiento ---------- */
+.g-speech-panel__setup {
+  display: grid;
+  gap: var(--g-space-3);
+}
+.g-speech-panel__setup > p {
+  margin: 0;
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Errores: el mensaje fatal y los fallos no fatales (issues) ---------- */
+.g-speech-panel__error {
+  display: grid;
+  gap: var(--g-space-2);
+}
+/* Mensaje fatal = hijo que no es __issue (título primero, luego el texto compuesto). Marca de inicio sólida, como el
+   error de GToast: el lenguaje de mensajes de la librería */
+.g-speech-panel__error > :not(.g-speech-panel__issue) {
+  margin: 0;
+  padding-block: var(--g-space-2);
+  padding-inline: calc(var(--g-space-3) - var(--g-space-1)) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-inline-start: var(--g-space-1) solid var(--g-color-danger-text);
+  border-radius: var(--g-radius-md);
+  color: var(--g-color-text);
+}
+.g-speech-panel__error > :not(.g-speech-panel__issue) > * { margin: 0; }
+.g-speech-panel__error > :not(.g-speech-panel__issue) > :first-child {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  margin-block-end: var(--g-space-1);
+  font-weight: var(--g-text-title-weight);
+}
+.g-speech-panel__error .g-icon {
+  flex: none;
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: var(--g-text-body-sm-line);
+  color: var(--g-color-danger-text);
+}
+/* Fallo no fatal (fragmento sin transcribir): marca discontinua de aviso, la captura sigue */
+.g-speech-panel__issue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  margin: 0;
+  padding-inline-start: calc(var(--g-space-2) - var(--g-border-width) * 2);
+  border-inline-start: calc(var(--g-border-width) * 2) dashed var(--g-color-warning-text);
+}
+.g-speech-panel__issue .g-icon { color: var(--g-color-warning-text); }
+
+/* ---------- Controles y confirmación en línea ---------- */
+.g-speech-panel__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-speech-panel__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  padding: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+}
+/* Como parte del panel o dentro de __controls: ocupa su fila entera */
+.g-speech-panel > .g-speech-panel__confirm {
+  margin-inline: var(--_px);
+  padding-inline: var(--g-space-3);
+}
+.g-speech-panel__controls > .g-speech-panel__confirm { flex: 1 1 100%; }
+.g-speech-panel__confirm > p {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+/* ---------- Transcript (solo lectura): crece con el panel; la lista se desplaza ---------- */
+.g-speech-panel__transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-2);
+  min-block-size: 0;
+}
+.g-speech-panel > .g-speech-panel__transcript { flex: 1 1 auto; }
+.g-speech-panel__transcript > h3 {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-title-weight);
+}
+.g-speech-panel__transcript > p {
+  margin: 0;
+  color: var(--g-color-text-muted);
+}
+.g-speech-transcript {
+  display: grid;
+  align-content: start;
+  gap: var(--g-space-3);
+  flex: 1 1 auto;
+  min-block-size: calc(var(--g-space-1) * 20);
+  margin: 0;
+  padding: var(--g-space-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+}
+.g-speech-transcript:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-speech-transcript > li:not(.g-speech-segment) { color: var(--g-color-text-muted); }
+
+.g-speech-segment {
+  min-inline-size: 0;
+}
+.g-speech-segment__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--g-space-2);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+.g-speech-segment__time { font-variant-numeric: tabular-nums; }
+.g-speech-segment__speaker {
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+/* «provisional»: ficha con contorno (la forma acompaña a la palabra) */
+.g-speech-segment__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+}
+.g-speech-segment__flag > .g-icon {
+  inline-size: var(--g-text-caption-size);
+  block-size: var(--g-text-caption-size);
+}
+.g-speech-segment__text {
+  margin: calc(var(--g-space-1) / 2) 0 0;
+  color: var(--g-color-text);
+  transition: color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Provisional: más claro y en cursiva, ≥ 4.5:1 (text-muted) */
+.g-speech-segment.is-partial .g-speech-segment__text {
+  font-style: italic;
+  color: var(--g-color-text-muted);
+}
+/* Fallido: marca discontinua de aviso al inicio + triangle-alert; «Reintentar fragmento» si se puede */
+.g-speech-segment.is-failed {
+  padding-inline-start: calc(var(--g-space-2) - var(--g-border-width) * 2);
+  border-inline-start: calc(var(--g-border-width) * 2) dashed var(--g-color-warning-text);
+}
+.g-speech-segment.is-failed .g-icon { color: var(--g-color-warning-text); }
+.g-speech-segment.is-failed .g-btn { margin-block-start: var(--g-space-1); }
+
+/* ---------- Hoja móvil (visor < space × 130): el mismo panel dentro de un <dialog> modal ---------- */
+.g-speech-sheet {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 88dvh;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--g-color-text);
+}
+.g-speech-sheet::backdrop { background: var(--g-surface-backdrop); }
+.g-speech-sheet > .g-speech-panel {
+  --_speech-max-block: 88dvh;
+  position: static;
+  inline-size: 100%;
+  max-block-size: var(--_speech-max-block);
+  /* Capa modal: su propia sombra (#100); a sangre por abajo, con las zonas seguras */
+  --_shadow: var(--g-shadow-3);
+  --_radius: var(--g-radius-xl);
+  border-block-end-width: 0;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.g-speech-sheet > .g-speech-panel.g-surface {
+  padding-block-end: max(var(--_px), env(safe-area-inset-bottom));
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}
+
+/* ---------- Movimiento: entrada por fundido (y un paso corto si no hay movimiento reducido) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-speech-host__float,
+  .g-speech-panel {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-speech-host[data-edge="top"] > .g-speech-host__float:not([hidden]) { opacity: 0; translate: 0 calc(var(--g-space-1) * -2); }
+    .g-speech-host[data-edge="bottom"] > .g-speech-host__float:not([hidden]) { opacity: 0; translate: 0 var(--g-space-2); }
+    .g-speech-panel:not([hidden]) { opacity: 0; translate: 0 calc(var(--g-space-1) * -1); }
+    .g-speech-sheet > .g-speech-panel:not([hidden]) { opacity: 0; translate: 0 var(--g-space-6); }
+  }
+  .g-speech-panel__status-icon.is-spinning > .g-icon {
+    animation: g-speech-panel-spin var(--g-duration-spin) linear infinite;
+  }
+  @keyframes g-speech-panel-spin {
+    to { rotate: 1turn; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-speech-host__float,
+  .g-speech-panel { transition: opacity var(--g-duration-press) linear; }
+  @starting-style {
+    .g-speech-host__float:not([hidden]),
+    .g-speech-panel:not([hidden]) { opacity: 0; }
+  }
+  .g-speech-segment__text { transition: none; }
+}
+
+/* ---------- Objetivos táctiles ---------- */
+@media (pointer: coarse) {
+  .g-speech-panel__controls,
+  .g-speech-panel__confirm { gap: var(--g-space-3); }
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-speech-panel.g-surface { --_border: var(--g-color-border-control); }
+  .g-speech-panel__mode,
+  .g-speech-panel__time,
+  .g-speech-panel__privacy,
+  .g-speech-panel > .g-speech-panel__sub,
+  .g-speech-segment__meta { color: var(--g-color-text); }
+  .g-speech-transcript,
+  .g-speech-panel__confirm { border-color: var(--g-color-border-control); }
+}
+@media (forced-colors: active) {
+  .g-speech-panel__head,
+  .g-speech-transcript,
+  .g-speech-panel__confirm,
+  .g-speech-panel__error > :not(.g-speech-panel__issue) { border-color: CanvasText; }
+  .g-speech-panel[data-status="listening"] .g-speech-panel__status-icon,
+  .g-speech-panel[data-status="speech"] .g-speech-panel__status-icon,
+  .g-speech-panel[data-status="transcribing"] .g-speech-panel__status-icon {
+    forced-color-adjust: none;
+    background: CanvasText;
+    color: Canvas;
+  }
+  .g-speech-wave { forced-color-adjust: none; color: CanvasText; }
+  .g-speech-panel__title:focus-visible,
+  .g-speech-transcript:focus-visible { outline-color: Highlight; }
+}

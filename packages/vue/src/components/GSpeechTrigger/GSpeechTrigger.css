@@ -1,0 +1,148 @@
+/*
+  GSpeechTrigger · estilo del disparador de la captura de voz (dictado y conversación) y de su nota bajo el campo
+  Dueño: coco. Contrato: design/contracts/speech.md §8 y §14. Estructura: design/lab/speech/r01/. Notas: design/lab/speech/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §24).
+  Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  El botón es un GBtn (bruno: dictado `icon` + ghost + neutral; conversación outline + neutral con `mic` o el icono del
+  estado en `prepend`); la acción de la nota, GBtn sm outline neutral. Este archivo va DESPUÉS de GBtn.css.
+
+  Fila bajo el campo (el disparador es hermano del campo, inmediatamente después, #212): botón y nota en línea; la nota
+  baja bajo el botón si no cabe. Separación con la caja: space × 2 (la de un mensaje de campo).
+  Estado de SU sesión (data-status): captura viva → tinte del acento + contorno interior doble en `on-accent-soft` (el
+  anillo de foco es exterior y separado: no se confunden); problema → contorno discontinuo de peligro; resto → pulsado
+  neutro. Con otra sesión activa (is-busy): aspecto de inactivo, sigue enfocable.
+*/
+
+/* ---------- Raíz: fila bajo el campo ---------- */
+.g-speech-trigger {
+  --_ink: var(--g-color-text-muted);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  margin-block-start: var(--g-space-2);
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+}
+
+/* ---------- Botón ---------- */
+.g-speech-trigger__btn.g-btn {
+  flex: none;
+  --_fg: var(--g-color-text-muted);
+  --_fg-hover: var(--g-color-text);
+}
+.g-speech-trigger--mode-conversation .g-speech-trigger__btn.g-btn {
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_border-hover: var(--g-color-text-muted);
+}
+/* Tono del icono según el estado de su sesión */
+.g-speech-trigger[data-status="reconnecting"] { --_ink: var(--g-color-warning-text); }
+.g-speech-trigger[data-status="completed"] { --_ink: var(--g-color-success-text); }
+.g-speech-trigger[data-status="denied"],
+.g-speech-trigger[data-status="unavailable"],
+.g-speech-trigger[data-status="error"] { --_ink: var(--g-color-danger-text); }
+.g-speech-trigger:not([data-status="idle"]) .g-speech-trigger__btn .g-icon { color: var(--_ink); }
+
+/* Pulsado (su sesión, salvo completed): relleno neutro suave, el icono del estado */
+.g-speech-trigger__btn.g-btn[aria-pressed="true"],
+.g-speech-trigger--mode-conversation:not([data-status="idle"]) .g-speech-trigger__btn.g-btn {
+  --_bg: var(--g-color-neutral-soft);
+  --_bg-hover: var(--g-color-neutral-soft);
+  --_fg: var(--g-color-text);
+  --_fg-hover: var(--g-color-text);
+}
+/* Captura viva de su sesión: tinte del acento, icono y contorno interior doble en su texto suave (como la pill) */
+.g-speech-trigger[data-status="listening"] .g-speech-trigger__btn.g-btn,
+.g-speech-trigger[data-status="speech"] .g-speech-trigger__btn.g-btn,
+.g-speech-trigger[data-status="transcribing"] .g-speech-trigger__btn.g-btn {
+  --_bg: var(--g-color-accent-soft);
+  --_bg-hover: var(--g-color-accent-soft);
+  --_fg: var(--g-color-on-accent-soft);
+  --_fg-hover: var(--g-color-on-accent-soft);
+  --_border: transparent;
+  --_border-hover: transparent;
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-on-accent-soft);
+}
+.g-speech-trigger[data-status="listening"] .g-speech-trigger__btn .g-icon,
+.g-speech-trigger[data-status="speech"] .g-speech-trigger__btn .g-icon,
+.g-speech-trigger[data-status="transcribing"] .g-speech-trigger__btn .g-icon { color: var(--g-color-on-accent-soft); }
+/* Problema de su sesión: contorno discontinuo (forma, no solo color) */
+.g-speech-trigger[data-status="denied"] .g-speech-trigger__btn.g-btn,
+.g-speech-trigger[data-status="unavailable"] .g-speech-trigger__btn.g-btn,
+.g-speech-trigger[data-status="error"] .g-speech-trigger__btn.g-btn {
+  --_border: var(--g-color-danger-text);
+  --_border-hover: var(--g-color-danger-text);
+  border-style: dashed;
+}
+
+/* Con otra sesión activa (aria-disabled="true", sigue enfocable): aspecto de inactivo, como GBtn deshabilitado */
+.g-speech-trigger.is-busy .g-speech-trigger__btn.g-btn {
+  --_bg: transparent;
+  --_bg-hover: transparent;
+  --_fg: var(--g-color-text-subtle);
+  --_fg-hover: var(--g-color-text-subtle);
+  --_border-hover: var(--_border);
+  cursor: not-allowed;
+}
+.g-speech-trigger.is-busy .g-speech-trigger__btn.g-btn:active { transform: none; }
+.g-speech-trigger--mode-conversation.is-busy .g-speech-trigger__btn.g-btn { --_border: var(--g-color-border-strong); }
+
+/* ---------- Texto oculto (descripción con otra sesión; prefijo «Texto provisional:» de la nota) ---------- */
+.g-speech-trigger__busy,
+.g-speech-trigger__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Nota (solo dictado; no es región viva): provisional, sin insertar o insertado ---------- */
+.g-speech-trigger__note {
+  display: flex;
+  flex: 1 1 calc(var(--g-space-1) * 40);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+.g-speech-trigger__note[hidden] { display: none; }
+.g-speech-trigger__note-text { min-inline-size: 0; }
+/* Provisional: más claro y en cursiva (≥ 4.5:1); el valor del campo no cambia */
+.g-speech-trigger__note.is-partial .g-speech-trigger__note-text { font-style: italic; }
+/* Acción (Insertar, Deshacer dictado): GBtn sm outline neutral, en el color del texto y borde de control (≥ 3:1) */
+.g-speech-trigger__note-action.g-btn {
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-speech-trigger__note { color: var(--g-color-text); }
+  .g-speech-trigger__btn.g-btn { --_fg: var(--g-color-text); }
+}
+@media (forced-colors: active) {
+  /* El contorno interior de la captura viva se dibuja con un borde real (box-shadow desaparece) */
+  .g-speech-trigger[data-status="listening"] .g-speech-trigger__btn.g-btn,
+  .g-speech-trigger[data-status="speech"] .g-speech-trigger__btn.g-btn,
+  .g-speech-trigger[data-status="transcribing"] .g-speech-trigger__btn.g-btn {
+    border-width: calc(var(--g-border-width) * 2);
+    border-color: CanvasText;
+  }
+  .g-speech-trigger.is-busy .g-speech-trigger__btn.g-btn { color: GrayText; border-color: GrayText; }
+}

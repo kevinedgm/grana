@@ -1,0 +1,255 @@
+/*
+  GSpeechPill · estilo de la pill de captura de voz (colocada y flotante) y de su medidor
+  Dueño: coco. Contrato: design/contracts/speech.md §7 y §14. Estructura: design/lab/speech/r01/. Notas: design/lab/speech/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §24).
+  Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  La misma pill sirve en la cabecera (data-placement="placed") y dentro de la envoltura flotante de GSpeechHost
+  (data-placement="floating", que es una GSurface floating: ver GSpeechHost.css). Sus botones son GBtn sm: este archivo
+  va DESPUÉS de GBtn.css (reasigna sus alias).
+
+  Constantes de diseño derivadas de space (no son tokens):
+    relleno de la pill           space × 0.5  (los GBtn sm miden space × 7: la pill mide 34px con space 4 y borde 1px)
+    hueco del icono de estado    space × 5    (lámpara de la captura viva; el icono quieto mide space × 4)
+    medidor                      4 barras de space × 0.75 de ancho, separadas space × 0.5, alto space × 4
+  Énfasis de la captura viva (speech.md §13, tokens.md §24, #223): lámpara rellena del rol `active` con el icono en `on-accent`
+  (par de contraste garantizado), tinte `accent-soft` y una señal de forma: borde del doble de grosor en `on-accent-soft`
+  (el texto del tinte). Nunca `danger`. Ver estilo.md, desviación 1 (por qué el borde no es `active`).
+  Problema (denied, unavailable, error): icono `danger-text` y borde discontinuo del doble de grosor (forma, no solo color).
+
+  Variable dinámica que escribe bruno en línea (se declara aquí con su valor neutro; la de línea gana):
+    --_speech-bar  (cada barra del medidor; 0..1)
+*/
+
+/* ---------- Raíz (grupo con nombre) ---------- */
+.g-speech-pill {
+  --_pad: calc(var(--g-space-1) / 2);
+  --_rim: var(--g-border-width);
+  --_rim-color: var(--g-color-border-strong);
+  --_rim-style: solid;
+  --_fill: var(--g-color-surface);
+  --_ink: var(--g-color-text-muted);
+  --_lamp: transparent;
+  --_lamp-ink: var(--_ink);
+  --_slot: calc(var(--g-space-1) * 5);
+  --_glyph: calc(var(--g-space-1) * 4);
+
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--g-space-1) / 2);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  /* El borde engrosado resta del relleno: la pill no cambia de tamaño al cambiar de estado */
+  padding: calc(var(--_pad) - (var(--_rim) - var(--g-border-width)));
+  border: var(--_rim) var(--_rim-style) var(--_rim-color);
+  border-radius: var(--g-radius-pill);
+  background: var(--_fill);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.g-speech-pill[hidden] { display: none; }
+
+/* ---------- Tono por estado (icono y texto siempre; el color acompaña) ---------- */
+.g-speech-pill[data-status="reconnecting"] { --_ink: var(--g-color-warning-text); }
+.g-speech-pill[data-status="completed"] { --_ink: var(--g-color-success-text); }
+/* Captura viva: tinte del acento y borde doble en su texto suave (el par del tinte: ≥ 3:1 dentro y fuera también con
+   un acento pálido, donde `active` sobre la superficie no llega a 3:1)… */
+.g-speech-pill.is-live {
+  --_rim: calc(var(--g-border-width) * 2);
+  --_rim-color: var(--g-color-on-accent-soft);
+  --_fill: var(--g-color-accent-soft);
+}
+/* …y la lámpara: solo en los tres estados de captura (en reconnecting manda el icono de aviso) */
+.g-speech-pill[data-status="listening"],
+.g-speech-pill[data-status="speech"],
+.g-speech-pill[data-status="transcribing"] {
+  --_lamp: var(--g-color-active);
+  --_lamp-ink: var(--g-color-on-accent);
+  --_glyph: calc(var(--g-space-1) * 3.5);
+}
+/* El punto de «Grabando» (circle relleno) es más pequeño: se lee como un punto dentro de la lámpara, no como un anillo */
+.g-speech-pill[data-status="listening"] { --_glyph: calc(var(--g-space-1) * 2.5); }
+/* Problema: discontinuo y del doble de grosor, en el color del peligro (se lee sin color por la forma) */
+.g-speech-pill.is-problem {
+  --_ink: var(--g-color-danger-text);
+  --_rim: calc(var(--g-border-width) * 2);
+  --_rim-style: dashed;
+  --_rim-color: var(--g-color-danger-text);
+}
+
+/* ---------- Botones (GBtn sm; bruno: ghost + neutral) ---------- */
+.g-speech-pill .g-btn {
+  --_radius: var(--g-radius-pill);
+  flex: none;
+}
+/* Foco dentro de la pill: anillo interior (como GSidebar), un borde más adentro: entre el anillo y el borde de la pill
+   quedan siempre ≥ 2 × border-width de tinte. El borde de la captura viva rodea toda la pill y va pegado al tinte; el
+   anillo rodea solo el botón enfocado: no se confunden aunque compartan familia de color */
+.g-speech-pill .g-btn:focus-visible {
+  outline-offset: calc((var(--g-focus-width) + var(--g-border-width)) * -1);
+}
+.g-speech-pill__main.g-btn {
+  --_px: var(--g-space-2);
+  --_fg: var(--g-color-text);
+  --_fg-hover: var(--g-color-text);
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding-inline: calc(var(--_px) - var(--g-space-1)) var(--_px);
+}
+.g-speech-pill__toggle.g-btn,
+.g-speech-pill__finish.g-btn {
+  --_fg: var(--g-color-text-muted);
+  --_fg-hover: var(--g-color-text);
+}
+.g-speech-pill__toggle[hidden],
+.g-speech-pill__finish[hidden] { display: none; }
+/* El cuadrado de «Finalizar» es una figura rellena: un paso menor que el icono de trazo para pesar lo mismo */
+.g-speech-pill__finish.g-btn {
+  --_icon: calc(var(--_fs) * 1.1);
+}
+
+/* ---------- Partes del botón principal (en el hueco por defecto de GBtn: g-btn__label es una fila) ---------- */
+.g-speech-pill__main > .g-btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  min-inline-size: 0;
+}
+.g-speech-pill__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_slot);
+  block-size: var(--_slot);
+  border-radius: var(--g-radius-pill);
+  background: var(--_lamp);
+  color: var(--_lamp-ink);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-speech-pill__icon > .g-icon {
+  inline-size: var(--_glyph);
+  block-size: var(--_glyph);
+}
+.g-speech-pill__text {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-speech-pill__chevron {
+  flex: none;
+  display: inline-flex;
+  color: var(--g-color-text-muted);
+}
+.g-speech-pill__chevron > .g-icon {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+.g-speech-pill__main[aria-expanded="true"] .g-speech-pill__chevron > .g-icon { rotate: 0.5turn; }
+
+/* ---------- Duración (esencial: no la oculta «Ocultar actividad») ---------- */
+.g-speech-pill__time {
+  flex: none;
+  padding-inline: var(--g-space-1);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.g-speech-pill__time[hidden] { display: none; }
+
+/* ---------- Texto oculto accesible ---------- */
+.g-speech-pill__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Medidor: nivel real (aria-hidden); complemento del texto, nunca la única señal ---------- */
+.g-speech-meter {
+  --_bar-w: calc(var(--g-space-1) * 0.75);
+  --_meter-h: calc(var(--g-space-1) * 4);
+  --_floor: 0.2;
+
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--g-space-1) / 2);
+  block-size: var(--_meter-h);
+  /* Sobre el tinte de la captura: el texto del acento sobre su tono suave (par ≥ 4.5:1, también con un acento pálido) */
+  color: var(--g-color-on-accent-soft);
+}
+.g-speech-meter[hidden] { display: none; }
+.g-speech-meter__bar {
+  --_speech-bar: 0;
+  display: block;
+  inline-size: var(--_bar-w);
+  block-size: 100%;
+  border-radius: var(--g-radius-pill);
+  background: currentColor;
+  /* Escala en vez de alto: sin recalcular la disposición a cada fotograma */
+  scale: 1 calc(var(--_floor) + (1 - var(--_floor)) * var(--_speech-bar));
+}
+
+/* ---------- Movimiento ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-speech-pill {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-speech-pill__chevron > .g-icon { transition: rotate var(--g-duration-press) var(--g-ease-out); }
+  .g-speech-meter__bar { transition: scale var(--g-duration-fast) linear; }
+  .g-speech-pill__icon.is-spinning > .g-icon {
+    animation: g-speech-spin var(--g-duration-spin) linear infinite;
+  }
+  @keyframes g-speech-spin {
+    to { rotate: 1turn; }
+  }
+}
+/* Movimiento reducido (§12): barras encendidas o apagadas (data-on, ≤ 4 Hz), sin escala continua ni giro */
+@media (prefers-reduced-motion: reduce) {
+  .g-speech-meter__bar { scale: 1 var(--_floor); }
+  .g-speech-meter__bar[data-on] { scale: none; }
+}
+
+/* ---------- Objetivos táctiles: las áreas de 44px de los botones vecinos no se pisan ---------- */
+@media (pointer: coarse) {
+  .g-speech-pill { gap: var(--g-space-2); }
+  /* Dos botones de icono seguidos (28px con áreas de 44px): 16px entre ellos para que las áreas no se pisen */
+  .g-speech-pill__finish.g-btn { margin-inline-start: var(--g-space-2); }
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-speech-pill { --_rim-color: var(--g-color-border-control); }
+  .g-speech-pill.is-problem { --_rim-color: var(--g-color-danger-text); }
+  .g-speech-pill__time,
+  .g-speech-pill__chevron { color: var(--g-color-text); }
+}
+@media (forced-colors: active) {
+  .g-speech-pill { border-color: CanvasText; }
+  /* La lámpara conserva su forma: disco invertido (distinto del foco, que usa Highlight) */
+  .g-speech-pill[data-status="listening"] .g-speech-pill__icon,
+  .g-speech-pill[data-status="speech"] .g-speech-pill__icon,
+  .g-speech-pill[data-status="transcribing"] .g-speech-pill__icon {
+    forced-color-adjust: none;
+    background: CanvasText;
+    color: Canvas;
+  }
+  .g-speech-meter__bar {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

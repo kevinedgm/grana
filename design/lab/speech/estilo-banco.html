@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Captura de voz · banco de estilo (coco)</title>
+<!-- Banco de coco para la captura de voz (Fase 1): marcado exacto de design/contracts/speech.md §6, §7, §8 y §14 con el CSS real
+     (GSpeechPill.css, GSpeechHost.css, GSpeechTrigger.css registrados en la capa grana.components DESPUÉS de components.css,
+     como los registrará bruno) y los componentes reales de Grana (GBtn, GIcon, GSelect, GCheckbox, GProgress, GTextarea,
+     GDialog, GToaster) desde dist/grana.umd.js. El script hace lo mínimo de bruno: estado de ejemplo, nivel sintético, pill
+     visible (colocada o flotante), panel anclado, hoja móvil, traslado al GDialog modal y reserva del borde para GToaster.
+     No es el gestor: no hay captura ni adaptador.
+     Requisitos: `npm run build` (dist/grana.umd.js y dist/fonts.css). Desde la raíz del repo, con un servidor estático:
+       python3 -m http.server <puerto>  →  /design/lab/speech/estilo-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+                 ?rm=1 (movimiento reducido del anfitrión)  ?still=1 (nivel fijo, para medir)  ?status=<estado de la sesión viva>
+                 ?mode=dictation|conversation  ?open=1 (panel abierto)  ?only=live (solo la parte viva) -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<style>
+@layer grana.defaults, grana.components;
+@import url("../../../packages/vue/src/styles/defaults.css") layer(grana.defaults);
+@import url("../../../packages/vue/src/styles/components.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSpeechPill/GSpeechPill.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSpeechHost/GSpeechHost.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSpeechTrigger/GSpeechTrigger.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Solo el banco (sin capa): disposición de las secciones; nada de esto toca las clases g-speech-* salvo .bench */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:14px;line-height:1.45}
+  .app-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:8px max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));background:var(--g-color-surface);border-block-end:1px solid var(--g-color-border-strong)}
+  .app-head__brand{font-weight:600;min-inline-size:0}
+  .app-head__slot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-inline-size:0;max-inline-size:100%}
+  main{padding:16px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));max-inline-size:1100px;margin:0 auto}
+  h1{font-size:18px;margin:8px 0} h2.sec{font-size:15px;margin:32px 0 10px} h3.sub{font-size:12px;font-weight:500;margin:14px 0 6px;color:var(--g-color-text-muted)}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-inline-size:90ch}
+  .tools{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .tools label{font-size:13px;display:inline-flex;gap:6px;align-items:center}
+  .tools select{font:inherit;font-size:13px;padding:2px 6px;background:var(--g-color-surface);color:var(--g-color-text);border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-sm)}
+  .states{display:grid;grid-template-columns:minmax(7em,max-content) minmax(0,1fr) minmax(0,1fr);gap:10px 16px;align-items:center}
+  @media (max-width:760px){.states{grid-template-columns:minmax(0,1fr)}.states>.lab{margin-block-start:8px}}
+  .states>.lab{font:12px/1.3 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted)}
+  .page{padding:12px;border-radius:var(--g-radius-lg);border:1px dashed var(--g-color-border-strong);min-inline-size:0}
+  .page--head{background:var(--g-color-surface)}
+  .page--sunken{background:var(--g-color-surface-sunken)}
+  .panels{display:grid;gap:20px 16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));align-items:start}
+  .lab{font-size:12px;color:var(--g-color-text-muted);margin:0 0 6px}
+  .fields{display:grid;gap:20px 24px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));align-items:start}
+  .filler{block-size:50vh}
+  /* Galerías estáticas: el anfitrión y el panel dejan de ser fijos (solo en el banco) para ver muchos a la vez */
+  .bench .g-speech-host{position:relative;inset:auto;pointer-events:auto;display:block;min-block-size:0}
+  .bench .g-speech-host__float.g-surface{position:relative;inset:auto;margin:0}
+  .bench .g-speech-panel{position:relative;left:auto;top:auto;max-block-size:none;inline-size:100%}
+  .bench .g-speech-panel .g-speech-transcript{max-block-size:calc(var(--g-space-1) * 60)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="app-head" id="app-head">
+    <span class="app-head__brand">Consulta · expediente de prueba</span>
+    <div class="app-head__slot">
+      <s-pill id="head-pill" placement="placed" :hidden="S.status==='idle'"></s-pill>
+      <s-trigger mode="conversation" uid="tc-head" :live-session="true"></s-trigger>
+      <g-btn size="sm" variant="outline" color="neutral" id="b-toast" @click="toastNow">Aviso</g-btn>
+    </div>
+  </header>
+  <main>
+    <h1>Captura de voz · banco de estilo</h1>
+    <p class="cap">CSS real con el marcado del contrato. Arriba la sesión viva (pill en la cabecera; si sale del visor o hay un modal, la flotante del anfitrión). Debajo, galerías estáticas de los 13 estados, paneles y disparadores.</p>
+    <div class="tools" id="tools">
+      <label>Estado <select id="t-status" v-model="S.status"><option v-for="s in ORDER" :value="s">{{ s }}</option></select></label>
+      <label>Modo <select id="t-mode" v-model="S.mode"><option>conversation</option><option>dictation</option></select></label>
+      <label>Ubicación <select id="t-loc" v-model="S.location"><option>device</option><option>local</option><option>remote</option></select></label>
+      <label><input type="checkbox" id="t-rm" v-model="S.rm"> Movimiento reducido</label>
+      <label><input type="checkbox" id="t-captured" v-model="S.captured"> Hay algo capturado</label>
+      <label><input type="checkbox" id="t-livecap" v-model="S.reconnectLive"> reconnecting con captura</label>
+      <g-btn size="sm" variant="outline" color="neutral" id="t-dark" @click="toggleDark">Oscuro</g-btn>
+      <g-btn size="sm" variant="outline" color="neutral" id="t-rtl" @click="toggleRtl">RTL</g-btn>
+      <g-btn size="sm" variant="outline" color="neutral" id="t-dialog" @click="dlg=true">Abrir diálogo modal</g-btn>
+    </div>
+
+    <h2 class="sec" id="s-field">1 · Disparador junto a un campo (sesión viva)</h2>
+    <p class="cap">El disparador es hermano del campo, inmediatamente después: botón y nota bajo la caja. Con el modo «dictation» la sesión viva es de este campo.</p>
+    <div class="fields">
+      <div>
+        <g-textarea id="f-obs" v-model="obs" label="Observaciones" :rows="3"></g-textarea>
+        <s-trigger mode="dictation" uid="tr-live" target="Observaciones" :live-session="true"></s-trigger>
+      </div>
+      <div>
+        <g-textarea id="f-plan" v-model="plan" label="Plan" :rows="3"></g-textarea>
+        <s-trigger mode="dictation" uid="tr-other" target="Plan" :live-session="true" :other="true"></s-trigger>
+      </div>
+    </div>
+
+    <template v-if="!onlyLive">
+    <h2 class="sec" id="s-states">2 · Los 13 estados: pill colocada (cabecera) y flotante</h2>
+    <p class="cap"><code>idle</code> no tiene pill (solo el disparador). Captura viva: lámpara rellena del rol <code>active</code>, tinte y borde doble. Problema: borde discontinuo doble e icono de peligro.</p>
+    <div class="states bench" inert id="g-states">
+      <template v-for="s in ORDER.slice(1)">
+        <span class="lab">{{ s }}{{ s==='reconnecting' ? ' (retenida)' : '' }}</span>
+        <div class="page page--head"><s-pill placement="placed" :st="s" :live-cap="false" :captured="true" :uid="'gp-'+s"></s-pill></div>
+        <div class="page page--sunken"><div class="g-speech-host" data-edge="top" data-align="center"><div class="g-speech-host__float g-surface g-surface--level-floating"><s-pill placement="floating" :st="s" :live-cap="false" :captured="true" :uid="'gf-'+s"></s-pill></div></div></div>
+      </template>
+      <span class="lab">reconnecting (captura viva)</span>
+      <div class="page page--head"><s-pill placement="placed" st="reconnecting" :live-cap="true" :captured="true" uid="gp-rl"></s-pill></div>
+      <div class="page page--sunken"><div class="g-speech-host" data-edge="top" data-align="center"><div class="g-speech-host__float g-surface g-surface--level-floating"><s-pill placement="floating" st="reconnecting" :live-cap="true" :captured="true" uid="gf-rl"></s-pill></div></div></div>
+      <span class="lab">listening, panel abierto</span>
+      <div class="page page--head"><s-pill placement="placed" st="listening" :captured="true" :expanded="true" uid="gp-exp"></s-pill></div>
+      <div class="page page--sunken"><div class="g-speech-host" data-edge="top" data-align="center"><div class="g-speech-host__float g-surface g-surface--level-floating"><s-pill placement="floating" st="error" :captured="false" uid="gf-err0"></s-pill></div></div></div>
+    </div>
+
+    <h2 class="sec" id="s-panels">3 · Panel (escritorio)</h2>
+    <div class="panels bench" inert id="g-panels">
+      <div v-for="p in PANELS" class="g-speech-host" :data-reduced-motion="p.rm ? '' : null"><p class="lab">{{ p.lab }}</p><s-panel :sc="p" :uid="'gpn-'+p.key"></s-panel></div>
+    </div>
+
+    <h2 class="sec" id="s-triggers">4 · Disparadores y nota (estático)</h2>
+    <div class="fields bench" inert id="g-triggers">
+      <div v-for="t in TRIGGERS" class="page page--head"><p class="lab">{{ t.lab }}</p>
+        <s-trigger :mode="t.mode" :uid="'gt-'+t.key" target="Observaciones" :st="t.st" :busy="t.busy" :note="t.note"></s-trigger>
+      </div>
+    </div>
+    </template>
+    <div class="filler"></div>
+    <p class="cap" id="foot">Fin de la página (al desplazar, la pill de la cabecera sale del visor y aparece la flotante).</p>
+  </main>
+
+  <g-dialog v-model="dlg" title="Derivación" description="Dentro de un modal la cabecera queda inerte: se ve la pill flotante, dentro del diálogo." close-label="Cerrar diálogo" id="dlg">
+    <g-textarea id="f-dlg" v-model="dnote" label="Motivo de la derivación" :rows="3"></g-textarea>
+    <s-trigger mode="dictation" uid="tr-dlg" target="Motivo de la derivación" :live-session="true" :other="true"></s-trigger>
+    <template #footer><g-btn variant="outline" color="neutral" @click="dlg=false">Cerrar</g-btn></template>
+  </g-dialog>
+  <g-toaster></g-toaster>
+</div>
+
+<!-- Anfitrión vivo: su propia app (como GSpeechHost, montado una vez; se traslada al modal) -->
+<div id="host-mount"></div>
+
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script type="module">
+const { createApp, reactive, computed, watch, nextTick, onMounted, ref } = Vue
+const q = new URLSearchParams(location.search)
+const LS = '../../../node_modules/lucide-static/dist/esm/icons/'
+// Iconos que la lista de la librería aún no trae (bruno los añade, icons.md v0.4): por la vía pública, cadenas de lucide-static
+const APP = ['mic', 'mic-off', 'pause', 'circle-pause', 'audio-lines', 'captions', 'shield-question-mark', 'refresh-cw', 'unplug', 'rotate-ccw', 'globe', 'lock']
+const icons = Grana.createIcons(await Promise.all(APP.map(async (n) => (await import(LS + n + '.mjs')).default)))
+
+if (q.get('theme')) document.getElementById('gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else document.documentElement.dataset.theme = 'light'
+if (q.get('rtl')) document.documentElement.dir = 'rtl'
+
+/* ---------- Datos del contrato (textos: los pone la aplicación) ---------- */
+const ORDER = ['idle', 'requesting', 'ready', 'listening', 'speech', 'transcribing', 'paused', 'processing', 'reconnecting', 'denied', 'unavailable', 'error', 'completed']
+const ST = {
+  requesting: { icon: 'shield-question-mark', short: 'Pidiendo permiso', long: 'Esperando el permiso del micrófono' },
+  ready: { icon: 'mic', short: 'Listo', long: 'Listo para grabar. El micrófono sigue apagado' },
+  listening: { icon: 'circle', filled: true, short: 'Grabando', long: 'Grabando' },
+  speech: { icon: 'audio-lines', short: 'Voz detectada', long: 'Grabando · voz detectada' },
+  transcribing: { icon: 'captions', short: 'Transcribiendo', long: 'Grabando · transcribiendo' },
+  paused: { icon: 'circle-pause', short: 'En pausa', long: 'En pausa. El micrófono no está capturando' },
+  processing: { icon: 'loader-circle', short: 'Procesando', long: 'Micrófono apagado. Procesando el audio pendiente' },
+  reconnecting: { icon: 'refresh-cw', short: 'Reconectando', shortLive: 'Reconectando · grabando', long: 'Reconectando con el servicio. La grabación está en pausa', longLive: 'Reconectando con el servicio. La grabación continúa' },
+  denied: { icon: 'mic-off', short: 'Permiso denegado', long: 'Permiso del micrófono denegado' },
+  unavailable: { icon: 'unplug', short: 'Sin micrófono', long: 'Micrófono no disponible' },
+  error: { icon: 'circle-alert', short: 'Error', long: 'Servicio de transcripción no disponible' },
+  completed: { icon: 'circle-check', short: 'Lista', long: 'Transcripción lista' }
+}
+const CAPTURE = (s) => ['listening', 'speech', 'transcribing'].includes(s)
+const PROBLEM = (s) => ['denied', 'unavailable', 'error'].includes(s)
+const PRIVACY = { device: 'Procesamiento en este dispositivo.', local: 'Procesamiento en el servicio local de tu organización.', remote: 'Procesamiento en un servicio externo.' }
+const AUDIO = { none: 'El audio no se guarda.', memory: 'Audio temporal en memoria; se elimina al finalizar.', disk: 'Audio temporal cifrado en este equipo; se elimina al finalizar.', deleted: 'Audio temporal eliminado.', notConfirmed: 'El motor no confirmó la eliminación del audio temporal.' }
+const SEGS = [
+  { t: '00:04', sp: 'Hablante A', text: 'Buenos días, ¿cómo ha seguido desde la última consulta?' },
+  { t: '00:09', sp: 'Hablante B', text: 'Mejor, aunque el dolor vuelve por las noches, sobre todo al acostarme.' },
+  { t: '00:17', sp: 'Hablante A', text: '¿Ha tomado la medicación como le indicamos, cada ocho horas?' },
+  { t: '00:23', sp: 'Hablante B', text: 'Sí, todos los días; a veces se me olvida la de la noche.' }
+]
+const PARTIAL = { t: '00:29', sp: 'Hablante A', text: 'vale entonces vamos a ajustar la dosis de la noche y' }
+const FAILED = { t: '00:31–00:36' }
+
+/* ---------- Estado de la sesión viva (lo que leería del gestor) ---------- */
+const S = reactive({
+  status: ORDER.includes(q.get('status')) ? q.get('status') : 'listening',
+  mode: q.get('mode') === 'dictation' ? 'dictation' : 'conversation',
+  location: 'local', rm: !!q.get('rm'), captured: true, reconnectLive: true,
+  panelOpen: !!q.get('open'), activityHidden: false, confirm: false,
+  placedVisible: true, dlgOpen: false, mobile: false, flipped: false,
+  meter: [0.2, 0.6, 0.9, 0.4], wave: Array.from({ length: 32 }, (_, i) => 0.15 + 0.7 * Math.abs(Math.sin(i * 0.7))),
+  t0: performance.now(), time: '03:42'
+})
+window.S = S
+const liveOf = (st, liveCap) => CAPTURE(st) || (st === 'reconnecting' && liveCap)
+
+/* ---------- Pill (marcado de §7.2; botones GBtn reales) ---------- */
+const SPill = {
+  props: { placement: String, st: String, liveCap: { type: Boolean, default: undefined }, captured: { type: Boolean, default: undefined }, expanded: { type: Boolean, default: undefined }, uid: String, hidden: Boolean },
+  setup(p) {
+    const live = p.st == null
+    const status = computed(() => p.st ?? S.status)
+    const liveCap = computed(() => p.liveCap ?? S.reconnectLive)
+    const captured = computed(() => p.captured ?? S.captured)
+    const isLive = computed(() => liveOf(status.value, liveCap.value))
+    const info = computed(() => ST[status.value] || ST.ready)
+    const short = computed(() => (status.value === 'reconnecting' && liveCap.value ? info.value.shortLive : info.value.short))
+    const toggle = computed(() => {
+      if (isLive.value) return { label: 'Pausar', icon: 'pause' }
+      if (status.value === 'paused' || (PROBLEM(status.value) && captured.value)) return { label: 'Reanudar', icon: 'mic' }
+      if (PROBLEM(status.value)) return { label: 'Reintentar', icon: 'rotate-ccw' }
+      return null
+    })
+    const finish = computed(() => CAPTURE(status.value) || ['paused', 'reconnecting'].includes(status.value) || (PROBLEM(status.value) && captured.value))
+    const showMeter = computed(() => isLive.value && !S.activityHidden)
+    const rm = computed(() => S.rm)
+    const expandedV = computed(() => p.expanded ?? (live && S.panelOpen))
+    const time = computed(() => (live ? S.time : '00:42'))
+    const onMain = () => { if (live) S.panelOpen = !S.panelOpen }
+    return { S, status, isLive, info, short, toggle, finish, showMeter, rm, expandedV, time, onMain, PROBLEM, live }
+  },
+  template: `
+  <div :class="['g-speech-pill', 'g-speech-pill--status-' + status, { 'is-live': isLive, 'is-problem': PROBLEM(status) }]" :data-placement="placement" :data-status="status"
+       role="group" aria-label="Grabación de voz" :hidden="hidden || null" :id="uid">
+    <g-btn class="g-speech-pill__main" variant="ghost" color="neutral" size="sm" :aria-expanded="String(expandedV)" aria-controls="sh-panel" aria-keyshortcuts="Shift+F8" @click="onMain">
+      <span :class="['g-speech-pill__icon', { 'is-spinning': status === 'processing' }]" aria-hidden="true"><g-icon :name="info.icon" :filled="!!info.filled" /></span>
+      <span class="g-speech-pill__text">{{ short }}</span>
+      <span class="g-speech-pill__sr">, abrir panel</span>
+      <span v-if="showMeter" class="g-speech-meter" aria-hidden="true"><i v-for="(l, i) in S.meter" class="g-speech-meter__bar" :style="{ '--_speech-bar': l }" :data-on="rm && l > 0.35 ? '' : null"></i></span>
+      <span class="g-speech-pill__chevron" aria-hidden="true"><g-icon name="chevron-down" /></span>
+    </g-btn>
+    <span class="g-speech-pill__time" role="timer" :hidden="['requesting', 'ready'].includes(status) || null"><span class="g-speech-pill__sr">Duración: </span>{{ time }}</span>
+    <g-btn v-if="toggle" icon class="g-speech-pill__toggle" variant="ghost" color="neutral" size="sm" :aria-label="toggle.label"><g-icon :name="toggle.icon" /></g-btn>
+    <g-btn v-if="finish" icon class="g-speech-pill__finish" variant="ghost" color="neutral" size="sm" aria-label="Finalizar"><g-icon name="square" filled /></g-btn>
+  </div>`
+}
+
+/* ---------- Panel (marcado de §6.4 y §6.5) ---------- */
+const PANELS = [
+  { key: 'conv', lab: 'Conversación, captura (voz), confirmado + provisional, local + memoria', st: 'speech', mode: 'conversation', loc: 'local', audio: 'memory', segs: 4, partial: true, sub: ['2 fragmentos pendientes'] },
+  { key: 'dict', lab: 'Dictado en pausa, en el dispositivo, sin guardar audio', st: 'paused', mode: 'dictation', loc: 'device', audio: 'none', segs: 2, sub: ['Todo transcrito'] },
+  { key: 'ready', lab: 'Listo (ready), externo, preparación con consentimiento pendiente', st: 'ready', mode: 'conversation', loc: 'remote', audio: 'disk', segs: 0, setup: true, consentError: true },
+  { key: 'reconn', lab: 'Reconectando con captura viva, señal plana y fragmento fallido', st: 'reconnecting', liveCap: true, mode: 'conversation', loc: 'local', audio: 'memory', segs: 3, failed: true, sub: ['Intento 2 de 3', '1 fragmento pendiente'], flat: true, issue: true },
+  { key: 'error', lab: 'Error (servicio caído) con algo capturado', st: 'error', mode: 'conversation', loc: 'local', audio: 'memory', segs: 2, err: 'service', issue: false },
+  { key: 'denied', lab: 'Permiso denegado sin nada capturado', st: 'denied', mode: 'dictation', loc: 'local', audio: 'none', segs: 0, err: 'denied', captured: false },
+  { key: 'proc', lab: 'Procesando (sin acciones)', st: 'processing', mode: 'conversation', loc: 'local', audio: 'memory', segs: 4, progress: 60 },
+  { key: 'done', lab: 'Completada; confirmación de descarte en línea', st: 'completed', mode: 'conversation', loc: 'local', audio: 'deleted', segs: 4, confirm: true },
+  { key: 'rm', lab: 'Movimiento reducido: onda discreta de 5 segmentos', st: 'listening', mode: 'conversation', loc: 'device', audio: 'memory', segs: 1, rm: true },
+  { key: 'hidden', lab: '«Ocultar actividad» pulsado', st: 'transcribing', mode: 'dictation', loc: 'local', audio: 'memory', segs: 1, hidden: true, partial: true }
+]
+const ERR = {
+  service: { title: 'Servicio de transcripción no disponible', text: 'No se pudo conectar con el servicio local tras 3 intentos. La grabación se detuvo. El audio pendiente se conservó y se procesará al reanudar. Lo transcrito se conserva. Comprueba el servicio y pulsa Reanudar.' },
+  denied: { title: 'Permiso del micrófono denegado', text: 'El navegador bloqueó el micrófono. No se grabó nada. Permite el micrófono en la configuración del sitio y pulsa Reintentar.' }
+}
+const SPanel = {
+  props: { sc: Object, uid: String },
+  setup(p) {
+    const live = !p.sc
+    const sc = computed(() => p.sc || {
+      st: S.status, liveCap: S.reconnectLive, mode: S.mode, loc: S.location, audio: 'memory', segs: CAPTURE(S.status) || S.status === 'completed' ? 4 : 2,
+      partial: CAPTURE(S.status), sub: S.status === 'reconnecting' ? ['Intento 2 de 3'] : ['1 fragmento pendiente'], err: S.status === 'error' ? 'service' : S.status === 'denied' ? 'denied' : null,
+      progress: S.status === 'processing' ? 45 : null, confirm: S.confirm, captured: S.captured, setup: S.status === 'ready', hidden: S.activityHidden
+    })
+    const st = computed(() => sc.value.st)
+    const isLive = computed(() => liveOf(st.value, sc.value.liveCap))
+    const info = computed(() => ST[st.value] || ST.ready)
+    const long = computed(() => (sc.value.err ? ERR[sc.value.err].title : st.value === 'reconnecting' && sc.value.liveCap ? info.value.longLive : info.value.long))
+    const captured = computed(() => sc.value.captured !== false)
+    const showTime = computed(() => !['requesting', 'ready'].includes(st.value))
+    const hidden = computed(() => (live ? S.activityHidden : !!sc.value.hidden))
+    const wave = computed(() => (sc.value.rm || (live && S.rm) ? [1, 1, 1, 0, 0] : S.wave))
+    const rmw = computed(() => sc.value.rm || (live && S.rm))
+    const segs = computed(() => SEGS.slice(0, sc.value.segs))
+    const close = () => { if (live) S.panelOpen = false }
+    const speakers = ref('many'); const consent = ref(false)
+    return { S, sc, st, isLive, info, long, captured, showTime, hidden, wave, rmw, segs, PARTIAL, FAILED, PRIVACY, AUDIO, ERR, CAPTURE, PROBLEM, close, live, speakers, consent, uidp: p.uid }
+  },
+  template: `
+  <div :class="['g-speech-panel', 'g-surface', 'g-surface--level-floating', { 'is-live': isLive, 'is-problem': PROBLEM(st) }]" :data-status="st" :id="uidp" role="dialog" :aria-labelledby="uidp + '-title'">
+    <div class="g-speech-panel__head">
+      <h2 class="g-speech-panel__title" :id="uidp + '-title'" tabindex="-1">Grabación de voz</h2>
+      <p class="g-speech-panel__mode">{{ sc.mode === 'dictation' ? 'Dictado en «Observaciones»' : 'Conversación · varios participantes previstos' }}</p>
+      <g-btn icon class="g-speech-panel__close" variant="ghost" color="neutral" size="sm" aria-label="Cerrar panel" @click="close"><g-icon name="x" /></g-btn>
+    </div>
+    <div class="g-speech-panel__status">
+      <span :class="['g-speech-panel__status-icon', { 'is-spinning': st === 'processing' }]" aria-hidden="true"><g-icon :name="info.icon" :filled="!!info.filled" /></span>
+      <span class="g-speech-panel__status-text">{{ long }}</span>
+      <span v-if="showTime" class="g-speech-panel__time" role="timer"><span class="g-speech-panel__sr">Duración: </span>{{ live ? S.time : '01:18' }}</span>
+    </div>
+    <div v-if="sc.sub || sc.flat" class="g-speech-panel__sub">
+      <p v-for="s in (sc.sub || [])">{{ s }}</p>
+      <p v-if="sc.flat" class="is-warning">No llega sonido del micrófono. Comprueba que no esté silenciado.</p>
+    </div>
+    <div class="g-speech-panel__privacy"><g-icon :name="sc.loc === 'remote' ? 'globe' : 'lock'" /><p>{{ PRIVACY[sc.loc] }} {{ AUDIO[sc.audio] }}</p></div>
+    <div v-if="CAPTURE(st) || st === 'reconnecting' || st === 'paused'" class="g-speech-panel__activity">
+      <span v-if="!hidden" class="g-speech-wave" aria-hidden="true"><i v-for="(l, i) in wave" class="g-speech-wave__bar" :style="rmw ? null : { '--_speech-bar': isLive ? l : 0 }" :data-on="rmw && l ? '' : null"></i></span>
+      <g-btn size="sm" variant="ghost" color="neutral" :aria-pressed="String(hidden)" @click="live && (S.activityHidden = !S.activityHidden)">Ocultar actividad</g-btn>
+    </div>
+    <div v-if="sc.setup" class="g-speech-panel__setup">
+      <g-select :id="uidp + '-sp'" v-model="speakers" label="Participantes previstos" :options="[{ value: 1, label: '1 participante' }, { value: 2, label: '2 participantes' }, { value: 'many', label: 'Varios' }]"></g-select>
+      <p>El motor no distingue hablantes: la transcripción saldrá sin etiquetas.</p>
+      <g-checkbox :id="uidp + '-cs'" v-model="consent" label="He avisado a los participantes de que se graba" :error="sc.consentError ? 'Marca la casilla para empezar a grabar.' : undefined"></g-checkbox>
+    </div>
+    <div v-if="sc.err || sc.issue" class="g-speech-panel__error">
+      <div v-if="sc.err"><p><g-icon name="circle-alert" />{{ ERR[sc.err].title }}</p><p>{{ ERR[sc.err].text }}</p></div>
+      <div v-if="sc.issue" class="g-speech-panel__issue"><g-icon name="triangle-alert" /><span>No se pudo transcribir el fragmento 00:31–00:36. La grabación continúa.</span><g-btn size="sm" variant="outline" color="neutral">Reintentar fragmento</g-btn></div>
+    </div>
+    <div v-if="sc.progress != null" class="g-speech-panel__progress"><g-progress :value="sc.progress" label="Procesando el audio pendiente" color="neutral"></g-progress></div>
+    <div v-if="sc.confirm" class="g-speech-panel__confirm">
+      <p>¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.</p>
+      <g-btn size="md" variant="outline" color="neutral" @click="live && (S.confirm = false)">Cancelar</g-btn>
+      <g-btn size="md" variant="solid" color="danger">Sí, descartar</g-btn>
+    </div>
+    <div v-else-if="st !== 'processing'" class="g-speech-panel__controls">
+      <template v-if="st === 'requesting'"><g-btn size="md" variant="outline" color="neutral">Cancelar</g-btn></template>
+      <template v-else-if="st === 'ready'"><g-btn size="md"><template #prepend><g-icon name="mic" /></template>Empezar a grabar</g-btn><g-btn size="md" variant="outline" color="neutral">Cancelar</g-btn></template>
+      <template v-else-if="st === 'completed'"><g-btn size="md"><template #prepend><g-icon name="circle-check" /></template>Cerrar sesión</g-btn><g-btn size="md" variant="ghost" color="neutral" @click="live && (S.confirm = true)">Descartar</g-btn></template>
+      <template v-else-if="PROBLEM(st)">
+        <g-btn v-if="captured" size="md"><template #prepend><g-icon name="mic" /></template>Reanudar</g-btn>
+        <g-btn v-else size="md"><template #prepend><g-icon name="rotate-ccw" /></template>Reintentar</g-btn>
+        <template v-if="captured"><g-btn size="md" variant="outline" color="neutral"><template #prepend><g-icon name="square" filled /></template>Finalizar</g-btn><g-btn size="md" variant="ghost" color="neutral" @click="live && (S.confirm = true)">Descartar</g-btn></template>
+        <g-btn v-else size="md" variant="ghost" color="neutral">Cerrar</g-btn>
+      </template>
+      <template v-else>
+        <g-btn v-if="st === 'paused'" size="md" variant="outline" color="neutral"><template #prepend><g-icon name="mic" /></template>Reanudar</g-btn>
+        <g-btn v-else-if="isLive" size="md" variant="outline" color="neutral"><template #prepend><g-icon name="pause" /></template>Pausar</g-btn>
+        <g-btn size="md"><template #prepend><g-icon name="square" filled /></template>Finalizar</g-btn>
+        <g-btn size="md" variant="ghost" color="neutral" @click="live && (S.confirm = true)">Descartar</g-btn>
+      </template>
+    </div>
+    <section class="g-speech-panel__transcript">
+      <h3 :id="uidp + '-tx'">Transcripción</h3>
+      <p v-if="!segs.length && !sc.partial">Todavía no hay texto.</p>
+      <ol v-else class="g-speech-transcript" :aria-labelledby="uidp + '-tx'" tabindex="0">
+        <li v-for="s in segs" class="g-speech-segment">
+          <div class="g-speech-segment__meta"><time class="g-speech-segment__time">{{ s.t }}</time><span v-if="sc.mode === 'conversation'" class="g-speech-segment__speaker">{{ s.sp }}</span></div>
+          <p class="g-speech-segment__text">{{ s.text }}</p>
+        </li>
+        <li v-if="sc.failed" class="g-speech-segment is-failed">
+          <div class="g-speech-segment__meta"><time class="g-speech-segment__time">{{ FAILED.t }}</time><span class="g-speech-segment__flag"><g-icon name="triangle-alert" />No se pudo transcribir</span></div>
+          <g-btn size="sm" variant="outline" color="neutral">Reintentar fragmento</g-btn>
+        </li>
+        <li v-if="sc.partial" class="g-speech-segment is-partial">
+          <div class="g-speech-segment__meta"><time class="g-speech-segment__time">{{ PARTIAL.t }}</time><span v-if="sc.mode === 'conversation'" class="g-speech-segment__speaker">{{ PARTIAL.sp }}</span><span class="g-speech-segment__flag">provisional</span></div>
+          <p class="g-speech-segment__text"><span class="g-speech-segment__sr">Texto provisional: </span>{{ PARTIAL.text }}</p>
+        </li>
+      </ol>
+    </section>
+  </div>`
+}
+
+/* ---------- Disparador (marcado de §8.2) ---------- */
+const TRIGGERS = [
+  { key: 'idle', lab: 'Dictado sin sesión', mode: 'dictation', st: 'idle' },
+  { key: 'live', lab: 'Dictado grabando, provisional en la nota', mode: 'dictation', st: 'speech', note: { kind: 'partial', text: 'el paciente refiere dolor lumbar desde hace' } },
+  { key: 'paused', lab: 'Dictado en pausa (pulsado neutro)', mode: 'dictation', st: 'paused' },
+  { key: 'err', lab: 'Dictado con error (discontinuo)', mode: 'dictation', st: 'error' },
+  { key: 'pend', lab: 'Fragmentos sin insertar', mode: 'dictation', st: 'completed', note: { kind: 'notInserted', text: '2 fragmentos dictados sin insertar.', action: 'Insertar' } },
+  { key: 'undo', lab: 'Dictado insertado (deshacer)', mode: 'dictation', st: 'idle', note: { kind: 'inserted', text: 'Dictado insertado.', action: 'Deshacer dictado' } },
+  { key: 'busy', lab: 'Otra sesión activa (aria-disabled)', mode: 'dictation', st: 'idle', busy: true },
+  { key: 'conv', lab: 'Conversación sin sesión', mode: 'conversation', st: 'idle' },
+  { key: 'convlive', lab: 'Conversación con su sesión viva', mode: 'conversation', st: 'listening' },
+  { key: 'convbusy', lab: 'Conversación, otra sesión activa', mode: 'conversation', st: 'idle', busy: true }
+]
+const STrigger = {
+  props: { mode: String, uid: String, target: String, st: String, busy: Boolean, note: Object, liveSession: Boolean, other: Boolean },
+  setup(p) {
+    // En vivo: la sesión es de este disparador si el modo coincide (y, en dictado, si no es «otro» campo)
+    const mine = computed(() => p.liveSession && S.status !== 'idle' && S.mode === p.mode && !p.other)
+    const status = computed(() => (p.liveSession ? (mine.value ? S.status : 'idle') : p.st))
+    const isBusy = computed(() => (p.liveSession ? S.status !== 'idle' && !mine.value : p.busy))
+    const icon = computed(() => (status.value === 'idle' ? { icon: 'mic' } : ST[status.value]))
+    const pressed = computed(() => p.mode === 'dictation' ? String(status.value !== 'idle' && status.value !== 'completed') : null)
+    const noteV = computed(() => (p.liveSession ? (mine.value && p.mode === 'dictation' && CAPTURE(S.status) ? { kind: 'partial', text: 'el paciente refiere dolor lumbar desde hace' } : null) : p.note))
+    const press = () => { if (!p.liveSession) return; if (isBusy.value) { document.querySelector('.g-speech-pill:not([hidden]):not([data-placement=placed]) .g-speech-pill__main, #head-pill:not([hidden]) .g-speech-pill__main')?.focus(); return } if (p.mode === 'conversation') S.panelOpen = true }
+    return { status, isBusy, icon, pressed, noteV, press }
+  },
+  template: `
+  <span :class="['g-speech-trigger', 'g-speech-trigger--mode-' + mode, { 'is-busy': isBusy }]" :data-status="status">
+    <g-btn v-if="mode === 'dictation'" icon class="g-speech-trigger__btn" variant="ghost" color="neutral" :aria-label="'Dictar en ' + target" :aria-pressed="pressed"
+           :aria-disabled="isBusy ? 'true' : null" :aria-describedby="isBusy ? uid + '-busy' : null" :id="uid" @click="press"><g-icon :name="icon.icon" :filled="!!icon.filled" /></g-btn>
+    <g-btn v-else class="g-speech-trigger__btn" variant="outline" color="neutral" :aria-disabled="isBusy ? 'true' : null" :aria-describedby="isBusy ? uid + '-busy' : null" :id="uid" @click="press">
+      <template #prepend><g-icon :name="icon.icon" :filled="!!icon.filled" /></template>{{ status === 'idle' ? 'Grabar conversación' : 'Ver grabación' }}</g-btn>
+    <span class="g-speech-trigger__busy" :id="uid + '-busy'" :hidden="!isBusy || null">Hay una grabación en curso. Mayús+F8 para ir a ella.</span>
+    <p v-if="mode === 'dictation'" :class="['g-speech-trigger__note', { 'is-partial': noteV && noteV.kind === 'partial' }]" :id="uid + '-note'" :hidden="!noteV || null">
+      <template v-if="noteV">
+        <span v-if="noteV.kind === 'partial'" class="g-speech-trigger__sr">Texto provisional: </span>
+        <span class="g-speech-trigger__note-text">{{ noteV.text }}</span>
+        <g-btn v-if="noteV.action" class="g-speech-trigger__note-action" size="sm" variant="outline" color="neutral">{{ noteV.action }}</g-btn>
+      </template>
+    </p>
+  </span>`
+}
+
+/* ---------- Anfitrión vivo (lo mínimo de bruno) ---------- */
+const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 4
+const SHost = {
+  setup() {
+    const root = ref(null), sheet = ref(null)
+    const floatShown = computed(() => S.status !== 'idle' && (!S.placedVisible || S.dlgOpen))
+    const edge = computed(() => (S.mobile ? 'bottom' : 'top'))
+    const effEdge = computed(() => (S.flipped ? (edge.value === 'top' ? 'bottom' : 'top') : edge.value))
+    const panelShown = computed(() => S.status !== 'idle' && S.panelOpen)
+    onMounted(() => { root.value.showPopover() })
+    return { S, root, sheet, floatShown, effEdge, panelShown }
+  },
+  template: `
+  <div class="g-speech-host" id="sh" popover="manual" ref="root" :data-edge="effEdge" data-align="center" :data-mobile="S.mobile ? '' : null" :data-flipped="S.flipped ? '' : null" :data-reduced-motion="S.rm ? '' : null">
+    <div class="g-speech-host__live" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="g-speech-host__live" role="alert" aria-atomic="true"></div>
+    <div class="g-speech-host__float g-surface g-surface--level-floating" :hidden="!floatShown || null"><s-pill placement="floating" uid="float-pill"></s-pill></div>
+    <s-panel v-if="panelShown && !S.mobile" uid="sh-panel"></s-panel>
+    <dialog class="g-speech-sheet" ref="sheet" aria-labelledby="sh-panel-title" @cancel.prevent="S.panelOpen = false"><s-panel v-if="panelShown && S.mobile" uid="sh-panel"></s-panel></dialog>
+  </div>`
+}
+
+/* ---------- Apps ---------- */
+const toaster = Grana.createToaster({ labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
+window.toaster = toaster
+const parts = (a) => a.component('s-pill', SPill).component('s-panel', SPanel).component('s-trigger', STrigger)
+const main = parts(createApp({
+  setup() {
+    const dlg = ref(false), obs = ref('Paciente acude acompañado. '), plan = ref(''), dnote = ref('')
+    watch(dlg, (v) => { S.dlgOpen = v })
+    const toastNow = () => toaster.show({ type: 'success', title: 'Borrador guardado', description: 'Los cambios están en este dispositivo.' })
+    const toggleDark = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark' }
+    const toggleRtl = () => { const r = document.documentElement; r.dir = r.dir === 'rtl' ? 'ltr' : 'rtl' }
+    return { S, ORDER, PANELS, TRIGGERS, dlg, obs, plan, dnote, toastNow, toggleDark, toggleRtl, onlyLive: q.get('only') === 'live' }
+  }
+})).use(Grana).use(icons).use(toaster)
+main.mount('#app')
+const hostApp = parts(createApp(SHost)).use(Grana).use(icons)
+hostApp.mount('#host-mount')
+const hostEl = document.getElementById('sh')
+
+/* Pill colocada visible (≥ 95 %) */
+new IntersectionObserver((es) => { for (const e of es) S.placedVisible = e.intersectionRatio >= 0.95 }, { threshold: [0, 0.95, 1] }).observe(document.getElementById('app-head'))
+
+/* Móvil: visor < space × 130 */
+const measure = () => { S.mobile = innerWidth < space() * 130 }
+addEventListener('resize', () => { measure(); place() })
+measure()
+
+/* Traslado al <dialog> modal superior (ignora la hoja propia) y vuelta a body */
+watch(() => S.dlgOpen, async (open) => {
+  await nextTick(); await nextTick()
+  const dlg = document.querySelector('dialog.g-dialog[open]')
+  if (open && dlg) dlg.append(hostEl); else document.body.append(hostEl)
+  if (!hostEl.matches(':popover-open')) hostEl.showPopover(); else { hostEl.hidePopover(); hostEl.showPopover() }
+  place()
+})
+
+/* Hoja móvil */
+watch(() => [S.mobile, S.panelOpen, S.status], async () => {
+  await nextTick()
+  const sh = hostEl.querySelector('.g-speech-sheet')
+  const want = S.mobile && S.panelOpen && S.status !== 'idle'
+  if (want && !sh.open) { sh.showModal(); hostEl.querySelector('.g-speech-sheet .g-speech-panel__title')?.focus() }
+  if (!want && sh.open) sh.close()
+  place()
+}, { immediate: true })
+
+/* Panel anclado a la pill visible: debajo si cabe (o si hay más sitio), alineado al final de la pill (placeBlock) */
+function place() {
+  const panel = hostEl.querySelector(':scope > .g-speech-panel')
+  if (!panel) return
+  const pill = !hostEl.querySelector('.g-speech-host__float').hidden ? hostEl.querySelector('#float-pill') : document.getElementById('head-pill')
+  if (!pill) return
+  const a = pill.getBoundingClientRect(), pad = space() * 2, gap = space() * 2
+  const width = panel.offsetWidth, vw = innerWidth, vh = innerHeight
+  const rtl = getComputedStyle(hostEl).direction === 'rtl'
+  const left = rtl ? a.left : a.right - width
+  const x = Math.min(Math.max(pad, left), vw - pad - width)
+  panel.style.setProperty('--_speech-max-block', 'none')
+  const natural = panel.scrollHeight
+  const below = vh - a.bottom - pad - gap, above = a.top - pad - gap
+  const top = natural > below && above > below
+  const room = top ? above : below
+  panel.style.setProperty('--_speech-x', x + 'px')
+  panel.style.setProperty('--_speech-max-block', room + 'px')
+  panel.style.setProperty('--_speech-y', (top ? a.top - gap - Math.min(natural, room) : a.bottom + gap) + 'px')
+}
+watch(() => [S.panelOpen, S.status, S.placedVisible, S.dlgOpen, S.confirm], async () => { await nextTick(); place(); if (S.panelOpen && !S.mobile) hostEl.querySelector(':scope > .g-speech-panel .g-speech-panel__title')?.focus({ preventScroll: true }) })
+addEventListener('scroll', () => place(), { passive: true })
+hostEl.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.panelOpen && e.target.closest('.g-speech-panel') && !S.mobile) { e.preventDefault(); e.stopPropagation(); S.panelOpen = false } })
+
+/* Borde compartido con GToaster (#225): con la flotante visible en el borde inferior, los avisos se apilan por dentro */
+watch(() => [S.mobile, S.placedVisible, S.dlgOpen, S.status, S.flipped], async () => {
+  await nextTick(); await nextTick()
+  const f = hostEl.querySelector('.g-speech-host__float')
+  const reserve = !f.hidden && hostEl.dataset.edge === 'bottom' ? f.offsetHeight + space() * (S.mobile ? 2 : 4) : 0
+  toaster.configure({ offset: { bottom: reserve } })
+  window.__reserve = reserve
+}, { immediate: true })
+
+/* Nivel sintético (no reactivo en el gestor real; aquí basta) */
+if (!q.get('still')) {
+  let k = 0
+  setInterval(() => {
+    if (!CAPTURE(S.status) && !(S.status === 'reconnecting' && S.reconnectLive)) return
+    k++
+    if (S.rm && k % 3) return // ≤ 4 Hz en movimiento reducido
+    const lv = Math.max(0, Math.min(1, 0.45 + 0.4 * Math.sin(k / 3) + (Math.random() - 0.5) * 0.5))
+    S.meter = S.meter.map((_, i) => Math.max(0, Math.min(1, lv * (0.6 + 0.4 * Math.sin(k + i * 1.7)))))
+    if (!S.rm) S.wave = [...S.wave.slice(1), lv]
+    const s = Math.floor((performance.now() - S.t0) / 1000) + 222
+    S.time = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0')
+  }, 100)
+}
+window.bench = { S, place, toaster, hostEl }
+window.__ready = true
+</script>
+</body>
+</html>
