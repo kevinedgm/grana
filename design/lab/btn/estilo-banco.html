@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBtn · tamaño del icono · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado de design/contracts/btn.md («Estructura» y «Tamaño del icono», #205) con el CSS real (grana.css: capas grana.defaults y grana.components; el andamio y el tema de prueba van sin capa, como los de una aplicación).
+     GIcon.vue es de bruno: la fábrica icon() imita lo que renderiza (svg.g-icon de Lucide, currentColor, aria-hidden). No es documentación.
+       python3 -m http.server 4200  →  /design/lab/btn/estilo-banco.html   (desde la raíz del repo)
+     Parámetros: ?dark=1  ?rtl=1  ?test=1 (tema de prueba: otra fuente, space, borde y forma)
+     Verificación: node design/lab/btn/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/grana.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:12px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:96ch}
+  table{border-collapse:collapse}
+  td,th{padding:6px 10px;border:1px solid var(--g-color-border);font-size:12px;text-align:start;vertical-align:middle}
+  .app-big{inline-size:48px;block-size:48px}
+</style>
+</head>
+<body>
+<main>
+<h1>GBtn · tamaño del icono (#205)</h1>
+<p class="cap"><b>coco</b> · <code>--_icon</code>: 1.15em en <code>prepend</code>/<code>append</code>, 1.4em en solo icono y en el indicador de carga del modo. Una fila por <code>size</code> × <code>density</code>.</p>
+<div id="matrix"></div>
+<h2 class="b">Contraste · 7 colores × 5 variantes (icono solo)</h2>
+<div id="colors" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+<h2 class="b">Clase de la aplicación (#204)</h2>
+<div id="app" style="display:flex;gap:12px;align-items:center"></div>
+</main>
+<script>
+'use strict';
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'], DENS = ['default', 'comfortable', 'compact'];
+const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info'], VARS = ['solid', 'soft', 'outline', 'ghost', 'link'];
+function icon(name, extra) {
+  return '<svg class="g-icon ' + (extra || '') + '" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">' + window.LUCIDE_ICONS[name] + '</svg>';
+}
+const loader = icon('loader-circle', 'g-btn__loader');
+function btn(o) {
+  const c = ['g-btn', 'g-btn--variant-' + (o.v || 'outline'), 'g-btn--color-' + (o.c || 'brand'), 'g-btn--size-' + o.s, 'g-btn--density-' + o.d];
+  if (o.icon) c.push('g-btn--icon');
+  if (o.loading) c.push('is-loading');
+  const lab = o.icon ? icon(o.glyph || 'circle') : (o.text || 'Guardar');
+  return '<button type="button" class="' + c.join(' ') + '"' + (o.icon ? ' aria-label="Acción"' : '') + (o.case ? ' data-case="' + o.case + '"' : '') + '>' +
+    (o.pre ? '<span class="g-btn__prepend" aria-hidden="true">' + icon(o.glyph || 'circle') + '</span>' : '') +
+    '<span class="g-btn__label">' + lab + '</span>' +
+    (o.app ? '<span class="g-btn__append" aria-hidden="true">' + icon(o.glyph || 'circle') + '</span>' : '') + loader + '</button>';
+}
+// Matriz: cada celda lleva data-case="<tipo>|<size>|<density>[|load]"
+let h = '<table><thead><tr><th>size · density</th><th>prepend</th><th>append</th><th>solo icono</th><th>prepend cargando</th><th>solo icono cargando</th></tr></thead><tbody>';
+for (const s of SIZES) for (const d of DENS) {
+  const k = (t, l) => t + '|' + s + '|' + d + (l ? '|load' : '');
+  h += '<tr><th>' + s + ' · ' + d + '</th>' +
+    '<td>' + btn({ s, d, pre: 1, case: k('pre') }) + '</td>' +
+    '<td>' + btn({ s, d, app: 1, case: k('app') }) + '</td>' +
+    '<td>' + btn({ s, d, icon: 1, case: k('icon') }) + '</td>' +
+    '<td>' + btn({ s, d, pre: 1, loading: 1, case: k('pre', 1) }) + '</td>' +
+    '<td>' + btn({ s, d, icon: 1, loading: 1, case: k('icon', 1) }) + '</td></tr>';
+}
+document.getElementById('matrix').innerHTML = h + '</tbody></table>';
+let ch = '';
+for (const c of COLORS) for (const v of VARS) ch += btn({ s: 'md', d: 'default', icon: 1, c, v, case: 'col|' + c + '|' + v });
+document.getElementById('colors').innerHTML = ch;
+document.getElementById('app').innerHTML =
+  '<button type="button" class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" data-case="app-class"><span class="g-btn__prepend" aria-hidden="true">' + icon('circle', 'app-big') + '</span><span class="g-btn__label">Con clase</span></button>';
+
+const q = new URLSearchParams(location.search);
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-shape:9999px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-bg:#f4ecdf;--g-space-1:5px}';
+if (q.get('test')) document.getElementById('theme').textContent = TEST;
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+</body>
+</html>

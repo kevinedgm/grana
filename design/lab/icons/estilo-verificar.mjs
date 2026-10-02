@@ -131,7 +131,7 @@ for (const engine of ENGINES) {
   ok(I['compose-transform'].transform.startsWith('matrix(') && I['compose-transform'].transform !== 'none' && (I['compose-transform'].scale === '-1' || I['compose-transform'].scale === '-1 1'), `${E}transform del hueco intacto y scale activo (${I['compose-transform'].transform} / ${I['compose-transform'].scale})`)
   ok(I['compose-rotate'].rotate === '90deg' && (I['compose-rotate'].scale === '-1' || I['compose-rotate'].scale === '-1 1'), `${E}rotate del hueco intacto y scale activo (${I['compose-rotate'].rotate} / ${I['compose-rotate'].scale})`)
   ok(I['btn-ltr'].scale === 'none' && (I['btn-rtl'].scale === '-1' || I['btn-rtl'].scale === '-1 1'), `${E}GBtn append: LTR sin espejo, RTL con espejo`)
-  ok(I['btn-ltr'].w === I['btn-rtl'].w && near(I['btn-ltr'].w, I['btn-ltr'].fs, 0.1), `${E}GBtn append: GBtn no dimensiona el icono, queda en 1em del botón (${I['btn-ltr'].w}px vs ${I['btn-ltr'].fs}px) y espejado o no mide lo mismo`)
+  ok(I['btn-ltr'].w === I['btn-rtl'].w && near(I['btn-ltr'].w, I['btn-ltr'].fs * 1.15, 0.1), `${E}GBtn append: --_icon = 1.15em del texto del botón (${I['btn-ltr'].w}px vs ${I['btn-ltr'].fs}px, #205) y espejado o no mide lo mismo`)
 
   // lead
   ok(!S['s-none'].hasLead && S['s-none'].firstChild.includes('title'), `${E}sin lead: no existe el elemento y el título abre la fila`)

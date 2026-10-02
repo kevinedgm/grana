@@ -22,11 +22,13 @@
 
 ## Tamaño: manda el hueco
 
-Todas las reglas de tamaño de los componentes (`__lead` de `GCard`, `__icon` de `GMenu`/`GTabs`/`GSidebar`, `> .g-icon` de `GCard`, `GDialog`, `GDatePicker`…) son selectores descendientes con especificidad ≥ (0,1,1), así que ganan a `:where(.g-icon)` (0), también con `GIcon.css` importado el último en `components.css`. Un `grep` no encuentra ningún `:where(.g-icon)` ni `!important` fuera de la base. Fuera de un hueco, una clase de la aplicación (0,1,0) gana sin `!important`: 48px verificado. Dentro de un hueco que dimensiona el icono, el hueco gana a la clase de la aplicación (por diseño: `icons.md` §2.2).
+Todas las reglas de tamaño de los componentes (`__lead` de `GCard`, `__icon` de `GMenu`/`GTabs`/`GSidebar`, `> .g-icon` de `GCard`, `GDialog`, `GDatePicker`, `__prepend`/`__append` de `GBtn`…) son selectores descendientes con especificidad ≥ (0,1,1), así que ganan a `:where(.g-icon)` (0), también con `GIcon.css` importado el último en `components.css`. Un `grep` no encuentra ningún `:where(.g-icon)` ni `!important` fuera de la base.
 
-> **Corrección de la auditoría (`auditoria.md`, hallazgo 1):** lo anterior solo vale con el CSS **sin capa**, como lo carga este banco. En el paquete real los componentes van en la capa `grana.components` y el CSS de la aplicación sin capa (#4), así que **una clase de tamaño de la aplicación gana también dentro de un hueco** (48px medidos en `GTabs`, `GSidebar` y el `lead`). Sin clase, manda el hueco.
+**Quién gana al hueco (#204):** la clase de la aplicación, **siempre y por capa**, no por especificidad. El CSS de Grana va en `grana.components` y el de la aplicación sin capa (#4); entre capas no cuenta la especificidad. Medido con el CSS real en capas (`design/lab/btn/estilo-verificar.mjs`, `GBtn`): 48px con una clase de la aplicación en el `prepend`, en los tres motores. (La verificación de este banco carga el CSS **sin capa**; ahí la especificidad sí cuenta y el hueco ganaría, por eso el banco de `GBtn` carga `grana.css` con capas.) Guía: dentro de un hueco no se ponen clases de tamaño en el icono; se cambia el contenedor (`size`, `density`, tema).
 
-Dos huecos **no** dimensionan el icono y lo dejan en 1em: `GBtn` (`__prepend`/`__append`: 14px en `md`, el tamaño de su texto) y `GInput` (`__prepend`/`__append`, 1em de su texto). Es coherente con el contrato («1em del texto que lo rodea»); ahí una clase de la aplicación sí cambiaría el tamaño. Nada que corregir en CSS; se anota para lima/bruno por si algún día se quiere `--_icon` en esos huecos (el pendiente de `GBtn.meta.json` sobre el token de tamaño de icono sigue abierto).
+> **Corrección de la auditoría (`auditoria.md`, hallazgo 1):** una clase de tamaño de la aplicación gana también dentro de un hueco (48px medidos en `GTabs`, `GSidebar` y el `lead`). Sin clase, manda el hueco.
+
+`GInput` (`__prepend`/`__append`, 1em de su texto) y la caja de 1,1em de `GBadge` dejan el icono en su tamaño base (auditoría, hallazgo 4). **`GBtn` ya dimensiona su hueco** con el alias local `--_icon` (#205): `prepend`/`append` a 1.15em del texto, solo icono a 1.4em (ver `design/lab/btn/estilo.md`), con el pendiente «Tamaño de icono por token» cerrado sin token.
 
 ## `GFormSection__lead` (#203)
 

@@ -30,6 +30,9 @@
   --_gap: var(--g-space-2);
   --_fs: var(--g-text-body-sm-size);
   --_lh: var(--g-text-body-sm-line);
+  /* Tamaño del icono de un hueco (#205): proporción del texto del botón (la de GTabs, GTable y GPagination); no es token.
+     Se calcula desde --_fs (no en `em` suelto) para que no cambie si el hueco trae otro font-size */
+  --_icon: calc(var(--_fs) * 1.15);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-shape);
 
@@ -93,6 +96,13 @@
   display: inline-flex;
   flex: none;
 }
+/* El icono (GIcon o svg) hijo directo del hueco toma --_icon. Otro contenido (imagen, logotipo) lo dimensiona la aplicación.
+   Una clase de tamaño de la aplicación sobre el icono gana por capa (#204); no se pone: el tamaño lo manda `size` */
+.g-btn__prepend > svg,
+.g-btn__append > svg {
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
+}
 .g-btn__label {
   min-inline-size: 0;
 }
@@ -102,8 +112,8 @@
   position: absolute;
   inset: 0;
   margin: auto;
-  inline-size: var(--_fs);
-  block-size: var(--_fs);
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
   animation: g-btn-spin var(--g-duration-spin) linear infinite;
 }
 .g-btn__status {
@@ -207,14 +217,23 @@
   inline-size: 100%;
 }
 .g-btn--icon {
+  /* Solo icono (#205): mayor que el de prepend/append; sigue a `size` (en el texto), no a `density`. Cabe sin tocar el borde
+     en todos los tamaños y densidades, también en el piso de 24px (xs y sm en compact: interior de 22px) */
+  --_icon: calc(var(--_fs) * 1.4);
   inline-size: var(--_h);
   padding-inline: 0;
 }
-/* El icono (svg inline) se posaría en la línea base del texto: se centra como flex. */
+/* El icono (svg inline) se posaría en la línea base del texto: se centra como flex. La caja mide el interlineado
+   (no el icono, que es mayor): así el icono no añade altura al botón y se centra desbordando por igual */
 .g-btn--icon .g-btn__label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  block-size: var(--_lh);
+}
+.g-btn--icon .g-btn__label > svg {
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
 }
 
 /* ---------- Estados ---------- */
