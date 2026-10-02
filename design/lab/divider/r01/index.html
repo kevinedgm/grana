@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDivider · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco).
+   Los valores de color, grosor y separación son de wireframe, no propuestas. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-strong:#a8a8a8;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--space:4px;--tmin:24px;
+  /* Las dos líneas del divider en el kit: sutil (refuerzo) y fuerte (≥ 3:1, única señal) */
+  --wf-div-subtle:#d4d4d4;--wf-div-strong:#8a8a8a}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:40px 0 8px}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:90ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:96ch}
+.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.ctl label{display:inline-flex;align-items:center;gap:6px;min-block-size:var(--tmin)}
+.out{font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);padding:6px 8px;margin:8px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button,input,select{font:inherit;color:inherit}
+select,input[type=text]{padding:4px 6px;min-block-size:var(--tmin);max-inline-size:100%}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+code{font-size:.92em;overflow-wrap:anywhere}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.cell{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.cell-label{font-size:12px;line-height:16px;color:var(--wf-2)}.cell-label b{color:var(--wf-ink)}
+.host{background:#fff;border:1px solid var(--wf-line);border-radius:12px;padding:16px;min-inline-size:0}
+.host.sunken{background:var(--wf-fill-2)}
+.frame{border:1px dashed var(--wf-3);padding:12px;background:#fff;resize:horizontal;overflow:auto;max-inline-size:100%;min-inline-size:200px}
+/* Pila: la separación la pone el contenedor (gap), nunca el divider */
+.stack{display:flex;flex-direction:column;gap:calc(var(--space)*4);min-inline-size:0}
+.stack>p,.stack>h3,.stack>h4{margin:0}
+.prose p{max-inline-size:62ch}
+
+/* ============ Botones del kit (los reales son GBtn) ============ */
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-block-size:max(32px,var(--tmin));padding:0 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;line-height:20px;white-space:nowrap}
+.stack>.wf-btn{white-space:normal;text-align:center;padding-block:6px}
+.wf-btn--primary{background:var(--wf-ink);color:#fff}
+.wf-btn--lg{min-block-size:44px;padding:0 16px;font-size:15px}
+.wf-btn--ghost{border-color:transparent;background:transparent}
+.wf-btn--ghost:hover{background:rgba(0,0,0,.06)}
+.wf-ibtn{display:inline-grid;place-items:center;inline-size:max(32px,var(--tmin));block-size:max(32px,var(--tmin));border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;padding:0}
+.wf-ibtn:hover{background:rgba(0,0,0,.06)}
+.wf-field{display:flex;flex-direction:column;gap:6px}
+.wf-field label{font-size:14px;font-weight:500}
+.wf-field input{border:1px solid var(--wf-3);border-radius:6px;padding:0 10px;min-block-size:36px;inline-size:100%}
+.wf-check{display:flex;align-items:center;gap:8px;min-block-size:max(24px,var(--tmin));font-size:14px}
+
+/* ============ GDivider (estructura; el aspecto final es de coco) ============ */
+.gdiv{--_line:var(--wf-div-subtle);--_t:1px;--_gap:calc(var(--space)*3);
+  box-sizing:border-box;margin:0;padding:0;border:0;color:inherit;overflow:visible;flex:none}
+.gdiv--emphasis-strong{--_line:var(--wf-div-strong)}
+/* Horizontal: ocupa la caja de contenido del contenedor (en flex columna, por stretch; en bloque, por ancho auto) */
+.gdiv--horizontal{display:block;block-size:0;inline-size:auto;align-self:stretch;border-block-start:var(--_t) solid var(--_line)}
+/* Vertical: la altura es la de la fila (align-self: stretch). Requisito: padre flex en fila o grid */
+.gdiv--vertical{display:block;inline-size:0;block-size:auto;align-self:stretch;border-inline-start:var(--_t) solid var(--_line)}
+/* Con texto: un contenedor flex, la línea son ::before/::after (con borde, nunca con fondo) y el texto no lleva fondo */
+.gdiv--labeled{display:flex;align-items:center;gap:var(--_gap);block-size:auto;border-block-start:0;text-align:center}
+.gdiv--labeled::before,.gdiv--labeled::after{content:"";flex:1 1 0;min-inline-size:calc(var(--space)*4);border-block-start:var(--_t) solid var(--_line)}
+.gdiv__label{flex:0 1 auto;min-inline-size:0;font-size:12px;line-height:16px;font-weight:500;color:var(--wf-2);overflow-wrap:anywhere}
+/* Inset: la cantidad la define la anfitriona (propiedad heredada); propiedades lógicas → RTL automático */
+.gdiv--horizontal.gdiv--inset-both{margin-inline:var(--divider-inset)}
+.gdiv--horizontal.gdiv--inset-start{margin-inline-start:var(--divider-inset)}
+.gdiv--vertical.gdiv--inset-both{margin-block:var(--divider-inset)}
+:root{--divider-inset:calc(var(--space)*4)}
+@media (forced-colors:active){.gdiv,.gdiv::before,.gdiv::after{border-color:CanvasText}}
+
+/* ---- Escenarios ---- */
+.signin{max-inline-size:380px}
+.navlist{--pad:12px;--lead:20px;--igap:12px;--divider-inset:calc(var(--pad) + var(--lead) + var(--igap));background:#fff;border:1px solid var(--wf-line);border-radius:12px;padding:6px 0;max-inline-size:340px}
+.navlist[data-density=compact]{--pad:8px;--igap:8px}
+.navlist ul{list-style:none;margin:0;padding:0}
+.navlist a{display:flex;align-items:center;gap:var(--igap);padding:0 var(--pad);min-block-size:max(40px,var(--tmin));color:inherit;text-decoration:none;font-size:14px}
+.navlist[data-density=compact] a{min-block-size:max(32px,var(--tmin))}
+.navlist a:hover{background:var(--wf-fill-2)}
+.navlist a .g-icon{inline-size:var(--lead);block-size:var(--lead);color:var(--wf-2)}
+.navlist .gdiv{margin-block:6px}
+.panel{--divider-inset:12px;background:#fff;border:1px solid var(--wf-line);border-radius:12px;padding:6px 0;max-inline-size:340px}
+.panel h3{font-size:12px;line-height:16px;font-weight:500;color:var(--wf-2);margin:6px 12px 2px}
+.panel ul{list-style:none;margin:0;padding:0}
+.panel a{display:flex;align-items:center;padding:0 12px;min-block-size:max(36px,var(--tmin));color:inherit;font-size:14px;text-decoration:none}
+.panel a:hover{background:var(--wf-fill-2)}
+.panel .gdiv{margin-block:6px}
+.actrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-inline-size:0}
+.bar{--divider-inset:calc(var(--space)*2);display:flex;align-items:center;gap:4px;border:1px solid var(--wf-strong);border-radius:8px;padding:0 4px;min-block-size:44px;inline-size:fit-content;max-inline-size:100%;flex-wrap:wrap}
+.bar .gdiv{margin-inline:4px}
+.blockparent{display:block;border:1px dashed var(--wf-3);padding:8px}
+.dlg{background:#fff;border:1px solid var(--wf-line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-inline-size:440px;min-inline-size:0}
+.dlg__head{padding:16px 20px 4px}.dlg__head h3{margin:0;font-size:17px}
+.dlg__body{padding:12px 20px 16px}
+.dlg__body h4{margin:0;font-size:15px}
+.dlg__sec{padding:16px 20px;border-block-start:1px solid var(--wf-div-subtle)}
+.dlg__sec:first-child{border-block-start:0}.dlg__sec h4{margin:0 0 8px;font-size:15px}
+.dlg__foot{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:12px 20px 16px}
+.cardmock{background:#fff;border:1px solid var(--wf-strong);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.cardmock h4{margin:0;font-size:15px}.cardmock p{margin:0;font-size:14px;color:var(--wf-2)}
+.ratio{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--wf-ink)}
+.ax{inline-size:100%;border-collapse:collapse;font-size:13px}
+.ax th,.ax td{text-align:start;padding:6px 8px;border-block-end:1px solid var(--wf-line);vertical-align:top}
+.ax td:last-child{font-family:ui-monospace,Menlo,monospace;font-size:12px;overflow-wrap:anywhere}
+.tablewrap{overflow-x:auto;max-inline-size:100%}
+.warnlog{font:12px/1.45 ui-monospace,Menlo,monospace;background:var(--wf-fill-2);border-inline-start:3px solid var(--wf-ink);padding:6px 8px;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0}
+.preview-h{display:flex;flex-direction:column;gap:12px}
+.preview-v{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main>
+<h1>GDivider · r01</h1>
+<p class="meta">Prototipo de estructura (kiwi). Kit neutral de grises; iconos solo Lucide. Declaración: <code>declaracion.md</code>.</p>
+<div class="wf-note">Los grises, el grosor y las separaciones son de wireframe, no propuestas. Lo que este prototipo fija es: el elemento y su rol, de qué depende el rol, la estructura del texto, de dónde sale la altura en vertical, quién pone el espacio alrededor y que todo es lógico (RTL sin prop). Regla de uso (del brief): <strong>no es un sustituto del espacio</strong>; si título y aire ya separan, no hace falta línea.</div>
+
+<!-- 1 · Banco -->
+<h2 class="sec" id="banco">1 · Banco: una fábrica, todas las combinaciones</h2>
+<p class="cap">Cada divider de la página sale de la misma fábrica (<code>divider()</code>), con las reglas que se proponen para el componente. Aquí se ve el marcado resultante y lo que expone al árbol de accesibilidad (compruébalo en DevTools → Accessibility).</p>
+<div class="ctl" role="group" aria-label="Opciones del banco">
+  <label>Orientación <select id="b-or"><option value="horizontal">horizontal</option><option value="vertical">vertical</option></select></label>
+  <label>Texto <input type="text" id="b-label" placeholder="(sin texto)" size="14"></label>
+  <label>Inset <select id="b-inset"><option>none</option><option>both</option><option>start</option></select></label>
+  <label>Énfasis <select id="b-emph"><option>subtle</option><option>strong</option></select></label>
+  <label><input type="checkbox" id="b-deco"> decorative</label>
+  <label>Dirección <select id="b-dir"><option value="ltr">ltr</option><option value="rtl">rtl</option></select></label>
+</div>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>Vista</b> (pila con <code>gap</code>, o fila flex si es vertical)</span><div class="host" id="b-host"></div></div>
+  <div class="cell"><span class="cell-label"><b>Marcado</b> y árbol esperado</span><pre class="out" id="b-markup"></pre><pre class="out" id="b-ax"></pre><div id="b-warn"></div></div>
+</div>
+
+<!-- 2 · Horizontal simple -->
+<h2 class="sec" id="simple">2 · Horizontal simple: cambio de tema sin encabezado</h2>
+<p class="cap">Entre dos párrafos que cambian de tema y no tienen título que lo marque, la línea <em>es</em> estructura: <code>&lt;hr&gt;</code> (separator nativo, horizontal implícito). La separación vertical la pone la pila (<code>gap</code>); el divider no tiene márgenes de bloque.</p>
+<div class="host prose" style="max-inline-size:640px">
+  <div class="stack" data-ax="2 · horizontal simple">
+    <p>El informe trimestral cerró con todos los indicadores dentro del rango previsto. Las variaciones de la última semana se explican por el cierre contable anticipado.</p>
+    <div data-d='{}'></div>
+    <p>Por otra parte, el equipo de soporte cambiará su horario a partir del próximo mes; los turnos nuevos se publicarán en el tablero.</p>
+  </div>
+</div>
+
+<!-- 3 · Con texto -->
+<h2 class="sec" id="label">3 · Con texto centrado: «O bien»</h2>
+<p class="cap">El texto es contenido: se lee como texto («O bien») y la línea, dibujada con <code>::before</code>/<code>::after</code>, no entra en el árbol. La raíz <strong>no</strong> es <code>separator</code> (sus hijos serían presentacionales; ver declaración §4). La línea nunca pasa por debajo del texto, así que el texto no necesita un fondo que «tape» la línea y funciona igual sobre superficie clara u hundida.</p>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>Acceso</b> sobre superficie</span>
+    <div class="host signin"><div class="stack" data-ax="3 · con texto">
+      <button class="wf-btn" type="button">Continuar con la cuenta de la organización</button>
+      <div data-d='{"label":"O bien"}'></div>
+      <div class="wf-field"><label for="mail">Correo</label><input id="mail" type="text" autocomplete="off"></div>
+      <button class="wf-btn wf-btn--primary" type="button">Enviar enlace de acceso</button>
+    </div></div></div>
+  <div class="cell"><span class="cell-label"><b>Sobre superficie hundida</b> y texto largo (marco redimensionable)</span>
+    <div class="frame" style="inline-size:340px"><div class="host sunken"><div class="stack" data-ax="3 · con texto">
+      <p style="font-size:14px">Elementos recientes</p>
+      <div data-d='{"label":"Elementos archivados hace más de treinta días, ordenados por fecha"}'></div>
+      <p style="font-size:14px">Elementos antiguos</p>
+    </div></div></div>
+    <p class="ratio" id="label-ratio"></p></div>
+</div>
+
+<!-- 4 · Inset en lista -->
+<h2 class="sec" id="inset">4 · Inset dentro de una lista (como un elemento más)</h2>
+<p class="cap">Dos grupos de enlaces sin título: la línea es la única marca de grupo → <strong>separator</strong>. Una lista solo puede tener <code>listitem</code> como hijos (ARIA <code>list</code>), así que los grupos son <strong>dos listas</strong> y el divider va entre ellas, no como <code>&lt;li&gt;</code>. El inset lo define la <strong>anfitriona</strong> (aquí, relleno + icono + separación, para alinear con el texto); el divider no sabe nada de la lista. Cambiar la densidad de la lista cambia su inset; el divider no tiene densidad propia.</p>
+<div class="ctl"><label>Densidad de la lista <select id="nav-density"><option value="default">default</option><option value="compact">compact</option></select></label></div>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>inset="start"</b>: la línea empieza donde empieza el texto</span>
+    <nav class="navlist" id="navlist" aria-label="Ajustes" data-ax="4 · lista">
+      <ul>
+        <li><a href="#inset" data-i="user">Perfil</a></li>
+        <li><a href="#inset" data-i="bell">Notificaciones</a></li>
+        <li><a href="#inset" data-i="lock">Seguridad</a></li>
+      </ul>
+      <div data-d='{"inset":"start"}'></div>
+      <ul>
+        <li><a href="#inset" data-i="file-text">Documentación</a></li>
+        <li><a href="#inset" data-i="circle-help">Soporte</a></li>
+      </ul>
+    </nav>
+    <p class="ratio" id="nav-geom"></p></div>
+  <div class="cell"><span class="cell-label"><b>inset="both"</b> en un panel con grupos titulados: la línea refuerza y el título ya agrupa → decorativa</span>
+    <div class="panel" data-ax="4 · lista">
+      <h3 id="g1">Recientes</h3>
+      <ul aria-labelledby="g1"><li><a href="#inset">Informe de cierre</a></li><li><a href="#inset">Plan de turnos</a></li></ul>
+      <div data-d='{"inset":"both","decorative":true}'></div>
+      <h3 id="g2">Fijados</h3>
+      <ul aria-labelledby="g2"><li><a href="#inset">Tablero general</a></li></ul>
+    </div></div>
+</div>
+<p class="cap">Dentro de <code>GMenu</code> el separador lo dibuja el propio menú (<code>{ type: 'separator' }</code> → <code>&lt;li role="none"&gt;&lt;div role="separator"&gt;</code>): <code>GDivider</code> no se usa dentro de <code>GMenu</code>.</p>
+
+<!-- 5 · Vertical -->
+<h2 class="sec" id="vertical">5 · Vertical entre acciones de una fila</h2>
+<p class="cap">La altura sale de la <strong>fila</strong>: el divider es hijo de un contenedor flex en fila (o grid) y toma su alto con <code>align-self: stretch</code>, aunque la fila centre a sus hijos. Sin <code>block-size: 100%</code> (un porcentaje no se resuelve contra un padre de alto automático) y sin alto explícito. Separa dos grupos de acciones → <code>role="separator"</code> + <code>aria-orientation="vertical"</code>. Como el hueco entre grupos es el mismo que dentro del grupo, la línea es la única señal → <strong>fuerte</strong> (≥ 3:1).</p>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>Fila de acciones</b> (<code>align-items: center</code>)</span>
+    <div class="host"><div class="actrow" id="row-md" data-ax="5 · vertical">
+      <button class="wf-btn" type="button">Editar</button><button class="wf-btn" type="button">Duplicar</button>
+      <div data-d='{"orientation":"vertical","emphasis":"strong"}'></div>
+      <button class="wf-btn" type="button">Archivar</button>
+    </div></div></div>
+  <div class="cell"><span class="cell-label"><b>Fila más alta</b>: el divider la sigue sin tocar nada</span>
+    <div class="host"><div class="actrow" id="row-lg" data-ax="5 · vertical">
+      <button class="wf-btn wf-btn--lg" type="button">Editar</button><button class="wf-btn wf-btn--lg" type="button">Duplicar</button>
+      <div data-d='{"orientation":"vertical","emphasis":"strong"}'></div>
+      <button class="wf-btn wf-btn--lg" type="button">Archivar</button>
+    </div></div></div>
+  <div class="cell"><span class="cell-label"><b>inset="both"</b> en vertical: acorta por arriba y abajo (barra con borde)</span>
+    <div class="host"><div class="bar" id="row-bar" data-ax="5 · vertical">
+      <button class="wf-ibtn" type="button" aria-label="Copiar" data-i="copy"></button><button class="wf-ibtn" type="button" aria-label="Editar" data-i="pencil"></button>
+      <div data-d='{"orientation":"vertical","inset":"both","emphasis":"strong"}'></div>
+      <button class="wf-ibtn" type="button" aria-label="Buscar" data-i="search"></button><button class="wf-ibtn" type="button" aria-label="Ajustes" data-i="settings"></button>
+    </div></div></div>
+</div>
+<p class="ratio" id="v-geom"></p>
+
+<!-- 6 · Sutil y fuerte -->
+<h2 class="sec" id="emphasis">6 · Sutil y fuerte (tono, no color ni grosor)</h2>
+<p class="cap">Mismo grosor, dos tonos del neutro. <strong>Sutil</strong>: refuerza una separación que el espacio o un título ya dan (no es la única señal: WCAG 1.4.11 no le exige 3:1). <strong>Fuerte</strong>: la línea es la <em>única</em> señal de la separación → ≥ 3:1 contra la superficie. Cuidado con el nombre: hoy <code>border-strong</code> <strong>no</strong> llega a 3:1 (#89); el fuerte se mide, no se nombra. Contraste medido en vivo:</p>
+<div class="grid2" id="emph-grid">
+  <div class="cell"><span class="cell-label"><b>Superficie</b></span><div class="host"><div class="stack" data-ax="6 · énfasis">
+    <span class="cell-label">subtle</span><div data-d='{"decorative":true}'></div><span class="cell-label">strong</span><div data-d='{"emphasis":"strong","decorative":true}'></div></div></div></div>
+  <div class="cell"><span class="cell-label"><b>Superficie hundida</b></span><div class="host sunken"><div class="stack" data-ax="6 · énfasis">
+    <span class="cell-label">subtle</span><div data-d='{"decorative":true}'></div><span class="cell-label">strong</span><div data-d='{"emphasis":"strong","decorative":true}'></div></div></div></div>
+</div>
+<pre class="out" id="emph-ratio"></pre>
+
+<!-- 7 · Diálogo -->
+<h2 class="sec" id="dialog">7 · Dentro de un diálogo, entre secciones</h2>
+<p class="cap">Cada sección tiene su <code>h4</code>: el encabezado ya marca el cambio → el divider es <strong>decorativo</strong> (<code>aria-hidden</code>), si es que hace falta. El divider ocupa el <strong>ancho del contenido</strong> del cuerpo; no sangra. Si la línea debe llegar de borde a borde, eso es de la anfitriona: <code>GDialog</code> ya lo hace con sus secciones (<code>g-dialog__section</code>, #44), y <code>GDivider</code> no lo duplica.</p>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>A · GDivider en el cuerpo</b> (ancho del contenido)</span>
+    <div class="dlg" role="dialog" aria-labelledby="dlg-a" data-ax="7 · diálogo">
+      <div class="dlg__head"><h3 id="dlg-a">Preferencias</h3></div>
+      <div class="dlg__body"><div class="stack">
+        <h4>Notificaciones</h4>
+        <label class="wf-check"><input type="checkbox" checked> Avisos por correo</label>
+        <label class="wf-check"><input type="checkbox"> Resumen semanal</label>
+        <div data-d='{"decorative":true}'></div>
+        <h4>Privacidad</h4>
+        <label class="wf-check"><input type="checkbox" checked> Mostrar mi estado</label>
+      </div></div>
+      <div class="dlg__foot"><button class="wf-btn" type="button">Cancelar</button><button class="wf-btn wf-btn--primary" type="button">Guardar</button></div>
+    </div></div>
+  <div class="cell"><span class="cell-label"><b>B · Secciones de GDialog</b> (línea a sangre, la dibuja la anfitriona; sin GDivider)</span>
+    <div class="dlg" role="dialog" aria-labelledby="dlg-b">
+      <div class="dlg__head"><h3 id="dlg-b">Preferencias</h3></div>
+      <div class="dlg__sec"><h4>Notificaciones</h4>
+        <label class="wf-check"><input type="checkbox" checked> Avisos por correo</label>
+        <label class="wf-check"><input type="checkbox"> Resumen semanal</label></div>
+      <div class="dlg__sec"><h4>Privacidad</h4>
+        <label class="wf-check"><input type="checkbox" checked> Mostrar mi estado</label></div>
+      <div class="dlg__foot"><button class="wf-btn" type="button">Cancelar</button><button class="wf-btn wf-btn--primary" type="button">Guardar</button></div>
+    </div></div>
+</div>
+
+<!-- 8 · Decorativo vs semántico -->
+<h2 class="sec" id="semantica">8 · Decorativo o separador semántico</h2>
+<p class="cap">Regla (WAI-ARIA <code>separator</code>, HTML <code>hr</code>, WCAG 1.3.1): si la línea es <strong>la única marca</strong> de que empieza otro grupo o tema, es estructura → <code>separator</code> (por defecto). Si lo mismo ya lo dice un encabezado, el nombre de un grupo o el propio contenido, es refuerzo visual → <code>decorative</code> (fuera del árbol). Con texto, la raíz nunca es <code>separator</code>: el texto se lee como texto.</p>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>Semántico</b>: separa grupos que nada más nombra</span>
+    <div class="host"><div class="stack" data-ax="8 · semántico">
+      <p style="font-size:14px">Primer grupo de enlaces: <a href="#semantica">Inicio</a> · <a href="#semantica">Proyectos</a></p>
+      <div data-d='{}'></div>
+      <p style="font-size:14px">Segundo grupo: <a href="#semantica">Papelera</a> · <a href="#semantica">Archivo</a></p>
+    </div></div></div>
+  <div class="cell"><span class="cell-label"><b>Decorativo</b>: el encabezado ya separa (y una línea de adorno bajo la cabecera de una tarjeta)</span>
+    <div class="cardmock" data-ax="8 · decorativo">
+      <h4>Resumen del mes</h4>
+      <div data-d='{"decorative":true}'></div>
+      <p>Treinta y dos tareas cerradas y cuatro pendientes.</p>
+    </div></div>
+</div>
+<p class="cap" style="margin-top:16px">Todos los dividers de esta página y lo que exponen (calculado del DOM; Playwright lo contrasta con el árbol real de Chromium):</p>
+<div class="tablewrap"><table class="ax" id="ax-table"><thead><tr><th scope="col">Sección</th><th scope="col">Variante</th><th scope="col">Árbol de accesibilidad</th></tr></thead><tbody></tbody></table></div>
+
+<!-- 9 · RTL -->
+<h2 class="sec" id="rtl">9 · RTL (sin prop: propiedades lógicas)</h2>
+<p class="cap">El mismo marcado bajo <code>dir="rtl"</code>: el inset <code>start</code> queda a la derecha, el texto sigue centrado y el divider vertical sigue a su fila. Ningún divider sabe en qué dirección está.</p>
+<div dir="rtl" lang="ar" class="grid2" id="rtl-zone">
+  <div class="cell"><span class="cell-label"><b>نص</b> · texto</span>
+    <div class="host"><div class="stack" data-ax="9 · RTL">
+      <button class="wf-btn" type="button">المتابعة بحساب المؤسسة</button>
+      <div data-d='{"label":"أو"}'></div>
+      <button class="wf-btn wf-btn--primary" type="button">إرسال رابط</button>
+    </div></div></div>
+  <div class="cell"><span class="cell-label"><b>inset="start"</b> en lista</span>
+    <nav class="navlist" aria-label="الإعدادات" id="navlist-rtl" data-ax="9 · RTL">
+      <ul><li><a href="#rtl" data-i="user">الملف الشخصي</a></li><li><a href="#rtl" data-i="bell">الإشعارات</a></li></ul>
+      <div data-d='{"inset":"start"}'></div>
+      <ul><li><a href="#rtl" data-i="circle-help">الدعم</a></li></ul>
+    </nav></div>
+  <div class="cell"><span class="cell-label"><b>vertical</b></span>
+    <div class="host"><div class="actrow" id="row-rtl" data-ax="9 · RTL">
+      <button class="wf-btn" type="button">تعديل</button>
+      <div data-d='{"orientation":"vertical","emphasis":"strong"}'></div>
+      <button class="wf-btn" type="button">أرشفة</button>
+    </div></div></div>
+</div>
+<p class="ratio" id="rtl-geom" dir="ltr" lang="es"></p>
+
+<!-- 10 · Usos que avisan -->
+<h2 class="sec" id="avisos">10 · Usos que el componente debe avisar (en desarrollo)</h2>
+<p class="cap">Lo que un validador no ve en la prop pero sí en el DOM una vez montado. El prototipo lo comprueba y escribe el aviso aquí (no en la consola, para que la carga quede limpia).</p>
+<div class="grid2">
+  <div class="cell"><span class="cell-label"><b>Vertical en un padre de bloque</b>: no hay fila de la que tomar la altura → alto 0</span>
+    <div class="blockparent" data-misuse><button class="wf-btn" type="button">Editar</button> <div data-d='{"orientation":"vertical"}'></div> <button class="wf-btn" type="button">Archivar</button></div></div>
+  <div class="cell"><span class="cell-label"><b>Vertical en una columna flex</b>: el stretch le da ancho, no alto</span>
+    <div class="stack" data-misuse style="border:1px dashed var(--wf-3);padding:8px"><span>Arriba</span><div data-d='{"orientation":"vertical"}'></div><span>Abajo</span></div></div>
+  <div class="cell"><span class="cell-label"><b>Texto en vertical</b>: no se admite (se ignora el texto)</span>
+    <div class="actrow" data-misuse><span>A</span><div data-d='{"orientation":"vertical","label":"O bien"}'></div><span>B</span></div></div>
+  <div class="cell"><span class="cell-label"><b>Divider como hijo directo de una lista</b></span>
+    <ul data-misuse style="margin:0"><li>Uno</li></ul></div>
+</div>
+<pre class="warnlog" id="warnlog" aria-live="off"></pre>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = (n) => window.lucide(n);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const WARN = [];
+const warn = (m) => WARN.push('[GDivider] ' + m);
+
+/* ===== Fábrica: las reglas que se proponen para el componente =====
+   - horizontal sin texto: <hr> (separator nativo, horizontal implícito)
+   - vertical sin texto:   <div role="separator" aria-orientation="vertical">
+   - decorative:           aria-hidden="true" (fuera del árbol)
+   - con texto (solo horizontal): <div> + <span> de texto; la raíz no es separator; decorative no cambia nada */
+function divider(o = {}) {
+  const or = o.orientation === 'vertical' ? 'vertical' : 'horizontal';
+  let inset = ['both', 'start'].includes(o.inset) ? o.inset : 'none';
+  const emph = o.emphasis === 'strong' ? 'strong' : 'subtle';
+  let label = (o.label || '').trim();
+  if (or === 'vertical' && label) { warn('label solo se admite en horizontal; en vertical se ignora («' + label + '»).'); label = ''; }
+  if (or === 'vertical' && inset === 'start') { warn('inset="start" solo existe en horizontal; en vertical se usa "both".'); inset = 'both'; }
+  const cls = ['gdiv', 'gdiv--' + or, 'gdiv--emphasis-' + emph].concat(inset !== 'none' ? ['gdiv--inset-' + inset] : []);
+  if (label) return '<div class="' + cls.concat('gdiv--labeled').join(' ') + '"><span class="gdiv__label">' + esc(label) + '</span></div>';
+  const hidden = o.decorative ? ' aria-hidden="true"' : '';
+  if (or === 'vertical') return '<div class="' + cls.join(' ') + '"' + (o.decorative ? hidden : ' role="separator" aria-orientation="vertical"') + '></div>';
+  return '<hr class="' + cls.join(' ') + '"' + hidden + '>';
+}
+
+/* Lo que el divider expone, leído de sus atributos (Playwright lo contrasta con el árbol real) */
+function axOf(el) {
+  if (el.getAttribute('aria-hidden') === 'true') return '(fuera del árbol: decorativo)';
+  if (el.classList.contains('gdiv--labeled')) return 'texto «' + el.textContent.trim() + '» (sin separator; la línea no se expone)';
+  const or = el.getAttribute('aria-orientation') || 'horizontal';
+  return 'separator · orientación ' + or + ' · sin nombre';
+}
+function variantOf(el) {
+  const c = el.classList;
+  return [c.contains('gdiv--vertical') ? 'vertical' : 'horizontal', c.contains('gdiv--labeled') ? 'con texto' : '', c.contains('gdiv--inset-both') ? 'inset both' : c.contains('gdiv--inset-start') ? 'inset start' : '', c.contains('gdiv--emphasis-strong') ? 'strong' : 'subtle', el.getAttribute('aria-hidden') === 'true' ? 'decorative' : ''].filter(Boolean).join(' · ');
+}
+
+/* Comprobaciones de montaje (las que bruno haría en desarrollo) */
+function mountChecks(el) {
+  const p = el.parentElement; if (!p) return;
+  const cs = getComputedStyle(p);
+  const flexRow = /flex/.test(cs.display) && !/column/.test(cs.flexDirection);
+  const grid = /grid/.test(cs.display);
+  if (el.classList.contains('gdiv--vertical') && !flexRow && !grid) warn('vertical necesita un padre flex en fila o grid para tomar su altura (padre: display ' + cs.display + (/flex/.test(cs.display) ? ', ' + cs.flexDirection : '') + '); mide ' + Math.round(el.getBoundingClientRect().height) + 'px de alto.');
+  if (/^(UL|OL|MENU)$/.test(p.tagName)) warn('un divider no puede ser hijo directo de <' + p.tagName.toLowerCase() + '> (una lista solo tiene listitem): parte la lista en dos y pon el divider entre ellas.');
+}
+
+/* ===== Montaje ===== */
+function mount(root = document) {
+  root.querySelectorAll('[data-d]').forEach((ph) => {
+    const html = divider(JSON.parse(ph.dataset.d));
+    const t = document.createElement('template'); t.innerHTML = html;
+    const el = t.content.firstElementChild; ph.replaceWith(el);
+  });
+}
+document.querySelectorAll('[data-i]').forEach((el) => { el.insertAdjacentHTML('afterbegin', I(el.dataset.i)); });
+/* El caso de la lista: el divider como hijo directo de <ul> (se monta a mano, es el uso indebido) */
+document.querySelector('ul[data-misuse]').insertAdjacentHTML('beforeend', divider({}));
+mount();
+
+/* ===== Contraste ===== */
+const rgb = (s) => (s.match(/[\d.]+/g) || []).map(Number);
+const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+function bgOf(el) { for (let n = el; n; n = n.parentElement) { const c = rgb(getComputedStyle(n).backgroundColor); if (c.length >= 3 && (c.length < 4 || c[3] > 0)) return c.slice(0, 3); } return [255, 255, 255]; }
+const lineColor = (el) => rgb(getComputedStyle(el).getPropertyValue(el.classList.contains('gdiv--vertical') ? 'border-inline-start-color' : 'border-block-start-color')).slice(0, 3);
+
+function report() {
+  // 3 · contraste del texto
+  const lab = [...document.querySelectorAll('.gdiv__label')].map((s) => ratio(rgb(getComputedStyle(s).color).slice(0, 3), bgOf(s)));
+  document.getElementById('label-ratio').textContent = 'Contraste del texto (kit): ' + lab.map((r) => r.toFixed(2) + ':1').join(' · ') + ' (mínimo 4.5:1)';
+  // 4 · geometría del inset
+  const nav = document.querySelector('#navlist .gdiv'), navA = document.querySelector('#navlist a'), txt = navA.lastChild;
+  const rng = document.createRange(); rng.selectNodeContents(txt);
+  document.getElementById('nav-geom').textContent = 'Inicio de la línea: ' + Math.round(nav.getBoundingClientRect().left) + 'px · inicio del texto: ' + Math.round(rng.getBoundingClientRect().left) + 'px';
+  // 5 · altura vertical vs fila
+  document.getElementById('v-geom').textContent = ['row-md', 'row-lg', 'row-bar'].map((id) => { const r = document.getElementById(id), d = r.querySelector('.gdiv'), b = r.querySelector('button'); return id + ': divider ' + Math.round(d.getBoundingClientRect().height) + 'px · botón ' + Math.round(b.getBoundingClientRect().height) + 'px'; }).join(' | ');
+  // 6 · contraste de la línea
+  document.getElementById('emph-ratio').textContent = [...document.querySelectorAll('#emph-grid .gdiv')].map((d) => (d.closest('.sunken') ? 'hundida ' : 'superficie ') + (d.classList.contains('gdiv--emphasis-strong') ? 'strong ' : 'subtle ') + ratio(lineColor(d), bgOf(d.parentElement)).toFixed(2) + ':1').join('\n') + '\n→ strong ≥ 3:1 en ambas; subtle solo refuerza (no es la única señal).';
+  // 8 · tabla del árbol
+  document.querySelector('#ax-table tbody').innerHTML = [...document.querySelectorAll('[data-ax] .gdiv, [data-ax].gdiv')].map((d) => '<tr><td>' + esc(d.closest('[data-ax]').dataset.ax) + '</td><td>' + esc(variantOf(d)) + '</td><td>' + esc(axOf(d)) + '</td></tr>').join('');
+  // 9 · RTL
+  const rn = document.querySelector('#navlist-rtl .gdiv'), rl = document.getElementById('navlist-rtl');
+  const g = rn.getBoundingClientRect(), h = rl.getBoundingClientRect();
+  document.getElementById('rtl-geom').textContent = 'RTL · hueco del inset a la derecha: ' + Math.round(h.right - g.right) + 'px · a la izquierda: ' + Math.round(g.left - h.left) + 'px · vertical: ' + Math.round(document.querySelector('#row-rtl .gdiv').getBoundingClientRect().height) + 'px';
+}
+
+/* ===== Avisos de montaje (sección 10) ===== */
+document.querySelectorAll('[data-misuse] .gdiv, [data-misuse] > .gdiv').forEach(mountChecks);
+document.querySelectorAll('[data-ax] .gdiv').forEach(mountChecks);
+document.getElementById('warnlog').textContent = WARN.join('\n') || '(sin avisos)';
+
+/* ===== Banco ===== */
+const B = (id) => document.getElementById(id);
+function bench() {
+  const o = { orientation: B('b-or').value, label: B('b-label').value, inset: B('b-inset').value, emphasis: B('b-emph').value, decorative: B('b-deco').checked };
+  const before = WARN.length;
+  const html = divider(o);
+  const host = B('b-host'); host.dir = B('b-dir').value;
+  host.innerHTML = o.orientation === 'vertical'
+    ? '<div class="preview-v"><button class="wf-btn" type="button">Antes</button>' + html + '<button class="wf-btn" type="button">Después</button></div>'
+    : '<div class="preview-h"><p style="margin:0">Bloque anterior</p>' + html + '<p style="margin:0">Bloque siguiente</p></div>';
+  const el = host.querySelector('.gdiv');
+  B('b-markup').textContent = html;
+  B('b-ax').textContent = 'Árbol: ' + axOf(el);
+  const w = WARN.splice(before);
+  B('b-warn').innerHTML = w.length ? '<pre class="warnlog">' + esc(w.join('\n')) + '</pre>' : '';
+}
+['b-or', 'b-label', 'b-inset', 'b-emph', 'b-deco', 'b-dir'].forEach((id) => B(id).addEventListener('input', bench));
+B('nav-density').addEventListener('change', (e) => { B('navlist').dataset.density = e.target.value; report(); });
+bench(); report();
+addEventListener('resize', report);
+</script>
+</body>
+</html>
