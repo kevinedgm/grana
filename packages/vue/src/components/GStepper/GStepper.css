@@ -8,6 +8,14 @@
   siempre es vertical y numerada, sea cual sea el indicador de la raíz.
 */
 
+/* Avance pintado del conector, del segmento y de la barra. Registrada para que el llenado se interpole
+   (un gradiente no se anima con transition). Privada: el nombre lleva el componente porque @property es global */
+@property --_stepper-fill {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
 /* ---------- Esqueleto ---------- */
 .g-stepper {
   /* Color (se reasigna por modificador --color-*) */
@@ -30,6 +38,7 @@
   --_gap: calc(var(--g-space-2) * var(--_density));
   --_conn: calc(var(--g-space-1) * 6); /* conector mínimo visible: nunca un guion */
   --_angle: 90deg;
+  --_t-slow: calc(var(--g-duration-press) * 1.5); /* 240ms con los valores por defecto (como GSidebar) */
 
   box-sizing: border-box;
   min-inline-size: 0;
@@ -216,6 +225,8 @@ button.g-stepper__hit:focus-visible {
 
 /* ---------- Conector ---------- */
 .g-stepper__connector {
+  --_stepper-fill: 0%;
+  --_fill-angle: var(--_angle);
   flex: 1 1 auto;
   align-self: flex-start;
   min-inline-size: var(--_conn);
@@ -224,15 +235,13 @@ button.g-stepper__hit:focus-visible {
   margin-inline: var(--_gap);
   border-radius: var(--g-radius-pill);
   /* La pista pendiente usa border-strong: con border (decorativo) casi no se ve en oscuro y el tramo hecho
-     del conector saliente parecía un trazo suelto cuando el conector está en su mínimo */
-  background: var(--g-color-border-strong);
+     del conector saliente parecía un trazo suelto cuando el conector está en su mínimo.
+     Siempre el mismo gradiente: solo se mueve la parada (--_stepper-fill), que sí se interpola */
+  background: linear-gradient(var(--_fill-angle), var(--_base) var(--_stepper-fill), var(--g-color-border-strong) var(--_stepper-fill));
 }
-.g-stepper__connector.is-done { background: var(--_base); }
-.g-stepper__connector.is-toward {
-  /* Tramo hecho: 35 % del conector, nunca menos de la mitad del mínimo (legible con el conector en su mínimo) */
-  --_toward: max(35%, var(--_conn) / 2);
-  background: linear-gradient(var(--_angle), var(--_base) var(--_toward), var(--g-color-border-strong) var(--_toward));
-}
+.g-stepper__connector.is-done { --_stepper-fill: 100%; }
+/* Tramo hecho: 35 % del conector, nunca menos de la mitad del mínimo (legible con el conector en su mínimo) */
+.g-stepper__connector.is-toward { --_stepper-fill: max(35%, var(--_conn) / 2); }
 
 /* ---------- Adaptación (tramos medidos por el .vue con los anchos naturales) ----------
    completo → condensado (sin descripciones) → solo el actual con texto → compacto */
@@ -345,7 +354,8 @@ button.g-stepper__hit:focus-visible {
   block-size: calc(var(--g-space-1) * 1.5);
   border: 0;
   border-radius: 0;
-  background: var(--g-color-border-control);
+  --_stepper-fill: 0%;
+  background: linear-gradient(var(--_angle), var(--_base) var(--_stepper-fill), var(--g-color-border-control) var(--_stepper-fill));
   box-shadow: none;
   font-size: 0;
 }
@@ -358,10 +368,8 @@ button.g-stepper__hit:focus-visible {
   border-start-end-radius: var(--g-radius-pill);
   border-end-end-radius: var(--g-radius-pill);
 }
-.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator { background: var(--_base); }
-.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator {
-  background: linear-gradient(var(--_angle), var(--_base) 50%, var(--g-color-border-control) 50%);
-}
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator { --_stepper-fill: 100%; }
+.g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator { --_stepper-fill: 50%; }
 /* Tramas distintas para error y advertencia (no dependen del tono) */
 .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__step.is-error .g-stepper__indicator {
   background: repeating-linear-gradient(45deg, var(--g-color-danger) 0 var(--g-space-1), var(--g-color-surface) 0 calc(var(--g-space-1) * 1.5));
@@ -397,9 +405,7 @@ button.g-stepper__hit:focus-visible {
   min-inline-size: 0;
   margin: 0;
   align-self: auto;
-}
-:is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__connector.is-toward {
-  background: linear-gradient(180deg, var(--_base) max(35%, var(--_conn) / 2), var(--g-color-border-strong) max(35%, var(--_conn) / 2));
+  --_fill-angle: 180deg;
 }
 .g-stepper__content {
   margin-inline-start: calc(var(--_ind) + var(--_gap));
@@ -439,12 +445,13 @@ button.g-stepper__hit:focus-visible {
 .g-stepper__bar-seg {
   flex: 1 1 0;
   block-size: var(--g-space-1);
-  background: var(--g-color-border);
+  --_stepper-fill: 0%;
+  background: linear-gradient(var(--_angle), var(--_base) var(--_stepper-fill), var(--g-color-border) var(--_stepper-fill));
 }
 .g-stepper__bar-seg:first-child { border-start-start-radius: var(--g-radius-pill); border-end-start-radius: var(--g-radius-pill); }
 .g-stepper__bar-seg:last-child { border-start-end-radius: var(--g-radius-pill); border-end-end-radius: var(--g-radius-pill); }
-.g-stepper__bar-seg.is-done { background: var(--_base); }
-.g-stepper__bar-seg.is-toward { background: linear-gradient(var(--_angle), var(--_base) 50%, var(--g-color-border) 50%); }
+.g-stepper__bar-seg.is-done { --_stepper-fill: 100%; }
+.g-stepper__bar-seg.is-toward { --_stepper-fill: 50%; }
 .g-stepper__toggle {
   display: inline-flex;
   align-items: center;
@@ -515,8 +522,9 @@ button.g-stepper__hit:focus-visible {
     transition: transform var(--g-duration-press) var(--g-ease-out);
   }
   .g-stepper__connector,
-  .g-stepper__bar-seg {
-    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  .g-stepper__bar-seg,
+  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator {
+    transition: --_stepper-fill var(--_t-slow) var(--g-ease-standard);
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,6 @@
 # 003 — Llenado continuo del conector, del segmento y de la barra de GStepper
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GStepper.css`). Sin tokens nuevos (lima no interviene) y sin cambios en el `.vue` (bruno no interviene).
 - **Commit**: 49ad85b
 - **Severity**: HIGH
@@ -235,3 +235,7 @@ Nota de contrato: `design/contracts/stepper.md:209` dice «Sin animación de pro
 - **Movimiento reducido** (`reducedMotion: 'reduce'` en el contexto): `c.getAnimations()` vacío; el conector cambia sin un solo cuadro transparente.
 - **Feel check**: en DevTools > Animations al 10 %, «Siguiente»: el tramo hecho del conector saliente se alarga hasta el siguiente indicador mientras el siguiente conector arranca su 35 %, sin un cuadro vacío. Pulsa «Siguiente» y «Anterior» muy seguido: el llenado se da la vuelta desde donde está (transición, no keyframes). En pendiente, con zoom al 400 %, no asoma ningún píxel del color base en el extremo inicial.
 - **Done when**: los tres tipos de llenado se interpolan en los tres navegadores sin parpadeo, sin layout, con 240 ms y `--g-ease-standard`, y saltan (sin parpadeo) con movimiento reducido.
+
+## Nota de ejecución
+
+Ejecutado sin desviaciones. Verificado en Chromium, Firefox y WebKit: una animación por conector (`--_stepper-fill`, 240 ms), `background-image` nunca `none`, sin animaciones con movimiento reducido. Vitest 1178 verdes, build y compuertas OK.
