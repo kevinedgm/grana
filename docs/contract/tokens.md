@@ -539,3 +539,19 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 **Reservados para la Fase 3** (se nombrarán con su contrato): barra del bloque condicional (`GFormReveal`) y ancho de la navegación de secciones (`GFormNav`).
 
 **Pendiente no bloqueante:** el CLI no emite `--g-form-*`; los temas de usuario usan los valores de `defaults.css`.
+
+## 22. Divider (`--g-divider-inset`)
+
+**Token de componente de `GDivider`** (`design/contracts/divider.md`, DECISIONS.md #191). Se agrega porque la **cantidad** que acorta la línea con `inset="both"` o `inset="start"` depende de la **anfitriona** (relleno, icono y densidad de una lista, relleno de una barra), que el divider no conoce, y se usa en CSS; ninguna prop ni token existente lo expresa sin repetir la medida en cada instancia (patrón de `--g-tabs-inset`, §18, #120). Sin valor aquí.
+
+| Token | Para qué | Regla |
+| --- | --- | --- |
+| `--g-divider-inset` | Cuánto se acorta la línea por cada extremo con `inset="both"` y por el inicio con `inset="start"`, en ambas orientaciones | Valor por defecto en `defaults.css` (capa `grana.defaults`) **en `:root`**, derivado de `space` (lo fija coco). **Se hereda**: una anfitriona lo redefine en su propio elemento y gana por cercanía; `GDivider.css` solo lo lee (no lo declara). No es de color: no se redeclara en el oscuro (§15). No se multiplica por densidad: si la cantidad depende de la densidad, la anfitriona la calcula con la suya |
+
+**Diferencia con `--g-tabs-inset`:** aquel vale `0px` sin anfitriona (una cabecera de pestañas no se sangra por defecto); este necesita un valor visible por defecto, porque `inset="both"` pedido sin anfitriona que lo defina debe acortar la línea.
+
+**No son tokens** (§17.6): el tono de la línea (`subtle` = `--g-color-border`; `strong` = `--g-color-border-control`, ≥ 3:1, #89), el grosor (`--g-border-width`), el texto (`--g-text-body-sm-*` en `--g-color-text-muted`), y la separación texto ↔ línea y el mínimo de cada línea (alias locales de coco derivados de `space`).
+
+**Límite:** como `--g-tabs-inset`, se resuelve por herencia y no en `:root` solamente (§10): una anfitriona que lo redefine afecta a todos los `GDivider` que contiene, también a los de un componente anidado que no lo redefina.
+
+**Pendiente no bloqueante:** el CLI no emite `--g-divider-inset`; los temas de usuario usan el valor de `defaults.css`.

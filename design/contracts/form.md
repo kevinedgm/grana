@@ -29,7 +29,7 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 | Necesidad | Usar | No usar |
 | --- | --- | --- |
 | Formulario corto (≤ ~6 campos, una idea) | `GForm` + `GFormLayout` (+ `GFormRow` donde haya campos que van juntos), sin secciones ni resumen | Secciones de un campo |
-| Varias ideas en una página | `GFormSection` (fija) por idea, con un `GFormLayout` dentro | Tarjetas por sección; acordeón para lo obligatorio |
+| Varias ideas en una página | `GFormSection` (fija) por idea, con un `GFormLayout` dentro; separadas por espacio y título | Tarjetas por sección; acordeón para lo obligatorio; `GDivider` entre secciones (#192, §3) |
 | Campos distintos que van juntos (Nombre · Apellido; Calle · Ext. · Int.; signos vitales) | **`GFormRow`** con `g-form-w-*` en cada hijo | Anchos sueltos que dejan huecos; `GFieldGroup` (no son una pregunta) |
 | **Un dato en varias partes que se lee como uno** (teléfono país + número; valor + unidad; moneda + importe; serie + folio; rango) | **`GInputGroup`** (una caja, una etiqueta, §13) | `GFieldGroup` con etiqueta por parte (las etiquetas de parte bajaban las cajas) |
 | **Una pregunta compuesta cuyas partes necesitan su propia etiqueta** (contacto de emergencia: Nombre · Parentesco · Teléfono; fecha en Día · Mes · Año) | `GFieldGroup`, **siempre en su propia fila** (§5) | `GInputGroup` (sus partes no tienen etiqueta visible) |
@@ -257,7 +257,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 | `headingLevel` | Number | 2 a 6 | el de `GForm` (3) | propia |
 | `optional` | Boolean | | `false` | propia |
 
-**Reservadas para la Fase 3** (no se aceptan en la Fase 1; un uso avisa en desarrollo): `mode` (`static` · `collapsible` · `addable`), `open`/`v-model:open`, `added`/`v-model:added`, `headerPlacement` (`top` · `auto`), `labels` (`add`, `remove`).
+**Reservadas para la Fase 3** (no se aceptan en la Fase 1; un uso avisa en desarrollo): `mode` (`static` · `collapsible` · `addable`), `open`/`v-model:open`, `added`/`v-model:added`, `headerPlacement` (`top` · `auto`), `labels` (`add`, `remove`), **`divider`** (Boolean; línea entre secciones, #192: ver «Separación entre secciones»).
 
 - **`title`:** obligatorio en la práctica: sin `title` ni slot `title` avisa en desarrollo.
 - **`optional`:** insignia `GBadge` con texto `labels.sectionOptional` de `GForm` (texto, no color), `size="sm"`, `variant="soft"`, `color="neutral"`; y suprime el «(opcional)» de sus campos.
@@ -297,6 +297,24 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 ### Clases
 
 `g-form-section`, `g-form-section--optional`, `__header`, `__heading`, `__title`, `__description`, `__actions`, `__help`, `__body`. Separación entre secciones consecutivas: `--g-form-section-gap` × densidad (§9).
+
+### Separación entre secciones: espacio, no línea (#192)
+
+**En la Fase 1 dos secciones se separan solo por espacio** (`--g-form-section-gap` × densidad) y por su título. **No se reabre**: `GFormSection` **no** ofrece una línea en la Fase 1; la línea queda **reservada para la Fase 3** con la prop `divider` (arriba) y las reglas de abajo.
+
+**Por qué:** cada sección lleva título (`hN`; sin él avisa), así que la separación ya la dan título y aire, que es exactamente el caso en que la regla de producto de `GDivider` dice que no hace falta una línea «por instinto» (`divider.md`). Una prop en la Fase 1 invitaría a ese uso sistemático y no aportaría estructura (la línea sería decorativa por definición). En la Fase 3 sí aporta: las cabeceras de las secciones **plegadas** no tienen cuerpo que dé aire y la línea entre cabeceras es el patrón de acordeón. Origen del matiz: el brief y kiwi r01 decían «divisores solo cuando ayuden»; r02 §5.3 y el estilo de coco los quitaron; esta decisión sitúa el «cuando ayuden» en la Fase 3.
+
+**`GDivider` a mano entre dos secciones (Fase 1): no.** Rompe el ritmo en los dos contextos (medido por kiwi con el CSS real y el tema por defecto, `design/lab/divider/r01/declaracion.md`, «Para lima»): dentro de `GForm`, **81px** en lugar de 40 (el `gap` del formulario se aplica a los dos lados del divider); fuera de `GForm`, **1px** (la regla `:not(.g-form) > .g-form-section + .g-form-section` deja de cumplirse porque la hermana anterior ya no es una sección). **Aviso de desarrollo** en `GFormSection` (`[Grana GFormSection]`, una vez, en `onMounted`): si su hermano anterior inmediato es un `.g-divider` y el anterior a este una `.g-form-section`: «entre secciones la separación es el espacio; la línea entre secciones llegará con la Fase 3 (divider)». No cambia nada de lo que se pinta.
+
+**Reglas reservadas para `divider` en la Fase 3** (el contrato de la Fase 3 las concreta; no se reabren sin motivo nuevo):
+
+1. **Prop de `GFormSection`** (no de `GForm`): las secciones viven dentro y fuera de `GForm` (cuerpo de un diálogo, panel de pestañas). Default `false`.
+2. **Dibuja un `GDivider decorative`** (sin rol): cada sección ya tiene su `hN` (WCAG 1.3.1, 2.4.6; `divider.md`, «Semántica»), `emphasis="subtle"` (no es la única señal: no se le exige 3:1, #89), `inset="none"`.
+3. **Lo renderiza la propia sección, dentro de su `<section>`**, antes de `__header`: no añade un hijo a `GForm` (el `gap` no se duplica) ni se interpone entre dos secciones hermanas (la regla del `+` fuera de `GForm` sigue cumpliéndose).
+4. **La línea vive dentro del hueco, no lo amplía:** la distancia entre el final de la sección anterior y el inicio del encabezado de la sección con `divider` sigue siendo `--g-form-section-gap` × densidad (±1px), con la línea **centrada** en ese hueco (±1px), dentro y fuera de `GForm` y en las tres densidades. El mecanismo es de coco.
+5. **Sin línea** en la primera sección de su contenedor (no hay nada antes que separar) ni entre la última sección y `GFormActions` (el pie fijo ya tiene la suya).
+
+**Qué NO cambia de lo ya construido** (lista de kiwi, confirmada): `<section>` sin `aria-labelledby`, títulos `hN` con `headingLevel`, `optional` y su insignia (#161); el valor y el significado de `--g-form-section-gap`; `GFormLayout`, `GFormRow`, el reparto en líneas (#175) y la prueba obligatoria de distribución (#184); `GErrorSummary`, `GFormActions` y la línea de su pie fijo; la convención de obligatorios; el aspecto de todos los formularios existentes, el playground y la auditoría r02. Lo único nuevo en la Fase 1 es **para bruno**: `divider` en la lista de reservadas de `GFormSection.vue` y el aviso del divider a mano, con sus pruebas. Nada para coco.
 
 ---
 
@@ -765,6 +783,7 @@ Además, densidades `comfortable` y `compact` y `pointer: coarse` en Chromium (l
 - **`GInputGroup`** (§13): `role="group"` con nombre; `label for` → principal; nombre de cada parte = etiqueta + nombre de la parte (`getByRole(…, { name, exact: true })`); `aria-describedby` de cada parte (textos no decorativos, ayuda, mensaje) en ese orden; `aria-invalid` solo en la parte que falla (todas con error del grupo); `autocomplete` por parte; `required` propagado y anulable; solo lectura del selector como texto + oculto con el valor; `FormData` con un valor por parte; momento de errores del grupo (#170 (5)); resumen → parte inválida; avisos.
 - **`output`** (C14): región siempre presente y vacía sin nodos de texto; en `aria-describedby` solo con texto y en su orden; no aparece en `FormData`.
 - **`GErrorSummary`:** `role="alert"` interior, `tabindex="-1"`, foco una vez por envío; enlaces `href` reales; `navigate` cancelable; etiqueta a la vista y foco con `preventScroll`; elementos salen al corregir; oculto sin errores; `labels.title` String y Function.
+- **`GFormSection` (#192):** `divider` avisa como las demás reservadas y no llega a `<section>`; el aviso del `GDivider` a mano entre dos secciones sale una vez, dentro y fuera de `GForm`, y no sale con un divider antes de la primera sección ni entre una sección y otro hijo.
 - **`GFormActions`:** `role="status"` presente vacío; apilado bajo `space × 104` con la primaria sola arriba y las demás compartiendo línea si caben (#185); `--g-form-actions-size` en el `<form>`; Tab por todos los controles de un formulario largo sin ninguno tapado (con y sin respaldo JS); avisos de primaria.
 - **Orden de manejadores** en los seis campos; **`GInput` `prefix`/`suffix`** en `aria-describedby` (con y sin `*Label`).
 - `check-icons.mjs` y `levels.test.js` sin infracciones (incluidas las excepciones de `--g-form-actions-size` y `--g-form-min`).
@@ -926,7 +945,7 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | Fase | Contenido | Motivo de diferirlo |
 | --- | --- | --- |
 | **2 · Campos imprescindibles** | **`GRadioGroup`/`GRadio`** (`appearance` `list` `inline` `segmented` `chips` `cards`; `fieldset`/`legend`; radios nativos; relación con `GCard selectType="radio"`, #124) y **`GNumberField`** (`<input type="text" inputmode>`, `min` `max` `step` `precision` `locale`, prefijo/sufijo de C13, −/+ opcionales con `minus`/`plus`), **sin moneda** (#154). **Requisitos de r02** (#181): `GRadioGroup appearance="segmented"` usa raíz **`role="radiogroup"` + `aria-labelledby`** hacia una etiqueta visible (no `fieldset`/`legend`) y la estructura de tres hijos (C12), para poder compartir línea en una `GFormRow` (patrón APG *Radio Group*; radios nativos, una parada de Tab y flechas); las demás apariencias siguen con `fieldset`/`legend` y van en su propia fila. **Partes nuevas de `GInputGroup`:** `GSelect` como parte (opciones ricas, búsqueda; sin autocompletado) y `GNumberField` como parte. (`GFieldGroup joined` se retira: es `GInputGroup`, §13) | Sin ellos no hay Sí/No ni campos numéricos; cada uno merece su contrato y su verificación |
-| **3 · Divulgación y navegación** | `GFormSection` `mode` `collapsible` (`aria-expanded`, cerrada `inert` pero se envía y valida; el resumen la abre) y `addable` («Agregar…»/«Quitar», foco al título con `tabindex="-1"`); `headerPlacement="auto"` (≥ `space × 200`); **`GFormReveal`** (`when`, `exclude`, `keepValues`, `indent`; `grid-template-rows` sin saltos; `inert` + deshabilitado al cerrar); **`GFormNav`** (`<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`); tokens de la barra de condicional y del ancho de la navegación | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
+| **3 · Divulgación y navegación** | `GFormSection` `mode` `collapsible` (`aria-expanded`, cerrada `inert` pero se envía y valida; el resumen la abre); `GFormSection` **`divider`** (línea decorativa opcional dentro de `--g-form-section-gap`, reglas reservadas en §3, #192) y `addable` («Agregar…»/«Quitar», foco al título con `tabindex="-1"`); `headerPlacement="auto"` (≥ `space × 200`); **`GFormReveal`** (`when`, `exclude`, `keepValues`, `indent`; `grid-template-rows` sin saltos; `inert` + deshabilitado al cerrar); **`GFormNav`** (`<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`); tokens de la barra de condicional y del ancho de la navegación | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
 | **4 · Estado y guardado** | `GFormStatus` (autoguardado: Guardando/Guardado/Error + Reintentar, revertir); `guard` (`beforeunload` con `dirty`); integración documentada con `GDialog` (cancelar `dismiss` con cambios, confirmación en el pie), `GStepper` (un `GForm` por paso, `status` por paso) y `GTabs` (`status: attention` con conteo); `GWidgetConfig` compone `GErrorSummary` | Depende de la Fase 1 y de los contratos vigentes de esos componentes |
 | **5 · Rondas propias de kiwi** | `GCombobox` (prioridad alta), `GFileField`, `GTimeField`, **moneda** (#154), teléfono dedicado, búsqueda de dirección | Cada uno es un componente con su propio patrón APG y sus preguntas |
 
