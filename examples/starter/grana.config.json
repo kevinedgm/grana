@@ -1,0 +1,12 @@
+{
+  "name": "Starter",
+  "brand": "#7A1F5C",
+  "accent": "#0F766E",
+  "radius": 12,
+  "space": 4,
+  "font": "Instrument Sans",
+  "fontDisplay": "Instrument Serif",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "dark": true
+}
