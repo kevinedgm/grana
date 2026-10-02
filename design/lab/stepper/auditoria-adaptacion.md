@@ -90,3 +90,7 @@ Mismas cinco ejecuciones × tres navegadores (`final.txt`, capturas en `final/`)
 - Lector de pantalla real (la estructura accesible no cambia: el texto oculto es el mismo patrón que `__status`).
 - `forced-colors` y movimiento reducido: sin cambios en este paso (no se tocaron sus reglas).
 - Contraste: sin cambios de color; vale la auditoría de `auditoria.md`.
+
+## Seguimiento: conector saliente del paso actual
+
+En la variante `dot` (conectores en su mínimo, `space × 6`) el conector que sale del paso actual parecía «corto»: medía lo mismo que los demás, pero solo pintaba el 35 % (≈ 8px) y la pista pendiente usaba `--g-color-border`, que en oscuro es casi invisible. Corregido en `GStepper.css`: la pista pendiente de los conectores pasa a `--g-color-border-strong` y el tramo hecho mide `max(35%, var(--_conn) / 2)` (12px en el mínimo), también en vertical y compacto. 1178 pruebas, build, compuertas y theme-playground (143 / 1 omitida) bien.

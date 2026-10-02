@@ -223,11 +223,15 @@ button.g-stepper__hit:focus-visible {
   margin-block-start: calc(var(--_pad) + var(--_off) + (var(--_ind) - var(--_line)) / 2);
   margin-inline: var(--_gap);
   border-radius: var(--g-radius-pill);
-  background: var(--g-color-border);
+  /* La pista pendiente usa border-strong: con border (decorativo) casi no se ve en oscuro y el tramo hecho
+     del conector saliente parecía un trazo suelto cuando el conector está en su mínimo */
+  background: var(--g-color-border-strong);
 }
 .g-stepper__connector.is-done { background: var(--_base); }
 .g-stepper__connector.is-toward {
-  background: linear-gradient(var(--_angle), var(--_base) 35%, var(--g-color-border) 35%);
+  /* Tramo hecho: 35 % del conector, nunca menos de la mitad del mínimo (legible con el conector en su mínimo) */
+  --_toward: max(35%, var(--_conn) / 2);
+  background: linear-gradient(var(--_angle), var(--_base) var(--_toward), var(--g-color-border-strong) var(--_toward));
 }
 
 /* ---------- Adaptación (tramos medidos por el .vue con los anchos naturales) ----------
@@ -395,7 +399,7 @@ button.g-stepper__hit:focus-visible {
   align-self: auto;
 }
 :is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__connector.is-toward {
-  background: linear-gradient(180deg, var(--_base) 35%, var(--g-color-border) 35%);
+  background: linear-gradient(180deg, var(--_base) max(35%, var(--_conn) / 2), var(--g-color-border-strong) max(35%, var(--_conn) / 2));
 }
 .g-stepper__content {
   margin-inline-start: calc(var(--_ind) + var(--_gap));
