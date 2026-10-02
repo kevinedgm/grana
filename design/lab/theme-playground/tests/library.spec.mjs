@@ -271,6 +271,9 @@ test.describe('playground de la librería', () => {
     const errors = []
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
+    // Sin desplazamiento suave (html { scroll-behavior: smooth } del playground): con carga, WebKit seguía desplazando tras
+    // enfocar el resumen y el clic en su enlace caía en otro sitio
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await ready(page)
     // Filas por ancho propio (no por el visor), form.md §4: Calle · Ext. · Int. en una línea a 960 y Calle sola a 360
     const recipe = page.locator('#fm-recipe')

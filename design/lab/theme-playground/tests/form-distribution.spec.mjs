@@ -59,6 +59,7 @@ async function watchConsole(page) {
   return errs
 }
 async function open(page, width) {
+  await page.emulateMedia({ reducedMotion: 'reduce' }) // sin desplazamiento suave del playground: medidas estables
   await page.setViewportSize({ width, height: 900 })
   await page.goto(PAGE)
   await page.waitForSelector('#sec-form .g-form-row[data-lines]')

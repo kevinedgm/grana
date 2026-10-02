@@ -185,6 +185,8 @@ describe('GInputGroup · estados', () => {
     expect(ro.attributes('type')).toBe('text')
     expect(ro.attributes('readonly')).toBeDefined()
     expect(ro.element.value).toBe('MX +52')
+    // como el <select>, la parte mide su contenido: size = caracteres del texto elegido
+    expect(ro.attributes('size')).toBe('6')
     expect(ro.attributes('name')).toBeUndefined()
     expect(accName(ro.element)).toBe('T País')
     const hidden = w.find('input[type="hidden"]')
