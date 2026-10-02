@@ -15,6 +15,9 @@
     ".": {
       "import": "./dist/grana.js"
     },
+    "./speech": {
+      "import": "./dist/speech.js"
+    },
     "./testing": {
       "import": "./dist/testing.js"
     },
@@ -25,7 +28,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs",
+    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs",
     "test": "vitest run",
     "icons": "node scripts/build-icons.mjs"
   },

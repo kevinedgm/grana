@@ -5,11 +5,12 @@
   "status": "draft",
   "since": "0.1.0",
   "description": "Captura de voz y transcripción como servicio por aplicación: la aplicación crea su gestor (createSpeech, también plugin de Vue) con un adaptador del motor (Grana no hace red), monta UN <GSpeechHost /> y coloca disparadores (GSpeechTrigger) y, si quiere, una pill (GSpeechPill). El anfitrión pinta los dos únicos canales que anuncian (presentes desde el montaje), la pill flotante de respaldo (garantía de una pill visible y operable), el panel no modal anclado a la pill visible y la hoja móvil; se traslada al <dialog> modal superior; Mayús+F8 va y vuelve. Sin anfitrión montado no se abre el micrófono.",
+  "entry": "@grana/vue/speech → dist/speech.js (ES) y dist/speech.umd.js (global GranaSpeech; requiere Vue y Grana). No está en @grana/vue (#238): app.use(speech) lo registra; lo compartido con el paquete principal (GBtn, GIcon, topModal, reservas de borde, canales) llega de @grana/vue sin copia",
   "contract": "design/contracts/speech.md",
   "prototype": "design/lab/speech/r01/",
   "style": "packages/vue/src/components/GSpeechHost/GSpeechHost.css",
   "exports": [
-    { "name": "createSpeech", "signature": "createSpeech(options) → Speech", "purpose": "Crea el gestor de la aplicación; es plugin (app.use(speech) hace provide(speechKey, speech)). Importarlo y llamarlo no toca document, window, navigator, matchMedia ni AudioContext (SSR)" },
+    { "name": "createSpeech", "signature": "createSpeech(options) → Speech", "purpose": "import { createSpeech } from '@grana/vue/speech'. Crea el gestor de la aplicación; es plugin (app.use(speech) hace provide(speechKey, speech) y registra GSpeechHost, GSpeechPill y GSpeechTrigger si no lo estaban; el install de Grana ya no los registra). Importarlo y llamarlo no toca document, window, navigator, matchMedia ni AudioContext (SSR)" },
     { "name": "useSpeech", "signature": "useSpeech() → Speech | undefined", "purpose": "Inyecta el gestor provisto; sin gestor o fuera de setup: aviso en desarrollo y undefined" },
     { "name": "speechKey", "signature": "InjectionKey (Symbol)", "purpose": "provide manual (pruebas, microfrontends)" },
     { "name": "GSpeechHost", "signature": "<GSpeechHost :speech? />", "purpose": "Anfitrión (uno por gestor; el segundo no pinta nada y avisa)" },
@@ -53,7 +54,7 @@
     { "name": "configure", "signature": "configure(patch)", "purpose": "fusión superficial (labels y offset por clave); adapter y allowRemote para la siguiente sesión" },
     { "name": "state", "signature": "propiedad de solo lectura (reactiva)", "purpose": "status, sessionId, mode, target, permission, capture, voice, signal, duration, pending, engine, attempt, error, issues, transcript, result, consent, expectedSpeakers, panelOpen, activityHidden" },
     { "name": "capabilities", "signature": "propiedad de solo lectura", "purpose": "las del adaptador, normalizadas (null si no son válidas)" },
-    { "name": "install", "signature": "install(app)" }
+    { "name": "install", "signature": "install(app)", "purpose": "provide(speechKey, speech) y registro global de GSpeechHost, GSpeechPill y GSpeechTrigger (sin pisar uno ya registrado)" }
   ],
   "props": [
     { "name": "speech", "type": "Object", "default": null, "values": "gestor de createSpeech; por defecto, el inyectado" }

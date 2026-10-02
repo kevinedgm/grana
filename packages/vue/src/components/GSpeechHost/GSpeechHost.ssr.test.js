@@ -1,5 +1,5 @@
 // @vitest-environment node
-// SSR (speech.md §16): importar @grana/vue y crear el gestor no toca document, window, navigator, matchMedia ni
+// SSR (speech.md §16): importar @grana/vue o @grana/vue/speech y crear el gestor no toca document, window, navigator, matchMedia ni
 // AudioContext; en el servidor GSpeechHost no pinta nada, GSpeechPill pinta su raíz oculta y GSpeechTrigger su botón en
 // idle; los métodos devuelven false sin efectos. Dos aplicaciones con dos gestores no comparten estado.
 import { describe, it, expect, vi } from 'vitest'
@@ -22,7 +22,8 @@ describe('captura de voz · SSR (entorno node)', () => {
       prev[k] = Object.getOwnPropertyDescriptor(globalThis, k)
       Object.defineProperty(globalThis, k, { configurable: true, get() { touched.push(k); return undefined } })
     }
-    const { createSpeech } = await import('../../index.js')
+    await import('../../index.js')
+    const { createSpeech } = await import('../../speech.js')
     const { createSimulatedSpeechAdapter } = await import('../../testing.js')
     const timer = vi.spyOn(globalThis, 'setTimeout')
     const interval = vi.spyOn(globalThis, 'setInterval')
@@ -45,7 +46,7 @@ describe('captura de voz · SSR (entorno node)', () => {
   })
 
   it('renderToString con dos apps y dos gestores: sin marcado del anfitrión, pill oculta, botón del disparador en idle', async () => {
-    const { createSpeech, GSpeechHost, GSpeechPill, GSpeechTrigger } = await import('../../index.js')
+    const { createSpeech, GSpeechHost, GSpeechPill, GSpeechTrigger } = await import('../../speech.js')
     const { createSimulatedSpeechAdapter } = await import('../../testing.js')
     const render = async (label) => {
       const speech = createSpeech({ adapter: createSimulatedSpeechAdapter(), labels: LABELS })
