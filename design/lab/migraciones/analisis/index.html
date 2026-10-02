@@ -30,8 +30,6 @@
 </head>
 <body>
   <div id="app" class="pg">
-    <!-- La región de avisos va ANTES de los diálogos: después de ellos, al cerrar un diálogo Vue falla (insertBefore); ver notas.md -->
-    <g-toaster></g-toaster>
     <h1>Información de la muestra</h1>
     <p>Migración de prueba: el modal de Bootstrap reescrito con Grana. Formulario de captura bloqueado por defecto: se edita solo al activar «Permitir edición».</p>
     <div class="pg-ctl">
@@ -146,6 +144,8 @@
         <g-btn color="danger" id="descartar" @click="descartar">Descartar cambios</g-btn>
       </template>
     </g-dialog>
+
+    <g-toaster></g-toaster>
   </div>
 
   <script src="../../../../node_modules/vue/dist/vue.global.js"></script>

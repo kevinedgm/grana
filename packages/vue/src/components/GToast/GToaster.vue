@@ -232,9 +232,29 @@ function reopen() {
     try { el.showPopover() } catch { /* sin soporte o ya abierto */ }
   }
 }
+// Marcadores del Teleport (texto vacío antes y después de la raíz, puestos por Vue al montar). Al cambiar `to`, Vue 3.5
+// traslada el final y la raíz pero deja el inicio en el destino anterior; ese inicio apunta al final y Vue lo salta al
+// buscar el siguiente nodo de un hermano: si quedaba dentro de un <dialog>, GDialog insertaba ante un nodo que ya estaba
+// en body (insertBefore). Se capturan al montar y viajan con la raíz: inicio, raíz, final, como en un montaje nuevo.
+let markers = null
+watch(rootEl, (el) => {
+  const s = el && el.previousSibling
+  const e = el && el.nextSibling
+  const blank = (n) => Boolean(n && n.nodeType === 3 && n.data === '')
+  markers = blank(s) && blank(e) ? [s, e] : null
+}, { flush: 'post' })
+function keepMarkers() {
+  const el = rootEl.value
+  const parent = el && el.parentNode
+  if (!parent || !markers) return
+  const [s, e] = markers
+  if (el.previousSibling !== s) parent.insertBefore(s, el)
+  if (el.nextSibling !== e) parent.insertBefore(e, el.nextSibling)
+}
 let refocus = null
 watch(host, () => { refocus = focusInside(rootEl.value) ? document.activeElement : null }, { flush: 'pre' })
 watch(host, () => {
+  keepMarkers()
   reopen()
   if (refocus && refocus.isConnected) focusEl(refocus)
   refocus = null
@@ -463,6 +483,11 @@ onMounted(async () => {
   }
   syncHost()
   active.value = true
+  // El observador empieza ya: un <dialog> hermano posterior se abre en su propio onMounted, en este mismo ciclo
+  if (typeof MutationObserver !== 'undefined') {
+    observer = new MutationObserver(onMutations)
+    observer.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['open'] })
+  }
   await nextTick()
   reopen()
   measureMobile()
@@ -472,10 +497,6 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', onVisibility)
   document.addEventListener('focusin', onDocFocusin)
   window.addEventListener('resize', onResize)
-  if (typeof MutationObserver !== 'undefined') {
-    observer = new MutationObserver(onMutations)
-    observer.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['open'] })
-  }
 })
 let observer = null
 onBeforeUnmount(() => {

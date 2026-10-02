@@ -617,6 +617,76 @@ describe('GToaster · con un GDialog modal real', () => {
     expect(toaster.toasts[0]?.state ?? 'gone').not.toBe('visible')
   })
 
+  // Vue (3.5) deja el marcador de inicio del Teleport en el destino anterior al cambiar `to`; si la región se montó ya dentro
+  // del <dialog>, ese marcador hacía que GDialog insertara ante un nodo que ya estaba en body (insertBefore) al desmontar
+  // su contenido tras la salida (#152). Aquí, el diálogo abierto antes de montar la región y una salida de 120 ms.
+  function withDialogExit() {
+    const real = window.getComputedStyle
+    return vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real(el, p)
+      return el.tagName === 'DIALOG' ? Object.assign(Object.create(cs), { transitionDuration: '0.12s', transitionDelay: '0s' }) : cs
+    })
+  }
+  const HostOrder = (open, toasterFirst) => defineComponent({
+    setup() {
+      return () => {
+        const dlg = h(GDialog, { modelValue: open.value, 'onUpdate:modelValue': (v) => { open.value = v }, title: 'Editar', closeLabel: 'Cerrar' }, { default: () => h('input', { id: 'dlg-field' }) })
+        return h('div', toasterFirst ? [h(GToaster), dlg] : [dlg, h(GToaster)])
+      }
+    }
+  })
+  for (const toasterFirst of [false, true]) {
+    it(`montada con el diálogo ya abierto (${toasterFirst ? 'región antes' : 'región después'} del GDialog hermano): se cierra sin error, la región vuelve a body y el diálogo se puede reabrir`, async () => {
+      withDialogExit()
+      const errors = []
+      const toaster = createToaster({ labels: LABELS })
+      const open = ref(true)
+      const w = mount(HostOrder(open, toasterFirst), {
+        attachTo: document.body,
+        global: { plugins: [toaster], config: { errorHandler: (e) => { errors.push(e) } } }
+      })
+      wrappers.push(w)
+      await flush()
+      await flush()
+      const dlg = document.querySelector('dialog.g-dialog')
+      const r = root()
+      expect(dlg.hasAttribute('open')).toBe(true)
+      expect(r.parentElement).toBe(dlg)
+      toaster.success('Guardado')
+      await flush()
+      expect(dlg.querySelector('.g-toast')).not.toBeNull()
+      open.value = false
+      await flush()
+      await flush()
+      expect(r.parentElement).toBe(document.body)
+      // Salida (#152): el contenido sigue hasta que termina la transición
+      expect(dlg.querySelector('.g-dialog__header')).not.toBeNull()
+      vi.advanceTimersByTime(120)
+      await flush()
+      expect(errors).toEqual([])
+      expect(dlg.querySelector('.g-dialog__header')).toBeNull()
+      expect(root()).toBe(r)
+      expect(r.parentElement).toBe(document.body)
+      expect(r.hasAttribute('data-popover-open')).toBe(true)
+      expect(toasts()).toHaveLength(1)
+      // Segundo ciclo: abrir (la región entra), cerrar (vuelve) sin error y con el contenido del diálogo íntegro
+      open.value = true
+      await flush()
+      await flush()
+      expect(dlg.querySelector('.g-dialog__header')).not.toBeNull()
+      expect(r.parentElement).toBe(dlg)
+      open.value = false
+      await flush()
+      await flush()
+      vi.advanceTimersByTime(120)
+      await flush()
+      expect(errors).toEqual([])
+      expect(dlg.querySelector('.g-dialog__header')).toBeNull()
+      expect(r.parentElement).toBe(document.body)
+      expect(document.querySelectorAll('.g-toaster')).toHaveLength(1)
+    })
+  }
+
   it('Esc en un aviso dentro del modal no emite dismiss de GDialog ni lo cierra; Esc fuera de los avisos sí', async () => {
     const { toaster, open, w } = await setupDialog()
     open.value = true
