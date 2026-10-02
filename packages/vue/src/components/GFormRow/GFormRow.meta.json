@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "name": "GFormRow",
+  "tag": "g-form-row",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Fila de campos que van juntos: mide su ancho propio y los reparte en líneas contiguas en orden del DOM (menos líneas, la más holgada) que siempre llenan el ancho, con tres pistas compartidas por línea (etiqueta · caja · pie).",
+  "contract": "design/contracts/form.md",
+  "prototype": "design/lab/form/r02/",
+  "style": "packages/vue/src/components/GFormRow/GFormRow.css",
+  "props": [
+    {
+      "name": "keep",
+      "type": "Boolean",
+      "default": false,
+      "note": "La fila nunca se parte; si no caben los mínimos, ceden"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "note": "Por defecto la del contexto o default"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Campos (GInput, GTextarea, GSelect, GDatePicker no inline ni split, GInputGroup, campos propios con tres hijos) con clase g-form-w-xs|sm|md|lg"
+    }
+  ],
+  "classes": [
+    "g-form-row",
+    "g-form-row--keep",
+    "g-form-row--density-{d}",
+    "g-form-w-xs",
+    "g-form-w-sm",
+    "g-form-w-md",
+    "g-form-w-lg"
+  ],
+  "sizes": {
+    "xs": {
+      "weight": 2,
+      "min": "space × 20"
+    },
+    "sm": {
+      "weight": 3,
+      "min": "space × 32"
+    },
+    "md": {
+      "weight": 4,
+      "min": "space × 40"
+    },
+    "lg": {
+      "weight": 8,
+      "min": "space × 60"
+    }
+  },
+  "inputs": [
+    {
+      "name": "--g-form-min",
+      "type": "<number>",
+      "note": "Mínimo propio de un hijo en múltiplos de space (entrada pública, @property sin herencia)"
+    }
+  ],
+  "writes": {
+    "root": [
+      "--_form-row-columns",
+      "--_form-row-rows",
+      "data-lines"
+    ],
+    "children": [
+      "--_form-row-column",
+      "--_form-row-line",
+      "data-line"
+    ]
+  },
+  "reads": [
+    "--_form-row-gap",
+    "--g-form-min",
+    "--g-space-1"
+  ],
+  "tokens": [
+    "--g-form-gap",
+    "--g-form-column-gap",
+    "--g-space-1"
+  ],
+  "states": [
+    "sin medir (uno por línea)",
+    "medida (data-lines)",
+    "keep",
+    "stack"
+  ],
+  "warnings": [
+    "Más de 6 hijos",
+    "Hijo con order, dos clases g-form-w-* o una desconocida (g-form-w-full incluida)",
+    "Hijo no admitido en una fila con más hijos (GFieldGroup, GCheckboxGroup, GCheckbox, GSwitch, GDatePicker inline o split, GFormRow, GFormActions)",
+    "Fila de un solo hijo xs/sm",
+    "--g-form-min que no es un número positivo"
+  ],
+  "pending": []
+}

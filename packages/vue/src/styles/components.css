@@ -35,10 +35,13 @@
 @import url("../components/GPagination/GPagination.css");
 @import url("../components/GFilterBar/GFilterBar.css");
 @import url("../components/GTabs/GTabs.css");
-/* Sistema de formularios (form.md): después de los campos (GFormGrid.css define las pistas de subgrid que leen) */
+/* Sistema de formularios (form.md): después de los campos. GFormRow.css registra --g-form-min y --_form-row-gap
+   (@property) y da los valores neutros de colocación; cada campo coloca sus tres partes en las pistas de la fila */
 @import url("../components/GForm/GForm.css");
 @import url("../components/GFormSection/GFormSection.css");
-@import url("../components/GFormGrid/GFormGrid.css");
+@import url("../components/GFormLayout/GFormLayout.css");
+@import url("../components/GFormRow/GFormRow.css");
+@import url("../components/GInputGroup/GInputGroup.css");
 @import url("../components/GFieldGroup/GFieldGroup.css");
 @import url("../components/GFormActions/GFormActions.css");
 @import url("../components/GErrorSummary/GErrorSummary.css");

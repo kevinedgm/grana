@@ -50,7 +50,9 @@ const props = defineProps({
   labelStart: { type: String, default: undefined },
   labelEnd: { type: String, default: undefined },
   placeholderStart: { type: String, default: undefined },
-  placeholderEnd: { type: String, default: undefined }
+  placeholderEnd: { type: String, default: undefined },
+  // Valor calculado por la aplicación (form.md C14, #180): <output> tras la fecha, dentro de la caja; no se envía
+  output: { type: String, default: undefined }
 })
 
 // Solo estos eventos se declaran: el resto llega al botón del campo por $attrs.
@@ -63,6 +65,7 @@ const baseId = computed(() => props.id || `g-datepicker-${uid}`)
 const popId = computed(() => `${baseId.value}-pop`)
 const labelId = computed(() => `${baseId.value}-label`)
 const hintId = computed(() => `${baseId.value}-hint`)
+const outputId = computed(() => `${baseId.value}-output`)
 // Contexto de GForm (form.md §2). Con inline solo lee readonly y disabled (C1). Al elegir un valor completo llama a
 // notifyChange() (C9): revela al cambiar y marca sucio.
 const ff = useFormField({
@@ -619,6 +622,7 @@ const classes = computed(() => [
     'g-datepicker--block': ff.block.value,
     'g-datepicker--inline': props.inline,
     'g-datepicker--split': splitOn.value,
+    'g-datepicker--has-output': hasOutput.value,
     'is-open': isOpen.value,
     'is-disabled': isDisabled.value,
     'is-readonly': isReadonly.value,
@@ -633,8 +637,11 @@ const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 const activeSide = computed(() => (openedBy.value ? fieldEls.value.indexOf(openedBy.value) : -1))
 
+// El valor calculado (C14) solo existe en el modo campo de una caja (no inline, no split, sin slot trigger)
+const outputOn = computed(() => props.output !== undefined && !props.inline && !splitOn.value && !hasTriggerSlot.value)
+const hasOutput = computed(() => outputOn.value && Boolean(props.output))
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasOutput.value && outputId.value, hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 function fieldBindings(side) {
@@ -748,11 +755,14 @@ defineExpose({
           <button :ref="(el) => setFieldRef(el, 0)" v-bind="fieldBindings()" class="g-datepicker__field">
             <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon"><GIcon name="calendar" /></slot></span>
             <span :id="`${baseId}-value`" class="g-datepicker__value" :class="{ 'g-datepicker__value--placeholder': !fieldText }">{{ fieldText || placeholder }}</span>
+            <output v-if="outputOn" :id="outputId" class="g-datepicker__output" :for="baseId" aria-live="polite"><template v-if="output">{{ output }}</template></output>
           </button>
         </template>
         <input v-for="h in hiddenFields" :key="h.name" type="hidden" :name="h.name" :value="h.value" :disabled="isDisabled || undefined">
-        <div v-if="hasHint" :id="hintId" class="g-datepicker__hint"><slot name="hint">{{ hint }}</slot></div>
-        <div :id="ff.messageId.value" class="g-datepicker__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-datepicker__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-datepicker__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+        <div class="g-datepicker__support">
+          <div v-if="hasHint" :id="hintId" class="g-datepicker__hint"><slot name="hint">{{ hint }}</slot></div>
+          <div :id="ff.messageId.value" class="g-datepicker__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-datepicker__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-datepicker__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+        </div>
       </template>
     </template>
 

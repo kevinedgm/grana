@@ -206,6 +206,15 @@ describe('validateTheme · los dos esquemas', () => {
     expect(ids.every((i) => i.scheme === undefined)).toBe(true)
   })
 
+  it('solo lectura (#186): border-control ≥ 3:1 sobre neutral-soft también en el oscuro', () => {
+    expect(C(DARK['--g-color-border-control'], DARK['--g-color-neutral-soft'])).toBeGreaterThanOrEqual(3)
+    const r = buildTheme({ dark: { overrides: { '--g-color-neutral-soft': '#5A5A5A' } } })
+    expect(r.ok).toBe(false)
+    const e = r.issues.find((i) => i.id === 'border-control-readonly')
+    expect(e.scheme).toBe('dark')
+    expect(e.message.startsWith('[oscuro]')).toBe(true)
+  })
+
   it('el cristal del oscuro se valida contra el peor fondo (blanco)', () => {
     const r = buildTheme({ dark: { overrides: { '--g-glass-opacity': '0.56' } } })
     expect(r.ok).toBe(false)

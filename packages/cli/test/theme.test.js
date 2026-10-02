@@ -129,6 +129,17 @@ describe('validateTheme', () => {
     expect(errors({ overrides: { '--g-color-border-control': '#DDDDDD' } }).map((i) => i.id)).toContain('border-control')
   })
 
+  it('solo lectura (#186): el borde de control necesita 3:1 también sobre --g-color-neutral-soft', () => {
+    // Por defecto pasa (3.02:1 sobre #F0F0F0); un neutral-soft más oscuro lo rompe aunque el borde pase sobre las superficies
+    expect(errors({}).map((i) => i.id)).not.toContain('border-control-readonly')
+    const e = errors({ overrides: { '--g-color-neutral-soft': '#C8C8C8' } })
+    const r = e.find((i) => i.id === 'border-control-readonly')
+    expect(r.tokens).toEqual(['--g-color-border-control', '--g-color-neutral-soft'])
+    expect(r.ratio).toBeLessThan(3)
+    expect(r.why).toContain('1.4.11')
+    expect(e.map((i) => i.id)).not.toContain('border-control')
+  })
+
   it('un par on/color roto por un override se detecta', () => {
     expect(errors({ overrides: { '--g-color-on-danger': '#FF9999' } }).map((i) => i.id)).toContain('on-solid')
     expect(errors({ overrides: { '--g-color-danger-text': '#FFCCCC' } }).map((i) => i.id)).toContain('color-text')

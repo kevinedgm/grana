@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "name": "GFormLayout",
+  "tag": "g-form-layout",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Pila vertical de filas de un formulario (sustituye a GFormGrid, r02): cada hijo directo ocupa el ancho entero; no mide. Provee block, densidad y stack a sus filas y campos.",
+  "contract": "design/contracts/form.md",
+  "prototype": "design/lab/form/r02/",
+  "style": "packages/vue/src/components/GFormLayout/GFormLayout.css",
+  "props": [
+    {
+      "name": "stack",
+      "type": "Boolean",
+      "default": false,
+      "note": "Cada GFormRow interior pone un campo por línea, salvo keep (drawers)"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "note": "Por defecto la de GForm o default"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Filas (GFormRow), campos sueltos, GFieldGroup, GCheckboxGroup, casillas, interruptores"
+    }
+  ],
+  "classes": [
+    "g-form-layout",
+    "g-form-layout--stack",
+    "g-form-layout--density-{d}"
+  ],
+  "tokens": [
+    "--g-form-gap"
+  ],
+  "states": [
+    "default",
+    "stack"
+  ],
+  "warnings": [
+    "Hijo directo g-form-w-xs/sm (compacto suelto, #172) o g-form-w-md/lg (sin efecto fuera de una fila)",
+    "Restos de la Fase 1: g-form-break, g-form-w-full, g-form-part-*, div.g-form-row que no es GFormRow",
+    "Hijo con order distinto de 0"
+  ],
+  "pending": []
+}

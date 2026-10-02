@@ -782,3 +782,25 @@ describe('GDatePicker · validadores', () => {
     expect(p.firstDay.validator(0)).toBe(true)
   })
 })
+
+describe('GDatePicker · valor calculado `output` (form.md C14, #180)', () => {
+  it('<output> dentro del botón tras __value; siempre presente con la prop; en aria-describedby solo con texto, antes de la ayuda', async () => {
+    const w = mount(GDatePicker, { props: { id: 'nac', label: 'Fecha de nacimiento', hint: 'La edad se calcula sola.', modelValue: '1990-05-12', output: '' } })
+    const out = w.find('output.g-datepicker__output')
+    expect(out.exists()).toBe(true)
+    expect(out.element.parentElement.id).toBe('nac')
+    expect(out.element.previousElementSibling.classList.contains('g-datepicker__value')).toBe(true)
+    expect([...out.element.childNodes].every((n) => n.nodeType === 8)).toBe(true)
+    expect(w.find('#nac').attributes('aria-describedby')).toBe('nac-hint')
+    await w.setProps({ output: '36 años' })
+    expect(w.find('.g-datepicker').classes()).toContain('g-datepicker--has-output')
+    expect(w.find('#nac').attributes('aria-describedby')).toBe('nac-output nac-hint')
+    expect(out.text()).toBe('36 años')
+  })
+
+  it('sin la prop, inline o split: no hay <output>', () => {
+    expect(mount(GDatePicker, { props: { label: 'F' } }).find('output').exists()).toBe(false)
+    expect(mount(GDatePicker, { props: { label: 'F', inline: true, output: 'x' } }).find('.g-datepicker__output').exists()).toBe(false)
+    expect(mount(GDatePicker, { props: { label: 'F', mode: 'range', split: true, output: 'x' } }).find('.g-datepicker__output').exists()).toBe(false)
+  })
+})

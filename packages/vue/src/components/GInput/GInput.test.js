@@ -350,3 +350,33 @@ describe('GInput · orden de las escuchas', () => {
   })
 })
 
+
+describe('GInput · valor calculado `output` (form.md C14, #180)', () => {
+  it('sin la prop no hay <output>; con ella, siempre presente (vacía sin nodos de texto) tras el sufijo', () => {
+    expect(mount(GInput, { props: { label: 'P' } }).find('output').exists()).toBe(false)
+    const w = mount(GInput, { props: { id: 'p', label: 'Peso', suffix: 'kg', output: '' } })
+    const out = w.find('output.g-input__output')
+    expect(out.exists()).toBe(true)
+    expect([...out.element.childNodes].every((n) => n.nodeType === 8)).toBe(true)
+    expect(out.attributes('for')).toBe('p')
+    expect(out.attributes('aria-live')).toBe('polite')
+    expect(out.element.previousElementSibling.className).toBe('g-input__suffix')
+    expect(root(w).classes()).not.toContain('g-input--has-output')
+    expect(field(w).attributes('aria-describedby')).toBe('p-suffix')
+  })
+
+  it('con texto: g-input--has-output y en aria-describedby tras prefijo/sufijo y antes de ayuda y mensaje; no se envía', async () => {
+    const w = mount(GInput, { props: { id: 'p', label: 'Peso', suffix: 'kg', suffixLabel: 'kilogramos', hint: 'Sin zapatos', error: 'Mal', output: 'IMC 22.1' }, attrs: { name: 'peso' }, attachTo: document.body })
+    expect(root(w).classes()).toContain('g-input--has-output')
+    expect(field(w).attributes('aria-describedby')).toBe('p-suffix p-output p-hint p-message')
+    expect(w.find('output').text()).toBe('IMC 22.1')
+    const form = document.createElement('form')
+    document.body.append(form)
+    form.append(w.element)
+    expect([...new FormData(form).keys()]).toEqual(['peso'])
+    await w.find('output').trigger('click')
+    expect(document.activeElement).toBe(field(w).element)
+    w.unmount()
+    form.remove()
+  })
+})

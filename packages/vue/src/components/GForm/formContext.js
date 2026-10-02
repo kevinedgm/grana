@@ -1,12 +1,12 @@
 // Contexto del sistema de formularios y useFormField() (dueño: bruno)
 // Contrato: design/contracts/form.md §1 y §2 (DECISIONS.md #157, #158). Ningún campo importa GForm: leen estas claves
 // SOLO si existen; fuera de GForm cada campo resuelve los valores de siempre. La prop explícita del campo siempre gana.
-import { computed, inject, onBeforeUnmount, onMounted, toValue, unref, useId, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, shallowReactive, toValue, unref, useId, watch } from 'vue'
 
 /** InjectionKey pública del contexto de GForm (para `provide` manual: pruebas, microfrontends). */
 export const formKey = Symbol('GForm')
 // Sub‑contextos internos
-export const layoutKey = Symbol('GFormLayout') // GFormGrid y GFieldGroup: block, density, readonly, disabled
+export const layoutKey = Symbol('GFormLayout') // GFormLayout, GFormRow, GFieldGroup y GInputGroup: block, density, stack, readonly, disabled
 export const sectionKey = Symbol('GFormSection') // GFormSection optional: suprime «(opcional)»
 export const fieldGroupKey = Symbol('GFieldGroup') // partes de un GFieldGroup
 
@@ -212,4 +212,78 @@ export function useFormField(options = {}) {
     group,
     explicitError
   }
+}
+
+/**
+ * Campo compuesto (GFieldGroup, GInputGroup): registra sus partes, decide UN mensaje (el del grupo o el primero de
+ * sus partes en orden del DOM) y se registra en GForm como un solo elemento del resumen (form.md §5 y §13).
+ * Uso interno. `ff` es el resultado de useFormField({ role: 'group', … }) del propio campo.
+ * @param {{ ff: object, name: () => string|undefined, required: () => boolean, root: import('vue').Ref,
+ *           sortKey?: (part) => Element, fallback?: (parts) => object }} o
+ */
+export function useCompositeField(o) {
+  const uid = useId()
+  const parts = shallowReactive(new Map())
+  const keyOf = o.sortKey || ((p) => p.root() || p.control())
+  const sortedParts = () => [...parts.values()].sort((a, b) => byDocument(keyOf(a), keyOf(b)))
+  provide(fieldGroupKey, {
+    token: Symbol('part-of'),
+    required: computed(() => Boolean(o.required())),
+    name: computed(() => o.name()),
+    registerPart(entry) {
+      parts.set(entry.uid, entry)
+      return () => { if (parts.get(entry.uid) === entry) parts.delete(entry.uid) }
+    }
+  })
+  const ff = o.ff
+  // Un solo mensaje (prioridad error › advertencia › válido)
+  const message = computed(() => {
+    const list = [ff.ownMessage.value, ...sortedParts().filter((p) => !p.disabled()).map((p) => p.ownMessage())].filter(Boolean)
+    return list.find((m) => m.type === 'error') || list.find((m) => m.type === 'warning') || list.find((m) => m.type === 'valid') || null
+  })
+  const fallback = o.fallback || ((ps) => ps[0])
+
+  let off = null
+  onMounted(() => {
+    const form = ff.form
+    if (!form || typeof form.register !== 'function') return
+    const enabledParts = () => sortedParts().filter((p) => !p.disabled())
+    off = form.register({
+      uid: `group-${uid}`,
+      role: 'group',
+      inGroup: false,
+      names: () => [o.name(), ...sortedParts().map((p) => p.name())].filter(Boolean),
+      control: () => fallback(enabledParts())?.control() || null,
+      root: () => unref(o.root),
+      disabled: () => ff.disabled.value,
+      blocking(errors) {
+        const ps = enabledParts()
+        const own = ff.explicitError()
+        const groupName = o.name()
+        const ownMsg = own !== undefined ? own : (groupName && errors ? errors[groupName] : '')
+        const firstInvalid = (map) => ps.find((p) => {
+          const e = p.explicitError()
+          return e !== undefined ? Boolean(e) : Boolean(p.name() && map && map[p.name()])
+        })
+        if (ownMsg) {
+          const target = firstInvalid(errors) || fallback(ps)
+          return { name: groupName ?? target?.name() ?? null, message: String(ownMsg), id: target?.control()?.id || null }
+        }
+        const p = firstInvalid(errors)
+        if (!p) return null
+        const e = p.explicitError()
+        return { name: groupName ?? p.name() ?? null, message: String(e !== undefined ? e : errors[p.name()]), id: p.control()?.id || null }
+      },
+      visibleTarget() {
+        const ps = enabledParts()
+        const p = ps.find((x) => x.invalid())
+        if (p) return { control: p.control(), root: unref(o.root) }
+        const f = fallback(ps)
+        if (ff.ownMessage.value?.type === 'error' && f) return { control: f.control(), root: unref(o.root) }
+        return null
+      }
+    })
+  })
+  onBeforeUnmount(() => off?.())
+  return { parts, sortedParts, message }
 }

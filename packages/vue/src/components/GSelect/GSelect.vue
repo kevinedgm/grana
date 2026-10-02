@@ -459,7 +459,9 @@ if (isDev) {
         aria-selected="false"
       ><GIcon class="g-select__create-icon" name="plus" />{{ createLabel }}</li>
     </ul>
-    <div v-if="hasHint" :id="hintId" class="g-select__hint"><slot name="hint">{{ hint }}</slot></div>
-    <div :id="ff.messageId.value" class="g-select__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-select__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-select__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+    <div class="g-select__support">
+      <div v-if="hasHint" :id="hintId" class="g-select__hint"><slot name="hint">{{ hint }}</slot></div>
+      <div :id="ff.messageId.value" class="g-select__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-select__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-select__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+    </div>
   </div>
 </template>

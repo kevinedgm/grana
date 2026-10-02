@@ -31,6 +31,7 @@
     { "name": "suffix", "type": "String", "default": null, "note": "Texto visible después del valor (kg, %) (C13)" },
     { "name": "prefixLabel", "type": "String", "default": null, "note": "Expansión accesible del prefijo" },
     { "name": "suffixLabel", "type": "String", "default": null, "note": "Expansión accesible del sufijo (kilogramos)" },
+    { "name": "output", "type": "String", "default": null, "note": "Valor calculado por la aplicación (C14, #180): <output> al final de la caja, tras el sufijo; siempre presente con la prop; en aria-describedby solo con texto; no se envía" },
     { "name": "counter", "type": "Boolean", "default": false },
     { "name": "showPasswordLabel", "type": "String", "default": null },
     { "name": "hidePasswordLabel", "type": "String", "default": null },

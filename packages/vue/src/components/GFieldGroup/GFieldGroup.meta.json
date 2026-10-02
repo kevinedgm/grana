@@ -4,30 +4,110 @@
   "tag": "g-field-group",
   "status": "draft",
   "since": "0.1.0",
-  "description": "Una pregunta con varias partes (teléfono, fecha en partes): fieldset + legend y un solo mensaje.",
+  "description": "Una pregunta compuesta cuyas partes necesitan su propia etiqueta (contacto de emergencia, fecha en Día · Mes · Año): fieldset + legend, partes en una GFormRow compuesta y un solo mensaje. Va siempre en su propia fila.",
   "contract": "design/contracts/form.md",
-  "prototype": "design/lab/form/r01/",
+  "prototype": "design/lab/form/r02/",
   "style": "packages/vue/src/components/GFieldGroup/GFieldGroup.css",
   "props": [
-    { "name": "label", "type": "String", "default": null },
-    { "name": "hint", "type": "String", "default": null },
-    { "name": "name", "type": "String", "default": null },
-    { "name": "error", "type": "String", "default": null },
-    { "name": "warning", "type": "String", "default": null },
-    { "name": "valid", "type": "String", "default": null },
-    { "name": "required", "type": "Boolean", "default": false },
-    { "name": "disabled", "type": "Boolean", "default": null, "note": "Sin valor: hereda del contexto (false fuera de GForm)" },
-    { "name": "readonly", "type": "Boolean", "default": null, "note": "Sin valor: hereda del contexto" },
-    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"] },
-    { "name": "id", "type": "String", "default": null }
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "keep",
+      "type": "Boolean",
+      "default": false,
+      "note": "r02: las partes nunca se parten en líneas (pasa a la GFormRow compuesta)"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "note": "Sin valor: hereda del contexto (false fuera de GForm)"
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "note": "Sin valor: hereda del contexto"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
   ],
   "events": [],
   "slots": [
-    { "name": "label", "purpose": "Texto rico del legend" },
-    { "name": "hint", "purpose": "Ayuda rica" },
-    { "name": "default", "purpose": "Partes (campos de Grana o propios con useFormField)" }
+    {
+      "name": "label",
+      "purpose": "Texto rico del legend"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda rica"
+    },
+    {
+      "name": "default",
+      "purpose": "Partes (campos de Grana o propios con useFormField)"
+    }
   ],
-  "tokens": ["--g-form-gap", "--g-form-column-gap", "--g-form-max-xs", "--g-form-max-sm"],
-  "states": ["default", "disabled", "readonly", "invalid", "warning", "valid"],
-  "pending": ["joined (partes fusionadas) en la Fase 2"]
+  "tokens": [
+    "--g-form-gap",
+    "--g-form-column-gap"
+  ],
+  "states": [
+    "default",
+    "disabled",
+    "readonly",
+    "invalid",
+    "warning",
+    "valid"
+  ],
+  "pending": [],
+  "classes": [
+    "g-field-group__parts",
+    "g-field-group__support"
+  ]
 }

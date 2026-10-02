@@ -20,7 +20,7 @@
     { "name": "description", "purpose": "Descripción rica" },
     { "name": "actions", "purpose": "Acciones secundarias de la sección" },
     { "name": "help", "purpose": "Ayuda contextual (GHelper)" },
-    { "name": "default", "purpose": "Campos (normalmente un GFormGrid)" }
+    { "name": "default", "purpose": "Campos (normalmente un GFormLayout)" }
   ],
   "reserved": ["mode", "open", "added", "headerPlacement", "labels"],
   "tokens": ["--g-form-section-gap"],

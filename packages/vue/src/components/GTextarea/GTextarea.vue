@@ -224,11 +224,13 @@ if (isDev) {
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />
       <GIcon v-if="loading" class="g-textarea__loader" name="loader-circle" />
     </div>
-    <div v-if="hasHint || showCounter" class="g-textarea__messages">
-      <span v-if="hasHint" :id="hintId" class="g-textarea__hint"><slot name="hint">{{ hint }}</slot></span>
-      <span v-if="showCounter" class="g-textarea__counter" aria-hidden="true">{{ length }}/{{ maxlength }}</span>
+    <div class="g-textarea__support">
+      <div v-if="hasHint || showCounter" class="g-textarea__messages">
+        <span v-if="hasHint" :id="hintId" class="g-textarea__hint"><slot name="hint">{{ hint }}</slot></span>
+        <span v-if="showCounter" class="g-textarea__counter" aria-hidden="true">{{ length }}/{{ maxlength }}</span>
+      </div>
+      <span class="g-textarea__count-live" aria-live="polite">{{ liveText }}</span>
+      <div :id="ff.messageId.value" class="g-textarea__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-textarea__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-textarea__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
     </div>
-    <span class="g-textarea__count-live" aria-live="polite">{{ liveText }}</span>
-    <div :id="ff.messageId.value" class="g-textarea__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-textarea__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-textarea__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

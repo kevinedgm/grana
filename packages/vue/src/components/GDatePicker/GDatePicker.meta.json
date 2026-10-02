@@ -253,6 +253,12 @@
       "name": "placeholderEnd",
       "type": "String",
       "default": null
+    },
+    {
+      "name": "output",
+      "type": "String",
+      "default": null,
+      "note": "Valor calculado por la aplicación (C14, #180): <output> tras la fecha dentro de la caja; solo en modo campo (no inline, no split); no se envía"
     }
   ],
   "events": [

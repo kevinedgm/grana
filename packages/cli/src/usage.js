@@ -28,7 +28,7 @@ const FIXED = {
   'text-subtle': 'Leyendas, contadores y marcas de tiempo. No usar por debajo de 12px.',
   border: 'Divisores y contorno de tarjetas en reposo.',
   'border-strong': 'Contorno en hover, botón de línea y chips.',
-  'border-control': 'Contorno de campos de texto, casillas y selectores (3:1 sobre la superficie).',
+  'border-control': 'Contorno de campos de texto, casillas y selectores (3:1 sobre la superficie y sobre el relleno de solo lectura, neutral-soft).',
   focus: 'Anillo de foco de teclado; siempre visible.'
 }
 

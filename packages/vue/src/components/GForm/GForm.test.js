@@ -4,7 +4,8 @@ import { defineComponent, h, nextTick, provide, reactive, ref } from 'vue'
 import GForm from './GForm.vue'
 import { formKey, useFormField } from './formContext.js'
 import GFormSection from '../GFormSection/GFormSection.vue'
-import GFormGrid from '../GFormGrid/GFormGrid.vue'
+import GFormLayout from '../GFormLayout/GFormLayout.vue'
+import GFormRow from '../GFormRow/GFormRow.vue'
 import GFieldGroup from '../GFieldGroup/GFieldGroup.vue'
 import GFormActions from '../GFormActions/GFormActions.vue'
 import GErrorSummary from '../GErrorSummary/GErrorSummary.vue'
@@ -17,7 +18,7 @@ import GSwitch from '../GSwitch/GSwitch.vue'
 import GDatePicker from '../GDatePicker/GDatePicker.vue'
 import GBtn from '../GBtn/GBtn.vue'
 
-const components = { GForm, GFormSection, GFormGrid, GFieldGroup, GFormActions, GErrorSummary, GInput, GTextarea, GSelect, GCheckbox, GCheckboxGroup, GSwitch, GDatePicker, GBtn }
+const components = { GForm, GFormSection, GFormLayout, GFormRow, GFieldGroup, GFormActions, GErrorSummary, GInput, GTextarea, GSelect, GCheckbox, GCheckboxGroup, GSwitch, GDatePicker, GBtn }
 const LABELS = { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
 const frame = () => new Promise((r) => setTimeout(r, 40))
 const mounted = []
@@ -79,8 +80,8 @@ describe('Precedencia: prop explícita › contexto › default de siempre (form
     })
   }
 
-  it('block: dentro de GFormGrid los campos llenan su celda; la prop explícita block=false gana', () => {
-    const w = make('<GForm><GFormGrid><GInput label="a" /><GInput label="b" :block="false" /><GSelect label="c" /><GDatePicker label="d" /><GTextarea label="e" /></GFormGrid></GForm>')
+  it('block: dentro de GFormLayout (y de GFormRow) los campos llenan su sitio; la prop explícita block=false gana', () => {
+    const w = make('<GForm><GFormLayout><GFormRow><GInput label="a" /><GInput label="b" :block="false" /></GFormRow><GSelect label="c" /><GDatePicker label="d" /><GTextarea label="e" /></GFormLayout></GForm>')
     const ins = w.findAll('.g-input')
     expect(ins[0].classes()).toContain('g-input--block')
     expect(ins[1].classes()).not.toContain('g-input--block')
@@ -383,65 +384,11 @@ describe('Marcas (#153, §2)', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------
-describe('GFormGrid · tramos por ancho propio (#159)', () => {
-  beforeEach(() => { FakeRO.all = []; vi.stubGlobal('ResizeObserver', FakeRO) })
-
-  it('12 / 6 / 1 columnas a 960 / 600 / 360 (space 4), en el cuadro siguiente; antes de medir, narrow', async () => {
-    const w = make('<GForm><GFormGrid><GInput label="A" /></GFormGrid></GForm>')
-    const grid = w.find('.g-form-grid')
-    expect(grid.classes()).toContain('g-form-grid--narrow')
-    expect(grid.attributes('data-tier')).toBe('narrow')
-    const ro = observersOf(grid.element)[0]
-    for (const [px, tier] of [[960, 'wide'], [600, 'medium'], [360, 'narrow'], [704, 'wide'], [703, 'medium'], [416, 'medium'], [415, 'narrow']]) {
-      ro.fire(px)
-      await frame()
-      expect(grid.attributes('data-tier'), String(px)).toBe(tier)
-      expect(grid.classes()).toContain(`g-form-grid--${tier}`)
-    }
-  })
-
-  it('cada rejilla anidada se mide sola; stack es siempre narrow (con g-form-grid--stack)', async () => {
-    const w = make('<GFormGrid id="o"><GFormGrid id="i"><GInput label="A" /></GFormGrid><GFormGrid stack id="s" /></GFormGrid>')
-    observersOf(w.find('#o').element)[0].fire(960)
-    observersOf(w.find('#i').element)[0].fire(500)
-    observersOf(w.find('#s').element)[0].fire(960)
-    await frame()
-    expect(w.find('#o').attributes('data-tier')).toBe('wide')
-    expect(w.find('#i').attributes('data-tier')).toBe('medium')
-    expect(w.find('#s').classes()).toEqual(expect.arrayContaining(['g-form-grid--stack', 'g-form-grid--narrow']))
-  })
-
-  it('densidad: la de GForm o la propia; la rejilla la comparte con sus campos', () => {
-    const w = make('<GForm density="compact"><GFormGrid><GInput label="A" /></GFormGrid><GFormGrid density="comfortable"><GInput label="B" /></GFormGrid></GForm>')
-    const [g1, g2] = w.findAll('.g-form-grid')
-    expect(g1.classes()).toContain('g-form-grid--density-compact')
-    expect(g2.classes()).toContain('g-form-grid--density-comfortable')
-    expect(w.findAll('.g-input')[1].classes()).toContain('g-input--density-comfortable')
-  })
-
-  it('avisa con order, con dos clases de ancho y con un g-form-row de más de 3 hijos', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    make('<GFormGrid><div style="order: 2" /><div class="g-form-w-md g-form-w-lg" /><div class="g-form-row"><i /><i /><i /><i /></div></GFormGrid>')
-    const msgs = warn.mock.calls.map((c) => c[0]).join('\n')
-    expect(msgs).toMatch(/order/)
-    expect(msgs).toMatch(/dos clases de ancho/)
-    expect(msgs).toMatch(/más de 3 hijos/)
-  })
-
-  it('el orden visual no se altera: los hijos quedan en el orden del DOM', () => {
-    const w = make('<GFormGrid><GInput label="A" class="g-form-w-md" /><GInput label="B" class="g-form-w-sm g-form-break" /></GFormGrid>')
-    const labels = w.findAll('.g-input__label').map((l) => l.text())
-    expect(labels).toEqual(['A', 'B'])
-    expect(w.find('.g-form-grid').attributes('style')).toBeUndefined()
-  })
-})
-
-// ---------------------------------------------------------------------------------------------------------------
 describe('GFieldGroup (#160)', () => {
   const PHONE = `<GFieldGroup id="tel" label="Teléfono" name="telefono" required hint="Solo para la cita">
-      <GSelect id="pais" class="g-form-part-sm" label="País" name="tel-pais" required :options="[{ value: 52, label: '+52' }]" />
+      <GSelect id="pais" class="g-form-w-sm" label="País" name="tel-pais" required :options="[{ value: 52, label: '+52' }]" />
       <GInput id="num" label="Número" name="tel-numero" required />
-      <GInput id="ext" class="g-form-part-sm" label="Extensión" name="tel-ext" />
+      <GInput id="ext" class="g-form-w-xs" label="Extensión" name="tel-ext" />
     </GFieldGroup>`
 
   it('fieldset + legend; marca de la parte solo si difiere; aria-describedby a ayuda (y mensaje)', () => {
@@ -765,15 +712,21 @@ describe('Registro y GCheckboxGroup name (C10, C11)', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------
-describe('Registro de las seis piezas (index.js y components.css)', () => {
+describe('Registro de las piezas (index.js y components.css)', () => {
   it('los seis CSS están en components.css y los componentes, useFormField y formKey se exportan', async () => {
     const { readFileSync } = await import('node:fs')
     const { resolve } = await import('node:path')
     const css = readFileSync(resolve(process.cwd(), 'src/styles/components.css'), 'utf8')
-    for (const n of ['GForm', 'GFormSection', 'GFormGrid', 'GFieldGroup', 'GFormActions', 'GErrorSummary']) {
+    for (const n of ['GForm', 'GFormSection', 'GFormLayout', 'GFormRow', 'GInputGroup', 'GFieldGroup', 'GFormActions', 'GErrorSummary']) {
       expect(css, n).toContain(`@import url("../components/${n}/${n}.css");`)
     }
     const lib = await import('../../index.js')
-    for (const n of ['GForm', 'GFormSection', 'GFormGrid', 'GFieldGroup', 'GFormActions', 'GErrorSummary', 'useFormField', 'formKey']) expect(lib[n], n).toBeTruthy()
+    for (const n of ['GForm', 'GFormSection', 'GFormLayout', 'GFormRow', 'GInputGroup', 'GInputGroupInput', 'GInputGroupSelect', 'GInputGroupText', 'GFieldGroup', 'GFormActions', 'GErrorSummary', 'useFormField', 'formKey']) expect(lib[n], n).toBeTruthy()
+    // r02 (#183): GFormGrid se retira sin alias, y su hoja también
+    expect(lib.GFormGrid).toBeUndefined()
+    expect(css).not.toContain('GFormGrid')
+    // Orden: los estilos del formulario van después de los campos (las filas leen sus pistas)
+    expect(css.indexOf('GFormRow.css')).toBeGreaterThan(css.indexOf('GDatePicker.css'))
+    expect(css.indexOf('GInputGroup.css')).toBeGreaterThan(css.indexOf('GInput.css'))
   })
 })

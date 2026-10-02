@@ -33,6 +33,8 @@ const props = defineProps({
   suffix: { type: String, default: undefined },
   prefixLabel: { type: String, default: undefined },
   suffixLabel: { type: String, default: undefined },
+  // Valor calculado por la aplicación (form.md C14, #180): <output> al final de la caja; no se envía
+  output: { type: String, default: undefined },
   counter: Boolean,
   showPasswordLabel: { type: String, default: undefined },
   hidePasswordLabel: { type: String, default: undefined },
@@ -50,6 +52,8 @@ const inputId = computed(() => props.id || `g-input-${uid}`)
 const hintId = computed(() => `${inputId.value}-hint`)
 const prefixId = computed(() => `${inputId.value}-prefix`)
 const suffixId = computed(() => `${inputId.value}-suffix`)
+const outputId = computed(() => `${inputId.value}-output`)
+const hasOutput = computed(() => Boolean(props.output))
 
 const field = ref(null)
 const rootEl = ref(null)
@@ -99,6 +103,7 @@ const classes = computed(() => [
     'g-input--has-action': hasAction.value,
     'g-input--has-prefix': Boolean(props.prefix),
     'g-input--has-suffix': Boolean(props.suffix),
+    'g-input--has-output': hasOutput.value,
     'is-disabled': isDisabled.value,
     'is-readonly': isReadonly.value,
     'is-invalid': invalid.value,
@@ -117,8 +122,8 @@ const maxlength = computed(() => (attrs.maxlength === undefined || attrs.maxleng
 const showCounter = computed(() => props.counter && maxlength.value !== null)
 
 const describedBy = computed(() => {
-  // La unidad es información (#166): prefijo y sufijo antes de ayuda y mensaje
-  const ids = [attrs['aria-describedby'], props.prefix && prefixId.value, props.suffix && suffixId.value, hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
+  // La unidad es información (#166): prefijo y sufijo antes de ayuda y mensaje; el valor calculado (C14) tras ellos
+  const ids = [attrs['aria-describedby'], props.prefix && prefixId.value, props.suffix && suffixId.value, hasOutput.value && outputId.value, hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 
@@ -142,7 +147,7 @@ function onInput(event) {
 // modelo y el estado del formulario actualizados, igual que con un <input v-model> nativo.
 const fieldBindings = computed(() => mergeProps(ff.handlers, { onInput }, { ...inputAttrs.value, ...controlled.value }))
 
-// Pulsar sobre el prefijo o el sufijo enfoca el <input> (comodidad de puntero; no son interactivos)
+// Pulsar sobre el prefijo, el sufijo o el valor calculado enfoca el <input> (comodidad de puntero; no son interactivos)
 function focusField() {
   field.value?.focus()
 }
@@ -177,6 +182,7 @@ if (isDev) {
           <span class="g-input__suffix" :id="suffixLabel ? undefined : suffixId" :aria-hidden="suffixLabel ? 'true' : undefined" @click="focusField">{{ suffix }}</span>
           <span v-if="suffixLabel" :id="suffixId" class="g-input__suffix-label">{{ suffixLabel }}</span>
         </template>
+        <output v-if="output !== undefined" :id="outputId" class="g-input__output" :for="inputId" aria-live="polite" @click="focusField"><template v-if="output">{{ output }}</template></output>
         <span v-if="slots.append" class="g-input__append" aria-hidden="true"><slot name="append" /></span>
         <GIcon v-if="loading" class="g-input__loader" name="loader-circle" />
         <button
@@ -192,10 +198,12 @@ if (isDev) {
         <slot name="action" :size="size" :density="density" :disabled="isDisabled" />
       </div>
     </div>
-    <div v-if="hasHint || showCounter" class="g-input__messages">
-      <span v-if="hasHint" :id="hintId" class="g-input__hint"><slot name="hint">{{ hint }}</slot></span>
-      <span v-if="showCounter" class="g-input__counter" aria-hidden="true">{{ modelValue.length }}/{{ maxlength }}</span>
+    <div class="g-input__support">
+      <div v-if="hasHint || showCounter" class="g-input__messages">
+        <span v-if="hasHint" :id="hintId" class="g-input__hint"><slot name="hint">{{ hint }}</slot></span>
+        <span v-if="showCounter" class="g-input__counter" aria-hidden="true">{{ modelValue.length }}/{{ maxlength }}</span>
+      </div>
+      <div :id="ff.messageId.value" class="g-input__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-input__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-input__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
     </div>
-    <div :id="ff.messageId.value" class="g-input__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-input__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-input__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

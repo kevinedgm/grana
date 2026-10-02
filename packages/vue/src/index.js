@@ -33,7 +33,12 @@ import GCard from './components/GCard/GCard.vue'
 import GToaster from './components/GToast/GToaster.vue'
 import GForm from './components/GForm/GForm.vue'
 import GFormSection from './components/GFormSection/GFormSection.vue'
-import GFormGrid from './components/GFormGrid/GFormGrid.vue'
+import GFormLayout from './components/GFormLayout/GFormLayout.vue'
+import GFormRow from './components/GFormRow/GFormRow.vue'
+import GInputGroup from './components/GInputGroup/GInputGroup.vue'
+import GInputGroupInput from './components/GInputGroup/GInputGroupInput.vue'
+import GInputGroupSelect from './components/GInputGroup/GInputGroupSelect.vue'
+import GInputGroupText from './components/GInputGroup/GInputGroupText.vue'
 import GFieldGroup from './components/GFieldGroup/GFieldGroup.vue'
 import GFormActions from './components/GFormActions/GFormActions.vue'
 import GErrorSummary from './components/GErrorSummary/GErrorSummary.vue'
@@ -42,13 +47,13 @@ import { createToaster, useToast, toasterKey } from './components/GToast/toaster
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormGrid, GFieldGroup, GFormActions, GErrorSummary }
+export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary }
 // Formularios: composable para campos (de Grana y propios) y clave del contexto para `provide` manual (form.md §2)
 export { useFormField, formKey }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
 export { createToaster, useToast, toasterKey }
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormGrid, GFieldGroup, GFormActions, GErrorSummary }
+const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

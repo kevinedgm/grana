@@ -63,6 +63,10 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
     }
     pair('--g-color-border-control', s, 3, 'border-control', 'WCAG 1.4.11: el borde de un control necesita 3:1 para identificarlo.')
   }
+  // Solo lectura (#186): la caja se rellena con neutral-soft (compuesto sobre la superficie) y conserva el borde
+  // discontinuo border-control, que tiene que seguir identificando el campo
+  const surface = colorOf(tokens, '--g-color-surface')
+  pair('--g-color-border-control', '--g-color-neutral-soft', 3, 'border-control-readonly', 'WCAG 1.4.11: el campo de solo lectura se rellena con --g-color-neutral-soft y su borde (border-control) necesita 3:1 sobre ese relleno para seguir identificándolo (DECISIONS.md #186).', surface ? colorOf(tokens, '--g-color-neutral-soft', surface) || undefined : undefined)
 
   // Cada color: relleno sólido, blando y texto de color
   // Categorías (--g-color-cat-N) presentes en el tema: los mismos pares que el resto de colores
