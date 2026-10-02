@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Migración · Información de la muestra</title>
+  <!-- Prueba de migración: modal de Bootstrap (original-bootstrap.html) reescrito solo con Grana. Ver notas.md -->
+  <link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+  <link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+  <style>
+    /* Armazón de la página de prueba (no es un componente): solo tokens var(--g-*). */
+    body { margin: 0; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
+    .pg { max-inline-size: 720px; margin: 0 auto; padding: 32px 16px; display: grid; gap: 16px; justify-items: start; }
+    .pg h1 { margin: 0; font-size: var(--g-text-heading-size, 1.5rem); }
+    .pg p { margin: 0; color: var(--g-color-text-muted); }
+    .pg-ctl { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* Resumen de estado (la aplicación lo compone: Grana no tiene aún un componente de encabezado de estado) */
+    .mg-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+    .mg-status__main { display: flex; align-items: center; gap: 8px; font-size: var(--g-text-body-size); }
+    .mg-status__key { color: var(--g-color-text-muted); }
+    /* Chips de agave: etiqueta con aspecto de las de los campos + insignias */
+    .mg-chips-label { display: block; margin-block-end: 4px; font-size: var(--g-text-body-sm-size); font-weight: 600; color: var(--g-color-text); }
+    .mg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  </style>
+</head>
+<body>
+  <div id="app" class="pg">
+    <h1>Información de la muestra</h1>
+    <p>Migración de prueba: el modal de Bootstrap reescrito con Grana. Es una vista de consulta (solo lectura).</p>
+    <div class="pg-ctl">
+      <g-btn id="abrir" @click="abierto = true">Abrir información de la muestra</g-btn>
+      <g-btn variant="outline" @click="alternarTema">Tema: {{ tema }}</g-btn>
+    </div>
+
+    <g-dialog v-model="abierto" size="lg" title="Información de la muestra" description="Consulta de la muestra ingresada. Los datos no se pueden editar." close-label="Cerrar">
+      <g-form id="muestra" aria-label="Información de la muestra" readonly :labels="textos">
+        <div class="mg-status">
+          <div class="mg-status__main">
+            <span class="mg-status__key">Estado</span>
+            <g-badge color="success" id="estado">Ingresada</g-badge>
+          </div>
+          <g-btn variant="soft" color="warning" size="sm" id="bloqueada">
+            <template #prepend><lucide-icon name="lock"></lucide-icon></template>
+            Bloqueada
+          </g-btn>
+        </div>
+
+        <g-form-section title="Cliente y producto">
+          <g-form-grid>
+            <g-input label="Informe emitido para" name="empresa" :model-value="m.empresa"></g-input>
+            <div class="g-form-row">
+              <g-select label="Tipo de producto" name="producto-tipo" :model-value="m.tipoProducto" :options="tiposProducto"></g-select>
+              <g-input label="Como lo declara el cliente" name="producto-declarado" :model-value="m.declarado"></g-input>
+            </div>
+            <div role="group" aria-labelledby="agave-label">
+              <span class="mg-chips-label" id="agave-label">Tipo de agave</span>
+              <ul class="mg-chips">
+                <li v-for="a in m.agaves" :key="a"><g-badge color="neutral">{{ a }}</g-badge></li>
+              </ul>
+            </div>
+          </g-form-grid>
+        </g-form-section>
+
+        <g-form-section title="Lote y muestreo">
+          <g-form-grid>
+            <div class="g-form-row">
+              <g-input label="Lote" name="lote" :model-value="m.lote"></g-input>
+              <g-date-picker label="Fecha de muestreo" name="fecha-muestreo" :model-value="m.fechaMuestreo" :labels="dpLabels"></g-date-picker>
+            </div>
+            <div class="g-form-row">
+              <g-input label="Temperatura" name="temperatura" :model-value="m.temperatura" suffix="°C" suffix-label="grados Celsius"></g-input>
+              <g-select label="Almacenamiento" name="almacenamiento" :model-value="m.almacenamiento" :options="almacenamientos"></g-select>
+            </div>
+            <div class="g-form-row">
+              <g-input label="Volumen del lote" name="vol-lote" :model-value="m.volLote"></g-input>
+              <g-select label="Unidad" name="unidad-lote" :model-value="m.unidadLote" :options="unidades"></g-select>
+            </div>
+            <div class="g-form-row">
+              <g-input label="Volumen de muestra" name="vol-muestra" :model-value="m.volMuestra"></g-input>
+              <g-select label="Unidad" name="unidad-muestra" :model-value="m.unidadMuestra" :options="unidades"></g-select>
+            </div>
+            <g-input label="Muestreador" name="muestreador" :model-value="m.muestreador"></g-input>
+          </g-form-grid>
+        </g-form-section>
+
+        <g-form-section title="Recepción y entrega">
+          <g-form-grid>
+            <div class="g-form-row">
+              <g-select label="Norma" name="norma" :model-value="m.norma" :options="normas"></g-select>
+              <g-select label="Tipo de muestra" name="tipo-muestra" :model-value="m.tipoMuestra" :options="tiposMuestra"></g-select>
+            </div>
+            <div class="g-form-row">
+              <g-date-picker label="Fecha de entrega" name="fecha-entrega" :model-value="m.fechaEntrega" :labels="dpLabels"></g-date-picker>
+              <g-select label="Declaración de conformidad" name="conformidad" :model-value="m.conformidad" :options="siNo"></g-select>
+            </div>
+          </g-form-grid>
+        </g-form-section>
+
+        <g-form-section title="Contenedor">
+          <g-form-grid>
+            <div class="g-form-row">
+              <g-select label="Tipo" name="contenedor-tipo" :model-value="m.contTipo" :options="tiposContenedor"></g-select>
+              <g-select label="Material" name="contenedor-material" :model-value="m.contMaterial" :options="materiales"></g-select>
+            </div>
+            <div class="g-form-row">
+              <g-input label="Capacidad" name="contenedor-capacidad" :model-value="m.contCapacidad"></g-input>
+              <g-select label="Unidad" name="contenedor-unidad" :model-value="m.contUnidad" :options="unidadesContenedor"></g-select>
+            </div>
+          </g-form-grid>
+        </g-form-section>
+
+        <g-form-section title="Observaciones">
+          <g-form-grid>
+            <g-textarea label="Observaciones de recepción" name="obs-recepcion" :model-value="m.obsRecepcion" :rows="2" resize="none"></g-textarea>
+            <g-textarea label="Observaciones del cliente (etiqueta)" name="obs-etiqueta" :model-value="m.obsEtiqueta" :rows="2" resize="none"></g-textarea>
+          </g-form-grid>
+        </g-form-section>
+
+        <g-form-section title="Ensayos">
+          <g-table :columns="columnas" :rows="ensayos" row-key="n" aria-label="Lista de ensayos" density="compact" :labels="{}"></g-table>
+        </g-form-section>
+      </g-form>
+
+      <template #footer="{ close }">
+        <g-btn variant="outline" @click="close">Cancelar</g-btn>
+        <g-btn disabled>Guardar</g-btn>
+      </template>
+    </g-dialog>
+  </div>
+
+  <script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+  <script src="../../../../packages/vue/dist/grana.umd.js"></script>
+  <script src="../../../../packages/vue/playground/lucide-icons.js"></script>
+  <script>
+    const { createApp, ref, reactive } = Vue
+    // Iconos: Lucide (docs/contract/icons.md). Grana no trae iconos; la aplicación los pone en los slots.
+    const LucideIcon = {
+      props: { name: String },
+      template: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
+      computed: { paths() { return window.LUCIDE_ICONS[this.name] || '' } }
+    }
+    const peso = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
+    const op = (...v) => v.map((x) => ({ value: x, label: x }))
+    const app = createApp({
+      setup() {
+        const abierto = ref(new URLSearchParams(location.search).get('open') === '1')
+        const tema = ref('automático')
+        const q = new URLSearchParams(location.search).get('theme')
+        if (q === 'light' || q === 'dark') { document.documentElement.dataset.theme = q; tema.value = q === 'dark' ? 'oscuro' : 'claro' }
+        const alternarTema = () => {
+          const sig = { 'automático': 'claro', claro: 'oscuro', oscuro: 'automático' }[tema.value]
+          tema.value = sig
+          if (sig === 'automático') delete document.documentElement.dataset.theme
+          else document.documentElement.dataset.theme = sig === 'oscuro' ? 'dark' : 'light'
+        }
+        const m = reactive({
+          empresa: 'Mezcalera Los Danzantes, S.A. de C.V.', tipoProducto: 'MEZCAL', declarado: 'Mezcal joven artesanal',
+          agaves: ['Maguey espadín (Agave angustifolia)'],
+          lote: 'LT-2026-0412', fechaMuestreo: '2026-09-18', temperatura: '22', almacenamiento: 'ambiente',
+          volLote: '1200', unidadLote: 'L', volMuestra: '750', unidadMuestra: 'ml', muestreador: 'Ing. Laura Martínez Ruiz',
+          norma: 'NOM-070-SCFI-2016', tipoMuestra: 'C', fechaEntrega: '2026-09-22', conformidad: '1',
+          contTipo: 'Botella', contMaterial: 'Vidrio', contCapacidad: '750', contUnidad: 'Mililitros',
+          obsRecepcion: 'Muestra recibida sellada y sin derrames; refrigerada durante el traslado.',
+          obsEtiqueta: 'Etiqueta: «Mezcal joven artesanal», 45 % Alc. Vol., lote LT-2026-0412.'
+        })
+        const ensayos = [{ n: 1, ensayo: 'BAFQ-14', precio: 1469, prioridad: 'Normal', descuento: 'Membresía Platino 29 %', total: 1042.99 }]
+        const columnas = [
+          { key: 'n', label: '#' },
+          { key: 'ensayo', label: 'Ensayo' },
+          { key: 'precio', label: 'Precio', align: 'end', format: (v) => peso.format(v) },
+          { key: 'prioridad', label: 'Prioridad' },
+          { key: 'descuento', label: 'Descuento' },
+          { key: 'total', label: 'Total', align: 'end', format: (v) => peso.format(v) }
+        ]
+        return {
+          abierto, tema, alternarTema, m, ensayos, columnas,
+          textos: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
+          dpLabels: {
+            prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'seleccionada',
+            rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
+            clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
+            announceStart: 'Inicio del rango: {date}.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado.', announceClear: 'Selección borrada.'
+          },
+          tiposProducto: op('MEZCAL', 'MEZCAL ABOCADO CON', 'BACANORA', 'SOTOL', 'AGAVE CRUDO', 'AGAVE COCIDO', 'TEPACHE', 'RAICILLA', 'TEQUILA', 'COMITECO', 'PULQUE NATURAL', 'OTRO'),
+          almacenamientos: [{ value: 'ambiente', label: 'Temperatura ambiente' }, { value: 'refrigerado', label: 'Refrigerado' }],
+          unidades: op('g', 'kg', 'L', 'M3', 'ml', 'mm', 'oz', 'Unidades'),
+          normas: op('NOM-070-SCFI-2016', 'NOM-142-SSA1-2014', 'NOM-199-SCFI-2017', 'NOM-168-SCFI-2005', 'NOM-159-SCFI-2004', 'NOM-127-SSA1-2021', 'NMX-V-034-NORMEX-2016', 'NOM-006-SCFI-2012', 'OTROS'),
+          tiposMuestra: [{ value: 'P', label: 'Preliminar' }, { value: 'C', label: 'Oficial' }],
+          siNo: [{ value: '1', label: 'Sí' }, { value: '0', label: 'No' }],
+          tiposContenedor: op('Botella', 'Frasco', 'Garrafón', 'Caja', 'Sobre', 'Lata', 'Tubo de ensayo', 'Bolsa', 'Bidón', 'Ampolleta'),
+          materiales: op('Vidrio', 'Plástico', 'Aluminio', 'Tetrapak', 'Cerámica', 'Cartón'),
+          unidadesContenedor: op('Gramos', 'Kilos', 'Litros', 'Metros cúbicos', 'Mililitros', 'Milímetros', 'Onzas', 'Unidades individuales')
+        }
+      }
+    })
+    app.component('LucideIcon', LucideIcon)
+    app.use(Grana)
+    app.mount('#app')
+  </script>
+</body>
+</html>
