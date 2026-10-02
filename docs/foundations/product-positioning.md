@@ -105,7 +105,7 @@ Grana no decide por la aplicación:
 2. **Tokens antes que sobrescrituras.** La personalización ocurre en la capa de tema, no con CSS disperso.
 3. **Accesibilidad no negociable.** El tema puede variar; los mínimos no.
 4. **Documentar lo verificado.** La documentación pública describe lo que está implementado y probado.
-5. **Progresión explícita.** Cada componente declarará si es experimental, candidato o estable.
+5. **Progresión explícita.** Cada componente declarará si es draft, candidate o stable.
 
 ## Mensajes listos para usar
 
