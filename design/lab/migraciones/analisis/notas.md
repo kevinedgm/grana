@@ -11,8 +11,8 @@ Original: `original-bootstrap.html` (modal `modal-lg`, laboratorio de análisis 
 | `data-bs-backdrop="static"` | `:close-on-backdrop="false"` (no usado: ver fricción 9) |
 | `.modal-footer` con Cancelar / Guardar | slot `#footer`: `GBtn variant="outline"` y `GBtn` primario `disabled` a la derecha |
 | Píldora `bg-light rounded-pill` con «ESTADO: INGRESADA» | Fila de resumen: etiqueta «Estado» + `GBadge color="success"` «Ingresada» |
-| `btn-warning` «BLOQUEADO» con `bx-lock-alt` | `GBtn variant="soft" color="warning" size="sm"` con icono Lucide `lock` en `#prepend` (existe en la lista de iconos) |
-| `<form>` con `input[disabled]` ×25 | `GForm readonly` (no `disabled`: los valores se leen, se enfocan y se copian) |
+| `btn-warning` «BLOQUEADO» con `bx-lock-alt` (era el control de bloqueo) | `GSwitch` «Permitir edición» + texto de estado con icono `lock`: ver «Patrón: formulario con bloqueo de edición» |
+| `<form>` con `input[disabled]` ×25 | `GForm :readonly="!editando"` (no `disabled`: los valores se leen, se enfocan y se copian) |
 | `.row` / `.col-sm-N` / `.mb-2` | `GFormGrid` + `g-form-row` (partes iguales, subgrid): cada fila llena el ancho |
 | `label.form-label` + `input.form-control` | `GInput label=…` |
 | `select.form-select` | `GSelect :options` con valores reales (el original traía `[object Object]`) |
@@ -52,3 +52,25 @@ Cada una con quién la resolvería.
 11. **Iconos.** `lock` está en la lista de Lucide de la librería, pero **no hay una forma pública de usarlo**: `GIcon` es interno y el `lucide-icons.js` del playground es un archivo del playground. La página lo carga de ahí (`packages/vue/playground/lucide-icons.js`) y define su propio `<lucide-icon>`. Falta un **paquete/entrada de iconos para la aplicación** (`@grana/vue/icons` o un comando del CLI que genere un subconjunto): **ronda de iconos (bruno)**.
 12. **Selector de fecha: 1 px.** El disparador de `GDatePicker` queda 1 px más abajo que el `<input>` de la misma fila (585 vs 584). Está dentro de la tolerancia, pero delata dos alturas distintas entre campos: **coco, auditoría de alineación**.
 13. **Plantillas en HTML sin compilar.** Hubo que escribir `<g-btn …></g-btn>` y no autocerradas (limitación de Vue ya documentada); la página lleva sus textos (`labels` de `GForm`, de `GDatePicker`) a mano porque Grana no trae textos: lo esperable, pero verboso para una vista de solo lectura que ni siquiera usa el calendario. Un **`GDatePicker` en readonly sin `labels`** (no necesita los textos del calendario) lo evitaría: **bruno**.
+
+## Patrón: formulario con bloqueo de edición
+
+**Aclaración del usuario:** el modal **no es una consulta de solo lectura**. Es un formulario de captura que, una vez capturado, queda **bloqueado** para evitar errores de edición. Quien solo quiere leer lo consulta así; para editar se activa un interruptor que desbloquea el formulario. Así nadie pulsa Guardar por accidente y hace un update (el botón «BLOQUEADO» del original era ese control). Las menciones previas de esta nota a «solo lectura / consulta» describen el estado por defecto, no la naturaleza del formulario.
+
+**Cómo se compuso (API pública actual, sin tocar la librería):**
+
+- `GSwitch` «Permitir edición» en la fila de estado, **fuera** de `GForm` (dentro heredaría `readonly` y no podría desbloquear). Apagado = bloqueado. El estado no depende del color: texto «Formulario bloqueado» con icono `lock` / «Edición permitida» sin icono (`lock-open` no está en `icons.json`; solo existe `lock`).
+- `GForm :readonly="!editando" v-model:dirty="sucio"`. Los campos usan `v-model` sobre un objeto reactivo y la página guarda una copia de la última versión guardada.
+- Pie del `GDialog`: bloqueado → «Cerrar» + «Guardar» deshabilitado; editable → «Cancelar» + «Guardar» habilitado solo si `sucio`. Cancelar descarta (restaura la copia, `resetState()` del formulario) y vuelve a bloquear; Guardar (simulado) actualiza la copia, bloquea y avisa con `GToaster`.
+- Cambios sin guardar: apagar el interruptor, Esc, X o Cerrar piden confirmación en un segundo `GDialog role="alertdialog"` («Seguir editando» / «Descartar cambios»); el cierre del primero se frena con `@dismiss` + `preventDefault()` (cualquier `reason`). El interruptor no cambia de estado hasta confirmar (el `modelValue` es de la página).
+- Región `role="status"` dentro del diálogo (lo de fuera es inerte) anuncia «Edición permitida», «Formulario bloqueado», «Cambios guardados…», «Cambios descartados…». El diálogo se reabre siempre bloqueado.
+- Verificado con Playwright (chromium, 1280 y 390, claro y oscuro): bloqueado por defecto (readonly, Guardar deshabilitado); el interruptor con Espacio desbloquea; sin cambios Guardar sigue deshabilitado y al editar se habilita; Cancelar revierte y bloquea; Guardar bloquea, conserva el valor y muestra el aviso; apagar, Esc y X con cambios piden confirmación; filas alineadas (±1 px) en ambos modos; consola limpia.
+
+**Fricción:** el sistema de formularios **no ofrece este patrón** ni lo documenta; todo lo anterior es composición de la página (estado, copia, confirmación, anuncio). Es un caso muy común en aplicaciones de captura (expedientes, órdenes, fichas). Además:
+
+1. Faltan `lock-open` (icono) y una forma pública de usar iconos (ver 11).
+2. `GForm` no expone «revertir a los valores guardados»: `resetState()` limpia el estado de errores y `dirty`, pero los valores son de la aplicación y hay que restaurarlos a mano.
+3. **`GToaster` colocado después de un `GDialog` hermano rompe el parche de Vue** (`insertBefore` al cerrar el diálogo: la región se traslada al `<dialog>` modal y al desmontarse el diálogo el ancla ya no existe). Con `<g-toaster>` como primer hijo funciona. Conviene que la región sea robusta a su posición (bruno) o que el README lo advierta.
+4. El interruptor debe quedar fuera del `GForm` para no heredar `readonly`: no es obvio y no está documentado.
+
+**Propuesta para la Fase 4 de formularios (a decidir por lima):** una **receta documentada** o una prop de `GForm` tipo `locked` (con `v-model:locked`) que (a) ponga los campos en solo lectura, (b) ofrezca el interruptor «Permitir edición» como parte del encabezado/pie del formulario (slot `lock` o `GFormLock`), (c) exponga `dirty` y un `revert()` a los valores guardados, (d) pida confirmación (`confirmDiscard`) al volver a bloquear con cambios y anuncie el cambio de modo por su región viva. Decidir también si el bloqueo tiene permiso por rol (quién puede ver el interruptor) y si Cancelar con cambios debe confirmar (aquí no confirma: es una acción explícita de descartar).

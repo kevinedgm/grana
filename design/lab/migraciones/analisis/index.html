@@ -18,6 +18,11 @@
     .mg-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
     .mg-status__main { display: flex; align-items: center; gap: 8px; font-size: var(--g-text-body-size); }
     .mg-status__key { color: var(--g-color-text-muted); }
+    .mg-lock { display: inline-flex; align-items: center; gap: 4px; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+    .mg-status__ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+    .mg-status { margin-block-end: 16px; }
+    /* Región viva: texto oculto accesible (patrón estándar) */
+    .mg-sr { position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
     /* Chips de agave: etiqueta con aspecto de las de los campos + insignias */
     .mg-chips-label { display: block; margin-block-end: 4px; font-size: var(--g-text-body-sm-size); font-weight: 600; color: var(--g-color-text); }
     .mg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -25,32 +30,39 @@
 </head>
 <body>
   <div id="app" class="pg">
+    <!-- La región de avisos va ANTES de los diálogos: después de ellos, al cerrar un diálogo Vue falla (insertBefore); ver notas.md -->
+    <g-toaster></g-toaster>
     <h1>Información de la muestra</h1>
-    <p>Migración de prueba: el modal de Bootstrap reescrito con Grana. Es una vista de consulta (solo lectura).</p>
+    <p>Migración de prueba: el modal de Bootstrap reescrito con Grana. Formulario de captura bloqueado por defecto: se edita solo al activar «Permitir edición».</p>
     <div class="pg-ctl">
       <g-btn id="abrir" @click="abierto = true">Abrir información de la muestra</g-btn>
       <g-btn variant="outline" @click="alternarTema">Tema: {{ tema }}</g-btn>
     </div>
 
-    <g-dialog v-model="abierto" size="lg" title="Información de la muestra" description="Consulta de la muestra ingresada. Los datos no se pueden editar." close-label="Cerrar">
-      <g-form id="muestra" aria-label="Información de la muestra" readonly :labels="textos">
-        <div class="mg-status">
-          <div class="mg-status__main">
-            <span class="mg-status__key">Estado</span>
-            <g-badge color="success" id="estado">Ingresada</g-badge>
-          </div>
-          <g-btn variant="soft" color="warning" size="sm" id="bloqueada">
-            <template #prepend><lucide-icon name="lock"></lucide-icon></template>
-            Bloqueada
-          </g-btn>
+    <g-dialog v-model="abierto" size="lg" title="Información de la muestra" :description="descripcion" close-label="Cerrar" @dismiss="alIntentarCerrar" @closed="alCerrar">
+      <div class="mg-status">
+        <div class="mg-status__main">
+          <span class="mg-status__key">Estado</span>
+          <g-badge color="success" id="estado">Ingresada</g-badge>
         </div>
+        <div class="mg-status__ctl">
+          <span class="mg-lock" id="modo">
+            <lucide-icon v-if="!editando" name="lock"></lucide-icon>
+            {{ editando ? 'Edición permitida' : 'Formulario bloqueado' }}
+          </span>
+          <g-switch id="permitir" label="Permitir edición" :model-value="editando" @update:model-value="alternarEdicion"></g-switch>
+        </div>
+      </div>
+      <div class="mg-sr" role="status" id="anuncio">{{ anuncio }}</div>
+
+      <g-form id="muestra" ref="formRef" aria-label="Información de la muestra" :readonly="!editando" v-model:dirty="sucio" :labels="textos">
 
         <g-form-section title="Cliente y producto">
           <g-form-grid>
-            <g-input label="Informe emitido para" name="empresa" :model-value="m.empresa"></g-input>
+            <g-input label="Informe emitido para" name="empresa" v-model="m.empresa"></g-input>
             <div class="g-form-row">
-              <g-select label="Tipo de producto" name="producto-tipo" :model-value="m.tipoProducto" :options="tiposProducto"></g-select>
-              <g-input label="Como lo declara el cliente" name="producto-declarado" :model-value="m.declarado"></g-input>
+              <g-select label="Tipo de producto" name="producto-tipo" v-model="m.tipoProducto" :options="tiposProducto"></g-select>
+              <g-input label="Como lo declara el cliente" name="producto-declarado" v-model="m.declarado"></g-input>
             </div>
             <div role="group" aria-labelledby="agave-label">
               <span class="mg-chips-label" id="agave-label">Tipo de agave</span>
@@ -64,34 +76,34 @@
         <g-form-section title="Lote y muestreo">
           <g-form-grid>
             <div class="g-form-row">
-              <g-input label="Lote" name="lote" :model-value="m.lote"></g-input>
-              <g-date-picker label="Fecha de muestreo" name="fecha-muestreo" :model-value="m.fechaMuestreo" :labels="dpLabels"></g-date-picker>
+              <g-input label="Lote" name="lote" v-model="m.lote"></g-input>
+              <g-date-picker label="Fecha de muestreo" name="fecha-muestreo" v-model="m.fechaMuestreo" :labels="dpLabels"></g-date-picker>
             </div>
             <div class="g-form-row">
-              <g-input label="Temperatura" name="temperatura" :model-value="m.temperatura" suffix="°C" suffix-label="grados Celsius"></g-input>
-              <g-select label="Almacenamiento" name="almacenamiento" :model-value="m.almacenamiento" :options="almacenamientos"></g-select>
+              <g-input label="Temperatura" name="temperatura" v-model="m.temperatura" suffix="°C" suffix-label="grados Celsius"></g-input>
+              <g-select label="Almacenamiento" name="almacenamiento" v-model="m.almacenamiento" :options="almacenamientos"></g-select>
             </div>
             <div class="g-form-row">
-              <g-input label="Volumen del lote" name="vol-lote" :model-value="m.volLote"></g-input>
-              <g-select label="Unidad" name="unidad-lote" :model-value="m.unidadLote" :options="unidades"></g-select>
+              <g-input label="Volumen del lote" name="vol-lote" v-model="m.volLote"></g-input>
+              <g-select label="Unidad" name="unidad-lote" v-model="m.unidadLote" :options="unidades"></g-select>
             </div>
             <div class="g-form-row">
-              <g-input label="Volumen de muestra" name="vol-muestra" :model-value="m.volMuestra"></g-input>
-              <g-select label="Unidad" name="unidad-muestra" :model-value="m.unidadMuestra" :options="unidades"></g-select>
+              <g-input label="Volumen de muestra" name="vol-muestra" v-model="m.volMuestra"></g-input>
+              <g-select label="Unidad" name="unidad-muestra" v-model="m.unidadMuestra" :options="unidades"></g-select>
             </div>
-            <g-input label="Muestreador" name="muestreador" :model-value="m.muestreador"></g-input>
+            <g-input label="Muestreador" name="muestreador" v-model="m.muestreador"></g-input>
           </g-form-grid>
         </g-form-section>
 
         <g-form-section title="Recepción y entrega">
           <g-form-grid>
             <div class="g-form-row">
-              <g-select label="Norma" name="norma" :model-value="m.norma" :options="normas"></g-select>
-              <g-select label="Tipo de muestra" name="tipo-muestra" :model-value="m.tipoMuestra" :options="tiposMuestra"></g-select>
+              <g-select label="Norma" name="norma" v-model="m.norma" :options="normas"></g-select>
+              <g-select label="Tipo de muestra" name="tipo-muestra" v-model="m.tipoMuestra" :options="tiposMuestra"></g-select>
             </div>
             <div class="g-form-row">
-              <g-date-picker label="Fecha de entrega" name="fecha-entrega" :model-value="m.fechaEntrega" :labels="dpLabels"></g-date-picker>
-              <g-select label="Declaración de conformidad" name="conformidad" :model-value="m.conformidad" :options="siNo"></g-select>
+              <g-date-picker label="Fecha de entrega" name="fecha-entrega" v-model="m.fechaEntrega" :labels="dpLabels"></g-date-picker>
+              <g-select label="Declaración de conformidad" name="conformidad" v-model="m.conformidad" :options="siNo"></g-select>
             </div>
           </g-form-grid>
         </g-form-section>
@@ -99,20 +111,20 @@
         <g-form-section title="Contenedor">
           <g-form-grid>
             <div class="g-form-row">
-              <g-select label="Tipo" name="contenedor-tipo" :model-value="m.contTipo" :options="tiposContenedor"></g-select>
-              <g-select label="Material" name="contenedor-material" :model-value="m.contMaterial" :options="materiales"></g-select>
+              <g-select label="Tipo" name="contenedor-tipo" v-model="m.contTipo" :options="tiposContenedor"></g-select>
+              <g-select label="Material" name="contenedor-material" v-model="m.contMaterial" :options="materiales"></g-select>
             </div>
             <div class="g-form-row">
-              <g-input label="Capacidad" name="contenedor-capacidad" :model-value="m.contCapacidad"></g-input>
-              <g-select label="Unidad" name="contenedor-unidad" :model-value="m.contUnidad" :options="unidadesContenedor"></g-select>
+              <g-input label="Capacidad" name="contenedor-capacidad" v-model="m.contCapacidad"></g-input>
+              <g-select label="Unidad" name="contenedor-unidad" v-model="m.contUnidad" :options="unidadesContenedor"></g-select>
             </div>
           </g-form-grid>
         </g-form-section>
 
         <g-form-section title="Observaciones">
           <g-form-grid>
-            <g-textarea label="Observaciones de recepción" name="obs-recepcion" :model-value="m.obsRecepcion" :rows="2" resize="none"></g-textarea>
-            <g-textarea label="Observaciones del cliente (etiqueta)" name="obs-etiqueta" :model-value="m.obsEtiqueta" :rows="2" resize="none"></g-textarea>
+            <g-textarea label="Observaciones de recepción" name="obs-recepcion" v-model="m.obsRecepcion" :rows="2" resize="none"></g-textarea>
+            <g-textarea label="Observaciones del cliente (etiqueta)" name="obs-etiqueta" v-model="m.obsEtiqueta" :rows="2" resize="none"></g-textarea>
           </g-form-grid>
         </g-form-section>
 
@@ -122,8 +134,16 @@
       </g-form>
 
       <template #footer="{ close }">
-        <g-btn variant="outline" @click="close">Cancelar</g-btn>
-        <g-btn disabled>Guardar</g-btn>
+        <g-btn v-if="!editando" variant="outline" id="cerrar" @click="close">Cerrar</g-btn>
+        <g-btn v-else variant="outline" id="cancelar" @click="cancelar">Cancelar</g-btn>
+        <g-btn id="guardar" :disabled="!editando || !sucio" @click="guardar">Guardar</g-btn>
+      </template>
+    </g-dialog>
+
+    <g-dialog v-model="confirmando" size="sm" role="alertdialog" title="¿Descartar los cambios?" description="Hay cambios sin guardar. Si continúas, se perderán." close-label="Cerrar" :close-on-backdrop="false">
+      <template #footer="{ close }">
+        <g-btn variant="outline" id="seguir" @click="close">Seguir editando</g-btn>
+        <g-btn color="danger" id="descartar" @click="descartar">Descartar cambios</g-btn>
       </template>
     </g-dialog>
   </div>
@@ -132,13 +152,21 @@
   <script src="../../../../packages/vue/dist/grana.umd.js"></script>
   <script src="../../../../packages/vue/playground/lucide-icons.js"></script>
   <script>
-    const { createApp, ref, reactive } = Vue
+    const { createApp, ref, reactive, computed } = Vue
     // Iconos: Lucide (docs/contract/icons.md). Grana no trae iconos; la aplicación los pone en los slots.
     const LucideIcon = {
       props: { name: String },
       template: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
       computed: { paths() { return window.LUCIDE_ICONS[this.name] || '' } }
     }
+    // Gestor de avisos de la aplicación (Grana no trae instancia global ni textos por defecto)
+    const toaster = Grana.createToaster({
+      labels: {
+        region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación',
+        types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' },
+        repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.'
+      }
+    })
     const peso = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
     const op = (...v) => v.map((x) => ({ value: x, label: x }))
     const app = createApp({
@@ -163,6 +191,43 @@
           obsRecepcion: 'Muestra recibida sellada y sin derrames; refrigerada durante el traslado.',
           obsEtiqueta: 'Etiqueta: «Mezcal joven artesanal», 45 % Alc. Vol., lote LT-2026-0412.'
         })
+        // --- Bloqueo de edición: bloqueado por defecto; el interruptor lo desbloquea ---
+        const editando = ref(false)
+        const sucio = ref(false)
+        const confirmando = ref(false)
+        const pendiente = ref(null) // 'bloquear' | 'cerrar': lo que se hará si se descartan los cambios
+        const anuncio = ref('')
+        const formRef = ref(null)
+        const copia = () => JSON.parse(JSON.stringify(m))
+        let guardado = copia() // última versión guardada
+        const descripcion = computed(() => editando.value
+          ? 'Edición permitida. Guarda para registrar los cambios o cancela para descartarlos.'
+          : 'Formulario bloqueado para evitar cambios por error. Activa «Permitir edición» para modificarlo.')
+        const bloquear = (mensaje) => { editando.value = false; anuncio.value = mensaje || 'Formulario bloqueado' }
+        const alternarEdicion = (v) => {
+          if (v) { editando.value = true; anuncio.value = 'Edición permitida'; return }
+          if (sucio.value) { pendiente.value = 'bloquear'; confirmando.value = true; return }
+          bloquear()
+        }
+        const revertir = () => { Object.assign(m, JSON.parse(JSON.stringify(guardado))); formRef.value && formRef.value.resetState(); sucio.value = false }
+        const cancelar = () => { revertir(); bloquear('Cambios descartados. Formulario bloqueado') }
+        const guardar = () => {
+          guardado = copia() // simulado: sin red
+          formRef.value.resetState(); sucio.value = false
+          bloquear('Cambios guardados. Formulario bloqueado')
+          toaster.success('Cambios guardados', { description: 'La muestra quedó bloqueada otra vez.' })
+        }
+        const alIntentarCerrar = (e) => {
+          if (editando.value && sucio.value) { e.preventDefault(); pendiente.value = 'cerrar'; confirmando.value = true }
+        }
+        const descartar = () => {
+          const que = pendiente.value
+          confirmando.value = false
+          revertir()
+          if (que === 'cerrar') abierto.value = false
+          else bloquear('Cambios descartados. Formulario bloqueado')
+        }
+        const alCerrar = () => { editando.value = false; anuncio.value = '' }
         const ensayos = [{ n: 1, ensayo: 'BAFQ-14', precio: 1469, prioridad: 'Normal', descuento: 'Membresía Platino 29 %', total: 1042.99 }]
         const columnas = [
           { key: 'n', label: '#' },
@@ -174,6 +239,7 @@
         ]
         return {
           abierto, tema, alternarTema, m, ensayos, columnas,
+          editando, sucio, confirmando, anuncio, formRef, descripcion, alternarEdicion, cancelar, guardar, alIntentarCerrar, descartar, alCerrar,
           textos: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
           dpLabels: {
             prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'seleccionada',
@@ -194,7 +260,7 @@
       }
     })
     app.component('LucideIcon', LucideIcon)
-    app.use(Grana)
+    app.use(Grana).use(toaster)
     app.mount('#app')
   </script>
 </body>
