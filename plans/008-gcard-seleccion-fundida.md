@@ -1,6 +1,6 @@
 # 008 — GCard: que la selección se funda entera (tinte, anillo interior y check) y chevrón coherente
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GCard.css` y `design/lab/card/estilo.md`). Sin `.vue`, sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: MEDIUM

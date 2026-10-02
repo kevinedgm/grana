@@ -14,6 +14,14 @@
   el de foco hacia dentro (la raíz recorta), el de selección de doble grosor sin cambiar el tamaño.
 */
 
+/* Tinte de seleccionada/actual. Registrada para que el cambio de selección se funda
+   (un gradiente no se anima con transition). Privada: el nombre lleva el componente porque @property es global */
+@property --_card-selected {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
 /* ---------- Raíz ---------- */
 .g-card {
   /* Familia de la marca (selección, «actual», indicador): se reasigna por --color-* */
@@ -55,9 +63,11 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   text-align: start;
+  background-image: linear-gradient(var(--_card-selected), var(--_card-selected));
   transition:
     border-color var(--g-duration-fast) var(--g-ease-standard),
-    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+    box-shadow var(--g-duration-fast) var(--g-ease-standard),
+    --_card-selected var(--g-duration-fast) var(--g-ease-standard);
 }
 /* Una inset se mide con el segundo radio publicado por la superficie */
 .g-card.g-surface--level-inset { --_inner: var(--_pub2-radius); }
@@ -86,6 +96,7 @@
   border: var(--g-border-width) solid transparent;
   border-radius: var(--_radius-in);
   pointer-events: none;
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
 }
 
 /* ---------- Estructura ---------- */
@@ -206,7 +217,7 @@
   inline-size: calc(var(--g-space-1) * 4);
   block-size: calc(var(--g-space-1) * 4);
   margin-inline-start: var(--g-space-1);
-  transition: rotate var(--g-duration-fast) var(--g-ease-standard);
+  transition: rotate var(--g-duration-press) var(--g-ease-out);
 }
 .g-card__expand[aria-expanded="true"] > .g-icon,
 .g-card__more-toggle[aria-expanded="true"] > .g-icon { rotate: 180deg; }
@@ -353,7 +364,7 @@
   pointer-events: none;
   transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard);
 }
-.g-card__tick > .g-icon { inline-size: calc(var(--_box) * 0.7); block-size: calc(var(--_box) * 0.7); opacity: 0; }
+.g-card__tick > .g-icon { inline-size: calc(var(--_box) * 0.7); block-size: calc(var(--_box) * 0.7); opacity: 0; transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
 .g-card__selectbox[data-type="radio"] .g-card__tick { border-radius: var(--g-radius-pill); }
 .g-card__selectbox[data-type="radio"] .g-card__tick > .g-icon { inline-size: calc(var(--_box) * 0.45); block-size: calc(var(--_box) * 0.45); }
 .g-card__select:checked + .g-card__tick,
@@ -629,13 +640,13 @@
 /* Seleccionada: borde de doble grosor (el de la raíz + un anillo interior, sin cambiar el tamaño), indicador y fondo */
 .g-card.g-surface.is-selected {
   --_border: var(--_mark);
-  background-image: linear-gradient(var(--g-card-selected), var(--g-card-selected));
+  --_card-selected: var(--g-card-selected);
 }
 .g-card.is-selected::after { border-color: var(--_mark); }
 /* Actual (lista maestro-detalle): borde, fondo y marca de chevron; sin el anillo doble ni el indicador de selección */
 .g-card.g-surface.is-current {
   --_border: var(--_mark);
-  background-image: linear-gradient(var(--g-card-selected), var(--g-card-selected));
+  --_card-selected: var(--g-card-selected);
 }
 .g-card.is-selected.is-current::after { border-color: var(--_mark); }
 .g-card.is-current:not(.is-selected)::after { border-color: transparent; }

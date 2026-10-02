@@ -32,6 +32,7 @@ Velos sobre la anfitriona (orden hover < selected < pressed). Velo, peor caso an
 7. **Textos de control** («mostrar más», pie) en `text-muted`/`text`, no en acento: sobre los velos de selected/pressed del oscuro el acento bajaba de 4.5:1.
 8. `forced-colors`: velos fuera, anillos `Highlight`, indicador `Highlight/HighlightText`, media de fondo y velo ocultos (texto `CanvasText`), marcas de status `CanvasText`.
 9. Alturas iguales/naturales: son de la rejilla del consumidor (`align-items`); la tarjeta no fija `block-size`.
+10. **Selección que se funde:** la selección (tinte por `--_card-selected` registrada, anillo interior, borde e indicador con su ✓) se funde en `--g-duration-fast`, también con movimiento reducido (es color). El chevrón de «Mostrar más» gira en `--g-duration-press` con `--g-ease-out`, como `GSelect` y `GSidebar`.
 
 ## Verificación (Chromium, Playwright; contraste medido por píxeles con el texto oculto, animaciones en reposo)
 Temas: defecto claro/oscuro, «Tema de prueba» (serif, borde 2px, space 5px) y los 10 generados × claro/oscuro. Mínimos en los 23:
