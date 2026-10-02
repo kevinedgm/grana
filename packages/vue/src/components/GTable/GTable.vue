@@ -159,16 +159,31 @@ export default defineComponent({
       return width.value < need.value ? 'cards' : 'table'
     })
     let observer = null
+    let frame = 0
+    let pending = 0
+    const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
+    const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
     onMounted(() => {
       if (!root.value) return
       space.value = toPx(getComputedStyle(root.value).getPropertyValue('--g-space-1'))
       width.value = root.value.getBoundingClientRect().width
       if (typeof ResizeObserver !== 'undefined') {
-        observer = new ResizeObserver((e) => { if (e[0]?.contentRect?.width) width.value = e[0].contentRect.width })
+        // La escritura va al cuadro siguiente y solo si cambia: dentro de la devolución, WebKit avisa «ResizeObserver loop completed» (#169)
+        observer = new ResizeObserver((e) => {
+          const w = e[e.length - 1]?.contentRect?.width
+          if (!w) return
+          pending = w
+          if (frame) return
+          frame = raf(() => {
+            frame = 0
+            if (pending && pending !== width.value) width.value = pending
+            pending = 0
+          })
+        })
         observer.observe(root.value)
       }
     })
-    onBeforeUnmount(() => observer && observer.disconnect())
+    onBeforeUnmount(() => { if (observer) observer.disconnect(); if (frame) caf(frame) })
 
     // ---- Render ----
     const L = () => props.labels

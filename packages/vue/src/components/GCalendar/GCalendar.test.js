@@ -666,10 +666,34 @@ describe('GCalendar · adaptación por dispositivo (ancho de la propia raíz)', 
     let cb
     globalThis.ResizeObserver = class { constructor(f) { cb = f } observe() {} disconnect() {} }
     const w = mk(props)
+    // La escritura va al cuadro siguiente (#169); aquí el cuadro es inmediato
+    const raf = globalThis.requestAnimationFrame
+    globalThis.requestAnimationFrame = (f) => { f(0); return 0 }
     cb([{ contentRect: { width } }])
+    globalThis.requestAnimationFrame = raf
     globalThis.ResizeObserver = original
     return w
   }
+
+  it('el modo se escribe en el cuadro siguiente, no dentro de la devolución del observador', async () => {
+    const original = globalThis.ResizeObserver
+    const raf = globalThis.requestAnimationFrame
+    let cb
+    const frames = []
+    globalThis.ResizeObserver = class { constructor(f) { cb = f } observe() {} disconnect() {} }
+    globalThis.requestAnimationFrame = (f) => { frames.push(f); return frames.length }
+    const w = mk()
+    cb([{ contentRect: { width: 400 } }])
+    cb([{ contentRect: { width: 380 } }])
+    await nextTick()
+    expect(w.find('.g-calendar').classes()).not.toContain('g-calendar--mode-phone')
+    expect(frames.length).toBe(1)
+    frames[0](0)
+    await nextTick()
+    expect(w.find('.g-calendar').classes()).toContain('g-calendar--mode-phone')
+    globalThis.requestAnimationFrame = raf
+    globalThis.ResizeObserver = original
+  })
 
   it('escritorio, tableta y teléfono según el ancho', async () => {
     for (const [width, mode] of [[900, 'desktop'], [650, 'tablet'], [400, 'phone']]) {
