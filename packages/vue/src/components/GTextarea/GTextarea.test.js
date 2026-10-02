@@ -37,7 +37,7 @@ describe('GTextarea · render y clases', () => {
     const w = mount(GTextarea, { props: { label: 'x', hint: 'a', id: 't' } })
     expect(field(w).attributes('id')).toBe('t')
     expect(w.find('.g-textarea__hint').attributes('id')).toBe('t-hint')
-    expect(w.find('.g-textarea__error').attributes('id')).toBe('t-error')
+    expect(w.find('.g-textarea__message').attributes('id')).toBe('t-message')
     expect(field(mount(GTextarea, { props: { label: 'x' } })).attributes('id')).toMatch(/^g-textarea-/)
   })
 
@@ -199,7 +199,7 @@ describe('GTextarea · estados', () => {
 
   it('sin error: región viva vacía y sin aria-invalid', () => {
     const w = mount(GTextarea, { props: { label: 'x' } })
-    const err = w.find('.g-textarea__error')
+    const err = w.find('.g-textarea__message')
     expect(err.exists()).toBe(true)
     expect(err.attributes('aria-live')).toBe('polite')
     expect(err.text()).toBe('')
@@ -210,22 +210,22 @@ describe('GTextarea · estados', () => {
   it('con error: aria-invalid, aria-describedby y texto en la región viva', () => {
     const w = mount(GTextarea, { props: { label: 'x', error: 'Muy corto', id: 't' } })
     expect(field(w).attributes('aria-invalid')).toBe('true')
-    expect(field(w).attributes('aria-describedby')).toBe('t-error')
-    expect(w.find('.g-textarea__error').text()).toBe('Muy corto')
+    expect(field(w).attributes('aria-describedby')).toBe('t-message')
+    expect(w.find('.g-textarea__message').text()).toBe('Muy corto')
   })
 
   it('respeta un aria-describedby del consumidor y le suma ayuda y error', () => {
     const w = mount(GTextarea, { props: { label: 'x', hint: 'a', error: 'b', id: 't' }, attrs: { 'aria-describedby': 'ext' } })
-    expect(field(w).attributes('aria-describedby')).toBe('ext t-hint t-error')
+    expect(field(w).attributes('aria-describedby')).toBe('ext t-hint t-message')
   })
 
   it('los slots label, hint y error sustituyen a las props (el error solo con error)', async () => {
     const w = mount(GTextarea, { props: { error: 'x' }, slots: { label: '<b id="lb">Rico</b>', hint: '<i>Ayuda</i>', error: '<u>Falla</u>' } })
     expect(w.find('#lb').exists()).toBe(true)
     expect(w.find('.g-textarea__hint i').exists()).toBe(true)
-    expect(w.find('.g-textarea__error u').exists()).toBe(true)
+    expect(w.find('.g-textarea__message u').exists()).toBe(true)
     await w.setProps({ error: undefined })
-    expect(w.find('.g-textarea__error u').exists()).toBe(false)
+    expect(w.find('.g-textarea__message u').exists()).toBe(false)
   })
 })
 

@@ -30,6 +30,36 @@
       "default": null
     },
     {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "Advertencia: no bloquea ni pone aria-invalid (C5)"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de válido útil (C5)"
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "Marca de la pregunta en el legend (C3)"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null,
+      "note": "false quita la marca de la convención de GForm (C3)"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "Clave del grupo en errors y name por defecto de sus casillas (C11)"
+    },
+    {
       "name": "selectAll",
       "type": "Boolean",
       "default": false
@@ -59,12 +89,14 @@
     {
       "name": "density",
       "type": "String",
-      "default": "default",
+      "default": null,
       "values": [
         "default",
         "comfortable",
         "compact"
-      ]
+      ],
+      "resolvedDefault": "default",
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "color",
@@ -93,7 +125,9 @@
     {
       "name": "disabled",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "id",
@@ -123,7 +157,7 @@
     },
     {
       "name": "error",
-      "purpose": "Error del grupo con contenido rico; solo se muestra con error"
+      "purpose": "Mensaje de error con contenido rico; solo se muestra con error (en la región __message)"
     }
   ],
   "tokens": [
@@ -141,9 +175,23 @@
   "states": [
     "default",
     "disabled",
-    "error"
+    "error",
+    "warning",
+    "valid"
   ],
   "pending": [
     "Lector de pantalla real: conteo y estado mixto de la maestra"
-  ]
+  ],
+  "formSystem": {
+    "contract": "design/contracts/form.md §10",
+    "changes": [
+      "C1 contexto con useFormField",
+      "C3 marcas",
+      "C4 región __message",
+      "C5 warning/valid",
+      "C6 iconos",
+      "C8 manejadores primero",
+      "C10 registro"
+    ]
+  }
 }

@@ -4,6 +4,7 @@
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
+import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GTextarea', inheritAttrs: false })
 
@@ -11,12 +12,13 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
   variant: { type: String, default: 'outline', validator: oneOf(['outline', 'soft']) },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  // density, block, disabled, readonly y error sin valor por defecto: la prop explícita gana al contexto de GForm (form.md §2)
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   color: { type: String, default: undefined, validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
-  block: Boolean,
-  disabled: Boolean,
-  readonly: Boolean,
+  block: { type: Boolean, default: undefined },
+  disabled: { type: Boolean, default: undefined },
+  readonly: { type: Boolean, default: undefined },
   loading: Boolean,
   rows: { type: Number, default: 3 },
   autosize: Boolean,
@@ -25,7 +27,10 @@ const props = defineProps({
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
+  warning: { type: String, default: undefined },
+  valid: { type: String, default: undefined },
   required: Boolean,
+  mark: { type: Boolean, default: undefined },
   counter: Boolean,
   counterText: { type: Function, default: undefined },
   id: { type: String, default: undefined }
@@ -40,9 +45,29 @@ const slots = useSlots()
 const uid = useId()
 const fieldId = computed(() => props.id || `g-textarea-${uid}`)
 const hintId = computed(() => `${fieldId.value}-hint`)
-const errorId = computed(() => `${fieldId.value}-error`)
 
-const invalid = computed(() => Boolean(props.error))
+const field = ref(null)
+const rootEl = ref(null)
+// Contexto de GForm (form.md §2): densidad, estados, marca, mensaje y registro (name de $attrs)
+const ff = useFormField({
+  id: fieldId,
+  name: () => attrs.name,
+  error: () => props.error,
+  warning: () => props.warning,
+  valid: () => props.valid,
+  required: () => props.required,
+  readonly: () => props.readonly,
+  disabled: () => props.disabled,
+  density: () => props.density,
+  block: () => props.block,
+  mark: () => props.mark,
+  trigger: 'blur',
+  control: field,
+  root: rootEl
+})
+const density = ff.density
+const message = ff.message
+const invalid = ff.invalid
 const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 
@@ -65,7 +90,6 @@ const maxlength = computed(() => (attrs.maxlength === undefined || attrs.maxleng
 const showCounter = computed(() => props.counter && maxlength.value !== null)
 
 // ---------- Autosize: la altura sigue al contenido entre rows y maxRows ----------
-const field = ref(null)
 const autoH = ref(null)
 const capped = ref(false)
 let measuring = false
@@ -101,7 +125,7 @@ onMounted(() => {
   }
 })
 onBeforeUnmount(() => resizeObserver?.disconnect())
-watch([() => props.modelValue, () => props.autosize, () => props.rows, () => props.maxRows, () => props.size, () => props.density], () => nextTick(measure), { flush: 'post' })
+watch([() => props.modelValue, () => props.autosize, () => props.rows, () => props.maxRows, () => props.size, () => density.value], () => nextTick(measure), { flush: 'post' })
 watch(() => props.autosize, (on) => {
   if (!on) {
     autoH.value = null
@@ -128,23 +152,25 @@ const classes = computed(() => [
   'g-textarea',
   `g-textarea--variant-${props.variant}`,
   `g-textarea--size-${props.size}`,
-  `g-textarea--density-${props.density}`,
+  `g-textarea--density-${density.value}`,
   props.color && `g-textarea--color-${props.color}`,
   props.rounded && `g-textarea--rounded-${props.rounded}`,
   `g-textarea--resize-${resizeEff.value}`,
   {
-    'g-textarea--block': props.block,
+    'g-textarea--block': ff.block.value,
     'g-textarea--autosize': props.autosize,
     'is-capped': props.autosize && capped.value,
-    'is-disabled': props.disabled,
-    'is-readonly': props.readonly,
+    'is-disabled': ff.disabled.value,
+    'is-readonly': ff.readonly.value,
     'is-invalid': invalid.value,
+    'is-warning': ff.ownMessage.value?.type === 'warning',
+    'is-valid': ff.ownMessage.value?.type === 'valid',
     'is-loading': props.loading
   }
 ])
 
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, invalid.value && errorId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 
@@ -153,8 +179,8 @@ const controlled = computed(() => ({
   id: fieldId.value,
   rows: rowsN.value,
   value: props.modelValue,
-  disabled: props.disabled || undefined,
-  readonly: props.readonly || undefined,
+  disabled: ff.disabled.value || undefined,
+  readonly: ff.readonly.value || undefined,
   required: props.required || undefined,
   'aria-invalid': invalid.value ? 'true' : undefined,
   'aria-busy': props.loading ? 'true' : undefined,
@@ -166,9 +192,9 @@ function onInput(event) {
   nextTick(measure)
 }
 
-// Nuestro manejador va PRIMERO: así una escucha `@input` del consumidor ya ve el modelo actualizado,
-// igual que con un <textarea v-model> nativo.
-const fieldBindings = computed(() => mergeProps({ onInput }, { ...fieldAttrs.value, ...controlled.value }))
+// Los manejadores del contexto y el nuestro van PRIMERO: así una escucha `@input`/`@blur` del consumidor ya ve el
+// modelo y el estado del formulario actualizados, igual que con un <textarea v-model> nativo.
+const fieldBindings = computed(() => mergeProps(ff.handlers, { onInput }, { ...fieldAttrs.value, ...controlled.value }))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -192,11 +218,8 @@ if (isDev) {
 </script>
 
 <template>
-  <div v-bind="rootAttrs" :class="classes">
-    <label v-if="hasLabel" class="g-textarea__label" :for="fieldId">
-      <slot name="label">{{ label }}</slot>
-      <span v-if="required" class="g-textarea__required" aria-hidden="true">*</span>
-    </label>
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+    <label v-if="hasLabel" class="g-textarea__label" :for="fieldId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-textarea__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-textarea__required" aria-hidden="true">*</span></label>
     <div class="g-textarea__control">
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />
       <GIcon v-if="loading" class="g-textarea__loader" name="loader-circle" />
@@ -206,6 +229,6 @@ if (isDev) {
       <span v-if="showCounter" class="g-textarea__counter" aria-hidden="true">{{ length }}/{{ maxlength }}</span>
     </div>
     <span class="g-textarea__count-live" aria-live="polite">{{ liveText }}</span>
-    <div :id="errorId" class="g-textarea__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-textarea__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
+    <div :id="ff.messageId.value" class="g-textarea__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-textarea__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-textarea__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

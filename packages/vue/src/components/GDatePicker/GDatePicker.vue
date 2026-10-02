@@ -6,6 +6,7 @@
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
+import { messageIcon, useFormField } from '../GForm/formContext.js'
 import { addDays, addMonths, daysBetween, daysInMonth, firstOfMonth, isISO, monthKey, parseISO, todayISO, weekday } from '../../utils/dates.js'
 
 defineOptions({ name: 'GDatePicker', inheritAttrs: false })
@@ -29,14 +30,18 @@ const props = defineProps({
   color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   variant: { type: String, default: 'outline', validator: oneOf(['outline', 'soft']) },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  // density, block, disabled, readonly y error sin valor por defecto: la prop explícita gana al contexto de GForm (form.md §2)
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
-  block: Boolean,
-  disabled: Boolean,
-  readonly: Boolean,
+  block: { type: Boolean, default: undefined },
+  disabled: { type: Boolean, default: undefined },
+  readonly: { type: Boolean, default: undefined },
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
+  warning: { type: String, default: undefined },
+  valid: { type: String, default: undefined },
+  mark: { type: Boolean, default: undefined },
   placeholder: { type: String, default: undefined },
   required: Boolean,
   name: { type: String, default: undefined },
@@ -58,7 +63,27 @@ const baseId = computed(() => props.id || `g-datepicker-${uid}`)
 const popId = computed(() => `${baseId.value}-pop`)
 const labelId = computed(() => `${baseId.value}-label`)
 const hintId = computed(() => `${baseId.value}-hint`)
-const errorId = computed(() => `${baseId.value}-error`)
+// Contexto de GForm (form.md §2). Con inline solo lee readonly y disabled (C1). Al elegir un valor completo llama a
+// notifyChange() (C9): revela al cambiar y marca sucio.
+const ff = useFormField({
+  id: baseId,
+  name: () => (props.inline ? undefined : props.name),
+  error: () => props.error,
+  warning: () => props.warning,
+  valid: () => props.valid,
+  required: () => props.required,
+  readonly: () => props.readonly,
+  disabled: () => props.disabled,
+  density: () => (props.inline ? props.density ?? 'default' : props.density),
+  block: () => (props.inline ? props.block ?? false : props.block),
+  mark: () => props.mark,
+  trigger: 'change',
+  control: () => fieldEls.value[0] || null,
+  root: () => root.value
+})
+const isDisabled = ff.disabled
+const isReadonly = ff.readonly
+const message = ff.message
 const monthId = (i) => `${baseId.value}-m${i}`
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -245,10 +270,11 @@ function say(text) {
 function emitValue(value) {
   emit('update:modelValue', value)
   emit('change', value)
+  ff.notifyChange()
 }
 
 const shouldClose = computed(() => (props.closeOnSelect !== undefined ? props.closeOnSelect : (!isRange.value || props.proximity.length === 0)))
-const interactive = computed(() => !props.disabled && !props.readonly)
+const interactive = computed(() => !isDisabled.value && !isReadonly.value)
 
 function pick(iso) {
   if (!interactive.value || unavailable(iso)) return
@@ -473,7 +499,7 @@ const onReposition = () => {
 }
 
 function show(trigger) {
-  if (props.inline || isOpen.value || props.disabled || props.readonly) return
+  if (props.inline || isOpen.value || isDisabled.value || isReadonly.value) return
   triggerEl = trigger || triggerEl
   openedBy.value = trigger || openedBy.value
   const { start } = normalized.value
@@ -551,7 +577,7 @@ watch(() => props.open, (v) => {
   if (v) show(triggerEl || fieldEls.value[0] || null)
   else close(false)
 })
-watch(() => [props.disabled, props.readonly], () => close(false))
+watch(() => [isDisabled.value, isReadonly.value], () => close(false))
 watch(() => props.mode, () => { pending.value = null })
 // Un valor nuevo desde fuera descarta un inicio pendiente
 watch(() => `${normalized.value.start}/${normalized.value.end}`, () => { pending.value = null; hover.value = null })
@@ -586,27 +612,29 @@ const classes = computed(() => [
   `g-datepicker--mode-${props.mode}`,
   `g-datepicker--variant-${props.variant}`,
   `g-datepicker--size-${props.size}`,
-  `g-datepicker--density-${props.density}`,
+  `g-datepicker--density-${ff.density.value}`,
   `g-datepicker--color-${props.color}`,
   props.rounded && `g-datepicker--rounded-${props.rounded}`,
   {
-    'g-datepicker--block': props.block,
+    'g-datepicker--block': ff.block.value,
     'g-datepicker--inline': props.inline,
     'g-datepicker--split': splitOn.value,
     'is-open': isOpen.value,
-    'is-disabled': props.disabled,
-    'is-readonly': props.readonly,
-    'is-invalid': invalid.value
+    'is-disabled': isDisabled.value,
+    'is-readonly': isReadonly.value,
+    'is-invalid': invalid.value,
+    'is-warning': ff.ownMessage.value?.type === 'warning',
+    'is-valid': ff.ownMessage.value?.type === 'valid'
   }
 ])
-const invalid = computed(() => Boolean(props.error))
+const invalid = ff.invalid
 const splitOn = computed(() => props.split && isRange.value && !props.inline && !hasTriggerSlot.value)
 const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 const activeSide = computed(() => (openedBy.value ? fieldEls.value.indexOf(openedBy.value) : -1))
 
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, invalid.value && errorId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 function fieldBindings(side) {
@@ -624,12 +652,12 @@ function fieldBindings(side) {
     'aria-describedby': describedBy.value,
     'aria-invalid': invalid.value ? 'true' : undefined,
     'aria-required': props.required ? 'true' : undefined,
-    'aria-readonly': props.readonly ? 'true' : undefined,
-    disabled: props.disabled || undefined
+    'aria-readonly': isReadonly.value ? 'true' : undefined,
+    disabled: isDisabled.value || undefined
   }
   const base = first ? { ...fieldAttrs.value, ...controlled } : controlled
-  // Nuestro manejador va PRIMERO (mismo criterio que GInput y GSelect)
-  return mergeProps({ onClick: (e) => { if (interactive.value) toggle(e) } }, base)
+  // Los del contexto de GForm y el nuestro van PRIMERO (mismo criterio que GInput y GSelect; form.md §2, C8)
+  return mergeProps(ff.handlers, { onClick: (e) => { if (interactive.value) toggle(e) } }, base)
 }
 const setFieldRef = (el, i) => { if (el) fieldEls.value[i] = el }
 
@@ -704,7 +732,7 @@ defineExpose({
       <slot v-if="hasTriggerSlot" name="trigger" v-bind="slotScope" />
       <template v-else>
         <template v-if="splitOn">
-          <span v-if="hasLabel" :id="labelId" class="g-datepicker__label"><slot name="label">{{ label }}</slot><span v-if="required" class="g-datepicker__required" aria-hidden="true">*</span></span>
+          <span v-if="hasLabel" :id="labelId" class="g-datepicker__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-datepicker__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-datepicker__required" aria-hidden="true">*</span></span>
           <div class="g-datepicker__fields" role="group" :aria-labelledby="hasLabel ? labelId : undefined">
             <div v-for="side in [0, 1]" :key="side" class="g-datepicker__item">
               <span :id="`${baseId}-${side === 0 ? 'start' : 'end'}-label`" class="g-datepicker__label">{{ side === 0 ? labelStart : labelEnd }}</span>
@@ -716,15 +744,15 @@ defineExpose({
           </div>
         </template>
         <template v-else>
-          <span v-if="hasLabel" :id="labelId" class="g-datepicker__label"><slot name="label">{{ label }}</slot><span v-if="required" class="g-datepicker__required" aria-hidden="true">*</span></span>
+          <span v-if="hasLabel" :id="labelId" class="g-datepicker__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-datepicker__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-datepicker__required" aria-hidden="true">*</span></span>
           <button :ref="(el) => setFieldRef(el, 0)" v-bind="fieldBindings()" class="g-datepicker__field">
             <span class="g-datepicker__icon" aria-hidden="true"><slot name="icon"><GIcon name="calendar" /></slot></span>
             <span :id="`${baseId}-value`" class="g-datepicker__value" :class="{ 'g-datepicker__value--placeholder': !fieldText }">{{ fieldText || placeholder }}</span>
           </button>
         </template>
-        <input v-for="h in hiddenFields" :key="h.name" type="hidden" :name="h.name" :value="h.value" :disabled="disabled || undefined">
+        <input v-for="h in hiddenFields" :key="h.name" type="hidden" :name="h.name" :value="h.value" :disabled="isDisabled || undefined">
         <div v-if="hasHint" :id="hintId" class="g-datepicker__hint"><slot name="hint">{{ hint }}</slot></div>
-        <div :id="errorId" class="g-datepicker__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-datepicker__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
+        <div :id="ff.messageId.value" class="g-datepicker__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-datepicker__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-datepicker__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
       </template>
     </template>
 
@@ -802,7 +830,7 @@ defineExpose({
                         :tabindex="cell.iso === tabbable ? 0 : -1"
                         :aria-label="cell.label"
                         :aria-disabled="cell.st.disabled ? 'true' : undefined"
-                        :disabled="disabled || undefined"
+                        :disabled="isDisabled || undefined"
                         @focus="onDayFocus(cell.iso)"
                       >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" :date="cell.iso" :day="cell.day" :selected="cell.st.selected" :in-range="cell.st.inBand" :disabled="cell.st.disabled" :outside="cell.st.outside" /></button>
                     </td>

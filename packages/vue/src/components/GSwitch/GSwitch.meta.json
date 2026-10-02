@@ -38,12 +38,14 @@
     {
       "name": "density",
       "type": "String",
-      "default": "default",
+      "default": null,
       "values": [
         "default",
         "comfortable",
         "compact"
-      ]
+      ],
+      "resolvedDefault": "default",
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "color",
@@ -62,12 +64,16 @@
     {
       "name": "disabled",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "readonly",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "loading",
@@ -88,6 +94,18 @@
       "name": "error",
       "type": "String",
       "default": null
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "Advertencia: no bloquea ni pone aria-invalid (C5)"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de válido útil (C5)"
     },
     {
       "name": "id",
@@ -113,7 +131,7 @@
     },
     {
       "name": "error",
-      "purpose": "Mensaje de error con contenido rico; solo con error"
+      "purpose": "Mensaje de error con contenido rico; solo se muestra con error (en la región __message)"
     },
     {
       "name": "icon-on",
@@ -164,10 +182,24 @@
     "disabled",
     "readonly",
     "invalid",
-    "loading"
+    "loading",
+    "warning",
+    "valid"
   ],
   "pending": [
     "Lector de pantalla real: rol switch, activado/desactivado, ayuda, error y aria-busy",
     "Firefox y Safari (pseudo-elementos del input, :dir(), :has())"
-  ]
+  ],
+  "formSystem": {
+    "contract": "design/contracts/form.md §10",
+    "changes": [
+      "C1 contexto con useFormField",
+      "C3 marcas",
+      "C4 región __message",
+      "C5 warning/valid",
+      "C6 iconos",
+      "C8 manejadores primero",
+      "C10 registro"
+    ]
+  }
 }

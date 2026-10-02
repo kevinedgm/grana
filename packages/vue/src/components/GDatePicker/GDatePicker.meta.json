@@ -132,12 +132,14 @@
     {
       "name": "density",
       "type": "String",
-      "default": "default",
+      "default": null,
       "values": [
         "default",
         "comfortable",
         "compact"
-      ]
+      ],
+      "resolvedDefault": "default",
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "rounded",
@@ -156,17 +158,23 @@
     {
       "name": "block",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "disabled",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "readonly",
       "type": "Boolean",
-      "default": false
+      "default": null,
+      "resolvedDefault": false,
+      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "label",
@@ -184,6 +192,18 @@
       "default": null
     },
     {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "Advertencia: no bloquea ni pone aria-invalid (C5)"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de válido útil (C5)"
+    },
+    {
       "name": "placeholder",
       "type": "String",
       "default": null
@@ -192,6 +212,12 @@
       "name": "required",
       "type": "Boolean",
       "default": false
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null,
+      "note": "false quita la marca de la convención de GForm (C3)"
     },
     {
       "name": "name",
@@ -277,7 +303,7 @@
     },
     {
       "name": "error",
-      "purpose": "Mensaje de error con contenido rico; solo con error"
+      "purpose": "Mensaje de error con contenido rico; solo se muestra con error (en la región __message)"
     },
     {
       "name": "trigger",
@@ -357,7 +383,9 @@
     "split",
     "inline",
     "with-proximity",
-    "trigger-slot"
+    "trigger-slot",
+    "warning",
+    "valid"
   ],
   "pending": [
     "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",
@@ -365,5 +393,17 @@
     "Hoja móvil con teclado virtual y deslizamiento en táctil real",
     "Franja del rango tenue (1.14:1 con el tema por defecto, 1.22:1 con el de prueba): decisión pendiente (ver auditoria.md)",
     "Escribir la fecha a mano (fuera de v0.1)"
-  ]
+  ],
+  "formSystem": {
+    "contract": "design/contracts/form.md §10",
+    "changes": [
+      "C1 contexto con useFormField",
+      "C3 marcas",
+      "C4 región __message",
+      "C5 warning/valid",
+      "C6 iconos",
+      "C8 manejadores primero",
+      "C10 registro"
+    ]
+  }
 }

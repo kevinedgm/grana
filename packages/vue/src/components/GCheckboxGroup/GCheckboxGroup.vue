@@ -1,13 +1,14 @@
 <script setup>
 // GCheckboxGroup · grupo de casillas con maestra y conteo (dueño: bruno)
 // Contrato: design/contracts/checkbox.md · Estructura: design/lab/checkbox/r01/ · Estilo: GCheckboxGroup.css (coco)
-import { computed, defineComponent, provide, reactive, useAttrs, useId, useSlots } from 'vue'
+import { computed, defineComponent, mergeProps, provide, reactive, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
 import GCheckbox from '../GCheckbox/GCheckbox.vue'
 import { GROUP_KEY } from './groupKey.js'
+import { messageIcon, useFormField } from '../GForm/formContext.js'
 
-defineOptions({ name: 'GCheckboxGroup' })
+defineOptions({ name: 'GCheckboxGroup', inheritAttrs: false })
 
 // La casilla maestra está dentro del grupo pero no es una hija: este ámbito corta la herencia del grupo.
 const MasterScope = defineComponent({
@@ -22,14 +23,21 @@ const props = defineProps({
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
+  warning: { type: String, default: undefined },
+  valid: { type: String, default: undefined },
+  required: Boolean,
+  mark: { type: Boolean, default: undefined },
+  // Clave del grupo en `errors` de GForm y name por defecto de sus casillas (C11)
+  name: { type: String, default: undefined },
   selectAll: Boolean,
   selectAllLabel: { type: String, default: undefined },
   countText: { type: Function, default: undefined },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  // density, disabled y error sin valor por defecto: la prop explícita gana al contexto de GForm (form.md §2)
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   layout: { type: String, default: 'default', validator: oneOf(['default', 'card', 'chip']) },
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   id: { type: String, default: undefined }
 })
 
@@ -41,11 +49,30 @@ const slots = useSlots()
 const uid = useId()
 const groupId = computed(() => props.id || `g-checkbox-group-${uid}`)
 const hintId = computed(() => `${groupId.value}-hint`)
-const errorId = computed(() => `${groupId.value}-error`)
+
+const rootEl = ref(null)
+// El destino del resumen y del foco es la primera casilla habilitada de la lista
+const firstControl = () => rootEl.value?.querySelector('.g-checkbox-group__list input:not(:disabled)') || null
+const ff = useFormField({
+  id: groupId,
+  name: () => props.name,
+  error: () => props.error,
+  warning: () => props.warning,
+  valid: () => props.valid,
+  required: () => props.required,
+  disabled: () => props.disabled,
+  density: () => props.density,
+  mark: () => props.mark,
+  trigger: 'change',
+  control: firstControl,
+  root: rootEl
+})
+const density = ff.density
+const isDisabled = ff.disabled
+const message = ff.message
 
 const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
-const hasError = computed(() => Boolean(props.error))
 
 // Hijas registradas (en orden de montaje = orden del documento).
 const items = reactive(new Map())
@@ -55,7 +82,7 @@ function register(id, item) {
 function unregister(id) {
   items.delete(id)
 }
-const enabled = computed(() => (props.disabled ? [] : [...items.entries()].filter(([, item]) => !item.isDisabled())))
+const enabled = computed(() => (isDisabled.value ? [] : [...items.entries()].filter(([, item]) => !item.isDisabled())))
 const enabledValues = computed(() => enabled.value.map(([, item]) => item.value))
 const enabledIds = computed(() => enabled.value.map(([id]) => id))
 
@@ -71,10 +98,11 @@ function toggle(value, checked) {
 provide(GROUP_KEY, {
   model: computed(() => props.modelValue),
   size: computed(() => props.size),
-  density: computed(() => props.density),
+  density,
   color: computed(() => props.color),
   layout: computed(() => props.layout),
-  disabled: computed(() => props.disabled),
+  disabled: isDisabled,
+  name: computed(() => props.name),
   toggle,
   register,
   unregister
@@ -101,11 +129,22 @@ const countString = computed(() => (props.countText ? props.countText(selectedCo
 const showHead = computed(() => showMaster.value || Boolean(props.countText))
 
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, hasError.value && errorId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 
-const classes = computed(() => ['g-checkbox-group', `g-checkbox-group--layout-${props.layout}`])
+const classes = computed(() => [
+  'g-checkbox-group',
+  `g-checkbox-group--layout-${props.layout}`,
+  {
+    'is-disabled': isDisabled.value,
+    'is-invalid': ff.invalid.value,
+    'is-warning': ff.ownMessage.value?.type === 'warning',
+    'is-valid': ff.ownMessage.value?.type === 'valid'
+  }
+])
+// Los manejadores del contexto van PRIMERO; el resto de atributos y escuchas del consumidor, al <fieldset>
+const rootBindings = computed(() => mergeProps(ff.handlers, attrs))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -120,8 +159,8 @@ if (isDev) {
 </script>
 
 <template>
-  <fieldset :id="groupId" :class="classes" :disabled="disabled || undefined" :aria-describedby="describedBy">
-    <legend v-if="hasLabel" class="g-checkbox-group__label"><slot name="label">{{ label }}</slot></legend>
+  <fieldset ref="rootEl" v-bind="rootBindings" :id="groupId" :class="classes" :disabled="isDisabled || undefined" :aria-describedby="describedBy">
+    <legend v-if="hasLabel" class="g-checkbox-group__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-checkbox-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-checkbox-group__required" aria-hidden="true">*</span></legend>
     <div v-if="showHead" class="g-checkbox-group__head">
       <MasterScope v-if="showMaster">
         <GCheckbox
@@ -132,7 +171,7 @@ if (isDev) {
           :model-value="allChecked"
           :indeterminate="someChecked"
           :label="selectAllLabel"
-          :disabled="disabled || total === 0"
+          :disabled="isDisabled || total === 0"
           :aria-controls="controls"
           @update:model-value="toggleAll"
         />
@@ -141,6 +180,6 @@ if (isDev) {
     </div>
     <div class="g-checkbox-group__list"><slot /></div>
     <div v-if="hasHint" :id="hintId" class="g-checkbox-group__hint"><slot name="hint">{{ hint }}</slot></div>
-    <div :id="errorId" class="g-checkbox-group__error" aria-live="polite"><template v-if="hasError"><GIcon class="g-checkbox-group__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
+    <div :id="ff.messageId.value" class="g-checkbox-group__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-checkbox-group__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-checkbox-group__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </fieldset>
 </template>

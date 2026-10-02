@@ -104,10 +104,10 @@ describe('GInput · etiqueta, ayuda y error', () => {
 
   it('sin error: la región viva existe, vacía, y no hay aria-invalid ni referencia', () => {
     const w = mount(GInput, { props: { label: 'x', id: 'c' } })
-    const region = w.find('.g-input__error')
+    const region = w.find('.g-input__message')
     expect(region.exists()).toBe(true)
     expect(region.attributes('aria-live')).toBe('polite')
-    expect(region.attributes('id')).toBe('c-error')
+    expect(region.attributes('id')).toBe('c-message')
     expect(region.text()).toBe('')
     expect(field(w).attributes('aria-invalid')).toBeUndefined()
     expect(field(w).attributes('aria-describedby')).toBeUndefined()
@@ -115,14 +115,14 @@ describe('GInput · etiqueta, ayuda y error', () => {
 
   it('con error: texto en la región viva, aria-invalid y aria-describedby', () => {
     const w = mount(GInput, { props: { label: 'x', id: 'c', error: 'Falta el dominio.' } })
-    expect(w.find('.g-input__error').text()).toBe('Falta el dominio.')
+    expect(w.find('.g-input__message').text()).toBe('Falta el dominio.')
     expect(field(w).attributes('aria-invalid')).toBe('true')
-    expect(field(w).attributes('aria-describedby')).toBe('c-error')
+    expect(field(w).attributes('aria-describedby')).toBe('c-message')
   })
 
   it('ayuda y error se enlazan juntos en aria-describedby', () => {
     const w = mount(GInput, { props: { label: 'x', id: 'c', hint: 'Ayuda', error: 'Mal' } })
-    expect(field(w).attributes('aria-describedby')).toBe('c-hint c-error')
+    expect(field(w).attributes('aria-describedby')).toBe('c-hint c-message')
     expect(w.find('#c-hint').text()).toBe('Ayuda')
   })
 
@@ -138,9 +138,9 @@ describe('GInput · etiqueta, ayuda y error', () => {
     })
     expect(w.find('label').html()).toContain('<b>rica</b>')
     expect(w.find('#c-hint').text()).toBe('Ayuda rica')
-    expect(w.find('.g-input__error').html()).toContain('<i>rico</i>')
+    expect(w.find('.g-input__message').html()).toContain('<i>rico</i>')
     await w.setProps({ error: undefined })
-    expect(w.find('.g-input__error').text()).toBe('')
+    expect(w.find('.g-input__message').text()).toBe('')
   })
 })
 

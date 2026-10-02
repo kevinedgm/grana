@@ -381,14 +381,14 @@ describe('GSelect · estados', () => {
 
   it('sin error: región viva vacía y sin aria-invalid; con error: aria-invalid, describedby y texto', () => {
     const w = mk({ id: 's' })
-    expect(w.find('.g-select__error').attributes('aria-live')).toBe('polite')
-    expect(w.find('.g-select__error').text()).toBe('')
+    expect(w.find('.g-select__message').attributes('aria-live')).toBe('polite')
+    expect(w.find('.g-select__message').text()).toBe('')
     expect(btn(w).attributes('aria-invalid')).toBeUndefined()
     w.unmount()
     const e = mk({ id: 's', error: 'Elige una opción', hint: 'Ayuda' })
     expect(btn(e).attributes('aria-invalid')).toBe('true')
-    expect(btn(e).attributes('aria-describedby')).toBe('s-hint s-error')
-    expect(e.find('.g-select__error').text()).toBe('Elige una opción')
+    expect(btn(e).attributes('aria-describedby')).toBe('s-hint s-message')
+    expect(e.find('.g-select__message').text()).toBe('Elige una opción')
     e.unmount()
   })
 
@@ -412,7 +412,7 @@ describe('GSelect · estados', () => {
     const w = mk({ error: 'x' }, { slots: { label: '<b id="lb">Rico</b>', hint: '<i>Ayuda</i>', error: '<u>Falla</u>' } })
     expect(w.find('#lb').exists()).toBe(true)
     expect(w.find('.g-select__hint i').exists()).toBe(true)
-    expect(w.find('.g-select__error u').exists()).toBe(true)
+    expect(w.find('.g-select__message u').exists()).toBe(true)
     w.unmount()
   })
 })

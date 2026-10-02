@@ -146,12 +146,12 @@ describe('GCheckboxGroup · conteo, ayuda y error', () => {
 
   it('error del grupo: región viva siempre presente y aria-describedby en el fieldset', async () => {
     const w = await make({ hint: 'Ayuda', id: 'g' })
-    expect(w.find('.g-checkbox-group__error').attributes('aria-live')).toBe('polite')
-    expect(w.find('.g-checkbox-group__error').text()).toBe('')
+    expect(w.find('.g-checkbox-group__message').attributes('aria-live')).toBe('polite')
+    expect(w.find('.g-checkbox-group__message').text()).toBe('')
     expect(w.find('fieldset').attributes('aria-describedby')).toBe('g-hint')
     await w.setProps({ error: 'Elige al menos una' })
-    expect(w.find('.g-checkbox-group__error').text()).toBe('Elige al menos una')
-    expect(w.find('fieldset').attributes('aria-describedby')).toBe('g-hint g-error')
+    expect(w.find('.g-checkbox-group__message').text()).toBe('Elige al menos una')
+    expect(w.find('fieldset').attributes('aria-describedby')).toBe('g-hint g-message')
   })
 
   it('avisa sin nombre accesible', () => {

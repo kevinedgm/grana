@@ -9,6 +9,8 @@ import GSelect from '../components/GSelect/GSelect.vue'
 
 // Marcas de los componentes de formulario: todas son iconos de Lucide decorativos (docs/contract/icons.md §4)
 const TRIANGLE_ALERT = 'm21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'
+// El error usa circle-alert desde el sistema de formularios (form.md §10 C6, DECISIONS.md #164); triangle-alert es la advertencia
+const CIRCLE_ALERT = 'x2="12.01" y1="16" y2="16"'
 const hidden = (w) => expect(w.attributes('aria-hidden')).toBe('true')
 
 describe('GCheckbox · marcas de Lucide', () => {
@@ -32,14 +34,14 @@ describe('GCheckbox · marcas de Lucide', () => {
   })
 })
 
-describe('mensajes de error · triangle-alert de Lucide', () => {
+describe('mensajes de error · circle-alert de Lucide (C6)', () => {
   const cases = [
-    ['GCheckbox', GCheckbox, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox__error-icon'],
-    ['GCheckboxGroup', GCheckboxGroup, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox-group__error-icon'],
-    ['GInput', GInput, { label: 'x', error: 'Mal' }, 'g-input__error-icon'],
-    ['GTextarea', GTextarea, { label: 'x', error: 'Mal' }, 'g-textarea__error-icon'],
-    ['GSwitch', GSwitch, { label: 'x', error: 'Mal' }, 'g-switch__error-icon'],
-    ['GSelect', GSelect, { label: 'x', options: [{ value: 1, label: 'a' }], error: 'Mal' }, 'g-select__error-icon']
+    ['GCheckbox', GCheckbox, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox__message-icon'],
+    ['GCheckboxGroup', GCheckboxGroup, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox-group__message-icon'],
+    ['GInput', GInput, { label: 'x', error: 'Mal' }, 'g-input__message-icon'],
+    ['GTextarea', GTextarea, { label: 'x', error: 'Mal' }, 'g-textarea__message-icon'],
+    ['GSwitch', GSwitch, { label: 'x', error: 'Mal' }, 'g-switch__message-icon'],
+    ['GSelect', GSelect, { label: 'x', options: [{ value: 1, label: 'a' }], error: 'Mal' }, 'g-select__message-icon']
   ]
   for (const [name, comp, props, cls] of cases) {
     it(`${name}: con error, el icono va antes del texto y es decorativo; sin error no hay icono`, () => {
@@ -47,7 +49,7 @@ describe('mensajes de error · triangle-alert de Lucide', () => {
       const icon = w.find(`svg.${cls}`)
       expect(icon.exists(), name).toBe(true)
       hidden(icon)
-      expect(icon.html()).toContain(TRIANGLE_ALERT)
+      expect(icon.html()).toContain(CIRCLE_ALERT)
       const err = icon.element.parentElement
       expect(err.textContent.trim()).toBe('Mal')
       expect(err.firstElementChild).toBe(icon.element)
@@ -55,6 +57,17 @@ describe('mensajes de error · triangle-alert de Lucide', () => {
       expect(ok.find(`svg.${cls}`).exists(), name).toBe(false)
     })
   }
+})
+
+describe('mensajes de advertencia y válido · triangle-alert y circle-check (C6)', () => {
+  it('GInput: advertencia con triangle-alert y válido con circle-check, decorativos y antes del texto', () => {
+    const w = mount(GInput, { props: { label: 'x', warning: 'Revisa' } })
+    const icon = w.find('svg.g-input__message-icon')
+    hidden(icon)
+    expect(icon.html()).toContain(TRIANGLE_ALERT)
+    const v = mount(GInput, { props: { label: 'x', valid: 'Disponible' } })
+    expect(v.find('svg.g-input__message-icon').html()).toContain('m16 9-5.5 5.5L8 12')
+  })
 })
 
 describe('indicadores de carga · loader-circle de Lucide', () => {
@@ -76,7 +89,7 @@ describe('GDatePicker y GCalendar · iconos de Lucide', () => {
     w.unmount()
     const f = mount(GDatePicker, { attachTo: document.body, props: { label: 'Fecha', modelValue: null, error: 'Mal', invalid: true } })
     expect(f.find('.g-datepicker__icon svg').html()).toContain('M8 2v3')
-    expect(f.find('svg.g-datepicker__error-icon').exists()).toBe(true)
+    expect(f.find('svg.g-datepicker__message-icon').exists()).toBe(true)
     f.unmount()
   })
 

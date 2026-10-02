@@ -36,7 +36,7 @@ describe('GCheckbox · render y clases', () => {
     const w = mount(GCheckbox, { props: { label: 'Acepto', id: 'c' } })
     expect(input(w).attributes('id')).toBe('c')
     expect(w.find('.g-checkbox__label').attributes('id')).toBe('c-label')
-    expect(w.find('.g-checkbox__error').attributes('id')).toBe('c-error')
+    expect(w.find('.g-checkbox__message').attributes('id')).toBe('c-message')
     expect(input(mount(GCheckbox, { props: { label: 'x' } })).attributes('id')).toMatch(/^g-checkbox-/)
   })
 })
@@ -125,7 +125,7 @@ describe('GCheckbox · estados', () => {
 
   it('sin error: región viva vacía y sin aria-invalid', () => {
     const w = mount(GCheckbox, { props: { label: 'x', id: 'c' } })
-    const region = w.find('.g-checkbox__error')
+    const region = w.find('.g-checkbox__message')
     expect(region.attributes('aria-live')).toBe('polite')
     expect(region.text()).toBe('')
     expect(input(w).attributes('aria-invalid')).toBeUndefined()
@@ -135,8 +135,8 @@ describe('GCheckbox · estados', () => {
   it('con error: aria-invalid, aria-describedby y texto en la región viva (fuera del <label>)', () => {
     const w = mount(GCheckbox, { props: { label: 'x', id: 'c', hint: 'Ayuda', error: 'Obligatoria' } })
     expect(input(w).attributes('aria-invalid')).toBe('true')
-    expect(input(w).attributes('aria-describedby')).toBe('c-hint c-error')
-    expect(w.find('.g-checkbox__error').text()).toBe('Obligatoria')
+    expect(input(w).attributes('aria-describedby')).toBe('c-hint c-message')
+    expect(w.find('.g-checkbox__message').text()).toBe('Obligatoria')
     expect(w.find('label').text()).not.toContain('Obligatoria')
   })
 
@@ -210,9 +210,9 @@ describe('GCheckbox · estructura tarjeta', () => {
     const w = mount(GCheckbox, { props: { id: 'c', error: 'x' }, slots: { label: 'Etiqueta <b>rica</b>', hint: 'Ayuda rica', error: 'Error <i>rico</i>' } })
     expect(w.find('.g-checkbox__label').html()).toContain('<b>rica</b>')
     expect(w.find('#c-hint').text()).toBe('Ayuda rica')
-    expect(w.find('.g-checkbox__error').html()).toContain('<i>rico</i>')
+    expect(w.find('.g-checkbox__message').html()).toContain('<i>rico</i>')
     await w.setProps({ error: undefined })
-    expect(w.find('.g-checkbox__error').text()).toBe('')
+    expect(w.find('.g-checkbox__message').text()).toBe('')
   })
 })
 

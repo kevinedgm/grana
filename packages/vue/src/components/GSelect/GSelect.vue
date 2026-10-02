@@ -6,6 +6,7 @@
 import { Comment, Fragment, Text, computed, mergeProps, nextTick, onBeforeUnmount, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
+import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
 
@@ -14,12 +15,13 @@ const props = defineProps({
   options: { type: Array, default: () => [] },
   variant: { type: String, default: 'outline', validator: oneOf(['outline', 'soft']) },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  // density, block, disabled, readonly y error sin valor por defecto: la prop explícita gana al contexto de GForm (form.md §2)
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   color: { type: String, default: undefined, validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
-  block: Boolean,
-  disabled: Boolean,
-  readonly: Boolean,
+  block: { type: Boolean, default: undefined },
+  disabled: { type: Boolean, default: undefined },
+  readonly: { type: Boolean, default: undefined },
   loading: Boolean,
   placeholder: { type: String, default: undefined },
   clearable: Boolean,
@@ -29,7 +31,10 @@ const props = defineProps({
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
+  warning: { type: String, default: undefined },
+  valid: { type: String, default: undefined },
   required: Boolean,
+  mark: { type: Boolean, default: undefined },
   name: { type: String, default: undefined },
   id: { type: String, default: undefined }
 })
@@ -45,11 +50,32 @@ const buttonId = computed(() => props.id || `g-select-${uid}`)
 const labelId = computed(() => `${buttonId.value}-label`)
 const listId = computed(() => `${buttonId.value}-list`)
 const hintId = computed(() => `${buttonId.value}-hint`)
-const errorId = computed(() => `${buttonId.value}-error`)
 const optId = (i) => (i === createIndex.value ? `${buttonId.value}-opt-create` : `${buttonId.value}-opt-${i}`)
 const groupId = (g) => `${buttonId.value}-grp-${g}`
 
-const invalid = computed(() => Boolean(props.error))
+const rootEl = ref(null)
+const button = ref(null)
+// Contexto de GForm (form.md §2). Sin `input` nativo que burbujee: al elegir llama a notifyChange() (C9)
+const ff = useFormField({
+  id: buttonId,
+  name: () => props.name,
+  error: () => props.error,
+  warning: () => props.warning,
+  valid: () => props.valid,
+  required: () => props.required,
+  readonly: () => props.readonly,
+  disabled: () => props.disabled,
+  density: () => props.density,
+  block: () => props.block,
+  mark: () => props.mark,
+  trigger: 'change',
+  control: button,
+  root: rootEl
+})
+const isDisabled = ff.disabled
+const isReadonly = ff.readonly
+const message = ff.message
+const invalid = ff.invalid
 const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 
@@ -88,15 +114,14 @@ const items = computed(() => model.value.items)
 const selected = computed(() => (props.modelValue === null || props.modelValue === undefined ? null : items.value.find((i) => i.value === props.modelValue) ?? null))
 const enabled = computed(() => items.value.filter((i) => !i.disabled))
 // Fila «Agregar nuevo…»: un elemento virtual, siempre el último; no está en `options`, ni en `modelValue`, ni en la escritura rápida
-const createVisible = computed(() => Boolean(props.createLabel) && !props.disabled && !props.readonly)
+const createVisible = computed(() => Boolean(props.createLabel) && !isDisabled.value && !isReadonly.value)
 const createIndex = computed(() => items.value.length)
 const createItem = computed(() => ({ index: createIndex.value, label: props.createLabel, disabled: false, create: true }))
 const navigable = computed(() => (createVisible.value ? [...enabled.value, createItem.value] : enabled.value))
 const itemAt = (i) => (i === createIndex.value ? (createVisible.value ? createItem.value : undefined) : items.value[i])
-const showClear = computed(() => props.clearable && Boolean(props.clearLabel) && Boolean(selected.value) && !props.disabled && !props.readonly)
+const showClear = computed(() => props.clearable && Boolean(props.clearLabel) && Boolean(selected.value) && !isDisabled.value && !isReadonly.value)
 
 // ---------- Estado ----------
-const button = ref(null)
 const list = ref(null)
 const control = ref(null)
 const open = ref(false)
@@ -106,6 +131,7 @@ const activeId = computed(() => (open.value && activeIndex.value >= 0 ? optId(ac
 
 function emitChange(value) {
   emit('update:modelValue', value)
+  ff.notifyChange()
 }
 
 // ---------- Posición: variables CSS dinámicas sobre la lista ----------
@@ -145,7 +171,7 @@ function scrollActive() {
 
 // ---------- Abrir y cerrar ----------
 function show() {
-  if (open.value || props.disabled || props.readonly) return
+  if (open.value || isDisabled.value || isReadonly.value) return
   open.value = true
   const start = selected.value && !selected.value.disabled ? selected.value : (enabled.value[0] ?? (createVisible.value ? createItem.value : null))
   activeIndex.value = start ? start.index : -1
@@ -202,7 +228,7 @@ function onOutside(event) {
   if (l.contains(event.target) && event.target !== l) return
   hide()
 }
-watch(() => [props.disabled, props.readonly], () => hide())
+watch(() => [isDisabled.value, isReadonly.value], () => hide())
 onBeforeUnmount(() => {
   if (open.value) hide()
   clearTimeout(typedTimer)
@@ -241,7 +267,7 @@ function typeahead(ch) {
 }
 
 function onKeydown(event) {
-  if (props.disabled || props.readonly) return
+  if (isDisabled.value || isReadonly.value) return
   const k = event.key
   const printable = k.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey
   if (!open.value) {
@@ -277,7 +303,7 @@ function onKeydown(event) {
 }
 
 function onButtonClick() {
-  if (props.disabled || props.readonly) return
+  if (isDisabled.value || isReadonly.value) return
   if (open.value) hide()
   else show()
 }
@@ -310,21 +336,23 @@ const classes = computed(() => [
   'g-select',
   `g-select--variant-${props.variant}`,
   `g-select--size-${props.size}`,
-  `g-select--density-${props.density}`,
+  `g-select--density-${ff.density.value}`,
   props.color && `g-select--color-${props.color}`,
   props.rounded && `g-select--rounded-${props.rounded}`,
   {
-    'g-select--block': props.block,
+    'g-select--block': ff.block.value,
     'is-open': open.value,
-    'is-disabled': props.disabled,
-    'is-readonly': props.readonly,
+    'is-disabled': isDisabled.value,
+    'is-readonly': isReadonly.value,
     'is-invalid': invalid.value,
+    'is-warning': ff.ownMessage.value?.type === 'warning',
+    'is-valid': ff.ownMessage.value?.type === 'valid',
     'is-loading': props.loading
   }
 ])
 
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, invalid.value && errorId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 const labelledBy = computed(() => (hasLabel.value ? `${labelId.value} ${buttonId.value}` : attrs['aria-labelledby']))
@@ -341,12 +369,13 @@ const controlled = computed(() => ({
   'aria-describedby': describedBy.value,
   'aria-invalid': invalid.value ? 'true' : undefined,
   'aria-required': props.required ? 'true' : undefined,
-  'aria-readonly': props.readonly ? 'true' : undefined,
+  'aria-readonly': isReadonly.value ? 'true' : undefined,
   'aria-busy': props.loading ? 'true' : undefined,
-  disabled: props.disabled || undefined
+  disabled: isDisabled.value || undefined
 }))
 // Nuestros manejadores van PRIMERO (mismo criterio que GInput y GCheckbox)
-const buttonBindings = computed(() => mergeProps({ onClick: onButtonClick, onKeydown }, { ...buttonAttrs.value, ...controlled.value }))
+// y los del contexto de GForm antes que los nuestros (form.md §2, C8)
+const buttonBindings = computed(() => mergeProps(ff.handlers, { onClick: onButtonClick, onKeydown }, { ...buttonAttrs.value, ...controlled.value }))
 
 const listLabelledBy = computed(() => (hasLabel.value ? labelId.value : attrs['aria-labelledby']))
 const hiddenValue = computed(() => (selected.value ? String(selected.value.value) : ''))
@@ -366,11 +395,8 @@ if (isDev) {
 </script>
 
 <template>
-  <div v-bind="rootAttrs" :class="classes">
-    <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId">
-      <slot name="label">{{ label }}</slot>
-      <span v-if="required" class="g-select__required" aria-hidden="true">*</span>
-    </label>
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+    <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
     <div ref="control" class="g-select__control">
       <button ref="button" v-bind="buttonBindings" class="g-select__button">
         <span v-if="slots.prepend" class="g-select__prepend" aria-hidden="true"><slot name="prepend" /></span>
@@ -380,7 +406,7 @@ if (isDev) {
       <button v-if="showClear" class="g-select__clear" type="button" :aria-label="clearLabel" @click="clear"><GIcon name="x" /></button>
       <GIcon v-if="loading" class="g-select__loader" name="loader-circle" />
     </div>
-    <input v-if="name" type="hidden" :name="name" :value="hiddenValue" :disabled="disabled || undefined">
+    <input v-if="name" type="hidden" :name="name" :value="hiddenValue" :disabled="isDisabled || undefined">
     <ul
       ref="list"
       :id="listId"
@@ -434,6 +460,6 @@ if (isDev) {
       ><GIcon class="g-select__create-icon" name="plus" />{{ createLabel }}</li>
     </ul>
     <div v-if="hasHint" :id="hintId" class="g-select__hint"><slot name="hint">{{ hint }}</slot></div>
-    <div :id="errorId" class="g-select__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-select__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
+    <div :id="ff.messageId.value" class="g-select__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-select__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-select__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

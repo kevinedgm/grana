@@ -59,7 +59,7 @@ describe('GSwitch · render y clases', () => {
     expect(input(w).attributes('id')).toBe('s')
     expect(w.find('.g-switch__label').attributes('id')).toBe('s-label')
     expect(w.find('.g-switch__hint').attributes('id')).toBe('s-hint')
-    expect(w.find('.g-switch__error').attributes('id')).toBe('s-error')
+    expect(w.find('.g-switch__message').attributes('id')).toBe('s-message')
     expect(input(mount(GSwitch, { props: { label: 'x' } })).attributes('id')).toMatch(/^g-switch-/)
   })
 
@@ -128,7 +128,7 @@ describe('GSwitch · estados', () => {
 
   it('sin error: región viva vacía y sin aria-invalid', () => {
     const w = mount(GSwitch, { props: { label: 'x' } })
-    const err = w.find('.g-switch__error')
+    const err = w.find('.g-switch__message')
     expect(err.exists()).toBe(true)
     expect(err.attributes('aria-live')).toBe('polite')
     expect(err.text()).toBe('')
@@ -139,23 +139,23 @@ describe('GSwitch · estados', () => {
   it('con error: aria-invalid, aria-describedby y texto en la región viva (fuera del <label>)', () => {
     const w = mount(GSwitch, { props: { label: 'x', error: 'Actívalo', id: 's' } })
     expect(input(w).attributes('aria-invalid')).toBe('true')
-    expect(input(w).attributes('aria-describedby')).toBe('s-error')
-    expect(w.find('.g-switch__error').text()).toBe('Actívalo')
-    expect(w.find('.g-switch__row').find('.g-switch__error').exists()).toBe(false)
+    expect(input(w).attributes('aria-describedby')).toBe('s-message')
+    expect(w.find('.g-switch__message').text()).toBe('Actívalo')
+    expect(w.find('.g-switch__row').find('.g-switch__message').exists()).toBe(false)
   })
 
   it('respeta un aria-describedby del consumidor y le suma ayuda y error', () => {
     const w = mount(GSwitch, { props: { label: 'x', hint: 'a', error: 'b', id: 's' }, attrs: { 'aria-describedby': 'ext' } })
-    expect(input(w).attributes('aria-describedby')).toBe('ext s-hint s-error')
+    expect(input(w).attributes('aria-describedby')).toBe('ext s-hint s-message')
   })
 
   it('los slots label, hint y error sustituyen a las props (el error solo con error)', async () => {
     const w = mount(GSwitch, { props: { error: 'x' }, slots: { label: '<b id="lb">Rico</b>', hint: '<i>Ayuda</i>', error: '<u>Falla</u>' } })
     expect(w.find('#lb').exists()).toBe(true)
     expect(w.find('.g-switch__hint i').exists()).toBe(true)
-    expect(w.find('.g-switch__error u').exists()).toBe(true)
+    expect(w.find('.g-switch__message u').exists()).toBe(true)
     await w.setProps({ error: undefined })
-    expect(w.find('.g-switch__error u').exists()).toBe(false)
+    expect(w.find('.g-switch__message u').exists()).toBe(false)
   })
 })
 

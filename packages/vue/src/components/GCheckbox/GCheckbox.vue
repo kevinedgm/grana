@@ -5,6 +5,7 @@ import { computed, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, ref
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
 import { GROUP_KEY } from '../GCheckboxGroup/groupKey.js'
+import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GCheckbox', inheritAttrs: false })
 
@@ -19,11 +20,15 @@ const props = defineProps({
   density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   color: { type: String, default: undefined, validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   disabled: { type: Boolean, default: undefined },
-  readonly: Boolean,
+  // readonly y error sin valor por defecto: la prop explícita gana al contexto de GForm (form.md §2)
+  readonly: { type: Boolean, default: undefined },
   required: Boolean,
   label: { type: String, default: undefined },
   hint: { type: String, default: undefined },
   error: { type: String, default: undefined },
+  warning: { type: String, default: undefined },
+  valid: { type: String, default: undefined },
+  mark: { type: Boolean, default: undefined },
   id: { type: String, default: undefined }
 })
 
@@ -41,15 +46,37 @@ const inputId = computed(() => props.id || `g-checkbox-${uid}`)
 const labelId = computed(() => `${inputId.value}-label`)
 const hintId = computed(() => `${inputId.value}-hint`)
 const metaId = computed(() => `${inputId.value}-meta`)
-const errorId = computed(() => `${inputId.value}-error`)
 
 const layout = computed(() => props.layout ?? group?.layout.value ?? 'default')
 const size = computed(() => props.size ?? group?.size.value ?? 'md')
-const density = computed(() => props.density ?? group?.density.value ?? 'default')
 const color = computed(() => props.color ?? group?.color.value ?? 'brand')
-const isDisabled = computed(() => props.disabled ?? group?.disabled.value ?? false)
 
-const invalid = computed(() => Boolean(props.error))
+const input = ref(null)
+const rootEl = ref(null)
+// Contexto de GForm (form.md §2). Las casillas de un grupo no se registran sueltas ni llevan marca (C9, C3); una
+// casilla suelta nunca lleva «(opcional)» (sin marcar ya es una respuesta), sí el asterisco con la convención required.
+const ff = useFormField({
+  id: inputId,
+  name: () => attrs.name,
+  error: () => props.error,
+  warning: () => props.warning,
+  valid: () => props.valid,
+  required: () => props.required,
+  readonly: () => props.readonly,
+  disabled: () => props.disabled ?? group?.disabled.value,
+  density: () => props.density ?? group?.density.value,
+  mark: () => props.mark,
+  markRule: group && props.value !== undefined ? 'none' : 'required',
+  register: !(group && props.value !== undefined),
+  trigger: 'change',
+  control: input,
+  root: rootEl
+})
+const density = ff.density
+const isDisabled = ff.disabled
+const isReadonly = ff.readonly
+const message = ff.message
+const invalid = ff.invalid
 const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 const isCard = computed(() => layout.value === 'card')
@@ -63,7 +90,6 @@ const checked = computed(() => {
   return props.modelValue === true
 })
 
-const input = ref(null)
 // El <input> nativo puede divergir de las props tras un clic; se vuelve a alinear con lo que digan.
 function sync() {
   if (!input.value) return
@@ -88,14 +114,16 @@ const classes = computed(() => [
   `g-checkbox--color-${color.value}`,
   {
     'is-disabled': isDisabled.value,
-    'is-readonly': props.readonly,
-    'is-invalid': invalid.value
+    'is-readonly': isReadonly.value,
+    'is-invalid': invalid.value,
+    'is-warning': ff.ownMessage.value?.type === 'warning',
+    'is-valid': ff.ownMessage.value?.type === 'valid'
   }
 ])
 
 const labelledBy = computed(() => (hasLabel.value ? [labelId.value, hasMeta.value && metaId.value].filter(Boolean).join(' ') : undefined))
 const describedBy = computed(() => {
-  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, invalid.value && errorId.value].filter(Boolean)
+  const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
 
@@ -105,9 +133,11 @@ const controlled = computed(() => ({
   checked: checked.value,
   indeterminate: props.indeterminate,
   value: props.value,
+  // Dentro de un GCheckboxGroup con name, la casilla lo toma de él (la que trae el suyo lo conserva, C11)
+  name: attrs.name ?? (inGroup.value ? group.name?.value : undefined),
   disabled: isDisabled.value || undefined,
   required: props.required || undefined,
-  'aria-readonly': props.readonly ? 'true' : undefined,
+  'aria-readonly': isReadonly.value ? 'true' : undefined,
   'aria-invalid': invalid.value ? 'true' : undefined,
   'aria-labelledby': labelledBy.value ?? attrs['aria-labelledby'],
   'aria-describedby': describedBy.value
@@ -115,7 +145,7 @@ const controlled = computed(() => ({
 
 // readonly: el <input type="checkbox"> no admite `readonly`; se cancela el clic (también el de Espacio).
 function onClick(event) {
-  if (props.readonly) event.preventDefault()
+  if (isReadonly.value) event.preventDefault()
 }
 
 function onChange(event) {
@@ -134,7 +164,8 @@ function onChange(event) {
 
 // Nuestros manejadores van PRIMERO: así una escucha `@change` del consumidor ya ve el modelo actualizado,
 // igual que con un <input v-model> nativo.
-const fieldBindings = computed(() => mergeProps({ onClick, onChange }, { ...inputAttrs.value, ...controlled.value }))
+// Los del contexto de GForm van antes que los nuestros (form.md §2, C8).
+const fieldBindings = computed(() => mergeProps(ff.handlers, { onClick, onChange }, { ...inputAttrs.value, ...controlled.value }))
 
 // Registro en el grupo (solo casillas con `value`).
 onMounted(() => {
@@ -157,7 +188,7 @@ if (isDev) {
 </script>
 
 <template>
-  <div v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
     <label class="g-checkbox__row" :for="inputId">
       <span class="g-checkbox__box">
         <input ref="input" type="checkbox" v-bind="fieldBindings" class="g-checkbox__input">
@@ -166,11 +197,11 @@ if (isDev) {
       </span>
       <span v-if="hasIcon" class="g-checkbox__icon" aria-hidden="true"><slot name="icon" /></span>
       <span class="g-checkbox__text">
-        <span v-if="hasLabel" :id="labelId" class="g-checkbox__label"><GIcon v-if="layout === 'chip'" class="g-checkbox__chip-mark" name="check" /><slot name="label">{{ label }}</slot><span v-if="required" class="g-checkbox__required" aria-hidden="true">*</span></span>
+        <span v-if="hasLabel" :id="labelId" class="g-checkbox__label"><GIcon v-if="layout === 'chip'" class="g-checkbox__chip-mark" name="check" /><slot name="label">{{ label }}</slot><span v-if="ff.mark.value === 'required'" class="g-checkbox__required" aria-hidden="true">*</span></span>
         <span v-if="hasHint" :id="hintId" class="g-checkbox__hint"><slot name="hint">{{ hint }}</slot></span>
       </span>
       <span v-if="hasMeta" :id="metaId" class="g-checkbox__meta"><slot name="meta" /></span>
     </label>
-    <div :id="errorId" class="g-checkbox__error" aria-live="polite"><template v-if="invalid"><GIcon class="g-checkbox__error-icon" name="triangle-alert" /><slot name="error">{{ error }}</slot></template></div>
+    <div :id="ff.messageId.value" class="g-checkbox__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-checkbox__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-checkbox__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

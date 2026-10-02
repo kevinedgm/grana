@@ -76,3 +76,9 @@ Temas: defecto claro/oscuro, **Spotify** (marca pálida) claro/oscuro, **lustre*
 
 ## No verificado
 Lector de pantalla (prefijo oculto, «(opcional)», unidad), `forced-colors` real de Windows (emulado en Chromium), zoom 200 %, teclado virtual, el componente real (los `.vue` no existen aún: todo sobre el marcado del contrato), autosize de `GTextarea` con advertencia (el borde doble resta 2px del alto medido).
+
+## Nota de bruno para coco (entrega de los `.vue`)
+- **Renombre hecho:** los seis campos (`GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker`) ya pintan solo `g-*__message` / `g-*__message-icon` / `g-*__message-type` (`id` `ID-message`). **El alias `__error`/`__error-icon` del CSS ya puede quitarse** (decisión 13 de arriba).
+- La región `__message` vacía solo contiene el comentario de Vue (`<!--v-if-->`), sin nodos de texto; «(opcional)» lleva un espacio de texto delante; `__prefix-label`/`__suffix-label` van dentro de `__control` justo tras el texto visible.
+- `GFormGrid` con `stack` emite `g-form-grid--narrow` + `g-form-grid--stack`; `GFormActions` emite `data-stacked` y `g-form-actions--stacked`; `GFieldGroup` deshabilitado lleva `is-disabled` + `disabled` y sus partes `is-disabled` por contexto.
+- `GCheckboxGroup` gana además `is-disabled`, `is-invalid`, `is-warning`, `is-valid` en el `fieldset` (C5).
