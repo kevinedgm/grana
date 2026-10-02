@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iconos públicos · r01 · wireframe</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco).
+   Tamaños, separaciones y radios son de wireframe, no propuestas. */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#8a8a8a;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,4vw,24px);font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}h2.sec{font-size:17px;margin:40px 0 8px}h3{font-size:15px;margin:0}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:90ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:96ch}
+pre{font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--wf-fill-2);border:1px solid var(--wf-line);padding:8px 10px;margin:8px 0;overflow-x:auto;max-inline-size:100%}
+code{font-size:.92em;overflow-wrap:anywhere}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
+.host{background:#fff;border:1px solid var(--wf-line);border-radius:12px;padding:16px;min-inline-size:0;display:flex;flex-direction:column;gap:12px}
+.cell-label{font-size:12px;line-height:16px;color:var(--wf-2)}.cell-label b{color:var(--wf-ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+table{border-collapse:collapse;font-size:13px;inline-size:100%}
+th,td{border-block-end:1px solid var(--wf-line);padding:6px 8px;text-align:start;vertical-align:middle}
+th{font-weight:600;color:var(--wf-2)}
+.scroll{overflow-x:auto;max-inline-size:100%}
+
+/* ============ GIcon (estructura; espejo de GIcon.css real: especificidad 0, 1em, currentColor) ============ */
+:where(.g-icon){flex:none;display:inline-block;inline-size:1em;block-size:1em;vertical-align:middle;overflow:visible}
+/* Propuesta: espejo en RTL solo si se pide (iconos de dirección) */
+.g-icon--flip-rtl:dir(rtl){transform:scaleX(-1)}
+
+/* ============ Kit: botones, campo, sección, pestañas (los reales son GBtn, GInput, GFormSection, GTabs) ============ */
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-block-size:max(32px,var(--tmin));padding:0 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;line-height:20px;white-space:nowrap}
+.wf-btn--primary{background:var(--wf-ink);color:#fff}
+.wf-ibtn{display:inline-grid;place-items:center;inline-size:max(32px,var(--tmin));block-size:max(32px,var(--tmin));border:1px solid var(--wf-line);border-radius:6px;background:#fff;cursor:pointer;padding:0}
+/* Cada hueco fija el tamaño del icono con su alias local (en la librería: --_icon de cada componente) */
+.g-btn__prepend,.g-btn__append{display:inline-flex;--_icon:16px}
+.g-btn__prepend .g-icon,.g-btn__append .g-icon,.wf-ibtn .g-icon{inline-size:var(--_icon,16px);block-size:var(--_icon,16px)}
+.wf-field{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.wf-field>label{font-size:14px;font-weight:500}
+.wf-control{display:flex;align-items:center;gap:8px;border:1px solid var(--wf-3);border-radius:6px;padding:0 10px;min-block-size:36px;background:#fff}
+.wf-control:focus-within{outline:3px solid var(--wf-ink);outline-offset:2px}
+.wf-control input{border:0;outline:0;flex:1;min-inline-size:0;padding:0;background:transparent}
+.wf-control .g-input__prepend{display:inline-flex;color:var(--wf-2)}
+.wf-control .g-icon{inline-size:16px;block-size:16px}
+.wf-hint{font-size:13px;color:var(--wf-2);margin:0}
+.wf-section{display:flex;flex-direction:column;gap:8px;border-block-start:1px solid var(--wf-line);padding-block-start:12px}
+.wf-section__head{display:flex;align-items:center;gap:8px}
+.wf-section__lead{display:inline-flex;color:var(--wf-2)}
+.wf-section__lead .g-icon{inline-size:20px;block-size:20px}
+.wf-section__title{font-size:16px;font-weight:600;margin:0}
+.wf-section__desc{font-size:14px;color:var(--wf-2);margin:0}
+.wf-state{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.wf-tabs{display:flex;gap:4px;border-block-end:1px solid var(--wf-line);overflow-x:auto}
+.wf-tab{display:inline-flex;align-items:center;gap:6px;min-block-size:max(36px,var(--tmin));padding:0 10px;border:0;border-block-end:2px solid transparent;background:transparent;cursor:pointer;font-size:14px;white-space:nowrap}
+.wf-tab[aria-selected=true]{border-block-end-color:var(--wf-ink);font-weight:600}
+.wf-tab .g-tabs__icon{display:inline-flex}.wf-tab .g-icon{inline-size:16px;block-size:16px}
+.wf-menu{list-style:none;margin:0;padding:4px;border:1px solid var(--wf-line);border-radius:8px;background:#fff;max-inline-size:280px}
+.wf-menu li{display:flex;align-items:center;gap:8px;min-block-size:max(32px,var(--tmin));padding:0 8px;font-size:14px;border-radius:4px}
+.wf-menu li:hover{background:var(--wf-fill-2)}
+.wf-menu .g-menu__icon{display:inline-flex;inline-size:16px}.wf-menu .g-icon{inline-size:16px;block-size:16px}
+/* Uso libre de la aplicación: su propia clase gana a :where(.g-icon) sin !important */
+.app-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;border:1px dashed var(--wf-3);border-radius:8px;color:var(--wf-2);text-align:center}
+.app-empty-icon{inline-size:48px;block-size:48px}
+.prose-ic{font-size:15px}
+.h-like{font-size:22px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px}
+
+/* Muestrario y registro */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.swatch{display:flex;align-items:center;gap:8px;font:12px/16px ui-monospace,Menlo,monospace;padding:6px 8px;background:#fff;border:1px solid var(--wf-line);border-radius:6px;min-inline-size:0;overflow-wrap:anywhere}
+.swatch .g-icon{inline-size:20px;block-size:20px}
+.tag{display:inline-block;padding:0 6px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid var(--wf-3)}
+.tag--no{border-style:dashed}
+#devlog{font:12px/1.5 ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--wf-line);padding:8px 8px 8px 28px;margin:8px 0;max-inline-size:100%;overflow-wrap:anywhere}
+@media (forced-colors:active){.wf-tab[aria-selected=true]{border-block-end-color:CanvasText}}
+</style>
+</head>
+<body>
+<main>
+<h1>Iconos públicos · r01</h1>
+<p class="meta">kiwi · wireframe F2 · kit gris · iconos solo Lucide: los de la librería salen de <code>design/lab/lucide-icons.js</code> y los «de la aplicación» se <b>importan de verdad</b> de <code>lucide-static</code> (<code>node_modules</code> del repo).</p>
+<div class="wf-note">Prototipo de <b>estructura y uso</b>: un <code>GIcon</code> simulado en JS con la API propuesta (<code>name</code>, <code>label</code>, <code>filled</code>, <code>flip-rtl</code>) y un registro por aplicación (<code>createIcons([...])</code>). Los avisos de desarrollo se muestran en el panel del final (en la librería irían a <code>console.warn</code>); así la consola queda limpia. Se sirve por HTTP desde la raíz del repo (los módulos ES no cargan con <code>file://</code>).</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s1">1. Lo que trae la librería: público por nombre</h2>
+<p class="cap">Los <b id="base-count">…</b> iconos de la lista <code>library</code> de <code>packages/vue/scripts/icons.json</code> (los que usan los componentes) ya van en el paquete. Con <code>GIcon</code> público, la aplicación los usa por nombre <b>sin registrar nada</b> y sin coste extra. La lista pasa a ser API: puede crecer; quitar uno es un cambio mayor.</p>
+<div class="swatches" id="base-swatches"></div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s2">2. Decorativo o con nombre</h2>
+<p class="cap"><b>Por defecto, decorativo</b> (<code>aria-hidden</code>): el significado lo lleva el texto de al lado. <b>Con <code>label</code></b>, el icono es la única fuente del significado y entra al árbol como imagen con nombre (<code>role="img"</code> + <code>aria-label</code>). Nunca es enfocable; si hay que pulsarlo, es un <code>GBtn icon</code> con <code>aria-label</code> en el botón.</p>
+<div class="grid2">
+  <div class="host" data-case="decorativo">
+    <span class="cell-label"><b>Decorativo</b> · <code>&lt;GIcon name="lock" /&gt;</code> junto a un texto</span>
+    <p class="wf-state prose-ic" style="margin:0"><g-icon name="lock"></g-icon><span>Formulario bloqueado</span></p>
+    <h3 class="h-like"><g-icon name="info"></g-icon>Antes de empezar</h3>
+    <p class="wf-hint">Lector de pantalla: «Formulario bloqueado», «Antes de empezar, encabezado». Nada del icono.</p>
+  </div>
+  <div class="host" data-case="con-nombre">
+    <span class="cell-label"><b>Con nombre</b> · <code>&lt;GIcon name="lock" label="Bloqueado" /&gt;</code> en una celda sin texto</span>
+    <div class="scroll"><table>
+      <thead><tr><th scope="col">Lote</th><th scope="col">Estado</th><th scope="col">Responsable</th></tr></thead>
+      <tbody>
+        <tr><td>L-0412</td><td><g-icon name="lock" label="Bloqueado"></g-icon></td><td>Ana</td></tr>
+        <tr><td>L-0413</td><td><g-icon name="lock-open" label="Edición permitida"></g-icon></td><td>Luis</td></tr>
+      </tbody>
+    </table></div>
+    <p class="wf-hint">Lector de pantalla: «Estado: Bloqueado, imagen». Recomendación: si cabe, texto visible; el icono solo ahorra espacio.</p>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s3">3. En un botón</h2>
+<p class="cap">Sin props nuevas en <code>GBtn</code>: el icono va en el slot (<code>prepend</code>, <code>append</code>, o el contenido con <code>icon</code>). El hueco ya es <code>aria-hidden</code> y fija el tamaño. La prop <code>icon</code> de <code>GBtn</code> <b>sigue siendo Boolean</b> (modo solo icono).</p>
+<div class="grid2">
+  <div class="host">
+    <span class="cell-label"><b>Con texto</b></span>
+<pre><code>&lt;GBtn&gt;
+  &lt;template #prepend&gt;&lt;GIcon name="lock-open" /&gt;&lt;/template&gt;
+  Permitir edición
+&lt;/GBtn&gt;</code></pre>
+    <div class="row">
+      <button class="wf-btn" type="button" data-case="btn-texto"><span class="g-btn__prepend" aria-hidden="true"><g-icon name="lock-open"></g-icon></span>Permitir edición</button>
+      <button class="wf-btn wf-btn--primary" type="button"><span class="g-btn__prepend" aria-hidden="true"><g-icon name="check"></g-icon></span>Guardar</button>
+    </div>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Solo icono</b>: el nombre lo pone el botón, el icono sigue decorativo</span>
+<pre><code>&lt;GBtn icon aria-label="Desbloquear"&gt;
+  &lt;GIcon name="lock-open" /&gt;
+&lt;/GBtn&gt;</code></pre>
+    <div class="row"><button class="wf-ibtn" type="button" aria-label="Desbloquear" data-case="btn-icono"><g-icon name="lock-open"></g-icon></button></div>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Dirección en RTL</b>: <code>flip-rtl</code> solo en iconos que indican «adelante/atrás»</span>
+    <div class="row">
+      <button class="wf-btn" type="button">Siguiente<span class="g-btn__append" aria-hidden="true"><g-icon name="chevron-right" flip-rtl data-flip="ltr"></g-icon></span></button>
+      <span dir="rtl" lang="ar"><button class="wf-btn" type="button">التالي<span class="g-btn__append" aria-hidden="true"><g-icon name="chevron-right" flip-rtl data-flip="rtl"></g-icon></span></button></span>
+      <span dir="rtl" lang="ar"><button class="wf-btn" type="button">حفظ<span class="g-btn__prepend" aria-hidden="true"><g-icon name="check" data-flip="rtl-sin"></g-icon></span></button></span>
+    </div>
+    <p class="wf-hint">La marca de verificación no se espeja: espejar es decisión de quien elige el icono, no automática.</p>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Uso indebido</b> (aviso de desarrollo): <code>label</code> dentro de un hueco <code>aria-hidden</code></span>
+<pre><code>&lt;GBtn&gt;
+  &lt;template #prepend&gt;&lt;GIcon name="lock-open" label="Desbloquear" /&gt;&lt;/template&gt;
+  Permitir edición
+&lt;/GBtn&gt;</code></pre>
+    <div class="row"><button class="wf-btn" type="button" data-case="btn-mal"><span class="g-btn__prepend" aria-hidden="true"><g-icon name="lock-open" label="Desbloquear"></g-icon></span>Permitir edición</button></div>
+    <p class="wf-hint">El nombre se pierde (el hueco lo oculta). El aviso lo detecta con <code>closest('[aria-hidden="true"]')</code> al montar.</p>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s4">4. En un campo</h2>
+<p class="cap">Igual que en el botón: slot <code>prepend</code>/<code>append</code> de <code>GInput</code> (ya <code>aria-hidden</code>). <code>map-pin</code> no está en la librería: lo registró la aplicación (sección 7).</p>
+<div class="grid2">
+  <div class="host">
+<pre><code>&lt;GInput label="Dirección de entrega" hint="Calle, número y colonia"&gt;
+  &lt;template #prepend&gt;&lt;GIcon name="map-pin" /&gt;&lt;/template&gt;
+&lt;/GInput&gt;</code></pre>
+    <div class="wf-field" data-case="campo">
+      <label for="f-dir">Dirección de entrega</label>
+      <div class="wf-control"><span class="g-input__prepend" aria-hidden="true"><g-icon name="map-pin"></g-icon></span><input id="f-dir" type="text" aria-describedby="f-dir-h" autocomplete="street-address"></div>
+      <p class="wf-hint" id="f-dir-h">Calle, número y colonia</p>
+    </div>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Nombre que nadie registró</b>: aviso y no dibuja nada (como hoy)</span>
+<pre><code>&lt;template #prepend&gt;&lt;GIcon name="search" /&gt;&lt;/template&gt;</code></pre>
+    <div class="wf-field">
+      <label for="f-bus">Buscar lote</label>
+      <div class="wf-control"><span class="g-input__prepend" aria-hidden="true"><g-icon name="search"></g-icon></span><input id="f-bus" type="search"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s5">5. En una sección (tokens.md §23.6)</h2>
+<p class="cap">El hueco de icono de un título es un slot <b><code>lead</code></b>, como en <code>GCard</code>: decorativo, antes del título, fuera del nombre del encabezado. El estado de bloqueo (fricción de la migración) lleva <b>texto</b>; el icono solo lo acompaña, y ahora existe <code>lock-open</code>.</p>
+<div class="grid2">
+  <div class="host">
+<pre><code>&lt;GFormSection title="Bloqueo de edición"
+  description="Los datos capturados quedan protegidos."&gt;
+  &lt;template #lead&gt;&lt;GIcon name="lock" /&gt;&lt;/template&gt;
+  …
+&lt;/GFormSection&gt;</code></pre>
+    <section class="wf-section" aria-labelledby="sec-t" data-case="seccion">
+      <div class="wf-section__head"><span class="wf-section__lead" aria-hidden="true"><g-icon name="lock"></g-icon></span><h3 class="wf-section__title" id="sec-t">Bloqueo de edición</h3></div>
+      <p class="wf-section__desc">Los datos capturados quedan protegidos.</p>
+      <div class="row">
+        <button class="wf-btn" type="button" id="lock-toggle" aria-pressed="false"><span class="g-btn__prepend" aria-hidden="true"><g-icon name="lock-open"></g-icon></span>Permitir edición</button>
+        <span class="wf-state" role="status" id="lock-state"><g-icon name="lock"></g-icon><span>Formulario bloqueado</span></span>
+      </div>
+    </section>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Estado vacío</b>: tamaño libre con una clase propia de la aplicación (gana a <code>:where(.g-icon)</code>)</span>
+    <div class="app-empty"><g-icon name="image" class="app-empty-icon" data-case="vacio"></g-icon><span>Aún no hay fotos del lote</span></div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s6">6. Items como datos: <code>icon</code> con un nombre</h2>
+<p class="cap">En <code>GTabs</code>, <code>GMenu</code> y <code>GSidebar</code>, hoy el campo <code>icon</code> de un item solo se pasa al slot <code>icon</code>: <b>sin slot no se dibuja nada</b>. Propuesta: si no hay slot y <code>icon</code> es una cadena, el componente dibuja <code>&lt;GIcon :name="item.icon" /&gt;</code>. El slot, si existe, sigue mandando.</p>
+<div class="grid2">
+  <div class="host">
+<pre><code>const items = [
+  { id: 'fotos', label: 'Fotos', icon: 'image' },
+  { id: 'ubic', label: 'Ubicación', icon: 'map-pin' },
+  { id: 'video', label: 'Video', icon: 'play' },
+  { id: 'perm', label: 'Permisos', icon: 'lock-open' },
+  { id: 'notas', label: 'Notas' }   // sin icono: solo etiqueta
+]
+&lt;GTabs v-model="tab" :items="items" /&gt;   // sin slot icon</code></pre>
+    <div class="wf-tabs" role="tablist" aria-label="Lote L-0412" id="tabs" data-case="tabs"></div>
+  </div>
+  <div class="host">
+    <span class="cell-label"><b>Mismos datos en un menú</b> (<code>GMenu</code>)</span>
+    <ul class="wf-menu" aria-label="Ilustración de los items de un menú" id="menu"></ul>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s7">7. Registro de un icono propio (lo que Grana no incluye)</h2>
+<p class="cap">La aplicación <b>importa</b> los iconos de <code>lucide-static</code> (cadenas SVG, un módulo por icono: el empaquetador solo lleva los importados) y los registra <b>una vez</b> al crear la app. El nombre <b>no se escribe</b>: sale de la marca <code>class="lucide lucide-&lt;nombre&gt;"</code> que trae cada cadena (también de los alias: <code>Unlock</code> es <code>lock-open</code>). Solo se aceptan elementos de dibujo de Lucide; todo lo demás se rechaza.</p>
+<pre><code>// main.js
+import { createApp } from 'vue'
+import Grana, { createIcons } from '@grana/vue'
+import { LockOpen, MapPin, Image, Play } from 'lucide-static'
+
+createApp(App)
+  .use(Grana)
+  .use(createIcons([LockOpen, MapPin, Image, Play]))   // o app.use(Grana, { icons: [...] })
+  .mount('#app')</code></pre>
+<div class="scroll"><table id="reg-table">
+  <thead><tr><th scope="col">Lo que se pasó</th><th scope="col">Nombre</th><th scope="col">Resultado</th><th scope="col">Muestra</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s8">8. Tamaño (medido)</h2>
+<p class="cap">Medido el 2026-10-02 con <code>lucide-static</code> v1.49.0 y el <code>dist/</code> actual (gzip -9). Detalle y método en <code>declaracion.md</code> §6.</p>
+<div class="scroll"><table>
+  <thead><tr><th scope="col">Qué</th><th scope="col">Bruto</th><th scope="col">gzip</th></tr></thead>
+  <tbody>
+    <tr><td><code>dist/grana.js</code> hoy</td><td>483 453 B</td><td>121 384 B</td></tr>
+    <tr><td>Lista de la librería (25 iconos, ya dentro del anterior)</td><td>2 306 B</td><td>712 B</td></tr>
+    <tr><td>+ <code>lock-open</code>, <code>image</code>, <code>map-pin</code>, <code>play</code> en la lista</td><td>+560 B</td><td>+160 B</td></tr>
+    <tr><td>Toda Lucide como mapa por nombre (1 857 nombres; no se puede podar)</td><td>439 338 B</td><td>89 937 B (+74 %)</td></tr>
+    <tr><td>Una app que importa 1 icono de <code>lucide-static</code> (podado por Vite)</td><td>542 B</td><td>373 B</td></tr>
+    <tr><td>Una app que importa 4 iconos de <code>lucide-static</code></td><td>1 748 B</td><td>583 B</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ===================================================================== -->
+<h2 class="sec" id="s9">9. Árbol de accesibilidad esperado</h2>
+<p class="cap">Generado desde el DOM; <code>verificar.mjs</code> lo compara con el árbol real de Chromium.</p>
+<div class="scroll"><table id="ax-table">
+  <thead><tr><th scope="col">Dónde</th><th scope="col">Icono</th><th scope="col">Esperado</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h2 class="sec" id="s10">10. Avisos de desarrollo</h2>
+<p class="cap">Lo que la librería escribiría con <code>console.warn</code> (una vez por causa).</p>
+<ol id="devlog"></ol>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script type="module">
+// --- Iconos «de la aplicación»: importados de lucide-static, no copiados -------------------------
+const LS = '../../../../node_modules/lucide-static/dist/esm/icons/'
+const [{ default: LockOpen }, { default: MapPin }, { default: Image }, { default: Play }, { default: Lock }] =
+  await Promise.all(['lock-open', 'map-pin', 'image', 'play', 'lock'].map((n) => import(LS + n + '.mjs')))
+const Unlock = LockOpen // alias de lucide-static: `export { default as LockOpen, default as Unlock }`
+
+// --- Simulación de la librería ---------------------------------------------------------------------
+const lists = await fetch('../../../../packages/vue/scripts/icons.json').then((r) => r.json())
+const BASE = Object.fromEntries(lists.library.map((n) => [n, window.LUCIDE_ICONS[n]]))
+
+const devlog = document.getElementById('devlog')
+window.__devWarnings = []
+const warned = new Set()
+const devWarn = (key, msg) => { if (warned.has(key)) return; warned.add(key); window.__devWarnings.push({ key, msg }); const li = document.createElement('li'); li.textContent = '[Grana] ' + msg; devlog.append(li) }
+
+// Validación de una cadena de lucide-static: marca de Lucide + solo elementos y atributos de dibujo (sin script ni eventos)
+const TAGS = new Set(['path', 'circle', 'rect', 'line', 'ellipse', 'polyline', 'polygon'])
+const ATTRS = new Set(['d', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'x2', 'y1', 'y2', 'width', 'height', 'points', 'fill'])
+function parseLucide(src) {
+  if (typeof src !== 'string') return { error: 'no es una cadena SVG de lucide-static' }
+  const m = src.match(/^\s*<svg\b[^>]*\sclass="lucide lucide-([a-z0-9-]+)"[^>]*>([\s\S]*)<\/svg>\s*$/)
+  if (!m) return { error: 'no viene de Lucide (falta class="lucide lucide-<nombre>")' }
+  const inner = m[2].replace(/\s*\n\s*/g, '').replace(/\s+\/>/g, '/>').trim()
+  let bad = null
+  const rest = inner.replace(/<([a-zA-Z]+)((?:\s+[a-zA-Z0-9:-]+="[^"]*")*)\s*\/>/g, (all, tag, attrs) => {
+    if (!TAGS.has(tag)) bad = bad || `elemento <${tag}>`
+    for (const a of attrs.matchAll(/([a-zA-Z0-9:-]+)="([^"]*)"/g)) {
+      if (!ATTRS.has(a[1])) bad = bad || `atributo ${a[1]}`
+      else if (!/^[-0-9a-zA-Z .,]*$/.test(a[2]) || (a[1] === 'fill' && !['none', 'currentColor'].includes(a[2]))) bad = bad || `valor de ${a[1]}`
+    }
+    return ''
+  })
+  if (bad || rest.trim()) return { name: m[1], error: 'contenido no admitido (' + (bad || 'marcado fuera de los elementos de dibujo') + ')' }
+  return { name: m[1], inner }
+}
+
+// createIcons(lista) → registro de la aplicación (en la librería: plugin con provide/inject, por app, apto para SSR)
+const REG = {}
+const regRows = []
+function createIcons(entries) {
+  for (const { label, value } of entries) {
+    const r = parseLucide(value)
+    if (r.error) { devWarn('reg-' + label, `createIcons: se ignora ${label}: ${r.error}.`); regRows.push({ label, name: r.name || '', ok: false, why: r.error }); continue }
+    if (BASE[r.name]) { regRows.push({ label, name: r.name, ok: true, why: 'ya está en la librería (se acepta; útil si la lista base cambia)' }); REG[r.name] = REG[r.name] || r.inner; continue }
+    if (REG[r.name]) { regRows.push({ label, name: r.name, ok: true, why: 'repetido (alias): una sola entrada' }); continue }
+    REG[r.name] = r.inner; regRows.push({ label, name: r.name, ok: true, why: 'registrado' })
+  }
+}
+
+// GIcon(name, { label, filled, flipRtl }) → <svg> o nada
+const NS = 'http://www.w3.org/2000/svg'
+function GIcon(name, { label = '', filled = false, flipRtl = false } = {}) {
+  const paths = REG[name] ?? BASE[name]
+  if (!paths) { devWarn('name-' + name, `<GIcon> no conoce el icono «${name}»: regístralo con createIcons([...]) importándolo de lucide-static.`); return null }
+  const svg = document.createElementNS(NS, 'svg')
+  const cls = ['g-icon']; if (filled) cls.push('g-icon--filled'); if (flipRtl) cls.push('g-icon--flip-rtl')
+  const attrs = { class: cls.join(' '), xmlns: NS, viewBox: '0 0 24 24', fill: filled ? 'currentColor' : 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', focusable: 'false' }
+  if (label) Object.assign(attrs, { role: 'img', 'aria-label': label }); else attrs['aria-hidden'] = 'true'
+  for (const [k, v] of Object.entries(attrs)) svg.setAttribute(k, v)
+  svg.dataset.icon = name
+  svg.innerHTML = paths
+  if (label) queueMicrotask(() => { if (svg.parentElement?.closest('[aria-hidden="true"]')) devWarn('label-hidden-' + name, `<GIcon name="${name}" label="${label}"> está dentro de un hueco decorativo (aria-hidden): el nombre se pierde. Pon el nombre en el control (aria-label) o saca el icono del hueco.`) })
+  return svg
+}
+
+// --- Registro de la «aplicación» (sección 7) ------------------------------------------------------
+const HANDMADE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>' // dato de prueba de rechazo: nunca se dibuja
+const UNSAFE = '<svg class="lucide lucide-lock-open" viewBox="0 0 24 24"><path d="M4 4h16" onload="window.__pwned=1"/><script>window.__pwned=1<\/script></svg>' // ídem
+createIcons([
+  { label: 'LockOpen', value: LockOpen },
+  { label: 'Unlock (alias)', value: Unlock },
+  { label: 'MapPin', value: MapPin },
+  { label: 'Image', value: Image },
+  { label: 'Play', value: Play },
+  { label: 'Lock', value: Lock },
+  { label: 'un SVG escrito a mano', value: HANDMADE },
+  { label: 'un SVG con script disfrazado de Lucide', value: UNSAFE },
+  { label: "'lock-open' (texto)", value: 'lock-open' }
+])
+
+// --- Montaje del prototipo -------------------------------------------------------------------------
+document.getElementById('base-count').textContent = lists.library.length
+const sw = document.getElementById('base-swatches')
+for (const n of lists.library) { const d = document.createElement('div'); d.className = 'swatch'; const ic = GIcon(n, { filled: ['circle', 'square', 'diamond', 'triangle'].includes(n) }); d.append(ic, document.createTextNode(n)); sw.append(d) }
+
+const tbody = document.querySelector('#reg-table tbody')
+for (const r of regRows) {
+  const tr = document.createElement('tr'); tr.dataset.reg = r.ok ? 'ok' : 'no'
+  tr.innerHTML = `<td></td><td><code></code></td><td><span class="tag ${r.ok ? '' : 'tag--no'}"></span> <span></span></td><td></td>`
+  tr.cells[0].textContent = r.label; tr.cells[1].firstChild.textContent = r.name || '(ninguno)'
+  tr.cells[2].children[0].textContent = r.ok ? 'aceptado' : 'rechazado'; tr.cells[2].children[1].textContent = r.why
+  if (r.ok) tr.cells[3].append(GIcon(r.name))
+  tbody.append(tr)
+}
+
+// Marcadores <g-icon> → <svg>
+for (const el of [...document.querySelectorAll('g-icon')]) {
+  const svg = GIcon(el.getAttribute('name'), { label: el.getAttribute('label') || '', filled: el.hasAttribute('filled'), flipRtl: el.hasAttribute('flip-rtl') })
+  if (svg) { if (el.className) svg.classList.add(...el.className.split(/\s+/)); for (const a of ['data-case', 'data-flip']) if (el.hasAttribute(a)) svg.setAttribute(a, el.getAttribute(a)) }
+  el.replaceWith(...(svg ? [svg] : []))
+}
+
+// Items como datos: GTabs y GMenu sin slot icon → GIcon por nombre
+const ITEMS = [{ id: 'fotos', label: 'Fotos', icon: 'image' }, { id: 'ubic', label: 'Ubicación', icon: 'map-pin' }, { id: 'video', label: 'Video', icon: 'play' }, { id: 'perm', label: 'Permisos', icon: 'lock-open' }, { id: 'notas', label: 'Notas' }]
+const tabs = document.getElementById('tabs')
+let active = 'fotos'
+const renderTabs = () => {
+  tabs.replaceChildren(...ITEMS.map((it) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'wf-tab'; b.setAttribute('role', 'tab'); b.id = 'tab-' + it.id
+    b.setAttribute('aria-selected', String(it.id === active)); b.tabIndex = it.id === active ? 0 : -1
+    if (typeof it.icon === 'string') { const s = document.createElement('span'); s.className = 'g-tabs__icon'; s.setAttribute('aria-hidden', 'true'); const ic = GIcon(it.icon); if (ic) s.append(ic); b.append(s) }
+    const l = document.createElement('span'); l.textContent = it.label; b.append(l)
+    b.addEventListener('click', () => { active = it.id; renderTabs(); document.getElementById('tab-' + it.id).focus() })
+    b.addEventListener('keydown', (e) => { const i = ITEMS.indexOf(it); const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!d) return; e.preventDefault(); active = ITEMS[(i + d + ITEMS.length) % ITEMS.length].id; renderTabs(); document.getElementById('tab-' + active).focus() })
+    return b
+  }))
+}
+renderTabs()
+document.getElementById('menu').replaceChildren(...ITEMS.map((it) => {
+  const li = document.createElement('li')
+  if (typeof it.icon === 'string') { const s = document.createElement('span'); s.className = 'g-menu__icon'; s.setAttribute('aria-hidden', 'true'); const ic = GIcon(it.icon); if (ic) s.append(ic); li.append(s) }
+  li.append(document.createTextNode(it.label)); return li
+}))
+
+// Bloqueo (sección 5): el estado lo dice el texto; el icono acompaña
+const tog = document.getElementById('lock-toggle'), st = document.getElementById('lock-state')
+tog.addEventListener('click', () => {
+  const on = tog.getAttribute('aria-pressed') !== 'true'; tog.setAttribute('aria-pressed', String(on))
+  st.replaceChildren(GIcon(on ? 'lock-open' : 'lock'), Object.assign(document.createElement('span'), { textContent: on ? 'Edición permitida' : 'Formulario bloqueado' }))
+})
+
+// Tabla del árbol esperado
+await new Promise((r) => setTimeout(r))
+const axBody = document.querySelector('#ax-table tbody')
+for (const svg of document.querySelectorAll('main svg.g-icon')) {
+  if (svg.closest('#base-swatches, #reg-table')) continue
+  const hidden = svg.getAttribute('aria-hidden') === 'true' || Boolean(svg.parentElement.closest('[aria-hidden="true"]'))
+  svg.dataset.expect = hidden ? 'oculto' : 'img:' + svg.getAttribute('aria-label')
+  let n = svg; while (n.parentElement && n.parentElement.tagName !== 'MAIN') n = n.parentElement
+  let h = n; while (h && h.tagName !== 'H2') h = h.previousElementSibling
+  const tr = document.createElement('tr'); tr.innerHTML = '<td></td><td><code></code></td><td></td>'
+  tr.cells[0].textContent = h ? 'Sección ' + h.textContent.split('.')[0] : ''
+  tr.cells[1].firstChild.textContent = svg.dataset.icon + (svg.getAttribute('aria-label') ? ` label="${svg.getAttribute('aria-label')}"` : '')
+  tr.cells[2].textContent = hidden ? 'fuera del árbol' : `imagen «${svg.getAttribute('aria-label')}»`
+  axBody.append(tr)
+}
+window.__ready = true
+</script>
+</body>
+</html>
