@@ -2,11 +2,15 @@
 
 > *The only bug you'll want in your UI.*
 
-Librería de componentes Vue 3 con tema por tokens. Los componentes traen la **estructura**; tu tema les da el **color**.
+Componentes Vue 3 accesibles y tematizables por tokens. Grana fija el comportamiento; tu producto define el look.
+
+> **No te impone un estilo visual.** Te da consistencia, accesibilidad y una capa de tema para que cada producto conserve su propia identidad.
 
 El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte coloreó medio mundo. Grana funciona igual: un armazón fijo y un color que pone cada proyecto.
 
-**Estado:** pre-alfa. Contrato de tokens v0.1 congelado; aún no hay componentes publicados.
+**Estado:** pre-alfa. El contrato de tokens v0.1 está congelado; la API pública y el catálogo siguen evolucionando antes de una primera versión estable.
+
+**¿Es para tu equipo?** Grana encaja especialmente bien cuando construyes productos Vue con identidad propia y quieres evitar resolver accesibilidad, foco, teclado y consistencia visual en cada pantalla. [Conoce el posicionamiento, casos de uso y límites](docs/foundations/product-positioning.md).
 
 ## Cómo se tematiza (objetivo de la v0.1)
 
