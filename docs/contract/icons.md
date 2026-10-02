@@ -40,7 +40,7 @@ Nombre de Lucide entre comillas.
 | --- | --- | --- |
 | `GBtn`, `GInput`, `GTextarea`, `GSelect`, `GSwitch` | Indicador de carga (en `GSwitch`, sobre el pulgar) | `loader-circle` (gira) |
 | `GCheckbox` | Marca marcada · mixta · ✓ del chip | `check` · `minus` · `check` |
-| `GCheckbox`, `GCheckboxGroup`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GDatePicker` | Mensaje de error (antes «⚠») | `triangle-alert` |
+| `GCheckbox`, `GCheckboxGroup`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GDatePicker`, `GFieldGroup` | Mensaje: error · advertencia · válido (DECISIONS.md #164; el error era `triangle-alert`, ahora coincide con `GStepper`, `GTabs`, `GCard` y `GToast`) | `circle-alert` · `triangle-alert` · `circle-check` |
 | `GSwitch` | Marca del pulgar: encendido · apagado | `check` · `minus` |
 | `GSelect` | Flecha · limpiar · elegida · «Agregar nuevo…» | `chevron-down` · `x` · `check` · `plus` |
 | `GDatePicker` | Icono del campo · mes anterior · siguiente · cierre de la hoja · punto de hoy | `calendar` · `chevron-left` · `chevron-right` · `x` · `circle` (rellena) |
@@ -61,9 +61,10 @@ Nombre de Lucide entre comillas.
 | `GTabs` | Cargando (gira) · requiere atención · botones de borde · botón «Más» | `loader-circle` · `circle-alert` · `chevron-left` / `chevron-right` · `chevron-down` |
 | `GCard` | Casilla / alternar · radio · menú de acciones · estados `error` / `warning` / `success` / `info` · marca de «actual» · «mostrar más» | `check` · `circle` (rellena) · `ellipsis-vertical` · `circle-alert` / `triangle-alert` / `circle-check` / `info` · `chevron-right` (espejado en RTL) · `chevron-down` |
 | `GToast` | Tipos `info` · `success` · `warning` · `error` · `loading` (gira) · cerrar (`neutral` no lleva icono) | `info` · `circle-check` · `triangle-alert` · `circle-alert` · `loader-circle` · `x` |
+| `GErrorSummary` | Título del resumen | `circle-alert` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
-`GProgress`, `GTextarea` (salvo el error), `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
+`GProgress`, `GTextarea` (salvo el mensaje), `GForm`, `GFormSection`, `GFormGrid`, `GFormActions`, `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
 
 **Resuelto (DECISIONS.md #137):** `info` y `circle-check` están en la lista de la librería (`packages/vue/scripts/icons.json`, clave `library`) y en `design/lab/lucide-icons.js`. `image`, `map-pin` y `play` son iconos **de la aplicación** (§5): los usan los ejemplos de `GCard` (media, `lead`) y por eso viven solo en las listas del playground y del laboratorio (clave `playground` de `icons.json` y `design/lab/lucide-icons.js`), **nunca en el paquete**.
 

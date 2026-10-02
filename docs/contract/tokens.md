@@ -517,3 +517,23 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 **`GToast`/`GToaster` no añade tokens** (`design/contracts/toast.md`, DECISIONS.md #146; §17.6: ningún existente se queda corto). Cada aviso es una `GSurface level="floating"` (sombra `--g-shadow-2`, radio y borde de `floating`, #100); tipo con `--g-color-{info|success|warning|danger}-text`/`-soft` y `--g-color-neutral*`; movimiento con `--g-duration-*` y `--g-ease-*`; objetivos de `GBtn`.
 
 **No son tokens** (constantes de diseño derivadas de `space`, fijadas por coco en `GToast.css`, #148): ancho `min(space × 90, 100% − 2 × margen)`, separación entre avisos `space × 2`, margen al borde `space × 4` (`space × 2` en móvil) combinado con `env(safe-area-inset-*)`, entrada `space × 4`, marca de inicio `space-1` (solo `error` sólida y `warning` discontinua). **Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_mark-*` de `GTabs`; `GToast.css` las declara con su valor neutro y las de línea ganan): `--_toaster-offset-top`, `--_toaster-offset-bottom` (opción `offset`), `--_toast-swipe` (arrastre) y `--_toast-y` (posición fija del aviso que sale: con `data-edge="top"` su `offsetTop`; con `bottom`, `lista.clientHeight − offsetTop − offsetHeight`). **Umbral móvil** `space × 130` (el de `GDialog`, #103), medido por bruno. Las duraciones de autocierre son **comportamiento** del gestor, no tema.
+
+## 21. Formularios (`--g-form-*`)
+
+**Tokens de componente del sistema de formularios** (`design/contracts/form.md` §9, DECISIONS.md #167). Se agregan porque el **ritmo** del formulario (aire entre campos y entre secciones) y el tamaño esperado de lo compacto son decisiones que un producto puede querer ajustar (captura densa frente a configuración aireada) y se usan en CSS (admiten `var()`); ningún token existente lo expresa. Los **valores** los fija coco en `defaults.css` (capa `grana.defaults`); aquí solo se nombran. Sin valores de respaldo en los componentes. No son de color: no se redeclaran en el oscuro (§15).
+
+| Token | Para qué | Regla |
+| --- | --- | --- |
+| `--g-form-gap` | Separación entre filas de `GFormGrid` y entre partes de `GFieldGroup` | Base de `density="default"`; se multiplica por el factor compartido (1, 0.875, 0.75; #15, #114) |
+| `--g-form-column-gap` | Separación entre columnas de `GFormGrid` y entre hijos de `g-form-row` | Ídem |
+| `--g-form-section-gap` | Separación entre `GFormSection` consecutivas y antes de `GFormActions` | Ídem; del orden de 2× `--g-form-gap` (la sección se distingue por espacio, no por cajas) |
+| `--g-form-max-xs` | Ancho máximo de `g-form-w-xs` en una columna; base y máximo de `g-form-part-xs` | No cambia con la densidad (el ancho expresa el contenido esperado) |
+| `--g-form-max-sm` | Ídem para `sm` | Ídem |
+
+**No son tokens:** los umbrales de tramo de `GFormGrid` (`space × 176` → 12 columnas, `space × 104` → 6) y de apilado de `GFormActions` (`space × 104`), constantes medidas por bruno (#130); la separación interna de una sección (título, descripción, cuerpo), el margen del pie fijo y el alto de los enlaces del resumen, derivados de `space` en el CSS de coco; el **solo lectura** (`--g-color-surface-sunken` + borde discontinuo `--g-color-border-control` + `--g-color-text`, #165); advertencia y válido (`--g-color-warning-text`, `--g-color-success-text`).
+
+**Propiedad pública de `GForm`: `--g-form-actions-size`** (#163). `GForm` la escribe **en línea** en el `<form>` con la altura medida de su `GFormActions sticky`, y `GForm.css` la declara con `0px` en `.g-form` (la de línea gana). La usa `GForm.css` para el `scroll-margin-block-end` de lo enfocable (WCAG 2.4.11). **Solo lectura**: no es del tema, no se emite en `tokens.json`; excepción documentada a `levels.test.js` como `--g-surface-padding` (§19).
+
+**Reservados para la Fase 3** (se nombrarán con su contrato): barra del bloque condicional (`GFormReveal`) y ancho de la navegación de secciones (`GFormNav`).
+
+**Pendiente no bloqueante:** el CLI no emite `--g-form-*`; los temas de usuario usan los valores de `defaults.css`.

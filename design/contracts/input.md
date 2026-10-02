@@ -220,3 +220,23 @@ Sin manejadores de teclado propios.
 
 - **Lector de pantalla real:** confirmar que `aria-describedby` y la región `aria-live` juntos no duplican el anuncio del error al enfocar. Si duplican, se quita `aria-live` y el error se anuncia solo por `aria-describedby`, más un anuncio al aparecer.
 - **Estado deshabilitado sin token propio:** coco decide cómo se ve con tokens vigentes (`text-subtle`, `surface-sunken`); si no alcanza, pide token.
+
+## Cambio por el sistema de formularios (Fase 1)
+
+**Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165, #166). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
+
+| # | Cambio | Detalle |
+| --- | --- | --- |
+| C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled`, `block` y `error` pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
+| C2 | `block` en la rejilla | Dentro de `GFormGrid` o `GFieldGroup`, `block` resuelto a `true` (llena su celda); el ancho propio `min(100%, space×60)` solo aplica fuera de la rejilla. |
+| C3 | Marcas | Con `marks="optional"`, «(opcional)» (`labels.optional`) como texto visible **dentro** del `<label>` en `g-input__optional` si no es `required`, y sin asterisco; con `marks="required"`, el asterisco de hoy. Prop nueva **`mark`** (Boolean, default `undefined`; `false` la quita). Sin marca si es `readonly` o `disabled`. |
+| C4 | Región de mensaje unificada | `g-input__error` / `ID-error` pasa a **`g-input__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-input__message-icon`) + prefijo oculto `g-input__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. El slot `error` se conserva. |
+| C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
+| C6 | Iconos | Error **`circle-alert`** (antes `triangle-alert`), advertencia `triangle-alert`, válido `circle-check` (`icons.md`) |
+| C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). Semántica nativa sin cambios. |
+| C8 | Manejadores primero | `mergeProps(handlers, { onInput }, attrs)`: los del contexto y el propio antes que los del consumidor (ya existe la prueba de orden; se amplía a `focusout`). |
+| C9 | Registro | Con `name` en `$attrs`, se registra en `GForm` (`control` = `<input>`, `root` = raíz). |
+| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+| C11 | **Prefijo y sufijo de texto** (#166) | Props nuevas **`prefix`**, **`suffix`** (String: texto visible dentro de la caja, `$`, `kg`, `%`) y **`prefixLabel`**, **`suffixLabel`** (expansión accesible, «kilogramos»). Orden: `prepend` · prefijo · `<input>` · sufijo · `append` · carga · mostrar/ocultar. Sin `*Label`, el texto visible (con `id`) entra en `aria-describedby` antes de ayuda y mensaje; con `*Label`, el visible es `aria-hidden` y un texto oculto con la expansión entra en `aria-describedby`. No interactivos; pulsar sobre ellos enfoca el `<input>`. Texto `--g-color-text-muted`, tamaño del texto escrito. Los slots `prepend`/`append` siguen siendo iconos decorativos |
+
+**Clases nuevas** (contrato bruno–coco): `g-input__optional`, `g-input__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid`, `g-input--has-prefix`, `g-input--has-suffix`, `g-input__prefix`, `__suffix`, `__prefix-label`, `__suffix-label` (`g-input__error` desaparece).

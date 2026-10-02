@@ -261,3 +261,22 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 
 - **Lector de pantalla real:** cómo se anuncia el estado `mixed`, el conteo del grupo y el error.
 - **Estados de la tarjeta y del chip sin token propio:** coco decide cómo se ven con tokens vigentes; si no alcanza, pide token.
+
+## Cambio por el sistema de formularios (Fase 1)
+
+**Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
+
+| # | Cambio | Detalle |
+| --- | --- | --- |
+| C1 | Lee el contexto con `useFormField()` | En `GCheckbox`: `density`, `readonly`, `disabled` y `error`. En `GCheckboxGroup`: `density`, `disabled`, `error` y `readonly` (si el grupo lo tiene) pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
+| C2 | `block` en la rejilla | Sin cambio visual (la fila ya ocupa su ancho); dentro de la rejilla ocupan su celda. |
+| C3 | Marcas | **`GCheckbox` suelto:** nunca «(opcional)» (sin marcar ya es una respuesta); asterisco con `required` en la convención `required`. **`GCheckboxGroup`:** marca en el `<legend>` según su `required` y la convención. Las casillas de un grupo no llevan marca. Prop nueva **`mark`** en ambos. |
+| C4 | Región de mensaje unificada | `g-checkbox__error` / `ID-error` pasa a **`g-checkbox__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-checkbox__message-icon`) + prefijo oculto `g-checkbox__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Aplica a `g-checkbox__error` y `g-checkbox-group__error` (→ `__message`). La región del conteo no cambia. |
+| C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
+| C6 | Iconos | Error **`circle-alert`** (antes `triangle-alert`), advertencia `triangle-alert`, válido `circle-check` (`icons.md`) |
+| C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). `aria-readonly` y bloqueo del cambio sin cambios. |
+| C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` con la prueba de orden existente ampliada. |
+| C9 | Registro | `GCheckbox` suelto con `name` se registra (control de elección: revela al cambiar). **`GCheckboxGroup` gana la prop `name`** (String): clave del grupo en `errors` y `name` por defecto de sus casillas (la que trae el suyo lo conserva); el grupo se registra (`control` = primera casilla habilitada) y sus casillas **no** se registran sueltas. |
+| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+
+**Clases nuevas** (contrato bruno–coco): `g-checkbox__message`, `g-checkbox-group__message`, `__message-icon`, `__message-type`, `g-checkbox-group__optional`, `is-warning`, `is-valid` (los `__error` desaparecen).

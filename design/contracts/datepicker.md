@@ -320,3 +320,22 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 - **Escribir la fecha a mano:** decisión de producto pendiente con el usuario (cada idioma tiene su formato).
 - Valores estéticos (proporciones del círculo y la franja, sombra, separación entre meses): los decide coco con los tokens listados.
+
+## Cambio por el sistema de formularios (Fase 1)
+
+**Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
+
+| # | Cambio | Detalle |
+| --- | --- | --- |
+| C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled`, `block` y `error` (solo el campo; `inline` no lee el contexto salvo `readonly`/`disabled`) pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
+| C2 | `block` en la rejilla | Dentro de `GFormGrid` o `GFieldGroup`, `block` resuelto a `true`. Como `sm` en la rejilla (`g-form-w-sm`) cabe una fecha. |
+| C3 | Marcas | Como `GInput`: «(opcional)» en `g-datepicker__optional` o asterisco según `marks`; prop nueva **`mark`**. |
+| C4 | Región de mensaje unificada | `g-datepicker__error` / `ID-error` pasa a **`g-datepicker__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-datepicker__message-icon`) + prefijo oculto `g-datepicker__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. |
+| C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
+| C6 | Iconos | Error **`circle-alert`** (antes `triangle-alert`), advertencia `triangle-alert`, válido `circle-check` (`icons.md`) |
+| C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). El texto del valor, seleccionable donde el navegador lo permita; enfocable y no abre (sin cambios). |
+| C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` sobre el botón del campo, con prueba de orden. |
+| C9 | Registro | Con `name`, se registra (`control` = botón del campo, o el primero con `split`); al elegir un valor completo llama a `notifyChange()` (revela al cambiar y marca `dirty`). |
+| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+
+**Clases nuevas** (contrato bruno–coco): `g-datepicker__optional`, `g-datepicker__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-datepicker__error` desaparece).
