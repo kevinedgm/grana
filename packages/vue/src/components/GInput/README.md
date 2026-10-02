@@ -153,9 +153,19 @@ El componente solo lee tokens `--g-*`. Ojo: **un tema que solo cambie `brand` no
 
 Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border-control`, `--g-color-border-strong`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-danger-text`, `--g-color-focus`, `--g-color-{color}-text`, `--g-radius-*`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-spin`, `--g-ease-standard`. La definición de cada uno está en `docs/contract/tokens.md`.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Marcas por convención** del formulario (`marks` de `GForm`): «(opcional)» como texto dentro de la etiqueta (forma parte del nombre accesible) o asterisco con `required`, nunca las dos; `mark: false` quita la del campo.
+- **Un solo mensaje** bajo el campo, `g-input__message` (región viva siempre presente): `error` (icono `circle-alert`, borde doble), `warning` (`triangle-alert`, borde **discontinuo** doble) o `valid` (`circle-check`, borde sencillo de éxito), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **En una `GFormRow`** comparte línea con otros campos: la raíz tiene tres hijos (etiqueta, caja y `g-input__support` con ayuda y mensaje) y las cajas de una línea quedan a la misma altura aunque una etiqueta ocupe dos líneas. El tamaño en la fila se da con `g-form-w-xs|sm|md|lg`.
+- **`prefix`/`suffix`** (texto dentro de la caja: `$`, `kg`, `%`) con `prefixLabel`/`suffixLabel` para su expansión accesible («kilogramos»), y **`output`**: un valor que calcula la aplicación (`<output>` cortés al final de la caja, no se envía).
+- **Solo lectura** (propia o por `GForm readonly`): relleno `--g-color-neutral-soft`, borde **discontinuo** `--g-color-border-control` (≥ 3.02:1 sobre el relleno, medido) y texto pleno; enfocable y seleccionable. Distinto de deshabilitado sin depender del color.
+
 ## Clases
 
-Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*`, `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__error`.
+Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*`, `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__support`, `g-input__message`.
 
 ## Limitaciones conocidas
 

@@ -134,9 +134,18 @@ El componente solo lee tokens `--g-*`. A diferencia de los campos, **`brand` sí
 
 Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border-control`, `--g-color-border-strong`, `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-color-on-{color}` (y `-soft`), `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-danger-text`, `--g-color-focus`, `--g-radius-xs`, `--g-radius-md`, `--g-radius-lg`, `--g-radius-pill`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard`, `--g-ease-out`, `--g-press-scale`. La definición de cada uno está en `docs/contract/tokens.md`. El cuadro mide `--g-space-1` × 4, 4, 5, 6 y 7 según el tamaño (con espacio 4: 16, 16, 20, 24 y 28px).
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Va en su propia fila** (hijo directo de `GFormLayout`), nunca junto a otros campos en una `GFormRow`.
+- **Marcas:** suelta no lleva «(opcional)» (sin marcar ya es una respuesta válida); con la convención `required`, asterisco si es `required`.
+- **Un solo mensaje** bajo el campo, `g-checkbox__message` (región viva siempre presente): `error` (icono `circle-alert`), `warning` (`triangle-alert`; borde discontinuo de un trazo en el control) o `valid` (`circle-check`), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **Solo lectura:** casilla hundida (`--g-color-surface-sunken`) con borde discontinuo y la marca en `--g-color-text`.
+
 ## Clases
 
-Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbox--layout-*`, `g-checkbox--size-*`, `g-checkbox--density-*`, `g-checkbox--color-*`, `is-disabled`, `is-readonly`, `is-invalid`, y los elementos `g-checkbox__row`, `g-checkbox__input`, `g-checkbox__icon`, `g-checkbox__text`, `g-checkbox__label`, `g-checkbox__required`, `g-checkbox__hint`, `g-checkbox__meta` y `g-checkbox__error`. Marcada y mixta se estilizan con `:checked` e `:indeterminate`, sin clases propias.
+Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbox--layout-*`, `g-checkbox--size-*`, `g-checkbox--density-*`, `g-checkbox--color-*`, `is-disabled`, `is-readonly`, `is-invalid`, y los elementos `g-checkbox__row`, `g-checkbox__input`, `g-checkbox__icon`, `g-checkbox__text`, `g-checkbox__label`, `g-checkbox__required`, `g-checkbox__hint`, `g-checkbox__meta` y `g-checkbox__message`. Marcada y mixta se estilizan con `:checked` e `:indeterminate`, sin clases propias.
 
 ## Limitaciones conocidas
 

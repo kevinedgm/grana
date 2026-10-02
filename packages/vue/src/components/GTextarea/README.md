@@ -130,9 +130,18 @@ El componente solo lee tokens `--g-*`. Los campos **no** usan `brand` para su re
 
 Tokens que consume: los mismos que `GInput` (ver [su README](../GInput/README.md#tema)), sin los del botón de acción ni de contraseña, más el interlineado del texto (`--g-text-{caption|body-sm|body}-line`). La altura de una fila sale de `--g-space-1` (6, 7, 9, 11 y 13 unidades para `xs` a `xl`, igual que `GInput`) y el relleno vertical se calcula desde ella; cada fila extra suma un interlineado.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Marcas por convención** del formulario (`marks` de `GForm`): «(opcional)» como texto dentro de la etiqueta (forma parte del nombre accesible) o asterisco con `required`, nunca las dos; `mark: false` quita la del campo.
+- **Un solo mensaje** bajo el campo, `g-textarea__message` (región viva siempre presente): `error` (icono `circle-alert`, borde doble), `warning` (`triangle-alert`, borde **discontinuo** doble) o `valid` (`circle-check`, borde sencillo de éxito), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **En una `GFormRow`** comparte línea con otros campos: la raíz tiene tres hijos (etiqueta, caja y `g-textarea__support` con ayuda y mensaje) y las cajas de una línea quedan a la misma altura aunque una etiqueta ocupe dos líneas. El tamaño en la fila se da con `g-form-w-xs|sm|md|lg`.
+- **Solo lectura** (propia o por `GForm readonly`): relleno `--g-color-neutral-soft`, borde **discontinuo** `--g-color-border-control` (≥ 3.02:1 sobre el relleno, medido) y texto pleno; enfocable y seleccionable. Distinto de deshabilitado sin depender del color.
+
 ## Clases
 
-Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textarea--variant-*`, `g-textarea--size-*`, `g-textarea--density-*`, `g-textarea--color-*` y `--rounded-*` (solo si el prop tiene valor), `g-textarea--block`, `g-textarea--autosize`, `g-textarea--resize-*`, `is-capped`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-textarea__label`, `__required`, `__control`, `__field`, `__loader`, `__messages`, `__hint`, `__counter`, `__count-live` y `__error`.
+Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textarea--variant-*`, `g-textarea--size-*`, `g-textarea--density-*`, `g-textarea--color-*` y `--rounded-*` (solo si el prop tiene valor), `g-textarea--block`, `g-textarea--autosize`, `g-textarea--resize-*`, `is-capped`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-textarea__label`, `__required`, `__control`, `__field`, `__loader`, `__messages`, `__hint`, `__counter`, `__count-live` y `__support`, `__message`.
 
 ## Limitaciones conocidas
 

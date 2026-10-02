@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormLayout",
   "tag": "g-form-layout",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Pila vertical de filas de un formulario (sustituye a GFormGrid, r02): cada hijo directo ocupa el ancho entero; no mide. Provee block, densidad y stack a sus filas y campos.",
   "contract": "design/contracts/form.md",

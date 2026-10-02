@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFieldGroup",
   "tag": "g-field-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Una pregunta compuesta cuyas partes necesitan su propia etiqueta (contacto de emergencia, fecha en Día · Mes · Año): fieldset + legend, partes en una GFormRow compuesta y un solo mensaje. Va siempre en su propia fila.",
   "contract": "design/contracts/form.md",

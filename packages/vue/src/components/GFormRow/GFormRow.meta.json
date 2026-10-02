@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormRow",
   "tag": "g-form-row",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Fila de campos que van juntos: mide su ancho propio y los reparte en líneas contiguas en orden del DOM (menos líneas, la más holgada) que siempre llenan el ancho, con tres pistas compartidas por línea (etiqueta · caja · pie).",
   "contract": "design/contracts/form.md",

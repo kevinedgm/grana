@@ -91,9 +91,17 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 
 El grupo solo lee tokens `--g-*`: `--g-color-border` (línea bajo la cabecera), `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-danger-text`, `--g-space-1..4`, `--g-font-ui`, `--g-text-{caption|body-sm}-{size|line}`, `--g-text-action-weight` y `--g-border-width`. La cuadrícula de tarjetas deriva su ancho mínimo de `--g-space-1`. Las casillas se estilizan con el tema de `GCheckbox`.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Va en su propia fila** (hijo directo de `GFormLayout`), nunca junto a otros campos en una `GFormRow`.
+- **`name` y `required`:** `name` es la clave del grupo en `errors` y el `name` por defecto de sus casillas; `required` pone la marca de la convención en la `<legend>`.
+- **Un solo mensaje** bajo el grupo, `g-checkbox-group__message` (región viva siempre presente): `error` (icono `circle-alert`), `warning` (`triangle-alert`; borde discontinuo de un trazo en el control) o `valid` (`circle-check`), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+
 ## Clases
 
-`g-checkbox-group`, `g-checkbox-group--layout-*`, `g-checkbox-group__label`, `g-checkbox-group__head`, `g-checkbox-group__count`, `g-checkbox-group__list`, `g-checkbox-group__hint` y `g-checkbox-group__error`.
+`g-checkbox-group`, `g-checkbox-group--layout-*`, `g-checkbox-group__label`, `g-checkbox-group__head`, `g-checkbox-group__count`, `g-checkbox-group__list`, `g-checkbox-group__hint` y `g-checkbox-group__message`.
 
 ## Limitaciones conocidas
 

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormSection",
   "tag": "g-form-section",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Sección fija de un formulario (una idea) con título, descripción, acciones y ayuda; sin tarjeta ni punto de referencia.",
   "contract": "design/contracts/form.md",

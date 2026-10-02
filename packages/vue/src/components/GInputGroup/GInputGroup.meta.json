@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GInputGroup",
   "tag": "g-input-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo fusionado: un dato en varias partes que se lee como uno (teléfono país + número, valor + unidad, moneda + importe, serie + folio, rango). Una caja, una etiqueta, un mensaje; cada parte con foco y nombre propios.",
   "contract": "design/contracts/form.md",

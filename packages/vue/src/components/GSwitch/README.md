@@ -128,9 +128,18 @@ Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-
 
 El riel mide, en unidades de `--g-space-1`, alto × ancho de 5 × 9, 5.5 × 10, 6 × 11, 7.5 × 13 y 9 × 16 para `xs`, `sm`, `md`, `lg` y `xl` (con espacio 4: 36×20, 40×22, 44×24, 52×30 y 64×36px). El pulgar y su recorrido salen de ese alto y del ancho del borde: cambiar el espacio base o el borde escala todo sin descentrar nada.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Va en su propia fila** (hijo directo de `GFormLayout`), nunca junto a otros campos en una `GFormRow`.
+- **Sin marcas** (un interruptor no es obligatorio).
+- **Un solo mensaje** bajo el campo, `g-switch__message` (región viva siempre presente): `error` (icono `circle-alert`), `warning` (`triangle-alert`; borde discontinuo de un trazo en el control) o `valid` (`circle-check`), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **Solo lectura:** pista hundida con borde discontinuo y el pulgar en `--g-color-text`.
+
 ## Clases
 
-Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__error`. El estado encendido se estiliza con `:checked`, sin clase propia.
+Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__message`. El estado encendido se estiliza con `:checked`, sin clase propia.
 
 ## Limitaciones conocidas
 

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormActions",
   "tag": "g-form-actions",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Pie de acciones con jerarquía (primaria al final), región de estado y, opcionalmente, fijo sin tapar el foco.",
   "contract": "design/contracts/form.md",

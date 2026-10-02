@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GErrorSummary",
   "tag": "g-error-summary",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Resumen de errores con un enlace por pregunta y foco al aparecer (patrón GOV.UK).",
   "contract": "design/contracts/form.md",

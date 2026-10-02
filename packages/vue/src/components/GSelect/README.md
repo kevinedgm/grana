@@ -169,9 +169,18 @@ Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige 
 
 El componente solo lee tokens `--g-*` (los mismos que [`GInput`](../GInput/README.md#tema)), más los de la lista y la hoja móvil: `--g-color-border-control` (contorno de la lista), `--g-shadow-2`, `--g-radius-md`, y `--g-surface-inset`, `--g-surface-gap`, `--g-surface-radius`, `--g-surface-backdrop` (hoja inferior). La altura de la caja sale de `--g-space-1` (6, 7, 9, 11 y 13 unidades para `xs` a `xl`, igual que `GInput`) y la opción mide como la caja.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Marcas por convención** del formulario (`marks` de `GForm`): «(opcional)» como texto dentro de la etiqueta (forma parte del nombre accesible) o asterisco con `required`, nunca las dos; `mark: false` quita la del campo.
+- **Un solo mensaje** bajo el campo, `g-select__message` (región viva siempre presente): `error` (icono `circle-alert`, borde doble), `warning` (`triangle-alert`, borde **discontinuo** doble) o `valid` (`circle-check`, borde sencillo de éxito), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **En una `GFormRow`** comparte línea con otros campos: la raíz tiene tres hijos (etiqueta, caja y `g-select__support` con ayuda y mensaje) y las cajas de una línea quedan a la misma altura aunque una etiqueta ocupe dos líneas. El tamaño en la fila se da con `g-form-w-xs|sm|md|lg`.
+- **Solo lectura** (propia o por `GForm readonly`): relleno `--g-color-neutral-soft`, borde **discontinuo** `--g-color-border-control` (≥ 3.02:1 sobre el relleno, medido) y texto pleno; enfocable y seleccionable. Distinto de deshabilitado sin depender del color.
+
 ## Clases
 
-Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--variant-*`, `--size-*`, `--density-*`, `--color-*` y `--rounded-*` (solo con valor), `g-select--block`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-select__label`, `__required`, `__control`, `__button`, `__prepend`, `__value` (con `--placeholder`), `__icon`, `__arrow`, `__clear`, `__loader`, `__list` (con `is-up`), `__option` (con `is-active`), `__create`, `__group`, `__group-label`, `__empty`, `__hint` y `__error`. Elegida y deshabilitada se estilizan con `aria-selected` y `aria-disabled`.
+Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--variant-*`, `--size-*`, `--density-*`, `--color-*` y `--rounded-*` (solo con valor), `g-select--block`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-select__label`, `__required`, `__control`, `__button`, `__prepend`, `__value` (con `--placeholder`), `__icon`, `__arrow`, `__clear`, `__loader`, `__list` (con `is-up`), `__option` (con `is-active`), `__create`, `__group`, `__group-label`, `__empty`, `__hint` y `__support`, `__message`. Elegida y deshabilitada se estilizan con `aria-selected` y `aria-disabled`.
 
 ## Limitaciones conocidas
 

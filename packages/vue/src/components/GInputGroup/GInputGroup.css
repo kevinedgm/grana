@@ -357,6 +357,12 @@ select.g-input-group__control {
 .g-input-group.is-readonly select.g-input-group__control {
   padding-inline-end: calc(var(--_px) * var(--_density));
 }
+/* El selector de solo lectura es un <input readonly> con `size` = caracteres del texto (bruno). `size` mide con el
+   ancho medio de la fuente: con mayúsculas («MX +52») o una serif se queda corto y recorta (auditoría r02, hallazgo 2).
+   field-sizing ajusta la parte a su texto real; sin soporte, queda `size` */
+.g-input-group.is-readonly .g-input-group__part--select > .g-input-group__control {
+  field-sizing: content;
+}
 /* Deshabilitado: como GInput (hundido, borde fuerte continuo, texto tenue); no se envía */
 .g-input-group.is-disabled {
   --_bg: var(--g-color-surface-sunken);

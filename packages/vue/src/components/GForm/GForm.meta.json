@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GForm",
   "tag": "g-form",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Formulario con contexto: decide cuándo se ven los errores que calcula la aplicación, envía, resume y mantiene el estado sucio. No valida ni guarda.",
   "contract": "design/contracts/form.md",

@@ -179,6 +179,16 @@ Si el día con foco sale de los meses visibles, se desplazan los meses. En táct
 
 El componente solo lee tokens `--g-*`; **no crea ninguno**. `color` reasigna la selección (`--g-color-{color}`, `on-`, `-soft`, `on-…-soft`); el foco es siempre `--g-color-focus`. El popover usa `--g-color-surface`, `--g-shadow-2` y `--g-surface-radius`; la hoja móvil, el sistema de superficies (`--g-surface-*`), como `GDialog` y `GSelect`. La celda y el umbral de dos meses derivan de `--g-space-1`.
 
+## Dentro de un formulario
+
+Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+
+- **Marcas por convención** del formulario (`marks` de `GForm`): «(opcional)» como texto dentro de la etiqueta (forma parte del nombre accesible) o asterisco con `required`, nunca las dos; `mark: false` quita la del campo.
+- **Un solo mensaje** bajo el campo, `g-datepicker__message` (región viva siempre presente): `error` (icono `circle-alert`, borde doble), `warning` (`triangle-alert`, borde **discontinuo** doble) o `valid` (`circle-check`, borde sencillo de éxito), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **En una `GFormRow`** (modo campo; `inline` y `split` van en su propia fila) comparte línea con otros campos: la raíz tiene tres hijos (etiqueta, caja y `g-datepicker__support` con ayuda y mensaje) y las cajas de una línea quedan a la misma altura aunque una etiqueta ocupe dos líneas. El tamaño en la fila se da con `g-form-w-xs|sm|md|lg`.
+- **`output`**: un valor que calcula la aplicación a partir de la fecha (la edad): `<output>` cortés tras la fecha, dentro de la caja; no se envía.
+- **Solo lectura** (propia o por `GForm readonly`): relleno `--g-color-neutral-soft`, borde **discontinuo** `--g-color-border-control` (≥ 3.02:1 sobre el relleno, medido) y texto pleno; enfocable y seleccionable. Distinto de deshabilitado sin depender del color.
+
 ## Clases
 
 Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`.
