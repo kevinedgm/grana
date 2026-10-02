@@ -1,6 +1,6 @@
 # Contrato · Captura de voz · Fase 1 (gestor `createSpeech`, anfitrión `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`)
 
-**Dueño:** lima · **Estado:** aprobado (Fase 1) · CSS entregado por coco (commit a70f366; `GSpeechPill.css`, `GSpeechHost.css`, `GSpeechTrigger.css`; `design/lab/speech/estilo.md`, 47 070/47 070 en los tres motores) y reconciliado aquí (#227 a #229) · pendiente de bruno (gestor, captura, componentes, adaptador simulado, útiles compartidos) y de la auditoría de coco · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
+**Dueño:** lima · **Estado:** aprobado (Fase 1) · CSS entregado por coco (commit a70f366; `GSpeechPill.css`, `GSpeechHost.css`, `GSpeechTrigger.css`; `design/lab/speech/estilo.md`, 47 070/47 070 en los tres motores) y reconciliado aquí (#227 a #229) · construido por bruno (commits 53537f7..832286c; `GSpeechHost.meta.json`, `GSpeechPill.meta.json`, `GSpeechTrigger.meta.json`, `status: draft`) y reconciliado aquí (#230 a #238) · pendiente: entrada separada `@grana/vue/speech` (#238, bruno) y auditoría de coco · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
 **Tags:** `g-speech-host` (anfitrión) · `g-speech-pill` (pill colocable) · `g-speech-trigger` (disparador) · **Categoría:** comunicación y estado (entrada de datos por voz)
 
 Un **sistema de captura de voz y transcripción** pensado para información sensible: una **sesión compartida por aplicación** que sobrevive a cambios de pestaña, paso, acordeón o diálogo; un **indicador siempre visible** mientras el micrófono está en uso; transcripción **provisional y confirmada**; dictado directo a un campo y conversaciones largas con varios hablantes. **Grana no conoce el motor ni hace red:** la aplicación aporta un **adaptador** (Whisper, whisper.cpp, faster-whisper, diarización local…) y Grana pone la captura, el estado, la interfaz y la accesibilidad.
@@ -45,11 +45,11 @@ Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de ki
 
 ## 1. Entrega (API pública)
 
-Exportaciones de `@grana/vue` (bruno las registra en `src/index.js`):
+**Entrada propia `@grana/vue/speech`** (#238): la captura de voz **no** viaja en `@grana/vue` (quien no la usa no la paga: +27,5 KB gzip, +22 % de `dist/grana.js`, medido por bruno). Exportaciones de `@grana/vue/speech`:
 
 | Exportación | Qué es |
 | --- | --- |
-| `createSpeech(options)` | Crea el **gestor de captura** de la aplicación (objeto con estado reactivo de solo lectura y métodos). También es **plugin de Vue**: `app.use(speech)` lo provee a toda la app |
+| `createSpeech(options)` | Crea el **gestor de captura** de la aplicación (objeto con estado reactivo de solo lectura y métodos). También es **plugin de Vue**: `app.use(speech)` lo provee a toda la app **y registra globalmente** `GSpeechHost`, `GSpeechPill` y `GSpeechTrigger` (`<g-speech-host>`…) si no lo estaban (el `install` de Grana ya no los registra) |
 | `useSpeech()` | Devuelve el gestor provisto (en `setup` o en un componente montado bajo la app). Sin gestor: aviso en desarrollo y `undefined` |
 | `speechKey` | Clave de inyección (`InjectionKey`) para `provide` manual (pruebas, microfrontends) |
 | `GSpeechHost` | Anfitrión: canales vivos, pill flotante de respaldo, panel y hoja móvil. Se monta **una vez**, lo más alto posible |
@@ -58,10 +58,12 @@ Exportaciones de `@grana/vue` (bruno las registra en `src/index.js`):
 
 **Entrada de pruebas** `@grana/vue/testing` (#216; bruno añade la exportación en `package.json` y la entrada en el build): `createSimulatedSpeechAdapter(options)` (§4.7). No viaja en el paquete principal.
 
+**Estilos:** el CSS de la captura sigue en `grana.css` (≈ 5 KB gzip; inerte sin su marcado; una sola hoja que recordar). **UMD:** `dist/speech.umd.js` con la global `GranaSpeech` (requiere `Vue` y `Grana`, que aporta `GBtn`, `GIcon`, `GSurface`, `GSelect`, `GCheckbox`, `GProgress`). Los útiles compartidos con `GToaster` (`topModal`, reservas de borde, canales) se resuelven desde el paquete principal: la entrada `speech` **no** los duplica (bruno lo comprueba).
+
 ```js
 // main.js de la aplicación
 import { createApp } from 'vue'
-import { createSpeech } from '@grana/vue'
+import { createSpeech } from '@grana/vue/speech'
 import { createLocalWhisperAdapter } from './speech/whisper-adapter.js' // de la aplicación, no de Grana
 
 export const speech = createSpeech({
@@ -120,13 +122,13 @@ Todos los métodos que cambian de estado devuelven **`Promise<boolean>`**: `true
 | --- | --- | --- |
 | `prepare({ expectedSpeakers? }?)` | `idle` | **Conversación.** Crea la sesión, comprueba el permiso (Permissions API) y la salud del servicio (`adapter.check()`) **sin abrir el micrófono** → `ready` |
 | `start({ mode, target? })` | `idle` | `mode: 'dictation'` exige `target: { id, label? }` (§8.3) → `requesting`. `mode: 'conversation'`: `prepare()` y, si no hace falta consentimiento, `begin()` |
-| `begin()` | `ready` | Abre el micrófono y el motor → `requesting` → captura. Con `requireConsent` y `state.consent !== true`: `false` (el panel lo explica, §6.4) |
+| `begin()` | `ready` | Abre el micrófono y el motor → `requesting` → captura. Con `requireConsent` y `state.consent !== true`: `false`. Desde el panel, «Empezar a grabar» muestra el **error de la casilla** (`GCheckbox`, con su mensaje vivo; `labels.consent.required`) y **lleva el foco a la casilla**, sin anunciar además `announce.consentRequired` (sería doble lectura); un `begin()` programático con el panel cerrado **sí** lo anuncia por el canal cortés (#230) |
 | `setConsent(value)` | `ready` | Marca el aviso a participantes (la casilla del panel lo usa; una app con su propio flujo puede llamarlo) |
 | `setExpectedSpeakers(value)` | `ready` | `1`, `2` o `'many'` |
 | `pause()` | captura, `reconnecting` con captura viva | **Detiene las pistas** (§2.4) → `paused` |
 | `resume()` | `paused`; `denied`/`unavailable`/`error` recuperables | Vuelve a pedir el micrófono → `requesting` → captura |
 | `finish()` | captura, `paused`, `reconnecting`, errores con algo capturado | Finalización en 6 pasos (§2.3) → `processing` → `completed` |
-| `discard()` | cualquiera salvo `idle` y `processing` | Descarta sesión, transcript y audio temporal (`engine.abort()`) → `idle`. Programático: **sin** confirmación (la confirmación es del panel) |
+| `discard()` | cualquiera salvo `idle` y `processing` | Descarta sesión, transcript y audio temporal (`engine.abort()`) → `idle`. Programático: **sin** confirmación (la confirmación es del panel). Pasa a `idle` **en el acto** (la captura ya no existe); `state.result`, el anuncio de descarte y `onDiscard` llegan **cuando `abort()` responde**; si rechaza, cuenta como `audioDeleted: false` (#234) |
 | `close()` | `completed` | Entrega `onComplete(transcript)` → `idle` |
 | `cancel()` | `ready`, `requesting` | Cancela antes de capturar → `idle` |
 | `openPanel()` · `closePanel()` | sesión no `idle` | Abre o cierra el panel (§6.3); el foco sigue la regla de §11 |
@@ -287,7 +289,7 @@ Grana captura salvo que el adaptador declare `input.format: 'self'` (§4.2):
 
 ### 3.5 Permisos
 
-`navigator.permissions.query({ name: 'microphone' })` cuando existe (en `prepare`/`start`): decide si se anuncia la espera del permiso y si `denied` se detecta **sin abrir nada**. Mientras la sesión exista se escucha `change` para mantener `state.permission` al día; un permiso revocado durante la captura se trata como `denied`. Si la consulta no existe o falla: `unknown`.
+`navigator.permissions.query({ name: 'microphone' })` cuando existe (en `prepare`/`start`): decide si se anuncia la espera del permiso y si `denied` se detecta **sin abrir nada**. Mientras la sesión exista se escucha `change` para mantener `state.permission` al día; un permiso revocado durante la captura se trata como `denied`. Si la consulta no existe o falla: `unknown`. **Con `input.format: 'self'` no se consulta** (el adaptador captura con su propio permiso; `state.permission` queda `unknown`; #232).
 
 ### 3.6 Pantalla, salida y segundo plano
 
@@ -297,7 +299,7 @@ Grana captura salvo que el adaptador declare `input.format: 'self'` (§4.2):
 
 ### 3.7 Constantes de comportamiento (no son tema)
 
-Bruno las expone como `SPEECH_TIMING` interno y las prueba: `frameMs` 100 · `chunkMs` por defecto 300 (si el adaptador PCM no lo declara) · `watchdogMs` 1500 · `watchdogTickMs` 250 · `flatMs` 2500 · `voiceThreshold` 0,12 · `voiceHoldMs` 450 · `announceGroupMs` 300 · `insertAnnounceMs` 2500 · `autoCloseMs` 1500 · `reducedMotionHz` 4 · rango de nivel −60..−10 dBFS. Son valores del prototipo (kiwi §14: no medidos con usuarios); cambiarlos es decisión de lima con evidencia.
+Bruno las expone como `SPEECH_TIMING` interno y las prueba: `frameMs` 100 · `chunkMs` por defecto 300 (si el adaptador PCM no lo declara) · `watchdogMs` 1500 · `watchdogTickMs` 250 · `flatMs` 2500 · `voiceThreshold` 0,12 · `voiceHoldMs` 450 · `announceGroupMs` 300 · `insertAnnounceMs` 2500 · `autoCloseMs` 1500 · `politeGapMs` 900 (separación mínima entre dos textos de la cola cortés; `POLITE_GAP_MS` en el código, #231) · `reducedMotionHz` 4 · rango de nivel −60..−10 dBFS. Son valores del prototipo (kiwi §14: no medidos con usuarios); cambiarlos es decisión de lima con evidencia.
 
 ---
 
@@ -436,7 +438,7 @@ Grana lo documenta y lo refleja en la interfaz; no puede comprobarlo. El kit de 
 | --- | --- | --- | --- |
 | `speech` | Object (gestor) | el inyectado (`speechKey`) | Sin gestor: no pinta nada y avisa |
 
-Sin eventos públicos ni slots en F1 (todo va por el gestor, como `GToaster`). **Dos `GSpeechHost` del mismo gestor:** la segunda no pinta nada y avisa.
+Sin eventos públicos ni slots en F1 (todo va por el gestor, como `GToaster`). **Si el anfitrión se desmonta con la captura viva**, Grana **detiene las pistas** y la sesión pasa a `paused` (sin anfitrión no hay indicador, así que no hay micrófono; #233); al volver a montarse no reanuda solo. **Dos `GSpeechHost` del mismo gestor:** la segunda no pinta nada y avisa.
 
 ### 6.2 Estructura
 
@@ -657,7 +659,7 @@ El disparador **no lleva la sesión**: si se desmonta (otra pestaña, un paso co
 
 ## 9. Textos (`labels`, sin valores por defecto; #226)
 
-Marcadores con `utils/template.js` (`fill`). Las claves marcadas «plural» admiten **String** con `{count}` o **Function** `(count) => String` (plurales del idioma; como `counterText`, #51, y `GErrorSummary`). Falta una clave: **aviso en desarrollo la primera vez que se necesita**; los botones con icono **se dibujan igual** (la salida es obligatoria), los textos quedan vacíos.
+Marcadores con `utils/template.js` (`fill`). Las claves marcadas «plural» admiten **String** con `{count}` o **Function** `(count) => String` (plurales del idioma; como `counterText`, #51, y `GErrorSummary`). **Una Function recibe solo `count`**; su resultado pasa después por `fill` con el resto de marcadores, de modo que puede devolver `{time}` u otro marcador de la clave (#237; p. ej. `completedConversation: (n) => n === 1 ? '1 fragmento, {time}.' : '{count} fragmentos, {time}.'`). Falta una clave: **aviso en desarrollo la primera vez que se necesita**; los botones con icono **se dibujan igual** (la salida es obligatoria), los textos quedan vacíos.
 
 ### 9.1 Generales, pill, panel y disparador
 
@@ -735,6 +737,7 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 - **Abrir el panel** → foco a su **título** (`tabindex="-1"`). **Cerrarlo** → a quien lo abrió (pill o disparador) si sigue conectado, visible y no inerte; si no, a la pill visible. El cierre ligero (§6.4) **no** mueve el foco.
 - **Descartar** → confirmación en línea con el foco en «Cancelar»; cancelar → vuelve a «Descartar».
 - **Al cerrar la sesión** con el foco en la pill o el panel (que desaparecen) → al disparador que la inició si sigue conectado; si no, a donde estaba antes del atajo; nunca se pierde en `body` si el anfitrión está en un modal.
+- **Si un cambio de estado retira el botón enfocado del panel** (p. ej. «Pausar» al pasar a `paused`, o las acciones al entrar en `processing`), el foco va al **título del panel** (`tabindex="-1"`), nunca a `body` (WCAG 2.4.3; #235).
 - **Nada roba el foco por sí solo**: ni al confirmar texto, ni al insertar, ni al terminar el procesamiento, ni ante un error (el anuncio invita a abrir el panel).
 - **Composición IME:** con `event.isComposing` no se trata ni el atajo ni Esc. Coincidencia del atajo como `GToaster` (`event.key` + modificadores exactos).
 - Sin atajos de una sola tecla (2.1.4).
@@ -843,7 +846,7 @@ En producción no hay avisos ni comprobaciones extra (las reglas de seguridad �
 
 ## 16. SSR
 
-- **Importar `@grana/vue` y llamar a `createSpeech` no toca `document`, `window`, `navigator`, `matchMedia` ni `AudioContext`.** El gestor es estado puro y métodos.
+- **Importar `@grana/vue` o `@grana/vue/speech` y llamar a `createSpeech` no toca `document`, `window`, `navigator`, `matchMedia` ni `AudioContext`.** El gestor es estado puro y métodos.
 - En el servidor `GSpeechHost` **no renderiza nada**; `GSpeechPill` renderiza su raíz `hidden`; `GSpeechTrigger` renderiza su botón en `idle` (sin leer el DOM). Sin desajuste de hidratación.
 - Captura, observadores (`IntersectionObserver`, `MutationObserver`), escuchas de documento (atajo, `beforeunload`, `visibilitychange`, `resize`, `pointerdown`, `input` para el deshacer), Permissions API y `wakeLock` existen **solo** con `GSpeechHost` montado y una sesión iniciada, y se retiran al terminar o desmontar.
 - Llamar a métodos en el servidor no falla: devuelven `false` sin efectos.
@@ -853,7 +856,7 @@ En producción no hay avisos ni comprobaciones extra (las reglas de seguridad �
 ## 17. Verificación (qué y cómo)
 
 - **bruno** (vitest + jsdom con el adaptador simulado y una captura simulada; **Playwright** en Chromium, Firefox y WebKit para capa superior, modal, foco, móvil y micrófono falso `--use-fake-device-for-media-stream`):
-  - **API:** exportaciones (`createSpeech`, `useSpeech`, `speechKey`, `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`; `createSimulatedSpeechAdapter` solo en `@grana/vue/testing`); `app.use` provee; `useSpeech` sin gestor avisa y devuelve `undefined`; importación en entorno `node` sin `document`.
+  - **API:** exportaciones (`createSpeech`, `useSpeech`, `speechKey`, `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`) **solo en `@grana/vue/speech`**, ninguna en `@grana/vue` (#238); `app.use(speech)` registra los tres componentes; `dist/grana.js` vuelve a su tamaño anterior (compuerta: `! grep -q "createSpeech" packages/vue/dist/grana.js`); `createSimulatedSpeechAdapter` solo en `@grana/vue/testing`; `app.use` provee; `useSpeech` sin gestor avisa y devuelve `undefined`; importación en entorno `node` sin `document`.
   - **Estados:** tabla de transiciones completa (cada legal pasa; una muestra de ilegales se rechaza con `false` y aviso); icono y texto por estado; facetas.
   - **Sin anfitrión no hay micrófono**; `remote` sin `allowRemote` → `error` sin `getUserMedia` ni `open`; capacidades inválidas → `unsupported`.
   - **Captura:** `ready` sin pista; pausa con pista **detenida** (`readyState: 'ended'`); vigilante: captura congelada → `error` `interrupted` en < 2,5 s y la pill deja de decir «Grabando»; señal plana; `ended`/`mute`; mapeo de errores de `getUserMedia`; nivel > 0 con el micrófono falso; PCM a la `sampleRate` pedida y `chunkMs`; codificado con `mimeType` admitido; `self`.

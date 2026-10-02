@@ -25,6 +25,7 @@
 - **`type`:** se ignora cuando hay `href`.
 - **`href`:** renderiza `<a>`. Con `disabled` (o `loading`), el `<a>` se renderiza **sin** `href`, con `aria-disabled="true"`, `tabindex="-1"` y `role="link"` (un `<a>` sin `href` pierde su rol de enlace; WCAG 4.1.2).
 - **`icon`:** botón cuadrado (ancho = altura). Exige `aria-label`; en desarrollo, si falta, se emite `console.warn`. En producción no hay advertencia.
+- **`aria-disabled` del consumidor** (#236): sin `loading`, `GBtn` **respeta** el `aria-disabled` que le pase el consumidor (control enfocable que no actúa; p. ej. el disparador de voz con otra sesión activa, `speech.md` §8.2). En ese caso `GBtn` **sigue emitiendo `click`** (el consumidor decide qué hacer: explicar, mover el foco) y **no** añade `is-disabled` (el aspecto lo da `[aria-disabled="true"]` en el CSS del componente que lo usa). Con `loading`, `aria-disabled="true"` lo fija `GBtn` y gana. En `<a>` (con `href`) no cambia la regla de arriba.
 - **`loadingText`:** texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. **Sin valor por defecto**, porque Grana es internacional: un texto fijo estaría en el idioma equivocado para la mayoría. Sin `loadingText`, solo queda `aria-busy`.
 
 ## Mecanismo de `loadingText`
