@@ -374,6 +374,19 @@ describe('GSpeechHost · panel, foco y teclado (§6.4, §11)', () => {
     expect(panel().querySelector('.g-speech-panel__privacy').textContent).toContain('Audio temporal eliminado.')
   })
 
+  it('si un cambio de estado retira el botón enfocado («Empezar a grabar»), el foco pasa al título del panel, no a body', async () => {
+    const { speech } = await setup()
+    await speech.prepare()
+    await speech.openPanel()
+    await flush()
+    const start = [...panel().querySelectorAll('.g-speech-panel__controls .g-btn')].find((b) => b.textContent.trim() === 'Empezar a grabar')
+    start.focus()
+    start.click()
+    await tick(10)
+    expect(speech.state.status).toMatch(/listening|speech|transcribing/)
+    expect(document.activeElement).toBe(panel().querySelector('.g-speech-panel__title'))
+  })
+
   it('cierre ligero: un pointerdown fuera cierra el panel sin mover el foco', async () => {
     const { speech } = await setup()
     await speech.start({ mode: 'conversation' })

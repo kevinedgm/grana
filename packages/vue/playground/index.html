@@ -101,6 +101,7 @@
           <g-btn v-for="m in pgModes" :key="m.value" size="sm" :variant="scheme === m.value ? 'soft' : 'ghost'" :aria-pressed="scheme === m.value ? 'true' : 'false'" :id="'pg-scheme-' + m.value" @click="scheme = m.value; setScheme()">{{ m.label }}</g-btn>
         </div>
       </div>
+      <g-speech-pill id="pg-speech-pill"></g-speech-pill>
       <div class="pg-ctl" role="group" aria-label="Tema">
         <span class="pg-ctl-label">Tema</span>
         <div class="pg-seg">
@@ -1422,14 +1423,70 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </div>
         </section>
       </div>
+      <div class="pg-group" id="cat-9">
+        <p class="pg-cat">Captura de voz</p>
+        <section class="pg-section" id="sec-speech" data-pg-section>
+          <h2>Captura de voz (GSpeechHost, GSpeechTrigger, GSpeechPill)</h2>
+          <p class="pg-lead">Sesión compartida por la aplicación: sobrevive a pestañas, pasos y diálogos; un indicador siempre visible mientras el micrófono está en uso; transcripción provisional y confirmada. El motor es el <b>adaptador simulado</b> de <code>@grana/vue/testing</code> (sin red).</p>
+          <h3>Dictado a un campo</h3>
+          <div class="pg-panel">
+    <div id="speech-demo" class="col" style="max-width:560px">
+      <p style="margin:0;color:var(--g-color-text-muted)">El disparador es hermano del campo, justo después. Solo el texto confirmado entra en el campo, en el cursor y sin mover el foco; el provisional se ve en la nota. <b>Mayús+F8</b> va a la pill y vuelve.</p>
+      <div class="row" style="margin:0">
+        <label>Captura <select id="sp-capture" v-model="spCapture" @change="spSetCapture"><option value="pcm">micrófono del navegador (Grana captura)</option><option value="self">simulada por el adaptador (sin micrófono)</option></select></label>
+        <label>Ubicación <select id="sp-location" v-model="spLocation" @change="spAdapter.setCapabilities({ location: spLocation })"><option>local</option><option>device</option><option>remote</option></select></label>
+      </div>
+      <div>
+        <g-textarea id="sp-obs" v-model="spObs" label="Observaciones" :rows="4"></g-textarea>
+        <g-speech-trigger for="sp-obs"></g-speech-trigger>
+      </div>
+      <div class="row" style="margin:0">
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-fail" @click="spAdapter.failNextSegment()">Fallar el siguiente fragmento</g-btn>
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-down" @click="spAdapter.goOffline()">Perder el servicio</g-btn>
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-up" @click="spAdapter.goOnline()">Restablecer</g-btn>
+        <span id="sp-log">{{ spLog }}</span>
+      </div>
+    </div>
+          </div>
+          <h3>Conversación que continúa al cambiar de pestaña</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:640px" id="speech-tabs">
+      <g-speech-trigger mode="conversation"></g-speech-trigger>
+      <g-tabs v-model="spTab" :items="spTabs" :labels="gtLabels" label="Consulta" id="sp-tabs">
+        <template #panel="{ item }">
+          <template v-if="item.id === 'motivo'">
+            <g-textarea id="sp-motivo" v-model="spMotivo" label="Motivo de consulta" :rows="3"></g-textarea>
+            <g-speech-trigger for="sp-motivo"></g-speech-trigger>
+          </template>
+          <template v-else-if="item.id === 'plan'">
+            <g-textarea id="sp-plan" v-model="spPlan" label="Plan" :rows="3"></g-textarea>
+            <g-speech-trigger for="sp-plan"></g-speech-trigger>
+          </template>
+          <p v-else style="margin:0">Resumen: la grabación sigue aunque esta pestaña no tenga disparador.</p>
+        </template>
+      </g-tabs>
+      <div class="row" style="margin:0">
+        <g-btn variant="outline" color="neutral" id="sp-dialog" @click="dlg.speech = true">Abrir un diálogo modal</g-btn>
+      </div>
+    </div>
+    <g-dialog v-model="dlg.speech" title="Derivación" description="Dentro de un modal lo de fuera queda inerte: la pill flotante del anfitrión aparece dentro del diálogo." close-label="Cerrar">
+      <g-textarea id="sp-nota" v-model="spNota" label="Nota de derivación" :rows="3"></g-textarea>
+      <g-speech-trigger for="sp-nota"></g-speech-trigger>
+      <template #footer><g-btn variant="outline" color="neutral" @click="dlg.speech = false">Cerrar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
+      </div>
       </main>
     </div>
 
     <g-toaster></g-toaster>
+    <g-speech-host></g-speech-host>
 </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
+  <script src="../dist/testing.umd.js"></script>
   <script src="./lucide-icons.js"></script>
   <script>
     const { createApp, ref, reactive, computed, watch, onMounted, onBeforeUnmount } = Vue
@@ -1449,6 +1506,84 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       }
     })
     window.toaster = toaster
+    // Captura de voz: gestor de la aplicación con el adaptador SIMULADO (@grana/vue/testing; una app real aporta el suyo).
+    // ?speech=self → el adaptador simula el micrófono (input.format 'self'); por defecto captura Grana (getUserMedia).
+    const spQuery = new URLSearchParams(location.search)
+    const spAdapter = GranaTesting.createSimulatedSpeechAdapter({
+      latency: 900,
+      input: spQuery.get('speech') === 'self' ? { format: 'self' } : { format: 'pcm', sampleRate: 16000, channels: 1 },
+      script: {
+        dictation: ['Refiere dolor lumbar de tres días de evolución.', 'Sin fiebre ni pérdida de peso.', 'Empeora al estar sentado y mejora al caminar.', 'Se recomienda reposo relativo y control en una semana.'],
+        conversation: [
+          { speaker: 'A', text: 'Buenos días, ¿qué le trae hoy por aquí?' },
+          { speaker: 'B', text: 'Desde hace tres días me duele la espalda, sobre todo por la mañana.' },
+          { speaker: 'A', text: '¿El dolor se irradia hacia alguna pierna?' },
+          { speaker: 'B', text: 'No, se queda en la zona baja, y empeora cuando estoy sentado.' }
+        ]
+      }
+    })
+    const speech = Grana.createSpeech({
+      adapter: spAdapter,
+      language: 'es',
+      allowRemote: spQuery.get('remote') === '1',
+      labels: {
+        region: 'Grabación de voz', openPanel: 'abrir panel', closePanel: 'Cerrar panel', duration: 'Duración:',
+        actions: { start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', discardAsk: '¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento', hideActivity: 'Ocultar actividad' },
+        states: {
+          requesting: { short: 'Pidiendo permiso', long: 'Esperando el permiso del micrófono', longGranted: 'Activando el micrófono' },
+          ready: { short: 'Listo', long: 'Listo para grabar. El micrófono sigue apagado' },
+          listening: { short: 'Grabando', long: 'Grabando' },
+          speech: { short: 'Voz detectada', long: 'Grabando · voz detectada' },
+          transcribing: { short: 'Transcribiendo', long: 'Grabando · transcribiendo' },
+          paused: { short: 'En pausa', long: 'En pausa. El micrófono no está capturando' },
+          processing: { short: 'Procesando', long: 'Micrófono apagado. Procesando el audio pendiente' },
+          reconnecting: { short: 'Reconectando', shortLive: 'Reconectando · grabando', long: 'Reconectando con el servicio. La grabación está en pausa', longLive: 'Reconectando con el servicio. La grabación continúa' },
+          denied: { short: 'Permiso denegado', long: 'Permiso del micrófono denegado' },
+          unavailable: { short: 'Sin micrófono', long: 'Micrófono no disponible' },
+          error: { short: 'Error', long: 'Error en la grabación' },
+          completed: { short: 'Lista', long: 'Transcripción lista' }
+        },
+        mode: { dictation: 'Dictado en «{target}»', conversation: 'Conversación · {speakers}' },
+        expectedSpeakers: { label: 'Participantes previstos', options: { 1: '1 participante', 2: '2 participantes', many: 'Varios participantes' } },
+        noDiarization: 'El motor no distingue hablantes: la transcripción saldrá sin etiquetas.',
+        consent: { label: 'He avisado a los participantes de que se graba', required: 'Marca la casilla para empezar a grabar.' },
+        speaker: 'Hablante {letter}', unassigned: 'Sin asignar', attempt: 'Intento {attempt}', signalFlat: 'No llega sonido del micrófono. Comprueba que no esté silenciado.',
+        pending: (n) => (n === 1 ? '1 fragmento pendiente' : n + ' fragmentos pendientes'), pendingNone: 'Todo transcrito', progress: 'Procesando el audio pendiente',
+        privacy: { device: 'Procesamiento en este dispositivo.', local: 'Procesamiento en el servicio local de tu organización.', remote: 'Procesamiento en un servicio externo.' },
+        audio: { none: 'El audio no se guarda.', memory: 'Audio temporal en memoria; se elimina al finalizar.', disk: 'Audio temporal cifrado en este equipo; se elimina al finalizar.', deleted: 'Audio temporal eliminado.', notConfirmed: 'El motor no confirmó la eliminación del audio temporal.' },
+        transcript: { title: 'Transcripción', empty: 'Todavía no hay texto.', partialFlag: 'provisional', partialPrefix: 'Texto provisional:', failed: 'No se pudo transcribir', failedLost: 'El audio de este fragmento se perdió.' },
+        trigger: { dictate: 'Dictar en {target}', conversation: 'Grabar conversación', view: 'Ver grabación', busy: 'Hay una grabación en curso. Mayús+F8 para ir a ella.' },
+        note: { partialPrefix: 'Texto provisional:', notInserted: (n) => (n === 1 ? '1 fragmento dictado sin insertar.' : n + ' fragmentos dictados sin insertar.'), insert: 'Insertar', inserted: 'Dictado insertado.', undo: 'Deshacer dictado' },
+        announce: {
+          requesting: 'Esperando el permiso del micrófono.', ready: 'Listo para grabar. El micrófono sigue apagado.', startDictation: 'Grabando. Dictado en {target}.', startConversation: 'Grabando conversación.',
+          resumed: 'Grabando de nuevo.', paused: 'En pausa. El micrófono no está capturando.', processing: 'Micrófono apagado. Procesando el audio pendiente.',
+          completedDictation: 'Dictado terminado. Texto añadido a {target}.', completedConversation: (n) => 'Transcripción lista: ' + n + (n === 1 ? ' fragmento.' : ' fragmentos.') + ' Abre el panel para revisarla.',
+          reconnecting: 'Se perdió el servicio de transcripción. Reconectando. La grabación continúa.', reconnectingHeld: 'Se perdió el servicio de transcripción. Reconectando. La grabación está en pausa.',
+          restored: 'Servicio de transcripción restablecido.', restoredHeld: 'Servicio restablecido. La grabación sigue en pausa: pulsa Reanudar.', inserted: 'Texto añadido a {target}.',
+          undone: 'Inserción deshecha.', undoFailed: 'No se puede deshacer: el campo cambió después de insertar.', discarded: 'Grabación descartada. Transcripción y audio temporal eliminados.',
+          discardedUnconfirmed: 'Grabación descartada. El motor no confirmó la eliminación del audio.', closed: 'Sesión de grabación cerrada.', signalFlat: 'No llega sonido del micrófono.',
+          segmentFailed: 'No se pudo transcribir un fragmento. La grabación continúa.', busy: 'Ya hay una grabación en curso.', consentRequired: 'Marca la casilla de aviso a los participantes para empezar.'
+        },
+        errors: {
+          'permission-denied': { title: 'Permiso del micrófono denegado', what: 'El navegador no permite usar el micrófono.', fix: 'Permite el micrófono en la configuración del sitio y pulsa Reintentar.' },
+          'no-device': { title: 'Micrófono no disponible', what: 'No se encontró ningún micrófono.', fix: 'Conecta un micrófono y pulsa Reintentar.' },
+          'device-busy': { title: 'Micrófono no disponible', what: 'El micrófono está en uso por otra aplicación o no responde.', fix: 'Ciérrala y pulsa Reintentar.' },
+          'device-disconnected': { title: 'Micrófono desconectado', what: 'El micrófono se desconectó a los {at}.', fix: 'Conecta un micrófono y pulsa Reanudar, o finaliza.' },
+          interrupted: { title: 'Grabación interrumpida', what: 'La captura se interrumpió a los {at}.', fix: 'Pulsa Reanudar para seguir, o finaliza.' },
+          'service-unavailable': { title: 'Servicio de transcripción no disponible', what: 'El servicio de transcripción no responde.', fix: 'Comprueba que esté activo y pulsa Reintentar.' },
+          'processing-failed': { title: 'Fragmento sin transcribir', what: 'No se pudo transcribir el fragmento {range}.', fix: '' },
+          'storage-full': { title: 'Sin espacio para el audio temporal', what: 'No queda espacio; la captura se detuvo a los {at}.', fix: 'Libera espacio y pulsa Reanudar, o finaliza con lo transcrito.' },
+          'remote-not-allowed': { title: 'Motor no permitido', what: 'El motor procesa el audio fuera de tu organización y la aplicación no lo permite.', fix: 'No se activó el micrófono.' },
+          unsupported: { title: 'Micrófono no disponible', what: 'Este navegador o contexto no permite capturar audio.', fix: '' }
+        },
+        capture: { continues: 'La grabación continúa.', paused: 'La grabación está en pausa.', stopped: 'La grabación se detuvo.', none: 'No se grabó nada.' },
+        audioFate: { processing: 'El audio ya capturado se sigue transcribiendo.', kept: 'El audio afectado se guarda temporalmente y se elimina al finalizar.', lost: 'El audio afectado se perdió.' },
+        kept: 'Lo transcrito hasta ahora se conserva.'
+      },
+      onComplete: (t) => { window.spLog && (window.spLog.value = 'onComplete · ' + t.segments.length + ' fragmentos') }
+    })
+    window.speech = speech
+    window.spAdapter = spAdapter
     createApp({
       setup() {
         const toast = Grana.useToast()
@@ -1457,7 +1592,18 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const tsKeep = ref(false)
         const later = (ok) => new Promise((res, rej) => setTimeout(() => (ok ? res('informe-anual.pdf') : rej(new Error('413'))), 1500))
         const tsPromise = (ok) => toast.promise(later(ok), { loading: 'Subiendo informe…', success: (n) => ({ title: 'Informe subido', description: n }), error: 'No se pudo subir el informe' }).catch(() => {})
-        const dlg = reactive({ toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false, divider: false })
+        const spLog = ref('')
+        window.spLog = spLog
+        const spCapture = ref(spQuery.get('speech') === 'self' ? 'self' : 'pcm')
+        const spLocation = ref('local')
+        const spSetCapture = () => spAdapter.setCapabilities({ input: spCapture.value === 'self' ? { format: 'self' } : { format: 'pcm', sampleRate: 16000, channels: 1 } })
+        const spObs = ref('Paciente acude acompañado. ')
+        const spMotivo = ref('')
+        const spPlan = ref('')
+        const spNota = ref('')
+        const spTab = ref('motivo')
+        const spTabs = [{ id: 'motivo', label: 'Motivo' }, { id: 'plan', label: 'Plan' }, { id: 'resumen', label: 'Resumen' }]
+        const dlg = reactive({ speech: false, toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false, divider: false })
         const dlgLog = ref([])
         const dlgName = ref('')
         const dlgMail = ref('')
@@ -1812,7 +1958,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -1942,9 +2088,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
-    }).use(Grana).use(appIcons).use(toaster).mount('#app')
+    }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>
 </body>
 </html>

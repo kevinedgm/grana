@@ -490,6 +490,8 @@ export function createSpeech(options = {}) {
 
   // ---------- Permisos (§3.5) ----------
   async function queryPermission(s) {
+    // Con input 'self' el adaptador captura (envoltorio nativo): el permiso del navegador no es de Grana
+    if (s.caps && s.caps.input.format === 'self') return state.permission
     const perms = typeof navigator !== 'undefined' ? navigator.permissions : undefined
     if (!perms || typeof perms.query !== 'function') return state.permission
     try {

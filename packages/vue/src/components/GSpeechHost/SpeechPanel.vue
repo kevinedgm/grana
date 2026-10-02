@@ -199,6 +199,15 @@ onUpdated(() => {
 })
 // El consentimiento marcado quita el error
 watch(() => S.consent, (c) => { if (c) api.setConsentError(false) })
+// Si un cambio de estado retira el control enfocado del panel (p. ej. «Empezar a grabar»), el foco no se pierde en body:
+// pasa al título del panel (no es robar el foco: ya estaba en el panel; WCAG 2.4.3)
+let hadFocus = false
+watch(() => [S.status, ui.confirmDiscard], () => { hadFocus = Boolean(root.value && root.value.contains(document.activeElement)) }, { flush: 'pre' })
+watch(() => [S.status, ui.confirmDiscard], () => {
+  const a = document.activeElement
+  if (hadFocus && open.value && (!a || a === document.body || !root.value.contains(a)) && title.value) title.value.focus({ preventScroll: true })
+  hadFocus = false
+}, { flush: 'post' })
 onBeforeUnmount(() => { if (off) off() })
 
 defineExpose({
