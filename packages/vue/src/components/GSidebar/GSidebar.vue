@@ -376,6 +376,20 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       }
     })
 
+    // is-ready: dos cuadros después de montar; las entradas de coco (insignias) solo existen con él
+    const ready = ref(false)
+    let unmountedFlag = false
+    // is-expanding: al pasar de riel a expandida ya montada; las etiquetas entran solo entonces (no al cargar)
+    const expanding = ref(false)
+    let expandT = null
+    watch(format, (f, old) => {
+      if (ready.value && f === 'expanded' && old === 'rail') {
+        expanding.value = true
+        clearTimeout(expandT)
+        expandT = setTimeout(() => { expanding.value = false }, 600)
+      }
+    })
+
     // ---------- Contraer y expandir ----------
     const toggleCollapsed = () => {
       const to = format.value === 'rail' ? 'expanded' : 'rail'
@@ -388,8 +402,12 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       observe()
       emit('mode-change', { mode: format.value, overlay: overlayOn.value })
       applyDrawer()
+      const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 16)
+      raf(() => raf(() => { if (!unmountedFlag) ready.value = true }))
     })
     onBeforeUnmount(() => {
+      unmountedFlag = true
+      clearTimeout(expandT)
       ro?.disconnect()
       closeFly()
       hideTip()
@@ -566,7 +584,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
         )
       }
       const own = kind === 'side' ? { ref: rootEl, ...rootAttrs() } : {}
-      return h('div', { ...own, class: cls(...modeClasses(mode), kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)
+      return h('div', { ...own, class: cls(...modeClasses(mode), ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)
     }
 
     const renderNavbar = () => {
@@ -614,7 +632,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       return h('nav', {
         ref: rootEl,
         ...rootAttrs(),
-        class: cls(...modeClasses('navbar'), props.contained && 'g-sidebar--contained', entering.value && 'is-entering', attrs.class),
+        class: cls(...modeClasses('navbar'), props.contained && 'g-sidebar--contained', ready.value && 'is-ready', entering.value && 'is-entering', attrs.class),
         'aria-label': props.label || attrs['aria-label'],
         'data-mode': 'navbar'
       }, [h('ul', { class: 'g-sidebar__bar', role: 'list', onKeydown: onBarKeydown }, li)])

@@ -233,3 +233,22 @@ describe('GCheckbox · orden de las escuchas', () => {
   })
 })
 
+
+describe('GCheckbox · indeterminate al insertarse (plan 012)', () => {
+  it('con indeterminate, el input ya es mixto al insertarse', () => {
+    let seen = null
+    const mo = new MutationObserver((recs) => {
+      for (const r of recs) for (const n of r.addedNodes) {
+        const el = n.nodeType === 1 ? (n.matches('input') ? n : n.querySelector('input')) : null
+        if (el && seen === null) seen = el.indeterminate
+      }
+    })
+    mo.observe(document.body, { childList: true, subtree: true })
+    const w = mount(GCheckbox, { attachTo: document.body, props: { label: 'x', indeterminate: true } })
+    mo.takeRecords().forEach((r) => r.addedNodes.forEach((n) => { const el = n.nodeType === 1 ? (n.matches('input') ? n : n.querySelector('input')) : null; if (el && seen === null) seen = el.indeterminate }))
+    mo.disconnect()
+    expect(w.find('input').element.indeterminate).toBe(true)
+    expect(seen).toBe(true)
+    w.unmount()
+  })
+})

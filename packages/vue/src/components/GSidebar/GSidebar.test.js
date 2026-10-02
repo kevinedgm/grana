@@ -650,3 +650,29 @@ describe('GSidebar · avisos de desarrollo y validadores', () => {
     expect(p.density.validator('dense')).toBe(false)
   })
 })
+
+describe('GSidebar · no animar al montar (plan 012)', () => {
+  const frames = () => new Promise((r) => setTimeout(r, 60))
+  it('la raíz recibe is-ready tras dos cuadros', async () => {
+    const w = mk({ mode: 'expanded' })
+    expect(w.classes()).not.toContain('is-ready')
+    await frames()
+    expect(w.classes()).toContain('is-ready')
+  })
+  it('al pasar de rail a expanded tras montar, la raíz tiene is-expanding y la pierde a los 600 ms', async () => {
+    const w = mk({ mode: 'rail' })
+    await frames()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      await w.setProps({ mode: 'expanded' })
+      expect(w.classes()).toContain('is-expanding')
+      vi.advanceTimersByTime(700); await nextTick()
+      expect(w.classes()).not.toContain('is-expanding')
+    } finally { vi.useRealTimers() }
+  })
+  it('montada en expanded, no tiene is-expanding', async () => {
+    const w = mk({ mode: 'expanded' })
+    await frames()
+    expect(w.classes()).not.toContain('is-expanding')
+  })
+})

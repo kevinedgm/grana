@@ -103,6 +103,7 @@ const describedBy = computed(() => {
 const controlled = computed(() => ({
   id: inputId.value,
   checked: checked.value,
+  indeterminate: props.indeterminate,
   value: props.value,
   disabled: isDisabled.value || undefined,
   required: props.required || undefined,
@@ -159,7 +160,7 @@ if (isDev) {
   <div v-bind="rootAttrs" :class="classes">
     <label class="g-checkbox__row" :for="inputId">
       <span class="g-checkbox__box">
-        <input ref="input" v-bind="fieldBindings" class="g-checkbox__input" type="checkbox">
+        <input ref="input" type="checkbox" v-bind="fieldBindings" class="g-checkbox__input">
         <GIcon class="g-checkbox__mark g-checkbox__check" name="check" />
         <GIcon class="g-checkbox__mark g-checkbox__dash" name="minus" />
       </span>
