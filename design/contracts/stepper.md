@@ -81,7 +81,7 @@ El **nombre del `<nav>`** no va en `labels`: se pasa como `aria-label` o `aria-l
     <button class="g-stepper__toggle" type="button" aria-expanded="false" aria-controls="ID-list">Ver todos los pasos</button>
     <ol class="g-stepper__list" id="ID-list">…</ol>                  <!-- solo abierto: lista vertical -->
   </div>
-  <ol class="g-stepper__list">                                        <!-- solo cuando no es compacto -->
+  <ol class="g-stepper__list">                                        <!-- siempre; en compacto, oculta por el CSS (sirve para medir; #151) -->
     <li class="g-stepper__step is-complete">
       <button class="g-stepper__hit" type="button">                   <!-- span si no es navegable -->
         <span class="g-stepper__indicator" aria-hidden="true">…</span>
@@ -103,7 +103,8 @@ El **nombre del `<nav>`** no va en `labels`: se pasa como `aria-label` o `aria-l
 - Contenedor `<nav>` con una lista `<ol>`: el total de pasos lo anuncia la lista; el actual lleva `aria-current="step"`.
 - El indicador es **decorativo** (`aria-hidden`); el nombre accesible sale de la etiqueta y el texto de estado.
 - Un paso no navegable es un `<span>`, no un `<button>` inactivo.
-- En compacto, la barra es decorativa (el texto «Paso N de M» ya lo dice). La lista completa, al desplegarse, es **vertical**.
+- En compacto, la barra es decorativa (el texto «Paso N de M» ya lo dice). La lista completa, al desplegarse, es **vertical**. La lista de la raíz sigue en el DOM con `display: none` (fuera del árbol de accesibilidad y del orden de Tab).
+- En «solo el actual» (`g-stepper--current-only`), el texto de los demás pasos queda oculto **visualmente** con el patrón de texto oculto: cada botón conserva su nombre accesible.
 - **Resto de atributos** (`class`, `style`, `data-*`, `aria-*`, escuchas): van al `<nav>` (raíz).
 
 ## Eventos
@@ -138,15 +139,20 @@ Sin manejadores de teclado propios. **Sin flechas:** no es un `tablist`.
 
 ## Adaptación (contenedor, no ventana)
 
-El stepper se adapta al ancho **de su contenedor**, para que un diálogo o un panel estrecho funcione aunque la ventana sea ancha. Lo mide bruno con `ResizeObserver` y **emite clases**; los umbrales **derivan de `--g-space-1` y del número de pasos `n`**, no son literales de CSS (no hay consultas de contenedor con valores fijos: no requiere nueva excepción en `tokens.md` §7).
+El stepper se adapta al ancho **de su contenedor**, para que un diálogo o un panel estrecho funcione aunque la ventana sea ancha. Lo mide bruno con `ResizeObserver` y **emite clases**. Los umbrales **son los anchos naturales de la lista**, medidos en el propio DOM (dependen del texto, la fuente, `size`, `density` e `indicator`), no literales de CSS ni múltiplos fijos de `space` (DECISIONS.md #151, que sustituye a #98; sin consultas de contenedor ni excepción nueva en `tokens.md` §7).
 
-| Ancho del contenedor (horizontal, `responsive="auto"`) | Estructura |
-| --- | --- |
-| ≥ `n × space × 32` (p. ej. 5 pasos, `space` 4: 640px) | Completo: etiquetas y descripciones |
-| ≥ `n × space × 28` (560px) | Sin descripciones (`g-stepper--condensed`) |
-| menos | Compacto (`g-stepper--is-compact`): «Paso N de M» + nombre actual + barra segmentada + botón para ver todos |
+| Tramo (horizontal, `responsive="auto"`) | Cuándo | Estructura |
+| --- | --- | --- |
+| Completo | Cabe la lista con títulos y descripciones a su ancho natural (con el conector mínimo) | Etiquetas y descripciones enteras; el sobrante alarga los conectores |
+| `g-stepper--condensed` | Cabe sin descripciones | Etiquetas enteras, sin descripciones |
+| `g-stepper--current-only` | Cabe con texto solo en el paso actual | Indicador y conector en todos; etiqueta solo del actual (las demás, ocultas visualmente) |
+| `g-stepper--is-compact` | Ni eso cabe | «Paso N de M» + nombre actual + barra segmentada + botón para ver todos |
 
-- Con muchos pasos (p. ej. 9 en 340px) el mismo cálculo lleva a compacto: es la estrategia de *overflow* de r01; no hay scroll horizontal.
+- **Medición:** bruno quita las clases de tramo, añade `g-stepper--measure` (sola, con `--condensed` y con `--current-only`) y lee el ancho de la lista en una pasada síncrona; deja la raíz como estaba. Se repite al cambiar el ancho, el contenido o las props (cada render), al cargar fuentes y en cada aviso del `ResizeObserver` (que aplica el cambio en el cuadro siguiente para no provocar el aviso de bucle). `--measure` es interna: el consumidor no la usa.
+- **Invariantes** en `auto` (medidas en Chromium, Firefox y WebKit, `design/lab/stepper/auditoria-adaptacion.md`): el título del paso actual no se recorta; nunca hay una descripción visible junto a un título recortado; el conector visible mide al menos `space × 6`; nada sale del contenedor.
+- `segment` y `line` reparten el ancho por igual (se miden a columnas iguales); en `--current-only` el actual toma su ancho natural.
+- Con muchos pasos el mismo cálculo lleva a compacto: es la estrategia de *overflow* de r01; no hay scroll horizontal.
+- `responsive="never"`: siempre completo; si no cabe, cada línea cede con elipsis (la descripción nunca más ancha que su título) y los demás pasos ceden antes que el actual.
 - Sin medición (SSR, `ResizeObserver` ausente) se renderiza **completo**.
 - Con `pointer: coarse`, los pasos navegables y el botón de desplegar miden ≥ 44px (mínimo de `tokens.md` §7, sin importar `density`).
 
@@ -168,10 +174,12 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 | `g-stepper--color-*`, `--size-*`, `--density-*` | Raíz | Siempre |
 | `g-stepper--navigable` | Raíz | Con `navigation` ≠ `none` y sin `disabled` |
 | `g-stepper--condensed` | Raíz | Medido: sin descripciones |
+| `g-stepper--current-only` | Raíz | Medido: solo el paso actual con texto visible |
+| `g-stepper--measure` | Raíz | Interna: solo durante la lectura síncrona del ancho natural; nunca se pinta |
 | `g-stepper--is-compact` | Raíz | Medido o por `responsive="compact"`: muestra el resumen compacto |
 | `is-disabled` | Raíz | Con `disabled` |
 | `g-stepper__compact`, `__summary`, `__summary-name`, `__summary-count`, `__bar`, `__bar-seg`, `__toggle` | Resumen compacto | Solo compacto |
-| `g-stepper__list` | `<ol>` | Siempre |
+| `g-stepper__list` | `<ol>` | Siempre (en compacto, la de la raíz oculta y otra dentro del resumen al desplegar) |
 | `g-stepper__step` | `<li>` | Por paso |
 | `is-complete`, `is-current`, `is-pending` | `<li>` | Estado derivado (uno de los tres) |
 | `is-error`, `is-warning`, `is-disabled`, `is-optional` | `<li>` | Marcas del paso |
@@ -188,7 +196,7 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 | 3 | Modo de interacción | `navigation`: `none` `back` `free` más `disabled` por paso y global; el componente no valida secuencia | Requisito del usuario: no decidir reglas de negocio |
 | 4 | Evento de navegación | `update:modelValue` y `select` cancelable `{ id, index, preventDefault() }` | Mismo patrón que `dismiss` de `GDialog` |
 | 5 | Textos accesibles | `labels` sin valores por defecto; `aria-label` del `<nav>` por `$attrs`; avisos en desarrollo | Grana internacional; decisión de producto confirmada por el usuario |
-| 6 | Adaptación | `responsive` `auto` \| `never` \| `compact`; umbrales derivados de `space` y del número de pasos, medidos por bruno; sin literales nuevos | DECISIONS.md #34 y #39 evitados: no hay consultas con valores fijos; cubre el *overflow* de muchos pasos |
+| 6 | Adaptación | `responsive` `auto` \| `never` \| `compact`; cuatro tramos (completo, sin descripciones, solo el actual, compacto) con umbrales = anchos naturales medidos por bruno; sin literales nuevos (#151, sustituye a #98) | DECISIONS.md #34 y #39 evitados: no hay consultas con valores fijos; cubre el *overflow* de muchos pasos y depende del texto real |
 | 7 | Tokens | Ninguno nuevo; derivaciones propuestas a coco | `tokens.md` §17.6: no se crea un token cuando basta uno existente |
 | 8 | Iconos | El icono de cada paso lo pone la aplicación con el slot `icon` (solo con `indicator="icon"`); los de estado son fijos (`check`, `circle-alert`, `triangle-alert`, `lock`) y los dibuja `GIcon`, añadidos a `icons.md` §4 | `icons.md` §5: Grana no trae colección de iconos de la aplicación (DECISIONS.md #85 a #87) |
 | 9 | Progreso continuo | Fuera de este contrato: componente aparte (DECISIONS.md #97). Su nombre **no puede ser `GProgress`**; queda abierto | Decisión del usuario; `GProgress` ya existe |

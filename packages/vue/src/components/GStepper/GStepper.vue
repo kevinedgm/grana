@@ -2,21 +2,17 @@
 // GStepper · indicador de avance por pasos (dueño: bruno)
 // Contrato: design/contracts/stepper.md · Estilo: GStepper.css (coco) · Estructura: design/lab/stepper/r01/.
 // Función de render: la lista de pasos se dibuja dos veces (completa y desplegada en el compacto), con el mismo código.
-import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUnmount, useId } from 'vue'
+// La lista completa existe siempre (en compacto, oculta por el CSS) para poder medir su ancho natural (DECISIONS.md #151).
+import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onUpdated, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const STATE_KEYS = ['complete', 'current', 'pending', 'error', 'warning', 'disabled', 'optional']
-
-// Una longitud de CSS (px, rem, em) a píxeles; NaN si no se entiende
-const toPx = (value) => {
-  const n = parseFloat(value)
-  if (Number.isNaN(n)) return NaN
-  if (/rem\s*$|em\s*$/.test(value)) return n * parseFloat(getComputedStyle(document.documentElement).fontSize)
-  return n
-}
+// Clases de tramo que el CSS de coco consume; MEASURE solo existe durante una lectura síncrona
+const TIER_CLASS = { condensed: 'g-stepper--condensed', current: 'g-stepper--current-only', compact: 'g-stepper--is-compact' }
+const MEASURE = 'g-stepper--measure'
 
 export default defineComponent({
   name: 'GStepper',
@@ -38,7 +34,8 @@ export default defineComponent({
   setup(props, { emit, slots, attrs }) {
     const root = ref(null)
     const width = ref(0) // 0 = sin medir (SSR o sin ResizeObserver): se renderiza completo
-    const space = ref(NaN)
+    // Ancho natural de la lista en cada tramo (completo, sin descripciones, solo el actual con texto); null = sin medir
+    const needs = ref(null)
     const open = ref(false)
     const listId = `${useId()}-list`
 
@@ -50,36 +47,80 @@ export default defineComponent({
       return props.steps.findIndex((s, i) => idOf(s, i) === props.modelValue)
     })
 
-    // ---- Adaptación por el ancho del contenedor (umbrales derivados de space y del número de pasos) ----
-    const compactBelow = computed(() => count.value * space.value * 28)
-    const condensedBelow = computed(() => count.value * space.value * 32)
-    const measured = computed(() => width.value > 0 && !Number.isNaN(space.value))
-    const isCompact = computed(() => {
-      if (props.responsive === 'compact') return true
-      if (props.responsive === 'never' || props.orientation === 'vertical' || !measured.value) return false
-      return width.value < compactBelow.value
+    // ---- Adaptación por el ancho del contenedor (DECISIONS.md #151) ----
+    // Tramos: completo → condensado (sin descripciones) → solo el actual con texto → compacto. Se elige el primero
+    // cuya lista, a su ancho natural, cabe en el contenedor. El ancho natural se lee del propio DOM con la clase de
+    // medición de coco, así depende del texto, la fuente, size, density e indicator, y no de un múltiplo fijo de space.
+    const adaptive = computed(() => props.responsive === 'auto' && props.orientation === 'horizontal')
+    const tier = computed(() => {
+      if (props.responsive === 'compact') return 'compact'
+      if (!adaptive.value || !(width.value > 0) || !needs.value) return 'full'
+      const w = width.value
+      const n = needs.value
+      if (w >= n.full) return 'full'
+      if (w >= n.condensed) return 'condensed'
+      if (w >= n.current) return 'current'
+      return 'compact'
     })
-    const isCondensed = computed(() => props.responsive !== 'never' && props.orientation === 'horizontal' && !isCompact.value && measured.value && width.value < condensedBelow.value)
+    const isCompact = computed(() => tier.value === 'compact')
 
-    let observer = null
+    // Lectura síncrona: quita los tramos, pone la clase de medición y lee la lista en cada tramo; deja la raíz como estaba
+    const measureNeeds = () => {
+      const el = root.value
+      if (!el || !adaptive.value) return
+      const list = el.querySelector(':scope > .g-stepper__list')
+      if (!list) return
+      const original = el.className
+      const read = () => Math.ceil(list.getBoundingClientRect().width)
+      el.classList.remove(TIER_CLASS.condensed, TIER_CLASS.current, TIER_CLASS.compact)
+      el.classList.add(MEASURE)
+      const full = read()
+      el.classList.add(TIER_CLASS.condensed)
+      const condensed = read()
+      el.classList.remove(TIER_CLASS.condensed)
+      el.classList.add(TIER_CLASS.current)
+      const current = read()
+      el.className = original
+      if (!(full > 0)) return // sin maquetación (SSR, jsdom sin simular): se queda completo
+      const prev = needs.value
+      if (!prev || prev.full !== full || prev.condensed !== condensed || prev.current !== current) needs.value = { full, condensed, current }
+    }
     const measure = () => {
       const el = root.value
       if (!el) return
-      space.value = toPx(getComputedStyle(el).getPropertyValue('--g-space-1'))
       width.value = el.getBoundingClientRect().width
+      measureNeeds()
     }
+
+    let observer = null
+    let frame = 0
+    const onFonts = () => measureNeeds()
+    // El cambio de tramo cambia la altura de la raíz observada: aplicarlo dentro del callback provoca
+    // «ResizeObserver loop completed with undelivered notifications» (WebKit). Se aplica en el cuadro siguiente.
+    const nextFrame = (fn) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(fn) : (fn(), 0))
     onMounted(() => {
       measure()
       if (typeof ResizeObserver !== 'undefined' && root.value) {
         observer = new ResizeObserver((entries) => {
           const w = entries[0] && entries[0].contentRect ? entries[0].contentRect.width : 0
-          if (w > 0) width.value = w
-          if (Number.isNaN(space.value) && root.value) space.value = toPx(getComputedStyle(root.value).getPropertyValue('--g-space-1'))
+          if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+          frame = nextFrame(() => {
+            frame = 0
+            if (w > 0) width.value = w
+            measureNeeds() // un cambio de tema o de fuente también mueve el tamaño de la raíz
+          })
         })
         observer.observe(root.value)
       }
+      if (typeof document !== 'undefined' && document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', onFonts)
     })
-    onBeforeUnmount(() => observer && observer.disconnect())
+    // Cualquier cambio de pasos, textos, paso actual o props visuales vuelve a renderizar: se mide de nuevo
+    onUpdated(measureNeeds)
+    onBeforeUnmount(() => {
+      if (observer) observer.disconnect()
+      if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+      if (typeof document !== 'undefined' && document.fonts && document.fonts.removeEventListener) document.fonts.removeEventListener('loadingdone', onFonts)
+    })
 
     // ---- Avisos de desarrollo (una vez por instancia) ----
     const warned = new Set()
@@ -123,9 +164,11 @@ export default defineComponent({
       if (prevented) return
       emit('update:modelValue', idOf(step, i))
       nextTick(() => {
-        // El botón pulsado deja de serlo al volverse el actual: el foco pasa al paso actual nuevo (WCAG 2.4.3)
+        // El botón pulsado deja de serlo al volverse el actual: el foco pasa al paso actual nuevo (WCAG 2.4.3),
+        // dentro de la lista visible (en compacto, la desplegada; la completa está oculta)
         if (currentIndex.value !== i || !root.value) return
-        const hit = root.value.querySelector('.g-stepper__step.is-current > .g-stepper__hit')
+        const scope = isCompact.value ? '.g-stepper__compact > .g-stepper__list' : ':scope > .g-stepper__list'
+        const hit = root.value.querySelector(`${scope} > .g-stepper__step.is-current > .g-stepper__hit`)
         if (hit) {
           hit.setAttribute('tabindex', '-1')
           hit.focus()
@@ -215,11 +258,12 @@ export default defineComponent({
         `g-stepper--density-${props.density}`
       ]
       if (props.navigation !== 'none' && !props.disabled) classes.push('g-stepper--navigable')
-      if (isCondensed.value) classes.push('g-stepper--condensed')
-      if (isCompact.value) classes.push('g-stepper--is-compact')
+      if (TIER_CLASS[tier.value]) classes.push(TIER_CLASS[tier.value])
       if (props.disabled) classes.push('is-disabled')
+      // La lista completa va siempre (en compacto la oculta el CSS y sirve para medir); el resumen, solo en compacto
       return h('nav', { ref: root, class: classes }, [
-        isCompact.value ? renderCompact() : renderList({ withContent: props.orientation === 'vertical' })
+        isCompact.value ? renderCompact() : null,
+        renderList({ withContent: props.orientation === 'vertical' && !isCompact.value })
       ])
     }
   }

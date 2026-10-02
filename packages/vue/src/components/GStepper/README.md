@@ -135,18 +135,20 @@ Llama a `preventDefault()` de forma síncrona para impedir el cambio. Un cambio 
 
 ## Adaptación
 
-El stepper se adapta al ancho **de su contenedor**, no al de la ventana, así que funciona igual dentro de un diálogo o un panel lateral. Los umbrales dependen del número de pasos `n` y del espacio base (`--g-space-1`):
+El stepper se adapta al ancho **de su contenedor**, no al de la ventana, así que funciona igual dentro de un diálogo o un panel lateral. No usa umbrales fijos: mide el **ancho natural** de la lista en cada tramo (depende de los textos, la fuente, `size`, `density` e `indicator`) y elige el primero que cabe:
 
-| Ancho del contenedor (horizontal, `responsive="auto"`) | Se muestra |
-| --- | --- |
-| ≥ `n × space × 32` (5 pasos con `space` 4: 640px) | Etiquetas y descripciones |
-| ≥ `n × space × 28` (560px) | Solo etiquetas |
-| menos | **Compacto:** nombre del paso actual, «Paso 2 de 5», barra segmentada fina y un botón que despliega la lista completa en vertical |
+| Tramo (horizontal, `responsive="auto"`) | Cuándo | Se muestra |
+| --- | --- | --- |
+| Completo | Caben títulos y descripciones enteros | Todo; el espacio sobrante alarga los conectores por igual |
+| Sin descripciones (`--condensed`) | Caben los títulos, no las descripciones | Títulos enteros |
+| Solo el actual (`--current-only`) | No caben todos los títulos | Indicadores y conectores de todos; título solo del paso actual. Los demás títulos siguen en el DOM y nombran sus botones para el lector de pantalla |
+| **Compacto** (`--is-compact`) | Ni eso cabe | Nombre del paso actual, «Paso 2 de 5», barra segmentada fina y un botón que despliega la lista completa en vertical |
 
-- Con muchos pasos, el mismo cálculo lleva antes a compacto: nueve pasos pasan a compacto por debajo de 1008px. No hay scroll horizontal.
+- El título del paso actual nunca se recorta en `auto`, la descripción cede antes que el título y el conector visible mide al menos `space × 6`. No hay scroll horizontal.
+- Se vuelve a medir al cambiar el ancho, los pasos, el paso actual, las props visuales, el tema o la fuente. Ejemplo con el tema por defecto y `md`: cinco pasos cortos con descripción (Plan, Cuenta, Pago, Confirmación, Revisión) pasan a «sin descripciones» por debajo de unos 760px, a «solo el actual» por debajo de unos 570px y a compacto por debajo de unos 320px; con títulos largos o más pasos, antes.
 - La lista desplegada del compacto es siempre **vertical y numerada**, sea cual sea `indicator`.
 - Sin medición (render en servidor o sin `ResizeObserver`) se muestra completo.
-- **Etiquetas truncadas:** en horizontal cada etiqueta ocupa una línea con elipsis (5 pasos a 600px: «Confir…»). El texto completo sigue en el DOM y lo lee el lector de pantalla. En vertical las etiquetas se ajustan en varias líneas.
+- Con `responsive="never"` se muestra siempre completo: si no cabe, cada línea se recorta con elipsis (la descripción nunca queda más ancha que su título) y los demás pasos ceden antes que el actual. En vertical, títulos y descripciones se parten en varias líneas.
 
 ## Teclado y foco
 
@@ -189,7 +191,7 @@ Consume también las familias `--g-color-{accent|neutral|success|warning|danger|
 
 Las emite el componente y las estiliza `GStepper.css`:
 
-- **Raíz:** `g-stepper`, `g-stepper--{horizontal|vertical}`, `--indicator-*`, `--color-*`, `--size-*`, `--density-*`, `--navigable`, `--condensed`, `--is-compact` e `is-disabled`.
+- **Raíz:** `g-stepper`, `g-stepper--{horizontal|vertical}`, `--indicator-*`, `--color-*`, `--size-*`, `--density-*`, `--navigable`, `--condensed`, `--current-only`, `--is-compact` e `is-disabled` (y `--measure`, interna, solo durante una lectura síncrona del ancho).
 - **Paso:** `g-stepper__step` con `is-complete|is-current|is-pending` y las marcas `is-error`, `is-warning`, `is-disabled` e `is-optional`.
 - **Elementos del paso:** `__hit`, `__indicator`, `__text`, `__label`, `__optional`, `__description`, `__status`, `__connector` y `__content`.
 - **Conectores y tramos:** `is-done`, `is-toward` (saliente del actual) o `is-pending`.

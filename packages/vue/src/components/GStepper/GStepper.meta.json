@@ -4,7 +4,7 @@
   "tag": "g-stepper",
   "status": "candidate",
   "since": "0.1.0",
-  "description": "Indicador de avance por pasos discretos: horizontal y vertical, indicadores de número, punto, icono, segmento y línea, estados (hecho, actual, pendiente, error, advertencia, bloqueado, opcional), navegación opcional y adaptación por el ancho del contenedor (compacto «Paso N de M»).",
+  "description": "Indicador de avance por pasos discretos: horizontal y vertical, indicadores de número, punto, icono, segmento y línea, estados (hecho, actual, pendiente, error, advertencia, bloqueado, opcional), navegación opcional y adaptación por el ancho del contenedor según los anchos naturales medidos: completo, sin descripciones, solo el actual con texto y compacto «Paso N de M» (DECISIONS.md #151).",
   "contract": "design/contracts/stepper.md",
   "prototype": "design/lab/stepper/r01/",
   "style": "packages/vue/src/components/GStepper/GStepper.css",
@@ -227,13 +227,13 @@
     "hover",
     "navigable",
     "compact",
-    "condensed"
+    "condensed",
+    "current-only"
   ],
   "pending": [
     "Lector de pantalla real: lista, aria-current y texto de estado",
-    "Medición por contenedor en un navegador real (las pruebas de jsdom la simulan)",
-    "RTL, forced-colors real, táctil real y zoom al 200%",
+    "forced-colors real, táctil real y zoom al 200%",
     "Sin scroll horizontal ni condensar pasos completados en v0.1",
-    "Firefox y Safari (:dir(), gradientes, rejilla del texto del paso)"
+    "Adaptación medida en Chromium, Firefox y WebKit (design/lab/stepper/auditoria-adaptacion.md); las pruebas de jsdom la simulan"
   ]
 }

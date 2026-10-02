@@ -241,13 +241,16 @@ describe('GStepper · opcional y descripción', () => {
 })
 
 describe('GStepper · compacto y adaptación', () => {
-  it('responsive="compact": resumen, barra y botón; sin lista completa', async () => {
+  it('responsive="compact": resumen, barra y botón; la lista completa queda oculta (para medir)', async () => {
     const w = mk({ responsive: 'compact' })
     expect(w.classes()).toContain('g-stepper--is-compact')
     expect(w.find('.g-stepper__summary-name').text()).toBe('Cuenta')
     expect(w.find('.g-stepper__summary-count').text()).toBe('Paso 2 de 5')
     expect(w.findAll('.g-stepper__bar-seg')).toHaveLength(5)
-    expect(w.find('ol').exists()).toBe(false)
+    // La lista completa sigue en el DOM como hija directa (el CSS la oculta en compacto); no hay lista desplegada
+    expect(w.findAll('nav > ol.g-stepper__list')).toHaveLength(1)
+    expect(w.find('.g-stepper__compact ol').exists()).toBe(false)
+    expect(w.find('.g-stepper__compact').element.nextElementSibling.classList.contains('g-stepper__list')).toBe(true)
     const tog = w.find('.g-stepper__toggle')
     expect(tog.attributes('aria-expanded')).toBe('false')
     expect(tog.text()).toBe('Ver todos')
@@ -260,11 +263,11 @@ describe('GStepper · compacto y adaptación', () => {
     const tog = w.find('.g-stepper__toggle')
     expect(tog.attributes('aria-expanded')).toBe('true')
     expect(tog.text()).toBe('Ocultar')
-    const list = w.find('ol')
+    const list = w.find('.g-stepper__compact ol')
     expect(list.attributes('id')).toBe(tog.attributes('aria-controls'))
-    expect(w.findAll('li')).toHaveLength(5)
-    expect(w.findAll('.mi-icono')).toHaveLength(0) // siempre numerada
-    expect(w.findAll('button.g-stepper__hit')).toHaveLength(2)
+    expect(list.findAll('li')).toHaveLength(5)
+    expect(list.findAll('.mi-icono')).toHaveLength(0) // siempre numerada
+    expect(list.findAll('button.g-stepper__hit')).toHaveLength(2)
     w.unmount()
   })
 
@@ -277,67 +280,150 @@ describe('GStepper · compacto y adaptación', () => {
     w.unmount()
   })
 
-  describe('medición por contenedor', () => {
-    const stub = (width) => {
-      let cb
-      vi.stubGlobal('ResizeObserver', class { constructor(fn) { cb = fn } observe() {} disconnect() {} })
-      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ width, height: 0, top: 0, left: 0, right: width, bottom: 0 })
-      return { resize: (w) => cb([{ contentRect: { width: w } }]) }
+  describe('medición por contenedor (tramos por ancho natural, #151)', () => {
+    // Anchos naturales que «mide» la lista según las clases de la raíz durante la lectura (--measure)
+    let NEEDS
+    let width
+    const listWidth = (nav) => {
+      if (!nav.classList.contains('g-stepper--measure')) return width
+      if (nav.classList.contains('g-stepper--current-only')) return NEEDS.current
+      if (nav.classList.contains('g-stepper--condensed')) return NEEDS.condensed
+      return NEEDS.full
     }
-    const mkm = (props = {}) => mk(props, { attrs: { 'aria-label': 'Registro', style: '--g-space-1: 4px' } })
+    const stub = (w, needs = { full: 640.4, condensed: 520, current: 300 }) => {
+      let cb
+      width = w
+      NEEDS = needs
+      vi.stubGlobal('ResizeObserver', class { constructor(fn) { cb = fn } observe() {} disconnect() {} })
+      vi.stubGlobal('requestAnimationFrame', (fn) => { fn(); return 0 }) // el cuadro siguiente, de inmediato
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+        const v = this.classList.contains('g-stepper__list') && this.parentElement.classList.contains('g-stepper') ? listWidth(this.parentElement) : width
+        return { width: v, height: 0, top: 0, left: 0, right: v, bottom: 0 }
+      })
+      return { resize: (nw) => { width = nw; cb([{ contentRect: { width: nw } }]) } }
+    }
+    const tiers = (w) => ['g-stepper--condensed', 'g-stepper--current-only', 'g-stepper--is-compact'].filter((c) => w.classes().includes(c))
 
-    it('ancho suficiente: completo con descripciones (n × space × 32 = 640)', async () => {
-      stub(700)
-      const w = mkm(); await nextTick()
-      expect(w.classes()).not.toContain('g-stepper--is-compact')
-      expect(w.classes()).not.toContain('g-stepper--condensed')
+    it('amplio: cabe la lista con descripciones → completo, sin clase de tramo', async () => {
+      stub(641) // 640.4 redondeado hacia arriba: cabe justo
+      const w = mk(); await nextTick()
+      expect(tiers(w)).toEqual([])
+      expect(w.findAll('.g-stepper__description')).toHaveLength(1)
       w.unmount()
     })
 
-    it('entre 560 y 640: sin descripciones', async () => {
-      stub(600)
-      const w = mkm(); await nextTick()
-      expect(w.classes()).toContain('g-stepper--condensed')
-      expect(w.classes()).not.toContain('g-stepper--is-compact')
+    it('intermedio: no caben las descripciones → condensado (sin descripciones, títulos enteros)', async () => {
+      stub(640)
+      const w = mk(); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--condensed'])
       w.unmount()
     })
 
-    it('menos de 560: compacto; el umbral depende del número de pasos', async () => {
-      stub(500)
-      const w = mkm(); await nextTick()
-      expect(w.classes()).toContain('g-stepper--is-compact')
+    it('estrecho: no caben todos los títulos → solo el actual con texto; los demás conservan su nombre accesible', async () => {
+      stub(400)
+      const w = mk({ navigation: 'free' }); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--current-only'])
+      // El texto de cada paso sigue en el DOM (el CSS lo oculta visualmente): cada botón conserva su nombre
+      const hits = w.findAll('button.g-stepper__hit')
+      expect(hits.map((b) => b.find('.g-stepper__label').text())).toEqual(['Plan', 'Pago', 'Confirmación', 'Revisión'])
+      expect(w.find('.is-current .g-stepper__label').text()).toBe('Cuenta')
+      expect(w.find('.g-stepper__compact').exists()).toBe(false)
       w.unmount()
-      const nueve = Array.from({ length: 9 }, (_, i) => ({ id: i, label: `P${i}` }))
-      stub(700)
-      const w2 = mkm({ steps: nueve, modelValue: 3 }); await nextTick()
-      expect(w2.classes()).toContain('g-stepper--is-compact') // 9 × 4 × 28 = 1008
-      w2.unmount()
     })
 
-    it('reacciona al cambio de ancho del contenedor', async () => {
+    it('muy estrecho: ni el actual cabe → compacto', async () => {
+      stub(299)
+      const w = mk(); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--is-compact'])
+      expect(w.find('.g-stepper__summary-name').text()).toBe('Cuenta')
+      w.unmount()
+    })
+
+    it('la lectura deja la raíz como estaba (sin --measure ni tramos ajenos)', async () => {
+      stub(400)
+      const w = mk(); await nextTick()
+      expect(w.classes()).not.toContain('g-stepper--measure')
+      expect(w.classes()).toContain('g-stepper--current-only')
+      expect(w.classes()).toEqual(expect.arrayContaining(['g-stepper', 'g-stepper--horizontal', 'g-stepper--indicator-number']))
+      w.unmount()
+    })
+
+    it('el umbral sale del contenido: el mismo ancho da tramos distintos según lo que mide la lista', async () => {
+      stub(700, { full: 640, condensed: 500, current: 300 })
+      const corto = mk(); await nextTick()
+      expect(tiers(corto)).toEqual([])
+      corto.unmount()
+      stub(700, { full: 1400, condensed: 1200, current: 520 })
+      const largo = mk(); await nextTick()
+      expect(tiers(largo)).toEqual(['g-stepper--current-only'])
+      largo.unmount()
+    })
+
+    it('vuelve a medir cuando cambia el contenido (pasos o paso actual)', async () => {
+      stub(700, { full: 640, condensed: 500, current: 300 })
+      const w = mk(); await nextTick()
+      expect(tiers(w)).toEqual([])
+      NEEDS = { full: 900, condensed: 800, current: 600 } // p. ej. títulos más largos
+      await w.setProps({ steps: STEPS.map((s) => ({ ...s, label: s.label + ' con un texto mucho más largo' })) }); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--current-only'])
+      NEEDS = { full: 900, condensed: 800, current: 720 } // el nuevo actual tiene un título más largo
+      await w.setProps({ modelValue: 'fin' }); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--is-compact'])
+      w.unmount()
+    })
+
+    it('reacciona al ancho del contenedor en ambos sentidos, también desde compacto', async () => {
       const { resize } = stub(700)
-      const w = mkm(); await nextTick()
-      expect(w.classes()).not.toContain('g-stepper--is-compact')
-      resize(300); await nextTick()
-      expect(w.classes()).toContain('g-stepper--is-compact')
-      resize(900); await nextTick()
-      expect(w.classes()).not.toContain('g-stepper--is-compact')
+      const w = mk(); await nextTick()
+      expect(tiers(w)).toEqual([])
+      resize(600); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--condensed'])
+      resize(350); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--current-only'])
+      resize(200); await nextTick()
+      expect(tiers(w)).toEqual(['g-stepper--is-compact'])
+      resize(900); await nextTick() // en compacto la lista oculta sigue midiéndose
+      expect(tiers(w)).toEqual([])
       w.unmount()
     })
 
-    it('vertical y responsive="never" nunca pasan a compacto', async () => {
+    it('al salir de compacto se cierra la lista desplegada', async () => {
+      const { resize } = stub(200)
+      const w = mk(); await nextTick()
+      await w.find('.g-stepper__toggle').trigger('click')
+      expect(w.find('.g-stepper__compact ol').exists()).toBe(true)
+      resize(900); await nextTick(); await nextTick()
+      expect(w.find('.g-stepper__compact').exists()).toBe(false)
+      resize(200); await nextTick()
+      expect(w.find('.g-stepper__toggle').attributes('aria-expanded')).toBe('false')
+      w.unmount()
+    })
+
+    it('el foco tras activar un paso desde la lista desplegada queda en esa lista, no en la oculta', async () => {
       stub(200)
-      const v = mkm({ orientation: 'vertical' }); await nextTick()
-      const n = mkm({ responsive: 'never' }); await nextTick()
-      expect(v.classes()).not.toContain('g-stepper--is-compact')
-      expect(n.classes()).not.toContain('g-stepper--is-compact')
-      expect(n.classes()).not.toContain('g-stepper--condensed')
+      const w = mk({ navigation: 'back', modelValue: 'pago', 'onUpdate:modelValue': (v) => w.setProps({ modelValue: v }) })
+      await nextTick()
+      await w.find('.g-stepper__toggle').trigger('click')
+      await w.findAll('.g-stepper__compact button.g-stepper__hit')[0].trigger('click')
+      await nextTick(); await nextTick()
+      const active = document.activeElement
+      expect(active.closest('.g-stepper__compact')).not.toBeNull()
+      expect(active.closest('.g-stepper__step').classList.contains('is-current')).toBe(true)
+      w.unmount()
+    })
+
+    it('vertical y responsive="never" no miden ni cambian de tramo', async () => {
+      stub(200)
+      const v = mk({ orientation: 'vertical' }); await nextTick()
+      const n = mk({ responsive: 'never' }); await nextTick()
+      expect(tiers(v)).toEqual([])
+      expect(tiers(n)).toEqual([])
       v.unmount(); n.unmount()
     })
 
-    it('sin medición (sin ResizeObserver ni ancho) se renderiza completo', async () => {
+    it('sin medición (sin ResizeObserver ni maquetación) se renderiza completo', async () => {
       const w = mk(); await nextTick()
-      expect(w.classes()).not.toContain('g-stepper--is-compact')
+      expect(tiers(w)).toEqual([])
       w.unmount()
     })
   })
