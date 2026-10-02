@@ -218,10 +218,8 @@
 
 /* ---------- Mensaje de estado (form.md C4/C5) ---------- */
 /* Un solo hueco para error, advertencia o válido, alineado con el texto. La región viva existe siempre; vacía no
-   ocupa espacio. Transición: g-switch__error es el nombre anterior (se quita cuando bruno renombre la región; coco
-   lo retira en la auditoría) */
-.g-switch__message,
-.g-switch__error {
+   ocupa espacio */
+.g-switch__message {
   overflow-wrap: anywhere;
   padding-inline-start: calc(var(--_tw) + var(--_gap) * var(--_density));
   font-size: var(--g-text-caption-size);
@@ -229,12 +227,10 @@
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-switch--label-start .g-switch__message,
-.g-switch--label-start .g-switch__error {
+.g-switch--label-start .g-switch__message {
   padding-inline-start: 0;
 }
-.g-switch__message:not(:empty),
-.g-switch__error:not(:empty) {
+.g-switch__message:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
 .g-switch.is-warning .g-switch__message { color: var(--g-color-warning-text); }
@@ -243,8 +239,7 @@
   color: var(--g-color-success-text);
 }
 /* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
-.g-switch__message-icon,
-.g-switch__error-icon {
+.g-switch__message-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
 }
@@ -444,7 +439,7 @@
 }
 .g-form-row > .g-switch > * { grid-column: 1; }
 .g-form-row > .g-switch > .g-switch__row { grid-row: box; }
-.g-form-row > .g-switch > :is(.g-switch__message, .g-switch__error) { grid-row: message; }
+.g-form-row > .g-switch > .g-switch__message { grid-row: message; }
 
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {

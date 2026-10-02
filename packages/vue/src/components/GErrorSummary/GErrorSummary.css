@@ -81,6 +81,12 @@
   text-underline-offset: calc(var(--g-border-width) * 3);
   overflow-wrap: anywhere;
 }
+/* Puntero grueso: 44px, como el resto de objetivos táctiles de Grana (auditoría, hallazgo 1) */
+@media (pointer: coarse) {
+  .g-error-summary__link {
+    min-block-size: 44px;
+  }
+}
 @media (hover: hover) {
   .g-error-summary__link:hover {
     text-decoration-thickness: calc(var(--g-border-width) * 2);

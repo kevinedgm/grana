@@ -202,18 +202,15 @@
   color: var(--g-color-text-muted);
 }
 /* Mensaje de estado (form.md C4/C5): un solo hueco para error, advertencia o válido. La región viva existe siempre;
-   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores). Transición: g-datepicker__error es el
-   nombre anterior (se quita cuando bruno renombre la región; coco lo retira en la auditoría) */
-.g-datepicker__message,
-.g-datepicker__error {
+   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-datepicker__message {
   overflow-wrap: anywhere;
   font-size: var(--g-text-caption-size);
   line-height: var(--g-text-caption-line);
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-datepicker__message:not(:empty),
-.g-datepicker__error:not(:empty) {
+.g-datepicker__message:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
 .g-datepicker.is-warning .g-datepicker__message { color: var(--g-color-warning-text); }
@@ -222,8 +219,7 @@
   color: var(--g-color-success-text);
 }
 /* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
-.g-datepicker__message-icon,
-.g-datepicker__error-icon {
+.g-datepicker__message-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
 }
@@ -719,7 +715,7 @@
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__label { grid-row: label; align-self: end; }
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__field, .g-datepicker__fields) { grid-row: box; }
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__hint { grid-row: hint; }
-.g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__message, .g-datepicker__error) { grid-row: message; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__message { grid-row: message; }
 
 /* ---------- Aparición del popover ---------- */
 /* Salida: fundido corto sin desplazamiento (el popover sigue en el DOM; overlay y display discretos lo mantienen pintado) */

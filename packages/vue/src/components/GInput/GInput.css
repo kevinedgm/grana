@@ -316,18 +316,15 @@
   margin-inline-start: auto;
 }
 /* Mensaje de estado (form.md C4/C5): un solo hueco para error, advertencia o válido. La región viva existe siempre;
-   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores). Transición: g-input__error es el nombre
-   anterior (se quita cuando bruno renombre la región; coco lo retira en la auditoría) */
-.g-input__message,
-.g-input__error {
+   vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-input__message {
   overflow-wrap: anywhere;
   font-size: var(--g-text-caption-size);
   line-height: var(--g-text-caption-line);
   font-weight: var(--g-text-action-weight);
   color: var(--g-color-danger-text);
 }
-.g-input__message:not(:empty),
-.g-input__error:not(:empty) {
+.g-input__message:not(:empty) {
   margin-block-start: var(--g-space-1);
 }
 .g-input.is-warning .g-input__message { color: var(--g-color-warning-text); }
@@ -336,8 +333,7 @@
   color: var(--g-color-success-text);
 }
 /* Señal que no depende del color (WCAG 1.4.1): circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
-.g-input__message-icon,
-.g-input__error-icon {
+.g-input__message-icon {
   margin-inline-end: var(--g-space-1);
   vertical-align: -0.125em;
 }
@@ -498,7 +494,7 @@
 .g-form-row > .g-input > .g-input__label { grid-row: label; align-self: end; }
 .g-form-row > .g-input > .g-input__row { grid-row: box; }
 .g-form-row > .g-input > .g-input__messages { grid-row: hint; }
-.g-form-row > .g-input > :is(.g-input__message, .g-input__error) { grid-row: message; }
+.g-form-row > .g-input > .g-input__message { grid-row: message; }
 @media (hover: hover) {
   .g-input__toggle:hover {
     color: var(--g-color-text);
