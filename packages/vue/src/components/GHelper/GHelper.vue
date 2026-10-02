@@ -237,7 +237,7 @@ export default defineComponent({
           mobile: 'sheet',
           size: 'sm',
           'onUpdate:modelValue': (v) => { if (!v) setOpen(false) }
-        }, { default: () => (isOpen.value && sheet ? renderContent() : null) }))
+        }, { default: () => (sheet ? renderContent() : null) }))
       }
 
       return h('span', {

@@ -407,3 +407,44 @@ describe('GDialog · slot tabs (cabecera de pestañas fija, DECISIONS.md #119)',
     w.unmount()
   })
 })
+
+describe('GDialog · salida animada (#152)', () => {
+  const withExitTransition = () => {
+    const real = window.getComputedStyle
+    return vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real(el, p)
+      return el.tagName === 'DIALOG' ? Object.assign(Object.create(cs), { transitionDuration: '0.12s', transitionDelay: '0s' }) : cs
+    })
+  }
+  afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers() })
+
+  it('con transición de salida, el contenido sigue montado hasta que termina y entonces emite closed', async () => {
+    vi.useFakeTimers()
+    withExitTransition()
+    const w = mountOpen({ modelValue: true }, { slots: { default: '<p id="c">x</p>' } })
+    await w.setProps({ modelValue: false })
+    expect(dlg(w).open).toBe(false)
+    expect(w.find('#c').exists()).toBe(true)
+    expect(w.emitted('closed')).toBeFalsy()
+    vi.advanceTimersByTime(120)
+    await nextTick()
+    expect(w.find('#c').exists()).toBe(false)
+    expect(w.emitted('closed')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('reabrir durante la salida conserva el contenido y no emite closed', async () => {
+    vi.useFakeTimers()
+    withExitTransition()
+    const w = mountOpen({ modelValue: true }, { slots: { default: '<p id="c">x</p>' } })
+    await w.setProps({ modelValue: false })
+    vi.advanceTimersByTime(60)
+    await w.setProps({ modelValue: true })
+    vi.advanceTimersByTime(200)
+    await nextTick()
+    expect(dlg(w).open).toBe(true)
+    expect(w.find('#c').exists()).toBe(true)
+    expect(w.emitted('closed')).toBeFalsy()
+    w.unmount()
+  })
+})

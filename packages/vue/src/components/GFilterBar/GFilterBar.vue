@@ -4,7 +4,7 @@
 // Chips sugeridos y «Agregar filtro» (GMenu) abren un editor de regla + valor: popover no modal en la capa superior
 // (posición con utils/anchor.js) o, por debajo de space × 130, hoja con GDialog (como GHelper, DECISIONS.md #103).
 // Produce `filters` ({ key, op, value }); Y entre filtros, O dentro de un enum. El motor vive en utils/filters.js.
-import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, inject } from 'vue'
+import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, inject, watch } from 'vue'
 import { OPS, parseValue, summarize } from '../../utils/filters.js'
 import { placeAround, viewport } from '../../utils/anchor.js'
 import { fill } from '../../utils/template.js'
@@ -42,6 +42,9 @@ export default defineComponent({
     const tableAnnounces = inject('g-table-announces-results', false)
     // Editor: { key, presentation: 'popover' | 'sheet' } + borrador
     const editing = ref(null)
+    // Clave del último editor presentado como hoja: la hoja la sigue pintando durante su salida (GDialog, #152)
+    const sheetKey = ref(null)
+    watch(editing, (ed) => { if (ed && ed.presentation === 'sheet') sheetKey.value = ed.key })
     const draftOp = ref('')
     const draftRaw = ref('')
     const draftError = ref('')
@@ -163,8 +166,8 @@ export default defineComponent({
     }
 
     // ---------- Render ----------
-    const editorBody = () => {
-      const field = fieldOf(editing.value.key)
+    const editorBody = (key = editing.value.key) => {
+      const field = fieldOf(key)
       const type = field.filter.type
       const L = props.labels
       const ops = OPS[type]
@@ -256,7 +259,8 @@ export default defineComponent({
       kids.push(h('p', { class: 'g-filter-bar__sr', 'aria-live': 'polite', key: 'live' }, live.value))
 
       const ed = editing.value
-      const title = ed ? fill(L.filterBy, { label: fieldOf(ed.key)?.label }) : L.group
+      const titleKey = ed ? ed.key : sheetKey.value // durante la salida de la hoja, el título no cambia
+      const title = titleKey !== null ? fill(L.filterBy, { label: fieldOf(titleKey)?.label }) : L.group
       kids.push(h('div', {
         key: 'editor', ref: editorEl, class: 'g-filter-bar__editor', role: 'dialog', popover: 'manual',
         'aria-labelledby': `${uid}-title`, onKeydown: onEditorKeydown
@@ -266,10 +270,11 @@ export default defineComponent({
       kids.push(h(GDialog, {
         key: 'sheet', id: `${uid}-sheet`, modelValue: Boolean(ed && ed.presentation === 'sheet'),
         title, closeLabel: L.cancel, mobile: 'sheet', size: 'sm',
-        'onUpdate:modelValue': (v) => { if (!v) closeEditor(true) }
+        'onUpdate:modelValue': (v) => { if (!v) closeEditor(true) },
+        onClosed: () => { sheetKey.value = null }
       }, {
-        default: () => (ed && ed.presentation === 'sheet' ? h('div', { onKeydown: onEditorKeydown, class: 'g-filter-bar__sheet' }, editorBody()) : null),
-        footer: () => (ed && ed.presentation === 'sheet' ? editorActions() : null)
+        default: () => (sheetKey.value !== null ? h('div', { onKeydown: onEditorKeydown, class: 'g-filter-bar__sheet' }, editorBody(sheetKey.value)) : null),
+        footer: () => (sheetKey.value !== null ? editorActions() : null)
       }))
       return h('div', { ref: root, class: 'g-filter-bar', role: 'group', 'aria-label': L.group }, kids)
     }

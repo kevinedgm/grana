@@ -4,6 +4,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { TABS_NEST } from '../../utils/tabs.js'
+import { transitionMs } from '../../utils/motion.js'
 import GIcon from '../GIcon/GIcon.vue'
 
 defineOptions({ name: 'GDialog', inheritAttrs: false })
@@ -49,26 +50,42 @@ const showClose = computed(() => Boolean(props.closeLabel) && !isAlert.value)
 const dialog = ref(null)
 const body = ref(null)
 
+// El contenido sigue montado durante la salida; se desmonta (y se emite closed) al terminar (#152)
+const rendered = ref(props.modelValue)
+let leaveTimer = null
+function finishLeave() {
+  leaveTimer = null
+  rendered.value = false
+  emit('closed')
+}
+
 // ---------- Abrir y cerrar ----------
 function sync() {
   const el = dialog.value
   if (!el) return
-  if (props.modelValue && !el.open) {
-    el.showModal()
-    emit('open')
-    nextTick(measure)
-  } else if (!props.modelValue && el.open) {
+  if (props.modelValue) {
+    if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null }
+    rendered.value = true
+    if (!el.open) {
+      el.showModal()
+      emit('open')
+      nextTick(measure)
+    }
+  } else if (el.open) {
     el.close()
   }
 }
 onMounted(sync)
 watch(() => props.modelValue, sync, { flush: 'post' })
 
-// Cierre nativo (p. ej. un <form method="dialog"> dentro, o la segunda pulsación de Esc en Chromium):
-// el prop sigue siendo la fuente de verdad, así que se pide el cambio.
+// Cierre nativo (también el que provoca sync; p. ej. un <form method="dialog"> dentro, o la segunda pulsación de Esc
+// en Chromium): el prop sigue siendo la fuente de verdad, así que se pide el cambio. El contenido se desmonta cuando
+// termina la transición de salida calculada (0 → en este mismo ciclo; #149, #152).
 function onNativeClose() {
-  emit('closed')
   if (props.modelValue) emit('update:modelValue', false)
+  const ms = transitionMs(dialog.value)
+  if (ms > 0) leaveTimer = setTimeout(finishLeave, ms)
+  else finishLeave()
 }
 
 // Intento de cierre del usuario: `dismiss` cancelable; si nadie lo impide, se pide el cierre.
@@ -159,6 +176,7 @@ watch(body, (el, old) => {
   measure()
 }, { flush: 'post' })
 onBeforeUnmount(() => {
+  clearTimeout(leaveTimer)
   resizeObserver?.disconnect()
   mutationObserver?.disconnect()
   if (dialog.value?.open) dialog.value.close()
@@ -229,7 +247,7 @@ if (isDev) {
     @pointerdown="onPointerdown"
     @click="onClick"
   >
-    <template v-if="modelValue">
+    <template v-if="rendered">
       <div class="g-dialog__header">
         <span v-if="hasIcon" class="g-dialog__icon" aria-hidden="true"><slot name="icon" /></span>
         <div class="g-dialog__titles">
