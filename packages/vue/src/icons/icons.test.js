@@ -70,7 +70,10 @@ describe('iconos generados', () => {
     // Solo las filas de la tabla: la «Regla» de §4 dice que un icono del paquete se añade **a esta tabla**; las notas en
     // prosa de la sección citan también iconos de la aplicación (§5: `image`, `play`, `map-pin` de los ejemplos de GCard)
     // que no entran en la lista del paquete.
-    const section = doc.slice(doc.indexOf('## 4.'), doc.indexOf('## 5.')).split('\n').filter((l) => l.startsWith('|')).join('\n')
+    // La segunda columna («Dónde» / «Canónico») describe usos y estados con palabras que también son nombres de Lucide
+    // (el estado `speech` de la captura de voz): se cuentan la primera y la última (el icono o el alias)
+    const section = doc.slice(doc.indexOf('## 4.'), doc.indexOf('## 5.')).split('\n').filter((l) => l.startsWith('|'))
+      .map((l) => l.split('|').slice(1, -1).filter((_, i) => i !== 1).join('|')).join('\n')
     const real = new Set(readdirSync(resolve(ROOT, 'node_modules/lucide-static/icons')).map((f) => f.replace(/\.svg$/, '')))
     const names = new Set([...section.matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]).filter((n) => real.has(n)))
     const lists = JSON.parse(readFileSync(resolve(pkg, 'scripts/icons.json'), 'utf8'))

@@ -60,7 +60,9 @@ const controlled = computed(() => {
     type: props.type,
     // disabled usa el atributo nativo; loading no, porque deshabilitar un botón enfocado pierde el foco.
     disabled: props.disabled || undefined,
-    'aria-disabled': props.loading ? 'true' : undefined,
+    // Sin loading se respeta el aria-disabled del consumidor (un control enfocable que no actúa, p. ej. el disparador
+    // de voz con otra sesión activa, speech.md §8.2)
+    'aria-disabled': props.loading ? 'true' : attrs['aria-disabled'],
     'aria-busy': busy
   }
 })

@@ -11,6 +11,9 @@ import GBtn from '../GBtn/GBtn.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import { ANNOUNCE, INTERNAL, MOBILE_SPACES, SWIPE, matchesHotkey, toasterKey } from './toaster.js'
+import { createTopModal } from '../../utils/topModal.js'
+import { createLiveWriter } from '../../utils/liveRegion.js'
+import { edgeReserve } from '../../utils/edgeReserve.js'
 
 defineOptions({ name: 'GToaster', inheritAttrs: false })
 
@@ -69,11 +72,17 @@ const regionLabel = computed(() => (L.value.region ? fill(L.value.region, { hotk
 const queuedText = computed(() => (S && S.queue.length && L.value.queued ? fill(L.value.queued, { count: S.queue.length }) : ''))
 
 const toLength = (v) => (typeof v === 'number' ? `${v}px` : v)
+// Borde compartido con GSpeechHost (speech.md §6.7, #225): la reserva que publica la pill flotante en el borde efectivo
+// de la región se suma a su offset de ese borde (GToast.css no cambia: lee las mismas variables)
 const rootStyle = computed(() => {
   const o = S ? S.opts.offset : {}
   const s = {}
-  if (o.top !== undefined) s['--_toaster-offset-top'] = toLength(o.top)
-  if (o.bottom !== undefined) s['--_toaster-offset-bottom'] = toLength(o.bottom)
+  for (const side of ['top', 'bottom']) {
+    const reserve = active.value && edge.value === side ? edgeReserve(side) : 0
+    const own = o[side] !== undefined ? toLength(o[side]) : undefined
+    if (reserve > 0) s[`--_toaster-offset-${side}`] = `calc(${own ?? '0px'} + ${reserve}px)`
+    else if (own !== undefined) s[`--_toaster-offset-${side}`] = own
+  }
   return s
 })
 const rootClasses = computed(() => ['g-toaster', `g-toaster--position-${position.value}`, { 'is-paused': paused.value }])
@@ -111,22 +120,9 @@ const setEl = (key, c) => {
 }
 
 // ---------- Canales vivos: vaciar y escribir en el siguiente ciclo (un texto idéntico se vuelve a anunciar) ----------
-const pending = { polite: [], assertive: [] }
-const writeTimer = { polite: null, assertive: null }
-const clearTimer = { polite: null, assertive: null }
-function announce(text, politeness) {
-  const ch = politeness === 'assertive' ? 'assertive' : 'polite'
-  clearTimeout(clearTimer[ch])
-  live[ch] = ''
-  // Varios anuncios en el mismo ciclo se escriben juntos (con aria-atomic se leen enteros)
-  pending[ch].push(text)
-  clearTimeout(writeTimer[ch])
-  writeTimer[ch] = setTimeout(() => {
-    live[ch] = pending[ch].join(' ')
-    pending[ch] = []
-    clearTimer[ch] = setTimeout(() => { live[ch] = '' }, ANNOUNCE.clear)
-  }, ANNOUNCE.delay)
-}
+// Útil compartido con GSpeechHost (utils/liveRegion.js): varios anuncios en el mismo ciclo se escriben juntos
+const writer = createLiveWriter(live, ANNOUNCE)
+const announce = (text, politeness) => writer.announce(text, politeness)
 
 // ---------- Foco ----------
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -199,29 +195,9 @@ const region = {
   }
 }
 
-// ---------- Modal: la región sigue al <dialog> modal superior ----------
-const modalStack = []
-function isModal(d) {
-  try { return d.matches(':modal') } catch { return d.hasAttribute('open') }
-}
-function syncHost() {
-  for (let i = modalStack.length - 1; i >= 0; i--) {
-    const d = modalStack[i]
-    if (!d.isConnected || !d.hasAttribute('open') || !isModal(d)) modalStack.splice(i, 1)
-  }
-  host.value = modalStack[modalStack.length - 1] || document.body
-}
-function onMutations(records) {
-  for (const m of records) {
-    const d = m.target
-    if (!d || d.localName !== 'dialog') continue
-    const i = modalStack.indexOf(d)
-    const on = d.isConnected && d.hasAttribute('open') && isModal(d)
-    if (on && i < 0) modalStack.push(d)
-    else if (!on && i >= 0) modalStack.splice(i, 1)
-  }
-  syncHost()
-}
+// ---------- Modal: la región sigue al <dialog> modal superior (utils/topModal.js, compartido con GSpeechHost) ----------
+// Sin predicado `ignore`: la hoja móvil de GSpeechHost también es un modal y los avisos deben seguir operables encima.
+const topModal = createTopModal({ onChange: (top) => { host.value = top || document.body } })
 // Sacar un popover abierto del documento lo cierra: se vuelve a abrir tras cada traslado (y queda encima del modal)
 function reopen() {
   const el = rootEl.value
@@ -472,22 +448,17 @@ onMounted(async () => {
     if (!L.value.region) console.warn('[Grana GToaster] falta labels.region: la región de avisos queda sin nombre.')
     if (!L.value.close) console.warn('[Grana GToaster] falta labels.close: el botón cerrar queda sin nombre accesible (se dibuja igual).')
   }
-  if (typeof document.querySelectorAll === 'function') {
-    for (const d of document.querySelectorAll('dialog[open]')) if (isModal(d)) modalStack.push(d)
-  }
+  topModal.scan()
   // Se reclama el gestor en el acto (dos regiones montadas en el mismo ciclo: gana la primera). Los anuncios esperan
   // ANNOUNCE.delay, así que la región ya está en el árbol cuando se escribe el primero.
   if (!api.attach(region)) {
     if (isDev) console.warn('[Grana GToaster] dos <GToaster> para el mismo gestor: la segunda no pinta nada.')
     return
   }
-  syncHost()
+  topModal.sync()
   active.value = true
   // El observador empieza ya: un <dialog> hermano posterior se abre en su propio onMounted, en este mismo ciclo
-  if (typeof MutationObserver !== 'undefined') {
-    observer = new MutationObserver(onMutations)
-    observer.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['open'] })
-  }
+  topModal.observe()
   await nextTick()
   reopen()
   measureMobile()
@@ -498,7 +469,6 @@ onMounted(async () => {
   document.addEventListener('focusin', onDocFocusin)
   window.addEventListener('resize', onResize)
 })
-let observer = null
 onBeforeUnmount(() => {
   if (!api || !active.value) return
   api.detach(region)
@@ -507,11 +477,8 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibility)
   document.removeEventListener('focusin', onDocFocusin)
   window.removeEventListener('resize', onResize)
-  if (observer) observer.disconnect()
-  for (const ch of ['polite', 'assertive']) {
-    clearTimeout(writeTimer[ch])
-    clearTimeout(clearTimer[ch])
-  }
+  topModal.disconnect()
+  writer.dispose()
   removals.forEach((h) => clearTimeout(h))
   frames.forEach((h) => caf(h))
 })

@@ -49,6 +49,13 @@ describe('GBtn · activación', () => {
     expect(w.emitted('click')).toBeUndefined()
   })
 
+  it('sin loading respeta el aria-disabled del consumidor (enfocable, sin disabled nativo)', () => {
+    const w = mount(GBtn, { attrs: { 'aria-disabled': 'true' }, slots: { default: 'Dictar' } })
+    const el = w.find('button')
+    expect(el.attributes('aria-disabled')).toBe('true')
+    expect(el.attributes('disabled')).toBeUndefined()
+  })
+
   it('loading: aria-disabled y aria-busy, SIN disabled nativo, y sin click', async () => {
     const w = mount(GBtn, { props: { loading: true } })
     const el = root(w)
