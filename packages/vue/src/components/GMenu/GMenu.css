@@ -41,7 +41,12 @@
   opacity: 0;
   scale: 0.96;
 }
-.g-menu__list:dir(rtl) { transform-origin: 100% 0; }
+/* Origen: la esquina más cercana al disparador (bruno escribe data-side y data-align en coordenadas físicas) */
+.g-menu__list[data-align="right"] { transform-origin: 100% 0; }
+.g-menu__list[data-side="top"] { transform-origin: 0 100%; }
+.g-menu__list[data-side="top"][data-align="right"] { transform-origin: 100% 100%; }
+/* Sin posición escrita todavía (SSR o antes de medir): inicio de línea */
+.g-menu__list:dir(rtl):not([data-align]) { transform-origin: 100% 0; }
 .g-menu__list:popover-open {
   opacity: 1;
   scale: 1;
@@ -217,7 +222,10 @@
 @media (prefers-reduced-motion: reduce) {
   .g-menu__list {
     scale: none;
-    transition: opacity var(--g-duration-fast) linear;
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
   }
 }
 @starting-style {

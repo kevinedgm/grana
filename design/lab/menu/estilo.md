@@ -9,7 +9,7 @@
 
 | Detalle | Cómo |
 | --- | --- |
-| **Lista** | Superficie con borde `--g-color-border-control` (3:1), `--g-radius-lg`, `--g-shadow-2` y relleno de `space × 1.5`; ancho mínimo `space × 50` (200px) y máximo `space × 80` (320px); entra con un fundido y una escala de 0.96 desde su esquina de inicio (espejada en RTL); con `prefers-reduced-motion` solo el fundido |
+| **Lista** | Superficie con borde `--g-color-border-control` (3:1), `--g-radius-lg`, `--g-shadow-2` y relleno de `space × 1.5`; ancho mínimo `space × 50` (200px) y máximo `space × 80` (320px); entra con un fundido y una escala de 0.96 desde la esquina más cercana al disparador (`data-side`/`data-align`, físicas) y sale igual en 120 ms, montada e inerte hasta terminar; con `prefers-reduced-motion` solo el fundido |
 | **Coordenadas físicas** | La lista se coloca con `left` y `top` (`--_x`, `--_y`): el componente calcula coordenadas del visor, y con propiedades lógicas el menú salía en el lado equivocado en RTL (hallazgo de kiwi) |
 | **Elemento** | Alto `max(24px, space × 9)` (44px con `pointer: coarse`), radio `md`; el activo (foco, ratón o submenú abierto) en `--g-color-surface-sunken`; el foco visible es un contorno de `--g-focus-width` **hacia dentro** |
 | **Icono y atajo** | Icono de `space × 4.5` en `text-muted`; atajo en `caption` y `text-subtle`, a la derecha |

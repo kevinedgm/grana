@@ -1,6 +1,6 @@
 # 010 — GMenu: que la salida ya escrita llegue a correr, y que la lista crezca desde el disparador
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueños**: bruno (pasos 1–4: `GMenu.vue`, `GMenu.test.js`, `src/utils/motion.js`), coco (pasos 5–6: `GMenu.css`, `design/lab/menu/estilo.md`). Sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: MEDIUM
@@ -151,3 +151,9 @@
   - Firefox y WebKit (sin `overlay`; en WebKit, `currentTime` manual): al cerrar, la lista desaparece al instante como hoy, sin verse fuera de sitio, y se desmonta a los ~120 ms. El origen es el mismo que en Chromium.
 - **Feel check**: DevTools > Animations al 10 %: el menú del widget nace del botón «⋯» (abajo a la derecha) y vuelve hacia él al cerrarse; abrir y cerrar rápido no parpadea. Con teclado (Enter, Esc, Enter) se siente inmediato: la salida dura 120 ms y no bloquea el foco, que vuelve al disparador al momento.
 - **Done when**: la salida de 120 ms corre en Chromium en los tres menús del playground, la lista crece y se recoge desde la esquina del disparador en todas las posiciones y en RTL, y no cambia nada en Firefox/WebKit salvo el origen.
+
+## Nota de ejecución
+
+- El bloque `reduce` de `GMenu.css` no tenía `overlay`/`display` discretos, así que con movimiento reducido la lista se ocultaba en el primer cuadro y la salida solo de opacidad (Target) no corría; se añadieron las dos transiciones discretas a ese bloque (mínimo cambio, mismo patrón que el bloque `no-preference`).
+- Pruebas: 2 nuevas en `GMenu.test.js` (`data-side`/`data-align` solo comprueba presencia y valores válidos; la simulación de medidas en jsdom se dejó fuera). `getComputedStyle` se simula con un `Proxy` sobre el real.
+- Verificado con Playwright: Chromium con `no-preference` (salida 120 ms con `opacity`/`scale`, `inert`, desmontada a 250 ms; reabrir no rompe), Firefox y WebKit (desmonta, origen correcto). Origen del menú del widget: `200px 369.75px` (esquina inferior derecha).

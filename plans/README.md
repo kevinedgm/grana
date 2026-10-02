@@ -10,10 +10,10 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 004 | [Indicador: anillo, pulsación reversible, línea y movimiento reducido](004-gstepper-transiciones-indicador.md) | GStepper | coco | MEDIUM | DONE |
 | 005 | [Continuidad del indicador al cambiar de botón a texto, e `is-ready`](005-gstepper-continuidad-indicador.md) | GStepper | bruno | HIGH | DONE |
 | 006 | [Entradas: lista del compacto, contenido vertical y check](006-gstepper-entradas.md) | GStepper | coco | MEDIUM | DONE |
-| 007 | [Movimiento reducido: conservar los fundidos de color y quitar las escalas que saltan](007-movimiento-reducido-transversal.md) | GBtn, GInput, GTextarea, GSelect, GCheckbox, GSwitch, GCard, GDialog, GDatePicker, GCalendar, GWidgetGallery, GWidgetConfig, GTabs, GSidebar | coco | MEDIUM | TODO |
+| 007 | [Movimiento reducido: conservar los fundidos de color y quitar las escalas que saltan](007-movimiento-reducido-transversal.md) | GBtn, GInput, GTextarea, GSelect, GCheckbox, GSwitch, GCard, GDialog, GDatePicker, GCalendar, GWidgetGallery, GWidgetConfig, GTabs, GSidebar | coco | MEDIUM | DONE |
 | 008 | [Selección que se funde entera y chevrón coherente](008-gcard-seleccion-fundida.md) | GCard | coco | MEDIUM | TODO |
 | 009 | [Salida animada, entrada por transición y fundido con `reduce`](009-gdialog-salida-animada.md) | GDialog (+ GHelper, GFilterBar) | lima + bruno + coco | MEDIUM | TODO (requiere visto bueno) |
-| 010 | [Que la salida llegue a correr y origen desde el disparador](010-gmenu-salida-y-origen.md) | GMenu | bruno + coco | MEDIUM | TODO |
+| 010 | [Que la salida llegue a correr y origen desde el disparador](010-gmenu-salida-y-origen.md) | GMenu | bruno + coco | MEDIUM | DONE |
 | 011 | [Popovers: salida corta y fundido con movimiento reducido](011-popovers-salida-y-reduce.md) | GSelect, GDatePicker, GHelper, GFilterBar | coco | LOW | TODO |
 | 012 | [No animar al montar](012-no-animar-al-montar.md) | GSidebar, GTabs, GCheckbox | bruno + coco | MEDIUM | TODO |
 | 013 | [Avance con `translate` en lugar de `inline-size`](013-gprogress-avance-con-translate.md) | GProgress | coco | LOW | TODO |
