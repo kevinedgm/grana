@@ -1,0 +1,102 @@
+/*
+  GDivider · línea de separación entre grupos de contenido del consumidor
+  Dueño: coco. Contrato: design/contracts/divider.md (DECISIONS.md #190, #191). Estructura: design/lab/divider/r01/.
+  Estética: design/lab/divider/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo;
+  sin literales de medida (no es interactivo: no tiene área táctil).
+  --g-divider-inset vive en defaults.css (:root) y se HEREDA: la anfitriona lo redefine en su elemento. Aquí solo se lee.
+  Carácter: una línea fina y discreta. Un solo grosor (--g-border-width), dos tonos del neutro, sin sombra, sin fondo,
+  sin estados ni movimiento. Sin márgenes propios: el aire lo pone el contenedor (gap); solo el inset acorta la línea.
+  Las líneas son BORDES, nunca fondos (en forced-colors un fondo se sustituye y la línea desaparecería).
+*/
+
+/* ---------- Raíz: reseteo del <hr> del agente de usuario ---------- */
+.g-divider {
+  /* Tono de la línea: subtle refuerza (no es la única señal); strong es la única señal y mide ≥ 3:1 */
+  --_line: var(--g-color-border);
+  --_t: var(--g-border-width);
+  /* Con texto: separación texto ↔ línea y mínimo de cada línea (no escalan con densidad) */
+  --_gap: calc(var(--g-space-1) * 3);
+  --_min: calc(var(--g-space-1) * 4);
+
+  box-sizing: border-box;
+  /* <hr>: el agente pone margen de bloque, margen de línea auto, borde inset de 1px, color gris y overflow: hidden */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  overflow: visible;
+}
+
+/* ---------- Horizontal: ocupa la caja de contenido del contenedor ---------- */
+.g-divider--orientation-horizontal {
+  display: block;
+  /* En una columna flex que centra a sus hijos, stretch le devuelve el ancho completo */
+  align-self: stretch;
+  inline-size: auto;
+  block-size: 0;
+  border-block-start: var(--_t) solid var(--_line);
+}
+
+/* ---------- Vertical: el alto es el de la fila (padre flex en fila o grid) ---------- */
+.g-divider--orientation-vertical {
+  display: block;
+  flex: none;
+  /* También cuando la fila centra a sus hijos (align-items: center). Nunca block-size: 100% ni un alto fijo */
+  align-self: stretch;
+  inline-size: 0;
+  block-size: auto;
+  border-inline-start: var(--_t) solid var(--_line);
+}
+
+/* ---------- Con texto (solo horizontal): raíz flex; las líneas son ::before y ::after ---------- */
+.g-divider--labeled {
+  display: flex;
+  align-items: center;
+  gap: var(--_gap);
+  block-size: auto;
+  border-block-start: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  letter-spacing: var(--g-text-body-sm-tracking);
+  color: var(--g-color-text-muted);
+  text-align: center;
+}
+.g-divider--labeled::before,
+.g-divider--labeled::after {
+  content: "";
+  /* Reparten el sobrante a partes iguales (texto centrado) y nunca bajan de su mínimo: con un texto largo, el texto envuelve */
+  flex: 1 1 0;
+  min-inline-size: var(--_min);
+  border-block-start: var(--_t) solid var(--_line);
+}
+/* El texto no lleva fondo: la línea nunca pasa por debajo, así vale sobre superficie, superficie hundida o cristal */
+.g-divider__label {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Énfasis: mismo grosor, dos tonos del neutro (nunca un color semántico) ---------- */
+.g-divider--emphasis-strong { --_line: var(--g-color-border-control); }
+
+/* ---------- Inset: la cantidad la define la anfitriona (--g-divider-inset, heredado) ---------- */
+.g-divider--orientation-horizontal.g-divider--inset-both { margin-inline: var(--g-divider-inset); }
+.g-divider--orientation-horizontal.g-divider--inset-start { margin-inline-start: var(--g-divider-inset); }
+/* En vertical, start se comporta como both (el componente ya emite la clase efectiva; esto solo lo hace robusto) */
+.g-divider--orientation-vertical:is(.g-divider--inset-both, .g-divider--inset-start) { margin-block: var(--g-divider-inset); }
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-contrast: more) {
+  /* Las dos líneas suben al neutro de 3:1 y el texto al de máximo contraste */
+  .g-divider { --_line: var(--g-color-border-control); }
+  .g-divider--labeled { color: var(--g-color-text); }
+}
+@media (forced-colors: active) {
+  .g-divider,
+  .g-divider--labeled::before,
+  .g-divider--labeled::after { border-color: CanvasText; }
+}

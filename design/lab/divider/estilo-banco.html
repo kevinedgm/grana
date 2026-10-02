@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDivider · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/divider.md («Semántica» y «Estructura») con el CSS real
+     (GDivider.css y el valor de --g-divider-inset en defaults.css). La fábrica divider() hace lo que hará bruno y nada
+     más: elemento y atributos por caso, clase de inset efectiva (start en vertical → both) y --labeled solo con texto
+     en horizontal. No es documentación. Desde la raíz del repo:
+       python3 -m http.server 4190  →  /design/lab/divider/estilo-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+     ?test=1 («Tema de prueba»: Georgia, borde 2px, space 5)
+     Verificación: node design/lab/divider/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDialog/GDialog.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDivider/GDivider.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:96ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px;overflow-wrap:anywhere}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+  .cell{display:flex;flex-direction:column;min-inline-size:0}
+  /* Anfitrionas: superficie y superficie hundida, con relleno; la separación la pone la pila (gap), nunca el divider */
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .host.sunken{background:var(--g-color-surface-sunken)}
+  .stack{display:flex;flex-direction:column;gap:var(--g-space-4);min-inline-size:0}
+  .stack>p{margin:0}
+  .prose p{max-inline-size:62ch;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+  .narrow{inline-size:200px;max-inline-size:100%}
+  /* Fila de acciones: flex en fila que centra a sus hijos (el vertical se estira igual) */
+  .row{display:flex;align-items:center;gap:var(--g-space-2);flex-wrap:wrap;min-inline-size:0}
+  .row.boxed{padding:var(--g-space-1);border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-lg);inline-size:fit-content;max-inline-size:100%}
+  .gridrow{display:grid;grid-template-columns:auto auto auto;align-items:center;justify-content:start;gap:var(--g-space-2)}
+  /* Lista de navegación con icono: la anfitriona define su inset = relleno + icono + separación (por su densidad) */
+  .navlist{--pad:var(--g-space-3);--lead:calc(var(--g-space-1) * 5);--igap:var(--g-space-3);--g-divider-inset:calc(var(--pad) + var(--lead) + var(--igap));
+    background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-2) 0;max-inline-size:340px}
+  .navlist[data-density=compact]{--pad:var(--g-space-2);--igap:var(--g-space-2)}
+  .navlist ul{list-style:none;margin:0;padding:0}
+  .navlist a{display:flex;align-items:center;gap:var(--igap);padding:0 var(--pad);min-block-size:40px;color:inherit;text-decoration:none;font-size:var(--g-text-body-sm-size)}
+  .navlist[data-density=compact] a{min-block-size:32px}
+  .navlist a .g-icon{inline-size:var(--lead);block-size:var(--lead);color:var(--g-color-text-muted)}
+  .navlist .g-divider{margin-block:var(--g-space-2)}
+  /* Diálogo estático (sin showModal, para medirlo en la página) */
+  .g-dialog.static{opacity:1;scale:none;transition:none;display:flex;flex-direction:column;margin:0;max-inline-size:100%;inline-size:min(var(--_w),100%)}
+  .g-dialog.static h3{margin:0 0 var(--g-space-2);font-size:var(--g-text-body-size)}
+  .g-dialog.static p{margin:0;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+  .g-dialog.static .stack{gap:var(--g-space-3)}
+  .ax{font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+<h1>GDivider · banco de estilo</h1>
+<p class="cap"><b>coco</b> · CSS real de <code>GDivider</code> sobre el marcado del contrato. Línea de <code>--g-border-width</code>; <code>subtle</code> = <code>--g-color-border</code>, <code>strong</code> = <code>--g-color-border-control</code>; texto <code>body-sm</code> en <code>text-muted</code>. Sin márgenes propios: el aire lo pone la pila o la fila.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <button type="button" id="t-rtl">RTL</button>
+  <label>Ancho <select id="t-w"><option value="">Libre</option><option>320</option><option>375</option></select></label>
+</div>
+
+<!-- 1 -->
+<h2 class="b" id="simple">1 · Horizontal simple</h2>
+<p class="cap">Cambio de tema entre dos párrafos sin encabezado: la línea es la única marca, así que es <code>&lt;hr&gt;</code> semántico. La separación vertical es el <code>gap</code> de la pila.</p>
+<div class="host prose" style="max-inline-size:680px"><div class="stack">
+  <p>El informe trimestral cerró con todos los indicadores dentro del rango previsto. Las variaciones de la última semana se explican por el cierre contable anticipado.</p>
+  <div data-d='{"case":"simple"}'></div>
+  <p>Por otra parte, el equipo de soporte cambiará su horario a partir del próximo mes; los turnos nuevos se publicarán en el tablero.</p>
+</div></div>
+
+<!-- 2 -->
+<h2 class="b" id="label">2 · Con texto</h2>
+<p class="cap">El texto va centrado entre <code>::before</code> y <code>::after</code> (bordes) y no lleva fondo: la línea nunca pasa por debajo. Con un texto largo, el texto envuelve y cada línea conserva su mínimo (<code>space × 4</code>).</p>
+<div class="grid">
+  <div class="cell"><p class="tag">superficie</p><div class="host"><div class="stack">
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Continuar con la organización</span></button>
+    <div data-d='{"case":"label-surface","label":"O bien"}'></div>
+    <button class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Enviar enlace de acceso</span></button>
+  </div></div></div>
+  <div class="cell"><p class="tag">superficie hundida</p><div class="host sunken"><div class="stack">
+    <p>Hoy</p>
+    <div data-d='{"case":"label-sunken","label":"Ayer"}'></div>
+    <p>Elementos de ayer</p>
+  </div></div></div>
+  <div class="cell"><p class="tag">texto largo a 200px</p><div class="host narrow" id="long-host"><div class="stack">
+    <div data-d='{"case":"label-long","label":"Elementos archivados hace más de treinta días, ordenados por fecha","emphasis":"strong"}'></div>
+  </div></div></div>
+</div>
+
+<!-- 3 -->
+<h2 class="b" id="inset">3 · Inset: none · both · start</h2>
+<p class="cap"><code>none</code> ocupa la caja de contenido (no sangra sobre el relleno de la anfitriona); <code>both</code> acorta los dos extremos y <code>start</code> el inicio, con <code>--g-divider-inset</code> (por defecto <code>space × 2</code>). La lista de la derecha redefine el token (relleno + icono + separación) y la línea arranca donde el texto.</p>
+<div class="grid">
+  <div class="cell"><p class="tag">sin anfitriona que lo redefina</p><div class="host"><div class="stack">
+    <p class="tag">inset="none"</p><div data-d='{"case":"inset-none","emphasis":"strong"}'></div>
+    <p class="tag">inset="both"</p><div data-d='{"case":"inset-both","inset":"both","emphasis":"strong"}'></div>
+    <p class="tag">inset="start"</p><div data-d='{"case":"inset-start","inset":"start","emphasis":"strong"}'></div>
+  </div></div></div>
+  <div class="cell"><p class="tag">lista con icono · <label>densidad <select id="nav-density"><option>default</option><option>compact</option></select></label></p>
+    <nav class="navlist" id="navlist" aria-label="Ajustes">
+      <ul><li><a href="#inset" data-i="user">Perfil</a></li><li><a href="#inset" data-i="bell">Notificaciones</a></li><li><a href="#inset" data-i="lock">Seguridad</a></li></ul>
+      <div data-d='{"case":"nav-start","inset":"start"}'></div>
+      <ul><li><a href="#inset" data-i="file-text">Documentación</a></li><li><a href="#inset" data-i="circle-help">Soporte</a></li></ul>
+    </nav></div>
+</div>
+
+<!-- 4 -->
+<h2 class="b" id="vertical">4 · Vertical entre dos grupos de acciones</h2>
+<p class="cap">Hijo directo de una fila flex (con <code>align-items: center</code>) o de un grid: el alto sale de la fila con <code>align-self: stretch</code>. Con <code>inset="both"</code> la fila mide su alto menos <code>2 × --g-divider-inset</code>. <code>strong</code> porque el hueco entre grupos es el mismo que dentro del grupo: la línea es la única señal.</p>
+<div class="stack">
+  <div class="row" data-row="sm">
+    <button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-sm g-btn--density-default" type="button"><span class="g-btn__label">Copiar</span></button>
+    <button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-sm g-btn--density-default" type="button"><span class="g-btn__label">Pegar</span></button>
+    <div data-d='{"case":"v-sm","orientation":"vertical","inset":"both","emphasis":"strong"}'></div>
+    <button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-sm g-btn--density-default" type="button"><span class="g-btn__label">Compartir</span></button>
+  </div>
+  <div class="row" data-row="md">
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Copiar</span></button>
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Pegar</span></button>
+    <div data-d='{"case":"v-md","orientation":"vertical","emphasis":"strong"}'></div>
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Compartir</span></button>
+    <div data-d='{"case":"v-md-both","orientation":"vertical","inset":"both","emphasis":"strong"}'></div>
+    <button class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Publicar</span></button>
+  </div>
+  <div class="row boxed" data-row="lg">
+    <button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-lg g-btn--density-default" type="button"><span class="g-btn__label">Deshacer</span></button>
+    <div data-d='{"case":"v-lg","orientation":"vertical","inset":"start","emphasis":"strong"}'></div>
+    <button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-lg g-btn--density-default" type="button"><span class="g-btn__label">Rehacer</span></button>
+  </div>
+  <div class="gridrow" data-row="grid">
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Anterior</span></button>
+    <div data-d='{"case":"v-grid","orientation":"vertical"}'></div>
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Siguiente</span></button>
+  </div>
+</div>
+<p class="cap">La tercera fila pide <code>inset="start"</code> en vertical: la fábrica emite la clase efectiva <code>--inset-both</code> (aviso 4 de bruno).</p>
+
+<!-- 5 -->
+<h2 class="b" id="emphasis">5 · subtle frente a strong</h2>
+<p class="cap"><code>subtle</code> refuerza una separación que el espacio o un título ya dan (no se le exige 3:1); <code>strong</code> es la única señal y mide ≥ 3:1 contra <code>surface</code> y <code>surface-sunken</code>.</p>
+<div class="grid">
+  <div class="cell"><p class="tag">superficie</p><div class="host"><div class="stack">
+    <p class="tag">subtle</p><div data-d='{"case":"subtle-surface"}'></div>
+    <p class="tag">strong</p><div data-d='{"case":"strong-surface","emphasis":"strong"}'></div>
+    <div data-d='{"case":"label-strong-surface","label":"strong con texto","emphasis":"strong"}'></div>
+  </div></div></div>
+  <div class="cell"><p class="tag">superficie hundida</p><div class="host sunken"><div class="stack">
+    <p class="tag">subtle</p><div data-d='{"case":"subtle-sunken"}'></div>
+    <p class="tag">strong</p><div data-d='{"case":"strong-sunken","emphasis":"strong"}'></div>
+    <div data-d='{"case":"label-strong-sunken","label":"strong con texto","emphasis":"strong"}'></div>
+  </div></div></div>
+</div>
+
+<!-- 6 -->
+<h2 class="b" id="semantics">6 · Decorativo frente a separador</h2>
+<p class="cap">Mismo aspecto: <code>decorative</code> no tiene clase, solo cambia el árbol (<code>aria-hidden</code> y sin <code>role</code>).</p>
+<div class="grid">
+  <div class="cell"><div class="host"><div class="stack">
+    <div data-d='{"case":"sep-h"}'></div>
+    <div data-d='{"case":"deco-h","decorative":true}'></div>
+    <div class="row"><span>A</span><div data-d='{"case":"sep-v","orientation":"vertical"}'></div><span>B</span><div data-d='{"case":"deco-v","orientation":"vertical","decorative":true}'></div><span>C</span></div>
+  </div></div></div>
+  <div class="cell"><pre class="ax" id="ax-out"></pre></div>
+</div>
+
+<!-- 7 -->
+<h2 class="b" id="dialog">7 · Dentro de un diálogo</h2>
+<p class="cap"><code>GDialog</code> real (estático). Las secciones con <code>h3</code> ya marcan la estructura: el divider del cuerpo es <code>decorative</code>. Tiene el mismo tono que la línea a sangre de <code>g-dialog__section</code> y la del pie (<code>--g-color-border</code>), y no sangra: termina en el relleno.</p>
+<div class="g-dialog g-dialog--size-sm g-dialog--inset g-dialog--density-default static" role="group" aria-labelledby="dlg-t">
+  <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="dlg-t">Preferencias</h2></div></div>
+  <div class="g-dialog__inset">
+    <div class="g-dialog__body">
+      <section class="g-dialog__section"><h3>General</h3><div class="stack"><p>Nombre y visibilidad del proyecto.</p><div data-d='{"case":"dialog-body","decorative":true}'></div><p>Idioma y zona horaria.</p></div></section>
+      <section class="g-dialog__section"><h3>Notificaciones</h3><p>Correo y avisos en la aplicación.</p></section>
+    </div>
+    <div class="g-dialog__footer">
+      <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Cancelar</span></button>
+      <button class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Guardar</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- 8 -->
+<h2 class="b" id="rtl">8 · RTL (dir="rtl" local)</h2>
+<p class="cap">Propiedades lógicas y flex, sin prop: el inset <code>start</code> queda a la derecha, el texto sigue centrado y el vertical sigue a su fila.</p>
+<div class="host" dir="rtl" lang="ar"><div class="stack">
+  <div data-d='{"case":"rtl-start","inset":"start","emphasis":"strong"}'></div>
+  <div data-d='{"case":"rtl-label","label":"أو"}'></div>
+  <div class="row">
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">نسخ</span></button>
+    <div data-d='{"case":"rtl-v","orientation":"vertical","inset":"both","emphasis":"strong"}'></div>
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">لصق</span></button>
+  </div>
+</div></div>
+</main>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Lo que hará GDivider.vue (divider.md, «Semántica» y «Estructura») */
+function divider(o) {
+  const orientation = o.orientation || 'horizontal';
+  const vertical = orientation === 'vertical';
+  const inset = vertical && o.inset === 'start' ? 'both' : (o.inset || 'none');
+  const labeled = !vertical && !!o.label;
+  const cls = 'g-divider g-divider--orientation-' + orientation + (labeled ? ' g-divider--labeled' : '') +
+    ' g-divider--inset-' + inset + ' g-divider--emphasis-' + (o.emphasis || 'subtle');
+  const data = ' data-case="' + esc(o.case) + '"';
+  if (labeled) return '<div class="' + cls + '"' + data + '><span class="g-divider__label">' + esc(o.label) + '</span></div>';
+  if (!vertical) return '<hr class="' + cls + '"' + (o.decorative ? ' aria-hidden="true"' : '') + data + '>';
+  return '<div class="' + cls + '"' + (o.decorative ? ' aria-hidden="true"' : ' role="separator" aria-orientation="vertical"') + data + '></div>';
+}
+$$('[data-d]').forEach((el) => { el.outerHTML = divider(JSON.parse(el.dataset.d)); });
+$$('#navlist a[data-i]').forEach((a) => { a.insertAdjacentHTML('afterbegin', window.lucide(a.dataset.i)); });
+
+/* Árbol esperado de la sección 6 */
+$('#ax-out').textContent = $$('#semantics [data-case]').map((d) =>
+  d.dataset.case + ' · <' + d.tagName.toLowerCase() + '> role=' + (d.getAttribute('role') || (d.tagName === 'HR' ? 'separator (implícito)' : '—')) +
+  ' aria-orientation=' + (d.getAttribute('aria-orientation') || '—') + ' aria-hidden=' + (d.getAttribute('aria-hidden') || '—')).join('\n');
+
+/* Controles */
+const q = new URLSearchParams(location.search);
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}';
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify'];
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'));
+function setTheme(v) {
+  $('#theme').textContent = v === 'test' ? TEST : '';
+  $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,';
+}
+$('#t-theme').onchange = (e) => setTheme(e.target.value);
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+$('#t-w').onchange = (e) => { $('main').style.maxInlineSize = e.target.value ? e.target.value + 'px' : ''; };
+$('#nav-density').onchange = (e) => { $('#navlist').dataset.density = e.target.value; };
+const th = q.get('test') ? 'test' : (q.get('theme') || '');
+if (th) { $('#t-theme').value = th; setTheme(th); }
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+</body>
+</html>

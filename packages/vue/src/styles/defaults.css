@@ -181,6 +181,12 @@
   --g-form-column-gap: var(--g-space-4);
   --g-form-section-gap: calc(var(--g-space-1) * 10);
 
+  /* Divider (tokens.md §22, DECISIONS.md #191): cuánto acorta la línea inset="both" (cada extremo) e inset="start".
+     Uno para las dos orientaciones, así que se elige por el vertical: con space × 2 un vertical con inset en una fila de
+     GBtn sm / md / lg mide 12 / 20 / 28px; con space × 4 (kiwi) mediría 0 / 4 / 12px y desaparecería en silencio.
+     Se hereda: la anfitriona que conoce su relleno e icono lo redefine en su elemento. No escala con densidad */
+  --g-divider-inset: calc(var(--g-space-1) * 2);
+
   /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;
