@@ -156,7 +156,7 @@
   outline-offset: var(--g-focus-offset);
 }
 
-/* Entrada breve desde el lado del disparador; sin movimiento con reduced-motion */
+/* Entrada breve desde el lado del disparador; con reduced-motion, solo fundido */
 @media (prefers-reduced-motion: no-preference) {
   .g-helper__content:popover-open {
     transition:
@@ -169,6 +169,15 @@
     .g-helper__content[data-side="top"]:popover-open { translate: 0 var(--g-space-1); }
     .g-helper__content[data-side="left"]:popover-open { translate: var(--g-space-1) 0; }
     .g-helper__content[data-side="right"]:popover-open { translate: calc(var(--g-space-1) * -1) 0; }
+  }
+}
+/* Movimiento reducido: sin desplazamiento; el fundido se conserva */
+@media (prefers-reduced-motion: reduce) {
+  .g-helper__content:popover-open {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  @starting-style {
+    .g-helper__content:popover-open { opacity: 0; }
   }
 }
 

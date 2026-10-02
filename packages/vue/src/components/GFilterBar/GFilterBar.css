@@ -191,10 +191,9 @@
   justify-content: flex-end;
   gap: var(--g-space-2);
 }
-@media (prefers-reduced-motion: no-preference) {
-  .g-filter-bar__editor:popover-open { transition: opacity var(--g-duration-press) var(--g-ease-out); }
-  @starting-style { .g-filter-bar__editor:popover-open { opacity: 0; } }
-}
+/* Entrada del editor: solo fundido (no es movimiento: vale también con movimiento reducido) */
+.g-filter-bar__editor:popover-open { transition: opacity var(--g-duration-press) var(--g-ease-out); }
+@starting-style { .g-filter-bar__editor:popover-open { opacity: 0; } }
 @media (pointer: coarse) {
   :is(.g-filter-bar__edit, .g-filter-bar__remove, .g-filter-bar__suggest, .g-filter-bar__add, .g-filter-bar__clear) { min-block-size: 44px; }
 }

@@ -317,7 +317,19 @@
   translate: 0 -50%;
   color: var(--g-color-text);
 }
+/* Salida: fundido corto sin desplazamiento (el popover sigue en el DOM; overlay y display discretos lo mantienen pintado) */
+.g-select__list { opacity: 0; }
+.g-select__list:popover-open { opacity: 1; }
+@starting-style {
+  .g-select__list:popover-open { opacity: 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
+  .g-select__list {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
   .g-select__list:popover-open {
     animation: g-select-in var(--g-duration-press) var(--g-ease-out);
   }
@@ -481,11 +493,28 @@
   .g-select__list::backdrop {
     background: var(--g-surface-backdrop);
   }
+  .g-select__list::backdrop { opacity: 0; }
+  .g-select__list:popover-open::backdrop { opacity: 1; }
+  @starting-style {
+    .g-select__list:popover-open::backdrop { opacity: 0; }
+  }
   .g-select__option {
     min-block-size: max(44px, var(--_opt));
   }
 }
 @media (max-width: 520px) and (prefers-reduced-motion: no-preference) {
+  .g-select__list::backdrop {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-select__list:popover-open::backdrop {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
+  }
   .g-select__list:popover-open,
   .g-select__list.is-up:popover-open {
     animation-name: g-select-sheet-in;
@@ -497,6 +526,13 @@
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
+  .g-select__list,
+  .g-select__list::backdrop {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
   .g-select__arrow {
     transition: none;
   }

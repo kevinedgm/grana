@@ -13,6 +13,7 @@
 | **Franja de rango continua** | `td::before` detrás del botón, en el tono suave del color (`--_soft`), a 80% del alto de la celda. Salen de la celda, no la agrandan. El inicio la abre desde su centro y el fin la cierra en su centro; al saltar de fila y en los bordes de mes se redondea (`is-cap-start`, `is-cap-end`) |
 | **Selección** | Círculo relleno con `--_color` y texto `--_on`; **no cambia la celda** (el círculo mide lo mismo que el botón) |
 | **Hoy** | Aro de `border-width × 2` en `text-muted` y un punto de una unidad de espacio; en un día seleccionado, el aro pasa a `--_on` (círculo lleno con aro interior). No compite con la selección: no tiene relleno |
+| **Salida del popover** | Fundido de `--g-duration-fast` sin desplazamiento (también el fondo de la hoja móvil); con movimiento reducido, entrada y salida solo con fundido de 120 ms |
 | **Otro mes / Inactive / Disabled** | `text-subtle` (5.10:1 con el tema por defecto) más una señal que no es color: Inactive en **cursiva**, Disabled **tachado**, Outside Month solo atenuado (sigue siendo elegible, por eso no lleva marca) |
 | **Hover / foco** | Hover: relleno `surface-sunken` (solo con `hover: hover`). Foco: contorno de `--g-focus-width` en `--g-color-focus` con `--g-focus-offset` (fuera del círculo, no lo recorta) |
 | **Vista previa** | La misma franja al 60% de opacidad |

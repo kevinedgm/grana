@@ -1,6 +1,6 @@
 # 011 — Popovers de GSelect, GDatePicker, GHelper y GFilterBar: salida corta y fundido con movimiento reducido
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GSelect.css`, `GDatePicker.css`, `GHelper.css`, `GFilterBar.css` y sus `estilo.md`). Sin `.vue`, sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: LOW
@@ -207,3 +207,7 @@ Medido en Chromium, Firefox y WebKit en el playground (`#sec-select`, `#sec-date
   - Firefox y WebKit (en WebKit, `currentTime` manual): entradas como hoy; al cerrar, ocultos en el primer cuadro (sin verse fuera de sitio).
 - **Feel check**: DevTools > Animations al 10 %: elige una opción del select; la lista se desvanece en su sitio, sin moverse, más rápido de lo que entró. Abre y cierra el select con el teclado varias veces: nada se siente lento. Rendering > `prefers-reduced-motion: reduce`: el select, el calendario, la ayuda y el editor de filtros aparecen con un fundido, sin desplazarse.
 - **Done when**: `GSelect` y `GDatePicker` salen con un fundido de 120 ms (Chromium) y los cuatro popovers se funden con `reduce`; los `estilo.md` lo dicen.
+
+## Nota de ejecución
+
+Verificado con Playwright: Chromium sale en 120 ms (opacity/overlay/display) y con `reduce` entra y sale solo con opacidad; Firefox y WebKit cierran al instante. En WebKit headless, Esc no cierra la lista de GSelect con el foco en el botón (igual antes del cambio; no es regresión).

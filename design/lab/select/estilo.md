@@ -17,7 +17,7 @@
 | **Opción activa** | Relleno `surface-sunken` y contorno del grosor de `--g-focus-width` en el color de foco (el foco vive en el selector; la activa lo señala) |
 | **Elegida** | Más peso y marca ✓ dibujada con bordes al final de la fila (no depende del color) |
 | **Deshabilitada** | `text-subtle` y tachado; sin depender del color |
-| **Aparición** | Fundido breve con desplazamiento de `--g-space-1` (hacia abajo o hacia arriba con `is-up`), en `--g-duration-press`; solo con `no-preference` |
+| **Aparición** | Fundido breve con desplazamiento de `--g-space-1` (hacia abajo o hacia arriba con `is-up`), en `--g-duration-press`; sale con un fundido de `--g-duration-fast` sin desplazamiento (sin `overlay`, al instante). Con movimiento reducido, solo fundidos de 120 ms |
 | **Hoja inferior (≤ 520px)** | Pegada abajo, ancho completo, esquinas superiores con `--g-surface-radius`, fondo `--g-surface-inset`, relleno `--g-surface-gap` (más `env(safe-area-inset-bottom)`), sombra `--g-shadow-3` y `::backdrop` con `--g-surface-backdrop`; el mismo sistema de superficies que `GDialog` |
 
 ## Verificación en Chromium (banco de pruebas)

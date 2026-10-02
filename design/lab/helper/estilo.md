@@ -27,7 +27,7 @@
 | abierto (`is-open`) | Icono y borde en `text` |
 | disabled | `cursor: not-allowed` y opacidad 0.5 (exento de contraste) |
 | active, loading | No aplican (el contrato no los define) |
-| `prefers-reduced-motion` | Sin transición (verificado: `0s`) |
+| `prefers-reduced-motion` | Sin desplazamiento; fundido de entrada de 120 ms (`linear`). Sin salida animada: el contenido se desmonta al cerrar |
 | `forced-colors` | Disparador con `ButtonText`/`ButtonFace`; contenido con borde `CanvasText` |
 
 ## Verificación en Chromium (banco de pruebas)

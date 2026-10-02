@@ -652,7 +652,19 @@
 }
 
 /* ---------- Aparición del popover ---------- */
+/* Salida: fundido corto sin desplazamiento (el popover sigue en el DOM; overlay y display discretos lo mantienen pintado) */
+.g-datepicker__pop { opacity: 0; }
+.g-datepicker__pop:popover-open { opacity: 1; }
+@starting-style {
+  .g-datepicker__pop:popover-open { opacity: 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
+  .g-datepicker__pop {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
   .g-datepicker__pop:popover-open {
     animation: g-datepicker-in var(--g-duration-press) var(--g-ease-out);
   }
@@ -684,6 +696,11 @@
   }
   .g-datepicker__pop::backdrop {
     background: var(--g-surface-backdrop);
+  }
+  .g-datepicker__pop::backdrop { opacity: 0; }
+  .g-datepicker__pop:popover-open::backdrop { opacity: 1; }
+  @starting-style {
+    .g-datepicker__pop:popover-open::backdrop { opacity: 0; }
   }
   .g-datepicker__pop .g-datepicker__surface {
     padding-inline: var(--g-space-4);
@@ -742,6 +759,18 @@
   }
   /* La hoja sube desde abajo */
   @media (prefers-reduced-motion: no-preference) {
+    .g-datepicker__pop::backdrop {
+      transition:
+        opacity var(--g-duration-fast) var(--g-ease-out),
+        overlay var(--g-duration-fast) allow-discrete,
+        display var(--g-duration-fast) allow-discrete;
+    }
+    .g-datepicker__pop:popover-open::backdrop {
+      transition:
+        opacity var(--g-duration-press) var(--g-ease-out),
+        overlay var(--g-duration-press) allow-discrete,
+        display var(--g-duration-press) allow-discrete;
+    }
     .g-datepicker__pop:popover-open,
     .g-datepicker__pop.is-up:popover-open {
       animation-name: g-datepicker-sheet-in;
@@ -753,6 +782,15 @@
 }
 
 /* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-datepicker__pop,
+  .g-datepicker__pop::backdrop {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+}
 @media (forced-colors: active) {
   .g-datepicker__field {
     border-color: ButtonText;
