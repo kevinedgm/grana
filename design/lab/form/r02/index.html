@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formularios · r02 · distribución</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco).
+   Lo que SÍ es propuesta de kiwi: la estructura (filas, pesos, pistas compartidas, campos fusionados, orden). */
+:root{--ink:#1f1f1f;--ink-2:#555;--ink-3:#6b6b6b;--line:#dcdcdc;--line-2:#c4c4c4;--ctl:#767676;--fill:#efefef;--fill-2:#f6f6f6;--bg:#f3f3f3;--note:#fff8d6;
+  --font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px;
+  /* Ritmo (propuesta estructural; valores finales de coco): caja 36, etiqueta→caja 6, fila 20, columna 16, sección 40 */
+  --h:max(var(--tmin),36px);--lg:6px;--rg:20px;--cg:16px;--sec:40px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 var(--font);color:var(--ink);background:var(--bg)}
+main{max-inline-size:1360px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:48px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:96ch}
+.wf-note{background:var(--note);border:1px dashed var(--ink-3);padding:8px 12px;font-size:13px;margin:12px 0;max-inline-size:100ch}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px;padding:0;border:0}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+button{font:inherit;color:inherit}
+code{font-size:.92em}
+table.t{border-collapse:collapse;font-size:13px;margin:8px 0;background:#fff}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 10px;text-align:start}
+
+/* ---------- Barra de control del prototipo ---------- */
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl fieldset{border:0;margin:0;padding:0;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.ctl legend{float:left;margin-inline-end:6px;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;min-block-size:max(28px,var(--tmin));padding:0 10px;border:1px solid var(--ctl);border-radius:999px;background:#fff;cursor:pointer}
+.chip:has(input:checked){background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+.chip input{position:absolute;opacity:0;inline-size:1px;block-size:1px}
+
+/* ---------- Marco: el contenedor donde vive el formulario (la página del consumidor) ---------- */
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame[data-narrow]{padding:16px}
+
+/* =====================================================================
+   GForm (estructura)
+   ===================================================================== */
+.form{display:flex;flex-direction:column;gap:var(--sec);margin:0;min-inline-size:0;font-size:14px;line-height:20px}
+.form-intro{margin:0 0 calc(var(--rg) - var(--sec));font-size:13px;color:var(--ink-2)}
+/* Sección: aire + título + descripción. Sin caja, sin divisor */
+.fsec{min-inline-size:0}
+.fsec__head{margin:0 0 16px}
+.fsec__title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0;font-size:16px;line-height:24px;font-weight:600}
+.fsec__desc{margin:2px 0 0;font-size:13px;line-height:18px;color:var(--ink-2)}
+.badge{display:inline-flex;align-items:center;padding:0 8px;border-radius:999px;background:var(--fill);font-size:12px;line-height:20px;font-weight:500;color:var(--ink-2)}
+
+/* ---- GFormLayout: pila vertical de filas. Un campo suelto ES una fila de uno (ocupa el ancho entero) ---- */
+.layout{display:flex;flex-direction:column;gap:var(--rg);min-inline-size:0}
+
+/* ---- GFormRow: campos que van juntos. Pesos dentro de la fila; líneas calculadas por su ancho propio.
+   Tres pistas por línea (etiqueta · caja · pie con ayuda y mensaje) que los hijos comparten por subgrid ---- */
+.row{display:grid;grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:0;min-inline-size:0}
+.row > *{grid-row:span 3;min-inline-size:0}
+.row > * + *{margin-block-start:var(--rg)}            /* sin medir (SSR): una por línea */
+.row[data-laid] > *{margin-block-start:0}
+
+/* ---- Campo: raíz con tres partes como hijos directos (etiqueta · caja · pie) ---- */
+.fld{display:grid;grid-template-rows:auto auto auto;min-inline-size:0;margin:0;padding:0;border:0}
+.row > .fld{grid-template-rows:subgrid}
+.fld > .lbl{grid-row:1;align-self:end;display:block;margin:0 0 var(--lg);padding:0;font-size:13px;line-height:18px;font-weight:600;overflow-wrap:anywhere}
+.fld > .box{grid-row:2}
+.fld > .below{grid-row:3;min-inline-size:0}
+.below > .hint{margin:4px 0 0;font-size:12px;line-height:16px;color:var(--ink-2);overflow-wrap:anywhere}
+.below > .msg{font-size:12px;line-height:16px;font-weight:600;overflow-wrap:anywhere}
+.below > .msg:not(:empty){margin-block-start:4px}
+.msg .g-icon{inline-size:14px;block-size:14px;vertical-align:-2px;margin-inline-end:4px}
+.opt{font-weight:400;color:var(--ink-2)}
+
+/* ---- Caja (wireframe de GInput/GSelect/GDatePicker) ---- */
+.box{position:relative;display:flex;align-items:stretch;min-block-size:var(--h);min-inline-size:0;border:1px solid var(--ctl);border-radius:6px;background:#fff}
+.box:hover{border-color:var(--ink)}
+.box > input,.box > select,.box > textarea{flex:1 1 auto;min-inline-size:0;inline-size:100%;margin:0;border:0;background:transparent;font:inherit;color:inherit;padding:0 12px;outline:none;border-radius:5px}
+.box > select{appearance:none;padding-inline-end:32px;cursor:pointer}
+.box > textarea{padding:8px 12px;min-block-size:84px;resize:vertical}
+.box > .chev{position:absolute;inset-inline-end:10px;top:50%;translate:0 -50%;pointer-events:none;color:var(--ink-2)}
+.box > .lead{display:grid;place-items:center;padding-inline-start:12px;color:var(--ink-2)}
+.box > .lead + input{padding-inline-start:8px}
+.affix{display:flex;align-items:center;flex:none;color:var(--ink-2);white-space:nowrap}
+.affix--pre{padding-inline-start:12px}
+.affix--pre + input{padding-inline-start:6px}
+.affix--suf{padding-inline-end:12px}
+.affix--out:empty{display:none}
+.affix--out{font-variant-numeric:tabular-nums;color:var(--ink)}
+input:has(+ .affix--suf){padding-inline-end:6px}
+/* Foco de un campo de una sola parte: anillo en la caja */
+.box:not(.join):has(:focus-visible){outline:2px solid var(--ink);outline-offset:1px}
+/* Valor calculado (Edad): no es una caja; texto en la pista de la caja, alineado con sus vecinas */
+.box--value{border:0;background:none;align-items:center;padding:0;font-variant-numeric:tabular-nums}
+.box--value:hover{border:0}
+.box--value output{font-size:14px}
+.box--value .muted{color:var(--ink-2)}
+/* Solo lectura / deshabilitado (wireframe) */
+.fld.is-readonly .box{background:var(--fill-2);border-style:dashed}
+.fld.is-disabled .box{opacity:.5;border-style:dotted;cursor:not-allowed}
+.fld.is-disabled .lbl{color:var(--ink-3)}
+
+/* ---- Segmentado (GRadioGroup appearance="segmented"): radiogroup con etiqueta en la pista ---- */
+.segbox{padding:0;display:flex}
+.segbox > label{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-inline-size:0;padding:0 8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-inline-start:1px solid var(--line-2)}
+.segbox > label:first-child{border-inline-start:0;border-start-start-radius:5px;border-end-start-radius:5px}
+.segbox > label:last-child{border-start-end-radius:5px;border-end-end-radius:5px}
+.segbox > label:has(input:checked){background:var(--ink);color:#fff}
+.segbox > label:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:-4px;box-shadow:inset 0 0 0 4px #fff}
+.segbox input{position:absolute;opacity:0;inline-size:1px;block-size:1px;margin:0}
+
+/* ---- Campo fusionado (GInputGroup): una caja, una etiqueta, varias partes con foco propio ---- */
+.join{padding:0}
+.join > .part{position:relative;display:flex;align-items:stretch;flex:1 1 auto;min-inline-size:0;border-inline-start:1px solid var(--line-2)}
+.join > .part:first-child{border-inline-start:0}
+.join > .part--fit{flex:0 0 auto}
+.join > .part--xs{flex:0 0 7ch}
+.join > .part > input,.join > .part > select{flex:1 1 auto;min-inline-size:0;inline-size:100%;border:0;margin:0;background:transparent;font:inherit;color:inherit;padding:0 12px;outline:none}
+.join > .part > select{appearance:none;padding-inline-end:30px;cursor:pointer}
+.join > .part > .chev{position:absolute;inset-inline-end:8px;top:50%;translate:0 -50%;pointer-events:none;color:var(--ink-2)}
+.join > .sep,.join > .affix{flex:none;display:flex;align-items:center;padding:0 2px;color:var(--ink-2)}
+.join > .affix--suf{padding-inline:6px 12px}
+.join > .sep + .part,.join > .part + .sep{border-inline-start:0}
+/* Foco: un anillo por parte, dentro de la caja (la caja no se ilumina entera) */
+.join > .part:has(:focus-visible){outline:2px solid var(--ink);outline-offset:-3px;border-radius:5px;z-index:1}
+.join > .part:has([aria-invalid=true]){box-shadow:inset 0 -3px 0 var(--ink)}
+.fld.is-readonly .join > .part{border-inline-start-style:dashed}
+
+/* ---- Estados del mensaje (wireframe: grosor/estilo del borde + icono + prefijo oculto) ---- */
+.fld.is-invalid .box{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.fld.is-warning .box{border-style:dashed;border-color:var(--ink)}
+.fld.is-warning .msg{font-weight:500}
+.fld.is-valid .msg{font-weight:400}
+.fld.is-invalid .box--value,.fld.is-warning .box--value{border:0;box-shadow:none}
+
+/* ---- Casillas (wireframe de GCheckbox/GCheckboxGroup) ---- */
+.checks{display:flex;flex-wrap:wrap;gap:4px 24px}
+.chk{display:inline-flex;align-items:center;gap:10px;min-block-size:max(32px,var(--tmin));cursor:pointer}
+.chk input{inline-size:18px;block-size:18px;margin:0;accent-color:var(--ink)}
+
+/* ---- Acciones (GFormActions): al final, terminan en el mismo borde que las filas ---- */
+.actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding-block-start:4px}
+.actions__status{margin-inline-end:auto;font-size:13px;color:var(--ink-2)}
+.actions[data-stacked]{flex-direction:column;align-items:stretch}
+.actions[data-stacked] .actions__status{margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-block-size:max(36px,var(--tmin));padding:0 16px;border:1px solid var(--ink);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;line-height:20px;white-space:nowrap}
+.btn--primary{background:var(--ink);color:#fff}
+.btn--ghost{border-color:transparent}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin-top:8px;min-block-size:1.4em}
+
+/* Diagrama del modelo */
+.model{display:grid;gap:6px;margin:8px 0 4px}
+.model__row{display:grid;gap:6px}
+.model__cell{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 8px;block-size:28px;background:var(--fill);border:1px solid var(--line-2);border-radius:4px;font:12px/1 ui-monospace,Menlo,monospace;white-space:nowrap;overflow:hidden}
+</style>
+</head>
+<body>
+<main>
+<h1>Formularios · r02 · distribución</h1>
+<p class="cap"><b>kiwi</b> · sustituye la distribución de la Fase 1 (rechazada, <code>brief.md</code>). Kit gris de wireframe: el aspecto es de coco; aquí se propone <b>estructura</b>: filas explícitas que llenan el ancho, pesos dentro de la fila, pistas compartidas etiqueta · caja · pie (ayuda y mensaje), campos fusionados y orden de lectura. Ver <code>declaracion.md</code> y <code>comparacion.html</code>.</p>
+
+<div class="ctl" role="group" aria-label="Controles del prototipo">
+  <fieldset id="ctl-width"><legend>Ancho del contenedor</legend></fieldset>
+  <fieldset id="ctl-state"><legend>Estado</legend></fieldset>
+  <label class="chip"><input type="checkbox" id="ctl-long"> Etiquetas largas</label>
+</div>
+
+<h2 class="demo">0 · Modelo: filas explícitas, pesos, líneas por ancho propio</h2>
+<p class="cap">Cada <b>fila</b> la declara el consumidor (qué va junto). Cada campo trae un <b>tamaño</b> que es a la vez un <b>peso</b> (cuánto se lleva de la fila) y un <b>mínimo</b> (cuánto necesita para ser útil). La fila reparte su ancho entero por pesos: <b>todas las filas terminan en el mismo borde</b>. Si en su ancho propio algún campo quedaría por debajo de su mínimo, la fila se parte en líneas (en orden del DOM, con el menor número de líneas y lo más equilibradas posible), y <b>cada línea vuelve a llenar el ancho</b>. Un campo fuera de una fila es una fila de uno: ancho completo.</p>
+<table class="t" aria-label="Tamaños">
+  <thead><tr><th scope="col">Tamaño</th><th scope="col">Peso</th><th scope="col">Mínimo útil</th><th scope="col">Contenido típico</th></tr></thead>
+  <tbody>
+    <tr><td><code>xs</code></td><td>2</td><td>80px (space × 20)</td><td>edad, %, núm. interior, extensión, frecuencia</td></tr>
+    <tr><td><code>sm</code></td><td>3</td><td>128px (space × 32)</td><td>fecha, CP, RFC, temperatura con unidad, presión</td></tr>
+    <tr><td><code>md</code> (por defecto)</td><td>4</td><td>160px (space × 40)</td><td>nombre, apellido, correo, ciudad, teléfono</td></tr>
+    <tr><td><code>lg</code></td><td>8</td><td>240px (space × 60)</td><td>calle, razón social</td></tr>
+  </tbody>
+</table>
+<div class="frame-tag">Mismas tres filas a dos anchos: los pesos se conservan como proporción, el borde derecho es uno</div>
+<div class="frame" data-model style="--fw:100%"><div class="model" id="model"></div></div>
+
+<h2 class="demo">1 · Formulario corto</h2>
+<p class="cap">Fila 1: Nombre <code>md</code> · Apellido <code>md</code>. Fila 2: Correo <code>md</code> · Teléfono <b>fusionado</b> (país + número, una etiqueta) <code>md</code> · Extensión <code>xs</code>. Comentarios suelto (ancho completo). Las cajas de Correo, Teléfono y Extensión comparten línea aunque Correo tenga ayuda debajo.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><div id="f-short"></div></div>
+
+<h2 class="demo">2 · Formulario mediano con secciones</h2>
+<p class="cap">Secciones sin cajas: aire (40) + título + descripción. Edad deja de ser una caja de solo lectura (vacía y oscura en el tema oscuro): es un <b>valor calculado</b> (<code>&lt;output&gt;</code>) que aparece dentro de la caja de la fecha, como una unidad, y se lee con ella (escribe 12/05/1990). Signos vitales: seis medidas en una fila con pesos; a 720 se parten en dos líneas y a 360 en tres, y cada línea llena el ancho. Datos fiscales: RFC <code>sm</code> · Razón social <code>lg</code>; Régimen <code>md</code> · Uso del CFDI <code>md</code> · CP <code>sm</code>.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><div id="f-medium"></div></div>
+
+<h2 class="demo">3 · Dirección (receta)</h2>
+<p class="cap">Calle <code>lg</code> · Núm. exterior <code>xs</code> · Núm. interior <code>xs</code> / Colonia <code>md</code> · Código postal <code>sm</code> · Ciudad <code>md</code> / Estado <code>md</code> · País <code>md</code>. «Núm. interior (opcional)» puede partirse en dos líneas sin bajar su caja.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><div id="f-address"></div></div>
+
+<h2 class="demo">4 · Campos fusionados (GInputGroup)</h2>
+<p class="cap">Una caja, <b>una</b> etiqueta visible, varias partes; cada parte tiene foco y nombre accesible propios (etiqueta visible + nombre de la parte, oculto). Un mensaje para todo el campo; la parte que falla lleva <code>aria-invalid</code>. Sustituye a <code>GFieldGroup</code> cuando las etiquetas de parte empujaban la fila.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><div id="f-join"></div></div>
+
+<h2 class="demo">5 · Pregunta compuesta de verdad (GFieldGroup): fecha en tres partes</h2>
+<p class="cap"><code>GFieldGroup</code> queda para preguntas que <b>necesitan</b> etiquetas por parte (Día · Mes · Año, GOV.UK «date input»). Va siempre <b>en su propia fila</b> (nunca junto a campos independientes), así su leyenda no puede bajar las cajas de nadie; dentro, sus partes usan el mismo motor de fila y comparten pistas.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><div id="f-group"></div></div>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+'use strict';
+const I = (n) => window.lucide(n);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ===================== Constantes del modelo (propuesta) ===================== */
+const WEIGHT = { xs: 2, sm: 3, md: 4, lg: 8 };
+const MIN = { xs: 80, sm: 128, md: 160, lg: 240 };
+
+/* ===================== Constructores de campos (marcado = el que tendría el componente) ===================== */
+let LONG = false;
+const L = (short, long) => (LONG && long ? long : short);
+const opt = (o) => (o.opt ? ' <span class="opt">(opcional)</span>' : '');
+const sizeAttrs = (o) => `data-size="${o.size || 'md'}"${o.min ? ` data-min="${o.min}"` : ''}${o.w ? ` data-w="${o.w}"` : ''}`;
+const tail = (o) => `<div class="below">${o.hint ? `<p class="hint" id="${o.id}-hint">${esc(o.hint)}</p>` : ''}<div class="msg" id="${o.id}-msg" aria-live="polite"></div></div>`;
+const desc = (o) => (o.hint ? ` aria-describedby="${o.id}-hint"` : '');
+
+function input(o) {
+  const pre = o.prefix ? `<span class="affix affix--pre" aria-hidden="true">${esc(o.prefix)}</span>` : '';
+  const suf = o.suffix ? `<span class="affix affix--suf" aria-hidden="true">${esc(o.suffix)}</span><span class="sr" id="${o.id}-suf">${esc(o.suffixLabel || o.suffix)}</span>` : '';
+  const lead = o.icon ? `<span class="lead" aria-hidden="true">${I(o.icon)}</span>` : '';
+  const d = [o.hint && `${o.id}-hint`, o.suffix && `${o.id}-suf`, o.out && `${o.out}`].filter(Boolean).join(' ');
+  const out = o.out ? `<output class="affix affix--suf affix--out" id="${o.out}" for="${o.id}" aria-live="polite"></output>` : '';
+  return `<div class="fld${o.readonly ? ' is-readonly' : ''}" ${sizeAttrs(o)} data-field="${o.id}">
+    <label class="lbl" for="${o.id}" data-long="${esc(o.long || '')}" data-short="${esc(o.label)}">${esc(L(o.label, o.long))}${opt(o)}</label>
+    <div class="box">${lead}${pre}<input id="${o.id}" name="${o.name || o.id}" type="${o.type || 'text'}"${o.ac ? ` autocomplete="${o.ac}"` : ''}${o.im ? ` inputmode="${o.im}"` : ''}${o.ph ? ` placeholder="${esc(o.ph)}"` : ''}${o.req ? ' required' : ''}${o.readonly ? ' readonly' : ''}${o.value ? ` value="${esc(o.value)}"` : ''}${d ? ` aria-describedby="${d}"` : ''}>${suf}${out}</div>
+    ${tail(o)}</div>`;
+}
+function select(o) {
+  return `<div class="fld" ${sizeAttrs(o)} data-field="${o.id}">
+    <label class="lbl" for="${o.id}" data-long="${esc(o.long || '')}" data-short="${esc(o.label)}">${esc(L(o.label, o.long))}${opt(o)}</label>
+    <div class="box"><select id="${o.id}" name="${o.name || o.id}"${o.ac ? ` autocomplete="${o.ac}"` : ''}${o.req ? ' required' : ''}${desc(o)}>${(o.options || []).map((x) => `<option${x === o.value ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select><span class="chev" aria-hidden="true">${I('chevron-down')}</span></div>
+    ${tail(o)}</div>`;
+}
+function textarea(o) {
+  return `<div class="fld" ${sizeAttrs(o)} data-field="${o.id}">
+    <label class="lbl" for="${o.id}">${esc(o.label)}${opt(o)}</label>
+    <div class="box"><textarea id="${o.id}" name="${o.name || o.id}" rows="3"${desc(o)}></textarea></div>
+    ${tail(o)}</div>`;
+}
+/* Segmentado = radiogroup (no fieldset: un <legend> no participa en las pistas compartidas) */
+function seg(o) {
+  return `<div class="fld" role="radiogroup" aria-labelledby="${o.id}-lbl"${o.req ? ' aria-required="true"' : ''}${desc(o)} ${sizeAttrs(o)} data-field="${o.id}">
+    <span class="lbl" id="${o.id}-lbl">${esc(o.label)}${opt(o)}</span>
+    <div class="box segbox">${o.options.map((x, i) => `<label><input type="radio" name="${o.name || o.id}" value="${i}"${i === 0 ? ` id="${o.id}"` : ''}><span>${esc(x)}</span></label>`).join('')}</div>
+    ${tail(o)}</div>`;
+}
+/* Campo fusionado. parts: [{ kind:'select'|'input', id, name, partLabel?, principal?, options, ac, im, ph, cls }] + { sep } + { suffix }
+   Nombre de cada parte = etiqueta visible + nombre de la parte (oculto). La principal se nombra solo con la etiqueta visible */
+function join(o) {
+  const lblId = `${o.id}-lbl`;
+  const descIds = (o.hint ? `${o.id}-hint ` : '') + (o.suffixLabel ? `${o.id}-suf` : '');
+  const parts = o.parts.map((p) => {
+    if (p.sep) return `<span class="sep" aria-hidden="true">${esc(p.sep)}</span>`;
+    if (p.suffix) return `<span class="affix affix--suf" aria-hidden="true">${esc(p.suffix)}</span>`;
+    const name = p.principal ? `aria-labelledby="${lblId}"` : `aria-labelledby="${lblId} ${p.id}-pn"`;
+    const pn = p.principal ? '' : `<span class="sr" id="${p.id}-pn">${esc(p.partLabel)}</span>`;
+    const common = `id="${p.id}" name="${p.name || p.id}" ${name}${p.ac ? ` autocomplete="${p.ac}"` : ''}${descIds.trim() ? ` aria-describedby="${descIds.trim()}"` : ''}${o.readonly ? (p.kind === 'select' ? ' aria-readonly="true"' : ' readonly') : ''}${o.disabled ? ' disabled' : ''}`;
+    if (p.kind === 'select') return `<span class="part part--fit ${p.cls || ''}">${pn}<select ${common}>${p.options.map((x) => `<option${x === p.value ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select><span class="chev" aria-hidden="true">${I('chevron-down')}</span></span>`;
+    return `<span class="part ${p.cls || ''}">${pn}<input type="${p.type || 'text'}" ${common}${p.im ? ` inputmode="${p.im}"` : ''}${p.ph ? ` placeholder="${esc(p.ph)}"` : ''}${p.value ? ` value="${esc(p.value)}"` : ''}></span>`;
+  }).join('');
+  return `<div class="fld${o.readonly ? ' is-readonly' : ''}${o.disabled ? ' is-disabled' : ''}" role="group" aria-labelledby="${lblId}" ${sizeAttrs(o)} data-field="${o.id}" data-join>
+    <label class="lbl" id="${lblId}" for="${(o.parts.find((p) => p.principal) || o.parts.find((p) => p.kind)).id}">${esc(o.label)}${opt(o)}</label>
+    <div class="box join">${parts}${o.suffixLabel ? `<span class="sr" id="${o.id}-suf">${esc(o.suffixLabel)}</span>` : ''}</div>
+    ${tail(o)}</div>`;
+}
+function checks(o) {
+  return `<fieldset class="fld" data-field="${o.id}"><legend class="lbl">${esc(o.label)}</legend>
+    <div class="box checks" style="border:0;min-block-size:0">${o.options.map((x, i) => `<label class="chk"><input type="checkbox" name="${o.id}" value="${i}"${i === 0 ? ` id="${o.id}"` : ''}> ${esc(x)}</label>`).join('')}</div>
+    ${tail(o)}</fieldset>`;
+}
+const check = (o) => `<label class="chk" data-field="${o.id}"><input type="checkbox" id="${o.id}" name="${o.id}"> ${esc(o.label)}</label>`;
+const row = (fields, o = {}) => `<div class="row"${o.keep ? ' data-keep' : ''}${o.label ? ` role="group" aria-label="${esc(o.label)}"` : ''}>${fields.join('')}</div>`;
+const layout = (items) => `<div class="layout">${items.join('')}</div>`;
+const section = (title, d, body, o = {}) => `<section class="fsec"><div class="fsec__head"><h3 class="fsec__title">${esc(title)}${o.optional ? ' <span class="badge">Opcional</span>' : ''}</h3>${d ? `<p class="fsec__desc">${esc(d)}</p>` : ''}</div>${body}</section>`;
+const actions = (btns, status = '') => `<div class="actions">${status ? `<span class="actions__status" role="status">${esc(status)}</span>` : ''}${btns}</div>`;
+
+const PAISES = ['MX +52', 'US +1', 'GT +502', 'CO +57', 'ES +34'];
+const phone = (id, extra = {}) => join({ id, label: 'Teléfono', size: 'md', min: 200, ...extra, parts: [
+  { kind: 'select', id: `${id}-pais`, name: `${id}-pais`, partLabel: 'Código de país', options: PAISES, value: 'MX +52', ac: 'tel-country-code' },
+  { kind: 'input', id: `${id}-num`, name: `${id}-numero`, principal: true, type: 'tel', ac: 'tel-national', ph: '951 123 4567' }] });
+
+/* ===================== Formularios (los mismos del playground) ===================== */
+document.getElementById('f-short').innerHTML = `<form class="form" id="fs" aria-label="Contacto" novalidate>${layout([
+  row([input({ id: 'fs-nombre', label: 'Nombre', size: 'md', ac: 'given-name', req: 1 }), input({ id: 'fs-apellido', label: 'Apellido', size: 'md', ac: 'family-name', req: 1, long: 'Apellido o apellidos como en la identificación' })]),
+  row([input({ id: 'fs-correo', label: 'Correo', type: 'email', size: 'md', ac: 'email', req: 1, hint: 'Te enviaremos la confirmación aquí.' }), phone('fs-tel', { hint: '' }), input({ id: 'fs-ext', label: 'Extensión', size: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })]),
+  textarea({ id: 'fs-com', label: 'Comentarios', opt: 1 }),
+  actions('<button class="btn btn--primary" type="submit">Enviar</button>')])}</form><span class="log" id="fs-log"></span>`;
+
+document.getElementById('f-medium').innerHTML = `<form class="form" id="fm" aria-label="Alta de paciente" novalidate>
+${section('Información básica', 'Como aparece en la identificación oficial.', layout([
+  row([input({ id: 'fm-nombre', label: 'Nombre', size: 'md', ac: 'given-name', req: 1 }), input({ id: 'fm-ap1', label: 'Primer apellido', size: 'md', ac: 'family-name', req: 1 }), input({ id: 'fm-ap2', label: 'Segundo apellido', size: 'md', opt: 1, long: 'Segundo apellido o apellido de casada' })]),
+  row([input({ id: 'fm-nac', label: 'Fecha de nacimiento', size: 'sm', min: 176, icon: 'calendar', im: 'numeric', ph: 'dd/mm/aaaa', ac: 'bday', req: 1, out: 'fm-edad', hint: 'La edad se calcula sola.' }), seg({ id: 'fm-sexo', label: 'Sexo', size: 'md', min: 232, req: 1, options: ['Femenino', 'Masculino', 'Otro'] })])]))}
+${section('Contacto', '', layout([
+  row([input({ id: 'fm-correo', label: 'Correo', type: 'email', size: 'md', ac: 'email', req: 1 }), phone('fm-tel'), input({ id: 'fm-ext', label: 'Extensión', size: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })])]))}
+${section('Signos vitales', 'Medidas de hoy. La unidad va dentro de la caja.', layout([
+  row([
+    join({ id: 'fm-temp', label: 'Temperatura', size: 'sm', req: 1, parts: [{ kind: 'input', id: 'fm-temp-v', name: 'temp', principal: true, im: 'decimal', ph: '36.5' }, { kind: 'select', id: 'fm-temp-u', name: 'temp-unidad', partLabel: 'Unidad', options: ['°C', '°F'], value: '°C' }] }),
+    join({ id: 'fm-pa', label: 'Presión arterial', size: 'sm', min: 150, opt: 1, suffixLabel: 'milímetros de mercurio', parts: [{ kind: 'input', id: 'fm-pa-s', name: 'pa-sistolica', partLabel: 'sistólica', principal: false, im: 'numeric', ph: '120' }, { sep: '/' }, { kind: 'input', id: 'fm-pa-d', name: 'pa-diastolica', partLabel: 'diastólica', im: 'numeric', ph: '80' }, { suffix: 'mmHg' }] }),
+    input({ id: 'fm-fc', label: 'Frecuencia', long: 'Frecuencia cardiaca', size: 'xs', opt: 1, im: 'numeric', suffix: 'lpm', suffixLabel: 'latidos por minuto' }),
+    input({ id: 'fm-sat', label: 'Saturación', size: 'xs', opt: 1, im: 'decimal', suffix: '%' }),
+    input({ id: 'fm-peso', label: 'Peso', size: 'xs', opt: 1, im: 'decimal', suffix: 'kg', suffixLabel: 'kilogramos' }),
+    input({ id: 'fm-est', label: 'Estatura', size: 'xs', opt: 1, im: 'numeric', suffix: 'cm', suffixLabel: 'centímetros' })], { label: 'Signos vitales' })]))}
+${section('Datos fiscales', 'Solo si el paciente pide factura.', layout([
+  row([input({ id: 'fm-rfc', label: 'RFC', size: 'sm', ph: 'GODE561231GR8' }), input({ id: 'fm-razon', label: 'Razón social', size: 'lg', ac: 'organization' })]),
+  row([select({ id: 'fm-regimen', label: 'Régimen fiscal', size: 'md', options: ['Elige', '605 Sueldos y salarios', '612 Personas físicas con actividad empresarial', '626 RESICO'] }), select({ id: 'fm-cfdi', label: 'Uso del CFDI', size: 'md', options: ['Elige', 'D01 Honorarios médicos', 'G03 Gastos en general'] }), input({ id: 'fm-cpf', label: 'Código postal', long: 'Código postal del domicilio fiscal', size: 'sm', im: 'numeric', ac: 'postal-code' })])]), { optional: 1 })}
+${section('Preferencias', '', layout([
+  checks({ id: 'fm-avisos', label: 'Avisos', options: ['Por correo', 'Por SMS'] }),
+  check({ id: 'fm-priv', label: 'Acepto el aviso de privacidad' }),
+  textarea({ id: 'fm-obs', label: 'Observaciones', opt: 1, hint: 'Alergias, medicación o lo que el equipo deba saber.' })]))}
+${actions('<button class="btn btn--ghost" type="reset">Restablecer</button><button class="btn" type="submit" formnovalidate>Guardar borrador</button><button class="btn btn--primary" type="submit">Guardar</button>', 'Cambios sin guardar')}
+</form><span class="log" id="fm-log"></span>`;
+
+document.getElementById('f-address').innerHTML = `<form class="form" id="fa" aria-label="Dirección" novalidate>${section('Dirección', '', layout([
+  row([input({ id: 'fa-calle', label: 'Calle', size: 'lg', ac: 'address-line1', req: 1 }), input({ id: 'fa-ext', label: 'Núm. exterior', size: 'xs', req: 1 }), input({ id: 'fa-int', label: 'Núm. interior', size: 'xs', opt: 1, ac: 'address-line2' })]),
+  row([input({ id: 'fa-col', label: 'Colonia', size: 'md', ac: 'address-level3', req: 1 }), input({ id: 'fa-cp', label: 'Código postal', size: 'sm', im: 'numeric', ac: 'postal-code', req: 1 }), input({ id: 'fa-ciudad', label: 'Ciudad', size: 'md', ac: 'address-level2', req: 1 })]),
+  row([select({ id: 'fa-estado', label: 'Estado', size: 'md', options: ['Elige un estado', 'Oaxaca', 'Puebla', 'Jalisco'] }), input({ id: 'fa-pais', label: 'País', size: 'md', ac: 'country-name', value: 'México' })])]))}</form>`;
+
+document.getElementById('f-join').innerHTML = `<form class="form" id="fj" aria-label="Campos fusionados" novalidate>${layout([
+  row([phone('fj-tel', { hint: 'Lo usamos solo para confirmar la cita.' }), input({ id: 'fj-ext', label: 'Extensión', size: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })]),
+  row([
+    join({ id: 'fj-temp', label: 'Temperatura', size: 'sm', parts: [{ kind: 'input', id: 'fj-temp-v', name: 'temp', principal: true, im: 'decimal', ph: '36.5' }, { kind: 'select', id: 'fj-temp-u', name: 'temp-unidad', partLabel: 'Unidad', options: ['°C', '°F'], value: '°C' }] }),
+    join({ id: 'fj-imp', label: 'Copago', size: 'sm', min: 150, parts: [{ kind: 'select', id: 'fj-imp-m', name: 'moneda', partLabel: 'Moneda', options: ['MXN', 'USD'], value: 'MXN' }, { kind: 'input', id: 'fj-imp-v', name: 'importe', principal: true, im: 'decimal', ph: '0.00' }] }),
+    join({ id: 'fj-folio', label: 'Folio de factura', size: 'sm', min: 150, parts: [{ kind: 'input', id: 'fj-folio-s', name: 'serie', partLabel: 'Serie', cls: 'part--xs', ph: 'A' }, { kind: 'input', id: 'fj-folio-n', name: 'folio', principal: true, im: 'numeric', ph: '000123' }] }),
+    join({ id: 'fj-rango', label: 'Rango de edad', size: 'sm', min: 170, suffixLabel: 'años', parts: [{ kind: 'input', id: 'fj-rango-a', name: 'edad-desde', partLabel: 'desde', im: 'numeric', ph: '18' }, { sep: 'a' }, { kind: 'input', id: 'fj-rango-b', name: 'edad-hasta', partLabel: 'hasta', im: 'numeric', ph: '65' }, { suffix: 'años' }] })]),
+  row([
+    join({ id: 'fj-ro', label: 'Teléfono (solo lectura)', size: 'md', min: 176, readonly: 1, parts: [{ kind: 'select', id: 'fj-ro-p', name: 'ro-pais', partLabel: 'Código de país', options: PAISES, value: 'MX +52' }, { kind: 'input', id: 'fj-ro-n', name: 'ro-num', principal: true, type: 'tel', value: '951 123 4567' }] }),
+    join({ id: 'fj-dis', label: 'Teléfono (deshabilitado)', size: 'md', min: 176, disabled: 1, parts: [{ kind: 'select', id: 'fj-dis-p', name: 'dis-pais', partLabel: 'Código de país', options: PAISES, value: 'MX +52' }, { kind: 'input', id: 'fj-dis-n', name: 'dis-num', principal: true, type: 'tel' }] })])])}</form>`;
+
+document.getElementById('f-group').innerHTML = `<form class="form" id="fg" aria-label="Preguntas compuestas" novalidate>${layout([
+  `<fieldset class="fld fgroup" data-field="fg-emer" aria-describedby="fg-emer-hint"><legend class="lbl">Contacto de emergencia</legend>
+     <div class="row">${input({ id: 'fg-en', label: 'Nombre', size: 'md', ac: 'section-emer name' })}${input({ id: 'fg-ep', label: 'Parentesco', size: 'sm' })}${phone('fg-et')}</div>
+     <div class="below"><p class="hint" id="fg-emer-hint">A quién llamamos si no podemos localizarte.</p><div class="msg" id="fg-emer-msg" aria-live="polite"></div></div></fieldset>`,
+  `<fieldset class="fld fgroup" data-field="fg-fecha" aria-describedby="fg-fecha-hint"><legend class="lbl">Fecha de la última consulta</legend>
+     <div class="row" data-keep>${input({ id: 'fg-d', label: 'Día', size: 'xs', im: 'numeric' })}${input({ id: 'fg-m', label: 'Mes', size: 'xs', im: 'numeric' })}${input({ id: 'fg-a', label: 'Año', size: 'sm', im: 'numeric' })}</div>
+     <div class="below"><p class="hint" id="fg-fecha-hint">Por ejemplo, 27 3 2026</p><div class="msg" id="fg-fecha-msg" aria-live="polite"></div></div></fieldset>`])}</form>`;
+
+/* Diagrama del modelo */
+const MODEL = [[['Nombre', 'md'], ['Primer apellido', 'md'], ['Segundo apellido', 'md']], [['Fecha de nacimiento', 'sm'], ['Sexo', 'md']], [['Calle', 'lg'], ['Ext.', 'xs'], ['Int.', 'xs']], [['RFC', 'sm'], ['Razón social', 'lg']]];
+document.getElementById('model').innerHTML = MODEL.map((r) => `<div class="model__row" style="grid-template-columns:${r.map(([, s]) => WEIGHT[s] + 'fr').join(' ')}">${r.map(([n, s]) => `<span class="model__cell"><span>${n}</span><span>${s}·${WEIGHT[s]}</span></span>`).join('')}</div>`).join('');
+
+/* ===================== Motor de fila (lo que haría GFormRow) =====================
+   1) Mide su ancho propio. 2) Elige la partición en líneas contiguas (orden del DOM) con menos líneas en la que
+   cada campo recibe, por su peso, al menos su mínimo; desempate: la más holgada (máx. del mínimo ancho/mínimo).
+   3) Cada línea reparte el ancho entero por pesos. 4) Coloca: columnas = todos los bordes de todas las líneas;
+   filas = 3 pistas por línea (etiqueta · caja · pie) + separación de fila entre líneas. */
+const px = (el, prop) => parseFloat(getComputedStyle(el).getPropertyValue(prop)) || 0;
+function partitions(n) {
+  const out = [];
+  for (let mask = 0; mask < 1 << (n - 1); mask++) {
+    const parts = []; let cur = [0];
+    for (let i = 1; i < n; i++) { if (mask & (1 << (i - 1))) { parts.push(cur); cur = [i]; } else cur.push(i); }
+    parts.push(cur); out.push(parts);
+  }
+  return out;
+}
+function layoutRow(rowEl) {
+  const kids = [...rowEl.children];
+  if (!kids.length) return;
+  const avail = rowEl.clientWidth;
+  if (!avail) return;
+  const gap = px(document.documentElement, '--cg');
+  const items = kids.map((el) => { const s = el.dataset.size || 'md'; return { el, w: +el.dataset.w || WEIGHT[s], min: Math.max(+el.dataset.min || 0, MIN[s]) }; });
+  const slack = (line) => { const free = avail - gap * (line.length - 1); const W = line.reduce((a, b) => a + items[b].w, 0); return Math.min(...line.map((i) => (items[i].w / W * free) / items[i].min)); };
+  let best;
+  if (rowEl.hasAttribute('data-keep')) best = [items.map((_, i) => i)];
+  else if (items.length > 8) { best = items.map((_, i) => [i]); }
+  else {
+    let bestScore = -Infinity;
+    for (const p of partitions(items.length)) {
+      const s = Math.min(...p.map(slack));
+      if (s < 0.999) continue;
+      const score = -p.length * 1000 + s;
+      if (score > bestScore) { bestScore = score; best = p; }
+    }
+    if (!best) best = items.map((_, i) => [i]);
+  }
+  // Bordes por línea
+  const edges = new Set([0, avail]);
+  const spans = [];
+  best.forEach((line, li) => {
+    const free = avail - gap * (line.length - 1); const W = line.reduce((a, b) => a + items[b].w, 0);
+    let x = 0;
+    line.forEach((i, k) => {
+      const w = items[i].w / W * free; const s = +x.toFixed(2); const e = k === line.length - 1 ? avail : +(x + w).toFixed(2);
+      edges.add(s); edges.add(e); spans.push({ i, li, s, e }); x = x + w + gap;
+    });
+  });
+  const cols = [...edges].sort((a, b) => a - b);
+  const tracks = cols.slice(1).map((c, k) => `${+(c - cols[k]).toFixed(2)}px`);
+  tracks[tracks.length - 1] = 'minmax(0,1fr)';
+  rowEl.style.gridTemplateColumns = tracks.join(' ');
+  rowEl.style.gridTemplateRows = best.map(() => 'auto auto auto').join(' var(--rg) ');
+  for (const sp of spans) {
+    const el = items[sp.i].el;
+    el.style.gridColumn = `${cols.indexOf(sp.s) + 1} / ${cols.indexOf(sp.e) + 1}`;
+    el.style.gridRow = `${sp.li * 4 + 1} / span 3`;
+    el.dataset.line = sp.li;
+  }
+  rowEl.dataset.lines = best.length;
+  rowEl.setAttribute('data-laid', '');
+}
+const ro = new ResizeObserver((entries) => {
+  for (const e of entries) {
+    const t = e.target;
+    if (t.classList.contains('row')) layoutRow(t);
+    else if (t.classList.contains('frame')) t.toggleAttribute('data-narrow', t.clientWidth < 600);
+    else if (t.classList.contains('actions')) t.toggleAttribute('data-stacked', t.clientWidth < 420);
+  }
+});
+document.querySelectorAll('.row, .frame, .actions').forEach((el) => ro.observe(el));
+
+/* ===================== Edad calculada ===================== */
+const nac = document.getElementById('fm-nac'), edad = document.getElementById('fm-edad');
+nac.addEventListener('input', () => {
+  const m = nac.value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) { edad.textContent = ''; return; }
+  const d = new Date(+m[3], +m[2] - 1, +m[1]); const now = new Date(2026, 9, 1);
+  let a = now.getFullYear() - d.getFullYear(); if (now < new Date(now.getFullYear(), d.getMonth(), d.getDate())) a--;
+  edad.textContent = a >= 0 && a < 130 ? `${a} años` : '';
+});
+
+/* ===================== Estados (ayuda, error, advertencia, válido) ===================== */
+const MSG = {
+  'fs-correo': ['error', 'Escribe el correo con el formato nombre@dominio.com'],
+  'fs-tel': ['error', 'Escribe el número a 10 dígitos, sin la clave del país', 'fs-tel-num'],
+  'fm-ap1': ['error', 'Escribe el primer apellido como aparece en la identificación'],
+  'fm-sexo': ['error', 'Elige el sexo'],
+  'fm-temp': ['warning', 'Temperatura alta: confirma la lectura', 'fm-temp-v'],
+  'fm-cpf': ['valid', 'Código postal de Oaxaca de Juárez'],
+  'fm-rfc': ['error', 'El RFC de persona física tiene 13 caracteres'],
+  'fa-cp': ['valid', 'Oaxaca de Juárez, Oaxaca'],
+  'fa-int': ['error', 'Escribe solo letras y números'],
+  'fj-tel': ['error', 'Elige el código de país', 'fj-tel-pais'],
+  'fj-rango': ['error', 'La edad final debe ser mayor que la inicial', 'fj-rango-b'],
+  'fg-fecha': ['error', 'La fecha debe incluir el año'],
+};
+const ICON = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' };
+const PREFIX = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:' };
+function setState(on) {
+  for (const [id, [type, text, part]] of Object.entries(MSG)) {
+    const root = document.querySelector(`[data-field="${id}"]`); if (!root) continue;
+    const msg = document.getElementById(`${id}-msg`);
+    root.classList.remove('is-invalid', 'is-warning', 'is-valid');
+    const ctrls = root.matches('[data-join]') ? [...root.querySelectorAll('.part > input, .part > select')] : root.matches('[role=radiogroup]') ? [root] : [...root.querySelectorAll('input,select,textarea')].slice(0, 1);
+    ctrls.forEach((c) => { c.removeAttribute('aria-invalid'); const d = (c.getAttribute('aria-describedby') || '').split(' ').filter((x) => x && x !== msg.id); if (d.length) c.setAttribute('aria-describedby', d.join(' ')); else c.removeAttribute('aria-describedby'); });
+    if (!on) { msg.innerHTML = ''; continue; }
+    root.classList.add(type === 'error' ? 'is-invalid' : `is-${type}`);
+    msg.innerHTML = `${I(ICON[type])}<span class="sr">${PREFIX[type]} </span>${esc(text)}`;
+    ctrls.forEach((c) => { c.setAttribute('aria-describedby', [c.getAttribute('aria-describedby'), msg.id].filter(Boolean).join(' ')); });
+    if (type === 'error') (part ? [document.getElementById(part)] : ctrls).forEach((c) => c.setAttribute('aria-invalid', 'true'));
+  }
+  // Ayudas extra para probar alineación con texto debajo
+  document.querySelectorAll('[data-extra-hint]').forEach((h) => h.remove());
+  if (on) for (const id of ['fm-nombre', 'fa-calle', 'fj-imp']) {
+    const r = document.querySelector(`[data-field="${id}"]`); const p = document.createElement('p'); p.className = 'hint'; p.dataset.extraHint = ''; p.id = `${id}-hint2`; p.textContent = 'Ayuda de ejemplo que ocupa una o dos líneas para probar la alineación.'; r.querySelector('.msg').before(p);
+  }
+}
+function setLong(on) {
+  LONG = on;
+  document.querySelectorAll('label.lbl[data-long]').forEach((l) => { const long = l.dataset.long; if (!long) return; const o = l.querySelector('.opt'); l.textContent = on ? long : l.dataset.short; if (o) l.append(' ', o); });
+}
+
+/* ===================== Controles del prototipo ===================== */
+const WIDTHS = ['100%', 1280, 960, 720, 480, 360, 320];
+const cw = document.getElementById('ctl-width');
+cw.insertAdjacentHTML('beforeend', WIDTHS.map((w, i) => `<label class="chip"><input type="radio" name="cw" value="${w}"${i === 0 ? ' checked' : ''}> ${w === '100%' ? 'Libre' : w}</label>`).join(''));
+const cs = document.getElementById('ctl-state');
+cs.insertAdjacentHTML('beforeend', ['Limpio', 'Ayuda y mensajes'].map((t, i) => `<label class="chip"><input type="radio" name="cs" value="${i}"${i === 0 ? ' checked' : ''}> ${t}</label>`).join(''));
+function setWidth(w) {
+  document.querySelectorAll('[data-frame]').forEach((f) => { f.style.setProperty('--fw', w === '100%' ? '100%' : w + 'px'); });
+  document.querySelectorAll('[data-tag]').forEach((t) => { t.textContent = w === '100%' ? 'Contenedor: ancho libre (arrastra la ventana)' : `Contenedor: ${w}px`; });
+}
+cw.addEventListener('change', (e) => setWidth(e.target.value));
+cs.addEventListener('change', (e) => setState(e.target.value === '1'));
+document.getElementById('ctl-long').addEventListener('change', (e) => setLong(e.target.checked));
+document.querySelectorAll('form').forEach((f) => f.addEventListener('submit', (e) => { e.preventDefault(); const log = document.getElementById(f.id + '-log'); if (log) log.textContent = 'Enviado (prototipo): ' + [...new FormData(f).keys()].join(', '); }));
+setWidth('100%');
+// Gancho de verificación
+window.__r02 = { setWidth, setState, setLong, layoutRow, WEIGHT, MIN };
+</script>
+</body>
+</html>
