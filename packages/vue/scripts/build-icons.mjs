@@ -1,6 +1,9 @@
 // Genera los módulos de iconos desde lucide-static (ISC): docs/contract/icons.md §2.
 //   src/icons/lucide.js           · solo los iconos de la librería (lista «library» de scripts/icons.json)
-//   playground/lucide-icons.js    · los iconos de ejemplo que pone «la aplicación» en el playground (lista «playground»)
+//   playground/lucide-icons.js    · las CADENAS COMPLETAS de lucide-static (con su marca) de los iconos que pone «la aplicación»
+//                                   en el playground (lista «playground»), en window.LUCIDE_STATIC por nombre de exportación.
+//                                   El playground no tiene empaquetador y se sirve desde packages/vue (node_modules queda fuera):
+//                                   las registra con Grana.createIcons(Object.values(window.LUCIDE_STATIC)) (vía pública, icons.md §6)
 //   ../../design/lab/lucide-icons.js · los de la librería y los de ejemplo de los bancos y prototipos (listas «library» y «lab»), con el ayudante window.lucide(nombre, clase, rellena)
 // Uso: node scripts/build-icons.mjs   (una prueba comprueba que los archivos no se desfasen)
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -18,6 +21,14 @@ export const readIcon = (name) => {
   const svg = readFileSync(resolve(pkgDir, 'icons', `${name}.svg`), 'utf8')
   const inner = svg.slice(svg.indexOf('>', svg.indexOf('<svg')) + 1, svg.lastIndexOf('</svg>'))
   return inner.replace(/\s*\n\s*/g, '').replace(/\s+\/>/g, '/>').trim()
+}
+
+/** Exportación de lucide-static de un icono: [nombre de la exportación, cadena completa tal como la exporta el paquete] */
+export const readExport = (name) => {
+  const src = readFileSync(resolve(pkgDir, 'dist/esm/icons', `${name}.mjs`), 'utf8')
+  const m = /const (\w+) = `([^`]*)`;/.exec(src)
+  if (!m) throw new Error(`lucide-static: formato inesperado en ${name}.mjs`)
+  return [m[1], m[2]]
 }
 
 const literal = (names) => names.map((n) => `  ${JSON.stringify(n)}: ${JSON.stringify(readIcon(n))}`).join(',\n')
@@ -45,7 +56,7 @@ export const generate = () => {
   const lists = JSON.parse(readFileSync(resolve(here, 'icons.json'), 'utf8'))
   return {
     lib: `${banner}export const ICONS = {\n${literal(lists.library)}\n}\n`,
-    playground: `${banner}// Iconos de ejemplo del playground (los que «la aplicación» pone en los slots).\nwindow.LUCIDE_ICONS = {\n${literal(lists.playground)}\n}\n`,
+    playground: `${banner}// Iconos de ejemplo del playground («la aplicación»): cadenas completas de lucide-static, como un import { … } from 'lucide-static'.\n// El playground las registra con Grana.createIcons(Object.values(window.LUCIDE_STATIC)) y las dibuja con <g-icon name="…">.\nwindow.LUCIDE_STATIC = {\n${lists.playground.map((n) => readExport(n)).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')}\n}\n`,
     lab: labModule(banner, [...new Set([...lists.library, ...lists.lab])].sort())
   }
 }

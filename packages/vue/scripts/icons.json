@@ -27,12 +27,14 @@
     "x"
   ],
   "playground": [
-    "building-2",
+    "arrow-right",
+    "building-complex",
     "calendar",
     "chart-column",
     "check",
     "circle-check",
     "credit-card",
+    "download",
     "ellipsis-vertical",
     "folder",
     "globe",
@@ -40,6 +42,7 @@
     "image",
     "inbox",
     "lock",
+    "lock-open",
     "mail",
     "map-pin",
     "menu",
@@ -52,6 +55,7 @@
     "settings",
     "share-2",
     "tag",
+    "trash",
     "user",
     "users"
   ],

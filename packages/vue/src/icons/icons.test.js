@@ -6,6 +6,8 @@ import GIcon from '../components/GIcon/GIcon.vue'
 import { ICONS } from './lucide.js'
 import { generate } from '../../scripts/build-icons.mjs'
 import { scan, ROOT } from '../../scripts/check-icons.mjs'
+import { parseLucide } from '../components/GIcon/registry.js'
+import * as lucide from 'lucide-static'
 
 const pkg = process.cwd() // vitest se ejecuta desde packages/vue
 afterEach(() => vi.restoreAllMocks())
@@ -40,7 +42,18 @@ describe('GIcon', () => {
   it('los iconos de cada lista existen en Lucide y el registro solo trae la lista de la librería', () => {
     const lists = JSON.parse(readFileSync(resolve(pkg, 'scripts/icons.json'), 'utf8'))
     expect(Object.keys(ICONS).sort()).toEqual([...lists.library].sort())
-    for (const n of [...lists.library, ...lists.playground]) expect(ICONS[n] ?? generate().playground.includes(JSON.stringify(n)), n).toBeTruthy()
+    for (const n of lists.library) expect(ICONS[n], n).toBeTruthy()
+  })
+
+  it('el módulo del playground trae las cadenas completas de lucide-static (vía pública: createIcons) con los nombres de la lista', () => {
+    const lists = JSON.parse(readFileSync(resolve(pkg, 'scripts/icons.json'), 'utf8'))
+    const win = {}
+    new Function('window', generate().playground)(win)
+    const entries = Object.entries(win.LUCIDE_STATIC)
+    // cada cadena es exactamente la exportación de lucide-static con ese nombre
+    for (const [key, value] of entries) expect(value, key).toBe(lucide[key])
+    // y su nombre (derivado de la marca) es el de la lista: el playground usa nombres canónicos
+    expect(entries.map(([, v]) => parseLucide(v).name).sort()).toEqual([...lists.playground].sort())
   })
 })
 

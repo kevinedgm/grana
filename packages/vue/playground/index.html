@@ -11,6 +11,8 @@
     /* Armazón del playground (no es un componente): solo tokens var(--g-*), así respeta claro/oscuro y el tema de prueba. */
     html { scroll-padding-top: 76px; scroll-behavior: smooth; }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    /* Clase de la aplicación sobre un GIcon suelto: gana a :where(.g-icon) sin !important (icons.md §2.2) */
+    .pg-ic-48 { inline-size: calc(var(--g-space-1) * 12); block-size: calc(var(--g-space-1) * 12); }
     body { margin: 0; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
@@ -159,28 +161,83 @@
     <div class="row">
       <g-btn disabled>Deshabilitado</g-btn>
       <g-btn href="/reservas" disabled>Enlace deshabilitado</g-btn>
-      <g-btn icon aria-label="Cerrar" disabled><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></g-btn>
+      <g-btn icon aria-label="Cerrar" disabled><g-icon name="x"></g-icon></g-btn>
     </div>
 
           </div>
         </section>
         <section class="pg-section" id="sec-icons" data-pg-section>
           <h2>Iconos (Lucide)</h2>
-          <p class="pg-lead">Botones de solo icono y con icono antes o después del texto. Grana no trae iconos: son Lucide.</p>
-          <h3>Iconos (Lucide)</h3>
+          <p class="pg-lead"><code>GIcon</code> público: 1em y <code>currentColor</code>, decorativo por defecto, con <code>label</code> imagen con nombre, nunca enfocable. La librería trae los iconos que usan sus componentes; los demás los registra la aplicación con <code>createIcons</code> importando sus cadenas de <code>lucide-static</code> (solo Lucide).</p>
+          <h3>Decorativo y con nombre</h3>
+          <div class="pg-panel">
+    <div class="row" style="align-items:center">
+      <span id="pg-ic-deco"><g-icon name="lock"></g-icon> Formulario bloqueado</span>
+      <span id="pg-ic-label"><g-icon name="lock" label="Bloqueado"></g-icon></span>
+      <span id="pg-ic-size" style="color:var(--g-color-accent)"><g-icon name="circle-check" class="pg-ic-48"></g-icon></span>
+      <g-btn icon variant="outline" aria-label="Desbloquear" id="pg-ic-btn"><g-icon name="lock-open"></g-icon></g-btn>
+    </div>
+    <p class="pg-lead" style="margin:0">Sin <code>label</code>, el icono queda fuera del árbol de accesibilidad (lo dice el texto); con <code>label</code> es <code>img</code> «Bloqueado». En un botón, el nombre va en el control (<code>aria-label</code>). El tamaño lo da el texto o una clase de la aplicación (48px).</p>
+          </div>
+          <h3>Registro de la aplicación (createIcons)</h3>
+          <div class="pg-panel">
+    <div class="row" style="align-items:center">
+      <span id="pg-ic-open"><g-icon name="lock-open"></g-icon> Edición permitida</span>
+      <span><g-icon name="map-pin"></g-icon> Oaxaca</span>
+      <span><g-icon name="image"></g-icon> Portada</span>
+    </div>
+    <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px;margin:0">import Grana, { createIcons } from '@grana/vue'
+import { LockOpen, MapPin, Image } from 'lucide-static'
+createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
+    <p class="pg-lead" style="margin:0"><code>lock-open</code> no está en la librería: este playground no tiene empaquetador y carga las cadenas completas de <code>lucide-static</code> desde <code>lucide-icons.js</code> (generado por <code>scripts/build-icons.mjs</code>) para registrarlas con <code>createIcons</code>.</p>
+          </div>
+          <h3>flip-rtl (iconos direccionales)</h3>
+          <div class="pg-panel">
+    <div class="row" style="align-items:center">
+      <span id="pg-ic-ltr" dir="ltr"><g-icon name="arrow-right" flip-rtl></g-icon> Siguiente</span>
+      <span id="pg-ic-rtl" dir="rtl"><g-icon name="arrow-right" flip-rtl></g-icon> التالي</span>
+      <span id="pg-ic-rtl-noflip" dir="rtl"><g-icon name="check"></g-icon> بدون انعكاس</span>
+    </div>
+    <p class="pg-lead" style="margin:0">El espejo solo se aplica con dirección efectiva RTL y solo donde se pide (<code>flip-rtl</code>); un <code>check</code> no se espeja.</p>
+          </div>
+          <h3>Desde datos: icon por nombre (GTabs, GMenu, GSidebar)</h3>
+          <div class="pg-panel">
+    <div class="col">
+      <g-tabs id="pg-ic-tabs" v-model="icTab" :items="icTabs" label="Cuenta" appearance="pill" :labels="gtLabels"></g-tabs>
+      <div class="row" style="align-items:center">
+        <g-menu id="pg-ic-menu" v-model="icMenuOpen" :items="icMenu" label="Acciones del registro">
+          <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
+        </g-menu>
+      </div>
+      <div style="display:flex;block-size:260px;inline-size:min(100%, 640px);border:1px dashed var(--g-color-border-strong);background:var(--g-color-surface-sunken)">
+        <g-sidebar id="pg-ic-sidebar" v-model="icSide" :items="icSideItems" label="Secciones" :labels="sbLabels" mode="expanded" contained style="flex:none"></g-sidebar>
+      </div>
+    </div>
+    <p class="pg-lead" style="margin:0">Sin slot <code>icon</code>: un <code>icon</code> cadena dibuja <code>GIcon</code> (registro → librería). Con slot, manda el slot.</p>
+          </div>
+          <h3>Título de sección con lead (GFormSection)</h3>
+          <div class="pg-panel">
+    <g-form id="pg-ic-form" aria-label="Acceso" :labels="{ sectionOptional: 'Opcional' }">
+      <g-form-section id="pg-ic-section" title="Acceso y seguridad" description="Quién puede editar este registro.">
+        <template #lead><g-icon name="lock-open"></g-icon></template>
+        <g-form-layout><g-input label="Responsable" name="resp"></g-input></g-form-layout>
+      </g-form-section>
+    </g-form>
+          </div>
+          <h3>En botones</h3>
           <div class="pg-panel">
     <div class="row">
-      <g-btn icon aria-label="Añadir"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></g-btn>
-      <g-btn icon variant="soft" aria-label="Descargar"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></g-btn>
-      <g-btn icon variant="outline" aria-label="Cerrar"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></g-btn>
-      <g-btn icon variant="ghost" aria-label="Eliminar"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></g-btn>
-      <g-btn icon color="danger" aria-label="Eliminar"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></g-btn>
-      <g-btn v-for="z in ['xs','sm','md','lg','xl']" :key="z" icon variant="soft" :size="z" aria-label="Añadir"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></g-btn>
+      <g-btn icon aria-label="Añadir"><g-icon name="plus"></g-icon></g-btn>
+      <g-btn icon variant="soft" aria-label="Descargar"><g-icon name="download"></g-icon></g-btn>
+      <g-btn icon variant="outline" aria-label="Cerrar"><g-icon name="x"></g-icon></g-btn>
+      <g-btn icon variant="ghost" aria-label="Eliminar"><g-icon name="trash"></g-icon></g-btn>
+      <g-btn icon color="danger" aria-label="Eliminar"><g-icon name="trash"></g-icon></g-btn>
+      <g-btn v-for="z in ['xs','sm','md','lg','xl']" :key="z" icon variant="soft" :size="z" aria-label="Añadir"><g-icon name="plus"></g-icon></g-btn>
     </div>
     <div class="row">
-      <g-btn><template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></template>Nuevo</g-btn>
-      <g-btn variant="outline">Continuar<template #append><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></template></g-btn>
-      <g-btn variant="soft"><template #prepend><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></template>Descargar</g-btn>
+      <g-btn><template #prepend><g-icon name="plus"></g-icon></template>Nuevo</g-btn>
+      <g-btn variant="outline">Continuar<template #append><g-icon name="arrow-right"></g-icon></template></g-btn>
+      <g-btn variant="soft"><template #prepend><g-icon name="download"></g-icon></template>Descargar</g-btn>
     </div>
 
           </div>
@@ -195,10 +252,10 @@
           <div class="pg-panel">
     <div class="col">
       <g-input v-model="email" label="Correo" type="email" required autocomplete="email" hint="Te enviaremos el comprobante." :error="emailError" @blur="checkEmail">
-        <template #prepend><lucide-icon name="mail"></lucide-icon></template>
+        <template #prepend><g-icon name="mail"></g-icon></template>
       </g-input>
       <g-input v-model="pass" label="Contraseña" type="password" required autocomplete="new-password" show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" hint="Mínimo 8 caracteres.">
-        <template #prepend><lucide-icon name="lock"></lucide-icon></template>
+        <template #prepend><g-icon name="lock"></g-icon></template>
       </g-input>
       <g-input v-model="nick" label="Apodo" counter maxlength="12" variant="soft"></g-input>
       <g-input model-value="Oaxaca" label="Ciudad" disabled></g-input>
@@ -212,21 +269,21 @@
     <p class="log">Los slots <code>prepend</code> y <code>append</code> son decorativos (<code>aria-hidden</code>): sirven para iconos, no para texto que el usuario deba leer.</p>
     <div class="col">
       <g-input v-model="q" label="Buscar" type="search" placeholder="Reservas, clientes…">
-        <template #prepend><lucide-icon name="search"></lucide-icon></template>
+        <template #prepend><g-icon name="search"></g-icon></template>
       </g-input>
       <g-input v-model="handle" label="Usuario" autocomplete="username">
-        <template #prepend><lucide-icon name="user"></lucide-icon></template>
-        <template #append><lucide-icon name="circle-check"></lucide-icon></template>
+        <template #prepend><g-icon name="user"></g-icon></template>
+        <template #append><g-icon name="circle-check"></g-icon></template>
       </g-input>
       <g-input v-model="coupon" label="Cupón" variant="soft">
-        <template #prepend><lucide-icon name="tag"></lucide-icon></template>
+        <template #prepend><g-icon name="tag"></g-icon></template>
       </g-input>
       <g-input v-model="site" label="Sitio web" type="url" placeholder="https://">
-        <template #append><lucide-icon name="globe"></lucide-icon></template>
+        <template #append><g-icon name="globe"></g-icon></template>
       </g-input>
       <g-input v-for="z in ['xs','sm','md','lg','xl']" :key="z" v-model="q" :label="'Tamaño ' + z" :size="z">
-        <template #prepend><lucide-icon name="search"></lucide-icon></template>
-        <template #append><lucide-icon name="circle-check"></lucide-icon></template>
+        <template #prepend><g-icon name="search"></g-icon></template>
+        <template #append><g-icon name="circle-check"></g-icon></template>
       </g-input>
     </div>
     <p class="log">Valores: {{ email || '—' }} · {{ pass ? '•'.repeat(pass.length) : '—' }} · {{ nick || '—' }}</p>
@@ -238,15 +295,15 @@
     <div class="col" style="max-width:420px">
       <form @submit.prevent="subscribe" novalidate>
         <g-input v-model="subEmail" label="Correo" type="email" required autocomplete="email" hint="Sin spam, puedes salir cuando quieras." :error="subError" block>
-          <template #prepend><lucide-icon name="mail"></lucide-icon></template>
+          <template #prepend><g-icon name="mail"></g-icon></template>
           <template #action="{ size, density, disabled }"><g-btn type="submit" :size="size" :density="density" :disabled="disabled">Suscribirse</g-btn></template>
         </g-input>
         <p class="log">{{ subLog }}</p>
       </form>
       <form @submit.prevent="search">
         <g-input v-model="q" label="Buscar reservas" type="search" placeholder="Nombre o folio" block>
-          <template #prepend><lucide-icon name="search"></lucide-icon></template>
-          <template #action="{ size, density, disabled }"><g-btn type="submit" icon aria-label="Buscar" :size="size" :density="density" :disabled="disabled"><lucide-icon name="search"></lucide-icon></g-btn></template>
+          <template #prepend><g-icon name="search"></g-icon></template>
+          <template #action="{ size, density, disabled }"><g-btn type="submit" icon aria-label="Buscar" :size="size" :density="density" :disabled="disabled"><g-icon name="search"></g-icon></g-btn></template>
         </g-input>
         <p class="log">{{ searchLog }}</p>
       </form>
@@ -303,8 +360,8 @@
         <template #option="{ option }"><span>{{ option.label }}</span><small style="margin-inline-start:auto;opacity:.7">{{ option.meta }}</small></template>
       </g-select>
       <g-select v-model="selClient" :options="selClients" label="Cliente (prefijo, iconos y agregar nuevo)" placeholder="Elige un cliente" create-label="Agregar nuevo cliente…" @create="selCreate">
-        <template #prepend><lucide-icon name="user"></lucide-icon></template>
-        <template #icon="{ option }"><lucide-icon :name="option.icon"></lucide-icon></template>
+        <template #prepend><g-icon name="user"></g-icon></template>
+        <template #icon="{ option }"><g-icon :name="option.icon"></g-icon></template>
       </g-select>
       <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
       <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
@@ -337,13 +394,13 @@
           <div class="pg-panel">
     <g-checkbox-group v-model="extras" label="Extras de tu pedido" layout="card" :count-text="(n, t) => n + ' de ' + t + ' seleccionados'" hint="Puedes cambiarlos hasta el envío.">
       <g-checkbox value="express" label="Envío express" hint="Llega en 24 horas.">
-        <template #icon><lucide-icon name="mail"></lucide-icon></template><template #meta>$99</template>
+        <template #icon><g-icon name="mail"></g-icon></template><template #meta>$99</template>
       </g-checkbox>
       <g-checkbox value="garantia" label="Garantía extendida" hint="Dos años adicionales de cobertura.">
-        <template #icon><lucide-icon name="lock"></lucide-icon></template><template #meta>$149</template>
+        <template #icon><g-icon name="lock"></g-icon></template><template #meta>$149</template>
       </g-checkbox>
       <g-checkbox value="instalacion" label="Instalación" hint="No disponible en tu zona." disabled>
-        <template #icon><lucide-icon name="tag"></lucide-icon></template><template #meta>$59</template>
+        <template #icon><g-icon name="tag"></g-icon></template><template #meta>$59</template>
       </g-checkbox>
     </g-checkbox-group>
     <p class="log">Elegidos: {{ extras.join(', ') || '—' }}</p>
@@ -389,8 +446,8 @@
       <g-switch :model-value="true" label="Administrado por tu organización" readonly></g-switch>
       <g-switch :model-value="true" label="Incluido en tu plan" disabled></g-switch>
       <g-switch v-model="swIcons" label="Con iconos on/off" size="lg">
-        <template #icon-on><lucide-icon name="circle-check"></lucide-icon></template>
-        <template #icon-off><lucide-icon name="lock"></lucide-icon></template>
+        <template #icon-on><g-icon name="circle-check"></g-icon></template>
+        <template #icon-off><g-icon name="lock"></g-icon></template>
       </g-switch>
       <div class="row">
         <g-switch v-for="c in ['accent','success','warning','danger','info']" :key="c" :color="c" :model-value="true" :label="c"></g-switch>
@@ -781,10 +838,9 @@
           <g-sidebar v-model="sbActive" v-model:open="sbOpen" :items="sbItems" label="Principal" :labels="sbLabels" :mode="sbModeSel" :mobile="sbMobile" :variant="sbFloat ? 'floating' : 'fixed'" :overlay="sbOver" :search="sbSearch" contained style="flex:none"
             @mode-change="sbMode = $event" @search="sbLog = 'search → la aplicación abre su paleta'" @navigate="sbLog = 'navigate → ' + $event.item.id">
             <template #logo="{ collapsed }"><span style="display:inline-block;inline-size:28px;block-size:28px;border-radius:8px;background:var(--g-color-brand);flex:none"></span><span v-if="!collapsed">Grana</span></template>
-            <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
-            <template #toggle-icon><lucide-icon name="panel"></lucide-icon></template>
-            <template #search-icon><lucide-icon name="search"></lucide-icon></template>
-            <template #more-icon><lucide-icon name="menu"></lucide-icon></template>
+            <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+            <template #search-icon><g-icon name="search"></g-icon></template>
+            <template #more-icon><g-icon name="menu"></g-icon></template>
             <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><span style="flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600">AG</span><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
           </g-sidebar>
           <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px', paddingInlineStart: sbMode.overlay ? 'calc(var(--g-sidebar-rail) + 20px)' : '20px' }">
@@ -806,7 +862,6 @@
           <div class="pg-panel">
     <div class="col" style="max-width:820px" id="tabs-demo">
       <g-tabs v-model="gtTab" :items="gtItems" :labels="gtLabels" label="Cuenta" @change="gtChange">
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
         <template #panel="{ item }"><p style="margin:0">Contenido de «{{ item.label }}». <g-btn size="sm" variant="outline">Un control</g-btn></p></template>
       </g-tabs>
       <div class="row">
@@ -827,7 +882,6 @@
       <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="arrows" label="Desbordamiento: flechas" appearance="pill"></g-tabs></div>
       <div style="max-width:360px"><g-tabs v-model="gtLong" :items="gtLongItems" :labels="gtLabels" overflow="more" label="Desbordamiento: más"></g-tabs></div>
       <div style="max-width:340px"><g-tabs v-model="gtIcon" :items="gtIconItems" :labels="gtLabels" label-mode="auto" label="Etiquetas según el espacio" appearance="pill">
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
       </g-tabs></div>
       <div dir="rtl" style="max-width:520px"><g-tabs v-model="gtRtl" :items="gtRtlItems" :labels="gtLabels" label="الإعدادات" overflow="arrows"></g-tabs></div>
       <g-tabs v-model="gtDet" :items="gtSegItems" detached id="tb-detached" label="Paneles separados" appearance="pill"></g-tabs>
@@ -861,7 +915,7 @@
       <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="dot" aria-label="Registro de cuenta (puntos)"></g-stepper>
       <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="line" aria-label="Registro de cuenta (línea)"></g-stepper>
       <g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" indicator="icon" aria-label="Registro de cuenta (iconos)">
-        <template #icon="{ step }"><lucide-icon :name="step.icon"></lucide-icon></template>
+        <template #icon="{ step }"><g-icon :name="step.icon"></g-icon></template>
       </g-stepper>
       <div style="max-width:320px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" navigation="back" aria-label="Registro de cuenta (estrecho)"></g-stepper></div>
       <div style="max-width:360px"><g-stepper v-model="stpCur" :steps="stpSteps" :labels="stpLabels" orientation="vertical" navigation="back" aria-label="Registro de cuenta (vertical)">
@@ -878,7 +932,6 @@
     <div class="row">
       <g-menu v-model="mnOpen" :items="mnItems" label="Acciones del archivo" @select="mnSelect">
         <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
-        <template #icon="{ item }"><lucide-icon :name="item.icon"></lucide-icon></template>
       </g-menu>
       <span>Último: <b>{{ mnLog }}</b></span>
     </div>
@@ -925,19 +978,19 @@
       <div class="cd-grid" :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
         <g-card id="cd-basic" title="Notas de la versión" description="Un resumen breve de lo que contiene esta tarjeta." :labels="cdLabels" :loading="cdLoading"></g-card>
         <g-card id="cd-media" href="#articulo" eyebrow="Artículo" title="Un paseo por el mercado" description="Una descripción lo bastante larga como para ocupar dos líneas en la mayoría de los anchos, y seguir siendo clara para quien la lee con lector de pantalla." :description-lines="2" expandable :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #media><div class="cd-ph"><g-icon name="image"></g-icon></div></template>
           <template #footer><span>5 min de lectura</span><span>12 jun</span></template>
         </g-card>
         <g-card id="cd-entity" href="#atlas" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" badge-color="success" :meta="cdMeta" :menu="cdMenu" :labels="cdLabels" :loading="cdLoading" selectable v-model="cdSel" @navigate="cdNavigate" @action="cdLog = 'acción: ' + $event.id">
-          <template #lead><lucide-icon class="g-icon" name="building-2"></lucide-icon></template>
+          <template #lead><g-icon name="building-complex"></g-icon></template>
           <template #actions>
             <g-btn variant="outline" id="cd-edit" @click="cdLog = 'acción interna: editar'">Editar</g-btn>
-            <g-btn variant="ghost" icon aria-label="Compartir" @click="cdLog = 'acción interna: compartir'"><lucide-icon name="share-2"></lucide-icon></g-btn>
+            <g-btn variant="ghost" icon aria-label="Compartir" @click="cdLog = 'acción interna: compartir'"><g-icon name="share-2"></g-icon></g-btn>
           </template>
           <template #footer><span>Actualizado hace 2 h</span><a href="#historial">Historial</a></template>
         </g-card>
         <g-card id="cd-action" interaction="button" title="Nuevo proyecto" description="Empieza desde cero o con una plantilla." :labels="cdLabels" :loading="cdLoading" @activate="cdLog = 'activate: nuevo proyecto'">
-          <template #lead><lucide-icon class="g-icon" name="plus"></lucide-icon></template>
+          <template #lead><g-icon name="plus"></g-icon></template>
         </g-card>
         <g-card id="cd-toggle" interaction="toggle" title="Solo pendientes" description="Filtro de la vista." v-model="cdFav" :labels="cdLabels" :loading="cdLoading"></g-card>
         <g-card id="cd-status" title="Ingresos" status="error" status-text="No se pudo cargar la métrica." retryable :labels="cdLabels" :loading="cdLoading" @retry="cdLog = 'retry'"></g-card>
@@ -947,14 +1000,14 @@
         </g-card>
         <g-card id="cd-empty" title="Proyectos" empty :labels="cdLabels" :loading="cdLoading"></g-card>
         <g-card id="cd-bg" href="#ruta" media-position="background" eyebrow="Ruta" title="Recorrido por el centro histórico" subtitle="3 h · ES" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph cd-ph--dark"><lucide-icon name="map-pin"></lucide-icon></div></template>
+          <template #media><div class="cd-ph cd-ph--dark"><g-icon name="map-pin"></g-icon></div></template>
           <template #actions><g-btn>Reservar</g-btn></template>
         </g-card>
       </div>
       <h3>Horizontal con media lateral (orientation auto)</h3>
       <div :style="{ inlineSize: cdW + 'px', maxInlineSize: '100%' }">
         <g-card id="cd-horizontal" href="#centro" orientation="auto" media-position="start" eyebrow="Resultado" title="Recorrido por el centro histórico" description="Un recorrido a pie por las plazas y mercados." :meta="[{ label: 'Duración', value: '3 h' }, { label: 'Idioma', value: 'ES' }]" :labels="cdLabels" :loading="cdLoading" @navigate="cdNavigate">
-          <template #media><div class="cd-ph"><lucide-icon name="image"></lucide-icon></div></template>
+          <template #media><div class="cd-ph"><g-icon name="image"></g-icon></div></template>
           <template #more><p style="margin:0">Punto de encuentro: plaza principal. Cancelación gratuita hasta 24 h antes.</p></template>
           <template #actions><g-btn>Guardar</g-btn></template>
         </g-card>
@@ -988,14 +1041,14 @@
         <g-badge shape="square" color="neutral">Detenido</g-badge>
         <g-badge shape="diamond" color="warning">Advertencia</g-badge>
         <g-badge shape="triangle" color="danger">Error</g-badge>
-        <g-badge color="success"><template #icon><lucide-icon name="circle-check"></lucide-icon></template>Verificado</g-badge>
+        <g-badge color="success"><template #icon><g-icon name="circle-check"></g-icon></template>Verificado</g-badge>
       </div>
       <div class="row">
         <g-badge shape="circle" color="success" label="En línea"></g-badge>
         <g-badge shape="square" color="neutral" label="Detenido"></g-badge>
         <g-badge shape="diamond" color="warning" label="Advertencia"></g-badge>
         <g-badge shape="triangle" color="danger" label="Error"></g-badge>
-        <g-badge variant="solid" color="accent" label="Correo"><template #icon><lucide-icon name="mail"></lucide-icon></template></g-badge>
+        <g-badge variant="solid" color="accent" label="Correo"><template #icon><g-icon name="mail"></g-icon></template></g-badge>
       </div>
       <div class="row">
         <g-badge :count="bdgCount" :label="bdgCount + ' mensajes sin leer'" variant="solid" color="danger"></g-badge>
@@ -1005,7 +1058,7 @@
       </div>
       <div class="row">
         <g-badge :count="bdgCount" :label="bdgCount + ' mensajes sin leer'" variant="solid" color="danger" size="sm">
-          <template #anchor><g-btn icon variant="outline" aria-label="Bandeja de entrada" @click="bdgLog = 'clic en el botón anclado'"><lucide-icon name="mail"></lucide-icon></g-btn></template>
+          <template #anchor><g-btn icon variant="outline" aria-label="Bandeja de entrada" @click="bdgLog = 'clic en el botón anclado'"><g-icon name="mail"></g-icon></g-btn></template>
         </g-badge>
         <g-badge shape="circle" color="success" label="En línea" size="sm" placement="bottom-end">
           <template #anchor><span class="g-btn" style="border-radius:50%;inline-size:40px;block-size:40px;display:inline-grid;place-content:center;background:var(--g-color-surface-sunken);color:var(--g-color-text)" aria-label="Ana">A</span></template>
@@ -1016,7 +1069,7 @@
         <g-badge variant="glass">Cristal</g-badge>
         <g-badge variant="glass" shape="circle" color="success">Activo</g-badge>
         <g-badge variant="glass" :count="12" label="12 sin leer"></g-badge>
-        <g-badge variant="glass" label="Notificaciones"><template #icon><lucide-icon name="mail"></lucide-icon></template></g-badge>
+        <g-badge variant="glass" label="Notificaciones"><template #icon><g-icon name="mail"></g-icon></template></g-badge>
         <g-badge variant="glass" shape="triangle" color="danger" label="Error"></g-badge>
       </div>
     </div>
@@ -1048,12 +1101,12 @@
     <h3>Vertical entre grupos de acciones (toma el alto de la fila)</h3>
     <div v-for="sz in ['sm', 'md', 'lg']" :key="sz" class="dv-bar" :id="'dv-row-' + sz" role="group" :aria-label="'Edición (' + sz + ')'">
       <span class="dv-bar-label" aria-hidden="true">{{ sz }}</span>
-      <g-btn :size="sz" variant="ghost" icon aria-label="Editar"><lucide-icon name="pencil"></lucide-icon></g-btn>
-      <g-btn :size="sz" variant="ghost" icon aria-label="Compartir"><lucide-icon name="share-2"></lucide-icon></g-btn>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Editar"><g-icon name="pencil"></g-icon></g-btn>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Compartir"><g-icon name="share-2"></g-icon></g-btn>
       <g-divider class="dv-in" orientation="vertical" inset="both"></g-divider>
-      <g-btn :size="sz" variant="ghost" icon aria-label="Nuevo"><lucide-icon name="plus"></lucide-icon></g-btn>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Nuevo"><g-icon name="plus"></g-icon></g-btn>
       <g-divider class="dv-full" orientation="vertical"></g-divider>
-      <g-btn :size="sz" variant="ghost" icon aria-label="Buscar"><lucide-icon name="search"></lucide-icon></g-btn>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Buscar"><g-icon name="search"></g-icon></g-btn>
     </div>
 
     <h3>Vertical dentro de un grid (toma el alto de la fila por <code>align-self: stretch</code>)</h3>
@@ -1092,13 +1145,13 @@
     <label class="fm-bench-ctl"><input type="checkbox" v-model="dvCompact"> Lista compacta</label>
     <nav class="dv-nav" id="dv-nav" aria-label="Carpetas" :data-density="dvCompact ? 'compact' : 'default'">
       <ul>
-        <li><a href="#sec-divider"><lucide-icon name="inbox"></lucide-icon><span class="dv-text">Entrada</span></a></li>
-        <li><a href="#sec-divider"><lucide-icon name="mail"></lucide-icon><span class="dv-text">Enviados</span></a></li>
+        <li><a href="#sec-divider"><g-icon name="inbox"></g-icon><span class="dv-text">Entrada</span></a></li>
+        <li><a href="#sec-divider"><g-icon name="mail"></g-icon><span class="dv-text">Enviados</span></a></li>
       </ul>
       <g-divider inset="start"></g-divider>
       <ul>
-        <li><a href="#sec-divider"><lucide-icon name="folder"></lucide-icon><span class="dv-text">Proyectos</span></a></li>
-        <li><a href="#sec-divider"><lucide-icon name="settings"></lucide-icon><span class="dv-text">Ajustes</span></a></li>
+        <li><a href="#sec-divider"><g-icon name="folder"></g-icon><span class="dv-text">Proyectos</span></a></li>
+        <li><a href="#sec-divider"><g-icon name="settings"></g-icon><span class="dv-text">Ajustes</span></a></li>
       </ul>
     </nav>
 
@@ -1109,9 +1162,9 @@
         <g-divider label="أو"></g-divider>
       </div>
       <div class="dv-bar" id="dv-rtl-row" role="group" aria-label="أدوات">
-        <g-btn variant="ghost" icon aria-label="تعديل"><lucide-icon name="pencil"></lucide-icon></g-btn>
+        <g-btn variant="ghost" icon aria-label="تعديل"><g-icon name="pencil"></g-icon></g-btn>
         <g-divider class="dv-in" orientation="vertical" inset="both"></g-divider>
-        <g-btn variant="ghost" icon aria-label="بحث"><lucide-icon name="search"></lucide-icon></g-btn>
+        <g-btn variant="ghost" icon aria-label="بحث"><g-icon name="search"></g-icon></g-btn>
       </div>
     </div>
 
@@ -1147,7 +1200,7 @@
         <g-widget-grid v-model="wgLayout" label="Panel de ejemplo" :editable="wgEdit" :labels="wgGridLabels" @change="wgLog = $event.reason + ' · ' + $event.id" @remove-request="wgRemove($event.id)">
           <template #item="{ id }">
             <g-widget :title="wgTitleOf(id)" :eyebrow="'Resumen'" :description="wgPeriods[wgCfgOf(id).period]" :density="wgCfgOf(id).density" :state="wgState" :labels="wgLabels" :actions="[{ id: 'refresh', label: 'Actualizar' }, { id: 'configure', label: 'Configurar' }]" updated-text="Actualizado hace 5 min" drilldown-label="Ver detalle" @action="wgAction(id, $event.id)" @retry="wgState = 'populated'">
-              <template #icon><lucide-icon name="chart"></lucide-icon></template>
+              <template #icon><g-icon name="chart-column"></g-icon></template>
               <template #compact><g-metric label="Ingresos" value="$48k" trend="+12%" direction="up" trend-color="success"></g-metric></template>
               <template #default><g-metric label="Ingresos" value="$48.2k" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric><g-progress :value="72" label="Meta mensual" value-text="72 %"></g-progress></template>
               <template #detail>
@@ -1207,7 +1260,7 @@
         <template #cell-estado="{ value }"><g-badge variant="soft" :color="tbColors[value]" size="sm">{{ value }}</g-badge></template>
         <template #row-actions="{ row }">
           <g-menu :items="[{ id: 'ver', label: 'Ver' }, { id: 'editar', label: 'Editar' }]" @select="tbLog = $event.id + ' · ' + row.nombre">
-            <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="ghost" size="sm" :aria-label="'Acciones de ' + row.nombre"><lucide-icon name="ellipsis-vertical"></lucide-icon></g-btn></template>
+            <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="ghost" size="sm" :aria-label="'Acciones de ' + row.nombre"><g-icon name="ellipsis-vertical"></g-icon></g-btn></template>
           </g-menu>
         </template>
       </g-table>
@@ -1380,15 +1433,10 @@
   <script src="./lucide-icons.js"></script>
   <script>
     const { createApp, ref, reactive, computed, watch, onMounted, onBeforeUnmount } = Vue
-    // Iconos de Lucide (ISC) exactos, de lucide-icons.js (generado por scripts/build-icons.mjs): Grana no trae iconos
-    // y los de «la aplicación» también son Lucide (docs/contract/icons.md). Alias: nombres cortos de los ejemplos → Lucide.
-    const LUCIDE_ALIAS = { home: 'house', chart: 'chart-column', card: 'credit-card', cog: 'settings', panel: 'panel-left', msg: 'message-circle' }
-    const LUCIDE = new Proxy({}, { get: (_, name) => window.LUCIDE_ICONS[LUCIDE_ALIAS[name] || name] })
-    const LucideIcon = {
-      props: { name: String },
-      template: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
-      computed: { paths() { return LUCIDE[this.name] || '' } }
-    }
+    // Iconos de «la aplicación» por la vía pública (docs/contract/icons.md v0.2 §5 y §6): cadenas completas de lucide-static
+    // (lucide-icons.js, generado por scripts/build-icons.mjs con la lista «playground»; el playground no tiene empaquetador y
+    // node_modules queda fuera de packages/vue) registradas con createIcons y dibujadas con <g-icon name="…">.
+    const appIcons = Grana.createIcons(Object.values(window.LUCIDE_STATIC))
     // Avisos: el gestor es de la aplicación (Grana no trae instancia global ni textos por defecto)
     const toaster = Grana.createToaster({
       labels: {
@@ -1497,11 +1545,11 @@
         const gtChange = (e) => { gtLog.value = 'change · ' + e.id + ' · ' + e.source; if (gtBlock.value) { e.preventDefault(); gtLog.value += ' (cancelado)' } }
         const gtLabels = { more: 'Más pestañas', menu: 'Todas las pestañas', loading: '{label}: cargando', loaded: '{label}: listo' }
         const gtItems = [
-          { id: 'general', label: 'General', icon: 'home' },
+          { id: 'general', label: 'General', icon: 'house' },
           { id: 'msgs', label: 'Mensajes', icon: 'mail', count: 8, countLabel: '8 sin leer' },
           { id: 'news', label: 'Novedades', icon: 'inbox', badge: 'Nuevo' },
           { id: 'errs', label: 'Errores', icon: 'tag', status: 'attention', statusLabel: 'requiere atención' },
-          { id: 'rep', label: 'Informe', icon: 'chart', status: 'loading', statusLabel: 'cargando' },
+          { id: 'rep', label: 'Informe', icon: 'chart-column', status: 'loading', statusLabel: 'cargando' },
           { id: 'perm', label: 'Permisos', icon: 'lock', disabled: true }
         ]
         const gtSeg = ref('week')
@@ -1509,7 +1557,7 @@
         const gtLong = ref('general')
         const gtLongItems = [...gtItems.slice(0, 5), { id: 'bill', label: 'Facturación' }, { id: 'int', label: 'Integraciones' }, { id: 'team', label: 'Equipo' }, { id: 'audit', label: 'Auditoría' }, { id: 'tags', label: 'Etiquetas' }, gtItems[5]]
         const gtIcon = ref('general')
-        const gtIconItems = [{ id: 'general', label: 'General', icon: 'home' }, { id: 'msgs', label: 'Mensajes', icon: 'mail' }, { id: 'cal', label: 'Calendario', icon: 'calendar' }, { id: 'team', label: 'Equipo', icon: 'users' }, { id: 'cfg', label: 'Ajustes', icon: 'cog' }]
+        const gtIconItems = [{ id: 'general', label: 'General', icon: 'house' }, { id: 'msgs', label: 'Mensajes', icon: 'mail' }, { id: 'cal', label: 'Calendario', icon: 'calendar' }, { id: 'team', label: 'Equipo', icon: 'users' }, { id: 'cfg', label: 'Ajustes', icon: 'settings' }]
         const gtRtl = ref('a')
         const gtRtlItems = [{ id: 'a', label: 'عام' }, { id: 'b', label: 'الرسائل' }, { id: 'c', label: 'الإعدادات' }, { id: 'd', label: 'الفواتير' }, { id: 'e', label: 'الفريق' }, { id: 'f', label: 'التكاملات' }, { id: 'g', label: 'التدقيق' }]
         const gtDet = ref('day')
@@ -1527,6 +1575,13 @@
         const stpLog = ref('—')
         const stpIdx = computed(() => stpSteps.findIndex((s) => s.id === stpCur.value))
         const stpMove = (d) => { stpCur.value = stpSteps[stpIdx.value + d].id }
+        // Iconos (sección «Iconos»): items con icon por nombre, sin slot (#202)
+        const icTab = ref('perfil')
+        const icTabs = [{ id: 'perfil', label: 'Perfil', icon: 'user' }, { id: 'acceso', label: 'Acceso', icon: 'lock-open' }, { id: 'avisos', label: 'Avisos', icon: 'mail' }, { id: 'ayuda', label: 'Ayuda', icon: 'circle-help' }]
+        const icMenuOpen = ref(false)
+        const icMenu = [{ id: 'unlock', label: 'Desbloquear', icon: 'lock-open' }, { id: 'edit', label: 'Editar', icon: 'pencil' }, { id: 'share', label: 'Compartir', icon: 'share-2' }, { id: 'del', label: 'Eliminar', icon: 'trash', danger: true }]
+        const icSide = ref('inicio')
+        const icSideItems = [{ id: 'inicio', label: 'Inicio', href: '#inicio', icon: 'house' }, { id: 'bandeja', label: 'Bandeja', href: '#bandeja', icon: 'inbox' }, { id: 'acceso', label: 'Acceso', href: '#acceso', icon: 'lock-open' }]
         const mnOpen = ref(false)
         const mnLog = ref('—')
         const mnItems = ref([
@@ -1621,10 +1676,10 @@
         const sbLog = ref('')
         const sbLabels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
         const sbItems = [
-          { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'home' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }, { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'msg', dot: true, badgeLabel: 'Hay mensajes nuevos' }] },
+          { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }, { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'message-circle', dot: true, badgeLabel: 'Hay mensajes nuevos' }] },
           { label: 'Espacio de trabajo', items: [{ id: 'proj', label: 'Proyectos', icon: 'folder', children: [{ id: 'p1', label: 'Todos', href: '#p1' }, { id: 'p2', label: 'Archivados', href: '#p2' }, { id: 'p3', label: 'Plantillas', href: '#p3' }] }, { id: 'team', label: 'Equipo', href: '#team', icon: 'users' }, { id: 'cal', label: 'Calendario', href: '#cal', icon: 'calendar' }] },
-          { label: 'Gestión', items: [{ id: 'rep', label: 'Reportes', icon: 'chart', children: [{ id: 'r1', label: 'Ventas', href: '#r1' }, { id: 'r2', label: 'Usuarios', href: '#r2' }] }, { id: 'bill', label: 'Facturación', icon: 'card', disabled: true }] },
-          { label: 'Ajustes', items: [{ id: 'set', label: 'Ajustes', href: '#set', icon: 'cog' }] }
+          { label: 'Gestión', items: [{ id: 'rep', label: 'Reportes', icon: 'chart-column', children: [{ id: 'r1', label: 'Ventas', href: '#r1' }, { id: 'r2', label: 'Usuarios', href: '#r2' }] }, { id: 'bill', label: 'Facturación', icon: 'credit-card', disabled: true }] },
+          { label: 'Ajustes', items: [{ id: 'set', label: 'Ajustes', href: '#set', icon: 'settings' }] }
         ]
         const dpRange = ref(null)
         const dpSingle = ref(null)
@@ -1887,9 +1942,9 @@
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
-    }).component('LucideIcon', LucideIcon).use(Grana).use(toaster).mount('#app')
+    }).use(Grana).use(appIcons).use(toaster).mount('#app')
   </script>
 </body>
 </html>

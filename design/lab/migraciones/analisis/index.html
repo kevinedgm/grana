@@ -45,7 +45,7 @@
         </div>
         <div class="mg-status__ctl">
           <span class="mg-lock" id="modo">
-            <lucide-icon v-if="!editando" name="lock"></lucide-icon>
+            <g-icon :name="editando ? 'lock-open' : 'lock'"></g-icon>
             {{ editando ? 'Edición permitida' : 'Formulario bloqueado' }}
           </span>
           <g-switch id="permitir" label="Permitir edición" :model-value="editando" @update:model-value="alternarEdicion"></g-switch>
@@ -153,15 +153,11 @@
 
   <script src="../../../../node_modules/vue/dist/vue.global.js"></script>
   <script src="../../../../packages/vue/dist/grana.umd.js"></script>
-  <script src="../../../../packages/vue/playground/lucide-icons.js"></script>
-  <script>
+  <script type="module">
+    // Iconos por la vía pública (docs/contract/icons.md v0.2 §5): GIcon + createIcons con la cadena de lucide-static.
+    // `lock` está en la lista de la librería; `lock-open` lo registra la aplicación (sin empaquetador: el módulo ES del icono).
+    import LockOpen from '../../../../node_modules/lucide-static/dist/esm/icons/lock-open.mjs'
     const { createApp, ref, reactive, computed } = Vue
-    // Iconos: Lucide (docs/contract/icons.md). Grana no trae iconos; la aplicación los pone en los slots.
-    const LucideIcon = {
-      props: { name: String },
-      template: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="paths"></svg>',
-      computed: { paths() { return window.LUCIDE_ICONS[this.name] || '' } }
-    }
     // Gestor de avisos de la aplicación (Grana no trae instancia global ni textos por defecto)
     const toaster = Grana.createToaster({
       labels: {
@@ -262,8 +258,7 @@
         }
       }
     })
-    app.component('LucideIcon', LucideIcon)
-    app.use(Grana).use(toaster)
+    app.use(Grana).use(Grana.createIcons([LockOpen])).use(toaster)
     app.mount('#app')
   </script>
 </body>
