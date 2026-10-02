@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDivider",
   "tag": "g-divider",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Línea de separación entre grupos de contenido del consumidor: horizontal (<hr>) o vertical (separator en una fila flex o grid), con texto centrado opcional, inset heredado de la anfitriona, énfasis sutil o fuerte (≥ 3:1) y modo decorativo; nunca enfocable.",
   "contract": "design/contracts/divider.md",
