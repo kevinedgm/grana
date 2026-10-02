@@ -11,6 +11,33 @@ const resolveVar = (tokens, value, depth = 0) => {
 }
 const round2 = (n) => Math.round(n * 100) / 100
 
+// Diagnóstico INFORMATIVO (#228, tokens.md §24): `active` es un relleno con su par `on-accent`; como trazo o elemento
+// gráfico sobre la superficie no tiene 3:1 garantizado (acentos pálidos). No bloquea: avisa para que los componentes
+// usen `accent-text` (sobre la superficie) u `on-accent-soft` (sobre el tinte) en los trazos.
+export const ACTIVE_STROKE_MIN = 3
+export function activeContrast(light, dark) {
+  const measure = (tokens) => {
+    if (!tokens) return undefined
+    const fg = parseHex(resolveVar(tokens, tokens['--g-color-active'] ?? ''))
+    const bg = parseHex(resolveVar(tokens, tokens['--g-color-surface'] ?? ''))
+    return fg && bg ? round2(contrast(fg, bg)) : undefined
+  }
+  const r = { light: measure(light), dark: measure(dark) }
+  const low = Object.entries(r).filter(([, v]) => typeof v === 'number' && v < ACTIVE_STROKE_MIN)
+  if (!low.length) return null
+  const where = low.map(([k, v]) => `${v}:1 en ${k === 'light' ? 'claro' : 'oscuro'}`).join(', ')
+  return {
+    code: 'active-contrast',
+    cssVar: '--g-color-active',
+    token: 'active',
+    against: '--g-color-surface',
+    min: ACTIVE_STROKE_MIN,
+    ...Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined)),
+    status: 'informative',
+    message: `«active» queda por debajo de ${ACTIVE_STROKE_MIN}:1 sobre la superficie (${where}). Es válido como relleno con «on-accent» (la lámpara de la captura de voz, el ítem activo); para un trazo o elemento gráfico sobre la superficie usa «accent-text», y sobre «accent-soft», «on-accent-soft». No bloquea.`
+  }
+}
+
 // Con qué fondo se mide el contraste de cada token (null: no es un color de texto ni de control)
 const againstOf = (name) => {
   let m = /^on-(.+)-soft$/.exec(name)
@@ -81,7 +108,7 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
     color: { themes: [{ id: 'light', name: 'Claro' }, { id: 'dark', name: 'Oscuro' }], tokens: color },
     radius: { tokens: scale('--g-radius-').filter((t) => /-(xs|sm|md|lg|xl|shape)$/.test(t.cssVar)) },
     spacing: { tokens: scale('--g-space-') },
-    diagnostics: collisions.map(({ message, ...d }) => ({ ...d, message })),
+    diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean)],
     meta: { source: '@grana/cli', generatedFrom: source, categories: 'Los colores cat-* son colores categóricos de interfaz (iconos, etiquetas), no una paleta de visualización de datos.' }
   }
 }

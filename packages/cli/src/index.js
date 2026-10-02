@@ -2,7 +2,7 @@
 import { readConfig } from './config.js'
 import { generateTheme, toCss } from './theme.js'
 import { validateTheme } from './validate.js'
-import { buildDoc } from './doc.js'
+import { buildDoc, activeContrast } from './doc.js'
 import { DEFAULTS } from './defaults.js'
 import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
@@ -10,7 +10,7 @@ export { readConfig, KEYS } from './config.js'
 export { generateTheme, toCss } from './theme.js'
 export { validateTheme, COLOR_NAMES } from './validate.js'
 export { deriveColor, deriveDarkColor } from './derive.js'
-export { buildDoc } from './doc.js'
+export { buildDoc, activeContrast } from './doc.js'
 export { usageOf } from './usage.js'
 export { anchorLabel, semanticAdjustments, tintedNeutrals, categoryBases, separate, distance, MIN_DISTANCE } from './palette.js'
 export { contrast, parseHex, toHex, toOklch, fromOklch } from './color.js'
@@ -59,6 +59,9 @@ export const buildTheme = (raw, { source } = {}) => {
   }
   for (const [token, value] of Object.entries(config.overrides ?? {})) diagnostics.push({ code: 'override', token: token.replace('--g-color-', ''), cssVar: token, source: 'overrides', value, status: 'override', message: `${token} fijado por overrides: ${value}.` })
   if (derived.neutralsBrand) diagnostics.push({ code: 'neutrals-tinted', source: derived.neutralsHue ?? 'brand', status: 'derived', message: `Neutros (texto, bordes, superficie hundida y «neutral») teñidos con el tono ${derived.neutralsHue === 'accent' ? 'del acento' : 'de la marca'}. Desactívalo con "neutrals": "pure".` })
+  // `active` como trazo sobre la superficie: diagnóstico informativo, no bloquea (#228)
+  const act = activeContrast(tokens, dark.enabled ? dark.tokens : null)
+  if (act) diagnostics.push(act)
   if (derived.categories.length) diagnostics.push({ code: 'categories', source: 'brand', status: 'derived', message: `${derived.categories.length} categorías (--g-color-cat-1 a cat-${derived.categories.length}): mismo L y C, tonos cada ${Math.round(360 / derived.categories.length)}°. Son colores categóricos de interfaz, no una paleta de gráficas.` })
   // Las colisiones sin aplicar llegan al usuario como aviso (con la alternativa); el resto, como nota
   for (const d of diagnostics) {
