@@ -83,11 +83,11 @@
             </g-form-row>
             <!-- Valor + unidad elegible = un solo campo fusionado (GInputGroup, form.md §13): antes eran dos campos por fila -->
             <g-form-row>
-              <g-input-group label="Volumen del lote" name="vol-lote-grupo">
+              <g-input-group label="Volumen del lote" name="vol-lote-grupo" required>
                 <g-input-group-input name="vol-lote" required v-model="m.volLote" principal inputmode="decimal"></g-input-group-input>
                 <g-input-group-select name="unidad-lote" required v-model="m.unidadLote" part-label="Unidad" :options="unidades"></g-input-group-select>
               </g-input-group>
-              <g-input-group label="Volumen de muestra" name="vol-muestra-grupo">
+              <g-input-group label="Volumen de muestra" name="vol-muestra-grupo" required>
                 <g-input-group-input name="vol-muestra" required v-model="m.volMuestra" principal inputmode="decimal"></g-input-group-input>
                 <g-input-group-select name="unidad-muestra" required v-model="m.unidadMuestra" part-label="Unidad" :options="unidades"></g-input-group-select>
               </g-input-group>
@@ -114,7 +114,7 @@
             <g-form-row>
               <g-select label="Tipo" name="contenedor-tipo" required v-model="m.contTipo" :options="tiposContenedor"></g-select>
               <g-select label="Material" name="contenedor-material" required v-model="m.contMaterial" :options="materiales"></g-select>
-              <g-input-group label="Capacidad" name="contenedor-capacidad-grupo" style="--g-form-min: 50">
+              <g-input-group label="Capacidad" name="contenedor-capacidad-grupo" style="--g-form-min: 50" required>
                 <g-input-group-input name="contenedor-capacidad" required v-model="m.contCapacidad" principal inputmode="decimal"></g-input-group-input>
                 <g-input-group-select name="contenedor-unidad" required v-model="m.contUnidad" part-label="Unidad" :options="unidadesContenedor"></g-input-group-select>
               </g-input-group>
