@@ -1,0 +1,734 @@
+/*
+  GTranscript · estilo de la vista de revisión de un transcript (captura de voz, Fase 2)
+  Dueño: coco. Contrato: design/contracts/speech.md §22, §23, §24, §28 y §29. Estructura: design/lab/speech/r02/.
+  Notas y medidas: design/lab/speech/estilo.md («Fase 2»). Banco: design/lab/speech/estilo-banco-f2.html.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §24).
+  Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Excepción nombrada (levels.test.js, CAT_FAMILY_READERS; tokens.md §16.3, #247): la familia condicional de categorías
+  --g-color-cat-k / --g-color-on-cat-k-soft, que solo existe si el tema declara `categories` y que bruno solo pide con
+  data-cat="k" cuando k ≤ speakerColors (sin valores de respaldo).
+
+  Constantes de diseño derivadas de space (no son tokens):
+    alto de control de fila      space × 7 (el de GBtn sm y de la fila de GCheckbox md): casilla, hablante y acciones
+    columnas fijas               selección y acciones space × 7 (44px con puntero grueso); hora 4,5 × caption + space × 2;
+                                 hablante space × 40 (la etiqueta se parte, no se recorta)
+    fila                         relleno space × 2 (space × 1 en compacto); separación entre celdas space × 2
+    marca de selección           borde de inicio space × 0.75 en --g-color-text (forma, no solo el tono de GTable)
+    marca de letra del hablante  space × 5 de lado (crece en ancho con «AA»)
+    editor                       dos líneas de mínimo y ocho de máximo (crece con el texto donde hay field-sizing)
+    vista previa de la inserción alto máximo space × 40 (se desplaza)
+    apilado de la fila y «Más»   data-narrow: raíz < space × 160 (640px con space 4), medido por bruno en ejecución (una
+                                 consulta de contenedor no admite var(), y un literal de ancho no está permitido). El
+                                 contrato proponía space × 120: entre 480 y ~600px la barra completa ocupaba 3 líneas;
+                                 con 160 nunca pasa de 2 desde 440px (estilo.md, Fase 2)
+  Variable dinámica que escribe bruno en línea: --_max-height (prop maxHeight) en __scroll (o en __list, solo lectura).
+*/
+
+/* ---------- Raíz ---------- */
+.g-transcript {
+  --_ctl: calc(var(--g-space-1) * 7);
+  --_ctl-w: var(--_ctl);
+  --_time-w: calc(var(--g-text-caption-size) * 4.5 + var(--g-space-2));
+  --_spk-w: calc(var(--g-space-1) * 40);
+  --_row-pad: var(--g-space-2);
+  --_gap: var(--g-space-2);
+  --_sel-mark: calc(var(--g-space-1) * 0.75);
+  --_icon: calc(var(--g-text-caption-size) * 1.15);
+
+  display: grid;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.g-transcript[data-compact] { --_row-pad: var(--g-space-1); gap: var(--g-space-2); }
+.g-transcript [hidden] { display: none; }
+/* Recibe el foco si la rejilla queda vacía (§22.13): anillo solo con teclado */
+.g-transcript:focus { outline: none; }
+.g-transcript:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Texto oculto accesible: sufijos y prefijos (__sr), encabezados de columna (__head) y región propia (__live) */
+.g-transcript__sr,
+.g-transcript__head,
+.g-transcript__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Botones secundarios con contorno (Ir al final, Deshacer inserción, Unir, Separar, Añadir hablante, Cancelar del
+   editor): en el color del texto con el borde de control (≥ 3:1), como los del panel de la F1 y la acción de GToast */
+.g-transcript .g-btn--variant-outline.g-btn--color-neutral {
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+}
+
+/* ---------- Aviso sin diarización (no es región viva) ---------- */
+.g-transcript__note {
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+}
+
+/* ---------- Barra ---------- */
+.g-transcript__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+}
+.g-transcript__bar > .g-checkbox { margin-inline-end: var(--g-space-2); }
+.g-transcript__count {
+  margin-inline-end: var(--g-space-3);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Pulsados (Mostrar cambios con aria-pressed; Hablantes abierto): relleno neutro y borde de control, como «Ocultar
+   actividad» del panel (no depende del color: cambia el relleno y aparece el borde) */
+.g-transcript__bar .g-btn[aria-pressed="true"],
+.g-transcript__bar .g-btn[aria-controls][aria-expanded="true"] {
+  --_bg: var(--g-color-neutral-soft);
+  --_fg: var(--g-color-text);
+  --_border: var(--g-color-border-control);
+  --_bg-hover: var(--g-color-neutral-soft);
+  --_fg-hover: var(--g-color-text);
+  --_border-hover: var(--g-color-text-muted);
+}
+/* Deshacer / Rehacer con la pila vacía: aria-disabled (siguen enfocables, #236). Inactivos: fuera del mínimo de contraste
+   por norma (WCAG 1.4.3), en el tono atenuado de GBtn deshabilitado */
+.g-transcript .g-btn[aria-disabled="true"] {
+  --_fg: var(--g-color-text-subtle);
+  --_bg-hover: transparent;
+  --_fg-hover: var(--g-color-text-subtle);
+  --_border-hover: transparent;
+  cursor: not-allowed;
+}
+.g-transcript .g-btn[aria-disabled="true"]:active { transform: none; }
+/* «Más»: chevron-down en el hueco append de GBtn; gira media vuelta al abrir (como la pill) */
+.g-transcript__more .g-btn__append > svg { transition: rotate var(--g-duration-press) var(--g-ease-out); }
+.g-transcript__more[aria-expanded="true"] .g-btn__append > svg,
+.g-transcript__more [aria-expanded="true"] .g-btn__append > svg { rotate: 0.5turn; }
+
+/* ---------- Área desplazable y rejilla ---------- */
+.g-transcript__scroll {
+  min-inline-size: 0;
+  max-block-size: var(--_max-height);
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* El foco itinerante desplaza la celda a la vista con aire (WCAG 2.4.11: nada lo tapa dentro del área) */
+  scroll-padding-block: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+.g-transcript__grid,
+.g-transcript__body { display: block; min-inline-size: 0; }
+
+/* Fila: celdas de ancho fijo en una fila flexible. Una columna que no existe (selección en compacto, hablante en
+   dictado) simplemente no ocupa sitio, y las filas siguen alineadas porque cada celda tiene su ancho propio */
+.g-transcript__row {
+  display: flex;
+  align-items: flex-start;
+  column-gap: var(--_gap);
+  row-gap: var(--g-space-1);
+  padding-block: var(--_row-pad);
+  padding-inline: calc(var(--g-space-2) - var(--_sel-mark)) var(--g-space-2);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  border-inline-start: var(--_sel-mark) solid transparent;
+  background: var(--g-color-surface);
+  scroll-margin-block: var(--g-space-2);
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-transcript__row:last-child { border-block-end-color: transparent; }
+/* Seleccionada: el tono de GTable + borde de inicio en el color del texto (forma; ≥ 3:1 en cualquier tema, #254) */
+.g-transcript__row.is-selected {
+  background: var(--g-color-primary-soft);
+  border-inline-start-color: var(--g-color-text);
+}
+@media (hover: hover) {
+  .g-transcript__row:not(.is-selected):not(.is-editing):hover { background: var(--g-color-surface-sunken); }
+}
+/* Fallido: marca discontinua de aviso al inicio (como el fragmento fallido del panel F1; no es seleccionable, así que
+   no choca con la marca de selección) */
+.g-transcript__row.is-failed {
+  border-inline-start-style: dashed;
+  border-inline-start-color: var(--g-color-warning-text);
+}
+
+.g-transcript__cell {
+  flex: none;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--_ctl);
+  border-radius: var(--g-radius-xs);
+}
+/* Foco de celda (hora y texto; los controles llevan el suyo): anillo interior para que el contenedor desplazable no lo
+   recorte (WCAG 2.4.7, 2.4.13) */
+.g-transcript__cell:focus { outline: none; }
+.g-transcript__cell:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-transcript__cell--select,
+.g-transcript__cell--actions {
+  display: flex;
+  justify-content: center;
+  inline-size: var(--_ctl-w);
+}
+.g-transcript__cell--select > .g-checkbox { inline-size: auto; }
+.g-transcript__cell--time {
+  inline-size: var(--_time-w);
+  padding-block: calc((var(--_ctl) - var(--g-text-caption-line)) / 2);
+  padding-inline: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.g-transcript__cell--speaker { inline-size: var(--_spk-w); }
+.g-transcript__cell--text {
+  flex: 1 1 0;
+  padding-block: calc((var(--_ctl) - var(--g-text-body-sm-line)) / 2);
+  padding-inline: var(--g-space-1);
+}
+/* Con el editor abierto la celda deja su relleno al editor */
+.g-transcript__row.is-editing .g-transcript__cell--text { padding-block: 0; }
+
+/* Apilado (raíz bajo space × 160, data-narrow): arriba casilla · hora · hablante · acciones; debajo, el texto a todo el
+   ancho (§22.14) */
+.g-transcript[data-narrow] .g-transcript__row { flex-wrap: wrap; }
+/* El hablante toma lo que queda de la línea; si su palabra más larga no cabe (320px con «Acompañante (C)»), baja a la
+   línea siguiente con las acciones en vez de partir la palabra. La hora mide lo que mide (no hay columnas que alinear) */
+.g-transcript[data-narrow] .g-transcript__cell--speaker {
+  flex: 1 1 0;
+  inline-size: auto;
+  min-inline-size: min-content;
+}
+.g-transcript[data-narrow] .g-transcript__cell--time { inline-size: auto; }
+/* Barra en estrecho: relleno en línea de los botones a space × 2 (GBtn sm trae space × 3) para que quepan dos por línea a
+   320px; el alto y el área táctil no cambian */
+.g-transcript[data-narrow] .g-transcript__bar .g-btn:not(.g-btn--icon) { --_px: var(--g-space-2); }
+.g-transcript[data-narrow] .g-transcript__cell--actions { margin-inline-start: auto; }
+.g-transcript[data-narrow] .g-transcript__cell--text {
+  order: 1;
+  flex: 1 1 100%;
+}
+
+/* ---------- Hablante: botón (GBtn sm ghost neutral) o texto, con la marca de letra ---------- */
+.g-transcript__speaker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  max-inline-size: 100%;
+  /* La etiqueta se parte por palabras, nunca dentro de una */
+  overflow-wrap: normal;
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+}
+.g-transcript__speaker.g-btn {
+  --_fg: var(--g-color-text);
+  --_fg-hover: var(--g-color-text);
+  --_px: var(--g-space-1);
+  justify-content: flex-start;
+  text-align: start;
+  font-weight: var(--g-text-title-weight);
+}
+/* El hueco por defecto de GBtn es la fila de marca + etiqueta; la etiqueta se parte en vez de recortarse */
+.g-transcript__speaker.g-btn > .g-btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-transcript__cell--speaker > .g-transcript__speaker:not(.g-btn) {
+  min-block-size: var(--_ctl);
+  padding-inline: var(--g-space-1);
+}
+
+/* Marca de letra: forma con borde de control (≥ 3:1; WCAG 1.4.11) y la letra; «Sin asignar», borde discontinuo */
+.g-transcript__mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 5);
+  block-size: calc(var(--g-space-1) * 5);
+  padding-inline: calc(var(--g-space-1) * 0.75);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-size: var(--g-text-caption-size);
+  line-height: 1;
+  font-weight: var(--g-text-title-weight);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+.g-transcript__mark.is-unassigned { border-style: dashed; }
+/* Color por hablante: solo complemento y solo con speakerColors (§23.6, #247). Relleno -soft con su par de letra
+   (≥ 4.5:1 por derivación) y el borde en -text (≥ 4.5:1 sobre la superficie por derivación; medido también sobre la fila
+   seleccionada). La letra y la etiqueta siguen siendo la señal */
+.g-transcript__mark[data-cat] {
+  border-color: var(--_cat-line);
+  background: var(--_cat-fill);
+  color: var(--_cat-ink);
+}
+.g-transcript__mark[data-cat="1"] { --_cat-fill: var(--g-color-cat-1-soft); --_cat-ink: var(--g-color-on-cat-1-soft); --_cat-line: var(--g-color-cat-1-text); }
+.g-transcript__mark[data-cat="2"] { --_cat-fill: var(--g-color-cat-2-soft); --_cat-ink: var(--g-color-on-cat-2-soft); --_cat-line: var(--g-color-cat-2-text); }
+.g-transcript__mark[data-cat="3"] { --_cat-fill: var(--g-color-cat-3-soft); --_cat-ink: var(--g-color-on-cat-3-soft); --_cat-line: var(--g-color-cat-3-text); }
+.g-transcript__mark[data-cat="4"] { --_cat-fill: var(--g-color-cat-4-soft); --_cat-ink: var(--g-color-on-cat-4-soft); --_cat-line: var(--g-color-cat-4-text); }
+.g-transcript__mark[data-cat="5"] { --_cat-fill: var(--g-color-cat-5-soft); --_cat-ink: var(--g-color-on-cat-5-soft); --_cat-line: var(--g-color-cat-5-text); }
+.g-transcript__mark[data-cat="6"] { --_cat-fill: var(--g-color-cat-6-soft); --_cat-ink: var(--g-color-on-cat-6-soft); --_cat-line: var(--g-color-cat-6-text); }
+.g-transcript__mark[data-cat="7"] { --_cat-fill: var(--g-color-cat-7-soft); --_cat-ink: var(--g-color-on-cat-7-soft); --_cat-line: var(--g-color-cat-7-text); }
+.g-transcript__mark[data-cat="8"] { --_cat-fill: var(--g-color-cat-8-soft); --_cat-ink: var(--g-color-on-cat-8-soft); --_cat-line: var(--g-color-cat-8-text); }
+.g-transcript__mark[data-cat="9"] { --_cat-fill: var(--g-color-cat-9-soft); --_cat-ink: var(--g-color-on-cat-9-soft); --_cat-line: var(--g-color-cat-9-text); }
+.g-transcript__mark[data-cat="10"] { --_cat-fill: var(--g-color-cat-10-soft); --_cat-ink: var(--g-color-on-cat-10-soft); --_cat-line: var(--g-color-cat-10-text); }
+.g-transcript__mark[data-cat="11"] { --_cat-fill: var(--g-color-cat-11-soft); --_cat-ink: var(--g-color-on-cat-11-soft); --_cat-line: var(--g-color-cat-11-text); }
+.g-transcript__mark[data-cat="12"] { --_cat-fill: var(--g-color-cat-12-soft); --_cat-ink: var(--g-color-on-cat-12-soft); --_cat-line: var(--g-color-cat-12-text); }
+
+/* ---------- Texto, marcas, original y cambios ---------- */
+.g-transcript__text { color: var(--g-color-text); }
+/* Provisional: más claro y en cursiva (≥ 4.5:1, como la F1) */
+.is-partial .g-transcript__text {
+  font-style: italic;
+  color: var(--g-color-text-muted);
+}
+/* Eliminado: tachado (la forma) y atenuado (≥ 4.5:1); la marca «Eliminado» lo dice con texto */
+.is-removed .g-transcript__text {
+  color: var(--g-color-text-muted);
+  text-decoration-line: line-through;
+  text-decoration-thickness: calc(var(--g-border-width) * 1.5);
+}
+
+.g-transcript__flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-3);
+  margin-block-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-body-sm-weight);
+  font-style: normal;
+  color: var(--g-color-text-muted);
+  --_line: var(--g-text-caption-line);
+}
+.g-transcript__flags:empty { display: none; }
+.g-transcript__flag {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+}
+.g-transcript__flag > svg {
+  flex: none;
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
+  /* Centrado en la primera línea (si el texto se parte, el icono no baja al centro del bloque) */
+  margin-block-start: calc((var(--_line) - var(--_icon)) / 2);
+}
+/* «Cambió después de insertarlo» y «No se pudo transcribir»: aviso (texto e icono en warning-text, ≥ 4.5:1) */
+.g-transcript__flag--stale,
+.g-transcript__flag--failed { color: var(--g-color-warning-text); }
+/* Sobre la fila seleccionada (primary-soft) warning-text no tiene garantizado 4.5:1 (oscuro por defecto: 3.83): el texto
+   pasa a --g-color-text y el icono conserva el aviso (≥ 3:1) */
+.is-selected .g-transcript__flag--stale { color: var(--g-color-text); }
+.is-selected .g-transcript__flag--stale > svg { color: var(--g-color-warning-text); }
+.is-failed .g-transcript__flag--failed {
+  --_line: var(--g-text-body-sm-line);
+  --_icon: calc(var(--g-text-body-sm-size) * 1.15);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+/* En la rejilla el aviso del fallido ocupa el sitio del texto: sin el margen de las marcas */
+.g-transcript__cell--text > .g-transcript__flags:first-child { margin-block-start: 0; }
+/* «Provisional»: ficha con contorno (la forma acompaña a la palabra, como en el panel F1) */
+.g-transcript__flag--partial {
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+}
+
+/* Original y cambios (§22.9): bloque aparte bajo el texto, fuera de la selección de texto */
+.g-transcript__orig {
+  display: grid;
+  gap: var(--g-space-1);
+  margin-block-start: var(--g-space-2);
+  padding-block: var(--g-space-2);
+  padding-inline: calc(var(--g-space-3) - var(--_sel-mark)) var(--g-space-3);
+  border-inline-start: var(--_sel-mark) solid var(--g-color-border-strong);
+  border-start-end-radius: var(--g-radius-sm);
+  border-end-end-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  font-style: normal;
+  user-select: none;
+}
+.g-transcript__orig > * { margin: 0; }
+.g-transcript__diff { color: var(--g-color-text); }
+/* <del> / <ins>: reconocibles en escala de grises por la forma (tachado / subrayado grueso); el tono de peligro / éxito
+   solo complementa, con sus pares garantizados (on-*-soft sobre *-soft ≥ 4.5:1) */
+.g-transcript__diff del,
+.g-transcript__diff ins {
+  padding-inline: calc(var(--g-space-1) * 0.5);
+  border-radius: var(--g-radius-xs);
+  text-decoration-thickness: calc(var(--g-border-width) * 2);
+  text-decoration-skip-ink: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.g-transcript__diff del {
+  background: var(--g-color-danger-soft);
+  color: var(--g-color-on-danger-soft);
+  text-decoration-line: line-through;
+}
+.g-transcript__diff ins {
+  background: var(--g-color-success-soft);
+  color: var(--g-color-on-success-soft);
+  text-decoration-line: underline;
+  text-underline-offset: calc(var(--g-border-width) * 2);
+}
+
+/* ---------- Editor en la celda: textarea nativo con la apariencia de GTextarea (#252) ---------- */
+.g-transcript__editor {
+  display: grid;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-transcript__field {
+  --_border: var(--g-color-border-control);
+  --_padv: calc((var(--g-space-1) * 9 - var(--g-border-width) * 2 - var(--g-text-body-sm-line)) / 2);
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: calc(var(--g-text-body-sm-line) * 2 + var(--_padv) * 2 + var(--g-border-width) * 2);
+  max-block-size: calc(var(--g-text-body-sm-line) * 8 + var(--_padv) * 2 + var(--g-border-width) * 2);
+  margin: 0;
+  padding-block: var(--_padv);
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--_border);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  overflow-wrap: break-word;
+  resize: vertical;
+  field-sizing: content;
+  transition:
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    outline-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (forced-colors: none) {
+  .g-transcript__field {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+  }
+}
+@media (hover: hover) {
+  .g-transcript__field:hover { --_border: var(--g-color-text-muted); }
+}
+/* Foco como GTextarea: el borde toma el color de foco y el anillo se pega a él (una sola línea) */
+.g-transcript__field:focus-visible {
+  --_border: var(--g-color-focus);
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-transcript__editor-orig,
+.g-transcript__editor-hint {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-transcript__editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+
+/* ---------- Debajo de la rejilla ---------- */
+.g-transcript__newer { justify-self: center; }
+.g-transcript__kbd {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-transcript__empty {
+  margin: 0;
+  padding: var(--g-space-4);
+  border: var(--g-border-width) dashed var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  color: var(--g-color-text-muted);
+  text-align: center;
+}
+
+/* ---------- Solo lectura: lista simple desplazable (§22.3) ---------- */
+/* La lista es su propio contenedor de desplazamiento (tabindex="0"); si bruno la envuelve en __scroll, la envoltura
+   cede el desplazamiento y el borde */
+.g-transcript__scroll:has(> .g-transcript__list) {
+  max-block-size: none;
+  overflow: visible;
+  border: 0;
+  background: none;
+}
+.g-transcript__list {
+  display: grid;
+  min-inline-size: 0;
+  max-block-size: var(--_max-height);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+.g-transcript__list:focus { outline: none; }
+.g-transcript__list:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-transcript__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--g-space-2);
+  padding: var(--g-space-2) var(--g-space-3);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+}
+.g-transcript__item:last-child { border-block-end-color: transparent; }
+.g-transcript__item.is-failed {
+  padding-inline-start: calc(var(--g-space-3) - var(--_sel-mark));
+  border-inline-start: var(--_sel-mark) dashed var(--g-color-warning-text);
+}
+.g-transcript__time {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.g-transcript__item > .g-transcript__speaker {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  gap: var(--g-space-1);
+}
+.g-transcript__item > .g-transcript__speaker > .g-transcript__mark {
+  min-inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+.g-transcript__item > .g-transcript__text,
+.g-transcript__item > .g-transcript__flags { flex: 1 1 100%; }
+.g-transcript__item > .g-transcript__text { margin-block-start: calc(var(--g-space-1) * 0.5); }
+
+/* ---------- Gestor de hablantes (§23.5) ---------- */
+.g-transcript__speakers,
+.g-transcript__insert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  padding: var(--g-space-3) var(--g-space-4) var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+.g-transcript__speakers > *,
+.g-transcript__insert > * {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+  margin: 0;
+}
+/* Títulos internos (h{headingLevel}): denso, body-sm 600 (tokens.md §23.4: nunca por debajo de 14) */
+.g-transcript__speakers > :is(h2, h3, h4, h5, h6),
+.g-transcript__insert > :is(h2, h3, h4, h5, h6) {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-weight);
+  color: var(--g-color-text);
+  border-radius: var(--g-radius-xs);
+}
+.g-transcript__speakers > :is(h2, h3, h4, h5, h6):focus { outline: none; }
+.g-transcript__speakers > :is(h2, h3, h4, h5, h6):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-transcript__speakers > p { color: var(--g-color-text-muted); }
+.g-transcript__speakers > ul,
+.g-transcript__speakers > ol {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+.g-transcript__speaker-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--g-space-2) var(--g-space-3);
+  padding-block: var(--g-space-3);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-transcript__speaker-row > :not(.g-select) { align-self: center; }
+.g-transcript__speaker-row > .g-select {
+  flex: 1 1 calc(var(--g-space-1) * 44);
+  inline-size: auto;
+  min-inline-size: 0;
+}
+/* Recuento de fragmentos y «Unido a …»: secundarios */
+.g-transcript__speaker-row > span:not([class]),
+.g-transcript__speaker-row > p { margin: 0; color: var(--g-color-text-muted); }
+
+/* ---------- Inserción en un destino (§24) ---------- */
+/* Los tres GSelect (Qué, Campo, Dónde) comparten línea si caben; el resto ocupa la suya */
+.g-transcript__insert > .g-select {
+  flex: 1 1 calc(var(--g-space-1) * 48);
+  inline-size: auto;
+}
+.g-transcript__insert > .g-btn { flex: none; }
+/* Rótulo de la vista previa (un <p> sin clase justo antes de __preview): pegado a ella, en voz baja */
+.g-transcript__insert > p:has(+ .g-transcript__preview) {
+  margin-block-end: calc(var(--g-space-2) * -1);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+}
+.g-transcript__preview {
+  box-sizing: border-box;
+  max-block-size: calc(var(--g-space-1) * 40);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--g-space-2) var(--g-space-3);
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+  white-space: pre-wrap;
+}
+.g-transcript__preview:focus { outline: none; }
+.g-transcript__preview:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-transcript__result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+}
+.g-transcript__result > svg {
+  flex: none;
+  inline-size: calc(var(--g-text-body-sm-size) * 1.15);
+  block-size: calc(var(--g-text-body-sm-size) * 1.15);
+  color: var(--g-color-success-text);
+}
+.g-transcript__uses {
+  display: grid;
+  gap: var(--g-space-1);
+  padding: 0;
+  list-style: none;
+}
+.g-transcript__uses ul,
+.g-transcript__uses ol {
+  display: grid;
+  gap: var(--g-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-transcript__uses li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+}
+.g-transcript__uses summary {
+  cursor: pointer;
+  font-weight: var(--g-text-action-weight);
+  border-radius: var(--g-radius-xs);
+}
+.g-transcript__uses summary:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Objetivos táctiles: las columnas de control crecen al área de 44px (no se pisan con la vecina) ---------- */
+@media (pointer: coarse) {
+  .g-transcript { --_ctl-w: max(var(--_ctl), 44px); }
+  .g-transcript__bar { gap: var(--g-space-2); }
+}
+
+/* ---------- Movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-transcript__more .g-btn__append > svg { transition: none; }
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-transcript__scroll,
+  .g-transcript__list,
+  .g-transcript__speakers,
+  .g-transcript__insert,
+  .g-transcript__note { border-color: var(--g-color-border-control); }
+  .g-transcript__row,
+  .g-transcript__item { border-block-end-color: var(--g-color-border-strong); }
+  .g-transcript__cell--time,
+  .g-transcript__time,
+  .g-transcript__count,
+  .g-transcript__flags,
+  .g-transcript__orig,
+  .g-transcript__kbd,
+  .g-transcript__editor-orig,
+  .g-transcript__editor-hint,
+  .g-transcript__speakers > p,
+  .is-partial .g-transcript__text,
+  .is-removed .g-transcript__text { color: var(--g-color-text); }
+  .g-transcript__flag--stale,
+  .g-transcript__flag--failed { color: var(--g-color-warning-text); }
+}
+@media (forced-colors: active) {
+  .g-transcript__scroll,
+  .g-transcript__list,
+  .g-transcript__speakers,
+  .g-transcript__insert,
+  .g-transcript__note,
+  .g-transcript__mark,
+  .g-transcript__field,
+  .g-transcript__preview,
+  .g-transcript__flag--partial { border-color: CanvasText; }
+  .g-transcript__row.is-selected { border-inline-start-color: Highlight; }
+  .g-transcript__row.is-failed,
+  .g-transcript__item.is-failed { border-inline-start-color: CanvasText; }
+  .g-transcript__cell:focus-visible,
+  .g-transcript__list:focus-visible,
+  .g-transcript__preview:focus-visible,
+  .g-transcript__field:focus-visible,
+  .g-transcript:focus-visible { outline-color: Highlight; }
+  .g-transcript .g-btn[aria-disabled="true"] { color: GrayText; }
+}

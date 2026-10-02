@@ -22,6 +22,8 @@
                                                      como --_x/--_y de GMenu y GHelper: `left`/`top`)
     --_speech-max-block                             (panel; alto disponible)
     --_speech-bar                                   (cada barra de la onda; 0..1)
+  Fase 2 (speech.md §25): GTranscript compacto dentro de __transcript (conversación) y el diálogo de revisión de respaldo
+  (GDialog real con class="g-speech-review"); el resto de la vista es de GTranscript.css.
   Estado del panel (marcado que este CSS espera además del contrato, ver estilo.md): data-status, is-live e is-problem
   en .g-speech-panel, con los mismos valores que la pill.
 */
@@ -503,6 +505,31 @@
 }
 .g-speech-segment.is-failed .g-icon { color: var(--g-color-warning-text); }
 .g-speech-segment.is-failed .g-btn { margin-block-start: var(--g-space-1); }
+
+/* ---------- F2 · GTranscript compacto en el panel (conversación; speech.md §25.1) ----------
+   Como la lista de la F1: crece con el panel hasta su alto disponible y, por debajo, su área desplazable encoge hasta
+   un mínimo de space × 30 (unas dos filas apiladas) y se desplaza; con menos sitio se desplaza el panel entero.
+   El panel (space × 110 menos el relleno) queda por debajo del umbral de «Más» de GTranscript (space × 160), así que
+   la vista va apilada y con «Más»: es lo previsto. */
+.g-speech-panel__transcript > .g-transcript {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+.g-speech-panel__transcript > .g-transcript > .g-transcript__scroll {
+  flex: 1 1 auto;
+  min-block-size: calc(var(--g-space-1) * 30);
+}
+.g-speech-panel__transcript > .g-transcript > .g-transcript__newer { align-self: center; }
+
+/* ---------- F2 · Diálogo de revisión de respaldo (GDialog real del anfitrión con class="g-speech-review"; §25.3) ----------
+   La rejilla lleva su propia área desplazable acotada para que la barra y la inserción sigan a mano sin una barra fija
+   que pudiera tapar la fila enfocada (WCAG 2.4.11): alto máximo = visor menos space × 100 (cabecera, barra, ayuda y el
+   comienzo de la inserción), nunca menos de space × 60. En pantalla completa (móvil) se aplica igual. */
+.g-speech-review .g-transcript__scroll {
+  max-block-size: max(calc(var(--g-space-1) * 60), calc(100dvh - var(--g-space-1) * 100));
+}
 
 /* ---------- Hoja móvil (visor < space × 130): el mismo panel dentro de un <dialog> modal ---------- */
 .g-speech-sheet {

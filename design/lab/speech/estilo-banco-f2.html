@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Captura de voz F2 · banco de estilo (coco)</title>
+<!-- Banco de coco para la Fase 2 de la captura de voz: marcado EXACTO de design/contracts/speech.md §22.4, §23, §24, §25 y §29
+     (GTranscript, gestor de hablantes, inserción, panel con GTranscript compacto y diálogo de respaldo) con el CSS real
+     (GTranscript.css y GSpeechHost.css registrados en la capa grana.components DESPUÉS de components.css, como lo hará
+     bruno) y los componentes reales de Grana (GBtn, GIcon, GCheckbox, GSelect, GMenu, GDialog) desde dist/grana.umd.js.
+     El script solo pinta el marcado y mide data-narrow como lo hará bruno (raíz < --g-space-1 × 120); no es GTranscript.
+     Requisitos: `npm run build` (dist/grana.umd.js y dist/fonts.css). Desde la raíz del repo, con un servidor estático:
+       python3 -m http.server <puerto>  →  /design/lab/speech/estilo-banco-f2.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+                 ?cat=<nombre de design/lab/speech/temas-f2/*.css> (tema con categorías: activa speakerColors)
+                 ?dlg=1 (abre el diálogo de respaldo)  ?only=<id de sección> -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<style>
+@layer grana.defaults, grana.components;
+@import url("../../../packages/vue/src/styles/defaults.css") layer(grana.defaults);
+@import url("../../../packages/vue/src/styles/components.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSpeechPill/GSpeechPill.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSpeechHost/GSpeechHost.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GTranscript/GTranscript.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Solo el banco (sin capa): disposición de las secciones; nada de esto toca las clases g-transcript-* */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:14px;line-height:1.45}
+  main{padding:16px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:8px 0} h2.sec{font-size:15px;margin:32px 0 10px}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-inline-size:90ch}
+  .card{padding:16px;border-radius:var(--g-radius-lg);background:var(--g-color-surface);border:1px solid var(--g-color-border);min-inline-size:0}
+  .card > h3{margin:0 0 12px;font-size:16px;border-radius:4px}
+  .card > h3:focus{outline:none} .card > h3:focus-visible{outline:2px solid var(--g-color-focus);outline-offset:2px}
+  .two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));align-items:start}
+  .narrow{max-inline-size:360px}
+  .tools{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  /* Galería del panel: el anfitrión y el panel dejan de ser fijos (solo en el banco) */
+  .bench .g-speech-host{position:relative;inset:auto;pointer-events:auto;display:block}
+  .bench .g-speech-panel{position:relative;left:auto;top:auto}
+  .panels{display:grid;gap:20px 16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));align-items:start}
+</style>
+</head>
+<body>
+<div id="app">
+  <main>
+    <h1>Captura de voz · Fase 2 · banco de estilo</h1>
+    <p class="cap">CSS real con el marcado del contrato (§22.4, §29). El script solo pinta el marcado; los menús, el editor y el foco itinerante son los de bruno. <code>data-narrow</code> se mide como lo hará bruno (raíz &lt; <code>--g-space-1</code> × 160; <code>?narrowAt=</code> para comparar).</p>
+    <div class="tools">
+      <g-btn size="sm" variant="outline" color="neutral" id="t-dark" @click="toggleDark">Oscuro</g-btn>
+      <g-btn size="sm" variant="outline" color="neutral" id="t-rtl" @click="toggleRtl">RTL</g-btn>
+      <g-btn size="sm" variant="outline" color="neutral" id="t-dlg" @click="dlg = true"><template #prepend><g-icon name="file-pen-line" /></template>Revisar (diálogo de respaldo)</g-btn>
+    </div>
+
+    <template v-if="show('s-edit')">
+    <h2 class="sec" id="s-edit">1 · Editable (revisión en la página), dos hablantes con rol</h2>
+    <p class="cap">Confirmado, corregido con «Mostrar cambios» (diferencias por palabras), hablante cambiado, eliminado, dos seleccionados, «Usado en», «Cambió después de insertarlo», editor abierto, fallido y provisional. Gestor de hablantes abierto e inserción con dos destinos, vista previa, resultado y usos.</p>
+    <section class="card" aria-labelledby="t-edit"><h3 id="t-edit" tabindex="-1">Consulta de hoy · transcripción</h3>
+      <t-view :sc="SC.edit"></t-view>
+    </section>
+    </template>
+
+    <template v-if="show('s-modes')">
+    <h2 class="sec" id="s-modes">2 · Modos y variantes</h2>
+    <div class="two">
+      <section class="card" aria-labelledby="t-sel"><h3 id="t-sel">Solo selección (editable: false)</h3><t-view :sc="SC.select"></t-view></section>
+      <section class="card" aria-labelledby="t-read"><h3 id="t-read">Solo lectura (lista simple)</h3><t-view :sc="SC.read"></t-view></section>
+      <section class="card" aria-labelledby="t-nodiar"><h3 id="t-nodiar">Sin diarización (aviso, «Sin asignar»)</h3><t-view :sc="SC.nodiar"></t-view></section>
+      <section class="card" aria-labelledby="t-dict"><h3 id="t-dict">Dictado (sin columna de hablante) y vacío</h3><t-view :sc="SC.dict"></t-view><div style="block-size:12px"></div><t-view :sc="SC.empty"></t-view></section>
+    </div>
+    </template>
+
+    <template v-if="show('s-narrow')">
+    <h2 class="sec" id="s-narrow">3 · Contenedor estrecho (360px): fila apilada y «Más»</h2>
+    <div class="two">
+      <section class="card narrow" aria-labelledby="t-narrow"><h3 id="t-narrow">Revisión en una columna lateral</h3><t-view :sc="SC.narrow"></t-view></section>
+      <section class="card" aria-labelledby="t-long"><h3 id="t-long">Sesión larga con alto máximo (foco dentro del área desplazable)</h3><t-view :sc="SC.long"></t-view></section>
+    </div>
+    </template>
+
+    <template v-if="show('s-panel')">
+    <h2 class="sec" id="s-panel">4 · Panel del anfitrión (conversación): GTranscript compacto y «Revisar»</h2>
+    <div class="panels bench">
+      <div class="g-speech-host"><s-panel uid="pn-live" st="speech" :sc="SC.compact"></s-panel></div>
+      <div class="g-speech-host"><s-panel uid="pn-done" st="completed" :sc="SC.compactDone"></s-panel></div>
+    </div>
+    </template>
+  </main>
+
+  <g-dialog v-model="dlg" size="lg" mobile="fullscreen" class="g-speech-review" title="Revisar transcripción" close-label="Cerrar revisión" id="review">
+    <t-view :sc="SC.dialog"></t-view>
+  </g-dialog>
+</div>
+
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script type="module">
+const { createApp, reactive, computed, ref, onMounted, onBeforeUnmount } = Vue
+const q = new URLSearchParams(location.search)
+const LS = '../../../node_modules/lucide-static/dist/esm/icons/'
+// Iconos de la F2 que la lista de la librería aún no trae (bruno los añade, icons.md v0.5) + los de la F1 que usa el panel
+const APP = ['pencil', 'trash', 'users', 'user-plus', 'merge', 'git-compare', 'copy', 'undo-2', 'redo-2', 'text-cursor-input', 'file-pen-line', 'mic', 'pause', 'audio-lines', 'lock']
+const icons = Grana.createIcons(await Promise.all(APP.map(async (n) => (await import(LS + n + '.mjs')).default)))
+
+if (q.get('theme')) document.getElementById('gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+if (q.get('cat')) document.getElementById('gen').href = './temas-f2/' + q.get('cat') + '.css'
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+if (q.get('rtl')) document.documentElement.dir = 'rtl'
+const SPEAKER_COLORS = q.get('cat') ? 3 : 0 // la app declara speakerColors solo si su tema define categorías
+const NARROW_AT = +q.get('narrowAt') || 160 // umbral de «Más» y del apilado (× --g-space-1): coco fija 160 (el contrato proponía 120; estilo.md F2)
+const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 0
+
+/* ---------- Textos de ejemplo (los pone la aplicación; redacción de kiwi) ---------- */
+const L = {
+  cols: ['Selección', 'Hora', 'Hablante', 'Texto', 'Acciones'],
+  bar: 'Acciones de la transcripción', all: 'Seleccionar todo', assign: 'Asignar hablante', remove: 'Eliminar selección', restore: 'Restaurar selección',
+  undo: 'Deshacer', redo: 'Rehacer', copy: 'Copiar', changes: 'Mostrar cambios', speakers: 'Hablantes', more: 'Más',
+  kbd: 'Teclado: flechas para moverte · Intro o F2 edita · Mayús+Espacio selecciona · Mayús+flechas amplía · Supr elimina o restaura · Ctrl+Z / Ctrl+Mayús+Z deshace y rehace · Ctrl+C copia la selección.',
+  noDiar: 'El motor no distingue hablantes. Marca fragmentos y usa «Asignar hablante», o cambia el hablante de cada fragmento.',
+  empty: 'Todavía no hay texto transcrito.'
+}
+const SPK = { A: { label: 'Profesional (A)', cat: 1 }, B: { label: 'Paciente (B)', cat: 2 }, C: { label: 'Acompañante (C)', cat: 3 }, X: { label: 'Sin asignar', unassigned: true } }
+
+/* ---------- Diferencia por palabras (LCS), solo para pintar <del>/<ins> como lo hará bruno ---------- */
+function diff(a, b) {
+  const x = a.split(/\s+/), y = b.split(/\s+/), n = x.length, m = y.length
+  const d = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0))
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) d[i][j] = x[i] === y[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1])
+  const out = []; let i = 0, j = 0
+  const push = (t, w) => { const l = out[out.length - 1]; if (l && l.t === t) l.w.push(w); else out.push({ t, w: [w] }) }
+  while (i < n && j < m) { if (x[i] === y[j]) { push('eq', x[i]); i++; j++ } else if (d[i + 1][j] >= d[i][j + 1]) push('del', x[i++]); else push('ins', y[j++]) }
+  while (i < n) push('del', x[i++]); while (j < m) push('ins', y[j++])
+  return out.map((o) => ({ t: o.t, text: o.w.join(' ') }))
+}
+
+/* ---------- Datos ---------- */
+const BASE = [
+  { id: 's1', t: '00:03', spk: 'A', text: 'Buenos días. Cuénteme qué le trae por aquí.' },
+  { id: 's2', t: '00:07', spk: 'B', text: 'Desde hace una semana me duele la cabeza por las tardes, sobre todo al volver del trabajo.', literal: 'Desde hace una semana me duele la cabeza por la tarde sobre todo al volver de trabajo.', used: 'Motivo' },
+  { id: 's3', t: '00:16', spk: 'B', engine: 'A', text: 'Y a veces me mareo un poco al levantarme.', selected: true },
+  { id: 's4', t: '00:21', spk: 'A', text: '¿Ha tomado algo para el dolor?', removed: true },
+  { id: 's5', t: '00:26', spk: 'B', text: 'Paracetamol, pero no me hace mucho efecto.', literal: 'Paracetamol pero no me hace mucho efecto.', used: 'Motivo, Plan', stale: true, selected: true },
+  { id: 's6', t: '00:31', spk: 'A', text: 'Vamos a ajustar la pauta y revisar la tensión.', editing: true },
+  { id: 'f1', t: '00:36', range: '00:36–00:41', failed: true },
+  { id: 's7', t: '00:42', spk: 'C', text: 'Yo la noto más cansada desde que cambió de turno.' },
+  { id: 'p1', t: '00:47', spk: 'A', partial: true, text: 'entonces le pido una analítica y volvemos a' }
+]
+const plain = (list) => list.map((s) => ({ ...s, selected: false, editing: false }))
+const LONG = Array.from({ length: 24 }, (_, i) => ({ id: 'l' + i, t: '0' + Math.floor(i * 9 / 60) + ':' + String(i * 9 % 60).padStart(2, '0'), spk: i % 3 ? 'B' : 'A', text: i % 4 ? 'Fragmento confirmado de la sesión larga número ' + (i + 1) + '.' : 'Un fragmento algo más largo, para que la fila ocupe dos líneas cuando el contenedor es estrecho y se vea el apilado.', removed: i === 5, literal: i === 2 ? 'Fragmento confirmado de la sesion larga numero 3.' : undefined }))
+const TARGETS = [{ value: 'motivo', label: 'Motivo' }, { value: 'plan', label: 'Plan' }]
+
+const SC = {
+  edit: { mode: 'edit', conv: true, rows: BASE, changes: true, bar: true, speakers: true, insert: true, kbd: true, live: true, newer: 2, uid: 'tx-edit' },
+  select: { mode: 'select', conv: true, rows: plain(BASE).filter((s) => !s.editing).map((s, i) => ({ ...s, selected: i === 1 })), bar: true, insert: false, kbd: true, live: true, uid: 'tx-sel' },
+  read: { mode: 'read', conv: true, rows: plain(BASE), live: true, uid: 'tx-read' },
+  nodiar: { mode: 'edit', conv: true, nodiar: true, rows: plain(BASE).slice(0, 4).map((s, i) => ({ ...s, spk: i === 2 ? 'C' : 'X', engine: undefined, literal: undefined, used: undefined, removed: false })), bar: true, kbd: true, live: true, uid: 'tx-nodiar' },
+  dict: { mode: 'edit', conv: false, rows: plain(BASE).slice(0, 4), bar: true, kbd: true, live: true, uid: 'tx-dict' },
+  empty: { mode: 'edit', conv: true, rows: [], uid: 'tx-empty' },
+  narrow: { mode: 'edit', conv: true, rows: BASE.map((s) => ({ ...s, editing: s.id === 's6' })), bar: true, insert: true, kbd: true, live: true, menuMore: true, uid: 'tx-narrow' },
+  long: { mode: 'edit', conv: true, rows: LONG, bar: true, kbd: true, live: true, maxHeight: 'calc(var(--g-space-1) * 60)', uid: 'tx-long' },
+  compact: { mode: 'edit', compact: true, conv: true, rows: plain(BASE).slice(0, 5).concat(BASE.slice(-1)), bar: true, uid: 'tx-compact' },
+  compactDone: { mode: 'edit', compact: true, conv: true, rows: plain(BASE).filter((s) => !s.partial && !s.failed), bar: true, uid: 'tx-compact-done' },
+  dialog: { mode: 'edit', conv: true, rows: LONG.slice(0, 16), bar: true, insert: true, kbd: true, uid: 'tx-dialog' }
+}
+
+/* ---------- GTranscript (marcado de §22.4 / §29; solo pinta) ---------- */
+const TView = {
+  props: { sc: Object },
+  setup(p) {
+    const root = ref(null), narrow = ref(false)
+    let ro
+    onMounted(() => {
+      let raf = 0
+      // Medido fuera del ciclo del observador (rAF): cambiar data-narrow no vuelve a disparar el aviso de bucle en WebKit
+      ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (root.value) narrow.value = root.value.getBoundingClientRect().width < space() * NARROW_AT }) })
+      ro.observe(root.value)
+    })
+    onBeforeUnmount(() => ro && ro.disconnect())
+    const sc = p.sc, uid = sc.uid
+    const editable = sc.mode === 'edit', selectable = sc.mode !== 'read' && !sc.compact
+    const hasSpk = sc.conv
+    const confirmed = (s) => !s.partial && !s.failed
+    const rowCls = (s) => ({ 'is-partial': s.partial, 'is-failed': s.failed, 'is-removed': s.removed, 'is-selected': s.selected && selectable, 'is-editing': s.editing && editable,
+      'is-corrected': !!s.literal, 'is-speaker-changed': !!s.engine, 'is-stale': s.stale })
+    const firstText = computed(() => (sc.rows.find(confirmed) || sc.rows[0] || {}).id)
+    const sel = computed(() => sc.rows.filter((s) => s.selected && selectable).length)
+    const allState = computed(() => ({ checked: sel.value > 0 && sel.value === sc.rows.filter(confirmed).length, mixed: sel.value > 0 && sel.value < sc.rows.filter(confirmed).length }))
+    const spk = (k) => SPK[k] || SPK.X
+    const cat = (k) => (SPEAKER_COLORS && spk(k).cat && spk(k).cat <= SPEAKER_COLORS ? String(spk(k).cat) : null)
+    const showOrig = (s) => (sc.changes || s.orig) && (s.literal || s.engine)
+    const moreOpen = ref(false)
+    const moreItems = [{ id: 'copyText', label: 'Copiar texto', icon: 'copy' }, { id: 'copyFull', label: 'Copiar con hablantes y horas' }, { type: 'separator' }, { type: 'checkbox', id: 'changes', label: L.changes, checked: !!sc.changes }, { id: 'speakers', label: L.speakers, icon: 'users' }]
+    const what = ref('sel'), target = ref('plan'), where = ref('end'), withSpk = ref(true)
+    return { root, narrow, sc, uid, editable, selectable, hasSpk, confirmed, rowCls, firstText, sel, allState, spk, cat, showOrig, diff, L, moreOpen, moreItems, what, target, where, withSpk, TARGETS }
+  },
+  template: `
+  <div ref="root" class="g-transcript" :data-mode="sc.mode" :data-compact="sc.compact ? '' : null" :data-narrow="narrow ? '' : null" :id="uid">
+    <p v-if="sc.nodiar" class="g-transcript__note">{{ L.noDiar }}</p>
+    <p v-if="!sc.rows.length" class="g-transcript__empty">{{ L.empty }}</p>
+    <template v-else>
+    <div v-if="sc.bar && sc.mode !== 'read'" class="g-transcript__bar" role="group" :aria-label="L.bar">
+      <template v-if="selectable">
+        <g-checkbox class="g-transcript__all" :id="uid + '-all'" :model-value="allState.checked" :indeterminate="allState.mixed" :label="L.all"></g-checkbox>
+        <span class="g-transcript__count">{{ sel ? sel + ' seleccionados' : 'Ninguno seleccionado' }}</span>
+      </template>
+      <template v-if="selectable && editable">
+        <g-btn v-if="sc.conv" size="sm" variant="ghost" color="neutral" aria-haspopup="menu" aria-expanded="false"><template #prepend><g-icon name="users" /></template>{{ L.assign }}</g-btn>
+        <g-btn size="sm" variant="ghost" color="neutral"><template #prepend><g-icon name="trash" /></template>{{ L.remove }}</g-btn>
+      </template>
+      <template v-if="editable">
+        <g-btn size="sm" variant="ghost" color="neutral" aria-keyshortcuts="Control+Z" :aria-describedby="uid + '-undo-d'"><template #prepend><g-icon name="undo-2" /></template>{{ L.undo }}</g-btn>
+        <span class="g-transcript__sr" :id="uid + '-undo-d'">Deshacer: corrección de las 00:07</span>
+        <g-btn size="sm" variant="ghost" color="neutral" aria-keyshortcuts="Control+Shift+Z" aria-disabled="true" :aria-describedby="uid + '-redo-d'"><template #prepend><g-icon name="redo-2" /></template>{{ L.redo }}</g-btn>
+        <span class="g-transcript__sr" :id="uid + '-redo-d'">Nada que rehacer</span>
+      </template>
+      <template v-if="!narrow">
+        <g-btn size="sm" variant="ghost" color="neutral" aria-haspopup="menu" aria-expanded="false"><template #prepend><g-icon name="copy" /></template>{{ L.copy }}</g-btn>
+        <g-btn size="sm" variant="ghost" color="neutral" :aria-pressed="String(!!sc.changes)"><template #prepend><g-icon name="git-compare" /></template>{{ L.changes }}</g-btn>
+        <g-btn v-if="editable && !sc.compact && sc.conv" size="sm" variant="ghost" color="neutral" :aria-expanded="String(!!sc.speakers)" :aria-controls="uid + '-speakers'"><template #prepend><g-icon name="users" /></template>{{ L.speakers }}</g-btn>
+      </template>
+      <g-menu v-else v-model="moreOpen" :items="moreItems" :label="L.more" align="end">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" class="g-transcript__more" size="sm" variant="ghost" color="neutral">{{ L.more }}<template #append><g-icon name="chevron-down" /></template></g-btn></template>
+      </g-menu>
+    </div>
+
+    <div class="g-transcript__scroll" :style="sc.maxHeight ? { '--_max-height': sc.maxHeight } : null">
+      <ol v-if="sc.mode === 'read'" class="g-transcript__list" tabindex="0" :aria-labelledby="'t-read'">
+        <li v-for="s in sc.rows" :key="s.id" :class="['g-transcript__item', rowCls(s)]">
+          <time class="g-transcript__time">{{ s.failed ? s.range : s.t }}</time>
+          <span v-if="hasSpk && !s.failed" class="g-transcript__speaker"><span :class="['g-transcript__mark', { 'is-unassigned': spk(s.spk).unassigned }]" :data-cat="cat(s.spk)" aria-hidden="true">{{ spk(s.spk).unassigned ? '' : s.spk }}</span>{{ spk(s.spk).label }}</span>
+          <span v-if="!s.failed" class="g-transcript__text"><span v-if="s.partial" class="g-transcript__sr">Texto provisional: </span>{{ s.text }}</span>
+          <span class="g-transcript__flags">
+            <span v-if="s.partial" class="g-transcript__flag g-transcript__flag--partial">Provisional</span>
+            <span v-if="s.failed" class="g-transcript__flag g-transcript__flag--failed"><g-icon name="triangle-alert" />No se pudo transcribir este fragmento.</span>
+            <span v-if="s.literal" class="g-transcript__flag g-transcript__flag--corrected"><g-icon name="pencil" />Corregido</span>
+            <span v-if="s.engine" class="g-transcript__flag g-transcript__flag--speaker"><g-icon name="users" />Hablante cambiado (motor: Hablante {{ s.engine }})</span>
+            <span v-if="s.removed" class="g-transcript__flag g-transcript__flag--removed"><g-icon name="trash" />Eliminado</span>
+            <span v-if="s.used" class="g-transcript__flag g-transcript__flag--used"><g-icon name="text-cursor-input" />Usado en {{ s.used }}</span>
+            <span v-if="s.stale" class="g-transcript__flag g-transcript__flag--stale"><g-icon name="triangle-alert" />Cambió después de insertarlo</span>
+          </span>
+        </li>
+      </ol>
+      <div v-else class="g-transcript__grid" role="grid" :aria-labelledby="uid + '-title'" :aria-describedby="uid + '-kbd'" :aria-multiselectable="selectable ? 'true' : null">
+        <div class="g-transcript__head" role="rowgroup">
+          <div role="row"><span v-if="selectable" role="columnheader">{{ L.cols[0] }}</span><span role="columnheader">{{ L.cols[1] }}</span><span v-if="hasSpk" role="columnheader">{{ L.cols[2] }}</span><span role="columnheader">{{ L.cols[3] }}</span><span role="columnheader">{{ L.cols[4] }}</span></div>
+        </div>
+        <div class="g-transcript__body" role="rowgroup">
+          <div v-for="s in sc.rows" :key="s.id" :class="['g-transcript__row', rowCls(s)]" role="row" :aria-selected="selectable && confirmed(s) ? String(!!s.selected) : null" :data-id="s.id">
+            <div v-if="selectable" class="g-transcript__cell g-transcript__cell--select" role="gridcell">
+              <g-checkbox v-if="confirmed(s)" :id="uid + '-c-' + s.id" :model-value="!!s.selected" :aria-label="'Seleccionar fragmento de las ' + s.t" tabindex="-1"></g-checkbox>
+            </div>
+            <div class="g-transcript__cell g-transcript__cell--time" role="rowheader" tabindex="-1"><time :datetime="'PT' + (parseInt(s.t.slice(0,2))*60 + parseInt(s.t.slice(3))) + 'S'">{{ s.t }}</time></div>
+            <div v-if="hasSpk" class="g-transcript__cell g-transcript__cell--speaker" role="gridcell">
+              <template v-if="!s.failed">
+                <g-btn v-if="editable && confirmed(s)" class="g-transcript__speaker" size="sm" variant="ghost" color="neutral" aria-haspopup="menu" aria-expanded="false" tabindex="-1">
+                  <span :class="['g-transcript__mark', { 'is-unassigned': spk(s.spk).unassigned }]" :data-cat="cat(s.spk)" aria-hidden="true">{{ spk(s.spk).unassigned ? '' : s.spk }}</span>{{ spk(s.spk).label }}<span class="g-transcript__sr">, cambiar hablante</span>
+                </g-btn>
+                <span v-else class="g-transcript__speaker"><span :class="['g-transcript__mark', { 'is-unassigned': spk(s.spk).unassigned }]" :data-cat="cat(s.spk)" aria-hidden="true">{{ spk(s.spk).unassigned ? '' : s.spk }}</span>{{ spk(s.spk).label }}</span>
+              </template>
+            </div>
+            <div class="g-transcript__cell g-transcript__cell--text" role="gridcell" :tabindex="s.id === firstText ? 0 : -1">
+              <div v-if="s.editing && editable" class="g-transcript__editor" role="group" :aria-label="'Editar fragmento de las ' + s.t">
+                <textarea class="g-transcript__field" :id="uid + '-ed-' + s.id" :aria-label="'Texto del fragmento de las ' + s.t" :aria-describedby="uid + '-eo-' + s.id + ' ' + uid + '-eh-' + s.id" :value="s.text" rows="2"></textarea>
+                <p class="g-transcript__editor-orig" :id="uid + '-eo-' + s.id">Original del motor: «{{ s.literal || s.text }}»</p>
+                <p class="g-transcript__editor-hint" :id="uid + '-eh-' + s.id">Intro guarda · Esc cancela · el original del motor no cambia</p>
+                <div class="g-transcript__editor-actions"><g-btn size="sm">Guardar</g-btn><g-btn size="sm" variant="outline" color="neutral">Cancelar</g-btn></div>
+              </div>
+              <template v-else>
+                <span v-if="!s.failed" class="g-transcript__text"><span v-if="s.partial" class="g-transcript__sr">Texto provisional: </span>{{ s.text }}</span>
+                <span class="g-transcript__flags">
+                  <span v-if="s.partial" class="g-transcript__flag g-transcript__flag--partial">Provisional</span>
+                  <span v-if="s.failed" class="g-transcript__flag g-transcript__flag--failed"><g-icon name="triangle-alert" />No se pudo transcribir este fragmento ({{ s.range }}).</span>
+                  <span v-if="s.literal" class="g-transcript__flag g-transcript__flag--corrected"><g-icon name="pencil" />Corregido</span>
+                  <span v-if="s.engine" class="g-transcript__flag g-transcript__flag--speaker"><g-icon name="users" />Hablante cambiado (motor: Hablante {{ s.engine }})</span>
+                  <span v-if="s.removed" class="g-transcript__flag g-transcript__flag--removed"><g-icon name="trash" />Eliminado</span>
+                  <span v-if="s.used" class="g-transcript__flag g-transcript__flag--used"><g-icon name="text-cursor-input" />Usado en {{ s.used }}</span>
+                  <span v-if="s.stale" class="g-transcript__flag g-transcript__flag--stale"><g-icon name="triangle-alert" />Cambió después de insertarlo</span>
+                </span>
+                <div v-if="showOrig(s)" class="g-transcript__orig">
+                  <p v-if="s.literal">Original del motor: «{{ s.literal }}»</p>
+                  <p v-if="s.literal">Cambios: <span class="g-transcript__diff"><template v-for="(o, i) in diff(s.literal, s.text)">{{ i ? ' ' : '' }}<del v-if="o.t === 'del'"><span class="g-transcript__sr">(eliminado: </span>{{ o.text }}<span class="g-transcript__sr">)</span></del><ins v-else-if="o.t === 'ins'"><span class="g-transcript__sr">(añadido: </span>{{ o.text }}<span class="g-transcript__sr">)</span></ins><template v-else>{{ o.text }}</template></template></span></p>
+                  <p v-if="s.engine">Hablante del motor: Hablante {{ s.engine }}</p>
+                </div>
+              </template>
+            </div>
+            <div class="g-transcript__cell g-transcript__cell--actions" role="gridcell">
+              <g-btn v-if="confirmed(s)" icon class="g-transcript__actions" size="sm" variant="ghost" color="neutral" aria-haspopup="menu" aria-expanded="false" :aria-label="'Acciones del fragmento de las ' + s.t" tabindex="-1"><g-icon name="ellipsis-vertical" /></g-btn>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <g-btn v-if="sc.newer" class="g-transcript__newer" size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="arrow-down" /></template>{{ sc.newer }} fragmentos nuevos · Ir al final</g-btn>
+    <p v-if="sc.mode !== 'read'" class="g-transcript__kbd" :id="uid + '-kbd'" :hidden="sc.compact || null">{{ L.kbd }}</p>
+
+    <section v-if="sc.speakers" class="g-transcript__speakers" :id="uid + '-speakers'" :aria-labelledby="uid + '-speakers-title'">
+      <h4 :id="uid + '-speakers-title'" tabindex="-1">Hablantes y roles</h4>
+      <p>El motor solo distingue voces; los roles los pone quien revisa. Cambiar un rol o unir hablantes no modifica el transcript original.</p>
+      <ul>
+        <li class="g-transcript__speaker-row"><span class="g-transcript__speaker"><span class="g-transcript__mark" :data-cat="cat('A')" aria-hidden="true">A</span>Profesional (A)</span><span>3 fragmentos</span>
+          <g-select :id="uid + '-r-a'" :model-value="'pro'" label="Rol: Hablante A" :options="[{ value: '', label: 'Sin rol' }, { value: 'pro', label: 'Profesional' }, { value: 'pac', label: 'Paciente' }, { value: 'acomp', label: 'Acompañante' }]"></g-select>
+          <g-select :id="uid + '-m-a'" :model-value="'b'" label="Unir con: Hablante A" :options="[{ value: 'b', label: 'Paciente (B)' }, { value: 'c', label: 'Acompañante (C)' }]"></g-select>
+          <g-btn size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="merge" /></template>Unir</g-btn></li>
+        <li class="g-transcript__speaker-row"><span class="g-transcript__speaker"><span class="g-transcript__mark" :data-cat="cat('B')" aria-hidden="true">B</span>Paciente (B)</span><span>3 fragmentos</span>
+          <g-select :id="uid + '-r-b'" :model-value="'pac'" label="Rol: Hablante B" :options="[{ value: '', label: 'Sin rol' }, { value: 'pro', label: 'Profesional' }, { value: 'pac', label: 'Paciente' }, { value: 'acomp', label: 'Acompañante' }]"></g-select></li>
+        <li class="g-transcript__speaker-row"><span class="g-transcript__speaker"><span class="g-transcript__mark" aria-hidden="true">D</span>Hablante D</span><span>Unido a Paciente (B)</span>
+          <g-btn size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="split" /></template>Separar</g-btn></li>
+      </ul>
+      <div><g-btn size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="user-plus" /></template>Añadir hablante</g-btn></div>
+    </section>
+
+    <section v-if="sc.insert" class="g-transcript__insert" :aria-labelledby="uid + '-insert-title'">
+      <h4 :id="uid + '-insert-title'">Insertar en el formulario</h4>
+      <g-select :id="uid + '-what'" v-model="what" label="Qué" :options="[{ value: 'all', label: 'Todo (6)' }, { value: 'sel', label: 'Fragmentos marcados (2)' }, { value: 'text', label: 'Texto seleccionado (selecciona texto en la transcripción)', disabled: true }]"></g-select>
+      <g-select :id="uid + '-target'" v-model="target" label="Campo" :options="TARGETS"></g-select>
+      <g-select :id="uid + '-where'" v-model="where" label="Dónde" :options="[{ value: 'end', label: 'Al final' }, { value: 'cursor', label: 'En la posición del cursor (sin posición conocida)', disabled: true }]"></g-select>
+      <g-checkbox :id="uid + '-ws'" v-model="withSpk" label="Con hablantes"></g-checkbox>
+      <p :id="uid + '-pv-label'">Vista previa</p>
+      <div class="g-transcript__preview" tabindex="0" role="region" :aria-labelledby="uid + '-pv-label'">Paciente: Y a veces me mareo un poco al levantarme. Paracetamol, pero no me hace mucho efecto.</div>
+      <div><g-btn size="md"><template #prepend><g-icon name="text-cursor-input" /></template>Insertar en Plan</g-btn></div>
+      <p class="g-transcript__result"><g-icon name="circle-check" /><span>Insertado en Motivo: 2 fragmentos.</span><g-btn size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="undo-2" /></template>Deshacer inserción</g-btn></p>
+      <details class="g-transcript__uses" open>
+        <summary>Usos de esta transcripción (2)</summary>
+        <ul>
+          <li><span>Motivo · 2 fragmentos · 10:42</span><g-btn size="sm" variant="outline" color="neutral"><template #prepend><g-icon name="undo-2" /></template>Deshacer inserción</g-btn></li>
+          <li><span>Plan · 1 fragmento · 10:44</span></li>
+        </ul>
+      </details>
+    </section>
+    </template>
+    <div v-if="sc.live" class="g-transcript__live" role="status" aria-live="polite" aria-atomic="true"></div>
+  </div>`
+}
+
+/* ---------- Panel del anfitrión (marcado de §6.4 con la F2: GTranscript compacto y «Revisar») ---------- */
+const SPanel = {
+  props: { uid: String, st: String, sc: Object },
+  template: `
+  <div :class="['g-speech-panel', 'g-surface', 'g-surface--level-floating', { 'is-live': st === 'speech' }]" :data-status="st" :id="uid" role="dialog" :aria-labelledby="uid + '-title'">
+    <div class="g-speech-panel__head">
+      <h2 class="g-speech-panel__title" :id="uid + '-title'" tabindex="-1">Grabación de voz</h2>
+      <p class="g-speech-panel__mode">Conversación · 2 participantes previstos</p>
+      <g-btn icon class="g-speech-panel__close" variant="ghost" color="neutral" size="sm" aria-label="Cerrar panel"><g-icon name="x" /></g-btn>
+    </div>
+    <div class="g-speech-panel__status">
+      <span class="g-speech-panel__status-icon" aria-hidden="true"><g-icon :name="st === 'speech' ? 'audio-lines' : 'circle-check'" /></span>
+      <span class="g-speech-panel__status-text">{{ st === 'speech' ? 'Grabando · voz detectada' : 'Grabación terminada' }}</span>
+      <span class="g-speech-panel__time" role="timer"><span class="g-speech-panel__sr">Duración: </span>{{ st === 'speech' ? '00:47' : '12:31' }}</span>
+    </div>
+    <div class="g-speech-panel__privacy"><g-icon name="lock" /><p>Se procesa en un servicio local. El audio se guarda temporalmente en memoria.</p></div>
+    <div class="g-speech-panel__controls">
+      <template v-if="st === 'speech'">
+        <g-btn size="md" variant="outline" color="neutral"><template #prepend><g-icon name="pause" /></template>Pausar</g-btn>
+        <g-btn size="md"><template #prepend><g-icon name="square" filled /></template>Finalizar</g-btn>
+        <g-btn size="md" variant="ghost" color="neutral">Descartar</g-btn>
+        <g-btn size="md" variant="outline" color="neutral"><template #prepend><g-icon name="file-pen-line" /></template>Revisar</g-btn>
+      </template>
+      <template v-else>
+        <g-btn size="md"><template #prepend><g-icon name="file-pen-line" /></template>Revisar transcripción</g-btn>
+        <g-btn size="md" variant="outline" color="neutral"><template #prepend><g-icon name="circle-check" /></template>Cerrar sesión</g-btn>
+        <g-btn size="md" variant="ghost" color="neutral">Descartar</g-btn>
+      </template>
+    </div>
+    <section class="g-speech-panel__transcript">
+      <h3 :id="sc.uid + '-title'">Transcripción</h3>
+      <t-view :sc="sc"></t-view>
+    </section>
+  </div>`
+}
+
+const app = createApp({
+  setup() {
+    const dlg = ref(!!q.get('dlg'))
+    const only = q.get('only')
+    const show = (id) => !only || only === id
+    const toggleDark = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark' }
+    const toggleRtl = () => { const r = document.documentElement; r.dir = r.dir === 'rtl' ? 'ltr' : 'rtl' }
+    return { SC, dlg, show, toggleDark, toggleRtl }
+  }
+}).component('t-view', TView).component('s-panel', SPanel).use(Grana).use(icons)
+app.mount('#app')
+// El nombre de la rejilla de la página es el título visible de su tarjeta (labelledby)
+for (const [g, t] of [['tx-edit', 't-edit'], ['tx-sel', 't-sel'], ['tx-nodiar', 't-nodiar'], ['tx-dict', 't-dict'], ['tx-narrow', 't-narrow'], ['tx-long', 't-long'], ['tx-dialog', 'review']]) {
+  const grid = document.querySelector('#' + g + ' [role="grid"]'); if (grid) grid.setAttribute('aria-labelledby', t === 'review' ? document.querySelector('#review .g-dialog__title')?.id || '' : t)
+}
+await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+window.__ready = true
+</script>
+</body>
+</html>
