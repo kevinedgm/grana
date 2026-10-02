@@ -1,0 +1,15 @@
+{
+  "name": "Editorial cálido",
+  "brand": "#9E1452",
+  "accent": "#2E3A8C",
+  "radius": 16,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Instrument Sans",
+  "fontDisplay": "Instrument Serif",
+  "fontSize": 16,
+  "typeScale": 1.25,
+  "neutrals": "tinted",
+  "neutralsHue": "brand",
+  "dark": true
+}
