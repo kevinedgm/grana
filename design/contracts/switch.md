@@ -161,6 +161,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 
 ## Cambio por el sistema de formularios (Fase 1)
 
+> **Revisión r02 (distribución, DECISIONS.md #171 a #184):** cambia C10 (no aplica); `block` se resuelve dentro de `GFormLayout`/`GFormRow`/`GFieldGroup` (C2). Pendiente de **bruno** (marcado) y **coco** (pistas). Ver `form.md` §4, §10 y «Migración desde la Fase 1».
+
 **Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
 
 | # | Cambio | Detalle |
@@ -174,7 +176,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 | C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). Ya usaba `surface-sunken`; se añade el borde discontinuo. `aria-readonly` sin cambios. |
 | C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` con prueba de orden. |
 | C9 | Registro | Con `name` en `$attrs`, se registra (control de elección: revela al cambiar). Recordatorio de la guía: en un formulario con Guardar se usa `GCheckbox`, no `GSwitch`. |
-| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+| C10 | Pistas compartidas (r02, #176) | **No aplica**: casillas e interruptores sueltos van en su propia fila (hijos directos de `GFormLayout`), sin pistas compartidas; su estructura no cambia. Dentro de una `GFormRow` con más hijos, aviso de desarrollo (`form.md` §4) |
 
 **Advertencia (#169):** en el riel, borde **discontinuo de un solo trazo** (no doble).
 

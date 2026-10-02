@@ -323,12 +323,14 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ## Cambio por el sistema de formularios (Fase 1)
 
+> **Revisión r02 (distribución, DECISIONS.md #171 a #184):** cambia C10 y C11; `block` se resuelve dentro de `GFormLayout`/`GFormRow`/`GFieldGroup` (C2). Pendiente de **bruno** (marcado) y **coco** (pistas). Ver `form.md` §4, §10 y «Migración desde la Fase 1».
+
 **Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
 
 | # | Cambio | Detalle |
 | --- | --- | --- |
 | C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled`, `block` y `error` (solo el campo; `inline` no lee el contexto salvo `readonly`/`disabled`) pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
-| C2 | `block` en la rejilla | Dentro de `GFormGrid` o `GFieldGroup`, `block` resuelto a `true`. Como `sm` en la rejilla (`g-form-w-sm`) cabe una fecha. |
+| C2 | `block` en la rejilla | Dentro de `GFormLayout`, `GFormRow` o `GFieldGroup`, `block` resuelto a `true`. En una `GFormRow`, `g-form-w-sm` (peso 3, mínimo `space × 32`); con `output` (edad), mínimo propio `--g-form-min: 44`. |
 | C3 | Marcas | Como `GInput`: «(opcional)» en `g-datepicker__optional` o asterisco según `marks`; prop nueva **`mark`**. |
 | C4 | Región de mensaje unificada | `g-datepicker__error` / `ID-error` pasa a **`g-datepicker__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-datepicker__message-icon`) + prefijo oculto `g-datepicker__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Vacía = **sin nodos de texto** (el CSS usa `:not(:empty)`; un comentario de Vue vale, un espacio no). |
 | C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
@@ -336,10 +338,11 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). El texto del valor, seleccionable donde el navegador lo permita; enfocable y no abre (sin cambios). |
 | C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` sobre el botón del campo, con prueba de orden. |
 | C9 | Registro | Con `name`, se registra (`control` = botón del campo, o el primero con `split`); al elegir un valor completo llama a `notifyChange()` (revela al cambiar y marca `dirty`). |
-| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+| C10 | **Tres hijos: etiqueta, caja, pie** (r02, #176; sustituye a las cuatro pistas) | La raíz tiene exactamente tres hijos en flujo: `g-datepicker__label`, la caja (el contenedor del campo; el panel queda fuera de flujo y `inline` va en su propia fila) y el pie nuevo **`g-datepicker__support`**, que agrupa ayuda (y contador) y la región `g-datepicker__message` (siempre presente). Dentro de una `GFormRow`, coco coloca las tres partes en las pistas compartidas (`subgrid`; etiqueta apoyada abajo y nunca recortada; `form.md` §4, C12) |
+| C11 | **Valor calculado: `output`** (r02, #180; `form.md` C14) | Prop nueva **`output`** (String, sin valor): dato que calcula la aplicación a partir de la fecha (la edad). Se pinta como `<output class="g-datepicker__output" id="ID-output" for="ID" aria-live="polite">` dentro de la caja, tras el texto de la fecha y antes de su botón o icono; siempre presente, vacía sin nodos de texto; con texto entra en `aria-describedby` antes de ayuda y mensaje y la raíz lleva `g-datepicker--has-output`. No se envía ni es enfocable |
 
 **«(opcional)»:** un espacio de texto antes del `<span>` de la marca (sin margen en CSS). Advertencia en cajas: borde discontinuo doble; error, continuo doble; válido, continuo sencillo (coco, #169).
 
-**Clases nuevas** (contrato bruno–coco): `g-datepicker__optional`, `g-datepicker__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-datepicker__error` desaparece).
+**Clases nuevas** (contrato bruno–coco): `g-datepicker__support`, `g-datepicker__output`, `g-datepicker--has-output` (r02), `g-datepicker__optional`, `g-datepicker__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-datepicker__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.

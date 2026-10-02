@@ -276,12 +276,14 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 
 ## Cambio por el sistema de formularios (Fase 1)
 
+> **Revisión r02 (distribución, DECISIONS.md #171 a #184):** cambia C10; `block` se resuelve dentro de `GFormLayout`/`GFormRow`/`GFieldGroup` (C2). Pendiente de **bruno** (marcado) y **coco** (pistas). Ver `form.md` §4, §10 y «Migración desde la Fase 1».
+
 **Origen:** `design/contracts/form.md` §10 (DECISIONS.md #153, #158, #164, #165). **Estado:** aprobado por lima; pendiente de **bruno** (`.vue`, pruebas, `meta.json`) y **coco** (CSS). Lo que aquí se dice **sustituye** a lo anterior de este contrato donde choque; fuera de `GForm` el componente se ve y se comporta como hoy salvo C4, C5, C6 y C7, que aplican siempre.
 
 | # | Cambio | Detalle |
 | --- | --- | --- |
 | C1 | Lee el contexto con `useFormField()` | `density`, `readonly`, `disabled`, `block` y `error` pasan a default `undefined`; valor = prop explícita › contexto de `GForm` › default de siempre. Error por `name` desde `errors` de `GForm` (y `warnings`), con su momento (`showErrorsOn`) |
-| C2 | `block` en la rejilla | Dentro de `GFormGrid` o `GFieldGroup`, `block` resuelto a `true`. |
+| C2 | `block` en la rejilla | Dentro de `GFormLayout`, `GFormRow` o `GFieldGroup`, `block` resuelto a `true`. |
 | C3 | Marcas | Como `GInput`: «(opcional)» en `g-select__optional` (dentro de la etiqueta, que nombra el `combobox`) o asterisco según `marks`; prop nueva **`mark`**. |
 | C4 | Región de mensaje unificada | `g-select__error` / `ID-error` pasa a **`g-select__message`** / `ID-message`: un hueco para error, advertencia o válido, siempre presente; `aria-live` = `live` del contexto (`polite`, u `off` mientras se escriben mensajes revelados por un envío; fuera de `GForm`, `polite`). Dentro: `GIcon` (`g-select__message-icon`) + prefijo oculto `g-select__message-type` (`labels.error\|warning\|valid` de `GForm`; fuera, sin prefijo) + texto. `aria-describedby` incluye `ID-message` mientras haya mensaje. Vacía = **sin nodos de texto** (el CSS usa `:not(:empty)`; un comentario de Vue vale, un espacio no). El slot `error`, si existe, se conserva. |
 | C5 | Estados `warning` y `valid` | Props nuevas **`warning`** y **`valid`** (String, sin valor). Sin `aria-invalid`; no bloquean; prioridad error › advertencia › válido. Clases `is-warning`, `is-valid` en la raíz. Borde de estilo distinto del error (no solo color) |
@@ -289,10 +291,10 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 | C7 | Solo lectura homogéneo | Contraste completo (`--g-color-text`, sin opacidad), fondo `--g-color-surface-sunken`, borde **discontinuo** `--g-color-border-control`, cursor normal, enfocable; distinto de `disabled` sin depender del color (#165). El texto del valor, seleccionable (`user-select: text`) donde el navegador lo permita dentro del botón; `aria-readonly` sin cambios. |
 | C8 | Manejadores primero | `mergeProps(handlers, propios, attrs)` sobre el botón `combobox`, con prueba de orden. |
 | C9 | Registro | Con `name`, se registra (`control` = botón `combobox`); al elegir llama a `notifyChange()` (no hay `input` nativo que burbujee): marca `dirty` y, como control de elección, revela su error al cambiar. **Límite:** sin autocompletado del navegador (#54). |
-| C10 | Pistas para *subgrid* | Etiqueta, caja, ayuda y mensaje como hijos directos de la raíz; dentro de `.g-form-row`, coco los coloca en cuatro pistas con nombre (`form.md` §4) |
+| C10 | **Tres hijos: etiqueta, caja, pie** (r02, #176; sustituye a las cuatro pistas) | La raíz tiene exactamente tres hijos en flujo: `g-select__label`, la caja (`g-select__control` (el `<input type="hidden">` y la lista emergente quedan fuera de flujo)) y el pie nuevo **`g-select__support`**, que agrupa ayuda (y contador) y la región `g-select__message` (siempre presente). Dentro de una `GFormRow`, coco coloca las tres partes en las pistas compartidas (`subgrid`; etiqueta apoyada abajo y nunca recortada; `form.md` §4, C12) |
 
 **«(opcional)»:** un espacio de texto antes del `<span>` de la marca (sin margen en CSS). Advertencia en cajas: borde discontinuo doble; error, continuo doble; válido, continuo sencillo (coco, #169).
 
-**Clases nuevas** (contrato bruno–coco): `g-select__optional`, `g-select__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-select__error` desaparece).
+**Clases nuevas** (contrato bruno–coco): `g-select__support` (r02), `g-select__optional`, `g-select__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-select__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
