@@ -7,7 +7,7 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 001 | [Respuesta al pulsar en GBtn](001-gbtn-press-feedback.md) | GBtn | lima + coco + bruno | MEDIUM | DONE |
 | 002 | [Indicador de carga con movimiento reducido](002-gbtn-reduced-motion-spinner.md) | GBtn | coco | MEDIUM | DONE |
 | 003 | [Llenado continuo del conector, segmento y barra](003-gstepper-llenado-continuo.md) | GStepper | coco | HIGH | DONE |
-| 004 | [Indicador: anillo, pulsación reversible, línea y movimiento reducido](004-gstepper-transiciones-indicador.md) | GStepper | coco | MEDIUM | TODO |
+| 004 | [Indicador: anillo, pulsación reversible, línea y movimiento reducido](004-gstepper-transiciones-indicador.md) | GStepper | coco | MEDIUM | DONE |
 | 005 | [Continuidad del indicador al cambiar de botón a texto, e `is-ready`](005-gstepper-continuidad-indicador.md) | GStepper | bruno | HIGH | TODO |
 | 006 | [Entradas: lista del compacto, contenido vertical y check](006-gstepper-entradas.md) | GStepper | coco | MEDIUM | TODO |
 

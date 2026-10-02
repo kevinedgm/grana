@@ -1,6 +1,6 @@
 # 004 — Indicador de GStepper: anillo, pulsación reversible, variante línea y movimiento reducido
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GStepper.css` y `design/lab/stepper/estilo.md`). Sin tokens nuevos.
 - **Commit**: 49ad85b
 - **Severity**: MEDIUM
@@ -123,3 +123,7 @@ Cuatro defectos pequeños que, juntos, hacen que el cambio de paso se sienta a g
   - Con `reducedMotion: 'reduce'`: los indicadores siguen teniendo transiciones de color de 120 ms; ninguna de `transform` ni de `--_stepper-fill`; al pulsar, `transform` = `none`.
 - **Feel check**: DevTools > Animations al 10 %: el anillo del nuevo actual crece a la vez que su borde se oscurece (no aparece antes); mantén pulsado un paso completado y suelta fuera: se encoge y vuelve con suavidad. Rendering > `prefers-reduced-motion: reduce`: nada se mueve ni se escala, pero los colores se funden.
 - **Done when**: anillo, colores, etiqueta y subrayado de `line` se funden en 120 ms; la pulsación entra y sale en 160 ms; con `reduce` quedan solo los fundidos; `estilo.md` dice lo mismo que el CSS.
+
+## Nota de ejecución
+
+Ejecutado sin desviaciones. Verificado en los tres navegadores: anillo (box-shadow 120 ms, 2.63px a 60 ms), colores, etiqueta y borde de line con 120 ms; pulsación con colores y transform durante :active y transición de transform de 160 ms al soltar; con reduce quedan los fundidos y ninguna de transform ni --_stepper-fill. Vitest 1178 verdes.

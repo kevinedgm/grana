@@ -25,10 +25,10 @@
 | --- | --- |
 | hover | Solo en `button.g-stepper__hit`, dentro de `@media (hover: hover)`: subrayado de la etiqueta y, en hecho, relleno `strong` |
 | `:focus-visible` | Contorno de `--g-focus-width` con `--g-color-focus` y `--g-focus-offset` en cada paso navegable y en el botón de desplegar |
-| active | Escala de `--g-press-scale` en el indicador, solo sin movimiento reducido |
+| active | Escala de `--g-press-scale` en el indicador (160 ms, `--g-ease-out`, también al soltar), solo sin movimiento reducido |
 | disabled | Es el paso bloqueado: candado, tono atenuado (exento de contraste, WCAG 1.4.3); no es botón |
 | loading | No aplica (el contrato no lo define) |
-| `prefers-reduced-motion` | Transiciones solo con `no-preference`; con `reduce`, sin transición |
+| `prefers-reduced-motion` | Con `reduce`: sin escala al pulsar ni llenado animado; los fundidos de color (120 ms) se conservan |
 | `forced-colors` | Indicadores con `CanvasText`/`Highlight`; conectores y tramos con `GrayText`/`Highlight`; el toggle con `LinkText` |
 | `pointer: coarse` | Pasos navegables y botón de desplegar ≥ 44px |
 

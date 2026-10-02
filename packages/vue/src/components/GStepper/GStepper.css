@@ -115,6 +115,7 @@ button.g-stepper__hit:focus-visible {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--g-color-text-muted);
+  transition: color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-stepper__description {
   display: block;
@@ -162,7 +163,8 @@ button.g-stepper__hit:focus-visible {
   transition:
     background-color var(--g-duration-fast) var(--g-ease-standard),
     border-color var(--g-duration-fast) var(--g-ease-standard),
-    color var(--g-duration-fast) var(--g-ease-standard);
+    color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-stepper__indicator .g-icon {
   inline-size: calc(var(--_ind) * 0.6);
@@ -309,6 +311,7 @@ button.g-stepper__hit:focus-visible {
   border-radius: 0;
   border-block-end: var(--_line) solid var(--g-color-border-control);
   padding-block-end: var(--_pad);
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__hit { border-block-end-color: var(--_base); }
 .g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__hit {
@@ -517,18 +520,30 @@ button.g-stepper__hit:focus-visible {
   .g-stepper__toggle:hover { text-decoration-thickness: calc(var(--g-border-width) * 2); }
 }
 @media (prefers-reduced-motion: no-preference) {
+  .g-stepper__indicator {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
+      box-shadow var(--g-duration-fast) var(--g-ease-standard),
+      transform var(--g-duration-press) var(--g-ease-out);
+  }
   .g-stepper__step button.g-stepper__hit:active .g-stepper__indicator {
     transform: scale(var(--g-press-scale));
-    transition: transform var(--g-duration-press) var(--g-ease-out);
   }
   .g-stepper__connector,
-  .g-stepper__bar-seg,
-  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator {
+  .g-stepper__bar-seg {
     transition: --_stepper-fill var(--_t-slow) var(--g-ease-standard);
   }
+  .g-stepper--indicator-segment:not(.g-stepper--is-compact) .g-stepper__indicator {
+    transition:
+      --_stepper-fill var(--_t-slow) var(--g-ease-standard),
+      transform var(--g-duration-press) var(--g-ease-out);
+  }
 }
+/* Movimiento reducido: sin escala ni llenado animado; los fundidos de color se conservan (regla base) */
 @media (prefers-reduced-motion: reduce) {
-  .g-stepper__indicator { transition: none; }
+  .g-stepper__step button.g-stepper__hit:active .g-stepper__indicator { transform: none; }
 }
 
 /* ---------- Área táctil ---------- */
