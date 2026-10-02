@@ -1,0 +1,1428 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Captura de voz · r01 · wireframe F2</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#767676;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px;--dur:200ms;--ease:cubic-bezier(.2,0,0,1)}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1000px;margin:0 auto;padding:clamp(12px,4vw,24px)}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)} h3{font-size:14px;margin:16px 0 6px}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:84ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:90ch}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button,input,select,textarea{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.wf-field{display:flex;flex-direction:column;gap:4px;font-size:14px;min-inline-size:0}
+.wf-field textarea,.wf-field input,.wf-field select{font:inherit;padding:6px 8px;border:1px solid var(--wf-3);border-radius:4px;background:#fff;min-block-size:var(--tmin);inline-size:100%}
+.wf-field textarea{min-block-size:84px;resize:vertical}
+.field-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wf-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;min-block-size:var(--tmin);min-inline-size:24px}
+.wf-btn[data-kind=primary]{background:var(--wf-ink);color:#fff}
+.wf-btn[aria-disabled=true],.icon-btn[aria-disabled=true]{opacity:.55;cursor:not-allowed}
+.wf-btn[data-size=sm]{padding:2px 8px;font-size:13px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.icon-btn{all:unset;box-sizing:border-box;display:inline-grid;place-items:center;inline-size:var(--tmin);block-size:var(--tmin);min-inline-size:24px;min-block-size:24px;border-radius:6px;cursor:pointer;color:var(--wf-ink);flex:none}
+.icon-btn:hover{background:rgba(0,0,0,.06)}
+.icon-btn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:0}
+.icon-btn[aria-pressed=true]{background:var(--wf-ink);color:#fff}
+.link-btn{all:unset;box-sizing:border-box;cursor:pointer;font-size:13px;text-decoration:underline;min-block-size:24px;display:inline-flex;align-items:center;padding:0 2px}
+.link-btn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:1px}
+.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin)}
+.ctl fieldset{border:1px solid var(--wf-line);border-radius:6px;padding:4px 10px;margin:0;display:flex;gap:4px 12px;flex-wrap:wrap;min-inline-size:0}
+.ctl legend{font-size:12px;color:var(--wf-2);padding:0 4px}
+.log{list-style:none;margin:8px 0 0;padding:6px 8px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);max-block-size:200px;overflow:auto;min-block-size:3em;overflow-wrap:anywhere}
+.log li[data-ch=assertive]{color:var(--wf-ink);font-weight:600}
+.tbl{border-collapse:collapse;font-size:13px;inline-size:100%}.tbl th,.tbl td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--wf-line);vertical-align:top}
+.scroll-x{overflow-x:auto;max-inline-size:100%}
+.card{background:#fff;border:1px solid var(--wf-line);border-radius:10px;padding:12px 16px;margin:8px 0}
+dl.dbg{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;font:12px/1.5 ui-monospace,Menlo,monospace;margin:0}
+dl.dbg dt{color:var(--wf-2)} dl.dbg dd{margin:0;overflow-wrap:anywhere}
+
+/* Cabecera de la aplicación (no fija: al desplazar, la pill colocada sale del visor y aparece la flotante) */
+.app-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:8px max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid var(--wf-line)}
+.app-head__brand{font-weight:600;font-size:14px;min-inline-size:0}
+.app-head__slot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-inline-size:0;max-inline-size:100%}
+
+/* Stepper y tabs del flujo (imitan GStepper/GTabs; el panel inactivo se DESMONTA, peor caso) */
+.stepper{display:flex;gap:4px;list-style:none;margin:8px 0;padding:0;flex-wrap:wrap;font-size:13px}
+.stepper li{padding:2px 10px;border:1px solid var(--wf-line);border-radius:999px;color:var(--wf-2)}
+.stepper li[aria-current=step]{border-color:var(--wf-ink);color:var(--wf-ink);font-weight:600}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--wf-line);margin:8px 0;overflow-x:auto}
+.tabs [role=tab]{all:unset;box-sizing:border-box;padding:6px 12px;min-block-size:var(--tmin);cursor:pointer;border-bottom:2px solid transparent;font-size:14px;white-space:nowrap}
+.tabs [role=tab][aria-selected=true]{border-bottom-color:var(--wf-ink);font-weight:600}
+.tabs [role=tab]:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+.flow{background:#fff;border:1px solid var(--wf-line);border-radius:10px;padding:12px 16px}
+
+/* Nota bajo un campo (provisional del dictado, deshacer, fragmentos sin insertar). No es región viva. */
+.sp-note{font-size:13px;color:var(--wf-2);margin:4px 0 0;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-block-size:0}
+.sp-note:empty{display:none}
+.sp-note__prov{font-style:italic;color:var(--wf-3)}
+
+/* ============ Sistema de captura de voz (estructura; la forma final es de coco) ============ */
+/* Raíz del anfitrión: popover="manual" siempre abierto (capa superior), como GToaster (#141). */
+.sp-host{position:fixed;inset:0;inline-size:auto;block-size:auto;margin:0;padding:0;border:0;background:transparent;overflow:visible;color:inherit;pointer-events:none;font:14px/1.4 var(--wf-font)}
+.sp-host > *{pointer-events:auto}
+.sp-host > .sp-float[hidden],.sp-host > .sp-panel[hidden]{display:none}
+
+/* Pill: grupo con nombre; botón principal (estado + abrir panel), duración, pausa/reanudar, finalizar */
+.sp-pill{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--wf-ink);border-radius:999px;background:#fff;max-inline-size:100%;min-inline-size:0}
+.sp-pill[hidden]{display:none}
+.sp-pill[data-live]{border-width:2px;padding:1px}
+.sp-pill[data-tone=problem]{border-style:dashed}
+.sp-pill__main{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;padding:0 8px;min-block-size:var(--tmin);border-radius:999px;cursor:pointer;min-inline-size:0;font-weight:600}
+.sp-pill__main:hover{background:rgba(0,0,0,.06)}
+.sp-pill__main:focus-visible{outline:3px solid var(--wf-ink);outline-offset:1px}
+.sp-pill__text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-inline-size:0}
+.sp-pill__chev .g-icon{inline-size:14px;block-size:14px;transition:transform var(--dur) var(--ease)}
+.sp-pill__main[aria-expanded=true] .sp-pill__chev .g-icon{transform:rotate(180deg)}
+.sp-pill__time{font-variant-numeric:tabular-nums;font-size:13px;padding:0 4px;color:var(--wf-2)}
+.sp-pill__time[hidden]{display:none}
+.sp-pill .icon-btn{border-radius:999px}
+.sp-pill .icon-btn[hidden]{display:none}
+.sp-spin .g-icon{animation:sp-spin 1s linear infinite}
+@keyframes sp-spin{to{transform:rotate(360deg)}}
+/* Medidor de la pill: nivel real (aria-hidden). Plano cuando no hay captura. */
+.sp-meter{display:inline-flex;align-items:center;gap:2px;block-size:14px}
+.sp-meter i{display:block;inline-size:3px;block-size:calc(3px + var(--h,0) * 11px);background:currentColor;border-radius:2px;transition:block-size 90ms linear}
+.sp-meter[hidden],.sp-wave[hidden]{display:none}
+
+/* Pill flotante de respaldo (si no hay pill colocada visible y operable) */
+.sp-float{position:absolute;inset-inline:0;display:flex;pointer-events:none;justify-content:center;padding-inline:max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right))}
+.sp-float[data-edge=top]{inset-block-start:max(12px,env(safe-area-inset-top))}
+.sp-float[data-edge=bottom]{inset-block-end:max(12px,env(safe-area-inset-bottom))}
+.sp-float .sp-pill{box-shadow:0 4px 16px rgba(0,0,0,.14);pointer-events:auto}
+
+/* Panel: diálogo no modal anclado a la pill (escritorio) */
+.sp-panel{position:absolute;inline-size:min(440px,calc(100vw - 24px));max-block-size:var(--maxh,70vh);display:flex;flex-direction:column;background:#fff;border:1px solid var(--wf-line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);overflow:hidden}
+.sp-panel__head{display:grid;grid-template-columns:1fr auto;align-items:start;gap:0 8px;padding:10px 10px 8px 16px;border-bottom:1px solid var(--wf-line)}
+.sp-panel__head h2{font-size:16px;margin:0}
+.sp-panel__head h2:focus{outline:none}.sp-panel__head h2:focus-visible{outline:3px solid var(--wf-ink)}
+.sp-panel__mode{grid-column:1;margin:0;font-size:13px;color:var(--wf-2)}
+.sp-panel__head .icon-btn{grid-row:1/3;grid-column:2}
+.sp-panel__body{padding:10px 16px 16px;overflow:auto;overscroll-behavior:contain}
+.sp-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:600}
+.sp-status .sp-pill__time{font-weight:400}
+.sp-sub{margin:2px 0 0;font-size:13px;color:var(--wf-2)}
+.sp-privacy{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--wf-2);margin:6px 0}
+.sp-privacy .g-icon{inline-size:14px;block-size:14px;margin-block-start:2px}
+.sp-wave-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+.sp-wave{flex:1;display:flex;align-items:center;gap:2px;block-size:36px;min-inline-size:0;overflow:hidden}
+.sp-wave i{flex:1;min-inline-size:2px;block-size:calc(2px + var(--h,0) * 34px);background:var(--wf-ink);border-radius:1px}
+.sp-wave[data-live=false] i{background:var(--wf-3)}
+/* Movimiento reducido: medidor discreto de 5 segmentos, sin historial que se desplaza */
+.sp-wave[data-rm]{gap:4px}.sp-wave[data-rm] i{block-size:12px;background:var(--wf-fill);border:1px solid var(--wf-3)}.sp-wave[data-rm] i[data-on]{background:var(--wf-ink)}
+.sp-err{border:1px solid var(--wf-ink);border-inline-start-width:4px;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13px}
+.sp-err[data-soft]{border-style:dashed}
+.sp-err__t{display:flex;gap:6px;align-items:center;font-weight:600;margin:0 0 4px;font-size:14px}
+.sp-err p{margin:0 0 4px}
+.sp-confirm{border:1px dashed var(--wf-3);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13px}
+.sp-progress{block-size:6px;background:var(--wf-fill);border-radius:3px;overflow:hidden;margin:6px 0}
+.sp-progress i{display:block;block-size:100%;background:var(--wf-ink);inline-size:var(--p,0%)}
+.sp-spk{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.sp-spk li{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:13px}
+.sp-spk select,.sp-review select{font:inherit;font-size:13px;min-block-size:var(--tmin);border:1px solid var(--wf-3);border-radius:4px;background:#fff;max-inline-size:100%}
+.sp-tx{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-block-size:var(--txh,260px);overflow:auto;border:1px solid var(--wf-line);border-radius:8px;padding:8px}
+.sp-tx:empty::before{content:attr(data-empty);color:var(--wf-2);font-size:13px}
+.seg{font-size:14px;min-inline-size:0}
+.seg__meta{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:center;font-size:12px;color:var(--wf-2)}
+.seg__meta input{margin:0;inline-size:16px;block-size:16px}
+.seg__meta label{display:inline-flex;align-items:center;gap:4px;min-block-size:24px;cursor:pointer}
+.seg__spk{font-weight:600;color:var(--wf-ink)}
+.seg__flag{border:1px solid var(--wf-line);border-radius:999px;padding:0 6px}
+.seg__text{margin:2px 0 0;overflow-wrap:anywhere}
+.seg--partial .seg__text{color:var(--wf-3);font-style:italic}
+.seg[data-removed] .seg__text{color:var(--wf-3)}
+.seg__editor{display:grid;gap:6px;margin-top:4px;padding:8px;border:1px dashed var(--wf-3);border-radius:6px}
+.seg__editor textarea{min-block-size:60px}
+.sp-review{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;font-size:13px}
+.sp-review label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin)}
+
+/* Hoja inferior (móvil, < space × 130): el mismo panel dentro de un <dialog> modal */
+.sp-sheet{margin:auto 0 0;padding:0;border:0;max-inline-size:100vw;inline-size:100vw;max-block-size:88dvh;background:transparent;overflow:visible}
+.sp-sheet::backdrop{background:rgba(0,0,0,.35)}
+.sp-sheet .sp-panel{position:static;inline-size:100%;max-block-size:88dvh;border-radius:12px 12px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+
+/* Galería de estados (documentación, no interactiva) */
+.gal-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border:1px solid var(--wf-ink);border-radius:999px;background:#fff;font-weight:600;white-space:nowrap}
+.gal-pill[data-live]{border-width:2px}.gal-pill[data-tone=problem]{border-style:dashed}
+
+/* Movimiento reducido: sin giro ni transiciones */
+@media (prefers-reduced-motion:reduce){.sp-spin .g-icon{animation:none}.sp-meter i,.sp-pill__chev .g-icon{transition:none}}
+:root[data-rm] .sp-spin .g-icon{animation:none}:root[data-rm] .sp-meter i,:root[data-rm] .sp-pill__chev .g-icon{transition:none}
+@media (forced-colors:active){.sp-pill,.sp-panel,.sp-err{border-color:CanvasText}.sp-meter i,.sp-wave i{background:CanvasText}}
+
+/* Diálogo modal del kit (imita GDialog: <dialog> nativo + showModal) */
+.wf-dialog{border:1px solid var(--wf-line);border-radius:12px;padding:0;inline-size:min(560px,calc(100vw - 24px));background:#fff;color:var(--wf-ink)}
+.wf-dialog::backdrop{background:rgba(0,0,0,.35)}
+.wf-dialog header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--wf-line)}
+.wf-dialog header h2{font-size:16px;margin:0}
+.wf-dialog .body{padding:16px}.wf-dialog footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--wf-line)}
+.spacer{block-size:60vh}
+</style>
+</head>
+<body>
+<header class="app-head" id="app-head">
+  <span class="app-head__brand">Consulta · expediente de prueba</span>
+  <div class="app-head__slot">
+    <div data-speech-pill id="head-pill"></div>
+    <span data-speech-trigger data-mode="conversation" data-place="head"></span>
+  </div>
+</header>
+<main>
+<h1>Captura de voz · r01</h1>
+<p class="meta">Ronda de estructura (kiwi) · Ruta R2 (sistema) · Fidelidad F2 · kit gris, iconos solo Lucide. Brief en <code>brief.md</code>, decisiones en <code>declaracion.md</code>.</p>
+<p class="wf-note">Prototipo funcional: la sesión compartida (<code>createSpeech()</code>), el anfitrión persistente (<code>GSpeechHost</code>), el disparador, la pill, el panel y un <b>adaptador simulado</b> están implementados en JavaScript simple con la API propuesta. El texto lo inventa el adaptador simulado (no hay motor real); el <b>nivel</b> puede venir del micrófono real (§0). Iconos: los de la librería salen de <code>design/lab/lucide-icons.js</code>; los que faltan se <b>importan de <code>lucide-static</code></b> (los registraría la librería: hallazgo para lima). Colores, radios y sombras son de wireframe, no propuestas. El registro de anuncios refleja lo escrito en los canales vivos (no es región viva).</p>
+
+<h2 class="sec" id="s0">0. Banco de pruebas</h2>
+<div class="ctl">
+  <fieldset><legend>Fuente de audio</legend>
+    <label><input type="radio" name="src" value="sim" checked>Simulada</label>
+    <label><input type="radio" name="src" value="real">Micrófono real (solo el nivel)</label>
+  </fieldset>
+  <label>Permiso simulado <select id="b-perm"><option value="prompt" selected>preguntar</option><option value="granted">concedido</option><option value="denied">denegado</option></select></label>
+  <label><input type="checkbox" id="b-nodev">Sin micrófono</label>
+</div>
+<div class="ctl">
+  <fieldset><legend>Adaptador (simulado)</legend>
+    <label><input type="checkbox" id="b-diar" checked>Diarización</label>
+    <label><input type="checkbox" id="b-buf" checked>Guarda audio si se cae el servicio</label>
+    <label>Ubicación <select id="b-loc"><option value="device">en el dispositivo</option><option value="local" selected>servicio local</option><option value="remote">servicio externo</option></select></label>
+    <label><input type="checkbox" id="b-allowremote">La app permite externo</label>
+  </fieldset>
+  <fieldset><legend>Interfaz</legend>
+    <label>Pill <select id="b-place"><option value="head" selected>cabecera + flotante de respaldo</option><option value="float">solo flotante</option></select></label>
+    <label><input type="checkbox" id="b-rm">Movimiento reducido</label>
+    <label><input type="checkbox" id="b-consent">Pedir aviso a participantes</label>
+  </fieldset>
+</div>
+<h3>Inyectar fallos durante una sesión</h3>
+<div class="btns" id="inject">
+  <button class="wf-btn" data-size="sm" type="button" data-inj="disconnect">Desconectar micrófono</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="mute">Interrupción del sistema</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="freeze">Congelar captura</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="flat">Señal plana</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="down">Servicio caído</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="up">Restablecer servicio</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="fail">Fallo de un fragmento</button>
+  <button class="wf-btn" data-size="sm" type="button" data-inj="full">Sin espacio</button>
+</div>
+
+<h2 class="sec" id="s1">1. Dictado junto a un campo</h2>
+<p class="cap">Modo <b>dictado</b>: el disparador es un botón conmutable (<code>aria-pressed</code>) junto al campo. El texto <b>confirmado</b> entra en el punto de inserción (cursor o selección del campo al empezar); el <b>provisional</b> se muestra debajo, sin tocar el valor. Al terminar, la sesión se cierra sola si todo se insertó, y queda «Deshacer».</p>
+<div class="card">
+  <div class="wf-field">
+    <div class="field-head"><label for="f-obs">Observaciones</label><span data-speech-trigger data-mode="dictation" data-for="f-obs" data-label="Observaciones"></span></div>
+    <textarea id="f-obs" data-model="obs">Paciente acude acompañado. </textarea>
+    <div class="sp-note" data-speech-note data-for="f-obs"></div>
+  </div>
+</div>
+
+<h2 class="sec" id="s2">2. Conversación larga con stepper y tabs</h2>
+<p class="cap">La conversación se inicia en el paso 1. Al cambiar de paso o de tab, <b>el panel inactivo se desmonta</b> (peor caso, como <code>v-if</code>): el disparador que inició la sesión desaparece y la sesión sigue. Volver al paso 1 no crea otra sesión: el disparador pasa a «Ver grabación».</p>
+<div class="flow" id="flow">
+  <ol class="stepper" id="stepper" aria-label="Pasos de la consulta"></ol>
+  <div id="step-body"></div>
+  <div class="btns"><button class="wf-btn" type="button" id="st-prev">Anterior</button><button class="wf-btn" data-kind="primary" type="button" id="st-next">Siguiente</button></div>
+</div>
+
+<h2 class="sec" id="s3">3. Con un diálogo modal abierto</h2>
+<p class="cap">Con <code>showModal()</code> la cabecera queda inerte: la pill colocada deja de ser operable, así que aparece la <b>flotante</b> y el anfitrión entero se <b>traslada al diálogo modal superior</b> (mismo mecanismo que <code>GToaster</code>, #141). El diálogo cambia de paso sin afectar a la sesión. Esc en el panel cierra el panel, no el diálogo.</p>
+<div class="btns"><button class="wf-btn" type="button" id="b-dialog">Abrir diálogo modal</button></div>
+<dialog class="wf-dialog" id="dlg" aria-labelledby="dlg-t">
+  <header><h2 id="dlg-t">Derivación</h2><button class="icon-btn" type="button" id="dlg-x" aria-label="Cerrar"></button></header>
+  <div class="body" id="dlg-body"></div>
+  <footer><button class="wf-btn" type="button" id="dlg-prev">Anterior</button><button class="wf-btn" type="button" id="dlg-next">Siguiente</button><button class="wf-btn" data-kind="primary" type="button" id="dlg-ok">Cerrar</button></footer>
+</dialog>
+
+<h2 class="sec" id="s4">4. Los 13 estados</h2>
+<p class="cap">Generada con los mismos datos que usa la sesión. Cada estado tiene <b>icono y texto</b> (no solo color), dice si el micrófono captura y qué se anuncia. Las salidas son las transiciones legales de la máquina de estados (cualquier otra se rechaza con aviso de desarrollo).</p>
+<div class="scroll-x"><table class="tbl" id="gallery"><thead><tr><th scope="col">Estado</th><th scope="col">Pill</th><th scope="col">Texto completo (panel)</th><th scope="col">Micrófono</th><th scope="col">Anuncio</th><th scope="col">Salidas legales</th></tr></thead><tbody></tbody></table></div>
+
+<h2 class="sec" id="s5">5. Registro de anuncios y estado interno</h2>
+<p class="cap">Lo que se escribió en los dos canales vivos del anfitrión (no es una región viva). Los parciales, el nivel y los cambios escuchando ↔ voz ↔ transcribiendo <b>no</b> se anuncian.</p>
+<ol class="log" id="annlog" aria-label="Registro de anuncios"></ol>
+<h3>Estado de la sesión</h3>
+<dl class="dbg" id="dbg"></dl>
+<h3>Avisos de desarrollo</h3>
+<ol class="log" id="devlog" aria-label="Avisos de desarrollo"></ol>
+<div class="spacer" aria-hidden="true"></div>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script type="module">
+// =====================================================================================================
+// Iconos que la librería aún no trae: importados de lucide-static (marca "lucide lucide-<nombre>")
+// =====================================================================================================
+const LS = '../../../../node_modules/lucide-static/dist/esm/icons/'
+const APP_ICONS = ['mic', 'mic-off', 'pause', 'circle-pause', 'audio-lines', 'captions', 'shield-question-mark', 'refresh-cw', 'unplug', 'undo-2', 'text-cursor-input', 'trash', 'rotate-ccw', 'lock']
+await Promise.all(APP_ICONS.map(async (n) => {
+  if (window.LUCIDE_ICONS[n]) return
+  const { default: src } = await import(LS + n + '.mjs')
+  const m = src.match(/class="lucide lucide-([a-z0-9-]+)"[^>]*>([\s\S]*?)<\/svg>/)
+  if (m && m[1] === n) window.LUCIDE_ICONS[n] = m[2].replace(/\s+/g, ' ').trim()
+}))
+const ic = (n, filled = false) => window.lucide(n, '', filled)
+
+// =====================================================================================================
+// Utilidades
+// =====================================================================================================
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const fill = (t, v = {}) => String(t).replace(/\{(\w+)\}/g, (m, k) => (v[k] ?? m))
+const mmss = (ms) => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') }
+const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+const now = () => performance.now()
+const rm = () => document.documentElement.hasAttribute('data-rm') || matchMedia('(prefers-reduced-motion: reduce)').matches
+const isMobile = () => window.innerWidth < 520 // space × 130 (umbral de GDialog, #103)
+const devWarn = (m) => { window.__sp.dev.push(m); const li = document.createElement('li'); li.textContent = '[Grana speech] ' + m; $('#devlog').append(li) }
+// Restaura el foco tras reescribir un fragmento: busca el mismo data-k
+function patch(el, html, sig) {
+  if (el._sig === sig) return
+  el._sig = sig
+  const a = document.activeElement
+  const k = a && el.contains(a) ? a.dataset.k : null
+  const sel = k && typeof a.selectionStart === 'number' ? [a.selectionStart, a.selectionEnd] : null
+  const lost = a && el.contains(a) && !k
+  el.innerHTML = html
+  if (k) { const n = el.querySelector(`[data-k="${k}"]`); if (n) { n.focus({ preventScroll: true }); if (sel && n.setSelectionRange) try { n.setSelectionRange(...sel) } catch {} } else ui.focusFallback() }
+  else if (lost) ui.focusFallback()
+}
+
+// =====================================================================================================
+// Textos (los pone la aplicación; Grana no trae valores por defecto)
+// =====================================================================================================
+const L = {
+  region: 'Grabación de voz', openPanel: 'abrir panel', closePanel: 'Cerrar panel', duration: 'Duración: ',
+  pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', dismiss: 'Cerrar', start: 'Empezar a grabar', cancel: 'Cancelar',
+  closeSession: 'Cerrar sesión', discardAsk: '¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.', discardYes: 'Sí, descartar',
+  modeDictation: 'Dictado en «{target}»', modeConversation: 'Conversación · {n}',
+  speakersN: { 1: '1 participante previsto', 2: '2 participantes previstos', many: 'varios participantes previstos' },
+  speaker: 'Hablante {letter}', unassigned: 'Sin asignar', newSpeaker: 'Nuevo hablante',
+  roles: ['Profesional', 'Paciente', 'Acompañante'],
+  trigDictate: 'Dictar en {target}', trigConv: 'Grabar conversación', trigView: 'Ver grabación',
+  busy: 'Hay una grabación en curso. Mayús+F8 para ir a ella.',
+  privacy: { device: 'Procesamiento en este dispositivo', local: 'Procesamiento en el servicio local de tu organización', remote: 'Procesamiento en un servicio externo' },
+  audio: { none: 'El audio no se guarda', memory: 'Audio temporal en memoria; se elimina al finalizar', disk: 'Audio temporal cifrado en este equipo; se elimina al finalizar' },
+  audioDeleted: 'Audio temporal eliminado', audioNotConfirmed: 'El motor no confirmó la eliminación del audio temporal',
+  pending: { 0: 'Todo transcrito', 1: '1 fragmento pendiente', n: '{n} fragmentos pendientes' },
+  ann: {
+    requesting: 'Esperando el permiso del micrófono.', ready: 'Listo para grabar. El micrófono sigue apagado.',
+    startDictation: 'Grabando. Dictado en {target}.', startConversation: 'Grabando conversación.', resumed: 'Grabando de nuevo.',
+    paused: 'En pausa. El micrófono no está capturando.', processing: 'Micrófono apagado. Procesando el audio pendiente.',
+    completedConv: 'Transcripción lista: {n} fragmentos, {time}. Abre el panel para revisarla.', completedDict: 'Dictado terminado. Texto añadido a {target}.',
+    reconnecting: 'Se perdió el servicio de transcripción. Reconectando. La grabación continúa; el audio se guarda temporalmente.',
+    reconnectingHeld: 'Se perdió el servicio de transcripción. Reconectando. La grabación está en pausa.',
+    restored: 'Servicio de transcripción restablecido.', restoredHeld: 'Servicio restablecido. La grabación sigue en pausa: pulsa Reanudar.',
+    inserted: 'Texto añadido a {target}.', insertedSel: '{n} fragmentos insertados en {target}.', undone: 'Inserción deshecha.', undoFail: 'No se puede deshacer: el campo cambió después de insertar.',
+    discarded: 'Grabación descartada. Transcripción y audio temporal eliminados.', discardedUnconfirmed: 'Grabación descartada. El motor no confirmó la eliminación del audio.',
+    closed: 'Sesión de grabación cerrada.', copied: '{n} fragmentos copiados.', copyFail: 'No se pudo copiar.', flat: 'No llega sonido del micrófono. Comprueba que no esté silenciado.',
+    busy: 'Ya hay una grabación en curso.', segFailed: 'No se pudo transcribir un fragmento. La grabación continúa.'
+  },
+  err: {
+    'permission-denied': { t: 'Permiso del micrófono denegado', what: 'El navegador no permite usar el micrófono.', fix: 'Permite el micrófono en la configuración del sitio y pulsa Reintentar.' },
+    'no-device': { t: 'Micrófono no disponible', what: 'No se encontró ningún micrófono.', fix: 'Conecta un micrófono y pulsa Reintentar.' },
+    'device-busy': { t: 'Micrófono no disponible', what: 'El micrófono está en uso por otra aplicación o no responde.', fix: 'Ciérrala y pulsa Reintentar.' },
+    'device-disconnected': { t: 'Micrófono desconectado', what: 'El micrófono se desconectó a los {at}.', fix: 'Conecta un micrófono y pulsa Reanudar, o finaliza.' },
+    interrupted: { t: 'Grabación interrumpida', what: 'La captura se interrumpió a los {at}: el sistema u otra aplicación tomó el micrófono.', fix: 'Pulsa Reanudar para seguir, o finaliza.' },
+    'service-unavailable': { t: 'Servicio de transcripción no disponible', what: 'El servicio de transcripción no responde.', fix: 'Comprueba que esté activo y pulsa Reintentar.' },
+    'processing-failed': { t: 'Fragmento sin transcribir', what: 'No se pudo transcribir el fragmento {range}.', fix: '' },
+    'storage-full': { t: 'Sin espacio para el audio temporal', what: 'No queda espacio para el audio temporal; la captura se detuvo a los {at}.', fix: 'Libera espacio y pulsa Reanudar, o finaliza con lo transcrito.' },
+    'remote-not-allowed': { t: 'Motor no permitido', what: 'El motor configurado procesa el audio fuera de tu organización y la aplicación no lo permite.', fix: 'No se activó el micrófono.' },
+    unsupported: { t: 'Micrófono no disponible', what: 'Este navegador o contexto no permite capturar audio.', fix: '' }
+  },
+  capture: { continues: 'La grabación continúa.', paused: 'La grabación está en pausa.', stopped: 'La grabación se detuvo.', none: 'No se grabó nada.' },
+  audioFate: { none: '', processing: 'El audio ya capturado se sigue transcribiendo.', kept: 'El audio afectado se guarda temporalmente para reintentar y se elimina al finalizar.', lost: 'El audio afectado se perdió.' },
+  kept: 'Lo transcrito hasta ahora se conserva.'
+}
+const LETTERS = 'ABCDEFGH'
+
+// Estados: icono + texto corto (pill) + texto completo (panel) + micrófono
+const S = {
+  idle: { icon: 'mic', s: 'Apagado', l: 'Micrófono apagado', mic: 'apagado', ann: '—' },
+  requesting: { icon: 'shield-question-mark', s: 'Pidiendo permiso', l: 'Esperando el permiso del micrófono', mic: 'apagado (abriéndose)', ann: 'cortés, solo si el navegador pregunta' },
+  ready: { icon: 'mic', s: 'Listo', l: 'Listo para grabar · micrófono apagado', mic: 'apagado', ann: 'cortés' },
+  listening: { icon: 'circle', filled: true, live: true, s: 'Grabando', l: 'Grabando · silencio', mic: 'captura', ann: 'cortés al empezar o reanudar' },
+  speech: { icon: 'audio-lines', live: true, s: 'Voz detectada', l: 'Grabando · voz detectada', mic: 'captura', ann: 'no' },
+  transcribing: { icon: 'captions', live: true, s: 'Transcribiendo', l: 'Grabando · transcribiendo lo último', mic: 'captura', ann: 'no' },
+  paused: { icon: 'circle-pause', s: 'En pausa', l: 'En pausa · el micrófono no captura', mic: 'apagado (pista detenida)', ann: 'cortés' },
+  processing: { icon: 'loader-circle', spin: true, s: 'Procesando', l: 'Procesando el audio pendiente · micrófono apagado', mic: 'apagado', ann: 'cortés' },
+  reconnecting: { icon: 'refresh-cw', s: 'Reconectando', l: 'Reconectando con el servicio de transcripción', mic: 'captura (si el motor guarda) o en espera', ann: 'cortés' },
+  denied: { icon: 'mic-off', problem: true, s: 'Permiso denegado', l: 'Permiso del micrófono denegado', mic: 'apagado', ann: 'enérgico' },
+  unavailable: { icon: 'unplug', problem: true, s: 'Sin micrófono', l: 'Micrófono no disponible', mic: 'apagado', ann: 'enérgico' },
+  error: { icon: 'circle-alert', problem: true, s: 'Error', l: 'Error en la grabación', mic: 'apagado', ann: 'enérgico' },
+  completed: { icon: 'circle-check', s: 'Lista', l: 'Transcripción lista para revisar · micrófono apagado', mic: 'apagado', ann: 'cortés' }
+}
+const CAPTURING = new Set(['listening', 'speech', 'transcribing'])
+const LIVE_SET = ['listening', 'speech', 'transcribing']
+// Transiciones legales (además de quedarse igual). Descartar (→ idle) existe desde casi todo.
+const T = {
+  idle: ['requesting', 'ready', 'denied', 'error'],
+  requesting: [...LIVE_SET, 'denied', 'unavailable', 'error', 'idle'],
+  ready: ['requesting', 'denied', 'unavailable', 'error', 'idle'],
+  listening: ['speech', 'transcribing', 'paused', 'processing', 'reconnecting', 'denied', 'unavailable', 'error', 'idle'],
+  speech: ['listening', 'transcribing', 'paused', 'processing', 'reconnecting', 'denied', 'unavailable', 'error', 'idle'],
+  transcribing: ['listening', 'speech', 'paused', 'processing', 'reconnecting', 'denied', 'unavailable', 'error', 'idle'],
+  paused: ['requesting', 'processing', 'reconnecting', 'error', 'idle'],
+  processing: ['completed', 'error'],
+  reconnecting: [...LIVE_SET, 'paused', 'processing', 'denied', 'unavailable', 'error', 'idle'],
+  denied: ['requesting', 'ready', 'processing', 'idle'],
+  unavailable: ['requesting', 'processing', 'idle'],
+  error: ['requesting', 'processing', 'idle'],
+  completed: ['idle']
+}
+
+// =====================================================================================================
+// Captura (la hace Grana): MediaStream + AnalyserNode para el nivel. Real o simulada con la misma forma.
+// =====================================================================================================
+const sim = { permission: 'prompt', noDevice: false, frozen: false, flat: false, src: 'sim', track: null }
+function makeTrack() {
+  const t = new EventTarget(); t.readyState = 'live'; t.muted = false; t.kind = 'audio'; return t
+}
+async function openSimCapture() {
+  if (sim.permission === 'denied') throw new DOMException('denegado', 'NotAllowedError')
+  if (sim.noDevice) throw new DOMException('sin dispositivo', 'NotFoundError')
+  if (sim.permission === 'prompt') { await wait(900); sim.permission = 'granted'; $('#b-perm').value = 'granted' } // diálogo del navegador simulado
+  else await wait(120)
+  const track = makeTrack(); sim.track = track; sim.frozen = false
+  // Habla 2,2–3,6 s y silencio 1,3 s (determinista)
+  const speak = [2600, 3200, 2200, 3600, 2800, 2400, 3000]; let k = 0, phaseEnd = now() + 500, speaking = false, cb = null, t = 0
+  const iv = setInterval(() => {
+    if (sim.frozen || track.readyState !== 'live' || track.muted) return
+    const n = now(); t += 0.1
+    if (n > phaseEnd) { speaking = !speaking; phaseEnd = n + (speaking ? speak[k++ % speak.length] : 1300) }
+    let level = speaking ? 0.38 + 0.32 * Math.abs(Math.sin(t * 7.3)) + 0.08 * Math.abs(Math.sin(t * 2.1)) : 0.03 + 0.02 * Math.abs(Math.sin(t * 5))
+    if (sim.flat) level = 0
+    cb?.({ level, flat: sim.flat })
+  }, 100)
+  return { kind: 'sim', track, onFrame: (f) => { cb = f }, stop() { clearInterval(iv); track.readyState = 'ended'; if (sim.track === track) sim.track = null } }
+}
+async function openRealCapture() {
+  if (!navigator.mediaDevices?.getUserMedia) throw new DOMException('sin soporte', 'NotSupportedError')
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+  const track = stream.getAudioTracks()[0]
+  const ctx = new AudioContext()
+  if (ctx.state === 'suspended') await ctx.resume().catch(() => {})
+  const an = ctx.createAnalyser(); an.fftSize = 1024; ctx.createMediaStreamSource(stream).connect(an)
+  const buf = new Float32Array(an.fftSize); let cb = null
+  const iv = setInterval(() => {
+    if (sim.frozen || ctx.state !== 'running' || track.readyState !== 'live' || track.muted) return // sin fotogramas → el vigilante lo detecta
+    an.getFloatTimeDomainData(buf); let s = 0; for (const x of buf) s += x * x
+    const rms = Math.sqrt(s / buf.length), db = 20 * Math.log10(rms || 1e-9)
+    cb?.({ level: sim.flat ? 0 : Math.max(0, Math.min(1, (db + 60) / 50)), flat: sim.flat || rms === 0 })
+  }, 100)
+  sim.track = track
+  return { kind: 'real', track, onFrame: (f) => { cb = f }, stop() { clearInterval(iv); stream.getTracks().forEach((t) => t.stop()); ctx.close().catch(() => {}); if (sim.track === track) sim.track = null } }
+}
+async function queryPermission() {
+  if (sim.src === 'sim') return sim.permission
+  try { return (await navigator.permissions.query({ name: 'microphone' })).state } catch { return 'unknown' }
+}
+
+// =====================================================================================================
+// Adaptador SIMULADO (lo aportaría la aplicación: Whisper, whisper.cpp, faster-whisper + diarización…)
+// Recibe trozos de audio y emite parcial / final / pendientes / conexión / errores. No hace red.
+// =====================================================================================================
+const DICT = [
+  'Refiere dolor lumbar de tres días de evolución.',
+  'Sin fiebre ni pérdida de peso.',
+  'Empeora al estar sentado y mejora al caminar.',
+  'Se recomienda reposo relativo y control en una semana.'
+]
+const CONV = [
+  { spk: 'A', text: 'Buenos días, ¿qué le trae hoy por aquí?' },
+  { spk: 'B', text: 'Desde hace tres días me duele la espalda, sobre todo por la mañana.' },
+  { spk: 'A', text: '¿El dolor se irradia hacia alguna pierna?' },
+  { spk: 'B', text: 'No, se queda en la zona baja, y empeora cuando estoy sentado.' },
+  { spk: 'C', text: 'Ayer casi no pudo levantarse de la cama.' },
+  { spk: 'A', text: 'De acuerdo, vamos a explorar la movilidad y después vemos el plan.' }
+]
+const simAdapterCfg = { diarization: true, buffer: true, location: 'local', latency: 1000, down: false, cursor: { dictation: 0, conversation: 0 } }
+let simHandle = null
+function createSimulatedSpeechAdapter(cfg) {
+  return {
+    id: 'simulado',
+    get capabilities() {
+      return { diarization: cfg.diarization, maxSpeakers: 4, partials: true, vad: false, input: { format: 'pcm', sampleRate: 16000, channels: 1 }, location: cfg.location, offlineBuffer: cfg.buffer, storesAudio: cfg.buffer ? 'memory' : 'none' }
+    },
+    async check() { await wait(150); if (cfg.down) throw Object.assign(new Error('caído'), { kind: 'service-unavailable' }) },
+    async open(ctx) {
+      await wait(150)
+      if (cfg.down) throw Object.assign(new Error('caído'), { kind: 'service-unavailable' })
+      const conv = ctx.mode === 'conversation'
+      let idc = 0, cur = null, pending = 0, online = true, closed = false, attempts = 0, retryIv = null, failNext = false
+      const buffered = []
+      const emitPending = () => ctx.emit('pending', { count: pending + buffered.length })
+      const deliver = (seg) => {
+        pending++; emitPending()
+        setTimeout(() => {
+          if (closed) return
+          if (!online) { pending--; buffered.push(seg); emitPending(); return }
+          pending--
+          if (failNext) {
+            failNext = false
+            ctx.emit('error', { kind: 'processing-failed', fatal: false, segment: { id: seg.id, t0: seg.t0, t1: seg.t1 }, audio: cfg.buffer ? 'kept' : 'lost', retryable: cfg.buffer, retryData: seg })
+          } else ctx.emit('final', { id: seg.id, text: seg.text, speaker: conv && cfg.diarization ? seg.spk : null, t0: seg.t0, t1: seg.t1 })
+          emitPending()
+        }, cfg.latency)
+      }
+      const finalize = () => { if (!cur) return; const seg = cur; cur = null; deliver(seg) }
+      const partialOf = (words) => words.join(' ').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.,;:¿?¡!]/g, '')
+      const h = {
+        push(chunk) {
+          if (closed) return
+          if (chunk.voiced) {
+            if (!cur) {
+              const i = cfg.cursor[ctx.mode]++
+              const src = conv ? CONV[i % CONV.length] : { spk: null, text: DICT[i % DICT.length] }
+              cur = { id: 'seg' + (++idc) + '-' + Date.now().toString(36), text: src.text, spk: src.spk, t0: chunk.t0, words: src.text.split(' '), n: 0 }
+            }
+            cur.n = Math.min(cur.n + 1, cur.words.length); cur.t1 = chunk.t1
+            ctx.emit('partial', { id: cur.id, text: partialOf(cur.words.slice(0, cur.n)), speaker: conv && cfg.diarization ? cur.spk : null })
+          } else if (cur) finalize()
+        },
+        pause() { finalize() },
+        resume() {},
+        async reconnect() { if (cfg.down) throw Object.assign(new Error('caído'), { kind: 'service-unavailable' }); goOnline() },
+        async finish() {
+          finalize()
+          const t0 = now()
+          while (pending > 0 || buffered.length) {
+            if (!online) throw Object.assign(new Error('caído'), { kind: 'service-unavailable', audio: buffered.length ? 'kept' : 'none' })
+            if (now() - t0 > 20000) throw Object.assign(new Error('tiempo'), { kind: 'processing-failed' })
+            await wait(100)
+          }
+          closed = true; clearInterval(retryIv)
+          return { audioDeleted: true }
+        },
+        async abort() { closed = true; clearInterval(retryIv); buffered.length = 0; return { audioDeleted: true } },
+        retrySegment(seg) { deliver(seg) },
+        // --- solo simulación ---
+        goOffline() {
+          if (!online || closed) return
+          online = false; attempts = 0; ctx.emit('connection', { state: 'lost' })
+          clearInterval(retryIv)
+          retryIv = setInterval(() => {
+            if (closed) return clearInterval(retryIv)
+            if (!cfg.down) return goOnline()
+            attempts++; ctx.emit('connection', { state: 'retrying', attempt: attempts })
+            if (attempts >= 3) { clearInterval(retryIv); ctx.emit('error', { kind: 'service-unavailable', fatal: true, audio: buffered.length || cfg.buffer ? 'kept' : 'none' }) }
+          }, 1500)
+        },
+        failNextSegment() { failNext = true },
+        storageFull() { ctx.emit('error', { kind: 'storage-full', fatal: true, audio: pending ? 'processing' : 'none' }) }
+      }
+      function goOnline() {
+        clearInterval(retryIv); if (online) return
+        online = true; ctx.emit('connection', { state: 'restored' })
+        const b = buffered.splice(0); b.forEach(deliver); emitPending()
+      }
+      simHandle = h
+      return h
+    }
+  }
+}
+
+// =====================================================================================================
+// Transcript Session: objeto independiente. Capas: literal (inmutable) → corregido → derivado.
+// =====================================================================================================
+function createTranscript({ mode, expected }) {
+  const tx = {
+    id: 'tx-' + Date.now().toString(36), mode, expected, createdAt: new Date().toISOString(),
+    speakers: [], // { id:'A', engineLabel, role }
+    segments: [], // { id, t0, t1, literal, engineSpeaker, corrected, speaker(override), removed, failed }
+    partial: null, derived: [], inserts: [], ver: 0,
+    speakerById(id) { return tx.speakers.find((s) => s.id === id) },
+    ensureSpeaker(id) { if (id && !tx.speakerById(id)) tx.speakers.push({ id, role: '' }); return id },
+    addFinal(p) {
+      const seg = tx.segments.find((s) => s.id === p.id)
+      if (seg) { Object.assign(seg, { literal: p.text, engineSpeaker: p.speaker ?? null, failed: false }) } // reintento de un fragmento fallido
+      else tx.segments.push({ id: p.id, t0: p.t0, t1: p.t1, literal: p.text, engineSpeaker: p.speaker ?? null, corrected: null, speaker: null, removed: false, failed: false })
+      tx.ensureSpeaker(p.speaker); if (tx.partial?.id === p.id) tx.partial = null; tx.ver++
+    },
+    addFailed(p) { tx.segments.push({ id: p.segment.id, t0: p.segment.t0, t1: p.segment.t1, literal: '', engineSpeaker: null, corrected: null, speaker: null, removed: false, failed: true, retry: p.retryable ? p.retryData : null }); if (tx.partial?.id === p.segment.id) tx.partial = null; tx.ver++ },
+    text(seg) { return seg.corrected ?? seg.literal },
+    speakerOf(seg) { return seg.speaker ?? seg.engineSpeaker },
+    edit(id, text) { const s = tx.segments.find((x) => x.id === id); s.corrected = text === s.literal ? null : text; tx.ver++ },
+    revert(id) { const s = tx.segments.find((x) => x.id === id); s.corrected = null; s.speaker = null; tx.ver++ },
+    remove(id, v = true) { tx.segments.find((x) => x.id === id).removed = v; tx.ver++ },
+    assignSpeaker(id, spk) { const s = tx.segments.find((x) => x.id === id); tx.ensureSpeaker(spk); s.speaker = spk === s.engineSpeaker ? null : spk; tx.ver++ },
+    setRole(spk, role) { tx.speakerById(spk).role = role; tx.ver++ },
+    label(spkId) { if (!spkId) return L.unassigned; const sp = tx.speakerById(spkId); return fill(L.speaker, { letter: spkId }) + (sp?.role ? ' · ' + sp.role : '') },
+    compose(ids, withSpk) {
+      return tx.segments.filter((s) => ids.includes(s.id) && !s.removed && !s.failed).map((s) => {
+        const sp = tx.speakerOf(s); const who = sp ? (tx.speakerById(sp)?.role || fill(L.speaker, { letter: sp })) : null
+        return (withSpk && who ? who + ': ' : '') + tx.text(s)
+      }).join(withSpk ? '\n' : ' ')
+    },
+    toJSON() { return { id: tx.id, mode, speakers: tx.speakers, segments: tx.segments.map(({ retry, ...s }) => s), derived: tx.derived } }
+  }
+  return tx
+}
+
+// =====================================================================================================
+// createSpeech(): la sesión compartida de la aplicación (servicio por aplicación, como createToaster)
+// =====================================================================================================
+function createSpeech(opts) {
+  const st = {
+    status: 'idle', mode: null, target: null, permission: 'unknown', capture: 'off', voice: 'silence', signal: 'ok', duration: 0, pending: 0,
+    engine: 'ok', attempt: 0, error: null, issues: [], transcript: null, result: null, history: [], sessions: 0, sessionId: null,
+    ui: { panelOpen: false, wave: true, confirmDiscard: false, sel: new Set(), target: 'plan', withSpk: true, editing: null, lastInsert: null, consentOk: false, expected: 2 }
+  }
+  const subs = new Set(), tickSubs = new Set(), levelSubs = new Set()
+  let cap = null, eng = null, lastFrame = 0, voiceUntil = 0, flatSince = null, fc = 0, chunkT0 = 0, chunkVoiced = false, seq = 0, watchdog = null, wakeLock = null
+  let dict = null // inserción del dictado: { pos, selEnd, first, log, notInserted }
+  const lastDictation = {} // por campo: registro para «Deshacer»
+  const emit = () => subs.forEach((f) => f(st))
+  const tick = () => tickSubs.forEach((f) => f(st))
+  const caps = () => opts.adapter.capabilities
+
+  function go(next, why) {
+    const prev = st.status
+    if (prev === next) { emit(); return true }
+    if (!T[prev].includes(next)) { devWarn(`transición no válida ${prev} → ${next}`); return false }
+    st.status = next; st.history.push([prev, next, Math.round(st.duration)])
+    announceTransition(prev, next, why)
+    emit(); return true
+  }
+  const liveStatus = () => (st.voice === 'speech' ? 'speech' : st.pending > 0 ? 'transcribing' : 'listening')
+  function refreshLive() { if (CAPTURING.has(st.status)) { const n = liveStatus(); if (n !== st.status) go(n) } }
+
+  // ---------- anuncios (WCAG 4.1.3): solo ciclo de vida y errores ----------
+  function announceTransition(prev, next, why) {
+    if (CAPTURING.has(prev) && CAPTURING.has(next)) return // escuchando ↔ voz ↔ transcribiendo: no se anuncia
+    const A = L.ann
+    if (S[next].problem) { ann.cancel('state'); ann.assertive(composeError(st.error, next)); return }
+    let t = null
+    switch (next) {
+      case 'requesting': if (st.permission === 'prompt') t = A.requesting; break
+      case 'ready': t = A.ready; break
+      case 'listening': case 'speech': case 'transcribing':
+        t = prev === 'reconnecting' ? A.restored : why === 'resume' ? A.resumed : st.mode === 'dictation' ? fill(A.startDictation, { target: st.target.label }) : A.startConversation; break
+      case 'paused': t = why === 'restored-held' ? A.restoredHeld : A.paused; break
+      case 'processing': t = A.processing; break
+      case 'reconnecting': t = st.capture === 'live' ? A.reconnecting : A.reconnectingHeld; break
+      case 'completed': ann.cancel('insert'); t = st.mode === 'dictation' ? fill(A.completedDict, { target: st.target.label }) : fill(A.completedConv, { n: st.transcript.segments.filter((s) => !s.removed && !s.failed).length, time: mmss(st.duration) }); break
+      case 'idle': t = why === 'discard' ? (st.result?.audioDeleted ? A.discarded : A.discardedUnconfirmed) : why === 'close' ? A.closed : null; break
+    }
+    if (t) ann.later('state', t, 300)
+  }
+  function composeError(e, status) {
+    if (!e) return S[status].l
+    const E = L.err[e.kind] || L.err['service-unavailable']
+    const has = st.transcript && st.transcript.segments.length > 0
+    return [E.t + '.', fill(E.what, { at: mmss(e.at ?? st.duration), range: e.range || '' }), L.capture[e.capture] || '', L.audioFate[e.audio] || '', has ? L.kept : '', E.fix].filter(Boolean).join(' ')
+  }
+
+  // ---------- captura ----------
+  function stopCapture() {
+    clearInterval(watchdog); watchdog = null
+    if (cap) { cap.stop(); cap = null }
+    st.capture = st.capture === 'held' ? 'held' : 'off'; st.voice = 'silence'
+    levelSubs.forEach((f) => f(0, false))
+    releaseWake()
+  }
+  function onFrame({ level, flat }) {
+    lastFrame = now(); st.duration += 100
+    if (level > 0.12) voiceUntil = lastFrame + 450
+    st.voice = lastFrame < voiceUntil ? 'speech' : 'silence'
+    if (flat) { flatSince ??= lastFrame; if (lastFrame - flatSince > 2500 && st.signal !== 'flat') { st.signal = 'flat'; ann.polite(L.ann.flat); emit() } }
+    else if (flatSince != null) { flatSince = null; if (st.signal === 'flat') { st.signal = 'ok'; emit() } }
+    chunkVoiced ||= st.voice === 'speech'
+    if (++fc % 3 === 0) { eng?.push({ seq: ++seq, t0: chunkT0, t1: st.duration, voiced: chunkVoiced, format: 'pcm' }); chunkT0 = st.duration; chunkVoiced = false }
+    levelSubs.forEach((f) => f(level, true))
+    refreshLive(); tick()
+  }
+  function mapCaptureError(e) {
+    const n = e?.name
+    if (n === 'NotAllowedError') return ['denied', 'permission-denied']
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return ['unavailable', 'no-device']
+    if (n === 'NotReadableError' || n === 'AbortError') return ['unavailable', 'device-busy']
+    return ['unavailable', 'unsupported']
+  }
+  const capturedSomething = () => st.duration > 0 || (st.transcript && st.transcript.segments.length > 0)
+  function fail(status, err) {
+    const wasLive = st.capture === 'live'
+    stopCapture(); st.capture = 'off'
+    if (wasLive) eng?.pause?.() // cierra el provisional en curso: pasa a «pendiente», no se queda colgado
+    st.error = { at: st.duration, recoverable: true, ...err, capture: err.capture || (wasLive ? 'stopped' : capturedSomething() ? 'paused' : 'none'), audio: err.audio ?? (st.pending > 0 ? 'processing' : 'none') }
+    go(status)
+  }
+  async function acquire(why) {
+    st.permission = await queryPermission()
+    if (st.permission === 'denied') return fail('denied', { kind: 'permission-denied', capture: capturedSomething() ? 'stopped' : 'none' })
+    if (!go('requesting')) return
+    if (!eng) {
+      try { eng = await opts.adapter.open({ mode: st.mode, expectedSpeakers: st.ui.expected, language: 'es', emit: onEngine }) }
+      catch (e) { return fail('error', { kind: e.kind || 'service-unavailable', capture: 'none', audio: 'none' }) }
+    } else if (st.engine !== 'ok' && eng.reconnect) {
+      try { await eng.reconnect() } catch (e) { return fail('error', { kind: 'service-unavailable', capture: capturedSomething() ? 'stopped' : 'none', audio: 'kept' }) }
+    }
+    if (st.status !== 'requesting') return // cancelado mientras tanto
+    try { cap = await (sim.src === 'real' ? openRealCapture() : openSimCapture()) }
+    catch (e) { const [s, kind] = mapCaptureError(e); st.permission = kind === 'permission-denied' ? 'denied' : st.permission; return fail(s, { kind, capture: capturedSomething() ? 'stopped' : 'none' }) }
+    if (st.status !== 'requesting') { cap.stop(); cap = null; return }
+    st.permission = 'granted'
+    cap.track.addEventListener('ended', () => fail('unavailable', { kind: 'device-disconnected', capture: 'stopped' }))
+    cap.track.addEventListener('mute', () => fail('error', { kind: 'interrupted', capture: 'stopped' }))
+    cap.onFrame(onFrame); lastFrame = now(); chunkT0 = st.duration
+    // Vigilante: «Grabando» solo si llegan fotogramas de verdad (nunca decirlo ante un fallo de captura)
+    watchdog = setInterval(() => { if (st.capture === 'live' && now() - lastFrame > 1500) fail('error', { kind: 'interrupted', capture: 'stopped' }) }, 250)
+    st.capture = 'live'; st.error = null; st.signal = 'ok'; flatSince = null
+    if (why === 'resume') eng.resume?.()
+    go('listening', why)
+    requestWake()
+  }
+  async function requestWake() { if (st.mode !== 'conversation') return; try { wakeLock = await navigator.wakeLock?.request('screen') } catch { wakeLock = null } }
+  function releaseWake() { try { wakeLock?.release() } catch {} wakeLock = null }
+
+  // ---------- eventos del adaptador ----------
+  function onEngine(type, p) {
+    const tx = st.transcript; if (!tx) return
+    if (type === 'partial') { tx.partial = p; tx.ver++; emitTx() }
+    else if (type === 'final') {
+      tx.addFinal(p)
+      if (st.mode === 'dictation') insertDictation(tx.segments.find((s) => s.id === p.id))
+      refreshLive(); emitTx()
+    } else if (type === 'pending') { st.pending = p.count; if (st.status === 'processing') st.ui.procTotal = Math.max(st.ui.procTotal || 0, p.count); refreshLive(); tick(); emit() }
+    else if (type === 'connection') {
+      if (p.state === 'lost') {
+        st.engine = 'lost'; st.attempt = 0
+        if (!caps().offlineBuffer && st.capture === 'live') { stopCapture(); st.capture = 'held' }
+        if (CAPTURING.has(st.status) || st.status === 'paused') go('reconnecting'); else emit()
+      } else if (p.state === 'retrying') { st.engine = 'retrying'; st.attempt = p.attempt; emit() }
+      else if (p.state === 'restored') {
+        st.engine = 'ok'; st.attempt = 0
+        if (st.status === 'reconnecting') { if (st.capture === 'live') go(liveStatus()); else { st.capture = 'off'; go('paused', 'restored-held') } }
+        else emit()
+      }
+    } else if (type === 'error') {
+      if (!p.fatal) {
+        tx.addFailed(p); const range = mmss(p.segment.t0) + '–' + mmss(p.segment.t1)
+        st.issues.push({ kind: p.kind, range, audio: p.audio, segId: p.segment.id })
+        ann.polite(L.ann.segFailed); emitTx(); emit()
+      } else if (p.kind === 'service-unavailable') {
+        st.engine = 'lost'; fail('error', { kind: 'service-unavailable', capture: st.capture === 'live' ? 'stopped' : capturedSomething() ? 'paused' : 'none', audio: p.audio })
+      } else if (p.kind === 'storage-full') fail('error', { kind: 'storage-full', capture: 'stopped', audio: p.audio })
+    }
+  }
+  const emitTx = () => { txSubs.forEach((f) => f(st)) }
+  const txSubs = new Set()
+
+  // ---------- dictado: inserción en el punto del cursor, sin mover el foco ----------
+  function insertDictation(seg) {
+    const el = document.getElementById(st.target.id)
+    if (!el || !el.isConnected) { dict.notInserted.push(seg.id); emit(); return }
+    doInsert(el, st.transcript.text(seg))
+  }
+  function doInsert(el, text) {
+    const focused = document.activeElement === el
+    const len = el.value.length
+    const start = focused ? el.selectionStart : Math.min(dict.pos ?? len, len)
+    const end = focused ? el.selectionEnd : dict.first ? Math.min(dict.selEnd ?? start, len) : start
+    const before = el.value.slice(0, start)
+    const ins = (before && !/\s$/.test(before) ? ' ' : '') + text
+    const replaced = el.value.slice(start, end)
+    el.setRangeText(ins, start, end, focused ? 'end' : 'preserve')
+    el.dataset.spInserting = '1'; el.dispatchEvent(new Event('input', { bubbles: true })); delete el.dataset.spInserting
+    dict.pos = start + ins.length; dict.first = false
+    dict.log.push({ id: el.id, start, ins, replaced })
+    lastDictation[el.id] = dict.log
+    ann.later('insert', fill(L.ann.inserted, { target: st.target.label }), 2500)
+  }
+
+  // ---------- API pública ----------
+  const api = {
+    state: st, subscribe: (f) => (subs.add(f), () => subs.delete(f)), onTick: (f) => (tickSubs.add(f), () => tickSubs.delete(f)),
+    onLevel: (f) => (levelSubs.add(f), () => levelSubs.delete(f)), onTranscript: (f) => (txSubs.add(f), () => txSubs.delete(f)),
+    get active() { return st.status !== 'idle' },
+    get capabilities() { return caps() },
+    lastDictation,
+    get dict() { return dict },
+    newSession(mode, target) {
+      st.mode = mode; st.target = target; st.duration = 0; st.issues = []; st.error = null; st.result = null; st.pending = 0; st.engine = 'ok'; st.signal = 'ok'
+      st.transcript = createTranscript({ mode, expected: st.ui.expected }); st.sessions++; st.sessionId = st.transcript.id
+      st.ui.sel = new Set(); st.ui.editing = null; st.ui.lastInsert = null; st.ui.confirmDiscard = false; st.ui.consentOk = false
+      if (mode === 'dictation') { const el = document.getElementById(target.id); dict = { pos: el?.selectionStart ?? null, selEnd: el?.selectionEnd ?? null, first: true, log: [], notInserted: [] }; lastDictation[target.id] = dict.log }
+      else dict = null
+    },
+    guardRemote() {
+      if (caps().location === 'remote' && !opts.allowRemote()) { devWarn('el adaptador declara location "remote" y la aplicación no pasó allowRemote: true; no se abre el micrófono'); return false }
+      return true
+    },
+    async start({ mode, target = null }) {
+      if (st.status !== 'idle') return 'busy'
+      api.newSession(mode, target)
+      if (!api.guardRemote()) return fail('error', { kind: 'remote-not-allowed', capture: 'none', audio: 'none', recoverable: false })
+      await acquire('start')
+    },
+    async prepare() { // conversación: comprueba permiso y servicio SIN abrir el micrófono → «ready»
+      if (st.status !== 'idle') return 'busy'
+      api.newSession('conversation', null)
+      if (!api.guardRemote()) return fail('error', { kind: 'remote-not-allowed', capture: 'none', audio: 'none', recoverable: false })
+      st.permission = await queryPermission()
+      if (st.permission === 'denied') return fail('denied', { kind: 'permission-denied', capture: 'none' })
+      try { await opts.adapter.check?.() } catch (e) { return fail('error', { kind: 'service-unavailable', capture: 'none', audio: 'none' }) }
+      go('ready')
+    },
+    async begin() { if (st.status === 'ready') await acquire('start') },
+    pause() {
+      if (!(CAPTURING.has(st.status) || (st.status === 'reconnecting' && st.capture === 'live'))) return
+      stopCapture(); st.capture = 'off'; eng?.pause?.(); go('paused')
+    },
+    async resume() { if (['paused', 'error', 'unavailable', 'denied'].includes(st.status)) { if (st.status !== 'paused' && st.error?.recoverable === false) return; await acquire(capturedSomething() ? 'resume' : 'start') } },
+    async finish() {
+      const ok = CAPTURING.has(st.status) || ['paused', 'reconnecting', 'error', 'unavailable', 'denied'].includes(st.status)
+      if (!ok) return
+      if (!eng) return api.discard(true)
+      stopCapture(); st.capture = 'off'; st.ui.procTotal = Math.max(1, st.pending + (st.transcript?.partial ? 1 : 0))
+      if (!go('processing')) return
+      try {
+        st.result = await eng.finish()
+        st.transcript.partial = null; eng = null; emitTx()
+        go('completed')
+        if (st.mode === 'dictation' && !dict.notInserted.length) setTimeout(() => { if (st.status === 'completed') api.close('auto') }, 1500)
+      } catch (e) { fail('error', { kind: e.kind || 'processing-failed', capture: 'stopped', audio: e.audio || 'kept' }) }
+    },
+    async discard(silent) {
+      if (st.status === 'idle' || st.status === 'processing') return
+      stopCapture(); st.capture = 'off'
+      st.result = eng ? await eng.abort() : { audioDeleted: true }; eng = null
+      const tx = st.transcript; st.transcript = null; st.ui.panelOpen = false; dict = null
+      if (tx?.mode === 'dictation' && st.target) delete lastDictation[st.target.id]
+      go('idle', silent === true ? null : 'discard')
+    },
+    close(why) {
+      if (st.status !== 'completed') return
+      opts.onComplete?.(st.transcript.toJSON())
+      st.transcript = null; st.ui.panelOpen = false
+      go('idle', why === 'auto' ? null : 'close')
+    },
+    cancel() { if (st.status === 'ready' || st.status === 'requesting') { stopCapture(); eng?.abort(); eng = null; st.transcript = null; go('idle') } },
+    // dictado
+    insertPending(targetId) {
+      const el = document.getElementById(targetId); if (!el || !dict) return
+      const ids = dict.notInserted.splice(0)
+      ids.forEach((id) => doInsert(el, st.transcript.text(st.transcript.segments.find((s) => s.id === id))))
+      emit(); if (st.status === 'completed' && st.mode === 'dictation') setTimeout(() => api.close('auto'), 800)
+    },
+    undoDictation(targetId) {
+      const log = lastDictation[targetId]; const el = document.getElementById(targetId); if (!log || !el) return
+      for (let i = log.length - 1; i >= 0; i--) { const e = log[i]; if (el.value.slice(e.start, e.start + e.ins.length) !== e.ins) { ann.polite(L.ann.undoFail); return } }
+      for (let i = log.length - 1; i >= 0; i--) { const e = log[i]; el.setRangeText(e.replaced, e.start, e.start + e.ins.length, 'preserve') }
+      el.dispatchEvent(new Event('input', { bubbles: true })); delete lastDictation[targetId]; ann.polite(L.ann.undone); emit()
+    },
+    forgetUndo(targetId) { if (lastDictation[targetId] && (!dict || dict.log !== lastDictation[targetId])) { delete lastDictation[targetId]; emit() } },
+    retrySegment(segId) { const s = st.transcript?.segments.find((x) => x.id === segId); if (s?.retry && eng) { const d = s.retry; s.retry = null; st.transcript.ver++; st.issues = st.issues.filter((i) => i.segId !== segId); eng.retrySegment(d); emitTx(); emit() } },
+    // simulación
+    _sim() { return { eng, cap } }
+  }
+  return api
+}
+
+// =====================================================================================================
+// Anunciador: dos canales vivos del anfitrión (status cortés + alert enérgico). Uno solo por aplicación.
+// =====================================================================================================
+const ann = (() => {
+  let politeEl, assertiveEl, q = [], busy = false; const timers = {}
+  const log = (ch, t) => { const li = document.createElement('li'); li.dataset.ch = ch; li.textContent = `[${ch === 'polite' ? 'cortés' : 'enérgico'}] ${t}`; const lg = $('#annlog'); lg.append(li); lg.scrollTop = lg.scrollHeight; window.__sp.announcements.push({ ch, t }) }
+  const write = (el, t, ch) => { el.textContent = ''; setTimeout(() => { el.textContent = t; log(ch, t); clearTimeout(el._c); el._c = setTimeout(() => { el.textContent = '' }, 6000) }, 50) }
+  const pump = () => { if (busy || !q.length) return; busy = true; write(politeEl, q.shift(), 'polite'); setTimeout(() => { busy = false; pump() }, 900) }
+  return {
+    bind(p, a) { politeEl = p; assertiveEl = a },
+    polite(t) { if (q[q.length - 1] === t) return; q.push(t); pump() },
+    assertive(t) { q = []; write(assertiveEl, t, 'assertive') },
+    later(key, t, ms) { clearTimeout(timers[key]); timers[key] = setTimeout(() => this.polite(t), ms) },
+    cancel(key) { clearTimeout(timers[key]) }
+  }
+})()
+
+// =====================================================================================================
+// Aplicación de ejemplo: estado del formulario, destinos registrados, la sesión
+// =====================================================================================================
+const form = { obs: $('#f-obs').value, motivo: '', hallazgos: '', plan: '', nota: '', nombre: '', edad: '' }
+// Destinos ligados al MODELO (sirven aunque el campo esté desmontado en otro tab o paso)
+const targets = {
+  motivo: { label: 'Motivo de consulta' }, hallazgos: { label: 'Hallazgos' }, plan: { label: 'Plan' }, obs: { label: 'Observaciones' }
+}
+function insertIntoModel(key, text) {
+  const before = form[key]; const after = (before ? before.replace(/\s+$/, '') + '\n' : '') + text
+  form[key] = after; syncField(key)
+  return { undo() { if (form[key] !== after) return false; form[key] = before; syncField(key); return true } }
+}
+function syncField(key) { $$(`[data-model="${key}"]`).forEach((el) => { if (el.value !== form[key]) el.value = form[key] }) }
+document.addEventListener('input', (e) => {
+  const el = e.target; const k = el.dataset?.model; if (!k) return
+  form[k] = el.value
+  if (!el.dataset.spInserting && el.id) speech.forgetUndo(el.id) // el usuario editó: «Deshacer dictado» ya no es seguro
+})
+
+const adapter = createSimulatedSpeechAdapter(simAdapterCfg)
+const speech = createSpeech({ adapter, allowRemote: () => $('#b-allowremote').checked, onComplete: (t) => { window.__sp.completed.push(t) } })
+window.__sp = { speech, sim, simAdapterCfg, form, announcements: [], dev: [], completed: [], get handle() { return simHandle } }
+
+// =====================================================================================================
+// GSpeechHost: raíz popover="manual" permanente con canales vivos, pill flotante, panel y hoja móvil
+// =====================================================================================================
+const host = document.createElement('div')
+host.className = 'sp-host'; host.setAttribute('popover', 'manual'); host.id = 'sp-host'
+host.innerHTML = `
+  <div class="sr" role="status" aria-live="polite" aria-atomic="true" id="sp-ch-polite"></div>
+  <div class="sr" role="alert" aria-atomic="true" id="sp-ch-assertive"></div>
+  <div class="sp-float" data-edge="top" hidden id="sp-float"></div>
+  <div class="sp-panel" id="sp-panel" role="dialog" aria-labelledby="sp-panel-title" hidden></div>
+  <dialog class="sp-sheet" id="sp-sheet" aria-labelledby="sp-panel-title"></dialog>`
+document.body.append(host)
+host.showPopover()
+ann.bind($('#sp-ch-polite'), $('#sp-ch-assertive'))
+
+// ---------- Pill (la colocada en la cabecera y la flotante comparten constructor y estado) ----------
+function buildPill(kind) {
+  const el = document.createElement('div')
+  el.className = 'sp-pill'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', L.region); el.dataset.kind = kind; el.hidden = true
+  el.innerHTML = `
+    <button type="button" class="sp-pill__main" data-role="main" aria-expanded="false" aria-controls="sp-panel" aria-keyshortcuts="Shift+F8">
+      <span data-role="icon" class="sp-pill__icon"></span><span class="sp-pill__text" data-role="text"></span><span class="sr">, ${esc(L.openPanel)}</span>
+      <span class="sp-meter" aria-hidden="true" data-role="meter"><i></i><i></i><i></i><i></i></span>
+      <span class="sp-pill__chev" aria-hidden="true">${ic('chevron-down')}</span>
+    </button>
+    <span class="sp-pill__time" role="timer" data-role="timerwrap"><span class="sr">${esc(L.duration)}</span><span data-role="time">00:00</span></span>
+    <button type="button" class="icon-btn" data-role="toggle"></button>
+    <button type="button" class="icon-btn" data-role="finish" aria-label="${esc(L.finish)}">${ic('square', true)}</button>`
+  const q = (r) => el.querySelector(`[data-role="${r}"]`)
+  q('main').addEventListener('click', (e) => ui.togglePanel(e.currentTarget))
+  q('toggle').addEventListener('click', () => { const a = q('toggle').dataset.act; if (a === 'pause') speech.pause(); else speech.resume() })
+  q('finish').addEventListener('click', () => speech.finish())
+  let lastStatus = null
+  return {
+    el, kind, main: q('main'),
+    update(st) {
+      el.hidden = st.status === 'idle'
+      const s = S[st.status]
+      if (st.status !== lastStatus) {
+        lastStatus = st.status
+        q('icon').className = 'sp-pill__icon' + (s.spin ? ' sp-spin' : ''); q('icon').innerHTML = ic(s.icon, s.filled)
+      }
+      const text = st.status === 'reconnecting' && st.capture === 'live' ? 'Reconectando · grabando' : s.s
+      if (q('text').textContent !== text) q('text').textContent = text
+      el.toggleAttribute('data-live', st.capture === 'live'); el.dataset.tone = s.problem ? 'problem' : ''
+      q('main').setAttribute('aria-expanded', String(st.ui.panelOpen))
+      const live = st.capture === 'live'
+      q('timerwrap').hidden = st.status === 'idle' || st.status === 'requesting' || st.status === 'ready'
+      q('meter').hidden = !st.ui.wave || !live
+      // Pausar / Reanudar / Reintentar (el mismo botón cambia de nombre; el anuncio confirma)
+      let act = null
+      if (live && (CAPTURING.has(st.status) || st.status === 'reconnecting')) act = 'pause'
+      else if (st.status === 'paused') act = 'resume'
+      else if (['denied', 'unavailable', 'error'].includes(st.status) && st.error?.recoverable !== false) act = 'resume'
+      const tg = q('toggle'); tg.hidden = !act
+      if (act && tg.dataset.act !== act + (act === 'resume' && !speechHas() ? 'r' : '')) {
+        tg.dataset.act = act
+        const label = act === 'pause' ? L.pause : speechHas() ? L.resume : L.retry
+        tg.setAttribute('aria-label', label); tg.innerHTML = ic(act === 'pause' ? 'pause' : speechHas() ? 'mic' : 'rotate-ccw')
+      }
+      q('finish').hidden = !(CAPTURING.has(st.status) || st.status === 'paused' || st.status === 'reconnecting' || (['error', 'unavailable', 'denied'].includes(st.status) && speechHas()))
+    },
+    tick(st) { const t = mmss(st.duration); const n = q('time'); if (n.textContent !== t) n.textContent = t },
+    level(v, live) { const bars = q('meter').children; const r = rm(); [...bars].forEach((b, i) => { const h = !live ? 0 : r ? (v * 4 > i ? 1 : 0.15) : Math.max(0, Math.min(1, v * (0.7 + 0.6 * Math.abs(Math.sin(now() / 120 + i * 1.7))))); b.style.setProperty('--h', h.toFixed(2)) }) }
+  }
+}
+const speechHas = () => { const st = speech.state; return st.duration > 0 || (st.transcript && st.transcript.segments.length > 0) }
+const pills = { head: buildPill('placed'), float: buildPill('floating') }
+$('#head-pill').append(pills.head.el)
+$('#sp-float').append(pills.float.el)
+
+// ---------- Panel ----------
+const panel = $('#sp-panel'), sheet = $('#sp-sheet')
+panel.innerHTML = `
+  <div class="sp-panel__head">
+    <h2 id="sp-panel-title" tabindex="-1">${esc(L.region)}</h2>
+    <p class="sp-panel__mode" data-role="mode"></p>
+    <button type="button" class="icon-btn" data-act="close-panel" data-k="close-panel" aria-label="${esc(L.closePanel)}">${ic('x')}</button>
+  </div>
+  <div class="sp-panel__body">
+    <div class="sp-status"><span data-role="icon"></span><span data-role="long"></span><span class="sp-pill__time" role="timer"><span class="sr">${esc(L.duration)}</span><span data-role="time">00:00</span></span></div>
+    <p class="sp-sub" data-role="sub"></p>
+    <p class="sp-privacy" data-role="privacy"></p>
+    <div class="sp-wave-row"><div class="sp-wave" aria-hidden="true" data-role="wave"></div><button type="button" class="link-btn" data-act="wave" data-k="wave" aria-pressed="false">Ocultar actividad</button></div>
+    <div data-role="setup"></div>
+    <div data-role="error"></div>
+    <div data-role="progress"></div>
+    <div data-role="controls"></div>
+    <section data-role="speakers"></section>
+    <section><h3 id="sp-tx-h">Transcripción</h3><ol class="sp-tx" data-role="tx" aria-labelledby="sp-tx-h" data-empty="Aún no hay texto."></ol></section>
+    <div data-role="review"></div>
+  </div>`
+const P = (r) => panel.querySelector(`[data-role="${r}"]`)
+const WAVE_N = 32
+P('wave').innerHTML = '<i></i>'.repeat(WAVE_N)
+const waveHist = Array(WAVE_N).fill(0)
+
+const ui = {
+  opener: null, savedFocus: null, placedVisible: false, modalHost: null,
+  focusFallback() { if (speech.state.ui.panelOpen) $('#sp-panel-title').focus({ preventScroll: true }); else ui.visiblePill()?.main.focus() },
+  visiblePill() { if (!pills.head.el.hidden && ui.placedUsable()) return pills.head; if (!pills.float.el.hidden && !$('#sp-float').hidden) return pills.float; return null },
+  placedUsable() { return $('#b-place').value === 'head' && ui.placedVisible && !ui.modalHost },
+  togglePanel(opener) { speech.state.ui.panelOpen ? ui.closePanel(true) : ui.openPanel(opener) },
+  openPanel(opener) {
+    const st = speech.state; if (st.status === 'idle') return
+    ui.opener = opener || ui.visiblePill()?.main || null
+    st.ui.panelOpen = true
+    if (isMobile()) { sheet.append(panel); panel.hidden = false; if (!sheet.open) sheet.showModal() }
+    else { host.insertBefore(panel, sheet); panel.hidden = false; ui.position() }
+    render(); renderTx()
+    $('#sp-panel-title').focus({ preventScroll: true })
+  },
+  closePanel(returnFocus) {
+    const st = speech.state; if (!st.ui.panelOpen) return
+    st.ui.panelOpen = false; st.ui.confirmDiscard = false
+    if (sheet.open) sheet.close()
+    panel.hidden = true; host.insertBefore(panel, sheet)
+    render()
+    if (returnFocus) { const o = ui.opener && ui.opener.isConnected && !ui.opener.closest('[hidden]') ? ui.opener : ui.visiblePill()?.main; (o || document.body).focus?.({ preventScroll: true }) }
+  },
+  position() {
+    if (panel.hidden || panel.parentElement === sheet) return
+    const a = (ui.visiblePill() || {}).el
+    const vw = window.innerWidth, vh = window.innerHeight, m = 12
+    const r = a ? a.getBoundingClientRect() : { top: m, bottom: m, left: vw - m, right: vw - m }
+    const w = Math.min(440, vw - 24)
+    const below = vh - r.bottom - m - 8, above = r.top - m - 8
+    const down = below >= 320 || below >= above
+    panel.style.setProperty('--maxh', Math.max(200, down ? below : above) + 'px')
+    panel.style.insetInlineStart = Math.max(m, Math.min(vw - w - m, r.right - w)) + 'px'
+    if (down) { panel.style.top = (r.bottom + 8) + 'px'; panel.style.bottom = 'auto' } else { panel.style.bottom = (vh - r.top + 8) + 'px'; panel.style.top = 'auto' }
+  }
+}
+
+// ---------- Render: estado estructural (sin reescribir lo que tiene el foco) ----------
+function render() {
+  const st = speech.state, s = S[st.status], caps = speech.capabilities
+  pills.head.update(st); pills.float.update(st)
+  if (!st.ui.panelOpen && (!panel.hidden || sheet.open)) { if (sheet.open) sheet.close(); panel.hidden = true; host.insertBefore(panel, sheet) }
+  // Pill flotante: solo si no hay una colocada visible y operable
+  const fl = $('#sp-float'); fl.hidden = st.status === 'idle' || ui.placedUsable()
+  if (isMobile() && !fl.dataset.flipped) fl.dataset.edge = 'bottom'; else if (!fl.dataset.flipped) fl.dataset.edge = 'top'
+  // Panel
+  P('mode').textContent = st.mode === 'dictation' ? fill(L.modeDictation, { target: st.target?.label }) : st.mode ? fill(L.modeConversation, { n: L.speakersN[st.ui.expected] }) : ''
+  const ico = P('icon'); if (ico.dataset.s !== st.status) { ico.dataset.s = st.status; ico.className = s.spin ? 'sp-spin' : ''; ico.innerHTML = ic(s.icon, s.filled) }
+  let long = s.l
+  if (st.status === 'requesting' && st.permission !== 'prompt') long = 'Activando el micrófono'
+  if (st.status === 'reconnecting') long += st.capture === 'live' ? ' · la grabación continúa' : ' · grabación en pausa'
+  if (st.status === 'error' || S[st.status].problem) long = (L.err[st.error?.kind]?.t) || long
+  P('long').textContent = long
+  const sub = []
+  if (st.status === 'reconnecting' && st.attempt) sub.push(`Intento ${st.attempt} de 3`)
+  if (st.signal === 'flat' && st.capture === 'live') sub.push('No llega sonido del micrófono: comprueba que no esté silenciado')
+  if (st.transcript && st.status !== 'idle') sub.push(st.pending === 0 ? L.pending[0] : st.pending === 1 ? L.pending[1] : fill(L.pending.n, { n: st.pending }))
+  P('sub').textContent = sub.join(' · ')
+  const audio = caps.storesAudio === 'none' ? L.audio.none : caps.storesAudio === 'disk' ? L.audio.disk : L.audio.memory
+  let priv = `${L.privacy[caps.location]} · ${audio}`
+  if (st.status === 'completed' && st.result) priv += ' · ' + (st.result.audioDeleted ? L.audioDeleted : L.audioNotConfirmed)
+  P('privacy').innerHTML = ic(caps.location === 'remote' ? 'globe' : 'lock') + `<span>${esc(priv)}</span>`
+  P('wave').hidden = !st.ui.wave; P('wave').toggleAttribute('data-rm', rm()); P('wave').dataset.live = String(st.capture === 'live')
+  const wb = panel.querySelector('[data-act="wave"]'); wb.setAttribute('aria-pressed', String(!st.ui.wave))
+  // Configuración (ready)
+  patch(P('setup'), st.status !== 'ready' ? '' : `
+    <fieldset class="ctl" style="border:1px solid var(--wf-line);border-radius:6px;padding:4px 10px;margin:8px 0"><legend style="font-size:12px;color:var(--wf-2)">Participantes previstos</legend>
+      ${[1, 2, 'many'].map((n) => `<label><input type="radio" name="sp-exp" value="${n}" data-k="exp-${n}" ${String(st.ui.expected) === String(n) ? 'checked' : ''}>${n === 'many' ? 'Varios' : n}</label>`).join('')}
+    </fieldset>
+    ${caps.diarization ? '' : '<p class="cap">El motor no distingue hablantes: podrás asignarlos a mano en cada fragmento.</p>'}
+    ${$('#b-consent').checked ? `<label class="ctl" style="margin:4px 0"><input type="checkbox" data-k="consent" data-act="consent" ${st.ui.consentOk ? 'checked' : ''}>He informado a los participantes de que se graba y se transcribe</label><p class="cap" id="sp-consent-msg" data-role="consentmsg"></p>` : ''}`,
+    `${st.status}|${st.ui.expected}|${caps.diarization}|${$('#b-consent').checked}|${st.ui.consentOk}`)
+  // Error
+  const showErr = S[st.status].problem && st.error
+  const issues = st.issues
+  patch(P('error'), (showErr ? `<div class="sp-err"><p class="sp-err__t">${ic(s.icon)}${esc(L.err[st.error.kind]?.t || s.l)}</p><p>${esc(composeErrorText(st))}</p></div>` : '') +
+    issues.map((i) => `<div class="sp-err" data-soft><p class="sp-err__t">${ic('triangle-alert')}${esc(L.err['processing-failed'].t)} ${esc(i.range)}</p><p>La grabación continúa. ${esc(L.audioFate[i.audio])}</p></div>`).join(''),
+    `${st.status}|${JSON.stringify(st.error)}|${issues.length}`)
+  // Progreso del procesamiento final (GProgress)
+  patch(P('progress'), st.status === 'processing' ? `<div class="sp-progress" role="progressbar" aria-label="Procesamiento final" aria-valuemin="0" aria-valuemax="${st.ui.procTotal}" aria-valuenow="${st.ui.procTotal - st.pending}" style="--p:${st.ui.procTotal ? Math.round((1 - st.pending / st.ui.procTotal) * 100) : 100}%"><i></i></div>` : '', `${st.status}|${st.pending}`)
+  // Controles
+  const btn = (act, label, icon, kind, filled) => `<button type="button" class="wf-btn" data-act="${act}" data-k="c-${act}"${kind ? ` data-kind="${kind}"` : ''}>${icon ? ic(icon, filled) : ''}${esc(label)}</button>`
+  let ctl = ''
+  if (st.ui.confirmDiscard) ctl = `<div class="sp-confirm" role="group" aria-labelledby="sp-dq"><p id="sp-dq" style="margin:0 0 6px">${esc(L.discardAsk)}</p><div class="btns">${btn('discard-no', L.cancel)}${btn('discard-yes', L.discardYes, 'trash')}</div></div>`
+  else {
+    const has = speechHas()
+    const a = []
+    switch (st.status) {
+      case 'requesting': a.push(btn('cancel', L.cancel)); break
+      case 'ready': a.push(btn('begin', L.start, 'mic', 'primary'), btn('cancel', L.cancel)); break
+      case 'listening': case 'speech': case 'transcribing': a.push(btn('pause', L.pause, 'pause'), btn('finish', L.finish, 'square', 'primary', true), btn('discard', L.discard, 'trash')); break
+      case 'reconnecting': if (st.capture === 'live') a.push(btn('pause', L.pause, 'pause')); a.push(btn('finish', L.finish, 'square', 'primary', true), btn('discard', L.discard, 'trash')); break
+      case 'paused': a.push(btn('resume', L.resume, 'mic'), btn('finish', L.finish, 'square', 'primary', true), btn('discard', L.discard, 'trash')); break
+      case 'denied': case 'unavailable': case 'error':
+        if (st.error?.recoverable !== false) a.push(btn('resume', has ? L.resume : L.retry, has ? 'mic' : 'rotate-ccw'))
+        if (has) a.push(btn('finish', L.finish, 'square', 'primary', true), btn('discard', L.discard, 'trash')); else a.push(btn('dismiss', L.dismiss))
+        break
+      case 'completed': a.push(btn('close-session', L.closeSession, 'circle-check', 'primary'), btn('discard', L.discard, 'trash')); break
+    }
+    ctl = a.length ? `<div class="btns">${a.join('')}</div>` : ''
+  }
+  patch(P('controls'), ctl, `${st.status}|${st.capture}|${st.ui.confirmDiscard}|${speechHas()}|${st.error?.recoverable}`)
+  // Hablantes y roles (conversación)
+  const tx = st.transcript
+  const showSpk = tx && st.mode === 'conversation' && (tx.speakers.length || st.ui.expected !== 1)
+  patch(P('speakers'), !showSpk ? '' : `<h3 id="sp-spk-h">Hablantes</h3>
+    ${!caps.diarization ? '<p class="cap">El motor no distingue hablantes: asígnalos en cada fragmento (Editar).</p>' : ''}
+    ${tx.speakers.length ? `<ul class="sp-spk" aria-labelledby="sp-spk-h">${tx.speakers.map((sp) => `<li><span class="seg__spk">${esc(fill(L.speaker, { letter: sp.id }))}</span>
+      <label>Rol <select data-k="role-${sp.id}" data-act="role" data-spk="${sp.id}" aria-label="Rol de ${esc(fill(L.speaker, { letter: sp.id }))}"><option value="">Sin rol</option>${L.roles.map((r) => `<option ${sp.role === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
+      <span class="cap" style="margin:0">${tx.segments.filter((g) => tx.speakerOf(g) === sp.id && !g.removed).length} fragmentos</span></li>`).join('')}</ul>` : '<p class="cap">Aparecerán cuando el motor los detecte.</p>'}`,
+    `${showSpk}|${tx?.ver}|${caps.diarization}`)
+  // Revisión: seleccionar, insertar en campos, copiar, deshacer
+  const nSel = st.ui.sel.size
+  const hasSegs = tx && tx.segments.some((g) => !g.removed && !g.failed)
+  const showRev = hasSegs && (st.mode === 'conversation' || st.status === 'completed')
+  patch(P('review'), !showRev ? '' : `<div class="sp-review" role="group" aria-label="Usar la transcripción">
+    <button type="button" class="wf-btn" data-size="sm" data-act="select-all" data-k="r-all">${nSel ? 'Quitar selección' : 'Seleccionar todo'}</button>
+    <span>${nSel ? nSel + ' seleccionados' : 'Sin selección: se usa todo'}</span>
+    <label>Insertar en <select data-k="r-target" data-act="target">${Object.entries(targets).map(([k, t]) => `<option value="${k}" ${st.ui.target === k ? 'selected' : ''}>${esc(t.label)}</option>`).join('')}</select></label>
+    ${st.mode === 'conversation' ? `<label><input type="checkbox" data-k="r-spk" data-act="withspk" ${st.ui.withSpk ? 'checked' : ''}>Con hablante</label>` : ''}
+    <button type="button" class="wf-btn" data-size="sm" data-act="insert" data-k="r-insert">${ic('text-cursor-input')}Insertar</button>
+    <button type="button" class="wf-btn" data-size="sm" data-act="copy" data-k="r-copy">${ic('copy')}Copiar</button>
+    ${st.ui.lastInsert ? `<button type="button" class="wf-btn" data-size="sm" data-act="undo" data-k="r-undo">${ic('undo-2')}Deshacer inserción</button>` : ''}
+    <p class="cap" style="flex-basis:100%;margin:0">Se inserta el texto corregido; el literal del motor no cambia.</p></div>`,
+    `${showRev}|${nSel}|${st.ui.target}|${st.ui.withSpk}|${!!st.ui.lastInsert}|${st.mode}`)
+  renderTriggers(); renderNotes(); renderDbg()
+  ui.position()
+  // Si el foco estaba en algo que desapareció (sesión cerrada), devolverlo al disparador o al campo
+  if (st.status === 'idle' && (document.activeElement === document.body || !document.activeElement || host.contains(document.activeElement) || document.activeElement.closest('[data-speech-pill]'))) {
+    const t = ui.lastTrigger && ui.lastTrigger.isConnected ? ui.lastTrigger : null
+    if (t) t.focus({ preventScroll: true })
+  }
+}
+function composeErrorText(st) {
+  const e = st.error; const E = L.err[e.kind] || L.err['service-unavailable']; const has = st.transcript && st.transcript.segments.length > 0
+  return [fill(E.what, { at: mmss(e.at ?? st.duration) }), L.capture[e.capture] || '', L.audioFate[e.audio] || '', has ? L.kept : '', E.fix].filter(Boolean).join(' ')
+}
+function tickAll(st) {
+  pills.head.tick(st); pills.float.tick(st)
+  const t = mmss(st.duration); const n = P('time'); if (n.textContent !== t) n.textContent = t
+  renderDbg()
+}
+
+// ---------- Transcripción (lista con clave: no se reescribe lo que no cambió) ----------
+function renderTx() {
+  const st = speech.state, tx = st.transcript, list = P('tx')
+  if (!tx) { list.innerHTML = ''; return }
+  if (panel.hidden && !sheet.open) return
+  const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 24
+  const ids = tx.segments.map((s) => s.id).concat(tx.partial ? ['partial'] : [])
+  ;[...list.children].forEach((li) => { if (!ids.includes(li.dataset.id)) li.remove() })
+  ids.forEach((id, i) => {
+    let li = list.querySelector(`:scope > li[data-id="${CSS.escape(id)}"]`)
+    if (!li) { li = document.createElement('li'); li.dataset.id = id }
+    if (list.children[i] !== li) list.insertBefore(li, list.children[i] || null)
+    if (id === 'partial') {
+      const p = tx.partial; li.className = 'seg seg--partial'
+      const sig = `${p.text}|${p.speaker}|${st.mode}`
+      patch(li, `<div class="seg__meta"><span class="seg__flag">provisional</span>${st.mode === 'conversation' && p.speaker ? `<span class="seg__spk">${esc(tx.label(p.speaker))}</span>` : ''}</div><p class="seg__text"><span class="sr">Texto provisional: </span>${esc(p.text)}…</p>`, sig)
+      return
+    }
+    const g = tx.segments.find((s) => s.id === id), spk = tx.speakerOf(g), time = mmss(g.t0)
+    const editing = st.ui.editing?.id === id
+    li.className = 'seg'; li.toggleAttribute('data-removed', g.removed); li.toggleAttribute('data-failed', g.failed)
+    const sig = `${tx.ver}|${editing}|${st.ui.sel.has(id)}|${st.mode}`
+    let html
+    if (g.failed) html = `<div class="seg__meta"><span>${esc(time)}–${esc(mmss(g.t1))}</span></div><p class="seg__text">${ic('triangle-alert')} No se pudo transcribir este fragmento.</p>${g.retry ? `<button type="button" class="link-btn" data-act="retry-seg" data-id="${id}" data-k="rs-${id}">Reintentar fragmento</button>` : '<span class="cap">El audio de este fragmento se perdió.</span>'}`
+    else if (g.removed) html = `<div class="seg__meta"><span>${esc(time)}</span></div><p class="seg__text">Fragmento eliminado de la versión corregida (el literal se conserva).</p><button type="button" class="link-btn" data-act="restore" data-id="${id}" data-k="re-${id}">Restaurar</button>`
+    else {
+      const flags = [g.corrected != null ? 'editado' : '', g.speaker ? `hablante cambiado (motor: ${g.engineSpeaker ? fill(L.speaker, { letter: g.engineSpeaker }) : L.unassigned})` : ''].filter(Boolean)
+      html = `<div class="seg__meta"><label><input type="checkbox" data-act="pick" data-id="${id}" data-k="pk-${id}" ${st.ui.sel.has(id) ? 'checked' : ''}><span class="sr">Seleccionar fragmento de las </span><time>${esc(time)}</time></label>
+        ${st.mode === 'conversation' ? `<span class="seg__spk">${esc(tx.label(spk))}</span>` : ''}${flags.map((f) => `<span class="seg__flag">${esc(f)}</span>`).join('')}</div>
+        <p class="seg__text">${esc(tx.text(g))}</p>`
+      if (editing) {
+        const d = st.ui.editing
+        html += `<div class="seg__editor" role="group" aria-label="Editar fragmento de las ${esc(time)}">
+          <label class="wf-field">Texto corregido<textarea data-k="ed-t-${id}" data-act="ed-text">${esc(d.text)}</textarea></label>
+          ${st.mode === 'conversation' ? `<label class="wf-field">Hablante<select data-k="ed-s-${id}" data-act="ed-spk"><option value="">${esc(L.unassigned)}</option>${tx.speakers.map((sp) => `<option value="${sp.id}" ${d.spk === sp.id ? 'selected' : ''}>${esc(tx.label(sp.id))}</option>`).join('')}<option value="__new">${esc(L.newSpeaker)}</option></select></label>` : ''}
+          <p class="cap" style="margin:0">Literal del motor (no se modifica): «${esc(g.literal)}»${st.mode === 'conversation' ? ` · hablante del motor: ${esc(g.engineSpeaker ? fill(L.speaker, { letter: g.engineSpeaker }) : L.unassigned)}` : ''}</p>
+          <div class="btns"><button type="button" class="wf-btn" data-size="sm" data-kind="primary" data-act="save" data-id="${id}" data-k="sv-${id}">Guardar</button><button type="button" class="wf-btn" data-size="sm" data-act="cancel-edit" data-id="${id}" data-k="ce-${id}">Cancelar</button>${g.corrected != null || g.speaker ? `<button type="button" class="wf-btn" data-size="sm" data-act="revert" data-id="${id}" data-k="rv-${id}">Restaurar literal</button>` : ''}<button type="button" class="wf-btn" data-size="sm" data-act="remove" data-id="${id}" data-k="rm-${id}">${ic('trash')}Eliminar</button></div></div>`
+      } else html += `<button type="button" class="link-btn" data-act="edit" data-id="${id}" data-k="ed-${id}" aria-label="Editar fragmento de las ${esc(time)}">${ic('pencil')} Editar</button>`
+    }
+    patch(li, html, sig)
+  })
+  if (atBottom && !st.ui.editing) list.scrollTop = list.scrollHeight
+}
+
+// ---------- Eventos del panel ----------
+panel.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT' || (b.tagName === 'INPUT' && b.type !== 'button')) return
+  const st = speech.state, tx = st.transcript, id = b.dataset.id
+  switch (b.dataset.act) {
+    case 'close-panel': ui.closePanel(true); break
+    case 'wave': st.ui.wave = !st.ui.wave; render(); break
+    case 'begin': if ($('#b-consent').checked && !st.ui.consentOk) { const m = panel.querySelector('[data-role="consentmsg"]'); m.textContent = 'Marca la casilla para empezar.'; panel.querySelector('[data-k="consent"]').focus(); ann.polite('Marca la casilla de aviso a los participantes para empezar.'); return } speech.begin(); break
+    case 'cancel': speech.cancel(); ui.closePanel(true); break
+    case 'pause': speech.pause(); break
+    case 'resume': speech.resume(); break
+    case 'finish': speech.finish(); break
+    case 'discard': st.ui.confirmDiscard = true; render(); panel.querySelector('[data-act="discard-no"]').focus(); break
+    case 'discard-no': st.ui.confirmDiscard = false; render(); panel.querySelector('[data-act="discard"]')?.focus(); break
+    case 'discard-yes': st.ui.confirmDiscard = false; ui.closePanel(false); speech.discard(); break
+    case 'dismiss': ui.closePanel(false); speech.discard(true); break
+    case 'close-session': ui.closePanel(false); speech.close(); break
+    case 'edit': { const g = tx.segments.find((s) => s.id === id); st.ui.editing = { id, text: tx.text(g), spk: tx.speakerOf(g) || '' }; tx.ver++; renderTx(); panel.querySelector(`[data-k="ed-t-${id}"]`)?.focus(); break }
+    case 'cancel-edit': st.ui.editing = null; tx.ver++; renderTx(); panel.querySelector(`[data-k="ed-${id}"]`)?.focus(); break
+    case 'save': { const d = st.ui.editing; tx.edit(id, d.text.trim()); if (st.mode === 'conversation') { let sp = d.spk; if (sp === '__new') sp = LETTERS[tx.speakers.length]; const g = tx.segments.find((s) => s.id === id); if ((sp || null) !== (tx.speakerOf(g) || null)) tx.assignSpeaker(id, sp || null) } st.ui.editing = null; tx.ver++; renderTx(); render(); panel.querySelector(`[data-k="ed-${id}"]`)?.focus(); ann.polite('Fragmento corregido. El literal se conserva.'); break }
+    case 'revert': tx.revert(id); st.ui.editing = null; renderTx(); render(); panel.querySelector(`[data-k="ed-${id}"]`)?.focus(); break
+    case 'remove': tx.remove(id, true); st.ui.editing = null; st.ui.sel.delete(id); renderTx(); render(); panel.querySelector(`[data-k="re-${id}"]`)?.focus(); ann.polite('Fragmento eliminado. Puedes restaurarlo.'); break
+    case 'restore': tx.remove(id, false); renderTx(); render(); panel.querySelector(`[data-k="ed-${id}"]`)?.focus(); break
+    case 'retry-seg': speech.retrySegment(id); break
+    case 'select-all': if (st.ui.sel.size) st.ui.sel.clear(); else tx.segments.forEach((g) => { if (!g.removed && !g.failed) st.ui.sel.add(g.id) }); tx.ver++; renderTx(); render(); break
+    case 'insert': {
+      const ids = st.ui.sel.size ? [...st.ui.sel] : tx.segments.map((g) => g.id)
+      const text = tx.compose(ids, st.mode === 'conversation' && st.ui.withSpk); if (!text) return
+      const r = insertIntoModel(st.ui.target, text)
+      st.ui.lastInsert = { ...r, target: st.ui.target }; tx.inserts.push({ target: st.ui.target, ids, at: Date.now() })
+      ann.polite(fill(L.ann.insertedSel, { n: ids.filter((i) => { const g = tx.segments.find((s) => s.id === i); return g && !g.removed && !g.failed }).length, target: targets[st.ui.target].label })); render(); break
+    }
+    case 'undo': { const ok = st.ui.lastInsert.undo(); st.ui.lastInsert = null; ann.polite(ok ? L.ann.undone : L.ann.undoFail); render(); panel.querySelector('[data-k="r-insert"]')?.focus(); break }
+    case 'copy': {
+      const ids = st.ui.sel.size ? [...st.ui.sel] : tx.segments.map((g) => g.id); const text = tx.compose(ids, st.mode === 'conversation' && st.ui.withSpk)
+      Promise.resolve().then(() => navigator.clipboard.writeText(text)).then(() => ann.polite(fill(L.ann.copied, { n: ids.length })), () => ann.polite(L.ann.copyFail)); break
+    }
+  }
+})
+panel.addEventListener('change', (e) => {
+  const el = e.target, st = speech.state, tx = st.transcript
+  if (el.name === 'sp-exp') { st.ui.expected = el.value === 'many' ? 'many' : +el.value; render() }
+  else if (el.dataset.act === 'consent') { st.ui.consentOk = el.checked; render() }
+  else if (el.dataset.act === 'role') { tx.setRole(el.dataset.spk, el.value); render(); renderTx() }
+  else if (el.dataset.act === 'pick') { el.checked ? st.ui.sel.add(el.dataset.id) : st.ui.sel.delete(el.dataset.id); tx.ver++; render(); renderTx() }
+  else if (el.dataset.act === 'target') { st.ui.target = el.value; render() }
+  else if (el.dataset.act === 'withspk') { st.ui.withSpk = el.checked; render() }
+  else if (el.dataset.act === 'ed-spk') { st.ui.editing.spk = el.value }
+})
+panel.addEventListener('input', (e) => { if (e.target.dataset.act === 'ed-text') speech.state.ui.editing.text = e.target.value })
+// Esc en el panel: cierra el panel (no la sesión ni el GDialog anfitrión)
+panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ui.closePanel(true) } })
+sheet.addEventListener('cancel', (e) => { e.preventDefault(); ui.closePanel(true) })
+// Cierre ligero en escritorio: pulsar fuera (sin mover el foco)
+document.addEventListener('pointerdown', (e) => {
+  const st = speech.state; if (!st.ui.panelOpen || panel.parentElement === sheet) return
+  if (panel.contains(e.target) || e.target.closest('.sp-pill') || e.target.closest('[data-speech-trigger]')) return
+  ui.closePanel(false)
+}, true)
+
+// ---------- Onda del panel (nivel real; con movimiento reducido, 5 segmentos discretos a 4 Hz) ----------
+let lastRmPaint = 0
+speech.onLevel((v, live) => {
+  pills.head.level(v, live); pills.float.level(v, live)
+  if (panel.hidden && !sheet.open) return
+  const w = P('wave'), bars = w.children, r = rm()
+  if (r) {
+    if (now() - lastRmPaint < 250 && live) return; lastRmPaint = now()
+    ;[...bars].forEach((b, i) => { if (i < 5) { b.style.display = ''; b.toggleAttribute('data-on', live && v * 5 > i + 0.3) } else b.style.display = 'none' })
+  } else {
+    waveHist.push(live ? v : 0); waveHist.shift()
+    ;[...bars].forEach((b, i) => { b.style.display = ''; b.removeAttribute('data-on'); b.style.setProperty('--h', waveHist[i].toFixed(2)) })
+  }
+})
+
+// ---------- GSpeechTrigger: disparadores ligados a la misma sesión ----------
+const trigBuilt = new WeakMap()
+function renderTriggers() {
+  const st = speech.state
+  $$('[data-speech-trigger]').forEach((slot) => {
+    const mode = slot.dataset.mode, forId = slot.dataset.for, label = slot.dataset.label
+    if (!trigBuilt.has(slot)) {
+      const b = document.createElement('button'); b.type = 'button'
+      const hint = document.createElement('span'); hint.className = 'sr'; hint.id = 'hint-' + (forId || 'conv-' + slot.dataset.place)
+      if (mode === 'dictation') { b.className = 'icon-btn sp-trig'; b.setAttribute('aria-label', fill(L.trigDictate, { target: label })); b.setAttribute('aria-pressed', 'false') }
+      else { b.className = 'wf-btn sp-trig'; b.dataset.size = 'sm' }
+      b.dataset.k = 'trig-' + (forId || slot.dataset.place); b.setAttribute('aria-describedby', hint.id)
+      b.addEventListener('click', () => onTrigger(slot, b))
+      slot.append(b, hint); trigBuilt.set(slot, { b, hint, last: '' })
+    }
+    const { b, hint } = trigBuilt.get(slot)
+    const own = st.status !== 'idle' && st.mode === mode && (mode === 'conversation' || st.target?.id === forId)
+    const other = st.status !== 'idle' && !own
+    const pressed = own && st.status !== 'completed'
+    const sig = `${st.status}|${own}|${other}`
+    if (trigBuilt.get(slot).last === sig) return
+    trigBuilt.get(slot).last = sig
+    if (mode === 'dictation') { b.setAttribute('aria-pressed', String(pressed)); b.innerHTML = own ? `<span class="${S[st.status].spin ? 'sp-spin' : ''}">${ic(S[st.status].icon, S[st.status].filled)}</span>` : ic('mic') }
+    else b.innerHTML = own ? `${ic(S[st.status].icon, S[st.status].filled)}${esc(L.trigView)}` : `${ic('mic')}${esc(L.trigConv)}`
+    if (other) { b.setAttribute('aria-disabled', 'true'); hint.textContent = L.busy } else { b.removeAttribute('aria-disabled'); hint.textContent = '' }
+  })
+}
+function onTrigger(slot, b) {
+  const st = speech.state, mode = slot.dataset.mode, forId = slot.dataset.for
+  ui.lastTrigger = b
+  const own = st.status !== 'idle' && st.mode === mode && (mode === 'conversation' || st.target?.id === forId)
+  if (st.status !== 'idle' && !own) { ann.polite(L.ann.busy); ui.visiblePill()?.main.focus(); return }
+  if (mode === 'conversation') { if (own) ui.openPanel(b); else { speech.prepare().then(() => { if (speech.state.status === 'ready') ui.openPanel(b) }) } return }
+  // dictado: botón conmutable
+  if (!own) speech.start({ mode: 'dictation', target: { id: forId, label: slot.dataset.label } })
+  else if (CAPTURING.has(st.status) || st.status === 'paused' || st.status === 'reconnecting') speech.finish()
+  else if (['denied', 'unavailable', 'error'].includes(st.status)) speech.resume()
+  else if (st.status === 'completed') ui.openPanel(b)
+}
+// Nota bajo el campo: provisional, fragmentos sin insertar, deshacer
+function renderNotes() {
+  const st = speech.state
+  $$('[data-speech-note]').forEach((n) => {
+    const id = n.dataset.for, own = st.status !== 'idle' && st.mode === 'dictation' && st.target?.id === id
+    const pend = own && speech.dict?.notInserted.length
+    const undo = speech.lastDictation[id]?.length && (!own || st.status === 'completed')
+    const sig = `${own}|${pend}|${!!undo}|${st.status}`
+    patch(n, (own && !pend && st.transcript ? `<span class="sp-note__prov" data-role="prov"></span>` : '') +
+      (pend ? `<span>${pend} ${pend === 1 ? 'fragmento dictado' : 'fragmentos dictados'} sin insertar.</span><button type="button" class="link-btn" data-k="ins-${id}" data-note-act="insert">${ic('text-cursor-input')} Insertar</button>` : '') +
+      (undo && !pend ? `<span>Dictado insertado.</span><button type="button" class="link-btn" data-k="undo-${id}" data-note-act="undo">${ic('undo-2')} Deshacer dictado</button>` : ''), sig)
+    const prov = n.querySelector('[data-role="prov"]'); if (prov) { const p = st.transcript?.partial; prov.innerHTML = p ? `<span class="sr">Provisional: </span>${esc(p.text)}…` : '' }
+  })
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-note-act]'); if (!b) return
+  const id = b.closest('[data-speech-note]').dataset.for
+  if (b.dataset.noteAct === 'insert') speech.insertPending(id); else { speech.undoDictation(id); document.getElementById(id)?.focus() }
+})
+
+// ---------- Estado interno (para el banco) ----------
+function renderDbg() {
+  const st = speech.state
+  const rows = { estado: st.status, modo: st.mode || '—', captura: st.capture, voz: st.voice, señal: st.signal, permiso: st.permission, motor: st.engine, pendientes: st.pending, duración: mmss(st.duration), fragmentos: st.transcript?.segments.length ?? '—', sesiones: st.sessions, 'pista del micro': sim.track ? sim.track.readyState : 'ninguna', 'regiones vivas': document.querySelectorAll('[aria-live]:not([aria-live="off"]),[role="status"],[role="alert"],[role="log"]').length }
+  $('#dbg').innerHTML = Object.entries(rows).map(([k, v]) => `<dt>${esc(k)}</dt><dd data-dbg="${esc(k)}">${esc(v)}</dd>`).join('')
+}
+
+speech.subscribe(render)
+speech.onTick(tickAll)
+speech.onTranscript(() => { renderTx(); renderNotes(); render() })
+
+// ---------- Pill colocada visible y operable: IntersectionObserver ----------
+new IntersectionObserver((ents) => { ents.forEach((en) => { ui.placedVisible = en.isIntersecting && en.intersectionRatio > 0.95 }); render() }, { threshold: [0, 0.95, 1] }).observe($('#head-pill'))
+$('#b-place').addEventListener('change', render)
+
+// ---------- Traslado al <dialog> modal superior (mismo mecanismo que GToaster, #141) ----------
+const modalStack = []
+const isModal = (d) => { try { return d.matches(':modal') } catch { return d.hasAttribute('open') } }
+function relocate() {
+  for (let i = modalStack.length - 1; i >= 0; i--) { const d = modalStack[i]; if (!d.isConnected || !d.open || !isModal(d)) modalStack.splice(i, 1) }
+  const target = modalStack[modalStack.length - 1] || document.body
+  ui.modalHost = target === document.body ? null : target
+  if (host.parentElement !== target) { target.append(host); try { host.showPopover() } catch {} }
+  render()
+}
+new MutationObserver((muts) => {
+  let ch = false
+  for (const m of muts) { const d = m.target; if (d.tagName !== 'DIALOG' || host.contains(d)) continue; const i = modalStack.indexOf(d); const on = d.open && isModal(d); if (on && i < 0) { modalStack.push(d); ch = true } else if (!on && i >= 0) { modalStack.splice(i, 1); ch = true } }
+  if (ch) relocate()
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['open'], subtree: true })
+
+// ---------- Atajo para ir a la pill (Mayús+F8; F8 es de GToaster) y volver ----------
+document.addEventListener('keydown', (e) => {
+  if (!(e.key === 'F8' && e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey)) return
+  if (speech.state.status === 'idle') return // sin sesión no se intercepta
+  e.preventDefault()
+  const p = ui.visiblePill(); if (!p) return
+  if (p.el.contains(document.activeElement)) { (ui.savedFocus && ui.savedFocus.isConnected ? ui.savedFocus : document.body).focus?.() }
+  else { ui.savedFocus = document.activeElement; p.main.focus() }
+})
+
+// ---------- La pill flotante no tapa el foco (2.4.11): pasa al borde contrario ----------
+document.addEventListener('focusin', (e) => {
+  const fl = $('#sp-float'); if (fl.hidden || host.contains(e.target)) return
+  const r = e.target.getBoundingClientRect(), p = pills.float.el.getBoundingClientRect()
+  const hit = !(r.right < p.left || r.left > p.right || r.bottom < p.top || r.top > p.bottom)
+  if (hit) { fl.dataset.flipped = '1'; fl.dataset.edge = fl.dataset.edge === 'top' ? 'bottom' : 'top' } else if (fl.dataset.flipped) { delete fl.dataset.flipped; render() }
+})
+addEventListener('resize', () => { const st = speech.state; if (st.ui.panelOpen) { const wantSheet = isMobile(); if (wantSheet !== (panel.parentElement === sheet)) { ui.closePanel(false); ui.openPanel() } } render() })
+addEventListener('scroll', () => ui.position(), { passive: true })
+// Salir de la página con una sesión activa
+addEventListener('beforeunload', (e) => { if (speech.state.status !== 'idle') { e.preventDefault(); e.returnValue = '' } })
+
+// =====================================================================================================
+// Página de ejemplo: stepper + tabs (el panel inactivo se desmonta), diálogo modal, banco
+// =====================================================================================================
+const STEPS = ['Datos', 'Consulta', 'Cierre']
+let step = 0, tab = 0
+const TABS = [{ id: 'motivo', label: 'Motivo' }, { id: 'exploracion', label: 'Exploración' }, { id: 'plan', label: 'Plan' }]
+function renderStep() {
+  $('#stepper').innerHTML = STEPS.map((s, i) => `<li ${i === step ? 'aria-current="step"' : ''}>${i + 1}. ${esc(s)}</li>`).join('')
+  const body = $('#step-body')
+  if (step === 0) body.innerHTML = `
+    <p class="cap">Desde aquí se inicia la conversación (acción del flujo). También está en la cabecera (acción global).</p>
+    <div class="btns"><span data-speech-trigger data-mode="conversation" data-place="step1"></span></div>
+    <div class="fields" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px 16px">
+      <label class="wf-field">Nombre<input data-model="nombre" value="${esc(form.nombre)}"></label>
+      <label class="wf-field">Edad<input data-model="edad" inputmode="numeric" value="${esc(form.edad)}"></label>
+    </div>`
+  else if (step === 1) {
+    body.innerHTML = `<div class="tabs" role="tablist" aria-label="Secciones de la consulta">${TABS.map((t, i) => `<button role="tab" id="tab-${t.id}" aria-controls="tp-${t.id}" aria-selected="${i === tab}" tabindex="${i === tab ? 0 : -1}">${esc(t.label)}</button>`).join('')}</div><div id="tp"></div>`
+    renderTab()
+  } else body.innerHTML = `<p class="cap">Resumen del paso final. La sesión sigue si no se finalizó.</p><dl class="dbg"><dt>Motivo</dt><dd>${esc(form.motivo || '—')}</dd><dt>Plan</dt><dd>${esc(form.plan || '—')}</dd></dl>`
+  $('#st-prev').disabled = step === 0; $('#st-next').disabled = step === STEPS.length - 1
+  render()
+}
+function renderTab() {
+  const t = TABS[tab], tp = $('#tp')
+  tp.innerHTML = `<div role="tabpanel" id="tp-${t.id}" aria-labelledby="tab-${t.id}" tabindex="0">` + (
+    t.id === 'motivo' ? `<div class="wf-field"><label for="f-motivo">Motivo de consulta</label><textarea id="f-motivo" data-model="motivo">${esc(form.motivo)}</textarea></div>` :
+    t.id === 'exploracion' ? `<div class="wf-field"><div class="field-head"><label for="f-hallazgos">Hallazgos</label><span data-speech-trigger data-mode="dictation" data-for="f-hallazgos" data-label="Hallazgos"></span></div><textarea id="f-hallazgos" data-model="hallazgos">${esc(form.hallazgos)}</textarea><div class="sp-note" data-speech-note data-for="f-hallazgos"></div></div>` :
+    `<div class="wf-field"><label for="f-plan">Plan</label><textarea id="f-plan" data-model="plan">${esc(form.plan)}</textarea></div>`) + '</div>'
+  render()
+}
+$('#step-body').addEventListener('click', (e) => { const t = e.target.closest('[role=tab]'); if (!t) return; tab = TABS.findIndex((x) => 'tab-' + x.id === t.id); renderStep(); $('#tab-' + TABS[tab].id).focus() })
+$('#step-body').addEventListener('keydown', (e) => {
+  const t = e.target.closest('[role=tab]'); if (!t) return
+  const d = { ArrowRight: 1, ArrowLeft: -1, Home: -99, End: 99 }[e.key]; if (d === undefined) return
+  e.preventDefault(); tab = d === -99 ? 0 : d === 99 ? TABS.length - 1 : (tab + d + TABS.length) % TABS.length; renderStep(); $('#tab-' + TABS[tab].id).focus()
+})
+$('#st-prev').addEventListener('click', () => { step = Math.max(0, step - 1); renderStep() })
+$('#st-next').addEventListener('click', () => { step = Math.min(STEPS.length - 1, step + 1); renderStep() })
+
+// Diálogo modal (imita GDialog) con pasos que cambian de contenido
+let dstep = 0
+const dlg = $('#dlg')
+$('#dlg-x').innerHTML = ic('x')
+function renderDlg() {
+  $('#dlg-body').innerHTML = dstep === 0
+    ? `<p class="cap">Paso 1 de 2 · Destino de la derivación.</p><label class="wf-field">Servicio<select><option>Rehabilitación</option><option>Traumatología</option></select></label>`
+    : `<p class="cap">Paso 2 de 2 · Nota para el servicio.</p><div class="wf-field"><div class="field-head"><label for="f-nota">Nota</label><span data-speech-trigger data-mode="dictation" data-for="f-nota" data-label="Nota de derivación"></span></div><textarea id="f-nota" data-model="nota">${esc(form.nota)}</textarea><div class="sp-note" data-speech-note data-for="f-nota"></div></div>`
+  $('#dlg-prev').disabled = dstep === 0; $('#dlg-next').disabled = dstep === 1; render()
+}
+$('#b-dialog').addEventListener('click', () => { dstep = 0; renderDlg(); dlg.showModal() })
+$('#dlg-x').addEventListener('click', () => dlg.close()); $('#dlg-ok').addEventListener('click', () => dlg.close())
+$('#dlg-prev').addEventListener('click', () => { dstep = 0; renderDlg() }); $('#dlg-next').addEventListener('click', () => { dstep = 1; renderDlg() })
+
+// Banco
+document.querySelectorAll('input[name=src]').forEach((r) => r.addEventListener('change', () => { sim.src = document.querySelector('input[name=src]:checked').value }))
+$('#b-perm').addEventListener('change', (e) => { sim.permission = e.target.value })
+$('#b-nodev').addEventListener('change', (e) => { sim.noDevice = e.target.checked })
+$('#b-diar').addEventListener('change', (e) => { simAdapterCfg.diarization = e.target.checked; render() })
+$('#b-buf').addEventListener('change', (e) => { simAdapterCfg.buffer = e.target.checked; render() })
+$('#b-loc').addEventListener('change', (e) => { simAdapterCfg.location = e.target.value; render() })
+$('#b-rm').addEventListener('change', (e) => { document.documentElement.toggleAttribute('data-rm', e.target.checked); render() })
+$('#b-consent').addEventListener('change', render)
+$('#inject').addEventListener('click', (e) => {
+  const k = e.target.closest('[data-inj]')?.dataset.inj; if (!k) return
+  const tr = sim.track
+  if (k === 'disconnect' && tr) { tr.readyState = 'ended'; tr.dispatchEvent?.(new Event('ended')) }
+  if (k === 'mute' && tr) { tr.muted = true; tr.dispatchEvent?.(new Event('mute')) }
+  if (k === 'freeze') sim.frozen = true
+  if (k === 'flat') sim.flat = !sim.flat
+  if (k === 'down') { simAdapterCfg.down = true; simHandle?.goOffline() }
+  if (k === 'up') simAdapterCfg.down = false
+  if (k === 'fail') simHandle?.failNextSegment()
+  if (k === 'full') simHandle?.storageFull()
+})
+
+// Galería de estados (mismos datos)
+$('#gallery tbody').innerHTML = Object.entries(S).map(([k, s]) => `<tr><th scope="row"><code>${k}</code></th>
+  <td><span class="gal-pill" ${s.live ? 'data-live' : ''} ${s.problem ? 'data-tone="problem"' : ''}><span class="${s.spin ? 'sp-spin' : ''}">${ic(s.icon, s.filled)}</span>${esc(s.s)}</span></td>
+  <td>${esc(s.l)}</td><td>${esc(s.mic)}</td><td>${esc(s.ann)}</td><td><code>${T[k].join(' · ')}</code></td></tr>`).join('')
+
+renderStep(); render()
+window.__sp.ready = true
+</script>
+</body>
+</html>
