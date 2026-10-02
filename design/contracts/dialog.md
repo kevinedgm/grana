@@ -78,7 +78,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 ```
 
 - Sin `inset`, `g-dialog__inset` no existe y cuerpo y pie cuelgan de la carcasa con las mismas clases.
-- El **contenido se monta al abrir y se desmonta al cerrar** (un formulario no conserva su estado entre aperturas). La raíz `<dialog>` siempre está en el DOM.
+- El **contenido se monta al abrir y se desmonta al terminar la salida** (un formulario no conserva su estado entre aperturas; durante la salida, unos 120 ms, sigue visible e inerte). La raíz `<dialog>` siempre está en el DOM.
 - El encabezado usa `h2`: un diálogo abre un nivel propio. El consumidor no cambia el nivel en v0.1.
 - Botones, enlaces y campos van en el cuerpo y el pie; nunca dentro de `title` ni `description`.
 
@@ -89,7 +89,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `update:modelValue` | `Boolean` | Se cierra por una vía de usuario y nadie impidió el `dismiss` (siempre `false`) |
 | `dismiss` | `{ reason, preventDefault() }` | El usuario intenta cerrar. `reason`: `escape`, `backdrop` o `close` (botón de cierre o `close()` del slot). **Cancelable:** llamar a `preventDefault()` de forma síncrona mantiene el diálogo abierto |
 | `open` | | El diálogo ya se muestra |
-| `closed` | | El diálogo ya se cerró (por el motivo que sea) |
+| `closed` | | El diálogo terminó de cerrarse (salida terminada y contenido desmontado), por el motivo que sea. Si se reabre durante la salida, no se emite |
 
 - **`preventDefault()`** es una función del payload; si el consumidor no la llama, el cierre sigue. El componente cancela siempre el `cancel` nativo de Esc y decide él, para que Esc funcione igual con y sin `preventDefault`.
 - Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `closed`.
