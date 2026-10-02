@@ -62,6 +62,19 @@
 | `prepend` | Icono antes de la etiqueta | Decorativo: el componente lo envuelve con `aria-hidden="true"` |
 | `append` | Icono después de la etiqueta | Igual que `prepend` |
 
+### Tamaño del icono (#205)
+
+El icono de un hueco se dimensiona con un **alias local `--_icon`** de `GBtn.css` (coco), en `em` del texto del botón (`--_fs`), **sin token nuevo**. Se aplica al `svg` hijo directo del hueco (`GIcon` o un `svg` del slot); otro contenido (una imagen, un logotipo) lo dimensiona la aplicación.
+
+| Hueco | Tamaño | Nota |
+| --- | --- | --- |
+| `prepend`, `append` | **1.15em** (16,1px en `md`) | La misma proporción que los iconos junto a texto de `GTabs`, `GTable` y `GPagination`. Antes, 1em (14px junto a texto de 14px: el trazo visible de Lucide, ~20/24 de su caja, quedaba en ~11,7px y se leía flojo junto a la etiqueta en peso 600; auditoría de iconos de coco, hallazgo 3) |
+| Slot por defecto con `icon` (solo icono) | **Mayor que el de `prepend`**; valor de coco | En `em` (sigue a `size`, **no** a `density`, que nunca cambia la tipografía); cabe dentro del botón sin tocar el borde en todos los tamaños y densidades, incluidos los de piso de 24px (`xs` y `sm` en `compact`) |
+| `g-btn__loader` | `--_icon` del modo (1.15em; el de solo icono con `icon`) | El indicador de carga ocupa el lugar del icono: no encoge al cargar |
+
+- Sin props nuevas ni clases nuevas. **Una clase de tamaño de la aplicación sobre el `GIcon` del hueco gana** (capa, #204): no se pone; el tamaño lo manda el botón (`size`).
+- `GInput` (1em) y la caja de 1,1em de `GBadge` **no cambian** (auditoría, hallazgo 4).
+
 ## Tokens consumidos
 
 | Token | Para qué |

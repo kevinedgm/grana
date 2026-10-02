@@ -81,6 +81,7 @@ Contrato de iconos: `docs/contract/icons.md` v0.2 (`GIcon` público, registro `c
 - **Nombres reservados:** `prependIcon` y `appendIcon` (icono por nombre en un componente suelto) no existen en v0.2 y no se usan para otra cosa; si algún día se piden, tendrán ese nombre.
 - **Todo hueco de icono es decorativo:** el componente lo envuelve con `aria-hidden="true"` (en el slot por defecto de `GBtn` solo icono y en `trigger` de `GHelper`, el `GIcon` sin `label` ya es decorativo por sí mismo). El nombre accesible lo da el texto o el `aria-label` del control. Un `GIcon` con `label` dentro de un hueco avisa en desarrollo (`icons.md` §2.4).
 - **Lo que no es Lucide** (logotipo, avatar, imagen) va en el slot, nunca en `GIcon`.
+- **El tamaño lo manda el hueco** (alias local de cada componente). Una clase de la aplicación sobre el `GIcon` gana **siempre**, también dentro de un hueco, porque la aplicación va sin capa (#4): por eso **no se ponen clases de tamaño en un icono dentro de un hueco**; si hace falta otro tamaño, se cambia el contenedor (`size`, `density`, tema; `icons.md` §2.2, #204).
 
 ### Mapa de huecos
 
@@ -101,6 +102,6 @@ Contrato de iconos: `docs/contract/icons.md` v0.2 (`GIcon` público, registro `c
 | `GTabs` | `icon` | `{ item, index, active }` | **Sí** (`item.icon`); en `labelMode="icon"`/`auto` un `icon` cadena cuenta como icono |
 | `GMenu` | `icon` | `{ item }` | **Sí** (`item.icon`) |
 | `GSidebar` | `icon` (items); `toggle-icon`, `search-icon`, `more-icon` | `{ item }`; `{ collapsed }` | **Sí** (`item.icon`, primer nivel); los otros tres, solo slot |
-| `GHelper` | `trigger` (contenido del botón disparador; por defecto `circle-help`) | `{ open }` | — |
+| `GHelper` | `trigger` (contenido del botón disparador; por defecto `circle-question-mark`, #206) | `{ open }` | — |
 
 Los iconos **propios** de cada componente (cierre, marcas, chevrons, estados) no son huecos: los dibuja el componente con la lista de la librería (`icons.md` §4) y la aplicación no los cambia por el registro.

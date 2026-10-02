@@ -65,7 +65,7 @@ Contenedor que fija el contexto de posición de los `GHelper` flotantes que cont
 <span class="g-helper g-helper--float g-helper--side-top g-helper--align-end g-helper--attach-edge is-open" style="--_offset: 2">
   <button class="g-helper__trigger g-helper__trigger--default" type="button"
           aria-label="Abrir ayuda" aria-expanded="true" aria-controls="ID-content" aria-haspopup="dialog">
-    <svg class="g-icon" aria-hidden="true">…circle-help…</svg>           <!-- o el slot trigger -->
+    <svg class="g-icon" aria-hidden="true">…circle-question-mark…</svg>           <!-- o el slot trigger -->
   </button>
   <div class="g-helper__content" id="ID-content" role="dialog" aria-label="Ayuda del formulario"
        popover="manual" tabindex="-1" data-side="bottom">…slot content…</div>
@@ -130,7 +130,7 @@ La presentación se mantiene mientras está abierto (un cambio de tamaño solo r
 
 Existentes: `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-control`, `--g-color-focus`, `--g-radius-pill`, `--g-radius-lg`, `--g-shadow-2`, `--g-space-1`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-font-ui`, `--g-text-body-sm-{size|line}`, `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard`, `--g-ease-out`.
 
-**Sin tokens nuevos.** El popover usa el mismo lenguaje que `GSurface level="floating"` (`--g-shadow-2`, `--g-radius-lg`, borde tenue), escrito en `GHelper.css`. Disparador por defecto: `space × 8` (32px) en círculo, icono `circle-help` (añadido a `icons.md` §4).
+**Sin tokens nuevos.** El popover usa el mismo lenguaje que `GSurface level="floating"` (`--g-shadow-2`, `--g-radius-lg`, borde tenue), escrito en `GHelper.css`. Disparador por defecto: `space × 8` (32px) en círculo, icono `circle-question-mark` (`icons.md` §4; hasta la v0.2 de iconos, `circle-help`, que sigue como alias de compatibilidad del mismo dibujo, #206).
 
 ## Clases (contrato entre bruno y coco)
 

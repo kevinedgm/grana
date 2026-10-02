@@ -1,8 +1,10 @@
-# Contrato de iconos · v0.2
+# Contrato de iconos · v0.3
 
-**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87 y #197 a #203 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
+**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203 y #204 a #206 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
 
 **Cambios respecto a la v0.1:** `GIcon` pasa a ser **público** (§2; #197, #199) con registro de iconos **por aplicación** (`createIcons`, §5; #200); la validación «solo Lucide» se impone a la aplicación por la forma del dato (§5.3; #198); la lista de la librería es **API pública** (§4; #201); convención de huecos «dato → nombre; plantilla → slot» (§5.8, `api.md`; #202); hueco `lead` en `GFormSection` (#203). Sin tokens nuevos.
+
+**Cambios respecto a la v0.2** (auditoría de coco, `design/lab/icons/auditoria.md`, hallazgos 1, 3 y alias): la clase de la aplicación **gana siempre**, también dentro de un hueco, por capa y no por especificidad; no se ponen clases de tamaño en un icono dentro de un hueco (§2.2, §3; #204). `GBtn` dimensiona sus iconos con un alias local `--_icon` y se cierra el pendiente «Tamaño de icono por token» sin token (§9; #205). El nombre registrado es el de la **marca de la exportación**, siempre el canónico; la librería pasa de `circle-help` a **`circle-question-mark`** y conserva `circle-help` como **alias de compatibilidad** hasta la siguiente versión mayor (§4, §5.2; #206). Sin tokens nuevos.
 
 ## 1. Qué es un icono (y qué no)
 
@@ -36,7 +38,7 @@ Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y trián
 
 | Prop | Tipo | Valores | Default | Nota |
 | --- | --- | --- | --- | --- |
-| `name` | String | Nombre **canónico** de Lucide en minúsculas con guiones (`lock-open`, `map-pin`) | **obligatorio** | Se resuelve según §5.4. Un nombre que no se encuentra **no dibuja nada** y avisa en desarrollo. Los alias de exportación de `lucide-static` (`Unlock`, `UnlockKeyhole`) no son nombres: el nombre es el de la marca (`lock-open`) |
+| `name` | String | Nombre **canónico** de Lucide en minúsculas con guiones (`lock-open`, `map-pin`) | **obligatorio** | Se resuelve según §5.4. Un nombre que no se encuentra **no dibuja nada** y avisa en desarrollo. Los alias de `lucide-static` (`Unlock`, `HelpCircle`, `Trash2`) no son nombres: el nombre es el de la marca de la exportación (`lock-open`, `circle-question-mark`, `trash`; §5.2). Única excepción: el alias de compatibilidad `circle-help` de la lista de la librería (§4, #206) |
 | `label` | String | texto de la aplicación | sin valor | **Sin valor o vacío: decorativo.** Con valor: imagen con nombre (§2.4). Sin texto por defecto (Grana es internacional) |
 | `filled` | Boolean | | `false` | Rellena con `currentColor` (figuras de estado, puntos) |
 | `flipRtl` (`flip-rtl`) | Boolean | | `false` | Espeja el dibujo en horizontal **solo** cuando la dirección efectiva es RTL. Para iconos **direccionales** (flechas y chevrons de avance o retroceso, «ir a», «responder»). Nunca automático: Lucide no marca qué iconos son direccionales y espejar un `check` sería un error |
@@ -44,7 +46,11 @@ Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y trián
 **No hay** `size`, `color`, `strokeWidth`, `spin` ni `title` (#199):
 
 - **Color:** siempre `currentColor`; lo hereda del texto o del control que lo contiene.
-- **Tamaño:** `1em` del texto que lo rodea. Dentro de un hueco de un componente, el tamaño lo fija el hueco con su alias local (`--_icon` y similares, como hoy). Fuera de un hueco, la aplicación lo cambia con **su propia clase**, que gana a la regla base sin `!important` porque esta tiene especificidad 0 (`:where(.g-icon)`; verificado por kiwi: 48px con una clase de la aplicación). **Sin token de tamaño de icono** (el pendiente de `GBtn.meta.json` sigue abierto, §9).
+- **Tamaño (#204):** `1em` del texto que lo rodea (regla base `:where(.g-icon)`). Dentro de un hueco de un componente, el hueco lo fija con su alias local (`--_icon`, `--_ico`, `--_mark`…). **Una clase de la aplicación gana siempre, dentro o fuera de un hueco**, y gana **por capa**, no por especificidad: el CSS de Grana va en la capa `grana.components` y el de la aplicación sin capa (#4), así que ni la especificidad 0 de la regla base ni la mayor de un hueco cuentan (medido por coco: 48px con una clase de la aplicación en el slot `icon` de `GTabs`, en el riel de `GSidebar` y en el `lead` de `GFormSection`, en los tres motores). En consecuencia:
+  - **Fuera de un hueco** (un `GIcon` suelto en el texto de la aplicación), la clase de la aplicación es la forma de cambiar el tamaño, sin `!important`.
+  - **Dentro de un hueco no se ponen clases de tamaño en el icono**: el tamaño lo manda el hueco, y una clase lo desborda o lo descentra (en `GTabs`, un icono de 48px en una caja de 16px).
+  - **Si hay que cambiar el tamaño dentro de un hueco, se cambia el contenedor, no el icono:** primero con lo que el componente ofrece (`size`, `density`, los tokens del tema de los que deriva el hueco); si la aplicación necesita algo propio, con una regla sobre el **componente o el hueco** (los huecos en `em` siguen el `font-size` de su contenedor y conservan el centrado). Las clases de elemento (`__icon`, `__lead`…) y los alias `--_*` son contrato interno bruno ↔ coco, no API estable: quien los sobrescribe asume que pueden cambiar en una versión menor.
+  - **Sin token de tamaño de icono** (#205, §9).
 - **Grosor:** el de Lucide (2 en una caja de 24).
 - **Giro:** los componentes que lo necesitan ya lo resuelven en su estado `loading` (`loader-circle`); un icono suelto no gira.
 - **`title`:** no se emite `<title>` (tooltip nativo inconsistente entre navegadores y lectores; el nombre va en `aria-label`). Un tooltip, cuando exista el componente (#113), se pone en el control, no en el icono.
@@ -93,7 +99,8 @@ Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y trián
 - Un componente **no dibuja marcas con CSS**: si necesita una, el marcado lleva un `GIcon`.
 - Un `content:` de CSS **no contiene** glifos pictográficos (solo texto o cadenas vacías).
 - Las figuras de estado son `GIcon filled`, no `clip-path`.
-- La regla base de `GIcon` sigue en `:where(.g-icon)` (especificidad 0): la clase de la aplicación gana sin `!important`.
+- La regla base de `GIcon` sigue en `:where(.g-icon)` (especificidad 0). La clase de la aplicación gana sin `!important` **por la capa** (#4), no por esa especificidad: dentro de un hueco también gana (§2.2, #204). Un hueco **no** intenta ganarle (`!important`, selectores más fuertes): la aplicación siempre gana.
+- El tamaño de un icono en un hueco sale de un **alias local** del componente en `em` del texto del hueco (o en unidades de `space` cuando el hueco es una caja fija, como `--_ico` de `GSidebar`); nunca de un token global de icono (#205). `GBtn`: `--_icon` (§9, `design/contracts/btn.md`).
 - `g-icon--flip-rtl` espeja solo en RTL efectivo (§2.5). **Sin tokens nuevos.**
 
 ## 4. Lista de la librería (API pública)
@@ -123,7 +130,7 @@ Nombre de Lucide entre comillas.
 | `GWidgetGrid` | Asa de mover · asa de redimensionar | `grip-vertical` · `move-diagonal-2` |
 | `GWidgetGallery` | Marca de la categoría elegida | `check` |
 | `GStepper` | Paso hecho · con error · con advertencia · bloqueado | `check` · `circle-alert` · `triangle-alert` · `lock` |
-| `GHelper` | Disparador por defecto | `circle-help` |
+| `GHelper` | Disparador por defecto | `circle-question-mark` (antes `circle-help`, que sigue como alias de compatibilidad, ver abajo) |
 | `GTable` | Orden: sin orden · ascendente · descendente | `chevrons-up-down` · `arrow-up` · `arrow-down` |
 | `GPagination` | Anterior · siguiente | `chevron-left` · `chevron-right` |
 | `GFilterBar` | Sugerir o agregar filtro · quitar filtro | `plus` · `x` |
@@ -133,11 +140,17 @@ Nombre de Lucide entre comillas.
 | `GErrorSummary` | Título del resumen | `circle-alert` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
 
+**Alias de compatibilidad (#206):** `circle-help` estaba en la lista de la v0.2 con el nombre de un **archivo de alias** de `lucide-static` (`icons/circle-help.svg`, marca `lucide-circle-help`), no con el canónico: en `lucide-static` 1.49.0 `CircleHelp`, `HelpCircle` y `CircleQuestionMark` exportan el mismo módulo, `circle-question-mark`. Desde la v0.3 la lista usa el canónico **`circle-question-mark`** y **conserva `circle-help`** como alias del mismo dibujo (sin bytes duplicados en el paquete), sin aviso, hasta la siguiente versión mayor (#201: quitar un nombre es cambio mayor); está **obsoleto**: la documentación y los componentes usan el canónico. Es el único alias; uno nuevo solo entra por una decisión de lima cuando Lucide renombre un icono de la lista (§7, prueba 9).
+
+| Alias (obsoleto) | Canónico | Se retira en |
+| --- | --- | --- |
+| `circle-help` | `circle-question-mark` | la siguiente versión mayor |
+
 `GProgress`, `GTextarea` (salvo el mensaje), `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GFormActions`, `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
 
 **Listas del script** (`packages/vue/scripts/icons.json`): `library` es esta tabla (el paquete); `playground` y `lab` siguen siendo de playground y laboratorio, nunca del paquete (#137). Con la v0.2, el playground **usa la vía pública** para los suyos (§6).
 
-**Regla:** añadir un icono a la librería exige **añadirlo a esta tabla** y a la lista `library` del script antes de usarlo en un componente.
+**Regla:** añadir un icono a la librería exige **añadirlo a esta tabla** y a la lista `library` del script antes de usarlo en un componente, **con su nombre canónico** (el de su módulo en `dist/esm/icons/` de `lucide-static`, §5.2), nunca el de un archivo de alias de `icons/`.
 
 ## 5. Iconos de la aplicación: registro (`createIcons`)
 
@@ -176,7 +189,18 @@ createApp(App)
 ### 5.2 Nombre derivado de la marca; alias
 
 - Cada cadena de `lucide-static` lleva en su `<svg>` la marca `class="lucide lucide-<nombre>"`; `<nombre>` (minúsculas, dígitos y guiones) es el **nombre canónico** con el que se usa en `GIcon`. Verificado por kiwi: las **2 117** exportaciones de `lucide-static` v1.49.0 la llevan.
-- **Alias:** `lucide-static` exporta el mismo módulo con varios nombres (`export { default as LockOpen, default as Unlock }`). Como el nombre sale de la cadena, `Unlock` registra `lock-open`; `<GIcon name="unlock">` **no** existe.
+- **El nombre es el de la marca de la exportación, no el del identificador ni el de un archivo (#206).** Las exportaciones con nombre salen de los módulos de `dist/esm/icons/`, uno por icono canónico, y su marca es **siempre el canónico**. En cambio, la carpeta `icons/` del paquete trae también **archivos de alias** con su propia marca (`icons/circle-help.svg` → `lucide-circle-help`, `icons/unlock.svg` → `lucide-unlock`): ni el nombre de un archivo de `icons/` ni el del identificador importado determinan el nombre registrado.
+- **Alias:** `lucide-static` exporta el mismo módulo con varios identificadores (`export { default as LockOpen, default as Unlock }`). Como el nombre sale de la marca, todos registran el canónico y los nombres de alias **no** existen en `GIcon` (`<GIcon name="unlock">` no dibuja nada). Casos frecuentes (v1.49.0):
+
+| Importación | Nombre registrado |
+| --- | --- |
+| `Unlock`, `LockOpen` | `lock-open` |
+| `CircleHelp`, `HelpCircle`, `CircleQuestionMark` | `circle-question-mark` |
+| `Building2`, `BuildingComplex` | `building-complex` |
+| `Trash2`, `Trash` | `trash` |
+| `Home`, `House` | `house` |
+
+- **Cadenas que no vienen de una exportación** (un `?raw` de un archivo de `icons/`, una copia): si traen la marca y pasan §5.3 se aceptan con **el nombre de su marca**, que en un archivo de alias **no** es el canónico (`icons/circle-help.svg` registra `circle-help`). No es la vía documentada: se importa la exportación.
 - **Repetidos:** dos entradas que dan el mismo nombre registran **una**; si sus dibujos normalizados difieren (dos versiones de Lucide), se queda la **primera** y avisa en desarrollo.
 - **Nombres que ya trae la librería** (`lock`): se aceptan **sin aviso** (sirve de seguro si la lista base cambia en una versión mayor).
 
@@ -257,12 +281,13 @@ Pruebas de bruno; **fallan** si:
 
 1. **Repositorio** (`check-icons.mjs`, como en la v0.1): un carácter de la lista de la §1 fuera de un texto explicativo permitido (las cadenas de ejemplo de documentación se exceptúan de forma explícita y acotada); en un CSS de componente, `clip-path: polygon(` o un `content:` que no sea texto ni vacío.
 2. **Iconos propios de los componentes:** un `GIcon` con nombre fijo en `packages/vue/src/components/**` que no está en la lista de la §4. **Esta comprobación aplica a los componentes de Grana, no a la aplicación** (ni a los nombres que llegan por datos, que se resuelven en ejecución).
-3. **Validación contra Lucide entero:** **todas** las exportaciones de la versión instalada de `lucide-static` se aceptan; el nombre derivado coincide con el nombre de su archivo; el dibujo normalizado coincide con el de `build-icons.mjs`. Si Lucide cambia el formato de la marca o de los elementos, **esta prueba debe fallar** antes de publicar.
+3. **Validación contra Lucide entero:** **todas** las exportaciones de la versión instalada de `lucide-static` se aceptan; el nombre derivado coincide con el nombre de su **módulo** en `dist/esm/icons/` (no con el identificador exportado ni con un archivo de alias de `icons/`, #206); el dibujo normalizado coincide con el de `build-icons.mjs`. Si Lucide cambia el formato de la marca o de los elementos, **esta prueba debe fallar** antes de publicar.
 4. **Rechazos:** cada ejemplo de la tabla de §5.3 se rechaza, nada se ejecuta y nada entra al DOM; un argumento que no es arreglo da un registro vacío.
 5. **Resolución:** el registro gana a la librería para nombres de la aplicación; un icono propio de un componente ignora el registro; registrar un nombre de la librería no avisa; alias y repetidos dan una sola entrada.
 6. **Accesibilidad de `GIcon`:** decorativo sin `label`; `role="img"` + `aria-label` con `label` (sin `aria-hidden`); nunca `tabindex`; aviso con `label` dentro de un antecesor `aria-hidden`; `role`/`aria-*`/`tabindex` como atributos se ignoran y avisan.
 7. **SSR:** dos aplicaciones renderizadas a la vez con registros distintos no se mezclan; importar el paquete y llamar a `createIcons` no toca `document` ni `window`.
 8. **Items por nombre** (`GTabs`, `GMenu`, `GSidebar`): `icon` cadena sin slot dibuja `GIcon` en el hueco; con slot manda el slot; `icon` no cadena sin slot no dibuja nada; en `GTabs`, `labelMode="icon"`/`auto` cuenta un `icon` cadena como icono.
+9. **Nombres canónicos de la librería** (#206): cada nombre de la lista `library` tiene su módulo en `dist/esm/icons/` de la versión instalada (es canónico), salvo los alias de compatibilidad de la tabla de §4, cada uno con el **mismo dibujo** que su canónico y con el canónico en la lista. Si Lucide renombra un icono de la lista en una versión nueva, **esta prueba falla** y lima decide (renombrar y conservar el viejo como alias hasta la siguiente mayor). `circle-help` y `circle-question-mark` dibujan lo mismo; `GHelper` usa el canónico.
 
 ## 8. Límites conocidos
 
@@ -276,7 +301,7 @@ Pruebas de bruno; **fallan** si:
 
 - **Icono por nombre en más datos:** opciones de `GSelect` y pasos de `GStepper` (`indicator="icon"`) siguen solo con su slot `icon`; hoy sus datos no tienen campo `icon`. Si se pide, entran con la misma regla de §5.8, sin romper nada.
 - **`prependIcon` / `appendIcon`:** nombres **reservados** para una prop de icono por nombre en componentes sueltos, si algún día se piden; no existen en v0.2 y no se usan para otra cosa. Nunca `icon` en `GBtn` (es Boolean).
-- **Token de tamaño de icono** (pendiente de `GBtn.meta.json`): cada hueco sigue con su alias local.
+- **Token de tamaño de icono: cerrado sin token (#205).** Cada hueco sigue con su alias local en `em` (o en `space` si es una caja fija); `GBtn` gana el suyo (`--_icon`). Un token global no tendría un valor válido para todos los huecos (16,1px en `GTabs`, 17,7px en `GMenu`, 20px en `GSidebar` con el mismo texto de 14px) y daría a la aplicación una segunda forma de pisar el hueco además de la clase (#204).
 - **CLI `grana icons add`** y uso **sin empaquetador** (UMD/CDN importando `lucide-static` desde una CDN): solo si hay demanda.
 - **Tipos de TypeScript** para los nombres (autocompletado).
 - **Tooltip** para iconos solos: cuando exista el componente (#113), en el control.
