@@ -688,6 +688,23 @@ describe('opciones (§1.1) y avisos (§15)', () => {
     expect(warnings().some((w) => w.includes('adapter cambiado con una sesión abierta'))).toBe(true)
   })
 
+  it('una label función recibe solo count y su resultado pasa por fill: completedConversation puede usar {time} (#237)', async () => {
+    const fn = vi.fn((n) => (n === 1 ? 'Lista: 1 fragmento en {time} ({count}).' : `Lista: ${n} fragmentos en {time}.`))
+    const { speech, said } = setup({ labels: { ...LABELS, announce: { ...LABELS.announce, completedConversation: fn } } }, { latency: 300 })
+    await speech.start({ mode: 'conversation' })
+    env.level = 0.6
+    await tick(600)
+    const p = speech.finish()
+    await tick(500)
+    await expect(p).resolves.toBe(true)
+    await tick(3000)
+    expect(fn).toHaveBeenCalledWith(1)
+    expect(fn.mock.calls.every((c) => c.length === 1)).toBe(true)
+    const done = said.map((s) => s.text).find((x) => x.startsWith('Lista:'))
+    expect(done).toMatch(/^Lista: 1 fragmento en \d+:\d{2} \(1\)\.$/)
+    expect(done).toContain(formatTime(speech.state.duration))
+  })
+
   it('falta un texto: aviso la primera vez que se necesita y el texto queda vacío', async () => {
     const adapter = createSimulatedSpeechAdapter()
     const speech = createSpeech({ adapter, labels: {} })

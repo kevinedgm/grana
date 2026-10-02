@@ -279,7 +279,8 @@ export function createSpeech(options = {}) {
   function t(path, vars, { optional = false } = {}) {
     const v = raw(path)
     if (typeof v === 'function') {
-      try { return String(v(vars && vars.count) ?? '') } catch { return '' }
+      // Recibe solo count (#51) y su resultado pasa por fill con el resto de marcadores (#237: {time} en completedConversation)
+      try { return fill(String(v(vars && vars.count) ?? ''), vars) } catch { return '' }
     }
     if (typeof v === 'string') return fill(v, vars)
     if (!optional) warn(`falta labels.${path}: el texto queda vacío.`)
