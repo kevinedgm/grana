@@ -12,7 +12,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **No depende del puntero.** Un panel flotante se abre con clic, Enter, Espacio o →; el foco solo no lo abre; Esc lo cierra y devuelve el foco.
 - **Profundidad contenida:** grupos → items → **un nivel** de hijos.
 - **Presenta y emite intención.** El destino actual es un prop (`modelValue`); el componente emite `navigate` (con el evento nativo, cancelable) y `update:modelValue`. La navegación real (router, `href`) es de la aplicación.
-- **Sin textos por defecto** (Grana es internacional): todo texto de la interfaz va en `labels` y en los datos de `items`. Sin iconos propios: los pone la aplicación.
+- **Sin textos por defecto** (Grana es internacional): todo texto de la interfaz va en `labels` y en los datos de `items`. Sin iconos propios: los pone la aplicación (por nombre en `item.icon` o por slot; #202).
 
 ## Props
 
@@ -75,7 +75,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 ```
 
 - **Grupo:** `{ label, items, id? }` (con `items`). Un elemento de primer nivel sin `items` es un **item sin grupo**. `label` del grupo es su nombre (`aria-labelledby`); en el riel el título se oculta visualmente y **sigue en el DOM**.
-- **Item:** `{ id, label, href?, icon?, badge?, badgeLabel?, dot?, disabled?, primary?, children? }`. `icon` es un valor **de la aplicación** (nombre, componente…) que recibe el slot `icon`; Grana no trae iconos. `badge` es un número o texto corto (visible, `aria-hidden`); `dot` una marca sin número; **`badgeLabel` es el texto para lectores** (obligatorio si hay `badge` o `dot`: aviso en desarrollo). Cualquier otro campo se conserva y llega a los slots.
+- **Item:** `{ id, label, href?, icon?, badge?, badgeLabel?, dot?, disabled?, primary?, children? }`. `icon` es un valor **de la aplicación**: si es una **cadena** y no hay slot `icon`, el item dibuja `GIcon` con ese nombre en `g-sidebar__icon` (registro de la aplicación o lista de la librería; `icons.md` §5, `api.md` «Iconos en los componentes», #202); **con slot `icon`, manda el slot**; otro valor (componente, objeto) es un dato opaco que solo recibe el slot. `badge` es un número o texto corto (visible, `aria-hidden`); `dot` una marca sin número; **`badgeLabel` es el texto para lectores** (obligatorio si hay `badge` o `dot`: aviso en desarrollo). Cualquier otro campo se conserva y llega a los slots.
 - **`href`:** un item con `href` es un `<a>`; sin `href` ni `children`, un item de solo acción (`<button>`) que emite `navigate` igualmente. Con un router, la aplicación cancela el evento nativo de `navigate` y navega ella.
 - **`children`:** un **solo nivel**; un hijo `{ id, label, href?, badge?, badgeLabel?, disabled? }` no lleva `icon` propio ni `children` (los nietos se ignoran y avisan). Un padre es siempre un botón de submenú (no navega por sí mismo).
 - **`disabled`:** `<a role="link" aria-disabled="true">` **sin `href`** (no recibe foco; se lee en modo de exploración), tachado y atenuado.
@@ -233,11 +233,11 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | --- | --- | --- | --- |
 | `logo` | Identidad en la cabecera | `{ collapsed }` | Dentro de `g-sidebar__logo`; en el riel, la marca sola |
 | `search` | Sustituye al disparador de búsqueda | `{ collapsed }` | La aplicación pone su propio botón con nombre; el evento `search` no se emite |
-| `icon` | Icono del item | `{ item }` | Dentro de `g-sidebar__icon` (`aria-hidden`); decorativo |
+| `icon` | Icono del item; **sustituye** al `GIcon` por nombre de `item.icon` | `{ item }` | Dentro de `g-sidebar__icon` (`aria-hidden`); decorativo |
 | `item` | Contenido de un item (sustituye a icono + etiqueta) | `{ item, active, collapsed, level }` | Dentro del enlace o botón; sin interactivos; conserva el **texto de la etiqueta** (nombre accesible) |
 | `user` | Área de usuario al pie | `{ collapsed }` | Dentro de `g-sidebar__foot`; en el riel, solo el avatar **con nombre accesible** que da la aplicación; el menú del usuario es de la aplicación |
 | `header` | Contenido extra bajo el logo | `{ collapsed }` | Dentro de la cabecera |
-| `toggle-icon` | Icono del botón de contraer y expandir (Grana no trae iconos) | `{ collapsed }` | Decorativo, dentro de `g-sidebar__toggle` (su nombre lo da `labels.collapse` o `labels.expand`) |
+| `toggle-icon` | Icono del botón de contraer y expandir (sin icono por defecto; normalmente un `GIcon`) | `{ collapsed }` | Decorativo, dentro de `g-sidebar__toggle` (su nombre lo da `labels.collapse` o `labels.expand`) |
 | `search-icon` | Icono del disparador de búsqueda | `{ collapsed }` | Decorativo, dentro de `g-sidebar__icon` |
 | `more-icon` | Icono del botón «Más» del navbar | | Decorativo, dentro de `g-sidebar__icon` |
 

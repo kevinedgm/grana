@@ -633,4 +633,4 @@ La descripción del diálogo y la de la sección (body-sm 14, `muted`) van entre
 
 ### 23.6 Iconos en títulos
 
-Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defecto** y no tienen hueco para él. Si se quiere, el patrón ya existente es un **hueco opcional `lead`** como el de `GCard` (decorativo, `aria-hidden`; `design/contracts/card.md`, `docs/contract/icons.md`). No se diseña aquí: lo decide otra ronda (kiwi, iconos públicos).
+Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defecto**. **Resuelto (DECISIONS.md #203, ronda de iconos públicos `design/lab/icons/r01/`):** `GFormSection` gana un **hueco opcional `lead`** como el de `GCard` (decorativo, `aria-hidden`, fuera del `hN`; `design/contracts/form.md` §3); `GDialog` ya tenía el suyo, el slot **`icon`** (`design/contracts/dialog.md`; la redacción anterior de esta sección decía, por error, que no lo tenía) y no gana `lead`. Sin tokens nuevos: el tamaño del icono lo fija cada hueco con su alias local; la jerarquía de esta §23 no cambia.

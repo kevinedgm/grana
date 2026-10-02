@@ -18,7 +18,7 @@ Una **superficie de contenido contenida**, con regiones opcionales combinables (
 - **Adaptable por el espacio de la propia tarjeta**, no del dispositivo: una `ResizeObserver` sobre la raíz. Sin `@container` ni `@media` con valores fijos.
 - **Sin textos por defecto** (Grana es internacional): todo texto va en props, slots y `labels`.
 - **Sin dependencias de dominio:** el avatar, la imagen, el gráfico, el mapa o el vídeo son del consumidor, por slot.
-- **Se reutiliza, no se duplica:** `GSurface`, `GMenu`, `GBadge`, `GBtn`, `GIcon` (interno) y, como contenido, `GMetric`, `GProgress` y `GDataList`.
+- **Se reutiliza, no se duplica:** `GSurface`, `GMenu`, `GBadge`, `GBtn`, `GIcon` y, como contenido, `GMetric`, `GProgress` y `GDataList`.
 
 ## Frontera con otros componentes
 

@@ -104,7 +104,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `title` | Título con contenido rico (sustituye a `title`) | | Dentro de `h2#ID-title`; sin interactivos |
 | `description` | Descripción con contenido rico (sustituye a `description`) | | Dentro de `p#ID-desc`; sin interactivos |
 | `header` | Sustituye **título y descripción** por completo | `{ titleId, descriptionId }` | El consumidor debe usar esos ids si quiere el nombre accesible; el botón de cierre se conserva |
-| `icon` | Icono decorativo antes del título | | Se envuelve con `aria-hidden="true"` |
+| `icon` | Icono decorativo antes del título (normalmente un `GIcon`; **sin icono por defecto**). Es el equivalente del `lead` de `GCard` y `GFormSection`: `GDialog` **no** gana un slot `lead` (#203) | | Se envuelve con `aria-hidden="true"` (`g-dialog__icon`), fuera del `h2`: no entra en el nombre del diálogo |
 | `tabs` | **Cabecera de pestañas fija** (`GTabs` con `detached`, DECISIONS.md #119; ver `tabs.md`), a sangre, entre el encabezado y el cuerpo; **no se desplaza** (solo el cuerpo lo hace) | | Dentro de `g-dialog__tabs`, fuera del cuerpo y de la inset. La carcasa define `--g-tabs-inset` con su relleno inline para alinear la primera pestaña con el título; con el slot, `role="region"` y `tabindex` pasan del cuerpo a los `tabpanel` |
 
 `close()` (en el alcance) cierra por la vía `close`: emite `dismiss` (cancelable) y luego `update:modelValue`. Para cerrar sin `dismiss`, el consumidor cambia `modelValue`.

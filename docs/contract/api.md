@@ -70,3 +70,37 @@ Para lo que nace de un **evento** y no de un estado de la vista (primer caso: av
 - Un componente `G<Servicio>` pinta **una** región del gestor (prop opcional con el gestor; por defecto, el inyectado).
 - Las opciones usan los nombres compartidos cuando existen (`labels` sin valores por defecto, `position` lógica con `start`/`end`); los callbacks van en las opciones (`onDismiss`, `action.onClick`), no como eventos de la región.
 - Importar el paquete y crear el gestor no toca `document` ni `window` (SSR).
+- `createIcons` (registro de iconos de la aplicación, `icons.md` §5; #200) usa la **misma forma de plugin** (`app.use(registro)`, `iconsKey` exportada, sin efectos al importar ni al crear), sin `use<…>()` público ni componente de región.
+
+## Iconos en los componentes: «dato → nombre; plantilla → slot» (#202)
+
+Contrato de iconos: `docs/contract/icons.md` v0.2 (`GIcon` público, registro `createIcons`, solo Lucide). Regla única para todos los componentes:
+
+- **Dato → nombre.** Cuando el contenido llega como **arreglo de datos** (`items`), el campo `icon` admite una **cadena con el nombre de Lucide**. Si el item trae `icon` cadena y **no** hay slot `icon`, el componente dibuja `<GIcon :name="item.icon">` (resolución de la aplicación: registro → librería, `icons.md` §5.4) dentro de su hueco `aria-hidden`. **Con slot `icon`, manda el slot** (recibe el item como hoy y decide). Un `icon` que **no** es cadena sigue siendo un dato opaco que solo recibe el slot; sin slot no se dibuja nada (comportamiento de siempre: compatible). Un nombre que no existe deja el hueco vacío y avisa en desarrollo (aviso de `GIcon`). Aplica a **`GTabs`**, **`GMenu`** y **`GSidebar`** (items de primer nivel; los hijos de `GSidebar` no llevan icono).
+- **Plantilla → slot.** Cuando el componente se escribe en plantilla, el icono va en su **slot** con un `<GIcon>` dentro (una línea). **Sin props nuevas** de icono en `GBtn`, `GInput`, `GSelect`, `GSwitch`, `GBadge`, `GCard`, `GDialog`, `GFormSection` ni en el resto. En **`GBtn`, `icon` sigue siendo Boolean** (modo solo icono, con aviso si falta `aria-label`); nunca un nombre.
+- **Nombres reservados:** `prependIcon` y `appendIcon` (icono por nombre en un componente suelto) no existen en v0.2 y no se usan para otra cosa; si algún día se piden, tendrán ese nombre.
+- **Todo hueco de icono es decorativo:** el componente lo envuelve con `aria-hidden="true"` (en el slot por defecto de `GBtn` solo icono y en `trigger` de `GHelper`, el `GIcon` sin `label` ya es decorativo por sí mismo). El nombre accesible lo da el texto o el `aria-label` del control. Un `GIcon` con `label` dentro de un hueco avisa en desarrollo (`icons.md` §2.4).
+- **Lo que no es Lucide** (logotipo, avatar, imagen) va en el slot, nunca en `GIcon`.
+
+### Mapa de huecos
+
+| Componente | Hueco | Alcance | Desde datos (`icon` cadena) |
+| --- | --- | --- | --- |
+| `GBtn` | `prepend`, `append`; con `icon` (Boolean), el slot por defecto | | — |
+| `GInput` | `prepend`, `append` | | — |
+| `GSelect` | `prepend`; `icon` de cada opción (sustituye al prefijo en la elegida, #58) | `{ option }` | — (candidato, `icons.md` §9) |
+| `GCheckbox` | `icon` (solo `layout="card"`) | | — |
+| `GSwitch` | `icon-on`, `icon-off` (sustituyen a `check` / `minus` del pulgar) | | — |
+| `GDatePicker` | `icon` (sustituye a `calendar`) | | — |
+| `GBadge` | `icon` | | — |
+| `GStepper` | `icon` (solo `indicator="icon"`; sin él, el número) | `{ step, index, state }` | — (candidato, `icons.md` §9) |
+| `GWidget` | `icon` (encabezado) | `{ level }` | — |
+| `GCard` | `lead` (icono o avatar, #123) | `{ size, layout }` | — |
+| `GDialog` | `icon` (antes del título) | | — |
+| `GFormSection` | `lead` (antes del título; nuevo, #203) | | — |
+| `GTabs` | `icon` | `{ item, index, active }` | **Sí** (`item.icon`); en `labelMode="icon"`/`auto` un `icon` cadena cuenta como icono |
+| `GMenu` | `icon` | `{ item }` | **Sí** (`item.icon`) |
+| `GSidebar` | `icon` (items); `toggle-icon`, `search-icon`, `more-icon` | `{ item }`; `{ collapsed }` | **Sí** (`item.icon`, primer nivel); los otros tres, solo slot |
+| `GHelper` | `trigger` (contenido del botón disparador; por defecto `circle-help`) | `{ open }` | — |
+
+Los iconos **propios** de cada componente (cierre, marcas, chevrons, estados) no son huecos: los dibuja el componente con la lista de la librería (`icons.md` §4) y la aplicación no los cambia por el registro.

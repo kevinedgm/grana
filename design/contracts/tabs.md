@@ -58,7 +58,7 @@ Navegación **entre vistas del mismo nivel dentro de una misma vista**, con el p
 | --- | --- | --- |
 | `id` | String \| Number | **Obligatorio**, único. Sin `id`, la pestaña se ignora y avisa una vez en desarrollo (a diferencia de `GStepper`, aquí el `id` es la identidad estable que viaja a la URL y a los paneles) |
 | `label` | String | **Obligatorio**; nombre accesible de la pestaña, también con solo iconos |
-| `icon` | cualquier valor | De la aplicación: llega al slot `icon` (Grana no trae iconos de aplicación, `icons.md` §5); decorativo |
+| `icon` | String (nombre de Lucide) \| cualquier valor | De la aplicación; decorativo. **Cadena y sin slot `icon`:** la pestaña dibuja `GIcon` con ese nombre (registro de la aplicación o lista de la librería; `icons.md` §5, `api.md` «Iconos en los componentes», #202). **Con slot `icon`, manda el slot.** Otro valor: dato opaco que solo recibe el slot |
 | `count` | Number | Contador (`GBadge` modo `count`, `size="sm"`); 0 no se pinta (`showZero` de `GBadge`) |
 | `countLabel` | String | Texto accesible del contador («8 sin leer»). **Obligatorio con `count`**; sin él, aviso en desarrollo |
 | `badge` | String | Texto breve («Nuevo») en una `GBadge` de texto, `size="sm"` |
@@ -88,7 +88,7 @@ Campos **reservados y no publicados en v0.1** (`closable`, `closeLabel`) y el ev
   - `arrows`: lo anterior más botones anterior/siguiente en los bordes. **Solo puntero**: `aria-hidden`, `tabindex="-1"`; el teclado ya alcanza todas las pestañas.
   - `more`: las que no caben salen del `tablist` y pasan al menú «Más» (`GMenu`); la activa **siempre** entra en la barra y sale del menú.
   - La activa **siempre queda visible** (en `scroll` y `arrows` se desplaza a ella al activarla o enfocarla, sin mover la página). `combined` y `auto` se **difieren a una r03** (el validador los rechaza; ver «Fuera de v0.1»).
-- **`labelMode`:** `full` (etiqueta visible), `icon` (todas solo con icono) y `auto` (si **todas** las pestañas tienen `icon` y no caben, las inactivas pasan a solo icono y la activa conserva icono y etiqueta, como la píldora activa de `GSidebar`, #68). En solo icono la etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto estándar y es el nombre accesible. **Sin tooltip propio en v0.1** (#113). Con `icon` o `auto`, si a alguna pestaña le falta `icon`, aviso en desarrollo y esa conserva su etiqueta visible.
+- **`labelMode`:** `full` (etiqueta visible), `icon` (todas solo con icono) y `auto` (si **todas** las pestañas tienen `icon` y no caben, las inactivas pasan a solo icono y la activa conserva icono y etiqueta, como la píldora activa de `GSidebar`, #68). En solo icono la etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto estándar y es el nombre accesible. **Sin tooltip propio en v0.1** (#113). Con `icon` o `auto`, si a alguna pestaña le falta `icon`, aviso en desarrollo y esa conserva su etiqueta visible. **Una pestaña «tiene icono»** si hay slot `icon` y `item.icon` tiene valor, o si **no** hay slot e `item.icon` es una cadena (#202).
 - **`snap`:** `scroll-snap-type: x proximity` en la lista (móvil nativo). No cambia nada más.
 - **`lazy`:** por defecto los paneles están **montados y ocultos** (`hidden`), para no perder borradores ni estado (#78). Con `lazy`, un panel se monta la primera vez que se activa y **luego se conserva**. Sin `unmount` en v0.1.
 - **`detached`:** no renderiza paneles (versión **headless**): solo la cabecera; los paneles se pintan con `GTabPanel` donde el consumidor quiera (ver «Paneles separados»). Los atributos `aria-controls` se calculan igual.
@@ -135,7 +135,7 @@ El **nombre accesible** de cada pestaña es etiqueta + `statusLabel` + insignia 
     <div class="g-tabs__scroller">
       <div class="g-tabs__list" role="tablist" aria-orientation="horizontal" aria-label="Perfil">
         <button class="g-tabs__tab is-active" role="tab" type="button" id="ID-tab-a" aria-selected="true" aria-controls="ID-panel-a" tabindex="0">
-          <span class="g-tabs__icon" aria-hidden="true">…</span>                  <!-- solo con slot icon -->
+          <span class="g-tabs__icon" aria-hidden="true">…</span>                  <!-- con slot icon, o item.icon cadena (GIcon) -->
           <span class="g-tabs__label" data-text="Mensajes">Mensajes</span>   <!-- data-text = etiqueta: reserva el ancho en negrita -->
           <span class="g-tabs__status" aria-hidden="true">…</span><span class="g-tabs__sr">, cargando</span>   <!-- solo con status -->
           <span class="g-badge …">…</span>                                       <!-- GBadge: insignia o contador -->
@@ -184,7 +184,7 @@ Se reutiliza `GMenu` con su slot `trigger` (el botón es de `GTabs`, fuera del `
 | --- | --- | --- | --- |
 | `panel-{id}` | Contenido del panel de esa pestaña | `{ item, active }` | Dentro de `g-tabs__panel` (que pone el componente) |
 | `panel` | Contenido genérico de panel (si no hay `panel-{id}`) | `{ item, active }` | Ídem |
-| `icon` | Icono de la pestaña (valor `item.icon`; Lucide o de la aplicación) | `{ item, index, active }` | Dentro de `g-tabs__icon`; decorativo |
+| `icon` | Icono de la pestaña (valor `item.icon`); **sustituye** al `GIcon` por nombre | `{ item, index, active }` | Dentro de `g-tabs__icon`; decorativo |
 | `label` | Etiqueta con contenido rico | `{ item, index, active }` | Dentro de `g-tabs__label`; **sin interactivos**; no cambia el nombre accesible (que sale de `item.label`) |
 | `empty` | Vacío (sin pestañas) | | Se renderiza en lugar de la cabecera |
 

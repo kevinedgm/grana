@@ -269,6 +269,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 <section class="g-form-section" id="datos">
   <div class="g-form-section__header">
     <div class="g-form-section__heading">
+      <span class="g-form-section__lead" aria-hidden="true">…</span>   <!-- solo con slot lead (#203) -->
       <h3 class="g-form-section__title">Datos fiscales</h3>
       <span class="g-badge …">Opcional</span>                  <!-- solo con optional -->
     </div>
@@ -283,11 +284,13 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 - **Sin `aria-labelledby`** en la `<section>`: con nombre sería un punto de referencia `region` y un formulario largo tendría diez (ruido). Los encabezados dan la navegación (WCAG 1.3.1, 2.4.6, 2.4.10).
 - `fieldset`/`legend` se reserva para **preguntas** (`GFieldGroup`, radios), no para secciones (W3C WAI «Grouping Controls»).
 - La distribución de campos **no** la pone la sección: el consumidor coloca un `GFormLayout` en el cuerpo (una sola responsabilidad; secciones sin campos también son válidas).
+- **`lead`** (#203; cierra `tokens.md` §23.6): hueco opcional como el de `GCard`, pero **de icono**, no de avatar: su tamaño y su alineación los fija coco con un alias local tomando como referencia la **primera línea del título** (no la caja `space × 10` del `lead` de `GCard`); **sin tokens nuevos**. Decorativo: el nombre del encabezado es solo el texto del título; un `GIcon` con `label` dentro avisa en desarrollo (`icons.md` §2.4). No cambia la jerarquía tipográfica (#196).
 
 ### Slots
 
 | Slot | Propósito | Anatomía |
 | --- | --- | --- |
+| `lead` | Icono decorativo antes del título (normalmente un `GIcon`; #203). **Sin icono por defecto** | En `__lead` (`aria-hidden`), primer hijo de `__heading`, **fuera** del `hN`: no entra en el nombre del encabezado; nada interactivo |
 | `title` | Título con contenido rico | Dentro del `hN`; nada interactivo |
 | `description` | Descripción rica | En `__description` |
 | `actions` | Acciones secundarias de la sección (botones `GBtn` `ghost`/`outline`) | Al final del encabezado; nunca la primaria del formulario |
@@ -296,7 +299,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 
 ### Clases
 
-`g-form-section`, `g-form-section--optional`, `__header`, `__heading`, `__title`, `__description`, `__actions`, `__help`, `__body`. Separación entre secciones consecutivas: `--g-form-section-gap` × densidad (§9).
+`g-form-section`, `g-form-section--optional`, `__header`, `__heading`, `__lead` (solo con slot `lead`), `__title`, `__description`, `__actions`, `__help`, `__body`. Separación entre secciones consecutivas: `--g-form-section-gap` × densidad (§9).
 
 ### Separación entre secciones: espacio, no línea (#192)
 

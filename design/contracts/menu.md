@@ -11,7 +11,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 - **Presenta y emite intención** (como el resto de Grana): el estado de casillas y opciones es `checked` de `items`; el componente emite `select` y **la aplicación actualiza `items`**.
 - **Datos, no hijos:** los elementos salen de un arreglo (como `GSidebar`); los slots personalizan icono y contenido.
 - **El significado nunca depende solo del color:** peligroso (▲ y negrita), deshabilitado (tachado), casilla (✓) y opción (●) llevan forma y texto.
-- **Sin textos ni iconos por defecto:** todo lo pone la aplicación.
+- **Sin textos ni iconos por defecto:** todo lo pone la aplicación (los iconos, por nombre en `item.icon` o por slot; #202).
 
 ## Props
 
@@ -57,7 +57,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `type` | `item` (por defecto) · `checkbox` · `radio` · `separator` · `group` | Un elemento con `items` es un **submenú** (su `type` es `item`) |
 | `id` | String \| Number | **Obligatorio** en `item` (que no sea un padre de submenú), `checkbox` y `radio` (si no, se ignora y avisa); único en todo el menú. Un padre de submenú no emite `select`: su `id` es opcional |
 | `label` | String | **Obligatorio** salvo en `separator`; es el **nombre accesible** del elemento |
-| `icon` | cualquier valor | De la aplicación: llega al slot `icon` (Grana no trae iconos); decorativo |
+| `icon` | String (nombre de Lucide) \| cualquier valor | De la aplicación; decorativo. **Cadena y sin slot `icon`:** el elemento dibuja `GIcon` con ese nombre en `g-menu__icon` (`icons.md` §5, `api.md` «Iconos en los componentes», #202). **Con slot `icon`, manda el slot.** Otro valor: dato opaco que solo recibe el slot |
 | `shortcut` | String | Texto visible al final («Ctrl+D»), `aria-hidden` |
 | `keyshortcuts` | String | Valor de `aria-keyshortcuts` (sintaxis de ARIA, «Control+D»); sin valor, no se pone |
 | `disabled` | Boolean | `aria-disabled="true"`, **sigue enfocable**, atenuado y tachado; no se activa ni abre submenú |
@@ -95,7 +95,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
 | `trigger` | El **disparador** (obligatorio) | `{ open, attrs }` | La aplicación enlaza `attrs` (`v-bind="attrs"`): `id`, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `onClick`, `onKeydown` y una referencia al elemento. Debe ser un elemento enfocable (un `<button>`) con nombre accesible |
-| `icon` | Icono de un elemento (decorativo) | `{ item }` | Dentro de `g-menu__icon` (`aria-hidden`) |
+| `icon` | Icono de un elemento (decorativo); **sustituye** al `GIcon` por nombre de `item.icon` | `{ item }` | Dentro de `g-menu__icon` (`aria-hidden`) |
 | `item` | Contenido de un elemento, en lugar de icono y etiqueta | `{ item, active, checked }` | **Conserva el texto de la etiqueta** (es el nombre accesible) |
 
 ## Estructura accesible
