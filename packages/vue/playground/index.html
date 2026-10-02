@@ -1427,7 +1427,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         <p class="pg-cat">Captura de voz</p>
         <section class="pg-section" id="sec-speech" data-pg-section>
           <h2>Captura de voz (GSpeechHost, GSpeechTrigger, GSpeechPill)</h2>
-          <p class="pg-lead">Sesión compartida por la aplicación: sobrevive a pestañas, pasos y diálogos; un indicador siempre visible mientras el micrófono está en uso; transcripción provisional y confirmada. El motor es el <b>adaptador simulado</b> de <code>@grana/vue/testing</code> (sin red).</p>
+          <p class="pg-lead">Sesión compartida por la aplicación: sobrevive a pestañas, pasos y diálogos; un indicador siempre visible mientras el micrófono está en uso; transcripción provisional y confirmada. Va en su propia entrada, <code>@grana/vue/speech</code> (aquí <code>dist/speech.umd.js</code>, global <code>GranaSpeech</code>); <code>app.use(speech)</code> registra sus tres componentes. El motor es el <b>adaptador simulado</b> de <code>@grana/vue/testing</code> (sin red).</p>
           <h3>Dictado a un campo</h3>
           <div class="pg-panel">
     <div id="speech-demo" class="col" style="max-width:560px">
@@ -1486,6 +1486,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
+  <script src="../dist/speech.umd.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./lucide-icons.js"></script>
   <script>
@@ -1506,7 +1507,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       }
     })
     window.toaster = toaster
-    // Captura de voz: gestor de la aplicación con el adaptador SIMULADO (@grana/vue/testing; una app real aporta el suyo).
+    // Captura de voz (@grana/vue/speech → GranaSpeech): gestor de la aplicación con el adaptador SIMULADO (@grana/vue/testing;
+    // una app real aporta el suyo). app.use(speech) lo provee y registra GSpeechHost, GSpeechPill y GSpeechTrigger.
     // ?speech=self → el adaptador simula el micrófono (input.format 'self'); por defecto captura Grana (getUserMedia).
     const spQuery = new URLSearchParams(location.search)
     const spAdapter = GranaTesting.createSimulatedSpeechAdapter({
@@ -1522,7 +1524,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         ]
       }
     })
-    const speech = Grana.createSpeech({
+    const speech = GranaSpeech.createSpeech({
       adapter: spAdapter,
       language: 'es',
       allowRemote: spQuery.get('remote') === '1',

@@ -1,5 +1,6 @@
 // Captura de voz (design/contracts/speech.md §17) sobre los COMPONENTES REALES del playground (packages/vue/playground,
-// sección #sec-speech, adaptador simulado de @grana/vue/testing), en Chromium, Firefox y WebKit.
+// sección #sec-speech, entrada @grana/vue/speech por dist/speech.umd.js (GranaSpeech) y adaptador simulado de
+// @grana/vue/testing), en Chromium, Firefox y WebKit.
 // Casos: anfitrión en la capa superior con 2 canales vacíos antes de la sesión; sesión que sobrevive a GTabs, GStepper y
 // un GDialog modal real; exactamente una pill visible; las g-btn__status de los GBtn vacías toda la sesión (#227);
 // Mayús+F8 de ida y vuelta (F8 sola no se intercepta); pausa (pista detenida) y finalización; dictado al cursor sin mover
@@ -62,6 +63,30 @@ test.describe('captura de voz · playground', () => {
     expect(host.floatHidden).toBe(true)
     expect(host.panelHidden).toBe(true)
     expect(host.placedHidden).toBe(true)
+    expect(errs).toEqual([])
+  })
+
+  test('entrada propia (#238): Grana no trae la captura; GranaSpeech sí, registra sus componentes y toma lo compartido de Grana', async ({ page }) => {
+    const errs = watchConsole(page)
+    await ready(page)
+    const r = await page.evaluate(async () => {
+      const text = await (await fetch('../dist/speech.umd.js')).text()
+      return {
+        main: ['createSpeech', 'useSpeech', 'speechKey', 'GSpeechHost', 'GSpeechPill', 'GSpeechTrigger'].filter((k) => k in window.Grana),
+        speech: Object.keys(window.GranaSpeech).filter((k) => k !== '__esModule').sort(),
+        sameBtn: window.Grana.__shared['components/GBtn/GBtn.vue'].default === window.Grana.GBtn,
+        // Sin copia de los útiles con estado ni de GBtn: la entrada los lee de Grana.__shared
+        usesShared: text.includes('.__shared['),
+        ownCopy: ['WeakMap', 'g-btn__status', 'g-toaster'].filter((s) => text.includes(s)),
+        rendered: ['.g-speech-host', '.g-speech-pill', '.g-speech-trigger'].map((s) => document.querySelectorAll(s).length > 0)
+      }
+    })
+    expect(r.main).toEqual([])
+    expect(r.speech).toEqual(['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'createSpeech', 'speechKey', 'useSpeech'])
+    expect(r.sameBtn).toBe(true)
+    expect(r.usesShared).toBe(true)
+    expect(r.ownCopy).toEqual([])
+    expect(r.rendered).toEqual([true, true, true])
     expect(errs).toEqual([])
   })
 
