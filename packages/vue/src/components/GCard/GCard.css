@@ -704,10 +704,10 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-card.is-loading :is(.g-card__lead, .g-card__media),
   .g-card.is-loading .g-card__sk::before {
-    animation: g-card-pulse calc(var(--g-duration-spin) * 1.75) ease-in-out infinite;
+    animation: g-card-pulse calc(var(--g-duration-spin) * 1.5) var(--g-ease-standard) infinite alternate;
   }
   @keyframes g-card-pulse {
-    50% { opacity: 0.5; }
+    to { opacity: 0.45; }
   }
 }
 

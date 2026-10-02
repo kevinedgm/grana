@@ -248,10 +248,10 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-widget__line,
   .g-widget__block {
-    animation: g-widget-pulse calc(var(--g-duration-spin) * 1.75) ease-in-out infinite;
+    animation: g-widget-pulse calc(var(--g-duration-spin) * 1.5) var(--g-ease-standard) infinite alternate;
   }
   @keyframes g-widget-pulse {
-    50% { opacity: 0.5; }
+    to { opacity: 0.45; }
   }
 }
 .g-widget__sr {

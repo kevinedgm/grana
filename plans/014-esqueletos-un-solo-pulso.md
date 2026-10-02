@@ -1,6 +1,6 @@
 # 014 — Esqueletos de carga: un solo pulso para toda la librería
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GCard.css`, `GWidget.css`, `GCalendar.css` y sus `estilo.md`). Sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: LOW
@@ -83,3 +83,7 @@ La receta de `GTable` en los cuatro: `animation: <nombre> calc(var(--g-duration-
 - **Medición (Playwright, Chromium)**: pon una tarjeta, un widget y la tabla en carga (en el playground, `#sec-card` tiene una tarjeta `is-loading`; si no, añade la clase `is-loading` con `evaluate` a una `.g-card`, a `.g-table` y renderiza el esqueleto del widget si el playground lo ofrece) y compara `el.getAnimations()[0].effect.getComputedTiming()`: en todas, `duration` = 1200, `direction` = `alternate`, `easing` = `cubic-bezier(0.2, 0, 0, 1)`.
 - **Feel check**: con varios esqueletos visibles a la vez, pulsan al mismo ritmo y con la misma profundidad; el pulso no distrae (más lento que antes en tarjeta y widget).
 - **Done when**: los cuatro esqueletos comparten duración, curva, dirección y opacidad mínima, sin palabras clave de curva.
+
+## Nota de ejecución
+
+Verificado en Chromium: `g-card-pulse`, `g-widget-pulse` y `g-calendar-pulse` con duración 1200 ms, `alternate`. `estilo.md`: solo `widget` describía el pulso (1.4s); card y calendar no.

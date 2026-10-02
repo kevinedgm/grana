@@ -940,11 +940,10 @@
   block-size: calc(var(--g-space-1) * 6);
   border-radius: var(--g-radius-sm);
   background: var(--g-color-surface-sunken);
-  animation: g-calendar-pulse calc(var(--g-duration-spin) * 2) ease-in-out infinite alternate;
+  animation: g-calendar-pulse calc(var(--g-duration-spin) * 1.5) var(--g-ease-standard) infinite alternate;
 }
 @keyframes g-calendar-pulse {
-  from { opacity: 0.55; }
-  to { opacity: 1; }
+  to { opacity: 0.45; }
 }
 
 /* ---------- Estados de la raíz ---------- */

@@ -16,8 +16,8 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 010 | [Que la salida llegue a correr y origen desde el disparador](010-gmenu-salida-y-origen.md) | GMenu | bruno + coco | MEDIUM | DONE |
 | 011 | [Popovers: salida corta y fundido con movimiento reducido](011-popovers-salida-y-reduce.md) | GSelect, GDatePicker, GHelper, GFilterBar | coco | LOW | DONE |
 | 012 | [No animar al montar](012-no-animar-al-montar.md) | GSidebar, GTabs, GCheckbox | bruno + coco | MEDIUM | DONE |
-| 013 | [Avance con `translate` en lugar de `inline-size`](013-gprogress-avance-con-translate.md) | GProgress | coco | LOW | TODO |
-| 014 | [Esqueletos de carga: un solo pulso](014-esqueletos-un-solo-pulso.md) | GCard, GWidget, GCalendar | coco | LOW | TODO |
+| 013 | [Avance con `translate` en lugar de `inline-size`](013-gprogress-avance-con-translate.md) | GProgress | coco | LOW | DONE |
+| 014 | [Esqueletos de carga: un solo pulso](014-esqueletos-un-solo-pulso.md) | GCard, GWidget, GCalendar | coco | LOW | DONE |
 
 ## Auditoría de GStepper (commit 49ad85b)
 
