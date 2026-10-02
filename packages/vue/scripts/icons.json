@@ -11,7 +11,7 @@
     "circle",
     "circle-alert",
     "circle-check",
-    "circle-help",
+    "circle-question-mark",
     "diamond",
     "ellipsis-vertical",
     "grip-vertical",
@@ -26,6 +26,12 @@
     "triangle-alert",
     "x"
   ],
+  "aliases": {
+    "circle-help": "circle-question-mark"
+  },
+  "labAliases": {
+    "building-2": "building-complex"
+  },
   "playground": [
     "arrow-right",
     "building-complex",
@@ -63,7 +69,7 @@
     "activity",
     "arrow-right",
     "bell",
-    "building-2",
+    "building-complex",
     "calendar",
     "chart-column",
     "check",
@@ -72,7 +78,7 @@
     "circle",
     "circle-alert",
     "circle-check",
-    "circle-help",
+    "circle-question-mark",
     "copy",
     "credit-card",
     "ellipsis-vertical",

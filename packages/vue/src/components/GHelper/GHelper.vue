@@ -215,7 +215,7 @@ export default defineComponent({
         'aria-haspopup': 'dialog',
         disabled: props.disabled,
         onClick: () => setOpen(!isOpen.value)
-      }, custom ? slots.trigger({ open: Boolean(isOpen.value) }) : [h(GIcon, { name: 'circle-help' })])
+      }, custom ? slots.trigger({ open: Boolean(isOpen.value) }) : [h(GIcon, { name: 'circle-question-mark' })])
 
       const popover = h('div', {
         ref: content,

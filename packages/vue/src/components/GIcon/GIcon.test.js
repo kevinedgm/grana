@@ -10,10 +10,11 @@ import { LockOpen, Unlock, MapPin, Lock, Image, Play } from 'lucide-static'
 import GIcon from './GIcon.vue'
 import GLibIcon from './GLibIcon.js'
 import { createIcons, iconsKey, parseLucide } from './registry.js'
-import { ICONS } from '../../icons/lucide.js'
-import { readIcon } from '../../../scripts/build-icons.mjs'
+import { ICONS, ALIASES } from '../../icons/lucide.js'
+import { readIcon, readExport } from '../../../scripts/build-icons.mjs'
 import { ROOT } from '../../../scripts/check-icons.mjs'
 import GCheckbox from '../GCheckbox/GCheckbox.vue'
+import GHelper from '../GHelper/GHelper.vue'
 import Grana, * as api from '../../index.js'
 
 afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = '' })
@@ -283,12 +284,58 @@ describe('createIcons · todo Lucide (§7 prueba 3; si cambia el formato de luci
     expect(bad).toEqual([])
   }, 60000)
 
-  it('la lista de la librería coincide con su cadena de lucide-static (mismo normalizado)', () => {
+  // Prueba 3 (#206): se compara con el MÓDULO de dist/esm/icons/ de lucide-static (readExport), no con el identificador
+  // importado: `CircleHelp` y `CircleQuestionMark` exportan el mismo módulo, pero un identificador de alias no prueba el nombre
+  it('la lista de la librería coincide con el módulo de dist/esm/icons/ de lucide-static (mismo normalizado y mismo nombre)', () => {
     for (const n of Object.keys(ICONS)) {
-      const key = n.split('-').map((p) => p[0].toUpperCase() + p.slice(1)).join('')
-      const exported = lucide[key] ?? Object.values(lucide).find((v) => typeof v === 'string' && v.includes(`lucide-${n}"`))
-      expect(parseLucide(exported).paths, n).toBe(ICONS[n])
+      const [, exported] = readExport(n)
+      const r = parseLucide(exported)
+      expect(r.name, n).toBe(n)
+      expect(r.paths, n).toBe(ICONS[n])
     }
+  })
+})
+
+describe('Nombres canónicos de la librería (§7 prueba 9, #206)', () => {
+  const moduleFiles = () => new Set(readdirSync(resolve(ROOT, 'node_modules/lucide-static/dist/esm/icons')).filter((f) => f.endsWith('.mjs')).map((f) => f.replace(/\.mjs$/, '')))
+
+  it('cada nombre de la lista tiene su módulo en dist/esm/icons/ y la marca de ese módulo es el mismo nombre (si Lucide renombra uno, falla)', () => {
+    const files = moduleFiles()
+    const bad = []
+    for (const n of Object.keys(ICONS)) {
+      if (!files.has(n)) { bad.push(`${n}: no es un módulo canónico de lucide-static`); continue }
+      const r = parseLucide(readExport(n)[1])
+      if (r.name !== n) bad.push(`${n}: la marca dice ${r.name}`)
+    }
+    expect(bad).toEqual([])
+  })
+
+  it('un alias de compatibilidad apunta a un canónico de la lista, con el mismo dibujo y sin duplicarlo en el paquete', () => {
+    const files = moduleFiles()
+    expect(Object.keys(ALIASES)).toEqual(['circle-help'])
+    for (const [alias, target] of Object.entries(ALIASES)) {
+      expect(Object.keys(ICONS), alias).toContain(target)
+      expect(Object.keys(ICONS), `${alias} no se duplica en la lista`).not.toContain(alias)
+      expect(files.has(alias), `${alias} no es canónico (es un archivo de alias de icons/)`).toBe(false)
+      // el alias dibuja lo mismo en Lucide y en la librería
+      expect(readIcon(alias), alias).toBe(readIcon(target))
+      expect(mount(GLibIcon, { props: { name: alias } }).html()).toBe(mount(GLibIcon, { props: { name: target } }).html())
+    }
+  })
+
+  it('un alias dibuja sin aviso y sin registrar; el canónico y el alias dan el mismo svg', () => {
+    const warn = silence()
+    const a = mount(GIcon, { props: { name: 'circle-help' } }).find('svg')
+    const c = mount(GIcon, { props: { name: 'circle-question-mark' } }).find('svg')
+    expect(a.exists()).toBe(true)
+    expect(a.html()).toBe(c.html())
+    expect(c.html()).toContain('M9.09 9a3 3 0 0 1 5.83 1')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('GHelper usa el nombre canónico en su disparador por defecto', () => {
+    const w = mount(GHelper, { props: { ariaLabel: 'Abrir ayuda', contentLabel: 'Ayuda', closeLabel: 'Cerrar' }, slots: { content: () => 'x' } })
+    expect(w.find('button.g-helper__trigger svg').html()).toBe(mount(GLibIcon, { props: { name: 'circle-question-mark' } }).find('svg').html())
   })
 })
 

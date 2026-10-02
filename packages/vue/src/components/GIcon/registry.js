@@ -4,7 +4,7 @@
 // Validación ESTRICTA por texto (sin DOMParser: funciona en SSR), igual en desarrollo y producción; nunca lanza.
 // Importar este módulo o llamar a createIcons no toca document ni window.
 import { inject, markRaw } from 'vue'
-import { ICONS } from '../../icons/lucide.js'
+import { ICONS, ALIASES } from '../../icons/lucide.js'
 
 // Clave de inyección (InjectionKey) para `provide` manual (pruebas, microfrontends, un subárbol con otro registro)
 export const iconsKey = Symbol('GIcons')
@@ -107,5 +107,8 @@ export function lookupRegistry(registry, name) {
   return map instanceof Map ? map.get(name) : undefined
 }
 
-/** Trazos de un nombre en la lista de la librería (icons.md §4) */
-export const lookupLibrary = (name) => (Object.prototype.hasOwnProperty.call(ICONS, name) ? ICONS[name] : undefined)
+const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k)
+
+/** Trazos de un nombre en la lista de la librería (icons.md §4). Un alias de compatibilidad (#206, p. ej. `circle-help`)
+ *  da el dibujo de su canónico, sin aviso. */
+export const lookupLibrary = (name) => (has(ICONS, name) ? ICONS[name] : has(ALIASES, name) ? ICONS[ALIASES[name]] : undefined)

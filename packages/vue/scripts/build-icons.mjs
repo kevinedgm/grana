@@ -1,10 +1,12 @@
 // Genera los módulos de iconos desde lucide-static (ISC): docs/contract/icons.md §2.
-//   src/icons/lucide.js           · solo los iconos de la librería (lista «library» de scripts/icons.json)
+//   src/icons/lucide.js           · solo los iconos de la librería (lista «library» de scripts/icons.json) y ALIASES: nombres de
+//                                   compatibilidad obsoletos (mapa «aliases», #206) que apuntan al MISMO dibujo, sin bytes duplicados
 //   playground/lucide-icons.js    · las CADENAS COMPLETAS de lucide-static (con su marca) de los iconos que pone «la aplicación»
 //                                   en el playground (lista «playground»), en window.LUCIDE_STATIC por nombre de exportación.
 //                                   El playground no tiene empaquetador y se sirve desde packages/vue (node_modules queda fuera):
 //                                   las registra con Grana.createIcons(Object.values(window.LUCIDE_STATIC)) (vía pública, icons.md §6)
-//   ../../design/lab/lucide-icons.js · los de la librería y los de ejemplo de los bancos y prototipos (listas «library» y «lab»), con el ayudante window.lucide(nombre, clase, rellena)
+//   ../../design/lab/lucide-icons.js · los de la librería y los de ejemplo de los bancos y prototipos (listas «library» y «lab»), con el ayudante window.lucide(nombre, clase, rellena).
+//                                   Los alias («aliases» y «labAliases») apuntan al mismo dibujo, para que los bancos antiguos sigan funcionando
 // Uso: node scripts/build-icons.mjs   (una prueba comprueba que los archivos no se desfasen)
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -38,12 +40,13 @@ const banner = `// GENERADO por scripts/build-icons.mjs desde lucide-static v${v
 const VARS = String.raw`window.lucideVars = (names, filled = false) => names.forEach((n) => document.documentElement.style.setProperty((filled ? '--if-' : '--i-') + n, "url('data:image/svg+xml," + encodeURIComponent(window.lucide(n, '', filled).replace(' class="g-icon' + (filled ? ' g-icon--filled' : '') + '"', '').replace(/currentColor/g, 'black')) + "')"))`
 
 // Módulo de los bancos: los iconos y el ayudante window.lucide(nombre, clase, rellena) que devuelve el <svg>
-const labModule = (banner, names) => [
+const labModule = (banner, names, aliases) => [
   banner.trimEnd(),
   '// Iconos de Lucide para los bancos de prueba y prototipos de design/lab.',
   'window.LUCIDE_ICONS = {',
   literal(names),
   '}',
+  ...Object.entries(aliases).map(([alias, target]) => `window.LUCIDE_ICONS[${JSON.stringify(alias)}] = window.LUCIDE_ICONS[${JSON.stringify(target)}] // alias: el mismo dibujo`),
   "// window.lucide('check', 'clase', false) → el <svg> de Lucide (decorativo, currentColor); con GIcon.css se dimensiona a 1em",
   'window.lucide = (name, cls = \'\', filled = false) =>',
   '  \'<svg class="g-icon\' + (cls ? \' \' + cls : \'\') + (filled ? \' g-icon--filled\' : \'\') + \'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="\' + (filled ? \'currentColor\' : \'none\') + \'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">\' + (window.LUCIDE_ICONS[name] || \'\') + \'</svg>\'',
@@ -55,9 +58,9 @@ const labModule = (banner, names) => [
 export const generate = () => {
   const lists = JSON.parse(readFileSync(resolve(here, 'icons.json'), 'utf8'))
   return {
-    lib: `${banner}export const ICONS = {\n${literal(lists.library)}\n}\n`,
+    lib: `${banner}export const ICONS = {\n${literal(lists.library)}\n}\n// Alias de compatibilidad (#206): nombre obsoleto → canónico. Mismo dibujo, sin duplicar; sin aviso; se retiran en la siguiente mayor.\nexport const ALIASES = {\n${Object.entries(lists.aliases).map(([a, t]) => `  ${JSON.stringify(a)}: ${JSON.stringify(t)}`).join(',\n')}\n}\n`,
     playground: `${banner}// Iconos de ejemplo del playground («la aplicación»): cadenas completas de lucide-static, como un import { … } from 'lucide-static'.\n// El playground las registra con Grana.createIcons(Object.values(window.LUCIDE_STATIC)) y las dibuja con <g-icon name="…">.\nwindow.LUCIDE_STATIC = {\n${lists.playground.map((n) => readExport(n)).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')}\n}\n`,
-    lab: labModule(banner, [...new Set([...lists.library, ...lists.lab])].sort())
+    lab: labModule(banner, [...new Set([...lists.library, ...lists.lab])].sort(), { ...lists.aliases, ...lists.labAliases })
   }
 }
 

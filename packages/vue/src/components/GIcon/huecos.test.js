@@ -30,7 +30,7 @@ describe('GTabs · icon por nombre', () => {
   const items = [
     { id: 'home', label: 'Inicio', icon: 'house' },
     { id: 'lock', label: 'Bloqueo', icon: 'lock-open' },
-    { id: 'lib', label: 'Ayuda', icon: 'circle-help' }, // de la librería, sin registrar
+    { id: 'lib', label: 'Ayuda', icon: 'circle-question-mark' }, // de la librería, sin registrar
     { id: 'obj', label: 'Objeto', icon: { custom: true } },
     { id: 'none', label: 'Sin icono' }
   ]

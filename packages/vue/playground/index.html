@@ -1577,7 +1577,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const stpMove = (d) => { stpCur.value = stpSteps[stpIdx.value + d].id }
         // Iconos (sección «Iconos»): items con icon por nombre, sin slot (#202)
         const icTab = ref('perfil')
-        const icTabs = [{ id: 'perfil', label: 'Perfil', icon: 'user' }, { id: 'acceso', label: 'Acceso', icon: 'lock-open' }, { id: 'avisos', label: 'Avisos', icon: 'mail' }, { id: 'ayuda', label: 'Ayuda', icon: 'circle-help' }]
+        const icTabs = [{ id: 'perfil', label: 'Perfil', icon: 'user' }, { id: 'acceso', label: 'Acceso', icon: 'lock-open' }, { id: 'avisos', label: 'Avisos', icon: 'mail' }, { id: 'ayuda', label: 'Ayuda', icon: 'circle-question-mark' }]
         const icMenuOpen = ref(false)
         const icMenu = [{ id: 'unlock', label: 'Desbloquear', icon: 'lock-open' }, { id: 'edit', label: 'Editar', icon: 'pencil' }, { id: 'share', label: 'Compartir', icon: 'share-2' }, { id: 'del', label: 'Eliminar', icon: 'trash', danger: true }]
         const icSide = ref('inicio')

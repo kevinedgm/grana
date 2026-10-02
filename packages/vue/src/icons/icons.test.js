@@ -74,7 +74,8 @@ describe('iconos generados', () => {
     const real = new Set(readdirSync(resolve(ROOT, 'node_modules/lucide-static/icons')).map((f) => f.replace(/\.svg$/, '')))
     const names = new Set([...section.matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]).filter((n) => real.has(n)))
     const lists = JSON.parse(readFileSync(resolve(pkg, 'scripts/icons.json'), 'utf8'))
-    expect([...names].sort()).toEqual([...lists.library].sort())
+    // La tabla nombra la lista (canónicos) y los alias de compatibilidad (#206, obsoletos, en la nota de GHelper y en su tabla)
+    expect([...names].sort()).toEqual([...lists.library, ...Object.keys(lists.aliases)].sort())
   })
 
   it('todo GIcon usado en los componentes está en la lista', () => {
