@@ -1,6 +1,6 @@
 # Contrato · GDivider
 
-**Dueño:** lima · **Estado:** aprobado (todo deriva de HTML, WAI-ARIA, WCAG o de decisiones vigentes; DECISIONS.md #190 y #191) · pendiente de coco (`GDivider.css`, valor de `--g-divider-inset` en `defaults.css`) y de bruno · **Basado en:** `design/lab/divider/r01/` (kiwi, commit edf3c0b: `brief.md`, `declaracion.md` con 11 hallazgos, `index.html`, `verificar.mjs` 52/52 en Chromium)
+**Dueño:** lima · **Estado:** aprobado (todo deriva de HTML, WAI-ARIA, WCAG o de decisiones vigentes; DECISIONS.md #190 y #191) · coco entregó `GDivider.css` y el valor de `--g-divider-inset` (commit 6175d52, `design/lab/divider/estilo.md`; ajustes de contrato: #193 a #195) · pendiente de bruno · **Basado en:** `design/lab/divider/r01/` (kiwi, commit edf3c0b: `brief.md`, `declaracion.md` con 11 hallazgos, `index.html`, `verificar.mjs` 52/52 en Chromium)
 **Tag:** `g-divider` · **Categoría:** primitivas de layout
 
 Una línea de separación **entre grupos de contenido del consumidor**, para cuando el espacio por sí solo no basta (lo que hoy sería un `<hr>` suelto o un borde ad hoc). Componente pequeño y deliberadamente simple: no tiene estados, ni movimiento, ni densidad, ni márgenes propios.
@@ -55,6 +55,7 @@ No se migra ningún componente en esta ronda (mismo criterio que #99).
   - `both`: acorta por los dos extremos (horizontal: inicio y fin en línea; vertical: arriba y abajo).
   - `start`: acorta solo por el inicio en línea (alinear la línea con el texto de una lista con icono). **Solo horizontal**: en vertical se aplica `both` y avisa (aviso 4). La clase refleja el valor **efectivo**.
   - La **cantidad** es `--g-divider-inset` (ver «Tokens»): la misma para `both` y `start` y para ambas orientaciones; la anfitriona la redefine en su elemento y el divider la hereda. No se multiplica por densidad (si la cantidad depende de la densidad, la calcula la anfitriona con la suya).
+  - **Límite (vertical con inset, #194):** el inset se resta **dos veces** del alto de la fila. Si una anfitriona define un `--g-divider-inset` **mayor que la mitad del alto de contenido de su fila**, el vertical con `inset="both"` mide 0 y **desaparece sin aviso** (sigue en el árbol como `separator`, sin señal visual). Es responsabilidad de la anfitriona: el valor que redefine debe dejar línea visible en la fila **más baja** en la que se use (densidad `compact` y `GBtn` `xs`/`sm` incluidos). El componente no lo avisa (ver «Avisos», límites conocidos).
   - Con `label`, el inset acorta la raíz entera (las dos líneas y el texto quedan dentro).
 - **`emphasis`:** mismo grosor (`--g-border-width`), dos tonos del neutro; **nunca un color semántico**.
   - `subtle` (por defecto): refuerza una separación que el espacio o un título ya dan. **No** es la única señal por definición, así que no se le exige 3:1 (WCAG 1.4.11 se aplica a lo gráfico **necesario** para entender). Usarlo como única señal es un mal uso que se documenta; el componente no lo puede detectar.
@@ -137,26 +138,28 @@ No aplica: no es enfocable ni interactivo (aviso 6 si recibe `tabindex`).
 ## Geometría y estilo (lo que coco debe respetar)
 
 - **Grosor:** `--g-border-width` en las dos orientaciones y en las dos líneas del texto.
-- **Color de línea:** `subtle` = `--g-color-border`; `strong` = `--g-color-border-control`. En `forced-colors: active`, `CanvasText` (como `GMenu` y `GDialog`).
+- **Color de línea:** `subtle` = `--g-color-border`; `strong` = `--g-color-border-control`. En `forced-colors: active`, `CanvasText` (como `GMenu` y `GDialog`). Con `prefers-contrast: more`, las dos líneas pasan a `--g-color-border-control` y el texto a `--g-color-text` (precedente de `GFormActions` y `GTabs`).
 - **Márgenes:** ninguno de bloque en horizontal ni de línea en vertical. Inset: `both` horizontal → `margin-inline`; `start` → `margin-inline-start`; `both` vertical → `margin-block`; siempre con `var(--g-divider-inset)`.
 - **Vertical:** `align-self: stretch`, ancho 0 más el borde, sin encoger (`flex: none`); en grid, el estiramiento por defecto de la celda.
-- **Texto:** rol tipográfico **`body-sm`** (`--g-text-body-sm-size`, `--g-text-body-sm-line`; 14px y peso normal en el tema por defecto) en **`--g-color-text-muted`** (≥ 4.5:1 sobre `surface` y `surface-sunken` por la regla de derivación, `tokens.md` §16; `text-subtle` queda a ~4.7:1 sobre la hundida y se descarta). Es contenido de frase en el orden de lectura, no un metadato; `caption` (12px, el mínimo) se reserva para metadatos e insignias. Sin color como único significado; no cambia con la densidad (`tokens.md` §4). Centrado al envolver; `overflow-wrap: anywhere`.
-- **Separación texto ↔ línea** y **mínimo de cada línea:** derivados de `space` en `GDivider.css` (alias locales `--_*`; kiwi usó `space × 3` y `space × 4`). No escalan con densidad.
+- **Texto:** rol tipográfico **`body-sm` completo** (`--g-text-body-sm-size`, `--g-text-body-sm-line`, `--g-text-body-sm-weight`, `--g-text-body-sm-tracking`; 14px en el tema por defecto) en **`--g-color-text-muted`** (≥ 4.5:1 sobre `surface` y `surface-sunken` por la regla de derivación, `tokens.md` §16; `text-subtle` queda a ~4.7:1 sobre la hundida y se descarta). Es contenido de frase en el orden de lectura, no un metadato; `caption` (12px, el mínimo) se reserva para metadatos e insignias. Sin color como único significado; no cambia con la densidad (`tokens.md` §4). Centrado al envolver; `overflow-wrap: anywhere`.
+- **Separación texto ↔ línea** y **mínimo de cada línea:** derivados de `space` en `GDivider.css` (alias locales `--_*`; coco: `space × 3` y `space × 4`). No escalan con densidad.
 - **Sin** hover, foco, pulsado, transición ni movimiento.
 
 ## Tokens
 
-**Consumidos (existentes):** `--g-border-width`, `--g-color-border`, `--g-color-border-control`, `--g-color-text-muted`, `--g-text-body-sm-size`, `--g-text-body-sm-line`, `--g-font-ui`, `--g-space-*`.
+**Consumidos (existentes):** `--g-border-width`, `--g-color-border`, `--g-color-border-control`, `--g-color-text-muted`, `--g-color-text` (solo con `prefers-contrast: more`), `--g-text-body-sm-size`, `--g-text-body-sm-line`, `--g-text-body-sm-weight`, `--g-text-body-sm-tracking`, `--g-font-ui`, `--g-space-*`.
 
-**Nuevo (uno):** `--g-divider-inset` (`tokens.md` §22, #191). Sin valor en este contrato.
+**Nuevo (uno):** `--g-divider-inset` (`tokens.md` §22, #191). Valor de coco en `defaults.css`: **`space × 2`** (#193).
 
 | Token | Para qué | Regla |
 | --- | --- | --- |
-| `--g-divider-inset` | Cantidad que acorta la línea con `inset="both"` (cada extremo) e `inset="start"` (el inicio), en ambas orientaciones | Valor por defecto en `defaults.css` (capa `grana.defaults`) **en `:root`**, derivado de `space` (lo fija coco; kiwi usó `space × 4`). **Se hereda**: una anfitriona lo redefine en su propio elemento (`.mi-lista { --g-divider-inset: … }`; una lista con icono, el relleno + icono + separación) y gana por cercanía. El divider **solo lo lee**; no lo declara en `GDivider.css`. No es de color: no se redeclara en el oscuro. No se multiplica por densidad |
+| `--g-divider-inset` | Cantidad que acorta la línea con `inset="both"` (cada extremo) e `inset="start"` (el inicio), en ambas orientaciones | Valor por defecto en `defaults.css` (capa `grana.defaults`) **en `:root`**, derivado de `space`: **`space × 2`** (coco, #193; **no** el `space × 4` del prototipo de kiwi). **Condición normativa del valor por defecto:** como es un solo token para las dos orientaciones y el vertical lo resta dos veces del alto de la fila, el valor por defecto debe dejar visible un vertical con `inset="both"` en una fila de `GBtn` `xs` (24px) y `sm` (28px): con `space × 2` mide 8 / 12 / 20 / 28px en filas `xs` / `sm` / `md` / `lg`; con `space × 4` mediría 0 / 0 / 4 / 12px (desaparece en silencio en `xs` y `sm`). **Se hereda**: una anfitriona lo redefine en su propio elemento (`.mi-lista { --g-divider-inset: … }`; una lista con icono, el relleno + icono + separación) y gana por cercanía. El divider **solo lo lee**; no lo declara en `GDivider.css`. No es de color: no se redeclara en el oscuro. No se multiplica por densidad |
 
 **Por qué un token y no una prop:** la cantidad depende del contexto (icono, relleno y densidad de la lista anfitriona), que el divider no conoce, y se usa en CSS; una prop numérica obligaría a repetir la medida en cada instancia y la desacoplaría de la anfitriona. **Por qué en `defaults.css` y no con `0px` en el componente** (diferencia con `--g-tabs-inset`, que vale cero sin anfitriona): `inset="both"` pedido sin anfitriona que lo defina debe acortar algo visible; un cero haría la prop inútil por defecto.
 
 **No son tokens** (§17.6): el tono `subtle`/`strong` (son semánticos existentes), la separación texto ↔ línea y el mínimo de línea (alias de coco desde `space`).
+
+**Ningún componente de Grana redefine `--g-divider-inset` (#195).** Es un token del tema (`defaults.css`), y `levels.test.js` ya impide que un componente redeclare un token del tema; los **consumidores** sí lo redefinen en sus anfitrionas. bruno añade a `levels.test.js` una **excepción nombrada** (un mapa de anfitrionas de `--g-divider-inset`, como `PUBLISHED`), **vacía** hoy, con una prueba que falle si una hoja fuera del mapa declara el token. El único candidato previsto es **`GFormSection/GFormSection.css` en la Fase 3**, y solo si su contrato lo pide (con las reglas reservadas de #192, la línea de la sección va **sin** inset y no lo necesita). Entrar en el mapa exige una decisión de lima.
 
 ## Avisos de desarrollo (`[Grana GDivider]`)
 
@@ -173,7 +176,10 @@ Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (n
 | 7 | Contenido en el slot por defecto | «usa label o el slot label» | No lo pinta |
 | — | Valor de enum fuera de lista | Validador de Vue | — |
 
-**Límite conocido (sin aviso en v0.1):** en una fila que **envuelve** (`flex-wrap`), un vertical puede quedar al principio o al final de una línea, separando nada; detectarlo exige medir (kiwi §6, §13).
+**Límites conocidos (sin aviso en v0.1):**
+
+- **Vertical que mide 0 por un inset de la anfitriona mayor que la mitad del alto de su fila** (#194; «Reglas de props», `inset`). **No lleva aviso:** detectarlo exige medir el alto del divider, y en el montaje ese alto también es 0 en contenedores ocultos legítimos (paneles de `GTabs` montados y ocultos, #78; diálogos cerrados; `hidden`), así que el aviso daría falsos positivos; además solo reflejaría el momento del montaje, no un cambio posterior de densidad o de tamaño. Lo cubren la condición del valor por defecto (#193), la nota de la regla y el README (mora-docs).
+- En una fila que **envuelve** (`flex-wrap`), un vertical puede quedar al principio o al final de una línea, separando nada; detectarlo exige medir (kiwi §6, §13).
 
 ## Verificación
 
@@ -184,14 +190,14 @@ Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (n
 - **Avisos 1 a 7**, cada uno una sola vez y solo en desarrollo; ninguno en los usos correctos (vertical en flex fila y en grid, también con `align-items: center`; horizontal en bloque y en columna flex).
 - **Sin foco:** Tab pasa de largo por todos los casos; ningún manejador de teclado ni puntero.
 - **Árbol de accesibilidad real** (Playwright en **Chromium, Firefox y WebKit**; `page.accessibility.snapshot()` o `getByRole('separator')`): separators con su orientación; decorativos ausentes; con texto, ningún `separator` y el texto presente; ningún separator con nombre salvo el que dé el consumidor.
-- **Medidas** (Playwright): alto del vertical = alto de contenido de la fila − 2 × inset, con botones `GBtn` reales de dos tamaños (32 y 44px), con `align-items: center`, también en RTL; inset `start` alineado con el texto de una lista anfitriona que redefine `--g-divider-inset` (±1px) en `default` y `compact`; texto largo a 200px envuelve sin recorte y con líneas ≥ su mínimo; 320px sin desborde, también en `dir="rtl"`.
-- `GDivider.meta.json` (`status: "draft"`), registro en `src/index.js` y `components.css`; `levels.test.js` y `check-icons.mjs` sin infracciones; consola limpia.
+- **Medidas** (Playwright): alto del vertical = alto de contenido de la fila − 2 × inset, con botones `GBtn` reales `sm`/`md`/`lg` (con el valor por defecto del token: 12 / 20 / 28px con `inset="both"`; sin inset, el alto del botón, 28 / 36 / 44px), con `align-items: center`, también en RTL; inset `start` alineado con el texto de una lista anfitriona que redefine `--g-divider-inset` (±1px) en `default` y `compact`; texto largo a 200px envuelve sin recorte y con líneas ≥ su mínimo; 320px sin desborde, también en `dir="rtl"`.
+- `GDivider.meta.json` (`status: "draft"`), registro en `src/index.js` y `components.css` (compuerta `grep -q "g-divider--labeled" packages/vue/dist/grana.css`); `levels.test.js` con el mapa vacío de anfitrionas de `--g-divider-inset` (#195) y `check-icons.mjs` sin infracciones; consola limpia.
 
 ### coco (auditoría con un tema distinto al de defecto)
 
 - `strong` ≥ 3:1 sobre `surface` y `surface-sunken`, en claro y oscuro; texto ≥ 4.5:1 sobre ambas, en claro y oscuro.
 - `forced-colors`: las tres formas de línea (hr, `::before`/`::after`, vertical) visibles.
-- **Coherencia de líneas internas** (hallazgo 7 de kiwi): hoy `GMenu` separa con `border-strong` y `GDialog`, `GTable` y el pie de `GCard` con `border`. `GDivider subtle` toma `border` (el de la mayoría); coco decide si `GMenu` se unifica o se justifica, para que un `GDivider` junto a un menú o un diálogo no tenga otro tono.
+- **Coherencia de líneas internas** (hallazgo 7 de kiwi): **resuelto sin unificar** (coco, `estilo.md`; confirmado por lima, #195). `--g-color-border` es la línea **entre secciones que ya tienen aire o título** (`g-dialog__section`, pies de `GDialog`, `GCard` y `GFormActions`, filas de `GTable`, línea base de `GTabs`): el papel de `GDivider subtle`, que dentro de un `GDialog` real da el mismo color calculado que su línea de sección. `--g-color-border-strong` es la línea **estructural dentro de un componente denso con relleno**, donde es la señal principal y compite con el relleno del elemento activo (separador de `GMenu`, cabecera de `GTable`). No chocan: `GDivider` no va dentro de `GMenu` (aviso 2) y el menú es una capa flotante; cuando un divider es la única señal, `strong` (`border-control`, ≥ 3:1) ya es más fuerte que `border-strong`. Regla escrita en `tokens.md` §22.
 - Zoom 200 % y escalas fraccionarias: la línea de 1px no desaparece ni se duplica.
 
 ### No verificado y pendiente
@@ -208,7 +214,7 @@ Lector de pantalla real (si anuncian «separador» en `hr` y en el vertical; si 
 | 4 | Avisos | 1 a 4 de kiwi + 5 (interactivo en el texto) + 6 (`tabindex`) + 7 (slot por defecto); el 2 amplía a roles de lista y menú | WAI-ARIA (hijos requeridos de `list`, `menu`) |
 | 5 | Inset | `--g-divider-inset`, uno para las dos orientaciones y para `both`/`start`, en `defaults.css` y heredado | #191; precedente #120 |
 | 6 | Tokens | Solo `--g-divider-inset`; el resto, existentes; texto `body-sm` + `text-muted` | §17.6 |
-| 7 | Líneas internas | Para coco (auditoría) | — |
+| 7 | Líneas internas | Sin unificar: `border` entre secciones con aire o título, `border-strong` estructural en un componente denso (coco; #195) | `estilo.md` de coco |
 | 8 | Contraste en oscuro | Para coco (auditoría) | #89 |
 | 9 | Guía de uso | Para mora-docs: regla de uso, requisito del vertical, cuándo `decorative`, no dentro de listas ni de `GMenu`, no entre `GFormSection` | — |
 

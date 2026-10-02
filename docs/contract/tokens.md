@@ -546,11 +546,17 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 
 | Token | Para qué | Regla |
 | --- | --- | --- |
-| `--g-divider-inset` | Cuánto se acorta la línea por cada extremo con `inset="both"` y por el inicio con `inset="start"`, en ambas orientaciones | Valor por defecto en `defaults.css` (capa `grana.defaults`) **en `:root`**, derivado de `space` (lo fija coco). **Se hereda**: una anfitriona lo redefine en su propio elemento y gana por cercanía; `GDivider.css` solo lo lee (no lo declara). No es de color: no se redeclara en el oscuro (§15). No se multiplica por densidad: si la cantidad depende de la densidad, la anfitriona la calcula con la suya |
+| `--g-divider-inset` | Cuánto se acorta la línea por cada extremo con `inset="both"` y por el inicio con `inset="start"`, en ambas orientaciones | Valor por defecto en `defaults.css` (capa `grana.defaults`) **en `:root`**: **`space × 2`** (coco, #193). Condición del valor por defecto: un solo token sirve a las dos orientaciones y el vertical lo resta **dos veces** del alto de la fila, así que debe dejar visible un vertical con `inset="both"` en filas de `GBtn` `xs` y `sm` (con `space × 4`, el del prototipo, mediría 0). **Se hereda**: una anfitriona lo redefine en su propio elemento y gana por cercanía; `GDivider.css` solo lo lee (no lo declara). No es de color: no se redeclara en el oscuro (§15). No se multiplica por densidad: si la cantidad depende de la densidad, la anfitriona la calcula con la suya |
 
 **Diferencia con `--g-tabs-inset`:** aquel vale `0px` sin anfitriona (una cabecera de pestañas no se sangra por defecto); este necesita un valor visible por defecto, porque `inset="both"` pedido sin anfitriona que lo defina debe acortar la línea.
 
-**No son tokens** (§17.6): el tono de la línea (`subtle` = `--g-color-border`; `strong` = `--g-color-border-control`, ≥ 3:1, #89), el grosor (`--g-border-width`), el texto (`--g-text-body-sm-*` en `--g-color-text-muted`), y la separación texto ↔ línea y el mínimo de cada línea (alias locales de coco derivados de `space`).
+**Límite de la anfitriona** (#194): un valor redefinido mayor que la mitad del alto de contenido de la fila deja el vertical con `inset="both"` en 0, sin aviso (medirlo daría falsos positivos en contenedores ocultos); lo documentan el contrato y el README.
+
+**Solo consumidores lo redefinen** (#195): ningún componente de Grana lo declara; `levels.test.js` lleva un mapa nombrado de anfitrionas, vacío, con `GFormSection` (Fase 3) como único candidato previsto y solo por decisión de lima.
+
+**No son tokens** (§17.6): el tono de la línea (`subtle` = `--g-color-border`; `strong` = `--g-color-border-control`, ≥ 3:1, #89; con `prefers-contrast: more`, las dos `border-control`), el grosor (`--g-border-width`), el texto (rol `body-sm` completo: `--g-text-body-sm-size`, `-line`, `-weight`, `-tracking`, en `--g-color-text-muted`; `--g-color-text` con `prefers-contrast: more`), y la separación texto ↔ línea y el mínimo de cada línea (alias locales de coco derivados de `space`).
+
+**Regla de líneas internas (#195; hallazgo 7 de kiwi, resuelto por coco sin unificar):** `--g-color-border` es la línea **entre secciones que ya tienen aire o título** (secciones y pies de `GDialog`, pies de `GCard` y `GFormActions`, filas de `GTable`, línea base de `GTabs`, `GDivider subtle`); `--g-color-border-strong` es la línea **estructural dentro de un componente denso con relleno**, donde es la señal principal (separador de `GMenu`, cabecera de `GTable`); cuando una línea es la **única** señal, `--g-color-border-control` (≥ 3:1, #89). Un componente nuevo elige por esta regla.
 
 **Límite:** como `--g-tabs-inset`, se resuelve por herencia y no en `:root` solamente (§10): una anfitriona que lo redefine afecta a todos los `GDivider` que contiene, también a los de un componente anidado que no lo redefina.
 
