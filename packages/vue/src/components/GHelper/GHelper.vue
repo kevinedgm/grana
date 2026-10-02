@@ -7,7 +7,7 @@
 import { defineComponent, h, ref, computed, watch, nextTick, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { placeAround, parsePlacement, viewport } from '../../utils/anchor.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GDialog from '../GDialog/GDialog.vue'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'

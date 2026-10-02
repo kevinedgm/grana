@@ -4,7 +4,7 @@
 // Representa y manipula tiempo; NO muta el modelo del consumidor: crear, mover y redimensionar emiten solicitudes.
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import CalendarEvent from './CalendarEvent.vue'
 import { CALENDAR_KEY } from './context.js'
 import { addDays, addMonths, dayKey, dow, formatDay, formatTime, minToHHMM, monthStart, toDate, weekStart, zoned } from './time.js'

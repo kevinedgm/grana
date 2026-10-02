@@ -4,7 +4,7 @@
 // Función de render: el contenido (texto, icono, ancla) se lee de los slots dentro del render, como pide Vue.
 import { Comment, Fragment, Text, defineComponent, h } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 // Un slot cuenta como contenido solo si devuelve algo (no comentarios ni texto vacío)
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))

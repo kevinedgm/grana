@@ -3,7 +3,7 @@
 // Contrato: design/contracts/widget.md · Estilo: GMetric.css (coco). La tendencia lleva símbolo y texto (nunca solo color).
 import { computed } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 defineOptions({ name: 'GMetric', inheritAttrs: false })
 

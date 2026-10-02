@@ -3,7 +3,7 @@
 // Contrato: design/contracts/switch.md · Estructura: design/lab/switch/r01/ · Estilo: GSwitch.css (coco)
 import { computed, mergeProps, nextTick, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GSwitch', inheritAttrs: false })

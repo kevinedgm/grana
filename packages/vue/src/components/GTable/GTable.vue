@@ -7,7 +7,7 @@ import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBefore
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { applyFilters } from '../../utils/filters.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GFilterBar from '../GFilterBar/GFilterBar.vue'
 import GPagination from '../GPagination/GPagination.vue'
 

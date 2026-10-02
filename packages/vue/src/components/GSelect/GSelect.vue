@@ -5,7 +5,7 @@
 // indica con aria-activedescendant.
 import { Comment, Fragment, Text, computed, mergeProps, nextTick, onBeforeUnmount, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })

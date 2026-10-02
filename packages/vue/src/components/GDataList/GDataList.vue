@@ -2,7 +2,7 @@
 // GDataList · lista compacta etiqueta–valor, también leyenda (primitiva de GWidget; dueño: bruno)
 // Contrato: design/contracts/widget.md · Estilo: GDataList.css (coco). Las muestras son tono + forma (0 a 3).
 import { computed } from 'vue'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 defineOptions({ name: 'GDataList', inheritAttrs: false })
 

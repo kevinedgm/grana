@@ -3,7 +3,7 @@
 // Contrato: design/contracts/btn.md · Estructura: design/lab/btn/r01/ · Estilo: GBtn.css (coco)
 import { computed, useAttrs, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 defineOptions({ name: 'GBtn', inheritAttrs: false })
 

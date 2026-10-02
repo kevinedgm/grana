@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "name": "GIcon",
+  "tag": "g-icon",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Icono de Lucide en línea: 1em y currentColor, decorativo por defecto o imagen con nombre con label; nunca enfocable. Dibuja la lista de la librería o los iconos que la aplicación registra con createIcons (cadenas de lucide-static, solo Lucide).",
+  "contract": "docs/contract/icons.md",
+  "prototype": "design/lab/icons/r01/",
+  "style": "packages/vue/src/components/GIcon/GIcon.css",
+  "props": [
+    { "name": "name", "type": "String", "required": true, "note": "Nombre canónico de Lucide (minúsculas con guiones). Resolución: registro más cercano → lista de la librería → nada y aviso" },
+    { "name": "label", "type": "String", "default": null, "note": "Sin valor o vacío: decorativo (aria-hidden). Con valor: role=\"img\" + aria-label" },
+    { "name": "filled", "type": "Boolean", "default": false, "note": "Rellena con currentColor (figuras de estado)" },
+    { "name": "flipRtl", "type": "Boolean", "default": false, "note": "Clase g-icon--flip-rtl: espejo horizontal solo con dirección efectiva RTL (iconos direccionales); nunca automático" }
+  ],
+  "events": [],
+  "slots": [],
+  "exports": [
+    { "name": "createIcons", "signature": "createIcons(icons: string[]) → plugin de Vue", "note": "Registro de iconos de la aplicación (app.use). Nombre derivado de la marca class=\"lucide lucide-<nombre>\" (alias como Unlock → lock-open). Validación estricta por texto, igual en desarrollo y producción: solo elementos de dibujo vacíos (path circle rect line ellipse polyline polygon) con atributos geométricos y fill none/currentColor; lo demás se rechaza entero. Un segundo registro en la misma app lo sustituye y avisa" },
+    { "name": "iconsKey", "signature": "InjectionKey", "note": "Para provide manual (pruebas, microfrontends, un subárbol con otro registro: lo sustituye entero)" }
+  ],
+  "classes": ["g-icon", "g-icon--filled", "g-icon--flip-rtl"],
+  "attributes": {
+    "fixed": ["xmlns", "viewBox=\"0 0 24 24\"", "fill", "stroke=\"currentColor\"", "stroke-width=\"2\"", "stroke-linecap=\"round\"", "stroke-linejoin=\"round\"", "focusable=\"false\""],
+    "decorative": ["aria-hidden=\"true\""],
+    "named": ["role=\"img\"", "aria-label"],
+    "ignored": ["role", "aria-*", "tabindex (avisan en desarrollo)", "los fijos (se ignoran en silencio)"],
+    "passthrough": ["class", "id", "data-*", "style"]
+  },
+  "warnings": [
+    "Nombre desconocido: no dibuja nada; el aviso dice cómo registrarlo",
+    "label con un antecesor aria-hidden (al montar, en el cliente): dibuja igual; el nombre se pierde",
+    "role, aria-* o tabindex como atributos: se ignoran",
+    "createIcons: entrada rechazada (con el motivo), argumento que no es arreglo, repetido con dibujo distinto, segundo registro en la misma app"
+  ],
+  "tokens": [],
+  "states": ["decorative", "named", "filled", "flip-rtl"],
+  "library": "docs/contract/icons.md §4 (API pública; scripts/icons.json, lista library)",
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real (VoiceOver, NVDA) con role=\"img\" en svg; forced-colors real",
+    "Poda con otros empaquetadores (webpack, Rollup puro, esbuild) y uso sin empaquetador (UMD/CDN): solo verificado con Vite",
+    "Tipos de TypeScript para los nombres (fuera de v0.2)"
+  ]
+}

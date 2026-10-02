@@ -5,7 +5,7 @@
 // widget mide. Dentro de un GWidgetGrid añade a su menú las acciones de la rejilla (provide/inject).
 import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 

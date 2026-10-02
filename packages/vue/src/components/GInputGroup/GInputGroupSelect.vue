@@ -4,7 +4,7 @@
 // Solo lectura: un <select> no admite readonly; se pinta <input type="text" readonly> con el TEXTO de la opción
 // elegida (enfocable y seleccionable, #165) más un <input type="hidden"> con el valor.
 import { computed, mergeProps, ref, useAttrs } from 'vue'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { isDev } from '../GForm/formContext.js'
 import { useInputGroupPart } from './inputGroupContext.js'
 

@@ -3,7 +3,7 @@
 // Contrato: design/contracts/input.md · Estructura: design/lab/input/r01/ · Estilo: GInput.css (coco)
 import { computed, mergeProps, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GInput', inheritAttrs: false })

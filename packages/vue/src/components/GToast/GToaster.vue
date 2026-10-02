@@ -9,7 +9,7 @@ import { fill } from '../../utils/template.js'
 import GSurface from '../GSurface/GSurface.vue'
 import GBtn from '../GBtn/GBtn.vue'
 import GBadge from '../GBadge/GBadge.vue'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { ANNOUNCE, INTERNAL, MOBILE_SPACES, SWIPE, matchesHotkey, toasterKey } from './toaster.js'
 
 defineOptions({ name: 'GToaster', inheritAttrs: false })

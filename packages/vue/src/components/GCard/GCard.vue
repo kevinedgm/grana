@@ -7,7 +7,7 @@
 import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GSurface from '../GSurface/GSurface.vue'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GBtn from '../GBtn/GBtn.vue'

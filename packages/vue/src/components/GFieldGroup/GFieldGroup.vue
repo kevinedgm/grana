@@ -6,7 +6,7 @@
 // su propia fila: dentro de una GFormRow con más hijos, avisa.
 import { computed, inject, onMounted, provide, ref, unref, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { isDev, layoutKey, messageIcon, nextFrame, useCompositeField, useFormField } from '../GForm/formContext.js'
 import GFormRow from '../GFormRow/GFormRow.vue'
 import { rowRoots } from '../GFormRow/rowEngine.js'

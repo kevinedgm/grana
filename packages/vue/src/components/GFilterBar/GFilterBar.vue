@@ -8,7 +8,7 @@ import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, in
 import { OPS, parseValue, summarize } from '../../utils/filters.js'
 import { placeAround, viewport } from '../../utils/anchor.js'
 import { fill } from '../../utils/template.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import GBtn from '../GBtn/GBtn.vue'
 import GDialog from '../GDialog/GDialog.vue'

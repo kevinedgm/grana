@@ -5,7 +5,7 @@
 // nombre completo por día. El valor es una cadena ISO (YYYY-MM-DD) o { start, end }; solo se emiten valores completos.
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'
 import { addDays, addMonths, daysBetween, daysInMonth, firstOfMonth, isISO, monthKey, parseISO, todayISO, weekday } from '../../utils/dates.js'
 

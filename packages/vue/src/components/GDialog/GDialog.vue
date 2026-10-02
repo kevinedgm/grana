@@ -5,7 +5,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs,
 import { oneOf } from '../../utils/oneOf.js'
 import { TABS_NEST } from '../../utils/tabs.js'
 import { transitionMs } from '../../utils/motion.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 defineOptions({ name: 'GDialog', inheritAttrs: false })
 

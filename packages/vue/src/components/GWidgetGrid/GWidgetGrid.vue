@@ -6,7 +6,7 @@
 // da con `order` mientras dura el movimiento; al confirmar, el DOM sigue al layout (el foco se restaura).
 import { computed, defineComponent, h, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, provide, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'

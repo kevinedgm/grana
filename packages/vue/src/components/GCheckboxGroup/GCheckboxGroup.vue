@@ -3,7 +3,7 @@
 // Contrato: design/contracts/checkbox.md · Estructura: design/lab/checkbox/r01/ · Estilo: GCheckboxGroup.css (coco)
 import { computed, defineComponent, mergeProps, provide, reactive, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import GCheckbox from '../GCheckbox/GCheckbox.vue'
 import { GROUP_KEY } from './groupKey.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'

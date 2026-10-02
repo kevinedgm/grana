@@ -4,7 +4,7 @@
 import { defineComponent, h, ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const toPx = (value) => {

@@ -3,7 +3,7 @@
 // Contrato: design/contracts/textarea.md · Estructura: design/lab/textarea/r01/ · Estilo: GTextarea.css (coco)
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GTextarea', inheritAttrs: false })

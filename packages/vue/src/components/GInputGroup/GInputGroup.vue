@@ -6,7 +6,7 @@
 // Partes: GInputGroupInput, GInputGroupSelect (<select> nativo, por el autocompletado) y GInputGroupText.
 import { computed, onMounted, provide, ref, shallowReactive, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { byDocument, isDev, layoutKey, messageIcon, useCompositeField, useFormField } from '../GForm/formContext.js'
 import { inputGroupKey } from './inputGroupContext.js'
 

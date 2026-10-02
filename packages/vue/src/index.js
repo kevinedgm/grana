@@ -43,18 +43,22 @@ import GFieldGroup from './components/GFieldGroup/GFieldGroup.vue'
 import GFormActions from './components/GFormActions/GFormActions.vue'
 import GErrorSummary from './components/GErrorSummary/GErrorSummary.vue'
 import GDivider from './components/GDivider/GDivider.vue'
+import GIcon from './components/GIcon/GIcon.vue'
 import { formKey, useFormField } from './components/GForm/formContext.js'
 import { createToaster, useToast, toasterKey } from './components/GToast/toaster.js'
+import { createIcons, iconsKey } from './components/GIcon/registry.js'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider }
+export { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
 // Formularios: composable para campos (de Grana y propios) y clave del contexto para `provide` manual (form.md §2)
 export { useFormField, formKey }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
 export { createToaster, useToast, toasterKey }
+// Iconos de la aplicación: registro por aplicación con cadenas de lucide-static (docs/contract/icons.md §5, #200)
+export { createIcons, iconsKey }
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider }
+const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

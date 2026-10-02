@@ -5,7 +5,7 @@
 import { computed, nextTick, reactive, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import GDialog from '../GDialog/GDialog.vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { fill } from '../../utils/template.js'
 
 defineOptions({ name: 'GWidgetGallery', inheritAttrs: false })

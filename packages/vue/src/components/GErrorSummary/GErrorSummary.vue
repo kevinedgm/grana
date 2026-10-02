@@ -4,7 +4,7 @@
 // Raíz enfocable (tabindex=-1) siempre presente (hidden sin errores) con role="alert" interior.
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, unref, useAttrs, useId, watch } from 'vue'
 import { fill } from '../../utils/template.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 import { formKey, isDev, revealAndFocus } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GErrorSummary' })

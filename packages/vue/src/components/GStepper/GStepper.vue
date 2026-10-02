@@ -5,7 +5,7 @@
 // La lista completa existe siempre (en compacto, oculta por el CSS) para poder medir su ancho natural (DECISIONS.md #151).
 import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
