@@ -26,6 +26,7 @@
 | hover | Solo en `button.g-stepper__hit`, dentro de `@media (hover: hover)`: subrayado de la etiqueta y, en hecho, relleno `strong` |
 | `:focus-visible` | Contorno de `--g-focus-width` con `--g-color-focus` y `--g-focus-offset` en cada paso navegable y en el botón de desplegar |
 | active | Escala de `--g-press-scale` en el indicador (160 ms, `--g-ease-out`, también al soltar), solo sin movimiento reducido |
+| entrada | Lista desplegada, contenido del paso e icono del indicador: fundido + desplazamiento de un paso de espacio (o escala 0.9 en el icono), 160 ms `--g-ease-out`, solo con `is-ready`; con movimiento reducido, solo fundido de 120 ms |
 | disabled | Es el paso bloqueado: candado, tono atenuado (exento de contraste, WCAG 1.4.3); no es botón |
 | loading | No aplica (el contrato no lo define) |
 | `prefers-reduced-motion` | Con `reduce`: sin escala al pulsar ni llenado animado; los fundidos de color (120 ms) se conservan |

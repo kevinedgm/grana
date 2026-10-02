@@ -1,6 +1,6 @@
 # 006 — Entradas de GStepper: lista desplegada del compacto, contenido del paso (vertical) y check
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: coco (`GStepper.css`). Sin tokens nuevos.
 - **Commit**: 49ad85b
 - **Severity**: MEDIUM
@@ -140,3 +140,7 @@ Entradas con **`@starting-style`** (los tres elementos son nodos nuevos al apare
   - Con `reducedMotion: 'reduce'`: las tres solo tienen `opacity`, 120 ms.
 - **Feel check**: DevTools > Animations al 10 %: la lista baja un poco desde el botón mientras aparece; el check «se asienta» en el círculo a la vez que este se rellena (plan 004/005), sin rebotar; abrir y cerrar la lista muy rápido no deja la lista a medio fundir.
 - **Done when**: las tres entradas existen solo con `is-ready`, duran 160 ms (120 ms y solo fundido con `reduce`) y no hay animación al cargar la página.
+
+## Nota de ejecución
+
+Ejecutado sin desviaciones. Verificado en los tres navegadores: sin animaciones al montar; lista del compacto, contenido vertical e icono con opacity+translate/scale de 160 ms (icono desde scale 0.9); con reduce solo opacity de 120 ms; la altura de la raíz es la final desde el primer cuadro (64 a 332 px sin animar layout). 2 bloques @starting-style.

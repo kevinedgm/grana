@@ -9,7 +9,7 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 003 | [Llenado continuo del conector, segmento y barra](003-gstepper-llenado-continuo.md) | GStepper | coco | HIGH | DONE |
 | 004 | [Indicador: anillo, pulsación reversible, línea y movimiento reducido](004-gstepper-transiciones-indicador.md) | GStepper | coco | MEDIUM | DONE |
 | 005 | [Continuidad del indicador al cambiar de botón a texto, e `is-ready`](005-gstepper-continuidad-indicador.md) | GStepper | bruno | HIGH | DONE |
-| 006 | [Entradas: lista del compacto, contenido vertical y check](006-gstepper-entradas.md) | GStepper | coco | MEDIUM | TODO |
+| 006 | [Entradas: lista del compacto, contenido vertical y check](006-gstepper-entradas.md) | GStepper | coco | MEDIUM | DONE |
 
 ## Auditoría de GStepper (commit 49ad85b)
 

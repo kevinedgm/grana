@@ -540,10 +540,48 @@ button.g-stepper__hit:focus-visible {
       --_stepper-fill var(--_t-slow) var(--g-ease-standard),
       transform var(--g-duration-press) var(--g-ease-out);
   }
+  /* Entradas (solo con is-ready: nada se anima al montar ni al elegir el primer tramo) */
+  .g-stepper.is-ready .g-stepper__compact > .g-stepper__list,
+  .g-stepper.is-ready .g-stepper__content {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-stepper.is-ready .g-stepper__indicator > .g-icon {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      scale var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-stepper.is-ready .g-stepper__compact > .g-stepper__list {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+    .g-stepper.is-ready .g-stepper__content {
+      opacity: 0;
+      translate: 0 var(--g-space-1);
+    }
+    .g-stepper.is-ready .g-stepper__indicator > .g-icon {
+      opacity: 0;
+      scale: 0.9;
+    }
+  }
 }
 /* Movimiento reducido: sin escala ni llenado animado; los fundidos de color se conservan (regla base) */
 @media (prefers-reduced-motion: reduce) {
   .g-stepper__step button.g-stepper__hit:active .g-stepper__indicator { transform: none; }
+  .g-stepper.is-ready .g-stepper__compact > .g-stepper__list,
+  .g-stepper.is-ready .g-stepper__content,
+  .g-stepper.is-ready .g-stepper__indicator > .g-icon {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  @starting-style {
+    .g-stepper.is-ready .g-stepper__compact > .g-stepper__list,
+    .g-stepper.is-ready .g-stepper__content,
+    .g-stepper.is-ready .g-stepper__indicator > .g-icon {
+      opacity: 0;
+    }
+  }
 }
 
 /* ---------- Área táctil ---------- */
