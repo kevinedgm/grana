@@ -12,3 +12,12 @@
   vertical-align: middle;
   overflow: visible;
 }
+
+/* flip-rtl (prop `flipRtl`, icons.md §2.5): espeja el dibujo en horizontal SOLO con la dirección efectiva RTL
+   (`:dir()`, no un atributo del propio icono). Es para iconos direccionales (flechas y chevrons de avance o retroceso);
+   nunca automático. Usa la propiedad individual `scale`, no `transform`: se compone con el `transform` o el `rotate`
+   que un hueco aplique al icono (el chevron que gira en un padre de GSidebar) en vez de pisarlo. El espejo interno
+   de cada componente (GCard «actual», GTabs, GCalendar, GDatePicker) sigue siendo suyo y no usa esta clase. */
+.g-icon--flip-rtl:dir(rtl) {
+  scale: -1 1;
+}

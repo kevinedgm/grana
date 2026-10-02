@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIcon público · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de docs/contract/icons.md §2.3 (GIcon decorativo y con label, clase g-icon--flip-rtl) y de
+     design/contracts/form.md §3 («Estructura»: __lead dentro de __heading, antes del hN, aria-hidden, solo con slot lead),
+     con el CSS real (GIcon.css, GFormSection.css). Como GIcon.vue aún no es público, la fábrica icon() imita lo que hará
+     bruno: atributos de la tabla §2.3, clases efectivas y nada más. Trazos de Lucide (design/lab/lucide-icons.js). No es documentación.
+       python3 -m http.server 4191  →  /design/lab/icons/estilo-banco.html   (desde la raíz del repo)
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?test=1
+     Verificación: node design/lab/icons/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GFormSection/GFormSection.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:96ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px;overflow-wrap:anywhere}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+  .cell{display:flex;flex-direction:column;min-inline-size:0}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .row{display:flex;align-items:center;gap:var(--g-space-3);flex-wrap:wrap;min-inline-size:0}
+  .narrow{inline-size:220px;max-inline-size:100%}
+  .ax{font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+  /* Clase de la aplicación (§2.2): gana al :where(.g-icon) sin !important */
+  .app-big{inline-size:48px;block-size:48px}
+  /* Hueco ficticio que gira su icono con transform (el caso que flip-rtl no debe pisar) */
+  .slot-t > .g-icon{inline-size:var(--g-space-6);block-size:var(--g-space-6);transform:rotate(90deg)}
+  .slot-r > .g-icon{inline-size:var(--g-space-6);block-size:var(--g-space-6);rotate:90deg}
+  .slot-big{--_icon:var(--g-space-8)}
+  .slot-big .g-icon{inline-size:var(--_icon);block-size:var(--_icon)}
+</style>
+</head>
+<body>
+<main>
+<h1>GIcon público · banco de estilo</h1>
+<p class="cap"><b>coco</b> · <code>GIcon.css</code> (regla <code>flip-rtl</code>) y <code>GFormSection.css</code> (<code>__lead</code>) con el CSS real. Un solo trazo de Lucide, <code>currentColor</code>, 1em por defecto; cada hueco fija su tamaño. Sin tokens nuevos.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <button type="button" id="t-rtl">RTL</button>
+  <label>Ancho <select id="t-w"><option value="">Completo</option><option value="320">320</option><option value="375">375</option></select></label>
+</div>
+
+<!-- 1 -->
+<h2 class="b" id="basic">1 · GIcon decorativo y con label</h2>
+<p class="cap">Decorativo (sin <code>label</code>): <code>aria-hidden="true"</code>. Con <code>label</code>: <code>role="img"</code> + <code>aria-label</code>, sin <code>aria-hidden</code>. Mismo aspecto: 1em del texto que lo rodea y <code>currentColor</code>.</p>
+<div class="grid">
+  <div class="cell"><p class="tag">decorativo · 1em en tres tamaños de texto, hereda el color</p><div class="host"><div class="row">
+    <span data-i='{"case":"deco-14","name":"lock","wrap":"font-size:14px"}'></span>
+    <span data-i='{"case":"deco-16","name":"lock","wrap":"font-size:16px"}'></span>
+    <span data-i='{"case":"deco-24","name":"lock","wrap":"font-size:24px;color:var(--g-color-accent)"}'></span>
+    <span data-i='{"case":"deco-filled","name":"circle","filled":true,"wrap":"font-size:16px;color:var(--g-color-text-muted)"}'></span>
+  </div></div></div>
+  <div class="cell"><p class="tag">con label · celda de estado sin texto</p><div class="host"><div class="row">
+    <span data-i='{"case":"label-1","name":"lock","label":"Bloqueado","wrap":"font-size:20px"}'></span>
+    <span data-i='{"case":"label-2","name":"circle-check","label":"Edición permitida","wrap":"font-size:20px"}'></span>
+  </div><pre class="ax" id="ax-out"></pre></div></div>
+  <div class="cell"><p class="tag">tamaño: clase de la aplicación (48px) y hueco con alias local</p><div class="host"><div class="row">
+    <span data-i='{"case":"app-class","name":"map-pin","cls":"app-big"}'></span>
+    <span class="slot-big" data-i='{"case":"slot-big","name":"map-pin"}'></span>
+  </div></div></div>
+</div>
+
+<!-- 2 -->
+<h2 class="b" id="flip">2 · flip-rtl: espejo solo en RTL</h2>
+<p class="cap">Icono direccional con <code>g-icon--flip-rtl</code> (<code>chevron-right</code>, <code>arrow-right</code>): en LTR se dibuja igual; con la dirección efectiva RTL (aunque venga de un antecesor) se espeja. Sin la clase, nunca. <code>check</code> con la clase no es un caso de uso real (el contrato dice «nunca automático»): se incluye para ver que la regla solo mira la clase. Los dos últimos casos son un hueco que gira su icono con <code>transform</code> y con <code>rotate</code>: la regla no los pisa.</p>
+<div class="grid">
+  <div class="cell"><p class="tag">LTR (dir="ltr")</p><div class="host" dir="ltr"><div class="row">
+    <span data-i='{"case":"ltr-chev-flip","name":"chevron-right","flip":true,"wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"ltr-chev-plain","name":"chevron-right","wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"ltr-arrow-flip","name":"arrow-right","flip":true,"wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"ltr-check-flip","name":"check","flip":true,"wrap":"font-size:24px"}'></span>
+  </div></div></div>
+  <div class="cell"><p class="tag">RTL (dir="rtl")</p><div class="host" dir="rtl"><div class="row">
+    <span data-i='{"case":"rtl-chev-flip","name":"chevron-right","flip":true,"wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"rtl-chev-plain","name":"chevron-right","wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"rtl-arrow-flip","name":"arrow-right","flip":true,"wrap":"font-size:24px"}'></span>
+    <span data-i='{"case":"rtl-check-flip","name":"check","flip":true,"wrap":"font-size:24px"}'></span>
+  </div></div></div>
+  <div class="cell"><p class="tag">dirección heredada de un antecesor lejano (RTL → LTR local)</p><div class="host" dir="rtl"><div class="row"><div dir="ltr" class="row">
+    <span data-i='{"case":"mixed-ltr","name":"arrow-right","flip":true,"wrap":"font-size:24px"}'></span>
+  </div><span data-i='{"case":"mixed-rtl","name":"arrow-right","flip":true,"wrap":"font-size:24px"}'></span></div></div></div>
+  <div class="cell"><p class="tag">se compone con el giro del hueco · RTL</p><div class="host" dir="rtl"><div class="row">
+    <span class="slot-t" data-i='{"case":"compose-transform","name":"chevron-right","flip":true,"wrap":"font-size:16px"}'></span>
+    <span class="slot-r" data-i='{"case":"compose-rotate","name":"chevron-right","flip":true,"wrap":"font-size:16px"}'></span>
+  </div></div></div>
+  <div class="cell"><p class="tag">en un botón con texto (GBtn append) · LTR y RTL</p><div class="host"><div class="row">
+    <button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Continuar</span><span class="g-btn__append" data-i='{"case":"btn-ltr","name":"arrow-right","flip":true}'></span></button>
+    <span dir="rtl"><button class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">متابعة</span><span class="g-btn__append" data-i='{"case":"btn-rtl","name":"arrow-right","flip":true}'></span></button></span>
+  </div></div></div>
+</div>
+
+<!-- 3 -->
+<h2 class="b" id="lead">3 · GFormSection: __lead con y sin icono</h2>
+<p class="cap">El hueco <code>lead</code> (<code>aria-hidden</code>) es el primer hijo de <code>__heading</code>, fuera del <code>hN</code>. Su caja mide el interlineado del título y centra el icono en la primera línea; el icono toma 1em del tamaño del título. Sin slot no existe el elemento ni queda aire.</p>
+<div class="grid">
+  <div class="cell"><p class="tag">sin lead · referencia</p><div class="host" data-s='{"case":"s-none","title":"Datos fiscales","desc":"Solo si el paciente pide factura."}'></div></div>
+  <div class="cell"><p class="tag">con lead (icono)</p><div class="host" data-s='{"case":"s-lead","title":"Datos fiscales","desc":"Solo si el paciente pide factura.","lead":"building-2"}'></div></div>
+  <div class="cell"><p class="tag">con lead + optional + acciones</p><div class="host" data-s='{"case":"s-full","title":"Contacto","desc":"Cómo avisamos al paciente.","lead":"mail","optional":true,"actions":true}'></div></div>
+  <div class="cell"><p class="tag">título largo en 220px: el icono se queda en la primera línea</p><div class="host"><div class="narrow" data-s='{"case":"s-long","title":"Información complementaria del domicilio fiscal del paciente","lead":"map-pin"}'></div></div></div>
+  <div class="cell"><p class="tag">título largo con insignia y sin descripción</p><div class="host"><div class="narrow" data-s='{"case":"s-long-badge","title":"Dirección de entrega alternativa","lead":"map-pin","optional":true}'></div></div></div>
+  <div class="cell"><p class="tag">RTL local</p><div class="host" dir="rtl" lang="ar" data-s='{"case":"s-rtl","title":"البيانات الضريبية","desc":"فقط إذا طلب المريض فاتورة.","lead":"building-2"}'></div></div>
+  <div class="cell"><p class="tag">dos secciones seguidas, una con lead y otra sin</p><div class="host"><div data-s='{"case":"s-a","title":"General","lead":"settings"}'></div><div data-s='{"case":"s-b","title":"Sin icono"}'></div></div></div>
+</div>
+</main>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Lo que hará GIcon.vue (icons.md §2.3): decorativo → aria-hidden; con label → role="img" + aria-label; clases efectivas */
+function icon(o) {
+  const filled = !!o.filled;
+  const cls = ['g-icon', filled ? 'g-icon--filled' : '', o.flip ? 'g-icon--flip-rtl' : '', o.cls || ''].filter(Boolean).join(' ');
+  const a11y = o.label ? ' role="img" aria-label="' + esc(o.label) + '"' : ' aria-hidden="true"';
+  return '<svg class="' + cls + '" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="' + (filled ? 'currentColor' : 'none') +
+    '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"' + a11y +
+    (o.case ? ' data-case="' + esc(o.case) + '"' : '') + '>' + window.LUCIDE_ICONS[o.name] + '</svg>';
+}
+$$('[data-i]').forEach((el) => {
+  const o = JSON.parse(el.dataset.i);
+  const svg = icon(o);
+  if (el.classList.contains('g-btn__append') || el.classList.contains('slot-t') || el.classList.contains('slot-r') || el.classList.contains('slot-big')) {
+    el.insertAdjacentHTML('beforeend', svg); delete el.dataset.i; return;
+  }
+  el.outerHTML = o.wrap ? '<span style="' + o.wrap + '">' + svg + '</span>' : svg;
+});
+
+/* Lo que hará GFormSection.vue (form.md §3, «Estructura»): __lead solo con slot lead, fuera del hN, aria-hidden */
+const badge = (t) => '<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-text"><span class="g-badge__text">' + esc(t) + '</span></span>';
+function section(o) {
+  return '<section class="g-form-section' + (o.optional ? ' g-form-section--optional' : '') + '" data-case="' + o.case + '"><div class="g-form-section__header"><div class="g-form-section__heading">' +
+    (o.lead ? '<span class="g-form-section__lead" aria-hidden="true">' + icon({ name: o.lead }) + '</span>' : '') +
+    '<h3 class="g-form-section__title">' + esc(o.title) + '</h3>' + (o.optional ? badge(o.lang === 'ar' ? 'اختياري' : 'Opcional') : '') + '</div>' +
+    (o.desc ? '<p class="g-form-section__description">' + esc(o.desc) + '</p>' : '') +
+    (o.actions ? '<div class="g-form-section__actions"><button class="g-btn g-btn--variant-ghost g-btn--color-brand g-btn--size-sm g-btn--density-default" type="button"><span class="g-btn__label">Copiar de…</span></button></div>' : '') +
+    '</div><div class="g-form-section__body"></div></section>';
+}
+$$('[data-s]').forEach((el) => { el.insertAdjacentHTML('beforeend', section(JSON.parse(el.dataset.s))); });
+
+/* Árbol esperado de la sección 1 */
+$('#ax-out').textContent = $$('[data-case^="deco"],[data-case^="label"]').map((d) => d.dataset.case + ' · role=' + (d.getAttribute('role') || '—') + ' aria-label=' + (d.getAttribute('aria-label') || '—') + ' aria-hidden=' + (d.getAttribute('aria-hidden') || '—')).join('\n');
+
+/* Controles */
+const q = new URLSearchParams(location.search);
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}';
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify'];
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'));
+function setTheme(v) {
+  $('#theme').textContent = v === 'test' ? TEST : '';
+  $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,';
+}
+$('#t-theme').onchange = (e) => setTheme(e.target.value);
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+$('#t-w').onchange = (e) => { $('main').style.maxInlineSize = e.target.value ? e.target.value + 'px' : ''; };
+const th = q.get('test') ? 'test' : (q.get('theme') || '');
+if (th) { $('#t-theme').value = th; setTheme(th); }
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+</body>
+</html>

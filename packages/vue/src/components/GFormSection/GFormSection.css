@@ -39,6 +39,10 @@
   min-inline-size: 0;
 }
 .g-form-section__heading {
+  /* Alias del hueco lead (los lee el propio lead y el título que lo sigue): el tamaño y el interlineado del título */
+  --_lead-size: var(--g-text-body-size);
+  --_lead-line: var(--g-text-body-line);
+
   grid-column: 1;
   grid-row: 1;
   display: flex;
@@ -46,6 +50,31 @@
   align-items: center;
   gap: var(--g-space-1) var(--g-space-2);
   min-inline-size: 0;
+}
+/* Hueco `lead` (#203): icono decorativo antes del título, fuera del hN (no entra en el nombre del encabezado).
+   Referencia: la PRIMERA línea del título. La caja del hueco mide el interlineado del título y centra el icono en
+   ella, y se ancla al borde de inicio de la fila (align-self), así que con un título de varias líneas el icono se
+   queda en la primera. El icono toma el tamaño del hueco: 1em del tamaño del título (--_lead-size), igual que el
+   hueco de GCard fija el suyo; manda sobre el 1em de GIcon y sobre una clase de la aplicación. Sin tokens nuevos. */
+.g-form-section__lead {
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--_lead-size);
+  block-size: var(--_lead-line);
+  font-size: var(--_lead-size);
+  line-height: var(--_lead-line);
+  color: var(--g-color-text-muted);
+}
+.g-form-section__lead > .g-icon {
+  inline-size: var(--_lead-size);
+  block-size: var(--_lead-size);
+}
+/* Con icono, el título nunca salta a otra fila dejándolo solo: su ancho máximo es el resto de la fila */
+.g-form-section__lead + .g-form-section__title {
+  max-inline-size: calc(100% - var(--_lead-size) - var(--g-space-2));
 }
 .g-form-section__title {
   margin: 0;
