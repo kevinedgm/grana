@@ -28,6 +28,11 @@
 @import url("../components/GCard/GCard.css");
 /* GToast: cada aviso es una GSurface floating (reasigna su relleno y su borde de inicio): va después de GSurface.css */
 @import url("../components/GToast/GToast.css");
+/* Captura de voz (speech.md): la pill flotante y el panel son GSurface floating (reasignan su relleno, radio y borde) y
+   los botones son GBtn: van después de GSurface.css y de GBtn.css */
+@import url("../components/GSpeechPill/GSpeechPill.css");
+@import url("../components/GSpeechHost/GSpeechHost.css");
+@import url("../components/GSpeechTrigger/GSpeechTrigger.css");
 @import url("../components/GHelperScope/GHelperScope.css");
 @import url("../components/GHelper/GHelper.css");
 @import url("../components/GAvatarMotion/GAvatarMotion.css");
