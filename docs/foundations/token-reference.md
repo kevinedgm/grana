@@ -78,6 +78,10 @@ El archivo `tokens.json` generado es la referencia de una configuración concret
 - Los umbrales de adaptación, el área táctil mínima y las técnicas de texto oculto no son tokens de tema.
 - Los componentes consumen `var(--g-*)` sin valores de respaldo; un token faltante es un tema incompleto, no una personalización válida.
 
+## Temas de demostración
+
+Consulta [Temas de demostración](../../examples/themes/README.md) para dos configuraciones contrastantes.
+
 ## Referencia exhaustiva
 
 Consulta el [Contrato de tokens](../contract/tokens.md) para nombres, derivaciones y reglas completas.
