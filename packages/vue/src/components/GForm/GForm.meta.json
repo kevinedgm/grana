@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "name": "GForm",
+  "tag": "g-form",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Formulario con contexto: decide cuándo se ven los errores que calcula la aplicación, envía, resume y mantiene el estado sucio. No valida ni guarda.",
+  "contract": "design/contracts/form.md",
+  "prototype": "design/lab/form/r01/",
+  "style": "packages/vue/src/components/GForm/GForm.css",
+  "props": [
+    { "name": "errors", "type": "Object", "default": "{}", "note": "{ [name]: String }, calculados por la aplicación" },
+    { "name": "warnings", "type": "Object", "default": "{}", "note": "Como errors, sin bloquear" },
+    { "name": "showErrorsOn", "type": "String", "default": "blur", "values": ["blur", "submit"] },
+    { "name": "marks", "type": "String", "default": "optional", "values": ["optional", "required"] },
+    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "readonly", "type": "Boolean", "default": false },
+    { "name": "disabled", "type": "Boolean", "default": false },
+    { "name": "headingLevel", "type": "Number", "default": 3, "values": [2, 3, 4, 5, 6] },
+    { "name": "dirty", "type": "Boolean", "default": false, "note": "v-model:dirty" },
+    { "name": "labels", "type": "Object", "default": "{}", "keys": ["optional", "requiredHint", "sectionOptional", "error", "warning", "valid"] }
+  ],
+  "events": [
+    { "name": "submit", "payload": "{ event, data: FormData, submitter, novalidate }", "trigger": "Envío sin errores que bloqueen, o con un submitter formnovalidate" },
+    { "name": "invalid", "payload": "{ event, errors: [{ name, message, id }] }", "trigger": "Envío con errores (orden del DOM; generales al final con id null)" },
+    { "name": "reset", "payload": "{ event }", "trigger": "Evento reset nativo (cancelado; estado limpio)" },
+    { "name": "update:dirty", "payload": "Boolean", "trigger": "Primera interacción (true) y reset (false)" }
+  ],
+  "slots": [
+    { "name": "default", "purpose": "Resumen, secciones, rejillas y pie" }
+  ],
+  "exposed": [
+    { "name": "showErrors", "purpose": "Revela todos y mueve el foco sin emitir invalid (errores del servidor)" },
+    { "name": "focusFirstError", "purpose": "Enfoca el primer control con error visible" },
+    { "name": "resetState", "purpose": "Limpia editados, revelados y dirty sin tocar valores" }
+  ],
+  "exports": ["useFormField", "formKey"],
+  "tokens": ["--g-form-section-gap", "--g-space-1"],
+  "publishes": ["--g-form-actions-size"],
+  "states": ["default", "readonly", "disabled", "sticky-actions"],
+  "pending": ["Lector de pantalla real: silencio off → polite al enviar, «(opcional)» en el nombre accesible", "Guardia beforeunload (guard) en la Fase 4"]
+}

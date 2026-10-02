@@ -35,4 +35,11 @@
 @import url("../components/GPagination/GPagination.css");
 @import url("../components/GFilterBar/GFilterBar.css");
 @import url("../components/GTabs/GTabs.css");
+/* Sistema de formularios (form.md): después de los campos (GFormGrid.css define las pistas de subgrid que leen) */
+@import url("../components/GForm/GForm.css");
+@import url("../components/GFormSection/GFormSection.css");
+@import url("../components/GFormGrid/GFormGrid.css");
+@import url("../components/GFieldGroup/GFieldGroup.css");
+@import url("../components/GFormActions/GFormActions.css");
+@import url("../components/GErrorSummary/GErrorSummary.css");
 @import url("../components/GIcon/GIcon.css");

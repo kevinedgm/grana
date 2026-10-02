@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "name": "GFormActions",
+  "tag": "g-form-actions",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Pie de acciones con jerarquía (primaria al final), región de estado y, opcionalmente, fijo sin tapar el foco.",
+  "contract": "design/contracts/form.md",
+  "prototype": "design/lab/form/r01/",
+  "style": "packages/vue/src/components/GFormActions/GFormActions.css",
+  "props": [
+    { "name": "sticky", "type": "Boolean", "default": false },
+    { "name": "status", "type": "String", "default": null },
+    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "note": "Por defecto la de GForm o default" }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "status", "purpose": "Estado rico (role=status)" },
+    { "name": "default", "purpose": "Botones GBtn: secundarias antes, primaria la última" }
+  ],
+  "tokens": ["--g-color-surface", "--g-color-border", "--g-space-1"],
+  "states": ["default", "stacked", "sticky"],
+  "pending": ["Lector real: orden del Tab en el pie apilado (#155)", "Auditoría: peso del pie apilado de 177px a 320px (#169)"]
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "name": "GErrorSummary",
+  "tag": "g-error-summary",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Resumen de errores con un enlace por pregunta y foco al aparecer (patrón GOV.UK).",
+  "contract": "design/contracts/form.md",
+  "prototype": "design/lab/form/r01/",
+  "style": "packages/vue/src/components/GErrorSummary/GErrorSummary.css",
+  "props": [
+    { "name": "errors", "type": "Array", "default": null, "note": "[{ name?, id?, message }]; sin valor dentro de GForm" },
+    { "name": "headingLevel", "type": "Number", "default": null, "values": [2, 3, 4, 5, 6], "note": "Por defecto el de GForm (3)" },
+    { "name": "labels", "type": "Object", "default": "{}", "keys": ["title"], "note": "title: String con {count} o Function(count)" }
+  ],
+  "events": [
+    { "name": "navigate", "payload": "{ name, id, event, preventDefault() }", "trigger": "Antes de llevar al campo; cancelable" }
+  ],
+  "slots": [],
+  "tokens": ["--g-color-danger-text", "--g-color-border"],
+  "states": ["hidden", "visible", "focus"],
+  "pending": ["Lector real: doble lectura (alert + foco)"]
+}
