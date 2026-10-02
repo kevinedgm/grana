@@ -139,7 +139,7 @@ Para que Grana sea navegable como una librería madura, cada componente debe ten
 5. **Accesibilidad**: teclado, foco, roles y anuncios.
 6. **Tema**: tokens que consume, sin exponer valores literales.
 7. **Patrones relacionados** y errores frecuentes.
-8. **Estado de estabilidad**: experimental, candidato o estable.
+8. **Estado de estabilidad**: draft, candidate o stable.
 
 Los README existentes de componentes son la base de este contenido. La tarea pendiente no es volver a redactarlos desde cero: es agregarlos a una navegación y convertir los ejemplos verificables en la cara pública de la librería.
 
