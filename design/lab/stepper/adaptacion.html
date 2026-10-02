@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GStepper · medición de adaptación</title>
+  <!-- Página de medición de coco: monta el GStepper real (dist) en contenedores de ancho fijo.
+       Parámetros: ?set=matrix|props · &scheme=light|dark · &theme=default|spotify|lustre · &dir=ltr|rtl
+       Servir desde la raíz del repo: python3 -m http.server 4191 → /design/lab/stepper/adaptacion.html -->
+  <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+  <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+  <link id="theme" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 16px; background: var(--g-color-canvas, Canvas); color: var(--g-color-text, CanvasText); font-family: var(--g-font-ui); }
+    .case { margin: 0 0 20px; outline: 1px dashed color-mix(in srgb, currentColor 25%, transparent); }
+    .case > p { margin: 0 0 6px; font: 11px/1.3 ui-monospace, monospace; opacity: .7; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../node_modules/vue/dist/vue.global.js"></script>
+  <script src="../../../packages/vue/dist/grana.umd.js"></script>
+  <script>
+    const q = new URLSearchParams(location.search)
+    const SET = q.get('set') || 'matrix'
+    const scheme = q.get('scheme') || 'light'
+    const theme = q.get('theme') || 'default'
+    document.documentElement.dataset.theme = scheme
+    document.documentElement.dir = q.get('dir') || 'ltr'
+    if (theme !== 'default') document.getElementById('theme').href = `../tema-oscuro/dark-color-presence/generated/${theme}.css`
+
+    const WIDTHS = (q.get('w') || '1200,960,720,600,480,360,320').split(',').map(Number)
+    const SHORT = ['Plan', 'Cuenta', 'Pago', 'Confirmación', 'Revisión', 'Envío', 'Fin']
+    const LONG = ['Selecciona tu plan de suscripción', 'Datos de acceso a la cuenta', 'Método de pago y facturación', 'Confirmación del pedido', 'Revisión final de los datos', 'Dirección de envío y entrega', 'Fin del proceso de alta']
+    const DESC = ['Elige tu plan', 'Datos de acceso', 'Tarjeta o transferencia', 'Revisa y acepta', 'Seguimiento', 'Dirección', 'Listo']
+    const LABELS = { complete: 'completado', current: 'paso actual', pending: 'pendiente', error: 'con error', warning: 'con advertencia', disabled: 'bloqueado', optional: 'opcional', progress: 'Paso {current} de {total}', showAll: 'Ver todos los pasos', hideAll: 'Ocultar pasos' }
+
+    const mkSteps = (n, text, desc, marks = false) => Array.from({ length: n }, (_, i) => {
+      const s = { id: 's' + i, label: (text === 'long' ? LONG : SHORT)[i] }
+      if (desc) s.description = DESC[i]
+      if (marks) {
+        if (i === 0) s.status = 'warning'
+        if (i === n - 3) s.optional = true
+        if (i === n - 2) s.status = 'error'
+        if (i === n - 1) s.disabled = true
+      }
+      return s
+    })
+
+    const cases = []
+    if (SET === 'matrix') {
+      for (const W of WIDTHS) for (const n of [3, 5, 7]) for (const text of ['short', 'long']) for (const desc of [true, false])
+        for (const indicator of ['number', 'dot', 'icon', 'segment', 'line'])
+          cases.push({ id: `${W}-${n}-${text}-${desc ? 'd' : 'nd'}-${indicator}`, W, n, text, desc, props: { indicator, modelValue: 's' + Math.floor(n / 2), ...(q.get('resp') ? { responsive: q.get('resp') } : {}) } })
+    } else {
+      for (const W of WIDTHS) {
+        const base = { n: 5, text: 'short', desc: true }
+        const variants = [
+          ['size-sm', { size: 'sm' }], ['size-lg', { size: 'lg' }],
+          ['density-compact', { density: 'compact' }], ['density-comfortable', { density: 'comfortable' }],
+          ['nav-free', { navigation: 'free' }], ['nav-back-last', { navigation: 'back', modelValue: 's4' }],
+          ['first-current', { modelValue: 's0' }], ['last-current', { modelValue: 's4' }],
+          ['marks', { modelValue: 's1' }, true], ['marks-dot', { indicator: 'dot', modelValue: 's1' }, true],
+          ['marks-line', { indicator: 'line', modelValue: 's1' }, true], ['marks-segment', { indicator: 'segment', modelValue: 's1' }, true],
+          ['long-current', { modelValue: 's2' }, false, 'long'],
+          ['vertical', { orientation: 'vertical', modelValue: 's2' }], ['vertical-long', { orientation: 'vertical', modelValue: 's2' }, true, 'long'],
+          ['never', { responsive: 'never', modelValue: 's2' }, false, 'long'], ['compact-forced', { responsive: 'compact', modelValue: 's2' }]
+        ]
+        for (const [name, props, marks, text] of variants)
+          cases.push({ id: `${W}-${name}`, W, ...base, text: text || base.text, marks: !!marks, props: { modelValue: 's2', ...props } })
+      }
+    }
+
+    const app = Vue.createApp({
+      data: () => ({ cases, LABELS }),
+      methods: { steps: (c) => mkSteps(c.n, c.text, c.desc, c.marks) },
+      template: `<div v-for="c in cases" :key="c.id" class="case" :data-case="c.id" :style="{ inlineSize: c.W + 'px' }">
+        <p>{{ c.id }}</p>
+        <g-stepper :steps="steps(c)" :labels="LABELS" v-bind="c.props" :aria-label="'Caso ' + c.id"></g-stepper>
+      </div>`
+    })
+    app.use(Grana).mount('#app')
+
+    // ---- Medición: invariantes que deben cumplirse en cualquier tramo ----
+    const px = (v) => parseFloat(v) || 0
+    const clipped = (el) => el.scrollWidth > el.clientWidth + 1
+    const shown = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width >= 1 && !el.closest('.g-stepper__status')
+    window.measure = () => {
+      const space = px(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1'))
+      return [...document.querySelectorAll('.case')].map((box) => {
+        const nav = box.querySelector('.g-stepper')
+        const cb = box.getBoundingClientRect()
+        const r = nav.getBoundingClientRect()
+        const mode = nav.classList.contains('g-stepper--is-compact') ? 'compact'
+          : nav.classList.contains('g-stepper--current-only') ? 'current-only'
+          : nav.classList.contains('g-stepper--condensed') ? 'condensed' : 'full'
+        const issues = []
+        // Desborde: nada del stepper sale de su contenedor
+        let maxR = r.right, minL = r.left
+        nav.querySelectorAll('*').forEach((el) => {
+          if (el.closest('.g-stepper__status') || getComputedStyle(el).display === 'none') return
+          const b = el.getBoundingClientRect()
+          if (b.width < 1) return
+          maxR = Math.max(maxR, b.right); minL = Math.min(minL, b.left)
+        })
+        if (maxR > cb.right + 1 || minL < cb.left - 1) issues.push(`desborde ${Math.round(Math.max(maxR - cb.right, cb.left - minL))}px`)
+        const steps = []
+        if (mode !== 'compact') {
+          nav.querySelectorAll(':scope > .g-stepper__list > .g-stepper__step').forEach((li, i) => {
+            const label = li.querySelector('.g-stepper__label')
+            const desc = li.querySelector('.g-stepper__description')
+            const opt = li.querySelector('.g-stepper__optional')
+            const conn = li.querySelector('.g-stepper__connector')
+            const ind = li.querySelector('.g-stepper__indicator')
+            const cur = li.classList.contains('is-current')
+            const s = {
+              i, cur,
+              label: shown(label) ? { w: Math.round(label.clientWidth), need: label.scrollWidth, clipped: clipped(label) } : null,
+              desc: shown(desc) ? { w: Math.round(desc.clientWidth), need: desc.scrollWidth, clipped: clipped(desc) } : null,
+              opt: shown(opt) ? { w: Math.round(opt.getBoundingClientRect().width), need: opt.scrollWidth } : null,
+              conn: shown(conn) ? Math.round(conn.getBoundingClientRect()[nav.classList.contains('g-stepper--vertical') ? 'height' : 'width']) : null,
+              ind: shown(ind) ? Math.round(ind.getBoundingClientRect().width) : null
+            }
+            steps.push(s)
+            if (cur && (!s.label || s.label.clipped)) issues.push(`título del actual ${s.label ? 'recortado' : 'oculto'} (paso ${i + 1})`)
+            if (s.label && s.label.clipped && s.desc) issues.push(`jerarquía invertida en paso ${i + 1} (título ${s.label.w}/${s.label.need}, descripción ${s.desc.w})`)
+            if (s.label && s.label.clipped && s.label.w < space * 12) issues.push(`título muñón en paso ${i + 1} (${s.label.w}px)`)
+            if (s.desc && s.label && s.desc.w > s.label.need + 1 && s.label.clipped) issues.push(`descripción más ancha que su título en paso ${i + 1}`)
+            if (s.opt && s.opt.w + 1 < s.opt.need) issues.push(`«opcional» recortado en paso ${i + 1}`)
+            if (s.conn !== null && s.conn < space * 6) issues.push(`conector corto en paso ${i + 1} (${s.conn}px)`)
+          })
+          // Texto visible fuera de lugar (p. ej. un «(» suelto): cualquier nodo de texto visible con menos de 2 caracteres legibles
+          nav.querySelectorAll('.g-stepper__text > span').forEach((sp) => {
+            if (!shown(sp)) return
+            if (sp.clientWidth > 0 && sp.clientWidth < space * 3 && sp.textContent.trim().length > 1) issues.push(`fragmento suelto «${sp.textContent.trim().slice(0, 12)}» (${sp.clientWidth}px)`)
+          })
+        } else {
+          const name = nav.querySelector('.g-stepper__summary-name')
+          if (!name || clipped(name)) issues.push('nombre del actual recortado en compacto')
+          const t = nav.querySelector('.g-stepper__toggle')
+          if (!t) issues.push('compacto sin botón')
+        }
+        return { id: box.dataset.case, W: Math.round(cb.width), mode, issues, steps, h: Math.round(r.height) }
+      })
+    }
+    window.ready = document.fonts.ready.then(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+  </script>
+</body>
+</html>

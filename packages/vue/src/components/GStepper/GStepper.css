@@ -28,6 +28,7 @@
   --_line: calc(var(--g-border-width) * 2);
   --_pad: calc(var(--g-space-1) * var(--_density));
   --_gap: calc(var(--g-space-2) * var(--_density));
+  --_conn: calc(var(--g-space-1) * 6); /* conector mínimo visible: nunca un guion */
   --_angle: 90deg;
 
   box-sizing: border-box;
@@ -51,10 +52,14 @@
 .g-stepper__step {
   position: relative;
   display: flex;
-  flex: 1 1 0;
-  min-inline-size: 0;
+  /* Cada paso parte de su ancho natural y el sobrante se reparte por igual entre los conectores.
+     Si falta sitio, el paso actual es el último en ceder (adaptación: auditoria-adaptacion.md) */
+  flex: 1 1 auto;
+  min-inline-size: calc(var(--_ind) + var(--_conn) + var(--_gap) * 2);
 }
-/* El último paso no lleva conector hacia nadie */
+.g-stepper__step.is-current { flex-shrink: 0.1; }
+/* El último paso no lleva conector hacia nadie: ocupa lo suyo y la fila llega al borde */
+.g-stepper__step:last-child { flex-grow: 0; min-inline-size: var(--_ind); }
 .g-stepper__step:last-child > .g-stepper__connector { display: none; }
 
 /* ---------- Paso: área de pulsación y texto ---------- */
@@ -62,7 +67,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--_gap);
-  min-inline-size: 0;
+  min-inline-size: var(--_ind);
   margin: 0;
   padding: var(--_pad) 0;
   border: 0;
@@ -84,21 +89,25 @@ button.g-stepper__hit:focus-visible {
   outline-offset: var(--g-focus-offset);
 }
 .g-stepper__text {
-  /* Etiqueta y «opcional» en la misma línea (la etiqueta cede con elipsis); la descripción, debajo */
-  display: grid;
-  grid-template-columns: minmax(0, max-content) max-content;
-  justify-content: start;
-  align-items: baseline;
+  /* Flujo de bloque: el ancho natural es el mayor entre «etiqueta + opcional» y la descripción, y al
+     estrecharse cada línea se recorta por su cuenta en el mismo ancho. Así la descripción nunca queda
+     más ancha que un título recortado (antes, una rejilla le cedía a la descripción la segunda columna).
+     «Opcional» pasa a la línea siguiente si no cabe junto a la etiqueta */
+  display: block;
   min-inline-size: 0;
+  max-inline-size: 100%;
 }
-.g-stepper__description { grid-column: 1 / -1; }
 .g-stepper__label {
+  display: inline-block;
+  max-inline-size: 100%;
+  vertical-align: top;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--g-color-text-muted);
 }
 .g-stepper__description {
+  display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -107,7 +116,9 @@ button.g-stepper__hit:focus-visible {
   color: var(--g-color-text-muted);
 }
 .g-stepper__optional {
+  display: inline-block;
   margin-inline-start: var(--g-space-1);
+  white-space: nowrap;
   font-size: var(--g-text-caption-size);
   font-weight: var(--g-text-caption-weight);
   color: var(--g-color-text-muted);
@@ -206,7 +217,7 @@ button.g-stepper__hit:focus-visible {
 .g-stepper__connector {
   flex: 1 1 auto;
   align-self: flex-start;
-  min-inline-size: calc(var(--g-space-1) * 4);
+  min-inline-size: var(--_conn);
   block-size: var(--_line);
   margin-block-start: calc(var(--_pad) + var(--_off) + (var(--_ind) - var(--_line)) / 2);
   margin-inline: var(--_gap);
@@ -218,8 +229,21 @@ button.g-stepper__hit:focus-visible {
   background: linear-gradient(var(--_angle), var(--_base) 35%, var(--g-color-border) 35%);
 }
 
-/* ---------- Adaptación: sin descripciones ---------- */
-.g-stepper--condensed .g-stepper__description { display: none; }
+/* ---------- Adaptación (tramos medidos por el .vue con los anchos naturales) ----------
+   completo → condensado (sin descripciones) → solo el actual con texto → compacto */
+.g-stepper--condensed .g-stepper__description,
+.g-stepper--current-only .g-stepper__description { display: none; }
+/* Solo el actual conserva texto visible: el resto queda como indicador y conector. El texto sigue
+   en el árbol de accesibilidad (patrón de texto oculto), así cada paso conserva su nombre */
+.g-stepper--current-only .g-stepper__step:not(.is-current) .g-stepper__text {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* ---------- Variante: puntos ---------- */
 .g-stepper--indicator-dot:not(.g-stepper--is-compact) {
@@ -252,6 +276,14 @@ button.g-stepper__hit:focus-visible {
   border-color: var(--g-color-warning);
   background: var(--g-color-surface);
 }
+
+/* ---------- Segmento y línea: pasos de igual ancho (salvo el actual cuando es el único con texto) ---------- */
+:is(.g-stepper--indicator-segment, .g-stepper--indicator-line):not(.g-stepper--is-compact) .g-stepper__step,
+:is(.g-stepper--indicator-segment, .g-stepper--indicator-line):not(.g-stepper--is-compact) .g-stepper__step:last-child {
+  flex: 1 1 0;
+  min-inline-size: var(--_conn);
+}
+:is(.g-stepper--indicator-segment, .g-stepper--indicator-line).g-stepper--current-only .g-stepper__step.is-current { flex: 0 0 auto; }
 
 /* ---------- Variante: línea (mínima) ---------- */
 .g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__list { gap: var(--_gap); }
@@ -347,6 +379,8 @@ button.g-stepper__hit:focus-visible {
   white-space: normal;
   text-overflow: clip;
 }
+/* En vertical el subrayado de error y advertencia no pisa la descripción */
+:is(.g-stepper--vertical, .g-stepper__compact) :is(.is-error, .is-warning) .g-stepper__label { padding-block-end: var(--g-space-1); }
 :is(.g-stepper--vertical, .g-stepper__compact) .g-stepper__connector {
   position: absolute;
   inset-inline-start: calc((var(--_ind) - var(--_line)) / 2);
@@ -427,6 +461,20 @@ button.g-stepper__hit:focus-visible {
   outline-offset: var(--g-focus-offset);
 }
 .g-stepper__compact .g-stepper__list { margin-block-start: var(--_gap); }
+
+/* ---------- Medición ----------
+   El .vue añade --measure (solo, con --condensed o con --current-only) durante una lectura síncrona
+   para conocer el ancho natural de la lista en cada tramo; nunca se pinta. Segment y line reparten
+   el ancho por igual, así que se miden a columnas iguales (la más ancha manda) */
+.g-stepper.g-stepper--measure > .g-stepper__list { inline-size: max-content; }
+.g-stepper.g-stepper--measure .g-stepper__step,
+.g-stepper.g-stepper--measure .g-stepper__step:last-child,
+.g-stepper.g-stepper--measure .g-stepper__step.is-current { flex: none; }
+.g-stepper.g-stepper--measure:is(.g-stepper--indicator-segment, .g-stepper--indicator-line):not(.g-stepper--current-only) > .g-stepper__list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
 
 /* ---------- Tamaños y densidad ---------- */
 .g-stepper--size-sm { --_units: 5; --_dot: calc(var(--g-space-1) * 2.5); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
