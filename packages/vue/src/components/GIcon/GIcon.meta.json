@@ -38,8 +38,6 @@
   "states": ["decorative", "named", "filled", "flip-rtl"],
   "library": "docs/contract/icons.md §4 (API pública; scripts/icons.json, lista library)",
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real (VoiceOver, NVDA) con role=\"img\" en svg; forced-colors real",
     "Poda con otros empaquetadores (webpack, Rollup puro, esbuild) y uso sin empaquetador (UMD/CDN): solo verificado con Vite",
     "Tipos de TypeScript para los nombres (fuera de v0.2)"
