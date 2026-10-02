@@ -13,6 +13,7 @@ Grana es una biblioteca de interfaz para Vue 3. Aporta componentes con comportam
 | Revisar requisitos y compatibilidad antes de instalar | [Requisitos y compatibilidad](getting-started/requirements.md) |
 | Resolver errores al instalar o tematizar | [Solución de problemas](getting-started/troubleshooting.md) |
 | Ver componentes piloto de acciones y formularios | [Button](components/button.md) · [Text Field](components/text-field.md) |
+| Ejecutar una integración completa de referencia | [Starter app](../examples/starter/README.md) |
 | Saber si Grana encaja en tu producto o compararlo con Vuetify | [Posicionamiento](foundations/product-positioning.md) |
 | Entender tokens, contratos, estados de madurez y versionado | [Vocabulario y versionado](foundations/governance.md) |
 | Crear y validar la identidad visual de una aplicación | [Tema y tokens](foundations/theming.md) |
