@@ -1,11 +1,11 @@
-# Contrato · Captura de voz · Fase 1 (gestor `createSpeech`, anfitrión `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`)
+# Contrato · Captura de voz · Fases 1 y 2 (gestor `createSpeech`, anfitrión `GSpeechHost`, `GSpeechTrigger`, `GSpeechPill`; F2: modelo `createTranscript`, `GTranscript`, destinos `useSpeechTarget`)
 
-**Dueño:** lima · **Estado:** aprobado (Fase 1) · CSS entregado por coco (commit a70f366; `GSpeechPill.css`, `GSpeechHost.css`, `GSpeechTrigger.css`; `design/lab/speech/estilo.md`, 47 070/47 070 en los tres motores) y reconciliado aquí (#227 a #229) · construido por bruno (commits 53537f7..832286c; `GSpeechHost.meta.json`, `GSpeechPill.meta.json`, `GSpeechTrigger.meta.json`, `status: draft`) y reconciliado aquí (#230 a #238) · pendiente: entrada separada `@grana/vue/speech` (#238, bruno) y auditoría de coco · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
-**Tags:** `g-speech-host` (anfitrión) · `g-speech-pill` (pill colocable) · `g-speech-trigger` (disparador) · **Categoría:** comunicación y estado (entrada de datos por voz)
+**Dueño:** lima · **Estado:** Fase 1 aprobada y auditada (auditoría de coco, commit 93f40d9) · **Fase 2 aprobada en contrato** (§20 a §32, DECISIONS #241 a #256, basada en `design/lab/speech/r02/`: kiwi, commit cd406d8; `declaracion.md` con 20 puntos, `index.html`, `verificar.mjs` 123/123 en Chromium), pendiente de coco y bruno · **F1:** CSS entregado por coco (commit a70f366; `GSpeechPill.css`, `GSpeechHost.css`, `GSpeechTrigger.css`; `design/lab/speech/estilo.md`, 47 070/47 070 en los tres motores) y reconciliado aquí (#227 a #229) · construido por bruno (commits 53537f7..832286c; `GSpeechHost.meta.json`, `GSpeechPill.meta.json`, `GSpeechTrigger.meta.json`, `status: draft`) y reconciliado aquí (#230 a #238) · pendiente: entrada separada `@grana/vue/speech` (#238, bruno) y auditoría de coco · **Basado en:** `design/lab/speech/r01/` (kiwi, commit c0e9edb; `brief.md` del usuario, `declaracion.md` con 15 puntos, `index.html` con la sesión, el anfitrión y el adaptador simulados, `verificar.mjs` 115/115 en Chromium) · **Compone:** `btn.md`, `surface.md` (`level="floating"`), `GProgress` (`widget.md`), `select.md`, `checkbox.md`, `GIcon` (`icons.md`) · **Patrón:** `toast.md` (servicio imperativo con región persistente; #140, #141, #143, #145) · **Convive con:** `toast.md` (borde compartido, §6.7), `dialog.md` (traslado al modal superior y Esc)
+**Tags:** `g-speech-host` (anfitrión) · `g-speech-pill` (pill colocable) · `g-speech-trigger` (disparador) · `g-transcript` (revisión, F2) · **Categoría:** comunicación y estado (entrada de datos por voz)
 
 Un **sistema de captura de voz y transcripción** pensado para información sensible: una **sesión compartida por aplicación** que sobrevive a cambios de pestaña, paso, acordeón o diálogo; un **indicador siempre visible** mientras el micrófono está en uso; transcripción **provisional y confirmada**; dictado directo a un campo y conversaciones largas con varios hablantes. **Grana no conoce el motor ni hace red:** la aplicación aporta un **adaptador** (Whisper, whisper.cpp, faster-whisper, diarización local…) y Grana pone la captura, el estado, la interfaz y la accesibilidad.
 
-Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de kiwi): DECISIONS.md **#207 a #211**; regla del usuario fijada en el brief («el audio no se conserva tras finalizar»): **#209**. Propuestas de kiwi aprobadas por derivar de estándar o de contratos vigentes: **#212 a #226**.
+Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de kiwi): DECISIONS.md **#207 a #211**; regla del usuario fijada en el brief («el audio no se conserva tras finalizar»): **#209**. Propuestas de kiwi aprobadas por derivar de estándar o de contratos vigentes: **#212 a #226**. **Fase 2:** decisión del usuario delegada **#241** (sin marca de «revisado»); propuestas de kiwi de la r02 aprobadas por derivar de estándar, con los nombres y tipos fijados por lima: **#242 a #256**.
 
 ---
 
@@ -30,7 +30,8 @@ Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de ki
 | Avisar del resultado de una acción | La captura de voz tiene sus propios canales vivos | `GToast` (los dos servicios conviven, §6.7) |
 | Reconocimiento de voz del navegador (`SpeechRecognition`, Web Speech API) | **Grana no lo usa**: en Chromium envía el audio a servidores externos | Si una aplicación lo quiere, lo envuelve en un adaptador con `location: 'remote'` y necesita `allowRemote: true` (#208, #218) |
 | Grabar audio para conservarlo (notas de voz, adjuntos) | La captura **no conserva** el audio tras finalizar (#209) | Fuera de alcance; componente propio si se pide |
-| Editar, reasignar hablantes, insertar en varios campos | Fase 2 | `GTranscript` y destinos registrados (§18) |
+| Editar, reasignar hablantes, insertar en varios campos | No es el panel de la F1 (solo lectura) | `GTranscript` y destinos registrados (Fase 2, §22 y §24) |
+| Tabla de datos con selección | `GTranscript` no es una tabla: necesita edición en la celda y una parada de tabulación (#244) | `GTable` |
 | Error de un campo | Va junto al campo | Mensajes de `GInput`/`GTextarea` |
 
 ## Fases (alcance de este contrato)
@@ -38,7 +39,7 @@ Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de ki
 | Fase | Contenido | Estado |
 | --- | --- | --- |
 | **F1 — Captura fiable y dictado** | Gestor + plugin + `useSpeech`; interfaz completa del adaptador y adaptador simulado; `GSpeechHost` (canales, pill flotante, panel, hoja, traslado al modal); `GSpeechTrigger` (dictado y conversación); `GSpeechPill`; los 13 estados y sus transiciones; nivel real; pausa, reanudación y finalización en 6 pasos; errores con sus cuatro respuestas; anuncios; dictado al cursor con deshacer propio; transcript de **solo lectura** en el panel (provisional frente a confirmado, hablante del motor); línea de privacidad; consentimiento opcional | **Este contrato** |
-| F2 — Revisión y destino | `GTranscript` editable, roles, selección, copiar, destinos registrados, capa `derived` | Reservado (§18) |
+| **F2 — Revisión y destino** | Modelo `createTranscript` con capas e historial; `GTranscript` (rejilla editable, solo selección, solo lectura, compacta); hablantes y roles; destinos ligados al modelo con deshacer; capa `derived` con los usos; revisión en la página o en el diálogo de respaldo del anfitrión | **Este contrato, §20 a §32** |
 | F3 — Robustez de producto | Recuperación tras cierre (opcional), kit de pruebas del audio temporal, selección de dispositivo, captura nativa y en segundo plano, transcript a pantalla completa en móvil, sesiones de horas | Reservado (§18) |
 
 ---
@@ -55,6 +56,9 @@ Decisiones del usuario delegadas («decide tú» sobre las recomendaciones de ki
 | `GSpeechHost` | Anfitrión: canales vivos, pill flotante de respaldo, panel y hoja móvil. Se monta **una vez**, lo más alto posible |
 | `GSpeechTrigger` | Disparador: dictado a un campo o conversación |
 | `GSpeechPill` | Pill **colocable** (cabecera, barra de herramientas). Opcional |
+| `GTranscript` (F2) | Vista de revisión de un transcript: rejilla editable, solo selección, solo lectura o compacta (§22). `app.use(speech)` también la registra (`<g-transcript>`); suelta, se importa como cualquier componente (#251) |
+| `createTranscript(data?)` (F2) | Crea un **modelo de transcript** (§21): el de la sesión (`speech.state.transcript`) es una instancia; con `data` (lo que guardó la aplicación con `toJSON()`) carga uno sin sesión (§25.4) |
+| `useSpeechTarget(target, options?)` (F2) | Registra un **destino** (§24) en el gestor mientras viva el componente que lo llama |
 
 **Entrada de pruebas** `@grana/vue/testing` (#216; bruno añade la exportación en `package.json` y la entrada en el build): `createSimulatedSpeechAdapter(options)` (§4.7). No viaja en el paquete principal.
 
@@ -107,7 +111,9 @@ createApp(App).use(speech).mount('#app')
 | `offset` | Object | `{ top?, bottom? }`: Number (px) o String (longitud CSS) | `{}` (función) | Reserva para una cabecera o barra fija de la app; se suma al margen y a `safe-area` (como `GToaster`) |
 | `guardUnload` | Boolean | | `true` | Con una sesión que no esté en `idle`, pide confirmación al salir (`beforeunload`) |
 | `wakeLock` | Boolean | | `true` | Mantiene la pantalla encendida **solo mientras se captura una conversación** (§3.6) |
-| `labels` | Object | §9 | `{}` (función) | **Sin valores por defecto** |
+| `labels` | Object | §9 y §27 | `{}` (función) | **Sin valores por defecto** |
+| `roles` (F2) | Array | `[{ id: String, label: String }]` | `[]` (función) | Lista de roles **de la aplicación** para asignar a los hablantes (§23.3; **sin roles por defecto**). Vacía: no hay selector de rol. `id` repetido: aviso y se ignora la repetición |
+| `speakerColors` (F2) | Number | `0` a `12` | `0` | Cuántas categorías de color define el tema de la aplicación (`categories` del CLI, `tokens.md` §16.3). Con `n > 0`, el hablante en la posición `k ≤ n` lleva además el color `cat-k` como **complemento** (§23.6, #247); con `0`, ningún color. Grana no puede saber cuántas `--g-color-cat-*` hay sin leer el tema, y un componente no usa valores de respaldo: por eso lo declara la aplicación |
 | `onComplete` | Function | `(transcript) => void` | sin valor | Al cerrar una sesión `completed` (`close()`, o cierre automático del dictado). Recibe `transcript.toJSON()` |
 | `onDiscard` | Function | `({ audioDeleted }) => void` | sin valor | Al descartar (§2.3) |
 | `onError` | Function | `(error) => void` | sin valor | Al entrar en `denied`, `unavailable` o `error`, y con cada fallo no fatal (`issues`). Recibe una copia del objeto de error (§4.5) |
@@ -139,7 +145,9 @@ Todos los métodos que cambian de estado devuelven **`Promise<boolean>`**: `true
 | `configure(patch)` | siempre | §1.1 |
 | `install(app)` | | Plugin de Vue: `provide(speechKey, speech)` |
 
-Propiedades de solo lectura: `state` (§1.3) y `capabilities` (las del adaptador, normalizadas, §4.2).
+Propiedades de solo lectura: `state` (§1.3), `capabilities` (las del adaptador, normalizadas, §4.2) y, en F2, **`targets`** (registro de destinos: `register(target) → unregister`, `list` reactiva de solo lectura; §24.2).
+
+Métodos nuevos en F2: `review()` (lo que hace «Revisar» del panel, §25.2: lleva a la superficie de revisión registrada o abre el diálogo de respaldo; devuelve `false` sin sesión de conversación o sin transcript).
 
 ### 1.3 Estado (`speech.state`, reactivo y de solo lectura)
 
@@ -166,7 +174,7 @@ Propiedades de solo lectura: `state` (§1.3) y `capabilities` (las del adaptador
 | `panelOpen` | Boolean | |
 | `activityHidden` | Boolean | «Ocultar actividad» (§12); dura lo que el gestor (no se guarda) |
 
-### 1.4 Transcript (datos; en F1 de solo lectura)
+### 1.4 Transcript (datos; forma estable entre fases)
 
 ```ts
 {
@@ -174,21 +182,29 @@ Propiedades de solo lectura: `state` (§1.3) y `capabilities` (las del adaptador
   mode: 'dictation' | 'conversation',
   createdAt: string,                           // ISO 8601
   expectedSpeakers: 1 | 2 | 'many',
-  speakers: Array<{ id: string }>,             // por orden de aparición; F2 añade role
+  speakers: Array<{
+    id: string,                                // opaco: del motor o generado por Grana; nunca se muestra
+    role: string | null,                       // F2: id de `roles` de la app, o null
+    mergedInto: string | null,                 // F2: id del hablante con el que se unió, o null
+    origin: 'engine' | 'user'                  // F2: lo trajo el motor o lo creó quien revisa
+  }>,                                          // por orden de aparición; la letra sale de la posición (estable)
   segments: Array<{
     id: string, t0: number, t1: number,        // ms desde el inicio del audio capturado
     literal: string,                           // del motor; inmutable tras el 'final' (el reintento de un fallido lo rellena)
-    engineSpeaker: string | null,              // del motor
-    corrected: null, speaker: null, removed: false,  // reservados para F2 (corrección del usuario); en F1 siempre así
+    engineSpeaker: string | null,              // del motor (solo el evento `speakers` lo cambia, §21.8)
+    corrected: string | null,                  // F2: null = igual al literal
+    speaker: string | null,                    // F2: null = el del motor
+    removed: boolean,                          // F2: borrado lógico
     failed: boolean
   }>,
   partial: { id: string, text: string, speaker: string | null } | null,   // uno solo; nunca en toJSON()
-  derived: [],                                 // reservado (#211): la aplicación añade sus derivados en F2
-  toJSON(): object                             // copia sin `partial`
+  derived: Array<{ id: string, kind: string, at: string, ... }>,           // #211: solo datos; F2: usos `kind: 'insert'` (§21.6)
+  toJSON(): object                             // copia sin `partial` y sin historial
+  // + operaciones del modelo (F2, §21.3 a §21.7)
 }
 ```
 
-El gestor es el **único** que escribe el transcript en F1. La forma es estable entre fases: F2 llena `corrected`, `speaker`, `removed`, `role` y `derived` sin cambiar el resto.
+En F1 el gestor es el **único** que escribe el transcript y `corrected`/`speaker`/`removed` valen siempre `null`/`null`/`false`. **La forma es estable entre fases** (#242): la F2 **llena** esos tres campos, **añade** `role`, `mergedInto` y `origin` a `speakers[]` y entradas a `derived[]`, y no cambia nada más. Un JSON de la F1 se carga en la F2 sin conversión (§21.9).
 
 ---
 
@@ -361,11 +377,11 @@ Capacidades inválidas (campo fuera de lista, `input` mal formado): la sesión p
 | `voice` | `{ speech: Boolean }` | Solo con `vad: true` |
 | `connection` | `{ state: 'lost' \| 'retrying' \| 'restored', attempt? }` | `lost` → `reconnecting` (captura viva con `offlineBuffer`, retenida sin él); `restored` → captura, o `paused` si estaba retenida |
 | `error` | `{ kind, fatal, segment?: { id, t0, t1 }, audio, retryable? }` | No fatal: entra en `issues` y el fragmento queda `failed`. Fatal: estado según §4.5 |
-| `speakers` | `{ relabel }` | **Reservado F2** (diarización revisada); en F1 se ignora sin aviso |
+| `speakers` | `{ relabel: Record<idDelMotor, idDelMotor> }` | **F2** (diarización revisada por el motor): cambia `engineSpeaker` de los fragmentos afectados y el hablante del provisional; **no** toca `speaker` del usuario ni el historial; un id nuevo se añade a `speakers[]` con `origin: 'engine'` (§21.8, #247) |
 | `level` | `{ value }` (0..1) | Solo con `input.format: 'self'` |
 | `capture` | `{ state: 'live' \| 'ended' \| 'muted' }` | Solo con `self`: `live` habilita la captura; `ended` → `unavailable`; `muted` → `error` (`interrupted`) |
 
-Un evento desconocido, o cualquier evento después de que `finish()`/`abort()` resolvieran, se ignora con aviso en desarrollo.
+Un evento desconocido, o cualquier evento después de que `finish()`/`abort()` resolvieran, se ignora con aviso en desarrollo. **Ids de hablante del adaptador** (`speaker` de `partial`/`final`, `relabel`): opacos, nunca se muestran; **no deben empezar por `user-`**, prefijo de los hablantes que crea quien revisa (§21.4; aviso en desarrollo).
 
 ### 4.5 Errores tipados: las cuatro respuestas del brief
 
@@ -487,7 +503,7 @@ Contenido en F1, en orden de lectura:
 | `__error` | Error en curso (título + texto compuesto, §9.3) y fallos no fatales (`issues`) |
 | `__progress` (solo `processing`) | `GProgress` determinado (`labels.progress`) |
 | `__controls` | Acciones según estado (tabla abajo); confirmación en línea de descarte |
-| `__transcript` | Título `h3` (`labels.transcript.title`) y lista de solo lectura (§6.5) |
+| `__transcript` | Título `h3` (`labels.transcript.title`) y lista de solo lectura (§6.5); **en conversación (F2), `GTranscript compact`** nombrado por ese título (§25.1) |
 
 | Estado | Acciones (en este orden) |
 | --- | --- |
@@ -500,7 +516,9 @@ Contenido en F1, en orden de lectura:
 | `processing` | ninguna |
 | `completed` | **Cerrar sesión** (`circle-check`; principal) · Descartar |
 
-Descartar y su confirmación van **sin icono** en F1 (`trash` queda reservado a F2). Botones: `GBtn` con las props de §13.1 (fijadas por coco).
+**F2, solo en conversación** (#249): captura, `reconnecting` y `paused` añaden al final **Revisar** (`labels.actions.review`, `file-pen-line`, secundaria); `completed` pasa a **Revisar transcripción** (`labels.actions.reviewCompleted`, `file-pen-line`, **principal**) · **Cerrar sesión** (`circle-check`, secundaria) · Descartar. El dictado no cambia (se corrige en el propio campo).
+
+Descartar y su confirmación van **sin icono** (también en F2: `trash` lo usa `GTranscript` para eliminar fragmentos, que es reversible; descartar la sesión no lo es y no comparte su icono). **Con usos** (inserciones vigentes en `derived`), la pregunta es `labels.actions.discardAskUsed` (plural, `{count}` = usos): dice que los textos insertados **se quedan** en los campos, porque ya son de la aplicación (#249). Botones: `GBtn` con las props de §13.1 (fijadas por coco).
 
 **Marcado del panel que el CSS necesita** (#229):
 - La raíz `.g-speech-panel` lleva los mismos `data-status`, `is-live` e `is-problem` que la pill.
@@ -515,6 +533,8 @@ Descartar y su confirmación van **sin icono** en F1 (`trash` queda reservado a 
 **Cierre ligero:** un `pointerdown` fuera del panel, de la pill y de los disparadores cierra el panel **sin mover el foco**. Tab no está atrapado (no modal).
 
 ### 6.5 Transcript en el panel (F1, solo lectura)
+
+**Desde la F2 esta lista solo se usa en dictado**; en conversación, el panel muestra `GTranscript compact` (§25.1). Las reglas de abajo siguen vigentes para el dictado.
 
 `<ol class="g-speech-transcript" aria-labelledby="…">`, un `li` por fragmento en orden de `t0`:
 
@@ -659,6 +679,8 @@ El disparador **no lleva la sesión**: si se desmonta (otra pestaña, un paso co
 
 ## 9. Textos (`labels`, sin valores por defecto; #226)
 
+Los textos de la Fase 2 (`speakerRole`, `actions.review*`, `actions.discardAskUsed`, `review.*` y `transcript.*` de la vista) están en **§27**.
+
 Marcadores con `utils/template.js` (`fill`). Las claves marcadas «plural» admiten **String** con `{count}` o **Function** `(count) => String` (plurales del idioma; como `counterText`, #51, y `GErrorSummary`). **Una Function recibe solo `count`**; su resultado pasa después por `fill` con el resto de marcadores, de modo que puede devolver `{time}` u otro marcador de la clave (#237; p. ej. `completedConversation: (n) => n === 1 ? '1 fragmento, {time}.' : '{count} fragmentos, {time}.'`). Falta una clave: **aviso en desarrollo la primera vez que se necesita**; los botones con icono **se dibujan igual** (la salida es obligatoria), los textos quedan vacíos.
 
 ### 9.1 Generales, pill, panel y disparador
@@ -773,7 +795,7 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 
 **Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_toaster-offset-*`): `--_speech-offset-top`, `--_speech-offset-bottom` (opción `offset`), `--_speech-bar` (nivel de cada barra, 0..1), `--_speech-x` y `--_speech-y` (posición física del panel, de `placeBlock`) y `--_speech-max-block` (alto disponible del panel). Con movimiento reducido, cada barra o segmento lleva además `data-on` (encendido o apagado).
 
-**Iconos** (`icons.md` §4; #224): los de §2.1, §6.4 y §7 — nuevos en la librería: `mic`, `mic-off`, `pause`, `circle-pause`, `audio-lines`, `captions`, `shield-question-mark`, `refresh-cw`, `unplug`, `rotate-ccw`, `globe` (comprobados como canónicos en `lucide-static` 1.49.0); ya en la librería: `circle`, `square`, `loader-circle`, `circle-alert`, `circle-check`, `chevron-down`, `x`, `triangle-alert`, `lock`. **Reservados para F2** (no entran hasta que un componente los use): `text-cursor-input`, `undo-2`, `trash`, `pencil`, `copy`.
+**Iconos** (`icons.md` §4; #224): los de §2.1, §6.4 y §7 — nuevos en la librería: `mic`, `mic-off`, `pause`, `circle-pause`, `audio-lines`, `captions`, `shield-question-mark`, `refresh-cw`, `unplug`, `rotate-ccw`, `globe` (comprobados como canónicos en `lucide-static` 1.49.0); ya en la librería: `circle`, `square`, `loader-circle`, `circle-alert`, `circle-check`, `chevron-down`, `x`, `triangle-alert`, `lock`. Los reservados para F2 (`text-cursor-input`, `undo-2`, `trash`, `pencil`, `copy`) **entran con la F2** junto con otros siete (§28.2, #253).
 
 ### 13.1 Composición de `GBtn` (fijada por coco, #229)
 
@@ -791,6 +813,8 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 | Disparador de dictado | `icon variant="ghost" color="neutral"` + `size`/`density` de sus props |
 | Disparador de conversación | `variant="outline" color="neutral"`, icono en `prepend`, + `size`/`density` |
 | `GProgress` del procesamiento | `color="neutral"` |
+| Panel F2: Revisar (captura, pausa, reconexión) | `size="md" variant="outline" color="neutral"`, `file-pen-line` en `prepend` (como las secundarias) |
+| Panel F2: Revisar transcripción (`completed`) | `size="md"`, sólido por defecto, `file-pen-line` en `prepend` (principal); Cerrar sesión pasa a `variant="outline" color="neutral"` |
 
 **Ningún `GBtn` de la captura usa `loading` ni `loadingText`** (#227): su `g-btn__status` queda vacío siempre.
 
@@ -824,6 +848,8 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 ---
 
 ## 15. Avisos de desarrollo
+
+(Los de la Fase 2, en §30.)
 
 Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, `console.warn` con prefijo `[Grana Speech]`, una vez por causa. **Nunca incluyen texto transcrito** ni datos del audio.
 
@@ -880,10 +906,641 @@ En producción no hay avisos ni comprobaciones extra (las reglas de seguridad �
 
 | Fase | Contenido | Nombres reservados |
 | --- | --- | --- |
-| **F2 — Revisión y destino** | `GTranscript` público (ve y edita **cualquier** transcript, también uno guardado; dentro del panel lo usa el anfitrión): corregido, eliminar/restaurar (borrado lógico), reasignar hablante (no toca `engineSpeaker`), roles por hablante (lista de la app, sin valores por defecto), selección, copiar, **destinos registrados** (`{ id, label, insert(text) → { undo() } }`, funcionan aunque el campo esté en otra pestaña) con inserción del corregido y deshacer, capa `derived` **solo como datos** (#211), evento `speakers.relabel` del adaptador, slots de contenido del panel | `GTranscript`, `createTranscript(data)`, `speech.targets.register()`, opción `roles`, operaciones `edit` `revert` `remove` `restore` `assignSpeaker` `setRole` `compose`; iconos `text-cursor-input`, `undo-2`, `trash`, `pencil`, `copy` |
-| **F3 — Robustez de producto** | Recuperación tras cerrar la aplicación (**opcional por app**, #210; audio y transcript cifrados en disco), kit de pruebas del contrato de audio temporal, selección de dispositivo (`enumerateDevices`, `devicechange`), captura `self` para envoltorios nativos y segundo plano, transcript a pantalla completa en móvil, sesiones de horas (lista virtualizada) | opción `recovery` |
-| Fuera de v0.1 | **Escuchar el audio de un fragmento** durante la revisión (#209: exigiría conservar el audio; si entra, ligado a `storesAudio` y con borrado al cerrar); interfaz propia para el contenido derivado (#211); un hueco de acción interactivo en `GTextarea`/`GInput` para colocar el disparador dentro de la caja (cambio de los contratos de campo; se decide con su ronda) | — |
+| ~~F2 — Revisión y destino~~ | **Especificada en §20 a §32** (#241 a #256). Cambio sobre lo que aquí se reservaba: los destinos son `{ id, label, get, set, … }` ligados al modelo, no `{ id, label, insert(text) → { undo() } }`, que queda como vía de escape (#248) | — |
+| **F3 — Robustez de producto** | Recuperación tras cerrar la aplicación (**opcional por app**, #210; audio y transcript cifrados en disco), kit de pruebas del contrato de audio temporal, selección de dispositivo (`enumerateDevices`, `devicechange`), captura `self` para envoltorios nativos y segundo plano, transcript a pantalla completa en móvil, sesiones de horas: **`GTranscript` virtualizado a partir de ~2 000 fragmentos** con `aria-rowcount`/`aria-rowindex`, aceptando sus pérdidas (buscar con Ctrl+F, selección de texto entre fragmentos lejanos; #250) | opción `recovery` |
+| Sin fase (se decide con su ronda) | **Slots de contenido del panel** (reservados en la F1; la r02 no los necesitó y no se diseñaron); `GRadioGroup` en la inserción en lugar de `GSelect` cuando exista (#181) | — |
+| Fuera de v0.1 | **Marca de «revisado»** (#241): Grana no certifica revisiones; queda reservada la opción **`requireReview`** (habilitaría insertar y cerrar solo tras marcarla, con fecha en los datos) si una aplicación la pide con su caso; **escuchar el audio de un fragmento** durante la revisión (#209: exigiría conservar el audio; si entra, ligado a `storesAudio` y con borrado al cerrar); interfaz propia para el contenido derivado (#211); un hueco de acción interactivo en `GTextarea`/`GInput` para colocar el disparador dentro de la caja (cambio de los contratos de campo; se decide con su ronda); arrastrar fragmentos a los campos (#248) | `requireReview` |
 
 ## 19. Preguntas de producto abiertas
 
-**Ninguna.** Las cinco de kiwi (§15 de la declaración) las resolvió el usuario por delegación (#207 a #211); el resto de propuestas de kiwi derivan de estándar o de contratos vigentes (#212 a #226).
+**Ninguna.** Las cinco de kiwi de la F1 (§15 de su declaración) las resolvió el usuario por delegación (#207 a #211). La única de la r02 (§20 de la declaración: ¿marca de «revisado»?) también, por delegación sobre la recomendación de kiwi: **no en v0.1** (#241). El resto de propuestas de kiwi derivan de estándar o de contratos vigentes (#212 a #226; F2: #242 a #256).
+
+---
+
+# Fase 2 · Revisión y destino
+
+**Basado en:** `design/lab/speech/r02/` (kiwi, commit cd406d8): `brief.md` (encargo de la ronda sobre el brief del usuario `r01/brief.md`), `declaracion.md` (20 puntos; §19 hallazgos para lima), `index.html` (modelo, `GTranscript`, registro de destinos y sesión simulada) y `verificar.mjs` (123/123 en Chromium, seis ejecuciones seguidas). **No reabre** ninguna decisión de la F1 (#207 a #240): solo llena lo reservado y añade. **Decisiones:** #241 (del usuario, delegada) y #242 a #256 (propuestas de kiwi aprobadas por derivar de estándar).
+
+## 20. Qué añade la Fase 2
+
+1. **Tres piezas, un modelo** (#242, #244, #248). (a) El **transcript es un modelo de datos con operaciones** (`createTranscript`, §21): capas, historial, composición y usos; `speech.state.transcript` es una instancia. (b) **`GTranscript`** (§22) es la **vista** que lo muestra y lo edita. (c) Los **destinos** (§24) son un registro de la aplicación (campos de su formulario) al que se inserta. Varias vistas del mismo transcript (panel, revisión en la página, diálogo de respaldo) **comparten el modelo y su historial**: una corrección en una aparece en las otras.
+2. **El literal del motor es intocable para el usuario.** Toda corrección vive en su propia capa y se puede deshacer o devolver al original.
+3. **Nada de la revisión es irreversible** (eliminar es lógico y todo se deshace): **sin confirmaciones** al eliminar ni al reasignar (WCAG 3.3.4, 3.3.6).
+4. **Grana no certifica revisiones** (#241), igual que no certifica el consentimiento (#207): no hay marca de «revisado» en v0.1.
+5. **Privacidad como en la F1:** sin red ni almacenamiento; el historial vive en memoria y **no** entra en `toJSON()`; **ningún anuncio, evento ni aviso de desarrollo lleva texto transcrito** (salvo las entradas de `derived`, que son datos de la aplicación y llevan el texto insertado).
+6. **Se reutiliza:** `GMenu` (menús de fila, de hablante, de copiar, de asignar y «Más»), `GBtn`, `GIcon`, `GCheckbox`, `GSelect`, `GDialog` (diálogo de respaldo), los canales del anfitrión (F1 #219) y las convenciones de `GTable` (`v-model:selected` con claves, «Seleccionar todo» mixto, tono de la fila seleccionada, apilado por ancho del contenedor).
+
+| Existente | Relación con la F2 |
+| --- | --- |
+| `GTable` | **No** se reutiliza: es una tabla de datos (`role="table"`, sin edición en celda, `table.md`). `GTranscript` necesita **edición en la celda y una sola parada de tabulación**: patrón rejilla de APG (#244). Copia sus convenciones |
+| `GMenu` | Todos los menús de `GTranscript` son `GMenu` (`menuitem`, `menuitemradio`, `menuitemcheckbox`) |
+| `GTextarea` | El editor de la celda es un `textarea` nativo con **la apariencia** de `GTextarea`, no un `GTextarea` completo (#252) |
+| `GDialog` | Diálogo de revisión de respaldo del anfitrión (§25.3) |
+| `GDataList` | No: es lectura clave/valor |
+| Lista del panel F1 (§6.5) | En **conversación** la sustituye `GTranscript compact`; en **dictado** no cambia |
+
+## 21. El modelo: `createTranscript(data?)` (#242, #243, #245)
+
+### 21.1 Crear
+
+`createTranscript(data?)` devuelve una instancia con la forma de §1.4 más las operaciones de este apartado. Sin `data`, un transcript vacío (`mode: 'conversation'`, `expectedSpeakers: 'many'`, `id` y `createdAt` generados). Es **estado puro**: crearlo no toca `document`, `window` ni `navigator` (SSR, §16). El gestor crea la instancia de cada sesión; la aplicación crea las suyas para cargar un transcript guardado (§21.9, §25.4).
+
+### 21.2 Capas
+
+| Capa | Campos | Quién escribe | Regla |
+| --- | --- | --- | --- |
+| **Literal** | `literal`, `engineSpeaker`, `t0`, `t1` | **Solo el motor** (`final`; `speakers.relabel` cambia `engineSpeaker`) | Inmutable para el usuario. Un `final` repetido de un fragmento confirmado se ignora (F1). Ninguna operación del usuario ni deshacer lo modifica |
+| **Corregido** | `corrected` (`null` = igual al literal), `speaker` (`null` = el del motor), `removed` (borrado lógico) | El usuario, **solo** con las operaciones del modelo (§21.4) | Guardar un texto **igual al literal** deja `corrected = null`. Guardar **vacío** no borra el texto: **equivale a eliminar** (`removed = true`, `corrected` intacto) |
+| **Derivado** | `derived[]` | Grana (usos `kind: 'insert'`, §21.6) y la aplicación (sus `kind`) | Solo datos (#211). **Nunca** reescribe las otras capas |
+
+- **Hablante efectivo** de un fragmento: `resolve(speaker ?? engineSpeaker)`, siguiendo `mergedInto` (§23.5). Si una asignación del usuario coincide con el hablante efectivo del motor, se guarda `speaker = null` (no es un cambio).
+- **«Corregido»** = `corrected !== null`. **«Hablante cambiado»** = `speaker !== null` y su resolución distinta de la del motor; se **calcula al mostrar**, así que un `relabel` del motor que acaba coincidiendo con la reasignación hace desaparecer la marca sin tocar los datos.
+- **Eliminado** se queda en su sitio (no se oculta, §22.5); se excluye de copiar, insertar y del recuento de «Todo».
+- **No se edita** un fragmento eliminado (primero «Restaurar»), fallido, ni el provisional (que no está en `segments`).
+- **Las diferencias no se guardan**: se calculan al mostrar (§22.9).
+
+### 21.3 Lectura
+
+| Miembro | Devuelve |
+| --- | --- |
+| `segment(id)` | El fragmento, o `undefined` |
+| `textOf(segment)` | `corrected ?? literal` |
+| `speakerOf(segment)` | Id del hablante efectivo, o `null` (sin hablante) |
+| `resolve(speakerId)` | Id final siguiendo `mergedInto` |
+| `letter(speakerId)` | Letra por **posición** en `speakers[]`: `A`…`Z`, luego `AA`, `AB`… Estable: unir, separar o añadir no reletra a nadie |
+| `visibleSpeakers()` | Hablantes no unidos que tienen fragmentos (o el provisional) o que creó el usuario |
+| `usesOf(segmentId)` | Entradas `kind: 'insert'` de `derived` que lo usan |
+| `compose(source, options)` | §21.7 |
+| `canUndo` · `canRedo` | Boolean |
+| `nextUndo` · `nextRedo` | Descriptor de la entrada que se desharía o reharía (`{ kind, ids, t0 }`) o `null`: lo usan los botones para su descripción («Deshacer: corrección de las 00:03») |
+| `onChange(callback)` | §21.10 |
+
+### 21.4 Operaciones del usuario (entran en el historial)
+
+Síncronas. **Nunca lanzan**: un id inexistente o una operación imposible devuelve `false`, no crea entrada en el historial y avisa en desarrollo (§30). Una operación que no cambia nada devuelve `false` sin entrada. Cada llamada es **una** entrada aunque toque varios fragmentos.
+
+| Operación | Hace | Devuelve |
+| --- | --- | --- |
+| `edit(id, text)` | Normaliza el espacio (colapsa blancos, sin saltos de línea: un fragmento es un párrafo; recorta). Igual al literal → `corrected = null`; vacío → `removed = true` | `'edited'` · `'emptied'` · `false` |
+| `revert(id)` | «Volver al original»: `corrected = null` **y** `speaker = null` (texto y hablante). No toca `removed` (para eso, `restore`) | Boolean |
+| `remove(ids)` · `restore(ids)` | Borrado lógico y su inverso. Ignora los fallidos | Boolean |
+| `assignSpeaker(ids, speakerId \| null)` | Cambia `speaker` (**nunca** `engineSpeaker`). `null` = volver al del motor. Un id unido se resuelve a su destino. Id inexistente → `false` | Boolean |
+| `assignNewSpeaker(ids)` | Crea un hablante (`origin: 'user'`) y le asigna los fragmentos, en **una** entrada (deshacer quita también el hablante) | Id nuevo · `false` |
+| `addSpeaker()` | Crea un hablante sin fragmentos (`origin: 'user'`) | Id nuevo |
+| `setRole(speakerId, roleId \| null)` | Rol del hablante (dato). El modelo no conoce la lista: un `roleId` que la vista no encuentra se muestra como sin rol (aviso en desarrollo) | Boolean |
+| `mergeSpeakers(fromId, intoId)` | `from.mergedInto = resolve(into)`; los unidos a `from` pasan a `into`; las reasignaciones del usuario hacia `from` se redirigen. **No** cambia `engineSpeaker`. Ciclo o `from === into` → `false` | Boolean |
+| `unmerge(speakerId)` | `mergedInto = null` (los fragmentos del motor vuelven a mostrarse con él) | Boolean |
+| `undo()` · `redo()` | §21.5 | `{ kind, ids, t0 } \| null` |
+
+Los ids que crea Grana para hablantes del usuario son **`user-1`, `user-2`…**, únicos en `speakers[]`. Un adaptador **no debe** usar ese prefijo para sus hablantes (§4.4; aviso en desarrollo si llega).
+
+### 21.5 Historial de la revisión (#243)
+
+1. **Vive en el modelo**, no en la vista: todas las vistas de un transcript comparten historial (deshacer en el panel deshace lo hecho en la página).
+2. **Tamaño:** `TRANSCRIPT_LIMITS.history` = 200 entradas (§26.4); al pasarse, se pierde la más antigua. Una operación nueva vacía la pila de rehacer.
+3. **Qué entra:** `edit`, `revert`, `remove`, `restore`, `assignSpeaker`, `assignNewSpeaker`, `addSpeaker`, `setRole`, `mergeSpeakers`, `unmerge`. Cada entrada guarda **instantáneas** de los campos del usuario (`corrected`, `speaker`, `removed`) de los fragmentos que toca y, si toca hablantes, de `speakers[]` (`role`, `mergedInto` y altas). **Deshacer restaura solo eso**: un fragmento o un hablante que llegó del motor después **no se pierde**; los hablantes que creó la operación se quitan.
+4. **Qué no entra:** eventos del motor (`final`, `partial`, `speakers`), selección, «Mostrar cambios», **inserciones en destinos** (su propio deshacer, §24.6: son otro documento, el formulario; mezclar las pilas haría que Ctrl+Z en la transcripción cambiara un campo que no se ve) y los derivados de la aplicación.
+5. **No se guarda en `toJSON()`**: al cargar un transcript guardado el historial empieza vacío. Las versiones intermedias de una corrección pueden ser sensibles y no aportan: literal y corregido bastan.
+6. Teclas, botones, foco y anuncios: §22.10 a §22.13.
+
+### 21.6 Capa derivada (`derived[]`)
+
+Solo datos (#211). **Uso por inserción** (lo escribe Grana; `kind: 'insert'` está **reservado**):
+
+```ts
+{
+  id: string,                      // generado, único en derived
+  kind: 'insert',
+  createdBy: 'user',
+  at: string,                      // ISO 8601
+  target: { id: string, label: string },
+  position: 'end' | 'cursor' | 'selection',
+  sourceSegmentIds: string[],
+  text: string,                    // texto exacto insertado
+  sources: Record<segmentId, string>   // texto de cada fragmento en ese momento
+}
+```
+
+- `sources` permite marcar **«Cambió después de insertarlo»** si el texto del fragmento (o su eliminación) cambia después. **El campo no se actualiza solo**: lo insertado ya es del usuario.
+- Deshacer una inserción (§24.6) **quita** su entrada de `derived` y con ella la marca «Usado en».
+- **La aplicación** añade los suyos con `addDerived(entry)` → copia guardada (con `id` generado si falta, `at` si falta, `createdBy: 'app'` si falta). `kind` obligatorio; **`kind: 'insert'` se rechaza** (devuelve `false` y avisa). `removeDerived(id)` quita uno de la aplicación (los `insert` solo se quitan deshaciendo la inserción: `false` y aviso). Ninguno de los dos entra en el historial.
+
+### 21.7 Composición: `compose(source, options)`
+
+`source`: `{ kind: 'all' }` · `{ kind: 'segments', ids }` · `{ kind: 'text', parts: [{ id, start, end, text }] }` (selección de texto, §22.8). `options`: `withSpeakers` (`false`), `withTimes` (`false`), `multiline` (`true`), `speakerName` (`(speakerId) => String`, **obligatoria con `withSpeakers`**: los textos son de la vista). Devuelve `{ text, ids }`.
+
+- Usa el **corregido**; excluye eliminados y fallidos.
+- En conversación agrupa fragmentos **seguidos del mismo hablante** en un **turno**; los turnos se separan con salto de línea (en dictado, con espacio).
+- `withTimes`: `[mm:ss] ` delante de cada turno (`h:mm:ss` desde una hora). `withSpeakers`: `Nombre: ` delante de cada turno; la vista da como nombre **el rol si es único** entre los hablantes visibles y, si no, la etiqueta completa («Familiar (C)», §23.2).
+- **Un trozo de texto (`kind: 'text'`) se compone tal cual**: es una cita; ignora `withSpeakers` y `withTimes`.
+- `multiline: false`: los saltos de línea pasan a espacios.
+
+### 21.8 Eventos del motor (internos)
+
+El gestor aplica los eventos del adaptador (§4.4) con métodos **internos** del modelo (no son API): `final` (inserta por `t0`; un `final` de un fallido lo rellena), fallo de fragmento, `partial` y **`speakers` `{ relabel }`** (#247): cambia `engineSpeaker` de los fragmentos afectados (capa literal) y el hablante del provisional; **no** toca `speaker` del usuario, el historial ni el editor abierto; un id nuevo entra en `speakers[]` con `origin: 'engine'`. Un `relabel` con un id `user-*` o hacia un hablante del usuario se ignora con aviso.
+
+### 21.9 Cargar un transcript guardado (`createTranscript(data)`)
+
+- Acepta lo que devolvió `toJSON()` en la **F1 o la F2**: los campos que faltan toman su valor inicial (`role: null`, `mergedInto: null`, `origin: 'engine'`, `corrected: null`, `speaker: null`, `removed: false`, `derived: []`).
+- `partial` se ignora. Los fragmentos se ordenan por `t0` (orden estable). Un id de fragmento repetido: se conserva el primero y avisa. Un hablante referido por un fragmento y ausente de `speakers[]` se añade (`origin: 'engine'`). Un `mergedInto` hacia un hablante inexistente o en ciclo pasa a `null` y avisa.
+- **Campos desconocidos** se ignoran y avisan en desarrollo: los datos propios de la aplicación van en `derived` con su `kind`, no en el transcript.
+- El **historial empieza vacío**.
+
+### 21.10 Reactividad y observación
+
+- La instancia se **lee reactivamente** (plantillas, `computed`, `watch` sobre `segments`, `speakers`, `derived`, `partial`); el mecanismo es de bruno, con la condición de §26 (un cambio repinta solo lo que cambia). **Se escribe solo con las operaciones**: escribir directamente no está soportado (en desarrollo, la instancia es de solo lectura y avisa).
+- **`onChange(callback)` → función para darse de baja.** `callback({ source, kind, ids })` tras cada cambio **salvo el provisional**: `source: 'user'` (operaciones de §21.4, `undo`, `redo`, `insert`, `undo-insert`), `'engine'` (`final`, `failed`, `relabel`) o `'app'` (`addDerived`, `removeDerived`). Pensado para el autoguardado de la aplicación. **Sin texto.**
+
+## 22. `GTranscript` (#244, #246)
+
+Vista pública de un transcript: el de la sesión o uno guardado. Patrón **rejilla de datos de APG** (`role="grid"`), **una fila por fragmento**, **una sola parada de tabulación** (foco itinerante). Motivo: es la colección de APG pensada para elementos con **selección múltiple y edición en la celda** con teclado completo; una lista con botones por fila daría unas 2 paradas por fragmento (600 con 300 fragmentos) y un `listbox` no admite controles dentro de las opciones. Riesgo aceptado: con lector de pantalla la rejilla activa el modo foco; leer de corrido sigue siendo posible en modo exploración (sin verificar con lector real, §31).
+
+### 22.1 Props
+
+| Prop | Tipo | Valores | Default | Regla |
+| --- | --- | --- | --- | --- |
+| `transcript` | Object | instancia de `createTranscript` (§21) | **obligatoria** | Sin ella: raíz vacía y aviso. Cambiarla en vivo vuelve a pintar la vista (la selección y el editor se vacían) |
+| `editable` | Boolean | | `true` | Editar, eliminar, restaurar, volver al original, cambiar hablante, roles, unir/separar, deshacer |
+| `selectable` | Boolean | | `true` | Columna de selección, «Seleccionar todo», acciones sobre la selección. `compact` la ignora |
+| `selected` | Array | ids de fragmento | `[]` (función) | `v-model:selected` (como `GTable`). Solo confirmados (también eliminados); el provisional y los fallidos no son seleccionables (se descartan con aviso). La selección es **de la vista**, no del modelo |
+| `compact` | Boolean | | `false` | §22.3. Lo usa el anfitrión en el panel |
+| `copy` | Boolean | | `true` | Con `false` no hay acciones de copiar ni se intercepta Ctrl+C ni el evento `copy` (aplicaciones que no quieren portapapeles) |
+| `targets` | Array | destinos (§24.1) | sin valor | Sin valor: los del gestor (`speech.targets.list`), si lo hay. Con valor: **solo esos** (uso suelto, sin gestor) |
+| `roles` | Array | `[{ id, label }]` | sin valor | Sin valor: la opción `roles` del gestor; sin gestor, `[]` (sin selector de rol) |
+| `diarization` | Boolean | | sin valor | Sin valor: si `transcript` es el de la sesión, `speech.capabilities.diarization`; si no, `true`. Con `false`: aviso visible en la vista y asignación manual (§23.7) |
+| `speakerColors` | Number | `0` a `12` | sin valor | Sin valor: la opción del gestor; sin gestor, `0` (§23.6) |
+| `labelledby` | String | id de un elemento | sin valor | **Nombre de la rejilla** (`aria-labelledby`) y destino de «Revisar» (§25.2). Recomendado: el título visible que pone la aplicación |
+| `label` | String | texto | sin valor | Nombre sin título visible (`aria-label`). Sin `labelledby` ni `label`: aviso |
+| `headingLevel` | Number | `2` a `6` | `3` | Nivel de los títulos internos (gestor de hablantes, inserción), como `GCard`/`GWidget` |
+| `maxHeight` | String | longitud CSS | sin valor | Alto máximo del área desplazable (como `GTable`; variable en línea `--_max-height`). Sin valor, la lista crece con la página |
+| `labels` | Object | forma de `createSpeech({ labels })` (§9, §27) | `{}` (función) | Se fusionan **por clave** sobre las del gestor; suelto, son las únicas. **Sin valores por defecto** |
+| `speech` | Object (gestor) | | el inyectado | Para los canales, los destinos, los roles y la superficie de revisión |
+
+Resto de atributos (`id`, `class`, `style`, `data-*`): a la raíz.
+
+### 22.2 Eventos, métodos y slots
+
+| Evento | Carga | Cuándo |
+| --- | --- | --- |
+| `update:selected` | ids | Cambia la selección |
+| `change` | `{ kind, ids }` | Tras una operación **iniciada en esta vista** (§21.4, también `undo`/`redo`). Para cambios de cualquier origen: `transcript.onChange` (§21.10) |
+| `insert` | entrada de `derived` (§21.6) | Tras insertar en un destino |
+| `undo-insert` | entrada de `derived` | Tras deshacer una inserción |
+| `copy` | `{ count, withSpeakers, withTimes }` | Tras copiar al portapapeles. **Sin texto** |
+
+**Métodos** (por `ref`): `focus()` (a la celda activa de la rejilla; en solo lectura, a la lista), `undo()` y `redo()` (lo mismo que los botones de la barra: anuncio y desplazamiento a la fila). **Sin slots en v0.1.**
+
+### 22.3 Modos
+
+| Modo | Props | Qué hay |
+| --- | --- | --- |
+| **Editable** (por defecto) | `editable` + `selectable` | Todo: selección, edición, hablantes, barra completa, ayuda de teclado, inserción (si hay destinos) |
+| **Solo selección** | `editable: false` | Rejilla con selección, copiar, «Ver original»/«Mostrar cambios» e inserción; **sin** edición, eliminar, cambio de hablante, gestor de hablantes ni deshacer |
+| **Solo lectura** | `editable: false`, `selectable: false` | **Lista simple** `<ol>` desplazable con `tabindex="0"` (como el panel F1): hora, hablante y texto corregido con sus marcas; sin barra ni inserción |
+| **Compacto** | `compact` (+ `editable`) | Sin columna de selección, sin inserción, sin gestor de hablantes y **sin la línea visible** de ayuda de teclado (la rejilla la conserva como descripción, oculta). Conserva editar, eliminar/restaurar, volver al original, cambiar hablante, deshacer/rehacer, copiar y «Mostrar cambios» |
+
+### 22.4 Estructura
+
+```html
+<div class="g-transcript" data-mode="edit" id="ID">                         <!-- data-mode: edit | select | read; + data-compact -->
+  <p class="g-transcript__note">El motor no distingue hablantes…</p>       <!-- solo sin diarización en conversación (§23.7) -->
+  <div class="g-transcript__bar" role="group" aria-label="Acciones de la transcripción">   <!-- §22.10 -->
+    <GCheckbox class="g-transcript__all" … />  <span class="g-transcript__count">3 seleccionados</span>  <GBtn …/> …
+  </div>
+  <div class="g-transcript__scroll" style="--_max-height: …">              <!-- contenedor de desplazamiento propio; no es tabulable -->
+    <div class="g-transcript__grid" role="grid" aria-labelledby="TITLE" aria-describedby="ID-kbd" aria-multiselectable="true">
+      <div class="g-transcript__head" role="rowgroup">
+        <div role="row">                                                    <!-- encabezados ocultos visualmente (texto oculto accesible) -->
+          <span role="columnheader">Selección</span><span role="columnheader">Hora</span>
+          <span role="columnheader">Hablante</span><span role="columnheader">Texto</span><span role="columnheader">Acciones</span>
+        </div>
+      </div>
+      <div class="g-transcript__body" role="rowgroup">
+        <div class="g-transcript__row is-corrected is-selected" role="row" aria-selected="true" data-id="SEGID">
+          <div class="g-transcript__cell g-transcript__cell--select" role="gridcell"><GCheckbox … tabindex="-1" /></div>
+          <div class="g-transcript__cell g-transcript__cell--time" role="rowheader"><time datetime="PT3S">00:03</time></div>
+          <div class="g-transcript__cell g-transcript__cell--speaker" role="gridcell">
+            <GBtn class="g-transcript__speaker" aria-haspopup="menu" aria-expanded="false" tabindex="-1">
+              <span class="g-transcript__mark" aria-hidden="true">A</span>Profesional (A)<span class="g-transcript__sr">, cambiar hablante</span>
+            </GBtn>
+          </div>
+          <div class="g-transcript__cell g-transcript__cell--text" role="gridcell" tabindex="0">   <!-- la única parada: tabindex="0" en una sola celda -->
+            <span class="g-transcript__text">Texto corregido…</span>
+            <span class="g-transcript__flags"><span class="g-transcript__flag g-transcript__flag--corrected"><svg class="g-icon" aria-hidden="true">pencil</svg>Corregido</span>…</span>
+            <div class="g-transcript__orig" hidden>…</div>                    <!-- original y cambios, §22.9 -->
+          </div>
+          <div class="g-transcript__cell g-transcript__cell--actions" role="gridcell">
+            <GBtn icon class="g-transcript__actions" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones del fragmento de las 00:03" tabindex="-1">ellipsis-vertical</GBtn>
+          </div>
+        </div>
+        <div class="g-transcript__row is-partial" role="row" data-id="SEGID">…</div>   <!-- provisional: última fila, §22.7 -->
+      </div>
+    </div>
+  </div>
+  <GBtn class="g-transcript__newer" hidden>3 fragmentos nuevos · Ir al final</GBtn>
+  <p class="g-transcript__kbd" id="ID-kbd">Teclado: …</p>                     <!-- hidden en compacto (sigue describiendo) -->
+  <section class="g-transcript__speakers" id="ID-speakers" aria-labelledby="ID-speakers-title" hidden>…</section>   <!-- §23.5 -->
+  <section class="g-transcript__insert" aria-labelledby="ID-insert-title">…</section>                               <!-- §24 -->
+  <div class="g-transcript__live" role="status" aria-live="polite" aria-atomic="true"></div>                          <!-- solo sin anfitrión (§22.12) -->
+</div>
+```
+
+- Vacío: **un `<p class="g-transcript__empty">`** (`labels.transcript.empty`) en lugar de la rejilla (la barra y la inserción no se pintan).
+- La celda que recibe el foco: el **control** si la celda tiene uno solo (casilla, botón de hablante, botón de acciones) y la **propia celda** en hora y texto (APG). `GCheckbox` y `GBtn` reciben `tabindex` por `$attrs` (van al `<input>` y al `<button>`).
+- **Solo lectura:** `<ol class="g-transcript__list" tabindex="0" aria-labelledby="…">` con `<li class="g-transcript__item">` y las mismas partes (`__time`, `__speaker` como texto, `__text`, `__flags`) y los mismos estados `is-*`.
+
+### 22.5 Columnas, estados de fila y marcas
+
+| Columna | Rol | Contenido | Cuándo |
+| --- | --- | --- | --- |
+| Selección | `gridcell` | `GCheckbox` (`labels.transcript.row.select` con `{time}`) | `selectable` y no `compact`. Vacía en el provisional y los fallidos |
+| Hora | **`rowheader`** | `<time>` `mm:ss` relativo al inicio del audio capturado | Siempre (el lector la dice al cambiar de columna) |
+| Hablante | `gridcell` | `GBtn` con marca de letra (`aria-hidden`), etiqueta y sufijo oculto `labels.transcript.row.changeSpeaker` → `GMenu` (§23.3). Sin `editable`: texto, sin botón | Conversación, **salvo** `expectedSpeakers === 1` sin que el motor distinga más de uno ni haya reasignaciones |
+| Texto | `gridcell` (enfocable) | Corregido + marcas + original/cambios, o el editor | Siempre |
+| Acciones | `gridcell` | `GBtn icon` `ellipsis-vertical` (`labels.transcript.row.actions` con `{time}`) → `GMenu` | Confirmados (no provisional ni fallidos) |
+
+**Estados de fila** (clases; además `aria-selected` en las seleccionables): `is-partial`, `is-corrected`, `is-speaker-changed`, `is-removed` (texto tachado), `is-failed`, `is-selected`, `is-editing`, `is-stale` (cambió después de insertarlo). Mientras haya cambio, la fila lleva sus marcas.
+
+**Marcas** (texto + icono, **nunca solo color ni solo estilo**, WCAG 1.4.1; en la celda de texto, **después** del texto):
+
+| Marca | Icono | Texto | Cuándo |
+| --- | --- | --- | --- |
+| Corregido | `pencil` | `labels.transcript.flags.corrected` | `corrected !== null` |
+| Hablante cambiado | `users` | `flags.speaker` (`{speaker}` = etiqueta del motor) | §21.2 |
+| Eliminado | `trash` | `flags.removed` | `removed` (además, tachado) |
+| Usado en | `text-cursor-input` | `flags.used` (`{targets}` = etiquetas unidas con coma) | Tiene usos |
+| Cambió después de insertarlo | `triangle-alert` | `flags.stale` | §21.6 |
+| Provisional | — | `labels.transcript.partialFlag` (F1) + prefijo oculto `partialPrefix` | Fila del provisional |
+| Fallido | `triangle-alert` | `labels.transcript.failed` (F1) | `failed` (sin casilla ni acciones; «Reintentar fragmento» sigue en el panel de la F1) |
+
+### 22.6 Edición en la celda (#244, #252)
+
+1. **Intro o F2** en la celda de texto o de hora (o doble clic en el texto, o «Editar texto» del menú de la fila) abren el **editor** dentro de la celda de texto: `role="group"` (`labels.transcript.editor.group` con `{time}`), `textarea` nativo con el **corregido** y el cursor al final (`editor.field` con `{time}` como nombre; descrito por el original y la ayuda), el **original del motor** debajo (`diff.original`), la ayuda `editor.hint` y los botones «Guardar» / «Cancelar» (`editor.save`, `editor.cancel`).
+2. **Intro guarda** (un fragmento no tiene saltos de línea) y el foco vuelve a la celda. **Esc cancela** sin guardar con `preventDefault()` + `stopPropagation()`: no cierra el panel, la hoja ni un `GDialog` (#143). Tab recorre `textarea` → Guardar → Cancelar.
+3. **Salir del editor guarda** (el foco va a otro elemento de la página): convención de las rejillas editables; evita borradores huérfanos y es reversible. **No** guarda si la ventana pierde el foco (cambiar de aplicación): el editor sigue abierto.
+4. Un editor a la vez por vista. No se edita un eliminado, el provisional ni un fallido.
+5. Resultado anunciado (§22.12): `announce.edited` · `announce.emptied` (vacío = eliminado) · nada si no cambió.
+6. **El editor nunca se repinta** mientras está abierto (§22.7).
+7. No se edita «en línea siempre» (un campo por fila): rompería la navegación de la rejilla y multiplicaría las paradas.
+
+### 22.7 Mientras llegan fragmentos
+
+1. **El provisional es su propia fila** (la última), con la clave del `id` de su fragmento: no se edita, no se selecciona y no cambia de hablante; marca visible y prefijo oculto (F1). Cuando llega su `final`, **la misma fila** pasa a confirmada en su sitio (si tenía el foco, lo conserva).
+2. **El editor nunca se repinta:** cada celda se reescribe solo si cambia lo que muestra; con el editor abierto, la celda de texto de ese fragmento queda **congelada** aunque cambie su hablante (`relabel`), sus marcas o el resto de la lista; insertar filas no mueve la fila editada en el DOM (no pierde el foco, el borrador ni el cursor).
+3. **Seguir el final:** la lista se desplaza sola al final **solo** si ya estaba al final (margen `TRANSCRIPT_LIMITS.followMargin`) y no hay foco en otra fila, editor ni menú abiertos (WCAG 2.4.11: nunca se saca de la vista lo enfocado). Si no, aparece **«N fragmentos nuevos · Ir al final»** (`labels.transcript.newer`, plural; `GBtn`; **no** es región viva), que lleva el foco a la última fila.
+4. Un `relabel` del motor con el editor abierto en otro fragmento no toca el borrador ni el foco.
+
+### 22.8 Selección y copia
+
+1. **Selección de fragmentos** (`v-model:selected`): casilla por fila (puntero y táctil, sin arrastre: WCAG 2.5.7); **Mayús+clic** en la casilla marca el rango desde la última marcada; teclado en §22.11; «Seleccionar todo» con estado mixto y contador visible (**no vivo**). Seleccionables: confirmados, también eliminados (para «Restaurar selección»).
+2. **Acción sobre la fila o la selección:** si la fila enfocada está seleccionada y hay más de una, Supr y el menú de hablante actúan sobre **toda la selección**; si no, sobre la fila.
+3. **Selección de texto** (ratón o selección nativa, dentro de uno o varios fragmentos): Grana la **mapea** a `{ id, start, end, text }[]` sobre el texto corregido (el texto de la fila es siempre el corregido, así que el mapeo es 1:1; los bloques de original y cambios y las marcas se excluyen). Una **selección nueva** pasa a ser la fuente de la inserción (§24.3); la elección manual de fuente se respeta mientras la selección no cambie. Espera de `selectionchange`: `TRANSCRIPT_LIMITS.selectionDebounce`.
+4. **Copiar** (`navigator.clipboard.writeText`, contexto seguro; `copy: true`): barra «Copiar» → `GMenu` con «Copiar texto» (`bar.copyText`) y «Copiar con hablantes y horas» (`bar.copyFull`), sobre la selección o, sin ella, todo; menú de fila «Copiar fragmento»; **Ctrl/Cmd+C** en la rejilla **sin** texto seleccionado copia las filas seleccionadas (o la enfocada). **Copia nativa** de un texto seleccionado en la vista: Grana intercepta `copy` y escribe **texto limpio** (sin horas, marcas, original ni prefijos ocultos). Fallo del portapapeles → `announce.copyFailed`.
+5. La composición es la de §21.7.
+
+### 22.9 Original y cambios
+
+- **«Ver original»** (menú de la fila, `menu.showOriginal` / `menu.hideOriginal`) y **«Mostrar cambios»** (barra, `GBtn` con `aria-pressed`, `git-compare`) muestran, **debajo del texto** y en un bloque aparte (`g-transcript__orig`): `diff.original` + el literal; `diff.changes` + la **diferencia por palabras** (literal → corregido; subsecuencia común más larga sobre palabras separadas por blancos) con `<del>` y `<ins>`, y `diff.originalSpeaker` si el hablante cambió.
+- Cada `<del>`/`<ins>` lleva su texto **envuelto en un prefijo y un sufijo ocultos**, sacados de `labels.transcript.diff.deleted` / `diff.inserted` (plantillas con `{text}`: lo que va antes de `{text}` es el prefijo y lo que va después, el sufijo), porque los lectores no anuncian `del`/`ins` de forma fiable. El tachado y el subrayado no son la única señal.
+- El texto principal de la fila es **siempre el corregido**: el bloque es complementario y no participa en la selección de texto ni en la copia.
+- Por encima de `TRANSCRIPT_LIMITS.diffCells` (producto de palabras de ambos textos) la diferencia se muestra como un solo `<del>` del literal y un `<ins>` del corregido (el cálculo no bloquea la página).
+
+### 22.10 Barra (#255)
+
+`role="group"` (`labels.transcript.bar.label`). Botones `GBtn` (§28.3), en este orden, según el modo:
+
+| Control | Cuándo | Detalle |
+| --- | --- | --- |
+| «Seleccionar todo» (`GCheckbox`, mixto) + contador | `selectable`, no `compact` | Contador `bar.count` (plural) o `bar.countNone`; no es región viva |
+| «Asignar hablante» → `GMenu` | `selectable` + `editable`, no `compact`, en conversación | Sobre la selección; `menuitemradio` por hablante + «Nuevo hablante» |
+| «Eliminar selección» / «Restaurar selección» | `selectable` + `editable`, no `compact` | El nombre cambia según la selección (si todos están eliminados, restaurar) |
+| «Deshacer» · «Rehacer» | `editable` | `aria-keyshortcuts` (`Control+Z` · `Control+Shift+Z`; en Mac, `Meta+…`), descripción oculta `bar.undoWhat` / `bar.redoWhat` con `{what}` (`history.*`) o `bar.nothingUndo` / `bar.nothingRedo`; con la pila vacía, **`aria-disabled="true"`** (siguen enfocables; #236) |
+| «Copiar» → `GMenu` | `copy` | §22.8 |
+| «Mostrar cambios» | siempre (salvo solo lectura) | `aria-pressed` |
+| «Hablantes» | `editable`, no `compact`, en conversación | Disclosure (`aria-expanded`, `aria-controls` → `__speakers`) |
+
+**Contenedor estrecho** (C3 de kiwi): cuando el ancho de la raíz baja de `space × 120` (medido en ejecución con el valor de `--g-space-1`, como el umbral de la hoja de la F1), **Copiar, Mostrar cambios y Hablantes** pasan a un `GMenu` **«Más»** (`bar.more`, `chevron-down` como «Más» de `GTabs`): «Copiar texto» y «Copiar con hablantes y horas» como `menuitem`, «Mostrar cambios» como `menuitemcheckbox`, «Hablantes» como `menuitem` que abre el gestor y lleva el foco a su título. El umbral lo confirma coco en su auditoría.
+
+Debajo de la rejilla, la **línea de ayuda de teclado** visible (`labels.transcript.keyboard`), referida por `aria-describedby` de la rejilla.
+
+### 22.11 Teclado (rejilla; APG *data grid*)
+
+| Tecla | Acción |
+| --- | --- |
+| Tab / Mayús+Tab | Entra y sale de la rejilla (**una** parada); en el editor, recorre `textarea` → Guardar → Cancelar |
+| ↑ ↓ | Fila anterior / siguiente, misma columna |
+| ← → | Columna anterior / siguiente (lógicas: en RTL, invertidas) |
+| Inicio / Fin | Primera / última columna de la fila |
+| Ctrl+Inicio / Ctrl+Fin | Primera / última fila |
+| RePág / AvPág | `TRANSCRIPT_LIMITS.pageRows` filas |
+| Intro / F2 | Texto u hora: editar. Hablante o acciones: abre su menú (nativo del botón). Casilla: nada |
+| Espacio | Casilla: marca. Otra celda: alterna la selección de la fila |
+| Mayús+Espacio · Mayús+↑/↓ | Alterna la fila · amplía la selección |
+| Ctrl/Cmd+A | Selecciona todo; otra vez, nada (anuncia el resultado) |
+| Supr / Retroceso | Elimina (o restaura, si ya lo estaba) la fila o la selección |
+| Ctrl/Cmd+Z · Ctrl/Cmd+Mayús+Z · Ctrl+Y | Deshacer · rehacer, **solo con el foco en la rejilla y fuera del editor** (en el `textarea` manda el deshacer nativo del texto) |
+| Ctrl/Cmd+C | Sin texto seleccionado: copia la selección o la fila |
+| En el editor: Intro · Esc | Guardar · cancelar |
+| En un menú | `GMenu` (APG): ↑ ↓ Inicio Fin, Intro/Espacio elige, Esc cierra y vuelve al botón (sin cerrar panel ni diálogo), Tab cierra |
+
+**Sin atajos de una sola tecla fuera de la rejilla** (WCAG 2.1.4: los de la rejilla solo actúan con ella enfocada). Con `event.isComposing` no se trata ninguna tecla (IME). Siempre hay **un solo** `tabindex="0"` en la rejilla.
+
+### 22.12 Lector de pantalla y anuncios (WCAG 4.1.3)
+
+1. **Nombres:** rejilla con `labelledby`/`label` y descrita por la ayuda de teclado; `aria-multiselectable` con selección; cabecera de fila = hora; botones de fila con la hora del fragmento en el nombre; editor nombrado y descrito por el original.
+2. **Canal:** dentro de una sesión (el transcript es el de `speech.state.transcript` y hay anfitrión), `GTranscript` **usa los canales del anfitrión** (F1 #219: un solo par por gestor, que se traslada al modal). **Sin anfitrión** (transcript guardado, o gestor sin anfitrión montado) monta **una** región `role="status"` propia (`g-transcript__live`), **presente y vacía desde el montaje**, con la misma escritura (vaciar y escribir en el siguiente ciclo). Nunca más de una por vista; ninguna en la rejilla.
+3. **Qué se anuncia** (cortés, **uno por acción; si se encadenan, gana el último**, agrupado con `announceGroupMs`): resultado de una acción cuyo efecto no está en el punto de foco o no se ve ahí (corregido, vaciado = eliminado, eliminado/restaurado con número si son varios, vuelta al original, hablante asignado, rol, unir/separar, hablante añadido, deshacer/rehacer con la acción, selección masiva por Ctrl+A o rango, copiado o fallo, insertado en un destino «puedes deshacerlo», inserción deshecha o no deshacible, cambios mostrados/ocultos).
+4. **Nunca:** provisionales, confirmados nuevos, `relabel` del motor, «N fragmentos nuevos», mover el foco, marcar una casilla (el lector ya lee el estado) y **ningún texto transcrito** en ningún anuncio (los anuncios dicen la hora del fragmento, no su contenido).
+
+### 22.13 Foco (WCAG 2.4.3, 3.2.2)
+
+- **Nada lo mueve por sí solo**: ni confirmados nuevos, ni `relabel`, ni inserciones, ni cambios hechos en otra vista.
+- Guardar o cancelar → la celda de texto. Eliminar o restaurar → se queda en la fila. Cerrar un menú → su botón. «Ir al final» → la última fila.
+- **Deshacer/rehacer** desde la rejilla → a la primera fila afectada (misma columna); desde la barra → el foco se queda en el botón y la fila se desplaza a la vista.
+- Si la fila enfocada desaparece (cambio de `transcript`), el foco va a la primera fila; si la rejilla queda vacía, a su nombre si es enfocable o a la raíz (`tabindex="-1"`), nunca a `body`.
+
+### 22.14 Ancho estrecho y móvil
+
+Las filas se **apilan por el ancho de `GTranscript`** (consulta de contenedor, nunca el visor, como #69/#130): arriba casilla · hora · hablante · acciones; debajo, el texto a todo el ancho. La etiqueta del hablante se parte en vez de recortarse. Objetivos ≥ 24px (≥ 44px con `pointer: coarse`, los de `GBtn`/`GCheckbox`). Los menús se recolocan dentro del visor (`GMenu`); la barra pasa a «Más» (§22.10) y la inserción se apila. Sin desbordamiento horizontal a 320px.
+
+## 23. Hablantes y roles (#247)
+
+1. **Participantes previstos** (`expectedSpeakers` 1 · 2 · `'many'`, F1) siguen siendo una **pista** al motor y deciden si la columna de hablante aparece desde el principio (§22.5).
+2. **Etiquetas neutras** por orden de aparición: «Hablante A/B/C» (`labels.speaker` con `{letter}`, F1). **Los ids del motor son opacos y nunca se muestran** (ni en la interfaz, ni en anuncios, ni en la composición). **Sin nombres propios**: el brief pide no asumir identidad; los roles los pone quien revisa. Con rol, la etiqueta es **«Rol (A)»** (`labels.speakerRole` con `{role}` y `{letter}`): la letra se conserva para distinguir dos hablantes con el mismo rol. Sin hablante: `labels.unassigned` (F1).
+3. **Roles:** lista **de la aplicación** (`roles: [{ id, label }]`, opción del gestor o prop; **sin valores por defecto**), asignados **por hablante** en el gestor de hablantes (`GSelect` con etiqueta `speakers.role` y `{speaker}`; opción vacía `speakers.noRole`). El rol vive en `speakers[].role` (dato). Lista vacía: sin selector de rol.
+4. **Reasignar un fragmento:** menú del hablante (`GMenu`): `menuitemradio` por hablante visible con el actual marcado, «Nuevo hablante» (`menu.newSpeaker`) y, si se cambió, «Volver al del motor (Hablante B)» (`menu.engineSpeaker` con `{speaker}`). Cambia `speaker`, **nunca** `engineSpeaker`; marca «Hablante cambiado». Con selección, sobre la selección (§22.8) o desde «Asignar hablante» de la barra.
+5. **Gestor de hablantes** (disclosure «Hablantes», sección `__speakers` con título de `headingLevel`, `speakers.title`, y ayuda `speakers.help`): por hablante visible, marca, etiqueta, número de fragmentos (`speakers.count`, plural), rol, **«Unir con»** (`GSelect`, `speakers.mergeWith`) + **«Unir»** (`merge`); en los unidos, «Unido a {speaker}» + **«Separar»** (`split`); al final **«Añadir hablante»** (`user-plus`).
+   - **Unir** (el motor partió a una persona en dos): `mergeSpeakers` (§21.4); deshacer lo revierte.
+   - **Separar** a una persona que el motor juntó con otra **no es automático** (no hay información para hacerlo): se seleccionan sus fragmentos y se asignan a un hablante nuevo («Asignar hablante» → «Nuevo hablante»).
+6. **Sin depender del color** (WCAG 1.4.1): cada hablante se distingue por **texto** (etiqueta) y por una **marca de forma con su letra** (`g-transcript__mark`, `aria-hidden`: el texto ya la dice). **Color por hablante: solo complemento y solo si la aplicación lo declara** con `speakerColors` (§1.1): el hablante en la posición `k ≤ speakerColors` lleva `data-cat="k"` en su marca y coco lo pinta con la familia `--g-color-cat-k` (`tokens.md` §16.3); por encima de `speakerColors`, o con `0` (por defecto), sin color. «Sin asignar» lleva una marca de **borde discontinuo**.
+7. **Motor sin diarización** (`diarization: false`), en conversación: aviso visible en la vista (`labels.transcript.noDiarization`, `g-transcript__note`, no región viva), todos «Sin asignar», asignación por fragmento o por selección a hablantes creados por el usuario (`origin: 'user'`). Sin la marca «Hablante cambiado» cuando el motor no dio ninguno.
+8. **`speakers.relabel` del motor** solo afecta a la capa literal (§21.8).
+
+## 24. Destinos (#248)
+
+Cambio sobre lo reservado en la F1 (§18: `{ id, label, insert(text) → { undo() } }`): **el destino se liga al modelo del formulario, no al DOM**. Con `get`/`set`, Grana resuelve igual para todas las aplicaciones la posición, los separadores, el deshacer seguro y la marca de uso, y el destino funciona **con el campo desmontado** (otra pestaña o paso). `insert` queda como **vía de escape** para destinos que no son texto plano.
+
+### 24.1 Forma
+
+```ts
+interface SpeechTarget {
+  id: string                 // único en el registro; recomendado: el `name` del campo en `useFormField`
+  label: string              // nombre visible del campo («Plan»)
+  get?(): string             // valor actual del modelo de la app (el mismo que usa su v-model)
+  set?(value: string): void  // escribe el modelo de la app
+  field?: string             // id del control, solo para recordar su cursor y su selección
+  multiline?: boolean        // false: campo de una línea (los saltos pasan a espacios). Default true
+  insert?(text: string, ctx: { position: 'end' | 'cursor' }): { undo(): boolean }   // vía de escape
+}
+```
+
+Obligatorio: `id`, `label` y **o** `get` + `set` **o** `insert` (si hay los dos, manda `insert`). Sin ellos: el destino se rechaza con aviso.
+
+### 24.2 Registro
+
+- **Con gestor:** `speech.targets.register(target)` → función para darlo de baja; `speech.targets.list` (reactiva, de solo lectura, por orden de registro). Un `id` ya registrado: aviso y **sustituye** al anterior (el último que se monta manda).
+- **`useSpeechTarget(target, { speech? })`** (composable): registra en `onMounted` y da de baja en `onBeforeUnmount` del **componente que lo llama**; devuelve la función para darlo de baja antes. Se llama en el componente **que tiene el modelo del formulario** (la página), **no** en el campo: si lo registrara el campo, desaparecería al cambiar de pestaña. Sin gestor: aviso y no hace nada (en ese caso, prop `targets` de `GTranscript`). En el servidor no registra nada.
+- **Suelto:** `<GTranscript :targets="[…]">`.
+
+### 24.3 Qué se inserta
+
+`GSelect` «Qué» (`insert.what`; hasta que exista `GRadioGroup`, como #181): **«Todo (N)»** (`insert.all`, plural) · **«Fragmentos marcados (N)»** (`insert.segments`, plural; deshabilitada sin selección) · **«Texto seleccionado «…»»** (`insert.text` con `{text}` recortado a `TRANSCRIPT_LIMITS.quoteChars`; sin selección de texto, `insert.textNone`, deshabilitada). Por defecto, **la fuente más específica disponible**; una selección nueva la activa (§22.8). Además, en el menú de cada fila, **«Insertar en {target}»** por destino (`menu.insert`): ese fragmento, al final.
+
+### 24.4 Dónde
+
+`GSelect` «Campo» (`insert.target`) con los destinos y `GSelect` «Dónde» (`insert.where`):
+
+| Posición | Cuándo | Separadores |
+| --- | --- | --- |
+| **Al final** (`insert.end`, **por defecto**: predecible) | Siempre | Salto de línea delante (espacio en una línea) si el valor no acaba en blanco |
+| En la posición del cursor (`insert.cursor`) | Solo si Grana conoce el cursor del campo (`field`) **y el valor no cambió desde entonces**; si no, deshabilitada con `insert.unknown` | Un espacio a cada lado si hace falta |
+| Sustituir la selección del campo (`insert.selection`, con `{text}`) | Igual, con una selección conocida | Ídem |
+
+Grana recuerda cursor y selección de cada `field` al teclear, seleccionar o salir del campo (escuchas de documento **solo** mientras haya una inserción montada). **Con `insert`**, «Dónde» ofrece «Al final» y «En la posición del cursor» (el destino resuelve su propio cursor o selección); Grana no calcula separadores.
+
+### 24.5 «Con hablantes» y vista previa
+
+- **«Con hablantes»** (`GCheckbox`, `insert.withSpeakers`): **activada por defecto en conversación** (sin prefijo, las palabras de dos personas se mezclan y se pierde quién dijo qué); no aparece en dictado ni con «Texto seleccionado» (es una cita, §21.7).
+- **Vista previa** del texto exacto antes de insertar (`insert.preview`; WCAG 3.3.4: comprobar antes de enviar); `insert.nothing` si no hay texto.
+- Botón principal con el destino en el nombre: **«Insertar en Plan»** (`insert.go` con `{target}`, icono `text-cursor-input`).
+
+### 24.6 Deshacer la inserción
+
+- Cada inserción guarda el valor anterior y el posterior del destino. **Solo la última inserción de cada destino se puede deshacer, y solo si el destino no cambió después** (`get()` sigue devolviendo el valor posterior; regla del deshacer del dictado F1, #222). Con `insert`, decide su `undo()` (`false` = no se pudo).
+- Aparece junto al resultado (`insert.done` con `{target}` y `{what}` + **«Deshacer inserción»**, `insert.undo`) y en **«Usos de esta transcripción»** (`insert.uses`; cada uso `insert.use` con `{target}`, `{what}`, `{time}`).
+- Si el destino cambió: **no toca nada** y anuncia `announce.insertUndoFailed`. Deshacer quita el uso de `derived` y la marca de los fragmentos; emite `undo-insert`.
+- **No entra** en el historial de la revisión (§21.5). El resultado no es un `GToast`: un aviso efímero con acción violaría el tiempo suficiente (WCAG 2.2.1) para deshacer.
+
+### 24.7 Efecto en el formulario
+
+- **El foco se queda en «Insertar»** (no se roba al campo, WCAG 3.2.2); el campo montado se actualiza por su `v-model`.
+- Marca **«Usado en»** en cada fragmento usado (también con texto parcial) y **«Cambió después de insertarlo»** si se corrige luego (§21.6). **Nada se propaga solo** al campo.
+- **Formularios (`GForm`, `useFormField`): sin API nueva en los campos.** La inserción escribe en el modelo; la validación de la aplicación reacciona al valor como a cualquier cambio programático (no lo marca como «tocado»: insertar no revela errores). `GErrorSummary` no cambia. `GTranscript` dentro de un `GForm` **no es un campo** (sin `name` ni valor de formulario).
+
+## 25. Dónde vive (#249)
+
+1. **En el panel del anfitrión, durante la conversación:** `GTranscript compact` sustituye a la lista de solo lectura de la F1 (§6.4, §6.5), nombrado por el título del panel `__transcript`. Se puede corregir, eliminar, cambiar de hablante y deshacer **mientras se graba**. Acción nueva en el panel: **Revisar** (§6.4).
+2. **Revisión en la página (recomendada):** la aplicación coloca `<GTranscript :transcript="speech.state.transcript" labelledby="…">` junto a su formulario (solo ella conoce su maquetación; un panel superpuesto taparía campos, WCAG 2.4.11). Un `GTranscript` **montado, no compacto y ligado al transcript de la sesión** se registra (interno) como **superficie de revisión**; si hay varias, la última montada. **«Revisar» / `speech.review()`** cierra el panel (sin devolver el foco a quien lo abrió) y lleva el foco **al elemento de `labelledby`** (Grana le pone `tabindex="-1"` solo si no es enfocable) o, sin él, a la celda activa de la rejilla, y lo desplaza a la vista.
+3. **Diálogo de respaldo del anfitrión** (sin superficie registrada): «Revisar» abre un **`GDialog` real** del anfitrión (`size="lg"`, `mobile="fullscreen"`, `title` = `labels.review.title`, `closeLabel` = `labels.review.close`) con un `GTranscript` editable del mismo transcript y los mismos destinos (se insertan por el modelo aunque el formulario quede inerte detrás). Al abrir, el foco va al **título del diálogo** (`tabindex="-1"`); al cerrar, a «Revisar» (o a la pill visible si ya no existe). Los canales vivos se trasladan a él (F1 §6.6, #141). **Esc en el editor o en un menú no lo cierra**; Esc en la rejilla, sí (`dismiss` de `GDialog`).
+4. **Sin sesión:** `createTranscript(json)` carga lo que guardó la aplicación (correcciones, roles, usos) y `GTranscript` funciona igual (editable, solo selección o solo lectura), con su propia región de estado (§22.12) y el historial vacío.
+5. **Dictado: sin cambios** (F1 #222): inserción en vivo al cursor y «Deshacer dictado»; el panel conserva la lista de solo lectura (corregir se hace en el propio campo).
+6. **Cierre y descarte de una conversación:** `close()` entrega `toJSON()` con las tres capas a `onComplete`. **Descartar con usos:** los textos insertados **se quedan** en los campos (ya son de la aplicación); la confirmación lo dice (`actions.discardAskUsed`, §6.4).
+7. **Sesiones de horas** y transcript a pantalla completa en móvil siguen siendo F3 (§18); el diálogo de respaldo ya es pantalla completa en móvil.
+
+## 26. Rendimiento (#250)
+
+1. **Sin virtualizar en la F2.** Una lista virtual rompería lo que la revisión necesita: **buscar con Ctrl+F**, **seleccionar texto** de varios fragmentos con el ratón, la **copia nativa**, la **lectura completa** con el lector y **anclas estables** para el foco itinerante. Con cientos de fragmentos el coste es aceptable si **solo se repinta lo que cambia**: filas con clave, **celdas que solo se reescriben si cambia lo que muestran**, provisional en su fila, menús creados al abrirse, barra e inserción que solo rehacen su estructura si cambia algo que no sea texto (un `GSelect` abierto no se cierra al llegar fragmentos).
+2. **Medido por kiwi** (Chromium, `verificar.mjs`, teclas a ritmo de repetición): **320 fragmentos** (≈ 30-40 min de conversación), ~5 800 nodos, construcción ~40 ms, **cada tecla < 40 ms hasta el pintado** (peor: Ctrl+A, que repinta 320 filas), Event Timing máximo 32–48 ms. **1000 fragmentos** (informativo): ~18 000 nodos, peor tecla ~70–80 ms. Todo por debajo de los 200 ms de INP «bueno».
+3. **Umbral F3:** por encima de **~2 000 fragmentos** hará falta virtualizar (con `aria-rowcount`/`aria-rowindex`) y aceptar sus pérdidas. **`content-visibility: auto` por fila se descarta en la F2:** gana ~50 ms en el primer pintado pero deja filas en blanco un fotograma al saltar con el desplazamiento.
+4. **Constantes de comportamiento** (no son tema; bruno las expone como `TRANSCRIPT_LIMITS` interno y las prueba, como `SPEECH_TIMING` §3.7): `history` 200 · `followMargin` 32 (px de desplazamiento; es comportamiento, no medida de interfaz) · `pageRows` 10 · `selectionDebounce` 80 ms · `quoteChars` 60 · `diffCells` 40 000. Valores del prototipo; cambiarlos es decisión de lima con evidencia.
+5. **Durante la captura:** un provisional repinta **una** fila; un confirmado inserta **una** fila y actualiza contadores.
+
+## 27. Textos de la Fase 2 (`labels`, sin valores por defecto; #256)
+
+Mismas reglas que §9: `fill` con marcadores; las claves **plural** admiten String con `{count}` o Function `(count) => String` cuyo resultado pasa por `fill` con el resto de marcadores (#237); falta una clave → aviso la primera vez que se necesita, botones con icono se dibujan igual. Las del prototipo de kiwi (`index.html`, objeto `L`) sirven de **redacción de ejemplo** para la documentación. `{time}` es `mm:ss` (o `h:mm:ss`); `{speaker}`, una etiqueta completa («Profesional (A)»); `{target}`, la etiqueta de un destino.
+
+### 27.1 Generales y anfitrión
+
+| Clave | Marcadores | Dónde |
+| --- | --- | --- |
+| `speakerRole` | `{role}`, `{letter}` | Etiqueta de un hablante con rol («Profesional (A)») |
+| `actions.review` · `actions.reviewCompleted` | | Botón «Revisar» del panel (captura/pausa/reconexión) y «Revisar transcripción» (`completed`) |
+| `actions.discardAskUsed` (plural) | `{count}` | Pregunta de descarte con usos |
+| `review.title` · `review.close` | | Título y nombre del cierre del diálogo de respaldo |
+
+Se reutilizan de la F1: `speaker`, `unassigned`, `transcript.title`, `transcript.empty`, `transcript.partialFlag`, `transcript.partialPrefix`, `transcript.failed`.
+
+### 27.2 `transcript.*` (vista)
+
+| Clave | Marcadores | Dónde |
+| --- | --- | --- |
+| `cols.select` · `cols.time` · `cols.speaker` · `cols.text` · `cols.actions` | | Encabezados de columna (ocultos) |
+| `row.select` | `{time}` | Nombre de la casilla de la fila |
+| `row.actions` | `{time}` | Nombre del botón de acciones de la fila |
+| `row.changeSpeaker` | | Sufijo oculto del botón de hablante («, cambiar hablante») |
+| `flags.corrected` · `flags.removed` · `flags.stale` | | Marcas |
+| `flags.speaker` | `{speaker}` | Marca «Hablante cambiado (motor: …)» |
+| `flags.used` | `{targets}` | Marca «Usado en …» |
+| `diff.original` · `diff.changes` | | Encabezados del bloque de original y cambios |
+| `diff.originalSpeaker` | `{speaker}` | Hablante del motor en el bloque |
+| `diff.deleted` · `diff.inserted` | `{text}` | Envoltura oculta de `<del>` / `<ins>` («(eliminado: {text})») |
+| `editor.group` · `editor.field` | `{time}` | Nombre del grupo y del `textarea` |
+| `editor.hint` · `editor.save` · `editor.cancel` | | Ayuda y botones del editor |
+| `menu.edit` · `menu.showOriginal` · `menu.hideOriginal` · `menu.revert` · `menu.remove` · `menu.restore` · `menu.copy` · `menu.newSpeaker` | | Menús de fila y de hablante |
+| `menu.insert` | `{target}` | «Insertar en …» |
+| `menu.engineSpeaker` | `{speaker}` | «Volver al del motor (…)» |
+| `bar.label` · `bar.selectAll` · `bar.countNone` · `bar.assign` · `bar.remove` · `bar.restore` · `bar.undo` · `bar.redo` · `bar.nothingUndo` · `bar.nothingRedo` · `bar.copy` · `bar.copyText` · `bar.copyFull` · `bar.changes` · `bar.speakers` · `bar.more` | | Barra |
+| `bar.count` (plural) | `{count}` | Contador de seleccionados |
+| `bar.undoWhat` · `bar.redoWhat` | `{what}` | Descripción oculta de deshacer/rehacer |
+| `history.edit` · `history.revert` | `{time}` | Nombre de la entrada del historial (para `{what}`) |
+| `history.remove` · `history.restore` · `history.speaker` · `history.role` · `history.merge` · `history.unmerge` · `history.addSpeaker` | | Ídem |
+| `keyboard` | | Línea de ayuda de teclado |
+| `noDiarization` | | Aviso de la vista sin diarización (distinto del `noDiarization` de `ready`, F1) |
+| `newer` (plural) | `{count}` | «N fragmentos nuevos · Ir al final» |
+| `speakers.title` · `speakers.help` · `speakers.noRole` · `speakers.mergeWith` · `speakers.merge` · `speakers.unmerge` · `speakers.add` | | Gestor de hablantes |
+| `speakers.role` | `{speaker}` | Etiqueta del `GSelect` de rol |
+| `speakers.count` (plural) | `{count}` | Fragmentos del hablante |
+| `speakers.mergedInto` | `{speaker}` | «Unido a …» |
+| `insert.title` · `insert.what` · `insert.textNone` · `insert.target` · `insert.where` · `insert.end` · `insert.cursor` · `insert.unknown` · `insert.withSpeakers` · `insert.preview` · `insert.undo` · `insert.uses` · `insert.nothing` | | Inserción |
+| `insert.all` · `insert.segments` (plural) | `{count}` | Fuentes |
+| `insert.text` · `insert.selection` | `{text}` | Fuente «Texto seleccionado «…»» y posición «Sustituir la selección del campo «…»» |
+| `insert.go` | `{target}` | Botón «Insertar en …» |
+| `insert.done` | `{target}`, `{what}` | Resultado junto al botón |
+| `insert.use` | `{target}`, `{what}`, `{time}` | Elemento de «Usos» (`{time}` = hora de la inserción en el formato de la aplicación: Grana pasa la fecha ISO por `fill`; si la aplicación quiere otro formato, usa una Function) |
+| `what.segments` (plural) | `{count}` | `{what}` de fragmentos |
+| `what.text` | | `{what}` de un texto seleccionado |
+
+### 27.3 `transcript.announce.*` (§22.12)
+
+`edited` (`{time}`) · `emptied` (`{time}`) · `removed` (plural; `{count}`, `{time}`) · `restored` (plural; `{count}`, `{time}`) · `reverted` (`{time}`) · `speaker` (plural; `{count}`, `{time}`, `{speaker}`) · `role` (`{speaker}`, `{role}`) · `merged` (`{from}`, `{into}`) · `unmerged` (`{from}`) · `added` (`{speaker}`) · `undone` (`{what}`) · `redone` (`{what}`) · `nothingUndo` · `nothingRedo` · `selected` (plural; `{count}`) · `selectedNone` · `copied` (`{what}`) · `copyFailed` · `inserted` (`{target}`, `{what}`) · `insertUndone` (`{target}`) · `insertUndoFailed` (`{target}`) · `changesShown` · `changesHidden`.
+
+## 28. Tokens, iconos y composición (#252, #253, #254)
+
+### 28.1 Tokens: ninguno nuevo
+
+Confirmado en `tokens.md` §24. Todo deriva de existentes (sin valores de respaldo):
+
+| Necesidad | Fuente |
+| --- | --- |
+| Fila seleccionada | `--g-color-primary-soft` (el de `GTable`) **+ borde de inicio** en `--g-color-text` (forma, no solo color; 3:1) |
+| Foco de celda | `--g-color-focus`, `--g-focus-width`, `--g-focus-offset` (interior a la celda si el contenedor recorta) |
+| Provisional | El de la F1 (`--g-color-text-muted` o el que eligió coco, cursiva, **≥ 4.5:1**) |
+| Eliminado | `--g-color-text-muted` + **tachado** (≥ 4.5:1) |
+| `<del>` / `<ins>` | Tachado / subrayado; si coco añade color, `--g-color-danger-text` / `--g-color-success-text`, **nunca solo** |
+| Marcas | Rol `caption`, `--g-color-text-muted`, con icono; «Cambió después de insertarlo» en `--g-color-warning-text` |
+| Marca de letra del hablante | Borde en `--g-color-border-control` (3:1); «Sin asignar», discontinuo; con `speakerColors`, familia `--g-color-cat-k` (`-soft` de fondo y `on-cat-k-soft` de letra, o la combinación que coco mida) |
+| Editor | La apariencia de `GTextarea` con sus mismos tokens (`border-control`, radio, foco) |
+| Separaciones, ritmo, alto de fila, umbrales de apilado y de «Más» | Derivados de `space` en el CSS de coco |
+| Objetivos | Los de `GBtn` y `GCheckbox` (≥ 24px; ≥ 44px con `pointer: coarse`) |
+
+**Variable en línea:** `--_max-height` (prop `maxHeight`, como `GTable`). Con `speakerColors`, `data-cat` en la marca (atributo, no variable).
+
+### 28.2 Iconos (`icons.md` §4, v0.5)
+
+| Dónde | Icono |
+| --- | --- |
+| Editar texto · marca «Corregido» | `pencil` |
+| Eliminar · marca «Eliminado» | `trash` |
+| Restaurar · volver al original | `rotate-ccw` (ya en la lista) |
+| Deshacer · rehacer | `undo-2` · `redo-2` |
+| Copiar | `copy` |
+| Insertar · marca «Usado en» | `text-cursor-input` |
+| Mostrar cambios · ver original | `git-compare` |
+| Hablantes · asignar hablante · marca «Hablante cambiado» | `users` |
+| Añadir hablante · nuevo hablante | `user-plus` |
+| Unir · separar | `merge` · `split` |
+| Revisar (panel) | **`file-pen-line`** (#253: «revisar un documento de texto»; `pencil` ya es «editar este fragmento» y `list`, del prototipo, no dice revisar) |
+| Acciones de fila · Ir al final · «Más» · cambió después · fallido · elegido | `ellipsis-vertical` · `arrow-down` · `chevron-down` · `triangle-alert` · `triangle-alert` · `check` (ya en la lista; las marcas de `GMenu` son suyas) |
+
+Nombres canónicos **comprobados por lima** en `lucide-static` 1.49.0: cada uno tiene su módulo en `dist/esm/icons/<nombre>.mjs` con la marca `lucide-<nombre>`.
+
+### 28.3 Composición de `GBtn` (propuesta; coco la fija en su ronda)
+
+| Dónde | Props de `GBtn` |
+| --- | --- |
+| Barra (todos) | `size="sm" variant="ghost" color="neutral"`, icono en `prepend` |
+| Hablante de la fila | `size="sm" variant="ghost" color="neutral"`; marca, etiqueta y sufijo en el slot |
+| Acciones de la fila | `icon size="sm" variant="ghost" color="neutral"` |
+| Editor: Guardar · Cancelar | `size="sm"` sólido por defecto · `size="sm" variant="outline" color="neutral"` |
+| «Ir al final» · «Deshacer inserción» · Unir · Separar · Añadir hablante | `size="sm" variant="outline" color="neutral"` (como «Deshacer dictado», §13.1) |
+| «Insertar en {target}» | `size="md"`, sólido por defecto, `text-cursor-input` en `prepend` |
+
+Ninguno usa `loading` ni `loadingText` (#227).
+
+## 29. Clases de la Fase 2 (contrato entre bruno y coco)
+
+| Clase o atributo | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-transcript`, `data-mode="edit\|select\|read"`, `data-compact`, `data-narrow` | Raíz | Siempre; `data-narrow` bajo el umbral de «Más» (§22.10) |
+| `--_max-height` | `__scroll` (en línea) | Con `maxHeight` |
+| `__note` · `__bar` · `__all` · `__count` · `__more` | Aviso sin diarización · barra · «Seleccionar todo» · contador · menú «Más» | §22.10, §23.7 |
+| `__scroll` · `__grid` · `__head` · `__body` · `__row` · `__cell` · `__cell--select` · `__cell--time` · `__cell--speaker` · `__cell--text` · `__cell--actions` | Rejilla | Editable y solo selección |
+| `is-partial` · `is-corrected` · `is-speaker-changed` · `is-removed` · `is-failed` · `is-selected` · `is-editing` · `is-stale` | `__row` (y `__item`) | §22.5 |
+| `__speaker` · `__mark` (`data-cat="k"`, `is-unassigned`) · `__actions` | Botones y marca de la fila | §22.5, §23.6 |
+| `__text` · `__flags` · `__flag` · `__flag--{corrected\|speaker\|removed\|used\|stale\|partial\|failed}` | Celda de texto | §22.5 |
+| `__orig` · `__diff` (contiene `del`/`ins`) · `__sr` | Original y cambios; texto oculto | §22.9 |
+| `__editor` · `__field` · `__editor-orig` · `__editor-hint` · `__editor-actions` | Editor (`textarea` nativo con la apariencia de `GTextarea`, #252) | §22.6 |
+| `__newer` · `__kbd` · `__empty` · `__live` | «Ir al final» · ayuda · vacío · región propia | §22.4 |
+| `__list` · `__item` | Solo lectura | §22.3 |
+| `__speakers` · `__speaker-row` · `__insert` · `__preview` · `__result` · `__uses` | Gestor de hablantes; inserción | §23.5, §24 |
+
+Las clases de elemento no son API estable para la aplicación (#204). El CSS de la vista va en `GTranscript.css` (coco); el del panel que la contiene, en `GSpeechHost.css` (alto del área desplazable dentro del panel incluido).
+
+## 30. Avisos de desarrollo y SSR de la Fase 2
+
+Mismo prefijo y reglas que §15 (`[Grana Speech]`, una vez por causa, **nunca con texto transcrito**):
+
+1. `GTranscript` sin `transcript`, o con un objeto que no es una instancia de `createTranscript`; sin `labelledby` ni `label`; `selected` con ids no seleccionables (se descartan).
+2. Destino sin `id`/`label` o sin `get`+`set` ni `insert` (rechazado); dos destinos con el mismo `id` (sustituye); `useSpeechTarget` sin gestor.
+3. `roles` con `id` repetidos; `setRole` con un `roleId` que la vista no encuentra.
+4. Operación con un id inexistente (fragmento o hablante); `assignSpeaker` a un hablante inexistente; `mergeSpeakers` en ciclo o consigo mismo.
+5. `addDerived` sin `kind` o con `kind: 'insert'`; `removeDerived` de un `insert`.
+6. Escritura directa en la instancia (no soportada).
+7. `createTranscript(data)`: campos desconocidos, ids de fragmento repetidos, `mergedInto` roto.
+8. Un hablante del motor con prefijo `user-`; `relabel` hacia un hablante del usuario.
+9. Falta un `labels.transcript.*` (o de §27.1) la primera vez que se necesita.
+
+**SSR:** `createTranscript` y `useSpeechTarget` no tocan `document`, `window` ni `navigator`; `GTranscript` renderiza en el servidor su estructura sin leer el DOM (sin selección de texto, portapapeles ni observadores, que existen solo montado); `useSpeechTarget` registra solo en el cliente.
+
+## 31. Verificación de la Fase 2
+
+- **bruno** (vitest + jsdom con el adaptador simulado; **Playwright en Chromium, Firefox y WebKit** para foco, teclado, selección de texto, portapapeles, `GDialog` y 320px):
+  - **API:** `GTranscript`, `createTranscript`, `useSpeechTarget` **solo en `@grana/vue/speech`** (compuerta: `! grep -q "createTranscript" packages/vue/dist/grana.js`); `app.use(speech)` registra `GTranscript`; importación en `node` sin `document`.
+  - **Modelo:** capas (tras editar, eliminar, reasignar, unir, volver al original y deshacer, **el literal sigue igual**); igual al literal → `corrected: null`; vacío → `removed` (`'emptied'`); historial compartido entre dos vistas; deshacer conserva lo llegado del motor después; límite 200; `toJSON()` sin historial ni `partial`; carga de un JSON de la **F1** sin conversión; `onChange` sin texto; `addDerived` rechaza `insert`; `relabel` solo en la capa literal.
+  - **Rejilla:** un solo `tabindex="0"` en todo momento; teclado de §22.11 completo; Esc en el editor y en un menú **no** cierra el panel ni el diálogo (`defaultPrevented`); salir guarda y cambiar de ventana no; IME.
+  - **Edición sin pisar parciales:** con el editor abierto llegan ≥ 2 confirmados y ≥ 3 provisionales y un `relabel`: foco, borrador y cursor intactos; la otra vista refleja el guardado.
+  - **Anuncios:** canales del anfitrión dentro de la sesión, **una** región propia sin anfitrión, ninguna otra; uno por acción (tres Supr seguidos → un anuncio); 0 anuncios durante la captura sin acciones; **ningún anuncio con texto transcrito**.
+  - **Selección y copia:** Mayús+Espacio, Mayús+↓, Mayús+clic, Ctrl+A ida y vuelta, `aria-selected`; copiar texto y con hablantes y horas (portapapeles real en Chromium); copia nativa limpia; `copy: false`.
+  - **Destinos:** inserción con el campo **desmontado** y `v-model` al montar; posiciones y separadores; `multiline: false`; deshacer solo la última y solo sin cambios (anuncio si no); `derived` y marcas; `insert` como vía de escape; `useSpeechTarget` registra y da de baja con el componente.
+  - **Dónde vive:** compacto en el panel; «Revisar» con superficie (foco al título) y sin ella (`GDialog` real, foco, canales trasladados y devueltos, Esc); `discardAskUsed`; `onComplete` con las tres capas; transcript guardado sin sesión.
+  - **Rendimiento (compuerta):** 320 fragmentos, cada tecla de §22.11 (incluida Ctrl+A) con **Event Timing < 100 ms** en Chromium; 1000 fragmentos < 200 ms (informativo en Firefox y WebKit).
+  - **320×640 con táctil:** sin desbordamiento (página, vista, menú, inserción, diálogo), fila apilada, «Más», objetivos ≥ 24/44px.
+  - `check-icons.mjs` y prueba 9 de `icons.md` §7 con los 12 iconos nuevos.
+- **coco** (auditoría con un tema distinto al de defecto, claro y oscuro; §32 «Pendientes para coco»).
+- **No verificado y pendiente** (de la declaración de kiwi, §18): **lector de pantalla real** (rejilla en modo foco y lectura de corrido en exploración, doble información `aria-selected` + casilla, `<del>`/`<ins>` con envoltura, editor dentro de la celda, anuncio de selección masiva; **riesgo principal**); Firefox y Safari reales (`selectionchange`, `ClipboardEvent`, permisos del portapapeles, Esc en `<dialog>` con el editor); móvil real (selección táctil con asas, teclado virtual con el editor en la hoja); teclados no QWERTY e IME con los atajos; equipos lentos y lector activo con > 1000 fragmentos; `forced-colors`, zoom 200 %, RTL; validación real de `GForm` ante una inserción.
+
+## 32. Resolución de los hallazgos de kiwi (r02, §19 y §20)
+
+| Hallazgo | Resolución | Decisión |
+| --- | --- | --- |
+| Pregunta §20 · marca de «revisado» | **No en v0.1**; `requireReview` reservada (§18) | #241 (usuario, delegada) |
+| L1 · entrega | `GTranscript`, `createTranscript`, `useSpeechTarget` en `@grana/vue/speech`; `speech.targets`; opción `roles`; además `speakerColors` y `speech.review()` | #251 |
+| L2 · forma aditiva | Aceptada tal cual (§1.4, §21.6); carga de JSON F1 sin conversión | #242 |
+| L3 · operaciones | Aceptadas con cambios: `assignNewSpeaker(ids)` en lugar del centinela `'new'` (choca con un id de hablante); `nextUndo`/`nextRedo`; `removeDerived`; `onChange`; ids de usuario `user-N` | #245 |
+| L4 · props y eventos | Aceptados con cambios: nombre por `labelledby`/`label` (props, porque el nombre es de la rejilla y no de la raíz); `headingLevel`, `maxHeight`, `speakerColors`; evento **`change`** `{ kind, ids }` en lugar de `edit` (cubre todas las operaciones) | #246 |
+| L5 · destinos | Aceptado: `{ id, label, get, set, field?, multiline? }` + `insert` de escape (con «Al final» y «En el cursor») | #248 |
+| L6 · anfitrión | Aceptado; diálogo de respaldo = **`GDialog` real** (`size="lg"`, `mobile="fullscreen"`) en lugar de un `<dialog>` propio | #249 |
+| L7 · evento `speakers` | Aceptado (§4.4, §21.8) | #247 |
+| L8 · textos | §27, con nombres fijados por lima | #256 |
+| L9 · editor en la celda | `textarea` nativo con **clases propias** (`g-transcript__field`) y la apariencia de `GTextarea` escrita por coco en `GTranscript.css` con los mismos tokens; **no** una clase compartida de `GTextarea` (las clases de elemento no son API estable, #204, y cada CSS tiene un dueño) | #252 |
+| L10 · avisos | §30, ampliados | #256 |
+| L11 · constantes | `TRANSCRIPT_LIMITS` (§26.4), más `quoteChars` y `diffCells` | #256 |
+| T1 · tokens | Ninguno nuevo (§28.1, `tokens.md` §24) | #254 |
+| T2 · contraste | Pendiente de coco (abajo) | #254 |
+| T3 · color por hablante | Complemento con `speakerColors` declarado por la aplicación (sin respaldo) | #247 |
+| I1 · iconos | 12 nuevos en `icons.md` §4 (v0.5); «Revisar» = `file-pen-line` | #253 |
+| C3 · barra estrecha | Menú «Más» bajo `space × 120` | #255 |
+
+**Pendientes para coco** (estética y auditoría): `GTranscript.css` completo; contraste ≥ 4.5:1 del texto tachado, del provisional y de las marcas; **borde de inicio de la fila seleccionada** a 3:1 (y `Highlight` en `forced-colors`, como `GTable`); marca de letra 3:1 y su borde discontinuo «Sin asignar»; combinación de `cat-k` para la marca con `speakerColors`; `<del>`/`<ins>` reconocibles en escala de grises; foco de celda visible dentro del área desplazable; apilado de la fila por contenedor y **umbral de «Más»** (`space × 120`, confirmarlo o proponer otro); alto del área desplazable de `GTranscript compact` dentro del panel (`GSpeechHost.css`); composición de `GBtn` de §28.3; 320px, RTL, zoom 200 %.
+
+**Pendientes para bruno:** construir según §20 a §30 (modelo, vista, destinos, cambios del anfitrión), `GTranscript.meta.json`, los 12 iconos en la lista `library` de `icons.json` antes de usarlos, `TRANSCRIPT_LIMITS`, las pruebas de §31 y la compuerta de rendimiento; reflejar en `GSpeechHost.meta.json` las acciones nuevas del panel.
