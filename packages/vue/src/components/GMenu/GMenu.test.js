@@ -374,3 +374,32 @@ describe('GMenu · disparador que es un componente', () => {
     expect(document.activeElement).toBe(w.find('.mi-btn').element)
   })
 })
+
+describe('GMenu · salida y origen (plan 010)', () => {
+  it('con transición de salida, la lista sigue montada e inerte hasta que termina', async () => {
+    vi.useFakeTimers()
+    const real = window.getComputedStyle.bind(window)
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real(el, p)
+      if (el.tagName !== 'UL') return cs
+      return new Proxy(cs, { get: (t, k) => (k === 'transitionDuration' ? '0.12s' : k === 'transitionDelay' ? '0s' : typeof t[k] === 'function' ? t[k].bind(t) : t[k]) })
+    })
+    try {
+      const w = mk()
+      await trig(w).trigger('click'); await settle()
+      await trig(w).trigger('click'); await settle()
+      expect(list(w).exists()).toBe(true)
+      expect(list(w).attributes('inert')).toBeDefined()
+      vi.advanceTimersByTime(120); await settle()
+      expect(list(w).exists()).toBe(false)
+      w.unmount()
+    } finally { vi.useRealTimers() }
+  })
+
+  it('escribe data-side y data-align en la lista', async () => {
+    const w = mk()
+    await trig(w).trigger('click'); await settle()
+    expect(['top', 'bottom']).toContain(list(w).attributes('data-side'))
+    expect(['left', 'right']).toContain(list(w).attributes('data-align'))
+  })
+})

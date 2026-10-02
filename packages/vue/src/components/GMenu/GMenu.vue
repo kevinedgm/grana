@@ -6,6 +6,7 @@
 import { defineComponent, h, nextTick, onBeforeUnmount, ref, useAttrs, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
+import { transitionMs } from '../../utils/motion.js'
 import { placeBlock, placeSubmenu, viewport } from '../../utils/anchor.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -32,6 +33,21 @@ export default defineComponent({
     const rootId = `${props.id || `g-menu-${uid}`}`
     const triggerId = `${rootId}-trigger`
     const listId = `${rootId}-list`
+    // Salida: la lista oculta sigue montada (e inerte) lo que dura su transición calculada; 0 → se desmonta ya
+    const leaving = ref(false)
+    let leaveTimer = null
+    watch(() => props.modelValue, (isOpen) => {
+      clearTimeout(leaveTimer)
+      leaveTimer = null
+      if (isOpen) { leaving.value = false; return }
+      const el = listRef.value
+      if (!el) return
+      if (typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover()
+      const ms = transitionMs(el)
+      if (ms <= 0) { leaving.value = false; return }
+      leaving.value = true
+      leaveTimer = setTimeout(() => { leaveTimer = null; leaving.value = false }, ms)
+    }, { flush: 'pre' })
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
@@ -102,6 +118,10 @@ export default defineComponent({
       const rtl = getComputedStyle(anchor).direction === 'rtl'
       const opts = { width: menu.offsetWidth, naturalHeight: menu.scrollHeight + 4, vw, vh, rtl }
       const { x, y, room } = sub ? placeSubmenu(a, opts) : placeBlock(a, { ...opts, align: props.align, side: props.side })
+      menu.dataset.side = sub ? 'bottom' : (y >= a.bottom ? 'bottom' : 'top')
+      menu.dataset.align = sub
+        ? (x >= a.left ? 'left' : 'right')
+        : (Math.abs(x - a.left) <= Math.abs(x + opts.width - a.right) ? 'left' : 'right')
       menu.style.setProperty('--_max', `${Math.max(96, room)}px`)
       menu.style.setProperty('--_x', `${x}px`)
       menu.style.setProperty('--_y', `${y}px`)
@@ -178,7 +198,7 @@ export default defineComponent({
         returnFocus = false
       }
     }, { flush: 'post' })
-    onBeforeUnmount(() => { unlisten(); clearTimeout(hoverTimer); clearTimeout(typedTimer) })
+    onBeforeUnmount(() => { unlisten(); clearTimeout(hoverTimer); clearTimeout(typedTimer); clearTimeout(leaveTimer) })
 
     // ---------- Submenús ----------
     const openSub = async (node, focusFirst) => {
@@ -338,7 +358,7 @@ export default defineComponent({
       const out = []
       if (slots.trigger) out.push(...[].concat(slots.trigger({ open: isOpen, attrs: triggerAttrs })))
       else warnOnce('trigger', 'necesita el slot `trigger` (el botón que abre el menú).')
-      if (isOpen) {
+      if (isOpen || leaving.value) {
         out.push(h('ul', {
           ...attrs,
           ref: listRef,
@@ -346,6 +366,7 @@ export default defineComponent({
           class: cls('g-menu__list', `g-menu__list--density-${props.density}`, attrs.class),
           role: 'menu',
           popover: 'manual',
+          inert: isOpen ? undefined : true,
           'aria-label': props.label || undefined,
           'aria-labelledby': props.label ? undefined : triggerId,
           onKeydown
