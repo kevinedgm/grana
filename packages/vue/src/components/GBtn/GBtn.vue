@@ -1,7 +1,7 @@
 <script setup>
 // GBtn · lógica del botón (dueño: bruno)
 // Contrato: design/contracts/btn.md · Estructura: design/lab/btn/r01/ · Estilo: GBtn.css (coco)
-import { computed, useAttrs, useSlots } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 
@@ -69,7 +69,23 @@ const controlled = computed(() => {
 
 const rootBindings = computed(() => ({ ...attrs, ...controlled.value }))
 
-const statusText = computed(() => (props.loading && props.loadingText ? props.loadingText : ''))
+// Región de estado (#257, acota #14): solo existe mientras `loadingText` tenga valor. Si la región ya existía, el texto
+// se escribe al entrar en `loading`; si se monta a la vez que `loading` (los dos en el mismo cambio, o al montar con
+// `loading` ya activo), se monta vacía y el texto se escribe en el ciclo siguiente (retardo de los canales, como
+// utils/liveRegion.js): una región viva solo se anuncia si existe antes del cambio.
+const STATUS_DELAY = 50
+const statusText = ref('')
+let statusTimer = null
+const current = () => (props.loading && props.loadingText ? props.loadingText : '')
+function writeStatus(defer) {
+  clearTimeout(statusTimer)
+  statusTimer = null
+  if (defer && current()) statusTimer = setTimeout(() => { statusTimer = null; statusText.value = current() }, STATUS_DELAY)
+  else statusText.value = current()
+}
+watch(() => [props.loading, props.loadingText], (_, [, oldText]) => writeStatus(!oldText))
+onMounted(() => { if (current()) writeStatus(true) })
+onBeforeUnmount(() => clearTimeout(statusTimer))
 
 function onClick(event) {
   if (isInert.value) {
@@ -94,5 +110,5 @@ if (isDev && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby']) {
     <span v-if="slots.append" class="g-btn__append" aria-hidden="true"><slot name="append" /></span>
     <GIcon class="g-btn__loader" name="loader-circle" />
   </component>
-  <span class="g-btn__status" role="status">{{ statusText }}</span>
+  <span v-if="loadingText" class="g-btn__status" role="status">{{ statusText }}</span>
 </template>

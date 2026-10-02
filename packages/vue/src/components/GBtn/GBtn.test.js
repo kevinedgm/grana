@@ -100,8 +100,8 @@ describe('GBtn · enlace', () => {
   })
 })
 
-describe('GBtn · anuncio de carga (loadingText)', () => {
-  it('la región de estado existe siempre, fuera del botón, y solo se llena al cargar', async () => {
+describe('GBtn · anuncio de carga (loadingText, #257)', () => {
+  it('con loadingText la región de estado existe, fuera del botón, y solo se llena al cargar', async () => {
     const w = mount(GBtn, { props: { loadingText: 'Guardando…' } })
     const status = w.find('.g-btn__status')
     expect(status.exists()).toBe(true)
@@ -114,9 +114,44 @@ describe('GBtn · anuncio de carga (loadingText)', () => {
     expect(status.text()).toBe('')
   })
 
-  it('sin loadingText, la región queda vacía aunque cargue', () => {
+  it('sin loadingText no hay región de estado, cargue o no', async () => {
     const w = mount(GBtn, { props: { loading: true } })
-    expect(w.find('.g-btn__status').text()).toBe('')
+    expect(w.find('.g-btn__status').exists()).toBe(false)
+    expect(w.find('[role="status"]').exists()).toBe(false)
+    await w.setProps({ loading: false })
+    expect(w.find('.g-btn__status').exists()).toBe(false)
+  })
+
+  it('loadingText y loading en el mismo cambio: la región se monta vacía y el texto llega en el ciclo siguiente', async () => {
+    vi.useFakeTimers()
+    try {
+      const w = mount(GBtn)
+      expect(w.find('.g-btn__status').exists()).toBe(false)
+      await w.setProps({ loading: true, loadingText: 'Guardando…' })
+      const status = w.find('.g-btn__status')
+      expect(status.exists()).toBe(true)
+      expect(status.text()).toBe('')
+      vi.advanceTimersByTime(60)
+      await w.vm.$nextTick()
+      expect(w.find('.g-btn__status').text()).toBe('Guardando…')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('montado con loading y loadingText: región vacía al montar y texto después', async () => {
+    vi.useFakeTimers()
+    try {
+      const w = mount(GBtn, { props: { loading: true, loadingText: 'Enviando…' } })
+      expect(w.find('.g-btn__status').text()).toBe('')
+      vi.advanceTimersByTime(60)
+      await w.vm.$nextTick()
+      expect(w.find('.g-btn__status').text()).toBe('Enviando…')
+      await w.setProps({ loading: false })
+      expect(w.find('.g-btn__status').text()).toBe('')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 
@@ -127,7 +162,8 @@ describe('GBtn · atributos, slots y accesibilidad', () => {
     expect(el.attributes('id')).toBe('guardar')
     expect(el.attributes('data-test')).toBe('x')
     expect(el.classes()).toContain('mi-clase')
-    expect(w.find('.g-btn__status').attributes('id')).toBeUndefined()
+    const w2 = mount(GBtn, { props: { loadingText: 'Guardando…' }, attrs: { id: 'guardar' } })
+    expect(w2.find('.g-btn__status').attributes('id')).toBeUndefined()
   })
 
   it('el consumidor no puede anular los atributos controlados', () => {

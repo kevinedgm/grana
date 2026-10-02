@@ -95,6 +95,17 @@ describe('GToaster · región', () => {
     expect(s.querySelector('ol').getAttribute('aria-live')).toBeNull()
   })
 
+  it('los GBtn del aviso no pintan g-btn__status: ninguna región role="status" dentro de la lista (#257, sustituye a #149)', async () => {
+    const { toaster } = await setup()
+    toaster.success('Hecho', { action: { label: 'Deshacer', onClick: () => {} } })
+    toaster.show({ type: 'loading', title: 'Guardando' })
+    await flush()
+    const s = root().querySelector('section')
+    expect(s.querySelectorAll('.g-btn').length).toBeGreaterThan(1)
+    expect(s.querySelectorAll('.g-btn__status')).toHaveLength(0)
+    expect(s.querySelectorAll('[role="status"], [role="alert"]')).toHaveLength(0)
+  })
+
   it('hotkey:false: sin aria-keyshortcuts y {hotkey} vacío', async () => {
     const { toaster } = await setup({ hotkey: false, labels: { ...LABELS, region: 'Notificaciones' } })
     toaster.info('x')

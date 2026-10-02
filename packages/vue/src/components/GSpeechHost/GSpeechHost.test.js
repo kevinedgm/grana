@@ -68,7 +68,8 @@ async function setup({ options = {}, adapter: adapterOptions = {}, placed = fals
   await flush()
   return { speech, adapter, w }
 }
-// Las regiones vivas que no son los dos canales del anfitrión (las g-btn__status de los GBtn, #227)
+// Las regiones vivas que no son los dos canales del anfitrión (no debe haber ninguna: los GBtn sin loadingText no pintan
+// g-btn__status, #257, que sustituye a la excepción #227)
 const otherLive = () => [...document.querySelectorAll('[role="status"], [role="alert"], [aria-live]:not([aria-live="off"])')].filter((el) => !el.classList.contains('g-speech-host__live'))
 
 describe('GSpeechHost · raíz y canales', () => {
@@ -93,7 +94,7 @@ describe('GSpeechHost · raíz y canales', () => {
     expect(panel().getAttribute('aria-modal')).toBeNull()
   })
 
-  it('los dos canales son los únicos que anuncian: las demás regiones vivas siguen vacías toda la sesión (#227)', async () => {
+  it('los dos canales son las únicas regiones vivas: ningún g-btn__status en toda la sesión (#257)', async () => {
     const { speech } = await setup({ adapter: { script: { conversation: [{ speaker: 'A', text: 'Texto confidencial uno.' }] } } })
     const snapshots = []
     const snap = () => snapshots.push(otherLive().map((el) => el.textContent).join(''))
@@ -116,8 +117,10 @@ describe('GSpeechHost · raíz y canales', () => {
     await tick(2000)
     await p
     snap()
-    expect(otherLive().length).toBeGreaterThan(5) // las g-btn__status existen…
-    expect(snapshots.every((s) => s === '')).toBe(true) // …y nunca tienen contenido
+    expect(document.querySelectorAll('.g-speech-host .g-btn, .g-speech-pill .g-btn').length).toBeGreaterThan(3)
+    expect(document.querySelectorAll('.g-btn__status')).toHaveLength(0) // #257: sin loadingText no hay región
+    expect(otherLive()).toHaveLength(0)
+    expect(snapshots.every((s) => s === '')).toBe(true)
     expect(live('status').textContent + live('alert').textContent).not.toMatch(/confidencial/i)
   })
 

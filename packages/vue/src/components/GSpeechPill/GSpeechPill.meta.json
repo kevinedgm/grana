@@ -24,7 +24,7 @@
   "behaviour": [
     "Una por gestor: la segunda no pinta nada y avisa; sin gestor no pinta nada y avisa",
     "El medidor se pinta en el DOM desde onLevel (el nivel no es reactivo); con movimiento reducido, barras encendidas o apagadas a ≤ 4 Hz",
-    "Ningún GBtn usa loading ni loadingText: sus g-btn__status existen y quedan vacías siempre (#227)"
+    "Ningún GBtn usa loading ni loadingText: no pintan g-btn__status (#257)"
   ],
   "tokens": [],
   "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check", "pause", "rotate-ccw", "square", "chevron-down"],

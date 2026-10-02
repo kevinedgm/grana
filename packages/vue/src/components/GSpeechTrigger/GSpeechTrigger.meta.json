@@ -32,7 +32,7 @@
     "Inserción: solo el confirmado, con setRangeText + evento input (sirve a v-model) y sin mover el foco; punto de inserción: cursor o selección del campo si tiene el foco; si no, el del inicio (la selección inicial se sustituye con el primer texto) avanzando; espacio separador si el carácter anterior no es espacio; el campo se busca por id en cada inserción",
     "Campo desmontado: el fragmento queda sin insertar y todos los siguientes esperan (orden); al volver, la nota ofrece «Insertar» (en el cursor si el campo tiene el foco, si no al final); el dictado no se cierra solo con fragmentos sin insertar",
     "Deshacer propio: registro de las inserciones del último dictado del campo; lo invalida cualquier input en ese campo que no venga de Grana, un dictado nuevo en el campo o discard(); deshacer revierte en orden inverso, emite input, anuncia y devuelve el foco al campo; si el campo cambió, no toca nada y anuncia undoFailed",
-    "Ningún GBtn usa loading ni loadingText (#227)"
+    "Ningún GBtn usa loading ni loadingText: no pintan g-btn__status (#257)"
   ],
   "tokens": [],
   "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check"],

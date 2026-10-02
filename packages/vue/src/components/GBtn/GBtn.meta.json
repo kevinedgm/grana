@@ -38,5 +38,6 @@
     "--g-duration-fast", "--g-duration-press", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-press-scale"
   ],
   "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
+  "live": "span.g-btn__status role=status, hermana del botón, solo mientras loadingText tenga valor (#257): vacía sin carga; con loading recibe loadingText; si loadingText y loading llegan en el mismo cambio (o al montar), la región se monta vacía y el texto se escribe 50 ms después. Sin loadingText no hay región (solo aria-busy)",
   "pending": ["Verificación manual: escala al pulsar, prefers-reduced-motion y forced-colors emulados", "Alturas fraccionarias (round())"]
 }

@@ -2,7 +2,7 @@
 // sección #sec-speech, entrada @grana/vue/speech por dist/speech.umd.js (GranaSpeech) y adaptador simulado de
 // @grana/vue/testing), en Chromium, Firefox y WebKit.
 // Casos: anfitrión en la capa superior con 2 canales vacíos antes de la sesión; sesión que sobrevive a GTabs, GStepper y
-// un GDialog modal real; exactamente una pill visible; las g-btn__status de los GBtn vacías toda la sesión (#227);
+// un GDialog modal real; exactamente una pill visible; ninguna g-btn__status en los GBtn (#257);
 // Mayús+F8 de ida y vuelta (F8 sola no se intercepta); pausa (pista detenida) y finalización; dictado al cursor sin mover
 // el foco; convivencia con GToaster en el borde (móvil); micrófono REAL del motor con nivel > 0.
 // Micrófono: Chromium con --use-fake-device-for-media-stream (getUserMedia real, tono de prueba); Firefox con las
@@ -24,7 +24,7 @@ function watchConsole(page) {
   })
   return errs
 }
-// Todas las regiones vivas fuera de los dos canales del anfitrión: deben estar vacías (las g-btn__status, #227)
+// Todas las regiones vivas fuera de los dos canales del anfitrión: no debe haber ninguna (sin g-btn__status, #257)
 const otherLiveText = (page) => page.evaluate(() => [...document.querySelectorAll('[role="status"], [role="alert"], [aria-live]:not([aria-live="off"])')]
   .filter((el) => !el.classList.contains('g-speech-host__live') && !el.closest('.g-toaster') && el.closest('.g-speech-host, .g-speech-pill, .g-speech-trigger'))
   .map((el) => el.textContent).join(''))

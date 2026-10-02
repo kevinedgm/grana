@@ -73,7 +73,7 @@
   "pending": [
     "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
     "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): lectura tras vaciar y reescribir el canal, interrupción del alert, que el traslado al modal no repita ni pierda anuncios, retardos de escritura (50 ms) y vaciado (5 s), duplicación con el cursor virtual",
-    "Cada GBtn del aviso trae su g-btn__status (role=status, vacío: el aviso nunca pone loading en sus botones): la lista no tiene aria-live explícito, pero sí esos role=status vacíos heredados de GBtn",
+    "Los GBtn del aviso no llevan loadingText, así que no pintan g-btn__status (#257, sustituye a #149): la lista no tiene ninguna región viva",
     "Táctil real (inercia, gesto «atrás» del sistema en los bordes), teclado virtual, varios modales apilados, un GMenu abierto sobre un aviso, rendimiento del MutationObserver en apps grandes, 2.4.12 en general"
   ]
 }
