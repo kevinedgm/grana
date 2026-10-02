@@ -109,6 +109,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 - La fuente **no** va dentro de `grana.css`: en modo librería, Vite incrusta en base64 todo archivo que el CSS referencie, y eso obligaría a todos a descargarla.
 - `fontDisplay` por defecto es igual a `font`: sin segunda descarga.
 - Si el usuario solo da un nombre de familia, Grana agrega la pila del sistema sans; para respaldo serif, escribir la pila completa.
+- Qué rol usa cada título, subtítulo, etiqueta y eyebrow de los componentes, y la regla de uso: §23.
 
 ## 6. Nombres en CSS
 
@@ -561,3 +562,75 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 **Límite:** como `--g-tabs-inset`, se resuelve por herencia y no en `:root` solamente (§10): una anfitriona que lo redefine afecta a todos los `GDivider` que contiene, también a los de un componente anidado que no lo redefina.
 
 **Pendiente no bloqueante:** el CLI no emite `--g-divider-inset`; los temas de usuario usan el valor de `defaults.css`.
+
+## 23. Jerarquía tipográfica de los componentes (DECISIONS.md #196)
+
+**Solo documenta lo que hay** en los `G<Nombre>.css` (coco) con la escala de `defaults.css` (§5, fontSize 16, typeScale 1.25). No agrega tokens ni cambia valores. Sirve para que quien compone una pantalla sepa qué tamaño tendrá cada título sin leer los CSS. Si un CSS cambia, esta tabla se actualiza (lima).
+
+**Escala por defecto** (tamaño/interlineado en px, peso): `caption` 12/16 w500 · `body-sm` 14/20 w400 · `body` 16/24 w400 · `title-sm` 20/28 w600 · `title` 25/36 w600 · `title-lg` 31/40 w600 · `display` 39/48 w600. Peso de acción (`--g-text-action-weight`): 500.
+
+**Cómo leer la tabla.** «body 16/600» = tamaño e interlineado del rol `body` con el peso (y el tracking) de un título (`--g-text-title-sm-weight` o `--g-text-title-weight`, ambos 600). Color: `text` = `--g-color-text`; `muted` = `--g-color-text-muted`; `subtle` = `--g-color-text-subtle`. El nivel del encabezado (`h2`…`h6`, prop `headingLevel`) es semántico y **no** cambia el tamaño.
+
+### 23.1 Contenedores con título
+
+| Componente | Título | Subtítulo / descripción | Eyebrow | Notas |
+| --- | --- | --- | --- | --- |
+| `GDialog` | `__title` (`h2`): **title-sm 20/28, 600**, `text` (heredado) | `__description`: body-sm 14/20, 400, `muted` | — | El título más alto de la librería en un componente |
+| `GFormSection` | `__title` (`h{headingLevel}`, por defecto `h3`): **body 16/24, 600**, tracking title-sm, `text` | `__description`: body-sm 14/20, 400, `muted` | — | Sin icono ni línea: se reconoce por el aire y el título |
+| `GCard` | `__title` (`h3` por defecto): **body 16/24, 600**, tracking title-sm, `text` | `__subtitle` y `__description`: body-sm 14/20 (heredado de la raíz), 400, `muted` | `__eyebrow`: caption 12/16, **500**, `muted` | `lead` (icono o imagen, decorativo) es el hueco opcional antes del texto |
+| `GErrorSummary` | `__title`: body 16/24, 600, tracking title-sm, `text` | lista: body-sm 14/20 | — | Mismo rol que `GFormSection`: vive al lado de las secciones |
+| `GWidget` | `__title`: **body-sm 14/20, 600**, `text` | `__sub`: caption 12/16, 400, `muted` | `__eyebrow`: caption 12/16, **400**, `subtle` | Denso: un rol por debajo de `GCard` |
+| `GToast` | `__title`: body-sm 14/20, 600, `text` | `__description`: body-sm 14/20, 400, `muted` | — | Título y descripción del mismo tamaño; los separa el peso |
+| `GTable` | `__caption` (título de la tabla, `<caption>`): body 16/24, 600, `text` | — | — | En celdas: `__title` body-sm 14/600 `text` y `__subtitle` caption 12/16 `muted` (texto de celda, no encabezado de página) |
+| `GFilterBar` | `__editor-title`: body-sm 14, 600 | — | — | Título del editor de un filtro |
+| `GCalendar` / `GDatePicker` | mes: body 16/24; `GCalendar` 500, `GDatePicker` 400 con el mes en 600 | `GDatePicker __summary`: body-sm 14/20, `muted` | — | Rótulo de navegación, no encabezado de sección |
+| `GMetric` | valor: tamaño propio del componente (`--_value`), 600, tracking title | — | `__label`: caption 12/16, `muted` | El valor es dato, no título |
+
+### 23.2 Etiquetas, ayudas y mensajes de campo
+
+| Componente | Etiqueta | Ayuda | Mensaje |
+| --- | --- | --- | --- |
+| `GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GInputGroup`, `GFieldGroup`, `GCheckboxGroup` | body-sm 14/20, **500**, `text` (`subtle` deshabilitada); dentro de `GFieldGroup__parts`, 400 `muted` | **caption 12/16, 400, `muted`** | caption 12/16; error y aviso 500 (`danger-text` / `warning-text`), válido 400 (`success-text`) |
+| `GCheckbox`, `GSwitch` | tamaño del control (`--_fs`/`--_lh`, body-sm en `md`), 400, `text`; en `layout="card"`/`"chip"`, 500 | caption 12/16, `muted` | igual que arriba |
+| `GForm` | `__required-hint`: body-sm 14/20, `muted` | — | — |
+
+### 23.3 Navegación y listas
+
+| Componente | Texto | Rótulo de grupo |
+| --- | --- | --- |
+| `GTabs` | body-sm 14; 500, activa 600 (ancho reservado con `data-text`) | — |
+| `GSidebar` | body-sm 14/20; logo 600; pestaña 500 | `__group-title` / `__fly-title`: caption 12/16, 500, `subtle` |
+| `GMenu` | body-sm 14/20, 400; `danger` 600 | `__group-title`: caption 12/16, 500, `subtle` |
+| `GSelect` (lista) | body-sm | `__group-label`: caption 12/16, 500, `muted` |
+| `GStepper` | `__label`: tamaño del stepper (body-sm en `md`, caption en `sm`), `muted`; completado `text`; actual `text` 600 | `__description`: caption 12/16, `muted` |
+| `GDivider` (con texto) | body-sm 14/20, 400, `muted` | — |
+
+Un **rótulo de grupo** (caption 12) clasifica elementos de una lista; **no** es un título y no cuenta para la regla de abajo.
+
+### 23.4 Regla de uso
+
+- **El título lo decide el contenedor**, no quien lo usa: `GDialog` title-sm 20; `GFormSection`, `GCard`, `GErrorSummary` body 16; `GWidget`, `GToast` body-sm 14. Se pasa por props (`title`, `description`) o slots del componente; no hay primitivas `Text`/`Heading` (#196).
+- **El subtítulo o descripción de un contenedor con encabezado es body-sm atenuado** (`GDialog`, `GFormSection`, `GCard`, `GToast`). Excepción de los densos, que bajan un rol: `GWidget __sub`, `GTable __subtitle` y `GStepper __description` son caption 12/16 `muted`.
+- **Un solo recurso de jerarquía:** tamaño + peso del título. Sin cambiar de familia, sin mayúsculas forzadas, sin color de acento en el título y sin líneas ni fondos añadidos para «marcar» un título.
+- **Nunca un título por debajo de body-sm (14).** Los rótulos de grupo a 12 no son títulos.
+
+**Cadena de un diálogo con formulario** (valores por defecto):
+
+| Nivel | Pieza | Rol |
+| --- | --- | --- |
+| 1 | `GDialog __title` | title-sm 20/28, 600, `text` |
+| 2 | `GFormSection __title` | body 16/24, 600, `text` |
+| 3 | etiqueta de campo (`GInput __label`, etc.) | body-sm 14/20, 500, `text` |
+| 4 | ayuda de campo | caption 12/16, 400, `muted` |
+
+La descripción del diálogo y la de la sección (body-sm 14, `muted`) van entre su título y el nivel siguiente.
+
+### 23.5 Observaciones vigiladas (sin cambio ahora)
+
+- **(a) `GFormSection` y `GCard` comparten rol de título (body 16/600).** Si una sección contiene tarjetas, la jerarquía se aplana: el título de la sección y el de cada tarjeta miden y pesan lo mismo, y solo el aire los separa. Se vigila en la **Fase 3** de formularios; no se cambia ningún valor ahora.
+- **(b) Sección anidada:** hoy no hay regla propia; una `GFormSection` dentro de otra repite body 16/600. Criterio acordado para cuando se trate (coco, Fase 3): **14 px (body-sm) peso 600, nunca más pequeño** (regla de §23.4).
+- **(c) Eyebrow:** `GCard __eyebrow` es caption 500 `muted`; `GWidget __eyebrow` es caption 400 `subtle`. Se registra la diferencia; unificar o no es de coco.
+
+### 23.6 Iconos en títulos
+
+Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defecto** y no tienen hueco para él. Si se quiere, el patrón ya existente es un **hueco opcional `lead`** como el de `GCard` (decorativo, `aria-hidden`; `design/contracts/card.md`, `docs/contract/icons.md`). No se diseña aquí: lo decide otra ronda (kiwi, iconos públicos).
