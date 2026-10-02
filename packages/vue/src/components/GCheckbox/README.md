@@ -71,7 +71,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 
 ```vue
 <g-checkbox v-model="extras" value="express" layout="card" label="Envío express" hint="Llega en 24 horas.">
-  <template #icon><svg …/></template>
+  <template #icon><g-icon name="truck"></g-icon></template>   <!-- truck: regístralo con createIcons (ver GIcon) -->
   <template #meta>$99</template>
 </g-checkbox>
 

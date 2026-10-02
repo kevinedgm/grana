@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GIcon",
   "tag": "g-icon",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Icono de Lucide en línea: 1em y currentColor, decorativo por defecto o imagen con nombre con label; nunca enfocable. Dibuja la lista de la librería o los iconos que la aplicación registra con createIcons (cadenas de lucide-static, solo Lucide).",
   "contract": "docs/contract/icons.md",

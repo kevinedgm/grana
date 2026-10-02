@@ -24,6 +24,8 @@
 
 Todas las reglas de tamaño de los componentes (`__lead` de `GCard`, `__icon` de `GMenu`/`GTabs`/`GSidebar`, `> .g-icon` de `GCard`, `GDialog`, `GDatePicker`…) son selectores descendientes con especificidad ≥ (0,1,1), así que ganan a `:where(.g-icon)` (0), también con `GIcon.css` importado el último en `components.css`. Un `grep` no encuentra ningún `:where(.g-icon)` ni `!important` fuera de la base. Fuera de un hueco, una clase de la aplicación (0,1,0) gana sin `!important`: 48px verificado. Dentro de un hueco que dimensiona el icono, el hueco gana a la clase de la aplicación (por diseño: `icons.md` §2.2).
 
+> **Corrección de la auditoría (`auditoria.md`, hallazgo 1):** lo anterior solo vale con el CSS **sin capa**, como lo carga este banco. En el paquete real los componentes van en la capa `grana.components` y el CSS de la aplicación sin capa (#4), así que **una clase de tamaño de la aplicación gana también dentro de un hueco** (48px medidos en `GTabs`, `GSidebar` y el `lead`). Sin clase, manda el hueco.
+
 Dos huecos **no** dimensionan el icono y lo dejan en 1em: `GBtn` (`__prepend`/`__append`: 14px en `md`, el tamaño de su texto) y `GInput` (`__prepend`/`__append`, 1em de su texto). Es coherente con el contrato («1em del texto que lo rodea»); ahí una clase de la aplicación sí cambiaría el tamaño. Nada que corregir en CSS; se anota para lima/bruno por si algún día se quiere `--_icon` en esos huecos (el pendiente de `GBtn.meta.json` sobre el token de tamaño de icono sigue abierto).
 
 ## `GFormSection__lead` (#203)

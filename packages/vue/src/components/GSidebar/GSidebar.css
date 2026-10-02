@@ -139,13 +139,17 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* En el riel el icono del botón se voltea (estado, no solo animación: se conserva con movimiento reducido). Con
+   `transform`, no con la propiedad individual `scale`: el icono es de la aplicación (slot toggle-icon) y puede traer
+   `flip-rtl` (GIcon, `scale: -1 1` en RTL); los dos espejos se componen (riel en RTL = sin espejo) en vez de pisarse
+   (auditoría de iconos públicos, design/lab/icons/auditoria.md) */
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar__toggle > svg {
-    transition: scale var(--_t-slow) var(--g-ease-out);
+    transition: transform var(--_t-slow) var(--g-ease-out);
   }
 }
 .g-sidebar--mode-rail .g-sidebar__toggle > svg {
-  scale: -1 1;
+  transform: scaleX(-1);
 }
 @media (hover: hover) {
   .g-sidebar__toggle:hover {
@@ -892,9 +896,7 @@
   .g-sidebar__tab:active {
     scale: none;
   }
-  .g-sidebar--mode-rail .g-sidebar__toggle > svg {
-    scale: none;
-  }
+  /* El volteo del icono del riel NO se quita: es el estado (contraer / expandir), no una escala animada; ya va sin transición */
   .g-sidebar__sub {
     transition: opacity var(--g-duration-fast) linear, visibility 0s linear var(--g-duration-fast);
   }

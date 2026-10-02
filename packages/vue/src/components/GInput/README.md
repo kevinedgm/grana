@@ -89,16 +89,16 @@ Los demás eventos (`focus`, `blur`, `change`, `keydown`…) no se declaran: al 
 
 ### Iconos (prefijo y sufijo)
 
-Grana no trae iconos: usa el SVG o el componente de icono que prefieras. El playground usa SVG de [Lucide](https://lucide.dev) con `stroke="currentColor"`.
+Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md) en el slot: los de la lista de la librería sin más; los demás (`search`, `mail`…) los registra tu aplicación con `createIcons` importándolos de `lucide-static` (ver el README de `GIcon`).
 
 ```vue
 <g-input v-model="q" label="Buscar" type="search">
-  <template #prepend><svg …/></template>
-  <template #append><svg …/></template>
+  <template #prepend><g-icon name="search"></g-icon></template>
+  <template #append><g-icon name="circle-check"></g-icon></template>
 </g-input>
 ```
 
-`prepend` y `append` se ocultan a los lectores de pantalla: úsalos para iconos, **no** para texto que el usuario deba leer (como "$" o "https://"). El componente no fija el tamaño del icono: define `width` y `height` (por ejemplo `1em`) en el propio SVG.
+`prepend` y `append` se ocultan a los lectores de pantalla: úsalos para iconos (`GIcon` decorativo, sin `label`), **no** para texto que el usuario deba leer (como "$" o "https://"). El componente no fija el tamaño del icono: `GIcon` mide 1em del texto del campo y toma su color.
 
 ### Botón de acción (`action`)
 

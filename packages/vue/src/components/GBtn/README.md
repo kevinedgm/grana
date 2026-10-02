@@ -64,14 +64,18 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 | `prepend` | Icono antes de la etiqueta. Decorativo: el componente lo marca con `aria-hidden="true"` |
 | `append` | Icono después de la etiqueta. Igual que `prepend` |
 
-Grana no trae iconos: el componente admite el SVG o el componente de icono que uses. El playground usa SVG de [Lucide](https://lucide.dev) con `stroke="currentColor"`, así el icono hereda el color del botón.
+Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md) en el slot (no hay prop de icono: `icon` es Boolean, el modo solo icono). Los de la lista de la librería (`plus`, `x`, `check`…) se usan sin más; cualquier otro de Lucide (`download`, `lock-open`…) lo registra tu aplicación una vez con `createIcons` importándolo de `lucide-static` (ver el README de `GIcon`).
 
 ```vue
-<g-btn icon aria-label="Añadir"><svg …/></g-btn>
-<g-btn><template #prepend><svg …/></template>Nuevo</g-btn>
+<g-btn icon aria-label="Añadir"><g-icon name="plus"></g-icon></g-btn>
+<g-btn><template #prepend><g-icon name="plus"></g-icon></template>Nuevo</g-btn>
+<g-btn variant="outline">Continuar<template #append><g-icon name="arrow-right" flip-rtl></g-icon></template></g-btn>
 ```
 
-El componente no fija el tamaño del icono: define `width` y `height` (por ejemplo `1em`) en el propio SVG.
+- El `GIcon` dentro del botón va **decorativo** (sin `label`): el nombre lo da el texto o, en solo icono, el `aria-label` del botón.
+- El botón no fija el tamaño del icono: `GIcon` mide **1em del texto del botón** (14px en `md`) y toma su color (`currentColor`), también al pasar el puntero y en `forced-colors`.
+- Flechas de avance o retroceso: `flip-rtl` las espeja en RTL.
+- Un **logotipo** u otro dibujo que no sea Lucide va en el mismo slot con tu propio marcado (decorativo); `GIcon` solo dibuja Lucide.
 
 ## Accesibilidad
 

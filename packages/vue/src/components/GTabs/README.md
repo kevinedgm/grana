@@ -84,12 +84,18 @@ const activa = ref('general')
 ### Solo iconos
 
 ```vue
-<g-tabs v-model="vista" :items="vistas" :labels="textos" label="Vista" label-mode="auto" appearance="pill">
-  <template #icon="{ item }"><MiIcono :name="item.icon" /></template>
-</g-tabs>
+<script setup>
+const vistas = [
+  { id: 'perfil', label: 'Perfil', icon: 'user' },        // icon cadena: nombre de Lucide
+  { id: 'acceso', label: 'Acceso', icon: 'lock-open' },   // user y lock-open no están en la librería: createIcons
+  { id: 'ayuda', label: 'Ayuda', icon: 'circle-help' }    // circle-help sí está (lo usa GHelper)
+]
+</script>
+
+<g-tabs v-model="vista" :items="vistas" :labels="textos" label="Vista" label-mode="auto" appearance="pill"></g-tabs>
 ```
 
-Grana no trae iconos para tus pestañas: usa [Lucide](https://lucide.dev) u otro; el slot `icon` es decorativo. En solo icono la etiqueta **sigue en el DOM** (texto oculto) y es el nombre accesible. **No hay tooltip propio todavía** (ver «Limitaciones conocidas»).
+**Icono por nombre (#202):** un `icon` **cadena** sin slot `icon` dibuja un [`GIcon`](../GIcon/README.md) con ese nombre de Lucide en el hueco de la pestaña (decorativo, 1,15em del texto: 16px a 14px). Se busca en el registro de tu aplicación (`createIcons`) y luego en la lista de la librería; un nombre desconocido no dibuja nada y avisa en desarrollo. **Con slot `icon`, manda el slot** (para un logotipo u otro dibujo que no sea Lucide: `<template #icon="{ item }">…</template>`); un `icon` que no es cadena solo llega al slot. Una pestaña cuenta como «con icono» para `labelMode` si tiene `icon` cadena (sin slot) o slot e `icon` con valor. En solo icono la etiqueta **sigue en el DOM** (texto oculto) y es el nombre accesible. **No hay tooltip propio todavía** (ver «Limitaciones conocidas»). No pongas clases de tamaño al icono: ganan al hueco (ver el README de `GIcon`).
 
 ### Cancelar un cambio
 
@@ -195,7 +201,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 | --- | --- | --- |
 | `id` | String \| Number | **Obligatorio y único.** Sin `id` la pestaña se ignora (aviso en desarrollo) |
 | `label` | String | **Obligatorio.** Nombre accesible, también en solo icono |
-| `icon` | cualquiera | Llega al slot `icon`; decorativo |
+| `icon` | String o cualquiera | Cadena: nombre de Lucide que la pestaña dibuja con `GIcon` si no hay slot `icon`. Otro valor: llega al slot `icon`. Decorativo |
 | `count` | Number | Contador (`GBadge`); `0` no se pinta; exige `countLabel` |
 | `countLabel` | String | Texto accesible del contador |
 | `badge` | String | Insignia de texto breve |
@@ -250,7 +256,7 @@ Con `activation="manual"`, `change` se emite al pulsar Enter o Espacio, no al en
 | --- | --- | --- |
 | `panel-{id}` | `{ item, active }` | Contenido del panel de esa pestaña |
 | `panel` | `{ item, active }` | Contenido genérico de panel (si no hay `panel-{id}`) |
-| `icon` | `{ item, index, active }` | Icono de la pestaña (`item.icon`); decorativo |
+| `icon` | `{ item, index, active }` | Icono de la pestaña (`item.icon`); decorativo. Con el slot, manda el slot sobre el icono por nombre |
 | `label` | `{ item, index, active }` | Etiqueta con contenido rico, **sin interactivos**; el nombre accesible sigue saliendo de `item.label` |
 | `empty` | | Sin pestañas: se pinta en lugar de la cabecera |
 

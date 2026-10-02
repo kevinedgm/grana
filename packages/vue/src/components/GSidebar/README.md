@@ -22,17 +22,18 @@ import { ref } from 'vue'
 const actual = ref('home')
 const items = [
   { label: 'Principal', items: [
-    { id: 'home', label: 'Inicio', href: '/', icon: 'home' },
+    { id: 'home', label: 'Inicio', href: '/', icon: 'house' },   // icon: nombre de Lucide (sin slot icon, lo dibuja GIcon)
     { id: 'inbox', label: 'Bandeja', href: '/inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }
   ] },
   { label: 'Espacio', items: [
     { id: 'proj', label: 'Proyectos', icon: 'folder', children: [
       { id: 'p1', label: 'Todos', href: '/p' }, { id: 'p2', label: 'Archivados', href: '/p/arch' }
     ] },
-    { id: 'bill', label: 'Facturación', icon: 'card', disabled: true }
+    { id: 'bill', label: 'Facturación', icon: 'credit-card', disabled: true }
   ] }
 ]
-// Todo texto de la interfaz lo pones tú (Grana no trae textos ni iconos)
+// Todo texto de la interfaz lo pones tú (Grana no trae textos). Los iconos que no están en la lista de la librería
+// (house, inbox, folder, credit-card, panel-left, search, menu) los registra la aplicación con createIcons (ver GIcon)
 const labels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar' }
 </script>
 
@@ -40,10 +41,9 @@ const labels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la bar
   <div class="mi-diseno">
     <g-sidebar v-model="actual" :items="items" label="Principal" :labels="labels" search @search="abrirPaleta">
       <template #logo="{ collapsed }"><MiMarca /><span v-if="!collapsed">Grana</span></template>
-      <template #icon="{ item }"><MiIcono :name="item.icon" /></template>
-      <template #toggle-icon><PanelIcon /></template>
-      <template #search-icon><SearchIcon /></template>
-      <template #more-icon><MenuIcon /></template>
+      <template #toggle-icon><g-icon name="panel-left" flip-rtl></g-icon></template>
+      <template #search-icon><g-icon name="search"></g-icon></template>
+      <template #more-icon><g-icon name="menu"></g-icon></template>
       <template #user="{ collapsed }"><MiUsuario :solo-avatar="collapsed" /></template>
     </g-sidebar>
     <main>…</main>
@@ -115,7 +115,7 @@ Un valor de prop fuera de su lista avisa en desarrollo. **`class`, `style` y `da
 - **`id`** único y **`label`** son obligatorios (un item sin ellos se ignora y avisa en desarrollo).
 - **`href`**: un `<a>`. **Sin `href` ni `children`**: un `<button>` de solo acción (también emite `navigate`). **`disabled`**: `<a role="link" aria-disabled="true">` **sin `href`** (no recibe foco), tachado y atenuado.
 - **`children`**: **un solo nivel** (los nietos se ignoran y avisan); un padre es un botón de submenú, nunca navega por sí mismo.
-- **`icon`** es un valor **de tu aplicación** que llega al slot `icon` (Grana no trae iconos). **`badge`** (número o texto corto) y **`dot`** (marca sin número) son decorativos: **`badgeLabel`** es el texto para lectores y es **obligatorio** si hay `badge` o `dot`.
+- **`icon`** (#202): una **cadena** es un nombre de Lucide que el sidebar dibuja con [`GIcon`](../GIcon/README.md) en el hueco del item de primer nivel (decorativo, 20px en expandido, riel y navbar) si no hay slot `icon`; se busca en el registro de tu aplicación (`createIcons`) y luego en la lista de la librería. Con slot `icon`, manda el slot; otro valor solo llega al slot. Los hijos no llevan icono. **`badge`** (número o texto corto) y **`dot`** (marca sin número) son decorativos: **`badgeLabel`** es el texto para lectores y es **obligatorio** si hay `badge` o `dot`.
 - **`primary`**: en el navbar, los items marcados van en la barra; sin ninguno, los primeros `barCount` no deshabilitados (padres incluidos).
 
 ## Textos (`labels`)
@@ -179,7 +179,7 @@ Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir)
 | `icon` | Icono de un item (decorativo). Alcance `{ item }` |
 | `item` | Contenido de un item, en lugar de icono y etiqueta. Alcance `{ item, active, collapsed, level }`; **conserva el texto de la etiqueta** (es el nombre accesible) |
 | `user` | Área de usuario al pie. Alcance `{ collapsed }`; **en el riel, solo el avatar con nombre accesible que das tú**; el menú del usuario es tuyo |
-| `toggle-icon`, `search-icon`, `more-icon` | Iconos de los botones de contraer, de búsqueda y de «Más» |
+| `toggle-icon`, `search-icon`, `more-icon` | Iconos de los botones de contraer, de búsqueda y de «Más» (normalmente un `GIcon`). En el riel, el icono de `toggle-icon` se voltea; con `flip-rtl`, en RTL los dos espejos se anulan (verificado) |
 
 ## Teclado
 
@@ -225,7 +225,7 @@ Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-
 ## Limitaciones conocidas
 
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio** ni filtro: `search` solo dispara el evento. **Sin menú contextual del usuario** (será `GMenu`): el slot `user` lo pones tú.
-- **Grana no trae iconos ni textos**: `icon`, `toggle-icon`, `search-icon`, `more-icon` y `labels` son de la aplicación.
+- **Grana no trae textos ni los iconos de tu navegación**: `labels` y los iconos de `icon`, `toggle-icon`, `search-icon` y `more-icon` son de la aplicación (por nombre de Lucide o con `GIcon` en el slot; los que no están en la lista de la librería, con `createIcons`).
 - **En la píldora activa, los items inactivos no muestran su nombre** (existe para lectores): un usuario nuevo no lo ve. Las etiquetas del navbar deben ser cortas.
 - **El item activo se distingue poco por superficie** (1.08:1 frente a la carcasa con el tema por defecto): lo sostienen su contorno, el peso, el texto pleno y `aria-current`. Está pendiente decidir si se refuerza.
 - **Si tu contenedor tiene el ancho del visor**, la adaptación decide por él: da un `container` razonable. El primer instante tras montar se pinta expandido.

@@ -11,11 +11,10 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { Pencil, Trash2 } from 'lucide-vue-next'   // los iconos de tu aplicación: Lucide (Grana no trae iconos)
 
 const abierto = ref(false)
 const items = ref([
-  { id: 'rename', label: 'Renombrar', icon: Pencil, shortcut: 'F2', keyshortcuts: 'F2' },
+  { id: 'rename', label: 'Renombrar', icon: 'pencil', shortcut: 'F2', keyshortcuts: 'F2' },   // icon: nombre de Lucide
   { id: 'move', label: 'Mover a…', disabled: true },
   { type: 'separator' },
   { type: 'group', label: 'Mostrar', items: [
@@ -38,10 +37,18 @@ const elegir = (e) => {
 <template>
   <g-menu v-model="abierto" :items="items" label="Acciones del archivo" @select="elegir">
     <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
-    <template #icon="{ item }"><component :is="item.icon" /></template>
   </g-menu>
 </template>
 ```
+
+```js
+// main.js: `pencil` no está en la lista de la librería; la aplicación lo registra (ver el README de GIcon)
+import Grana, { createIcons } from '@grana/vue'
+import { Pencil } from 'lucide-static'
+createApp(App).use(Grana).use(createIcons([Pencil])).mount('#app')
+```
+
+**Icono por nombre (#202):** un `icon` **cadena** sin slot `icon` dibuja un [`GIcon`](../GIcon/README.md) con ese nombre en el hueco del elemento (decorativo, del tamaño de la marca de casilla, ≈ 18px). Se busca en el registro de tu aplicación y luego en la lista de la librería. **Con slot `icon`, manda el slot** (`<template #icon="{ item }">…</template>`, p. ej. para un logotipo); un `icon` que no es cadena solo llega al slot.
 
 > En plantillas dentro del HTML (sin compilar), escribe `<g-menu ...></g-menu>`: Vue no admite etiquetas de componente autocerradas.
 
@@ -52,7 +59,7 @@ const elegir = (e) => {
 | `type` | `item` (por defecto), `checkbox`, `radio`, `separator` o `group`. Un elemento con `items` es un **submenú** |
 | `id` | Obligatorio en `item`, `checkbox` y `radio` (un padre de submenú puede no llevarlo); único en todo el menú |
 | `label` | Obligatorio (salvo en un separador); es el **nombre accesible** |
-| `icon` | Un valor de tu aplicación que llega al slot `icon` (decorativo) |
+| `icon` | Cadena: nombre de Lucide que el menú dibuja con `GIcon` si no hay slot `icon`. Otro valor: llega al slot `icon`. Decorativo |
 | `shortcut`, `keyshortcuts` | Atajo **visible** (`aria-hidden`) y valor de `aria-keyshortcuts` |
 | `disabled` | `aria-disabled`: sigue enfocable, atenuado y tachado; no se activa |
 | `danger` | Un `triangle-alert` de Lucide y negrita, además del color |
