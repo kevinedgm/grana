@@ -2,7 +2,9 @@
 
 Esta guía crea una aplicación Vue 3 con Vite, instala Grana, aplica un tema mínimo y muestra un primer botón.
 
-> **Disponibilidad actual:** `@grana/vue` y `@grana/cli` todavía no se publican en npm. El flujo de abajo es el contrato de onboarding para la primera publicación. Mientras tanto, puedes explorar los componentes en el [playground del monorepo](../../packages/vue/playground/).
+> **Estado:** `pre-alpha` · **Paquetes:** `aún no publicados` · **Versión actual:** `0.0.0`
+>
+> Este es el flujo oficial de consumo para la primera publicación. Mientras tanto, los componentes se exploran desde el [playground del monorepo](../../packages/vue/playground/).
 
 ## Antes de empezar
 
