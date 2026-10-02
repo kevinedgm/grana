@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "name": "GDivider",
+  "tag": "g-divider",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Línea de separación entre grupos de contenido del consumidor: horizontal (<hr>) o vertical (separator en una fila flex o grid), con texto centrado opcional, inset heredado de la anfitriona, énfasis sutil o fuerte (≥ 3:1) y modo decorativo; nunca enfocable.",
+  "contract": "design/contracts/divider.md",
+  "prototype": "design/lab/divider/r01/",
+  "style": "packages/vue/src/components/GDivider/GDivider.css",
+  "props": [
+    {
+      "name": "orientation",
+      "type": "String",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "note": "Solo horizontal; el slot label gana. En vertical se ignora y avisa"
+    },
+    {
+      "name": "inset",
+      "type": "String",
+      "default": "none",
+      "values": [
+        "none",
+        "both",
+        "start"
+      ],
+      "note": "start solo horizontal; en vertical se aplica both (clase efectiva) y avisa. La cantidad es --g-divider-inset"
+    },
+    {
+      "name": "emphasis",
+      "type": "String",
+      "default": "subtle",
+      "values": [
+        "subtle",
+        "strong"
+      ]
+    },
+    {
+      "name": "decorative",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-hidden sin rol; con texto no cambia nada"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Texto entre las dos líneas (contenido de frase, sin nada interactivo); dentro de g-divider__label; solo horizontal"
+    }
+  ],
+  "semantics": [
+    {
+      "case": "horizontal sin texto",
+      "element": "hr",
+      "role": "separator (implícito)",
+      "attrs": []
+    },
+    {
+      "case": "horizontal sin texto, decorative",
+      "element": "hr",
+      "role": null,
+      "attrs": [
+        "aria-hidden=\"true\""
+      ]
+    },
+    {
+      "case": "vertical",
+      "element": "div",
+      "role": "separator",
+      "attrs": [
+        "role=\"separator\"",
+        "aria-orientation=\"vertical\""
+      ]
+    },
+    {
+      "case": "vertical, decorative",
+      "element": "div",
+      "role": null,
+      "attrs": [
+        "aria-hidden=\"true\""
+      ]
+    },
+    {
+      "case": "horizontal con texto (con o sin decorative)",
+      "element": "div + span.g-divider__label",
+      "role": null,
+      "attrs": []
+    }
+  ],
+  "classes": [
+    "g-divider",
+    "g-divider--orientation-horizontal",
+    "g-divider--orientation-vertical",
+    "g-divider--inset-none",
+    "g-divider--inset-both",
+    "g-divider--inset-start",
+    "g-divider--emphasis-subtle",
+    "g-divider--emphasis-strong",
+    "g-divider--labeled",
+    "g-divider__label"
+  ],
+  "warnings": [
+    "vertical sin padre flex en fila o grid (primer ancestro que no sea display: contents)",
+    "hijo de ul, ol, menu o de un role list, menu, menubar, listbox o tablist",
+    "label o slot label en vertical",
+    "inset=\"start\" en vertical",
+    "contenido interactivo en el texto",
+    "tabindex del consumidor",
+    "contenido en el slot por defecto"
+  ],
+  "tokens": [
+    "--g-divider-inset",
+    "--g-border-width",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-text-muted",
+    "--g-color-text",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-line",
+    "--g-text-body-sm-weight",
+    "--g-text-body-sm-tracking",
+    "--g-font-ui",
+    "--g-space-1"
+  ],
+  "states": [
+    "default"
+  ],
+  "pending": [
+    "Auditoría de coco (paso 5) con un tema distinto al por defecto",
+    "README (mora-docs): regla de uso, requisito del vertical, cuándo decorative, no dentro de listas ni de GMenu, no entre GFormSection",
+    "Lector de pantalla real (VoiceOver, NVDA): anuncio de separator en hr y en el vertical, lectura del texto entre líneas",
+    "Límite sin aviso (DECISIONS.md 194): un vertical con inset=\"both\" mide 0 si la anfitriona define un --g-divider-inset mayor que la mitad del alto de su fila; va al README",
+    "Fila que envuelve (flex-wrap): un vertical al borde de una línea separa nada; sin aviso en v0.1"
+  ]
+}

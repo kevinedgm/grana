@@ -57,8 +57,8 @@ for (const [vw, scheme] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [39
     await expect(page.locator('#modo')).toHaveText(/Edición permitida/)
     expect(await page.evaluate(editable)).toBeGreaterThan(10)
     expect(await page.evaluate(geom), `${browserName} editando`).toEqual([])
-    // editable: la marca «(opcional)» de la convención por defecto entra en el nombre (etiqueta + parte)
-    await expect(page.getByRole('combobox', { name: 'Volumen del lote (opcional) Unidad', exact: true })).toHaveValue('L')
+    // editable: el nombre es etiqueta + parte; el grupo es required (e1bb124), así que sin «(opcional)»
+    await expect(page.getByRole('combobox', { name: 'Volumen del lote Unidad', exact: true })).toHaveValue('L')
     // Editar habilita Guardar; Cancelar revierte y vuelve a bloquear
     await expect(page.locator('#guardar')).toBeDisabled()
     await page.locator('input[name="vol-lote"]').fill('900')

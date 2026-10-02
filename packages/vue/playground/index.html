@@ -19,6 +19,23 @@
     .cd-ph { display: grid; place-items: center; inline-size: 100%; block-size: 100%; background: linear-gradient(135deg, var(--g-color-accent-soft), var(--g-color-neutral-soft)); color: var(--g-color-text-muted); font-size: var(--g-text-title-size); }
     .cd-ph--dark { background: var(--g-color-neutral); color: var(--g-color-on-neutral); }
     .cd-list { list-style: none; margin: 0 0 20px; padding: 0; max-width: 720px; }
+    /* GDivider: pilas y filas del consumidor (el aire lo pone el contenedor), superficies y una lista anfitriona que redefine el inset */
+    .dv-stack { display: flex; flex-direction: column; gap: 16px; max-inline-size: 560px; margin: 0 0 20px; }
+    .dv-stack p { margin: 0; }
+    .dv-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+    .dv-bar-label { min-inline-size: 2.5em; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+    .dv-surfaces { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); margin: 0 0 20px; }
+    .dv-surf { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--g-radius-md); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); }
+    .dv-surf--sunken { background: var(--g-color-surface-sunken); }
+    .dv-surf p { margin: 0; font-size: var(--g-text-body-sm-size); }
+    .dv-nav { --dv-pad: 12px; --dv-icon: 16px; --dv-gap: 8px; --g-divider-inset: calc(var(--dv-pad) + var(--dv-icon) + var(--dv-gap)); max-inline-size: 280px; margin: 0 0 20px; }
+    .dv-nav[data-density="compact"] { --dv-pad: 8px; --dv-gap: 6px; }
+    .dv-nav ul { list-style: none; margin: 0; padding: 4px 0; }
+    .dv-nav a { display: flex; align-items: center; gap: var(--dv-gap); padding: 6px var(--dv-pad); min-block-size: 24px; box-sizing: border-box; color: var(--g-color-text); text-decoration: none; border-radius: var(--g-radius-sm); }
+    .dv-nav[data-density="compact"] a { padding-block: 2px; }
+    .dv-nav a:hover { background: var(--g-color-neutral-soft); }
+    .dv-nav a:focus-visible { outline: 2px solid var(--g-color-accent); outline-offset: -2px; }
+    .dv-nav svg { inline-size: var(--dv-icon); block-size: var(--dv-icon); flex: none; }
 
     .pg-bar { position: sticky; inset-block-start: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--g-color-surface); border-block-end: var(--g-border-width) solid var(--g-color-border-strong); box-sizing: border-box; }
     .pg-brand { margin: 0; font-size: var(--g-text-body-size); font-weight: 700; margin-inline-end: auto; display: flex; align-items: center; gap: 8px; }
@@ -1005,6 +1022,105 @@
 
           </div>
         </section>
+        <section class="pg-section" id="sec-divider" data-pg-section>
+          <h2>GDivider</h2>
+          <p class="pg-lead">Línea entre grupos de contenido cuando el espacio no basta: horizontal (separador), con texto, vertical entre grupos de acciones de una fila, inset heredado de la anfitriona, sutil o fuerte, y decorativa cuando un encabezado ya marca la separación. No usarla como sustituto sistemático del espacio.</p>
+          <div class="pg-panel" id="dv-demo">
+    <h3>Horizontal entre párrafos que cambian de tema</h3>
+    <div class="dv-stack" id="dv-paragraphs">
+      <p>El envío estándar llega en tres a cinco días hábiles a cualquier punto del país.</p>
+      <g-divider id="dv-hr"></g-divider>
+      <p>Las devoluciones se aceptan durante 30 días con el ticket de compra.</p>
+    </div>
+
+    <h3>Con texto (solo horizontal, centrado)</h3>
+    <div class="dv-stack" id="dv-labeled">
+      <g-btn variant="outline" block>Continuar con correo</g-btn>
+      <g-divider label="O bien"></g-divider>
+      <g-btn variant="outline" block>Continuar con un enlace mágico</g-btn>
+      <g-divider><template #label>Ayer</template></g-divider>
+      <div id="dv-long" style="inline-size: 200px; max-inline-size: 100%">
+        <g-divider label="Mensajes anteriores a la última sincronización del dispositivo"></g-divider>
+      </div>
+    </div>
+
+    <h3>Vertical entre grupos de acciones (toma el alto de la fila)</h3>
+    <div v-for="sz in ['sm', 'md', 'lg']" :key="sz" class="dv-bar" :id="'dv-row-' + sz" role="group" :aria-label="'Edición (' + sz + ')'">
+      <span class="dv-bar-label" aria-hidden="true">{{ sz }}</span>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Editar"><lucide-icon name="pencil"></lucide-icon></g-btn>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Compartir"><lucide-icon name="share-2"></lucide-icon></g-btn>
+      <g-divider class="dv-in" orientation="vertical" inset="both"></g-divider>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Nuevo"><lucide-icon name="plus"></lucide-icon></g-btn>
+      <g-divider class="dv-full" orientation="vertical"></g-divider>
+      <g-btn :size="sz" variant="ghost" icon aria-label="Buscar"><lucide-icon name="search"></lucide-icon></g-btn>
+    </div>
+
+    <h3>Sutil y fuerte, sobre superficie y superficie hundida</h3>
+    <div class="dv-surfaces" id="dv-emphasis">
+      <div class="dv-surf">
+        <p>Superficie · sutil (refuerza una separación que ya da el espacio)</p>
+        <g-divider></g-divider>
+        <p>Superficie · fuerte (la línea es la única señal, ≥ 3:1)</p>
+        <g-divider emphasis="strong"></g-divider>
+        <g-divider emphasis="strong" label="O bien"></g-divider>
+      </div>
+      <div class="dv-surf dv-surf--sunken">
+        <p>Hundida · sutil</p>
+        <g-divider></g-divider>
+        <p>Hundida · fuerte</p>
+        <g-divider emphasis="strong"></g-divider>
+        <g-divider emphasis="strong" label="O bien"></g-divider>
+      </div>
+    </div>
+
+    <h3>Inset: none, both y start (la cantidad la pone la anfitriona)</h3>
+    <div class="dv-stack">
+      <g-divider id="dv-inset-none"></g-divider>
+      <g-divider id="dv-inset-both" inset="both"></g-divider>
+      <g-divider id="dv-inset-start" inset="start"></g-divider>
+    </div>
+    <label class="fm-bench-ctl"><input type="checkbox" v-model="dvCompact"> Lista compacta</label>
+    <nav class="dv-nav" id="dv-nav" aria-label="Carpetas" :data-density="dvCompact ? 'compact' : 'default'">
+      <ul>
+        <li><a href="#sec-divider"><lucide-icon name="inbox"></lucide-icon><span class="dv-text">Entrada</span></a></li>
+        <li><a href="#sec-divider"><lucide-icon name="mail"></lucide-icon><span class="dv-text">Enviados</span></a></li>
+      </ul>
+      <g-divider inset="start"></g-divider>
+      <ul>
+        <li><a href="#sec-divider"><lucide-icon name="folder"></lucide-icon><span class="dv-text">Proyectos</span></a></li>
+        <li><a href="#sec-divider"><lucide-icon name="settings"></lucide-icon><span class="dv-text">Ajustes</span></a></li>
+      </ul>
+    </nav>
+
+    <h3>RTL (sin prop: propiedades lógicas)</h3>
+    <div dir="rtl" lang="ar" id="dv-rtl">
+      <div class="dv-stack">
+        <g-divider class="dv-rtl-start" inset="start"></g-divider>
+        <g-divider label="أو"></g-divider>
+      </div>
+      <div class="dv-bar" id="dv-rtl-row" role="group" aria-label="أدوات">
+        <g-btn variant="ghost" icon aria-label="تعديل"><lucide-icon name="pencil"></lucide-icon></g-btn>
+        <g-divider class="dv-in" orientation="vertical" inset="both"></g-divider>
+        <g-btn variant="ghost" icon aria-label="بحث"><lucide-icon name="search"></lucide-icon></g-btn>
+      </div>
+    </div>
+
+    <h3>Decorativo dentro de un diálogo (las secciones ya tienen encabezado)</h3>
+    <div class="row">
+      <g-btn variant="outline" id="dv-open-dlg" @click="dlg.divider = true">Diálogo con secciones</g-btn>
+    </div>
+    <g-dialog v-model="dlg.divider" title="Cuenta" description="Cada sección tiene su encabezado: la línea es decorativa." close-label="Cerrar">
+      <div class="dv-stack" id="dv-dlg-body">
+        <section><h3 style="margin:0 0 8px;font-size:1rem">Perfil</h3><p>Nombre, foto y zona horaria.</p></section>
+        <g-divider decorative></g-divider>
+        <section><h3 style="margin:0 0 8px;font-size:1rem">Seguridad</h3><p>Contraseña y sesiones abiertas.</p></section>
+        <g-divider decorative></g-divider>
+        <section><h3 style="margin:0 0 8px;font-size:1rem">Facturación</h3><p>Método de pago y facturas.</p></section>
+      </div>
+      <template #footer="{ close }"><g-btn @click="close">Listo</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
         <section class="pg-section" id="sec-widget" data-pg-section>
           <h2>GWidget, GWidgetGrid, GMetric, GProgress y GDataList</h2>
           <p class="pg-lead">Widgets de panel con rejilla editable, galería y configuración; incluye métrica, progreso y lista de datos.</p>
@@ -1283,7 +1399,7 @@
         const tsKeep = ref(false)
         const later = (ok) => new Promise((res, rej) => setTimeout(() => (ok ? res('informe-anual.pdf') : rej(new Error('413'))), 1500))
         const tsPromise = (ok) => toast.promise(later(ok), { loading: 'Subiendo informe…', success: (n) => ({ title: 'Informe subido', description: n }), error: 'No se pudo subir el informe' }).catch(() => {})
-        const dlg = reactive({ toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false })
+        const dlg = reactive({ toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false, divider: false })
         const dlgLog = ref([])
         const dlgName = ref('')
         const dlgMail = ref('')
@@ -1328,6 +1444,7 @@
         const selSoft = ref(0)
         const selLoad = ref(null)
         const bdgCount = ref(12)
+        const dvCompact = ref(false)
         const bdgLog = ref('')
         const tbNames = ['Ana Torres', 'Bruno Díaz', 'Carla Ruiz', 'Diego Mora', 'Elena Vega', 'Fabián Soto', 'Gina Paz', 'Hugo León', 'Iris Cano', 'Javier Gil', 'Karla Mesa', 'Luis Peña']
         const tbRows = tbNames.map((n, i) => ({ id: 'c' + i, nombre: n, correo: n.split(' ')[0].toLowerCase() + '@correo.com', ini: n.split(' ').map((x) => x[0]).join(''), plan: ['Básico', 'Pro', 'Equipo'][i % 3], estado: ['activo', 'pausado', 'vencido'][i % 3], total: 1200 + (i * 731) % 5000, alta: '2026-0' + (1 + (i % 9)) + '-' + String(3 + i * 2).padStart(2, '0') }))
@@ -1630,7 +1747,7 @@
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -1760,7 +1877,7 @@
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
     }).component('LucideIcon', LucideIcon).use(Grana).use(toaster).mount('#app')
   </script>

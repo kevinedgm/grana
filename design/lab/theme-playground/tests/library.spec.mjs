@@ -12,7 +12,7 @@ test.describe('playground de la librería', () => {
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
     await ready(page)
-    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs', 'g-card', 'g-toaster']) {
+    for (const c of ['g-btn', 'g-input', 'g-select', 'g-checkbox', 'g-switch', 'g-dialog', 'g-calendar', 'g-datepicker', 'g-stepper', 'g-surface', 'g-helper', 'g-avatar-motion', 'g-widget', 'g-sidebar', 'g-tabs', 'g-card', 'g-toaster', 'g-divider']) {
       expect(await page.locator(`[class*="${c}"]`).count(), c).toBeGreaterThan(0)
     }
     expect(errors).toEqual([])
@@ -348,6 +348,115 @@ test.describe('playground de la librería', () => {
     await expect(narrow.locator('#fm-short .g-form-actions')).toHaveAttribute('data-stacked', '')
     expect(await narrow.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(await narrow.evaluate(() => [...document.querySelectorAll('#sec-form .g-input, #sec-form .g-select, #sec-form .g-input-group, #sec-form .g-field-group, #sec-form .g-form-actions')].filter((el) => !el.closest('#fm-recipe') && el.getBoundingClientRect().right > innerWidth + 0.5).length)).toBe(0)
+    expect(errors, browserName).toEqual([])
+  })
+
+  test('el separador (GDivider): árbol de accesibilidad, sin foco, alto del vertical con GBtn reales, inset, RTL, texto largo y 320px', async ({ page, browserName }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
+    page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await ready(page)
+    const demo = page.locator('#dv-demo')
+    await demo.scrollIntoViewIfNeeded()
+    // Árbol: 17 separators (hr y verticales); con texto, ninguno y el texto presente; ninguno con nombre
+    const seps = demo.getByRole('separator')
+    await expect(seps).toHaveCount(17)
+    for (const n of await seps.all()) expect(await n.getAttribute('aria-label')).toBeNull()
+    expect(await demo.locator('[role="separator"]').evaluateAll((els) => els.every((e) => e.getAttribute('aria-orientation') === 'vertical' && e.tagName === 'DIV'))).toBe(true)
+    await expect(demo.locator('[role="separator"]')).toHaveCount(7)
+    const labeled = demo.locator('.g-divider--labeled')
+    await expect(labeled).toHaveCount(6)
+    expect(await labeled.evaluateAll((els) => els.every((e) => !e.hasAttribute('role') && e.tagName === 'DIV'))).toBe(true)
+    const snap = await page.locator('#dv-labeled').ariaSnapshot()
+    expect(snap).toContain('text: O bien')
+    expect(snap).not.toContain('separator')
+    expect(await page.locator('#dv-row-md').ariaSnapshot()).toMatch(/button "Compartir"[\s\S]*separator[\s\S]*button "Nuevo"[\s\S]*separator[\s\S]*button "Buscar"/)
+    if (browserName === 'chromium') {
+      // Árbol real del navegador (CDP): separators con su orientación, sin nombre; el texto como StaticText fuera de un separator
+      const cdp = await page.context().newCDPSession(page)
+      const { nodes } = await cdp.send('Accessibility.getFullAXTree')
+      const sepNodes = nodes.filter((n) => !n.ignored && n.role && n.role.value === 'separator')
+      const orient = (n) => (n.properties || []).find((p) => p.name === 'orientation')?.value.value
+      expect(sepNodes.filter((n) => orient(n) === 'vertical').length).toBeGreaterThanOrEqual(7)
+      expect(sepNodes.every((n) => !n.name || !n.name.value)).toBe(true)
+      expect(nodes.some((n) => !n.ignored && n.role?.value === 'StaticText' && n.name?.value === 'O bien')).toBe(true)
+    }
+    // Nunca enfocable: Tab va de «Compartir» a «Nuevo» saltando el vertical (WebKit en macOS solo lleva el Tab a los
+    // botones con Alt+Tab, como Safari con la preferencia por defecto)
+    await page.locator('#dv-row-md').getByRole('button', { name: 'Compartir' }).focus()
+    await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')
+    await expect(page.locator('#dv-row-md').getByRole('button', { name: 'Nuevo' })).toBeFocused()
+    // Vertical: alto de la fila (alto del GBtn) − 2 × inset (8px por defecto), con align-items: center
+    const rows = await page.evaluate(() => ['sm', 'md', 'lg'].map((sz) => {
+      const row = document.getElementById(`dv-row-${sz}`)
+      const h = (s) => row.querySelector(s).getBoundingClientRect().height
+      const w = row.querySelector('.dv-full').getBoundingClientRect().width
+      return [h('.g-btn'), h('.dv-in'), h('.dv-full'), w]
+    }))
+    expect(rows, browserName).toEqual([[28, 12, 28, 1], [36, 20, 36, 1], [44, 28, 44, 1]])
+    // Inset: none ocupa la caja de contenido; both 8/8; start 8/0
+    const ins = await page.evaluate(() => ['none', 'both', 'start'].map((k) => {
+      const d = document.getElementById(`dv-inset-${k}`)
+      const p = d.parentElement.getBoundingClientRect()
+      const r = d.getBoundingClientRect()
+      return [Math.round(r.left - p.left), Math.round(p.right - r.right)]
+    }))
+    expect(ins).toEqual([[0, 0], [8, 8], [8, 0]])
+    // La lista anfitriona redefine --g-divider-inset: la línea empieza donde el texto (±1px), en default y compact
+    const align = () => page.evaluate(() => {
+      const d = document.querySelector('#dv-nav .g-divider').getBoundingClientRect()
+      const t = document.querySelector('#dv-nav .dv-text').getBoundingClientRect()
+      return Math.abs(d.left - t.left)
+    })
+    expect(await align()).toBeLessThanOrEqual(1)
+    await page.locator('#dv-demo').getByLabel('Lista compacta').check()
+    await expect(page.locator('#dv-nav')).toHaveAttribute('data-density', 'compact')
+    expect(await align()).toBeLessThanOrEqual(1)
+    // RTL: inset start a la derecha; texto centrado; vertical con el alto de su fila
+    const rtl = await page.evaluate(() => {
+      const d = document.querySelector('#dv-rtl .dv-rtl-start')
+      const p = d.parentElement.getBoundingClientRect()
+      const r = d.getBoundingClientRect()
+      const lab = document.querySelector('#dv-rtl .g-divider--labeled')
+      const lr = lab.getBoundingClientRect()
+      const sr = lab.querySelector('.g-divider__label').getBoundingClientRect()
+      const row = document.getElementById('dv-rtl-row')
+      return { right: Math.round(p.right - r.right), left: Math.round(r.left - p.left), center: Math.abs((sr.left + sr.right) / 2 - (lr.left + lr.right) / 2), btn: row.querySelector('.g-btn').getBoundingClientRect().height, v: row.querySelector('.dv-in').getBoundingClientRect().height }
+    })
+    expect([rtl.right, rtl.left]).toEqual([8, 0])
+    expect(rtl.center).toBeLessThanOrEqual(1)
+    expect(rtl.v).toBe(rtl.btn - 16)
+    // Texto largo a 200px: envuelve, no se recorta y cada línea conserva su mínimo (space × 4)
+    const long = await page.evaluate(() => {
+      const root = document.querySelector('#dv-long .g-divider')
+      const span = root.querySelector('.g-divider__label')
+      const gap = parseFloat(getComputedStyle(root).columnGap)
+      const line = (root.getBoundingClientRect().width - span.getBoundingClientRect().width - 2 * gap) / 2
+      return { lines: Math.round(span.getBoundingClientRect().height / parseFloat(getComputedStyle(span).lineHeight)), clipped: span.scrollWidth > span.clientWidth + 1, line }
+    })
+    expect(long.lines).toBeGreaterThan(1)
+    expect(long.clipped).toBe(false)
+    expect(long.line).toBeGreaterThanOrEqual(15.5)
+    // Decorativo en GDialog: fuera del árbol
+    await page.locator('#dv-open-dlg').click()
+    const dlg = page.locator('dialog.g-dialog[open]')
+    await expect(dlg.locator('#dv-dlg-body')).toBeVisible()
+    await expect(dlg.locator('#dv-dlg-body hr.g-divider[aria-hidden="true"]')).toHaveCount(2)
+    await expect(dlg.getByRole('separator')).toHaveCount(0)
+    expect(await dlg.locator('#dv-dlg-body').ariaSnapshot()).not.toContain('separator')
+    await page.keyboard.press('Escape')
+    await expect(page.locator('dialog.g-dialog[open]')).toHaveCount(0)
+    expect(errors, browserName).toEqual([])
+    // 320px: sin desborde de página ni de ningún divider
+    const narrow = await page.context().newPage()
+    narrow.on('pageerror', (e) => errors.push(`pageerror 320: ${e.message}`))
+    narrow.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console 320: ${m.text()}`) })
+    await narrow.setViewportSize({ width: 320, height: 800 })
+    await ready(narrow)
+    await narrow.locator('#dv-demo').scrollIntoViewIfNeeded()
+    expect(await narrow.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    expect(await narrow.evaluate(() => [...document.querySelectorAll('#dv-demo .g-divider, #dv-demo .dv-bar')].filter((el) => { const r = el.getBoundingClientRect(); return r.right > innerWidth + 0.5 || r.left < -0.5 }).length)).toBe(0)
     expect(errors, browserName).toEqual([])
   })
 })

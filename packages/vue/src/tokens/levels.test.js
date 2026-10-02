@@ -54,9 +54,30 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
     expect(Object.fromEntries(Object.entries(bad).map(([k, v]) => [k, [...v]]))).toEqual({})
   })
 
+  // Anfitrionas de `--g-divider-inset` (DECISIONS.md, decisiones 191 y 195): es un token del tema (defaults.css, :root) que
+  // HEREDA GDivider; lo redefinen los consumidores en sus anfitrionas. Un componente de Grana solo puede hacerlo si está
+  // nombrado aquí (excepción acotada, como PUBLISHED). Hoy, vacío; único candidato previsto: GFormSection/GFormSection.css
+  // en la Fase 3, solo si su contrato lo pide y por decisión de lima.
+  const DIVIDER_INSET_HOSTS = {}
+
+  it('--g-divider-inset es un token del tema; GDivider solo lo lee y solo lo redefinen las anfitrionas nombradas (hoy ninguna)', () => {
+    expect(defined.has('--g-divider-inset')).toBe(true)
+    const divider = sheets.find((x) => x.name === 'GDivider/GDivider.css')
+    expect(divider).toBeTruthy()
+    expect(divider.css).toMatch(/var\(--g-divider-inset\)/)
+    expect(divider.css).not.toMatch(/--g-divider-inset\s*:/)
+    const hosts = sheets.filter((x) => /--g-divider-inset\s*:/.test(x.css)).map((x) => x.name).sort()
+    expect(hosts).toEqual(Object.keys(DIVIDER_INSET_HOSTS).sort())
+  })
+
   it('ningún componente redeclara un token del tema (un componente no redefine roles: los define el tema)', () => {
     const bad = {}
-    for (const s of sheets) for (const m of s.css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)) if (defined.has(m[1])) (bad[s.name] ??= new Set()).add(m[1])
+    for (const s of sheets) {
+      for (const m of s.css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)) {
+        if (m[1] === '--g-divider-inset' && DIVIDER_INSET_HOSTS[s.name]) continue
+        if (defined.has(m[1])) (bad[s.name] ??= new Set()).add(m[1])
+      }
+    }
     expect(Object.fromEntries(Object.entries(bad).map(([k, v]) => [k, [...v]]))).toEqual({})
   })
 })
