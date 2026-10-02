@@ -39,14 +39,16 @@
 
 ```html
 <button class="g-btn is-loading" aria-disabled="true" aria-busy="true">…</button>
-<span class="g-btn__status" role="status">Guardando…</span>  <!-- visualmente oculto, siempre presente -->
+<span class="g-btn__status" role="status">Guardando…</span>  <!-- visualmente oculto; presente mientras haya loadingText (#257) -->
 ```
 
-- La región `role="status"` (educada, `aria-live="polite"` implícito) se renderiza **siempre**. Está vacía mientras no hay carga.
+- La región `role="status"` (educada, `aria-live="polite"` implícito) se renderiza **mientras `loadingText` tenga valor** (cadena no vacía), con o sin `loading` (#257, acota #14). Está vacía mientras no hay carga. **Sin `loadingText` no se renderiza**: por contrato, sin `loadingText` solo queda `aria-busy` y la región nunca podría anunciar nada.
 - Al entrar en `loading`, recibe `loadingText`. Al salir, se vacía.
+- **La región existe antes del texto (#14):** si se monta con `loading` ya activo (`loadingText` y `loading` llegan en el mismo cambio), se monta **vacía** y el texto se escribe **en el ciclo siguiente** (el retardo de los canales, como `utils/liveRegion.js`), nunca en el mismo render. Si ya existía, el texto se escribe al entrar en `loading`, como hasta ahora.
+- **Recomendación** (README): quien quiera el anuncio pone `loadingText` **fijo desde el principio**, no solo durante la carga.
 - El nombre accesible del botón no cambia: sigue siendo su etiqueta.
-- **Dentro de otros componentes que nunca ponen `loading`** (los avisos de `GToast`, #149; la pill, el panel, el disparador y la nota de la captura de voz, #227) la región sigue presente y **vacía siempre**: una región viva vacía que no cambia no anuncia nada. Se acepta en lugar de condicionar su presencia, que reabriría #14 (la región debe existir antes de la carga).
-- El componente tiene **dos nodos raíz**. Por eso usa `inheritAttrs: false` y pasa `$attrs` al botón (o enlace), no a la región.
+- **Dentro de otros componentes que no ponen `loadingText`** (los avisos de `GToast`, la captura de voz y `GTranscript`, con un `GBtn` o dos por fila) **no hay región**: #257 sustituye a las excepciones de regiones vacías aceptadas en #149 y #227. Motivo: con `GTranscript` (320 filas → ~640 regiones `role="status"` vacías) el coste para los lectores de pantalla (cada región se registra y se recorre con el cursor virtual) y para el pintado ya no es despreciable, y una región que nunca puede recibir texto no aporta nada.
+- Con `loadingText`, el componente tiene **dos nodos raíz**. Por eso usa `inheritAttrs: false` y pasa `$attrs` al botón (o enlace), no a la región.
 
 ## Eventos
 
@@ -113,7 +115,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-btn__label` | Envoltura del slot `default` | Siempre |
 | `g-btn__append` | Envoltura del slot `append` | Si hay slot |
 | `g-btn__loader` | `span` vacío, `aria-hidden="true"` | Siempre presente; visible solo con `is-loading` |
-| `g-btn__status` | Región `role="status"`, hermana de la raíz | Siempre presente |
+| `g-btn__status` | Región `role="status"`, hermana de la raíz | Mientras `loadingText` tenga valor (#257) |
 
 ## Teclado
 
