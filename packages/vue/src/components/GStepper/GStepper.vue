@@ -3,7 +3,7 @@
 // Contrato: design/contracts/stepper.md · Estilo: GStepper.css (coco) · Estructura: design/lab/stepper/r01/.
 // Función de render: la lista de pasos se dibuja dos veces (completa y desplegada en el compacto), con el mismo código.
 // La lista completa existe siempre (en compacto, oculta por el CSS) para poder medir su ancho natural (DECISIONS.md #151).
-import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onUpdated, onBeforeUnmount, useId } from 'vue'
+import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GIcon.vue'
 
@@ -38,6 +38,9 @@ export default defineComponent({
     const needs = ref(null)
     const open = ref(false)
     const listId = `${useId()}-list`
+    // is-ready: dos cuadros después de montar (ya aplicado el primer tramo); las entradas de coco solo existen con él
+    const ready = ref(false)
+    let unmounted = false
 
     const idOf = (step, i) => (step && step.id !== undefined ? step.id : i)
     const count = computed(() => props.steps.length)
@@ -113,10 +116,71 @@ export default defineComponent({
         observer.observe(root.value)
       }
       if (typeof document !== 'undefined' && document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', onFonts)
+      nextFrame(() => nextFrame(() => { if (!unmounted) ready.value = true }))
     })
     // Cualquier cambio de pasos, textos, paso actual o props visuales vuelve a renderizar: se mide de nuevo
     onUpdated(measureNeeds)
+
+    // ---- Continuidad del indicador (plan 005) ----
+    // Un paso que pasa de botón a texto (o al revés) cambia de etiqueta y Vue rehace su indicador: el nuevo nace con su
+    // estilo final y la transición de coco no corre. Se continúa desde el aspecto del viejo con la Web Animations API
+    // (como GWidgetGrid, #91). Duración y curva de los tokens; con movimiento reducido solo los colores.
+    const CONTINUE = ['backgroundColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'color', 'boxShadow', '--_stepper-fill']
+    const toMs = (raw) => (raw.endsWith('ms') ? parseFloat(raw) : raw.endsWith('s') ? parseFloat(raw) * 1000 : NaN)
+    const readStyle = (cs, p) => (p.startsWith('--') ? cs.getPropertyValue(p).trim() : cs[p])
+    const shownIndicators = () => {
+      const el = root.value
+      if (!el) return []
+      // La clase de la raíz (no isCompact) dice qué lista está pintada ahora mismo: antes del parche es la vieja
+      const scope = el.classList.contains(TIER_CLASS.compact) ? '.g-stepper__compact > .g-stepper__list' : ':scope > .g-stepper__list'
+      return [...el.querySelectorAll(`${scope} > .g-stepper__step > .g-stepper__hit > .g-stepper__indicator`)]
+    }
+    let lastIndicators = null
+    onBeforeUpdate(() => {
+      lastIndicators = null
+      if (!ready.value || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return
+      lastIndicators = shownIndicators().map((node) => {
+        const cs = window.getComputedStyle(node)
+        const frame = {}
+        for (const p of CONTINUE) frame[p] = readStyle(cs, p)
+        return { node, frame, transform: cs.transform }
+      })
+    })
+    onUpdated(() => {
+      const prev = lastIndicators
+      lastIndicators = null
+      if (!prev || !prev.length || !root.value || typeof window.matchMedia !== 'function') return
+      const now = shownIndicators()
+      if (now.length !== prev.length) return // otro tramo u otros pasos: nada que continuar
+      const cs = window.getComputedStyle(root.value)
+      const fast = toMs(cs.getPropertyValue('--g-duration-fast').trim())
+      const press = toMs(cs.getPropertyValue('--g-duration-press').trim())
+      const standard = cs.getPropertyValue('--g-ease-standard').trim() || 'ease'
+      const out = cs.getPropertyValue('--g-ease-out').trim() || 'ease-out'
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      now.forEach((node, i) => {
+        const { node: old, frame, transform } = prev[i]
+        if (node === old || typeof node.animate !== 'function') return // el mismo elemento: lo anima la transición de coco
+        const to = window.getComputedStyle(node)
+        const from = {}
+        const end = {}
+        let changed = false
+        for (const p of CONTINUE) {
+          const a = frame[p]
+          const b = readStyle(to, p)
+          if (!a || !b) continue
+          from[p] = a
+          end[p] = b
+          if (a !== b) changed = true
+        }
+        if (changed && fast > 0) node.animate([from, end], { duration: fast, easing: standard })
+        if (!reduce && transform && transform !== 'none' && press > 0) {
+          node.animate([{ transform }, { transform: 'none' }], { duration: press, easing: out })
+        }
+      })
+    })
     onBeforeUnmount(() => {
+      unmounted = true
       if (observer) observer.disconnect()
       if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
       if (typeof document !== 'undefined' && document.fonts && document.fonts.removeEventListener) document.fonts.removeEventListener('loadingdone', onFonts)
@@ -260,6 +324,7 @@ export default defineComponent({
       if (props.navigation !== 'none' && !props.disabled) classes.push('g-stepper--navigable')
       if (TIER_CLASS[tier.value]) classes.push(TIER_CLASS[tier.value])
       if (props.disabled) classes.push('is-disabled')
+      if (ready.value) classes.push('is-ready')
       // La lista completa va siempre (en compacto la oculta el CSS y sirve para medir); el resumen, solo en compacto
       return h('nav', { ref: root, class: classes }, [
         isCompact.value ? renderCompact() : null,

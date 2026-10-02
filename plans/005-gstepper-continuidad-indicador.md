@@ -1,6 +1,6 @@
 # 005 — Continuidad del indicador de GStepper cuando el paso cambia de botón a texto (y clase `is-ready`)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueño**: bruno (`GStepper.vue`, `GStepper.test.js`). Sin CSS, sin tokens nuevos.
 - **Commit**: 49ad85b
 - **Severity**: HIGH
@@ -246,3 +246,7 @@ Comprobado: `Element.animate` con claves de color, `boxShadow`, `transform` y la
   - Con `reducedMotion: 'reduce'`: solo la de color.
 - **Feel check**: DevTools > Animations al 10 %, primer stepper: «Siguiente» y clic hacia atrás se ven igual de suaves que en los steppers sin navegación (puntos, iconos); al soltar un paso pulsado no hay salto de tamaño.
 - **Done when**: ningún indicador cambia de aspecto en un solo cuadro con `navigation="back"`/`"free"`; `is-ready` aparece tras montar; las pruebas pasan.
+
+## Nota de ejecución
+
+Ejecutado sin desviaciones (4 pruebas nuevas, 1182 verdes). Verificado en los tres navegadores: el indicador nuevo recibe una Animation de 120 ms de color y, al soltar un paso pulsado, otra de transform de 160 ms desde matrix(0.97, ...); con reduce solo la de color. is-ready aparece tras montar (en Playwright ya estaba presente al detectar el primer .g-stepper; lo cubre la prueba unitaria).

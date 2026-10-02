@@ -429,6 +429,80 @@ describe('GStepper · compacto y adaptación', () => {
   })
 })
 
+describe('GStepper · movimiento', () => {
+  const TOKENS = { '--g-duration-fast': '120ms', '--g-duration-press': '160ms', '--g-ease-standard': 'cubic-bezier(0.2, 0, 0, 1)', '--g-ease-out': 'cubic-bezier(0.23, 1, 0.32, 1)' }
+  // Estilo falso: el color depende del estado del <li> en el momento de la lectura; pressed simula la pulsación
+  const fakeStyles = ({ pressed = false } = {}) => {
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+      const li = el.closest && el.closest('.g-stepper__step')
+      const done = li && li.classList.contains('is-complete')
+      const c = done ? 'rgb(31, 31, 31)' : 'rgb(255, 255, 255)'
+      return {
+        backgroundColor: c, borderTopColor: c, borderRightColor: c, borderBottomColor: c, borderLeftColor: c,
+        color: c, boxShadow: 'none', transform: pressed && !done ? 'matrix(0.97, 0, 0, 0.97, 0, 0)' : 'none',
+        getPropertyValue: (p) => TOKENS[p] || ''
+      }
+    })
+  }
+  const setup = (reduce = false) => {
+    vi.stubGlobal('requestAnimationFrame', (fn) => { fn(); return 0 })
+    vi.stubGlobal('matchMedia', (q) => ({ matches: reduce && q.includes('reduce') }))
+    window.matchMedia = globalThis.matchMedia
+    const animate = vi.fn()
+    Element.prototype.animate = animate
+    return animate
+  }
+  afterEach(() => { delete Element.prototype.animate })
+
+  it('is-ready llega después de montar (dos cuadros), no en la primera pintura', async () => {
+    setup()
+    const w = mk()
+    await nextTick()
+    expect(w.classes()).toContain('is-ready')
+    w.unmount()
+  })
+
+  it('continúa el indicador que Vue rehace al pasar de texto a botón (navigation="back")', async () => {
+    const animate = setup()
+    const w = mk({ navigation: 'back', modelValue: 'cuenta' })
+    await nextTick()
+    fakeStyles()
+    await w.setProps({ modelValue: 'pago' })
+    // Solo el paso 2 (actual → hecho) cambió de etiqueta: una animación de color, con los tokens
+    expect(animate).toHaveBeenCalledTimes(1)
+    const [frames, opts] = animate.mock.calls[0]
+    expect(frames[0].backgroundColor).toBe('rgb(255, 255, 255)')
+    expect(frames[1].backgroundColor).toBe('rgb(31, 31, 31)')
+    expect(opts).toEqual({ duration: 120, easing: 'cubic-bezier(0.2, 0, 0, 1)' })
+    w.unmount()
+  })
+
+  it('la escala de la pulsación vuelve animada; con movimiento reducido solo el color', async () => {
+    for (const reduce of [false, true]) {
+      const animate = setup(reduce)
+      const w = mk({ navigation: 'back', modelValue: 'cuenta' })
+      await nextTick()
+      fakeStyles({ pressed: true })
+      await w.setProps({ modelValue: 'pago' })
+      const transforms = animate.mock.calls.filter(([f]) => f[0].transform)
+      expect(transforms).toHaveLength(reduce ? 0 : 1)
+      if (!reduce) expect(transforms[0][1]).toEqual({ duration: 160, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' })
+      w.unmount()
+      vi.restoreAllMocks()
+    }
+  })
+
+  it('sin cambio de etiqueta (navigation="none") no anima desde JS: lo hace el CSS', async () => {
+    const animate = setup()
+    const w = mk()
+    await nextTick()
+    fakeStyles()
+    await w.setProps({ modelValue: 'pago' })
+    expect(animate).not.toHaveBeenCalled()
+    w.unmount()
+  })
+})
+
 describe('GStepper · validadores', () => {
   it('rechazan valores fuera de la lista', () => {
     const v = (name) => GStepper.props[name].validator
