@@ -5,7 +5,8 @@
 // Las marcas (check, circle, chevron-right, triangle-alert) son iconos de Lucide (GIcon, docs/contract/icons.md).
 import { defineComponent, h, nextTick, onBeforeUnmount, ref, useAttrs, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
+import GAppIcon from '../GIcon/GIcon.vue'
 import { transitionMs } from '../../utils/motion.js'
 import { placeBlock, placeSubmenu, viewport } from '../../utils/anchor.js'
 
@@ -316,7 +317,10 @@ export default defineComponent({
               ? h('span', { class: 'g-menu__mark', 'aria-hidden': 'true' }, [
                   node.type === 'checkbox' ? h(GIcon, { name: 'check' }) : h(GIcon, { name: 'circle', filled: true })
                 ])
-              : (slots.icon && it.icon !== undefined ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, slots.icon({ item: it })) : null),
+              : slots.icon
+                ? (it.icon !== undefined ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, slots.icon({ item: it })) : null)
+                // «Dato → nombre» (#202): `icon` cadena sin slot dibuja GIcon con ese nombre (resolución de la aplicación)
+                : (typeof it.icon === 'string' && it.icon !== '' ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, [h(GAppIcon, { name: it.icon })]) : null),
             h('span', { class: 'g-menu__label' }, [it.danger ? h(GIcon, { class: 'g-menu__danger-icon', name: 'triangle-alert' }) : null, it.label]),
             it.shortcut ? h('span', { class: 'g-menu__shortcut', 'aria-hidden': 'true' }, it.shortcut) : null
           ]

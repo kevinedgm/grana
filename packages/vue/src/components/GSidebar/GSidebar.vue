@@ -6,7 +6,8 @@
 // submenú solo se alternan clases y atributos sobre el mismo DOM (así corren las transiciones de coco).
 import { Fragment, computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
+import GAppIcon from '../GIcon/GIcon.vue'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -427,7 +428,10 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
 
     // ---------- Render ----------
     const cls = (...a) => a.filter(Boolean).join(' ')
-    const iconNode = (item) => (slots.icon ? slots.icon({ item: item.raw }) : null)
+    // Con slot `icon`, manda el slot; sin él, un `icon` cadena dibuja GIcon con ese nombre (#202; solo primer nivel)
+    const iconNode = (item) => (slots.icon
+      ? slots.icon({ item: item.raw })
+      : (item.level === 0 && typeof item.icon === 'string' && item.icon !== '' ? [h(GAppIcon, { name: item.icon })] : null))
     const badgeNodes = (item) => {
       const out = []
       if (item.badge !== undefined && item.badge !== null) out.push(h('span', { class: 'g-sidebar__badge', 'aria-hidden': 'true' }, String(item.badge)))

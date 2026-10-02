@@ -2,6 +2,8 @@
 // GFormSection · sección fija de un formulario (una idea) (dueño: bruno)
 // Contrato: design/contracts/form.md §3 (#161) · Estilo: GFormSection.css (coco)
 // <section> SIN aria-labelledby (no es punto de referencia); el título hN da la navegación.
+// Slot lead (#203): <span class="g-form-section__lead" aria-hidden="true"> primer hijo de __heading, solo con el slot,
+// inmediatamente antes del hN (el CSS de coco usa `__lead + __title`: no intercalar nada). Decorativo; un GIcon con label dentro avisa por sí mismo (antecesor aria-hidden, icons.md §2.4).
 import { computed, inject, provide, unref, useAttrs, useSlots } from 'vue'
 import GBadge from '../GBadge/GBadge.vue'
 import { formKey, isDev, sectionKey } from '../GForm/formContext.js'
@@ -44,6 +46,7 @@ if (isDev) {
   <section v-bind="rootAttrs" class="g-form-section" :class="{ 'g-form-section--optional': optional }">
     <div class="g-form-section__header">
       <div class="g-form-section__heading">
+        <span v-if="slots.lead" class="g-form-section__lead" aria-hidden="true"><slot name="lead" /></span>
         <component :is="`h${level}`" class="g-form-section__title"><slot name="title">{{ title }}</slot></component>
         <GBadge v-if="optional && badgeText" size="sm" variant="soft" color="neutral">{{ badgeText }}</GBadge>
       </div>

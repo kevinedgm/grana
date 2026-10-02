@@ -16,6 +16,7 @@
   ],
   "events": [],
   "slots": [
+    { "name": "lead", "purpose": "Icono decorativo antes del título (normalmente un GIcon; #203). En g-form-section__lead (aria-hidden), primer hijo de __heading, fuera del hN; solo con el slot, sin icono por defecto" },
     { "name": "title", "purpose": "Título rico (dentro del hN)" },
     { "name": "description", "purpose": "Descripción rica" },
     { "name": "actions", "purpose": "Acciones secundarias de la sección" },

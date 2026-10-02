@@ -7,13 +7,16 @@ import { computed, defineComponent, h, inject, mergeProps, nextTick, onBeforeUnm
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { TABS_NEST, hasFocusable, isRtl, panelDomId, tabDomId } from '../../utils/tabs.js'
-import GIcon from '../GIcon/GIcon.vue'
+import GIcon from '../GIcon/GLibIcon.js'
+import GAppIcon from '../GIcon/GIcon.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GMenu from '../GMenu/GMenu.vue'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const cls = (...v) => v.filter(Boolean)
 const hasIconValue = (v) => v !== undefined && v !== null
+// «Dato → nombre» (#202): un `icon` cadena sin slot `icon` dibuja GIcon con ese nombre (resolución de la aplicación)
+const isIconName = (v) => typeof v === 'string' && v !== ''
 const reduceMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 const px = (n) => `${Math.round(n * 100) / 100}px`
 
@@ -114,22 +117,23 @@ export default defineComponent({
       return props.overflow
     })
     const moreWanted = computed(() => overflowMode.value === 'more')
-    const allIcons = computed(() => entries.value.length > 0 && slotsHasIcon() && entries.value.every((e) => hasIconValue(e.icon)))
+    const allIcons = computed(() => entries.value.length > 0 && entries.value.every(tabHasIcon))
     const autoWanted = computed(() => props.labelMode === 'auto' && allIcons.value && !vertical.value)
     const alignMode = computed(() => {
       if (measuring.value) return 'start'
       return overflowing.value && props.align !== 'start' ? 'start' : props.align
     })
-    function slotsHasIcon() { return Boolean(slots.icon) }
+    // Una pestaña «tiene icono» con slot `icon` e `item.icon` con valor, o sin slot e `item.icon` cadena (tabs.md, #202)
+    function tabHasIcon(e) { return slots.icon ? hasIconValue(e.icon) : isIconName(e.icon) }
 
     const iconOnlyOf = (e, active) => {
-      if (!(slots.icon && hasIconValue(e.icon))) return false // sin icono, conserva su etiqueta visible
+      if (!tabHasIcon(e)) return false // sin icono, conserva su etiqueta visible
       if (props.labelMode === 'icon') return true
       if (props.labelMode === 'auto' && autoReduced.value && !active) return true
       return false
     }
     const anyIconOnly = computed(() => {
-      if (props.labelMode === 'icon') return entries.value.some((e) => slots.icon && hasIconValue(e.icon))
+      if (props.labelMode === 'icon') return entries.value.some(tabHasIcon)
       return props.labelMode === 'auto' && autoReduced.value
     })
 
@@ -159,7 +163,7 @@ export default defineComponent({
         const secondary = [raw.status, raw.badge, raw.count !== undefined && raw.count !== null ? raw.count : undefined].filter((v) => v !== undefined && v !== null && v !== '').length
         if (secondary > 1) warnOnce(`secondary-${raw.id}`, `la pestaña «${raw.id}» combina más de una información secundaria (estado, insignia, contador): usa solo una.`)
         if (raw.closable !== undefined || raw.closeLabel !== undefined) warnOnce('closable', '`closable` y `closeLabel` están reservados y no se publican en v0.1: se ignoran.')
-        if ((props.labelMode === 'icon' || props.labelMode === 'auto') && !(slots.icon && hasIconValue(raw.icon))) warnOnce('labelmode-icon', '`labelMode` solo icono necesita `icon` en cada pestaña (y el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
+        if ((props.labelMode === 'icon' || props.labelMode === 'auto') && !tabHasIcon(raw)) warnOnce('labelmode-icon', '`labelMode` solo icono necesita `icon` en cada pestaña (un nombre de Lucide, o cualquier valor con el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
       }
       if (raws.length && props.modelValue !== undefined && props.modelValue !== null) {
         const hit = raws.find((r) => r && r.id === props.modelValue)
@@ -407,7 +411,7 @@ export default defineComponent({
 
     // Cambios que obligan a medir de nuevo
     const layoutSig = computed(() => JSON.stringify([
-      entries.value.map((e) => [e.id, e.label, e.disabled, e.count, e.badge, e.status, hasIconValue(e.icon)]),
+      entries.value.map((e) => [e.id, e.label, e.disabled, e.count, e.badge, e.status, tabHasIcon(e)]),
       props.density, props.appearance, props.orientation, props.overflow, props.labelMode, props.responsive, props.align, props.labels?.more, activeId.value
     ]))
     watch(layoutSig, () => fit(), { flush: 'post' })
@@ -555,6 +559,7 @@ export default defineComponent({
       const mountedPanel = props.detached || !props.lazy || mounted.value.has(e.id)
       const children = []
       if (slots.icon && hasIconValue(e.icon)) children.push(h('span', { class: 'g-tabs__icon', 'aria-hidden': 'true' }, slots.icon(ctx)))
+      else if (!slots.icon && isIconName(e.icon)) children.push(h('span', { class: 'g-tabs__icon', 'aria-hidden': 'true' }, [h(GAppIcon, { name: e.icon })]))
       children.push(h('span', { class: 'g-tabs__label', 'data-text': label }, slots.label ? slots.label(ctx) : label))
       if (status) children.push(...statusParts(status, e.statusLabel, e.id))
       children.push(...secondaryOf(e))

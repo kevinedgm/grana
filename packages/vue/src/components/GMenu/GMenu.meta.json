@@ -17,7 +17,8 @@
     {
       "name": "items",
       "type": "Array",
-      "default": []
+      "default": [],
+      "note": "Un elemento con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-menu__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot"
     },
     {
       "name": "label",
@@ -98,7 +99,7 @@
     },
     {
       "name": "icon",
-      "purpose": "Icono de un elemento (decorativo). Alcance { item }"
+      "purpose": "Icono de un elemento (decorativo); sustituye al GIcon por nombre de item.icon. Alcance { item }"
     },
     {
       "name": "item",

@@ -97,7 +97,8 @@
         "full",
         "icon",
         "auto"
-      ]
+      ],
+      "note": "Una pestaña «tiene icono» con slot icon e item.icon con valor, o sin slot e item.icon cadena (#202)"
     },
     {
       "name": "snap",
@@ -172,7 +173,7 @@
     },
     {
       "name": "icon",
-      "purpose": "Icono de la pestaña (valor item.icon). Alcance: { item, index, active }; decorativo"
+      "purpose": "Icono de la pestaña (valor item.icon); sustituye al GIcon por nombre. Alcance: { item, index, active }; decorativo"
     },
     {
       "name": "label",
@@ -196,8 +197,8 @@
     },
     {
       "name": "icon",
-      "type": "any",
-      "purpose": "Llega al slot icon; decorativo"
+      "type": "String | any",
+      "purpose": "Nombre de Lucide (cadena) sin slot icon: la pestaña dibuja GIcon con ese nombre (registro de la aplicación → librería; #202). Con slot icon, manda el slot. Otro valor: dato opaco que solo recibe el slot; decorativo"
     },
     {
       "name": "count",
