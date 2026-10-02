@@ -24,6 +24,7 @@
     .dv-stack p { margin: 0; }
     .dv-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
     .dv-bar-label { min-inline-size: 2.5em; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+    .dv-grid { display: grid; grid-auto-flow: column; align-items: center; gap: 12px; margin: 0 0 20px; font-size: var(--g-text-title-size); font-weight: 600; }
     .dv-surfaces { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); margin: 0 0 20px; }
     .dv-surf { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--g-radius-md); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); }
     .dv-surf--sunken { background: var(--g-color-surface-sunken); }
@@ -1053,6 +1054,15 @@
       <g-btn :size="sz" variant="ghost" icon aria-label="Nuevo"><lucide-icon name="plus"></lucide-icon></g-btn>
       <g-divider class="dv-full" orientation="vertical"></g-divider>
       <g-btn :size="sz" variant="ghost" icon aria-label="Buscar"><lucide-icon name="search"></lucide-icon></g-btn>
+    </div>
+
+    <h3>Vertical dentro de un grid (toma el alto de la fila por <code>align-self: stretch</code>)</h3>
+    <div class="dv-grid" id="dv-grid-row" role="group" aria-label="Métricas">
+      <strong>128</strong>
+      <g-divider orientation="vertical" emphasis="strong"></g-divider>
+      <strong>64</strong>
+      <g-divider orientation="vertical"></g-divider>
+      <strong>12</strong>
     </div>
 
     <h3>Sutil y fuerte, sobre superficie y superficie hundida</h3>

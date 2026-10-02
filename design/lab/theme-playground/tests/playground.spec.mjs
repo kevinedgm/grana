@@ -260,9 +260,11 @@ test.describe('estados reales (no se simula «strong»)', () => {
     await open(page, { theme: 'amazon', scheme: 'dark', strategy: 'current' })
     const btn = page.getByTestId('btn-disabled')
     await expect(btn).toBeDisabled()
+    await page.evaluate(() => document.getAnimations().forEach((x) => x.finish())) // sin transiciones a medio camino antes de leer el reposo
     const rest = await btn.evaluate((e) => getComputedStyle(e).backgroundColor)
     await btn.hover({ force: true })
-    expect(await btn.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(rest)
+    // WebKit a veces entrega el primer fotograma de hover con un retardo: se sondea en vez de leer una sola vez
+    await expect.poll(() => btn.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(rest)
     await expect(page.getByTestId('input-disabled')).toBeDisabled()
     await expect(page.getByTestId('chk-disabled')).toBeDisabled()
   })

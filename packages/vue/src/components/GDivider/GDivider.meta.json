@@ -136,10 +136,8 @@
     "default"
   ],
   "pending": [
-    "Auditoría de coco (paso 5) con un tema distinto al por defecto",
-    "README (mora-docs): regla de uso, requisito del vertical, cuándo decorative, no dentro de listas ni de GMenu, no entre GFormSection",
     "Lector de pantalla real (VoiceOver, NVDA): anuncio de separator en hr y en el vertical, lectura del texto entre líneas",
-    "Límite sin aviso (DECISIONS.md 194): un vertical con inset=\"both\" mide 0 si la anfitriona define un --g-divider-inset mayor que la mitad del alto de su fila; va al README",
+    "Límite sin aviso (DECISIONS.md 194): un vertical con inset=\"both\" mide 0 si la anfitriona define un --g-divider-inset mayor que la mitad del alto de su fila; documentado en el README",
     "Fila que envuelve (flex-wrap): un vertical al borde de una línea separa nada; sin aviso en v0.1"
   ]
 }
