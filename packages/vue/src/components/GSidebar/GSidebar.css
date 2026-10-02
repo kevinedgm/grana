@@ -75,17 +75,16 @@
   z-index: 2;
   box-shadow: var(--g-shadow-3);
 }
-/* Expandir y contraer: el ancho se mueve con una curva suave y las etiquetas entran un instante después,
-   cuando la barra ya se abre (no antes de que haya sitio) */
+/* Expandir y contraer: el ancho se mueve con una curva suave y, al expandir (is-expanding, bruno), las etiquetas entran un instante después; al cargar no se anima nada */
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar--mode-expanded,
   .g-sidebar--mode-rail {
     transition: inline-size var(--_t-slow) var(--g-ease-standard);
   }
-  .g-sidebar--mode-expanded .g-sidebar__nav .g-sidebar__label,
-  .g-sidebar--mode-expanded .g-sidebar__nav .g-sidebar__group-title,
-  .g-sidebar--mode-expanded .g-sidebar__head .g-sidebar__label,
-  .g-sidebar--mode-expanded .g-sidebar__hint {
+  .g-sidebar--mode-expanded.is-expanding .g-sidebar__nav .g-sidebar__label,
+  .g-sidebar--mode-expanded.is-expanding .g-sidebar__nav .g-sidebar__group-title,
+  .g-sidebar--mode-expanded.is-expanding .g-sidebar__head .g-sidebar__label,
+  .g-sidebar--mode-expanded.is-expanding .g-sidebar__hint {
     animation: g-sidebar-label-in var(--_t) var(--g-ease-out) calc(var(--_stagger) * 1.5) both;
   }
   @keyframes g-sidebar-label-in {
@@ -378,7 +377,7 @@
     opacity var(--_t) var(--g-ease-out);
 }
 @starting-style {
-  .g-sidebar__badge {
+  .g-sidebar.is-ready .g-sidebar__badge {
     scale: 0.6;
     opacity: 0;
   }

@@ -51,6 +51,7 @@ Decisiones de criterio (con la guía de movimiento del repositorio):
 - **No reconstruyas el sidebar** al contraer, expandir, navegar ni abrir un submenú: alterna clases y atributos sobre el mismo DOM (si se recrea el nodo, la transición no corre). El banco lo hace así (`patch`, `syncSubs`, `syncActive`).
 - **Submenú:** `is-open` + `inert` + `aria-expanded` (sin `hidden`).
 - **Panel y pista persistentes:** `showPopover()` / `hidePopover()`, sin quitarlos del DOM; la pista lleva `is-instant` si se mostró otra hace menos de ~600ms (y sin retardo).
+- **is-ready** en la raíz (lateral, drawer y navbar) dos cuadros después de montar, e **is-expanding** al pasar de riel a expandida ya montada (600 ms): las insignias y las etiquetas no se animan al cargar.
 - **Navbar:** pon `is-entering` en la raíz al pasar a ese formato y quítala a los ~600ms; cambia `is-current` en el mismo `<li>` para animar la píldora.
 - **Drawer:** no lo desmontes al cerrar; `close()` y deja terminar la transición (~240ms) antes de cambiar de foco o quitar el nodo.
 - Los alias de movimiento (`--_t*`) están en la raíz **y** en el drawer (el `<dialog>` envuelve a la raíz y no los hereda).

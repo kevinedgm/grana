@@ -1,6 +1,6 @@
 # 012 — No animar al montar: GSidebar, GTabs y GCheckbox
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dueños**: bruno (pasos 1–4: `GSidebar.vue`, `GSidebar.test.js`, `GCheckbox.vue`, `GCheckbox.test.js`), coco (pasos 5–7: `GSidebar.css`, `GTabs.css`, `design/lab/sidebar/estilo.md`, `design/lab/tabs/estilo.md`). Sin tokens nuevos.
 - **Commit**: c9ecab2
 - **Severity**: MEDIUM (GSidebar: es la carcasa de la aplicación y se ve en cada carga) · LOW (GTabs, GCheckbox)
@@ -171,3 +171,9 @@ Lo que **no** cambia: la entrada del navbar (`is-entering`, `GSidebar.vue:369-37
   - Insignia nueva del sidebar: el playground no tiene un control para cambiarla; comprueba que la raíz tiene `is-ready` tras cargar y que la regla la exige (`grep -n "is-ready .g-sidebar__badge" packages/vue/dist/grana.css` → 1 resultado). Abre el drawer (selector «modo» → `drawer`, «Abrir drawer»): sus insignias entran con `scale`/`opacity` de 160 ms (el drawer pasa de `display: none` a visible ya con `is-ready`).
 - **Feel check**: recarga la página varias veces: la barra lateral, las pestañas y las casillas aparecen quietas, ya en su sitio. Contrae y expande la barra: las etiquetas siguen entrando con su retardo corto. Abre el drawer (modo `drawer`): los grupos entran escalonados como antes.
 - **Done when**: al cargar no corre ninguna de esas animaciones en ningún navegador, y las entradas siguen funcionando al expandir el sidebar, al cambiar de pestaña y al aparecer una insignia nueva.
+
+## Nota de ejecución
+
+- `GCheckbox.vue`: además de pasar `indeterminate` en `controlled`, se movió `type="checkbox"` **antes** de `v-bind="fieldBindings"` (el orden de las propiedades importa: con `type` al final el navegador reiniciaba `indeterminate`). Con esto la casilla mixta del playground (`mixed`) ya nace mixta.
+- Pendiente fuera del plan: la casilla maestra de `GCheckboxGroup select-all` (`:indeterminate="someChecked"`) calcula su estado cuando los hijos se registran en `onMounted`, así que su primer render es no-mixto y en Chromium/Firefox sigue corriendo una transición de color al cargar (1 casilla). Corregirlo exige registrar los hijos en `setup` (bruno, `GCheckbox`/`GCheckboxGroup`); no se hizo por no ser parte del plan.
+- Pruebas nuevas: 3 en `GSidebar.test.js` (is-ready, is-expanding, no en montaje) y 1 en `GCheckbox.test.js` (MutationObserver). Verificado con Playwright: al cargar no corren `g-sidebar-label-in`, ni las insignias ni el panel de `GTabs`; al expandir el sidebar, `is-expanding` + `g-sidebar-label-in` y a los 700 ms desaparece; el panel de `GTabs` entra con `opacity`/`translate` al cambiar de pestaña.

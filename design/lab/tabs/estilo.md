@@ -17,7 +17,7 @@
 | **contained** | Banda `--g-tabs-band` a sangre con aire arriba; la activa se **funde** con el panel (`--g-tabs-panel`) y lleva una línea de color arriba del grosor de la marca (la marca de 3:1) y filetes laterales tenues. No dibuja borde propio |
 | **Secundario** | Estado y contador: más pequeños y pálidos que la etiqueta (`text-subtle`, `GBadge sm soft neutral`); `attention` en `warning-text`, `loading` neutro y girando. Sobre la píldora activa la insignia sube a `surface` para no fundirse con ella |
 | **Overflow** | Degradado en el borde por `is-scrollable-*` (máscara, también vertical); `arrows` atenúa el botón del extremo sin lista y conserva su hueco (sin saltos); `more` es una pestaña más en la cabecera, fuera del `tablist` |
-| **Movimiento** | La marca anima solo `translate`, ancho y alto con `--g-duration-press` y `--g-ease-standard`, y **solo con `is-ready`**; el panel entra con fundido y `translate` de `space × 1` (`@starting-style`, `--g-ease-out`); el icono de carga gira (`@keyframes` solo del giro, como `GBtn`) |
+| **Movimiento** | La marca anima solo `translate`, ancho y alto con `--g-duration-press` y `--g-ease-standard`, y **solo con `is-ready`**; el panel entra con fundido y `translate` de `space × 1` (`@starting-style`, `--g-ease-out`; solo con `is-ready`: no al montar); el icono de carga gira (`@keyframes` solo del giro, como `GBtn`) |
 
 ## Valores del tema (defaults.css)
 
