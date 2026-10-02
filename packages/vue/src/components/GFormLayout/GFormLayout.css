@@ -1,0 +1,29 @@
+/*
+  GFormLayout · pila vertical de filas (r02; sustituye a GFormGrid)
+  Dueño: coco. Contrato: design/contracts/form.md §4 (DECISIONS.md #171 a #173). Estructura: design/lab/form/r02/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Carácter: no dibuja nada. Apila sus hijos (campos sueltos, GFormRow, GFieldGroup, casillas…) con el aire de una
+  fila y cada uno ocupa el ancho entero: todas las filas terminan en el mismo borde. No mide (quien mide es cada
+  GFormRow); `stack` no tiene estilo propio: lo aplica el reparto de cada fila.
+*/
+
+.g-form-layout {
+  --_density: 1;
+
+  display: flex;
+  flex-direction: column;
+  /* Cada hijo directo ocupa el ancho entero (un campo suelto es una fila de uno) */
+  align-items: stretch;
+  gap: calc(var(--g-form-gap) * var(--_density));
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-form-layout--density-default { --_density: 1; }
+.g-form-layout--density-comfortable { --_density: 0.875; }
+.g-form-layout--density-compact { --_density: 0.75; }
+
+.g-form-layout > * {
+  min-inline-size: 0;
+  margin: 0;
+}

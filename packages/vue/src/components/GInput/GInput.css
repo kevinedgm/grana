@@ -163,6 +163,26 @@
   border: 0;
 }
 
+/* ---------- Valor calculado (form.md C14, #180): <output> al final de la caja ---------- */
+/* Un valor, no una ayuda: texto pleno con cifras tabulares, separado del valor escrito por una línea fina (decorativa).
+   La región existe siempre (#14); vacía no deja ni línea ni hueco. No cambia la altura de la caja */
+.g-input__output {
+  flex: none;
+  padding-inline-start: calc(var(--_gap) * var(--_density));
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-variant-numeric: tabular-nums;
+  color: var(--g-color-text);
+  white-space: nowrap;
+  cursor: text;
+}
+.g-input__output:empty {
+  padding: 0;
+  border: 0;
+  margin-inline-start: calc(var(--_gap) * var(--_density) * -1);
+}
+
 /* ---------- Indicador de carga: loader-circle de Lucide que gira ---------- */
 .g-input__loader {
   flex: none;
@@ -315,6 +335,11 @@
   flex: none;
   margin-inline-start: auto;
 }
+/* Pie (form.md C12, r02): ayuda + contador y la región de mensaje en un solo contenedor, la tercera pista del campo.
+   Vacío no ocupa nada */
+.g-input__support {
+  min-inline-size: 0;
+}
 /* Mensaje de estado (form.md C4/C5): un solo hueco para error, advertencia o válido. La región viva existe siempre;
    vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
 .g-input__message {
@@ -437,14 +462,19 @@
   --_border: var(--g-color-success-text);
   --_border-end: var(--g-color-success-text);
 }
-/* Solo lectura (C7, #165): contraste completo, fondo hundido y borde discontinuo; enfocable y seleccionable.
-   Nunca atenuado: lo que lo separa de deshabilitado es la forma del borde y el texto pleno, no el color */
+/* Solo lectura (C7, #165): contraste completo, relleno neutro suave y borde discontinuo; enfocable y seleccionable.
+   Nunca atenuado: lo que lo separa de deshabilitado es la forma del borde y el texto pleno, no el color.
+   Relleno (r02 L8): --g-color-neutral-soft, un paso por debajo de la superficie en claro y un paso por ENCIMA en
+   oscuro (surface-sunken es más oscuro que la superficie y se leía como un pozo negro). Sin token nuevo */
 .g-input.is-readonly .g-input__control {
-  --_bg: var(--g-color-surface-sunken);
+  --_bg: var(--g-color-neutral-soft);
   border-style: dashed;
 }
 .g-input.is-readonly .g-input__field {
   color: var(--g-color-text);
+}
+.g-input.is-readonly .g-input__field::placeholder {
+  color: var(--g-color-text-muted);
 }
 .g-input.is-disabled {
   color: var(--g-color-text-subtle);
@@ -479,22 +509,23 @@
   color: var(--g-color-text-muted);
 }
 
-/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
-/* Etiqueta · caja · ayuda · mensaje se colocan por nombre, no por orden: una ayuda ausente deja su pista vacía y las
-   cajas de la fila quedan alineadas aunque una etiqueta ocupe dos líneas (la etiqueta se apoya abajo, junto a su caja) */
+/* ---------- Dentro de una GFormRow (form.md §4, C12, #176): tres pistas compartidas por línea ---------- */
+/* Etiqueta · caja · pie toman las tres pistas de su línea por subgrid: todas las cajas de una línea comparten `top`
+   aunque una etiqueta ocupe dos líneas o un vecino tenga ayuda o mensaje. La etiqueta se apoya abajo (pegada a su
+   caja) y nunca se recorta (se parte). Sin etiqueta, su pista queda vacía. El ancho lo da la fila (inline-size auto) */
 .g-form-row > .g-input {
   /* Un contenedor de consultas lleva contención de maquetación y no puede ser subgrid: aquí la raíz deja de serlo
-     (el apilado del botón de acción por consulta de contenedor no aplica dentro de una fila unida) */
+     (el apilado del botón de acción por consulta de contenedor no aplica dentro de una fila) */
   container-type: normal;
   display: grid;
   grid-template-rows: subgrid;
   grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
 }
 .g-form-row > .g-input > * { grid-column: 1; }
-.g-form-row > .g-input > .g-input__label { grid-row: label; align-self: end; }
-.g-form-row > .g-input > .g-input__row { grid-row: box; }
-.g-form-row > .g-input > .g-input__messages { grid-row: hint; }
-.g-form-row > .g-input > .g-input__message { grid-row: message; }
+.g-form-row > .g-input > .g-input__label { grid-row: 1; align-self: end; }
+.g-form-row > .g-input > .g-input__row { grid-row: 2; }
+.g-form-row > .g-input > .g-input__support { grid-row: 3; }
 @media (hover: hover) {
   .g-input__toggle:hover {
     color: var(--g-color-text);

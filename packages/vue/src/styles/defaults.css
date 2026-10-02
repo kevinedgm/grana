@@ -173,14 +173,13 @@
   --g-widget-row: calc(var(--g-space-1) * 28);
   --g-widget-gap: calc(var(--g-space-1) * 4);
 
-  /* Formularios · ritmo y ancho de lo compacto (tokens.md §21, DECISIONS.md #167). Bases de density="default";
-     los componentes las multiplican por el factor compartido (1, 0.875, 0.75), salvo los máximos.
-     Sección ≈ 2× fila: la sección se distingue por espacio, no por cajas. Máximos: «36.5», «100 %», una fecha o un CP */
+  /* Formularios · ritmo (tokens.md §21, DECISIONS.md #167, #182). Bases de density="default"; los componentes las
+     multiplican por el factor compartido (1, 0.875, 0.75). Fila (y línea de una fila partida) 20 · columna 16 ·
+     sección 40 ≈ 2× fila: la sección se distingue por espacio, no por cajas. Sin máximos (r02): lo compacto es un
+     peso dentro de una GFormRow */
   --g-form-gap: calc(var(--g-space-1) * 5);
   --g-form-column-gap: var(--g-space-4);
   --g-form-section-gap: calc(var(--g-space-1) * 10);
-  --g-form-max-xs: calc(var(--g-space-1) * 30);
-  --g-form-max-sm: calc(var(--g-space-1) * 48);
 
   /* Espaciado · space 4 */
   --g-space-1: 4px;

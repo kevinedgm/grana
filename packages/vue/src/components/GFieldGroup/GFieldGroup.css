@@ -5,6 +5,7 @@
   únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
   Carácter: el <legend> se lee como la etiqueta de un campo (mismo tamaño y peso) y las partes, con su propia
   etiqueta, quedan más juntas entre sí que dos preguntas distintas: la proximidad dice «esto es una sola respuesta».
+  r02: va siempre en su propia fila (hijo de GFormLayout); sus partes se reparten en una GFormRow compuesta.
   Un solo mensaje, el del grupo, con la misma forma que el mensaje de cualquier campo.
 */
 
@@ -46,34 +47,20 @@
   color: var(--g-color-danger-text);
 }
 
-/* ---------- Partes: una fila que salta de línea ---------- */
-/* Separación: la mitad de la de la rejilla (las partes de una pregunta van más juntas que dos preguntas). Cada parte
-   crece; g-form-part-xs|sm tienen su máximo como base y nunca lo superan. Una parte que no cabe pasa debajo (la
-   extensión de un teléfono a 320px); la que crece conserva un mínimo útil (sin pasar de una proporción del grupo, para que País | Número compartan fila en 320px). */
-.g-field-group__parts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: calc(var(--g-form-gap) * 0.5 * var(--_density)) calc(var(--g-form-column-gap) * 0.5 * var(--_density));
-  min-inline-size: 0;
-}
-.g-field-group__parts > * {
-  flex: 1 1 0%;
-  /* Mínimo útil de la parte que crece («951 123 4567»): el de lo compacto, sin pasar de un tercio largo del grupo */
-  min-inline-size: min(var(--g-form-max-xs), 35%);
-}
-/* La base de una parte compacta es su máximo, pero nunca más que una proporción del grupo: así en 320px el prefijo
-   deja sitio al número en la misma fila (sin ella, 192px + el mínimo del número ya no caben) */
-.g-field-group__parts > .g-form-part-xs {
-  flex: 0 1 min(var(--g-form-max-xs), 40%);
-  min-inline-size: 0;
-}
-.g-field-group__parts > .g-form-part-sm {
-  flex: 0 1 min(var(--g-form-max-sm), 60%);
-  min-inline-size: 0;
+/* ---------- Partes: una GFormRow compuesta (r02, #179) ---------- */
+/* El contenedor de partes ES una GFormRow (mismo reparto en líneas, mismas tres pistas por línea, `keep` del grupo).
+   Aquí solo se acercan: la mitad de la separación entre campos y entre líneas (las partes de una pregunta van más
+   juntas que dos preguntas, #169). Sobrescribe los alias de GFormRow.css con una clase más (gana por especificidad) */
+.g-field-group > .g-field-group__parts {
+  --_form-row-gap: calc(var(--g-form-column-gap) * 0.5 * var(--_density));
+  --_form-row-line-gap: calc(var(--g-form-gap) * 0.5 * var(--_density));
 }
 
 /* ---------- Ayuda y mensaje del grupo ---------- */
+/* Pie (r02): ayuda y región de mensaje en un solo contenedor, pegado a las partes */
+.g-field-group__support {
+  min-inline-size: 0;
+}
 .g-field-group__hint {
   overflow-wrap: anywhere;
   margin-block-start: var(--g-space-1);

@@ -1,3 +1,70 @@
+# Entrega de coco · Sistema de formularios, revisión r02 (distribución por filas y campos fusionados)
+
+**Base:** `r02/` (kiwi, prototipo aprobado por el usuario, #171), `design/contracts/form.md` reescrito (§4, §12, §13, C12–C14, migración), DECISIONS #171–#184, `tokens.md` §21.
+**Archivos nuevos:** `GFormLayout/GFormLayout.css`, `GFormRow/GFormRow.css`, `GInputGroup/GInputGroup.css`.
+**Cambiados:** `GInput.css`, `GTextarea.css`, `GSelect.css`, `GDatePicker.css` (tres pistas, `__support`, `output`, solo lectura L8), `GFieldGroup.css` (partes = `GFormRow` compuesta), `GCheckbox.css` y `GSwitch.css` (sin reglas de fila: van en su propia fila), `GFormActions.css` (apilado más bajo), `GBtn.css` (área táctil en RTL), `styles/defaults.css` (sin `--g-form-max-*`), `GFormGrid.css` (retirado; puente temporal, ver «Para bruno»).
+**Banco:** `estilo-banco.html` (mismos formularios que el prototipo r02; `?w=`, `?state=1`, `?long=1`, `?density=`, `?dark=1`, `?rtl=1`, `?theme=`, `?test=1`). El script emula el reparto de `GFormRow` (form.md §4, normativo) escribiendo `--_form-row-*` y `data-lines`/`data-line`. **Verificación:** `node design/lab/form/estilo-verificar.mjs`.
+
+## Carácter
+- **Sin huecos, un solo borde.** `GFormLayout` es una pila con el aire de una fila (`--g-form-gap`); cada hijo llena el ancho. `GFormRow` reparte cada línea entera por pesos; las separaciones son pistas propias (sin `gap` de rejilla).
+- **Cajas en una línea.** Tres pistas por línea (etiqueta · caja · pie) tomadas por *subgrid*; etiqueta apoyada abajo (`align-self: end`), partida y nunca recortada. Entre líneas, la misma separación que entre filas.
+- **Dos en uno.** `GInputGroup`: una caja, partes sin borde propio, línea fina (`border-strong`, decorativa; `border-control` con `prefers-contrast: more`) solo entre dos partes que son controles; los textos («/», «mmHg», «años») separan solos.
+
+## Decisiones
+1. **`GFormRow`.** `@property --g-form-min` (`<number>`, sin herencia, 0) y `@property --_form-row-gap` (`<length>`, sin herencia) = `--g-form-column-gap` × densidad; `--_form-row-line-gap` = `--g-form-gap` × densidad. Valores neutros «una por línea»: `--_form-row-columns: minmax(0, 1fr)`, `--_form-row-rows: none` en la raíz; `--_form-row-column: 1 / -1`, `--_form-row-line: auto / span 3` **declarados en cada hijo** (no en la fila: una fila anidada no hereda la colocación de un antepasado). Sin `data-lines` (SSR, antes de medir), margen de línea entre hijos. Registro verificado también dentro de `@layer` en `dist` (tres motores: `16px`, `--g-form-min` no baja a las partes).
+2. **Tres pistas en los campos (C12).** `.g-form-row > .g-<campo>`: `display: grid; grid-template-rows: subgrid; inline-size: auto` (la fila manda en el ancho); etiqueta fila 1 abajo, caja fila 2 (`__row`, `__control`, `__field`/`__fields`, `__box`), `__support` fila 3. El `<input hidden>`, la lista de `GSelect` y el panel de `GDatePicker` (popovers) no generan celda. `GInput` deja de ser contenedor de consultas dentro de la fila (la contención impide el subgrid).
+3. **`__support`** sin margen propio: dentro siguen `__messages`/`__hint` y `__message:not(:empty)` con su `space-1`; vacío no ocupa.
+4. **`output` (C14).** Al final de la caja, texto pleno, cifras tabulares, separado del valor por una línea fina (`border-strong`) y `gap`; vacío sin línea ni hueco (margen negativo del `gap`), sin `display: none` (la región viva existe siempre).
+5. **`GInputGroup`.** Mismas alturas, densidad, variantes y estados que `GInput`. Selector nativo con `appearance: none` y `chevron-down` (muted) absoluto; parte `chars` = `--_input-group-chars × 1ch` + relleno (mínimo el objetivo). **Anillo por parte** hacia dentro (`outline-offset` = −grosor del foco, `z-index: 1`); la caja no se ilumina. **Parte inválida:** subrayado `danger-text` (borde + foco de grosor) bajo su valor, separado del borde doble de la caja; en `forced-colors`, `CanvasText`. Advertencia: discontinuo doble (las partes de los extremos se meten el grosor extra). Solo lectura: relleno L8, caja y líneas discontinuas, sin flecha. Objetivo de cada parte control ≥ 24px (44 con puntero grueso).
+6. **L8: solo lectura en oscuro → `--g-color-neutral-soft`** (rol existente; sin token nuevo) en `GInput`, `GTextarea`, `GSelect`, `GDatePicker` y `GInputGroup`. En claro un paso por debajo de la superficie (#F0F0F0); en oscuro un paso **por encima** (#242424 sobre #1C1C1C), así que ya no es un pozo. Marcador de posición en solo lectura → `text-muted` (el `subtle` quedaba a 4.45:1 sobre el relleno). Casilla e interruptor conservan `surface-sunken` (su relleno es el propio control de 20px, no una caja).
+7. **Pie apilado** (< `space × 104`): la primaria (`solid`) sube a su línea a ancho completo (`order: -1`); las demás comparten la línea de debajo si caben (`flex: 1 1 auto`) y si no, una por línea a ancho completo. 177 → **133px** a 320 con tres botones y estado (32 % de 420); 2.4.11 y 44px intactos. Tab: las demás en orden del DOM y la primaria al final (misma excepción acotada de #155).
+8. **`GBtn` en RTL:** el área táctil `::after` usaba `inset-inline-start: 50%` con `translate` físico: en RTL quedaba un ancho entero a la izquierda y desbordaba el contenedor (27–200px de desborde de página en el banco). Ahora `left: 50%` (centrar es simétrico).
+9. **`GFieldGroup`:** las partes son la `GFormRow` compuesta; `.g-field-group > .g-field-group__parts` pone `--_form-row-gap` y `--_form-row-line-gap` a la mitad (#169). Retirados `g-form-part-*` y el flex de la Fase 1.
+
+## Verificación (`estilo-verificar.mjs`, Playwright 1.63)
+| Motor | Resultado | Qué |
+| --- | --- | --- |
+| Chromium | **604/604** | §12 completa: contenedor a 1280/960/720/480/360/320 y ventana a esos anchos con contenedor libre × cuatro estados (limpio; ayuda + error + advertencia + válido; etiquetas largas; ambos), en LTR y RTL; densidades `comfortable` y `compact`; `pointer: coarse` compacto; «Tema de prueba» (space 5, borde 2px); Spotify oscuro; líneas esperadas; pie fijo; contraste; táctil; `forced-colors`; `prefers-contrast` |
+| Firefox | **122/122** | §12 (LTR y RTL), líneas esperadas, pie fijo 1280/320 |
+| WebKit | **122/122** | ídem |
+
+En cada caso: cada hijo de cada `GFormLayout` y cada línea de cada `GFormRow` (incluida la de `GFieldGroup`) termina en el borde (±1px); cajas de una línea con el mismo `top` (±1px); sin solapes, sin caja más ancha que su celda, sin desborde de marco ni de página (también a 320); orden visual = DOM; etiquetas sin recorte ni elipsis; consola limpia. Líneas: signos vitales 1/1/2/3 a 1280/960/720/360; a 360 Calle sola y Ext. · Int. juntos. Prueba negativa: quitando el *subgrid* la comprobación de cajas falla (9 líneas desalineadas).
+
+**Contraste** (Chromium; defecto · Spotify, marca pálida · lustre; claro / oscuro; fondo compuesto real):
+| Medida | Mínimo |
+| --- | --- |
+| Etiqueta · `output` · valores de solo lectura (GInput, GSelect, fecha, `output` de fecha, GTextarea, GInputGroup, selector como texto) | 13.87 |
+| «(opcional)», ayuda, sufijo, «mmHg», `chevron-down` | 7.38 |
+| Solo lectura: sufijo, marcador, «mmHg» sobre el relleno | 6.49 |
+| Mensajes y bordes de error / advertencia / válido; marca de la parte inválida; borde de `GInputGroup` | 4.52 / 4.54 / 4.60 · 4.52 |
+| Anillo de foco por parte | 4.58 |
+| Borde de caja en reposo · solo lectura por fuera | 3.43 |
+| Borde discontinuo de solo lectura sobre su relleno | **3.02** (justo; `neutral-soft` es más oscuro que `sunken`) |
+| L8 (luminancia relleno / superficie, oscuro) | 0.0176 / 0.0116 (más claro: no es un pozo) |
+
+**Táctil** (compacto, 360, `pointer: coarse`): input, selector, fecha y caja del fusionado 44px; partes ≥ 48px de ancho; botones 44. **forced-colors:** anillo en la parte (no en la caja), solo lectura y advertencia discontinuos, subrayado de la parte inválida visible, línea entre partes. **prefers-contrast: more:** línea entre partes = borde de control. Build y compuertas OK; `npx vitest run` 39 archivos, 1262 pruebas OK (`levels.test.js` incluido: `--g-form-min` solo aparece en `@property`, no hizo falta excepción).
+
+## Para bruno
+1. **Registrar** `GFormLayout.css`, `GFormRow.css` y `GInputGroup.css` en `components.css` después de los campos; luego **borrar `GFormGrid.css`** y su `@import` (hoy es un puente que importa las tres para que `dist` las lleve). Compuerta sugerida: `grep -q "g-input-group__part" dist/grana.css`.
+2. **CLI:** `packages/cli/test/derive.test.js` falla hasta ejecutar `scripts/sync-defaults.mjs` (retirados `--g-form-max-xs/sm`). Quitar también esos tokens de `GFormGrid.meta.json`/`GFieldGroup.meta.json`.
+3. **Marcado que espera el CSS:** raíz con tres hijos en flujo; `__support` siempre presente con `__messages`/`__hint` y `__message` dentro (en `GTextarea`, también `__count-live`); `<output class="g-input__output">` tras el sufijo y `g-datepicker__output` tras `__value` dentro del botón; `__part`, `__part--input|select|text|chars`, `is-invalid` en la parte; `--_input-group-chars` (número entero) en línea en la parte con `chars`; `GInputGroupText` con `label` = parte `aria-hidden` seguida de su `__text-label` hermano.
+4. **`GFormRow`:** leer `--_form-row-gap` y `--g-form-min` del estilo calculado (números en px/sin unidad en los tres motores); filas como `auto auto auto var(--_form-row-line-gap) …` y `--_form-row-line: n / span 3` (n = línea × 4 + 1). La función del banco (`plan`) es un port del prototipo con el criterio de §4 (menos líneas → más holgada → más hijos arriba).
+5. El pie apilado identifica la primaria por `g-btn--variant-solid` (ya hay aviso si hay más de una).
+6. Pulsar un `GInputGroupText` enfoca la parte vecina; pulsar `output`, prefijo o sufijo enfoca el `<input>` (cursor de texto en CSS).
+
+## Para lima
+1. **Pie apilado (#155):** las secundarias ya no van cada una a ancho completo: comparten línea bajo la primaria si caben (133px en vez de 177 a 320). Si se quiere conservar «todas a ancho completo», es una línea de CSS; anotar en form.md §6.
+2. **L8 resuelto sin token:** solo lectura = `--g-color-neutral-soft` (no `surface-sunken`); actualizar §9, C7 y #165. Su borde discontinuo queda a 3.02–3.05:1 sobre el relleno en claro: si `neutral-soft` de un tema baja más, fallaría 1.4.11; conviene que el CLI valide `border-control` ≥ 3:1 también sobre `neutral-soft`.
+3. `1ch` en `GInputGroup` (conversión de `--_input-group-chars` a longitud) y `left: 50%` en `GBtn` son literales de unidad, no de tema; anotarlos si la regla de literales lo pide.
+4. `GDatePicker` en modo `split` dentro de una fila: sus etiquetas Inicio/Fin están dentro de la pista de la caja y bajarían su caja respecto de los vecinos; recomendar que vaya en su propia fila.
+
+## No verificado
+Componentes reales (no existen `GFormLayout`/`GFormRow`/`GInputGroup`.vue: todo sobre el marcado del contrato), lector de pantalla, zoom 200/400 %, `forced-colors` real de Windows, autocompletado real del navegador sobre el selector nativo, menú nativo del `<select>` en oscuro.
+
+---
+
+# Historial · Fase 1 (superada en parte por r02)
+
 # Entrega de coco · Sistema de formularios, Fase 1 (CSS y tokens `--g-form-*`)
 
 **Archivos nuevos:** `GForm/GForm.css`, `GFormSection/GFormSection.css`, `GFormGrid/GFormGrid.css` (rejilla + clases `g-form-w-*`, `g-form-break`, `g-form-row`), `GFieldGroup/GFieldGroup.css`, `GFormActions/GFormActions.css`, `GErrorSummary/GErrorSummary.css` (en `packages/vue/src/components/`).

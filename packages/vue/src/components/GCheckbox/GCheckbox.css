@@ -507,18 +507,6 @@
   color: var(--g-color-text);
 }
 
-/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
-/* La casilla no tiene etiqueta encima ni ayuda aparte (van en la fila): la fila ocupa la pista de la caja y el
-   mensaje la suya; etiqueta y ayuda quedan vacías */
-.g-form-row > .g-checkbox {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-template-columns: minmax(0, 1fr);
-}
-.g-form-row > .g-checkbox > * { grid-column: 1; }
-.g-form-row > .g-checkbox > .g-checkbox__row { grid-row: box; }
-.g-form-row > .g-checkbox > .g-checkbox__message { grid-row: message; }
-
 /* ---------- Preferencias del sistema ---------- */
 /* Movimiento reducido: sin escala, sin trazo del ✓, sin apertura del anillo ni ancho animado del chip; los fundidos de color se conservan */
 @media (prefers-reduced-motion: reduce) {

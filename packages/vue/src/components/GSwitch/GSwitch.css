@@ -430,17 +430,6 @@
   }
 }
 
-/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
-/* Como la casilla: la fila ocupa la pista de la caja y el mensaje la suya */
-.g-form-row > .g-switch {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-template-columns: minmax(0, 1fr);
-}
-.g-form-row > .g-switch > * { grid-column: 1; }
-.g-form-row > .g-switch > .g-switch__row { grid-row: box; }
-.g-form-row > .g-switch > .g-switch__message { grid-row: message; }
-
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {
   .g-switch__input {

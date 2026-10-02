@@ -176,6 +176,11 @@
   font-variant-numeric: tabular-nums;
 }
 /* Región viva del contador: siempre presente, visualmente oculta (patrón estándar de texto oculto) */
+/* Pie (form.md C12, r02): ayuda, contador y la región de mensaje en un solo contenedor, la tercera pista del
+   campo. Vacío no ocupa nada */
+.g-textarea__support {
+  min-inline-size: 0;
+}
 .g-textarea__count-live {
   position: absolute;
   inline-size: 1px;
@@ -316,13 +321,17 @@
   --_border: var(--g-color-success-text);
   --_border-end: var(--g-color-success-text);
 }
-/* Solo lectura (C7, #165): contraste completo, fondo hundido y borde discontinuo; enfocable y seleccionable */
+/* Solo lectura (C7, #165): contraste completo, relleno neutro suave y borde discontinuo; enfocable y seleccionable.
+   Relleno (r02 L8): --g-color-neutral-soft, un paso por encima de la superficie en oscuro (no un pozo negro) */
 .g-textarea.is-readonly .g-textarea__control {
-  --_bg: var(--g-color-surface-sunken);
+  --_bg: var(--g-color-neutral-soft);
   border-style: dashed;
 }
 .g-textarea.is-readonly .g-textarea__field {
   color: var(--g-color-text);
+}
+.g-textarea.is-readonly .g-textarea__field::placeholder {
+  color: var(--g-color-text-muted);
 }
 .g-textarea.is-disabled {
   color: var(--g-color-text-subtle);
@@ -348,17 +357,19 @@
   color: var(--g-color-text-muted);
 }
 
-/* ---------- Dentro de una fila unida (g-form-row, form.md §4): subgrid de cuatro pistas con nombre ---------- */
+/* ---------- Dentro de una GFormRow (form.md §4, C12, #176): tres pistas compartidas por línea ---------- */
+/* Etiqueta · caja · pie toman las tres pistas de su línea por subgrid; la etiqueta se apoya abajo y nunca se recorta.
+   Lo que cuelga fuera de flujo (la región __count-live, ahora dentro del pie) no genera celda. El ancho lo da la fila */
 .g-form-row > .g-textarea {
   display: grid;
   grid-template-rows: subgrid;
   grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
 }
 .g-form-row > .g-textarea > * { grid-column: 1; }
-.g-form-row > .g-textarea > .g-textarea__label { grid-row: label; align-self: end; }
-.g-form-row > .g-textarea > .g-textarea__control { grid-row: box; }
-.g-form-row > .g-textarea > .g-textarea__messages { grid-row: hint; }
-.g-form-row > .g-textarea > .g-textarea__message { grid-row: message; }
+.g-form-row > .g-textarea > .g-textarea__label { grid-row: 1; align-self: end; }
+.g-form-row > .g-textarea > .g-textarea__control { grid-row: 2; }
+.g-form-row > .g-textarea > .g-textarea__support { grid-row: 3; }
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {

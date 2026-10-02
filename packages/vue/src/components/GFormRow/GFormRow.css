@@ -1,0 +1,66 @@
+/*
+  GFormRow · fila de campos que van juntos (r02)
+  Dueño: coco. Contrato: design/contracts/form.md §4 (DECISIONS.md #171 a #176). Estructura: design/lab/form/r02/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Reparto: lo decide bruno midiendo el ancho propio de la fila (form.md §4, «Reparto en líneas») y lo escribe en línea:
+  en la raíz --_form-row-columns y --_form-row-rows (+ data-lines); en cada hijo --_form-row-column (a / b) y
+  --_form-row-line (n / span 3) (+ data-line). Aquí, su valor neutro «una por línea», que es también el de SSR y el de
+  antes de medir: nunca desborda. Cada línea tiene tres pistas (etiqueta · caja · pie) que cada campo toma por subgrid
+  (el CSS de cada campo coloca sus tres partes, C12); entre líneas, una pista de separación.
+  Sin `order` y sin posiciones que reordenen: orden del DOM = lectura = Tab = visual.
+*/
+
+/* Mínimo propio de un hijo (entrada pública del consumidor, número en múltiplos de space; form.md §4, #174). Se
+   registra sin herencia para que no baje a las partes del hijo; la fila lo lee del estilo calculado de cada hijo */
+@property --g-form-min {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+/* Separación de columna resuelta en px: la fila la lee (computada) para calcular los anchos de cada línea */
+@property --_form-row-gap {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.g-form-row {
+  --_density: 1;
+
+  /* Separaciones: entre campos de una línea, y entre líneas (la de las filas: una fila partida se lee como dos filas) */
+  --_form-row-gap: calc(var(--g-form-column-gap) * var(--_density));
+  --_form-row-line-gap: calc(var(--g-form-gap) * var(--_density));
+
+  /* Colocación: valor neutro «una por línea» (las de bruno, en línea, ganan) */
+  --_form-row-columns: minmax(0, 1fr);
+  --_form-row-rows: none;
+
+  display: grid;
+  grid-template-columns: var(--_form-row-columns);
+  grid-template-rows: var(--_form-row-rows);
+  /* Las separaciones son pistas propias (los bordes de líneas distintas no coinciden): sin gap de rejilla */
+  gap: 0;
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-form-row--density-default { --_density: 1; }
+.g-form-row--density-comfortable { --_density: 0.875; }
+.g-form-row--density-compact { --_density: 0.75; }
+
+/* Cada hijo ocupa sus tres pistas de su línea y las columnas que le tocan. Valores neutros en el propio hijo (no en
+   la fila) para que una fila anidada no herede la colocación de un antepasado */
+.g-form-row > * {
+  --_form-row-column: 1 / -1;
+  --_form-row-line: auto / span 3;
+
+  grid-column: var(--_form-row-column);
+  grid-row: var(--_form-row-line);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  margin: 0;
+}
+/* Sin medir (SSR, sin ResizeObserver): una línea por hijo, separadas como filas */
+.g-form-row:not([data-lines]) > * + * {
+  margin-block-start: var(--_form-row-line-gap);
+}

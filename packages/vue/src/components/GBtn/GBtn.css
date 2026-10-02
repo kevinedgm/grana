@@ -68,12 +68,14 @@
     transform var(--g-duration-press) var(--g-ease-out);
 }
 
-/* Área táctil: no cambia el aspecto, solo la zona que recibe el toque */
+/* Área táctil: no cambia el aspecto, solo la zona que recibe el toque. Centrado con `left` físico: `translate` es
+   físico y, con inset-inline-start en RTL (= right: 50%), el área se iba un ancho entero a la izquierda y desbordaba
+   su contenedor (r02, banco de formularios en RTL). Centrar es simétrico: no depende del sentido de lectura */
 .g-btn::after {
   content: "";
   position: absolute;
   inset-block-start: 50%;
-  inset-inline-start: 50%;
+  left: 50%;
   translate: -50% -50%;
   inline-size: max(100%, 24px);
   block-size: max(100%, 24px);

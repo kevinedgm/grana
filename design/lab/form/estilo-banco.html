@@ -3,16 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Formularios · banco de estilo (coco)</title>
-<!-- Banco de coco: marcado EXACTO de design/contracts/form.md (g-form, g-form-section, g-form-grid + g-form-w-*, g-form-row, g-field-group,
-     g-form-actions, g-error-summary) y de los cambios C1–C13 en los seis campos (g-*__message, __optional, is-warning, is-valid, prefijo
-     y sufijo de GInput), con el CSS real y el tema por defecto. El script solo pinta el marcado y hace lo que hará bruno: medir el ancho
-     propio de cada GFormGrid (12 / 6 / 1 con space × 176 y × 104), apilar GFormActions por debajo de space × 104, publicar
-     --g-form-actions-size en el <form>, mover el foco al resumen y abrir los diálogos. No es documentación. Desde la raíz del repo:
+<title>Formularios r02 · banco de estilo (coco)</title>
+<!-- Banco de coco, revisión r02: marcado EXACTO de design/contracts/form.md (§4 GFormLayout y GFormRow, §5 GFieldGroup,
+     §13 GInputGroup, C12 tres hijos etiqueta · caja · pie __support, C13 prefijo/sufijo, C14 output) con el CSS real y
+     el tema por defecto. Mismos formularios que el prototipo aprobado (design/lab/form/r02/index.html): corto, mediano
+     con secciones, dirección, fusionados y preguntas compuestas.
+     El script hace lo que hará bruno (y nada más): el reparto en líneas de cada GFormRow por su ancho propio (form.md §4,
+     «Reparto en líneas», normativo) escribiendo --_form-row-columns / --_form-row-rows / --_form-row-column /
+     --_form-row-line y data-lines / data-line; el apilado del pie (space × 104) y --g-form-actions-size del pie fijo.
+     No es documentación. Desde la raíz del repo:
        python3 -m http.server 4180  →  /design/lab/form/estilo-banco.html
-     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?test=1 (el «Tema de prueba») -->
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?test=1 («Tema de
+     prueba»: Georgia, borde 2px, space 5)  ?w=<ancho del contenedor>  ?state=1  ?long=1  ?density=comfortable|compact
+     Verificación obligatoria (form.md §12): node design/lab/form/estilo-verificar.mjs -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
-<link id="gen" rel="stylesheet" href="">
+<link id="gen" rel="stylesheet" href="data:text/css,">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GBtn/GBtn.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GBadge/GBadge.css">
@@ -23,10 +28,11 @@
 <link rel="stylesheet" href="../../../packages/vue/src/components/GCheckboxGroup/GCheckboxGroup.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GSwitch/GSwitch.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GDatePicker/GDatePicker.css">
-<link rel="stylesheet" href="../../../packages/vue/src/components/GDialog/GDialog.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GForm/GForm.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GFormSection/GFormSection.css">
-<link rel="stylesheet" href="../../../packages/vue/src/components/GFormGrid/GFormGrid.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GFormLayout/GFormLayout.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GFormRow/GFormRow.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GInputGroup/GInputGroup.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GFieldGroup/GFieldGroup.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GFormActions/GFormActions.css">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GErrorSummary/GErrorSummary.css">
@@ -34,415 +40,472 @@
 <style id="theme"></style>
 <style>
   /* Andamio del banco (no es de Grana) */
-  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
-  @media (max-width:480px){body{padding:16px}}
-  h1{font-size:18px;margin:0 0 8px} h2.b{font-size:15px;margin:48px 0 8px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
-  h4.b{font-size:12px;font-weight:500;margin:20px 0 8px;color:var(--g-color-text-muted)}
-  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-width:90ch}
-  .page{max-inline-size:960px}
-  .frame{box-sizing:border-box;border:1px dashed var(--g-color-border-strong);padding:16px;max-inline-size:100%;background:var(--g-color-bg)}
-  .frame[data-w="960"]{inline-size:960px}.frame[data-w="600"]{inline-size:600px}.frame[data-w="360"]{inline-size:360px}
-  .resizable{resize:horizontal;overflow:auto;min-inline-size:240px}
-  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px;align-items:start}
-  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
-  .scroller{block-size:420px;overflow:auto;border:1px solid var(--g-color-border-strong);border-radius:var(--g-radius-lg);padding:0 16px;background:var(--g-color-bg)}
-  .scroller>.g-form{padding-block-start:16px}
-  .log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:8px 0;min-block-size:1.4em;white-space:pre-wrap;overflow-wrap:anywhere}
-  button.tool{font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text);cursor:pointer}
-  .states{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:20px 16px;align-items:start}
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{max-inline-size:1360px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  h4.b{font-size:12px;font-weight:500;margin:16px 0 8px;color:var(--g-color-text-muted)}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 12px;max-width:96ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:10px 0 4px}
+  /* Marco = el contenedor donde vive el formulario (la página del consumidor); mismas medidas que el prototipo r02 */
+  .frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:var(--g-color-surface);border:1px solid var(--g-color-border-strong);border-radius:8px}
+  .frame[data-narrow]{padding:16px}
+  .states{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:20px 16px;align-items:start}
+  .log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);min-block-size:1.4em}
 </style>
 </head>
 <body>
-<h1>Formularios · banco de estilo</h1>
-<div class="tools">
-  <button class="tool" id="theme-btn" type="button">Tema de prueba</button>
-  <button class="tool" id="dark-btn" type="button">Oscuro</button>
-  <button class="tool" id="rtl-btn" type="button">RTL</button>
-  <button class="tool" id="dlg-btn" type="button">Abrir diálogo</button>
-  <button class="tool" id="drw-btn" type="button">Abrir drawer</button>
+<main>
+<h1>Formularios r02 · banco de estilo</h1>
+<p class="cap"><b>coco</b> · CSS real de <code>GFormLayout</code>, <code>GFormRow</code>, <code>GInputGroup</code> y las tres pistas de los campos sobre el marcado del contrato. Mismos formularios que el prototipo r02 aprobado. El reparto en líneas lo emula el script (lo hará <code>GFormRow</code>).</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Contenedor <select id="t-w"><option value="100%">Libre</option><option>1280</option><option>960</option><option>720</option><option>480</option><option>360</option><option>320</option></select></label>
+  <label>Estado <select id="t-state"><option value="0">Limpio</option><option value="1">Ayuda y mensajes</option></select></label>
+  <label><input type="checkbox" id="t-long"> Etiquetas largas</label>
+  <label>Densidad <select id="t-density"><option>default</option><option>comfortable</option><option>compact</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <button type="button" id="t-rtl">RTL</button>
   <output class="log" id="log"></output>
 </div>
 
-<h2 class="b">1 · Formulario corto (sin secciones ni resumen)</h2>
-<p class="cap">Nombre | Apellido; correo md; Código país | Teléfono (GFieldGroup); convención por defecto «(opcional)».</p>
-<div class="page" id="s-short"></div>
+<h2 class="b">1 · Formulario corto</h2>
+<p class="cap">Nombre · Apellido; Correo (con ayuda) · Teléfono fusionado (país + número, una etiqueta) · Extensión <code>xs</code>; Comentarios suelto.</p>
+<div class="tag" data-tag></div>
+<div class="frame" data-frame><div id="f-short"></div></div>
 
-<h2 class="b">2 · Mediano con secciones, anchos por contenido y pie fijo</h2>
-<p class="cap">Resumen de errores, secciones sin tarjetas, Temperatura | Unidad | Fecha, dirección estructurada (receta), sección opcional con insignia, acciones con estado.</p>
-<div class="scroller page" id="s-medium"></div>
+<h2 class="b">2 · Formulario mediano con secciones y pie fijo</h2>
+<p class="cap">Fecha de nacimiento con el valor calculado (<code>output</code>) dentro de su caja; signos vitales con unidades (fija → <code>suffix</code>; elegible → <code>GInputGroup</code>); datos fiscales opcionales; casillas e interruptor en su propia fila.</p>
+<div class="tag" data-tag></div>
+<div class="frame" data-frame><div id="f-medium"></div></div>
 
-<h2 class="b">3 · Filas unidas (g-form-row) con subgrid</h2>
-<p class="cap">Etiqueta en dos líneas junto a una de una; ayuda presente en uno y ausente en el otro; un mensaje en uno solo; tres hijos con g-form-part-xs.</p>
-<div class="cols" id="s-rows"></div>
+<h2 class="b">3 · Dirección (receta)</h2>
+<div class="tag" data-tag></div>
+<div class="frame" data-frame><div id="f-address"></div></div>
 
-<h2 class="b">4 · GFieldGroup</h2>
-<div class="cols" id="s-groups"></div>
+<h2 class="b">4 · Campos fusionados (GInputGroup)</h2>
+<p class="cap">Teléfono, valor + unidad, moneda + importe, serie + folio (<code>chars</code>), rango; solo lectura y deshabilitado.</p>
+<div class="tag" data-tag></div>
+<div class="frame" data-frame><div id="f-join"></div></div>
 
-<h2 class="b">5 · Resumen de errores</h2>
-<div class="page" id="s-summary"></div>
+<h2 class="b">5 · Preguntas compuestas (GFieldGroup en su propia fila)</h2>
+<div class="tag" data-tag></div>
+<div class="frame" data-frame><div id="f-group"></div></div>
 
-<h2 class="b">6 · Mensajes: error, advertencia y válido en los seis campos</h2>
-<div id="s-states"></div>
+<h2 class="b">6 · Estados: mensaje, solo lectura y deshabilitado</h2>
+<p class="cap">Para medir contraste (texto ≥ 4.5:1; bordes ≥ 3:1) y distinguir solo lectura de deshabilitado sin color. Fuera de filas.</p>
+<div class="frame"><div class="states" id="s-states"></div></div>
 
-<h2 class="b">7 · Solo lectura frente a deshabilitado frente a editable</h2>
-<div id="s-ro"></div>
-
-<h2 class="b">8 · Prefijo y sufijo de texto (GInput)</h2>
-<div class="states" id="s-affix"></div>
-
-<h2 class="b">9 · Acciones: normales, apiladas en estrecho y fijas</h2>
+<h2 class="b">7 · Pie apilado (estrecho)</h2>
+<p class="cap">La primaria sube a ancho completo; las demás comparten la línea de debajo si caben.</p>
 <div id="s-actions"></div>
-
-<h2 class="b">10 · Densidades</h2>
-<div class="cols" id="s-density"></div>
-
-<h2 class="b">11 · Tres anchos de contenedor (960 / 600 / 360) y uno libre</h2>
-<div id="s-widths"></div>
-
-<h2 class="b">12 · Convención «obligatorios» (marks="required")</h2>
-<div class="page" id="s-required"></div>
-
-<!-- 13 · Diálogo con inset y drawer de una columna -->
-<div id="s-dialogs"></div>
+</main>
 
 <script>
+'use strict';
 /* ---------- utilidades ---------- */
 const I = (n, cls) => window.lucide(n, cls || '');
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let uid = 0; const nid = p => (p || 'f') + ++uid;
-const log = m => { $('#log').textContent = m; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const q = new URLSearchParams(location.search);
+let DENS = q.get('density') || 'default';
 const ICON = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' };
 const PFX = { error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' };
-const ST = { error: ' is-invalid', warning: ' is-warning', valid: ' is-valid' };
-const stc = o => (o.state ? ST[o.state.type] : '') + (o.readonly ? ' is-readonly' : '') + (o.disabled ? ' is-disabled' : '');
-const D = o => o.density || 'default';
-/* Región de mensaje unificada (C4): siempre presente; icono + prefijo oculto + texto. En una parte de GFieldGroup no pinta texto */
-const message = (tag, id, o) => '<div class="g-' + tag + '__message" id="' + id + '-message" aria-live="polite">' +
-  (o.state && !o.silent ? I(ICON[o.state.type], 'g-' + tag + '__message-icon') + '<span class="g-' + tag + '__message-type">' + PFX[o.state.type] + '</span>' + esc(o.state.text) : '') + '</div>';
-/* Marca (C3): «(opcional)» con un espacio de texto delante (nombre accesible) o asterisco aria-hidden */
-const mark = (tag, o) => o.mark === 'optional' ? ' <span class="g-' + tag + '__optional">(opcional)</span>' : o.mark === 'required' ? '<span class="g-' + tag + '__required" aria-hidden="true">*</span>' : '';
-const desc = (id, o, extra) => { const ids = [...(extra || []), o.hint && id + '-hint', o.state && !o.silent && id + '-message'].filter(Boolean); return ids.length ? ' aria-describedby="' + ids.join(' ') + '"' : ''; };
-const cls = o => (o.cls ? ' ' + o.cls : '');
+const STC = { error: 'is-invalid', warning: 'is-warning', valid: 'is-valid' };
+const w = (o) => (o.w ? ' g-form-w-' + o.w : '');
+const minStyle = (o) => (o.min ? ' style="--g-form-min: ' + o.min + '"' : '');
+const states = (o) => (o.readonly ? ' is-readonly' : '') + (o.disabled ? ' is-disabled' : '') + (o.st ? ' ' + STC[o.st[0]] : '');
+/* Marca de la convención «optional» (por defecto): «(opcional)» con un espacio de texto delante; nada en los obligatorios,
+   ni en los de solo lectura/deshabilitados, ni dentro de una sección opcional */
+const mark = (tag, o) => (o.opt ? ' <span class="g-' + tag + '__optional">(opcional)</span>' : '');
+const lbl = (o) => ' data-short="' + esc(o.label) + '"' + (o.long ? ' data-long="' + esc(o.long) + '"' : '');
+const msgHTML = (tag, st) => (st ? I(ICON[st[0]], 'g-' + tag + '__message-icon') + '<span class="g-' + tag + '__message-type">' + PFX[st[0]] + '</span>' + esc(st[1]) : '');
+const message = (tag, id, o) => '<div class="g-' + tag + '__message" id="' + id + '-message" aria-live="polite">' + msgHTML(tag, o.st) + '</div>';
+const describe = (ids) => { const v = ids.filter(Boolean).join(' '); return v ? ' aria-describedby="' + v + '"' : ''; };
 
-/* ---------- campos: marcado de los contratos + cambios de form.md §10 ---------- */
+/* ---------- campos (form.md §10: C12 tres hijos, C13, C14) ---------- */
 function Input(o) {
-  const id = o.id || nid('in'), extra = [];
-  let pre = '', suf = '';
-  if (o.prefix) { if (o.prefixLabel) { pre = '<span class="g-input__prefix" aria-hidden="true">' + esc(o.prefix) + '</span><span class="g-input__prefix-label" id="' + id + '-prefix">' + esc(o.prefixLabel) + '</span>'; } else pre = '<span class="g-input__prefix" id="' + id + '-prefix">' + esc(o.prefix) + '</span>'; extra.push(id + '-prefix'); }
-  if (o.suffix) { if (o.suffixLabel) { suf = '<span class="g-input__suffix" aria-hidden="true">' + esc(o.suffix) + '</span><span class="g-input__suffix-label" id="' + id + '-suffix">' + esc(o.suffixLabel) + '</span>'; } else suf = '<span class="g-input__suffix" id="' + id + '-suffix">' + esc(o.suffix) + '</span>'; extra.push(id + '-suffix'); }
-  return '<div class="g-input g-input--variant-' + (o.variant || 'outline') + ' g-input--size-md g-input--density-' + D(o) + (o.block === false ? '' : ' g-input--block') + (o.prefix ? ' g-input--has-prefix' : '') + (o.suffix ? ' g-input--has-suffix' : '') + stc(o) + cls(o) + '">' +
-    '<label class="g-input__label" for="' + id + '">' + esc(o.label) + mark('input', o) + '</label>' +
-    '<div class="g-input__row"><div class="g-input__control">' + pre +
-    '<input class="g-input__field" id="' + id + '" type="' + (o.type || 'text') + '" name="' + (o.name || id) + '"' + (o.value ? ' value="' + esc(o.value) + '"' : '') + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '') +
-    (o.inputmode ? ' inputmode="' + o.inputmode + '"' : '') + (o.autocomplete ? ' autocomplete="' + o.autocomplete + '"' : '') + (o.required ? ' required' : '') + (o.readonly ? ' readonly' : '') + (o.disabled ? ' disabled' : '') +
-    (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o, extra) + '>' + suf + '</div></div>' +
-    (o.hint ? '<div class="g-input__messages"><span class="g-input__hint" id="' + id + '-hint">' + esc(o.hint) + '</span></div>' : '') +
-    message('input', id, o) + '</div>';
+  const id = o.id;
+  let pre = '', suf = '', pid = '', sid = '';
+  if (o.prefix) { pid = id + '-prefix'; pre = o.prefixLabel ? '<span class="g-input__prefix" aria-hidden="true">' + esc(o.prefix) + '</span><span class="g-input__prefix-label" id="' + pid + '">' + esc(o.prefixLabel) + '</span>' : '<span class="g-input__prefix" id="' + pid + '">' + esc(o.prefix) + '</span>'; }
+  if (o.suffix) { sid = id + '-suffix'; suf = o.suffixLabel ? '<span class="g-input__suffix" aria-hidden="true">' + esc(o.suffix) + '</span><span class="g-input__suffix-label" id="' + sid + '">' + esc(o.suffixLabel) + '</span>' : '<span class="g-input__suffix" id="' + sid + '">' + esc(o.suffix) + '</span>'; }
+  const out = 'output' in o ? '<output class="g-input__output" id="' + id + '-output" for="' + id + '" aria-live="polite">' + esc(o.output || '') + '</output>' : '';
+  return '<div class="g-input g-input--variant-' + (o.variant || 'outline') + ' g-input--size-md g-input--density-' + DENS + (o.block === false ? '' : ' g-input--block') + (o.prefix ? ' g-input--has-prefix' : '') + (o.suffix ? ' g-input--has-suffix' : '') + (o.output ? ' g-input--has-output' : '') + states(o) + w(o) + '"' + minStyle(o) + ' data-field="' + id + '">' +
+    '<label class="g-input__label" for="' + id + '"' + lbl(o) + '>' + esc(o.label) + mark('input', o) + '</label>' +
+    '<div class="g-input__row"><div class="g-input__control">' + (o.icon ? '<span class="g-input__prepend" aria-hidden="true">' + I(o.icon) + '</span>' : '') + pre +
+    '<input class="g-input__field" id="' + id + '" name="' + (o.name || id) + '" type="' + (o.type || 'text') + '"' + (o.value ? ' value="' + esc(o.value) + '"' : '') + (o.ph ? ' placeholder="' + esc(o.ph) + '"' : '') +
+    (o.im ? ' inputmode="' + o.im + '"' : '') + (o.ac ? ' autocomplete="' + o.ac + '"' : '') + (o.req ? ' required' : '') + (o.readonly ? ' readonly' : '') + (o.disabled ? ' disabled' : '') +
+    (o.st && o.st[0] === 'error' ? ' aria-invalid="true"' : '') + describe([pid, sid, o.output && id + '-output', o.hint && id + '-hint', o.st && id + '-message']) + '>' + suf + out + '</div></div>' +
+    '<div class="g-input__support">' + (o.hint ? '<div class="g-input__messages"><span class="g-input__hint" id="' + id + '-hint">' + esc(o.hint) + '</span></div>' : '') + message('input', id, o) + '</div></div>';
 }
 function Textarea(o) {
-  const id = o.id || nid('ta');
-  return '<div class="g-textarea g-textarea--variant-outline g-textarea--size-md g-textarea--density-' + D(o) + ' g-textarea--resize-vertical g-textarea--block' + stc(o) + cls(o) + '">' +
-    '<label class="g-textarea__label" for="' + id + '">' + esc(o.label) + mark('textarea', o) + '</label>' +
-    '<div class="g-textarea__control"><textarea class="g-textarea__field" id="' + id + '" name="' + id + '" rows="3"' + (o.readonly ? ' readonly' : '') + (o.disabled ? ' disabled' : '') + (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o) + '>' + esc(o.value || '') + '</textarea></div>' +
-    (o.hint ? '<div class="g-textarea__messages"><span class="g-textarea__hint" id="' + id + '-hint">' + esc(o.hint) + '</span></div>' : '') +
-    '<span class="g-textarea__count-live" aria-live="polite"></span>' + message('textarea', id, o) + '</div>';
+  const id = o.id;
+  return '<div class="g-textarea g-textarea--variant-outline g-textarea--size-md g-textarea--density-' + DENS + ' g-textarea--resize-vertical g-textarea--block' + states(o) + w(o) + '" data-field="' + id + '">' +
+    '<label class="g-textarea__label" for="' + id + '"' + lbl(o) + '>' + esc(o.label) + mark('textarea', o) + '</label>' +
+    '<div class="g-textarea__control"><textarea class="g-textarea__field" id="' + id + '" name="' + id + '" rows="3"' + (o.ph ? ' placeholder="' + esc(o.ph) + '"' : '') + (o.readonly ? ' readonly' : '') + (o.disabled ? ' disabled' : '') + (o.st && o.st[0] === 'error' ? ' aria-invalid="true"' : '') + describe([o.hint && id + '-hint', o.st && id + '-message']) + '>' + esc(o.value || '') + '</textarea></div>' +
+    '<div class="g-textarea__support">' + (o.hint ? '<div class="g-textarea__messages"><span class="g-textarea__hint" id="' + id + '-hint">' + esc(o.hint) + '</span></div>' : '') +
+    '<span class="g-textarea__count-live" aria-live="polite"></span>' + message('textarea', id, o) + '</div></div>';
 }
 function Select(o) {
-  const id = o.id || nid('se');
-  return '<div class="g-select g-select--variant-' + (o.variant || 'outline') + ' g-select--size-md g-select--density-' + D(o) + ' g-select--block' + stc(o) + cls(o) + '">' +
-    '<label class="g-select__label" id="' + id + '-label" for="' + id + '">' + esc(o.label) + mark('select', o) + '</label>' +
-    '<div class="g-select__control"><button class="g-select__button" id="' + id + '" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="' + id + '-label"' + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o) + '>' +
-    '<span class="g-select__value' + (o.value ? '' : ' g-select__value--placeholder') + '">' + esc(o.value || o.placeholder || 'Elige…') + '</span>' + I('chevron-down', 'g-select__arrow') + '</button></div>' +
-    (o.hint ? '<div class="g-select__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('select', id, o) + '</div>';
+  const id = o.id;
+  return '<div class="g-select g-select--variant-outline g-select--size-md g-select--density-' + DENS + ' g-select--block' + states(o) + w(o) + '"' + minStyle(o) + ' data-field="' + id + '">' +
+    '<label class="g-select__label" id="' + id + '-label" for="' + id + '"' + lbl(o) + '>' + esc(o.label) + mark('select', o) + '</label>' +
+    '<div class="g-select__control"><button class="g-select__button" id="' + id + '" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="' + id + '-list" aria-labelledby="' + id + '-label"' + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.st && o.st[0] === 'error' ? ' aria-invalid="true"' : '') + describe([o.hint && id + '-hint', o.st && id + '-message']) + '>' +
+    '<span class="g-select__value' + (o.value ? '' : ' g-select__value--placeholder') + '">' + esc(o.value || o.ph || 'Elige') + '</span>' + I('chevron-down', 'g-select__arrow') + '</button></div>' +
+    '<input type="hidden" name="' + id + '" value="' + esc(o.value || '') + '">' +
+    '<ul class="g-select__list" id="' + id + '-list" role="listbox" popover="manual" aria-labelledby="' + id + '-label">' + (o.options || []).map((x, i) => '<li class="g-select__option" role="option" id="' + id + '-o' + i + '" aria-selected="' + (x === o.value) + '">' + esc(x) + '</li>').join('') + '</ul>' +
+    '<div class="g-select__support">' + (o.hint ? '<div class="g-select__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('select', id, o) + '</div></div>';
 }
 function DatePicker(o) {
-  const id = o.id || nid('dp');
-  return '<div class="g-datepicker g-datepicker--mode-single g-datepicker--variant-outline g-datepicker--size-md g-datepicker--density-' + D(o) + ' g-datepicker--color-brand g-datepicker--block' + stc(o) + cls(o) + '">' +
-    '<span class="g-datepicker__label" id="' + id + '-label">' + esc(o.label) + mark('datepicker', o) + '</span>' +
-    '<button class="g-datepicker__field" id="' + id + '" type="button" aria-haspopup="dialog" aria-expanded="false" aria-labelledby="' + id + '-label ' + id + '-value"' + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o) + '>' +
-    '<span class="g-datepicker__icon" aria-hidden="true">' + I('calendar') + '</span><span class="g-datepicker__value' + (o.value ? '' : ' g-datepicker__value--placeholder') + '" id="' + id + '-value">' + esc(o.value || 'dd/mm/aaaa') + '</span></button>' +
-    (o.hint ? '<div class="g-datepicker__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('datepicker', id, o) + '</div>';
+  const id = o.id;
+  const out = 'output' in o ? '<output class="g-datepicker__output" id="' + id + '-output" for="' + id + '" aria-live="polite">' + esc(o.output || '') + '</output>' : '';
+  return '<div class="g-datepicker g-datepicker--mode-single g-datepicker--variant-outline g-datepicker--size-md g-datepicker--density-' + DENS + ' g-datepicker--color-brand g-datepicker--block' + (o.output ? ' g-datepicker--has-output' : '') + states(o) + w(o) + '"' + minStyle(o) + ' data-field="' + id + '">' +
+    '<span class="g-datepicker__label" id="' + id + '-label"' + lbl(o) + '>' + esc(o.label) + mark('datepicker', o) + '</span>' +
+    '<button class="g-datepicker__field" id="' + id + '" type="button" aria-haspopup="dialog" aria-expanded="false" aria-labelledby="' + id + '-label ' + id + '-value"' + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.st && o.st[0] === 'error' ? ' aria-invalid="true"' : '') + describe([o.output && id + '-output', o.hint && id + '-hint', o.st && id + '-message']) + '>' +
+    '<span class="g-datepicker__icon" aria-hidden="true">' + I('calendar') + '</span><span class="g-datepicker__value' + (o.value ? '' : ' g-datepicker__value--placeholder') + '" id="' + id + '-value">' + esc(o.value || 'dd/mm/aaaa') + '</span>' + out + '</button>' +
+    '<input type="hidden" name="' + id + '" value="">' +
+    '<div class="g-datepicker__pop" id="' + id + '-pop" role="dialog" popover="manual"></div>' +
+    '<div class="g-datepicker__support">' + (o.hint ? '<div class="g-datepicker__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('datepicker', id, o) + '</div></div>';
+}
+/* GInputGroup (§13). parts: { kind: 'select'|'input'|'text', id, name, partLabel, principal, options, value, chars, ph, im, ac, text, label, decorative, invalid } */
+function InputGroup(o) {
+  const id = o.id, lab = id + '-label';
+  const princ = (o.parts.find((p) => p.principal) || o.parts.find((p) => p.kind !== 'text')).id;
+  const textIds = o.parts.filter((p) => p.kind === 'text' && !p.decorative).map((p) => p.id);
+  const desc = () => describe([...textIds, o.hint && id + '-hint', o.st && id + '-message']);
+  const parts = o.parts.map((p) => {
+    if (p.kind === 'text') {
+      if (p.decorative) return '<span class="g-input-group__part g-input-group__part--text" aria-hidden="true">' + esc(p.text) + '</span>';
+      if (p.label) return '<span class="g-input-group__part g-input-group__part--text" aria-hidden="true">' + esc(p.text) + '</span><span class="g-input-group__text-label" id="' + p.id + '">' + esc(p.label) + '</span>';
+      return '<span class="g-input-group__part g-input-group__part--text" id="' + p.id + '">' + esc(p.text) + '</span>';
+    }
+    const name = p.id === princ && !p.partLabel ? '' : ' aria-labelledby="' + lab + ' ' + p.id + '-name"';
+    const pn = p.id === princ && !p.partLabel ? '' : '<span class="g-input-group__part-name" id="' + p.id + '-name">' + esc(p.partLabel) + '</span>';
+    const common = ' id="' + p.id + '" ' + (p.kind === 'select' && o.readonly ? '' : 'name="' + (p.name || p.id) + '"') + name + (p.ac ? ' autocomplete="' + p.ac + '"' : '') + (o.req ? ' required' : '') + (o.disabled ? ' disabled' : '') + (p.invalid ? ' aria-invalid="true"' : '') + desc();
+    const pc = 'g-input-group__part g-input-group__part--' + p.kind + (p.chars ? ' g-input-group__part--chars' : '') + (p.invalid ? ' is-invalid' : '');
+    if (p.kind === 'select') {
+      if (o.readonly) return '<span class="' + pc + '">' + pn + '<input class="g-input-group__control" type="text" readonly value="' + esc(p.value) + '"' + common + '><input type="hidden" name="' + (p.name || p.id) + '" value="' + esc(p.value) + '"></span>';
+      return '<span class="' + pc + '">' + pn + '<select class="g-input-group__control"' + common + '>' + p.options.map((x) => '<option' + (x === p.value ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' + I('chevron-down', 'g-input-group__select-icon') + '</span>';
+    }
+    return '<span class="' + pc + '"' + (p.chars ? ' style="--_input-group-chars: ' + p.chars + '"' : '') + '>' + pn + '<input class="g-input-group__control" type="' + (p.type || 'text') + '"' + common + (p.im ? ' inputmode="' + p.im + '"' : '') + (p.ph ? ' placeholder="' + esc(p.ph) + '"' : '') + (p.value ? ' value="' + esc(p.value) + '"' : '') + (o.readonly ? ' readonly' : '') + '></span>';
+  }).join('');
+  return '<div class="g-input-group g-input-group--size-md g-input-group--variant-' + (o.variant || 'outline') + ' g-input-group--density-' + DENS + (o.block === false ? '' : ' g-input-group--block') + states(o) + w(o) + '" role="group" aria-labelledby="' + lab + '"' + minStyle(o) + ' data-field="' + id + '" data-join>' +
+    '<label class="g-input-group__label" id="' + lab + '" for="' + princ + '"' + lbl(o) + '>' + esc(o.label) + mark('input-group', o) + '</label>' +
+    '<div class="g-input-group__box">' + parts + '</div>' +
+    '<div class="g-input-group__support">' + (o.hint ? '<div class="g-input-group__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('input-group', id, o) + '</div></div>';
 }
 function Checkbox(o) {
-  const id = o.id || nid('cb');
-  return '<div class="g-checkbox g-checkbox--layout-' + (o.layout || 'default') + ' g-checkbox--size-md g-checkbox--density-' + D(o) + ' g-checkbox--color-brand' + stc(o) + cls(o) + '">' +
-    '<label class="g-checkbox__row" for="' + id + '"><span class="g-checkbox__box"><input class="g-checkbox__input" type="checkbox" id="' + id + '" name="' + id + '"' + (o.checked ? ' checked' : '') + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o) + '>' +
+  const id = o.id;
+  return '<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-' + DENS + ' g-checkbox--color-brand' + states(o) + '" data-field="' + id + '">' +
+    '<label class="g-checkbox__row" for="' + id + '"><span class="g-checkbox__box"><input class="g-checkbox__input" type="checkbox" id="' + id + '" name="' + id + '"' + (o.checked ? ' checked' : '') + '>' +
     I('check', 'g-checkbox__mark g-checkbox__check') + I('minus', 'g-checkbox__mark g-checkbox__dash') + '</span>' +
-    '<span class="g-checkbox__text"><span class="g-checkbox__label">' + (o.layout === 'chip' ? I('check', 'g-checkbox__chip-mark') : '') + esc(o.label) + (o.mark === 'required' ? mark('checkbox', o) : '') + '</span>' + (o.hint ? '<span class="g-checkbox__hint" id="' + id + '-hint">' + esc(o.hint) + '</span>' : '') + '</span></label>' +
-    message('checkbox', id, o) + '</div>';
+    '<span class="g-checkbox__text"><span class="g-checkbox__label">' + esc(o.label) + '</span></span></label>' + message('checkbox', id, o) + '</div>';
 }
 function CheckboxGroup(o) {
-  const id = o.id || nid('cg');
-  return '<fieldset class="g-checkbox-group g-checkbox-group--layout-' + (o.layout || 'default') + stc(o) + cls(o) + '" id="' + id + '"' + (o.disabled ? ' disabled' : '') + desc(id, o) + '>' +
+  const id = o.id;
+  return '<fieldset class="g-checkbox-group g-checkbox-group--layout-default" id="' + id + '" data-field="' + id + '">' +
     '<legend class="g-checkbox-group__label">' + esc(o.label) + mark('checkbox-group', o) + '</legend><div class="g-checkbox-group__list">' +
-    o.items.map(it => Checkbox({ label: it.label, checked: it.checked, readonly: o.readonly, disabled: o.disabled, density: o.density, layout: o.layout, state: o.state && o.state.type === 'error' && !it.checked ? { type: 'error', text: '' } : null, silent: true })).join('') + '</div>' +
-    (o.hint ? '<div class="g-checkbox-group__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('checkbox-group', id, o) + '</fieldset>';
+    o.items.map((t, i) => Checkbox({ id: id + '-' + i, label: t, silent: true })).join('') + '</div>' + message('checkbox-group', id, o) + '</fieldset>';
 }
 function Switch(o) {
-  const id = o.id || nid('sw');
-  return '<div class="g-switch g-switch--size-md g-switch--density-' + D(o) + ' g-switch--color-brand g-switch--label-end' + stc(o) + cls(o) + '">' +
-    '<label class="g-switch__row" for="' + id + '"><span class="g-switch__control"><input class="g-switch__input" type="checkbox" role="switch" id="' + id + '"' + (o.checked ? ' checked' : '') + (o.readonly ? ' aria-readonly="true"' : '') + (o.disabled ? ' disabled' : '') + (o.state && o.state.type === 'error' ? ' aria-invalid="true"' : '') + desc(id, o) + '>' +
+  const id = o.id;
+  return '<div class="g-switch g-switch--size-md g-switch--density-' + DENS + ' g-switch--color-brand g-switch--label-end" data-field="' + id + '">' +
+    '<label class="g-switch__row" for="' + id + '"><span class="g-switch__control"><input class="g-switch__input" type="checkbox" role="switch" id="' + id + '">' +
     I('minus', 'g-switch__mark g-switch__mark--off') + I('check', 'g-switch__mark g-switch__mark--on') + I('loader-circle', 'g-switch__mark g-switch__mark--busy') + '</span>' +
-    '<span class="g-switch__text"><span class="g-switch__label">' + esc(o.label) + '</span>' + (o.hint ? '<span class="g-switch__hint" id="' + id + '-hint">' + esc(o.hint) + '</span>' : '') + '</span></label>' +
-    message('switch', id, o) + '</div>';
+    '<span class="g-switch__text"><span class="g-switch__label">' + esc(o.label) + '</span></span></label>' + message('switch', id, o) + '</div>';
 }
-/* ---------- piezas del formulario ---------- */
+/* ---------- composición (§3 a §6) ---------- */
+const Layout = (kids, o = {}) => '<div class="g-form-layout g-form-layout--density-' + DENS + (o.stack ? ' g-form-layout--stack' : '') + '">' + kids.join('') + '</div>';
+const Row = (kids, o = {}) => '<div class="g-form-row g-form-row--density-' + DENS + (o.keep ? ' g-form-row--keep' : '') + (o.cls ? ' ' + o.cls : '') + '"' + (o.label ? ' role="group" aria-label="' + esc(o.label) + '"' : '') + '>' + kids.join('') + '</div>';
 function FieldGroup(o) {
-  const id = o.id || nid('fg');
-  const ids = [o.hint && id + '-hint', o.state && id + '-message'].filter(Boolean).join(' ');
-  return '<fieldset class="g-field-group g-field-group--density-' + D(o) + stc(o) + cls(o) + '"' + (ids ? ' aria-describedby="' + ids + '"' : '') + (o.disabled ? ' disabled' : '') + '>' +
+  const id = o.id;
+  return '<fieldset class="g-field-group g-field-group--density-' + DENS + states(o) + '"' + describe([o.hint && id + '-hint', o.st && id + '-message']) + ' data-field="' + id + '">' +
     '<legend class="g-field-group__label">' + esc(o.label) + mark('field-group', o) + '</legend>' +
-    '<div class="g-field-group__parts">' + o.parts.join('') + '</div>' +
-    (o.hint ? '<div class="g-field-group__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') +
-    '<div class="g-field-group__message" id="' + id + '-message" aria-live="polite">' + (o.state ? I(ICON[o.state.type], 'g-field-group__message-icon') + '<span class="g-field-group__message-type">' + PFX[o.state.type] + '</span>' + esc(o.state.text) : '') + '</div></fieldset>';
+    Row(o.parts, { keep: o.keep, cls: 'g-field-group__parts' }) +
+    '<div class="g-field-group__support">' + (o.hint ? '<div class="g-field-group__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') + message('field-group', id, o) + '</div></fieldset>';
 }
-const Grid = (kids, o = {}) => '<div class="g-form-grid g-form-grid--narrow g-form-grid--density-' + D(o) + (o.stack ? ' g-form-grid--stack' : '') + '" data-tier="narrow">' + kids.join('') + '</div>';
-const Row = (kids, w) => '<div class="g-form-row ' + (w || 'g-form-w-md') + '">' + kids.join('') + '</div>';
-const badge = t => '<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-text"><span class="g-badge__text">' + esc(t) + '</span></span>';
-function Section(o) {
-  return '<section class="g-form-section' + (o.optional ? ' g-form-section--optional' : '') + '"' + (o.id ? ' id="' + o.id + '"' : '') + '><div class="g-form-section__header"><div class="g-form-section__heading"><h3 class="g-form-section__title">' + esc(o.title) + '</h3>' + (o.optional ? badge('Opcional') : '') + '</div>' +
-    (o.description ? '<p class="g-form-section__description">' + esc(o.description) + '</p>' : '') + (o.actions ? '<div class="g-form-section__actions">' + o.actions + '</div>' : '') + '</div>' +
-    '<div class="g-form-section__body">' + o.body + '</div></section>';
+const badge = (t) => '<span class="g-badge g-badge--variant-soft g-badge--color-neutral g-badge--size-sm g-badge--kind-text"><span class="g-badge__text">' + esc(t) + '</span></span>';
+const Section = (title, desc, body, o = {}) => '<section class="g-form-section' + (o.optional ? ' g-form-section--optional' : '') + '"><div class="g-form-section__header"><div class="g-form-section__heading"><h3 class="g-form-section__title">' + esc(title) + '</h3>' + (o.optional ? badge('Opcional') : '') + '</div>' +
+  (desc ? '<p class="g-form-section__description">' + esc(desc) + '</p>' : '') + '</div><div class="g-form-section__body">' + body + '</div></section>';
+const Btn = (label, variant, extra) => '<button class="g-btn g-btn--color-brand g-btn--variant-' + variant + ' g-btn--size-md g-btn--density-' + DENS + '" ' + (extra || 'type="button"') + '><span class="g-btn__label">' + esc(label) + '</span>' + I('loader-circle', 'g-btn__loader') + '</button><span class="g-btn__status" role="status"></span>';
+const Actions = (btns, o = {}) => '<div class="g-form-actions g-form-actions--density-' + DENS + (o.sticky ? ' g-form-actions--sticky' : '') + '"><div class="g-form-actions__status" role="status">' + esc(o.status || '') + '</div><div class="g-form-actions__buttons">' + btns + '</div></div>';
+const Form = (id, label, kids) => '<form class="g-form g-form--density-' + DENS + ' g-form--marks-optional" id="' + id + '" aria-label="' + esc(label) + '" novalidate>' + kids.join('') + '</form>';
+
+/* ---------- recetas (form.md §8) ---------- */
+const PAISES = ['MX +52', 'US +1', 'GT +502', 'CO +57', 'ES +34'];
+const phone = (id, x = {}) => InputGroup(Object.assign({ id, label: 'Teléfono', w: 'md', min: 50, req: 1, parts: [
+  { kind: 'select', id: id + '-pais', name: id + '-pais', partLabel: 'Código de país', options: PAISES, value: 'MX +52', ac: 'tel-country-code' },
+  { kind: 'input', id: id + '-num', name: id + '-numero', principal: true, type: 'tel', ac: 'tel-national', ph: '951 123 4567' }] }, x));
+const temp = (id) => InputGroup({ id, label: 'Temperatura', w: 'sm', req: 1, parts: [
+  { kind: 'input', id: id + '-v', name: 'temp', principal: true, im: 'decimal', ph: '36.5' },
+  { kind: 'select', id: id + '-u', name: 'temp-unidad', partLabel: 'Unidad', options: ['°C', '°F'], value: '°C' }] });
+
+/* ---------- formularios (los del prototipo r02) ---------- */
+function render() {
+  $('#f-short').innerHTML = Form('fs', 'Contacto', [Layout([
+    Row([Input({ id: 'fs-nombre', label: 'Nombre', ac: 'given-name', req: 1 }), Input({ id: 'fs-apellido', label: 'Apellido', long: 'Apellido o apellidos como en la identificación', ac: 'family-name', req: 1 })]),
+    Row([Input({ id: 'fs-correo', label: 'Correo', type: 'email', ac: 'email', req: 1, hint: 'Te enviaremos la confirmación aquí.' }), phone('fs-tel'), Input({ id: 'fs-ext', label: 'Extensión', w: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })]),
+    Textarea({ id: 'fs-com', label: 'Comentarios', opt: 1 })
+  ]), Actions(Btn('Enviar', 'solid', 'type="submit"'))]);
+
+  $('#f-medium').innerHTML = Form('fm', 'Alta de paciente', [
+    Section('Información básica', 'Como aparece en la identificación oficial.', Layout([
+      Row([Input({ id: 'fm-nombre', label: 'Nombre', ac: 'given-name', req: 1 }), Input({ id: 'fm-ap1', label: 'Primer apellido', ac: 'family-name', req: 1 }), Input({ id: 'fm-ap2', label: 'Segundo apellido', long: 'Segundo apellido o apellido de casada', opt: 1 })]),
+      Row([DatePicker({ id: 'fm-nac', label: 'Fecha de nacimiento', w: 'sm', min: 44, req: 1, value: '12/05/1990', output: '36 años', hint: 'La edad se calcula sola.' }), Select({ id: 'fm-sexo', label: 'Sexo', req: 1, options: ['Femenino', 'Masculino', 'Otro'] })])
+    ])),
+    Section('Contacto', '', Layout([
+      Row([Input({ id: 'fm-correo', label: 'Correo', type: 'email', ac: 'email', req: 1 }), phone('fm-tel'), Input({ id: 'fm-ext', label: 'Extensión', w: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })])
+    ])),
+    Section('Signos vitales', 'Medidas de hoy. La unidad va dentro de la caja.', Layout([
+      Row([
+        temp('fm-temp'),
+        InputGroup({ id: 'fm-pa', label: 'Presión arterial', w: 'sm', min: 38, opt: 1, parts: [
+          { kind: 'input', id: 'fm-pa-s', name: 'pa-sistolica', principal: true, partLabel: 'sistólica', im: 'numeric', ph: '120' },
+          { kind: 'text', text: '/', decorative: true },
+          { kind: 'input', id: 'fm-pa-d', name: 'pa-diastolica', partLabel: 'diastólica', im: 'numeric', ph: '80' },
+          { kind: 'text', id: 'fm-pa-u', text: 'mmHg', label: 'milímetros de mercurio' }] }),
+        Input({ id: 'fm-fc', label: 'Frecuencia', long: 'Frecuencia cardiaca', w: 'xs', opt: 1, im: 'numeric', suffix: 'lpm', suffixLabel: 'latidos por minuto' }),
+        Input({ id: 'fm-sat', label: 'Saturación', w: 'xs', opt: 1, im: 'decimal', suffix: '%' }),
+        Input({ id: 'fm-peso', label: 'Peso', w: 'xs', opt: 1, im: 'decimal', suffix: 'kg', suffixLabel: 'kilogramos' }),
+        Input({ id: 'fm-est', label: 'Estatura', w: 'xs', opt: 1, im: 'numeric', suffix: 'cm', suffixLabel: 'centímetros' })
+      ], { label: 'Signos vitales' })
+    ])),
+    Section('Datos fiscales', 'Solo si el paciente pide factura.', Layout([
+      Row([Input({ id: 'fm-rfc', label: 'RFC', w: 'sm', ph: 'GODE561231GR8' }), Input({ id: 'fm-razon', label: 'Razón social', w: 'lg', ac: 'organization' })]),
+      Row([Select({ id: 'fm-regimen', label: 'Régimen fiscal', options: ['605 Sueldos y salarios', '612 Personas físicas con actividad empresarial', '626 RESICO'] }), Select({ id: 'fm-cfdi', label: 'Uso del CFDI', options: ['D01 Honorarios médicos', 'G03 Gastos en general'] }), Input({ id: 'fm-cpf', label: 'Código postal', long: 'Código postal del domicilio fiscal', w: 'sm', im: 'numeric', ac: 'postal-code' })])
+    ]), { optional: 1 }),
+    Section('Preferencias', '', Layout([
+      CheckboxGroup({ id: 'fm-avisos', label: 'Avisos', opt: 1, items: ['Por correo', 'Por SMS'] }),
+      Checkbox({ id: 'fm-priv', label: 'Acepto el aviso de privacidad' }),
+      Switch({ id: 'fm-rec', label: 'Recordatorios por correo' }),
+      Textarea({ id: 'fm-obs', label: 'Observaciones', opt: 1, hint: 'Alergias, medicación o lo que el equipo deba saber.' })
+    ])),
+    Actions(Btn('Restablecer', 'ghost', 'type="reset"') + Btn('Guardar borrador', 'outline', 'type="submit" formnovalidate') + Btn('Guardar', 'solid', 'type="submit"'), { sticky: true, status: 'Cambios sin guardar' })
+  ]);
+
+  $('#f-address').innerHTML = Form('fa', 'Dirección', [Section('Dirección', '', Layout([
+    Row([Input({ id: 'fa-calle', label: 'Calle', w: 'lg', ac: 'address-line1', req: 1 }), Input({ id: 'fa-ext', label: 'Núm. exterior', w: 'xs', req: 1 }), Input({ id: 'fa-int', label: 'Núm. interior', w: 'xs', opt: 1, ac: 'address-line2' })]),
+    Row([Input({ id: 'fa-col', label: 'Colonia', ac: 'address-level3', req: 1 }), Input({ id: 'fa-cp', label: 'Código postal', w: 'sm', im: 'numeric', ac: 'postal-code', req: 1 }), Input({ id: 'fa-ciudad', label: 'Ciudad', ac: 'address-level2', req: 1 })]),
+    Row([Select({ id: 'fa-estado', label: 'Estado', options: ['Oaxaca', 'Puebla', 'Jalisco'], opt: 1 }), Input({ id: 'fa-pais', label: 'País', ac: 'country-name', value: 'México', opt: 1 })])
+  ]))]);
+
+  $('#f-join').innerHTML = Form('fj', 'Campos fusionados', [Layout([
+    Row([phone('fj-tel', { hint: 'Lo usamos solo para confirmar la cita.' }), Input({ id: 'fj-ext', label: 'Extensión', w: 'xs', opt: 1, im: 'numeric', ac: 'tel-extension' })]),
+    Row([
+      temp('fj-temp'),
+      InputGroup({ id: 'fj-imp', label: 'Copago', w: 'sm', min: 38, parts: [{ kind: 'select', id: 'fj-imp-m', name: 'moneda', partLabel: 'Moneda', options: ['MXN', 'USD'], value: 'MXN' }, { kind: 'input', id: 'fj-imp-v', name: 'importe', principal: true, im: 'decimal', ph: '0.00' }] }),
+      InputGroup({ id: 'fj-folio', label: 'Folio de factura', w: 'sm', min: 38, parts: [{ kind: 'input', id: 'fj-folio-s', name: 'serie', partLabel: 'Serie', chars: 3, ph: 'A' }, { kind: 'input', id: 'fj-folio-n', name: 'folio', principal: true, im: 'numeric', ph: '000123' }] }),
+      InputGroup({ id: 'fj-rango', label: 'Rango de edad', w: 'sm', min: 43, parts: [{ kind: 'input', id: 'fj-rango-a', name: 'edad-desde', principal: true, partLabel: 'desde', im: 'numeric', ph: '18' }, { kind: 'text', text: 'a', decorative: true }, { kind: 'input', id: 'fj-rango-b', name: 'edad-hasta', partLabel: 'hasta', im: 'numeric', ph: '65' }, { kind: 'text', id: 'fj-rango-u', text: 'años' }] })
+    ]),
+    Row([
+      InputGroup({ id: 'fj-ro', label: 'Teléfono (solo lectura)', min: 44, readonly: 1, parts: [{ kind: 'select', id: 'fj-ro-p', name: 'ro-pais', partLabel: 'Código de país', options: PAISES, value: 'MX +52' }, { kind: 'input', id: 'fj-ro-n', name: 'ro-num', principal: true, type: 'tel', value: '951 123 4567' }] }),
+      InputGroup({ id: 'fj-dis', label: 'Teléfono (deshabilitado)', min: 44, disabled: 1, parts: [{ kind: 'select', id: 'fj-dis-p', name: 'dis-pais', partLabel: 'Código de país', options: PAISES, value: 'MX +52' }, { kind: 'input', id: 'fj-dis-n', name: 'dis-num', principal: true, type: 'tel' }] })
+    ])
+  ])]);
+
+  $('#f-group').innerHTML = Form('fg', 'Preguntas compuestas', [Layout([
+    FieldGroup({ id: 'fg-emer', label: 'Contacto de emergencia', hint: 'A quién llamamos si no podemos localizarte.', parts: [
+      Input({ id: 'fg-en', label: 'Nombre', ac: 'section-emer name' }), Input({ id: 'fg-ep', label: 'Parentesco', w: 'sm' }), phone('fg-et', { req: 0 })] }),
+    FieldGroup({ id: 'fg-fecha', label: 'Fecha de la última consulta', keep: 1, hint: 'Por ejemplo, 27 3 2026', parts: [
+      Input({ id: 'fg-d', label: 'Día', w: 'xs', im: 'numeric' }), Input({ id: 'fg-m', label: 'Mes', w: 'xs', im: 'numeric' }), Input({ id: 'fg-a', label: 'Año', w: 'sm', im: 'numeric' })] })
+  ])]);
+
+  /* 6 · estados fuera de filas */
+  const S = [];
+  const add = (tag, html) => S.push('<div><p class="tag">' + esc(tag) + '</p>' + html + '</div>');
+  let n = 0; const nid = () => 'st' + ++n;
+  for (const [t, st] of [['error', ['error', 'Escribe el correo con el formato nombre@dominio.com']], ['advertencia', ['warning', 'Parece poco habitual: revísalo']], ['válido', ['valid', 'Disponible']]]) {
+    add('GInput · ' + t, Input({ id: nid(), label: 'Correo', value: 'ana@correo.mx', st }));
+    add('GInputGroup · ' + t, InputGroup({ id: nid(), label: 'Teléfono', st, parts: [{ kind: 'select', id: nid(), partLabel: 'Código de país', options: PAISES, value: 'MX +52', invalid: st[0] === 'error' }, { kind: 'input', id: nid(), principal: true, type: 'tel', value: '951 123' }] }));
+  }
+  add('GInput · solo lectura', Input({ id: 'ro-in', label: 'Peso', value: '64', suffix: 'kg', readonly: 1 }));
+  add('GInput · solo lectura vacío', Input({ id: 'ro-ph', label: 'Referencia', ph: 'Sin referencia', readonly: 1 }));
+  add('GInput · output', Input({ id: 'out-in', label: 'Peso', value: '64', suffix: 'kg', output: 'IMC 22.1' }));
+  add('GInput · deshabilitado', Input({ id: 'dis-in', label: 'Peso', value: '64', suffix: 'kg', disabled: 1 }));
+  add('GSelect · solo lectura', Select({ id: 'ro-se', label: 'Especialidad', value: 'Cardiología', readonly: 1 }));
+  add('GDatePicker · solo lectura + output', DatePicker({ id: 'ro-dp', label: 'Fecha de nacimiento', value: '12/05/1990', output: '36 años', readonly: 1 }));
+  add('GTextarea · solo lectura', Textarea({ id: 'ro-ta', label: 'Observaciones', value: 'Sin alergias conocidas.', readonly: 1 }));
+  add('GInputGroup · solo lectura', InputGroup({ id: 'ro-ig', label: 'Presión arterial', readonly: 1, parts: [{ kind: 'input', id: 'ro-ig-s', principal: true, partLabel: 'sistólica', value: '120' }, { kind: 'text', text: '/', decorative: true }, { kind: 'input', id: 'ro-ig-d', partLabel: 'diastólica', value: '80' }, { kind: 'text', id: 'ro-ig-u', text: 'mmHg', label: 'milímetros de mercurio' }] }));
+  add('GInputGroup · deshabilitado', InputGroup({ id: 'dis-ig', label: 'Copago', disabled: 1, parts: [{ kind: 'select', id: 'dis-ig-m', partLabel: 'Moneda', options: ['MXN'], value: 'MXN' }, { kind: 'input', id: 'dis-ig-v', principal: true, value: '150.00' }] }));
+  add('GInputGroup · soft', InputGroup({ id: 'soft-ig', label: 'Copago', variant: 'soft', parts: [{ kind: 'select', id: 'soft-ig-m', partLabel: 'Moneda', options: ['MXN', 'USD'], value: 'MXN' }, { kind: 'input', id: 'soft-ig-v', principal: true, ph: '0.00' }] }));
+  $('#s-states').innerHTML = S.join('');
+
+  /* 7 · pie apilado */
+  $('#s-actions').innerHTML = [320, 360, 480].map((fw) => '<p class="tag">contenedor ' + fw + 'px · tres botones con estado</p><div class="frame" data-narrow style="--fw:' + fw + 'px" data-actions-frame="' + fw + '">' +
+    Actions(Btn('Cancelar', 'ghost') + Btn('Guardar borrador', 'outline', 'type="submit" formnovalidate') + Btn('Guardar', 'solid', 'type="submit"'), { sticky: true, status: 'Cambios sin guardar' }) + '</div>').join('') +
+    '<p class="tag">contenedor 320px · dos botones sin estado</p><div class="frame" data-narrow style="--fw:320px">' + Actions(Btn('Cancelar', 'ghost') + Btn('Enviar', 'solid', 'type="submit"')) + '</div>';
 }
-const Btn = (label, variant, extra = '') => '<button class="g-btn g-btn--color-brand g-btn--variant-' + variant + ' g-btn--size-md g-btn--density-default" ' + (extra || 'type="button"') + '><span class="g-btn__label">' + esc(label) + '</span>' + I('loader-circle', 'g-btn__loader') + '</button><span class="g-btn__status" role="status"></span>';
-function Actions(o = {}) {
-  const f = o.form ? ' form="' + o.form + '"' : '';
-  return '<div class="g-form-actions g-form-actions--density-' + D(o) + (o.sticky ? ' g-form-actions--sticky' : '') + '"><div class="g-form-actions__status" role="status">' + esc(o.status || '') + '</div><div class="g-form-actions__buttons">' +
-    Btn(o.cancel || 'Cancelar', 'ghost') + (o.draft === false ? '' : Btn('Guardar borrador', 'outline', 'type="submit" formnovalidate name="intent" value="draft"' + f)) + Btn(o.primary || 'Guardar', 'solid', 'type="submit"' + f) + '</div></div>';
-}
-function Summary(o) {
-  const id = o.id || nid('es');
-  return '<div class="g-error-summary" id="' + id + '" tabindex="-1" aria-labelledby="' + id + '-title"' + (o.hidden ? ' hidden' : '') + '><div role="alert"><h3 class="g-error-summary__title" id="' + id + '-title">' + I('circle-alert', 'g-error-summary__icon') + esc(o.title) + '</h3><ul class="g-error-summary__list">' +
-    o.items.map(it => it.href ? '<li><a class="g-error-summary__link" href="#' + it.href + '">' + esc(it.text) + '</a></li>' : '<li class="g-error-summary__item">' + esc(it.text) + '</li>').join('') + '</ul></div></div>';
-}
-const Form = (kids, o = {}) => '<form class="g-form g-form--density-' + D(o) + ' g-form--marks-' + (o.marks || 'optional') + (o.readonly ? ' g-form--readonly' : '') + '" id="' + (o.id || nid('form')) + '" novalidate>' +
-  (o.marks === 'required' ? '<p class="g-form__required-hint">Los campos con * son obligatorios.</p>' : '') + kids.join('') + '</form>';
-const F = (fn, o) => fn(Object.assign({ mark: o.required || o.readonly || o.disabled ? null : 'optional' }, o));
 
-/* ---------- recetas ---------- */
-const PHONE = (o = {}) => FieldGroup(Object.assign({ label: 'Teléfono', cls: 'g-form-w-lg', density: o.density, parts: [
-  Select({ label: 'País', value: '+52 México', cls: 'g-form-part-sm', density: o.density, state: o.partInvalid ? { type: 'error', text: '' } : null, silent: true }),
-  Input({ label: 'Número', type: 'tel', placeholder: '951 123 4567', autocomplete: 'tel-national', required: true, density: o.density, state: o.partInvalid ? { type: 'error', text: '' } : null, silent: true }),
-  Input({ label: 'Extensión', inputmode: 'numeric', mark: 'optional', cls: 'g-form-part-sm', density: o.density })
-] }, o));
-const ADDRESS = (d) => Grid([
-  F(Input, { label: 'Calle', cls: 'g-form-w-lg', autocomplete: 'address-line1', required: true, density: d }),
-  Row([F(Input, { label: 'Núm. exterior', required: true, density: d }), F(Input, { label: 'Núm. interior', autocomplete: 'address-line2', density: d })], 'g-form-w-md'),
-  F(Input, { label: 'Colonia', cls: 'g-form-w-md g-form-break', autocomplete: 'address-level3', required: true, density: d }),
-  F(Input, { label: 'Código postal', cls: 'g-form-w-sm', inputmode: 'numeric', autocomplete: 'postal-code', required: true, density: d }),
-  F(Input, { label: 'Ciudad', cls: 'g-form-w-md', autocomplete: 'address-level2', required: true, density: d }),
-  F(Select, { label: 'Estado', cls: 'g-form-w-md g-form-break', value: 'Oaxaca', required: true, density: d }),
-  F(Input, { label: 'País', cls: 'g-form-w-md', autocomplete: 'country-name', value: 'México', required: true, density: d })
-], { density: d });
-const SHORT = (d, o = {}) => Form([Grid([
-  F(Input, { label: 'Nombre', cls: 'g-form-w-md', autocomplete: 'given-name', required: true, density: d }),
-  F(Input, { label: 'Apellido', cls: 'g-form-w-md', autocomplete: 'family-name', required: true, density: d }),
-  F(Input, { label: 'Correo', cls: 'g-form-w-md g-form-break', type: 'email', autocomplete: 'email', required: true, hint: 'Te enviaremos la confirmación aquí.', density: d }),
-  PHONE({ density: d, required: true }),
-  F(Textarea, { label: 'Comentarios', density: d })
-], { density: d }), Actions({ density: d, draft: false, primary: o.primary || 'Enviar' })], { density: d, id: o.id });
-
-/* 1 · corto */
-$('#s-short').innerHTML = SHORT('default', { id: 'form-short' });
-
-/* 2 · mediano con secciones */
-$('#s-medium').innerHTML = Form([
-  Summary({ id: 'sum-medium', title: 'Hay 3 problemas con el formulario', items: [{ href: 'm-correo', text: 'Escribe el correo con el formato nombre@dominio.com' }, { href: 'm-temp', text: 'La temperatura debe estar entre 30 y 45' }, { text: 'No se pudo guardar: el folio ya existe.' }] }),
-  Section({ title: 'Información básica', description: 'Como aparece en la identificación oficial.', body: Grid([
-    F(Input, { label: 'Nombre', cls: 'g-form-w-md', required: true, value: 'Ana' }),
-    F(Input, { label: 'Primer apellido', cls: 'g-form-w-md', required: true, value: 'Pérez' }),
-    F(Input, { label: 'Segundo apellido', cls: 'g-form-w-md' }),
-    F(DatePicker, { label: 'Fecha de nacimiento', cls: 'g-form-w-sm g-form-break', required: true, value: '12/05/1990' }),
-    F(Input, { label: 'Edad', cls: 'g-form-w-xs', value: '35', readonly: true, suffix: 'años' }),
-    F(Select, { label: 'Sexo', cls: 'g-form-w-sm', required: true, value: 'Femenino' })
-  ]) }),
-  Section({ title: 'Contacto', body: Grid([
-    F(Input, { id: 'm-correo', label: 'Correo', cls: 'g-form-w-md', type: 'email', required: true, value: 'ana@', state: { type: 'error', text: 'Escribe el correo con el formato nombre@dominio.com' } }),
-    PHONE({ required: true })
-  ]) }),
-  Section({ title: 'Signos vitales', description: 'Temperatura | Unidad | Fecha: el ancho anticipa lo que cabe.', body: Grid([
-    F(Input, { id: 'm-temp', label: 'Temperatura', cls: 'g-form-w-xs', inputmode: 'decimal', required: true, value: '52', state: { type: 'error', text: 'La temperatura debe estar entre 30 y 45' } }),
-    F(Select, { label: 'Unidad', cls: 'g-form-w-xs', required: true, value: '°C' }),
-    F(DatePicker, { label: 'Fecha', cls: 'g-form-w-sm', required: true, value: '01/10/2026' }),
-    F(Input, { label: 'Peso', cls: 'g-form-w-xs g-form-break', inputmode: 'decimal', value: '64', suffix: 'kg', suffixLabel: 'kilogramos' }),
-    F(Input, { label: 'Saturación', cls: 'g-form-w-xs', inputmode: 'decimal', value: '91', suffix: '%', state: { type: 'warning', text: 'Por debajo de 94 %: confirma la lectura.' } })
-  ]) }),
-  Section({ title: 'Dirección', actions: Btn('Copiar de la anterior', 'ghost'), body: ADDRESS('default') }),
-  Section({ title: 'Datos fiscales', optional: true, description: 'Solo si el paciente pide factura.', body: Grid([
-    Input({ label: 'RFC', cls: 'g-form-w-sm', value: 'PEPA900512AB1', state: { type: 'valid', text: 'RFC con formato válido.' } }),
-    Input({ label: 'Razón social', cls: 'g-form-w-lg' })
-  ]) }),
-  Section({ title: 'Preferencias', body: Grid([
-    F(CheckboxGroup, { label: 'Avisos', items: [{ label: 'Por correo', checked: true }, { label: 'Por SMS' }] }),
-    Checkbox({ label: 'Acepto el aviso de privacidad', required: true, checked: true }),
-    F(Textarea, { label: 'Observaciones', hint: 'Alergias, medicación o lo que el equipo deba saber.' })
-  ]) }),
-  Actions({ sticky: true, status: 'Cambios sin guardar' })
-], { id: 'form-medium' });
-
-/* 3 · filas unidas */
-$('#s-rows').innerHTML = [
-  '<div><p class="tag">g-form-row en una rejilla ancha (subgrid)</p><div class="frame" data-w="600">' + Grid([
-    Row([F(Input, { label: 'Núm. exterior', required: true }), F(Input, { label: 'Núm. interior del departamento o despacho', hint: 'Si no hay, déjalo vacío.' })], 'g-form-w-lg'),
-    Row([F(Input, { label: 'Lote', required: true, state: { type: 'error', text: 'Escribe el número de lote' } }), F(Select, { label: 'Manzana', required: true, value: 'M-4' })], 'g-form-w-lg')
-  ]) + '</div></div>',
-  '<div><p class="tag">en una columna (360): siguen compartiendo fila; tres hijos con g-form-part-xs</p><div class="frame" data-w="360">' + Grid([
-    Row([F(Input, { label: 'Núm. exterior', required: true }), F(Input, { label: 'Núm. interior' })], 'g-form-w-md'),
-    Row([F(Input, { label: 'Temp.', cls: 'g-form-part-xs', required: true, value: '36.5' }), F(Select, { label: 'Unidad', cls: 'g-form-part-xs', required: true, value: '°C' }), F(DatePicker, { label: 'Fecha', required: true, value: '01/10/2026' })], 'g-form-w-md')
-  ]) + '</div></div>'
-].join('');
-
-/* 4 · grupos */
-$('#s-groups').innerHTML = [
-  '<div><p class="tag">obligatorio, ancho</p><div class="frame" data-w="600">' + Grid([PHONE({ required: true, hint: 'Lo usamos solo para confirmar la cita.' })]) + '</div></div>',
-  '<div><p class="tag">error del grupo (partes con su borde, un solo mensaje)</p><div class="frame" data-w="600">' + Grid([PHONE({ required: true, partInvalid: true, state: { type: 'error', text: 'Escribe el número a 10 dígitos' } })]) + '</div></div>',
-  '<div><p class="tag">320 px: País | Número comparten fila, la extensión pasa debajo</p><div class="frame" data-w="360">' + Grid([PHONE({ required: true })]) + '</div></div>',
-  '<div><p class="tag">opcional (marca en el legend) y deshabilitado</p><div class="frame" data-w="360">' + Grid([PHONE({ mark: 'optional', label: 'Teléfono de trabajo' }), PHONE({ disabled: true, label: 'Teléfono anterior' })]) + '</div></div>'
-].join('');
-// el fieldset deshabilitado: sus partes se pintan deshabilitadas (lo hará el contexto)
-$$('#s-groups fieldset[disabled] .g-input, #s-groups fieldset[disabled] .g-select').forEach(el => el.classList.add('is-disabled'));
-$$('#s-groups fieldset[disabled]').forEach(el => el.classList.add('is-disabled'));
-
-/* 5 · resumen */
-$('#s-summary').innerHTML = Summary({ title: 'Hay 4 problemas con el formulario', items: [
-  { href: 'm-correo', text: 'Escribe el correo con el formato nombre@dominio.com' }, { href: 'm-temp', text: 'La temperatura debe estar entre 30 y 45' },
-  { href: 'x', text: 'Elige al menos un medio de aviso: correo, SMS o llamada telefónica al número registrado en el expediente del paciente' }, { text: 'No se pudo guardar: el folio ya existe.' }] });
-
-/* 6 · estados */
-const KINDS = [
-  ['GInput', o => Input(Object.assign({ label: 'Correo', value: 'ana@correo.mx', cls: '' }, o))],
-  ['GTextarea', o => Textarea(Object.assign({ label: 'Motivo', value: 'Revisión anual' }, o))],
-  ['GSelect', o => Select(Object.assign({ label: 'Especialidad', value: 'Cardiología' }, o))],
-  ['GDatePicker', o => DatePicker(Object.assign({ label: 'Fecha de la cita', value: '14/10/2026' }, o))],
-  ['GCheckbox', o => Checkbox(Object.assign({ label: 'Acepto el aviso de privacidad' }, o))],
-  ['GSwitch', o => Switch(Object.assign({ label: 'Recordatorios' }, o))],
-  ['GCheckboxGroup', o => CheckboxGroup(Object.assign({ label: 'Avisos', items: [{ label: 'Correo' }, { label: 'SMS' }] }, o))]
-];
-const MSG = { error: 'Escribe lo que falta con el formato correcto', warning: 'Revisa: parece poco habitual', valid: 'Disponible' };
-$('#s-states').innerHTML = KINDS.map(([n, fn]) => '<h4 class="b">' + n + '</h4><div class="states">' +
-  ['', 'error', 'warning', 'valid'].map(t => '<div><p class="tag">' + (t || 'por defecto') + '</p>' + fn({ state: t ? { type: t, text: MSG[t] } : null, mark: 'optional' }) + '</div>').join('') + '</div>').join('');
-
-/* 7 · solo lectura */
-$('#s-ro').innerHTML = KINDS.map(([n, fn]) => '<h4 class="b">' + n + '</h4><div class="states">' +
-  [['editable', {}], ['solo lectura', { readonly: true }], ['solo lectura (marcado)', { readonly: true, checked: true }], ['deshabilitado', { disabled: true }], ['deshabilitado (marcado)', { disabled: true, checked: true }]]
-    .filter(([l]) => !/marcado/.test(l) || /Checkbox|Switch/.test(n))
-    .map(([l, o]) => '<div><p class="tag">' + l + '</p>' + fn(o) + '</div>').join('') + '</div>').join('') +
-  '<h4 class="b">GCheckbox tarjeta y chip</h4><div class="states">' +
-  ['', 'readonly', 'disabled'].map(s => '<div><p class="tag">' + (s || 'editable') + '</p>' + Checkbox({ layout: 'card', label: 'Garantía extendida', hint: 'Dos años más', checked: true, readonly: s === 'readonly', disabled: s === 'disabled' }) + '<div style="margin-top:8px">' + Checkbox({ layout: 'chip', label: 'Wifi', checked: true, readonly: s === 'readonly', disabled: s === 'disabled' }) + ' ' + Checkbox({ layout: 'chip', label: 'Desayuno', readonly: s === 'readonly', disabled: s === 'disabled' }) + '</div></div>').join('') + '</div>' +
-  '<h4 class="b">Formulario en modo vista (GForm readonly)</h4><div class="frame page">' + Form([Grid([
-    Input({ label: 'Nombre', cls: 'g-form-w-md', value: 'Ana Pérez', readonly: true }), Select({ label: 'Especialidad', cls: 'g-form-w-md', value: 'Cardiología', readonly: true }),
-    DatePicker({ label: 'Fecha', cls: 'g-form-w-sm', value: '14/10/2026', readonly: true }), Textarea({ label: 'Observaciones', value: 'Sin alergias conocidas.', readonly: true }),
-    Checkbox({ label: 'Acepto el aviso de privacidad', checked: true, readonly: true })
-  ])], { readonly: true }) + '</div>';
-
-/* 8 · prefijo y sufijo */
-$('#s-affix').innerHTML = [
-  Input({ label: 'Monto', prefix: '$', value: '1,250.00', inputmode: 'decimal' }),
-  Input({ label: 'Peso', suffix: 'kg', suffixLabel: 'kilogramos', value: '64' }),
-  Input({ label: 'Descuento', suffix: '%', value: '15', state: { type: 'warning', text: 'Mayor que el habitual' } }),
-  Input({ label: 'Sitio', prefix: 'https://', value: 'grana.dev', readonly: true }),
-  Input({ label: 'Altura', suffix: 'cm', value: '170', disabled: true }),
-  Input({ label: 'Precio', prefix: '$', suffix: 'MXN', value: '99', state: { type: 'error', text: 'Escribe un precio mayor que 0' } })
-].map(h => '<div>' + h + '</div>').join('');
-
-/* 9 · acciones */
-$('#s-actions').innerHTML =
-  '<p class="tag">normal, 600</p><div class="frame" data-w="600">' + Actions({ status: 'Guardado a las 10:42' }) + '</div>' +
-  '<p class="tag">normal sin estado, 600</p><div class="frame" data-w="600">' + Actions({}) + '</div>' +
-  '<p class="tag">estrecho (360): apiladas, primaria arriba</p><div class="frame" data-w="360">' + Actions({ status: 'Cambios sin guardar' }) + '</div>' +
-  '<p class="tag">estrecho sin estado</p><div class="frame" data-w="360">' + Actions({}) + '</div>' +
-  '<p class="tag">fijo dentro de un contenedor que se desplaza (Tab por todos los campos: ninguno queda debajo del pie)</p><div class="scroller" style="block-size:300px;max-inline-size:600px" id="s-sticky">' +
-  Form([Grid(Array.from({ length: 10 }, (_, i) => F(Input, { label: 'Campo ' + (i + 1), cls: i % 2 ? 'g-form-w-md' : 'g-form-w-md g-form-break', required: i % 3 !== 0 }))), Actions({ sticky: true, status: 'Cambios sin guardar' })], { id: 'form-sticky' }) + '</div>';
-
-/* 10 · densidades */
-$('#s-density').innerHTML = ['default', 'comfortable', 'compact'].map(d => '<div><p class="tag">' + d + '</p><div class="frame">' + Form([Grid([
-  F(Input, { label: 'Nombre', cls: 'g-form-w-md', required: true, density: d }), F(Input, { label: 'Apellido', cls: 'g-form-w-md', required: true, density: d }),
-  F(Select, { label: 'Unidad', cls: 'g-form-w-xs', required: true, value: '°C', density: d }), F(DatePicker, { label: 'Fecha', cls: 'g-form-w-sm', required: true, value: '01/10/2026', density: d }),
-  F(Checkbox, { label: 'Recordarme', density: d })
-], { density: d }), Actions({ density: d, draft: false })], { density: d }) + '</div></div>').join('');
-
-/* 11 · anchos */
-$('#s-widths').innerHTML = [960, 600, 360].map(w => '<p class="tag">' + w + 'px</p><div class="frame" data-w="' + w + '">' + SHORT('default') + '</div>').join('') +
-  '<p class="tag">libre: arrastra la esquina</p><div class="frame resizable" style="inline-size:700px">' + Form([Section({ title: 'Dirección', body: ADDRESS('default') })]) + '</div>';
-
-/* 12 · obligatorios */
-$('#s-required').innerHTML = Form([Grid([
-  Input({ label: 'Nombre', cls: 'g-form-w-md', required: true, mark: 'required' }), Input({ label: 'Segundo apellido', cls: 'g-form-w-md' }),
-  Select({ label: 'Especialidad', cls: 'g-form-w-md g-form-break', required: true, mark: 'required' }), DatePicker({ label: 'Fecha', cls: 'g-form-w-sm', required: true, mark: 'required' }),
-  CheckboxGroup({ label: 'Avisos', required: true, mark: 'required', items: [{ label: 'Correo' }, { label: 'SMS' }] }),
-  Checkbox({ label: 'Acepto el aviso de privacidad', required: true, mark: 'required' })
-]), Actions({ draft: false })], { marks: 'required' });
-
-/* 13 · diálogo (inset, md) y drawer (end, una columna) */
-const DLG = (id, placement, stack) => '<dialog class="g-dialog g-dialog--size-md g-dialog--density-default g-dialog--inset g-dialog--placement-' + placement + ' g-dialog--mobile-sheet" id="' + id + '" aria-labelledby="' + id + '-title">' +
-  '<div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="' + id + '-title">' + (stack ? 'Editar paciente' : 'Nueva cita') + '</h2><p class="g-dialog__description">' + (stack ? 'Drawer: una sola columna, acciones en el pie.' : 'Diálogo con inset: el formulario vive en la superficie, no pegado a la carcasa.') + '</p></div>' +
-  '<button class="g-dialog__close" type="button" aria-label="Cerrar" data-close>' + I('x') + '</button></div>' +
-  '<div class="g-dialog__inset"><div class="g-dialog__body" tabindex="0" role="region" aria-labelledby="' + id + '-title">' +
-  Form([
-    Section({ title: 'Paciente', body: Grid([F(Input, { label: 'Nombre', cls: 'g-form-w-md', required: true }), F(Input, { label: 'Apellido', cls: 'g-form-w-md', required: true }), PHONE({ required: true })], { stack }) }),
-    Section({ title: 'Cita', body: Grid([F(Select, { label: 'Especialidad', cls: 'g-form-w-md', required: true }), F(DatePicker, { label: 'Fecha', cls: 'g-form-w-sm', required: true }), F(Input, { label: 'Temp.', cls: 'g-form-w-xs', suffix: '°C', inputmode: 'decimal' }), F(Textarea, { label: 'Motivo' })], { stack }) })
-  ], { id: id + '-form' }) + '</div><div class="g-dialog__footer">' + Actions({ form: id + '-form', status: '' }) + '</div></div></dialog>';
-$('#s-dialogs').innerHTML = DLG('dlg', 'center', false) + DLG('drw', 'end', true);
-
-/* ---------- lo que hará bruno ---------- */
+/* =====================================================================================================================
+   Lo que hará bruno: reparto en líneas de GFormRow (form.md §4, «Reparto en líneas», normativo; port del prototipo r02)
+   ===================================================================================================================== */
+const WEIGHT = { xs: 2, sm: 3, md: 4, lg: 8 };
+const MINU = { xs: 20, sm: 32, md: 40, lg: 60 };
 const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 4;
-const TIERS = ['wide', 'medium', 'narrow'];
-/* Las escrituras van al cuadro siguiente: escribir clases y --g-form-actions-size dentro de la devolución provoca
-   «ResizeObserver loop completed» en WebKit (nota para bruno) */
-const ro = new ResizeObserver(entries => requestAnimationFrame(() => {
-  for (const e of entries) {
-    const el = e.target, w = e.contentBoxSize ? e.contentBoxSize[0].inlineSize : e.contentRect.width, s = space();
-    if (el.classList.contains('g-form-grid')) {
-      const t = el.classList.contains('g-form-grid--stack') ? 'narrow' : w >= s * 176 ? 'wide' : w >= s * 104 ? 'medium' : 'narrow';
-      if (el.dataset.tier !== t) { TIERS.forEach(x => el.classList.toggle('g-form-grid--' + x, x === t)); el.dataset.tier = t; }
-    } else if (el.classList.contains('g-form-actions')) {
-      const st = w < s * 104; el.classList.toggle('g-form-actions--stacked', st); el.toggleAttribute('data-stacked', st);
-      if (el.classList.contains('g-form-actions--sticky')) { const f = el.closest('.g-form'); if (f) { const v = el.offsetHeight + 'px'; if (f.style.getPropertyValue('--g-form-actions-size') !== v) f.style.setProperty('--g-form-actions-size', v); f.classList.add('g-form--sticky-actions'); } }
+function partitions(n) {
+  const out = [];
+  for (let mask = 0; mask < 1 << (n - 1); mask++) {
+    const parts = []; let cur = [0];
+    for (let i = 1; i < n; i++) { if (mask & (1 << (i - 1))) { parts.push(cur); cur = [i]; } else cur.push(i); }
+    parts.push(cur); out.push(parts);
+  }
+  return out;
+}
+function plan(row, A) {
+  const kids = [...row.children];
+  const s = space();
+  const cs = getComputedStyle(row);
+  const g = parseFloat(cs.getPropertyValue('--_form-row-gap'));
+  const items = kids.map((el) => {
+    const size = ([...el.classList].find((c) => /^g-form-w-(xs|sm|md|lg)$/.test(c)) || 'g-form-w-md').slice(9);
+    const own = parseFloat(getComputedStyle(el).getPropertyValue('--g-form-min')) || 0;
+    return { el, w: WEIGHT[size], m: Math.max(MINU[size], own) * s };
+  });
+  const keep = row.classList.contains('g-form-row--keep');
+  const layout = row.closest('.g-form-layout');
+  const stack = layout && layout.classList.contains('g-form-layout--stack') && !keep;
+  const widths = (line) => { const free = A - g * (line.length - 1); const W = line.reduce((a, i) => a + items[i].w, 0); return line.map((i) => items[i].w / W * free); };
+  const admissible = (line) => line.length === 1 || widths(line).every((x, k) => x + 0.5 >= items[line[k]].m);
+  const slack = (p) => Math.min(...p.flatMap((line) => widths(line).map((x, k) => x / items[line[k]].m)));
+  let best;
+  if (keep) best = [items.map((_, i) => i)];
+  else if (stack || items.length > 6) best = items.map((_, i) => [i]);
+  else {
+    const cands = partitions(items.length).filter((p) => p.every(admissible));
+    const fewest = Math.min(...cands.map((p) => p.length));
+    best = cands.filter((p) => p.length === fewest).reduce((a, b) => {
+      const sa = slack(a), sb = slack(b);
+      if (Math.abs(sa - sb) > 1e-9) return sb > sa ? b : a;
+      for (let k = 0; k < a.length; k++) if (a[k].length !== b[k].length) return b[k].length > a[k].length ? b : a; // empate: más hijos en las primeras líneas
+      return a;
+    });
+  }
+  const edges = new Set([0, A]); const spans = [];
+  best.forEach((line, li) => {
+    const ws = widths(line); let x = 0;
+    line.forEach((i, k) => { const st = +x.toFixed(2); const en = k === line.length - 1 ? A : +(x + ws[k]).toFixed(2); edges.add(st); edges.add(en); spans.push({ i, li, st, en }); x += ws[k] + g; });
+  });
+  const cols = [...edges].sort((a, b) => a - b);
+  const tracks = cols.slice(1).map((c, k) => +(c - cols[k]).toFixed(2) + 'px'); tracks[tracks.length - 1] = 'minmax(0, 1fr)';
+  return {
+    lines: best.length,
+    columns: tracks.join(' '),
+    rows: best.map(() => 'auto auto auto').join(' var(--_form-row-line-gap) '),
+    kids: spans.map((sp) => ({ el: items[sp.i].el, column: (cols.indexOf(sp.st) + 1) + ' / ' + (cols.indexOf(sp.en) + 1), line: (sp.li * 4 + 1) + ' / span 3', li: sp.li }))
+  };
+}
+const setIf = (el, prop, v) => { if (el.style.getPropertyValue(prop) !== v) el.style.setProperty(prop, v); };
+function applyRow(row) {
+  const A = row.getBoundingClientRect().width; // la fila no tiene relleno ni borde: ancho de contenido
+  if (!A) return;
+  const p = plan(row, +A.toFixed(2));
+  setIf(row, '--_form-row-columns', p.columns); setIf(row, '--_form-row-rows', p.rows);
+  if (row.dataset.lines !== String(p.lines)) row.dataset.lines = p.lines;
+  for (const k of p.kids) { setIf(k.el, '--_form-row-column', k.column); setIf(k.el, '--_form-row-line', k.line); if (k.el.dataset.line !== String(k.li)) k.el.dataset.line = k.li; }
+}
+/* Un ResizeObserver para todo; las escrituras van al cuadro siguiente y solo si cambian (form.md §4.5) */
+let pending = new Set(), raf = 0;
+const flush = () => { raf = 0; const els = [...pending]; pending = new Set(); for (const el of els) {
+  if (el.classList.contains('g-form-row')) applyRow(el);
+  else if (el.classList.contains('g-form-actions')) {
+    const st = el.getBoundingClientRect().width < space() * 104;
+    el.classList.toggle('g-form-actions--stacked', st); el.toggleAttribute('data-stacked', st);
+    if (el.classList.contains('g-form-actions--sticky')) { const f = el.closest('.g-form'); if (f) { setIf(f, '--g-form-actions-size', el.offsetHeight + 'px'); f.classList.add('g-form--sticky-actions'); } }
+  } else if (el.matches('[data-frame], .frame')) el.toggleAttribute('data-narrow', el.clientWidth < 600 || el.hasAttribute('data-actions-frame'));
+} };
+const ro = new ResizeObserver((entries) => { for (const e of entries) pending.add(e.target); if (!raf) raf = requestAnimationFrame(flush); });
+const wire = () => { ro.disconnect(); $$('.g-form-row, .g-form-actions, .frame').forEach((el) => ro.observe(el)); };
+const layoutAll = () => { $$('.frame').forEach((f) => f.toggleAttribute('data-narrow', f.clientWidth < 600 || f.hasAttribute('data-actions-frame'))); $$('.g-form-row').forEach(applyRow); $$('.g-form-actions').forEach((a) => { pending.add(a); }); flush(); };
+
+/* ---------- estados del banco ---------- */
+const MSG = {
+  'fs-correo': ['error', 'Escribe el correo con el formato nombre@dominio.com'],
+  'fs-tel': ['error', 'Escribe el número a 10 dígitos, sin la clave del país', 'fs-tel-num'],
+  'fm-ap1': ['error', 'Escribe el primer apellido como aparece en la identificación'],
+  'fm-sexo': ['error', 'Elige el sexo'],
+  'fm-temp': ['warning', 'Temperatura alta: confirma la lectura'],
+  'fm-cpf': ['valid', 'Código postal de Oaxaca de Juárez'],
+  'fm-rfc': ['error', 'El RFC de persona física tiene 13 caracteres'],
+  'fa-cp': ['valid', 'Oaxaca de Juárez, Oaxaca'],
+  'fa-int': ['error', 'Escribe solo letras y números'],
+  'fj-tel': ['error', 'Elige el código de país', 'fj-tel-pais'],
+  'fj-rango': ['error', 'La edad final debe ser mayor que la inicial', 'fj-rango-b'],
+  'fg-fecha': ['error', 'La fecha debe incluir el año', 'fg-a']
+};
+const tagOf = (root) => [...root.classList].find((c) => /^g-(input-group|input|textarea|select|datepicker|field-group)$/.test(c)).slice(2);
+const HINT_CLS = { input: ['g-input__messages', 'g-input__hint'], textarea: ['g-textarea__messages', 'g-textarea__hint'], 'input-group': [null, 'g-input-group__hint'], select: [null, 'g-select__hint'], datepicker: [null, 'g-datepicker__hint'] };
+function setState(on) {
+  for (const [id, [type, text, part]] of Object.entries(MSG)) {
+    const root = $('[data-field="' + id + '"]'); if (!root) continue;
+    const tag = tagOf(root); const msg = $('#' + id + '-message');
+    root.classList.remove('is-invalid', 'is-warning', 'is-valid');
+    const ctrls = tag === 'input-group' ? $$('.g-input-group__control', root) : tag === 'field-group' ? $$('input', root) : [$('#' + id)];
+    $$('.is-invalid', root).forEach((p) => p.classList.remove('is-invalid'));
+    ctrls.forEach((c) => { c.removeAttribute('aria-invalid'); const d = (c.getAttribute('aria-describedby') || '').split(' ').filter((x) => x && x !== msg.id); d.length ? c.setAttribute('aria-describedby', d.join(' ')) : c.removeAttribute('aria-describedby'); });
+    if (!on) { msg.innerHTML = ''; continue; }
+    root.classList.add(STC[type]); msg.innerHTML = msgHTML(tag, [type, text]);
+    ctrls.forEach((c) => c.setAttribute('aria-describedby', [c.getAttribute('aria-describedby'), msg.id].filter(Boolean).join(' ')));
+    if (type === 'error') {
+      const bad = part ? [$('#' + part)] : ctrls;
+      bad.forEach((c) => { c.setAttribute('aria-invalid', 'true'); const p = c.closest('.g-input-group__part'); if (p) p.classList.add('is-invalid'); const f = tag === 'field-group' && c.closest('.g-input'); if (f) f.classList.add('is-invalid'); });
     }
   }
-}));
-const wire = () => $$('.g-form-grid, .g-form-actions').forEach(el => ro.observe(el));
-wire();
-document.addEventListener('submit', e => {
-  e.preventDefault(); const f = e.target, s = $('.g-error-summary', f);
-  if (e.submitter && e.submitter.hasAttribute('formnovalidate')) { log('submit · novalidate (borrador)'); return; }
-  if (s) { s.hidden = false; s.focus(); log('invalid → foco al resumen'); } else log('submit ' + f.id);
+  $$('[data-extra-hint]').forEach((h) => h.remove());
+  if (on) for (const id of ['fm-nombre', 'fa-calle', 'fj-imp', 'fm-fc']) {
+    const r = $('[data-field="' + id + '"]'); const tag = tagOf(r); const sup = $('.g-' + tag + '__support', r); const [wrap, cls] = HINT_CLS[tag];
+    const h = document.createElement(wrap ? 'div' : 'div'); h.dataset.extraHint = '';
+    if (wrap) { h.className = wrap; h.innerHTML = '<span class="' + cls + '">Ayuda de ejemplo que ocupa una o dos líneas para probar la alineación.</span>'; } else { h.className = cls; h.textContent = 'Ayuda de ejemplo que ocupa una o dos líneas para probar la alineación.'; }
+    sup.prepend(h);
+  }
+}
+function setLong(on) {
+  $$('[data-long]').forEach((l) => { const tail = l.firstChild.nodeValue.match(/\s*$/)[0]; l.firstChild.nodeValue = (on ? l.dataset.long : l.dataset.short) + tail; });
+}
+function setWidth(v) {
+  $$('[data-frame]').forEach((f) => f.style.setProperty('--fw', v === '100%' ? '100%' : v + 'px'));
+  $$('[data-tag]').forEach((t) => { t.textContent = v === '100%' ? 'Contenedor: ancho libre' : 'Contenedor: ' + v + 'px'; });
+}
+function setDensity(d) {
+  DENS = d; render(); wire(); setWidth($('#t-w').value); setState($('#t-state').value === '1'); setLong($('#t-long').checked); layoutAll();
+}
+
+/* ---------- controles ---------- */
+$('#t-w').addEventListener('change', (e) => setWidth(e.target.value));
+$('#t-state').addEventListener('change', (e) => setState(e.target.value === '1'));
+$('#t-long').addEventListener('change', (e) => setLong(e.target.checked));
+$('#t-density').addEventListener('change', (e) => setDensity(e.target.value));
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+document.addEventListener('submit', (e) => { e.preventDefault(); $('#log').textContent = 'submit ' + e.target.id; });
+document.addEventListener('reset', (e) => e.preventDefault());
+/* Pulsar un texto fijo de un campo fusionado enfoca la parte vecina; pulsar prefijo/sufijo/output enfoca el <input> (bruno) */
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('.g-input-group__part--text'); if (t) { let n = t.nextElementSibling; while (n && !n.querySelector?.('.g-input-group__control')) n = n.nextElementSibling; let p = t.previousElementSibling; while (!n && p && !p.querySelector?.('.g-input-group__control')) p = p.previousElementSibling; (n || p)?.querySelector('.g-input-group__control').focus(); }
+  const af = e.target.closest('.g-input__prefix, .g-input__suffix, .g-input__output'); if (af) af.closest('.g-input__control').querySelector('input').focus();
 });
-document.addEventListener('reset', e => e.preventDefault());
-/* Respaldo JS del pie fijo (form.md §6, de bruno): si el foco queda bajo el pie, desplaza la diferencia. WebKit no aplica
-   scroll-margin al enfocar y Chromium lleva a la vista el cursor de un <textarea>, no la caja. ?css=1 lo apaga (solo CSS) */
-if (!new URLSearchParams(location.search).get('css')) document.addEventListener('focusin', e => {
+/* Respaldo JS del pie fijo (form.md §6, de bruno) */
+document.addEventListener('focusin', (e) => {
   const t = e.target, f = t.closest && t.closest('.g-form--sticky-actions'); if (!f || t.closest('.g-form-actions--sticky')) return;
   const bar = f.querySelector('.g-form-actions--sticky'); if (!bar) return;
-  requestAnimationFrame(() => {
-    const room = bar.getBoundingClientRect().top - space() * 4, r = t.getBoundingClientRect(), d = r.bottom - room; if (d <= 0) return;
-    let sc = f.parentElement; while (sc && !(sc.scrollHeight > sc.clientHeight && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
-    (sc || document.scrollingElement).scrollBy({ top: d, behavior: 'instant' });
-  });
+  requestAnimationFrame(() => { const d = t.getBoundingClientRect().bottom - (bar.getBoundingClientRect().top - space() * 4); if (d > 0) document.scrollingElement.scrollBy({ top: d, behavior: 'instant' }); });
 });
-document.addEventListener('click', e => {
-  const a = e.target.closest('.g-error-summary__link');
-  if (a) { e.preventDefault(); const t = document.getElementById(a.getAttribute('href').slice(1)); if (t) { const r = t.closest('.g-input, .g-select, .g-datepicker, .g-textarea') || t; r.scrollIntoView({ block: 'start', behavior: 'instant' }); t.focus({ preventScroll: true }); } }
-  if (e.target.closest('[data-close]')) e.target.closest('dialog').close();
-  // pulsar sobre el prefijo o el sufijo enfoca el <input>
-  const af = e.target.closest('.g-input__prefix, .g-input__suffix'); if (af) af.closest('.g-input__control').querySelector('input').focus();
-});
-$('#dlg-btn').onclick = () => $('#dlg').showModal();
-$('#drw-btn').onclick = () => $('#drw').showModal();
 
-/* ---------- herramientas ---------- */
-const themeEl = $('#theme'); let on = false;
-$('#theme-btn').onclick = () => { on = !on; themeEl.textContent = on ? ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-lg:4px;--g-radius-xl:6px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-primary-soft:#f7dde5;--g-color-on-primary-soft:#5a0f26;--g-color-accent:#1C6E6E;--g-color-accent-text:#1C6E6E;--g-color-accent-soft:#d8efef;--g-color-on-accent-soft:#0d4545;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-border:rgb(80 50 20 / .14);--g-color-border-strong:rgb(80 50 20 / .3);--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#7a5f44;--g-color-focus:#1C6E6E;--g-space-1:5px}' : ''; };
-$('#dark-btn').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
-$('#rtl-btn').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
-const q = new URLSearchParams(location.search);
+/* ---------- arranque ---------- */
 if (q.get('theme')) $('#gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css';
 if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
 if (q.get('rtl')) document.documentElement.dir = 'rtl';
-if (q.get('test')) $('#theme-btn').click();
+if (q.get('test')) $('#theme').textContent = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-text:#7A1E3A;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}';
+$('#t-density').value = DENS;
+if (q.get('w')) $('#t-w').value = q.get('w');
+if (q.get('state')) $('#t-state').value = '1';
+if (q.get('long')) $('#t-long').checked = true;
+render(); wire(); setWidth($('#t-w').value); setState($('#t-state').value === '1'); setLong($('#t-long').checked);
+/* Gancho de verificación */
+window.__banco = { setWidth, setState, setLong, setDensity, layoutAll, plan, ready: () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => { layoutAll(); requestAnimationFrame(r); }))) };
 </script>
 </body>
 </html>

@@ -1,0 +1,418 @@
+/*
+  GInputGroup · campo fusionado: una caja, una etiqueta, varias partes (r02)
+  Dueño: coco. Contrato: design/contracts/form.md §13 (DECISIONS.md #177, #178). Estructura: design/lab/form/r02/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el patrón de texto oculto accesible.
+  Mismo lenguaje que GInput (caja, alturas por `size`, densidad, variantes, estados, solo lectura). Lo propio:
+  - las partes (GInputGroupInput, GInputGroupSelect con <select> nativo, GInputGroupText) viven DENTRO de una sola caja,
+    sin borde propio, separadas por una línea fina entre dos partes que son controles;
+  - el foco es un anillo POR PARTE, dentro de la caja (la caja no se ilumina entera);
+  - la parte inválida lleva una marca propia que no depende del color: un subrayado grueso bajo su valor (además del
+    borde de error de toda la caja, del icono y del prefijo del mensaje);
+  - la parte de elección lleva `chevron-down` de Lucide (GIcon, decorativo).
+  `--_input-group-chars` (variable dinámica en línea de bruno, número entero) fija el ancho de una parte con `chars`.
+*/
+
+/* ---------- Esqueleto ---------- */
+.g-input-group {
+  /* Color de foco: el del tema (el campo fusionado no tiene prop color) */
+  --_focus: var(--g-color-focus);
+
+  /* Variante (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+  /* Línea entre partes: separa sin competir con el borde de la caja (decorativa; la caja ya identifica el campo) */
+  --_divider: var(--g-color-border-strong);
+  --_divider-style: solid;
+
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las mismas unidades que GInput */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+  /* Radio interior (anillo de una parte): concéntrico con la caja */
+  --_inner-radius: max(0px, calc(var(--_radius) - var(--g-border-width)));
+  /* Objetivo mínimo de una parte que es control */
+  --_target: 24px;
+
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+@media (pointer: coarse) {
+  .g-input-group {
+    --_target: 44px;
+  }
+}
+
+/* ---------- Etiqueta (una para todo el campo) ---------- */
+.g-input-group__label {
+  overflow-wrap: anywhere;
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-input-group__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+/* «(opcional)» (C3): parte del nombre accesible, en voz baja; el espacio lo pone el texto */
+.g-input-group__optional {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Caja: una sola, que contiene las partes ---------- */
+.g-input-group__box {
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--_h);
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (pointer: coarse) {
+  .g-input-group__box {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+
+/* ---------- Partes ---------- */
+.g-input-group__part {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  border-radius: var(--_inner-radius);
+}
+/* La parte de texto escrito crece; la de elección mide su contenido; la de `chars`, esos caracteres */
+.g-input-group__part--input {
+  flex: 1 1 auto;
+  min-inline-size: var(--_target);
+}
+.g-input-group__part--select {
+  flex: none;
+  min-inline-size: var(--_target);
+}
+.g-input-group__part--chars {
+  flex: none;
+  /* --_input-group-chars es un número: 1ch lo convierte en ancho de texto (más el relleno de los dos lados) */
+  inline-size: max(var(--_target), calc(var(--_input-group-chars) * 1ch + var(--_px) * var(--_density) * 2));
+}
+/* Línea entre dos partes que son controles (País | Número; Valor | Unidad). Entre un control y un texto («/», «mmHg»)
+   no hay línea: el texto ya separa */
+.g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
+  border-inline-start: var(--g-border-width) var(--_divider-style) var(--_divider);
+}
+
+/* El control nativo de cada parte: sin caja propia, ocupa toda la parte (es el objetivo de toque) */
+.g-input-group__control {
+  flex: 1 1 auto;
+  align-self: stretch;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--_px) * var(--_density));
+  border: 0;
+  outline: 0;
+  border-radius: var(--_inner-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  text-overflow: ellipsis;
+}
+.g-input-group__control::placeholder {
+  color: var(--g-color-text-subtle);
+  opacity: 1;
+}
+/* Junto a un texto («120 / 80», «18 a 65 años») el control se acerca a él: el texto ya separa */
+.g-input-group__part--text + .g-input-group__part > .g-input-group__control,
+.g-input-group__part--text + .g-input-group__text-label + .g-input-group__part > .g-input-group__control {
+  padding-inline-start: calc(var(--_gap) * var(--_density));
+}
+.g-input-group__part:has(+ .g-input-group__part--text) > .g-input-group__control {
+  padding-inline-end: calc(var(--_gap) * var(--_density));
+}
+/* <select> nativo (autocompletado por parte, #178): sin flecha del sistema; la pone el icono de Lucide */
+select.g-input-group__control {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: auto;
+  padding-inline-end: calc(var(--_px) * var(--_density) + var(--_fs) + var(--_gap) * var(--_density));
+  cursor: pointer;
+}
+.g-input-group__select-icon {
+  position: absolute;
+  inset-inline-end: calc(var(--_px) * var(--_density));
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  color: var(--g-color-text-muted);
+  pointer-events: none;
+}
+
+/* Texto fijo: separador («/», «a») o unidad («mmHg», «años»). Información, no decoración: texto muted (≥ 4.5:1) del
+   tamaño del texto escrito. No interactivo: pulsarlo enfoca la parte vecina (bruno), por eso el cursor de escribir */
+.g-input-group__part--text {
+  flex: none;
+  padding-inline: var(--g-space-1);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+  cursor: text;
+  user-select: none;
+}
+/* Al final de la caja, la unidad respira como el relleno de la caja */
+.g-input-group__part--text:last-child,
+.g-input-group__part--text:has(+ .g-input-group__text-label:last-child) {
+  padding-inline-end: calc(var(--_px) * var(--_density));
+}
+/* Al principio («$ 1,250»), igual por el otro lado */
+.g-input-group__part--text:first-child {
+  padding-inline-start: calc(var(--_px) * var(--_density));
+}
+
+/* Nombre de la parte y expansión de un texto: solo para lectores (patrón estándar de texto oculto) */
+.g-input-group__part-name,
+.g-input-group__text-label,
+.g-input-group__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Foco: un anillo por parte, dentro de la caja ---------- */
+/* La caja no se ilumina entera: así se ve QUÉ parte recibe lo que se escribe. El anillo va hacia dentro de la parte
+   (no sale de la caja ni tapa al vecino) y la parte enfocada pasa por encima de las líneas de separación */
+@media (forced-colors: none) {
+  .g-input-group__part {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-focus-width) * -1);
+    transition: outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+.g-input-group__part:has(> .g-input-group__control:focus-visible) {
+  z-index: 1;
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+/* ---------- Parte inválida: marca propia que no depende del color (WCAG 1.4.1) ---------- */
+/* Un subrayado grueso bajo el valor de la parte que falla, separado del borde de la caja (que en error es doble en
+   toda la caja): señala QUÉ parte corregir. Con el texto del mensaje («Elige el código de país») y aria-invalid */
+.g-input-group__part.is-invalid::after {
+  content: "";
+  position: absolute;
+  inset-inline: calc(var(--_px) * var(--_density) * 0.5);
+  inset-block-end: calc(var(--g-space-1) * 0.5);
+  block-size: calc(var(--g-border-width) + var(--g-focus-width));
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-danger-text);
+  pointer-events: none;
+}
+
+/* ---------- Pie: ayuda y un solo mensaje para todo el campo ---------- */
+.g-input-group__support {
+  min-inline-size: 0;
+}
+.g-input-group__hint {
+  overflow-wrap: anywhere;
+  margin-block-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* La región viva existe siempre; vacía no ocupa espacio (sin display:none, que la quitaría a los lectores) */
+.g-input-group__message {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-input-group__message:not(:empty) {
+  margin-block-start: var(--g-space-1);
+}
+.g-input-group.is-warning .g-input-group__message { color: var(--g-color-warning-text); }
+.g-input-group.is-valid .g-input-group__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* circle-alert · triangle-alert · circle-check (GIcon, decorativo) */
+.g-input-group__message-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
+}
+
+/* ---------- Tamaño ---------- */
+.g-input-group--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-input-group--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-input-group--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-input-group--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-input-group--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-input-group--density-default { --_density: 1; }
+.g-input-group--density-comfortable { --_density: 0.875; }
+.g-input-group--density-compact { --_density: 0.75; }
+
+/* ---------- Variante ---------- */
+/* soft: caja rellena con la línea inferior del borde de control (WCAG 1.4.11), como GInput */
+.g-input-group--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Ancho ---------- */
+.g-input-group--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-input-group:not(.is-disabled):not(.is-readonly):not(.is-invalid):not(.is-warning):not(.is-valid) .g-input-group__box:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+/* Error: borde de doble grosor en toda la caja (como GInput); la parte que falla, además, su subrayado */
+.g-input-group.is-invalid .g-input-group__box {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+/* Advertencia (C5): discontinuo de doble grosor; las partes se acercan el grosor extra para que nada se mueva */
+.g-input-group.is-warning .g-input-group__box {
+  --_border: var(--g-color-warning-text);
+  --_border-end: var(--g-color-warning-text);
+  border-style: dashed;
+  border-width: calc(var(--g-border-width) * 2);
+}
+.g-input-group.is-warning .g-input-group__box > :first-child {
+  margin-inline-start: calc(var(--g-border-width) * -1);
+}
+.g-input-group.is-warning .g-input-group__box > :last-child {
+  margin-inline-end: calc(var(--g-border-width) * -1);
+}
+/* Válido (C5): borde sencillo del color de éxito */
+.g-input-group.is-valid .g-input-group__box {
+  --_border: var(--g-color-success-text);
+  --_border-end: var(--g-color-success-text);
+}
+/* Solo lectura (C7, #165; r02 L8): relleno neutro suave (un paso por encima de la superficie en oscuro, no un pozo
+   negro), borde y líneas discontinuos, texto pleno; enfocable y seleccionable. El selector se pinta como texto
+   (input readonly, bruno): sin flecha */
+.g-input-group.is-readonly {
+  --_bg: var(--g-color-neutral-soft);
+  --_divider: var(--g-color-border-control);
+  --_divider-style: dashed;
+}
+.g-input-group.is-readonly .g-input-group__box {
+  border-style: dashed;
+}
+.g-input-group.is-readonly .g-input-group__control {
+  color: var(--g-color-text);
+  cursor: text;
+}
+.g-input-group.is-readonly .g-input-group__control::placeholder {
+  color: var(--g-color-text-muted);
+}
+.g-input-group.is-readonly .g-input-group__select-icon {
+  display: none;
+}
+.g-input-group.is-readonly select.g-input-group__control {
+  padding-inline-end: calc(var(--_px) * var(--_density));
+}
+/* Deshabilitado: como GInput (hundido, borde fuerte continuo, texto tenue); no se envía */
+.g-input-group.is-disabled {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-input-group.is-disabled .g-input-group__label,
+.g-input-group.is-disabled .g-input-group__part--text,
+.g-input-group.is-disabled .g-input-group__select-icon {
+  color: var(--g-color-text-subtle);
+}
+.g-input-group.is-disabled .g-input-group__control {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+
+/* ---------- Dentro de una GFormRow (form.md §4, C12, #176): tres pistas compartidas por línea ---------- */
+.g-form-row > .g-input-group {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
+}
+.g-form-row > .g-input-group > * { grid-column: 1; }
+.g-form-row > .g-input-group > .g-input-group__label { grid-row: 1; align-self: end; }
+.g-form-row > .g-input-group > .g-input-group__box { grid-row: 2; }
+.g-form-row > .g-input-group > .g-input-group__support { grid-row: 3; }
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-contrast: more) {
+  .g-input-group {
+    --_divider: var(--g-color-border-control);
+  }
+}
+@media (forced-colors: active) {
+  .g-input-group__box {
+    border-color: ButtonText;
+  }
+  .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
+    border-inline-start-color: ButtonText;
+  }
+  .g-input-group__part:has(> .g-input-group__control:focus-visible) {
+    outline-color: Highlight;
+  }
+  .g-input-group.is-disabled .g-input-group__box {
+    border-color: GrayText;
+  }
+  /* El navegador quita box-shadow: el error de la caja se distingue con un borde más grueso */
+  .g-input-group.is-invalid .g-input-group__box {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+  /* El subrayado de la parte inválida conserva su forma con un color del sistema */
+  .g-input-group__part.is-invalid::after {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
