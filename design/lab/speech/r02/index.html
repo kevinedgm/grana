@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Captura de voz · r02 · revisión y destino</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco). */
+:root{--wf-ink:#1f1f1f;--wf-2:#555;--wf-3:#767676;--wf-line:#d4d4d4;--wf-fill:#ececec;--wf-fill-2:#f5f5f5;--wf-bg:#fafafa;--wf-note:#fff8d6;--wf-font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px}
+@media (pointer:coarse){:root{--tmin:44px}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:15px/1.5 var(--wf-font);color:var(--wf-ink);background:var(--wf-bg)}
+main{max-width:1180px;margin:0 auto;padding:clamp(12px,4vw,24px)}
+h1{font-size:22px;margin:0 0 4px} h2.sec{font-size:17px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--wf-line)} h3{font-size:15px;margin:12px 0 6px} h4{font-size:14px;margin:4px 0}
+h2:focus,h3:focus{outline:none} h2:focus-visible,h3:focus-visible{outline:3px solid var(--wf-ink)}
+.meta{color:var(--wf-2);margin:0 0 12px}.cap{font-size:13px;color:var(--wf-2);margin:0 0 12px;max-width:90ch}
+.wf-note{background:var(--wf-note);border:1px dashed var(--wf-3);padding:8px 12px;font-size:13px;margin:12px 0;max-width:96ch}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px}
+button,input,select,textarea{font:inherit;color:inherit}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+:focus-visible{outline:3px solid var(--wf-ink);outline-offset:2px}
+.wf-field{display:flex;flex-direction:column;gap:4px;font-size:14px;min-inline-size:0;margin:0 0 12px}
+.wf-field textarea,.wf-field input,.wf-field select{font:inherit;padding:6px 8px;border:1px solid var(--wf-3);border-radius:4px;background:#fff;min-block-size:var(--tmin);inline-size:100%}
+.wf-field textarea{min-block-size:96px;resize:vertical}
+.wf-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid var(--wf-ink);background:#fff;border-radius:6px;cursor:pointer;min-block-size:var(--tmin);min-inline-size:24px;font-size:14px;max-inline-size:100%}
+.wf-btn[data-kind=primary]{background:var(--wf-ink);color:#fff}
+.wf-btn[data-size=sm]{padding:2px 8px;font-size:13px}
+.wf-btn[data-kind=ghost]{border-color:transparent}
+.wf-btn[data-kind=ghost]:hover{background:rgba(0,0,0,.06)}
+.wf-btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.wf-btn[aria-pressed=true]{background:var(--wf-fill);box-shadow:inset 0 0 0 1px var(--wf-ink)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.icon-btn{all:unset;box-sizing:border-box;display:inline-grid;place-items:center;inline-size:var(--tmin);block-size:var(--tmin);min-inline-size:24px;min-block-size:24px;border-radius:6px;cursor:pointer;color:var(--wf-ink);flex:none}
+.icon-btn:hover{background:rgba(0,0,0,.06)}
+.icon-btn:focus-visible{outline:3px solid var(--wf-ink);outline-offset:0}
+.ctl{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:14px;margin:8px 0}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin)}
+.ctl fieldset{border:1px solid var(--wf-line);border-radius:6px;padding:4px 10px;margin:0;display:flex;gap:4px 12px;flex-wrap:wrap;min-inline-size:0}
+.ctl legend{font-size:12px;color:var(--wf-2);padding:0 4px}
+.log{list-style:none;margin:8px 0 0;padding:6px 8px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--wf-2);background:var(--wf-fill-2);max-block-size:220px;overflow:auto;min-block-size:3em;overflow-wrap:anywhere}
+.card{background:#fff;border:1px solid var(--wf-line);border-radius:10px;padding:12px 16px;margin:8px 0;min-inline-size:0}
+.tbl{border-collapse:collapse;font-size:13px;inline-size:100%}.tbl th,.tbl td{text-align:start;padding:4px 8px;border-bottom:1px solid var(--wf-line);vertical-align:top}
+.scroll-x{overflow-x:auto;max-inline-size:100%}
+pre.json{font:12px/1.4 ui-monospace,Menlo,monospace;background:var(--wf-fill-2);padding:8px;max-block-size:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}
+
+/* Cabecera de la app con el estado de la sesión (en Grana: la pill del anfitrión, F1) */
+.app-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;padding:8px max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid var(--wf-line);font-size:14px}
+.app-head b{font-weight:600}
+.sess{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--wf-ink);border-radius:999px;padding:0 10px;min-block-size:28px;font-weight:600;font-size:13px}
+.sess[data-live]{border-width:2px}
+
+/* Panel del anfitrión (imitación del panel F1: aquí solo lo que cambia en F2) */
+.sp-panel{inline-size:min(440px,100%);background:#fff;border:1px solid var(--wf-line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.12);display:grid;gap:8px;padding:10px 12px 12px}
+.sp-panel h3{margin:0}
+.sp-panel__status{font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0}
+
+/* Revisión en la página: formulario + transcript */
+.rv-layout{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:960px){.rv-layout{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--wf-line);margin:8px 0 12px;overflow-x:auto}
+.tabs [role=tab]{all:unset;box-sizing:border-box;padding:6px 12px;min-block-size:var(--tmin);cursor:pointer;border-bottom:2px solid transparent;font-size:14px;white-space:nowrap}
+.tabs [role=tab][aria-selected=true]{border-bottom-color:var(--wf-ink);font-weight:600}
+.tabs [role=tab]:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-3px}
+
+/* Diálogo modal del kit (imita GDialog): revisión de respaldo del anfitrión */
+.wf-dialog{border:1px solid var(--wf-line);border-radius:12px;padding:0;inline-size:min(880px,calc(100vw - 24px));max-block-size:calc(100dvh - 24px);background:#fff;color:var(--wf-ink)}
+.wf-dialog::backdrop{background:rgba(0,0,0,.35)}
+.wf-dialog header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--wf-line);position:sticky;top:0;background:#fff;z-index:1}
+.wf-dialog header h2{font-size:16px;margin:0}
+.wf-dialog .body{padding:12px 16px 16px}
+@media (max-width:519px){.wf-dialog{inline-size:100vw;max-inline-size:100vw;block-size:100dvh;max-block-size:100dvh;margin:0;border-radius:0;border:0}}
+
+/* ============ GTranscript (estructura; la forma final es de coco) ============ */
+.gt{container-type:inline-size;display:grid;gap:8px;min-inline-size:0;position:relative;font-size:14px}
+.gt__bar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;min-inline-size:0}
+.gt__bar .gt__sep{inline-size:1px;align-self:stretch;background:var(--wf-line);margin:2px 0}
+.gt__all{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin);font-size:13px}
+.gt__count{font-size:13px;color:var(--wf-2)}
+.gt__note{display:flex;gap:6px;align-items:flex-start;margin:0;font-size:13px;color:var(--wf-2);border:1px dashed var(--wf-3);border-radius:6px;padding:4px 8px}
+.gt__note[hidden]{display:none}
+.gt__scroll{max-block-size:var(--gt-max,440px);overflow:auto;border:1px solid var(--wf-line);border-radius:8px;background:#fff;overscroll-behavior:contain;min-inline-size:0}
+.gt__body{display:block}
+.gt__empty{margin:0;padding:12px;color:var(--wf-2);font-size:13px}
+.gt-row{display:grid;grid-template-areas:var(--gt-areas);grid-template-columns:var(--gt-cols);align-items:start;gap:2px 8px;padding:6px 8px;border-bottom:1px solid var(--wf-fill);border-inline-start:3px solid transparent}
+@container (max-width:479px){.gt-row{grid-template-areas:var(--gt-areas-n);grid-template-columns:var(--gt-cols-n)}.gt-spk__t{white-space:normal}}
+.gt-row[aria-selected=true]{background:var(--wf-fill-2);border-inline-start-color:var(--wf-ink)}
+.gt-c{min-inline-size:0;overflow-wrap:anywhere;border-radius:4px;min-block-size:24px}
+.gt-c:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-1px}
+.gt-c--sel{grid-area:sel;display:grid;place-items:center;min-block-size:24px}.gt-c--sel input{inline-size:16px;block-size:16px;margin:4px}
+.gt-c--time{grid-area:time;font-size:12px;color:var(--wf-2);font-variant-numeric:tabular-nums;padding-block-start:3px}
+.gt-c--spk{grid-area:spk}.gt-c--text{grid-area:text}.gt-c--act{grid-area:act;display:grid;justify-items:end}
+.gt-spk{all:unset;box-sizing:border-box;display:inline-flex;gap:6px;align-items:center;min-block-size:24px;padding:0 6px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;max-inline-size:100%}
+.gt-spk:hover{background:rgba(0,0,0,.06)}
+.gt-spk:focus-visible{outline:3px solid var(--wf-ink);outline-offset:-1px}
+.gt-spk__t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-inline-size:0}
+.gt-spk-static{display:inline-flex;gap:6px;align-items:center;font-weight:600;font-size:13px;padding:0 6px;min-block-size:24px}
+.gt-badge{display:inline-grid;place-items:center;inline-size:18px;block-size:18px;border:1.5px solid currentColor;border-radius:4px;font-size:11px;font-weight:700;flex:none}
+.gt-badge[data-none]{border-style:dashed}
+.gt-p{margin:0;padding-block-start:1px}
+.gt-row[data-state=partial] .gt-p{font-style:italic;color:var(--wf-3)}
+.gt-row[data-state=removed] .gt-p{text-decoration:line-through;color:var(--wf-3)}
+.gt-row[data-state=failed] .gt-p{display:flex;gap:6px;align-items:center;color:var(--wf-2)}
+.gt-flags{display:flex;flex-wrap:wrap;gap:2px 10px;margin:2px 0 0;font-size:12px;color:var(--wf-2)}
+.gt-flag{display:inline-flex;gap:4px;align-items:center}
+.gt-flag .g-icon{inline-size:13px;block-size:13px}
+.gt-orig{font-size:12px;color:var(--wf-2);margin:4px 0 0;padding:2px 8px;border-inline-start:3px solid var(--wf-line)}
+.gt-orig p{margin:2px 0}
+.gt-orig del{text-decoration:line-through}
+.gt-orig ins{text-decoration:underline;font-weight:600;color:var(--wf-ink)}
+.gt-editor{display:grid;gap:6px;padding:6px;border:1px dashed var(--wf-3);border-radius:6px;background:var(--wf-fill-2)}
+.gt-editor textarea{font:inherit;inline-size:100%;min-block-size:56px;padding:6px 8px;border:1px solid var(--wf-ink);border-radius:4px;resize:vertical;background:#fff}
+.gt-editor .btns{margin:0}
+.gt-hint{margin:0;font-size:12px;color:var(--wf-2)}
+.gt__newer[hidden]{display:none}
+.gt__newer{justify-self:center}
+.gt__kbd{margin:0;font-size:12px;color:var(--wf-2)}
+.gt__mgr{border:1px solid var(--wf-line);border-radius:8px;padding:8px 12px;background:#fff;font-size:13px;display:grid;gap:8px}
+.gt__mgr[hidden]{display:none}
+.gt__mgr ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.gt__mgr li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:4px 0;border-bottom:1px solid var(--wf-fill)}
+.gt__mgr label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin)}
+.gt__mgr select,.gt__ins select{font:inherit;font-size:13px;min-block-size:var(--tmin);border:1px solid var(--wf-3);border-radius:4px;background:#fff;max-inline-size:100%}
+.gt__ins{border:1px solid var(--wf-line);border-radius:8px;padding:8px 12px 12px;display:grid;gap:8px;background:#fff;font-size:13px;min-inline-size:0}
+.gt__ins[hidden]{display:none}
+.gt__ins h4{font-size:14px}
+.gt__ins fieldset{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:2px 14px;min-inline-size:0}
+.gt__ins legend{font-weight:600;padding:0;margin-bottom:2px;float:left;inline-size:100%}
+.gt__ins label{display:inline-flex;gap:6px;align-items:center;min-block-size:var(--tmin);min-inline-size:0;overflow-wrap:anywhere}
+.gt__ins label[data-off]{color:var(--wf-3)}
+.gt__preview{margin:0;padding:6px 8px;background:var(--wf-fill-2);border-radius:6px;white-space:pre-wrap;overflow-wrap:anywhere;max-block-size:96px;overflow:auto;font-size:13px}
+.gt__result{margin:0;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.gt__uses{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+.gt__uses li{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.gt-list{list-style:none;margin:0;padding:8px;display:grid;gap:8px}
+.gt-list li{display:grid;gap:2px}
+/* Menú (imita GMenu) */
+.gt-menu{position:fixed;z-index:40;min-inline-size:200px;max-inline-size:calc(100vw - 16px);background:#fff;border:1px solid var(--wf-ink);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;font-size:14px}
+.gt-menu [role^=menuitem]{display:flex;gap:8px;align-items:center;padding:2px 8px;min-block-size:var(--tmin);border-radius:4px;cursor:pointer;overflow-wrap:anywhere}
+.gt-menu [role^=menuitem]:focus{outline:none;background:var(--wf-fill)}
+.gt-menu [role^=menuitem]:focus-visible{outline:2px solid var(--wf-ink);outline-offset:-2px}
+.gt-menu [role^=menuitem][aria-disabled=true]{color:var(--wf-3);cursor:default}
+.gt-menu [role=separator]{block-size:1px;background:var(--wf-line);margin:4px 0}
+.gt-menu__mark{inline-size:16px;flex:none;display:inline-grid;place-items:center}
+@media (forced-colors:active){.gt-row[aria-selected=true]{border-inline-start-color:Highlight}.gt-badge{border-color:CanvasText}}
+</style>
+</head>
+<body>
+<header class="app-head">
+  <b>Consulta · expediente de prueba</b>
+  <span class="sess" id="sess" aria-label="Estado de la grabación"><span id="sess-t">Sin grabación</span></span>
+</header>
+<!-- Canales vivos del anfitrión (GSpeechHost, F1): presentes desde la carga; se trasladan al diálogo modal -->
+<div id="host-ch"><div class="sr" role="status" aria-live="polite" aria-atomic="true" id="ch-polite"></div><div class="sr" role="alert" aria-atomic="true" id="ch-assertive"></div></div>
+<main>
+<h1>Captura de voz · r02 · revisión y destino (Fase 2)</h1>
+<p class="meta">Ronda de estructura (kiwi) · Ruta R2 · Fidelidad F2 · kit gris, iconos solo Lucide. Decisiones en <code>declaracion.md</code>; la F1 (captura, anfitrión, pill, estados) está en <code>../r01/</code> y en <code>design/contracts/speech.md</code>.</p>
+<p class="wf-note">Prototipo funcional: el <b>modelo del transcript</b> (<code>createTranscript</code>, capas literal → corregido → derivado, historial), <b>GTranscript</b> (rejilla editable), el <b>registro de destinos</b> y una <b>sesión simulada</b> que emite provisionales y confirmados como el adaptador simulado (mismos eventos <code>partial</code> / <code>final</code> / <code>speakers.relabel</code>). La captura real y la pill son las de la F1 y aquí solo se imitan. Iconos: <code>design/lab/lucide-icons.js</code> y, los que faltan, importados de <code>lucide-static</code>. Colores, radios y sombras son de wireframe.</p>
+
+<h2 class="sec" id="s0">0. Banco de pruebas</h2>
+<div class="ctl">
+  <fieldset><legend>Motor simulado (siguiente sesión)</legend>
+    <label><input type="checkbox" id="b-diar" checked>Diarización</label>
+    <label>Participantes previstos <select id="b-exp"><option value="1">1</option><option value="2" selected>2</option><option value="many">varios</option></select></label>
+    <label>Ritmo <select id="b-speed"><option value="normal" selected>normal</option><option value="fast">rápido (pruebas)</option></select></label>
+  </fieldset>
+  <fieldset><legend>Aplicación</legend>
+    <label><input type="checkbox" id="b-pagerev" checked>La app tiene revisión en su página</label>
+  </fieldset>
+</div>
+<div class="btns">
+  <button class="wf-btn" data-size="sm" type="button" id="inj-fail">Fallo de un fragmento</button>
+  <button class="wf-btn" data-size="sm" type="button" id="inj-relabel">Diarización revisada (el motor une C con A)</button>
+</div>
+
+<h2 class="sec" id="s1">1. Durante la grabación: panel del anfitrión</h2>
+<p class="cap">El panel de la F1 sustituye su lista de solo lectura por <b>GTranscript compacto</b> (conversación; el dictado sigue igual). Se puede corregir un fragmento mientras llegan provisionales y confirmados: el editor no se toca, el provisional es una fila aparte y los confirmados nuevos entran sin mover el foco ni el cursor.</p>
+<div class="sp-panel" id="panel" role="region" aria-labelledby="panel-t">
+  <h3 id="panel-t" tabindex="-1">Grabación de voz</h3>
+  <p class="sp-panel__status" id="panel-status">Sin grabación</p>
+  <div class="btns" id="panel-ctl"></div>
+  <h4 id="panel-tx-t">Transcripción</h4>
+  <div id="gt-panel"></div>
+</div>
+
+<h2 class="sec" id="s2" tabindex="-1">2. Revisión en la página de la app (recomendada)</h2>
+<p class="cap">La app coloca <code>&lt;GTranscript&gt;</code> junto a su formulario. Los <b>destinos</b> están registrados contra el <b>modelo</b> (<code>v-model</code>), no contra el DOM: «Plan» se puede llenar aunque su pestaña esté desmontada. Insertar todo, los fragmentos marcados o un texto seleccionado; al final, en el cursor o sustituyendo la selección del campo; con deshacer y marca de uso por fragmento.</p>
+<div class="rv-layout">
+  <form class="card" id="note-form" aria-labelledby="form-t" novalidate>
+    <h3 id="form-t">Nota de consulta</h3>
+    <div class="tabs" role="tablist" aria-label="Secciones de la nota" id="form-tabs">
+      <button type="button" role="tab" id="tab-motivo" aria-selected="true" aria-controls="form-tp" data-tab="motivo">Motivo</button>
+      <button type="button" role="tab" id="tab-plan" aria-selected="false" aria-controls="form-tp" data-tab="plan" tabindex="-1">Plan</button>
+    </div>
+    <div role="tabpanel" id="form-tp" aria-labelledby="tab-motivo" tabindex="0"></div>
+  </form>
+  <section class="card" aria-labelledby="rv-page-t">
+    <h3 id="rv-page-t" tabindex="-1">Transcripción de la consulta</h3>
+    <div id="gt-page"></div>
+  </section>
+</div>
+
+<h2 class="sec" id="s3">3. Revisión de respaldo del anfitrión (sin revisión en la página)</h2>
+<p class="cap">Si la app no coloca un GTranscript propio, «Revisar» abre un diálogo modal del anfitrión (pantalla completa en móvil) con el mismo transcript y los mismos destinos. Los canales vivos se trasladan al diálogo (F1, #213). Esc en el editor o en un menú no cierra el diálogo.</p>
+<div class="btns"><button class="wf-btn" type="button" id="open-review">Revisar en el diálogo del anfitrión</button></div>
+<dialog class="wf-dialog" id="rv-dlg" aria-labelledby="rv-dlg-t">
+  <header><h2 id="rv-dlg-t" tabindex="-1">Revisar transcripción</h2><button class="icon-btn" type="button" id="rv-dlg-x" aria-label="Cerrar revisión"></button></header>
+  <div class="body"><div id="gt-dialog"></div></div>
+</dialog>
+
+<h2 class="sec" id="s4">4. Transcript guardado, sin sesión</h2>
+<p class="cap"><code>createTranscript(json)</code> carga lo que guardó la app (con correcciones, roles y usos). GTranscript funciona igual sin captura; trae su propia región de estado porque no hay anfitrión. Tres modos: editable, solo selección y solo lectura (lista simple).</p>
+<div class="ctl"><label>Modo <select id="saved-mode"><option value="edit" selected>editable</option><option value="select">solo selección y copia</option><option value="read">solo lectura</option></select></label></div>
+<section class="card" aria-labelledby="saved-t"><h3 id="saved-t">Consulta del 12 de septiembre (guardada)</h3><div id="gt-saved"></div></section>
+
+<h2 class="sec" id="s5">5. Transcript largo</h2>
+<p class="cap">Cientos de fragmentos sin virtualizar (decisión §7 de la declaración): una sola parada de tabulación, filas con clave y celdas con firma que solo se repintan si cambian, menús creados al abrirse. Los tiempos se miden con la Event Timing API y alrededor de cada tecla.</p>
+<div class="btns"><button class="wf-btn" type="button" id="long-load" data-n="320">Cargar 320 fragmentos</button><button class="wf-btn" type="button" id="long-load-1000" data-n="1000">Cargar 1000 fragmentos</button><span class="cap" id="long-info" style="margin:0"></span></div>
+<section class="card" aria-labelledby="long-t"><h3 id="long-t">Sesión larga (simulada)</h3><div id="gt-long"></div></section>
+
+<h2 class="sec" id="s6">6. Registro de anuncios y datos</h2>
+<p class="cap">Lo que se escribió en las regiones vivas (no es una región viva). Nunca se anuncian provisionales ni confirmados.</p>
+<ol class="log" id="annlog" aria-label="Registro de anuncios"></ol>
+<div class="btns"><button class="wf-btn" data-size="sm" type="button" id="show-json">Ver <code>transcript.toJSON()</code> de la sesión</button><button class="wf-btn" data-size="sm" type="button" id="show-form">Ver el modelo del formulario</button></div>
+<pre class="json" id="json" hidden></pre>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script type="module">
+// =====================================================================================================
+// Iconos que design/lab/lucide-icons.js no trae: importados de lucide-static (marca "lucide lucide-<nombre>")
+// =====================================================================================================
+const LS = '../../../../node_modules/lucide-static/dist/esm/icons/'
+const EXTRA = ['text-cursor-input', 'undo-2', 'redo-2', 'trash', 'user-plus', 'merge', 'split', 'git-compare']
+await Promise.all(EXTRA.map(async (n) => {
+  if (window.LUCIDE_ICONS[n]) return
+  const { default: src } = await import(LS + n + '.mjs')
+  const m = src.match(/class="lucide lucide-([a-z0-9-]+)"[^>]*>([\s\S]*?)<\/svg>/)
+  if (m && m[1] === n) window.LUCIDE_ICONS[n] = m[2].replace(/\s+/g, ' ').trim()
+}))
+const ic = (n) => window.lucide(n)
+
+// =====================================================================================================
+// Utilidades
+// =====================================================================================================
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const fill = (t, v = {}) => String(typeof t === 'function' ? t(v.count) : t).replace(/\{(\w+)\}/g, (m, k) => (v[k] ?? m))
+const mmss = (ms) => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') }
+const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+const clip = (t, n = 60) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t)
+window.__sp = { ready: false, announcements: [], perf: [], events: [], completed: [] }
+try { new PerformanceObserver((l) => l.getEntries().forEach((e) => __sp.events.push({ name: e.name, dur: e.duration, t: e.startTime }))).observe({ type: 'event', durationThreshold: 16, buffered: true }) } catch {}
+
+// Textos (en Grana: labels sin valores por defecto; aquí, los de la app de ejemplo)
+const L = {
+  speaker: 'Hablante {letter}', speakerRole: '{role} ({letter})', unassigned: 'Sin asignar', newSpeaker: 'Nuevo hablante',
+  engineSpeaker: 'Volver al del motor ({speaker})',
+  cols: { sel: 'Selección', time: 'Hora', spk: 'Hablante', text: 'Texto', act: 'Acciones' },
+  flag: { corrected: 'Corregido', speaker: 'Hablante cambiado (motor: {speaker})', removed: 'Eliminado', used: 'Usado en {targets}', stale: 'Cambió después de insertarlo', partial: 'Provisional', failed: 'No se pudo transcribir este fragmento ({range}).' },
+  partialPrefix: 'Texto provisional: ',
+  orig: 'Original del motor:', diff: 'Cambios:', origSpeaker: 'Hablante del motor: {speaker}',
+  delPrefix: '(eliminado: ', insPrefix: '(añadido: ', close: ')',
+  editLabel: 'Texto del fragmento de las {time}', editGroup: 'Editar fragmento de las {time}', editHint: 'Intro guarda · Esc cancela · el original del motor no cambia',
+  save: 'Guardar', cancel: 'Cancelar',
+  pick: 'Seleccionar fragmento de las {time}', actions: 'Acciones del fragmento de las {time}', changeSpeaker: ', cambiar hablante',
+  menu: { edit: 'Editar texto', orig: 'Ver original', origHide: 'Ocultar original', revert: 'Volver al original', remove: 'Eliminar', restore: 'Restaurar', copy: 'Copiar fragmento', insert: 'Insertar en {target}' },
+  bar: { all: 'Seleccionar todo', count: (n) => (n ? (n === 1 ? '1 seleccionado' : '{count} seleccionados') : 'Ninguno seleccionado'), undo: 'Deshacer', redo: 'Rehacer', assign: 'Asignar hablante', removeSel: 'Eliminar selección', restoreSel: 'Restaurar selección', copy: 'Copiar', changes: 'Mostrar cambios', speakers: 'Hablantes', nothingUndo: 'Nada que deshacer', nothingRedo: 'Nada que rehacer', undoWhat: 'Deshacer: {what}', redoWhat: 'Rehacer: {what}' },
+  copyText: 'Copiar texto', copyFull: 'Copiar con hablantes y horas', copyScope: (n) => (n ? ' ({count} seleccionados)' : ' (todo)'),
+  kbd: 'Teclado: flechas para moverte · Intro o F2 edita · Mayús+Espacio selecciona · Mayús+flechas amplía · Supr elimina o restaura · Ctrl+Z / Ctrl+Mayús+Z deshace y rehace · Ctrl+C copia la selección.',
+  noDiar: 'El motor no distingue hablantes. Marca fragmentos y usa «Asignar hablante», o cambia el hablante de cada fragmento.',
+  empty: 'Todavía no hay texto transcrito.',
+  newer: (n) => (n === 1 ? '1 fragmento nuevo · Ir al final' : '{count} fragmentos nuevos · Ir al final'),
+  mgr: { title: 'Hablantes y roles', help: 'El motor solo distingue voces; los roles los pone quien revisa. Cambiar un rol o unir hablantes no modifica el transcript original.', role: 'Rol', noRole: 'Sin rol', count: (n) => (n === 1 ? '1 fragmento' : '{count} fragmentos'), mergeWith: 'Unir con', merge: 'Unir', mergedInto: 'Unido a {speaker}', unmerge: 'Separar', add: 'Añadir hablante' },
+  ins: { title: 'Insertar en el formulario', what: 'Qué', all: 'Todo ({count})', sel: 'Fragmentos marcados ({count})', text: 'Texto seleccionado', textNone: 'Texto seleccionado (selecciona texto en la transcripción)', target: 'Campo', where: 'Dónde', end: 'Al final', cursor: 'En la posición del cursor', selection: 'Sustituir la selección del campo', notKnown: ' (sin posición conocida)', withSpk: 'Con hablantes', preview: 'Vista previa', go: 'Insertar en {target}', done: 'Insertado en {target}: {what}.', undo: 'Deshacer inserción', uses: 'Usos de esta transcripción', useItem: '{target} · {what} · {time}', nothing: 'No hay texto que insertar.' },
+  what: { all: (n) => (n === 1 ? '1 fragmento' : '{count} fragmentos'), text: 'texto seleccionado' },
+  ann: {
+    edited: 'Fragmento de las {time} corregido. El original se conserva.',
+    emptied: 'Texto vacío: el fragmento de las {time} queda eliminado. Puedes restaurarlo.',
+    removed: (n) => (n === 1 ? 'Fragmento de las {time} eliminado. Puedes restaurarlo.' : '{count} fragmentos eliminados. Puedes restaurarlos.'),
+    restored: (n) => (n === 1 ? 'Fragmento de las {time} restaurado.' : '{count} fragmentos restaurados.'),
+    reverted: 'Fragmento de las {time}: vuelve al original del motor.',
+    speaker: (n) => (n === 1 ? 'Fragmento de las {time}: {speaker}.' : '{count} fragmentos: {speaker}.'),
+    role: '{speaker}: {role}.', merge: '{from} unido a {into}. El original del motor no cambia.', unmerge: '{from} separado otra vez.', added: '{speaker} añadido.',
+    undo: 'Deshecho: {what}.', redo: 'Rehecho: {what}.', nothing: 'Nada que deshacer.', nothingRedo: 'Nada que rehacer.',
+    selAll: (n) => (n === 1 ? '1 fragmento seleccionado.' : '{count} fragmentos seleccionados.'), selNone: 'Ningún fragmento seleccionado.',
+    copied: 'Copiado: {what}.', copyFail: 'No se pudo copiar al portapapeles.',
+    inserted: 'Insertado en {target}: {what}. Puedes deshacerlo.', insUndone: 'Inserción en {target} deshecha.', insUndoFail: 'No se puede deshacer: {target} cambió después de la inserción.',
+    changesOn: 'Cambios visibles.', changesOff: 'Cambios ocultos.'
+  },
+  hist: { edit: 'corrección de las {time}', remove: 'eliminación', restore: 'restauración', revert: 'vuelta al original', speaker: 'cambio de hablante', role: 'cambio de rol', merge: 'unión de hablantes', unmerge: 'separación de hablantes', addSpeaker: 'nuevo hablante' }
+}
+const ROLES = [{ id: 'pro', label: 'Profesional' }, { id: 'pac', label: 'Paciente' }, { id: 'acomp', label: 'Acompañante' }]
+
+// Anunciador (en Grana: los canales del anfitrión o la región propia de GTranscript sin anfitrión)
+function createAnnouncer(el, ch) {
+  let last = -Infinity, timer = null, clr = null
+  let q = [] // { t, g }: con grupo, un texto nuevo sustituye al pendiente del mismo grupo (gana el último, como F1 #219)
+  const pump = () => {
+    if (timer || !q.length) return
+    const gap = Math.max(60, 900 - (performance.now() - last))
+    el.textContent = ''
+    timer = setTimeout(() => {
+      timer = null
+      const { t } = q.shift()
+      el.textContent = t; last = performance.now()
+      __sp.announcements.push({ ch, t, at: last })
+      const li = document.createElement('li'); li.textContent = `[${ch}] ${t}`; $('#annlog').append(li)
+      clearTimeout(clr); clr = setTimeout(() => { el.textContent = '' }, 6000)
+      pump()
+    }, gap)
+  }
+  return (t, g = null) => {
+    if (!t) return
+    if (g) q = q.filter((x) => x.g !== g)
+    if (q.length && q[q.length - 1].t === t) return
+    q.push({ t, g }); pump()
+  }
+}
+const hostSay = createAnnouncer($('#ch-polite'), 'anfitrión')
+
+// =====================================================================================================
+// Modelo: createTranscript(data) — capas literal → corregido → derivado, historial de revisión
+// =====================================================================================================
+const NEW = '__new'
+function createTranscript(data = {}) {
+  const subs = new Set()
+  const emit = (c) => subs.forEach((f) => f(c))
+  const seg0 = (s) => ({ id: String(s.id), t0: +s.t0 || 0, t1: +s.t1 || 0, literal: String(s.literal ?? ''), engineSpeaker: s.engineSpeaker ?? null, corrected: s.corrected ?? null, speaker: s.speaker ?? null, removed: !!s.removed, failed: !!s.failed })
+  const tx = {
+    id: data.id || 'speech-' + Math.random().toString(36).slice(2, 8),
+    mode: data.mode || 'conversation',
+    createdAt: data.createdAt || new Date().toISOString(),
+    expectedSpeakers: data.expectedSpeakers ?? 'many',
+    speakers: (data.speakers || []).map((s) => ({ id: String(s.id), role: s.role ?? null, mergedInto: s.mergedInto ?? null, origin: s.origin || 'engine' })),
+    segments: (data.segments || []).map(seg0),
+    partial: null,
+    derived: (data.derived || []).map((d) => ({ ...d }))
+  }
+  const index = new Map(tx.segments.map((s) => [s.id, s]))
+  let userSeq = tx.speakers.filter((s) => s.origin === 'user').length
+  let dSeq = tx.derived.length
+  const past = [], future = []
+
+  const segment = (id) => index.get(id)
+  const speaker = (id) => tx.speakers.find((s) => s.id === id)
+  const resolve = (id) => { let x = id; for (let i = 0; i < 20 && x; i++) { const sp = speaker(x); if (!sp || !sp.mergedInto) return x; x = sp.mergedInto } return x }
+  const letterOf = (i) => (i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(65 + Math.floor(i / 26) - 1) + String.fromCharCode(65 + (i % 26)))
+  const ensureEngine = (id) => { if (id != null && id !== '' && !speaker(String(id))) tx.speakers.push({ id: String(id), role: null, mergedInto: null, origin: 'engine' }) }
+  const addUser = () => { const id = 'u' + (++userSeq); tx.speakers.push({ id, role: null, mergedInto: null, origin: 'user' }); return id }
+
+  // --- historial: instantáneas de los campos del usuario de los fragmentos tocados (+ hablantes) ---
+  const snap = (ids) => ids.map((id) => { const s = segment(id); return { id, corrected: s.corrected, speaker: s.speaker, removed: s.removed } })
+  const spSnap = () => tx.speakers.map((s) => ({ ...s }))
+  const applySnap = (list) => list.forEach((x) => { const s = segment(x.id); if (s) Object.assign(s, { corrected: x.corrected, speaker: x.speaker, removed: x.removed }) })
+  function applySpk(target, other) {
+    const keep = new Set(target.map((s) => s.id))
+    for (const s of other) if (!keep.has(s.id)) { const i = tx.speakers.findIndex((x) => x.id === s.id); if (i >= 0) tx.speakers.splice(i, 1) }
+    for (const s of target) { const cur = speaker(s.id); if (cur) Object.assign(cur, { role: s.role, mergedInto: s.mergedInto }); else tx.speakers.push({ ...s }) }
+  }
+  function commit(kind, ids, mutate, { speakers = false, meta = {} } = {}) {
+    const before = snap(ids), sb = speakers ? spSnap() : null
+    const r = mutate()
+    const after = snap(ids), sa = speakers ? spSnap() : null
+    if (JSON.stringify(before) === JSON.stringify(after) && JSON.stringify(sb) === JSON.stringify(sa)) return false
+    past.push({ kind, ids, before, after, sb, sa, meta }); if (past.length > 200) past.shift()
+    future.length = 0
+    emit({ type: 'segments', ids, speakers, history: true })
+    return r === undefined ? true : r
+  }
+  const editable = (s) => s && !s.failed
+
+  Object.defineProperties(tx, Object.getOwnPropertyDescriptors({
+    subscribe(f) { subs.add(f); return () => subs.delete(f) },
+    segment, speaker, resolve,
+    letter(id) { const i = tx.speakers.findIndex((s) => s.id === id); return i < 0 ? '?' : letterOf(i) },
+    textOf: (s) => s.corrected ?? s.literal,
+    speakerOf: (s) => (s.speaker ? resolve(s.speaker) : resolve(s.engineSpeaker)),
+    visibleSpeakers: () => tx.speakers.filter((s) => !s.mergedInto && (s.origin === 'user' || tx.segments.some((g) => g.engineSpeaker === s.id || g.speaker === s.id) || tx.partial?.speaker === s.id)),
+    // --- operaciones del usuario (entran en el historial) ---
+    edit(id, raw) {
+      const s = segment(id); if (!editable(s)) return false
+      const text = String(raw).replace(/\s+/g, ' ').trim()
+      if (!text) return commit('remove', [id], () => { s.removed = true }, { meta: { t0: s.t0, emptied: true } }) ? 'emptied' : false
+      return commit('edit', [id], () => { s.corrected = text === s.literal ? null : text }, { meta: { t0: s.t0 } }) ? 'edited' : false
+    },
+    revert(id) { const s = segment(id); if (!editable(s)) return false; return commit('revert', [id], () => { s.corrected = null; s.speaker = null }, { meta: { t0: s.t0 } }) },
+    remove(ids) { ids = ids.filter((i) => editable(segment(i))); return commit('remove', ids, () => ids.forEach((i) => { segment(i).removed = true }), { meta: { t0: segment(ids[0])?.t0 } }) },
+    restore(ids) { ids = ids.filter((i) => editable(segment(i))); return commit('restore', ids, () => ids.forEach((i) => { segment(i).removed = false }), { meta: { t0: segment(ids[0])?.t0 } }) },
+    assignSpeaker(ids, spk) {
+      ids = ids.filter((i) => editable(segment(i)))
+      let target = spk
+      const ok = commit('speaker', ids, () => {
+        if (spk === NEW) target = addUser()
+        target = target ? resolve(target) : null
+        ids.forEach((i) => { const s = segment(i); const eng = resolve(s.engineSpeaker); s.speaker = target === eng ? null : target })
+      }, { speakers: spk === NEW, meta: { t0: segment(ids[0])?.t0 } })
+      return ok ? target : false
+    },
+    addSpeaker() { let id; commit('addSpeaker', [], () => { id = addUser() }, { speakers: true }); return id },
+    setRole(spk, role) { return commit('role', [], () => { speaker(spk).role = role || null }, { speakers: true }) },
+    mergeSpeakers(from, into) {
+      into = resolve(into); if (!speaker(from) || !into || into === from) return false
+      const ids = tx.segments.filter((s) => s.speaker === from).map((s) => s.id)
+      return commit('merge', ids, () => {
+        speaker(from).mergedInto = into
+        tx.speakers.forEach((s) => { if (s.mergedInto === from) s.mergedInto = into })
+        ids.forEach((i) => { const s = segment(i); s.speaker = into === resolve(s.engineSpeaker) ? null : into })
+      }, { speakers: true })
+    },
+    unmerge(id) { return commit('unmerge', [], () => { speaker(id).mergedInto = null }, { speakers: true }) },
+    get canUndo() { return past.length > 0 }, get canRedo() { return future.length > 0 },
+    get lastUndo() { return past[past.length - 1] || null }, get lastRedo() { return future[future.length - 1] || null },
+    undo() { const e = past.pop(); if (!e) return null; applySnap(e.before); if (e.sb) applySpk(e.sb, e.sa); future.push(e); emit({ type: 'segments', ids: e.ids, speakers: !!e.sb, history: true }); return e },
+    redo() { const e = future.pop(); if (!e) return null; applySnap(e.after); if (e.sa) applySpk(e.sa, e.sb); past.push(e); emit({ type: 'segments', ids: e.ids, speakers: !!e.sa, history: true }); return e },
+    // --- eventos del motor (no entran en el historial; el literal solo lo escribe el motor) ---
+    setPartial(p) { tx.partial = p ? { id: String(p.id), text: String(p.text ?? ''), speaker: p.speaker ?? null } : null; emit({ type: 'partial' }) },
+    addFinal(p) {
+      let s = segment(String(p.id))
+      if (s && !s.failed) return false // el literal confirmado no se sobrescribe (F1 §4.4)
+      if (s) Object.assign(s, { literal: String(p.text ?? ''), engineSpeaker: p.speaker ?? null, failed: false })
+      else {
+        s = seg0({ id: p.id, t0: p.t0, t1: p.t1, literal: p.text, engineSpeaker: p.speaker ?? null })
+        let i = tx.segments.length; while (i > 0 && tx.segments[i - 1].t0 > s.t0) i--
+        tx.segments.splice(i, 0, s); index.set(s.id, s)
+      }
+      ensureEngine(s.engineSpeaker)
+      if (tx.partial && tx.partial.id === s.id) tx.partial = null
+      emit({ type: 'add', ids: [s.id] })
+      return true
+    },
+    addFailed(p) {
+      const s = seg0({ id: p.id, t0: p.t0, t1: p.t1, literal: '', failed: true })
+      let i = tx.segments.length; while (i > 0 && tx.segments[i - 1].t0 > s.t0) i--
+      tx.segments.splice(i, 0, s); index.set(s.id, s)
+      if (tx.partial && tx.partial.id === s.id) tx.partial = null
+      emit({ type: 'add', ids: [s.id] })
+    },
+    relabel(map) { // evento 'speakers' { relabel } del adaptador: diarización revisada → capa literal
+      const ids = []
+      tx.segments.forEach((s) => { if (s.engineSpeaker != null && Object.hasOwn(map, s.engineSpeaker)) { s.engineSpeaker = map[s.engineSpeaker]; ensureEngine(s.engineSpeaker); ids.push(s.id) } })
+      if (tx.partial && tx.partial.speaker != null && Object.hasOwn(map, tx.partial.speaker)) tx.partial.speaker = map[tx.partial.speaker]
+      emit({ type: 'segments', ids, speakers: true, engine: true })
+      return ids
+    },
+    // --- capa derivada: usos (inserciones) como datos (#211) ---
+    recordUse(e) { const d = { id: 'd' + (++dSeq), kind: 'insert', createdBy: 'user', at: new Date().toISOString(), ...e }; tx.derived.push(d); emit({ type: 'derived', ids: d.sourceSegmentIds }); return d },
+    dropUse(id) { const i = tx.derived.findIndex((d) => d.id === id); if (i < 0) return; const [d] = tx.derived.splice(i, 1); emit({ type: 'derived', ids: d.sourceSegmentIds }) },
+    usesOf(segId) { return tx.derived.filter((d) => d.kind === 'insert' && d.sourceSegmentIds.includes(segId)) },
+    // --- composición: texto para copiar o insertar (del corregido; sin eliminados ni fallidos) ---
+    compose(src, { withSpeakers = false, withTimes = false, multiline = true, who = (id) => id } = {}) {
+      let items
+      if (src.kind === 'text') withSpeakers = withTimes = false // un trozo de texto se inserta tal cual (es una cita, no turnos)
+      if (src.kind === 'text') items = src.parts.map((p) => ({ s: segment(p.id), text: p.text })).filter((x) => x.s && !x.s.removed && !x.s.failed && x.text.trim())
+      else {
+        const set = src.kind === 'segments' ? new Set(src.ids) : null
+        items = tx.segments.filter((s) => (!set || set.has(s.id)) && !s.removed && !s.failed).map((s) => ({ s, text: tx.textOf(s) }))
+      }
+      const turns = []
+      for (const it of items) {
+        const spk = tx.mode === 'conversation' ? tx.speakerOf(it.s) : null
+        const last = turns[turns.length - 1]
+        if (last && last.spk === spk) last.texts.push(it.text.trim())
+        else turns.push({ spk, t0: it.s.t0, texts: [it.text.trim()] })
+      }
+      const out = turns.map((t) => (withTimes ? `[${mmss(t.t0)}] ` : '') + (withSpeakers && t.spk ? who(t.spk) + ': ' : '') + t.texts.join(' '))
+      const text = out.join(tx.mode === 'conversation' ? '\n' : ' ')
+      return { text: multiline ? text : text.replace(/\s*\n\s*/g, ' '), ids: [...new Set(items.map((x) => x.s.id))] }
+    },
+    toJSON() {
+      return {
+        id: tx.id, mode: tx.mode, createdAt: tx.createdAt, expectedSpeakers: tx.expectedSpeakers,
+        speakers: tx.speakers.map((s) => ({ id: s.id, role: s.role, mergedInto: s.mergedInto, origin: s.origin })),
+        segments: tx.segments.map((s) => ({ id: s.id, t0: s.t0, t1: s.t1, literal: s.literal, engineSpeaker: s.engineSpeaker, corrected: s.corrected, speaker: s.speaker, removed: s.removed, failed: s.failed })),
+        derived: tx.derived.map((d) => ({ ...d, sourceSegmentIds: [...d.sourceSegmentIds] }))
+      }
+    }
+  }))
+  return tx
+}
+
+// Diferencia por palabras entre el literal y el corregido (para «Ver original» / «Mostrar cambios»)
+function diffHtml(a, b) {
+  const A = a.split(/\s+/).filter(Boolean), B = b.split(/\s+/).filter(Boolean)
+  const n = A.length, m = B.length
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1))
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
+  const ops = []; let i = 0, j = 0
+  const push = (t, w) => { const l = ops[ops.length - 1]; if (l && l.t === t) l.w.push(w); else ops.push({ t, w: [w] }) }
+  while (i < n && j < m) { if (A[i] === B[j]) { push('eq', A[i]); i++; j++ } else if (dp[i + 1][j] >= dp[i][j + 1]) push('del', A[i++]); else push('ins', B[j++]) }
+  while (i < n) push('del', A[i++]); while (j < m) push('ins', B[j++])
+  return ops.map((o) => o.t === 'eq' ? esc(o.w.join(' ')) : `<${o.t}><span class="sr">${o.t === 'del' ? L.delPrefix : L.insPrefix}</span>${esc(o.w.join(' '))}<span class="sr">${L.close}</span></${o.t}>`).join(' ')
+}
+
+// =====================================================================================================
+// Registro de destinos (speech.targets / prop `targets`): ligados al MODELO, no al DOM
+// =====================================================================================================
+const form = { motivo: 'Cefalea. ', resumen: '', plan: '' }
+function setField(k, v) { form[k] = v; const el = document.querySelector(`[data-model="${k}"]`); if (el && el.value !== v) el.value = v }
+document.addEventListener('input', (e) => { const k = e.target.dataset?.model; if (k) form[k] = e.target.value }, true)
+
+const TARGETS = {
+  list: [],
+  log: new Map(), // id del uso → { targetId, before, after }
+  latest: new Map(), // targetId → id del último uso (solo ese se puede deshacer)
+  mem: new Map(), // targetId → { start, end, value } (cursor y selección recordados del campo)
+  register(t) { this.list.push(t); return () => { this.list = this.list.filter((x) => x !== t) } },
+  get(id) { return this.list.find((t) => t.id === id) },
+  caret(t) { const m = this.mem.get(t.id); return m && m.value === t.get() ? m : null }
+}
+TARGETS.register({ id: 'motivo', label: 'Motivo de consulta', get: () => form.motivo, set: (v) => setField('motivo', v), field: 'f-motivo', multiline: true })
+TARGETS.register({ id: 'resumen', label: 'Resumen (una línea)', get: () => form.resumen, set: (v) => setField('resumen', v), field: 'f-resumen', multiline: false })
+TARGETS.register({ id: 'plan', label: 'Plan', get: () => form.plan, set: (v) => setField('plan', v), field: 'f-plan', multiline: true })
+// Recordar el cursor y la selección de los campos registrados (para «En el cursor» / «Sustituir la selección»)
+;['select', 'keyup', 'mouseup', 'input', 'focusout'].forEach((ev) => document.addEventListener(ev, (e) => {
+  const el = e.target; const t = el && el.id && TARGETS.list.find((x) => x.field === el.id)
+  if (!t || typeof el.selectionStart !== 'number') return
+  TARGETS.mem.set(t.id, { start: el.selectionStart, end: el.selectionEnd, value: el.value })
+  GTS.forEach((g) => g.refreshInsert())
+}, true))
+
+function insertIntoTarget(t, raw, pos) {
+  const before = t.get(); const ml = t.multiline !== false
+  const text = ml ? raw : raw.replace(/\s*\n\s*/g, ' ')
+  let start = before.length, end = before.length
+  const m = TARGETS.caret(t)
+  if (pos !== 'end' && m) { start = pos === 'selection' ? m.start : m.end; end = m.end }
+  const a = before.slice(0, start), b = before.slice(end)
+  let pre = '', post = ''
+  if (pos === 'end') { if (a && !/\s$/.test(a)) pre = ml ? '\n' : ' ' } else { if (a && !/\s$/.test(a)) pre = ' '; if (b && !/^\s/.test(b)) post = ' ' }
+  const after = a + pre + text + post + b
+  t.set(after)
+  const caret = (a + pre + text).length
+  if (m) TARGETS.mem.set(t.id, { start: caret, end: caret, value: after })
+  return { before, after }
+}
+
+// =====================================================================================================
+// GTranscript (en Grana: componente público; aquí, JavaScript simple con la estructura propuesta)
+// =====================================================================================================
+const GTS = new Set()
+let gtSeq = 0
+let openMenu = null
+function closeMenu(focusBtn = true) {
+  if (!openMenu) return
+  const { m, btn } = openMenu; openMenu = null
+  m.remove(); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-controls')
+  if (focusBtn && btn.isConnected) btn.focus({ preventScroll: true })
+}
+function showMenu(btn, host, { label, items, onPick }) {
+  closeMenu(false)
+  const m = document.createElement('div')
+  m.className = 'gt-menu'; m.setAttribute('role', 'menu'); m.setAttribute('aria-label', label); m.id = 'gtm-' + (++gtSeq)
+  m.innerHTML = items.map((it) => it.sep ? '<div role="separator"></div>'
+    : `<div role="${it.checked === undefined ? 'menuitem' : 'menuitemradio'}" tabindex="-1" data-id="${esc(it.id)}"${it.checked === undefined ? '' : ` aria-checked="${!!it.checked}"`}${it.disabled ? ' aria-disabled="true"' : ''}><span class="gt-menu__mark">${it.checked ? ic('check') : it.icon ? ic(it.icon) : ''}</span><span>${esc(it.text)}</span></div>`).join('')
+  host.append(m)
+  btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-controls', m.id)
+  const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight
+  const left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8))
+  let top = r.bottom + 4; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 4)
+  m.style.left = left + 'px'; m.style.top = top + 'px'
+  const its = () => $$('[role^=menuitem]', m)
+  const enabled = () => its().filter((x) => x.getAttribute('aria-disabled') !== 'true')
+  openMenu = { m, btn }
+  ;(enabled().find((x) => x.getAttribute('aria-checked') === 'true') || enabled()[0])?.focus()
+  const pick = (el) => { if (!el || el.getAttribute('aria-disabled') === 'true') return; const id = el.dataset.id; closeMenu(true); onPick(id) }
+  m.addEventListener('keydown', (e) => {
+    const list = enabled(), i = list.indexOf(document.activeElement)
+    if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length]?.focus() }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length]?.focus() }
+    else if (e.key === 'Home') { e.preventDefault(); list[0]?.focus() }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1]?.focus() }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(document.activeElement) }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeMenu(true) }
+    else if (e.key === 'Tab') { e.preventDefault(); closeMenu(true) }
+    e.stopPropagation()
+  })
+  m.addEventListener('click', (e) => pick(e.target.closest('[role^=menuitem]')))
+}
+document.addEventListener('pointerdown', (e) => { if (openMenu && !openMenu.m.contains(e.target) && !openMenu.btn.contains(e.target)) closeMenu(false) }, true)
+
+function GTranscript(root, opts) {
+  const o = Object.assign({ editable: true, selectable: true, compact: false, targets: null, roles: ROLES, copy: true, labelledby: null, announce: null, diarization: () => true, maxBlock: null, onReset: null }, opts)
+  const uid = 'gt' + (++gtSeq)
+  let tx = o.tx, unsub = null
+  const listMode = !o.editable && !o.selectable
+  const ui = { focus: null, sel: new Set(), anchor: null, editing: null, orig: new Set(), changes: false, newer: 0, textSel: null, src: 'all', srcManual: false, target: o.targets?.list[0]?.id ?? null, pos: 'end', withSpk: true, last: null, mgr: false }
+  const rows = new Map()
+  let ids = [], cols = [], tabEl = null
+  const ann = o.announce
+  let own = null
+  const say = (t) => (ann || own)(t, 'transcript')
+
+  // ---------- etiquetas ----------
+  const roleLabel = (r) => (r ? o.roles.find((x) => x.id === r)?.label || r : null)
+  const spkLabel = (id) => { if (!id) return L.unassigned; const sp = tx.speaker(id); const role = roleLabel(sp?.role); return role ? fill(L.speakerRole, { role, letter: tx.letter(id) }) : fill(L.speaker, { letter: tx.letter(id) }) }
+  const who = (id) => { const sp = tx.speaker(id); const role = roleLabel(sp?.role); if (!role) return spkLabel(id); const dup = tx.visibleSpeakers().filter((x) => x.role === sp.role).length > 1; return dup ? spkLabel(id) : role }
+  const timeOf = (id) => { const s = tx.segment(id); return mmss(s ? s.t0 : 0) }
+  const conv = () => tx.mode === 'conversation'
+  const showSpk = () => conv() && (tx.expectedSpeakers !== 1 || tx.speakers.length > 1 || tx.segments.some((s) => s.speaker))
+  const isRow = (id) => !!tx.segment(id)
+  const selectable = (id) => { const s = tx.segment(id); return !!s && !s.failed }
+  const changed = (s) => s.corrected != null || (s.speaker && tx.speakerOf(s) !== tx.resolve(s.engineSpeaker))
+
+  // ---------- estructura ----------
+  root.classList.add('gt'); if (o.compact) root.dataset.compact = ''
+  if (o.maxBlock) root.style.setProperty('--gt-max', o.maxBlock)
+  root.innerHTML = `
+    ${listMode ? '' : `<div class="gt__bar" role="group" aria-label="Acciones de la transcripción" data-r="bar"></div>`}
+    <p class="gt__note" data-r="note" hidden>${ic('info')}<span>${esc(L.noDiar)}</span></p>
+    ${listMode ? '' : `<div class="gt__mgr" id="${uid}-mgr" data-r="mgr" hidden></div>`}
+    <div class="gt__scroll" data-r="scroll">
+      ${listMode ? `<ol class="gt-list" data-r="list" ${o.labelledby ? `aria-labelledby="${o.labelledby}"` : ''} tabindex="0"></ol>`
+      : `<div class="gt__grid" role="grid" id="${uid}-grid" data-r="grid" ${o.labelledby ? `aria-labelledby="${o.labelledby}"` : ''} aria-describedby="${uid}-kbd"${o.selectable ? ' aria-multiselectable="true"' : ''}>
+        <div role="rowgroup" class="sr"><div role="row" data-r="head"></div></div>
+        <div role="rowgroup" class="gt__body" data-r="body"></div>
+      </div>`}
+      <p class="gt__empty" data-r="empty" hidden>${esc(L.empty)}</p>
+    </div>
+    ${listMode ? '' : `<button type="button" class="wf-btn gt__newer" data-size="sm" data-a="newer" hidden></button>
+    <p class="gt__kbd" id="${uid}-kbd"${o.compact ? ' hidden' : ''}>${esc(L.kbd)}</p>`}
+    ${o.targets ? `<section class="gt__ins" data-r="ins" aria-labelledby="${uid}-ins-t"><h4 id="${uid}-ins-t">${esc(L.ins.title)}</h4><div data-r="insbody"></div></section>` : ''}
+    ${o.announce ? '' : `<div class="sr" role="status" aria-live="polite" aria-atomic="true" data-r="live"></div>`}`
+  const R = Object.fromEntries($$('[data-r]', root).map((el) => [el.dataset.r, el]))
+  if (!ann) own = createAnnouncer(R.live, 'GTranscript ' + (o.name || uid))
+
+  // ---------- columnas (rejilla APG: una fila por fragmento) ----------
+  function computeCols() { const c = []; if (o.selectable) c.push('sel'); c.push('time'); if (showSpk()) c.push('spk'); c.push('text', 'act'); return c }
+  function applyCols() {
+    cols = computeCols()
+    const W = { sel: '28px', time: '48px', spk: 'minmax(96px,170px)', text: 'minmax(0,1fr)', act: '32px' }
+    const top = cols.filter((c) => c !== 'text')
+    const N = { sel: '28px', time: top.includes('spk') ? 'auto' : 'minmax(0,1fr)', spk: 'minmax(0,1fr)', act: '32px' }
+    root.style.setProperty('--gt-areas', `"${cols.join(' ')}"`)
+    root.style.setProperty('--gt-cols', cols.map((c) => W[c]).join(' '))
+    root.style.setProperty('--gt-areas-n', `"${top.join(' ')}" "${top.map(() => 'text').join(' ')}"`)
+    root.style.setProperty('--gt-cols-n', top.map((c) => N[c]).join(' '))
+    if (R.head) R.head.innerHTML = cols.map((c) => `<span role="columnheader">${esc(L.cols[c])}</span>`).join('')
+  }
+
+  // ---------- filas con clave y celdas con firma (solo se repinta lo que cambia) ----------
+  function makeRow(id) {
+    const r = document.createElement('div'); r.setAttribute('role', 'row'); r.className = 'gt-row'; r.dataset.id = id
+    cols.forEach((c) => { const d = document.createElement('div'); d.setAttribute('role', c === 'time' ? 'rowheader' : 'gridcell'); d.className = 'gt-c gt-c--' + c; d.dataset.col = c; d.tabIndex = -1; r.append(d) })
+    rows.set(id, r); return r
+  }
+  function focusEl(row, col) {
+    const cell = row.querySelector(`:scope > [data-col="${col}"]`); if (!cell) return null
+    if (col === 'text' && ui.editing && ui.editing.id === row.dataset.id) return cell.querySelector('textarea') || cell
+    return cell.querySelector('input,button') || cell
+  }
+  function setTab(el) { if (tabEl && tabEl !== el && tabEl.isConnected) tabEl.tabIndex = -1; tabEl = el; if (el) el.tabIndex = 0 }
+  function patchCell(row, col, html, sig) {
+    const cell = row.querySelector(`:scope > [data-col="${col}"]`); if (!cell || cell._sig === sig) return
+    const had = cell.contains(document.activeElement) && document.activeElement !== cell
+    cell._sig = sig; cell.innerHTML = html
+    $$('input,button,textarea', cell).forEach((x) => { if (!x.closest('.gt-editor') || x.tagName === 'TEXTAREA') x.tabIndex = -1 })
+    if (ui.focus && ui.focus.id === row.dataset.id && ui.focus.col === col) { const el = focusEl(row, col); setTab(el); if (had) el.focus({ preventScroll: true }) }
+  }
+  function flagsHtml(s) {
+    const f = []
+    if (s.corrected != null) f.push(['pencil', L.flag.corrected])
+    const eng = tx.resolve(s.engineSpeaker)
+    if (s.speaker && eng && tx.speakerOf(s) !== eng) f.push(['users', fill(L.flag.speaker, { speaker: spkLabel(eng) })])
+    if (s.removed) f.push(['trash', L.flag.removed])
+    const uses = tx.usesOf(s.id)
+    if (uses.length) {
+      f.push(['text-cursor-input', fill(L.flag.used, { targets: [...new Set(uses.map((u) => u.target.label))].join(', ') })])
+      if (uses.some((u) => u.sources && u.sources[s.id] !== undefined && u.sources[s.id] !== tx.textOf(s))) f.push(['triangle-alert', L.flag.stale])
+    }
+    return f.length ? `<p class="gt-flags">${f.map(([i, t]) => `<span class="gt-flag">${ic(i)}${esc(t)}</span>`).join('')}</p>` : ''
+  }
+  function patchRow(id) {
+    const row = rows.get(id); if (!row) return
+    const s = tx.segment(id), p = !s ? tx.partial : null
+    if (!s && !p) return
+    const state = p ? 'partial' : s.failed ? 'failed' : s.removed ? 'removed' : s.corrected != null ? 'corrected' : 'plain'
+    row.dataset.state = state
+    if (o.selectable && s && !s.failed) row.setAttribute('aria-selected', String(ui.sel.has(id))); else row.removeAttribute('aria-selected')
+    const time = p ? mmss(tx.segments.length ? tx.segments[tx.segments.length - 1].t1 : 0) : mmss(s.t0)
+    if (cols.includes('sel')) {
+      const on = s && !s.failed
+      patchCell(row, 'sel', on ? `<input type="checkbox" data-a="pick" ${ui.sel.has(id) ? 'checked' : ''} aria-label="${esc(fill(L.pick, { time }))}">` : '', `${on}|${ui.sel.has(id)}`)
+    }
+    patchCell(row, 'time', `<time>${time}</time>`, time)
+    if (cols.includes('spk')) {
+      const spk = p ? tx.resolve(p.speaker) : s.failed ? null : tx.speakerOf(s)
+      const lab = spkLabel(spk), letter = spk ? tx.letter(spk) : '?'
+      const inner = `<span class="gt-badge"${spk ? '' : ' data-none'} aria-hidden="true">${esc(letter)}</span><span class="gt-spk__t">${esc(lab)}</span>`
+      const btn = o.editable && s && !s.failed
+      patchCell(row, 'spk', btn ? `<button type="button" class="gt-spk" data-a="spk" aria-haspopup="menu" aria-expanded="false">${inner}<span class="sr">${esc(L.changeSpeaker)}</span></button>` : `<span class="gt-spk-static">${inner}</span>`, `${btn}|${lab}|${letter}`)
+    }
+    // texto
+    if (ui.editing && ui.editing.id === id) { /* el editor no se toca mientras está abierto */ }
+    else if (p) patchCell(row, 'text', `<p class="gt-p"><span class="sr">${esc(L.partialPrefix)}</span>${esc(p.text)}</p><p class="gt-flags"><span class="gt-flag">${esc(L.flag.partial)}</span></p>`, 'p|' + p.text)
+    else if (s.failed) patchCell(row, 'text', `<p class="gt-p">${ic('triangle-alert')}<span>${esc(fill(L.flag.failed, { range: mmss(s.t0) + '–' + mmss(s.t1) }))}</span></p>`, 'f')
+    else {
+      const text = tx.textOf(s), showO = changed(s) && (ui.changes || ui.orig.has(id))
+      const eng = tx.resolve(s.engineSpeaker)
+      const orig = showO ? `<div class="gt-orig"><p>${esc(L.orig)} «${esc(s.literal)}»${s.speaker && tx.speakerOf(s) !== eng ? ' · ' + esc(fill(L.origSpeaker, { speaker: spkLabel(eng) })) : ''}</p>${s.corrected != null ? `<p>${esc(L.diff)} ${diffHtml(s.literal, s.corrected)}</p>` : ''}</div>` : ''
+      const flags = flagsHtml(s)
+      patchCell(row, 'text', `<p class="gt-p">${esc(text)}</p>${flags}${orig}`, `t|${text}|${flags}|${showO}|${s.literal}`)
+    }
+    if (cols.includes('act')) {
+      const on = s && !s.failed
+      patchCell(row, 'act', on ? `<button type="button" class="icon-btn" data-a="menu" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(fill(L.actions, { time }))}">${ic('ellipsis-vertical')}</button>` : '', `${on}|${time}`)
+    }
+  }
+  function sync(changedIds) {
+    const list = tx.segments.map((s) => s.id)
+    if (tx.partial && !tx.segment(tx.partial.id)) list.push(tx.partial.id)
+    const set = new Set(list)
+    for (const [id, el] of rows) if (!set.has(id)) { el.remove(); rows.delete(id); ui.sel.delete(id) }
+    const body = R.body, fresh = []
+    list.forEach((id, i) => {
+      let el = rows.get(id); if (!el) { el = makeRow(id); fresh.push(id) }
+      if (body.children[i] !== el) body.insertBefore(el, body.children[i] || null)
+    })
+    ids = list
+    ;(changedIds ? [...new Set([...changedIds, ...fresh])] : list).forEach(patchRow)
+    R.empty.hidden = list.length > 0
+    if (!tabEl || !tabEl.isConnected) { const first = ids[0]; if (first) { ui.focus = { id: first, col: 'text' }; setTab(focusEl(rows.get(first), 'text')) } }
+  }
+  function rebuild() {
+    if (listMode) return renderList()
+    if (ui.editing) commitEdit(false)
+    applyCols(); R.body.textContent = ''; rows.clear(); tabEl = null; ui.focus = null; sync(null)
+    renderBar(); renderNote(); renderMgr(); renderInsert()
+  }
+  function renderList() {
+    const items = tx.segments.filter((s) => !s.failed)
+    R.list.innerHTML = items.map((s) => `<li><span class="gt-c--time"><time>${mmss(s.t0)}</time>${conv() ? ` · <b>${esc(spkLabel(tx.speakerOf(s)))}</b>` : ''}</span><span class="gt-p"${s.removed ? ' style="text-decoration:line-through"' : ''}>${esc(tx.textOf(s))}</span>${flagsHtml(s)}</li>`).join('')
+    R.empty.hidden = items.length > 0
+  }
+  function renderNote() { R.note.hidden = !(conv() && !o.diarization() && !listMode) }
+
+  // ---------- barra ----------
+  function renderBar() {
+    if (!R.bar) return
+    if (!R.bar._built) {
+      R.bar._built = true
+      R.bar.innerHTML = [
+        o.selectable && !o.compact ? `<label class="gt__all"><input type="checkbox" data-a="all">${esc(L.bar.all)}</label><span class="gt__count" data-r2="count"></span><span class="gt__sep" aria-hidden="true"></span>` : '',
+        o.selectable && o.editable && !o.compact ? `<button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="assign" aria-haspopup="menu" aria-expanded="false">${ic('users')}${esc(L.bar.assign)}</button><button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="removesel">${ic('trash')}<span data-r2="rmtext"></span></button><span class="gt__sep" aria-hidden="true"></span>` : '',
+        o.editable ? `<button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="undo" aria-describedby="${uid}-undo-d" aria-keyshortcuts="Control+Z">${ic('undo-2')}${esc(L.bar.undo)}</button><span class="sr" id="${uid}-undo-d"></span><button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="redo" aria-describedby="${uid}-redo-d" aria-keyshortcuts="Control+Shift+Z">${ic('redo-2')}${esc(L.bar.redo)}</button><span class="sr" id="${uid}-redo-d"></span><span class="gt__sep" aria-hidden="true"></span>` : '',
+        o.copy ? `<button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="copy" aria-haspopup="menu" aria-expanded="false">${ic('copy')}${esc(L.bar.copy)}</button>` : '',
+        `<button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="changes" aria-pressed="false">${ic('git-compare')}${esc(L.bar.changes)}</button>`,
+        o.editable && !o.compact ? `<button type="button" class="wf-btn" data-size="sm" data-kind="ghost" data-a="speakers" aria-expanded="false" aria-controls="${uid}-mgr">${ic('users')}${esc(L.bar.speakers)}</button>` : ''
+      ].join('')
+    }
+    const b = (a) => R.bar.querySelector(`[data-a="${a}"]`)
+    const all = ids.filter(selectable)
+    const n = [...ui.sel].filter(selectable).length
+    const cb = b('all'); if (cb) { cb.checked = n > 0 && n === all.length; cb.indeterminate = n > 0 && n < all.length }
+    const cnt = R.bar.querySelector('[data-r2="count"]'); if (cnt) cnt.textContent = fill(L.bar.count, { count: n })
+    const dis = (el, v) => { if (el) el.setAttribute('aria-disabled', String(!!v)) }
+    dis(b('assign'), !n)
+    const rm = b('removesel'); if (rm) { const allRemoved = n > 0 && [...ui.sel].every((i) => tx.segment(i)?.removed); rm.querySelector('[data-r2="rmtext"]').textContent = allRemoved ? L.bar.restoreSel : L.bar.removeSel; rm.dataset.mode = allRemoved ? 'restore' : 'remove'; dis(rm, !n) }
+    const histLabel = (e) => fill(L.hist[e.kind], { time: e.meta?.t0 != null ? mmss(e.meta.t0) : '' })
+    if (b('undo')) { dis(b('undo'), !tx.canUndo); $('#' + uid + '-undo-d').textContent = tx.canUndo ? fill(L.bar.undoWhat, { what: histLabel(tx.lastUndo) }) : L.bar.nothingUndo }
+    if (b('redo')) { dis(b('redo'), !tx.canRedo); $('#' + uid + '-redo-d').textContent = tx.canRedo ? fill(L.bar.redoWhat, { what: histLabel(tx.lastRedo) }) : L.bar.nothingRedo }
+    b('changes').setAttribute('aria-pressed', String(ui.changes))
+    if (b('speakers')) b('speakers').setAttribute('aria-expanded', String(ui.mgr))
+  }
+  const histWhat = (e) => fill(L.hist[e.kind], { time: e.meta?.t0 != null ? mmss(e.meta.t0) : '' })
+
+  // ---------- gestor de hablantes ----------
+  function patchKeep(el, html) {
+    if (el._html === html) return
+    const a = document.activeElement, k = a && el.contains(a) ? a.dataset.k : null
+    el._html = html; el.innerHTML = html
+    if (k) el.querySelector(`[data-k="${k}"]`)?.focus({ preventScroll: true })
+  }
+  function renderMgr() {
+    if (!R.mgr) return
+    R.mgr.hidden = !ui.mgr; if (!ui.mgr) return
+    const vis = tx.speakers.filter((s) => s.origin === 'user' || tx.segments.some((g) => g.engineSpeaker === s.id || g.speaker === s.id))
+    const count = (id) => tx.segments.filter((g) => !g.failed && tx.speakerOf(g) === id).length
+    const active = vis.filter((s) => !s.mergedInto)
+    patchKeep(R.mgr, `<h4>${esc(L.mgr.title)}</h4><p class="cap" style="margin:0">${esc(L.mgr.help)}</p><ul>${vis.map((s) => s.mergedInto
+      ? `<li><span class="gt-badge" aria-hidden="true">${tx.letter(s.id)}</span><span>${esc(fill(L.speaker, { letter: tx.letter(s.id) }))} · ${esc(fill(L.mgr.mergedInto, { speaker: spkLabel(tx.resolve(s.id)) }))}</span><button type="button" class="wf-btn" data-size="sm" data-a="unmerge" data-spk="${s.id}" data-k="um-${s.id}">${ic('split')}${esc(L.mgr.unmerge)}</button></li>`
+      : `<li><span class="gt-badge" aria-hidden="true">${tx.letter(s.id)}</span><b>${esc(spkLabel(s.id))}</b><span class="cap" style="margin:0">${esc(fill(L.mgr.count, { count: count(s.id) }))}</span>
+         <label>${esc(L.mgr.role)} <select data-a="role" data-spk="${s.id}" data-k="ro-${s.id}" aria-label="${esc(L.mgr.role)}: ${esc(fill(L.speaker, { letter: tx.letter(s.id) }))}"><option value="">${esc(L.mgr.noRole)}</option>${o.roles.map((r) => `<option value="${r.id}" ${s.role === r.id ? 'selected' : ''}>${esc(r.label)}</option>`).join('')}</select></label>
+         ${active.length > 1 ? `<label>${esc(L.mgr.mergeWith)} <select data-k="mi-${s.id}" data-r3="into-${s.id}" aria-label="${esc(L.mgr.mergeWith)}: ${esc(fill(L.speaker, { letter: tx.letter(s.id) }))}">${active.filter((x) => x.id !== s.id).map((x) => `<option value="${x.id}">${esc(spkLabel(x.id))}</option>`).join('')}</select></label><button type="button" class="wf-btn" data-size="sm" data-a="merge" data-spk="${s.id}" data-k="mg-${s.id}">${ic('merge')}${esc(L.mgr.merge)}</button>` : ''}</li>`).join('')}</ul>
+      <div><button type="button" class="wf-btn" data-size="sm" data-a="addspk" data-k="addspk">${ic('user-plus')}${esc(L.mgr.add)}</button></div>`)
+  }
+
+  // ---------- inserción en destinos ----------
+  function textSelOk() { return ui.textSel && ui.textSel.parts.some((p) => p.text.trim()) }
+  function source() {
+    if (ui.src === 'text' && textSelOk()) return { kind: 'text', parts: ui.textSel.parts }
+    if (ui.src === 'sel' && ui.sel.size) return { kind: 'segments', ids: ids.filter((i) => ui.sel.has(i)) }
+    return { kind: 'all' }
+  }
+  function refreshInsert() { renderInsert() }
+  const undoable = (d) => TARGETS.latest.get(d.target.id) === d.id && TARGETS.log.has(d.id)
+  function renderInsert() {
+    if (!R.insbody) return
+    const T = o.targets.list
+    if (!T.find((t) => t.id === ui.target)) ui.target = T[0]?.id
+    const t = o.targets.get(ui.target)
+    const nSel = [...ui.sel].filter((i) => { const s = tx.segment(i); return s && !s.removed && !s.failed }).length
+    const nAll = tx.segments.filter((s) => !s.removed && !s.failed).length
+    if (ui.src === 'text' && !textSelOk()) ui.src = nSel ? 'sel' : 'all'
+    if (ui.src === 'sel' && !nSel) ui.src = 'all'
+    const m = t ? o.targets.caret(t) : null
+    const canCursor = !!m, canSel = !!m && m.end > m.start
+    if ((ui.pos === 'cursor' && !canCursor) || (ui.pos === 'selection' && !canSel)) ui.pos = 'end'
+    const src = source()
+    const res = t ? tx.compose(src, { withSpeakers: ui.withSpk && conv(), multiline: t.multiline !== false, who }) : { text: '', ids: [] }
+    const what = src.kind === 'text' ? L.what.text : fill(L.what.all, { count: res.ids.length })
+    const last = ui.last && TARGETS.log.has(ui.last.useId) ? ui.last : null
+    const uses = tx.derived.filter((d) => d.kind === 'insert')
+    // Estructura: solo se repinta si cambia algo que no sea texto (así un <select> abierto no se cierra al llegar fragmentos)
+    const sig = JSON.stringify([T.map((x) => x.id + x.label), ui.target, nSel > 0, textSelOk(), canCursor, canSel, ui.src, ui.pos, conv(), ui.withSpk, last && last.useId, uses.map((d) => d.id + (undoable(d) ? 'u' : '')), !!res.text])
+    if (R.insbody._sig !== sig) {
+      R.insbody._sig = sig
+      patchKeep(R.insbody, `<fieldset><legend>${esc(L.ins.what)}</legend>
+        <label><input type="radio" name="${uid}-src" value="all" data-a="src" data-k="src-all" ${ui.src === 'all' ? 'checked' : ''}><span data-t="all"></span></label>
+        <label${nSel ? '' : ' data-off'}><input type="radio" name="${uid}-src" value="sel" data-a="src" data-k="src-sel" ${ui.src === 'sel' ? 'checked' : ''} ${nSel ? '' : 'disabled'}><span data-t="sel"></span></label>
+        <label${textSelOk() ? '' : ' data-off'}><input type="radio" name="${uid}-src" value="text" data-a="src" data-k="src-text" ${ui.src === 'text' ? 'checked' : ''} ${textSelOk() ? '' : 'disabled'}><span data-t="text"></span></label></fieldset>
+      <label>${esc(L.ins.target)} <select data-a="target" data-k="target">${T.map((x) => `<option value="${x.id}" ${x.id === ui.target ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select></label>
+      <fieldset><legend>${esc(L.ins.where)}</legend>
+        <label><input type="radio" name="${uid}-pos" value="end" data-a="pos" data-k="pos-end" ${ui.pos === 'end' ? 'checked' : ''}>${esc(L.ins.end)}</label>
+        <label${canCursor ? '' : ' data-off'}><input type="radio" name="${uid}-pos" value="cursor" data-a="pos" data-k="pos-cursor" ${ui.pos === 'cursor' ? 'checked' : ''} ${canCursor ? '' : 'disabled'}>${esc(L.ins.cursor)}${canCursor ? '' : esc(L.ins.notKnown)}</label>
+        <label${canSel ? '' : ' data-off'}><input type="radio" name="${uid}-pos" value="selection" data-a="pos" data-k="pos-selection" ${ui.pos === 'selection' ? 'checked' : ''} ${canSel ? '' : 'disabled'}><span data-t="fieldsel"></span></label></fieldset>
+      ${conv() ? `<label><input type="checkbox" data-a="withspk" data-k="withspk" ${ui.withSpk ? 'checked' : ''}>${esc(L.ins.withSpk)}</label>` : ''}
+      <div><span class="cap" style="margin:0" id="${uid}-pv-t">${esc(L.ins.preview)}</span><p class="gt__preview" data-t="preview" aria-labelledby="${uid}-pv-t"></p></div>
+      <div class="btns" style="margin:0"><button type="button" class="wf-btn" data-kind="primary" data-a="insert" data-k="insert" ${res.text ? '' : 'aria-disabled="true"'}>${ic('text-cursor-input')}<span data-t="go"></span></button></div>
+      ${last ? `<p class="gt__result">${ic('circle-check')}<span data-t="done"></span><button type="button" class="wf-btn" data-size="sm" data-a="undoins" data-use="${last.useId}" data-k="undoins">${ic('undo-2')}${esc(L.ins.undo)}</button></p>` : ''}
+      ${uses.length ? `<details data-k="uses"><summary>${esc(L.ins.uses)} (${uses.length})</summary><ul class="gt__uses">${uses.map((d) => `<li><span>${esc(fill(L.ins.useItem, { target: d.target.label, what: fill(L.what.all, { count: d.sourceSegmentIds.length }), time: new Date(d.at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }))}</span>${undoable(d) ? `<button type="button" class="wf-btn" data-size="sm" data-a="undoins" data-use="${d.id}" data-k="ui-${d.id}">${ic('undo-2')}${esc(L.ins.undo)}</button>` : ''}</li>`).join('')}</ul></details>` : ''}`)
+    }
+    const set = (k, v) => { const el = R.insbody.querySelector(`[data-t="${k}"]`); if (el && el.textContent !== v) el.textContent = v }
+    set('all', fill(L.ins.all, { count: nAll }))
+    set('sel', fill(L.ins.sel, { count: nSel }))
+    set('text', textSelOk() ? L.ins.text + ' «' + clip(ui.textSel.parts.map((p) => p.text).join(' '), 40) + '»' : L.ins.textNone)
+    set('fieldsel', L.ins.selection + (canSel ? ' «' + clip(m.value.slice(m.start, m.end), 30) + '»' : L.ins.notKnown))
+    set('preview', res.text || L.ins.nothing)
+    set('go', fill(L.ins.go, { target: t?.label || '' }))
+    if (last) set('done', fill(L.ins.done, { target: last.label, what: last.what }))
+    const go = R.insbody.querySelector('[data-a="insert"]'); if (go) go.setAttribute('aria-disabled', String(!res.text))
+  }
+  function doInsert(srcOverride, targetId = ui.target, pos = ui.pos) {
+    const t = o.targets.get(targetId); if (!t) return
+    const src = srcOverride || source()
+    const res = tx.compose(src, { withSpeakers: ui.withSpk && conv(), multiline: t.multiline !== false, who })
+    if (!res.text) { say(L.ins.nothing); return }
+    const r = insertIntoTarget(t, res.text, pos)
+    const sources = Object.fromEntries(res.ids.map((i) => [i, tx.textOf(tx.segment(i))]))
+    const use = tx.recordUse({ target: { id: t.id, label: t.label }, sourceSegmentIds: res.ids, text: res.text, position: pos, sources })
+    TARGETS.log.set(use.id, { targetId: t.id, before: r.before, after: r.after, tx })
+    TARGETS.latest.set(t.id, use.id)
+    const what = src.kind === 'text' ? L.what.text : fill(L.what.all, { count: res.ids.length })
+    ui.last = { useId: use.id, label: t.label, what }
+    GTS.forEach((g) => g.refreshInsert())
+    say(fill(L.ann.inserted, { target: t.label, what }))
+  }
+  function undoInsert(useId) {
+    const rec = TARGETS.log.get(useId); if (!rec) return
+    const t = o.targets.get(rec.targetId)
+    if (TARGETS.latest.get(rec.targetId) !== useId || t.get() !== rec.after) { say(fill(L.ann.insUndoFail, { target: t.label })); return false }
+    t.set(rec.before); TARGETS.log.delete(useId); TARGETS.latest.delete(rec.targetId)
+    // el anterior uso del mismo campo vuelve a poder deshacerse si el campo está como lo dejó
+    const prev = [...rec.tx.derived].reverse().find((d) => d.kind === 'insert' && d.target.id === rec.targetId && d.id !== useId && TARGETS.log.get(d.id)?.after === rec.before)
+    if (prev) TARGETS.latest.set(rec.targetId, prev.id)
+    rec.tx.dropUse(useId)
+    if (ui.last?.useId === useId) ui.last = null
+    GTS.forEach((g) => g.refreshInsert())
+    say(fill(L.ann.insUndone, { target: t.label }))
+    return true
+  }
+
+  // ---------- foco itinerante en la rejilla ----------
+  function focusCell(id, col, { focus = true } = {}) {
+    const row = rows.get(id); if (!row) return
+    if (!cols.includes(col)) col = 'text'
+    ui.focus = { id, col }
+    const el = focusEl(row, col); setTab(el)
+    if (focus && el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }) }
+  }
+  const cur = () => (ui.focus && rows.has(ui.focus.id) ? ui.focus : null)
+  function moveRow(d) { const c = cur(); if (!c) return; const i = ids.indexOf(c.id); const j = Math.max(0, Math.min(ids.length - 1, i + d)); focusCell(ids[j], c.col); return ids[j] }
+  function moveCol(d) { const c = cur(); if (!c) return; const i = cols.indexOf(c.col); const j = Math.max(0, Math.min(cols.length - 1, i + d)); focusCell(c.id, cols[j]) }
+
+  // ---------- selección ----------
+  function setSel(list, on, { announce = false } = {}) {
+    list.filter(selectable).forEach((i) => (on ? ui.sel.add(i) : ui.sel.delete(i)))
+    list.forEach(patchRow); renderBar()
+    if (!ui.srcManual && ui.sel.size && ui.src !== 'text') ui.src = 'sel'
+    renderInsert(); o.onSelect?.([...ui.sel])
+    if (announce) say(ui.sel.size ? fill(L.ann.selAll, { count: ui.sel.size }) : L.ann.selNone)
+  }
+  function toggleSel(id) { if (!selectable(id)) return; setSel([id], !ui.sel.has(id)); ui.anchor = id }
+  function rangeSel(a, b, on) { const i = ids.indexOf(a), j = ids.indexOf(b); if (i < 0 || j < 0) return; const [x, y] = i < j ? [i, j] : [j, i]; setSel(ids.slice(x, y + 1), on, { announce: true }) }
+  function selectAll() { const all = ids.filter(selectable); const on = [...ui.sel].filter(selectable).length < all.length; if (on) setSel(all, true, { announce: true }); else setSel([...ui.sel], false, { announce: true }) }
+  const targetsFor = (id) => (ui.sel.has(id) && ui.sel.size > 1 ? ids.filter((i) => ui.sel.has(i)) : [id])
+
+  // ---------- acciones ----------
+  function removeOrRestore(list) {
+    const segs = list.map((i) => tx.segment(i)).filter((s) => s && !s.failed); if (!segs.length) return
+    const restore = segs.every((s) => s.removed)
+    const ok = restore ? tx.restore(segs.map((s) => s.id)) : tx.remove(segs.filter((s) => !s.removed).map((s) => s.id))
+    if (ok) say(fill(restore ? L.ann.restored : L.ann.removed, { count: segs.length, time: mmss(segs[0].t0) }))
+  }
+  function doUndo(redo = false, fromGrid = false) {
+    const e = redo ? tx.redo() : tx.undo()
+    if (!e) { say(redo ? L.ann.nothingRedo : L.ann.nothing); return }
+    say(fill(redo ? L.ann.redo : L.ann.undo, { what: histWhat(e) }))
+    const first = e.ids.find((i) => rows.has(i))
+    if (first) { if (fromGrid) focusCell(first, ui.focus?.col || 'text'); else rows.get(first).scrollIntoView({ block: 'nearest' }) }
+  }
+  async function copy(list, full) {
+    const src = list ? { kind: 'segments', ids: list } : { kind: 'all' }
+    const res = tx.compose(src, { withSpeakers: full && conv(), withTimes: full, who })
+    try { await navigator.clipboard.writeText(res.text); say(fill(L.ann.copied, { what: fill(L.what.all, { count: res.ids.length }) })) } catch { say(L.ann.copyFail) }
+    return res.text
+  }
+  function startEdit(id) {
+    const s = tx.segment(id); if (!o.editable || !s || s.failed || s.removed) return
+    if (ui.editing) commitEdit(false)
+    ui.editing = { id }
+    const row = rows.get(id), time = mmss(s.t0)
+    patchCell(row, 'text', `<div class="gt-editor" role="group" aria-label="${esc(fill(L.editGroup, { time }))}">
+      <textarea rows="2" data-a="edtext" aria-label="${esc(fill(L.editLabel, { time }))}" aria-describedby="${uid}-o-${id} ${uid}-h-${id}">${esc(tx.textOf(s))}</textarea>
+      <p class="gt-hint" id="${uid}-o-${id}">${esc(L.orig)} «${esc(s.literal)}»</p>
+      <p class="gt-hint" id="${uid}-h-${id}">${esc(L.editHint)}</p>
+      <div class="btns"><button type="button" class="wf-btn" data-size="sm" data-kind="primary" data-a="save">${ic('check')}${esc(L.save)}</button><button type="button" class="wf-btn" data-size="sm" data-a="cancel">${ic('x')}${esc(L.cancel)}</button></div></div>`, 'E')
+    focusCell(id, 'text')
+    const ta = row.querySelector('textarea'); ta.setSelectionRange(ta.value.length, ta.value.length)
+  }
+  function commitEdit(returnFocus = true) {
+    if (!ui.editing) return
+    const { id } = ui.editing, row = rows.get(id)
+    const ta = row?.querySelector('.gt-editor textarea'); const val = ta ? ta.value : null
+    ui.editing = null
+    const cell = row?.querySelector(':scope > [data-col="text"]'); if (cell) cell._sig = null
+    const r = val == null ? false : tx.edit(id, val)
+    patchRow(id)
+    if (returnFocus) focusCell(id, 'text')
+    else if (ui.focus && ui.focus.id === id && row) setTab(focusEl(row, ui.focus.col))
+    const s = tx.segment(id)
+    if (r === 'edited') say(fill(L.ann.edited, { time: mmss(s.t0) }))
+    else if (r === 'emptied') say(fill(L.ann.emptied, { time: mmss(s.t0) }))
+  }
+  function cancelEdit() {
+    if (!ui.editing) return
+    const { id } = ui.editing; ui.editing = null
+    const cell = rows.get(id)?.querySelector(':scope > [data-col="text"]'); if (cell) cell._sig = null
+    patchRow(id); focusCell(id, 'text')
+  }
+  function rowMenu(btn, id) {
+    const s = tx.segment(id), time = mmss(s.t0)
+    const items = []
+    if (o.editable && !s.removed) items.push({ id: 'edit', text: L.menu.edit, icon: 'pencil' })
+    if (changed(s)) items.push({ id: 'orig', text: ui.orig.has(id) || ui.changes ? L.menu.origHide : L.menu.orig, icon: 'git-compare' })
+    if (o.editable && changed(s)) items.push({ id: 'revert', text: L.menu.revert, icon: 'rotate-ccw' })
+    if (o.editable) items.push(s.removed ? { id: 'restore', text: L.menu.restore, icon: 'rotate-ccw' } : { id: 'remove', text: L.menu.remove, icon: 'trash' })
+    if (o.copy) items.push({ sep: 1 }, { id: 'copy', text: L.menu.copy, icon: 'copy' })
+    if (o.targets && !s.removed) o.targets.list.forEach((t) => items.push({ id: 'ins:' + t.id, text: fill(L.menu.insert, { target: t.label }), icon: 'text-cursor-input' }))
+    showMenu(btn, root, { label: fill(L.actions, { time }), items, onPick: (a) => {
+      if (a === 'edit') startEdit(id)
+      else if (a === 'orig') { if (ui.changes) { ui.changes = false; ids.forEach(patchRow); renderBar() } ui.orig.has(id) ? ui.orig.delete(id) : ui.orig.add(id); patchRow(id) }
+      else if (a === 'revert') { if (tx.revert(id)) say(fill(L.ann.reverted, { time })) }
+      else if (a === 'remove' || a === 'restore') removeOrRestore([id])
+      else if (a === 'copy') copy([id], false)
+      else if (a.startsWith('ins:')) doInsert({ kind: 'segments', ids: [id] }, a.slice(4), 'end')
+    } })
+  }
+  function speakerMenu(btn, list) {
+    const one = list.length === 1 ? tx.segment(list[0]) : null
+    const eff = one ? tx.speakerOf(one) : null
+    const items = tx.visibleSpeakers().map((sp) => ({ id: sp.id, text: spkLabel(sp.id), checked: one ? eff === sp.id : false }))
+    items.push({ sep: 1 }, { id: NEW, text: L.newSpeaker, icon: 'user-plus' })
+    if (one && one.speaker && tx.resolve(one.engineSpeaker) && eff !== tx.resolve(one.engineSpeaker)) items.push({ id: '__engine', text: fill(L.engineSpeaker, { speaker: spkLabel(tx.resolve(one.engineSpeaker)) }), icon: 'rotate-ccw' })
+    showMenu(btn, root, { label: L.cols.spk, items, onPick: (a) => {
+      const target = a === '__engine' ? tx.resolve(one.engineSpeaker) : a
+      const r = tx.assignSpeaker(list, target)
+      if (r) { say(fill(L.ann.speaker, { count: list.length, time: mmss(tx.segment(list[0]).t0), speaker: spkLabel(r) })) }
+    } })
+  }
+
+  // ---------- eventos de la rejilla ----------
+  if (!listMode) {
+    const grid = R.grid
+    grid.addEventListener('focusin', (e) => {
+      const row = e.target.closest('[role=row][data-id]'); const cell = e.target.closest('[data-col]')
+      if (row && cell && rows.get(row.dataset.id) === row) { ui.focus = { id: row.dataset.id, col: cell.dataset.col }; const el = focusEl(row, cell.dataset.col); if (el && el !== tabEl) setTab(el) }
+    })
+    grid.addEventListener('click', (e) => {
+      const row = e.target.closest('[role=row][data-id]'); if (!row) return
+      const id = row.dataset.id, a = e.target.closest('[data-a]')?.dataset.a
+      if (a === 'pick') { const on = e.target.checked; if (e.shiftKey && ui.anchor) rangeSel(ui.anchor, id, on); else { setSel([id], on); ui.anchor = id } }
+      else if (a === 'menu') rowMenu(e.target.closest('button'), id)
+      else if (a === 'spk') speakerMenu(e.target.closest('button'), targetsFor(id))
+      else if (a === 'save') commitEdit(true)
+      else if (a === 'cancel') cancelEdit()
+    })
+    grid.addEventListener('dblclick', (e) => { const row = e.target.closest('[role=row][data-id]'); if (row && e.target.closest('.gt-c--text') && !e.target.closest('.gt-editor')) startEdit(row.dataset.id) })
+    grid.addEventListener('keydown', (e) => {
+      if (e.isComposing) return
+      const t0 = performance.now()
+      const ed = e.target.closest('.gt-editor')
+      if (ed) {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelEdit() }
+        else if (e.key === 'Enter' && e.target.tagName === 'TEXTAREA' && !e.shiftKey) { e.preventDefault(); commitEdit(true) }
+        else e.stopPropagation()
+        return
+      }
+      const c = cur(); if (!c) return
+      const mod = e.ctrlKey || e.metaKey
+      let handled = true
+      switch (e.key) {
+        case 'ArrowDown': case 'ArrowUp': {
+          const d = e.key === 'ArrowDown' ? 1 : -1
+          if (e.shiftKey && o.selectable) { if (selectable(c.id) && !ui.sel.has(c.id)) setSel([c.id], true); const n = moveRow(d); if (n && selectable(n)) setSel([n], true); ui.anchor = ui.anchor || c.id }
+          else moveRow(d)
+          break
+        }
+        case 'ArrowRight': moveCol(1); break
+        case 'ArrowLeft': moveCol(-1); break
+        case 'Home': mod ? focusCell(ids[0], c.col) : focusCell(c.id, cols[0]); break
+        case 'End': mod ? focusCell(ids[ids.length - 1], c.col) : focusCell(c.id, cols[cols.length - 1]); break
+        case 'PageDown': moveRow(10); break
+        case 'PageUp': moveRow(-10); break
+        case 'F2': startEdit(c.id); break
+        case 'Enter': if (c.col === 'text' || c.col === 'time') startEdit(c.id); else handled = false; break
+        case ' ': if (e.shiftKey || c.col !== 'sel') { if (o.selectable) toggleSel(c.id) } else handled = false; break
+        case 'Delete': case 'Backspace': if (o.editable) removeOrRestore(targetsFor(c.id)); break
+        default:
+          if (mod && (e.key === 'z' || e.key === 'Z') && o.editable) doUndo(e.shiftKey, true)
+          else if (mod && e.key === 'y' && o.editable) doUndo(true, true)
+          else if (mod && e.key === 'a' && o.selectable) selectAll()
+          else if (mod && e.key === 'c' && !String(getSelection()).trim()) copy(ui.sel.size ? ids.filter((i) => ui.sel.has(i)) : [c.id], false)
+          else handled = false
+      }
+      if (handled) { e.preventDefault(); requestAnimationFrame(() => setTimeout(() => __sp.perf.push({ gt: o.name || uid, key: (e.shiftKey ? 'Shift+' : '') + (mod ? 'Ctrl+' : '') + e.key, ms: +(performance.now() - t0).toFixed(1) }), 0)) }
+    })
+    // Salir del editor confirma (si el foco va a otra parte del documento; no si la ventana pierde el foco)
+    grid.addEventListener('focusout', (e) => {
+      if (!ui.editing) return
+      const ed = e.target.closest('.gt-editor'); if (!ed) return
+      const to = e.relatedTarget
+      if (to && ed.contains(to)) return
+      if (!to && !document.hasFocus()) return
+      queueMicrotask(() => { if (ui.editing && !ed.contains(document.activeElement)) commitEdit(false) })
+    })
+    // Copia nativa (Ctrl+C sobre texto seleccionado): texto limpio, sin horas, marcas ni textos ocultos
+    grid.addEventListener('copy', (e) => { const parts = mapSelection(); if (!parts) return; e.preventDefault(); e.clipboardData.setData('text/plain', tx.compose({ kind: 'text', parts }, { who }).text) })
+    R.scroll.addEventListener('scroll', () => { if (ui.newer && atBottom()) { ui.newer = 0; renderNewer() } }, { passive: true })
+  }
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'); if (!b || (R.grid && R.grid.contains(b))) return
+    if (b.getAttribute('aria-disabled') === 'true') return
+    const a = b.dataset.a
+    if (a === 'undo') doUndo(false)
+    else if (a === 'redo') doUndo(true)
+    else if (a === 'all') { b.checked = !b.checked; selectAll() }
+    else if (a === 'assign') speakerMenu(b, ids.filter((i) => ui.sel.has(i)))
+    else if (a === 'removesel') removeOrRestore(ids.filter((i) => ui.sel.has(i)))
+    else if (a === 'copy') { const list = ui.sel.size ? ids.filter((i) => ui.sel.has(i)) : null; showMenu(b, root, { label: L.bar.copy, items: [{ id: 'text', text: L.copyText + fill(L.copyScope, { count: list ? list.length : 0 }), icon: 'copy' }, { id: 'full', text: L.copyFull + fill(L.copyScope, { count: list ? list.length : 0 }), icon: 'copy' }], onPick: (x) => copy(list, x === 'full') }) }
+    else if (a === 'changes') { ui.changes = !ui.changes; ui.orig.clear(); ids.forEach(patchRow); renderBar(); say(ui.changes ? L.ann.changesOn : L.ann.changesOff) }
+    else if (a === 'speakers') { ui.mgr = !ui.mgr; renderMgr(); renderBar() }
+    else if (a === 'newer') { ui.newer = 0; renderNewer(); R.scroll.scrollTop = R.scroll.scrollHeight; focusCell(ids[ids.length - 1], 'text') }
+    else if (a === 'merge') { const from = b.dataset.spk, into = root.querySelector(`[data-r3="into-${from}"]`).value; if (tx.mergeSpeakers(from, into)) say(fill(L.ann.merge, { from: fill(L.speaker, { letter: tx.letter(from) }), into: spkLabel(into) })) }
+    else if (a === 'unmerge') { if (tx.unmerge(b.dataset.spk)) say(fill(L.ann.unmerge, { from: spkLabel(b.dataset.spk) })) }
+    else if (a === 'addspk') { const id = tx.addSpeaker(); say(fill(L.ann.added, { speaker: spkLabel(id) })) }
+    else if (a === 'insert') doInsert()
+    else if (a === 'undoins') undoInsert(b.dataset.use)
+  })
+  root.addEventListener('change', (e) => {
+    const el = e.target, a = el.dataset.a
+    if (a === 'role') { tx.setRole(el.dataset.spk, el.value); say(fill(L.ann.role, { speaker: fill(L.speaker, { letter: tx.letter(el.dataset.spk) }), role: roleLabel(el.value) || L.mgr.noRole })) }
+    else if (a === 'src') { ui.src = el.value; ui.srcManual = true; renderInsert() }
+    else if (a === 'pos') { ui.pos = el.value; renderInsert() }
+    else if (a === 'target') { ui.target = el.value; renderInsert() }
+    else if (a === 'withspk') { ui.withSpk = el.checked; renderInsert() }
+  })
+
+  // ---------- selección de texto dentro de la transcripción ----------
+  function mapSelection() {
+    const sel = getSelection(); if (!sel || sel.isCollapsed || !sel.rangeCount || !R.grid) return null
+    const range = sel.getRangeAt(0)
+    if (!R.grid.contains(range.commonAncestorContainer) && range.commonAncestorContainer !== R.grid) return null
+    const parts = []
+    for (const id of ids) {
+      const s = tx.segment(id); if (!s || s.failed) continue
+      const p = rows.get(id).querySelector(':scope > [data-col="text"] > .gt-p'); if (!p || !range.intersectsNode(p)) continue
+      const off = (node, o2) => { const r = document.createRange(); r.selectNodeContents(p); r.setEnd(node, o2); return r.toString().length }
+      const len = p.textContent.length
+      const a = p.contains(range.startContainer) ? off(range.startContainer, range.startOffset) : 0
+      const b = p.contains(range.endContainer) ? off(range.endContainer, range.endOffset) : len
+      if (b > a) parts.push({ id, start: a, end: b, text: p.textContent.slice(a, b) })
+    }
+    return parts.length ? parts : null
+  }
+  function onSelection() {
+    if (listMode || !o.targets) return
+    const parts = mapSelection()
+    const sig = parts ? parts.map((p) => `${p.id}:${p.start}-${p.end}`).join() : null
+    if (parts) { if (sig !== ui.textSelSig) { ui.textSel = { parts }; ui.textSelSig = sig; ui.src = 'text'; renderInsert() } } // una selección NUEVA pasa a ser la fuente; la elección manual se respeta mientras no cambie
+    else if (ui.textSel && R.grid && document.activeElement && (R.grid.contains(document.activeElement))) { ui.textSel = null; ui.textSelSig = null; renderInsert() }
+  }
+
+  // ---------- nuevos fragmentos: seguir el final solo si ya se estaba al final ----------
+  const atBottom = () => { const sc = R.scroll; return sc.scrollHeight - sc.scrollTop - sc.clientHeight < 32 }
+  function renderNewer() { const b = root.querySelector('[data-a="newer"]'); if (!b) return; b.hidden = !ui.newer; if (ui.newer) b.innerHTML = ic('arrow-down') + esc(fill(L.newer, { count: ui.newer })) }
+
+  // ---------- suscripción al modelo ----------
+  function onChange(c) {
+    if (listMode) { if (c.type !== 'partial') renderList(); return }
+    if (c.type === 'partial') {
+      const pid = tx.partial?.id
+      if (pid && !rows.has(pid)) { const was = atBottom(); sync([pid]); follow(was, 0) }
+      else if (pid) patchRow(pid)
+      else sync([])
+      return
+    }
+    if (c.type === 'add') {
+      const was = atBottom()
+      const need = computeCols().join() !== cols.join()
+      if (need) { rebuild(); return }
+      sync(c.ids); follow(was, c.ids.length); renderBar(); renderInsert(); if (ui.mgr) renderMgr(); return
+    }
+    if (c.type === 'segments' || c.type === 'derived') {
+      if (c.speakers && computeCols().join() !== cols.join()) { rebuild(); return }
+      ;(c.speakers ? ids : c.ids).forEach(patchRow)
+      renderBar(); renderMgr(); renderInsert()
+    }
+  }
+  function follow(was, n) {
+    const inGrid = R.grid.contains(document.activeElement) && ui.focus && ui.focus.id !== ids[ids.length - 2]
+    if (was && !ui.editing && !openMenu && !inGrid) R.scroll.scrollTop = R.scroll.scrollHeight
+    else if (n) { ui.newer += n; renderNewer() }
+  }
+  function setTranscript(next) {
+    if (unsub) unsub()
+    tx = next; ui.sel.clear(); ui.editing = null; ui.orig.clear(); ui.textSel = null; ui.last = null; ui.newer = 0
+    unsub = tx.subscribe(onChange); rebuild(); renderNewer()
+  }
+  setTranscript(tx)
+  const api = { root, uid, ui, get tx() { return tx }, setTranscript, refreshInsert, onSelection, renderNote, rebuild, destroy() { unsub?.(); GTS.delete(api); root.innerHTML = ''; root.className = '' }, focusFirst() { focusCell(ids[0], 'text') }, copy, compose: (s, x) => tx.compose(s, { who, ...x }), get rows() { return rows } }
+  GTS.add(api)
+  return api
+}
+let selT = null
+document.addEventListener('selectionchange', () => { clearTimeout(selT); selT = setTimeout(() => GTS.forEach((g) => g.onSelection()), 80) })
+
+// =====================================================================================================
+// Sesión simulada (en Grana: el gestor createSpeech de la F1 con el adaptador; mismos eventos)
+// =====================================================================================================
+const SCRIPT = [
+  ['A', 'Buenos días. Cuénteme, ¿qué le trae hoy por aquí?'],
+  ['B', 'Desde hace tres días tengo dolor de cabeza por las tardes.'],
+  ['A', '¿El dolor es de un lado o de toda la cabeza?'],
+  ['B', 'Sobre todo del lado derecho, y empeora con la luz.'],
+  ['C', 'También ha dormido poco esta semana por el trabajo.'],
+  ['A', 'Entiendo. ¿Ha tomado algún medicamento para el dolor?'],
+  ['B', 'Un analgésico el lunes, pero apenas me ayudó.'],
+  ['A', 'Vamos a revisar la presión y a anotar los síntomas de cada día.'],
+  ['B', 'De acuerdo. ¿Tengo que volver la próxima semana?'],
+  ['A', 'Sí, en una semana, y antes si el dolor aumenta o cambia.']
+]
+const ENG = { A: 'spk_0', B: 'spk_1', C: 'spk_2' } // ids opacos del motor; la letra sale del orden de aparición
+const partialOf = (w) => w.join(' ').toLowerCase().replace(/[.,;:¿?¡!]/g, '')
+const S = { status: 'idle', tx: createTranscript({ mode: 'conversation', expectedSpeakers: 2 }), alive: false, paused: false, i: 0, t: 0, pending: 0, failNext: false, timers: new Set(), started: 0, dur: 0 }
+const speeds = { normal: { word: 160, lat: 700, gap: 400 }, fast: { word: 25, lat: 120, gap: 40 } }
+const later = (ms, f) => { const h = setTimeout(() => { S.timers.delete(h); f() }, ms); S.timers.add(h) }
+async function feed(gen) {
+  while (S.alive && gen === S.gen) {
+    const tx = S.tx
+    const [who, text] = SCRIPT[S.i % SCRIPT.length]; S.i++
+    const id = 'seg-' + S.i, words = text.split(' '), sp = speeds[$('#b-speed').value], t0 = S.t
+    const spk = $('#b-diar').checked ? ENG[who] : null
+    for (let k = 1; k <= words.length; k++) {
+      await wait(sp.word)
+      while (S.paused && S.alive && gen === S.gen) await wait(50)
+      if (!S.alive || gen !== S.gen) break
+      tx.setPartial({ id, text: partialOf(words.slice(0, k)), speaker: spk }); S.t += 320
+    }
+    const fail = S.failNext; S.failNext = false
+    S.pending++
+    const seg = { id, text, speaker: spk, t0, t1: S.t }
+    later(sp.lat, () => { if (fail) tx.addFailed(seg); else tx.addFinal(seg); S.pending-- })
+    if (!S.alive) break
+    await wait(sp.gap); S.t += 600
+  }
+}
+function setStatus(s) {
+  S.status = s
+  const txt = { idle: 'Sin grabación', live: 'Grabando', paused: 'En pausa', processing: 'Procesando', completed: 'Lista para revisar' }[s]
+  $('#sess-t').textContent = txt; $('#sess').toggleAttribute('data-live', s === 'live')
+  $('#panel-status').textContent = txt + (s === 'completed' ? ` · ${S.tx.segments.length} fragmentos` : '')
+  renderPanelCtl()
+}
+function renderPanelCtl() {
+  const s = S.status, B = (a, t, icon, kind = '') => `<button type="button" class="wf-btn" data-size="sm" data-s="${a}"${kind ? ` data-kind="${kind}"` : ''}>${icon ? ic(icon) : ''}${esc(t)}</button>`
+  const html = {
+    idle: B('start', 'Grabar conversación', 'mic', 'primary'),
+    live: B('pause', 'Pausar', 'pause') + B('finish', 'Finalizar', 'square', 'primary') + B('review', 'Revisar', 'list'),
+    paused: B('resume', 'Reanudar', 'mic') + B('finish', 'Finalizar', 'square', 'primary') + B('review', 'Revisar', 'list'),
+    processing: '',
+    completed: B('review', 'Revisar transcripción', 'list', 'primary') + B('close', 'Cerrar sesión', 'circle-check')
+  }[s]
+  const a = document.activeElement, k = a && $('#panel-ctl').contains(a) ? a.dataset.s : null
+  $('#panel-ctl').innerHTML = html
+  if (k) { const n = $(`#panel-ctl [data-s="${k}"]`); if (n) n.focus(); else $('#panel-t').focus() }
+}
+function bindAll(tx) { [GT.panel, GT.page, GT.dialog].forEach((g) => g && g.setTranscript(tx)) }
+async function start() {
+  const exp = $('#b-exp').value
+  S.tx = createTranscript({ mode: 'conversation', expectedSpeakers: exp === 'many' ? 'many' : +exp })
+  S.alive = true; S.paused = false; S.i = 0; S.t = 0; S.gen = (S.gen || 0) + 1
+  bindAll(S.tx); GT.panel.renderNote(); GT.page.renderNote()
+  setStatus('live'); hostSay('Grabando conversación.')
+  S.feedP = feed(S.gen)
+}
+async function finish() {
+  S.alive = false; setStatus('processing'); hostSay('Procesando el audio pendiente.')
+  await S.feedP // el bucle cierra el provisional en curso (pasa a pendiente, como engine.finish())
+  while (S.pending > 0) await wait(50)
+  S.tx.setPartial(null)
+  setStatus('completed')
+  const n = S.tx.segments.filter((s) => !s.failed).length
+  hostSay(`Transcripción lista: ${n} fragmentos. Revísala antes de usarla.`)
+}
+$('#panel-ctl').addEventListener('click', (e) => {
+  const a = e.target.closest('[data-s]')?.dataset.s; if (!a) return
+  if (a === 'start') start()
+  else if (a === 'pause') { S.paused = true; setStatus('paused'); hostSay('En pausa. El micrófono no está capturando.') }
+  else if (a === 'resume') { S.paused = false; setStatus('live'); hostSay('Grabando de nuevo.') }
+  else if (a === 'finish') { S.paused = false; finish() }
+  else if (a === 'review') review(e.target.closest('button'))
+  else if (a === 'close') { __sp.completed.push(S.tx.toJSON()); setStatus('idle'); hostSay('Sesión cerrada. La transcripción se entregó a la aplicación.') }
+})
+$('#inj-fail').addEventListener('click', () => { S.failNext = true })
+$('#inj-relabel').addEventListener('click', () => S.tx.relabel({ spk_2: 'spk_0' }))
+
+// Revisar: si la app tiene su GTranscript en la página, se lleva el foco allí; si no, diálogo del anfitrión
+function review(opener) {
+  if ($('#b-pagerev').checked) { $('#rv-page-t').scrollIntoView({ block: 'start' }); $('#rv-page-t').focus({ preventScroll: true }) }
+  else openDialog(opener)
+}
+let dlgOpener = null
+function openDialog(opener) {
+  const d = $('#rv-dlg')
+  if (!GT.dialog) GT.dialog = GTranscript($('#gt-dialog'), { tx: S.tx, targets: TARGETS, labelledby: 'rv-dlg-t', announce: hostSay, diarization: () => $('#b-diar').checked, maxBlock: '52vh', name: 'diálogo' })
+  else GT.dialog.setTranscript(S.tx)
+  dlgOpener = opener || document.activeElement
+  d.append($('#host-ch')) // los canales vivos van al modal superior (F1 §6.6)
+  d.showModal(); $('#rv-dlg-t').focus()
+}
+$('#rv-dlg').addEventListener('close', () => { document.body.prepend($('#host-ch')); if (dlgOpener?.isConnected) dlgOpener.focus() })
+$('#rv-dlg-x').innerHTML = ic('x')
+$('#rv-dlg-x').addEventListener('click', () => $('#rv-dlg').close())
+$('#open-review').addEventListener('click', (e) => openDialog(e.currentTarget))
+
+// =====================================================================================================
+// Formulario con pestañas (la pestaña inactiva se DESMONTA, como v-if)
+// =====================================================================================================
+let tab = 'motivo'
+function renderTab() {
+  const tp = $('#form-tp')
+  tp.setAttribute('aria-labelledby', 'tab-' + tab)
+  tp.innerHTML = tab === 'motivo'
+    ? `<div class="wf-field"><label for="f-motivo">Motivo de consulta</label><textarea id="f-motivo" data-model="motivo"></textarea></div><div class="wf-field"><label for="f-resumen">Resumen (una línea)</label><input id="f-resumen" data-model="resumen"></div>`
+    : `<div class="wf-field"><label for="f-plan">Plan</label><textarea id="f-plan" data-model="plan"></textarea></div>`
+  $$('[data-model]', tp).forEach((el) => { el.value = form[el.dataset.model] })
+  $$('#form-tabs [role=tab]').forEach((b) => { const on = b.dataset.tab === tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1 })
+  GTS.forEach((g) => g.refreshInsert())
+}
+$('#form-tabs').addEventListener('click', (e) => { const b = e.target.closest('[role=tab]'); if (b) { tab = b.dataset.tab; renderTab() } })
+$('#form-tabs').addEventListener('keydown', (e) => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return; e.preventDefault(); tab = tab === 'motivo' ? 'plan' : 'motivo'; renderTab(); $('#tab-' + tab).focus() })
+$('#note-form').addEventListener('submit', (e) => e.preventDefault())
+renderTab()
+
+// =====================================================================================================
+// Instancias
+// =====================================================================================================
+const GT = {}
+GT.panel = GTranscript($('#gt-panel'), { tx: S.tx, compact: true, selectable: false, labelledby: 'panel-tx-t', announce: hostSay, diarization: () => $('#b-diar').checked, maxBlock: '320px', name: 'panel' })
+GT.page = GTranscript($('#gt-page'), { tx: S.tx, targets: TARGETS, labelledby: 'rv-page-t', announce: hostSay, diarization: () => $('#b-diar').checked, maxBlock: '440px', name: 'página' })
+setStatus('idle')
+
+// Transcript guardado por la app (sin sesión)
+const SAVED = {
+  id: 'speech-guardado', mode: 'conversation', createdAt: '2026-09-12T10:04:00.000Z', expectedSpeakers: 2,
+  speakers: [{ id: 'spk_0', role: 'pro', mergedInto: null, origin: 'engine' }, { id: 'spk_1', role: 'pac', mergedInto: null, origin: 'engine' }],
+  segments: [
+    { id: 's1', t0: 0, t1: 3200, literal: 'Buenos días, ¿cómo ha seguido?', engineSpeaker: 'spk_0', corrected: null, speaker: null, removed: false, failed: false },
+    { id: 's2', t0: 3600, t1: 8100, literal: 'Mejor, el dolor bajo bastante desde el martes.', engineSpeaker: 'spk_1', corrected: 'Mejor, el dolor bajó bastante desde el martes.', speaker: null, removed: false, failed: false },
+    { id: 's3', t0: 8400, t1: 9900, literal: 'Eh, bueno.', engineSpeaker: 'spk_1', corrected: null, speaker: null, removed: true, failed: false },
+    { id: 's4', t0: 10200, t1: 14800, literal: '¿Ha vuelto a tener molestias con la luz?', engineSpeaker: 'spk_1', corrected: null, speaker: 'spk_0', removed: false, failed: false },
+    { id: 's5', t0: 15100, t1: 18300, literal: 'Solo una vez, el jueves por la noche.', engineSpeaker: 'spk_1', corrected: null, speaker: null, removed: false, failed: false },
+    { id: 's6', t0: 18700, t1: 23900, literal: 'Bien. Mantenemos el plan y revisamos en dos semanas.', engineSpeaker: 'spk_0', corrected: null, speaker: null, removed: false, failed: false }
+  ],
+  derived: [{ id: 'd1', kind: 'insert', createdBy: 'user', at: '2026-09-12T10:20:00.000Z', target: { id: 'plan', label: 'Plan' }, sourceSegmentIds: ['s6'], text: 'Mantenemos el plan y revisamos en dos semanas.', position: 'end', sources: { s6: 'Bien. Mantenemos el plan y revisamos en dos semanas.' } }]
+}
+const savedTx = createTranscript(SAVED)
+function mountSaved() {
+  GT.saved?.destroy()
+  const m = $('#saved-mode').value
+  GT.saved = GTranscript($('#gt-saved'), { tx: savedTx, editable: m === 'edit', selectable: m !== 'read', labelledby: 'saved-t', maxBlock: '360px', name: 'guardado' })
+}
+$('#saved-mode').addEventListener('change', mountSaved)
+mountSaved()
+
+// Transcript largo
+const POOL = SCRIPT.map((x) => x[1]).concat(['Lo anoto en el expediente.', 'No, nada más por ahora.', '¿Le duele también al moverse?', 'A veces, cuando me levanto rápido.', 'Revisemos la lista de medicamentos.', 'Gracias, así queda claro.'])
+function makeLong(n) {
+  let t = 0
+  const segments = Array.from({ length: n }, (_, i) => { const d = 2500 + ((i * 7919) % 6000); const s = { id: 'L' + i, t0: t, t1: t + d, literal: POOL[(i * 31) % POOL.length], engineSpeaker: i % 2 ? 'spk_1' : 'spk_0' }; t += d + 400; return s })
+  return createTranscript({ mode: 'conversation', expectedSpeakers: 2, speakers: [{ id: 'spk_0' }, { id: 'spk_1' }], segments })
+}
+function loadLong(n) {
+  const t0 = performance.now()
+  const tx = makeLong(n)
+  if (GT.long) GT.long.setTranscript(tx); else GT.long = GTranscript($('#gt-long'), { tx, labelledby: 'long-t', maxBlock: '480px', name: 'largo' })
+  const t1 = performance.now()
+  requestAnimationFrame(() => setTimeout(() => {
+    const ms = +(performance.now() - t0).toFixed(1)
+    __sp.longRender = { n, build: +(t1 - t0).toFixed(1), toPaint: ms, nodes: $('#gt-long').getElementsByTagName('*').length }
+    $('#long-info').textContent = `${n} fragmentos: construcción ${__sp.longRender.build} ms, hasta el pintado ${ms} ms, ${__sp.longRender.nodes} nodos.`
+  }, 0))
+}
+$('#long-load').addEventListener('click', () => loadLong(320))
+$('#long-load-1000').addEventListener('click', () => loadLong(1000))
+
+// Datos
+$('#show-json').addEventListener('click', () => { const p = $('#json'); p.hidden = false; p.textContent = JSON.stringify(S.tx.toJSON(), null, 2) })
+$('#show-form').addEventListener('click', () => { const p = $('#json'); p.hidden = false; p.textContent = JSON.stringify(form, null, 2) })
+
+Object.assign(__sp, { S, GT, GTS, TARGETS, form, createTranscript, savedTx, start, finish, setField, renderTab, setTab: (t) => { tab = t; renderTab() }, openDialog, loadLong })
+__sp.ready = true
+</script>
+</body>
+</html>
