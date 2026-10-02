@@ -116,6 +116,7 @@ export const DEFAULTS = {
   "--g-form-gap": "calc(var(--g-space-1) * 5)",
   "--g-form-column-gap": "var(--g-space-4)",
   "--g-form-section-gap": "calc(var(--g-space-1) * 10)",
+  "--g-divider-inset": "calc(var(--g-space-1) * 2)",
   "--g-space-1": "4px",
   "--g-space-2": "8px",
   "--g-space-3": "12px",
