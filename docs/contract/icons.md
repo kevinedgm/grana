@@ -1,10 +1,12 @@
-# Contrato de iconos · v0.3
+# Contrato de iconos · v0.4
 
-**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203 y #204 a #206 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
+**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203, #204 a #206 y #224 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
 
 **Cambios respecto a la v0.1:** `GIcon` pasa a ser **público** (§2; #197, #199) con registro de iconos **por aplicación** (`createIcons`, §5; #200); la validación «solo Lucide» se impone a la aplicación por la forma del dato (§5.3; #198); la lista de la librería es **API pública** (§4; #201); convención de huecos «dato → nombre; plantilla → slot» (§5.8, `api.md`; #202); hueco `lead` en `GFormSection` (#203). Sin tokens nuevos.
 
 **Cambios respecto a la v0.2** (auditoría de coco, `design/lab/icons/auditoria.md`, hallazgos 1, 3 y alias): la clase de la aplicación **gana siempre**, también dentro de un hueco, por capa y no por especificidad; no se ponen clases de tamaño en un icono dentro de un hueco (§2.2, §3; #204). `GBtn` dimensiona sus iconos con un alias local `--_icon` y se cierra el pendiente «Tamaño de icono por token» sin token (§9; #205). El nombre registrado es el de la **marca de la exportación**, siempre el canónico; la librería pasa de `circle-help` a **`circle-question-mark`** y conserva `circle-help` como **alias de compatibilidad** hasta la siguiente versión mayor (§4, §5.2; #206). Sin tokens nuevos.
+
+**Cambios respecto a la v0.3:** la lista de la librería crece (cambio menor, #201) con los 11 iconos que usa la captura de voz (§4; `design/contracts/speech.md`; #224). Sin tokens nuevos ni cambios de API de `GIcon`.
 
 ## 1. Qué es un icono (y qué no)
 
@@ -139,12 +141,16 @@ Nombre de Lucide entre comillas.
 | `GToast` | Tipos `info` · `success` · `warning` · `error` · `loading` (gira) · cerrar (`neutral` no lleva icono) | `info` · `circle-check` · `triangle-alert` · `circle-alert` · `loader-circle` · `x` |
 | `GErrorSummary` | Título del resumen | `circle-alert` |
 | `GMenu` | Casilla marcada · opción marcada · chevron de submenú · peligroso | `check` · `circle` (rellena) · `chevron-right` · `triangle-alert` |
+| `GSpeechHost`, `GSpeechPill`, `GSpeechTrigger` (captura de voz, Fase 1; `speech.md` §2.1, §6.4, §7; #224) | Estados: `idle`/`ready` · `requesting` · `listening` · `speech` · `transcribing` · `paused` · `processing` (gira) · `reconnecting` · `denied` · `unavailable` · `error` · `completed` | `mic` · `shield-question-mark` · `circle` (rellena) · `audio-lines` · `captions` · `circle-pause` · `loader-circle` · `refresh-cw` · `mic-off` · `unplug` · `circle-alert` · `circle-check` |
+| | Controles: pausar · reanudar / empezar · reintentar · finalizar · abrir panel · cerrar panel · cerrar sesión · fragmento fallido · privacidad local / externa | `pause` · `mic` · `rotate-ccw` · `square` (rellena) · `chevron-down` · `x` · `circle-check` · `triangle-alert` · `lock` / `globe` |
 
 **Alias de compatibilidad (#206):** `circle-help` estaba en la lista de la v0.2 con el nombre de un **archivo de alias** de `lucide-static` (`icons/circle-help.svg`, marca `lucide-circle-help`), no con el canónico: en `lucide-static` 1.49.0 `CircleHelp`, `HelpCircle` y `CircleQuestionMark` exportan el mismo módulo, `circle-question-mark`. Desde la v0.3 la lista usa el canónico **`circle-question-mark`** y **conserva `circle-help`** como alias del mismo dibujo (sin bytes duplicados en el paquete), sin aviso, hasta la siguiente versión mayor (#201: quitar un nombre es cambio mayor); está **obsoleto**: la documentación y los componentes usan el canónico. Es el único alias; uno nuevo solo entra por una decisión de lima cuando Lucide renombre un icono de la lista (§7, prueba 9).
 
 | Alias (obsoleto) | Canónico | Se retira en |
 | --- | --- | --- |
 | `circle-help` | `circle-question-mark` | la siguiente versión mayor |
+
+**Entran con la captura de voz (v0.4, #224):** `mic`, `mic-off`, `pause`, `circle-pause`, `audio-lines`, `captions`, `shield-question-mark`, `refresh-cw`, `unplug`, `rotate-ccw` y `globe` (nombres canónicos comprobados por lima en `lucide-static` 1.49.0: cada uno tiene su módulo en `dist/esm/icons/` con la marca `lucide-<nombre>`; `shield-question-mark`, no el archivo de alias `shield-question`). Bruno los añade a la lista `library` de `icons.json` (y a `lab`, para el prototipo) antes de usarlos. **Reservados para la Fase 2 de la captura de voz, fuera de la lista hasta que un componente los use:** `text-cursor-input`, `undo-2`, `trash`, `pencil`, `copy`.
 
 `GProgress`, `GTextarea` (salvo el mensaje), `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GFormActions`, `GInput` (los iconos de los slots `prepend` y `append`), `GWidgetConfig` y el resto **no traen iconos propios**.
 

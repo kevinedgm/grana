@@ -290,6 +290,12 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 - **Mismos nodos, sin remontar** (los canales vivos deben seguir existiendo): bruno usa un `Teleport` con destino reactivo (`body` o el modal) o un traslado equivalente; tras cada traslado vuelve a llamar a `showPopover()` (sacar un popover abierto del documento lo cierra) para quedar por encima del modal.
 - Los avisos visibles, la cola y los temporizadores no se reinician con el traslado. Esc en un aviso no cierra el diálogo (ver «Foco y teclado» y `dialog.md`).
 
+### Convivencia con la captura de voz (`speech.md` §6.7, #225)
+
+- **Borde compartido:** si `GSpeechHost` muestra su pill flotante en el mismo borde **efectivo** que la región (en móvil, los dos abajo), la región **suma la reserva** que publica el anfitrión (alto de la pill + su margen) a su `offset` de ese borde: bruno la escribe en las variables en línea existentes como `--_toaster-offset-bottom: calc(<offset> + <reserva>)` (o `-top`). **`GToast.css` no cambia.** La pill, persistente, nunca se mueve por los avisos; los avisos quedan por dentro de ella. El registro de reservas es interno, por documento, solo en el cliente y con los componentes montados; no es opción de `createToaster`.
+- **Modal superior:** el seguimiento del `<dialog>` modal se extrae a `utils/topModal.js` (interno), compartido con `GSpeechHost`. La hoja móvil de `GSpeechHost` es un `<dialog>` modal: la región de avisos **sí** se traslada a ella (los avisos deben seguir operables encima de la hoja).
+- **Atajos y canales:** F8 sigue siendo de los avisos; la voz usa Mayús+F8. Cada servicio conserva su par de canales vivos.
+
 ## Movimiento
 
 - Entrada: desplazamiento corto desde el borde (derivado de `space`) + fundido; salida: fundido (y desplazamiento lateral si se deslizó); recolocación de la pila con transición. Tokens **existentes** `--g-duration-*` y `--g-ease-*` (#71); coco elige cuáles. Nada se repite ni parpadea (2.2.2).

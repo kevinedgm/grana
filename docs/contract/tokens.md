@@ -634,3 +634,21 @@ La descripción del diálogo y la de la sección (body-sm 14, `muted`) van entre
 ### 23.6 Iconos en títulos
 
 Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defecto**. **Resuelto (DECISIONS.md #203, ronda de iconos públicos `design/lab/icons/r01/`):** `GFormSection` gana un **hueco opcional `lead`** como el de `GCard` (decorativo, `aria-hidden`, fuera del `hN`; `design/contracts/form.md` §3); `GDialog` ya tenía el suyo, el slot **`icon`** (`design/contracts/dialog.md`; la redacción anterior de esta sección decía, por error, que no lo tenía) y no gana `lead`. Sin tokens nuevos: el tamaño del icono lo fija cada hueco con su alias local; la jerarquía de esta §23 no cambia.
+
+## 24. Captura de voz (sin tokens nuevos)
+
+**`GSpeechHost`, `GSpeechPill` y `GSpeechTrigger` no añaden tokens** (`design/contracts/speech.md` §13, DECISIONS.md #223; §17.6: ningún existente se queda corto). Pill flotante y panel son `GSurface level="floating"` (sombra `--g-shadow-2`, radio y borde de `floating`, #100); botones de `GBtn`; procesamiento con `GProgress`; texto con `--g-color-text`, `--g-color-text-muted` y los roles `body-sm`/`caption` (§23); foco con `--g-color-focus`; movimiento con `--g-duration-*` y `--g-ease-*`.
+
+**Color por estado** (siempre con icono y texto; los estados de problema llevan además una señal de forma, no solo color):
+
+| Estado | Rol |
+| --- | --- |
+| Captura viva (`listening`, `speech`, `transcribing`; `reconnecting` con captura) | **`--g-color-active`** (rol `active ← accent`, §17.5 y §17.23; precedente: ítem activo de `GSidebar`), con `--g-color-accent-soft` / `--g-color-on-accent-soft` si coco rellena. **Nunca `danger`**: grabar no es crítico ni destructivo (§17.7); el brief pide énfasis sin alarma. coco cuida que el énfasis no se confunda con el anillo de foco (`focus ← accent-text`) |
+| `denied`, `unavailable`, `error` | `--g-color-danger-text` |
+| `reconnecting`, señal plana, fragmento fallido | `--g-color-warning-text` |
+| `completed` | `--g-color-success-text` |
+| Resto, provisional | Neutros (`--g-color-text-muted` o el que elija coco para el provisional, **≥ 4.5:1**) |
+
+**No son tokens** (constantes de diseño derivadas de `space`, de coco): ancho del panel (prototipo: 440px ≈ `space × 110`), separaciones, barras de la onda y del medidor, márgenes al borde combinados con `env(safe-area-inset-*)`, alto máximo de la hoja (~88 % del visor dinámico). **Umbral móvil** `space × 130` (el de `GDialog`, #103), medido por bruno. **Variables dinámicas en línea** (alias `--_*`, excepción justificada como `--_toaster-offset-*`): `--_speech-offset-top`, `--_speech-offset-bottom` (opción `offset`), `--_speech-bar` (nivel de cada barra), `--_speech-max-block` (alto disponible del panel) y las de posición del panel. Los tiempos de captura (`SPEECH_TIMING`: fotograma, vigilante, señal plana, agrupación de anuncios) son **comportamiento** del gestor, no tema.
+
+**Borde compartido con `GToaster`** (#225): la reserva del borde de la pill flotante se suma a las variables existentes `--_toaster-offset-*`; no hay token ni variable nueva en `GToast.css`.
