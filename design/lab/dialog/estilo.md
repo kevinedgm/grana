@@ -35,7 +35,7 @@
 | Confirmación | Sin botón de cierre; foco inicial en "Cancelar"; inset con solo pie (el cuerpo vacío no ocupa espacio) |
 | Móvil 375px | Hoja de 375px de ancho pegada abajo (812px), pantalla completa exacta, ancho completo con margen, sin desborde horizontal |
 | Táctil (`pointer: coarse`, bloque aplicado sin condición) | Cierre de 44×44px |
-| Movimiento reducido (bloque aplicado sin condición) | Transición del cierre a `0s`; la animación de entrada solo existe con `no-preference` |
+| Movimiento reducido (bloque aplicado sin condición) | El botón de cierre conserva el fundido de color y no escala al pulsar; la animación de entrada solo existe con `no-preference` |
 | Colores forzados (bloque aplicado sin condición) | Carcasa, inset, pie, secciones y cierre en `CanvasText`/`ButtonText`; la cruz (borde de 2px) se mantiene |
 | Consola | Sin errores |
 

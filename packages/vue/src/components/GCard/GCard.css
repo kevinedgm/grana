@@ -764,10 +764,6 @@ li.g-card.g-card--orientation-horizontal.g-surface--level-flat.g-card--size-narr
   .g-card { --_tap: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .g-card,
-  .g-card::before,
-  .g-card__tick,
-  .g-card__menu,
   .g-card__expand > .g-icon,
   .g-card__more-toggle > .g-icon { transition: none; }
 }

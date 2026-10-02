@@ -48,7 +48,7 @@ Coco lo necesitó al escribir el estilo; queda como hallazgo para lima (abajo).
 | Foco con teclado | Evento: anillo de 2px pegado (`outline-offset` negativo) y su `li` sube de capa; botones de barra: anillo de 2px con separación |
 | Táctil (`pointer: coarse`, 320px) | Botones de barra de 44px; evento de 5 minutos, ficha del Mes, `+N` y evento de Timeline de **44px** (corregido: en Mes y Timeline quedaban en 24px); tirador de 44px; día del Mes de 44×44; carriles de Timeline de 48px; sin desborde |
 | Cambio de tema (marca, acento, superficies ámbar, texto marrón, radio 0, borde 2px, espacio 5, Georgia, tokens de calendario propios) | Ninguna propiedad conserva el valor anterior; la escala de posiciones sigue a `space` |
-| Movimiento reducido (bloque aplicado sin condición) | Transición de eventos y botones a `0s`; el esqueleto deja de pulsar |
+| Movimiento reducido (bloque aplicado sin condición) | Eventos y botones conservan los fundidos de color; el esqueleto deja de pulsar |
 | Colores forzados (bloque aplicado sin condición) | Borde de evento `ButtonText`, fondo `Canvas`; línea de ahora y botón de vista activo con `Highlight`; bloqueos y disponibilidad con `GrayText` (corregido: el bloqueo no cambiaba por menor especificidad) |
 | RTL (`dir="rtl"`) | El eje pasa a la derecha y las columnas a su izquierda (propiedades lógicas) |
 | Errores de consola | Ninguno |

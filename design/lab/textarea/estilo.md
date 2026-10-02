@@ -30,7 +30,7 @@
 | Cambio de tema (superficies ámbar, texto marrón, colores de foco, radios, borde 2px, foco 3px, espacio 5, Georgia) | Las **298** propiedades medidas cambian; ninguna conserva el valor por defecto |
 | Foco con teclado (real) | Anillo de 3px pegado al borde (`outline-offset` −2px) en el color del tema; el `<textarea>` no lleva contorno |
 | Táctil (`pointer: coarse`, bloque aplicado sin condición) | Todas las cajas de 1 fila ≥ 44px |
-| Movimiento reducido (bloque aplicado sin condición) | Transición a `0s` y giro del anillo más lento |
+| Movimiento reducido (bloque aplicado sin condición) | La caja conserva los fundidos de color; el giro del anillo, más lento |
 | Colores forzados (bloque aplicado sin condición) | Borde `ButtonText`, deshabilitado `GrayText`, foco `Highlight`, inválido con borde de 4px |
 | Carga | El anillo queda dentro de la caja, alineado con la primera línea (desvío 0) y el texto no pasa por debajo |
 | 240px con palabra larguísima (texto, ayuda y error) | Sin desborde |

@@ -497,7 +497,6 @@
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-select__control,
   .g-select__arrow {
     transition: none;
   }

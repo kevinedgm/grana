@@ -445,16 +445,20 @@
 }
 
 /* ---------- Preferencias del sistema ---------- */
+/* Movimiento reducido: sin escala, sin trazo del ✓, sin apertura del anillo ni ancho animado del chip; los fundidos de color se conservan */
 @media (prefers-reduced-motion: reduce) {
-  .g-checkbox__input,
-  .g-checkbox__row,
-  .g-checkbox__icon,
-  .g-checkbox--layout-card .g-checkbox__row,
-  .g-checkbox--layout-chip .g-checkbox__row,
-  .g-checkbox--layout-chip .g-checkbox__chip-mark,
+  .g-checkbox__input {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
   .g-checkbox__box,
   .g-checkbox__mark {
     transition: none;
+  }
+  .g-checkbox--layout-chip .g-checkbox__chip-mark {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
   .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:active .g-checkbox__box {
     scale: 1;

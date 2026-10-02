@@ -896,9 +896,11 @@
   .g-sidebar--mode-rail .g-sidebar__toggle > svg {
     scale: none;
   }
-  .g-sidebar__sub,
+  .g-sidebar__sub {
+    transition: opacity var(--g-duration-fast) linear, visibility 0s linear var(--g-duration-fast);
+  }
   .g-sidebar__sub.is-open {
-    transition: opacity var(--g-duration-fast) linear;
+    transition: opacity var(--g-duration-fast) linear, visibility 0s;
   }
   .g-sidebar__fly,
   .g-sidebar__fly:popover-open,

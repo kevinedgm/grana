@@ -52,7 +52,7 @@ Medidas derivadas (alias locales, sin tokens): altura `space × 10 × densidad` 
 | active | Marca + peso 600 + texto `text` (`on-primary-soft` en pill) |
 | disabled | Opacidad 0.5 y `not-allowed`; en `forced-colors`, `GrayText` |
 | loading / attention | Icono con texto oculto; `loading` gira solo sin movimiento reducido |
-| `prefers-reduced-motion` | Marca sin transición (salta), sin giro, sin entrada del panel (verificado: transiciones `0s`, animación `none`) |
+| `prefers-reduced-motion` | Marca sin transición (salta), sin giro, sin entrada del panel; el color de las pestañas se sigue fundiendo (120 ms) |
 | `forced-colors` | Línea base `GrayText`, marca `Highlight`, texto de la activa `HighlightText` en las apariencias con superficie, foco `CanvasText` (verificado con emulación) |
 | `prefers-contrast: more` | Línea base y texto inactivo con `border-control` y `text`; contorno doble en píldora y segmento; pista del segmento contorneada |
 | `pointer: coarse` | `--_tap` 44px: pestañas, botones de borde, segmentos |

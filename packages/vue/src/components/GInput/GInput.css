@@ -407,9 +407,6 @@
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-input__control {
-    transition: none;
-  }
   .g-input__loader {
     animation-duration: calc(var(--g-duration-spin) * 2.5);
   }

@@ -973,12 +973,6 @@
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-calendar__toolbar button,
-  .g-calendar__retry,
-  .g-calendar__sheet-close,
-  .g-calendar__event {
-    transition: none;
-  }
   .g-calendar__skeleton > * {
     animation: none;
   }

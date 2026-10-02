@@ -203,8 +203,8 @@
 .g-widget-config.is-applying { cursor: progress; }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-widget-config__tabs [role="tab"],
-  .g-widget-config__btn { transition: none; }
+  .g-widget-config__btn { transition: background-color var(--g-duration-fast) var(--g-ease-standard); }
+  .g-widget-config__btn:active { scale: 1; }
 }
 
 @media (forced-colors: active) {

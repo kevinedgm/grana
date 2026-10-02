@@ -292,9 +292,6 @@
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-textarea__control {
-    transition: none;
-  }
   .g-textarea__loader {
     animation-duration: calc(var(--g-duration-spin) * 2.5);
   }

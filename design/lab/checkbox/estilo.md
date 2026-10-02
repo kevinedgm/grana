@@ -32,7 +32,7 @@
 | Chip: el `<input>` cubre el chip | `opacity: 0`, 89 de 91px (dentro del borde); el clic en el borde también activa la casilla por el `<label>` |
 | Grupo | `<fieldset>` sin aspecto del navegador; cabecera con maestra mixta y "2 de 4 seleccionadas" |
 | Cambio de tema (superficies ámbar, texto marrón, brand/accent/success/danger nuevos, radio 0, borde 2px, foco 3px, espacio 5, Georgia) | Ninguna propiedad conserva el valor anterior (la única coincidencia, el texto blanco del chip marcado, viene de `on-brand`, que ese tema no cambió). Cuadro, tarjeta y chip a 0px de radio |
-| Movimiento reducido (bloque del CSS aplicado sin condición) | Transición de cuadro, marca, tarjeta, icono, chip y ✓ a `0s` (corregido: tarjeta y chip seguían animando por menor especificidad) |
+| Movimiento reducido (bloque del CSS aplicado sin condición) | Sin escala, sin trazo del ✓, sin apertura del anillo ni ancho animado del chip; los fundidos de color (120 ms) se conservan; al pulsar, escala 1 |
 | Colores forzados (bloque aplicado sin condición) | Borde `ButtonText`; marcada y chip con `Highlight`; deshabilitada `GrayText`; inválida con borde de 2px |
 | Táctil (`pointer: coarse`, 320px) | Filas de 44px en todos los tamaños, chips de 44px, filas del grupo de 44px; el cuadro sigue en 20px y **centrado** con la etiqueta (desvío 0); sin desborde horizontal |
 | RTL (`dir="rtl"`) | El cuadro pasa a la derecha, la etiqueta a su izquierda, el relleno del error se espeja (propiedades lógicas) |

@@ -31,7 +31,7 @@
 | Cambio de tema (superficies ámbar, texto marrón, los 7 colores, borde 2px, foco 3px, espacio 5, Georgia) | Las **322** propiedades medidas cambian; ninguna conserva el valor por defecto |
 | Foco con teclado (real) | Anillo de 3px, separación de 2px, color del tema |
 | Táctil (`pointer: coarse`, bloque aplicado sin condición) | Fila de 44px; riel de 24px centrado con la etiqueta (desvío 0) |
-| Movimiento reducido (bloque aplicado sin condición) | Transición del riel, del pulgar y de la marca a `0s` |
+| Movimiento reducido (bloque aplicado sin condición) | El pulgar y la marca saltan de lado (sin desplazamiento ni escala al pulsar); los fundidos de color del riel, del pulgar y de la marca se conservan |
 | Colores forzados (bloque aplicado sin condición) | Apagado: borde y pulgar `ButtonText`, riel `Canvas`. Encendido: riel `Highlight`, pulgar `HighlightText`. Deshabilitado `GrayText` |
 | 240px y texto largo | Sin desborde (`scrollWidth` = `clientWidth`); la etiqueta salta de línea |
 | RTL | Riel a la derecha; pulgar encendido a la izquierda con la misma separación; con etiqueta al inicio, el riel pasa a la izquierda; el ✓ **no** se espeja |

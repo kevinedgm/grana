@@ -753,13 +753,6 @@
 }
 
 /* ---------- Preferencias del sistema ---------- */
-@media (prefers-reduced-motion: reduce) {
-  .g-datepicker__field,
-  .g-datepicker__day,
-  .g-datepicker__chip {
-    transition: none;
-  }
-}
 @media (forced-colors: active) {
   .g-datepicker__field {
     border-color: ButtonText;

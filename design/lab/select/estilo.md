@@ -32,7 +32,7 @@
 | Cambio de tema (superficies ámbar, texto marrón, colores de foco, radios, borde 2px, foco 3px, espacio 5, Georgia, fondo propio) | Las **423** propiedades medidas cambian; ninguna conserva el valor por defecto |
 | Foco con teclado (real) | Anillo de 3px pegado al borde (`outline-offset` −2px) en el color del tema; el botón no lleva contorno |
 | Táctil (`pointer: coarse`, bloque aplicado sin condición) | Caja y opciones de 45px con `space` 5 (≥ 44px); botón de limpiar de 44×44px |
-| Movimiento reducido (bloque aplicado sin condición) | Transiciones a `0s`; el giro del anillo de carga, más lento |
+| Movimiento reducido (bloque aplicado sin condición) | Sin giro del chevrón; la caja conserva los fundidos de color; el giro del anillo de carga, más lento |
 | Colores forzados (bloque aplicado sin condición) | Caja y lista `ButtonText`/`CanvasText`; opción activa con contorno `Highlight`; deshabilitada `GrayText`; inválido con borde de 4px |
 | RTL | El botón de limpiar y la flecha pasan a la izquierda (propiedades lógicas) |
 | Hoja inferior a 375px con el tema | Ancho completo (375px), esquinas superiores de 28px (`--g-surface-radius`), fondo propio, `::backdrop` `rgb(59 42 26 / 0.45)`, opciones de 45px, sin desborde horizontal |

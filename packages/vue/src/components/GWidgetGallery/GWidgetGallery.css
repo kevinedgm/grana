@@ -256,8 +256,8 @@
 .g-widget-gallery__btn[aria-disabled="true"]:active { scale: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-widget-gallery__cat > span,
-  .g-widget-gallery__btn { transition: none; }
+  .g-widget-gallery__btn { transition: background-color var(--g-duration-fast) var(--g-ease-standard); }
+  .g-widget-gallery__btn:active { scale: 1; }
 }
 
 @media (forced-colors: active) {

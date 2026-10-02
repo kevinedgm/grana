@@ -379,13 +379,15 @@
 }
 .g-tabs--appearance-contained .g-tabs__panels { margin: 0; }
 
+/* Color de la pestaña: siempre (no es movimiento) */
+.g-tabs__tab {
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+
 /* Movimiento de la marca: solo posición y tamaño; sin él, la marca salta (también el primer posicionamiento) */
 @media (prefers-reduced-motion: no-preference) {
-  .g-tabs__tab {
-    transition:
-      background-color var(--g-duration-fast) var(--g-ease-standard),
-      color var(--g-duration-fast) var(--g-ease-standard);
-  }
   .g-tabs.is-ready .g-tabs__mark {
     transition:
       translate var(--g-duration-press) var(--g-ease-standard),

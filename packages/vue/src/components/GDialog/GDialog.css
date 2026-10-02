@@ -343,10 +343,13 @@ html:has(.g-dialog[open]) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .g-dialog__close,
-  .g-dialog__footer {
-    transition: none;
+  .g-dialog__close {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard);
   }
+  .g-dialog__close:active { scale: none; }
 }
 
 /* ---------- Colores forzados ---------- */

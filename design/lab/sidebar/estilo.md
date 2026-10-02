@@ -76,7 +76,7 @@ Colores y radios solo de tokens; medidas solo de `space` y de la altura del item
 | Táctil (bloque aplicado sin condición) | Item, hijo, búsqueda y toggle de **44px** |
 | RTL | El sidebar pasa a la derecha, el borde queda en su lado interior y el chevrón se espeja |
 | Colores forzados (bloque aplicado sin condición, 8 reglas) | Activo con contorno `CanvasText` en lugar de la sombra; deshabilitado `GrayText`; píldora con `Highlight` y borde de 4px |
-| Movimiento reducido (bloque aplicado sin condición) | Transiciones a `0s` |
+| Movimiento reducido (bloque aplicado sin condición) | Sin desplazamientos ni escalas; se conservan los fundidos de color y de opacidad (también al cerrar el submenú) |
 | Tema de prueba (ámbar, marrón, espacio 5, radios y borde de 2px, Georgia) | Todo lo que depende del tema cambia; lo que no cambia es intencional (el blanco de `on-brand` y el radio `xs` de la `kbd`, no tematizado en la prueba) |
 | Flotante y superpuesto | Flotante a 12px de los bordes con radio 12px y `--g-shadow-2`; superpuesto: la expansión es `position: absolute` con `--g-shadow-3` y el contenido no se mueve |
 | Consola | Sin errores del CSS |
