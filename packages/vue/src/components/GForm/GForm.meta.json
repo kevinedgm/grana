@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Formulario con contexto: decide cuándo se ven los errores que calcula la aplicación, envía, resume y mantiene el estado sucio. No valida ni guarda.",
   "contract": "design/contracts/form.md",
-  "prototype": "design/lab/form/r01/",
+  "prototype": "design/lab/form/r02/",
   "style": "packages/vue/src/components/GForm/GForm.css",
   "props": [
     { "name": "errors", "type": "Object", "default": "{}", "note": "{ [name]: String }, calculados por la aplicación" },

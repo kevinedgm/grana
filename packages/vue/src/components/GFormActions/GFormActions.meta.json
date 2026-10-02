@@ -20,5 +20,5 @@
   ],
   "tokens": ["--g-color-surface", "--g-color-border", "--g-space-1"],
   "states": ["default", "stacked", "sticky"],
-  "pending": ["Lector real: orden del Tab en el pie apilado (#155)", "Auditoría: peso del pie apilado de 177px a 320px (#169)"]
+  "pending": ["Lector real: orden del Tab en el pie apilado (#155)"]
 }

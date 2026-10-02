@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Sección fija de un formulario (una idea) con título, descripción, acciones y ayuda; sin tarjeta ni punto de referencia.",
   "contract": "design/contracts/form.md",
-  "prototype": "design/lab/form/r01/",
+  "prototype": "design/lab/form/r02/",
   "style": "packages/vue/src/components/GFormSection/GFormSection.css",
   "props": [
     { "name": "title", "type": "String", "default": null },
