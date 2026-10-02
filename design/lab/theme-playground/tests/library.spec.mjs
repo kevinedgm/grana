@@ -266,4 +266,83 @@ test.describe('playground de la librería', () => {
     await page.evaluate(() => window.toaster.clear())
     expect(errors, browserName).toEqual([])
   })
+
+  test('los formularios (GForm): rejilla 12/6/1, momento de los errores, resumen con foco, pie fijo sin tapar el foco y consola limpia', async ({ page, browserName }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
+    page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
+    await ready(page)
+    // Rejilla por ancho propio (no por el visor): 12 / 6 / 1 columnas
+    const recipe = page.locator('#fm-recipe')
+    await recipe.scrollIntoViewIfNeeded()
+    const grid = page.locator('#fm-address .g-form-grid')
+    for (const [w, tier, cols] of [[960, 'wide', 12], [600, 'medium', 6], [360, 'narrow', 1]]) {
+      await recipe.evaluate((el, w) => { el.style.inlineSize = `${w}px` }, w)
+      await expect(grid).toHaveAttribute('data-tier', tier)
+      expect(await grid.evaluate((g) => getComputedStyle(g).gridTemplateColumns.split(' ').length)).toBe(cols)
+    }
+    // Momento: salir sin escribir no revela; escribir y salir revela; corregir lo quita
+    const nombre = page.locator('#fm-short input[name="nombre"]')
+    const msg = page.locator('#fm-short .g-input__message').first()
+    await nombre.focus()
+    await page.keyboard.press('Tab')
+    await expect(msg).toHaveText('')
+    await nombre.fill('A')
+    await nombre.fill('')
+    await page.keyboard.press('Tab')
+    await expect(msg).toHaveText('Error: Escribe tu nombre')
+    await expect(nombre).toHaveAttribute('aria-invalid', 'true')
+    await nombre.fill('Ana')
+    await expect(msg).toHaveText('')
+    // «(opcional)» forma parte del nombre accesible
+    await expect(page.getByRole('textbox', { name: 'Extensión (opcional)' }).first()).toBeVisible()
+    // Envío con errores: revela todos y enfoca el primer inválido (sin resumen)
+    await page.locator('#fm-short button[type="submit"]').click()
+    await expect(page.locator('#fm-short input[name="apellido"]')).toBeFocused()
+    await expect(page.locator('#fm-short .g-field-group__message')).toContainText('10 dígitos')
+    // Resumen: foco al enviar, enlace al campo con la etiqueta a la vista, sale al corregir
+    await page.locator('#fm-medium button[value="save"]').click()
+    const summary = page.locator('#fm-medium .g-error-summary')
+    await expect(summary).toBeFocused()
+    const links = summary.locator('.g-error-summary__link')
+    const before = await links.count()
+    expect(before).toBeGreaterThan(3)
+    await links.first().click()
+    await expect(page.locator('#fm-medium input[name="m-nombre"]')).toBeFocused()
+    await page.keyboard.type('Ana')
+    await expect(links).toHaveCount(before - 1)
+    // Solo lectura: enfocable, sin marcas
+    await expect(page.locator('#fm-view .g-input.is-readonly').first()).toBeVisible()
+    await expect(page.locator('#fm-view [class*="__optional"]')).toHaveCount(0)
+    // Pie fijo: Tab por todos los campos, ninguno queda debajo del pie
+    await page.locator('#fm-sticky input').first().focus()
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    let covered = 0
+    for (let i = 0; i < 14; i++) {
+      covered += await page.evaluate(() => {
+        const t = document.activeElement
+        const bar = document.querySelector('#fm-sticky .g-form-actions')
+        if (!t || !t.closest('#fm-sticky') || bar.contains(t)) return 0
+        return t.getBoundingClientRect().bottom > bar.getBoundingClientRect().top + 0.5 ? 1 : 0
+      })
+      await page.keyboard.press('Tab')
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    }
+    expect(covered, browserName).toBe(0)
+    expect(await page.locator('#fm-sticky').evaluate((f) => f.style.getPropertyValue('--g-form-actions-size'))).toMatch(/px$/)
+    expect(errors, browserName).toEqual([])
+    // 320px en una página nueva cargada a ese ancho. En WebKit, GCalendar da un «ResizeObserver loop» a 320px (y al girar
+    // el visor, también GTable) que existe sin el formulario: se excluye solo ese mensaje en esta página y se reporta aparte.
+    const narrow = await page.context().newPage()
+    narrow.on('pageerror', (e) => { if (!/ResizeObserver loop/.test(e.message)) errors.push(`pageerror 320: ${e.message}`) })
+    narrow.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console 320: ${m.text()}`) })
+    await narrow.setViewportSize({ width: 320, height: 800 })
+    await ready(narrow)
+    await narrow.locator('#fm-short').scrollIntoViewIfNeeded()
+    await expect(narrow.locator('#fm-short .g-form-grid')).toHaveAttribute('data-tier', 'narrow')
+    await expect(narrow.locator('#fm-short .g-form-actions')).toHaveAttribute('data-stacked', '')
+    expect(await narrow.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    expect(await narrow.evaluate(() => [...document.querySelectorAll('#sec-form .g-input, #sec-form .g-select, #sec-form .g-field-group, #sec-form .g-form-actions')].filter((el) => !el.closest('#fm-recipe') && el.getBoundingClientRect().right > innerWidth + 0.5).length)).toBe(0)
+    expect(errors, browserName).toEqual([])
+  })
 })
