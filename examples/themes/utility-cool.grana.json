@@ -1,0 +1,14 @@
+{
+  "name": "Utilitario frío",
+  "brand": "#0F4C81",
+  "accent": "#007C73",
+  "radius": 8,
+  "shape": "rounded",
+  "space": 4,
+  "font": "Inter",
+  "fontSize": 16,
+  "typeScale": 1.2,
+  "neutrals": "pure",
+  "categories": 6,
+  "dark": true
+}
