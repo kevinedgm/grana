@@ -51,6 +51,11 @@
     .pg-section > h3 { margin: 24px 0 8px; font-size: var(--g-text-body-size); font-weight: 600; color: var(--g-color-text-muted); }
     .pg-panel { padding: 20px; min-inline-size: 0; position: relative; overflow-x: auto; background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-lg); }
     .pg-panel > :last-child { margin-block-end: 0; }
+    /* Banco de formularios (form.md §12): el marco es el contenedor del formulario; su ancho lo fija el banco */
+    .fm-bench { gap: 8px 20px; font-size: var(--g-text-body-sm-size); }
+    .fm-bench-ctl { display: inline-flex; align-items: center; gap: 6px; min-block-size: 24px; }
+    .fm-bench-ctl select { font: inherit; min-block-size: 28px; color: var(--g-color-text); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-sm); }
+    .fm-frame { box-sizing: border-box; max-inline-size: 100%; padding: 16px; border: var(--g-border-width) dashed var(--g-color-border-strong); border-radius: var(--g-radius-md); }
 
     @media (max-width: 899px) {
       .pg-layout { grid-template-columns: minmax(0, 1fr); }
@@ -382,133 +387,263 @@
         </section>
         <section class="pg-section" id="sec-form" data-pg-section>
           <h2>Formularios (GForm)</h2>
-          <p class="pg-lead">Capa de composición sobre los campos: rejilla de anchos semánticos que mide su propio ancho (12 / 6 / 1), secciones, preguntas con varias partes, momento de los errores («castigar tarde, premiar pronto»), resumen con foco, pie fijo y modo vista. Grana no valida: los errores los calcula esta página y GForm decide cuándo se ven.</p>
-          <h3>Formulario corto</h3>
+          <p class="pg-lead">Capa de composición sobre los campos (r02): filas explícitas (<code>GFormLayout</code> + <code>GFormRow</code>) que siempre llenan el ancho y se parten en líneas por su ancho propio, tres pistas compartidas por línea (etiqueta · caja · pie), campos fusionados (<code>GInputGroup</code>), preguntas compuestas, valor calculado (<code>output</code>), momento de los errores («castigar tarde, premiar pronto»), resumen con foco, pie fijo y modo vista. Grana no valida: los errores los calcula esta página y GForm decide cuándo se ven.</p>
+          <div class="row fm-bench" id="fm-bench" role="group" aria-label="Banco de distribución">
+            <label class="fm-bench-ctl">Contenedor <select id="fm-bench-w" v-model="fm.bench.w"><option value="">Libre</option><option v-for="w in ['1280', '960', '720', '480', '360', '320']" :key="w" :value="w">{{ w }}px</option></select></label>
+            <label class="fm-bench-ctl"><input id="fm-bench-state" v-model="fm.bench.state" type="checkbox"> Ayuda y mensajes</label>
+            <label class="fm-bench-ctl"><input id="fm-bench-long" v-model="fm.bench.long" type="checkbox"> Etiquetas largas</label>
+            <label class="fm-bench-ctl">Densidad <select id="fm-bench-density" v-model="fm.bench.density"><option value="default">default</option><option value="comfortable">comfortable</option><option value="compact">compact</option></select></label>
+          </div>
+          <h3>Formulario corto: Nombre · Apellido; Correo · Teléfono fusionado · Extensión</h3>
           <div class="pg-panel">
-    <g-form id="fm-short" aria-label="Contacto" :errors="fm.shortErrors" :labels="fm.labels" @submit="fm.done('corto', $event)" @invalid="fm.bad('corto', $event)">
-      <g-form-grid>
-        <g-input v-model="fm.s.nombre" class="g-form-w-md" label="Nombre" name="nombre" required autocomplete="given-name"></g-input>
-        <g-input v-model="fm.s.apellido" class="g-form-w-md" label="Apellido" name="apellido" required autocomplete="family-name"></g-input>
-        <g-input v-model="fm.s.correo" class="g-form-w-md g-form-break" label="Correo" name="correo" type="email" required autocomplete="email" hint="Te enviaremos la confirmación aquí."></g-input>
-        <g-field-group class="g-form-w-lg" label="Teléfono" name="telefono" required hint="Lo usamos solo para confirmar la cita.">
-          <g-select v-model="fm.s.lada" class="g-form-part-sm" label="País" name="tel-pais" required :options="fm.ladas"></g-select>
-          <g-input v-model="fm.s.tel" label="Número" name="tel-numero" type="tel" required autocomplete="tel-national" placeholder="951 123 4567"></g-input>
-          <g-input v-model="fm.s.ext" class="g-form-part-sm" label="Extensión" name="tel-ext" inputmode="numeric" autocomplete="tel-extension"></g-input>
-        </g-field-group>
-        <g-textarea v-model="fm.s.comentarios" label="Comentarios" name="comentarios"></g-textarea>
-      </g-form-grid>
+    <div class="fm-frame" data-frame :style="fm.frame">
+    <g-form id="fm-short" :density="fm.bench.density" aria-label="Contacto" :errors="fm.shortErrors" :labels="fm.labels" @submit="fm.done('corto', $event)" @invalid="fm.bad('corto', $event)">
+      <g-form-layout>
+        <g-form-row>
+          <g-input v-model="fm.s.nombre" id="fs-nombre" label="Nombre" name="nombre" required autocomplete="given-name"></g-input>
+          <g-input v-model="fm.s.apellido" id="fs-apellido" :label="fm.L('Apellido', 'Apellido o apellidos como en la identificación')" name="apellido" required autocomplete="family-name"></g-input>
+        </g-form-row>
+        <g-form-row>
+          <g-input v-model="fm.s.correo" id="fs-correo" label="Correo" name="correo" type="email" required autocomplete="email" hint="Te enviaremos la confirmación aquí." :error="fm.E('fs-correo')"></g-input>
+          <g-input-group id="fs-tel" label="Teléfono" name="telefono" required style="--g-form-min: 50">
+            <g-input-group-select id="fs-tel-pais" v-model="fm.s.lada" name="tel-pais" part-label="Código de país" :options="fm.ladas" autocomplete="tel-country-code"></g-input-group-select>
+            <g-input-group-input id="fs-tel-num" v-model="fm.s.tel" name="tel-numero" principal type="tel" autocomplete="tel-national" placeholder="951 123 4567" :error="fm.E('fs-tel-num')"></g-input-group-input>
+          </g-input-group>
+          <g-input v-model="fm.s.ext" id="fs-ext" class="g-form-w-xs" label="Extensión" name="tel-ext" inputmode="numeric" autocomplete="tel-extension"></g-input>
+        </g-form-row>
+        <g-textarea v-model="fm.s.comentarios" id="fs-com" label="Comentarios" name="comentarios"></g-textarea>
+      </g-form-layout>
       <g-form-actions><g-btn type="submit">Enviar</g-btn></g-form-actions>
     </g-form>
+    </div>
     <p class="log" id="fm-short-log">{{ fm.log.corto }}</p>
           </div>
-          <h3>Mediano: secciones, anchos por contenido y resumen de errores</h3>
+          <h3>Mediano: secciones, valor calculado, signos vitales con unidades, resumen de errores y pie fijo</h3>
           <div class="pg-panel">
-    <g-form id="fm-medium" ref="fmMedium" aria-label="Alta de paciente" v-model:dirty="fm.dirty" :errors="fm.mediumErrors" :warnings="fm.mediumWarnings" :labels="fm.labels" :heading-level="4" @submit="fm.done('mediano', $event)" @invalid="fm.bad('mediano', $event)" @reset="fm.resetMedium">
+    <div class="fm-frame" data-frame :style="fm.frame">
+    <g-form id="fm-medium" :density="fm.bench.density" ref="fmMedium" aria-label="Alta de paciente" v-model:dirty="fm.dirty" :errors="fm.mediumErrors" :warnings="fm.mediumWarnings" :labels="fm.labels" :heading-level="4" @submit="fm.done('mediano', $event)" @invalid="fm.bad('mediano', $event)" @reset="fm.resetMedium">
       <g-error-summary :labels="{ title: fm.summaryTitle }"></g-error-summary>
       <g-form-section title="Información básica" description="Como aparece en la identificación oficial.">
-        <g-form-grid>
-          <g-input v-model="fm.m.nombre" class="g-form-w-md" label="Nombre" name="m-nombre" required autocomplete="given-name"></g-input>
-          <g-input v-model="fm.m.apellido1" class="g-form-w-md" label="Primer apellido" name="m-apellido1" required></g-input>
-          <g-input v-model="fm.m.apellido2" class="g-form-w-md" label="Segundo apellido" name="m-apellido2"></g-input>
-          <g-date-picker v-model="fm.m.nacimiento" class="g-form-w-sm g-form-break" label="Fecha de nacimiento" name="m-nacimiento" required :labels="dpLabels"></g-date-picker>
-          <g-input class="g-form-w-xs" label="Edad" name="m-edad" :model-value="fm.edad" readonly suffix="años"></g-input>
-          <g-select v-model="fm.m.sexo" class="g-form-w-sm" label="Sexo" name="m-sexo" required placeholder="Elige" :options="[{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decir' }]"></g-select>
-        </g-form-grid>
+        <g-form-layout>
+          <g-form-row>
+            <g-input v-model="fm.m.nombre" id="fm-nombre" label="Nombre" name="m-nombre" required autocomplete="given-name" :hint="fm.H('fm-nombre')"></g-input>
+            <g-input v-model="fm.m.apellido1" id="fm-ap1" label="Primer apellido" name="m-apellido1" required autocomplete="family-name" :error="fm.E('fm-ap1')"></g-input>
+            <g-input v-model="fm.m.apellido2" id="fm-ap2" :label="fm.L('Segundo apellido', 'Segundo apellido o apellido de casada')" name="m-apellido2"></g-input>
+          </g-form-row>
+          <g-form-row>
+            <g-date-picker v-model="fm.m.nacimiento" id="fm-nac" class="g-form-w-sm" style="--g-form-min: 44" label="Fecha de nacimiento" name="m-nacimiento" required hint="La edad se calcula sola." :output="fm.edad ? fm.edad + ' años' : ''" :labels="dpLabels"></g-date-picker>
+            <!-- Sexo: GSelect hasta la Fase 2 (GRadioGroup appearance="segmented", #181) -->
+            <g-select v-model="fm.m.sexo" id="fm-sexo" label="Sexo" name="m-sexo" required placeholder="Elige" :error="fm.E('fm-sexo')" :options="[{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decir' }]"></g-select>
+          </g-form-row>
+        </g-form-layout>
       </g-form-section>
-      <g-form-section title="Signos vitales" description="El ancho anticipa lo que cabe: temperatura, peso y saturación son compactos.">
-        <g-form-grid>
-          <g-input v-model="fm.m.temp" class="g-form-w-xs" label="Temperatura" name="m-temp" required inputmode="decimal" suffix="°C" suffix-label="grados Celsius"></g-input>
-          <g-input v-model="fm.m.peso" class="g-form-w-xs" label="Peso" name="m-peso" inputmode="decimal" suffix="kg" suffix-label="kilogramos"></g-input>
-          <g-input v-model="fm.m.sat" class="g-form-w-xs" label="Saturación" name="m-sat" inputmode="decimal" suffix="%"></g-input>
-          <g-input v-model="fm.m.monto" class="g-form-w-sm" label="Copago" name="m-monto" inputmode="decimal" prefix="$" suffix="MXN" suffix-label="pesos mexicanos"></g-input>
-        </g-form-grid>
+      <g-form-section title="Contacto">
+        <g-form-layout>
+          <g-form-row>
+            <g-input v-model="fm.m.correo" id="fm-correo" label="Correo" name="m-correo" type="email" autocomplete="email"></g-input>
+            <g-input-group id="fm-tel" label="Teléfono" name="m-telefono" style="--g-form-min: 50">
+              <g-input-group-select id="fm-tel-pais" v-model="fm.m.lada" name="m-tel-pais" part-label="Código de país" :options="fm.ladas" autocomplete="tel-country-code"></g-input-group-select>
+              <g-input-group-input id="fm-tel-num" v-model="fm.m.tel" name="m-tel-numero" principal type="tel" autocomplete="tel-national" placeholder="951 123 4567"></g-input-group-input>
+            </g-input-group>
+            <g-input v-model="fm.m.ext" id="fm-ext" class="g-form-w-xs" label="Extensión" name="m-tel-ext" inputmode="numeric" autocomplete="tel-extension"></g-input>
+          </g-form-row>
+        </g-form-layout>
+      </g-form-section>
+      <g-form-section title="Signos vitales" description="Medidas de hoy. La unidad va dentro de la caja: fija con suffix, elegible con GInputGroup.">
+        <g-form-layout>
+          <g-form-row id="fm-vitals" role="group" aria-label="Signos vitales">
+            <g-input-group id="fm-temp" class="g-form-w-sm" label="Temperatura" name="m-temperatura" required :warning="fm.W('fm-temp')">
+              <g-input-group-input id="fm-temp-v" v-model="fm.m.temp" name="m-temp" principal inputmode="decimal" placeholder="36.5"></g-input-group-input>
+              <g-input-group-select id="fm-temp-u" v-model="fm.m.unidad" name="m-temp-unidad" part-label="Unidad" :options="[{ value: 'C', label: '°C' }, { value: 'F', label: '°F' }]"></g-input-group-select>
+            </g-input-group>
+            <g-input-group id="fm-pa" class="g-form-w-sm" style="--g-form-min: 38" label="Presión arterial" name="m-presion">
+              <g-input-group-input id="fm-pa-s" v-model="fm.m.sis" name="m-pa-sistolica" principal part-label="sistólica" inputmode="numeric" placeholder="120"></g-input-group-input>
+              <g-input-group-text text="/" decorative></g-input-group-text>
+              <g-input-group-input id="fm-pa-d" v-model="fm.m.dia" name="m-pa-diastolica" part-label="diastólica" inputmode="numeric" placeholder="80"></g-input-group-input>
+              <g-input-group-text id="fm-pa-u" text="mmHg" label="milímetros de mercurio"></g-input-group-text>
+            </g-input-group>
+            <g-input v-model="fm.m.fc" id="fm-fc" class="g-form-w-xs" :label="fm.L('Frecuencia', 'Frecuencia cardiaca')" name="m-fc" inputmode="numeric" suffix="lpm" suffix-label="latidos por minuto" :hint="fm.H('fm-fc')"></g-input>
+            <g-input v-model="fm.m.sat" id="fm-sat" class="g-form-w-xs" label="Saturación" name="m-sat" inputmode="decimal" suffix="%"></g-input>
+            <g-input v-model="fm.m.peso" id="fm-peso" class="g-form-w-xs" label="Peso" name="m-peso" inputmode="decimal" suffix="kg" suffix-label="kilogramos"></g-input>
+            <g-input v-model="fm.m.estatura" id="fm-est" class="g-form-w-xs" label="Estatura" name="m-estatura" inputmode="numeric" suffix="cm" suffix-label="centímetros"></g-input>
+          </g-form-row>
+        </g-form-layout>
       </g-form-section>
       <g-form-section title="Datos fiscales" description="Solo si el paciente pide factura." optional>
-        <g-form-grid>
-          <g-input v-model="fm.m.rfc" class="g-form-w-sm" label="RFC" name="m-rfc" :valid="fm.rfcValid" autocapitalize="characters"></g-input>
-          <g-input v-model="fm.m.razon" class="g-form-w-lg" label="Razón social" name="m-razon"></g-input>
-        </g-form-grid>
+        <g-form-layout>
+          <g-form-row>
+            <g-input v-model="fm.m.rfc" id="fm-rfc" class="g-form-w-sm" label="RFC" name="m-rfc" placeholder="GODE561231GR8" autocapitalize="characters" :valid="fm.rfcValid" :error="fm.E('fm-rfc')"></g-input>
+            <g-input v-model="fm.m.razon" id="fm-razon" class="g-form-w-lg" label="Razón social" name="m-razon" autocomplete="organization"></g-input>
+          </g-form-row>
+          <g-form-row>
+            <g-select v-model="fm.m.regimen" id="fm-regimen" label="Régimen fiscal" name="m-regimen" placeholder="Elige" :options="[{ value: '605', label: '605 Sueldos y salarios' }, { value: '612', label: '612 Personas físicas con actividad empresarial' }, { value: '626', label: '626 RESICO' }]"></g-select>
+            <g-select v-model="fm.m.cfdi" id="fm-cfdi" label="Uso del CFDI" name="m-cfdi" placeholder="Elige" :options="[{ value: 'D01', label: 'D01 Honorarios médicos' }, { value: 'G03', label: 'G03 Gastos en general' }]"></g-select>
+            <g-input v-model="fm.m.cpf" id="fm-cpf" class="g-form-w-sm" :label="fm.L('Código postal', 'Código postal del domicilio fiscal')" name="m-cpf" inputmode="numeric" autocomplete="postal-code" :valid="fm.V('fm-cpf')"></g-input>
+          </g-form-row>
+        </g-form-layout>
       </g-form-section>
       <g-form-section title="Preferencias">
-        <g-form-grid>
+        <g-form-layout>
           <g-checkbox-group v-model="fm.m.avisos" label="Avisos" name="m-avisos" required>
             <g-checkbox label="Por correo" value="mail"></g-checkbox>
             <g-checkbox label="Por SMS" value="sms"></g-checkbox>
           </g-checkbox-group>
           <g-checkbox v-model="fm.m.privacidad" label="Acepto el aviso de privacidad" name="m-privacidad" required></g-checkbox>
-          <g-textarea v-model="fm.m.obs" label="Observaciones" name="m-obs" hint="Alergias, medicación o lo que el equipo deba saber."></g-textarea>
-        </g-form-grid>
+          <g-switch v-model="fm.m.recordatorios" label="Recordatorios por correo" name="m-recordatorios"></g-switch>
+          <g-textarea v-model="fm.m.obs" id="fm-obs" label="Observaciones" name="m-obs" hint="Alergias, medicación o lo que el equipo deba saber."></g-textarea>
+        </g-form-layout>
       </g-form-section>
-      <g-form-actions :status="fm.dirty ? 'Cambios sin guardar' : fm.saved">
+      <g-form-actions sticky :status="fm.dirty ? 'Cambios sin guardar' : fm.saved">
         <g-btn type="reset" variant="ghost">Restablecer</g-btn>
         <g-btn type="submit" variant="outline" formnovalidate name="intent" value="draft">Guardar borrador</g-btn>
         <g-btn type="submit" name="intent" value="save">Guardar</g-btn>
       </g-form-actions>
     </g-form>
+    </div>
     <div class="row" style="margin-block-start:12px">
       <g-btn size="sm" variant="outline" id="fm-server" @click="fm.serverError">Simular error del servidor</g-btn>
     </div>
     <p class="log" id="fm-medium-log">{{ fm.log.mediano }}</p>
           </div>
-          <h3>Recetas: dirección y teléfono (arrastra la esquina: 12 / 6 / 1 columnas)</h3>
+          <h3>Receta: dirección (arrastra la esquina: las filas se parten por su propio ancho)</h3>
           <div class="pg-panel">
-    <div id="fm-recipe" style="resize:horizontal;overflow:auto;inline-size:100%;max-inline-size:100%;min-inline-size:240px;box-sizing:border-box;padding:8px;border:var(--g-border-width) dashed var(--g-color-border-strong)">
-      <g-form id="fm-address" aria-label="Dirección" :labels="fm.labels">
+    <div id="fm-recipe" class="fm-frame" data-frame :style="fm.frame || { resize: 'horizontal', overflow: 'auto', minInlineSize: '240px' }">
+      <g-form id="fm-address" :density="fm.bench.density" aria-label="Dirección" :labels="fm.labels">
         <g-form-section title="Dirección">
-          <g-form-grid>
-            <g-input class="g-form-w-lg" label="Calle" name="calle" required autocomplete="address-line1"></g-input>
-            <div class="g-form-row g-form-w-md">
-              <g-input label="Núm. exterior" name="num-ext" required></g-input>
-              <g-input label="Núm. interior" name="num-int" autocomplete="address-line2"></g-input>
-            </div>
-            <g-input class="g-form-w-md g-form-break" label="Colonia" name="colonia" required autocomplete="address-level3"></g-input>
-            <g-input class="g-form-w-sm" label="Código postal" name="cp" required inputmode="numeric" autocomplete="postal-code"></g-input>
-            <g-input class="g-form-w-md" label="Ciudad" name="ciudad" required autocomplete="address-level2"></g-input>
-            <g-select class="g-form-w-md g-form-break" label="Estado" name="estado" required placeholder="Elige un estado" :options="fm.estados"></g-select>
-            <g-input class="g-form-w-md" label="País" name="pais" required autocomplete="country-name" model-value="México"></g-input>
-            <g-field-group class="g-form-w-lg" label="Teléfono" name="r-telefono" required>
-              <g-select class="g-form-part-sm" label="País" name="r-tel-pais" required :options="fm.ladas" :model-value="52"></g-select>
-              <g-input label="Número" name="r-tel-numero" type="tel" required autocomplete="tel-national"></g-input>
-              <g-input class="g-form-part-sm" label="Extensión" name="r-tel-ext" inputmode="numeric" autocomplete="tel-extension"></g-input>
-            </g-field-group>
-          </g-form-grid>
+          <g-form-layout>
+            <g-form-row>
+              <g-input id="fa-calle" class="g-form-w-lg" label="Calle" name="calle" required autocomplete="address-line1" :hint="fm.H('fa-calle')"></g-input>
+              <g-input id="fa-ext" class="g-form-w-xs" label="Núm. exterior" name="num-ext" required></g-input>
+              <g-input id="fa-int" class="g-form-w-xs" label="Núm. interior" name="num-int" autocomplete="address-line2" :error="fm.E('fa-int')"></g-input>
+            </g-form-row>
+            <g-form-row>
+              <g-input id="fa-col" label="Colonia" name="colonia" required autocomplete="address-level3"></g-input>
+              <g-input id="fa-cp" class="g-form-w-sm" label="Código postal" name="cp" required inputmode="numeric" autocomplete="postal-code" :valid="fm.V('fa-cp')"></g-input>
+              <g-input id="fa-ciudad" label="Ciudad" name="ciudad" required autocomplete="address-level2"></g-input>
+            </g-form-row>
+            <g-form-row>
+              <g-select id="fa-estado" label="Estado" name="estado" placeholder="Elige un estado" :options="fm.estados"></g-select>
+              <g-input id="fa-pais" label="País" name="pais" autocomplete="country-name" model-value="México"></g-input>
+            </g-form-row>
+          </g-form-layout>
         </g-form-section>
+      </g-form>
+    </div>
+          </div>
+          <h3>Campos fusionados (GInputGroup): teléfono, valor + unidad, moneda + importe, serie + folio, rango; solo lectura y deshabilitado</h3>
+          <div class="pg-panel">
+    <div class="fm-frame" data-frame :style="fm.frame">
+      <g-form id="fm-join" :density="fm.bench.density" aria-label="Campos fusionados" :labels="fm.labels">
+        <g-form-layout>
+          <g-form-row>
+            <g-input-group id="fj-tel" label="Teléfono" name="j-telefono" required hint="Lo usamos solo para confirmar la cita." style="--g-form-min: 50">
+              <g-input-group-select id="fj-tel-pais" name="j-tel-pais" part-label="Código de país" :options="fm.ladas" placeholder="País" autocomplete="tel-country-code" :error="fm.E('fj-tel-pais')"></g-input-group-select>
+              <g-input-group-input id="fj-tel-num" name="j-tel-numero" principal type="tel" autocomplete="tel-national" placeholder="951 123 4567"></g-input-group-input>
+            </g-input-group>
+            <g-input id="fj-ext" class="g-form-w-xs" label="Extensión" name="j-tel-ext" inputmode="numeric" autocomplete="tel-extension"></g-input>
+          </g-form-row>
+          <g-form-row>
+            <g-input-group id="fj-temp" class="g-form-w-sm" label="Temperatura" name="j-temperatura" required>
+              <g-input-group-input id="fj-temp-v" name="j-temp" principal inputmode="decimal" placeholder="36.5"></g-input-group-input>
+              <g-input-group-select id="fj-temp-u" name="j-temp-unidad" part-label="Unidad" model-value="C" :options="[{ value: 'C', label: '°C' }, { value: 'F', label: '°F' }]"></g-input-group-select>
+            </g-input-group>
+            <g-input-group id="fj-imp" class="g-form-w-sm" style="--g-form-min: 38" label="Copago" name="j-copago" :hint="fm.H('fj-imp')">
+              <g-input-group-select id="fj-imp-m" name="j-moneda" part-label="Moneda" model-value="MXN" :options="[{ value: 'MXN', label: 'MXN' }, { value: 'USD', label: 'USD' }]"></g-input-group-select>
+              <g-input-group-input id="fj-imp-v" name="j-importe" principal inputmode="decimal" placeholder="0.00"></g-input-group-input>
+            </g-input-group>
+            <g-input-group id="fj-folio" class="g-form-w-sm" style="--g-form-min: 38" label="Folio de factura" name="j-folio">
+              <g-input-group-input id="fj-folio-s" name="j-serie" part-label="Serie" :chars="3" placeholder="A"></g-input-group-input>
+              <g-input-group-input id="fj-folio-n" name="j-folio-num" principal inputmode="numeric" placeholder="000123"></g-input-group-input>
+            </g-input-group>
+            <g-input-group id="fj-rango" class="g-form-w-sm" style="--g-form-min: 43" label="Rango de edad" name="j-rango">
+              <g-input-group-input id="fj-rango-a" name="j-edad-desde" principal part-label="desde" inputmode="numeric" placeholder="18"></g-input-group-input>
+              <g-input-group-text text="a" decorative></g-input-group-text>
+              <g-input-group-input id="fj-rango-b" name="j-edad-hasta" part-label="hasta" inputmode="numeric" placeholder="65" :error="fm.E('fj-rango-b')"></g-input-group-input>
+              <g-input-group-text id="fj-rango-u" text="años"></g-input-group-text>
+            </g-input-group>
+          </g-form-row>
+          <g-form-row>
+            <g-input-group id="fj-ro" style="--g-form-min: 44" label="Teléfono (solo lectura)" readonly>
+              <g-input-group-select id="fj-ro-p" name="j-ro-pais" part-label="Código de país" model-value="+52" :options="fm.ladas"></g-input-group-select>
+              <g-input-group-input id="fj-ro-n" name="j-ro-num" principal type="tel" model-value="951 123 4567"></g-input-group-input>
+            </g-input-group>
+            <g-input-group id="fj-dis" style="--g-form-min: 44" label="Teléfono (deshabilitado)" disabled>
+              <g-input-group-select id="fj-dis-p" name="j-dis-pais" part-label="Código de país" model-value="+52" :options="fm.ladas"></g-input-group-select>
+              <g-input-group-input id="fj-dis-n" name="j-dis-num" principal type="tel"></g-input-group-input>
+            </g-input-group>
+          </g-form-row>
+        </g-form-layout>
+      </g-form>
+    </div>
+          </div>
+          <h3>Preguntas compuestas (GFieldGroup, siempre en su propia fila)</h3>
+          <div class="pg-panel">
+    <div class="fm-frame" data-frame :style="fm.frame">
+      <g-form id="fm-group" :density="fm.bench.density" aria-label="Preguntas compuestas" :labels="fm.labels">
+        <g-form-layout>
+          <g-field-group id="fg-emer" label="Contacto de emergencia" name="emergencia" hint="A quién llamamos si no podemos localizarte.">
+            <g-input id="fg-en" label="Nombre" name="emer-nombre" autocomplete="section-emer name"></g-input>
+            <g-input id="fg-ep" class="g-form-w-sm" label="Parentesco" name="emer-parentesco"></g-input>
+            <g-input-group id="fg-et" label="Teléfono" name="emer-telefono" style="--g-form-min: 50">
+              <g-input-group-select id="fg-et-p" name="emer-tel-pais" part-label="Código de país" model-value="+52" :options="fm.ladas" autocomplete="section-emer tel-country-code"></g-input-group-select>
+              <g-input-group-input id="fg-et-n" name="emer-tel-numero" principal type="tel" autocomplete="section-emer tel-national"></g-input-group-input>
+            </g-input-group>
+          </g-field-group>
+          <g-field-group id="fg-fecha" label="Fecha de la última consulta" name="ultima-consulta" keep hint="Por ejemplo, 27 3 2026">
+            <g-input id="fg-d" class="g-form-w-xs" label="Día" name="uc-dia" inputmode="numeric"></g-input>
+            <g-input id="fg-m" class="g-form-w-xs" label="Mes" name="uc-mes" inputmode="numeric"></g-input>
+            <g-input id="fg-a" class="g-form-w-sm" label="Año" name="uc-anio" inputmode="numeric" :error="fm.E('fg-a')"></g-input>
+          </g-field-group>
+        </g-form-layout>
       </g-form>
     </div>
           </div>
           <h3>Modo vista (GForm readonly) y convención «obligatorios» (marks="required")</h3>
           <div class="pg-panel">
     <g-form id="fm-view" aria-label="Expediente (vista)" readonly :labels="fm.labels">
-      <g-form-grid>
-        <g-input class="g-form-w-md" label="Nombre" name="v-nombre" model-value="Ana Pérez"></g-input>
-        <g-select class="g-form-w-md" label="Especialidad" name="v-esp" :model-value="'card'" :options="[{ value: 'card', label: 'Cardiología' }]"></g-select>
-        <g-date-picker class="g-form-w-sm g-form-break" label="Fecha" name="v-fecha" model-value="2026-10-14" :labels="dpLabels"></g-date-picker>
-        <g-input class="g-form-w-xs" label="Peso" name="v-peso" model-value="64" suffix="kg" suffix-label="kilogramos"></g-input>
+      <g-form-layout>
+        <g-form-row>
+          <g-input label="Nombre" name="v-nombre" model-value="Ana Pérez"></g-input>
+          <g-select label="Especialidad" name="v-esp" :model-value="'card'" :options="[{ value: 'card', label: 'Cardiología' }]"></g-select>
+        </g-form-row>
+        <g-form-row>
+          <g-date-picker class="g-form-w-sm" style="--g-form-min: 44" label="Fecha de nacimiento" name="v-fecha" model-value="1990-05-12" output="36 años" :labels="dpLabels"></g-date-picker>
+          <g-input class="g-form-w-xs" label="Peso" name="v-peso" model-value="64" suffix="kg" suffix-label="kilogramos"></g-input>
+          <g-input-group label="Teléfono" name="v-telefono" style="--g-form-min: 44">
+            <g-input-group-select name="v-tel-pais" part-label="Código de país" model-value="+52" :options="fm.ladas"></g-input-group-select>
+            <g-input-group-input name="v-tel-numero" principal type="tel" model-value="951 123 4567"></g-input-group-input>
+          </g-input-group>
+        </g-form-row>
         <g-textarea label="Observaciones" name="v-obs" model-value="Sin alergias conocidas."></g-textarea>
         <g-checkbox label="Acepto el aviso de privacidad" name="v-priv" :model-value="true"></g-checkbox>
         <g-switch label="Recordatorios" name="v-rec" :model-value="true"></g-switch>
-      </g-form-grid>
+      </g-form-layout>
     </g-form>
     <hr style="border:0;border-block-start:var(--g-border-width) solid var(--g-color-border);margin:24px 0">
     <g-form id="fm-required" aria-label="Cita" marks="required" :labels="fm.labels">
-      <g-form-grid>
-        <g-input class="g-form-w-md" label="Nombre" name="q-nombre" required></g-input>
-        <g-input class="g-form-w-md" label="Segundo apellido" name="q-apellido2"></g-input>
+      <g-form-layout>
+        <g-form-row>
+          <g-input label="Nombre" name="q-nombre" required></g-input>
+          <g-input label="Segundo apellido" name="q-apellido2"></g-input>
+        </g-form-row>
         <g-checkbox-group label="Avisos" name="q-avisos" required>
           <g-checkbox label="Correo" value="mail"></g-checkbox>
           <g-checkbox label="SMS" value="sms"></g-checkbox>
         </g-checkbox-group>
-      </g-form-grid>
+      </g-form-layout>
     </g-form>
           </div>
           <h3>Pie fijo en un contenedor que se desplaza (Tab por todos los campos: ninguno queda debajo del pie)</h3>
           <div class="pg-panel">
     <div id="fm-sticky-scroller" style="block-size:340px;overflow:auto;padding:0 12px;border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-lg);background:var(--g-color-bg)">
       <g-form id="fm-sticky" aria-label="Captura larga" style="padding-block-start:12px" :labels="fm.labels" @submit="fm.done('fijo', $event)">
-        <g-form-grid>
-          <g-input v-for="i in 12" :key="i" :class="i % 2 ? 'g-form-w-md g-form-break' : 'g-form-w-md'" :label="'Campo ' + i" :name="'campo-' + i" :required="i % 3 !== 0"></g-input>
+        <g-form-layout>
+          <g-form-row v-for="r in 6" :key="r">
+            <g-input :label="'Campo ' + (r * 2 - 1)" :name="'campo-' + (r * 2 - 1)" :required="(r * 2 - 1) % 3 !== 0"></g-input>
+            <g-input :label="'Campo ' + r * 2" :name="'campo-' + r * 2" :required="(r * 2) % 3 !== 0"></g-input>
+          </g-form-row>
           <g-textarea label="Notas finales" name="notas"></g-textarea>
-        </g-form-grid>
+        </g-form-layout>
         <g-form-actions sticky status="Cambios sin guardar">
           <g-btn variant="ghost" type="button">Cancelar</g-btn>
           <g-btn type="submit">Guardar</g-btn>
@@ -522,12 +657,14 @@
     <div class="row"><g-btn variant="outline" id="fm-dlg-open" @click="fm.dlg = true">Nueva cita</g-btn></div>
     <g-dialog v-model="fm.dlg" title="Nueva cita" description="El formulario vive en la superficie inset; las acciones, en el pie." close-label="Cerrar">
       <g-form id="fm-dlg-form" aria-label="Nueva cita" :errors="fm.dlgErrors" :labels="fm.labels" @submit="fm.dlgSubmit" @invalid="fm.bad('diálogo', $event)">
-        <g-form-grid>
-          <g-input v-model="fm.d.nombre" class="g-form-w-md" label="Nombre" name="d-nombre" required></g-input>
-          <g-select v-model="fm.d.esp" class="g-form-w-md" label="Especialidad" name="d-esp" required placeholder="Elige" :options="[{ value: 'card', label: 'Cardiología' }, { value: 'derm', label: 'Dermatología' }]"></g-select>
-          <g-date-picker v-model="fm.d.fecha" class="g-form-w-sm g-form-break" label="Fecha" name="d-fecha" required :labels="dpLabels"></g-date-picker>
+        <g-form-layout>
+          <g-form-row>
+            <g-input v-model="fm.d.nombre" label="Nombre" name="d-nombre" required></g-input>
+            <g-select v-model="fm.d.esp" label="Especialidad" name="d-esp" required placeholder="Elige" :options="[{ value: 'card', label: 'Cardiología' }, { value: 'derm', label: 'Dermatología' }]"></g-select>
+          </g-form-row>
+          <g-date-picker v-model="fm.d.fecha" label="Fecha" name="d-fecha" required :labels="dpLabels"></g-date-picker>
           <g-textarea v-model="fm.d.motivo" label="Motivo" name="d-motivo"></g-textarea>
-        </g-form-grid>
+        </g-form-layout>
       </g-form>
       <template #footer="{ close }">
         <g-form-actions>
@@ -1534,12 +1671,38 @@
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
         const num = (v) => { const n = Number(String(v).replace(/,/g, '').trim()); return String(v).trim() === '' ? NaN : n }
-        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, temp: '', peso: '', sat: '', monto: '', rfc: '', razon: '', avisos: [], privacidad: false, obs: '' })
+        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        // Banco de distribución (form.md §12): ancho del contenedor, ayuda + mensajes de los cuatro tipos y etiquetas largas.
+        // Los mensajes del banco son props explícitas (se ven siempre); sin el banco, GForm decide cuándo se ven.
+        const FM_BENCH = {
+          'fs-correo': ['error', 'Escribe el correo con el formato nombre@dominio.com'],
+          'fs-tel-num': ['error', 'Escribe el número a 10 dígitos, sin la clave del país'],
+          'fm-ap1': ['error', 'Escribe el primer apellido como aparece en la identificación'],
+          'fm-sexo': ['error', 'Elige el sexo'],
+          'fm-temp': ['warning', 'Temperatura alta: confirma la lectura'],
+          'fm-cpf': ['valid', 'Código postal de Oaxaca de Juárez'],
+          'fm-rfc': ['error', 'El RFC de persona física tiene 13 caracteres'],
+          'fa-cp': ['valid', 'Oaxaca de Juárez, Oaxaca'],
+          'fa-int': ['error', 'Escribe solo letras y números'],
+          'fj-tel-pais': ['error', 'Elige el código de país'],
+          'fj-rango-b': ['error', 'La edad final debe ser mayor que la inicial'],
+          'fg-a': ['error', 'La fecha debe incluir el año']
+        }
+        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1 }
         const fm = reactive({
           labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
-          ladas: [{ value: 52, label: 'MX +52' }, { value: 1, label: 'US +1' }, { value: 502, label: 'GT +502' }, { value: 57, label: 'CO +57' }],
+          // value en el formato del autocompletado (tel-country-code) y label legible (form.md §8)
+          ladas: [{ value: '+52', label: 'MX +52' }, { value: '+1', label: 'US +1' }, { value: '+502', label: 'GT +502' }, { value: '+57', label: 'CO +57' }],
+          bench: { w: '', state: false, long: false, density: 'default' },
+          get frame() { return fm.bench.w ? { inlineSize: fm.bench.w + 'px', maxInlineSize: 'none' } : null },
+          L(short, long) { return fm.bench.long ? long : short },
+          msg(id, type) { const m = FM_BENCH[id]; return fm.bench.state && m && m[0] === type ? m[1] : undefined },
+          E(id) { return fm.msg(id, 'error') },
+          W(id) { return fm.msg(id, 'warning') },
+          V(id) { return fm.msg(id, 'valid') },
+          H(id) { return fm.bench.state && FM_HINTS[id] ? 'Ayuda de ejemplo que ocupa una o dos líneas para probar la alineación.' : undefined },
           estados: ['Oaxaca', 'Ciudad de México', 'Jalisco', 'Nuevo León', 'Puebla', 'Yucatán'].map((e) => ({ value: e, label: e })),
-          s: { nombre: '', apellido: '', correo: '', lada: 52, tel: '', ext: '', comentarios: '' },
+          s: { nombre: '', apellido: '', correo: '', lada: '+52', tel: '', ext: '', comentarios: '' },
           m: fmMediumInit(),
           d: { nombre: '', esp: null, fecha: null, motivo: '' },
           server: '',
@@ -1572,7 +1735,7 @@
               'm-apellido1': m.apellido1.trim() ? '' : 'Escribe el primer apellido',
               'm-nacimiento': m.nacimiento ? '' : 'Elige la fecha de nacimiento',
               'm-sexo': m.sexo ? '' : 'Elige una opción',
-              'm-temp': Number.isNaN(t) ? 'Escribe la temperatura con números, por ejemplo 36.5' : t < 30 || t > 45 ? 'Escribe una temperatura entre 30 y 45 °C' : '',
+              'm-temp': Number.isNaN(t) ? 'Escribe la temperatura con números, por ejemplo 36.5' : m.unidad === 'F' ? (t < 86 || t > 113 ? 'Escribe una temperatura entre 86 y 113 °F' : '') : t < 30 || t > 45 ? 'Escribe una temperatura entre 30 y 45 °C' : '',
               'm-peso': !m.peso || (num(m.peso) > 0 && num(m.peso) <= 400) ? '' : 'Escribe el peso en kilogramos, entre 1 y 400',
               'm-avisos': m.avisos.length ? '' : 'Elige al menos un medio de aviso',
               'm-privacidad': m.privacidad ? '' : 'Acepta el aviso de privacidad para continuar',
@@ -1581,7 +1744,8 @@
           },
           get mediumWarnings() {
             const t = num(fm.m.temp); const sat = num(fm.m.sat)
-            return { 'm-temp': t >= 38 && t <= 45 ? 'Temperatura alta: confirma la lectura' : '', 'm-sat': sat < 94 && sat > 0 ? 'Por debajo de 94 %: confirma la lectura' : '' }
+            const alta = fm.m.unidad === 'F' ? t >= 100.4 && t <= 113 : t >= 38 && t <= 45
+            return { 'm-temp': alta ? 'Temperatura alta: confirma la lectura' : '', 'm-sat': sat < 94 && sat > 0 ? 'Por debajo de 94 %: confirma la lectura' : '' }
           },
           get rfcValid() { return /^[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}$/i.test(fm.m.rfc) ? 'RFC con formato válido' : undefined },
           get dlgErrors() { return { 'd-nombre': fm.d.nombre.trim() ? '' : 'Escribe el nombre', 'd-esp': fm.d.esp ? '' : 'Elige una especialidad', 'd-fecha': fm.d.fecha ? '' : 'Elige la fecha' } },

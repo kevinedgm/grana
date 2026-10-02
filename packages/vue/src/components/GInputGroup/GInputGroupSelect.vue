@@ -64,7 +64,9 @@ const common = computed(() => ({
 const selectBindings = computed(() => mergeProps(p.ff.handlers, { onChange }, { ...controlAttrs.value, name: props.name, ...common.value }))
 const readonlyBindings = computed(() => {
   const { autocomplete: _a, ...rest } = controlAttrs.value
-  return mergeProps(p.ff.handlers, { ...rest, ...common.value, type: 'text', readonly: true, value: selectedLabel.value })
+  // size = caracteres del texto elegido: como el <select>, la parte mide su contenido (sin size, el ancho intrínseco de
+  // un <input> es de ~20 caracteres y desborda la caja en contenedores estrechos)
+  return mergeProps(p.ff.handlers, { ...rest, ...common.value, type: 'text', readonly: true, value: selectedLabel.value, size: Math.max(1, selectedLabel.value.length) })
 })
 </script>
 

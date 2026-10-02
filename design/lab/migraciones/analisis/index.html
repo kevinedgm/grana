@@ -56,74 +56,77 @@
       <g-form id="muestra" ref="formRef" aria-label="Información de la muestra" :readonly="!editando" v-model:dirty="sucio" :labels="textos">
 
         <g-form-section title="Cliente y producto">
-          <g-form-grid>
+          <g-form-layout>
             <g-input label="Informe emitido para" name="empresa" v-model="m.empresa"></g-input>
-            <div class="g-form-row">
+            <g-form-row>
               <g-select label="Tipo de producto" name="producto-tipo" v-model="m.tipoProducto" :options="tiposProducto"></g-select>
               <g-input label="Como lo declara el cliente" name="producto-declarado" v-model="m.declarado"></g-input>
-            </div>
+            </g-form-row>
             <div role="group" aria-labelledby="agave-label">
               <span class="mg-chips-label" id="agave-label">Tipo de agave</span>
               <ul class="mg-chips">
                 <li v-for="a in m.agaves" :key="a"><g-badge color="neutral">{{ a }}</g-badge></li>
               </ul>
             </div>
-          </g-form-grid>
+          </g-form-layout>
         </g-form-section>
 
         <g-form-section title="Lote y muestreo">
-          <g-form-grid>
-            <div class="g-form-row">
+          <g-form-layout>
+            <g-form-row>
               <g-input label="Lote" name="lote" v-model="m.lote"></g-input>
               <g-date-picker label="Fecha de muestreo" name="fecha-muestreo" v-model="m.fechaMuestreo" :labels="dpLabels"></g-date-picker>
-            </div>
-            <div class="g-form-row">
-              <g-input label="Temperatura" name="temperatura" v-model="m.temperatura" suffix="°C" suffix-label="grados Celsius"></g-input>
+            </g-form-row>
+            <g-form-row>
+              <g-input class="g-form-w-sm" label="Temperatura" name="temperatura" v-model="m.temperatura" inputmode="decimal" suffix="°C" suffix-label="grados Celsius"></g-input>
               <g-select label="Almacenamiento" name="almacenamiento" v-model="m.almacenamiento" :options="almacenamientos"></g-select>
-            </div>
-            <div class="g-form-row">
-              <g-input label="Volumen del lote" name="vol-lote" v-model="m.volLote"></g-input>
-              <g-select label="Unidad" name="unidad-lote" v-model="m.unidadLote" :options="unidades"></g-select>
-            </div>
-            <div class="g-form-row">
-              <g-input label="Volumen de muestra" name="vol-muestra" v-model="m.volMuestra"></g-input>
-              <g-select label="Unidad" name="unidad-muestra" v-model="m.unidadMuestra" :options="unidades"></g-select>
-            </div>
+            </g-form-row>
+            <!-- Valor + unidad elegible = un solo campo fusionado (GInputGroup, form.md §13): antes eran dos campos por fila -->
+            <g-form-row>
+              <g-input-group label="Volumen del lote" name="vol-lote-grupo">
+                <g-input-group-input name="vol-lote" v-model="m.volLote" principal inputmode="decimal"></g-input-group-input>
+                <g-input-group-select name="unidad-lote" v-model="m.unidadLote" part-label="Unidad" :options="unidades"></g-input-group-select>
+              </g-input-group>
+              <g-input-group label="Volumen de muestra" name="vol-muestra-grupo">
+                <g-input-group-input name="vol-muestra" v-model="m.volMuestra" principal inputmode="decimal"></g-input-group-input>
+                <g-input-group-select name="unidad-muestra" v-model="m.unidadMuestra" part-label="Unidad" :options="unidades"></g-input-group-select>
+              </g-input-group>
+            </g-form-row>
             <g-input label="Muestreador" name="muestreador" v-model="m.muestreador"></g-input>
-          </g-form-grid>
+          </g-form-layout>
         </g-form-section>
 
         <g-form-section title="Recepción y entrega">
-          <g-form-grid>
-            <div class="g-form-row">
+          <g-form-layout>
+            <g-form-row>
               <g-select label="Norma" name="norma" v-model="m.norma" :options="normas"></g-select>
               <g-select label="Tipo de muestra" name="tipo-muestra" v-model="m.tipoMuestra" :options="tiposMuestra"></g-select>
-            </div>
-            <div class="g-form-row">
+            </g-form-row>
+            <g-form-row>
               <g-date-picker label="Fecha de entrega" name="fecha-entrega" v-model="m.fechaEntrega" :labels="dpLabels"></g-date-picker>
               <g-select label="Declaración de conformidad" name="conformidad" v-model="m.conformidad" :options="siNo"></g-select>
-            </div>
-          </g-form-grid>
+            </g-form-row>
+          </g-form-layout>
         </g-form-section>
 
         <g-form-section title="Contenedor">
-          <g-form-grid>
-            <div class="g-form-row">
+          <g-form-layout>
+            <g-form-row>
               <g-select label="Tipo" name="contenedor-tipo" v-model="m.contTipo" :options="tiposContenedor"></g-select>
               <g-select label="Material" name="contenedor-material" v-model="m.contMaterial" :options="materiales"></g-select>
-            </div>
-            <div class="g-form-row">
-              <g-input label="Capacidad" name="contenedor-capacidad" v-model="m.contCapacidad"></g-input>
-              <g-select label="Unidad" name="contenedor-unidad" v-model="m.contUnidad" :options="unidadesContenedor"></g-select>
-            </div>
-          </g-form-grid>
+              <g-input-group label="Capacidad" name="contenedor-capacidad-grupo" style="--g-form-min: 50">
+                <g-input-group-input name="contenedor-capacidad" v-model="m.contCapacidad" principal inputmode="decimal"></g-input-group-input>
+                <g-input-group-select name="contenedor-unidad" v-model="m.contUnidad" part-label="Unidad" :options="unidadesContenedor"></g-input-group-select>
+              </g-input-group>
+            </g-form-row>
+          </g-form-layout>
         </g-form-section>
 
         <g-form-section title="Observaciones">
-          <g-form-grid>
+          <g-form-layout>
             <g-textarea label="Observaciones de recepción" name="obs-recepcion" v-model="m.obsRecepcion" :rows="2" resize="none"></g-textarea>
             <g-textarea label="Observaciones del cliente (etiqueta)" name="obs-etiqueta" v-model="m.obsEtiqueta" :rows="2" resize="none"></g-textarea>
-          </g-form-grid>
+          </g-form-layout>
         </g-form-section>
 
         <g-form-section title="Ensayos">

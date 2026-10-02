@@ -74,3 +74,9 @@ Cada una con quién la resolvería.
 4. El interruptor debe quedar fuera del `GForm` para no heredar `readonly`: no es obvio y no está documentado.
 
 **Propuesta para la Fase 4 de formularios (a decidir por lima):** una **receta documentada** o una prop de `GForm` tipo `locked` (con `v-model:locked`) que (a) ponga los campos en solo lectura, (b) ofrezca el interruptor «Permitir edición» como parte del encabezado/pie del formulario (slot `lock` o `GFormLock`), (c) exponga `dirty` y un `revert()` a los valores guardados, (d) pida confirmación (`confirmDiscard`) al volver a bloquear con cambios y anuncie el cambio de modo por su región viva. Decidir también si el bloqueo tiene permiso por rol (quién puede ver el interruptor) y si Cancelar con cambios debe confirmar (aquí no confirma: es una acción explícita de descartar).
+
+## Migración a la API de formularios r02 (bruno)
+
+- `GFormGrid` → `GFormLayout`; `<div class="g-form-row">` → `<GFormRow>` (form.md, «Migración desde la Fase 1»).
+- Valor + unidad elegible como **un** campo fusionado (`GInputGroup` con `GInputGroupInput` principal + `GInputGroupSelect` «Unidad»): Volumen del lote, Volumen de muestra (juntos en una fila) y Capacidad (en la fila de Tipo y Material). Temperatura conserva `suffix` (unidad fija) con `g-form-w-sm`.
+- Verificación automatizada en `design/lab/theme-playground/tests/migracion-analisis.spec.mjs` (Chromium, Firefox y WebKit; 1280 y 390; claro y oscuro): consola limpia, filas al mismo borde y cajas con el mismo `top` (±1px) bloqueado y editando, 0 controles editables bloqueado, selector de unidad en solo lectura como texto, desbloquear → editar → cancelar, Esc cierra. 12/12.

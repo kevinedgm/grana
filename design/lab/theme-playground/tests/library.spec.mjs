@@ -267,20 +267,21 @@ test.describe('playground de la librería', () => {
     expect(errors, browserName).toEqual([])
   })
 
-  test('los formularios (GForm): rejilla 12/6/1, momento de los errores, resumen con foco, pie fijo sin tapar el foco y consola limpia', async ({ page, browserName }) => {
+  test('los formularios (GForm): filas por ancho propio, momento de los errores, resumen con foco, pie fijo sin tapar el foco y consola limpia', async ({ page, browserName }) => {
     const errors = []
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errors.push(`console: ${m.text()}`) })
     await ready(page)
-    // Rejilla por ancho propio (no por el visor): 12 / 6 / 1 columnas
+    // Filas por ancho propio (no por el visor), form.md §4: Calle · Ext. · Int. en una línea a 960 y Calle sola a 360
     const recipe = page.locator('#fm-recipe')
     await recipe.scrollIntoViewIfNeeded()
-    const grid = page.locator('#fm-address .g-form-grid')
-    for (const [w, tier, cols] of [[960, 'wide', 12], [600, 'medium', 6], [360, 'narrow', 1]]) {
+    const row = page.locator('#fm-address .g-form-row').first()
+    for (const [w, lines] of [[960, '1'], [360, '2']]) {
       await recipe.evaluate((el, w) => { el.style.inlineSize = `${w}px` }, w)
-      await expect(grid).toHaveAttribute('data-tier', tier)
-      expect(await grid.evaluate((g) => getComputedStyle(g).gridTemplateColumns.split(' ').length)).toBe(cols)
+      await expect(row).toHaveAttribute('data-lines', lines)
     }
+    expect(await row.evaluate((r) => [...r.children].map((c) => c.dataset.line))).toEqual(['0', '1', '1'])
+    expect(await row.evaluate((r) => getComputedStyle(r).gridTemplateRows.split(' ').length)).toBe(7)
     // Momento: salir sin escribir no revela; escribir y salir revela; corregir lo quita
     const nombre = page.locator('#fm-short input[name="nombre"]')
     const msg = page.locator('#fm-short .g-input__message').first()
@@ -299,7 +300,9 @@ test.describe('playground de la librería', () => {
     // Envío con errores: revela todos y enfoca el primer inválido (sin resumen)
     await page.locator('#fm-short button[type="submit"]').click()
     await expect(page.locator('#fm-short input[name="apellido"]')).toBeFocused()
-    await expect(page.locator('#fm-short .g-field-group__message')).toContainText('10 dígitos')
+    await expect(page.locator('#fm-short .g-input-group__message')).toContainText('10 dígitos')
+    await expect(page.locator('#fs-tel-num')).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.locator('#fs-tel-pais')).not.toHaveAttribute('aria-invalid', 'true')
     // Resumen: foco al enviar, enlace al campo con la etiqueta a la vista, sale al corregir
     await page.locator('#fm-medium button[value="save"]').click()
     const summary = page.locator('#fm-medium .g-error-summary')
@@ -339,10 +342,10 @@ test.describe('playground de la librería', () => {
     await narrow.setViewportSize({ width: 320, height: 800 })
     await ready(narrow)
     await narrow.locator('#fm-short').scrollIntoViewIfNeeded()
-    await expect(narrow.locator('#fm-short .g-form-grid')).toHaveAttribute('data-tier', 'narrow')
+    await expect(narrow.locator('#fm-short .g-form-row').first()).toHaveAttribute('data-lines', '2')
     await expect(narrow.locator('#fm-short .g-form-actions')).toHaveAttribute('data-stacked', '')
     expect(await narrow.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    expect(await narrow.evaluate(() => [...document.querySelectorAll('#sec-form .g-input, #sec-form .g-select, #sec-form .g-field-group, #sec-form .g-form-actions')].filter((el) => !el.closest('#fm-recipe') && el.getBoundingClientRect().right > innerWidth + 0.5).length)).toBe(0)
+    expect(await narrow.evaluate(() => [...document.querySelectorAll('#sec-form .g-input, #sec-form .g-select, #sec-form .g-input-group, #sec-form .g-field-group, #sec-form .g-form-actions')].filter((el) => !el.closest('#fm-recipe') && el.getBoundingClientRect().right > innerWidth + 0.5).length)).toBe(0)
     expect(errors, browserName).toEqual([])
   })
 })
