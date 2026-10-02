@@ -254,13 +254,16 @@ function onFocusin(event) {
   const bar = stickyEl()
   const t = event.target
   if (!bar || !t || bar.contains(t) || typeof t.getBoundingClientRect !== 'function') return
-  nextFrame(() => {
+  const fix = () => {
     const room = bar.getBoundingClientRect().top - spaceUnit(formEl.value) * 4
     const d = t.getBoundingClientRect().bottom - room
     if (d <= 0) return
     const sc = scrollParent(formEl.value)
     if (sc && typeof sc.scrollBy === 'function') sc.scrollBy({ top: d, behavior: 'instant' })
-  })
+  }
+  // Ya (el navegador desplazó al enfocar) y otra vez en el cuadro siguiente, por si el desplazamiento del foco llega después
+  fix()
+  nextFrame(fix)
 }
 
 // ---------- Contexto ----------
