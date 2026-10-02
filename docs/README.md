@@ -8,7 +8,7 @@ Grana es una biblioteca de interfaz para Vue 3. Aporta componentes con comportam
 
 | Si necesitas… | Lee |
 | --- | --- |
-| Entender el producto, los paquetes y el modelo de tema | Este documento |\n| Saber si Grana encaja en tu producto o compararlo con Vuetify | [Posicionamiento](foundations/product-positioning.md) |
+| Entender el producto, los paquetes y el modelo de tema | Este documento |\n| Saber si Grana encaja en tu producto o compararlo con Vuetify | [Posicionamiento](foundations/product-positioning.md) |\n| Entender tokens, contratos, estados de madurez y versionado | [Vocabulario y versionado](foundations/governance.md) |
 | Definir o validar la identidad visual de una aplicación | [Contrato de tokens](contract/tokens.md) |
 | Ver reglas compartidas de la API | [Contrato de API](contract/api.md) |
 | Usar o reemplazar iconos | [Contrato de iconos](contract/icons.md) |
