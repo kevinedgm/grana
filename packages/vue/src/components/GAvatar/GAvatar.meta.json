@@ -11,7 +11,8 @@
     "#294",
     "#295",
     "#296",
-    "#297"
+    "#297",
+    "#298"
   ],
   "prototype": "design/lab/avatar/r01/",
   "style": "packages/vue/src/components/GAvatar/GAvatar.css",
