@@ -7,7 +7,15 @@
   "description": "Bloque condicional de un formulario (Fase 3): campos que existen solo si una respuesta lo pide. Va justo después de su pregunta; cerrado, sus campos salen de FormData, de Tab, de la validación nativa, de los errores y del resumen, pero conservan lo escrito (WCAG 3.3.7).",
   "contract": "design/contracts/form.md",
   "contractSection": "§14 GFormReveal; §2 Registro inactivo",
-  "decisions": [274, 275, 276, 277, 278, 279, 280],
+  "decisions": [
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280
+  ],
   "prototype": "design/lab/form-reveal/r01/",
   "style": "packages/vue/src/components/GFormReveal/GFormReveal.css",
   "props": [
@@ -81,8 +89,6 @@
     "[Grana GFormSection] una GFormSection dentro de un GFormReveal (la sección contiene la pregunta y el bloque)"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
-    "README (mora-docs)",
     "Lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; fieldset role=none sin grupo); Safari, iOS y táctil reales; forced-colors real en Firefox y WebKit; bloque grande cerrado con la página desplazada al final; rendimiento con muchos bloques"
   ]
 }
