@@ -241,7 +241,7 @@ Se valida **por texto** (sin `DOMParser`, funciona en SSR) y con **el mismo crit
 
 | Origen del nombre | Orden |
 | --- | --- |
-| **De la aplicación:** un `GIcon` en una plantilla de la aplicación, o el `icon` (cadena) de un item de `GTabs`, `GMenu` o `GSidebar` (§5.8) | (1) el registro **más cercano** (`inject(iconsKey)`) → (2) la lista de la librería → (3) nada y aviso en desarrollo |
+| **De la aplicación:** un `GIcon` en una plantilla de la aplicación, o el `icon` (cadena) de un item de `GTabs`, `GMenu` o `GSidebar` o de una opción de `GRadioGroup` (§5.8) | (1) el registro **más cercano** (`inject(iconsKey)`) → (2) la lista de la librería → (3) nada y aviso en desarrollo |
 | **De Grana:** los iconos propios de un componente (la tabla de §4: la `x` de `GDialog`, el `check` de `GCheckbox`…) | **Solo** la lista de la librería; el registro **nunca** se consulta |
 
 La aplicación no puede cambiar por accidente un icono propio de un componente. El mecanismo interno con el que bruno separa los dos caminos (un componente interno distinto, una función de resolución…) **no es API** y no se documenta.
@@ -272,7 +272,7 @@ El registro existe **solo** como `createIcons` (y `iconsKey` para `provide` manu
 
 La convención completa y el mapa de huecos por componente están en `docs/contract/api.md` («Iconos en los componentes»). Resumen:
 
-- **Items que llegan como datos** (`GTabs`, `GMenu`, `GSidebar`): si el item trae `icon` **cadena** y **no** hay slot `icon`, el componente dibuja `GIcon` con ese nombre (resolución de la aplicación, §5.4) en su hueco `aria-hidden`. Con slot `icon`, **manda el slot** (como hoy). Un `icon` que no es cadena sigue siendo un dato opaco que solo recibe el slot (sin slot, no se dibuja nada).
+- **Items que llegan como datos** (`GTabs`, `GMenu`, `GSidebar`; `options` de `GRadioGroup`, #267): si el item trae `icon` **cadena** y **no** hay slot `icon`, el componente dibuja `GIcon` con ese nombre (resolución de la aplicación, §5.4) en su hueco `aria-hidden`. Con slot `icon`, **manda el slot** (como hoy). Un `icon` que no es cadena sigue siendo un dato opaco que solo recibe el slot (sin slot, no se dibuja nada).
 - **Componentes en plantilla** (`GBtn`, `GInput`, `GSelect`, `GSwitch`, `GBadge`, `GCard`, `GDialog`, `GFormSection`…): **sin props nuevas**; slot + `<GIcon>`. En `GBtn`, `icon` sigue siendo **Boolean** (modo solo icono).
 - **Títulos:** `GFormSection` gana el slot `lead` (#203); `GDialog` conserva su slot `icon`, que ya cumple esa función.
 - Todos los huecos de icono de los componentes son **decorativos** (`aria-hidden`): un `GIcon` con `label` dentro de ellos avisa (§2.4).
@@ -296,7 +296,7 @@ Pruebas de bruno; **fallan** si:
 5. **Resolución:** el registro gana a la librería para nombres de la aplicación; un icono propio de un componente ignora el registro; registrar un nombre de la librería no avisa; alias y repetidos dan una sola entrada.
 6. **Accesibilidad de `GIcon`:** decorativo sin `label`; `role="img"` + `aria-label` con `label` (sin `aria-hidden`); nunca `tabindex`; aviso con `label` dentro de un antecesor `aria-hidden`; `role`/`aria-*`/`tabindex` como atributos se ignoran y avisan.
 7. **SSR:** dos aplicaciones renderizadas a la vez con registros distintos no se mezclan; importar el paquete y llamar a `createIcons` no toca `document` ni `window`.
-8. **Items por nombre** (`GTabs`, `GMenu`, `GSidebar`): `icon` cadena sin slot dibuja `GIcon` en el hueco; con slot manda el slot; `icon` no cadena sin slot no dibuja nada; en `GTabs`, `labelMode="icon"`/`auto` cuenta un `icon` cadena como icono.
+8. **Items por nombre** (`GTabs`, `GMenu`, `GSidebar`, `GRadioGroup`): `icon` cadena sin slot dibuja `GIcon` en el hueco; con slot manda el slot; `icon` no cadena sin slot no dibuja nada; en `GTabs`, `labelMode="icon"`/`auto` cuenta un `icon` cadena como icono.
 9. **Nombres canónicos de la librería** (#206): cada nombre de la lista `library` tiene su módulo en `dist/esm/icons/` de la versión instalada (es canónico), salvo los alias de compatibilidad de la tabla de §4, cada uno con el **mismo dibujo** que su canónico y con el canónico en la lista. Si Lucide renombra un icono de la lista en una versión nueva, **esta prueba falla** y lima decide (renombrar y conservar el viejo como alias hasta la siguiente mayor). `circle-help` y `circle-question-mark` dibujan lo mismo; `GHelper` usa el canónico.
 
 ## 8. Límites conocidos

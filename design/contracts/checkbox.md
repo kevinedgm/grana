@@ -37,7 +37,7 @@ Casilla de verificación con tres estructuras (`layout`: `default`, `card`, `chi
 - **`color`:** color del relleno de la casilla marcada (y de la tarjeta o chip seleccionados). El error usa siempre `danger`.
 - **`disabled`:** atributo nativo en el `<input>`; sin foco, sin envío.
 - **`readonly`:** el `<input type="checkbox">` no admite `readonly` nativo. El componente pone `aria-readonly="true"`, cancela el cambio (`preventDefault` en el clic y en Espacio) y **no** emite `update:modelValue`. La casilla sigue enfocable.
-- **`required`:** atributo nativo `required` y una marca visual `aria-hidden` junto a la etiqueta.
+- **`required`:** **`aria-required="true"`** en el `<input>` (nunca el atributo nativo `required`, #270) y una marca visual `aria-hidden` junto a la etiqueta. Con `field: false` se ignora (#262). Límite: un `<form>` nativo sin `GForm` no bloquea el envío por una casilla obligatoria sin marcar; la aplicación valida y pasa `error` (como `GSelect`).
 - **`label`:** el componente necesita un nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby` (en `$attrs`), en desarrollo se emite `console.warn`. En producción no hay advertencia.
 - **`hint`:** texto de ayuda. En `card` es la **descripción** de la tarjeta.
 - **`error`:** si tiene valor (cadena no vacía), la casilla está en estado inválido: `aria-invalid="true"` en el `<input>`, clase `is-invalid` y mensaje visible. **El componente no valida.**
@@ -50,7 +50,7 @@ Casilla de verificación con tres estructuras (`layout`: `default`, `card`, `chi
 ```html
 <div class="g-checkbox g-checkbox--layout-default …">
   <label class="g-checkbox__row" for="ID">
-    <input class="g-checkbox__input" type="checkbox" id="ID" aria-labelledby="ID-label ID-meta" aria-describedby="ID-hint ID-error" aria-invalid="true" aria-readonly="true" required>
+    <input class="g-checkbox__input" type="checkbox" id="ID" aria-labelledby="ID-label ID-meta" aria-describedby="ID-hint ID-error" aria-invalid="true" aria-readonly="true" aria-required="true">
     <span class="g-checkbox__icon" aria-hidden="true">…</span>            <!-- solo card, si hay slot icon -->
     <span class="g-checkbox__text">
       <span class="g-checkbox__label" id="ID-label">Acepto los términos<span class="g-checkbox__required" aria-hidden="true">*</span></span>
@@ -290,3 +290,19 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 **Clases nuevas** (contrato bruno–coco): `g-checkbox-group__required` (asterisco del `<legend>` con `marks="required"`), `g-checkbox__message`, `g-checkbox-group__message`, `__message-icon`, `__message-type`, `g-checkbox-group__optional`, `is-warning`, `is-valid` (los `__error` desaparecen).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Cambio por `GRadioGroup`: `aria-required` en vez de `required` nativo (#270)
+
+**Origen:** hallazgo L5 de kiwi (`design/lab/radio-group/r01/declaracion.md` §1.5): en Chromium, una casilla (y un radio) con `required` nativo y sin marcar se expone como **`invalid=true` desde el primer momento**, aunque el `<form>` tenga `novalidate`; el lector diría «no válido» antes de que la persona haga nada, contra «castigar tarde» (#157). **Estado:** aprobado por lima; pendiente de **bruno** en esta ronda (`GCheckbox.vue`, `GCheckbox.test.js`, `GCheckbox.meta.json`). Sin cambio de CSS (coco no estiliza `[required]`).
+
+| Antes | Ahora |
+| --- | --- |
+| `required` → atributo nativo `required` en el `<input>` | `required` → **`aria-required="true"`** en el `<input>`; **nunca** `required` nativo |
+
+- La marca (`g-checkbox__required` o «(opcional)» según la convención) **no cambia**; la regla de §2 de `form.md` tampoco.
+- `aria-invalid` sigue llegando **solo** con el error visible (prop `error` o el momento de `GForm`).
+- Con `field: false` no hay ni `aria-required` ni marca (#262).
+- **Pruebas que cambian:** «disabled y required usan atributos nativos» pasa a comprobar `aria-required="true"` y la **ausencia** de `required`; la instantánea con `required: true` cambia `required=""` por `aria-required="true"`.
+- **`GCheckboxGroup`** no cambia: su raíz es un `fieldset` (rol `group`, que no admite `aria-required`); la marca va en la `<legend>`.
+- **No se extiende** a `GInput`, `GTextarea` ni al `<select>` de `GInputGroupSelect` sin medirlo: kiwi solo midió radio y casilla. Pendiente (no bloquea): medir en Chromium si un texto o un `<select>` con `required` y vacío se expone como inválido antes de interactuar; si es así, la misma regla les aplica con otra decisión.
+
