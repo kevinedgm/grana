@@ -127,8 +127,8 @@ Si las partes del bloque forman **una pregunta** con título propio, es un `GFie
 | Quieres… | Usa |
 | --- | --- |
 | Que **la respuesta** decida si un grupo de campos aplica | `GFormReveal` |
-| Que el usuario abra o pliegue una sección con un botón, y sus datos **sigan** enviándose y validándose | `GFormSection collapsible` (Fase 3, reservado) |
-| Que el usuario decida incluir un bloque | `GFormSection addable` (Fase 3, reservado) |
+| Que el usuario abra o pliegue una sección con un botón, y sus datos **sigan** enviándose y validándose | [`GFormSection collapsible`](../GFormSection/README.md#plegable-modecollapsible) |
+| Que el usuario decida incluir un bloque | [`GFormSection addable`](../GFormSection/README.md#agregable-modeaddable) |
 | Un dato que existe pero no se puede tocar ahora | `disabled` (mostrar todo y deshabilitar está **rechazado** para lo que no aplica) |
 | Una sola pregunta compuesta | `GFieldGroup` |
 

@@ -137,7 +137,7 @@ Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `c
 </g-dialog>
 ```
 
-Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignora), no se muestra el botón de cierre (las acciones del pie son la salida) y Esc sigue cerrando con `reason: 'escape'`. **El foco inicial es tuyo:** pon `autofocus` en la acción segura o colócala primera; el componente no lo decide.
+Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignora), no se muestra el botón de cierre (las acciones del pie son la salida) y Esc sigue cerrando con `reason: 'escape'`. **El foco inicial sigue el orden de arriba** (DECISIONS #292), y lo que decides tú es la acción segura: pon `autofocus` en ella (o colócala primera, porque sin `autofocus` va al primer control del contenido) para que sea la que reciba el foco.
 
 ## Teclado y foco
 
