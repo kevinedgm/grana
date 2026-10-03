@@ -102,6 +102,8 @@ export const DEFAULTS = {
   "--g-duration-slow": "calc(var(--g-duration-press) * 1.5)",
   "--g-ease-standard": "cubic-bezier(0.2, 0, 0, 1)",
   "--g-ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+  "--g-ease-spring": "linear(0, 0.081, 0.258, 0.46, 0.644, 0.793, 0.901, 0.972, 1.013, 1.033, 1.038, 1.036, 1.029, 1.021, 1.014, 1.008, 1.004, 1.001, 1, 0.999, 1)",
+  "--g-ease-bounce": "linear(0, 0.124, 0.401, 0.708, 0.963, 1.127, 1.199, 1.197, 1.151, 1.088, 1.029, 0.987, 0.964, 0.958, 0.964, 0.976, 0.989, 0.999, 1.006, 1.008, 1.008, 1.006, 1)",
   "--g-press-scale": "0.97",
   "--g-tabs-mark-default": "calc(var(--g-border-width) * 3)",
   "--g-tabs-mark-comfortable": "calc(var(--g-border-width) * 2)",
