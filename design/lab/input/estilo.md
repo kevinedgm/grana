@@ -102,3 +102,49 @@
 **Verificado en Chromium:** sin acción, con acción, `soft`, inválido (el borde de error queda dentro del anillo), apilado con texto (anillo solo en la caja) y apilado con icono (anillo del conjunto). Con tema (borde 2px, foco 3px violeta, radio 12px): anillo de 3px, `offset -2px`, esquinas de 12px. Botón de acción enfocado: anillo de 2px pegado, `z-index: 1`.
 **No verificado:** `forced-colors` real (el bloque cambia el color a `Highlight`; la base transparente no aplica en ese modo por diseño).
 
+
+---
+
+## Personalidad (plan 018; DECISIONS.md #299 y #304; `input.md` «Personalidad», `form.md` §2 «Rechazo al enviar»)
+
+**Qué le da personalidad:** el campo **habla con el cuerpo**, pero solo cuando importa. El mensaje no aparece pegado de golpe bajo la caja: **sale de ella** (baja `--g-space-1` mientras se funde), así el ojo va del campo a su mensaje. Y el «no» del formulario es un gesto físico de una sola vez: al enviar con errores, **cada campo que bloquea niega con la cabeza** (una sacudida horizontal, decreciente, ≤ 4px), incluidos los que quedan fuera del foco. Nunca al escribir, al salir del campo ni al montar: el campo no regaña mientras se trabaja, solo responde al envío.
+
+### I1 · el mensaje sale del campo (`GInput.css`, bloque «Personalidad»)
+
+- **Transición, no keyframes** (decisión del encargo, medida por bruno y comprobada aquí): estado de partida en `.g-input__message:empty` (`opacity: 0`; sin movimiento reducido además `translate: 0 calc(var(--g-space-1) * -1)`) y `transition` de `opacity` y `translate` (`--g-duration-press`, `--g-ease-out`) **solo bajo `.g-input.is-ready`**. Por qué no keyframes condicionadas: se reproducen al llegar `is-ready` si el campo monta con error, y cambiar la duración desde 0s las reanuda a medias. Con la transición, al llegar `is-ready` no cambia ningún valor (no hay transición), al pasar de vacía a con texto sí, y al cambiar el texto o el tipo con la región llena no cambia ningún valor (no se repite). `:empty` reconoce la región vacía porque Vue solo deja un comentario.
+- **Para lima:** `input.md` «Personalidad» I1 dice «keyframes de nombre `g-*`» y #299 (5) cita «el mensaje que aparece» como ejemplo de keyframes. La implementación es una transición; conviene ajustar la frase del contrato y el ejemplo de #299 (5) (keyframes quedan para la sacudida y el giro de carga). La salida (texto → vacío) también transiciona, pero sin contenido no se ve; el hueco (`margin`) aparece y se va en un cuadro, como antes.
+- **Movimiento reducido:** solo fundido, `opacity var(--g-duration-fast) linear` (patrón único de #299 (3)), sin desplazamiento.
+
+### I2 · un solo aviso al enviar (`GInput.css`; extendido a `GTextarea.css` y `GSelect.css`)
+
+- `.g-input.is-rejected .g-input__row { animation: g-reject-shake var(--g-duration-slow) linear }` dentro de `prefers-reduced-motion: no-preference`. Se mueve la fila (caja + acción), así el anillo de foco del campo enfocado va con ella. Keyframes `g-reject-shake`: `0 · −1 · 0.75 · −0.5 · 0.25 · 0 × --g-space-1` en `0 · 16 · 36 · 56 · 76 · 100 %` (constantes de coreografía de #299 (8)). `linear` entre puntos, como el prototipo medido por kiwi.
+- **`GTextarea` y `GSelect`:** estructura equivalente trivial (la caja `__control` lleva el anillo de foco y no tiene otro `translate`), así que llevan la misma regla con keyframes propias `g-reject-shake-textarea` y `g-reject-shake-select` (prefijo `g-reject`, el que filtra bruno; cada archivo se sostiene solo). La lista de `GSelect` no es hija de la caja: no se mueve.
+- **Movimiento reducido:** nada. La clase se pone igual (sin efecto visible); sin animación no hay `animationend`, así que se retira con el siguiente `input`/`change` o con el siguiente envío. El error ya es borde doble, icono y texto.
+- **RTL:** la sacudida empieza hacia la izquierda física en los dos sentidos; no transmite dirección, así que no se refleja.
+- **`forced-colors`:** sin cambios (`translate` y `opacity` no tocan colores del sistema).
+
+### Mediciones (componente real del UMD; `design/lab/theme-playground/tests/personalidad-input.spec.mjs`, 10 pruebas × 3 motores, 30/30)
+
+| Medida | Chromium | Firefox | WebKit | Criterio (kiwi) |
+| --- | --- | --- | --- | --- |
+| I2 desplazamiento máximo (muestreo determinista cada 2ms, `space-1` = 4px) | 3,958px | 3,958px | 3,958px | ≤ `space × 1` (kiwi 3,47px en tiempo real) |
+| I2 picos en 16 · 36 · 56 · 76 % | 3,96 · 2,94 · 1,96 · 0,97 | igual | igual | decreciente |
+| I2 cambios de sentido / final | 3 / 0px | 3 / 0px | 3 / 0px | 3 y vuelta a 0 |
+| I2 duración / iteraciones | 240ms / 1 | 240ms / 1 | 240ms / 1 | `--g-duration-slow`, una vez |
+| I2 en `GTextarea` y `GSelect` | mismas cifras | mismas | mismas | — |
+| I2 retirada: `animationend` real `g-reject…` con la clase aún puesta; la clase dura ≥ 230ms | sí | sí | sí | por fin de animación, no por temporizador |
+| I2 escribir y salir del campo (tras un envío) | 0 `animationstart` | 0 | 0 | 0 animaciones |
+| I2 segundo envío | se repite | se repite | se repite | — |
+| I2 movimiento reducido | clase presente, 0 animaciones, `translate` 0 | igual | igual | sin vaivén |
+| I1 al aparecer | `opacity` + `translate` 160ms; −4 → 0px; 8 muestras intermedias de 10ms; monótono | igual | igual | cuadros intermedios de −space a 0 |
+| I1 cambiar el texto con la región llena | 0 transiciones | 0 | 0 | no se repite |
+| I1 error al montar (registro desde antes de cargar) | 0 `animationstart`/`transitionrun` en el mensaje, también al llegar `is-ready` | igual | igual | 0 animaciones al montar |
+| I1 movimiento reducido | solo `opacity` 120ms, `translate` 0 | igual | igual | solo fundido |
+
+Antes del CSS (mismo spec, Chromium): 7 de 10 fallan; pasan solo las tres negativas (montar con error, cambiar texto, reducido de I2), como se espera. Las medidas de la sacudida pausan la animación real en la microtarea en que llega `is-rejected` (MutationObserver) y recorren su tiempo: no dependen de la carga de la máquina. Contraste, tamaños y foco no cambian (solo `opacity`/`translate` temporales; el anillo viaja con la fila).
+
+### Pendientes (extensión de coco, sin bloquear)
+
+- **I2 en `GCheckbox`, `GSwitch`, `GDatePicker` y los grupos** (`GCheckboxGroup`, `GRadioGroup`, `GFieldGroup`, `GInputGroup`): ya reciben `is-rejected` (bruno, `b8381f2`) pero no tienen CSS. Cada uno necesita decidir qué se mueve (en grupos, ¿la lista de opciones o el conjunto de partes?, una pregunta = un gesto) y medirlo; no es trivial en esta tanda.
+- **I1 en `GTextarea`, `GSelect` y demás campos:** requiere `is-ready` en su raíz (bruno); hoy solo `GInput` la tiene.
+- **No verificado:** `forced-colors` real, lector de pantalla (la región viva no cambia, pero no se escuchó), Safari real y táctil real.

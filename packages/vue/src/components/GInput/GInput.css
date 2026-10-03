@@ -375,6 +375,49 @@
   border: 0;
 }
 
+/* ---------- Personalidad (input.md «Personalidad», DECISIONS.md #299 y #304; plan 018) ---------- */
+/* I1 · el mensaje sale del campo: al pasar la región de vacía a con texto, entra con fundido y baja --g-space-1 × 1
+   desde la caja. Es una TRANSICIÓN, no keyframes (medido por bruno y coco): el estado de partida vive en :empty (Vue
+   deja un comentario, que :empty ignora) y la transición solo existe con is-ready, así un error que ya viene al montar
+   no se anima al llegar is-ready, y cambiar el texto o el tipo con la región llena no la repite (no cambia ningún valor).
+   El hueco (margin) aparece en un cuadro, como antes; la región viva no cambia. Con movimiento reducido, solo fundido */
+.g-input__message:empty {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-input__message:empty {
+    translate: 0 calc(var(--g-space-1) * -1);
+  }
+  .g-input.is-ready .g-input__message {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-input.is-ready .g-input__message {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+
+/* I2 · un solo aviso al enviar: GForm pone is-rejected en cada campo que bloquea (envío con errores o showErrors()) y
+   el campo la retira con el animationend de un nombre g-reject…, con el siguiente input/change o al desmontar. Se mueve
+   la fila (caja + acción) para que el anillo de foco vaya con ella. Una vez, horizontal, decreciente: amplitudes
+   1 · 0.75 · 0.5 · 0.25 × --g-space-1 en el 16 · 36 · 56 · 76 % de --g-duration-slow (constantes de coreografía,
+   #299 (8)). Con movimiento reducido no existe: el error ya es borde doble, icono y texto (la clase se pone igual) */
+@media (prefers-reduced-motion: no-preference) {
+  .g-input.is-rejected .g-input__row {
+    animation: g-reject-shake var(--g-duration-slow) linear;
+  }
+}
+@keyframes g-reject-shake {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
 /* ---------- Tamaño ---------- */
 .g-input--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
 .g-input--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }

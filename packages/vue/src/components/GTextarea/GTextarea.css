@@ -371,6 +371,23 @@
 .g-form-row > .g-textarea > .g-textarea__control { grid-row: 2; }
 .g-form-row > .g-textarea > .g-textarea__support { grid-row: 3; }
 
+/* ---------- Rechazo al enviar (I2 de GInput extendida; form.md §2, DECISIONS.md #304) ---------- */
+/* Misma regla que GInput: GForm pone is-rejected en el campo que bloquea y el campo la retira con el animationend de
+   un nombre g-reject…; se mueve la caja (lleva el anillo de foco). Una vez, decreciente, ≤ --g-space-1, --g-duration-slow;
+   nada con movimiento reducido. Keyframes con nombre propio: cada archivo se sostiene solo */
+@media (prefers-reduced-motion: no-preference) {
+  .g-textarea.is-rejected .g-textarea__control {
+    animation: g-reject-shake-textarea var(--g-duration-slow) linear;
+  }
+}
+@keyframes g-reject-shake-textarea {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
   .g-textarea__loader {

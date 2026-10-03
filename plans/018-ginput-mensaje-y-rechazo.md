@@ -1,6 +1,6 @@
 # 018 — GInput: el mensaje sale del campo (I1) y un solo aviso al enviar (I2)
 
-- **Status**: TODO
+- **Status**: DONE (bruno `b8381f2`, pasos 1–3; coco, pasos 4–6: I1 como transición, no keyframes; ver `design/lab/input/estilo.md` «Personalidad»)
 - **Dueños**: bruno (pasos 1–3: `GInput.vue` con `is-ready` e `is-rejected`, `GForm.vue`, `formContext.js`/`useFormField`, pruebas, `meta.json`), coco (pasos 4–6: `GInput.css`, `design/lab/input/estilo.md`, spec).
 - **Contrato**: `design/contracts/input.md` «Personalidad»; `design/contracts/form.md` §1 «Envío» (paso 4) y §2 «Rechazo al enviar»; DECISIONS.md #299 y #304.
 - **Category**: Personalidad (kiwi r01 §7)
