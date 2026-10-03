@@ -1,20 +1,50 @@
 /*
-  GFormSection · estilo de la sección fija (Fase 1)
-  Dueño: coco. Contrato: design/contracts/form.md §3 (DECISIONS.md #161).
+  GFormSection · estilo de la sección de formulario (Fase 1: fija · Fase 3: plegable, agregable, al lado y línea)
+  Dueño: coco. Contrato: design/contracts/form.md §3 (DECISIONS.md #161, #192, #283 a #291). Estructura:
+  design/lab/form-section/r01/ (kiwi). Estética: design/lab/form-section/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
   Carácter: sin tarjeta, sin fondo y sin línea. Una sección se reconoce por el aire que la separa de la anterior
   (--g-form-section-gap, ≈ 2× el de una fila) y por su título; la descripción es una línea tenue debajo.
+  Plegable: el título entero es el botón, con un chevron al inicio; nada más cambia de aspecto. Agregable sin agregar:
+  un GBtn outline en el sitio de la sección. La línea (divider) es un GDivider subtle dentro del hueco que ya existe.
+
+  Marcado que espera (lo pinta bruno; form.md §3 «Estructura» y «Clases»):
+    section.g-form-section.g-form-section--mode-{static|collapsible|addable}
+           [.is-open][.is-added][.is-ready][.is-animating][.is-instant][.is-header-side][.is-actions-below][hidden]
+      hr.g-divider.g-form-section__divider                               (primer hijo; solo con divider)
+      div.g-form-section__header                                         (static, collapsible, addable agregada)
+        div.g-form-section__heading
+          span.g-form-section__lead                                      (static/addable; en collapsible va en el botón)
+          hN.g-form-section__title
+            button.g-form-section__toggle                                (collapsible)
+              span.g-form-section__chevron > svg.g-icon                  (chevron-right)
+              span.g-form-section__lead                                  (opcional)
+              span.g-form-section__toggle-text
+          .g-badge                                                       (optional)
+        p.g-form-section__summary > span.g-form-section__status (svg.g-icon + texto) + span.g-form-section__summary-text
+        p.g-form-section__description
+        div.g-form-section__actions (… .g-form-section__remove)
+        div.g-form-section__help
+      div.g-form-section__add > .g-btn.g-form-section__add-button + p.g-form-section__description   (addable sin agregar)
+      div.g-form-section__body                                           (static: hijo directo de la raíz)
+      div.g-form-section__panel[inert] > (div | fieldset[role=none][disabled]).g-form-section__body   (collapsible, addable)
+      dialog.g-dialog.g-form-section__confirm                            (addable)
 */
 
 .g-form-section {
   /* La sección no tiene densidad propia: sigue la del GForm que la contiene (por defecto, 1) */
   --_d: 1;
+  /* Encabezado → campos: algo menos que una fila, para que el título pertenezca a sus campos. Lo comparte el panel
+     plegado (margen negativo: no deja hueco) */
+  --_gap: calc(var(--g-space-4) * var(--_d));
+  /* Movimiento grande (altura y margen del panel) y corto (fundido, giro del chevron); #280 */
+  --_t: var(--g-duration-slow);
+  --_t-fade: var(--g-duration-fast);
 
   display: flex;
   flex-direction: column;
-  /* Encabezado → campos: algo menos que una fila, para que el título pertenezca a sus campos */
-  gap: calc(var(--g-space-4) * var(--_d));
+  gap: var(--_gap);
   box-sizing: border-box;
   min-inline-size: 0;
   margin: 0;
@@ -23,6 +53,11 @@
 }
 .g-form--density-comfortable .g-form-section { --_d: 0.875; }
 .g-form--density-compact .g-form-section { --_d: 0.75; }
+/* addable sin agregar en un GForm readonly/disabled: no se pinta (form.md §3, punto 16). La raíz es flex y el estilo del
+   agente de usuario para [hidden] pierde contra ella */
+.g-form-section[hidden] {
+  display: none;
+}
 
 /* Dentro de GForm la separación entre secciones la pone el formulario (gap de sus hijos). Fuera de él, o dentro de
    un envoltorio propio (panel de pestañas, cuerpo de un diálogo), la pone la propia sección */
@@ -32,6 +67,10 @@
 
 /* ---------- Encabezado: título (+ insignia) · acciones al final; descripción y ayuda debajo ---------- */
 .g-form-section__header {
+  /* Alias del título (los leen el hueco lead, el chevron y la sangría del texto en collapsible): tamaño e interlineado */
+  --_lead-size: var(--g-text-body-size);
+  --_lead-line: var(--g-text-body-line);
+
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -39,10 +78,6 @@
   min-inline-size: 0;
 }
 .g-form-section__heading {
-  /* Alias del hueco lead (los lee el propio lead y el título que lo sigue): el tamaño y el interlineado del título */
-  --_lead-size: var(--g-text-body-size);
-  --_lead-line: var(--g-text-body-line);
-
   grid-column: 1;
   grid-row: 1;
   display: flex;
@@ -55,7 +90,8 @@
    Referencia: la PRIMERA línea del título. La caja del hueco mide el interlineado del título y centra el icono en
    ella, y se ancla al borde de inicio de la fila (align-self), así que con un título de varias líneas el icono se
    queda en la primera. El icono toma el tamaño del hueco: 1em del tamaño del título (--_lead-size), igual que el
-   hueco de GCard fija el suyo; manda sobre el 1em de GIcon y sobre una clase de la aplicación. Sin tokens nuevos. */
+   hueco de GCard fija el suyo; manda sobre el 1em de GIcon y sobre una clase de la aplicación. Sin tokens nuevos.
+   En collapsible el hueco va dentro del botón, después del chevron (#285): las mismas reglas valen allí. */
 .g-form-section__lead {
   flex: none;
   align-self: flex-start;
@@ -85,7 +121,7 @@
   color: var(--g-color-text);
   overflow-wrap: anywhere;
 }
-/* Fase 3: el título recibirá el foco al «Agregar…» (tabindex="-1"); el anillo se ve igual que el resto */
+/* addable agregada: el título recibe el foco al «Agregar…» (tabindex="-1"); el anillo se ve igual que el resto */
 .g-form-section__title:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
@@ -119,4 +155,271 @@
 
 .g-form-section__body {
   min-inline-size: 0;
+}
+
+/* ---------- Acciones en su propia línea (L9, #289; también la Fase 1) y encabezado al lado ----------
+   is-actions-below lo pone la sección cuando, junto a las acciones, el título quedaría por debajo de space × 40: las
+   acciones bajan a su línea, al inicio, después de la descripción (orden visual = orden del DOM). Al lado
+   (is-header-side) la columna del encabezado las apila igual. */
+.g-form-section:is(.is-actions-below, .is-header-side) > .g-form-section__header {
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-form-section:is(.is-actions-below, .is-header-side) > .g-form-section__header > .g-form-section__actions {
+  grid-column: 1;
+  grid-row: auto;
+  justify-content: flex-start;
+  margin-block-start: var(--g-space-2);
+}
+
+/* ---------- collapsible: el título entero es el botón (hN > button, APG Disclosure; #285) ---------- */
+.g-form-section__toggle {
+  /* Bloque flex (no en línea): sin la caja de línea del hN, el título mide lo mismo que en una sección fija */
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  /* La tipografía es la del título: el botón no cambia nada de lo que se lee */
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  appearance: none;
+}
+/* Objetivo ≥ 24px (44px con puntero grueso) sin cambiar la caja: el título no se mueve entre punteros (2.5.8) */
+.g-form-section__toggle::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  block-size: max(100%, 24px);
+}
+@media (pointer: coarse) {
+  .g-form-section__toggle::after {
+    block-size: max(100%, 44px);
+  }
+}
+.g-form-section__toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-form-section__toggle-text {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+/* Chevron (Lucide chevron-right, #85): caja del interlineado del título, icono de 1em del título, centrado en la PRIMERA
+   línea; apunta al inicio del texto; abierta, abajo; en RTL se espeja y abierta también apunta abajo (precedente GSidebar) */
+.g-form-section__chevron {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--_lead-size);
+  block-size: var(--_lead-line);
+  font-size: var(--_lead-size);
+  color: var(--g-color-text-muted);
+}
+.g-form-section__chevron > .g-icon {
+  inline-size: var(--_lead-size);
+  block-size: var(--_lead-size);
+}
+.g-form-section__chevron:dir(rtl) > .g-icon {
+  scale: -1 1;
+}
+.g-form-section.is-open > .g-form-section__header .g-form-section__chevron > .g-icon {
+  rotate: 90deg;
+}
+.g-form-section.is-open > .g-form-section__header .g-form-section__chevron:dir(rtl) > .g-icon {
+  rotate: -90deg;
+}
+@media (hover: hover) {
+  .g-form-section__toggle:hover > .g-form-section__chevron {
+    color: var(--g-color-text);
+  }
+}
+/* Lo que se apila bajo el título se alinea con su TEXTO (sangría del chevron): resumen, descripción, acciones abajo y ayuda */
+.g-form-section--mode-collapsible > .g-form-section__header > :is(.g-form-section__summary, .g-form-section__description, .g-form-section__help) {
+  margin-inline-start: calc(var(--_lead-size) + var(--g-space-2));
+}
+.g-form-section--mode-collapsible:is(.is-actions-below, .is-header-side) > .g-form-section__header > .g-form-section__actions {
+  margin-inline-start: calc(var(--_lead-size) + var(--g-space-2));
+}
+
+/* Línea de estado de una plegada (#285, #286): estado de errores (automático) + texto de la aplicación */
+.g-form-section__summary {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--g-space-3);
+  min-inline-size: 0;
+  margin: 0;
+  margin-block-start: calc(var(--g-space-1) * 0.5);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+/* Texto + icono, nunca solo color (1.4.1) */
+.g-form-section__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+.g-form-section__status > .g-icon {
+  /* 1em del texto de la línea (el tamaño por defecto de GIcon) */
+  flex: none;
+}
+.g-form-section__summary-text {
+  min-inline-size: 0;
+}
+
+/* ---------- addable sin agregar: una acción en el sitio de la sección, no un encabezado (#288) ---------- */
+.g-form-section__add {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-form-section__add > .g-form-section__description {
+  margin: 0;
+}
+
+/* ---------- Panel (collapsible y addable): la transición de §14 (#278), aplicada a __panel ----------
+   Rejilla de una pista 0fr → 1fr (sin medir alturas). Cerrado en reposo: visibility hidden (no display none: los
+   GFormRow de dentro siguen midiendo). Margen de inicio negativo = el gap PROPIO de la sección (encabezado → cuerpo):
+   plegada no deja hueco bajo el encabezado y al abrir lo de abajo baja de forma continua. */
+.g-form-section__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: minmax(0, 1fr);
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-form-section:not(.is-open) > .g-form-section__panel {
+  margin-block-start: calc(var(--_gap) * -1);
+  opacity: 0;
+  visibility: hidden;
+}
+.g-form-section.is-open > .g-form-section__panel {
+  grid-template-rows: 1fr;
+  margin-block-start: 0;
+  opacity: 1;
+  visibility: visible;
+}
+.g-form-section__panel > .g-form-section__body {
+  /* Reinicio del fieldset del agente de usuario (addable; min-inline-size: min-content desborda en estrecho) */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+  /* Recortado mientras no está asentado y abierto: la pista puede llegar a 0 */
+  min-block-size: 0;
+  overflow: hidden;
+}
+.g-form-section.is-open:not(.is-animating) > .g-form-section__panel > .g-form-section__body {
+  /* Asentado: no recorta anillos de foco ni sombras */
+  overflow: visible;
+}
+
+/* Sin is-ready (primer pintado, SSR) no hay transición; con is-instant (abrir para llevar a un campo, #287), tampoco */
+@media (prefers-reduced-motion: no-preference) {
+  /* Plegar: fundido corto desde el principio; la altura y el margen, con el movimiento grande; invisible al final */
+  .g-form-section.is-ready:not(.is-instant) > .g-form-section__panel {
+    transition:
+      grid-template-rows var(--_t) var(--g-ease-out),
+      margin-block-start var(--_t) var(--g-ease-out),
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s linear var(--_t);
+  }
+  /* Abrir: visible desde el primer cuadro; el fundido empieza con retraso y termina con la altura */
+  .g-form-section.is-ready.is-open:not(.is-instant) > .g-form-section__panel {
+    transition:
+      grid-template-rows var(--_t) var(--g-ease-out),
+      margin-block-start var(--_t) var(--g-ease-out),
+      opacity var(--_t-fade) var(--g-ease-standard) calc(var(--_t) - var(--_t-fade)),
+      visibility 0s;
+  }
+  .g-form-section.is-ready:not(.is-instant) > .g-form-section__header .g-form-section__chevron > .g-icon {
+    transition: rotate var(--_t-fade) var(--g-ease-out);
+  }
+}
+/* Movimiento reducido (plan 007: menos, no cero): altura y margen en un cuadro; el fundido se conserva al abrir y al
+   plegar, y al plegar el panel sigue visible hasta que acaba. El chevron gira sin transición */
+@media (prefers-reduced-motion: reduce) {
+  .g-form-section.is-ready:not(.is-instant) > .g-form-section__panel {
+    transition:
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s linear var(--_t-fade);
+  }
+  .g-form-section.is-ready.is-open:not(.is-instant) > .g-form-section__panel {
+    transition:
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s;
+  }
+}
+
+/* ---------- Encabezado al lado (headerPlacement="auto", ancho propio ≥ space × 200; #289) ----------
+   Dos columnas encabezado · cuerpo, 1 : 2, separadas por el aire de sección. El título y la primera etiqueta del cuerpo
+   comparten la línea superior (sin margen en el panel). Plegada, la fila mide lo que el encabezado. */
+.g-form-section.is-header-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 0 calc(var(--g-form-section-gap) * var(--_d));
+}
+.g-form-section.is-header-side > :is(.g-form-section__header, .g-form-section__add) {
+  grid-column: 1;
+  grid-row: 1;
+}
+.g-form-section.is-header-side > :is(.g-form-section__body, .g-form-section__panel) {
+  grid-column: 2;
+  grid-row: 1;
+}
+.g-form-section.is-header-side > .g-form-section__panel {
+  margin-block-start: 0;
+}
+/* addable sin agregar: «Agregar …» ocupa el ancho entero; el panel (vacío y oculto) baja a una fila sin altura */
+.g-form-section.is-header-side.g-form-section--mode-addable:not(.is-added) > .g-form-section__add {
+  grid-column: 1 / -1;
+}
+.g-form-section.is-header-side.g-form-section--mode-addable:not(.is-added) > .g-form-section__panel {
+  grid-row: 2;
+}
+
+/* ---------- divider: GDivider subtle real dentro del hueco que ya separa las secciones (#192, #290) ----------
+   Fuera del flujo (ninguna distancia cambia) y centrado en el hueco que precede a la sección: dentro de GForm el gap del
+   formulario, fuera el margen de la sección; los dos valen --g-form-section-gap × densidad. Solo con una sección
+   hermana anterior visible: la primera no dibuja línea (vale en SSR, con v-if y con una agregable hidden). */
+.g-form-section:has(> .g-form-section__divider) {
+  position: relative;
+}
+.g-form-section > .g-form-section__divider {
+  display: none;
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(var(--g-form-section-gap) * var(--_d) / -2);
+  translate: 0 -50%;
+  margin: 0;
+}
+.g-form-section:not([hidden]) ~ .g-form-section > .g-form-section__divider {
+  display: block;
+}
+
+@media (forced-colors: active) {
+  /* El chevron es del botón: sigue su color de sistema (el gris del tema se descarta) */
+  .g-form-section__chevron {
+    color: ButtonText;
+  }
 }

@@ -85,10 +85,11 @@
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
-/* Bajo un GFormReveal cerrado (o cerrándose) el <fieldset disabled> del bloque deshabilita a todo lo de dentro: ese
-   :disabled heredado no se pinta, para que nada «salte» a gris durante el fundido de cierre (form.md §14, #275);
+/* Bajo un GFormReveal cerrado (o cerrándose), o el panel de una GFormSection addable sin agregar (o quitándose), el
+   <fieldset disabled> deshabilita a todo lo de dentro: ese
+   :disabled heredado no se pinta, para que nada «salte» a gris durante el fundido de cierre (form.md §14, #275; §3, #288);
    [disabled] propio y .is-disabled sí. */
-.g-helper__trigger:disabled:where(:not(.g-form-reveal:not(.is-open) *)),
+.g-helper__trigger:disabled:where(:not(.g-form-reveal:not(.is-open) *)):where(:not(.g-form-section--mode-addable:not(.is-open) > .g-form-section__panel *)),
 .g-helper__trigger[disabled] {
   cursor: not-allowed;
   opacity: 0.5;

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFormSection · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/form.md §3 («Estructura» y «Clases», Fase 3) con el CSS real de
+     GFormSection.css (el de dist/ y, encima, el de src/ dentro de grana.components, como lo registra bruno) y los
+     componentes reales de dist/ (GForm, GFormLayout, GFormRow, campos, GBtn, GBadge, GDivider, GDialog y la GFormSection
+     real de la Fase 1). XSection pinta lo que pintará GFormSection.vue (bruno) y nada más: clases --mode-*, is-open,
+     is-added, is-ready, is-animating, is-instant, inert, fieldset role=none disabled, is-header-side (ancho propio ≥
+     space × 200) e is-actions-below (L9: título < space × 40 junto a las acciones). El recuento de errores es un número
+     fijo (el registro es de bruno). No es documentación.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4192  →  /design/lab/form-section/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: node design/lab/form-section/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GFormSection/GFormSection.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1280px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:var(--g-space-6);align-items:start}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .w480{inline-size:480px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .plain{display:block}
+  .spacer{block-size:70vh}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GFormSection · banco de estilo</h1>
+<p class="cap"><b>coco</b> · Plegable: el título entero es el botón, con <code>chevron-right</code> al inicio (gira a abajo; espejo en RTL), la línea de estado (<code>--g-color-danger-text</code> + <code>circle-alert</code>) y la descripción alineadas con el texto del título. Panel con la transición de §14 (<code>--g-duration-slow</code>, <code>--g-ease-out</code>; fundido <code>--g-duration-fast</code>); plegado sin hueco (margen = −gap propio). Agregable sin agregar: <code>GBtn outline</code> con <code>plus</code>. Al lado: 1 : 2, separadas por el aire de sección. <code>divider</code>: <code>GDivider subtle</code> centrado en el hueco.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="all(true)">Abrir y agregar todo</button>
+  <button type="button" @click="all(false)">Plegar y quitar todo</button>
+</div>
+
+<h2 class="b">1 · Formulario con los tres modos (GForm real, 720, divider)</h2>
+<p class="cap">Fija con acción, plegable con resumen y errores, plegable con lead y opcional, agregable. La primera sección no dibuja línea.</p>
+<div class="host w720"><largo uid="m" divider></largo></div>
+
+<h2 class="b">2 · RTL (480)</h2>
+<div class="host w480" dir="rtl"><largo uid="r" divider></largo></div>
+
+<h2 class="b">3 · Encabezado al lado (headerPlacement="auto", 1100) y arriba (720)</h2>
+<div class="host w1100"><largo uid="s" placement="auto" divider></largo></div>
+<div class="host w720" style="margin-top:16px"><largo uid="t" placement="auto"></largo></div>
+
+<h2 class="b">4 · divider en las tres densidades (GForm) y fuera de GForm</h2>
+<div class="grid">
+  <div v-for="d in ['default','comfortable','compact']" :key="d" class="host">
+    <p class="tag">GForm density="{{ d }}"</p>
+    <g-form :id="'dv-' + d" :density="d" :labels="labels">
+      <x-section v-for="i in 3" :key="i" :id="'dv-' + d + '-' + i" mode="collapsible" divider :title="TITLES[i-1]" :summary="'Resumen ' + i">
+        <g-form-layout><g-input :label="'Campo ' + i" :name="'dv' + d + i"></g-input></g-form-layout>
+      </x-section>
+    </g-form>
+  </div>
+  <div class="host">
+    <p class="tag">Fuera de GForm</p>
+    <div class="plain" id="dv-out">
+      <x-section v-for="i in 3" :key="i" :id="'dv-out-' + i" mode="collapsible" divider :title="TITLES[i-1]">
+        <g-form-layout><g-input :label="'Campo ' + i"></g-input></g-form-layout>
+      </x-section>
+    </div>
+  </div>
+  <div class="host">
+    <p class="tag">GForm · fija, agregable sin agregar y plegable</p>
+    <g-form id="dv-mix" :labels="labels">
+      <x-section id="dv-mix-1" mode="static" divider title="Datos generales"><g-form-layout><g-input label="Nombre" name="mx1"></g-input></g-form-layout></x-section>
+      <x-section id="dv-mix-2" mode="addable" divider title="Datos fiscales" description="Solo si el paciente pide factura." :labels="FISCAL"><g-form-layout><g-input label="RFC" name="mx2"></g-input></g-form-layout></x-section>
+      <x-section id="dv-mix-3" mode="collapsible" divider title="Avanzado"><g-form-layout><g-input label="Zona" name="mx3"></g-input></g-form-layout></x-section>
+    </g-form>
+  </div>
+</div>
+
+<h2 class="b">5 · L9 a 320: título contra acción (Fase 1 real y Fase 3)</h2>
+<div class="grid">
+  <div class="host w320">
+    <p class="tag">GFormSection real (Fase 1)</p>
+    <g-form id="l9-form" :labels="labels">
+      <g-form-section id="l9-real" title="Preferencias de comunicación" description="Cómo avisamos de las citas.">
+        <template #actions><g-btn variant="ghost" color="neutral">Usar el correo del paciente</g-btn></template>
+        <g-form-layout><g-input label="Correo para avisos" name="l9a"></g-input></g-form-layout>
+      </g-form-section>
+      <x-section id="l9-col" mode="collapsible" title="Preferencias de comunicación" description="Cómo avisamos de las citas." summary="ana@correo · SMS" action="Usar el correo del paciente">
+        <g-form-layout><g-input label="Correo para avisos" name="l9b"></g-input></g-form-layout>
+      </x-section>
+    </g-form>
+  </div>
+  <div class="host w480">
+    <p class="tag">480 · la acción cabe al lado</p>
+    <g-form id="l9w-form" :labels="labels">
+      <g-form-section id="l9w-real" title="Preferencias" description="Cómo avisamos de las citas.">
+        <template #actions><g-btn variant="ghost" color="neutral">Usar el correo</g-btn></template>
+        <g-form-layout><g-input label="Correo para avisos" name="l9c"></g-input></g-form-layout>
+      </g-form-section>
+    </g-form>
+  </div>
+</div>
+
+<h2 class="b">6 · 320: todo abierto y agregado, GForm readonly</h2>
+<div class="grid">
+  <div class="host w320" id="n-host"><largo uid="n" divider></largo></div>
+  <div class="host w480"><p class="tag">readonly: la agregable sin agregar no se pinta</p><largo uid="ro" readonly divider></largo></div>
+</div>
+<div class="spacer"></div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, reactive, computed, watch, inject, unref, onMounted, onBeforeUnmount, nextTick } = Vue
+const $ = (s) => document.querySelector(s)
+const icon = (n) => window.lucide(n)
+const spaceOf = (el) => { const v = getComputedStyle(el).getPropertyValue('--g-space-1').trim(); return parseFloat(v) * (/rem$/.test(v) ? parseFloat(getComputedStyle(document.documentElement).fontSize) : 1) }
+
+// ---- L9 e is-header-side: lo que medirá GFormSection.vue (bruno) con su ResizeObserver compartido (#289) ----
+// is-actions-below: ancho del encabezado − ancho natural de __actions (hijos + separaciones, igual en los dos estados)
+// − separación de columnas < space × 40. Con is-header-side no aplica. Escrituras en rAF y solo si cambian (#173).
+function measureSection(sec, { placement = 'top', setSide, setBelow } = {}) {
+  const space = spaceOf(sec)
+  const side = placement === 'auto' && sec.getBoundingClientRect().width >= space * 200
+  let below = false
+  const header = sec.querySelector(':scope > .g-form-section__header')
+  const acts = header && header.querySelector(':scope > .g-form-section__actions')
+  if (!side && acts) {
+    const kids = [...acts.children]
+    const gapA = parseFloat(getComputedStyle(acts).columnGap) || 0
+    const natural = kids.reduce((s, k) => s + k.getBoundingClientRect().width, 0) + gapA * Math.max(0, kids.length - 1)
+    const colGap = parseFloat(getComputedStyle(header).columnGap) || 0
+    below = header.getBoundingClientRect().width - natural - colGap < space * 40
+  }
+  requestAnimationFrame(() => {
+    if (setSide) setSide(side); else sec.classList.toggle('is-header-side', side)
+    if (setBelow) setBelow(below); else sec.classList.toggle('is-actions-below', below)
+  })
+}
+const ro = new ResizeObserver((entries) => entries.forEach((e) => (e.target.__measure || (() => measureSection(e.target)))()))
+
+// ---- XSection: lo que pintará GFormSection.vue (bruno), solo la parte visual del contrato ----
+const registry = window.__sections = new Map()
+const XSection = defineComponent({
+  name: 'XSection',
+  inheritAttrs: false,
+  props: {
+    title: String, description: String, optional: Boolean, summary: String, lead: String, action: String,
+    mode: { type: String, default: 'static' }, open: Boolean, added: Boolean, errors: { type: Number, default: 0 },
+    placement: { type: String, default: 'top' }, divider: Boolean, labels: { type: Object, default: () => ({}) }
+  },
+  setup(props, { attrs }) {
+    const form = inject(Grana.formKey, null)
+    const uid = attrs.id
+    const root = ref(null), panel = ref(null)
+    const openL = ref(props.open), addedL = ref(props.added)
+    const animating = ref(false), ready = ref(false), instant = ref(false), side = ref(false), below = ref(false), confirm = ref(false), gen = ref(0)
+    const editable = computed(() => !unref(form?.readonly) && !unref(form?.disabled))
+    const shown = computed(() => props.mode === 'collapsible' ? openL.value : props.mode === 'addable' ? addedL.value : true)
+    const digest = computed(() => props.mode === 'collapsible' && !openL.value && (props.errors > 0 || Boolean(props.summary)))
+    const hasActions = computed(() => Boolean(props.action) || (props.mode === 'addable' && addedL.value && editable.value && props.labels.remove))
+    const hiddenAll = computed(() => props.mode === 'addable' && !addedL.value && !editable.value)
+    let timer = null
+    const longest = (el) => { if (!el) return 0; const cs = getComputedStyle(el); const d = cs.transitionDuration.split(',').map(parseFloat); const l = cs.transitionDelay.split(',').map(parseFloat); return Math.max(0, ...d.map((x, i) => (x + (l[i % l.length] || 0)) * 1000)) }
+    const settle = () => { animating.value = false; clearTimeout(timer) }
+    async function startAnim() { animating.value = true; await nextTick(); clearTimeout(timer); timer = setTimeout(settle, longest(panel.value) + 50) }
+    const onEnd = (e) => { if (e.target === panel.value && e.propertyName === 'grid-template-rows') settle() }
+    function setOpen(v) { if (v === openL.value) return; openL.value = v; startAnim() }
+    function setAdded(v) { if (v === addedL.value) return; addedL.value = v; if (!v) gen.value++; startAnim() }
+    // Abrir para llevar a un campo (#287): is-instant en el mismo parche que is-open; se retira tras el primer pintado
+    function openNow() { if (props.mode !== 'collapsible' || openL.value) return; instant.value = true; openL.value = true
+      requestAnimationFrame(() => requestAnimationFrame(() => { instant.value = false })) }
+    // is-ready solo después de escribir la primera medida: pasar a «al lado» o bajar las acciones no se anima al cargar
+    let measured = false
+    const measure = () => root.value && measureSection(root.value, { placement: props.placement, setSide: (v) => { if (v !== side.value) side.value = v }, setBelow: (v) => { if (v !== below.value) below.value = v
+      if (!measured) { measured = true; requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true })) } } })
+    const api = { root, panel, uid, mode: props.mode, open: openL, added: addedL, animating, side, below, setOpen, setAdded, openNow, measure }
+    onMounted(() => {
+      root.value.__measure = measure; ro.observe(root.value); measure()
+      registry.set(uid, api)
+    })
+    watch([openL, addedL], () => nextTick(measure))
+    onBeforeUnmount(() => { ro.unobserve(root.value); clearTimeout(timer); registry.delete(uid) })
+    const fill = (c) => { const l = unref(form?.labels)?.sectionErrors; return typeof l === 'function' ? l(c) : String(l || '').replace('{count}', c) }
+    return { uid, root, panel, openL, addedL, animating, ready, instant, side, below, confirm, gen, editable, shown, digest, hasActions, hiddenAll, onEnd, setOpen, setAdded, icon, fill }
+  },
+  template: `
+  <section ref="root" :id="uid" :hidden="hiddenAll || undefined"
+    :class="['g-form-section', 'g-form-section--mode-' + mode, { 'g-form-section--optional': optional, 'is-open': mode !== 'static' && shown,
+      'is-added': mode === 'addable' && addedL, 'is-animating': animating, 'is-ready': ready, 'is-instant': instant, 'is-header-side': side, 'is-actions-below': below }]">
+    <g-divider v-if="divider" decorative emphasis="subtle" inset="none" class="g-form-section__divider"></g-divider>
+    <div v-if="mode === 'addable' && !addedL && editable" class="g-form-section__add">
+      <g-btn :id="uid + '-add'" class="g-form-section__add-button" variant="outline" color="neutral" :aria-describedby="description ? uid + '-add-description' : undefined" @click="setAdded(true)">
+        <template #prepend><span v-html="icon('plus')"></span></template>{{ labels.add }}
+      </g-btn>
+      <p v-if="description" :id="uid + '-add-description'" class="g-form-section__description">{{ description }}</p>
+    </div>
+    <div v-else-if="!(mode === 'addable' && !addedL)" class="g-form-section__header">
+      <div class="g-form-section__heading">
+        <span v-if="lead && mode !== 'collapsible'" class="g-form-section__lead" aria-hidden="true" v-html="icon(lead)"></span>
+        <h3 :id="uid + '-title'" class="g-form-section__title" :tabindex="mode === 'addable' ? -1 : undefined">
+          <button v-if="mode === 'collapsible'" :id="uid + '-toggle'" type="button" class="g-form-section__toggle"
+            :aria-expanded="String(openL)" :aria-controls="uid + '-panel'" :aria-describedby="digest ? uid + '-summary' : undefined" @click="setOpen(!openL)">
+            <span class="g-form-section__chevron" aria-hidden="true" v-html="icon('chevron-right')"></span>
+            <span v-if="lead" class="g-form-section__lead" aria-hidden="true" v-html="icon(lead)"></span>
+            <span class="g-form-section__toggle-text">{{ title }}</span>
+          </button>
+          <template v-else>{{ title }}</template>
+        </h3>
+        <g-badge v-if="optional && mode !== 'addable'" size="sm" variant="soft" color="neutral">Opcional</g-badge>
+      </div>
+      <p v-if="digest" :id="uid + '-summary'" class="g-form-section__summary">
+        <span v-if="errors" class="g-form-section__status" v-html="icon('circle-alert') + fill(errors)"></span>
+        <span v-if="summary" class="g-form-section__summary-text">{{ summary }}</span>
+      </p>
+      <p v-if="description" class="g-form-section__description">{{ description }}</p>
+      <div v-if="hasActions" class="g-form-section__actions">
+        <g-btn v-if="action" :id="uid + '-action'" variant="ghost" color="neutral">{{ action }}</g-btn>
+        <g-btn v-if="mode === 'addable' && editable && labels.remove" :id="uid + '-remove'" class="g-form-section__remove" variant="ghost" color="neutral" @click="confirm = true">{{ labels.remove }}</g-btn>
+      </div>
+    </div>
+    <div v-if="mode === 'static'" class="g-form-section__body"><slot></slot></div>
+    <div v-else ref="panel" :id="uid + '-panel'" class="g-form-section__panel" :inert="!shown || undefined" @transitionend="onEnd">
+      <component :is="mode === 'addable' ? 'fieldset' : 'div'" :key="gen" class="g-form-section__body"
+        :role="mode === 'addable' ? 'none' : undefined" :disabled="(mode === 'addable' && !addedL) || undefined"><slot></slot></component>
+    </div>
+    <g-dialog v-if="mode === 'addable'" v-model="confirm" role="alertdialog" size="sm" :id="uid + '-confirm'" class="g-form-section__confirm"
+      :title="labels.removeTitle" :description="labels.removeBody">
+      <template #footer="{ close }">
+        <g-btn variant="outline" color="neutral" autofocus @click="close()">{{ labels.removeCancel }}</g-btn>
+        <g-btn color="danger" @click="close(); setAdded(false)">{{ labels.removeConfirm }}</g-btn>
+      </template>
+    </g-dialog>
+  </section>`
+})
+
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ', sectionOptional: 'Opcional',
+  sectionErrors: (n) => (n === 1 ? '1 error' : `${n} errores`) }
+const FISCAL = { add: 'Agregar datos fiscales', remove: 'Quitar datos fiscales', removeTitle: '¿Quitar los datos fiscales?',
+  removeBody: 'Se descartará lo que escribiste en esta sección.', removeConfirm: 'Quitar', removeCancel: 'Cancelar' }
+const TITLES = ['Datos generales', 'Contacto', 'Avanzado']
+const CANAL = [{ value: 'correo', label: 'Correo' }, { value: 'sms', label: 'SMS' }]
+const models = window.__models = {}
+
+const Largo = defineComponent({
+  name: 'Largo',
+  props: { uid: String, placement: { type: String, default: 'top' }, divider: Boolean, readonly: Boolean },
+  setup(props) {
+    const m = models[props.uid] = reactive({ nombre: 'Ana Godínez', correo: '', avisos: 'ana@correo', canal: 'correo', idioma: '', zona: '', rfc: '', razon: '', cp: '' })
+    const p = (s) => `${props.uid}-${s}`
+    return { m, p, labels, FISCAL, CANAL }
+  },
+  template: `
+  <g-form :id="p('form')" :labels="labels" :readonly="readonly">
+    <x-section :id="p('s1')" mode="static" :placement="placement" :divider="divider" title="Datos del paciente" description="Como aparecen en su identificación." action="Copiar de la cita">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :id="p('nombre')" class="g-form-w-lg" label="Nombre completo" name="nombre" v-model="m.nombre"></g-input>
+          <g-input :id="p('correo')" label="Correo" name="correo" v-model="m.correo"></g-input>
+        </g-form-row>
+      </g-form-layout>
+    </x-section>
+    <x-section :id="p('s2')" mode="collapsible" :placement="placement" :divider="divider" title="Preferencias de comunicación" description="Cómo avisamos de las citas." summary="ana@correo · Correo" :errors="1" action="Usar el correo del paciente">
+      <g-form-layout>
+        <g-input :id="p('avisos')" label="Correo para avisos" name="avisos" v-model="m.avisos" error="Escribe el correo con el formato nombre@dominio.com"></g-input>
+        <g-radio-group :id="p('canal')" appearance="inline" label="Canal" name="canal" v-model="m.canal" :options="CANAL"></g-radio-group>
+      </g-form-layout>
+    </x-section>
+    <x-section :id="p('s3')" mode="collapsible" :placement="placement" :divider="divider" title="Configuración avanzada" lead="settings" optional summary="Español · America/Mexico_City">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :id="p('idioma')" label="Idioma" name="idioma" v-model="m.idioma"></g-input>
+          <g-input :id="p('zona')" label="Zona horaria" name="zona" v-model="m.zona"></g-input>
+        </g-form-row>
+      </g-form-layout>
+    </x-section>
+    <x-section :id="p('s4')" mode="addable" :placement="placement" :divider="divider" title="Datos fiscales" description="Solo si el paciente pide factura." :labels="FISCAL">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :id="p('rfc')" class="g-form-w-md" label="RFC" name="rfc" v-model="m.rfc"></g-input>
+          <g-input :id="p('cp')" class="g-form-w-sm" label="Código postal" name="cp" v-model="m.cp"></g-input>
+        </g-form-row>
+        <g-input :id="p('razon')" label="Razón social" name="razon" v-model="m.razon"></g-input>
+        <div><g-btn :id="p('validar')" variant="outline">Validar RFC</g-btn></div>
+      </g-form-layout>
+    </x-section>
+  </g-form>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(new URLSearchParams(location.search).has('slow'))
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-slow:1200ms;--g-duration-fast:600ms}' : '' }
+    applySlow(slow.value); watch(slow, applySlow)
+    const all = (v) => { for (const s of registry.values()) { if (s.mode === 'collapsible') s.setOpen(v); if (s.mode === 'addable') s.setAdded(v) } }
+    window.__all = all
+    return { slow, all, labels, TITLES, FISCAL }
+  }
+})
+app.component('XSection', XSection)
+app.component('Largo', Largo)
+app.use(Grana)
+app.mount('#app')
+// La GFormSection real de la Fase 1 con la medida de L9 que le pondrá bruno
+requestAnimationFrame(() => document.querySelectorAll('#l9-real, #l9w-real').forEach((s) => { ro.observe(s); measureSection(s) }))
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+if (q.get('theme')) { $('#t-theme').value = q.get('theme'); setTheme(q.get('theme')) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+</script>
+</body>
+</html>
