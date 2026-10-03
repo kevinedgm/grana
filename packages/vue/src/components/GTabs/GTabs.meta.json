@@ -294,7 +294,9 @@
     "--g-color-focus",
     "--g-space-1",
     "--g-duration-press",
-    "--g-ease-standard"
+    "--g-ease-standard",
+    "--g-ease-spring",
+    "--g-duration-slow"
   ],
   "states": [
     "default",

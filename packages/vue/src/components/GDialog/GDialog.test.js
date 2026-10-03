@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick, h } from 'vue'
 import GDialog from './GDialog.vue'
+import GTabs from '../GTabs/GTabs.vue'
+import GTabPanel from '../GTabs/GTabPanel.vue'
 
 // jsdom no implementa showModal/close: se simulan con el mismo contrato (atributo open y evento close).
 beforeEach(() => {
@@ -465,6 +467,38 @@ describe('GDialog · slot tabs (cabecera de pestañas fija, DECISIONS.md #119)',
     expect(body.classes()).toContain('is-scrollable')
     expect(body.attributes('tabindex')).toBeUndefined()
     expect(body.attributes('role')).toBeUndefined()
+    w.unmount()
+  })
+})
+
+describe('GDialog · slot tabs con GTabs detached: dirección del cambio (#302)', () => {
+  const Host = {
+    components: { GDialog, GTabs, GTabPanel },
+    data: () => ({ open: true, v: 'a', items: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] }),
+    template: `<g-dialog v-model="open" title="Ajustes" close-label="Cerrar">
+      <template #tabs><g-tabs id="dt" v-model="v" :items="items" detached label="Secciones" /></template>
+      <g-tab-panel v-for="i in items" :key="i.id" tabs="dt" :value="i.id" :active="v === i.id">{{ i.label }}</g-tab-panel>
+    </g-dialog>`
+  }
+  const settle = async () => { for (let i = 0; i < 5; i++) await nextTick() }
+
+  it('los paneles del cuerpo copian forward / back del GTabs del slot tabs (clic y teclado)', async () => {
+    const w = mount(Host, { attachTo: document.body })
+    await settle()
+    const root = () => w.find('#dt')
+    const panel = (id) => w.find(`#dt-panel-${id}`)
+    expect(root().attributes('data-direction')).toBeUndefined()
+    expect(panel('a').attributes('data-direction')).toBeUndefined()
+    await w.find('#dt-tab-c').trigger('click')
+    await settle()
+    expect(root().attributes('data-direction')).toBe('forward')
+    expect(panel('c').attributes('hidden')).toBeUndefined()
+    expect(panel('c').attributes('data-direction')).toBe('forward')
+    w.find('#dt-tab-c').element.focus()
+    await w.find('#dt-tab-c').trigger('keydown', { key: 'ArrowLeft' })
+    await settle()
+    expect(w.find('#dt-tab-b').attributes('aria-selected')).toBe('true')
+    expect(panel('b').attributes('data-direction')).toBe('back')
     w.unmount()
   })
 })

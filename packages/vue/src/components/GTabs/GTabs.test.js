@@ -524,6 +524,216 @@ describe('GTabPanel', () => {
   })
 })
 
+describe('GTabs · dirección del cambio (Personalidad T1/T2, #302)', () => {
+  // v-model simulado: cada `update:modelValue` vuelve como prop
+  const mkv = (props = {}, opts = {}) => {
+    const w = mk({ 'onUpdate:modelValue': (v) => w.setProps({ modelValue: v }), ...props }, opts)
+    return w
+  }
+  const dir = (w) => w.attributes('data-direction')
+
+  it('ausente al montar y sin activa anterior', async () => {
+    const w = mkv()
+    await flush()
+    expect(dir(w)).toBeUndefined()
+    w.unmount()
+  })
+  it('clic: forward hacia una posterior y back hacia una anterior; se conserva hasta el siguiente cambio', async () => {
+    const w = mkv()
+    await flush()
+    await tab(w, 'news').trigger('click')
+    expect(dir(w)).toBe('forward')
+    await flush()
+    expect(dir(w)).toBe('forward') // se queda puesto
+    await tab(w, 'msgs').trigger('click')
+    expect(dir(w)).toBe('back')
+    w.unmount()
+  })
+  it('se escribe en el mismo render que cambia la activa (antes de que el panel nuevo pierda hidden)', async () => {
+    const w = mkv()
+    await flush()
+    const seen = []
+    const panel = w.find('#t-panel-msgs').element
+    const mo = new MutationObserver(() => {
+      if (!panel.hasAttribute('hidden') && !seen.length) seen.push(w.element.getAttribute('data-direction'))
+    })
+    mo.observe(w.element, { attributes: true, subtree: true })
+    await tab(w, 'msgs').trigger('click')
+    await nextTick()
+    mo.disconnect()
+    expect(seen).toEqual(['forward'])
+    w.unmount()
+  })
+  it('teclado: flechas, Home y End (activación automática)', async () => {
+    const w = mkv()
+    await flush()
+    tab(w, 'general').element.focus()
+    await key(w, 'general', 'ArrowRight')
+    expect(tab(w, 'msgs').attributes('aria-selected')).toBe('true')
+    expect(dir(w)).toBe('forward')
+    await key(w, 'msgs', 'ArrowLeft')
+    expect(dir(w)).toBe('back')
+    await key(w, 'general', 'End')
+    expect(tab(w, 'rep').attributes('aria-selected')).toBe('true')
+    expect(dir(w)).toBe('forward')
+    await key(w, 'rep', 'Home')
+    expect(dir(w)).toBe('back')
+    // Vuelta: de la primera hacia atrás llega a la última, que va después en el orden lógico
+    await key(w, 'general', 'ArrowLeft')
+    expect(tab(w, 'rep').attributes('aria-selected')).toBe('true')
+    expect(dir(w)).toBe('forward')
+    w.unmount()
+  })
+  it('teclado manual: mover el foco no cambia la dirección; Enter sí', async () => {
+    const w = mkv({ activation: 'manual' })
+    await flush()
+    tab(w, 'general').element.focus()
+    await key(w, 'general', 'ArrowRight')
+    expect(dir(w)).toBeUndefined()
+    await key(w, 'msgs', 'Enter')
+    expect(dir(w)).toBe('forward')
+    w.unmount()
+  })
+  it('RTL: el valor es lógico (ArrowLeft avanza → forward; ArrowRight retrocede → back)', async () => {
+    const w = mkv({}, { attrs: { dir: 'rtl' } })
+    await flush()
+    tab(w, 'general').element.focus()
+    await key(w, 'general', 'ArrowLeft')
+    expect(tab(w, 'msgs').attributes('aria-selected')).toBe('true')
+    expect(dir(w)).toBe('forward')
+    await key(w, 'msgs', 'ArrowRight')
+    expect(tab(w, 'general').attributes('aria-selected')).toBe('true')
+    expect(dir(w)).toBe('back')
+    w.unmount()
+  })
+  it('vertical: el mismo valor lógico con ArrowDown / ArrowUp', async () => {
+    const w = mkv({ orientation: 'vertical', responsive: 'never' })
+    await flush()
+    tab(w, 'general').element.focus()
+    await key(w, 'general', 'ArrowDown')
+    expect(dir(w)).toBe('forward')
+    await key(w, 'msgs', 'ArrowUp')
+    expect(dir(w)).toBe('back')
+    w.unmount()
+  })
+  it('modelValue externo: forward y back sin evento; hacia un valor desconocido se conserva, y desde él queda ausente', async () => {
+    const w = mk()
+    await flush()
+    await w.setProps({ modelValue: 'rep' })
+    expect(dir(w)).toBe('forward')
+    await w.setProps({ modelValue: 'news' })
+    expect(dir(w)).toBe('back')
+    expect(w.emitted('change')).toBeUndefined()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await w.setProps({ modelValue: 'no-existe' })
+    expect(dir(w)).toBe('back') // sin activa nueva no hay cambio que describir
+    await w.setProps({ modelValue: 'msgs' })
+    expect(dir(w)).toBeUndefined() // sin activa anterior
+    warn.mockRestore()
+    w.unmount()
+  })
+  it('change cancelado: ni valor ni dirección cambian', async () => {
+    const w = mkv({ onChange: (e) => e.preventDefault() })
+    await flush()
+    await tab(w, 'news').trigger('click')
+    expect(dir(w)).toBeUndefined()
+    w.unmount()
+  })
+  it('--_mark-* siguen en la raíz con la misma convención', async () => {
+    const w = mkv()
+    await flush()
+    await tab(w, 'news').trigger('click')
+    const st = w.attributes('style')
+    for (const v of ['--_mark-x', '--_mark-y', '--_mark-w', '--_mark-h']) expect(st).toContain(v)
+    w.unmount()
+  })
+  describe('menú «Más»', () => {
+    let restore
+    beforeEach(() => { restore = stubLayout({ tabW: 100, headerW: 350 }) })
+    afterEach(() => restore())
+    it('elegir una oculta posterior da forward; luego una anterior, back', async () => {
+      const w = mkv({ overflow: 'more' })
+      await flush()
+      const pick = async (label) => {
+        await w.find('.g-tabs__more').trigger('click')
+        await flush()
+        ;[...document.querySelectorAll('[role="menuitemradio"]')].find((r) => r.textContent.includes(label)).click()
+        await flush()
+      }
+      expect(tab(w, 'rep').exists()).toBe(false)
+      await pick('Informe')
+      expect(w.emitted('change').at(-1)[0]).toMatchObject({ id: 'rep', source: 'menu' })
+      expect(dir(w)).toBe('forward')
+      await new Promise((r) => setTimeout(r, 20))
+      await flush()
+      await pick('General')
+      expect(dir(w)).toBe('back')
+      w.unmount()
+    })
+  })
+})
+
+describe('GTabPanel · dirección copiada de su GTabs', () => {
+  const Host = (order = 'tabs-first') => ({
+    components: { GTabs, GTabPanel },
+    data: () => ({ v: 'a', items: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] }),
+    template: order === 'tabs-first'
+      ? `<div><g-tabs id="h" v-model="v" :items="items" detached label="Demo" /><g-tab-panel v-for="i in items" :key="i.id" tabs="h" :value="i.id" :active="v === i.id">{{ i.label }}</g-tab-panel></div>`
+      : `<div><g-tab-panel v-for="i in items" :key="i.id" tabs="h" :value="i.id" :active="v === i.id">{{ i.label }}</g-tab-panel><g-tabs id="h" v-model="v" :items="items" detached label="Demo" /></div>`
+  })
+  const pdir = (w, id) => w.find(`#h-panel-${id}`).attributes('data-direction')
+
+  it.each(['tabs-first', 'panels-first'])('al activarse copia data-direction de #{tabs} (%s); ausente al montar', async (order) => {
+    const w = mount(Host(order), { attachTo: document.body })
+    await flush()
+    expect(pdir(w, 'a')).toBeUndefined()
+    await w.find('#h-tab-c').trigger('click')
+    await flush()
+    expect(w.find('#h').attributes('data-direction')).toBe('forward')
+    expect(pdir(w, 'c')).toBe('forward')
+    await w.find('#h-tab-b').trigger('click')
+    await flush()
+    expect(pdir(w, 'b')).toBe('back')
+    w.unmount()
+  })
+  it.each(['tabs-first', 'panels-first'])('el panel visible ya tiene su dirección cuando GTabs mide la marca (%s)', async (order) => {
+    const w = mount(Host(order), { attachTo: document.body })
+    await flush()
+    const panel = w.find('#h-panel-b').element
+    // GTabs mide la marca en onUpdated (fuerza estilo y layout en un navegador): en ese momento el panel visible ya debe tener dirección
+    const seen = []
+    const real = Element.prototype.getBoundingClientRect
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      if (!panel.hidden) seen.push(panel.getAttribute('data-direction'))
+      return real.call(this)
+    })
+    await w.find('#h-tab-b').trigger('click')
+    await flush()
+    expect(seen.length).toBeGreaterThan(0)
+    expect(seen.every((d) => d === 'forward')).toBe(true)
+    w.unmount()
+  })
+  it('teclado con RTL: forward lógico también en el panel', async () => {
+    const w = mount(Host('tabs-first'), { attachTo: document.body, attrs: { dir: 'rtl' } })
+    await flush()
+    w.find('#h-tab-a').element.focus()
+    await w.find('#h-tab-a').trigger('keydown', { key: 'ArrowLeft' })
+    await flush()
+    expect(w.find('#h-tab-b').attributes('aria-selected')).toBe('true')
+    expect(pdir(w, 'b')).toBe('forward')
+    w.unmount()
+  })
+  it('sin un GTabs con ese id, o sin dirección en él, no pone dirección', async () => {
+    const w = mount(GTabPanel, { props: { tabs: 'no-existe', value: 'x', active: false }, attachTo: document.body })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await w.setProps({ active: true })
+    await flush()
+    expect(w.attributes('data-direction')).toBeUndefined()
+    warn.mockRestore()
+    w.unmount()
+  })
+})
+
 describe('GTabs · marca y listo', () => {
   it('variables --_mark-* en px y is-ready tras el primer posicionamiento', async () => {
     const w = mk()

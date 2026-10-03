@@ -177,6 +177,27 @@ export default defineComponent({
     }
     watch(() => [props.items, props.modelValue, props.labelMode, props.appearance, props.orientation, props.overflow, props.labels, props.label, props.labelledby], validate, { immediate: true, deep: true })
 
+    // ---------- Dirección del cambio de activa (tabs.md «Personalidad», #302) ----------
+    // `forward` / `back` según el orden lógico de `items` (el del DOM; en RTL lo espeja el CSS con `--_dir`).
+    // Watcher `pre`: queda escrita en el mismo render que cambia la activa, por cualquier vía (clic, teclado,
+    // «Más», `modelValue` externo). Ausente al montar y sin activa anterior; se conserva hasta el siguiente cambio.
+    const direction = ref(undefined)
+    watch(activeId, (now, before) => {
+      if (now === undefined) return
+      const from = before === undefined ? -1 : indexOf(before)
+      const to = indexOf(now)
+      direction.value = from < 0 || to < 0 || from === to ? undefined : to > from ? 'forward' : 'back'
+      // `detached` con el GTabPanel antes que el GTabs en el árbol: ese panel ya se mostró en este ciclo y la copiará
+      // después; se le adelanta aquí para que ninguna medición intermedia lo vea visible sin dirección
+      if (props.detached && typeof document !== 'undefined') {
+        const panel = document.getElementById(panelDomId(rootId.value, now))
+        if (panel && !panel.hidden) {
+          if (direction.value) panel.setAttribute('data-direction', direction.value)
+          else panel.removeAttribute('data-direction')
+        }
+      }
+    })
+
     // ---------- Panel: ¿tiene algo enfocable? ----------
     const mounted = ref(new Set())
     watch(activeId, (id) => { if (id !== undefined && !mounted.value.has(id)) mounted.value = new Set([...mounted.value, id]) }, { immediate: true })
@@ -661,6 +682,7 @@ export default defineComponent({
         ref: (el) => { rootEl.value = el },
         id: rootId.value,
         class: rootClass,
+        'data-direction': direction.value,
         style: { '--_mark-x': px(m.x), '--_mark-y': px(m.y), '--_mark-w': px(m.w), '--_mark-h': px(m.h) }
       })
 

@@ -48,6 +48,21 @@ export default defineComponent({
     onUpdated(evaluate)
     watch(() => props.active, () => nextTick(evaluate))
 
+    // Dirección del cambio (tabs.md «Personalidad», #302): al pasar `active` de false a true copia el
+    // `data-direction` de la raíz de su GTabs (`#{tabs}`); sin él, el panel solo se funde.
+    // Se lee antes del render (`pre`: el panel pierde `hidden` ya con su dirección cuando el GTabs va antes en el
+    // árbol, como en el slot `tabs` de GDialog) y se confirma después (`post`: si el GTabs va después, en el mismo ciclo).
+    const direction = ref(undefined)
+    const readDirection = () => {
+      if (typeof document === 'undefined' || !props.tabs) return
+      const host = document.getElementById(props.tabs)
+      const d = host?.getAttribute('data-direction') || undefined
+      if (d !== direction.value) direction.value = d
+    }
+    const onActivate = (on, was) => { if (on && !was) readDirection() }
+    watch(() => props.active, onActivate)
+    watch(() => props.active, onActivate, { flush: 'post' })
+
     return () => {
       const body = !props.lazy || mounted.value ? slots.default?.({ active: props.active }) : null
       return h('div', {
@@ -59,7 +74,8 @@ export default defineComponent({
         'aria-labelledby': tabDomId(props.tabs, props.value),
         tabindex: props.active && !focusable.value ? 0 : undefined,
         hidden: props.active ? undefined : true,
-        'aria-busy': props.active && props.busy ? 'true' : undefined
+        'aria-busy': props.active && props.busy ? 'true' : undefined,
+        'data-direction': direction.value
       }, body)
     }
   }
