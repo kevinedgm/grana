@@ -40,6 +40,8 @@
 @import url("../components/GHelperScope/GHelperScope.css");
 @import url("../components/GHelper/GHelper.css");
 @import url("../components/GAvatarMotion/GAvatarMotion.css");
+/* GAvatar (avatar.md): los huecos de GCard, GTable, GMenu, GSelect y GBadge lo detectan por la clase (:has(> .g-avatar)) */
+@import url("../components/GAvatar/GAvatar.css");
 @import url("../components/GTable/GTable.css");
 @import url("../components/GPagination/GPagination.css");
 @import url("../components/GFilterBar/GFilterBar.css");

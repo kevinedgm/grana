@@ -49,8 +49,12 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   // configuración trae `categories: N`; defaults.css NO los define (por defecto `categories: 0`) y no debe definirlos. Por eso
   // no pasan la regla «existe en defaults.css». Excepción acotada y nombrada, no un comodín: solo las hojas de este mapa
   // pueden LEER la familia, sin valores de respaldo y con K entero de 1 a 12 (hoy, GTranscript pinta la marca de letra del
-  // hablante con `[data-cat="k"]`, que solo se pinta si k <= speakerColors). Ninguna hoja la declara (ni siquiera estas).
-  const CAT_FAMILY_READERS = { 'GTranscript/GTranscript.css': 'marca de letra del hablante (speakerColors: n)' }
+  // hablante con `[data-cat="k"]`, que solo se pinta si k <= speakerColors; GAvatar, su relleno con `[data-cat="k"]`, solo
+  // `cat-K-soft` y `on-cat-K-soft`, #294). Ninguna hoja la declara (ni siquiera estas).
+  const CAT_FAMILY_READERS = {
+    'GTranscript/GTranscript.css': 'marca de letra del hablante (speakerColors: n)',
+    'GAvatar/GAvatar.css': 'relleno del avatar por categoría (color / categories)'
+  }
   const K = '(?:[1-9]|1[0-2])'
   const CAT_OK = new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`)
   const CAT_ANY = /^--g-color-(?:on-)?cat-/

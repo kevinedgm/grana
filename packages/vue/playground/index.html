@@ -79,6 +79,13 @@
     .fm-bench-ctl select { font: inherit; min-block-size: 28px; color: var(--g-color-text); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-sm); }
     .fm-frame { box-sizing: border-box; max-inline-size: 100%; padding: 16px; border: var(--g-border-width) dashed var(--g-color-border-strong); border-radius: var(--g-radius-md); }
 
+    /* GAvatar: filas del banco (el aire lo pone el contenedor) */
+    .av-rows { display: grid; gap: 16px; margin: 0 0 20px; }
+    .av-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .av-row-label { min-inline-size: 7em; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+    .av-person { display: inline-flex; align-items: center; gap: 8px; font-size: var(--g-text-body-sm-size); }
+    .av-account { display: inline-flex; align-items: center; gap: 10px; min-block-size: 44px; padding: 4px 12px 4px 4px; font: inherit; color: var(--g-color-text); background: transparent; border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-pill); cursor: pointer; }
+    .av-account:focus-visible { outline: 2px solid var(--g-color-accent); outline-offset: 2px; }
     @media (max-width: 899px) {
       .pg-layout { grid-template-columns: minmax(0, 1fr); }
       .pg-index-btn { display: inline-flex; }
@@ -88,6 +95,67 @@
       .pg-panel { padding: 12px; }
       .pg-brand span, .pg-ctl-label { display: none; }
       .pg-bar { padding: 6px 12px; gap: 6px 10px; }
+    }
+  </style>
+  <!-- Categorías del tema de la aplicación (tokens.md §16.3): la salida de `grana theme` con {"categories": 8}, solo la familia
+       que lee GAvatar (cat-K-soft / on-cat-K-soft). Grana no la trae por defecto: la declara la aplicación, y por eso los
+       avatares del playground llevan :categories="8" (avatar.md «Color»). -->
+  <style id="app-categories">
+    :root,
+    [data-theme="light"] {
+      --g-color-cat-1-soft: #FFEBE9;
+      --g-color-on-cat-1-soft: #A34948;
+      --g-color-cat-2-soft: #FFEDDA;
+      --g-color-on-cat-2-soft: #945A00;
+      --g-color-cat-3-soft: #F0F3D9;
+      --g-color-on-cat-3-soft: #6B6F00;
+      --g-color-cat-4-soft: #DDF8E7;
+      --g-color-on-cat-4-soft: #0A7D4D;
+      --g-color-cat-5-soft: #DDF6F8;
+      --g-color-on-cat-5-soft: #00787F;
+      --g-color-cat-6-soft: #E5F2FF;
+      --g-color-on-cat-6-soft: #226DAA;
+      --g-color-cat-7-soft: #F0EEFF;
+      --g-color-on-cat-7-soft: #6C5AA7;
+      --g-color-cat-8-soft: #FFE9F8;
+      --g-color-on-cat-8-soft: #944B81;
+    }
+      :root:not([data-theme="light"]) {
+        --g-color-cat-1-soft: #361B1A;
+        --g-color-on-cat-1-soft: #CF706D;
+        --g-color-cat-2-soft: #31200D;
+        --g-color-on-cat-2-soft: #BA7E36;
+        --g-color-cat-3-soft: #24260D;
+        --g-color-on-cat-3-soft: #8B9033;
+        --g-color-cat-4-soft: #102A1C;
+        --g-color-on-cat-4-soft: #3D9F6C;
+        --g-color-cat-5-soft: #10292A;
+        --g-color-on-cat-5-soft: #3999A0;
+        --g-color-cat-6-soft: #122637;
+        --g-color-on-cat-6-soft: #4A92D1;
+        --g-color-cat-7-soft: #252036;
+        --g-color-on-cat-7-soft: #8F7ECE;
+        --g-color-cat-8-soft: #311C2B;
+        --g-color-on-cat-8-soft: #BE71A9;
+      }
+    }
+    [data-theme="dark"] {
+      --g-color-cat-1-soft: #361B1A;
+      --g-color-on-cat-1-soft: #CF706D;
+      --g-color-cat-2-soft: #31200D;
+      --g-color-on-cat-2-soft: #BA7E36;
+      --g-color-cat-3-soft: #24260D;
+      --g-color-on-cat-3-soft: #8B9033;
+      --g-color-cat-4-soft: #102A1C;
+      --g-color-on-cat-4-soft: #3D9F6C;
+      --g-color-cat-5-soft: #10292A;
+      --g-color-on-cat-5-soft: #3999A0;
+      --g-color-cat-6-soft: #122637;
+      --g-color-on-cat-6-soft: #4A92D1;
+      --g-color-cat-7-soft: #252036;
+      --g-color-on-cat-7-soft: #8F7ECE;
+      --g-color-cat-8-soft: #311C2B;
+      --g-color-on-cat-8-soft: #BE71A9;
     }
   </style>
   <style id="theme"></style>
@@ -365,6 +433,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <g-select v-model="selClient" :options="selClients" label="Cliente (prefijo, iconos y agregar nuevo)" placeholder="Elige un cliente" create-label="Agregar nuevo cliente…" @create="selCreate">
         <template #prepend><g-icon name="user"></g-icon></template>
         <template #icon="{ option }"><g-icon :name="option.icon"></g-icon></template>
+      </g-select>
+      <g-select v-model="selPerson" :options="selPeople" label="Responsable (avatares)" placeholder="Elige una persona">
+        <template #icon="{ option }"><g-avatar :name="option.label" :src="option.src" size="xs" :categories="8"></g-avatar></template>
       </g-select>
       <g-btn variant="outline" @click="selError = 'Elige una opción para continuar.'">Forzar error en Estado</g-btn>
       <p class="log">{{ selCountry }} · lista: {{ selLog }}</p>
@@ -962,7 +1033,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
             <template #search-icon><g-icon name="search"></g-icon></template>
             <template #more-icon><g-icon name="menu"></g-icon></template>
-            <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><span style="flex:none;inline-size:32px;block-size:32px;border-radius:50%;background:var(--g-color-border);display:grid;place-items:center;font-size:13px;font-weight:600">AG</span><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
+            <template #user="{ collapsed }"><button type="button" :aria-label="collapsed ? 'Ana García, Administradora' : undefined" style="display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer"><g-avatar name="Ana García" size="md" :categories="8" data-test="sb-user-av"></g-avatar><span v-if="!collapsed" style="display:flex;flex-direction:column;text-align:start;line-height:1.25"><b>Ana García</b><small>Administradora</small></span></button></template>
           </g-sidebar>
           <main :style="{ flex: '1 1 auto', minWidth: 0, overflow: 'auto', padding: '16px 20px', paddingBlockEnd: sbMode.mode === 'navbar' ? 'calc(var(--g-sidebar-bar) + 16px)' : '16px', paddingInlineStart: sbMode.overlay ? 'calc(var(--g-sidebar-rail) + 20px)' : '20px' }">
             <h3 style="margin:0 0 8px">Contenido principal</h3>
@@ -1054,6 +1125,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <g-menu v-model="mnOpen" :items="mnItems" label="Acciones del archivo" @select="mnSelect">
         <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
       </g-menu>
+      <g-menu v-model="mnPeopleOpen" :items="mnPeople" label="Asignar a" @select="mnLog = 'asignar · ' + $event.id">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-test="mn-people-trigger">Asignar a…</g-btn></template>
+        <template #icon="{ item }"><g-avatar v-if="typeof item.icon === 'object'" v-bind="item.icon" size="xs" :categories="8"></g-avatar><g-icon v-else :name="item.icon"></g-icon></template>
+      </g-menu>
       <span>Último: <b>{{ mnLog }}</b></span>
     </div>
           </div>
@@ -1140,7 +1215,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <h3>Lista (li, horizontal, plana, compacta)</h3>
       <ul class="cd-list">
         <g-card v-for="(m, i) in cdPeople" :key="m.name" as="li" level="flat" density="compact" orientation="horizontal" :href="'#' + m.ini" :current="i === 0" :title="m.name" :title-lines="1" :subtitle="m.team" badge="Activo" badge-color="success" :meta="[{ label: 'Zona', value: 'CDMX' }, { label: 'Equipo', value: m.team, priority: 'low' }]" :menu="cdMenu" :labels="cdLabels" @navigate="cdNavigate">
-          <template #lead>{{ m.ini }}</template>
+          <template #lead><g-avatar :name="m.name" :src="m.photo" size="lg" :categories="8"></g-avatar></template>
         </g-card>
       </ul>
     </div>
@@ -1182,7 +1257,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <template #anchor><g-btn icon variant="outline" aria-label="Bandeja de entrada" @click="bdgLog = 'clic en el botón anclado'"><g-icon name="mail"></g-icon></g-btn></template>
         </g-badge>
         <g-badge shape="circle" color="success" label="En línea" size="sm" placement="bottom-end">
-          <template #anchor><span class="g-btn" style="border-radius:50%;inline-size:40px;block-size:40px;display:inline-grid;place-content:center;background:var(--g-color-surface-sunken);color:var(--g-color-text)" aria-label="Ana">A</span></template>
+          <template #anchor><g-avatar name="Ana" label="Ana" size="lg" :categories="8"></g-avatar></template>
         </g-badge>
         <span>{{ bdgLog }}</span>
       </div>
@@ -1378,6 +1453,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     <div style="max-width:1100px">
       <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" selectable :page-size="5" :labels="tbLabels" :loading="tbLoading"
                v-model:sort="tbSort" v-model:selected="tbSelected" v-model:filters="tbFilters" v-model:page="tbPage">
+        <template #leading-cliente="{ row }"><g-avatar :name="row.nombre" :src="row.foto" :color-key="row.id" size="md" :categories="8"></g-avatar></template>
         <template #cell-estado="{ value }"><g-badge variant="soft" :color="tbColors[value]" size="sm">{{ value }}</g-badge></template>
         <template #row-actions="{ row }">
           <g-menu :items="[{ id: 'ver', label: 'Ver' }, { id: 'editar', label: 'Editar' }]" @select="tbLog = $event.id + ' · ' + row.nombre">
@@ -1528,6 +1604,63 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       </div>
       <div class="pg-group" id="cat-8">
         <p class="pg-cat">Avatar</p>
+        <section class="pg-section" id="sec-gavatar" data-pg-section>
+          <h2>GAvatar</h2>
+          <p class="pg-lead">La cara de una persona o de una entidad en una caja de lado fijo: imagen, iniciales o icono, y la caja nunca cambia al pasar de uno a otro. Decorativo por defecto; con <code>label</code>, imagen con nombre. Nunca interactivo. La aplicación declara <code>categories: 8</code> en su tema.</p>
+          <h3>Tamaños × fuentes (y forma de entidad)</h3>
+          <div class="pg-panel">
+    <div class="av-rows" id="av-sizes">
+      <div class="av-row" v-for="k in avKinds" :key="k.id">
+        <span class="av-row-label">{{ k.label }}</span>
+        <g-avatar v-for="s in avSizes" :key="s" :data-test="'size-' + k.id + '-' + s" :size="s" :shape="k.shape" :src="k.src" :name="k.name" :icon="k.icon" :categories="8"></g-avatar>
+      </div>
+    </div>
+          </div>
+          <h3>Color: neutro, derivado del nombre (categories) y fijo (color)</h3>
+          <div class="pg-panel">
+    <div class="av-rows" id="av-colors">
+      <div class="av-row"><span class="av-row-label">Neutro</span><g-avatar name="Ana María López" data-test="c-neutral"></g-avatar><g-avatar name="Ana María López" color="neutral" :categories="8" data-test="c-neutral-forced"></g-avatar></div>
+      <div class="av-row"><span class="av-row-label">Derivado (8)</span><g-avatar v-for="p in avPeople" :key="p.id" :name="p.name" :color-key="p.id" :categories="8" :data-test="'c-' + p.id"></g-avatar></div>
+      <div class="av-row"><span class="av-row-label">Fijo</span><g-avatar v-for="k in 8" :key="k" :initials="'C' + k" :color="k" :data-test="'c-fixed-' + k"></g-avatar></div>
+    </div>
+          </div>
+          <h3>Decorativo, con nombre y dentro de un botón</h3>
+          <div class="pg-panel">
+    <div class="av-row" id="av-sem">
+      <span class="av-person"><g-avatar name="Ana María López" :categories="8" data-test="sem-dec"></g-avatar>Ana María López</span>
+      <g-avatar name="Luis Torres" label="Luis Torres" :categories="8" data-test="sem-named"></g-avatar>
+      <button type="button" class="av-account" id="av-account" @click="avLog = 'cuenta: la aplicación abre su menú'"><g-avatar name="Ana María López" :src="avPhotos[0]" size="sm" :categories="8" data-test="sem-btn"></g-avatar>Cuenta de Ana</button>
+      <span id="av-log">{{ avLog }}</span>
+    </div>
+          </div>
+          <h3>Imagen: cargando, cargada, fallida y cambio de foto</h3>
+          <div class="pg-panel">
+    <div class="av-row" id="av-img">
+      <span class="av-person"><g-avatar :src="avSlow" name="Luis Torres" size="lg" :categories="8" data-test="img-slow"></g-avatar><span data-next="img-slow">Luis Torres</span></span>
+      <g-btn size="sm" variant="outline" id="av-slow-btn" @click="avLoadSlow">Cargar foto lenta</g-btn>
+      <span class="av-person"><g-avatar :src="avPhotos[1]" name="Marta Gil" size="lg" :categories="8" data-test="img-ok"></g-avatar><span data-next="img-ok">Marta Gil</span></span>
+      <span class="av-person"><g-avatar :src="avBroken" name="Marta Gil" size="lg" :categories="8" data-test="img-broken"></g-avatar><span data-next="img-broken">Marta Gil</span></span>
+      <span class="av-person"><g-avatar :src="avBroken" size="lg" data-test="img-broken-noname"></g-avatar>Sin nombre</span>
+      <span class="av-person"><g-avatar :src="avWide" name="Paisaje" size="lg" data-test="img-wide"></g-avatar>3:1</span>
+      <span class="av-person"><g-avatar :src="avPhotos[avSwap]" name="Ana María López" size="lg" :categories="8" data-test="img-swap"></g-avatar><g-btn size="sm" variant="outline" id="av-swap" @click="avSwap = (avSwap + 1) % avPhotos.length">Cambiar foto</g-btn></span>
+    </div>
+          </div>
+          <h3>Presencia (GBadge anclada)</h3>
+          <div class="pg-panel">
+    <div class="av-row" id="av-status">
+      <span class="av-person"><g-badge shape="circle" color="success" label="En línea" placement="bottom-end"><template #anchor><g-avatar name="Ana María López" :src="avPhotos[0]" size="lg" :categories="8"></g-avatar></template></g-badge>Ana María López</span>
+      <span class="av-person"><g-badge shape="diamond" color="warning" label="Ausente" placement="bottom-end"><template #anchor><g-avatar name="Luis Torres" size="lg" :categories="8"></g-avatar></template></g-badge>Luis Torres</span>
+      <span class="av-person"><g-badge shape="square" color="danger" label="Ocupado" placement="bottom-end"><template #anchor><g-avatar name="Marta Gil" size="xl" :categories="8"></g-avatar></template></g-badge>Marta Gil</span>
+      <g-badge shape="circle" color="success" label="Activa" placement="top-end"><template #anchor><g-avatar name="Grana Labs" icon="building-complex" shape="square" size="lg" label="Grana Labs"></g-avatar></template></g-badge>
+    </div>
+          </div>
+          <h3>Iniciales en otras escrituras</h3>
+          <div class="pg-panel">
+    <div class="av-row" id="av-scripts">
+      <g-avatar v-for="n in avScripts" :key="n" :name="n" :label="n" :categories="8"></g-avatar>
+    </div>
+          </div>
+        </section>
         <section class="pg-section" id="sec-avatar" data-pg-section>
           <h2>GAvatarMotion</h2>
           <p class="pg-lead">Avatar animado con estados.</p>
@@ -1891,8 +2024,28 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const bdgCount = ref(12)
         const dvCompact = ref(false)
         const bdgLog = ref('')
+        // GAvatar (avatar.md): «fotos» de la aplicación como SVG en data: (el playground no tiene red ni recursos propios)
+        const avPhoto = (bg, shirt, skin, hair, w = 96) => 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="96" viewBox="0 0 ' + w + ' 96"><rect width="' + w + '" height="96" fill="' + bg + '"/><g transform="translate(' + (w - 96) / 2 + ' 0)"><ellipse cx="48" cy="98" rx="34" ry="26" fill="' + shirt + '"/><circle cx="48" cy="42" r="20" fill="' + skin + '"/><path d="M27 40c0-14 9-22 21-22s21 8 21 22c-5-7-12-10-21-10s-16 3-21 10z" fill="' + hair + '"/></g></svg>')
+        const avPhotos = [avPhoto('#C9DDF2', '#2F5F8F', '#E8B996', '#3B2A20'), avPhoto('#F2D9C9', '#8F3F2F', '#C68E6A', '#1E1A18'), avPhoto('#D6EBD8', '#3F6F45', '#F1CBB0', '#8A5A2B')]
+        const avWide = avPhoto('#E6E0F5', '#5A4A8F', '#D9A27E', '#2B2B2B', 288)
+        // Imagen que falla sin petición de red (sin ruido de consola): un PNG que no se puede decodificar
+        const avBroken = 'data:image/png;base64,AAAA'
+        const avSizes = ['xs', 'sm', 'md', 'lg', 'xl']
+        const avKinds = [
+          { id: 'img', label: 'Imagen', src: avPhotos[0], name: 'Ana María López' },
+          { id: 'ini', label: 'Iniciales', name: 'Ana María López' },
+          { id: 'icon', label: 'Icono (user)' },
+          { id: 'square', label: 'Entidad (square)', shape: 'square', name: 'Grana Labs', icon: 'building-complex' }
+        ]
+        const avPeople = [{ id: 'u_ana', name: 'Ana María López' }, { id: 'u_luis', name: 'Luis Torres' }, { id: 'u_marta', name: 'Marta Gil' }, { id: 'u_diego', name: 'Diego Mora' }, { id: 'u_elena', name: 'Elena Vega' }, { id: 'u_hugo', name: 'Hugo León' }, { id: 'u_iris', name: 'Iris Cano' }, { id: 'u_zoe', name: 'Zoë Núñez' }]
+        const avScripts = ['李小龙', '山田 太郎', '김민수', 'محمد علي', 'ØRSTED', '🦊 Zorro Plateado', 'Émile Zola', 'łukasz żółw', 'Straße']
+        const avLog = ref('')
+        const avSwap = ref(0)
+        const avSlow = ref(undefined)
+        // Una foto que tarda: la sirve la aplicación (en las pruebas, Playwright retiene la respuesta)
+        const avLoadSlow = () => { avSlow.value = './_avatar-lenta.svg?t=' + Date.now() }
         const tbNames = ['Ana Torres', 'Bruno Díaz', 'Carla Ruiz', 'Diego Mora', 'Elena Vega', 'Fabián Soto', 'Gina Paz', 'Hugo León', 'Iris Cano', 'Javier Gil', 'Karla Mesa', 'Luis Peña']
-        const tbRows = tbNames.map((n, i) => ({ id: 'c' + i, nombre: n, correo: n.split(' ')[0].toLowerCase() + '@correo.com', ini: n.split(' ').map((x) => x[0]).join(''), plan: ['Básico', 'Pro', 'Equipo'][i % 3], estado: ['activo', 'pausado', 'vencido'][i % 3], total: 1200 + (i * 731) % 5000, alta: '2026-0' + (1 + (i % 9)) + '-' + String(3 + i * 2).padStart(2, '0') }))
+        const tbRows = tbNames.map((n, i) => ({ id: 'c' + i, foto: i % 4 === 0 ? avPhotos[(i / 4) % 3] : undefined, nombre: n, correo: n.split(' ')[0].toLowerCase() + '@correo.com', ini: n.split(' ').map((x) => x[0]).join(''), plan: ['Básico', 'Pro', 'Equipo'][i % 3], estado: ['activo', 'pausado', 'vencido'][i % 3], total: 1200 + (i * 731) % 5000, alta: '2026-0' + (1 + (i % 9)) + '-' + String(3 + i * 2).padStart(2, '0') }))
         const tbColumns = [
           { key: 'cliente', label: 'Cliente', leading: 'ini', title: 'nombre', subtitle: 'correo', sortable: true, filter: { type: 'text' } },
           { key: 'plan', label: 'Plan', sortable: true, filter: { type: 'enum', options: ['Básico', 'Pro', 'Equipo'] } },
@@ -1925,7 +2078,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const cdMenu = [{ id: 'rename', label: 'Renombrar' }, { id: 'dup', label: 'Duplicar' }, { id: 'move', label: 'Mover a…', disabled: true }, { id: 'del', label: 'Eliminar', danger: true }]
         const cdMeta = [{ label: 'Responsable', value: 'Ana Pérez' }, { label: 'Tareas', value: '12' }, { label: 'Actualizado', value: 'hace 2 h', priority: 'low' }]
         const cdPlans = [{ id: 'basic', label: 'Básico', text: 'Para empezar.' }, { id: 'team', label: 'Equipo', text: 'Para crecer.' }, { id: 'company', label: 'Empresa', text: 'Para escalar.' }]
-        const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP' }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
+        const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP', photo: avPhotos[2] }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
         // El router de la aplicación cancela la navegación del enlace real (evento cancelable, #70)
         const cdNavigate = ({ event, href }) => { event.preventDefault(); cdLog.value = 'navigate: ' + href }
         const gtTab = ref('general')
@@ -1982,6 +2135,14 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           { type: 'separator' },
           { id: 'del', label: 'Eliminar', danger: true }
         ])
+        // Personas en GMenu: el dato del avatar va en item.icon como valor opaco y lo dibuja el slot icon (menu.md, #296)
+        const mnPeopleOpen = ref(false)
+        const mnPeople = [
+          { id: 'ana', label: 'Ana María López', icon: { name: 'Ana María López', src: avPhotos[0] } },
+          { id: 'luis', label: 'Luis Torres', icon: { name: 'Luis Torres', colorKey: 'u_luis' } },
+          { id: 'marta', label: 'Marta Gil', icon: { name: 'Marta Gil', colorKey: 'u_marta' } },
+          { id: 'invite', label: 'Invitar a alguien…', icon: 'user-plus' }
+        ]
         const mnSelect = (e) => {
           mnLog.value = e.id + (e.checked !== undefined ? ' · ' + e.checked : '')
           if (e.type === 'checkbox') e.item.checked = e.checked
@@ -2083,6 +2244,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           announceStart: 'Inicio del rango: {date}. Elige la fecha final.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado: {start} a {end}, {days} días.', announceClear: 'Selección borrada.'
         }
         const selClient = ref(null)
+        const selPerson = ref(null)
+        const selPeople = [{ value: 'ana', label: 'Ana María López', src: avPhotos[0] }, { value: 'luis', label: 'Luis Torres' }, { value: 'marta', label: 'Marta Gil' }, { value: 'zoe', label: 'Zoë Núñez' }]
         const selClients = ref([{ value: 'a', label: 'Acme S.A.', icon: 'tag' }, { value: 'g', label: 'Globex', icon: 'tag' }, { value: 'i', label: 'Initech', icon: 'tag' }])
         const selCreate = () => {
           const n = selClients.value.length + 1
@@ -2224,7 +2387,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2392,7 +2555,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>
