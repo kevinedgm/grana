@@ -91,6 +91,7 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 
 ## Siguientes pasos
 
+0. **Ronda de personalidad** (decisión del usuario, 2026-10-03): al cerrar `GAvatar`, kiwi abre una ronda transversal `design/lab/personalidad/r01/` sobre los componentes más visibles (`GBtn`, `GDialog`, `GTabs`, `GCard`, `GInput`, `GMenu`) proponiendo qué los haría inconfundibles (movimiento, comportamiento, forma); lima registra; luego planes por componente para coco/bruno.
 1. **Siguiente componente**, empezando por la ronda de kiwi (decisión de producto del usuario).
 2. **Dark Color Presence:** la evidencia está reunida (`design/lab/tema-oscuro/dark-color-presence/`, `recommendation.md`). D es la opción preferida **pero no está adoptada**; adoptarla exige especificación y pruebas del motor, y decisión del usuario. No tocar el Theme Engine ni el contrato por esto sin esa decisión.
 3. **Solo en entorno real** (no automatizable): lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper` y la captura de voz (canales, `role="timer"`, la rejilla de `GTranscript` en modo foco y en exploración, `<del>`/`<ins>`, editor en la celda); captura de voz con Safari real, un motor real (Whisper local) y móvil real; hoja móvil del editor de filtros en móvil real; Safari, táctil y `forced-colors` reales; evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
