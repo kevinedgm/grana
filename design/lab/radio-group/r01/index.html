@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRadioGroup · r01 · estructura</title>
+<style>
+/* Kit neutral de wireframe: grises y una familia. No es el estilo de Grana (eso es de coco).
+   Lo que SÍ es propuesta de kiwi: anatomía, raíz y semántica por apariencia, pistas en GFormRow, estados y ajuste. */
+:root{--ink:#1f1f1f;--ink-2:#555;--ink-3:#6b6b6b;--line:#dcdcdc;--line-2:#c4c4c4;--ctl:#767676;--fill:#efefef;--fill-2:#f6f6f6;--bg:#f3f3f3;--note:#fff8d6;
+  --font:system-ui,-apple-system,"Segoe UI",sans-serif;--tmin:24px;--opt:32px;
+  --h:max(var(--tmin),36px);--lg:6px;--rg:20px;--cg:16px;--dur:.12s}
+@media (pointer:coarse){:root{--tmin:44px;--opt:44px}}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 var(--font);color:var(--ink);background:var(--bg)}
+main{max-inline-size:1360px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:48px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px;padding:0;border:0}
+.g-icon{inline-size:16px;block-size:16px;flex:none}
+button{font:inherit;color:inherit}
+code{font-size:.92em}
+table.t{border-collapse:collapse;font-size:13px;margin:8px 0;background:#fff}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 10px;text-align:start;vertical-align:top}
+
+/* ---------- Barra de control del prototipo (no es parte de la propuesta) ---------- */
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl fieldset{border:0;margin:0;padding:0;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.ctl legend{float:left;margin-inline-end:6px;color:var(--ink-2)}
+.pchip{position:relative;display:inline-flex;align-items:center;min-block-size:max(28px,var(--tmin));padding:0 10px;border:1px solid var(--ctl);border-radius:999px;background:#fff;cursor:pointer}
+.pchip:has(input:checked){background:var(--ink);color:#fff;border-color:var(--ink)}
+.pchip:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+.pchip input{position:absolute;opacity:0;inline-size:1px;block-size:1px}
+
+/* ---------- Marcos ---------- */
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame--320{inline-size:320px;padding:16px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media (max-width:760px){.pair{grid-template-columns:minmax(0,1fr)}}
+.pair > div{min-inline-size:0}
+.layout{display:flex;flex-direction:column;gap:var(--rg);min-inline-size:0}
+
+/* =====================================================================
+   GFormRow (simulada, la de r02): tres pistas por línea, hijos por subgrid
+   ===================================================================== */
+.row{display:grid;grid-template-columns:minmax(0,1fr);min-inline-size:0}
+.row > *{grid-row:span 3;min-inline-size:0}
+.row > * + *{margin-block-start:var(--rg)}
+.row[data-laid] > *{margin-block-start:0}
+
+/* ---- Campo de tres hijos (GInput simulado y GRadioGroup inline/segmented) ---- */
+.fld{display:grid;grid-template-rows:auto auto auto;min-inline-size:0;margin:0;padding:0;border:0}
+.row > .fld{grid-template-rows:subgrid}
+.fld > .lbl{grid-row:1;align-self:end;display:block;margin:0 0 var(--lg);font-size:13px;line-height:18px;font-weight:600;overflow-wrap:anywhere}
+.fld > .box{grid-row:2}
+.fld > .below{grid-row:3;min-inline-size:0}
+.below > .hint{margin:4px 0 0;font-size:12px;line-height:16px;color:var(--ink-2);overflow-wrap:anywhere}
+.below > .msg{font-size:12px;line-height:16px;font-weight:600;overflow-wrap:anywhere}
+.below > .msg:not(:empty){margin-block-start:4px}
+.msg .g-icon{inline-size:14px;block-size:14px;vertical-align:-2px;margin-inline-end:4px}
+.opt{font-weight:400;color:var(--ink-2)}
+.req{margin-inline-start:2px}
+.box{position:relative;display:flex;align-items:stretch;min-block-size:var(--h);min-inline-size:0;border:1px solid var(--ctl);border-radius:6px;background:#fff}
+.box > input{flex:1 1 auto;min-inline-size:0;inline-size:100%;margin:0;border:0;background:transparent;font:inherit;color:inherit;padding:0 12px;outline:none;border-radius:5px}
+.box:has(> input:focus-visible){outline:2px solid var(--ink);outline-offset:1px}
+.fld.is-invalid > .box:not(.rg__options){box-shadow:inset 0 0 0 1px var(--ink);border-color:var(--ink)}
+
+/* =====================================================================
+   GRadioGroup · partes comunes
+   ===================================================================== */
+.rg{min-inline-size:0;margin:0;padding:0;border:0;font-size:14px;line-height:20px}
+/* fieldset (list, chips, cards): leyenda arriba, opciones, pie */
+.rg__legend{display:block;float:none;inline-size:100%;margin:0 0 8px;padding:0;font-size:13px;line-height:18px;font-weight:600;overflow-wrap:anywhere}
+.rg > .below{min-inline-size:0}
+.rg__option{position:relative;display:flex;align-items:center;gap:10px;min-block-size:var(--opt);min-inline-size:var(--tmin);cursor:pointer}
+.rg__text{display:flex;flex-direction:column;min-inline-size:0;overflow-wrap:anywhere}
+.rg__name{line-height:20px}
+.rg__desc{font-size:13px;line-height:18px;color:var(--ink-2)}
+.rg__icon{display:inline-grid;place-items:center;color:var(--ink-2)}
+/* Indicador = el propio <input> dibujado (list, inline, cards) */
+.rg__input{appearance:none;flex:none;inline-size:18px;block-size:18px;margin:0;border:1.5px solid var(--ctl);border-radius:50%;background:#fff;display:grid;place-content:center;cursor:pointer;transition:border-color var(--dur)}
+.rg__input::before{content:"";inline-size:8px;block-size:8px;border-radius:50%;background:var(--ink);transform:scale(0);transition:transform var(--dur)}
+.rg__input:checked{border-color:var(--ink)}
+.rg__input:checked::before{transform:scale(1)}
+.rg__input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (hover:hover){.rg:not(.is-readonly):not(.is-disabled) .rg__option:not(.is-disabled):hover .rg__input{border-color:var(--ink)}}
+/* Control superpuesto (chips, segmented): el <input> cubre la opción con opacidad 0 (nunca display:none) */
+.rg__input--cover{position:absolute;inset:0;inline-size:100%;block-size:100%;margin:0;opacity:0;border:0;border-radius:inherit;cursor:pointer;appearance:none}
+.rg__input--cover::before{content:none}
+
+/* ---- list ---- */
+.rg--list .rg__options{display:flex;flex-direction:column;gap:2px}
+.rg--list .rg__option:has(.rg__desc){align-items:flex-start;padding-block:6px}
+.rg--list .rg__option:has(.rg__desc) .rg__input{margin-block-start:1px}
+.rg--list .rg__option:has(.rg__desc) .rg__icon{margin-block-start:2px}
+
+/* ---- inline (tres hijos: puede compartir línea) ---- */
+.rg--inline .rg__options{border:0;background:none;display:flex;flex-wrap:wrap;align-items:center;column-gap:20px;row-gap:0;min-block-size:var(--h)}
+
+/* ---- chips ---- */
+.rg--chips .rg__options{display:flex;flex-wrap:wrap;gap:8px}
+.rg--chips .rg__option{gap:6px;padding:0 14px;border:1px solid var(--ctl);border-radius:999px;background:#fff;transition:background-color var(--dur),color var(--dur),border-color var(--dur)}
+.rg--chips .rg__option .rg__icon{color:inherit}
+.rg--chips.is-icon-only .rg__option{padding:0;justify-content:center;min-inline-size:var(--opt)}
+.rg--chips .rg__option:has(:checked){background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.rg--chips .rg__option:has(:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+@media (hover:hover){.rg--chips:not(.is-readonly):not(.is-disabled) .rg__option:not(.is-disabled):not(:has(:checked)):hover{background:var(--fill)}}
+
+/* ---- cards ---- */
+.rg--cards .rg__options{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:12px}
+.rg--cards .rg__option{align-items:flex-start;padding:12px 14px;border:1px solid var(--ctl);border-radius:8px;background:#fff;min-block-size:max(64px,var(--opt));transition:background-color var(--dur),box-shadow var(--dur)}
+.rg--cards .rg__option .rg__input{margin-block-start:1px}
+.rg--cards .rg__option .rg__icon{margin-block-start:2px;color:var(--ink)}
+.rg--cards .rg__name{font-weight:600}
+.rg--cards .rg__option:has(:checked){box-shadow:inset 0 0 0 1px var(--ink);border-color:var(--ink);background:var(--fill-2)}
+.rg--cards .rg__option:has(:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+.rg--cards .rg__option .rg__input:focus-visible{outline:none}
+@media (hover:hover){.rg--cards:not(.is-readonly):not(.is-disabled) .rg__option:not(.is-disabled):hover{background:var(--fill-2)}}
+
+/* ---- segmented (tres hijos: puede compartir línea). Caja de control como la de un campo, NO pista + segmento elevado (eso es GTabs) ---- */
+/* El marco va en outline hacia dentro (no border): así cada opción mide el alto entero de la caja (≥ 24, ≥ 44 táctil)
+   y la caja mide lo mismo que las cajas vecinas; el outline sobrevive en forced-colors y queda encima del relleno */
+.rg--segmented .rg__options{padding:0;display:flex;overflow:clip;border:0;outline:1px solid var(--ctl);outline-offset:-1px}
+.rg--segmented .rg__option{flex:1 1 0;justify-content:center;min-inline-size:0;min-block-size:var(--h);padding:0 12px;text-align:center;border-inline-start:1px solid var(--line-2);transition:background-color var(--dur),color var(--dur)}
+.rg--segmented .rg__option:first-child{border-inline-start:0}
+.rg--segmented .rg__option .rg__icon{color:inherit}
+.rg__seg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.rg--segmented .rg__option:has(:checked){background:var(--ink);color:#fff}
+.rg--segmented .rg__option:has(:focus-visible){outline:2px solid var(--ink);outline-offset:-4px;box-shadow:inset 0 0 0 4px #fff}
+@media (hover:hover){.rg--segmented:not(.is-readonly):not(.is-disabled) .rg__option:not(.is-disabled):not(:has(:checked)):hover{background:var(--fill)}}
+/* No cabe en una línea: se apila (una opción por línea, mismo orden, misma caja) */
+.rg--segmented[data-fit=stack] .rg__options{flex-direction:column}
+.rg--segmented[data-fit=stack] .rg__option{flex:none;border-inline-start:0;border-block-start:1px solid var(--line-2)}
+.rg--segmented[data-fit=stack] .rg__option:first-child{border-block-start:0}
+.rg--segmented[data-fit=stack] .rg__seg{white-space:normal;overflow-wrap:anywhere;min-inline-size:0}
+
+/* ---- Estados del grupo ---- */
+.rg .rg__option.is-disabled,.rg.is-disabled .rg__option{cursor:not-allowed;color:var(--ink-3)}
+.rg .rg__option.is-disabled > *,.rg.is-disabled .rg__options{opacity:.55}
+.rg .rg__option.is-disabled .rg__input,.rg.is-disabled .rg__input{border-style:dotted;cursor:not-allowed}
+.rg--segmented.is-disabled .rg__options{outline-style:dotted}
+.rg--chips.is-disabled .rg__option,.rg--chips .rg__option.is-disabled,.rg--cards .rg__option.is-disabled{border-style:dotted}
+.rg.is-disabled > .rg__legend,.rg.is-disabled > .lbl{color:var(--ink-3)}
+/* Solo lectura: contraste completo, borde discontinuo, cursor normal, enfocable; la elegida sigue marcada */
+.rg.is-readonly .rg__option,.rg.is-readonly .rg__input,.rg.is-readonly .rg__input--cover{cursor:default}
+.rg.is-readonly .rg__input{border-style:dashed}
+.rg.is-readonly .rg__input:checked{border-style:solid}
+.rg--segmented.is-readonly .rg__options{outline-style:dashed;background-color:var(--fill-2)}
+.rg--chips.is-readonly .rg__option,.rg--cards.is-readonly .rg__option{border-style:dashed;background-color:var(--fill-2)}
+.rg--segmented.is-readonly .rg__option:has(:checked),.rg--chips.is-readonly .rg__option:has(:checked){background:var(--ink);color:#fff}
+.rg--cards.is-readonly .rg__option:has(:checked){border-style:solid}
+/* Error: mensaje con icono + prefijo oculto (como GCheckboxGroup); el segmentado, además, la caja como un campo */
+.rg--segmented.is-invalid .rg__options{outline:2px solid var(--ink);outline-offset:-2px}
+
+/* ---- Movimiento: relleno que aparece en la elegida (sin pista que se desliza) ---- */
+@media (prefers-reduced-motion:reduce){:root{--dur:0s}}
+/* ---- Colores forzados: la elegida con colores de sistema, foco con contorno ---- */
+@media (forced-colors:active){
+  .rg--segmented .rg__option:has(:checked),.rg--chips .rg__option:has(:checked){forced-color-adjust:none;background:SelectedItem;color:SelectedItemText;border-color:SelectedItem}
+  .rg--cards .rg__option:has(:checked){border-width:3px;padding:10px 12px}
+  .rg__input:checked::before{background:CanvasText;forced-color-adjust:none}
+  .rg--segmented .rg__option:has(:focus-visible){outline-color:CanvasText;box-shadow:none}
+}
+
+/* ---- Contraste con GTabs segmented (solo para la comparación) ---- */
+.tabs-seg{display:inline-flex;gap:2px;padding:3px;border-radius:8px;background:var(--fill)}
+.tabs-seg > span{display:inline-flex;align-items:center;min-block-size:30px;padding:0 14px;border-radius:6px;font-size:14px;color:var(--ink-2)}
+.tabs-seg > span.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.cmp > div{min-inline-size:0}
+.cmp h3{font-size:14px;margin:0 0 8px}
+.cmp ul{margin:8px 0 0;padding-inline-start:18px;font-size:13px;color:var(--ink-2)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-block-size:max(36px,var(--tmin));padding:0 16px;border:1px solid var(--ink);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;white-space:nowrap}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.log{display:block;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin-top:8px;min-block-size:1.4em;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+<h1>GRadioGroup · r01 · estructura</h1>
+<p class="cap"><b>kiwi</b> · una pregunta, una respuesta. Kit gris de wireframe (el aspecto es de coco). Aquí se propone <b>estructura</b>: dos raíces según la apariencia (campo de tres hijos para <code>inline</code> y <code>segmented</code>; <code>fieldset</code> para <code>list</code>, <code>chips</code> y <code>cards</code>), las dos con <code>role="radiogroup"</code>; radios nativos con <code>name</code> común; estados; ajuste en estrecho. Ver <code>declaracion.md</code>.</p>
+
+<div class="ctl" role="group" aria-label="Controles del prototipo">
+  <fieldset id="ctl-width"><legend>Ancho del contenedor</legend></fieldset>
+  <fieldset id="ctl-state"><legend>Estado</legend></fieldset>
+</div>
+
+<h2 class="demo">1 · Las cinco apariencias (ancho del control · 320px fijo)</h2>
+<p class="cap">Misma pregunta, misma semántica (<code>radiogroup</code> con nombre, radios nativos, una parada de Tab, flechas). <code>list</code>: vertical, admite descripción. <code>inline</code>: en línea, envuelve. <code>segmented</code>: caja de control de 2 a 6 opciones cortas; si no cabe en una línea, <b>se apila</b> (no se recorta, no hace scroll). <code>chips</code>: píldoras que envuelven, para muchas opciones cortas. <code>cards</code>: rejilla de tarjetas con icono y descripción; una columna en estrecho.</p>
+<div id="matrix"></div>
+
+<h2 class="demo">2 · En una GFormRow (tres pistas: etiqueta · caja · pie)</h2>
+<p class="cap"><code>segmented</code> e <code>inline</code> comparten línea con otros campos: su etiqueta va en la pista de etiqueta (apoyada abajo), sus opciones en la pista de la caja (mismo <code>top</code> que las cajas vecinas) y ayuda + mensaje en el pie. El segmentado publica su <b>mínimo natural</b> (todas las opciones en una línea) y la fila lo usa como mínimo: la fila se parte en líneas <b>antes</b> de que el segmentado tenga que apilarse. Cambia el ancho y el estado arriba.</p>
+<div class="frame-tag" data-tag></div>
+<div class="frame" data-frame><form id="f-row" aria-label="Datos clínicos" novalidate><div class="layout" id="row-layout"></div></form></div>
+
+<h2 class="demo">3 · Estados</h2>
+<p class="cap">Sin selección (Tab entra en la primera; Espacio la elige), deshabilitado por opción (las flechas la saltan) y del grupo (fuera del Tab y del envío), <b>solo lectura</b> (enfocable, legible, dentro de <code>FormData</code>; flechas, Espacio y clic no cambian nada), error (mensaje con icono y prefijo oculto; <code>aria-invalid</code> en el <code>radiogroup</code>), obligatorio (<code>aria-required</code> en el grupo, asterisco oculto) y opcional («(opcional)» en el nombre).</p>
+<div class="frame" data-frame><form id="f-states" aria-label="Estados" novalidate>
+  <div class="bar" style="margin-block-end:16px"><button class="btn" type="button" id="before">Antes</button></div>
+  <div class="layout" id="states-layout"></div>
+  <div class="bar" style="margin-block-start:16px"><button class="btn" type="button" id="after">Después</button><button class="btn" type="submit">Ver FormData</button></div>
+  <span class="log" id="f-states-log" role="status"></span>
+</form></div>
+
+<h2 class="demo">4 · Solo icono, descripción e icono por opción</h2>
+<p class="cap">Solo icono únicamente en <code>segmented</code> y <code>chips</code>: el texto <b>no sale del DOM</b> (texto oculto accesible) y es el nombre del radio. La descripción solo en <code>list</code> y <code>cards</code>: va fuera del nombre, por <code>aria-describedby</code> (el nombre es la etiqueta, corto). El icono siempre es decorativo (<code>aria-hidden</code>).</p>
+<div class="frame" data-frame><div class="layout" id="icons-layout"></div></div>
+
+<h2 class="demo">5 · RTL</h2>
+<p class="cap">Mismo marcado bajo <code>dir="rtl"</code>: el orden visual se espeja solo (flex e inline lógicos). Las flechas son nativas: Chromium y Firefox siguen la dirección visual; WebKit no la invierte (ver declaración).</p>
+<div class="frame" data-frame dir="rtl" lang="ar"><div class="layout" id="rtl-layout"></div></div>
+
+<h2 class="demo">6 · No es GTabs</h2>
+<div class="frame"><div class="cmp">
+  <div><h3>GTabs <code>segmented</code> · navegación</h3><div class="tabs-seg" aria-hidden="true"><span class="on">Resumen</span><span>Notas</span><span>Archivos</span></div>
+    <ul><li><code>tablist</code>/<code>tab</code> + <code>tabpanel</code>: cambia lo que se ve.</li><li>Pista tonal con segmento <b>elevado</b> que se desliza.</li><li>No se envía; no tiene etiqueta de pregunta ni error.</li></ul></div>
+  <div><h3>GRadioGroup <code>segmented</code> · respuesta</h3><div id="cmp-radio"></div>
+    <ul><li><code>radiogroup</code>/<code>radio</code> nativos: un valor que viaja en <code>FormData</code>.</li><li><b>Caja de control</b> como la de un campo (misma altura y borde que sus vecinos) con la elegida <b>rellena</b>; sin pista ni segmento que se desliza.</li><li>Etiqueta, ayuda, error, obligatorio, solo lectura.</li></ul></div>
+</div></div>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+'use strict';
+const I = (n) => window.lucide(n);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const WEIGHT = { xs: 2, sm: 3, md: 4, lg: 8 };
+const MIN = { xs: 80, sm: 128, md: 160, lg: 240 };
+const FIELD = ['inline', 'segmented'];               // tres hijos, raíz <div role="radiogroup">
+const DRAWN = ['list', 'inline', 'cards'];           // el <input> es el indicador
+const DESC_OK = ['list', 'cards'];
+const ICON_ONLY_OK = ['segmented', 'chips'];
+
+/* ===================== GRadioGroup (marcado que tendría el componente) =====================
+   o: { id, label, appearance, options:[{ value, label, description?, icon?, disabled? }], value, name?, hint?,
+        req?, opt?, readonly?, disabled?, iconOnly?, size?, min? } */
+function rg(o) {
+  const app = o.appearance;
+  const field = FIELD.includes(app);
+  const name = o.name || o.id;                       // sin name: uno generado (los radios necesitan nombre común)
+  const lblId = `${o.id}-label`;
+  const iconOnly = o.iconOnly && ICON_ONLY_OK.includes(app);
+  const mark = o.req ? '<span class="req" aria-hidden="true">*</span>' : o.opt ? ' <span class="opt">(opcional)</span>' : '';
+  const describedby = [o.hint && `${o.id}-hint`].filter(Boolean).join(' ');
+  const opts = o.options.map((x, i) => {
+    const oid = `${o.id}-${i}`;
+    const desc = x.description && DESC_OK.includes(app) ? `<span class="rg__desc" id="${oid}-desc">${esc(x.description)}</span>` : '';
+    const icon = x.icon ? `<span class="rg__icon" aria-hidden="true">${I(x.icon)}</span>` : '';
+    const checked = o.value !== undefined && o.value === x.value;
+    const drawn = DRAWN.includes(app);
+    const input = `<input class="rg__input${drawn ? '' : ' rg__input--cover'}" type="radio" id="${oid}" name="${esc(name)}" value="${esc(x.value)}"${checked ? ' checked' : ''}${x.disabled ? ' disabled' : ''}${o.disabled && field ? ' disabled' : ''} aria-labelledby="${oid}-name"${desc ? ` aria-describedby="${oid}-desc"` : ''}>`;
+    // Nombre del radio = solo la etiqueta (aria-labelledby); en solo icono, la misma etiqueta como texto oculto accesible
+    const nameSpan = iconOnly ? `<span class="sr" id="${oid}-name">${esc(x.label)}</span>` : `<span class="rg__name" id="${oid}-name" dir="auto">${esc(x.label)}</span>`;
+    const text = desc ? `<span class="rg__text">${nameSpan}${desc}</span>` : iconOnly ? nameSpan : `<span class="rg__text">${nameSpan}</span>`;
+    // Segmentado: icono + etiqueta en un solo bloque sin partir (.rg__seg) que se mide para el ancho natural
+    const inner = app === 'segmented' ? `${input}<span class="rg__seg">${icon}${iconOnly ? '' : nameSpan}</span>${iconOnly ? nameSpan : ''}` : `${input}${icon}${text}`;
+    return `<label class="rg__option${x.disabled ? ' is-disabled' : ''}" for="${oid}">${inner}</label>`;
+  }).join('');
+  const states = `${o.readonly ? ' is-readonly' : ''}${o.disabled ? ' is-disabled' : ''}${iconOnly ? ' is-icon-only' : ''}`;
+  const aria = `role="radiogroup" aria-labelledby="${lblId}"${describedby ? ` aria-describedby="${describedby}"` : ''}${o.req ? ' aria-required="true"' : ''}${o.readonly ? ' aria-readonly="true"' : ''}`;
+  const below = `<div class="below">${o.hint ? `<p class="hint" id="${o.id}-hint">${esc(o.hint)}</p>` : ''}<div class="msg" id="${o.id}-msg" aria-live="polite"></div></div>`;
+  const sizeAttrs = `data-size="${o.size || 'md'}"${o.min ? ` data-base-min="${o.min}"` : ''}`;
+  if (field) {
+    return `<div class="fld rg rg--${app}${states}" ${aria} ${sizeAttrs} data-field="${o.id}">
+      <span class="lbl" id="${lblId}">${esc(o.label)}${mark}</span>
+      <div class="box rg__options">${opts}</div>
+      ${below}</div>`;
+  }
+  return `<fieldset class="rg rg--${app}${states}" ${aria}${o.disabled ? ' disabled' : ''} data-field="${o.id}">
+    <legend class="rg__legend" id="${lblId}">${esc(o.label)}${mark}</legend>
+    <div class="rg__options">${opts}</div>
+    ${below}</fieldset>`;
+}
+function input(o) {
+  return `<div class="fld" data-size="${o.size || 'md'}"${o.min ? ` data-base-min="${o.min}"` : ''} data-field="${o.id}">
+    <label class="lbl" for="${o.id}">${esc(o.label)}${o.req ? '<span class="req" aria-hidden="true">*</span>' : o.opt ? ' <span class="opt">(opcional)</span>' : ''}</label>
+    <div class="box"><input id="${o.id}" name="${o.id}"${o.im ? ` inputmode="${o.im}"` : ''}${o.ph ? ` placeholder="${esc(o.ph)}"` : ''}${o.req ? ' aria-required="true"' : ''}${o.hint ? ` aria-describedby="${o.id}-hint"` : ''}></div>
+    <div class="below">${o.hint ? `<p class="hint" id="${o.id}-hint">${esc(o.hint)}</p>` : ''}<div class="msg" id="${o.id}-msg" aria-live="polite"></div></div></div>`;
+}
+const row = (fields) => `<div class="row">${fields.join('')}</div>`;
+
+/* ===================== Datos ===================== */
+const SEXO = [{ value: 'F', label: 'Femenino' }, { value: 'M', label: 'Masculino' }, { value: 'X', label: 'Otro' }];
+const SINO = [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }];
+const SANGRE = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−', 'No sé'].map((v) => ({ value: v, label: v }));
+const MODALIDAD = [
+  { value: 'presencial', label: 'Presencial', description: 'En el consultorio de Reforma 120.', icon: 'map-pin' },
+  { value: 'linea', label: 'En línea', description: 'Videollamada; el enlace llega por correo.', icon: 'globe' },
+  { value: 'tel', label: 'Por teléfono', description: 'Te llamamos a la hora de la cita.', icon: 'message-circle' }];
+const FRECUENCIA = [
+  { value: 'd', label: 'Diario', description: 'Un recordatorio cada mañana.' },
+  { value: 's', label: 'Semanal', description: 'Los lunes, con el resumen de la semana.' },
+  { value: 'm', label: 'Mensual', description: 'El primer día de cada mes.' }];
+
+/* ===================== 1 · Matriz ===================== */
+const MATRIX = [
+  ['list', { label: 'Frecuencia de recordatorios', options: FRECUENCIA, value: 's', hint: 'Puedes cambiarla cuando quieras.' }],
+  ['inline', { label: '¿Fuma actualmente?', options: SINO, req: 1 }],
+  ['segmented', { label: 'Sexo', options: SEXO, value: 'F', req: 1 }],
+  ['chips', { label: 'Tipo de sangre', options: SANGRE, value: 'O+', opt: 1 }],
+  ['cards', { label: 'Modalidad de consulta', options: MODALIDAD, value: 'linea', req: 1 }]];
+document.getElementById('matrix').innerHTML = MATRIX.map(([app, o]) => `
+  <div class="frame-tag"><code>appearance="${app}"</code></div>
+  <div class="pair"><div class="frame" data-frame>${rg({ ...o, id: `mx-${app}`, appearance: app })}</div>
+  <div class="frame frame--320">${rg({ ...o, id: `mx320-${app}`, appearance: app })}</div></div>`).join('');
+
+/* ===================== 2 · Fila ===================== */
+document.getElementById('row-layout').innerHTML = [
+  row([input({ id: 'r-nac', label: 'Fecha de nacimiento', size: 'sm', min: 176, im: 'numeric', ph: 'dd/mm/aaaa', req: 1, hint: 'La edad se calcula sola.' }),
+       rg({ id: 'r-sexo', label: 'Sexo', appearance: 'segmented', options: SEXO, req: 1 })]),
+  row([rg({ id: 'r-fuma', label: '¿Fuma actualmente?', appearance: 'inline', options: SINO, size: 'sm', req: 1 }),
+       input({ id: 'r-cig', label: 'Cigarros al día', size: 'xs', im: 'numeric', opt: 1 }),
+       input({ id: 'r-desde', label: 'Desde (año)', size: 'sm', im: 'numeric', opt: 1 })]),
+  row([input({ id: 'r-nombre', label: 'Nombre del contacto', size: 'md', req: 1 }),
+       rg({ id: 'r-lado', label: 'Lado dominante', appearance: 'segmented', options: [{ value: 'i', label: 'Izquierdo' }, { value: 'd', label: 'Derecho' }, { value: 'a', label: 'Ambidiestro' }, { value: 'n', label: 'Prefiero no decirlo' }], value: 'd', opt: 1 })]),
+  rg({ id: 'r-mod', label: 'Modalidad de consulta', appearance: 'cards', options: MODALIDAD, req: 1 })].join('');
+
+/* ===================== 3 · Estados ===================== */
+document.getElementById('states-layout').innerHTML = [
+  rg({ id: 's-kb', label: 'Sexo (sin selección)', appearance: 'segmented', options: SEXO, name: 'sexo', req: 1 }),
+  rg({ id: 's-dis1', label: 'Frecuencia (una opción deshabilitada)', appearance: 'list', name: 'frecuencia', options: FRECUENCIA.map((x) => ({ ...x, disabled: x.value === 's' })), value: 'd' }),
+  rg({ id: 's-ro', label: 'Sexo (solo lectura)', appearance: 'segmented', name: 'sexo_ro', options: SEXO, value: 'M', readonly: 1 }),
+  rg({ id: 's-ro2', label: 'Modalidad (solo lectura)', appearance: 'list', name: 'modalidad_ro', options: MODALIDAD, value: 'presencial', readonly: 1 }),
+  rg({ id: 's-dis', label: 'Tipo de sangre (grupo deshabilitado)', appearance: 'chips', name: 'sangre_dis', options: SANGRE.slice(0, 4), value: 'A+', disabled: 1 }),
+  rg({ id: 's-err', label: '¿Alergias a medicamentos?', appearance: 'inline', name: 'alergias', options: [...SINO, { value: 'nose', label: 'No sé' }], req: 1 }),
+  rg({ id: 's-err2', label: 'Modalidad de consulta', appearance: 'cards', name: 'modalidad', options: MODALIDAD.map((x) => ({ ...x, disabled: x.value === 'tel' })), req: 1, hint: 'Por teléfono no está disponible esta semana.' })].join('');
+
+/* ===================== 4 · Iconos ===================== */
+document.getElementById('icons-layout').innerHTML = [
+  rg({ id: 'i-fmt', label: 'Formato del reporte', appearance: 'segmented', options: [{ value: 'lista', label: 'Lista', icon: 'list' }, { value: 'tabla', label: 'Tabla', icon: 'table' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }], value: 'tabla', iconOnly: 1 }),
+  rg({ id: 'i-fmt2', label: 'Formato del reporte (icono y texto)', appearance: 'segmented', options: [{ value: 'lista', label: 'Lista', icon: 'list' }, { value: 'tabla', label: 'Tabla', icon: 'table' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }], value: 'lista' }),
+  rg({ id: 'i-chip', label: 'Canal preferido', appearance: 'chips', options: [{ value: 'mail', label: 'Correo', icon: 'mail' }, { value: 'msg', label: 'Mensaje', icon: 'message-circle' }, { value: 'bell', label: 'Notificación', icon: 'bell' }], iconOnly: 1 }),
+  rg({ id: 'i-list', label: 'Quién asiste', appearance: 'list', options: [{ value: 'yo', label: 'Yo', description: 'La cita es para mí.', icon: 'user' }, { value: 'otro', label: 'Otra persona', description: 'Un familiar o alguien a mi cargo.', icon: 'users' }] })].join('');
+
+/* ===================== 5 · RTL ===================== */
+document.getElementById('rtl-layout').innerHTML = [
+  row([input({ id: 'rtl-nac', label: 'تاريخ الميلاد', size: 'sm', min: 176, im: 'numeric' }), rg({ id: 'rtl-sexo', label: 'الجنس', appearance: 'segmented', options: [{ value: 'F', label: 'أنثى' }, { value: 'M', label: 'ذكر' }, { value: 'X', label: 'آخر' }], value: 'F', req: 1 })]),
+  rg({ id: 'rtl-fuma', label: 'هل تدخن؟', appearance: 'inline', options: [{ value: 'si', label: 'نعم' }, { value: 'no', label: 'لا' }] }),
+  rg({ id: 'rtl-list', label: 'التكرار', appearance: 'list', options: [{ value: 'd', label: 'يومي', description: 'تذكير كل صباح' }, { value: 's', label: 'أسبوعي', description: 'كل يوم اثنين' }], value: 'd' }),
+  rg({ id: 'rtl-chips', label: 'فصيلة الدم', appearance: 'chips', options: SANGRE.slice(0, 6), value: 'B+' })].join('');
+
+document.getElementById('cmp-radio').innerHTML = rg({ id: 'c-seg', label: 'Vista inicial del expediente', appearance: 'segmented', options: [{ value: 'r', label: 'Resumen' }, { value: 'n', label: 'Notas' }, { value: 'a', label: 'Archivos' }], value: 'r' });
+
+/* ===================== Motor de fila (el de r02) + mínimo natural del segmentado ===================== */
+const px = (el, prop) => parseFloat(getComputedStyle(el).getPropertyValue(prop)) || 0;
+function partitions(n) {
+  const out = [];
+  for (let mask = 0; mask < 1 << (n - 1); mask++) {
+    const parts = []; let cur = [0];
+    for (let i = 1; i < n; i++) { if (mask & (1 << (i - 1))) { parts.push(cur); cur = [i]; } else cur.push(i); }
+    parts.push(cur); out.push(parts);
+  }
+  return out;
+}
+function layoutRow(rowEl) {
+  const kids = [...rowEl.children];
+  const avail = rowEl.clientWidth;
+  if (!kids.length || !avail) return;
+  const gap = px(document.documentElement, '--cg');
+  // mínimo efectivo = el mayor entre el del tamaño, el propio (--g-form-min) y el natural publicado por el segmentado
+  const items = kids.map((el) => { const s = el.dataset.size || 'md'; return { el, w: WEIGHT[s], min: Math.max(MIN[s], +el.dataset.baseMin || 0, +el.dataset.natural || 0) }; });
+  const slack = (line) => { const free = avail - gap * (line.length - 1); const W = line.reduce((a, b) => a + items[b].w, 0); return Math.min(...line.map((i) => (items[i].w / W * free) / items[i].min)); };
+  let best; let bestScore = -Infinity;
+  for (const p of partitions(items.length)) {
+    const s = Math.min(...p.map((l) => (l.length === 1 ? Infinity : slack(l))));
+    if (s < 0.999) continue;
+    const score = -p.length * 1000 + Math.min(s, 999);
+    if (score > bestScore) { bestScore = score; best = p; }
+  }
+  if (!best) best = items.map((_, i) => [i]);
+  const edges = new Set([0, avail]); const spans = [];
+  best.forEach((line, li) => {
+    const free = avail - gap * (line.length - 1); const W = line.reduce((a, b) => a + items[b].w, 0);
+    let x = 0;
+    line.forEach((i, k) => {
+      const w = items[i].w / W * free; const s = +x.toFixed(2); const e = k === line.length - 1 ? avail : +(x + w).toFixed(2);
+      edges.add(s); edges.add(e); spans.push({ i, li, s, e }); x = x + w + gap;
+    });
+  });
+  const cols = [...edges].sort((a, b) => a - b);
+  const tracks = cols.slice(1).map((c, k) => `${+(c - cols[k]).toFixed(2)}px`);
+  tracks[tracks.length - 1] = 'minmax(0,1fr)';
+  const gtc = tracks.join(' '); const gtr = best.map(() => 'auto auto auto').join(' var(--rg) ');
+  if (rowEl.style.gridTemplateColumns !== gtc) rowEl.style.gridTemplateColumns = gtc;
+  if (rowEl.style.gridTemplateRows !== gtr) rowEl.style.gridTemplateRows = gtr;
+  for (const sp of spans) {
+    const el = items[sp.i].el;
+    el.style.gridColumn = `${cols.indexOf(sp.s) + 1} / ${cols.indexOf(sp.e) + 1}`;
+    el.style.gridRow = `${sp.li * 4 + 1} / span 3`;
+    el.dataset.line = sp.li;
+  }
+  rowEl.dataset.lines = best.length;
+  rowEl.setAttribute('data-laid', '');
+}
+/* Segmentado: mide su ancho natural (todas las opciones iguales al ancho de la más larga, en una línea),
+   lo publica a su fila y se apila si su caja es más estrecha. Sin recorte ni scroll. */
+function fitSeg(root) {
+  const box = root.querySelector('.rg__options');
+  const opts = [...box.children];
+  const was = root.dataset.fit; const wasNatural = root.dataset.natural;
+  root.removeAttribute('data-fit');
+  const padX = px(opts[0], 'padding-inline-start') + px(opts[0], 'padding-inline-end');
+  const widest = Math.max(...opts.map((o) => { const s = o.querySelector('.rg__seg'); return s ? s.getBoundingClientRect().width : 0; }));
+  const natural = Math.ceil(opts.length * (widest + padX) + (opts.length - 1));   // + separadores de 1px
+  const fits = natural <= box.getBoundingClientRect().width + 0.5;
+  if (!fits) root.dataset.fit = 'stack';
+  root.dataset.natural = natural;
+  const row = root.parentElement.closest('.row');
+  if (row && (was !== root.dataset.fit || wasNatural !== String(natural))) layoutRow(row);
+}
+const ro = new ResizeObserver((entries) => {
+  requestAnimationFrame(() => {
+    for (const e of entries) {
+      const t = e.target;
+      if (t.classList.contains('row')) layoutRow(t);
+      else if (t.classList.contains('rg__options')) fitSeg(t.closest('.rg'));
+    }
+  });
+});
+document.querySelectorAll('.rg--segmented').forEach((s) => fitSeg(s));
+document.querySelectorAll('.row').forEach((r) => layoutRow(r));
+document.querySelectorAll('.row, .rg--segmented .rg__options').forEach((el) => ro.observe(el));
+
+/* ===================== Solo lectura: enfocable, sin cambio (nativo no tiene readonly) ===================== */
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches?.('.rg.is-readonly input[type=radio]') && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
+}, true);
+document.addEventListener('click', (e) => {
+  if (e.target.matches?.('.rg.is-readonly input[type=radio]')) e.preventDefault();   // clic, clic en la etiqueta y Espacio
+}, true);
+
+/* ===================== Estados con mensaje ===================== */
+const MSG = {
+  'r-sexo': ['error', 'Elige el sexo'],
+  'r-fuma': ['error', 'Indica si fuma actualmente'],
+  'r-mod': ['error', 'Elige cómo quieres la consulta'],
+  'mx-inline': ['error', 'Indica si fuma actualmente'], 'mx320-inline': ['error', 'Indica si fuma actualmente'],
+  'mx-segmented': ['warning', 'Comprueba que coincide con la identificación'], 'mx320-segmented': ['warning', 'Comprueba que coincide con la identificación'],
+  'mx-list': ['valid', 'Te escribiremos los lunes'], 'mx320-list': ['valid', 'Te escribiremos los lunes'],
+  'mx-cards': ['error', 'Elige cómo quieres la consulta'], 'mx320-cards': ['error', 'Elige cómo quieres la consulta'],
+};
+const ALWAYS = { 's-err': ['error', 'Indica si tienes alergias o elige «No sé»'], 's-err2': ['error', 'Elige cómo quieres la consulta'] };
+const ICON = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' };
+const PREFIX = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:' };
+function paint(id, entry) {
+  const root = document.querySelector(`[data-field="${id}"]`); if (!root) return;
+  const msg = document.getElementById(`${id}-msg`);
+  root.classList.remove('is-invalid', 'is-warning', 'is-valid'); root.removeAttribute('aria-invalid');
+  const d = (root.getAttribute('aria-describedby') || '').split(' ').filter((x) => x && x !== msg.id);
+  if (!entry) { msg.innerHTML = ''; if (d.length) root.setAttribute('aria-describedby', d.join(' ')); else root.removeAttribute('aria-describedby'); return; }
+  const [type, text] = entry;
+  root.classList.add(type === 'error' ? 'is-invalid' : `is-${type}`);
+  if (type === 'error') root.setAttribute('aria-invalid', 'true');               // en el radiogroup, no en cada radio
+  msg.innerHTML = `${I(ICON[type])}<span class="sr">${PREFIX[type]} </span>${esc(text)}`;
+  root.setAttribute('aria-describedby', [...d, msg.id].join(' '));
+}
+function setState(on) { for (const [id, e] of Object.entries(MSG)) paint(id, on ? e : null); }
+for (const [id, e] of Object.entries(ALWAYS)) paint(id, e);
+
+/* ===================== Controles ===================== */
+const WIDTHS = ['100%', 1280, 960, 720, 480, 360, 320];
+const cw = document.getElementById('ctl-width');
+cw.insertAdjacentHTML('beforeend', WIDTHS.map((w, i) => `<label class="pchip"><input type="radio" name="cw" value="${w}"${i === 0 ? ' checked' : ''}> ${w === '100%' ? 'Libre' : w}</label>`).join(''));
+const cs = document.getElementById('ctl-state');
+cs.insertAdjacentHTML('beforeend', ['Limpio', 'Con mensajes'].map((t, i) => `<label class="pchip"><input type="radio" name="cs" value="${i}"${i === 0 ? ' checked' : ''}> ${t}</label>`).join(''));
+function setWidth(w) {
+  document.querySelectorAll('[data-frame]').forEach((f) => f.style.setProperty('--fw', w === '100%' ? '100%' : w + 'px'));
+  document.querySelectorAll('[data-tag]').forEach((t) => { t.textContent = w === '100%' ? 'Contenedor: ancho libre' : `Contenedor: ${w}px`; });
+}
+cw.addEventListener('change', (e) => setWidth(e.target.value));
+cs.addEventListener('change', (e) => setState(e.target.value === '1'));
+document.getElementById('f-states').addEventListener('submit', (e) => {
+  e.preventDefault();
+  document.getElementById('f-states-log').textContent = 'FormData: ' + ([...new FormData(e.target)].map(([k, v]) => `${k}=${v}`).join(' · ') || '(vacío)');
+});
+setWidth('100%');
+window.__r01 = { setWidth, setState, layoutRow, fitSeg };
+</script>
+</body>
+</html>
