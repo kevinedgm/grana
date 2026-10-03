@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFormSection Fase 3 · r01 · estructura</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* Página de prototipo. GForm, GFormSection (fija), GFormLayout, GFormRow, campos, GErrorSummary, GFormActions, GBtn,
+   GBadge, GDivider y GDialog son los componentes REALES de dist/. XFormSection es un prototipo de kiwi para los modos
+   nuevos: reutiliza las clases reales de GFormSection (g-form-section, __header, __heading, __title, __description,
+   __actions, __body) para que su ritmo sea el del CSS real, y añade partes x-section__* con valores de wireframe
+   (gris, 240ms, 1/3 : 2/3): NO son propuesta de estilo (eso es de coco). Lo que SÍ es propuesta: anatomía, estados,
+   inert sin fieldset (plegada, se envía) frente a inert + fieldset disabled (sin agregar, no se envía), apertura
+   instantánea al navegar, Δ0 del encabezado, divider dentro del hueco, encabezado al lado por ancho propio. */
+:root{--ink:#1f1f1f;--ink-2:#555;--line:#dcdcdc;--bg:#f3f3f3;--note:#fff8d6;
+  --sx-t:240ms;--sx-fade:160ms;--sx-ease:cubic-bezier(.23,1,.32,1)}
+.slow{--sx-t:1200ms;--sx-fade:800ms}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+main{max-inline-size:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:48px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame--320{--fw:320px;padding:16px}
+.frame--480{--fw:480px}
+.frame--720{--fw:720px}
+.frame--960{--fw:960px}
+.frame--1100{--fw:1100px}
+.pair{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.pair > div{min-inline-size:0}
+pre.out{font:12px/1.45 ui-monospace,Menlo,monospace;background:var(--note);padding:8px 10px;border-radius:6px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;min-block-size:2.9em}
+.proto-btn{font:inherit;font-size:13px;min-block-size:24px;padding:2px 10px;border:1px solid #767676;border-radius:6px;background:#fff;cursor:pointer}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.spacer{block-size:60vh}
+.plain-stack{display:block}
+
+/* =====================================================================
+   XFormSection (prototipo de la propuesta). Raíz = <section class="g-form-section x-section">.
+   ===================================================================== */
+.x-section{position:relative}
+
+/* ---- collapsible: el título ES el botón (h3 > button), chevron al inicio ---- */
+.x-section__toggle{display:inline-flex;align-items:flex-start;gap:var(--g-space-2);margin:0;padding:0;border:0;background:none;
+  font:inherit;letter-spacing:inherit;color:inherit;text-align:start;cursor:pointer;min-block-size:24px;border-radius:var(--g-radius-xs)}
+.x-section__toggle:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.x-section__chevron{flex:none;display:inline-flex;align-items:center;block-size:var(--g-text-body-line);color:var(--g-color-text-muted)}
+.x-section__chevron .g-icon{inline-size:1em;block-size:1em;transition:rotate var(--sx-t) var(--sx-ease)}
+.x-section.is-open .x-section__chevron .g-icon{rotate:90deg}
+[dir="rtl"] .x-section__chevron .g-icon{scale:-1 1}
+[dir="rtl"] .x-section.is-open .x-section__chevron .g-icon{rotate:-90deg}
+@media (prefers-reduced-motion: reduce){.x-section__chevron .g-icon{transition:none}}
+
+/* ---- resumen plegado: estado de errores (automático) + resumen de la aplicación ---- */
+.x-section__digest{grid-column:1 / -1;margin:0;display:flex;flex-wrap:wrap;gap:0 var(--g-space-3);
+  padding-inline-start:calc(var(--g-text-body-size) + var(--g-space-2));font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text-muted);overflow-wrap:anywhere}
+.x-section--collapsible > .g-form-section__header > .g-form-section__description{padding-inline-start:calc(var(--g-text-body-size) + var(--g-space-2))}
+.x-section__status{display:inline-flex;align-items:center;gap:var(--g-space-1);color:var(--g-color-danger-text)}
+.x-section__status .g-icon{inline-size:1em;block-size:1em}
+
+/* ---- addable sin agregar: botón outline + texto secundario, en el sitio de la sección ---- */
+.x-section__add{display:flex;flex-direction:column;align-items:flex-start;gap:var(--g-space-1);min-inline-size:0}
+.x-section__add > .g-form-section__description{margin:0}
+
+/* ---- panel (collapsible y addable): rejilla de una pista 0fr → 1fr, como GFormReveal ---- */
+.x-section__panel{display:grid;grid-template-rows:0fr;min-inline-size:0;
+  /* compensa el gap propio de la sección (encabezado → cuerpo): plegada no deja hueco bajo el encabezado */
+  margin-block-start:calc(var(--g-space-4) * var(--_d) * -1);opacity:0;visibility:hidden}
+.x-section.is-open > .x-section__panel{grid-template-rows:1fr;margin-block-start:0;opacity:1;visibility:visible}
+@media (prefers-reduced-motion: no-preference){
+  .x-section.is-ready > .x-section__panel{transition:grid-template-rows var(--sx-t) var(--sx-ease),margin-block-start var(--sx-t) var(--sx-ease),
+      opacity var(--sx-fade) linear,visibility 0s linear var(--sx-t)}
+  .x-section.is-ready.is-open > .x-section__panel{transition:grid-template-rows var(--sx-t) var(--sx-ease),margin-block-start var(--sx-t) var(--sx-ease),
+      opacity var(--sx-fade) linear calc(var(--sx-t) - var(--sx-fade)),visibility 0s}
+}
+@media (prefers-reduced-motion: reduce){
+  .x-section.is-ready > .x-section__panel{transition:opacity var(--sx-fade) linear,visibility 0s linear var(--sx-fade)}
+  .x-section.is-ready.is-open > .x-section__panel{transition:opacity var(--sx-fade) linear,visibility 0s}
+}
+/* Apertura por programa para llevar a un campo (resumen, envío, showErrors): en un cuadro, sin animar */
+.x-section.is-instant > .x-section__panel{transition:none !important}
+.x-section__body{min-block-size:0;overflow:hidden}
+fieldset.x-section__body{margin:0;padding:0;border:0;min-inline-size:0}
+.x-section.is-open:not(.is-animating) > .x-section__panel > .x-section__body{overflow:visible}
+
+/* ---- divider: GDivider decorative real, dentro de la sección, fuera del flujo, centrado en el hueco ---- */
+.x-section__divider{display:none !important}
+.g-form-section:not([hidden]) ~ .x-section > .x-section__divider{display:block !important;position:absolute;inset-inline:0;
+  inset-block-start:calc(var(--g-form-section-gap) * var(--_d) / -2);translate:0 -50%}
+
+/* ---- encabezado al lado (headerPlacement="auto", ancho propio ≥ space × 200) ---- */
+.x-section.is-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);column-gap:calc(var(--g-form-section-gap) * var(--_d));row-gap:0;align-items:start}
+.x-section.is-side > .g-form-section__header{grid-column:1;grid-row:1;grid-template-columns:minmax(0,1fr)}
+.x-section.is-side > .g-form-section__header > .g-form-section__actions{grid-column:1;grid-row:auto;justify-content:flex-start;margin-block-start:var(--g-space-2)}
+.x-section.is-side > .x-section__panel,.x-section.is-side > .g-form-section__body{grid-column:2;grid-row:1;margin-block-start:0}
+.x-section.is-side > .x-section__add{grid-column:1 / -1;grid-row:1}
+.x-section.is-side.x-section--addable:not(.is-added) > .x-section__panel{grid-row:2}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>GFormSection Fase 3 · r01 · estructura</h1>
+  <p class="cap">Componentes reales de <code>dist/</code> + <code>XFormSection</code> de prototipo (modos <code>collapsible</code> y <code>addable</code>, <code>headerPlacement</code>, <code>divider</code>). Gris de wireframe: proporciones y duraciones no son propuesta de estilo. Declaración: <code>declaracion.md</code>.</p>
+
+  <div class="ctl" role="group" aria-label="Controles del prototipo">
+    <label><input type="checkbox" v-model="slow"> Movimiento lento (×5)</label>
+    <span>Secciones (960): <code id="states">{{ statesText }}</code></span>
+  </div>
+
+  <h2 class="demo" id="t-largo">1 · Formulario largo: fija, dos plegables, una agregable (960 con resumen; 320 sin resumen)</h2>
+  <p class="cap">«Preferencias» llega con un correo mal escrito desde el servidor: al Guardar, la plegada <b>cuenta</b> y se abre sola. «Datos fiscales» sin agregar no se envía ni valida aunque la aplicación calcule sus errores sin condiciones.</p>
+  <div class="pair">
+    <div><p class="frame-tag">960 · top · divider · con GErrorSummary</p><div class="frame frame--960"><form-largo uid="w" divider summary></form-largo></div></div>
+    <div><p class="frame-tag">320 · top · sin resumen</p><div class="frame frame--320"><form-largo uid="n"></form-largo></div></div>
+  </div>
+
+  <h2 class="demo" id="t-auto">2 · headerPlacement="auto" (1100 → al lado; 720 → arriba)</h2>
+  <div class="frame frame--1100" id="frame-a"><form-largo uid="a" placement="auto" summary></form-largo></div>
+  <div class="frame frame--720" style="margin-top:16px"><form-largo uid="m" placement="auto"></form-largo></div>
+
+  <h2 class="demo" id="t-rtl">3 · RTL (480)</h2>
+  <div class="frame frame--480" dir="rtl"><form-largo uid="r"></form-largo></div>
+
+  <h2 class="demo" id="t-div">4 · divider: ritmo en las tres densidades, dentro y fuera de GForm</h2>
+  <p class="cap">Tres secciones plegadas con <code>divider</code> (la primera no dibuja línea). La distancia entre secciones debe seguir siendo <code>--g-form-section-gap</code> × densidad con la línea centrada.</p>
+  <div class="pair">
+    <div v-for="d in ['default','comfortable','compact']" :key="d"><p class="frame-tag">GForm · {{ d }}</p>
+      <div class="frame frame--480"><g-form :id="'dv-' + d" :density="d" :labels="formLabels">
+        <x-form-section v-for="i in 3" :key="i" :id="'dv-' + d + '-' + i" mode="collapsible" divider :title="['Datos generales','Contacto','Avanzado'][i-1]" :summary="'Resumen ' + i">
+          <g-form-layout><g-input :label="'Campo ' + i" :name="'dv' + d + i"></g-input></g-form-layout>
+        </x-form-section>
+      </g-form></div></div>
+    <div><p class="frame-tag">Fuera de GForm (contenedor propio)</p>
+      <div class="frame frame--480"><div class="plain-stack" id="dv-out">
+        <x-form-section v-for="i in 3" :key="i" :id="'dv-out-' + i" mode="collapsible" divider :title="['Datos generales','Contacto','Avanzado'][i-1]">
+          <g-form-layout><g-input :label="'Campo ' + i"></g-input></g-form-layout>
+        </x-form-section>
+      </div></div></div>
+  </div>
+
+  <h2 class="demo" id="t-strat">5 · addable: registro inactivo (propuesta) frente a desmontar</h2>
+  <p class="cap">Misma aplicación, mismos errores sin condiciones (RFC obligatorio). Sin agregar, Guardar: con el registro inactivo envía; desmontando, la clave <code>rfc</code> queda sin campo registrado y <code>GForm</code> la trata como error general que bloquea.</p>
+  <div class="pair">
+    <div v-for="s in ['inactive','unmount']" :key="s"><p class="frame-tag">{{ s }}</p><div class="frame frame--480"><form-strat :strategy="s"></form-strat></div></div>
+  </div>
+
+  <h2 class="demo" id="t-ro">6 · GForm readonly y disabled</h2>
+  <div class="pair">
+    <div><p class="frame-tag">readonly (datos fiscales agregados)</p><div class="frame frame--480"><form-largo uid="ro" readonly added></form-largo></div></div>
+    <div><p class="frame-tag">disabled (sin agregar)</p><div class="frame frame--480"><form-largo uid="di" disabled></form-largo></div></div>
+  </div>
+  <h2 class="demo" id="t-narrow">7 · Encabezado estrecho con acción: GFormSection real (Fase 1) a 320</h2>
+  <p class="cap">Medida para coco: la columna de acciones toma su ancho máximo y el título se parte letra a letra. Pasa igual en la Fase 1; en la Fase 3 la acción convive además con el chevron.</p>
+  <div class="frame frame--320"><g-form id="nr-form" :labels="formLabels">
+    <g-form-section id="nr-s" title="Preferencias de comunicación">
+      <template #actions><g-btn variant="ghost" color="neutral">Usar el correo del paciente</g-btn></template>
+      <g-form-layout><g-input label="Correo para avisos"></g-input></g-form-layout>
+    </g-form-section>
+  </g-form></div>
+  <div class="spacer"></div>
+</main>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, reactive, shallowReactive, computed, watch, inject, provide, unref, onMounted, onBeforeUnmount, nextTick } = Vue
+const icon = (n) => window.lucide(n)
+
+// ============================================================================================
+// XFormSection (prototipo). En Grana: GFormSection con mode/open/added/headerPlacement/divider/labels (.vue de bruno)
+// + lo que necesita de GForm (abrir antes de enfocar, estado de errores por sección, «editado» por sección). Aquí lo
+// segundo se simula envolviendo el contexto de GForm (register/notify*) y con un evento DOM «x-reveal-request».
+// ============================================================================================
+const sections = window.__sections = new Map()
+let seq = 0
+const XFormSection = defineComponent({
+  name: 'XFormSection',
+  inheritAttrs: false,
+  props: {
+    title: String, description: String, headingLevel: Number, optional: Boolean,
+    mode: { type: String, default: 'static' },               // static | collapsible | addable
+    open: { type: Boolean, default: undefined },             // v-model:open (collapsible)
+    added: { type: Boolean, default: undefined },            // v-model:added (addable)
+    headerPlacement: { type: String, default: 'top' },       // top | auto
+    divider: Boolean,
+    summary: String,                                         // texto de la aplicación, visible solo plegada
+    labels: { type: Object, default: () => ({}) },           // add, remove, removeTitle, removeBody, removeConfirm, removeCancel
+    strategy: { type: String, default: 'inactive' }          // SOLO prototipo (addable): inactive | unmount
+  },
+  emits: ['update:open', 'update:added'],
+  setup(props, { attrs, slots, emit }) {
+    const form = inject(Grana.formKey, null)
+    const uid = attrs.id || `xs-${++seq}`
+    const root = ref(null), panel = ref(null), toggleEl = ref(null), titleEl = ref(null), addWrap = ref(null)
+    const openL = ref(Boolean(props.open))
+    const addedL = ref(Boolean(props.added))
+    const animating = ref(false), ready = ref(false), instant = ref(false), side = ref(false)
+    const confirm = ref(false), gen = ref(0), edited = ref(false)
+    let pendingRemove = false
+    const level = computed(() => props.headingLevel ?? unref(form?.headingLevel) ?? 3)
+    const editable = computed(() => !unref(form?.readonly) && !unref(form?.disabled))
+    const shown = computed(() => props.mode === 'collapsible' ? openL.value : props.mode === 'addable' ? addedL.value : true)
+    const active = computed(() => props.mode !== 'addable' || addedL.value)
+
+    // ---- Registro: la sección conoce sus campos; sin agregar, inactivos (#276); «editado» para confirmar al quitar ----
+    const entries = shallowReactive(new Set())
+    if (form && props.mode !== 'static') {
+      provide(Grana.formKey, Object.assign({}, form, {
+        register(entry) {
+          const w = props.mode === 'addable' ? Object.assign({}, entry, { inactive: () => entry.inactive() || !active.value }) : entry
+          entries.add(w)
+          const off = form.register(w)
+          return () => { entries.delete(w); off() }
+        },
+        notifyInput(n) { edited.value = true; form.notifyInput(n) },
+        notifyChange(n, now) { edited.value = true; form.notifyChange(n, now) }
+      }))
+    }
+    const names = () => [...entries].flatMap((e) => e.names())
+    // Estado de errores (automático, solo lo REVELADO: «castigar tarde», #157): registros con error visible
+    const errorCount = computed(() => {
+      if (!form) return 0
+      let c = 0
+      for (const e of entries) {
+        if (e.inGroup || (e.inactive && e.inactive())) continue
+        if (e.names().some((n) => form.visible(n, 'error'))) c++
+      }
+      return c
+    })
+    const errorsText = computed(() => {
+      const l = unref(form?.labels)?.sectionErrors
+      return typeof l === 'function' ? l(errorCount.value) : String(l || '').replace('{count}', errorCount.value)
+    })
+    const digest = computed(() => props.mode === 'collapsible' && !openL.value && (errorCount.value > 0 || Boolean(props.summary)))
+    // Acciones visibles también plegada: ocultarlas cambia la altura de la fila del título y lo mueve (medido: 5px)
+    const showActions = computed(() => Boolean(slots.actions) || (props.mode === 'addable' && addedL.value && editable.value))
+    const hiddenAll = computed(() => props.mode === 'addable' && !addedL.value && !editable.value)
+
+    // ---- Transición (como GFormReveal: is-animating hasta transitionend o respaldo) ----
+    let timer = null
+    function longest(el) {
+      if (!el) return 0
+      const cs = getComputedStyle(el)
+      const d = cs.transitionDuration.split(',').map(parseFloat), l = cs.transitionDelay.split(',').map(parseFloat)
+      return Math.max(0, ...d.map((x, i) => (x + (l[i % l.length] || 0)) * 1000))
+    }
+    function settle() { animating.value = false; clearTimeout(timer) }
+    async function startAnim() {
+      animating.value = true
+      await nextTick()
+      clearTimeout(timer)
+      timer = setTimeout(settle, longest(panel.value) + 50)
+    }
+    function onEnd(e) { if (e.target === panel.value && e.propertyName === 'grid-template-rows') settle() }
+
+    // ---- collapsible ----
+    function setOpen(v, { silent = false } = {}) {
+      if (v === openL.value) return
+      // Plegar con el foco dentro (solo por programa): al botón, ANTES de aplicar inert (nunca a <body>)
+      if (!v && panel.value && panel.value.contains(document.activeElement) && toggleEl.value) toggleEl.value.focus({ preventScroll: true })
+      openL.value = v
+      if (!silent) emit('update:open', v)
+      startAnim()
+    }
+    function toggle() { setOpen(!openL.value) }
+    watch(() => props.open, (v) => { if (v !== undefined) setOpen(Boolean(v), { silent: true }) })
+    // Abrir para llevar a un campo: en un cuadro, sin animar. El prototipo aplica inert/clase YA (en Grana: GForm abre,
+    // espera nextTick y enfoca); window.__navAnimated = true reproduce la alternativa descartada (abrir animando)
+    function openNow() {
+      if (props.mode !== 'collapsible' || openL.value) return false
+      if (window.__navAnimated) { setOpen(true); return true }
+      instant.value = true
+      openL.value = true
+      emit('update:open', true)
+      if (panel.value) panel.value.inert = false
+      if (root.value) root.value.classList.add('is-open', 'is-instant')
+      requestAnimationFrame(() => requestAnimationFrame(() => { instant.value = false }))
+      return true
+    }
+    function onRevealRequest() { openNow() }
+
+    // ---- addable ----
+    async function add() {
+      edited.value = false
+      addedL.value = true
+      emit('update:added', true)
+      startAnim()
+      await nextTick()
+      // Foco al título (tabindex="-1"): contexto antes que campo. Sin desplazar: el título ocupa el sitio del botón
+      titleEl.value && titleEl.value.focus({ preventScroll: true })
+    }
+    function requestRemove() { if (edited.value) confirm.value = true; else doRemove() }
+    async function doRemove() {
+      addedL.value = false
+      emit('update:added', false)
+      gen.value++            // cuerpo nuevo: lo no controlado se descarta (lo controlado lo vacía la aplicación)
+      edited.value = false
+      startAnim()
+      await nextTick()
+      const b = addWrap.value && addWrap.value.querySelector('button')
+      b && b.focus({ preventScroll: true })
+    }
+    // Prototipo: GDialog real deja el foco en el <dialog> (pinta el contenido tras showModal); la propuesta es «Cancelar»
+    async function onConfirmOpen() { await nextTick(); const c = document.getElementById(uid + '-cancel'); c && c.focus() }
+    function onConfirmClosed() { if (pendingRemove) { pendingRemove = false; doRemove() } }
+    function confirmRemove(close) { pendingRemove = true; close() }
+    watch(() => props.added, (v) => { if (v !== undefined && Boolean(v) !== addedL.value) { addedL.value = Boolean(v); if (!v) gen.value++; startAnim() } })
+
+    // ---- headerPlacement="auto": ancho PROPIO ≥ space × 200 (constante derivada de space, #130) ----
+    let ro = null
+    function measure() {
+      if (props.headerPlacement !== 'auto' || !root.value) { side.value = false; return }
+      const v = getComputedStyle(root.value).getPropertyValue('--g-space-1').trim()
+      const space = parseFloat(v) * (/rem$/.test(v) ? parseFloat(getComputedStyle(document.documentElement).fontSize) : 1) || 4
+      const w = root.value.getBoundingClientRect().width
+      const s = w >= space * 200
+      if (s !== side.value) requestAnimationFrame(() => { side.value = s })
+    }
+
+    const api = { root, panel, uid, mode: props.mode, open: openL, added: addedL, animating, side, edited, errorCount, names, openNow, setOpen, entries }
+    onMounted(() => {
+      root.value.addEventListener('x-reveal-request', onRevealRequest)
+      if (props.headerPlacement === 'auto') { const s0 = root.value.getBoundingClientRect().width; measure(); side.value = side.value; ro = new ResizeObserver(measure); ro.observe(root.value) }
+      requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+      sections.set(uid, api)
+    })
+    onBeforeUnmount(() => { ro && ro.disconnect(); clearTimeout(timer); sections.delete(uid) })
+
+    const rootAttrs = computed(() => { const { id, class: c, ...rest } = attrs; return { id: uid, class: c, ...rest } })
+    return { props, uid, root, panel, toggleEl, titleEl, addWrap, openL, addedL, animating, ready, instant, side, confirm, gen, level, editable,
+      shown, digest, errorCount, errorsText, showActions, hiddenAll, toggle, onEnd, add, requestRemove, onConfirmOpen, onConfirmClosed, confirmRemove, icon, rootAttrs, slots }
+  },
+  template: `
+  <section v-bind="rootAttrs" ref="root" :hidden="hiddenAll || undefined"
+    :class="['g-form-section', 'x-section', 'x-section--' + mode, { 'g-form-section--optional': optional, 'is-open': shown, 'is-animating': animating,
+      'is-ready': ready, 'is-instant': instant, 'is-side': side, 'is-added': addedL }]">
+    <g-divider v-if="divider" decorative class="x-section__divider"></g-divider>
+
+    <div v-if="mode === 'addable' && !addedL" ref="addWrap" class="x-section__add">
+      <g-btn v-if="editable" :id="uid + '-add'" variant="outline" color="neutral" :aria-describedby="description ? uid + '-adddesc' : undefined" @click="add">
+        <template #prepend><span v-html="icon('plus')"></span></template>{{ labels.add }}
+      </g-btn>
+      <p v-if="description" :id="uid + '-adddesc'" class="g-form-section__description">{{ description }}</p>
+    </div>
+    <div v-else class="g-form-section__header">
+      <div class="g-form-section__heading">
+        <component :is="'h' + level" ref="titleEl" :id="uid + '-title'" class="g-form-section__title" :tabindex="mode === 'addable' ? -1 : undefined">
+          <button v-if="mode === 'collapsible'" ref="toggleEl" :id="uid + '-toggle'" type="button" class="x-section__toggle"
+            :aria-expanded="String(openL)" :aria-controls="uid + '-panel'" :aria-describedby="digest ? uid + '-digest' : undefined" @click="toggle">
+            <span class="x-section__chevron" aria-hidden="true" v-html="icon('chevron-right')"></span><span>{{ title }}</span>
+          </button>
+          <template v-else>{{ title }}</template>
+        </component>
+        <g-badge v-if="optional" size="sm" variant="soft" color="neutral">Opcional</g-badge>
+      </div>
+      <p v-if="digest" :id="uid + '-digest'" class="x-section__digest">
+        <span v-if="errorCount" class="x-section__status"><span v-html="icon('circle-alert')" aria-hidden="true"></span>{{ errorsText }}</span>
+        <span v-if="summary">{{ summary }}</span>
+      </p>
+      <p v-if="description" class="g-form-section__description">{{ description }}</p>
+      <div v-if="showActions" class="g-form-section__actions">
+        <slot name="actions"></slot>
+        <g-btn v-if="mode === 'addable' && editable" :id="uid + '-remove'" variant="ghost" color="neutral" @click="requestRemove">{{ labels.remove }}</g-btn>
+      </div>
+    </div>
+
+    <div v-if="mode === 'static'" class="g-form-section__body"><slot></slot></div>
+    <div v-else-if="!(mode === 'addable' && strategy === 'unmount' && !addedL)" ref="panel" :id="uid + '-panel'" class="x-section__panel"
+      :inert="!shown" @transitionend="onEnd">
+      <component :is="mode === 'addable' ? 'fieldset' : 'div'" :key="gen" class="g-form-section__body x-section__body"
+        :role="mode === 'addable' ? 'none' : undefined" :disabled="mode === 'addable' && !addedL"><slot></slot></component>
+    </div>
+
+    <g-dialog v-if="mode === 'addable'" v-model="confirm" role="alertdialog" size="sm" :id="uid + '-confirm'"
+      :title="labels.removeTitle" :description="labels.removeBody" @open="onConfirmOpen" @closed="onConfirmClosed">
+      <template #footer="{ close }">
+        <g-btn :id="uid + '-cancel'" variant="outline" color="neutral" autofocus @click="close()">{{ labels.removeCancel }}</g-btn>
+        <g-btn :id="uid + '-confirm-btn'" color="danger" @click="confirmRemove(close)">{{ labels.removeConfirm }}</g-btn>
+      </template>
+    </g-dialog>
+  </section>`
+})
+
+// ============================================================================================
+// Formularios de ejemplo
+// ============================================================================================
+const formLabels = {
+  optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ', sectionOptional: 'Opcional',
+  sectionErrors: (n) => (n === 1 ? '1 error' : `${n} errores`)   // propuesta: texto del estado de errores por sección
+}
+const summaryLabels = { title: (n) => (n === 1 ? 'Hay 1 problema con el formulario' : `Hay ${n} problemas con el formulario`) }
+const fiscalLabels = { add: 'Agregar datos fiscales', remove: 'Quitar datos fiscales', removeTitle: '¿Quitar los datos fiscales?',
+  removeBody: 'Se descartará lo que escribiste en esta sección.', removeConfirm: 'Quitar', removeCancel: 'Cancelar' }
+const CANAL = [{ value: 'correo', label: 'Correo' }, { value: 'sms', label: 'SMS' }]
+const IDIOMA = [{ value: 'es', label: 'Español' }, { value: 'en', label: 'English' }]
+const models = window.__models = {}
+const results = window.__results = reactive({})
+const forms = window.__forms = {}
+
+function openSectionsFor(formEl, namesWithErrors) {
+  for (const s of sections.values()) if (s.mode === 'collapsible' && !s.open.value && formEl && formEl.contains(s.root.value) && s.names().some((n) => namesWithErrors.includes(n))) s.openNow()
+}
+
+const FormLargo = defineComponent({
+  name: 'FormLargo',
+  props: { uid: String, placement: { type: String, default: 'top' }, divider: Boolean, summary: Boolean, readonly: Boolean, disabled: Boolean, added: Boolean },
+  setup(props) {
+    const m = models[props.uid] = reactive({ nombre: '', correo: '', canal: 'correo', avisos: 'ana@correo', idioma: 'es', zona: 'America/Mexico_City',
+      rfc: '', razon: '', cp: '', obs: '', fiscal: props.added, prefOpen: false, advOpen: false })
+    if (props.added) Object.assign(m, { rfc: 'GODE561231GR8', razon: 'Ana Godínez' })
+    const server = reactive({})
+    const errors = computed(() => ({
+      nombre: m.nombre ? '' : 'Escribe el nombre del paciente',
+      avisos: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m.avisos) ? '' : 'Escribe el correo con el formato nombre@dominio.com',
+      rfc: !m.rfc ? 'Escribe el RFC' : (m.rfc.length < 12 ? 'El RFC tiene 12 o 13 caracteres' : ''),
+      razon: m.razon ? '' : 'Escribe la razón social',
+      ...server
+    }))
+    const f = ref(null)
+    const out = ref('—')
+    const r = results[props.uid] = reactive({ submits: 0, invalids: 0, lastData: null, lastInvalid: null })
+    function onSubmit({ data }) { r.submits++; r.lastData = [...data.keys()]; out.value = 'submit · FormData: ' + [...data.entries()].map(([k, v]) => `${k}=${v}`).join(', ') }
+    function onInvalid({ errors: list }) {
+      r.invalids++; r.lastInvalid = list.map((e) => e.name)
+      out.value = 'invalid · ' + list.map((e) => e.name || '(general)').join(', ')
+      // Propuesta: el envío con errores abre las secciones plegadas que contienen un error que bloquea, ANTES de mover el foco
+      openSectionsFor(f.value && f.value.$el, list.map((e) => e.name))
+    }
+    // Error del servidor sobre un campo de una sección plegada: abrir y luego showErrors()
+    async function serverError() {
+      server.zona = 'Esa zona horaria no existe en el servidor'
+      await nextTick()
+      openSectionsFor(f.value && f.value.$el, Object.keys(errors.value).filter((k) => errors.value[k]))
+      return f.value.showErrors()
+    }
+    function onNavigate({ id }) { const el = document.getElementById(id); el && el.dispatchEvent(new CustomEvent('x-reveal-request', { bubbles: true })) }
+    function onFiscal(v) { m.fiscal = v; if (!v) Object.assign(m, { rfc: '', razon: '', cp: '' }) }  // la aplicación vacía su modelo al quitar
+    forms[props.uid] = { f, serverError, m }
+    const p = (s) => `${props.uid}-${s}`
+    return { m, f, errors, out, onSubmit, onInvalid, onNavigate, onFiscal, serverError, p, formLabels, summaryLabels, fiscalLabels, CANAL, IDIOMA }
+  },
+  template: `
+  <g-form ref="f" :id="p('form')" :errors="errors" :labels="formLabels" :readonly="readonly" :disabled="disabled" @submit="onSubmit" @invalid="onInvalid">
+    <g-error-summary v-if="summary" :id="p('summary')" :labels="summaryLabels" @navigate="onNavigate" />
+    <x-form-section :id="p('s-pac')" title="Paciente" :header-placement="placement" :divider="divider">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :id="p('nombre')" label="Nombre del paciente" name="nombre" required v-model="m.nombre" />
+          <g-input :id="p('correo')" label="Correo" name="correo" type="email" v-model="m.correo" />
+        </g-form-row>
+      </g-form-layout>
+    </x-form-section>
+    <x-form-section :id="p('s-pref')" mode="collapsible" title="Preferencias de comunicación" description="Cómo enviamos recordatorios de cita."
+      :summary="(m.canal === 'sms' ? 'SMS' : 'Correo') + ' · ' + m.avisos" v-model:open="m.prefOpen" :header-placement="placement" :divider="divider">
+      <template #actions><g-btn :id="p('copiar')" variant="ghost" color="neutral" @click="m.avisos = m.correo">Usar el correo del paciente</g-btn></template>
+      <g-form-layout>
+        <g-radio-group :id="p('canal')" appearance="inline" label="Canal" name="canal" v-model="m.canal" :options="CANAL" />
+        <g-input :id="p('avisos')" label="Correo para avisos" name="avisos" type="email" v-model="m.avisos" />
+      </g-form-layout>
+    </x-form-section>
+    <x-form-section :id="p('s-adv')" mode="collapsible" title="Configuración avanzada" :summary="(m.idioma === 'en' ? 'English' : 'Español') + ' · ' + m.zona"
+      v-model:open="m.advOpen" :header-placement="placement" :divider="divider">
+      <g-form-layout>
+        <g-form-row>
+          <g-radio-group :id="p('idioma')" class="g-form-w-sm" appearance="inline" label="Idioma" name="idioma" v-model="m.idioma" :options="IDIOMA" />
+          <g-input :id="p('zona')" label="Zona horaria" name="zona" v-model="m.zona" />
+        </g-form-row>
+      </g-form-layout>
+    </x-form-section>
+    <x-form-section :id="p('s-fis')" mode="addable" title="Datos fiscales" description="Solo si el paciente pide factura." :labels="fiscalLabels"
+      :added="m.fiscal" @update:added="onFiscal" :header-placement="placement" :divider="divider">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :id="p('rfc')" class="g-form-w-sm" label="RFC" name="rfc" required v-model="m.rfc" />
+          <g-input :id="p('razon')" class="g-form-w-lg" label="Razón social" name="razon" required v-model="m.razon" />
+        </g-form-row>
+        <g-input :id="p('cp')" class="g-form-w-sm" label="Código postal fiscal" name="cp" v-model="m.cp" />
+      </g-form-layout>
+    </x-form-section>
+    <x-form-section :id="p('s-obs')" title="Observaciones" :header-placement="placement" :divider="divider">
+      <g-form-layout><g-input :id="p('obs')" label="Observaciones" name="obs" v-model="m.obs" /></g-form-layout>
+    </x-form-section>
+    <g-form-actions>
+      <g-btn :id="p('save')" type="submit" variant="solid">Guardar</g-btn>
+      <g-btn :id="p('server')" variant="outline" color="neutral" @click="serverError">Simular error del servidor</g-btn>
+    </g-form-actions>
+    <pre class="out" :id="p('out')">{{ out }}</pre>
+  </g-form>`
+})
+
+const FormStrat = defineComponent({
+  name: 'FormStrat',
+  props: { strategy: String },
+  setup(props) {
+    const uid = 'st-' + props.strategy
+    const m = models[uid] = reactive({ nombre: 'Ana', rfc: '', fiscal: false })
+    const errors = computed(() => ({ rfc: m.rfc ? '' : 'Escribe el RFC' }))
+    const out = ref('—')
+    const r = results[uid] = reactive({ submits: 0, invalids: 0, lastData: null, lastInvalid: null })
+    const onSubmit = ({ data }) => { r.submits++; r.lastData = [...data.keys()]; out.value = 'submit · ' + [...data.keys()].join(', ') }
+    const onInvalid = ({ errors: list }) => { r.invalids++; r.lastInvalid = list.map((e) => ({ name: e.name, id: e.id })); out.value = 'invalid · ' + list.map((e) => `${e.name} (id ${e.id})`).join(', ') }
+    return { uid, m, errors, out, onSubmit, onInvalid, formLabels, fiscalLabels }
+  },
+  template: `
+  <g-form :id="uid + '-form'" :errors="errors" :labels="formLabels" @submit="onSubmit" @invalid="onInvalid">
+    <g-form-section title="Paciente"><g-form-layout><g-input label="Nombre" name="nombre" v-model="m.nombre" /></g-form-layout></g-form-section>
+    <x-form-section :id="uid + '-s'" mode="addable" :strategy="strategy" title="Datos fiscales" :labels="fiscalLabels" v-model:added="m.fiscal">
+      <g-form-layout><g-input :id="uid + '-rfc'" label="RFC" name="rfc" required v-model="m.rfc" /></g-form-layout>
+    </x-form-section>
+    <g-form-actions><g-btn :id="uid + '-save'" type="submit" variant="solid">Guardar</g-btn></g-form-actions>
+    <pre class="out" :id="uid + '-out'">{{ out }}</pre>
+  </g-form>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    watch(slow, (v) => document.documentElement.classList.toggle('slow', v))
+    const tick = ref(0)
+    setInterval(() => tick.value++, 150)
+    const statesText = computed(() => {
+      tick.value
+      return [...sections.values()].filter((s) => s.uid.startsWith('w-') && s.mode !== 'static')
+        .map((s) => `${s.uid.slice(4)}:${s.mode === 'collapsible' ? (s.open.value ? 'abierta' : 'plegada') : (s.added.value ? 'agregada' : 'sin agregar')}${s.errorCount.value ? '·' + s.errorCount.value + 'err' : ''}`).join('  ')
+    })
+    return { slow, statesText, formLabels }
+  }
+})
+app.component('XFormSection', XFormSection)
+app.component('FormLargo', FormLargo)
+app.component('FormStrat', FormStrat)
+app.use(Grana)
+app.mount('#app')
+</script>
+</body>
+</html>
