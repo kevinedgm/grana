@@ -335,6 +335,74 @@ describe('GForm · dirty', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------
+describe('Receta: bloqueo con interruptor (form.md §8, #266)', () => {
+  const recipe = () => {
+    const form = ref(null)
+    const locked = ref(true)
+    const dirty = ref(false)
+    const w = make(`<div>
+      <GSwitch id="sw" label="Permitir edición" :model-value="!locked" @update:model-value="(v) => (locked = !v)" />
+      <GForm ref="form" id="f" :readonly="locked" :errors="locked ? {} : { a: 'A mal' }" v-model:dirty="dirty" aria-label="Muestra">
+        <GInput id="ia" label="A" name="a" model-value="Ana" required />
+        <GInput id="ib" label="B" name="b" model-value="Beto" />
+        <button id="send" type="submit" :disabled="locked">Guardar</button>
+      </GForm>
+    </div>`, () => ({ form, locked, dirty }))
+    return { w, form, locked, dirty }
+  }
+  const sw = (w) => w.find('input[role="switch"]')
+
+  it('el interruptor vive fuera del <form>: conmutarlo no marca dirty ni entra en FormData', async () => {
+    const { w, locked, dirty } = recipe()
+    expect(w.find('form').element.contains(sw(w).element)).toBe(false)
+    expect(w.find('form').element.compareDocumentPosition(sw(w).element) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy() // antes en el DOM
+    await sw(w).setValue(true)
+    expect(locked.value).toBe(false)
+    expect(dirty.value).toBe(false)
+    expect(sw(w).element.readOnly).toBeFalsy()
+    expect(sw(w).attributes('aria-readonly')).toBeUndefined()
+    await sw(w).setValue(false)
+    expect(locked.value).toBe(true)
+    expect(dirty.value).toBe(false)
+  })
+
+  it('con readonly los valores siguen en FormData y los campos siguen enfocables (nunca disabled)', async () => {
+    const { w } = recipe()
+    const inputs = w.findAll('form input')
+    expect(inputs).toHaveLength(2)
+    for (const i of inputs) {
+      expect(i.element.readOnly).toBe(true)
+      expect(i.element.disabled).toBe(false)
+      i.element.focus()
+      expect(document.activeElement).toBe(i.element)
+    }
+    const data = new FormData(w.find('form').element)
+    expect(data.get('a')).toBe('Ana')
+    expect(data.get('b')).toBe('Beto')
+    // Bloqueado conserva el formulario: la marca de obligatorio sigue y el botón de envío va deshabilitado (Enter no envía)
+    expect(w.find('#send').element.disabled).toBe(true)
+    expect(w.find('.g-input__required, [aria-required="true"], [required]').exists()).toBe(true)
+    await sw(w).setValue(true)
+    expect(w.findAll('form input').every((i) => !i.element.readOnly)).toBe(true)
+    expect(w.find('#send').element.disabled).toBe(false)
+  })
+
+  it('resetState() al bloquear oculta los errores revelados y la aplicación no pasa errors mientras está bloqueado', async () => {
+    const { w, form } = recipe()
+    await sw(w).setValue(true)
+    await form.value.showErrors()
+    await frame()
+    expect(w.findAll('.g-input__message')[0].text()).toContain('A mal')
+    await sw(w).setValue(false)
+    form.value.resetState()
+    await nextTick()
+    await nextTick()
+    expect(w.findAll('.g-input__message').every((m) => m.text() === '')).toBe(true)
+    expect(w.find('form').text()).not.toContain('A mal')
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------
 describe('Marcas (#153, §2)', () => {
   it('marks="optional": «(opcional)» con un espacio delante dentro de la etiqueta; los obligatorios sin asterisco', () => {
     const w = make('<GForm :labels="labels"><GInput label="Nombre" required /><GInput label="Segundo apellido" /><GTextarea label="Notas" /><GSelect label="Estado" /><GDatePicker label="Fecha" /></GForm>', () => ({ labels: LABELS }))

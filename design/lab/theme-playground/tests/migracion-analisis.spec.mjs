@@ -55,6 +55,8 @@ for (const [vw, scheme] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [39
     // Desbloquear con el interruptor: los campos pasan a editables y las filas siguen alineadas
     await page.locator('#permitir').check()
     await expect(page.locator('#modo')).toHaveText(/Edición permitida/)
+    // Receta de bloqueo (#266): el cambio con el interruptor lo anuncia el interruptor; la región no lo repite
+    await expect(page.locator('#anuncio')).toHaveText('')
     expect(await page.evaluate(editable)).toBeGreaterThan(10)
     expect(await page.evaluate(geom), `${browserName} editando`).toEqual([])
     // editable: el nombre es etiqueta + parte; el grupo es required (e1bb124), así que sin «(opcional)»
@@ -65,6 +67,10 @@ for (const [vw, scheme] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [39
     await expect(page.locator('#guardar')).toBeEnabled()
     await page.locator('#cancelar').click()
     await expect(page.locator('input[name="vol-lote"]')).toHaveValue('1200')
+    // El bloqueo por otra acción (Cancelar) va a la región `status`, y el foco vuelve al interruptor
+    await expect(page.locator('#anuncio')).toHaveText('Cambios descartados. Formulario bloqueado')
+    await expect(page.locator('#permitir')).toBeFocused()
+    await expect(page.locator('#guardar')).toBeDisabled()
     expect(await page.evaluate(editable)).toBe(0)
     // Esc cierra
     await page.keyboard.press('Escape')
@@ -72,3 +78,42 @@ for (const [vw, scheme] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [39
     expect(errs, browserName).toEqual([])
   })
 }
+
+// Receta «bloqueo con interruptor» (form.md §8, #266): confirmación al volver a bloquear con cambios, foco, anuncios y envío.
+test('bloqueo con interruptor: confirmar al volver a bloquear con cambios, foco al interruptor y un solo anuncio', async ({ page, browserName }) => {
+  const errs = []
+  page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`))
+  page.on('console', (m) => { if (m.type() === 'error' && !/favicon/.test(m.text())) errs.push(`console: ${m.text()}`) })
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto(`${PAGE}&theme=light`)
+  await expect(page.locator('dialog.g-dialog[open]').first()).toBeVisible()
+  // Bloqueado: los valores siguen en el envío (readonly, no disabled) y el botón de envío va deshabilitado
+  await expect(page.locator('#guardar')).toBeDisabled()
+  expect(await page.evaluate(() => [...document.querySelectorAll('#muestra input[name]')].filter((i) => i.disabled).length), 'ningún campo disabled').toBe(0)
+  expect(await page.evaluate(() => new FormData(document.getElementById('muestra')).get('vol-lote')), `${browserName}: el valor sigue en FormData`).toBe('1200')
+  // Desbloquear no mueve el foco al formulario ni marca dirty (el interruptor está fuera del <form>)
+  await page.locator('#permitir').check()
+  await expect(page.locator('#guardar')).toBeDisabled()
+  // Con cambios, apagar el interruptor pide confirmación y el interruptor sigue encendido hasta confirmar
+  await page.locator('input[name="vol-lote"]').fill('900')
+  await page.locator('#permitir').click()
+  await expect(page.getByRole('alertdialog', { name: '¿Descartar los cambios?' })).toBeVisible()
+  await expect(page.locator('#permitir')).toBeChecked()
+  await page.locator('#seguir').click()
+  await expect(page.locator('input[name="vol-lote"]')).toHaveValue('900')
+  await page.locator('#permitir').click()
+  await page.locator('#descartar').click()
+  await expect(page.locator('input[name="vol-lote"]')).toHaveValue('1200')
+  await expect(page.locator('#permitir')).not.toBeChecked()
+  await expect(page.locator('#permitir')).toBeFocused()
+  await expect(page.locator('#anuncio')).toHaveText('Cambios descartados. Formulario bloqueado')
+  // Guardar: bloquea, el foco vuelve al interruptor y el aviso (GToast) es el único anuncio
+  await page.locator('#permitir').check()
+  await page.locator('input[name="vol-lote"]').fill('950')
+  await page.locator('#guardar').click()
+  await expect(page.locator('#permitir')).not.toBeChecked()
+  await expect(page.locator('#permitir')).toBeFocused()
+  await expect(page.locator('#anuncio')).toHaveText('')
+  await expect(page.locator('input[name="vol-lote"]')).toHaveValue('950')
+  expect(errs, browserName).toEqual([])
+})

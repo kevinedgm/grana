@@ -157,7 +157,7 @@
     // Iconos por la vía pública (docs/contract/icons.md v0.2 §5): GIcon + createIcons con la cadena de lucide-static.
     // `lock` está en la lista de la librería; `lock-open` lo registra la aplicación (sin empaquetador: el módulo ES del icono).
     import LockOpen from '../../../../node_modules/lucide-static/dist/esm/icons/lock-open.mjs'
-    const { createApp, ref, reactive, computed } = Vue
+    const { createApp, ref, reactive, computed, nextTick } = Vue
     // Gestor de avisos de la aplicación (Grana no trae instancia global ni textos por defecto)
     const toaster = Grana.createToaster({
       labels: {
@@ -202,18 +202,25 @@
         const descripcion = computed(() => editando.value
           ? 'Edición permitida. Guarda para registrar los cambios o cancela para descartarlos.'
           : 'Formulario bloqueado para evitar cambios por error. Activa «Permitir edición» para modificarlo.')
-        const bloquear = (mensaje) => { editando.value = false; anuncio.value = mensaje || 'Formulario bloqueado' }
+        // Receta «bloqueo con interruptor» (form.md §8, #266):
+        // - el cambio hecho con el interruptor lo anuncia el propio interruptor (role="switch"): la región no lo repite;
+        // - el bloqueo causado por otra acción (Cancelar, Descartar) va a la región `status` del diálogo; Guardar lo dice el aviso (GToast), solo uno;
+        // - al bloquear se llama a resetState() y el foco vuelve al interruptor (el botón del pie cambia de texto o se deshabilita).
+        const volverAlInterruptor = () => nextTick(() => document.getElementById('permitir')?.focus())
+        const bloquear = (mensaje) => { editando.value = false; formRef.value && formRef.value.resetState(); anuncio.value = mensaje || '' }
         const alternarEdicion = (v) => {
-          if (v) { editando.value = true; anuncio.value = 'Edición permitida'; return }
+          if (v) { editando.value = true; anuncio.value = ''; return }
           if (sucio.value) { pendiente.value = 'bloquear'; confirmando.value = true; return }
           bloquear()
         }
         const revertir = () => { Object.assign(m, JSON.parse(JSON.stringify(guardado))); formRef.value && formRef.value.resetState(); sucio.value = false }
-        const cancelar = () => { revertir(); bloquear('Cambios descartados. Formulario bloqueado') }
+        const cancelar = () => { revertir(); bloquear('Cambios descartados. Formulario bloqueado'); volverAlInterruptor() }
         const guardar = () => {
+          if (!editando.value) return // bloqueado: nunca se guarda (el botón ya va deshabilitado)
           guardado = copia() // simulado: sin red
-          formRef.value.resetState(); sucio.value = false
-          bloquear('Cambios guardados. Formulario bloqueado')
+          sucio.value = false
+          bloquear() // sin texto en la región: lo dice el aviso (un solo anuncio)
+          volverAlInterruptor()
           toaster.success('Cambios guardados', { description: 'La muestra quedó bloqueada otra vez.' })
         }
         const alIntentarCerrar = (e) => {
@@ -224,7 +231,7 @@
           confirmando.value = false
           revertir()
           if (que === 'cerrar') abierto.value = false
-          else bloquear('Cambios descartados. Formulario bloqueado')
+          else { bloquear('Cambios descartados. Formulario bloqueado'); volverAlInterruptor() }
         }
         const alCerrar = () => { editando.value = false; anuncio.value = '' }
         const ensayos = [{ n: 1, ensayo: 'BAFQ-14', precio: 1469, prioridad: 'Normal', descuento: 'Membresía Platino 29 %', total: 1042.99 }]
