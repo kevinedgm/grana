@@ -380,3 +380,35 @@ describe('GInput · valor calculado `output` (form.md C14, #180)', () => {
     form.remove()
   })
 })
+
+describe('GInput · personalidad: is-ready e is-rejected (input.md «Personalidad», #304)', () => {
+  it('is-ready no está al montar y llega dos cuadros después (tras el primer pintado)', async () => {
+    const w = mount(GInput, { props: { label: 'Correo', error: 'Mal' } })
+    expect(root(w).classes()).not.toContain('is-ready')
+    await new Promise((r) => requestAnimationFrame(() => r()))
+    await w.vm.$nextTick()
+    expect(root(w).classes()).not.toContain('is-ready') // un cuadro no basta
+    await new Promise((r) => setTimeout(r, 80))
+    expect(root(w).classes()).toContain('is-ready')
+    w.unmount()
+  })
+
+  it('en SSR (renderToString) no hay is-ready ni is-rejected', async () => {
+    const { createSSRApp } = await import('vue')
+    const { renderToString } = await import('vue/server-renderer')
+    const html = await renderToString(createSSRApp({ render: () => h(GInput, { label: 'Correo', error: 'Mal' }) }))
+    expect(html).toContain('g-input')
+    expect(html).not.toContain('is-ready')
+    expect(html).not.toContain('is-rejected')
+  })
+
+  it('fuera de GForm nunca hay is-rejected; un animationend g-reject… no rompe nada', async () => {
+    const w = mount(GInput, { props: { label: 'Correo', error: 'Mal' }, attachTo: document.body })
+    const e = new Event('animationend', { bubbles: true })
+    Object.defineProperty(e, 'animationName', { value: 'g-reject-shake' })
+    w.find('.g-input__row').element.dispatchEvent(e)
+    await w.vm.$nextTick()
+    expect(root(w).classes()).not.toContain('is-rejected')
+    w.unmount()
+  })
+})

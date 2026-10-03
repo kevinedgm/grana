@@ -85,6 +85,8 @@ const ff = isField ? useFormField({
   message: NO_MESSAGE,
   ownMessage: NO_MESSAGE,
   invalid: computed(() => false),
+  rejected: computed(() => false),
+  onRejectEnd: () => {},
   mark: NO_MESSAGE,
   messageId: computed(() => undefined),
   live: computed(() => undefined),
@@ -135,7 +137,9 @@ const classes = computed(() => [
     'is-readonly': isReadonly.value,
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
-    'is-valid': ff.ownMessage.value?.type === 'valid'
+    'is-valid': ff.ownMessage.value?.type === 'valid',
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -221,7 +225,7 @@ if (isDev && !isField) {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label class="g-checkbox__row" :for="inputId">
       <span class="g-checkbox__box">
         <input ref="input" type="checkbox" v-bind="fieldBindings" class="g-checkbox__input">

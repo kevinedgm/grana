@@ -52,7 +52,11 @@ function register(entry) {
     }
   }
   entries.set(entry.uid, entry)
-  return () => { if (entries.get(entry.uid) === entry) entries.delete(entry.uid) }
+  return () => {
+    if (entries.get(entry.uid) !== entry) return
+    entries.delete(entry.uid)
+    rejected.delete(entry.uid) // al desmontarse, sale del conjunto de rechazados (#304)
+  }
 }
 const sorted = () => [...entries.values()].sort((a, b) => byDocument(a.root() || a.control(), b.root() || b.control()))
 
@@ -230,6 +234,7 @@ function focusAfter(list) {
 
 async function showErrors() {
   const list = await revealAll()
+  reject(list)
   await focusAfter(list)
   return list
 }
@@ -241,6 +246,27 @@ function resetState() {
   snapshot.value = null
   dirtyLocal.value = false
   emit('update:dirty', false)
+}
+
+// ---------- Rechazo al enviar (form.md §2 «Rechazo al enviar», input.md «Personalidad» I2, #304) ----------
+// Conjunto de claves de registro rechazadas. Solo lo llenan un envío con errores (no `formnovalidate`) y showErrors():
+// se vacía y se llena en el cuadro siguiente, para que una sacudida anterior se reinicie. Lo vacían, clave a clave, el fin
+// de la sacudida (endRejected desde el campo), su siguiente input/change y su desregistro. Nunca por cambios de `errors`.
+const rejected = reactive(new Set())
+let rejectRun = 0
+function reject(list) {
+  rejected.clear()
+  const run = ++rejectRun
+  const keys = list.filter((i) => i.entry).map((i) => i.entry.uid) // los errores generales no tienen campo
+  if (!keys.length) return
+  nextFrame(() => {
+    if (run !== rejectRun) return // un envío posterior ya se encarga
+    for (const k of keys) if (entries.has(k)) rejected.add(k)
+  })
+}
+const isRejected = (key) => rejected.has(key)
+function endRejected(key) {
+  rejected.delete(key)
 }
 
 // ---------- Envío ----------
@@ -265,6 +291,7 @@ async function onSubmit(event) {
   const list = await revealAll()
   if (list.length) {
     emit('invalid', { event, errors: list.map(({ name, message, id }) => ({ name, message, id })) })
+    reject(list)
     focusAfter(list)
   } else {
     emit('submit', { event, data: formData(submitter), submitter, novalidate: false })
@@ -337,6 +364,8 @@ provide(formKey, {
   notifyChange,
   isShown,
   visible,
+  isRejected,
+  endRejected,
   setActionsSize,
   registerActions,
   registerSummary,
@@ -346,7 +375,10 @@ provide(formKey, {
 
 if (isDev && props.marks === 'required' && !props.labels?.requiredHint) warnOnce('label-requiredHint', 'falta labels.requiredHint: con marks="required" no se pinta la frase que explica el asterisco.')
 
-onBeforeUnmount(() => { summaryApi = null })
+onBeforeUnmount(() => {
+  summaryApi = null
+  rejectRun++ // un cuadro pendiente ya no marca nada
+})
 
 // ---------- Marcado ----------
 const classes = computed(() => [

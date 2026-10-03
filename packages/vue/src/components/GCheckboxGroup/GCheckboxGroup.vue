@@ -140,7 +140,9 @@ const classes = computed(() => [
     'is-disabled': isDisabled.value,
     'is-invalid': ff.invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
-    'is-valid': ff.ownMessage.value?.type === 'valid'
+    'is-valid': ff.ownMessage.value?.type === 'valid',
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 // Los manejadores del contexto van PRIMERO; el resto de atributos y escuchas del consumidor, al <fieldset>
@@ -159,7 +161,7 @@ if (isDev) {
 </script>
 
 <template>
-  <fieldset ref="rootEl" v-bind="rootBindings" :id="groupId" :class="classes" :disabled="isDisabled || undefined" :aria-describedby="describedBy">
+  <fieldset ref="rootEl" v-bind="rootBindings" :id="groupId" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :disabled="isDisabled || undefined" :aria-describedby="describedBy">
     <legend v-if="hasLabel" class="g-checkbox-group__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-checkbox-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-checkbox-group__required" aria-hidden="true">*</span></legend>
     <div v-if="showHead" class="g-checkbox-group__head">
       <MasterScope v-if="showMaster">

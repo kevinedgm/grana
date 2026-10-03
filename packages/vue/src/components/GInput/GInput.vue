@@ -1,10 +1,10 @@
 <script setup>
 // GInput · lógica del campo de texto (dueño: bruno)
 // Contrato: design/contracts/input.md · Estructura: design/lab/input/r01/ · Estilo: GInput.css (coco)
-import { computed, mergeProps, ref, useAttrs, useId, useSlots } from 'vue'
+import { computed, mergeProps, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { messageIcon, useFormField } from '../GForm/formContext.js'
+import { messageIcon, nextFrame, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GInput', inheritAttrs: false })
 
@@ -91,6 +91,13 @@ const inputAttrs = computed(() => {
 
 const hasAction = computed(() => Boolean(slots.action))
 
+// is-ready: dos cuadros después de montar (tras el primer pintado; nunca en SSR). Sin ella, coco no anima la entrada del
+// mensaje (I1): un error que ya viene al montar no se anima (input.md «Personalidad», plan 012)
+const ready = ref(false)
+let unmounted = false
+onMounted(() => nextFrame(() => nextFrame(() => { if (!unmounted) ready.value = true })))
+onBeforeUnmount(() => { unmounted = true })
+
 const classes = computed(() => [
   'g-input',
   `g-input--variant-${props.variant}`,
@@ -109,7 +116,11 @@ const classes = computed(() => [
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
-    'is-loading': props.loading
+    'is-loading': props.loading,
+    'is-ready': ready.value,
+    // La pone GForm en un envío con errores o showErrors() (I2, #304); se retira al fin de la sacudida, con el siguiente
+    // input/change o al desmontar
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -168,7 +179,7 @@ if (isDev) {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" class="g-input__label" :for="inputId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
     <div class="g-input__row">
       <div class="g-input__control">

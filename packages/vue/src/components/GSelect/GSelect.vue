@@ -347,7 +347,9 @@ const classes = computed(() => [
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
-    'is-loading': props.loading
+    'is-loading': props.loading,
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -395,7 +397,7 @@ if (isDev) {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
     <div ref="control" class="g-select__control">
       <button ref="button" v-bind="buttonBindings" class="g-select__button">

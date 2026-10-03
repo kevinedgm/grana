@@ -45,6 +45,14 @@ export function byDocument(a, b) {
 }
 
 /**
+ * Rechazo al enviar (form.md §2 «Rechazo al enviar», input.md «Personalidad» I2, #304). Prefijo del nombre de las
+ * keyframes de la sacudida (coco): solo el fin de una animación con este prefijo retira `is-rejected` (el del mensaje, I1,
+ * no cuenta).
+ */
+export const REJECT_PREFIX = 'g-reject'
+const isRejectAnimation = (event) => typeof event?.animationName === 'string' && event.animationName.startsWith(REJECT_PREFIX)
+
+/**
  * Petición interna «abrir antes de enfocar» (form.md §3, #287). Evento DOM que burbuja y se puede cancelar: cada
  * GFormSection collapsible lo escucha en su __panel; si está plegada, se abre sin animar y lo cancela («he cambiado:
  * espera un parche»). Nombre reservado: NO se exporta desde src/index.js.
@@ -95,6 +103,23 @@ export function useFormField(options = {}) {
   const inactive = computed(() => (reveal ? !unref(reveal.active) : false))
   const o = (k) => toValue(options[k])
   const uid = useId()
+  // Clave del registro en GForm: la del campo, o la del grupo (useCompositeField registra el grupo con esta misma clave)
+  const regKey = role === 'group' ? `group-${uid}` : uid
+
+  // Rechazo al enviar (#304): lo pone SOLO GForm (envío con errores o showErrors()); el campo solo lo pinta y avisa del fin
+  const rejected = computed(() => Boolean(form && typeof form.isRejected === 'function' && form.isRejected(regKey)))
+  function endRejected() {
+    if (form && typeof form.endRejected === 'function') form.endRejected(regKey)
+  }
+  // Escucha de la raíz (animationend y animationcancel): solo la sacudida (`g-reject…`) retira la marca
+  function onRejectEnd(event) {
+    if (isRejectAnimation(event)) endRejected()
+  }
+  // El siguiente input o change del campo retira la suya y la de su grupo (una pregunta)
+  const clearRejected = () => {
+    endRejected()
+    if (group && typeof group.endRejected === 'function') group.endRejected()
+  }
 
   const id = computed(() => o('id') || `g-field-${uid}`)
   const messageId = computed(() => `${id.value}-message`)
@@ -163,8 +188,12 @@ export function useFormField(options = {}) {
   const trigger = () => o('trigger') || 'blur'
   const names = () => [name.value, unref(group?.name)].filter(Boolean)
   const handlers = {
-    onInput: () => { if (form) for (const n of names()) form.notifyInput?.(n) },
+    onInput: () => {
+      clearRejected()
+      if (form) for (const n of names()) form.notifyInput?.(n)
+    },
     onChange: () => {
+      clearRejected()
       if (!form) return
       const ns = names()
       if (!ns.length) form.notifyChange?.(null, false)
@@ -176,6 +205,7 @@ export function useFormField(options = {}) {
   function notifyChange() {
     // La sección más cercana queda editada (confirmación de «Quitar» en addable, #288); también fuera de GForm
     if (section && typeof section.notifyEdit === 'function') section.notifyEdit()
+    clearRejected()
     if (!form) return
     const ns = names()
     if (!ns.length) form.notifyChange?.(null, false)
@@ -194,7 +224,7 @@ export function useFormField(options = {}) {
   // Registro en GForm (con name) y en el GFieldGroup que lo contiene (siempre)
   if (role !== 'group' && options.register !== false) {
     const entry = {
-      uid,
+      uid: regKey,
       role: 'field',
       inGroup: Boolean(group),
       name: () => name.value,
@@ -256,7 +286,11 @@ export function useFormField(options = {}) {
     form,
     group,
     explicitError,
-    inactive
+    inactive,
+    regKey,
+    rejected,
+    endRejected,
+    onRejectEnd
   }
 }
 
@@ -268,13 +302,15 @@ export function useFormField(options = {}) {
  *           sortKey?: (part) => Element, fallback?: (parts) => object }} o
  */
 export function useCompositeField(o) {
-  const uid = useId()
   const section = inject(sectionKey, null)
   const parts = shallowReactive(new Map())
   const keyOf = o.sortKey || ((p) => p.root() || p.control())
   const sortedParts = () => [...parts.values()].sort((a, b) => byDocument(keyOf(a), keyOf(b)))
+  const ff = o.ff
   provide(fieldGroupKey, {
     token: Symbol('part-of'),
+    // El input o change de una parte retira el rechazo del grupo (una pregunta, #304)
+    endRejected: () => ff.endRejected(),
     required: computed(() => Boolean(o.required())),
     name: computed(() => o.name()),
     registerPart(entry) {
@@ -282,7 +318,6 @@ export function useCompositeField(o) {
       return () => { if (parts.get(entry.uid) === entry) parts.delete(entry.uid) }
     }
   })
-  const ff = o.ff
   // Un solo mensaje (prioridad error › advertencia › válido)
   const message = computed(() => {
     const list = [ff.ownMessage.value, ...sortedParts().filter((p) => !p.disabled()).map((p) => p.ownMessage())].filter(Boolean)
@@ -297,7 +332,7 @@ export function useCompositeField(o) {
     if (!form || typeof form.register !== 'function') return
     const enabledParts = () => sortedParts().filter((p) => !p.disabled())
     const entry = {
-      uid: `group-${uid}`,
+      uid: ff.regKey,
       role: 'group',
       inGroup: false,
       names: () => [o.name(), ...sortedParts().map((p) => p.name())].filter(Boolean),
@@ -340,5 +375,5 @@ export function useCompositeField(o) {
     off?.()
     offSection?.()
   })
-  return { parts, sortedParts, message }
+  return { parts, sortedParts, message, rejected: ff.rejected, onRejectEnd: ff.onRejectEnd }
 }

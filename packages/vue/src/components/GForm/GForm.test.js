@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, provide, reactive, ref } from 'vue'
+import { defineComponent, h, inject, nextTick, provide, reactive, ref } from 'vue'
 import GForm from './GForm.vue'
 import { formKey, useFormField } from './formContext.js'
 import GFormSection from '../GFormSection/GFormSection.vue'
@@ -17,6 +17,7 @@ import GCheckboxGroup from '../GCheckboxGroup/GCheckboxGroup.vue'
 import GSwitch from '../GSwitch/GSwitch.vue'
 import GDatePicker from '../GDatePicker/GDatePicker.vue'
 import GBtn from '../GBtn/GBtn.vue'
+import GFormReveal from '../GFormReveal/GFormReveal.vue'
 
 const components = { GForm, GFormSection, GFormLayout, GFormRow, GFieldGroup, GFormActions, GErrorSummary, GInput, GTextarea, GSelect, GCheckbox, GCheckboxGroup, GSwitch, GDatePicker, GBtn }
 const LABELS = { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
@@ -799,5 +800,205 @@ describe('Registro de las piezas (index.js y components.css)', () => {
     // Orden: los estilos del formulario van después de los campos (las filas leen sus pistas)
     expect(css.indexOf('GFormRow.css')).toBeGreaterThan(css.indexOf('GDatePicker.css'))
     expect(css.indexOf('GInputGroup.css')).toBeGreaterThan(css.indexOf('GInput.css'))
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------
+describe('Rechazo al enviar: is-rejected (form.md §2 «Rechazo al enviar», input.md «Personalidad» I2, #304)', () => {
+  // requestAnimationFrame controlado: el conjunto se vacía en el acto y se llena en el cuadro siguiente
+  let queue = []
+  const runFrame = () => { const q = queue; queue = []; q.forEach((cb) => cb(0)) }
+  const settle = () => new Promise((r) => setTimeout(r, 0))
+  beforeEach(() => {
+    queue = []
+    vi.stubGlobal('requestAnimationFrame', (cb) => { queue.push(cb); return queue.length })
+  })
+  const anim = (el, type, animationName) => {
+    const e = new Event(type, { bubbles: true })
+    Object.defineProperty(e, 'animationName', { value: animationName })
+    el.dispatchEvent(e)
+  }
+  const submit = async (w, submitter) => {
+    if (submitter) w.find('form').element.requestSubmit(submitter)
+    else await w.find('form').trigger('submit')
+    await settle()
+    await settle()
+  }
+  const rejectedIds = (w) => w.findAll('.is-rejected').map((x) => x.attributes('id') || x.find('input').attributes('id'))
+
+  const THREE = `<GForm :errors="errors" @submit="onSubmit">
+      <GInput id="ia" label="A" name="a" /><GInput id="ib" label="B" name="b" /><GInput id="ic" label="C" name="c" disabled /><GInput id="id" label="D" name="d" />
+      <button id="save" type="submit">Guardar</button><button id="draft" type="submit" formnovalidate>Borrador</button></GForm>`
+  const setup3 = () => ({ errors: reactive({ a: 'A mal', b: 'B mal', c: 'C mal', general: 'Folio duplicado' }), onSubmit: vi.fn() })
+
+  it('un envío con errores marca, en el cuadro siguiente, solo los campos que bloquean (no los deshabilitados ni los válidos)', async () => {
+    const w = make(THREE, setup3)
+    await submit(w)
+    expect(w.findAll('.is-rejected')).toHaveLength(0) // aún no: el conjunto se llena en el cuadro siguiente
+    runFrame()
+    await nextTick()
+    const marked = w.findAll('.g-input').filter((x) => x.classes().includes('is-rejected')).map((x) => x.find('input').attributes('id'))
+    expect(marked).toEqual(['ia', 'ib'])
+  })
+
+  it('con un submitter formnovalidate no se marca nada', async () => {
+    const w = make(THREE, setup3)
+    await submit(w, w.find('#draft').element)
+    runFrame()
+    await nextTick()
+    expect(w.findAll('.is-rejected')).toHaveLength(0)
+  })
+
+  it('showErrors() marca los que bloquean (errores del servidor); cambiar errors sin showErrors() no marca', async () => {
+    const form = ref(null)
+    const errors = reactive({})
+    const w = make('<GForm ref="form" :errors="errors"><GInput id="ia" label="A" name="a" /><GInput id="ib" label="B" name="b" /></GForm>', () => ({ form, errors }))
+    errors.b = 'Ya existe'
+    await nextTick()
+    runFrame()
+    await nextTick()
+    expect(w.findAll('.is-rejected')).toHaveLength(0)
+    const p = form.value.showErrors()
+    await settle()
+    runFrame()
+    await p
+    await nextTick()
+    const marked = w.findAll('.g-input.is-rejected').map((x) => x.find('input').attributes('id'))
+    expect(marked).toEqual(['ib'])
+  })
+
+  it('nunca al escribir ni al salir del campo (aunque el error se revele al salir)', async () => {
+    const errors = reactive({})
+    const w = make('<GForm :errors="errors"><GInput id="ia" label="A" name="a" @input="errors.a = \'Mal\'" /></GForm>', () => ({ errors }))
+    const input = w.find('#ia')
+    input.element.value = 'x'
+    await input.trigger('input')
+    await input.trigger('focusout')
+    await settle()
+    runFrame()
+    await nextTick()
+    expect(w.find('.g-input__message').text()).toContain('Mal')
+    expect(w.findAll('.is-rejected')).toHaveLength(0)
+  })
+
+  it('se retira con animationend o animationcancel de una animación g-reject…, y no con otro nombre', async () => {
+    const w = make(THREE, setup3)
+    await submit(w)
+    runFrame()
+    await nextTick()
+    const [a, b] = w.findAll('.g-input')
+    // El fin de la entrada del mensaje (I1) no cuenta, aunque burbujee desde el mensaje
+    anim(a.find('.g-input__message').element, 'animationend', 'g-message-in')
+    await nextTick()
+    expect(a.classes()).toContain('is-rejected')
+    anim(a.find('.g-input__row').element, 'animationend', 'g-reject-shake')
+    anim(b.find('.g-input__row').element, 'animationcancel', 'g-reject-shake')
+    await nextTick()
+    expect(a.classes()).not.toContain('is-rejected')
+    expect(b.classes()).not.toContain('is-rejected')
+  })
+
+  it('se retira con el siguiente input del campo (solo el suyo)', async () => {
+    const w = make(THREE, setup3)
+    await submit(w)
+    runFrame()
+    await nextTick()
+    const a = w.find('#ia')
+    a.element.value = 'x'
+    await a.trigger('input')
+    const [ra, rb] = w.findAll('.g-input')
+    expect(ra.classes()).not.toContain('is-rejected')
+    expect(rb.classes()).toContain('is-rejected')
+  })
+
+  it('un segundo envío vuelve a marcar: lo quita en el acto y lo repone en el cuadro siguiente', async () => {
+    const w = make(THREE, setup3)
+    await submit(w)
+    runFrame()
+    await nextTick()
+    const a = w.findAll('.g-input')[0]
+    expect(a.classes()).toContain('is-rejected')
+    // Segundo envío con la marca todavía puesta: se reinicia (sale y vuelve)
+    await submit(w)
+    expect(a.classes()).not.toContain('is-rejected')
+    runFrame()
+    await nextTick()
+    expect(a.classes()).toContain('is-rejected')
+    // Tras terminar la sacudida, otro envío la repone
+    anim(a.find('.g-input__row').element, 'animationend', 'g-reject-shake')
+    await nextTick()
+    expect(a.classes()).not.toContain('is-rejected')
+    await submit(w)
+    runFrame()
+    await nextTick()
+    expect(a.classes()).toContain('is-rejected')
+  })
+
+  it('al desmontarse el campo sale del conjunto de rechazados', async () => {
+    let key = null
+    const Probe = defineComponent({
+      setup() {
+        const ctx = inject(formKey)
+        return () => h('output', { id: 'probe' }, key && ctx.isRejected(key) ? 'si' : 'no')
+      }
+    })
+    const Custom = defineComponent({
+      setup() {
+        const control = ref(null)
+        const ff = useFormField({ name: 'a', control, root: control })
+        key = ff.regKey
+        return () => h('input', { ref: control, id: 'ca', class: { 'is-rejected': ff.rejected.value } })
+      }
+    })
+    const show = ref(true)
+    const w = make('<GForm :errors="{ a: \'Mal\' }"><Custom v-if="show" /><Probe /></GForm>', () => ({ show }), { global: { components: { Custom, Probe } } })
+    await submit(w)
+    runFrame()
+    await nextTick()
+    expect(w.find('#ca').classes()).toContain('is-rejected') // un campo propio con useFormField también la recibe
+    expect(w.find('#probe').text()).toBe('si')
+    show.value = false
+    await nextTick()
+    await nextTick()
+    expect(w.find('#probe').text()).toBe('no')
+  })
+
+  it('un envío seguido de otro antes del cuadro solo aplica el último; los campos que ya no bloquean no se marcan', async () => {
+    const s = setup3()
+    const w = make(THREE, () => s)
+    await submit(w)
+    s.errors.a = ''
+    await submit(w)
+    runFrame()
+    await nextTick()
+    const marked = w.findAll('.g-input.is-rejected').map((x) => x.find('input').attributes('id'))
+    expect(marked).toEqual(['ib'])
+  })
+
+  it('grupos: la clase va en la raíz del grupo (una pregunta), no en sus partes; el input de una parte la retira', async () => {
+    const w = make(`<GForm :errors="{ 'tel-numero': 'Diez dígitos', intereses: 'Elige uno' }">
+      <GFieldGroup id="tel" label="Teléfono" name="telefono"><GInput id="num" label="Número" name="tel-numero" /><GInput id="ext" label="Ext." name="tel-ext" /></GFieldGroup>
+      <GCheckboxGroup id="int" label="Intereses" name="intereses" :options="[{ value: 'a', label: 'A' }]" /></GForm>`)
+    await submit(w)
+    runFrame()
+    await nextTick()
+    expect(w.find('fieldset.g-field-group').classes()).toContain('is-rejected')
+    expect(w.find('fieldset.g-checkbox-group').classes()).toContain('is-rejected')
+    expect(w.findAll('.g-input.is-rejected')).toHaveLength(0)
+    const num = w.find('#num')
+    num.element.value = '5'
+    await num.trigger('input')
+    expect(w.find('fieldset.g-field-group').classes()).not.toContain('is-rejected')
+    expect(w.find('fieldset.g-checkbox-group').classes()).toContain('is-rejected')
+  })
+
+  it('los campos de un GFormReveal inactivo no se marcan (#276)', async () => {
+    const w = make(`<GForm :errors="{ a: 'A mal', b: 'B mal' }"><GFormLayout><GInput id="ia" label="A" name="a" />
+      <GFormReveal :when="false"><GInput id="ib" label="B" name="b" /></GFormReveal></GFormLayout></GForm>`, () => ({}), { global: { components: { GFormReveal } } })
+    await submit(w)
+    runFrame()
+    await nextTick()
+    const marked = w.findAll('.g-input.is-rejected').map((x) => x.find('input').attributes('id'))
+    expect(marked).toEqual(['ia'])
   })
 })

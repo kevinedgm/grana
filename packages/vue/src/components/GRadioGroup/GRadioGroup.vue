@@ -124,6 +124,8 @@ const ff = isField ? useFormField({
   message: NONE,
   ownMessage: NONE,
   invalid: computed(() => false),
+  rejected: computed(() => false),
+  onRejectEnd: () => {},
   mark: NONE,
   markText: computed(() => undefined),
   messageId: computed(() => undefined),
@@ -293,7 +295,9 @@ const classes = computed(() => [
     'is-invalid': ff.invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
-    'is-stacked': isSegmented.value && stacked.value
+    'is-stacked': isSegmented.value && stacked.value,
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 // Lo que controla el componente va al final y gana; class y style del consumidor se fusionan
@@ -357,7 +361,7 @@ if (isDev) {
 </script>
 
 <template>
-  <component :is="isDiv ? 'div' : 'fieldset'" ref="rootEl" v-bind="rootBindings">
+  <component :is="isDiv ? 'div' : 'fieldset'" ref="rootEl" v-bind="rootBindings" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <component :is="isDiv ? 'span' : 'legend'" v-if="hasLabel" :id="labelId" class="g-radio-group__label"><span class="g-radio-group__label-text" dir="auto"><slot name="label">{{ label }}</slot></span><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-radio-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-radio-group__required" aria-hidden="true">*</span></component>
     <div class="g-radio-group__options">
       <label v-for="(o, i) in items" :key="optId(i)" :class="['g-radio-group__option', { 'is-disabled': o.disabled, 'is-icon-only': iconOnly(o) }]" :for="optId(i)">

@@ -78,7 +78,9 @@ const classes = computed(() => [
     'is-readonly': ff.readonly.value,
     'is-invalid': message.value?.type === 'error',
     'is-warning': message.value?.type === 'warning',
-    'is-valid': message.value?.type === 'valid'
+    'is-valid': message.value?.type === 'valid',
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -86,7 +88,7 @@ if (isDev && !hasLabel.value) console.warn('[Grana GFieldGroup] necesita label o
 </script>
 
 <template>
-  <fieldset :id="groupId" ref="root" :class="classes" :disabled="ff.disabled.value || undefined" :aria-describedby="describedBy">
+  <fieldset :id="groupId" ref="root" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :disabled="ff.disabled.value || undefined" :aria-describedby="describedBy">
     <legend v-if="hasLabel" class="g-field-group__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-field-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-field-group__required" aria-hidden="true">*</span></legend>
     <GFormRow class="g-field-group__parts" :keep="keep" :density="ff.density.value"><slot /></GFormRow>
     <div class="g-field-group__support">

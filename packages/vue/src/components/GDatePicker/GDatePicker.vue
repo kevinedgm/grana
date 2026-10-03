@@ -628,7 +628,9 @@ const classes = computed(() => [
     'is-readonly': isReadonly.value,
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
-    'is-valid': ff.ownMessage.value?.type === 'valid'
+    'is-valid': ff.ownMessage.value?.type === 'valid',
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 const invalid = ff.invalid
@@ -734,7 +736,7 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="root" v-bind="rootAttrs" :class="classes">
+  <div ref="root" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <template v-if="!inline">
       <slot v-if="hasTriggerSlot" name="trigger" v-bind="slotScope" />
       <template v-else>

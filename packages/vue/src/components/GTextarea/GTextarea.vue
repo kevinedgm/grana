@@ -165,7 +165,9 @@ const classes = computed(() => [
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
-    'is-loading': props.loading
+    'is-loading': props.loading,
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -218,7 +220,7 @@ if (isDev) {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" class="g-textarea__label" :for="fieldId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-textarea__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-textarea__required" aria-hidden="true">*</span></label>
     <div class="g-textarea__control">
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />

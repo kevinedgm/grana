@@ -113,7 +113,9 @@ const classes = computed(() => [
     'is-readonly': ff.readonly.value,
     'is-invalid': message.value?.type === 'error',
     'is-warning': message.value?.type === 'warning',
-    'is-valid': message.value?.type === 'valid'
+    'is-valid': message.value?.type === 'valid',
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -133,7 +135,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="root" :class="classes" role="group" :aria-labelledby="hasLabel ? labelId : undefined" :id="props.id">
+  <div ref="root" :class="classes" role="group" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :aria-labelledby="hasLabel ? labelId : undefined" :id="props.id">
     <label v-if="hasLabel" :id="labelId" class="g-input-group__label" :for="principalId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input-group__required" aria-hidden="true">*</span></label>
     <div class="g-input-group__box"><slot /></div>
     <div class="g-input-group__support">

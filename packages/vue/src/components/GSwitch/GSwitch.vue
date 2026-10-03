@@ -90,7 +90,9 @@ const classes = computed(() => [
     'is-invalid': invalid.value,
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
-    'is-loading': props.loading
+    'is-loading': props.loading,
+    // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
+    'is-rejected': ff.rejected.value
   }
 ])
 
@@ -135,7 +137,7 @@ if (isDev && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby'
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label class="g-switch__row" :for="inputId">
       <span class="g-switch__control">
         <input ref="input" v-bind="fieldBindings" class="g-switch__input" type="checkbox">
