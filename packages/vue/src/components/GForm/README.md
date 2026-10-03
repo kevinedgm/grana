@@ -247,7 +247,7 @@ Secundarias antes y **una primaria al final** (`GBtn` `solid`); la región de es
 
 ## Secciones (`GFormSection`)
 
-Una sección por **idea** (Información básica, Contacto, Dirección), separadas por aire (`--g-form-section-gap`, el doble que entre filas) y tipografía, sin tarjetas. Título (`hN` según `headingLevel`), descripción, y slots `actions` y `help`. Con `optional`, una insignia «Opcional» (`labels.sectionOptional` de `GForm`) sustituye a los «(opcional)» de sus campos. Pon un `GFormLayout` dentro. Las secciones plegables y «Agregar…» son de la Fase 3.
+Una sección por **idea** (Información básica, Contacto, Dirección), separadas por aire (`--g-form-section-gap`, el doble que entre filas) y tipografía, sin tarjetas. Título (`hN` según `headingLevel`), descripción, y slots `actions` y `help`. Con `optional`, una insignia «Opcional» (`labels.sectionOptional` de `GForm`) sustituye a los «(opcional)» de sus campos. Pon un `GFormLayout` dentro. Con `mode="collapsible"` la sección se pliega con el botón de su título (sus datos siguen en el envío y, plegada, dice cuántos errores tiene) y con `mode="addable"` el usuario decide incluirla con «Agregar …»; también admite el encabezado al lado (`headerPlacement="auto"`) y una línea con la sección anterior (`divider`). Guía completa en [`GFormSection`](../GFormSection/README.md).
 
 ## Solo lectura y modo vista
 
@@ -376,8 +376,8 @@ const f = useFormField({ name: () => props.name, error: () => props.error, requi
 
 | Método (`ref`) | Hace |
 | --- | --- |
-| `showErrors()` | Revela todos y mueve el foco (resumen o primer inválido) sin emitir `invalid` |
-| `focusFirstError()` | Enfoca el primer control con error visible |
+| `showErrors()` | Revela todos, abre las secciones plegables con un error que bloquea y mueve el foco (resumen o primer inválido) sin emitir `invalid` |
+| `focusFirstError()` | Enfoca el primer control con error visible, abriendo antes la sección plegable que lo contiene. Devuelve **`Promise<boolean>`** (`true` si encontró un control): con una sección que abrir, el foco llega tras un `nextTick` |
 | `resetState()` | Limpia editados, revelados y `dirty` sin tocar valores |
 
 | `labels` | Dónde | Si falta |
@@ -385,6 +385,7 @@ const f = useFormField({ name: () => props.name, error: () => props.error, requi
 | `optional` | «(opcional)» con `marks="optional"` | Aviso; sin marca |
 | `requiredHint` | Frase inicial con `marks="required"` | Aviso; sin frase |
 | `sectionOptional` | Insignia de `GFormSection optional` | Aviso; sin insignia |
+| `sectionErrors` | Estado de errores de una `GFormSection collapsible` plegada: String con `{count}` o Function `(count) => String` | Aviso la primera vez que una plegada tiene errores visibles; sin estado |
 | `error` · `warning` · `valid` | Prefijo oculto de cada mensaje («Error: ») | Aviso; sin prefijo |
 
 `id`, `name`, `aria-label`/`aria-labelledby` y `autocomplete` van al `<form>` (siempre `novalidate`); `action` y `method` se ignoran con aviso. Un `GForm` dentro de otro pinta un `div`.
@@ -461,7 +462,7 @@ Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-l
 | `headingLevel` | Number | el de `GForm` | 2 a 6 |
 | `optional` | Boolean | `false` | Insignia «Opcional» y sin «(opcional)» dentro |
 
-Slots `title`, `description`, `actions` (acciones secundarias de la sección), `help` (`GHelper`) y por defecto. Reservadas para la Fase 3 (avisan): `mode`, `open`, `added`, `headerPlacement`, `labels`.
+Slots `title`, `description`, `actions` (acciones secundarias de la sección), `help` (`GHelper`) y por defecto. Fase 3: `mode` (`static`·`collapsible`·`addable`), `open` y `added` (`v-model`), `summary` (y slot), `headerPlacement` (`top`·`auto`), `divider` y `labels` (textos de la agregable); props, eventos y slots completos en [`GFormSection/README.md`](../GFormSection/README.md#api).
 
 ### `GFormActions`
 
@@ -530,7 +531,7 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack): la doble lectura del resumen (`alert` + foco), el silencio de los mensajes tras un envío, «(opcional)» en el nombre, la verbosidad de «Teléfono, grupo; Teléfono Código de país», el anuncio de `output` al escribir la fecha, el orden del pie apilado y, en el bloqueo con interruptor, que el interruptor se anuncie solo y que el aviso del bloqueo por Guardar o Cancelar no se duplique.
 - **Sin verificar con teclado virtual** (que el pie fijo no quede tras el teclado en iOS/Android), zoom 200/400 %, `forced-colors` real de Windows (solo emulado), el menú nativo del `<select>` en oscuro ni el autocompletado real del navegador sobre país + número.
 - **Fase 2:** [`GRadioGroup`](../GRadioGroup/README.md) (ya existe: también segmentado para Sí/No o Sexo) y `GNumberField` (pendiente); `GSelect` y `GNumberField` como partes de un `GInputGroup`. Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
-- **Fase 3:** [`GFormReveal`](../GFormReveal/README.md) (campos condicionales) ya existe: un bloque que aparece justo después de la pregunta que lo condiciona y, cerrado, sale del envío, de Tab y de la validación sin perder lo escrito. Pendientes: secciones plegables y «Agregar…», navegación lateral de secciones (`GFormNav`).
+- **Fase 3:** [`GFormReveal`](../GFormReveal/README.md) (campos condicionales) ya existe: un bloque que aparece justo después de la pregunta que lo condiciona y, cerrado, sale del envío, de Tab y de la validación sin perder lo escrito. [`GFormSection`](../GFormSection/README.md) ya es plegable (`collapsible`) y agregable (`addable`). Pendientes: «Agregar…» de varias instancias de una misma sección y la navegación lateral de secciones (`GFormNav`).
 - **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado, `revert()` de valores y permisos por rol (hoy, [receta](#bloqueo-con-interruptor): sin prop `locked`).
 - Rendimiento con muchas filas (un `ResizeObserver` compartido) y cientos de campos registrados: sin medir.
 

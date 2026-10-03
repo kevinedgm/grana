@@ -148,7 +148,7 @@ Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignor
 | Enter / Espacio | Activa el control enfocado (nativo) |
 | Flechas / Re Pág / Av Pág | Desplazan el cuerpo cuando está enfocado |
 
-- **Al abrir**, el foco va al elemento con `autofocus` y, si no hay, al primer control (normalmente el cierre). **Al cerrar**, vuelve al elemento que lo tenía (nativo).
+- **Al abrir**, tras montar el contenido, el foco va al primer elemento con `autofocus` y, si no hay, al primer control del contenido en orden del DOM **sin contar el botón de cierre ni el cuerpo desplazable**; si no hay ninguno, al botón de cierre y, por último, al propio `<dialog>`. Si el foco ya está dentro, no se mueve (DECISIONS #292). **Al cerrar**, vuelve al elemento que lo tenía (nativo).
 - **La página no se desplaza** con un diálogo abierto (`html:has(.g-dialog[open])`).
 
 ## Accesibilidad
