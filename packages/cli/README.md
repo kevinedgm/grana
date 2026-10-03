@@ -1,6 +1,6 @@
 # @grana/cli
 
-Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **rechaza temas que rompan los mínimos de accesibilidad**, explicando cuál y por qué. Sin dependencias; Node ≥ 20.
+Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **rechaza temas que rompan los mínimos de accesibilidad**, explicando cuál y por qué. Sin dependencias; Node ≥ 22.
 
 ```bash
 npx @grana/cli theme grana.config.json    # escribe tokens.css
