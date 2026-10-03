@@ -122,6 +122,67 @@ describe('GDialog · abrir y cerrar', () => {
   })
 })
 
+describe('GDialog · foco al abrir (dialog.md «Foco»)', () => {
+  const body = '<input id="a"><input id="b" autofocus><button id="c">OK</button>'
+  const flush = async () => { await nextTick(); await nextTick() }
+
+  it('con autofocus en el cuerpo, el foco cae en ese elemento al abrir', async () => {
+    const w = mountOpen({ modelValue: false }, { slots: { default: body } })
+    await w.setProps({ modelValue: true })
+    await flush()
+    expect(document.activeElement?.id).toBe('b')
+    w.unmount()
+  })
+
+  it('autofocus también gana si está en el pie', async () => {
+    const w = mountOpen({}, { slots: { default: '<input id="a">', footer: '<button id="f" autofocus>Ok</button>' } })
+    await flush()
+    expect(document.activeElement?.id).toBe('f')
+    w.unmount()
+  })
+
+  it('sin autofocus, el primer control del cuerpo (no el botón de cierre ni el cuerpo desplazable)', async () => {
+    const w = mountOpen({}, { slots: { default: '<input id="a"><input id="b">' } })
+    await flush()
+    expect(document.activeElement?.id).toBe('a')
+    w.unmount()
+  })
+
+  it('omite controles deshabilitados y con tabindex negativo', async () => {
+    const w = mountOpen({}, { slots: { default: '<input id="a" disabled><button id="x" tabindex="-1">x</button><input id="b">' } })
+    await flush()
+    expect(document.activeElement?.id).toBe('b')
+    w.unmount()
+  })
+
+  it('sin controles en el contenido, el foco va al botón de cierre', async () => {
+    const a = mountOpen({}, { slots: { default: '<p>texto</p>' } })
+    await flush()
+    expect(document.activeElement).toBe(a.find('.g-dialog__close').element)
+    a.unmount()
+  })
+
+  it('no roba el foco si ya está dentro del diálogo', async () => {
+    const w = mountOpen({ modelValue: false }, { slots: { default: '<input id="a"><input id="b">' } })
+    await w.setProps({ modelValue: true })
+    document.getElementById('b').focus()
+    await flush()
+    expect(document.activeElement?.id).toBe('b')
+    w.unmount()
+  })
+
+  it('en cada apertura vuelve a poner el foco (el contenido se vuelve a montar)', async () => {
+    const w = mountOpen({}, { slots: { default: '<input id="a" autofocus>' } })
+    await flush()
+    await w.setProps({ modelValue: false })
+    await new Promise((r) => setTimeout(r, 0))
+    await w.setProps({ modelValue: true })
+    await flush()
+    expect(document.activeElement?.id).toBe('a')
+    w.unmount()
+  })
+})
+
 describe('GDialog · dismiss', () => {
   it('Esc (cancel) emite dismiss "escape" y update:modelValue false; cancela el cierre nativo', async () => {
     const w = mountOpen()

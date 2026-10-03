@@ -59,6 +59,31 @@ function finishLeave() {
   emit('closed')
 }
 
+// ---------- Foco al abrir (dialog.md «Foco») ----------
+// autofocus (donde esté) → primer control del contenido → botón de cierre → el propio <dialog>.
+// Se omiten el cierre (solo es el último recurso) y el cuerpo desplazable (tabindex propio, no es un control).
+const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]'
+function isUsable(node) {
+  if (node.matches(':disabled') || node.closest('[inert], [hidden]')) return false
+  const tab = node.getAttribute('tabindex')
+  if (tab !== null && Number(tab) < 0) return false
+  return node.checkVisibility ? node.checkVisibility() : true
+}
+function focusInitial() {
+  const el = dialog.value
+  if (!el || !el.open || !props.modelValue) return
+  // Si ya hay foco dentro (el navegador o el consumidor lo pusieron), no se roba
+  if (document.activeElement && document.activeElement !== el && el.contains(document.activeElement)) return
+  const close = el.querySelector('.g-dialog__close')
+  const bodyEl = body.value
+  const target =
+    [...el.querySelectorAll('[autofocus]')].find(isUsable) ||
+    [...el.querySelectorAll(FOCUSABLE)].find((n) => n !== close && n !== bodyEl && isUsable(n)) ||
+    (close && isUsable(close) ? close : null)
+  // Sin nada enfocable, el foco se queda donde lo dejó showModal(): el propio <dialog>
+  if (target) target.focus({ preventScroll: true })
+}
+
 // ---------- Abrir y cerrar ----------
 function sync() {
   const el = dialog.value
@@ -69,7 +94,8 @@ function sync() {
     if (!el.open) {
       el.showModal()
       emit('open')
-      nextTick(measure)
+      // El contenido se monta en este mismo ciclo, después de showModal(): el navegador ya no lo ve y deja el foco en el <dialog>
+      nextTick(() => { measure(); focusInitial() })
     }
   } else if (el.open) {
     el.close()
