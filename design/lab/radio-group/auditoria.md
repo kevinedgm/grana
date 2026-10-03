@@ -1,0 +1,71 @@
+# Auditoría de coco · GRadioGroup (paso 5)
+
+**Componente:** `packages/vue/src/components/GRadioGroup/` (`GRadioGroup.vue` y `fitEngine.js` de bruno, commit 7390a92; `GRadioGroup.css` de coco, commit cb82a53; contrato `design/contracts/radio-group.md`, #267 a #273), el real con `dist/` reconstruido (`npm run build`), en dos páginas:
+
+- `design/lab/radio-group/auditoria-banco.html`: los mismos casos que el banco de estilo (`data-case`), pero montados con `GRadioGroup`, `GInput`, `GFormRow` y `GCheckbox` reales de `dist/grana.umd.js` y `dist/grana.css`. El marcado lo pone el `.vue`, el apilado lo decide su `ResizeObserver` y el reparto de la fila lo hace `GFormRow.vue` con el mínimo intrínseco que publica el segmentado (#271).
+- El **playground**: la fila real «Fecha de nacimiento · Sexo (`segmented`) · ¿Primera consulta? (`inline`)» de `#sec-form` con su banco (contenedor 1280/960/720/480/360/320, con y sin «Ayuda y mensajes» + «Etiquetas largas») y la sección `#sec-radio`.
+
+**Tema distinto al por defecto:** `auditoria-tema.css`, generado por `@grana/cli` desde `auditoria-tema.json` (`brand: "#0B1F4D"`, `radius: 0`, `shape: "pill"`; el foco hereda la marca: azul marino casi del color del texto). Además: defecto claro y oscuro, el tema de la auditoría en claro y oscuro, «Tema de prueba» (Georgia, borde 2px, `space` 5) y los once generados de `design/lab/tema-oscuro/dark-color-presence/generated/` en claro y oscuro: **27 configuraciones por motor**.
+
+**Método:** `node design/lab/radio-group/auditoria-verificar.mjs` (Playwright de `design/lab/theme-playground/`) en **Chromium, Firefox y WebKit**: **81093/81093** comprobaciones (27472 en Chromium, 53621 en Firefox + WebKit). El banco de estilo se repitió tras los cambios: `estilo-verificar.mjs` **61357/61357** en los tres motores.
+
+## Resultado: dos defectos de foco en mi CSS, corregidos (uno bloqueante en `forced-colors`). Sin defecto bloqueante abierto: `status: "candidate"`
+
+### Contraste (mínimo en las 27 configuraciones; colores calculados y compuestos sobre el fondo real)
+
+| Medida | Defecto claro / oscuro | Auditoría claro / oscuro | Tema de prueba | Spotify claro / oscuro | Mínimo |
+| --- | --- | --- | --- | --- | --- |
+| Texto (etiquetas, opciones, descripción, ayuda, mensajes, `on-{color}` sobre lo elegido) | 4.76 / 4.51 | 4.68 / 4.51 | 4.76 | 4.62 / 4.51 | **4.51** (≥ 4.5) |
+| Borde del círculo | 3.03 / 3.93 | 3.03 / 3.93 | 3.68 | 3.02 / 3.95 | **3.02** (≥ 3) |
+| Punto `on-{color}` sobre el relleno | 5.33 / 4.81 | 5.34 / 4.81 | 5.33 | 5.28 / 4.81 | **4.51** |
+| Contorno del chip / marco del segmentado | 3.45 / 4.32 | 3.45 / 4.32 | 4.62 | 3.43 / 4.35 | **3.43** |
+| Trazo de lo elegido (segmento, tarjeta, solo lectura) | 5.33 / 4.52 | 5.34 / 4.53 | 5.13 | 4.53 / 4.52 | **4.51** |
+| Icono de solo icono (≥ 3, objeto gráfico) | 16.48 / 15.22 | 15.94 / 7.94 | 9.74 | 9.45 / 9.45 | **4.70** |
+| **Hover** (puntero real; sin elegir y elegida; cinco apariencias, estados con mensaje, cuatro colores): texto · controles | 5.00 · 5.00 / 4.52 · 4.15 | 5.00 · 5.00 / 4.52 · 4.15 | 5.00 · 5.00 | 4.62 · 4.07 / 4.52 · 4.15 | **4.52 · 4.07** |
+| Anillo de foco contra lo que tiene a los dos lados (11 casos × 6 temas) | ≥ 3 | ≥ 3 | | ≥ 3 | **≥ 3** |
+| `#sec-radio` del playground (defecto, auditoría, oscuro, auditoría oscuro) | ≥ 4.5 / ≥ 3 | ≥ 4.5 / ≥ 3 | | | sin fallos |
+
+Hover: el borde del círculo y del chip sube a `text-muted`, el segmento sin elegir pasa a `surface-sunken` (texto ≥ 4.5 sobre él) y lo elegido a `{color}-strong` (punto y texto `on-{color}` ≥ 3 / ≥ 4.5). Ningún estado de hover baja de los mínimos.
+
+### Pruebas por comportamiento (tres motores salvo donde se dice)
+
+| Prueba | Resultado |
+| --- | --- |
+| Marcado real frente al que espera el CSS | Coincide en los 109 casos: raíz `div` (`inline`, `segmented`) o `fieldset` (`list`, `chip`, `card`) con `role="radiogroup"`; tres hijos `__label` (`span`/`legend`) · `__options` · `__support`; clases `--appearance/size/density/color-*` siempre; el `<input>` es el **primer hijo directo** de la `<label>` (el `:has(> .g-radio-group__input…)` funciona); `__segment` solo en `segmented` y envolviendo icono + texto; `is-stacked` solo en `segmented`; `--measure` nunca se queda puesta; `g-radio-group--icon-only` solo con `labelMode="icon"` efectivo y `is-icon-only` solo en opciones con icono (una sin icono conserva su etiqueta); descripción solo en `list`/`card`; ningún `required` nativo. Los **comentarios de Vue** (`<!---->`) dentro de la etiqueta, de la opción, del `__segment` y del mensaje no afectan: `:first-child` y `:empty` ignoran comentarios y no hay nodos de texto sueltos; el mensaje vacío mide 0px sin margen |
+| Alturas | Caja de `segmented` e `inline` = caja de `GInput` (±0,5px) en `xs`…`xl` y `md` compacto; cada segmento ocupa el alto entero. En defecto, oscuro, RTL de página, auditoría (radio 0) y Tema de prueba (borde 2px, `space` 5) |
+| `GFormRow` del banco | Cajas de una misma línea con el mismo `top` (±1px), con etiqueta de dos líneas, ayuda y mensajes; fila a en una línea a 1280; fila compacta con alturas iguales |
+| `GFormRow` real del playground («Fecha · Sexo · ¿Primera consulta?») | A 1280/960/720/480/360/320, con y sin mensajes y etiquetas largas, en defecto, auditoría, oscuro y auditoría oscuro: cajas de cada línea con el mismo `top` y el mismo alto (±1px); a 1280 una sola línea sin apilar; Sexo **nunca** se apila compartiendo línea (la fila se parte antes, #271); sin recortes; ninguna caja sale de la fila; opciones ≥ 24×24 |
+| Apilado en los dos sentidos | Ventana 1280 → 960 → 720 → 480 → 360 → 320 → 480 → 1280 sin recargar: apilado solo si el ancho natural no cabe, en columna y en orden; se **desapila** al volver; a 1280 no queda nada apilado salvo el caso de 220px |
+| Área táctil | Puntero fino: toda opción ≥ 24×24. Puntero grueso (Chromium `hasTouch` + `isMobile`, defecto y auditoría): toda opción ≥ 44×44, cajas de `GInput`, `inline` y segmento iguales y ≥ 44, filas alineadas, sin desborde ni recortes |
+| RTL | Local (`dir="rtl"`) y de página: la primera opción a la derecha en `segmented` e `inline` |
+| Zoom 200 % y escalas | Visor de 640px con DPR 2 (lo que pinta un navegador a 1280 con zoom 200 %), en defecto, auditoría y Tema de prueba: sin recortes ni desborde, filas alineadas, cajas = `GInput`, apilado coherente. DPR 1.25/1.5/2 a 1000px: marco del segmentado y borde del círculo ≥ 1 píxel de dispositivo |
+| `forced-colors` (Chromium, defecto, oscuro y auditoría) | Segmento, chip y círculo elegidos distintos; marco del segmentado sólido; tarjeta elegida con borde más grueso; solo lectura elegida marcada; solo icono elegido distinto; **foco `Highlight` de otro color que lo que tiene a los dos lados en `segmented`, `chip`, solo icono, `list`, `card` y en la solo lectura elegida de `segmented` y `chip`, que conserva su marca** (hallazgos 1 y 2) |
+| Movimiento reducido | Sin `box-shadow`, `scale` ni `outline-offset` en la transición del círculo; fundidos de color conservados; sin hundirse al pulsar (Chromium, ratón); sin preferencia, el punto crece y el círculo se hunde; ninguna animación al montar |
+| CSS publicado (`dist/grana.css`) | Las reglas de `g-radio-group` (dentro de `@layer grana.components`): sin colores literales, sin `var()` con respaldo, solo `--g-*`/`--_*`, medidas literales solo `24px`, `44px`, `0px` y el `1px` del texto oculto, sin `--g-tabs-*`; colores de sistema solo en `forced-colors`; todo token leído existe en `defaults.css` |
+| `GCheckbox` tras #270 | Casilla obligatoria: `aria-required="true"`, sin `required` nativo y sin `:invalid`; borde, fondo, sombra, contorno y tamaño **idénticos** a la no obligatoria y mismo alto con la marca `*`. Ni `GCheckbox.css`, ni `GCheckboxGroup.css`, ni `GRadioGroup.css` leen `[required]`, `:required`, `:invalid`, `:valid` ni `:user-invalid`: nada visual cambió |
+| Consola | Sin errores ni avisos (banco y playground, los tres motores) |
+| Suites | `npx vitest run` 1670/1670; `npm run build`; compuertas del CLAUDE.md más `g-radio-group__segment`; `tests/radio-group.spec.mjs` y `tests/form-distribution.spec.mjs` en los tres motores: 49 pasan y 8 se omiten por diseño |
+
+## Hallazgos
+
+| # | Severidad | Dueño | Hallazgo y resolución |
+| --- | --- | --- | --- |
+| 1 | No bloqueante · **corregido** | coco | **Foco de la opción elegida de un segmentado en solo lectura.** Su doble trazo `text` (2 × `border-width`) ganaba por especificidad al halo del foco, y el anillo quedaba a **1px** del trazo en vez de a `--g-focus-offset`. El contraste con lo adyacente seguía ≥ 3 (1px de `surface`), pero con el tema de la auditoría (foco = marca azul marino ≈ color del texto) trazo y anillo se fundían en una sola banda. **Corrección** en `GRadioGroup.css`: con `:focus-visible`, `outline-offset` −(2 × `border-width` + `focus-offset` + `focus-width`) y el halo `surface` bajo el doble trazo. Medido: separación = `--g-focus-offset` en los seis temas de foco |
+| 2 | **Bloqueante en `forced-colors` · corregido** | coco | **Foco invisible en la elegida de solo lectura (`chip` y `segmented`) con colores forzados.** La marca de solo lectura (`outline` `CanvasText` doble) tenía más especificidad que el anillo `Highlight`: al enfocar no cambiaba nada (WCAG 2.4.7). **Corrección:** con foco, la marca pasa a un trazo interior `CanvasText` (lo elegido ya lleva `forced-color-adjust: none`, así que la sombra sobrevive) y el `outline` queda para el anillo `Highlight` (fuera en el chip, dentro con halo `Canvas` en el segmento). **Preventivo, mismo bloque:** el segmento elegido enfocado pone un halo `Canvas` alrededor del anillo, que va sobre el relleno `SelectedItem`; en la emulación de Chromium `Highlight` ≠ `SelectedItem`, pero en muchos esquemas de alto contraste reales son el mismo color y el anillo desaparecería. Medido en Chromium (claro, oscuro, auditoría) |
+| 3 | Informativo | bruno | El marcado de `GRadioGroup.vue` coincide con lo que espera el CSS (ver «Marcado real»); nada que cambiar. En `GRadioGroup.meta.json` solo toqué `status`: retirar de `pending` «Auditoría de coco (paso 5)…» y, tras mora-docs, «README (mora-docs)». Siguen vigentes lector de pantalla, Safari/táctil/`forced-colors` reales y zoom real |
+| 4 | Informativo | bruno | `#sec-radio` del playground no tiene ejemplos de `warning`/`valid`, de colores distintos de `brand`/`accent` ni de la elegida de solo lectura en `chip`; los cubre `auditoria-banco.html`. Si se amplía el playground, añadirlos ayudaría a mora-docs |
+| 5 | No bloqueante | lima | **Tabla «Tokens consumidos» de `radio-group.md` incompleta.** Los cuatro que vio bruno existen en `defaults.css` y en `tokens.md`: `--g-radius-md` (tesela del icono de la tarjeta, como `GCheckbox`), `--g-ease-out` y `--g-press-scale` (el punto crece y el círculo se hunde, como la casilla) y `--g-text-body-sm-weight` (peso 400 de «(opcional)» y del mensaje `valid`; familia `--g-text-{rol}-weight`, `tokens.md` §«Tipografía»). Faltan también: `--g-color-{color}-strong` (hover de lo elegido), `--g-color-surface-sunken` (tesela, hover del segmento, deshabilitado), `--g-space-2`…`--g-space-5` (rellenos y separaciones por `size`), `--g-text-body-line`/`--g-text-body-sm-line` y el trazo interior `{color}-text` del segmento elegido. Y una fila dice «`border-strong`: borde del chip»: el chip usa **`border-control`** (≥ 3:1, es lo único que lo identifica); `border-strong` es solo de la tarjeta y del deshabilitado. Ningún token nuevo: es completar la tabla |
+| 6 | Informativo | lima | `tokens.md` describe `--g-radius-shape` como «radio de botón, chip e insignia», pero los chips de `GCheckbox` y de `GRadioGroup` usan `--g-radius-pill` fijo (así lo pide su contrato): con `shape` por defecto un chip de opción sigue siendo píldora. No es un defecto (es coherente entre los dos); decidir si la descripción del token debe excluir los chips de opción |
+| 7 | Informativo | — (método) | El zoom del navegador se aproxima con visor a la mitad y DPR 2 (no hay zoom real en Playwright); `forced-colors` y puntero grueso solo se emulan en Chromium |
+
+## Sin ejecutar
+
+- **Lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): `fieldset role="radiogroup"` frente a `div`, estados del grupo, descripción por opción, solo icono.
+- **Safari real** (Tab con «Acceso total por teclado»), **táctil real**, **`forced-colors` real** de Windows (y en Firefox/WebKit), **zoom real** del navegador 200/400 %.
+- Fuentes de los temas generados (Inter, DM Sans) no cargadas: el contraste no depende de la fuente; el ancho natural del segmentado sí varía, y se mide con la que hay.
+
+## Archivos
+
+- `design/lab/radio-group/auditoria-banco.html`, `auditoria-verificar.mjs`, `auditoria-tema.json` y `auditoria-tema.css` (generado; no editar a mano).
+- `packages/vue/src/components/GRadioGroup/GRadioGroup.css` (hallazgos 1 y 2) y `design/lab/radio-group/estilo.md` (foco actualizado).
+- `GRadioGroup.meta.json`: solo `"status": "candidate"`.

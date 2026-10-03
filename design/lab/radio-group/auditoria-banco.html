@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRadioGroup · auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GRadioGroup, GInput y GFormRow de dist/grana.umd.js con
+     dist/grana.css (el CSS tal como se publica). Mismos casos que estilo-banco.html (data-case), pero el marcado lo pone
+     GRadioGroup.vue, la medida y el apilado los decide su ResizeObserver y el reparto de la fila lo hace GFormRow.vue con
+     el mínimo intrínseco que publica el segmentado (#271). No es documentación.
+     Desde la raíz del repo, con dist/ reconstruido:  python3 -m http.server 4190  →  /design/lab/radio-group/auditoria-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?audit=1 (tema de la auditoría: brand #0B1F4D, radius 0, shape pill, generado por
+     @grana/cli en auditoria-tema.css)  ?test=1 (Georgia, borde 2px, space 5)  ?theme=<generado de dark-color-presence>
+     Verificación: node design/lab/radio-group/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="theme"></style>
+<style>
+  /* Andamio de la página (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2{font-size:15px;margin:32px 0 6px}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .stack{display:flex;flex-direction:column;gap:var(--g-space-6);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:start}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .narrow{inline-size:220px;max-inline-size:100%}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GRadioGroup · auditoría sobre el componente real</h1>
+
+<h2>1 · Apariencias</h2>
+<div class="host"><div class="grid">
+  <g-radio-group id="ap-list" data-case="ap-list" label="Modalidad de consulta" hint="Puedes cambiarla hasta un día antes." :options="O.modalidad" v-model="v['ap-list']"></g-radio-group>
+  <div class="stack">
+    <g-radio-group id="ap-inline" data-case="ap-inline" appearance="inline" label="¿Fuma?" :options="O.sino" v-model="v['ap-inline']"></g-radio-group>
+    <g-radio-group id="ap-segmented" data-case="ap-segmented" appearance="segmented" label="Sexo" hint="Como aparece en la identificación" required :options="O.sexo" v-model="v['ap-segmented']"></g-radio-group>
+    <g-radio-group id="ap-chip" data-case="ap-chip" appearance="chip" label="Frecuencia" :options="O.frecuencia" v-model="v['ap-chip']"></g-radio-group>
+  </div>
+  <g-radio-group id="ap-card" data-case="ap-card" appearance="card" label="Plan" :options="O.plan" v-model="v['ap-card']"></g-radio-group>
+</div></div>
+
+<h2>2 · Tamaños junto a GInput</h2>
+<div class="host"><div class="stack">
+  <div class="sizes" v-for="s in SIZES" :key="s">
+    <g-input :id="'in-' + s + '-f'" :label="'GInput ' + s" :size="s"></g-input>
+    <g-radio-group :id="'seg-' + s" :data-case="'seg-' + s" appearance="segmented" :label="'segmented ' + s" :size="s" :options="O.sexo" :model-value="'M'"></g-radio-group>
+    <g-radio-group :id="'inl-' + s" :data-case="'inl-' + s" appearance="inline" :label="'inline ' + s" :size="s" :options="O.sino" :model-value="true"></g-radio-group>
+  </div>
+  <div class="sizes">
+    <g-input id="in-md-compact-f" label="GInput md compact" density="compact"></g-input>
+    <g-radio-group id="seg-md-compact" data-case="seg-md-compact" appearance="segmented" label="segmented md compact" density="compact" :options="O.sexo" model-value="M"></g-radio-group>
+    <g-radio-group id="inl-md-compact" data-case="inl-md-compact" appearance="inline" label="inline md compact" density="compact" :options="O.sino" :model-value="true"></g-radio-group>
+  </div>
+  <div class="sizes">
+    <g-radio-group v-for="s in SIZES" :key="s" :id="'lst-' + s" :data-case="'lst-' + s" :label="'list ' + s" :size="s" :options="O.sino" :model-value="true"></g-radio-group>
+  </div>
+</div></div>
+
+<h2>3 · En una GFormRow</h2>
+<div class="host"><div class="stack">
+  <g-form-row data-row="a">
+    <g-input id="rowa-in1-f" class="g-form-w-md" label="Nombre completo como aparece en la identificación oficial"></g-input>
+    <g-radio-group id="rowa-seg" data-case="rowa-seg" class="g-form-w-sm" appearance="segmented" label="Sexo" :options="O.sexo" model-value="F"></g-radio-group>
+    <g-radio-group id="rowa-inl" data-case="rowa-inl" class="g-form-w-xs" appearance="inline" label="¿Fuma?" :options="O.sino"></g-radio-group>
+    <g-input id="rowa-in2-f" class="g-form-w-xs" label="Cigarros al día"></g-input>
+  </g-form-row>
+  <g-form-row data-row="b">
+    <g-input id="rowb-in1-f" class="g-form-w-sm" label="Fecha de nacimiento" hint="DD/MM/AAAA"></g-input>
+    <g-radio-group id="rowb-seg" data-case="rowb-seg" class="g-form-w-sm" appearance="segmented" label="Sexo" required error="Elige el sexo" :options="O.sexo"></g-radio-group>
+    <g-radio-group id="rowb-inl" data-case="rowb-inl" class="g-form-w-xs" appearance="inline" label="¿Fuma? (pregunta larga que ocupa dos líneas en una columna estrecha)" warning="Revisa la respuesta" :options="O.sino" :model-value="true"></g-radio-group>
+  </g-form-row>
+</div></div>
+
+<h2>4 · Estados</h2>
+<div class="host"><div class="stack">
+  <div class="grid" v-for="a in APPS" :key="a">
+    <g-radio-group v-for="st in STATES" :key="st.n" :id="'st-' + a + '-' + st.n" :data-case="'st-' + a + '-' + st.n" :appearance="a" :label="a + ' · ' + st.n" v-bind="st.p" :options="st.optdis ? withDisabled(O[OPTS_FOR[a]]) : O[OPTS_FOR[a]]" :model-value="st.v === undefined ? null : O[OPTS_FOR[a]][st.v].value"></g-radio-group>
+  </div>
+</div></div>
+
+<h2>5 · Color</h2>
+<div class="host"><div class="stack">
+  <div class="grid" v-for="a in ['list', 'segmented', 'chip', 'card']" :key="a">
+    <g-radio-group v-for="c in COLORS" :key="c" :id="'col-' + a + '-' + c" :data-case="'col-' + a + '-' + c" :appearance="a" :color="c" :label="a + ' · ' + c" :options="a === 'list' ? O.sino : O[OPTS_FOR[a]]" :model-value="(a === 'list' ? O.sino : O[OPTS_FOR[a]])[1].value"></g-radio-group>
+  </div>
+</div></div>
+
+<h2>6 · Iconos y solo icono</h2>
+<div class="host"><div class="grid">
+  <g-radio-group id="io-seg" data-case="io-seg" appearance="segmented" label-mode="icon" label="Vista" :options="O.vista" model-value="lista"></g-radio-group>
+  <g-radio-group id="io-chip" data-case="io-chip" appearance="chip" label-mode="icon" label="Vista" :options="O.vista" model-value="grafica"></g-radio-group>
+  <g-radio-group id="ic-seg" data-case="ic-seg" appearance="segmented" label="Vista" :options="O.vista" model-value="tabla"></g-radio-group>
+  <g-radio-group id="io-mixed" data-case="io-mixed" appearance="segmented" label-mode="icon" label="Vista (una sin icono)" :options="O.vistaMixta" model-value="lista"></g-radio-group>
+</div></div>
+
+<h2>7 · Estrecho</h2>
+<div class="host"><div class="grid">
+  <div class="narrow"><g-radio-group id="narrow-seg" data-case="narrow-seg" appearance="segmented" label="Lado dominante" :options="O.lado" model-value="a"></g-radio-group></div>
+  <div class="narrow"><g-radio-group id="narrow-chip" data-case="narrow-chip" appearance="chip" label="Frecuencia" :options="O.frecuencia" model-value="d"></g-radio-group></div>
+  <div class="narrow"><g-radio-group id="narrow-card" data-case="narrow-card" appearance="card" label="Plan" :options="O.plan" model-value="basico"></g-radio-group></div>
+</div></div>
+
+<h2>8 · Densidad compacta</h2>
+<div class="host"><div class="stack">
+  <g-form-row data-row="c" density="compact">
+    <g-input id="rowc-in-f" class="g-form-w-md" label="Nombre" density="compact"></g-input>
+    <g-radio-group id="rowc-seg" data-case="rowc-seg" class="g-form-w-sm" appearance="segmented" label="Sexo" density="compact" :options="O.sexo" model-value="X"></g-radio-group>
+    <g-radio-group id="rowc-inl" data-case="rowc-inl" class="g-form-w-xs" appearance="inline" label="¿Fuma?" density="compact" :options="O.sino"></g-radio-group>
+  </g-form-row>
+  <g-radio-group id="list-compact" data-case="list-compact" label="Modalidad" density="compact" :options="O.modalidad" model-value="presencial"></g-radio-group>
+</div></div>
+
+<h2>9 · RTL local</h2>
+<div class="host" dir="rtl" lang="ar"><div class="grid">
+  <g-radio-group id="rtl-seg" data-case="rtl-seg" appearance="segmented" label="الجنس" :options="O.sexoAr" model-value="F"></g-radio-group>
+  <g-radio-group id="rtl-inline" data-case="rtl-inline" appearance="inline" label="هل تدخن؟" :options="O.sinoAr" :model-value="1"></g-radio-group>
+  <g-radio-group id="rtl-list" data-case="rtl-list" label="الطريقة" :options="O.modalidadAr" model-value="l"></g-radio-group>
+</div></div>
+
+<h2>10 · Junto a GCheckbox (#270)</h2>
+<div class="host"><div class="grid">
+  <g-checkbox id="cb-req" data-case="cb-req" label="Acepto el aviso de privacidad" required></g-checkbox>
+  <g-checkbox id="cb-plain" data-case="cb-plain" label="Acepto el aviso de privacidad"></g-checkbox>
+</div></div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script>
+'use strict'
+const q = new URLSearchParams(location.search)
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-strong:#5E1730;--g-color-primary-text:#7A1E3A;--g-color-on-primary:#fffaf2;--g-color-primary-soft:#f3dde3;--g-color-on-primary-soft:#5E1730;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}'
+if (q.get('test')) document.getElementById('theme').textContent = TEST
+else if (q.get('audit')) document.getElementById('gen').href = 'auditoria-tema.css'
+else if (q.get('theme')) document.getElementById('gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+else if (q.get('theme') || q.get('audit')) document.documentElement.dataset.theme = 'light'
+if (q.get('rtl')) document.documentElement.dir = 'rtl'
+
+const O = {
+  modalidad: [
+    { value: 'presencial', label: 'Presencial', description: 'En el consultorio de Reforma 120.', icon: 'map-pin' },
+    { value: 'linea', label: 'En línea', description: 'Videollamada; el enlace llega por correo.', icon: 'globe' },
+    { value: 'tel', label: 'Por teléfono', icon: 'message-circle', disabled: true }
+  ],
+  sino: [{ value: true, label: 'Sí' }, { value: false, label: 'No' }],
+  sexo: [{ value: 'F', label: 'Femenino' }, { value: 'M', label: 'Masculino' }, { value: 'X', label: 'No binario' }],
+  frecuencia: [{ value: 'd', label: 'Diaria' }, { value: 's', label: 'Semanal' }, { value: 'm', label: 'Mensual' }, { value: 'n', label: 'Nunca' }],
+  plan: [
+    { value: 'basico', label: 'Básico', description: 'Una consulta al mes y mensajes.', icon: 'user' },
+    { value: 'familiar', label: 'Familiar', description: 'Hasta cuatro personas, consultas ilimitadas.', icon: 'users' },
+    { value: 'empresa', label: 'Empresa', description: 'Equipos con facturación centralizada.', icon: 'building-complex' }
+  ],
+  vista: [{ value: 'lista', label: 'Lista', icon: 'menu' }, { value: 'tabla', label: 'Tabla', icon: 'folder' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }],
+  vistaMixta: [{ value: 'lista', label: 'Lista', icon: 'menu' }, { value: 'mapa', label: 'Mapa' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }],
+  lado: [{ value: 'i', label: 'Izquierdo' }, { value: 'd', label: 'Derecho' }, { value: 'a', label: 'Ambidiestro' }, { value: 'n', label: 'No lo sé' }],
+  sexoAr: [{ value: 'F', label: 'أنثى' }, { value: 'M', label: 'ذكر' }, { value: 'X', label: 'A+' }],
+  sinoAr: [{ value: 1, label: 'نعم' }, { value: 0, label: 'لا' }],
+  modalidadAr: [
+    { value: 'p', label: 'حضوري', description: 'في العيادة.', icon: 'map-pin' },
+    { value: 'l', label: 'عبر الإنترنت', description: 'مكالمة فيديو.', icon: 'globe' }
+  ]
+}
+const APPS = ['list', 'inline', 'segmented', 'chip', 'card']
+const OPTS_FOR = { list: 'modalidad', inline: 'sino', segmented: 'sexo', chip: 'frecuencia', card: 'plan' }
+const STATES = [
+  { n: 'readonly', p: { readonly: true }, v: 1 },
+  { n: 'disabled', p: { disabled: true }, v: 1 },
+  { n: 'optdis', p: {}, v: 1, optdis: true },
+  { n: 'invalid', p: { error: 'Elige una opción', required: true } },
+  { n: 'warning', p: { warning: 'Revisa la respuesta' }, v: 0 },
+  { n: 'valid', p: { valid: 'Respuesta registrada' }, v: 0 }
+]
+const withDisabled = (opts) => opts.map((o, i) => (i === 0 ? { ...o, disabled: true } : { ...o, disabled: false }))
+
+const app = Vue.createApp({
+  setup() {
+    const v = Vue.reactive({ 'ap-list': 'linea', 'ap-inline': false, 'ap-segmented': 'M', 'ap-chip': 's', 'ap-card': 'familiar' })
+    return { v, O, APPS, OPTS_FOR, STATES, withDisabled, SIZES: ['xs', 'sm', 'md', 'lg', 'xl'], COLORS: ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info'] }
+  }
+})
+app.use(Grana.default || Grana)
+app.use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+app.mount('#app')
+
+// data-case en la raíz de cada GInput (su id va al <input>), para medir su caja con los mismos selectores del banco
+for (const f of document.querySelectorAll('.g-input input[id$="-f"]')) f.closest('.g-input').dataset.case = f.id.slice(0, -2)
+// Listo cuando hay fuentes y el reparto de las filas y el apilado (en el cuadro siguiente al ResizeObserver) se asentaron
+const frames = (n) => new Promise((r) => { const f = () => (--n ? requestAnimationFrame(f) : r()); requestAnimationFrame(f) })
+document.fonts.ready.then(() => frames(6)).then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>

@@ -30,7 +30,7 @@ El contrato pide el marco «hacia dentro» y con `outline` (sobrevive en `forced
 | --- | --- |
 | `list`, `inline` | En el círculo, a `--g-focus-offset`; se abre desde el borde (transición de `outline-offset`, como `GCheckbox`) |
 | `chip`, `card` | Alrededor de la opción (`:has(> .g-radio-group__input:focus-visible)`) |
-| `segmented` | **Dentro** del segmento, separado del marco por `border-width + focus-offset`, con un halo `surface` a los dos lados (`box-shadow` interior): se ve igual sobre la elegida rellena, no lo tapa el vecino (`z-index: 1`) y no lo recorta la caja. Mientras tiene el foco, el segmento redondea sus esquinas (`--g-radius-sm − border-width`) para que el anillo no se corte en las esquinas de la caja con radios grandes (spotify: 14px) |
+| `segmented` | **Dentro** del segmento, separado del marco por `border-width + focus-offset`, con un halo `surface` a los dos lados (`box-shadow` interior): se ve igual sobre la elegida rellena, no lo tapa el vecino (`z-index: 1`) y no lo recorta la caja. Mientras tiene el foco, el segmento redondea sus esquinas (`--g-radius-sm − border-width`) para que el anillo no se corte en las esquinas de la caja con radios grandes (spotify: 14px). **Solo lectura elegida:** el anillo se separa `--g-focus-offset` de su doble trazo, con el halo entre los dos (auditoría, hallazgo 1) |
 
 ### Estados (señal de forma además del color)
 
@@ -66,7 +66,7 @@ Corto y en su sitio: el punto crece (`box-shadow`, `--g-duration-press`), el rel
 
 ### `forced-colors`
 
-Círculo con `forced-color-adjust: none`: `ButtonText`/`Canvas`, elegido con `SelectedItem` y el punto en `SelectedItemText`. Chip y segmento elegidos con `SelectedItem`/`SelectedItemText`. Tarjeta elegida con borde triple (el doble trazo de `box-shadow` desaparece). Marco del segmentado `ButtonText` (el `outline` de la capa sobrevive). Solo lectura elegida con un `outline` `CanvasText` doble. Error con borde doble. Deshabilitado en `GrayText`. Foco en `Highlight`.
+Círculo con `forced-color-adjust: none`: `ButtonText`/`Canvas`, elegido con `SelectedItem` y el punto en `SelectedItemText`. Chip y segmento elegidos con `SelectedItem`/`SelectedItemText`. Tarjeta elegida con borde triple (el doble trazo de `box-shadow` desaparece). Marco del segmentado `ButtonText` (el `outline` de la capa sobrevive). Solo lectura elegida con un `outline` `CanvasText` doble; **con foco**, esa marca pasa a un trazo interior `CanvasText` y el `outline` queda para el anillo `Highlight` (si no, la marca tapaba el foco: auditoría, hallazgo 2). Segmento elegido con foco: halo `Canvas` alrededor del anillo, que va sobre el relleno `SelectedItem`. Error con borde doble. Deshabilitado en `GrayText`. Foco en `Highlight`.
 
 ## Para bruno (lo que el CSS espera del marcado)
 

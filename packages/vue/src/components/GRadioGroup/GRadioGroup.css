@@ -605,6 +605,15 @@
   color: var(--g-color-text);
   box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text);
 }
+/* Con foco, el anillo se separa del doble trazo lo mismo que de cualquier borde (--g-focus-offset), con el halo de
+   superficie entre los dos: sin esto quedaba a un solo border-width del trazo y, con un foco oscuro como el texto,
+   se fundían en una banda (auditoría, hallazgo 1) */
+.g-radio-group--appearance-segmented.is-readonly .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+  outline-offset: calc((var(--g-border-width) * 2 + var(--g-focus-offset) + var(--g-focus-width)) * -1);
+  box-shadow:
+    inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text),
+    inset 0 0 0 calc(var(--g-border-width) * 2 + var(--g-focus-offset) * 2 + var(--g-focus-width)) var(--g-color-surface);
+}
 
 /* ---------- Deshabilitado: el grupo (is-disabled; el <fieldset disabled> ya deshabilita los radios) o una opción ---------- */
 .g-radio-group.is-disabled,
@@ -782,6 +791,11 @@
   .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:focus-visible) {
     box-shadow: none;
   }
+  /* Segmento elegido con foco: el anillo Highlight va dentro, sobre el relleno SelectedItem (en muchos esquemas el mismo
+     color): con el halo Canvas a los dos lados, como fuera de este modo (auditoría, hallazgo 2) */
+  .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+    box-shadow: inset 0 0 0 calc(var(--g-border-width) + var(--g-focus-offset) * 2 + var(--g-focus-width)) Canvas;
+  }
   /* Píldora, segmento y tarjeta */
   :is(.g-radio-group--appearance-chip, .g-radio-group--appearance-card) .g-radio-group__option {
     border-color: ButtonText;
@@ -831,6 +845,19 @@
     color: CanvasText;
     outline: calc(var(--g-border-width) * 2) solid CanvasText;
     outline-offset: calc(var(--g-border-width) * -2);
+  }
+  /* Solo lectura elegida CON foco: la marca pasa a un trazo interior (lo elegido no se ajusta, forced-color-adjust: none)
+     y el outline queda para el anillo Highlight; si no, la marca CanvasText tapaba el foco (auditoría, hallazgo 2) */
+  .g-radio-group.is-readonly:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-segmented) .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+    outline: var(--g-focus-width) solid Highlight;
+    outline-offset: var(--g-focus-offset);
+    box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) CanvasText;
+  }
+  .g-radio-group.is-readonly.g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+    outline-offset: calc((var(--g-border-width) * 2 + var(--g-focus-offset) + var(--g-focus-width)) * -1);
+    box-shadow:
+      inset 0 0 0 calc(var(--g-border-width) * 2) CanvasText,
+      inset 0 0 0 calc(var(--g-border-width) * 2 + var(--g-focus-offset) * 2 + var(--g-focus-width)) Canvas;
   }
   /* Deshabilitado */
   .g-radio-group.is-disabled .g-radio-group__input,

@@ -1,0 +1,100 @@
+/* Generado por @grana/cli a partir de design/lab/radio-group/auditoria-tema.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 0px;
+  --g-radius-sm: 0px;
+  --g-radius-md: 0px;
+  --g-radius-lg: 0px;
+  --g-radius-xl: 0px;
+  --g-radius-shape: var(--g-radius-pill);
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #0B1F4D;
+  --g-color-brand-strong: #1E3464;
+  --g-color-brand-soft: #E9F0FF;
+  --g-color-brand-text: #0B1F4D;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #0B1F4D;
+  --g-color-accent: #0B1F4D;
+  --g-color-accent-strong: #1E3464;
+  --g-color-accent-soft: #E9F0FF;
+  --g-color-accent-text: #0B1F4D;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #0B1F4D;
+  --g-color-surface-sunken: #F4F6FB;
+  --g-color-text: #181A1D;
+  --g-color-text-muted: #535559;
+  --g-color-text-subtle: #6C6E72;
+  --g-color-border-control: #888A8F;
+  --g-color-border: rgb(24 26 29 / 0.08);
+  --g-color-border-strong: rgb(24 26 29 / 0.16);
+  --g-color-neutral: #696B6F;
+  --g-color-neutral-strong: #535558;
+  --g-color-neutral-soft: #EFF0F1;
+  --g-color-neutral-text: #696B6F;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #696B6F;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --g-color-brand: #8FACE5;
+    --g-color-brand-strong: #A2BFF9;
+    --g-color-brand-soft: #1C2433;
+    --g-color-brand-text: #8FACE5;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #8FACE5;
+    --g-color-accent: #8FACE5;
+    --g-color-accent-strong: #A1BFF9;
+    --g-color-accent-soft: #1C2433;
+    --g-color-accent-text: #8FACE5;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #8FACE5;
+    --g-color-surface-sunken: #0E1013;
+    --g-color-text: #F0F2F7;
+    --g-color-text-muted: #B6B8BD;
+    --g-color-text-subtle: #9A9CA1;
+    --g-color-border-control: #7E8085;
+    --g-color-border: rgb(240 242 247 / 0.10);
+    --g-color-border-strong: rgb(240 242 247 / 0.20);
+    --g-color-neutral: #838589;
+    --g-color-neutral-strong: #95979C;
+    --g-color-neutral-soft: #232425;
+    --g-color-neutral-text: #838589;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #898B90;
+    --g-color-bg: #121417;
+    --g-color-surface: #1A1C20;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #8FACE5;
+  --g-color-brand-strong: #A2BFF9;
+  --g-color-brand-soft: #1C2433;
+  --g-color-brand-text: #8FACE5;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #8FACE5;
+  --g-color-accent: #8FACE5;
+  --g-color-accent-strong: #A1BFF9;
+  --g-color-accent-soft: #1C2433;
+  --g-color-accent-text: #8FACE5;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #8FACE5;
+  --g-color-surface-sunken: #0E1013;
+  --g-color-text: #F0F2F7;
+  --g-color-text-muted: #B6B8BD;
+  --g-color-text-subtle: #9A9CA1;
+  --g-color-border-control: #7E8085;
+  --g-color-border: rgb(240 242 247 / 0.10);
+  --g-color-border-strong: rgb(240 242 247 / 0.20);
+  --g-color-neutral: #838589;
+  --g-color-neutral-strong: #95979C;
+  --g-color-neutral-soft: #232425;
+  --g-color-neutral-text: #838589;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #898B90;
+  --g-color-bg: #121417;
+  --g-color-surface: #1A1C20;
+}

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GRadioGroup",
   "tag": "g-radio-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Una pregunta con una sola respuesta, con radios nativos de name común y cinco apariencias (list, inline, segmented, chip, card) que cambian la forma, no la semántica.",
   "contract": "design/contracts/radio-group.md",
