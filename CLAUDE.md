@@ -42,6 +42,15 @@ Cada rol es un agente en `.claude/agents/` con su modelo por defecto:
 
 **Fable** solo si el usuario lo pide o si Opus falla dos veces en lo mismo. **Haiku** para tareas mecánicas sin criterio (renumerar, actualizar índices, regenerar con un script existente).
 
+## Personalidad e innovación (regla del usuario)
+
+Grana no quiere ser «otro framework genérico». Cada componente debe aportar **personalidad**: explorar animaciones, comportamientos y formas propias con un factor de modernidad y vanguardia, no copiar el patrón común. Cómo se aplica en el flujo:
+
+- **kiwi:** en cada `declaracion.md`, un apartado obligatorio **«Qué lo hace distinto»** con al menos una propuesta de comportamiento, estructura o movimiento más allá del patrón habitual (y por qué sirve al usuario, no solo adorna).
+- **coco:** explora movimiento y forma con identidad (entradas y salidas, estados, microinteracciones; planes en `plans/`), siempre con tokens, `prefers-reduced-motion` y contraste intactos.
+- **lima:** registra la decisión de personalidad del componente en `DECISIONS.md` para que no se pierda ni se reabra sin motivo.
+- La innovación **nunca** sacrifica accesibilidad, rendimiento ni el contrato de tokens; si una idea choca con eso, se anota como pendiente y se busca otra.
+
 ## Reglas que no se rompen
 
 - Los componentes solo leen `var(--g-*)` y alias locales `var(--_*)`. **Sin valores de respaldo** y sin literales de tema. Únicas medidas literales permitidas: `24px`, `44px` (área táctil) y el patrón de texto oculto accesible.
