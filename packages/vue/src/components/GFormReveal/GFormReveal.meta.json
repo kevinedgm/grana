@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormReveal",
   "tag": "g-form-reveal",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Bloque condicional de un formulario (Fase 3): campos que existen solo si una respuesta lo pide. Va justo después de su pregunta; cerrado, sus campos salen de FormData, de Tab, de la validación nativa, de los errores y del resumen, pero conservan lo escrito (WCAG 3.3.7).",
   "contract": "design/contracts/form.md",

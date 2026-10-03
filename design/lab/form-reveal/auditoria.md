@@ -1,0 +1,60 @@
+# Auditoría de coco · GFormReveal (paso 5)
+
+**Componente:** `packages/vue/src/components/GFormReveal/` (`GFormReveal.vue` y `revealGap.js` de bruno, commit `97e25fd`; `GFormReveal.css` de coco, commit `faa9457`; contrato `design/contracts/form.md` §14 y §2 «Registro inactivo», #274 a #282), el real con `dist/` reconstruido (`npm run build`), en el **playground** (`#fr-form`: «¿Requiere factura?» → datos fiscales con Física/Moral anidado, `GDatePicker`, `GSelect`, `GCheckboxGroup`; «¿Tiene alergias?» directo en el cuerpo de una `GFormSection`) y en una página de carga con **40 bloques + 20 anidados** montados con la UMD real.
+**Método:** `node design/lab/form-reveal/auditoria-verificar.mjs` (Playwright de `design/lab/theme-playground/`) en **Chromium, Firefox y WebKit**: **1857/1857**, consola limpia. Temas: **defecto** claro y oscuro, el de la auditoría de radio-group (`design/lab/radio-group/auditoria-tema.css`, `@grana/cli` con `brand: "#0B1F4D"`, `radius: 0`, `shape: "pill"`) claro y oscuro, el **«Tema de prueba»** del playground claro y oscuro, y los **once generados** de `design/lab/tema-oscuro/dark-color-presence/generated/` claro y oscuro (estos, solo para el contraste de la barra). Además: tres densidades, LTR y RTL, 480/360/320px, `prefers-reduced-motion: reduce`, `forced-colors` emulado (Chromium).
+
+## Resultado: sin defecto bloqueante. Sin cambios en `GFormReveal.css`; `status: "candidate"`
+
+El marcado real es el que esperaba el CSS y todo lo que el banco medía con `XReveal` se cumple con el componente real. Los hallazgos son una regla de composición para lima, un límite del navegador para documentar, un dato de rendimiento para bruno, una prueba intermitente de bruno y una mía, ya corregida.
+
+## Hallazgos
+
+| # | Hallazgo | Severidad | Dueño | Estado |
+| --- | --- | --- | --- | --- |
+| 1 | **«Antecedentes»: un bloque directo en el cuerpo de `GFormSection` queda pegado a la pregunta.** El cuerpo de la sección es `display: block` (`row-gap: normal`), así que `--_reveal-gap` vale `0px` y la distancia de la pregunta al bloque abierto es **0px** (de las opciones a la etiqueta «¿A qué?» también 0px; en `GFormLayout` son 20px). Es lo que dice el contrato y no hay defecto de accesibilidad (la barra agrupa, la etiqueta se lee), pero rompe el ritmo de 20px del resto del formulario. **Juicio: aceptable tal como está; no lo arreglo en `GFormReveal.css`.** Una separación mínima propia del bloque solo arreglaría el lado de arriba (lo que siga al bloque en ese cuerpo, y dos campos cualesquiera en él, también quedan pegados), duplicaría la del contenedor en cuanto este sea una pila y rompería la regla «la separación es del padre» (#278). La causa es que §14 nombra el cuerpo de `GFormSection` como una pila («como hermano en la misma pila (`GFormLayout`, cuerpo de otro `GFormReveal`, cuerpo de `GFormSection`)») y no lo es | Menor (no bloquea) | **lima** (cambia la regla) | Abierto. Propuesta en «Para lima» |
+| 2 | **Bloque grande que se cierra con la página desplazada hasta el final.** Sin contenido debajo, el navegador recorta el desplazamiento al encoger la página: el disparador **baja** lo que encoge (bloque de 408px + 20px: **428px**) en los tres motores. Baja en continuo, con la curva del bloque (`--g-ease-out`; posiciones intermedias en los tres motores; paso del primer cuadro ≈ 122px a 60 Hz, como lo que sube bajo un bloque que se cierra en mitad de la página) y **sigue visible**. Al abrir al final: Δ 0px. Es inherente (igual que con `<details>`) y no se arregla con CSS | Menor (informativo) | **lima** (anotar el límite de «Δ 0px» en §14) y **mora-docs** (README) | Abierto |
+| 3 | **Muchos bloques a la vez.** 40 bloques + 20 anidados que se abren o se cierran en la misma tarea se asientan en 240 a 330ms y quedan en su estado (60 abiertos; cerrados sin altura). El primero no se mueve. El cuadro del cambio dura **59 a 81ms** (sin pantalla, en los tres motores). Un formulario real abre uno o dos, así que no bloquea | Informativo | **bruno** (perfilar si el cuadro largo viene de las dos lecturas de `getComputedStyle` por bloque —`readGap()` en el `watch` y `longest()` en `nextTick`— o del cambio de estilo de 60 `fieldset:disabled`) | Abierto |
+| 4 | **`form-reveal.spec.mjs` falla a veces en WebKit con carga en paralelo**: «disparador Δ 0px…», en `expect(t.n, 'cuadros medidos').toBeGreaterThan(3)` (línea 141). Lo que falla es el número de cuadros medidos, no el Δ. Falló una vez en 54 (47 pasan, 6 se omiten). Pasa sola (6/6 en WebKit) y en la repetición (48 pasan, 6 se omiten, en los tres motores) | Menor | **bruno** (medir durante el tiempo de la transición y no por número de cuadros, o anotarla como las intermitentes de WebKit del CLAUDE.md) | Abierto |
+| 5 | **Mi banco: la «interrupción» de `estilo-verificar.mjs` fallaba a veces en Firefox** (378/379 una vez). Entre dos idas y vueltas la apertura avanzaba, y Firefox seguía listando la transición vieja en `getAnimations()` | Menor | **coco** | **Corregido**: reanudar, cambiar la respuesta y pausar van en una sola tarea, y `__at` pausa la transición viva más reciente. 379/379 en los tres motores |
+
+## Verificado (componente real)
+
+| Qué | Resultado |
+| --- | --- |
+| Marcado | Los 4 bloques de `#fr-form`: `div` sin rol › `fieldset.g-form-reveal__body[role=none]` como **único hijo**, sin `legend`; clases `g-form-reveal`, `--density-{d}` e `is-ready`; `inert` y `disabled` según `is-open`. `--_reveal-gap` en **px** e igual al `row-gap` del padre: `20px` en `GFormLayout` y en el cuerpo de otro bloque, **`0px`** en el cuerpo de `GFormSection` (`normal`). `is-ready` falta al nacer y llega **≥ 2 cuadros** después. Al cargar no corre ninguna transición |
+| `is-animating` | Puesto durante la transición y retirado por `transitionend` al asentarse. Con movimiento reducido no hay transición de altura y lo retira el **temporizador de respaldo**: a los 246 a 328ms (fundido de 120ms + 50ms + la latencia del clic) en los tres motores |
+| Cerrado sin hueco | En las tres densidades: «¿Requiere factura?» → «Observaciones» = una separación en `GFormLayout` (el margen −`row-gap` gana a `.g-form-layout > * { margin: 0 }`). «Tipo de persona» → «Moral» con «Física» cerrada en medio = una separación, y → fila RFC con las dos cerradas también. En el cuerpo de `GFormSection` el bloque cerrado no añade nada |
+| Disparador con clic real | Δ 0px de arriba e inicio y Δscroll 0 en cada cuadro, al abrir y al cerrar, en LTR y RTL. Al cerrar con el foco dentro, el foco va a la opción elegida y nada se mueve |
+| Intermedios (pausados) | Al abrir hay transición de altura, margen y opacidad. A la mitad: altura intermedia, recortado y sin `inert`. A 3/4: opacidad intermedia. Al cerrar, a 1/4: visible, opacidad y altura intermedias, `inert` y `disabled` desde el primer cuadro. Asentado: `overflow: visible` |
+| Barra | **2px**. Empieza en el borde de inicio de la pregunta (±1px) y termina con las filas, con el contenido tras barra + sangría. Medido en los 3 bloques abiertos (fiscal, Moral anidado, alergias) × tres densidades × LTR/RTL × seis temas. Sangría de 16/14/12px; la pila del cuerpo separa igual que `GFormLayout` en cada densidad. A 480/360/320px con dos niveles abiertos, sin desborde |
+| Contraste de la barra (≥ 3:1) | Mínimos: defecto **3.45** / oscuro 4.32; auditoría 3.45 / 4.32; «Tema de prueba» 5.35 / 4.32; los once generados de **3.43** (spotify) a 3.48 en claro y de 4.28 a 4.35 en oscuro. Iguales en los tres motores |
+| Fundido de cierre sin salto a gris | Primer cuadro del cierre, con `disabled` e `inert` ya puestos y la raíz a opacidad 1. La captura del bloque es idéntica a la del abierto (≤ 8/255) en defecto claro, oscuro y auditoría. Sin cambio calculado en la `legend` y las opciones de `GRadioGroup`, el `<input>` de `GInput`, el campo de `GDatePicker`, el botón de `GSelect` ni la `legend` y las casillas de `GCheckboxGroup` |
+| Movimiento reducido | Solo fundido (`transitionrun`: `opacity` y `visibility`, sin altura ni margen). Al abrir, altura final en el primer cuadro; al cerrar, visible hasta que acaba el fundido; disparador Δ 0px |
+| `forced-colors` (Chromium) | La barra toma `CanvasText` (≥ 3:1 sobre `Canvas`) y queda alineada en LTR y RTL. El bloque cerrado no se ve y no ocupa altura |
+| Varios bloques a la vez (playground) | Todos cerrados → fiscal + Física + alergias en la misma tarea → todos cerrados → fiscal + Moral + alergias. El disparador no se mueve; «¿Tiene alergias?», debajo, baja y sube en continuo (posiciones intermedias); cada bloque se asienta en su estado |
+| `GRadioGroup` `__label-text` (#282) | `span[dir=auto]`, primer hijo de la etiqueta, **en línea** y con la tipografía heredada. Las capturas de la etiqueta con la envoltura y sin ella (el DOM de antes de #282) son **idénticas byte a byte**, con la misma caja, en `fr-factura`, `fr-persona`, `fr-alergias`, `fm-primera` y `rg-segmented`, con el tema por defecto y con el de auditoría en oscuro. En RTL, «¿Requiere factura?» y «¿Tiene alergias?» se leen de izquierda a derecha («¿» a la izquierda de «?»); la etiqueta empieza a la derecha, alineada con la primera opción, y «(opcional)» va después (a su izquierda). En `rg-rtl` (árabe), `dir=auto` resuelve `rtl` |
+| `dist/grana.css` | Las reglas de `g-form-reveal` están en `grana.components`, sin colores literales, sin `var()` con respaldo, sin medidas ni duraciones literales (salvo `0px`/`0s`) y sin `!important` |
+| Cierre (CLAUDE.md, verificación por niveles) | `npx vitest run` **1704/1704**; `npm run build`; las compuertas, con `g-form-reveal__body`; `check-icons` limpio. `form-reveal.spec.mjs` + `form-distribution.spec.mjs` en los tres motores: 48 pasan y 6 se omiten (hallazgo 4). `estilo-verificar.mjs` 379/379 |
+
+## No verificado
+
+- Lector de pantalla real: qué se oye al elegir «Sí» y al tabular al bloque, y el `fieldset role="none"` sin grupo.
+- Safari, iOS y táctil reales. `forced-colors` real, y en Firefox y WebKit (sin emulación).
+- Zoom del navegador al 200 %.
+- `GBtn` dentro de un bloque del **playground**: no hay ninguno. El «salto a gris» de `GBtn` solo está medido en el banco, con el `GBtn` real de `dist/` (`estilo-verificar.mjs`).
+- Rendimiento con pantalla real (los cuadros del hallazgo 3 son de motores sin pantalla).
+
+## Para lima (hallazgos 1 y 2)
+
+1. **El cuerpo de `GFormSection` como pila.** Decide una de dos:
+   - **(a), la que propongo:** el cuerpo de `GFormSection` pasa a ser una pila (`display: flex; flex-direction: column; gap: calc(var(--g-form-gap) × densidad)` en `GFormSection.css`, que es de coco). Con eso `--_reveal-gap` leería 20px sin tocar `GFormReveal`. En las secciones que solo llevan un `GFormLayout` (todas las de hoy) no cambia nada, y lo mediría al aplicarlo.
+   - **(b):** §14 dice que, dentro de una sección, la pregunta y el bloque van en un `GFormLayout`. Entonces bruno cambia «Antecedentes» del playground y quita «cuerpo de `GFormSection`» de la lista de pilas.
+
+   Cualquiera de las dos cambia una regla (§3 y §14) y necesita su número de decisión.
+2. **Límite de «Δ 0px» del disparador.** Anotarlo en §14, en «Transición»: con la página desplazada hasta el final, cerrar un bloque hace que el disparador baje lo que encoge la página (el navegador recorta el desplazamiento). Baja en continuo y sigue visible. Que pase también a la sección «Límites» del README.
+
+## Para bruno (hallazgos 3 y 4)
+
+- Hallazgo 3: perfilar el cuadro largo al cambiar 60 bloques a la vez. No bloquea.
+- Hallazgo 4: hacer más robusta la cuenta de cuadros de `form-reveal.spec.mjs:141` en WebKit con carga.
+- Opcional: un `GBtn` dentro del bloque fiscal del playground («Validar RFC»), para que el salto a gris de `GBtn` se pueda medir también en el componente real.

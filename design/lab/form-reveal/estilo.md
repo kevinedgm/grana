@@ -50,7 +50,9 @@ Análisis estático (sin literales ni respaldos, sin `@layer`, sin `!important`,
 
 ## No verificado
 
-`forced-colors` real y en Firefox/WebKit (sin emulación); Safari, iOS y táctil reales; el componente real de bruno (el banco reproduce su marcado: `XReveal`); el registro inactivo de `GForm` (es de bruno); un bloque grande cerrado con la página desplazada hasta el final; muchos bloques a la vez.
+`forced-colors` real y en Firefox/WebKit (sin emulación); Safari, iOS y táctil reales; el registro inactivo de `GForm` (es de bruno). El componente real, el bloque grande cerrado con la página al final y muchos bloques a la vez están medidos en la auditoría (`auditoria.md`, `auditoria-verificar.mjs`, 1857/1857).
+
+**Banco endurecido (auditoría, hallazgo 5):** la «interrupción» reanuda, cambia la respuesta y pausa en una sola tarea, y `__at` pausa la transición viva más reciente (Firefox listaba a veces la vieja).
 
 ## Para bruno
 

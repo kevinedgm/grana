@@ -113,9 +113,10 @@ const PAGE_HELPERS = () => {
       mt: parseFloat(cs.marginBlockStart), ovf: getComputedStyle(body).overflowY, anim: el.classList.contains('is-animating'), open: el.classList.contains('is-open') } }
   // Pausa las transiciones de la raíz en una fracción de la de altura (o de la de opacidad si no hay altura)
   window.__at = (id, frac) => { const el = document.getElementById(id); const as = el.getAnimations()
-    const main = as.find((a) => a.transitionProperty === 'grid-template-rows') || as.find((a) => a.transitionProperty === 'opacity')
+    const live = as.filter((a) => a.playState !== 'finished' && a.playState !== 'idle'); const L = live.length ? live : as
+    const main = [...L].reverse().find((a) => a.transitionProperty === 'grid-template-rows') || [...L].reverse().find((a) => a.transitionProperty === 'opacity')
     if (!main) return null; const t = main.effect.getComputedTiming(); const at = (t.delay || 0) + t.duration * frac
-    as.forEach((a) => { a.pause(); a.currentTime = at }); return as.map((a) => a.transitionProperty) }
+    L.forEach((a) => { a.pause(); a.currentTime = at }); return L.map((a) => a.transitionProperty) }
   window.__finishAll = () => document.getAnimations().forEach((a) => { try { a.finish() } catch {} })
   window.__track = (sel, ms) => new Promise((res) => {
     const el = document.querySelector(sel); const r0 = el.getBoundingClientRect(); const s0 = scrollY
@@ -219,10 +220,9 @@ for (const engine of ENGINES) {
     await p.evaluate(() => __set('default', 'factura', 'si'))
     await p.evaluate((i) => __at(i, 0.3), id)
     const h1 = (await p.evaluate((i) => __st(i), id)).h
-    await p.evaluate((i) => document.getElementById(i).getAnimations().forEach((a) => a.play()), id)
-    await p.evaluate(() => { window.__models.default.factura = 'no' })
-    await p.evaluate(() => new Promise((r) => requestAnimationFrame(r)))
-    await p.evaluate((i) => __at(i, 0), id)
+    // En una sola tarea (con carga, entre dos idas y vueltas la apertura avanzaba y Firefox aún listaba la transición vieja)
+    await p.evaluate(async (i) => { document.getElementById(i).getAnimations().forEach((a) => a.play()); window.__models.default.factura = 'no'
+      await new Promise((r) => requestAnimationFrame(r)); __at(i, 0) }, id)
     const h2 = (await p.evaluate((i) => __st(i), id)).h
     ok(near(h1, h2, H * 0.08), `interrupción: el cierre parte de la altura actual (${h1.toFixed(1)} → ${h2.toFixed(1)})`)
     await p.evaluate(() => __finishAll()); await settled(p, id)
