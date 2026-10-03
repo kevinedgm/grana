@@ -243,8 +243,10 @@ describe('GForm · envío (#157)', () => {
     expect(w.findAll('.g-input__message')[1].text()).toContain('A mal')
     expect(document.activeElement.id).toBe('ia')
     document.activeElement.blur()
-    expect(form.value.focusFirstError()).toBe(true)
+    // Promise<boolean> (#287); sin sección plegada que abrir, el foco ya está puesto al volver
+    const found = form.value.focusFirstError()
     expect(document.activeElement.id).toBe('ia')
+    expect(await found).toBe(true)
     form.value.resetState()
     await nextTick()
     expect(w.findAll('.g-input__message')[1].text()).toBe('')
@@ -661,12 +663,13 @@ describe('GFormSection (#161)', () => {
     expect(w.findAll('section')[1].find('h4').exists()).toBe(true)
   })
 
-  it('las props reservadas de la Fase 3 avisan y no llegan al DOM; sin título avisa', () => {
+  it('ya no hay props reservadas (Fase 3, #284): mode es una prop y no llega al DOM; sin título avisa', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const w = mount(GFormSection, { attrs: { mode: 'collapsible' } })
+    const w = mount(GFormSection, { props: { mode: 'collapsible' } })
     expect(w.find('section').attributes('mode')).toBeUndefined()
+    expect(w.find('section').classes()).toContain('g-form-section--mode-collapsible')
     const msgs = warn.mock.calls.map((c) => c[0]).join('\n')
-    expect(msgs).toMatch(/Fase 3/)
+    expect(msgs).not.toMatch(/Fase 3|reservad/)
     expect(msgs).toMatch(/title/)
   })
 })

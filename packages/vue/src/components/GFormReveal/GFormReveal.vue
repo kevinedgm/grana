@@ -22,7 +22,8 @@ const parentReveal = inject(revealKey, null)
 
 // Activo = when y todos sus bloques ancestros activos (un anidado conserva su is-open dentro de un padre cerrado)
 const active = computed(() => props.when && (parentReveal ? Boolean(unref(parentReveal.active)) : true))
-provide(revealKey, { active })
+// fromReveal (#288): un GFormReveal siempre lo pone; el aviso 3 de §14 de GFormSection sale solo con él
+provide(revealKey, { active, fromReveal: true })
 
 // Pila como GFormLayout (#278): densidad del sub‑contexto de distribución › GForm › default; re‑provee layoutKey
 const density = computed(() => unref(layout?.density) ?? unref(form?.density) ?? 'default')

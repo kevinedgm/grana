@@ -1,15 +1,20 @@
 // Contexto del sistema de formularios y useFormField() (dueño: bruno)
 // Contrato: design/contracts/form.md §1 y §2 (DECISIONS.md #157, #158). Ningún campo importa GForm: leen estas claves
 // SOLO si existen; fuera de GForm cada campo resuelve los valores de siempre. La prop explícita del campo siempre gana.
-import { computed, inject, onBeforeUnmount, onMounted, provide, shallowReactive, toValue, unref, useId, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, shallowReactive, toValue, unref, useId, watch } from 'vue'
 
 /** InjectionKey pública del contexto de GForm (para `provide` manual: pruebas, microfrontends). */
 export const formKey = Symbol('GForm')
 // Sub‑contextos internos
 export const layoutKey = Symbol('GFormLayout') // GFormLayout, GFormRow, GFieldGroup y GInputGroup: block, density, stack, readonly, disabled
-export const sectionKey = Symbol('GFormSection') // GFormSection optional: suprime «(opcional)»
+// GFormSection (form.md §2 y §3, #286, #288): { optional, register(entry) → unregister, notifyEdit() }. `optional` suprime
+// «(opcional)»; `register` cuenta los errores visibles de la sección (la sección lo propaga a sus ancestros); `notifyEdit`
+// marca la sección como editada (confirmación de «Quitar»)
+export const sectionKey = Symbol('GFormSection')
 export const fieldGroupKey = Symbol('GFieldGroup') // partes de un GFieldGroup
-// GFormReveal (form.md §2 «Registro inactivo», §14, #276): { active: ComputedRef<boolean> }. Interna: NO se exporta desde src/index.js
+// GFormReveal y GFormSection addable (form.md §2 «Registro inactivo», §14, #276, #288): { active: ComputedRef<boolean>,
+// fromReveal: boolean }. `active` = estado propio y el del ancestro; `fromReveal` = lo provee un GFormReveal o ya lo tenía el
+// ancestro (una sección agregable hereda el del ancestro). Interna: NO se exporta desde src/index.js
 export const revealKey = Symbol('GFormReveal')
 
 export const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -39,12 +44,39 @@ export function byDocument(a, b) {
   return a.compareDocumentPosition(b) & 4 /* FOLLOWING */ ? -1 : 1
 }
 
-/** Desplaza la raíz de un campo para que se vea su etiqueta y enfoca el control sin otro desplazamiento (GOV.UK). */
+/**
+ * Petición interna «abrir antes de enfocar» (form.md §3, #287). Evento DOM que burbuja y se puede cancelar: cada
+ * GFormSection collapsible lo escucha en su __panel; si está plegada, se abre sin animar y lo cancela («he cambiado:
+ * espera un parche»). Nombre reservado: NO se exporta desde src/index.js.
+ */
+export const OPEN_REQUEST = 'g-open-request'
+
+/** Despacha OPEN_REQUEST desde `el`. Devuelve true si alguien lo canceló (algo se abrió y hay que esperar un parche). */
+export function requestOpen(el) {
+  if (!el || typeof el.dispatchEvent !== 'function' || typeof CustomEvent === 'undefined') return false
+  const event = new CustomEvent(OPEN_REQUEST, { bubbles: true, cancelable: true })
+  el.dispatchEvent(event)
+  return event.defaultPrevented
+}
+
+/**
+ * Desplaza la raíz de un campo para que se vea su etiqueta y enfoca el control sin otro desplazamiento (GOV.UK).
+ * Antes despacha OPEN_REQUEST desde el control: si una sección plegada se abrió, espera un nextTick (Vue quita `inert` y
+ * aplica la altura sin transición) y entonces desplaza y enfoca; si no, todo ocurre en el acto, como siempre.
+ * Devuelve una Promise que se resuelve con el foco ya puesto.
+ */
 export function revealAndFocus(control, root) {
-  if (!control) return
-  const box = root || control
-  if (typeof box.scrollIntoView === 'function') box.scrollIntoView({ block: 'start', behavior: 'instant' })
-  if (typeof control.focus === 'function') control.focus({ preventScroll: true })
+  if (!control) return Promise.resolve()
+  const go = () => {
+    const box = root || control
+    if (typeof box.scrollIntoView === 'function') box.scrollIntoView({ block: 'start', behavior: 'instant' })
+    if (typeof control.focus === 'function') control.focus({ preventScroll: true })
+  }
+  if (!requestOpen(control)) {
+    go()
+    return Promise.resolve()
+  }
+  return nextTick().then(go)
 }
 
 /**
@@ -142,6 +174,8 @@ export function useFormField(options = {}) {
   }
   /** Para controles sin evento nativo (GSelect, GDatePicker, propios): marca sucio y, con trigger 'change', revela. */
   function notifyChange() {
+    // La sección más cercana queda editada (confirmación de «Quitar» en addable, #288); también fuera de GForm
+    if (section && typeof section.notifyEdit === 'function') section.notifyEdit()
     if (!form) return
     const ns = names()
     if (!ns.length) form.notifyChange?.(null, false)
@@ -181,10 +215,14 @@ export function useFormField(options = {}) {
       visibleTarget: () => (invalid.value ? { control: el('control'), root: el('root') } : null)
     }
     let offForm = null
+    let offSection = null
     let offGroup = null
+    // En GForm y, con la misma condición y en el mismo momento, en la sección más cercana (recuento de errores, #286)
     const bind = () => {
       offForm?.()
+      offSection?.()
       offForm = form && typeof form.register === 'function' && name.value ? form.register(entry) : null
+      offSection = offForm && section && typeof section.register === 'function' ? section.register(entry) : null
     }
     onMounted(() => {
       bind()
@@ -193,6 +231,7 @@ export function useFormField(options = {}) {
     watch(name, (n, prev) => { if (n !== prev) bind() })
     onBeforeUnmount(() => {
       offForm?.()
+      offSection?.()
       offGroup?.()
     })
   }
@@ -230,6 +269,7 @@ export function useFormField(options = {}) {
  */
 export function useCompositeField(o) {
   const uid = useId()
+  const section = inject(sectionKey, null)
   const parts = shallowReactive(new Map())
   const keyOf = o.sortKey || ((p) => p.root() || p.control())
   const sortedParts = () => [...parts.values()].sort((a, b) => byDocument(keyOf(a), keyOf(b)))
@@ -251,11 +291,12 @@ export function useCompositeField(o) {
   const fallback = o.fallback || ((ps) => ps[0])
 
   let off = null
+  let offSection = null
   onMounted(() => {
     const form = ff.form
     if (!form || typeof form.register !== 'function') return
     const enabledParts = () => sortedParts().filter((p) => !p.disabled())
-    off = form.register({
+    const entry = {
       uid: `group-${uid}`,
       role: 'group',
       inGroup: false,
@@ -290,8 +331,14 @@ export function useCompositeField(o) {
         if (ff.ownMessage.value?.type === 'error' && f) return { control: f.control(), root: unref(o.root) }
         return null
       }
-    })
+    }
+    off = form.register(entry)
+    // Una pregunta también en la sección más cercana (recuento de errores, #286)
+    if (section && typeof section.register === 'function') offSection = section.register(entry)
   })
-  onBeforeUnmount(() => off?.())
+  onBeforeUnmount(() => {
+    off?.()
+    offSection?.()
+  })
   return { parts, sortedParts, message }
 }

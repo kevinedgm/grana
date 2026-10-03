@@ -532,11 +532,13 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     <p class="log" id="fm-short-log">{{ fm.log.corto }}</p>
           </div>
           <h3>Mediano: secciones, valor calculado, signos vitales con unidades, resumen de errores y pie fijo</h3>
+          <p class="pg-lead">Secciones de la Fase 3: «Contacto» con el encabezado <b>al lado</b> si la sección mide al menos <code>space × 200</code> (<code>headerPlacement="auto"</code>); «Datos fiscales» <b>agregable</b> (sin agregar, sus campos no existen para el formulario; «Quitar» descarta y pide confirmación si escribiste); «Preferencias» <b>plegable</b> con línea de estado (plegada, sus campos siguen en el envío; al enviar con errores se abre sola); línea entre secciones con <code>divider</code>. Prueba: pliega «Preferencias», pulsa Guardar y vuelve a plegarla.</p>
           <div class="pg-panel">
     <div class="fm-frame" data-frame :style="fm.frame">
     <g-form id="fm-medium" :density="fm.bench.density" ref="fmMedium" aria-label="Alta de paciente" v-model:dirty="fm.dirty" :errors="fm.mediumErrors" :warnings="fm.mediumWarnings" :labels="fm.labels" :heading-level="4" @submit="fm.done('mediano', $event)" @invalid="fm.bad('mediano', $event)" @reset="fm.resetMedium">
       <g-error-summary :labels="{ title: fm.summaryTitle }"></g-error-summary>
-      <g-form-section title="Información básica" description="Como aparece en la identificación oficial.">
+      <g-form-section id="fm-sec-basica" title="Información básica" description="Como aparece en la identificación oficial.">
+        <template #actions><g-btn id="fm-copy" variant="ghost" color="neutral" @click="fm.copyCita">Copiar de la cita</g-btn></template>
         <g-form-layout>
           <g-form-row>
             <g-input v-model="fm.m.nombre" id="fm-nombre" label="Nombre" name="m-nombre" required autocomplete="given-name" :hint="fm.H('fm-nombre')"></g-input>
@@ -551,7 +553,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
-      <g-form-section title="Contacto">
+      <g-form-section id="fm-sec-contacto" title="Contacto" optional header-placement="auto" divider>
         <g-form-layout>
           <g-form-row>
             <g-input v-model="fm.m.correo" id="fm-correo" label="Correo" name="m-correo" type="email" autocomplete="email"></g-input>
@@ -563,7 +565,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
-      <g-form-section title="Signos vitales" description="Medidas de hoy. La unidad va dentro de la caja: fija con suffix, elegible con GInputGroup.">
+      <g-form-section id="fm-sec-vitales" title="Signos vitales" description="Medidas de hoy. La unidad va dentro de la caja: fija con suffix, elegible con GInputGroup." divider>
         <g-form-layout>
           <g-form-row id="fm-vitals" role="group" aria-label="Signos vitales">
             <g-input-group id="fm-temp" class="g-form-w-sm" label="Temperatura" name="m-temperatura" required :warning="fm.W('fm-temp')">
@@ -583,7 +585,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
-      <g-form-section title="Datos fiscales" description="Solo si el paciente pide factura." optional>
+      <g-form-section id="fm-sec-fiscal" title="Datos fiscales" description="Solo si el paciente pide factura." mode="addable" :labels="fm.fiscalLabels" v-model:added="fm.fiscal" divider>
         <g-form-layout>
           <g-form-row>
             <g-input v-model="fm.m.rfc" id="fm-rfc" class="g-form-w-sm" label="RFC" name="m-rfc" placeholder="GODE561231GR8" autocapitalize="characters" :valid="fm.rfcValid" :error="fm.E('fm-rfc')"></g-input>
@@ -596,13 +598,17 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
-      <g-form-section title="Preferencias">
+      <g-form-section id="fm-sec-pref" title="Preferencias" description="Cómo avisamos de las citas." mode="collapsible" v-model:open="fm.prefOpen" :summary="fm.prefSummary" divider>
         <g-form-layout>
-          <g-checkbox-group v-model="fm.m.avisos" label="Avisos" name="m-avisos" required>
+          <g-form-row>
+            <g-select v-model="fm.m.idioma" id="fm-idioma" label="Idioma de los avisos" name="m-idioma" :options="[{ value: 'es', label: 'Español' }, { value: 'en', label: 'English' }]"></g-select>
+            <g-input v-model="fm.m.horario" id="fm-horario" label="Horario preferido" name="m-horario" placeholder="Mañanas"></g-input>
+          </g-form-row>
+          <g-checkbox-group v-model="fm.m.avisos" id="fm-avisos" label="Avisos" name="m-avisos" required>
             <g-checkbox label="Por correo" value="mail"></g-checkbox>
             <g-checkbox label="Por SMS" value="sms"></g-checkbox>
           </g-checkbox-group>
-          <g-checkbox v-model="fm.m.privacidad" label="Acepto el aviso de privacidad" name="m-privacidad" required></g-checkbox>
+          <g-checkbox v-model="fm.m.privacidad" id="fm-privacidad" label="Acepto el aviso de privacidad" name="m-privacidad" required></g-checkbox>
           <g-switch v-model="fm.m.recordatorios" label="Recordatorios por correo" name="m-recordatorios"></g-switch>
           <g-textarea v-model="fm.m.obs" id="fm-obs" label="Observaciones" name="m-obs" hint="Alergias, medicación o lo que el equipo deba saber."></g-textarea>
         </g-form-layout>
@@ -618,6 +624,31 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <g-btn size="sm" variant="outline" id="fm-server" @click="fm.serverError">Simular error del servidor</g-btn>
     </div>
     <p class="log" id="fm-medium-log">{{ fm.log.mediano }}</p>
+          </div>
+          <h3>Secciones fuera de GForm: encabezado al lado, plegable con acciones, agregable y línea entre secciones</h3>
+          <p class="pg-lead">Las tres con <code>headerPlacement="auto"</code> (en un mismo grupo, el mismo valor): al lado con al menos <code>space × 200</code> de ancho propio, arriba por debajo. Estrecha el contenedor a 320: las acciones de «Notas de la consulta» bajan a su línea para que el título conserve <code>space × 40</code>. Fuera de <code>GForm</code> no hay estado de errores; la línea de estado muestra solo el texto de la aplicación.</p>
+          <div class="pg-panel">
+    <div class="fm-frame" data-frame :style="fm.frame" id="fx-frame">
+      <g-form-section id="fx-1" title="Resumen de la cita" description="Lo que verá el paciente en su confirmación." header-placement="auto" divider>
+        <g-form-layout>
+          <g-form-row>
+            <g-input id="fx-motivo" label="Motivo" name="fx-motivo" model-value="Revisión anual"></g-input>
+            <g-input id="fx-lugar" label="Consultorio" name="fx-lugar" model-value="Consultorio 3"></g-input>
+          </g-form-row>
+        </g-form-layout>
+      </g-form-section>
+      <g-form-section id="fx-2" title="Notas de la consulta" description="Solo las ve el equipo médico." mode="collapsible" v-model:open="fm.fxOpen" summary="2 notas · última de hoy" header-placement="auto" divider>
+        <template #actions><g-btn id="fx-usar" variant="ghost" color="neutral" @click="fm.fxNotas = 'Usar el correo del paciente para los resultados.'">Usar el correo del paciente</g-btn></template>
+        <g-form-layout>
+          <g-textarea id="fx-notas" v-model="fm.fxNotas" label="Notas" name="fx-notas"></g-textarea>
+        </g-form-layout>
+      </g-form-section>
+      <g-form-section id="fx-3" title="Acompañante" description="Si alguien acompaña al paciente." mode="addable" :labels="fm.fxLabels" header-placement="auto" divider>
+        <g-form-layout>
+          <g-input id="fx-acomp" label="Nombre del acompañante" name="fx-acomp"></g-input>
+        </g-form-layout>
+      </g-form-section>
+    </div>
           </div>
           <h3>Receta: dirección (arrastra la esquina: las filas se parten por su propio ancho)</h3>
           <div class="pg-panel">
@@ -2234,7 +2265,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
         const num = (v) => { const n = Number(String(v).replace(/,/g, '').trim()); return String(v).trim() === '' ? NaN : n }
-        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', idioma: 'es', horario: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        const fmFiscalEmpty = () => ({ rfc: '', razon: '', regimen: null, cfdi: null, cpf: '' })
         // Banco de distribución (form.md §12): ancho del contenedor, ayuda + mensajes de los cuatro tipos y etiquetas largas.
         // Los mensajes del banco son props explícitas (se ven siempre); sin el banco, GForm decide cuándo se ven.
         const FM_BENCH = {
@@ -2256,7 +2288,20 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1 }
         const frForm = ref(null)
         const fm = reactive({
-          labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
+          labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', sectionErrors: (n) => (n === 1 ? '1 error' : `${n} errores`), error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
+          // GFormSection Fase 3 (form.md §3): textos completos de la agregable; «Preferencias» abierta para la prueba de distribución
+          fiscalLabels: { add: 'Agregar datos fiscales', remove: 'Quitar datos fiscales', removeTitle: '¿Quitar los datos fiscales?', removeBody: 'Se descartará lo que escribiste en esta sección.', removeConfirm: 'Quitar', removeCancel: 'Cancelar' },
+          fiscal: false,
+          prefOpen: true,
+          fxOpen: false,
+          fxNotas: '',
+          fxLabels: { add: 'Agregar acompañante', remove: 'Quitar acompañante', removeTitle: '¿Quitar al acompañante?', removeConfirm: 'Quitar', removeCancel: 'Cancelar' },
+          get prefSummary() {
+            const m = fm.m
+            const avisos = m.avisos.map((v) => (v === 'mail' ? 'Correo' : 'SMS')).join(' y ')
+            return [avisos ? 'Avisos por ' + avisos : 'Sin medio de aviso', m.idioma === 'en' ? 'English' : 'Español', m.recordatorios ? 'Con recordatorios' : ''].filter(Boolean).join(' · ')
+          },
+          copyCita() { Object.assign(fm.m, { nombre: 'Ana', apellido1: 'Godínez', apellido2: 'Ruiz' }) },
           // value en el formato del autocompletado (tel-country-code) y label legible (form.md §8)
           ladas: [{ value: '+52', label: 'MX +52' }, { value: '+1', label: 'US +1' }, { value: '+502', label: 'GT +502' }, { value: '+57', label: 'CO +57' }],
           bench: { w: '', state: false, long: false, density: 'default' },
@@ -2320,6 +2365,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
               'm-sexo': m.sexo ? '' : 'Elige una opción',
               'm-temp': Number.isNaN(t) ? 'Escribe la temperatura con números, por ejemplo 36.5' : m.unidad === 'F' ? (t < 86 || t > 113 ? 'Escribe una temperatura entre 86 y 113 °F' : '') : t < 30 || t > 45 ? 'Escribe una temperatura entre 30 y 45 °C' : '',
               'm-peso': !m.peso || (num(m.peso) > 0 && num(m.peso) <= 400) ? '' : 'Escribe el peso en kilogramos, entre 1 y 400',
+              // Sin condiciones: sin agregar «Datos fiscales», su registro inactivo hace que no cuente (#288)
+              'm-rfc': !m.rfc.trim() ? 'Escribe el RFC' : /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i.test(m.rfc.trim()) ? '' : 'Escribe el RFC con 12 o 13 caracteres',
               'm-avisos': m.avisos.length ? '' : 'Elige al menos un medio de aviso',
               'm-privacidad': m.privacidad ? '' : 'Acepta el aviso de privacidad para continuar',
               folio: fm.server
@@ -2338,11 +2385,13 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             if (k === 'mediano') { fm.dirty = false; fm.saved = 'Guardado a las ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }
           },
           bad(k, e) { fm.log[k] = `invalid · ${e.errors.length} error(es): ${e.errors.map((x) => x.name).join(', ')}` },
-          resetMedium() { fm.m = fmMediumInit(); fm.server = ''; fm.log.mediano = 'reset' },
+          resetMedium() { fm.m = fmMediumInit(); fm.server = ''; fm.fiscal = false; fm.log.mediano = 'reset' },
           serverError() { fm.server = 'No se pudo guardar: el folio ya existe.'; Vue.nextTick(() => fmMedium.value && fmMedium.value.showErrors()) },
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
+        // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
+        watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
         return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')

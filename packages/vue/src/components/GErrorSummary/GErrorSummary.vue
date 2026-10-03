@@ -68,7 +68,8 @@ async function onLink(event, item) {
     return
   }
   const root = (item.root && item.root()) || control.closest?.('.g-input, .g-textarea, .g-select, .g-datepicker, .g-checkbox-group, .g-radio-group, .g-checkbox, .g-switch, .g-field-group') || control
-  revealAndFocus(control, root)
+  // Abre antes la GFormSection plegada que contiene el control, sin conocerla (evento interno, form.md §3, #287)
+  await revealAndFocus(control, root)
 }
 
 if (isDev) {

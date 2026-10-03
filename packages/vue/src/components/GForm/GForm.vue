@@ -4,7 +4,7 @@
 // Grana presenta y emite intención; no valida ni guarda: `errors` y `warnings` los calcula la aplicación.
 import { computed, inject, mergeProps, nextTick, onBeforeUnmount, provide, reactive, ref, shallowReactive, shallowRef, useAttrs, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { byDocument, formKey, isDev, nextFrame, revealAndFocus, spaceUnit } from './formContext.js'
+import { byDocument, formKey, isDev, nextFrame, requestOpen, revealAndFocus, spaceUnit } from './formContext.js'
 
 defineOptions({ name: 'GForm', inheritAttrs: false })
 
@@ -188,32 +188,49 @@ async function revealAll() {
   return list
 }
 
-function focusFirstError() {
+// Enfoca el primer control con error visible; abre antes la sección plegada que lo contiene (#287). Promise<boolean>
+async function focusFirstError() {
   for (const e of sorted()) {
     if (e.inGroup || e.disabled() || isInactiveEntry(e)) continue
     const t = e.visibleTarget()
     if (t && t.control) {
-      revealAndFocus(t.control, t.root)
+      await revealAndFocus(t.control, t.root)
       return true
     }
   }
   return false
 }
-function focusAfter(list) {
-  if (!list.length) return
-  if (summaryApi) {
-    summaryApi.focus()
-    return
+// Abre todas las GFormSection collapsible plegadas que contienen un error que bloquea (form.md §1 paso 4, §3, #287):
+// la petición sale del control (o la raíz) de cada registro; los errores generales no tienen campo. true si se abrió algo
+function openFor(list) {
+  let opened = false
+  for (const i of list) {
+    const e = i.entry
+    if (!e) continue
+    if (requestOpen(e.control() || e.root())) opened = true
   }
-  const first = list.find((i) => i.id)
-  if (!first) return
-  const control = typeof document !== 'undefined' ? document.getElementById(first.id) : null
-  revealAndFocus(control || first.entry?.control(), first.entry?.root())
+  return opened
+}
+// Mueve el foco al resumen o al primer inválido. Si una sección se abrió, espera un parche (sin `inert`, abierta sin
+// transición) y devuelve una Promise; si no, todo ocurre en el acto, como siempre
+function focusAfter(list) {
+  if (!list.length) return undefined
+  const go = () => {
+    if (summaryApi) {
+      summaryApi.focus()
+      return undefined
+    }
+    const first = list.find((i) => i.id)
+    if (!first) return undefined
+    const control = typeof document !== 'undefined' ? document.getElementById(first.id) : null
+    return revealAndFocus(control || first.entry?.control(), first.entry?.root())
+  }
+  return openFor(list) ? nextTick().then(go) : go()
 }
 
 async function showErrors() {
   const list = await revealAll()
-  focusAfter(list)
+  await focusAfter(list)
   return list
 }
 

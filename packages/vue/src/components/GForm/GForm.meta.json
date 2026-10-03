@@ -18,7 +18,7 @@
     { "name": "disabled", "type": "Boolean", "default": false },
     { "name": "headingLevel", "type": "Number", "default": 3, "values": [2, 3, 4, 5, 6] },
     { "name": "dirty", "type": "Boolean", "default": false, "note": "v-model:dirty" },
-    { "name": "labels", "type": "Object", "default": "{}", "keys": ["optional", "requiredHint", "sectionOptional", "error", "warning", "valid"] }
+    { "name": "labels", "type": "Object", "default": "{}", "keys": ["optional", "requiredHint", "sectionOptional", "sectionErrors", "error", "warning", "valid"], "note": "sectionErrors: String con {count} o Function (count) => String, estado de errores de una GFormSection collapsible plegada (#286)" }
   ],
   "events": [
     { "name": "submit", "payload": "{ event, data: FormData, submitter, novalidate }", "trigger": "Envío sin errores que bloqueen, o con un submitter formnovalidate" },
@@ -30,8 +30,8 @@
     { "name": "default", "purpose": "Resumen, secciones, rejillas y pie" }
   ],
   "exposed": [
-    { "name": "showErrors", "purpose": "Revela todos y mueve el foco sin emitir invalid (errores del servidor)" },
-    { "name": "focusFirstError", "purpose": "Enfoca el primer control con error visible" },
+    { "name": "showErrors", "purpose": "Revela todos, abre las GFormSection plegadas con error que bloquea y mueve el foco sin emitir invalid (errores del servidor). Promise con la lista" },
+    { "name": "focusFirstError", "purpose": "Enfoca el primer control con error visible, abriendo antes la sección plegada que lo contiene (#287)", "returns": "Promise<boolean>" },
     { "name": "resetState", "purpose": "Limpia editados, revelados y dirty sin tocar valores" }
   ],
   "exports": ["useFormField", "formKey"],
@@ -39,5 +39,6 @@
   "publishes": ["--g-form-actions-size"],
   "states": ["default", "readonly", "disabled", "sticky-actions"],
   "inactiveRegistry": "Registro inactivo (form.md §2, #276): los campos dentro de un GFormReveal inactivo siguen registrados (sus nombres siguen cubiertos: sus claves de errors no son generales) pero blocking()/invalid, revealAll() (submit y showErrors()), focusFirstError(), visible()/isShown() y notifyInput/Blur/Change los saltan (notifyChange sigue subiendo dirty). Al pasar a inactivo salen de editado, revelado y de la instantánea del resumen, en silencio. submit sin campo nuevo (#277): FormData ya los excluye por el fieldset disabled",
+  "openBeforeFocus": "Abrir antes de enfocar (form.md §1 paso 4, §3, #287): tras un envío con errores o showErrors(), despacha OPEN_REQUEST ('g-open-request', interno, no exportado) desde el control de cada error que bloquea; si alguna GFormSection collapsible plegada lo cancela (se abre sin animar), espera un nextTick y entonces enfoca el resumen o el primer inválido. revealAndFocus() (formContext.js) hace lo mismo para el enlace del resumen y focusFirstError()",
   "pending": ["Lector de pantalla real: silencio off → polite al enviar, «(opcional)» en el nombre accesible", "Guardia beforeunload (guard) en la Fase 4"]
 }

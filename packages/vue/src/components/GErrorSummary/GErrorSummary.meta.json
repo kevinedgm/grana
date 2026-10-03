@@ -14,7 +14,7 @@
     { "name": "labels", "type": "Object", "default": "{}", "keys": ["title"], "note": "title: String con {count} o Function(count)" }
   ],
   "events": [
-    { "name": "navigate", "payload": "{ name, id, event, preventDefault() }", "trigger": "Antes de llevar al campo; cancelable" }
+    { "name": "navigate", "payload": "{ name, id, event, preventDefault() }", "trigger": "Antes de llevar al campo; cancelable. Sin cancelar: nextTick, abre sin animar la GFormSection plegada que contiene el control (OPEN_REQUEST interno, también fuera de GForm; #287), desplaza y enfoca" }
   ],
   "slots": [],
   "tokens": ["--g-color-danger-text", "--g-color-border"],

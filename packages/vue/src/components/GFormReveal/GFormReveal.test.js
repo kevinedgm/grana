@@ -460,7 +460,7 @@ describe('GForm · registro inactivo (form.md §2, #276)', () => {
     expect(w.find('#a').attributes('aria-invalid')).toBeUndefined()
     expect(document.activeElement.id).toBe('b')
     document.activeElement.blur()
-    expect(form.focusFirstError()).toBe(true)
+    expect(await form.focusFirstError()).toBe(true) // Promise<boolean> desde la Fase 3 de GFormSection (#287)
     expect(document.activeElement.id).toBe('b')
   })
 

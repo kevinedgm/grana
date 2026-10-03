@@ -2,32 +2,76 @@
   "schemaVersion": 1,
   "name": "GFormSection",
   "tag": "g-form-section",
-  "status": "candidate",
+  "status": "draft",
   "since": "0.1.0",
-  "description": "Sección fija de un formulario (una idea) con título, descripción, acciones y ayuda; sin tarjeta ni punto de referencia.",
+  "description": "Sección de un formulario (una idea): fija, plegable (collapsible: hN > button, sus datos siguen en el envío) o agregable (addable: el usuario decide incluirla; «Quitar» descarta), con el encabezado arriba o al lado por su ancho propio y línea opcional con la sección anterior; sin tarjeta ni punto de referencia.",
   "contract": "design/contracts/form.md",
-  "prototype": "design/lab/form/r02/",
+  "prototype": "design/lab/form-section/r01/",
   "style": "packages/vue/src/components/GFormSection/GFormSection.css",
   "props": [
     { "name": "title", "type": "String", "default": null },
     { "name": "description", "type": "String", "default": null },
     { "name": "headingLevel", "type": "Number", "default": null, "values": [2, 3, 4, 5, 6], "note": "Por defecto el de GForm (3)" },
-    { "name": "optional", "type": "Boolean", "default": false }
+    { "name": "optional", "type": "Boolean", "default": false, "note": "Insignia labels.sectionOptional de GForm (fuera del botón en collapsible; no se pinta en addable) y sin «(opcional)» en sus campos" },
+    { "name": "mode", "type": "String", "default": "static", "values": ["static", "collapsible", "addable"], "note": "Estructural: se espera fijo (aviso 8 si cambia)" },
+    { "name": "open", "type": "Boolean", "default": false, "note": "v-model:open; solo collapsible; controlado y no controlado (estado local que parte de la prop y la sigue)" },
+    { "name": "added", "type": "Boolean", "default": false, "note": "v-model:added; solo addable; controlado y no controlado. true por programa no mueve el foco y hace que quitar pida confirmación; false por programa descarta" },
+    { "name": "summary", "type": "String", "default": null, "note": "Solo collapsible y solo plegada: texto de la aplicación en la línea de estado (el slot gana)" },
+    { "name": "headerPlacement", "type": "String", "default": "top", "values": ["top", "auto"], "note": "auto: al lado con ancho propio ≥ space × 200 (ResizeObserver compartido); SSR y antes de medir, arriba" },
+    { "name": "divider", "type": "Boolean", "default": false, "note": "GDivider decorative subtle sin inset, primer hijo, dentro del hueco que precede a la sección; la primera sección no lo dibuja (CSS)" },
+    { "name": "labels", "type": "Object", "default": "{}", "keys": ["add", "remove", "removeTitle", "removeBody", "removeConfirm", "removeCancel"], "note": "Solo addable; textos completos, sin valores por defecto. Sin add no hay «Agregar …»; sin remove no hay «Quitar …»; sin removeTitle, removeConfirm o removeCancel quita sin confirmar" }
   ],
-  "events": [],
+  "events": [
+    { "name": "update:open", "payload": "Boolean", "trigger": "collapsible: el botón abre o pliega, y también al abrirse para llevar a un campo (envío, showErrors(), enlace del resumen, focusFirstError())" },
+    { "name": "update:added", "payload": "Boolean", "trigger": "addable: «Agregar …» (true) o quitar (false, tras confirmar si hubo diálogo). false ES «el usuario quitó la sección»: la aplicación vacía su modelo" }
+  ],
   "slots": [
-    { "name": "lead", "purpose": "Icono decorativo antes del título (normalmente un GIcon; #203). En g-form-section__lead (aria-hidden), primer hijo de __heading, fuera del hN; solo con el slot, sin icono por defecto" },
-    { "name": "title", "purpose": "Título rico (dentro del hN)" },
-    { "name": "description", "purpose": "Descripción rica" },
-    { "name": "actions", "purpose": "Acciones secundarias de la sección" },
+    { "name": "lead", "purpose": "Icono decorativo antes del título (normalmente un GIcon; #203). En g-form-section__lead (aria-hidden): en static/addable inmediatamente antes del hN; en collapsible dentro del botón, después del chevron" },
+    { "name": "title", "purpose": "Título rico (dentro del hN; en collapsible dentro del botón)" },
+    { "name": "description", "purpose": "Descripción rica (en addable sin agregar, debajo de «Agregar …» y unida a él por aria-describedby)" },
+    { "name": "summary", "purpose": "Texto de estado de la aplicación en __summary-text (solo collapsible plegada); admite GIcon o GBadge, nada interactivo" },
+    { "name": "actions", "purpose": "Acciones secundarias de la sección, visibles abierta y plegada (en addable, antes de «Quitar …»)" },
     { "name": "help", "purpose": "Ayuda contextual (GHelper)" },
-    { "name": "default", "purpose": "Campos (normalmente un GFormLayout)" }
+    { "name": "default", "purpose": "Un GFormLayout con los campos (#283), o contenido que no son campos" }
   ],
-  "reserved": ["mode", "open", "added", "headerPlacement", "labels"],
-  "tokens": ["--g-form-section-gap"],
-  "states": ["default", "optional"],
-  "warnings": ["[Grana GFormSection] dentro de un GFormReveal (al montar, al inyectar revealKey): la sección contiene la pregunta y el bloque, no al revés (#279)",
-    "[Grana GFormSection] los campos de una sección van en un `GFormLayout`; el cuerpo de la sección no distribuye (una vez por sección, al montar, si algún hijo directo de __body es la raíz de GInput, GTextarea, GSelect, GDatePicker, GInputGroup, GRadioGroup, GCheckbox, GCheckboxGroup, GSwitch o GFieldGroup, o es un GFormRow o un GFormReveal; #283)"
+  "classes": {
+    "root": ["g-form-section", "g-form-section--mode-{static|collapsible|addable}", "g-form-section--optional", "is-open", "is-added", "is-animating", "is-ready", "is-instant", "is-header-side", "is-actions-below", "[hidden]"],
+    "parts": ["__divider", "__header", "__heading", "__lead", "__title", "__toggle", "__chevron", "__toggle-text", "__summary", "__status", "__summary-text", "__description", "__actions", "__remove", "__help", "__add", "__add-button", "__panel", "__body", "__confirm"],
+    "notes": "is-ready no se pone en static (no hay transición); en collapsible/addable llega después de pintar la primera medida (is-header-side, is-actions-below). is-instant en el mismo parche que is-open al abrir para llevar a un campo; se retira tras doble requestAnimationFrame"
+  },
+  "context": {
+    "provides": [
+      "sectionKey (interno): { optional, register(entry) → unregister, notifyEdit() }; register propaga a las secciones ancestro",
+      "revealKey (interno): { active, fromReveal } transparente salvo en addable (active = agregada y el ancestro activo; fromReveal heredado)"
+    ],
+    "listens": "OPEN_REQUEST ('g-open-request', interno de formContext.js) en __panel: plegada → abre sin animar, emite update:open(true) y cancela el evento (quien lo despachó espera un nextTick)",
+    "errorCount": "Preguntas registradas con error visible (useFormField y useCompositeField registran también en la sección más cercana): un grupo es una; sin partes, advertencias, deshabilitados ni inactivos. Texto: labels.sectionErrors de GForm (String {count} o Function) con circle-alert; solo collapsible plegada; sin texto, sin estado y GForm avisa una vez; fuera de GForm no hay estado"
+  },
+  "focus": "collapsible: el foco se queda en el botón; plegar por programa con el foco dentro → al botón antes de inert (preventScroll). addable: agregar (usuario) → al título (tabindex=-1, preventScroll); agregar por programa → no se mueve; quitar → a «Agregar …» (con confirmación, al recibir closed del GDialog); quitar por programa con el foco dentro → a «Agregar …». Confirmación GDialog alertdialog size sm con «Cancelar» (outline neutral, autofocus) y confirmar (solid danger)",
+  "tokens": ["--g-form-section-gap", "--g-space-1"],
+  "states": ["static", "collapsible abierta", "collapsible plegada", "plegada con errores", "abriendo / plegando", "apertura para navegar (is-instant)", "addable sin agregar", "agregada", "confirmando quitar", "readonly/disabled (sin agregar: hidden)", "al lado", "acciones abajo", "optional", "RTL", "movimiento reducido"],
+  "warnings": [
+    "[Grana GFormSection] 1: open (o v-model:open) con un modo que no es collapsible: se ignora",
+    "[Grana GFormSection] 2: added (o v-model:added) con un modo que no es addable: se ignora",
+    "[Grana GFormSection] 3: summary (prop o slot) con un modo que no es collapsible: no se pinta",
+    "[Grana GFormSection] 4: addable sin labels.add, sin labels.remove o sin removeTitle/removeConfirm/removeCancel (uno por situación; sin removeBody no avisa)",
+    "[Grana GFormSection] 5: optional con addable (sin insignia)",
+    "[Grana GFormSection] 6: sin title ni slot title",
+    "[Grana GFormSection] 7: algo interactivo (a[href], button, input, select, textarea, [tabindex]) en la línea de estado, comprobado al pintarse; un GIcon con label no avisa",
+    "[Grana GFormSection] 8: mode cambia tras montar",
+    "[Grana GFormSection] dentro de un GFormReveal (al montar, solo con revealKey.fromReveal: no por una sección agregable; #279, #288)",
+    "[Grana GFormSection] los campos de una sección van en un `GFormLayout`; el cuerpo de la sección no distribuye (una vez por sección, al montar, si algún hijo directo de __body es la raíz de GInput, GTextarea, GSelect, GDatePicker, GInputGroup, GRadioGroup, GCheckbox, GCheckboxGroup, GSwitch o GFieldGroup, o es un GFormRow o un GFormReveal; #283)",
+    "[Grana GFormSection] GDivider a mano entre dos secciones: «entre secciones la separación es el espacio; para una línea, usa `divider` en la sección» (al montar; #192, #290)",
+    "[Grana GForm] falta labels.sectionErrors (la primera vez que una plegada tiene errores visibles)"
   ],
-  "pending": ["Modos collapsible y addable en la Fase 3"]
+  "verification": {
+    "vitest": "src/components/GFormSection/GFormSection.test.js",
+    "playwright": "design/lab/theme-playground/tests/form-section.spec.mjs (Chromium, Firefox, WebKit); plegable abierta en tests/form-distribution.spec.mjs"
+  },
+  "pending": [
+    "Auditoría de coco de la Fase 3 sobre el componente real con un tema distinto (paso 5)",
+    "README de la Fase 3 (mora-docs)",
+    "Lector de pantalla real (botón con aria-describedby; hN > button; fieldset role=none sin grupo; alertdialog); Safari, iOS y táctil reales; forced-colors real y en Firefox/WebKit; GSelect, GDatePicker, GCheckboxGroup y GFormReveal dentro de plegadas y agregables; secciones dentro de GDialog; rendimiento con muchas secciones",
+    "Buscar en la página dentro de plegadas (hidden=\"until-found\", L11): límite conocido, pendiente no bloqueante"
+  ]
 }

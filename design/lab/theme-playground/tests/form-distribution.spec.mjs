@@ -9,6 +9,8 @@
 // Además: 5 líneas esperadas (signos vitales 1/1/2/3 a 1280/960/720/360; a 360 Calle sola y Ext. · Int. juntos),
 // Tab por las partes de un fusionado en orden del DOM y nombres accesibles por parte. GFormReveal (§14): con un bloque
 // abierto y anidado (#fr-form), sus hijos terminan en el mismo borde que la pila de fuera y empiezan tras barra + sangría.
+// GFormSection (§3, Fase 3): «Preferencias» plegable abierta, «Contacto» con el encabezado al lado según su ancho y las
+// secciones de #fx-frame (fuera de GForm) entran en los mismos casos.
 import { test, expect } from '@playwright/test'
 
 const PAGE = '/packages/vue/playground/index.html'
@@ -156,6 +158,9 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     await open(page, 1440)
     // Un bloque condicional abierto entra en la prueba (#184, form.md §14): factura Sí · persona Moral, con filas dentro
     expect(await page.locator('#sec-form [data-frame] .g-form-reveal.is-open .g-form-reveal.is-open .g-form-row').count(), 'bloque anidado abierto con una fila').toBeGreaterThan(0)
+    // Una GFormSection plegable ABIERTA entra en la prueba (form.md §3 «Verificación (Fase 3)»): «Preferencias» de
+    // #fm-medium, con una fila dentro; y una sección con el encabezado al lado (#fm-sec-contacto a partir de space × 200)
+    expect(await page.locator('#sec-form [data-frame] .g-form-section--mode-collapsible.is-open > .g-form-section__panel .g-form-row').count(), 'plegable abierta con una fila').toBeGreaterThan(0)
     const fails = []
     for (const w of WIDTHS) {
       for (const [state, long] of STATES) {
