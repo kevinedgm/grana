@@ -1,0 +1,143 @@
+/*
+  GAvatar · estilo
+  Dueño: coco. Contrato: design/contracts/avatar.md (DECISIONS.md #293 a #297). Estructura: design/lab/avatar/r01/.
+  Banco y medidas: design/lab/avatar/estilo-banco.html, estilo.md, estilo-verificar.mjs.
+  Reglas: solo var(--g-*) y alias locales var(--_*) (todos con prefijo --_av- y declarados en la propia raíz: el avatar
+  vive dentro de huecos de otros componentes y no debe heredar sus alias); sin @layer (lo aplica el registro); sin valores
+  de respaldo; ningún literal de medida. Constantes geométricas, no tema: 50% (círculo, tokens.md §28) y los factores de
+  proporción del icono y del asentamiento de la imagen (como los de #187 y #205).
+  Excepción nombrada: lee la familia condicional --g-color-cat-K-soft / --g-color-on-cat-K-soft (K = 1 a 12) sin que exista
+  en defaults.css (CAT_FAMILY_READERS de levels.test.js, #294). Una K que el tema no declara deja el var() sin resolver:
+  sin relleno y la letra en el color heredado (límite documentado en el contrato).
+  Sin hover, foco ni pulsado: nunca es interactivo.
+*/
+
+/* ---------- Caja: lado space × n, siempre la misma ---------- */
+.g-avatar {
+  --_av-n: 8;
+  --_av-side: calc(var(--g-space-1) * var(--_av-n));
+  /* Radio: círculo por defecto (persona); el cuadrado (entidad) toma un paso de la escala del tema por tamaño. Nunca
+     --g-radius-shape (#8, #23: es la forma de las acciones) */
+  --_av-radius: 50%;
+  --_av-square: var(--g-radius-sm);
+  /* Color: neutro por defecto; [data-cat] lo reasigna */
+  --_av-bg: var(--g-color-neutral-soft);
+  --_av-ink: var(--g-color-on-neutral-soft);
+  /* Tipo de las iniciales por tamaño (≥ 12px; dos letras anchas caben desde md, medido) */
+  --_av-fs: var(--g-text-body-sm-size);
+  --_av-lh: var(--g-text-body-sm-line);
+  --_av-track: var(--g-text-body-sm-tracking);
+  /* Icono de respaldo: la mitad del lado, nunca menor que un GIcon junto al mismo texto (1em) */
+  --_av-icon: max(1em, calc(var(--_av-side) * 0.5));
+
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+  inline-size: var(--_av-side);
+  block-size: var(--_av-side);
+  min-inline-size: var(--_av-side);
+  overflow: hidden;
+  border-radius: var(--_av-radius);
+  background: var(--_av-bg);
+  color: var(--_av-ink);
+  font-family: var(--g-font-ui);
+  font-size: var(--_av-fs);
+  line-height: var(--_av-lh);
+  font-weight: var(--g-text-title-sm-weight);
+  letter-spacing: var(--_av-track);
+  font-style: normal;
+  text-transform: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Escala: xs 5 · sm 6 · md 8 · lg 10 · xl 16 (× space) */
+.g-avatar--size-xs { --_av-n: 5;  --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
+.g-avatar--size-sm { --_av-n: 6;  --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
+.g-avatar--size-md { --_av-n: 8;  --_av-fs: var(--g-text-body-sm-size); --_av-lh: var(--g-text-body-sm-line); --_av-track: var(--g-text-body-sm-tracking); --_av-square: var(--g-radius-sm); }
+.g-avatar--size-lg { --_av-n: 10; --_av-fs: var(--g-text-body-size); --_av-lh: var(--g-text-body-line); --_av-track: var(--g-text-body-tracking); --_av-square: var(--g-radius-md); }
+.g-avatar--size-xl { --_av-n: 16; --_av-fs: var(--g-text-title-sm-size); --_av-lh: var(--g-text-title-sm-line); --_av-track: var(--g-text-title-sm-tracking); --_av-square: var(--g-radius-lg); }
+
+/* Forma: la dice el contenido (persona o entidad), no el tema */
+.g-avatar--shape-square { --_av-radius: var(--_av-square); }
+
+/* ---------- Color de categoría (solo con data-cat; par -soft / on-…-soft garantizado ≥ 4.5:1) ---------- */
+.g-avatar[data-cat="1"]  { --_av-bg: var(--g-color-cat-1-soft);  --_av-ink: var(--g-color-on-cat-1-soft); }
+.g-avatar[data-cat="2"]  { --_av-bg: var(--g-color-cat-2-soft);  --_av-ink: var(--g-color-on-cat-2-soft); }
+.g-avatar[data-cat="3"]  { --_av-bg: var(--g-color-cat-3-soft);  --_av-ink: var(--g-color-on-cat-3-soft); }
+.g-avatar[data-cat="4"]  { --_av-bg: var(--g-color-cat-4-soft);  --_av-ink: var(--g-color-on-cat-4-soft); }
+.g-avatar[data-cat="5"]  { --_av-bg: var(--g-color-cat-5-soft);  --_av-ink: var(--g-color-on-cat-5-soft); }
+.g-avatar[data-cat="6"]  { --_av-bg: var(--g-color-cat-6-soft);  --_av-ink: var(--g-color-on-cat-6-soft); }
+.g-avatar[data-cat="7"]  { --_av-bg: var(--g-color-cat-7-soft);  --_av-ink: var(--g-color-on-cat-7-soft); }
+.g-avatar[data-cat="8"]  { --_av-bg: var(--g-color-cat-8-soft);  --_av-ink: var(--g-color-on-cat-8-soft); }
+.g-avatar[data-cat="9"]  { --_av-bg: var(--g-color-cat-9-soft);  --_av-ink: var(--g-color-on-cat-9-soft); }
+.g-avatar[data-cat="10"] { --_av-bg: var(--g-color-cat-10-soft); --_av-ink: var(--g-color-on-cat-10-soft); }
+.g-avatar[data-cat="11"] { --_av-bg: var(--g-color-cat-11-soft); --_av-ink: var(--g-color-on-cat-11-soft); }
+.g-avatar[data-cat="12"] { --_av-bg: var(--g-color-cat-12-soft); --_av-ink: var(--g-color-on-cat-12-soft); }
+
+/* ---------- Respaldo: iniciales o icono, siempre en el flujo ---------- */
+.g-avatar__initials {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  /* Monograma: cifras y signos a la altura de las mayúsculas (Ø, 3M) y sin ligaduras que fundan dos letras en una */
+  font-variant-numeric: lining-nums;
+  font-variant-ligatures: none;
+  font-kerning: normal;
+}
+.g-avatar__icon {
+  grid-area: 1 / 1;
+  inline-size: var(--_av-icon);
+  block-size: var(--_av-icon);
+}
+/* Con la imagen cargada, el respaldo queda oculto sin salir del flujo (la caja no depende del contenido) */
+.g-avatar.is-loaded > :not(.g-avatar__img) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- Imagen apilada encima del respaldo; invisible hasta load ---------- */
+.g-avatar__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  object-fit: cover;
+  border-radius: inherit;
+  opacity: 0;
+}
+.g-avatar.is-loaded > .g-avatar__img { opacity: 1; }
+
+/* ---------- Movimiento (solo sin preferencia de reducirlo) ----------
+   Personalidad: la imagen no «aparece encima», se REVELA desde las iniciales. Las iniciales se desvanecen mientras la
+   foto entra un pelo ampliada y se asienta (como un enfoque); el respaldo se oculta solo al final, así nunca queda el
+   relleno vacío entre los dos (visibility es discreta: sigue visible hasta el final del fundido al ocultarse y vuelve
+   al instante al mostrarse). Y la forma se transforma (círculo ↔ cuadrado) en lugar de saltar. */
+@media (prefers-reduced-motion: no-preference) {
+  .g-avatar {
+    transition: border-radius var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-avatar__img {
+    scale: 1.06;
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      scale calc(var(--g-duration-fast) * 2) var(--g-ease-standard);
+  }
+  .g-avatar.is-loaded > .g-avatar__img { scale: 1; }
+  .g-avatar > :not(.g-avatar__img) {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      visibility var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+/* ---------- Colores forzados: el relleno desaparece; un borde conserva la forma sin cambiar el tamaño ---------- */
+@media (forced-colors: active) {
+  .g-avatar {
+    border: var(--g-border-width) solid CanvasText;
+    color: CanvasText;
+  }
+}

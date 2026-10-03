@@ -250,9 +250,17 @@
   font-weight: var(--g-text-title-sm-weight);
   overflow: hidden;
 }
-/* El contenido del consumidor (avatar, imagen) llena la caja; un icono conserva su tamaño */
-.g-card__lead > * { inline-size: 100%; block-size: 100%; object-fit: cover; }
+/* El contenido del consumidor (imagen, iniciales propias) llena la caja; un icono conserva su tamaño */
+.g-card__lead > :not(.g-avatar) { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .g-card__lead > .g-icon { inline-size: calc(var(--g-space-1) * 5); block-size: calc(var(--g-space-1) * 5); }
+/* Con un GAvatar (hijo directo, #295): una sola forma, la del avatar. El lead pierde borde, relleno, radio y recorte y
+   no estira al avatar (lg = space × 10 = la caja). Mientras carga, el esqueleto no cambia (regla de is-loading) */
+.g-card:not(.is-loading) .g-card__lead:has(> .g-avatar) {
+  border-width: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
 
 .g-card__aside {
   flex: none;

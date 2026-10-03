@@ -234,6 +234,15 @@
 .g-badge-anchor--top-start > .g-badge { inset-block-start: 0; inset-inline-start: 0; translate: calc(var(--_dir) * -50%) -50%; }
 .g-badge-anchor--bottom-end > .g-badge { inset-block-end: 0; inset-inline-end: 0; translate: calc(var(--_dir) * 50%) 50%; }
 .g-badge-anchor--bottom-start > .g-badge { inset-block-end: 0; inset-inline-start: 0; translate: calc(var(--_dir) * -50%) 50%; }
+/* Sobre un GAvatar circular (#297): el centro de la insignia va al CONTORNO a 45°, no a la esquina de la caja. El punto
+   a 45° está a (1 − 1/√2) · r de la esquina en cada eje, y r es el 50% del lado: constante geométrica, no un token
+   (proporción del componente, como las de #187). Los porcentajes de inset se resuelven contra la caja del ancla, que es
+   la del avatar. Sobre un square, la esquina como siempre */
+.g-badge-anchor:has(> .g-avatar--shape-circle) { --_contour: calc(50% - 50% / sqrt(2)); }
+.g-badge-anchor--top-end:has(> .g-avatar--shape-circle) > .g-badge { inset-block-start: var(--_contour); inset-inline-end: var(--_contour); }
+.g-badge-anchor--top-start:has(> .g-avatar--shape-circle) > .g-badge { inset-block-start: var(--_contour); inset-inline-start: var(--_contour); }
+.g-badge-anchor--bottom-end:has(> .g-avatar--shape-circle) > .g-badge { inset-block-end: var(--_contour); inset-inline-end: var(--_contour); }
+.g-badge-anchor--bottom-start:has(> .g-avatar--shape-circle) > .g-badge { inset-block-end: var(--_contour); inset-inline-start: var(--_contour); }
 
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {

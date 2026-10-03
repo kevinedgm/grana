@@ -157,6 +157,23 @@
 .g-select__button:has(.g-select__value > .g-select__icon) .g-select__prepend {
   display: none;
 }
+/* Con un GAvatar xs (hijo directo del hueco, #295): el hueco mide space × 5, no 1.25em (la caja del avatar no depende
+   del texto). En la opción, la fila flex lo centra. Junto al valor, el avatar se alinea arriba con un margen de
+   (interlineado − lado) / 2: su centro cae en el centro de la línea, que es el del texto, y su caja de margen mide
+   exactamente el interlineado (la línea no crece). Si el lado supera el interlineado, el valor gana ese exceso como
+   relleno (para que su overflow no recorte el avatar) y lo devuelve con un margen negativo: el control no cambia */
+.g-select__icon:has(> .g-avatar) {
+  inline-size: calc(var(--g-space-1) * 5);
+  block-size: calc(var(--g-space-1) * 5);
+}
+.g-select__value > .g-select__icon:has(> .g-avatar) {
+  vertical-align: top;
+  margin-block: calc((var(--_lh) - var(--g-space-1) * 5) / 2);
+}
+.g-select__value:has(> .g-select__icon > .g-avatar) {
+  padding-block: max(0px, calc((var(--g-space-1) * 5 - var(--_lh)) / 2));
+  margin-block: min(0px, calc((var(--_lh) - var(--g-space-1) * 5) / 2));
+}
 /* Flecha: chevron-down de Lucide (GIcon, decorativo); gira al abrir */
 .g-select__arrow {
   flex: none;

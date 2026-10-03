@@ -173,6 +173,15 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   font-size: var(--g-text-caption-size);
   font-weight: var(--g-text-action-weight);
 }
+/* Con un GAvatar (hijo directo de leading-{key}, #295): el hueco adopta la caja del avatar (md = space × 8) y pierde su
+   relleno, su radio y su recorte (un square se ve cuadrado). El leading de texto no cambia */
+.g-table__leading:has(> .g-avatar) {
+  inline-size: auto;
+  block-size: auto;
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+}
 .g-table__text {
   display: flex;
   flex-direction: column;

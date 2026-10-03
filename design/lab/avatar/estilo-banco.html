@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAvatar · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/avatar.md («Estructura» y «Clases») con el CSS real de GAvatar.css y
+     de los cinco anfitriones tocados (GCard, GTable, GMenu, GSelect, GBadge; el de dist/ y, encima, el de src/ dentro de
+     grana.components, como lo registra bruno) y los componentes reales de dist/. XAvatar pinta lo que pintará GAvatar.vue
+     (bruno) y nada más: raíz <span> con --size-*, --shape-*, --content-*, is-loading/is-loaded/is-failed, data-cat; el
+     respaldo (__initials con dir="auto" translate="no", o el svg g-icon g-avatar__icon) y la <img alt=""> apilada. Las
+     reglas de iniciales y el hash (FNV-1a sobre UTF-8 + fmix32) son las del contrato, aquí solo para pintar. No es documentación.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4193  →  /design/lab/avatar/estilo-banco.html
+     Parámetros: ?tema=cat12 (por defecto) | marca   ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+     Verificación: node design/lab/avatar/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GAvatar/GAvatar.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GCard/GCard.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GTable/GTable.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GMenu/GMenu.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSelect/GSelect.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GBadge/GBadge.css") layer(grana.components);
+</style>
+<link id="tema" rel="stylesheet" href="./r01/tema-cat12.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('tema') === 'marca') document.getElementById('tema').href = './r01/tema-marca-cat8.css'
+  if (q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${q.get('theme')}.css`
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1280px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:36px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);color:var(--g-color-text);border:1px solid var(--g-color-border);border-radius:12px;padding:20px;min-inline-size:0}
+  .host + .host{margin-block-start:12px}
+  .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px;align-items:start}
+  .pair > .host + .host{margin:0}
+  .sizes{display:grid;grid-template-columns:auto repeat(5,auto);gap:12px 20px;align-items:center;justify-items:center;inline-size:max-content;max-inline-size:100%;overflow-x:auto}
+  .sizes > .rh{justify-self:start;font-size:13px;color:var(--g-color-text-muted)}
+  .sizes > .ch{font:12px/1.3 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+  .sw{display:flex;flex-direction:column;align-items:center;gap:4px;font:11px/1.2 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);inline-size:52px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+  .pickers{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+  .pickers > div{inline-size:min(100%,280px)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GAvatar · banco de estilo</h1>
+<p class="cap"><b>coco</b> · Caja <code>space × 5/6/8/10/16</code>; iniciales en <code>caption</code> (xs, sm), <code>body-sm</code> (md), <code>body</code> (lg) y <code>title-sm</code> (xl) con el peso de <code>title-sm</code>; <code>square</code> con <code>radius-xs/xs/sm/md/lg</code>; neutro <code>neutral-soft</code> / <code>on-neutral-soft</code> y <code>data-cat</code> con <code>cat-k-soft</code> / <code>on-cat-k-soft</code>. La imagen se revela desde las iniciales (fundido cruzado y asentamiento) y la forma se transforma al cambiar <code>shape</code>; nada de eso con movimiento reducido.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Forma <select v-model="shape" id="t-shape"><option value="circle">circle</option><option value="square">square</option></select></label>
+  <label>Esquema <select v-model="scheme" id="t-scheme"><option value="light">Claro</option><option value="dark">Oscuro</option></select></label>
+  <label>Dirección <select v-model="dir" id="t-dir"><option value="ltr">LTR</option><option value="rtl">RTL</option></select></label>
+</div>
+
+<div id="stage" :data-theme="scheme" :dir="dir">
+
+<h2 class="b">1 · Escala × fuentes (space 4 y 5)</h2>
+<div class="host">
+  <p class="tag">space = 4px</p>
+  <div class="sizes">
+    <span></span><span class="ch" v-for="s in SIZES" :key="s">{{ s }}</span>
+    <template v-for="src in SOURCES" :key="src.id">
+      <span class="rh">{{ src.label }}</span>
+      <x-avatar v-for="s in SIZES" :key="s" :size="s" :shape="shape" v-bind="src.props" :data-test="'size-' + src.id + '-' + s"></x-avatar>
+    </template>
+  </div>
+</div>
+<div class="host" style="--g-space-1: 5px">
+  <p class="tag">space = 5px</p>
+  <div class="sizes">
+    <span></span><span class="ch" v-for="s in SIZES" :key="s">{{ s }}</span>
+    <template v-for="src in SOURCES" :key="src.id">
+      <span class="rh">{{ src.label }}</span>
+      <x-avatar v-for="s in SIZES" :key="s" :size="s" :shape="shape" v-bind="src.props" :data-test="'size5-' + src.id + '-' + s"></x-avatar>
+    </template>
+  </div>
+</div>
+
+<h2 class="b">2 · Iniciales por tamaño y escritura (deben caber sin recorte)</h2>
+<div class="host">
+  <div class="row" id="fit" v-for="t in FIT" :key="t.text" style="margin-block-end:8px">
+    <span class="tag" style="inline-size:7em">{{ t.text }}</span>
+    <x-avatar v-for="s in t.sizes" :key="s" :size="s" :shape="shape" :initials="t.text" :data-fit="t.text" :data-size="s"></x-avatar>
+  </div>
+</div>
+
+<h2 class="b">3 · Color: neutro y categorías (claro y oscuro)</h2>
+<div class="pair">
+  <div class="host" data-theme="light" id="col-light">
+    <p class="tag">Claro</p>
+    <div class="row">
+      <span class="sw" v-for="k in CATS" :key="k"><x-avatar size="md" :shape="shape" initials="AL" :color="k" :data-test="'c-' + k"></x-avatar>{{ k }}</span>
+      <span class="sw" v-for="k in CATS" :key="'i' + k"><x-avatar size="md" :shape="shape" :color="k" :data-test="'ci-' + k"></x-avatar>i{{ k }}</span>
+      <span class="sw"><x-avatar size="md" :shape="shape" initials="AL" data-test="c-neutral"></x-avatar>neutro</span>
+      <span class="sw"><x-avatar size="md" :shape="shape" data-test="ci-neutral"></x-avatar>icono</span>
+    </div>
+  </div>
+  <div class="host" data-theme="dark" id="col-dark">
+    <p class="tag">Oscuro</p>
+    <div class="row">
+      <span class="sw" v-for="k in CATS" :key="k"><x-avatar size="md" :shape="shape" initials="AL" :color="k" :data-test="'c-' + k"></x-avatar>{{ k }}</span>
+      <span class="sw" v-for="k in CATS" :key="'i' + k"><x-avatar size="md" :shape="shape" :color="k" :data-test="'ci-' + k"></x-avatar>i{{ k }}</span>
+      <span class="sw"><x-avatar size="md" :shape="shape" initials="AL" data-test="c-neutral"></x-avatar>neutro</span>
+      <span class="sw"><x-avatar size="md" :shape="shape" data-test="ci-neutral"></x-avatar>icono</span>
+    </div>
+  </div>
+</div>
+<div class="host">
+  <p class="tag">Derivado con :categories="8"</p>
+  <div class="row" id="hash"><x-avatar v-for="p in PEOPLE" :key="p" size="md" :shape="shape" :name="p" :categories="8" :data-name="p"></x-avatar></div>
+</div>
+
+<h2 class="b">4 · Imagen: cargando, cargada, fallida (sin salto)</h2>
+<div class="host" id="img-states">
+  <p class="row"><x-avatar size="lg" :shape="shape" :src="IMG.photo" name="Ana María López" data-test="img-ok"></x-avatar><span data-next="img-ok">Cargada</span></p>
+  <p class="row"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/lento.png" name="Luis Torres" :categories="8" data-test="img-slow"></x-avatar><span data-next="img-slow">Cargando hasta load</span></p>
+  <p class="row"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/roto.png" name="Marta Gil" data-test="img-broken"></x-avatar><span data-next="img-broken">Fallida → iniciales</span></p>
+  <p class="row"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/roto2.png" data-test="img-broken-noname"></x-avatar><span data-next="img-broken-noname">Fallida sin nombre → icono</span></p>
+  <p class="row"><x-avatar size="lg" :shape="shape" :src="IMG.wide" name="Panorámica" data-test="img-wide"></x-avatar><span>3:1 → cover</span></p>
+  <p class="row"><x-avatar size="xl" :shape="shape" :src="swapSrc" name="Rosa Vidal" data-test="img-swap"></x-avatar><button type="button" id="btn-swap" @click="swap">Cambiar src</button></p>
+</div>
+
+<h2 class="b">5 · Huecos de los componentes reales</h2>
+<h3 class="tag">5.1 · GCard lead</h3>
+<div class="cards" id="cards">
+  <g-card id="card-icon" title="Proyecto Atlas" subtitle="Icono (sin cambio)" :labels="cdLabels"><template #lead><svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" v-html="LUCIDE['building-2']"></svg></template></g-card>
+  <g-card id="card-ini" title="Ana María López" subtitle="Avatar lg, iniciales" :labels="cdLabels"><template #lead><x-avatar size="lg" :shape="shape" name="Ana María López" :categories="12" data-test="card-ini"></x-avatar></template></g-card>
+  <g-card id="card-img" title="Luis Torres" subtitle="Avatar lg, imagen" :labels="cdLabels"><template #lead><x-avatar size="lg" :shape="shape" :src="IMG.photo" name="Luis Torres" data-test="card-img"></x-avatar></template></g-card>
+  <g-card id="card-sq" title="Grana Labs" subtitle="Entidad: square" :labels="cdLabels"><template #lead><x-avatar size="lg" shape="square" name="Grana Labs" :categories="12" data-test="card-sq"></x-avatar></template></g-card>
+  <g-card id="card-loading" title="Cargando" :loading="true" :labels="cdLabels"><template #lead><x-avatar size="lg" :shape="shape" name="Ana María López"></x-avatar></template></g-card>
+  <g-card id="card-loading-icon" title="Cargando" :loading="true" :labels="cdLabels"><template #lead><svg class="g-icon" viewBox="0 0 24 24" aria-hidden="true"></svg></template></g-card>
+</div>
+
+<h3 class="tag">5.2 · GTable leading-{key} (md) y cell-{key} (sm, con label)</h3>
+<div class="host" style="padding:0;overflow:auto">
+  <g-table id="tbl" :columns="tbColumns" :rows="tbRows" caption="Clientes" density="compact" :labels="tbLabels">
+    <template #leading-cliente="{ row }"><x-avatar size="md" :shape="row.id === 2 ? 'square' : shape" :name="row.nombre" :categories="12" :data-test="'tbl-lead-' + row.id"></x-avatar></template>
+    <template #cell-resp="{ row }"><x-avatar size="sm" :shape="shape" :name="row.resp" :label="row.resp" :categories="12"></x-avatar></template>
+  </g-table>
+</div>
+<div class="host" style="padding:0;overflow:auto">
+  <g-table id="tbl-text" :columns="tbColumnsText" :rows="tbRows" caption="Clientes (leading de texto)" density="compact" :labels="tbLabels"></g-table>
+</div>
+
+<h3 class="tag">5.3 · GSelect (slot icon) y GMenu (slot icon, item.icon opaco)</h3>
+<div class="host pickers" id="pickers">
+  <div v-for="sz in SELSIZES" :key="sz">
+    <g-select :id="'sel-av-' + sz" :size="sz" v-model="selPerson" :options="selPeople" :label="'Responsable ' + sz" placeholder="Elige">
+      <template #icon="{ option }"><x-avatar size="xs" :shape="shape" :name="option.label" :categories="12"></x-avatar></template>
+    </g-select>
+  </div>
+  <div v-for="sz in SELSIZES" :key="'p' + sz">
+    <g-select :id="'sel-plain-' + sz" :size="sz" v-model="selPerson" :options="selPeople" :label="'Sin avatar ' + sz" placeholder="Elige"></g-select>
+  </div>
+  <div style="--g-space-1: 5px">
+    <g-select id="sel-av-s5" v-model="selPerson" :options="selPeople" label="Responsable (space 5)" placeholder="Elige">
+      <template #icon="{ option }"><x-avatar size="xs" :shape="shape" :name="option.label" :categories="12"></x-avatar></template>
+    </g-select>
+  </div>
+  <div style="--g-space-1: 5px">
+    <g-select id="sel-plain-s5" v-model="selPerson" :options="selPeople" label="Sin avatar (space 5)" placeholder="Elige"></g-select>
+  </div>
+  <div>
+    <g-menu v-model="mnOpen" :items="mnItems" label="Asignar a" class="mn-mixed">
+      <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-test="mn-trigger">Asignar a…</g-btn></template>
+      <template #icon="{ item }"><x-avatar v-if="typeof item.icon === 'object'" v-bind="item.icon" size="xs" :shape="shape" :categories="12"></x-avatar><svg v-else class="g-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" v-html="LUCIDE[item.icon]"></svg></template>
+    </g-menu>
+  </div>
+  <div>
+    <g-menu v-model="mnOpen2" :items="mnIcons" label="Acciones" class="mn-icons">
+      <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-test="mn2-trigger">Acciones…</g-btn></template>
+    </g-menu>
+  </div>
+</div>
+
+<h2 class="b">6 · Presencia: GBadge anclada (contorno a 45° sobre círculo; esquina sobre cuadrado)</h2>
+<div class="host row" id="status">
+  <g-badge v-for="pl in PLACEMENTS" :key="pl" shape="circle" color="success" label="En línea" :placement="pl" :data-pl="pl" data-shape="circle"><template #anchor><x-avatar size="lg" shape="circle" name="Ana María López" :categories="12"></x-avatar></template></g-badge>
+  <g-badge shape="diamond" color="warning" label="Ausente" placement="bottom-end" data-pl="bottom-end" data-shape="circle-xl"><template #anchor><x-avatar size="xl" shape="circle" :src="IMG.photo" name="Luis Torres"></x-avatar></template></g-badge>
+  <g-badge shape="circle" color="success" label="En línea" placement="bottom-end" data-pl="bottom-end" data-shape="circle-sm"><template #anchor><x-avatar size="sm" shape="circle" name="Marta Gil"></x-avatar></template></g-badge>
+  <g-badge shape="square" color="danger" label="Ocupado" placement="bottom-end" data-pl="bottom-end" data-shape="square"><template #anchor><x-avatar size="lg" shape="square" name="Grana Labs" :categories="12"></x-avatar></template></g-badge>
+</div>
+
+</div><!-- /stage -->
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, h, ref, computed, watch, onMounted } = Vue
+const LUCIDE = window.LUCIDE_ICONS
+
+// ---------- Reglas del contrato (avatar.md «Iniciales» y «Hash»), solo para pintar el marcado ----------
+const SEG = Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null
+const graphemes = (s) => (SEG ? Array.from(SEG.segment(s), (x) => x.segment) : Array.from(s))
+const WIDE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u
+const upper = (g) => { const u = g.toUpperCase(); return graphemes(u).length === 1 ? u : g }
+const firstLetter = (w) => { for (const g of graphemes(w)) if (/^[\p{L}\p{N}]/u.test(g)) return g; return '' }
+function deriveInitials(name, max) {
+  if (typeof name !== 'string') return ''
+  const f = name.normalize('NFC').trim().split(/\s+/u).map(firstLetter).filter(Boolean)
+  if (!f.length) return ''
+  let out = f.length > 1 ? [f[0], f[f.length - 1]] : [f[0]]
+  if (max === 1 || out.some((g) => WIDE.test(g))) out = [out[0]]
+  return out.map(upper).join('')
+}
+function explicitInitials(s, max) {
+  if (typeof s !== 'string' || !s.trim()) return ''
+  const g = graphemes(s.normalize('NFC').trim()).filter((x) => !/^\s+$/u.test(x))
+  const lim = max === 1 || g.slice(0, 2).some((x) => WIDE.test(x)) ? 1 : 2
+  return g.slice(0, lim).join('')
+}
+function avatarCategory(key, n) {
+  const s = String(key).normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()
+  if (!s) return null
+  let hh = 0x811c9dc5
+  for (const b of new TextEncoder().encode(s)) { hh ^= b; hh = Math.imul(hh, 0x01000193) }
+  hh ^= hh >>> 16; hh = Math.imul(hh, 0x85ebca6b); hh ^= hh >>> 13; hh = Math.imul(hh, 0xc2b2ae35); hh ^= hh >>> 16
+  return ((hh >>> 0) % n) + 1
+}
+
+// ---------- XAvatar: el marcado exacto del contrato (lo que pintará GAvatar.vue) ----------
+const XAvatar = defineComponent({
+  name: 'XAvatar',
+  inheritAttrs: false,
+  props: { src: String, name: String, initials: String, icon: String, size: { type: String, default: 'md' }, shape: { type: String, default: 'circle' }, color: [String, Number], categories: { type: Number, default: 0 }, colorKey: [String, Number], label: String },
+  setup(props, { attrs }) {
+    const state = ref(props.src ? 'loading' : 'none')
+    const img = ref(null)
+    watch(() => props.src, (s) => { state.value = s ? 'loading' : 'none' })
+    onMounted(() => { const el = img.value; if (el && el.complete && state.value === 'loading') state.value = el.naturalWidth > 0 ? 'loaded' : 'failed' })
+    const max = computed(() => (props.size === 'xs' || props.size === 'sm' ? 1 : 2))
+    const fb = computed(() => {
+      const ex = explicitInitials(props.initials, max.value); if (ex) return { kind: 'initials', text: ex }
+      if (props.icon && LUCIDE[props.icon]) return { kind: 'icon', icon: props.icon }
+      const d = deriveInitials(props.name, max.value); if (d) return { kind: 'initials', text: d }
+      return { kind: 'icon', icon: 'user' }
+    })
+    const cat = computed(() => {
+      const c = props.color
+      if (c === 'neutral') return null
+      if (c !== undefined && c !== null && c !== '') { const k = Number(c); if (Number.isInteger(k) && k >= 1 && k <= 12) return k }
+      const n = props.categories, key = props.colorKey ?? props.name
+      return n >= 1 && n <= 12 && key != null && String(key).trim() ? avatarCategory(key, n) : null
+    })
+    return () => {
+      const f = fb.value
+      return h('span', {
+        ...attrs,
+        class: ['g-avatar', `g-avatar--size-${props.size}`, `g-avatar--shape-${props.shape}`, `g-avatar--content-${f.kind}`,
+          { 'is-loading': state.value === 'loading', 'is-loaded': state.value === 'loaded', 'is-failed': state.value === 'failed' }, attrs.class],
+        'data-cat': cat.value ?? undefined,
+        ...(props.label ? { role: 'img', 'aria-label': props.label } : { 'aria-hidden': 'true' })
+      }, [
+        f.kind === 'initials'
+          ? h('span', { class: 'g-avatar__initials', dir: 'auto', translate: 'no' }, f.text)
+          : h('svg', { class: 'g-icon g-avatar__icon', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false', innerHTML: LUCIDE[f.icon] }),
+        props.src && state.value !== 'failed'
+          ? h('img', { ref: img, key: props.src, class: 'g-avatar__img', src: props.src, alt: '', loading: 'lazy', decoding: 'async', draggable: 'false',
+              onLoad: () => { if (state.value === 'loading') state.value = 'loaded' }, onError: () => { state.value = 'failed' } })
+          : null
+      ])
+    }
+  }
+})
+
+// Imágenes sin red: gradientes abstractos en canvas
+function photo(w, hgt, a, b) {
+  const c = document.createElement('canvas'); c.width = w; c.height = hgt
+  const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, w, hgt)
+  g.addColorStop(0, a); g.addColorStop(1, b); x.fillStyle = g; x.fillRect(0, 0, w, hgt)
+  return c.toDataURL('image/png')
+}
+const IMG = { photo: photo(128, 128, '#8a8a8a', '#3d3d3d'), wide: photo(384, 128, '#b0b0b0', '#505050'), alt: photo(128, 128, '#6d6d6d', '#cfcfcf') }
+window.__IMG = IMG
+
+const app = createApp({
+  setup() {
+    const shape = ref('circle'), scheme = ref('light'), dir = ref('ltr')
+    const swapSrc = ref(IMG.photo)
+    const swap = () => { swapSrc.value = swapSrc.value === IMG.photo ? IMG.alt : IMG.photo }
+    const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+    const SOURCES = [
+      { id: 'img', label: 'Imagen', props: { src: IMG.photo, name: 'Ana María López' } },
+      { id: 'ini', label: 'Iniciales', props: { name: 'Ana María López' } },
+      { id: 'icon', label: 'Icono', props: {} }
+    ]
+    // Dos letras anchas en md..xl; una en xs/sm (el componente corta a una; aquí se mide la que se pinta)
+    const FIT = [
+      { text: 'WM', sizes: SIZES }, { text: 'ЖШ', sizes: SIZES }, { text: 'ÉZ', sizes: SIZES }, { text: 'ŁŻ', sizes: SIZES },
+      { text: 'مع', sizes: SIZES }, { text: '李', sizes: SIZES }, { text: '김', sizes: SIZES }, { text: 'Ø', sizes: SIZES }, { text: 'W', sizes: SIZES }
+    ]
+    const CATS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    const PEOPLE = ['Ana María López', 'Luis Torres', 'Marta Gil', 'Rosa Vidal', '李小龙', 'محمد علي', 'Zoë', 'Grana Labs']
+    const cdLabels = { menu: 'Acciones de', loading: 'Cargando', loaded: 'Cargada', retry: 'Reintentar', empty: 'Vacío' }
+    const tbLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', sortBy: 'Ordenar por', ascending: 'ascendente', descending: 'descendente', sorted: 'Ordenado por {label}, {direction}', loading: 'Cargando…', empty: 'Sin clientes.', emptyFiltered: 'Sin resultados.', clearFilters: 'Limpiar filtros', results: '{count} resultados' }
+    const tbRows = [
+      { id: 1, nombre: 'Ana María López', correo: 'ana@ejemplo.mx', ini: 'AL', resp: 'Luis Torres', monto: '$12,400' },
+      { id: 2, nombre: 'Grana Labs', correo: 'hola@grana.dev', ini: 'GL', resp: 'Marta Gil', monto: '$8,150' },
+      { id: 3, nombre: '李小龙', correo: 'li@ejemplo.cn', ini: '李', resp: 'Rosa Vidal', monto: '$3,920' }
+    ]
+    const tbColumns = [{ key: 'cliente', label: 'Cliente', title: 'nombre', subtitle: 'correo' }, { key: 'resp', label: 'Responsable' }, { key: 'monto', label: 'Monto', align: 'end' }]
+    const tbColumnsText = [{ key: 'cliente', label: 'Cliente', leading: 'ini', title: 'nombre', subtitle: 'correo' }, { key: 'resp', label: 'Responsable' }, { key: 'monto', label: 'Monto', align: 'end' }]
+    const SELSIZES = ['sm', 'md', 'lg', 'xl']
+    const selPeople = [{ value: 'ana', label: 'Ana María López' }, { value: 'luis', label: 'Luis Torres' }, { value: 'marta', label: 'Marta Gil' }]
+    const selPerson = ref('ana')
+    const mnOpen = ref(false), mnOpen2 = ref(false)
+    const mnItems = [
+      { id: 'ana', label: 'Ana María López', icon: { name: 'Ana María López' } },
+      { id: 'luis', label: 'Luis Torres', icon: { name: 'Luis Torres', src: IMG.photo } },
+      { id: 'team', label: 'Todo el equipo', icon: 'users' },
+      { id: 'none', label: 'Sin asignar' }
+    ]
+    const mnIcons = [{ id: 'a', label: 'Editar', icon: 'pencil' }, { id: 'b', label: 'Duplicar', icon: 'copy' }, { id: 'c', label: 'Sin icono' }]
+    const PLACEMENTS = ['top-end', 'top-start', 'bottom-end', 'bottom-start']
+    return { shape, scheme, dir, swapSrc, swap, SIZES, SOURCES, FIT, CATS, PEOPLE, IMG, LUCIDE, cdLabels, tbLabels, tbRows, tbColumns, tbColumnsText, SELSIZES, selPeople, selPerson, mnOpen, mnOpen2, mnItems, mnIcons, PLACEMENTS }
+  }
+})
+app.component('XAvatar', XAvatar)
+app.use(Grana)
+app.mount('#app')
+
+function lum(c) { const m = c.match(/[\d.]+/g).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }); return 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2] }
+window.__contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+window.__avatarCategory = avatarCategory
+</script>
+</body>
+</html>

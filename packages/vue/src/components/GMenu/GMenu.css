@@ -14,6 +14,9 @@
   --_d: 1;
   --_ctl: max(24px, calc(var(--g-space-1) * 9 * var(--_d)));
   --_mark: calc(var(--g-space-1) * 4.5);
+  /* Hueco del icono: _mark; space × 5 en una lista con algún GAvatar (abajo). Se declara en cada lista para que un
+     submenú no herede el de su padre */
+  --_slot: var(--_mark);
   --_ring: var(--g-focus-width);
 
   position: fixed;
@@ -99,14 +102,20 @@
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: var(--_mark);
-  block-size: var(--_mark);
+  inline-size: var(--_slot);
+  block-size: var(--_slot);
   color: var(--g-color-text-muted);
 }
 .g-menu__icon:empty { display: none; }
+/* El icono mide _mark siempre: en un hueco de space × 5 queda centrado a su tamaño */
 .g-menu__icon > svg {
-  inline-size: 100%;
-  block-size: 100%;
+  inline-size: var(--_mark);
+  block-size: var(--_mark);
+}
+/* Con un GAvatar xs (hijo directo del hueco, #295): el hueco mide space × 5 y, para que las etiquetas sigan alineadas,
+   también todos los huecos no vacíos de esa lista (y de sus grupos); un submenú decide por sí mismo */
+.g-menu__list:has(> li > .g-menu__item > .g-menu__icon > .g-avatar, > li > ul > li > .g-menu__item > .g-menu__icon > .g-avatar) {
+  --_slot: calc(var(--g-space-1) * 5);
 }
 .g-menu__label {
   flex: 1 1 auto;
