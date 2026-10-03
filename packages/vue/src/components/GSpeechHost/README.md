@@ -2,9 +2,9 @@
 
 Dictado a un campo y grabación de conversaciones con **transcripción provisional y confirmada**, pensado para información sensible (consultas, entrevistas, notas de campo). La sesión **es de la aplicación**, no del campo: sobrevive a cambios de pestaña, de paso o a un diálogo, y mientras el micrófono está en uso hay **siempre un indicador visible** con el estado, la duración y los controles. **Grana no transcribe ni hace red:** tu aplicación aporta un **adaptador** con su motor (un servicio local tipo Whisper, por ejemplo) y Grana pone la captura del micrófono, el estado, la interfaz y la accesibilidad.
 
-Es un **servicio imperativo**, como `GToast`: creas un gestor (`createSpeech`), lo instalas como plugin, montas **un** `<GSpeechHost />` y colocas disparadores (`<GSpeechTrigger>`) junto a los campos; si quieres, una pill en la cabecera (`<GSpeechPill>`).
+Es un **servicio imperativo**, como `GToast`: creas un gestor (`createSpeech`), lo instalas como plugin, montas **un** `<GSpeechHost />` y colocas disparadores (`<GSpeechTrigger>`) junto a los campos; si quieres, una pill en la cabecera (`<GSpeechPill>`). Desde la **Fase 2**, la conversación se **revisa** con [`GTranscript`](../GTranscript/README.md) (corregir, hablantes y roles, deshacer) y lo revisado se **inserta** en los campos de tu formulario (destinos).
 
-**Etiquetas:** `<g-speech-host>` (anfitrión) · `<g-speech-trigger>` (disparador) · `<g-speech-pill>` (pill colocable) · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/speech/auditoria.md`](../../../../../design/lab/speech/auditoria.md)) · **Desde:** 0.1.0 · **Fase:** 1 de 3
+**Etiquetas:** `<g-speech-host>` (anfitrión) · `<g-speech-trigger>` (disparador) · `<g-speech-pill>` (pill colocable) · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditorías de coco aprobadas: [Fase 1](../../../../../design/lab/speech/auditoria.md) y [Fase 2](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 0.1.0 · **Fases:** 1 y 2 de 3
 
 > `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con el adaptador simulado; `?speech=self` simula también el micrófono). Exige Vue `^3.5.0` y un contexto seguro (`https` o `localhost`) para el micrófono.
 
@@ -37,7 +37,9 @@ export const speech = createSpeech({
   adapter: createLocalWhisperAdapter({ url: 'http://localhost:8178' }),
   language: 'es',
   labels,
-  onComplete: (transcript) => guardarBorrador(transcript),   // transcript.toJSON(), sin el provisional
+  roles: [{ id: 'pro', label: 'Profesional' }, { id: 'pac', label: 'Paciente' }],   // F2, opcional: sin roles por defecto
+  speakerColors: 0,                                         // F2: cuántas categorías de color define tu tema (0 a 12)
+  onComplete: (transcript) => guardarBorrador(transcript),   // transcript.toJSON() con las tres capas, sin el provisional
   onError: (error) => registrar(error.kind)                 // sin contenido
 })
 
@@ -53,7 +55,7 @@ createApp(App).use(Grana).use(speech).mount('#app')
 </template>
 ```
 
-- **`app.use(speech)`** provee el gestor (`useSpeech()` lo inyecta) **y registra** `GSpeechHost`, `GSpeechPill` y `GSpeechTrigger`. `app.use(Grana)` va antes: la captura usa `GBtn`, `GIcon`, `GSurface`, `GSelect`, `GCheckbox` y `GProgress` del paquete principal.
+- **`app.use(speech)`** provee el gestor (`useSpeech()` lo inyecta) **y registra** `GSpeechHost`, `GSpeechPill`, `GSpeechTrigger` y `GTranscript`. `app.use(Grana)` va antes: la captura usa `GBtn`, `GIcon`, `GSurface`, `GSelect`, `GCheckbox` y `GProgress` del paquete principal.
 - **Un `GSpeechHost` y una `GSpeechPill` por gestor.** Un segundo no pinta nada y avisa. `speechKey` sirve para un `provide` manual (pruebas, microfrontends); cada componente acepta `:speech="otro"`.
 - **Sin CDN de módulos:** carga en orden `vue.global.js`, `dist/grana.umd.js` (global `Grana`) y `dist/speech.umd.js` (global `GranaSpeech`): `GranaSpeech.createSpeech(...)`.
 - **En plantillas dentro del HTML** (sin compilar), cierra las etiquetas: `<g-speech-host></g-speech-host>`.
@@ -206,11 +208,25 @@ Pautas:
 - **Deshacer dictado** (en la nota al terminar): Ctrl+Z no deshace texto insertado por script, así que Grana guarda su propio registro. Vale mientras el campo no cambie; deshace en orden inverso y devuelve el foco al campo.
 - Si el campo **se desmonta** (otra pestaña, un paso), los fragmentos esperan en orden; al volver, la nota ofrece «Insertar».
 
-**Conversación** (`mode="conversation"`): botón con texto («Grabar conversación»; con la sesión en curso, «Ver grabación»). Prepara la sesión **sin abrir el micrófono** (`ready`: participantes previstos, aviso si el motor no distingue hablantes, casilla de consentimiento si la pediste) y abre el panel; «Empezar a grabar» abre el micrófono. El panel muestra el transcript de **solo lectura** con hora, hablante («Hablante A», «Hablante B»…) y el provisional en cursiva con la ficha «provisional».
+**Conversación** (`mode="conversation"`): botón con texto («Grabar conversación»; con la sesión en curso, «Ver grabación»). Prepara la sesión **sin abrir el micrófono** (`ready`: participantes previstos, aviso si el motor no distingue hablantes, casilla de consentimiento si la pediste) y abre el panel; «Empezar a grabar» abre el micrófono. El panel muestra el transcript con hora, hablante («Hablante A», «Hablante B»…) y el provisional en cursiva con la ficha «provisional». Desde la Fase 2, en conversación es un **`GTranscript` compacto y editable** (corregir, eliminar, cambiar de hablante y deshacer mientras se graba) y el panel añade **«Revisar»** (ver abajo); en dictado sigue la lista de solo lectura (se corrige en el propio campo).
 
 **Dónde va el disparador:** al **lado** del campo (hermano inmediatamente posterior; la nota queda bajo la caja), **no dentro**: el hueco `append` de `GInput` es decorativo, `GTextarea` no tiene huecos de acción y el slot `label` no admite controles.
 
 **Una sesión cada vez.** Con otra sesión en curso, los demás disparadores quedan `aria-disabled` (siguen enfocables), se describen con `labels.trigger.busy` y al pulsarlos anuncian «Ya hay una grabación en curso» y llevan el foco a la pill. Volver a la pestaña donde empezó **no** crea otra sesión: el disparador se reconoce por modo y campo.
+
+## Revisión, roles y destinos (Fase 2)
+
+La vista, el modelo y los destinos están en [`GTranscript/README.md`](../GTranscript/README.md). Lo que añade el gestor y el anfitrión:
+
+- **«Revisar»** en el panel (solo conversación): en captura, pausa y reconexión, «Revisar» (`labels.actions.review`, secundaria, `file-pen-line`); en `completed`, **«Revisar transcripción»** (`labels.actions.reviewCompleted`, principal) · «Cerrar sesión» · «Descartar». **`speech.review()`** hace lo mismo desde código (`Promise<boolean>`; `false` sin sesión de conversación o sin anfitrión).
+  - Con un **`GTranscript` de tu página** montado, no compacto y ligado a `speech.state.transcript` (la «superficie de revisión»; la última montada manda), cierra el panel **sin devolver el foco** a quien lo abrió y lleva el foco al título de su `labelledby`, a la vista.
+  - **Sin superficie**, abre el **diálogo de respaldo** del anfitrión: un `GDialog` real (`class="g-speech-review"`, `size="lg"`, pantalla completa en móvil, `labels.review.title` y `labels.review.close`) con un `GTranscript` editable y los mismos destinos. Foco al título al abrir; al cerrar, a «Revisar» o a la pill visible; los canales de anuncios se trasladan al diálogo. Esc en el editor o en un menú no lo cierra; Esc en la rejilla sí.
+- **`roles`** (opción, `[{ id, label }]`, sin valores por defecto): la lista de roles que quien revisa asigna a cada hablante («Profesional (A)», `labels.speakerRole`). Un `id` repetido o una entrada inválida se ignoran con aviso.
+- **`speakerColors`** (opción, `0` a `12`, por defecto `0`): cuántas categorías de color (`--g-color-cat-k`, `categories` de `@grana/cli`) define tu tema; el hablante en la posición `k ≤ speakerColors` lleva su marca en ese color, **siempre junto a la letra y la etiqueta**. Sin categorías en el tema, déjalo en `0`.
+- **`speech.targets`**: registro de destinos (`register(target)` → función para darlo de baja; `list` reactiva). Lo habitual es **`useSpeechTarget(target)`** en el componente que tiene el modelo del formulario (no en el campo), que registra al montar y da de baja al desmontar.
+- **`onComplete`** recibe `toJSON()` con las **tres capas** (literal, corregido y derivado: correcciones, roles y usos), sin historial ni provisional; `createTranscript(json)` lo vuelve a cargar sin conversión.
+- **Descartar con usos:** el texto ya insertado **se queda** en los campos y la confirmación lo dice (`labels.actions.discardAskUsed`, contada).
+- Medido en la [auditoría de la Fase 2](../../../../../design/lab/speech/auditoria-f2.md): el panel con el compacto (sin casillas, ayuda de teclado oculta, área desplazable sin desbordamiento), «Revisar» con superficie y con el diálogo (Chromium, Firefox y WebKit), la hoja móvil y el diálogo a 320×640 en LTR y RTL, y Esc del editor y de los menús sin cerrar panel ni diálogo.
 
 ## La pill: cabecera y flotante
 
@@ -309,7 +325,7 @@ Auditoría de coco sobre los componentes reales del playground en Chromium, Fire
 - **El color nunca es la única señal:** cada estado tiene icono y texto; la captura viva añade forma (lámpara rellena, borde doble) y el problema, borde discontinuo. Con un acento pálido el relleno de la lámpara usa el color de marca con su par de contraste y los trazos (borde, medidor, onda) usan variantes legibles del acento.
 - **Foco:** anillo sólido de 2px **dentro** del botón enfocado, separado ≥ 2px del borde vivo (no se confunden); visible dentro de la capa superior, del modal y de la hoja.
 - **Tamaños:** pill de 34px de alto; todos los botones con área ≥ 24px y **≥ 44px** con `pointer: coarse`, sin que se pisen dentro de la pill.
-- **Anuncios:** dos canales ocultos en el anfitrión (`status` y `alert`), presentes y vacíos desde el montaje, son los **únicos** que hablan. Se anuncia el ciclo de vida (inicio, pausa, reanudación, procesando, fin, reconexión, inserción, descarte) y los errores; **nunca** el texto transcrito, el nivel ni la duración. Las regiones `role="status"` de los `GBtn` existen y quedan **vacías toda la sesión** (verificado).
+- **Anuncios:** dos canales ocultos en el anfitrión (`status` y `alert`), presentes y vacíos desde el montaje, son los **únicos** que hablan. Se anuncia el ciclo de vida (inicio, pausa, reanudación, procesando, fin, reconexión, inserción, descarte) y los errores; **nunca** el texto transcrito, el nivel ni la duración. Ningún `GBtn` de la captura lleva `loadingText`, así que **no pintan región propia** (DECISIONS #257; antes existían vacías toda la sesión).
 - **Movimiento:** «Ocultar actividad» (`aria-pressed`) quita la onda y los medidores; estado y duración siguen. Con `prefers-reduced-motion`: medidor y onda **discretos** (5 segmentos encendidos o apagados), sin giro, paneles solo con fundido.
 - **Móvil** (visor < `space × 130`, 520px): el panel es una **hoja inferior modal** (≤ 88 % del alto, foco al título, Esc la cierra) y la flotante va abajo al centro. Medido a 320×640 sin desbordamiento y con un aviso de `GToaster` encima de la pill.
 - **RTL**, **zoom 200 %** (panel y pill dentro del visor, el panel se desplaza dentro de su alto), **colores forzados** (bordes, lámpara invertida, medidor y onda visibles; emulados en Chromium) y **`prefers-contrast: more`** (bordes de control, secundarios en texto pleno): verificados.
@@ -343,7 +359,7 @@ Sin red ni almacenamiento: emite el provisional palabra a palabra y el confirmad
 
 ## Coste en tamaño
 
-La captura **no** está en `@grana/vue`: va en su propia entrada y solo la paga quien la importa. Medido (gzip): **`dist/speech.js` 27.4 KB** (lo que sumaría al paquete principal: +27.5 KB, un 22 %); `dist/grana.js` queda en 126.2 KB. El CSS de la captura (≈ 5 KB gzip) sigue en `grana.css` y es inerte sin su marcado. El adaptador simulado (`@grana/vue/testing`) va aparte.
+La captura **no** está en `@grana/vue`: va en su propia entrada y solo la paga quien la importa. Medido (gzip): **`dist/speech.js` 55.4 KB** con la Fase 2 (54.8 KB en DECISIONS #264, antes de #262 y #263; 27.2 KB con la Fase 1 sola); `dist/grana.js` no cambia. El CSS de la captura (con `GTranscript`) sigue en `grana.css` (la Fase 2 añadió 2.3 KB gzip a la hoja) y es inerte sin su marcado. El adaptador simulado (`@grana/vue/testing`) va aparte.
 
 ## Tema
 
@@ -356,8 +372,8 @@ La captura **no** está en `@grana/vue`: va en su propia entrada y solo la paga 
 - **Sin verificar con motores reales** (Whisper, whisper.cpp, faster-whisper, diarización local) ni con PCM real a 16 kHz contra un servicio; el adaptador de ejemplo de este README tampoco.
 - **Sin verificar en móvil real:** llamada entrante, segundo plano (iOS suspende la pestaña: se detecta como interrupción al volver), `safe-area`, teclado virtual con la hoja, orientación; ni con permiso revocado a mitad de sesión, varios modales apilados o sesiones de más de una hora.
 - **Pill colocada tapada por otra capa** sin salir del visor: no se detecta (`IntersectionObserver` v1).
-- **Fase 1:** el transcript del panel es de **solo lectura**. Quedan para la **Fase 2** el transcript editable (`GTranscript`), reasignar hablantes y roles, copiar y **destinos** (insertar en varios campos), y para la **Fase 3** la recuperación tras cerrar la aplicación, el kit de pruebas del audio temporal, la selección de dispositivo, la captura nativa en segundo plano y las sesiones de horas. Escuchar el audio de un fragmento queda fuera de la v0.1.
+- **Fase 2 hecha** (`GTranscript`, roles, destinos, «Revisar»; sus limitaciones en su [README](../GTranscript/README.md)). Quedan para la **Fase 3** la recuperación tras cerrar la aplicación, el kit de pruebas del audio temporal, la selección de dispositivo, la captura nativa en segundo plano, las sesiones de horas y la virtualización del transcript por encima de ~2 000 fragmentos. Escuchar el audio de un fragmento queda fuera de la v0.1.
 
 ## Fuentes
 
-- API: [`GSpeechHost.meta.json`](./GSpeechHost.meta.json) · [`GSpeechPill`](../GSpeechPill/README.md) · [`GSpeechTrigger`](../GSpeechTrigger/README.md) · Contrato: [`design/contracts/speech.md`](../../../../../design/contracts/speech.md) · Prototipo: [`design/lab/speech/r01/`](../../../../../design/lab/speech/r01/) · Estilo: [`design/lab/speech/estilo.md`](../../../../../design/lab/speech/estilo.md) · Auditoría: [`design/lab/speech/auditoria.md`](../../../../../design/lab/speech/auditoria.md) · Decisiones #207 a #238
+- API: [`GSpeechHost.meta.json`](./GSpeechHost.meta.json) · [`GSpeechPill`](../GSpeechPill/README.md) · [`GSpeechTrigger`](../GSpeechTrigger/README.md) · Contrato: [`design/contracts/speech.md`](../../../../../design/contracts/speech.md) · [`GTranscript`](../GTranscript/README.md) · Prototipos: [`design/lab/speech/r01/`](../../../../../design/lab/speech/r01/) y [`r02/`](../../../../../design/lab/speech/r02/) · Estilo: [`design/lab/speech/estilo.md`](../../../../../design/lab/speech/estilo.md) · Auditorías: [Fase 1](../../../../../design/lab/speech/auditoria.md) y [Fase 2](../../../../../design/lab/speech/auditoria-f2.md) · Decisiones #207 a #264

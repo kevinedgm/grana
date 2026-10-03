@@ -156,7 +156,6 @@
   border-inline-start: var(--_sel-mark) solid transparent;
   background: var(--g-color-surface);
   scroll-margin-block: var(--g-space-2);
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-transcript__row:last-child { border-block-end-color: transparent; }
 /* Seleccionada: el tono de GTable + borde de inicio en el color del texto (forma; ≥ 3:1 en cualquier tema, #254) */
@@ -194,7 +193,11 @@
   justify-content: center;
   inline-size: var(--_ctl-w);
 }
-.g-transcript__cell--select > .g-checkbox { inline-size: auto; }
+/* La casilla de fila no tiene etiqueta visible: su <label> ocupa toda la columna (28px; 44px con puntero grueso) con el
+   cuadro centrado. Antes medía 32 × 44 con el cuadro desplazado por el hueco del texto vacío (auditoría F2) */
+.g-transcript__cell--select > .g-checkbox { inline-size: 100%; }
+.g-transcript__cell--select .g-checkbox__row { justify-content: center; gap: 0; }
+.g-transcript__cell--select .g-checkbox__text { flex: none; }
 .g-transcript__cell--time {
   inline-size: var(--_time-w);
   padding-block: calc((var(--_ctl) - var(--g-text-caption-line)) / 2);
@@ -685,8 +688,24 @@
 }
 
 /* ---------- Movimiento ---------- */
+/* Rendimiento (auditoría F2): dentro de la rejilla la fila y la casilla cambian sin fundido. Una selección masiva restila
+   cientos de filas y casillas, y cada transición declarada encarece el estilo de todas: medido en Chromium con 320
+   fragmentos, Ctrl+A ida y vuelta 150 → 36 ms de estilo y Event Timing 72 → 48 ms (mediana). Se conserva solo la apertura
+   del anillo de foco de la casilla (una a la vez, sin coste medible), con la misma regla que el movimiento reducido de
+   GCheckbox; fuera de la rejilla (barra, inserción) GCheckbox sigue igual */
+.g-transcript__grid .g-checkbox__box,
+.g-transcript__grid .g-checkbox__mark,
+.g-transcript__grid .g-checkbox__input { transition: none; }
+@media (forced-colors: none) {
+  .g-transcript__grid .g-checkbox__input {
+    transition:
+      outline-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-offset var(--g-duration-press) var(--g-ease-out);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .g-transcript__more .g-btn__append > svg { transition: none; }
+  .g-transcript__grid .g-checkbox__input { transition: outline-color var(--g-duration-fast) var(--g-ease-standard); }
 }
 
 /* ---------- Preferencias de contraste ---------- */

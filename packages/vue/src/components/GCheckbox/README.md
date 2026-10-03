@@ -42,6 +42,7 @@ Los atributos nativos (`name`, `form`, `aria-*`, `data-*`, escuchas como `@chang
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
 | `id` | String | | generado |
+| `field` | Boolean | | `true` |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `variant`: la estructura se elige con `layout`.
 
@@ -53,6 +54,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 - **`label`:** el componente necesita un nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby`, en desarrollo se emite `console.warn`.
 - **`error`:** con texto, la casilla queda inválida (`aria-invalid="true"`) y se muestra el mensaje. **El componente no valida:** tú decides cuándo hay error.
 - **`hint`:** texto de ayuda. En `card` es la descripción de la tarjeta.
+- **`field`** (DECISIONS #262): con `true` (por defecto) la casilla es un **campo**: región de mensaje siempre presente y contexto de `GForm`. Con **`:field="false"`** es un **control suelto dentro de otro componente** (la casilla de cada fila de una colección): **sin región `g-checkbox__message`** (ni `aria-live`), sin leer el contexto de `GForm` (no hereda densidad, solo lectura, deshabilitado, errores ni marcas) y sin marca de obligatorio; `error`, `warning`, `valid`, `required` y `mark` se ignoran con aviso en desarrollo. Todo lo demás es igual. Úsalo solo cuando la casilla no es un campo del formulario: una vista que repite una casilla por elemento evita así cientos de regiones vivas vacías (`GTranscript` lo usa en sus filas, «Seleccionar todo» y «Con hablantes»).
 
 ```vue
 <!-- estado mixto controlado -->
@@ -136,7 +138,7 @@ Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-
 
 ## Dentro de un formulario
 
-Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
+Con un `GForm` alrededor el campo lee su contexto (salvo con `:field="false"`, que no es un campo): densidad, solo lectura, deshabilitado, ancho completo y el error de `errors[name]` (que `GForm` muestra cuando toca: al salir tras escribir, al elegir o al enviar). **La prop explícita del campo siempre gana**; fuera de `GForm` se comporta exactamente como antes. Guía completa del sistema: [`GForm/README.md`](../GForm/README.md).
 
 - **Va en su propia fila** (hijo directo de `GFormLayout`), nunca junto a otros campos en una `GFormRow`.
 - **Marcas:** suelta no lleva «(opcional)» (sin marcar ya es una respuesta válida); con la convención `required`, asterisco si es `required`.

@@ -49,6 +49,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 - **`icon`** hace el botón cuadrado (ancho = alto) y exige `aria-label` o `aria-labelledby`. En desarrollo, si falta, se emite `console.warn`.
 - **`loading`** conserva el ancho y el color del botón, oculta la etiqueta y muestra un indicador de giro. El botón queda en `aria-busy="true"` y `aria-disabled="true"`, pero **no** usa el atributo `disabled`, para no perder el foco.
 - **`loadingText`** es el texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. No tiene valor por defecto porque Grana es internacional: un texto fijo estaría en el idioma equivocado. Sin él, solo queda `aria-busy`.
+- **Pon `loadingText` desde el principio** (fijo, no solo al empezar la carga): el botón pinta su región de anuncio (`g-btn__status`) **solo mientras `loadingText` tiene valor** (DECISIONS #257), y un lector solo anuncia los cambios de una región que **ya existía**. Si `loadingText` y `loading` llegan en el mismo cambio, la región se monta vacía y el texto se escribe en el ciclo siguiente para que se anuncie, pero lo seguro es que la región exista antes de la carga. Sin `loadingText` no hay región: así una vista con cientos de botones (filas de `GTranscript`, por ejemplo) no añade cientos de regiones vivas vacías.
 
 ## Eventos
 
@@ -82,7 +83,7 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 
 - **Teclado:** Tab y Shift+Tab entran y salen; Enter activa botón y enlace; Espacio activa el botón. El comportamiento es el nativo, sin manejadores propios.
 - **Enlace deshabilitado:** un `<a>` con `disabled` (o `loading`) se renderiza sin `href`, con `role="link"`, `aria-disabled="true"` y `tabindex="-1"`.
-- **`loadingText`:** el anuncio vive en una región `role="status"` **fuera** del botón (los hijos de un botón son presentacionales y no se anuncian). El componente tiene por eso dos nodos raíz y pasa `$attrs` al botón, no a la región.
+- **`loadingText`:** el anuncio vive en una región `role="status"` **fuera** del botón (los hijos de un botón son presentacionales y no se anuncian). Con `loadingText` el componente tiene por eso dos nodos raíz (botón y región, presente y vacía hasta la carga) y pasa `$attrs` al botón, no a la región; **sin `loadingText`, solo el botón** (#257).
 - **Foco:** contorno sólido visible con `:focus-visible`; ancho, color y separación salen del tema.
 - **Área táctil:** el botón más pequeño tiene una zona de toque de al menos 24px de alto; en pantallas táctiles (`pointer: coarse`), 44px.
 - **Contraste:** con el tema por defecto y con el tema de prueba de la auditoría, el texto de todas las combinaciones de color y variante en reposo llega a 4.5:1 o más, y el borde de `outline` a 3:1 o más.

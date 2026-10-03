@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTranscript",
   "tag": "g-transcript",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Vista de revisión de un transcript de la captura de voz (Fase 2): rejilla de datos de APG con una fila por fragmento y una sola parada de tabulación, edición en la celda, selección, hablantes y roles, original y cambios, historial de deshacer/rehacer compartido y la inserción en destinos ligados al modelo del formulario. Modos editable, solo selección, solo lectura (lista simple) y compacto (panel del anfitrión).",
   "entry": "@grana/vue/speech (no está en @grana/vue, #238 y #251): import { GTranscript, createTranscript, useSpeechTarget } from '@grana/vue/speech'; app.use(speech) también registra <g-transcript>",
