@@ -1,13 +1,13 @@
-# Contrato · Sistema de formularios · Fase 1 (núcleo de composición) · revisión r02 (distribución)
+# Contrato · Sistema de formularios · Fase 1 (núcleo de composición) · revisión r02 (distribución) · Fase 3: `GFormReveal` (§14)
 
-**Dueño:** lima · **Estado:** **revisado tras r02** (la distribución de la Fase 1 fue rechazada por el usuario; la dirección de r02 la **aprobó el usuario**, #171) · pendiente de coco (CSS de `GFormLayout`, `GFormRow`, `GInputGroup` y de las pistas de los campos) y de bruno · lo no tocado por r02 (§1 a §3, §6, §7) sigue como lo construyó bruno (commits b4db77c…4a778c7, reconciliado en #170) · **Basado en:** `design/lab/form/r01/` (kiwi; brief del usuario, declaración con 20 hallazgos) y **`design/lab/form/r02/`** (kiwi; `brief.md` con el rechazo del usuario, `declaracion.md` con 11 puntos y 10 hallazgos en §8, `index.html`, `comparacion.html`, `verificar.mjs` 57/57); auditoría interrumpida de coco (`design/lab/form/auditoria.md`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker`, `GRadioGroup` (Fase 2, `radio-group.md`) (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
-**Tags:** `g-form`, `g-form-section`, `g-form-layout`, `g-form-row`, `g-input-group`, `g-field-group`, `g-form-actions`, `g-error-summary` · composable `useFormField()` · **Categoría:** entradas (composición)
+**Dueño:** lima · **Fase 3, `GFormReveal` (§14):** contratado desde `design/lab/form-reveal/r01/` (#274 a #280; cambia `GForm` y `useFormField`: registro inactivo, §2), pendiente de coco y de bruno · **Estado:** **revisado tras r02** (la distribución de la Fase 1 fue rechazada por el usuario; la dirección de r02 la **aprobó el usuario**, #171) · pendiente de coco (CSS de `GFormLayout`, `GFormRow`, `GInputGroup` y de las pistas de los campos) y de bruno · lo no tocado por r02 (§1 a §3, §6, §7) sigue como lo construyó bruno (commits b4db77c…4a778c7, reconciliado en #170) · **Basado en:** `design/lab/form/r01/` (kiwi; brief del usuario, declaración con 20 hallazgos) y **`design/lab/form/r02/`** (kiwi; `brief.md` con el rechazo del usuario, `declaracion.md` con 11 puntos y 10 hallazgos en §8, `index.html`, `comparacion.html`, `verificar.mjs` 57/57); auditoría interrumpida de coco (`design/lab/form/auditoria.md`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker`, `GRadioGroup` (Fase 2, `radio-group.md`) (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
+**Tags:** `g-form`, `g-form-section`, `g-form-layout`, `g-form-row`, `g-input-group`, `g-field-group`, `g-form-actions`, `g-error-summary`, `g-form-reveal` · composable `useFormField()` · **Categoría:** entradas (composición)
 
 Una **capa de composición** sobre los campos que ya existen: decide **cómo** se reparten, agrupan, marcan, cuándo enseñan sus errores y cómo se envían, sin duplicar ningún campo. La Fase 1 cubre formularios cortos, medianos y en dialog o drawer; los largos con navegación y secciones plegables llegan en la Fase 3 (ver «Fases siguientes»). Decisiones del usuario: DECISIONS.md #153 a #155 y **#171** (dirección r02); derivadas de estándar o de contratos vigentes: #156 a #170 y **#172 a #184** (r02).
 
 **Qué cambió en r02** (resumen; detalle en §4, §5, §10, §13 y «Migración desde la Fase 1»): la rejilla de 12/6/1 columnas (`GFormGrid`) y los anchos máximos de lo compacto se **retiran**; la distribución pasa a **filas explícitas que siempre llenan el ancho** (`GFormLayout` + `GFormRow`), con tamaños que son **peso + mínimo**, líneas calculadas por el ancho propio de cada fila y **tres pistas compartidas** por línea (etiqueta, caja, pie); nace **`GInputGroup`** para campos fusionados («dos en uno»); `GFieldGroup` queda para preguntas compuestas y va siempre en su propia fila; el dato calculado deja de ser una caja (prop `output`).
 
-**Por qué un solo contrato** (#156): las piezas comparten **un** contexto (`formKey`), **un** juego de textos (`labels` de `GForm`), **una** regla de momento de errores y **una** verificación; partirlas obligaría a repetir el contexto en cada una y a mantenerlo sincronizado. Cada pieza tiene su sección con props, estructura, clases y avisos, como si fuera su propio contrato. Los cambios que el sistema trae a los campos existentes se resumen aquí (§10) y se anotan, con su dueño, en el contrato de cada campo. **Numeración estable:** §1 a §12 conservan su número (el código los cita); `GInputGroup`, nuevo, es la **§13**.
+**Por qué un solo contrato** (#156): las piezas comparten **un** contexto (`formKey`), **un** juego de textos (`labels` de `GForm`), **una** regla de momento de errores y **una** verificación; partirlas obligaría a repetir el contexto en cada una y a mantenerlo sincronizado. Cada pieza tiene su sección con props, estructura, clases y avisos, como si fuera su propio contrato. Los cambios que el sistema trae a los campos existentes se resumen aquí (§10) y se anotan, con su dueño, en el contrato de cada campo. **Numeración estable:** §1 a §12 conservan su número (el código los cita); `GFormReveal` (Fase 3) es la **§14**; `GInputGroup`, nuevo, es la **§13**.
 
 ---
 
@@ -38,13 +38,15 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 | Proceso secuencial | `GStepper` con un `GForm` por paso o uno con secciones (Fase 4 documenta la integración) | Stepper si cabe en una página |
 | Grupos independientes | `GTabs` con paneles montados (#78) | Tabs con dependencia secuencial |
 | Formulario en dialog o drawer | `GDialog` (`inset`, `placement="end"`), pie del dialog con `form="id"`; en drawer, `GFormLayout stack` si se quiere un campo por línea | Campos pegados a la carcasa |
-| Navegación de secciones, plegables, «Agregar…», condicionales, guardado automático | Fases 3 y 4 | `GSidebar` para navegar secciones (§1.8 de kiwi) |
+| Campos que solo aplican según una respuesta («¿Requiere factura? Sí → datos fiscales») | **`GFormReveal`** justo después de la pregunta (§14) | Mostrar todo y deshabilitar; `v-if` (pierde lo escrito); una `GFormSection` plegable (se sigue enviando) |
+| Navegación de secciones, plegables, «Agregar…», guardado automático | Fases 3 y 4 | `GSidebar` para navegar secciones (§1.8 de kiwi) |
 
 ## Exportaciones
 
 | Exportación | Qué es |
 | --- | --- |
 | `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GFieldGroup`, `GFormActions`, `GErrorSummary` | Componentes de composición |
+| `GFormReveal` | Bloque condicional (Fase 3, §14) |
 | `GInputGroup`, `GInputGroupInput`, `GInputGroupSelect`, `GInputGroupText` | Campo fusionado y sus partes (§13) |
 | `useFormField(options)` | Composable para campos (los de Grana y los del consumidor) |
 | `formKey` | `InjectionKey` del contexto, para `provide` manual (pruebas, microfrontends) |
@@ -80,7 +82,7 @@ Bruno las registra en `src/index.js`; los estilos entran en `components.css`. **
 - **`marks`:** convención de marcas de **todo** el formulario (#153). `optional` (por defecto): los campos no obligatorios llevan «(opcional)» (`labels.optional`) en su etiqueta y los obligatorios **no** llevan asterisco. `required`: los obligatorios llevan el asterisco (`aria-hidden`) y los opcionales nada; `GForm` pinta `labels.requiredHint` al principio del formulario. **Nunca se mezclan**: un campo no puede elegir la otra convención (sí puede ocultar su marca con `mark: false`).
 - **`density`:** se comparte con todos los campos, layouts, filas, secciones y pie que **no** traen la suya. Multiplica separaciones y alturas como siempre (#15, #114); no toca tipografía ni mínimos táctiles. El `spacious` del brief es `default`.
 - **`readonly`:** «modo vista» del formulario entero: todos los campos sin `readonly` propio pasan a solo lectura (aspecto unificado, #165). No oculta acciones: la aplicación decide qué pie muestra. Es también el atributo del **bloqueo con interruptor** (§8, «Patrón: bloqueo con interruptor», #266).
-- **`disabled`:** todos los campos sin `disabled` propio pasan a deshabilitados (no se envían). Para un bloque que no aplica, mejor ocultarlo (Fase 3, `GFormReveal`). **No** sirve para bloquear un formulario ya capturado: eso es `readonly` (#266).
+- **`disabled`:** todos los campos sin `disabled` propio pasan a deshabilitados (no se envían). Para un bloque que no aplica: `GFormReveal` (§14). **No** sirve para bloquear un formulario ya capturado: eso es `readonly` (#266).
 - **`headingLevel`:** nivel de los títulos de `GFormSection` y de `GErrorSummary` dentro del formulario (su prop propia gana). Dentro de `GDialog` (título `h2`) el valor por defecto 3 ya es correcto; en una página cuyo formulario cuelga de un `h1`, se pasa `2`.
 - **`dirty`:** `GForm` lo pone a `true` (emite `update:dirty`) con la **primera** interacción del usuario: un evento `input` o `change` nativo que burbujea desde dentro, o `notifyChange()` de un campo sin control nativo (`GSelect`, `GDatePicker`, campos propios). **Nunca lo vuelve a `false` por su cuenta**, salvo con el evento `reset` del formulario; la aplicación lo baja tras guardar. No compara valores (el modelo es de la aplicación). La guardia `beforeunload` (`guard`) es de la Fase 4.
 - **Atributos:** `id`, `name`, `aria-label`, `aria-labelledby`, `autocomplete` y escuchas van al `<form>` (raíz; `inheritAttrs` normal). El `id` es el que usa un botón externo con `form="id"` (pie de `GDialog`). **`action` y `method` se ignoran** con aviso en desarrollo.
@@ -105,7 +107,7 @@ Las advertencias (`warnings`) siguen la misma tabla. Un **`error` explícito** e
 
 1. `GForm` escucha `submit` del `<form>` y **siempre** llama a `preventDefault()`.
 2. Si el botón que envía (`event.submitter`) lleva **`formnovalidate`** (p. ej. «Guardar borrador»), no se revela ni se comprueba nada: emite `submit` con `novalidate: true`. Es la semántica nativa del atributo (HTML), y cubre el borrador que no valida de kiwi (§5.9).
-3. Si no: revela todos los campos; los mensajes que aparecen por este envío se escriben con la región viva del campo en **`off`** y vuelven a `polite` en el cuadro siguiente (#164; el resumen ya los anuncia). Tras `nextTick` (para que la aplicación haya recalculado `errors`), reúne los **errores que bloquean**: el error resuelto (prop explícita o `errors[name]`) de cada campo **registrado y no deshabilitado**, más las claves de `errors` con texto que **no** corresponden a ningún campo registrado (errores generales o de servidor).
+3. Si no: revela todos los campos **activos** (los de un `GFormReveal` inactivo no, §2 «Registro inactivo»); los mensajes que aparecen por este envío se escriben con la región viva del campo en **`off`** y vuelven a `polite` en el cuadro siguiente (#164; el resumen ya los anuncia). Tras `nextTick` (para que la aplicación haya recalculado `errors`), reúne los **errores que bloquean**: el error resuelto (prop explícita o `errors[name]`) de cada campo **registrado, no deshabilitado y activo**, más las claves de `errors` con texto que **no** corresponden a ningún campo registrado, activo o inactivo (errores generales o de servidor).
 4. **Con errores:** emite `invalid` y mueve el foco: al `GErrorSummary` del formulario si hay uno montado; si no, al **primer control inválido** en orden del DOM, desplazando para que se vea su etiqueta (respetando el pie fijo).
 5. **Sin errores:** emite `submit` con `FormData` construido con el `submitter` (así la aplicación distingue «Guardar» de otros botones de envío por su `name`/`value`).
 6. **Errores del servidor:** la aplicación los pone en `errors` tras la respuesta y llama a `showErrors()`, que hace los pasos 3 y 4 sin emitir `invalid` de nuevo.
@@ -187,7 +189,7 @@ Los textos del resumen son de `GErrorSummary` (su propia `labels`).
 
 Estado reactivo de solo lectura para los campos: `density`, `marks`, `readonly`, `disabled`, `labels`, `headingLevel`, `live` (`polite`/`off`), y funciones `register(entry)` → `unregister`, `notifyInput(name)`, `notifyBlur(name)`, `notifyChange(name)`, `isShown(name)`, `setActionsSize(px)`. Es **interno**: el contrato público es `useFormField()`; `formKey` se exporta solo para `provide` manual.
 
-`GFormLayout`, `GFormRow`, `GFieldGroup` y `GInputGroup` proveen **sub‑contextos** propios (en el layout y la fila: `block` y `stack`; la fila, además, la función interna `setIntrinsicMin(el, px)` para el mínimo intrínseco de un hijo, §4, #271; en el grupo: partes, ver §5; en el campo fusionado: partes, ver §13). `GFormSection optional` provee `sectionOptional` (suprime «(opcional)» dentro, ver §3).
+`GFormLayout`, `GFormRow`, `GFieldGroup` y `GInputGroup` proveen **sub‑contextos** propios (en el layout y la fila: `block` y `stack`; la fila, además, la función interna `setIntrinsicMin(el, px)` para el mínimo intrínseco de un hijo, §4, #271; en el grupo: partes, ver §5; en el campo fusionado: partes, ver §13). `GFormSection optional` provee `sectionOptional` (suprime «(opcional)» dentro, ver §3). **`GFormReveal`** provee la clave interna **`revealKey`** (`{ active }`, ver «Registro inactivo») y re‑provee el sub‑contexto de distribución (§14).
 
 ### Precedencia (regla única)
 
@@ -241,6 +243,27 @@ Para los campos de Grana y **para campos propios del consumidor** (el slot «cus
 - **Excepciones:** `GSwitch` nunca lleva marca (no tiene `required`, #47); un `GCheckbox` **suelto** no lleva «(opcional)» (sin marcar ya es una respuesta válida), sí asterisco con `required` en la convención `required`; dentro de una `GFormSection optional` no hay «(opcional)» (lo dice la sección); dentro de un `GFieldGroup`, ver §4.
 - La prop **`mark`** (Boolean, default `undefined`) del campo: `false` quita la marca; `true` **no** inventa otra convención (solo restituye la que toca).
 - «(opcional)» es **texto visible dentro del `<label>`** (forma parte del nombre accesible: «Segundo apellido (opcional)»); el asterisco sigue siendo `aria-hidden` y lo acompaña `required`/`aria-required`.
+
+### Registro inactivo (`GFormReveal`, #276)
+
+Un campo dentro de un `GFormReveal` **inactivo** (§14: `when` falso en él o en un bloque ancestro) **sigue registrado** pero no cuenta. Reglas para bruno (nombres exactos; todo es interno salvo el comportamiento):
+
+| Pieza | Cambio |
+| --- | --- |
+| `formContext.js` | Nueva clave **interna** `revealKey` (`Symbol('GFormReveal')`, **no** se exporta desde `src/index.js`). Valor provisto: `{ active: ComputedRef<boolean> }` |
+| `useFormField` | Inyecta `revealKey` (opcional). `inactive = computed(() => reveal ? !reveal.active.value : false)`. El registro (`entry`) gana **`inactive: () => inactive.value`**. Devuelve `inactive` entre los **internos** (no se documenta como API pública). Funciona igual en los campos propios del consumidor, sin cambios en su código |
+| `useCompositeField` | El registro del grupo gana `inactive: () => ff.inactive.value` (sus partes ya lo traen por su propio `useFormField`) |
+| `GForm` · `blocking()` | Salta los registros con `inactive()` (como `inGroup` y `disabled()`), pero **sus nombres siguen en `covered`**: sus claves de `errors` **no** son generales |
+| `GForm` · `revealAll()` | No añade a `shownErr`/`shownWarn` los nombres de registros inactivos; de las claves de `errors`, solo las que no pertenecen a un registro inactivo |
+| `GForm` · `focusFirstError()` | Salta los inactivos |
+| `GForm` · `visible(n, kind)` / `isShown(n)` | `''` / `false` si `n` es nombre de un registro inactivo |
+| `GForm` · `notifyInput` / `notifyBlur` / `notifyChange` | Con un nombre inactivo no marcan editado ni revelan (`notifyChange` sigue subiendo `dirty`) |
+| `GForm` · al pasar a inactivo | Un `watch` sobre el conjunto de nombres inactivos: los que entran salen de `edited`, `shownErr` y `shownWarn`, y las claves de sus registros salen de la **instantánea** del resumen (`snapshot`). Silencioso (como al corregir, #162) |
+| `GForm` · al volver a activo | Nada: empiezan sin editar ni revelar; el resumen los recupera solo en el siguiente envío o `showErrors()` |
+| `GForm` · `invalid`, `submit` | `invalid` no los lista (sale de `blocking()`); `submit` **sin** campo nuevo (#277): el `FormData` ya los excluye por el `fieldset disabled` |
+| Aviso 1 de `GForm` | Sin cambio: un `name` repetido avisa también entre bloques excluyentes (§14, «Colocación») |
+
+**Por qué no desregistrar:** `errors.curp` pasaría a error general sin enlace y **bloquearía** el envío; así la aplicación calcula `errors` **sin condiciones**. **Por qué no `disabled()`:** cambiaría el aspecto y la precedencia del campo (#158). Medido en el prototipo de kiwi (`design/lab/form-reveal/r01/index.html`, `XFormReveal`, que lo simula con un contexto intermedio: **referencia de comportamiento, no de implementación**; no cubre `showErrors()`).
 
 ---
 
@@ -319,6 +342,8 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 
 **Qué NO cambia de lo ya construido** (lista de kiwi, confirmada): `<section>` sin `aria-labelledby`, títulos `hN` con `headingLevel`, `optional` y su insignia (#161); el valor y el significado de `--g-form-section-gap`; `GFormLayout`, `GFormRow`, el reparto en líneas (#175) y la prueba obligatoria de distribución (#184); `GErrorSummary`, `GFormActions` y la línea de su pie fijo; la convención de obligatorios; el aspecto de todos los formularios existentes, el playground y la auditoría r02. Lo único nuevo en la Fase 1 es **para bruno**: `divider` en la lista de reservadas de `GFormSection.vue` y el aviso del divider a mano, con sus pruebas. Nada para coco.
 
+**Dentro de un `GFormReveal` (Fase 3, #279):** `GFormSection` avisa (`[Grana GFormSection]`, una vez, al montar) si inyecta `revealKey`: «la sección contiene la pregunta y el bloque, no al revés» (§14). No cambia nada de lo que se pinta.
+
 ---
 
 ## 4. Distribución: `GFormLayout` y `GFormRow` (r02; #171 a #176)
@@ -341,7 +366,7 @@ Sustituye por completo a la rejilla de la Fase 1 (`GFormGrid`, clases `g-form-w-
 | `stack` | Boolean | | `false` | propia: cada `GFormRow` interior pone un campo por línea (salvo `keep`) |
 | `density` | String | `default` `comfortable` `compact` | la de `GForm` o `default` | compartida |
 
-- **Elemento:** `<div class="g-form-layout">`, columna de hijos separados por `--g-form-gap` × densidad. **Cada hijo directo ocupa el ancho entero** (campo suelto, `GFormRow`, `GFieldGroup`, `GCheckboxGroup`, casilla, interruptor, área de texto). **No mide** nada (no tiene `ResizeObserver`): quien mide es cada `GFormRow`.
+- **Elemento:** `<div class="g-form-layout">`, columna de hijos separados por `--g-form-gap` × densidad. **Cada hijo directo ocupa el ancho entero** (campo suelto, `GFormRow`, `GFormReveal` (§14), `GFieldGroup`, `GCheckboxGroup`, casilla, interruptor, área de texto). **No mide** nada (no tiene `ResizeObserver`): quien mide es cada `GFormRow`.
 - **Sub‑contexto:** provee `block: true` (los campos llenan su sitio; la prop explícita gana), `density` y `stack`.
 - **`stack`** (r01 §7.3, hallazgo L10): para drawers u otros contenedores donde se quiere una sola columna fija: toda `GFormRow` interior se comporta como una línea por campo, **salvo** las que llevan `keep`. Sin `stack`, un contenedor estrecho ya parte las filas por sus mínimos.
 - **Orden:** sin `order` ni posiciones explícitas: DOM = lectura = Tab = visual.
@@ -408,7 +433,7 @@ Resultado verificado por kiwi en el formulario mediano (`r02/declaracion.md` §6
 - **Caja:** todas las cajas de una línea comparten `top` (±1px) en cualquier estado. Una caja más alta (área de texto) solo alarga su línea.
 - **Pie en una sola pista** (no dos): ayuda y mensaje siguen pegados a su caja; la línea siguiente empieza tras el pie más alto (kiwi §3.2: con dos pistas, el error de un campo se despegaba por la ayuda del vecino).
 - Un campo **sin etiqueta visible** deja su pista vacía; su caja sigue alineada.
-- **Admitidos como hijos de una fila con más de un hijo:** `GInput`, `GTextarea`, `GSelect`, `GDatePicker` (ni `inline` ni `split`), `GInputGroup`, campos propios del consumidor con la misma estructura de tres hijos (`useFormField`; ver §2), **`GRadioGroup` con `appearance` `inline` o `segmented`** (raíz `div role="radiogroup"` de tres hijos; `inline` amplía #181, #268; el segmentado publica su mínimo intrínseco, #271; `radio-group.md`) y, en la Fase 2, `GNumberField`. **Van en su propia fila** (hijos directos de `GFormLayout`): `GFieldGroup`, `GCheckboxGroup` y `GRadioGroup` con `appearance` `list`, `chip` o `card` (un `<legend>` no participa en la rejilla), `GCheckbox` y `GSwitch` sueltos (no tienen caja que alinear), `GDatePicker inline` y **`GDatePicker split`** (sus etiquetas Inicio/Fin van dentro de la pista de la caja y la bajarían respecto de sus vecinos; #188), otra `GFormRow`, `GFormActions`.
+- **Admitidos como hijos de una fila con más de un hijo:** `GInput`, `GTextarea`, `GSelect`, `GDatePicker` (ni `inline` ni `split`), `GInputGroup`, campos propios del consumidor con la misma estructura de tres hijos (`useFormField`; ver §2), **`GRadioGroup` con `appearance` `inline` o `segmented`** (raíz `div role="radiogroup"` de tres hijos; `inline` amplía #181, #268; el segmentado publica su mínimo intrínseco, #271; `radio-group.md`) y, en la Fase 2, `GNumberField`. **Van en su propia fila** (hijos directos de `GFormLayout`): `GFieldGroup`, `GCheckboxGroup` y `GRadioGroup` con `appearance` `list`, `chip` o `card` (un `<legend>` no participa en la rejilla), `GCheckbox` y `GSwitch` sueltos (no tienen caja que alinear), `GDatePicker inline` y **`GDatePicker split`** (sus etiquetas Inicio/Fin van dentro de la pista de la caja y la bajarían respecto de sus vecinos; #188), otra `GFormRow`, `GFormActions`. **`GFormReveal` nunca va dentro de una `GFormRow`**, ni como único hijo (lo avisa el propio bloque, §14, #279).
 
 **Clases y atributos:** `g-form-row`, `g-form-row--keep`, `g-form-row--density-{d}`, `data-lines` (raíz, tras medir), `data-line` (hijos, tras medir). La raíz de un `GFormRow` es distinguible de un `div.g-form-row` heredado de la Fase 1 (bruno elige cómo; el aviso 2 de `GFormLayout` lo necesita).
 
@@ -726,7 +751,7 @@ Un formulario **de captura** ya guardado que se abre **bloqueado** para evitar e
 - **Solo lectura** (#165, revisado por #186, r02 L8): relleno **`--g-color-neutral-soft`** (rol existente; en claro un paso por debajo de la superficie, en oscuro un paso **por encima**, así que ya no es un pozo negro) + borde **discontinuo** en `--g-color-border-control` (3.02:1 sobre ese relleno en el tema por defecto) + texto `--g-color-text`; marcador de posición `--g-color-text-muted`. Casilla e interruptor conservan `surface-sunken` (su relleno es el propio control, no una caja). **Pendiente para el CLI** (bruno): validar `border-control` ≥ 3:1 también sobre `neutral-soft` (claro y oscuro), porque un tema con `neutral-soft` más oscuro haría fallar 1.4.11.
 - Advertencia y válido: `--g-color-warning-text` y `--g-color-success-text`.
 
-**Consumidos (existentes):** `--g-space-1`, `--g-font-ui`, `--g-text-{title|body|body-sm|caption}-*`, `--g-text-title-weight`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-control`, `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-neutral-soft` (solo lectura, #186), `--g-color-{danger|warning|success}-text`, `--g-surface-*` (fondo del pie fijo), `--g-border-width`, `--g-focus-*`, `--g-duration-*`, `--g-ease-*`; `GInputGroup` además los de `GInput` (caja, radios, alturas por `size`).
+**Consumidos (existentes):** `--g-space-1`, `--g-font-ui`, `--g-text-{title|body|body-sm|caption}-*`, `--g-text-title-weight`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-control`, `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-neutral-soft` (solo lectura, #186), `--g-color-{danger|warning|success}-text`, `--g-surface-*` (fondo del pie fijo), `--g-border-width`, `--g-focus-*`, `--g-duration-*` (incluido **`--g-duration-slow`**, nuevo para `GFormReveal`, #280), `--g-ease-*`; `GInputGroup` además los de `GInput` (caja, radios, alturas por `size`).
 
 ## 10. Cambios en los campos existentes (#158, #164, #165, #166; r02: #176, #180)
 
@@ -789,6 +814,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
 | 3.3.1 Identificación de errores | Texto + `aria-invalid` (en la parte que falla) + prefijo oculto; resumen |
 | 3.3.2 Etiquetas o instrucciones | Una convención de marcas por formulario; con asterisco, frase que lo explica; el mensaje de un fusionado dice qué parte corregir |
 | 3.3.3 Sugerencia | Mensajes de la aplicación con la corrección (guía en el README; Grana no los escribe) |
+| 3.2.2 / 3.3.7 / 2.4.3 (Fase 3, `GFormReveal`) | Abrir un bloque no mueve el foco ni anuncia nada (lo nuevo es lo siguiente en el orden); cerrado conserva lo escrito y sale del envío; cerrar con el foco dentro lo lleva a la pregunta, nunca a `<body>` (§14) |
 | 4.1.3 Mensajes de estado | Mensaje al salir (`polite`); resumen (`alert` + foco); estado del pie (`status`); valor calculado (`<output>` cortés) |
 
 ## 12. Verificación (qué y cómo)
@@ -805,7 +831,7 @@ Playwright en **Chromium, Firefox y WebKit** (subgrid, `@property` y `:has()` di
 6. **Etiquetas sin recortar:** `scrollWidth ≤ clientWidth` y sin `text-overflow`/`line-clamp` en todas las etiquetas.
 7. Consola limpia (sin «ResizeObserver loop»).
 
-Además, densidades `comfortable` y `compact` y `pointer: coarse` en Chromium (las cajas crecen en alto; las comprobaciones 1–3 deben seguir pasando). Un fallo de esta prueba **bloquea** el paso a `candidate` de las piezas del formulario.
+Además, densidades `comfortable` y `compact` y `pointer: coarse` en Chromium (las cajas crecen en alto; las comprobaciones 1–3 deben seguir pasando). Un fallo de esta prueba **bloquea** el paso a `candidate` de las piezas del formulario. **`GFormReveal`** añade un bloque abierto a esta prueba (§14, «Verificación»).
 
 ### bruno (vitest + jsdom; Playwright para medidas, foco y desplazamiento)
 
@@ -824,6 +850,7 @@ Además, densidades `comfortable` y `compact` y `pointer: coarse` en Chromium (l
 - **`GFormSection` (#192):** `divider` avisa como las demás reservadas y no llega a `<section>`; el aviso del `GDivider` a mano entre dos secciones sale una vez, dentro y fuera de `GForm`, y no sale con un divider antes de la primera sección ni entre una sección y otro hijo.
 - **`GFormActions`:** `role="status"` presente vacío; apilado bajo `space × 104` con la primaria sola arriba y las demás compartiendo línea si caben (#185); `--g-form-actions-size` en el `<form>`; Tab por todos los controles de un formulario largo sin ninguno tapado (con y sin respaldo JS); avisos de primaria.
 - **Orden de manejadores** en los seis campos; **`GInput` `prefix`/`suffix`** en `aria-describedby` (con y sin `*Label`).
+- **`GFormReveal` y registro inactivo:** §14, «Verificación», y §2, «Registro inactivo».
 - `check-icons.mjs` y `levels.test.js` sin infracciones (incluidas las excepciones de `--g-form-actions-size` y `--g-form-min`).
 
 ### coco (auditoría con un tema distinto al de defecto)
@@ -957,6 +984,158 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 
 ---
 
+## 14. `GFormReveal`: bloque condicional (Fase 3; #274 a #280)
+
+**Un bloque de campos que existe solo si una respuesta lo pide**: aparece justo después de la pregunta que lo condiciona («¿Requiere factura? Sí → datos fiscales»; «Tipo de persona: Física → CURP · Moral → razón social») y, mientras no aplica, sus campos **no forman parte del formulario** (ni `FormData`, ni Tab, ni validación nativa, ni errores, ni resumen) pero **conservan lo escrito** (WCAG 3.3.7). **Basado en:** `design/lab/form-reveal/r01/` (kiwi; `brief.md`, `declaracion.md` con los hallazgos L1 a L9, `index.html` con `XFormReveal` sobre los componentes reales, `verificar.mjs` 121/121 en los tres motores; commit `1bc028d`). **Componente complejo** (CLAUDE.md, «Modelos por rol»: cambia el estado del registro de `GForm` y se solapa con `GFormSection collapsible`/`addable` y con el submenú de `GSidebar`): **coco y bruno en Opus**.
+
+**Frontera** (sin duplicar): `GFormSection collapsible` (Fase 3, reservado) la abre el usuario con un botón y sus datos **siguen** enviándose y validándose; `addable` = el usuario decide incluir; `disabled` = el dato existe pero no se puede tocar ahora («mostrar todo y deshabilitar» está **rechazado** para lo que no aplica, §1); `GFieldGroup` = una pregunta compuesta. Aquí **la respuesta decide**.
+
+### Props
+
+| Prop | Tipo | Valores | Default | Origen |
+| --- | --- | --- | --- | --- |
+| `when` | Boolean | | `false` | propia: el bloque aplica. Lo calcula la aplicación con su modelo (`:when="factura === 'si'"`, `:when="persona === 'moral'"`) |
+
+- **Nada más** (#274): sin `v-model`, `is`/`equals`, `exclude`, `keepValues`, `indent`, `label`, `focus`, `density` ni `for`. Cerrado **siempre** sale del envío y **siempre** conserva; la sangría es una sola convención; el nombre lo dan sus campos y el orden; la densidad, el contexto.
+- **Atributos** (`id`, `class`, `data-*`, escuchas) van a la raíz `<div>` (`inheritAttrs` normal). La escucha propia de `transitionend` se fusiona **primero** (`mergeProps`), la del consumidor después.
+- **Activo** = `when` **y** todos sus `GFormReveal` ancestros activos. Un anidado conserva su propio estado visual (`is-open`) dentro de un padre cerrado, pero está inactivo.
+
+### Eventos
+
+**Ninguno.** La aplicación ya sabe cuándo cambia `when`. Quien necesite el final de la animación escucha `transitionend` nativo en la raíz (con `event.target === event.currentTarget`; con movimiento reducido solo hay transición de `opacity`).
+
+### Slots
+
+| Slot | Propósito | Anatomía que debe conservar |
+| --- | --- | --- |
+| default | Campos condicionados: campos sueltos, `GFormRow`, `GFieldGroup`, `GInputGroup`, `GCheckbox`/`GCheckboxGroup`, `GRadioGroup`, `GSwitch`, `GTextarea`, campos propios, `GFormReveal` anidados (justo después de **su** pregunta, dentro del bloque) | Dentro de `__body`, como hijos de una **pila** (cada hijo ocupa el ancho entero, como en `GFormLayout`). **Nunca `GFormSection`** (aviso c): si el bloque merece título, la sección contiene la pregunta y el bloque. Si las partes forman **una pregunta** con título, es un `GFieldGroup` dentro del bloque |
+
+### Estructura
+
+```html
+<!-- inmediatamente después de la pregunta, hermano suyo en la misma pila -->
+<div class="g-form-reveal g-form-reveal--density-default is-open is-ready" id="…"
+     style="--_reveal-gap: 20px">                                   <!-- cerrado: sin is-open, con inert="" -->
+  <fieldset class="g-form-reveal__body" role="none">                <!-- cerrado: disabled -->
+    <!-- slot por defecto -->
+  </fieldset>
+</div>
+```
+
+1. **Raíz `<div>` sin rol** (#275): rejilla de **una pista** (`grid-template-rows: 0fr` → `1fr`); es quien anima y quien recibe **`inert`** (atributo presente solo cerrado).
+2. **Cuerpo `<fieldset role="none">`**, **`disabled` mientras está cerrado**: el único mecanismo nativo que saca de `FormData` y de la validación de restricciones a **todos** los controles descendientes (los del consumidor y los `<input hidden>` de `GSelect`/`GDatePicker` incluidos) y se hereda en los anidados. `inert` solo no basta. `role="none"` (permitido en `fieldset` por *ARIA in HTML*): sin nombre, un `fieldset` sería un grupo vacío. **Sin `<legend>`.**
+3. **Contenido siempre montado** (ni `v-if` ni montaje diferido): conserva valores no controlados y el estado de los anidados; `GFormRow` y el segmentado siguen midiendo mientras está cerrado.
+4. **Pila:** el cuerpo separa sus hijos con `--g-form-gap` × densidad (clase `g-form-reveal--density-{d}`, con la densidad del sub‑contexto de distribución › `GForm` › `default`) y **re‑provee el sub‑contexto de distribución** (`layoutKey`: `block: true`, `density` resuelta y `stack`, `readonly`, `disabled` del sub‑contexto padre), así sus campos se comportan igual dentro y fuera de un `GFormLayout`. Los avisos de `GFormLayout` no se aplican a los hijos del cuerpo.
+5. **Sin vínculo ARIA con la pregunta** (#275): ni `aria-expanded` (ARIA 1.2 no lo admite en `radio`; en una casilla la haría sonar como botón de divulgación) ni `aria-controls`. El bloque **no conoce a su disparador**.
+6. **Sin región viva**: el contenido nuevo es lo siguiente en el orden de lectura y de Tab. Guía de contenido (README): si conviene adelantarlo, lo dice la descripción de la opción («Te pediremos tus datos fiscales»).
+7. **Fuera de `GForm`** funciona igual (`inert`, `fieldset`, transición); solo falta la parte del registro.
+8. **SSR:** se pinta con `inert` y `disabled` según `when` (fuera del envío desde el primer HTML); sin `--_reveal-gap` en línea hasta montar (un bloque cerrado deja una separación hasta entonces); sin `is-ready`.
+
+### Colocación (#275, #279)
+
+- **Inmediatamente después de la pregunta que lo condiciona**, como hermano en la misma pila (`GFormLayout`, cuerpo de otro `GFormReveal`, cuerpo de `GFormSection`). Varios bloques excluyentes de la misma pregunta van seguidos (Física → …; Moral → …): el cerrado no ocupa nada.
+- **Nunca dentro de una `GFormRow`**: un bloque ocupa su propia fila y **contiene** filas («Otro → Especifique» va debajo, no al lado).
+- **Nombres:** cada campo tiene su `name` en todo el formulario, también entre ramas excluyentes (aviso 1 de `GForm`). Un campo común a varias ramas (RFC para persona física y moral) va **una vez**, fuera de los bloques; la regla de longitud distinta es de la aplicación.
+
+### Señal de pertenencia (#275, #280)
+
+**Barra al inicio + sangría** del cuerpo: dice «esto depende de la respuesta de arriba» sin texto. La barra se alinea con el **borde de inicio de la pregunta** (el del bloque; no con el centro del primer radio); **solo cambia el borde de inicio**, el de fin es el de todas las filas (#171); cada nivel anidado añade su barra; es un **borde** (no sombra ni fondo) para que sobreviva a `forced-colors`; propiedades lógicas (RTL: a la derecha). Grosor, color y sangría los elige coco con tokens existentes (§«Tokens consumidos»). No es la única señal (orden y sangría): no se le exige 3:1, como `GDivider subtle` (#89).
+
+### Foco y desplazamiento (#275)
+
+- **Al abrir, el foco no se mueve** y no hay prop para moverlo (WCAG 3.2.2; con radios rompería las flechas). Tab desde la pregunta entra en el bloque abierto.
+- **Al cerrar con el foco dentro** (solo por programa: la pregunta va antes): **antes** de aplicar `inert` y `disabled` (en el mismo ciclo, antes de pintar), el foco va al **último elemento enfocable que precede a la raíz** en orden del documento (fuera del bloque, no deshabilitado, no `inert`, con caja); si es un radio, a la **opción elegida** de su grupo (mismo `name` y mismo formulario), si la hay. Sin ninguno anterior, al primero posterior. Con `preventScroll: true`. **Nunca queda en `<body>`** (2.4.3).
+- **Sin desplazamiento automático** al abrir ni al cerrar.
+
+### Transición (#278)
+
+| Fase | Raíz | Cuerpo | Campos (en `GForm`) |
+| --- | --- | --- | --- |
+| Cerrado | sin `is-open`, `inert`, `visibility: hidden`, altura 0, `margin-block-start` = −`--_reveal-gap` | `disabled`, recortado | inactivos |
+| Abriendo | `is-open is-animating`, sin `inert` | habilitado, recortado (`overflow: hidden`, `min-block-size: 0`) | activos |
+| Abierto | `is-open` | habilitado, `overflow: visible` (no recorta anillos de foco ni sombras) | activos |
+| Cerrando | sin `is-open`, `is-animating`, `inert` | `disabled`, recortado | inactivos, revelado limpio |
+
+- **`is-open`, `inert` y `disabled` cambian en el acto** con `when` (Tab llega al bloque desde el primer cuadro de la apertura).
+- **`is-animating`** desde el cambio de `when` hasta el `transitionend` de `grid-template-rows` **cuya diana es la raíz**, o un **temporizador de respaldo** = la mayor suma de `transition-duration` + `transition-delay` calculadas de la raíz + 50ms (una transición de 0s no emite el evento: movimiento reducido).
+- **`is-ready`** tras el primer pintado (doble `requestAnimationFrame`): **sin animar al montar** (plan 012) ni al reabrir un padre cuyo anidado ya estaba abierto (su estado no cambió).
+- **Interrupción:** cambiar `when` a mitad revierte desde la altura actual (transiciones CSS; nada que medir).
+- **Separación del contenedor:** `--_reveal-gap` (px) = `row-gap` calculado del **elemento padre** (0 si no es un número), escrito en línea al montar, en cada cambio de `when` y cuando el padre cambia de tamaño (`ResizeObserver` **compartido** por todos los bloques, observando a cada padre; escrituras en `requestAnimationFrame` y solo si cambian, #173). No se mide ninguna altura. Así un bloque cerrado no deja hueco (pregunta → siguiente campo = una separación) y al abrir lo de abajo baja de forma continua. El disparador no se mueve (Δ 0px).
+- **Opacidad:** al abrir, fundido que termina con la altura (empieza con retraso); al cerrar, fundido corto desde el principio; `visibility` pasa a `hidden` solo al final.
+- **Movimiento reducido** (plan 007: menos, no cero): altura y margen en **un cuadro**; el **fundido se conserva** al abrir y al cerrar, y al cerrar el bloque sigue visible hasta que acaba.
+- **`GFormLayout` pone `margin: 0` a sus hijos** (`.g-form-layout > *`): el margen negativo del bloque cerrado debe ganarle (para coco).
+
+### Datos, errores y envío (con `GForm`; #276, #277)
+
+| Situación | Comportamiento |
+| --- | --- |
+| Bloque inactivo | Sus campos **siguen registrados**, marcados inactivos: no bloquean el envío, no van en `invalid` ni en el resumen, `submit` y `showErrors()` no los revelan, `focusFirstError()` los salta, y **sus claves de `errors` no son generales**. La aplicación puede calcular `errors` **sin condiciones** |
+| Pasa a inactivo con errores visibles | Salen **en silencio** del resumen (como al corregirse, #162) y de su instantánea; sin elementos, el resumen se oculta; los mensajes en línea se van con el bloque |
+| Pasa a inactivo | Sus campos vuelven a **sin editar, sin revelar** (el valor se conserva) |
+| Vuelve a activo | Un error reaparece por las reglas de siempre (salir habiendo escrito, cambio en un control de elección, envío); el resumen lo recupera en el siguiente envío o `showErrors()` |
+| Envío con el bloque cerrado | `FormData` **sin** sus campos (por el `fieldset disabled`); `required` dentro conserva su marca y no cuenta |
+| La aplicación envía **su modelo** (no `FormData`) | Recibe también los valores conservados de bloques cerrados: es su modelo y Grana no lo limpia. Receta: declarar la condición **una vez** (`const esMoral = computed(() => persona.value === 'moral')`), pasarla a `:when` y usarla para filtrar el modelo al enviar. **Sin** lista `inactive` en `submit` (#277) |
+| `GForm readonly` / `disabled` | Pasan por el bloque a sus campos como siempre; el bloque no tiene esos estados (sigue a `when`) |
+| `dirty` | Abrir o cerrar no lo cambia (ya lo subió el cambio en la pregunta) |
+
+### Teclado
+
+**Sin teclas propias.**
+
+| Tecla | Acción |
+| --- | --- |
+| Tab / Mayús+Tab | Desde la pregunta entra en el bloque abierto; salta el cerrado (`inert` + `disabled`) |
+| Flechas en un `GRadioGroup` (la pregunta) | Eligen al moverse (nativo, #272): el bloque se abre o se cierra **sin mover el foco** |
+| Espacio en una casilla (la pregunta) | Igual |
+
+### Tokens consumidos (#280)
+
+| Token | Para qué |
+| --- | --- |
+| `--g-form-gap` | Separación entre los hijos del cuerpo (× densidad) |
+| `--g-border-width` o `--g-space-1` | Grosor de la barra (coco elige; derivado, sin literal) |
+| `--g-color-border-strong` o `--g-color-border-control` | Color de la barra (nunca `accent`, `brand` ni `active`) |
+| `--g-space-*` | Sangría (distancia de la barra al contenido) |
+| **`--g-duration-slow`** (nuevo, `tokens.md` §6) | Altura (`grid-template-rows`) y margen |
+| `--g-duration-fast` | Fundido |
+| `--g-ease-out` / `--g-ease-standard` | Curvas |
+
+**Variable dinámica en línea:** `--_reveal-gap` (alias local; coco declara `0px` en `.g-form-reveal` y la de línea gana; excepción justificada como `--_form-row-*`, #173). En `forced-colors` la barra es un borde y toma el color del sistema sola.
+
+### Clases (contrato bruno ↔ coco)
+
+| Clase | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-form-reveal` | Raíz `div` | Siempre |
+| `g-form-reveal--density-{default\|comfortable\|compact}` | Raíz | Siempre |
+| `is-open` | Raíz | `when` verdadero (en el acto) |
+| `is-animating` | Raíz | Desde un cambio de `when` hasta asentarse |
+| `is-ready` | Raíz | Tras el primer pintado (sin ella, sin transiciones) |
+| `g-form-reveal__body` | `fieldset role="none"` | Siempre |
+| `--_reveal-gap` (en línea) | Raíz | Separación del padre en px, tras montar |
+
+### Avisos de desarrollo (#279)
+
+`[Grana GFormReveal]`, una vez por instancia, al montar:
+
+1. Su elemento padre es la raíz de una `GFormRow`: «ocupa su propia fila y contiene filas; colócalo después de la fila de la pregunta».
+2. No tiene hermano anterior: «debe ir justo después de la pregunta que lo condiciona».
+
+`[Grana GFormSection]`, al montar:
+
+3. Una `GFormSection` dentro de un `GFormReveal` (la sección lo detecta al inyectar `revealKey`): «la sección contiene la pregunta y el bloque, no al revés».
+
+Ninguno cambia el comportamiento.
+
+### Verificación
+
+- **bruno (vitest + jsdom):** estructura (`div` sin rol, `fieldset role="none"`, sin `<legend>`); `inert` y `disabled` según `when`, también en SSR (`renderToString`); contenido montado con `when` falso; clases `is-open`/`is-animating`/`is-ready` (sin `is-ready` en el primer render); `--_reveal-gap` desde el `row-gap` del padre (simulado) y solo si cambia; atributos y orden de la escucha `transitionend`; re‑provisión de `layoutKey`; foco al cerrar (anterior, radio elegido, posterior); los tres avisos. **Registro inactivo en `GForm`** (§1, §2): con `errors` sin condiciones para campos de un bloque cerrado, `submit` sale **sin** `invalid`; `showErrors()` y el envío no los revelan; `invalid` no los lista; sus claves no aparecen como generales; cerrar con errores visibles los quita del resumen (y lo oculta si queda vacío) y limpia editado y revelado; reabrir no muestra el error y el siguiente envío sí; anidado activo solo con el padre; `GFieldGroup`, `GCheckboxGroup`, `GInputGroup` y `GRadioGroup` dentro; un campo propio con `useFormField` dentro.
+- **Playwright** (Chromium, Firefox y WebKit): adaptar `design/lab/form-reveal/r01/verificar.mjs` al componente real en `design/lab/theme-playground/` (sin transición al cargar; `FormData` y `:invalid` según la respuesta, con `GSelect` y `GDatePicker` dentro; Tab; disparador Δ 0px en cada cuadro al abrir y cerrar, LTR y RTL; Δscroll 0; altura y opacidad intermedias; `overflow` visible al asentarse; interrupción; movimiento reducido; 320px con dos niveles sin desborde; foco al cerrar por programa) y añadir un bloque abierto a la **prueba obligatoria de distribución** (#184: las filas del cuerpo terminan en el mismo borde que las de fuera, menos la sangría en el inicio).
+- **coco (auditoría con un tema distinto):** barra visible y alineada con el inicio de la pregunta en las tres densidades, anidados, RTL y `forced-colors`; que el aspecto deshabilitado nativo de los controles (`GBtn:disabled`, etiquetas de grupo con `:disabled`) no destaque durante el fundido de cierre; `--g-duration-slow` en `GSidebar` y `GStepper` sin cambio visible.
+- **No verificado y pendiente:** lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; que `fieldset role="none"` no se anuncie como grupo); Safari, iOS y táctil reales; `forced-colors` en Firefox y WebKit; cerrar un bloque grande con la página desplazada hasta el final; rendimiento con muchos bloques.
+
+---
+
 ## Migración desde la Fase 1 (#183)
 
 La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormLayout` y `GFormRow` avisan en desarrollo con el reemplazo cuando encuentran restos de la Fase 1.
@@ -983,7 +1162,7 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | Fase | Contenido | Motivo de diferirlo |
 | --- | --- | --- |
 | **2 · Campos imprescindibles** | **`GRadioGroup`: contratado** en `design/contracts/radio-group.md` (#267 a #273; kiwi r01): `appearance` `list` `inline` `segmented` **`chip` `card`** (singular, los valores ya publicados de `GCheckbox` `layout`; corrige la reserva en plural, #267); `options` como `GSelect`; **sin `GRadio` en v0.1** (nombre reservado: un radio suelto no tiene sentido); raíz `role="radiogroup"` en todas (`fieldset` en `list`, `chip`, `card`); **`inline` y `segmented` comparten línea** (#268); `aria-required` en el grupo y nunca `required` nativo (#269); radios nativos; relación con `GCard selectType="radio"`, #124 y **`GNumberField`** (`<input type="text" inputmode>`, `min` `max` `step` `precision` `locale`, prefijo/sufijo de C13, −/+ opcionales con `minus`/`plus`), **sin moneda** (#154). **Requisitos de r02** (#181): `GRadioGroup appearance="segmented"` usa raíz **`role="radiogroup"` + `aria-labelledby`** hacia una etiqueta visible (no `fieldset`/`legend`) y la estructura de tres hijos (C12), para poder compartir línea en una `GFormRow` (patrón APG *Radio Group*; radios nativos, una parada de Tab y flechas); las demás apariencias siguen con `fieldset`/`legend` y van en su propia fila. **Partes nuevas de `GInputGroup`:** `GSelect` como parte (opciones ricas, búsqueda; sin autocompletado) y `GNumberField` como parte. (`GFieldGroup joined` se retira: es `GInputGroup`, §13) | Sin ellos no hay Sí/No ni campos numéricos; cada uno merece su contrato y su verificación |
-| **3 · Divulgación y navegación** | `GFormSection` `mode` `collapsible` (`aria-expanded`, cerrada `inert` pero se envía y valida; el resumen la abre); `GFormSection` **`divider`** (línea decorativa opcional dentro de `--g-form-section-gap`, reglas reservadas en §3, #192) y `addable` («Agregar…»/«Quitar», foco al título con `tabindex="-1"`); `headerPlacement="auto"` (≥ `space × 200`); **`GFormReveal`** (`when`, `exclude`, `keepValues`, `indent`; `grid-template-rows` sin saltos; `inert` + deshabilitado al cerrar); **`GFormNav`** (`<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`); tokens de la barra de condicional y del ancho de la navegación | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
+| **3 · Divulgación y navegación** | `GFormSection` `mode` `collapsible` (`aria-expanded`, cerrada `inert` pero se envía y valida; el resumen la abre); `GFormSection` **`divider`** (línea decorativa opcional dentro de `--g-form-section-gap`, reglas reservadas en §3, #192) y `addable` («Agregar…»/«Quitar», foco al título con `tabindex="-1"`); `headerPlacement="auto"` (≥ `space × 200`); **`GFormReveal`: contratado en §14** (#274 a #280; solo `when`; `exclude`, `keepValues` e `indent` **no entran**); **`GFormNav`** (`<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`); token del ancho de la navegación (la barra del bloque condicional no lleva tokens propios, #280) | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
 | **4 · Estado y guardado** | `GFormStatus` (autoguardado: Guardando/Guardado/Error + Reintentar, revertir); `guard` (`beforeunload` con `dirty`); integración documentada con `GDialog` (cancelar `dismiss` con cambios, confirmación en el pie), `GStepper` (un `GForm` por paso, `status` por paso) y `GTabs` (`status: attention` con conteo); `GWidgetConfig` compone `GErrorSummary` | Depende de la Fase 1 y de los contratos vigentes de esos componentes |
 | **5 · Rondas propias de kiwi** | `GCombobox` (prioridad alta), `GFileField`, `GTimeField`, **moneda** (#154), teléfono dedicado, búsqueda de dirección | Cada uno es un componente con su propio patrón APG y sus preguntas |
 
@@ -1007,12 +1186,12 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | 10 | `GErrorSummary` | §7; `labels.title` String o Function; `navigate` cancelable; `GWidgetConfig` lo compondrá en la Fase 4 | #162; #78 |
 | 11 | `GFormSection` | §3: solo fija en la Fase 1; `mode`, `open`, `added`, `headerPlacement`, `labels` reservadas para la Fase 3; insignia con `labels.sectionOptional` de `GForm` | #161 |
 | 12 | Alineación de cajas | *Subgrid* solo en `g-form-row` (CSS de cada campo, pistas con nombre); en la rejilla general, alineación superior y regla de contenido | #159 |
-| 13 | `GFormReveal` | **Fase 3** | Divulgación es un bloque propio |
+| 13 | `GFormReveal` | **Fase 3**: **contratado en §14** (kiwi `form-reveal/r01`; tabla «Resolución de hallazgos de kiwi (`GFormReveal` r01, §8)») | Divulgación es un bloque propio; #274 a #280 |
 | 14 | `GFormActions` | §6: `sticky`, `status`; sin `align` (orden fijado por el usuario); `--g-form-actions-size` publicada por `GForm`; avisos de primaria | #155, #163 |
 | 15 | `GFormNav` | **Fase 3** (no reutiliza `GSidebar`) | §1.8 de kiwi |
 | 16 | `GRadioGroup` | **Fase 2**: contrato propio `radio-group.md` (kiwi r01; #267 a #273) | Contrato propio |
 | 17 | `GNumberField` | **Fase 2**, **sin moneda** | #154 |
-| 18 | Tokens | §9 y `tokens.md` §21: cinco tokens nuevos; solo lectura y estados con existentes; barra de condicional y navegación → Fase 3 | #167; §17.6 |
+| 18 | Tokens | §9 y `tokens.md` §21: cinco tokens nuevos; solo lectura y estados con existentes; navegación → Fase 3; barra de condicional sin tokens propios (#280) | #167; §17.6 |
 | 19 | Iconos | Error `circle-alert` (cambio), advertencia `triangle-alert`, válido `circle-check`, resumen `circle-alert`; `minus`/`plus` en la Fase 2 (ya en la lista) | `icons.md`; #85 a #87 |
 | 20 | Solo lectura homogéneo | C7: un aspecto común; `GForm readonly` como modo vista | #165 |
 
@@ -1031,3 +1210,17 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | L9 | Acciones en el mismo borde | §6: `GFormActions` termina en el mismo borde que las filas; el apilado se mide con su propio ancho (sin cambio de API) | #155 |
 | L10 | Drawer | `GFormLayout stack`: un campo por línea en toda fila salvo `keep` | #173 |
 | r02 §11 | Compacto suelto se estira | Aceptado como derivado de «sin huecos»: un campo fuera de fila ocupa el ancho entero; avisos en `GFormLayout` (hijo `xs`/`sm`) y `GFormRow` (fila de un solo `xs`/`sm`) sugieren agrupar | #172 |
+
+## Resolución de hallazgos de kiwi (`GFormReveal` r01, §8)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L1 | API mínima: solo `when` | **Confirmada**: `when` (Boolean, `false`) + slot por defecto; sin eventos, sin `v-model`, sin `density`. Contrato como **§14 de este archivo** (no archivo propio) | #274; AGENTS.md (la lógica es de la aplicación); #156 |
+| L2 | Reserva `exclude`, `keepValues`, `indent` | **No entran**, tampoco `label` ni `focus`: cerrado siempre fuera del envío, siempre conserva, una convención de sangría; nombre por los campos; foco quieto. «Fases siguientes» actualizada | #274; WCAG 3.3.7, 3.2.2 |
+| L3 | Registro inactivo en `GForm` y `useFormField` | §2 «Registro inactivo»: `revealKey` interna con `active`; `inactive()` en cada registro (`useFormField` y `useCompositeField`); `blocking()`, `revealAll()`, `focusFirstError()`, `visible()`/`isShown()` y `notify*` los saltan; nombres **siguen cubiertos**; al desactivarse se limpian editado, revelado **y la instantánea del resumen** | #276; #157, #162 |
+| L4 | Estructura y clases | §14: `g-form-reveal` (`div` sin rol, `inert`), `g-form-reveal__body` (`fieldset role="none"`, `disabled`), `is-open`, `is-animating`, `is-ready`, `--_reveal-gap`; **añadido**: `g-form-reveal--density-{d}` y re‑provisión del sub‑contexto de distribución (el cuerpo es una pila con `--g-form-gap` × densidad) | #275, #278 |
+| L5 | Avisos de desarrollo | §14: (1) dentro de una `GFormRow`, (2) sin hermano anterior, desde `GFormReveal`; (3) `GFormSection` dentro, desde la sección al inyectar `revealKey` | #279 |
+| L6 | Nombres inactivos para quien envía su modelo | **No se añade** `inactive` a `submit` ni `isActive(name)`: `FormData` ya excluye; receta con la condición declarada una vez y reutilizada en `when` y al filtrar el modelo. `inactive` queda reservado (sería API de producto) | #277 |
+| L7 | Tokens | Nace **`--g-duration-slow`** (tercer componente con los 240ms; `GSidebar` y `GStepper` migran su `--_t-slow`); barra y sangría **sin tokens propios** (borde, `space`, color de borde existente); se cierra la reserva de `tokens.md` §21 | #280; `plans/README.md`; §17.6 |
+| L8 | `GDialog` mueve el disparador al crecer | Se deriva de «sin saltos» (form r01 §11): **ronda propia de `GDialog`** (crecer hacia abajo con el borde superior fijo; la hoja conserva su borde superior mientras quepa), anotada en `dialog.md` «Abierto»; **no bloquea** `GFormReveal` | #281 |
+| L9 | Etiqueta del grupo de radios sin `dir="auto"` | `radio-group.md`: el texto de `__label` va en `<span class="g-radio-group__label-text" dir="auto">` (no en `__label`, para no cambiar su alineación); bruno en esta ronda | #282; #269 |

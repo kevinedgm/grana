@@ -125,7 +125,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-radius-shape
 --g-border-width
 --g-focus-{width|offset}
---g-duration-{fast|press|spin}
+--g-duration-{fast|press|spin|slow}
 --g-ease-{standard|out}
 --g-press-scale
 --g-text-action-weight
@@ -146,6 +146,7 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | `--g-duration-fast` | 120ms | Cambios de estado (hover, activo) |
 | `--g-duration-press` | 160ms | Respuesta al pulsar |
 | `--g-duration-spin` | 800ms | Una vuelta del indicador de carga |
+| `--g-duration-slow` | valor de coco (derivación vigente `calc(var(--g-duration-press) * 1.5)` = 240ms) | Movimientos grandes: altura, ancho y desplazamiento de bloques (`GFormReveal`, `GSidebar`, `GStepper`); el máximo de la interfaz (DECISIONS.md #71, #280) |
 | `--g-ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Curva de los cambios de estado |
 | `--g-ease-out` | `cubic-bezier(0.23, 1, 0.32, 1)` | Curva de entradas y respuesta al pulsar |
 | `--g-press-scale` | 0.97 | Escala al pulsar (1 lo desactiva) |
@@ -537,7 +538,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 
 **Propiedad pública de `GForm`: `--g-form-actions-size`** (#163). `GForm` la escribe **en línea** en el `<form>` con la altura medida de su `GFormActions sticky`, y `GForm.css` la declara con `0px` en `.g-form` (la de línea gana). La usa `GForm.css` para el `scroll-margin-block-end` de lo enfocable (WCAG 2.4.11). **Solo lectura**: no es del tema, no se emite en `tokens.json`; excepción documentada a `levels.test.js` como `--g-surface-padding` (§19).
 
-**Reservados para la Fase 3** (se nombrarán con su contrato): barra del bloque condicional (`GFormReveal`) y ancho de la navegación de secciones (`GFormNav`).
+**Reservado para la Fase 3** (se nombrará con su contrato): ancho de la navegación de secciones (`GFormNav`). La **barra del bloque condicional** (`GFormReveal`) se resolvió **sin tokens propios** (§26, #280).
 
 **Pendiente no bloqueante:** el CLI no emite `--g-form-*`; los temas de usuario usan los valores de `defaults.css`.
 
@@ -665,4 +666,12 @@ Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defec
 **`GRadioGroup` no añade tokens** (`design/contracts/radio-group.md`, DECISIONS.md #273; §17.6: ningún existente se queda corto). El **círculo** usa los tokens del cuadro de `GCheckbox` (`--g-color-surface`, `--g-color-border-control`, relleno `--g-color-{color}`/`--g-color-on-{color}`, `--g-radius-pill`); el **chip** y la **tarjeta**, los del chip y la tarjeta de `GCheckbox` (`border-strong`, `{color}-soft`, `{color}-text`, `--g-radius-pill`, `--g-radius-lg`); el **segmentado** es una **caja de campo** (fondo `surface`, marco `border-control` hacia dentro, radio `--g-radius-sm` de la caja por defecto, alturas de `size` derivadas de `space` como `GInput`) con la elegida **rellena** en `--g-color-{color}` y su texto en `--g-color-on-{color}`; separadores decorativos en `--g-color-border`. **No** lee `--g-tabs-track`, `--g-tabs-thumb` ni ningún `--g-tabs-*`: son de navegación (#112, #120) y el segmentado de radios es una respuesta. Solo lectura, advertencia y válido como el resto de campos (§21). Movimiento con `--g-duration-fast`, `--g-duration-press` y `--g-ease-standard` (relleno en su sitio, sin marca que se desliza).
 
 **No son tokens:** el **ancho natural** del segmentado (medido en px por el `.vue` y publicado a `GFormRow` con la función interna `setIntrinsicMin`, `form.md` §4, #271), el umbral de apilado (ese mismo ancho natural) y las separaciones internas, derivadas de `space` en el CSS de coco.
+
+## 26. Bloque condicional (`GFormReveal`; un token global nuevo, ninguno de componente)
+
+**`GFormReveal` no añade tokens de componente** (`design/contracts/form.md` §14, DECISIONS.md #280; §17.6). La **barra** de pertenencia es un borde de inicio con grosor de `--g-border-width` o `--g-space-1` y color de borde existente (`--g-color-border-strong` o `--g-color-border-control`; nunca `accent`, `brand` ni `active`: no es estado ni acción); no se le exige 3:1 porque no es la única señal (orden y sangría), como `GDivider subtle` (#89); en `forced-colors` es un borde y toma el color del sistema. La **sangría**, de `--g-space-*`. Separación del cuerpo: `--g-form-gap` × densidad (§21). Fundido con `--g-duration-fast`; curvas `--g-ease-*`.
+
+**Token global nuevo: `--g-duration-slow`** (§6): movimientos grandes (altura, ancho, desplazamiento de bloques). Nace porque `GFormReveal` es el **tercer** componente que necesita los 240ms que `GSidebar` y `GStepper` derivaban como alias local `--_t-slow` (regla anotada en `plans/README.md`: promoverlo al tercer uso). Valor de coco en `defaults.css`; la derivación vigente (`calc(var(--g-duration-press) * 1.5)`) no cambia nada de lo que se ve. `GSidebar.css` y `GStepper.css` pasan su `--_t-slow` a `var(--g-duration-slow)` (coco); `packages/cli/src/defaults.js` se regenera con `scripts/sync-defaults.mjs` (bruno). No es de color: no se redeclara en el oscuro (§15).
+
+**No son tokens:** la separación del contenedor que el bloque compensa al cerrarse, **`--_reveal-gap`** (variable dinámica en línea, px leídos del `row-gap` calculado del padre; coco declara `0px` neutro; excepción justificada como `--_form-row-*`, #173, #278).
 

@@ -119,7 +119,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 <div class="g-radio-group g-radio-group--appearance-segmented g-radio-group--size-md g-radio-group--density-default g-radio-group--color-brand [is-stacked] [is-invalid]"
      id="ID" role="radiogroup" aria-labelledby="ID-label" aria-describedby="ID-hint ID-message"
      aria-required="true" aria-invalid="true">                                                      <!-- aria-readonly="true" con readonly -->
-  <span class="g-radio-group__label" id="ID-label">Sexo<span class="g-radio-group__required" aria-hidden="true">*</span></span>
+  <span class="g-radio-group__label" id="ID-label"><span class="g-radio-group__label-text" dir="auto">Sexo</span><span class="g-radio-group__required" aria-hidden="true">*</span></span>
   <div class="g-radio-group__options">                                                             <!-- pista de la caja -->
     <label class="g-radio-group__option" for="ID-0">
       <input class="g-radio-group__input" type="radio" id="ID-0" name="sexo" value="F" aria-labelledby="ID-0-label">
@@ -142,7 +142,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 
 ```html
 <fieldset class="g-radio-group g-radio-group--appearance-card …" id="ID" role="radiogroup" aria-labelledby="ID-label" aria-describedby="ID-message" disabled>
-  <legend class="g-radio-group__label" id="ID-label">Modalidad <span class="g-radio-group__optional">(opcional)</span></legend>
+  <legend class="g-radio-group__label" id="ID-label"><span class="g-radio-group__label-text" dir="auto">Modalidad</span> <span class="g-radio-group__optional">(opcional)</span></legend>
   <div class="g-radio-group__options">
     <label class="g-radio-group__option [is-disabled]" for="ID-0">
       <input class="g-radio-group__input" type="radio" id="ID-0" name="modalidad" value="presencial" checked
@@ -162,6 +162,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 - **`fieldset role="radiogroup"`** (permitido por *ARIA in HTML*) con **`aria-labelledby`** a la `<legend>` (Chromium la toma sin él; los demás motores lo necesitan). Conserva lo nativo del `fieldset` (`disabled` en cascada) y expone lo mismo que la raíz `div` (#269).
 - **Nombre de cada radio = su etiqueta** (`aria-labelledby` → `ID-i-label`); la descripción por `aria-describedby` (solo `list` y `card`); el icono `aria-hidden`. En solo icono, `ID-i-label` es el texto oculto accesible (clase `is-icon-only` en la opción).
 - **`dir="auto"`** en `__option-label` (aislamiento bidi: «A+» en una página RTL no se lee «+A»).
+- **Texto de la etiqueta del grupo aislado** (#282, kiwi `form-reveal/r01` L9): el texto de `label` (o el slot `label`) va en un **`<span class="g-radio-group__label-text" dir="auto">`** en línea dentro de `__label`; la marca (`__required`/`__optional`) queda **fuera**, después. **No** se pone `dir` en `__label`: en el bloque, `dir` cambiaría también la alineación (`text-align: start`) y la posición de la marca en un formulario RTL. Sin él, «¿Requiere factura?» en un contenedor `dir="rtl"` sale «?Requiere factura¿». Sin efecto en el nombre accesible ni en el aspecto (coco no necesita regla).
 - `aria-describedby` de la **raíz**: `$attrs['aria-describedby']`, `ID-hint` si hay ayuda e `ID-message` solo mientras hay mensaje.
 - **Región `ID-message`**: siempre presente salvo con `field: false`; vacía = sin nodos de texto (C4); `aria-live` = `live` del contexto (`polite` fuera de `GForm`). Dentro: `GIcon` (`circle-alert`, `triangle-alert`, `circle-check`) + prefijo oculto `__message-type` (`labels.error|warning|valid` de `GForm`; fuera, sin prefijo) + texto.
 - **Marcas** dentro de `__label`: asterisco `__required` `aria-hidden` o texto `__optional` (parte del nombre).
@@ -179,7 +180,7 @@ Solo ese evento va en `emits`. `change`, `focusin`, `focusout`, `keydown`… **n
 
 | Slot | Props | Propósito | Anatomía que debe conservar |
 | --- | --- | --- | --- |
-| `label` | — | Etiqueta con contenido rico (sustituye a `label`) | Dentro de `ID-label` (`<span>` o `<legend>`); nunca elementos interactivos |
+| `label` | — | Etiqueta con contenido rico (sustituye a `label`) | Dentro de `__label-text` (`dir="auto"`), en `ID-label` (`<span>` o `<legend>`); nunca elementos interactivos |
 | `hint` | — | Ayuda con contenido rico | Conserva `ID-hint` dentro de `__support` |
 | `error` | — | Mensaje de error con contenido rico | Solo con error visible; dentro de `ID-message`, tras icono y prefijo |
 | `option` | `{ option, index, checked, disabled }` | Contenido rico de una opción (sustituye a icono, etiqueta y descripción) | Dentro de la `<label>`, en `ID-i-label` (todo es el nombre del radio); el `<input>` lo pone el componente; **nada interactivo**. Con él, `labelMode="icon"` no tiene efecto (aviso) |
@@ -306,7 +307,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 | `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid` | Raíz | Estado |
 | `is-stacked` | Raíz | Segmentado apilado (tras medir) |
 | `g-radio-group__label` | `span` o `legend` | Con `label` o slot `label` |
-| `g-radio-group__required`, `g-radio-group__optional` | Marca dentro de `__label` | Según `mark` resuelta |
+| `g-radio-group__label-text` | `span` en línea con `dir="auto"` dentro de `__label` (#282) | Con `label` o slot `label` |
+| `g-radio-group__required`, `g-radio-group__optional` | Marca dentro de `__label`, después de `__label-text` | Según `mark` resuelta |
 | `g-radio-group__options` | Contenedor de opciones (la caja en `inline`/`segmented`) | Siempre |
 | `g-radio-group__option` | `<label>` | Por opción |
 | `is-disabled`, `is-icon-only` | `__option` | Opción deshabilitada; etiqueta oculta en solo icono |
@@ -320,7 +322,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 
 ## Verificación
 
-- **bruno** (vitest + jsdom): raíz por apariencia (`div`/`fieldset`) con `role="radiogroup"` y `aria-labelledby`; `name` común (dado y generado); `value` = `String(value)` y `update:modelValue` con el tipo original (número, booleano); controlado (sin actualizar el modelo, el `checked` vuelve); `null` sin selección; `aria-required`/`aria-invalid`/`aria-readonly`/`aria-describedby` **solo en la raíz** y **ningún `required` nativo**; nombre del radio = etiqueta, descripción solo en `list`/`card`, icono `aria-hidden`, `dir="auto"`; solo icono (texto oculto, opción sin icono visible); `readonly` (flechas y clic cancelados, radios habilitados, en `FormData`); `disabled` de grupo en las dos raíces y por opción; contexto de `GForm` (`trigger: 'change'`, `control` = la que recibiría Tab, marcas con `markRule` `both`, `readonly` heredado sin marca, orden de manejadores); `field: false`; slots `option` e `icon`; los diez avisos. **Playwright** (tres motores): adaptar `design/lab/radio-group/r01/verificar.mjs` al componente real en `design/lab/theme-playground/` (teclado, `FormData`, solo lectura, ajuste a 1280/960/720/480/360/320, cajas de una línea con el mismo `top` ±1px, opciones ≥ 24×24 y ≥ 44×44 táctil, segmentado apilado por su ancho y fila que se parte antes) y añadir una fila con `segmented` e `inline` a la **prueba obligatoria de distribución** (`tests/form-distribution.spec.mjs`, #184). En el playground, Sexo pasa de `GSelect` a `GRadioGroup appearance="segmented"` (form.md «Migración»).
+- **bruno** (vitest + jsdom): raíz por apariencia (`div`/`fieldset`) con `role="radiogroup"` y `aria-labelledby`; `name` común (dado y generado); `value` = `String(value)` y `update:modelValue` con el tipo original (número, booleano); controlado (sin actualizar el modelo, el `checked` vuelve); `null` sin selección; `aria-required`/`aria-invalid`/`aria-readonly`/`aria-describedby` **solo en la raíz** y **ningún `required` nativo**; nombre del radio = etiqueta, descripción solo en `list`/`card`, icono `aria-hidden`, `dir="auto"` (opciones y `__label-text` del grupo, #282); solo icono (texto oculto, opción sin icono visible); `readonly` (flechas y clic cancelados, radios habilitados, en `FormData`); `disabled` de grupo en las dos raíces y por opción; contexto de `GForm` (`trigger: 'change'`, `control` = la que recibiría Tab, marcas con `markRule` `both`, `readonly` heredado sin marca, orden de manejadores); `field: false`; slots `option` e `icon`; los diez avisos. **Playwright** (tres motores): adaptar `design/lab/radio-group/r01/verificar.mjs` al componente real en `design/lab/theme-playground/` (teclado, `FormData`, solo lectura, ajuste a 1280/960/720/480/360/320, cajas de una línea con el mismo `top` ±1px, opciones ≥ 24×24 y ≥ 44×44 táctil, segmentado apilado por su ancho y fila que se parte antes) y añadir una fila con `segmented` e `inline` a la **prueba obligatoria de distribución** (`tests/form-distribution.spec.mjs`, #184). En el playground, Sexo pasa de `GSelect` a `GRadioGroup appearance="segmented"` (form.md «Migración»).
 - **coco** (auditoría con un tema distinto): el segmentado se lee como caja de campo y no como `GTabs`; la elegida no depende solo del color (punto, relleno con texto en `on-*`, borde doble en la tarjeta); foco visible por opción (dentro del segmento); solo lectura distinto de deshabilitado; `forced-colors`; movimiento reducido.
 
 ## Resolución de hallazgos de kiwi (r01, §12)
@@ -357,3 +359,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 - **bruno · `GErrorSummary.vue`:** `closest(…)` += `.g-radio-group` (raíz a desplazar).
 - **bruno · `GCheckbox.vue`:** `aria-required` en vez de `required` nativo (#270, `checkbox.md`).
 - **coco · `GRadioGroup.css`:** pistas en `GFormRow` (C12), caja del segmentado del alto de un campo con marco hacia dentro, `is-stacked`, `--measure`, foco por opción, `forced-colors`, movimiento.
+
+## Cambio por `GFormReveal` (kiwi `form-reveal/r01` L9; DECISIONS.md #282)
+
+- **bruno · `GRadioGroup.vue`** (esta ronda): envolver el texto de la etiqueta del grupo (prop `label` y slot `label`) en `<span class="g-radio-group__label-text" dir="auto">`, en las dos raíces; la marca queda fuera, después. Prueba: el `span` existe con `dir="auto"`, la marca es su hermana siguiente, el nombre accesible del grupo no cambia; instantáneas afectadas.
+- **coco:** nada (el `span` en línea no necesita estilo; comprobar en la auditoría de `GFormReveal` que en RTL la etiqueta sigue alineada al inicio y la marca a su lado).
+

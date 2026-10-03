@@ -189,5 +189,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ## Abierto (no bloquea el paso siguiente)
 
+- **Crecer sin mover lo que ya está a la vista** (DECISIONS.md #281; kiwi `design/lab/form-reveal/r01/`, L8): centrado, un diálogo cuyo contenido crece (un `GFormReveal` que se abre, errores que aparecen, `GTextarea autosize`) crece hacia los dos lados y **mueve el disparador** (medido: 120px al abrir un bloque de 240px; en hoja de 375px, 240px; anclado arriba, 0). Se deriva del principio «sin saltos» (form r01 §11). **Ronda propia de `GDialog`** (kiwi → lima → coco/bruno): un diálogo abierto crece **hacia abajo** (borde superior fijo desde que se abre) y la hoja conserva su borde superior mientras quepa. Cambiar la colocación **inicial** (dejar de centrar) sería pregunta al usuario.
+
 - Valores de `--g-surface-*`, profundidad y movimiento: los decide coco en `defaults.css`.
 - Si `GSurface` (componente) o solo clases: se decide cuando un segundo componente (drawer, panel) reutilice el patrón.
