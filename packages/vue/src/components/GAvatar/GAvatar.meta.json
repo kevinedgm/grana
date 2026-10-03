@@ -6,30 +6,114 @@
   "since": "0.1.0",
   "description": "La cara de una persona o de una entidad en una caja cuadrada de lado fijo: imagen, iniciales o icono, sin que la caja cambie al pasar de uno a otro. Decorativo por defecto; con label, imagen con nombre. Nunca interactivo: sin slots ni eventos. La presencia es una GBadge anclada.",
   "contract": "design/contracts/avatar.md",
-  "decisions": ["#293", "#294", "#295", "#296", "#297"],
+  "decisions": [
+    "#293",
+    "#294",
+    "#295",
+    "#296",
+    "#297"
+  ],
   "prototype": "design/lab/avatar/r01/",
   "style": "packages/vue/src/components/GAvatar/GAvatar.css",
   "styleNotes": "design/lab/avatar/estilo.md",
   "props": [
-    { "name": "src", "type": "String", "default": null, "description": "URL de la imagen. Se apila sobre el respaldo, invisible hasta load; si falla, se quita y queda el respaldo. Cambiarla vuelve a «cargando»." },
-    { "name": "name", "type": "String", "default": null, "description": "Nombre de la persona o entidad: SOLO deriva iniciales y es la clave del color sin colorKey. No es el nombre accesible." },
-    { "name": "initials", "type": "String", "default": null, "description": "1 o 2 grafemas tal cual (sin mayúsculas forzadas; admiten emoji). Máximo 2, 1 en xs/sm o con escritura ancha." },
-    { "name": "icon", "type": "String", "default": null, "description": "Nombre de Lucide elegido como dato (registro de la aplicación → librería). Un nombre que no resuelve cuenta como ausente (aviso 6)." },
-    { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"], "description": "Lado = space × 5, 6, 8, 10, 16. Decide también el número de letras y el rol tipográfico." },
-    { "name": "shape", "type": "String", "default": "circle", "values": ["circle", "square"], "description": "circle = persona; square = entidad. No lee --g-radius-shape." },
-    { "name": "color", "type": "String | Number", "default": null, "values": ["neutral", "1 … 12"], "description": "'neutral' (gana a categories) o una categoría fija 1..12 (número o cadena numérica). Cualquier otro valor, semánticos incluidos, se ignora (aviso 3)." },
-    { "name": "categories", "type": "Number", "default": 0, "values": ["0 … 12"], "description": "Cuántas categorías declara el tema (categories: N). Con n > 0 y sin color, la categoría se deriva de colorKey ?? name (FNV-1a UTF-8 + fmix32, mod n + 1). Fuera de 0..12 o no entero: 0 (aviso 4)." },
-    { "name": "colorKey", "type": "String | Number", "default": null, "description": "Clave estable del color (un id): el color no cambia al renombrar y dos homónimos pueden diferir." },
-    { "name": "label", "type": "String", "default": null, "description": "Sin valor, decorativo (aria-hidden). Con valor, role=\"img\" + aria-label en la raíz. La <img> lleva siempre alt=\"\"." }
+    {
+      "name": "src",
+      "type": "String",
+      "default": null,
+      "description": "URL de la imagen. Se apila sobre el respaldo, invisible hasta load; si falla, se quita y queda el respaldo. Cambiarla vuelve a «cargando»."
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "description": "Nombre de la persona o entidad: SOLO deriva iniciales y es la clave del color sin colorKey. No es el nombre accesible."
+    },
+    {
+      "name": "initials",
+      "type": "String",
+      "default": null,
+      "description": "1 o 2 grafemas tal cual (sin mayúsculas forzadas; admiten emoji). Máximo 2, 1 en xs/sm o con escritura ancha."
+    },
+    {
+      "name": "icon",
+      "type": "String",
+      "default": null,
+      "description": "Nombre de Lucide elegido como dato (registro de la aplicación → librería). Un nombre que no resuelve cuenta como ausente (aviso 6)."
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "description": "Lado = space × 5, 6, 8, 10, 16. Decide también el número de letras y el rol tipográfico."
+    },
+    {
+      "name": "shape",
+      "type": "String",
+      "default": "circle",
+      "values": [
+        "circle",
+        "square"
+      ],
+      "description": "circle = persona; square = entidad. No lee --g-radius-shape."
+    },
+    {
+      "name": "color",
+      "type": "String | Number",
+      "default": null,
+      "values": [
+        "neutral",
+        "1 … 12"
+      ],
+      "description": "'neutral' (gana a categories) o una categoría fija 1..12 (número o cadena numérica). Cualquier otro valor, semánticos incluidos, se ignora (aviso 3)."
+    },
+    {
+      "name": "categories",
+      "type": "Number",
+      "default": 0,
+      "values": [
+        "0 … 12"
+      ],
+      "description": "Cuántas categorías declara el tema (categories: N). Con n > 0 y sin color, la categoría se deriva de colorKey ?? name (FNV-1a UTF-8 + fmix32, mod n + 1). Fuera de 0..12 o no entero: 0 (aviso 4)."
+    },
+    {
+      "name": "colorKey",
+      "type": "String | Number",
+      "default": null,
+      "description": "Clave estable del color (un id): el color no cambia al renombrar y dos homónimos pueden diferir."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "description": "Sin valor, decorativo (aria-hidden). Con valor, role=\"img\" + aria-label en la raíz. La <img> lleva siempre alt=\"\"."
+    }
   ],
   "events": [],
   "slots": [],
   "attrs": "inheritAttrs: false. class, style, id, title, data-* y lang van a la raíz; role, aria-*, tabindex y escuchas (onClick, onKeydown…) no se pasan y avisan (aviso 5); nada llega a la <img>.",
   "classes": {
     "root": "g-avatar g-avatar--size-{xs|sm|md|lg|xl} g-avatar--shape-{circle|square} g-avatar--content-{initials|icon}",
-    "state": ["is-loading", "is-loaded", "is-failed"],
-    "attributes": ["data-cat=\"k\" (solo con categoría)"],
-    "parts": ["g-avatar__initials (span dir=\"auto\" translate=\"no\")", "g-avatar__icon (svg.g-icon)", "g-avatar__img (img alt=\"\" loading=\"lazy\" decoding=\"async\" draggable=\"false\", última hija)"]
+    "state": [
+      "is-loading",
+      "is-loaded",
+      "is-failed"
+    ],
+    "attributes": [
+      "data-cat=\"k\" (solo con categoría)"
+    ],
+    "parts": [
+      "g-avatar__initials (span dir=\"auto\" translate=\"no\")",
+      "g-avatar__icon (svg.g-icon)",
+      "g-avatar__img (img alt=\"\" loading=\"lazy\" decoding=\"async\" draggable=\"false\", última hija)"
+    ]
   },
   "tokens": [
     "--g-space-1",
@@ -47,8 +131,26 @@
     "--g-duration-fast",
     "--g-ease-standard"
   ],
-  "icons": ["user (propio, solo de la librería)"],
-  "states": ["initials", "icon", "loading", "loaded", "failed", "neutral", "category", "circle", "square", "decorative", "named", "presence (GBadge anclada)", "forced-colors", "reduced-motion", "rtl"],
+  "icons": [
+    "user (propio, solo de la librería)"
+  ],
+  "states": [
+    "initials",
+    "icon",
+    "loading",
+    "loaded",
+    "failed",
+    "neutral",
+    "category",
+    "circle",
+    "square",
+    "decorative",
+    "named",
+    "presence (GBadge anclada)",
+    "forced-colors",
+    "reduced-motion",
+    "rtl"
+  ],
   "warnings": [
     "1 · label dentro de un antecesor aria-hidden (al montar)",
     "2 · initials con más grafemas que el máximo absoluto (2, o 1 con escritura ancha)",
@@ -59,20 +161,42 @@
     "7 · contenido en el slot por defecto"
   ],
   "hosts": [
-    { "host": "GCard", "slot": "lead", "size": "lg" },
-    { "host": "GTable", "slot": "leading-{key}", "size": "md" },
-    { "host": "GMenu", "slot": "icon (item.icon opaco)", "size": "xs" },
-    { "host": "GSelect", "slot": "icon", "size": "xs" },
-    { "host": "GSidebar", "slot": "user", "size": "md" },
-    { "host": "GBadge", "slot": "anchor", "size": "cualquiera" }
+    {
+      "host": "GCard",
+      "slot": "lead",
+      "size": "lg"
+    },
+    {
+      "host": "GTable",
+      "slot": "leading-{key}",
+      "size": "md"
+    },
+    {
+      "host": "GMenu",
+      "slot": "icon (item.icon opaco)",
+      "size": "xs"
+    },
+    {
+      "host": "GSelect",
+      "slot": "icon",
+      "size": "xs"
+    },
+    {
+      "host": "GSidebar",
+      "slot": "user",
+      "size": "md"
+    },
+    {
+      "host": "GBadge",
+      "slot": "anchor",
+      "size": "cualquiera"
+    }
   ],
   "tests": {
     "unit": "packages/vue/src/components/GAvatar/GAvatar.test.js, GAvatar.ssr.test.js",
     "browser": "design/lab/theme-playground/tests/avatar.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground)"
   },
   "pending": [
-    "Auditoría de coco sobre el componente real con un tema distinto al por defecto (paso 5) → status candidate",
-    "README (mora-docs)",
     "Lectores de pantalla reales (VoiceOver, NVDA) sobre role=img con <img alt=\"\"> dentro, en celda, botón y elemento de menú",
     "forced-colors real (Windows) y en Firefox/WebKit (no se emula)",
     "Carga diferida real por motor, imágenes de alta densidad, SSR con imagen en caché e hidratación real",
