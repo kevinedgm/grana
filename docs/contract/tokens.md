@@ -126,7 +126,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-border-width
 --g-focus-{width|offset}
 --g-duration-{fast|press|spin|slow}
---g-ease-{standard|out}
+--g-ease-{standard|out|spring|bounce}
 --g-press-scale
 --g-text-action-weight
 --g-calendar-{grid-color|unavailable-color|now-color}
@@ -149,6 +149,8 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | `--g-duration-slow` | valor de coco (derivación vigente `calc(var(--g-duration-press) * 1.5)` = 240ms) | Movimientos grandes: altura, ancho y desplazamiento de bloques (`GFormReveal`, `GSidebar`, `GStepper`); el máximo de la interfaz (DECISIONS.md #71, #280) |
 | `--g-ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Curva de los cambios de estado |
 | `--g-ease-out` | `cubic-bezier(0.23, 1, 0.32, 1)` | Curva de entradas y respuesta al pulsar |
+| `--g-ease-spring` | valor de coco; propuesta de kiwi: `linear(0, 0.081, 0.258, 0.46, 0.644, 0.793, 0.901, 0.972, 1.013, 1.033, 1.038, 1.036, 1.029, 1.021, 1.014, 1.008, 1.004, 1.001, 1, 0.999, 1)` | Muelle amortiguado (rebasa 3,8 %): **solo desplazamientos que llegan**; uso aprobado, el borde de atrás de la marca de `GTabs`. Con `--g-duration-slow` (§29, DECISIONS.md #299) |
+| `--g-ease-bounce` | valor de coco; propuesta de kiwi: `linear(0, 0.124, 0.401, 0.708, 0.963, 1.127, 1.199, 1.197, 1.151, 1.088, 1.029, 0.987, 0.964, 0.958, 0.964, 0.976, 0.989, 0.999, 1.006, 1.008, 1.008, 1.006, 1)` | Rebote: **solo escalas pequeñas**; uso aprobado, soltar `GBtn` (pico 1,006 con `--g-press-scale` 0,97). Con `--g-duration-slow` (§29, #299) |
 | `--g-press-scale` | 0.97 | Escala al pulsar (1 lo desactiva) |
 | `--g-text-action-weight` | 500 | Peso de las etiquetas de acción |
 | `--g-calendar-grid-color` | `var(--g-color-border)` | Líneas de la cuadrícula de `GCalendar` |
@@ -178,7 +180,7 @@ Tokens de componente (`--g-btn-radius`) solo cuando un caso real lo justifique, 
 
 El CLI rechaza un tema que no los cumpla.
 
-**Excepción documentada (DECISIONS.md #34):** las consultas de contenedor no admiten `var()`, así que el **umbral de ancho** con que un componente cambia de disposición (hoy solo `GInput` con el slot `action`, ~300px) se escribe como constante literal en el CSS del componente. Es una constante de diseño, no un valor de tema: el CLI no la valida ni el usuario la sobrescribe. Cada uso nuevo se anota aquí antes de escribirlo. **Literales de unidad** (DECISIONS.md #187): `1ch` en `GInputGroup.css` (factor que convierte el entero `--_input-group-chars` en longitud) y `left: 50%` en el área táctil de `GBtn` (centrado simétrico, también en RTL) no son medidas de tema ni de diseño: son unidades de conversión o posición relativa, como `100%` o `1fr`; no se tematizan ni las valida el CLI; **ampliado en #298:** la constante geométrica `50% - 50%/sqrt(2)` de `GBadge.css` (punto a 45° del contorno de un círculo), el factor `0.5` del icono de respaldo de `GAvatar` respecto del lado y el `1.06` de su asentamiento (constante de coreografía, como las de #106). `GDialog` agrega consultas de medios sobre el visor (§11). `GAvatarMotion` escribe literales sus **constantes de coreografía** (duraciones, distancias y ángulos en unidades de su `viewBox`), que son parte del dibujo y no tema (DECISIONS.md #106).
+**Excepción documentada (DECISIONS.md #34):** las consultas de contenedor no admiten `var()`, así que el **umbral de ancho** con que un componente cambia de disposición (hoy solo `GInput` con el slot `action`, ~300px) se escribe como constante literal en el CSS del componente. Es una constante de diseño, no un valor de tema: el CLI no la valida ni el usuario la sobrescribe. Cada uso nuevo se anota aquí antes de escribirlo. **Literales de unidad** (DECISIONS.md #187): `1ch` en `GInputGroup.css` (factor que convierte el entero `--_input-group-chars` en longitud) y `left: 50%` en el área táctil de `GBtn` (centrado simétrico, también en RTL) no son medidas de tema ni de diseño: son unidades de conversión o posición relativa, como `100%` o `1fr`; no se tematizan ni las valida el CLI; **ampliado en #298:** la constante geométrica `50% - 50%/sqrt(2)` de `GBadge.css` (punto a 45° del contorno de un círculo), el factor `0.5` del icono de respaldo de `GAvatar` respecto del lado y el `1.06` de su asentamiento (constante de coreografía, como las de #106). **Ampliado en #299** (lenguaje de movimiento, §29): la fracción `0.25` del vector de origen de `GDialog`, los multiplicadores `× 8` (tope de ese vector), `× 4` (panel de `GTabs`) y `× 1` (etiqueta de `GBtn`, mensaje de `GInput`) de `--g-space-1`, y las amplitudes `1 · 0.75 · 0.5 · 0.25` de `--g-space-1` con sus instantes `16 · 36 · 56 · 76 %` de la sacudida de un campo rechazado. `GDialog` agrega consultas de medios sobre el visor (§11). `GAvatarMotion` escribe literales sus **constantes de coreografía** (duraciones, distancias y ángulos en unidades de su `viewBox`), que son parte del dibujo y no tema (DECISIONS.md #106).
 
 Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil). También se permite el patrón estándar de texto oculto para lectores de pantalla (`1px`, `-1px`, `clip-path: inset(50%)`), que es una técnica de accesibilidad y no un valor estético. Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`.
 
@@ -688,3 +690,61 @@ Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defec
 **Categorías:** con `color="k"` o `categories: n`, relleno **`--g-color-cat-k-soft`** y texto/icono **`--g-color-on-cat-k-soft`** (par garantizado ≥ 4.5:1, §2 y §16.3). **`GAvatar.css` entra en la excepción nombrada `CAT_FAMILY_READERS`** de `levels.test.js` (§24, #260, #294), limitada a esas dos familias (`k` de 1 a 12), sin respaldo; `defaults.css` sigue sin definirlas. La categoría derivada usa un hash estable documentado en el contrato (FNV-1a de 32 bits sobre UTF-8 + `fmix32`, `mod n + 1`).
 
 **No son tokens:** el número de letras por tamaño y la regla de escrituras anchas (estructura); el tamaño del icono de respaldo y la separación interna (alias locales de coco desde `space`); la posición de una `GBadge` anclada sobre el contorno de un círculo (constante geométrica `1 − 1/√2` del lado, `GBadge.css`, #297).
+
+## 29. Personalidad: lenguaje de movimiento (dos curvas nuevas, ninguna duración nueva)
+
+Ronda transversal de kiwi (`design/lab/personalidad/r01/`, §2) y decisiones del usuario del 2026-10-03 (DECISIONS.md #299; por componente, #300 a #305).
+
+### 29.1 Curvas
+
+| Token | Para qué | Uso aprobado | Nunca |
+| --- | --- | --- | --- |
+| `--g-ease-spring` | Desplazamientos que **llegan** con masa: rebasa 3,8 % y asienta antes del 70 % del tiempo | Borde de atrás de la marca de `GTabs` (#302) | Entradas, diálogos, menús, paneles, bloques |
+| `--g-ease-bounce` | Escalas **pequeñas**: rebasa 20 % de un cambio de `1 − --g-press-scale` (pico 1,006 con 0,97) | Soltar `GBtn` (#300) | Desplazamientos (en 200px serían 40px), superficies grandes |
+
+- **Valores:** los de §6, como valor por defecto; coco los escribe en `defaults.css` (capa `grana.defaults`) y bruno regenera `packages/cli/src/defaults.js` (`node packages/cli/scripts/sync-defaults.mjs`). No son de color: no se redeclaran en el oscuro (§15). El CLI no valida curvas; un tema puede escribir cualquier `<easing-function>`.
+- **Duración:** siempre `--g-duration-slow`. El máximo de la interfaz sigue en 240ms (#71, #280).
+- **Apagar el rebote** en un producto sobrio: `--g-ease-bounce: var(--g-ease-out); --g-ease-spring: var(--g-ease-out);` en su tema. Ningún componente cambia.
+- **Límite conocido:** el pico de `--g-ease-bounce` es proporcional a `1 − --g-press-scale`; un tema con `--g-press-scale` 0,9 lo lleva a ~1,02. Se documenta; el CLI no lo limita.
+- **Soporte:** la transición que usa una de las dos curvas va dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera queda la vigente. No basta con declarar antes la vigente: con `var()`, una curva no soportada invalida la declaración en tiempo de cálculo y `transition` queda sin valor.
+- **Un uso nuevo** de cualquiera de las dos es una decisión nueva (lima; si cambia la identidad, el usuario).
+
+### 29.2 Duraciones por jerarquía (tokens existentes)
+
+| Nivel | Token | Qué |
+| --- | --- | --- |
+| Color y fundidos | `--g-duration-fast` | Hover, selección, opacidad de piezas pequeñas, salidas |
+| Respuesta | `--g-duration-press` | Pulsar, entrada de un popover, borde que avanza, mensaje que aparece |
+| Bloques y asentamiento | `--g-duration-slow` | Paneles, alturas, muelles, sacudida, vuelta de una pulsación |
+
+La salida es más corta que la entrada (#152). Lo frecuente usa el nivel más bajo posible.
+
+### 29.3 Movimiento reducido (regla transversal; amplía el plan 007)
+
+| Con `prefers-reduced-motion: reduce` | Se queda | Se va |
+| --- | --- | --- |
+| Colores, bordes, opacidad | Sí: fundido de `--g-duration-fast` | — |
+| Desplazamiento, escala, rebote, sacudida, escalonado | — | Sí: el estado final aparece en su sitio |
+| Halo que sigue al puntero | — | Sí (movimiento continuo) |
+| Fijar el borde de un diálogo (`is-pinned`) | Sí: no es movimiento | — |
+
+La información que daba el movimiento (dirección, origen, cuál falló) es siempre redundante con texto, foco, forma o marca. Además: **nada se anima al montar** (`is-ready`, plan 012) y los efectos de puntero solo existen con `@media (hover: hover)`.
+
+### 29.4 Transiciones y keyframes
+
+Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un suceso (el mensaje de un campo que aparece y la sacudida de un campo rechazado, #304) y para el giro de carga: nombre con prefijo `g-` (la sacudida, `g-reject…`: `GForm` filtra su `animationend` por ese prefijo), finitas, nunca al montar.
+
+### 29.5 Datos del `.vue` al CSS (no son tokens)
+
+Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` (`GTabs`, `GTabPanel`), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; reservados `--_select-x`/`--_select-y`), `--_active-y`/`--_active-h` (`GMenu`). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`) se fijan en cada contrato.
+
+### 29.6 Constantes de coreografía (neutras, #187)
+
+| Constante | Dónde |
+| --- | --- |
+| `0.25` (fracción del vector de origen) y tope `--g-space-1 × 8` por eje | Entrada y salida de `GDialog` desde el disparador (#301) |
+| `--g-space-1 × 4` | Entrada lateral del panel de `GTabs` (#302) |
+| `--g-space-1 × 1` | Etiqueta de `GBtn` que cede el sitio (#300); mensaje de `GInput` que baja (#304) |
+| Amplitudes `1 · 0.75 · 0.5 · 0.25` × `--g-space-1`, instantes `16 · 36 · 56 · 76 %` | Sacudida de un campo rechazado (#304) |
+
+**No son constantes:** `0.97` es `--g-press-scale`; `1.006` es un resultado **medido** (criterio de verificación de #300), no un valor escrito; `32px`, `±16px` y `4px` se escriben siempre como múltiplos de `--g-space-1` y siguen a `space`.

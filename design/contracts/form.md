@@ -110,9 +110,9 @@ Las advertencias (`warnings`) siguen la misma tabla. Un **`error` explícito** e
 1. `GForm` escucha `submit` del `<form>` y **siempre** llama a `preventDefault()`.
 2. Si el botón que envía (`event.submitter`) lleva **`formnovalidate`** (p. ej. «Guardar borrador»), no se revela ni se comprueba nada: emite `submit` con `novalidate: true`. Es la semántica nativa del atributo (HTML), y cubre el borrador que no valida de kiwi (§5.9).
 3. Si no: revela todos los campos **activos** (los de un `GFormReveal` inactivo no, §2 «Registro inactivo»); los mensajes que aparecen por este envío se escriben con la región viva del campo en **`off`** y vuelven a `polite` en el cuadro siguiente (#164; el resumen ya los anuncia). Tras `nextTick` (para que la aplicación haya recalculado `errors`), reúne los **errores que bloquean**: el error resuelto (prop explícita o `errors[name]`) de cada campo **registrado, no deshabilitado y activo**, más las claves de `errors` con texto que **no** corresponden a ningún campo registrado, activo o inactivo (errores generales o de servidor).
-4. **Con errores:** emite `invalid`, **abre las `GFormSection collapsible` plegadas que contienen un error que bloquea** (en un cuadro, sin animar; §3 «Abrir antes de enfocar», #287) y mueve el foco: al `GErrorSummary` del formulario si hay uno montado; si no, al **primer control inválido** en orden del DOM, desplazando para que se vea su etiqueta (respetando el pie fijo).
+4. **Con errores:** emite `invalid`, **abre las `GFormSection collapsible` plegadas que contienen un error que bloquea** (en un cuadro, sin animar; §3 «Abrir antes de enfocar», #287), **marca cada campo que bloquea con `is-rejected`** (sacudida única, #304; ver §2 «Rechazo al enviar» e `input.md` «Personalidad») y mueve el foco: al `GErrorSummary` del formulario si hay uno montado; si no, al **primer control inválido** en orden del DOM, desplazando para que se vea su etiqueta (respetando el pie fijo).
 5. **Sin errores:** emite `submit` con `FormData` construido con el `submitter` (así la aplicación distingue «Guardar» de otros botones de envío por su `name`/`value`).
-6. **Errores del servidor:** la aplicación los pone en `errors` tras la respuesta y llama a `showErrors()`, que hace los pasos 3 y 4 sin emitir `invalid` de nuevo.
+6. **Errores del servidor:** la aplicación los pone en `errors` tras la respuesta y llama a `showErrors()`, que hace los pasos 3 y 4 sin emitir `invalid` de nuevo. `is-rejected` también se pone (decisión del usuario 3, #304).
 
 **Enter** en un campo de texto envía por el botón por defecto del formulario (comportamiento nativo; también si el botón está en el pie del dialog con `form="id"`).
 
@@ -246,6 +246,17 @@ Para los campos de Grana y **para campos propios del consumidor** (el slot «cus
 - **Excepciones:** `GSwitch` nunca lleva marca (no tiene `required`, #47); un `GCheckbox` **suelto** no lleva «(opcional)» (sin marcar ya es una respuesta válida), sí asterisco con `required` en la convención `required`; dentro de una `GFormSection optional` no hay «(opcional)» (lo dice la sección); dentro de un `GFieldGroup`, ver §4.
 - La prop **`mark`** (Boolean, default `undefined`) del campo: `false` quita la marca; `true` **no** inventa otra convención (solo restituye la que toca).
 - «(opcional)» es **texto visible dentro del `<label>`** (forma parte del nombre accesible: «Segundo apellido (opcional)»); el asterisco sigue siendo `aria-hidden` y lo acompaña `required`/`aria-required`.
+
+### Rechazo al enviar (`is-rejected`, #304)
+
+Interno (no contractual para campos del consumidor en v0.1; puede hacerse público si un producto lo pide). Reglas para bruno:
+
+| Pieza | Regla |
+| --- | --- |
+| `GForm` | Conjunto reactivo interno de nombres **rechazados**. En el paso 4 de «Envío» y en `showErrors()`: vacía el conjunto y, en el cuadro siguiente (`requestAnimationFrame`), añade los nombres de los registros que bloquean (los mismos de `blocking()`: activos, no deshabilitados; las claves generales no tienen campo). Nunca con `formnovalidate`. Nunca por cambios de `errors` sin `showErrors()` |
+| `useFormField` / `useCompositeField` | Devuelve entre los **internos** `rejected` (computado: el nombre está en el conjunto) y una función `endRejected()`. `notifyInput`/`notifyChange` del campo lo sacan del conjunto. Los grupos lo resuelven una vez (una pregunta) |
+| Campo de Grana | Pinta `is-rejected` en su raíz mientras `rejected`; escucha en la raíz `animationend` y `animationcancel` y llama a `endRejected()` solo si `event.animationName` empieza por `g-reject`. Al desmontarse, sale del conjunto |
+| CSS | Coco, por campo (en esta tanda solo `GInput`); keyframes `g-reject…`; nada con `prefers-reduced-motion: reduce` |
 
 ### Registro inactivo (`GFormReveal`, #276; `GFormSection addable`, #288)
 

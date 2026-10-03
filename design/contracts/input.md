@@ -164,6 +164,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-readonly` | Raíz | `readonly` |
 | `is-invalid` | Raíz | `error` con valor |
 | `is-loading` | Raíz | `loading` |
+| `is-ready` | Raíz | Tras el primer pintado (§«Personalidad», I1) |
+| `is-rejected` | Raíz | La pone `GForm` en un envío o `showErrors()` con este campo bloqueando (§«Personalidad», I2) |
 | `g-input__label` | `label` | Si hay `label` o slot `label` |
 | `g-input__required` | `span` `aria-hidden` | `required` |
 | `g-input--has-action` | Raíz | Solo con el slot `action` |
@@ -211,6 +213,37 @@ Sin manejadores de teclado propios.
 | 16 (kiwi r02) | Umbral de apilado en anchos estrechos | Constante literal de contenedor (~300px), excepción documentada. Decisión del usuario (DECISIONS.md #34) | Una consulta de contenedor no admite `var()` |
 | 17 (kiwi r02) | `disabled` del campo y el botón | Se propaga por las propiedades del slot; el consumidor puede sobrescribirlo | Coherencia sin acoplar componentes |
 | 18 (kiwi r02) | ¿El campo pasa a `readonly` mientras la acción está pendiente? | No lo decide el componente: lo decide el consumidor | La acción y el campo son independientes |
+
+## Personalidad (DECISIONS.md #304; lenguaje común, #299 y `tokens.md` §29)
+
+Ronda de kiwi `design/lab/personalidad/r01/` §7 (I1 e I2, prototipadas sobre el componente real) y decisión del usuario 3 (los campos con error **sí** se sacuden al enviar). Ninguna prop, slot ni evento nuevo.
+
+### I1 · El mensaje sale del campo
+
+- Cuando `g-input__message` pasa de **vacía a con texto** (error, advertencia o válido), entra con fundido y **baja `--g-space-1 × 1`** desde la caja: keyframes de nombre `g-*` (coco), `--g-duration-press`, `--g-ease-out`. Cambiar el texto o el tipo con la región ya llena **no** la repite. El hueco aparece en un cuadro, como hoy.
+- **Solo con `is-ready`** en la raíz (nuevo, bruno): se pone en el cuadro siguiente al montaje (`requestAnimationFrame` tras `onMounted`; en SSR, nunca en el HTML). Un error que ya viene al montar no se anima.
+- La región viva no cambia (C4 de «Cambio por el sistema de formularios»); el anuncio no depende de la animación.
+
+### I2 · Un solo aviso al enviar (clase `is-rejected`)
+
+- **Quién la pone:** `GForm` (nunca el campo), en un envío con errores (no con un `submitter` `formnovalidate`) y en `showErrors()`, sobre **cada campo que bloquea** (los registros de la lista de errores que bloquean, `form.md` §1 «Envío» paso 3), después de abrir las secciones plegadas que los contienen (#287): vacía el conjunto de rechazados y lo llena en el cuadro siguiente, para que una sacudida anterior se reinicie (`form.md` §2 «Rechazo al enviar»). Llega al campo por `useFormField` (interno, `form.md` §2); el campo solo la pinta en su raíz.
+- **Quién la quita** (lo primero que ocurra): el fin de la sacudida (`animationend` o `animationcancel` dentro de la raíz del campo cuyo `animationName` empieza por **`g-reject`**; el `animationend` del mensaje de I1 no cuenta), el siguiente `input` o `change` del campo, su desmontaje, o un envío nuevo, que la quita y la vuelve a poner en el cuadro siguiente para que la sacudida se repita.
+- **Qué se ve (coco):** una vez, horizontal, decreciente, amplitudes `1 · 0.75 · 0.5 · 0.25` × `--g-space-1` (máximo 4px con `space` 4) en los instantes `16 · 36 · 56 · 76 %` de `--g-duration-slow`, keyframes de nombre **`g-reject…`**. Se mueve **`g-input__row`** (caja y acción), para que el anillo de foco vaya con ella; la etiqueta y el mensaje no se mueven.
+- **Nunca** al escribir, al salir del campo, al montar ni al cambiar `errors` desde la aplicación sin `showErrors()`.
+- Otros campos: la clase llega a la raíz de todo campo registrado que bloquea (un grupo, `GFieldGroup`, `GCheckboxGroup`, `GRadioGroup`, `GInputGroup`, como **una** pregunta: en la raíz del grupo). En esta tanda solo `GInput` la dibuja; cada campo que la adopte la añade en su CSS con la misma regla y el mismo prefijo `g-reject`.
+
+### Movimiento reducido
+
+I1: solo fundido, sin desplazamiento. I2: **no existe** (el error ya es borde, icono y texto); `GForm` pone y quita la clase igual (sin animación, se retira con el siguiente `input`/`change` o el siguiente envío).
+
+### Verificación (criterio de hecho: la medida de kiwi)
+
+| Qué | Medida |
+| --- | --- |
+| I1 | Cuadros intermedios (kiwi: 5); de `−space × 1` a 0; hoy, 0 intermedios; error presente al montar: 0 animaciones; con `reduce`, sin desplazamiento |
+| I2 | Desplazamiento máximo ≤ `space × 1` (kiwi: 3,47px), tres cambios de sentido y vuelta a 0; escribir y salir del campo: 0 animaciones; `formnovalidate`: sin clase; `showErrors()`: sí; clase retirada al terminar y al siguiente `input`; con `reduce`, sin vaivén |
+| Pruebas de bruno | `is-ready` tras el montaje y no en SSR; `is-rejected` solo en los que bloquean, no en deshabilitados ni inactivos (#276); quitada por `animationend` con nombre `g-reject…` y no por otro nombre; quitada al escribir; repuesta en un segundo envío |
+| Reservadas | I3 (la etiqueta toma el color de foco), I4 (contador que avisa antes del límite), I5 (borde desde el clic): fuera de esta tanda. Sin prop para apagar I2 en v0.1 |
 
 ## Límites conocidos
 

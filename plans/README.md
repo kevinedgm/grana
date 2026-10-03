@@ -18,6 +18,12 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 012 | [No animar al montar](012-no-animar-al-montar.md) | GSidebar, GTabs, GCheckbox | bruno + coco | MEDIUM | DONE |
 | 013 | [Avance con `translate` en lugar de `inline-size`](013-gprogress-avance-con-translate.md) | GProgress | coco | LOW | DONE |
 | 014 | [Esqueletos de carga: un solo pulso](014-esqueletos-un-solo-pulso.md) | GCard, GWidget, GCalendar | coco | LOW | DONE |
+| 015 | [Rebote al soltar y la etiqueta cede el sitio](015-gbtn-rebote-y-carga.md) | GBtn | coco (+ bruno: sincronizar defaults del CLI) | Personalidad | TODO |
+| 016 | [La marca se estira y el contenido llega de su lado](016-gtabs-marca-y-panel.md) | GTabs (+ GTabPanel) | bruno → coco | Personalidad | TODO |
+| 017 | [La selección nace de la casilla y la luz sigue al puntero](017-gcard-seleccion-y-luz.md) | GCard | coco (C2) · bruno → coco (C1) | Personalidad | TODO |
+| 018 | [El mensaje sale del campo y un solo aviso al enviar](018-ginput-mensaje-y-rechazo.md) | GInput (+ GForm) | bruno → coco | Personalidad | TODO |
+| 019 | [Crece hacia abajo y viene de donde lo llamaste](019-gdialog-crece-y-origen.md) | GDialog | bruno → coco | Personalidad | TODO |
+| 020 | [Una sola luz que viaja, submenú con intención y aviso del `id`](020-gmenu-luz-y-submenu.md) | GMenu | bruno → coco | Personalidad | TODO |
 
 ## Auditoría de GStepper (commit 49ad85b)
 
@@ -102,3 +108,30 @@ Después: auditoría de coco en los tres navegadores sobre lo cambiado y, si cam
 ## Tokens (resto de componentes)
 
 Ningún plan necesita tokens nuevos: todo sale de `--g-duration-fast` (120ms), `--g-duration-press` (160ms), `--g-duration-spin` (800ms), `--g-ease-standard` (`cubic-bezier(0.2, 0, 0, 1)`), `--g-ease-out` (`cubic-bezier(0.23, 1, 0.32, 1)`) y `--g-press-scale` (0.97). Sigue en pie la propuesta para lima de la ronda anterior (`--g-duration-slow` si un tercer componente necesita los 240 ms de `--_t-slow`); en esta ronda ningún plan los usa.
+
+## Ronda de personalidad r01 (planes 015–020)
+
+Origen: ronda transversal de kiwi (`design/lab/personalidad/r01/`, commit `5b57581`), decisiones del usuario del 2026-10-03 y contratos de lima (DECISIONS.md #299 a #305; «Personalidad» en `btn.md`, `dialog.md`, `tabs.md`, `card.md`, `input.md`, `form.md` §1–§2 y `menu.md`; `tokens.md` §29). Criterio de hecho de cada plan: **la medida de kiwi** que copia su contrato.
+
+### Orden recomendado
+
+1. **015 `GBtn`** (coco, solo CSS): primero, porque añade `--g-ease-spring` y `--g-ease-bounce` a `defaults.css` (bruno sincroniza `packages/cli/src/defaults.js`).
+2. **016 `GTabs`** (bruno → coco): casi solo CSS; un atributo `data-direction`. Necesita el token del 015.
+3. **017 `GCard`**: C2 es solo CSS (coco, puede ir en paralelo con 016); C1 necesita la escucha del puntero en `GCard.vue`.
+4. **018 `GInput`** (bruno → coco): I2 necesita `GForm` y `useFormField`.
+5. **019 `GDialog`** (bruno → coco): `.vue` (borde fijado y vector al disparador).
+6. **020 `GMenu`** (bruno → coco): el más grande en `.vue` (foco que sigue al puntero, triángulo, aviso del `id`).
+
+017–020 no dependen entre sí ni de las curvas nuevas: pueden ir en paralelo tras el 015, cada agente con su puerto de Playwright (CLAUDE.md, lección del puerto único). Modelos: `GBtn` en Sonnet; los demás cuentan como complejos (CLAUDE.md) y van en Opus para coco y bruno (salvo coco en 018).
+
+### Verificación por niveles
+
+Durante cada plan, solo el spec o la prueba afectada en Chromium, comprobando que falla antes y pasa después. Al cerrar **cada plan**, una pasada completa sobre el estado final: `npx vitest run`, `npm run build`, `node packages/vue/scripts/check-icons.mjs`, compuertas de CLAUDE.md y los specs del componente (más los que lista el plan) en Chromium, Firefox y WebKit.
+
+### Tokens
+
+Dos nuevos, sin duración nueva: `--g-ease-spring` y `--g-ease-bounce` (`tokens.md` §6 y §29, #299), solo en sus usos aprobados (soltar `GBtn`; borde de atrás de la marca de `GTabs`). Constantes de coreografía neutras en `tokens.md` §29.6.
+
+### Reservadas (no planificadas)
+
+B3, B4, D3, D4, T3, T4, C3, I3, I4, I5, M2, M3 (con su número de kiwi). C4 y la inclinación 3D de `GCard`, descartadas.

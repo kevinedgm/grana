@@ -244,7 +244,39 @@ Con `loading` no se renderizan principal, menú, acciones ni controles enfocable
 - **Rejilla:** `align-items: stretch` = alturas iguales (acciones y pie anclados al fondo); `start` = naturales. La tarjeta no conoce el número de columnas. Alinear regiones entre tarjetas con `subgrid`: **fuera de v0.1**.
 - **`density`:** la prop compartida (1×, 0.875×, 0.75×). **Equivalencia con el brief** (`compact` · `comfortable` · `spacious`): `compact` = `compact`, `comfortable` = `comfortable`, **`spacious` = `default`** (#114). Cambia relleno (vía `GSurface`), separación, **tamaño de la media lateral** y la metadata de prioridad baja; **no** la semántica ni la tipografía. Objetivos ≥ 24px siempre, 44px con `pointer: coarse` (`tokens.md` §7).
 - **Táctil:** objetivos ≥ 44px con `pointer: coarse`, anillo siempre visible, sin hover para nada esencial.
-- **Movimiento:** solo opacidad y color (sin `transform`) con los tokens existentes (`--g-duration-press`, `--g-ease-standard`); sin tokens de duración nuevos. Con `prefers-reduced-motion: reduce`, sin transiciones ni animación del esqueleto.
+- **Movimiento:** solo opacidad, color y pintura (**sin `transform` en la tarjeta**, #127) con los tokens existentes; sin tokens de duración nuevos. Selección y halo: ver «Personalidad» (#303). Con `prefers-reduced-motion: reduce`, los fundidos de color se conservan (plan 007), sin halo ni animación del esqueleto.
+
+## Personalidad (DECISIONS.md #303; lenguaje común, #299 y `tokens.md` §29)
+
+Ronda de kiwi `design/lab/personalidad/r01/` §6 (C1 prototipada sobre el componente real; C2 no). **La tarjeta no se mueve** (#127): todo es pintura. Ninguna prop, slot, evento ni clase nueva.
+
+### C2 · La selección nace de la casilla
+
+- Al pasar a `is-selected`, el fondo de seleccionada (`--g-card-selected`) se **extiende en círculo desde el centro del indicador** (`g-card__selectbox`; en `toggle`, `g-card__tick--static`) hasta cubrir la tarjeta; al desmarcar, se **recoge** hacia él. Duración de bloque (`--g-duration-slow` o `--g-duration-press`, la elige coco) con `--g-ease-out`.
+- El borde doble y el ✓ siguen fundiéndose como hoy (plan 008); la selección sigue sin depender solo del color.
+- **Solo CSS** (coco), sobre la propiedad registrada del plan 008 (radio registrado de un `radial-gradient`). Si el CSS no puede situar el origen en todos los modos (`orientation`, media lateral, `compact`), bruno escribe **`--_select-x`** y **`--_select-y`** (px desde la caja de borde de la raíz al centro del indicador, con el `ResizeObserver` que ya tiene); nombres reservados desde ya, sin escribirlos hasta que coco lo pida.
+- Interacciones sin indicador (`button`, `link` sin `selectable`): no aplica.
+
+### C1 · La luz sigue al puntero
+
+- Sobre el velo uniforme de hover (`--g-card-hover`, que **sigue siendo la señal**), un **halo** del mismo token concentrado donde está el puntero. Color y concentración los decide coco con `color-mix` del **mismo** token (**sin token nuevo**), medidos en claro y en oscuro; el halo aparece y se va con el hover (fundido de color) y su posición **no** se transiciona (sigue al puntero).
+- **Dato nuevo** (bruno, `GCard.vue`): **`--_pointer-x`** y **`--_pointer-y`** en la raíz, px desde la caja de borde de la raíz.
+  - Se escriben en `pointerenter` (antes del primer pintado del hover) y en `pointermove`, con **una escritura por cuadro** (`requestAnimationFrame`), solo para `pointerType` `mouse` o `pen`.
+  - Solo en tarjetas `is-interactive` sin `is-disabled` ni `is-loading`, y solo mientras `matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)')` se cumpla: las escuchas se ponen y se quitan al cambiar la consulta (en táctil no hay escuchas: ningún coste).
+  - Al salir el puntero no se borran (el halo se va con el hover).
+- Contraste: el texto sigue ≥ 4,5:1 **en el punto más intenso del halo** (coco lo mide junto al velo, §«Estados»).
+
+### Movimiento reducido y táctil
+
+Sin halo (ni escuchas). C2: fundido, como hoy.
+
+### Verificación (criterio de hecho: la medida de kiwi)
+
+| Qué | Medida |
+| --- | --- |
+| C1 | Centro del halo = posición del puntero (±1px); caja de la tarjeta Δ 0px y `transform: none` (#127); velo uniforme conservado; táctil (`hover: none`) y `reduce`: sin halo y sin escuchas; texto ≥ 4,5:1 sobre el punto más intenso, claro y oscuro |
+| C2 | Radio intermedio entre 0 y el que cubre la tarjeta (al menos un cuadro intermedio); origen en el centro del indicador (±2px); se recoge al desmarcar; borde y ✓ siguen fundiéndose (plan 008); con `reduce`, fundido |
+| Reservadas | C3 («Mostrar más» con `grid-template-rows`): fuera de esta tanda. C4 (la media «respira») descartada salvo petición del usuario; inclinación 3D descartada (#127) |
 
 ## Jerarquía de superficies
 

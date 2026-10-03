@@ -127,6 +127,42 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 Sin manejadores de teclado propios: el comportamiento es el nativo.
 
+## Personalidad (DECISIONS.md #300; lenguaje común, #299 y `tokens.md` §29)
+
+Ronda de kiwi `design/lab/personalidad/r01/` §3 (B1 y B2, prototipadas sobre el componente real). **Solo CSS** (coco): sin props, clases, eventos ni slots nuevos; bruno no cambia `GBtn.vue`.
+
+### B1 · Rebote al soltar
+
+| Momento | Escala | Duración y curva |
+| --- | --- | --- |
+| Apretar (`:active`, mismas exclusiones que hoy: `:disabled`, `is-disabled`, `is-loading`, `--variant-link`) | `--g-press-scale` | `--g-duration-fast`, `--g-ease-out` |
+| Soltar (regla base) | 1 | `--g-duration-slow`, `--g-ease-bounce` (dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera, la vuelta vigente) |
+
+- Las dos listas de `transition` son **completas** (colores + `transform`/`scale`): ninguna pierde una propiedad al cambiar de estado (defecto que corrigió el plan 004 en `GStepper`).
+- Sin escala en el hover. Un tema con `--g-press-scale: 1` no tiene pulsación ni rebote.
+
+### B2 · La etiqueta cede el sitio
+
+- Al entrar en `is-loading`: `g-btn__label`, `g-btn__prepend` y `g-btn__append` pasan a **`opacity: 0`** con fundido (`--g-duration-fast`) y suben **`--g-space-1 × 1`** (`--g-duration-press`, `--g-ease-out`); `g-btn__loader` entra con fundido desde `× 1` **abajo** (`@starting-style`). Al salir de la carga, a la inversa.
+- **La etiqueta nunca se oculta con `visibility: hidden` ni `display: none`**: sigue en el árbol accesible y el nombre del botón no cambia (regla de «Mecanismo de `loadingText`»; corrección de coco `597ab17`, prueba `design/lab/theme-playground/tests/btn-loading-name.spec.mjs`). Los iconos de los huecos son `aria-hidden` y pueden ocultarse del todo al terminar el fundido.
+- El ancho del botón no cambia (la etiqueta sigue ocupando su sitio).
+
+### Movimiento reducido
+
+Sin escala al apretar ni al soltar (como hoy). B2: solo fundido, sin desplazamiento. Colores, como hoy.
+
+### Tokens
+
+Además de los de «Tokens consumidos»: **`--g-duration-slow`** y **`--g-ease-bounce`** (nuevo, `tokens.md` §6 y §29). Ninguna constante de coreografía propia salvo el multiplicador `× 1` de `--g-space-1` (#299).
+
+### Verificación (criterio de hecho: la medida de kiwi)
+
+| Qué | Medida |
+| --- | --- |
+| B1 | Pulsado: escala 0,970; tras soltar, pico **≈ 1,006** (kiwi: 1,0060) y asentado en 1 antes de `--g-duration-slow`; hoy, máximo 1,0000. Con `reduce`: escala 1 siempre. Tres motores |
+| B2 | Cuadros intermedios (kiwi: 5) en etiqueta e indicador; ancho Δ 0px (128,67 → 128,67); etiqueta a −`space × 1` en carga; nombre accesible en carga = la etiqueta (Chromium, árbol AX; la prueba `btn-loading-name.spec.mjs` sigue en verde). Con `reduce`: sin desplazamiento |
+| Reservadas | B3 (relleno desde el punto de pulsación) y B4 (confirmación breve tras la carga, prop nueva): fuera de esta tanda |
+
 ## Resolución de hallazgos de r01
 
 | # | Hallazgo | Resolución | Base |

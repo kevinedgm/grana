@@ -75,7 +75,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 2. **Foco:** *roving tabindex*: solo el elemento activo es tabulable; ↑ ↓ recorren de forma **cíclica**, Inicio y Fin saltan a los extremos; una letra salta al siguiente elemento que empieza por ella (búfer de 500ms). El elemento activo **siempre se ve** (se desplaza la lista). Los deshabilitados **siguen enfocables**.
 3. **Activar:** Enter y Espacio. Emite `select`. Con `closeOnSelect="auto"`, una **acción cierra** y devuelve el foco al disparador; una **casilla o una opción no cierran**. Un elemento deshabilitado no hace nada ni cierra.
 4. **Cerrar:** **Esc** cierra y devuelve el foco al disparador (y **no llega** a un ancestro, como un `GDialog`); **Tab** cierra y el foco sigue su curso (no vuelve al disparador); un **clic fuera** cierra sin robar el foco.
-5. **Submenús:** → (en RTL, ←), Enter o Espacio abren con el foco en su primer elemento; ← (en RTL, →) o **Esc cierran solo ese nivel** y devuelven el foco al padre. El puntero encima abre tras **180ms** y cierra al pasar a otro elemento; tocar un padre lo abre (sin depender del puntero). Un padre deshabilitado no abre.
+5. **Submenús:** → (en RTL, ←), Enter o Espacio abren con el foco en su primer elemento; ← (en RTL, →) o **Esc cierran solo ese nivel** y devuelven el foco al padre. El puntero encima abre tras **180ms** y cierra al pasar a otro elemento; tocar un padre lo abre (sin depender del puntero). Un padre deshabilitado no abre. **El puntero mueve el foco** y los submenús respetan el **movimiento diagonal** del puntero (§«Personalidad», M1 y M4, #305).
 6. **Posición:** debajo del disparador (`side`), ajustada al visor; si no cabe, se abre hacia el lado con más espacio y **el alto se limita al espacio disponible** (la lista se desplaza). El submenú se abre hacia el borde **final** del padre y **cambia de lado** si no cabe; con poco ancho se superpone al padre (cascada). Variables CSS dinámicas `--_x`, `--_y` y `--_max` (excepción justificada a «sin estilos en línea»).
 7. **Sigue a su disparador** al desplazar o redimensionar; si el disparador **sale del visor, se cierra**. Desplazar dentro de la propia lista no la recoloca.
 8. **Sin anuncios propios:** el cambio de una casilla u opción lo lee el lector por `aria-checked`; al cerrar, el foco vuelve al disparador. Anunciar el resultado de una acción es de la aplicación.
@@ -94,7 +94,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
-| `trigger` | El **disparador** (obligatorio) | `{ open, attrs }` | La aplicación enlaza `attrs` (`v-bind="attrs"`): `id`, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `onClick`, `onKeydown` y una referencia al elemento. Debe ser un elemento enfocable (un `<button>`) con nombre accesible |
+| `trigger` | El **disparador** (obligatorio) | `{ open, attrs }` | La aplicación enlaza `attrs` (`v-bind="attrs"`): `id`, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `onClick`, `onKeydown` y una referencia al elemento. Debe ser un elemento enfocable (un `<button>`) con nombre accesible. **El `id` es del menú: la aplicación no lo sobrescribe** (ver «Disparador con `id` propio») |
 | `icon` | Icono de un elemento (decorativo); **sustituye** al `GIcon` por nombre de `item.icon`. También un **avatar** (`GAvatar size="xs"`, ver abajo) | `{ item }` | Dentro de `g-menu__icon` (`aria-hidden`). **Con un hijo directo `.g-avatar`, el hueco mide `space × 5`**, y en un menú que mezcla iconos y avatares **todos** los huecos no vacíos miden `space × 5` (etiquetas alineadas; el icono, centrado a su tamaño); alto del elemento sin cambio (#295) |
 | `item` | Contenido de un elemento, en lugar de icono y etiqueta | `{ item, active, checked }` | **Conserva el texto de la etiqueta** (es el nombre accesible) |
 
@@ -108,6 +108,12 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
   </template>
 </GMenu>
 ```
+
+### Disparador con `id` propio (hallazgo 8 de kiwi `personalidad/r01`, #305)
+
+- El `id` del disparador lo genera `GMenu` (`{id}-trigger`, con `{id}` la prop `id` o el generado) y lo usan `aria-labelledby` de la lista y la búsqueda del disparador. **Regla:** la aplicación **no** pone su propio `id` al disparador; si necesita conocerlo o fijarlo, usa la **prop `id`** de `GMenu`. Si de todos modos lo pone (p. ej. `id` después de `v-bind="attrs"` en un `GBtn`), hoy el menú **no se abre y no avisa** (medido por kiwi).
+- **Aviso de desarrollo** (una vez, `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`): al montar y al abrir, si el elemento del disparador (por su referencia) tiene un `id` distinto de `{id}-trigger`: «[Grana GMenu] el disparador tiene `id="…"`; GMenu necesita `…-trigger` (usa la prop `id` de GMenu)». Bruno confirma en la prueba por qué la referencia no basta hoy para abrir; el aviso es obligatorio aunque se arregle.
+- mora-docs: documentarlo en el README de `GMenu` («El disparador»).
 
 ## Estructura accesible
 
@@ -169,6 +175,42 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `g-menu__icon`, `__label`, `__shortcut` | Partes del elemento | Según el elemento |
 | `g-menu__mark` | Marca de casilla u opción | En `checkbox` y `radio` |
 | `g-menu__group-title`, `g-menu__separator` | Título de grupo y separador | Según el elemento |
+| `has-highlight` | Lista o submenú (`g-menu__list`) | Hay elemento activo en esa lista (§«Personalidad», M1) |
+| `is-highlight-instant` | Lista o submenú | Primera colocación del resaltado, sin viajar; se quita a los dos cuadros |
+
+## Personalidad (DECISIONS.md #305; lenguaje común, #299 y `tokens.md` §29)
+
+Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el componente real; M4 no). Ninguna prop, slot ni evento nuevo.
+
+### M1 · Una sola luz que viaja
+
+- **Un único resaltado por lista** (la lista raíz y cada submenú, cada uno el suyo), una capa bajo el contenido que **se desplaza** al elemento activo; los elementos **no** pintan fondo propio al tener hover o foco (hoy, al barrer, dos elementos tienen fondo a la vez: la estela que se corrige).
+- **El puntero mueve el foco:** al entrar el puntero (`pointerenter`/`pointermove` con `pointerType` `mouse` o `pen`) en un elemento **habilitado**, pasa a ser el activo del *roving tabindex* y recibe el foco con `preventScroll: true`, **en el acto** (sin los 180ms, que siguen solo para **abrir** un submenú). Un foco puesto así no muestra el anillo de `:focus-visible` (heurística del navegador tras puntero). Sobre un **deshabilitado**, el puntero no mueve foco ni resaltado; con teclado, el deshabilitado se enfoca y se resalta (como hoy).
+- **Elemento activo de cada lista:** el que tiene el foco en ella; si el foco está en un submenú, el **padre expandido** en la lista de arriba. Sin activo, la lista pierde `has-highlight` y el resaltado se funde.
+- **Datos** (bruno, `GMenu.vue`), en cada `g-menu__list`: **`--_active-y`** y **`--_active-h`** (px: `offsetTop` y `offsetHeight` del activo respecto de su lista; el resaltado se desplaza con el contenido si la lista tiene scroll), **`has-highlight`** mientras haya activo, e **`is-highlight-instant`** en la primera colocación tras abrir o tras no tener activo (aparece en su sitio sin viajar desde 0; se quita a los dos cuadros). Escrituras solo si cambian.
+- El **anillo de foco** de cada elemento no cambia. En **`forced-colors`**, el resaltado se oculta y manda el estilo de foco del sistema (como hoy).
+- Movimiento: `--g-duration-press`, `--g-ease-out` para posición y alto; fundido `--g-duration-fast`. Nunca `--g-ease-spring` ni `--g-ease-bounce` (#299).
+- **Cambia una nota de estilo de coco** (`design/lab/menu/estilo.md`, fila «Elemento»: «el activo (foco, ratón o submenú abierto) en `--g-color-surface-sunken`» pasa a la capa única con ese mismo color).
+
+### M4 · Submenú con intención
+
+- Con un submenú abierto, mientras el puntero se mueve del padre **hacia** él dentro del **triángulo** formado por la posición del puntero al salir del padre (actualizada en cada movimiento) y las **dos esquinas del borde cercano** del submenú (el de su lado de apertura: final en LTR, inicio en RTL; si se abrió hacia el otro lado por falta de sitio, ese), cruzar otros elementos del padre **no** cambia el activo, **no** mueve el foco ni cierra el submenú.
+- Si el puntero **se detiene** 180ms sobre otro elemento del padre (o sale del triángulo), cambia como hoy. En cascada (submenú superpuesto al padre en pantallas estrechas) no aplica.
+- El teclado y el toque no cambian.
+
+### Movimiento reducido
+
+El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: rige igual.
+
+### Verificación (criterio de hecho: la medida de kiwi)
+
+| Qué | Medida |
+| --- | --- |
+| M1 | Al barrer con el puntero: **0** elementos con fondo propio y como máximo **una** superficie de resaltado por lista; cuadros intermedios entre elementos (kiwi: 7); termina exacto sobre el elemento (kiwi: 114/114); con teclado, sigue al foco (kiwi: 42/42); el puntero mueve el foco (`document.activeElement`); deshabilitado con puntero: nada cambia; con `reduce`, salta |
+| M4 | Trayecto diagonal hacia el submenú cruzando otro elemento: sin cambio de `path` ni de foco; trayecto recto o parada: cambio a los 180ms, como hoy; RTL espejado |
+| Aviso | `id` propio en el disparador: un aviso de desarrollo |
+| Reservadas | M2 (cascada al abrir; medida, pero un menú es frecuente) y M3 (parpadeo de confirmación): fuera de esta tanda |
+| No verificado | Lector de pantalla real con el foco siguiendo al puntero (VoiceOver, NVDA) |
 
 ## Resolución de hallazgos de r01
 

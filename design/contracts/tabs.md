@@ -235,7 +235,43 @@ Renderiza el mismo `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VA
 - **Convención de la marca:** `--_mark-x`, `--_mark-y`, `--_mark-w` y `--_mark-h` en **px**, medidos contra la **caja de relleno de `g-tabs__scroller`** e incluyendo su desplazamiento; en RTL, `x` se mide desde el borde **derecho**; sin pestaña activa, `w` y `h` valen `0px`.
 - **Rueda:** con `overflow="scroll"`, la rueda vertical del ratón sobre la lista se convierte en desplazamiento horizontal.
 - **`GIcon`** es **hijo directo** de `g-tabs__icon`, `g-tabs__status` y `g-tabs__edge`. `g-tabs__label` lleva `data-text` con la etiqueta (reserva de negrita).
-- **Movimiento:** solo `transform`, tamaño y opacidad; transiciones, no *keyframes* (#71), con los tokens existentes (`--g-duration-press`, `--g-ease-standard`; la entrada del contenido, `--g-duration-press` y `--g-ease-out`): **sin tokens de duración nuevos**. Con `prefers-reduced-motion: reduce`: la marca salta, sin entrada de contenido, sin giro del icono y desplazamiento programático instantáneo.
+- **Movimiento:** solo `transform`, tamaño y opacidad; transiciones, no *keyframes* (#71), con los tokens existentes: **sin tokens de duración nuevos**. Marca y entrada del contenido: ver «Personalidad» (#302; la marca usa `--g-ease-spring`, #299). Con `prefers-reduced-motion: reduce`: la marca salta, el contenido solo se funde, sin giro del icono y desplazamiento programático instantáneo.
+
+## Personalidad (DECISIONS.md #302; lenguaje común, #299 y `tokens.md` §29)
+
+Ronda de kiwi `design/lab/personalidad/r01/` §5 (T1 y T2, prototipadas sobre el componente real) y decisión del usuario 1 (el rebote vive en la marca de las pestañas). Ninguna prop, slot ni evento nuevo. Todo solo con `is-ready` (nunca el primer posicionamiento).
+
+### Dato nuevo: `data-direction`
+
+- `GTabs.vue` escribe **`data-direction="forward"`** si el índice de la nueva activa en `items` (orden **lógico**, el del DOM) es mayor que el de la anterior, y **`"back"`** si es menor. En RTL, `forward` va visualmente hacia la izquierda; el CSS lo resuelve con `--_dir`, como ya hace con la marca.
+- Se escribe en el **mismo render** que cambia la activa (antes de que el panel nuevo pierda `hidden`), por cualquier vía: clic, teclado, menú «Más», `modelValue` externo. Sin activa anterior (o anterior desconocida), no se pone. Se queda puesto hasta el siguiente cambio.
+- **`GTabPanel`** (`detached`, incluido el slot `tabs` de `GDialog`, #119): al pasar `active` de `false` a `true`, copia en su propia raíz el `data-direction` del elemento `#{tabs}` (la raíz de su `GTabs`) si existe; si no, no pone dirección y el panel solo se funde.
+- `--_mark-x/y/w/h` **no cambian** (convención de §«Adaptación y táctil»).
+
+### T1 · La marca se estira
+
+- Los dos bordes de la marca (inicio y fin en el eje de las pestañas) se mueven con tiempos propios: el **que avanza** hacia la pestaña nueva llega primero (`--g-duration-press`, `--g-ease-out`) y el **de atrás** lo alcanza con **`--g-ease-spring`** (`--g-duration-slow`). Con `forward`, avanza el borde final; con `back`, el de inicio.
+- Coco deriva los bordes de `--_mark-*` con propiedades registradas (`@property`, `<length>`) **privadas con el nombre del componente** (como `--_card-selected` de `GCard`), dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera, la transición vigente.
+- Las cuatro apariencias y las dos orientaciones (en `vertical`, sobre el eje de bloque, con `--_mark-y/h`). Sigue animando ancho o alto **como hoy** (aceptado en `tabs/estilo.md`); en `underline` coco puede usar `scale`. Si una apariencia se ve mal medida, coco lo documenta en `estilo.md` y esa apariencia conserva el deslizamiento de hoy (no es cambio de contrato).
+
+### T2 · El contenido llega de su lado
+
+- El panel que se activa entra con fundido y **`--g-space-1 × 4`** desde el lado hacia el que viajó la marca: con `forward`, desde el final; con `back`, desde el inicio; espejado en RTL (`--_dir`). En `vertical`, por el eje de bloque (`forward` desde abajo). Sin `data-direction`, solo fundido.
+- `g-tabs__panels` recorta en el eje del desplazamiento **sin recortar el anillo de foco** de los hijos (`overflow-x: clip` con `overflow-clip-margin` = `--g-focus-width` + `--g-focus-offset`). Límite conocido: en un motor sin `overflow-clip-margin`, el anillo de un hijo pegado al borde se recorta durante la entrada (≤ 240ms).
+- **Cambia una nota de estilo de coco** (`design/lab/tabs/estilo.md`, fila «Movimiento»): el panel ya no entra subiendo `space × 1`. #127 y #152 no se tocan.
+
+### Movimiento reducido
+
+La marca salta (sin estirarse); el panel solo se funde (`--g-duration-fast`). Colores, como hoy.
+
+### Verificación (criterio de hecho: la medida de kiwi)
+
+| Qué | Medida |
+| --- | --- |
+| T1 | En el trayecto, el ancho de la marca supera al de las dos pestañas (kiwi: exceso de 95px adelante y 95,6px atrás en `underline`); el borde que avanza llega antes que el de atrás (kiwi: 186ms y 269ms); termina exacto bajo la pestaña (±0,5px); con `reduce`, salta. Tres motores; `pill`, `segmented`, `contained` y `vertical` medidos por coco |
+| T2 | Primer cuadro del panel en `+space × 4` adelante, `−space × 4` atrás, `−space × 4` en RTL adelante (kiwi: +16/−16/−16px); a 375px sin desborde horizontal de la página; con `reduce`, solo fundido. Con `detached` (slot `tabs` de `GDialog`), la misma dirección |
+| `data-direction` | Pruebas de bruno: valor por clic, flechas, «Más» y `modelValue` externo; RTL lógico; ausente al montar; `GTabPanel` lo copia |
+| Reservadas | T3 (luz de hover compartida) y T4 (contador que rueda): fuera de esta tanda |
 
 ## Persistencia
 
@@ -275,6 +311,7 @@ Derivaciones propuestas para coco (no son tokens): alto de pestaña = `space × 
 | `g-tabs--icon-only` | Raíz | Con `labelMode="icon"` o `auto` reducido |
 | `g-tabs--snap` | Raíz | Con `snap` |
 | `is-ready` | Raíz | Tras el primer posicionamiento de la marca |
+| `data-direction` (atributo, `forward` · `back`) | Raíz; y raíz de `GTabPanel` | Dirección lógica del último cambio de activa (§«Personalidad»); sin activa anterior, ausente |
 | `is-disabled` | Raíz | Con `disabled` |
 | `is-scrollable-start`, `is-scrollable-end` | Raíz | Hay lista fuera de vista por cada extremo (indicio de scroll) |
 | `g-tabs__header`, `__scroller`, `__list`, `__mark`, `__edge`, `__edge--prev`, `__edge--next`, `__more`, `__panels`, `__panel`, `__live` | Partes | Según prop |
