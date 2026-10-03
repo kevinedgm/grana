@@ -119,7 +119,8 @@
     {
       "name": "loading",
       "type": "Boolean",
-      "default": false
+      "default": false,
+      "note": "aria-busy y filas esqueleto; anuncia labels.loading en la región viva y, al terminar, labels.results (#265)"
     },
     {
       "name": "loadingRows",
@@ -129,7 +130,8 @@
     {
       "name": "labels",
       "type": "Object",
-      "default": {}
+      "default": {},
+      "note": "Ver labels; sin valores por defecto"
     }
   ],
   "events": [
@@ -211,6 +213,24 @@
     "empty",
     "empty-filtered",
     "loading"
+  ],
+  "labels": [
+    "selectAll",
+    "selectRow",
+    "rowActions",
+    "actionsHeader",
+    "selectedCount",
+    "sortBy",
+    "ascending",
+    "descending",
+    "sorted",
+    "loading",
+    "empty",
+    "emptyFiltered",
+    "clearFilters",
+    "results",
+    "filters",
+    "pagination"
   ],
   "pending": [
     "Lector de pantalla real",

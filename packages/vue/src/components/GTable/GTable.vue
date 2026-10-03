@@ -72,6 +72,45 @@ export default defineComponent({
       console.warn('[Grana] <GTable> con selección: define labels.selectedCount para anunciar cuántas filas hay seleccionadas.')
     }
 
+    // ---- Carga (#265): la región viva única anuncia «cargando» y, al terminar, el recuento ----
+    // Marca de «orden escrito en este ciclo»: si la carga empieza en el mismo ciclo, el anuncio del orden no se pisa.
+    // Se limpia con una tarea (no con un microtask): el watcher de `loading` corre en el vaciado de Vue, después de los microtasks ya encolados.
+    let sortedThisTick = false
+    let warnedLoading = false
+    let warnedResults = false
+    const markSorted = () => {
+      sortedThisTick = true
+      setTimeout(() => { sortedThisTick = false }, 0)
+    }
+    const announceLoad = (keepSorted) => {
+      nextTick(() => {
+        if (props.loading) {
+          if (keepSorted || !props.labels.loading) return
+          live.value = props.labels.loading
+        } else {
+          live.value = props.labels.results ? fill(props.labels.results, { count: totalCount.value }) : ''
+        }
+      })
+    }
+    const warnLoadStart = () => {
+      if (isDev && !warnedLoading && !props.labels.loading) {
+        warnedLoading = true
+        console.warn('[Grana] <GTable> con loading: define labels.loading para anunciar la carga (aria-busy solo no lo anuncia la mayoría de lectores).')
+      }
+    }
+    watch(() => props.loading, (now) => {
+      if (now) warnLoadStart()
+      else if (isDev && !warnedResults && !props.labels.results) {
+        warnedResults = true
+        console.warn('[Grana] <GTable> terminó de cargar: define labels.results para anunciar cuántas filas hay.')
+      }
+      announceLoad(now && sortedThisTick)
+    })
+    onMounted(() => {
+      // Montada ya cargando: la región existe vacía y el texto llega en el ciclo siguiente (#14)
+      if (props.loading) { warnLoadStart(); announceLoad(false) }
+    })
+
     // ---- Columnas ----
     const cols = computed(() => props.columns)
     const primary = computed(() => cols.value.find((c) => c.primary) || cols.value.find((c) => c.title) || cols.value[0])
@@ -126,7 +165,7 @@ export default defineComponent({
       const next = direction ? { key, direction } : s && s.key === key ? { key, direction: s.direction === 'ascending' ? 'descending' : 'ascending' } : { key, direction: 'ascending' }
       setSort(next)
       const col = cols.value.find((c) => c.key === key)
-      if (props.labels.sorted && col) live.value = fill(props.labels.sorted, { label: col.label, direction: props.labels[next.direction] || next.direction })
+      if (props.labels.sorted && col) { live.value = fill(props.labels.sorted, { label: col.label, direction: props.labels[next.direction] || next.direction }); markSorted() }
     }
 
     // ---- Filtros ----
@@ -134,7 +173,8 @@ export default defineComponent({
     const onFilters = (f) => {
       setFilters(f)
       if (pageState.value !== 1) setPage(1)
-      nextTick(() => { if (props.labels.results) live.value = fill(props.labels.results, { count: totalCount.value }) })
+      // Con la tabla ya cargando (filterMode: 'external') el recuento sería el viejo: el fin de la carga anuncia el nuevo (#265)
+      nextTick(() => { if (props.labels.results && !props.loading) live.value = fill(props.labels.results, { count: totalCount.value }) })
     }
     const clearFilters = () => {
       const lost = root.value && root.value.querySelector('.g-table__empty')?.contains(document.activeElement)
