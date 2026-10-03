@@ -82,7 +82,7 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 2. **Dark Color Presence:** la evidencia está reunida (`design/lab/tema-oscuro/dark-color-presence/`, `recommendation.md`). D es la opción preferida **pero no está adoptada**; adoptarla exige especificación y pruebas del motor, y decisión del usuario. No tocar el Theme Engine ni el contrato por esto sin esa decisión.
 3. **Solo en entorno real** (no automatizable): lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper` y la captura de voz (canales, `role="timer"`, la rejilla de `GTranscript` en modo foco y en exploración, `<del>`/`<ins>`, editor en la celda); captura de voz con Safari real, un motor real (Whisper local) y móvil real; hoja móvil del editor de filtros en móvil real; Safari, táctil y `forced-colors` reales; evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
 
-**Pendientes que no bloquean:** tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; adaptar las skills de kiwi, lima y coco al formato de `.agents/skills/bruno/references/handoffs.md`; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`; texto de «cargando» para las filas esqueleto de `GTable` (requiere lima).
+**Pendientes que no bloquean:** tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; actualizar Node 20 (sin soporte desde abril de 2026) a 22 o 24 LTS; revisar `npm audit` sin `--force`; texto de «cargando» para las filas esqueleto de `GTable` (requiere lima).
 
 ## Lecciones ya aprendidas (no repetirlas)
 
