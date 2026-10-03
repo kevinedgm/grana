@@ -25,6 +25,10 @@ Sección fija de un formulario (una idea: Información básica, Contacto): títu
 
 El `lead` es **decorativo** (`aria-hidden`) y va **fuera** del `hN`: el encabezado se llama solo por su título. Sin el slot no hay hueco ni aire; **no hay icono por defecto**. El icono toma el tamaño del título (16px con el tema por defecto) y el color `text-muted`, y queda centrado en la **primera línea** del título aunque este ocupe varias, con o sin insignia `optional` y en RTL (medido: 0px de diferencia; contraste ≥ 7,38:1 en claro y ≥ 8,59:1 en oscuro con doce temas; ver [`design/lab/icons/auditoria.md`](../../../../../design/lab/icons/auditoria.md)). Usa un [`GIcon`](../GIcon/README.md) sin `label` y sin clases de tamaño.
 
+### Los campos van en un `GFormLayout` (#283)
+
+El cuerpo de la sección **no es una pila**: no separa sus hijos ni pasa la densidad ni da el ancho completo. Pon los campos (con sus `GFormRow` y `GFormReveal`) dentro de un `GFormLayout`. Una sección sin campos (texto, una tabla) pone su contenido directo. En desarrollo, `GFormSection` avisa una vez, al montar, si un campo de Grana, una `GFormRow` o un `GFormReveal` es hijo directo del cuerpo («los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye»); un campo propio tuyo no se detecta. Dentro de un `GFormReveal` también avisa («la sección contiene la pregunta y el bloque, no al revés»).
+
 ## API en breve
 
 `title`, `description`, `headingLevel` (por defecto el de `GForm`), `optional`; slots `lead`, `title`, `description`, `actions`, `help` y por defecto. `mode`, `open`, `added`, `headerPlacement` y `labels` están reservadas para la Fase 3. Detalle en [`GForm/README.md` · API](../GForm/README.md#api) y en [`GFormSection.meta.json`](./GFormSection.meta.json).
