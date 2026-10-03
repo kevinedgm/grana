@@ -65,7 +65,7 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 - **`responsive`:** `auto` mide el contenedor (`ResizeObserver`) y pasa a tarjetas cuando su ancho es menor que **(suma de `min` + 10 de selección + 10 de acciones) × `--g-space-1`**. Sin medición (SSR), tabla.
 - **`appearance`:** `lines` (separadores finos) o `surface` (cada fila es una superficie con separación y radio, el lenguaje de `GSurface`). No se llama `variant`.
 - **`maxHeight`:** limita el alto del área desplazable; la cabecera queda pegajosa. Variable en línea (`--_max-height`).
-- **`loading`:** `aria-busy="true"` y `loadingRows` filas esqueleto con la estructura de las columnas.
+- **`loading`:** `aria-busy="true"` y `loadingRows` filas esqueleto (`aria-hidden`) con la estructura de las columnas. **Anuncio de carga (#265):** ver «Carga y anuncios».
 - **Resto de atributos:** van a la raíz.
 
 ## Textos (`labels`, sin valores por defecto)
@@ -79,12 +79,29 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 | `selectedCount` | Plantilla con `{count}` |
 | `sortBy`, `ascending`, `descending` | Controles de orden en tarjetas |
 | `sorted` | Anuncio, plantilla con `{label}` y `{direction}` |
+| `loading` | Texto de la región viva mientras `loading` es `true` («Cargando clientes…»). Sin plantilla (#265) |
 | `empty`, `emptyFiltered`, `clearFilters` | Vacío real, vacío por filtros y su acción |
-| `results` | Plantilla con `{count}` (anuncio y recuento) |
+| `results` | Plantilla con `{count}` (anuncio y recuento). También anuncia el **fin de la carga** (#265) |
 | `filters` | Objeto con los textos de `GFilterBar` |
 | `pagination` | Objeto con los textos de `GPagination` |
 
 Sin un texto, su control conserva un nombre mínimo derivado (p. ej. el `label` de la columna) cuando existe; si no, `console.warn` en desarrollo.
+
+## Carga y anuncios (#265)
+
+La tabla tiene **una** región viva: `<p class="g-table__sr" aria-live="polite">`, **hermana** del área desplazable y **fuera** del `<table aria-busy>` (dentro de un elemento ocupado, algunos lectores retienen los cambios hasta que deja de estarlo). **Existe desde el montaje** y siempre (#14). El texto de carga va **ahí**, no en una celda: las filas esqueleto siguen `aria-hidden` y no se añade fila ni celda con texto oculto (una fila falsa contaría como fila de datos al navegar la tabla). No se añade `role="status"` ni otra región.
+
+| Momento | Texto de la región | Nota |
+| --- | --- | --- |
+| `loading` pasa a `true` (o la tabla se monta con `loading`) | `labels.loading` | Se escribe en el **ciclo siguiente** (`nextTick`), nunca en el mismo render del montaje (#14, como `loadingText` de `GBtn`). **Permanece** mientras dure la carga: quien recorre la página con el cursor virtual lo encuentra tras la tabla |
+| `loading` pasa a `false` | `labels.results` con `{count}` = el recuento **ya actualizado** (`total` si se da; si no, las filas tras filtrar) | En el ciclo siguiente, para leer `rows`/`total` nuevos. **Con 0 filas se anuncia igual** (`{count: 0}`), como al filtrar: el texto de `empty`/`emptyFiltered` (o el slot `empty`) ya está **dentro** de la tabla y no se repite por la región. Sin `labels.results`, la región se **vacía** |
+| Orden escrito en el mismo ciclo en que empieza la carga (`sortMode: 'external'`) | Se conserva `sorted`; **`loading` no lo pisa** | La acción del usuario es lo que espera oír; el fin de la carga anuncia el recuento |
+| Anuncio de `results` tras filtrar (se escribe en `nextTick`) con la tabla ya en `loading` (`filterMode: 'external'`) | **No se escribe**: queda `labels.loading` | El recuento sería el viejo; el fin de la carga anuncia el nuevo |
+
+- `aria-busy` se conserva en el `<table>` (es estado, no anuncio). La clase `is-loading` no cambia.
+- **Mientras carga**, la casilla «todo», el orden, los filtros y la paginación **siguen operables** (como `GSelect`: `loading` no bloquea); si la aplicación quiere bloquearlos, lo hace ella.
+- **Avisos de desarrollo** (una vez cada uno, `[Grana] <GTable>`): `loading` en `true` sin `labels.loading`; `loading` vuelve a `false` sin `labels.results`. Sin ellos la tabla funciona (solo con `aria-busy`, que la mayoría de lectores no anuncia).
+- **Precedentes que sigue:** `GCard` (`labels.loading` en su región desde el montaje, `labels.loaded` opcional al terminar) y `GWidget` (`labels.loading`). La tabla **no** añade `loaded`: su fin natural de carga es el recuento, y `results` ya existe. `GBtn` (`loadingText`) es prop porque el botón no tiene `labels`.
 
 ## Estructura accesible
 
@@ -114,7 +131,7 @@ Sin un texto, su control conserva un nombre mínimo derivado (p. ej. el `label` 
     </table>
   </div>
   <nav class="g-pagination">…</nav>
-  <p class="g-table__sr" aria-live="polite">…</p>
+  <p class="g-table__sr" aria-live="polite">…</p>          <!-- única región viva; fuera del <table aria-busy> (#265) -->
 </div>
 ```
 
@@ -189,6 +206,7 @@ Variable en línea: `--_max-height`.
 | r01-12 | Anuncios | Región viva cortés propia | WCAG 4.1.3 |
 | r01-13 | Tokens | Ninguno nuevo; filas `surface` con `--g-surface-*` | `tokens.md` §17.6 |
 | r02-1…8 | Filtros | Ver `filter-bar.md`; `GTable` integra `GFilterBar` con sus `columns` | DECISIONS.md #111 |
+| L-1 | Texto de «cargando» (pendiente tras la construcción) | `labels.loading` en la región viva existente; fin de carga con `results`; ver «Carga y anuncios» | WCAG 4.1.3; DECISIONS.md #265 |
 
 ## Límites conocidos
 
