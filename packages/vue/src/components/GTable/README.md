@@ -89,7 +89,7 @@ La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma 
 | `appearance` | String | `lines` `surface` | `lines` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
 | `maxHeight` | String | longitud CSS (cabecera pegajosa) | sin valor |
-| `loading`, `loadingRows` | Boolean, Number | | `false`, `3` |
+| `loading`, `loadingRows` | Boolean, Number | filas esqueleto; anuncia `labels.loading` y, al terminar, `labels.results` | `false`, `3` |
 | `labels` | Object | textos (abajo) | `{}` |
 
 - **Datos del servidor:** con `sortMode`/`filterMode` `external`, la tabla solo emite; tú consultas y le pasas la página de filas y `total`.
@@ -99,7 +99,69 @@ La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma 
 
 ## Textos (`labels`)
 
-Grana no trae textos: `selectAll`, `selectRow` y `rowActions` (plantilla con `{title}` o función `(row) => string`), `actionsHeader`, `selectedCount` (`{count}`), `sortBy`, `ascending`, `descending`, `sorted` (`{label}`, `{direction}`), `empty`, `emptyFiltered`, `clearFilters`, `results` (`{count}`), y los objetos `filters` (de [`GFilterBar`](../GFilterBar/README.md)) y `pagination` (de [`GPagination`](../GPagination/README.md)).
+Grana no trae textos. Las 16 claves de `labels`:
+
+| Clave | Uso |
+| --- | --- |
+| `selectAll`, `selectRow`, `rowActions` | Casilla «todo» y nombres de la casilla y del botón de acciones de cada fila (`selectRow` y `rowActions`: plantilla con `{title}` o función `(row) => string`) |
+| `actionsHeader` | Encabezado (oculto) de la columna de acciones |
+| `selectedCount` | Plantilla con `{count}` |
+| `sortBy`, `ascending`, `descending` | Controles de orden en tarjetas |
+| `sorted` | Anuncio del orden (`{label}`, `{direction}`) |
+| `loading` | Texto que se anuncia mientras `loading` es `true` («Cargando clientes…»); sin plantilla |
+| `empty`, `emptyFiltered`, `clearFilters` | Vacío real, vacío por filtros y su acción |
+| `results` | Plantilla con `{count}`: recuento al filtrar y al terminar una carga |
+| `filters` | Objeto con los textos de [`GFilterBar`](../GFilterBar/README.md) |
+| `pagination` | Objeto con los textos de [`GPagination`](../GPagination/README.md) |
+
+## Carga y anuncios
+
+`aria-busy` por sí solo no se anuncia en la mayoría de lectores de pantalla, así que la tabla escribe el estado de la carga en su **región viva** (cortés, una sola, siempre presente desde el montaje y **fuera** del `<table aria-busy>`, hermana del área desplazable):
+
+| Momento | Qué se anuncia |
+| --- | --- |
+| `loading` pasa a `true`, o la tabla se monta ya con `loading` | `labels.loading`, en el ciclo siguiente (nunca en el mismo render del montaje). Se conserva mientras dure la carga |
+| `loading` pasa a `false` | `labels.results` con el recuento ya actualizado en `{count}` (`total` si lo das; si no, las filas tras filtrar), **también con 0**. Sin `labels.results`, la región se vacía |
+
+- **Orden externo:** si el orden se escribe en el mismo ciclo en que empieza la carga, su anuncio (`sorted`) **no se pisa** con el de carga; el fin de la carga anuncia el recuento.
+- **Filtro externo:** el recuento que se escribe tras filtrar **no se anuncia si la tabla ya está cargando** (sería el viejo); el fin de la carga anuncia el nuevo.
+- **Sin `labels.loading`:** al empezar una carga la región **conserva el texto anterior** (no se vacía).
+- **Con 0 filas**, el fin de la carga anuncia `results` con `{count}` en 0; el texto de vacío (`empty`, `emptyFiltered` o el slot `empty`) ya está dentro de la tabla y no se repite.
+- `aria-busy` se conserva en el `<table>` y las filas esqueleto siguen `aria-hidden`: no se añade fila ni celda con texto oculto, ni otro `role="status"`.
+- **Mientras carga** el orden, los filtros y la paginación siguen operables; si quieres bloquearlos, hazlo en tu aplicación.
+- **Avisos de desarrollo** (una vez cada uno): `loading` en `true` sin `labels.loading`, y fin de carga sin `labels.results`. Sin esos textos la tabla funciona, pero solo con `aria-busy`.
+
+### Ejemplo: carga desde el servidor
+
+```vue
+<script setup>
+import { ref } from 'vue'
+const orden = ref(null), filtros = ref([]), pagina = ref(1)
+const filas = ref([]), total = ref(0), cargando = ref(false)
+const textos = { loading: 'Cargando clientes…', results: '{count} clientes', sorted: 'Ordenado por {label}, {direction}', /* …el resto de claves */ }
+
+async function cargar() {
+  cargando.value = true                               // síncrono: así el recuento viejo no se anuncia
+  const r = await api.clientes({ orden: orden.value, filtros: filtros.value, pagina: pagina.value })
+  filas.value = r.filas
+  total.value = r.total
+  cargando.value = false                              // anuncia «{total} clientes», también con 0
+}
+// Pon `loading` en el MISMO manejador de cada update:*, antes de cualquier await
+const alOrdenar = (v) => { orden.value = v; cargar() }
+const alFiltrar = (v) => { filtros.value = v; pagina.value = 1; cargar() }
+const alPaginar = (v) => { pagina.value = v; cargar() }
+</script>
+
+<template>
+  <g-table :columns="columns" :rows="filas" :total="total" caption="Clientes" :page-size="10"
+           sort-mode="external" filter-mode="external" :loading="cargando" :labels="textos"
+           :sort="orden" :filters="filtros" :page="pagina"
+           @update:sort="alOrdenar" @update:filters="alFiltrar" @update:page="alPaginar" />
+</template>
+```
+
+Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`, `update:filters` y `update:page`, antes de cualquier `await`: así la tabla ya está cargando cuando se decide qué anunciar y no se oye el recuento anterior (con `filterMode: 'external'`). El [playground](../../../playground/) tiene un botón «Simular carga» (`#tb-simulate`) como referencia.
 
 ## Eventos y slots
 
@@ -123,7 +185,7 @@ Grana no trae textos: `selectAll`, `selectRow` y `rowActions` (plantilla con `{t
 - `<table>` real con `caption`, encabezados `scope="col"` y roles explícitos; **tabla de datos, no `grid`**: Tab recorre los controles, sin flechas entre celdas.
 - **Orden:** `aria-sort` en el encabezado; el foco se queda en el botón; se anuncia («Ordenado por Total, descendente»).
 - **Selección:** casilla con nombre por fila; «todo» con estado mixto.
-- **Estados:** `aria-busy` al cargar; vacío real y vacío por filtros (con «Limpiar filtros»); recuento anunciado al filtrar.
+- **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga y anuncios](#carga-y-anuncios)); vacío real y vacío por filtros (con «Limpiar filtros»); recuento anunciado al filtrar.
 - **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px.
 
 ## Tema
@@ -133,7 +195,7 @@ Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color
 ## Limitaciones conocidas
 
 - Sin selección de todas las páginas, columnas fijas, desplazamiento horizontal, virtualización, edición en celda, ni redimensionar o reordenar columnas.
-- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real.
+- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading` y el recuento final, y en qué orden frente a un `sorted`).
 
 ## Fuentes
 
