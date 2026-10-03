@@ -1,6 +1,6 @@
 # Contrato · GAvatar
 
-**Dueño:** lima · **Estado:** aprobado (aprobación autónoma: todo deriva de WCAG 2.2 AA, HTML, contratos vigentes o de las medidas de la ronda; kiwi §13 «sin preguntas de producto») · **Basado en:** `design/lab/avatar/r01/` (kiwi, commit 3b36672: `brief.md`, `declaracion.md` con los hallazgos L1 a L13, `index.html`, `verificar.mjs` 504/504 en Chromium, Firefox y WebKit) · **Decisiones:** DECISIONS.md #293 a #297 (reabre la reserva de #123 con el motivo que pedía: cinco huecos que lo reciben)
+**Dueño:** lima · **Estado:** aprobado (aprobación autónoma: todo deriva de WCAG 2.2 AA, HTML, contratos vigentes o de las medidas de la ronda; kiwi §13 «sin preguntas de producto») · **Basado en:** `design/lab/avatar/r01/` (kiwi, commit 3b36672: `brief.md`, `declaracion.md` con los hallazgos L1 a L13, `index.html`, `verificar.mjs` 504/504 en Chromium, Firefox y WebKit) · **Decisiones:** DECISIONS.md #293 a #298 (reabre la reserva de #123 con el motivo que pedía: cinco huecos que lo reciben)
 **Tag:** `g-avatar` · **Categoría:** primitivas de identidad · **Complejidad:** **componente complejo** (CLAUDE.md, «Modelos por rol»: se solapa con `GAvatarMotion`, `GBadge`, el `leading` de `GTable` y la marca de `GTranscript`, y cambia el CSS de los huecos de `GCard`, `GTable`, `GMenu` y `GSelect`) → **coco y bruno en Opus**.
 
 La **cara de una persona o de una entidad** (organización, equipo, espacio) en una caja cuadrada de lado fijo. Muestra, por orden, una **imagen**, unas **iniciales** o un **icono**, y la caja **nunca cambia** al pasar de uno a otro. No es interactivo, no lleva estado de presencia y no se apila.
@@ -9,7 +9,7 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 
 ## Principios
 
-- **Identidad, no estado.** Sin color semántico, sin `status`, sin animación propia más allá del fundido de la imagen. La presencia es una `GBadge` anclada (§ «Presencia»).
+- **Identidad, no estado.** Sin color semántico, sin `status`, sin animación que exprese un estado: el movimiento propio se limita a la personalidad de § «Movimiento» (#298) y desaparece con `prefers-reduced-motion: reduce`. La presencia es una `GBadge` anclada (§ «Presencia»).
 - **Una caja, siempre la misma.** El lado es `space × n` del `size`; imagen, iniciales e icono se dibujan **dentro** sin moverla. Cargar o fallar la imagen no desplaza nada (medido: 0px).
 - **Decorativo por defecto.** El nombre de la persona casi siempre está escrito al lado o en el control que envuelve al avatar. Con `label`, es una imagen con nombre.
 - **Nunca interactivo.** Si hace falta pulsarlo, lo envuelve un `<button>` de la aplicación con su nombre, y el avatar dentro es decorativo.
@@ -52,7 +52,7 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 - **`src`:** la `<img>` va encima del respaldo, invisible hasta `load` (§ «Imagen»). Si falla, se **quita** la `<img>` y queda el respaldo. Cambiar `src` vuelve a «cargando». Con la imagen ya en caché al montar (o tras hidratar en SSR), se comprueba `complete` y `naturalWidth` en `onMounted` (sin parpadeo ni evento perdido).
 - **`name`:** **solo** deriva iniciales y es la clave del color cuando no hay `colorKey`. **No** es el nombre accesible (kiwi 1.8: el nombre casi siempre está escrito al lado; exponerlo por defecto lo leería dos veces).
 - **`initials`:** se respetan **tal cual** (sin mayúsculas forzadas; admiten emoji), normalizadas a NFC, recortadas y sin grafemas de espacio; se cortan al **máximo de letras** (§ «Iniciales»). Cortar por encima del máximo absoluto avisa (aviso 2); la reducción a una letra en `xs`/`sm` es silenciosa (es lo esperado al reutilizar las mismas iniciales en varios tamaños).
-- **`icon`:** un **nombre** de Lucide que la aplicación elige como dato (organización → `building-2`, bot → `bot`), resuelto como cualquier nombre de la aplicación (`icons.md` §5.4: registro más cercano → librería). Un nombre que **no resuelve cuenta como ausente**: la cadena sigue (iniciales de `name` → `user`) y avisa (aviso 6). El icono por defecto `user` es **propio** del componente: sale **solo de la librería** (`icons.md` §4, #200) y la aplicación no lo cambia con el registro.
+- **`icon`:** un **nombre** de Lucide que la aplicación elige como dato (organización → `building-complex`, bot → `bot`), resuelto como cualquier nombre de la aplicación (`icons.md` §5.4: registro más cercano → librería). Un nombre que **no resuelve cuenta como ausente**: la cadena sigue (iniciales de `name` → `user`) y avisa (aviso 6). El icono por defecto `user` es **propio** del componente: sale **solo de la librería** (`icons.md` §4, #200) y la aplicación no lo cambia con el registro.
 - **`size`:** lado = `space × n` (§ «Escala»). Decide también el **número de letras** y el rol tipográfico. El avatar **nunca se estira ni se encoge** para llenar un hueco: es el hueco el que adopta su caja (#295).
 - **`shape`:** `circle` = **persona** (por defecto); `square` = **entidad**. La forma dice **qué es** lo representado, no la personalidad del tema: **no** lee `--g-radius-shape` (#8, #23: es la forma de las acciones; con `shape: "pill"` las entidades parecerían personas). El cuadrado lleva un radio de la escala del tema que crece con el tamaño (alias local de coco; sin token).
 - **`color`:** `'neutral'` = neutro (y **gana** a `categories`); `k` (1 a 12, número o cadena numérica `"3"`) = **categoría fija** `k`. Cualquier otro valor (incluidos `brand`, `danger` y el resto de semánticos: un avatar rojo diría «peligro», `tokens.md` §17.7) **se ignora** como si no estuviera (sigue el color derivado o el neutro) y avisa (aviso 3). Sin valor: derivado si `categories > 0`; si no, neutro.
@@ -84,7 +84,7 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 
 <!-- Con imagen (cargando → cargada) y nombre; respaldo de icono -->
 <span class="g-avatar g-avatar--size-lg g-avatar--shape-square g-avatar--content-icon is-loaded" role="img" aria-label="Grana Labs">
-  <svg class="g-icon g-avatar__icon" aria-hidden="true" focusable="false">…building-2…</svg>
+  <svg class="g-icon g-avatar__icon" aria-hidden="true" focusable="false">…building-complex…</svg>
   <img class="g-avatar__img" src="…" alt="" loading="lazy" decoding="async" draggable="false">
 </span>
 ```
@@ -214,7 +214,10 @@ function avatarCategory(key, n) {               // key: colorKey ?? name; n: cat
 
 - **`loading="lazy"` y `decoding="async"`** en la `<img>`: en tablas y listas largas evita descargar caras fuera de vista; la caja fija impide el salto. **`draggable="false"`**.
 - **SSR:** el servidor emite `is-loading` con `src`; al montar se comprueba `complete`/`naturalWidth` (la `load` pudo ocurrir antes de hidratar).
-- **Movimiento:** un fundido de entrada de la imagen es **opcional** (coco), con `--g-duration-fast` y `--g-ease-standard`, **solo** con `prefers-reduced-motion: no-preference`.
+- **Movimiento (#298)**, solo con `prefers-reduced-motion: no-preference` (con `reduce`, todo instantáneo; sin tokens nuevos; la caja no cambia):
+  1. **Revelado de la foto:** al pasar a `is-loaded`, la imagen se funde sobre el respaldo (`--g-duration-fast`) y se asienta de `scale 1.06` a `1` (`--g-duration-fast × 2`, `--g-ease-standard`). El respaldo se retira **al terminar** (`step-end`), nunca antes: ningún fotograma deja ver el relleno vacío. Al volver a `is-loading` (cambio de `src`) el respaldo reaparece al instante. Una imagen ya decodificada al montar aparece sin fundido.
+  2. **Morfo de forma:** cambiar `shape` anima `border-radius` (`--g-duration-fast`) en vez de saltar.
+  3. **Monograma** (tipografía, no movimiento): `lining-nums`, sin ligaduras, `kerning` normal.
 - Sin eventos `load`/`error` (reservados, § «Eventos»).
 
 ## Eventos
@@ -289,7 +292,7 @@ Sin prop `status`. La presencia es una **`GBadge` anclada** (#59) con el avatar 
 
 ## Estados que coco debe cubrir
 
-Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales · icono (por defecto o explícito) · neutro · categoría (fija o derivada) · `circle` · `square` · decorativo · con nombre · con presencia (`GBadge` anclada) · **`forced-colors`**: el relleno desaparece y un **borde `CanvasText`** de `--g-border-width` conserva la forma **sin cambiar el tamaño** (borde por dentro o con `box-sizing`; medido por kiwi: 32 = 32) · **movimiento reducido**: sin fundido · **RTL**: sin efecto en el avatar (las iniciales no se invierten); la insignia anclada se espeja. Sin hover, foco ni pulsado.
+Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales · icono (por defecto o explícito) · neutro · categoría (fija o derivada) · `circle` · `square` · decorativo · con nombre · con presencia (`GBadge` anclada) · **`forced-colors`**: el relleno desaparece y un **borde `CanvasText`** de `--g-border-width` conserva la forma **sin cambiar el tamaño** (borde por dentro o con `box-sizing`; medido por kiwi: 32 = 32) · **movimiento reducido**: sin fundido, asentamiento ni morfo · **RTL**: sin efecto en el avatar (las iniciales no se invierten); la insignia anclada se espeja. Sin hover, foco ni pulsado.
 
 ## Avisos de desarrollo (bruno; L11)
 
@@ -298,7 +301,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 | # | Causa | Qué hace el componente |
 | --- | --- | --- |
 | 1 | `label` con un antecesor `aria-hidden="true"` (comprobado al montar) | Dibuja igual. El aviso dice que el nombre no llega y que, dentro de un hueco decorativo, el nombre va en el control o en el texto vecino |
-| 2 | `initials` con más grafemas que el máximo absoluto (2, o 1 con escritura ancha) | Las corta. No avisa por la reducción a 1 en `xs`/`sm` |
+| 2 | `initials` con más grafemas que el máximo absoluto (2, o 1 con escritura ancha). **Avisa en cualquier tamaño**, también en `xs`/`sm`, porque la causa es el valor y no el tamaño | Las corta. No avisa por la reducción a 1 en `xs`/`sm` cuando `initials` ya tenía 1 o 2 grafemas |
 | 3 | `color` que no es `'neutral'` ni un entero de 1 a 12 (un semántico como `danger` tiene su propio texto: «un avatar no lleva color semántico») | Lo ignora: color derivado o neutro |
 | 4 | `categories` fuera de 0..12 o no entero | Lo trata como `0` |
 | 5 | `role`, `aria-*`, `tabindex` o escuchas (`onClick`, `onKeydown`…) como atributos | No los pasa a la raíz. El aviso remite a `label` (nombre) o a envolver el avatar en un `<button>` (acción) |
@@ -347,6 +350,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 
 - **`GAvatarGroup`** (pila, «+N» con nombre, solapado lógico en RTL): ronda propia cuando un consumidor la necesite.
 - **`status`** en `GAvatar`: no; la vía es `GBadge` anclada.
+- **Personalidad, ronda transversal** (#298; ideas de `design/lab/avatar/auditoria.md` § «Personalidad», cada una con su dueño): fundido entre la foto anterior y la nueva al cambiar `src` (`.vue` + contrato); revelado desde el color de la foto con un `placeholder` (prop nueva y decisión sobre el color libre); centrado óptico del monograma con `text-box` (coco); presencia que nace del contorno (`GBadge`); anillo de pila de `GAvatarGroup` (con su ronda); iniciales que cambian con fundido al renombrar (`key` en el `.vue` y decisión sobre animar un cambio de identidad).
 - **Eventos `load`/`error`**, `srcset`, `sizes`, `crossorigin`, `referrerpolicy`.
 - **`categories` por aplicación** (un `provide` para no repetirlo en cada avatar): candidato si se pide.
 - **`item.avatar`** en `GMenu` (y equivalentes en otros datos): candidato (L8).
