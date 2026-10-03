@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personalidad · r01 · prototipos</title>
+<!-- Ronda transversal de personalidad (kiwi). Los seis componentes son los REALES de packages/vue/dist (requiere
+     `npm run build`). Encima va una capa de prototipo, @layer grana.personalidad, declarada DESPUÉS de grana.components:
+     modela lo que coco escribiría en G<Nombre>.css si lima lo aprueba. Esa capa solo usa var(--g-*), alias locales y
+     constantes de coreografía (fracciones, índices), como exige la regla de tokens. Las curvas --g-ease-spring y
+     --g-ease-bounce son la PROPUESTA de tokens nuevos (irían en defaults.css). El andamio de la página (.k-*) es gris
+     de wireframe y no es propuesta.
+     Abrir con file:// o con  python3 -m http.server 4209  desde la raíz → /design/lab/personalidad/r01/
+     Verificación: node design/lab/personalidad/r01/verificar.mjs  (Playwright de design/lab/theme-playground) -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+@layer grana.defaults, grana.components, grana.personalidad;
+
+/* =====================================================================================================================
+   CAPA DE PROTOTIPO (propuesta). Cada bloque está activo solo dentro de su contenedor .p (columna «Propuesta»).
+   ===================================================================================================================== */
+@layer grana.personalidad {
+
+  /* ---------- Transversal · tokens propuestos (en Grana irían en defaults.css, capa grana.defaults) ---------- */
+  :root {
+    /* Muelle amortiguado (ζ ≈ 0,72): rebasa ~3,8 % y asienta antes del 70 % del tiempo. Para DESPLAZAMIENTOS
+       (marca de pestañas, bordes que viajan). Con --g-duration-slow: el máximo de la interfaz sigue siendo 240 ms (#71) */
+    --g-ease-spring: linear(0, 0.081, 0.258, 0.46, 0.644, 0.793, 0.901, 0.972, 1.013, 1.033, 1.038, 1.036, 1.029, 1.021, 1.014, 1.008, 1.004, 1.001, 1, 0.999, 1);
+    /* Rebote (ζ ≈ 0,45): rebasa ~20 % y asienta antes del 73 %. SOLO para escalas pequeñas (soltar una pulsación,
+       un icono que aparece): 20 % de 0,03 son 0,006 de escala. Nunca para desplazamientos */
+    --g-ease-bounce: linear(0, 0.124, 0.401, 0.708, 0.963, 1.127, 1.199, 1.197, 1.151, 1.088, 1.029, 0.987, 0.964, 0.958, 0.964, 0.976, 0.989, 0.999, 1.006, 1.008, 1.008, 1.006, 1);
+  }
+  /* Cámara lenta del banco (no es propuesta): ×4 para mirar el movimiento */
+  :root.k-slow {
+    --g-duration-fast: 480ms;
+    --g-duration-press: 640ms;
+    --g-duration-slow: 960ms;
+  }
+
+  /* ---------- GBtn · B1 «rebote al soltar»: aprieta rápido, suelta con muelle ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-btn {
+      transition:
+        background-color var(--g-duration-fast) var(--g-ease-standard),
+        border-color var(--g-duration-fast) var(--g-ease-standard),
+        color var(--g-duration-fast) var(--g-ease-standard),
+        transform var(--g-duration-slow) var(--g-ease-bounce);
+    }
+    /* Al entrar en :active manda esta lista (ida); al salir, la de arriba (vuelta). La lista es completa: no se pierde
+       ninguna propiedad (el defecto que corrigió el plan 004 en GStepper) */
+    .p .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+      transition:
+        background-color var(--g-duration-fast) var(--g-ease-standard),
+        border-color var(--g-duration-fast) var(--g-ease-standard),
+        color var(--g-duration-fast) var(--g-ease-standard),
+        transform var(--g-duration-fast) var(--g-ease-out);
+    }
+  }
+
+  /* ---------- GBtn · B2 «la etiqueta cede el sitio»: carga sin parpadeo ---------- */
+  /* Hoy: visibility:hidden en la etiqueta (salto en un cuadro). Propuesta: opacity (la etiqueta sigue en el árbol
+     accesible: el nombre del botón no cambia, como dice btn.md) y un paso corto hacia arriba; el indicador sube
+     desde abajo. Ancho intacto (la etiqueta sigue ocupando su sitio). */
+  .p .g-btn__label, .p .g-btn__prepend, .p .g-btn__append {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard), translate var(--g-duration-press) var(--g-ease-out);
+  }
+  .p .g-btn.is-loading .g-btn__label, .p .g-btn.is-loading .g-btn__prepend, .p .g-btn.is-loading .g-btn__append {
+    visibility: visible;
+    opacity: 0;
+  }
+  .p .g-btn__loader {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard), translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .p .g-btn.is-loading .g-btn__loader { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-btn.is-loading .g-btn__label, .p .g-btn.is-loading .g-btn__prepend, .p .g-btn.is-loading .g-btn__append {
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+    @starting-style {
+      .p .g-btn.is-loading .g-btn__loader { translate: 0 var(--g-space-1); }
+    }
+  }
+
+  /* ---------- GDialog · D1 «viene de donde lo llamaste» ---------- */
+  /* --p-ox/--p-oy: vector del centro del diálogo al centro del disparador (lo escribiría bruno al abrir). El diálogo
+     parte desplazado una cuarta parte de ese vector, con tope de space × 8, y vuelve hacia él al cerrar (el foco
+     regresa ahí: el movimiento anticipa adónde vuelve el foco). Hoja lateral y hoja móvil conservan su propio origen. */
+  @media (prefers-reduced-motion: no-preference) {
+    .p-dlg.g-dialog:not(.g-dialog--placement-end):not(.g-dialog--fullscreen) {
+      --_from-x: clamp(calc(var(--g-space-8) * -1), calc(var(--p-ox, 0px) * 0.25), var(--g-space-8));
+      --_from-y: clamp(calc(var(--g-space-8) * -1), calc(var(--p-oy, 0px) * 0.25), var(--g-space-8));
+      translate: var(--_from-x) var(--_from-y);
+    }
+    .p-dlg.g-dialog[open]:not(.g-dialog--placement-end):not(.g-dialog--fullscreen) { translate: 0 0; }
+    @starting-style {
+      .p-dlg.g-dialog[open]:not(.g-dialog--placement-end):not(.g-dialog--fullscreen) {
+        opacity: 0;
+        scale: var(--g-press-scale);
+        translate: var(--_from-x) var(--_from-y);
+      }
+    }
+  }
+  /* ---------- GDialog · D2 «crece hacia abajo» (#281) ---------- */
+  /* Al abrir, bruno fijaría el borde superior (--p-top, medido centrado). Desde ahí el diálogo solo crece hacia abajo;
+     cuando ya no cabe, su cuerpo desplaza (max-block-size). La colocación inicial sigue siendo el centro. */
+  .p-dlg.p-pinned.g-dialog[open]:not(.g-dialog--placement-end):not(.g-dialog--fullscreen) {
+    margin-block: var(--p-top) auto;
+    max-block-size: calc(100dvh - var(--p-top) - var(--g-space-4));
+  }
+
+  /* ---------- GTabs · T1 «la marca se estira» y T2 «el contenido llega de su lado» ---------- */
+  /* Dos bordes con su propio tiempo (propiedades registradas: interpolan como longitudes). El borde que avanza hacia la
+     pestaña nueva llega primero (press, ease-out); el de atrás lo sigue con el muelle (slow, spring). data-p-dir lo
+     escribiría bruno (forward/back, en orden lógico: en RTL «forward» va hacia la izquierda). */
+  @property --p-l { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  @property --p-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  .p .g-tabs--orientation-horizontal.is-ready .g-tabs__mark {
+    --p-l: var(--_mark-x);
+    --p-r: calc(var(--_mark-x) + var(--_mark-w));
+    inline-size: calc(var(--p-r) - var(--p-l));
+    translate: calc(var(--_dir) * var(--p-l)) var(--_mark-y);
+  }
+  .p .g-tabs--orientation-horizontal.g-tabs--appearance-underline.is-ready .g-tabs__mark {
+    translate: calc(var(--_dir) * var(--p-l)) calc(var(--_mark-y) + var(--_mark-h) - var(--_mark-t));
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-tabs--orientation-horizontal.is-ready .g-tabs__mark {
+      transition:
+        --p-l var(--g-duration-press) var(--g-ease-out),
+        --p-r var(--g-duration-press) var(--g-ease-out),
+        block-size var(--g-duration-press) var(--g-ease-standard);
+    }
+    .p .g-tabs--orientation-horizontal.is-ready[data-p-dir="forward"] .g-tabs__mark {
+      transition:
+        --p-l var(--g-duration-slow) var(--g-ease-spring),
+        --p-r var(--g-duration-press) var(--g-ease-out),
+        block-size var(--g-duration-press) var(--g-ease-standard);
+    }
+    .p .g-tabs--orientation-horizontal.is-ready[data-p-dir="back"] .g-tabs__mark {
+      transition:
+        --p-l var(--g-duration-press) var(--g-ease-out),
+        --p-r var(--g-duration-slow) var(--g-ease-spring),
+        block-size var(--g-duration-press) var(--g-ease-standard);
+    }
+    /* T2: el panel entra desde el lado hacia el que viajó la marca (eje compartido), no desde abajo */
+    .p .g-tabs__panels { overflow-x: clip; overflow-clip-margin: calc(var(--g-focus-width) + var(--g-focus-offset)); }
+    .p .g-tabs__panel {
+      transition:
+        opacity var(--g-duration-press) var(--g-ease-out),
+        translate var(--g-duration-slow) var(--g-ease-out);
+    }
+    @starting-style {
+      .p .g-tabs.is-ready[data-p-dir="forward"] .g-tabs__panel:not([hidden]) {
+        opacity: 0;
+        translate: calc(var(--_dir) * var(--g-space-4)) 0;
+      }
+      .p .g-tabs.is-ready[data-p-dir="back"] .g-tabs__panel:not([hidden]) {
+        opacity: 0;
+        translate: calc(var(--_dir) * var(--g-space-4) * -1) 0;
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Igual que hoy: la marca salta; el panel solo se funde */
+    .p .g-tabs__panel { transition: opacity var(--g-duration-fast) linear; }
+    @starting-style { .p .g-tabs.is-ready .g-tabs__panel:not([hidden]) { opacity: 0; } }
+  }
+
+  /* ---------- GCard · C1 «la luz sigue al puntero» (sin mover la tarjeta, #127) ---------- */
+  /* Sobre el velo uniforme de hoy (que sigue siendo la señal de hover), un halo del mismo token concentrado donde está
+     el puntero. --p-x/--p-y los escribiría bruno (pointermove + rAF, solo con hover real). Pintado, no layout. */
+  @property --p-glow { syntax: '<color>'; inherits: false; initial-value: transparent; }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .p .g-card::before {
+      --p-glow: var(--_veil);
+      background-image: radial-gradient(circle calc(var(--g-space-1) * 40) at var(--p-x, 50%) var(--p-y, 50%), var(--p-glow), transparent);
+      transition:
+        background-color var(--g-duration-fast) var(--g-ease-standard),
+        --p-glow var(--g-duration-press) var(--g-ease-standard);
+    }
+  }
+
+  /* ---------- GInput · I1 «el mensaje sale del campo» ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-input__message:not(:empty) { animation: p-msg-in var(--g-duration-press) var(--g-ease-out); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .p .g-input__message:not(:empty) { animation: p-fade-in var(--g-duration-fast) linear; }
+  }
+  @keyframes p-msg-in { from { opacity: 0; translate: 0 calc(var(--g-space-1) * -1); } }
+  @keyframes p-fade-in { from { opacity: 0; } }
+  /* ---------- GInput · I2 «un solo aviso al enviar» ---------- */
+  /* p-nudge lo pondría GForm (bruno) SOLO en los campos que siguen inválidos tras un envío; nunca al escribir ni al
+     salir del campo, nunca al montar. Se mueve la fila (caja + acción) para que el anillo de foco vaya con ella.
+     Amplitud ≤ space × 1, una vez, decreciente. Con movimiento reducido no existe: el error ya es borde + icono + texto. */
+  @media (prefers-reduced-motion: no-preference) {
+    .p .p-nudge .g-input__row { animation: p-nudge var(--g-duration-slow) linear; }
+  }
+  @keyframes p-nudge {
+    0%, 100% { translate: 0 0; }
+    16% { translate: calc(var(--g-space-1) * -1) 0; }
+    36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+    56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+    76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+  }
+
+  /* ---------- GMenu · M1 «una sola luz que viaja» ---------- */
+  /* Un único resaltado por lista (::before, bajo el contenido) que se desplaza al elemento activo en vez de que cada
+     elemento funda su fondo: sin estela de medio encendidos al barrer con el puntero. Las variables las escribiría
+     bruno (offsetTop/Height del elemento activo). El anillo de foco de cada elemento no cambia. */
+  .p .g-menu__list { isolation: isolate; }
+  .p .g-menu__list::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-inline: calc(var(--g-space-1) * 1.5);
+    inset-block-start: 0;
+    block-size: var(--p-hh, 0px);
+    translate: 0 var(--p-hy, 0px);
+    border-radius: var(--g-radius-md);
+    background: var(--g-color-surface-sunken);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .p .g-menu__list.p-lit::before { opacity: 1; }
+  .p .g-menu__item:hover, .p .g-menu__item:focus { background: transparent; }
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-menu__list::before {
+      transition: translate var(--g-duration-press) var(--g-ease-out), block-size var(--g-duration-press) var(--g-ease-out), opacity var(--g-duration-fast) var(--g-ease-standard);
+    }
+    .p .g-menu__list.p-lit-instant::before { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .p .g-menu__list::before { transition: opacity var(--g-duration-fast) linear; }
+  }
+  /* ---------- GMenu · M2 «cascada corta» ---------- */
+  /* Cada elemento entra un paso (fast / 8 = 15 ms) después del anterior, con tope en el sexto (≤ 75 ms de más); desde
+     el lado del disparador. Con movimiento reducido no hay cascada (la lista solo se funde, como hoy). */
+  @media (prefers-reduced-motion: no-preference) {
+    .p .g-menu__list > li {
+      transition: opacity var(--g-duration-press) var(--g-ease-out), translate var(--g-duration-press) var(--g-ease-out);
+      transition-delay: calc(var(--_i, 0) * var(--g-duration-fast) / 8);
+    }
+    .p .g-menu__list > li:nth-child(2) { --_i: 1; }
+    .p .g-menu__list > li:nth-child(3) { --_i: 2; }
+    .p .g-menu__list > li:nth-child(4) { --_i: 3; }
+    .p .g-menu__list > li:nth-child(5) { --_i: 4; }
+    .p .g-menu__list > li:nth-child(6) { --_i: 5; }
+    .p .g-menu__list > li:nth-child(n+7) { --_i: 6; }
+    @starting-style {
+      .p .g-menu__list:popover-open > li { opacity: 0; translate: 0 calc(var(--g-space-1) * -1); }
+      .p .g-menu__list[data-side="top"]:popover-open > li { opacity: 0; translate: 0 var(--g-space-1); }
+    }
+  }
+}
+
+/* =====================================================================================================================
+   ANDAMIO DEL BANCO (gris de wireframe; no es propuesta)
+   ===================================================================================================================== */
+:root{--k-ink:#1f1f1f;--k-ink2:#555;--k-line:#d6d6d6;--k-bg:#f3f3f3;--k-card:#fff;--k-note:#fff8d6}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--k-ink);background:var(--k-bg)}
+main{max-inline-size:1280px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.k-h{font-size:17px;margin:44px 0 6px;padding-top:14px;border-top:1px dashed #bbb}
+.k-cap{font-size:13px;color:var(--k-ink2);margin:0 0 12px;max-inline-size:100ch}
+.k-ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--k-bg);font-size:13px;border-block-end:1px solid var(--k-line)}
+.k-ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.k-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.k-frame{background:var(--k-card);border:1px solid var(--k-line);border-radius:8px;padding:20px;min-inline-size:0}
+.k-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--k-ink2);margin:0 0 10px}
+.k-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.k-stack{display:grid;gap:12px}
+.k-spread{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.k-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.k-curves{display:flex;flex-wrap:wrap;gap:16px}
+.k-curves figure{margin:0;background:var(--k-card);border:1px solid var(--k-line);border-radius:8px;padding:12px}
+.k-curves figcaption{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--k-ink2);margin-top:6px}
+.k-extra{block-size:240px;display:grid;place-items:center;border:1px dashed var(--k-line);border-radius:6px;color:var(--k-ink2);font-size:13px;margin-block-start:12px}
+.k-note{background:var(--k-note);border:1px solid #e7d98a;border-radius:6px;padding:8px 10px;font-size:13px;margin:8px 0 0}
+code{font:12.5px ui-monospace,Menlo,monospace}
+.k-spacer{block-size:40vh}
+[v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>Personalidad · r01 · seis componentes</h1>
+  <p class="k-cap">Componentes reales de <code>dist/</code>. Columna «Hoy»: tal cual. Columna «Propuesta»: la misma pieza con la capa de prototipo <code>grana.personalidad</code>. Para ver el movimiento reducido, actívalo en el sistema; el banco lo respeta igual que Grana.</p>
+  <div class="k-ctl">
+    <label><input type="checkbox" v-model="slow"> Cámara lenta ×4 (solo banco)</label>
+    <span>Movimiento del sistema: <strong id="k-motion">{{ reduced ? 'reducido' : 'sin preferencia' }}</strong></span>
+    <a href="#t-curvas">Curvas</a><a href="#t-btn">GBtn</a><a href="#t-dlg">GDialog</a><a href="#t-tabs">GTabs</a><a href="#t-card">GCard</a><a href="#t-input">GInput</a><a href="#t-menu">GMenu</a>
+  </div>
+
+  <!-- ============================ Transversal ============================ -->
+  <h2 class="k-h" id="t-curvas">Transversal · curvas propuestas</h2>
+  <p class="k-cap"><code>--g-ease-spring</code> para desplazamientos (rebasa ~3,8 %); <code>--g-ease-bounce</code> solo para escalas pequeñas (rebasa ~20 % de un cambio que ya es del 3 %). Las dos con <code>linear()</code>, asentadas antes del 75 % del tiempo y usadas con <code>--g-duration-slow</code> (240 ms): el máximo de la interfaz no cambia.</p>
+  <div class="k-curves">
+    <figure v-for="c in curves" :key="c.name">
+      <svg :viewBox="'0 0 240 160'" width="240" height="160" role="img" :aria-label="'Curva ' + c.name">
+        <line x1="10" y1="130" x2="230" y2="130" stroke="#bbb"/><line x1="10" y1="30" x2="230" y2="30" stroke="#bbb" stroke-dasharray="3 3"/>
+        <line x1="10" y1="10" x2="10" y2="150" stroke="#bbb"/>
+        <polyline :points="c.pts" fill="none" stroke="#1f1f1f" stroke-width="2"/>
+      </svg>
+      <figcaption>{{ c.name }} · máx {{ c.max }}</figcaption>
+    </figure>
+  </div>
+
+  <!-- ============================ GBtn ============================ -->
+  <h2 class="k-h" id="t-btn">GBtn · B1 rebote al soltar · B2 la etiqueta cede el sitio</h2>
+  <p class="k-cap">Mantén pulsado y suelta: la propuesta aprieta en <code>fast</code> con <code>ease-out</code> y suelta con <code>--g-ease-bounce</code> (pico ≈ 1,006). «Cargar» alterna <code>loading</code>: la etiqueta sube y se desvanece mientras el indicador entra desde abajo; el ancho no cambia.</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :class="side === 'p' ? 'p' : null" :id="'btn-' + side">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <div class="k-row">
+        <g-btn :id="'b-solid-' + side">Guardar cambios</g-btn>
+        <g-btn :id="'b-outline-' + side" variant="outline">Cancelar</g-btn>
+        <g-btn :id="'b-load-' + side" variant="soft" :loading="loading[side]" loading-text="Enviando">Enviar informe</g-btn>
+        <g-btn :id="'b-toggle-' + side" variant="ghost" @click="loading[side] = !loading[side]">{{ loading[side] ? 'Terminar carga' : 'Cargar' }}</g-btn>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ GDialog ============================ -->
+  <h2 class="k-h" id="t-dlg">GDialog · D1 viene de donde lo llamaste · D2 crece hacia abajo (#281)</h2>
+  <p class="k-cap">Abre desde cada esquina. La propuesta parte un cuarto del camino hacia el disparador (tope <code>space × 8</code>) y, al cerrar, vuelve hacia él: adonde regresa el foco. Dentro, «Más detalles» añade un bloque de 240px: hoy el diálogo crece hacia los dos lados y el botón sube 120px; en la propuesta el borde superior queda fijo.</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :id="'dlg-frame-' + side">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <div class="k-spread">
+        <g-btn :id="'d-open-a-' + side" variant="outline" @click="openDlg(side, $event)">Editar fila 1</g-btn>
+        <g-btn :id="'d-open-b-' + side" variant="outline" @click="openDlg(side, $event)">Editar fila 2</g-btn>
+      </div>
+      <div style="block-size:120px"></div>
+      <div class="k-spread">
+        <g-btn :id="'d-open-c-' + side" variant="outline" @click="openDlg(side, $event)">Editar fila 9</g-btn>
+        <g-btn :id="'d-open-d-' + side" variant="outline" @click="openDlg(side, $event)">Editar fila 10</g-btn>
+      </div>
+    </div>
+  </div>
+  <g-dialog v-for="side in ['hoy','p']" :key="'dlg-' + side" :id="'dlg-' + side" v-model="dlg[side]" :class="side === 'p' ? ['p-dlg', pinned ? 'p-pinned' : null] : null"
+    title="Editar fila" description="Los cambios se guardan al confirmar." close-label="Cerrar" @closed="extra[side] = false">
+    <g-input :id="'dlg-in-' + side" label="Nombre" model-value="Fila"></g-input>
+    <div style="margin-block-start:12px"><g-btn :id="'d-more-' + side" variant="ghost" @click="extra[side] = !extra[side]">{{ extra[side] ? 'Menos detalles' : 'Más detalles' }}</g-btn></div>
+    <div v-if="extra[side]" class="k-extra" :id="'d-extra-' + side">Bloque de 240px que aparece</div>
+    <template #footer="{ close }">
+      <g-btn variant="outline" @click="close">Cancelar</g-btn>
+      <g-btn @click="close">Guardar</g-btn>
+    </template>
+  </g-dialog>
+
+  <!-- ============================ GTabs ============================ -->
+  <h2 class="k-h" id="t-tabs">GTabs · T1 la marca se estira · T2 el contenido llega de su lado</h2>
+  <p class="k-cap">Salta de «Resumen» a «Facturas» y vuelve. En la propuesta el borde de delante llega primero y el de atrás lo alcanza con el muelle: la marca se alarga en el trayecto y se contrae al llegar; el panel entra desde el lado hacia el que viajó (con RTL, espejado).</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :class="side === 'p' ? 'p' : null">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <div class="k-stack">
+        <g-tabs :id="'tabs-u-' + side" v-model="tab[side]" :items="tabItems" label="Cuenta" :data-p-dir="dir[side]">
+          <template #panel="{ item }"><p style="margin:0">Contenido de «{{ item.label }}». Lorem de prueba con una línea de texto.</p></template>
+        </g-tabs>
+        <g-tabs :id="'tabs-p-' + side" v-model="tab2[side]" :items="tabItems" label="Periodo" appearance="pill" :data-p-dir="dir2[side]"></g-tabs>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ GCard ============================ -->
+  <h2 class="k-h" id="t-card">GCard · C1 la luz sigue al puntero</h2>
+  <p class="k-cap">Pasa el puntero: el velo de hover de hoy se conserva entero y la propuesta concentra el mismo token donde está el puntero. La tarjeta no se mueve (#127). Con táctil o movimiento reducido, solo el velo de hoy.</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :class="side === 'p' ? 'p' : null">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <div class="k-cards">
+        <g-card :id="'card-a-' + side" interaction="button" eyebrow="Proyecto" title="Rediseño del panel" description="Tres pantallas y un flujo de alta." :labels="cardLabels" @pointermove="glow" @pointerleave="unglow"></g-card>
+        <g-card :id="'card-b-' + side" interaction="button" level="raised" eyebrow="Proyecto" title="Migración de datos" description="Lote de clientes de 2025." :labels="cardLabels" @pointermove="glow" @pointerleave="unglow"></g-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ GInput ============================ -->
+  <h2 class="k-h" id="t-input">GInput · I1 el mensaje sale del campo · I2 un solo aviso al enviar</h2>
+  <p class="k-cap">«Enviar» vacío: el error aparece desde el campo hacia abajo y, solo en este momento (envío), la fila hace un vaivén corto y decreciente. Escribir o salir del campo no lo repite.</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :class="side === 'p' ? 'p' : null">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <div class="k-stack">
+        <div :id="'in-mail-w-' + side" :class="nudge[side].mail ? 'p-nudge' : null" @animationend="(e) => { if (e.animationName === 'p-nudge') nudge[side].mail = false }"><g-input :id="'in-mail-' + side" label="Correo" type="email" v-model="form[side].mail" :error="errs[side].mail" block></g-input></div>
+        <div :id="'in-name-w-' + side" :class="nudge[side].name ? 'p-nudge' : null" @animationend="(e) => { if (e.animationName === 'p-nudge') nudge[side].name = false }"><g-input :id="'in-name-' + side" label="Nombre" v-model="form[side].name" :error="errs[side].name" block></g-input></div>
+        <div class="k-row"><g-btn :id="'in-send-' + side" @click="send(side)">Enviar</g-btn><g-btn :id="'in-clear-' + side" variant="ghost" @click="clearForm(side)">Limpiar</g-btn></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ GMenu ============================ -->
+  <h2 class="k-h" id="t-menu">GMenu · M1 una sola luz que viaja · M2 cascada corta</h2>
+  <p class="k-cap">Abre y barre la lista con el puntero de arriba abajo. Hoy cada elemento funde su fondo por separado y quedan dos o tres medio encendidos; en la propuesta hay un único resaltado que se desplaza. Al abrir, los elementos entran escalonados 15 ms (tope en el sexto).</p>
+  <div class="k-pair">
+    <div class="k-frame" v-for="side in ['hoy','p']" :key="side" :class="side === 'p' ? 'p' : null" @pointerover="light" @focusin="light" @pointerout="unlight">
+      <p class="k-tag">{{ side === 'p' ? 'Propuesta' : 'Hoy' }}</p>
+      <g-menu :id="'menu-' + side" v-model="menu[side]" :items="menuItems" label="Acciones del archivo">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones</g-btn></template>
+      </g-menu>
+    </div>
+  </div>
+  <div class="k-spacer"></div>
+</main>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, reactive, ref, watch, nextTick } = Vue
+const SPRING = [0, 0.081, 0.258, 0.46, 0.644, 0.793, 0.901, 0.972, 1.013, 1.033, 1.038, 1.036, 1.029, 1.021, 1.014, 1.008, 1.004, 1.001, 1, 0.999, 1]
+const BOUNCE = [0, 0.124, 0.401, 0.708, 0.963, 1.127, 1.199, 1.197, 1.151, 1.088, 1.029, 0.987, 0.964, 0.958, 0.964, 0.976, 0.989, 0.999, 1.006, 1.008, 1.008, 1.006, 1]
+const plot = (arr) => arr.map((v, i) => `${10 + (220 * i) / (arr.length - 1)},${130 - v * 100}`).join(' ')
+const mq = matchMedia('(prefers-reduced-motion: reduce)')
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    watch(slow, (v) => document.documentElement.classList.toggle('k-slow', v))
+    const reduced = ref(mq.matches)
+    mq.addEventListener('change', () => (reduced.value = mq.matches))
+    const curves = [
+      { name: '--g-ease-spring', pts: plot(SPRING), max: Math.max(...SPRING).toFixed(3) },
+      { name: '--g-ease-bounce', pts: plot(BOUNCE), max: Math.max(...BOUNCE).toFixed(3) }
+    ]
+
+    // GBtn
+    const loading = reactive({ hoy: false, p: false })
+
+    // GDialog: D1 (vector al disparador) y D2 (borde superior fijo). Lo que aquí hace la página lo haría GDialog.vue.
+    const dlg = reactive({ hoy: false, p: false })
+    const extra = reactive({ hoy: false, p: false })
+    const pinned = ref(true)
+    const openDlg = (side, ev) => {
+      const el = document.getElementById('dlg-' + side)
+      if (side === 'p') {
+        const t = ev.currentTarget.getBoundingClientRect()
+        el.style.setProperty('--p-ox', `${t.left + t.width / 2 - innerWidth / 2}px`)
+        el.style.setProperty('--p-oy', `${t.top + t.height / 2 - innerHeight / 2}px`)
+        el.style.removeProperty('--p-top')
+      }
+      dlg[side] = true
+      if (side === 'p') {
+        // Borde superior medido con el diálogo ya colocado (sin transformaciones: offsetTop)
+        requestAnimationFrame(() => { el.style.setProperty('--p-top', `${el.offsetTop}px`) })
+      }
+    }
+    window.__dlg = { dlg, extra, pinned }
+
+    // GTabs: dirección lógica del cambio (la escribiría bruno)
+    const tabItems = [
+      { id: 'res', label: 'Resumen' }, { id: 'act', label: 'Actividad' },
+      { id: 'mem', label: 'Miembros del equipo' }, { id: 'fac', label: 'Facturas' }
+    ]
+    const idx = (id) => tabItems.findIndex((t) => t.id === id)
+    const tab = reactive({ hoy: 'res', p: 'res' }), tab2 = reactive({ hoy: 'res', p: 'res' })
+    const dir = reactive({ hoy: null, p: null }), dir2 = reactive({ hoy: null, p: null })
+    for (const side of ['hoy', 'p']) {
+      watch(() => tab[side], (n, o) => { dir[side] = idx(n) > idx(o) ? 'forward' : 'back' }, { flush: 'sync' })
+      watch(() => tab2[side], (n, o) => { dir2[side] = idx(n) > idx(o) ? 'forward' : 'back' }, { flush: 'sync' })
+    }
+    window.__tabs = { tab, tab2 }
+
+    // GCard: halo (lo escribiría GCard.vue con rAF; solo hover real)
+    const cardLabels = { menu: 'Acciones de', loading: 'Cargando tarjeta', loaded: 'Tarjeta cargada', expand: 'Mostrar más', collapse: 'Mostrar menos', more: 'Más detalles', less: 'Menos detalles', retry: 'Reintentar', empty: 'Sin datos' }
+    let rafG = 0
+    const glow = (e) => {
+      const card = e.currentTarget
+      if (!card.closest('.p')) return
+      const r = card.getBoundingClientRect(); const x = e.clientX - r.left; const y = e.clientY - r.top
+      cancelAnimationFrame(rafG)
+      rafG = requestAnimationFrame(() => { card.style.setProperty('--p-x', `${x}px`); card.style.setProperty('--p-y', `${y}px`) })
+    }
+    const unglow = () => {}
+
+    // GInput: errores al enviar; p-nudge solo en ese momento (lo pondría GForm)
+    const form = reactive({ hoy: { mail: '', name: '' }, p: { mail: '', name: '' } })
+    const errs = reactive({ hoy: { mail: '', name: '' }, p: { mail: '', name: '' } })
+    const nudge = reactive({ hoy: { mail: false, name: false }, p: { mail: false, name: false } })
+    const send = (side) => {
+      const f = form[side]
+      errs[side].mail = /.+@.+\..+/.test(f.mail) ? '' : 'Escribe un correo con dominio, como ana@ejemplo.com.'
+      errs[side].name = f.name.trim() ? '' : 'Falta el nombre.'
+      for (const k of ['mail', 'name']) {
+        if (errs[side][k] && side === 'p') { nudge[side][k] = false; requestAnimationFrame(() => { nudge[side][k] = true }) }
+      }
+    }
+    const clearForm = (side) => { Object.assign(form[side], { mail: '', name: '' }); Object.assign(errs[side], { mail: '', name: '' }) }
+    window.__form = { form, errs, nudge, send }
+
+    // GMenu
+    const menu = reactive({ hoy: false, p: false })
+    const menuItems = [
+      { id: 'open', label: 'Abrir' },
+      { id: 'rename', label: 'Renombrar', icon: 'pencil', shortcut: 'F2' },
+      { id: 'dup', label: 'Duplicar', icon: 'copy' },
+      { id: 'move', label: 'Mover a…' },
+      { id: 'share', label: 'Compartir' },
+      { type: 'separator' },
+      { id: 'arch', label: 'Archivar' },
+      { id: 'del', label: 'Eliminar', danger: true }
+    ]
+    // M1: el resaltado sigue al último elemento señalado (puntero) o enfocado (teclado). Lo haría GMenu.vue.
+    const place = (item) => {
+      const list = item.closest('.g-menu__list'); if (!list) return
+      const instant = !list.classList.contains('p-lit')
+      if (instant) list.classList.add('p-lit-instant')
+      list.style.setProperty('--p-hy', `${item.offsetTop}px`)
+      list.style.setProperty('--p-hh', `${item.offsetHeight}px`)
+      list.classList.add('p-lit')
+      if (instant) requestAnimationFrame(() => requestAnimationFrame(() => list.classList.remove('p-lit-instant')))
+    }
+    const light = (e) => {
+      if (!e.currentTarget.classList.contains('p')) return
+      const item = e.target.closest?.('.g-menu__item'); if (item) place(item)
+    }
+    const unlight = (e) => {
+      if (!e.currentTarget.classList.contains('p')) return
+      const list = e.target.closest?.('.g-menu__list'); if (!list) return
+      if (e.relatedTarget && list.contains(e.relatedTarget)) return
+      const f = document.activeElement?.closest?.('.g-menu__item')
+      if (f && list.contains(f)) place(f); else list.classList.remove('p-lit')
+    }
+    window.__menu = { menu }
+
+    return { slow, reduced, curves, loading, dlg, extra, pinned, openDlg, tabItems, tab, tab2, dir, dir2, cardLabels, glow, unglow, form, errs, nudge, send, clearForm, menu, menuItems, light, unlight }
+  }
+})
+app.use(Grana)
+app.mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>
