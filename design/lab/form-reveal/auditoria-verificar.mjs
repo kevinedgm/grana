@@ -1,11 +1,11 @@
 // Auditoría de coco (paso 5) de GFormReveal sobre el COMPONENTE REAL: GFormReveal.vue + dist/grana.css en el playground
 // (packages/vue/playground, formulario #fr-form: «¿Requiere factura?» → fiscal con Física/Moral anidado, y «¿Tiene
-// alergias?» directo en el cuerpo de una GFormSection). Más una página de carga con 40 bloques montados con la UMD real.
+// alergias?» en el GFormLayout de una segunda GFormSection, #283). Más una página de carga con 40 bloques montados con la UMD real.
 // Temas: defecto claro y oscuro, el de la auditoría de radio-group (@grana/cli: brand #0B1F4D, radius 0, shape pill) claro
 // y oscuro, el «Tema de prueba» del playground claro y oscuro, y los once generados de dark-color-presence (claro y oscuro,
 // solo contraste de la barra).
 // Comprueba: marcado real frente al que espera el CSS (raíz div + fieldset role=none único hijo, inert/disabled, clases,
-// --_reveal-gap en px y 0px en el cuerpo de GFormSection, is-ready ≥ 2 cuadros tras montar, is-animating y su fin por
+// --_reveal-gap en px = row-gap real del padre (también en «Antecedentes», #283), is-ready ≥ 2 cuadros tras montar, is-animating y su fin por
 // transitionend y por el temporizador con movimiento reducido); cerrado sin hueco (GFormLayout, cuerpo de un bloque,
 // cuerpo de GFormSection); disparador Δ0 y Δscroll 0 con clic real al abrir y al cerrar (LTR y RTL); intermedios; barra
 // alineada con el inicio de la pregunta ±1px y fin igual al de las filas (tres densidades, LTR y RTL, 320); contraste de
@@ -206,7 +206,8 @@ for (const engine of ENGINES) {
       ok(/^-?[\d.]+px$/.test(b.gap) && b.gap === expect, `marcado ${b.id}: --_reveal-gap en px = row-gap del padre (${b.gap} vs ${b.pgap})`)
       ok(b.born !== undefined && b.ready !== undefined && b.ready - b.born >= 2 && b.bornReady === false, `marcado ${b.id}: is-ready ausente al nacer y puesto ≥ 2 cuadros después (nace ${b.born}, listo ${b.ready})`)
     }
-    ok(m.find((b) => b.id === 'fr-rv-alergias')?.gap === '0px', 'marcado: --_reveal-gap 0px en el cuerpo de GFormSection (row-gap normal)')
+    const al = m.find((b) => b.id === 'fr-rv-alergias')
+    ok(al && al.gap === al.pgap && parseFloat(al.gap) > 0, `marcado: «Antecedentes» dentro de GFormLayout (#283): --_reveal-gap = row-gap real del padre y > 0 (${al?.gap} / ${al?.pgap})`)
     ok(await p.evaluate(() => document.getAnimations().filter((a) => a.effect?.target?.classList?.contains('g-form-reveal')).length) === 0, 'al cargar no corre ninguna transición de bloque')
   }
 
@@ -227,7 +228,7 @@ for (const engine of ENGINES) {
     const lay = await p.evaluate(() => [parseFloat(getComputedStyle(document.getElementById('fr-layout')).rowGap), window.__st('fr-rv-factura').mt])
     ok(near(lay[1], -lay[0], 0.01), `${d} GFormLayout: el margen negativo gana a .g-form-layout > * { margin: 0 } (${lay})`)
     g = await p.evaluate(() => window.__gap('fr-rv-alergias'))
-    ok(g.inline === '0px' && near(g.toParentEnd, 0, 0.5), `${d} cuerpo de GFormSection: bloque cerrado no añade nada (${JSON.stringify(g)})`)
+    ok(g.gap > 0 && g.inline === g.gap + 'px' && near(g.toParentEnd, 0, 0.5), `${d} «Antecedentes» (GFormLayout, #283): bloque cerrado al final no añade nada (${JSON.stringify(g)})`)
     // Abierto: separación del cuerpo = la de GFormLayout en esa densidad; sangría por densidad
     await setNow(p, { factura: 'si', persona: 'moral', alergias: 'si' })
     const geo = await p.evaluate(() => ({ f: window.__geom('fr-rv-factura'), lay: parseFloat(getComputedStyle(document.getElementById('fr-layout')).rowGap) }))
@@ -379,13 +380,13 @@ for (const engine of ENGINES) {
   await setTheme(p, '', false)
   await setNow(p, { factura: 'si', persona: 'moral', alergias: 'no' })
 
-  /* 7 · Antecedentes: bloque directo en el cuerpo de GFormSection (juicio visual; ver auditoria.md, hallazgo 1) */
+  /* 7 · Antecedentes: pregunta y bloque dentro de un GFormLayout (#283; auditoria.md, hallazgo 1 resuelto) */
   {
     await setNow(p, { alergias: 'si' })
     const g = await p.evaluate(() => { const q = document.getElementById('fr-alergias'); const rv = document.getElementById('fr-rv-alergias')
       const opt = q.querySelector('.g-radio-group__options').getBoundingClientRect(); const lab = rv.querySelector('label, .g-textarea__label').getBoundingClientRect()
       return { toRv: +(rv.getBoundingClientRect().top - q.getBoundingClientRect().bottom).toFixed(2), optToLabel: +(lab.top - opt.bottom).toFixed(2), lay: parseFloat(getComputedStyle(document.getElementById('fr-layout')).rowGap) } })
-    ok(g.toRv === 0, `Antecedentes: pregunta → bloque = 0 (lo que dice el contrato con row-gap normal) (${JSON.stringify(g)})`)
+    ok(g.lay > 0 && near(g.toRv, g.lay, 0.5), `Antecedentes: pregunta → bloque = una separación del layout (${JSON.stringify(g)})`)
     note(`Antecedentes: pregunta → bloque ${g.toRv}px (en GFormLayout ${g.lay}px); opciones → etiqueta «¿A qué?» ${g.optToLabel}px`)
     await setNow(p, { alergias: 'no' })
   }
