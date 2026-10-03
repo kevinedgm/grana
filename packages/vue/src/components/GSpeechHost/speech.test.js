@@ -436,7 +436,7 @@ describe('adaptador (eventos §4.4) y errores tipados (§4.5)', () => {
     adapter.emit('pending', { count: 0 })
     expect(speech.state.transcript.partial).toBeNull()
     expect(speech.state.transcript.segments).toEqual([{ id: 's1', t0: 0, t1: 900, literal: 'Hola.', engineSpeaker: 'A', corrected: null, speaker: null, removed: false, failed: false }])
-    expect(speech.state.transcript.speakers).toEqual([{ id: 'A' }])
+    expect(speech.state.transcript.speakers).toEqual([{ id: 'A', role: null, mergedInto: null, origin: 'engine' }])
     expect(speech.state.status).toBe('listening')
     // el literal no se sobrescribe
     adapter.emit('final', { id: 's1', text: 'Otro', t0: 0, t1: 900 })

@@ -33,6 +33,9 @@
 @import url("../components/GSpeechPill/GSpeechPill.css");
 @import url("../components/GSpeechHost/GSpeechHost.css");
 @import url("../components/GSpeechTrigger/GSpeechTrigger.css");
+/* Captura de voz, Fase 2: GTranscript reasigna variables de GBtn, GCheckbox y GSelect y comparte superficie con GSurface:
+   va después de GBtn.css, GCheckbox.css, GSelect.css y GSurface.css (speech.md §31) */
+@import url("../components/GTranscript/GTranscript.css");
 @import url("../components/GHelperScope/GHelperScope.css");
 @import url("../components/GHelper/GHelper.css");
 @import url("../components/GAvatarMotion/GAvatarMotion.css");

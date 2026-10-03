@@ -6,9 +6,14 @@
 // anclado a la pill visible y la hoja móvil (<dialog> modal) bajo space × 130. Se traslada (mismos nodos) al <dialog>
 // modal superior que no sea su hoja (utils/topModal.js, compartido con GToaster) y vuelve al body.
 // En el servidor no pinta nada: la raíz se crea al montar y ahí empiezan escuchas y observadores.
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw, useAttrs, useId, watch } from 'vue'
+// F2 (§25.3): diálogo de revisión de respaldo, un GDialog real (class="g-speech-review", size lg, pantalla completa en
+// móvil) fuera de la raíz: al abrirse es el modal superior y la raíz (con sus canales vivos) se traslada a él.
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, toRaw, useAttrs, useId, watch } from 'vue'
 import SpeechPillView from '../GSpeechPill/SpeechPillView.vue'
 import SpeechPanel from './SpeechPanel.vue'
+import GDialog from '../GDialog/GDialog.vue'
+import GTranscript from '../GTranscript/GTranscript.vue'
+import { REVIEW_DIALOG } from '../GTranscript/review.js'
 import { INTERNAL, speechKey } from './speech.js'
 import { ANNOUNCE, MOBILE_SPACES, matchesHotkey } from '../GToast/toaster.js'
 import { placeBlock } from '../../utils/anchor.js'
@@ -395,6 +400,35 @@ function onSheetCancel(event) {
   api.closePanel()
 }
 
+// ---------- Diálogo de revisión de respaldo (§25.3) ----------
+provide(REVIEW_DIALOG, true) // solo lo leen los GTranscript de dentro del anfitrión: el del diálogo no es superficie
+const reviewId = computed(() => `${rootId.value}-review`)
+const reviewOpen = computed({
+  get: () => Boolean(ui && ui.reviewOpen) && status.value !== 'idle' && Boolean(S.transcript),
+  set: (v) => { if (ui) ui.reviewOpen = Boolean(v) }
+})
+// El diálogo se monta la primera vez que se abre (sin textos que pedir mientras no se usa) y ya no se desmonta: si se
+// desmontara con la raíz trasladada dentro, se la llevaría consigo (la raíz vuelve a body cuando el <dialog> se cierra)
+const reviewMounted = ref(false)
+watch(reviewOpen, (v) => { if (v) reviewMounted.value = true })
+// Al abrir, el foco va al título del diálogo (tabindex -1)
+function onReviewOpen() {
+  nextTick(() => {
+    const title = document.getElementById(`${reviewId.value}-title`)
+    if (title) {
+      title.setAttribute('tabindex', '-1')
+      title.focus()
+    }
+  })
+}
+// Al cerrar, a quien lo abrió («Revisar» o el botón de la aplicación) o a la pill visible si ya no existe
+function onReviewClosed() {
+  const back = ui.reviewOpener
+  ui.reviewOpener = null
+  const to = usable(back) && !inSpeechUi(back) ? back : visibleMain()
+  if (to) focusEl(to)
+}
+
 // ---------- Montaje ----------
 onMounted(async () => {
   if (!api) return
@@ -467,5 +501,20 @@ onBeforeUnmount(() => {
       </Teleport>
       <dialog ref="sheet" class="g-speech-sheet" :aria-labelledby="`${panelId}-title`" @cancel="onSheetCancel"></dialog>
     </div>
+  </Teleport>
+  <Teleport v-if="active && reviewMounted" to="body">
+    <GDialog
+      :id="reviewId"
+      v-model="reviewOpen"
+      class="g-speech-review"
+      size="lg"
+      mobile="fullscreen"
+      :title="api.t('review.title')"
+      :close-label="api.t('review.close')"
+      @open="onReviewOpen"
+      @closed="onReviewClosed"
+    >
+      <GTranscript v-if="S.transcript" :transcript="S.transcript" :speech="manager" :labelledby="`${reviewId}-title`" />
+    </GDialog>
   </Teleport>
 </template>

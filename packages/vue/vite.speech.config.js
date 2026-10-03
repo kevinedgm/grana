@@ -2,7 +2,7 @@
 // de vite.config.js sin vaciar dist/.
 //
 // Vue y `@grana/vue` son externos. Toda importación relativa de la captura que sale de sus carpetas (GSpeechHost,
-// GSpeechPill, GSpeechTrigger) se sustituye por la pieza equivalente de `__shared` del paquete principal (src/shared.js):
+// GSpeechPill, GSpeechTrigger, GTranscript) se sustituye por la pieza equivalente de `__shared` del paquete principal (src/shared.js):
 // la entrada no lleva copia de GBtn, GIcon ni de los útiles con estado (topModal, reservas de borde), así que una página
 // con GToaster y la captura comparte un solo registro.
 import { defineConfig } from 'vite'
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), 'src')
 const PREFIX = '\0grana-shared:'
 const toKey = (file) => relative(SRC, file).split(sep).join('/')
-const isOwn = (key) => key === 'speech.js' || /^components\/GSpeech(Host|Pill|Trigger)\//.test(key)
+const isOwn = (key) => key === 'speech.js' || /^components\/(GSpeech(Host|Pill|Trigger)|GTranscript)\//.test(key)
 
 function sharedFromMain() {
   const declared = readFileSync(resolve(SRC, 'shared.js'), 'utf8')

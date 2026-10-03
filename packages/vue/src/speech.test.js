@@ -15,12 +15,12 @@ import * as liveRegion from './utils/liveRegion.js'
 import GBtn from './components/GBtn/GBtn.vue'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 
-const SPEECH_NAMES = ['createSpeech', 'useSpeech', 'speechKey', 'GSpeechHost', 'GSpeechPill', 'GSpeechTrigger']
-const COMPONENTS = ['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger']
+const SPEECH_NAMES = ['createSpeech', 'useSpeech', 'speechKey', 'GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'GTranscript', 'createTranscript', 'useSpeechTarget']
+const COMPONENTS = ['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'GTranscript']
 const SRC = resolve(process.cwd(), 'src')
 
 describe('@grana/vue/speech · entrada propia (#238)', () => {
-  it('exporta el gestor, useSpeech, speechKey y los tres componentes; nada interno', () => {
+  it('exporta el gestor, useSpeech, speechKey, los componentes y (F2) GTranscript, createTranscript y useSpeechTarget; nada interno', () => {
     for (const k of SPEECH_NAMES) expect(speechEntry[k], k).toBeTruthy()
     expect(Object.keys(speechEntry).sort()).toEqual([...SPEECH_NAMES].sort())
   })
@@ -35,7 +35,7 @@ describe('@grana/vue/speech · entrada propia (#238)', () => {
     expect(src).not.toMatch(/from '\.\/components\/GSpeech|from '\.\/speech\.js'/)
   })
 
-  it('app.use(speech) provee el gestor y registra GSpeechHost, GSpeechPill y GSpeechTrigger (sin pisar uno ya registrado)', () => {
+  it('app.use(speech) provee el gestor y registra GSpeechHost, GSpeechPill, GSpeechTrigger y GTranscript (sin pisar uno ya registrado)', () => {
     const speech = speechEntry.createSpeech({ adapter: createSimulatedSpeechAdapter(), labels: {} })
     let got
     const app = createApp(defineComponent({ setup() { got = speechEntry.useSpeech(); return () => h('p') } }))
@@ -45,6 +45,7 @@ describe('@grana/vue/speech · entrada propia (#238)', () => {
     expect(app.component('GSpeechHost')).toBe(own)
     expect(app.component('GSpeechPill')).toBe(speechEntry.GSpeechPill)
     expect(app.component('GSpeechTrigger')).toBe(speechEntry.GSpeechTrigger)
+    expect(app.component('GTranscript')).toBe(speechEntry.GTranscript)
     app.mount(document.createElement('div'))
     expect(got).toBe(speech)
     app.unmount()
@@ -65,9 +66,9 @@ describe('@grana/vue/speech · entrada propia (#238)', () => {
 
 describe('@grana/vue/speech · lo compartido llega del paquete principal (src/shared.js)', () => {
   // Importaciones de la captura (sin pruebas ni su entorno) que salen de sus carpetas: el build las redirige a __shared
-  const own = (key) => key === 'speech.js' || /^components\/GSpeech(Host|Pill|Trigger)\//.test(key)
+  const own = (key) => key === 'speech.js' || /^components\/(GSpeech(Host|Pill|Trigger)|GTranscript)\//.test(key)
   const keyOf = (file) => relative(SRC, file).split(sep).join('/')
-  const files = ['speech.js', ...['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger'].flatMap((d) =>
+  const files = ['speech.js', ...['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'GTranscript'].flatMap((d) =>
     readdirSync(resolve(SRC, 'components', d)).filter((f) => /\.(vue|js)$/.test(f) && !/\.test\.js$|TestEnv\.js$/.test(f)).map((f) => `components/${d}/${f}`))]
   const imports = []
   for (const f of files) {

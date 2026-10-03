@@ -3,12 +3,15 @@
 // Contrato: design/contracts/speech.md §6.4, §6.5, §9, §13.1 · Estilo: GSpeechHost.css (coco) · Marcado: design/lab/speech/estilo-banco.html
 // Nada aquí anuncia: los anuncios van por los canales del anfitrión (§6.2). El texto confirmado no se reescribe si no cambió
 // (lista con clave) y la lista se desplaza sola al final solo si ya estaba al final.
+// F2 (§6.4, §25.1): en conversación, GTranscript compacto en lugar de la lista (editable mientras se graba) y «Revisar»;
+// en dictado, sin cambios. Con usos (inserciones vigentes), la pregunta de descarte dice que el texto insertado se queda.
 import { computed, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, ref, watch } from 'vue'
 import GBtn from '../GBtn/GBtn.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import GSelect from '../GSelect/GSelect.vue'
 import GCheckbox from '../GCheckbox/GCheckbox.vue'
 import GProgress from '../GProgress/GProgress.vue'
+import GTranscript from '../GTranscript/GTranscript.vue'
 import { INTERNAL, SPEECH_TIMING, formatTime, isCapturing } from './speech.js'
 import { elOf, peek, prefix, useSpeechView } from './view.js'
 
@@ -148,6 +151,11 @@ const confirmDiscard = () => { api.closePanel({ focus: false }); api.discard() }
 const dismiss = () => { api.closePanel({ focus: false }); api.discard({ silent: true }) }
 const closeSession = () => { api.closePanel({ focus: false }); api.close() }
 const toggleActivity = () => api.setActivityHidden(!S.activityHidden)
+const review = () => props.speech.review()
+const discardAsk = computed(() => {
+  const n = api.usesCount()
+  return n ? t('actions.discardAskUsed', { count: n }) : t('actions.discardAsk')
+})
 const retry = (id) => props.speech.retrySegment(id)
 
 // Esc en el panel: cierra el panel, nunca detiene ni descarta; no llega a GDialog (#143)
@@ -272,7 +280,7 @@ defineExpose({
     </div>
     <div v-if="progress !== null" class="g-speech-panel__progress"><GProgress :value="progress" :label="t('progress')" color="neutral" /></div>
     <div v-if="open && ui.confirmDiscard" class="g-speech-panel__confirm">
-      <p>{{ t('actions.discardAsk') }}</p>
+      <p>{{ discardAsk }}</p>
       <GBtn ref="confirmNo" size="md" variant="outline" color="neutral" @click="cancelDiscard">{{ t('actions.cancel') }}</GBtn>
       <GBtn size="md" variant="solid" color="danger" @click="confirmDiscard">{{ t('actions.discardConfirm') }}</GBtn>
     </div>
@@ -283,6 +291,11 @@ defineExpose({
       <template v-else-if="S.status === 'ready'">
         <GBtn size="md" @click="begin"><template #prepend><GIcon name="mic" /></template>{{ t('actions.start') }}</GBtn>
         <GBtn size="md" variant="outline" color="neutral" @click="cancel">{{ t('actions.cancel') }}</GBtn>
+      </template>
+      <template v-else-if="S.status === 'completed' && isConversation">
+        <GBtn size="md" @click="review"><template #prepend><GIcon name="file-pen-line" /></template>{{ t('actions.reviewCompleted') }}</GBtn>
+        <GBtn size="md" variant="outline" color="neutral" @click="closeSession"><template #prepend><GIcon name="circle-check" /></template>{{ t('actions.closeSession') }}</GBtn>
+        <GBtn ref="discardBtn" size="md" variant="ghost" color="neutral" @click="askDiscard">{{ t('actions.discard') }}</GBtn>
       </template>
       <template v-else-if="S.status === 'completed'">
         <GBtn size="md" @click="closeSession"><template #prepend><GIcon name="circle-check" /></template>{{ t('actions.closeSession') }}</GBtn>
@@ -304,11 +317,13 @@ defineExpose({
         <GBtn v-else-if="v.live.value" size="md" variant="outline" color="neutral" @click="pause"><template #prepend><GIcon name="pause" /></template>{{ t('actions.pause') }}</GBtn>
         <GBtn size="md" @click="finish"><template #prepend><GIcon name="square" filled /></template>{{ t('actions.finish') }}</GBtn>
         <GBtn ref="discardBtn" size="md" variant="ghost" color="neutral" @click="askDiscard">{{ t('actions.discard') }}</GBtn>
+        <GBtn v-if="isConversation" size="md" variant="outline" color="neutral" @click="review"><template #prepend><GIcon name="file-pen-line" /></template>{{ t('actions.review') }}</GBtn>
       </template>
     </div>
     <section class="g-speech-panel__transcript">
       <h3 :id="txTitleId">{{ tt('transcript.title') }}</h3>
-      <p v-if="!segments.length && !partial">{{ tt('transcript.empty') }}</p>
+      <GTranscript v-if="open && isConversation && S.transcript" compact :transcript="S.transcript" :speech="speech" :labelledby="txTitleId" />
+      <p v-else-if="!segments.length && !partial">{{ tt('transcript.empty') }}</p>
       <ol v-else ref="list" class="g-speech-transcript" :aria-labelledby="txTitleId" tabindex="0">
         <li v-for="s in segments" :key="s.id" :class="['g-speech-segment', { 'is-failed': s.failed }]">
           <template v-if="s.failed">

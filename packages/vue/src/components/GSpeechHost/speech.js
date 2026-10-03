@@ -1,12 +1,17 @@
 // Captura de voz · gestor de la aplicación (dueño: bruno)
-// Contrato: design/contracts/speech.md (Fase 1) · Patrón: docs/contract/api.md («Servicios imperativos») · DECISIONS.md #207 a #229.
+// Contrato: design/contracts/speech.md (Fases 1 y 2) · Patrón: docs/contract/api.md («Servicios imperativos») · DECISIONS.md #207 a #261.
+// F2: el transcript de la sesión es una instancia del modelo (GTranscript/transcript.js, §21); el gestor aplica los eventos
+// del motor con sus métodos internos. Registro de destinos (speech.targets, §24), roles y speakerColors (§1.1) y review()
+// (§25.2: superficie de revisión registrada o diálogo de respaldo del anfitrión).
 // Estado puro y métodos: importar este módulo y llamar a createSpeech no toca document, window, navigator, matchMedia ni
 // AudioContext (SSR). La captura, los temporizadores y las escuchas de sesión existen solo con un GSpeechHost montado para
 // este gestor y una sesión iniciada; sin anfitrión no se abre el micrófono (#212), también en producción.
-import { hasInjectionContext, inject, markRaw, reactive, readonly } from 'vue'
+import { getCurrentInstance, hasInjectionContext, inject, markRaw, onBeforeUnmount, onMounted, reactive, readonly } from 'vue'
 import { fill } from '../../utils/template.js'
 import { POSITIONS, parseHotkey } from '../GToast/toaster.js'
 import { closeAudio, mapCaptureError, openCapture, primeAudio } from './capture.js'
+import { TX, createTranscript as createModel, formatTime } from '../GTranscript/transcript.js'
+import { createTargetStore } from '../GTranscript/targets.js'
 
 // Constantes de comportamiento (speech.md §3.7; no son tema). Valores del prototipo de kiwi: cambiarlas es de lima.
 export const SPEECH_TIMING = Object.freeze({
@@ -67,7 +72,7 @@ const AUDIO_FATE = ['none', 'processing', 'kept', 'lost']
 const LOCATIONS = ['device', 'local', 'remote']
 const STORES = ['none', 'memory', 'disk']
 const EXPECTED = [1, 2, 'many']
-const OPTION_KEYS = ['adapter', 'allowRemote', 'requireConsent', 'language', 'expectedSpeakers', 'hotkey', 'position', 'offset', 'guardUnload', 'wakeLock', 'labels', 'onComplete', 'onDiscard', 'onError']
+const OPTION_KEYS = ['adapter', 'allowRemote', 'requireConsent', 'language', 'expectedSpeakers', 'hotkey', 'position', 'offset', 'guardUnload', 'wakeLock', 'labels', 'roles', 'speakerColors', 'onComplete', 'onDiscard', 'onError']
 const BOOLEAN_OPTIONS = ['allowRemote', 'requireConsent', 'guardUnload', 'wakeLock']
 const CALLBACKS = ['onComplete', 'onDiscard', 'onError']
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -81,15 +86,8 @@ const PREFIX = '[Grana Speech]'
 const isClient = () => typeof window !== 'undefined' && typeof document !== 'undefined'
 const now = () => Date.now()
 
-// mm:ss (h:mm:ss desde una hora)
-export function formatTime(ms) {
-  const total = Math.max(0, Math.floor((Number(ms) || 0) / 1000))
-  const h = Math.floor(total / 3600)
-  const m = Math.floor((total % 3600) / 60)
-  const s = total % 60
-  const pad = (n) => String(n).padStart(2, '0')
-  return h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
-}
+// mm:ss (h:mm:ss desde una hora): la del modelo del transcript
+export { formatTime }
 
 const validOffset = (v) => v === undefined || (typeof v === 'number' && Number.isFinite(v)) || (typeof v === 'string' && v.trim() !== '')
 
@@ -127,31 +125,6 @@ export function normalizeCapabilities(c) {
   })
 }
 
-function createTranscript(mode, expectedSpeakers, seq) {
-  return {
-    id: `speech-${now().toString(36)}-${seq}`,
-    mode,
-    createdAt: new Date().toISOString(),
-    expectedSpeakers,
-    speakers: [],
-    segments: [],
-    partial: null,
-    derived: [],
-    // Copia sin `partial` (speech.md §1.4)
-    toJSON() {
-      return {
-        id: this.id,
-        mode: this.mode,
-        createdAt: this.createdAt,
-        expectedSpeakers: this.expectedSpeakers,
-        speakers: this.speakers.map((s) => ({ id: s.id })),
-        segments: this.segments.map((s) => ({ id: s.id, t0: s.t0, t1: s.t1, literal: s.literal, engineSpeaker: s.engineSpeaker, corrected: s.corrected, speaker: s.speaker, removed: s.removed, failed: s.failed })),
-        derived: [...this.derived]
-      }
-    }
-  }
-}
-
 export function createSpeech(options = {}) {
   const warned = new Set()
   const warn = (msg) => {
@@ -175,6 +148,8 @@ export function createSpeech(options = {}) {
     guardUnload: true,
     wakeLock: true,
     labels: {},
+    roles: [],
+    speakerColors: 0,
     onComplete: undefined,
     onDiscard: undefined,
     onError: undefined
@@ -218,7 +193,9 @@ export function createSpeech(options = {}) {
     opener: null,
     returnFocus: true,
     starter: null,
-    reducedMotion: false
+    reducedMotion: false,
+    reviewOpen: false, // diálogo de revisión de respaldo del anfitrión (§25.3)
+    reviewOpener: null
   })
 
   function applyOptions(patch, initial) {
@@ -258,6 +235,18 @@ export function createSpeech(options = {}) {
       } else if (key === 'labels') {
         if (!v || typeof v !== 'object') warn('labels debe ser un objeto: se conserva.')
         else opts.labels = initial ? { ...v } : { ...opts.labels, ...v }
+      } else if (key === 'roles') {
+        if (!Array.isArray(v)) { warn('roles debe ser una lista [{ id, label }]: se conserva.'); continue }
+        const out = []
+        for (const r of v) {
+          if (!r || typeof r !== 'object' || typeof r.id !== 'string' || !r.id || typeof r.label !== 'string') { warn('roles: cada rol necesita id y label (String): se ignora uno.'); continue }
+          if (out.some((x) => x.id === r.id)) { warn(`roles: id repetido «${r.id}»: se ignora la repetición.`); continue }
+          out.push({ id: r.id, label: r.label })
+        }
+        opts.roles = out
+      } else if (key === 'speakerColors') {
+        if (Number.isInteger(v) && v >= 0 && v <= 12) opts.speakerColors = v
+        else warn(`speakerColors debe ser un entero de 0 a 12: se conserva ${opts.speakerColors}.`)
       } else if (CALLBACKS.includes(key)) {
         if (v === undefined || typeof v === 'function') opts[key] = v
         else warn(`${key} debe ser una función: se ignora.`)
@@ -445,7 +434,7 @@ export function createSpeech(options = {}) {
       dict: null,
       permStatus: null
     }
-    const tx = createTranscript(mode, expected, ++seq)
+    const tx = createModel({ id: `speech-${now().toString(36)}-${++seq}`, mode, expectedSpeakers: expected })
     Object.assign(state, {
       sessionId: tx.id, mode, target, capture: 'off', voice: 'silence', signal: 'ok', duration: 0, pending: 0, engine: 'ok',
       attempt: 0, error: null, issues: [], transcript: tx, result: null, consent: false, expectedSpeakers: expected, panelOpen: false
@@ -467,6 +456,7 @@ export function createSpeech(options = {}) {
     if (s && s.selfWait) { s.selfWait(false); s.selfWait = null }
     if (s && s.permStatus) { try { s.permStatus.onchange = null } catch { /* sin efecto */ } }
     session = null
+    ui.reviewOpen = false
     Object.assign(state, {
       sessionId: null, mode: null, target: null, capture: 'off', voice: 'silence', signal: 'ok', duration: 0, pending: 0,
       engine: 'ok', attempt: 0, error: null, issues: [], transcript: null, consent: false, panelOpen: false
@@ -786,10 +776,7 @@ export function createSpeech(options = {}) {
     document.removeEventListener('visibilitychange', onVisibility)
   }
 
-  // ---------- Eventos del adaptador (§4.4) ----------
-  function ensureSpeaker(tx, id) {
-    if (id !== null && id !== undefined && id !== '' && !tx.speakers.some((s) => s.id === String(id))) tx.speakers.push({ id: String(id) })
-  }
+  // ---------- Eventos del adaptador (§4.4): el modelo los aplica (§21.8) ----------
   function onEngine(s, type, p) {
     if (session !== s || s.finished) {
       warn(`evento «${type}» del adaptador después de finish/abort (o de otra sesión): se ignora.`)
@@ -799,34 +786,20 @@ export function createSpeech(options = {}) {
     p = p && typeof p === 'object' ? p : {}
     switch (type) {
       case 'partial': {
-        if (p.id === undefined || p.id === null) return
-        tx.partial = { id: String(p.id), text: String(p.text ?? ''), speaker: p.speaker === undefined || p.speaker === null ? null : String(p.speaker) }
+        tx[TX].partial(p)
         return
       }
       case 'final': {
         if (p.id === undefined || p.id === null) return
         const id = String(p.id)
-        const speaker = p.speaker === undefined || p.speaker === null ? null : String(p.speaker)
-        let seg = tx.segments.find((x) => x.id === id)
-        if (seg && !seg.failed) {
-          warn(`final repetido para el fragmento «${id}»: el literal confirmado no se sobrescribe.`)
-          return
-        }
-        if (seg) {
-          seg.literal = String(p.text ?? '')
-          seg.engineSpeaker = speaker
-          seg.failed = false
+        const was = tx.segment(id)
+        const seg = tx[TX].final(p)
+        if (!seg) return
+        if (was) {
           state.issues = state.issues.filter((i) => i.segmentId !== id)
           ui.retrying = ui.retrying.filter((r) => r !== id)
-        } else {
-          seg = { id, t0: Number(p.t0) || 0, t1: Number(p.t1) || 0, literal: String(p.text ?? ''), engineSpeaker: speaker, corrected: null, speaker: null, removed: false, failed: false }
-          let i = tx.segments.length
-          while (i > 0 && tx.segments[i - 1].t0 > seg.t0) i--
-          tx.segments.splice(i, 0, seg)
         }
-        ensureSpeaker(tx, speaker)
-        if (tx.partial && tx.partial.id === id) tx.partial = null
-        if (state.mode === 'dictation') insertDictation(tx.segments.find((x) => x.id === id))
+        if (state.mode === 'dictation') insertDictation(seg)
         refreshLive()
         return
       }
@@ -874,15 +847,7 @@ export function createSpeech(options = {}) {
         const kind = ERROR_KINDS.includes(p.kind) ? p.kind : 'processing-failed'
         if (!p.fatal) {
           const seg = p.segment && p.segment.id !== undefined ? { id: String(p.segment.id), t0: Number(p.segment.t0) || 0, t1: Number(p.segment.t1) || 0 } : null
-          if (seg && !tx.segments.some((x) => x.id === seg.id)) {
-            let i = tx.segments.length
-            while (i > 0 && tx.segments[i - 1].t0 > seg.t0) i--
-            tx.segments.splice(i, 0, { ...seg, literal: '', engineSpeaker: null, corrected: null, speaker: null, removed: false, failed: true })
-          } else if (seg) {
-            const x = tx.segments.find((y) => y.id === seg.id)
-            if (x.failed || !x.literal) x.failed = true
-          }
-          if (seg && tx.partial && tx.partial.id === seg.id) tx.partial = null
+          if (seg) tx[TX].failed(seg)
           if (seg) ui.retrying = ui.retrying.filter((r) => r !== seg.id)
           const issue = {
             kind,
@@ -902,7 +867,9 @@ export function createSpeech(options = {}) {
         return
       }
       case 'speakers':
-        return // reservado para la Fase 2 (se ignora sin aviso)
+        // Diarización revisada por el motor (F2, #247): solo la capa literal y el provisional
+        if (p.relabel && typeof p.relabel === 'object') tx[TX].relabel(p.relabel)
+        return
       case 'level': {
         if (s.caps.input.format !== 'self') return
         const v = Math.max(0, Math.min(1, Number(p.value) || 0))
@@ -1116,7 +1083,7 @@ export function createSpeech(options = {}) {
     if (session !== s || state.status !== 'processing') return false
     s.finished = true
     state.pending = 0
-    if (state.transcript) state.transcript.partial = null
+    if (state.transcript) state.transcript[TX].clearPartial()
     state.result = { audioDeleted: deletion(s, res) }
     // Paso 5 · completada; paso 6 · revisión (el dictado se cierra solo si todo se insertó)
     const moved = go('completed')
@@ -1211,7 +1178,7 @@ export function createSpeech(options = {}) {
     if (state.status !== 'ready') { warn('setExpectedSpeakers fuera de ready: se ignora.'); return false }
     if (!EXPECTED.includes(v)) { warn(`expectedSpeakers «${v}» no es válido (1, 2, 'many').`); return false }
     state.expectedSpeakers = v
-    if (state.transcript) state.transcript.expectedSpeakers = v
+    if (state.transcript) state.transcript[TX].setExpectedSpeakers(v)
     return true
   }
 
@@ -1287,6 +1254,36 @@ export function createSpeech(options = {}) {
     applyOptions(patch, false)
   }
 
+  // ---------- F2 · destinos (§24) y revisión (§25) ----------
+  const targets = createTargetStore({ warn })
+  // Superficies de revisión: GTranscript montados, no compactos y ligados al transcript de la sesión (la última manda)
+  const surfaces = []
+  function registerSurface(handle) {
+    surfaces.push(handle)
+    return () => {
+      const i = surfaces.lastIndexOf(handle)
+      if (i >= 0) surfaces.splice(i, 1)
+    }
+  }
+  // Usos vigentes (inserciones en destinos) del transcript de la sesión: cambian la pregunta de descarte (§6.4)
+  const usesCount = () => (state.transcript ? state.transcript.derived.filter((d) => d.kind === 'insert').length : 0)
+  // «Revisar» (§25.2, §25.3): a la superficie registrada (cierra el panel sin devolver el foco) o al diálogo de respaldo
+  async function review() {
+    if (!isClient() || !session || state.mode !== 'conversation' || !state.transcript) return false
+    const surface = surfaces[surfaces.length - 1]
+    const opener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null
+    if (surface) {
+      await closePanel({ focus: false })
+      surface.reveal()
+      return true
+    }
+    if (!host) return false
+    ui.reviewOpener = opener ? markRaw(opener) : null
+    await closePanel({ focus: false })
+    ui.reviewOpen = true
+    return true
+  }
+
   const publicState = readonly(state)
   const speech = {
     get state() { return publicState },
@@ -1309,6 +1306,8 @@ export function createSpeech(options = {}) {
     undoDictation,
     onLevel,
     configure,
+    review,
+    get targets() { return targets.public },
     install(app) { app.provide(speechKey, speech) }
   }
 
@@ -1332,6 +1331,10 @@ export function createSpeech(options = {}) {
       close,
       caps,
       forgetUndo,
+      targets,
+      registerSurface,
+      usesCount,
+      review,
       setActivityHidden(v) { state.activityHidden = Boolean(v) },
       setConsentError(v) { ui.consentError = Boolean(v) },
       attachHost(h) {
@@ -1389,4 +1392,30 @@ export function useSpeech() {
     return undefined
   }
   return s
+}
+
+// Registra un destino (§24.2) en el gestor mientras viva el componente que lo llama: en onMounted y fuera en
+// onBeforeUnmount. Se llama en el componente que tiene el modelo del formulario (la página), no en el campo. Devuelve la
+// función para darlo de baja antes. Sin gestor: aviso y no hace nada. En el servidor no registra nada (no hay montaje).
+export function useSpeechTarget(target, options = {}) {
+  const noop = () => {}
+  const own = options && options.speech
+  const manager = own || (hasInjectionContext() ? inject(speechKey, null) : null)
+  if (!manager || !manager.targets || typeof manager.targets.register !== 'function') {
+    if (isDev()) console.warn(`${PREFIX} useSpeechTarget sin gestor (app.use(createSpeech(…)) u options.speech): no registra nada; usa la prop targets de GTranscript.`)
+    return noop
+  }
+  if (!getCurrentInstance()) {
+    if (isDev()) console.warn(`${PREFIX} useSpeechTarget solo funciona dentro de setup: no registra nada.`)
+    return noop
+  }
+  let off = null
+  let cancelled = false
+  onMounted(() => { if (!cancelled) off = manager.targets.register(target) })
+  const stop = () => {
+    cancelled = true
+    if (off) { off(); off = null }
+  }
+  onBeforeUnmount(stop)
+  return stop
 }

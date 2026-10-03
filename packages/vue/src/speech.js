@@ -3,14 +3,17 @@
 // dist/speech.umd.js, global GranaSpeech) con Vue y `@grana/vue` como externos: lo compartido con el paquete principal
 // (GBtn, GIcon, topModal, reservas de borde, canales…) llega de `@grana/vue` vía `__shared` (src/shared.js), sin copia.
 // El CSS de la captura sigue en grana.css.
-import { createSpeech as createManager, useSpeech, speechKey } from './components/GSpeechHost/speech.js'
+import { createSpeech as createManager, useSpeech, useSpeechTarget, speechKey } from './components/GSpeechHost/speech.js'
 import GSpeechHost from './components/GSpeechHost/GSpeechHost.vue'
 import GSpeechPill from './components/GSpeechPill/GSpeechPill.vue'
 import GSpeechTrigger from './components/GSpeechTrigger/GSpeechTrigger.vue'
+import GTranscript from './components/GTranscript/GTranscript.vue'
+import { createTranscript } from './components/GTranscript/transcript.js'
 
-const components = { GSpeechHost, GSpeechPill, GSpeechTrigger }
+const components = { GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript }
 
-// El gestor es también plugin: `app.use(speech)` lo provee y registra los tres componentes si no lo estaban (§1).
+// El gestor es también plugin: `app.use(speech)` lo provee y registra sus componentes (también GTranscript, F2 #251) si
+// no lo estaban (§1).
 export function createSpeech(options) {
   const speech = createManager(options)
   const provide = speech.install
@@ -24,3 +27,5 @@ export function createSpeech(options) {
 }
 
 export { useSpeech, speechKey, GSpeechHost, GSpeechPill, GSpeechTrigger }
+// Fase 2 (§21 a §24): vista de revisión, modelo del transcript y registro de destinos
+export { GTranscript, createTranscript, useSpeechTarget }

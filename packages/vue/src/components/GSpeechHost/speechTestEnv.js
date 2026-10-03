@@ -2,6 +2,7 @@
 // empaqueta. Simula getUserMedia, AudioContext (con AnalyserNode y AudioWorklet), MediaRecorder, Permissions API,
 // wakeLock, popover y <dialog> modal, con la misma forma que el navegador.
 import { vi } from 'vitest'
+import { F2_LABELS } from '../GTranscript/transcriptTestEnv.js'
 
 export function installSpeechEnv(o = {}) {
   const env = {
@@ -138,8 +139,10 @@ export const LABELS = {
   actions: {
     start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar',
     discard: 'Descartar', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento',
-    hideActivity: 'Ocultar actividad', discardAsk: '¿Descartar la grabación?'
+    hideActivity: 'Ocultar actividad', discardAsk: '¿Descartar la grabación?', ...F2_LABELS.actions
   },
+  speakerRole: F2_LABELS.speakerRole,
+  review: F2_LABELS.review,
   states: {
     requesting: { short: 'Pidiendo permiso', long: 'Esperando el permiso del micrófono', longGranted: 'Activando el micrófono' },
     ready: { short: 'Listo', long: 'Listo para grabar' },
@@ -167,7 +170,7 @@ export const LABELS = {
   progress: 'Procesando el audio pendiente',
   privacy: { device: 'En este dispositivo.', local: 'En el servicio local.', remote: 'En un servicio externo.' },
   audio: { none: 'El audio no se guarda.', memory: 'Audio temporal en memoria.', disk: 'Audio temporal cifrado.', deleted: 'Audio temporal eliminado.', notConfirmed: 'El motor no confirmó la eliminación del audio temporal.' },
-  transcript: { title: 'Transcripción', empty: 'Todavía no hay texto.', partialFlag: 'provisional', partialPrefix: 'Texto provisional:', failed: 'No se pudo transcribir', failedLost: 'El audio de este fragmento se perdió.' },
+  transcript: { title: 'Transcripción', empty: 'Todavía no hay texto.', partialFlag: 'provisional', partialPrefix: 'Texto provisional:', failed: 'No se pudo transcribir', failedLost: 'El audio de este fragmento se perdió.', ...F2_LABELS.transcript },
   trigger: { dictate: 'Dictar en {target}', conversation: 'Grabar conversación', view: 'Ver grabación', busy: 'Hay una grabación en curso. Mayús+F8 para ir a ella.' },
   note: { partialPrefix: 'Texto provisional:', notInserted: '{count} fragmentos sin insertar.', insert: 'Insertar', inserted: 'Dictado insertado.', undo: 'Deshacer dictado' },
   announce: {
