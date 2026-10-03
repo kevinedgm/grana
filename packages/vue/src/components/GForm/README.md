@@ -251,38 +251,60 @@ Una sección por **idea** (Información básica, Contacto, Dirección), separada
 
 ## Solo lectura y modo vista
 
-`GForm readonly` pone todos los campos en solo lectura (los que no lo fijan ellos): relleno `--g-color-neutral-soft` (en claro un paso por debajo de la superficie, en oscuro un paso **por encima**: nunca un pozo negro), borde **discontinuo** y texto pleno; los valores siguen siendo enfocables y seleccionables, y las marcas desaparecen. Se distingue de deshabilitado (borde continuo, texto tenue, no se envía) sin depender del color. `GForm disabled` deshabilita todos.
+`GForm readonly` pone todos los campos en solo lectura (los que no lo fijan ellos): relleno `--g-color-neutral-soft` (en claro un paso por debajo de la superficie, en oscuro un paso **por encima**: nunca un pozo negro), borde **discontinuo** y texto pleno; los valores siguen siendo enfocables y seleccionables, y las marcas desaparecen. Se distingue de deshabilitado (borde continuo, texto tenue, no se envía) sin depender del color. `GForm disabled` deshabilita todos. Para bloquear un formulario ya guardado con un interruptor, ver [Bloqueo con interruptor](#bloqueo-con-interruptor).
 
-## Receta: bloqueo de edición
+## Bloqueo con interruptor
 
-Un expediente que se abre **bloqueado** y se edita solo al activar «Permitir edición». No es un componente (todavía): es composición de `GForm readonly`, `v-model:dirty` y `resetState()`. Ejemplo completo y verificado en [`design/lab/migraciones/analisis/`](../../../../../design/lab/migraciones/analisis/) (`index.html`).
+Un formulario de captura **ya guardado** (un expediente, una orden, una ficha) que se abre **bloqueado** para evitar ediciones y envíos por error, y se desbloquea con un interruptor «Permitir edición». No es una vista de consulta. **Es una receta con la API actual, no un componente ni una prop**: no existe `locked` ni `v-model:locked` en `GForm`. `readonly` ya da todo lo que el bloqueo necesita del formulario, y lo demás (la copia guardada, la confirmación, los permisos) es estado de tu aplicación: `GForm` no posee los valores. Ejemplo completo y verificado en [`design/lab/migraciones/analisis/`](../../../../../design/lab/migraciones/analisis/) (`index.html` y `notas.md`).
 
 ```vue
-<div class="estado">
-  <span>{{ editando ? 'Edición permitida' : 'Formulario bloqueado' }}</span>
-  <!-- El interruptor va FUERA del GForm: dentro heredaría readonly -->
-  <GSwitch label="Permitir edición" :model-value="editando" @update:model-value="alternar" />
+<div class="ficha__estado">
+  <!-- Fuera del <form> y antes de él: dentro heredaría readonly y su cambio marcaría dirty -->
+  <GSwitch id="permitir" label="Permitir edición" :model-value="!bloqueado" @update:model-value="alternar" />
 </div>
-<div role="status" class="solo-lectores">{{ anuncio }}</div>
-<GForm ref="form" aria-label="Información de la muestra" :readonly="!editando" v-model:dirty="sucio" :labels="textos">…</GForm>
-<!-- pie: bloqueado → Cerrar; editando → Cancelar · Guardar (deshabilitado sin cambios) -->
+<GForm id="muestra" aria-label="Información de la muestra" :readonly="bloqueado"
+       :errors="bloqueado ? {} : errores" v-model:dirty="sucio" @submit="guardar" ref="form">
+  …
+  <GFormActions :status="estado">
+    <GBtn variant="ghost" type="button" @click="bloqueado ? cerrar() : cancelar()">{{ bloqueado ? 'Cerrar' : 'Cancelar' }}</GBtn>
+    <GBtn type="submit" :disabled="bloqueado">Guardar</GBtn>
+  </GFormActions>
+</GForm>
 ```
 
 ```js
-let guardado = copia(modelo)                       // última versión guardada
-function alternar(v) {
-  if (v) { editando.value = true; anuncio.value = 'Edición permitida'; return }
-  if (sucio.value) return pedirConfirmacion()      // GDialog role="alertdialog": «¿Descartar los cambios?»
+const bloqueado = ref(true)                    // un registro guardado se abre bloqueado
+function alternar(v) {                         // controlado: el interruptor no cambia hasta que lo aceptas
+  if (v) { bloqueado.value = false; return }   // el foco se queda en el interruptor
+  if (sucio.value) return pedirConfirmacion()  // GDialog role="alertdialog": «Seguir editando» / «Descartar cambios»
   bloquear()
 }
-function revertir() { Object.assign(modelo, copia(guardado)); form.value.resetState(); sucio.value = false }
-function cancelar() { revertir(); bloquear('Cambios descartados. Formulario bloqueado') }
-function guardar() { guardado = copia(modelo); form.value.resetState(); sucio.value = false; bloquear('Cambios guardados. Formulario bloqueado') }
+function bloquear(mensaje) {
+  bloqueado.value = true
+  form.value.resetState()                      // los errores revelados no se quedan en campos que ya no se pueden corregir
+  estado.value = mensaje || ''                 // región `status` del pie, solo para bloqueos causados por otra acción
+  nextTick(() => document.getElementById('permitir')?.focus())   // al bloquear por Guardar o Cancelar
+}
 ```
 
-- Anuncia el cambio de modo con una región `role="status"` propia; el estado también se ve en texto (no solo en el interruptor).
-- Al cerrar el diálogo con cambios, cancela su `dismiss` y pide confirmación.
-- `GForm` no guarda los valores: «revertir» es restaurar **tu** modelo y llamar a `resetState()`.
+| Regla | Qué hacer | Por qué |
+| --- | --- | --- |
+| Atributo | `readonly` de `GForm` ligado al bloqueo. **Nunca `disabled`** | Con `readonly` los campos siguen **enfocables, legibles y copiables** y **dentro del envío** (`FormData`). `disabled` los saca del Tab, los atenúa y los excluye del envío y de los errores: un envío por otra vía perdería datos sin aviso |
+| Alcance | Todo el `GForm`. Para bloquear solo una parte, pon `readonly` en los campos o en un `GFieldGroup` (la prop explícita gana). `GFormSection` no tiene `readonly` | Una sola fuente del estado, sin props nuevas |
+| Interruptor | `GSwitch` **controlado** (`:model-value` + `@update:model-value`), con etiqueta de acción («Permitir edición»; apagado = bloqueado), **fuera del `<form>` y antes de él** en el DOM | Dentro heredaría `readonly` (no podría desbloquear), su `change` marcaría `dirty` y, con `name`, entraría en `FormData`. Antes en el DOM: se encuentra antes de los campos que controla |
+| Estado inicial | Registro guardado: bloqueado al abrir (y al reabrir un diálogo). Registro nuevo: editable y normalmente sin interruptor | Lo que se protege es lo ya capturado |
+| Foco | Al **desbloquear**, el foco se queda en el interruptor (no salta al primer campo). Al **bloquear por Guardar o Cancelar**, el foco vuelve al interruptor | Cambiar un control no cambia de contexto (WCAG 3.2.2). Tras Guardar o Cancelar el botón se deshabilita o cambia de texto y el foco no puede quedarse en un control deshabilitado (2.4.3) |
+| Anuncio | El cambio hecho **con el interruptor** lo anuncia el propio interruptor (`role="switch"`, activado o desactivado): no lo repitas en otra región. El bloqueo causado por **otra acción** (Guardar, Cancelar) va a la región `status` de `GFormActions` o, sin ella, a una región `role="status"` de tu aplicación **dentro** del diálogo. Con un `GToast`, **solo uno** de los dos lleva el texto | Sin dobles anuncios (WCAG 4.1.3) |
+| Estado visible | Opcional: un texto junto al interruptor («Formulario bloqueado» / «Edición permitida») con icono `lock` / `lock-open` (`lock-open` lo registras tú con `createIcons`). No es región viva | El aspecto de solo lectura ya lo distingue sin color (borde discontinuo) |
+| Marcas y validación | Bloqueado, las marcas y `required` se conservan. **No pases `errors`, `warnings` ni la prop `error` de un campo** mientras esté bloqueado (`:errors="bloqueado ? {} : errores"`) y llama a `resetState()` al bloquear | Un error en un campo que no se puede corregir no es accionable; `GForm` no valida, solo enseña |
+| Envío | El botón de envío va **`disabled`** mientras está bloqueado (también en el pie de un `GDialog` con `form="id"`) y tu `submit` ignora el envío si el bloqueo está puesto | `readonly` no impide el envío implícito con Enter; un botón por defecto deshabilitado sí |
+| Volver a bloquear | Sin cambios: apagar el interruptor bloquea. Con `dirty`: pide confirmación con un `GDialog role="alertdialog"` y el interruptor sigue encendido hasta confirmar. **Cancelar** es descartar explícito y no confirma. Descartar = restaurar **tu** copia guardada, `resetState()`, bajar `dirty` y bloquear | `GForm` no guarda los valores: no puede revertirlos |
+| Guardar | Con éxito, bloquea. Si falla en el servidor, sigue desbloqueado y llamas a `showErrors()` | El usuario no pierde lo que escribió |
+| Cerrar con cambios | En un `GDialog`, Esc, la X o «Cerrar» con `dirty`: `@dismiss` + `preventDefault()` y la misma confirmación | El diálogo no puede cerrarse y perder cambios sin avisar |
+
+**Fuera de la receta:** quién ve el interruptor (permisos por rol: tu aplicación lo oculta) y el autoguardado, la guardia `beforeunload` y un `revert()` de valores en `GForm` (Fase 4, si hace falta).
+
+**Verificado:** 3 pruebas en `GForm.test.js` (el interruptor fuera del `<form>` no marca `dirty` ni entra en `FormData`; con `readonly` los valores siguen en `FormData` y los campos enfocables, con envío `disabled` y marca `required` conservada; `resetState()` oculta los errores revelados) y el ejemplo de migración con Playwright, 15/15 en Chromium, Firefox y WebKit (confirmación al volver a bloquear con cambios, foco al interruptor y un solo anuncio). Sin verificar con lector de pantalla real (ver «Limitaciones conocidas»).
 
 ## Receta: dirección con autocompletado
 
@@ -339,8 +361,8 @@ const f = useFormField({ name: () => props.name, error: () => props.error, requi
 | `showErrorsOn` | String | `blur` | `blur` · `submit` |
 | `marks` | String | `optional` | `optional` · `required` |
 | `density` | String | `default` | `default` · `comfortable` · `compact`; la heredan campos, filas, secciones y pie sin densidad propia |
-| `readonly` | Boolean | `false` | Modo vista |
-| `disabled` | Boolean | `false` | Todos los campos deshabilitados |
+| `readonly` | Boolean | `false` | Modo vista; también el atributo del [bloqueo con interruptor](#bloqueo-con-interruptor) |
+| `disabled` | Boolean | `false` | Todos los campos deshabilitados (no se envían). No sirve para bloquear un formulario ya capturado: usa `readonly` |
 | `headingLevel` | Number | `3` | Nivel de títulos de secciones y resumen (2 a 6) |
 | `dirty` | Boolean | `false` | `v-model:dirty`: sube con la primera interacción; solo `reset` lo baja (tú lo bajas tras guardar) |
 | `labels` | Object | `{}` | Ver abajo |
@@ -505,14 +527,14 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 
 ## Limitaciones conocidas
 
-- **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack): la doble lectura del resumen (`alert` + foco), el silencio de los mensajes tras un envío, «(opcional)» en el nombre, la verbosidad de «Teléfono, grupo; Teléfono Código de país», el anuncio de `output` al escribir la fecha y el orden del pie apilado.
+- **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack): la doble lectura del resumen (`alert` + foco), el silencio de los mensajes tras un envío, «(opcional)» en el nombre, la verbosidad de «Teléfono, grupo; Teléfono Código de país», el anuncio de `output` al escribir la fecha, el orden del pie apilado y, en el bloqueo con interruptor, que el interruptor se anuncie solo y que el aviso del bloqueo por Guardar o Cancelar no se duplique.
 - **Sin verificar con teclado virtual** (que el pie fijo no quede tras el teclado en iOS/Android), zoom 200/400 %, `forced-colors` real de Windows (solo emulado), el menú nativo del `<select>` en oscuro ni el autocompletado real del navegador sobre país + número.
 - **Fase 2:** `GRadioGroup` (también segmentado para Sí/No o Sexo; mientras tanto, `GSelect`) y `GNumberField`; `GSelect` y `GNumberField` como partes de un `GInputGroup`. Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
 - **Fase 3:** secciones plegables y «Agregar…», campos condicionales (`GFormReveal`), navegación lateral de secciones (`GFormNav`).
-- **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado (hoy, receta).
+- **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado, `revert()` de valores y permisos por rol (hoy, [receta](#bloqueo-con-interruptor): sin prop `locked`).
 - Rendimiento con muchas filas (un `ResizeObserver` compartido) y cientos de campos registrados: sin medir.
 
 ## Fuentes
 
 - API: [`GForm.meta.json`](./GForm.meta.json), [`GFormSection`](../GFormSection/GFormSection.meta.json), [`GFormLayout`](../GFormLayout/GFormLayout.meta.json), [`GFormRow`](../GFormRow/GFormRow.meta.json), [`GInputGroup`](../GInputGroup/GInputGroup.meta.json), [`GFieldGroup`](../GFieldGroup/GFieldGroup.meta.json), [`GFormActions`](../GFormActions/GFormActions.meta.json), [`GErrorSummary`](../GErrorSummary/GErrorSummary.meta.json)
-- Contrato: [`design/contracts/form.md`](../../../../../design/contracts/form.md) · Prototipo: [`design/lab/form/r02/`](../../../../../design/lab/form/r02/) · Estilo: [`design/lab/form/estilo.md`](../../../../../design/lab/form/estilo.md) · Auditoría: [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md) · Decisiones: #153–#188 en `DECISIONS.md`
+- Contrato: [`design/contracts/form.md`](../../../../../design/contracts/form.md) · Prototipo: [`design/lab/form/r02/`](../../../../../design/lab/form/r02/) · Estilo: [`design/lab/form/estilo.md`](../../../../../design/lab/form/estilo.md) · Auditoría: [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md) · Decisiones: #153–#188 y #266 (bloqueo con interruptor) en `DECISIONS.md`
