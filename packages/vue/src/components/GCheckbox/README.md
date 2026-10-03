@@ -50,7 +50,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 - **`indeterminate`:** estado mixto. El componente lo aplica a la **propiedad** del DOM (no existe como atributo HTML), y los lectores de pantalla lo anuncian como "mixta". Al activar una casilla mixta pasa a marcada y se emite `update:indeterminate` con `false`; si no actualizas el prop, la casilla vuelve a verse mixta.
 - **`color`:** color del relleno de lo marcado (y de la tarjeta o el chip seleccionados). El error usa siempre `danger`.
 - **`readonly`:** el input nativo no admite `readonly`. El componente pone `aria-readonly="true"`, cancela el cambio (con ratón y con Espacio) y no emite nada; la casilla sigue enfocable.
-- **`required`:** atributo nativo `required` y una marca visual junto a la etiqueta. El envío lo valida el formulario nativo.
+- **`required`:** `aria-required="true"` en el `<input>` (**no** el atributo nativo `required`, DECISIONS #270: Chromium expone una casilla obligatoria sin marcar como inválida antes de interactuar) y una marca visual junto a la etiqueta. El componente no valida ni un `<form>` nativo bloquea el envío: la aplicación valida y pasa `error` (dentro de `GForm`, que lo muestra cuando toca).
 - **`label`:** el componente necesita un nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby`, en desarrollo se emite `console.warn`.
 - **`error`:** con texto, la casilla queda inválida (`aria-invalid="true"`) y se muestra el mensaje. **El componente no valida:** tú decides cuándo hay error.
 - **`hint`:** texto de ayuda. En `card` es la descripción de la tarjeta.
