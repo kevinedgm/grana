@@ -22,6 +22,7 @@ La sección sigue sin caja, fondo ni línea propia. Plegable: **el título enter
 | Panel | La transición de `GFormReveal` (§14) en `__panel`: `0fr → 1fr` con `--g-duration-slow`, fundido `--g-duration-fast` (al abrir con retraso, al plegar desde el principio), `visibility` al final; cerrado `margin-block-start: −gap propio` (`--_gap` = `space-4 × densidad`, el mismo del `gap` de la sección) | Sin hueco plegada y lo de abajo se mueve de forma continua. `:not(.is-instant)` en las reglas de transición (sin `!important`) |
 | Recorte | `__body` `overflow: hidden` + `min-block-size: 0`; asentado y abierto, `overflow: visible`; reinicio del `fieldset` | No recorta anillos; el `fieldset` de `addable` no desborda a 320 |
 | Acciones abajo (L9) | `is-actions-below` (y al lado): encabezado de una columna, acciones al inicio, `margin-block-start: space-2`, tras la descripción | Orden visual = DOM. Medido: el título de la Fase 1 real a 320 pasa de 58,7px a 286px |
+| Acción ghost apilada | Abajo o al lado, la primera acción `ghost` (no de solo icono) lleva `margin-inline-start: −(--_px × --_density + --g-border-width)` (alias del propio `GBtn`) | Sin caja visible en reposo, lo que se lee es su texto: se alinea con el de la descripción (auditoría, hallazgo 2). Medido: texto = descripción ±0,5px a 320 en la Fase 1 y en la plegable. `GBtn.css` avisa de que `--_px`/`--_density` se leen aquí |
 | Al lado | Rejilla `minmax(0,1fr) minmax(0,2fr)`, separación `--g-form-section-gap × densidad`, `align-items: start`, panel sin margen | 1 : 2 como el *wireframe* de kiwi y las páginas de ajustes; separación de sección (40px). Título alineado con la primera etiqueta (Δ 0) |
 | `divider` | `position: absolute` (la sección es `relative` solo con `:has(> __divider)`), `inset-inline: 0`, `inset-block-start: −(section-gap × densidad) / 2`, `translate: 0 −50%`; `display: none` salvo con `.g-form-section:not([hidden]) ~` | Un mecanismo dentro y fuera de `GForm`; `relative` solo cuando hace falta para no cambiar el bloque contenedor de nadie más |
 | `[hidden]` | `.g-form-section[hidden] { display: none }` | La raíz es flex y ganaba al estilo del agente para `hidden` (agregable sin agregar en `readonly`) |
@@ -38,12 +39,12 @@ Estático: sin literales (solo 24px y 44px), sin respaldos, sin `@layer`, sin `!
 ## Observaciones (no bloquean; para lima/kiwi)
 
 - **La línea de estado aparece y desaparece en el acto** (es un `v-if` del contrato): en el primer cuadro, lo que hay debajo de la sección se mueve su altura (22px: −22 al abrir, +22 al plegar) y luego sigue el panel de forma continua. El botón no se mueve (Δ0). Si se quiere continuo del todo, la línea tendría que quedarse montada hasta el final de `is-animating`; es estructura, no CSS.
-- Una acción `ghost` abajo se alinea por su caja: su texto queda sangrado lo que mide el relleno del `GBtn`. Igual que en la Fase 1 al lado de un título.
+- ~~Una acción `ghost` abajo se alinea por su caja~~: resuelto en la auditoría (hallazgo 2), el texto se alinea con la descripción.
 - Con un título largo a 320, la insignia «Opcional» de una plegable salta a la línea siguiente al inicio del encabezado (bajo el chevron), como hoy bajo el `lead` de una fija.
 
 ## No verificado
 
-`forced-colors` real y en Firefox/WebKit; Safari, iOS y táctil reales; el componente real (lo construye bruno: medidas, `is-ready`, `is-instant`, registro y recuento son simulados en `XSection`); lector de pantalla. Auditoría sobre el componente real: paso 5.
+`forced-colors` real y en Firefox/WebKit; Safari, iOS y táctil reales; lector de pantalla. El componente real se auditó en el paso 5: `auditoria.md` y `node design/lab/form-section/auditoria-verificar.mjs`.
 
 ## Para bruno: marcado que espera el CSS
 

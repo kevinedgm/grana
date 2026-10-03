@@ -268,7 +268,7 @@ async function extras(browser) {
     await bench(page, { w: '960' })
     for (const d of ['default', 'comfortable', 'compact']) {
       await bench(page, { density: d })
-      R.densidades[d] = await page.evaluate(() => ({ input: document.querySelector('#fs-nombre').closest('.g-input__control').getBoundingClientRect().height, ig: document.querySelector('#fs-tel .g-input-group__box').getBoundingClientRect().height, select: document.querySelector('#fm-sexo').closest('.g-select').querySelector('.g-select__control').getBoundingClientRect().height, fila: getComputedStyle(document.querySelector('#fm-short .g-form-layout')).rowGap }))
+      R.densidades[d] = await page.evaluate(() => ({ input: document.querySelector('#fs-nombre').closest('.g-input__control').getBoundingClientRect().height, ig: document.querySelector('#fs-tel .g-input-group__box').getBoundingClientRect().height, select: document.querySelector('#fm-idioma').closest('.g-select').querySelector('.g-select__control').getBoundingClientRect().height, fila: getComputedStyle(document.querySelector('#fm-short .g-form-layout')).rowGap }))
       const x = R.densidades[d]
       ok('chromium', Math.abs(x.input - x.ig) <= 0.5 && Math.abs(x.input - x.select) <= 0.5, `densidad ${d}: ${JSON.stringify(x)}`)
     }

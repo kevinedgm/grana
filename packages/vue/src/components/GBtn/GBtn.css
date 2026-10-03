@@ -23,7 +23,8 @@
   --_fg-hover: var(--_on);
   --_border-hover: transparent;
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. --_px y --_density los lee también
+     GFormSection.css (alineación óptica de una acción ghost apilada): si cambian de nombre, cambiarlos allí */
   --_units: 9;
   --_density: 1;
   --_px: var(--g-space-4);

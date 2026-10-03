@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormSection",
   "tag": "g-form-section",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Sección de un formulario (una idea): fija, plegable (collapsible: hN > button, sus datos siguen en el envío) o agregable (addable: el usuario decide incluirla; «Quitar» descarta), con el encabezado arriba o al lado por su ancho propio y línea opcional con la sección anterior; sin tarjeta ni punto de referencia.",
   "contract": "design/contracts/form.md",

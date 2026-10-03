@@ -253,6 +253,13 @@
 .g-form-section--mode-collapsible:is(.is-actions-below, .is-header-side) > .g-form-section__header > .g-form-section__actions {
   margin-inline-start: calc(var(--_lead-size) + var(--g-space-2));
 }
+/* Alineación óptica de una acción ghost apilada (auditoría, hallazgo 2): sin caja visible en reposo, lo que se lee es su
+   texto, que se alinea con el de la descripción. Se compensa el relleno y el borde de inicio del GBtn con sus propios alias
+   (--_px × --_density, el cálculo de GBtn.css; valen en cada tamaño y densidad); el fondo del hover y el anillo sobresalen
+   hacia el inicio. Solo la primera (las demás siguen con su separación) y nunca la de solo icono (sin relleno) */
+.g-form-section:is(.is-actions-below, .is-header-side) > .g-form-section__header > .g-form-section__actions > .g-btn--variant-ghost:not(.g-btn--icon):first-child {
+  margin-inline-start: calc((var(--_px) * var(--_density) + var(--g-border-width)) * -1);
+}
 
 /* Línea de estado de una plegada (#285, #286): estado de errores (automático) + texto de la aplicación */
 .g-form-section__summary {
