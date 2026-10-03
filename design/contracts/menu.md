@@ -109,11 +109,13 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 </GMenu>
 ```
 
-### Disparador con `id` propio (hallazgo 8 de kiwi `personalidad/r01`, #305)
+### Disparador con `id` propio (hallazgo 8 de kiwi `personalidad/r01`, #305 y #308)
 
-- El `id` del disparador lo genera `GMenu` (`{id}-trigger`, con `{id}` la prop `id` o el generado) y lo usan `aria-labelledby` de la lista y la búsqueda del disparador. **Regla:** la aplicación **no** pone su propio `id` al disparador; si necesita conocerlo o fijarlo, usa la **prop `id`** de `GMenu`. Si de todos modos lo pone (p. ej. `id` después de `v-bind="attrs"` en un `GBtn`), hoy el menú **no se abre y no avisa** (medido por kiwi).
-- **Aviso de desarrollo** (una vez, `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`): al montar y al abrir, si el elemento del disparador (por su referencia) tiene un `id` distinto de `{id}-trigger`: «[Grana GMenu] el disparador tiene `id="…"`; GMenu necesita `…-trigger` (usa la prop `id` de GMenu)». Bruno confirma en la prueba por qué la referencia no basta hoy para abrir; el aviso es obligatorio aunque se arregle.
-- mora-docs: documentarlo en el README de `GMenu` («El disparador»).
+- El `id` del disparador lo genera `GMenu` (`{id}-trigger`, con `{id}` la prop `id` o el generado) y es el que `aria-labelledby` de la lista usa **cuando el disparador no trae otro**. **Regla:** la aplicación **no** pone su propio `id` al disparador; si necesita conocerlo o fijarlo, usa la **prop `id`** de `GMenu`.
+- **Causa raíz (medida por bruno, #308):** `GBtn` tiene **dos raíces** (el botón y su región de estado), así que la referencia del slot `trigger` es una instancia cuyo `$el` es el **ancla vacía del fragmento**, no el botón. Antes, `GMenu` solo encontraba el botón por `document.getElementById('{id}-trigger')`; con un `id` propio (p. ej. `id` después de `v-bind="attrs"`) no había ancla, `place` no llamaba a `showPopover` y **el menú no se abría, sin avisar**. **Ahora** `GMenu` resuelve el elemento del disparador por la **referencia**: si es un componente de varias raíces, toma **el primer hermano elemento** del ancla (que no sea una lista de menú); la búsqueda por `{id}-trigger` queda solo de respaldo.
+- **Un `id` propio ya no rompe el menú, pero sigue sin ser el camino** (#308): el menú **se abre** y la lista usa **ese `id` real en `aria-labelledby`** (el nombre accesible de la lista no se pierde). Esto **no es** «adoptar en silencio» el `id` de la aplicación (alternativa descartada en #305): el **aviso de desarrollo se mantiene** y la regla de arriba sigue vigente; solo se evita que un descuido deje el menú muerto o sin nombre.
+- **Aviso de desarrollo** (una vez, `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`): al montar y al abrir, si el elemento del disparador (por su referencia) tiene un `id` distinto de `{id}-trigger`: «[Grana GMenu] el disparador tiene `id="…"`; GMenu necesita `…-trigger` (usa la prop `id` de GMenu)». Es obligatorio aunque el menú se abra.
+- mora-docs: documentarlo en el README de `GMenu` («El disparador»), con la causa de las dos raíces de `GBtn`.
 
 ## Estructura accesible
 
@@ -187,7 +189,7 @@ Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el compon
 - **Un único resaltado por lista** (la lista raíz y cada submenú, cada uno el suyo), una capa bajo el contenido que **se desplaza** al elemento activo; los elementos **no** pintan fondo propio al tener hover o foco (hoy, al barrer, dos elementos tienen fondo a la vez: la estela que se corrige).
 - **El puntero mueve el foco:** al entrar el puntero (`pointerenter`/`pointermove` con `pointerType` `mouse` o `pen`) en un elemento **habilitado**, pasa a ser el activo del *roving tabindex* y recibe el foco con `preventScroll: true`, **en el acto** (sin los 180ms, que siguen solo para **abrir** un submenú). Un foco puesto así no muestra el anillo de `:focus-visible` (heurística del navegador tras puntero). Sobre un **deshabilitado**, el puntero no mueve foco ni resaltado; con teclado, el deshabilitado se enfoca y se resalta (como hoy).
 - **Elemento activo de cada lista:** el que tiene el foco en ella; si el foco está en un submenú, el **padre expandido** en la lista de arriba. Sin activo, la lista pierde `has-highlight` y el resaltado se funde.
-- **Datos** (bruno, `GMenu.vue`), en cada `g-menu__list`: **`--_active-y`** y **`--_active-h`** (px: `offsetTop` y `offsetHeight` del activo respecto de su lista; el resaltado se desplaza con el contenido si la lista tiene scroll), **`has-highlight`** mientras haya activo, e **`is-highlight-instant`** en la primera colocación tras abrir o tras no tener activo (aparece en su sitio sin viajar desde 0; se quita a los dos cuadros). Escrituras solo si cambian.
+- **Datos** (bruno, `GMenu.vue`), en cada `g-menu__list`: **`--_active-y`** y **`--_active-h`** (px: `offsetTop` y `offsetHeight` del activo respecto de su lista; el resaltado se desplaza con el contenido si la lista tiene scroll), **`has-highlight`** mientras haya activo, e **`is-highlight-instant`** en la primera colocación tras abrir o tras no tener activo (aparece en su sitio sin viajar desde 0; se quita a los dos cuadros). Escrituras solo si cambian. **`is-highlight-instant` solo en la primera colocación** (#308): cuando el puntero entra desde fuera con la lista ya abierta y con el foco en otro elemento (p. ej. el primero, abierta por teclado o por clic), el resaltado **viaja desde el elemento que tenía el foco hasta el del puntero**: es el comportamiento buscado (una sola luz que viaja, y el foco **sí** estaba allí); no hay una segunda «primera colocación» por entrar el puntero.
 - El **anillo de foco** de cada elemento no cambia. En **`forced-colors`**, el resaltado se oculta y manda el estilo de foco del sistema (como hoy).
 - Movimiento: `--g-duration-press`, `--g-ease-out` para posición y alto; fundido `--g-duration-fast`. Nunca `--g-ease-spring` ni `--g-ease-bounce` (#299).
 - **Cambia una nota de estilo de coco** (`design/lab/menu/estilo.md`, fila «Elemento»: «el activo (foco, ratón o submenú abierto) en `--g-color-surface-sunken`» pasa a la capa única con ese mismo color).
@@ -195,7 +197,7 @@ Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el compon
 ### M4 · Submenú con intención
 
 - Con un submenú abierto, mientras el puntero se mueve del padre **hacia** él dentro del **triángulo** formado por la posición del puntero al salir del padre (actualizada en cada movimiento) y las **dos esquinas del borde cercano** del submenú (el de su lado de apertura: final en LTR, inicio en RTL; si se abrió hacia el otro lado por falta de sitio, ese), cruzar otros elementos del padre **no** cambia el activo, **no** mueve el foco ni cierra el submenú.
-- Si el puntero **se detiene** 180ms sobre otro elemento del padre (o sale del triángulo), cambia como hoy. En cascada (submenú superpuesto al padre en pantallas estrechas) no aplica.
+- Si el puntero **se detiene** 180ms sobre otro elemento del padre (o sale del triángulo), cambia como hoy. **Los 180ms son la constante neutra `HOVER_MS = 180`** de `GMenu.vue` (#187, #299 (8)): **la misma pausa que abre un submenú** al pasar el puntero, no un token ni un valor del tema. En cascada (submenú superpuesto al padre en pantallas estrechas) no aplica.
 - El teclado y el toque no cambian.
 
 ### Movimiento reducido
@@ -208,7 +210,7 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 | --- | --- |
 | M1 | Al barrer con el puntero: **0** elementos con fondo propio y como máximo **una** superficie de resaltado por lista; cuadros intermedios entre elementos (kiwi: 7); termina exacto sobre el elemento (kiwi: 114/114); con teclado, sigue al foco (kiwi: 42/42); el puntero mueve el foco (`document.activeElement`); deshabilitado con puntero: nada cambia; con `reduce`, salta |
 | M4 | Trayecto diagonal hacia el submenú cruzando otro elemento: sin cambio de `path` ni de foco; trayecto recto o parada: cambio a los 180ms, como hoy; RTL espejado |
-| Aviso | `id` propio en el disparador: un aviso de desarrollo |
+| Aviso | `id` propio en el disparador (también con `GBtn`, de dos raíces): el menú **se abre**, `aria-labelledby` de la lista apunta a ese `id` y sale **un** aviso de desarrollo (#308) |
 | Reservadas | M2 (cascada al abrir; medida, pero un menú es frecuente) y M3 (parpadeo de confirmación): fuera de esta tanda |
 | No verificado | Lector de pantalla real con el foco siguiendo al puntero (VoiceOver, NVDA) |
 

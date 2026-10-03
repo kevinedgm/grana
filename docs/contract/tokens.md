@@ -732,11 +732,11 @@ La información que daba el movimiento (dirección, origen, cuál falló) es sie
 
 ### 29.4 Transiciones y keyframes
 
-Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un suceso (el mensaje de un campo que aparece y la sacudida de un campo rechazado, #304) y para el giro de carga: nombre con prefijo `g-` (la sacudida, `g-reject…`: `GForm` filtra su `animationend` por ese prefijo), finitas, nunca al montar.
+Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un suceso que no se expresan como cambio de estado (la sacudida de un campo rechazado, #304) y para el giro de carga; **el mensaje de un campo que aparece es una transición**, con su estado de partida en `.g-input__message:empty` y la `transition` solo bajo `is-ready` (corregido por la medida del plan 018, #306): unas keyframes condicionadas a `is-ready` se reproducirían al llegar la clase en un campo que monta con error. Las keyframes llevan nombre con prefijo `g-` (la sacudida, `g-reject…`: `GForm` filtra su `animationend` por ese prefijo), finitas, nunca al montar.
 
 ### 29.5 Datos del `.vue` al CSS (no son tokens)
 
-Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` (`GTabs`, `GTabPanel`), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; reservados `--_select-x`/`--_select-y`), `--_active-y`/`--_active-h` (`GMenu`). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`) se fijan en cada contrato.
+Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; reservados `--_select-x`/`--_select-y`), `--_active-y`/`--_active-h` (`GMenu`). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`) se fijan en cada contrato.
 
 ### 29.6 Constantes de coreografía (neutras, #187)
 
@@ -746,5 +746,20 @@ Variables dinámicas en línea (excepción justificada a «sin estilos en línea
 | `--g-space-1 × 4` | Entrada lateral del panel de `GTabs` (#302) |
 | `--g-space-1 × 1` | Etiqueta de `GBtn` que cede el sitio (#300); mensaje de `GInput` que baja (#304) |
 | Amplitudes `1 · 0.75 · 0.5 · 0.25` × `--g-space-1`, instantes `16 · 36 · 56 · 76 %` | Sacudida de un campo rechazado (#304) |
+| `180ms` (`HOVER_MS`, constante de **JS**, no un token ni un valor del tema) | Pausa del puntero: abre un submenú al pasar y, en M4, cambia el elemento si el puntero se **detiene** dentro del triángulo (`GMenu.vue`, #305 y #308) |
 
 **No son constantes:** `0.97` es `--g-press-scale`; `1.006` es un resultado **medido** (criterio de verificación de #300), no un valor escrito; `32px`, `±16px` y `4px` se escriben siempre como múltiplos de `--g-space-1` y siguen a `space`.
+
+### 29.7 Alias locales y propiedades registradas privadas (no son tokens)
+
+Variables `--_*` **internas** del CSS de un componente (no se leen desde fuera, no se tematizan, el CLI no las conoce). Las que van con `@property` **llevan el nombre del componente** porque `@property` es global (como `--_card-selected` de `GCard`):
+
+| Variable | Dónde | Qué es |
+| --- | --- | --- |
+| `--_tabs-s` y `--_tabs-e` (`@property`, `<length>`) | `GTabs.css` | Los **dos bordes** de la marca (inicio y fin en el eje de las pestañas), derivados de `--_mark-x/y/w/h` para que cada uno interpole con su propio tiempo (T1, #302) |
+| `--_tabs-clip` (`@property`, `<length>`) | `GTabs.css` | Margen del recorte de `g-tabs__panels` (= `--g-focus-width` + `--g-focus-offset`); registrada porque Chromium calcula `overflow-clip-margin: calc(…)` como `0px` y con una longitud ya resuelta sí lo aplica (#306) |
+| `--_from-x` y `--_from-y` | `GDialog.css` | **Alias** de la entrada y la salida de D1: el vector escrito por el `.vue` (`--_origin-x/y`) × `0.25`, acotado a ± `--g-space-1 × 8` por `clamp` (#301) |
+| `--_active-y` y `--_active-h` | `GMenu` (`.vue` → CSS) | **Dato** del `.vue` (px: posición y alto del elemento activo de cada lista), ya listado en §29.5; el CSS los lee y no los reescribe |
+| `--_pdir`, `--_shift` | `GTabs.css` | Sentido (±1, por `:dir(rtl)`) y magnitud (`--g-space-1 × 4`) de la entrada lateral del panel (T2, #302) |
+
+Un alias o propiedad registrada nueva de este tipo **no necesita decisión** mientras solo derive de tokens y constantes de §29.6; una **constante nueva** sí (#187).

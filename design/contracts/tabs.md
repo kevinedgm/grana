@@ -241,11 +241,12 @@ Renderiza el mismo `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VA
 
 Ronda de kiwi `design/lab/personalidad/r01/` §5 (T1 y T2, prototipadas sobre el componente real) y decisión del usuario 1 (el rebote vive en la marca de las pestañas). Ninguna prop, slot ni evento nuevo. Todo solo con `is-ready` (nunca el primer posicionamiento).
 
-### Dato nuevo: `data-direction`
+### Datos nuevos: `data-direction` y `data-orientation`
 
 - `GTabs.vue` escribe **`data-direction="forward"`** si el índice de la nueva activa en `items` (orden **lógico**, el del DOM) es mayor que el de la anterior, y **`"back"`** si es menor. En RTL, `forward` va visualmente hacia la izquierda; el CSS lo resuelve con `--_dir`, como ya hace con la marca.
 - Se escribe en el **mismo render** que cambia la activa (antes de que el panel nuevo pierda `hidden`), por cualquier vía: clic, teclado, menú «Más», `modelValue` externo. Sin activa anterior (o anterior desconocida), no se pone. Se queda puesto hasta el siguiente cambio.
 - **`GTabPanel`** (`detached`, incluido el slot `tabs` de `GDialog`, #119): al pasar `active` de `false` a `true`, copia en su propia raíz el `data-direction` del elemento `#{tabs}` (la raíz de su `GTabs`) si existe; si no, no pone dirección y el panel solo se funde.
+- **`data-orientation` (#306):** la raíz de `GTabs` escribe **`data-orientation`** (`horizontal` · `vertical`) con la orientación **real** del diseño (la de `aria-orientation`: cambia si `responsive` la pasa a horizontal, y `segmented`/`contained` con `orientation="vertical"` dibujan horizontal), y **`GTabPanel`** la copia en su propia raíz **al pasar a activo, junto con `data-direction`** (misma regla: si no encuentra `#{tabs}`, no la pone). Así un panel suelto con pestañas verticales entra por el **eje de bloque**, como el integrado; sin `data-orientation`, entra por el eje inline (como antes de #306). La orientación se lee **al activarse** el panel; cambiarla con el panel ya activo no lo reanima.
 - `--_mark-x/y/w/h` **no cambian** (convención de §«Adaptación y táctil»).
 
 ### T1 · La marca se estira
@@ -256,8 +257,9 @@ Ronda de kiwi `design/lab/personalidad/r01/` §5 (T1 y T2, prototipadas sobre el
 
 ### T2 · El contenido llega de su lado
 
-- El panel que se activa entra con fundido y **`--g-space-1 × 4`** desde el lado hacia el que viajó la marca: con `forward`, desde el final; con `back`, desde el inicio; espejado en RTL (`--_dir`). En `vertical`, por el eje de bloque (`forward` desde abajo). Sin `data-direction`, solo fundido.
-- `g-tabs__panels` recorta en el eje del desplazamiento **sin recortar el anillo de foco** de los hijos (`overflow-x: clip` con `overflow-clip-margin` = `--g-focus-width` + `--g-focus-offset`). Límite conocido: en un motor sin `overflow-clip-margin`, el anillo de un hijo pegado al borde se recorta durante la entrada (≤ 240ms).
+- El panel que se activa entra con fundido y **`--g-space-1 × 4`** desde el lado hacia el que viajó la marca: con `forward`, desde el final; con `back`, desde el inicio; espejado en RTL (`--_dir`). En `vertical`, por el eje de bloque (`forward` desde abajo), también en un `GTabPanel` suelto (`data-orientation`, #306). Sin `data-direction`, solo fundido.
+- **Recorte de `g-tabs__panels` en los dos ejes, sin recortar el anillo de foco de los hijos** (corregido por la medida del plan 016; #306): `overflow: clip` con `overflow-clip-margin` = `--g-focus-width` + `--g-focus-offset`, escrito a través de la **propiedad registrada `--_tabs-clip`** (`<length>`, privada). Por qué los dos ejes: Chromium solo aplica `overflow-clip-margin` cuando recortan **los dos** (con `overflow-x: clip` solo, el anillo de un hijo pegado al borde se cortaba siempre) y calcula `overflow-clip-margin: calc(…)` como `0px`; la propiedad registrada le llega ya como longitud. `clip` no crea contexto de formato ni cambia la distribución. Todo dentro de `@supports (overflow-clip-margin: 1px)`.
+- **Límite conocido (WebKit):** no tiene `overflow-clip-margin`, así que allí **no se recorta** (recortar sin margen se comería el anillo para siempre, no solo durante la entrada): a sangre, el panel rebasa **`space × 4`** (+16px con `space` 4) **solo mientras entra** (≤ 240ms). **Coste del recorte en los demás motores:** se corta lo que un hijo dibuje a más de `--_tabs-clip` (4px) del borde de los paneles (p. ej. la sombra `shadow-2` de una superficie `raised` pegada al borde); con recorte, a sangre asoma ese margen durante la entrada. Quien necesite esa sombra deja aire (`padding`) en el panel.
 - **Cambia una nota de estilo de coco** (`design/lab/tabs/estilo.md`, fila «Movimiento»): el panel ya no entra subiendo `space × 1`. #127 y #152 no se tocan.
 
 ### Movimiento reducido
@@ -271,6 +273,7 @@ La marca salta (sin estirarse); el panel solo se funde (`--g-duration-fast`). Co
 | T1 | En el trayecto, el ancho de la marca supera al de las dos pestañas (kiwi: exceso de 95px adelante y 95,6px atrás en `underline`); el borde que avanza llega antes que el de atrás (kiwi: 186ms y 269ms); termina exacto bajo la pestaña (±0,5px); con `reduce`, salta. Tres motores; `pill`, `segmented`, `contained` y `vertical` medidos por coco |
 | T2 | Primer cuadro del panel en `+space × 4` adelante, `−space × 4` atrás, `−space × 4` en RTL adelante (kiwi: +16/−16/−16px); a 375px sin desborde horizontal de la página; con `reduce`, solo fundido. Con `detached` (slot `tabs` de `GDialog`), la misma dirección |
 | `data-direction` | Pruebas de bruno: valor por clic, flechas, «Más» y `modelValue` externo; RTL lógico; ausente al montar; `GTabPanel` lo copia |
+| `data-orientation` | Pruebas de bruno: valor real (con `responsive` que pasa a horizontal; `segmented`/`contained` con `vertical` → `horizontal`); `GTabPanel` la copia al activarse junto con `data-direction`; sin `#{tabs}`, ausente. Coco: panel suelto con pestañas verticales entra por el bloque en los tres motores |
 | Reservadas | T3 (luz de hover compartida) y T4 (contador que rueda): fuera de esta tanda |
 
 ## Persistencia
@@ -312,6 +315,7 @@ Derivaciones propuestas para coco (no son tokens): alto de pestaña = `space × 
 | `g-tabs--snap` | Raíz | Con `snap` |
 | `is-ready` | Raíz | Tras el primer posicionamiento de la marca |
 | `data-direction` (atributo, `forward` · `back`) | Raíz; y raíz de `GTabPanel` | Dirección lógica del último cambio de activa (§«Personalidad»); sin activa anterior, ausente |
+| `data-orientation` (atributo, `horizontal` · `vertical`) | Raíz; y raíz de `GTabPanel` | Orientación real del diseño (§«Personalidad», #306); el panel suelto la copia al activarse |
 | `is-disabled` | Raíz | Con `disabled` |
 | `is-scrollable-start`, `is-scrollable-end` | Raíz | Hay lista fuera de vista por cada extremo (indicio de scroll) |
 | `g-tabs__header`, `__scroller`, `__list`, `__mark`, `__edge`, `__edge--prev`, `__edge--next`, `__more`, `__panels`, `__panel`, `__live` | Partes | Según prop |
