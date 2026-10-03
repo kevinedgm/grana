@@ -165,11 +165,14 @@
   ],
   "composes": ["GBtn", "GCheckbox", "GSelect", "GMenu", "GIcon (interno)"],
   "verified": [
-    "vitest + jsdom: GTranscript.test.js (marcado, teclado APG, una parada, edición sin pisar parciales, selección, menús, anuncios, destinos, copia, modos, sesión, «Revisar» con superficie y con GDialog de respaldo), transcript.test.js (modelo, historial, composición, destinos), GTranscript.ssr.test.js",
-    "Playwright (Chromium, Firefox, WebKit): design/lab/theme-playground/tests/speech-f2.spec.mjs con la compuerta de rendimiento (320 fragmentos, cada tecla < 100 ms de Event Timing en Chromium)"
+    "vitest + jsdom: GTranscript.test.js (32: marcado, teclado APG, una parada, edición sin pisar parciales, selección, menús, anuncios, destinos, copia, modos, sesión, «Revisar» con superficie y con GDialog de respaldo), transcript.test.js (25: modelo, historial, composición, destinos), GTranscript.ssr.test.js (2)",
+    "Playwright en el playground real (Chromium, Firefox, WebKit): design/lab/theme-playground/tests/speech-f2.spec.mjs (revisión en la página, inserción en dos campos de un GForm con uno desmontado y deshacer, «Revisar» con superficie y con el diálogo de respaldo, transcript guardado sin sesión, copia con portapapeles real y copia nativa limpia en Chromium, 320×640 con táctil)",
+    "Compuerta de rendimiento (speech-f2-perf.spec.mjs, --workers=1): 320 fragmentos, Event Timing máximo 88 ms en Chromium (Ctrl+A 80 y 88 ms; el resto ≤ 56 ms); 1000 fragmentos 120 ms. Informativo: Firefox 56 ms (1000: 72 ms); WebKit 128 ms (flechas ya 80–112 ms con ~12 ms de JS: pintado de WebKit sin cabeza; 1000: 856 ms). Con otros navegadores en paralelo el reloj sube (Chromium 136 ms) y la compuerta solo se registra"
   ],
   "deviations": [
     "Menús de fila: un solo GMenu compartido por vista (el que se abre toma el id del disparador) en lugar de un GMenu por fila: los menús se crean al abrirse y no hay 640 instancias de GMenu (§26)",
+    "Selección masiva por tramos: un cambio de selección de más de 40 filas (Ctrl+A, «Seleccionar todo», un rango largo) pinta primero las filas a la vista y la enfocada y el resto en tramos de 40 por fotograma (selected, update:selected, el contador y la inserción cambian en el acto). Motivo: restilar 320 casillas y filas en un fotograma daba 130–170 ms de Event Timing en Chromium (estilo ~75–90 ms de 2 270 elementos, JS ~35–45 ms); con tramos, 80–88 ms",
+    "Celdas de hora, hablante, texto y acciones en un componente interno (TranscriptCells) separado de la fila (raíz y casilla): marcar una fila no repinta sus celdas",
     "«Sustituir la selección del campo «…»» solo aparece con una selección conocida (insert.selection lleva el texto seleccionado; sin texto no hay frase); «En la posición del cursor» sin posición conocida se pinta deshabilitada como insert.cursor + insert.unknown",
     "Separadores de la inserción en el cursor: un espacio a cada lado si hace falta, pero no delante de un signo de cierre (. , ; : ! ? ) ] } » ” …) ni detrás de uno de apertura",
     "Los prefijos del original (diff.original, diff.changes) se pintan seguidos de un espacio y del texto, sin comillas añadidas por Grana",
@@ -177,6 +180,8 @@
   ],
   "pending": [
     "Auditoría de coco (paso 5) sobre el componente real; status candidate lo pone coco",
+    "coco: las transiciones de GCheckbox (marca) y de la fila (fondo) se disparan en cada casilla de un cambio masivo; con 320 casillas cuestan ~40 ms de estilo por fotograma (medido sin transiciones: 6 ms). Valorar quitarlas dentro de la rejilla de GTranscript",
+    "WebKit: Event Timing de 80–130 ms por tecla con 320 filas (JS ~12 ms); informativo según §31, a medir en Safari real",
     "lima: cada GCheckbox de fila trae su región de mensaje g-checkbox__message (aria-live polite, siempre presente por checkbox.md C4): con 320 filas son 320 regiones vivas vacías, como el g-btn__status de #257",
     "lima: «Deshacer inserción» usa undo-2 sin flip-rtl (#261 nombra solo Deshacer/Rehacer de la barra)",
     "Lector de pantalla real (rejilla en modo foco, lectura de corrido, del/ins con envoltura, editor en la celda, anuncio de selección masiva); Safari y Firefox reales; móvil real; teclados no QWERTY e IME; forced-colors, zoom 200 % y RTL reales; validación real de GForm ante una inserción"

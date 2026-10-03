@@ -1475,6 +1475,43 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <template #footer><g-btn variant="outline" color="neutral" @click="dlg.speech = false">Cerrar</g-btn></template>
     </g-dialog>
           </div>
+          <h3 id="sp-rv-title">Revisión de la conversación en la página (Fase 2)</h3>
+          <div class="pg-panel">
+    <div class="col" id="speech-review">
+      <p style="margin:0;color:var(--g-color-text-muted)">Graba una conversación (arriba) y revísala aquí: <b>GTranscript</b> ligado a <code>speech.state.transcript</code> se registra como superficie de revisión («Revisar» del panel trae el foco a este título). Los destinos se registran contra el <b>modelo</b> del <code>GForm</code> con <code>useSpeechTarget</code>: «Plan» se llena aunque su pestaña esté desmontada. Corrige, reasigna hablantes, inserta y deshaz.</p>
+      <div class="row" style="margin:0;align-items:flex-start">
+        <g-form id="sp-form" aria-label="Nota de consulta" style="flex:1 1 260px;min-width:0">
+          <g-form-layout>
+            <g-tabs v-model="spFormTab" :items="spFormTabs" :labels="gtLabels" label="Nota de consulta" id="sp-form-tabs">
+              <template #panel="{ item }">
+                <!-- el campo de la pestaña inactiva se desmonta: el destino escribe en el modelo igual -->
+                <g-textarea v-if="item.id === 'motivo' && spFormTab === 'motivo'" id="sp-f-motivo" name="motivo" v-model="spForm.motivo" label="Motivo de consulta" :rows="5"></g-textarea>
+                <g-textarea v-else-if="item.id === 'plan' && spFormTab === 'plan'" id="sp-f-plan" name="plan" v-model="spForm.plan" label="Plan" :rows="5"></g-textarea>
+              </template>
+            </g-tabs>
+          </g-form-layout>
+        </g-form>
+        <div style="flex:2 1 420px;min-width:0">
+          <g-transcript v-if="spPageReview && spState.transcript && spState.mode === 'conversation'" id="sp-review" :transcript="spState.transcript" labelledby="sp-rv-title" max-height="420px" v-model:selected="spSelected"></g-transcript>
+          <p v-else id="sp-review-empty" style="margin:0;color:var(--g-color-text-muted)">Sin conversación en curso.</p>
+        </div>
+      </div>
+      <label style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="sp-page-review" v-model="spPageReview">La aplicación revisa en su página (sin ella, «Revisar» abre el diálogo de respaldo del anfitrión)</label>
+    </div>
+          </div>
+          <h3 id="sp-saved-title">Transcripción guardada, sin sesión</h3>
+          <div class="pg-panel">
+    <div class="col" id="speech-saved">
+      <p style="margin:0;color:var(--g-color-text-muted)"><code>createTranscript(json)</code> carga lo que guardó la aplicación (correcciones, roles y usos) y GTranscript funciona igual sin captura, con su propia región de estado.</p>
+      <div class="row" style="margin:0">
+        <label>Modo <select id="sp-saved-mode" v-model="spSavedMode"><option value="edit">editable</option><option value="select">solo selección</option><option value="read">solo lectura</option></select></label>
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-long-320" @click="spLoadLong(320)">Cargar 320 fragmentos</g-btn>
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-long-1000" @click="spLoadLong(1000)">Cargar 1000 fragmentos</g-btn>
+        <g-btn size="sm" variant="outline" color="neutral" id="sp-saved-reset" @click="spLoadSaved()">Volver a la guardada</g-btn>
+      </div>
+      <g-transcript id="sp-saved" :key="spSavedMode" :transcript="spSaved" labelledby="sp-saved-title" :editable="spSavedMode === 'edit'" :selectable="spSavedMode !== 'read'" max-height="480px"></g-transcript>
+    </div>
+          </div>
         </section>
       </div>
       </main>
@@ -1530,7 +1567,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       allowRemote: spQuery.get('remote') === '1',
       labels: {
         region: 'Grabación de voz', openPanel: 'abrir panel', closePanel: 'Cerrar panel', duration: 'Duración:',
-        actions: { start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', discardAsk: '¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento', hideActivity: 'Ocultar actividad' },
+        actions: { start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', discardAsk: '¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento', hideActivity: 'Ocultar actividad',
+          review: 'Revisar', reviewCompleted: 'Revisar transcripción', discardAskUsed: (n) => '¿Descartar la grabación? Se borran la transcripción y el audio temporal. El texto ya insertado en ' + (n === 1 ? '1 campo' : n + ' campos') + ' se queda en el formulario.' },
+        speakerRole: '{role} ({letter})',
+        review: { title: 'Revisar transcripción', close: 'Cerrar revisión' },
         states: {
           requesting: { short: 'Pidiendo permiso', long: 'Esperando el permiso del micrófono', longGranted: 'Activando el micrófono' },
           ready: { short: 'Listo', long: 'Listo para grabar. El micrófono sigue apagado' },
@@ -1553,7 +1593,34 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         pending: (n) => (n === 1 ? '1 fragmento pendiente' : n + ' fragmentos pendientes'), pendingNone: 'Todo transcrito', progress: 'Procesando el audio pendiente',
         privacy: { device: 'Procesamiento en este dispositivo.', local: 'Procesamiento en el servicio local de tu organización.', remote: 'Procesamiento en un servicio externo.' },
         audio: { none: 'El audio no se guarda.', memory: 'Audio temporal en memoria; se elimina al finalizar.', disk: 'Audio temporal cifrado en este equipo; se elimina al finalizar.', deleted: 'Audio temporal eliminado.', notConfirmed: 'El motor no confirmó la eliminación del audio temporal.' },
-        transcript: { title: 'Transcripción', empty: 'Todavía no hay texto.', partialFlag: 'provisional', partialPrefix: 'Texto provisional:', failed: 'No se pudo transcribir', failedLost: 'El audio de este fragmento se perdió.' },
+        transcript: {
+          title: 'Transcripción', empty: 'Todavía no hay texto.', partialFlag: 'provisional', partialPrefix: 'Texto provisional:', failed: 'No se pudo transcribir', failedLost: 'El audio de este fragmento se perdió.',
+          cols: { select: 'Selección', time: 'Hora', speaker: 'Hablante', text: 'Texto', actions: 'Acciones' },
+          row: { select: 'Seleccionar fragmento de las {time}', actions: 'Acciones del fragmento de las {time}', changeSpeaker: ', cambiar hablante' },
+          flags: { corrected: 'Corregido', removed: 'Eliminado', stale: 'Cambió después de insertarlo', speaker: 'Hablante cambiado (motor: {speaker})', used: 'Usado en {targets}' },
+          diff: { original: 'Original del motor:', changes: 'Cambios:', originalSpeaker: 'Hablante del motor: {speaker}', deleted: '(eliminado: {text})', inserted: '(añadido: {text})' },
+          editor: { group: 'Editar fragmento de las {time}', field: 'Texto del fragmento de las {time}', hint: 'Intro guarda · Esc cancela · el original del motor no cambia', save: 'Guardar', cancel: 'Cancelar' },
+          menu: { edit: 'Editar texto', showOriginal: 'Ver original', hideOriginal: 'Ocultar original', revert: 'Volver al original', remove: 'Eliminar', restore: 'Restaurar', copy: 'Copiar fragmento', newSpeaker: 'Nuevo hablante', insert: 'Insertar en {target}', engineSpeaker: 'Volver al del motor ({speaker})' },
+          bar: { label: 'Acciones de la transcripción', selectAll: 'Seleccionar todo', countNone: 'Ninguno seleccionado', count: (n) => (n === 1 ? '1 seleccionado' : n + ' seleccionados'), assign: 'Asignar hablante', remove: 'Eliminar selección', restore: 'Restaurar selección', undo: 'Deshacer', redo: 'Rehacer', nothingUndo: 'Nada que deshacer', nothingRedo: 'Nada que rehacer', undoWhat: 'Deshacer: {what}', redoWhat: 'Rehacer: {what}', copy: 'Copiar', copyText: 'Copiar texto', copyFull: 'Copiar con hablantes y horas', changes: 'Mostrar cambios', speakers: 'Hablantes', more: 'Más' },
+          history: { edit: 'corrección de las {time}', revert: 'vuelta al original de las {time}', remove: 'eliminación', restore: 'restauración', speaker: 'cambio de hablante', role: 'cambio de rol', merge: 'unión de hablantes', unmerge: 'separación de hablantes', addSpeaker: 'nuevo hablante' },
+          keyboard: 'Teclado: flechas para moverte · Intro o F2 edita · Mayús+Espacio selecciona · Mayús+flechas amplía · Supr elimina o restaura · Ctrl+Z / Ctrl+Mayús+Z deshace y rehace · Ctrl+C copia la selección.',
+          noDiarization: 'El motor no distingue hablantes. Marca fragmentos y usa «Asignar hablante», o cambia el hablante de cada fragmento.',
+          newer: (n) => (n === 1 ? '1 fragmento nuevo · Ir al final' : n + ' fragmentos nuevos · Ir al final'),
+          speakers: { title: 'Hablantes y roles', help: 'El motor solo distingue voces; los roles los pone quien revisa. Cambiar un rol o unir hablantes no modifica el transcript original.', noRole: 'Sin rol', mergeWith: 'Unir con', merge: 'Unir', unmerge: 'Separar', add: 'Añadir hablante', role: 'Rol: {speaker}', count: (n) => (n === 1 ? '1 fragmento' : n + ' fragmentos'), mergedInto: 'Unido a {speaker}' },
+          insert: { title: 'Insertar en el formulario', what: 'Qué', textNone: 'Texto seleccionado (selecciona texto en la transcripción)', target: 'Campo', where: 'Dónde', end: 'Al final', cursor: 'En la posición del cursor', unknown: '(sin posición conocida)', withSpeakers: 'Con hablantes', preview: 'Vista previa', undo: 'Deshacer inserción', uses: (n) => 'Usos de esta transcripción (' + n + ')', nothing: 'No hay texto que insertar.', all: 'Todo ({count})', segments: 'Fragmentos marcados ({count})', text: 'Texto seleccionado «{text}»', selection: 'Sustituir la selección del campo «{text}»', go: 'Insertar en {target}', done: 'Insertado en {target}: {what}.', use: '{target} · {what}' },
+          what: { segments: (n) => (n === 1 ? '1 fragmento' : n + ' fragmentos'), text: 'texto seleccionado' },
+          announce: {
+            edited: 'Fragmento de las {time} corregido. El original se conserva.', emptied: 'Texto vacío: el fragmento de las {time} queda eliminado. Puedes restaurarlo.',
+            removed: (n) => (n === 1 ? 'Fragmento de las {time} eliminado. Puedes restaurarlo.' : n + ' fragmentos eliminados. Puedes restaurarlos.'), restored: (n) => (n === 1 ? 'Fragmento de las {time} restaurado.' : n + ' fragmentos restaurados.'),
+            reverted: 'Fragmento de las {time}: vuelve al original del motor.', speaker: (n) => (n === 1 ? 'Fragmento de las {time}: {speaker}.' : n + ' fragmentos: {speaker}.'),
+            role: '{speaker}: {role}.', merged: '{from} unido a {into}. El original del motor no cambia.', unmerged: '{from} separado otra vez.', added: '{speaker} añadido.',
+            undone: 'Deshecho: {what}.', redone: 'Rehecho: {what}.', nothingUndo: 'Nada que deshacer.', nothingRedo: 'Nada que rehacer.',
+            selected: (n) => (n === 1 ? '1 fragmento seleccionado.' : n + ' fragmentos seleccionados.'), selectedNone: 'Ningún fragmento seleccionado.',
+            copied: 'Copiado: {what}.', copyFailed: 'No se pudo copiar al portapapeles.',
+            inserted: 'Insertado en {target}: {what}. Puedes deshacerlo.', insertUndone: 'Inserción en {target} deshecha.', insertUndoFailed: 'No se puede deshacer: {target} cambió después de la inserción.',
+            changesShown: 'Cambios visibles.', changesHidden: 'Cambios ocultos.'
+          }
+        },
         trigger: { dictate: 'Dictar en {target}', conversation: 'Grabar conversación', view: 'Ver grabación', busy: 'Hay una grabación en curso. Mayús+F8 para ir a ella.' },
         note: { partialPrefix: 'Texto provisional:', notInserted: (n) => (n === 1 ? '1 fragmento dictado sin insertar.' : n + ' fragmentos dictados sin insertar.'), insert: 'Insertar', inserted: 'Dictado insertado.', undo: 'Deshacer dictado' },
         announce: {
@@ -1582,8 +1649,29 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         audioFate: { processing: 'El audio ya capturado se sigue transcribiendo.', kept: 'El audio afectado se guarda temporalmente y se elimina al finalizar.', lost: 'El audio afectado se perdió.' },
         kept: 'Lo transcrito hasta ahora se conserva.'
       },
-      onComplete: (t) => { window.spLog && (window.spLog.value = 'onComplete · ' + t.segments.length + ' fragmentos') }
+      roles: [{ id: 'pro', label: 'Profesional' }, { id: 'pac', label: 'Paciente' }, { id: 'acomp', label: 'Acompañante' }],
+      onComplete: (t) => { window.spLog && (window.spLog.value = 'onComplete · ' + t.segments.length + ' fragmentos · ' + t.derived.length + ' usos') }
     })
+    // Fase 2: transcript guardado por la aplicación (con correcciones, roles y un uso) y sesiones largas simuladas
+    const SP_SAVED = {
+      id: 'consulta-guardada', mode: 'conversation', createdAt: '2026-09-12T10:04:00.000Z', expectedSpeakers: 2,
+      speakers: [{ id: 'spk_0', role: 'pro', mergedInto: null, origin: 'engine' }, { id: 'spk_1', role: 'pac', mergedInto: null, origin: 'engine' }],
+      segments: [
+        { id: 's1', t0: 0, t1: 3200, literal: 'Buenos días, ¿cómo ha seguido?', engineSpeaker: 'spk_0', corrected: null, speaker: null, removed: false, failed: false },
+        { id: 's2', t0: 3600, t1: 8100, literal: 'Mejor, el dolor bajo bastante desde el martes.', engineSpeaker: 'spk_1', corrected: 'Mejor, el dolor bajó bastante desde el martes.', speaker: null, removed: false, failed: false },
+        { id: 's3', t0: 8400, t1: 9900, literal: 'Eh, bueno.', engineSpeaker: 'spk_1', corrected: null, speaker: null, removed: true, failed: false },
+        { id: 's4', t0: 10200, t1: 14800, literal: '¿Ha vuelto a tener molestias con la luz?', engineSpeaker: 'spk_1', corrected: null, speaker: 'spk_0', removed: false, failed: false },
+        { id: 's5', t0: 15100, t1: 18300, literal: 'Solo una vez, el jueves por la noche.', engineSpeaker: 'spk_1', corrected: null, speaker: null, removed: false, failed: false },
+        { id: 's6', t0: 18700, t1: 23900, literal: 'Bien. Mantenemos el plan y revisamos en dos semanas.', engineSpeaker: 'spk_0', corrected: null, speaker: null, removed: false, failed: false }
+      ],
+      derived: [{ id: 'd1', kind: 'insert', createdBy: 'user', at: '2026-09-12T10:20:00.000Z', target: { id: 'plan', label: 'Plan' }, position: 'end', sourceSegmentIds: ['s6'], text: 'Mantenemos el plan y revisamos en dos semanas.', sources: { s6: 'Bien. Mantenemos el plan y revisamos en dos semanas.' } }]
+    }
+    const SP_POOL = ['Buenos días, ¿qué le trae hoy por aquí?', 'Desde hace tres días me duele la espalda, sobre todo por la mañana.', '¿El dolor se irradia hacia alguna pierna?', 'No, se queda en la zona baja, y empeora cuando estoy sentado.', 'Lo anoto en el expediente.', '¿Le duele también al moverse?', 'A veces, cuando me levanto rápido.', 'Revisemos la lista de medicamentos.']
+    function spMakeLong(n) {
+      let t = 0
+      const segments = Array.from({ length: n }, (_, i) => { const d = 2500 + ((i * 7919) % 6000); const s = { id: 'L' + i, t0: t, t1: t + d, literal: SP_POOL[(i * 31) % SP_POOL.length], engineSpeaker: i % 2 ? 'spk_1' : 'spk_0' }; t += d + 400; return s })
+      return GranaSpeech.createTranscript({ mode: 'conversation', expectedSpeakers: 2, speakers: [{ id: 'spk_0' }, { id: 'spk_1' }], segments })
+    }
     window.speech = speech
     window.spAdapter = spAdapter
     createApp({
@@ -1605,6 +1693,22 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const spNota = ref('')
         const spTab = ref('motivo')
         const spTabs = [{ id: 'motivo', label: 'Motivo' }, { id: 'plan', label: 'Plan' }, { id: 'resumen', label: 'Resumen' }]
+        // Fase 2: revisión en la página con destinos ligados al modelo del formulario (useSpeechTarget en el componente que
+        // tiene el modelo, no en el campo: «Plan» se llena aunque su pestaña esté desmontada)
+        const spState = speech.state
+        const spForm = reactive({ motivo: 'Lumbalgia. ', plan: '' })
+        const spFormTab = ref('motivo')
+        const spFormTabs = [{ id: 'motivo', label: 'Motivo' }, { id: 'plan', label: 'Plan' }]
+        const spSelected = ref([])
+        const spPageReview = ref(true)
+        GranaSpeech.useSpeechTarget({ id: 'motivo', label: 'Motivo', get: () => spForm.motivo, set: (v) => { spForm.motivo = v }, field: 'sp-f-motivo' })
+        GranaSpeech.useSpeechTarget({ id: 'plan', label: 'Plan', get: () => spForm.plan, set: (v) => { spForm.plan = v }, field: 'sp-f-plan' })
+        const spSaved = Vue.shallowRef(GranaSpeech.createTranscript(SP_SAVED))
+        const spSavedMode = ref('edit')
+        const spLoadSaved = () => { spSaved.value = GranaSpeech.createTranscript(SP_SAVED) }
+        const spLoadLong = (n) => { spSavedMode.value = 'edit'; spSaved.value = spMakeLong(n) }
+        window.spForm = spForm
+        window.spSaved = spSaved
         const dlg = reactive({ speech: false, toast: false, dates: false, simple: false, inset: false, sections: false, tabs: false, scroll: false, confirm: false, form: false, full: false, guard: false, divider: false })
         const dlgLog = ref([])
         const dlgName = ref('')
@@ -2090,7 +2194,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>

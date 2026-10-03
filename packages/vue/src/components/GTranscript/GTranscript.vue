@@ -216,6 +216,60 @@ watch(() => props.selected, (v) => {
   const same = ok.length === sel.value.size && ok.every((id) => sel.value.has(id))
   if (!same) sel.value = new Set(ok)
 }, { immediate: true })
+// Selección pintada: la verdad es `sel` (contador, «Seleccionar todo», inserción, eventos); las filas leen `shown`. Un cambio
+// de más de BULK filas (Ctrl+A, «Seleccionar todo», un rango largo) se pinta por tramos: primero las filas a la vista y la
+// enfocada, después el resto, BULK filas por fotograma. Así la tecla responde en el primer pintado (§26, compuerta < 100 ms:
+// restilar cientos de casillas y filas de una vez cuesta más que eso) y nada fuera de la vista queda sin pintar más de unos
+// fotogramas. Un cambio nuevo cancela los tramos pendientes del anterior.
+const BULK = 40
+const shown = shallowRef(new Set())
+let paintJob = 0
+function visibleIds() {
+  const out = new Set()
+  if (activeId.value !== null) out.add(activeId.value)
+  const body = grid.value && grid.value.querySelector('.g-transcript__body')
+  if (!body || typeof window === 'undefined') return out
+  const sc = scroller.value ? scroller.value.getBoundingClientRect() : { top: 0, bottom: window.innerHeight }
+  const top = Math.max(0, sc.top)
+  const bottom = Math.min(window.innerHeight, sc.bottom)
+  const list = body.children
+  // Búsqueda binaria de la primera fila cuyo borde inferior pasa del borde superior visible
+  let lo = 0
+  let hi = list.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (list[mid].getBoundingClientRect().bottom < top) lo = mid + 1
+    else hi = mid
+  }
+  for (let i = lo; i < list.length; i++) {
+    const r = list[i].getBoundingClientRect()
+    if (r.top > bottom) break
+    out.add(list[i].dataset.id)
+  }
+  return out
+}
+function paintSelection(next) {
+  const prev = shown.value
+  const changed = rowIds.value.filter((id) => prev.has(id) !== next.has(id))
+  const job = ++paintJob
+  if (changed.length <= BULK || typeof requestAnimationFrame !== 'function') { shown.value = next; return }
+  const near = visibleIds()
+  const first = changed.filter((id) => near.has(id))
+  const rest = changed.filter((id) => !near.has(id))
+  const apply = (ids) => {
+    const s = new Set(shown.value)
+    for (const id of ids) { if (next.has(id)) s.add(id); else s.delete(id) }
+    shown.value = s
+  }
+  apply(first)
+  const step = () => {
+    if (job !== paintJob) return
+    apply(rest.splice(0, BULK))
+    if (rest.length) requestAnimationFrame(step)
+  }
+  if (rest.length) requestAnimationFrame(step)
+}
+watch(sel, (next) => paintSelection(next), { immediate: true })
 function setSelection(next, { announce = false } = {}) {
   sel.value = next
   emit('update:selected', rowIds.value.filter((id) => next.has(id)))
@@ -965,7 +1019,7 @@ const itemClass = (s) => ['g-transcript__item', { 'is-failed': s.failed, 'is-cor
               :select="selectable"
               :speaker-col="speakerCol"
               :active="r.id === activeId ? activeCol : null"
-              :selected="sel.has(r.id)"
+              :selected="shown.has(r.id)"
               :editing="editing === r.id"
               :edit-text="editing === r.id ? editText : ''"
               :orig="changes || origOpen.has(r.id)"

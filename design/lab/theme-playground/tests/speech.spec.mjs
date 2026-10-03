@@ -82,7 +82,7 @@ test.describe('captura de voz · playground', () => {
       }
     })
     expect(r.main).toEqual([])
-    expect(r.speech).toEqual(['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'createSpeech', 'speechKey', 'useSpeech'])
+    expect(r.speech).toEqual(['GSpeechHost', 'GSpeechPill', 'GSpeechTrigger', 'GTranscript', 'createSpeech', 'createTranscript', 'speechKey', 'useSpeech', 'useSpeechTarget'])
     expect(r.sameBtn).toBe(true)
     expect(r.usesShared).toBe(true)
     expect(r.ownCopy).toEqual([])
