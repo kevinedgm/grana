@@ -16,7 +16,6 @@
 .g-sidebar,
 .g-sidebar__drawer {
   --_t: var(--g-duration-press);
-  --_t-slow: calc(var(--g-duration-press) * 1.5);
   --_stagger: calc(var(--g-duration-fast) * 0.25);
 }
 .g-sidebar {
@@ -79,7 +78,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar--mode-expanded,
   .g-sidebar--mode-rail {
-    transition: inline-size var(--_t-slow) var(--g-ease-standard);
+    transition: inline-size var(--g-duration-slow) var(--g-ease-standard);
   }
   .g-sidebar--mode-expanded.is-expanding .g-sidebar__nav .g-sidebar__label,
   .g-sidebar--mode-expanded.is-expanding .g-sidebar__nav .g-sidebar__group-title,
@@ -145,7 +144,7 @@
    (auditoría de iconos públicos, design/lab/icons/auditoria.md) */
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar__toggle > svg {
-    transition: transform var(--_t-slow) var(--g-ease-out);
+    transition: transform var(--g-duration-slow) var(--g-ease-out);
   }
 }
 .g-sidebar--mode-rail .g-sidebar__toggle > svg {
@@ -444,15 +443,15 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar__sub {
     transition:
-      block-size var(--_t-slow) var(--g-ease-out),
-      margin-block var(--_t-slow) var(--g-ease-out),
+      block-size var(--g-duration-slow) var(--g-ease-out),
+      margin-block var(--g-duration-slow) var(--g-ease-out),
       opacity var(--_t) var(--g-ease-out),
-      visibility 0s linear var(--_t-slow);
+      visibility 0s linear var(--g-duration-slow);
   }
   .g-sidebar__sub.is-open {
     transition:
-      block-size var(--_t-slow) var(--g-ease-out),
-      margin-block var(--_t-slow) var(--g-ease-out),
+      block-size var(--g-duration-slow) var(--g-ease-out),
+      margin-block var(--g-duration-slow) var(--g-ease-out),
       opacity var(--_t) var(--g-ease-out) calc(var(--_stagger)),
       visibility 0s;
   }
@@ -756,7 +755,7 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar__bar > li {
-    transition: flex-grow var(--_t-slow) var(--g-ease-standard);
+    transition: flex-grow var(--g-duration-slow) var(--g-ease-standard);
   }
   .g-sidebar__tab {
     transition:
@@ -772,7 +771,7 @@
   }
   /* Al pasar a este formato, la barra sube desde el borde (bruno pone is-entering y la quita al terminar) */
   .g-sidebar--mode-navbar.is-entering .g-sidebar__bar {
-    animation: g-sidebar-bar-in var(--_t-slow) var(--g-ease-out) both;
+    animation: g-sidebar-bar-in var(--g-duration-slow) var(--g-ease-out) both;
   }
   @keyframes g-sidebar-bar-in {
     from { opacity: 0; translate: 0 calc(100% + var(--g-space-3)); }
@@ -831,20 +830,20 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-sidebar__drawer {
     transition:
-      translate var(--_t-slow) var(--g-ease-out),
+      translate var(--g-duration-slow) var(--g-ease-out),
       opacity var(--_t) var(--g-ease-out),
-      overlay var(--_t-slow) allow-discrete,
-      display var(--_t-slow) allow-discrete;
+      overlay var(--g-duration-slow) allow-discrete,
+      display var(--g-duration-slow) allow-discrete;
   }
   .g-sidebar__drawer::backdrop {
     transition:
-      opacity var(--_t-slow) var(--g-ease-out),
-      overlay var(--_t-slow) allow-discrete,
-      display var(--_t-slow) allow-discrete;
+      opacity var(--g-duration-slow) var(--g-ease-out),
+      overlay var(--g-duration-slow) allow-discrete,
+      display var(--g-duration-slow) allow-discrete;
   }
   /* Los grupos entran escalonados (30ms) tras el panel; es decorativo y nunca bloquea la interacción */
   .g-sidebar__drawer[open] .g-sidebar__group {
-    animation: g-sidebar-group-in var(--_t-slow) var(--g-ease-out) both;
+    animation: g-sidebar-group-in var(--g-duration-slow) var(--g-ease-out) both;
   }
   .g-sidebar__drawer[open] .g-sidebar__group:nth-child(1) { animation-delay: calc(var(--_stagger) * 2); }
   .g-sidebar__drawer[open] .g-sidebar__group:nth-child(2) { animation-delay: calc(var(--_stagger) * 3); }

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFormReveal · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/form.md §14 («Estructura» y «Clases») con el CSS real de
+     GFormReveal.css (cargado dentro de la capa grana.components, como lo registrará bruno) y los componentes reales de
+     dist/ (pregunta, campos, filas, GFormLayout, GFormSection). XReveal hace lo que hará bruno y nada más: raíz div con
+     g-form-reveal--density-{d}, is-open / is-animating / is-ready, inert cerrado, fieldset role=none disabled cerrado,
+     --_reveal-gap en línea desde el row-gap del padre. Sin el registro inactivo de GForm (es de bruno). No es documentación.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4191  →  /design/lab/form-reveal/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: node design/lab/form-reveal/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GFormReveal/GFormReveal.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1280px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:var(--g-space-6);align-items:start}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .w560{inline-size:560px;max-inline-size:100%}
+  .fixtures{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GFormReveal · banco de estilo</h1>
+<p class="cap"><b>coco</b> · Barra de inicio con el borde de control (<code>--g-color-border-control</code>, grosor <code>--g-border-width</code> × 2) y sangría <code>--g-space-4</code> × densidad; la barra empieza en el borde de inicio de la pregunta y el fin es el de todas las filas. Altura con <code>--g-duration-slow</code> y <code>--g-ease-out</code>; fundido con <code>--g-duration-fast</code>. Cerrado: sin hueco (margen de inicio = −<code>--_reveal-gap</code>).</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="all(true)">Abrir todo</button>
+  <button type="button" @click="all(false)">Cerrar todo</button>
+</div>
+
+<h2 class="b">1 · Las tres densidades (GForm, GFormLayout)</h2>
+<p class="cap">«¿Requiere factura?» abre los datos fiscales; dentro, «Tipo de persona» abre un anidado. Dentro hay botón, contraseña con su botón, grupo de casillas, select y una fila: su aspecto no debe cambiar a deshabilitado durante el fundido de cierre.</p>
+<div class="grid">
+  <div v-for="d in ['default','comfortable','compact']" :key="d" class="host">
+    <p class="tag">density="{{ d }}"</p>
+    <factura-form :uid="d" :density="d"></factura-form>
+  </div>
+</div>
+
+<h2 class="b">2 · RTL (560) y estrecho (320, dos niveles)</h2>
+<div class="grid">
+  <div class="host w560" dir="rtl"><p class="tag">dir="rtl"</p><factura-form uid="rtl" density="default"></factura-form></div>
+  <div class="host w320"><p class="tag">320</p><factura-form uid="n" density="default"></factura-form></div>
+</div>
+
+<h2 class="b">3 · En el cuerpo de una GFormSection (sin GFormLayout)</h2>
+<div class="host w560">
+  <g-form id="sec-form" :labels="labels">
+    <g-form-section title="Entrega" id="sec">
+      <g-checkbox id="sec-q" v-model="sec" name="otra" label="Enviar a otra dirección"></g-checkbox>
+      <x-reveal id="sec-rv" :when="sec">
+        <g-input id="sec-calle" label="Calle y número" name="calle" v-model="calle"></g-input>
+      </x-reveal>
+      <g-input id="sec-next" label="Indicaciones" name="ind" v-model="ind"></g-input>
+    </g-form-section>
+  </g-form>
+</div>
+
+<div class="fixtures" aria-hidden="true">
+  <div class="g-sidebar" id="fx-sidebar"><div class="g-sidebar__sub" id="fx-sub"></div></div>
+  <div class="g-stepper" id="fx-stepper"><div class="g-stepper__connector" id="fx-conn"></div></div>
+  <i id="fx-slow" style="transition: opacity var(--g-duration-slow)"></i>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, h, ref, reactive, watch, onMounted, onBeforeUnmount, nextTick } = Vue
+const $ = (s) => document.querySelector(s)
+
+// ---- XReveal: lo que hará GFormReveal.vue (bruno), solo la parte visual del contrato ----
+const registry = window.__reveals = new Map()
+const XReveal = defineComponent({
+  name: 'XReveal',
+  props: { when: Boolean, density: { type: String, default: 'default' } },
+  setup(props, { slots, attrs }) {
+    const root = ref(null), open = ref(props.when), animating = ref(false), ready = ref(false), gap = ref(0)
+    function readGap() {
+      const p = root.value && root.value.parentElement
+      if (!p) return
+      const g = parseFloat(getComputedStyle(p).rowGap)
+      const v = Number.isFinite(g) ? g : 0
+      if (v !== gap.value) gap.value = v
+    }
+    let ro = null, timer = null
+    const settle = () => { animating.value = false; clearTimeout(timer) }
+    const longest = (el) => { const cs = getComputedStyle(el); const d = cs.transitionDuration.split(',').map(parseFloat); const l = cs.transitionDelay.split(',').map(parseFloat); return Math.max(0, ...d.map((x, i) => (x + (l[i % l.length] || 0)) * 1000)) }
+    watch(() => props.when, async (v) => {
+      readGap(); animating.value = true; open.value = v
+      await nextTick(); clearTimeout(timer); timer = setTimeout(settle, longest(root.value) + 50)
+    })
+    const onEnd = (e) => { if (e.target === root.value && e.propertyName === 'grid-template-rows') settle() }
+    const api = { root, open, animating }
+    onMounted(() => {
+      readGap()
+      ro = new ResizeObserver(() => requestAnimationFrame(readGap)); ro.observe(root.value.parentElement)
+      requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+      if (attrs.id) registry.set(attrs.id, api)
+    })
+    onBeforeUnmount(() => { ro && ro.disconnect(); clearTimeout(timer) })
+    return () => h('div', {
+      ref: root,
+      class: ['g-form-reveal', `g-form-reveal--density-${props.density}`, { 'is-open': open.value, 'is-animating': animating.value, 'is-ready': ready.value }],
+      style: { '--_reveal-gap': gap.value + 'px' },
+      inert: open.value ? undefined : '',
+      onTransitionend: onEnd
+    }, [h('fieldset', { class: 'g-form-reveal__body', role: 'none', disabled: open.value ? undefined : '' }, slots.default ? slots.default() : [])])
+  }
+})
+
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const SINO = [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]
+const PERSONA = [{ value: 'fisica', label: 'Física' }, { value: 'moral', label: 'Moral' }]
+const REGIMEN = [{ value: '601', label: 'General de Ley Personas Morales' }, { value: '612', label: 'Personas Físicas con Actividades Empresariales' }, { value: '626', label: 'Régimen Simplificado de Confianza' }]
+const models = window.__models = {}
+
+const FacturaForm = defineComponent({
+  name: 'FacturaForm',
+  props: { uid: String, density: String },
+  setup(props) {
+    const m = models[props.uid] = reactive({ factura: null, persona: null, curp: '', razon: '', rep: '', rfc: 'XAXX010101000', cp: '', regimen: null, pass: 'secreta', envio: ['correo'], calle: '', num: '', obs: '' })
+    const p = (s) => `${props.uid}-${s}`
+    return { m, p, labels, SINO, PERSONA, REGIMEN }
+  },
+  template: `
+  <g-form :id="p('form')" :labels="labels" :density="density">
+    <g-form-layout :id="p('layout')">
+      <g-radio-group :id="p('factura')" appearance="inline" label="¿Requiere factura?" name="factura" v-model="m.factura" :options="SINO" />
+      <x-reveal :id="p('rv')" :density="density" :when="m.factura === 'si'">
+        <g-radio-group :id="p('persona')" appearance="segmented" label="Tipo de persona" name="persona" v-model="m.persona" :options="PERSONA" />
+        <x-reveal :id="p('rv-fisica')" :density="density" :when="m.persona === 'fisica'">
+          <g-input :id="p('curp')" label="CURP" name="curp" v-model="m.curp" />
+        </x-reveal>
+        <x-reveal :id="p('rv-moral')" :density="density" :when="m.persona === 'moral'">
+          <g-form-row>
+            <g-input :id="p('razon')" class="g-form-w-lg" label="Razón social" name="razon" v-model="m.razon" />
+            <g-input :id="p('rep')" label="Representante legal" name="rep" v-model="m.rep" />
+          </g-form-row>
+        </x-reveal>
+        <g-form-row>
+          <g-input :id="p('rfc')" class="g-form-w-md" label="RFC" name="rfc" v-model="m.rfc" />
+          <g-input :id="p('cp')" class="g-form-w-sm" label="Código postal fiscal" name="cp" v-model="m.cp" />
+        </g-form-row>
+        <g-select :id="p('regimen')" label="Régimen fiscal" name="regimen" v-model="m.regimen" :options="REGIMEN" placeholder="Elige uno" />
+        <g-input :id="p('pass')" type="password" label="Contraseña del portal" name="pass" v-model="m.pass" show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" />
+        <g-checkbox-group :id="p('envio')" label="Enviar la factura por" name="envio" v-model="m.envio">
+          <g-checkbox value="correo" label="Correo" />
+          <g-checkbox value="whatsapp" label="WhatsApp" />
+        </g-checkbox-group>
+        <g-field-group :id="p('domicilio')" label="Domicilio fiscal">
+          <g-form-row>
+            <g-input :id="p('calle')" class="g-form-w-lg" label="Calle" name="calle" v-model="m.calle" />
+            <g-input :id="p('num')" class="g-form-w-xs" label="Número" name="num" v-model="m.num" />
+          </g-form-row>
+        </g-field-group>
+        <div><g-btn :id="p('validar')" variant="outline">Validar RFC</g-btn></div>
+      </x-reveal>
+      <g-input :id="p('obs')" label="Observaciones" name="obs" v-model="m.obs" />
+    </g-form-layout>
+  </g-form>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(new URLSearchParams(location.search).has('slow'))
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-slow:1200ms;--g-duration-fast:600ms}' : '' }
+    applySlow(slow.value); watch(slow, applySlow)
+    const sec = ref(false), calle = ref(''), ind = ref('')
+    const all = (v) => { for (const k of Object.keys(models)) { models[k].factura = v ? 'si' : 'no'; models[k].persona = v ? 'moral' : null } sec.value = v }
+    window.__all = all
+    return { slow, sec, calle, ind, all, labels }
+  }
+})
+app.component('XReveal', XReveal)
+app.component('FacturaForm', FacturaForm)
+app.use(Grana)
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+if (q.get('theme')) { $('#t-theme').value = q.get('theme'); setTheme(q.get('theme')) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+</script>
+</body>
+</html>

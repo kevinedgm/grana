@@ -1,0 +1,122 @@
+/*
+  GFormReveal · bloque condicional de un formulario (Fase 3)
+  Dueño: coco. Contrato: design/contracts/form.md §14 (DECISIONS.md #274 a #280). Estructura: design/lab/form-reveal/r01/.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin literales de tema.
+  Carácter: no es una tarjeta ni una sección. Dice «esto depende de la respuesta de arriba» con lo mínimo: una barra
+  al inicio (un borde, para que sobreviva a forced-colors) y una sangría; el resto es la pila de siempre.
+
+  Marcado que espera (lo pinta bruno):
+    div.g-form-reveal.g-form-reveal--density-{d}[.is-open][.is-animating][.is-ready][inert] style="--_reveal-gap: Npx"
+      fieldset.g-form-reveal__body[role=none][disabled]
+
+  Altura: rejilla de una pista 0fr → 1fr (sin medir alturas). Cerrado en reposo: visibility hidden (no display none:
+  las filas y el segmentado de dentro siguen midiendo). Margen de inicio negativo = row-gap del padre (--_reveal-gap,
+  lo escribe bruno en línea): un bloque cerrado no deja hueco y al abrir lo de abajo baja de forma continua.
+*/
+
+.g-form-reveal {
+  /* Neutro (#187): la de línea gana en cuanto el componente lee el row-gap del padre */
+  --_reveal-gap: 0px;
+  --_density: 1;
+  /* Movimiento grande (altura, margen) y fundido corto */
+  --_t: var(--g-duration-slow);
+  --_t-fade: var(--g-duration-fast);
+  /* Señal de pertenencia: barra (borde de control, ≥ 3:1 en el tema por defecto) y sangría */
+  --_bar: calc(var(--g-border-width) * 2);
+  --_indent: calc(var(--g-space-4) * var(--_density));
+
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: minmax(0, 1fr);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+.g-form-reveal--density-default { --_density: 1; }
+.g-form-reveal--density-comfortable { --_density: 0.875; }
+.g-form-reveal--density-compact { --_density: 0.75; }
+
+/* Cerrado: sin hueco. Dos clases para ganar a `.g-form-layout > * { margin: 0 }` (y a cualquier `> *` de una clase)
+   sin !important; el abierto, también con dos, para que la transición vaya entre las dos reglas */
+.g-form-reveal:not(.is-open) {
+  margin-block-start: calc(var(--_reveal-gap) * -1);
+}
+.g-form-reveal.is-open {
+  grid-template-rows: 1fr;
+  margin-block-start: 0;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Sin is-ready (primer pintado) no hay transición: no se anima al montar (plan 012) */
+@media (prefers-reduced-motion: no-preference) {
+  /* Cerrar: fundido corto desde el principio; la altura y el margen, con el movimiento grande; invisible al final */
+  .g-form-reveal.is-ready {
+    transition:
+      grid-template-rows var(--_t) var(--g-ease-out),
+      margin-block-start var(--_t) var(--g-ease-out),
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s linear var(--_t);
+  }
+  /* Abrir: visible desde el primer cuadro; el fundido empieza con retraso y termina con la altura */
+  .g-form-reveal.is-ready.is-open {
+    transition:
+      grid-template-rows var(--_t) var(--g-ease-out),
+      margin-block-start var(--_t) var(--g-ease-out),
+      opacity var(--_t-fade) var(--g-ease-standard) calc(var(--_t) - var(--_t-fade)),
+      visibility 0s;
+  }
+}
+/* Movimiento reducido (plan 007: menos, no cero): altura y margen en un cuadro; el fundido se conserva al abrir y al
+   cerrar, y al cerrar el bloque sigue visible hasta que acaba */
+@media (prefers-reduced-motion: reduce) {
+  .g-form-reveal.is-ready {
+    transition:
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s linear var(--_t-fade);
+  }
+  .g-form-reveal.is-ready.is-open {
+    transition:
+      opacity var(--_t-fade) var(--g-ease-standard),
+      visibility 0s;
+  }
+}
+
+/* ---------- Cuerpo: pila como GFormLayout, con barra y sangría ---------- */
+.g-form-reveal__body {
+  /* Reinicio del fieldset del agente de usuario (min-inline-size: min-content desborda en estrecho) */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+  /* Recortado mientras no está asentado y abierto: la pista puede llegar a 0 */
+  min-block-size: 0;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--g-form-gap) * var(--_density));
+  box-sizing: border-box;
+
+  /* La barra empieza en el borde de inicio de la raíz = el de la pregunta (hermanas en la misma pila); solo cambia el
+     inicio: el fin es el de todas las filas (#171). Propiedades lógicas: en RTL va a la derecha */
+  border-inline-start: var(--_bar) solid var(--g-color-border-control);
+  padding-inline-start: var(--_indent);
+}
+.g-form-reveal.is-open:not(.is-animating) > .g-form-reveal__body {
+  /* Asentado: no recorta anillos de foco ni sombras */
+  overflow: visible;
+}
+.g-form-reveal__body > * {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+@media (forced-colors: active) {
+  /* La barra es un borde: toma el color del sistema; se fija a CanvasText para que no quede en un gris del tema */
+  .g-form-reveal__body {
+    border-inline-start-color: CanvasText;
+  }
+}

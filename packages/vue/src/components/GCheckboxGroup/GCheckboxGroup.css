@@ -117,7 +117,12 @@
 }
 
 /* ---------- Deshabilitado (el <fieldset disabled> ya deshabilita a las hijas) ---------- */
-.g-checkbox-group:disabled .g-checkbox-group__label,
-.g-checkbox-group:disabled .g-checkbox-group__count {
+/* Bajo un GFormReveal cerrado (o cerrándose) el <fieldset disabled> del bloque deshabilita a todo lo de dentro: ese
+   :disabled heredado no se pinta, para que nada «salte» a gris durante el fundido de cierre (form.md §14, #275);
+   [disabled] propio y .is-disabled sí. */
+.g-checkbox-group:disabled:where(:not(.g-form-reveal:not(.is-open) *)) .g-checkbox-group__label,
+.g-checkbox-group:disabled:where(:not(.g-form-reveal:not(.is-open) *)) .g-checkbox-group__count,
+.g-checkbox-group[disabled] .g-checkbox-group__label,
+.g-checkbox-group[disabled] .g-checkbox-group__count {
   color: var(--g-color-text-subtle);
 }
