@@ -581,6 +581,47 @@ describe('GRadioGroup · segmentado: medida, apilado y mínimo intrínseco (#271
     expect(root(w).classes()).not.toContain('is-stacked')
   })
 
+  it('el ResizeObserver no toca la clase de medida de la raíz: el natural se cachea (Firefox: «Scroll anchoring was disabled»)', async () => {
+    BOX = 400
+    const w = make({ appearance: 'segmented', options: SEXO.slice(0, 2) })
+    await nextTick()
+    const rootEl = root(w).element
+    const toggles = []
+    const mo = new MutationObserver((records) => {
+      for (const r of records) toggles.push(rootEl.classList.contains('g-radio-group--measure'))
+    })
+    mo.observe(rootEl, { attributes: true, attributeFilter: ['class'] })
+    measured = []
+    const box = w.find('.g-radio-group__options').element
+    for (const b of [380, 250, 399, 210, 400]) {
+      BOX = b
+      roOf(box).fire(box, b)
+      await frame()
+    }
+    await Promise.resolve()
+    expect(measured).toEqual([])
+    expect(toggles.filter(Boolean)).toEqual([])
+    // sigue decidiendo el apilado con el natural cacheado (2 × 100 = 200)
+    BOX = 199
+    roOf(box).fire(box, BOX)
+    await frame()
+    expect(root(w).classes()).toContain('is-stacked')
+    BOX = 200
+    roOf(box).fire(box, BOX)
+    await frame()
+    expect(root(w).classes()).not.toContain('is-stacked')
+    expect(measured).toEqual([])
+    // al cambiar las opciones el natural se recalcula (con la clase de medida): 3 × 100 = 300 > 250
+    BOX = 250
+    await w.setProps({ options: SEXO })
+    await nextTick()
+    expect(measured.length).toBe(3)
+    expect(measured.every(Boolean)).toBe(true)
+    expect(root(w).classes()).toContain('is-stacked')
+    mo.disconnect()
+    w.unmount()
+  })
+
   it('al cambiar options, labelMode, size, density o appearance vuelve a medir; fuera de segmented no hay is-stacked', async () => {
     BOX = 250
     const w = make({ appearance: 'segmented', options: SEXO.slice(0, 2) })

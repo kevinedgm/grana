@@ -181,36 +181,44 @@ function measure() {
   el.classList.remove(MEASURE)
   return w > 0 ? Math.ceil(opts.length * w) : 0
 }
-// Decide el apilado por el ancho propio de __options (que no depende de is-stacked: no oscila). Escribe solo si cambia.
-function fit() {
+// Decide el apilado comparando el ancho propio de __options (que no depende de is-stacked: no oscila) con el natural
+// CACHEADO. `remeasure` vuelve a medir el natural (montaje, cambio de opciones/props, fuentes): el ResizeObserver NO lo
+// hace, para no alternar la clase de medida en la raíz en cada cambio de tamaño (Firefox desactiva el anclaje del
+// desplazamiento: «Scroll anchoring was disabled»). Solo si aún no hay natural (estaba oculto: 0) y ya hay ancho, mide.
+// Escribe solo si cambia.
+function fit(remeasure = false) {
   const el = rootEl.value
   if (!el || !isSegmented.value) {
     if (stacked.value) stacked.value = false
+    natural = 0
     publish(0)
     return
   }
-  natural = measure()
-  publish(natural)
   const box = el.querySelector(':scope > .g-radio-group__options')
   const avail = box ? box.getBoundingClientRect().width : 0
+  if (remeasure === true || (natural === 0 && avail > 0)) {
+    natural = measure()
+    publish(natural)
+  }
   const next = natural > 0 && avail > 0 && natural > avail + 0.5
   if (stacked.value !== next) stacked.value = next
 }
+const refit = () => fit(true)
 
 let stopObserve = null
 let unmounted = false
-const onFonts = () => { if (!unmounted) fit() }
+const onFonts = () => { if (!unmounted) refit() }
 function watchSize() {
   stopObserve?.()
   stopObserve = null
   const box = rootEl.value && rootEl.value.querySelector(':scope > .g-radio-group__options')
   // Las escrituras van fuera de la devolución del observador (en el cuadro siguiente, #169): lo hace el motor compartido
-  if (isSegmented.value && box) stopObserve = observeOptions(box, fit)
+  if (isSegmented.value && box) stopObserve = observeOptions(box, () => fit())
 }
 
 onMounted(() => {
   // Antes del primer pintado del cliente: si no cabe, ya sale apilado
-  fit()
+  refit()
   watchSize()
   if (typeof document !== 'undefined' && document.fonts) {
     document.fonts.ready?.then(onFonts)
@@ -220,7 +228,7 @@ onMounted(() => {
 // Al cambiar opciones, labelMode, size, density o appearance se mide de nuevo (tras el parche del DOM)
 watch(() => [props.options, props.labelMode, props.size, density.value, props.appearance], () => {
   if (unmounted) return
-  fit()
+  refit()
   watchSize()
 }, { deep: true, flush: 'post' })
 onBeforeUnmount(() => {
