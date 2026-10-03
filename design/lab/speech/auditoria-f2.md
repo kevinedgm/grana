@@ -95,3 +95,7 @@ Medido en el playground con 320 fragmentos (`#sp-saved`), 6–8 repeticiones por
 - **Safari real**, **móvil real** (selección táctil con asas, teclado virtual con el editor en la hoja o el diálogo), **IME** y teclados no QWERTY; `forced-colors` real de Windows; `prefers-contrast` en Firefox y WebKit (solo Chromium los emula).
 - **Zoom 200 %** sobre los componentes reales: lo cubrió el banco de estilo (640×450, `estilo-verificar-f2.mjs`); aquí solo 320×640.
 - **Portapapeles real** en Firefox y WebKit (lo cubre bruno en Chromium en `speech-f2.spec.mjs`).
+
+## Seguimiento
+
+Hallazgos 3, 4 y 5 cerrados por bruno (commit d60d60b): `tabindex="-1"` en `.g-transcript__scroll`, vigilante reiniciado al cambiar de transcript y `meta.json` al día. Re-verificación con `node design/lab/speech/auditoria-f2-verificar.mjs` sobre `dist` reconstruido: **27 708 / 27 708** en Chromium, Firefox y WebKit. Ctrl+A con 320 filas en Chromium: estilo mediana 33 ms (máx 36), Event Timing mediana 40 ms (máx 48).
