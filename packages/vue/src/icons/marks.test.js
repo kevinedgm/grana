@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import GCheckbox from '../components/GCheckbox/GCheckbox.vue'
 import GCheckboxGroup from '../components/GCheckboxGroup/GCheckboxGroup.vue'
+import GRadioGroup from '../components/GRadioGroup/GRadioGroup.vue'
 import GInput from '../components/GInput/GInput.vue'
 import GTextarea from '../components/GTextarea/GTextarea.vue'
 import GSwitch from '../components/GSwitch/GSwitch.vue'
@@ -38,6 +39,7 @@ describe('mensajes de error · circle-alert de Lucide (C6)', () => {
   const cases = [
     ['GCheckbox', GCheckbox, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox__message-icon'],
     ['GCheckboxGroup', GCheckboxGroup, { label: 'x', error: 'Mal', invalid: true }, 'g-checkbox-group__message-icon'],
+    ['GRadioGroup', GRadioGroup, { label: 'x', options: [{ value: 1, label: 'a' }, { value: 2, label: 'b' }], error: 'Mal' }, 'g-radio-group__message-icon'],
     ['GInput', GInput, { label: 'x', error: 'Mal' }, 'g-input__message-icon'],
     ['GTextarea', GTextarea, { label: 'x', error: 'Mal' }, 'g-textarea__message-icon'],
     ['GSwitch', GSwitch, { label: 'x', error: 'Mal' }, 'g-switch__message-icon'],

@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "name": "GRadioGroup",
+  "tag": "g-radio-group",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Una pregunta con una sola respuesta, con radios nativos de name común y cinco apariencias (list, inline, segmented, chip, card) que cambian la forma, no la semántica.",
+  "contract": "design/contracts/radio-group.md",
+  "decisions": "DECISIONS.md #267 a #273 (#262 field, #202 icono por nombre)",
+  "prototype": "design/lab/radio-group/r01/",
+  "style": "packages/vue/src/components/GRadioGroup/GRadioGroup.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | Number | Boolean | null",
+      "default": null,
+      "note": "value de la opción elegida con su tipo original, comparado con ===. null/undefined = sin selección (fuera de FormData). type [String, Number, Boolean] con String antes de Boolean y default null: '' no se vuelve true y la prop ausente no se vuelve false"
+    },
+    {
+      "name": "options",
+      "type": "Array",
+      "default": [],
+      "note": "{ value, label, description?, icon?, disabled? } (forma de GSelect, sin grupos). value String/Number/Boolean único por === y por String(value); label obligatorio. Las inválidas y los grupos se ignoran con aviso; los ids siguen el índice tras descartarlas"
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "list",
+      "values": [
+        "list",
+        "inline",
+        "segmented",
+        "chip",
+        "card"
+      ],
+      "note": "Fija la raíz (#268): inline y segmented → <div role=radiogroup> de tres hijos, admitidos en una GFormRow con más hijos; list, chip y card → <fieldset role=radiogroup> + <legend>, fila propia"
+    },
+    {
+      "name": "labelMode",
+      "type": "String",
+      "default": "full",
+      "values": [
+        "full",
+        "icon"
+      ],
+      "note": "icon solo en segmented y chip y sin slot option: is-icon-only en cada opción con icono; la etiqueta queda como texto oculto accesible (nombre del radio). Fuera de eso cuenta como full y avisa"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "name común de los radios y clave en errors/warnings de GForm y en FormData. Sin él se genera uno estable (useId); dentro de un <form> avisa"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "note": "<span> (inline/segmented) o <legend> (list/chip/card) con id ID-label; aria-labelledby de la raíz"
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null,
+      "note": "Ayuda en el pie (ID-hint), en el aria-describedby de la raíz"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de error (C4); aria-invalid solo en la raíz"
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "No bloquea ni pone aria-invalid (C5)"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de válido (C5)"
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-required en la raíz y marca según la convención de GForm; nunca required nativo en los radios (#269)"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null,
+      "note": "false quita la marca; markRule both (un grupo de radios sí lleva «(opcional)»)"
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "resolvedDefault": false,
+      "note": "aria-readonly en la raíz; radios habilitados, enfocables y en FormData; cancela el keydown de las cuatro flechas y el click (#272). Hereda de GForm/GFormLayout"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "resolvedDefault": false,
+      "note": "fieldset: disabled nativo del <fieldset>; div: disabled en cada radio. Fuera del Tab y de FormData. Hereda del contexto"
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "resolvedDefault": "default",
+      "note": "Prop › contexto › default"
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ],
+      "note": "Relleno de la elegida; el error usa siempre danger"
+    },
+    {
+      "name": "field",
+      "type": "Boolean",
+      "default": true,
+      "note": "#262. false = control suelto dentro de otro componente: sin __message ni aria-live, sin contexto de GForm (ni registro ni herencia de density, readonly, disabled, errores ni marcas); error, warning, valid, required y mark se ignoran con aviso; el pie solo existe con hint. Se lee al crear el grupo"
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "De la raíz; derivan ID-label, ID-hint, ID-message y por opción ID-i, ID-i-label, ID-i-description"
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | Number | Boolean (tipo original del value)",
+      "trigger": "El usuario elige otra opción (change nativo del radio). Nunca con readonly ni disabled, ni al cambiar modelValue desde fuera. change, focusin, focusout y keydown no se declaran: suben del radio a la raíz por $attrs (manejadores del contexto y propios primero, C8)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta del grupo con contenido rico (dentro de ID-label; nada interactivo)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico (dentro de ID-hint)"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error con contenido rico; solo con error visible, tras icono y prefijo"
+    },
+    {
+      "name": "option",
+      "props": "{ option, index, checked, disabled }",
+      "purpose": "Contenido de una opción: sustituye a icono, etiqueta y descripción dentro de ID-i-label (todo es el nombre del radio); el <input> lo pone el componente; nada interactivo. Con él, labelMode=icon no tiene efecto (aviso)"
+    },
+    {
+      "name": "icon",
+      "props": "{ option, index, checked }",
+      "purpose": "Icono de una opción (manda sobre option.icon, #202); solo en opciones con icon con valor; dentro de __icon aria-hidden"
+    }
+  ],
+  "classes": {
+    "root": [
+      "g-radio-group",
+      "g-radio-group--appearance-{list|inline|segmented|chip|card}",
+      "g-radio-group--size-{s}",
+      "g-radio-group--density-{d}",
+      "g-radio-group--color-{c}",
+      "g-radio-group--icon-only",
+      "g-radio-group--measure (interna, solo durante la medida síncrona)",
+      "is-disabled",
+      "is-readonly",
+      "is-invalid",
+      "is-warning",
+      "is-valid",
+      "is-stacked"
+    ],
+    "parts": [
+      "__label",
+      "__required",
+      "__optional",
+      "__options",
+      "__option (is-disabled, is-icon-only)",
+      "__input",
+      "__segment (solo segmented)",
+      "__icon",
+      "__text",
+      "__option-label",
+      "__description (solo list y card)",
+      "__support",
+      "__hint",
+      "__message",
+      "__message-icon",
+      "__message-type"
+    ]
+  },
+  "keyboard": "Nativo (APG Radio Group): una parada de Tab, flechas que mueven y eligen saltando las deshabilitadas, Espacio elige. Sin manejadores propios salvo el bloqueo de readonly. WebKit no envuelve ni invierte ←/→ en RTL y en macOS Tab no llega a los radios sin «Acceso total por teclado» (#272)",
+  "segmented": "Ancho natural = n × max(ancho de __segment + padding-inline + border-inline-start-width, min-inline-size), redondeado hacia arriba, medido con g-radio-group--measure al montar, al cambiar options/labelMode/size/density/appearance, al cargar fuentes y en cada cambio de tamaño de __options (un ResizeObserver compartido, fitEngine.js; decisión en el cuadro siguiente y solo si cambia). is-stacked si natural > ancho de __options + 0,5px. Publica el natural a su GFormRow con setIntrinsicMin(raíz, px) (0 al desmontar o al dejar de ser segmented). Sin medida (SSR, sin ResizeObserver al cargar): una línea",
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border-control",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-{color}",
+    "--g-color-on-{color}",
+    "--g-color-{color}-strong",
+    "--g-color-{color}-soft",
+    "--g-color-on-{color}-soft",
+    "--g-color-{color}-text",
+    "--g-color-neutral-soft",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-{danger|warning|success}-text",
+    "--g-color-focus",
+    "--g-radius-sm",
+    "--g-radius-md",
+    "--g-radius-pill",
+    "--g-radius-lg",
+    "--g-space-1..5",
+    "--g-font-ui",
+    "--g-text-{caption|body-sm|body}-{size|line}",
+    "--g-text-body-sm-weight",
+    "--g-text-action-weight",
+    "--g-border-width",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-press-scale"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "checked",
+    "unselected",
+    "option-disabled",
+    "disabled",
+    "readonly",
+    "error",
+    "warning",
+    "valid",
+    "stacked (segmented)",
+    "icon-only (segmented, chip)"
+  ],
+  "formSystem": {
+    "contract": "design/contracts/form.md §2 y §4",
+    "useFormField": "trigger change; control = el radio por el que entraría Tab (la elegida habilitada o la primera habilitada); root = la raíz; markRule both; role field; se registra con name",
+    "changes": [
+      "C1 contexto",
+      "C3 marcas",
+      "C4 región __message",
+      "C5 warning/valid",
+      "C6 iconos",
+      "C8 manejadores primero",
+      "C12 tres pistas en GFormRow (inline y segmented)",
+      "#271 mínimo intrínseco"
+    ]
+  },
+  "related": {
+    "GFormRow": "setIntrinsicMin(el, px) en su sub‑contexto; list, chip y card en NOT_ADMITTED",
+    "GErrorSummary": ".g-radio-group en el closest de la raíz a desplazar",
+    "GCheckbox": "#270 aria-required en vez de required nativo (misma ronda)"
+  },
+  "pending": [
+    "Auditoría de coco (paso 5) sobre el componente real con un tema distinto; luego status candidate",
+    "README (mora-docs)",
+    "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): fieldset role=radiogroup frente a div; aria-required/aria-invalid/aria-readonly del grupo; descripción por opción; solo icono",
+    "Safari real (Tab con Acceso total por teclado), táctil y forced-colors reales, zoom 200/400 %",
+    "form externo (atributo form) no admitido en v0.1"
+  ]
+}

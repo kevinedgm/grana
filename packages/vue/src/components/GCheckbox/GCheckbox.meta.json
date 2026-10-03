@@ -85,7 +85,8 @@
     {
       "name": "required",
       "type": "Boolean",
-      "default": false
+      "default": false,
+      "note": "#270: aria-required=\"true\" en el <input>, nunca el atributo nativo required (Chromium expone una casilla obligatoria sin marcar como inválida antes de interactuar). Marca según la convención de GForm. Con field: false se ignora"
     },
     {
       "name": "mark",

@@ -82,8 +82,8 @@ const geom = () => {
   const rtl = getComputedStyle(document.documentElement).direction === 'rtl'
   const S = (r) => (rtl ? -r.right : r.left)
   const E = (r) => (rtl ? -r.left : r.right)
-  const BOX = ':scope > .g-input__row, :scope > .g-select__control, :scope > .g-textarea__control, :scope > .g-datepicker__field, :scope > .g-input-group__box'
-  const name = (el) => (el.querySelector('label, legend, .g-datepicker__label')?.textContent.trim() || el.className.split(' ')[0]).slice(0, 40)
+  const BOX = ':scope > .g-input__row, :scope > .g-select__control, :scope > .g-textarea__control, :scope > .g-datepicker__field, :scope > .g-input-group__box, :scope > .g-radio-group__options'
+  const name = (el) => (el.querySelector('.g-radio-group__label, label, legend, .g-datepicker__label')?.textContent.trim() || el.className.split(' ')[0]).slice(0, 40)
   for (const fr of document.querySelectorAll('#sec-form [data-frame]')) {
     fr.querySelectorAll('.g-form-layout').forEach((lay) => {
       const R = E(lay.getBoundingClientRect())
@@ -120,11 +120,11 @@ const geom = () => {
     })
     if (fr.scrollWidth > fr.clientWidth + 1) out.push(`desborde en el marco de ${fr.querySelector('form')?.id}`)
     const FR = fr.getBoundingClientRect()
-    fr.querySelectorAll('.g-input__row, .g-select__control, .g-textarea__control, .g-datepicker__field, .g-input-group__box, .g-input-group__part').forEach((b) => {
+    fr.querySelectorAll('.g-input__row, .g-select__control, .g-textarea__control, .g-datepicker__field, .g-input-group__box, .g-input-group__part, .g-radio-group__options').forEach((b) => {
       const r = b.getBoundingClientRect()
-      if (r.right > FR.right + 1 || r.left < FR.left - 1) out.push(`caja fuera del marco: ${b.closest('.g-input, .g-select, .g-textarea, .g-datepicker, .g-input-group')?.id || b.className}`)
+      if (r.right > FR.right + 1 || r.left < FR.left - 1) out.push(`caja fuera del marco: ${b.closest('.g-input, .g-select, .g-textarea, .g-datepicker, .g-input-group, .g-radio-group')?.id || b.className}`)
     })
-    fr.querySelectorAll('.g-input__label, .g-select__label, .g-textarea__label, .g-datepicker__label, .g-input-group__label, .g-field-group__label').forEach((l) => {
+    fr.querySelectorAll('.g-input__label, .g-select__label, .g-textarea__label, .g-datepicker__label, .g-input-group__label, .g-field-group__label, .g-radio-group__label, .g-radio-group__option-label').forEach((l) => {
       const cs = getComputedStyle(l)
       if (l.scrollWidth > l.clientWidth + 1 || l.scrollHeight > l.clientHeight + 1) out.push(`etiqueta recortada: ${l.textContent}`)
       if (cs.textOverflow === 'ellipsis' || (cs.webkitLineClamp && cs.webkitLineClamp !== 'none')) out.push(`etiqueta con elipsis o límite de líneas: ${l.textContent}`)
@@ -165,6 +165,35 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     await page.evaluate(() => { document.querySelectorAll('#sec-form [data-frame]').forEach((f) => { f.style.inlineSize = '375px' }) })
     await settle(page)
     expect(await page.locator('#fs-nombre').evaluate((i) => i.closest('.g-form-row').dataset.lines)).toBe('1')
+    // GRadioGroup en fila (#268, #271): Fecha · Sexo (segmented) · ¿Primera consulta? (inline). A 1280 comparten una línea
+    // con las cajas al mismo top; al estrechar, la fila se parte ANTES de que el segmentado se apile (por su ancho natural)
+    await page.evaluate(() => { document.querySelectorAll('#sec-form [data-frame]').forEach((f) => { f.style.inlineSize = '' }) })
+    const rgRow = async () => page.evaluate(() => {
+      const sexo = document.getElementById('fm-sexo')
+      const row = sexo.closest('.g-form-row')
+      const box = (el) => el.querySelector(':scope > .g-input__row, :scope > .g-datepicker__field, :scope > .g-radio-group__options').getBoundingClientRect()
+      const kids = [...row.children]
+      return { lines: row.dataset.lines, line: kids.map((k) => k.dataset.line), tops: kids.map((k) => Math.round(box(k).top * 10) / 10), stacked: sexo.classList.contains('is-stacked'), segH: box(sexo).height, dateH: box(kids[0]).height }
+    })
+    await bench(page, { w: '1280', state: false, long: false })
+    let r = await rgRow()
+    expect(r.lines, `1280: Fecha · Sexo · Primera en una línea (${JSON.stringify(r)})`).toBe('1')
+    expect(Math.max(...r.tops) - Math.min(...r.tops), `1280: cajas al mismo top ${r.tops}`).toBeLessThanOrEqual(1)
+    expect(Math.abs(r.segH - r.dateH), 'la caja del segmentado mide lo que la del campo vecino').toBeLessThanOrEqual(1)
+    for (const w of ['960', '720', '480', '360']) {
+      await bench(page, { w })
+      r = await rgRow()
+      // Mientras Sexo no está solo en su línea, no se apila
+      const alone = r.line.filter((l) => l === r.line[1]).length === 1
+      expect(!r.stacked || alone, `${w}: Sexo apilado compartiendo línea (${JSON.stringify(r)})`).toBe(true)
+      for (const l of new Set(r.line)) {
+        const ts = r.tops.filter((_, i) => r.line[i] === l)
+        expect(Math.max(...ts) - Math.min(...ts), `${w}: línea ${l} con cajas al mismo top (${ts})`).toBeLessThanOrEqual(1)
+      }
+    }
+    await bench(page, { w: '480' })
+    r = await rgRow()
+    expect(r.stacked, `480: Sexo cabe sin apilarse en su línea (${JSON.stringify(r)})`).toBe(false)
     expect(errs, browserName).toEqual([])
     expect(await roBlame(page), `${browserName}: bucle de ResizeObserver con observaciones del formulario`).toEqual([])
   })

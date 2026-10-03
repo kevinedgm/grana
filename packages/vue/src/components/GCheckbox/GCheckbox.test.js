@@ -109,10 +109,11 @@ describe('GCheckbox · indeterminada', () => {
 })
 
 describe('GCheckbox · estados', () => {
-  it('disabled y required usan atributos nativos; required trae marca aria-hidden', () => {
+  it('disabled usa el atributo nativo; required pone aria-required (nunca required nativo, #270) y trae marca aria-hidden', () => {
     const w = mount(GCheckbox, { props: { label: 'x', disabled: true, required: true } })
     expect(input(w).attributes('disabled')).toBeDefined()
-    expect(input(w).attributes('required')).toBeDefined()
+    expect(input(w).attributes('required')).toBeUndefined()
+    expect(input(w).attributes('aria-required')).toBe('true')
     expect(w.find('.g-checkbox__required').attributes('aria-hidden')).toBe('true')
   })
 
@@ -270,7 +271,7 @@ describe('GCheckbox · field (#262)', () => {
       </div>"
     `)
     expect(html({ label: 'Acepto', id: 'b', hint: 'Ayuda', error: 'Mal', required: true, modelValue: true })).toMatchInlineSnapshot(`
-      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-invalid"><label class="g-checkbox__row" for="b"><span class="g-checkbox__box"><input type="checkbox" id="b" checked="" required="" aria-invalid="true" aria-labelledby="b-label" aria-describedby="b-hint b-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-invalid"><label class="g-checkbox__row" for="b"><span class="g-checkbox__box"><input type="checkbox" id="b" checked="" aria-required="true" aria-invalid="true" aria-labelledby="b-label" aria-describedby="b-hint b-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
           <!--v-if--><span class="g-checkbox__text"><span id="b-label" class="g-checkbox__label"><!--v-if-->Acepto<span class="g-checkbox__required" aria-hidden="true">*</span></span><span id="b-hint" class="g-checkbox__hint">Ayuda</span></span>
           <!--v-if-->
         </label>
@@ -330,6 +331,7 @@ describe('GCheckbox · field (#262)', () => {
     for (const k of ['error', 'warning', 'valid', 'required', 'mark']) expect(msgs[0]).toContain(`\`${k}\``)
     expect(input(w).attributes('aria-invalid')).toBeUndefined()
     expect(input(w).attributes('required')).toBeUndefined()
+    expect(input(w).attributes('aria-required')).toBeUndefined()
     expect(w.find('.g-checkbox__required').exists()).toBe(false)
     expect(root(w).classes()).not.toEqual(expect.arrayContaining(['is-invalid']))
     expect(root(w).classes()).not.toContain('is-warning')

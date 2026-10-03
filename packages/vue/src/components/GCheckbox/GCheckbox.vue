@@ -154,7 +154,9 @@ const controlled = computed(() => ({
   // Dentro de un GCheckboxGroup con name, la casilla lo toma de él (la que trae el suyo lo conserva, C11)
   name: attrs.name ?? (inGroup.value ? group.name?.value : undefined),
   disabled: isDisabled.value || undefined,
-  required: (isField && props.required) || undefined,
+  // #270: aria-required y nunca required nativo (Chromium expone una casilla obligatoria sin marcar como inválida
+  // desde el principio, aunque el <form> tenga novalidate; contra «castigar tarde», #157)
+  'aria-required': isField && props.required ? 'true' : undefined,
   'aria-readonly': isReadonly.value ? 'true' : undefined,
   'aria-invalid': invalid.value ? 'true' : undefined,
   'aria-labelledby': labelledBy.value ?? attrs['aria-labelledby'],

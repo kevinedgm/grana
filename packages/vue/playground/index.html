@@ -17,6 +17,8 @@
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
     .col { display: grid; gap: 16px; max-width: 320px; }
+    .rg-demo { display: grid; gap: 24px; max-inline-size: 640px; }
+    .rg-narrow { max-inline-size: 220px; }
     .cd-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: stretch; margin: 0 0 20px; }
     .cd-ph { display: grid; place-items: center; inline-size: 100%; block-size: 100%; background: linear-gradient(135deg, var(--g-color-accent-soft), var(--g-color-neutral-soft)); color: var(--g-color-text-muted); font-size: var(--g-text-title-size); }
     .cd-ph--dark { background: var(--g-color-neutral); color: var(--g-color-on-neutral); }
@@ -434,6 +436,41 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
           </div>
         </section>
+        <section class="pg-section" id="sec-radio" data-pg-section>
+          <h2>GRadioGroup</h2>
+          <p class="pg-lead">Una pregunta con una sola respuesta, con radios nativos (una parada de Tab, flechas que mueven y eligen). Cinco apariencias que cambian la forma, no la semántica: <code>list</code> y <code>card</code> con descripción, <code>inline</code> y <code>segmented</code> que comparten línea en una <code>GFormRow</code>, <code>chip</code>.</p>
+          <h3>Las cinco apariencias</h3>
+          <div class="pg-panel">
+    <div class="rg-demo" id="rg-apariencias">
+      <g-radio-group id="rg-list" v-model="rg.modalidad" name="rg-modalidad" label="Modalidad de consulta" hint="Puedes cambiarla hasta un día antes." :options="rg.modalidades"></g-radio-group>
+      <g-radio-group id="rg-inline" v-model="rg.fuma" name="rg-fuma" appearance="inline" label="¿Fuma?" :options="rg.sino"></g-radio-group>
+      <g-radio-group id="rg-segmented" v-model="rg.sexo" name="rg-sexo" appearance="segmented" label="Sexo" required :options="rg.sexos"></g-radio-group>
+      <g-radio-group id="rg-chip" v-model="rg.frecuencia" name="rg-frecuencia" appearance="chip" color="accent" label="Frecuencia de recordatorios" :options="rg.frecuencias"></g-radio-group>
+      <g-radio-group id="rg-card" v-model="rg.plan" name="rg-plan" appearance="card" label="Plan" :options="rg.planes"></g-radio-group>
+    </div>
+    <p class="log" id="rg-log">modalidad={{ String(rg.modalidad) }} · fuma={{ String(rg.fuma) }} ({{ typeof rg.fuma }}) · sexo={{ String(rg.sexo) }} · frecuencia={{ String(rg.frecuencia) }} · plan={{ String(rg.plan) }} ({{ typeof rg.plan }})</p>
+          </div>
+          <h3>Estados: solo lectura, deshabilitado, error, sin selección y opción deshabilitada</h3>
+          <div class="pg-panel">
+    <form id="rg-states" class="rg-demo" @submit.prevent>
+      <g-radio-group id="rg-ro" name="rg-ro" appearance="segmented" label="Sexo (solo lectura)" :options="rg.sexos" model-value="M" readonly></g-radio-group>
+      <g-radio-group id="rg-ro-list" name="rg-ro-list" label="Modalidad (solo lectura)" :options="rg.modalidades" model-value="presencial" readonly></g-radio-group>
+      <g-radio-group id="rg-dis" name="rg-dis" appearance="chip" label="Tipo de sangre (deshabilitado)" :options="rg.sangre" model-value="O+" disabled></g-radio-group>
+      <g-radio-group id="rg-err" v-model="rg.alergias" name="rg-alergias" appearance="inline" label="¿Alergias?" required :options="rg.sino" :error="rg.alergias === null ? 'Elige una opción' : undefined"></g-radio-group>
+      <g-radio-group id="rg-none" v-model="rg.ninguna" name="rg-ninguna" appearance="card" label="Turno (sin selección)" :options="rg.turnos"></g-radio-group>
+    </form>
+          </div>
+          <h3>Solo icono (labelMode="icon"), apilado por su ancho y RTL</h3>
+          <div class="pg-panel">
+    <div class="rg-demo">
+      <g-radio-group id="rg-icon" v-model="rg.vista" name="rg-vista" appearance="segmented" label-mode="icon" label="Vista" size="sm" :field="false" :options="rg.vistas"></g-radio-group>
+      <g-radio-group id="rg-icon-chip" v-model="rg.canal" name="rg-canal" appearance="chip" label-mode="icon" label="Canal" :options="rg.canales"></g-radio-group>
+      <div class="rg-narrow"><g-radio-group id="rg-stack" v-model="rg.lado" name="rg-lado" appearance="segmented" label="Lado dominante (contenedor estrecho: se apila)" :options="rg.lados"></g-radio-group></div>
+      <div dir="rtl" lang="ar"><g-radio-group id="rg-rtl" v-model="rg.rtl" name="rg-rtl" appearance="segmented" label="الجنس" :options="rg.rtlOpts"></g-radio-group></div>
+    </div>
+    <p class="log">vista={{ String(rg.vista) }} · canal={{ String(rg.canal) }} · lado={{ String(rg.lado) }} · rtl={{ String(rg.rtl) }}</p>
+          </div>
+        </section>
         <section class="pg-section" id="sec-switch" data-pg-section>
           <h2>GSwitch</h2>
           <p class="pg-lead">Interruptores con estados de guardado, error e iconos.</p>
@@ -508,8 +545,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
           <g-form-row>
             <g-date-picker v-model="fm.m.nacimiento" id="fm-nac" class="g-form-w-sm" style="--g-form-min: 44" label="Fecha de nacimiento" name="m-nacimiento" required hint="La edad se calcula sola." :output="fm.edad ? fm.edad + ' años' : ''" :labels="dpLabels"></g-date-picker>
-            <!-- Sexo: GSelect hasta la Fase 2 (GRadioGroup appearance="segmented", #181) -->
-            <g-select v-model="fm.m.sexo" id="fm-sexo" label="Sexo" name="m-sexo" required placeholder="Elige" :error="fm.E('fm-sexo')" :options="[{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decir' }]"></g-select>
+            <!-- Sexo: GRadioGroup segmentado (#181, #268); publica su ancho natural a la fila (#271) -->
+            <g-radio-group v-model="fm.m.sexo" id="fm-sexo" appearance="segmented" label="Sexo" name="m-sexo" required :error="fm.E('fm-sexo')" :options="[{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decir' }]"></g-radio-group>
+            <g-radio-group v-model="fm.m.primera" id="fm-primera" class="g-form-w-sm" appearance="inline" :label="fm.L('¿Primera consulta?', '¿Es la primera consulta en esta clínica?')" name="m-primera" :warning="fm.W('fm-primera')" :options="[{ value: true, label: 'Sí' }, { value: false, label: 'No' }]"></g-radio-group>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
@@ -2051,6 +2089,29 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const reservasError = ref('')
         const validarReservas = () => { reservasError.value = reservas.value.length ? '' : 'Elige al menos una reserva.' }
         const servicios = ref(['wifi', 'estacionamiento'])
+        // GRadioGroup: un modelo por pregunta, con el tipo original del value (String, Number o Boolean)
+        const rg = reactive({
+          modalidad: 'presencial', fuma: false, sexo: null, frecuencia: 'semanal', plan: 2, alergias: null, ninguna: null, vista: 'lista', canal: 'correo', lado: null, rtl: 'f',
+          modalidades: [
+            { value: 'presencial', label: 'Presencial', description: 'En el consultorio de Reforma 120.', icon: 'map-pin' },
+            { value: 'linea', label: 'En línea', description: 'Videollamada; el enlace llega por correo.', icon: 'globe' },
+            { value: 'tel', label: 'Por teléfono', description: 'No disponible este mes.', icon: 'message-circle', disabled: true }
+          ],
+          sino: [{ value: true, label: 'Sí' }, { value: false, label: 'No' }],
+          sexos: [{ value: 'F', label: 'Femenino' }, { value: 'M', label: 'Masculino' }, { value: 'X', label: 'Prefiero no decir' }],
+          frecuencias: [{ value: 'diario', label: 'Diario' }, { value: 'semanal', label: 'Semanal' }, { value: 'mensual', label: 'Mensual' }, { value: 'nunca', label: 'Nunca' }],
+          planes: [
+            { value: 1, label: 'Básico', description: 'Consulta general y recordatorios.', icon: 'user' },
+            { value: 2, label: 'Familiar', description: 'Hasta cuatro personas en el mismo expediente.', icon: 'users' },
+            { value: 3, label: 'Empresa', description: 'Facturación centralizada y reportes.', icon: 'building-complex' }
+          ],
+          sangre: ['O+', 'O-', 'A+', 'A-', 'B+', 'AB+'].map((v) => ({ value: v, label: v })),
+          turnos: [{ value: 'm', label: 'Mañana', description: 'De 8:00 a 14:00.' }, { value: 't', label: 'Tarde', description: 'De 14:00 a 20:00.' }],
+          vistas: [{ value: 'lista', label: 'Lista', icon: 'menu' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }, { value: 'galeria', label: 'Galería', icon: 'image' }],
+          canales: [{ value: 'correo', label: 'Correo', icon: 'mail' }, { value: 'mensaje', label: 'Mensaje', icon: 'message-circle' }, { value: 'web', label: 'Web', icon: 'globe' }],
+          lados: [{ value: 'izq', label: 'Izquierdo' }, { value: 'der', label: 'Derecho' }, { value: 'ambos', label: 'Ambos' }, { value: 'nose', label: 'No lo sé' }],
+          rtlOpts: [{ value: 'f', label: 'أنثى' }, { value: 'm', label: 'ذكر' }, { value: 'x', label: 'آخر' }]
+        })
         const subEmail = ref('')
         const subError = ref('')
         const subLog = ref('')
@@ -2081,7 +2142,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2122,7 +2183,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
         const num = (v) => { const n = Number(String(v).replace(/,/g, '').trim()); return String(v).trim() === '' ? NaN : n }
-        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
         // Banco de distribución (form.md §12): ancho del contenedor, ayuda + mensajes de los cuatro tipos y etiquetas largas.
         // Los mensajes del banco son props explícitas (se ven siempre); sin el banco, GForm decide cuándo se ven.
         const FM_BENCH = {
@@ -2130,6 +2191,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           'fs-tel-num': ['error', 'Escribe el número a 10 dígitos, sin la clave del país'],
           'fm-ap1': ['error', 'Escribe el primer apellido como aparece en la identificación'],
           'fm-sexo': ['error', 'Elige el sexo'],
+          'fm-primera': ['warning', 'Confirma si ya tiene expediente'],
           'fm-temp': ['warning', 'Temperatura alta: confirma la lectura'],
           'fm-cpf': ['valid', 'Código postal de Oaxaca de Juárez'],
           'fm-rfc': ['error', 'El RFC de persona física tiene 13 caracteres'],
@@ -2211,7 +2273,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>

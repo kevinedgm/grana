@@ -67,7 +67,7 @@ async function onLink(event, item) {
     if (isDev) console.warn(`[Grana GErrorSummary] no existe ningún elemento con id «${item.id}».`)
     return
   }
-  const root = (item.root && item.root()) || control.closest?.('.g-input, .g-textarea, .g-select, .g-datepicker, .g-checkbox-group, .g-checkbox, .g-switch, .g-field-group') || control
+  const root = (item.root && item.root()) || control.closest?.('.g-input, .g-textarea, .g-select, .g-datepicker, .g-checkbox-group, .g-radio-group, .g-checkbox, .g-switch, .g-field-group') || control
   revealAndFocus(control, root)
 }
 

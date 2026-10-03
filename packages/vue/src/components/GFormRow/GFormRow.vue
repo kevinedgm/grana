@@ -23,15 +23,29 @@ const parent = inject(layoutKey, null)
 const density = computed(() => props.density ?? unref(parent?.density) ?? unref(form?.density) ?? 'default')
 const stack = computed(() => Boolean(unref(parent?.stack)) && !props.keep)
 
-// Sub‑contexto: los campos de la fila llenan su sitio (block); readonly y disabled siguen los del contenedor
-provide(layoutKey, { block: true, density, stack: parent?.stack, readonly: parent?.readonly, disabled: parent?.disabled })
-
 const root = ref(null)
+
+// Mínimo intrínseco (#271, form.md §4): un hijo cuyo mínimo depende de su contenido medido (GRadioGroup segmentado) lo
+// publica en px con setIntrinsicMin(raíz, px); 0 lo retira. Solo cuenta si la raíz es hijo directo de la fila. Si cambia
+// (≥ 0,5px) se recalcula con el último ancho medido. Interno: no es API pública ni una propiedad --g-*.
+const intrinsic = new Map()
+function setIntrinsicMin(el, px) {
+  if (!el) return
+  const v = px > 0 ? px : 0
+  const prev = intrinsic.get(el) || 0
+  if (v) intrinsic.set(el, v)
+  else intrinsic.delete(el)
+  if (Math.abs(v - prev) >= 0.5 && root.value && knownWidth(root.value)) scheduleRow(root.value)
+}
+
+// Sub‑contexto: los campos de la fila llenan su sitio (block); readonly y disabled siguen los del contenedor
+provide(layoutKey, { block: true, density, stack: parent?.stack, readonly: parent?.readonly, disabled: parent?.disabled, setIntrinsicMin })
+
 const columns = ref(null)
 const rows = ref(null)
 const lines = ref(null)
 
-const NOT_ADMITTED = '.g-field-group, .g-checkbox-group, .g-checkbox, .g-switch, .g-datepicker--inline, .g-datepicker--split, .g-form-actions, .g-form-layout'
+const NOT_ADMITTED = '.g-field-group, .g-checkbox-group, .g-checkbox, .g-switch, .g-radio-group--appearance-list, .g-radio-group--appearance-chip, .g-radio-group--appearance-card, .g-datepicker--inline, .g-datepicker--split, .g-form-actions, .g-form-layout'
 
 function readItems(kids, unit) {
   return kids.map((el) => {
@@ -39,7 +53,8 @@ function readItems(kids, unit) {
     let own = 0
     if (typeof getComputedStyle === 'function') own = parseFloat(getComputedStyle(el).getPropertyValue('--g-form-min')) || 0
     const s = SIZES[size]
-    return { w: s.weight, m: Math.max(s.min, own > 0 ? own : 0) * unit }
+    // Mínimo efectivo: el mayor entre el de su tamaño, --g-form-min × space y el intrínseco publicado (#271)
+    return { w: s.weight, m: Math.max(Math.max(s.min, own > 0 ? own : 0) * unit, intrinsic.get(el) || 0) }
   })
 }
 
