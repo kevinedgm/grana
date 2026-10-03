@@ -66,6 +66,16 @@ describe('GBtn · activación', () => {
     expect(w.emitted('click')).toBeUndefined()
   })
 
+  it('loading: la etiqueta sigue en el DOM sin hidden ni aria-hidden (el nombre accesible no cambia)', () => {
+    const w = mount(GBtn, { props: { loading: true }, slots: { default: 'Enviar informe' } })
+    const label = w.find('.g-btn__label')
+    expect(label.exists()).toBe(true)
+    expect(label.text()).toBe('Enviar informe')
+    expect(label.attributes('hidden')).toBeUndefined()
+    expect(label.attributes('aria-hidden')).toBeUndefined()
+    expect(label.element.closest('[aria-hidden="true"]')).toBeNull()
+  })
+
   it('loading con type="submit": cancela el envío del formulario', () => {
     const w = mount(GBtn, { props: { loading: true, type: 'submit' } })
     const event = new MouseEvent('click', { bubbles: true, cancelable: true })

@@ -283,14 +283,19 @@
   --_bg-hover: transparent;
 }
 
-/* loading: conserva el color y el ancho; la etiqueta ocupa su espacio sin verse */
+/* loading: conserva el color y el ancho; la etiqueta ocupa su espacio sin verse, pero sigue en el árbol de accesibilidad
+   (con visibility: hidden el nombre del botón quedaba vacío). Los iconos de los huecos son aria-hidden: pueden ocultarse del todo. */
 .g-btn.is-loading {
   cursor: progress;
 }
 .g-btn.is-loading .g-btn__loader {
   display: block;
 }
-.g-btn.is-loading .g-btn__label,
+.g-btn.is-loading .g-btn__label {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
 .g-btn.is-loading .g-btn__prepend,
 .g-btn.is-loading .g-btn__append {
   visibility: hidden;
