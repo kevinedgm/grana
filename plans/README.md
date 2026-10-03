@@ -19,7 +19,7 @@ Planes autocontenidos para que cualquier agente los ejecute sin el contexto de l
 | 013 | [Avance con `translate` en lugar de `inline-size`](013-gprogress-avance-con-translate.md) | GProgress | coco | LOW | DONE |
 | 014 | [Esqueletos de carga: un solo pulso](014-esqueletos-un-solo-pulso.md) | GCard, GWidget, GCalendar | coco | LOW | DONE |
 | 015 | [Rebote al soltar y la etiqueta cede el sitio](015-gbtn-rebote-y-carga.md) | GBtn | coco (+ bruno: sincronizar defaults del CLI) | Personalidad | DONE (coco); paso 5 de bruno: TODO |
-| 016 | [La marca se estira y el contenido llega de su lado](016-gtabs-marca-y-panel.md) | GTabs (+ GTabPanel) | bruno → coco | Personalidad | TODO |
+| 016 | [La marca se estira y el contenido llega de su lado](016-gtabs-marca-y-panel.md) | GTabs (+ GTabPanel) | bruno → coco | Personalidad | DONE (bruno pasos 1–3; coco pasos 4–6: `personalidad-tabs.spec.mjs`, tres motores) |
 | 017 | [La selección nace de la casilla y la luz sigue al puntero](017-gcard-seleccion-y-luz.md) | GCard | coco (C2) · bruno → coco (C1) | Personalidad | TODO |
 | 018 | [El mensaje sale del campo y un solo aviso al enviar](018-ginput-mensaje-y-rechazo.md) | GInput (+ GForm) | bruno → coco | Personalidad | DONE (bruno pasos 1–3, coco pasos 4–6; I2 también en GTextarea y GSelect) |
 | 019 | [Crece hacia abajo y viene de donde lo llamaste](019-gdialog-crece-y-origen.md) | GDialog | bruno → coco | Personalidad | DONE (bruno pasos 1–3 `f86be45`; coco pasos 4–6, `personalidad-dialog.spec.mjs` 35/35 en tres motores, 4 omitidas por diseño) |

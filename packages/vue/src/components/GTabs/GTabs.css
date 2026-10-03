@@ -4,7 +4,7 @@
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo;
   únicos literales de medida: 24px y 44px (área táctil), 0px (sangrado cero y piso de max()) y el patrón de texto oculto.
   Los valores de --g-tabs-* (pista, segmento, banda, panel, grosor de la marca) viven en defaults.css.
-  Carácter: silencioso. Sin bordes por pestaña; la activa se marca con UNA marca que se desliza (línea, superficie
+  Carácter: silencioso. Sin bordes por pestaña; la activa se marca con UNA marca que se estira al cambiar (línea, superficie
   suave, segmento, pestaña fundida) y con más peso; el foco es un anillo interior, distinto de la marca.
 
   Lo que bruno debe dar (ver estilo.md):
@@ -13,6 +13,26 @@
    · `data-text` en `g-tabs__label` con el mismo texto (reserva el ancho de la negrita para que la activa no desplace a las demás).
    · La marca solo se anima con `is-ready` en la raíz; sin él, la pestaña activa dibuja su propia marca.
 */
+
+/* T1 · los dos bordes de la marca (inicio y fin en el eje de las pestañas), registrados para que cada uno interpole
+   con su propio tiempo (#302). Privadas: el nombre lleva el componente porque @property es global */
+@property --_tabs-s {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --_tabs-e {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+/* Margen del recorte de los paneles (= el anillo). Registrada para que llegue como longitud ya resuelta: Chromium
+   calcula `overflow-clip-margin: calc(...)` como 0px (medido); con una propiedad registrada recibe «4px» */
+@property --_tabs-clip {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 
 /* Sangrado inline de la cabecera dentro de su anfitrión; lo redefine la anfitriona (GDialog, un panel). Sin definir, cero. */
 :root { --g-tabs-inset: 0px; }
@@ -520,18 +540,95 @@
 }
 .g-tabs__panel { min-inline-size: 0; }
 .g-tabs__panel[aria-busy="true"] { cursor: progress; }
-/* Entrada del contenido al cambiar de pestaña (no al montar: solo con is-ready): fundido corto con un desplazamiento de un paso de espacio (sin movimiento reducido) */
+/* ---------- Personalidad (#302; lenguaje común #299; tabs.md «Personalidad») ---------- */
+/* T1 · la marca se estira. La geometría se deriva de los dos bordes registrados (sin `is-ready` también: así, al
+   ponerse `is-ready`, los bordes ya valen lo mismo y nada se anima al montar). Con `forward` avanza el borde final y
+   con `back` el de inicio: el que avanza llega primero (press, ease-out) y el de atrás lo alcanza con el muelle
+   (slow, --g-ease-spring: uno de los dos usos aprobados del sobrepaso). En vertical, sobre el eje de bloque.
+   `translate` y el tamaño del eje no se transicionan: los mueven los bordes; si se transicionaran, su propia
+   transición taparía el estiramiento. Fuera de @supports, la transición vigente (#299 (6)) */
+@supports (transition-timing-function: linear(0, 1)) {
+  .g-tabs.g-tabs--orientation-horizontal .g-tabs__mark {
+    --_tabs-s: var(--_mark-x);
+    --_tabs-e: calc(var(--_mark-x) + var(--_mark-w));
+    inline-size: calc(var(--_tabs-e) - var(--_tabs-s));
+    translate: calc(var(--_dir) * var(--_tabs-s)) var(--_mark-y);
+  }
+  .g-tabs.g-tabs--orientation-horizontal.g-tabs--appearance-underline .g-tabs__mark {
+    translate: calc(var(--_dir) * var(--_tabs-s)) calc(var(--_mark-y) + var(--_mark-h) - var(--_mark-t));
+  }
+  .g-tabs.g-tabs--orientation-vertical .g-tabs__mark {
+    --_tabs-s: var(--_mark-y);
+    --_tabs-e: calc(var(--_mark-y) + var(--_mark-h));
+    block-size: calc(var(--_tabs-e) - var(--_tabs-s));
+    translate: calc(var(--_dir) * var(--_mark-x)) var(--_tabs-s);
+  }
+  .g-tabs.g-tabs--orientation-vertical.g-tabs--appearance-underline .g-tabs__mark {
+    translate: 0 var(--_tabs-s);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* Sin dirección (la marca se recoloca por un cambio de tamaño o de texto): los dos bordes juntos, sin muelle.
+       El tercer elemento es el tamaño del eje cruzado (alto en horizontal, ancho en vertical), como hoy */
+    .g-tabs.is-ready > .g-tabs__header .g-tabs__mark {
+      transition-property: --_tabs-s, --_tabs-e, block-size;
+      transition-duration: var(--g-duration-press);
+      transition-timing-function: var(--g-ease-standard);
+    }
+    .g-tabs--orientation-vertical.is-ready > .g-tabs__header .g-tabs__mark { transition-property: --_tabs-s, --_tabs-e, inline-size; }
+    .g-tabs.is-ready[data-direction="forward"] > .g-tabs__header .g-tabs__mark {
+      transition-duration: var(--g-duration-slow), var(--g-duration-press), var(--g-duration-press);
+      transition-timing-function: var(--g-ease-spring), var(--g-ease-out), var(--g-ease-standard);
+    }
+    .g-tabs.is-ready[data-direction="back"] > .g-tabs__header .g-tabs__mark {
+      transition-duration: var(--g-duration-press), var(--g-duration-slow), var(--g-duration-press);
+      transition-timing-function: var(--g-ease-out), var(--g-ease-spring), var(--g-ease-standard);
+    }
+  }
+}
+
+/* T2 · el contenido llega de su lado: con fundido y --g-space-1 × 4 desde el lado hacia el que viajó la marca
+   (`forward` desde el final, `back` desde el inicio; espejado en RTL; en vertical, por el eje de bloque). Sin
+   dirección, solo fundido. Integrados: dirección en la raíz; sueltos (`detached`, slot `tabs` de GDialog): en el propio
+   panel, que no conoce la orientación de su GTabs y entra siempre por el eje inline. Solo tras un cambio (`is-ready` o
+   `data-direction`): nunca al montar */
+.g-tabs__panel {
+  --_pdir: 1;
+  --_shift: calc(var(--g-space-1) * 4);
+}
+.g-tabs__panel:dir(rtl) { --_pdir: -1; }
+@starting-style {
+  .g-tabs.is-ready > .g-tabs__panels > .g-tabs__panel:not([hidden]),
+  .g-tabs__panel[data-direction]:not([hidden]) { opacity: 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .g-tabs__panel {
     transition:
       opacity var(--g-duration-press) var(--g-ease-out),
-      translate var(--g-duration-press) var(--g-ease-out);
+      translate var(--g-duration-slow) var(--g-ease-out);
   }
   @starting-style {
-    .g-tabs.is-ready .g-tabs__panel:not([hidden]) {
-      opacity: 0;
-      translate: 0 var(--g-space-1);
-    }
+    .g-tabs--orientation-horizontal.is-ready[data-direction="forward"] > .g-tabs__panels > .g-tabs__panel:not([hidden]),
+    .g-tabs__panel[data-direction="forward"]:not([hidden]) { translate: calc(var(--_pdir) * var(--_shift)) 0; }
+    .g-tabs--orientation-horizontal.is-ready[data-direction="back"] > .g-tabs__panels > .g-tabs__panel:not([hidden]),
+    .g-tabs__panel[data-direction="back"]:not([hidden]) { translate: calc(var(--_pdir) * var(--_shift) * -1) 0; }
+    .g-tabs--orientation-vertical.is-ready[data-direction="forward"] > .g-tabs__panels > .g-tabs__panel:not([hidden]) { translate: 0 var(--_shift); }
+    .g-tabs--orientation-vertical.is-ready[data-direction="back"] > .g-tabs__panels > .g-tabs__panel:not([hidden]) { translate: 0 calc(var(--_shift) * -1); }
+  }
+}
+/* Movimiento reducido: el panel solo se funde (#299 (3)); sin desplazamiento */
+@media (prefers-reduced-motion: reduce) {
+  .g-tabs__panel { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+}
+/* Recorte del panel que entra, sin recortar el anillo de foco de los hijos (overflow-clip-margin = el anillo). En los
+   dos ejes: Chromium solo aplica overflow-clip-margin cuando los dos ejes recortan (medido: con `overflow-x: clip`
+   solo, el anillo de un hijo pegado al borde se cortaba siempre); `clip` no crea contexto de formato ni cambia la
+   distribución. Solo donde existe overflow-clip-margin (WebKit no lo tiene): sin él, el recorte se comería el anillo
+   para siempre; allí el panel puede rebasar `space × 4` durante ≤ 240ms */
+@supports (overflow-clip-margin: 1px) {
+  .g-tabs > .g-tabs__panels {
+    --_tabs-clip: calc(var(--g-focus-width) + var(--g-focus-offset));
+    overflow: clip;
+    overflow-clip-margin: var(--_tabs-clip);
   }
 }
 

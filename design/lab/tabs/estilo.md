@@ -17,7 +17,39 @@
 | **contained** | Banda `--g-tabs-band` a sangre con aire arriba; la activa se **funde** con el panel (`--g-tabs-panel`) y lleva una línea de color arriba del grosor de la marca (la marca de 3:1) y filetes laterales tenues. No dibuja borde propio |
 | **Secundario** | Estado y contador: más pequeños y pálidos que la etiqueta (`text-subtle`, `GBadge sm soft neutral`); `attention` en `warning-text`, `loading` neutro y girando. Sobre la píldora activa la insignia sube a `surface` para no fundirse con ella |
 | **Overflow** | Degradado en el borde por `is-scrollable-*` (máscara, también vertical); `arrows` atenúa el botón del extremo sin lista y conserva su hueco (sin saltos); `more` es una pestaña más en la cabecera, fuera del `tablist` |
-| **Movimiento** | La marca anima solo `translate`, ancho y alto con `--g-duration-press` y `--g-ease-standard`, y **solo con `is-ready`**; el panel entra con fundido y `translate` de `space × 1` (`@starting-style`, `--g-ease-out`; solo con `is-ready`: no al montar); el icono de carga gira (`@keyframes` solo del giro, como `GBtn`) |
+| **Movimiento** | **La marca se estira** (T1, #302): sus dos bordes se mueven con tiempos propios; el que avanza hacia la pestaña nueva llega primero (`--g-duration-press`, `--g-ease-out`) y el de atrás lo alcanza con `--g-ease-spring` (`--g-duration-slow`); en vertical, sobre el eje de bloque; **solo con `is-ready`**. **El contenido llega de su lado** (T2): el panel entra con fundido (`press`) y `space × 4` desde el lado hacia el que viajó la marca (`slow`, `--g-ease-out`; `@starting-style`), espejado en RTL; en vertical por el bloque; sin dirección, solo fundido. Ver «Personalidad». El icono de carga gira (`@keyframes` solo del giro, como `GBtn`) |
+
+## Personalidad (plan 016; DECISIONS.md #299 y #302; `tabs.md` «Personalidad»)
+
+**Qué le da carácter.** La fila de pestañas y su contenido comparten un eje. La marca no se desliza como un bloque rígido: **se estira** hacia la pestaña nueva (su borde de delante sale disparado y llega primero) y **se recoge** cuando el borde de atrás la alcanza con un muelle que rebasa un 3,8 % y asienta; en un salto largo el ojo sigue a la marca y lee la dirección del cambio de un vistazo. Después, el contenido **llega desde ese mismo lado** (`space × 4`), no desde abajo: la dirección es una sola. El rebote vive solo en la marca (decisión del usuario 1; uno de los dos usos aprobados de `--g-ease-spring`, #299); los paneles no rebotan.
+
+| Pieza | Cómo |
+| --- | --- |
+| Bordes de la marca | Dos propiedades registradas privadas, `--_tabs-s` y `--_tabs-e` (`@property`, `<length>`, `inherits: false`), derivadas de `--_mark-*` (que bruno sigue escribiendo igual). La marca se dibuja con ellas: `inline-size: e − s` y `translate: --_dir × s` (en vertical, `block-size` y el eje `y`). La geometría se deriva **también sin `is-ready`**: al ponerse `is-ready`, los bordes ya valen lo mismo y nada se anima al montar |
+| Tiempos | Lista de transiciones `--_tabs-s, --_tabs-e, block-size` (en vertical, `inline-size`). `forward` (avanza el borde final): `slow`/`spring`, `press`/`ease-out`. `back` (avanza el de inicio): al revés. Sin dirección (la marca se recoloca por tamaño o texto): los dos en `press`/`standard`. Todo dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera, la transición vigente (`translate`, ancho y alto en `press`) (#299 (6)) |
+| Sin `translate` en la lista | `translate` y el tamaño del eje los mueven los bordes; si además se transicionaran, su propia transición (de destino a destino) taparía el estiramiento |
+| RTL | Los bordes son lógicos (`x` se mide desde la derecha en RTL); `forward` avanza el borde final, que en RTL es el izquierdo. No hace falta regla propia |
+| Panel integrado | `@starting-style`: con `.g-tabs.is-ready[data-direction]` (selector con `>`: no alcanza a unas pestañas anidadas), `translate: ±--_pdir × space × 4` (horizontal) o `0 ±space × 4` (vertical) y `opacity: 0`; `opacity` en `press`/`ease-out`, `translate` en `slow`/`ease-out` |
+| Panel suelto (`detached`, slot `tabs` de `GDialog`) | La dirección va en el propio panel (`.g-tabs__panel[data-direction]`); `--_pdir` se resuelve en el panel con `:dir(rtl)` porque fuera de `.g-tabs` no hay `--_dir`. **Límite:** el panel suelto no sabe la orientación de su `GTabs` y entra siempre por el eje inline (con unas pestañas verticales y paneles sueltos, de lado). Sin `data-direction`, sin entrada (como hoy) |
+| Recorte | `.g-tabs > .g-tabs__panels { overflow: clip; overflow-clip-margin: el anillo }`, dentro de `@supports (overflow-clip-margin: 1px)`. **Los dos ejes, no solo el inline** (el contrato pedía `overflow-x`): Chromium solo aplica `overflow-clip-margin` cuando recortan los dos ejes (medido: con `overflow-x: clip` el anillo de un hijo pegado al borde se cortaba **siempre**, no solo durante la entrada). **El margen pasa por una propiedad registrada** (`--_tabs-clip`): Chromium calcula `overflow-clip-margin: calc(...)` como `0px` (medido; con una longitud resuelta, bien). `clip` no crea contexto de formato: la distribución no cambia |
+| Lo que el recorte cuesta | Lo que un hijo dibuje más allá del anillo (4px) por los bordes de los paneles se corta: la sombra `--g-shadow-2` de una superficie `raised` pegada al borde (asoma 8px de lado y 12px abajo) y un contenido más ancho que el panel sin desplazamiento propio. Los popovers de Grana van a la capa superior y no se recortan |
+| WebKit | No tiene `overflow-clip-margin`: allí no se recorta (recortar sin margen se comería el anillo para siempre). A sangre (la pestaña toca el borde de la ventana), el panel que entra rebasa como mucho `space × 4` (16px) durante ≤ 240ms; con el margen lateral habitual, nada |
+| Movimiento reducido | La marca salta (sin transiciones); el panel solo se funde, `opacity` en `--g-duration-fast`/`standard`, sin `translate` (#299 (3)) |
+| `forced-colors` | Sin cambios: la marca es `Highlight` y se estira igual (es geometría, no color) |
+
+**Medido** (`design/lab/theme-playground/tests/personalidad-tabs.spec.mjs`, transiciones reales pausadas y recorridas cada 4ms; Chromium, Firefox y WebKit dan las mismas cifras):
+
+| Qué | Medida | kiwi |
+| --- | --- | --- |
+| T1 `underline`, «Resumen» → «Facturas» (347px) | exceso de la marca **+100,8px** adelante y **+100,0px** atrás; borde de delante asentado a **120ms**, el de atrás a **200ms**; termina exacto (±0,5px) | +95 / +95,6px; 186 / 269ms (cuadro a cuadro, con la latencia del clic) |
+| T1 `pill`, `segmented`, `contained` | las mismas cifras que `underline` (+100,8 / +100,0px; 120 < 200ms) | — |
+| T1 vertical (`underline` y `pill`, 132px de recorrido) | +39,4px en los dos sentidos; 108 < 184ms | — |
+| T1 RTL | adelante va a la izquierda: +100,8px; 120 < 200ms | — |
+| T2 | primer instante `+16px` adelante, `−16px` atrás, `−16px` en RTL adelante, `+16px` en RTL atrás; vertical `+16/−16px` en `y`; `opacity` 0 → 1 en 160ms, `translate` en 240ms; `detached` igual (+16/−16) | +16 / −16 / −16 |
+| 375px | con margen de 16px, `scrollWidth` 375 durante toda la entrada en los tres motores; a sangre, 379 en Chromium y Firefox (el margen del recorte) y 391 en WebKit (sin recorte), solo durante la entrada | sin desborde |
+| Anillo | un hijo pegado a los cuatro bordes conserva el anillo entero (Chromium y Firefox con recorte; WebKit sin él) | — |
+| `reduce` | la marca sin transiciones (salta); el panel solo `opacity`, 120ms, sin `translate`; también `detached` | salta / solo fundido |
+| Al montar | sin transiciones en la marca; nace exacta bajo la activa | — |
 
 ## Valores del tema (defaults.css)
 
@@ -52,7 +84,7 @@ Medidas derivadas (alias locales, sin tokens): altura `space × 10 × densidad` 
 | active | Marca + peso 600 + texto `text` (`on-primary-soft` en pill) |
 | disabled | Opacidad 0.5 y `not-allowed`; en `forced-colors`, `GrayText` |
 | loading / attention | Icono con texto oculto; `loading` gira solo sin movimiento reducido |
-| `prefers-reduced-motion` | Marca sin transición (salta), sin giro, sin entrada del panel; el color de las pestañas se sigue fundiendo (120 ms) |
+| `prefers-reduced-motion` | Marca sin transición (salta, sin estirarse), sin giro; el panel **solo se funde** (`--g-duration-fast`), sin desplazamiento (#299 (3), #302); el color de las pestañas se sigue fundiendo (120 ms) |
 | `forced-colors` | Línea base `GrayText`, marca `Highlight`, texto de la activa `HighlightText` en las apariencias con superficie, foco `CanvasText` (verificado con emulación) |
 | `prefers-contrast: more` | Línea base y texto inactivo con `border-control` y `text`; contorno doble en píldora y segmento; pista del segmento contorneada |
 | `pointer: coarse` | `--_tap` 44px: pestañas, botones de borde, segmentos |
@@ -105,6 +137,8 @@ Contraste **medido** (compuesto real de capas con `elementsFromPoint`, no estima
 4. **El `:root { --g-tabs-inset }`** significa que un panel anfitrión lo sobreescribe con un selector más cercano (`.mi-panel { --g-tabs-inset: … }`); el contrato podría decirlo.
 5. **Tooltip y `closable`** siguen fuera de v0.1; el CSS no deja hueco para el botón de cerrar (hermano del `tab`): se estiliza cuando entre.
 6. **El CLI no emite `--g-tabs-*`:** los temas generados dependen de los valores de `defaults.css` (translúcidos sobre la anfitriona, así que siguen cualquier superficie); solo `--g-tabs-panel` se resuelve contra `--g-color-surface`.
+7. **Plan 016, recorte de los paneles (`tabs.md` «Personalidad», T2):** el contrato dice `overflow-x: clip` con `overflow-clip-margin`; en Chromium el margen solo se aplica cuando recortan los dos ejes (medido), así que `GTabs.css` recorta en los dos (`overflow: clip`). Conviene reescribir la línea y su «límite conocido»: sin `overflow-clip-margin` (WebKit) **no se recorta** (si se recortara, el anillo de un hijo pegado al borde se perdería para siempre, no solo durante la entrada) y a sangre el panel rebasa ≤ `space × 4` durante ≤ 240ms; con recorte, a sangre asoma el margen del anillo (4px) durante la entrada. Y anotar el coste: se corta la tinta de un hijo que pase del anillo por los bordes de los paneles (sombra `shadow-2` de una superficie `raised` pegada al borde).
+8. **Plan 016, panel suelto en vertical:** `GTabPanel` no conoce la orientación de su `GTabs` y entra por el eje inline. Si se quiere por el bloque con pestañas verticales, `GTabPanel` podría copiar también la orientación (`data-orientation`), decisión de lima y trabajo de bruno.
 
 ## No ejecutado
 
