@@ -812,6 +812,34 @@ describe('GFormSection · headerPlacement e is-actions-below (#289)', () => {
     expect(sec(v, 'side').classes()).not.toContain('is-actions-below')
   })
 
+  it('al pasar de «al lado» a arriba, dos medidas en el mismo cuadro no encienden is-actions-below (hallazgo 1)', async () => {
+    // El encabezado «al lado» mide su columna (215); arriba, el ancho de la sección: se simula por la clase PINTADA
+    widths = { root: 1000, header: 1000, action: 100 }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      let width = 0
+      if (this.classList.contains('g-form-section')) width = widths.root
+      else if (this.classList.contains('g-form-section__header')) width = this.parentElement.classList.contains('is-header-side') ? 215 : widths.root
+      else if (this.parentElement && this.parentElement.classList.contains('g-form-section__actions')) width = widths.action
+      return { width, height: 20, top: 0, left: 0, right: width, bottom: 20, x: 0, y: 0 }
+    })
+    const w = make(`<GFormSection id="a" title="A" header-placement="auto"><template #actions><button type="button">x</button></template><p>x</p></GFormSection>`)
+    await wait(80)
+    expect(sec(w, 'a').classes()).toContain('is-header-side')
+    expect(sec(w, 'a').classes()).not.toContain('is-actions-below')
+    const seen = []
+    const mo = new MutationObserver(() => seen.push(sec(w, 'a').element.classList.contains('is-actions-below')))
+    mo.observe(sec(w, 'a').element, { attributes: true, attributeFilter: ['class'] })
+    widths.root = 720
+    // Dos medidas en el mismo cuadro, antes de que Vue pinte la clase (el observador y el cambio de headerPlacement)
+    const measureTwice = () => new Promise((r) => requestAnimationFrame(() => { FakeRO.all[0].fire(); FakeRO.all[0].fire(); r() }))
+    await measureTwice()
+    await wait(60)
+    mo.disconnect()
+    expect(sec(w, 'a').classes()).not.toContain('is-header-side')
+    expect(sec(w, 'a').classes()).not.toContain('is-actions-below')
+    expect(seen).not.toContain(true)
+  })
+
   it('escribe solo si cambia (sin mutaciones de clase al volver a medir lo mismo)', async () => {
     const w = make(`<GFormSection id="a" title="A" header-placement="auto"><p>x</p></GFormSection>`)
     await wait(120)

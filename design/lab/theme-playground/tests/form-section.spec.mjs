@@ -416,4 +416,24 @@ test.describe('GFormSection Fase 3 · componente real (form.md §3)', () => {
     expect(await page.evaluate(() => __st('fx-2').vis)).toBe('hidden')
     expect(errs, browserName).toEqual([])
   })
+  test('de «al lado» a arriba, is-actions-below no parpadea al cruzar el umbral (1280 ↔ 720, varias veces)', async ({ page, browserName }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await page.evaluate(() => {
+      window.__flash = []
+      window.__muts = 0
+      new MutationObserver((ms) => {
+        for (const m of ms) {
+          if (!/^fx-[23]$/.test(m.target.id)) continue
+          window.__muts++
+          if (m.target.classList.contains('is-actions-below')) window.__flash.push(m.target.id)
+        }
+      }).observe(document.getElementById('fx-frame'), { subtree: true, attributes: true, attributeFilter: ['class'] })
+    })
+    for (const w of ['720', '', '720', '', '720', '']) await bench(page, { w })
+    expect(await page.evaluate(() => window.__flash), browserName).toEqual([])
+    // El umbral sí cambió is-header-side (la prueba mide algo)
+    expect(await page.evaluate(() => window.__muts)).toBeGreaterThan(0)
+    expect(errs, browserName).toEqual([])
+  })
 })

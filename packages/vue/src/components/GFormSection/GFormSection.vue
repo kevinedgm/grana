@@ -310,8 +310,11 @@ function measure() {
     const gap = parseFloat(getComputedStyle(a).columnGap) || 0
     const natural = kids.reduce((sum, k) => sum + k.getBoundingClientRect().width, 0) + gap * (kids.length - 1)
     const hgap = parseFloat(getComputedStyle(h).columnGap) || 0
-    // Viniendo de «al lado», el encabezado aún mide su columna: el de arriba ocupa el ancho de la sección
-    const hw = side.value ? contentWidth(el) : h.getBoundingClientRect().width
+    // Se decide con lo PINTADO, no con side.value (que una medida anterior del mismo cuadro ya pudo cambiar sin que Vue
+    // haya escrito la clase): con is-header-side en el DOM el encabezado aún mide su columna y, al pasar arriba, ocupará
+    // el ancho propio de la sección
+    const painted = el.classList.contains('is-header-side')
+    const hw = painted ? contentWidth(el) : h.getBoundingClientRect().width
     b = hw - natural - hgap < space * 40
   }
   if (side.value !== s) side.value = s
