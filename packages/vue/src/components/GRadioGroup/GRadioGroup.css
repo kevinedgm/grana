@@ -163,8 +163,10 @@
   block-size: 100%;
 }
 /* Solo icono (labelMode="icon", segmented y chip): la etiqueta sigue en el DOM como texto oculto y es el nombre del
-   radio (patrón estándar de texto oculto) */
-.g-radio-group__option.is-icon-only .g-radio-group__option-label {
+   radio (patrón estándar de texto oculto). Se oculta el envoltorio __text entero, no solo la etiqueta: si quedara en
+   flujo como una caja de 0×0, el gap del flex de la opción (o del __segment) se aplicaría entre el icono y esa caja
+   vacía y el icono quedaría descentrado medio gap hacia el inicio */
+.g-radio-group__option.is-icon-only .g-radio-group__text {
   position: absolute;
   inline-size: 1px;
   block-size: 1px;

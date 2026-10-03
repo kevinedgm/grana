@@ -29,6 +29,7 @@
   .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:start}
   @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
   .narrow{inline-size:220px;max-inline-size:100%}
+  .narrow-xs{inline-size:60px;max-inline-size:100%}
   [v-cloak]{display:none}
 </style>
 </head>
@@ -99,6 +100,15 @@
   <g-radio-group id="io-chip" data-case="io-chip" appearance="chip" label-mode="icon" label="Vista" :options="O.vista" model-value="grafica"></g-radio-group>
   <g-radio-group id="ic-seg" data-case="ic-seg" appearance="segmented" label="Vista" :options="O.vista" model-value="tabla"></g-radio-group>
   <g-radio-group id="io-mixed" data-case="io-mixed" appearance="segmented" label-mode="icon" label="Vista (una sin icono)" :options="O.vistaMixta" model-value="lista"></g-radio-group>
+  <div class="narrow-xs"><g-radio-group id="io-seg-stack" data-case="io-seg-stack" appearance="segmented" label-mode="icon" label="Vista (se apila)" :options="O.vista" model-value="tabla"></g-radio-group></div>
+  <g-radio-group id="io-seg-sm" data-case="io-seg-sm" appearance="segmented" label-mode="icon" size="sm" label="Vista sm" :options="O.vista" model-value="lista"></g-radio-group>
+  <g-radio-group id="io-seg-compact" data-case="io-seg-compact" appearance="segmented" label-mode="icon" density="compact" label="Vista compacta" :options="O.vista" model-value="lista"></g-radio-group>
+</div></div>
+<h3>Solo icono, RTL local</h3>
+<div class="host" dir="rtl" lang="ar"><div class="grid">
+  <g-radio-group id="io-seg-rtl" data-case="io-seg-rtl" appearance="segmented" label-mode="icon" label="العرض" :options="O.vista" model-value="lista"></g-radio-group>
+  <g-radio-group id="io-chip-rtl" data-case="io-chip-rtl" appearance="chip" label-mode="icon" label="العرض" :options="O.vista" model-value="grafica"></g-radio-group>
+  <div class="narrow-xs"><g-radio-group id="io-seg-stack-rtl" data-case="io-seg-stack-rtl" appearance="segmented" label-mode="icon" label="العرض (يتراص)" :options="O.vista" model-value="tabla"></g-radio-group></div>
 </div></div>
 
 <h2>7 · Estrecho</h2>

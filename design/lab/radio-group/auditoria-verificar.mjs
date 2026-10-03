@@ -89,6 +89,26 @@ const info = []
   }
 }
 
+
+/* Centrado del icono en las opciones de solo icono (hallazgo 8, encontrado por el usuario): centro del icono = centro de
+   la opción (±1px en los dos ejes), con y sin apilado, LTR y RTL. El texto oculto sigue en el DOM (nombre del radio) */
+const iconCentering = () => {
+  const out = []
+  for (const o of document.querySelectorAll('.g-radio-group__option.is-icon-only')) {
+    const root = o.closest('.g-radio-group'), ic = o.querySelector('.g-radio-group__icon'), r = o.getBoundingClientRect(), i = ic.getBoundingClientRect()
+    const txt = o.querySelector('.g-radio-group__option-label')
+    out.push({
+      id: (root.dataset.case || root.id) + ':' + o.querySelector('input').value,
+      dx: +((i.left + i.width / 2) - (r.left + r.width / 2)).toFixed(2),
+      dy: +((i.top + i.height / 2) - (r.top + r.height / 2)).toFixed(2),
+      dir: getComputedStyle(o).direction, stacked: root.classList.contains('is-stacked'), w: +r.width.toFixed(2), iw: +i.width.toFixed(2),
+      // el texto oculto no ocupa hueco en el flujo ni sale de la opción, y sigue siendo el nombre accesible (no display:none)
+      hidden: !txt || getComputedStyle(txt).display !== 'none' && txt.textContent.trim().length > 0 && getComputedStyle(txt.closest('.g-radio-group__text')).display !== 'none'
+    })
+  }
+  return out
+}
+
 /* ---------- En la página: contraste (el de estilo-verificar.mjs) ---------- */
 const measure = () => {
   const parse = (s) => {
@@ -434,6 +454,21 @@ for (const engine of ENGINES) {
     ok(g.overflow.doc <= g.overflow.vw, `${tag}: desborde ${JSON.stringify(g.overflow)}`)
   }
 
+  /* 5b · Solo icono: el icono queda centrado en la opción (chip y segmentado, LTR y RTL, con y sin apilado) */
+  for (const qs of ['', 'rtl=1', 'dark=1', 'audit=1', 'test=1']) {
+    await go('?' + qs)
+    const c = await page.evaluate(iconCentering)
+    const tag = `${engine} solo icono ?${qs}`
+    ok(c.length >= 20, `${tag}: solo ${c.length} opciones de solo icono`)
+    for (const k of c) {
+      ok(Math.abs(k.dx) <= 1 && Math.abs(k.dy) <= 1, `${tag}: icono descentrado en ${k.id} (dx ${k.dx}, dy ${k.dy}; opción ${k.w}, icono ${k.iw}, ${k.dir}${k.stacked ? ', apilado' : ''})`)
+      ok(k.hidden, `${tag}: ${k.id} perdió el texto accesible`)
+    }
+    if (qs === '') {
+      ok(c.some((k) => k.stacked) && c.some((k) => k.dir === 'rtl') && c.some((k) => !k.stacked && k.dir === 'ltr'), `${tag}: faltan casos apilado/RTL/LTR (${JSON.stringify(c.map((k) => [k.dir, k.stacked]))})`)
+    }
+  }
+
   /* 6 · Anchos de ventana: el componente real se apila y se desapila (ResizeObserver) en los dos sentidos */
   await go('')
   for (const w of [960, 720, 480, 360, 320, 480, 1280]) {
@@ -447,7 +482,7 @@ for (const engine of ENGINES) {
     for (const t of g.targets) ok(t.w >= 24 - 0.01 && t.h >= 24 - 0.01, `${tag}: opción ${t.id} ${t.w}×${t.h}`)
     for (const [c, e] of Object.entries(g.equal)) if (e.stacked) ok(e.natural > e.box + 0.5, `${tag}: ${c} apilado sin necesidad (${e.natural} ≤ ${e.box})`); else ok(e.natural <= e.box + 0.5, `${tag}: ${c} en una línea sin caber (${e.natural} > ${e.box})`)
     if (g.equal['rowa-seg'].stacked) { const line = Object.values(g.rows.a.byLine).find((k) => k.some((x) => x.c === 'rowa-seg')); ok(line.length === 1, `${tag}: el segmentado de la fila a se apiló sin que la fila se partiera`) }
-    if (w === 1280) ok(!Object.entries(g.equal).some(([c, e]) => c !== 'narrow-seg' && e.stacked), `${tag}: al volver a 1280 queda algo apilado ${Object.entries(g.equal).filter(([, e]) => e.stacked).map(([c]) => c)}`)
+    if (w === 1280) ok(!Object.entries(g.equal).some(([c, e]) => !/^(narrow-seg|io-seg-stack(-rtl)?)$/.test(c) && e.stacked), `${tag}: al volver a 1280 queda algo apilado ${Object.entries(g.equal).filter(([, e]) => e.stacked).map(([c]) => c)}`)
   }
   await page.setViewportSize({ width: 1280, height: 900 })
 
@@ -637,6 +672,17 @@ for (const engine of ENGINES) {
         ok(!r.over, `${tag}: una caja sale de la fila`)
         ok(r.opts.every(([ow, oh]) => ow >= 24 && oh >= 24), `${tag}: opciones < 24 ${JSON.stringify(r.opts)}`)
       }
+    }
+    // Solo icono del playground («Vista», «Canal»): centrado en el tema
+    {
+      const c = await pp.evaluate((fn) => { document.querySelectorAll('#sec-radio .g-radio-group').forEach((g) => { g.dataset.case = g.id }); return new Function('return (' + fn + ')()')() }, iconCentering.toString())
+      const mine = c.filter((k) => /^rg-icon/.test(k.id))
+      ok(mine.length >= 6, `${engine} playground ${theme} solo icono: solo ${mine.length} opciones`)
+      for (const k of mine) ok(Math.abs(k.dx) <= 1 && Math.abs(k.dy) <= 1, `${engine} playground ${theme} solo icono: ${k.id} descentrado (dx ${k.dx}, dy ${k.dy})`)
+      await pp.evaluate(() => { document.documentElement.dir = 'rtl' })
+      const r = (await pp.evaluate((fn) => new Function('return (' + fn + ')()')(), iconCentering.toString())).filter((k) => /^rg-icon/.test(k.id))
+      for (const k of r) ok(Math.abs(k.dx) <= 1 && Math.abs(k.dy) <= 1, `${engine} playground ${theme} solo icono RTL: ${k.id} descentrado (dx ${k.dx}, dy ${k.dy})`)
+      await pp.evaluate(() => { document.documentElement.dir = 'ltr' })
     }
     // #sec-radio en ese tema: contraste del marcado real del playground
     await pp.selectOption('#fm-bench-w', '')
