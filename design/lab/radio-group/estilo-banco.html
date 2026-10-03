@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRadioGroup · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/radio-group.md («Estructura accesible» y «Clases») con el CSS real
+     (GRadioGroup.css, y GInput.css + GFormRow.css para comparar la caja y las pistas). La fábrica rg() hace lo que hará
+     bruno y nada más: raíz por apariencia (div para inline/segmented, fieldset para list/chip/card), clases, atributos y
+     partes; las filas se colocan con el reparto real de GFormRow (formRowPlan.js) y el segmentado mide su ancho natural
+     y se apila como dice el contrato (#271), con la clase g-radio-group--measure durante la medida. No es documentación.
+     Desde la raíz del repo:  python3 -m http.server 4190  →  /design/lab/radio-group/estilo-banco.html
+     Parámetros: ?dark=1  ?rtl=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?test=1
+     Verificación: node design/lab/radio-group/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GInput/GInput.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GFormRow/GFormRow.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GRadioGroup/GRadioGroup.css">
+<script src="../lucide-icons.js"></script>
+<style id="theme"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:96ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px;overflow-wrap:anywhere}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .stack{display:flex;flex-direction:column;gap:var(--g-space-6);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:start}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .narrow{inline-size:220px;max-inline-size:100%}
+</style>
+</head>
+<body>
+<main>
+<h1>GRadioGroup · banco de estilo</h1>
+<p class="cap"><b>coco</b> · CSS real de <code>GRadioGroup</code> sobre el marcado del contrato. Círculo = el <code>&lt;input&gt;</code> dibujado (relleno <code>{color}</code>, punto <code>on-{color}</code>, borde <code>{color}-text</code>); chip y segmentado = el <code>&lt;input&gt;</code> cubre la opción y el estado lo dice el relleno. El segmentado es una <b>caja de campo</b> (alto de <code>GInput</code>, marco <code>border-control</code> hacia dentro, <code>--g-radius-sm</code>), no la pista de <code>GTabs</code>.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <button type="button" id="t-rtl">RTL</button>
+  <label>Ancho <select id="t-w"><option value="">Libre</option><option>320</option><option>480</option><option>720</option></select></label>
+</div>
+
+<h2 class="b" id="apariencias">1 · Las cinco apariencias (md, brand)</h2>
+<p class="cap"><code>list</code> (con descripción e icono), <code>inline</code> (Sí · No en la caja de un campo), <code>segmented</code> (caja de campo), <code>chip</code> y <code>card</code>. La segunda opción está elegida.</p>
+<div class="host"><div class="grid">
+  <div data-rg='{"case":"ap-list","appearance":"list","label":"Modalidad de consulta","hint":"Puedes cambiarla hasta un día antes.","opts":"modalidad","value":1}'></div>
+  <div class="stack">
+    <div data-rg='{"case":"ap-inline","appearance":"inline","label":"¿Fuma?","opts":"sino","value":1}'></div>
+    <div data-rg='{"case":"ap-segmented","appearance":"segmented","label":"Sexo","hint":"Como aparece en la identificación","opts":"sexo","value":1,"required":true}'></div>
+    <div data-rg='{"case":"ap-chip","appearance":"chip","label":"Frecuencia","opts":"frecuencia","value":1}'></div>
+  </div>
+  <div data-rg='{"case":"ap-card","appearance":"card","label":"Plan","opts":"plan","value":1,"optional":true}'></div>
+</div></div>
+
+<h2 class="b" id="tamanos">2 · Tamaños junto a GInput (la caja mide lo mismo)</h2>
+<p class="cap">Por <code>size</code>, la caja de <code>segmented</code> y la de <code>inline</code> miden lo mismo que la caja de <code>GInput</code> (6, 7, 9, 11 y 13 × <code>space</code>; ≥ 44px con puntero grueso).</p>
+<div class="host"><div class="stack" id="sizes"></div></div>
+
+<h2 class="b" id="fila">3 · En una GFormRow (tres pistas por subgrid)</h2>
+<p class="cap">Reparto real de <code>GFormRow</code> (<code>formRowPlan.js</code>) con el mínimo intrínseco que publica el segmentado (#271). Las cajas de una línea comparten <code>top</code> aunque una etiqueta ocupe dos líneas o un vecino tenga ayuda o mensaje. Segunda fila: con mensajes.</p>
+<div class="host"><div class="stack">
+  <div class="g-form-row g-form-row--density-default" data-row="a">
+    <div data-in='{"case":"rowa-in1","label":"Nombre completo como aparece en la identificación oficial","size":"md","w":"md"}'></div>
+    <div data-rg='{"case":"rowa-seg","appearance":"segmented","label":"Sexo","opts":"sexo","value":0,"w":"sm"}'></div>
+    <div data-rg='{"case":"rowa-inl","appearance":"inline","label":"¿Fuma?","opts":"sino","w":"xs"}'></div>
+    <div data-in='{"case":"rowa-in2","label":"Cigarros al día","size":"md","w":"xs"}'></div>
+  </div>
+  <div class="g-form-row g-form-row--density-default" data-row="b">
+    <div data-in='{"case":"rowb-in1","label":"Fecha de nacimiento","size":"md","w":"sm","hint":"DD/MM/AAAA"}'></div>
+    <div data-rg='{"case":"rowb-seg","appearance":"segmented","label":"Sexo","opts":"sexo","w":"sm","st":["error","Elige el sexo"],"required":true}'></div>
+    <div data-rg='{"case":"rowb-inl","appearance":"inline","label":"¿Fuma? (pregunta larga que ocupa dos líneas en una columna estrecha)","opts":"sino","value":0,"w":"xs","st":["warning","Revisa la respuesta"]}'></div>
+  </div>
+</div></div>
+
+<h2 class="b" id="estados">4 · Estados</h2>
+<p class="cap">Solo lectura (relleno <code>neutral-soft</code>, borde discontinuo, contraste completo), deshabilitado (grupo y opción), error (doble trazo), advertencia (discontinuo) y válido.</p>
+<div class="host"><div class="stack" id="states"></div></div>
+
+<h2 class="b" id="colores">5 · Color</h2>
+<p class="cap">El <code>color</code> pinta lo elegido. El error usa siempre <code>danger</code>.</p>
+<div class="host"><div class="stack" id="colors"></div></div>
+
+<h2 class="b" id="iconos">6 · Iconos y solo icono</h2>
+<p class="cap"><code>labelMode="icon"</code> en <code>segmented</code> y <code>chip</code>: la etiqueta queda como texto oculto accesible y es el nombre del radio; una opción sin icono conserva su etiqueta.</p>
+<div class="host"><div class="grid">
+  <div data-rg='{"case":"io-seg","appearance":"segmented","label":"Vista","opts":"vista","value":0,"labelMode":"icon"}'></div>
+  <div data-rg='{"case":"io-chip","appearance":"chip","label":"Vista","opts":"vista","value":2,"labelMode":"icon"}'></div>
+  <div data-rg='{"case":"ic-seg","appearance":"segmented","label":"Vista","opts":"vista","value":1}'></div>
+</div></div>
+
+<h2 class="b" id="estrecho">7 · Estrecho: el segmentado se apila</h2>
+<p class="cap">Se decide por su ancho propio (medido): una opción por línea, misma caja, mismo orden. Ningún texto se recorta.</p>
+<div class="host"><div class="grid">
+  <div class="narrow" data-rg='{"case":"narrow-seg","appearance":"segmented","label":"Lado dominante","opts":"lado","value":2}'></div>
+  <div class="narrow" data-rg='{"case":"narrow-chip","appearance":"chip","label":"Frecuencia","opts":"frecuencia","value":0}'></div>
+  <div class="narrow" data-rg='{"case":"narrow-card","appearance":"card","label":"Plan","opts":"plan","value":0}'></div>
+</div></div>
+
+<h2 class="b" id="densidad">8 · Densidad compacta</h2>
+<div class="host"><div class="stack">
+  <div class="g-form-row g-form-row--density-compact" data-row="c">
+    <div data-in='{"case":"rowc-in","label":"Nombre","size":"md","density":"compact","w":"md"}'></div>
+    <div data-rg='{"case":"rowc-seg","appearance":"segmented","label":"Sexo","opts":"sexo","value":2,"density":"compact","w":"sm"}'></div>
+    <div data-rg='{"case":"rowc-inl","appearance":"inline","label":"¿Fuma?","opts":"sino","density":"compact","w":"xs"}'></div>
+  </div>
+  <div data-rg='{"case":"list-compact","appearance":"list","label":"Modalidad","opts":"modalidad","value":0,"density":"compact"}'></div>
+</div></div>
+
+<h2 class="b" id="rtl">9 · RTL (dir="rtl" local)</h2>
+<div class="host" dir="rtl" lang="ar"><div class="grid">
+  <div data-rg='{"case":"rtl-seg","appearance":"segmented","label":"الجنس","opts":"sexoAr","value":0}'></div>
+  <div data-rg='{"case":"rtl-inline","appearance":"inline","label":"هل تدخن؟","opts":"sinoAr","value":0}'></div>
+  <div data-rg='{"case":"rtl-list","appearance":"list","label":"الطريقة","opts":"modalidadAr","value":1}'></div>
+</div></div>
+</main>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const I = (n, cls) => window.lucide(n, cls);
+
+const OPTS = {
+  modalidad: [
+    { value: 'presencial', label: 'Presencial', description: 'En el consultorio de Reforma 120.', icon: 'map-pin' },
+    { value: 'linea', label: 'En línea', description: 'Videollamada; el enlace llega por correo.', icon: 'globe' },
+    { value: 'tel', label: 'Por teléfono', icon: 'message-circle', disabled: true }
+  ],
+  sino: [{ value: true, label: 'Sí' }, { value: false, label: 'No' }],
+  sexo: [{ value: 'F', label: 'Femenino' }, { value: 'M', label: 'Masculino' }, { value: 'X', label: 'No binario' }],
+  frecuencia: [{ value: 'd', label: 'Diaria' }, { value: 's', label: 'Semanal' }, { value: 'm', label: 'Mensual' }, { value: 'n', label: 'Nunca' }],
+  plan: [
+    { value: 'basico', label: 'Básico', description: 'Una consulta al mes y mensajes.', icon: 'user' },
+    { value: 'familiar', label: 'Familiar', description: 'Hasta cuatro personas, consultas ilimitadas.', icon: 'users' },
+    { value: 'empresa', label: 'Empresa', description: 'Equipos con facturación centralizada.', icon: 'building-2' }
+  ],
+  vista: [{ value: 'lista', label: 'Lista', icon: 'list' }, { value: 'tabla', label: 'Tabla', icon: 'table' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }],
+  lado: [{ value: 'i', label: 'Izquierdo' }, { value: 'd', label: 'Derecho' }, { value: 'a', label: 'Ambidiestro' }, { value: 'n', label: 'No lo sé' }],
+  sexoAr: [{ value: 'F', label: 'أنثى' }, { value: 'M', label: 'ذكر' }, { value: 'X', label: 'A+' }],
+  sinoAr: [{ value: 1, label: 'نعم' }, { value: 0, label: 'لا' }],
+  modalidadAr: [
+    { value: 'p', label: 'حضوري', description: 'في العيادة.', icon: 'map-pin' },
+    { value: 'l', label: 'عبر الإنترنت', description: 'مكالمة فيديو.', icon: 'globe' }
+  ]
+};
+const ICON = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' };
+const PFX = { error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' };
+const STC = { error: 'is-invalid', warning: 'is-warning', valid: 'is-valid' };
+
+/* Lo que hará GRadioGroup.vue (radio-group.md, «Estructura accesible», «Apariencias» y «Clases») */
+function rg(o) {
+  const id = o.case;
+  const app = o.appearance || 'list';
+  const isDiv = app === 'inline' || app === 'segmented';
+  const cover = app === 'chip' || app === 'segmented';
+  const descOk = app === 'list' || app === 'card';
+  const iconMode = o.labelMode === 'icon' && cover;
+  const options = (typeof o.opts === 'string' ? OPTS[o.opts] : o.opts).map((x, i) => ({ ...x, disabled: x.disabled || (o.optDisabled === i) }));
+  const cls = ['g-radio-group', 'g-radio-group--appearance-' + app, 'g-radio-group--size-' + (o.size || 'md'),
+    'g-radio-group--density-' + (o.density || 'default'), 'g-radio-group--color-' + (o.color || 'brand')];
+  if (iconMode) cls.push('g-radio-group--icon-only');
+  if (o.disabled) cls.push('is-disabled');
+  if (o.readonly) cls.push('is-readonly');
+  if (o.st) cls.push(STC[o.st[0]]);
+  if (o.w) cls.push('g-form-w-' + o.w);
+  const hint = o.hint ? id + '-hint' : '';
+  const msg = o.st ? id + '-message' : '';
+  const described = [hint, msg].filter(Boolean).join(' ');
+  const attrs = ' id="' + id + '" role="radiogroup" aria-labelledby="' + id + '-label"' + (described ? ' aria-describedby="' + described + '"' : '') +
+    (o.required ? ' aria-required="true"' : '') + (o.st && o.st[0] === 'error' ? ' aria-invalid="true"' : '') + (o.readonly ? ' aria-readonly="true"' : '') +
+    (!isDiv && o.disabled ? ' disabled' : '') + ' data-case="' + esc(id) + '"';
+  const mark = o.required && !o.readonly && !o.disabled ? '<span class="g-radio-group__required" aria-hidden="true">*</span>' : (o.optional ? ' <span class="g-radio-group__optional">(opcional)</span>' : '');
+  const lt = isDiv ? 'span' : 'legend';
+  const label = '<' + lt + ' class="g-radio-group__label" id="' + id + '-label">' + esc(o.label) + mark + '</' + lt + '>';
+  const opts = options.map((x, i) => {
+    const oid = id + '-' + i;
+    const hasIcon = typeof x.icon === 'string';
+    const iconOnly = iconMode && hasIcon;
+    const desc = descOk && x.description ? '<span class="g-radio-group__description" id="' + oid + '-description">' + esc(x.description) + '</span>' : '';
+    const icon = hasIcon ? '<span class="g-radio-group__icon" aria-hidden="true">' + I(x.icon) + '</span>' : '';
+    const text = '<span class="g-radio-group__text"><span class="g-radio-group__option-label" id="' + oid + '-label" dir="auto">' + esc(x.label) + '</span>' + desc + '</span>';
+    const inner = app === 'segmented' ? '<span class="g-radio-group__segment">' + icon + text + '</span>' : icon + text;
+    return '<label class="g-radio-group__option' + (x.disabled ? ' is-disabled' : '') + (iconOnly ? ' is-icon-only' : '') + '" for="' + oid + '">' +
+      '<input class="g-radio-group__input" type="radio" id="' + oid + '" name="' + id + '" value="' + esc(String(x.value)) + '" aria-labelledby="' + oid + '-label"' +
+      (desc ? ' aria-describedby="' + oid + '-description"' : '') + (o.value === i ? ' checked' : '') + (x.disabled || (isDiv && o.disabled) ? ' disabled' : '') + '>' +
+      inner + '</label>';
+  }).join('');
+  const msgHTML = o.st ? I(ICON[o.st[0]], 'g-radio-group__message-icon') + '<span class="g-radio-group__message-type">' + PFX[o.st[0]] + '</span>' + esc(o.st[1]) : '';
+  const support = '<div class="g-radio-group__support">' + (o.hint ? '<div class="g-radio-group__hint" id="' + id + '-hint">' + esc(o.hint) + '</div>' : '') +
+    '<div class="g-radio-group__message" id="' + id + '-message" aria-live="polite">' + msgHTML + '</div></div>';
+  const tag = isDiv ? 'div' : 'fieldset';
+  return '<' + tag + ' class="' + cls.join(' ') + '"' + attrs + '>' + label + '<div class="g-radio-group__options">' + opts + '</div>' + support + '</' + tag + '>';
+}
+/* GInput mínimo (marcado de input.md, C12) para comparar la caja */
+function input(o) {
+  const id = o.case;
+  return '<div class="g-input g-input--variant-outline g-input--size-' + (o.size || 'md') + ' g-input--density-' + (o.density || 'default') + ' g-input--block' + (o.w ? ' g-form-w-' + o.w : '') + '" data-case="' + esc(id) + '">' +
+    '<label class="g-input__label" for="' + id + '-f">' + esc(o.label) + '</label>' +
+    '<div class="g-input__row"><div class="g-input__control"><input class="g-input__field" id="' + id + '-f" type="text"' + (o.hint ? ' aria-describedby="' + id + '-hint"' : '') + '></div></div>' +
+    '<div class="g-input__support">' + (o.hint ? '<div class="g-input__messages"><span class="g-input__hint" id="' + id + '-hint">' + esc(o.hint) + '</span></div>' : '') +
+    '<div class="g-input__message" id="' + id + '-message" aria-live="polite"></div></div></div>';
+}
+
+/* Casos generados */
+const SIZES_LIST = ['xs', 'sm', 'md', 'lg', 'xl'];
+$('#sizes').innerHTML = SIZES_LIST.map((s) => '<div class="sizes">' +
+  '<div data-in=\'{"case":"in-' + s + '","label":"GInput ' + s + '","size":"' + s + '"}\'></div>' +
+  '<div data-rg=\'{"case":"seg-' + s + '","appearance":"segmented","label":"segmented ' + s + '","opts":"sexo","value":1,"size":"' + s + '"}\'></div>' +
+  '<div data-rg=\'{"case":"inl-' + s + '","appearance":"inline","label":"inline ' + s + '","opts":"sino","value":0,"size":"' + s + '"}\'></div>' +
+  '</div>').join('') +
+  '<div class="sizes">' +
+  '<div data-in=\'{"case":"in-md-compact","label":"GInput md compact","density":"compact"}\'></div>' +
+  '<div data-rg=\'{"case":"seg-md-compact","appearance":"segmented","label":"segmented md compact","opts":"sexo","value":1,"density":"compact"}\'></div>' +
+  '<div data-rg=\'{"case":"inl-md-compact","appearance":"inline","label":"inline md compact","opts":"sino","value":0,"density":"compact"}\'></div></div>' +
+  '<div class="sizes">' + SIZES_LIST.map((s) => '<div data-rg=\'{"case":"lst-' + s + '","appearance":"list","label":"list ' + s + '","opts":"sino","value":0,"size":"' + s + '"}\'></div>').join('') + '</div>';
+
+const APPS = ['list', 'inline', 'segmented', 'chip', 'card'];
+const OPTS_FOR = { list: 'modalidad', inline: 'sino', segmented: 'sexo', chip: 'frecuencia', card: 'plan' };
+const STATES = [
+  ['readonly', { readonly: true, value: 1 }], ['disabled', { disabled: true, value: 1 }], ['optdis', { optDisabled: 0, value: 1 }],
+  ['invalid', { st: ['error', 'Elige una opción'] }], ['warning', { st: ['warning', 'Revisa la respuesta'], value: 0 }], ['valid', { st: ['valid', 'Respuesta registrada'], value: 0 }]
+];
+$('#states').innerHTML = APPS.map((a) => '<div class="grid">' + STATES.map(([n, extra]) =>
+  '<div data-rg=\'' + JSON.stringify({ case: 'st-' + a + '-' + n, appearance: a, label: a + ' · ' + n, opts: OPTS_FOR[a], ...extra }) + '\'></div>').join('') + '</div>').join('');
+const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info'];
+$('#colors').innerHTML = ['list', 'segmented', 'chip', 'card'].map((a) => '<div class="grid">' + COLORS.map((c) =>
+  '<div data-rg=\'' + JSON.stringify({ case: 'col-' + a + '-' + c, appearance: a, label: a + ' · ' + c, opts: a === 'list' ? 'sino' : OPTS_FOR[a], value: 1, color: c }) + '\'></div>').join('') + '</div>').join('');
+
+$$('[data-rg]').forEach((el) => { const o = JSON.parse(el.dataset.rg); const wrap = el.classList.contains('narrow'); const html = rg(o); if (wrap) { el.removeAttribute('data-rg'); el.innerHTML = html; } else el.outerHTML = html; });
+$$('[data-in]').forEach((el) => { el.outerHTML = input(JSON.parse(el.dataset.in)); });
+
+/* Controles */
+const q = new URLSearchParams(location.search);
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-primary:#7A1E3A;--g-color-primary-strong:#5E1730;--g-color-primary-text:#7A1E3A;--g-color-on-primary:#fffaf2;--g-color-primary-soft:#f3dde3;--g-color-on-primary-soft:#5E1730;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}';
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe'];
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'));
+function setTheme(v) {
+  $('#theme').textContent = v === 'test' ? TEST : '';
+  $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,';
+}
+$('#t-theme').onchange = (e) => setTheme(e.target.value);
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+$('#t-w').onchange = (e) => { $('main').style.maxInlineSize = e.target.value ? e.target.value + 'px' : ''; };
+const th = q.get('test') ? 'test' : (q.get('theme') || '');
+if (th) { $('#t-theme').value = th; setTheme(th); }
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+<script type="module">
+/* Lo que harán GRadioGroup.vue (medida y apilado del segmentado, #271) y GFormRow.vue (reparto con el mínimo intrínseco) */
+import { SIZES, placement, planLines, sizeOf } from '../../../packages/vue/src/components/GFormRow/formRowPlan.js'
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 4
+const intrinsic = new WeakMap()
+
+// Ancho natural: todas las opciones en una línea e iguales a la más larga. Pasada síncrona con --measure (sin
+// transiciones, disposición de una línea): n × max(ancho del __segment más ancho + relleno en línea + separador, mínimo de la opción)
+function natural(root) {
+  root.classList.add('g-radio-group--measure')
+  const opts = $$('.g-radio-group__option', root)
+  let w = 0
+  for (const o of opts) {
+    const cs = getComputedStyle(o)
+    const seg = o.querySelector('.g-radio-group__segment')
+    const own = seg.getBoundingClientRect().width + parseFloat(cs.paddingInlineStart) + parseFloat(cs.paddingInlineEnd) + parseFloat(cs.borderInlineStartWidth)
+    w = Math.max(w, own, parseFloat(cs.minInlineSize) || 0)
+  }
+  root.classList.remove('g-radio-group--measure')
+  return Math.ceil(opts.length * w)
+}
+function fit(root) {
+  const nat = natural(root)
+  root.dataset.natural = nat
+  intrinsic.set(root, nat)
+  const box = root.querySelector('.g-radio-group__options')
+  const stacked = nat > box.getBoundingClientRect().width + 0.5
+  if (root.classList.contains('is-stacked') !== stacked) root.classList.toggle('is-stacked', stacked)
+}
+function layoutRow(row) {
+  const A = +row.getBoundingClientRect().width.toFixed(2)
+  if (!A) return
+  const g = parseFloat(getComputedStyle(row).getPropertyValue('--_form-row-gap')) || 0
+  const kids = [...row.children]
+  const items = kids.map((el) => {
+    const s = SIZES[sizeOf(el.classList).size]
+    const own = parseFloat(getComputedStyle(el).getPropertyValue('--g-form-min')) || 0
+    return { el, w: s.weight, m: Math.max(s.min * space(), own * space(), intrinsic.get(el) || 0) }
+  })
+  const p = placement(items, planLines(items, A, g), A, g)
+  row.style.setProperty('--_form-row-columns', p.columns)
+  row.style.setProperty('--_form-row-rows', p.rows)
+  row.dataset.lines = p.lines
+  for (const k of p.kids) { const el = kids[k.index]; el.style.setProperty('--_form-row-column', k.column); el.style.setProperty('--_form-row-line', k.row); el.dataset.line = k.line }
+}
+const segs = $$('.g-radio-group--appearance-segmented')
+const rows = $$('.g-form-row')
+function all() { segs.forEach(fit); rows.forEach(layoutRow); segs.forEach(fit) }
+let raf = 0
+const ro = new ResizeObserver(() => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; all() }) })
+segs.forEach((s) => ro.observe(s.querySelector('.g-radio-group__options')))
+rows.forEach((r) => ro.observe(r))
+all()
+document.fonts && document.fonts.ready.then(all)
+window.__layout = all
+document.documentElement.dataset.ready = '1'
+</script>
+</body>
+</html>
