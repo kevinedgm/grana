@@ -300,13 +300,13 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
     <div class="g-form-section__actions">…</div>               <!-- slot actions: acciones secundarias (Copiar de…) -->
     <div class="g-form-section__help">…</div>                  <!-- slot help: GHelper -->
   </div>
-  <div class="g-form-section__body"><!-- slot por defecto: normalmente un GFormLayout --></div>
+  <div class="g-form-section__body"><!-- slot por defecto: un GFormLayout con los campos (#283) --></div>
 </section>
 ```
 
 - **Sin `aria-labelledby`** en la `<section>`: con nombre sería un punto de referencia `region` y un formulario largo tendría diez (ruido). Los encabezados dan la navegación (WCAG 1.3.1, 2.4.6, 2.4.10).
 - `fieldset`/`legend` se reserva para **preguntas** (`GFieldGroup`, radios), no para secciones (W3C WAI «Grouping Controls»).
-- La distribución de campos **no** la pone la sección: el consumidor coloca un `GFormLayout` en el cuerpo (una sola responsabilidad; secciones sin campos también son válidas).
+- **El cuerpo no distribuye (#283):** `__body` es un contenedor simple, **no una pila**: sin `gap` entre sus hijos y sin sub‑contexto de distribución (`block`, `density`, `stack`). **Los campos de una sección van en un `GFormLayout`** dentro del cuerpo, y con ellos sus `GFormRow` y sus `GFormReveal` (la pregunta y su bloque, hermanos en esa pila). Quien separa las filas, da el ancho completo y pasa la densidad es `GFormLayout`; la sección no lo duplica (una sola responsabilidad; r02: filas explícitas que siempre llenan el ancho). Una sección **sin campos** (texto, una tabla, un `GDataList`) es válida y pone su contenido directamente en el cuerpo, con la separación que ese contenido traiga. Un campo suelto en el cuerpo no llena el ancho, no recibe la densidad del layout y queda pegado a sus hermanos: avisa (abajo, «Campos directos en el cuerpo»).
 - **`lead`** (#203; cierra `tokens.md` §23.6): hueco opcional como el de `GCard`, pero **de icono**, no de avatar: su tamaño y su alineación los fija coco con un alias local tomando como referencia la **primera línea del título** (no la caja `space × 10` del `lead` de `GCard`); **sin tokens nuevos**. Decorativo: el nombre del encabezado es solo el texto del título; un `GIcon` con `label` dentro avisa en desarrollo (`icons.md` §2.4). No cambia la jerarquía tipográfica (#196).
 
 ### Slots
@@ -318,7 +318,7 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 | `description` | Descripción rica | En `__description` |
 | `actions` | Acciones secundarias de la sección (botones `GBtn` `ghost`/`outline`) | Al final del encabezado; nunca la primaria del formulario |
 | `help` | Ayuda contextual (`GHelper`) | En `__help` |
-| default | Campos | En `__body` |
+| default | Un `GFormLayout` con los campos (#283); o contenido que no son campos | En `__body` (contenedor simple, no pila) |
 
 ### Clases
 
@@ -343,6 +343,8 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 **Qué NO cambia de lo ya construido** (lista de kiwi, confirmada): `<section>` sin `aria-labelledby`, títulos `hN` con `headingLevel`, `optional` y su insignia (#161); el valor y el significado de `--g-form-section-gap`; `GFormLayout`, `GFormRow`, el reparto en líneas (#175) y la prueba obligatoria de distribución (#184); `GErrorSummary`, `GFormActions` y la línea de su pie fijo; la convención de obligatorios; el aspecto de todos los formularios existentes, el playground y la auditoría r02. Lo único nuevo en la Fase 1 es **para bruno**: `divider` en la lista de reservadas de `GFormSection.vue` y el aviso del divider a mano, con sus pruebas. Nada para coco.
 
 **Dentro de un `GFormReveal` (Fase 3, #279):** `GFormSection` avisa (`[Grana GFormSection]`, una vez, al montar) si inyecta `revealKey`: «la sección contiene la pregunta y el bloque, no al revés» (§14). No cambia nada de lo que se pinta.
+
+**Campos directos en el cuerpo (#283):** `GFormSection` avisa (`[Grana GFormSection]`, una vez por sección, al montar) si algún **hijo directo** de `__body` es la raíz de un campo de Grana (`GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GInputGroup`, `GRadioGroup`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GFieldGroup`), una `GFormRow` o un `GFormReveal`: «los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye». Un solo aviso aunque haya varios hijos así. bruno elige cómo reconocer las raíces (clases raíz o una marca interna); un campo propio del consumidor no se detecta (limitación aceptada). No cambia nada de lo que se pinta.
 
 ---
 
@@ -1033,7 +1035,7 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 
 ### Colocación (#275, #279)
 
-- **Inmediatamente después de la pregunta que lo condiciona**, como hermano en la misma pila (`GFormLayout`, cuerpo de otro `GFormReveal`, cuerpo de `GFormSection`). Varios bloques excluyentes de la misma pregunta van seguidos (Física → …; Moral → …): el cerrado no ocupa nada.
+- **Inmediatamente después de la pregunta que lo condiciona**, como hermano en la misma pila: un `GFormLayout` (dentro de una sección, el `GFormLayout` de su cuerpo: el cuerpo de `GFormSection` **no** es una pila, §3, #283) o el cuerpo de otro `GFormReveal`. En un contenedor propio del consumidor (fuera de `GForm`), la separación es su `row-gap`; con `row-gap: normal`, `0px` y el bloque queda pegado a la pregunta. Varios bloques excluyentes de la misma pregunta van seguidos (Física → …; Moral → …): el cerrado no ocupa nada.
 - **Nunca dentro de una `GFormRow`**: un bloque ocupa su propia fila y **contiene** filas («Otro → Especifique» va debajo, no al lado).
 - **Nombres:** cada campo tiene su `name` en todo el formulario, también entre ramas excluyentes (aviso 1 de `GForm`). Un campo común a varias ramas (RFC para persona física y moral) va **una vez**, fuera de los bloques; la regla de longitud distinta es de la aplicación.
 
@@ -1060,7 +1062,8 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 - **`is-animating`** desde el cambio de `when` hasta el `transitionend` de `grid-template-rows` **cuya diana es la raíz**, o un **temporizador de respaldo** = la mayor suma de `transition-duration` + `transition-delay` calculadas de la raíz + 50ms (una transición de 0s no emite el evento: movimiento reducido).
 - **`is-ready`** tras el primer pintado (doble `requestAnimationFrame`): **sin animar al montar** (plan 012) ni al reabrir un padre cuyo anidado ya estaba abierto (su estado no cambió).
 - **Interrupción:** cambiar `when` a mitad revierte desde la altura actual (transiciones CSS; nada que medir).
-- **Separación del contenedor:** `--_reveal-gap` (px) = `row-gap` calculado del **elemento padre** (0 si no es un número), escrito en línea al montar, en cada cambio de `when` y cuando el padre cambia de tamaño (`ResizeObserver` **compartido** por todos los bloques, observando a cada padre; escrituras en `requestAnimationFrame` y solo si cambian, #173). No se mide ninguna altura. Así un bloque cerrado no deja hueco (pregunta → siguiente campo = una separación) y al abrir lo de abajo baja de forma continua. El disparador no se mueve (Δ 0px).
+- **Separación del contenedor:** `--_reveal-gap` (px) = `row-gap` calculado del **elemento padre** (0 si no es un número), escrito en línea al montar, en cada cambio de `when` y cuando el padre cambia de tamaño (`ResizeObserver` **compartido** por todos los bloques, observando a cada padre; escrituras en `requestAnimationFrame` y solo si cambian, #173). No se mide ninguna altura. Así un bloque cerrado no deja hueco (pregunta → siguiente campo = una separación) y al abrir lo de abajo baja de forma continua. El disparador no se mueve (Δ 0px), con el límite siguiente.
+- **Límite del Δ 0px: cerrar al final de la página** (auditoría de coco, hallazgo 2; #283). Si la página está desplazada hasta el final y lo que hay debajo no basta para conservar ese desplazamiento, al **cerrar** un bloque la página encoge y el navegador **recorta el desplazamiento**: el disparador baja lo que encoge la página (bloque de 408px + separación de 20px: 428px, medido en los tres motores). Baja en continuo, con la curva del bloque, y sigue visible. Es inherente (pasa igual con `<details>`) y **no tiene arreglo en CSS**; compensarlo desplazando por programa queda descartado (contradice «sin desplazamiento automático», §«Foco y desplazamiento»). Al **abrir** al final, Δ 0px. Va en la sección «Límites» del README.
 - **Opacidad:** al abrir, fundido que termina con la altura (empieza con retraso); al cerrar, fundido corto desde el principio; `visibility` pasa a `hidden` solo al final.
 - **Movimiento reducido** (plan 007: menos, no cero): altura y margen en **un cuadro**; el **fundido se conserva** al abrir y al cerrar, y al cerrar el bloque sigue visible hasta que acaba.
 - **`GFormLayout` pone `margin: 0` a sus hijos** (`.g-form-layout > *`): el margen negativo del bloque cerrado debe ganarle (para coco).
@@ -1124,15 +1127,16 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 `[Grana GFormSection]`, al montar:
 
 3. Una `GFormSection` dentro de un `GFormReveal` (la sección lo detecta al inyectar `revealKey`): «la sección contiene la pregunta y el bloque, no al revés».
+4. Un `GFormReveal` (o un campo, o una `GFormRow`) como hijo directo del cuerpo de una `GFormSection` (lo detecta la sección; §3, «Campos directos en el cuerpo», #283): «los campos de una sección van en un `GFormLayout`…».
 
 Ninguno cambia el comportamiento.
 
 ### Verificación
 
-- **bruno (vitest + jsdom):** estructura (`div` sin rol, `fieldset role="none"`, sin `<legend>`); `inert` y `disabled` según `when`, también en SSR (`renderToString`); contenido montado con `when` falso; clases `is-open`/`is-animating`/`is-ready` (sin `is-ready` en el primer render); `--_reveal-gap` desde el `row-gap` del padre (simulado) y solo si cambia; atributos y orden de la escucha `transitionend`; re‑provisión de `layoutKey`; foco al cerrar (anterior, radio elegido, posterior); los tres avisos. **Registro inactivo en `GForm`** (§1, §2): con `errors` sin condiciones para campos de un bloque cerrado, `submit` sale **sin** `invalid`; `showErrors()` y el envío no los revelan; `invalid` no los lista; sus claves no aparecen como generales; cerrar con errores visibles los quita del resumen (y lo oculta si queda vacío) y limpia editado y revelado; reabrir no muestra el error y el siguiente envío sí; anidado activo solo con el padre; `GFieldGroup`, `GCheckboxGroup`, `GInputGroup` y `GRadioGroup` dentro; un campo propio con `useFormField` dentro.
+- **bruno (vitest + jsdom):** estructura (`div` sin rol, `fieldset role="none"`, sin `<legend>`); `inert` y `disabled` según `when`, también en SSR (`renderToString`); contenido montado con `when` falso; clases `is-open`/`is-animating`/`is-ready` (sin `is-ready` en el primer render); `--_reveal-gap` desde el `row-gap` del padre (simulado) y solo si cambia; atributos y orden de la escucha `transitionend`; re‑provisión de `layoutKey`; foco al cerrar (anterior, radio elegido, posterior); los cuatro avisos (el 4, en `GFormSection`: avisa con un campo, una `GFormRow` o un `GFormReveal` directos en el cuerpo y calla con un `GFormLayout` o con contenido que no son campos, #283). **Registro inactivo en `GForm`** (§1, §2): con `errors` sin condiciones para campos de un bloque cerrado, `submit` sale **sin** `invalid`; `showErrors()` y el envío no los revelan; `invalid` no los lista; sus claves no aparecen como generales; cerrar con errores visibles los quita del resumen (y lo oculta si queda vacío) y limpia editado y revelado; reabrir no muestra el error y el siguiente envío sí; anidado activo solo con el padre; `GFieldGroup`, `GCheckboxGroup`, `GInputGroup` y `GRadioGroup` dentro; un campo propio con `useFormField` dentro.
 - **Playwright** (Chromium, Firefox y WebKit): adaptar `design/lab/form-reveal/r01/verificar.mjs` al componente real en `design/lab/theme-playground/` (sin transición al cargar; `FormData` y `:invalid` según la respuesta, con `GSelect` y `GDatePicker` dentro; Tab; disparador Δ 0px en cada cuadro al abrir y cerrar, LTR y RTL; Δscroll 0; altura y opacidad intermedias; `overflow` visible al asentarse; interrupción; movimiento reducido; 320px con dos niveles sin desborde; foco al cerrar por programa) y añadir un bloque abierto a la **prueba obligatoria de distribución** (#184: las filas del cuerpo terminan en el mismo borde que las de fuera, menos la sangría en el inicio).
 - **coco (auditoría con un tema distinto):** barra visible y alineada con el inicio de la pregunta en las tres densidades, anidados, RTL y `forced-colors`; que el aspecto deshabilitado nativo de los controles (`GBtn:disabled`, etiquetas de grupo con `:disabled`) no destaque durante el fundido de cierre; `--g-duration-slow` en `GSidebar` y `GStepper` sin cambio visible.
-- **No verificado y pendiente:** lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; que `fieldset role="none"` no se anuncie como grupo); Safari, iOS y táctil reales; `forced-colors` en Firefox y WebKit; cerrar un bloque grande con la página desplazada hasta el final; rendimiento con muchos bloques.
+- **No verificado y pendiente:** lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; que `fieldset role="none"` no se anuncie como grupo); Safari, iOS y táctil reales; `forced-colors` en Firefox y WebKit; rendimiento con muchos bloques. (Cerrar un bloque grande con la página al final: medido por coco y anotado como límite en «Transición», #283.)
 
 ---
 
