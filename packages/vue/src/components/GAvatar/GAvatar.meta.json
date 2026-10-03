@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GAvatar",
   "tag": "g-avatar",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "La cara de una persona o de una entidad en una caja cuadrada de lado fijo: imagen, iniciales o icono, sin que la caja cambie al pasar de uno a otro. Decorativo por defecto; con label, imagen con nombre. Nunca interactivo: sin slots ni eventos. La presencia es una GBadge anclada.",
   "contract": "design/contracts/avatar.md",

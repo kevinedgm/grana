@@ -112,10 +112,12 @@
 .g-avatar.is-loaded > .g-avatar__img { opacity: 1; }
 
 /* ---------- Movimiento (solo sin preferencia de reducirlo) ----------
-   Personalidad: la imagen no «aparece encima», se REVELA desde las iniciales. Las iniciales se desvanecen mientras la
-   foto entra un pelo ampliada y se asienta (como un enfoque); el respaldo se oculta solo al final, así nunca queda el
-   relleno vacío entre los dos (visibility es discreta: sigue visible hasta el final del fundido al ocultarse y vuelve
-   al instante al mostrarse). Y la forma se transforma (círculo ↔ cuadrado) en lugar de saltar. */
+   Personalidad: la imagen no «aparece encima», se REVELA sobre las iniciales. La foto se funde sobre el respaldo, que
+   sigue entero debajo, mientras entra un pelo ampliada y se asienta (como un enfoque); el respaldo se retira de golpe
+   al TERMINAR el fundido (step-end), así ningún fotograma deja ver el relleno vacío (auditoría, hallazgo 2: con los dos
+   fundiéndose a la vez, a mitad de camino asomaba el relleno, y al cambiar de src el respaldo volvía desde 0). La
+   transición vive solo en el estado cargado: al volver a «cargando» (cambio de src) el respaldo reaparece al instante.
+   Y la forma se transforma (círculo ↔ cuadrado) en lugar de saltar. */
 @media (prefers-reduced-motion: no-preference) {
   .g-avatar {
     transition: border-radius var(--g-duration-fast) var(--g-ease-standard);
@@ -127,10 +129,10 @@
       scale calc(var(--g-duration-fast) * 2) var(--g-ease-standard);
   }
   .g-avatar.is-loaded > .g-avatar__img { scale: 1; }
-  .g-avatar > :not(.g-avatar__img) {
+  .g-avatar.is-loaded > :not(.g-avatar__img) {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-standard),
-      visibility var(--g-duration-fast) var(--g-ease-standard);
+      opacity var(--g-duration-fast) step-end,
+      visibility var(--g-duration-fast) step-end;
   }
 }
 

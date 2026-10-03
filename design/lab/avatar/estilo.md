@@ -32,11 +32,11 @@
 
 **Implementado (solo con `prefers-reduced-motion: no-preference`; con `reduce`, todo instantáneo):**
 
-1. **La imagen se revela desde las iniciales**, no aparece encima. Al cargar, las iniciales (o el icono) se desvanecen mientras la foto entra con `scale: 1.06` y se **asienta** a `1` en `--g-duration-fast × 2` con `--g-ease-standard`, como un enfoque. `visibility` es discreta: el respaldo sigue visible hasta el final del fundido al ocultarse (no hay un instante de relleno vacío) y vuelve al instante cuando cambia `src`. El círculo recorta la escala (sin salto de caja: medido 0px). Sirve al usuario: en una tabla que carga 50 caras, el cambio se percibe como la misma persona «enfocándose», no como 50 parpadeos.
+1. **La imagen se revela sobre las iniciales**, no aparece encima de golpe. Al cargar, la foto se funde (`--g-duration-fast`) **sobre el respaldo, que sigue entero debajo**, mientras entra con `scale: 1.06` y se **asienta** a `1` en `--g-duration-fast × 2` con `--g-ease-standard`, como un enfoque. El respaldo se retira de golpe **al terminar** el fundido (`step-end` en `opacity` y `visibility`, transición declarada solo en el estado `is-loaded`): ningún fotograma deja ver el relleno vacío, y al cambiar `src` el respaldo vuelve al instante (sin transición de regreso). El círculo recorta la escala (sin salto de caja: medido 0px). Sirve al usuario: en una tabla que carga 50 caras, el cambio se percibe como la misma persona «enfocándose», no como 50 parpadeos. *Auditoría (hallazgo 2): antes los dos se fundían a la vez y a mitad de camino asomaba el relleno; al cambiar de foto, el respaldo volvía desde 0.* Una imagen que ya estaba decodificada al montar (remontaje) aparece sin fundido: lo decide `complete` en `onMounted` (medido en los tres motores, hallazgo 3).
 2. **La forma se transforma**: cambiar `shape` anima `border-radius` (`--g-duration-fast`) en vez de saltar; útil cuando una vista alterna entre persona y entidad (p. ej. «Actuar como organización»).
 3. **Monograma con ajuste tipográfico propio**: `font-variant-numeric: lining-nums` (un «3M» o «Ø» a la altura de las mayúsculas), `font-variant-ligatures: none` (dos iniciales nunca se funden en una ligadura) y `font-kerning: normal`; peso de `title-sm` en todos los tamaños.
 
-**Para lima / kiwi (requieren contrato o estructura; no implementado):**
+**Para lima / kiwi (requieren contrato o estructura; no implementado):** (lista completa para la ronda transversal en `auditoria.md` § «Personalidad»)
 
 - **Revelado desde el color de la imagen**: un `placeholder` (color dominante o LQIP de pocos bytes que da la API) pintado como relleno mientras carga, para que la foto aparezca desde su propio tono. Necesita una prop nueva y decidir si es color libre (hoy prohibido: §Color) o una `data:` de baja resolución; además, un límite de tamaño.
 - **Anillo de pila para `GAvatarGroup`**: separar avatares solapados con un recorte (`mask`) del color de la superficie en lugar de un borde, con el solapado lógico en RTL. Llega con la ronda de `GAvatarGroup` (reservado en el contrato).
@@ -76,4 +76,4 @@
 
 ## 8. No verificado
 
-`forced-colors` real (Windows) y en Firefox/WebKit (no se emula); lectores de pantalla; carga diferida real por motor; escrituras complejas (devanagari, tailandés, ZWJ); temas con `space` y tipografía desacoplados más allá de `space` 5.
+`forced-colors` real (Windows) y en Firefox/WebKit (no se emula); lectores de pantalla; carga diferida real por motor; escrituras complejas validadas por hablantes (devanagari y tailandés solo medidos: caben); temas con `space` y tipografía desacoplados más allá de `space` 5. Auditoría sobre el componente real: `auditoria.md` y `node design/lab/avatar/auditoria-verificar.mjs`.
