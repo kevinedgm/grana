@@ -65,11 +65,23 @@
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  /* Vuelta (lista completa; la ida va en :active). Fuera de @supports, la vigente: con var(), una curva no
+     soportada invalida la declaración entera y el botón se quedaría sin transiciones de color (#299 (6)) */
   transition:
     background-color var(--g-duration-fast) var(--g-ease-standard),
     border-color var(--g-duration-fast) var(--g-ease-standard),
     color var(--g-duration-fast) var(--g-ease-standard),
     transform var(--g-duration-press) var(--g-ease-out);
+}
+/* B1 · rebote al soltar (#300): vuelve a 1 con masa. --g-ease-bounce solo aquí, en la escala de la pulsación (#299) */
+@supports (transition-timing-function: linear(0, 1)) {
+  .g-btn {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
+      transform var(--g-duration-slow) var(--g-ease-bounce);
+  }
 }
 
 /* Área táctil: no cambia el aspecto, solo la zona que recibe el toque. Centrado con `left` físico: `translate` es
@@ -97,6 +109,16 @@
   display: inline-flex;
   flex: none;
 }
+/* B2 · la etiqueta cede el sitio (#300): fundido corto y un paso hacia arriba al entrar en carga; a la inversa al salir.
+   `visibility` solo en los huecos (aria-hidden): con transición discreta siguen visibles mientras se funden */
+.g-btn__label,
+.g-btn__prepend,
+.g-btn__append {
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    translate var(--g-duration-press) var(--g-ease-out),
+    visibility var(--g-duration-fast) var(--g-ease-standard);
+}
 /* El icono (GIcon o svg) hijo directo del hueco toma --_icon. Otro contenido (imagen, logotipo) lo dimensiona la aplicación.
    Una clase de tamaño de la aplicación sobre el icono gana por capa (#204); no se pone: el tamaño lo manda `size` */
 .g-btn__prepend > svg,
@@ -108,14 +130,23 @@
   min-inline-size: 0;
 }
 .g-btn__loader {
-  /* loader-circle de Lucide (GIcon, docs/contract/icons.md): gira y toma currentColor */
-  display: none;
+  /* loader-circle de Lucide (GIcon, docs/contract/icons.md): gira y toma currentColor.
+     Siempre en el árbol de cajas (no display: none) para que entre y salga con transición y para que montar ya en
+     carga no anime nada (#299 (4)): sin @starting-style. Fuera de carga está oculto y su giro, en pausa */
+  display: block;
   position: absolute;
   inset: 0;
   margin: auto;
   inline-size: var(--_icon);
   block-size: var(--_icon);
+  opacity: 0;
+  visibility: hidden;
   animation: g-btn-spin var(--g-duration-spin) linear infinite;
+  animation-play-state: paused;
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    translate var(--g-duration-press) var(--g-ease-out),
+    visibility var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-btn__status {
   position: absolute;
@@ -255,6 +286,12 @@
 }
 .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
   transform: scale(var(--g-press-scale));
+  /* Ida (lista completa): aprieta rápido; la vuelta con rebote la da la regla base (B1, #300) */
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard),
+    transform var(--g-duration-fast) var(--g-ease-out);
 }
 .g-btn:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
@@ -284,12 +321,15 @@
 }
 
 /* loading: conserva el color y el ancho; la etiqueta ocupa su espacio sin verse, pero sigue en el árbol de accesibilidad
-   (con visibility: hidden el nombre del botón quedaba vacío). Los iconos de los huecos son aria-hidden: pueden ocultarse del todo. */
+   (con visibility: hidden el nombre del botón quedaba vacío: nunca visibility ni display en la etiqueta, #300). Los iconos
+   de los huecos son aria-hidden: se ocultan del todo al terminar el fundido. */
 .g-btn.is-loading {
   cursor: progress;
 }
 .g-btn.is-loading .g-btn__loader {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  animation-play-state: running;
 }
 .g-btn.is-loading .g-btn__label {
   opacity: 0;
@@ -298,12 +338,30 @@
 }
 .g-btn.is-loading .g-btn__prepend,
 .g-btn.is-loading .g-btn__append {
+  opacity: 0;
   visibility: hidden;
+}
+/* B2: la etiqueta sube space × 1 (constante de coreografía neutra, #299 (8)); el indicador llega desde × 1 abajo.
+   Solo con movimiento permitido: con reduce, solo el fundido */
+@media (prefers-reduced-motion: no-preference) {
+  .g-btn__loader {
+    translate: 0 var(--g-space-1);
+  }
+  .g-btn.is-loading .g-btn__loader {
+    translate: 0 0;
+  }
+  .g-btn.is-loading .g-btn__label,
+  .g-btn.is-loading .g-btn__prepend,
+  .g-btn.is-loading .g-btn__append {
+    translate: 0 calc(var(--g-space-1) * -1);
+  }
 }
 
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-btn {
+  /* Se quedan colores y fundidos; se van la escala y el rebote (#299 (3)). B2 sin desplazamiento: ver arriba */
+  .g-btn,
+  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
     transition:
       background-color var(--g-duration-fast) var(--g-ease-standard),
       border-color var(--g-duration-fast) var(--g-ease-standard),

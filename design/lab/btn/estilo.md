@@ -64,6 +64,52 @@ Alias local de `GBtn.css`, sin token ni literal nuevo. Se define como `calc(var(
 - `link` con `icon` (sin altura mínima): no se prueba; no es un caso del contrato.
 - Pantallas de baja densidad con alturas fraccionarias (`comfortable`: 24,5, 31,5, 38,5px): los bordes del icono pueden verse difusos; sigue el pendiente de `round()`.
 
+## Personalidad (plan 015; DECISIONS.md #299 y #300; `btn.md` «Personalidad»)
+
+Lo que hace inconfundible al botón de Grana es **cómo responde a la mano**, no un adorno: aprieta rápido y **vuelve con masa** (un rebote mínimo, pico 1,006, que se siente más que se ve), y al pasar a «esperando» la etiqueta **cede el sitio** al indicador en lugar de desaparecer en un cuadro. Las dos ideas usan solo tokens; la única constante es el multiplicador neutro `× 1` de `--g-space-1` (#299 (8)).
+
+| Momento | Qué pasa | Tokens |
+| --- | --- | --- |
+| Apretar (`:active`, sin `disabled`/`is-disabled`/`is-loading`/`link`) | Escala a `--g-press-scale` | `--g-duration-fast`, `--g-ease-out` |
+| Soltar (regla base) | Vuelve a 1 rebasando un poco y asienta | `--g-duration-slow`, `--g-ease-bounce` (dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera, la vuelta vigente `press` + `ease-out`) |
+| Entrar en `loading` | Etiqueta y huecos se funden (`opacity: 0`) y suben `--g-space-1 × 1`; el indicador llega desde `× 1` abajo con fundido | `--g-duration-fast` (`ease-standard`) en la opacidad, `--g-duration-press` (`ease-out`) en el desplazamiento |
+| Salir de `loading` | A la inversa: la etiqueta baja a su sitio y el indicador se va hacia abajo con fundido | Los mismos |
+| `prefers-reduced-motion: reduce` | Sin escala ni rebote; B2 solo fundido, sin desplazamiento | — |
+
+Decisiones de implementación (coco):
+
+- **Dos listas de `transition` completas** (colores + `transform`): la ida en `:active`, la vuelta en la regla base; ninguna pierde una propiedad al cambiar de estado (defecto del plan 004). Con `reduce`, las dos listas se quedan solo con los colores.
+- **`@supports` y no «declarar antes la vigente»:** con `var()`, una curva `linear()` no soportada invalida la declaración en tiempo de cálculo y `transition` se queda en su valor inicial (el botón perdería también los fundidos de color).
+- **El indicador ya no usa `display: none`:** queda siempre en el árbol de cajas (absoluto, sin ocupar sitio) con `opacity: 0`, `visibility: hidden` y el giro en pausa (`animation-play-state: paused`) fuera de carga. Así entra **y sale** con transición en los tres motores sin `transition-behavior: allow-discrete`, y **montar ya en carga no anima nada** (#299 (4)), cosa que `@starting-style` (la pista de `btn.md`) no cumpliría: animaría el indicador al montar y no podría animar la salida. Mismo comportamiento que pide el contrato; anotado para lima.
+- **La etiqueta nunca usa `visibility` ni `display`** (corrección `597ab17`): `opacity: 0` y `pointer-events: none`; el nombre accesible no cambia. Los huecos (`aria-hidden`) sí pasan a `visibility: hidden`, con transición discreta: siguen visibles mientras se funden.
+- `--g-ease-spring` y `--g-ease-bounce` añadidos a `defaults.css` tal cual `tokens.md` §6. Un tema sobrio quita el rebote con `--g-ease-bounce: var(--g-ease-out)`; con `--g-press-scale: 1` no hay pulsación ni rebote.
+
+### Mediciones (GBtn real del UMD, tema por defecto; `design/lab/theme-playground/tests/personalidad-btn.spec.mjs`)
+
+| Qué | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| Pulsado | 0,970 | 0,970 | 0,970 |
+| Ida (lista de `:active`) | 4 propiedades, `transform` 120ms | igual | igual |
+| Vuelta | 240ms, `linear(…)` | igual | igual |
+| Pico tras soltar (transición real pausada y recorrida cada 2ms) | 1,00597 | 1,00597 | 1,00597 |
+| Último instante fuera de 1 ± 0,0005 | 168ms (< 240) | 168ms | 168ms |
+| Con `reduce` | escala 1 siempre | igual | igual |
+| B2: ancho al entrar en carga | 128,67 → 128,67px | 128,70 → 128,70px | 128,67 → 128,67px |
+| B2: etiqueta en carga | `opacity` 0, `visibility: visible`, −4px (= `space-1`) | igual | igual |
+| B2: indicador | llega desde +4px, `opacity` 0 → 1 (120ms), `translate` 160ms | igual | igual |
+| B2: salida | etiqueta a 1 y 0px; indicador sale con fundido y termina `hidden` | igual | igual |
+| B2: montar ya en carga | 0 transiciones; indicador centrado (< 1px) | igual | igual |
+| B2 con `reduce` | solo `opacity`; ninguna transición de `translate` | igual | igual |
+| B2 en tiempo real (rAF, medida de kiwi) | 5 cuadros intermedios en etiqueta e indicador | — | — |
+| Nombre accesible en carga (árbol AX por CDP) | «Enviar informe» | — | — |
+
+El conteo de cuadros en tiempo real solo se exige en Chromium: con carga en paralelo, WebKit dejaba 0–1 cuadros dentro de 120ms (mismo síntoma que el hallazgo 4 de `form-reveal`). En los tres motores B2 se mide de forma determinista: se pausan las transiciones reales y se recorre su tiempo cada 10ms (9 muestras intermedias en etiqueta e indicador). `btn-loading-name.spec.mjs` sigue en verde; `estilo-verificar.mjs` 1195/1195 en Chromium.
+
+### Sin verificar (personalidad)
+
+- El respaldo sin `linear()` (fuera de `@supports`): los tres motores actuales lo soportan; no hay motor en el banco que lo ejerza.
+- Pantalla táctil real (la pulsación en táctil dura lo que el dedo; el rebote se ve al levantarlo) y `forced-colors` real: escrito, no emulado en este spec (la regla de `forced-colors` no toca el movimiento).
+
 ## No verificado
 
 - Alturas fraccionarias (`comfortable`: 31.5px, 38.5px…) pueden verse con bordes difusos en pantallas de baja densidad. Pendiente evaluar `round()` de CSS.
