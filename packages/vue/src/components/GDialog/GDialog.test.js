@@ -543,3 +543,232 @@ describe('GDialog · salida animada (#152)', () => {
     w.unmount()
   })
 })
+
+describe('GDialog · personalidad: D1 origen en el disparador y D2 borde superior fijo (#301)', () => {
+  // jsdom no calcula cajas: se simulan la del disparador, la del diálogo y su offsetTop
+  const box = (el, { x, y, w, h }) => {
+    el.getBoundingClientRect = () => ({ left: x, top: y, width: w, height: h, right: x + w, bottom: y + h, x, y })
+    el.getClientRects = () => (w || h ? [el.getBoundingClientRect()] : [])
+  }
+  let frames
+  const flushFrames = () => { const q = frames; frames = []; q.forEach((f) => f(0)) }
+  let trigger
+  beforeEach(() => {
+    frames = []
+    vi.stubGlobal('requestAnimationFrame', (cb) => frames.push(cb))
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    trigger = document.createElement('button')
+    trigger.textContent = 'Editar fila 9'
+    document.body.appendChild(trigger)
+    // jsdom: visor 1024 × 768 → centro (512, 384). Centro del disparador (112, 584) → vector (−400, 200)
+    box(trigger, { x: 62, y: 564, w: 100, h: 40 })
+  })
+  afterEach(() => {
+    trigger.remove()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+  // Lo que había en el <dialog> justo cuando se llamó a showModal()
+  const spyShowModal = () => {
+    const seen = []
+    const real = HTMLDialogElement.prototype.showModal
+    HTMLDialogElement.prototype.showModal = function () {
+      seen.push({ origin: this.classList.contains('has-origin'), x: this.style.getPropertyValue('--_origin-x'), y: this.style.getPropertyValue('--_origin-y'), pinned: this.classList.contains('is-pinned') })
+      real.call(this)
+    }
+    return seen
+  }
+  const mountClosed = (props = {}) => mountOpen({ modelValue: false, ...props })
+
+  it('D1: con un disparador enfocado, has-origin y el vector completo (px) están antes de showModal()', async () => {
+    const seen = spyShowModal()
+    const w = mountClosed()
+    trigger.focus()
+    await w.setProps({ modelValue: true })
+    expect(seen).toEqual([{ origin: true, x: '-400px', y: '200px', pinned: false }])
+    expect(dlg(w).classList.contains('has-origin')).toBe(true)
+    await nextTick()
+    // El render de Vue conserva clase y variables
+    expect(w.find('dialog').classes()).toContain('has-origin')
+    expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('-400px')
+    expect(dlg(w).style.getPropertyValue('--_origin-y')).toBe('200px')
+    w.unmount()
+  })
+
+  it('D1: sin disparador (foco en body), ni clase ni variables', async () => {
+    const seen = spyShowModal()
+    const w = mountClosed()
+    document.activeElement?.blur()
+    await w.setProps({ modelValue: true })
+    expect(seen).toEqual([{ origin: false, x: '', y: '', pinned: false }])
+    await nextTick()
+    expect(w.find('dialog').classes()).not.toContain('has-origin')
+    w.unmount()
+  })
+
+  it('D1 y D2 solo con placement="center" sin fullscreen', async () => {
+    for (const props of [{ placement: 'end' }, { fullscreen: true }]) {
+      const w = mountClosed(props)
+      Object.defineProperty(dlg(w), 'offsetTop', { configurable: true, get: () => 120 })
+      trigger.focus()
+      await w.setProps({ modelValue: true })
+      await nextTick()
+      flushFrames()
+      await nextTick()
+      const d = w.find('dialog')
+      expect(d.classes()).not.toContain('has-origin')
+      expect(d.classes()).not.toContain('is-pinned')
+      expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('')
+      expect(dlg(w).style.getPropertyValue('--_pin-top')).toBe('')
+      w.unmount()
+    }
+  })
+
+  it('D1: al cerrar se remide desde el centro real del diálogo hasta el disparador y se conserva para la salida', async () => {
+    const w = mountClosed()
+    trigger.focus()
+    await w.setProps({ modelValue: true })
+    // Diálogo fijado arriba (D2): centro real (512, 300) → vector (−400, 284)
+    box(dlg(w), { x: 312, y: 200, w: 400, h: 200 })
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(dlg(w).open).toBe(false)
+    expect(w.find('dialog').classes()).toContain('has-origin')
+    expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('-400px')
+    expect(dlg(w).style.getPropertyValue('--_origin-y')).toBe('284px')
+    w.unmount()
+  })
+
+  it('D1: al cerrar con el disparador desmontado, sin has-origin (sale como hoy, #152)', async () => {
+    const w = mountClosed()
+    trigger.focus()
+    await w.setProps({ modelValue: true })
+    box(dlg(w), { x: 312, y: 200, w: 400, h: 200 })
+    trigger.remove()
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(w.find('dialog').classes()).not.toContain('has-origin')
+    expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('')
+    w.unmount()
+  })
+
+  it('D1: un cierre nativo (form method="dialog") también orienta la salida', async () => {
+    const w = mountClosed()
+    trigger.focus()
+    await w.setProps({ modelValue: true })
+    box(dlg(w), { x: 312, y: 284, w: 400, h: 200 })
+    dlg(w).close()
+    expect(dlg(w).style.getPropertyValue('--_origin-y')).toBe('200px')
+    expect(dlg(w).classList.contains('has-origin')).toBe(true)
+    w.unmount()
+  })
+
+  it('D1: reabrir sin disparador retira el origen anterior antes de showModal()', async () => {
+    const w = mountClosed()
+    trigger.focus()
+    await w.setProps({ modelValue: true })
+    await w.setProps({ modelValue: false })
+    expect(w.find('dialog').classes()).toContain('has-origin')
+    const seen = spyShowModal()
+    document.activeElement?.blur()
+    await w.setProps({ modelValue: true })
+    expect(seen[0].origin).toBe(false)
+    expect(seen[0].x).toBe('')
+    w.unmount()
+  })
+
+  it('D2: tras abrir y poner el foco, en el cuadro siguiente, --_pin-top (offsetTop) e is-pinned', async () => {
+    const w = mountClosed({}, {})
+    Object.defineProperty(dlg(w), 'offsetTop', { configurable: true, get: () => 184 })
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    expect(w.find('dialog').classes()).not.toContain('is-pinned')
+    expect(frames.length).toBe(1)
+    flushFrames()
+    await nextTick()
+    expect(w.find('dialog').classes()).toContain('is-pinned')
+    expect(dlg(w).style.getPropertyValue('--_pin-top')).toBe('184px')
+    w.unmount()
+  })
+
+  it('D2: al redimensionar la ventana se suelta, se mide centrado y se vuelve a fijar (una vez por cuadro)', async () => {
+    const w = mountClosed()
+    let top = 184
+    const d = dlg(w)
+    let measuredPinned = null
+    Object.defineProperty(d, 'offsetTop', { configurable: true, get: () => { measuredPinned = d.classList.contains('is-pinned'); return top } })
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    flushFrames()
+    await nextTick()
+    top = 96
+    window.dispatchEvent(new Event('resize'))
+    window.dispatchEvent(new Event('resize'))
+    expect(frames.length).toBe(1)
+    flushFrames()
+    await nextTick()
+    expect(measuredPinned).toBe(false)
+    expect(w.find('dialog').classes()).toContain('is-pinned')
+    expect(d.style.getPropertyValue('--_pin-top')).toBe('96px')
+    w.unmount()
+  })
+
+  it('D2: se conserva durante la salida y se retira al terminarla; sin escucha de resize cerrado', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const real = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real(el, p)
+      return el.tagName === 'DIALOG' ? Object.assign(Object.create(cs), { transitionDuration: '0.12s', transitionDelay: '0s' }) : cs
+    })
+    const removed = vi.spyOn(window, 'removeEventListener')
+    const w = mountClosed()
+    Object.defineProperty(dlg(w), 'offsetTop', { configurable: true, get: () => 184 })
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    flushFrames()
+    await nextTick()
+    await w.setProps({ modelValue: false })
+    expect(w.find('dialog').classes()).toContain('is-pinned')
+    expect(removed).toHaveBeenCalledWith('resize', expect.any(Function), expect.anything())
+    vi.advanceTimersByTime(120)
+    await nextTick()
+    expect(w.find('dialog').classes()).not.toContain('is-pinned')
+    expect(dlg(w).style.getPropertyValue('--_pin-top')).toBe('')
+    expect(w.emitted('closed')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('D2: reabrir a mitad de la salida parte centrado (sin is-pinned en showModal) y vuelve a fijar', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const real = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real(el, p)
+      return el.tagName === 'DIALOG' ? Object.assign(Object.create(cs), { transitionDuration: '0.12s', transitionDelay: '0s' }) : cs
+    })
+    const w = mountClosed()
+    Object.defineProperty(dlg(w), 'offsetTop', { configurable: true, get: () => 184 })
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    flushFrames()
+    await w.setProps({ modelValue: false })
+    vi.advanceTimersByTime(60)
+    const seen = spyShowModal()
+    await w.setProps({ modelValue: true })
+    expect(seen[0].pinned).toBe(false)
+    await nextTick()
+    flushFrames()
+    await nextTick()
+    expect(w.find('dialog').classes()).toContain('is-pinned')
+    w.unmount()
+  })
+
+  it('el foco inicial (#292) no cambia: D2 mide después de él', async () => {
+    const w = mountClosed({}, {})
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    expect(document.activeElement).toBe(w.find('.g-dialog__close').element)
+    expect(frames.length).toBe(1)
+    w.unmount()
+  })
+})
