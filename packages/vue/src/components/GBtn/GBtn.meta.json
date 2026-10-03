@@ -35,7 +35,7 @@
     "--g-color-on-{color}", "--g-color-on-{color}-soft", "--g-color-focus", "--g-color-neutral-soft", "--g-color-text-subtle",
     "--g-radius-*", "--g-radius-shape", "--g-space-1..6", "--g-font-ui", "--g-text-{caption|body-sm|body}-{size|line}",
     "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset",
-    "--g-duration-fast", "--g-duration-press", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-press-scale"
+    "--g-duration-fast", "--g-duration-press", "--g-duration-slow", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-ease-bounce", "--g-press-scale"
   ],
   "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
   "live": "span.g-btn__status role=status, hermana del botón, solo mientras loadingText tenga valor (#257): vacía sin carga; con loading recibe loadingText; si loadingText y loading llegan en el mismo cambio (o al montar), la región se monta vacía y el texto se escribe 50 ms después. Sin loadingText no hay región (solo aria-busy)",
