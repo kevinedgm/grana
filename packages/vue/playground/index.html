@@ -748,11 +748,12 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-layout>
         </g-form-section>
         <g-form-section title="Antecedentes">
-          <!-- Pregunta y bloque directamente en el cuerpo de la sección (sin GFormLayout): row-gap normal → --_reveal-gap 0px -->
-          <g-radio-group v-model="fm.r.alergias" id="fr-alergias" appearance="inline" label="¿Tiene alergias?" name="r-alergias" :options="[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]"></g-radio-group>
-          <g-form-reveal id="fr-rv-alergias" :when="fm.r.alergias === 'si'">
-            <g-textarea v-model="fm.r.alergiasCual" id="fr-alergias-cual" label="¿A qué?" name="r-alergias-cual" required></g-textarea>
-          </g-form-reveal>
+          <g-form-layout>
+            <g-radio-group v-model="fm.r.alergias" id="fr-alergias" appearance="inline" label="¿Tiene alergias?" name="r-alergias" :options="[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]"></g-radio-group>
+            <g-form-reveal id="fr-rv-alergias" :when="fm.r.alergias === 'si'">
+              <g-textarea v-model="fm.r.alergiasCual" id="fr-alergias-cual" label="¿A qué?" name="r-alergias-cual" required></g-textarea>
+            </g-form-reveal>
+          </g-form-layout>
         </g-form-section>
         <g-form-actions>
           <g-btn id="fr-show" type="button" variant="outline" @click="frForm && frForm.showErrors()">Revisar (showErrors)</g-btn>

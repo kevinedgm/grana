@@ -328,7 +328,7 @@ describe('GFormReveal · avisos de desarrollo (#279)', () => {
     make('<GFormLayout><GInput label="Q" /><GFormReveal><GFormSection title="T"><GInput label="B" /></GFormSection></GFormReveal></GFormLayout>')
     expect(warns(warn, '[Grana GFormSection]').filter((m) => /GFormReveal/.test(m))).toHaveLength(1)
     warn.mockClear()
-    make('<GFormSection title="Facturación"><GInput label="Q" /><GFormReveal><GInput label="B" /></GFormReveal></GFormSection>')
+    make('<GFormSection title="Facturación"><GFormLayout><GInput label="Q" /><GFormReveal><GInput label="B" /></GFormReveal></GFormLayout></GFormSection>')
     expect(warns(warn, '[Grana GFormSection]')).toHaveLength(0)
     expect(warns(warn, '[Grana GFormReveal]')).toHaveLength(0)
   })

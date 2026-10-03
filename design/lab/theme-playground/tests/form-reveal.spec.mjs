@@ -81,8 +81,11 @@ test.describe('GFormReveal · componente real (form.md §14)', () => {
     })
     expect(gap.v, 'variable en línea = row-gap del padre').toBe(gap.pg)
     expect(parseFloat(gap.mt)).toBeCloseTo(-parseFloat(gap.pg), 1)
-    // Bloque en el cuerpo de GFormSection (sin GFormLayout): row-gap normal → 0px
-    expect(await page.evaluate(() => document.getElementById('fr-rv-alergias').style.getPropertyValue('--_reveal-gap'))).toBe('0px')
+    // Bloque en el GFormLayout de «Antecedentes» (#283: el cuerpo de la sección no distribuye): --_reveal-gap = row-gap del layout (--g-form-gap)
+    const gapAl = await page.evaluate(() => { const el = document.getElementById('fr-rv-alergias'); return { v: el.style.getPropertyValue('--_reveal-gap'), pg: getComputedStyle(el.parentElement).rowGap, cls: el.parentElement.className } })
+    expect(gapAl.cls, 'el padre del bloque es un GFormLayout').toContain('g-form-layout')
+    expect(gapAl.v, JSON.stringify(gapAl)).toBe(gapAl.pg)
+    expect(parseFloat(gapAl.v)).toBeGreaterThan(0)
     // Moral (estado inicial): FormData con razón social, constitución (GDatePicker) y régimen (GSelect), sin CURP
     let keys = await fd(page)
     expect(['r-factura', 'r-persona', 'r-razon', 'r-constitucion', 'r-regimen', 'r-rfc'].every((k) => keys.includes(k)) && !keys.includes('r-curp'), `Moral: ${keys}`).toBe(true)

@@ -26,6 +26,8 @@
   "reserved": ["mode", "open", "added", "headerPlacement", "labels"],
   "tokens": ["--g-form-section-gap"],
   "states": ["default", "optional"],
-  "warnings": ["[Grana GFormSection] dentro de un GFormReveal (al montar, al inyectar revealKey): la sección contiene la pregunta y el bloque, no al revés (#279)"],
+  "warnings": ["[Grana GFormSection] dentro de un GFormReveal (al montar, al inyectar revealKey): la sección contiene la pregunta y el bloque, no al revés (#279)",
+    "[Grana GFormSection] los campos de una sección van en un `GFormLayout`; el cuerpo de la sección no distribuye (una vez por sección, al montar, si algún hijo directo de __body es la raíz de GInput, GTextarea, GSelect, GDatePicker, GInputGroup, GRadioGroup, GCheckbox, GCheckboxGroup, GSwitch o GFieldGroup, o es un GFormRow o un GFormReveal; #283)"
+  ],
   "pending": ["Modos collapsible y addable en la Fase 3"]
 }
