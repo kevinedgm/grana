@@ -95,7 +95,7 @@
   "slots": [
     {
       "name": "trigger",
-      "purpose": "El disparador (obligatorio). Alcance { open, attrs }: se enlaza con v-bind=\"attrs\""
+      "purpose": "El disparador (obligatorio). Alcance { open, attrs }: se enlaza con v-bind=\"attrs\". El id es del menú ({id}-trigger; para elegirlo, la prop id): con un id propio, aviso de desarrollo (#305)"
     },
     {
       "name": "icon",
@@ -127,11 +127,22 @@
     "item-disabled",
     "item-danger",
     "checked",
-    "submenu-open"
+    "submenu-open",
+    "item-active",
+    "list-has-highlight",
+    "list-highlight-instant"
   ],
   "pending": [
     "Lector de pantalla real (submenús, grupos, opciones)",
     "Firefox y Safari (popover, :dir())",
-    "Táctil real"
-  ]
+    "Táctil real",
+    "Lector de pantalla real con el foco siguiendo al puntero (M1, #305)",
+    "M2 y M3 reservadas (#305)"
+  ],
+  "personality": {
+    "decision": "#305",
+    "M1": "Una sola luz que viaja: g-menu__highlight (li role=none, aria-hidden, primer hijo de cada g-menu__list), --_active-y/--_active-h (px, offsetTop/offsetHeight del activo respecto de su lista), has-highlight e is-highlight-instant (primera colocación, se retira a los dos cuadros). Activo = enfocado; con el foco en un submenú, el padre expandido. El puntero (ratón o lápiz) mueve el foco en el acto (preventScroll, focusVisible false); sobre un deshabilitado no mueve nada; solo si el puntero se movió",
+    "M4": "Triángulo entre la posición anterior del puntero y las dos esquinas del borde cercano del submenú abierto (lado medido: espejado en RTL o si cambió de lado); dentro, cruzar elementos del padre no cambia foco ni path; parado 180ms (HOVER_MS), cambia; sin efecto en cascada, con teclado ni con toque",
+    "trigger": "Con un componente de varias raíces (GBtn) $el es el ancla vacía del fragmento: el disparador es el primer hermano elemento. Antes se buscaba {id}-trigger y con un id propio el menú no se abría, en silencio"
+  }
 }

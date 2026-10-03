@@ -403,3 +403,289 @@ describe('GMenu · salida y origen (plan 010)', () => {
     expect(['left', 'right']).toContain(list(w).attributes('data-align'))
   })
 })
+
+// ---------- Disparador con `id` propio (kiwi personalidad r01, hallazgo 8; #305) ----------
+describe('GMenu · disparador con id propio', () => {
+  const GBtnHost = async (props = {}) => {
+    const { default: GBtn } = await import('../GBtn/GBtn.vue')
+    const Wrap = defineComponent({
+      setup() {
+        const open = ref(false)
+        return () => h(GMenu, { ...props, items: [{ id: 'a', label: 'A' }], modelValue: open.value, 'onUpdate:modelValue': (v) => { open.value = v } }, {
+          trigger: ({ attrs }) => h(GBtn, { ...attrs, id: 'mio' }, () => 'Acciones')
+        })
+      }
+    })
+    return mount(Wrap, { attachTo: document.body })
+  }
+
+  it('por qué no bastaba la referencia: GBtn tiene dos raíces y su $el es el ancla vacía del fragmento', async () => {
+    const { default: GBtn } = await import('../GBtn/GBtn.vue')
+    let inst = null
+    mount(defineComponent({ setup: () => () => h(GBtn, { ref: (x) => { inst = x } }, () => 'B') }), { attachTo: document.body })
+    expect(inst.$el.nodeType).toBe(Node.TEXT_NODE)
+    expect(inst.$el.nextSibling.tagName).toBe('BUTTON')
+  })
+
+  it('con un id propio el menú se abre (ancla en el botón real), la lista conserva su nombre y avisa una vez', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await GBtnHost()
+    const btn = w.find('#mio')
+    // Aviso al montar
+    const msgs = () => warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('[Grana GMenu]'))
+    expect(msgs()).toHaveLength(1)
+    expect(msgs()[0]).toMatch(/id="mio".*g-menu-.*-trigger.*prop `id`/)
+    await btn.trigger('click'); await settle()
+    const l = w.find('ul.g-menu__list')
+    expect(l.exists()).toBe(true)
+    expect(l.attributes('data-popover-open')).toBeDefined() // showPopover: antes no se llamaba (sin ancla)
+    expect(l.attributes('style')).toContain('--_x')
+    expect(l.attributes('aria-labelledby')).toBe('mio')
+    // Un clic en el propio disparador no cuenta como «fuera» y Esc devuelve el foco al botón
+    await key(w.find('.g-menu__item'), 'Escape'); await settle()
+    expect(document.activeElement).toBe(btn.element)
+    expect(msgs()).toHaveLength(1) // una vez, también al abrir
+  })
+
+  it('sin id propio (o con la prop id) no avisa', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ menu: { id: 'acc' } })
+    await trig(w).trigger('click'); await settle()
+    expect(trig(w).attributes('id')).toBe('acc-trigger')
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('[Grana GMenu]'))).toBe(false)
+  })
+})
+
+// ---------- M1 · una sola luz que viaja (menu.md «Personalidad», #305) ----------
+// jsdom no maqueta: cada elemento recibe una geometría (alto 36, uno tras otro) relativa a su lista
+const H = 36
+const geom = (w) => {
+  for (const m of w.findAll('ul[role="menu"]')) {
+    items(w, m).forEach((it, i) => {
+      Object.defineProperty(it.element, 'offsetTop', { configurable: true, get: () => 6 + i * H })
+      Object.defineProperty(it.element, 'offsetHeight', { configurable: true, get: () => H })
+      Object.defineProperty(it.element, 'offsetParent', { configurable: true, get: () => m.element })
+    })
+  }
+}
+const hl = (m) => ({
+  on: m.classes('has-highlight'),
+  instant: m.classes('is-highlight-instant'),
+  y: m.element.style.getPropertyValue('--_active-y'),
+  h: m.element.style.getPropertyValue('--_active-h')
+})
+const frames = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r))))
+const move = (el, x, y, pointerType = 'mouse') => el.trigger('pointermove', { pointerType, clientX: x, clientY: y })
+const SIMPLE = [{ id: 'a', label: 'Abrir' }, { id: 'b', label: 'Borrar' }, { id: 'c', label: 'Copiar', disabled: true }, { id: 'd', label: 'Duplicar' }]
+
+describe('GMenu · M1 una sola luz que viaja', () => {
+  it('cada lista trae un único g-menu__highlight decorativo, antes de los elementos', async () => {
+    const w = mk({ open: true }); await settle()
+    const first = list(w).element.firstElementChild
+    expect(first.className).toBe('g-menu__highlight')
+    expect(first.getAttribute('aria-hidden')).toBe('true')
+    expect(first.getAttribute('role')).toBe('none')
+    expect(list(w).findAll(':scope > .g-menu__highlight')).toHaveLength(1)
+  })
+
+  it('con teclado, --_active-y/h y has-highlight siguen al foco; is-highlight-instant solo en la primera colocación', async () => {
+    const w = mk({ items: SIMPLE })
+    await trig(w).trigger('click'); await settle()
+    geom(w)
+    const l = list(w)
+    await frames()
+    expect(hl(l).instant).toBe(false) // retirada a los dos cuadros
+    await key(items(w)[0], 'ArrowDown'); await settle()
+    expect(hl(l)).toMatchObject({ on: true, instant: false, y: `${6 + H}px`, h: `${H}px` })
+    await key(items(w)[1], 'ArrowDown'); await settle() // deshabilitado: con teclado sí se enfoca y se resalta
+    expect(hl(l)).toMatchObject({ on: true, instant: false, y: `${6 + 2 * H}px` })
+    await key(items(w)[2], 'Home'); await settle()
+    expect(hl(l)).toMatchObject({ on: true, instant: false, y: '6px' })
+  })
+
+  it('al abrir, la primera colocación es instantánea; sin activo se apaga y al volver es instantánea otra vez', async () => {
+    const w = mk({ items: SIMPLE })
+    await trig(w).trigger('click'); await settle()
+    const l = list(w)
+    expect(hl(l)).toMatchObject({ on: true, instant: true })
+    await frames()
+    expect(hl(l).instant).toBe(false)
+    // El foco sale de la lista (sin cerrarla): sin activo
+    const out = document.createElement('button'); document.body.appendChild(out)
+    out.focus(); await settle()
+    expect(hl(l).on).toBe(false)
+    items(w)[1].element.focus(); await settle()
+    expect(hl(l)).toMatchObject({ on: true, instant: true })
+  })
+
+  it('el puntero (ratón o lápiz) mueve el foco y el roving tabindex en el acto, sin desplazar la lista', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const w = mk({ items: SIMPLE })
+      await trig(w).trigger('click'); await settle()
+      geom(w)
+      const its = items(w)
+      const focusSpy = vi.spyOn(its[1].element, 'focus')
+      const scrollSpy = (its[1].element.scrollIntoView = vi.fn())
+      await move(its[1], 10, 50); await settle()
+      expect(document.activeElement).toBe(its[1].element) // sin esperar los 180ms
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true, focusVisible: false })
+      expect(scrollSpy).not.toHaveBeenCalled()
+      expect(its.map((i) => i.attributes('tabindex'))).toEqual(['-1', '0', '-1', '-1'])
+      expect(hl(list(w))).toMatchObject({ on: true, y: `${6 + H}px` })
+      await move(its[3], 10, 130, 'pen'); await settle()
+      expect(document.activeElement).toBe(its[3].element)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('el puntero sobre un deshabilitado no mueve foco ni resaltado; el toque no mueve el foco', async () => {
+    const w = mk({ items: SIMPLE })
+    await trig(w).trigger('click'); await settle()
+    geom(w)
+    const its = items(w)
+    await move(its[1], 10, 50); await settle()
+    const before = hl(list(w))
+    await move(its[2], 10, 90); await settle()
+    expect(document.activeElement).toBe(its[1].element)
+    expect(hl(list(w))).toEqual(before)
+    await move(its[3], 10, 130, 'touch'); await settle()
+    expect(document.activeElement).toBe(its[1].element)
+  })
+
+  it('un elemento que pasa bajo el puntero quieto (sin movimiento) no le quita el foco al teclado', async () => {
+    const w = mk({ items: SIMPLE })
+    await trig(w).trigger('click'); await settle()
+    const its = items(w)
+    await move(its[0], 10, 10); await settle()
+    await key(its[0], 'ArrowDown'); await settle()
+    expect(document.activeElement).toBe(its[1].element)
+    await its[3].trigger('pointerenter', { pointerType: 'mouse', clientX: 10, clientY: 10 }); await settle()
+    expect(document.activeElement).toBe(its[1].element)
+  })
+
+  it('al barrer la lista con el puntero, en todo momento hay un solo elemento activo y una sola lista resaltada', async () => {
+    const w = mk({ items: SIMPLE })
+    await trig(w).trigger('click'); await settle()
+    geom(w)
+    const its = items(w)
+    for (const [i, it] of [1, 3, 1, 0, 1].map((i) => [i, its[i]])) {
+      await it.trigger('pointerenter', { pointerType: 'mouse', clientX: 10, clientY: 10 + i * H })
+      await move(it, 12, 12 + i * H); await settle()
+      expect(document.activeElement).toBe(it.element)
+      expect(w.findAll('.g-menu__item[tabindex="0"]')).toHaveLength(1)
+      expect(w.findAll('.g-menu__list.has-highlight')).toHaveLength(1)
+      expect(hl(list(w)).y).toBe(`${6 + i * H}px`)
+    }
+  })
+
+  it('con el foco en un submenú, la lista de arriba resalta al padre expandido y el submenú al enfocado', async () => {
+    const w = mk({ open: true }); await settle()
+    const parent = label(w, 'Exportar como')
+    parent.element.focus()
+    await key(parent, 'ArrowRight'); await settle()
+    geom(w)
+    await key(w.findAll('ul[role="menu"]')[1].find('.g-menu__item'), 'ArrowDown'); await settle()
+    const [root, sub] = w.findAll('ul[role="menu"]')
+    const pIndex = items(w, root).findIndex((i) => i.element === parent.element)
+    expect(hl(root)).toMatchObject({ on: true, y: `${6 + pIndex * H}px` })
+    expect(hl(sub)).toMatchObject({ on: true, y: `${6 + H}px` })
+    expect(w.findAll('.g-menu__list.has-highlight')).toHaveLength(2)
+    expect(sub.findAll(':scope > .g-menu__highlight')).toHaveLength(1)
+  })
+})
+
+// ---------- M4 · submenú con intención (triángulo de seguridad) ----------
+describe('GMenu · M4 submenú con intención', () => {
+  const ITEMS4 = [{ id: 'a', label: 'Abrir' }, { label: 'Exportar', items: [{ id: 'pdf', label: 'PDF' }, { id: 'csv', label: 'CSV' }] }, { id: 'b', label: 'Borrar' }, { id: 'c', label: 'Copiar' }]
+  const rect = (el, r) => { el.getBoundingClientRect = () => ({ ...r, width: r.right - r.left, height: r.bottom - r.top, x: r.left, y: r.top }) }
+  // LTR: padre en x 0–200 (fila 100–136); el submenú se abrió a su derecha (196–396, 94–300). En RTL, espejado.
+  const setup = async (rtl = false) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const w = mk({ items: ITEMS4 })
+    await trig(w).trigger('click'); await settle()
+    const its = items(w)
+    const X = rtl ? (x) => 400 - x : (x) => x
+    its.forEach((it, i) => rect(it.element, { left: rtl ? 200 : 0, right: rtl ? 400 : 200, top: 64 + i * 36, bottom: 100 + i * 36 }))
+    // Puntero al padre y espera de apertura (180ms)
+    await move(its[1], X(150), 118); await settle()
+    vi.advanceTimersByTime(200); await settle()
+    const sub = w.findAll('ul[role="menu"]')[1]
+    expect(sub.exists()).toBe(true)
+    rect(sub.element, rtl ? { left: 4, right: 204, top: 94, bottom: 300 } : { left: 196, right: 396, top: 94, bottom: 300 })
+    return { w, its, X, subExists: () => w.findAll('ul[role="menu"]').length === 2 }
+  }
+
+  it('en diagonal hacia el submenú, cruzar otro elemento no cambia el foco ni cierra el submenú', async () => {
+    try {
+      const { w, its, X, subExists } = await setup()
+      await move(its[2], X(170), 140); await settle()
+      await move(its[2], X(185), 150); await settle()
+      expect(document.activeElement).toBe(its[1].element)
+      vi.advanceTimersByTime(100); await settle()
+      expect(subExists()).toBe(true)
+      // Llega al submenú: su elemento toma el foco
+      const subItem = w.findAll('ul[role="menu"]')[1].find('.g-menu__item')
+      await move(subItem, X(220), 120); await settle()
+      expect(document.activeElement).toBe(subItem.element)
+      vi.advanceTimersByTime(400); await settle()
+      expect(subExists()).toBe(true)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('en recto (fuera del triángulo) cambia el foco en el acto y cierra el submenú a los 180ms, como hoy', async () => {
+    try {
+      const { its, X, subExists } = await setup()
+      await move(its[2], X(150), 150); await settle()
+      expect(document.activeElement).toBe(its[2].element)
+      vi.advanceTimersByTime(170); await settle()
+      expect(subExists()).toBe(true)
+      vi.advanceTimersByTime(20); await settle()
+      expect(subExists()).toBe(false)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('dentro del triángulo pero parado 180ms sobre otro elemento: cambia', async () => {
+    try {
+      const { its, X, subExists } = await setup()
+      await move(its[2], X(170), 140); await settle()
+      vi.advanceTimersByTime(170); await settle()
+      expect(document.activeElement).toBe(its[1].element)
+      expect(subExists()).toBe(true)
+      vi.advanceTimersByTime(20); await settle()
+      expect(document.activeElement).toBe(its[2].element)
+      expect(subExists()).toBe(false)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('RTL (submenú a la izquierda): el triángulo se espeja', async () => {
+    try {
+      const { its, X, subExists } = await setup(true)
+      await move(its[2], X(170), 140); await settle()
+      expect(document.activeElement).toBe(its[1].element)
+      vi.advanceTimersByTime(100); await settle()
+      expect(subExists()).toBe(true)
+      // Alejarse del submenú (hacia la derecha en RTL) sale del triángulo
+      await move(its[2], X(150), 141); await settle()
+      expect(document.activeElement).toBe(its[2].element)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('en cascada (el submenú tapa a su padre) no hay triángulo', async () => {
+    try {
+      const { w, its, subExists } = await setup()
+      w.findAll('ul[role="menu"]')[1].element.getBoundingClientRect = () => ({ left: 40, right: 240, top: 94, bottom: 300, width: 200, height: 206 })
+      await move(its[2], 170, 140); await settle()
+      expect(document.activeElement).toBe(its[2].element)
+      vi.advanceTimersByTime(200); await settle()
+      expect(subExists()).toBe(false)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('el teclado no cambia: ↓ desde el padre con el submenú abierto mueve el foco', async () => {
+    try {
+      const { its } = await setup()
+      await key(its[1], 'ArrowDown'); await settle()
+      expect(document.activeElement).toBe(its[2].element)
+    } finally { vi.useRealTimers() }
+  })
+})
