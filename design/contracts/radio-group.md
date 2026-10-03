@@ -263,24 +263,32 @@ Una vez por instancia y mensaje; con `typeof process !== 'undefined' && process.
 | Token | Para qué |
 | --- | --- |
 | `--g-color-surface` | Fondo del círculo, de la caja del segmentado, del chip y de la tarjeta sin elegir |
-| `--g-color-border-control` | Borde del círculo y marco de la caja del segmentado (≥ 3:1) |
+| `--g-color-surface-sunken` | Tesela del icono de la tarjeta, hover del segmento y fondo de lo deshabilitado |
+| `--g-color-border-control` | Borde del círculo, del chip y marco de la caja del segmentado (≥ 3:1; en el chip es lo único que lo identifica) |
 | `--g-color-border` | Separadores entre segmentos (decorativos) |
-| `--g-color-border-strong` | Borde del chip y de la tarjeta sin elegir; `disabled` |
+| `--g-color-border-strong` | Borde de la tarjeta sin elegir y de lo deshabilitado (círculo, chip, tarjeta, marco del segmentado) |
 | `--g-color-{color}`, `--g-color-on-{color}` | Punto del círculo; segmento y chip elegidos y su texto |
+| `--g-color-{color}-strong` | Hover de lo elegido (relleno del segmento y del chip) |
 | `--g-color-{color}-soft`, `--g-color-on-{color}-soft` | Fondo de la tarjeta elegida |
-| `--g-color-{color}-text` | Borde de la tarjeta y del chip elegidos |
+| `--g-color-{color}-text` | Borde del círculo elegido; borde de la tarjeta y del chip elegidos; trazo interior del segmento elegido (garantiza 3:1 contra la caja aunque el relleno sea pálido) |
 | `--g-color-neutral-soft` | Fondo de `readonly` (#186) |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiquetas; ayuda y descripción; `disabled` |
 | `--g-color-danger-text`, `--g-color-warning-text`, `--g-color-success-text` | Mensajes, marca de obligatorio, caja del segmentado inválida |
 | `--g-color-focus` | Anillo de foco por opción |
 | `--g-radius-sm` | Caja del segmentado (la de la caja de campo por defecto) |
+| `--g-radius-md` | Tesela del icono de la tarjeta (como `GCheckbox`) |
 | `--g-radius-pill`, `--g-radius-lg` | Círculo y chip; tarjeta |
 | `--g-space-1` | Unidad del círculo, de la caja (alturas de `size`), rellenos y separaciones |
+| `--g-space-2` … `--g-space-5` | Relleno horizontal y separación por `size` (`--_px`, `--_gap`), separación entre etiqueta y ayuda, y entre columnas de `inline` |
 | `--g-font-ui` | Familia |
-| `--g-text-body-sm-size`, `--g-text-body-size`, `--g-text-action-weight` | Etiqueta del grupo y de las opciones según `size` (`tokens.md` §23.2) |
-| `--g-text-caption-size`, `--g-text-caption-line` | Ayuda, descripción y mensaje |
+| `--g-text-body-sm-size`, `--g-text-body-sm-line`, `--g-text-body-size`, `--g-text-body-line`, `--g-text-action-weight` | Etiqueta del grupo y de las opciones según `size` (`tokens.md` §23.2) |
+| `--g-text-body-sm-weight` | Peso 400 de «(opcional)» y del mensaje `valid` |
+| `--g-text-caption-size`, `--g-text-caption-line` | Ayuda, descripción y mensaje; opciones `xs` |
 | `--g-border-width`, `--g-focus-width`, `--g-focus-offset` | Bordes y foco |
-| `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard` | Hover y relleno de la elegida en su sitio |
+| `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard`, `--g-ease-out` | Hover; relleno de la elegida en su sitio y punto que crece (`ease-out`) |
+| `--g-press-scale` | Hundimiento del círculo al pulsar |
+
+**Observación (sin cambio de tokens):** `tokens.md` describe `--g-radius-shape` como «radio de botón, chip e insignia», pero los chips de opción (`GCheckbox` y `GRadioGroup`) usan `--g-radius-pill` fijo, no `--g-radius-shape`; por eso un tema con `shape` distinto de `pill` no los cambia. Si se quisiera que sigan la forma del tema sería una decisión nueva.
 
 **Tokens nuevos: ninguno** (#273; `tokens.md` §25). El segmentado es una **caja de campo** con los tokens de los campos y el relleno de una casilla marcada; **no** lee `--g-tabs-track`/`--g-tabs-thumb` (son de navegación, #120). Si coco no alcanza con estos, lo pide aquí antes de escribir literales.
 
