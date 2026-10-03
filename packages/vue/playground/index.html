@@ -1432,7 +1432,13 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <div class="pg-panel">
     <div id="speech-demo" class="col" style="max-width:560px">
       <p style="margin:0;color:var(--g-color-text-muted)">El disparador es hermano del campo, justo después. Solo el texto confirmado entra en el campo, en el cursor y sin mover el foco; el provisional se ve en la nota. <b>Mayús+F8</b> va a la pill y vuelve.</p>
-      <div class="row" style="margin:0">
+      <p id="sp-engine" style="margin:0;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)">
+        Motor: <b>{{ spEngine === 'whisper' ? 'Whisper en este dispositivo (real, sin red)' : spEngine === 'web' ? 'reconocimiento del navegador (real, remoto)' : 'adaptador simulado (el texto es de guion)' }}</b>
+        <template v-if="spEngine === 'whisper' && spProgress.stage && spProgress.stage !== 'ready'"> · descargando el modelo {{ spProgress.file }} {{ Math.round(spProgress.progress || 0) }}%</template>
+        <template v-if="spEngine === 'whisper' && spProgress.stage === 'ready'"> · modelo listo ({{ spAdapter.device }})</template>
+        · prueba con tu voz: <a href="?speech=whisper#sec-speech">?speech=whisper</a> · <a href="?speech=web#sec-speech">?speech=web</a> · <a href="?#sec-speech">simulado</a>
+      </p>
+      <div class="row" style="margin:0" v-if="spEngine === 'sim' || spEngine === 'self'">
         <label>Captura <select id="sp-capture" v-model="spCapture" @change="spSetCapture"><option value="pcm">micrófono del navegador (Grana captura)</option><option value="self">simulada por el adaptador (sin micrófono)</option></select></label>
         <label>Ubicación <select id="sp-location" v-model="spLocation" @change="spAdapter.setCapabilities({ location: spLocation })"><option>local</option><option>device</option><option>remote</option></select></label>
       </div>
@@ -1440,7 +1446,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         <g-textarea id="sp-obs" v-model="spObs" label="Observaciones" :rows="4"></g-textarea>
         <g-speech-trigger for="sp-obs"></g-speech-trigger>
       </div>
-      <div class="row" style="margin:0">
+      <div class="row" style="margin:0" v-if="spEngine === 'sim' || spEngine === 'self'">
         <g-btn size="sm" variant="outline" color="neutral" id="sp-fail" @click="spAdapter.failNextSegment()">Fallar el siguiente fragmento</g-btn>
         <g-btn size="sm" variant="outline" color="neutral" id="sp-down" @click="spAdapter.goOffline()">Perder el servicio</g-btn>
         <g-btn size="sm" variant="outline" color="neutral" id="sp-up" @click="spAdapter.goOnline()">Restablecer</g-btn>
@@ -1525,6 +1531,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/grana.umd.js"></script>
   <script src="../dist/speech.umd.js"></script>
   <script src="../dist/testing.umd.js"></script>
+  <script src="./speech-adapters.js"></script>
   <script src="./lucide-icons.js"></script>
   <script>
     const { createApp, ref, reactive, computed, watch, onMounted, onBeforeUnmount } = Vue
@@ -1547,8 +1554,12 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     // Captura de voz (@grana/vue/speech → GranaSpeech): gestor de la aplicación con el adaptador SIMULADO (@grana/vue/testing;
     // una app real aporta el suyo). app.use(speech) lo provee y registra GSpeechHost, GSpeechPill y GSpeechTrigger.
     // ?speech=self → el adaptador simula el micrófono (input.format 'self'); por defecto captura Grana (getUserMedia).
+    // ?speech=whisper → motor REAL en el dispositivo (Whisper con transformers.js, speech-adapters.js; ?model=… lo cambia).
+    // ?speech=web → SpeechRecognition del navegador (remoto en Chrome; activa allowRemote). Ambos solo son ejemplos de «aplicación».
     const spQuery = new URLSearchParams(location.search)
-    const spAdapter = GranaTesting.createSimulatedSpeechAdapter({
+    const spEngine = spQuery.get('speech') || 'sim'
+    const spProgress = reactive({ stage: '', progress: 0, file: '' })
+    const spSimulated = GranaTesting.createSimulatedSpeechAdapter({
       latency: 900,
       input: spQuery.get('speech') === 'self' ? { format: 'self' } : { format: 'pcm', sampleRate: 16000, channels: 1 },
       script: {
@@ -1561,10 +1572,13 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         ]
       }
     })
+    const spAdapter = spEngine === 'whisper'
+      ? PlaygroundSpeechAdapters.createWhisperAdapter({ model: spQuery.get('model') || undefined, device: spQuery.get('device') || undefined, onProgress: (i) => Object.assign(spProgress, i) })
+      : spEngine === 'web' ? PlaygroundSpeechAdapters.createWebSpeechAdapter() : spSimulated
     const speech = GranaSpeech.createSpeech({
       adapter: spAdapter,
       language: 'es',
-      allowRemote: spQuery.get('remote') === '1',
+      allowRemote: spQuery.get('remote') === '1' || spEngine === 'web',
       labels: {
         region: 'Grabación de voz', openPanel: 'abrir panel', closePanel: 'Cerrar panel', duration: 'Duración:',
         actions: { start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', discardAsk: '¿Descartar la grabación? Se borran la transcripción y el audio temporal. No se puede deshacer.', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento', hideActivity: 'Ocultar actividad',
@@ -2194,7 +2208,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>
