@@ -538,7 +538,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 
 **Propiedad pública de `GForm`: `--g-form-actions-size`** (#163). `GForm` la escribe **en línea** en el `<form>` con la altura medida de su `GFormActions sticky`, y `GForm.css` la declara con `0px` en `.g-form` (la de línea gana). La usa `GForm.css` para el `scroll-margin-block-end` de lo enfocable (WCAG 2.4.11). **Solo lectura**: no es del tema, no se emite en `tokens.json`; excepción documentada a `levels.test.js` como `--g-surface-padding` (§19).
 
-**Reservado para la Fase 3** (se nombrará con su contrato): ancho de la navegación de secciones (`GFormNav`). La **barra del bloque condicional** (`GFormReveal`) se resolvió **sin tokens propios** (§26, #280).
+**Reservado para la Fase 3** (se nombrará con su contrato): ancho de la navegación de secciones (`GFormNav`). La **barra del bloque condicional** (`GFormReveal`) se resolvió **sin tokens propios** (§26, #280), y las secciones **plegables, agregables, al lado y con línea** también (§27, #291).
 
 **Pendiente no bloqueante:** el CLI no emite `--g-form-*`; los temas de usuario usan los valores de `defaults.css`.
 
@@ -554,7 +554,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 
 **Límite de la anfitriona** (#194): un valor redefinido mayor que la mitad del alto de contenido de la fila deja el vertical con `inset="both"` en 0, sin aviso (medirlo daría falsos positivos en contenedores ocultos); lo documentan el contrato y el README.
 
-**Solo consumidores lo redefinen** (#195): ningún componente de Grana lo declara; `levels.test.js` lleva un mapa nombrado de anfitrionas, vacío, con `GFormSection` (Fase 3) como único candidato previsto y solo por decisión de lima.
+**Solo consumidores lo redefinen** (#195): ningún componente de Grana lo declara; `levels.test.js` lleva un mapa nombrado de anfitrionas, vacío, con `GFormSection` (Fase 3) como único candidato previsto y solo por decisión de lima. **Decidido (#290):** la línea de `divider` va sin inset, así que `GFormSection` **no** lo redefine y el mapa sigue vacío.
 
 **No son tokens** (§17.6): el tono de la línea (`subtle` = `--g-color-border`; `strong` = `--g-color-border-control`, ≥ 3:1, #89; con `prefers-contrast: more`, las dos `border-control`), el grosor (`--g-border-width`), el texto (rol `body-sm` completo: `--g-text-body-sm-size`, `-line`, `-weight`, `-tracking`, en `--g-color-text-muted`; `--g-color-text` con `prefers-contrast: more`), y la separación texto ↔ línea y el mínimo de cada línea (alias locales de coco derivados de `space`).
 
@@ -675,3 +675,8 @@ Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defec
 
 **No son tokens:** la separación del contenedor que el bloque compensa al cerrarse, **`--_reveal-gap`** (variable dinámica en línea, px leídos del `row-gap` calculado del padre; coco declara `0px` neutro; excepción justificada como `--_form-row-*`, #173, #278).
 
+## 27. Secciones de formulario, Fase 3 (sin tokens nuevos)
+
+**`GFormSection` `collapsible`, `addable`, `headerPlacement` y `divider` no añaden tokens** (`design/contracts/form.md` §3, DECISIONS.md #291; §17.6: ningún existente se queda corto). Panel: altura y margen con `--g-duration-slow` (§6, #280), fundido y giro del chevron con `--g-duration-fast`, curvas `--g-ease-*`, como `GFormReveal` (§26). Estado de errores de una plegada: `--g-color-danger-text` con el icono `circle-alert` y texto (nunca solo color). Título, botón y línea de estado con los roles de §23 (título body 16/600; estado y `summary` body-sm). Línea de `divider`: un `GDivider` `subtle` sin inset (sus tokens, §22; `--g-divider-inset` no se redefine, #290). Botones y confirmación: los de `GBtn` y `GDialog`. Separación entre secciones y posición de la línea: `--g-form-section-gap` × densidad (§21).
+
+**No son tokens:** el umbral del encabezado al lado (**`space × 200`**) y el mínimo del título frente a las acciones (**`space × 40`**, L9): constantes que lee el JS de la sección (deciden comportamiento, como #130); la proporción de columnas al lado, la sangría del chevron y las separaciones internas, derivadas de `space` en el CSS de coco.

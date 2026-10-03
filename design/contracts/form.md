@@ -1,6 +1,6 @@
-# Contrato · Sistema de formularios · Fase 1 (núcleo de composición) · revisión r02 (distribución) · Fase 3: `GFormReveal` (§14)
+# Contrato · Sistema de formularios · Fase 1 (núcleo de composición) · revisión r02 (distribución) · Fase 3: `GFormReveal` (§14) y `GFormSection` plegable, agregable, al lado y con línea (§3)
 
-**Dueño:** lima · **Fase 3, `GFormReveal` (§14):** contratado desde `design/lab/form-reveal/r01/` (#274 a #280; cambia `GForm` y `useFormField`: registro inactivo, §2), pendiente de coco y de bruno · **Estado:** **revisado tras r02** (la distribución de la Fase 1 fue rechazada por el usuario; la dirección de r02 la **aprobó el usuario**, #171) · pendiente de coco (CSS de `GFormLayout`, `GFormRow`, `GInputGroup` y de las pistas de los campos) y de bruno · lo no tocado por r02 (§1 a §3, §6, §7) sigue como lo construyó bruno (commits b4db77c…4a778c7, reconciliado en #170) · **Basado en:** `design/lab/form/r01/` (kiwi; brief del usuario, declaración con 20 hallazgos) y **`design/lab/form/r02/`** (kiwi; `brief.md` con el rechazo del usuario, `declaracion.md` con 11 puntos y 10 hallazgos en §8, `index.html`, `comparacion.html`, `verificar.mjs` 57/57); auditoría interrumpida de coco (`design/lab/form/auditoria.md`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker`, `GRadioGroup` (Fase 2, `radio-group.md`) (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
+**Dueño:** lima · **Fase 3, `GFormReveal` (§14):** contratado desde `design/lab/form-reveal/r01/` (#274 a #280; cambia `GForm` y `useFormField`: registro inactivo, §2), construido y auditado · **Fase 3, `GFormSection` (§3):** contratado desde `design/lab/form-section/r01/` (#284 a #291; cambia `GForm`, `useFormField`, `revealAndFocus` y `revealKey`, §1 y §2), **pendiente de coco y de bruno, los dos en Opus** · **Estado:** **revisado tras r02** (la distribución de la Fase 1 fue rechazada por el usuario; la dirección de r02 la **aprobó el usuario**, #171) · pendiente de coco (CSS de `GFormLayout`, `GFormRow`, `GInputGroup` y de las pistas de los campos) y de bruno · lo no tocado por r02 (§1 a §3, §6, §7) sigue como lo construyó bruno (commits b4db77c…4a778c7, reconciliado en #170) · **Basado en:** `design/lab/form/r01/` (kiwi; brief del usuario, declaración con 20 hallazgos) y **`design/lab/form/r02/`** (kiwi; `brief.md` con el rechazo del usuario, `declaracion.md` con 11 puntos y 10 hallazgos en §8, `index.html`, `comparacion.html`, `verificar.mjs` 57/57); auditoría interrumpida de coco (`design/lab/form/auditoria.md`) · **Compone:** `GInput`, `GTextarea`, `GSelect`, `GCheckbox`/`GCheckboxGroup`, `GSwitch`, `GDatePicker`, `GRadioGroup` (Fase 2, `radio-group.md`) (leen el contexto), `GBadge`, `GBtn`, `GIcon` (interno) · **Convive con:** `dialog.md` (envío con `form="id"`), `tabs.md` y `stepper.md` (marcas por pestaña o paso; integración documentada en la Fase 4)
 **Tags:** `g-form`, `g-form-section`, `g-form-layout`, `g-form-row`, `g-input-group`, `g-field-group`, `g-form-actions`, `g-error-summary`, `g-form-reveal` · composable `useFormField()` · **Categoría:** entradas (composición)
 
 Una **capa de composición** sobre los campos que ya existen: decide **cómo** se reparten, agrupan, marcan, cuándo enseñan sus errores y cómo se envían, sin duplicar ningún campo. La Fase 1 cubre formularios cortos, medianos y en dialog o drawer; los largos con navegación y secciones plegables llegan en la Fase 3 (ver «Fases siguientes»). Decisiones del usuario: DECISIONS.md #153 a #155 y **#171** (dirección r02); derivadas de estándar o de contratos vigentes: #156 a #170 y **#172 a #184** (r02).
@@ -39,7 +39,9 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 | Grupos independientes | `GTabs` con paneles montados (#78) | Tabs con dependencia secuencial |
 | Formulario en dialog o drawer | `GDialog` (`inset`, `placement="end"`), pie del dialog con `form="id"`; en drawer, `GFormLayout stack` si se quiere un campo por línea | Campos pegados a la carcasa |
 | Campos que solo aplican según una respuesta («¿Requiere factura? Sí → datos fiscales») | **`GFormReveal`** justo después de la pregunta (§14) | Mostrar todo y deshabilitar; `v-if` (pierde lo escrito); una `GFormSection` plegable (se sigue enviando) |
-| Navegación de secciones, plegables, «Agregar…», guardado automático | Fases 3 y 4 | `GSidebar` para navegar secciones (§1.8 de kiwi) |
+| Información secundaria, avanzada o ya completa que se sigue enviando | **`GFormSection mode="collapsible"`** (§3) | Plegar lo esencial; `GFormReveal` (saca del envío) |
+| Bloque opcional que el usuario decide incluir («Agregar datos fiscales») | **`GFormSection mode="addable"`** (§3) | Mostrar todo y deshabilitar; `GFormReveal` (lo decide una respuesta, no un botón) |
+| Navegación de secciones, guardado automático | `GFormNav` (Fase 3, sin ronda) y Fase 4 | `GSidebar` para navegar secciones (§1.8 de kiwi) |
 
 ## Exportaciones
 
@@ -108,7 +110,7 @@ Las advertencias (`warnings`) siguen la misma tabla. Un **`error` explícito** e
 1. `GForm` escucha `submit` del `<form>` y **siempre** llama a `preventDefault()`.
 2. Si el botón que envía (`event.submitter`) lleva **`formnovalidate`** (p. ej. «Guardar borrador»), no se revela ni se comprueba nada: emite `submit` con `novalidate: true`. Es la semántica nativa del atributo (HTML), y cubre el borrador que no valida de kiwi (§5.9).
 3. Si no: revela todos los campos **activos** (los de un `GFormReveal` inactivo no, §2 «Registro inactivo»); los mensajes que aparecen por este envío se escriben con la región viva del campo en **`off`** y vuelven a `polite` en el cuadro siguiente (#164; el resumen ya los anuncia). Tras `nextTick` (para que la aplicación haya recalculado `errors`), reúne los **errores que bloquean**: el error resuelto (prop explícita o `errors[name]`) de cada campo **registrado, no deshabilitado y activo**, más las claves de `errors` con texto que **no** corresponden a ningún campo registrado, activo o inactivo (errores generales o de servidor).
-4. **Con errores:** emite `invalid` y mueve el foco: al `GErrorSummary` del formulario si hay uno montado; si no, al **primer control inválido** en orden del DOM, desplazando para que se vea su etiqueta (respetando el pie fijo).
+4. **Con errores:** emite `invalid`, **abre las `GFormSection collapsible` plegadas que contienen un error que bloquea** (en un cuadro, sin animar; §3 «Abrir antes de enfocar», #287) y mueve el foco: al `GErrorSummary` del formulario si hay uno montado; si no, al **primer control inválido** en orden del DOM, desplazando para que se vea su etiqueta (respetando el pie fijo).
 5. **Sin errores:** emite `submit` con `FormData` construido con el `submitter` (así la aplicación distingue «Guardar» de otros botones de envío por su `name`/`value`).
 6. **Errores del servidor:** la aplicación los pone en `errors` tras la respuesta y llama a `showErrors()`, que hace los pasos 3 y 4 sin emitir `invalid` de nuevo.
 
@@ -129,8 +131,8 @@ Todos en `emits` (lección de CLAUDE.md: si no, el `submit` del consumidor llega
 
 | Método | Hace |
 | --- | --- |
-| `showErrors()` | Revela todos y mueve el foco (resumen o primer inválido), como un envío con errores pero sin emitir. Para errores asíncronos o del servidor |
-| `focusFirstError()` | Enfoca el primer control con error visible (etiqueta a la vista) |
+| `showErrors()` | Revela todos, abre las plegadas con error que bloquea y mueve el foco (resumen o primer inválido), como un envío con errores pero sin emitir. Para errores asíncronos o del servidor. Devuelve una promesa con la lista |
+| `focusFirstError()` | Enfoca el primer control con error visible (etiqueta a la vista), abriendo antes la sección plegada que lo contiene (#287). Devuelve **`Promise<boolean>`** (`true` si encontró un control): con una sección que abrir, el foco llega tras un `nextTick` |
 | `resetState()` | Limpia editados, revelados y `dirty` **sin** tocar valores (p. ej. tras guardar y recargar datos). Se llama así y no `reset()` para no confundirlo con `form.reset()` |
 
 ### Textos (`labels`, sin valores por defecto)
@@ -140,6 +142,7 @@ Todos en `emits` (lección de CLAUDE.md: si no, el `submit` del consumidor llega
 | `optional` | Marca de los campos opcionales con `marks="optional"` («(opcional)») | Aviso en desarrollo la primera vez que un campo la necesita; **sin marca** |
 | `requiredHint` | Párrafo al principio con `marks="required"` («Los campos con * son obligatorios») | Aviso en desarrollo; sin párrafo |
 | `sectionOptional` | Insignia de `GFormSection optional` («Opcional») | Aviso en desarrollo al usarla; sin insignia |
+| `sectionErrors` | Estado de errores de una `GFormSection collapsible` plegada («1 error», «3 errores»): **String** con `{count}` o **Function** `(count) => String` (plurales del idioma), como `labels.title` de `GErrorSummary` (§3, #286) | Aviso en desarrollo la primera vez que una plegada tiene errores visibles; **sin estado** (un icono solo no basta, 1.4.1) |
 | `error` · `warning` · `valid` | Prefijo **oculto** del mensaje de cada campo («Error: », «Advertencia: », «Correcto: »; WCAG 1.4.1, 3.3.1) | Aviso en desarrollo la primera vez que aparece ese tipo; el mensaje va sin prefijo |
 
 Los textos del resumen son de `GErrorSummary` (su propia `labels`).
@@ -175,7 +178,7 @@ Los textos del resumen son de `GErrorSummary` (su propia `labels`).
 ### Avisos de desarrollo (`[Grana GForm]`)
 
 1. Dos campos registrados con el mismo `name` (salvo partes de un mismo `GCheckboxGroup`).
-2. Falta `labels.optional`, `labels.requiredHint`, `labels.sectionOptional` o un prefijo `labels.error|warning|valid` cuando se necesita (una vez cada uno).
+2. Falta `labels.optional`, `labels.requiredHint`, `labels.sectionOptional`, `labels.sectionErrors` o un prefijo `labels.error|warning|valid` cuando se necesita (una vez cada uno).
 3. `action` o `method` en `$attrs` (se ignoran).
 4. `GForm` dentro de otro `GForm`.
 5. Más de un `GErrorSummary` o más de un `GFormActions sticky` en el mismo formulario.
@@ -189,7 +192,7 @@ Los textos del resumen son de `GErrorSummary` (su propia `labels`).
 
 Estado reactivo de solo lectura para los campos: `density`, `marks`, `readonly`, `disabled`, `labels`, `headingLevel`, `live` (`polite`/`off`), y funciones `register(entry)` → `unregister`, `notifyInput(name)`, `notifyBlur(name)`, `notifyChange(name)`, `isShown(name)`, `setActionsSize(px)`. Es **interno**: el contrato público es `useFormField()`; `formKey` se exporta solo para `provide` manual.
 
-`GFormLayout`, `GFormRow`, `GFieldGroup` y `GInputGroup` proveen **sub‑contextos** propios (en el layout y la fila: `block` y `stack`; la fila, además, la función interna `setIntrinsicMin(el, px)` para el mínimo intrínseco de un hijo, §4, #271; en el grupo: partes, ver §5; en el campo fusionado: partes, ver §13). `GFormSection optional` provee `sectionOptional` (suprime «(opcional)» dentro, ver §3). **`GFormReveal`** provee la clave interna **`revealKey`** (`{ active }`, ver «Registro inactivo») y re‑provee el sub‑contexto de distribución (§14).
+`GFormLayout`, `GFormRow`, `GFieldGroup` y `GInputGroup` proveen **sub‑contextos** propios (en el layout y la fila: `block` y `stack`; la fila, además, la función interna `setIntrinsicMin(el, px)` para el mínimo intrínseco de un hijo, §4, #271; en el grupo: partes, ver §5; en el campo fusionado: partes, ver §13). `GFormSection` provee **`sectionKey`** (interna): `optional` (suprime «(opcional)» dentro, ver §3) y, desde la Fase 3, **`register(entry)` → `unregister`** (recuento de errores por sección; la sección lo propaga a sus secciones ancestro) y **`notifyEdit()`** (marca la sección como editada para la confirmación de «Quitar», §3, #286, #288). **`GFormReveal`** y **`GFormSection mode="addable"`** proveen la clave interna **`revealKey`** (`{ active, fromReveal }`, ver «Registro inactivo») y `GFormReveal` re‑provee el sub‑contexto de distribución (§14).
 
 ### Precedencia (regla única)
 
@@ -244,18 +247,18 @@ Para los campos de Grana y **para campos propios del consumidor** (el slot «cus
 - La prop **`mark`** (Boolean, default `undefined`) del campo: `false` quita la marca; `true` **no** inventa otra convención (solo restituye la que toca).
 - «(opcional)» es **texto visible dentro del `<label>`** (forma parte del nombre accesible: «Segundo apellido (opcional)»); el asterisco sigue siendo `aria-hidden` y lo acompaña `required`/`aria-required`.
 
-### Registro inactivo (`GFormReveal`, #276)
+### Registro inactivo (`GFormReveal`, #276; `GFormSection addable`, #288)
 
-Un campo dentro de un `GFormReveal` **inactivo** (§14: `when` falso en él o en un bloque ancestro) **sigue registrado** pero no cuenta. Reglas para bruno (nombres exactos; todo es interno salvo el comportamiento):
+Un campo dentro de un `GFormReveal` **inactivo** (§14: `when` falso en él o en un bloque ancestro) o de una **`GFormSection addable` sin agregar** (§3) **sigue registrado** pero no cuenta. Reglas para bruno (nombres exactos; todo es interno salvo el comportamiento):
 
 | Pieza | Cambio |
 | --- | --- |
-| `formContext.js` | Nueva clave **interna** `revealKey` (`Symbol('GFormReveal')`, **no** se exporta desde `src/index.js`). Valor provisto: `{ active: ComputedRef<boolean> }` |
-| `useFormField` | Inyecta `revealKey` (opcional). `inactive = computed(() => reveal ? !reveal.active.value : false)`. El registro (`entry`) gana **`inactive: () => inactive.value`**. Devuelve `inactive` entre los **internos** (no se documenta como API pública). Funciona igual en los campos propios del consumidor, sin cambios en su código |
-| `useCompositeField` | El registro del grupo gana `inactive: () => ff.inactive.value` (sus partes ya lo traen por su propio `useFormField`) |
+| `formContext.js` | Nueva clave **interna** `revealKey` (`Symbol('GFormReveal')`, **no** se exporta desde `src/index.js`). Valor provisto: `{ active: ComputedRef<boolean>, fromReveal: boolean }`. **`active`** = el estado propio **y** el `active` del `revealKey` ancestro, si lo hay (así se componen bloques y secciones agregables en cualquier orden). **`fromReveal`** (#288): `true` si lo provee un `GFormReveal` **o** si el ancestro ya lo tenía; una `GFormSection addable` provee `fromReveal` = el del ancestro (`false` sin él). El aviso 3 de §14 («`GFormSection` dentro de un `GFormReveal`») sale solo con `fromReveal` verdadero: una sección dentro de una agregable no avisa |
+| `useFormField` | Inyecta `revealKey` (opcional) y `sectionKey` (opcional): registra su entrada **también** en la sección más cercana cuando la registra en `GForm` (misma condición y mismo `unregister`), y su `notifyChange()` llama además a `notifyEdit()` de la sección (#286, #288). `inactive = computed(() => reveal ? !reveal.active.value : false)`. El registro (`entry`) gana **`inactive: () => inactive.value`**. Devuelve `inactive` entre los **internos** (no se documenta como API pública). Funciona igual en los campos propios del consumidor, sin cambios en su código |
+| `useCompositeField` | El registro del grupo gana `inactive: () => ff.inactive.value` (sus partes ya lo traen por su propio `useFormField`) y se registra también en la sección más cercana (una pregunta, como en `GForm`) |
 | `GForm` · `blocking()` | Salta los registros con `inactive()` (como `inGroup` y `disabled()`), pero **sus nombres siguen en `covered`**: sus claves de `errors` **no** son generales |
 | `GForm` · `revealAll()` | No añade a `shownErr`/`shownWarn` los nombres de registros inactivos; de las claves de `errors`, solo las que no pertenecen a un registro inactivo |
-| `GForm` · `focusFirstError()` | Salta los inactivos |
+| `GForm` · `focusFirstError()` | Salta los inactivos. Desde la Fase 3 de `GFormSection`, abre antes la sección plegada (§3 «Abrir antes de enfocar», #287) |
 | `GForm` · `visible(n, kind)` / `isShown(n)` | `''` / `false` si `n` es nombre de un registro inactivo |
 | `GForm` · `notifyInput` / `notifyBlur` / `notifyChange` | Con un nombre inactivo no marcan editado ni revelan (`notifyChange` sigue subiendo `dirty`) |
 | `GForm` · al pasar a inactivo | Un `watch` sobre el conjunto de nombres inactivos: los que entran salen de `edited`, `shownErr` y `shownWarn`, y las claves de sus registros salen de la **instantánea** del resumen (`snapshot`). Silencioso (como al corregir, #162) |
@@ -263,13 +266,25 @@ Un campo dentro de un `GFormReveal` **inactivo** (§14: `when` falso en él o en
 | `GForm` · `invalid`, `submit` | `invalid` no los lista (sale de `blocking()`); `submit` **sin** campo nuevo (#277): el `FormData` ya los excluye por el `fieldset disabled` |
 | Aviso 1 de `GForm` | Sin cambio: un `name` repetido avisa también entre bloques excluyentes (§14, «Colocación») |
 
+**Abrir antes de enfocar** (§3, #287): `revealAndFocus(control, root)` (interno de `formContext.js`) despacha antes el evento interno `OPEN_REQUEST` (`'g-open-request'`, burbujea, cancelable) desde el control; si alguien lo cancela, espera un `nextTick` y después desplaza y enfoca. Devuelve una `Promise`. `GForm` despacha la misma petición para **cada** error que bloquea antes de mover el foco tras un envío o `showErrors()`.
+
 **Por qué no desregistrar:** `errors.curp` pasaría a error general sin enlace y **bloquearía** el envío; así la aplicación calcula `errors` **sin condiciones**. **Por qué no `disabled()`:** cambiaría el aspecto y la precedencia del campo (#158). Medido en el prototipo de kiwi (`design/lab/form-reveal/r01/index.html`, `XFormReveal`, que lo simula con un contexto intermedio: **referencia de comportamiento, no de implementación**; no cubre `showErrors()`).
 
 ---
 
-## 3. `GFormSection` (Fase 1: solo fija) (#161)
+## 3. `GFormSection` (Fase 1: fija, #161 · Fase 3: plegable, agregable, encabezado al lado y línea, #284 a #291)
 
-Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por **espacio y tipografía**, sin tarjetas.
+Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por **espacio y tipografía**, sin tarjetas. **Fase 3** (kiwi `design/lab/form-section/r01/`: `brief.md`, `declaracion.md` con 40 puntos y los hallazgos L1 a L12, `index.html` con `XFormSection` sobre los componentes reales, `verificar.mjs` 176/176 en los tres motores; commit `b0a4dc0`): tres **modos** (`static`, `collapsible`, `addable`), encabezado **al lado** por su ancho propio (`headerPlacement`) y **línea** opcional con la sección anterior (`divider`). **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GBtn`, `GDialog` y `GDivider`, se solapa con `GFormReveal`, cambia `GForm`, `useFormField` y el foco de `GErrorSummary`): **coco y bruno en Opus**.
+
+**Qué es cada modo** (#284):
+
+| Modo | Lo decide | Cerrada / sin agregar | Datos |
+| --- | --- | --- | --- |
+| `static` (por defecto) | — | — | Como siempre (#161). Su DOM no cambia en la Fase 3 salvo por `headerPlacement`, `divider` y las acciones que bajan de línea (L9) |
+| `collapsible` | El usuario, con el botón del título | Panel `inert`, **sin** `fieldset disabled` | **Siguen en el formulario** plegada: van en `FormData`, se registran, bloquean el envío, salen en el resumen. Para lo secundario, avanzado o ya completo; **nunca para lo esencial** (form r01 §3.5) |
+| `addable` | El usuario, con «Agregar …» | Panel `inert` + `fieldset role="none" disabled`; registro **inactivo** (#276) | Sin agregar **no existen** para el formulario (ni `FormData`, ni Tab, ni errores, ni resumen) aunque la aplicación calcule sus errores sin condiciones. «Quitar» **descarta** |
+
+**Frontera con `GFormReveal`** (§14): allí **decide una respuesta** y cerrado **conserva** lo escrito (3.3.7: una respuesta cambia de paso con las flechas); en `addable` **decide el usuario** con un botón explícito y «Quitar» descarta (con confirmación si hay algo que perder). `collapsible` no saca nada del envío. Los tres comparten la técnica de transición (§14 «Transición», #278).
 
 ### Props
 
@@ -279,17 +294,55 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 | `description` | String | texto libre | sin valor | propia |
 | `headingLevel` | Number | 2 a 6 | el de `GForm` (3) | propia |
 | `optional` | Boolean | | `false` | propia |
-
-**Reservadas para la Fase 3** (no se aceptan en la Fase 1; un uso avisa en desarrollo): `mode` (`static` · `collapsible` · `addable`), `open`/`v-model:open`, `added`/`v-model:added`, `headerPlacement` (`top` · `auto`), `labels` (`add`, `remove`), **`divider`** (Boolean; línea entre secciones, #192: ver «Separación entre secciones»).
+| `mode` | String | `static` `collapsible` `addable` | `static` | propia (#284) |
+| `open` | Boolean | | `false` | propia; `v-model:open`; solo `collapsible` |
+| `added` | Boolean | | `false` | propia; `v-model:added`; solo `addable` |
+| `summary` | String | texto libre | sin valor | propia; solo `collapsible`, visible plegada |
+| `headerPlacement` | String | `top` `auto` | `top` | propia; los tres modos (#289) |
+| `divider` | Boolean | | `false` | propia; los tres modos (#192, #290) |
+| `labels` | Object | `{ add, remove, removeTitle, removeBody, removeConfirm, removeCancel }` | `{}` (función) | propia; solo `addable` (sin valores por defecto) |
 
 - **`title`:** obligatorio en la práctica: sin `title` ni slot `title` avisa en desarrollo.
-- **`optional`:** insignia `GBadge` con texto `labels.sectionOptional` de `GForm` (texto, no color), `size="sm"`, `variant="soft"`, `color="neutral"`; y suprime el «(opcional)» de sus campos.
-- `id`, `class` y demás atributos van a `<section>` (los anclajes de la Fase 3 los usarán).
+- **`optional`:** insignia `GBadge` con texto `labels.sectionOptional` de `GForm` (texto, no color), `size="sm"`, `variant="soft"`, `color="neutral"`; y suprime el «(opcional)» de sus campos. En `collapsible` la insignia va **fuera** del botón (el nombre del botón no cambia por ser opcional). En `addable` **no se pinta** (el botón «Agregar …» ya dice que es opcional) y avisa (aviso 5); sigue suprimiendo el «(opcional)» de sus campos.
+- **`mode`:** estructural. Se espera fijo durante la vida de la sección; si cambia tras montar, avisa (aviso 8) y la sección se pinta en el modo nuevo con el estado de sus props.
+- **`open`** (`collapsible`): `true` = abierta. **Controlado y no controlado**: la sección guarda un estado local que parte de `open` y lo sigue cuando la prop cambia (patrón de `dirty` en `GForm`); cada cambio que hace la sección (botón, apertura para llevar a un campo) emite `update:open`. Sin `v-model` funciona igual (la aplicación no se entera). Con otro modo: se ignora y avisa (aviso 1).
+- **`added`** (`addable`): `true` = agregada. Controlado y no controlado como `open`; «Agregar …» y «Quitar …» emiten `update:added`. **Agregar por programa** (`added` pasa a `true` desde la aplicación: datos ya guardados) **no mueve el foco**. **Quitar por programa** (`false` desde la aplicación) descarta igual que «Quitar …» (vuelve a montar el cuerpo) y, si el foco estaba dentro, lo lleva a «Agregar …» (nunca a `<body>`). Con otro modo: se ignora y avisa (aviso 2).
+- **`summary`** (y slot `summary`, que gana): texto de la **aplicación** para la línea de estado de una sección plegada («Completa», «Español · CDMX», «Falta el teléfono»). Grana **no sabe** si una sección está completa (no valida): no hay estado «completa» automático ni marca propia. Sin nada interactivo (aviso 7). Con otro modo: no se pinta y avisa (aviso 3).
+- **`headerPlacement`:** `top` = encabezado arriba (como hoy). `auto` = **al lado** cuando el ancho **propio** de la sección es ≥ `space × 200` (constante derivada de `space`, sin token, como #130; umbral de form r01 §3.4); arriba por debajo. Ver «Encabezado al lado».
+- **`divider`:** línea decorativa con la sección anterior, **dentro** del hueco que ya las separa (reglas de #192, concretadas en «Separación entre secciones»).
+- **`labels`** (`addable`): textos **completos** de cada sección, no plantillas (#284): `add` («Agregar datos fiscales»: texto y nombre accesible de «Agregar …»; el título solo, «Datos fiscales», no dice la acción, y una plantilla con `{title}` rompería mayúsculas y concordancia), `remove` («Quitar datos fiscales»: único en la página, 2.4.6), `removeTitle` («¿Quitar los datos fiscales?»), `removeBody` («Se descartará lo que escribiste en esta sección»; opcional), `removeConfirm` («Quitar»), `removeCancel` («Cancelar»). Sin `add`, **no se pinta** «Agregar …» (la aplicación aún puede agregar con `added`); sin `remove`, no se pinta «Quitar …»; sin `removeTitle`, `removeConfirm` o `removeCancel`, «Quitar …» **quita sin confirmar** (no se pinta un diálogo sin nombre ni botones sin texto). Las tres situaciones avisan (aviso 4). Precedente: `closeLabel` de `GDialog` (sin texto, sin botón).
+- `id`, `class` y demás atributos van a `<section>`. El `id` (del consumidor o generado con `useId`) es la **base** de los `id` internos (`{id}-toggle`, `{id}-panel`, `{id}-summary`, `{id}-add-description`, `{id}-title`); el generado **no** se escribe en la raíz (el DOM de la sección fija no cambia). Los anclajes y `GFormNav` usan el `id` del consumidor.
+
+**Ya no hay props reservadas**: el aviso «reservadas para la Fase 3» se retira.
+
+### Eventos
+
+| Evento | Payload | Cuándo |
+| --- | --- | --- |
+| `update:open` | `Boolean` | `collapsible`: el usuario abre o pliega con el botón, **y también** cuando la sección se abre para llevar a un campo (envío, `showErrors()`, enlace del resumen, `focusFirstError()`): la aplicación ve el estado real |
+| `update:added` | `Boolean` | `addable`: el usuario pulsa «Agregar …» (`true`) o quita (`false`; tras confirmar si hubo diálogo) |
+
+**Ningún otro** (#284): sin `toggle`, `add` ni `remove`. `update:added` con `false` **es** «el usuario quitó la sección»: la aplicación vacía **su** modelo de esa sección al recibirlo (receta para mora-docs; el modelo es suyo, #266). Ambos en `emits`. Quien necesite el final de la animación escucha `transitionend` en el panel (como §14).
+
+### Slots
+
+| Slot | Propósito | Anatomía |
+| --- | --- | --- |
+| `lead` | Icono decorativo antes del título (normalmente un `GIcon`; #203). **Sin icono por defecto** | En `__lead` (`aria-hidden`), fuera del `hN` en `static`/`addable`; en `collapsible`, **dentro del botón**, después del chevron (fuera, pulsar el icono no plegaría). No entra en el nombre; nada interactivo |
+| `title` | Título con contenido rico | Dentro del `hN` (en `collapsible`, dentro del botón); nada interactivo |
+| `description` | Descripción rica | En `__description` (en `addable` sin agregar, debajo de «Agregar …» y unida a él por `aria-describedby`) |
+| `summary` | Texto de estado de la aplicación (gana a la prop). Admite un `GIcon` (con o sin `label`) o un `GBadge` de la aplicación | En `__summary-text`, dentro de `__summary`; solo `collapsible` plegada; nada interactivo (aviso 7) |
+| `actions` | Acciones secundarias de la sección (`GBtn` `ghost`/`outline`) | En `__actions`, **visibles abierta y plegada** (#285); en `addable`, antes de «Quitar …»; nunca la primaria del formulario |
+| `help` | Ayuda contextual (`GHelper`) | En `__help` |
+| default | Un `GFormLayout` con los campos (#283); o contenido que no son campos | En `__body` (contenedor simple, no pila); en `collapsible`/`addable`, dentro de `__panel` |
 
 ### Estructura
 
+**`static`** (Fase 1, sin cambios):
+
 ```html
-<section class="g-form-section" id="datos">
+<section class="g-form-section g-form-section--mode-static" id="datos">
+  <hr class="g-divider … g-form-section__divider" aria-hidden="true">   <!-- solo con divider -->
   <div class="g-form-section__header">
     <div class="g-form-section__heading">
       <span class="g-form-section__lead" aria-hidden="true">…</span>   <!-- solo con slot lead (#203) -->
@@ -304,47 +357,266 @@ Agrupa una **idea** (Información básica, Contacto, Dirección). Jerarquía por
 </section>
 ```
 
-- **Sin `aria-labelledby`** en la `<section>`: con nombre sería un punto de referencia `region` y un formulario largo tendría diez (ruido). Los encabezados dan la navegación (WCAG 1.3.1, 2.4.6, 2.4.10).
-- `fieldset`/`legend` se reserva para **preguntas** (`GFieldGroup`, radios), no para secciones (W3C WAI «Grouping Controls»).
-- **El cuerpo no distribuye (#283):** `__body` es un contenedor simple, **no una pila**: sin `gap` entre sus hijos y sin sub‑contexto de distribución (`block`, `density`, `stack`). **Los campos de una sección van en un `GFormLayout`** dentro del cuerpo, y con ellos sus `GFormRow` y sus `GFormReveal` (la pregunta y su bloque, hermanos en esa pila). Quien separa las filas, da el ancho completo y pasa la densidad es `GFormLayout`; la sección no lo duplica (una sola responsabilidad; r02: filas explícitas que siempre llenan el ancho). Una sección **sin campos** (texto, una tabla, un `GDataList`) es válida y pone su contenido directamente en el cuerpo, con la separación que ese contenido traiga. Un campo suelto en el cuerpo no llena el ancho, no recibe la densidad del layout y queda pegado a sus hermanos: avisa (abajo, «Campos directos en el cuerpo»).
-- **`lead`** (#203; cierra `tokens.md` §23.6): hueco opcional como el de `GCard`, pero **de icono**, no de avatar: su tamaño y su alineación los fija coco con un alias local tomando como referencia la **primera línea del título** (no la caja `space × 10` del `lead` de `GCard`); **sin tokens nuevos**. Decorativo: el nombre del encabezado es solo el texto del título; un `GIcon` con `label` dentro avisa en desarrollo (`icons.md` §2.4). No cambia la jerarquía tipográfica (#196).
+**`collapsible`** (#285; anatomía de kiwi, puntos 4 a 13):
 
-### Slots
+```html
+<section class="g-form-section g-form-section--mode-collapsible is-ready" id="avanzada">        <!-- abierta: is-open -->
+  <hr class="g-divider … g-form-section__divider" aria-hidden="true">                            <!-- solo con divider -->
+  <div class="g-form-section__header">
+    <div class="g-form-section__heading">
+      <h3 class="g-form-section__title">
+        <button type="button" class="g-form-section__toggle" id="avanzada-toggle"
+                aria-expanded="false" aria-controls="avanzada-panel" aria-describedby="avanzada-summary">
+          <span class="g-form-section__chevron" aria-hidden="true"><svg class="g-icon">…chevron-right…</svg></span>
+          <span class="g-form-section__lead" aria-hidden="true">…</span>                          <!-- solo con slot lead -->
+          <span class="g-form-section__toggle-text">Configuración avanzada</span>
+        </button>
+      </h3>
+      <span class="g-badge …">Opcional</span>                                                     <!-- solo con optional, fuera del botón -->
+    </div>
+    <p class="g-form-section__summary" id="avanzada-summary">                                     <!-- solo PLEGADA y con algo que decir -->
+      <span class="g-form-section__status"><svg class="g-icon" aria-hidden="true">…circle-alert…</svg>1 error</span>
+      <span class="g-form-section__summary-text">Español · America/Mexico_City</span>
+    </p>
+    <p class="g-form-section__description">…</p>
+    <div class="g-form-section__actions">…</div>
+    <div class="g-form-section__help">…</div>
+  </div>
+  <div class="g-form-section__panel" id="avanzada-panel" inert>                                    <!-- abierta: sin inert -->
+    <div class="g-form-section__body"><!-- GFormLayout con los campos (#283) --></div>
+  </div>
+</section>
+```
 
-| Slot | Propósito | Anatomía |
+1. **El título entero es el botón: `hN > button type="button"`** (APG *Disclosure*; forma del encabezado de APG *Accordion*). Conserva la navegación por encabezados (1.3.1, 2.4.6, 2.4.10), da un objetivo grande (2.5.8) y el **nombre del botón es el título**, invariable: el estado lo dice `aria-expanded` (`"true"`/`"false"`, siempre presente). Sin `aria-label`.
+2. **`aria-controls` → `__panel`**, que existe siempre. El panel **no** lleva `role="region"` ni nombre (diez regiones serían ruido, el mismo motivo de #161).
+3. **Chevron** al inicio del botón, `aria-hidden`: Lucide **`chevron-right`** (lista de la librería, `GLibIcon`); abierta gira a abajo; en RTL se espeja y abierta también apunta abajo (precedente `GSidebar`, #71). Sin transición con movimiento reducido. `circle-alert` para el estado de errores. Ningún icono nuevo.
+4. **`__actions`, `__description` y `__help` visibles en los dos estados** (ocultar las acciones movía el título 5px; medido por kiwi). La descripción se alinea con el texto del título (sangría del chevron; coco). Guía de contenido (mora-docs): una acción que cambia campos de la sección debe reflejarse en `summary` para que plegada se vea su efecto.
+5. **Línea `__summary`**, bajo el título, **solo plegada y solo si tiene contenido**, con dos partes en este orden: el **estado de errores** (`__status`, automático, ver «Estado de errores por sección») y el **texto de la aplicación** (`__summary-text`, prop o slot `summary`). Abierta no existe (el contenido ya está a la vista).
+6. **`aria-describedby` del botón → `__summary`** solo mientras existe; sin ella, el atributo no se pinta. Al llegar al botón se oye título, botón, contraído y el estado. **Sin región viva**: el estado cambia por acciones en otro sitio y el resumen ya anunció los errores (#162).
+7. **Panel plegado = `inert` + `visibility: hidden`**, **sin `fieldset disabled`**: los controles **siguen en `FormData`** y Tab los salta (lo contrario de `GFormReveal`, a propósito). Contenido **siempre montado**.
+8. **Teclado: sin teclas propias.** Tab y Enter/Espacio nativos del botón; el foco se queda en el botón al abrir y al plegar. **Sin flechas** entre encabezados (opcionales en APG *Accordion*; aquí las secciones no forman un grupo: varias abiertas a la vez y campos entre ellas).
+9. **Plegar con el foco dentro** (solo por programa: `open` a `false` desde la aplicación; el botón está fuera del panel): **antes** de aplicar `inert` (en el mismo ciclo, antes de pintar), el foco va al **botón de la sección** con `preventScroll: true`. Nunca a `<body>` (2.4.3). A diferencia de `GFormReveal` (#275), aquí hay un control propio.
+10. **`GForm readonly`/`disabled`:** plegar sigue funcionando (consultar no es editar); el botón nunca se deshabilita. Las acciones del consumidor siguen sus reglas.
+
+**`addable`** (#288; anatomía de kiwi, puntos 30 a 36):
+
+```html
+<!-- sin agregar -->
+<section class="g-form-section g-form-section--mode-addable is-ready" id="fiscales">
+  <hr class="g-divider … g-form-section__divider" aria-hidden="true">                            <!-- solo con divider -->
+  <div class="g-form-section__add">
+    <button class="g-btn g-btn--variant-outline g-btn--color-neutral … g-form-section__add-button" type="button"
+            aria-describedby="fiscales-add-description">
+      <span aria-hidden="true"><svg class="g-icon">…plus…</svg></span>Agregar datos fiscales
+    </button>
+    <p class="g-form-section__description" id="fiscales-add-description">Solo si el paciente pide factura.</p>
+  </div>
+  <div class="g-form-section__panel" id="fiscales-panel" inert>
+    <fieldset class="g-form-section__body" role="none" disabled><!-- GFormLayout… --></fieldset>
+  </div>
+  <dialog class="g-dialog g-dialog--alert … g-form-section__confirm" role="alertdialog">…</dialog>   <!-- GDialog, cerrado -->
+</section>
+
+<!-- agregada: is-open is-added; en lugar de __add, el encabezado -->
+  <div class="g-form-section__header">
+    <div class="g-form-section__heading"><h3 class="g-form-section__title" id="fiscales-title" tabindex="-1">Datos fiscales</h3></div>
+    <p class="g-form-section__description">Solo si el paciente pide factura.</p>
+    <div class="g-form-section__actions">…acciones del consumidor…
+      <button class="g-btn g-btn--variant-ghost g-btn--color-neutral … g-form-section__remove" type="button">Quitar datos fiscales</button>
+    </div>
+  </div>
+  <div class="g-form-section__panel" id="fiscales-panel"><fieldset class="g-form-section__body" role="none">…</fieldset></div>
+```
+
+11. **Sin agregar: una acción, no un encabezado.** `GBtn variant="outline" color="neutral"` (tamaño por defecto de `GBtn`) con `plus` en su hueco `prepend` y el texto `labels.add`; la descripción de la sección **debajo**, como texto secundario, unida al botón con `aria-describedby`. **Sin `hN`** hasta que la sección existe (un encabezado sin contenido mentiría al navegar por encabezados). Botón de su tamaño, no a todo el ancho. Sin `aria-expanded` (inserta, no divulga). La raíz es `<section>` **siempre** (sin nombre es genérica: el árbol no cambia y el `id` del anclaje no salta). Ocupa el sitio de la sección con el mismo ritmo (y su `divider`).
+12. **Panel sin agregar = `inert` + `visibility: hidden` + `fieldset role="none" disabled`** (fuera de `FormData` y de la validación nativa, como `GFormReveal` cerrado, #275) y **registro inactivo** (#276; ver «Datos, errores y envío»). Contenido montado.
+13. **Agregar** (usuario): emite `update:added(true)`; `__add` se sustituye por `__header` (`hN tabindex="-1"` + `__actions` con «Quitar …») y el panel crece con la transición. **Foco al título** con `preventScroll: true` (contexto antes que campo, form r01 §4); Tab desde el título: acciones del consumidor, «Quitar …» y el primer campo. No cambia `dirty` (aún no hay datos).
+14. **Quitar descarta** (#288): emite `update:added(false)`, el cuerpo **se vuelve a montar** (clave nueva: se descarta lo no controlado) y la aplicación vacía su modelo; sus campos vuelven a inactivos, «sin editar ni revelar», y sus errores salen **en silencio** del resumen (#276). Volver a agregar empieza **vacía y sin errores revelados**. Quitar (del usuario) **sube `dirty`** de `GForm` (`notifyChange` sin nombre): descartar datos es un cambio. Foco a «Agregar …» con `preventScroll` (nunca a `<body>`).
+15. **Confirmación con `GDialog role="alertdialog"`** (APG *Alert Dialog*; WCAG 3.3.4 como criterio de «revertir, revisar o confirmar») **cuando hay algo que perder**: (a) el usuario escribió en la sección desde que se agregó (**editado**: un `input`/`change` nativo que burbujea en `__body`, o `notifyChange()` de un campo dentro, vía `sectionKey`; interacción, no comparación de valores, como `dirty`, #157), o (b) la sección la **agregó la aplicación** (`added` verdadero al montar o puesto a `true` por programa: datos guardados que no se recuperan repitiendo una acción; motivo nuevo sobre kiwi 33, #288). Sin ninguna de las dos (el usuario la agregó y no escribió nada; o solo la rellenó una acción de la aplicación tras agregarla, que se repite), **quita directo**. El diálogo: `title` = `labels.removeTitle`, `description` = `labels.removeBody`, pie con **`removeCancel` primero** (`GBtn variant="outline" color="neutral"`, **`autofocus`**: la acción segura, `dialog.md` «Foco», #292) y **`removeConfirm`** (`GBtn variant="solid" color="danger"`), `size="sm"`. Es el **último hijo de la `<section>`**, fuera de `__header` y de `__panel` (nunca dentro del `fieldset disabled` ni de un `inert`). **Cancelar** o Esc: cierra y el foco vuelve a «Quitar …» (nativo). **Confirmar**: la sección quita en el acto (punto 14) y, al recibir `closed` del diálogo, enfoca «Agregar …» (el retorno nativo iría a un botón que ya no existe).
+16. **`GForm readonly`/`disabled`:** ni «Agregar …» ni «Quitar …» (editar la estructura es editar); una agregada se ve con sus datos; una **sin agregar no se pinta**: atributo `hidden` en la raíz (en modo vista no hay nada que mostrar).
+
+### Datos, errores y envío (con `GForm`; #286 a #288)
+
+| Situación | `collapsible` | `addable` |
 | --- | --- | --- |
-| `lead` | Icono decorativo antes del título (normalmente un `GIcon`; #203). **Sin icono por defecto** | En `__lead` (`aria-hidden`), primer hijo de `__heading`, **fuera** del `hN`: no entra en el nombre del encabezado; nada interactivo |
-| `title` | Título con contenido rico | Dentro del `hN`; nada interactivo |
-| `description` | Descripción rica | En `__description` |
-| `actions` | Acciones secundarias de la sección (botones `GBtn` `ghost`/`outline`) | Al final del encabezado; nunca la primaria del formulario |
-| `help` | Ayuda contextual (`GHelper`) | En `__help` |
-| default | Un `GFormLayout` con los campos (#283); o contenido que no son campos | En `__body` (contenedor simple, no pila) |
+| Registro | Normal (activos) aunque esté plegada | Sin agregar: **inactivo** (#276), por `revealKey` provisto por la sección (ver §2) |
+| `FormData` | Incluye los campos plegados | Sin agregar: los excluye (`fieldset disabled`) |
+| Envío o `showErrors()` con errores | **Se abren, en un cuadro y sin animar, todas las plegadas que contienen un error que bloquea, antes de mover el foco** (#287); las plegadas sin errores siguen plegadas; el foco va después al resumen o al primer inválido | Sin agregar: sus errores no bloquean ni se revelan |
+| Enlace del resumen, `focusFirstError()` | Abre la que contiene el control (sin animar) y luego desplaza y enfoca (#287) | — (no hay enlace a un inactivo) |
+| Volver a plegar con errores visibles | Siguen contando; el encabezado los dice («1 error») | — |
+| `dirty` | Abrir o plegar no lo cambia | Agregar no; quitar sí (punto 14) |
 
-### Clases
+**Por qué se abren las plegadas con error:** «revela todos» (#157) no se cumple si el mensaje en línea queda en un panel `inert` (3.3.1: el error se identifica junto a su campo; 2.4.3: Tab debe poder llegar al campo). Abrir lo que está **debajo** del foco no mueve lo que el usuario ve. **Por qué sin animar** (medido por kiwi): con la transición, `scrollIntoView` desplaza también el cuerpo recortado (`overflow: hidden` es contenedor de desplazamiento): 80px de desplazamiento interno en los tres motores, y en Firefox el anclaje de desplazamiento se desactiva. Abrir para llevar a un campo es navegación, no un cambio que haya que seguir con la vista.
 
-`g-form-section`, `g-form-section--optional`, `__header`, `__heading`, `__lead` (solo con slot `lead`), `__title`, `__description`, `__actions`, `__help`, `__body`. Separación entre secciones consecutivas: `--g-form-section-gap` × densidad (§9).
+### Estado de errores por sección (#286)
 
-### Separación entre secciones: espacio, no línea (#192)
+- **Qué cuenta:** las **preguntas** de la sección (los mismos registros que recibe `GForm`: un campo con `name` fuera de un grupo, o un grupo — `GFieldGroup`, `GCheckboxGroup`, `GInputGroup`, `GRadioGroup` — como **uno**; las partes de un grupo no cuentan) que tienen un **error visible**: el que el campo pinta (prop `error` explícita, o `errors[name]` ya **revelado** por las reglas de #157). Una sección plegada no anuncia errores que el usuario aún no ha provocado. **No cuentan:** registros deshabilitados, registros inactivos (un `GFormReveal` cerrado dentro) y las advertencias (no bloquean).
+- **De dónde sale:** `useFormField` y `useCompositeField` registran su entrada **también en la sección más cercana** (`sectionKey`) cuando la registran en `GForm` (misma condición, mismo momento, mismo `unregister`); la sección la **propaga a sus secciones ancestro** (una sección plegada que contiene otra cuenta también las preguntas de la interior). La sección cuenta con el mismo criterio de visibilidad que usa `GForm` para llevar el foco (bruno puede reutilizar `visibleTarget()` del registro). Referencia de comportamiento: el `XFormSection` de kiwi (envuelve `register` del contexto); no de implementación.
+- **Texto:** **`labels.sectionErrors` de `GForm`** (String con `{count}`, rellenado con `fill`, o Function `(count) => String` para los plurales del idioma; como `labels.title` de `GErrorSummary`, #162): lo usan todas las secciones, como `sectionOptional`. Icono `circle-alert` (`aria-hidden`) + texto, nunca solo color (1.4.1).
+- **Cuándo se pinta:** solo en `collapsible`, solo plegada, con cuenta > 0 **y** con texto. Sin `labels.sectionErrors` el estado **no se pinta** (un icono solo no basta) y `GForm` avisa una vez (aviso 2 de §1). **Fuera de `GForm`** no hay estado de errores (no hay texto ni revelado); la línea muestra solo `summary`.
 
-**En la Fase 1 dos secciones se separan solo por espacio** (`--g-form-section-gap` × densidad) y por su título. **No se reabre**: `GFormSection` **no** ofrece una línea en la Fase 1; la línea queda **reservada para la Fase 3** con la prop `divider` (arriba) y las reglas de abajo.
+### Abrir antes de enfocar (#287)
 
-**Por qué:** cada sección lleva título (`hN`; sin él avisa), así que la separación ya la dan título y aire, que es exactamente el caso en que la regla de producto de `GDivider` dice que no hace falta una línea «por instinto» (`divider.md`). Una prop en la Fase 1 invitaría a ese uso sistemático y no aportaría estructura (la línea sería decorativa por definición). En la Fase 3 sí aporta: las cabeceras de las secciones **plegadas** no tienen cuerpo que dé aire y la línea entre cabeceras es el patrón de acordeón. Origen del matiz: el brief y kiwi r01 decían «divisores solo cuando ayuden»; r02 §5.3 y el estilo de coco los quitaron; esta decisión sitúa el «cuando ayuden» en la Fase 3.
+Mecanismo **sin acoplar** `GErrorSummary` ni `GForm` a la sección: un **evento DOM interno** que sale del control que se va a enfocar.
 
-**`GDivider` a mano entre dos secciones (Fase 1): no.** Rompe el ritmo en los dos contextos (medido por kiwi con el CSS real y el tema por defecto, `design/lab/divider/r01/declaracion.md`, «Para lima»): dentro de `GForm`, **81px** en lugar de 40 (el `gap` del formulario se aplica a los dos lados del divider); fuera de `GForm`, **1px** (la regla `:not(.g-form) > .g-form-section + .g-form-section` deja de cumplirse porque la hermana anterior ya no es una sección). **Aviso de desarrollo** en `GFormSection` (`[Grana GFormSection]`, una vez, en `onMounted`): si su hermano anterior inmediato es un `.g-divider` y el anterior a este una `.g-form-section`: «entre secciones la separación es el espacio; la línea entre secciones llegará con la Fase 3 (divider)». No cambia nada de lo que se pinta.
+1. **`revealAndFocus(control, root)`** (`formContext.js`, el útil que ya comparten `GForm` y `GErrorSummary`) **despacha** antes de desplazar un `CustomEvent` con el nombre de la constante interna **`OPEN_REQUEST`** (`'g-open-request'`; exportada desde `formContext.js`, **no** desde `src/index.js`), `bubbles: true`, `cancelable: true`, desde `control`. `dispatchEvent` funciona dentro de un subárbol `inert`.
+2. **Cada `GFormSection collapsible` lo escucha en su `__panel`** (no en la raíz: una petición desde el encabezado no abre nada). Si está plegada: pasa a abierta con **`is-instant`** en el mismo parche que `is-open` (sin transición), emite `update:open(true)` y llama a **`preventDefault()`** («he cambiado: espera un parche»). No detiene la propagación: las secciones anidadas plegadas se abren todas. `is-instant` se retira tras el primer pintado (doble `requestAnimationFrame`).
+3. Si el evento quedó cancelado, `revealAndFocus` **espera un `nextTick`** (Vue quita `inert` y aplica `1fr` sin transición) y **luego** desplaza la raíz y enfoca con `preventScroll: true` (GOV.UK, §7). Si no, sigue síncrono como hoy. **Devuelve una `Promise`** que se resuelve con el foco ya puesto.
+4. **`GForm`, en el envío con errores y en `showErrors()`**, antes de mover el foco (al resumen o al primer inválido): despacha la misma petición desde el control (o la raíz) de **cada** registro de la lista de errores que bloquean (los generales no tienen campo), espera un `nextTick` si alguna se canceló y entonces enfoca. Así se abren todas las plegadas con error que bloquea, también cuando el foco va al resumen.
+5. **`focusFirstError()`** pasa por `revealAndFocus` y abre igual; **devuelve `Promise<boolean>`** (`true` si encontró un control). `showErrors()` ya devolvía una promesa.
+6. **`GErrorSummary`** no cambia de API: su enlace (`navigate` no cancelado → `nextTick` → `revealAndFocus`) abre la sección sin saber que existe; funciona **dentro y fuera de `GForm`** (con `errors` propios) y con secciones anidadas.
+7. **Por qué un evento y no un registro de secciones en `GForm`:** un registro no cubre el resumen fuera de `GForm` ni un contenedor intermedio; el evento sigue el DOM real y, sin cambio de API, sirve mañana para `GTabs`/`GStepper` (Fase 4) o para `GFormNav`. El nombre es **interno** y queda reservado; hacerlo público (contenedores propios de la aplicación) sería API de producto.
 
-**Reglas reservadas para `divider` en la Fase 3** (el contrato de la Fase 3 las concreta; no se reabren sin motivo nuevo):
+### Encabezado al lado y acciones que bajan de línea (#289)
 
-1. **Prop de `GFormSection`** (no de `GForm`): las secciones viven dentro y fuera de `GForm` (cuerpo de un diálogo, panel de pestañas). Default `false`.
-2. **Dibuja un `GDivider decorative`** (sin rol): cada sección ya tiene su `hN` (WCAG 1.3.1, 2.4.6; `divider.md`, «Semántica»), `emphasis="subtle"` (no es la única señal: no se le exige 3:1, #89), `inset="none"`.
-3. **Lo renderiza la propia sección, dentro de su `<section>`**, antes de `__header`: no añade un hijo a `GForm` (el `gap` no se duplica) ni se interpone entre dos secciones hermanas (la regla del `+` fuera de `GForm` sigue cumpliéndose).
-4. **La línea vive dentro del hueco, no lo amplía:** la distancia entre el final de la sección anterior y el inicio del encabezado de la sección con `divider` sigue siendo `--g-form-section-gap` × densidad (±1px), con la línea **centrada** en ese hueco (±1px), dentro y fuera de `GForm` y en las tres densidades. El mecanismo es de coco.
-5. **Sin línea** en la primera sección de su contenedor (no hay nada antes que separar) ni entre la última sección y `GFormActions` (el pie fijo ya tiene la suya).
+- **`headerPlacement="auto"`:** la sección mide su **ancho propio** con un `ResizeObserver` **compartido** por todas las secciones (escrituras en `requestAnimationFrame` y solo si cambian, #173) y pone **`is-header-side`** con ancho ≥ `space × 200` (`space` leído del estilo calculado, como `GFormRow`). No `@container`: su condición no admite `var()` (#34, #39, #130).
+- **Al lado:** dos columnas, **encabezado · cuerpo** (proporción de coco, sin token, como §4). En la columna del encabezado se apilan título, `__summary`, descripción, **acciones (debajo, al inicio)** y ayuda; el cuerpo es un `GFormLayout` normal que mide su propia columna. **Alineación:** el borde superior del título coincide con el de la **primera etiqueta de la primera fila** (Δ ±1px; misma línea superior, sin alinear líneas base). En `collapsible`, el botón va en la columna del encabezado y el panel en la del cuerpo (plegada, la fila mide lo que el encabezado). En `addable` sin agregar, `__add` ocupa **el ancho entero**; agregada, dos columnas. Orden del DOM = orden de lectura (1.3.2).
+- **Guía (mora-docs):** en un formulario, todas las secciones con el mismo `headerPlacement`. Dentro de un `GDialog` o un panel estrecho, `auto` cae en `top` solo.
+- **Acciones que bajan de línea (L9; vale también para la Fase 1):** con `__actions` presente, el encabezado (sus columnas: `__heading` · `__actions`) debe dejar al **título** al menos **`space × 40`** (constante, sin token; con menos, un título se parte letra a letra: 58–59px medidos por kiwi a 320). Cuando no cabe, **`is-actions-below`**: las acciones bajan a **su propia línea, al inicio, después de la descripción** (como al lado), y el orden visual pasa a ser el del DOM. Lo **mide la sección** con el mismo `ResizeObserver` compartido: ancho del encabezado − ancho natural de `__actions` (suma de sus hijos y separaciones, que no cambia entre los dos estados: sin vaivén) − separación de columnas < `space × 40` → `is-actions-below`. Con `is-header-side` no aplica (las acciones ya van debajo). Una medida por JS y no CSS porque el umbral depende del contenido de las acciones y de `space` (#130).
+- **SSR y antes de medir:** encabezado arriba y acciones al lado (lo de hoy; renderizar lo pedido sin medida, precedente #271).
 
-**Qué NO cambia de lo ya construido** (lista de kiwi, confirmada): `<section>` sin `aria-labelledby`, títulos `hN` con `headingLevel`, `optional` y su insignia (#161); el valor y el significado de `--g-form-section-gap`; `GFormLayout`, `GFormRow`, el reparto en líneas (#175) y la prueba obligatoria de distribución (#184); `GErrorSummary`, `GFormActions` y la línea de su pie fijo; la convención de obligatorios; el aspecto de todos los formularios existentes, el playground y la auditoría r02. Lo único nuevo en la Fase 1 es **para bruno**: `divider` en la lista de reservadas de `GFormSection.vue` y el aviso del divider a mano, con sus pruebas. Nada para coco.
+### Transición (`collapsible` y `addable`; la de §14, #278)
 
-**Dentro de un `GFormReveal` (Fase 3, #279):** `GFormSection` avisa (`[Grana GFormSection]`, una vez, al montar) si inyecta `revealKey`: «la sección contiene la pregunta y el bloque, no al revés» (§14). No cambia nada de lo que se pinta.
+- **`__panel`** es una rejilla de una pista `0fr → 1fr` (es quien anima, no la raíz); `__body` con `min-block-size: 0` y `overflow: hidden` mientras anima, `overflow: visible` al asentarse (no recorta anillos de foco). Plegado en reposo `visibility: hidden` (los `GFormRow` de dentro siguen midiendo). Altura y margen con **`--g-duration-slow`**; fundido con `--g-duration-fast` (al abrir termina con la altura; al plegar, corto desde el principio); `visibility` pasa a `hidden` al final.
+- **Sin hueco plegado:** el panel cerrado anula con margen negativo el `gap` **propio** de la sección (encabezado → cuerpo); no se lee nada del padre (al revés que `--_reveal-gap`). Mecanismo de coco.
+- **`is-open`** (y `inert`, y en `addable` el `disabled` del `fieldset`) cambian en el acto. **`is-animating`** desde el cambio hasta el `transitionend` de `grid-template-rows` **cuya diana es el panel**, o un temporizador de respaldo (mayor duración + retraso calculados del panel + 50ms). **`is-ready`** tras el primer pintado: sin animar al montar. **`is-instant`**: apertura para llevar a un campo (#287), sin transición, un cuadro.
+- **Δ0** del encabezado y del desplazamiento al abrir y al plegar (medido por kiwi a media vista, pegado arriba, LTR, RTL y al lado). **Límite heredado** (#283): plegar con la página desplazada hasta el final recorta el desplazamiento; no se compensa.
+- **Movimiento reducido:** altura y margen en un cuadro, **fundido conservado**; al plegar sigue visible mientras se funde y ya es `inert`. El chevron gira sin transición.
+- **SSR:** se pinta según `open`/`added` (`inert`, y en `addable` `disabled`, desde el primer HTML; la hidratación debe coincidir), sin `is-ready`.
 
-**Campos directos en el cuerpo (#283):** `GFormSection` avisa (`[Grana GFormSection]`, una vez por sección, al montar) si algún **hijo directo** de `__body` es la raíz de un campo de Grana (`GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GInputGroup`, `GRadioGroup`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GFieldGroup`), una `GFormRow` o un `GFormReveal`: «los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye». Un solo aviso aunque haya varios hijos así. bruno elige cómo reconocer las raíces (clases raíz o una marca interna); un campo propio del consumidor no se detecta (limitación aceptada). No cambia nada de lo que se pinta.
+### Clases (contrato bruno ↔ coco)
+
+| Clase | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-form-section` | `<section>` | Siempre |
+| `g-form-section--mode-{static\|collapsible\|addable}` | Raíz | Siempre (convención `--{prop}-{valor}`, `api.md`) |
+| `g-form-section--optional` | Raíz | `optional` (también en `addable`, aunque sin insignia) |
+| `is-open` | Raíz | Panel visible: `collapsible` abierta o `addable` agregada (en el acto) |
+| `is-added` | Raíz | `addable` agregada |
+| `is-animating` · `is-ready` · `is-instant` | Raíz | Ver «Transición» |
+| `is-header-side` | Raíz | `headerPlacement="auto"` medido ≥ `space × 200` |
+| `is-actions-below` | Raíz | Acciones en su propia línea (L9) |
+| `__divider` | `GDivider` (`<hr>`) | Con `divider` |
+| `__header`, `__heading`, `__lead`, `__title`, `__description`, `__actions`, `__help` | | Como en la Fase 1 |
+| `__toggle` | `button` dentro del `hN` | `collapsible` |
+| `__chevron` | `span aria-hidden` con el icono | `collapsible` |
+| `__toggle-text` | `span` con el texto del título | `collapsible` |
+| `__summary` | `p` | `collapsible` plegada con contenido |
+| `__status` | `span` (icono + recuento) | Dentro de `__summary`, con errores |
+| `__summary-text` | `span` | Dentro de `__summary`, con `summary` |
+| `__add` | `div` con el botón y la descripción | `addable` sin agregar y editable |
+| `__add-button` | el `GBtn` «Agregar …» | Ídem |
+| `__remove` | el `GBtn` «Quitar …» | `addable` agregada y editable |
+| `__panel` | `div` (rejilla, `inert` cerrada) | `collapsible` y `addable` |
+| `__body` | `div` (`static`, `collapsible`) · `fieldset role="none"` (`addable`) | Siempre |
+| `__confirm` | el `GDialog` | `addable` |
+
+Separación entre secciones consecutivas: `--g-form-section-gap` × densidad (§9).
+
+### Estados
+
+| Estado | Encabezado | Panel / cuerpo | Datos | Árbol · Tab |
+| --- | --- | --- | --- | --- |
+| Estática | como hoy | `__body` sin panel | registrados | dentro |
+| Plegable abierta | `aria-expanded="true"`, sin `__summary` | sin `inert`, visible | registrados, cuentan | dentro |
+| Plegable plegada | `aria-expanded="false"`, `__summary` (si hay) y `aria-describedby` | `inert`, invisible, altura 0, margen −gap | **en `FormData`**, cuentan | botón sí · cuerpo fuera |
+| Plegada con error | `__status` «N errores» + icono | igual | cuentan; el envío y el resumen la abren | igual |
+| Abriendo / plegando | igual (Δ0) | `is-animating` | igual | `inert` cambia en el acto |
+| Apertura para navegar | — | `is-instant` | — | — |
+| Agregable sin agregar | `__add`, **sin `hN`** | `inert` + `fieldset disabled` | **inactivos**, fuera de `FormData` | fuera |
+| Agregada | `hN tabindex="-1"` + «Quitar …» | habilitado | registrados, cuentan | dentro |
+| Confirmando «Quitar» | igual | igual | igual | `alertdialog` |
+| `readonly` / `disabled` | sin «Agregar…»/«Quitar…»; plegar funciona | — | como siempre | sin agregar: `hidden` |
+| Al lado | columna 1 | columna 2 | — | mismo orden |
+| Acciones abajo | acciones en su línea, al inicio | — | — | orden del DOM |
+| RTL | chevron espejado | propiedades lógicas | — | — |
+| `forced-colors` | chevron `currentColor`, anillo y línea visibles | — | — | — |
+| Movimiento reducido | chevron sin transición | un cuadro + fundido | — | — |
+
+### Teclado
+
+| Tecla | Acción |
+| --- | --- |
+| Tab / Mayús+Tab | Botón del título (`collapsible`), acciones, campos del panel abierto; salta el panel plegado y la agregable sin agregar |
+| Enter / Espacio en `__toggle` | Abre o pliega (nativo); el foco se queda en el botón |
+| Enter / Espacio en «Agregar …» | Agrega; foco al título |
+| Enter / Espacio en «Quitar …» | Quita (foco a «Agregar …») o abre la confirmación (foco en «Cancelar») |
+| Esc en la confirmación | Cancela (foco a «Quitar …») |
+
+Sin flechas ni teclas propias.
+
+### Tokens consumidos (#291: ninguno nuevo)
+
+| Token | Para qué |
+| --- | --- |
+| `--g-form-section-gap` | Separación entre secciones y posición de la línea de `divider` (× densidad) |
+| `--g-space-*` | Separaciones internas, sangría del chevron, umbrales `× 200` y `× 40` (constantes leídas por el JS) |
+| `--g-duration-slow` | Altura y margen del panel (#280) |
+| `--g-duration-fast` | Fundido; giro del chevron |
+| `--g-ease-out` / `--g-ease-standard` | Curvas |
+| `--g-color-danger-text` | Estado de errores (`__status`) |
+| `--g-color-text`, `--g-color-text-muted` | Título y botón; `__summary-text` y descripción |
+| `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-title-sm-*` | Título (body 16/600, §23) y línea de estado (body-sm) |
+| `--g-focus-*`, `--g-radius-xs` | Anillo del botón y del título enfocado |
+| Los de `GDivider`, `GBtn`, `GDialog`, `GBadge` | Las piezas que compone |
+
+**Sin `--g-divider-inset` propio:** la línea va sin inset (#192); el mapa de anfitrionas de `levels.test.js` sigue **vacío** (#195). Proporción de columnas al lado y sangrías: coco, derivadas de `space`.
+
+### Avisos de desarrollo (`[Grana GFormSection]`)
+
+Una vez por instancia (en `setup` o al montar, según el dato):
+
+1. `open` (o `onUpdate:open`) con un modo que no es `collapsible`: se ignora.
+2. `added` (o `onUpdate:added`) con un modo que no es `addable`: se ignora.
+3. `summary` o slot `summary` con un modo que no es `collapsible`: no se pinta.
+4. `addable` sin `labels.add` (sin botón «Agregar …»), sin `labels.remove` (sin «Quitar …») o sin `removeTitle`/`removeConfirm`/`removeCancel` (quita sin confirmar). Sin `removeBody` no avisa.
+5. `optional` con `addable`: sin insignia (el botón ya lo dice).
+6. Sin `title` ni slot `title` (Fase 1).
+7. Algo interactivo en `__summary` (`a[href]`, `button`, `input`, `select`, `textarea`, `[tabindex]`), comprobado al pintarse: la línea es una descripción del botón y su contenido no se puede usar.
+8. `mode` cambia tras montar.
+
+Y los que ya existían: dentro de un `GFormReveal` (§14 aviso 3, #279: solo si un **`GFormReveal`** está por encima, no por una sección agregable, ver §2); campos directos en el cuerpo (#283); `GDivider` a mano entre dos secciones (ahora con el texto «entre secciones la separación es el espacio; para una línea, usa `divider` en la sección»). **Falta `labels.sectionErrors`** la primera vez que una plegada tiene errores: lo avisa `GForm` (§1, aviso 2).
+
+### Accesibilidad (además de §11)
+
+`hN > button` con nombre invariable, `aria-expanded` y `aria-controls` (APG *Disclosure*; 1.3.1, 2.4.6, 4.1.2); estado de errores en texto + icono (1.4.1) en `aria-describedby`; foco nunca en `<body>` al plegar o quitar (2.4.3); errores siempre alcanzables (las plegadas con error se abren, 3.3.1); objetivo del botón ≥ 24px, ≥ 44px con `pointer: coarse` (2.5.8; valores de coco); confirmación al descartar con algo que perder (3.3.4); sin cambio de contexto al abrir (3.2.2); título con al menos `space × 40` (1.4.10, L9).
+
+### Límites conocidos (para el README)
+
+- **Buscar en la página** (Ctrl+F) no encuentra ni abre el contenido plegado (`inert`). `hidden="until-found"` + `beforematch` existe en los tres motores, pero no se midió su convivencia con la rejilla, `inert` y la transición: **pendiente no bloqueante** (ronda corta de kiwi si un caso real lo pide; L11).
+- Plegar al final de la página recorta el desplazamiento (#283).
+
+### Separación entre secciones: espacio por defecto; línea con `divider` (#192, #290)
+
+**Por defecto dos secciones se separan solo por espacio** (`--g-form-section-gap` × densidad) y por su título; #192 no se reabre: la línea **no** es sistemática. **Por qué:** cada sección lleva título (`hN`; sin él avisa), así que la separación ya la dan título y aire, que es exactamente el caso en que la regla de producto de `GDivider` dice que no hace falta una línea «por instinto» (`divider.md`). Donde sí aporta es en las cabeceras de secciones **plegadas**, que no tienen cuerpo que dé aire (patrón de acordeón): para eso está `divider`.
+
+**`GDivider` a mano entre dos secciones: no.** Rompe el ritmo en los dos contextos (medido por kiwi, `design/lab/divider/r01/declaracion.md`): dentro de `GForm`, **81px** en lugar de 40; fuera, **1px**. **Aviso de desarrollo** en `GFormSection` (una vez, en `onMounted`) si su hermano anterior inmediato es un `.g-divider` y el anterior a este una `.g-form-section`, con el texto de arriba. No cambia nada de lo que se pinta.
+
+**`divider` (reglas de #192 concretadas):**
+
+1. **Prop de `GFormSection`** (no de `GForm`), default `false`, en los tres modos y con el encabezado al lado (la línea ocupa todo el ancho de la sección).
+2. **Un `GDivider` real**: `decorative` (`<hr aria-hidden="true">` sin rol), `emphasis="subtle"`, `inset="none"`, clase `g-form-section__divider`.
+3. **Primer hijo de la `<section>`**, antes de `__header` o `__add`: no añade un hijo a `GForm` ni se interpone entre dos secciones hermanas.
+4. **Fuera del flujo y dentro del hueco:** la sección es su contenedor posicionado y la línea se coloca a la mitad del hueco que la precede, centrada en su grosor (kiwi: `−(--g-form-section-gap × densidad) / 2` del borde superior). **Ninguna distancia cambia**: un solo mecanismo dentro de `GForm` (el `gap` del formulario) y fuera (el `margin-block-start` de `:not(.g-form) > .g-form-section + .g-form-section`), porque los dos valen gap × densidad. Normativo: distancia entre el final de la sección anterior y el inicio del encabezado = `--g-form-section-gap` × densidad (±1px) y línea centrada (±1px), dentro y fuera de `GForm` y en las tres densidades (kiwi: 40/35/30 dentro y 40 fuera, ±0, tres motores). Mecanismo de coco.
+5. **Sin línea en la primera sección:** la línea se pinta **solo si hay una sección hermana anterior visible** (regla de CSS, sin JS: `.g-form-section:not([hidden]) ~ …`), así vale en SSR, con secciones que aparecen por `v-if` y con una agregable oculta en `readonly`. Nunca entre la última sección y `GFormActions` (la línea va **arriba** de una sección).
+
+**Qué NO cambia de lo ya construido:** `<section>` sin `aria-labelledby`, títulos `hN` con `headingLevel`, `optional` y su insignia (#161); el valor y el significado de `--g-form-section-gap`; `GFormLayout`, `GFormRow`, el reparto en líneas (#175) y la prueba obligatoria de distribución (#184); `GErrorSummary` (API), `GFormActions`; la convención de obligatorios; el DOM de la sección fija (salvo la clase `--mode-static`, la línea opcional y `is-actions-below`).
+
+**Dentro de un `GFormReveal` (Fase 3, #279):** `GFormSection` avisa (una vez, al montar) si un `GFormReveal` está por encima: «la sección contiene la pregunta y el bloque, no al revés» (§14). No cambia nada de lo que se pinta.
+
+**Campos directos en el cuerpo (#283):** `GFormSection` avisa (una vez por sección, al montar) si algún **hijo directo** de `__body` es la raíz de un campo de Grana (`GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GInputGroup`, `GRadioGroup`, `GCheckbox`, `GCheckboxGroup`, `GSwitch`, `GFieldGroup`), una `GFormRow` o un `GFormReveal`: «los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye». Un solo aviso aunque haya varios hijos así. bruno elige cómo reconocer las raíces; un campo propio del consumidor no se detecta (limitación aceptada). Vale en los tres modos (el cuerpo sigue siendo `__body`).
+
+**El cuerpo no distribuye (#283):** `__body` es un contenedor simple, **no una pila**: sin `gap` entre sus hijos y sin sub‑contexto de distribución (`block`, `density`, `stack`). **Los campos de una sección van en un `GFormLayout`** dentro del cuerpo, y con ellos sus `GFormRow` y sus `GFormReveal`. Una sección **sin campos** (texto, una tabla, un `GDataList`) es válida y pone su contenido directamente en el cuerpo.
+
+**Otras reglas de la Fase 1 que siguen:** **sin `aria-labelledby`** en la `<section>` (con nombre sería un punto de referencia `region`; los encabezados dan la navegación, WCAG 1.3.1, 2.4.6, 2.4.10); `fieldset`/`legend` se reserva para **preguntas** (`GFieldGroup`, radios), no para secciones (W3C WAI «Grouping Controls»; el `fieldset role="none"` de `addable` no es un grupo, solo el mecanismo de exclusión, como §14); **`lead`** (#203): hueco de icono, su tamaño y alineación los fija coco con un alias local tomando como referencia la **primera línea del título**; decorativo; un `GIcon` con `label` dentro avisa (`icons.md` §2.4).
+
+### Verificación (Fase 3)
+
+- **bruno (vitest + jsdom):** props y avisos 1 a 8; `static` sin cambio de DOM (instantánea, salvo `--mode-static`); `collapsible`: `hN > button type="button"` con `aria-expanded`/`aria-controls`, nombre invariable, `aria-describedby` solo con `__summary`, `inert` sin `fieldset`, `FormData` con los plegados, `update:open` controlado y no controlado, foco al botón al plegar por programa con el foco dentro, `lead` dentro del botón y `optional` fuera; recuento: cuenta preguntas (`GFieldGroup` como uno), solo errores visibles, no advertencias, ni deshabilitados, ni inactivos, propagado a la sección ancestro, `labels.sectionErrors` String y Function, sin texto no pinta y avisa; **abrir antes de enfocar**: envío, `showErrors()` (con error del servidor en otra plegada), enlace del resumen dentro y fuera de `GForm`, `focusFirstError()` (devuelve `Promise<boolean>`), anidadas, petición desde el encabezado que no abre, sin plegadas sigue síncrono; `addable`: sin `hN` sin agregar, `aria-describedby` del botón, registro inactivo (envía con errores sin condiciones; sus claves no son generales), aviso 3 de §14 **no** sale por una sección agregable y **sí** por un `GFormReveal` por encima; agregar → foco al título, por programa sin foco; quitar sin nada que perder directo; con edición o agregada por la aplicación → `alertdialog` con «Cancelar» enfocado, Cancelar/Esc devuelven el foco, Confirmar quita y enfoca «Agregar …» tras `closed`; cuerpo remontado (lo no controlado se vacía), errores fuera del resumen en silencio, `dirty` sube al quitar; `readonly`/`disabled` (sin botones, sin agregar = `hidden`); sin textos de confirmación quita directo; `headerPlacement` e `is-actions-below` con anchos simulados (escrituras solo si cambian); SSR (`renderToString`): `inert`/`disabled` según props, sin `is-ready`, arriba y acciones al lado.
+- **Playwright** (Chromium, Firefox y WebKit; adaptar `design/lab/form-section/r01/verificar.mjs` al componente real en `design/lab/theme-playground/`): sin transición al cargar; Δ0 del encabezado y del desplazamiento en cada cuadro (a media vista, pegado arriba, RTL, al lado); a la mitad, altura y opacidad intermedias; apertura para navegar sin desplazamiento interno del cuerpo (0px) y etiqueta a la vista; Tab salta plegadas y no agregadas; `auto` al lado/arriba por ancho propio y al redimensionar, título alineado con la primera etiqueta (±1px); **L9**: a 320 con una acción de texto, título ≥ `space × 40` en la Fase 1 y con chevron; `divider` 40/35/30 dentro y 40 fuera (±1px), centrada, sin línea en la primera, con plegadas **y con abiertas** (kiwi no midió las abiertas); 320 sin desborde con todo abierto y agregado; movimiento reducido; añadir una sección plegable abierta a la **prueba obligatoria de distribución** (#184).
+- **coco (auditoría con un tema distinto):** chevron y su giro (LTR, RTL), anillo del botón y del título, estado de errores legible (4.5:1) en claro y oscuro, línea `subtle` en las tres densidades, `forced-colors` (chevron `currentColor`, anillo, línea), columnas al lado, acciones abajo, 44px con `pointer: coarse`.
+- **No verificado y pendiente:** lector de pantalla real (qué se oye en el botón con `aria-describedby`; `hN > button` anunciado como encabezado y botón; `fieldset role="none"` sin grupo; el `alertdialog`); Safari, iOS y táctil reales; `forced-colors` real y en Firefox/WebKit; `GSelect`, `GDatePicker`, `GCheckboxGroup` y `GFormReveal` dentro de plegadas y agregables; secciones dentro de `GDialog`; rendimiento con muchas secciones y el `ResizeObserver` compartido.
 
 ---
 
@@ -583,7 +855,7 @@ Generaliza el resumen de `GWidgetConfig` (#76, #78): título con la cantidad, un
 ```
 
 - Estructura del precedente #78: contenedor enfocable `tabindex="-1"` con `role="alert"` **interior**; la raíz existe siempre (con `hidden` sin errores) para que la región exista antes del contenido.
-- **Enlace:** `href="#id"` real (funciona sin JS y se puede abrir en otra pestaña del navegador sin romper nada). Al activarlo, `preventDefault()` y se emite **`navigate`** (cancelable). Si nadie lo cancela: espera un `nextTick` (para que la aplicación cambie de pestaña o de paso si lo necesitó en su manejador), **desplaza la raíz del campo para que se vea su etiqueta** (respetando el pie fijo) y **enfoca el control** con `preventScroll: true` (GOV.UK). En la Fase 3, además abre la sección plegable que lo contiene.
+- **Enlace:** `href="#id"` real (funciona sin JS y se puede abrir en otra pestaña del navegador sin romper nada). Al activarlo, `preventDefault()` y se emite **`navigate`** (cancelable). Si nadie lo cancela: espera un `nextTick` (para que la aplicación cambie de pestaña o de paso si lo necesitó en su manejador), **abre en un cuadro y sin animar la `GFormSection` plegada que contiene el control** (por el evento interno de `revealAndFocus`, sin conocer la sección; también fuera de `GForm`; §3 «Abrir antes de enfocar», #287), **desplaza la raíz del campo para que se vea su etiqueta** (respetando el pie fijo) y **enfoca el control** con `preventScroll: true` (GOV.UK). Sin cambio de API.
 - Los enlaces cumplen el objetivo mínimo de 24px de alto (WCAG 2.5.8; valores de coco).
 
 ### Eventos
@@ -753,7 +1025,7 @@ Un formulario **de captura** ya guardado que se abre **bloqueado** para evitar e
 - **Solo lectura** (#165, revisado por #186, r02 L8): relleno **`--g-color-neutral-soft`** (rol existente; en claro un paso por debajo de la superficie, en oscuro un paso **por encima**, así que ya no es un pozo negro) + borde **discontinuo** en `--g-color-border-control` (3.02:1 sobre ese relleno en el tema por defecto) + texto `--g-color-text`; marcador de posición `--g-color-text-muted`. Casilla e interruptor conservan `surface-sunken` (su relleno es el propio control, no una caja). **Pendiente para el CLI** (bruno): validar `border-control` ≥ 3:1 también sobre `neutral-soft` (claro y oscuro), porque un tema con `neutral-soft` más oscuro haría fallar 1.4.11.
 - Advertencia y válido: `--g-color-warning-text` y `--g-color-success-text`.
 
-**Consumidos (existentes):** `--g-space-1`, `--g-font-ui`, `--g-text-{title|body|body-sm|caption}-*`, `--g-text-title-weight`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-control`, `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-neutral-soft` (solo lectura, #186), `--g-color-{danger|warning|success}-text`, `--g-surface-*` (fondo del pie fijo), `--g-border-width`, `--g-focus-*`, `--g-duration-*` (incluido **`--g-duration-slow`**, nuevo para `GFormReveal`, #280), `--g-ease-*`; `GInputGroup` además los de `GInput` (caja, radios, alturas por `size`).
+**Consumidos (existentes):** `--g-space-1`, `--g-font-ui`, `--g-text-{title|body|body-sm|caption}-*`, `--g-text-title-weight`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-control`, `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-neutral-soft` (solo lectura, #186), `--g-color-{danger|warning|success}-text`, `--g-surface-*` (fondo del pie fijo), `--g-border-width`, `--g-focus-*`, `--g-duration-*` (incluido **`--g-duration-slow`**, nuevo para `GFormReveal`, #280; también lo usa el panel de `GFormSection`), `--g-ease-*`; `GInputGroup` además los de `GInput` (caja, radios, alturas por `size`). **`GFormSection` Fase 3: ningún token nuevo** (§3 «Tokens consumidos», #291).
 
 ## 10. Cambios en los campos existentes (#158, #164, #165, #166; r02: #176, #180)
 
@@ -817,6 +1089,7 @@ Afectan a **`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GS
 | 3.3.2 Etiquetas o instrucciones | Una convención de marcas por formulario; con asterisco, frase que lo explica; el mensaje de un fusionado dice qué parte corregir |
 | 3.3.3 Sugerencia | Mensajes de la aplicación con la corrección (guía en el README; Grana no los escribe) |
 | 3.2.2 / 3.3.7 / 2.4.3 (Fase 3, `GFormReveal`) | Abrir un bloque no mueve el foco ni anuncia nada (lo nuevo es lo siguiente en el orden); cerrado conserva lo escrito y sale del envío; cerrar con el foco dentro lo lleva a la pregunta, nunca a `<body>` (§14) |
+| 1.4.1 · 2.4.3 · 3.3.1 · 3.3.4 · 4.1.2 (Fase 3, `GFormSection`) | `hN > button` con nombre invariable, `aria-expanded`, `aria-controls`; estado de errores con texto e icono en `aria-describedby`; las plegadas con error que bloquea se abren antes de enfocar; foco nunca en `<body>` al plegar o quitar; confirmación al descartar con algo que perder; título con al menos `space × 40` (§3) |
 | 4.1.3 Mensajes de estado | Mensaje al salir (`polite`); resumen (`alert` + foco); estado del pie (`status`); valor calculado (`<output>` cortés) |
 
 ## 12. Verificación (qué y cómo)
@@ -849,7 +1122,7 @@ Además, densidades `comfortable` y `compact` y `pointer: coarse` en Chromium (l
 - **`GInputGroup`** (§13): `role="group"` con nombre; `label for` → principal; nombre de cada parte = etiqueta + nombre de la parte (`getByRole(…, { name, exact: true })`); `aria-describedby` de cada parte (textos no decorativos, ayuda, mensaje) en ese orden; `aria-invalid` solo en la parte que falla (todas con error del grupo); `autocomplete` por parte; `required` propagado y anulable; solo lectura del selector como texto + oculto con el valor; `FormData` con un valor por parte; momento de errores del grupo (#170 (5)); resumen → parte inválida; avisos.
 - **`output`** (C14): región siempre presente y vacía sin nodos de texto; en `aria-describedby` solo con texto y en su orden; no aparece en `FormData`.
 - **`GErrorSummary`:** `role="alert"` interior, `tabindex="-1"`, foco una vez por envío; enlaces `href` reales; `navigate` cancelable; etiqueta a la vista y foco con `preventScroll`; elementos salen al corregir; oculto sin errores; `labels.title` String y Function.
-- **`GFormSection` (#192):** `divider` avisa como las demás reservadas y no llega a `<section>`; el aviso del `GDivider` a mano entre dos secciones sale una vez, dentro y fuera de `GForm`, y no sale con un divider antes de la primera sección ni entre una sección y otro hijo.
+- **`GFormSection` (#192):** el aviso del `GDivider` a mano entre dos secciones sale una vez, dentro y fuera de `GForm` (texto nuevo, #290), y no sale con un divider antes de la primera sección ni entre una sección y otro hijo. **Fase 3:** §3 «Verificación (Fase 3)»; el aviso de reservadas se retira.
 - **`GFormActions`:** `role="status"` presente vacío; apilado bajo `space × 104` con la primaria sola arriba y las demás compartiendo línea si caben (#185); `--g-form-actions-size` en el `<form>`; Tab por todos los controles de un formulario largo sin ninguno tapado (con y sin respaldo JS); avisos de primaria.
 - **Orden de manejadores** en los seis campos; **`GInput` `prefix`/`suffix`** en `aria-describedby` (con y sin `*Label`).
 - **`GFormReveal` y registro inactivo:** §14, «Verificación», y §2, «Registro inactivo».
@@ -990,7 +1263,7 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 
 **Un bloque de campos que existe solo si una respuesta lo pide**: aparece justo después de la pregunta que lo condiciona («¿Requiere factura? Sí → datos fiscales»; «Tipo de persona: Física → CURP · Moral → razón social») y, mientras no aplica, sus campos **no forman parte del formulario** (ni `FormData`, ni Tab, ni validación nativa, ni errores, ni resumen) pero **conservan lo escrito** (WCAG 3.3.7). **Basado en:** `design/lab/form-reveal/r01/` (kiwi; `brief.md`, `declaracion.md` con los hallazgos L1 a L9, `index.html` con `XFormReveal` sobre los componentes reales, `verificar.mjs` 121/121 en los tres motores; commit `1bc028d`). **Componente complejo** (CLAUDE.md, «Modelos por rol»: cambia el estado del registro de `GForm` y se solapa con `GFormSection collapsible`/`addable` y con el submenú de `GSidebar`): **coco y bruno en Opus**.
 
-**Frontera** (sin duplicar): `GFormSection collapsible` (Fase 3, reservado) la abre el usuario con un botón y sus datos **siguen** enviándose y validándose; `addable` = el usuario decide incluir; `disabled` = el dato existe pero no se puede tocar ahora («mostrar todo y deshabilitar» está **rechazado** para lo que no aplica, §1); `GFieldGroup` = una pregunta compuesta. Aquí **la respuesta decide**.
+**Frontera** (sin duplicar): `GFormSection collapsible` (§3) la abre el usuario con un botón y sus datos **siguen** enviándose y validándose; `addable` = el usuario decide incluir; `disabled` = el dato existe pero no se puede tocar ahora («mostrar todo y deshabilitar» está **rechazado** para lo que no aplica, §1); `GFieldGroup` = una pregunta compuesta. Aquí **la respuesta decide**.
 
 ### Props
 
@@ -1126,7 +1399,7 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 
 `[Grana GFormSection]`, al montar:
 
-3. Una `GFormSection` dentro de un `GFormReveal` (la sección lo detecta al inyectar `revealKey`): «la sección contiene la pregunta y el bloque, no al revés».
+3. Una `GFormSection` dentro de un `GFormReveal` (la sección lo detecta al inyectar `revealKey` con **`fromReveal`** verdadero; una `GFormSection addable` también provee `revealKey`, pero con el `fromReveal` de su ancestro, así que una sección dentro de una agregable **no** avisa, #288): «la sección contiene la pregunta y el bloque, no al revés».
 4. Un `GFormReveal` (o un campo, o una `GFormRow`) como hijo directo del cuerpo de una `GFormSection` (lo detecta la sección; §3, «Campos directos en el cuerpo», #283): «los campos de una sección van en un `GFormLayout`…».
 
 Ninguno cambia el comportamiento.
@@ -1166,7 +1439,7 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | Fase | Contenido | Motivo de diferirlo |
 | --- | --- | --- |
 | **2 · Campos imprescindibles** | **`GRadioGroup`: contratado** en `design/contracts/radio-group.md` (#267 a #273; kiwi r01): `appearance` `list` `inline` `segmented` **`chip` `card`** (singular, los valores ya publicados de `GCheckbox` `layout`; corrige la reserva en plural, #267); `options` como `GSelect`; **sin `GRadio` en v0.1** (nombre reservado: un radio suelto no tiene sentido); raíz `role="radiogroup"` en todas (`fieldset` en `list`, `chip`, `card`); **`inline` y `segmented` comparten línea** (#268); `aria-required` en el grupo y nunca `required` nativo (#269); radios nativos; relación con `GCard selectType="radio"`, #124 y **`GNumberField`** (`<input type="text" inputmode>`, `min` `max` `step` `precision` `locale`, prefijo/sufijo de C13, −/+ opcionales con `minus`/`plus`), **sin moneda** (#154). **Requisitos de r02** (#181): `GRadioGroup appearance="segmented"` usa raíz **`role="radiogroup"` + `aria-labelledby`** hacia una etiqueta visible (no `fieldset`/`legend`) y la estructura de tres hijos (C12), para poder compartir línea en una `GFormRow` (patrón APG *Radio Group*; radios nativos, una parada de Tab y flechas); las demás apariencias siguen con `fieldset`/`legend` y van en su propia fila. **Partes nuevas de `GInputGroup`:** `GSelect` como parte (opciones ricas, búsqueda; sin autocompletado) y `GNumberField` como parte. (`GFieldGroup joined` se retira: es `GInputGroup`, §13) | Sin ellos no hay Sí/No ni campos numéricos; cada uno merece su contrato y su verificación |
-| **3 · Divulgación y navegación** | `GFormSection` `mode` `collapsible` (`aria-expanded`, cerrada `inert` pero se envía y valida; el resumen la abre); `GFormSection` **`divider`** (línea decorativa opcional dentro de `--g-form-section-gap`, reglas reservadas en §3, #192) y `addable` («Agregar…»/«Quitar», foco al título con `tabindex="-1"`); `headerPlacement="auto"` (≥ `space × 200`); **`GFormReveal`: contratado en §14** (#274 a #280; solo `when`; `exclude`, `keepValues` e `indent` **no entran**); **`GFormNav`** (`<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`); token del ancho de la navegación (la barra del bloque condicional no lleva tokens propios, #280) | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
+| **3 · Divulgación y navegación** | **`GFormSection` `mode` `collapsible` y `addable`, `headerPlacement` y `divider`: contratados en §3** (#284 a #291; kiwi `form-section/r01`); **`GFormReveal`: contratado en §14** (#274 a #280; solo `when`; `exclude`, `keepValues` e `indent` **no entran**); **`GFormNav`** (sin ronda: `<nav>` con nombre, `aria-current="location"`, estado por sección en texto, *scroll-spy*, ≥ `space × 190`; **lee de cada sección** su `id`, título, `open`, el recuento de errores de §3 y `summary`; un clic en una sección plegada lleva a su encabezado y **enfoca su botón sin abrirla** —navegar no es desplegar—, un enlace a un **campo** sí abre por `OPEN_REQUEST`; kiwi L12); token del ancho de la navegación (la barra del bloque condicional y las secciones de la Fase 3 no llevan tokens propios, #280, #291); **buscar en la página** dentro de plegadas (`hidden="until-found"`, kiwi L11): pendiente no bloqueante | Formularios largos; comportamiento nuevo que kiwi verificó pero necesita contrato propio |
 | **4 · Estado y guardado** | `GFormStatus` (autoguardado: Guardando/Guardado/Error + Reintentar, revertir); `guard` (`beforeunload` con `dirty`); integración documentada con `GDialog` (cancelar `dismiss` con cambios, confirmación en el pie), `GStepper` (un `GForm` por paso, `status` por paso) y `GTabs` (`status: attention` con conteo); `GWidgetConfig` compone `GErrorSummary` | Depende de la Fase 1 y de los contratos vigentes de esos componentes |
 | **5 · Rondas propias de kiwi** | `GCombobox` (prioridad alta), `GFileField`, `GTimeField`, **moneda** (#154), teléfono dedicado, búsqueda de dirección | Cada uno es un componente con su propio patrón APG y sus preguntas |
 
@@ -1188,7 +1461,7 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | 8 | Marca «opcional» | Texto visible en el nombre (`labels.optional`), decidido por `marks`; prop `mark` para quitarla | #153 |
 | 9 | Prefijo/sufijo de texto | `GInput` `prefix`/`suffix` + `*Label` ya en la Fase 1 (C13); `GNumberField` lo reutiliza | #166 |
 | 10 | `GErrorSummary` | §7; `labels.title` String o Function; `navigate` cancelable; `GWidgetConfig` lo compondrá en la Fase 4 | #162; #78 |
-| 11 | `GFormSection` | §3: solo fija en la Fase 1; `mode`, `open`, `added`, `headerPlacement`, `labels` reservadas para la Fase 3; insignia con `labels.sectionOptional` de `GForm` | #161 |
+| 11 | `GFormSection` | §3: solo fija en la Fase 1; `mode`, `open`, `added`, `headerPlacement`, `labels` reservadas para la Fase 3 (**contratadas**: §3, #284 a #291); insignia con `labels.sectionOptional` de `GForm` | #161 |
 | 12 | Alineación de cajas | *Subgrid* solo en `g-form-row` (CSS de cada campo, pistas con nombre); en la rejilla general, alineación superior y regla de contenido | #159 |
 | 13 | `GFormReveal` | **Fase 3**: **contratado en §14** (kiwi `form-reveal/r01`; tabla «Resolución de hallazgos de kiwi (`GFormReveal` r01, §8)») | Divulgación es un bloque propio; #274 a #280 |
 | 14 | `GFormActions` | §6: `sticky`, `status`; sin `align` (orden fijado por el usuario); `--g-form-actions-size` publicada por `GForm`; avisos de primaria | #155, #163 |
@@ -1228,3 +1501,21 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | L7 | Tokens | Nace **`--g-duration-slow`** (tercer componente con los 240ms; `GSidebar` y `GStepper` migran su `--_t-slow`); barra y sangría **sin tokens propios** (borde, `space`, color de borde existente); se cierra la reserva de `tokens.md` §21 | #280; `plans/README.md`; §17.6 |
 | L8 | `GDialog` mueve el disparador al crecer | Se deriva de «sin saltos» (form r01 §11): **ronda propia de `GDialog`** (crecer hacia abajo con el borde superior fijo; la hoja conserva su borde superior mientras quepa), anotada en `dialog.md` «Abierto»; **no bloquea** `GFormReveal` | #281 |
 | L9 | Etiqueta del grupo de radios sin `dir="auto"` | `radio-group.md`: el texto de `__label` va en `<span class="g-radio-group__label-text" dir="auto">` (no en `__label`, para no cambiar su alineación); bruno en esta ronda | #282; #269 |
+
+## Resolución de hallazgos de kiwi (`GFormSection` Fase 3 r01, §10)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L1 | Props de la Fase 3 | §3 «Props»: `mode` (`static`·`collapsible`·`addable`, `static`), `open` y `added` (Boolean, `false`, controlados y no controlados), `summary` (String) + slot `summary`, `headerPlacement` (`top`·`auto`), `divider`; `labels` de la sección con textos **completos** (`add`, `remove`, `removeTitle`, `removeBody`, `removeConfirm`, `removeCancel`; el título solo no dice la acción y una plantilla rompe concordancia); sin un texto, sin su botón o sin confirmación (precedente `closeLabel`). `GForm labels.sectionErrors` (String con `{count}` o Function) | #284, #286; precedentes #162, `dialog.md` |
+| L2 | Eventos | Solo `update:open` (también al abrir para llevar a un campo) y `update:added`; sin `toggle`/`add`/`remove`: `update:added(false)` es «quitó» y la aplicación vacía su modelo | #284 |
+| L3 | Abrir antes de enfocar | Evento DOM interno **`OPEN_REQUEST`** (`'g-open-request'`, burbujea, cancelable) despachado por `revealAndFocus` desde el control y por `GForm` para cada error que bloquea; cada plegable lo escucha en su `__panel`, abre con `is-instant` y cancela; quien lo despachó espera un `nextTick`. `focusFirstError()` → `Promise<boolean>`. Sin registro de secciones en `GForm`: no acopla `GErrorSummary` y funciona fuera de `GForm` y con anidadas | #287 |
+| L4 | Errores por sección | `sectionKey.register(entry)` desde `useFormField`/`useCompositeField` (misma condición que en `GForm`), propagado a las secciones ancestro; cuenta preguntas con error **visible**, sin advertencias, deshabilitados ni inactivos; solo dentro de `GForm` (texto y revelado son suyos) | #286; #157 |
+| L5 | `addable` con registro inactivo | `revealKey` provisto por la sección con `active` = `added` y el ancestro, y **`fromReveal`** heredado (el aviso 3 de §14 solo sale por un `GFormReveal`); «editado» por `input`/`change` nativos en el cuerpo y `sectionKey.notifyEdit()`. **Cambio sobre kiwi 33:** también confirma si la sección la **agregó la aplicación** (datos guardados que no se recuperan repitiendo una acción); quitar sube `dirty` | #288; WCAG 3.3.4 |
+| L6 | Avisos | §3 avisos 1 a 8 (añadidos: `mode` que cambia tras montar; sin textos de confirmación, quita directo). **Cambio:** un `GIcon` **con `label`** en `summary` **no** avisa: `summary` es texto que describe el botón, no un hueco de icono decorativo, y un icono con nombre es contenido legítimo; sí avisa lo interactivo. Se retira el aviso de reservadas | #284; `api.md` «Iconos» |
+| L7 | Clases | §3 «Clases»: `g-form-section--mode-{modo}` (convención `--{prop}-{valor}`), `is-open`, `is-added`, `is-animating`, `is-ready`, `is-instant`, **`is-header-side`** y **`is-actions-below`** (estados medidos, como `is-stacked`, #271), partes `__toggle`, `__chevron`, `__toggle-text`, `__summary`, `__status`, `__summary-text`, `__add`, `__add-button`, `__remove`, `__panel`, `__divider`, `__confirm`; `__body` se conserva | #285, #289; `api.md` |
+| L8 | Tokens | Ninguno nuevo; `--g-duration-slow`/`-fast`, `--g-ease-*`, `--g-color-danger-text`; umbrales `space × 200` y `× 40` como constantes; sin `--g-divider-inset` propio (mapa de anfitrionas vacío) | #291; #130, #195 |
+| L9 | Título contra acciones en estrecho (también Fase 1) | Título con al menos **`space × 40`**; si no cabe junto a las acciones, **`is-actions-below`**: acciones en su propia línea, al inicio, después de la descripción. Lo mide la sección con el `ResizeObserver` compartido (ancho natural de las acciones, sin vaivén); CSS de coco | #289; WCAG 1.4.10 |
+| L10 | Foco inicial de `GDialog` | No es de esta sección: bruno lo corrigió (commit `2a77a7c`) y lima fija el orden en `dialog.md` «Foco». La confirmación de «Quitar» pone `autofocus` en «Cancelar» | #292 |
+| L11 | Buscar en la página | **No entra** en esta fase: límite documentado en el README; `hidden="until-found"` queda pendiente no bloqueante (ronda corta si un caso real lo pide) | #291 |
+| L12 | `GFormNav` | Anotado en «Fases siguientes»: lee `id`, título, `open`, recuento y `summary`; ir a una sección enfoca su botón sin abrirla; ir a un campo abre por `OPEN_REQUEST` | #291 |
+
