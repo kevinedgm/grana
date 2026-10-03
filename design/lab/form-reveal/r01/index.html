@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFormReveal · r01 · estructura</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* Página de prototipo. Los campos, la pregunta, el resumen y el pie son los componentes REALES de dist/.
+   XFormReveal es un prototipo de kiwi: su CSS usa valores de wireframe (gris, 3px, 16px, 240ms), NO son propuesta
+   de estilo (eso es de coco). Lo que SÍ es propuesta: anatomía, estados, compensación de la separación, inert +
+   fieldset deshabilitado, overflow visible al asentarse, movimiento reducido = solo fundido. */
+:root{--ink:#1f1f1f;--ink-2:#555;--line:#dcdcdc;--bar:#9a9a9a;--bg:#f3f3f3;--note:#fff8d6;
+  --rv-t:240ms;--rv-fade:160ms;--rv-ease:cubic-bezier(.23,1,.32,1)}
+.slow{--rv-t:1200ms;--rv-fade:800ms}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+main{max-inline-size:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:48px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame--320{--fw:320px;padding:16px}
+.frame--480{--fw:480px}
+.frame--960{--fw:960px}
+.pair{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.pair > div{min-inline-size:0}
+pre.out{font:12px/1.45 ui-monospace,Menlo,monospace;background:var(--note);padding:8px 10px;border-radius:6px;margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;min-block-size:2.9em}
+.proto-btn{font:inherit;font-size:13px;min-block-size:24px;padding:2px 10px;border:1px solid #767676;border-radius:6px;background:#fff;cursor:pointer}
+.spacer{block-size:40vh}
+
+/* =====================================================================
+   XFormReveal (prototipo de la propuesta)
+   Raíz: rejilla de una pista que va de 0fr a 1fr (sin medir alturas en JS).
+   Cerrado: inert, invisible, sin altura y con margen negativo igual a la separación del contenedor
+   (--_reveal-gap, leída del padre), para que un bloque cerrado no deje un hueco fantasma.
+   Cuerpo: <fieldset role="none"> que se deshabilita al cerrar (así sale de FormData y de la validación nativa).
+   ===================================================================== */
+.x-reveal{
+  display:grid;grid-template-rows:0fr;min-inline-size:0;
+  margin-block-start:calc(var(--_reveal-gap) * -1);
+  opacity:0;visibility:hidden;
+}
+.x-reveal.is-open{grid-template-rows:1fr;margin-block-start:0;opacity:1;visibility:visible}
+@media (prefers-reduced-motion: no-preference){
+  .x-reveal.is-ready{
+    transition:grid-template-rows var(--rv-t) var(--rv-ease),margin-block-start var(--rv-t) var(--rv-ease),
+      opacity var(--rv-fade) linear,visibility 0s linear var(--rv-t);
+  }
+  .x-reveal.is-ready.is-open{
+    transition:grid-template-rows var(--rv-t) var(--rv-ease),margin-block-start var(--rv-t) var(--rv-ease),
+      opacity var(--rv-fade) linear calc(var(--rv-t) - var(--rv-fade)),visibility 0s;
+  }
+}
+/* Movimiento reducido: la altura cambia en un cuadro y el bloque se funde (también al cerrar: visible hasta el final) */
+@media (prefers-reduced-motion: reduce){
+  .x-reveal.is-ready{transition:opacity var(--rv-fade) linear,visibility 0s linear var(--rv-fade)}
+  .x-reveal.is-ready.is-open{transition:opacity var(--rv-fade) linear,visibility 0s}
+}
+.x-reveal__body{
+  /* reinicio del fieldset del UA (sobre todo min-inline-size: min-content, que desborda en estrecho) */
+  margin:0;padding:0;border:0;min-inline-size:0;min-block-size:0;overflow:hidden;
+  display:flex;flex-direction:column;gap:var(--g-form-gap);
+  /* Señal de pertenencia: barra al inicio + sangría. Borde (no sombra ni fondo): sobrevive a forced-colors */
+  border-inline-start:3px solid var(--bar);padding-inline-start:16px;
+}
+.x-reveal.is-open:not(.is-animating) > .x-reveal__body{overflow:visible}
+.x-reveal__body > *{min-inline-size:0}
+
+/* Contraejemplo: anclar GDialog arriba (solo para medir; no es CSS de GDialog) */
+.proto-anchor-top.g-dialog{margin-block:10vh auto}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>GFormReveal · r01 · estructura</h1>
+  <p class="cap">Componentes reales de <code>dist/</code> + <code>XFormReveal</code> de prototipo. Gris de wireframe: grosores, sangría y duraciones no son propuesta de estilo. Declaración: <code>declaracion.md</code>.</p>
+
+  <div class="ctl" role="group" aria-label="Controles del prototipo">
+    <label><input type="checkbox" v-model="slow"> Movimiento lento (×5)</label>
+    <span>Estado de los bloques: <code id="states">{{ statesText }}</code></span>
+  </div>
+
+  <h2 class="demo" id="t-factura">1 · Factura con persona Física/Moral anidada, dentro de una sección (ancho 960 y estrecho 320)</h2>
+  <p class="cap">Los errores los calcula la «aplicación» <b>sin condiciones</b> (CURP, RFC, razón social siempre obligatorios en su regla): el bloque cerrado hace que no cuenten. Prueba: Guardar con «Sí» y la CURP vacía, luego «No»: el resumen se vacía y Guardar envía sin los datos fiscales.</p>
+  <div class="pair">
+    <div><p class="frame-tag">960 · LTR</p><div class="frame frame--960"><factura-form uid="w"></factura-form></div></div>
+    <div><p class="frame-tag">320 · LTR</p><div class="frame frame--320"><factura-form uid="n"></factura-form></div></div>
+  </div>
+
+  <h2 class="demo" id="t-rtl">2 · RTL (480)</h2>
+  <div class="frame frame--480" dir="rtl"><factura-form uid="r" rtl></factura-form></div>
+
+  <h2 class="demo" id="t-row">3 · Contraejemplo: un bloque dentro de una GFormRow</h2>
+  <p class="cap">«Medio: Web | Radio | Otro» y el bloque «Especifique» como hijo de la misma fila. Incluso cerrado, la fila le reparte ancho y el disparador se encoge o salta de línea al abrir. Propuesta: un bloque siempre ocupa su propia fila.</p>
+  <div class="frame frame--960">
+    <g-form :labels="formLabels" id="f-row">
+      <g-form-layout>
+        <g-form-row id="row-counter">
+          <g-radio-group id="medio" class="g-form-w-md" name="medio" appearance="segmented" label="Medio por el que nos conoció" v-model="medio" :options="[{value:'web',label:'Web'},{value:'radio',label:'Radio'},{value:'otro',label:'Otro'}]"></g-radio-group>
+          <x-form-reveal id="rv-medio" :when="medio==='otro'"><g-input label="Especifique" name="medio_otro" v-model="medioOtro"></g-input></x-form-reveal>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+  </div>
+
+  <h2 class="demo" id="t-dialog">4 · Dentro de GDialog (centrado y hoja inferior)</h2>
+  <p class="cap">El diálogo centrado crece hacia los dos lados (el disparador sube la mitad de lo que crece); como hoja inferior sube todo. Variante de medición anclada arriba (CSS de la página, no de <code>GDialog</code>).</p>
+  <p>
+    <button class="proto-btn" id="open-dlg" type="button" @click="dlg = true">Abrir diálogo centrado</button>
+    <button class="proto-btn" id="open-dlg-top" type="button" @click="dlgTop = true">Abrir diálogo anclado arriba</button>
+  </p>
+  <g-dialog v-model="dlg" title="Datos de cobro" close-label="Cerrar" id="dlg-c">
+    <dialog-body uid="dc"></dialog-body>
+  </g-dialog>
+  <g-dialog v-model="dlgTop" title="Datos de cobro" close-label="Cerrar" id="dlg-t" class="proto-anchor-top">
+    <dialog-body uid="dt"></dialog-body>
+  </g-dialog>
+  <div class="spacer"></div>
+</main>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, h, ref, reactive, computed, watch, inject, provide, onMounted, onBeforeUnmount, nextTick } = Vue
+
+// ============================================================================================
+// XFormReveal (prototipo). Lo que en Grana sería: GFormReveal (.vue de bruno) + cambios en GForm (registro
+// «inactivo»). Aquí lo segundo se simula con un contexto intermedio que envuelve el de GForm.
+// ============================================================================================
+const revealKey = Symbol('XFormReveal')
+const registry = window.__reveals = new Map() // id → api, para el panel y la verificación
+const FOCUSABLE = 'input:not([type="hidden"]),select,textarea,button,a[href],[tabindex]:not([tabindex="-1"]),[contenteditable="true"]'
+
+function previousFocusable(root) {
+  // El control que precede al bloque en orden del documento (la pregunta, por la regla de colocación)
+  const all = [...document.querySelectorAll(FOCUSABLE)].filter((el) => !root.contains(el) &&
+    (root.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) && !el.disabled && !el.closest('[inert]') &&
+    el.getClientRects().length)
+  let el = all[all.length - 1] || null
+  if (el && el.type === 'radio') { // grupo de radios: el elegido, si lo hay
+    const form = el.form || document
+    el = [...form.querySelectorAll(`input[type=radio][name="${CSS.escape(el.name)}"]`)].find((r) => r.checked) || el
+  }
+  return el
+}
+
+const XFormReveal = defineComponent({
+  name: 'XFormReveal',
+  props: { when: { type: Boolean, default: false } },
+  setup(props, { slots, attrs }) {
+    const parent = inject(revealKey, null)
+    const form = inject(Grana.formKey, null)
+    const root = ref(null)
+    const active = computed(() => props.when && (parent ? parent.active.value : true))
+    const open = ref(props.when)        // estado visual propio
+    const animating = ref(false)
+    const ready = ref(false)            // sin transición en el primer pintado (plan 012)
+    const gap = ref(0)
+
+    // ---- Registro: un campo dentro de un bloque inactivo no bloquea, no se lista y no se revela ----
+    const mine = new Set()
+    const suppressed = reactive(new Set())
+    const editedSince = new Set()
+    if (form) {
+      provide(Grana.formKey, Object.assign({}, form, {
+        register(entry) {
+          const w = Object.assign({}, entry, { disabled: () => entry.disabled() || !active.value, inactive: () => !active.value })
+          mine.add(w)
+          const off = form.register(w)
+          return () => { mine.delete(w); off() }
+        },
+        visible: (n, k) => (suppressed.has(n) ? '' : form.visible(n, k)),
+        isShown: (n) => (suppressed.has(n) ? false : form.isShown(n)),
+        notifyInput(n) { if (suppressed.has(n)) editedSince.add(n); form.notifyInput(n) },
+        notifyBlur(n) { if (suppressed.has(n) && editedSince.has(n)) { suppressed.delete(n); editedSince.delete(n) } form.notifyBlur(n) },
+        notifyChange(n, now) { if (now) suppressed.delete(n); form.notifyChange(n, now) }
+      }))
+    }
+    provide(revealKey, { active })
+    // Al quedar inactivo: sus campos vuelven a «sin revelar» (el valor se conserva)
+    watch(active, (v, old) => {
+      if (!v && old) for (const w of mine) for (const n of w.names()) { suppressed.add(n); editedSince.delete(n) }
+    })
+    // Un envío revela de nuevo los campos de un bloque activo
+    const onSubmitCapture = () => { if (active.value) { suppressed.clear(); editedSince.clear() } }
+
+    // ---- Separación del contenedor: se lee del padre (row-gap), no se mide ninguna altura ----
+    function readGap() {
+      const p = root.value && root.value.parentElement
+      if (!p) return
+      const g = parseFloat(getComputedStyle(p).rowGap)
+      gap.value = Number.isFinite(g) ? g : 0
+    }
+    let ro = null, timer = null
+    function settle() { animating.value = false; clearTimeout(timer) }
+    function longest(el) {
+      const cs = getComputedStyle(el)
+      const d = cs.transitionDuration.split(',').map(parseFloat)
+      const l = cs.transitionDelay.split(',').map(parseFloat)
+      return Math.max(0, ...d.map((x, i) => (x + (l[i % l.length] || 0)) * 1000))
+    }
+    watch(() => props.when, async (v) => {
+      readGap()
+      // Cierre con el foco dentro (solo por programa): al control anterior, nunca a <body>
+      if (!v && root.value && root.value.contains(document.activeElement)) {
+        const prev = previousFocusable(root.value)
+        if (prev) prev.focus({ preventScroll: true })
+      }
+      animating.value = true
+      open.value = v
+      await nextTick()
+      clearTimeout(timer)
+      timer = setTimeout(settle, longest(root.value) + 50) // respaldo de transitionend (0s no lo emite)
+    })
+    function onEnd(e) { if (e.target === root.value && e.propertyName === 'grid-template-rows') settle() }
+
+    const api = { root, active, open, animating, when: () => props.when }
+    onMounted(() => {
+      readGap()
+      if (typeof ResizeObserver === 'function' && root.value.parentElement) { ro = new ResizeObserver(readGap); ro.observe(root.value.parentElement) }
+      requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+      const f = root.value.closest('form'); if (f) f.addEventListener('submit', onSubmitCapture, true)
+      if (attrs.id) registry.set(attrs.id, api)
+      if (!root.value.previousElementSibling) console.warn('[proto XFormReveal] sin hermano anterior: debe ir justo después de la pregunta que lo condiciona.')
+      if (root.value.parentElement.classList.contains('g-form-row')) console.warn('[proto XFormReveal] dentro de una GFormRow: debe ocupar su propia fila.')
+    })
+    onBeforeUnmount(() => { ro && ro.disconnect(); clearTimeout(timer); if (attrs.id) registry.delete(attrs.id) })
+
+    return () => h('div', {
+      ref: root,
+      class: ['x-reveal', { 'is-open': open.value, 'is-animating': animating.value, 'is-ready': ready.value }],
+      style: { '--_reveal-gap': gap.value + 'px' },
+      inert: open.value ? undefined : '',
+      onTransitionend: onEnd
+    }, [h('fieldset', { class: 'x-reveal__body', role: 'none', disabled: open.value ? undefined : '' }, slots.default ? slots.default() : [])])
+  }
+})
+
+// ============================================================================================
+// Formularios de ejemplo
+// ============================================================================================
+const formLabels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const summaryLabels = { title: (n) => (n === 1 ? 'Hay 1 problema con el formulario' : `Hay ${n} problemas con el formulario`) }
+const SINO = [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]
+const PERSONA = [{ value: 'fisica', label: 'Física' }, { value: 'moral', label: 'Moral' }]
+const models = window.__models = {}
+const results = window.__results = reactive({})
+
+const FacturaForm = defineComponent({
+  name: 'FacturaForm',
+  props: { uid: String, rtl: Boolean },
+  setup(props) {
+    const m = models[props.uid] = reactive({ nombre: '', factura: null, persona: null, curp: '', razon: '', representante: '', rfc: '', cp: '', correo: '', obs: '' })
+    const errors = computed(() => ({
+      nombre: m.nombre ? '' : 'Escribe el nombre del paciente',
+      factura: m.factura ? '' : 'Elige si requiere factura',
+      persona: m.persona ? '' : 'Elige el tipo de persona',
+      curp: !m.curp ? 'Escribe la CURP' : (m.curp.length !== 18 ? 'La CURP tiene 18 caracteres' : ''),
+      razon: m.razon ? '' : 'Escribe la razón social',
+      rfc: !m.rfc ? 'Escribe el RFC' : (m.rfc.length !== (m.persona === 'moral' ? 12 : 13) ? `El RFC de persona ${m.persona === 'moral' ? 'moral tiene 12' : 'física tiene 13'} caracteres` : '')
+    }))
+    const out = ref('—')
+    const r = results[props.uid] = reactive({ submits: 0, invalids: 0, lastData: null, lastInvalid: null })
+    function onSubmit({ data }) {
+      r.submits++; r.lastData = [...data.keys()]
+      out.value = 'submit · FormData: ' + [...data.entries()].map(([k, v]) => `${k}=${v}`).join(', ')
+    }
+    function onInvalid({ errors: list }) {
+      r.invalids++; r.lastInvalid = list.map((e) => e.name)
+      out.value = 'invalid · ' + list.map((e) => e.name).join(', ')
+    }
+    const p = (s) => `${props.uid}-${s}`
+    return { m, errors, out, onSubmit, onInvalid, p, formLabels, summaryLabels, SINO, PERSONA }
+  },
+  template: `
+  <g-form :id="p('form')" :errors="errors" :labels="formLabels" @submit="onSubmit" @invalid="onInvalid">
+    <g-error-summary :labels="summaryLabels" />
+    <g-form-section title="Paciente">
+      <g-form-layout>
+        <g-input :id="p('nombre')" label="Nombre del paciente" name="nombre" required v-model="m.nombre" />
+      </g-form-layout>
+    </g-form-section>
+    <g-form-section title="Facturación">
+      <g-form-layout :id="p('layout')">
+        <g-radio-group :id="p('factura')" appearance="inline" label="¿Requiere factura?" name="factura" required v-model="m.factura" :options="SINO" />
+        <x-form-reveal :id="p('rv-factura')" :when="m.factura === 'si'">
+          <g-radio-group :id="p('persona')" appearance="inline" label="Tipo de persona" name="persona" required v-model="m.persona" :options="PERSONA" />
+          <x-form-reveal :id="p('rv-fisica')" :when="m.persona === 'fisica'">
+            <g-input :id="p('curp')" label="CURP" name="curp" required v-model="m.curp" />
+          </x-form-reveal>
+          <x-form-reveal :id="p('rv-moral')" :when="m.persona === 'moral'">
+            <g-form-row>
+              <g-input :id="p('razon')" class="g-form-w-lg" label="Razón social" name="razon" required v-model="m.razon" />
+              <g-input :id="p('representante')" label="Representante legal" name="representante" v-model="m.representante" />
+            </g-form-row>
+          </x-form-reveal>
+          <g-form-row>
+            <g-input :id="p('rfc')" class="g-form-w-md" label="RFC" name="rfc" required v-model="m.rfc" />
+            <g-input :id="p('cp')" class="g-form-w-sm" label="Código postal fiscal" name="cp" v-model="m.cp" />
+          </g-form-row>
+          <g-input :id="p('correo')" label="Correo para la factura" name="correo" type="email" v-model="m.correo" />
+        </x-form-reveal>
+        <g-input :id="p('obs')" label="Observaciones" name="obs" v-model="m.obs" />
+      </g-form-layout>
+    </g-form-section>
+    <g-form-actions><g-btn :id="p('save')" type="submit" variant="solid">Guardar</g-btn></g-form-actions>
+    <pre class="out" :id="p('out')">{{ out }}</pre>
+  </g-form>`
+})
+
+const DialogBody = defineComponent({
+  name: 'DialogBody',
+  props: { uid: String },
+  setup(props) {
+    const m = models[props.uid] = reactive({ cobro: null, banco: '', clabe: '', titular: '' })
+    const p = (s) => `${props.uid}-${s}`
+    return { m, p, formLabels, SINO }
+  },
+  template: `
+  <g-form :id="p('form')" :labels="formLabels">
+    <g-form-layout>
+      <g-radio-group :id="p('q')" appearance="inline" label="¿Cobro por transferencia?" name="cobro" v-model="m.cobro" :options="SINO" />
+      <x-form-reveal :id="p('rv')" :when="m.cobro === 'si'">
+        <g-input :id="p('banco')" label="Banco" name="banco" v-model="m.banco" />
+        <g-input :id="p('clabe')" label="CLABE" name="clabe" v-model="m.clabe" />
+        <g-input :id="p('titular')" label="Titular de la cuenta" name="titular" v-model="m.titular" />
+      </x-form-reveal>
+    </g-form-layout>
+  </g-form>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    watch(slow, (v) => document.documentElement.classList.toggle('slow', v))
+    const medio = ref(null), medioOtro = ref('')
+    const dlg = ref(false), dlgTop = ref(false)
+    const tick = ref(0)
+    const statesText = computed(() => {
+      tick.value
+      return [...registry.entries()].filter(([k]) => k.startsWith('w-')).map(([k, a]) => `${k.slice(5)}:${a.open.value ? (a.animating.value ? 'abriendo' : 'abierto') : (a.animating.value ? 'cerrando' : 'cerrado')}${a.active.value ? '' : '·inactivo'}`).join('  ')
+    })
+    setInterval(() => tick.value++, 100)
+    return { slow, medio, medioOtro, dlg, dlgTop, statesText, formLabels }
+  }
+})
+app.component('XFormReveal', XFormReveal)
+app.component('FacturaForm', FacturaForm)
+app.component('DialogBody', DialogBody)
+app.use(Grana)
+app.mount('#app')
+</script>
+</body>
+</html>
