@@ -298,7 +298,6 @@
     "GCheckbox": "#270 aria-required en vez de required nativo (misma ronda)"
   },
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): fieldset role=radiogroup frente a div; aria-required/aria-invalid/aria-readonly del grupo; descripción por opción; solo icono",
     "Safari real (Tab con Acceso total por teclado), táctil y forced-colors reales, zoom 200/400 %",
     "form externo (atributo form) no admitido en v0.1"
