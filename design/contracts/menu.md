@@ -95,8 +95,19 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
 | `trigger` | El **disparador** (obligatorio) | `{ open, attrs }` | La aplicación enlaza `attrs` (`v-bind="attrs"`): `id`, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `onClick`, `onKeydown` y una referencia al elemento. Debe ser un elemento enfocable (un `<button>`) con nombre accesible |
-| `icon` | Icono de un elemento (decorativo); **sustituye** al `GIcon` por nombre de `item.icon` | `{ item }` | Dentro de `g-menu__icon` (`aria-hidden`) |
+| `icon` | Icono de un elemento (decorativo); **sustituye** al `GIcon` por nombre de `item.icon`. También un **avatar** (`GAvatar size="xs"`, ver abajo) | `{ item }` | Dentro de `g-menu__icon` (`aria-hidden`). **Con un hijo directo `.g-avatar`, el hueco mide `space × 5`**, y en un menú que mezcla iconos y avatares **todos** los huecos no vacíos miden `space × 5` (etiquetas alineadas; el icono, centrado a su tamaño); alto del elemento sin cambio (#295) |
 | `item` | Contenido de un elemento, en lugar de icono y etiqueta | `{ item, active, checked }` | **Conserva el texto de la etiqueta** (es el nombre accesible) |
+
+**Avatar en un elemento** (#296, `avatar.md`): sin campo `item.avatar`. El dato va en `item.icon` como **valor opaco** (un objeto), que solo recibe el slot `icon` (sin slot no se dibuja nada, #202), y el slot pinta el avatar decorativo (el nombre accesible sigue siendo `label`):
+
+```html
+<GMenu :items="[{ id: 'ana', label: 'Ana María López', icon: { name: 'Ana María López', src: fotoAna } }]">
+  <template #icon="{ item }">
+    <GAvatar v-if="typeof item.icon === 'object'" v-bind="item.icon" size="xs" />
+    <GIcon v-else :name="item.icon" />
+  </template>
+</GMenu>
+```
 
 ## Estructura accesible
 

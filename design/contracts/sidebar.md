@@ -241,6 +241,17 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | `search-icon` | Icono del disparador de búsqueda | `{ collapsed }` | Decorativo, dentro de `g-sidebar__icon` |
 | `more-icon` | Icono del botón «Más» del navbar | | Decorativo, dentro de `g-sidebar__icon` |
 
+**Ejemplo del slot `user`** (#295, `avatar.md`): el avatar es decorativo dentro del botón de la aplicación; el nombre es del botón (su texto al expandir, `aria-label` en el riel).
+
+```html
+<template #user="{ collapsed }">
+  <button type="button" class="app-account" :aria-label="collapsed ? 'Cuenta de Ana García' : undefined">
+    <GAvatar name="Ana García" :src="user.photo" size="md" />
+    <span v-if="!collapsed">Ana García</span>
+  </button>
+</template>
+```
+
 ## Eventos
 
 | Evento | Payload | Cuándo |

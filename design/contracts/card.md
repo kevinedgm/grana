@@ -274,7 +274,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
 | `media` | Imagen, ilustración, vídeo, mapa, gráfico | `{ size, layout }` | Dentro de `g-card__media`; decorativa (`aria-hidden`) o informativa (`role="img"`); **sin interactivos** salvo controles propios por encima |
-| `lead` | **Icono o avatar** (iniciales, imagen, icono) del consumidor (#123) | `{ size, layout }` | Dentro de `g-card__lead` (`aria-hidden`); la caja mide `space × 10` y el contenido la llena (`inline-size: 100%`) |
+| `lead` | **Icono o avatar** (iniciales, imagen, icono) del consumidor (#123); para un avatar, `GAvatar size="lg"` sin `label` (#295) | `{ size, layout }` | Dentro de `g-card__lead` (`aria-hidden`); la caja mide `space × 10` y el contenido la llena (`inline-size: 100%`). **Con un hijo directo `.g-avatar`, el `lead` pierde su marco** (sin borde, relleno ni radio propios) y **no estira** al avatar: se ve una sola forma, la del avatar (`lg` = `space × 10`); el esqueleto de carga no cambia (#295, `avatar.md`) |
 | `eyebrow`, `subtitle` | Texto con contenido rico | | Dentro de su `g-card__*`; sin interactivos |
 | `title` | Título con contenido rico (sustituye a `title`) | | Dentro del encabezado; **conserva el texto** para el nombre; el control principal lo envuelve la tarjeta |
 | `description` | Descripción con contenido rico | | Dentro de `g-card__description` |
@@ -288,7 +288,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 | `footer` | Metadata, marcas de tiempo, estado, navegación secundaria | `{ size }` | Dentro de `g-card__footer`; línea fina de separación |
 | `loading` | Esqueleto propio | `{ size, layout }` | Decorativo; **conserva el tamaño** |
 
-**Avatar:** sin slot ni componente propio (decisión del usuario, #123): va en `lead` (o `media`). Un `GAvatar` primitivo se evaluará en una ronda propia si más de un componente lo necesita; `GCard` no depende de él.
+**Avatar:** sin slot propio (decisión del usuario, #123): va en `lead` (o `media`). Desde #293 existe **`GAvatar`** (`avatar.md`): en `lead`, `<GAvatar size="lg" … />` decorativo (el nombre ya es el título). `GCard` **no depende de él**: solo su CSS reconoce la clase `.g-avatar` para quitar el marco del `lead` (#295).
 
 ## Textos (`labels`, sin valores por defecto)
 
@@ -396,7 +396,6 @@ En `icons.md` §4 (ya en la librería, `packages/vue/scripts/icons.json`, #137):
 ## Fuera de v0.1 (diferido, no abierto al usuario)
 
 - **`GCardGroup`** (`v-model`, mínimo/máximo, casilla maestra): decisión del usuario (#124); mientras tanto, radios con `name` y `role="radiogroup"` del consumidor y `modelValue` por tarjeta.
-- **`GAvatar`** primitivo: ronda propia si más de un componente lo necesita (#123).
 - **Menú contextual de clic derecho**, **`subgrid`**, tooltip de solo iconos (#113), tipos de celda y de contenido dentro de la tarjeta.
 - **Migrar `GWidget` sobre `GCard`:** se evaluará cuando `GCard` esté verificada (#125).
 - **Preguntas de producto abiertas: ninguna.**

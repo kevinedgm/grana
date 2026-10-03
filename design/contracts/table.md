@@ -136,7 +136,7 @@ La tabla tiene **una** región viva: `<p class="g-table__sr" aria-live="polite">
 ```
 
 - En tarjetas, `<thead>` queda **oculto a la vista y presente** para los lectores; la etiqueta visible de cada celda es `aria-hidden`.
-- El `leading` de texto es `aria-hidden` (las iniciales repiten el título).
+- El `leading` de texto es `aria-hidden` (las iniciales repiten el título). **Se queda** como está (#295, kiwi `avatar/r01` L6): para imagen, color o iniciales derivadas, `leading-{key}` con `GAvatar`. Una columna **solo con avatar** (`cell-{key}`) usa `GAvatar size="sm"` **con `label`** (es la única identificación de la fila, WCAG 1.1.1).
 
 ## Eventos
 
@@ -152,7 +152,7 @@ La tabla tiene **una** región viva: `<p class="g-table__sr" aria-live="polite">
 | Slot | Alcance | Propósito |
 | --- | --- | --- |
 | `cell-{key}` | `{ row, value, column }` | Celda rica (`GBadge`, `GProgress`, `GMetric`…). En compuesta, sustituye a título y subtítulo |
-| `leading-{key}` | `{ row }` | Inicio de una compuesta (avatar, icono); decorativo |
+| `leading-{key}` | `{ row }` | Inicio de una compuesta (avatar, icono); decorativo. Para una persona o entidad, **`GAvatar size="md"`** sin `label` (= `space × 8`, misma altura de fila). **Con un hijo directo `.g-avatar`, `g-table__leading` pierde su relleno, su radio y su `overflow: hidden`** (un `square` se ve cuadrado; una sola forma; #295, `avatar.md`) |
 | `row-actions` | `{ row }` | Acciones de la fila (p. ej. `GMenu` con el `aria-label` de `labels.rowActions`) |
 | `empty` | `{ filtered, clear }` | Estado vacío propio |
 | `toolbar` | | Acciones extra en la barra (p. ej. exportar) |
