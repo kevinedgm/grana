@@ -83,6 +83,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. `ghost` y `lin
 - El destino va **antes** que la insignia en el orden de lectura («Bandeja de entrada, 120 mensajes sin leer»); conserva su nombre, su foco y su clic.
 - La insignia tiene `pointer-events: none` y no recibe foco: un clic en la esquina compartida llega al destino.
 - **No pongas `overflow: hidden` en el destino:** recortaría la insignia, que sobresale de la esquina.
+- **Sobre un avatar:** si el destino es un `.g-avatar--shape-circle` ([`GAvatar`](../GAvatar/README.md)), la insignia se centra en el contorno a 45° y no en la esquina de la caja (constante geométrica neutra, DECISIONS #187 y #297); sobre `square`, en la esquina. Medido en la auditoría de `GAvatar`: ±1px en LTR y RTL.
 
 ## Variante `glass` (liquid glass)
 
@@ -122,7 +123,7 @@ Las emite el componente y las estiliza `GBadge.css`: `g-badge`, `g-badge--varian
 
 ## Limitaciones conocidas
 
-- **Solo presentación:** ni chips pulsables ni cerrables en v0.1 (un componente aparte). Sin avatar.
+- **Solo presentación:** ni chips pulsables ni cerrables en v0.1 (un componente aparte).
 - **`glass` depende de `backdrop-filter` y `color-mix`:** sin ellos, o con transparencia reducida, se ve como `soft`. En Firefox y Safari por verificar.
 - **El velo mínimo se valida contra el texto del tema:** un tema con texto claro sobre velo blanco no cumple.
 - **Una insignia sin icono entre insignias con icono** no reserva espacio (por diseño): da icono a todas o a ninguna para que el texto quede alineado.
