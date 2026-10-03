@@ -1,8 +1,15 @@
-// Captura de voz · Fase 2 · COMPUERTA DE RENDIMIENTO (speech.md §26, §31): en el playground real, 320 fragmentos, cada tecla
-// de §22.11 (incluida Ctrl+A) con Event Timing < 100 ms en Chromium; 1000 fragmentos < 200 ms (informativo); Firefox y
-// WebKit informativos. Además: una sola parada y ninguna región role="status" de GBtn en la rejilla (#257).
-// El reloj de Event Timing no es fiable con otros navegadores ejecutándose a la vez: la compuerta se EXIGE solo con un worker
-// (GRANA_PW_PORT=4206 npx playwright test tests/speech-f2-perf.spec.mjs --workers=1); con varios, se registra.
+// Captura de voz · Fase 2 · COMPUERTA DE RENDIMIENTO (speech.md §26, §31; DECISIONS #264): en el playground real, 320
+// fragmentos, cada tecla de §22.11 (incluida Ctrl+A) con Event Timing máximo por debajo del umbral de su motor:
+//   Chromium < 100 ms · Firefox < 100 ms · WebKit < 200 ms (umbral propio: casi todo es estilo y pintado del motor, #264).
+// 1000 fragmentos < 200 ms en Chromium (blanda); informativo en Firefox y WebKit.
+// Además: una sola parada, ninguna región role="status" de GBtn (#257) y ninguna g-checkbox__message ni aria-live en la
+// rejilla (casillas con field: false, #262).
+//
+// CÓMO SE EJECUTA: SIEMPRE con un solo worker. Con otros navegadores ejecutándose a la vez el reloj de Event Timing salta y
+// la medida no es repetible: con varios workers la compuerta NO se exige, solo se registra en la anotación «rendimiento».
+//   cd design/lab/theme-playground
+//   GRANA_PW_PORT=4209 npx playwright test tests/speech-f2-perf.spec.mjs --workers=1               # los tres motores
+//   GRANA_PW_PORT=4209 npx playwright test tests/speech-f2-perf.spec.mjs --workers=1 --project=webkit
 import { test, expect } from '@playwright/test'
 
 const PAGE = '/packages/vue/playground/index.html'
@@ -17,6 +24,9 @@ function watchConsole(page) {
   })
   return errs
 }
+// Umbral de Event Timing por motor con 320 fragmentos (#264)
+const GATE_320 = { chromium: 100, firefox: 100, webkit: 200 }
+
 const ready = async (page, url = SELF) => {
   await page.goto(url)
   await page.waitForSelector('#sec-speech .g-speech-trigger')
@@ -24,7 +34,7 @@ const ready = async (page, url = SELF) => {
 }
 
 test.describe('captura de voz F2 · rendimiento', () => {
-  test('COMPUERTA DE RENDIMIENTO: 320 fragmentos, cada tecla de §22.11 con Event Timing < 100 ms (Chromium); sin role=status de GBtn', async ({ page, browserName }) => {
+  test('COMPUERTA DE RENDIMIENTO: 320 fragmentos, cada tecla de §22.11 bajo el umbral del motor (Chromium y Firefox < 100 ms, WebKit < 200 ms); sin role=status de GBtn ni región de mensaje en las casillas', async ({ page, browserName }) => {
     test.setTimeout(120000)
     const errs = watchConsole(page)
     await ready(page)
@@ -34,9 +44,11 @@ test.describe('captura de voz F2 · rendimiento', () => {
       const regions = await page.evaluate(() => ({
         btnStatus: document.querySelectorAll('#sp-saved .g-btn__status').length,
         status: document.querySelectorAll('#sp-saved [role="grid"] [role="status"], #sp-saved [role="grid"] [role="alert"]').length,
+        live: document.querySelectorAll('#sp-saved [role="grid"] [aria-live]').length,
+        checkboxMessage: document.querySelectorAll('#sp-saved .g-checkbox__message').length,
         stops: document.querySelectorAll('#sp-saved [role="grid"] [tabindex="0"]').length
       }))
-      expect(regions).toEqual({ btnStatus: 0, status: 0, stops: 1 })
+      expect(regions).toEqual({ btnStatus: 0, status: 0, live: 0, checkboxMessage: 0, stops: 1 })
       await page.evaluate(() => {
         window.__evt = []
         window.__po && window.__po.disconnect()
@@ -62,12 +74,14 @@ test.describe('captura de voz F2 · rendimiento', () => {
     }
     const r320 = await measure(320)
     console.log(`[${browserName}] 320 fragmentos: Event Timing máx ${r320.maxEvent} ms (${r320.events} eventos ≥ 16 ms); tecla hasta el pintado máx ${Math.max(...r320.wall.map((w) => w[1]))} ms; por tecla [tecla, ms reloj, Event Timing]`, JSON.stringify(r320.wall))
-    const gate = browserName === 'chromium' && test.info().config.workers === 1
-    test.info().annotations.push({ type: 'rendimiento', description: `${browserName} 320: ${r320.maxEvent} ms${gate ? ' (exigido)' : ' (registrado: varios workers)'}` })
-    if (gate) expect(r320.maxEvent).toBeLessThan(100)
+    const limit = GATE_320[browserName]
+    const gate = Boolean(limit) && test.info().config.workers === 1
+    test.info().annotations.push({ type: 'rendimiento', description: `${browserName} 320: ${r320.maxEvent} ms (umbral ${limit} ms)${gate ? ' (exigido)' : ' (registrado: varios workers)'}` })
+    if (gate) expect(r320.maxEvent, `${browserName}: Event Timing máximo con 320 fragmentos`).toBeLessThan(limit)
     const r1000 = await measure(1000)
     console.log(`[${browserName}] 1000 fragmentos (informativo): Event Timing máx ${r1000.maxEvent} ms; tecla hasta el pintado máx ${Math.max(...r1000.wall.map((w) => w[1]))} ms`)
-    if (gate) expect.soft(r1000.maxEvent).toBeLessThan(200)
+    test.info().annotations.push({ type: 'rendimiento', description: `${browserName} 1000: ${r1000.maxEvent} ms${gate && browserName === 'chromium' ? ' (umbral blando 200 ms)' : ' (informativo)'}` })
+    if (gate && browserName === 'chromium') expect.soft(r1000.maxEvent).toBeLessThan(200)
     expect(errs).toEqual([])
   })
 })

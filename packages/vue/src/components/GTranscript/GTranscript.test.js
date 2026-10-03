@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, provide, reactive, ref } from 'vue'
 import GTranscript from './GTranscript.vue'
 import GSpeechHost from '../GSpeechHost/GSpeechHost.vue'
-import { createTranscript, TX } from './transcript.js'
+import { createTranscript, TRANSCRIPT_LIMITS, TX } from './transcript.js'
 import GForm from '../GForm/GForm.vue'
 import { formKey } from '../GForm/formContext.js'
 import { createSpeech, useSpeechTarget } from '../GSpeechHost/speech.js'
@@ -417,6 +417,10 @@ describe('GTranscript · casillas sin región ni contexto de GForm (#262)', () =
     await flush()
     expect(selected.value).toEqual(['s3'])
   })
+
+  it('TRANSCRIPT_LIMITS.selectionBatch = 40 (#263)', () => {
+    expect(TRANSCRIPT_LIMITS.selectionBatch).toBe(40)
+  })
 })
 
 describe('GTranscript · acciones, historial y anuncios (§22.10 a §22.13)', () => {
@@ -638,6 +642,10 @@ describe('GTranscript · destinos (§24)', () => {
     expect(row('s1').querySelector('.g-transcript__flag--stale').textContent).toBe('Cambió después de insertarlo')
     const undo = ins.querySelector('.g-transcript__result .g-btn')
     expect(undo.textContent.trim()).toBe('Deshacer inserción')
+    // #263: todo undo-2 de la vista lleva flip-rtl, también «Deshacer inserción» (resultado y usos)
+    const undoIcons = [...ins.querySelectorAll('.g-btn')].filter((b) => b.textContent.includes('Deshacer inserción')).map((b) => b.querySelector('svg'))
+    expect(undoIcons.length).toBeGreaterThan(0)
+    expect(undoIcons.every((svg) => svg.classList.contains('g-icon--flip-rtl'))).toBe(true)
     undo.click()
     await flush()
     expect(model.motivo).toBe('Cefalea.')

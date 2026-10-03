@@ -114,14 +114,14 @@ onBeforeUnmount(() => { if (off) off() })
     </div>
     <p v-if="last" class="g-transcript__result">
       <GIcon name="circle-check" /><span>{{ t('transcript.insert.done', { target: last.label, what: last.what }) }}</span>
-      <GBtn v-if="lastUse && undoable(lastUse)" size="sm" variant="outline" color="neutral" @click="undo(last.useId)"><template #prepend><GIcon name="undo-2" /></template>{{ t('transcript.insert.undo') }}</GBtn>
+      <GBtn v-if="lastUse && undoable(lastUse)" size="sm" variant="outline" color="neutral" @click="undo(last.useId)"><template #prepend><GIcon name="undo-2" class="g-icon--flip-rtl" /></template>{{ t('transcript.insert.undo') }}</GBtn>
     </p>
     <details v-if="uses.length" class="g-transcript__uses">
       <summary>{{ t('transcript.insert.uses', { count: uses.length }) }}</summary>
       <ul>
         <li v-for="d in uses" :key="d.id">
           <span>{{ t('transcript.insert.use', { target: d.target ? d.target.label : '', what: useWhat(d), time: d.at }) }}</span>
-          <GBtn v-if="undoable(d)" size="sm" variant="outline" color="neutral" @click="undo(d.id)"><template #prepend><GIcon name="undo-2" /></template>{{ t('transcript.insert.undo') }}</GBtn>
+          <GBtn v-if="undoable(d)" size="sm" variant="outline" color="neutral" @click="undo(d.id)"><template #prepend><GIcon name="undo-2" class="g-icon--flip-rtl" /></template>{{ t('transcript.insert.undo') }}</GBtn>
         </li>
       </ul>
     </details>

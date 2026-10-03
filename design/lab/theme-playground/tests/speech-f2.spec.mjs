@@ -107,6 +107,10 @@ test.describe('captura de voz F2 · playground', () => {
     expect(await page.locator('#sp-review .g-checkbox').count()).toBeGreaterThan(2)
     await expect(page.locator('#sp-review .g-checkbox__message')).toHaveCount(0)
     await expect(page.locator('#sp-review [role="grid"] [aria-live]')).toHaveCount(0)
+    // #263: «Deshacer inserción» (resultado y usos) lleva flip-rtl en su undo-2
+    const undoIcons = ins.locator('.g-btn', { hasText: 'Deshacer inserción' }).locator('svg:not(.g-btn__loader)')
+    expect(await undoIcons.count()).toBeGreaterThan(0)
+    expect(await undoIcons.evaluateAll((l) => l.every((s) => s.classList.contains('g-icon--flip-rtl')))).toBe(true)
     // Deshacer la última de Motivo
     await ins.locator('.g-transcript__result .g-btn', { hasText: 'Deshacer inserción' }).click()
     expect(await page.evaluate(() => window.spForm.motivo)).toBe('Lumbalgia. ')

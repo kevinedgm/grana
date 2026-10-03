@@ -6,14 +6,16 @@
 // sus datos son de solo lectura (escribir directamente avisa). Nada de lo que avisa o notifica lleva texto transcrito.
 import { markRaw, reactive, readonly } from 'vue'
 
-// Constantes de comportamiento (§26.4; no son tema). Valores del prototipo de kiwi: cambiarlas es de lima con evidencia.
+// Constantes de comportamiento (§26.6; no son tema). Valores del prototipo de kiwi: cambiarlas es de lima con evidencia.
 export const TRANSCRIPT_LIMITS = Object.freeze({
   history: 200,
   followMargin: 32,
   pageRows: 10,
   selectionDebounce: 80,
   quoteChars: 60,
-  diffCells: 40000
+  diffCells: 40000,
+  // Filas por fotograma al pintar un cambio masivo de selección (§22.8, #263)
+  selectionBatch: 40
 })
 
 // Acceso interno (gestor y vista): eventos del motor, usos por inserción, avisos. No es API.

@@ -217,11 +217,10 @@ watch(() => props.selected, (v) => {
   if (!same) sel.value = new Set(ok)
 }, { immediate: true })
 // Selección pintada: la verdad es `sel` (contador, «Seleccionar todo», inserción, eventos); las filas leen `shown`. Un cambio
-// de más de BULK filas (Ctrl+A, «Seleccionar todo», un rango largo) se pinta por tramos: primero las filas a la vista y la
-// enfocada, después el resto, BULK filas por fotograma. Así la tecla responde en el primer pintado (§26, compuerta < 100 ms:
+// de más de TRANSCRIPT_LIMITS.selectionBatch (§26.6, #263) filas (Ctrl+A, «Seleccionar todo», un rango largo) se pinta por tramos: primero las filas a la vista y la
+// enfocada, después el resto, selectionBatch filas por fotograma. Así la tecla responde en el primer pintado (§26, compuerta < 100 ms:
 // restilar cientos de casillas y filas de una vez cuesta más que eso) y nada fuera de la vista queda sin pintar más de unos
 // fotogramas. Un cambio nuevo cancela los tramos pendientes del anterior.
-const BULK = 40
 const shown = shallowRef(new Set())
 let paintJob = 0
 function visibleIds() {
@@ -252,7 +251,7 @@ function paintSelection(next) {
   const prev = shown.value
   const changed = rowIds.value.filter((id) => prev.has(id) !== next.has(id))
   const job = ++paintJob
-  if (changed.length <= BULK || typeof requestAnimationFrame !== 'function') { shown.value = next; return }
+  if (changed.length <= TRANSCRIPT_LIMITS.selectionBatch || typeof requestAnimationFrame !== 'function') { shown.value = next; return }
   const near = visibleIds()
   const first = changed.filter((id) => near.has(id))
   const rest = changed.filter((id) => !near.has(id))
@@ -264,7 +263,7 @@ function paintSelection(next) {
   apply(first)
   const step = () => {
     if (job !== paintJob) return
-    apply(rest.splice(0, BULK))
+    apply(rest.splice(0, TRANSCRIPT_LIMITS.selectionBatch))
     if (rest.length) requestAnimationFrame(step)
   }
   if (rest.length) requestAnimationFrame(step)
