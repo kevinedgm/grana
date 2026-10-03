@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick, provide } from 'vue'
 import GCheckbox from './GCheckbox.vue'
+import GForm from '../GForm/GForm.vue'
+import { formKey } from '../GForm/formContext.js'
 
 const root = (w) => w.find('.g-checkbox')
 const input = (w) => w.find('input')
@@ -250,5 +252,140 @@ describe('GCheckbox · indeterminate al insertarse (plan 012)', () => {
     expect(w.find('input').element.indeterminate).toBe(true)
     expect(seen).toBe(true)
     w.unmount()
+  })
+})
+
+describe('GCheckbox · field (#262)', () => {
+  it('con field: true (por defecto) el HTML no cambia respecto al de antes de #262', () => {
+    const html = (props, slots) => mount(GCheckbox, { props, slots }).html()
+    expect(html({ label: 'Acepto', id: 'a' })).toMatchInlineSnapshot(`
+      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand"><label class="g-checkbox__row" for="a"><span class="g-checkbox__box"><input type="checkbox" id="a" aria-labelledby="a-label" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+          <!--v-if--><span class="g-checkbox__text"><span id="a-label" class="g-checkbox__label"><!--v-if-->Acepto<!--v-if--></span>
+          <!--v-if--></span>
+          <!--v-if-->
+        </label>
+        <div id="a-message" class="g-checkbox__message" aria-live="polite">
+          <!--v-if-->
+        </div>
+      </div>"
+    `)
+    expect(html({ label: 'Acepto', id: 'b', hint: 'Ayuda', error: 'Mal', required: true, modelValue: true })).toMatchInlineSnapshot(`
+      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-invalid"><label class="g-checkbox__row" for="b"><span class="g-checkbox__box"><input type="checkbox" id="b" checked="" required="" aria-invalid="true" aria-labelledby="b-label" aria-describedby="b-hint b-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+          <!--v-if--><span class="g-checkbox__text"><span id="b-label" class="g-checkbox__label"><!--v-if-->Acepto<span class="g-checkbox__required" aria-hidden="true">*</span></span><span id="b-hint" class="g-checkbox__hint">Ayuda</span></span>
+          <!--v-if-->
+        </label>
+        <div id="b-message" class="g-checkbox__message" aria-live="polite"><svg class="g-icon g-checkbox__message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" x2="12" y1="8" y2="12"></line>
+            <line x1="12" x2="12.01" y1="16" y2="16"></line>
+          </svg>
+          <!--v-if-->Mal
+        </div>
+      </div>"
+    `)
+    expect(html({ label: 'Express', id: 'c', layout: 'card', warning: 'Ojo', readonly: true }, { meta: '5 €' })).toMatchInlineSnapshot(`
+      "<div class="g-checkbox g-checkbox--layout-card g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-readonly is-warning"><label class="g-checkbox__row" for="c"><span class="g-checkbox__box"><input type="checkbox" id="c" aria-readonly="true" aria-labelledby="c-label c-meta" aria-describedby="c-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+          <!--v-if--><span class="g-checkbox__text"><span id="c-label" class="g-checkbox__label"><!--v-if-->Express<!--v-if--></span>
+          <!--v-if--></span><span id="c-meta" class="g-checkbox__meta">5 €</span>
+        </label>
+        <div id="c-message" class="g-checkbox__message" aria-live="polite"><svg class="g-icon g-checkbox__message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <!--v-if-->Ojo
+        </div>
+      </div>"
+    `)
+  })
+
+  it('con field: false no pinta g-checkbox__message ni ninguna región aria-live', () => {
+    const w = mount(GCheckbox, { props: { label: 'Fila', id: 'f', field: false } })
+    expect(w.find('.g-checkbox__message').exists()).toBe(false)
+    expect(w.find('[aria-live]').exists()).toBe(false)
+    expect(w.find('#f-message').exists()).toBe(false)
+    expect(input(w).attributes('aria-describedby')).toBeUndefined()
+    // El resto sigue igual: nombre, modelo, tamaño propio
+    expect(input(w).attributes('aria-labelledby')).toBe('f-label')
+    expect(root(w).classes()).toEqual(expect.arrayContaining(['g-checkbox', 'g-checkbox--size-md', 'g-checkbox--density-default']))
+  })
+
+  it('con field: false sigue el v-model, el indeterminado, disabled y readonly propios', async () => {
+    const w = mount(GCheckbox, { props: { 'aria-label': 'Fila', field: false, modelValue: false, indeterminate: true } })
+    await input(w).setValue(true)
+    expect(w.emitted('update:modelValue')[0]).toEqual([true])
+    expect(w.emitted('update:indeterminate')[0]).toEqual([false])
+    const ro = mount(GCheckbox, { props: { 'aria-label': 'x', field: false, readonly: true } })
+    expect(input(ro).attributes('aria-readonly')).toBe('true')
+    const dis = mount(GCheckbox, { props: { 'aria-label': 'x', field: false, disabled: true, density: 'compact' } })
+    expect(input(dis).attributes('disabled')).toBeDefined()
+    expect(root(dis).classes()).toContain('g-checkbox--density-compact')
+  })
+
+  it('con field: false avisa (una vez) si llegan error, warning, valid, required o mark, y los ignora', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mount(GCheckbox, { props: { label: 'x', id: 'f', field: false, error: 'Mal', warning: 'Ojo', valid: 'Bien', required: true, mark: true } })
+    const msgs = warn.mock.calls.map((c) => c[0]).filter((m) => /field: false/.test(m))
+    expect(msgs).toHaveLength(1)
+    for (const k of ['error', 'warning', 'valid', 'required', 'mark']) expect(msgs[0]).toContain(`\`${k}\``)
+    expect(input(w).attributes('aria-invalid')).toBeUndefined()
+    expect(input(w).attributes('required')).toBeUndefined()
+    expect(w.find('.g-checkbox__required').exists()).toBe(false)
+    expect(root(w).classes()).not.toEqual(expect.arrayContaining(['is-invalid']))
+    expect(root(w).classes()).not.toContain('is-warning')
+    expect(root(w).classes()).not.toContain('is-valid')
+    // Un error que llega después también avisa (si no se avisó antes)
+    warn.mockClear()
+    const late = mount(GCheckbox, { props: { label: 'x', field: false } })
+    expect(warn).not.toHaveBeenCalled()
+    await late.setProps({ error: 'Tarde' })
+    expect(warn.mock.calls.some((c) => /field: false/.test(c[0]) && c[0].includes('`error`'))).toBe(true)
+    expect(late.find('.g-checkbox__message').exists()).toBe(false)
+  })
+
+  it('sin field: false los props de campo no avisan', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mount(GCheckbox, { props: { label: 'x', error: 'Mal', required: true } })
+    expect(warn.mock.calls.some((c) => /field: false/.test(c[0]))).toBe(false)
+  })
+
+  it('con field: false dentro de un GForm en solo lectura y deshabilitado sigue operable y no se registra', async () => {
+    const register = vi.fn(() => () => {})
+    const notifyChange = vi.fn()
+    const Fake = defineComponent({
+      setup(_, { slots }) {
+        provide(formKey, { readonly: true, disabled: true, density: 'compact', marks: 'required', live: 'off', register, notifyChange, notifyInput: vi.fn(), notifyBlur: vi.fn(), visible: () => 'Error del formulario', labels: { error: 'Error:' } })
+        return () => slots.default()
+      }
+    })
+    const w = mount({ components: { Fake, GCheckbox }, data: () => ({ v: false }), template: '<Fake><GCheckbox v-model="v" :field="false" name="fila" aria-label="Fila" /></Fake>' })
+    const el = w.find('input')
+    expect(el.attributes('aria-readonly')).toBeUndefined()
+    expect(el.attributes('disabled')).toBeUndefined()
+    expect(el.attributes('aria-invalid')).toBeUndefined()
+    expect(w.find('.g-checkbox').classes()).toContain('g-checkbox--density-default')
+    expect(w.find('.g-checkbox').classes()).not.toContain('is-readonly')
+    expect(w.find('.g-checkbox__message').exists()).toBe(false)
+    await el.setValue(true)
+    expect(w.vm.v).toBe(true)
+    expect(register).not.toHaveBeenCalled()
+    expect(notifyChange).not.toHaveBeenCalled()
+    // Testigo: la misma casilla con field (por defecto) sí lee el contexto y se registra
+    const field = mount({ components: { Fake, GCheckbox }, template: '<Fake><GCheckbox name="fila" aria-label="Fila" /></Fake>' })
+    expect(field.find('input').attributes('aria-readonly')).toBe('true')
+    expect(register).toHaveBeenCalledTimes(1)
+  })
+
+  it('con field: false dentro de un GForm real readonly: se marca y desmarca con el ratón', async () => {
+    const w = mount({ components: { GForm, GCheckbox }, data: () => ({ v: false }), template: '<GForm  readonly><GCheckbox v-model="v" :field="false" aria-label="Fila" /></GForm>' }, { attachTo: document.body })
+    await w.find('.g-checkbox__input').trigger('click')
+    expect(w.vm.v).toBe(true)
+    expect(w.find('.g-checkbox__message').exists()).toBe(false)
+    w.unmount()
+    // Testigo: como campo hereda el solo lectura y el clic no cambia nada
+    const ctl = mount({ components: { GForm, GCheckbox }, data: () => ({ v: false }), template: '<GForm readonly><GCheckbox v-model="v" aria-label="Fila" /></GForm>' }, { attachTo: document.body })
+    await ctl.find('.g-checkbox__input').trigger('click')
+    expect(ctl.vm.v).toBe(false)
+    ctl.unmount()
   })
 })

@@ -103,6 +103,10 @@ test.describe('captura de voz F2 · playground', () => {
     // La pestaña Plan, al montarse, trae el valor por su v-model
     await page.locator('#sp-form-tabs [role="tab"]', { hasText: 'Plan' }).click()
     await expect(page.locator('#sp-f-plan')).toHaveValue(plan)
+    // #262: ninguna casilla de la vista (filas, «Seleccionar todo», «Con hablantes») pinta región de mensaje
+    expect(await page.locator('#sp-review .g-checkbox').count()).toBeGreaterThan(2)
+    await expect(page.locator('#sp-review .g-checkbox__message')).toHaveCount(0)
+    await expect(page.locator('#sp-review [role="grid"] [aria-live]')).toHaveCount(0)
     // Deshacer la última de Motivo
     await ins.locator('.g-transcript__result .g-btn', { hasText: 'Deshacer inserción' }).click()
     expect(await page.evaluate(() => window.spForm.motivo)).toBe('Lumbalgia. ')

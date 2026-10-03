@@ -29,6 +29,9 @@ const props = defineProps({
   warning: { type: String, default: undefined },
   valid: { type: String, default: undefined },
   mark: { type: Boolean, default: undefined },
+  // field (#262): true = campo de formulario (región de mensaje y contexto de GForm); false = control suelto dentro de
+  // otro componente (selección de filas): sin región de mensaje ni contexto de GForm. Se lee al crear la casilla.
+  field: { type: Boolean, default: true },
   id: { type: String, default: undefined }
 })
 
@@ -55,7 +58,11 @@ const input = ref(null)
 const rootEl = ref(null)
 // Contexto de GForm (form.md §2). Las casillas de un grupo no se registran sueltas ni llevan marca (C9, C3); una
 // casilla suelta nunca lleva «(opcional)» (sin marcar ya es una respuesta), sí el asterisco con la convención required.
-const ff = useFormField({
+// Con field: false (#262) no se lee el contexto de GForm: ni registro, ni herencia de density, readonly, disabled,
+// errores o marcas; solo cuentan sus props y las del GCheckboxGroup que la contenga. Sin mensaje ni marca.
+const isField = props.field !== false
+const NO_MESSAGE = computed(() => null)
+const ff = isField ? useFormField({
   id: inputId,
   name: () => attrs.name,
   error: () => props.error,
@@ -71,7 +78,18 @@ const ff = useFormField({
   trigger: 'change',
   control: input,
   root: rootEl
-})
+}) : {
+  density: computed(() => props.density ?? group?.density.value ?? 'default'),
+  readonly: computed(() => props.readonly ?? false),
+  disabled: computed(() => props.disabled ?? group?.disabled.value ?? false),
+  message: NO_MESSAGE,
+  ownMessage: NO_MESSAGE,
+  invalid: computed(() => false),
+  mark: NO_MESSAGE,
+  messageId: computed(() => undefined),
+  live: computed(() => undefined),
+  handlers: {}
+}
 const density = ff.density
 const isDisabled = ff.disabled
 const isReadonly = ff.readonly
@@ -136,7 +154,7 @@ const controlled = computed(() => ({
   // Dentro de un GCheckboxGroup con name, la casilla lo toma de él (la que trae el suyo lo conserva, C11)
   name: attrs.name ?? (inGroup.value ? group.name?.value : undefined),
   disabled: isDisabled.value || undefined,
-  required: props.required || undefined,
+  required: (isField && props.required) || undefined,
   'aria-readonly': isReadonly.value ? 'true' : undefined,
   'aria-invalid': invalid.value ? 'true' : undefined,
   'aria-labelledby': labelledBy.value ?? attrs['aria-labelledby'],
@@ -185,6 +203,19 @@ if (isDev) {
     console.warn('[Grana] <GCheckbox> dentro de un <GCheckboxGroup> necesita `value`.')
   }
 }
+// field: false (#262): los props de campo se ignoran; se avisa una vez por casilla, al crearla y al llegar después.
+if (isDev && !isField) {
+  const FIELD_ONLY = ['error', 'warning', 'valid', 'required', 'mark']
+  const given = () => FIELD_ONLY.filter((k) => (k === 'required' ? props.required : props[k] !== undefined))
+  let warned = false
+  const check = (list) => {
+    if (warned || !list.length) return
+    warned = true
+    console.warn(`[Grana] <GCheckbox> con field: false no es un campo: ${list.map((k) => `\`${k}\``).join(', ')} se ignora${list.length > 1 ? 'n' : ''} (sin región de mensaje ni marca).`)
+  }
+  check(given())
+  watch(given, check)
+}
 </script>
 
 <template>
@@ -202,6 +233,6 @@ if (isDev) {
       </span>
       <span v-if="hasMeta" :id="metaId" class="g-checkbox__meta"><slot name="meta" /></span>
     </label>
-    <div :id="ff.messageId.value" class="g-checkbox__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-checkbox__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-checkbox__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+    <div v-if="isField" :id="ff.messageId.value" class="g-checkbox__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-checkbox__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-checkbox__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

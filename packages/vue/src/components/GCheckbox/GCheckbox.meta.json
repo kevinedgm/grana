@@ -121,6 +121,12 @@
       "note": "Mensaje de válido útil (C5)"
     },
     {
+      "name": "field",
+      "type": "Boolean",
+      "default": true,
+      "note": "#262. false = control suelto dentro de otro componente (filas de GTranscript): sin región g-checkbox__message ni aria-live, sin contexto de GForm (no se registra ni hereda density, readonly, disabled, errores ni marcas), sin required; error, warning, valid, required y mark se ignoran con aviso en desarrollo. Se lee al crear la casilla"
+    },
+    {
       "name": "id",
       "type": "String",
       "default": null

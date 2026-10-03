@@ -952,7 +952,7 @@ const itemClass = (s) => ['g-transcript__item', { 'is-failed': s.failed, 'is-cor
     <template v-else>
       <div class="g-transcript__bar" role="group" :aria-label="t('transcript.bar.label')">
         <template v-if="selectable">
-          <GCheckbox class="g-transcript__all" :id="`${rootId}-all`" :model-value="allState.checked" :indeterminate="allState.mixed" :label="t('transcript.bar.selectAll')" @update:model-value="selectAll" />
+          <GCheckbox class="g-transcript__all" :field="false" :id="`${rootId}-all`" :model-value="allState.checked" :indeterminate="allState.mixed" :label="t('transcript.bar.selectAll')" @update:model-value="selectAll" />
           <span class="g-transcript__count">{{ selCount ? t('transcript.bar.count', { count: selCount }) : t('transcript.bar.countNone') }}</span>
         </template>
         <template v-if="selectable && editable">

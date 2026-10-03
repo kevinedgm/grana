@@ -106,7 +106,7 @@ onBeforeUnmount(() => { if (off) off() })
     <GSelect :id="`${c.uid}-what`" :model-value="src" :label="t('transcript.insert.what')" :options="whatOptions" @update:model-value="ins.src = $event; ins.manual = true" />
     <GSelect :id="`${c.uid}-target`" :model-value="target ? target.id : null" :label="t('transcript.insert.target')" :options="targetOptions" @update:model-value="ins.target = $event" />
     <GSelect :id="`${c.uid}-where`" :model-value="pos" :label="t('transcript.insert.where')" :options="whereOptions" @update:model-value="ins.pos = $event" />
-    <GCheckbox v-if="c.conv() && src !== 'text'" :id="`${c.uid}-with-speakers`" :model-value="ins.withSpk" :label="t('transcript.insert.withSpeakers')" @update:model-value="ins.withSpk = $event" />
+    <GCheckbox v-if="c.conv() && src !== 'text'" :field="false" :id="`${c.uid}-with-speakers`" :model-value="ins.withSpk" :label="t('transcript.insert.withSpeakers')" @update:model-value="ins.withSpk = $event" />
     <p :id="pvId">{{ t('transcript.insert.preview') }}</p>
     <div class="g-transcript__preview" tabindex="0" role="region" :aria-labelledby="pvId">{{ result.text || t('transcript.insert.nothing') }}</div>
     <div>

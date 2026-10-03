@@ -73,6 +73,7 @@ function rowClass(list) {
     >
       <GCheckbox
         v-if="confirmed()"
+        :field="false"
         :model-value="selected"
         :aria-label="t('transcript.row.select', { time })"
         :tabindex="tab('select')"

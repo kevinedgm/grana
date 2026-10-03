@@ -4,10 +4,12 @@
 // texto, portapapeles, 320px y la compuerta de rendimiento (design/lab/theme-playground/tests/speech-f2.spec.mjs).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, reactive, ref } from 'vue'
+import { defineComponent, h, nextTick, provide, reactive, ref } from 'vue'
 import GTranscript from './GTranscript.vue'
 import GSpeechHost from '../GSpeechHost/GSpeechHost.vue'
 import { createTranscript, TX } from './transcript.js'
+import GForm from '../GForm/GForm.vue'
+import { formKey } from '../GForm/formContext.js'
 import { createSpeech, useSpeechTarget } from '../GSpeechHost/speech.js'
 import { createSimulatedSpeechAdapter } from '../GSpeechHost/simulatedAdapter.js'
 import { installSpeechEnv, installTopLayer, LABELS } from '../GSpeechHost/speechTestEnv.js'
@@ -122,9 +124,9 @@ describe('GTranscript · marcado (§22.4, §29)', () => {
     expect(root().querySelectorAll('.g-btn').length).toBeGreaterThan(12)
     expect(root().querySelectorAll('.g-btn__status')).toHaveLength(0)
     expect([...root().querySelectorAll('[role="status"], [role="alert"]')]).toEqual([own()])
-    // Pendiente para lima: la región de mensaje de cada GCheckbox (checkbox.md C4, «siempre presente», aria-live polite)
-    // sigue existiendo en cada fila; es la única otra región viva de la vista (y siempre vacía)
-    expect(statusRegions().filter((r) => r !== own()).every((r) => r.classList.contains('g-checkbox__message') && r.textContent === '')).toBe(true)
+    // #262: las casillas van con field: false, sin región de mensaje; sin destinos no hay otra región viva en la vista
+    expect(root().querySelectorAll('.g-checkbox__message')).toHaveLength(0)
+    expect(statusRegions()).toEqual([own()])
     expect(own().getAttribute('role')).toBe('status')
     expect(own().getAttribute('aria-live')).toBe('polite')
     expect(own().textContent).toBe('')
@@ -353,6 +355,70 @@ describe('GTranscript · selección (§22.8)', () => {
   })
 })
 
+describe('GTranscript · casillas sin región ni contexto de GForm (#262)', () => {
+  it('ninguna g-checkbox__message en la vista; cero regiones aria-live dentro de la rejilla y de la barra', async () => {
+    const { targets } = (() => {
+      const model = reactive({ motivo: '' })
+      return { targets: [{ id: 'motivo', label: 'Motivo', get: () => model.motivo, set: (v) => { model.motivo = v } }] }
+    })()
+    setup({ transcript: sample(8), targets })
+    await flush()
+    expect(grid().querySelectorAll('.g-checkbox')).toHaveLength(8)
+    expect(root().querySelector('.g-transcript__all')).not.toBeNull()
+    expect(root().querySelector('.g-transcript__insert .g-checkbox')).not.toBeNull()
+    expect(root().querySelectorAll('.g-checkbox__message')).toHaveLength(0)
+    expect(grid().querySelectorAll('[aria-live]')).toHaveLength(0)
+    expect(grid().querySelectorAll('[role="status"], [role="alert"]')).toHaveLength(0)
+    expect(root().querySelector('.g-transcript__bar').querySelectorAll('[aria-live]')).toHaveLength(0)
+    // Las únicas otras regiones son las de los GSelect de la inserción, que sí son campos (C4)
+    expect(statusRegions().filter((r) => r !== own()).every((r) => r.classList.contains('g-select__message'))).toBe(true)
+  })
+
+  it('dentro de un GForm readonly y disabled: la selección sigue operable y las casillas no usan el contexto', async () => {
+    const register = vi.fn(() => () => {})
+    const notifyChange = vi.fn()
+    const Fake = defineComponent({
+      setup(_, { slots }) {
+        provide(formKey, { readonly: true, disabled: true, density: 'compact', live: 'polite', register, notifyChange, notifyInput: vi.fn(), notifyBlur: vi.fn(), labels: {} })
+        return () => slots.default()
+      }
+    })
+    const selected = ref([])
+    const tx = sample(4)
+    const w = mount(defineComponent({ setup: () => () => h(Fake, null, { default: () => [h('h2', { id: 'title' }, 'Consulta'), h(GTranscript, { transcript: tx, labelledby: 'title', labels: LABELS, roles: ROLES, selected: selected.value, 'onUpdate:selected': (v) => { selected.value = v } })] }) }), { attachTo: document.body })
+    wrappers.push(w)
+    await flush()
+    const boxes = [...root().querySelectorAll('.g-checkbox')]
+    expect(boxes.length).toBe(5) // 4 filas + «Seleccionar todo»
+    for (const b of boxes) {
+      expect(b.classList.contains('is-readonly')).toBe(false)
+      expect(b.classList.contains('is-disabled')).toBe(false)
+      expect(b.classList.contains('g-checkbox--density-default')).toBe(true)
+      expect(b.querySelector('input').hasAttribute('aria-readonly')).toBe(false)
+      expect(b.querySelector('input').disabled).toBe(false)
+    }
+    row('s2').querySelector('.g-transcript__cell--select input').click()
+    await flush()
+    expect(selected.value).toEqual(['s2'])
+    root().querySelector('.g-transcript__all input').click()
+    await flush()
+    expect(selected.value).toEqual(['s1', 's2', 's3', 's4'])
+    expect(register).not.toHaveBeenCalled()
+    expect(notifyChange).not.toHaveBeenCalled()
+  })
+
+  it('dentro de un GForm real en solo lectura se marca una fila con el ratón', async () => {
+    const selected = ref([])
+    const tx = sample(3) // fuera del render: crearlo dentro lo rastrearía el efecto de GForm
+    const w = mount(defineComponent({ setup: () => () => h(GForm, { readonly: true }, { default: () => [h('h2', { id: 'title' }, 'Consulta'), h(GTranscript, { transcript: tx, labelledby: 'title', labels: LABELS, roles: ROLES, selected: selected.value, 'onUpdate:selected': (v) => { selected.value = v } })] }) }), { attachTo: document.body })
+    wrappers.push(w)
+    await flush()
+    row('s3').querySelector('.g-transcript__cell--select input').click()
+    await flush()
+    expect(selected.value).toEqual(['s3'])
+  })
+})
+
 describe('GTranscript · acciones, historial y anuncios (§22.10 a §22.13)', () => {
   it('Supr elimina la fila (y restaura si ya lo estaba); tres Supr seguidos → un anuncio; Ctrl+Z / Ctrl+Mayús+Z desde la rejilla', async () => {
     const tx = sample(5)
@@ -547,6 +613,8 @@ describe('GTranscript · destinos (§24)', () => {
     const ins = root().querySelector('.g-transcript__insert')
     const kids = [...ins.children].map((c) => c.localName + (c.className ? `.${String(c.className).split(' ')[0]}` : ''))
     expect(kids.slice(0, 7)).toEqual(['h3', 'div.g-select', 'div.g-select', 'div.g-select', 'div.g-checkbox', 'p', 'div.g-transcript__preview'])
+    // «Con hablantes» con field: false (#262): sin región de mensaje
+    expect(ins.querySelector(':scope > .g-checkbox .g-checkbox__message')).toBeNull()
     const pv = ins.querySelector('.g-transcript__preview')
     expect(pv.getAttribute('tabindex')).toBe('0')
     expect(pv.getAttribute('role')).toBe('region')
