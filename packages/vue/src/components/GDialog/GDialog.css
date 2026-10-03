@@ -4,6 +4,7 @@
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil), 0px en max() y los umbrales de
   consulta de medios (~900px y ~520px, excepción DECISIONS.md #42; @media no admite var()).
+  Constantes de coreografía (sin unidad, #299 y #301): la fracción 0.25 y el tope × 8 del origen desde el disparador.
   Carácter propio: una carcasa y, dentro, una superficie inset a poca distancia con radio
   concéntrico. La profundidad sale de diferencias mínimas de fondo, bordes finos y sombras suaves.
   El botón de cierre lleva el x de Lucide (GIcon).
@@ -275,6 +276,19 @@ html:has(.g-dialog[open]) {
   }
 }
 
+/* ---------- D2 · crece hacia abajo (DECISIONS.md #281 y #301; dialog.md «Personalidad») ----------
+   Abre centrado como siempre; en el cuadro siguiente al foco, bruno mide el borde superior (offsetTop) y lo escribe en
+   --_pin-top con is-pinned. Desde ahí el borde queda fijo y el diálogo solo crece hacia abajo, hasta el margen inferior
+   del visor (el mismo space × 4 que deja el centrado); si no cabe, desplaza su cuerpo. No es movimiento: rige también
+   con reduce. Sin [open] a propósito: durante la salida sigue fijo (no salta al centro mientras se funde). Solo centrado,
+   sin pantalla completa y por encima del umbral móvil (el .vue no conoce los 520px). */
+@media (min-width: 521px) {
+  .g-dialog--placement-center.is-pinned:not(.g-dialog--fullscreen) {
+    margin-block: var(--_pin-top) auto;
+    max-block-size: calc(100dvh - var(--_pin-top) - var(--g-space-4));
+  }
+}
+
 /* ---------- Adaptación (visor; umbrales literales, DECISIONS.md #42) ---------- */
 @media (max-width: 900px) {
   .g-dialog { --_pad-units: 4.5; }
@@ -361,7 +375,26 @@ html:has(.g-dialog[open]) {
     .g-dialog[open] { opacity: 0; translate: 0 var(--g-space-2); scale: var(--g-press-scale); }
     .g-dialog[open]::backdrop { opacity: 0; }
   }
+  /* D1 · viene de donde lo llamaste (#301): con has-origin, bruno escribe antes de showModal() el vector completo
+     del centro del visor al centro del disparador (--_origin-x/y, px; al cerrar, desde el centro real del diálogo
+     hasta donde vuelve el foco). Se insinúa, no se recorre: un cuarto del vector con tope space × 8 por eje, junto al
+     fundido y la escala de siempre; entra con --g-ease-out en press y sale hacia él en fast. Sin muelle (#299). */
   @media (min-width: 521px) {
+    .g-dialog--placement-center.has-origin:not(.g-dialog--fullscreen) {
+      --_from-x: clamp(calc(var(--g-space-1) * -8), calc(var(--_origin-x) * 0.25), calc(var(--g-space-1) * 8));
+      --_from-y: clamp(calc(var(--g-space-1) * -8), calc(var(--_origin-y) * 0.25), calc(var(--g-space-1) * 8));
+      translate: var(--_from-x) var(--_from-y);
+    }
+    .g-dialog--placement-center.has-origin[open]:not(.g-dialog--fullscreen) {
+      translate: 0 0;
+    }
+    @starting-style {
+      .g-dialog--placement-center.has-origin[open]:not(.g-dialog--fullscreen) {
+        opacity: 0;
+        scale: var(--g-press-scale);
+        translate: var(--_from-x) var(--_from-y);
+      }
+    }
     .g-dialog--placement-end:not(.g-dialog--fullscreen) {
       scale: 1;
       translate: calc(var(--_dir) * var(--g-space-8)) 0;

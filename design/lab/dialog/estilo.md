@@ -49,3 +49,42 @@
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; teclado virtual en móvil; preferencias reales de `prefers-reduced-motion` y `forced-colors`; Firefox y Safari (`::backdrop` con variables, `:has()`); tema oscuro (no existe); un diálogo más alto que el visor con `dvh` en Safari móvil.
+
+## Personalidad (plan 019; DECISIONS.md #281, #299 y #301; `dialog.md` «Personalidad»)
+
+Qué le da carácter propio al diálogo, sin cambiar dónde aparece (sigue centrado):
+
+| Detalle | Cómo |
+| --- | --- |
+| **D1 · Viene de donde lo llamaste** | Con `has-origin`, el diálogo centrado entra desde **un cuarto** del vector centro del visor → centro del disparador (`--_origin-x/y`, que escribe el `.vue` antes de `showModal()`), con **tope `--g-space-1 × 8`** por eje (`clamp`), junto al fundido y la escala de #152, en `--g-duration-press` con `--g-ease-out`. Al cerrar sale **hacia el elemento al que vuelve el foco** (vector remedido desde el centro real del diálogo), en `--g-duration-fast`. Se insinúa el origen, no se recorre: en una tabla con «Editar» por fila se ve qué fila lo abrió y el movimiento anticipa adónde vuelve el foco. Sin muelle (`--g-ease-spring`/`--g-ease-bounce` nunca en diálogos, #299). Sin `has-origin` (apertura sin disparador enfocado): la entrada de siempre, `--g-space-2` desde abajo |
+| **D2 · Crece hacia abajo** | Con `is-pinned`, el borde superior queda en `--_pin-top` (el que tuvo centrado, medido por el `.vue` tras el foco de #292) y el alto máximo llega hasta `--g-space-4` del borde inferior del visor (el mismo margen que deja el centrado). Un `GFormReveal` que se abre, un error o un `GTextarea autosize` empujan hacia abajo y **nunca mueven lo que el usuario está mirando**; si ya no cabe, desplaza el cuerpo. La regla no exige `[open]`: durante la salida sigue fijo y no salta al centro mientras se funde. No es movimiento: rige también con `reduce` |
+| **Alcance** | Solo `placement="center"` sin `fullscreen` y con el visor por encima de 520px (`@media (min-width: 521px)`: el `.vue` no conoce el umbral). Hoja lateral, hoja móvil, ancho completo móvil y pantalla completa conservan su entrada y su crecimiento |
+| **Movimiento reducido** | D1 no existe: solo el fundido de `--g-duration-fast` de #152, sin `translate` ni `scale`. D2 sí rige |
+| **Duraciones** | Sin cambios: la entrada sigue en `press` y la salida en `fast`, así `transitionMs(dialog)` (y con él `finishLeave`) lee lo mismo que antes |
+
+### Verificación (`design/lab/theme-playground/tests/personalidad-dialog.spec.mjs`)
+
+Sobre el `GDialog` real del UMD en una página ligera (el listado de `packages/vue/dist/` con `grana.css` y el UMD inyectados): en el playground completo, con la máquina cargada, el primer cuadro tras cerrar llegó a tardar más de 1s y la salida de 120ms no dejaba cuadros. Visor de 1280×900. El primer cuadro y la mitad de la entrada y de la salida se leen pausando la transición CSS real (Web Animations); los cuadros intermedios se cuentan en tiempo real.
+
+| Medida | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| D1 lejos (disparador en 100,100): primer cuadro | −32 / −32px (tope) | −32 / −32px | −32 / −32px |
+| D1 cerca (vector 60, 40): primer cuadro = un cuarto | 15 / 10px | 15 / 10px | 15 / 10px |
+| D1 a mitad de la entrada (ease-out) | −1,09 / −1,09px, mismo lado | igual | igual |
+| D1 termina centrado | ≤ 1px del centro | igual | igual |
+| D1 cuadros intermedios en tiempo real, sin sobrepaso | sí (exigido) | anotado | anotado |
+| D1 salida hacia el disparador (vector remedido 540 / −330,5px) | 120ms; a la mitad 30,9 / −30,9px; final 32 / −32px | cierra sin cuadros (#152) | cierra sin cuadros (#152) |
+| Foco de vuelta al disparador (abrir con teclado) | sí | sí | sí |
+| Sin disparador: sin `has-origin`, entra desde 0 / 8px | sí | sí | sí |
+| `reduce`: sin transición de `translate` ni `scale` | sí | sí | sí |
+| D2: bloque de 240px con el diálogo abierto, Δ borde superior | 0,000px | 0,000px | 0,000px |
+| D2: el botón del pie baja (no sube) | +240px | +240px | +240px |
+| D2: al no caber, dentro del visor y el cuerpo desplaza; crecer más, Δ botón | 0px | 0px | 0px |
+| D2 con `reduce` | Δ 0px | Δ 0px | Δ 0px |
+| ≤ 520px (500px ancho completo; 375px hoja): sin D1 ni D2 | entra como antes; el centrado sube > 100px al crecer; la hoja sigue pegada abajo | igual | igual |
+
+Con las reglas de D1 y D2 quitadas del CSSOM, las 8 pruebas de comportamiento fallan en Chromium (las de guarda —sin disparador, `reduce`, ≤ 520px, foco— pasan igual, como deben). Además en Chromium: `dialog-focus.spec.mjs` (4), `form-reveal.spec.mjs` (6) y los dos casos de diálogo de `library.spec.mjs`; `npx vitest run src/components/GDialog` 64/64.
+
+### Nota para lima (hallazgo de bruno)
+
+`--_pin-top` sale de `offsetTop`, que es **entero**: según la medida de bruno (`f86be45`), cuando el borde centrado cae en una fracción de píxel, al fijarse el diálogo se mueve **≤ 0,5px** en Firefox y WebKit. En las medidas de este spec el salto fue 0px en los tres motores (no se reprodujo un caso fraccionario). Si se quiere 0 exacto siempre, el `.vue` tendría que medir con `getBoundingClientRect().top` descontando el `translate`/`scale` en curso; es decisión del contrato (`dialog.md` D2.2 dice `offsetTop`), no se cambia aquí.

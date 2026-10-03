@@ -1,6 +1,6 @@
 # 019 — GDialog: crece hacia abajo (D2) y viene de donde lo llamaste (D1)
 
-- **Status**: TODO
+- **Status**: DONE (bruno pasos 1–3, `f86be45`; coco pasos 4–6)
 - **Dueños**: bruno (pasos 1–3: `GDialog.vue`, pruebas, `GDialog.meta.json`; `dialog-focus.spec.mjs` sigue en verde), coco (pasos 4–6: `GDialog.css`, `design/lab/dialog/estilo.md`, spec).
 - **Contrato**: `design/contracts/dialog.md` «Personalidad»; DECISIONS.md #281, #299 y #301 (y #152, #292 intactos).
 - **Category**: Personalidad (kiwi r01 §4; decisión del usuario 2)
