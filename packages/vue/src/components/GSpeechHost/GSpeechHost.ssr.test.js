@@ -43,7 +43,8 @@ describe('captura de voz · SSR (entorno node)', () => {
     }
     timer.mockRestore()
     interval.mockRestore()
-  })
+  // 30 s: el primer import dinámico transforma toda la librería y, con las 55 suites en paralelo, pasa de los 5 s por defecto de Vitest 4.
+  }, 30000)
 
   it('renderToString con dos apps y dos gestores: sin marcado del anfitrión, pill oculta, botón del disparador en idle', async () => {
     const { createSpeech, GSpeechHost, GSpeechPill, GSpeechTrigger } = await import('../../speech.js')
