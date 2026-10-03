@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAvatar · r01 · estructura</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link id="tema" rel="stylesheet" href="./tema-cat12.css">
+<script>
+  // ?tema=marca carga el tema de marca roja con 8 categorías (generar-temas.mjs); por defecto, el tema de Grana con 12
+  if (new URLSearchParams(location.search).get('tema') === 'marca') document.getElementById('tema').href = './tema-marca-cat8.css'
+</script>
+<style>
+/* =====================================================================================================
+   Kit neutral de wireframe para la página (grises). NO es el estilo de Grana (eso es de coco).
+   Lo que SÍ es propuesta de kiwi: anatomía, fuentes y su orden, escala en `space`, derivación de iniciales,
+   semántica, estados de la imagen y encaje en los huecos de los componentes reales.
+   XAvatar (prototipo) lee los tokens reales de color y tipo SOLO para poder medir contraste y ajuste:
+   las PAREJAS de tokens son propuesta de kiwi; los VALORES son del tema.
+   ===================================================================================================== */
+:root{--ink:#1f1f1f;--ink-2:#555;--line:#dcdcdc;--bg:#f3f3f3;--font:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 var(--font);color:var(--ink);background:var(--bg)}
+main{max-inline-size:1360px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:44px 0 6px}
+h3.sub{font-size:14px;margin:18px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+code{font-size:.92em}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:-1px;padding:0;border:0}
+table.t{border-collapse:collapse;font-size:13px;margin:8px 0;background:#fff}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 10px;text-align:start;vertical-align:middle}
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.ctl select,.ctl button{font:inherit;min-block-size:28px}
+/* Marcos: el tema real (claro u oscuro) vive dentro del marco, con su fondo */
+.frame{padding:20px;background:var(--g-color-surface);color:var(--g-color-text);border:1px solid var(--line);border-radius:8px;font-family:var(--g-font-ui);min-inline-size:0}
+.frame + .frame{margin-block-start:12px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px;align-items:start}
+.pair > .frame + .frame{margin:0}
+.tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 8px}
+.grid-sizes{display:grid;grid-template-columns:auto repeat(5,auto);gap:12px 20px;align-items:center;justify-items:center;inline-size:max-content;max-inline-size:100%;overflow-x:auto}
+.grid-sizes > .rh{justify-self:start;font-size:13px;color:var(--g-color-text-muted)}
+.grid-sizes > .ch{font:12px/1.3 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);text-align:center}
+.inline-demo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:4px;font:11px/1.2 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);inline-size:52px}
+.row-flex{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.sbwrap{display:flex;block-size:300px;border:1px dashed var(--g-color-border-strong);background:var(--g-color-surface-sunken)}
+.sbwrap + .sbwrap{margin-block-start:0}
+.sbpair{display:flex;gap:16px;flex-wrap:wrap}
+.userbtn{display:flex;align-items:center;gap:10px;inline-size:100%;min-block-size:44px;padding:4px 8px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:start}
+.userbtn:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.userbtn > span:last-child{display:flex;flex-direction:column;line-height:1.25;min-inline-size:0}
+.userbtn small{color:var(--g-color-text-muted)}
+.note{background:#fff8d6;border:1px solid #e8d98a;border-radius:6px;padding:6px 10px;font-size:13px;color:#3d3a2a;max-inline-size:100ch}
+.cmp{display:flex;align-items:center;gap:8px;font-size:13px}
+.measure{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted)}
+
+/* =====================================================================================================
+   XAvatar (prototipo de kiwi). En Grana: GAvatar (.vue de bruno, CSS de coco).
+   Raíz <span> (contenido de frase: cabe en botones, celdas, elementos de menú y párrafos).
+   ===================================================================================================== */
+.x-avatar{
+  --_n:8;                                  /* lado en unidades de space */
+  --_size:calc(var(--g-space-1) * var(--_n));
+  position:relative;flex:none;display:inline-grid;place-items:center;vertical-align:middle;
+  box-sizing:border-box;inline-size:var(--_size);block-size:var(--_size);overflow:hidden;
+  border-radius:50%;
+  /* Pareja de color propuesta: neutral-soft / on-neutral-soft (sin categorías) */
+  background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);
+  font-family:var(--g-font-ui);font-weight:var(--g-text-title-sm-weight);line-height:1;
+  user-select:none;
+}
+/* Escala: xs 5 · sm 6 · md 8 · lg 10 · xl 16 (× space). Tipo: el rol más grande en el que caben dos letras, ≥ 12px */
+.x-avatar--size-xs{--_n:5;font-size:var(--g-text-caption-size)}
+.x-avatar--size-sm{--_n:6;font-size:var(--g-text-caption-size)}
+.x-avatar--size-md{--_n:8;font-size:var(--g-text-body-sm-size)}
+.x-avatar--size-lg{--_n:10;font-size:var(--g-text-body-size)}
+.x-avatar--size-xl{--_n:16;font-size:var(--g-text-title-sm-size)}
+/* Forma: círculo = persona; cuadrado = entidad (organización, espacio, equipo). Radio del cuadrado: de wireframe */
+.x-avatar--shape-square{border-radius:var(--g-radius-xs)}
+.x-avatar--shape-square.x-avatar--size-md{border-radius:var(--g-radius-sm)}
+.x-avatar--shape-square.x-avatar--size-lg{border-radius:var(--g-radius-md)}
+.x-avatar--shape-square.x-avatar--size-xl{border-radius:var(--g-radius-lg)}
+/* Color de categoría (solo si el tema declara categorías): relleno -soft, letra on-…-soft (≥ 4.5:1 por derivación) */
+.x-avatar[data-cat]{background:var(--_cat-fill);color:var(--_cat-ink)}
+.x-avatar[data-cat="1"]{--_cat-fill:var(--g-color-cat-1-soft);--_cat-ink:var(--g-color-on-cat-1-soft)}
+.x-avatar[data-cat="2"]{--_cat-fill:var(--g-color-cat-2-soft);--_cat-ink:var(--g-color-on-cat-2-soft)}
+.x-avatar[data-cat="3"]{--_cat-fill:var(--g-color-cat-3-soft);--_cat-ink:var(--g-color-on-cat-3-soft)}
+.x-avatar[data-cat="4"]{--_cat-fill:var(--g-color-cat-4-soft);--_cat-ink:var(--g-color-on-cat-4-soft)}
+.x-avatar[data-cat="5"]{--_cat-fill:var(--g-color-cat-5-soft);--_cat-ink:var(--g-color-on-cat-5-soft)}
+.x-avatar[data-cat="6"]{--_cat-fill:var(--g-color-cat-6-soft);--_cat-ink:var(--g-color-on-cat-6-soft)}
+.x-avatar[data-cat="7"]{--_cat-fill:var(--g-color-cat-7-soft);--_cat-ink:var(--g-color-on-cat-7-soft)}
+.x-avatar[data-cat="8"]{--_cat-fill:var(--g-color-cat-8-soft);--_cat-ink:var(--g-color-on-cat-8-soft)}
+.x-avatar[data-cat="9"]{--_cat-fill:var(--g-color-cat-9-soft);--_cat-ink:var(--g-color-on-cat-9-soft)}
+.x-avatar[data-cat="10"]{--_cat-fill:var(--g-color-cat-10-soft);--_cat-ink:var(--g-color-on-cat-10-soft)}
+.x-avatar[data-cat="11"]{--_cat-fill:var(--g-color-cat-11-soft);--_cat-ink:var(--g-color-on-cat-11-soft)}
+.x-avatar[data-cat="12"]{--_cat-fill:var(--g-color-cat-12-soft);--_cat-ink:var(--g-color-on-cat-12-soft)}
+/* Partes */
+.x-avatar__initials{grid-area:1/1;white-space:nowrap;letter-spacing:0}
+.x-avatar__icon{grid-area:1/1;display:grid;place-items:center;inline-size:50%;block-size:50%}
+.x-avatar__icon > svg{inline-size:100%;block-size:100%}
+/* La imagen se apila encima del respaldo; invisible hasta cargar (sin salto: la caja no depende de ella) */
+.x-avatar__img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;opacity:0}
+.x-avatar.is-loaded > .x-avatar__img{opacity:1}
+.x-avatar.is-loaded > :not(.x-avatar__img){visibility:hidden}
+@media (prefers-reduced-motion:no-preference){.x-avatar__img{transition:opacity var(--g-duration-fast) var(--g-ease-standard)}}
+/* Colores forzados: el relleno desaparece; el borde conserva la forma */
+@media (forced-colors:active){.x-avatar{border:var(--g-border-width) solid CanvasText}}
+
+/* ---------- Propuesta de encaje en GCard (hallazgo para coco/lima): el lead sin marco cuando lleva un avatar ---------- */
+.x-proposal .g-card__lead:has(> .x-avatar){border-color:transparent;background:transparent;border-radius:0;overflow:visible}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>GAvatar · r01 · estructura</h1>
+  <p class="cap">Componentes reales de <code>dist/</code> (<code>GCard</code>, <code>GTable</code>, <code>GSelect</code>, <code>GMenu</code>, <code>GSidebar</code>, <code>GBadge</code>, <code>GTranscript</code>) + <code>XAvatar</code> de prototipo. Tema: <code>tema-cat12.css</code> (tema por defecto + 12 categorías; <code>?tema=marca</code> carga marca roja + 8). Iconos solo Lucide (<code>design/lab/lucide-icons.js</code>). Declaración: <code>declaracion.md</code>.</p>
+
+  <div class="ctl" role="group" aria-label="Controles del prototipo">
+    <label>Esquema <select v-model="scheme" id="c-scheme"><option value="light">Claro</option><option value="dark">Oscuro</option></select></label>
+    <label>Dirección <select v-model="dir" id="c-dir"><option value="ltr">LTR</option><option value="rtl">RTL</option></select></label>
+    <label>Forma <select v-model="shape" id="c-shape"><option value="circle">circle</option><option value="square">square</option></select></label>
+    <label><input type="checkbox" v-model="proposal" id="c-proposal"> Lead de GCard sin marco (propuesta)</label>
+  </div>
+
+  <div :data-theme="scheme" :dir="dir" id="stage">
+
+  <!-- ============================== 1. Escala × fuentes ============================== -->
+  <h2 class="demo" id="s-escala">1 · Cinco tamaños × tres fuentes</h2>
+  <p class="cap">Lado en unidades de <code>space</code>: <b>xs 5 · sm 6 · md 8 · lg 10 · xl 16</b>. <code>lg</code> = la caja del <code>lead</code> de <code>GCard</code> (<code>space × 10</code>); <code>md</code> = el <code>__leading</code> de <code>GTable</code> (<code>space × 8</code>); <code>xs</code> = el interlineado de <code>body-sm</code> (20px), para ir en línea con texto sin cambiar la altura de la fila. En <code>xs</code> y <code>sm</code>, <b>una sola letra</b> (dos letras anchas no caben en el círculo: medido, §3 de la declaración).</p>
+  <div class="frame">
+    <p class="tag">space = 4px (por defecto)</p>
+    <div class="grid-sizes" id="sizes-4">
+      <span></span><span class="ch" v-for="s in SIZES" :key="s">{{ s }} · {{ UNITS[s] }}</span>
+      <template v-for="src in SOURCES" :key="src.id">
+        <span class="rh">{{ src.label }}</span>
+        <x-avatar v-for="s in SIZES" :key="s" :size="s" :shape="shape" v-bind="src.props" :data-test="'size-' + src.id + '-' + s"></x-avatar>
+      </template>
+    </div>
+  </div>
+  <div class="frame" style="--g-space-1: 5px">
+    <p class="tag">space = 5px (la escala sigue a space)</p>
+    <div class="grid-sizes" id="sizes-5">
+      <span></span><span class="ch" v-for="s in SIZES" :key="s">{{ s }}</span>
+      <x-avatar v-for="s in SIZES" :key="s" :size="s" :shape="shape" name="Ana María López" :data-test="'size5-' + s"></x-avatar>
+    </div>
+  </div>
+
+  <!-- ============================== 2. Iniciales ============================== -->
+  <h2 class="demo" id="s-iniciales">2 · Derivación de las iniciales</h2>
+  <p class="cap">Primera letra (grafema que empieza por letra o número) de la primera y de la última palabra; una palabra → una letra; escrituras anchas (han, kana, hangul) → una; sin letras → icono. Mayúsculas con <code>toLocaleUpperCase()</code>; normalización NFC. <code>initials</code> explícitas ganan (y se recortan a 2 grafemas). Las iniciales llevan <code>dir="auto"</code>.</p>
+  <div class="frame">
+    <div style="overflow-x:auto"><table class="t" id="t-initials">
+      <thead><tr><th>Entrada</th><th>Esperado</th><th>md</th><th>xs</th></tr></thead>
+      <tbody>
+        <tr v-for="c in CASES" :key="c.id" :data-case="c.id" :data-expected="c.expected" :data-expected-xs="c.xs">
+          <td><code>{{ c.show }}</code></td><td>{{ c.expected || '(icono)' }}</td>
+          <td><x-avatar size="md" :shape="shape" v-bind="c.props" data-role="md"></x-avatar></td>
+          <td><x-avatar size="xs" :shape="shape" v-bind="c.props" data-role="xs"></x-avatar></td>
+        </tr>
+      </tbody>
+    </table></div>
+    <h3 class="sub">Ajuste: dos letras anchas por tamaño</h3>
+    <div class="inline-demo" id="fit">
+      <template v-for="s in SIZES" :key="s"><x-avatar :size="s" shape="circle" initials="WM" :data-test="'fit-' + s"></x-avatar><x-avatar :size="s" shape="circle" initials="ЖШ" :data-test="'fitc-' + s"></x-avatar></template>
+    </div>
+  </div>
+
+  <!-- ============================== 3. Color ============================== -->
+  <h2 class="demo" id="s-color">3 · Color: neutro por defecto, categorías del tema por número o derivadas del nombre</h2>
+  <p class="cap">Sin <code>color</code> ni <code>colors</code>: neutro (<code>neutral-soft</code> / <code>on-neutral-soft</code>). <code>color="k"</code> (1 a 12) fija la categoría; <code>colors="n"</code> (las categorías que declara el tema) la deriva de <code>colorKey</code> o del nombre con un hash estable (FNV-1a sobre NFC, minúsculas y espacios colapsados). <b>Nunca semánticos</b> (un avatar rojo diría «peligro») ni color libre. Contraste medido aquí en vivo.</p>
+  <div class="pair">
+    <div class="frame" data-theme="light" id="col-light">
+      <p class="tag">Claro</p>
+      <div class="swatches">
+        <span class="swatch" v-for="k in CATS" :key="k"><x-avatar size="md" :shape="shape" initials="AL" :color="k" :data-test="'c-' + k"></x-avatar>{{ k }}<span class="cr" :data-cr="k"></span></span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" :color="3" data-test="c-icon"></x-avatar>icono</span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" initials="AL" data-test="c-neutral"></x-avatar>neutro<span class="cr"></span></span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" data-test="c-neutral-icon"></x-avatar>neutro</span>
+      </div>
+    </div>
+    <div class="frame" data-theme="dark" id="col-dark">
+      <p class="tag">Oscuro</p>
+      <div class="swatches">
+        <span class="swatch" v-for="k in CATS" :key="k"><x-avatar size="md" :shape="shape" initials="AL" :color="k" :data-test="'c-' + k"></x-avatar>{{ k }}<span class="cr" :data-cr="k"></span></span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" :color="3" data-test="c-icon"></x-avatar>icono</span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" initials="AL" data-test="c-neutral"></x-avatar>neutro<span class="cr"></span></span>
+        <span class="swatch"><x-avatar size="md" :shape="shape" data-test="c-neutral-icon"></x-avatar>neutro</span>
+      </div>
+    </div>
+  </div>
+  <div class="frame">
+    <p class="tag">Derivado del nombre con <code>:colors="8"</code> (mismo nombre → mismo color en cualquier vista y motor)</p>
+    <div class="inline-demo" id="hash">
+      <x-avatar v-for="p in PEOPLE" :key="p" size="md" :shape="shape" :name="p" :colors="8" :data-name="p"></x-avatar>
+    </div>
+  </div>
+
+  <!-- ============================== 4. Imagen ============================== -->
+  <h2 class="demo" id="s-imagen">4 · Imagen: cargando, cargada, fallida (sin salto de tamaño)</h2>
+  <p class="cap">La <code>&lt;img alt=""&gt;</code> se apila encima del respaldo y no se ve hasta <code>load</code>; si falla, se quita y queda el respaldo (iniciales o icono). El texto de al lado no se mueve. Las URL <code>avatar.invalid</code> fallan sin red; la verificación las retrasa o las rompe a propósito.</p>
+  <div class="frame" id="img-states">
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" :src="IMG.photo" name="Ana María López" data-test="img-ok"></x-avatar><span data-next="img-ok">Cargada</span></p>
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/lento.png" name="Luis Torres" data-test="img-slow"></x-avatar><span data-next="img-slow">Cargando (se queda con iniciales hasta load)</span></p>
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/roto.png" name="Marta Gil" data-test="img-broken"></x-avatar><span data-next="img-broken">Fallida → iniciales</span></p>
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" src="https://avatar.invalid/roto2.png" data-test="img-broken-noname"></x-avatar><span>Fallida sin nombre → icono</span></p>
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" :src="IMG.wide" name="Panorámica" data-test="img-wide"></x-avatar><span>Imagen 3:1 → recorte <code>cover</code>, caja cuadrada</span></p>
+    <p class="inline-demo"><x-avatar size="lg" :shape="shape" :src="swapSrc" name="Rosa Vidal" data-test="img-swap"></x-avatar><button type="button" id="btn-swap" @click="swap">Cambiar src</button><span class="measure" id="swap-state"></span></p>
+  </div>
+
+  <!-- ============================== 5. Semántica ============================== -->
+  <h2 class="demo" id="s-sem">5 · Decorativo o con nombre; nunca interactivo</h2>
+  <p class="cap">Sin <code>label</code>: <code>aria-hidden="true"</code> (el nombre ya está al lado). Con <code>label</code>: <code>role="img"</code> + <code>aria-label</code> en la <b>raíz</b>, estable aunque cambie la fuente (cargando → imagen → fallida). Si hace falta un botón, lo pone el consumidor y el avatar dentro es decorativo.</p>
+  <div class="frame" id="sem">
+    <p class="inline-demo"><x-avatar size="md" :shape="shape" name="Ana María López" data-test="sem-dec"></x-avatar><span>Ana María López</span></p>
+    <p class="inline-demo"><x-avatar size="sm" :shape="shape" name="Ana María López" label="Ana María López" data-test="sem-named"></x-avatar><span class="measure">(solo el avatar: tabla densa, pila)</span></p>
+    <p class="inline-demo"><x-avatar size="sm" :shape="shape" :src="IMG.photo" name="Luis Torres" label="Luis Torres" data-test="sem-named-img"></x-avatar><span class="measure">(con imagen: el nombre sigue en la raíz; la img es alt="")</span></p>
+    <p class="inline-demo"><button type="button" class="userbtn" id="sem-btn" style="inline-size:auto" aria-label="Cuenta de Ana María López"><x-avatar size="md" :shape="shape" name="Ana María López" data-test="sem-in-btn"></x-avatar></button><span class="measure">(botón del consumidor: el nombre es del botón)</span></p>
+  </div>
+
+  <!-- ============================== 6. Encaje en componentes reales ============================== -->
+  <h2 class="demo" id="s-encaje">6 · Encaje en los componentes reales</h2>
+
+  <h3 class="sub">6.1 · <code>GCard</code>, slot <code>lead</code> (caja <code>space × 10</code>, <code>aria-hidden</code>)</h3>
+  <p class="cap">Hoy el <code>lead</code> tiene marco (borde, relleno <code>neutral-soft</code>, <code>radius-md</code>) pensado para un icono. Con un avatar circular se ven <b>dos formas</b>; la propuesta (casilla de arriba) quita el marco cuando el hijo es un avatar.</p>
+  <div class="cards" :class="{ 'x-proposal': proposal }" id="cards">
+    <g-card title="Proyecto Atlas" subtitle="Icono (como hoy)" :labels="cdLabels"><template #lead><svg-icon name="building-complex"></svg-icon></template></g-card>
+    <g-card title="Ana María López" subtitle="Avatar lg, iniciales" :labels="cdLabels" id="card-ini"><template #lead><x-avatar size="lg" :shape="shape" name="Ana María López" :colors="12" data-test="card-ini"></x-avatar></template></g-card>
+    <g-card title="Luis Torres" subtitle="Avatar lg, imagen" :labels="cdLabels" id="card-img"><template #lead><x-avatar size="lg" :shape="shape" :src="IMG.photo" name="Luis Torres" data-test="card-img"></x-avatar></template></g-card>
+    <g-card title="Grana Labs" subtitle="Entidad: square" :labels="cdLabels"><template #lead><x-avatar size="lg" shape="square" name="Grana Labs" :colors="12" data-test="card-sq"></x-avatar></template></g-card>
+  </div>
+
+  <h3 class="sub">6.2 · <code>GTable</code>: <code>leading-{key}</code> (<code>space × 8</code>) y una celda densa solo con avatar</h3>
+  <div class="frame" style="padding:0;overflow:auto">
+    <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" density="compact" :labels="tbLabels" id="tbl">
+      <template #leading-cliente="{ row }"><x-avatar size="md" :shape="shape" :name="row.nombre" :colors="12" :data-test="'tbl-lead-' + row.id"></x-avatar></template>
+      <template #cell-resp="{ row }"><x-avatar size="sm" :shape="shape" :name="row.resp" :label="row.resp" :colors="12" :data-test="'tbl-resp-' + row.id"></x-avatar></template>
+    </g-table>
+  </div>
+  <div class="frame" style="padding:0;overflow:auto">
+    <p class="tag" style="padding:8px 12px 0">Comparación: <code>leading</code> de texto (como hoy)</p>
+    <g-table :columns="tbColumnsText" :rows="tbRows" caption="Clientes (leading de texto)" density="compact" :labels="tbLabels" id="tbl-text"></g-table>
+  </div>
+
+  <h3 class="sub">6.3 · <code>GSelect</code> y <code>GMenu</code>: slot <code>icon</code> con persona (<code>xs</code>, el hueco lo fija el componente)</h3>
+  <div class="frame row-flex" id="pickers">
+    <div style="inline-size:min(100%,300px)">
+      <g-select v-model="selPerson" :options="selPeople" label="Responsable" placeholder="Elige" id="sel-av">
+        <template #icon="{ option }"><x-avatar size="xs" :shape="shape" :name="option.label" :colors="12"></x-avatar></template>
+      </g-select>
+    </div>
+    <div style="inline-size:min(100%,300px)">
+      <g-select v-model="selPerson" :options="selPeople" label="Responsable (sin avatar)" placeholder="Elige" id="sel-plain"></g-select>
+    </div>
+    <div>
+      <g-menu v-model="mnOpen" :items="mnItems" label="Asignar a">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-test="mn-trigger">Asignar a…</g-btn></template>
+        <template #icon="{ item }"><x-avatar size="xs" :shape="shape" :name="item.icon.name" :src="item.icon.src" :colors="12"></x-avatar></template>
+      </g-menu>
+    </div>
+  </div>
+
+  <h3 class="sub">6.4 · <code>GSidebar</code>, slot <code>user</code> (expandida y riel)</h3>
+  <p class="cap">El botón es de la aplicación (abre su menú de cuenta). Expandida: avatar decorativo + nombre visible. Riel: solo el avatar, y el <b>nombre lo da el botón</b> (<code>aria-label</code>), no el avatar.</p>
+  <div class="sbpair">
+    <div class="sbwrap" id="sb-exp-wrap"><g-sidebar v-model="sbActive" :items="sbItems" label="Principal" :labels="sbLabels" mode="expanded" contained style="flex:none" id="sb-exp">
+      <template #user="{ collapsed }"><button type="button" class="userbtn" :aria-label="collapsed ? 'Ana María López, Administradora' : undefined"><x-avatar size="md" :shape="shape" name="Ana María López" :src="IMG.photo" data-test="sb-exp-av"></x-avatar><span v-if="!collapsed"><b>Ana María López</b><small>Administradora</small></span></button></template>
+    </g-sidebar></div>
+    <div class="sbwrap" id="sb-rail-wrap"><g-sidebar v-model="sbActive" :items="sbItems" label="Principal (riel)" :labels="sbLabels" mode="rail" contained style="flex:none" id="sb-rail">
+      <template #user="{ collapsed }"><button type="button" class="userbtn" style="justify-content:center;padding:4px" :aria-label="collapsed ? 'Ana María López, Administradora' : undefined" id="sb-rail-btn"><x-avatar size="md" :shape="shape" name="Ana María López" data-test="sb-rail-av"></x-avatar><span v-if="!collapsed"><b>Ana María López</b><small>Administradora</small></span></button></template>
+    </g-sidebar></div>
+  </div>
+
+  <h3 class="sub">6.5 · <code>GTranscript</code> (solo lectura): la marca de letra del hablante <b>no</b> es un avatar</h3>
+  <p class="cap">Real, de <code>dist/speech.umd.js</code>, con <code>speakerColors: 2</code>. La marca es una <b>etiqueta de posición</b> («Hablante A»), sin nombres propios (#247): borde de control, discontinua «sin asignar», crece con «AA». Al lado, cómo quedaría con <code>XAvatar</code>: pierde el borde, la discontinua y el crecimiento. Recomendación: <b>convivir</b>.</p>
+  <div class="frame row-flex" id="tx">
+    <div style="inline-size:min(100%,520px)"><g-transcript v-if="tx" :transcript="tx" :editable="false" :selectable="false" :speaker-colors="2" label="Transcripción de la consulta" :labels="txLabels" id="tx-real"></g-transcript></div>
+    <div class="cmp"><x-avatar size="xs" shape="square" initials="A" :color="1"></x-avatar> Hablante A · <x-avatar size="xs" shape="square" initials="B" :color="2"></x-avatar> Hablante B <span class="measure">(XAvatar, solo comparación)</span></div>
+  </div>
+
+  <!-- ============================== 7. Estado: GBadge anclada ============================== -->
+  <h2 class="demo" id="s-status">7 · Estado de presencia: <code>GBadge</code> anclada (composición, sin prop <code>status</code>)</h2>
+  <p class="cap"><code>GBadge</code> ya da figura + <code>label</code> + <code>placement</code> lógico (#59). Forma distinta por estado (nunca solo color): en línea = círculo, ausente = rombo, ocupado = cuadrado; desconectado = sin insignia. La convención la ratifica la aplicación.</p>
+  <div class="frame inline-demo" id="status">
+    <g-badge shape="circle" color="success" label="En línea" placement="bottom-end" data-test="st-on"><template #anchor><x-avatar size="lg" :shape="shape" name="Ana María López" :colors="12"></x-avatar></template></g-badge>
+    <g-badge shape="diamond" color="warning" label="Ausente" placement="bottom-end" data-test="st-away"><template #anchor><x-avatar size="lg" :shape="shape" :src="IMG.photo" name="Luis Torres"></x-avatar></template></g-badge>
+    <g-badge shape="square" color="danger" label="Ocupado" placement="bottom-end" data-test="st-busy"><template #anchor><x-avatar size="md" shape="square" name="Grana Labs" :colors="12"></x-avatar></template></g-badge>
+  </div>
+
+  </div><!-- /stage -->
+
+  <h2 class="demo">8 · Fuera del prototipo visual</h2>
+  <p class="note"><b>Colores forzados:</b> el relleno desaparece y el avatar conserva la forma con un borde <code>CanvasText</code> (solo Chromium lo emula; ver la verificación). <b>Movimiento reducido:</b> la imagen aparece sin fundido. <b>RTL:</b> sin efecto en el avatar (las iniciales se aíslan con <code>dir="auto"</code>); la insignia anclada se espeja por <code>placement</code> lógico. <b>Pila (<code>GAvatarGroup</code>):</b> reservada, ningún consumidor actual la necesita (declaración §9).</p>
+</main>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/speech.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, h, ref, computed, watch, onMounted, nextTick } = Vue
+
+// =====================================================================================================
+// Reglas de kiwi (en Grana las implementa bruno; aquí son la especificación ejecutable)
+// =====================================================================================================
+const SEG = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null
+const graphemes = (s) => (SEG ? Array.from(SEG.segment(s), (x) => x.segment) : Array.from(s))
+const WIDE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u
+const STARTS_LETTER = /^[\p{L}\p{N}]/u
+// Mayúscula solo si sigue siendo un grafema («ß» → «SS» no: se queda «ß»)
+const upper = (g) => { const u = g.toLocaleUpperCase(); return graphemes(u).length === 1 ? u : g }
+const firstLetter = (word) => { for (const g of graphemes(word)) if (STARTS_LETTER.test(g)) return g; return '' }
+// max: 2 (1 en xs y sm). Escrituras anchas → 1.
+function deriveInitials(name, max = 2) {
+  if (typeof name !== 'string') return ''
+  const firsts = name.normalize('NFC').trim().split(/\s+/u).map(firstLetter).filter(Boolean)
+  if (!firsts.length) return ''
+  let out = firsts.length > 1 ? [firsts[0], firsts[firsts.length - 1]] : [firsts[0]]
+  if (max === 1 || out.some((g) => WIDE.test(g))) out = [out[0]]
+  return out.map(upper).join('')
+}
+function explicitInitials(s, max = 2) {
+  if (typeof s !== 'string' || !s.trim()) return ''
+  const g = graphemes(s.normalize('NFC').trim()).filter((x) => !/^\s$/u.test(x))
+  const lim = max === 1 || g.slice(0, 2).some((x) => WIDE.test(x)) ? 1 : 2
+  if (g.length > lim && max !== 1) console.info(`[prototipo] initials «${s}» se recorta a ${lim} grafema(s)`)
+  return g.slice(0, lim).join('')
+}
+// Hash estable (FNV-1a 32 bits) sobre unidades UTF-16 de la clave normalizada; independiente del idioma del sistema
+function colorIndex(key, n) {
+  const s = String(key).normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()
+  let hsh = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) { hsh ^= s.charCodeAt(i); hsh = Math.imul(hsh, 0x01000193) }
+  return ((hsh >>> 0) % n) + 1
+}
+window.__avatarRules = { deriveInitials, explicitInitials, colorIndex }
+
+const XAvatar = defineComponent({
+  name: 'XAvatar',
+  props: {
+    src: String, name: String, initials: String, icon: String,
+    size: { type: String, default: 'md' },             // xs sm md lg xl
+    shape: { type: String, default: 'circle' },        // circle square
+    color: [String, Number],                          // 'neutral' | 1..12
+    colors: { type: Number, default: 0 },             // categorías que declara el tema (0..12) → color derivado
+    colorKey: String,                                 // clave estable del color (id); sin ella, name
+    label: String                                     // con valor: role="img" + aria-label; sin valor: decorativo
+  },
+  setup(props) {
+    const state = ref(props.src ? 'loading' : 'none')  // none | loading | loaded | failed
+    const img = ref(null)
+    watch(() => props.src, (s) => { state.value = s ? 'loading' : 'none' })
+    const check = () => { const el = img.value; if (el && el.complete && state.value === 'loading') state.value = el.naturalWidth > 0 ? 'loaded' : 'failed' }
+    onMounted(check)
+    const max = computed(() => (props.size === 'xs' || props.size === 'sm' ? 1 : 2))   // medido: «WM» no cabe en 20 ni en 24px
+    // Precedencia: imagen > initials explícitas > icon explícito > iniciales del nombre > icono «user»
+    const fallback = computed(() => {
+      const ex = explicitInitials(props.initials, max.value)
+      if (ex) return { kind: 'initials', text: ex }
+      if (props.icon) return { kind: 'icon', icon: props.icon }
+      const d = deriveInitials(props.name, max.value)
+      if (d) return { kind: 'initials', text: d }
+      return { kind: 'icon', icon: 'user' }
+    })
+    const cat = computed(() => {
+      const c = props.color
+      if (c !== undefined && c !== null && c !== 'neutral') { const k = Number(c); return Number.isInteger(k) && k >= 1 && k <= 12 ? k : null }
+      if (c === 'neutral') return null
+      const n = props.colors, key = props.colorKey ?? props.name
+      if (n >= 1 && n <= 12 && typeof key === 'string' && key.trim()) return colorIndex(key, n)
+      return null
+    })
+    return () => {
+      const fb = fallback.value
+      const a11y = props.label ? { role: 'img', 'aria-label': props.label } : { 'aria-hidden': 'true' }
+      return h('span', {
+        class: ['x-avatar', `x-avatar--size-${props.size}`, `x-avatar--shape-${props.shape}`, `x-avatar--content-${fb.kind}`,
+          { 'is-loading': state.value === 'loading', 'is-loaded': state.value === 'loaded', 'is-failed': state.value === 'failed' }],
+        'data-cat': cat.value ?? undefined, ...a11y
+      }, [
+        fb.kind === 'initials' ? h('span', { class: 'x-avatar__initials', dir: 'auto' }, fb.text)
+          : h('span', { class: 'x-avatar__icon', innerHTML: window.lucide(fb.icon) }),
+        props.src && state.value !== 'failed'
+          ? h('img', { ref: img, key: props.src, class: 'x-avatar__img', src: props.src, alt: '', loading: 'lazy', decoding: 'async', draggable: 'false',
+              onLoad: () => { if (state.value === 'loading') state.value = 'loaded' }, onError: () => { state.value = 'failed' } })
+          : null
+      ])
+    }
+  }
+})
+const SvgIcon = defineComponent({ props: { name: String }, setup: (p) => () => h('span', { style: 'display:contents', innerHTML: window.lucide(p.name) }) })
+
+// ---------- Imágenes de prueba (sin red): gradientes abstractos generados en canvas, no pictogramas ----------
+function photo(w, hgt, a, b) {
+  const c = document.createElement('canvas'); c.width = w; c.height = hgt
+  const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, w, hgt)
+  g.addColorStop(0, a); g.addColorStop(1, b); x.fillStyle = g; x.fillRect(0, 0, w, hgt)
+  x.fillStyle = 'rgba(255,255,255,.35)'; x.beginPath(); x.ellipse(w / 2, hgt * 0.42, Math.min(w, hgt) * 0.22, Math.min(w, hgt) * 0.26, 0, 0, Math.PI * 2); x.fill()
+  return c.toDataURL('image/png')
+}
+const IMG = { photo: photo(128, 128, '#8a8a8a', '#3d3d3d'), wide: photo(384, 128, '#b0b0b0', '#505050'), alt: photo(128, 128, '#6d6d6d', '#cfcfcf') }
+window.__IMG = IMG
+
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+const UNITS = { xs: 5, sm: 6, md: 8, lg: 10, xl: 16 }
+const SOURCES = [
+  { id: 'img', label: 'Imagen', props: { src: IMG.photo, name: 'Ana María López' } },
+  { id: 'ini', label: 'Iniciales', props: { name: 'Ana María López' } },
+  { id: 'icon', label: 'Icono', props: {} }
+]
+const CASES = [
+  { id: 'compuesto', show: 'Ana María López', props: { name: 'Ana María López' }, expected: 'AL', xs: 'A' },
+  { id: 'han', show: '李小龙', props: { name: '李小龙' }, expected: '李', xs: '李' },
+  { id: 'han-espacio', show: '山田 太郎', props: { name: '山田 太郎' }, expected: '山', xs: '山' },
+  { id: 'hangul', show: '김민수', props: { name: '김민수' }, expected: '김', xs: '김' },
+  { id: 'orsted', show: 'ØRSTED', props: { name: 'ØRSTED' }, expected: 'Ø', xs: 'Ø' },
+  { id: 'uno', show: 'Madonna', props: { name: 'Madonna' }, expected: 'M', xs: 'M' },
+  { id: 'vacio', show: '""', props: { name: '' }, expected: '', xs: '' },
+  { id: 'espacios', show: '"   "', props: { name: '   ' }, expected: '', xs: '' },
+  { id: 'emoji', show: '🦊', props: { name: '🦊' }, expected: '', xs: '' },
+  { id: 'emoji-nombre', show: '🦊 Zorro Plateado', props: { name: '🦊 Zorro Plateado' }, expected: 'ZP', xs: 'Z' },
+  { id: 'guion', show: 'jean-luc picard', props: { name: 'jean-luc picard' }, expected: 'JP', xs: 'J' },
+  { id: 'apostrofo', show: "O'Brien", props: { name: "O'Brien" }, expected: 'O', xs: 'O' },
+  { id: 'nfd', show: 'émile zola (NFD)', props: { name: 'émile zola' }, expected: 'ÉZ', xs: 'É' },
+  { id: 'polaco', show: 'łukasz żółw', props: { name: 'łukasz żółw' }, expected: 'ŁŻ', xs: 'Ł' },
+  { id: 'arabe', show: 'محمد علي', props: { name: 'محمد علي' }, expected: 'مع', xs: 'م' },
+  { id: 'devanagari', show: 'प्रिया शर्मा', props: { name: 'प्रिया शर्मा' }, expected: null, xs: null },
+  { id: 'explicitas', show: 'initials="ABC"', props: { name: 'Ana López', initials: 'ABC' }, expected: 'AB', xs: 'A' },
+  { id: 'emoji-explicito', show: 'initials="🦊"', props: { name: 'Zorro', initials: '🦊' }, expected: '🦊', xs: '🦊' },
+  { id: 'icono-explicito', show: 'icon="users" + name', props: { name: 'Equipo Norte', icon: 'users' }, expected: '', xs: '' }
+]
+const CATS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+const PEOPLE = ['Ana María López', 'Luis Torres', 'Marta Gil', 'Rosa Vidal', 'Iker Etxeberria', '李小龙', 'محمد علي', 'Zoë Kravitz', 'Chidi Okafor', 'Grana Labs']
+
+const app = createApp({
+  setup() {
+    const scheme = ref('light'), dir = ref('ltr'), shape = ref('circle'), proposal = ref(false)
+    const swapSrc = ref(IMG.photo)
+    const swap = () => { swapSrc.value = swapSrc.value === IMG.photo ? IMG.alt : IMG.photo }
+    const cdLabels = { menu: 'Acciones de', loading: 'Cargando', loaded: 'Cargada', retry: 'Reintentar', empty: 'Vacío' }
+    const tbLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', sortBy: 'Ordenar por', ascending: 'ascendente', descending: 'descendente', sorted: 'Ordenado por {label}, {direction}', loading: 'Cargando…', empty: 'Sin clientes.', emptyFiltered: 'Sin resultados.', clearFilters: 'Limpiar filtros', results: '{count} resultados' }
+    const tbRows = [
+      { id: 1, nombre: 'Ana María López', correo: 'ana@ejemplo.mx', ini: 'AL', resp: 'Luis Torres', monto: '$12,400' },
+      { id: 2, nombre: 'Grana Labs', correo: 'hola@grana.dev', ini: 'GL', resp: 'Marta Gil', monto: '$8,150' },
+      { id: 3, nombre: '李小龙', correo: 'li@ejemplo.cn', ini: '李', resp: 'Rosa Vidal', monto: '$3,920' }
+    ]
+    const tbColumns = [
+      { key: 'cliente', label: 'Cliente', title: 'nombre', subtitle: 'correo' },
+      { key: 'resp', label: 'Responsable' },
+      { key: 'monto', label: 'Monto', align: 'end' }
+    ]
+    const tbColumnsText = [{ key: 'cliente', label: 'Cliente', leading: 'ini', title: 'nombre', subtitle: 'correo' }, { key: 'monto', label: 'Monto', align: 'end' }]
+    const selPeople = [{ value: 'ana', label: 'Ana María López' }, { value: 'luis', label: 'Luis Torres' }, { value: 'marta', label: 'Marta Gil' }]
+    const selPerson = ref('ana')
+    const mnOpen = ref(false)
+    // item.icon como dato opaco (no cadena): GMenu solo pinta el slot icon si item.icon existe (menu.md, #202)
+    const mnItems = [{ id: 'ana', label: 'Ana María López', icon: { name: 'Ana María López' } }, { id: 'luis', label: 'Luis Torres', icon: { name: 'Luis Torres', src: IMG.photo } }, { id: 'li', label: '李小龙', icon: { name: '李小龙' } }]
+    const sbLabels = { collapse: 'Contraer', expand: 'Expandir', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '' }
+    const sbItems = [{ label: 'Principal', items: [{ id: 'home', label: 'Equipo', href: '#equipo', icon: 'users' }, { id: 'cal', label: 'Calendario', href: '#cal', icon: 'calendar' }, { id: 'web', label: 'Sitio', href: '#sitio', icon: 'globe' }] }]
+    const sbActive = ref('home')
+    const txLabels = { speaker: 'Hablante {letter}', speakerRole: '{role} ({letter})', transcript: { cols: { time: 'Hora', speaker: 'Hablante', text: 'Texto', select: 'Selección', actions: 'Acciones' }, empty: 'Sin fragmentos.' } }
+    const tx = GranaSpeech.createTranscript({
+      mode: 'conversation', expectedSpeakers: 2,
+      speakers: [{ id: 'spk_0' }, { id: 'spk_1' }],
+      segments: [
+        { id: 's1', t0: 0, t1: 2000, literal: 'Buenos días, cuénteme.', engineSpeaker: 'spk_0' },
+        { id: 's2', t0: 3000, t1: 5000, literal: 'Me duele la cabeza por la tarde.', engineSpeaker: 'spk_1' }
+      ]
+    })
+    return { scheme, dir, shape, proposal, SIZES, UNITS, SOURCES, CASES, CATS, PEOPLE, IMG, swapSrc, swap, cdLabels, tbLabels, tbRows, tbColumns, tbColumnsText, selPeople, selPerson, mnOpen, mnItems, sbLabels, sbItems, sbActive, txLabels, tx }
+  }
+})
+app.component('XAvatar', XAvatar)
+app.component('SvgIcon', SvgIcon)
+app.component('GTranscript', GranaSpeech.GTranscript)
+app.use(Grana)
+app.mount('#app')
+
+// Contraste en vivo (WCAG 2.x) del texto sobre el relleno de cada muestra
+function lum(c) { const m = c.match(/[\d.]+/g).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }); return 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2] }
+window.__contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+function paintRatios() {
+  document.querySelectorAll('#col-light .swatch, #col-dark .swatch').forEach((s) => {
+    const av = s.querySelector('.x-avatar'), out = s.querySelector('.cr'); if (!av || !out) return
+    const cs = getComputedStyle(av); out.textContent = window.__contrast(cs.color, cs.backgroundColor).toFixed(2)
+  })
+}
+nextTick(() => requestAnimationFrame(paintRatios))
+</script>
+</body>
+</html>
