@@ -26,5 +26,6 @@
   "reserved": ["mode", "open", "added", "headerPlacement", "labels"],
   "tokens": ["--g-form-section-gap"],
   "states": ["default", "optional"],
+  "warnings": ["[Grana GFormSection] dentro de un GFormReveal (al montar, al inyectar revealKey): la sección contiene la pregunta y el bloque, no al revés (#279)"],
   "pending": ["Modos collapsible y addable en la Fase 3"]
 }

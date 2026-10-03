@@ -712,6 +712,56 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       </g-form>
     </div>
           </div>
+          <h3>Bloque condicional (GFormReveal): la respuesta decide</h3>
+          <p class="pg-lead">«¿Requiere factura? Sí → datos fiscales», con «Tipo de persona» anidado. Cerrado, sus campos no se envían, no se tabulan, no se validan ni van al resumen, pero conservan lo escrito. Los errores los calcula esta página <b>sin condiciones</b>: el bloque cerrado hace que no cuenten. Prueba: Guardar con la razón social vacía, luego «No».</p>
+          <div class="pg-panel">
+    <div class="fm-frame" data-frame :style="fm.frame">
+      <g-form id="fr-form" ref="frForm" :density="fm.bench.density" aria-label="Facturación" :errors="fm.revealErrors" :labels="fm.labels" @submit="fm.revealDone" @invalid="fm.bad('reveal', $event)">
+        <g-error-summary :labels="{ title: fm.summaryTitle }"></g-error-summary>
+        <g-form-section title="Facturación" description="Solo si el paciente pide factura.">
+          <g-form-layout id="fr-layout">
+            <g-input v-model="fm.r.nombre" id="fr-nombre" label="Nombre del paciente" name="r-nombre" required autocomplete="name"></g-input>
+            <g-radio-group v-model="fm.r.factura" id="fr-factura" appearance="inline" :label="fm.L('¿Requiere factura?', '¿El paciente requiere factura por esta consulta?')" name="r-factura" required :options="[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]"></g-radio-group>
+            <g-form-reveal id="fr-rv-factura" :when="fm.r.factura === 'si'">
+              <g-radio-group v-model="fm.r.persona" id="fr-persona" appearance="inline" label="Tipo de persona" name="r-persona" required :options="[{ value: 'fisica', label: 'Física' }, { value: 'moral', label: 'Moral' }]"></g-radio-group>
+              <g-form-reveal id="fr-rv-fisica" :when="fm.r.persona === 'fisica'">
+                <g-input v-model="fm.r.curp" id="fr-curp" label="CURP" name="r-curp" required autocapitalize="characters"></g-input>
+              </g-form-reveal>
+              <g-form-reveal id="fr-rv-moral" :when="fm.r.persona === 'moral'">
+                <g-form-row>
+                  <g-input v-model="fm.r.razon" id="fr-razon" class="g-form-w-lg" :label="fm.L('Razón social', 'Razón social como aparece en la constancia')" name="r-razon" required autocomplete="organization"></g-input>
+                  <g-date-picker v-model="fm.r.constitucion" id="fr-constitucion" class="g-form-w-sm" style="--g-form-min: 44" label="Constitución" name="r-constitucion" :labels="dpLabels"></g-date-picker>
+                </g-form-row>
+                <g-input v-model="fm.r.representante" id="fr-representante" label="Representante legal" name="r-representante"></g-input>
+              </g-form-reveal>
+              <g-form-row>
+                <g-input v-model="fm.r.rfc" id="fr-rfc" class="g-form-w-sm" label="RFC" name="r-rfc" required autocapitalize="characters" :error="fm.E('fr-rfc')"></g-input>
+                <g-select v-model="fm.r.regimen" id="fr-regimen" label="Régimen fiscal" name="r-regimen" placeholder="Elige" :options="[{ value: '601', label: '601 General de personas morales' }, { value: '612', label: '612 Personas físicas con actividad empresarial' }, { value: '626', label: '626 RESICO' }]"></g-select>
+                <g-input v-model="fm.r.cpf" id="fr-cpf" class="g-form-w-sm" label="Código postal" name="r-cpf" inputmode="numeric" autocomplete="postal-code" :hint="fm.H('fr-cpf')"></g-input>
+              </g-form-row>
+              <g-checkbox-group v-model="fm.r.envio" id="fr-envio" label="Enviar la factura por" name="r-envio" required>
+                <g-checkbox label="Correo" value="correo"></g-checkbox>
+                <g-checkbox label="WhatsApp" value="whatsapp"></g-checkbox>
+              </g-checkbox-group>
+            </g-form-reveal>
+            <g-textarea v-model="fm.r.obs" id="fr-obs" label="Observaciones" name="r-obs"></g-textarea>
+          </g-form-layout>
+        </g-form-section>
+        <g-form-section title="Antecedentes">
+          <!-- Pregunta y bloque directamente en el cuerpo de la sección (sin GFormLayout): row-gap normal → --_reveal-gap 0px -->
+          <g-radio-group v-model="fm.r.alergias" id="fr-alergias" appearance="inline" label="¿Tiene alergias?" name="r-alergias" :options="[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }]"></g-radio-group>
+          <g-form-reveal id="fr-rv-alergias" :when="fm.r.alergias === 'si'">
+            <g-textarea v-model="fm.r.alergiasCual" id="fr-alergias-cual" label="¿A qué?" name="r-alergias-cual" required></g-textarea>
+          </g-form-reveal>
+        </g-form-section>
+        <g-form-actions>
+          <g-btn id="fr-show" type="button" variant="outline" @click="frForm && frForm.showErrors()">Revisar (showErrors)</g-btn>
+          <g-btn id="fr-save" type="submit">Guardar</g-btn>
+        </g-form-actions>
+      </g-form>
+    </div>
+    <p class="log" id="fr-log">{{ fm.log.reveal }}</p>
+          </div>
           <h3>Modo vista (GForm readonly) y convención «obligatorios» (marks="required")</h3>
           <div class="pg-panel">
     <g-form id="fm-view" aria-label="Expediente (vista)" readonly :labels="fm.labels">
@@ -2199,9 +2249,11 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           'fa-int': ['error', 'Escribe solo letras y números'],
           'fj-tel-pais': ['error', 'Elige el código de país'],
           'fj-rango-b': ['error', 'La edad final debe ser mayor que la inicial'],
-          'fg-a': ['error', 'La fecha debe incluir el año']
+          'fg-a': ['error', 'La fecha debe incluir el año'],
+          'fr-rfc': ['error', 'El RFC de persona moral tiene 12 caracteres']
         }
-        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1 }
+        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1 }
+        const frForm = ref(null)
         const fm = reactive({
           labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
           // value en el formato del autocompletado (tel-country-code) y label legible (form.md §8)
@@ -2222,7 +2274,24 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dirty: false,
           saved: '',
           dlg: false,
-          log: { corto: '', mediano: '', fijo: '', 'diálogo': '' },
+          log: { corto: '', mediano: '', fijo: '', 'diálogo': '', reveal: '' },
+          // Bloque condicional (form.md §14): abierto por defecto (Sí · Moral) para que entre en la prueba de distribución
+          r: { nombre: 'Ana López', factura: 'si', persona: 'moral', curp: '', razon: '', constitucion: null, representante: '', rfc: '', regimen: null, cpf: '', envio: [], obs: '', alergias: null, alergiasCual: '' },
+          // Sin condiciones: el bloque cerrado hace que no cuenten (#276)
+          get revealErrors() {
+            const r = fm.r
+            return {
+              'r-nombre': r.nombre.trim() ? '' : 'Escribe el nombre del paciente',
+              'r-factura': r.factura ? '' : 'Elige si requiere factura',
+              'r-persona': r.persona ? '' : 'Elige el tipo de persona',
+              'r-curp': !r.curp.trim() ? 'Escribe la CURP' : r.curp.trim().length !== 18 ? 'La CURP tiene 18 caracteres' : '',
+              'r-razon': r.razon.trim() ? '' : 'Escribe la razón social',
+              'r-rfc': !r.rfc.trim() ? 'Escribe el RFC' : r.rfc.trim().length !== (r.persona === 'moral' ? 12 : 13) ? `El RFC de persona ${r.persona === 'moral' ? 'moral tiene 12' : 'física tiene 13'} caracteres` : '',
+              'r-envio': r.envio.length ? '' : 'Elige cómo enviar la factura',
+              'r-alergias-cual': r.alergiasCual.trim() ? '' : 'Escribe a qué tiene alergia'
+            }
+          },
+          revealDone(e) { fm.log.reveal = 'submit · FormData: ' + [...e.data.keys()].join(', ') },
           summaryTitle: (n) => (n === 1 ? 'Hay 1 problema con el formulario' : `Hay ${n} problemas con el formulario`),
           get shortErrors() {
             const s = fm.s
@@ -2273,7 +2342,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlgSubmit(e) { fm.log['diálogo'] = 'submit · cita creada'; fm.dlg = false; fm.d = { nombre: '', esp: null, fecha: null, motivo: '' } }
         })
         watch(() => fm.m.nombre, () => { fm.server = '' })
-        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium }
+        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbLoading, tbSimulate, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>

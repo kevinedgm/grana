@@ -56,6 +56,20 @@ function register(entry) {
 }
 const sorted = () => [...entries.values()].sort((a, b) => byDocument(a.root() || a.control(), b.root() || b.control()))
 
+// ---------- Registro inactivo (GFormReveal, form.md §2, #276) ----------
+// Un registro dentro de un bloque inactivo sigue registrado (sus nombres siguen cubiertos: no son errores generales) pero
+// no cuenta. Un nombre es inactivo si lo tiene algún registro inactivo y ninguno activo (un name repetido entre ramas ya
+// avisa; así el activo no pierde su mensaje).
+const isInactiveEntry = (e) => Boolean(e.inactive && e.inactive())
+const inactiveNames = computed(() => {
+  const off = new Set()
+  const on = new Set()
+  for (const e of entries.values()) for (const n of e.names()) (isInactiveEntry(e) ? off : on).add(n)
+  for (const n of on) off.delete(n)
+  return off
+})
+const isInactive = (n) => Boolean(n) && inactiveNames.value.has(n)
+
 // ---------- Momento de los errores («castigar tarde, premiar pronto», #157) ----------
 const edited = reactive(new Set())
 const shownErr = reactive(new Set())
@@ -78,10 +92,11 @@ function reveal(n) {
   nextTick(prune)
 }
 function visible(n, kind) {
+  if (isInactive(n)) return ''
   if (kind === 'warning') return shownWarn.has(n) ? textOf(props.warnings, n) : ''
   return shownErr.has(n) ? textOf(props.errors, n) : ''
 }
-const isShown = (n) => shownErr.has(n) || shownWarn.has(n)
+const isShown = (n) => !isInactive(n) && (shownErr.has(n) || shownWarn.has(n))
 
 // ---------- Estado sucio ----------
 const dirtyLocal = ref(props.dirty)
@@ -93,14 +108,14 @@ function markDirty() {
 }
 
 function notifyInput(n) {
-  if (n) edited.add(n)
+  if (n && !isInactive(n)) edited.add(n)
 }
 function notifyBlur(n) {
-  if (n && props.showErrorsOn === 'blur' && edited.has(n)) reveal(n)
+  if (n && !isInactive(n) && props.showErrorsOn === 'blur' && edited.has(n)) reveal(n)
 }
 function notifyChange(n, revealNow) {
   markDirty()
-  if (!n) return
+  if (!n || isInactive(n)) return
   edited.add(n)
   if (revealNow && props.showErrorsOn === 'blur') reveal(n)
 }
@@ -111,7 +126,7 @@ function blocking() {
   const covered = new Set()
   for (const e of sorted()) {
     for (const n of e.names()) covered.add(n)
-    if (e.inGroup || e.disabled()) continue
+    if (e.inGroup || e.disabled() || isInactiveEntry(e)) continue
     const b = e.blocking(props.errors)
     if (b) items.push({ key: e.uid, ...b, entry: e })
   }
@@ -129,6 +144,27 @@ const summaryItems = computed(() => {
   return blocking().filter((i) => keys.has(i.key)).map((i) => ({ key: i.key, name: i.name, id: i.id, message: i.message, root: i.entry ? () => i.entry.root() : null }))
 })
 let summaryApi = null
+
+// Al pasar a inactivo: sin editar ni revelar (el valor se conserva) y fuera de la instantánea del resumen, en silencio
+// (como al corregir, #162). Al volver a activo no se hace nada: el resumen los recupera en el siguiente envío o showErrors()
+watch(
+  () => {
+    const uids = []
+    for (const e of entries.values()) if (isInactiveEntry(e)) uids.push(e.uid)
+    return { names: [...inactiveNames.value], uids }
+  },
+  ({ names, uids }, prev) => {
+    const before = new Set(prev ? prev.names : [])
+    for (const n of names) {
+      if (before.has(n)) continue
+      edited.delete(n)
+      shownErr.delete(n)
+      shownWarn.delete(n)
+    }
+    const keys = snapshot.value
+    if (keys && uids.some((u) => keys.has(u))) snapshot.value = new Set([...keys].filter((k) => !uids.includes(k)))
+  }
+)
 function registerSummary(api) {
   if (summaryApi && isDev) warnOnce('summaries', 'más de un GErrorSummary en el mismo formulario.')
   summaryApi = api
@@ -138,8 +174,11 @@ function registerSummary(api) {
 // Revela todos: los mensajes que aparecen por este envío se escriben con la región viva en `off` (#164)
 async function revealAll() {
   live.value = 'off'
-  for (const e of entries.values()) for (const n of e.names()) { shownErr.add(n); shownWarn.add(n) }
-  for (const k of Object.keys(props.errors || {})) shownErr.add(k)
+  for (const e of entries.values()) {
+    if (isInactiveEntry(e)) continue
+    for (const n of e.names()) { shownErr.add(n); shownWarn.add(n) }
+  }
+  for (const k of Object.keys(props.errors || {})) if (!isInactive(k)) shownErr.add(k)
   await nextTick() // la aplicación recalcula `errors`
   prune()
   const list = blocking()
@@ -151,7 +190,7 @@ async function revealAll() {
 
 function focusFirstError() {
   for (const e of sorted()) {
-    if (e.inGroup || e.disabled()) continue
+    if (e.inGroup || e.disabled() || isInactiveEntry(e)) continue
     const t = e.visibleTarget()
     if (t && t.control) {
       revealAndFocus(t.control, t.root)

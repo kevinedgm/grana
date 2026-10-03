@@ -38,5 +38,6 @@
   "tokens": ["--g-form-section-gap", "--g-space-1"],
   "publishes": ["--g-form-actions-size"],
   "states": ["default", "readonly", "disabled", "sticky-actions"],
+  "inactiveRegistry": "Registro inactivo (form.md §2, #276): los campos dentro de un GFormReveal inactivo siguen registrados (sus nombres siguen cubiertos: sus claves de errors no son generales) pero blocking()/invalid, revealAll() (submit y showErrors()), focusFirstError(), visible()/isShown() y notifyInput/Blur/Change los saltan (notifyChange sigue subiendo dirty). Al pasar a inactivo salen de editado, revelado y de la instantánea del resumen, en silencio. submit sin campo nuevo (#277): FormData ya los excluye por el fieldset disabled",
   "pending": ["Lector de pantalla real: silencio off → polite al enviar, «(opcional)» en el nombre accesible", "Guardia beforeunload (guard) en la Fase 4"]
 }

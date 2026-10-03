@@ -350,7 +350,7 @@ if (isDev) {
 
 <template>
   <component :is="isDiv ? 'div' : 'fieldset'" ref="rootEl" v-bind="rootBindings">
-    <component :is="isDiv ? 'span' : 'legend'" v-if="hasLabel" :id="labelId" class="g-radio-group__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-radio-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-radio-group__required" aria-hidden="true">*</span></component>
+    <component :is="isDiv ? 'span' : 'legend'" v-if="hasLabel" :id="labelId" class="g-radio-group__label"><span class="g-radio-group__label-text" dir="auto"><slot name="label">{{ label }}</slot></span><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-radio-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-radio-group__required" aria-hidden="true">*</span></component>
     <div class="g-radio-group__options">
       <label v-for="(o, i) in items" :key="optId(i)" :class="['g-radio-group__option', { 'is-disabled': o.disabled, 'is-icon-only': iconOnly(o) }]" :for="optId(i)">
         <input

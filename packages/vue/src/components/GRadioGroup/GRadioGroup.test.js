@@ -123,6 +123,31 @@ describe('GRadioGroup · estructura (#268, #269)', () => {
     }
   })
 
+  it('texto de la etiqueta del grupo en __label-text con dir="auto" (#282); la marca es su hermana siguiente; sin dir en __label', async () => {
+    for (const appearance of APPEARANCES) {
+      const w = make({ appearance, required: true, label: '¿Requiere factura?' })
+      const lab = w.find('.g-radio-group__label')
+      expect(lab.attributes('dir')).toBeUndefined()
+      const txt = lab.find('.g-radio-group__label-text')
+      expect(txt.element.tagName).toBe('SPAN')
+      expect(txt.attributes('dir')).toBe('auto')
+      expect(txt.text()).toBe('¿Requiere factura?')
+      expect(lab.element.firstElementChild).toBe(txt.element)
+      expect(txt.element.nextElementSibling.classList.contains('g-radio-group__required')).toBe(true)
+      // el nombre del grupo sigue siendo la etiqueta (aria-labelledby a __label)
+      expect(root(w).attributes('aria-labelledby')).toBe(lab.attributes('id'))
+      w.unmount()
+    }
+    // slot label también dentro; con «(opcional)» la marca va fuera, después
+    const s = makeT(`<GForm :labels="labels"><GRadioGroup id="s" name="s" appearance="list" :options="opts"><template #label>Sexo <b>biológico</b></template></GRadioGroup></GForm>`, () => ({ labels: LABELS, opts: SEXO }))
+    await nextTick()
+    const t = s.find('.g-radio-group__label-text')
+    expect(t.find('b').exists()).toBe(true)
+    expect(t.text()).toBe('Sexo biológico')
+    expect(s.find('.g-radio-group__label-text + .g-radio-group__optional').exists()).toBe(true)
+    expect(t.find('.g-radio-group__optional').exists()).toBe(false)
+  })
+
   it('sin etiqueta visible: sin __label; el aria-label / aria-labelledby del consumidor va en la raíz', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const w = make({ label: undefined }, { attrs: { 'aria-labelledby': 'fuera' } })

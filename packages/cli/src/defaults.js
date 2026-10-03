@@ -99,6 +99,7 @@ export const DEFAULTS = {
   "--g-duration-fast": "120ms",
   "--g-duration-press": "160ms",
   "--g-duration-spin": "800ms",
+  "--g-duration-slow": "calc(var(--g-duration-press) * 1.5)",
   "--g-ease-standard": "cubic-bezier(0.2, 0, 0, 1)",
   "--g-ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
   "--g-press-scale": "0.97",

@@ -7,7 +7,8 @@
 //   2 cajas de una línea con el mismo top (±1px); 3 sin solapes ni desborde (marco y página);
 //   4 orden visual = DOM; 6 etiquetas sin recortar (ni elipsis ni límite de líneas); 7 consola limpia.
 // Además: 5 líneas esperadas (signos vitales 1/1/2/3 a 1280/960/720/360; a 360 Calle sola y Ext. · Int. juntos),
-// Tab por las partes de un fusionado en orden del DOM y nombres accesibles por parte.
+// Tab por las partes de un fusionado en orden del DOM y nombres accesibles por parte. GFormReveal (§14): con un bloque
+// abierto y anidado (#fr-form), sus hijos terminan en el mismo borde que la pila de fuera y empiezan tras barra + sangría.
 import { test, expect } from '@playwright/test'
 
 const PAGE = '/packages/vue/playground/index.html'
@@ -92,6 +93,20 @@ const geom = () => {
         if (Math.abs(d) > T) out.push(`hijo de layout a ${Math.round(d)}px del borde: ${name(c)}`)
       }
     })
+    // GFormReveal abierto (form.md §14, #278): cada hijo del cuerpo termina en el mismo borde que la pila de fuera y
+    // empieza en el inicio del bloque (= el de la pregunta) + barra + sangría
+    fr.querySelectorAll('.g-form-reveal.is-open:not(.is-animating) > .g-form-reveal__body').forEach((body) => {
+      const lay = body.parentElement.closest('.g-form-layout')
+      if (!lay) return
+      const R = E(lay.getBoundingClientRect())
+      const cs = getComputedStyle(body)
+      const start = S(body.parentElement.getBoundingClientRect()) + parseFloat(cs.borderInlineStartWidth) + parseFloat(cs.paddingInlineStart)
+      for (const c of body.children) {
+        const r = c.getBoundingClientRect()
+        if (Math.abs(R - E(r)) > T) out.push(`hijo de un bloque a ${Math.round(R - E(r))}px del borde: ${name(c)}`)
+        if (Math.abs(S(r) - start) > T) out.push(`hijo de un bloque sin la sangría (${Math.round(S(r) - start)}px): ${name(c)}`)
+      }
+    })
     fr.querySelectorAll('.g-form-row').forEach((row) => {
       if (!row.hasAttribute('data-lines')) out.push(`fila sin medir: ${[...row.children].map(name).join('|')}`)
       const R = E(row.getBoundingClientRect())
@@ -139,6 +154,8 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     test.setTimeout(180_000)
     const errs = await watchConsole(page)
     await open(page, 1440)
+    // Un bloque condicional abierto entra en la prueba (#184, form.md §14): factura Sí · persona Moral, con filas dentro
+    expect(await page.locator('#sec-form [data-frame] .g-form-reveal.is-open .g-form-reveal.is-open .g-form-row').count(), 'bloque anidado abierto con una fila').toBeGreaterThan(0)
     const fails = []
     for (const w of WIDTHS) {
       for (const [state, long] of STATES) {

@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Una pregunta con una sola respuesta, con radios nativos de name común y cinco apariencias (list, inline, segmented, chip, card) que cambian la forma, no la semántica.",
   "contract": "design/contracts/radio-group.md",
-  "decisions": "DECISIONS.md #267 a #273 (#262 field, #202 icono por nombre)",
+  "decisions": "DECISIONS.md #267 a #273 (#262 field, #202 icono por nombre, #282 dir=\"auto\" en __label-text)",
   "prototype": "design/lab/radio-group/r01/",
   "style": "packages/vue/src/components/GRadioGroup/GRadioGroup.css",
   "props": [
@@ -208,6 +208,7 @@
     ],
     "parts": [
       "__label",
+      "__label-text (span en línea con dir=\"auto\" dentro de __label; la marca va después, fuera; #282)",
       "__required",
       "__optional",
       "__options",

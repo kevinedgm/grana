@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "name": "GFormReveal",
+  "tag": "g-form-reveal",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Bloque condicional de un formulario (Fase 3): campos que existen solo si una respuesta lo pide. Va justo después de su pregunta; cerrado, sus campos salen de FormData, de Tab, de la validación nativa, de los errores y del resumen, pero conservan lo escrito (WCAG 3.3.7).",
+  "contract": "design/contracts/form.md",
+  "contractSection": "§14 GFormReveal; §2 Registro inactivo",
+  "decisions": [274, 275, 276, 277, 278, 279, 280],
+  "prototype": "design/lab/form-reveal/r01/",
+  "style": "packages/vue/src/components/GFormReveal/GFormReveal.css",
+  "props": [
+    {
+      "name": "when",
+      "type": "Boolean",
+      "default": false,
+      "note": "El bloque aplica. Lo calcula la aplicación con su modelo (:when=\"factura === 'si'\"). Activo = when y todos sus GFormReveal ancestros activos"
+    }
+  ],
+  "events": [],
+  "nativeEvents": [
+    {
+      "name": "transitionend",
+      "note": "Nativo en la raíz (con event.target === event.currentTarget). La escucha propia va primero; con movimiento reducido solo hay transición de opacity"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Campos condicionados en una pila (cada hijo ocupa el ancho entero): campos sueltos, GFormRow, GFieldGroup, GInputGroup, GCheckbox/GCheckboxGroup, GRadioGroup, GSwitch, GTextarea, campos propios (useFormField) y GFormReveal anidados justo después de su pregunta. Nunca GFormSection"
+    }
+  ],
+  "attrs": "id, class, style, data-* y escuchas van a la raíz <div> (inheritAttrs normal)",
+  "structure": "div.g-form-reveal.g-form-reveal--density-{d}[.is-open][.is-animating][.is-ready][inert] style=\"--_reveal-gap: Npx\" > fieldset.g-form-reveal__body[role=none][disabled] > slot",
+  "classes": [
+    "g-form-reveal",
+    "g-form-reveal--density-{default|comfortable|compact}",
+    "is-open",
+    "is-animating",
+    "is-ready",
+    "g-form-reveal__body"
+  ],
+  "inlineVariables": [
+    {
+      "name": "--_reveal-gap",
+      "note": "row-gap calculado del elemento padre en px (0px si no es un número), al montar, en cada cambio de when y cuando el padre cambia de tamaño (ResizeObserver compartido, lectura en requestAnimationFrame)"
+    }
+  ],
+  "context": {
+    "provides": [
+      "revealKey (interno, no exportado): { active }",
+      "layoutKey re-provisto: block: true, density resuelta (sub-contexto › GForm › default), stack, readonly y disabled del sub-contexto padre"
+    ],
+    "formRegistry": "Campos dentro de un bloque inactivo siguen registrados en GForm con inactive(): no bloquean, no van en invalid ni en el resumen, submit/showErrors() no los revelan, focusFirstError() los salta, sus claves de errors no son generales; al pasar a inactivo se limpian editado, revelado y la instantánea del resumen. Sin campo nuevo en submit (#277)"
+  },
+  "focus": "No se mueve al abrir. Al cerrar con el foco dentro: al último enfocable anterior al bloque (en un grupo de radios, la opción elegida) o, sin él, al primero posterior, con preventScroll, antes de aplicar inert y disabled",
+  "tokens": [
+    "--g-form-gap",
+    "--g-border-width",
+    "--g-color-border-control",
+    "--g-space-4",
+    "--g-duration-slow",
+    "--g-duration-fast",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "cerrado",
+    "abriendo",
+    "abierto",
+    "cerrando",
+    "anidado con padre cerrado",
+    "movimiento reducido",
+    "RTL",
+    "forced-colors"
+  ],
+  "warnings": [
+    "[Grana GFormReveal] dentro de una GFormRow (ocupa su propia fila y contiene filas)",
+    "[Grana GFormReveal] sin hermano anterior (debe ir justo después de la pregunta que lo condiciona)",
+    "[Grana GFormSection] una GFormSection dentro de un GFormReveal (la sección contiene la pregunta y el bloque)"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; fieldset role=none sin grupo); Safari, iOS y táctil reales; forced-colors real en Firefox y WebKit; bloque grande cerrado con la página desplazada al final; rendimiento con muchos bloques"
+  ]
+}

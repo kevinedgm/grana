@@ -9,6 +9,8 @@ export const formKey = Symbol('GForm')
 export const layoutKey = Symbol('GFormLayout') // GFormLayout, GFormRow, GFieldGroup y GInputGroup: block, density, stack, readonly, disabled
 export const sectionKey = Symbol('GFormSection') // GFormSection optional: suprime «(opcional)»
 export const fieldGroupKey = Symbol('GFieldGroup') // partes de un GFieldGroup
+// GFormReveal (form.md §2 «Registro inactivo», §14, #276): { active: ComputedRef<boolean> }. Interna: NO se exporta desde src/index.js
+export const revealKey = Symbol('GFormReveal')
 
 export const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
@@ -54,8 +56,11 @@ export function useFormField(options = {}) {
   const form = inject(formKey, null)
   const layout = inject(layoutKey, null)
   const section = inject(sectionKey, null)
+  const reveal = inject(revealKey, null)
   const role = options.role || 'field'
   const group = role === 'group' ? null : inject(fieldGroupKey, null)
+  // Dentro de un GFormReveal inactivo (when falso en él o en un ancestro) el campo sigue registrado pero no cuenta (#276)
+  const inactive = computed(() => (reveal ? !unref(reveal.active) : false))
   const o = (k) => toValue(options[k])
   const uid = useId()
 
@@ -164,6 +169,7 @@ export function useFormField(options = {}) {
       root: () => el('root'),
       required: () => Boolean(o('required')),
       disabled: () => disabled.value,
+      inactive: () => inactive.value,
       explicitError,
       ownMessage: () => ownMessage.value,
       invalid: () => invalid.value,
@@ -210,7 +216,8 @@ export function useFormField(options = {}) {
     // internos
     form,
     group,
-    explicitError
+    explicitError,
+    inactive
   }
 }
 
@@ -256,6 +263,7 @@ export function useCompositeField(o) {
       control: () => fallback(enabledParts())?.control() || null,
       root: () => unref(o.root),
       disabled: () => ff.disabled.value,
+      inactive: () => Boolean(ff.inactive?.value),
       blocking(errors) {
         const ps = enabledParts()
         const own = ff.explicitError()

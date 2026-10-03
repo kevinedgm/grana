@@ -235,4 +235,22 @@ test.describe('GRadioGroup · componente real (radio-group.md)', () => {
     expect(fc.frame, 'forced-colors: marco del segmentado visible').not.toBe('none')
     await f.close()
   })
+  test('etiqueta del grupo en RTL: el texto en __label-text con dir="auto" no se invierte; la etiqueta sigue al inicio (#282)', async ({ page, browserName }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await page.evaluate(() => document.getElementById('fr-form').closest('[data-frame]').setAttribute('dir', 'rtl'))
+    const r = await page.evaluate(() => {
+      const lab = document.querySelector('#fr-factura .g-radio-group__label')
+      const txt = lab.querySelector(':scope > .g-radio-group__label-text')
+      const L = lab.getBoundingClientRect(); const T = txt.getBoundingClientRect()
+      return { dir: txt.getAttribute('dir'), labDir: lab.getAttribute('dir'), cdir: getComputedStyle(txt).direction, blockDir: getComputedStyle(lab).direction, endGap: L.right - T.right, text: txt.textContent }
+    })
+    expect(r.dir).toBe('auto')
+    expect(r.labDir, 'sin dir en __label').toBeNull()
+    expect(r.cdir, 'texto en español aislado como LTR').toBe('ltr')
+    expect(r.blockDir, 'el bloque sigue al contenedor').toBe('rtl')
+    expect(Math.abs(r.endGap), `etiqueta alineada al inicio (derecha) en RTL (${r.endGap})`).toBeLessThanOrEqual(1)
+    expect(r.text).toBe('¿Requiere factura?')
+    expect(errs, browserName).toEqual([])
+  })
 })

@@ -4,9 +4,9 @@
 // <section> SIN aria-labelledby (no es punto de referencia); el título hN da la navegación.
 // Slot lead (#203): <span class="g-form-section__lead" aria-hidden="true"> primer hijo de __heading, solo con el slot,
 // inmediatamente antes del hN (el CSS de coco usa `__lead + __title`: no intercalar nada). Decorativo; un GIcon con label dentro avisa por sí mismo (antecesor aria-hidden, icons.md §2.4).
-import { computed, inject, provide, unref, useAttrs, useSlots } from 'vue'
+import { computed, inject, onMounted, provide, unref, useAttrs, useSlots } from 'vue'
 import GBadge from '../GBadge/GBadge.vue'
-import { formKey, isDev, sectionKey } from '../GForm/formContext.js'
+import { formKey, isDev, revealKey, sectionKey } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GFormSection', inheritAttrs: false })
 
@@ -20,6 +20,7 @@ const props = defineProps({
 const attrs = useAttrs()
 const slots = useSlots()
 const form = inject(formKey, null)
+const reveal = inject(revealKey, null)
 
 // Reservadas para la Fase 3: no se aceptan (ni llegan al DOM)
 const RESERVED = ['mode', 'open', 'added', 'headerPlacement', 'header-placement', 'labels', 'onUpdate:open', 'onUpdate:added']
@@ -40,6 +41,10 @@ if (isDev) {
     else console.warn('[Grana GFormSection] optional necesita labels.sectionOptional de GForm para la insignia.')
   }
 }
+// Una sección dentro de un GFormReveal (form.md §14, #279): una vez, al montar. No cambia nada de lo que se pinta
+onMounted(() => {
+  if (isDev && reveal) console.warn('[Grana GFormSection] va dentro de un GFormReveal: la sección contiene la pregunta y el bloque, no al revés.')
+})
 </script>
 
 <template>
