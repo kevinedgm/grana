@@ -708,6 +708,41 @@ describe('GTranscript · copia (§22.8)', () => {
   })
 })
 
+describe('GTranscript · desplazamiento (Firefox) y vigilante de fragmentos nuevos', () => {
+  it('el contenedor desplazable lleva tabindex="-1" (Firefox lo haría una parada extra) en rejilla y en solo lectura', async () => {
+    setup({ transcript: sample(3) })
+    await flush()
+    expect(root().querySelector('.g-transcript__scroll').getAttribute('tabindex')).toBe('-1')
+    expect(tabStops()).toHaveLength(1)
+    document.body.innerHTML = ''
+    setup({ transcript: sample(3), editable: false, selectable: false })
+    await flush()
+    expect(root().querySelector('.g-transcript__scroll').getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('«fragmentos nuevos» cuenta los de este transcript, pero no al cambiar a otro con más fragmentos', async () => {
+    const a = sample(2)
+    const b = sample(6)
+    const cur = ref(a)
+    const App = defineComponent({ setup: () => () => h(GTranscript, { labelledby: 'title', labels: LABELS, roles: ROLES, transcript: cur.value }) })
+    wrappers.push(mount(App, { attachTo: document.body }))
+    await flush()
+    const sc = root().querySelector('.g-transcript__scroll')
+    // Lejos del final: la vista no sigue y cuenta lo nuevo
+    Object.defineProperty(sc, 'scrollHeight', { configurable: true, value: 5000 })
+    Object.defineProperty(sc, 'clientHeight', { configurable: true, value: 100 })
+    a[TX].final({ id: 'x1', text: 'Nuevo.', speaker: 'spk_0', t0: 20000, t1: 21000 })
+    await flush()
+    expect(root().querySelector('.g-transcript__newer')).not.toBeNull()
+    // Cambiar de transcript (más fragmentos) reinicia: sin aviso
+    cur.value = b
+    await flush()
+    expect(root().querySelector('.g-transcript__newer')).toBeNull()
+    await flush()
+    expect(root().querySelector('.g-transcript__newer')).toBeNull()
+  })
+})
+
 describe('GTranscript · modos (§22.3)', () => {
   it('solo selección: rejilla con selección y sin edición, eliminar, gestor ni deshacer', async () => {
     const tx = sample(3)

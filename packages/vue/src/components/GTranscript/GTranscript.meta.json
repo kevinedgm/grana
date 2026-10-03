@@ -180,8 +180,6 @@
     "El historial guarda «remove» para un edit vaciado (Deshacer: eliminación)"
   ],
   "pending": [
-    "Auditoría de coco (paso 5) sobre el componente real; status candidate lo pone coco",
-    "coco: las transiciones de GCheckbox (marca) y de la fila (fondo) se disparan en cada casilla de un cambio masivo; con 320 casillas cuestan ~40 ms de estilo por fotograma (medido sin transiciones: 6 ms). Valorar quitarlas dentro de la rejilla de GTranscript",
     "WebKit: Event Timing de 80–150 ms por tecla con 320 filas (JS ~12 ms); compuerta propia < 200 ms (#264); el umbral de virtualización de la F3 se revisa en Safari real",
     "Lector de pantalla real (rejilla en modo foco, lectura de corrido, del/ins con envoltura, editor en la celda, anuncio de selección masiva); Safari y Firefox reales; móvil real; teclados no QWERTY e IME; forced-colors, zoom 200 % y RTL reales; validación real de GForm ante una inserción"
   ]

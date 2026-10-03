@@ -152,6 +152,18 @@ test.describe('captura de voz F2 · playground', () => {
     expect(errs).toEqual([])
   })
 
+  test('una sola parada de tabulación hasta la rejilla (el contenedor desplazable no es enfocable, tampoco en Firefox)', async ({ page }) => {
+    const errs = watchConsole(page)
+    await ready(page)
+    await page.locator('#sp-saved .g-transcript__scroll').evaluate((el) => el.scrollIntoView())
+    expect(await page.locator('#sp-saved .g-transcript__scroll').getAttribute('tabindex')).toBe('-1')
+    await page.locator('#sp-saved .g-transcript__bar .g-btn').last().focus()
+    await page.keyboard.press('Tab')
+    const where = await page.evaluate(() => ({ inGrid: !!document.activeElement.closest('[role="grid"]'), isScroll: document.activeElement.classList.contains('g-transcript__scroll') }))
+    expect(where).toEqual({ inGrid: true, isScroll: false })
+    expect(errs).toEqual([])
+  })
+
   test('transcript guardado sin sesión: tres modos y su región propia', async ({ page }) => {
     const errs = watchConsole(page)
     await ready(page)

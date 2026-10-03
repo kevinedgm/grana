@@ -739,8 +739,9 @@ function onDblclick(event) {
 // ---------- Fragmentos nuevos: seguir el final solo si ya se estaba al final (§22.7) ----------
 const atBottom = () => { const el = scroller.value; return !el || el.scrollHeight - el.scrollTop - el.clientHeight < TRANSCRIPT_LIMITS.followMargin }
 function onScroll() { if (newer.value && atBottom()) newer.value = 0 }
-watch(() => (tx.value ? [tx.value.segments.length, tx.value.partial ? tx.value.partial.id : null] : null), (now, before) => {
-  if (!now || !before || readMode.value) return
+// La referencia incluye el modelo: al cambiar de transcript se reinicia (no se comparan recuentos de dos transcripts)
+watch(() => (tx.value ? [tx.value.segments.length, tx.value.partial ? tx.value.partial.id : null, toRaw(tx.value)] : null), (now, before) => {
+  if (!now || !before || readMode.value || now[2] !== before[2]) return
   const added = Math.max(0, now[0] - before[0])
   const was = atBottom()
   const lastBefore = rowIds.value[rowIds.value.length - 1]
@@ -928,7 +929,7 @@ const itemClass = (s) => ['g-transcript__item', { 'is-failed': s.failed, 'is-cor
     <p v-if="empty" class="g-transcript__empty">{{ t('transcript.empty') }}</p>
 
     <!-- Solo lectura: lista simple desplazable (§22.3) -->
-    <div v-else-if="readMode" class="g-transcript__scroll" :style="maxHeight ? { '--_max-height': maxHeight } : undefined">
+    <div v-else-if="readMode" class="g-transcript__scroll" tabindex="-1" :style="maxHeight ? { '--_max-height': maxHeight } : undefined">
       <ol class="g-transcript__list" tabindex="0" :aria-labelledby="labelledby" :aria-label="labelledby ? undefined : label">
         <template v-for="r in rows" :key="r.id">
           <li v-if="r.partial" class="g-transcript__item is-partial">
@@ -988,7 +989,7 @@ const itemClass = (s) => ['g-transcript__item', { 'is-failed': s.failed, 'is-cor
         </GMenu>
       </div>
 
-      <div ref="scroller" class="g-transcript__scroll" :style="maxHeight ? { '--_max-height': maxHeight } : undefined" @scroll.passive="onScroll">
+      <div ref="scroller" class="g-transcript__scroll" tabindex="-1" :style="maxHeight ? { '--_max-height': maxHeight } : undefined" @scroll.passive="onScroll">
         <div
           ref="grid"
           class="g-transcript__grid"
