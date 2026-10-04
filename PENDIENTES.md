@@ -35,7 +35,12 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 
 | Componente | Nota | Origen |
 | --- | --- | --- |
-| `GCombobox` / `GTagInput` | el más complejo que queda: posicionamiento, teclado, datos | ronda r01 de formularios |
+| `GCombobox`: **contratado** (#329 a #338, `combobox.md`; A «el campo se abre» + B paleta con vista previa + C valor como objeto), en construcción | — | `design/lab/combobox/` |
+| `GCombobox` Fase 2 · `multiple` (modelo y `custom` como Array, `selectedOptions`, un oculto por valor) | ronda propia de kiwi | #338 |
+| `GTagInput` (etiquetas sin catálogo) | ronda propia | #338 |
+| `GCombobox`: ampliar a la paleta desde `field` (`expandable`, `labels.expand`, icono `maximize-2`) | ronda corta de kiwi: medir el disparador y el traspaso lista → modal con búsqueda pendiente | #338 |
+| `GInputGroupCombobox` (CP + colonia) y `GCombobox` como editor de valor de `GFilterBar` (obligaría a revisar la entrada del paquete) | reservados | #338 |
+| `GCombobox`: semillas descartadas (fichas en rejilla 2D, Tab que acepta siempre) y `autoHighlight: false` solo si el lector real lo pide | — | `design/lab/combobox/r02/` |
 | `GCardGroup` | agrupa tarjetas de selección; hoy radios de `name` común | #124 |
 | `GAvatarGroup` | pila con «+N», orden de lectura, anillo con `mask` | `avatar.md`, kiwi r01 |
 | Archivo (`GFileField`), hora, deslizador, chip/etiqueta suelta | sin ronda; candidatos a próximos | — |
@@ -70,7 +75,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 ## 7. Solo en entorno real (no automatizable)
 
-Isla de estado: lector de pantalla sobre el resumen, los canales tras el traslado al modal y `role="timer"`; `Alt+F8` en Linux y con lector; convivencia real con la sesión de voz. Lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper`, formularios con `is-rejected`, `GMenu` con el foco siguiendo al puntero, `GTranscript`, `GAvatar`; Safari real (incluido Tab con acceso total por teclado); táctil y móvil reales; `forced-colors` real (Windows) y en Firefox/WebKit; zoom real 200/400 %; motor de transcripción real (Whisper local ya probado por el usuario en Chrome); evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
+`GCombobox`: lector de pantalla (eco de escritura con la primera opción activa, texto fantasma junto a `aria-activedescendant`, dos `combobox` en la superficie, `aria-describedby` del valor, filas de acción), teclado virtual sobre la hoja, IME y `forced-colors` real. Isla de estado: lector de pantalla sobre el resumen, los canales tras el traslado al modal y `role="timer"`; `Alt+F8` en Linux y con lector; convivencia real con la sesión de voz. Lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper`, formularios con `is-rejected`, `GMenu` con el foco siguiendo al puntero, `GTranscript`, `GAvatar`; Safari real (incluido Tab con acceso total por teclado); táctil y móvil reales; `forced-colors` real (Windows) y en Firefox/WebKit; zoom real 200/400 %; motor de transcripción real (Whisper local ya probado por el usuario en Chrome); evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
 
 ## 8. Infraestructura
 
