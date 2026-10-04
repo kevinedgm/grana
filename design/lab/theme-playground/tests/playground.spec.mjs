@@ -212,7 +212,7 @@ test.describe('estados reales (no se simula «strong»)', () => {
   test('hover: el botón pasa al token primary-strong', async ({ page }) => {
     await open(page, { theme: 'grana', scheme: 'dark', strategy: 'current' })
     const btn = page.getByTestId('btn-primary')
-    await page.evaluate(() => document.getAnimations().forEach((x) => x.finish())) // transiciones de carga terminadas antes de medir el reposo
+    await page.evaluate(() => document.getAnimations().forEach((x) => { if (Number.isFinite(x.effect.getComputedTiming().endTime)) x.finish() })) // transiciones de carga terminadas antes de medir el reposo
     const rest = await btn.evaluate((e) => getComputedStyle(e).backgroundColor)
     expect(rest).toBe(hexToRgb(expectedDark('grana', 'brand', 'current')))
     await btn.hover()
@@ -260,7 +260,7 @@ test.describe('estados reales (no se simula «strong»)', () => {
     await open(page, { theme: 'amazon', scheme: 'dark', strategy: 'current' })
     const btn = page.getByTestId('btn-disabled')
     await expect(btn).toBeDisabled()
-    await page.evaluate(() => document.getAnimations().forEach((x) => x.finish())) // sin transiciones a medio camino antes de leer el reposo
+    await page.evaluate(() => document.getAnimations().forEach((x) => { if (Number.isFinite(x.effect.getComputedTiming().endTime)) x.finish() })) // sin transiciones a medio camino antes de leer el reposo
     const rest = await btn.evaluate((e) => getComputedStyle(e).backgroundColor)
     await btn.hover({ force: true })
     // WebKit a veces entrega el primer fotograma de hover con un retardo: se sondea en vez de leer una sola vez
