@@ -421,6 +421,7 @@ Cambios mínimos anotados en `speech.md` §6.7 y en `toast.md` «Convivencia» (
 | --- | --- |
 | `--g-color-text` (fondo) y `--g-color-surface` (texto, iconos, borde de insignia, anillo de foco interior) | **Superficie inversa** de la isla y de la marca enlace (#325). **No** `brand`: «un solo elemento sólido de `brand` por vista» (`tokens.md` §2). Se invierte sola en el tema oscuro |
 | `--g-color-{info\|success\|warning\|danger}` + `--g-color-on-{…}` | Insignia de tipo sobre la isla (icono sobre relleno) |
+| `--g-text-title-sm-weight` | Peso del título de cada aviso (carácter del prototipo B; hallazgo 2 de `design/lab/alert/auditoria.md`) |
 | `--g-color-{info\|success\|warning\|danger}-text`, `--g-color-text`, `--g-color-text-muted` | Marca de texto (insignia y texto sobre la superficie de la página) |
 | `--g-color-focus`, `--g-focus-width`, `--g-focus-offset` | Foco de la marca; dentro de la isla el anillo usa `--g-color-surface` (alias local) |
 | `--g-radius-pill`, `--g-radius-xl`, `--g-radius-lg` | Píldora, isla abierta, cada aviso |
