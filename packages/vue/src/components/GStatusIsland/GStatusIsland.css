@@ -476,6 +476,8 @@
 .g-status-item__details-toggle.g-btn {
   margin-inline-start: calc(var(--_px) * var(--_density) * -1);
 }
+/* Indicador del detalle técnico (chevron-down de la librería): gira media vuelta al abrirse */
+.g-status-item__details-toggle[aria-expanded="true"] .g-status-item__details-chevron { rotate: 0.5turn; }
 .g-status-item__dismiss .g-icon {
   inline-size: calc(var(--g-space-1) * 4);
   block-size: calc(var(--g-space-1) * 4);
@@ -533,6 +535,7 @@
   .g-status-item.is-busy .g-status-item__badge > .g-icon {
     animation: g-status-spin var(--g-duration-spin) linear infinite;
   }
+  .g-status-item__details-chevron { transition: rotate var(--g-duration-fast) var(--g-ease-out); }
   /* Recolocación por la reserva del borde (la voz aparece o cambia): sin muelle */
   .g-status-island.is-ready {
     transition: inset-block-start var(--g-duration-press) var(--g-ease-out);

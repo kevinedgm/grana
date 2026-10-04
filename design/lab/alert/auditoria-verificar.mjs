@@ -227,6 +227,16 @@ for (const engine of ENGINES) {
     ok(m.origin === 'g-btn--color-neutral g-btn--size-sm g-btn--variant-ghost' && m.toggle === m.origin, `botones: «Ir a…» y detalle ghost + neutral + sm (${m.origin} / ${m.toggle})`)
     ok(/g-btn--icon/.test(m.dismiss) && /variant-ghost/.test(m.dismiss) && /size-sm/.test(m.dismiss), `botones: descartar icon + ghost + sm (${m.dismiss})`)
     ok(m.details && m.timer, 'detalle técnico (pre dir=ltr + Copiar, hidden) y temporizador role=timer aria-live=off')
+    // Indicador del detalle: chevron en __append; 0° cerrado, 180° abierto, girando con duration-fast + ease-out
+    const chev = async () => p.evaluate(() => { const t = document.querySelector('.g-status-item--type-error .g-status-item__details-toggle'); const c = t.querySelector('.g-btn__append .g-status-item__details-chevron'); if (!c) return null; const rot = getComputedStyle(c).rotate; return { exp: t.getAttribute('aria-expanded'), rot, tr: getComputedStyle(c).transitionProperty + ' ' + getComputedStyle(c).transitionDuration } })
+    const c0 = await chev()
+    await p.click('.g-status-item--type-error .g-status-item__details-toggle'); await settle(p, 300)
+    const c1 = await chev()
+    await p.click('.g-status-item--type-error .g-status-item__details-toggle'); await settle(p, 300)
+    const c2 = await chev()
+    const deg = (r) => (!r || r === 'none' ? 0 : /turn/.test(r) ? parseFloat(r) * 360 : parseFloat(r))
+    ok(c0 && c0.exp === 'false' && deg(c0.rot) === 0 && c1.exp === 'true' && deg(c1.rot) === 180 && deg(c2.rot) === 0, `chevron del detalle: ${c0 && c0.rot} cerrado → ${c1 && c1.rot} abierto → ${c2 && c2.rot}`)
+    ok(c0 && /rotate/.test(c0.tr) && /0\.12s/.test(c0.tr), `chevron del detalle: transición de rotate en duration-fast (${c0 && c0.tr})`)
     ok(/^BUTTON g-status-mark g-status-mark--link g-status-mark--type-error/.test(m.ml) && /g-status-mark__badge \+ g-status-mark__text \| true$/.test(m.ml), `marca enlace: ${m.ml}`)
     ok(/^DIV g-status-mark g-status-mark--text g-status-mark--type-warning \| SPAN\.g-status-mark__badge \+ P\.g-status-mark__text$/.test(m.mt), `marca de texto: ${m.mt}`)
     // La forma mide __inner (borderBoxSize, redondeado hacia arriba) + el borde
@@ -499,6 +509,8 @@ for (const engine of ENGINES) {
     await p.evaluate(() => window.__st.save()); await settle(p, 300)
     await p.evaluate(() => { window.__st.saveFails = true; window.gStatus.open(); document.querySelector('.g-status-item--type-error .g-status-item__action').click() }); await settle(p, 150)
     ok(await p.evaluate(() => !document.getAnimations().some((a) => a.animationName === 'g-status-spin' || a.animationName === 'g-status-mark-spin')), 'reduce: reintentando sin giro')
+    const rc = await p.evaluate(async () => { const t = document.querySelector('.g-status-item--type-error .g-status-item__details-toggle'); const c = t.querySelector('.g-status-item__details-chevron'); t.click(); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); return { anims: c.getAnimations().length, rot: getComputedStyle(c).rotate, dur: getComputedStyle(c).transitionDuration } })
+    ok(rc.anims === 0 && /180deg|0\.5turn/.test(rc.rot) && /^0s/.test(rc.dur), `reduce: el chevron salta a ${rc.rot} sin transición (${rc.anims} animaciones, ${rc.dur})`)
     await p.context().close()
   }
 
@@ -726,7 +738,7 @@ for (const engine of ENGINES) {
     const bar = await p.evaluate(() => window.__R('.pg-bar').b)
     // El aviso de desarrollo 13 (control tapado por completo) no se puede ver aquí: la UMD del playground corre sin
     // `process` y los avisos de desarrollo solo existen con un empaquetador (lo cubre GStatusIsland.test.js)
-    pending(!c.length && !d.length, `playground (bruno): ${w}px: la isla replegada tapa controles de la cabecera del playground (compacta: ${c.map((x) => `${x.txt || x.id} ${(x.part * 100).toFixed(0)} %`).join(', ') || 'ninguno'}; punto: ${d.map((x) => `${x.txt || x.id} ${(x.part * 100).toFixed(0)} %`).join(', ') || 'ninguno'}; cabecera hasta ${bar.toFixed(0)}px)`)
+    ok(!c.length && !d.length, `${w}px: la isla replegada no tapa controles de la cabecera del playground (offset de bruno); antes tapaba de la cabecera del playground (compacta: ${c.map((x) => `${x.txt || x.id} ${(x.part * 100).toFixed(0)} %`).join(', ') || 'ninguno'}; punto: ${d.map((x) => `${x.txt || x.id} ${(x.part * 100).toFixed(0)} %`).join(', ') || 'ninguno'}; cabecera hasta ${bar.toFixed(0)}px)`)
     await p.context().close()
   }
 
