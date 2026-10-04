@@ -18,7 +18,7 @@ import { fieldGroupKey, formKey, layoutKey, sectionKey } from './components/GFor
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
-import { clearEdgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
+import { EDGE_ORDER, clearEdgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { createLiveWriter } from './utils/liveRegion.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
@@ -36,7 +36,7 @@ export const shared = {
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },
-  'utils/edgeReserve.js': { clearEdgeReserve, setEdgeReserve },
+  'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, setEdgeReserve },
   'utils/liveRegion.js': { createLiveWriter },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },

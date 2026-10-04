@@ -2,7 +2,7 @@
 // GForm · formulario con contexto: momento de los errores, envío, resumen y estado sucio (dueño: bruno)
 // Contrato: design/contracts/form.md §1–§2 · Estructura: design/lab/form/r01/ · Estilo: GForm.css (coco)
 // Grana presenta y emite intención; no valida ni guarda: `errors` y `warnings` los calcula la aplicación.
-import { computed, inject, mergeProps, nextTick, onBeforeUnmount, provide, reactive, ref, shallowReactive, shallowRef, useAttrs, watch } from 'vue'
+import { computed, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, shallowReactive, shallowRef, useAttrs, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { byDocument, formKey, isDev, nextFrame, requestOpen, revealAndFocus, spaceUnit } from './formContext.js'
 
@@ -114,8 +114,42 @@ function markDirty() {
 function notifyInput(n) {
   if (n && !isInactive(n)) edited.add(n)
 }
+// El revelado por blur nunca mueve lo que se está pulsando (form.md «Momento de los errores», #326; WCAG 2.5.2): con el
+// foco dentro del formulario, desde un `pointerdown` (documento, captura: ocurre antes del blur que provoca) hasta que la
+// pulsación termina, los revelados por blur quedan pendientes y se aplican una tarea después de `pointerup` (ya pasó el
+// `click`). Si ese clic envía, rige el envío (revela todos) y lo pendiente queda absorbido. El teclado no cambia.
+let press = null // pulsación en curso: { id } (pointerId)
+const deferred = new Set()
+let deferTimer = null
+function flushDeferred() {
+  deferTimer = null
+  const names = [...deferred]
+  deferred.clear()
+  for (const n of names) if (!isInactive(n) && props.showErrorsOn === 'blur' && edited.has(n)) reveal(n)
+}
+function endPress(event) {
+  if (!press) return
+  if (event && event.pointerId !== undefined && press.id !== undefined && event.pointerId !== press.id) return
+  press = null
+  document.removeEventListener('pointerup', endPress, true)
+  document.removeEventListener('pointercancel', endPress, true)
+  clearTimeout(deferTimer)
+  deferTimer = setTimeout(flushDeferred, 0)
+}
+function onDocPointerdown(event) {
+  if (press) endPress() // una pulsación anterior que no terminó (puntero perdido)
+  const f = formEl.value
+  if (!f || !f.contains(document.activeElement)) return
+  press = { id: event.pointerId }
+  document.addEventListener('pointerup', endPress, true)
+  document.addEventListener('pointercancel', endPress, true)
+}
+onMounted(() => document.addEventListener('pointerdown', onDocPointerdown, true))
+
 function notifyBlur(n) {
-  if (n && !isInactive(n) && props.showErrorsOn === 'blur' && edited.has(n)) reveal(n)
+  if (!n || isInactive(n) || props.showErrorsOn !== 'blur' || !edited.has(n)) return
+  if (press) deferred.add(n)
+  else reveal(n)
 }
 function notifyChange(n, revealNow) {
   markDirty()
@@ -378,6 +412,14 @@ if (isDev && props.marks === 'required' && !props.labels?.requiredHint) warnOnce
 onBeforeUnmount(() => {
   summaryApi = null
   rejectRun++ // un cuadro pendiente ya no marca nada
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('pointerdown', onDocPointerdown, true)
+    document.removeEventListener('pointerup', endPress, true)
+    document.removeEventListener('pointercancel', endPress, true)
+  }
+  clearTimeout(deferTimer)
+  press = null
+  deferred.clear()
 })
 
 // ---------- Marcado ----------

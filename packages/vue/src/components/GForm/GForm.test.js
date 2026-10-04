@@ -1002,3 +1002,142 @@ describe('Rechazo al enviar: is-rejected (form.md §2 «Rechazo al enviar», inp
     expect(marked).toEqual(['ia'])
   })
 })
+
+// ---------------------------------------------------------------------------------------------------------------
+describe('El revelado por blur no mueve lo que se está pulsando (form.md «Momento de los errores», #326)', () => {
+  const setup = () => ({ errors: reactive({ email: 'Escribe el correo' }), warnings: reactive({ email: '' }), labels: LABELS })
+  const TPL = '<GForm :errors="errors" :warnings="warnings" :labels="labels" :show-errors-on="on" @submit="sent++"><GInput label="Correo" name="email" id="e" /><GBtn id="go" type="submit">Guardar</GBtn></GForm>'
+  const make326 = (on = 'blur') => make(TPL, () => ({ ...setup(), on, sent: ref(0) }))
+  const input = (w) => w.find('input')
+  const msg = (w) => w.find('.g-input__message')
+  const ptr = (type, id = 1, target = document.body) => {
+    const e = new Event(type, { bubbles: true, cancelable: true })
+    e.pointerId = id
+    target.dispatchEvent(e)
+  }
+  const task = () => new Promise((r) => setTimeout(r, 0))
+  async function edit(w) {
+    input(w).element.focus()
+    await input(w).setValue('a')
+  }
+
+  it('entre pointerdown y pointerup el mensaje no se pinta; aparece una tarea después de pointerup', async () => {
+    const w = make326()
+    await edit(w)
+    ptr('pointerdown', 1, w.find('#go').element)
+    await input(w).trigger('focusout')
+    await nextTick()
+    await task()
+    expect(msg(w).text()).toBe('') // pulsación en curso: aplazado
+    expect(input(w).attributes('aria-invalid')).toBeUndefined()
+    ptr('pointerup', 1, w.find('#go').element)
+    await nextTick()
+    expect(msg(w).text()).toBe('') // todavía no: el click va después de pointerup, en la misma tarea
+    await task()
+    await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+    expect(input(w).attributes('aria-invalid')).toBe('true')
+  })
+
+  it('pointercancel también termina la pulsación; el pointerup de OTRO puntero no', async () => {
+    const w = make326()
+    await edit(w)
+    ptr('pointerdown', 7)
+    await input(w).trigger('focusout')
+    ptr('pointerup', 8)
+    await task(); await nextTick()
+    expect(msg(w).text()).toBe('')
+    ptr('pointercancel', 7)
+    await task(); await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+  })
+
+  it('las advertencias siguen la misma regla', async () => {
+    const w = make326()
+    w.vm.errors.email = ''
+    w.vm.warnings.email = 'Parece incompleto'
+    await edit(w)
+    ptr('pointerdown')
+    await input(w).trigger('focusout')
+    await task(); await nextTick()
+    expect(msg(w).text()).toBe('')
+    ptr('pointerup')
+    await task(); await nextTick()
+    expect(msg(w).text()).toContain('Parece incompleto')
+  })
+
+  it('teclado (sin pulsación): revela en el acto, como siempre', async () => {
+    const w = make326()
+    await edit(w)
+    await input(w).trigger('focusout')
+    await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+  })
+
+  it('una pulsación que empieza con el foco FUERA del formulario no aplaza nada', async () => {
+    const w = make326()
+    await input(w).setValue('a') // sin foco en el formulario
+    document.body.focus()
+    ptr('pointerdown')
+    await input(w).trigger('focusout')
+    await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+    ptr('pointerup')
+  })
+
+  it('si lo corrige antes de soltar, no aparece; si el clic envía, rige el envío (revela todos, sin submit)', async () => {
+    const w = make326()
+    await edit(w)
+    ptr('pointerdown', 1, w.find('#go').element)
+    await input(w).trigger('focusout')
+    ptr('pointerup', 1, w.find('#go').element)
+    await w.find('form').trigger('submit') // el click del botón envía
+    await nextTick(); await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+    expect(w.vm.sent).toBe(0)
+    await task(); await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo') // lo aplazado queda absorbido: mismo estado
+    // Corregido durante otra pulsación: nada que revelar
+    const w2 = make326()
+    await edit(w2)
+    ptr('pointerdown', 2)
+    await w2.find('input').trigger('focusout')
+    w2.vm.errors.email = ''
+    ptr('pointerup', 2)
+    await task(); await nextTick()
+    expect(w2.find('.g-input__message').text()).toBe('')
+  })
+
+  it('showErrorsOn="submit" no cambia: ni aplaza ni revela por blur', async () => {
+    const w = make326('submit')
+    await edit(w)
+    ptr('pointerdown')
+    await input(w).trigger('focusout')
+    ptr('pointerup')
+    await task(); await nextTick()
+    expect(msg(w).text()).toBe('')
+  })
+
+  it('una pulsación sin final (puntero perdido) no deja el formulario aplazando para siempre', async () => {
+    const w = make326()
+    await edit(w)
+    ptr('pointerdown', 1) // nunca llega su pointerup
+    await input(w).trigger('focusout')
+    input(w).element.focus()
+    ptr('pointerdown', 2) // la siguiente pulsación cierra la anterior
+    ptr('pointerup', 2)
+    await task(); await nextTick()
+    expect(msg(w).text()).toContain('Escribe el correo')
+  })
+
+  it('al desmontar retira sus escuchas del documento', async () => {
+    const add = vi.spyOn(document, 'addEventListener')
+    const rm = vi.spyOn(document, 'removeEventListener')
+    const w = make326()
+    expect(add.mock.calls.filter((c) => c[0] === 'pointerdown' && c[2] === true)).toHaveLength(1)
+    const fn = add.mock.calls.find((c) => c[0] === 'pointerdown')[1]
+    mounted.splice(mounted.indexOf(w), 1)
+    w.unmount()
+    expect(rm.mock.calls.some((c) => c[0] === 'pointerdown' && c[1] === fn && c[2] === true)).toBe(true)
+  })
+})

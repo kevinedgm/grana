@@ -19,7 +19,7 @@ import { ANNOUNCE, MOBILE_SPACES, matchesHotkey } from '../GToast/toaster.js'
 import { placeBlock } from '../../utils/anchor.js'
 import { createTopModal } from '../../utils/topModal.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
-import { clearEdgeReserve, setEdgeReserve } from '../../utils/edgeReserve.js'
+import { EDGE_ORDER, clearEdgeReserve, setEdgeReserve } from '../../utils/edgeReserve.js'
 
 defineOptions({ name: 'GSpeechHost', inheritAttrs: false })
 
@@ -241,7 +241,7 @@ async function publishReserve() {
   if (!floatShown.value || !f || f.hidden) { clearEdgeReserve(owner); return }
   const space = spaceUnit() // 0 si no se puede medir (jsdom, SSR): sin margen, sin inventar una unidad (como GToaster y GDialog)
   const h = f.offsetHeight
-  setEdgeReserve(owner, edge.value, h > 0 ? h + space * (mobile.value ? 2 : 4) : 0)
+  setEdgeReserve(owner, edge.value, h > 0 ? h + space * (mobile.value ? 2 : 4) : 0, { order: EDGE_ORDER.speech })
 }
 
 // ---------- No tapar el foco (2.4.11): la flotante pasa al borde contrario ----------
