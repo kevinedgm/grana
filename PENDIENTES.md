@@ -21,7 +21,8 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 
 | Qué | Fase | Origen |
 | --- | --- | --- |
-| `GNumberField` (sin moneda; prefijo/sufijo, unidad, −/+, `inputmode`, `Intl` al salir) | 2 | #154, #168, `form.md` fila 17 |
+| `GNumberField`: **contratado** (#309 a #314, `number-field.md`), en construcción | 2 | #154, #168 |
+| `GInputGroupNumber` (número como parte de `GInputGroup`, estructura reservada en `form.md` §13) y `field` en `GNumberField` (necesita antes `field` en `GInput`) | 2 | #310, #314 |
 | `GSelect` y `GNumberField` como parte de `GInputGroup` | 2 | `form.md` §«Fases siguientes» |
 | «Agregar…» de varias instancias (`addable` repetible) y `GFormNav` (scroll-spy, estados) | 3 | `form.md` §3, #292 |
 | Autosave, `revert()`/`guard`, permisos por rol en el bloqueo con interruptor | 4 | #266, `form.md` §8 |
