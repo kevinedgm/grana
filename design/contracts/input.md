@@ -51,7 +51,7 @@ Campo completo de una línea: etiqueta, ayuda, error, iconos, contador y (en `pa
 
 ```html
 <div class="g-input …">
-  <label class="g-input__label" for="ID">Correo<span class="g-input__required" aria-hidden="true">*</span></label>
+  <label class="g-input__label" id="ID-label" for="ID">Correo<span class="g-input__required" aria-hidden="true">*</span></label>   <!-- id: «Cambio por GNumberField» -->
   <div class="g-input__row">
   <div class="g-input__control">
     <span class="g-input__prepend" aria-hidden="true">…</span>
@@ -244,6 +244,7 @@ Ronda de kiwi `design/lab/personalidad/r01/` §7 (I1 e I2, prototipadas sobre el
 | `GRadioGroup` | `__options` (las tres apariencias) | `g-reject-shake-radio-group` |
 | `GFieldGroup` | `__parts` (la fila de partes; no la leyenda) | `g-reject-shake-field-group` |
 | `GInputGroup` | `__box` (la caja fusionada entera con sus divisores) | `g-reject-shake-input-group` |
+| `GNumberField` | `g-input__row` de su `GInput` (la caja con −/+ dentro; compone `GInput`, #309) | `g-reject-shake` (el de `GInput`; sin regla propia) |
 
 **Límite de `GDatePicker inline`:** el calendario en línea no tiene campo, así que **no se mueve nada**; la clase `is-rejected` llega y se retira igual (por el siguiente `input`/`change` o envío), sin sacudida. Los `animationend` de los hijos suben a la raíz y solo el de nombre `g-reject…` retira la clase, así que un `GInput` anidado en un `GFieldGroup` no la quita antes de tiempo. Medido por coco en tres motores (`design/lab/input/estilo.md`, «I2 extendido al resto de campos»).
 
@@ -295,3 +296,17 @@ I1: solo fundido, sin desplazamiento. I2: **no existe** (el error ya es borde, i
 **Clases nuevas** (contrato bruno–coco): `g-input__support`, `g-input__output`, `g-input--has-output` (r02), `g-input__optional`, `g-input__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid`, `g-input--has-prefix`, `g-input--has-suffix`, `g-input__prefix`, `__suffix`, `__prefix-label`, `__suffix-label` (`g-input__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Cambio por `GNumberField` (DECISIONS.md #309, #311)
+
+**Origen:** `design/contracts/number-field.md` (kiwi `design/lab/number-field/r01/`, hallazgo L1). `GNumberField` **compone** `GInput` en lugar de duplicarlo (hereda etiqueta, caja, prefijo/sufijo, `output`, pie, mensaje, marcas, contexto de `GForm`, I1 e I2). Para eso `GInput` gana **dos añadidos internos** y un `id`. **Ninguna prop, evento ni slot público nuevo:** los slots internos no van en `GInput.meta.json` ni en el README, no tienen promesa de estabilidad (como las opciones internas de `useFormField`, #170) y solo los usan componentes de Grana. **Dueños:** bruno (`.vue`, pruebas), coco (nada en `GInput.css`: lo propio va en `GNumberField.css`).
+
+| # | Cambio | Detalle |
+| --- | --- | --- |
+| N1 | **`id` en la etiqueta** | `g-input__label` lleva **`id="{id}-label"`** siempre que se pinta (visible en la estructura, no es API). Lo necesita el nombre de −/+ de `GNumberField` (`aria-labelledby` = texto propio + etiqueta, que respeta el slot `label` y «(opcional)») |
+| N2 | **Slot interno `field`** (con alcance) | Si se da, **sustituye al `<input>`** de `GInput` en su sitio (entre prefijo y sufijo). Propiedades: **`bind`** = lo que `GInput` pondría en su `<input>` **salvo** `value`, `type` y su propio `onInput` (que emite una cadena): `mergeProps(ff.handlers, attrs sin class/style, { id, disabled, readonly, required, 'aria-invalid', 'aria-busy', 'aria-describedby', class: 'g-input__field' })`, con los manejadores del contexto **primero** (C8); **`setControl(el)`**: fija el control (el `ref` que usan `useFormField` para el foco del resumen y `GInput` para enfocar al pulsar prefijo, sufijo u `output`); **`notifyInput()`** (= `ff.handlers.onInput`, para escrituras sin evento nativo: flechas, pegado programático) y **`notifyChange()`** (= `ff.notifyChange`); **`readonly`** y **`disabled`** resueltos (prop › contexto › default). Con el slot, `GInput` **no** emite `update:modelValue` (el valor es del componente que compone) y **no** emite su aviso de nombre accesible (avisa el componente que compone). El que compone decide qué quita de `bind` (`GNumberField` quita `name` y `required`, y pone `aria-required`) |
+| N3 | **Slot interno `end`** (con alcance: `readonly`, `disabled`) | Se pinta **al final de `g-input__control`**, después del botón mostrar/ocultar, **sin** envoltura `aria-hidden` (a diferencia de `append`, que es decorativo). Para controles reales dentro de la caja: −/+ de `GNumberField`. Sin el slot, nada cambia |
+
+- **Registro y `name`:** sin cambio. `GInput` sigue registrando el campo en `GForm` con `name` de `$attrs`; con el slot `field`, el `name` llega en `bind` y el componente que compone lo pone donde se envía (en `GNumberField`, un `<input type="hidden">` dentro del propio slot, que es `display: none` y no ocupa hueco en la caja). No hace falta un tercer añadido.
+- **Pruebas (bruno):** `GInput` sin slots internos se renderiza exactamente igual que hoy (instantánea) salvo el `id` de la etiqueta; con `field`, el `<input>` propio no aparece, `bind` trae los manejadores del contexto antes que los del consumidor, `setControl` lleva el foco del resumen al control del slot y pulsar el sufijo lo enfoca; con `end`, el contenido no queda bajo `aria-hidden`.
+
