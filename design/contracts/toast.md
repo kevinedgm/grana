@@ -27,7 +27,7 @@ Un **aviso breve y no modal** que confirma o informa del resultado de algo que e
 | Error de un campo o formulario | Debe estar junto al campo (3.3.1) | Error de `GInput`, `GSelect`… |
 | Estado de una tarjeta o widget | Vive en su contenedor | `status` de `GCard` (#133), estados de `GWidget` (#73) |
 | Ayuda contextual | Se abre a petición | `GHelper` (#101) |
-| Información persistente de página | No desaparece | Banner o contenido (fuera de alcance) |
+| Información persistente de página, fallo del servidor que dura, resultado que debe quedarse | No desaparece | **Isla de estado** (`GStatusIsland`, `design/contracts/status.md`, #315). **Un suceso, un canal:** o aviso flotante o isla, nunca los dos |
 | Bandeja o historial de notificaciones | Es una vista, no un aviso | Fuera de v0.1 (#138); si entra, **componente propio que lea del mismo gestor** (`toaster.toasts`) |
 
 ## Entrega (API pública)
@@ -295,6 +295,12 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 - **Borde compartido:** si `GSpeechHost` muestra su pill flotante en el mismo borde **efectivo** que la región (en móvil, los dos abajo), la región **suma la reserva** que publica el anfitrión (alto de la pill + su margen) a su `offset` de ese borde: bruno la escribe en las variables en línea existentes como `--_toaster-offset-bottom: calc(<offset> + <reserva>)` (o `-top`). **`GToast.css` no cambia.** La pill, persistente, nunca se mueve por los avisos; los avisos quedan por dentro de ella. El registro de reservas es interno, por documento, solo en el cliente y con los componentes montados; no es opción de `createToaster`.
 - **Modal superior:** el seguimiento del `<dialog>` modal se extrae a `utils/topModal.js` (interno), compartido con `GSpeechHost`. La hoja móvil de `GSpeechHost` es un `<dialog>` modal: la región de avisos **sí** se traslada a ella (los avisos deben seguir operables encima de la hoja).
 - **Atajos y canales:** F8 sigue siendo de los avisos; la voz usa Mayús+F8. Cada servicio conserva su par de canales vivos.
+
+### Convivencia con la isla de estado (`status.md`, #322)
+
+- **Borde compartido, voz → isla → avisos:** la isla (`GStatusIsland`, siempre arriba) también publica una reserva en el registro interno (`utils/edgeReserve.js`, ahora con `order`). **`GToaster` no cambia:** su llamada `edgeReserve(lado)` suma todas las reservas de su borde efectivo, así que con los avisos arriba quedan bajo la isla replegada (y bajo la pill de voz si la hay). `GToast.css` no cambia.
+- **Atajos y canales:** F8 avisos, Mayús+F8 voz, Alt+F8 isla; cada servicio con su par de canales. Regla de uso: un suceso va a los avisos **o** a la isla.
+- **Hoja móvil de la isla:** es un `GDialog` modal; la región de avisos se traslada a ella como a cualquier modal.
 
 ## Movimiento
 

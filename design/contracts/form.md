@@ -105,6 +105,14 @@ Cada campo registrado tiene un estado **revelado** (`shown`). Un error es **visi
 
 Las advertencias (`warnings`) siguen la misma tabla. Un **`error` explícito** en el campo (prop) se muestra siempre, sin momento (como hoy), y **cuenta** para el bloqueo y el resumen.
 
+**El revelado por `blur` nunca mueve lo que se está pulsando** (#326; hallazgo L7 de `design/lab/alert/r01/`, medido por kiwi: al pulsar «Guardar» con un campo recién editado, el mensaje aparecía entre `mousedown` y `mouseup`, desplazaba el botón bajo el puntero y el clic se perdía). Regla, solo para el revelado de la fila «Sale del campo» (`trigger: 'blur'`), errores y advertencias:
+
+- Mientras el foco está dentro del formulario, `GForm` escucha `pointerdown` en el **documento** (fase de captura; ocurre antes del `blur` que provoca). Desde ese `pointerdown` hasta que la pulsación termina, los revelados por `blur` **se aplazan**: el campo queda marcado y su mensaje no se pinta.
+- La pulsación termina con `pointerup` o `pointercancel` de ese puntero; el revelado aplazado se aplica **después del `click`** (una tarea tras `pointerup`), de modo que el destino no se mueve entre apretar y soltar (WCAG 2.5.2, y el principio «sin saltos» de r01 §11).
+- Si el clic **envía** el formulario, rige «Envío» (revela todos; el foco va al resumen): el aplazado queda absorbido. Si el destino es otro, el mensaje aparece al soltar.
+- La salida por **teclado** (Tab) no cambia: revela en el acto. `showErrorsOn="submit"` no cambia. Un `error` explícito (prop) lo controla la aplicación y queda fuera.
+- Sin API nueva, sin CSS. **Encargo a bruno** (`GForm.vue` y el contexto de `useFormField`); prueba de navegador `tests/form-blur-click.spec.mjs`: campo editado e inválido, `mouse.down()` sobre «Guardar», la caja del botón no cambia hasta `mouse.up()`, el `submit` se emite una vez; debe **fallar antes** del arreglo. Coco no interviene.
+
 ### Envío (#157)
 
 1. `GForm` escucha `submit` del `<form>` y **siempre** llama a `preventDefault()`.

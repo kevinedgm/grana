@@ -210,5 +210,6 @@ Variable en línea: `--_max-height`.
 
 ## Límites conocidos
 
+- **Sin estado de error** (#327; kiwi `design/lab/alert/` r01 L6 y r02 L8). El fallo de carga es de la **isla de estado** (`status.md`): una condición `error` con «Reintentar» y, en el hueco de las filas, una `GStatusMark` con `for` dentro del slot `empty`. **Límite:** al pasar `loading` a `false` tras un fallo, la región viva anuncia `labels.results` con 0 junto al error de la isla. **Reservado para su ronda** (no existe hoy; no usar estos nombres para otra cosa): prop **`error`** (Boolean) que sustituye el vacío por el slot **`error`** (con `empty` como respaldo) y **suprime** el anuncio de resultados de esa carga.
 - Sin selección de **todas** las páginas, sin columnas fijas ni desplazamiento horizontal, sin virtualización (cientos de filas), sin edición en celda, sin redimensionar ni reordenar columnas.
 - Lector de pantalla real en tarjetas: por verificar (VoiceOver con `display: grid` en filas).

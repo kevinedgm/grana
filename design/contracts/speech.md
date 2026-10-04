@@ -559,6 +559,7 @@ Regla: **la pill flotante, persistente, conserva su borde; los avisos, transitor
 - **Mecanismo interno** (bruno): un registro de reservas **por documento** (el visor es compartido aunque haya varias aplicaciones), solo en el cliente y solo con los componentes montados (`utils/edgeReserve.js` o el nombre que elija). **No es API pública** ni opción de ninguno de los dos servicios.
 - La pill nunca se mueve por los avisos; los avisos nunca tapan la pill (el indicador es garantía, §6.3). El cambio de borde por foco (`data-flipped`) de cada uno usa el borde **efectivo**.
 - Los dos servicios conservan sus canales vivos propios (dos pares en la página; cada uno anuncia lo suyo) y sus atajos (**F8** avisos, **Mayús+F8** voz).
+- **Con la isla de estado** (`status.md`, #322; decisión del usuario: dos píldoras, **la voz primero**; este contrato no se reabre): el registro de reservas gana un `order` (`EDGE_ORDER.speech = 10`, el más cercano al borde). **Único cambio en `GSpeechHost`:** pasa `{ order: EDGE_ORDER.speech }` al publicar; sigue sin leer reservas y la pill no se mueve por la isla ni por los avisos. La isla se coloca debajo de la pill flotante cuando comparten el borde superior; **Alt+F8** es de la isla.
 
 ---
 
