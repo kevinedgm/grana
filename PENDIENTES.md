@@ -38,7 +38,8 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 | `GCombobox` / `GTagInput` | el más complejo que queda: posicionamiento, teclado, datos | ronda r01 de formularios |
 | `GCardGroup` | agrupa tarjetas de selección; hoy radios de `name` común | #124 |
 | `GAvatarGroup` | pila con «+N», orden de lectura, anillo con `mask` | `avatar.md`, kiwi r01 |
-| Archivo (`GFileField`), hora, deslizador, chip/etiqueta suelta, aviso en línea (`GAlert`/banner) | sin ronda; candidatos a próximos | — |
+| Archivo (`GFileField`), hora, deslizador, chip/etiqueta suelta | sin ronda; candidatos a próximos | — |
+| Aviso persistente: conceptos **A** (nace de su causa) y **C** (nota al margen con línea de tiempo), reservados tras elegir **B · Isla de estado** | por si el usuario quiere mezclar | #315, `design/lab/alert/r02/` |
 
 ## 4. Captura de voz, Fase 3
 
@@ -57,6 +58,9 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 | Qué | Dueño |
 | --- | --- |
+| `GForm` #326: el revelado por `blur` entre `pointerdown` y `pointerup` mueve «Guardar» y el clic se pierde (en curso, bruno) | bruno |
+| `GTable` sin estado de error; «0 resultados» se anuncia junto al error de la isla; reservados prop `error` y slot `error` (#327) | lima / bruno |
+| Isla de estado: replegada puede tapar un control pequeño bajo ella (se evita con `position`/`offset`); orden de capa isla / panel de voz (montar la isla después de `GToaster` y `GSpeechHost`); `Alt+F8` reservado por el gestor de ventanas en GNOME/Xfce (no comprobado; alternativa `Alt+Shift+F8`); color de superficie inversa en vez de `brand` (#325) pendiente de que el usuario lo vea con un tema de color | usuario / lima |
 | `GDialog`: con ratón en WebKit el botón «Quitar» no recibe foco, así que Esc en la confirmación devuelve el foco al `body` (hallazgo 4 de `form-section`) | bruno / lima |
 | `GDialog`: cerrar en el playground completo bloquea cuadros > 1 s con la máquina cargada (relayout por `html:has(.g-dialog[open])`) | bruno |
 | `GDialog`: `--_pin-top` con `offsetTop` entero deja ≤ 0,5px en Firefox/WebKit (aceptado, #307) | — |
@@ -67,7 +71,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 ## 7. Solo en entorno real (no automatizable)
 
-Lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper`, formularios con `is-rejected`, `GMenu` con el foco siguiendo al puntero, `GTranscript`, `GAvatar`; Safari real (incluido Tab con acceso total por teclado); táctil y móvil reales; `forced-colors` real (Windows) y en Firefox/WebKit; zoom real 200/400 %; motor de transcripción real (Whisper local ya probado por el usuario en Chrome); evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
+Isla de estado: lector de pantalla sobre el resumen, los canales tras el traslado al modal y `role="timer"`; `Alt+F8` en Linux y con lector; convivencia real con la sesión de voz. Lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper`, formularios con `is-rejected`, `GMenu` con el foco siguiendo al puntero, `GTranscript`, `GAvatar`; Safari real (incluido Tab con acceso total por teclado); táctil y móvil reales; `forced-colors` real (Windows) y en Firefox/WebKit; zoom real 200/400 %; motor de transcripción real (Whisper local ya probado por el usuario en Chrome); evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
 
 ## 8. Infraestructura
 
