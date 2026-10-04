@@ -65,7 +65,7 @@ onUpdated(() => props.guard.after())
         <span v-if="c.deadline !== undefined" class="g-status-item__timer" role="timer" aria-live="off">{{ left(c) }}</span>
         <a v-if="c.link" class="g-status-item__link" :href="c.link.href" :target="c.link.target" :rel="c.link.rel" @click="emit('link', $event, c)">{{ c.link.label }}</a>
         <template v-if="hasDetails(c)">
-          <GBtn class="g-status-item__details-toggle" size="sm" variant="ghost" color="neutral" :aria-expanded="details.has(c.uid) ? 'true' : 'false'" :aria-controls="`${itemId(c)}-details`" @click="toggleDetails(c)">{{ L().details }}</GBtn>
+          <GBtn class="g-status-item__details-toggle" size="sm" variant="ghost" color="neutral" :aria-expanded="details.has(c.uid) ? 'true' : 'false'" :aria-controls="`${itemId(c)}-details`" @click="toggleDetails(c)">{{ L().details }}<template #append><GIcon class="g-status-item__details-chevron" name="chevron-down" /></template></GBtn>
           <div :id="`${itemId(c)}-details`" class="g-status-item__details" :hidden="details.has(c.uid) ? undefined : true">
             <pre class="g-status-item__details-text" dir="ltr">{{ c.details }}</pre>
             <GBtn v-if="L().copy" class="g-status-item__copy" size="sm" variant="ghost" color="neutral" @click="copyDetails(c)">{{ L().copy }}</GBtn>

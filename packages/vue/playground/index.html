@@ -2602,8 +2602,15 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         let pgObserver
         onMounted(() => {
           const bar = pgBar.value
-          const setH = () => { if (bar) document.documentElement.style.setProperty('--pg-bar-h', bar.offsetHeight + 'px') }
+          // La isla de estado y los avisos cuelgan del borde superior: la cabecera fija (que se parte en varias filas) es su reserva (offset.top)
+          const setH = () => {
+            if (!bar) return
+            document.documentElement.style.setProperty('--pg-bar-h', bar.offsetHeight + 'px')
+            status.configure({ offset: { top: bar.offsetHeight } })
+            toaster.configure({ offset: { top: bar.offsetHeight } })
+          }
           setH(); window.addEventListener('resize', setH)
+          if (bar && typeof ResizeObserver === 'function') new ResizeObserver(setH).observe(bar, { box: 'border-box' })
           const secs = [...document.querySelectorAll('[data-pg-section]')]
           const visible = new Set()
           pgObserver = new IntersectionObserver((entries) => {

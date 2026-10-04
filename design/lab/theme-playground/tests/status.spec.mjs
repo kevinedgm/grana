@@ -48,7 +48,9 @@ const live = (page) => page.evaluate(() => window.__live.map((x) => ({ ...x })))
 const act = (page) => page.evaluate(() => { const a = document.activeElement; return [...a.classList].find((c) => c.startsWith('g-status-i')) || a.id || a.tagName })
 const form = (page) => page.evaluate(() => document.querySelector('.g-status-island').dataset.form)
 const press = async (page, sel) => { await page.focus(sel); await page.keyboard.press('Enter') }
-const center = (page, sel) => page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: 'center' }), sel)
+// El elemento queda en el 70 % del alto del visor (no al centro): la isla del playground cuelga bajo la cabecera fija
+// (offset.top) y abierta llega más abajo; con el elemento al centro taparía el campo en uso y no se abriría sola (#319)
+const center = (page, sel) => page.evaluate((s) => { document.querySelector(s).scrollIntoView({ block: 'center' }); scrollBy(0, -0.2 * innerHeight) }, sel)
 // El `li` de una condición (su id interno no es el de la aplicación): se busca por su título actual
 const itemSel = async (page, id) => '#' + await page.evaluate((i) => [...document.querySelectorAll('.g-status-item')].find((li) => li.querySelector('.g-status-item__title').textContent.endsWith(window.gStatus.get(i).title)).id, id)
 const REFS = ['#st-cliente', '#st-save', '#st-table-region', '#st-text-mark', '#st-dialog']
@@ -464,6 +466,29 @@ test.describe('isla de estado · playground (status.md)', () => {
     expect(r).toEqual({ scrolls: true, ackVisible: true, inViewport: true, sorted: true, more: '+8' })
     expect(errs).toEqual([])
   })
+
+  for (const width of [1280, 375]) {
+    test(`cabecera fija (.pg-bar) a ${width}px: la isla replegada no solapa ningún control (offset.top del gestor, medido con ResizeObserver)`, async ({ page }) => {
+      const errs = watchConsole(page)
+      await open(page, { width, height: 800 })
+      const r = await page.evaluate(() => {
+        const bar = document.querySelector('.pg-bar')
+        const barBottom = Math.round(bar.getBoundingClientRect().bottom)
+        const shape = document.querySelector('.g-status-island__shape').getBoundingClientRect()
+        const controls = [...bar.querySelectorAll('button, a[href], select, input, [tabindex]')].filter((c) => c.offsetParent !== null)
+        const hits = controls.filter((c) => { const b = c.getBoundingClientRect(); return b.width > 0 && shape.right > b.left && shape.left < b.right && shape.top < b.bottom && shape.bottom > b.top }).map((c) => c.textContent.trim() || c.id || c.tagName)
+        return { form: document.querySelector('.g-status-island').dataset.form, barBottom, shapeTop: Math.round(shape.top), controls: controls.length, hits }
+      })
+      expect(r.form).toBe('compact')
+      expect(r.controls).toBeGreaterThan(3)
+      expect(r.hits, 'controles de la cabecera bajo la isla').toEqual([])
+      expect(r.shapeTop, 'la isla cuelga por debajo de la cabecera').toBeGreaterThanOrEqual(r.barBottom)
+      // Sigue a la cabecera si cambia de alto (se parte en filas): el offset es su alto actual
+      const top = await page.evaluate(() => { const bar = document.querySelector('.pg-bar'); bar.style.paddingBlock = '40px'; return new Promise((res) => setTimeout(() => res({ h: bar.offsetHeight, shape: document.querySelector('.g-status-island__shape').getBoundingClientRect().top }), 300)) })
+      expect(top.shape).toBeGreaterThanOrEqual(top.h)
+      expect(errs).toEqual([])
+    })
+  }
 
   test('«Alta de paciente»: la marca nace en GFormActions antes de los botones sin mover «Guardar» (Δ 0px)', async ({ page }) => {
     const errs = watchConsole(page)

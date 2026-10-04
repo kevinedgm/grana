@@ -38,13 +38,18 @@ beforeEach(() => {
     this.dispatchEvent(new Event('close'))
   }
   HTMLElement.prototype.scrollIntoView = function () {}
-  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+  // El rAF falso de vitest se alinea a una rejilla de 16ms con fase propia (con setSystemTime un cuadro puede tardar 23ms
+  // en llegar): aquí cada cuadro es un temporizador de 16ms exactos, y frames(n) avanza n cuadros de verdad
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] })
+  vi.stubGlobal('requestAnimationFrame', (cb) => setTimeout(() => cb(Date.now()), 16))
+  vi.stubGlobal('cancelAnimationFrame', (id) => clearTimeout(id))
   vi.setSystemTime(new Date('2026-10-04T10:00:00Z'))
   warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 afterEach(() => {
   while (wrappers.length) wrappers.pop().unmount()
   vi.useRealTimers()
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
   HTMLElement.prototype.matches = origMatches
   document.body.innerHTML = ''
@@ -538,6 +543,12 @@ describe('Teclado y foco (#320, #321)', () => {
     const box = li.querySelector('.g-status-item__details')
     expect([t.getAttribute('aria-expanded'), t.getAttribute('aria-controls'), box.hidden]).toEqual(['false', box.id, true])
     expect(li.querySelector('pre.g-status-item__details-text').getAttribute('dir')).toBe('ltr')
+    // Indicador de disclosure: chevron-down decorativo al final del botón (coco lo gira con aria-expanded)
+    const ind = t.querySelector('.g-btn__append > svg.g-status-item__details-chevron')
+    expect(ind).not.toBeNull()
+    expect(t.querySelector('.g-btn__append').getAttribute('aria-hidden')).toBe('true')
+    expect(t.querySelector('.g-btn__label').nextElementSibling).toBe(t.querySelector('.g-btn__append'))
+    expect(t.querySelector('.g-btn__label').textContent).toBe('Detalle técnico')
     expect(writeText).not.toHaveBeenCalled()
     t.click(); await flush()
     expect([t.getAttribute('aria-expanded'), box.hidden]).toEqual(['true', false])
