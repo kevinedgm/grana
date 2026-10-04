@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNumberField · auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GNumberField, GInput, GSelect, GForm, GFormLayout, GFormRow,
+     GErrorSummary, GSwitch y GBtn de dist/grana.umd.js con dist/grana.css (el CSS tal como se publica). Mismos casos que
+     estilo-banco.html (data-case en la raíz, id del caso en el <input>), pero el marcado lo pone GNumberField.vue, el
+     idioma sale del lang del ancestro, el mínimo lo publica el .vue a GFormRow (#312), is-rejected lo pone GForm al enviar
+     y el foco llega desde GErrorSummary. No es documentación.
+     Desde la raíz del repo, con dist/ reconstruido:  python3 -m http.server 4209  →  /design/lab/number-field/auditoria-banco.html
+     Parámetros: ?dark=1  ?audit=1 (tema de la auditoría: brand #5B1A3A, radius 16, shape pill, space 5, fontSize 17,
+     generado por @grana/cli en auditoria-tema.css)  ?test=1 (Tema de prueba: Georgia, borde 2px, space 5)
+     ?theme=<generado de dark-color-presence>  ?slow=1 (×5)
+     Verificación: node design/lab/number-field/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="test-css"></style>
+<style>
+  /* Andamio de la página (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2{font-size:15px;margin:32px 0 6px}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GNumberField · auditoría sobre el componente real</h1>
+
+<h2>1 · Tamaños (con GInput real del mismo tamaño)</h2>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <g-input v-case="'in-' + s.id" :id="'in-' + s.id" :size="s.size" :density="s.density" :label="'GInput ' + s.id" model-value="72,5" suffix="kg" block></g-input>
+    <g-number-field v-case="'nf-' + s.id" :id="'nf-' + s.id" :size="s.size" :density="s.density" :label="'Peso ' + s.id" v-model="v['nf-' + s.id]" :precision="1" :step="0.1" :min="0" :max="400" suffix="kg" suffix-label="kilogramos" block></g-number-field>
+    <g-number-field v-case="'st-' + s.id" :id="'st-' + s.id" :size="s.size" :density="s.density" :label="'Cantidad ' + s.id" v-model="v['st-' + s.id]" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" block></g-number-field>
+  </div>
+</div>
+
+<h2>2 · P1 · La unidad va pegada al número (1, 3 y 6 caracteres)</h2>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <g-number-field v-for="n in [7, 72.5, 1234.5]" :key="n" v-case="'p1-' + s.id + '-' + String(n).length" :id="'p1-' + s.id + '-' + String(n).length" :size="s.size" :density="s.density" :label="'Peso ' + s.id" :model-value="n" :precision="n === 7 ? 0 : 1" :grouping="false" suffix="kg" block></g-number-field>
+  </div>
+</div>
+
+<h2>3 · Estados</h2>
+<div class="host"><div class="grid">
+  <g-number-field v-case="'s-rest'" id="s-rest" label="En reposo" v-model="v['s-rest']" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-min'" id="s-min" label="En el mínimo (− deshabilitado)" v-model="v['s-min']" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-max'" id="s-max" label="En el máximo (P3 con ↑)" v-model="v['s-max']" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-empty'" id="s-empty" label="Vacío con placeholder" v-model="v['s-empty']" :min="30" :max="45" :step="0.1" :precision="1" placeholder="36,5" suffix="°C" suffix-label="grados Celsius"></g-number-field>
+  <g-number-field v-case="'s-readonly'" id="s-readonly" label="Solo lectura" :model-value="72.5" :precision="1" suffix="kg" steppers decrement-label="Restar" increment-label="Sumar" readonly></g-number-field>
+  <g-number-field v-case="'s-disabled'" id="s-disabled" label="Deshabilitado" :model-value="12" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar" disabled></g-number-field>
+  <g-number-field v-case="'s-invalid'" id="s-invalid" label="Con error" v-model="v['s-invalid']" :min="20" :max="120" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" error="Fuera de rango (20 a 120)."></g-number-field>
+  <g-number-field v-case="'s-warning'" id="s-warning" label="Con advertencia" v-model="v['s-warning']" :min="20" :max="250" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" warning="Alta para reposo."></g-number-field>
+  <g-number-field v-case="'s-valid'" id="s-valid" label="Válido" v-model="v['s-valid']" :min="20" :max="250" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" valid="Dentro de lo normal."></g-number-field>
+  <g-number-field v-case="'s-soft'" id="s-soft" label="Variante soft" variant="soft" v-model="v['s-soft']" :min="0" :max="10" :precision="0" suffix="dosis" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-pill'" id="s-pill" label="rounded pill" rounded="pill" v-model="v['s-pill']" :min="0" :max="10" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-output'" id="s-output" label="Con output" :model-value="70" :precision="0" suffix="kg" output="IMC 24,2" hint="Calculado con la estatura."></g-number-field>
+  <g-number-field v-case="'s-prefix'" id="s-prefix" label="Con prefijo" v-model="v['s-prefix']" :precision="0" prefix="×" prefix-label="multiplicado por" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+  <g-number-field v-case="'s-msg'" id="s-msg" label="I1 · mensaje que llega" v-model="v['s-msg']" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" :error="msgOn ? 'Escribe la cantidad.' : undefined"></g-number-field>
+</div></div>
+
+<h2>4 · En una fila (GFormRow real) a 1100 · 720 · 320</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'r-form-' + w" :labels="labels">
+    <g-form-layout>
+      <g-form-row :id="'r-row-' + w" :data-row="'a-' + w">
+        <g-input v-case="'r-nom-' + w" class="g-form-w-md" :id="'r-nom-' + w" label="Nombre" name="nombre"></g-input>
+        <g-select v-case="'r-sexo-' + w" class="g-form-w-sm" :id="'r-sexo-' + w" label="Sexo" name="sexo" :options="sexos" v-model="sexo"></g-select>
+        <g-number-field v-case="'r-fc-' + w" class="g-form-w-xs" :id="'r-fc-' + w" label="Frecuencia cardiaca" :model-value="72" :min="20" :max="250" :precision="0" suffix="lpm" suffix-label="latidos por minuto"></g-number-field>
+        <g-number-field v-case="'r-peso-' + w" class="g-form-w-xs" :id="'r-peso-' + w" label="Peso" :model-value="70.2" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos" hint="Sin ropa."></g-number-field>
+      </g-form-row>
+      <g-form-row :id="'r-row2-' + w" :data-row="'b-' + w">
+        <g-number-field v-case="'r-qty-' + w" class="g-form-w-sm" :id="'r-qty-' + w" label="Cantidad" :model-value="2" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+        <g-input v-case="'r-lote-' + w" class="g-form-w-md" :id="'r-lote-' + w" label="Lote" name="lote" error="El lote no existe."></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2>5 · RTL (lang del ancestro: ar-EG, he) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <g-number-field v-case="'rtl-ar'" id="rtl-ar" label="الكمية" v-model="v['rtl-ar']" :step="0.5" :precision="1" suffix="كغ" steppers decrement-label="إنقاص" increment-label="زيادة" block></g-number-field>
+  </div>
+  <div class="host" dir="rtl" lang="he">
+    <g-number-field v-case="'rtl-he'" id="rtl-he" label="משקל" v-model="v['rtl-he']" :step="0.1" :precision="1" suffix="ק״ג" steppers decrement-label="הפחת" increment-label="הוסף" block></g-number-field>
+  </div>
+  <div class="host w320">
+    <g-number-field v-case="'n320-long'" id="n320-long" label="Población atendida" :model-value="1234567890123456" :precision="0" suffix="personas" steppers decrement-label="Restar" increment-label="Sumar" block></g-number-field>
+    <div style="block-size:12px"></div>
+    <g-number-field v-case="'n320-short'" id="n320-short" label="Cantidad" :model-value="12" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar" block></g-number-field>
+  </div>
+</div>
+
+<h2>6 · Mínimo publicado (#312) en una GFormRow real: «Cantidad» 1–99 con −/+ junto a un GInput</h2>
+<div class="host">
+  <g-form-layout id="min-layout">
+    <g-form-row id="min-row">
+      <g-number-field v-case="'ref-qty'" class="g-form-w-xs" id="ref-qty" label="Cantidad" v-model="v['ref-qty']" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-input v-case="'ref-ref'" class="g-form-w-xs" id="ref-ref" label="Lote"></g-input>
+    </g-form-row>
+  </g-form-layout>
+</div>
+
+<h2>7 · Bloquear y desbloquear (#266, #312): −/+ desaparecen sin repartir la fila</h2>
+<div class="host">
+  <g-switch id="lk-lock" v-model="lock" label="Bloquear la cantidad"></g-switch>
+  <g-form-layout id="lk-layout">
+    <g-form-row id="lk-row">
+      <g-input v-case="'lk-name'" id="lk-name" label="Producto" model-value="Guantes de nitrilo"></g-input>
+      <g-number-field v-case="'lk-qty'" id="lk-qty" class="g-form-w-sm" label="Cantidad" v-model="v['lk-qty']" :readonly="lock" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-select v-case="'lk-unit'" id="lk-unit" class="g-form-w-sm" label="Presentación" model-value="caja" :options="[{ value: 'caja', label: 'Caja' }, { value: 'pieza', label: 'Pieza' }]"></g-select>
+    </g-form-row>
+  </g-form-layout>
+</div>
+
+<h2>8 · Envío con GForm: is-rejected (I2) y foco desde GErrorSummary</h2>
+<div class="host">
+  <g-form id="ef-form" :errors="efErrors" :labels="labels" @submit="efLog = 'submit'" @invalid="efLog = 'invalid'">
+    <g-error-summary :labels="{ title: 'Revisa estos campos' }"></g-error-summary>
+    <g-form-layout>
+      <g-form-row>
+        <g-number-field v-case="'ef-qty'" id="ef-qty" class="g-form-w-sm" name="cantidad" label="Cantidad" v-model="v['ef-qty']" required :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+        <g-number-field v-case="'ef-peso'" id="ef-peso" class="g-form-w-sm" name="peso" label="Peso" v-model="v['ef-peso']" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos"></g-number-field>
+        <g-input v-case="'ef-nom'" id="ef-nom" name="nombre" label="Nombre" model-value="Ana"></g-input>
+      </g-form-row>
+    </g-form-layout>
+    <g-form-actions><g-btn id="ef-send" type="submit">Enviar</g-btn></g-form-actions>
+  </g-form>
+  <p class="tag" id="ef-log">{{ efLog }}</p>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const { createApp, reactive, ref, computed, onMounted } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const sexos = [{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decirlo' }]
+const sizes = [['xs'], ['sm'], ['md'], ['lg'], ['xl'], ['md', 'compact'], ['xs', 'compact']].map(([size, density = 'default']) => ({ id: size + (density === 'default' ? '' : '-' + density), size, density }))
+const v = reactive({ 's-rest': 19, 's-min': 1, 's-max': 99, 's-empty': null, 's-invalid': 150, 's-warning': 110, 's-valid': 72, 's-soft': 3, 's-pill': 4, 's-prefix': 3, 's-msg': 5,
+  'rtl-ar': -4.5, 'rtl-he': 72.5, 'ref-qty': 99, 'lk-qty': 2, 'ef-qty': null, 'ef-peso': 70.2 })
+for (const s of sizes) { v['nf-' + s.id] = 72.5; v['st-' + s.id] = 12 }
+window.__v = v
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const applySlow = (on) => { $('#slow-css').textContent = on ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    applySlow(q.has('slow'))
+    const sexo = ref(null)
+    const lock = ref(false)
+    const msgOn = ref(false)
+    const efLog = ref('')
+    const efErrors = computed(() => ({ cantidad: v['ef-qty'] == null ? 'Escribe la cantidad.' : '' }))
+    window.__lock = lock
+    window.__msg = msgOn
+    return { v, sexo, sexos, sizes, labels, lock, msgOn, efLog, efErrors }
+  }
+})
+// data-case en la raíz del campo (GInput solo pasa class/style a la raíz): la directiva va a la raíz del componente
+app.directive('case', { mounted(el, b) { el.dataset.case = b.value }, updated(el, b) { el.dataset.case = b.value } })
+app.use(Grana)
+app.mount('#app')
+
+// ---- Tema ----
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}'
+const q = new URLSearchParams(location.search)
+if (q.get('test')) $('#test-css').textContent = TEST
+if (q.get('audit')) $('#gen').href = 'auditoria-tema.css'
+else if (q.get('theme')) $('#gen').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+const sheet = $('#gen')
+const ready = () => document.fonts.ready.then(raf2).then(raf2).then(() => { document.documentElement.dataset.ready = '1' })
+const loaded = sheet.href.startsWith('data:') ? Promise.resolve() : Promise.race([new Promise((r) => sheet.addEventListener('load', r, { once: true })), new Promise((r) => setTimeout(r, 2000))])
+loaded.then(ready)
+</script>
+</body>
+</html>

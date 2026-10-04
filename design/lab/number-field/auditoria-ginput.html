@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GInput · comparación (coco)</title>
+<!-- Auditoría de coco de GNumberField (paso 5): GInput SIN slots internos, de dist/. auditoria-verificar.mjs la carga dos
+     veces, con el dist/ actual y con el dist/ anterior a GNumberField (--old-dist=<carpeta>, construido desde c466132), y
+     compara HTML (salvo el id de la etiqueta, N1), cajas y estilos calculados de cada parte. No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;max-inline-size:1100px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<div class="grid">
+  <g-input v-for="c in cases" :key="c.id" :id="c.id" v-bind="c.p" :data-cmp="c.id">
+    <template v-if="c.prepend" #prepend><span>@</span></template>
+    <template v-if="c.action" #action><g-btn size="sm">Buscar</g-btn></template>
+  </g-input>
+</div>
+<g-form :errors="{ lote: 'El lote no existe.' }" :labels="{ optional: '(opcional)' }" style="margin-block-start:24px;max-inline-size:1100px">
+  <g-form-layout>
+    <g-form-row>
+      <g-input id="row-a" label="Nombre" name="nombre" required></g-input>
+      <g-input id="row-b" class="g-form-w-sm" label="Lote" name="lote"></g-input>
+      <g-input id="row-c" class="g-form-w-xs" label="Peso" suffix="kg" model-value="70"></g-input>
+    </g-form-row>
+  </g-form-layout>
+  <g-form-actions><g-btn id="row-send" type="submit">Enviar</g-btn></g-form-actions>
+</g-form>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const cases = []
+for (const size of ['xs', 'sm', 'md', 'lg', 'xl']) for (const density of ['default', 'compact']) cases.push({ id: `c-${size}-${density}`, p: { size, density, label: `GInput ${size} ${density}`, modelValue: '72,5', suffix: 'kg' } })
+cases.push(
+  { id: 'c-soft', p: { variant: 'soft', label: 'Soft', modelValue: 'texto' } },
+  { id: 'c-pill', p: { rounded: 'pill', label: 'Pill', modelValue: 'texto' } },
+  { id: 'c-prefix', p: { label: 'Precio', prefix: '$', prefixLabel: 'pesos', modelValue: '120' } },
+  { id: 'c-output', p: { label: 'Con output', suffix: 'kg', output: 'IMC 24,2', modelValue: '70', hint: 'Calculado.' } },
+  { id: 'c-pass', p: { label: 'Contraseña', type: 'password', modelValue: 'secreto', showPasswordLabel: 'Mostrar', hidePasswordLabel: 'Ocultar' } },
+  { id: 'c-counter', p: { label: 'Con contador', counter: true, maxlength: 20, modelValue: 'hola' } },
+  { id: 'c-loading', p: { label: 'Cargando', loading: true, modelValue: 'x' } },
+  { id: 'c-error', p: { label: 'Con error', error: 'Falta.', modelValue: '' } },
+  { id: 'c-warning', p: { label: 'Con advertencia', warning: 'Revisa.', modelValue: 'x' } },
+  { id: 'c-valid', p: { label: 'Válido', valid: 'Bien.', modelValue: 'x' } },
+  { id: 'c-readonly', p: { label: 'Solo lectura', readonly: true, modelValue: 'fijo' } },
+  { id: 'c-disabled', p: { label: 'Deshabilitado', disabled: true, modelValue: 'no' } },
+  { id: 'c-required', p: { label: 'Obligatorio', required: true, mark: true } },
+  { id: 'c-prepend', p: { label: 'Usuario', modelValue: 'ana' }, prepend: true },
+  { id: 'c-action', p: { label: 'Buscar', modelValue: 'guantes' }, action: true },
+  { id: 'c-nolabel', p: { 'aria-label': 'Sin etiqueta visible', placeholder: 'Escribe' } }
+)
+const app = Vue.createApp({ setup: () => ({ cases }) })
+app.use(Grana)
+app.mount('#app')
+document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.dataset.ready = '1' })))
+</script>
+</body>
+</html>

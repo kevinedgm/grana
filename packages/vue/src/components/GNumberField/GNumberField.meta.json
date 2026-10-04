@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GNumberField",
   "tag": "g-number-field",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo para un número que se escribe (edad, peso, temperatura, cantidad): texto con forma de número en el formato del idioma, modelo Number o null, valor canónico en el envío y −/+ opcionales. Compone GInput.",
   "contract": "design/contracts/number-field.md",

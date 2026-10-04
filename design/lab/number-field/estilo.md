@@ -52,7 +52,9 @@ Medido en el banco (texto de referencia «99», el más ancho entre `min` y `max
 | `md`, `space` 4, puntero grueso (Chromium y WebKit) | 128px (−/+ de 44) |
 | «Tema de prueba» (`space` 5, borde 2px, Georgia) | 129px |
 
-Para mora-docs (receta, no normativo): «un campo con −/+ en una fila necesita unos 112px en `md` (128px en táctil); el campo lo publica él mismo a la fila».
+**Con la fuente servida (`dist/fonts.css`), sobre el componente real** (auditoría, hallazgo 2 de `auditoria.md`): **111px** en `md` (tres motores), 127px con puntero grueso, 129px con el Tema de prueba y 135px con el tema de la auditoría (`space` 5, 17px). La tabla de arriba se midió en este banco sin `fonts.css`; la cifra depende de la fuente, por eso el campo la mide y la publica.
+
+Para mora-docs (receta, no normativo): «un campo con −/+ en una fila necesita unos 110px en `md` (unos 130px en táctil); el campo lo publica él mismo a la fila».
 
 ## Para bruno (lo que el CSS espera del marcado)
 
@@ -90,6 +92,7 @@ Para mora-docs (receta, no normativo): «un campo con −/+ en una fila necesita
 ## Qué NO verifiqué (queda para la auditoría sobre el componente real)
 
 - **Todo lo anterior sobre `GNumberField.vue`** (la batería entera se ejecutó sobre el marcado del contrato): en particular el mínimo publicado por el `.vue` a una `GFormRow` real y que una fila se parte antes de que «99» deje de caber; el desbloqueo de un `readonly` (#266) sin repartir la fila ni cambiar la altura; `is-rejected` puesto por `GForm` en un envío (no a mano); `is-ready` (I1) con el mensaje que sale del campo; el foco que llega desde `GErrorSummary`; la retirada de la capa y de `is-bumping` con los tiempos reales del `.vue`; el texto crudo al entrar y el formateado al salir (P1 cambia de ancho con el foco); `Intl` real en `ar-EG`/`he` con cifras del idioma.
+- **Auditoría (paso 5) hecha:** `design/lab/number-field/auditoria.md` (`auditoria-verificar.mjs` sobre el componente real). Lo que sigue abierto tras ella: el hallazgo 1 (WebKit, 1px de desplazamiento con el cursor al final, constante de #313) y lo de abajo.
 - `forced-colors` en Firefox y WebKit y puntero grueso en Firefox (Playwright no los emula); Windows con contraste alto, Safari, iOS/Android reales (−/+ sin abrir el teclado, doble toque sin zoom); zoom 200/400 %.
 - Lector de pantalla (no es estética; abierto en el contrato).
 
