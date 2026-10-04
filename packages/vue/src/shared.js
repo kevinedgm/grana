@@ -19,7 +19,7 @@ import GDialog from './components/GDialog/GDialog.vue'
 import GInput from './components/GInput/GInput.vue'
 import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
-import { fieldGroupKey, formKey, layoutKey, sectionKey } from './components/GForm/formContext.js'
+import { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
@@ -40,7 +40,7 @@ export const shared = {
   'components/GInput/GInput.vue': { default: GInput },
   'components/GAvatar/GAvatar.vue': { default: GAvatar },
   'components/GIcon/GIcon.vue': { default: GIcon },
-  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, sectionKey },
+  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },

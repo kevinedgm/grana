@@ -505,11 +505,11 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <h3>Paciente entre miles (servidor simulado, cuatro homónimas)</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:420px">
-      <g-combobox id="cb-pac" v-model="cb.pac.value" label="Paciente" hint="Nombre, apellidos o expediente" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
+      <g-combobox id="cb-pac" block v-model="cb.pac.value" label="Paciente" hint="Nombre, apellidos o expediente" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
         :options="cb.pac.options" :loading="cb.pac.loading" :total="cb.pac.total" :load-error="cb.pac.err" @search="cbSearch(cb.pac, $event)" @more="cbMore(cb.pac)" @change="cbChange('pac', $event)">
         <template #prepend><g-icon name="user"></g-icon></template>
       </g-combobox>
-      <g-combobox id="cb-pal" v-model="cb.pal.value" appearance="palette" label="Paciente (paleta con vista previa)" hint="Para homónimos: la ficha de la opción activa antes de elegir" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
+      <g-combobox id="cb-pal" block v-model="cb.pal.value" appearance="palette" label="Paciente (paleta con vista previa)" hint="Para homónimos: la ficha de la opción activa antes de elegir" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
         :options="cb.pal.options" :loading="cb.pal.loading" :total="cb.pal.total" :load-error="cb.pal.err" @search="cbSearch(cb.pal, $event)" @more="cbMore(cb.pal)">
         <template #prepend><g-icon name="user"></g-icon></template>
       </g-combobox>
@@ -520,15 +520,15 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <h3>Diagnóstico CIE-10 (lista local, grupos, código y descripción)</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:420px">
-      <g-combobox id="cb-dx" v-model="cb.dx" label="Diagnóstico principal" placeholder="Código o descripción" clearable required :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions" @change="cbChange('dx', $event)"></g-combobox>
+      <g-combobox id="cb-dx" block v-model="cb.dx" label="Diagnóstico principal" placeholder="Código o descripción" clearable required :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions" @change="cbChange('dx', $event)"></g-combobox>
     </div>
     <p class="log" id="cb-out-dx">dx: {{ cb.dx === null ? 'null' : cb.dx }}</p>
           </div>
           <h3>Medicamento con texto libre · cliente con «Agregar» (filtro local corto)</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:420px">
-      <g-combobox id="cb-med" v-model="cb.med" v-model:custom="cb.medLibre" label="Medicamento" hint="Elige del cuadro básico o escribe otro" placeholder="Nombre y presentación" clearable allow-custom :delay="cb.delay" :labels="cb.labels" :options="cb.meds" @change="cbChange('med', $event)"></g-combobox>
-      <g-combobox id="cb-cli" v-model="cb.cliente" label="Cliente" placeholder="Buscar cliente" creatable :delay="cb.delay" :labels="cb.labels" :options="cb.clientes" @create="cbCreate">
+      <g-combobox id="cb-med" block v-model="cb.med" v-model:custom="cb.medLibre" label="Medicamento" hint="Elige del cuadro básico o escribe otro" placeholder="Nombre y presentación" clearable allow-custom :delay="cb.delay" :labels="cb.labels" :options="cb.meds" @change="cbChange('med', $event)"></g-combobox>
+      <g-combobox id="cb-cli" block v-model="cb.cliente" label="Cliente" placeholder="Buscar cliente" creatable :delay="cb.delay" :labels="cb.labels" :options="cb.clientes" @create="cbCreate">
         <template #prepend><g-icon name="building-complex"></g-icon></template>
       </g-combobox>
     </div>
@@ -539,17 +539,17 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <div class="pg-panel">
     <div class="row"><g-btn id="cb-fail" variant="outline" color="neutral" @click="cbFailNext">Fallar la próxima búsqueda</g-btn></div>
     <div class="col" style="max-width:420px">
-      <g-combobox id="cb-err" v-model="cb.errc.value" label="Paciente (red inestable)" placeholder="Buscar paciente" :filter="false" :delay="cb.delay" :labels="cb.labels"
+      <g-combobox id="cb-err" block v-model="cb.errc.value" label="Paciente (red inestable)" placeholder="Buscar paciente" :filter="false" :delay="cb.delay" :labels="cb.labels"
         :options="cb.errc.options" :loading="cb.errc.loading" :total="cb.errc.total" :load-error="cb.errc.err" @search="cbSearch(cb.errc, $event)" @more="cbMore(cb.errc)"></g-combobox>
-      <g-combobox id="cb-big" v-model="cb.big" label="Insumo" placeholder="Buscar insumo" :delay="cb.delay" :labels="cb.labels" :options="cb.bigOptions"></g-combobox>
+      <g-combobox id="cb-big" block v-model="cb.big" label="Insumo" placeholder="Buscar insumo" :delay="cb.delay" :labels="cb.labels" :options="cb.bigOptions"></g-combobox>
     </div>
           </div>
           <h3>Estados: solo lectura, deshabilitado, error</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:420px">
-      <g-combobox id="cb-ro" model-value="I10" label="Diagnóstico (solo lectura)" readonly clearable :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
-      <g-combobox id="cb-dis" model-value="J00" label="Diagnóstico (deshabilitado)" disabled :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
-      <g-combobox id="cb-bad" v-model="cb.bad" label="Diagnóstico de egreso" required :error="cb.bad === null ? 'Elige un diagnóstico de la lista.' : undefined" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+      <g-combobox id="cb-ro" block model-value="I10" label="Diagnóstico (solo lectura)" readonly clearable :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+      <g-combobox id="cb-dis" block model-value="J00" label="Diagnóstico (deshabilitado)" disabled :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+      <g-combobox id="cb-bad" block v-model="cb.bad" label="Diagnóstico de egreso" required :error="cb.bad === null ? 'Elige un diagnóstico de la lista.' : undefined" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
     </div>
           </div>
           <h3>En una GFormRow de tres y en el envío</h3>
@@ -585,7 +585,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <h3>RTL</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:420px" dir="rtl" lang="ar">
-      <g-combobox id="cb-rtl" v-model="cb.rtl" label="الطبيب" placeholder="ابحث" clearable :delay="cb.delay" :labels="cb.rtlLabels" :options="cb.rtlOptions"></g-combobox>
+      <g-combobox id="cb-rtl" block v-model="cb.rtl" label="الطبيب" placeholder="ابحث" clearable :delay="cb.delay" :labels="cb.rtlLabels" :options="cb.rtlOptions"></g-combobox>
     </div>
           </div>
         </section>
@@ -2810,7 +2810,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           'fg-a': ['error', 'La fecha debe incluir el año'],
           'fr-rfc': ['error', 'El RFC de persona moral tiene 12 caracteres']
         }
-        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1 }
+        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1, 'fm-dx': 1 }
         const frForm = ref(null)
         const fm = reactive({
           labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', sectionErrors: (n) => (n === 1 ? '1 error' : `${n} errores`), error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },

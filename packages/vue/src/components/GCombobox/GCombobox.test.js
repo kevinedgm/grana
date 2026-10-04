@@ -88,6 +88,11 @@ async function key(w, k, init = {}, target = field(w)) {
   await flush()
   return ev
 }
+// Un movimiento real del puntero sobre una fila: el primer evento solo anota la posición; el segundo activa
+const pointerOver = (el) => {
+  el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }))
+  el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 6, clientY: 6 }))
+}
 const mobile = (matches = true) => {
   const listeners = []
   const mq = { matches, addEventListener: (_, fn) => listeners.push(fn), removeEventListener: () => {} }
@@ -437,7 +442,7 @@ describe('GCombobox · pendiente y resultados obsoletos (#332, #333)', () => {
     const w2 = await mk({ filter: false, options: PEOPLE })
     await typeText(w2, 'mar')
     const li = rows(w2)[2].element
-    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }))
+    pointerOver(li)
     await flush()
     await key(w2, 'Enter')
     expect(emitted(w2, 'update:modelValue')).toEqual(['p3'])
@@ -636,6 +641,12 @@ describe('GCombobox · teclado (#333)', () => {
     await key(w, 'ArrowDown')
     const li = rows(w)[2].element
     li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 3, clientY: 9 }))
+    await flush()
+    expect(activeEl(w), 'el primer evento tras abrir solo anota la posición').not.toBe(li)
+    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 3, clientY: 9 }))
+    await flush()
+    expect(activeEl(w), 'sin desplazamiento real no activa').not.toBe(li)
+    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 4, clientY: 9 }))
     await flush()
     expect(activeEl(w)).toBe(li)
     const down = new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
@@ -1304,6 +1315,142 @@ describe('GCombobox · movimiento: la ficha llega (#336)', () => {
     await flush()
     expect(st.v).toBe('E10.9')
     expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
+  })
+})
+
+describe('GCombobox · la lista no salta ni cambia de lado (reporte del usuario)', () => {
+  // Rectángulos simulados: las filas miden 100 de alto y el panel enseña 300
+  function fakeList(w) {
+    const panel = w.find('.g-combobox__panel').element
+    let top = 0
+    Object.defineProperty(panel, 'scrollTop', { configurable: true, get: () => top, set: (v) => { top = v } })
+    panel.getBoundingClientRect = () => ({ top: 0, bottom: 300, left: 0, right: 200, width: 200, height: 300 })
+    rows(w).forEach((r, i) => { r.element.getBoundingClientRect = () => ({ top: i * 100 - top, bottom: i * 100 + 100 - top, left: 0, right: 200, width: 200, height: 100 }) })
+    return panel
+  }
+
+  it('la activación por puntero no desplaza la lista; la del teclado sí la lleva a la vista', async () => {
+    const w = await mk({ options: MANY, limit: 10 })
+    await key(w, 'ArrowDown', { altKey: true })
+    const panel = fakeList(w)
+    const partly = rows(w)[3].element // asoma por el borde inferior (300 a 400)
+    pointerOver(partly)
+    await flush()
+    expect(activeEl(w)).toBe(partly)
+    expect(panel.scrollTop, 'el puntero no desplaza').toBe(0)
+    await key(w, 'ArrowDown')
+    expect(activeEl(w)).toBe(rows(w)[4].element)
+    expect(panel.scrollTop, 'el teclado sí').toBe(200)
+    // Un cambio de resultados también lleva la activa a la vista
+    await key(w, 'PageDown')
+    expect(panel.scrollTop).toBeGreaterThan(200)
+  })
+
+  it('un resultado que aparece bajo el puntero quieto no roba la activa al teclado', async () => {
+    const w = await mk({ options: PEOPLE })
+    await typeText(w, 'mar')
+    expect(activeEl(w).textContent).toContain('001000')
+    const other = rows(w)[2].element
+    other.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 50, clientY: 250 })) // sintético, sin movimiento
+    other.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 50, clientY: 250 }))
+    await flush()
+    expect(activeEl(w).textContent).toContain('001000')
+    await key(w, 'Enter')
+    expect(emitted(w, 'update:modelValue')).toEqual(['p1'])
+  })
+
+  // Visor de 329 de alto; la caja mide 40 y su borde superior está en `top.v`
+  async function placed(start) {
+    vi.useFakeTimers()
+    vi.stubGlobal('innerHeight', 329)
+    window.innerHeight = 329
+    const top = { v: start }
+    const w = await mk({ options: MANY, limit: 10 })
+    const box = w.find('.g-input__control').element
+    box.getBoundingClientRect = () => ({ top: top.v, bottom: top.v + 40, left: 20, right: 260, width: 240, height: 40 })
+    const pop = w.find('.g-combobox__popup').element
+    Object.defineProperty(pop.querySelector('.g-combobox__panel'), 'scrollHeight', { configurable: true, value: 1000 })
+    const v = (n) => pop.style.getPropertyValue(n)
+    const scrollTo = async (y, target = document) => {
+      top.v = y
+      target.dispatchEvent(new Event('scroll', { bubbles: target !== document }))
+      vi.advanceTimersByTime(20)
+      await flush()
+    }
+    await key(w, 'ArrowDown')
+    return { w, pop, v, scrollTo, top }
+  }
+
+  it('el lado se decide al abrir y se conserva: en la franja del cruce no alterna (histéresis)', async () => {
+    const { w, v, scrollTo } = await placed(150) // arriba 142, abajo 131: abre hacia arriba
+    expect(root(w).classes()).toContain('is-up')
+    expect(v('--_top')).toBe('auto')
+    expect(v('--_bottom')).toBe('139px')
+    let flips = 0
+    let was = true
+    for (const y of [148, 146, 145, 144, 142, 140, 142, 145, 148, 150, 152, 150, 145]) {
+      await scrollTo(y)
+      const now = root(w).classes().includes('is-up')
+      if (now !== was) flips++
+      was = now
+    }
+    expect(flips, 'ningún cambio de lado en el vaivén alrededor del cruce').toBe(0)
+    // Solo cambia cuando el otro lado ofrece claramente más (space × 12 = 48) y el actual ya no es útil (< space × 40)
+    await scrollTo(110) // arriba 102, abajo 171: 171 ≥ 102 + 48
+    expect(root(w).classes()).not.toContain('is-up')
+    expect(v('--_top')).toBe('110px')
+    expect(v('--_bottom')).toBe('auto')
+    await scrollTo(130) // de vuelta: arriba 122, abajo 151; no vuelve a cambiar
+    expect(root(w).classes()).not.toContain('is-up')
+  })
+
+  it('--_max se fija al abrir: durante el desplazamiento solo cambia la posición, una vez por cuadro', async () => {
+    const { w, pop, v, scrollTo, top } = await placed(20) // abajo 261
+    expect(root(w).classes()).not.toContain('is-up')
+    expect(v('--_max')).toBe('261px')
+    expect([v('--_x'), v('--_w'), v('--_field-h'), v('--_top')]).toEqual(['20px', '240px', '40px', '20px'])
+    const set = vi.spyOn(pop.style, 'setProperty')
+    for (const y of [24, 28, 32, 36, 40]) {
+      await scrollTo(y)
+      expect(v('--_max'), `--_max a ${y}`).toBe('261px')
+      expect(v('--_top')).toBe(`${y}px`)
+    }
+    expect(set.mock.calls.every((c) => c[0] === '--_top'), 'solo se escribe lo que cambia').toBe(true)
+    expect(set.mock.calls.length).toBe(5)
+    // Varios eventos en el mismo cuadro: una sola escritura
+    set.mockClear()
+    top.v = 44
+    document.dispatchEvent(new Event('scroll'))
+    top.v = 48
+    document.dispatchEvent(new Event('scroll'))
+    vi.advanceTimersByTime(20)
+    expect(set.mock.calls).toEqual([['--_top', '48px']])
+    // El render no borra las variables (no hay atributo style gestionado por Vue)
+    await typeText(w, 'insumo 00')
+    expect(v('--_x')).toBe('20px')
+    // Cambiar los resultados y resize sí vuelven a medir el alto
+    expect(v('--_max')).toBe('233px')
+    top.v = 60
+    window.dispatchEvent(new Event('resize'))
+    expect(v('--_max')).toBe('221px')
+  })
+
+  it('si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra; el panel propio no cuenta', async () => {
+    const { w, scrollTo, pop } = await placed(20)
+    await scrollTo(22, pop.querySelector('.g-combobox__panel')) // el propio panel se desplaza: nada
+    expect(field(w).attributes('aria-expanded')).toBe('true')
+    await scrollTo(-41)
+    expect(field(w).attributes('aria-expanded')).toBe('false')
+    expect(emitted(w, 'close').length).toBe(1)
+    const wrap = document.createElement('div')
+    const { w: w2, scrollTo: scroll2 } = await placed(20)
+    w2.element.parentElement.insertBefore(wrap, w2.element)
+    wrap.appendChild(w2.element)
+    wrap.getBoundingClientRect = () => ({ top: 100, bottom: 300, left: 0, right: 400, width: 400, height: 200 })
+    await scroll2(120, wrap)
+    expect(field(w2).attributes('aria-expanded')).toBe('true')
+    await scroll2(50, wrap) // la caja (50 a 90) queda por encima del contenedor (desde 100)
+    expect(field(w2).attributes('aria-expanded')).toBe('false')
   })
 })
 

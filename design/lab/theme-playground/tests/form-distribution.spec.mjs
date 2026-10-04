@@ -176,6 +176,20 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
       await bench(page, { w })
       expect(await page.locator('#fm-vitals').getAttribute('data-lines'), `signos vitales a ${w}`).toBe(String(n))
     }
+    // Fila con GCombobox (combobox.md «En una GFormRow», #336): dos campos de catálogo que comparten línea mientras cada
+    // uno conserva --g-form-min: 60 (240px con space 4, declarado por el CSS sobre appearance="field"); por debajo, se parte
+    for (const [w, n] of [['1280', 1], ['720', 1], ['360', 2], ['320', 2]]) {
+      await bench(page, { w })
+      const cl = await page.evaluate(() => {
+        const row = document.querySelector('#fm-clinica')
+        return { lines: row.dataset.lines, roles: [...row.children].map((c) => c.querySelector('input:not([type="hidden"])')?.getAttribute('role')), cb: [...row.children].every((c) => c.classList.contains('g-combobox') && c.classList.contains('g-input')), ws: [...row.children].map((c) => c.getBoundingClientRect().width), flow: [...row.children].map((c) => [...c.children].filter((k) => !['absolute', 'fixed'].includes(getComputedStyle(k).position) && getComputedStyle(k).display !== 'none').length) }
+      })
+      expect(cl.lines, `fila con GCombobox a ${w}`).toBe(String(n))
+      expect(cl.roles).toEqual(['combobox', 'combobox'])
+      expect(cl.cb).toBe(true)
+      expect(cl.flow, 'tres hijos en flujo (etiqueta · caja · pie): comparte línea').toEqual([3, 3])
+      if (n === 1) for (const cw of cl.ws) expect(cw, `a ${w}: cada GCombobox ≥ 240px`).toBeGreaterThanOrEqual(239)
+    }
     await bench(page, { w: '720' })
     const vit720 = await page.evaluate(() => [...document.querySelector('#fm-vitals').children].map((c) => c.dataset.line))
     expect(vit720, 'a 720: Temperatura · Presión / FC · Sat. · Peso · Estatura').toEqual(['0', '0', '1', '1', '1', '1'])

@@ -17,7 +17,7 @@ import GDialog from '../GDialog/GDialog.vue'
 import GAvatar from '../GAvatar/GAvatar.vue'
 import GAppIcon from '../GIcon/GIcon.vue'   // iconos por nombre de la opción (`icon`): registro de la aplicación → librería (#202)
 import GIcon from '../GIcon/GLibIcon.js'    // iconos propios: SOLO la lista de la librería
-import { formKey, layoutKey } from '../GForm/formContext.js'
+import { formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
 import { completion, fold, matches, parts, secondary, tokens, validOption } from './engine.js'
 
 defineOptions({ name: 'GCombobox', inheritAttrs: false })
@@ -76,6 +76,8 @@ const PAGE_ROWS = 10      // Av Pág / Re Pág
 const UP_BELOW = 240      // «abre hacia arriba» si debajo queda menos (o menos que el alto natural)
 const MIN_ROOM = 96       // alto disponible mínimo que se publica en --_max
 const EDGE = 8            // margen con el visor
+const SIDE_MIN_SPACES = 40  // el lado elegido deja de ser útil por debajo de space × 40…
+const SIDE_FLIP_SPACES = 12 // …y solo se cambia si el otro ofrece al menos space × 12 más (histéresis)
 const PHONE_QUERY = '(max-width: 520px)' // umbral literal de #42 y #56
 const ARRIVE_PREFIX = 'g-combobox-arrive'
 
@@ -266,7 +268,11 @@ const hasPanel = computed(() => Boolean(status.value) || rows.value.all.length >
 const panelVisible = computed(() => opened.value && (surface.value || hasPanel.value))
 const listOpen = computed(() => opened.value && !surface.value && hasPanel.value)
 
-function setActive(row, byComponent) {
+// La activa se lleva a la vista SOLO si la puso el teclado o un cambio de resultados; la del puntero nunca desplaza la
+// lista (saltaría bajo el puntero)
+let revealActive = false
+function setActive(row, byComponent, reveal = true) {
+  revealActive = Boolean(row) && reveal
   active.value = row ? (row.kind === 'action' ? { action: row.action } : { value: row.o.value }) : null
   auto.value = Boolean(row) && byComponent
 }
@@ -446,39 +452,95 @@ watch(() => props.loadError, (v) => {
 })
 
 // ---------- Colocación de la forma de A (anchor.js, sin separación): variables en línea sobre el popup ----------
-const popStyle = reactive({})
+// El lado (abajo o arriba) se decide AL ABRIR y se conserva: solo cambia si deja de ser útil (menos de space × 40) y el
+// otro ofrece claramente más (space × 12), nunca en cada cuadro. --_max se fija al abrir, al cambiar los resultados, en
+// resize y al cambiar de lado. Durante el desplazamiento de la página solo se actualiza la posición, una vez por cuadro
+// y solo si cambia (style.setProperty: el render no toca el atributo style). Si la caja sale del visor o de su
+// contenedor con desplazamiento, la lista se cierra.
 const px = (n) => `${Math.round(n * 100) / 100}px`
 const controlEl = () => valueEl.value?.closest('.g-input__control') || null
+let side = null // 'down' | 'up' mientras está abierta
+let written = {}
+let followFrame = 0
+function writeVar(name, value) {
+  const pop = popupEl.value
+  if (!pop || written[name] === value) return
+  written[name] = value
+  pop.style.setProperty(name, value)
+}
+const roomOf = (r, vh, which) => (which === 'up' ? r.top - EDGE : vh - r.bottom - EDGE)
+function flipIfUseless(box, r, vh) {
+  const unit = spaceUnit(box)
+  const other = side === 'up' ? 'down' : 'up'
+  const cur = roomOf(r, vh, side)
+  if (cur >= unit * SIDE_MIN_SPACES || roomOf(r, vh, other) < cur + unit * SIDE_FLIP_SPACES) return false
+  side = other
+  return true
+}
+function writeSide(r, vh) {
+  up.value = side === 'up'
+  writeVar('--_max', px(Math.max(MIN_ROOM, roomOf(r, vh, side))))
+}
+function writePosition(r, vh) {
+  writeVar('--_x', px(r.left))
+  writeVar('--_top', side === 'up' ? 'auto' : px(r.top))
+  writeVar('--_bottom', side === 'up' ? px(vh - r.bottom) : 'auto')
+}
+/** Colocación completa: al abrir, al cambiar los resultados y en resize */
 function place() {
   const pop = popupEl.value
   const box = controlEl()
   if (!opened.value || surface.value || !pop || !box || typeof window === 'undefined') return
   const r = box.getBoundingClientRect()
-  const panel = pop.querySelector('.g-combobox__panel')
-  const natural = panel ? panel.scrollHeight : 0
-  const vw = document.documentElement.clientWidth || window.innerWidth
   const vh = window.innerHeight
-  const at = placeBlock(r, { width: r.width, naturalHeight: Math.min(natural, UP_BELOW), vw, vh, pad: EDGE, gap: 0 })
-  const goUp = at.y < r.bottom
-  up.value = goUp
-  Object.assign(popStyle, {
-    '--_x': px(r.left),
-    '--_w': px(r.width),
-    '--_field-h': px(r.height),
-    '--_max': px(Math.max(MIN_ROOM, at.room)),
-    '--_top': goUp ? 'auto' : px(r.top),
-    '--_bottom': goUp ? px(vh - r.bottom) : 'auto'
-  })
+  if (!side) {
+    const panel = pop.querySelector('.g-combobox__panel')
+    const natural = panel ? panel.scrollHeight : 0
+    const vw = document.documentElement.clientWidth || window.innerWidth
+    const at = placeBlock(r, { width: r.width, naturalHeight: Math.min(natural, UP_BELOW), vw, vh, pad: EDGE, gap: 0 })
+    side = at.y < r.bottom ? 'up' : 'down'
+  } else flipIfUseless(box, r, vh)
+  writeVar('--_w', px(r.width))
+  writeVar('--_field-h', px(r.height))
+  writeSide(r, vh)
+  writePosition(r, vh)
 }
-function onReposition(event) {
-  if (event && event.target && popupEl.value && popupEl.value.contains?.(event.target)) return // el propio panel se desplaza
-  place()
+/** Durante el desplazamiento: solo la posición (y el lado, con histéresis); fuera de la vista, se cierra */
+function follow(scroller) {
+  followFrame = 0
+  const box = controlEl()
+  if (!opened.value || surface.value || !popupEl.value || !box) return
+  const r = box.getBoundingClientRect()
+  const vh = window.innerHeight
+  const vw = document.documentElement.clientWidth || window.innerWidth
+  let gone = r.bottom <= 0 || r.top >= vh || r.right <= 0 || r.left >= vw
+  if (!gone && scroller && scroller.nodeType === 1 && scroller !== document.documentElement && scroller !== document.body && scroller.contains(box)) {
+    const c = scroller.getBoundingClientRect()
+    gone = r.bottom <= c.top || r.top >= c.bottom || r.right <= c.left || r.left >= c.right
+  }
+  if (gone) return closeList()
+  if (flipIfUseless(box, r, vh)) writeSide(r, vh)
+  writePosition(r, vh)
+}
+function onScroll(event) {
+  const t = event && event.target
+  if (t && popupEl.value && popupEl.value.contains?.(t)) return // el propio panel se desplaza
+  if (followFrame) return
+  const run = () => follow(t)
+  followFrame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(run) : setTimeout(run, 16)
+}
+function stopFollow() {
+  if (!followFrame) return
+  if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(followFrame)
+  clearTimeout(followFrame)
+  followFrame = 0
 }
 function listen(on) {
   if (typeof window === 'undefined') return
   const fn = on ? 'addEventListener' : 'removeEventListener'
-  window[fn]('resize', onReposition)
-  window[fn]('scroll', onReposition, true)
+  window[fn]('resize', place)
+  window[fn]('scroll', onScroll, true)
+  if (!on) stopFollow()
 }
 // La activa siempre a la vista desplazando EL PANEL, nunca la página (sin scrollIntoView)
 function scrollActive() {
@@ -498,7 +560,7 @@ function scrollActive() {
   if (a.top < b.top) sc.scrollTop -= b.top - a.top
   else if (a.bottom > b.bottom) sc.scrollTop += a.bottom - b.bottom
 }
-watch(activeRow, (r) => { if (r) nextTick(scrollActive) }, { flush: 'post' })
+watch(activeRow, (r) => { if (r && revealActive) nextTick(scrollActive) }, { flush: 'post' })
 watch(() => (opened.value && !surface.value ? [hasPanel.value, rows.value.all.length, status.value?.kind].join('|') : ''), (v) => { if (v) nextTick(place) }, { flush: 'post' })
 
 // ---------- Abrir y cerrar ----------
@@ -507,6 +569,7 @@ function show(seed, byTyping = false) {
   shown.value = limit.value
   setActive(null)
   moreFrom = null
+  lastX = lastY = null
   if (surface.value) {
     query.value = seed || ''
     q.value = query.value
@@ -557,6 +620,8 @@ function closeList() {
       try { pop.hidePopover() } catch { /* ya cerrado */ }
     }
     up.value = false
+    side = null
+    written = {}
   }
 }
 watch(panelVisible, (v) => emit(v ? 'open' : 'close'))
@@ -862,7 +927,11 @@ function onClick(e) {
   if (!editable.value || opened.value) return
   show()
   // Con valor y sin escribir, el texto queda seleccionado también al entrar con el puntero
-  if (!surface.value && hasValue.value && !typed.value) selectAll()
+  if (!surface.value && hasValue.value && !typed.value) {
+    selectAll()
+    // WebKit coloca el cursor después del clic y deshace la selección: se repite en el ciclo siguiente
+    setTimeout(() => { if (opened.value && !typed.value) selectAll() }, 0)
+  }
 }
 // Pulsar el área vacía de la caja (prefijo, hueco) enfoca el campo y abre
 function onBoxDown(e) {
@@ -883,6 +952,14 @@ function toggle() {
 const keep = (e) => e.preventDefault() // el panel, limpiar y la flecha no quitan el foco del campo
 
 // ---------- Campo de búsqueda de la superficie ----------
+// El foco inicial es el campo de búsqueda (#292). GDialog no roba un foco que ya está dentro, y al reabrir durante la
+// salida (el contenido sigue montado) el navegador enfoca el botón de cierre, que va antes en el DOM: se fija aquí.
+function focusSearch() {
+  nextTick(() => {
+    const el = typeof document !== 'undefined' ? document.getElementById(sub('search')) : null
+    if (el && opened.value && document.activeElement !== el) el.focus({ preventScroll: true })
+  })
+}
 function onSearchInput(e) {
   query.value = e.target.value
   if (composing.value || e.isComposing) return
@@ -912,12 +989,15 @@ function onPanelClick(e) {
 let lastX = null
 let lastY = null
 function onPanelMove(e) {
-  // Solo un movimiento real del puntero activa (un desplazamiento del panel bajo el puntero quieto, no)
-  if (e.clientX === lastX && e.clientY === lastY) return
+  // Solo un movimiento REAL del puntero activa: el primer evento tras abrir solo anota dónde está (un resultado que
+  // aparece bajo el puntero quieto no roba la activa al teclado) y uno sin desplazamiento se ignora (la lista que se
+  // mueve bajo el puntero). La activación por puntero nunca desplaza la lista.
+  const still = lastX === null || (e.clientX === lastX && e.clientY === lastY)
   lastX = e.clientX
   lastY = e.clientY
+  if (still) return
   const hit = rowFromEvent(e)
-  if (hit && !hit.row.disabled && activeRow.value !== hit.row) setActive(hit.row, false)
+  if (hit && !hit.row.disabled && activeRow.value !== hit.row) setActive(hit.row, false, false)
 }
 
 // ---------- Piezas de pintado ----------
@@ -1048,6 +1128,7 @@ const Extras = () => [
         id: sub('surface'),
         modelValue: surfaceOpen.value,
         'onUpdate:modelValue': (v) => { surfaceOpen.value = v },
+        onOpen: focusSearch,
         class: ['g-combobox-surface', narrow.value ? 'g-combobox-surface--sheet' : 'g-combobox-surface--palette'],
         size: 'lg',
         mobile: 'sheet',
@@ -1087,7 +1168,7 @@ const Extras = () => [
           h('div', { class: 'g-combobox__live', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, live.polite)
         ]
       })
-    : h('div', { key: 'popup', id: sub('popup'), ref: popupEl, class: ['g-combobox__popup', { 'is-empty': !opened.value || !hasPanel.value }], style: { ...popStyle }, popover: 'manual' }, [
+    : h('div', { key: 'popup', id: sub('popup'), ref: popupEl, class: ['g-combobox__popup', { 'is-empty': !opened.value || !hasPanel.value }], popover: 'manual' }, [
         h('div', { class: 'g-combobox__popup-body' }, [h(Panel)])
       ])
 ]

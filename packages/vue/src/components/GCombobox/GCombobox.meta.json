@@ -30,10 +30,10 @@
   "bundle": {
     "measured": "2026-10-04",
     "entry": "dist/combobox.js",
-    "gzip": 13610,
-    "umdGzip": 12274,
+    "gzip": 14111,
+    "umdGzip": 12740,
     "umdGlobal": "GranaCombobox",
-    "main": "dist/grana.js gzip 155075; GCombobox no está en el principal",
+    "main": "dist/grana.js gzip 155080; GCombobox no está en el principal",
     "note": "Vue y @grana/vue externos; GInput, GAvatar, GDialog, GIcon (público e interno), formContext, anchor, liveRegion, template y oneOf llegan de __shared (#240), sin copia. El CSS va en grana.css. Supera el tope de 8 KB gzip de #328: por eso la entrada propia (#337)."
   },
   "composes": [
@@ -548,7 +548,10 @@
     "Abrir escribiendo es escritura: el primer search lleva antirrebote (una emisión por pausa). Abrir sin escribir y «Reintentar» emiten sin esperar.",
     "La activa que puso la persona (flechas, puntero, →) se respeta al asentarse una búsqueda si sigue a la vista; si no, la primera habilitada queda activa sola.",
     "update:modelValue y update:custom solo se emiten si el valor cambia; change, solo si cambió alguno.",
-    "Sin prop locale: la comparación es NFD + minúsculas sin configuración regional y las cifras usan Intl.NumberFormat del lang del ancestro más cercano."
+    "Sin prop locale: la comparación es NFD + minúsculas sin configuración regional y las cifras usan Intl.NumberFormat del lang del ancestro más cercano.",
+    "Colocación de A: el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si deja de ser útil (menos de space × 40) y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al cambiar los resultados, en resize y al cambiar de lado; durante el desplazamiento de la página solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra.",
+    "La opción activa se lleva a la vista (desplazando el panel, nunca la página) solo cuando la puso el teclado o un cambio de resultados; la activación por puntero no desplaza la lista y exige un movimiento real del puntero (el primer evento tras abrir solo anota la posición).",
+    "El foco inicial de la superficie se fija en el campo de búsqueda al abrir (también al reabrir durante la salida de GDialog, cuando el navegador enfocaría el botón de cierre, que va antes en el DOM)."
   ],
   "pending": [
     "Auditoría de coco con un tema distinto y con el oscuro; luego status candidate.",
