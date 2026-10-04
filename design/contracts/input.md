@@ -230,7 +230,22 @@ Ronda de kiwi `design/lab/personalidad/r01/` §7 (I1 e I2, prototipadas sobre el
 - **Quién la quita** (lo primero que ocurra): el fin de la sacudida (`animationend` o `animationcancel` dentro de la raíz del campo cuyo `animationName` empieza por **`g-reject`**; el `animationend` del mensaje de I1 no cuenta), el siguiente `input` o `change` del campo, su desmontaje, o un envío nuevo, que la quita y la vuelve a poner en el cuadro siguiente para que la sacudida se repita.
 - **Qué se ve (coco):** una vez, horizontal, decreciente, amplitudes `1 · 0.75 · 0.5 · 0.25` × `--g-space-1` (máximo 4px con `space` 4) en los instantes `16 · 36 · 56 · 76 %` de `--g-duration-slow`, keyframes de nombre **`g-reject…`**. Se mueve **`g-input__row`** (caja y acción), para que el anillo de foco vaya con ella; la etiqueta y el mensaje no se mueven.
 - **Nunca** al escribir, al salir del campo, al montar ni al cambiar `errors` desde la aplicación sin `showErrors()`.
-- Otros campos: la clase llega a la raíz de todo campo registrado que bloquea (un grupo, `GFieldGroup`, `GCheckboxGroup`, `GRadioGroup`, `GInputGroup`, como **una** pregunta: en la raíz del grupo). Cada campo que la adopte la añade en su CSS con la misma regla y el mismo prefijo `g-reject`. **Estado tras los planes 018:** `GInput` dibuja I1 e I2; **`GTextarea` y `GSelect` ya dibujan I2** (`g-reject-shake-textarea` y `g-reject-shake-select`, sobre su `__control`) y **necesitan `is-ready` de bruno para I1** (hoy no lo escriben; sin él su mensaje no se anima). `GCheckbox`, `GSwitch`, `GDatePicker` y los grupos **reciben `is-rejected` sin CSS aún** (pendiente de coco: la clase llega y se retira por el siguiente `input`/`change` o envío, pero no hay sacudida).
+- Otros campos: la clase llega a la raíz de todo campo registrado que bloquea (un grupo, `GFieldGroup`, `GCheckboxGroup`, `GRadioGroup`, `GInputGroup`, como **una** pregunta: en la raíz del grupo). Cada campo que la adopte la añade en su CSS con la misma regla y el mismo prefijo `g-reject`. **Estado (planes 018 y #306):** todos los campos dibujan I2 con la misma coreografía (una vez, `1 · 0.75 · 0.5 · 0.25 × --g-space-1` en 16 · 36 · 56 · 76 % de `--g-duration-slow`, solo con `prefers-reduced-motion: no-preference`), cada uno con su propio keyframe de prefijo `g-reject-`. Se mueve siempre la pieza que lleva el anillo de foco; etiqueta, ayuda y mensaje se quedan quietos. `GInput` dibuja además I1; `GTextarea` y `GSelect` también (`is-ready` de bruno, `c10966e`).
+
+| Campo | Pieza que se mueve | Keyframes |
+| --- | --- | --- |
+| `GInput` | `g-input__row` (caja y acción) | `g-reject-shake` |
+| `GTextarea` | `__control` | `g-reject-shake-textarea` |
+| `GSelect` | `__control` | `g-reject-shake-select` |
+| `GCheckbox` | `__box` (la caja con su marca; no la fila con la etiqueta) | `g-reject-shake-checkbox` |
+| `GSwitch` | `__control` (el riel; el pulgar conserva su `translate`) | `g-reject-shake-switch` |
+| `GDatePicker` | `__field` (el botón del campo) o, con `split`, `__fields` (los dos campos juntos) | `g-reject-shake-datepicker` |
+| `GCheckboxGroup` | `__list` (el conjunto de opciones como una pregunta, no cada casilla) | `g-reject-shake-checkbox-group` |
+| `GRadioGroup` | `__options` (las tres apariencias) | `g-reject-shake-radio-group` |
+| `GFieldGroup` | `__parts` (la fila de partes; no la leyenda) | `g-reject-shake-field-group` |
+| `GInputGroup` | `__box` (la caja fusionada entera con sus divisores) | `g-reject-shake-input-group` |
+
+**Límite de `GDatePicker inline`:** el calendario en línea no tiene campo, así que **no se mueve nada**; la clase `is-rejected` llega y se retira igual (por el siguiente `input`/`change` o envío), sin sacudida. Los `animationend` de los hijos suben a la raíz y solo el de nombre `g-reject…` retira la clase, así que un `GInput` anidado en un `GFieldGroup` no la quita antes de tiempo. Medido por coco en tres motores (`design/lab/input/estilo.md`, «I2 extendido al resto de campos»).
 
 ### Movimiento reducido
 

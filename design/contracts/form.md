@@ -256,7 +256,7 @@ Interno (no contractual para campos del consumidor en v0.1; puede hacerse públi
 | `GForm` | Conjunto reactivo interno de nombres **rechazados**. En el paso 4 de «Envío» y en `showErrors()`: vacía el conjunto y, en el cuadro siguiente (`requestAnimationFrame`), añade los nombres de los registros que bloquean (los mismos de `blocking()`: activos, no deshabilitados; las claves generales no tienen campo). Nunca con `formnovalidate`. Nunca por cambios de `errors` sin `showErrors()` |
 | `useFormField` / `useCompositeField` | Devuelve entre los **internos** `rejected` (computado: el nombre está en el conjunto) y una función `endRejected()`. `notifyInput`/`notifyChange` del campo lo sacan del conjunto. Los grupos lo resuelven una vez (una pregunta) |
 | Campo de Grana | Pinta `is-rejected` en su raíz mientras `rejected`; escucha en la raíz `animationend` y `animationcancel` y llama a `endRejected()` solo si `event.animationName` empieza por `g-reject`. Al desmontarse, sale del conjunto |
-| CSS | Coco, por campo (en esta tanda solo `GInput`); keyframes `g-reject…`; nada con `prefers-reduced-motion: reduce` |
+| CSS | Coco, por campo; keyframes `g-reject…` con nombre propio por componente. Pieza que se mueve y nombre de cada uno en la tabla de `input.md` «Personalidad» I2 (`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GSwitch`, `GDatePicker`, `GCheckboxGroup`, `GRadioGroup`, `GFieldGroup`, `GInputGroup`); `GDatePicker inline` no tiene campo y no se mueve (la clase llega igual). Nada con `prefers-reduced-motion: reduce` |
 
 ### Registro inactivo (`GFormReveal`, #276; `GFormSection addable`, #288)
 
