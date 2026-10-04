@@ -124,7 +124,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 
 ### Idioma (`locale`)
 
-- **Resolución:** la prop `locale` › el atributo `lang` del **ancestro más cercano** (incluye `<html>`; un bloque `lang="ar-EG"` manda dentro de una página `es`) › `navigator.language`. Se lee **al montar** y cuando cambia la prop. Un `locale` que `Intl` rechaza avisa y sigue la cadena sin la prop.
+- **Resolución:** la prop `locale`, luego el atributo `lang` del **ancestro más cercano** (incluye `<html>`; un bloque `lang="ar-EG"` manda dentro de una página `es`), luego `navigator.language`. Se lee **al montar** y cuando cambia la prop. Un `locale` que `Intl` rechaza avisa y sigue la cadena sin la prop.
 - **Separadores, miles y cifras** salen de `Intl.NumberFormat`. Se muestran las **cifras del sistema del idioma**: con `ar-EG`, arábigo-índicas («-٤٫٥»); al escribir se aceptan las del idioma **y** las latinas. Las marcas bidi que `Intl` antepone (U+200E, U+200F, U+061C) se quitan del texto y de `aria-valuetext`.
 
 ```vue
