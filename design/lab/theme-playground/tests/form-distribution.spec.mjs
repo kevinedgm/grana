@@ -179,6 +179,10 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     await bench(page, { w: '720' })
     const vit720 = await page.evaluate(() => [...document.querySelector('#fm-vitals').children].map((c) => c.dataset.line))
     expect(vit720, 'a 720: Temperatura · Presión / FC · Sat. · Peso · Estatura').toEqual(['0', '0', '1', '1', '1', '1'])
+    // Receta de signos vitales con GNumberField (#314): FC, Sat., Peso y Estatura son spinbutton con la unidad pegada y
+    // sin −/+ (miden lo que GInput: la distribución de r02 no cambia); el envío lleva el canónico en un oculto
+    const vit = await page.evaluate(() => [...document.querySelector('#fm-vitals').children].map((c) => [c.classList.contains('g-number-field'), c.querySelector('input:not([type="hidden"])')?.getAttribute('role') || null, Boolean(c.querySelector('.g-number-field__steppers'))]))
+    expect(vit, 'signos vitales: dos GInputGroup y cuatro GNumberField sin −/+').toEqual([[false, null, false], [false, null, false], [true, 'spinbutton', false], [true, 'spinbutton', false], [true, 'spinbutton', false], [true, 'spinbutton', false]])
     await bench(page, { w: '360' })
     const addr = await page.evaluate(() => ['fa-calle', 'fa-ext', 'fa-int'].map((id) => document.getElementById(id).closest('.g-input').dataset.line))
     expect(addr[0] !== addr[1] && addr[1] === addr[2], `dirección a 360: Calle sola y Ext. · Int. juntos (${addr})`).toBe(true)

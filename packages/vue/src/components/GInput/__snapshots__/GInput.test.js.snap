@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GInput · slots internos (N1–N3) > N1: la etiqueta lleva id="{id}-label"; sin slots internos la estructura es la de siempre (instantánea) 1`] = `
+"<div class="g-input g-input--variant-outline g-input--size-md g-input--density-default g-input--has-suffix"><label id="c-label" class="g-input__label" for="c">Correo
+    <!--v-if--><span class="g-input__required" aria-hidden="true">*</span>
+  </label>
+  <div class="g-input__row">
+    <div class="g-input__control">
+      <!--v-if-->
+      <!--v-if--><input name="correo" id="c" type="text" required="" aria-describedby="c-suffix c-hint" class="g-input__field" value=""><span class="g-input__suffix" aria-hidden="true">kg</span><span id="c-suffix" class="g-input__suffix-label">kilos</span>
+      <!--v-if-->
+      <!--v-if-->
+      <!--v-if-->
+      <!--v-if-->
+    </div>
+    <!--v-if-->
+  </div>
+  <div class="g-input__support">
+    <div class="g-input__messages"><span id="c-hint" class="g-input__hint">Ayuda</span>
+      <!--v-if-->
+    </div>
+    <div id="c-message" class="g-input__message" aria-live="polite">
+      <!--v-if-->
+    </div>
+  </div>
+</div>"
+`;

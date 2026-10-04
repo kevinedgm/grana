@@ -395,6 +395,61 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
           </div>
         </section>
+        <section class="pg-section" id="sec-number" data-pg-section>
+          <h2>GNumberField</h2>
+          <p class="pg-lead">Un número que se escribe: formato del idioma al salir, modelo <code>Number</code> o <code>null</code>, valor canónico en el envío, flechas y −/+ opcionales. Compone <code>GInput</code>. La unidad va pegada al número; las cifras ruedan al dar un paso; el número topa en el límite.</p>
+          <h3>Casos</h3>
+          <div class="pg-panel">
+    <form id="nf-form" class="col" style="max-width:360px" novalidate @submit.prevent="nfSubmit">
+      <g-number-field id="nf-edad" v-model="nf.edad" label="Edad" name="edad" :min="0" :max="120" :precision="0" suffix="años" hint="Fuera de 0–120 no se recorta: la aplicación pone el error." :error="nf.edad != null && (nf.edad < 0 || nf.edad > 120) ? 'La edad debe estar entre 0 y 120 años.' : undefined"></g-number-field>
+      <g-number-field id="nf-peso" v-model="nf.peso" label="Peso" name="peso" :min="0" :max="400" :step="0.1" suffix="kg" suffix-label="kilogramos" hint="Decimales con coma; el punto tecleado se convierte."></g-number-field>
+      <g-number-field id="nf-temp" v-model="nf.temp" label="Temperatura" name="temp" :min="30" :max="45" :step="0.1" :precision="1" suffix="°C" suffix-label="grados Celsius"></g-number-field>
+      <g-number-field id="nf-pct" v-model="nf.pct" label="Descuento" name="pct" :min="0" :max="100" :precision="0" suffix="%"></g-number-field>
+      <g-number-field id="nf-qty" v-model="nf.qty" label="Cantidad" name="qty" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" @change="nfChange('qty', $event)"></g-number-field>
+      <g-number-field id="nf-pob" v-model="nf.pob" label="Población" name="poblacion" :min="0" :precision="0" placeholder="0"></g-number-field>
+      <div class="row"><g-btn type="submit" id="nf-send">Enviar</g-btn></div>
+    </form>
+    <p class="log" id="nf-model">{{ nfModel }}</p>
+    <p class="log" id="nf-fd">{{ nf.fd }}</p>
+    <p class="log" id="nf-log">{{ nf.log }}</p>
+          </div>
+          <h3>Estados y límites</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:360px">
+      <g-number-field id="nf-ro" :model-value="72.5" label="Solo lectura" readonly steppers decrement-label="Restar" increment-label="Sumar" suffix="kg"></g-number-field>
+      <g-number-field id="nf-dis" :model-value="3" label="Deshabilitado" disabled steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-number-field id="nf-out" v-model="nf.out" label="Fuera de rango (máx. 120)" :max="120" steppers decrement-label="Restar" increment-label="Sumar" error="El valor supera 120."></g-number-field>
+      <g-number-field id="nf-max" v-model="nf.max" label="En el máximo (9)" :min="0" :max="9" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-number-field id="nf-neg" v-model="nf.neg" label="Congelador" :min="-30" :max="0" :precision="0" suffix="°C" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-number-field id="nf-big" v-model="nf.big" label="Importe con precisión 2" :precision="2" prefix="×" prefix-label="multiplicado por"></g-number-field>
+    </div>
+          </div>
+          <h3>Tamaños con −/+</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:360px">
+      <g-number-field v-for="z in ['xs','sm','md','lg','xl']" :key="z" :id="'nf-z-' + z" v-model="nf.qty" :size="z" :label="'Tamaño ' + z" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+      <g-number-field id="nf-z-compact" v-model="nf.qty" size="xs" density="compact" label="xs compacto" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+    </div>
+          </div>
+          <h3>En una fila con GInput y GSelect</h3>
+          <div class="pg-panel">
+    <g-switch id="nf-lock" v-model="nf.lock" label="Bloquear la cantidad (solo lectura: −/+ desaparecen sin repartir la fila)"></g-switch>
+    <g-form-layout id="nf-layout">
+      <g-form-row id="nf-row">
+        <g-input id="nf-row-name" label="Producto" model-value="Guantes de nitrilo"></g-input>
+        <g-number-field id="nf-row-qty" v-model="nf.qty" class="g-form-w-sm" label="Cantidad" :readonly="nf.lock" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
+        <g-select id="nf-row-unit" class="g-form-w-sm" label="Presentación" model-value="caja" :options="[{ value: 'caja', label: 'Caja' }, { value: 'pieza', label: 'Pieza' }]"></g-select>
+      </g-form-row>
+    </g-form-layout>
+          </div>
+          <h3>Idiomas: RTL ar-EG y he</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:360px">
+      <div lang="ar-EG" dir="rtl"><g-number-field id="nf-ar" v-model="nf.ar" label="درجة الحرارة" :precision="1" suffix="°C" steppers decrement-label="إنقاص" increment-label="زيادة"></g-number-field></div>
+      <div lang="he" dir="rtl"><g-number-field id="nf-he" v-model="nf.he" label="משקל" suffix="ק״ג"></g-number-field></div>
+    </div>
+          </div>
+        </section>
         <section class="pg-section" id="sec-textarea" data-pg-section>
           <h2>GTextarea</h2>
           <p class="pg-lead">Texto de varias líneas con contador, autoajuste y estados.</p>
@@ -637,7 +692,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
-      <g-form-section id="fm-sec-vitales" title="Signos vitales" description="Medidas de hoy. La unidad va dentro de la caja: fija con suffix, elegible con GInputGroup." divider>
+      <g-form-section id="fm-sec-vitales" title="Signos vitales" description="Medidas de hoy. Unidad fija: GNumberField con suffix (pegada al número); elegible: GInputGroup." divider>
         <g-form-layout>
           <g-form-row id="fm-vitals" role="group" aria-label="Signos vitales">
             <g-input-group id="fm-temp" class="g-form-w-sm" label="Temperatura" name="m-temperatura" required :warning="fm.W('fm-temp')">
@@ -650,10 +705,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
               <g-input-group-input id="fm-pa-d" v-model="fm.m.dia" name="m-pa-diastolica" part-label="diastólica" inputmode="numeric" placeholder="80"></g-input-group-input>
               <g-input-group-text id="fm-pa-u" text="mmHg" label="milímetros de mercurio"></g-input-group-text>
             </g-input-group>
-            <g-input v-model="fm.m.fc" id="fm-fc" class="g-form-w-xs" :label="fm.L('Frecuencia', 'Frecuencia cardiaca')" name="m-fc" inputmode="numeric" suffix="lpm" suffix-label="latidos por minuto" :hint="fm.H('fm-fc')"></g-input>
-            <g-input v-model="fm.m.sat" id="fm-sat" class="g-form-w-xs" label="Saturación" name="m-sat" inputmode="decimal" suffix="%"></g-input>
-            <g-input v-model="fm.m.peso" id="fm-peso" class="g-form-w-xs" label="Peso" name="m-peso" inputmode="decimal" suffix="kg" suffix-label="kilogramos"></g-input>
-            <g-input v-model="fm.m.estatura" id="fm-est" class="g-form-w-xs" label="Estatura" name="m-estatura" inputmode="numeric" suffix="cm" suffix-label="centímetros"></g-input>
+            <g-number-field v-model="fm.m.fc" id="fm-fc" class="g-form-w-xs" :label="fm.L('Frecuencia', 'Frecuencia cardiaca')" name="m-fc" :min="20" :max="250" :precision="0" suffix="lpm" suffix-label="latidos por minuto" :hint="fm.H('fm-fc')"></g-number-field>
+            <g-number-field v-model="fm.m.sat" id="fm-sat" class="g-form-w-xs" label="Saturación" name="m-sat" :min="0" :max="100" :precision="0" suffix="%"></g-number-field>
+            <g-number-field v-model="fm.m.peso" id="fm-peso" class="g-form-w-xs" label="Peso" name="m-peso" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos"></g-number-field>
+            <g-number-field v-model="fm.m.estatura" id="fm-est" class="g-form-w-xs" label="Estatura" name="m-estatura" :min="30" :max="250" :precision="0" suffix="cm" suffix-label="centímetros"></g-number-field>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
@@ -2390,7 +2445,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2427,11 +2482,17 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         })
         onBeforeUnmount(() => pgObserver && pgObserver.disconnect())
 
+        // ---------- GNumberField: modelos Number | null y envío canónico ----------
+        const nf = reactive({ lock: false, edad: null, peso: 72.5, temp: null, pct: 10, qty: 1, pob: 12345, out: 150, max: 9, neg: -18, big: 1234.5, ar: -4.5, he: 72.5, fd: 'FormData: (envía el formulario)', log: 'change: —' })
+        const nfModel = computed(() => ['edad', 'peso', 'temp', 'pct', 'qty', 'pob'].map((k) => `${k}: ${JSON.stringify(nf[k])} (${nf[k] === null ? 'null' : typeof nf[k]})`).join(' · '))
+        const nfSubmit = (e) => { nf.fd = 'FormData: ' + [...new FormData(e.target).entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+        const nfChange = (k, v) => { nf.log = `change: ${k}=${JSON.stringify(v)}` }
+
         // ---------- Formularios (GForm): la página calcula los errores; GForm decide cuándo se ven ----------
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
         const num = (v) => { const n = Number(String(v).replace(/,/g, '').trim()); return String(v).trim() === '' ? NaN : n }
-        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: '', sat: '', peso: '', estatura: '', rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', idioma: 'es', horario: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: null, sat: null, peso: null, estatura: null, rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', idioma: 'es', horario: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
         const fmFiscalEmpty = () => ({ rfc: '', razon: '', regimen: null, cfdi: null, cpf: '' })
         // Banco de distribución (form.md §12): ancho del contenedor, ayuda + mensajes de los cuatro tipos y etiquetas largas.
         // Los mensajes del banco son props explícitas (se ven siempre); sin el banco, GForm decide cuándo se ven.
@@ -2530,7 +2591,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
               'm-nacimiento': m.nacimiento ? '' : 'Elige la fecha de nacimiento',
               'm-sexo': m.sexo ? '' : 'Elige una opción',
               'm-temp': Number.isNaN(t) ? 'Escribe la temperatura con números, por ejemplo 36.5' : m.unidad === 'F' ? (t < 86 || t > 113 ? 'Escribe una temperatura entre 86 y 113 °F' : '') : t < 30 || t > 45 ? 'Escribe una temperatura entre 30 y 45 °C' : '',
-              'm-peso': !m.peso || (num(m.peso) > 0 && num(m.peso) <= 400) ? '' : 'Escribe el peso en kilogramos, entre 1 y 400',
+              'm-peso': m.peso == null || (m.peso > 0 && m.peso <= 400) ? '' : 'Escribe el peso en kilogramos, entre 1 y 400',
               // Sin condiciones: sin agregar «Datos fiscales», su registro inactivo hace que no cuente (#288)
               'm-rfc': !m.rfc.trim() ? 'Escribe el RFC' : /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i.test(m.rfc.trim()) ? '' : 'Escribe el RFC con 12 o 13 caracteres',
               'm-avisos': m.avisos.length ? '' : 'Elige al menos un medio de aviso',
@@ -2539,7 +2600,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             }
           },
           get mediumWarnings() {
-            const t = num(fm.m.temp); const sat = num(fm.m.sat)
+            const t = num(fm.m.temp); const sat = fm.m.sat == null ? NaN : fm.m.sat
             const alta = fm.m.unidad === 'F' ? t >= 100.4 && t <= 113 : t >= 38 && t <= 45
             return { 'm-temp': alta ? 'Temperatura alta: confirma la lectura' : '', 'm-sat': sat < 94 && sat > 0 ? 'Por debajo de 94 %: confirma la lectura' : '' }
           },
@@ -2558,7 +2619,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
   </script>

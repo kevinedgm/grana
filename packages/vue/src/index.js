@@ -1,6 +1,7 @@
 import './styles/grana.css'
 import GBtn from './components/GBtn/GBtn.vue'
 import GInput from './components/GInput/GInput.vue'
+import GNumberField from './components/GNumberField/GNumberField.vue'
 import GCheckbox from './components/GCheckbox/GCheckbox.vue'
 import GCheckboxGroup from './components/GCheckboxGroup/GCheckboxGroup.vue'
 import GRadioGroup from './components/GRadioGroup/GRadioGroup.vue'
@@ -54,7 +55,7 @@ import { shared } from './shared.js'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
+export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
 // Formularios: composable para campos (de Grana y propios) y clave del contexto para `provide` manual (form.md §2)
 export { useFormField, formKey }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
@@ -66,7 +67,7 @@ export { createIcons, iconsKey }
 export { shared as __shared }
 
 
-const components = { GBtn, GInput, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
+const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

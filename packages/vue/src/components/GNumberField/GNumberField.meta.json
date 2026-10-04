@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "name": "GNumberField",
+  "tag": "g-number-field",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo para un número que se escribe (edad, peso, temperatura, cantidad): texto con forma de número en el formato del idioma, modelo Number o null, valor canónico en el envío y −/+ opcionales. Compone GInput.",
+  "contract": "design/contracts/number-field.md",
+  "decisions": [
+    "#309",
+    "#310",
+    "#311",
+    "#312",
+    "#313",
+    "#314"
+  ],
+  "prototype": "design/lab/number-field/r01/",
+  "style": "packages/vue/src/components/GNumberField/GNumberField.css",
+  "composes": [
+    "GInput (slots internos field y end, input.md «Cambio por GNumberField»)"
+  ],
+  "engine": "packages/vue/src/utils/numberInput.js (interno, no exportado)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Number | null",
+      "default": null,
+      "note": "Nunca cadena; undefined = null; NaN/±Infinity = null con aviso"
+    },
+    {
+      "name": "min",
+      "type": "Number",
+      "default": null,
+      "note": "Limita los pasos y deshabilita −; aria-valuemin; no limita lo escrito (#157); decide si se acepta «-»"
+    },
+    {
+      "name": "max",
+      "type": "Number",
+      "default": null,
+      "note": "Limita los pasos y deshabilita +; aria-valuemax; no limita lo escrito"
+    },
+    {
+      "name": "step",
+      "type": "Number",
+      "default": 1,
+      "note": "> 0; rejilla contada desde min (o 0), aritmética exacta"
+    },
+    {
+      "name": "precision",
+      "type": "Number",
+      "default": null,
+      "note": "Entero ≥ 0: redondea el modelo en el acto y el texto al salir; 0 = entero (inputmode numeric)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "note": "prop › lang del ancestro más cercano › navigator.language; leído al montar"
+    },
+    {
+      "name": "grouping",
+      "type": "Boolean",
+      "default": true,
+      "note": "Miles al salir con la regla del idioma"
+    },
+    {
+      "name": "prefix",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "suffix",
+      "type": "String",
+      "default": null,
+      "note": "Unidad fija (P1: pegada al número)"
+    },
+    {
+      "name": "prefixLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "suffixLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "steppers",
+      "type": "Boolean",
+      "default": false,
+      "note": "−/+ solo con decrementLabel e incrementLabel; ausentes en readonly"
+    },
+    {
+      "name": "decrementLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "incrementLabel",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "Al <input type=hidden> con el valor canónico; registra el campo en GForm; el visible no lleva name"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "output",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-required y la marca de GForm; nunca required nativo (#311)"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "resolvedDefault": false,
+      "note": "readonly nativo y aria-readonly; sin pasos ni −/+; se envía"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "resolvedDefault": false
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": null,
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": null,
+      "resolvedDefault": false
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Number | null",
+      "trigger": "Cada cambio del número (no del texto): al escribir, al pegar, en cada paso (también al repetir) y al redondear por precision"
+    },
+    {
+      "name": "change",
+      "payload": "Number | null",
+      "trigger": "Valor confirmado: al salir o con Enter si difiere del último confirmado, y una vez por gesto de paso (al soltar −/+, keyup de la tecla de paso, click sin puntero). Declarado: no llega al change nativo. Un cambio desde la aplicación no lo emite"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (como GInput)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico"
+    },
+    {
+      "name": "error",
+      "purpose": "Error con contenido rico"
+    },
+    {
+      "name": "prepend",
+      "purpose": "Icono decorativo antes del prefijo"
+    }
+  ],
+  "keyboard": {
+    "ArrowUp/ArrowDown": "± step en la rejilla; en el límite no cambia (P3 si no es autorrepetición)",
+    "Shift+ArrowUp/ArrowDown": "± 10 × step",
+    "PageUp/PageDown": "± 10 × step",
+    "Home/End": "edición de texto (nativo)",
+    "Enter": "confirma y deja seguir el envío implícito",
+    "Vacío + paso": "punto de partida: 0 o el límite más cercano"
+  },
+  "classes": {
+    "root": [
+      "g-number-field",
+      "g-number-field--has-steppers"
+    ],
+    "elements": [
+      "g-number-field__value",
+      "g-number-field__mirror",
+      "g-number-field__field",
+      "g-number-field__roll",
+      "g-number-field__roll-slot",
+      "g-number-field__roll-new",
+      "g-number-field__roll-old",
+      "g-number-field__measure",
+      "g-number-field__steppers",
+      "g-number-field__step",
+      "g-number-field__step--decrement",
+      "g-number-field__step--increment",
+      "g-number-field__step-label"
+    ],
+    "personality": [
+      "P1: celda __value con espejo __mirror (texto o placeholder) para que la unidad vaya pegada; pointerdown en el área vacía de g-input__control enfoca con el cursor al final",
+      "P2: capa __roll (aria-hidden, dir=ltr, data-direction up|down) con __roll-slot/__roll-new/__roll-old por cifra que cambia; is-rolling en __value; solo en pasos deliberados; se retira con animationend/animationcancel g-number-roll… o en el acto sin animación calculada",
+      "P3: is-bumping + data-bump up|down en __value con una tecla de paso no repetida en el límite; se retira con animationend/animationcancel g-number-bump… o en el acto sin animación calculada"
+    ]
+  },
+  "constants": {
+    "repeatDelayMs": 400,
+    "repeatEveryMs": 60
+  },
+  "warnings": [
+    "sin nombre accesible",
+    "steppers sin decrementLabel/incrementLabel",
+    "min > max",
+    "step ≤ 0 o no finito",
+    "precision menor que los decimales de step o min",
+    "modelValue NaN/±Infinity",
+    "locale que Intl rechaza",
+    "type en $attrs o slots append/action"
+  ],
+  "tokens": [
+    "(los de GInput)",
+    "--g-space-1",
+    "--g-border-width",
+    "--g-color-border-control",
+    "--g-color-text-muted",
+    "--g-color-text",
+    "--g-color-text-subtle",
+    "--g-color-neutral-soft",
+    "--g-radius-*",
+    "--g-text-caption-size … --g-text-body-size",
+    "--g-duration-fast",
+    "--g-ease-standard",
+    "--g-duration-press",
+    "--g-ease-out",
+    "--g-focus-*"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "filled",
+    "disabled",
+    "readonly",
+    "invalid",
+    "warning",
+    "valid",
+    "rejected",
+    "rolling",
+    "bumping"
+  ],
+  "formSystem": {
+    "contract": "design/contracts/form.md §4, §8, §13",
+    "notes": [
+      "Registro por name (GInput)",
+      "Flechas y pegar = escritura (notifyInput); −/+ = cambio (notifyChange); los tres retiran is-rejected",
+      "Con −/+ en una GFormRow publica su mínimo con setIntrinsicMin (#312), también en readonly"
+    ]
+  },
+  "related": [
+    "GInput",
+    "GInputGroup (GInputGroupNumber reservado, #314)"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (design/lab/number-field/auditoria.md)",
+    "README (mora-docs)",
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack)",
+    "Móvil real: teclado decimal por región, «-» en iOS, −/+ sin abrir el teclado",
+    "IME real; pegado real en Firefox; forced-colors real"
+  ]
+}

@@ -158,6 +158,22 @@ function onInput(event) {
 // modelo y el estado del formulario actualizados, igual que con un <input v-model> nativo.
 const fieldBindings = computed(() => mergeProps(ff.handlers, { onInput }, { ...inputAttrs.value, ...controlled.value }))
 
+// Slots internos (input.md «Cambio por GNumberField», N2 y N3; #309). Solo para componentes de Grana que componen GInput:
+// no son API pública (no van en meta.json ni en el README). `field` sustituye al <input> y recibe `bind` (lo que GInput
+// pondría en su <input> salvo value, type y su onInput, con los manejadores del contexto PRIMERO), `setControl`,
+// `notifyInput`, `notifyChange`, `readonly` y `disabled` resueltos. Con `field`, GInput no emite update:modelValue (no
+// pinta su <input>) ni su aviso de nombre accesible (avisa el que compone).
+const hasFieldSlot = Boolean(slots.field)
+const slotBind = computed(() => {
+  const { type: _t, value: _v, ...rest } = controlled.value
+  return mergeProps(ff.handlers, { ...inputAttrs.value, ...rest, class: 'g-input__field' })
+})
+function setControl(el) {
+  field.value = el || null
+}
+const notifyInput = () => ff.handlers.onInput()
+const notifyChange = () => ff.notifyChange()
+
 // Pulsar sobre el prefijo, el sufijo o el valor calculado enfoca el <input> (comodidad de puntero; no son interactivos)
 function focusField() {
   field.value?.focus()
@@ -166,7 +182,7 @@ function focusField() {
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+  if (!hasFieldSlot && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
     console.warn('[Grana] <GInput> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
   }
   if (props.counter && maxlength.value === null) {
@@ -180,7 +196,7 @@ if (isDev) {
 
 <template>
   <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
-    <label v-if="hasLabel" class="g-input__label" :for="inputId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
+    <label v-if="hasLabel" :id="`${inputId}-label`" class="g-input__label" :for="inputId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
     <div class="g-input__row">
       <div class="g-input__control">
         <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
@@ -188,7 +204,8 @@ if (isDev) {
           <span class="g-input__prefix" :id="prefixLabel ? undefined : prefixId" :aria-hidden="prefixLabel ? 'true' : undefined" @click="focusField">{{ prefix }}</span>
           <span v-if="prefixLabel" :id="prefixId" class="g-input__prefix-label">{{ prefixLabel }}</span>
         </template>
-        <input ref="field" v-bind="fieldBindings" class="g-input__field">
+        <slot v-if="hasFieldSlot" name="field" :bind="slotBind" :setControl="setControl" :notifyInput="notifyInput" :notifyChange="notifyChange" :readonly="isReadonly" :disabled="isDisabled" />
+        <input v-else ref="field" v-bind="fieldBindings" class="g-input__field">
         <template v-if="suffix">
           <span class="g-input__suffix" :id="suffixLabel ? undefined : suffixId" :aria-hidden="suffixLabel ? 'true' : undefined" @click="focusField">{{ suffix }}</span>
           <span v-if="suffixLabel" :id="suffixId" class="g-input__suffix-label">{{ suffixLabel }}</span>
@@ -204,6 +221,7 @@ if (isDev) {
           :disabled="isDisabled"
           @click="visible = !visible"
         >{{ visible ? hidePasswordLabel : showPasswordLabel }}</button>
+        <slot name="end" :readonly="isReadonly" :disabled="isDisabled" />
       </div>
       <div v-if="hasAction" class="g-input__action">
         <slot name="action" :size="size" :density="density" :disabled="isDisabled" />

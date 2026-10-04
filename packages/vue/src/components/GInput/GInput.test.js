@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { h } from 'vue'
+import { defineComponent, h } from 'vue'
 import GInput from './GInput.vue'
 import GBtn from '../GBtn/GBtn.vue'
 
@@ -410,5 +410,87 @@ describe('GInput · personalidad: is-ready e is-rejected (input.md «Personalida
     await w.vm.$nextTick()
     expect(root(w).classes()).not.toContain('is-rejected')
     w.unmount()
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------
+// Slots internos (input.md «Cambio por GNumberField» N1–N3, DECISIONS.md #309): no son API pública
+describe('GInput · slots internos (N1–N3)', () => {
+  it('N1: la etiqueta lleva id="{id}-label"; sin slots internos la estructura es la de siempre (instantánea)', () => {
+    const w = mount(GInput, { props: { label: 'Correo', id: 'c', hint: 'Ayuda', suffix: 'kg', suffixLabel: 'kilos', required: true }, attrs: { name: 'correo' } })
+    expect(w.find('label').attributes('id')).toBe('c-label')
+    expect(w.html()).toMatchSnapshot()
+  })
+
+  it('N2: con `field` no hay <input> propio; bind trae id, aria-* y estados, sin value/type/onInput propio, y los manejadores del contexto primero', async () => {
+    const { default: GForm } = await import('../GForm/GForm.vue')
+    let scope = null
+    const order = []
+    const w = mount(defineComponent({
+      components: { GForm, GInput },
+      setup: () => ({ grab: (s) => { scope = s; return '' }, onConsumer: () => order.push('consumidor') }),
+      template: `<GForm :labels="{ optional: '(opcional)' }"><GInput id="x" label="Cantidad" name="cant" required hint="Ayuda" model-value="hola" @input="onConsumer">
+        <template #field="f">{{ grab(f) }}<input class="mio" v-bind="f.bind" :ref="f.setControl"></template></GInput></GForm>`
+    }), { attachTo: document.body })
+    const inputs = w.findAll('input')
+    expect(inputs.length).toBe(1)
+    const b = scope.bind
+    expect(b.id).toBe('x')
+    expect(b.name).toBe('cant')
+    expect(b.required).toBe(true)
+    expect(b.disabled).toBeUndefined()
+    expect(b['aria-describedby']).toBe('x-hint')
+    expect(b.class).toBe('g-input__field')
+    expect('value' in b).toBe(false)
+    expect('type' in b).toBe(false)
+    expect(scope.disabled).toBe(false)
+    expect(scope.readonly).toBe(false)
+    expect(typeof scope.notifyInput).toBe('function')
+    expect(typeof scope.notifyChange).toBe('function')
+    // onInput: primero el del contexto (array: contexto, consumidor); ninguno emite update:modelValue de GInput
+    expect(Array.isArray(b.onInput)).toBe(true)
+    expect(b.onInput.length).toBe(2)
+    await inputs[0].trigger('input')
+    expect(order).toEqual(['consumidor'])
+    expect(w.findComponent(GInput).emitted('update:modelValue')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('N2: setControl fija el control: pulsar el sufijo lo enfoca y el resumen de errores lleva el foco a él', async () => {
+    const { default: GForm } = await import('../GForm/GForm.vue')
+    const { default: GErrorSummary } = await import('../GErrorSummary/GErrorSummary.vue')
+    const w = mount(defineComponent({
+      components: { GForm, GInput, GErrorSummary },
+      template: `<GForm :errors="{ cant: 'Falta' }" :labels="{ optional: '(opcional)', error: 'Error: ' }"><GErrorSummary :labels="{ title: 'Revisa' }" /><GInput id="x" label="Cantidad" name="cant" suffix="kg">
+        <template #field="f"><input class="propio" v-bind="f.bind" :ref="f.setControl"></template></GInput></GForm>`
+    }), { attachTo: document.body })
+    await w.find('.g-input__suffix').trigger('click')
+    expect(document.activeElement.classList.contains('propio')).toBe(true)
+    document.activeElement.blur()
+    await w.find('form').trigger('submit')
+    await new Promise((r) => setTimeout(r, 40))
+    await w.find('.g-error-summary__link').trigger('click')
+    await new Promise((r) => setTimeout(r, 40))
+    expect(document.activeElement.classList.contains('propio')).toBe(true)
+    w.unmount()
+  })
+
+  it('N2: con `field` no avisa por falta de nombre accesible (avisa el que compone)', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mount(GInput, { slots: { field: '<input>' } })
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('N3: `end` va al final de la caja, después del botón mostrar/ocultar, sin aria-hidden, y recibe readonly y disabled', () => {
+    let scope = null
+    const w = mount(GInput, {
+      props: { label: 'Clave', type: 'password', showPasswordLabel: 'Ver', hidePasswordLabel: 'Ocultar', readonly: true },
+      slots: { end: (s) => { scope = s; return h('button', { class: 'fin', type: 'button' }, '+') } }
+    })
+    const ctl = w.find('.g-input__control').element
+    expect(ctl.lastElementChild.classList.contains('fin')).toBe(true)
+    expect(ctl.lastElementChild.previousElementSibling.classList.contains('g-input__toggle')).toBe(true)
+    expect(ctl.lastElementChild.closest('[aria-hidden]')).toBe(null)
+    expect(scope).toEqual({ readonly: true, disabled: false })
   })
 })
