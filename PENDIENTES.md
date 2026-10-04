@@ -58,9 +58,8 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 | Qué | Dueño |
 | --- | --- |
-| `GForm` #326: el revelado por `blur` entre `pointerdown` y `pointerup` mueve «Guardar» y el clic se pierde (en curso, bruno) | bruno |
 | `GTable` sin estado de error; «0 resultados» se anuncia junto al error de la isla; reservados prop `error` y slot `error` (#327) | lima / bruno |
-| Isla de estado: replegada puede tapar un control pequeño bajo ella (se evita con `position`/`offset`); orden de capa isla / panel de voz (montar la isla después de `GToaster` y `GSpeechHost`); `Alt+F8` reservado por el gestor de ventanas en GNOME/Xfce (no comprobado; alternativa `Alt+Shift+F8`); color de superficie inversa en vez de `brand` (#325) pendiente de que el usuario lo vea con un tema de color | usuario / lima |
+| Isla de estado: replegada puede tapar un control pequeño bajo ella (se evita con `position`/`offset`); el panel de voz y la isla abierta se solapan si se abren por teclado o por programa (con puntero, abrir uno cierra el otro; montar la isla después de `GToaster` y `GSpeechHost`); en WebKit el radio cambia en 2 pasos en vez de 5–6; `Alt+F8` reservado por el gestor de ventanas en GNOME/Xfce (no comprobado; alternativa `Alt+Shift+F8`); color de superficie inversa en vez de `brand` (#325) pendiente de que el usuario lo vea con un tema de color | usuario / lima |
 | `GDialog`: con ratón en WebKit el botón «Quitar» no recibe foco, así que Esc en la confirmación devuelve el foco al `body` (hallazgo 4 de `form-section`) | bruno / lima |
 | `GDialog`: cerrar en el playground completo bloquea cuadros > 1 s con la máquina cargada (relayout por `html:has(.g-dialog[open])`) | bruno |
 | `GDialog`: `--_pin-top` con `offsetTop` entero deja ≤ 0,5px en Firefox/WebKit (aceptado, #307) | — |
