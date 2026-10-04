@@ -37,7 +37,7 @@ Una **región única y persistente** de la aplicación que reúne lo que **está
 
 ## Entrega (API pública)
 
-Exportaciones de **`@grana/vue`** (paquete principal, #317; bruno las registra en `src/index.js` y `app.use(Grana)` registra los tres componentes):
+Exportaciones de la **entrada propia `@grana/vue/status`** (#317, corregido por #328; global UMD `GranaStatus`; `app.use(status)` registra también `GStatusIsland`, `GStatusMark` y `GStatus`; **no** están en el paquete principal ni en `app.use(Grana)`):
 
 | Exportación | Qué es |
 | --- | --- |
@@ -50,13 +50,16 @@ Exportaciones de **`@grana/vue`** (paquete principal, #317; bruno las registra e
 
 ```js
 // main.js
+import { createStatus } from '@grana/vue/status'
 export const status = createStatus({ labels: { /* textos de la app */ } })
 createApp(App).use(status).mount('#app')
 ```
 
+**Empaquetado (#328, mismo criterio que #238).** `dist/status.js` y `dist/status.umd.js` (global `GranaStatus`, requiere `Vue` y `Grana`); lo compartido con el principal (`GBtn`, `GDialog`, `GIcon`, `liveRegion.js`, `topModal.js`, `edgeReserve.js`) llega por `__shared` (#240) **sin duplicarse** (bruno lo comprueba). **El CSS sigue en `grana.css`** (una sola hoja; inerte sin su marcado). Compuertas: `grep -q "g-status-island__shape" packages/vue/dist/grana.css`, `! grep -q "createStatus" packages/vue/dist/grana.js`, `test -f packages/vue/dist/status.js`.
+
 ```vue
 <!-- App.vue -->
-<RouterView /> <GToaster /> <GStatusIsland />
+<RouterView /> <GToaster /> <GStatusIsland />  <!-- GStatusIsland viene de '@grana/vue/status' -->
 ```
 
 ```js
@@ -340,7 +343,7 @@ No renderiza nada. Mientras está montado, su condición existe.
 - **Mecanismo:** el **par propio de canales** de la isla, escrito con `createLiveWriter` (`utils/liveRegion.js`, `delay` 50 ms, `clear` 5000 ms, como `GToaster`). La isla, la lista, el resumen y las marcas **no** son regiones vivas. Cada servicio conserva su par (`api.md` «Convivencia de servicios»): no se comparte con `GToaster` (puede no estar montado) ni hay anunciador por anfitrión (el de los prototipos; efecto medido idéntico).
 - **Texto:** `[types.<type>:] título[.] [descripción]` (sin nombres de botones).
 - **Se anuncia, una vez por suceso:** una condición que aparece; un cambio de `type`, `title` o `description`; `announce(id)`; el rechazo de la promesa de la acción; `busyLabel` al empezar a reintentar (cortés); los umbrales de la cuenta atrás (**5 min, 1 min, 30 s**: `labels.remaining`, cortés); `labels.copied`.
-- **No se anuncia:** lo que ya existe al montar la isla (**0 anuncios al cargar**); abrir, replegar, reconocer, descartar, «Ir a…», abrir el detalle, la marca; el traslado al modal; un cambio que **quita el control con foco** y lleva el foco al resumen (el foco ya lee el nombre nuevo: r01 punto 13).
+- **No se anuncia:** lo que ya existe al montar la isla (**0 anuncios al cargar**); abrir, replegar, reconocer, descartar, «Ir a…», abrir el detalle, la marca; el traslado al modal; un cambio que **quita el control con foco** y lleva el foco al resumen **solo cuando ese foco queda leyendo esa misma condición**: el resumen muestra esa condición (es la primera del orden) o es la hoja móvil, donde el foco va a su `li` (el foco ya lee el nombre nuevo: r01 punto 13). **Si el resumen muestra otra condición, el cambio sí se anuncia** (el foco lee una condición distinta; coincide con la medida de kiwi; matiz implementado por bruno, #328).
 - **Sin duplicados:** nunca el mismo texto en dos regiones vivas del documento. Con `GToaster` y `GErrorSummary` lo garantiza la regla de uso «un suceso, un canal» (Grana no lo detecta).
 
 ## Teclado
@@ -489,7 +492,7 @@ Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigat
 | L7 | `GFormActions` | Marca en el slot por defecto antes del botón; nunca en `status` | «`GStatusMark`» |
 | L8 | `GTable` sin estado de error | **Aplazado** con nombres reservados (`error` + slot `error`); hoy, marca en `empty`. A `PENDIENTES.md` | #327, `table.md` |
 | L9 | Atajo | `Alt+F8`, validado como en `speech.md`. Límite: en escritorios Linux el gestor de ventanas suele reservarlo | #321 |
-| L10 | Entrada del paquete | **Paquete principal**, con compuerta de peso de 8 KB gzip | #317 |
+| L10 | Entrada del paquete | **Entrada propia `@grana/vue/status`** (global `GranaStatus`): medido +14,7 KB gzip sobre el principal, tope de 8 KB superado | #317, #328 |
 | L11 | Personalidad | D1 a D5 registradas; curva con `--g-duration-slow` (no `× 1,6`); toque `0,86`; punto | #316, #324 |
 | L12 | De r01 siguen vigentes | L5 → `announce(id)` y rechazo de la acción; L6 → #327; L7 → #326 | abajo |
 
@@ -532,7 +535,7 @@ Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigat
   - **D1:** posiciones de elementos de referencia y del botón con foco idénticas (Δ 0px) antes y después de cada cambio, también en 320px.
   - **Convivencia:** `edgeReserve` (`order`, `before`, compatibilidad de `GToaster` y `GSpeechHost`: sus pruebas siguen en verde); con la voz real, voz → isla → avisos; traslado a un `GDialog` real y vuelta con estado intacto; hoja móvil con `GDialog` real.
   - **Marca:** enlace solo con condición; abre en su condición y enfoca su acción; vuelta; sin anuncios; texto estática; en `GFormActions` Δ 0px.
-  - **Peso:** delta de `dist/grana.js` gzip medido y anotado en el `meta.json`; **si supera 8 KB, se detiene y devuelve a lima** (#317).
+  - **Peso:** `dist/status.js` gzip medido y anotado en el `meta.json`; `dist/grana.js` no cambia (#328). Compuertas: `! grep -q "createStatus" packages/vue/dist/grana.js` y `test -f packages/vue/dist/status.js`; nada duplicado del principal.
   - Avisos de desarrollo; `check-icons.mjs`; `levels.test.js`. Compuerta nueva: `grep -q "g-status-island__shape" packages/vue/dist/grana.css`.
 - **coco** (auditoría con un tema distinto): texto ≥ 4.5:1 y insignia, borde y foco ≥ 3:1 sobre la superficie inversa, en claro y oscuro y **por tipo** (kiwi solo midió `error` y `warning`); tipo reconocible sin color; `forced-colors`; 24/44px (también en punto); 320px sin desplazamiento horizontal; RTL; zoom 200 % y 400 %; movimiento reducido (0 animaciones en curso); más de 6 condiciones y desplazamiento del panel; rebase del muelle medido.
 - **`GForm` (#326):** spec propio `tests/form-blur-click.spec.mjs`.
