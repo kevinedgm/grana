@@ -157,6 +157,7 @@ Una caja con varias **partes**: `GInputGroupInput` (texto), `GInputGroupSelect` 
 - Cada parte envía su `name`; el grupo no tiene valor propio.
 - **Solo lectura:** las partes de texto quedan `readonly`; el selector se pinta como texto (la opción elegida, seleccionable) más un campo oculto con el valor; sin flecha.
 - `options` del selector: `value` en el formato que rellena el navegador (`'+52'`) y `label` legible (`'MX +52'`).
+- **Valor + unidad fija** (frecuencia, saturación, peso, estatura): no es un campo fusionado, es un [`GNumberField`](../GNumberField/README.md) con `suffix` (la unidad va pegada al número; modelo `Number`, envío canónico). La fila completa de **signos vitales** (Temperatura y Presión en `GInputGroup`, el resto en `GNumberField`) está en [su receta](../GNumberField/README.md#receta-de-signos-vitales).
 
 ## Preguntas compuestas (`GFieldGroup`)
 
@@ -574,7 +575,7 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack): la doble lectura del resumen (`alert` + foco), el silencio de los mensajes tras un envío, «(opcional)» en el nombre, la verbosidad de «Teléfono, grupo; Teléfono Código de país», el anuncio de `output` al escribir la fecha, el orden del pie apilado y, en el bloqueo con interruptor, que el interruptor se anuncie solo y que el aviso del bloqueo por Guardar o Cancelar no se duplique.
 - **Sin verificar con teclado virtual** (que el pie fijo no quede tras el teclado en iOS/Android), zoom 200/400 %, `forced-colors` real de Windows (solo emulado), el menú nativo del `<select>` en oscuro ni el autocompletado real del navegador sobre país + número.
-- **Fase 2:** [`GRadioGroup`](../GRadioGroup/README.md) (ya existe: también segmentado para Sí/No o Sexo) y `GNumberField` (pendiente); `GSelect` y `GNumberField` como partes de un `GInputGroup`. Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
+- **Fase 2:** [`GRadioGroup`](../GRadioGroup/README.md) (ya existe: también segmentado para Sí/No o Sexo) y [`GNumberField`](../GNumberField/README.md) (ya existe: número con formato del idioma, `Number` o `null` y −/+; admitido en una `GFormRow`, receta de signos vitales); pendientes: `GSelect` y `GNumberField` como partes de un `GInputGroup` (`GInputGroupNumber`, reservado). Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
 - **Fase 3:** [`GFormReveal`](../GFormReveal/README.md) (campos condicionales) ya existe: un bloque que aparece justo después de la pregunta que lo condiciona y, cerrado, sale del envío, de Tab y de la validación sin perder lo escrito. [`GFormSection`](../GFormSection/README.md) ya es plegable (`collapsible`) y agregable (`addable`). Pendientes: «Agregar…» de varias instancias de una misma sección y la navegación lateral de secciones (`GFormNav`).
 - **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado, `revert()` de valores y permisos por rol (hoy, [receta](#bloqueo-con-interruptor): sin prop `locked`).
 - Rendimiento con muchas filas (un `ResizeObserver` compartido) y cientos de campos registrados: sin medir.

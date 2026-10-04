@@ -49,7 +49,7 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `autocomplete`, `inpu
 | `hidePasswordLabel` | String | | sin valor |
 | `id` | String | | generado |
 
-Un valor fuera de la lista muestra una advertencia en desarrollo. Otros tipos de entrada (`number`, fecha, archivo) y varias líneas no están en esta versión.
+Un valor fuera de la lista muestra una advertencia en desarrollo. Otros tipos de entrada (`number`, fecha, archivo) y varias líneas no están en esta versión: para un **número que se escribe** (cantidad, medida, edad) usa [`GNumberField`](../GNumberField/README.md).
 
 - **`variant`:** `outline` (caja con borde) y `soft` (caja rellena con una línea inferior). `solid`, `ghost` y `link` no aplican a un campo y se rechazan.
 - **`color`:** solo colorea el anillo de foco y el borde mientras el campo tiene el foco. El error usa siempre `danger`.
@@ -86,6 +86,10 @@ Los demás eventos (`focus`, `blur`, `change`, `keydown`…) no se declaran: al 
 | `hint` | Ayuda con contenido rico (sustituye a `hint`) |
 | `error` | Mensaje de error con contenido rico; solo se muestra si `error` tiene valor |
 | `action` | Botón de acción acoplado al final del campo (ver abajo) |
+
+### Slots internos
+
+`GInput` tiene además dos slots **internos**, `field` (sustituye a su `<input>`) y `end` (contenido al final de la caja, **sin** `aria-hidden`), y su `<label>` lleva `id="{id}-label"`. Los usa [`GNumberField`](../GNumberField/README.md), que compone `GInput`. **No son API pública** (no están en `GInput.meta.json`, no tienen promesa de estabilidad ni se documentan para uso de la aplicación): sin ellos, `GInput` se comporta exactamente como antes. Lo comprobó la auditoría de `GNumberField`: 29 campos y 245 elementos con el mismo HTML salvo el `id` de la etiqueta, y cajas y 26 propiedades calculadas idénticas.
 
 ### Iconos (prefijo y sufijo)
 
