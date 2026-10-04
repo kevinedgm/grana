@@ -52,12 +52,17 @@ export default defineComponent({
     // `data-direction` de la raíz de su GTabs (`#{tabs}`); sin él, el panel solo se funde.
     // Se lee antes del render (`pre`: el panel pierde `hidden` ya con su dirección cuando el GTabs va antes en el
     // árbol, como en el slot `tabs` de GDialog) y se confirma después (`post`: si el GTabs va después, en el mismo ciclo).
+    // Con la dirección copia también `data-orientation` (#306): un panel suelto con pestañas verticales entra
+    // por el eje de bloque, como el integrado. Se lee solo al activarse; sin `#{tabs}`, ninguna de las dos.
     const direction = ref(undefined)
+    const orientation = ref(undefined)
     const readDirection = () => {
       if (typeof document === 'undefined' || !props.tabs) return
       const host = document.getElementById(props.tabs)
       const d = host?.getAttribute('data-direction') || undefined
+      const o = host?.getAttribute('data-orientation') || undefined
       if (d !== direction.value) direction.value = d
+      if (o !== orientation.value) orientation.value = o
     }
     const onActivate = (on, was) => { if (on && !was) readDirection() }
     watch(() => props.active, onActivate)
@@ -75,7 +80,8 @@ export default defineComponent({
         tabindex: props.active && !focusable.value ? 0 : undefined,
         hidden: props.active ? undefined : true,
         'aria-busy': props.active && props.busy ? 'true' : undefined,
-        'data-direction': direction.value
+        'data-direction': direction.value,
+        'data-orientation': orientation.value
       }, body)
     }
   }

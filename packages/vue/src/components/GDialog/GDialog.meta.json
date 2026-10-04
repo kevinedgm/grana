@@ -202,7 +202,9 @@
   "classes": {
     "personality": [
       "has-origin + style --_origin-x/--_origin-y (px): vector completo hacia el disparador, escrito antes de showModal() y remedido al cerrar desde el centro real del diálogo; solo placement=\"center\" sin fullscreen (D1, #301)",
-      "is-pinned + style --_pin-top (px, offsetTop): borde superior fijado tras abrir y poner el foco, en el cuadro siguiente; se rehace al redimensionar la ventana y se retira al terminar la salida; solo placement=\"center\" sin fullscreen (D2, #301)"
+      "is-pinned + style --_pin-top (px, offsetTop): borde superior fijado tras abrir y poner el foco, en el cuadro siguiente; se rehace al redimensionar la ventana y se retira al terminar la salida; solo placement=\"center\" sin fullscreen (D2, #301)",
+      "Disparador de D1 = document.activeElement al abrir, si está fuera del diálogo y no es body; en WebKit un clic no enfoca el botón y el diálogo solo se funde (límite conocido, #307 (1))",
+      "Umbral móvil (min-width: 521px) solo en el CSS: el .vue no lo conoce y escribe has-origin, is-pinned y sus variables también bajo 521px, donde quedan inertes (#307 (4)); is-pinned no exige [open] y se quita tras la salida (#307 (3))"
     ]
   },
   "pending": [

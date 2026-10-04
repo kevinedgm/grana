@@ -4,7 +4,7 @@
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { messageIcon, useFormField } from '../GForm/formContext.js'
+import { messageIcon, nextFrame, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GTextarea', inheritAttrs: false })
 
@@ -148,6 +148,13 @@ watch(level, (l) => {
 })
 
 // ---------- Marcado ----------
+// is-ready: dos cuadros después de montar (tras el primer pintado; nunca en SSR). Sin ella, coco no anima la entrada del
+// mensaje (I1, #304 y #306): un error que ya viene al montar no se anima (como GInput; plan 012)
+const ready = ref(false)
+let unmounted = false
+onMounted(() => nextFrame(() => nextFrame(() => { if (!unmounted) ready.value = true })))
+onBeforeUnmount(() => { unmounted = true })
+
 const classes = computed(() => [
   'g-textarea',
   `g-textarea--variant-${props.variant}`,
@@ -166,6 +173,7 @@ const classes = computed(() => [
     'is-warning': ff.ownMessage.value?.type === 'warning',
     'is-valid': ff.ownMessage.value?.type === 'valid',
     'is-loading': props.loading,
+    'is-ready': ready.value,
     // La pone GForm en un envío con errores o showErrors() (#304); el CSS de la sacudida es de coco
     'is-rejected': ff.rejected.value
   }

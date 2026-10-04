@@ -222,6 +222,7 @@
     "--g-border-width",
     "--g-focus-width",
     "--g-duration-fast",
+    "--g-duration-slow",
     "--g-duration-spin",
     "--g-ease-standard"
   ],
@@ -238,6 +239,12 @@
     "warning",
     "valid"
   ],
+  "classes": {
+    "personality": [
+      "is-ready en la raíz: dos cuadros después de montar (tras el primer pintado), nunca en SSR; sin ella no se anima la entrada del mensaje (I1, #304 y #306; el CSS de I1 es de coco)",
+      "is-rejected en la raíz: la pone GForm tras un envío con errores o showErrors() si este campo bloquea (I2, #304)"
+    ]
+  },
   "pending": [
     "Lector de pantalla real: etiqueta, ayuda, error y aviso del contador",
     "Rendimiento de autosize con textos de miles de líneas",

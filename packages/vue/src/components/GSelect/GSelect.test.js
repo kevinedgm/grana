@@ -687,3 +687,30 @@ describe('GSelect · fila «Agregar nuevo…» (r02)', () => {
     w.unmount()
   })
 })
+
+describe('GSelect · personalidad I1: is-ready (#304, #306)', () => {
+  it('is-ready no está al montar y llega dos cuadros después (tras el primer pintado)', async () => {
+    const w = mount(GSelect, { props: { ...base, error: 'Mal' }, attachTo: document.body })
+    const r = () => w.find('.g-select')
+    expect(r().classes()).not.toContain('is-ready')
+    await new Promise((res) => requestAnimationFrame(() => res()))
+    await nextTick()
+    expect(r().classes()).not.toContain('is-ready') // un cuadro no basta
+    await vi.waitFor(() => expect(r().classes()).toContain('is-ready'), { timeout: 1000 })
+    w.unmount()
+  })
+  it('desmontado antes de los dos cuadros: no escribe nada ni falla', async () => {
+    const w = mount(GSelect, { props: { ...base, error: 'Mal' }, attachTo: document.body })
+    const el = w.find('.g-select').element
+    w.unmount()
+    await new Promise((res) => setTimeout(res, 80))
+    expect(el.classList.contains('is-ready')).toBe(false)
+  })
+  it('en SSR (renderToString) no hay is-ready', async () => {
+    const { createSSRApp, h } = await import('vue')
+    const { renderToString } = await import('vue/server-renderer')
+    const html = await renderToString(createSSRApp({ render: () => h(GSelect, { ...base, error: 'Mal' }) }))
+    expect(html).toContain('g-select')
+    expect(html).not.toContain('is-ready')
+  })
+})

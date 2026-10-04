@@ -734,6 +734,118 @@ describe('GTabPanel · dirección copiada de su GTabs', () => {
   })
 })
 
+describe('GTabs · data-orientation (#306)', () => {
+  it('la raíz escribe la orientación real: horizontal por defecto y vertical con responsive="never"', async () => {
+    const w = mk()
+    await flush()
+    expect(w.attributes('data-orientation')).toBe('horizontal')
+    w.unmount()
+    const v = mk({ orientation: 'vertical', responsive: 'never' })
+    await flush()
+    expect(v.attributes('data-orientation')).toBe('vertical')
+    expect(v.attributes('data-orientation')).toBe(v.find('[role="tablist"]').attributes('aria-orientation'))
+    v.unmount()
+  })
+  it.each(['segmented', 'contained'])('%s con orientation="vertical" se dibuja horizontal: data-orientation="horizontal"', async (appearance) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ appearance, orientation: 'vertical', responsive: 'never' })
+    await flush()
+    expect(w.attributes('data-orientation')).toBe('horizontal')
+    warn.mockRestore()
+    w.unmount()
+  })
+  it('responsive auto que pasa a horizontal: data-orientation="horizontal"; contenedor ancho: vertical', async () => {
+    let restore = stubLayout({ headerW: 300, rootW: 300 })
+    const w = mk({ orientation: 'vertical' })
+    await flush()
+    expect(w.attributes('data-orientation')).toBe('horizontal')
+    w.unmount(); restore()
+    restore = stubLayout({ headerW: 800, rootW: 800 })
+    const n = mk({ orientation: 'vertical' })
+    await flush()
+    expect(n.attributes('data-orientation')).toBe('vertical')
+    n.unmount(); restore()
+  })
+  it('paneles integrados: la orientación vive en la raíz (el panel no la lleva)', async () => {
+    const w = mk({ orientation: 'vertical', responsive: 'never' })
+    await flush()
+    expect(w.find('#t-panel-general').attributes('data-orientation')).toBeUndefined()
+    expect(w.attributes('data-orientation')).toBe('vertical')
+    w.unmount()
+  })
+})
+
+describe('GTabPanel · data-orientation copiada al activarse (#306)', () => {
+  const Host = (order, { orientation = 'horizontal', dir } = {}) => ({
+    components: { GTabs, GTabPanel },
+    data: () => ({ v: 'a', items: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] }),
+    template: (() => {
+      const t = `<g-tabs id="h" v-model="v" :items="items" detached label="Demo" orientation="${orientation}" responsive="never" />`
+      const p = '<g-tab-panel v-for="i in items" :key="i.id" tabs="h" :value="i.id" :active="v === i.id">{{ i.label }}</g-tab-panel>'
+      return `<div${dir ? ` dir="${dir}"` : ''}>${order === 'tabs-first' ? t + p : p + t}</div>`
+    })()
+  })
+  const attr = (w, id, a) => w.find(`#h-panel-${id}`).attributes(a)
+  const cases = []
+  for (const order of ['tabs-first', 'panels-first']) for (const orientation of ['horizontal', 'vertical']) for (const dir of ['ltr', 'rtl']) cases.push([order, orientation, dir])
+
+  it.each(cases)('%s · %s · %s: copia data-orientation junto con data-direction al activarse', async (order, orientation, dir) => {
+    const w = mount(Host(order, { orientation, dir }), { attachTo: document.body })
+    await flush()
+    expect(w.find('#h').attributes('data-orientation')).toBe(orientation)
+    expect(attr(w, 'a', 'data-orientation')).toBeUndefined() // al montar no hay activación
+    // en el mismo instante en que el panel deja de estar oculto ya lleva las dos
+    const panel = w.find('#h-panel-c').element
+    const seen = []
+    const mo = new MutationObserver(() => { if (!panel.hidden && !seen.length) seen.push([panel.getAttribute('data-direction'), panel.getAttribute('data-orientation')]) })
+    mo.observe(w.element, { attributes: true, subtree: true })
+    await w.find('#h-tab-c').trigger('click')
+    await flush()
+    mo.disconnect()
+    expect(attr(w, 'c', 'data-orientation')).toBe(orientation)
+    expect(attr(w, 'c', 'data-direction')).toBe('forward')
+    expect(seen[0]).toEqual(['forward', orientation])
+    // teclado (lógico: en RTL la flecha que retrocede es la derecha; en vertical, ArrowUp)
+    const back = orientation === 'vertical' ? 'ArrowUp' : dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
+    w.find('#h-tab-c').element.focus()
+    await w.find('#h-tab-c').trigger('keydown', { key: back })
+    await flush()
+    expect(w.find('#h-tab-b').attributes('aria-selected')).toBe('true')
+    expect(attr(w, 'b', 'data-direction')).toBe('back')
+    expect(attr(w, 'b', 'data-orientation')).toBe(orientation)
+    w.unmount()
+  })
+  it('cambiar la orientación con el panel ya activo no la reescribe (se lee al activarse)', async () => {
+    const H = {
+      components: { GTabs, GTabPanel },
+      data: () => ({ v: 'a', o: 'vertical', items: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] }),
+      template: '<div><g-tabs id="h" v-model="v" :items="items" detached label="Demo" :orientation="o" responsive="never" /><g-tab-panel v-for="i in items" :key="i.id" tabs="h" :value="i.id" :active="v === i.id">{{ i.label }}</g-tab-panel></div>'
+    }
+    const w = mount(H, { attachTo: document.body })
+    await flush()
+    await w.find('#h-tab-b').trigger('click')
+    await flush()
+    expect(attr(w, 'b', 'data-orientation')).toBe('vertical')
+    w.vm.o = 'horizontal'
+    await flush()
+    expect(w.find('#h').attributes('data-orientation')).toBe('horizontal')
+    expect(attr(w, 'b', 'data-orientation')).toBe('vertical')
+    await w.find('#h-tab-a').trigger('click')
+    await flush()
+    expect(attr(w, 'a', 'data-orientation')).toBe('horizontal')
+    w.unmount()
+  })
+  it('sin un GTabs con ese id no pone data-orientation', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mount(GTabPanel, { props: { tabs: 'no-existe', value: 'x', active: false }, attachTo: document.body })
+    await w.setProps({ active: true })
+    await flush()
+    expect(w.attributes('data-orientation')).toBeUndefined()
+    warn.mockRestore()
+    w.unmount()
+  })
+})
+
 describe('GTabs · marca y listo', () => {
   it('variables --_mark-* en px y is-ready tras el primer posicionamiento', async () => {
     const w = mk()

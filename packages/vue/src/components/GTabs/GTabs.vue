@@ -194,6 +194,7 @@ export default defineComponent({
         if (panel && !panel.hidden) {
           if (direction.value) panel.setAttribute('data-direction', direction.value)
           else panel.removeAttribute('data-direction')
+          panel.setAttribute('data-orientation', orientation.value)
         }
       }
     })
@@ -683,6 +684,8 @@ export default defineComponent({
         id: rootId.value,
         class: rootClass,
         'data-direction': direction.value,
+        // Orientación real del diseño (#306): la de `aria-orientation`; GTabPanel la copia al activarse
+        'data-orientation': o,
         style: { '--_mark-x': px(m.x), '--_mark-y': px(m.y), '--_mark-w': px(m.w), '--_mark-h': px(m.h) }
       })
 

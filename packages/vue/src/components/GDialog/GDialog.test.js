@@ -501,6 +501,21 @@ describe('GDialog · slot tabs con GTabs detached: dirección del cambio (#302)'
     expect(panel('b').attributes('data-direction')).toBe('back')
     w.unmount()
   })
+  it.each(['horizontal', 'vertical'])('los paneles del cuerpo copian data-orientation (%s) al activarse (#306)', async (orientation) => {
+    const H = {
+      ...Host,
+      template: Host.template.replace('label="Secciones"', `label="Secciones" orientation="${orientation}" responsive="never"`)
+    }
+    const w = mount(H, { attachTo: document.body })
+    await settle()
+    expect(w.find('#dt').attributes('data-orientation')).toBe(orientation)
+    expect(w.find('#dt-panel-a').attributes('data-orientation')).toBeUndefined()
+    await w.find('#dt-tab-c').trigger('click')
+    await settle()
+    expect(w.find('#dt-panel-c').attributes('data-orientation')).toBe(orientation)
+    expect(w.find('#dt-panel-c').attributes('data-direction')).toBe('forward')
+    w.unmount()
+  })
 })
 
 describe('GDialog · salida animada (#152)', () => {
@@ -676,6 +691,47 @@ describe('GDialog · personalidad: D1 origen en el disparador y D2 borde superio
     expect(seen[0].origin).toBe(false)
     expect(seen[0].x).toBe('')
     w.unmount()
+  })
+
+  it('bajo 521px (#307 (4)): has-origin, is-pinned y sus variables se escriben igual; el umbral es solo del CSS', async () => {
+    const realW = window.innerWidth
+    const realH = window.innerHeight
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 400 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 700 })
+    // Un visor móvil: si el .vue consultara el umbral, esta consulta le diría que está por debajo
+    const mm = vi.fn((q) => ({ matches: /max-width/.test(q), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }))
+    vi.stubGlobal('matchMedia', mm)
+    try {
+      const seen = spyShowModal()
+      const w = mountClosed()
+      Object.defineProperty(dlg(w), 'offsetTop', { configurable: true, get: () => 96 })
+      trigger.focus()
+      await w.setProps({ modelValue: true })
+      // Visor 400 × 700 → centro (200, 350); centro del disparador (112, 584) → vector (−88, 234)
+      expect(seen).toEqual([{ origin: true, x: '-88px', y: '234px', pinned: false }])
+      await nextTick()
+      flushFrames()
+      await nextTick()
+      const d = w.find('dialog')
+      expect(d.classes()).toContain('has-origin')
+      expect(d.classes()).toContain('is-pinned')
+      expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('-88px')
+      expect(dlg(w).style.getPropertyValue('--_origin-y')).toBe('234px')
+      expect(dlg(w).style.getPropertyValue('--_pin-top')).toBe('96px')
+      // Al cerrar también orienta la salida (el CSS decide si la usa)
+      box(dlg(w), { x: 50, y: 96, w: 300, h: 200 })
+      await w.setProps({ modelValue: false })
+      await nextTick()
+      expect(w.find('dialog').classes()).toContain('has-origin')
+      expect(dlg(w).style.getPropertyValue('--_origin-x')).toBe('-88px')
+      expect(dlg(w).style.getPropertyValue('--_origin-y')).toBe('388px')
+      // El .vue no conoce el umbral: ninguna consulta de ancho
+      expect(mm.mock.calls.filter(([q]) => /width/.test(q))).toEqual([])
+      w.unmount()
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: realW })
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: realH })
+    }
   })
 
   it('D2: tras abrir y poner el foco, en el cuadro siguiente, --_pin-top (offsetTop) e is-pinned', async () => {

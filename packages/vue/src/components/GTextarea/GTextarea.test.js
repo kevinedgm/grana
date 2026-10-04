@@ -339,3 +339,30 @@ describe('GTextarea · nombre accesible y atributos', () => {
     expect(w.find('b').exists()).toBe(false)
   })
 })
+
+describe('GTextarea · personalidad I1: is-ready (#304, #306)', () => {
+  it('is-ready no está al montar y llega dos cuadros después (tras el primer pintado)', async () => {
+    const w = mount(GTextarea, { props: { label: 'Comentario', error: 'Mal' }, attachTo: document.body })
+    const r = () => w.find('.g-textarea')
+    expect(r().classes()).not.toContain('is-ready')
+    await new Promise((res) => requestAnimationFrame(() => res()))
+    await nextTick()
+    expect(r().classes()).not.toContain('is-ready') // un cuadro no basta
+    await vi.waitFor(() => expect(r().classes()).toContain('is-ready'), { timeout: 1000 })
+    w.unmount()
+  })
+  it('desmontado antes de los dos cuadros: no escribe nada ni falla', async () => {
+    const w = mount(GTextarea, { props: { label: 'Comentario', error: 'Mal' }, attachTo: document.body })
+    const el = w.find('.g-textarea').element
+    w.unmount()
+    await new Promise((res) => setTimeout(res, 80))
+    expect(el.classList.contains('is-ready')).toBe(false)
+  })
+  it('en SSR (renderToString) no hay is-ready', async () => {
+    const { createSSRApp, h } = await import('vue')
+    const { renderToString } = await import('vue/server-renderer')
+    const html = await renderToString(createSSRApp({ render: () => h(GTextarea, { label: 'Comentario', error: 'Mal' }) }))
+    expect(html).toContain('g-textarea')
+    expect(html).not.toContain('is-ready')
+  })
+})

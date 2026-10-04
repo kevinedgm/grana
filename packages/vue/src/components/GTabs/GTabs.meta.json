@@ -307,6 +307,14 @@
     "loading",
     "attention"
   ],
+  "classes": {
+    "personality": [
+      "data-direction en la raíz (forward · back, orden lógico de items): escrito en el mismo render que cambia la activa, por cualquier vía; ausente al montar y sin activa anterior (T2, #302)",
+      "data-orientation en la raíz (horizontal · vertical): la orientación real del diseño, la misma que aria-orientation (responsive auto puede pasarla a horizontal; segmented y contained con vertical dibujan horizontal) (#306)",
+      "GTabPanel (detached, también en el slot tabs de GDialog): al pasar a activo copia en su raíz data-direction y data-orientation de #{tabs}; sin ese GTabs no pone ninguna; cambiar la orientación con el panel ya activo no la reescribe (#302, #306)",
+      "is-ready en la raíz tras el primer posicionamiento de la marca; style --_mark-x/--_mark-y/--_mark-w/--_mark-h (px)"
+    ]
+  },
   "pending": [
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack): anuncio de estado y contador, menú «Más»",
     "Táctil real, snap con dedo y zoom al 200%",

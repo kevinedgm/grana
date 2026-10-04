@@ -48,7 +48,7 @@
     { "name": "error", "purpose": "Mensaje de error con contenido rico; solo se muestra con error (en la región __message)" },
     { "name": "action", "purpose": "Botón de acción acoplado al final de la caja. Slot con alcance: { size, density, disabled }; el consumidor pone un GBtn" }
   ],
-  "tokens": ["--g-color-surface", "--g-color-surface-sunken", "--g-color-border-control", "--g-color-border-strong", "--g-color-text", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-danger-text", "--g-color-focus", "--g-color-{color}-text", "--g-radius-*", "--g-space-1..6", "--g-font-ui", "--g-text-{caption|body-sm|body}-{size|line}", "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset", "--g-duration-fast", "--g-duration-spin", "--g-ease-standard"],
+  "tokens": ["--g-color-surface", "--g-color-surface-sunken", "--g-color-border-control", "--g-color-border-strong", "--g-color-text", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-danger-text", "--g-color-focus", "--g-color-{color}-text", "--g-radius-*", "--g-space-1..6", "--g-font-ui", "--g-text-{caption|body-sm|body}-{size|line}", "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset", "--g-duration-fast", "--g-duration-press", "--g-duration-slow", "--g-duration-spin", "--g-ease-standard", "--g-ease-out"],
   "states": ["default", "hover", "focus-visible", "filled", "disabled", "readonly", "invalid", "loading", "warning", "valid"],
   "classes": {
     "personality": [
@@ -56,6 +56,6 @@
       "is-rejected en la raíz: la pone GForm tras un envío con errores (no formnovalidate) o showErrors() si este campo bloquea; se retira con animationend/animationcancel de una animación cuyo nombre empieza por g-reject (escucha en la raíz), con el siguiente input/change o al desmontar; nunca al escribir ni al salir del campo (I2, #304)"
     ]
   },
-  "pending": ["Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "I1 e I2 (CSS de coco, plan 018 pasos 4 a 6): añadir a tokens --g-duration-press, --g-duration-slow y --g-ease-out cuando GInput.css los consuma", "Ancho del botón mostrar/ocultar con textos largos"],
+  "pending": ["Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "Ancho del botón mostrar/ocultar con textos largos"],
   "formSystem": {"contract": "design/contracts/form.md §10", "changes": ["C1 contexto con useFormField", "C3 marcas", "C4 región __message", "C5 warning/valid", "C6 iconos", "C8 manejadores primero", "C10 registro", "C13 prefix/suffix"]}
 }
