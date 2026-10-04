@@ -91,12 +91,12 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 
 ## Siguientes pasos
 
-0. **Personalidad, segunda tanda** (ideas reservadas en `design/lab/personalidad/r01/declaracion.md` y en `design/lab/avatar/auditoria.md`): elegir con el usuario qué entra; extender I1 (mensaje que sale del campo) a `GTextarea` y `GSelect` (ya tienen `is-ready`; coco); secciones «Personalidad» en los README de los campos con `is-rejected`; refrescar notas desfasadas de `design/lab/{input,card}/estilo.md`.
+0. **Pendientes aplazados:** todos en `PENDIENTES.md` (personalidad segunda tanda, formularios fases 2–4, componentes aplazados, voz F3, tema, defectos conocidos, entorno real). Se actualiza al cerrar cada componente.
 1. **Siguiente componente**, empezando por la ronda de kiwi (decisión de producto del usuario).
 2. **Dark Color Presence:** la evidencia está reunida (`design/lab/tema-oscuro/dark-color-presence/`, `recommendation.md`). D es la opción preferida **pero no está adoptada**; adoptarla exige especificación y pruebas del motor, y decisión del usuario. No tocar el Theme Engine ni el contrato por esto sin esa decisión.
 3. **Solo en entorno real** (no automatizable): lector de pantalla (VoiceOver, NVDA) sobre tabla, filtros, `GHelper` y la captura de voz (canales, `role="timer"`, la rejilla de `GTranscript` en modo foco y en exploración, `<del>`/`<ins>`, editor en la celda); captura de voz con Safari real, un motor real (Whisper local) y móvil real; hoja móvil del editor de filtros en móvil real; Safari, táctil y `forced-colors` reales; evaluación ciega de Dark Color Presence por una segunda persona (`design/lab/theme-playground/blind/`).
 
-**Pendientes que no bloquean:** tema opcional grana + añil (en `tokens.md` §9); `round()` para alturas fraccionarias; ronda de `GDialog` para crecer hacia abajo con el borde superior fijo (#281, `dialog.md` «Abierto»); buscar en la página dentro de secciones plegadas (`hidden="until-found"`, L11 de `design/lab/form-section/r01/`); `GFormNav` sin ronda; extender #270 (`aria-required`) a `GInput`, `GTextarea` y `GInputGroupSelect` tras medir Chromium (lima); `AGENTS.md` asigna `*.meta.json` a bruno pero el agente coco cambia `status` (unificar). `GFormReveal`: perfilar `readGap`/`longest` con muchos bloques y robustecer la cuenta de cuadros del spec en WebKit (hallazgos 3 y 4 de su auditoría, bruno).
+**Pendientes que no bloquean:** ver `PENDIENTES.md`.
 
 ## Lecciones ya aprendidas (no repetirlas)
 
