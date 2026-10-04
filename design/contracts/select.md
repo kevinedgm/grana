@@ -262,6 +262,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 ## Límites conocidos
 
 - **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA: combobox editable / listbox múltiple). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
+- **Frontera con `GCombobox`** (`design/contracts/combobox.md`, #329 a #338): `GSelect` es para una lista **conocida y corta** (hasta unas decenas) que se elige sin escribir; cientos o miles de opciones, resultados del servidor o texto libre son de `GCombobox` (hasta 7 visibles, `GRadioGroup`). Dos diferencias deliberadas: en `GSelect` **Tab elige** la opción activa (la puso la persona con las flechas) y en `GCombobox` no (#333); la fila «Agregar nuevo…» de `GSelect` no lleva texto (`createLabel`, evento `create` sin datos) y la de `GCombobox` lleva el texto tecleado (`creatable` + `labels.create`, `create(texto)`).
 - **La fila «Agregar nuevo…» se anuncia como una opción más** («…, opción 7 de 7»); el texto de `createLabel` debe ser explícito. Por verificar con lectores reales.
 - **Sin sufijo** antes de la flecha en v0.1.
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
