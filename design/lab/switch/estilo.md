@@ -51,3 +51,7 @@
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; preferencias reales de `prefers-reduced-motion` y `forced-colors`; Firefox y Safari (pseudo-elementos del `<input>` con `appearance: none`, `:dir()`, `:has()`); hover real del ratón; tema oscuro (no existe).
+
+## Personalidad: rechazo al enviar (`is-rejected`; DECISIONS.md #304)
+
+Con `GForm`, al enviar con errores el campo que bloquea niega una vez con la cabeza (sacudida horizontal decreciente de ≤ `--g-space-1`, `--g-duration-slow`, sin movimiento reducido): aquí se mueve `.g-switch__control` (el riel). Detalle, tabla de todos los campos y mediciones en `design/lab/input/estilo.md` («I2 extendido al resto de campos»).

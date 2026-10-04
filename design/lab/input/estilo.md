@@ -123,6 +123,22 @@
 - **RTL:** la sacudida empieza hacia la izquierda física en los dos sentidos; no transmite dirección, así que no se refleja.
 - **`forced-colors`:** sin cambios (`translate` y `opacity` no tocan colores del sistema).
 
+### I2 extendido al resto de campos (`is-rejected` en `GCheckbox`, `GSwitch`, `GDatePicker`, `GCheckboxGroup`, `GRadioGroup`, `GFieldGroup`, `GInputGroup`)
+
+Misma coreografía (una vez, `1 · 0.75 · 0.5 · 0.25 × --g-space-1` en 16 · 36 · 56 · 76 % de `--g-duration-slow`, `linear`, solo `prefers-reduced-motion: no-preference`, `translate`), keyframes con nombre propio por archivo y prefijo `g-reject-`. Qué se mueve (siempre la pieza que lleva el anillo de foco; etiqueta, ayuda y mensaje se quedan quietos):
+
+| Campo | Se mueve | Keyframes |
+| --- | --- | --- |
+| `GCheckbox` | `.g-checkbox__box` (la caja con su marca; la fila con la etiqueta no) | `g-reject-shake-checkbox` |
+| `GSwitch` | `.g-switch__control` (el riel; el pulgar es hijo y mantiene su `translate` propio) | `g-reject-shake-switch` |
+| `GDatePicker` | `.g-datepicker__field` (el botón del campo) o, con `split`, `.g-datepicker__fields` (los dos campos juntos). Con `inline` no hay campo: no se mueve nada | `g-reject-shake-datepicker` |
+| `GCheckboxGroup` | `.g-checkbox-group__list` (el conjunto de opciones, como una pregunta; no cada casilla) | `g-reject-shake-checkbox-group` |
+| `GRadioGroup` | `.g-radio-group__options` (las tres apariencias) | `g-reject-shake-radio-group` |
+| `GFieldGroup` | `.g-field-group__parts` (la fila de partes; la leyenda no) | `g-reject-shake-field-group` |
+| `GInputGroup` | `.g-input-group__box` (la caja fusionada entera, con sus divisores) | `g-reject-shake-input-group` |
+
+Por qué así: el gesto es «esta pregunta dice no», y el `fieldset` entero (leyenda y mensaje incluidos) arrastraría el texto que hay que leer; la caja o las opciones, no. Los `animationend` de los hijos suben a la raíz y solo el de nombre `g-reject…` retira la clase, así que un `GInput` anidado en un `GFieldGroup` no la quita antes de tiempo. **Medido** (`personalidad-input.spec.mjs`, bloque «el resto de campos», 9 pruebas × 3 motores): en los ocho movers, máximo 3,96px (≤ `space × 1`), picos decrecientes, 3 cambios de sentido, vuelta a 0, 240ms, una iteración, nombre `g-reject-…`, la clase se retira sola con el `animationend` y no queda animación; en reposo `translate` 0 en todos; con `reduce`, clase presente, 0 animaciones y 0 desplazamiento.
+
 ### Mediciones (componente real del UMD; `design/lab/theme-playground/tests/personalidad-input.spec.mjs`, 10 pruebas × 3 motores, 30/30)
 
 | Medida | Chromium | Firefox | WebKit | Criterio (kiwi) |

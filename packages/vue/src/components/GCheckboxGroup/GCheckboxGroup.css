@@ -127,3 +127,21 @@
 .g-checkbox-group[disabled] .g-checkbox-group__count {
   color: var(--g-color-text-subtle);
 }
+
+/* ---------- Rechazo al enviar (I2 de GInput extendida; form.md §2, DECISIONS.md #304) ---------- */
+/* GForm pone is-rejected en el campo que bloquea y el campo la retira con el animationend de un nombre g-reject…, con
+   el siguiente input/change o al desmontar. Se mueve la lista de opciones (una pregunta: se mueve el conjunto, no cada casilla); etiqueta, contador, ayuda y mensaje no se mueven. Una vez, horizontal, decreciente:
+   1 · 0.75 · 0.5 · 0.25 × --g-space-1 en el 16 · 36 · 56 · 76 % de --g-duration-slow (≤ 4px con space 4). Nada con
+   movimiento reducido (el error ya es borde, icono y texto). Keyframes con nombre propio: cada archivo se sostiene solo */
+@media (prefers-reduced-motion: no-preference) {
+  .g-checkbox-group.is-rejected .g-checkbox-group__list {
+    animation: g-reject-shake-checkbox-group var(--g-duration-slow) linear;
+  }
+}
+@keyframes g-reject-shake-checkbox-group {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}

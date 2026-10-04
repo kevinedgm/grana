@@ -60,3 +60,7 @@ Ninguno.
 - Zoom al 200% del navegador y dispositivo táctil real.
 - La marca dibujada en Firefox y Safari: se comprobó en Chromium; dibujar en `::after` de un `<input>` con `appearance: none` es un patrón común, pero conviene revisarlo en esos navegadores.
 - Casilla con `layout="card"` o `"chip"` dentro de un `GCheckboxGroup` con `disabled` heredado.
+
+## Personalidad: rechazo al enviar (`is-rejected`; DECISIONS.md #304)
+
+Con `GForm`, al enviar con errores el campo que bloquea niega una vez con la cabeza (sacudida horizontal decreciente de ≤ `--g-space-1`, `--g-duration-slow`, sin movimiento reducido): aquí se mueve `GCheckbox` y, en `GCheckboxGroup`, la lista de opciones: `.g-checkbox__box` / `.g-checkbox-group__list`. Detalle, tabla de todos los campos y mediciones en `design/lab/input/estilo.md` («I2 extendido al resto de campos»).

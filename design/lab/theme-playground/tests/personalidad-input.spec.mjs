@@ -255,3 +255,117 @@ test.describe('I1 · el mensaje sale del campo', () => {
     expect(r.end).toMatchObject({ o: 1, ty: 0 })
   })
 })
+
+// ---------------------------------------------------------------------------------------------------------------------
+// I2 en el resto de campos (form.md §2 «Rechazo al enviar»): GCheckbox, GSwitch, GRadioGroup, GCheckboxGroup, GFieldGroup,
+// GInputGroup y GDatePicker (también split). Cada uno mueve su pieza (la caja / el riel / las opciones / la lista / las
+// partes / la caja fusionada / el campo) con keyframes `g-reject-shake-<campo>`: una vez, decreciente, ≤ space × 1, vuelta a 0.
+// ---------------------------------------------------------------------------------------------------------------------
+const FIELDS = [
+  { key: 'chk', root: '.g-checkbox', mover: '.g-checkbox__box' },
+  { key: 'sw', root: '.g-switch', mover: '.g-switch__control' },
+  { key: 'rad', root: '.g-radio-group', mover: '.g-radio-group__options' },
+  { key: 'cg', root: '.g-checkbox-group', mover: '.g-checkbox-group__list' },
+  { key: 'fg', root: '.g-field-group', mover: '.g-field-group__parts' },
+  { key: 'ig', root: '.g-input-group', mover: '.g-input-group__box' },
+  { key: 'dp', root: '.g-datepicker', mover: '.g-datepicker__field' },
+  { key: 'dps', root: '.g-datepicker', mover: '.g-datepicker__fields' }
+]
+
+const mountFields = async (page, { reduce = false } = {}) => {
+  await page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
+  await page.goto(PAGE)
+  await page.waitForSelector('.g-btn')
+  await page.evaluate((fields) => {
+    const host = document.createElement('div')
+    host.id = 'pj-host'
+    host.style.padding = '48px'
+    document.body.prepend(host)
+    const { createApp, h, reactive } = window.Vue
+    const G = window.Grana
+    const errors = reactive({ chk: 'Acepta los términos.', sw: 'Activa esta opción.', rad: 'Elige una.', cg: 'Elige al menos una.', fg: 'Completa el grupo.', ig: 'Completa el teléfono.', dp: 'Elige una fecha.', dps: 'Elige un rango.' })
+    const opts = [{ value: 'a', label: 'Alfa' }, { value: 'b', label: 'Beta' }]
+    window.__errors = errors
+    createApp({
+      render: () => h(G.GForm, { id: 'pj-form', errors, showErrorsOn: 'submit' }, () => [
+        h('div', { id: 'pj-chk' }, [h(G.GCheckbox, { name: 'chk', label: 'Acepto', modelValue: false })]),
+        h('div', { id: 'pj-sw' }, [h(G.GSwitch, { name: 'sw', label: 'Notificaciones', modelValue: false })]),
+        h('div', { id: 'pj-rad' }, [h(G.GRadioGroup, { name: 'rad', label: 'Plan', options: opts, modelValue: null })]),
+        h('div', { id: 'pj-cg' }, [h(G.GCheckboxGroup, { name: 'cg', label: 'Intereses', options: opts, modelValue: [] })]),
+        h('div', { id: 'pj-fg' }, [h(G.GFieldGroup, { name: 'fg', label: 'Datos' }, () => [h(G.GInput, { label: 'Uno' }), h(G.GInput, { label: 'Dos' })])]),
+        h('div', { id: 'pj-ig' }, [h(G.GInputGroup, { name: 'ig', label: 'Teléfono' }, () => [h(G.GInputGroupText, { text: '+52', decorative: true }), h(G.GInputGroupInput, { name: 'ig-n', principal: true, type: 'tel' })])]),
+        h('div', { id: 'pj-dp' }, [h(G.GDatePicker, { name: 'dp', label: 'Fecha', modelValue: null })]),
+        h('div', { id: 'pj-dps' }, [h(G.GDatePicker, { name: 'dps', label: 'Rango', mode: 'range', split: true, labelStart: 'Desde', labelEnd: 'Hasta', modelValue: null })]),
+        h('button', { id: 'pj-submit', type: 'submit' }, 'Enviar')
+      ])
+    }).mount(host)
+    const probe = document.createElement('div'); probe.style.inlineSize = 'var(--g-space-1)'; document.body.appendChild(probe)
+    window.__space1 = probe.getBoundingClientRect().width; probe.remove()
+    const F = Object.fromEntries(fields.map((f) => [f.key, f]))
+    window.__root = (key) => document.querySelector(`#pj-${key} ${F[key].root}`)
+    window.__mover = (key) => window.__root(key).querySelector(F[key].mover)
+    window.__tx = (el) => { const t = getComputedStyle(el).translate; if (!t || t === 'none') return 0; return parseFloat(t.split(' ')[0]) }
+    window.__cssAnims = (el) => el.getAnimations().filter((a) => a.animationName !== undefined)
+  }, FIELDS)
+  await page.waitForSelector('#pj-dps .g-datepicker__fields')
+  await page.waitForTimeout(150)
+}
+
+const seekField = (page, key) => page.evaluate((key) => new Promise((resolve) => {
+  const root = window.__root(key); const mover = window.__mover(key)
+  const timer = setTimeout(() => { mo.disconnect(); resolve({ found: false, rejected: root.classList.contains('is-rejected') }) }, 3000)
+  const mo = new MutationObserver(() => {
+    if (!root.classList.contains('is-rejected')) return
+    mo.disconnect(); clearTimeout(timer)
+    const a = window.__cssAnims(mover).find((x) => x.animationName.startsWith('g-reject'))
+    if (!a) return resolve({ found: false, rejected: true, anim: getComputedStyle(mover).animationName })
+    a.pause()
+    const dur = a.effect.getComputedTiming().duration
+    const xs = []
+    for (let t = 0; t <= dur; t += 2) { a.currentTime = t; xs.push({ t, x: window.__tx(mover) }) }
+    a.currentTime = 0
+    a.play()
+    resolve({ found: true, name: a.animationName, dur, iterations: a.effect.getComputedTiming().iterations, xs, s1: window.__space1 })
+  })
+  mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+  document.getElementById('pj-form').requestSubmit()
+}), key)
+
+test.describe('I2 · el aviso al enviar en el resto de campos', () => {
+  for (const f of FIELDS) {
+    test(`${f.key} (${f.mover}): sacudida decreciente ≤ space × 1, tres cambios de sentido, vuelta a 0, una vez, nombre g-reject-`, async ({ page }) => {
+      await mountFields(page)
+      const r = await seekField(page, f.key)
+      expect(r.found, JSON.stringify(r)).toBe(true)
+      expect(r.name).toMatch(/^g-reject-/)
+      expect(r.dur).toBeCloseTo(240, 0)
+      expect(r.iterations).toBe(1)
+      const max = Math.max(...r.xs.map((p) => Math.abs(p.x)))
+      expect(max, `máximo ${max}px`).toBeLessThanOrEqual(r.s1 + 0.01)
+      expect(max).toBeGreaterThan(r.s1 * 0.9)
+      expect(signChanges(r.xs), 'cambios de sentido').toBe(3)
+      expect(Math.abs(r.xs.at(-1).x)).toBeLessThan(0.01)
+      const peaks = [0.16, 0.36, 0.56, 0.76].map((p) => Math.abs(r.xs.reduce((b, q) => (Math.abs(q.t - p * r.dur) < Math.abs(b.t - p * r.dur) ? q : b)).x))
+      for (let i = 1; i < peaks.length; i++) expect(peaks[i]).toBeLessThan(peaks[i - 1])
+      // La retirada real: el animationend retira is-rejected y no queda animación
+      await page.waitForFunction((key) => !window.__root(key).classList.contains('is-rejected'), f.key, { timeout: 2000 })
+      expect(await page.evaluate((key) => window.__cssAnims(window.__mover(key)).length, f.key)).toBe(0)
+      if (process.env.VERBOSE) console.log(`I2 ${f.key} ${test.info().project.name}: máx ${max.toFixed(3)}px (space ${r.s1}), ${r.name}`)
+    })
+  }
+
+  test('en reposo nada se mueve; con movimiento reducido la clase se pone pero no hay animación ni desplazamiento', async ({ page }) => {
+    await mountFields(page, { reduce: true })
+    const rest = await page.evaluate((keys) => keys.map((k) => window.__tx(window.__mover(k))), FIELDS.map((f) => f.key))
+    expect(rest.every((x) => x === 0)).toBe(true)
+    const xs = await page.evaluate(async (keys) => {
+      const xs = []; const t0 = performance.now()
+      document.getElementById('pj-form').requestSubmit()
+      await new Promise((res) => { (function f() { xs.push({ on: keys.map((k) => window.__root(k).classList.contains('is-rejected')), x: keys.map((k) => window.__tx(window.__mover(k))), n: keys.map((k) => window.__cssAnims(window.__mover(k)).length) }); if (performance.now() - t0 < 400) requestAnimationFrame(f); else res() })() })
+      return xs
+    }, FIELDS.map((f) => f.key))
+    expect(xs.some((s) => s.on.every(Boolean)), 'is-rejected presente en todos').toBe(true)
+    expect(xs.every((s) => s.x.every((x) => x === 0)), 'sin desplazamiento').toBe(true)
+    expect(xs.every((s) => s.n.every((n) => n === 0)), 'sin animaciones').toBe(true)
+  })
+})

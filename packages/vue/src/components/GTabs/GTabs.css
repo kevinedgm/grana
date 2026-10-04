@@ -589,7 +589,7 @@
 /* T2 · el contenido llega de su lado: con fundido y --g-space-1 × 4 desde el lado hacia el que viajó la marca
    (`forward` desde el final, `back` desde el inicio; espejado en RTL; en vertical, por el eje de bloque). Sin
    dirección, solo fundido. Integrados: dirección en la raíz; sueltos (`detached`, slot `tabs` de GDialog): en el propio
-   panel, que no conoce la orientación de su GTabs y entra siempre por el eje inline. Solo tras un cambio (`is-ready` o
+   panel, que copia `data-orientation` (#306) y entra por el eje de bloque si es vertical, y por el inline si no. Solo tras un cambio (`is-ready` o
    `data-direction`): nunca al montar */
 .g-tabs__panel {
   --_pdir: 1;
@@ -608,11 +608,14 @@
   }
   @starting-style {
     .g-tabs--orientation-horizontal.is-ready[data-direction="forward"] > .g-tabs__panels > .g-tabs__panel:not([hidden]),
-    .g-tabs__panel[data-direction="forward"]:not([hidden]) { translate: calc(var(--_pdir) * var(--_shift)) 0; }
+    .g-tabs__panel[data-direction="forward"]:not([data-orientation="vertical"]):not([hidden]) { translate: calc(var(--_pdir) * var(--_shift)) 0; }
     .g-tabs--orientation-horizontal.is-ready[data-direction="back"] > .g-tabs__panels > .g-tabs__panel:not([hidden]),
-    .g-tabs__panel[data-direction="back"]:not([hidden]) { translate: calc(var(--_pdir) * var(--_shift) * -1) 0; }
+    .g-tabs__panel[data-direction="back"]:not([data-orientation="vertical"]):not([hidden]) { translate: calc(var(--_pdir) * var(--_shift) * -1) 0; }
     .g-tabs--orientation-vertical.is-ready[data-direction="forward"] > .g-tabs__panels > .g-tabs__panel:not([hidden]) { translate: 0 var(--_shift); }
     .g-tabs--orientation-vertical.is-ready[data-direction="back"] > .g-tabs__panels > .g-tabs__panel:not([hidden]) { translate: 0 calc(var(--_shift) * -1); }
+    /* Panel suelto con pestañas verticales (#306): `data-orientation` copiado al activarse; por el eje de bloque, sin RTL */
+    .g-tabs__panel[data-orientation="vertical"][data-direction="forward"]:not([hidden]) { translate: 0 var(--_shift); }
+    .g-tabs__panel[data-orientation="vertical"][data-direction="back"]:not([hidden]) { translate: 0 calc(var(--_shift) * -1); }
   }
 }
 /* Movimiento reducido: el panel solo se funde (#299 (3)); sin desplazamiento */

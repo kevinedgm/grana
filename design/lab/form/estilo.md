@@ -149,3 +149,7 @@ Lector de pantalla (prefijo oculto, «(opcional)», unidad), `forced-colors` rea
 - La región `__message` vacía solo contiene el comentario de Vue (`<!--v-if-->`), sin nodos de texto; «(opcional)» lleva un espacio de texto delante; `__prefix-label`/`__suffix-label` van dentro de `__control` justo tras el texto visible.
 - `GFormGrid` con `stack` emite `g-form-grid--narrow` + `g-form-grid--stack`; `GFormActions` emite `data-stacked` y `g-form-actions--stacked`; `GFieldGroup` deshabilitado lleva `is-disabled` + `disabled` y sus partes `is-disabled` por contexto.
 - `GCheckboxGroup` gana además `is-disabled`, `is-invalid`, `is-warning`, `is-valid` en el `fieldset` (C5).
+
+## Personalidad: rechazo al enviar (`is-rejected`; DECISIONS.md #304)
+
+Con `GForm`, al enviar con errores el campo que bloquea niega una vez con la cabeza (sacudida horizontal decreciente de ≤ `--g-space-1`, `--g-duration-slow`, sin movimiento reducido): aquí se mueve `GRadioGroup` (`__options`), `GFieldGroup` (`__parts`) e `GInputGroup` (`__box`). Detalle, tabla de todos los campos y mediciones en `design/lab/input/estilo.md` («I2 extendido al resto de campos»).

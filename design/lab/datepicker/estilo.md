@@ -59,3 +59,7 @@
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; `forced-colors` y `prefers-reduced-motion` reales (los bloques están escritos pero solo se revisó su sintaxis); RTL (franja y flechas con propiedades lógicas y `[dir="rtl"]` para el chevrón); Firefox y Safari (`popover`, `::backdrop`, `:has()` no se usa aquí, `scale`/`rotate` individuales); teclado virtual con la hoja; dispositivo táctil real; tema oscuro (no existe).
+
+## Personalidad: rechazo al enviar (`is-rejected`; DECISIONS.md #304)
+
+Con `GForm`, al enviar con errores el campo que bloquea niega una vez con la cabeza (sacudida horizontal decreciente de ≤ `--g-space-1`, `--g-duration-slow`, sin movimiento reducido): aquí se mueve `.g-datepicker__field` (o `.g-datepicker__fields` con `split`; nada con `inline`). Detalle, tabla de todos los campos y mediciones en `design/lab/input/estilo.md` («I2 extendido al resto de campos»).

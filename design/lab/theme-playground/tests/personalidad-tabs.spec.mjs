@@ -219,6 +219,26 @@ test.describe('GTabs · T2 el contenido llega de su lado', () => {
     expect(bw.end.px).toBe(0)
   })
 
+  // #306: un GTabPanel suelto con pestañas verticales copia data-orientation al activarse y entra por el eje de bloque
+  test('detached con pestañas verticales: ±space × 4 en bloque, 0 en inline; horizontal sigue en inline', async ({ page }) => {
+    await mount(page, [{ id: 'pdv', detached: true, orientation: 'vertical' }, { id: 'pdh', detached: true }])
+    const fw = await seek(page, 'pdv', 'Facturas')
+    expect(fw.panelDir).toBe('forward')
+    expect(fw.xs[0].v.px, 'sin desplazamiento inline').toBe(0)
+    expect(fw.xs[0].v.py).toBeCloseTo(fw.shift, 1)
+    expect(fw.xs[0].v.po).toBe(0)
+    expect(fw.end.py).toBe(0)
+    expect(fw.end.po).toBe(1)
+    const bw = await seek(page, 'pdv', 'Resumen')
+    expect(bw.panelDir).toBe('back')
+    expect(bw.xs[0].v.px).toBe(0)
+    expect(bw.xs[0].v.py).toBeCloseTo(-fw.shift, 1)
+    const hz = await seek(page, 'pdh', 'Facturas')
+    expect(hz.xs[0].v.px).toBeCloseTo(hz.shift, 1)
+    expect(hz.xs[0].v.py).toBe(0)
+    log(`T2 detached vertical ${test.info().project.name}: ${fw.xs[0].v.py}/${bw.xs[0].v.py}px en bloque (space × 4 = ${fw.shift}px)`)
+  })
+
   // A 375px, con el margen lateral habitual (16px) y a sangre (la pestaña toca el borde de la ventana: el peor caso).
   // El recorte de los paneles existe donde hay overflow-clip-margin (Chromium, Firefox); WebKit no lo tiene y allí, a
   // sangre, el panel que entra rebasa como mucho space × 4 durante ≤ 240ms (límite conocido, tabs.md; estilo.md)
@@ -284,7 +304,7 @@ test.describe('GTabs · recorte del panel', () => {
 
 test.describe('GTabs · movimiento reducido', () => {
   test('la marca salta (sin estirarse) y el panel solo se funde, sin desplazamiento', async ({ page }) => {
-    await mount(page, [{ id: 'rr' }, { id: 'rd', detached: true }], { reduce: true })
+    await mount(page, [{ id: 'rr' }, { id: 'rd', detached: true }, { id: 'rv', detached: true, orientation: 'vertical' }], { reduce: true })
     const fw = await seek(page, 'rr', 'Facturas')
     expect(fw.info.filter((i) => i.el === 'mark'), 'sin transiciones en la marca').toEqual([])
     expect(Math.abs(fw.xs[0].v.s - fw.tab.s)).toBeLessThanOrEqual(0.5)
@@ -296,6 +316,9 @@ test.describe('GTabs · movimiento reducido', () => {
     const d = await seek(page, 'rd', 'Facturas')
     expect(d.info.filter((i) => i.el === 'panel').map((i) => i.prop)).toEqual(['opacity'])
     expect(d.xs.every((x) => x.v.px === 0)).toBe(true)
+    const dv = await seek(page, 'rv', 'Facturas')
+    expect(dv.info.filter((i) => i.el === 'panel').map((i) => i.prop)).toEqual(['opacity'])
+    expect(dv.xs.every((x) => x.v.px === 0 && x.v.py === 0)).toBe(true)
   })
 })
 
