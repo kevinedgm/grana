@@ -157,8 +157,49 @@ Con `alertdialog`: el clic en el fondo **no** cierra (`closeOnBackdrop` se ignor
 - **Cuerpo desplazable:** solo cuando su contenido no cabe recibe `tabindex="0"`, `role="region"` y el nombre del título, para que el teclado pueda desplazarlo. Cuando cabe, no es tabulable.
 - **Cierre:** botón con nombre (`closeLabel`); la cruz es el icono `x` de Lucide (decorativo, toma `currentColor`), así que se ve también con colores forzados. Con `pointer: coarse` mide 44×44px.
 - **Contraste:** con el tema por defecto y con el de prueba de la auditoría, todo texto llega a 4.5:1 o más; el borde del icono de alerta, a 3:1 o más.
-- **Movimiento:** la entrada es breve (`--g-duration-press`, `--g-ease-out`) y solo existe con `prefers-reduced-motion: no-preference`. No hay animación de salida.
+- **Movimiento:** la entrada es breve (`--g-duration-press`, `--g-ease-out`) y la salida más corta (`--g-duration-fast`, #152); con `prefers-reduced-motion: reduce` solo hay fundido. En escritorio, el diálogo centrado entra desde su disparador y crece hacia abajo con el borde superior fijo (ver [Personalidad](#personalidad)). La salida solo se anima en Chromium: en Firefox y WebKit el diálogo cierra sin cuadros intermedios.
 - **Colores forzados:** carcasa, inset, pie y secciones usan `CanvasText`; el cierre, `ButtonText`.
+
+## Personalidad
+
+Dos detalles que no cambian dónde aparece el diálogo (sigue centrado) ni su API: sin props, slots ni eventos nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§4) y decisión del usuario de que el diálogo **sí** aparezca desde su disparador; decisiones #281 (resuelto para `center`), #299, #301 y #307 en `DECISIONS.md`.
+
+**Viene de donde lo llamaste.** Con `placement="center"` (sin `fullscreen`) y un visor de más de 520px, el diálogo entra desplazado **un cuarto** del camino entre el centro y el botón que lo abrió, con un tope de `--g-space-1 × 8` (32px) por eje, junto al fundido y la escala de siempre (`--g-duration-press`, `--g-ease-out`, sin muelle: nunca hay rebote en un diálogo). Al cerrar sale hacia el elemento al que vuelve el foco (`--g-duration-fast`). Se insinúa el origen, no se recorre; por qué: en una tabla con «Editar» por fila se ve qué fila lo abrió, y el movimiento anticipa adónde vuelve el foco (WCAG 2.4.3).
+
+- **El disparador** es el `document.activeElement` al abrir, si está fuera del diálogo y no es `body`. Sin disparador (apertura por programa sin foco previo), la entrada y la salida son las de siempre. Si al cerrar el disparador ya no está conectado o no tiene caja, sale como antes. **Límite en WebKit:** un clic no enfoca el botón allí, así que con un disparador de ratón el diálogo **solo se funde**; con teclado sí hay origen. No se busca el disparador por otra vía (sería una prop o un oyente global nuevos).
+- **Hoja lateral (`end`), hoja móvil, ancho completo móvil y pantalla completa** conservan su entrada.
+
+**Crece hacia abajo, con el borde superior fijo.** Al abrir centrado, el diálogo se coloca como siempre; después de montar el contenido y poner el foco, mide su borde superior y lo **fija**. Desde ahí solo crece hacia abajo, y cuando no cabe desplaza su cuerpo (como antes). Por qué: un bloque que se abre (`GFormReveal`), un error que aparece o un `GTextarea autosize` empujan el contenido hacia abajo y **nunca mueven lo que estás mirando**. Al redimensionar la ventana se vuelve a centrar y a fijar, y mientras dura la salida el diálogo sigue fijo (no salta al centro). Este límite resuelve el «Abierto» de #281 para `placement="center"`; la hoja inferior que conserva su borde superior sigue abierta.
+
+- **Alcance:** solo con el visor por encima de **520px** (`min-width: 521px`, escrito únicamente en el CSS). Por debajo, la clase y las variables existen pero quedan inertes: el diálogo entra y crece como antes.
+- **Precisión:** el borde se mide con `offsetTop`, que es un entero; con bordes en fracción de píxel el diálogo puede moverse **hasta 0,5px** al fijarse en Firefox y WebKit (0px medido en los tres motores en la prueba de coco, que no reprodujo un caso fraccionario).
+
+**Con `prefers-reduced-motion: reduce`:** el desplazamiento y la escala desaparecen; solo queda el fundido. Fijar el borde superior **no es movimiento**, así que sigue rigiendo.
+
+Datos que escribe `GDialog` (internos): la clase `has-origin` con `--_origin-x` y `--_origin-y` (px, el vector completo hacia el disparador, escrito antes de `showModal()` y remedido al cerrar; la fracción y el tope los aplica el CSS), y la clase `is-pinned` con `--_pin-top` (px).
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-dialog.spec.mjs` sobre el `GDialog` real del UMD en una página ligera, con un visor de 1280×900 (coco, [`estilo.md`](../../../../../design/lab/dialog/estilo.md), «Personalidad»). El primer cuadro y la mitad de la entrada y la salida se leen pausando la transición real; los cuadros intermedios se cuentan en tiempo real.
+
+| Medida | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| Disparador lejano (100, 100): primer cuadro | −32 / −32px (el tope) | igual | igual |
+| Disparador cercano (vector 60, 40): primer cuadro | 15 / 10px (un cuarto, con su signo) | igual | igual |
+| A la mitad de la entrada (`ease-out`) | −1,09 / −1,09px, del mismo lado | igual | igual |
+| Termina | a ≤ 1px del centro | igual | igual |
+| Salida hacia el disparador | 120ms; a la mitad 30,9 / −30,9px; final 32 / −32px | cierra sin cuadros (#152) | cierra sin cuadros (#152) |
+| Foco de vuelta al disparador (abrir con teclado) | sí | sí | sí |
+| Sin disparador | sin `has-origin`; entra desde 0 / 8px | igual | igual |
+| `reduce` | sin transición de `translate` ni `scale` | igual | igual |
+| Crece hacia abajo: bloque de 240px con el diálogo abierto | Δ borde superior 0,000px; el botón del pie baja +240px (antes subía ~126px) | igual | igual |
+| Al no caber | dentro del visor, el cuerpo desplaza; Δ del botón al crecer más 0px | igual | igual |
+| Crecer con `reduce` | Δ 0px | igual | igual |
+| ≤ 520px (500px de ancho completo; 375px de hoja) | entra como antes; el centrado sube más de 100px al crecer; la hoja sigue pegada abajo | igual | igual |
+
+Con las reglas de D1 y D2 quitadas del CSS, las ocho pruebas de comportamiento fallan en Chromium y las de guarda (sin disparador, `reduce`, ≤ 520px, foco) pasan igual, como deben. Los cuadros intermedios en tiempo real, sin sobrepaso, se exigen solo en Chromium.
+
+**Sin verificar:** un caso de borde fraccionario en Firefox y WebKit (el ≤ 0,5px es un límite aceptado, no medido), lector de pantalla real, táctil real y Safari real (WebKit solo en Playwright).
 
 ## Tema
 
@@ -174,16 +215,17 @@ El componente solo lee tokens `--g-*`. La superficie inset forma parte de un sis
 }
 ```
 
-`--g-surface-radius-inset` (radio de la carcasa menos la separación y el borde) mantiene la inset concéntrica; el componente lo corrige además por la densidad. Consume también `--g-color-border`, `--g-color-border-control`, `--g-color-text`, `--g-color-text-muted`, `--g-color-focus`, `--g-color-accent`, `--g-radius-md`, `--g-radius-pill`, `--g-space-1..12`, `--g-font-ui`, `--g-text-{body|body-sm}-{size|line}`, `--g-text-title-sm-{size|line|tracking|weight}`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-shadow-1`, `--g-shadow-3`, `--g-duration-{fast|press|spin}`, `--g-ease-{standard|out}` y `--g-press-scale`. El ancho y el relleno se derivan de `--g-space-1`: cambiar el espacio base escala todo.
+`--g-surface-radius-inset` (radio de la carcasa menos la separación y el borde) mantiene la inset concéntrica; el componente lo corrige además por la densidad. Consume también `--g-color-border`, `--g-color-border-control`, `--g-color-text`, `--g-color-text-muted`, `--g-color-focus`, `--g-color-accent`, `--g-radius-md`, `--g-radius-pill`, `--g-space-1..12`, `--g-font-ui`, `--g-text-{body|body-sm}-{size|line}`, `--g-text-title-sm-{size|line|tracking|weight}`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-shadow-1`, `--g-shadow-3`, `--g-duration-{fast|press|spin}`, `--g-ease-{standard|out}` y `--g-press-scale`; para la personalidad lee `--g-space-1` (el tope de `× 8`). El ancho y el relleno se derivan de `--g-space-1`: cambiar el espacio base escala todo.
 
 ## Clases
 
-Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset). Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
+Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset), más `has-origin` e `is-pinned` (ver [Personalidad](#personalidad)). Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
 
 ## Limitaciones conocidas
 
 - **Estilos globales sin capa ganan.** El CSS de Grana va en la capa `grana.components`; una regla global tuya sobre `h2` o `p` (por ejemplo `h2 { margin-top: 2rem }`) desplaza el título o la descripción. Es el comportamiento buscado del sistema de capas: acota tus reglas globales con `:not(.g-dialog__title)` o un selector más específico.
-- **Sin diálogos apilados ni no modales**, sin arrastre de la hoja ni gesto para cerrarla, y sin animación de salida en v0.1.
+- **Sin diálogos apilados ni no modales**, y sin arrastre de la hoja ni gesto para cerrarla. La salida solo se anima en Chromium (en Firefox y WebKit cierra sin cuadros intermedios, #152).
+- **Personalidad:** en WebKit un clic no da `has-origin` (solo fundido), el borde superior fijo puede moverse hasta 0,5px con bordes fraccionarios, y ambos detalles se limitan a visores de más de 520px.
 - **`::backdrop` con variables:** hereda `--g-surface-backdrop` de la raíz `<dialog>` en navegadores de 2024 en adelante; en uno anterior, el fondo quedaría transparente.
 - **Heading fijo:** el título es un `h2`; el nivel no se cambia en v0.1.
 - No hay tema oscuro todavía.
@@ -191,4 +233,4 @@ Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--siz
 
 ## Fuentes
 
-- API: [`GDialog.meta.json`](./GDialog.meta.json) · Contrato: [`design/contracts/dialog.md`](../../../../../design/contracts/dialog.md) · Prototipo: [`design/lab/dialog/r01/`](../../../../../design/lab/dialog/r01/) · Auditoría: [`design/lab/dialog/auditoria.md`](../../../../../design/lab/dialog/auditoria.md)
+- API: [`GDialog.meta.json`](./GDialog.meta.json) · Contrato: [`design/contracts/dialog.md`](../../../../../design/contracts/dialog.md) · Prototipo: [`design/lab/dialog/r01/`](../../../../../design/lab/dialog/r01/) · Estilo: [`design/lab/dialog/estilo.md`](../../../../../design/lab/dialog/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/dialog/auditoria.md`](../../../../../design/lab/dialog/auditoria.md)

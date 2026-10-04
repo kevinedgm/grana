@@ -289,10 +289,44 @@ Una acción interna con foco **no** activa la principal; Enter en el título **n
 - **Sin depender del color:** selected = borde de doble grosor + indicador con icono + fondo; current = borde + fondo + chevron; foco = anillo distinto de la marca, hacia dentro, con halo del color de la superficie para verse sobre cualquier media; `status` = icono + texto + marca de forma distinta por valor; disabled = atenuada + título tachado.
 - **Contraste medido** (tema por defecto, Spotify con marca pálida, lustre y un tema de prueba con serif, `space` 5 y borde 2px; claro y oscuro): título ≥ 15.2:1, textos secundarios ≥ 6.99:1 y ≥ 5.91:1 en hover, pressed y selected; texto de `status` ≥ 13.65:1, «Reintentar» ≥ 8.25:1; marca de selección, chevron de «actual» y anillo de foco ≥ 3:1 (mínimo 4.12:1 con marca pálida); casilla sin marcar ≥ 3.43:1; sobre el velo de una media blanca, texto ≥ 7.11:1 y foco ≥ 9.89:1. Con marca pálida el **relleno** del indicador marcado queda bajo 3:1 (lo delimita el borde, ≥ 4.12:1, y el icono sobre el relleno ≥ 9.45:1).
 - **Tamaños:** menú 32px, casilla 24px (indicador 20), botones de texto y enlace del pie 24px de alto, botón de acción en `narrow` 40px de alto a ancho completo; **44px** en todos con `pointer: coarse` (el solo icono de `GBtn` lo da su propio `::after`).
-- **Movimiento:** solo opacidad y color; sin `transform` en hover; con `prefers-reduced-motion` no hay transiciones ni animación del esqueleto.
+- **Movimiento:** solo pintura (opacidad, color y fondo); **la tarjeta no se mueve ni se escala** (sin `transform` en hover, #127). Con `prefers-reduced-motion` no hay círculo de selección ni halo (la selección solo se funde, 120ms) ni animación del esqueleto. Detalle en [Personalidad](#personalidad).
 - **RTL:** propiedades lógicas; media lateral, lateral del encabezado y chevron de «actual» espejados.
 - **Colores forzados:** borde `CanvasText`, velos fuera, foco `Highlight`, selección `Highlight`/`HighlightText`, marcas de `status` `CanvasText`, media de fondo y escrim ocultos, esqueleto `GrayText`.
 - **Navegadores:** medido en Chromium; selección, velo, apilado en `narrow`, lista, 320px, esqueleto oscuro, foco y menú comprobados también en Firefox y WebKit (Playwright).
+
+## Personalidad
+
+Dos detalles de **pintura** que dan causa y efecto sin mover nada: la tarjeta nunca cambia de caja ni lleva `transform` (#127). Sin props, slots, eventos ni clases nuevas. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§6); decisión #303 (y #299, el lenguaje de movimiento) en `DECISIONS.md`.
+
+**La selección nace de la casilla.** Al marcar una tarjeta seleccionable, el fondo de seleccionada (`--g-card-selected`) se extiende en círculo **desde el centro del indicador** (la casilla o el radio; en `toggle`, el ✓ estático) hasta cubrir la tarjeta, y al desmarcar se recoge hacia él. Crece en `--g-duration-slow` y se recoge en `--g-duration-press`, las dos con `--g-ease-out` (la salida, más corta). El borde doble y el icono de la marca siguen fundiéndose: **la selección no depende del círculo**. Por qué: lo que marcaste y lo que cambió quedan unidos; en una rejilla se ve qué tarjeta acabas de elegir. El origen se calcula **solo con CSS** por anclaje (el indicador es el ancla de su tarjeta; las tarjetas anidadas no se cruzan), sin escribir datos desde JS. Rige en horizontal con media lateral, `compact`, modo lista y RTL. Sin indicador (`button`, `link` sin `selectable`, `current`), sin soporte de anclaje o con movimiento reducido, el tinte se funde como antes. En `forced-colors` no hay círculo: la selección es el anillo del sistema.
+
+**La luz sigue al puntero.** Sobre el velo uniforme de hover (que sigue siendo la señal), un halo del **mismo `--g-card-hover`** (dos capas concentradas, radio `--g-space-1 × 40`) se centra donde está el puntero. Aparece y se va con el hover (fundido de `--g-duration-press`) y su posición no se transiciona: va con el puntero. **Al apretar se apaga** y manda el velo de pulsación. Por qué: distingue a la vista una tarjeta interactiva de una estática. Reglas:
+
+- **Solo** con `(hover: hover) and (pointer: fine)` y sin `prefers-reduced-motion: reduce`, en tarjetas interactivas sin `disabled` ni `loading` y sin media de fondo; nunca en `forced-colors`. En táctil no hay halo ni escuchas.
+- `GCard` escribe `--_pointer-x` y `--_pointer-y` (px desde la caja de borde de la raíz) en `pointerenter` y `pointermove` de ratón y lápiz, **una escritura por cuadro**, y quita las escuchas si la consulta deja de cumplirse. Son datos internos, no API.
+- **Sin token nuevo:** como usa `--g-card-hover`, cambiarlo ajusta a la vez el velo y la intensidad del halo.
+
+**Con `prefers-reduced-motion: reduce`:** sin halo; la selección solo se funde.
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-card.spec.mjs` sobre el `GCard` real del UMD, en Chromium, Firefox y WebKit (coco, [`estilo.md`](../../../../../design/lab/card/estilo.md), «Personalidad»):
+
+| Qué | Medida |
+| --- | --- |
+| Selección: origen (7 modos: casilla, radio, `toggle`, media lateral, `compact`, RTL, lista) | Δ 0,00px en x e y; el radio llega a la esquina más lejana del relleno (≤ 1,1px, el borde) |
+| Selección: crecer y recoger | 240ms con `--g-ease-out`: 0 → 39,8 → 77,5 → 96,6 % del radio a 10, 25 y 50 % del tiempo; recoger en 160ms con el tinte puesto hasta el final; caja Δ 0 y `transform: none` |
+| Selección: píxeles (Chromium y Firefox) | a mitad del crecimiento, el tinte está junto al indicador y la esquina lejana sin teñir; al final, teñida |
+| Selección con `reduce` | capa igual a la tarjeta, radio fijo 100 %, el tinte se funde en 120ms |
+| Halo: centro | el centroide del halo coincide con el puntero (330,00; 230,00) en los tres motores; caja Δ 0, `transform: none` y velo uniforme conservado |
+| Halo: sin halo | con `reduce`, en táctil (375px, `hover: none`; Chromium y WebKit), en `forced-colors` (Chromium), en tarjetas no interactivas, deshabilitadas o con media de fondo |
+| Contraste en el centro del halo (texto / atenuado) | claro por defecto: hover 14,07 / 6,03; seleccionada + hover 12,81 / 5,49; seleccionada + pulsada 13,56 / 5,81. Oscuro por defecto: 10,96 / 6,18; 9,12 / 5,15; 9,85 / 5,56. Tema generado `spotify` claro: 14,08 / 5,97; 12,82 / 5,44; oscuro: 11,14 / 6,27; 9,28 / 5,22 (Chromium; Firefox y WebKit ±0,15) |
+
+El spec lee `--_pointer-x/y` del componente real y, si faltaran, instala un sustituto mínimo y lo anota en el informe de la prueba.
+
+**Notas de motor:** WebKit (26.6) cancela las transiciones de un elemento colocado con `anchor()`, así que velo, tinte y radio se animan en la raíz con propiedades registradas privadas y el `::before` las hereda; no cambia la API ni el resultado. La captura de WebKit da por terminadas las transiciones de propiedades registradas, por eso la prueba de píxeles del círculo no se ejecuta allí (en vídeo de WebKit y de Chromium sí se ve crecer desde la casilla).
+
+**Sin verificar:** táctil real, `forced-colors` real de Windows y Safari real (la selección y el halo se midieron en el WebKit de Playwright).
 
 ## Tema
 
@@ -316,7 +350,7 @@ Los valores por defecto están en `defaults.css`; cambiarlos en tu tema los sobr
 }
 ```
 
-La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutral-text`) y el indicador se rellena con la familia (`primary`, `accent`, `neutral`) con su `on-*` encima. Consume además `--g-color-{info|success|warning|danger}[-soft|-text]`, `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control`, `--g-color-neutral-soft`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-space-*`, `--g-font-ui`, `--g-text-*`, `--g-shadow-2`, `--g-duration-{fast|spin}`, `--g-ease-standard` y la propiedad `--g-surface-padding` que publica `GSurface`. Los umbrales de tamaño (`space × 80` y `× 130`) son constantes de diseño, no tokens. El CLI **aún no emite** los `--g-card-*`: los temas generados usan los de `defaults.css`.
+La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutral-text`) y el indicador se rellena con la familia (`primary`, `accent`, `neutral`) con su `on-*` encima. Consume además `--g-color-{info|success|warning|danger}[-soft|-text]`, `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control`, `--g-color-neutral-soft`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-space-*`, `--g-font-ui`, `--g-text-*`, `--g-shadow-2`, `--g-duration-{fast|press|slow|spin}`, `--g-ease-{standard|out}` y la propiedad `--g-surface-padding` que publica `GSurface`. Los umbrales de tamaño (`space × 80` y `× 130`) son constantes de diseño, no tokens. El CLI **aún no emite** los `--g-card-*`: los temas generados usan los de `defaults.css`.
 
 ## Clases
 
@@ -331,10 +365,11 @@ Las emite el componente y las estiliza `GCard.css` sobre las de `GSurface`:
 - **`GCardGroup`** (selección de grupo con `v-model`, mínimo y máximo) y **`GAvatar`** quedan diferidos: radios con `name` común y `role="radiogroup"` tuyo; el avatar va en `lead`.
 - **Sin menú de clic derecho, `subgrid` ni tooltip** para solo iconos (el nombre accesible sí está).
 - **Sin selección de texto con el puntero** en una tarjeta navegable (enlace estirado).
+- **Personalidad:** el círculo de selección necesita anclaje CSS (`anchor()`); sin él, el tinte se funde. El halo solo existe con ratón o lápiz sobre hover; la tarjeta con media de fondo no lo lleva.
 - **El esqueleto no promete la altura** de la tarjeta cargada; `skeleton` fiel reduce el salto.
 - **Chevron en «Mostrar más» y «Más detalles»:** el CSS ya lo contempla; el componente todavía no lo renderiza (pendiente de bruno).
 - **Sin verificar:** lector de pantalla real (nombre del `article` sin `aria-labelledby`, título-enlace, `aria-busy`, `role="status"`/`"alert"`, «Acciones de Título»), táctil real (pulsación larga sobre el enlace estirado), zoom al 200 %, `forced-colors` real de Windows (solo emulado), rendimiento con cientos de tarjetas (un `ResizeObserver` por tarjeta) y el esqueleto con datos ausentes reales.
 
 ## Fuentes
 
-- API: [`GCard.meta.json`](./GCard.meta.json) · Contrato: [`design/contracts/card.md`](../../../../../design/contracts/card.md) · Prototipo: [`design/lab/card/r01/`](../../../../../design/lab/card/r01/) · Estilo: [`design/lab/card/estilo.md`](../../../../../design/lab/card/estilo.md) · Auditoría: [`design/lab/card/auditoria.md`](../../../../../design/lab/card/auditoria.md)
+- API: [`GCard.meta.json`](./GCard.meta.json) · Contrato: [`design/contracts/card.md`](../../../../../design/contracts/card.md) · Prototipo: [`design/lab/card/r01/`](../../../../../design/lab/card/r01/) · Estilo: [`design/lab/card/estilo.md`](../../../../../design/lab/card/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/card/auditoria.md`](../../../../../design/lab/card/auditoria.md)

@@ -219,6 +219,50 @@ Excepciones: solo llevan marca los campos editables; `GSwitch` nunca; una casill
 
 **Errores del servidor:** ponlos en `errors` tras la respuesta (una clave que no es de ningún campo es un error general) y llama a `showErrors()` (`ref` del `GForm`).
 
+## Personalidad: rechazo al enviar
+
+Al enviar con errores, **cada campo que bloquea niega una vez con la cabeza**: una sacudida horizontal decreciente, de **4px como máximo** (`--g-space-1`), en `--g-duration-slow`. Señala **cuáles** fallaron, incluidos los que quedan fuera del foco, y es el «no» del formulario como identidad de Grana. Sin props, eventos ni slots nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§7, I2); decisiones #299 y #304 (y #306) en `DECISIONS.md`.
+
+**Cuándo ocurre.** Con un envío con errores (no con un submitter `formnovalidate`) y con `showErrors()` (también para los errores que pone el servidor). `GForm` vacía el conjunto de rechazados y, **en el cuadro siguiente**, marca los campos que bloquean: los activos y no deshabilitados que tienen error, y no las partes de un grupo (cada grupo es **una** pregunta); los errores generales, sin campo, no sacuden nada. Un envío nuevo reinicia el gesto. **Nunca** al escribir, al salir del campo, al montar ni porque cambie `errors` sin `showErrors()`.
+
+**Cómo.** `GForm` pone la clase `is-rejected` en la raíz del campo (en la del grupo, en los grupos); la pone el formulario y no el campo porque solo él sabe qué bloquea un envío (#157). Se retira **cuando termina la animación** (`animationend` o `animationcancel` de una animación cuyo nombre empieza por `g-reject`), con el siguiente `input` o `change` del campo (el de una parte retira el del grupo) o al desmontarse; no por temporizador. Es interno: no hay API pública para los campos propios del consumidor en v0.1. Fuera de un `GForm`, ningún campo la recibe.
+
+**Qué se mueve** (siempre la pieza que lleva el anillo de foco; etiqueta, ayuda y mensaje se quedan quietos, porque son lo que hay que leer):
+
+| Campo | Se mueve | Animación |
+| --- | --- | --- |
+| `GInput` | `.g-input__row` (la caja con su acción) | `g-reject-shake` |
+| `GTextarea` | su caja (`.g-textarea__control`) | `g-reject-shake-textarea` |
+| `GSelect` | su caja (`.g-select__control`); la lista no | `g-reject-shake-select` |
+| `GCheckbox` | `.g-checkbox__box` (la caja con su marca; la fila y la etiqueta no) | `g-reject-shake-checkbox` |
+| `GSwitch` | `.g-switch__control` (el riel; el pulgar conserva su propio movimiento) | `g-reject-shake-switch` |
+| `GDatePicker` | `.g-datepicker__field`, o con `split` `.g-datepicker__fields` (los dos campos juntos). **Con `inline` no hay campo y no se mueve nada** (la clase llega igual) | `g-reject-shake-datepicker` |
+| `GCheckboxGroup` | `.g-checkbox-group__list` (el conjunto de opciones, no cada casilla) | `g-reject-shake-checkbox-group` |
+| `GRadioGroup` | `.g-radio-group__options` (en sus tres apariencias) | `g-reject-shake-radio-group` |
+| `GFieldGroup` | `.g-field-group__parts` (la fila de partes; la leyenda no) | `g-reject-shake-field-group` |
+| `GInputGroup` | `.g-input-group__box` (la caja fusionada entera, con sus divisores) | `g-reject-shake-input-group` |
+
+**Con `prefers-reduced-motion: reduce`: la sacudida no existe.** La clase `is-rejected` se pone igual pero sin efecto visible, y como no hay animación tampoco hay `animationend`: se queda hasta el siguiente `input`, `change` o envío. Lo que da el movimiento (cuál falló) lo dan igualmente el borde doble, el icono y el texto del error, el resumen y el foco. En RTL la sacudida empieza hacia la izquierda física en los dos sentidos (no transmite dirección).
+
+El mensaje que **sale del campo** al aparecer (fundido y baja `--g-space-1 × 1`, solo cuando el campo ya había montado) es parte de la misma ronda, pero hoy solo lo tiene `GInput`: ver su [Personalidad](../GInput/README.md#personalidad). `GTextarea` y `GSelect` ya llevan `is-ready` en su raíz, pero su CSS aún no tiene esa transición.
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-input.spec.mjs` sobre los componentes reales del UMD dentro de un `GForm`, en Chromium, Firefox y WebKit; la sacudida se mide pausando la animación real en cuanto llega `is-rejected` y recorriéndola cada 2ms (coco, [`estilo.md`](../../../../../design/lab/input/estilo.md), «I2 extendido al resto de campos»):
+
+| Qué | Resultado |
+| --- | --- |
+| `GInput`, `GTextarea` y `GSelect` | máximo 3,958px (≤ 4px); picos 3,96 · 2,94 · 1,96 · 0,97 en 16, 36, 56 y 76 % del tiempo; 3 cambios de sentido; vuelta a 0; 240ms; una iteración |
+| Los ocho restantes (`GCheckbox`, `GSwitch`, `GDatePicker` normal y `split`, `GCheckboxGroup`, `GRadioGroup`, `GFieldGroup`, `GInputGroup`) | máximo 3,96px (≤ `space × 1`), picos decrecientes, 3 cambios de sentido, vuelta a 0, 240ms, una iteración y animación de nombre `g-reject-…`; la clase se retira sola con el `animationend` y no queda ninguna animación |
+| En reposo | `translate` 0 en todos |
+| Escribir y salir del campo tras un envío | 0 animaciones |
+| Segundo envío | se repite |
+| `reduce` | la clase se pone en todos, 0 animaciones y 0 desplazamiento |
+
+Los `animationend` de los hijos suben a la raíz y solo el de nombre `g-reject…` retira la clase, así que un `GInput` anidado en un `GFieldGroup` no la quita antes de tiempo.
+
+**Sin verificar:** lector de pantalla real (no se ha escuchado el orden de resumen, foco y campos sacudidos), Safari y táctil reales, y `forced-colors` real (`translate` no toca los colores del sistema).
+
 ## Resumen de errores (`GErrorSummary`)
 
 Dentro de un `GForm`, colócalo al principio. Tras un envío con errores aparece con el título («Hay 3 problemas con el formulario»), **un enlace por pregunta** con el mismo texto que el error en línea, y **recibe el foco**; los errores generales van al final sin enlace. Al corregir, cada elemento sale en silencio; sin elementos, se oculta. Un enlace lleva a su campo (a la parte inválida en un fusionado), con la etiqueta a la vista. Sin resumen, el envío lleva el foco al primer campo inválido.
@@ -512,13 +556,13 @@ Medido sobre los componentes reales (playground), en Chromium, Firefox y WebKit,
 
 ## Tema
 
-Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (entre filas y entre líneas de una fila partida; 20px), `--g-form-column-gap` (entre campos de una línea; 16px) y `--g-form-section-gap` (entre secciones y antes del pie; 40px). Las partes de un `GFieldGroup` usan la mitad. Consumen además `--g-color-neutral-soft` (solo lectura), `--g-color-{danger|warning|success}-text`, `--g-color-border-control`, `--g-color-border-strong` (línea entre partes), `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-space-1`, `--g-font-ui`, `--g-text-*`, `--g-duration-fast` y `--g-ease-standard`.
+Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (entre filas y entre líneas de una fila partida; 20px), `--g-form-column-gap` (entre campos de una línea; 16px) y `--g-form-section-gap` (entre secciones y antes del pie; 40px). Las partes de un `GFieldGroup` usan la mitad. Consumen además `--g-color-neutral-soft` (solo lectura), `--g-color-{danger|warning|success}-text`, `--g-color-border-control`, `--g-color-border-strong` (línea entre partes), `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-space-1`, `--g-font-ui`, `--g-text-*`, `--g-duration-{fast|slow}` y `--g-ease-standard`.
 
 **No son tokens:** pesos y mínimos de los tamaños, el umbral de apilado del pie (`space × 104`), `--g-form-min` (entrada tuya) y `--g-form-actions-size` (salida de solo lectura en el `<form>`).
 
 ## Clases
 
-- **`GForm`:** `g-form`, `--density-*`, `--marks-optional|required`, `--readonly`, `--disabled`, `--sticky-actions`; `g-form__required-hint`.
+- **`GForm`:** `g-form`, `--density-*`, `--marks-optional|required`, `--readonly`, `--disabled`, `--sticky-actions`; `g-form__required-hint`. En la raíz de cada campo que bloquea, `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad-rechazo-al-enviar)).
 - **`GFormLayout` / `GFormRow`:** `g-form-layout`, `--stack`, `--density-*`; `g-form-row`, `--keep`, `--density-*`; tamaños `g-form-w-xs|sm|md|lg`.
 - **`GInputGroup`:** `g-input-group`, `--size-*`, `--variant-*`, `--density-*`, `--block`, `is-disabled|readonly|invalid|warning|valid`; `__label`, `__optional`, `__required`, `__box`, `__part` (`--input`, `--select`, `--text`, `--chars`; `is-invalid` en la que falla), `__part-name`, `__control`, `__select-icon`, `__text-label`, `__support`, `__hint`, `__message`, `__message-icon`, `__message-type`.
 - **`GFieldGroup`:** `g-field-group`, `--density-*`, `is-*`; `__label`, `__optional`, `__required`, `__parts`, `__support`, `__hint`, `__message`.
@@ -538,4 +582,4 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 ## Fuentes
 
 - API: [`GForm.meta.json`](./GForm.meta.json), [`GFormSection`](../GFormSection/GFormSection.meta.json), [`GFormLayout`](../GFormLayout/GFormLayout.meta.json), [`GFormRow`](../GFormRow/GFormRow.meta.json), [`GInputGroup`](../GInputGroup/GInputGroup.meta.json), [`GFieldGroup`](../GFieldGroup/GFieldGroup.meta.json), [`GFormActions`](../GFormActions/GFormActions.meta.json), [`GErrorSummary`](../GErrorSummary/GErrorSummary.meta.json)
-- Contrato: [`design/contracts/form.md`](../../../../../design/contracts/form.md) · Prototipo: [`design/lab/form/r02/`](../../../../../design/lab/form/r02/) · Estilo: [`design/lab/form/estilo.md`](../../../../../design/lab/form/estilo.md) · Auditoría: [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md) · Decisiones: #153–#188 y #266 (bloqueo con interruptor) en `DECISIONS.md`
+- Contrato: [`design/contracts/form.md`](../../../../../design/contracts/form.md) · Prototipo: [`design/lab/form/r02/`](../../../../../design/lab/form/r02/) · Estilo: [`design/lab/form/estilo.md`](../../../../../design/lab/form/estilo.md) · Auditoría: [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Decisiones: #153–#188, #266 (bloqueo con interruptor) y #304 (rechazo al enviar) en `DECISIONS.md`

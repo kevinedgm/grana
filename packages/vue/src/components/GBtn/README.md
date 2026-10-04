@@ -47,7 +47,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 - **`type`** se ignora cuando hay `href`.
 - **`density`** reduce la altura: ×1, ×0.875 (`comfortable`) o ×0.75 (`compact`), con un mínimo de 24px.
 - **`icon`** hace el botón cuadrado (ancho = alto) y exige `aria-label` o `aria-labelledby`. En desarrollo, si falta, se emite `console.warn`.
-- **`loading`** conserva el ancho y el color del botón, oculta la etiqueta y muestra un indicador de giro. El botón queda en `aria-busy="true"` y `aria-disabled="true"`, pero **no** usa el atributo `disabled`, para no perder el foco.
+- **`loading`** conserva el ancho y el color del botón, funde la etiqueta (queda en el árbol con `opacity: 0`, así que el nombre accesible no cambia) y muestra un indicador de giro (ver [Personalidad](#personalidad)). El botón queda en `aria-busy="true"` y `aria-disabled="true"`, pero **no** usa el atributo `disabled`, para no perder el foco.
 - **`loadingText`** es el texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. No tiene valor por defecto porque Grana es internacional: un texto fijo estaría en el idioma equivocado. Sin él, solo queda `aria-busy`.
 - **Pon `loadingText` desde el principio** (fijo, no solo al empezar la carga): el botón pinta su región de anuncio (`g-btn__status`) **solo mientras `loadingText` tiene valor** (DECISIONS #257), y un lector solo anuncia los cambios de una región que **ya existía**. Si `loadingText` y `loading` llegan en el mismo cambio, la región se monta vacía y el texto se escribe en el ciclo siguiente para que se anuncie, pero lo seguro es que la región exista antes de la carga. Sin `loadingText` no hay región: así una vista con cientos de botones (filas de `GTranscript`, por ejemplo) no añade cientos de regiones vivas vacías.
 
@@ -91,8 +91,38 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 ## Movimiento
 
 - Color, fondo y borde cambian en `--g-duration-fast` (120ms).
-- Al pulsar, el botón se encoge a `--g-press-scale` (0.97) en `--g-duration-press` (160ms). No se encogen los botones deshabilitados, en carga ni la variante `link`.
-- Con `prefers-reduced-motion: reduce`, las transiciones se quitan, no hay escala al pulsar y el indicador de carga sigue girando, 2.5 veces más lento.
+- Al pulsar, el botón se encoge a `--g-press-scale` (0.97) en `--g-duration-fast` (120ms) y, al soltar, vuelve a 1 con un rebote mínimo en `--g-duration-slow` (240ms; ver [Personalidad](#personalidad)). No se encogen los botones deshabilitados, en carga ni la variante `link`.
+- Con `prefers-reduced-motion: reduce`, no hay escala ni rebote al pulsar, el cambio a carga es solo un fundido y el indicador de carga sigue girando, 2.5 veces más lento. Los colores siguen transicionando.
+
+## Personalidad
+
+Lo que distingue al botón de Grana es **cómo responde a la mano**: aprieta rápido y vuelve con masa, y al pasar a «esperando» la etiqueta cede el sitio al indicador en lugar de desaparecer de golpe. Son dos detalles **solo de CSS**: sin props, clases ni eventos nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/); decisiones #299 (lenguaje de movimiento) y #300 en `DECISIONS.md`.
+
+**Rebote al soltar.** Al apretar, el botón escala a `--g-press-scale` en `--g-duration-fast` con `--g-ease-out`. Al soltar vuelve a 1 en `--g-duration-slow` con `--g-ease-bounce`: es un muelle de rebase alto, pero aplicado a un cambio de solo el 3 %, así que el pico es **1,006**, algo que se siente más que se ve. Vale lo mismo que la pulsación: nada en `disabled`, en carga ni en `link`. Por qué: el clic «se siente» aunque la acción tarde, y la vuelta con masa distingue al botón de un simple cambio de color. `--g-ease-bounce` es una de las dos curvas con rebase de Grana (la otra, `--g-ease-spring`, es de la marca de `GTabs`) y se aprobó solo para escalas pequeñas como esta.
+
+**La etiqueta cede el sitio.** Al entrar en `loading`, la etiqueta y los iconos de `prepend` y `append` se funden y suben `--g-space-1 × 1` (4px con el espacio por defecto); el indicador entra desde esa misma distancia por debajo. Al salir, a la inversa. **El ancho del botón no cambia**, y la etiqueta se oculta solo con `opacity: 0` (nunca `visibility` ni `display`), por lo que **el nombre accesible sigue siendo la etiqueta** durante la carga. Un botón que **monta ya en carga** no anima nada.
+
+**Con `prefers-reduced-motion: reduce`:** sin escala ni rebote; el cambio a carga es solo fundido, sin desplazamiento.
+
+**Para un producto sobrio:** `--g-ease-bounce: var(--g-ease-out)` quita el rebase sin tocar el componente, y `--g-press-scale: 1` quita pulsación y rebote. Las dos listas de transición son completas (colores y `transform`), por lo que ninguna propiedad se pierde al cambiar de estado. Las curvas `linear()` van dentro de `@supports (transition-timing-function: linear(0, 1))`.
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-btn.spec.mjs` sobre el `GBtn` real del UMD, con el tema por defecto; medido por coco en Chromium, Firefox y WebKit ([`estilo.md`](../../../../../design/lab/btn/estilo.md), «Personalidad»):
+
+| Qué | Medida (los tres motores) |
+| --- | --- |
+| Escala apretado | 0,970 |
+| Vuelta | 240ms con la curva `linear(…)` de `--g-ease-bounce` |
+| Pico tras soltar (transición real pausada y recorrida cada 2ms) | 1,00597 |
+| Último instante fuera de 1 ± 0,0005 | 168ms (< 240ms) |
+| Con `reduce` | escala 1 siempre |
+| Carga: ancho al entrar | 128,67 → 128,67px (Firefox 128,70 → 128,70px) |
+| Carga: etiqueta | `opacity` 0, `visibility: visible`, desplazada −4px |
+| Carga: salida | la etiqueta vuelve a 1 y 0px; el indicador sale con fundido y termina oculto |
+| Montar ya en carga | 0 transiciones; indicador centrado (< 1px) |
+| Carga con `reduce` | solo `opacity`, ninguna transición de `translate` |
+| Solo Chromium | 5 cuadros intermedios en tiempo real en etiqueta e indicador; nombre accesible en carga = «Enviar informe» (árbol de accesibilidad por CDP) |
 
 ## Tema
 
@@ -109,7 +139,7 @@ El componente solo lee tokens `--g-*`; no lleva colores ni medidas propias. Para
 }
 ```
 
-Tokens que consume: `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-color-on-{color}` (y `-soft`), `--g-color-focus`, `--g-radius-*`, `--g-radius-shape`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out`, `--g-press-scale`. La definición de cada uno está en `docs/contract/tokens.md`.
+Tokens que consume: `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-color-on-{color}` (y `-soft`), `--g-color-focus`, `--g-radius-*`, `--g-radius-shape`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out`, `--g-ease-bounce`, `--g-press-scale`. La definición de cada uno está en `docs/contract/tokens.md`.
 
 ## Clases
 
@@ -119,8 +149,9 @@ Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g
 
 - Con `density="comfortable"` y ciertos valores de espacio, la altura es fraccionaria (por ejemplo 39.375px) y el borde puede verse difuso en pantallas de baja densidad. Está pendiente evaluar `round()` de CSS.
 - No hay tema oscuro todavía.
-- Sin verificar en navegador: la escala al pulsar vista a mano, la emulación de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas), y hover/active de las variantes `soft`, `outline`, `ghost` y `link`.
+- Sin verificar en navegador: `forced-colors` (la regla está escrita, no emulada en la prueba de personalidad) y hover/active de las variantes `soft`, `outline`, `ghost` y `link`.
+- **Personalidad, sin verificar:** el respaldo de un navegador sin `linear()` (los tres motores actuales lo soportan; ninguno del banco ejerce el camino de `@supports`), una pantalla táctil real (allí el rebote se ve al levantar el dedo) y el conteo de cuadros en tiempo real fuera de Chromium (con carga en paralelo es inestable; en los tres motores la transición se mide de forma determinista).
 
 ## Fuentes
 
-- API: [`GBtn.meta.json`](./GBtn.meta.json) · Contrato: [`design/contracts/btn.md`](../../../../../design/contracts/btn.md) · Prototipo: [`design/lab/btn/r01/`](../../../../../design/lab/btn/r01/) · Auditoría: [`design/lab/btn/auditoria.md`](../../../../../design/lab/btn/auditoria.md)
+- API: [`GBtn.meta.json`](./GBtn.meta.json) · Contrato: [`design/contracts/btn.md`](../../../../../design/contracts/btn.md) · Prototipo: [`design/lab/btn/r01/`](../../../../../design/lab/btn/r01/) · Estilo: [`design/lab/btn/estilo.md`](../../../../../design/lab/btn/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/btn/auditoria.md`](../../../../../design/lab/btn/auditoria.md)

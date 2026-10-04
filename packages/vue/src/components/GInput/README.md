@@ -136,7 +136,47 @@ Un slot con alcance: recibe `size`, `density` y `disabled` del campo, para que e
 
 - El borde y el fondo cambian en `--g-duration-fast` (120ms).
 - El indicador de carga gira en `--g-duration-spin` (800ms).
-- Con `prefers-reduced-motion: reduce`, se quitan las transiciones y el indicador de carga sigue girando, 2.5 veces más lento.
+- Con `prefers-reduced-motion: reduce`, se quitan las transiciones de desplazamiento y el indicador de carga sigue girando, 2.5 veces más lento; el mensaje solo se funde.
+- El mensaje que aparece y la sacudida al enviar con error tienen su propia sección: [Personalidad](#personalidad).
+
+## Personalidad
+
+El campo **habla con el cuerpo, pero solo cuando importa**: su mensaje sale de la caja en lugar de aparecer pegado de golpe, y el «no» de un formulario es un gesto de una sola vez. Sin props, slots ni eventos nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§7); decisiones #299, #304 y #306 en `DECISIONS.md`.
+
+**El mensaje sale del campo.** Cuando `g-input__message` pasa de vacía a tener texto (error, advertencia o válido), entra con fundido y baja `--g-space-1 × 1` (4px con el espacio por defecto) desde la caja, en `--g-duration-press` con `--g-ease-out`. Por qué: el ojo va del campo a su mensaje. Es una **transición**, no una animación con keyframes (#306): el estado de partida es la región vacía, y la transición solo existe cuando la raíz lleva `is-ready`.
+
+- **Nada al montar:** `is-ready` llega dos cuadros después de montar (tras el primer pintado, nunca en SSR), así que un error que ya viene al montar no se anima, tampoco cuando llega la clase.
+- **Cambiar el texto o el tipo** con el mensaje ya visible no la repite. El hueco aparece en un cuadro, como antes.
+- **Con `prefers-reduced-motion: reduce`:** solo fundido (`--g-duration-fast`), sin desplazamiento. La región viva sigue siendo la misma: el anuncio no cambia.
+
+**Un solo aviso al enviar.** Dentro de un `GForm`, al enviar con errores (no con un botón `formnovalidate`) o al llamar a `showErrors()`, cada campo que **bloquea** el envío niega una vez con la cabeza: una sacudida horizontal decreciente, de **4px como máximo** (`--g-space-1`), en `--g-duration-slow`. Señala **cuáles** fallaron, también los que quedan fuera del foco, y es la identidad del «no» del formulario. Por qué: lo pone `GForm` y no el campo porque solo el formulario sabe qué bloquea un envío; así el campo no distingue envíos de interacciones.
+
+- **Cómo:** `GForm` pone la clase `is-rejected` en la raíz de cada campo que bloquea (en el cuadro siguiente al envío); el CSS mueve la fila del campo (`g-input__row`: la caja con su acción, para que el anillo de foco vaya con ella). La clase se retira cuando termina la animación (`animationend` o `animationcancel` de una animación `g-reject…`), con el siguiente `input` o `change` del campo, o al desmontarse. Un envío nuevo la quita y la vuelve a poner. Fuera de un `GForm`, el campo nunca la recibe.
+- **Nunca** al escribir, al salir del campo ni al montar.
+- **Con `prefers-reduced-motion: reduce`: no hay sacudida.** La clase se pone igual pero sin efecto visible, y sin animación no hay `animationend`: se queda hasta el siguiente `input`, `change` o envío. El error ya es borde doble, icono y texto, así que no se pierde información.
+- **RTL:** la sacudida empieza hacia la izquierda física en los dos sentidos; no transmite dirección.
+- La sacudida la comparten `GTextarea`, `GSelect` y los demás campos de formulario; qué pieza se mueve en cada uno está en [`GForm`](../GForm/README.md#personalidad-rechazo-al-enviar).
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-input.spec.mjs` sobre el `GInput` real del UMD, en Chromium, Firefox y WebKit (coco, [`estilo.md`](../../../../../design/lab/input/estilo.md), «Personalidad»; 30 de 30 en los tres motores en su entrega). Las medidas de la sacudida pausan la animación real en cuanto llega `is-rejected` y recorren su tiempo cada 2ms, así que no dependen de la carga de la máquina:
+
+| Medida | Resultado (los tres motores) |
+| --- | --- |
+| Sacudida: desplazamiento máximo | 3,958px (≤ 4px; kiwi, en tiempo real, 3,47px) |
+| Picos en 16, 36, 56 y 76 % | 3,96 · 2,94 · 1,96 · 0,97 (decreciente) |
+| Cambios de sentido / posición final | 3 / 0px |
+| Duración / iteraciones | 240ms / 1 |
+| La clase se retira con el `animationend` real | sí; dura al menos 230ms, no por temporizador |
+| Escribir y salir del campo tras un envío | 0 animaciones |
+| Segundo envío | se repite |
+| Sacudida con `reduce` | clase presente, 0 animaciones, desplazamiento 0 |
+| Mensaje: al aparecer | `opacity` y `translate` en 160ms; de −4px a 0; 8 muestras intermedias de 10ms, monótono |
+| Mensaje: cambiar el texto con la región llena | 0 transiciones |
+| Mensaje: error ya presente al montar | 0 animaciones, también al llegar `is-ready` |
+| Mensaje con `reduce` | solo `opacity`, 120ms; `translate` 0 |
+
+**Sin verificar:** lector de pantalla real (la región viva no cambia, pero no se escuchó), Safari real, táctil real y `forced-colors` real (`translate` y `opacity` no tocan los colores del sistema).
 
 ## Tema
 
@@ -151,7 +191,7 @@ El componente solo lee tokens `--g-*`. Ojo: **un tema que solo cambie `brand` no
 }
 ```
 
-Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border-control`, `--g-color-border-strong`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-danger-text`, `--g-color-focus`, `--g-color-{color}-text`, `--g-radius-*`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-spin`, `--g-ease-standard`. La definición de cada uno está en `docs/contract/tokens.md`.
+Tokens que consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border-control`, `--g-color-border-strong`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-danger-text`, `--g-color-focus`, `--g-color-{color}-text`, `--g-radius-*`, `--g-space-1..6`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-{fast|press|slow|spin}`, `--g-ease-{standard|out}`. La definición de cada uno está en `docs/contract/tokens.md`.
 
 ## Dentro de un formulario
 
@@ -165,7 +205,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*`, `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__support`, `g-input__message`.
+Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*`, `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, `is-ready` (tras el primer pintado), `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad)), y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__support`, `g-input__message`.
 
 ## Limitaciones conocidas
 
@@ -178,4 +218,4 @@ Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--varian
 
 ## Fuentes
 
-- API: [`GInput.meta.json`](./GInput.meta.json) · Contrato: [`design/contracts/input.md`](../../../../../design/contracts/input.md) · Prototipos: [`design/lab/input/r01/`](../../../../../design/lab/input/r01/) y [`r02/`](../../../../../design/lab/input/r02/) · Auditoría: [`design/lab/input/auditoria.md`](../../../../../design/lab/input/auditoria.md)
+- API: [`GInput.meta.json`](./GInput.meta.json) · Contrato: [`design/contracts/input.md`](../../../../../design/contracts/input.md) · Prototipos: [`design/lab/input/r01/`](../../../../../design/lab/input/r01/) y [`r02/`](../../../../../design/lab/input/r02/) · Estilo: [`design/lab/input/estilo.md`](../../../../../design/lab/input/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/input/auditoria.md`](../../../../../design/lab/input/auditoria.md)

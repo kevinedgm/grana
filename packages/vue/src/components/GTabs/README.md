@@ -239,7 +239,7 @@ Orden interno fijo: icono, etiqueta, estado, insignia, contador. Más de una de 
 | `lazy` | Boolean | monta al activarse por primera vez y luego conserva | `false` |
 | `busy` | Boolean | `aria-busy` | `false` |
 
-Pinta `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VALUE" aria-labelledby="TABS-tab-VALUE">`, con `hidden` si no está activo. Los atributos van a ese `div`. Avisos en desarrollo: sin `tabs` o `value`, o un `id` de `GTabs` que no existe al montar.
+Pinta `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VALUE" aria-labelledby="TABS-tab-VALUE">`, con `hidden` si no está activo. Los atributos van a ese `div`. Avisos en desarrollo: sin `tabs` o `value`, o un `id` de `GTabs` que no existe al montar. Al pasar a activo copia en su propia raíz el `data-direction` y el `data-orientation` de la raíz `#{tabs}` para que entre por el lado correcto (ver [Personalidad](#personalidad)); si no encuentra esa raíz, no pone ninguno y solo se funde.
 
 ## Eventos
 
@@ -286,10 +286,56 @@ Con `detached` no hay slots `panel*`: los paneles son `GTabPanel`.
 - **Sin depender del color:** la activa lleva marca, peso y color; el foco, un anillo distinto de la marca; los estados, icono y texto oculto.
 - **Contraste medido** (tema por defecto, Spotify con marca pálida, Apple y un tema granate con serif, `space` 5 y borde de 2px; claro y oscuro): texto activo ≥ 5.1:1 (la píldora con marca pálida; ≥ 8.8:1 en el resto), inactivo ≥ 6.6:1, marca y línea de `contained` ≥ 3:1 (mínimo 4.16:1), contornos de píldora y segmento ≥ 3:1, anillo de foco ≥ 4:1. Excepción conocida: el contorno del segmento, **por su lado interior** en oscuro, queda en 2.59:1 (contra la pista, 3.8:1).
 - **Tamaños:** altura mínima 40, 35 y 30px según densidad (24px el piso, segmento compacto), y **44px** con `pointer: coarse` en todas las densidades, también en los botones de borde y en «Más».
-- **Movimiento:** la marca se desliza solo con `prefers-reduced-motion: no-preference`; sin él salta, el icono de carga no gira, el panel no entra con fundido y el desplazamiento programático es instantáneo. El primer posicionamiento no se anima.
+- **Movimiento:** la marca se estira solo con `prefers-reduced-motion: no-preference`; con `reduce` salta, el icono de carga no gira, el panel **solo se funde** (sin desplazamiento) y el desplazamiento programático es instantáneo. El primer posicionamiento no se anima. Detalle en [Personalidad](#personalidad).
 - **RTL:** propiedades lógicas; la marca, el degradado del borde y los chevrones de los botones se espejan; las flechas del teclado se invierten.
 - **Colores forzados:** marca en `Highlight`, texto de la activa en `HighlightText` (`CanvasText` en `underline`), línea base y deshabilitadas en `GrayText`.
 - **Navegadores:** medido y comprobado en Chromium; marca, foco, «Más», flechas y RTL también en Firefox y WebKit (Playwright).
+
+## Personalidad
+
+Dos ideas, ambas sobre la marca y el panel que ya existían (sin props, slots ni eventos nuevos; todo solo después de `is-ready`, así que **nada se anima al montar**). Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§5); decisiones #299 y #302 (y #306, que las corrige por medición) en `DECISIONS.md`.
+
+**La marca se estira.** Los dos bordes de la marca viajan con tiempos distintos: el borde que **avanza** hacia la pestaña nueva llega primero (`--g-duration-press`, `--g-ease-out`) y el de atrás lo alcanza con un muelle (`--g-duration-slow`, `--g-ease-spring`, un muelle que rebasa un 3,8 %). En un salto largo el ojo sigue a la marca y la dirección del cambio se lee de un vistazo. Rige en las cuatro apariencias y en las dos orientaciones (en vertical, sobre el eje de bloque), y en RTL avanzar (`forward`) es ir hacia la izquierda. El rebote vive **solo** aquí (es el único uso aprobado de `--g-ease-spring`, decisión del usuario): los paneles no rebotan.
+
+**El contenido llega de su lado.** El panel que se activa entra con fundido y desplazándose `--g-space-1 × 4` (16px con el espacio por defecto) desde el lado hacia el que viajó la marca: desde el final al avanzar, desde el inicio al retroceder, espejado en RTL; en vertical, por el eje de bloque. La dirección es una sola, la de las pestañas. Para esto la raíz lleva dos datos:
+
+| Atributo en la raíz | Valores | Qué es |
+| --- | --- | --- |
+| `data-direction` | `forward` · `back` | Sentido del cambio de activa **en el orden lógico de `items`** (en RTL, `forward` va visualmente a la izquierda). Se escribe en el mismo render que cambia la activa, desde cualquier vía (clic, teclado, «Más» o un `modelValue` externo). Sin activa anterior no se pone; al montar tampoco |
+| `data-orientation` | `horizontal` · `vertical` | La orientación **real** del diseño, la misma que `aria-orientation` (`responsive` puede pasarla a horizontal; `segmented` y `contained` con `vertical` dibujan horizontal) |
+
+**`GTabPanel`** (paneles separados, también el del slot `tabs` de `GDialog`, que es `detached`) copia ambos en su propia raíz al pasar a activo, de modo que un panel suelto entra igual que uno integrado, también con pestañas verticales. La orientación se lee **al activarse**: cambiarla con el panel ya activo no lo reanima.
+
+**Con `prefers-reduced-motion: reduce`:** la marca salta (sin estirarse) y el panel solo se funde (`--g-duration-fast`), sin desplazamiento. La dirección no se pierde: la dan la marca, el foco y el texto.
+
+**Para un producto sobrio:** `--g-ease-spring: var(--g-ease-out)` quita el rebase de la marca sin tocar el componente. Las transiciones con la curva van dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera, la marca se desliza como antes.
+
+### Límites de la personalidad
+
+- **Recorte del panel en los dos ejes.** `g-tabs__panels` recorta con `overflow: clip` y un margen igual al anillo de foco (`overflow-clip-margin`), para que el panel que entra de lado no genere desplazamiento horizontal. Chromium solo respeta ese margen si recortan los dos ejes; por eso se recorta en ambos.
+- **WebKit no tiene `overflow-clip-margin`:** allí el panel **no se recorta** (recortar sin margen se comería el anillo para siempre). Cuando las pestañas tocan el borde de la ventana (a sangre), el panel rebasa `space × 4` (16px) **solo mientras entra** (≤ 240ms); con el margen lateral habitual, nada.
+- **Coste del recorte** en los demás motores: se corta lo que un hijo dibuje a **más de 4px** del borde de los paneles; por ejemplo, la sombra de una superficie `raised` pegada al borde (asoma 8px de lado y 12px abajo) o un contenido más ancho que el panel sin desplazamiento propio. Deja aire (`padding`) en el panel si necesitas esa sombra. Los popovers de Grana van a la capa superior y no se recortan.
+- **La marca anima su ancho o alto, como antes** (no solo `transform`): más trabajo de layout que un `scale` (kiwi midió 16 frente a 11 pasadas de layout en Chromium). Es una decisión aceptada en [`estilo.md`](../../../../../design/lab/tabs/estilo.md).
+- Sin `data-direction` (primer cambio sin activa anterior o un `GTabPanel` sin su `GTabs`), el panel solo se funde.
+
+### Verificación
+
+Spec `design/lab/theme-playground/tests/personalidad-tabs.spec.mjs` sobre el `GTabs` real del UMD; las transiciones reales se pausan y se recorren cada 4ms, y **Chromium, Firefox y WebKit dan las mismas cifras** (coco, [`estilo.md`](../../../../../design/lab/tabs/estilo.md), «Personalidad»):
+
+| Qué | Medida |
+| --- | --- |
+| Marca `underline`, «Resumen» → «Facturas» (347px) | exceso de ancho **+100,8px** adelante y **+100,0px** atrás; borde de delante asentado a **120ms** y el de atrás a **200ms**; termina exacta (±0,5px). Kiwi midió +95 / +95,6px; 186 / 269ms cuadro a cuadro, con la latencia del clic |
+| `pill`, `segmented` y `contained` | las mismas cifras que `underline` |
+| Vertical (`underline` y `pill`, 132px de recorrido) | +39,4px en los dos sentidos; 108 < 184ms |
+| RTL | adelante va a la izquierda: +100,8px; 120 < 200ms |
+| Panel | primer instante `+16px` adelante, `−16px` atrás, `−16px` en RTL adelante y `+16px` en RTL atrás; vertical `±16px` en el eje de bloque; `opacity` 0 → 1 en 160ms y desplazamiento en 240ms. `GTabPanel` suelto: igual; suelto con pestañas verticales: `±16px` en bloque y 0 en inline |
+| 375px | con 16px de margen, `scrollWidth` 375 durante toda la entrada en los tres motores; a sangre, 379 en Chromium y Firefox y 391 en WebKit, solo durante la entrada |
+| Anillo de foco | un hijo pegado a los cuatro bordes conserva el anillo entero (Chromium y Firefox con recorte; WebKit, sin recorte) |
+| `reduce` | la marca sin transiciones; el panel solo `opacity`, 120ms, sin desplazamiento; también suelto |
+| Al montar | sin transiciones en la marca; nace exacta bajo la activa |
+| Slot `tabs` de `GDialog` | el panel del cuerpo entra desde su lado y el cuerpo no gana desplazamiento horizontal (solo Chromium: el diálogo del playground; el panel suelto se mide en los tres) |
+
+**Sin verificar:** el respaldo de un navegador sin `linear()` ni `overflow-clip-margin` (los motores actuales los soportan, salvo `overflow-clip-margin` en WebKit), el aspecto de la marca en Safari y táctil reales, y `forced-colors` real (la marca sigue siendo `Highlight` y se estira igual: es geometría, no color).
 
 ## Tema
 
@@ -314,13 +360,13 @@ Los valores por defecto de los tokens propios están en `defaults.css`; cambiarl
 }
 ```
 
-La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutral-text`), que el tema garantiza ≥ 4.5:1 sobre la superficie. Consume también `--g-color-{primary|accent|neutral|warning}-soft`, `--g-color-on-primary-soft`, `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-space-*`, `--g-font-ui`, `--g-text-*`, `--g-shadow-1`, `--g-duration-press` y `--g-ease-{standard|out}`. El CLI **aún no emite** los `--g-tabs-*`: los temas generados usan los de `defaults.css`.
+La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutral-text`), que el tema garantiza ≥ 4.5:1 sobre la superficie. Consume también `--g-color-{primary|accent|neutral|warning}-soft`, `--g-color-on-primary-soft`, `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-space-*`, `--g-font-ui`, `--g-text-*`, `--g-shadow-1`, `--g-duration-{fast|press|slow}` y `--g-ease-{standard|out|spring}`. El CLI **aún no emite** los `--g-tabs-*`: los temas generados usan los de `defaults.css`.
 
 ## Clases
 
 Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPanel`):
 
-- **Raíz:** `g-tabs`, `g-tabs--appearance-*`, `--orientation-*`, `--color-*`, `--density-*`, `--align-*`, `--overflow-*`, `--icon-only`, `is-ready`, `is-scrollable-start|end` e `is-disabled`.
+- **Raíz:** `g-tabs`, `g-tabs--appearance-*`, `--orientation-*`, `--color-*`, `--density-*`, `--align-*`, `--overflow-*`, `--icon-only`, `is-ready`, `is-scrollable-start|end` e `is-disabled`; atributos `data-direction` y `data-orientation` (ver [Personalidad](#personalidad)), que `GTabPanel` copia en su raíz.
 - **Elementos:** `__header`, `__scroller`, `__list`, `__tab` (con `is-active`, `is-attention`, `is-loading`), `__icon`, `__label` (con `data-text`), `__status`, `__sr`, `__mark`, `__edge` (`--prev`, `--next`), `__more`, `__panels`, `__panel` y `__live`.
 - **Diálogo:** `.g-dialog__tabs` (en `GDialog.css`).
 
@@ -332,8 +378,9 @@ Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPane
 - **Sin deslizar entre paneles** (*swipe*) ni desmontar los paneles inactivos: los paneles se conservan montados.
 - **La marca no se vuelve a medir** si una pestaña cambia de ancho sin que cambie la raíz ni el `scroller` (p. ej. al cambiar en caliente la familia tipográfica del tema): pendiente de bruno. Las fuentes que cargan por `@font-face` sí se cubren.
 - **Contorno del segmento en oscuro,** lado interior: 2.59:1 (excepción documentada).
+- **Personalidad:** WebKit no recorta el panel que entra (a sangre rebasa 16px ≤ 240ms), el recorte corta lo que se dibuje a más de 4px del borde de los paneles y la marca anima su ancho (ver [Límites de la personalidad](#límites-de-la-personalidad)).
 - **Sin verificar:** un lector de pantalla real (VoiceOver, NVDA, TalkBack: anuncio de estado y contador y el menú «Más»), un dispositivo táctil real (`snap` con dedo), zoom al 200%, `forced-colors` real de Windows (se probó emulado), rendimiento con decenas de pestañas y redimensionar con «Más» abierto.
 
 ## Fuentes
 
-- API: [`GTabs.meta.json`](./GTabs.meta.json) · Contrato: [`design/contracts/tabs.md`](../../../../../design/contracts/tabs.md) · Prototipo: [`design/lab/tabs/r02/`](../../../../../design/lab/tabs/r02/) · Estilo: [`design/lab/tabs/estilo.md`](../../../../../design/lab/tabs/estilo.md) · Auditoría: [`design/lab/tabs/auditoria.md`](../../../../../design/lab/tabs/auditoria.md)
+- API: [`GTabs.meta.json`](./GTabs.meta.json) · Contrato: [`design/contracts/tabs.md`](../../../../../design/contracts/tabs.md) · Prototipo: [`design/lab/tabs/r02/`](../../../../../design/lab/tabs/r02/) · Estilo: [`design/lab/tabs/estilo.md`](../../../../../design/lab/tabs/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/tabs/auditoria.md`](../../../../../design/lab/tabs/auditoria.md)
