@@ -408,6 +408,9 @@ export default defineComponent({
       const el = e.target.closest?.('.g-menu__item')
       const menu = el && menuOf(el)
       if (!el || !menu) return
+      // El teclado manda: la espera pendiente del puntero (HOVER_MS, o la de la diagonal) ya no aplica. Si venciera
+      // después, abriría o cerraría submenús por un elemento sobre el que el puntero solo se quedó quieto.
+      clearTimeout(hoverTimer); clearTimeout(holdTimer); holdTimer = null; holdEl = null
       const list = itemsOf(menu)
       const i = list.indexOf(el)
       const rtl = getComputedStyle(menu).direction === 'rtl'

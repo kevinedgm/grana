@@ -336,10 +336,7 @@ test.describe('GMenu · M1 una sola luz que viaja', () => {
     expect(r.display).toBe('none')
     expect(r.os).toBe('solid')
     expect(r.ow).toBeGreaterThan(0)
-    // El puntero sale de la lista antes de usar el teclado (con el puntero quieto sobre un elemento del padre, abrir un
-    // submenú con → lo cierra al instante: defecto previo de GMenu.vue, anotado para bruno)
-    await page.mouse.move(2, 2)
-    await page.waitForTimeout(100)
+    // Con el puntero quieto sobre «Archivar» (sin esperar a HOVER_MS): el teclado abre el submenú y no se cierra
     await page.keyboard.press('End')
     await page.keyboard.press('ArrowUp')
     await page.keyboard.press('ArrowRight')
@@ -348,6 +345,28 @@ test.describe('GMenu · M1 una sola luz que viaja', () => {
     const parent = await item(page, 'pm', 'Exportar como').evaluate((el) => { const cs = getComputedStyle(el); return { os: cs.outlineStyle, ow: parseFloat(cs.outlineWidth) } })
     expect(parent.os).toBe('solid')
     expect(parent.ow).toBeGreaterThan(0)
+  })
+
+  // Defecto previo de GMenu.vue (coco, estilo.md «Personalidad»): con el puntero QUIETO sobre un elemento de la lista
+  // padre, abrir un submenú con → no debe cerrarlo ni dejar el foco en el body.
+  test('puntero quieto sobre el padre: → abre el submenú, ← lo cierra, y el foco no se pierde', async ({ page }) => {
+    await mount(page)
+    await openByClick(page, 'pm')
+    await hover(page, item(page, 'pm', 'Archivar'))
+    await page.waitForTimeout(60) // antes de HOVER_MS: la espera del puntero sigue pendiente al usar el teclado
+    await page.keyboard.press('End')
+    await page.keyboard.press('ArrowUp')
+    await page.keyboard.press('ArrowRight')
+    await expect(page.locator('.g-menu__list:popover-open')).toHaveCount(2)
+    // El submenú se mantiene (no se cierra tras unos cuadros ni tras HOVER_MS) y el foco queda en su primer elemento
+    await page.waitForTimeout(400)
+    await expect(page.locator('.g-menu__list:popover-open')).toHaveCount(2)
+    expect(await page.evaluate(() => document.activeElement.textContent.trim())).toContain('PDF')
+    await page.keyboard.press('ArrowLeft')
+    await expect(page.locator('.g-menu__list:popover-open')).toHaveCount(1)
+    expect(await page.evaluate(() => document.activeElement.textContent.trim())).toContain('Exportar como')
+    await page.waitForTimeout(300)
+    expect(await page.evaluate(() => document.activeElement.textContent.trim())).toContain('Exportar como')
   })
 
   // Contraste del texto de cada elemento sobre la capa (capa compuesta sobre la lista y la lista sobre la página)

@@ -594,6 +594,54 @@ describe('GMenu · M1 una sola luz que viaja', () => {
   })
 })
 
+// ---------- Puntero quieto sobre un elemento mientras se usa el teclado ----------
+describe('GMenu · puntero quieto y teclado', () => {
+  const ITEMSQ = [{ id: 'a', label: 'Abrir' }, { label: 'Exportar', items: [{ id: 'pdf', label: 'PDF' }, { id: 'csv', label: 'CSV' }] }, { id: 'b', label: 'Borrar' }]
+  const setup = async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const w = mk({ items: ITEMSQ })
+    await trig(w).trigger('click'); await settle()
+    return w
+  }
+  const subs = (w) => w.findAll('ul[role="menu"]').length
+
+  it('con el puntero quieto sobre otro elemento, → abre el submenú y la espera del puntero no lo cierra (ni pierde el foco)', async () => {
+    try {
+      const w = await setup()
+      const its = items(w)
+      await move(its[2], 10, 80); await settle() // el puntero llega a «Borrar»: arranca la espera de 180ms
+      await key(its[2], 'ArrowUp'); await settle() // teclado antes de que venza
+      expect(document.activeElement).toBe(its[1].element)
+      await key(its[1], 'ArrowRight'); await settle()
+      expect(subs(w)).toBe(2)
+      expect(document.activeElement.textContent).toContain('PDF')
+      vi.advanceTimersByTime(400); await settle()
+      expect(subs(w)).toBe(2)
+      expect(document.activeElement.textContent).toContain('PDF')
+      await key(document.activeElement && w.findAll('ul[role="menu"]')[1].find('.g-menu__item'), 'ArrowLeft'); await settle()
+      expect(subs(w)).toBe(1)
+      expect(document.activeElement).toBe(label(w, 'Exportar').element)
+      vi.advanceTimersByTime(400); await settle()
+      expect(document.activeElement).toBe(label(w, 'Exportar').element)
+    } finally { vi.useRealTimers() }
+  })
+
+  it('con el puntero fuera, → y ← siguen igual', async () => {
+    try {
+      const w = await setup()
+      const its = items(w)
+      its[1].element.focus()
+      await key(its[1], 'ArrowRight'); await settle()
+      expect(subs(w)).toBe(2)
+      vi.advanceTimersByTime(400); await settle()
+      expect(subs(w)).toBe(2)
+      await key(w.findAll('ul[role="menu"]')[1].find('.g-menu__item'), 'ArrowLeft'); await settle()
+      expect(subs(w)).toBe(1)
+      expect(document.activeElement).toBe(label(w, 'Exportar').element)
+    } finally { vi.useRealTimers() }
+  })
+})
+
 // ---------- M4 · submenú con intención (triángulo de seguridad) ----------
 describe('GMenu · M4 submenú con intención', () => {
   const ITEMS4 = [{ id: 'a', label: 'Abrir' }, { label: 'Exportar', items: [{ id: 'pdf', label: 'PDF' }, { id: 'csv', label: 'CSV' }] }, { id: 'b', label: 'Borrar' }, { id: 'c', label: 'Copiar' }]
