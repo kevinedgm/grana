@@ -10,13 +10,38 @@
   de la superficie (--_border, --_shadow) con especificidad mayor (.g-card.g-surface), nunca se copian sus valores.
 
   Mecanismo del hover (sin transform, solo sobre la acción principal): un velo translúcido (--g-card-hover/pressed) en
-  ::before bajo el contenido; la selección (--g-card-selected) es una capa de fondo de la raíz. Anillos en ::before/::after de la raíz:
-  el de foco hacia dentro (la raíz recorta), el de selección de doble grosor sin cambiar el tamaño.
+  ::before bajo el contenido; la selección (--g-card-selected) es un círculo de fondo del mismo ::before. Anillos en ::after
+  de la raíz: el de foco hacia dentro (la raíz recorta), el de selección de doble grosor sin cambiar el tamaño.
+
+  Personalidad (#303, card.md «Personalidad»; todo es pintura, la tarjeta no se mueve, #127):
+  · C2, la selección nace de la casilla: el ::before se coloca con anclaje (anchor()) centrado en el indicador y con medio
+    lado = distancia a la esquina más lejana de la tarjeta; su círculo farthest-corner crece de 0 a 100 % y se recoge. Sin
+    anclaje o con movimiento reducido, el tinte se funde como en el plan 008.
+  · C1, la luz sigue al puntero: un halo del mismo --g-card-hover en el fondo de la raíz, centrado en --_pointer-x/y (px desde
+    la caja de borde; los escribe GCard.vue). Sin esas variables el gradiente no es válido y no se pinta nada.
 */
 
 /* Tinte de seleccionada/actual. Registrada para que el cambio de selección se funda
    (un gradiente no se anima con transition). Privada: el nombre lleva el componente porque @property es global */
 @property --_card-selected {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+/* C2: radio del círculo de selección (100 % = esquina más lejana desde el indicador) */
+@property --_card-reach {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+/* Color del velo (el alias --_veil cambia por estado): registrado para animarlo en la raíz y que el ::before lo herede */
+@property --_card-veil {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+/* C1: color del halo (de transparente a --g-card-hover: aparece y se va con el hover) */
+@property --_card-glow {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;
@@ -63,11 +88,15 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   text-align: start;
-  background-image: linear-gradient(var(--_card-selected), var(--_card-selected));
+  --_card-veil: var(--_veil);
+  /* Velo y tinte (--_card-veil, --_card-selected, --_card-reach) se animan en la raíz y el ::before los hereda: WebKit
+     cancela las transiciones de un elemento colocado con anchor() (el ::before de C2), pero sí repinta lo que hereda */
   transition:
     border-color var(--g-duration-fast) var(--g-ease-standard),
     box-shadow var(--g-duration-fast) var(--g-ease-standard),
-    --_card-selected var(--g-duration-fast) var(--g-ease-standard);
+    --_card-veil var(--g-duration-fast) var(--g-ease-standard),
+    --_card-selected var(--g-duration-fast) var(--g-ease-standard),
+    --_card-glow var(--g-duration-press) var(--g-ease-standard);
 }
 /* Una inset se mide con el segundo radio publicado por la superficie */
 .g-card.g-surface--level-inset { --_inner: var(--_pub2-radius); }
@@ -76,16 +105,20 @@
 .g-card--color-accent { --_mark: var(--g-color-accent-text); --_fill: var(--g-color-accent); --_on-fill: var(--g-color-on-accent); }
 .g-card--color-neutral { --_mark: var(--g-color-neutral-text); --_fill: var(--g-color-neutral); --_on-fill: var(--g-color-on-neutral); }
 
-/* Velo de interacción: capa bajo el contenido y sobre el fondo; el hover y la pulsación solo cambian su color */
+/* Velo de interacción y tinte de seleccionada: capa bajo el contenido y sobre el fondo; el hover y la pulsación solo cambian
+   el color del velo; la selección, el del círculo (que aquí cubre la capa entera: 100 % de farthest-corner) */
 .g-card::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: var(--_radius-in);
-  background-color: var(--_veil);
+  --_card-veil: inherit;
+  --_card-selected: inherit;
+  --_card-reach: inherit;
+  background-color: var(--_card-veil);
+  background-image: radial-gradient(circle farthest-corner at center, var(--_card-selected) var(--_card-reach), transparent calc(var(--_card-reach) + var(--g-border-width)));
   pointer-events: none;
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
 /* Anillos (foco y selección): sobre el contenido y sin capturar el puntero */
 .g-card::after {
@@ -631,8 +664,26 @@
     text-underline-offset: var(--g-focus-offset);
   }
 }
+/* ---------- Personalidad (#303): C1 la luz sigue al puntero ---------- */
+/* Halo en el fondo de la raíz (bajo el velo), con origen en la caja de borde como --_pointer-x/y. Concentración: dos capas
+   del mismo --g-card-hover (sin token nuevo ni mezcla con otro color): en el centro, velo + 2 capas ≈ 3 veces el velo;
+   cae a 0 en space × 40. La posición no se transiciona (variables sin registrar); el color se funde con el hover.
+   Sin --_pointer-x/y (táctil, movimiento reducido, no interactiva: GCard.vue no las escribe) el gradiente no es válido y
+   background-image queda en none. Media de fondo: sin velo, sin halo. Puntero grueso (táctil, aunque declare hover): sin halo. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .g-card.is-interactive:not(.g-card--media-background, .is-disabled, .is-loading) {
+    --_glow: radial-gradient(circle calc(var(--g-space-1) * 40) at var(--_pointer-x) var(--_pointer-y), var(--_card-glow), transparent);
+    background-image: var(--_glow), var(--_glow);
+    background-origin: border-box;
+    background-repeat: no-repeat;
+  }
+  .g-card.is-interactive:where(:has(.g-card__primary:hover):not(.is-disabled, .is-loading)) { --_card-glow: var(--g-card-hover); }
+}
 .g-card.g-surface:where(:has(.g-card__primary:active):not(.is-disabled, .is-loading)) {
   --_veil: var(--g-card-pressed);
+  /* Al apretar, el velo de pulsación toma el relevo del halo (C1): la luz se apaga y el texto sigue ≥ 4,5:1 sobre
+     pulsada + seleccionada también en oscuro (con halo bajaba a 4,40) */
+  --_card-glow: transparent;
   --_border: var(--g-color-border-control);
 }
 
@@ -658,6 +709,46 @@
 }
 .g-card.is-selected.is-current::after { border-color: var(--_mark); }
 .g-card.is-current:not(.is-selected)::after { border-color: transparent; }
+
+/* ---------- Personalidad (#303): C2 la selección nace de la casilla ---------- */
+/* El ::before se ancla al indicador (casilla o radio; en toggle, el ✓ estático). Las cuatro inseta son la misma expresión,
+   cada una medida desde su lado: min(0, 2 · centro − lado) deja la capa centrada en el indicador y con medio lado igual a
+   la mayor distancia a los bordes, así que farthest-corner = esquina más lejana de la tarjeta (en LTR, RTL, horizontal,
+   media lateral, compact y modo lista). La raíz recorta (overflow: clip con su radio): la capa no necesita radio propio.
+   Con movimiento reducido o sin anclaje, nada de esto aplica y el tinte se funde (regla de arriba, plan 008). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (anchor-name: --g-card-select) {
+    .g-card { anchor-scope: --g-card-select; }
+    .g-card__header > :is(.g-card__selectbox, .g-card__tick--static) { anchor-name: --g-card-select; }
+    .g-card:has(.g-card__header > :is(.g-card__selectbox, .g-card__tick--static))::before {
+      inset: min(0%, calc(anchor(--g-card-select center, 50%) * 2 - 100%));
+      border-radius: 0;
+    }
+    /* Sin seleccionar: círculo nulo (0 %, del mismo tipo que 100 %: WebKit no interpola longitud ↔ porcentaje; el filo de
+       border-width que queda en el centro está bajo el indicador y sin color). Al desmarcar se recoge (salida: press) y el
+       color se apaga al terminar (retardo = duración de la recogida) */
+    .g-card.g-surface:has(.g-card__header > :is(.g-card__selectbox, .g-card__tick--static)) {
+      --_card-reach: 0%;
+      transition:
+        border-color var(--g-duration-fast) var(--g-ease-standard),
+        box-shadow var(--g-duration-fast) var(--g-ease-standard),
+        --_card-veil var(--g-duration-fast) var(--g-ease-standard),
+        --_card-reach var(--g-duration-press) var(--g-ease-out),
+        --_card-selected 0s linear var(--g-duration-press),
+        --_card-glow var(--g-duration-press) var(--g-ease-standard);
+    }
+    /* Al marcar: el color está desde el primer cuadro y el círculo crece hasta la esquina más lejana (bloque: slow) */
+    .g-card.g-surface:has(.g-card__header > :is(.g-card__selectbox, .g-card__tick--static)):is(.is-selected, .is-current) {
+      --_card-reach: 100%;
+      transition:
+        border-color var(--g-duration-fast) var(--g-ease-standard),
+        box-shadow var(--g-duration-fast) var(--g-ease-standard),
+        --_card-veil var(--g-duration-fast) var(--g-ease-standard),
+        --_card-reach var(--g-duration-slow) var(--g-ease-out),
+        --_card-glow var(--g-duration-press) var(--g-ease-standard);
+    }
+  }
+}
 
 /* Deshabilitada: atenuada y con el título tachado (exenta de contraste en WCAG 1.4.3) */
 .g-card.is-disabled { opacity: 0.55; }
@@ -798,6 +889,7 @@ li.g-card.g-card--orientation-horizontal.g-surface--level-flat.g-card--size-narr
 @media (forced-colors: active) {
   .g-card.g-surface:not(.g-surface--level-flat) { border-color: CanvasText; }
   .g-card::before { display: none; }
+  .g-card.is-interactive:not(.g-card--media-background, .is-disabled, .is-loading) { background-image: none; }
   .g-card:has(.g-card__primary:focus-visible, .g-card__select:focus-visible)::after { outline-color: Highlight; box-shadow: none; }
   .g-card.is-selected::after { border-color: Highlight; border-width: calc(var(--g-border-width) * 2); }
   .g-card.is-current:not(.is-selected)::after { border-color: Highlight; }

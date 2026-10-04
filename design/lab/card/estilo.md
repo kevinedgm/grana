@@ -6,7 +6,7 @@
 
 ## Carácter propio
 - **Silencio:** una sola raíz `GSurface`; el hover no mueve nada: un **velo** translúcido (`::before`, bajo el contenido) más un paso de borde; en `raised`, `shadow-2`. Título subrayado fino solo en hover.
-- **Selected:** borde de doble grosor **sin cambiar el tamaño** (borde de la raíz + anillo interior en `::after`), indicador (casilla/radio con `check`/`circle`), fondo `--g-card-selected` como capa de fondo. **Current:** borde + fondo + `chevron-right` (sin anillo doble ni indicador).
+- **Selected:** borde de doble grosor **sin cambiar el tamaño** (borde de la raíz + anillo interior en `::after`), indicador (casilla/radio con `check`/`circle`), fondo `--g-card-selected` en el `::before` (con indicador, nace de él: «Personalidad», C2). **Current:** borde + fondo + `chevron-right` (sin anillo doble ni indicador).
 - **Foco:** anillo hacia dentro en `::after` de la raíz (`:has(:focus-visible)`), con halo de `surface` (o del velo) para verse sobre media; `outline-offset: -max(focus-width, focus-offset)` (no sale de la raíz aunque el tema cambie el ancho).
 - **Status:** marca de borde de inicio de **forma** distinta (error sólida, aviso discontinua, info de puntos, éxito doble) + icono + texto; fondo `-soft`, texto `--g-color-text`.
 - **Velo de media de fondo:** gradiente que parte del token (mínimo = token, más fuerte abajo); botones de `GBtn` reasignados por sus alias (sólido = plano `on-scrim` con texto del tono del velo opaco).
@@ -32,7 +32,37 @@ Velos sobre la anfitriona (orden hover < selected < pressed). Velo, peor caso an
 7. **Textos de control** («mostrar más», pie) en `text-muted`/`text`, no en acento: sobre los velos de selected/pressed del oscuro el acento bajaba de 4.5:1.
 8. `forced-colors`: velos fuera, anillos `Highlight`, indicador `Highlight/HighlightText`, media de fondo y velo ocultos (texto `CanvasText`), marcas de status `CanvasText`.
 9. Alturas iguales/naturales: son de la rejilla del consumidor (`align-items`); la tarjeta no fija `block-size`.
-10. **Selección que se funde:** la selección (tinte por `--_card-selected` registrada, anillo interior, borde e indicador con su ✓) se funde en `--g-duration-fast`, también con movimiento reducido (es color). El chevrón de «Mostrar más» gira en `--g-duration-press` con `--g-ease-out`, como `GSelect` y `GSidebar`.
+10. **Selección que se funde:** la selección (tinte por `--_card-selected` registrada, anillo interior, borde e indicador con su ✓) se funde en `--g-duration-fast`, también con movimiento reducido (es color). Desde el plan 017 el tinte vive en el `::before` (lo hereda de la raíz) y, con indicador y sin movimiento reducido, en vez de fundirse nace de la casilla (C2). El chevrón de «Mostrar más» gira en `--g-duration-press` con `--g-ease-out`, como `GSelect` y `GSidebar`.
+
+## Personalidad (#303, plan 017): la selección nace de la casilla y la luz sigue al puntero
+
+Qué le da carácter: **causa y efecto sin mover nada** (#127). Lo que marcas es de donde sale el cambio, y la tarjeta interactiva «responde» a la luz del puntero mientras la estática no; todo es pintura, la caja nunca cambia.
+
+### C2 · la selección nace de la casilla (solo CSS)
+- **Forma:** el tinte `--g-card-selected` es un círculo `farthest-corner` en el `::before` que crece desde el **centro del indicador** (casilla o radio; en `toggle`, el ✓ estático) hasta la esquina más lejana, y al desmarcar se **recoge hacia él**. El borde doble y el ✓ siguen fundiéndose (plan 008): la selección no depende del círculo.
+- **Origen sin JS (anclaje):** el indicador lleva `anchor-name: --g-card-select` (con `anchor-scope` en cada tarjeta: las anidadas no se cruzan). El `::before` usa en las cuatro inseta la misma expresión, `min(0%, calc(anchor(--g-card-select center, 50%) * 2 - 100%))`: cada lado mide desde sí mismo, así que la capa queda **centrada en el indicador** con medio lado igual a la mayor distancia a los bordes y su `farthest-corner` es exactamente la esquina más lejana (LTR, RTL, horizontal con media lateral, `compact`, modo lista). La raíz recorta (`overflow: clip` con su radio). No hizo falta `--_select-x/y` (siguen reservados en `card.md`).
+- **Tiempo:** crecer `--g-duration-slow` con `--g-ease-out` (bloque que llega); recoger `--g-duration-press` (la salida, más corta, #152) y el color se apaga con un retardo igual a la recogida (`0s` de duración), así el círculo se ve volver a la casilla.
+- **WebKit (26.6) cancela las transiciones de un elemento colocado con `anchor()`** (cualquier propiedad, medido en una página mínima). Por eso el velo, el tinte y el radio (`--_card-veil`, `--_card-selected`, `--_card-reach`, registradas) se animan **en la raíz** y el `::before` los hereda (`inherit`): verificado en vídeo de WebKit y de Chromium (el círculo crece desde la casilla y se recoge). Dos rarezas de WebKit sin pintar que no afectan al usuario: `page.screenshot` da por terminadas las transiciones de propiedades registradas (en el vídeo sí se ven los intermedios) y `getComputedStyle(::before)` puede tardar en reflejar lo heredado hasta el siguiente pintado (el spec lee la raíz).
+- `--_card-reach` es `<percentage>` (0 % ↔ 100 %): WebKit no interpola `<length-percentage>` entre una longitud y un porcentaje.
+- **Sin indicador** (`button`, `link` sin `selectable`, `current`), **sin anclaje** o con **movimiento reducido**: capa = tarjeta y el tinte se funde como en el plan 008. `forced-colors`: sin `::before` (la selección es el anillo `Highlight`).
+
+### C1 · la luz sigue al puntero (CSS listo; el dato lo escribe `GCard.vue`)
+- **Halo** en el fondo de la raíz (bajo el velo y el tinte): dos capas `radial-gradient(circle calc(space × 40) at var(--_pointer-x) var(--_pointer-y), var(--_card-glow), transparent)` con `background-origin: border-box` (el dato se mide desde la caja de borde). **Concentración:** dos capas del **mismo** `--g-card-hover` (sin token nuevo ni mezcla con otro color; `color-mix` solo puede diluir el alfa): en el centro, velo + halo ≈ 3 × el velo (claro: 255 → 231; oscuro: 28 → 53), cae a 0 en `space × 40`.
+- **Aparece y se va** con el hover: `--_card-glow` (registrada) se funde en `--g-duration-press`; la **posición no se transiciona** (sigue al puntero en el mismo cuadro). **Al apretar** se apaga y manda el velo de pulsación: con halo, pulsada + seleccionada en oscuro bajaba a 4,40:1.
+- **No hace nada sin el dato:** sin `--_pointer-x/y` el gradiente no es válido y `background-image` queda en `none`. Solo con `(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)`, en `is-interactive` sin `is-disabled`/`is-loading` ni media de fondo; `forced-colors`: fuera.
+
+### Medidas (`design/lab/theme-playground/tests/personalidad-card.spec.mjs`, tres motores)
+| Qué | Resultado |
+| --- | --- |
+| C2 origen (7 modos: casilla, radio, toggle, horizontal con media lateral, compact, RTL, lista) | Δ 0,00px en x e y; radio = esquina más lejana del relleno (≤ 1,1px, el borde) |
+| C2 crecer / recoger | 240ms `ease-out`: 0 → 39,8 → 77,5 → 96,6 % (10, 25, 50 % del tiempo); 160ms al recoger, con el tinte puesto hasta el final; caja Δ0, `transform: none` |
+| C2 píxeles (Chromium, Firefox) | a 35 % del tiempo (89 %): tinte junto al indicador y esquina lejana sin teñir; al final, teñida |
+| C2 con `reduce` | capa = tarjeta, radio fijo 100 %, el tinte se funde en 120ms |
+| C1 centro | centroide del halo = puntero (330,00; 230,00) en los tres; caja Δ0, `transform: none`, velo conservado; salto de 80px en el siguiente cuadro |
+| C1 sin halo | `reduce`, táctil 375px (`hover: none`; Chromium y WebKit), `forced-colors` (Chromium), no interactiva, media de fondo |
+| Contraste en el centro del halo (texto / atenuado) | defecto claro: hover 14,07 / 6,03; sel.+hover 12,81 / 5,49; sel.+pulsada 13,56 / 5,81 · defecto oscuro: 10,96 / 6,18; 9,12 / 5,15; 9,85 / 5,56 · spotify claro: 14,08 / 5,97; 12,82 / 5,44 · spotify oscuro: 11,14 / 6,27; 9,28 / 5,22 (Chromium; Firefox y WebKit ±0,15) |
+
+Mientras `GCard.vue` no escriba `--_pointer-x/y`, el spec instala un sustituto mínimo (las dos variables en `pointerenter`/`pointermove` de ratón o lápiz) y lo anota; cuando el componente las escriba, mide el real sin cambios.
 
 ## Verificación (Chromium, Playwright; contraste medido por píxeles con el texto oculto, animaciones en reposo)
 Temas: defecto claro/oscuro, «Tema de prueba» (serif, borde 2px, space 5px) y los 10 generados × claro/oscuro. Mínimos en los 23:
