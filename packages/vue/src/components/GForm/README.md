@@ -220,6 +220,8 @@ Excepciones: solo llevan marca los campos editables; `GSwitch` nunca; una casill
 
 **Errores del servidor:** ponlos en `errors` tras la respuesta (una clave que no es de ningún campo es un error general) y llama a `showErrors()` (`ref` del `GForm`).
 
+**El clic de «Guardar» no se pierde por un mensaje que aparece al pulsar** (#326). Con un campo recién editado e inválido, pulsar «Guardar» hacía perder el foco al campo y su mensaje aparecía entre `mousedown` y `mouseup`: el botón se desplazaba bajo el puntero y el clic se perdía. Ahora, mientras dura una pulsación de puntero, el revelado por `blur` (errores y advertencias) **se aplaza** y se aplica **después del `click`** (una tarea tras `pointerup` o `pointercancel`); si el clic envía el formulario, rige el envío (revela todos y el foco va al resumen). Con teclado (Tab) el mensaje aparece en el acto, y `showErrorsOn="submit"` y un `error` explícito en el campo no cambian. Sin API ni CSS nuevos. Verificado con `design/lab/theme-playground/tests/form-blur-click.spec.mjs` (la caja del botón no cambia hasta `mouse.up()` y el envío ocurre una vez; con Tab el mensaje aparece en el acto).
+
 ## Personalidad: rechazo al enviar
 
 Al enviar con errores, **cada campo que bloquea niega una vez con la cabeza**: una sacudida horizontal decreciente, de **4px como máximo** (`--g-space-1`), en `--g-duration-slow`. Señala **cuáles** fallaron, incluidos los que quedan fuera del foco, y es el «no» del formulario como identidad de Grana. Sin props, eventos ni slots nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) (§7, I2); decisiones #299 y #304 (y #306) en `DECISIONS.md`.
@@ -288,6 +290,22 @@ Secundarias antes y **una primaria al final** (`GBtn` `solid`); la región de es
 
 - **`sticky`** lo pega al borde inferior del contenedor que se desplaza y **nunca tapa el campo enfocado** (WCAG 2.4.11): mide su altura, `GForm` la publica en `--g-form-actions-size` y desplaza el campo si quedaría debajo. Medido: 0 campos tapados con Tab por el formulario mediano a 1280 y 320px, LTR y RTL, en Chromium, Firefox y WebKit. Alto: 61px; apilado 105px a 360 y 149px a 320 (tres botones que ya no caben dos en una línea).
 - `formnovalidate` en un botón de envío («Guardar borrador») envía sin revelar ni comprobar nada: `@submit` llega con `novalidate: true`. Distingue botones por `submitter.name`/`value`.
+- **Error del servidor al guardar (500, tiempo agotado, sin red): marca junto al botón.** No es validación y no se arregla en un campo, así que no va a `errors` ni al `GErrorSummary`: es una condición de la [Isla de estado](../GStatusIsland/README.md) (`@grana/vue/status`), con una `GStatusMark` con `for` **como hijo del slot por defecto, antes del botón** (la fila alinea al final: «Guardar» no se mueve, Δ 0px medido). La marca abre la isla en su aviso, donde «Reintentar» se resuelve en el sitio; tus datos se quedan en el formulario. **Nunca en el slot `status`** (es `role="status"` y duplicaría el anuncio de la isla).
+
+  ```vue
+  <GFormActions>
+    <GStatusMark for="save" v-slot="{ type, busy }">{{ type === 'success' ? 'Guardada' : busy ? 'Reintentando…' : 'No se guardó' }}</GStatusMark>
+    <GBtn type="submit">Guardar</GBtn>
+  </GFormActions>
+  ```
+
+  ```js
+  status.error('save', 'No se pudo guardar la factura', {
+    description: 'El servidor no respondió; tus datos siguen en el formulario.',
+    action: { label: 'Reintentar', busyLabel: 'Reintentando…', onClick: () => api.guardar(datos).then(() => ({ type: 'success', title: 'Factura guardada', description: '', action: undefined, persistent: false })) },
+    origin: { label: 'Ir al formulario', target: 'factura-form' }
+  })
+  ```
 - **En un `GDialog`**, las acciones van en su slot `footer` con `form="id-del-form"`; puedes envolverlas en un `GFormActions` sin `sticky` para tener jerarquía, estado y apilado.
 
 ## Secciones (`GFormSection`)

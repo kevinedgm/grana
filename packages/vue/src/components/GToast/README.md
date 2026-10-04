@@ -6,7 +6,9 @@ Avisos **breves y no modales** que confirman o informan del resultado de algo qu
 
 > `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «Avisos (GToaster)»). Exige Vue `^3.5.0`; la región usa la API `popover`.
 
-> **No pongas nada imprescindible solo en un aviso.** Un aviso se cierra y no se recupera (no hay historial). Lo que el usuario necesita para continuar (el error de un campo, un estado que dura, una decisión) va en la página, junto al campo o en un `GDialog` (WCAG 2.2.1, 3.3.1).
+> **Para lo persistente, la [Isla de estado](../GStatusIsland/README.md).** Un fallo del servidor que dura, una condición de página (sin conexión, mantenimiento, sesión por caducar) o un resultado que debe quedarse no son avisos que se van: van a la isla (`@grana/vue/status`). **Un suceso, un canal:** o aviso flotante o isla, nunca los dos. La isla se monta después de `GToaster`; con los avisos arriba, quedan bajo la isla replegada.
+
+> **No pongas nada imprescindible solo en un aviso.** Un aviso se cierra y no se recupera (no hay historial). Lo que el usuario necesita para continuar (el error de un campo, un estado que dura, una decisión) va en la página, junto al campo, en la [Isla de estado](../GStatusIsland/README.md) o en un `GDialog` (WCAG 2.2.1, 3.3.1).
 
 ## Uso
 
