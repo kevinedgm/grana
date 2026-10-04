@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNumberField · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/number-field.md («Estructura accesible» y «Clases y datos») con el
+     CSS real de GNumberField.css (cargado DENTRO de la capa grana.components, después de GInput, como lo registrará bruno)
+     y los componentes reales de dist/ (GForm, GFormLayout, GFormRow, GInput, GSelect) como vecinos. XNumberField hace lo
+     que hará GNumberField.vue y solo lo necesario para el estilo: la raíz y la caja de GInput a mano (los slots internos
+     field/end de GInput aún no existen en dist/), la celda __value con espejo, campo, capa __roll y __measure, −/+ con
+     pointerdown + preventDefault y repetición 400/60, is-rolling, is-bumping + data-bump, y la retirada por animationend
+     g-number-roll… / g-number-bump… o en el acto sin animación calculada. El formato es Intl (es, ar-EG, he).
+     No es documentación ni la implementación de bruno.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/number-field/estilo-banco.html
+     Parámetros: ?dark=1  ?test=1 (Tema de prueba: borde 2px, space 5)  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: node design/lab/number-field/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GNumberField/GNumberField.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="test-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GNumberField · banco de estilo</h1>
+<p class="cap"><b>coco</b> · La caja es la de <code>GInput</code>. Lo propio: la celda del valor mide el texto (P1: la unidad va pegada al número, al <code>gap</code> de la caja), −/+ cuadrados del alto de la caja al final (separador <code>border-control</code>, icono <code>text-muted</code>, fondo <code>neutral-soft</code> al pasar y pulsar), cifras que ruedan al dar un paso (P2) y el tope en el límite (P3), con <code>--g-duration-press</code> y <code>--g-ease-out</code>. ↑/↓ dan un paso; Shift, diez.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="reject">Rechazar (I2)</button>
+</div>
+
+<h2 class="b">1 · Tamaños (con GInput real del mismo tamaño)</h2>
+<p class="cap">«Peso» con sufijo y «Cantidad» con −/+; −/+ son cuadrados del alto de la caja: 24 · 28 · 36 · 44 · 52 (xs compact 24; con puntero grueso 44×44).</p>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <g-input :id="'in-' + s.id" :data-case="'in-' + s.id" :size="s.size" :density="s.density" :label="'GInput ' + s.id" model-value="72,5" suffix="kg" block></g-input>
+    <x-number-field :case="'nf-' + s.id" :size="s.size" :density="s.density" :label="'Peso ' + s.id" :model-value="72.5" :precision="1" :step="0.1" :min="0" :max="400" suffix="kg" suffix-label="kilogramos" block></x-number-field>
+    <x-number-field :case="'st-' + s.id" :size="s.size" :density="s.density" :label="'Cantidad ' + s.id" :model-value="12" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" block></x-number-field>
+  </div>
+</div>
+
+<h2 class="b">2 · P1 · La unidad va pegada al número (1, 3 y 6 caracteres)</h2>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <x-number-field v-for="v in [7, 72.5, 1234.5]" :key="v" :case="'p1-' + s.id + '-' + String(v).length" :size="s.size" :density="s.density" :label="'Peso ' + s.id" :model-value="v" :precision="v === 7 ? 0 : 1" :grouping="false" suffix="kg" block></x-number-field>
+  </div>
+</div>
+
+<h2 class="b">3 · Estados</h2>
+<div class="host"><div class="grid">
+  <x-number-field case="s-rest" label="En reposo" :model-value="19" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-min" label="En el mínimo (− deshabilitado)" :model-value="1" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-max" label="En el máximo (P3 con ↑)" :model-value="99" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-empty" label="Vacío con placeholder" :model-value="null" :min="30" :max="45" :step="0.1" :precision="1" placeholder="36,5" suffix="°C" suffix-label="grados Celsius"></x-number-field>
+  <x-number-field case="s-readonly" label="Solo lectura" :model-value="72.5" :precision="1" suffix="kg" steppers decrement-label="Restar" increment-label="Sumar" readonly></x-number-field>
+  <x-number-field case="s-disabled" label="Deshabilitado" :model-value="12" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar" disabled></x-number-field>
+  <x-number-field case="s-invalid" label="Con error" :model-value="150" :min="20" :max="120" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" error="Fuera de rango (20 a 120)."></x-number-field>
+  <x-number-field case="s-warning" label="Con advertencia" :model-value="110" :min="20" :max="250" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" warning="Alta para reposo."></x-number-field>
+  <x-number-field case="s-valid" label="Válido" :model-value="72" :min="20" :max="250" :precision="0" suffix="lpm" steppers decrement-label="Restar" increment-label="Sumar" valid="Dentro de lo normal."></x-number-field>
+  <x-number-field case="s-soft" label="Variante soft" variant="soft" :model-value="3" :min="0" :max="10" :precision="0" suffix="dosis" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-pill" label="rounded pill" rounded="pill" :model-value="4" :min="0" :max="10" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-output" label="Con output" :model-value="70" :precision="0" suffix="kg" output="IMC 24,2" hint="Calculado con la estatura."></x-number-field>
+  <x-number-field case="s-prefix" label="Con prefijo" :model-value="3" :precision="0" prefix="×" prefix-label="multiplicado por" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+  <x-number-field case="s-reject" label="I2 · rechazo" :model-value="null" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" error="Escribe la cantidad."></x-number-field>
+</div></div>
+
+<h2 class="b">4 · En una fila (GFormRow real) a 1100 · 720 · 320</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'r-form-' + w" :labels="labels">
+    <g-form-layout>
+      <g-form-row :id="'r-row-' + w" :data-row="'a-' + w">
+        <g-input class="g-form-w-md" :id="'r-nom-' + w" :data-case="'r-nom-' + w" label="Nombre" name="nombre"></g-input>
+        <g-select class="g-form-w-sm" :id="'r-sexo-' + w" :data-case="'r-sexo-' + w" label="Sexo" name="sexo" :options="sexos" v-model="sexo"></g-select>
+        <x-number-field class="g-form-w-xs" :case="'r-fc-' + w" label="Frecuencia cardiaca" :model-value="72" :min="20" :max="250" :precision="0" suffix="lpm" suffix-label="latidos por minuto" block in-row></x-number-field>
+        <x-number-field class="g-form-w-xs" :case="'r-peso-' + w" label="Peso" :model-value="70.2" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos" hint="Sin ropa." block in-row></x-number-field>
+      </g-form-row>
+      <g-form-row :id="'r-row2-' + w" :data-row="'b-' + w">
+        <x-number-field class="g-form-w-sm" :case="'r-qty-' + w" label="Cantidad" :model-value="2" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" block in-row></x-number-field>
+        <g-input class="g-form-w-md" :id="'r-lote-' + w" :data-case="'r-lote-' + w" label="Lote" name="lote" error="El lote no existe."></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">5 · RTL (ar-EG, he) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <x-number-field case="rtl-ar" locale="ar-EG" label="الكمية" :model-value="-4.5" :step="0.5" :precision="1" suffix="كغ" steppers decrement-label="إنقاص" increment-label="زيادة" block></x-number-field>
+  </div>
+  <div class="host" dir="rtl" lang="he">
+    <x-number-field case="rtl-he" locale="he" label="משקל" :model-value="72.5" :step="0.1" :precision="1" suffix="ק״ג" steppers decrement-label="הפחת" increment-label="הוסף" block></x-number-field>
+  </div>
+  <div class="host w320">
+    <x-number-field case="n320-long" label="Población atendida" :model-value="1234567890123456" :precision="0" suffix="personas" steppers decrement-label="Restar" increment-label="Sumar" block></x-number-field>
+    <div style="block-size:12px"></div>
+    <x-number-field case="n320-short" label="Cantidad" :model-value="12" :min="1" :max="99" :precision="0" suffix="u." steppers decrement-label="Restar" increment-label="Sumar" block></x-number-field>
+  </div>
+</div>
+
+<h2 class="b">6 · Mínimo de referencia (#312): «Cantidad» 1–99 con −/+, md, space 4</h2>
+<p class="cap">Mínimo = ancho de la caja − ancho de la celda <code>__value</code> + ancho de <code>__measure</code> («99»), hacia arriba. Medido: <b id="ref-min">{{ refMin }}</b>.</p>
+<div class="host w320">
+  <x-number-field case="ref-qty" label="Cantidad" :model-value="1" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar" block in-row></x-number-field>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, nextTick } = Vue
+const $ = (s) => document.querySelector(s)
+const BIDI = /[‎‏؜]/g
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const registry = window.__nf = new Map()
+
+// ---- XNumberField: lo que hará GNumberField.vue (bruno), solo lo que el estilo necesita ----
+const XNumberField = defineComponent({
+  name: 'XNumberField',
+  inheritAttrs: false,
+  props: {
+    case: String, modelValue: { type: Number, default: null }, min: Number, max: Number, step: { type: Number, default: 1 }, precision: Number,
+    locale: { type: String, default: 'es' }, grouping: { type: Boolean, default: true }, prefix: String, prefixLabel: String, suffix: String, suffixLabel: String,
+    steppers: Boolean, decrementLabel: String, incrementLabel: String, label: String, hint: String, error: String, warning: String, valid: String, output: String,
+    placeholder: String, readonly: Boolean, disabled: Boolean, size: { type: String, default: 'md' }, variant: { type: String, default: 'outline' },
+    density: { type: String, default: 'default' }, rounded: String, color: String, block: Boolean, inRow: Boolean
+  },
+  setup(props, { attrs }) {
+    const id = props.case
+    const model = ref(props.modelValue)
+    const focused = ref(false)
+    const field = ref(null), valueEl = ref(null), rootEl = ref(null)
+    const nf = (raw) => new Intl.NumberFormat(props.locale, { useGrouping: raw ? false : props.grouping, minimumFractionDigits: raw ? 0 : (props.precision ?? 0), maximumFractionDigits: props.precision ?? 6 })
+    const fmt = (v, raw = false) => (v == null ? '' : nf(raw).format(v).replace(BIDI, ''))
+    const text = ref(fmt(model.value))
+    const dec = (nf(true).formatToParts(1.5).find((p) => p.type === 'decimal') || { value: ',' }).value
+    const digits = [...nf(true).format(9876543210)].reverse().join('')
+    const toAscii = (s) => s.replace(BIDI, '').replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(dec, '.')
+    const atMin = computed(() => props.min != null && model.value != null && model.value <= props.min)
+    const atMax = computed(() => props.max != null && model.value != null && model.value >= props.max)
+    const editable = computed(() => !props.readonly && !props.disabled)
+    const showSteppers = computed(() => props.steppers && props.decrementLabel && props.incrementLabel && !props.readonly)
+    const message = computed(() => props.error ? { t: 'error', text: props.error, icon: 'circle-alert', pre: 'Error: ' } : props.warning ? { t: 'warning', text: props.warning, icon: 'triangle-alert', pre: 'Advertencia: ' } : props.valid ? { t: 'valid', text: props.valid, icon: 'circle-check', pre: 'Correcto: ' } : null)
+    const rejected = ref(false), ready = ref(false)
+    const classes = computed(() => ['g-input', 'g-input--variant-' + props.variant, 'g-input--size-' + props.size, 'g-input--density-' + props.density,
+      props.color && 'g-input--color-' + props.color, props.rounded && 'g-input--rounded-' + props.rounded, 'g-number-field', attrs.class,
+      { 'g-input--block': props.block, 'g-input--has-prefix': !!props.prefix, 'g-input--has-suffix': !!props.suffix, 'g-input--has-output': props.output !== undefined,
+        'g-number-field--has-steppers': showSteppers.value, 'is-disabled': props.disabled, 'is-readonly': props.readonly, 'is-invalid': message.value?.t === 'error',
+        'is-warning': message.value?.t === 'warning', 'is-valid': message.value?.t === 'valid', 'is-ready': ready.value, 'is-rejected': rejected.value }])
+    // Medidor (#312): solo con −/+ dentro de una fila; texto de referencia = el más ancho entre min, max y placeholder
+    const measureText = computed(() => {
+      const c = [props.min != null ? fmt(props.min) : null, props.max != null ? fmt(props.max) : null, props.placeholder].filter(Boolean)
+      return c.length ? c : [fmt(8888, true)]
+    })
+    // ---- P2 ----
+    const roll = ref(null), rollDir = ref('up')
+    function clearRoll() { roll.value = null }
+    async function startRoll(oldT, newT, dir) {
+      if (roll.value) { clearRoll(); return }
+      if (!oldT || field.value.scrollWidth > field.value.clientWidth + 1) return
+      const a = [...oldT].reverse(), b = [...newT].reverse(), chars = []
+      for (let i = 0; i < b.length; i++) chars.unshift({ ch: b[i], old: a[i] ?? '', changed: b[i] !== (a[i] ?? '') })
+      if (!chars.some((c) => c.changed)) return
+      rollDir.value = dir > 0 ? 'up' : 'down'
+      roll.value = chars
+      await nextTick()
+      requestAnimationFrame(() => {
+        const slots = [...valueEl.value.querySelectorAll('.g-number-field__roll-new, .g-number-field__roll-old')]
+        const live = slots.some((s) => { const cs = getComputedStyle(s); return cs.animationName !== 'none' && parseFloat(cs.animationDuration) > 0 })
+        if (!live) clearRoll()
+      })
+    }
+    function onAnimEnd(e) {
+      if (e.animationName.startsWith('g-number-roll')) {
+        const layer = valueEl.value.querySelector('.g-number-field__roll')
+        if (layer && !layer.getAnimations({ subtree: true }).some((a) => a.playState !== 'finished')) clearRoll()
+      }
+      if (e.animationName.startsWith('g-number-bump') && e.target === valueEl.value) bump.value = null
+      if (e.animationName.startsWith('g-reject')) rejected.value = false
+    }
+    // ---- P3 ----
+    const bump = ref(null)
+    async function doBump(dir) {
+      bump.value = null
+      await nextTick(); await new Promise((r) => requestAnimationFrame(r))
+      bump.value = dir > 0 ? 'up' : 'down'
+      await nextTick()
+      requestAnimationFrame(() => { const cs = getComputedStyle(valueEl.value); if (cs.animationName === 'none' || !(parseFloat(cs.animationDuration) > 0)) bump.value = null })
+    }
+    // ---- Pasos ----
+    const decs = (n) => { const s = String(n); return s.includes('.') ? s.split('.')[1].length : 0 }
+    const clamp = (v) => Math.min(props.max ?? Infinity, Math.max(props.min ?? -Infinity, v))
+    function next(v, dir, mult) {
+      if (v == null) return clamp(0)
+      const base = props.min ?? 0, st = props.step
+      const sc = 10 ** Math.max(decs(st), decs(base), props.precision ?? 0, decs(v))
+      const k = Math.round(((v - base) / st) * 1e9) / 1e9
+      const n = dir > 0 ? Math.floor(k) + mult : Math.ceil(k) - mult
+      return clamp(Math.round((base + n * st) * sc) / sc)
+    }
+    function doStep(dir, mult, src, repeat) {
+      if (!editable.value) return
+      const v = model.value
+      if ((dir > 0 && atMax.value) || (dir < 0 && atMin.value)) { if (src === 'key' && !repeat) doBump(dir); return }
+      const nv = next(v, dir, mult)
+      if (nv === v) { if (src === 'key' && !repeat) doBump(dir); return }
+      const oldT = text.value
+      model.value = nv
+      text.value = fmt(nv, focused.value)
+      field.value.value = text.value
+      if (src === 'key' || document.activeElement === field.value) field.value.setSelectionRange(text.value.length, text.value.length)
+      if (repeat) clearRoll(); else startRoll(oldT, text.value, dir)
+    }
+    function onKeydown(e) {
+      const k = { ArrowUp: 1, ArrowDown: -1, PageUp: 1, PageDown: -1 }[e.key]
+      if (!k || e.altKey || e.ctrlKey || e.metaKey) return
+      e.preventDefault()
+      doStep(k, e.shiftKey || e.key.startsWith('Page') ? 10 : 1, 'key', e.repeat)
+    }
+    function onInput(e) {
+      clearRoll()
+      const t = e.target.value
+      text.value = t
+      const n = parseFloat(toAscii(t))
+      model.value = Number.isFinite(n) ? n : null
+      rejected.value = false
+    }
+    function onFocus() { focused.value = true; clearRoll(); text.value = fmt(model.value, true) }
+    function onBlur() { focused.value = false; clearRoll(); text.value = fmt(model.value) }
+    let t1 = 0, t2 = 0
+    const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0 }
+    function onStepDown(dir, e) {
+      if (e.button !== 0) return
+      e.preventDefault()
+      doStep(dir, 1, 'pointer', false)
+      t1 = setTimeout(() => { t2 = setInterval(() => { if ((dir > 0 && atMax.value) || (dir < 0 && atMin.value)) return stop(); doStep(dir, 1, 'pointer', true) }, 60) }, 400)
+    }
+    function onStepClick(dir, e) { if (e.detail === 0) doStep(dir, 1, 'pointer', false) }
+    function onBoxDown(e) {
+      if (e.target === field.value || e.target.closest('.g-number-field__steppers') || !editable.value) return
+      e.preventDefault()
+      field.value.focus()
+      const n = field.value.value.length
+      field.value.setSelectionRange(n, n)
+    }
+    onMounted(() => {
+      for (const ev of ['pointerup', 'pointercancel', 'blur']) window.addEventListener(ev, stop)
+      requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+      registry.set(id, { model, text, roll, bump, rejected, step: doStep, el: rootEl })
+    })
+    onBeforeUnmount(() => { stop(); for (const ev of ['pointerup', 'pointercancel', 'blur']) window.removeEventListener(ev, stop) })
+    const lucide = (n, c) => window.lucide(n, c)
+    return { id, model, text, field, valueEl, rootEl, classes, message, showSteppers, atMin, atMax, roll, rollDir, bump, measureText, lucide,
+      onKeydown, onInput, onFocus, onBlur, onStepDown, onStepClick, onBoxDown, onAnimEnd, attrs }
+  },
+  template: `
+  <div ref="rootEl" :class="classes" :data-case="id" @animationend="onAnimEnd" @animationcancel="onAnimEnd">
+    <label v-if="label" class="g-input__label" :id="id + '-label'" :for="id">{{ label }}</label>
+    <div class="g-input__row">
+      <div class="g-input__control" @pointerdown="onBoxDown">
+        <template v-if="prefix"><span class="g-input__prefix" aria-hidden="true">{{ prefix }}</span><span v-if="prefixLabel" class="g-input__prefix-label" :id="id + '-prefix'">{{ prefixLabel }}</span></template>
+        <span ref="valueEl" :class="['g-number-field__value', { 'is-rolling': !!roll, 'is-bumping': !!bump }]" :data-bump="bump || undefined">
+          <span class="g-number-field__mirror" aria-hidden="true">{{ text || placeholder || '' }}</span>
+          <input ref="field" class="g-input__field g-number-field__field" :id="id" type="text" role="spinbutton" dir="ltr"
+                 :inputmode="precision === 0 ? 'numeric' : 'decimal'" autocomplete="off" spellcheck="false" :value="text" :placeholder="placeholder"
+                 :readonly="readonly || undefined" :aria-readonly="readonly ? 'true' : undefined" :disabled="disabled || undefined"
+                 :aria-valuenow="model ?? undefined" :aria-valuetext="model != null ? text : undefined" :aria-valuemin="min" :aria-valuemax="max"
+                 :aria-invalid="message && message.t === 'error' ? 'true' : undefined"
+                 :aria-describedby="[suffix && (id + '-suffix'), hint && (id + '-hint'), id + '-message'].filter(Boolean).join(' ')"
+                 @keydown="onKeydown" @input="onInput" @focus="onFocus" @blur="onBlur">
+          <span v-if="roll" class="g-number-field__roll" aria-hidden="true" dir="ltr" :data-direction="rollDir"><template v-for="(c, i) in roll" :key="i + c.ch + c.old"><span v-if="c.changed" class="g-number-field__roll-slot"><span class="g-number-field__roll-new">{{ c.ch }}</span><span v-if="c.old" class="g-number-field__roll-old">{{ c.old }}</span></span><template v-else>{{ c.ch }}</template></template></span>
+          <span v-if="inRow && steppers" class="g-number-field__measure" aria-hidden="true">{{ measureText.join('\\n') }}</span>
+        </span>
+        <input type="hidden" :name="id" :value="model ?? ''" :disabled="disabled || undefined">
+        <template v-if="suffix"><span class="g-input__suffix" :id="suffixLabel ? undefined : id + '-suffix'" :aria-hidden="suffixLabel ? 'true' : undefined">{{ suffix }}</span><span v-if="suffixLabel" class="g-input__suffix-label" :id="id + '-suffix'">{{ suffixLabel }}</span></template>
+        <output v-if="output !== undefined" class="g-input__output" :id="id + '-output'" :for="id" aria-live="polite">{{ output }}</output>
+        <span v-if="showSteppers" class="g-number-field__steppers">
+          <button type="button" class="g-number-field__step g-number-field__step--decrement" tabindex="-1" :aria-controls="id" :aria-labelledby="id + '-decrement ' + id + '-label'"
+                  :disabled="disabled || atMin || undefined" @pointerdown="onStepDown(-1, $event)" @click="onStepClick(-1, $event)"><span class="g-number-field__step-label" :id="id + '-decrement'">{{ decrementLabel }}</span><span v-html="lucide('minus')" style="display:contents"></span></button>
+          <button type="button" class="g-number-field__step g-number-field__step--increment" tabindex="-1" :aria-controls="id" :aria-labelledby="id + '-increment ' + id + '-label'"
+                  :disabled="disabled || atMax || undefined" @pointerdown="onStepDown(1, $event)" @click="onStepClick(1, $event)"><span class="g-number-field__step-label" :id="id + '-increment'">{{ incrementLabel }}</span><span v-html="lucide('plus')" style="display:contents"></span></button>
+        </span>
+      </div>
+    </div>
+    <div class="g-input__support">
+      <div v-if="hint" class="g-input__messages"><span :id="id + '-hint'" class="g-input__hint">{{ hint }}</span></div>
+      <div :id="id + '-message'" class="g-input__message" aria-live="polite"><template v-if="message"><span v-html="lucide(message.icon, 'g-input__message-icon')" style="display:contents"></span><span class="g-input__message-type">{{ message.pre }}</span>{{ message.text }}</template></div>
+    </div>
+  </div>`
+})
+
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const sexos = [{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decirlo' }]
+const sizes = [['xs'], ['sm'], ['md'], ['lg'], ['xl'], ['md', 'compact'], ['xs', 'compact']].map(([size, density = 'default']) => ({ id: size + (density === 'default' ? '' : '-' + density), size, density }))
+
+// Mínimo de referencia (#312): lo que medirá el .vue para publicarlo a la fila. OJO: con P1 la caja tiene un hueco libre
+// (el margin-inline-start: auto de __steppers), que NO es parte del mínimo; «caja − celda + medidor» lo contaría.
+// Mínimo = caja − celda − hueco libre + medidor (el medidor lleva el mismo 1px de cursor que el espejo)
+function referenceMin(c = 'ref-qty') {
+  const root = document.querySelector(`[data-case="${c}"]`)
+  if (!root) return null
+  const box = root.querySelector('.g-input__control').getBoundingClientRect().width
+  const cell = root.querySelector('.g-number-field__value').getBoundingClientRect().width
+  const meas = root.querySelector('.g-number-field__measure').getBoundingClientRect().width
+  const st = root.querySelector('.g-number-field__steppers')
+  const free = st ? parseFloat(getComputedStyle(st).marginInlineStart) : 0
+  return { min: Math.ceil(box - cell - free + meas), naive: Math.ceil(box - cell + meas), free, meas, box, cell }
+}
+window.__referenceMin = referenceMin
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    applySlow(slow.value); watch(slow, applySlow)
+    const sexo = ref(null)
+    const refMin = ref('…')
+    onMounted(async () => { await document.fonts.ready; await raf2(); refMin.value = referenceMin().min + 'px' })
+    const reject = () => { const r = registry.get('s-reject'); r.rejected.value = false; requestAnimationFrame(() => { r.rejected.value = true }) }
+    return { slow, sexo, sexos, sizes, labels, refMin, reject }
+  }
+})
+app.component('XNumberField', XNumberField)
+app.use(Grana)
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+// «Tema de prueba»: otra fuente, borde de 2px, space 5 y radios propios: nada de −/+ ni de P1/P3 puede quedar fijo
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-space-1:5px}'
+$('#t-theme').insertAdjacentHTML('afterbegin', '<option value="test">Tema de prueba</option>')
+const setTheme = (v) => { $('#test-css').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('test') ? 'test' : (q.get('theme') || '')
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+raf2().then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>
