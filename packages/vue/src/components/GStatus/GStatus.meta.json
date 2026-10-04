@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "name": "GStatus",
+  "tag": "g-status",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Condición declarativa de la isla de estado, sin pintura: mientras está montado, su condición existe (set al montar, update al cambiar una prop, remove al desmontar). En el servidor no hace nada.",
+  "contract": "design/contracts/status.md",
+  "prototype": "design/lab/alert/r02/",
+  "style": null,
+  "props": [
+    { "name": "id", "type": "String | Number", "required": true },
+    { "name": "type", "type": "String", "default": "info", "values": ["info", "success", "warning", "error"] },
+    { "name": "title", "type": "String", "required": true },
+    { "name": "description", "type": "String" },
+    { "name": "details", "type": "String" },
+    { "name": "action", "type": "Object" },
+    { "name": "link", "type": "Object" },
+    { "name": "origin", "type": "Object" },
+    { "name": "persistent", "type": "Boolean", "default": "type !== 'success'" },
+    { "name": "dismissible", "type": "Boolean", "default": false },
+    { "name": "deadline", "type": "Number | Date" },
+    { "name": "politeness", "type": "String", "values": ["polite", "assertive"] },
+    { "name": "status", "type": "Object", "default": "el gestor inyectado" }
+  ],
+  "events": [
+    { "name": "remove", "payload": "reason", "trigger": "La condición se retiró por una vía distinta de su propio desmontaje (dismiss, acknowledge, api, clear)" },
+    { "name": "expire", "payload": "—", "trigger": "deadline llegó a cero" }
+  ],
+  "slots": [],
+  "tokens": [],
+  "states": [],
+  "pending": ["Ver GStatusIsland.meta.json: bloqueado por la compuerta de peso (#317); sin registrar en src/index.js."]
+}
