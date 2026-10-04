@@ -1,0 +1,848 @@
+/*
+  GCombobox · estilo
+  Dueño: coco. Contrato: design/contracts/combobox.md (#329 a #338). Estructura: design/lab/combobox/r01/ y r02/ (kiwi;
+  el usuario eligió mirando r02/index.html?c=AC y ?c=B). Banco y medidas: design/lab/combobox/estilo.md.
+  Compone GInput (#330): la caja, la etiqueta, el pie, el mensaje, el foco, is-ready (I1) e is-rejected (I2, la sacudida)
+  son de GInput.css y aquí NO se repiten. La superficie (paleta y hoja) es un GDialog real: aquí solo se pinta lo propio,
+  colgado de .g-combobox-surface (GDialog.css no se toca).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
+  Alias propios con prefijo --_cb- (no pisar los de GInput, GAvatar ni GDialog). Lee de GInput (heredados por el DOM,
+  también dentro del popover y del diálogo, que son descendientes de la raíz): --_focus, --_radius, --_fs, --_lh,
+  --_gap, --_density. Escribe bruno en línea (tokens.md §29.5): --_x, --_top, --_bottom, --_w, --_max, --_field-h
+  (popup) y --_travel-x, --_travel-y (ficha que llega).
+  Literales: 24px y 44px (área táctil), el patrón de texto oculto accesible, 0.5turn (media vuelta de la flecha, como
+  el 1turn del giro de GInput), «/ 2» de geometría (radio de píldora = medio alto; costura centrada) y la cota del
+  vector de llegada «space × 2 / 0.038» (rebase máximo space × 2 con el 3,8 % de --g-ease-spring, tokens.md §29.1;
+  combobox.md «Movimiento»: alias local, sin constante nueva de coreografía).
+  Keyframes: g-combobox-arrive (la ficha llega) y g-combobox-spin (carga). Nunca g-reject…: GInput y GForm retiran
+  is-rejected filtrando por ese prefijo.
+*/
+
+/* ---------- Raíz ---------- */
+.g-combobox {
+  /* Alto de fila del panel: el de la caja md de GInput (space × 9), piso 24px; 44px con puntero grueso y en la hoja */
+  --_cb-row: max(24px, calc(var(--g-space-1) * 9));
+}
+@media (pointer: coarse) {
+  .g-combobox { --_cb-row: 44px; }
+}
+
+/* El campo se escribe: pulsar la caja (fuera del texto) abre la lista. Como disparador de la superficie, señala */
+.g-combobox .g-input__control {
+  cursor: text;
+}
+.g-combobox.is-surface .g-input__control,
+.g-combobox.is-surface .g-combobox__field {
+  cursor: pointer;
+}
+.g-combobox.is-disabled .g-input__control,
+.g-combobox.is-disabled .g-combobox__field {
+  cursor: not-allowed;
+}
+
+/* ---------- La celda del valor (slot interno field de GInput) ---------- */
+/* El <input> la llena; el fantasma (A) y la ficha (C) se colocan encima con inset: 0, así no hay que medir dónde está
+   el <input> dentro de la caja: la celda empieza donde empieza su texto (el <input> no tiene relleno) */
+.g-combobox__value {
+  position: relative;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-inline-size: 0;
+  display: flex;
+}
+
+/* ---------- A · Texto fantasma ---------- */
+/* Misma tipografía que el <input> (hereda la fuente de la caja; --_fs y --_lh de GInput), línea centrada en la celda
+   como el texto del <input>. Bloque con hijos en línea (no flex): el algoritmo bidi ordena lo tecleado y el resto como
+   en el <input> (si bruno pone dir="auto" en el <input>, lo copia aquí). La parte tecleada ocupa su sitio, invisible */
+.g-combobox__ghost {
+  position: absolute;
+  inset: 0;
+  display: block;
+  align-content: center;
+  overflow: hidden;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  white-space: pre;
+  text-align: start;
+  color: var(--g-color-text-muted);
+  pointer-events: none;
+  user-select: none;
+}
+.g-combobox__ghost-typed {
+  visibility: hidden;
+}
+/* El resto se ve como lo que es: texto propuesto y seleccionable de un toque (→ lo acepta). Primer consumidor de
+   --g-color-selection (tokens.md §17.5); texto muted sobre la selección ≥ 4.5:1 (medido en estilo.md) */
+.g-combobox__ghost-rest {
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-selection);
+  color: var(--g-color-text-muted);
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+@starting-style {
+  .g-combobox__ghost-rest { opacity: 0; }
+}
+
+/* ---------- C · La ficha en reposo ---------- */
+/* Sobre la celda, a la altura de siempre (Δ0: es absoluta, no cambia la caja). Se encoge a su contenido y se desplaza
+   space-1 hacia el inicio con el mismo relleno: el texto queda donde estaría el del <input> y el fondo de «seleccionada»
+   tiene aire a los lados. Alto = el de su línea (o el avatar xs), centrada en la celda */
+.g-combobox__token {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--g-space-1) * -1);
+  box-sizing: border-box;
+  max-inline-size: calc(100% + var(--g-space-1) * 2);
+  block-size: fit-content;
+  margin-block: auto;
+  padding-inline: var(--g-space-1);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  border-radius: var(--g-radius-xs);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  white-space: nowrap;
+  color: var(--g-color-text);
+  pointer-events: none;
+  user-select: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Con ficha, el texto real del <input> (la etiqueta) y su cursor no se ven; el lector sigue leyendo el <input> */
+.g-combobox.is-token .g-combobox__field {
+  color: transparent;
+  caret-color: transparent;
+}
+.g-combobox.is-token .g-combobox__field::selection {
+  background: transparent;
+  color: transparent;
+}
+/* El hueco inicial de la opción sustituye al icono del campo (como en GSelect, #58) */
+.g-combobox.is-token .g-input__prepend {
+  display: none;
+}
+/* Con el foco, la ficha se ve seleccionada entera: escribir la reemplaza (combobox.md «Teclado») */
+.g-combobox.is-token:has(.g-combobox__field:focus-visible) .g-combobox__token {
+  background: var(--g-color-selection);
+}
+.g-combobox__token > .g-combobox__lead {
+  display: inline-flex;
+  flex: none;
+}
+.g-combobox__token > .g-combobox__code {
+  padding-inline: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+/* La etiqueta conserva su sitio; el dato secundario se recorta primero (factor de encogimiento enorme frente a 1) */
+.g-combobox__token-label {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--g-text-action-weight);
+}
+.g-combobox__token-meta {
+  flex: 0 100000 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Texto libre: lápiz, cursiva y la marca «Texto libre» como etiqueta pequeña con borde. La marca no se recorta (es lo
+   que distingue catálogo de tecleado): cede la etiqueta */
+.g-combobox.is-custom .g-combobox__token-label {
+  font-style: italic;
+  font-weight: inherit;
+}
+.g-combobox.is-custom .g-combobox__token > .g-combobox__lead {
+  color: var(--g-color-text-muted);
+}
+.g-combobox.is-custom .g-combobox__token-meta {
+  flex: none;
+  padding-inline: var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-xs);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+}
+.g-combobox.is-disabled .g-combobox__token,
+.g-combobox.is-disabled .g-combobox__token-meta {
+  color: var(--g-color-text-subtle);
+}
+
+/* C · La ficha llega: viaja de su fila al campo con el muelle (cuarto uso, #336). El vector lo escribe bruno (px);
+   se acota a space × 2 / 0.038 por eje para que el rebase del muelle (3,8 % del recorrido) no pase de space × 2 desde la
+   fila más lejana. Opaca todo el viaje: es un objeto que llega, no un fundido. Por encima de los campos vecinos */
+.g-combobox__token.is-arriving {
+  --_cb-tx: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-x), calc(var(--g-space-1) * 2 / 0.038));
+  --_cb-ty: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-y), calc(var(--g-space-1) * 2 / 0.038));
+  z-index: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__token.is-arriving {
+    animation: g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-combobox__token.is-arriving {
+      animation-timing-function: var(--g-ease-spring);
+    }
+  }
+}
+@keyframes g-combobox-arrive {
+  from { translate: var(--_cb-tx) var(--_cb-ty); }
+  to { translate: 0 0; }
+}
+
+/* ---------- Limpiar y flecha (slot interno end de GInput) ---------- */
+.g-combobox__clear,
+.g-combobox__arrow {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: 24px;
+  color: var(--g-color-text-muted);
+}
+/* Botón de verdad: ≥ 24 × 24 (44 con puntero grueso) sin agrandar la caja (el margen negativo se come el borde) */
+.g-combobox__clear {
+  min-block-size: 24px;
+  margin: calc(var(--g-border-width) * -1) 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (pointer: coarse) {
+  .g-combobox__clear {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+.g-combobox__clear:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-offset) * -1);
+}
+/* La flecha es decorativa: la caja entera es el objetivo; ocupa el alto de la celda */
+.g-combobox__arrow {
+  align-self: stretch;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .g-combobox__clear:hover {
+    background: var(--g-color-neutral-soft);
+    color: var(--g-color-text);
+  }
+  .g-combobox:not(.is-disabled) .g-input__control:hover .g-combobox__arrow {
+    color: var(--g-color-text);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__arrow {
+    transition:
+      rotate var(--g-duration-fast) var(--g-ease-out),
+      color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+.g-combobox--appearance-field.is-open:not(.is-surface) .g-combobox__arrow {
+  rotate: 0.5turn;
+}
+
+/* ---------- Textos ocultos accesibles y región viva (patrón estándar) ---------- */
+.g-combobox__about,
+.g-combobox__clear-text,
+.g-combobox__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================================================================
+   A · EL CAMPO SE ABRE. El popover empieza en el borde superior de la caja (o termina en el inferior, is-up) y mide lo
+   que ella; su zona del alto de la caja es transparente y no captura el puntero (el campo real se ve y se usa a través
+   de ella). Contorno, anillo y sombra son del popover: abrazan campo y lista como UNA forma. Entre ambos, una línea.
+   ===================================================================================================================== */
+.g-combobox__popup {
+  /* Radio de la forma = el de la caja; con píldora, el de la caja (medio alto), no 999px sobre toda la forma */
+  --_cb-r: min(var(--_radius), calc(var(--_field-h) / 2));
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_top);
+  bottom: var(--_bottom);
+  box-sizing: border-box;
+  inline-size: var(--_w);
+  block-size: auto;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  /* La costura cae justo sobre la línea inferior de la caja (cuyo borde queda transparente) */
+  padding: calc(var(--_field-h) - var(--g-border-width) * 2) 0 0;
+  overflow: visible;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--_cb-r);
+  background: transparent;
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-3);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  pointer-events: none;
+}
+.g-combobox.is-up .g-combobox__popup {
+  padding: 0 0 calc(var(--_field-h) - var(--g-border-width) * 2);
+}
+/* Sin panel (ni filas ni estado): no se pinta y la caja conserva su contorno. display (no visibility) para que la
+   llegada del panel cuente como abrir: el despliegue solo ocurre al pasar a verse */
+.g-combobox__popup.is-empty {
+  display: none;
+}
+/* Abierto con panel: el anillo y el contorno son los de la forma completa, no los de la caja */
+.g-combobox--appearance-field.is-open .g-input__row,
+.g-combobox--appearance-field.is-open .g-input__row:has(.g-combobox__field:focus-visible) {
+  outline-color: transparent;
+}
+.g-combobox--appearance-field.is-open:has(.g-combobox__popup:not(.is-empty)) .g-input__control {
+  border-color: transparent;
+}
+.g-combobox.is-open:has(.g-combobox__field:focus-visible) .g-combobox__popup {
+  border-color: var(--_focus);
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+
+/* La parte con fondo: se despliega desde la línea del campo. Rejilla de una pista: 0fr → 1fr al abrir; después, 1fr
+   siempre, así los cambios de alto entre resultados no se animan; cerrar es inmediato (el popover se oculta) */
+.g-combobox__popup-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: clip;
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  border-end-start-radius: max(0px, calc(var(--_cb-r) - var(--g-border-width)));
+  border-end-end-radius: max(0px, calc(var(--_cb-r) - var(--g-border-width)));
+  background: var(--g-color-surface);
+  pointer-events: auto;
+}
+.g-combobox.is-up .g-combobox__popup-body {
+  border-block-start: 0;
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  border-radius: 0;
+  border-start-start-radius: max(0px, calc(var(--_cb-r) - var(--g-border-width)));
+  border-start-end-radius: max(0px, calc(var(--_cb-r) - var(--g-border-width)));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__popup-body {
+    transition: grid-template-rows var(--g-duration-slow) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-combobox__popup:popover-open .g-combobox__popup-body {
+      grid-template-rows: 0fr;
+    }
+  }
+}
+/* El panel se desplaza (nunca la página): alto disponible que da bruno (--_max) con tope space × 96 */
+.g-combobox__popup .g-combobox__panel {
+  min-block-size: 0;
+  max-block-size: min(var(--_max), calc(var(--g-space-1) * 96));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* =====================================================================================================================
+   PANEL (común a la lista de A y a la superficie). Las filas son FICHAS (C): una columna, nombre con la coincidencia
+   marcada y los datos que distinguen con su rótulo
+   ===================================================================================================================== */
+.g-combobox__panel {
+  box-sizing: border-box;
+  padding: calc(var(--g-space-2) * var(--_density));
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-combobox__list,
+.g-combobox__group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Entre grupos (y entre opciones sueltas y un grupo), una línea */
+.g-combobox__list > * + * > .g-combobox__group {
+  margin-block-start: var(--g-space-2);
+  padding-block-start: var(--g-space-1);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-combobox__group-label {
+  padding: var(--g-space-2) calc(var(--g-space-3) + var(--g-border-width)) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Estado (fuera del listbox) ---------- */
+.g-combobox__status {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-3);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-combobox__status > .g-icon {
+  flex: none;
+}
+.g-combobox__status--error {
+  color: var(--g-color-danger-text);
+}
+.g-combobox__status--loading > .g-icon,
+.g-combobox__search-loader > .g-icon,
+.g-combobox__search-loader.g-icon {
+  animation: g-combobox-spin var(--g-duration-spin) linear infinite;
+}
+@keyframes g-combobox-spin {
+  to { rotate: 1turn; }
+}
+/* El estado y la lista conviven («Sin resultados» + filas de acción; error + opciones anteriores) */
+.g-combobox__status + .g-combobox__list:not([hidden]) {
+  margin-block-start: var(--g-space-1);
+}
+
+/* ---------- Fila de opción: una ficha ---------- */
+.g-combobox__option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  min-block-size: var(--_cb-row);
+  padding: calc(var(--g-space-2) * var(--_density)) var(--g-space-3);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-md);
+  color: var(--g-color-text);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-combobox__option + .g-combobox__option {
+  margin-block-start: var(--g-space-1);
+}
+/* Opción activa en A: la ficha se levanta (borde de texto + sombra 1 sobre la superficie). Una sola señal de forma,
+   sin barra ni segundo anillo; el borde es --g-color-text (≫ 3:1 sobre la superficie). Es lo que vio el usuario en
+   r02 ?c=AC */
+.g-combobox__option.is-active {
+  border-color: var(--g-color-text);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-1);
+}
+.g-combobox__option[aria-selected="true"] .g-combobox__label {
+  font-weight: var(--g-text-action-weight);
+}
+.g-combobox__option[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  cursor: default;
+}
+.g-combobox__option[aria-disabled="true"] .g-combobox__description,
+.g-combobox__option[aria-disabled="true"] .g-combobox__fact-label,
+.g-combobox__option[aria-disabled="true"] .g-combobox__code {
+  color: var(--g-color-text-subtle);
+}
+
+/* Partes de la fila */
+.g-combobox__lead {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+}
+/* En la fila el hueco inicial mide lo que un avatar md (space × 8), así las etiquetas se alinean con o sin avatar */
+.g-combobox__option > .g-combobox__lead {
+  min-inline-size: calc(var(--g-space-1) * 8);
+  min-block-size: var(--g-text-body-line);
+  color: var(--g-color-text-muted);
+}
+.g-combobox__code {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+/* En la fila: columna de códigos (space × 14) alineada con la primera línea de la etiqueta */
+.g-combobox__option > .g-combobox__code {
+  min-inline-size: calc(var(--g-space-1) * 14);
+  margin-block-start: calc((var(--g-text-body-line) - var(--g-text-body-sm-line)) / 2 - var(--g-border-width));
+}
+.g-combobox__main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: grid;
+}
+.g-combobox__description {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-combobox__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--g-space-4);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+}
+.g-combobox__fact-label {
+  color: var(--g-color-text-muted);
+}
+.g-combobox__check {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-block-size: var(--g-text-body-line);
+  color: var(--g-color-text);
+}
+/* Coincidencia: peso y subrayado, nunca color (WCAG 1.4.1) */
+.g-combobox__mark {
+  background: transparent;
+  color: inherit;
+  font-weight: var(--g-text-action-weight);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-focus-width);
+  text-underline-offset: var(--g-space-1);
+}
+
+/* ---------- Filas de acción (al final, fuera de los grupos) ---------- */
+.g-combobox__action {
+  align-items: center;
+  font-weight: var(--g-text-action-weight);
+}
+.g-combobox__action > .g-combobox__lead {
+  color: var(--g-color-text);
+}
+.g-combobox__action--custom .g-combobox__label {
+  font-style: italic;
+}
+/* La primera fila de acción tras las opciones lleva una línea encima (centrada en el hueco) */
+.g-combobox__list > :not(.g-combobox__action) + .g-combobox__action {
+  margin-block-start: var(--g-space-3);
+}
+.g-combobox__list > :not(.g-combobox__action) + .g-combobox__action::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc((var(--g-space-3) + var(--g-border-width)) / -2 - var(--g-border-width));
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  pointer-events: none;
+}
+
+/* =====================================================================================================================
+   B · LA SUPERFICIE (paleta con vista previa; hoja móvil). Es un GDialog real: aquí solo lo propio, desde
+   .g-combobox-surface. El título queda como rótulo pequeño: el campo de búsqueda es lo que manda
+   ===================================================================================================================== */
+.g-dialog.g-combobox-surface .g-dialog__title {
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-muted);
+}
+/* El cuerpo del diálogo no se desplaza (no recibe tabindex): se desplazan el panel y la vista previa */
+.g-dialog.g-combobox-surface .g-dialog__body {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Campo de búsqueda grande, de borde a borde; el foco es una línea de --g-focus-width al pie de la barra */
+.g-combobox__search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  min-block-size: max(44px, calc(var(--g-space-1) * 12));
+  padding-inline: var(--g-space-4);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  transition: box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-combobox__search:has(.g-combobox__search-field:focus-visible) {
+  box-shadow: inset 0 calc(var(--g-focus-width) * -1) 0 var(--_focus);
+}
+.g-combobox__search-icon,
+.g-combobox__search-loader {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+}
+.g-combobox__search-field {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+}
+.g-combobox__search-field::placeholder {
+  color: var(--g-color-text-subtle);
+  opacity: 1;
+}
+
+/* Lista | vista previa. Alto fijo (space × 96): la superficie no salta al cambiar los resultados; encoge si el visor
+   no da (flex) */
+.g-combobox__surface-body {
+  flex: 0 1 calc(var(--g-space-1) * 96);
+  min-block-size: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+/* Proporción lista–vista previa 6 : 5 (la del prototipo, 1.2fr : 1fr) */
+.g-combobox__surface-body.has-preview {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+}
+.g-combobox-surface .g-combobox__panel {
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+/* En la superficie la activa se invierte (par texto/superficie, #325; medido 17.4:1): una ficha en negativo */
+.g-combobox-surface .g-combobox__option.is-active {
+  border-color: var(--g-color-text);
+  background: var(--g-color-text);
+  color: var(--g-color-surface);
+  box-shadow: none;
+}
+.g-combobox-surface .g-combobox__option.is-active .g-combobox__description,
+.g-combobox-surface .g-combobox__option.is-active .g-combobox__fact-label,
+.g-combobox-surface .g-combobox__option.is-active .g-combobox__check,
+.g-combobox-surface .g-combobox__option.is-active > .g-combobox__lead {
+  color: inherit;
+}
+/* El código conserva su caja clara dentro de la fila invertida */
+.g-combobox-surface .g-combobox__option.is-active .g-combobox__code {
+  border-color: var(--g-color-surface);
+}
+
+/* Vista previa de la opción activa (no es región viva) */
+.g-combobox__preview {
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--g-space-5);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-combobox__preview-head {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  margin-block-end: var(--g-space-4);
+}
+.g-combobox__preview-head > .g-combobox__lead {
+  color: var(--g-color-text-muted);
+}
+.g-combobox__preview-head > .g-combobox__code {
+  padding: var(--g-space-1) var(--g-space-3);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+}
+.g-combobox__preview-title {
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  font-weight: var(--g-text-title-sm-weight);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  overflow-wrap: anywhere;
+}
+.g-combobox__preview .g-combobox__description {
+  margin: 0 0 var(--g-space-4);
+}
+.g-combobox__preview-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--g-space-1) var(--g-space-3);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.g-combobox__preview-facts dt {
+  color: var(--g-color-text-muted);
+}
+.g-combobox__preview-facts dd {
+  margin: 0;
+  font-weight: var(--g-text-action-weight);
+  overflow-wrap: anywhere;
+}
+.g-combobox__preview-empty {
+  margin: 0;
+  color: var(--g-color-text-muted);
+}
+/* La ficha cambia con ↑ ↓: si bruno vuelve a crear el contenido por opción (key), entra con un fundido corto */
+.g-combobox__preview-head,
+.g-combobox__preview-facts {
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+@starting-style {
+  .g-combobox__preview-head,
+  .g-combobox__preview-facts { opacity: 0; }
+}
+
+/* ---------- Hoja móvil (visor ≤ 520px): la misma superficie, anclada ARRIBA (el teclado virtual no tapa la lista) ---- */
+/* Sobrescribe la hoja de GDialog (anclada abajo) solo para la superficie del combobox, sin tocar GDialog.css */
+.g-dialog.g-combobox-surface.g-combobox-surface--sheet {
+  margin: 0 0 auto;
+  padding-block: env(safe-area-inset-top) var(--_gap);
+  border-block-start-width: 0;
+  border-block-end-width: var(--g-border-width);
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-start-radius: var(--g-surface-radius);
+  border-end-end-radius: var(--g-surface-radius);
+}
+.g-dialog.g-combobox-surface.g-combobox-surface--sheet .g-dialog__inset {
+  border-block-start-width: 0;
+  border-block-end-width: var(--g-border-width);
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-start-radius: var(--_inset-radius);
+  border-end-end-radius: var(--_inset-radius);
+}
+.g-combobox-surface--sheet .g-combobox__option {
+  min-block-size: 44px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-dialog.g-combobox-surface.g-combobox-surface--sheet {
+    scale: 1;
+    translate: 0 calc(var(--g-space-6) * -1);
+  }
+  .g-dialog.g-combobox-surface.g-combobox-surface--sheet[open] {
+    translate: 0 0;
+  }
+  @starting-style {
+    .g-dialog.g-combobox-surface.g-combobox-surface--sheet[open] {
+      opacity: 0;
+      scale: 1;
+      translate: 0 calc(var(--g-space-6) * -1);
+    }
+  }
+}
+
+/* ---------- En una GFormRow (#336, form.md §4): la fila se parte antes de que la forma de A quede estrecha ---------- */
+/* Propiedad pública de ENTRADA (no del tema): el consumidor la sobrescribe con style */
+.g-form-row > .g-combobox--appearance-field {
+  --g-form-min: 60;
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-combobox__status--loading > .g-icon,
+  .g-combobox__search-loader > .g-icon,
+  .g-combobox__search-loader.g-icon {
+    animation-duration: calc(var(--g-duration-spin) * 2.5);
+  }
+}
+/* Colores forzados (L23, medido): la ficha se retira y vuelve el texto del <input>; forma de A con CanvasText y anillo
+   Highlight; activa con Highlight/HighlightText; fantasma en GrayText; la marca conserva peso y subrayado */
+@media (forced-colors: active) {
+  .g-combobox.is-token .g-combobox__token {
+    display: none;
+  }
+  .g-combobox.is-token .g-combobox__field {
+    color: FieldText;
+    caret-color: FieldText;
+  }
+  .g-combobox.is-token .g-combobox__field::selection {
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-combobox.is-token .g-input__prepend {
+    display: inline-flex;
+  }
+  .g-combobox__popup {
+    border-color: CanvasText;
+  }
+  .g-combobox.is-open:has(.g-combobox__field:focus-visible) .g-combobox__popup {
+    border-color: CanvasText;
+    outline-color: Highlight;
+  }
+  .g-combobox__popup-body {
+    border-color: CanvasText;
+  }
+  .g-combobox__ghost,
+  .g-combobox__ghost-rest {
+    background: transparent;
+    color: GrayText;
+  }
+  .g-combobox__option.is-active,
+  .g-combobox-surface .g-combobox__option.is-active {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-combobox__option.is-active *,
+  .g-combobox-surface .g-combobox__option.is-active * {
+    color: HighlightText;
+  }
+  .g-combobox__option.is-active .g-combobox__code {
+    border-color: HighlightText;
+    background: Highlight;
+  }
+  .g-combobox__option[aria-disabled="true"],
+  .g-combobox__option[aria-disabled="true"] * {
+    color: GrayText;
+  }
+  .g-combobox__clear,
+  .g-combobox__arrow {
+    color: ButtonText;
+  }
+  .g-combobox__clear:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-combobox__search:has(.g-combobox__search-field:focus-visible) {
+    outline: var(--g-focus-width) solid Highlight;
+    outline-offset: calc(var(--g-focus-width) * -1);
+  }
+}
