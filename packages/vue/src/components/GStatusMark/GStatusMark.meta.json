@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GStatusMark",
   "tag": "g-status-mark",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Marca en línea, complemento de la isla de estado. Con `for`: cápsula `button` junto al origen de una condición; existe solo mientras exista la condición, su tipo y su `busy` se derivan de ella y abre la isla en su condición con el foco en su acción. Sin `for`: línea de texto de una sección (insignia + texto + una acción opcional) que no entra en la isla. Ninguna anuncia.",
   "contract": "design/contracts/status.md",

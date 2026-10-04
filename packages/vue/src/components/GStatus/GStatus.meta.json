@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GStatus",
   "tag": "g-status",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Condición declarativa de la isla de estado, sin pintura: mientras está montado, su condición existe (set al montar, update al cambiar una prop, remove al desmontar). En el servidor no hace nada.",
   "contract": "design/contracts/status.md",

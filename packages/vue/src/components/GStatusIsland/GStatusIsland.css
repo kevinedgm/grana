@@ -12,7 +12,8 @@
 
   Constantes de diseño derivadas de space (no son tokens; status.md «No son tokens», estilo.md):
     margen al borde            space × 2, combinado con env(safe-area-inset-*) y --_status-offset-top
-    alto de la compacta        space × 12 (borde incluido)          punto: space × 8 (borde incluido; ≥ 44px táctil)
+    alto de la compacta        space × 12 (borde incluido)          punto: space × 8 (borde incluido)
+                               los dos, como mínimo 24px (44px táctil) + los dos bordes: el resumen es la diana
     insignia                   space × 8 (compacta, abierta, avisos) · space × 6 (punto) · icono space × 5 / space × 4
     ancho de la abierta        min(space × 104, ancho disponible); la compacta nunca lo supera (crece al abrirse)
     anillo de insignia         border-width × 2 (sólido error, discontinuo warning, punteado info, sin anillo success)
@@ -31,8 +32,10 @@
   --_safe-start: env(safe-area-inset-left);
   --_safe-end: env(safe-area-inset-right);
   --_top: calc(max(var(--_m), env(safe-area-inset-top)) + var(--_status-offset-top));
-  --_row: calc(var(--g-space-1) * 12);
-  --_dot: calc(var(--g-space-1) * 8);
+  /* La diana es el resumen (la forma recorta: no cabe un ::after): forma ≥ 24px + los dos bordes, para que el botón
+     mida ≥ 24px aunque space sea pequeño (auditoría: con space 3 el punto medía 24 y el resumen 22) */
+  --_row: max(calc(24px + var(--g-border-width) * 2), calc(var(--g-space-1) * 12));
+  --_dot: max(calc(24px + var(--g-border-width) * 2), calc(var(--g-space-1) * 8));
   --_badge: calc(var(--g-space-1) * 8);
   --_badge-dot: calc(var(--g-space-1) * 6);
   --_glyph: calc(var(--g-space-1) * 5);
@@ -74,8 +77,8 @@
 .g-status-island[data-align="end"]:dir(rtl) { --_origin-x: 0%; }
 @media (pointer: coarse) {
   .g-status-island {
-    --_row: max(44px, calc(var(--g-space-1) * 12));
-    --_dot: max(44px, calc(var(--g-space-1) * 8));
+    --_row: max(calc(44px + var(--g-border-width) * 2), calc(var(--g-space-1) * 12));
+    --_dot: max(calc(44px + var(--g-border-width) * 2), calc(var(--g-space-1) * 8));
   }
 }
 
@@ -378,7 +381,9 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
 }
-.g-status-item__title { font-weight: var(--g-text-action-weight); }
+/* El título manda dentro del aviso (en el prototipo aprobado iba en negrita): la descripción no se apaga (contraste
+   garantizado solo para el par texto/superficie), así que la jerarquía la da el peso del título */
+.g-status-item__title { font-weight: var(--g-text-title-sm-weight); }
 .g-status-item__timer {
   font-variant-numeric: tabular-nums;
   font-weight: var(--g-text-action-weight);
@@ -459,6 +464,13 @@
 .g-status-island__ack.g-btn {
   --_border: var(--g-color-border-control);
   --_border-hover: var(--g-color-text-muted);
+}
+/* «Ir a…» se lee como enlace (subrayado, como en el prototipo aprobado): ghost sin borde sobre la isla no tenía
+   otra señal de que es una acción */
+.g-status-item__origin.g-btn {
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
 }
 /* El conmutador del detalle se alinea ópticamente con el texto (su relleno queda fuera del borde del contenido) */
 .g-status-item__details-toggle.g-btn {

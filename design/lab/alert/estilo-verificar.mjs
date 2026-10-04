@@ -79,7 +79,7 @@ const ok = (cond, msg) => { total++; if (!cond) { failed++; fails.push(`[${ENGIN
       ok(springUses.map((m) => m[1]).sort().join() === 'block-size,border-radius,g-status-nudge,inline-size', `GStatusIsland.css: muelle solo en el cambio de forma y el toque (${springUses.map((m) => m[1])})`)
       ok(/@keyframes g-status-nudge \{\s*from \{ scale: 0\.86; \}/.test(css), 'GStatusIsland.css: toque desde 0.86')
       ok(/@starting-style \{\s*\.g-status-island\.is-ready \.g-status-island__shape \{\s*opacity: 0;\s*scale: 0\.86;/.test(css), 'GStatusIsland.css: nacer con fundido y 0.86, solo con is-ready')
-      ok(/--_m: calc\(var\(--g-space-1\) \* 2\)/.test(css) && /--_row: calc\(var\(--g-space-1\) \* 12\)/.test(css) && /--_wide: calc\(var\(--g-space-1\) \* 104\)/.test(css), 'GStatusIsland.css: constantes de status.md (margen ×2, compacta ×12, abierta ×104)')
+      ok(/--_m: calc\(var\(--g-space-1\) \* 2\)/.test(css) && /--_row: max\(calc\(24px \+ var\(--g-border-width\) \* 2\), calc\(var\(--g-space-1\) \* 12\)\)/.test(css) && /--_dot: max\(calc\(24px \+ var\(--g-border-width\) \* 2\), calc\(var\(--g-space-1\) \* 8\)\)/.test(css) && /--_wide: calc\(var\(--g-space-1\) \* 104\)/.test(css), 'GStatusIsland.css: constantes de status.md (margen ×2, compacta ×12, abierta ×104)')
       ok(/background: var\(--g-color-text\);/.test(css) && /color: var\(--_ink\)/.test(css) && /--_ink: var\(--g-color-surface\)/.test(css), 'GStatusIsland.css: superficie inversa text/surface')
       // Toda transición o animación vive bajo is-ready (nada se anima al montar), salvo colores de estado
       const trans = [...css.matchAll(/([^{}]+)\{[^{}]*transition:\s*([^;]+);/g)].filter((m) => /inline-size|block-size|scale|translate|opacity/.test(m[2]))

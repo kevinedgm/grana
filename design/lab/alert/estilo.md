@@ -9,8 +9,8 @@
 | Pieza | Medida | Nota |
 | --- | --- | --- |
 | Margen al borde | `space × 2`, con `env(safe-area-inset-*)` y `--_status-offset-top` | también en móvil |
-| Compacta | alto `space × 12` (48px) **con el borde** | `max(44px, …)` con `pointer: coarse` |
-| Punto | `space × 8` (32px) **con el borde** | `max(44px, …)` con `pointer: coarse` (la forma recorta: el área no puede salir por un `::after`, así que crece el punto) |
+| Compacta | alto `space × 12` (48px) **con el borde** | como mínimo `24px + 2 bordes` (`44px + 2 bordes` con `pointer: coarse`): el resumen, que es la diana, mide ≥ 24 / ≥ 44 (auditoría, hallazgo 1) |
+| Punto | `space × 8` (32px) **con el borde** | como mínimo `24px + 2 bordes` (`44px + 2 bordes` con `pointer: coarse`): la forma recorta y el área no puede salir por un `::after`, así que crece el punto hasta que **el resumen** mida ≥ 24 / ≥ 44 (auditoría, hallazgo 1) |
 | Abierta | `min(space × 104, ancho disponible)` (416px) | la compacta **nunca** la supera: compacta → abierta siempre crece |
 | Insignia | `space × 8` (resumen, abierta, avisos), `space × 6` (punto y marcas); icono `space × 5` / `space × 4` | |
 | Anillo de insignia | `border-width × 2`: **sólido** `error`, **discontinuo** `warning`, **punteado** `info`, **sin anillo** `success` | señal no cromática; a 1px el punteado no se leía en 24px |
@@ -25,10 +25,10 @@
 ## 2. Color (#325)
 
 - **Superficie inversa:** fondo `--g-color-text`, tinta `--g-color-surface` (texto, iconos de los botones, anillos, «+N», enlace). Nunca `brand`: medido en `spotify` y `caracol-purpura` (marca de color), la isla sigue siendo `--g-color-text`.
-- **Todo el texto en la tinta plena** (sin `opacity` ni mezclas de texto): un tema solo garantiza el par texto/superficie, y apagar la descripción lo bajaría de 4,5 en los temas justos. La jerarquía la da el peso (`action-weight` en título, temporizador y enlace; normal en la descripción).
+- **Todo el texto en la tinta plena** (sin `opacity` ni mezclas de texto): un tema solo garantiza el par texto/superficie, y apagar la descripción lo bajaría de 4,5 en los temas justos. La jerarquía la da el peso: **`title-sm-weight` en el título del aviso** (el prototipo aprobado lo llevaba en negrita; auditoría, hallazgo 2), `action-weight` en el título del resumen, temporizador y enlace; normal en la descripción.
 - **Aviso dentro de la isla:** tinte `color-mix(surface 8 %)`; reconocido, sin tinte y con contorno `surface 16 %` («ya visto»). Detalle técnico: pozo `surface 8 %` sobre el tinte.
 - **Insignia:** relleno `--g-color-{info|success|warning|danger}`, icono `on-…`, anillo en la tinta.
-- **Botones (GBtn, alias reasignados):** acción y «Entendido» `outline` en la tinta; **al pasar se encienden** (relleno `surface`, texto `text`: par garantizado). «Ir a…», detalle, copiar y descartar `ghost` con velo `surface 12 %` al pasar. Reintentando: `aria-disabled`, mismo color, cursor de progreso, sin pulsación.
+- **Botones (GBtn, alias reasignados):** acción y «Entendido» `outline` en la tinta; **al pasar se encienden** (relleno `surface`, texto `text`: par garantizado). «Ir a…», detalle, copiar y descartar `ghost` con velo `surface 12 %` al pasar; **«Ir a…» subrayado** como el enlace del prototipo (auditoría, hallazgo 3). Reintentando: `aria-disabled`, mismo color, cursor de progreso, sin pulsación.
 - **Hoja móvil:** los mismos avisos sobre la superficie del diálogo (tile `surface` + borde `border`, anillo de insignia en `text`, botones como `GToast`: texto `text`, borde `border-control`).
 - **Marca enlace:** cápsula inversa (`text` / `surface`). **Marca de texto:** sin caja; insignia **sin relleno** (anillo e icono en `--g-color-{tipo}-text`), texto `--g-color-text`.
 - **Foco:** replegada, el resumen **es** la isla: anillo **exterior** `--g-color-focus` alrededor de la forma (`:has(:focus-visible)`), porque un anillo interior en el punto coincidiría con el anillo de la insignia. Abierta, anillo **interior** en la tinta sobre la fila del resumen; dentro de los avisos, anillos en la tinta (#325). Marca enlace: anillo exterior `--g-color-focus`.
@@ -88,7 +88,11 @@ Coincide con `status.md` y con `StatusList.vue` / `GStatusIsland.vue` en curso. 
 - 375 y 320px: hoja inferior a todo el ancho pegada abajo, detalle partido, sin desplazamiento horizontal, isla dentro del margen.
 - RTL: insignia al inicio (derecha) y concéntrica; marca de texto con la sangría espejada.
 
-## 7. No verificado aquí
+## 7. Auditoría sobre el componente real
+
+`auditoria.md` y `node design/lab/alert/auditoria-verificar.mjs` (playground real, ocho temas, tres motores). Corrigió aquí: el mínimo de la diana del punto y de la compacta (hallazgo 1), el peso del título del aviso (2) y el subrayado de «Ir a…» (3).
+
+## 8. No verificado aquí (en el banco)
 
 - Con el `.vue` real de bruno (el banco usa el marcado del contrato a mano): queda para la auditoría (paso 5), igual que zoom 200 % / 400 %, el traslado al modal, la convivencia con la píldora de voz (`--_status-offset-top`) y la isla junto a `GToaster`.
 - `pointer: coarse` solo en Chromium (`isMobile`); en Firefox y WebKit el táctil no se emula.

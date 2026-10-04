@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GStatusIsland",
   "tag": "g-status-island",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Isla de estado: región única y persistente de la aplicación (borde superior del visor, fuera del flujo) que reúne lo que pasa y dura: condiciones de página, fallos del servidor y resultados que deben quedarse. Servicio con clave (createStatus, también plugin de Vue): declarar dos veces la misma clave sustituye la condición en el mismo elemento. Tres formas sobre una sola superficie (punto, compacta, abierta), par propio de canales vivos, nunca toma el foco, Alt+F8 va y vuelve, lo grave se abre solo si no tapa lo que se usa, traslado al <dialog> modal superior, hoja móvil con GDialog real y borde compartido voz → isla → avisos.",
   "contract": "design/contracts/status.md",
