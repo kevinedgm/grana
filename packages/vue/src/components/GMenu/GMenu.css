@@ -18,6 +18,10 @@
      submenú no herede el de su padre */
   --_slot: var(--_mark);
   --_ring: var(--g-focus-width);
+  --_pad: calc(var(--g-space-1) * 1.5);
+  /* Resaltado único (M1): posición y alto del elemento activo, en px respecto de la lista; los escribe GMenu.vue */
+  --_active-y: 0px;
+  --_active-h: 0px;
 
   position: fixed;
   inset: auto;
@@ -28,7 +32,7 @@
   max-inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - var(--g-space-4)));
   max-block-size: var(--_max, 60vh);
   margin: 0;
-  padding: calc(var(--g-space-1) * 1.5);
+  padding: var(--_pad);
   overflow: auto;
   overscroll-behavior: contain;
   list-style: none;
@@ -56,7 +60,8 @@
 }
 .g-menu__list--density-comfortable { --_d: 0.875; }
 .g-menu__list--density-compact { --_d: 0.75; }
-.g-menu__list ul,
+/* Reinicio de grupos y elementos; un submenú (también un ul dentro de la lista) conserva el relleno de su lista */
+.g-menu__list ul:not(.g-menu__list),
 .g-menu__list li {
   margin: 0;
   padding: 0;
@@ -87,16 +92,29 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-@media (hover: hover) {
-  .g-menu__item:hover { background: var(--g-color-surface-sunken); }
-}
-.g-menu__item:focus { outline: 0; background: var(--g-color-surface-sunken); }
+.g-menu__item:focus { outline: 0; }
 .g-menu__item:focus-visible {
   outline: var(--_ring) solid var(--g-color-focus);
   outline-offset: calc(var(--_ring) * -1);
 }
-.g-menu__item.is-expanded,
-.g-menu__item[aria-expanded="true"] { background: var(--g-color-surface-sunken); }
+
+/* ---------- Resaltado único: una sola luz que viaja (M1, DECISIONS.md #305) ----------
+   Los elementos no pintan fondo propio en hover, foco ni con su submenú abierto: el activo de cada lista (el enfocado,
+   o el padre expandido si el foco está en su submenú; el puntero mueve el foco) lo marca una sola capa por lista que se
+   desplaza hasta él. Va dentro de la lista (se desplaza con su contenido) y, por orden del árbol, bajo los elementos
+   (que son position: relative). Anillo de foco sin cambios. */
+.g-menu__highlight {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--_pad);
+  block-size: var(--_active-h);
+  translate: 0 var(--_active-y);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.g-menu__list.has-highlight > .g-menu__highlight { opacity: 1; }
 
 .g-menu__icon {
   flex: none;
@@ -142,8 +160,6 @@
   text-decoration: line-through;
   text-decoration-color: var(--g-color-border-strong);
 }
-.g-menu__item[aria-disabled="true"]:hover { background: transparent; }
-.g-menu__item[aria-disabled="true"]:focus { background: var(--g-color-surface-sunken); }
 
 /* Peligroso: triangle-alert de Lucide (GIcon) y negrita, además del color */
 .g-menu__item--danger { color: var(--g-color-danger-text); }
@@ -224,8 +240,16 @@
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
-  .g-menu__item {
-    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  /* Viaja en press con ease-out (sin sobrepaso: #299 no aprueba el muelle en menús); se funde en fast. La primera
+     colocación (al abrir o tras quedarse sin activo) aparece en su sitio: solo el fundido */
+  .g-menu__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-menu__list.is-highlight-instant > .g-menu__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -236,6 +260,8 @@
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
+  /* El resaltado salta al elemento activo; el fundido se queda */
+  .g-menu__highlight { transition: opacity var(--g-duration-fast) linear; }
 }
 @starting-style {
   .g-menu__list:popover-open {
@@ -248,6 +274,8 @@
 @media (forced-colors: active) {
   .g-menu__list,
   .g-menu__separator { border-color: CanvasText; }
+  /* Sin capa de resaltado: manda el contorno por elemento (foco, también el que pone el puntero, y padre expandido) */
+  .g-menu__highlight { display: none; }
   .g-menu__item:focus-visible { outline-color: Highlight; }
   .g-menu__item:focus,
   .g-menu__item.is-expanded,

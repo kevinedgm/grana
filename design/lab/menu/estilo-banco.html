@@ -7,7 +7,7 @@
 <!-- Banco de coco: marcado exacto de design/contracts/menu.md con el CSS real y el tema por defecto.
      El motor (abrir, foco, submenús, casillas, posición) imita lo que hará bruno; no es documentación. -->
 <link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
-<link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css?v=1">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GMenu/GMenu.css?v=2">
 <link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
 <script src="../lucide-icons.js"></script>
 <style id="theme"></style>
@@ -46,6 +46,8 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
     const ul=document.createElement('ul');ul.className='g-menu__list';ul.id=mid;ul.setAttribute('role','menu');ul.setAttribute('popover','manual');ul.setAttribute('aria-labelledby',btn.id||'');
     if(!btn.id)ul.setAttribute('aria-label',btn.textContent.trim())
     ul.dataset.root=isRoot?'1':''
+    // M1 (#305): la capa única de resaltado, primer hijo de cada lista, como la dibuja GMenu.vue
+    ul.insertAdjacentHTML('afterbegin','<li class="g-menu__highlight" role="none" aria-hidden="true"></li>')
     const addItem=(it,parent)=>{
       const li=document.createElement('li');li.setAttribute('role','none')
       if(it.type==='separator'){const s=document.createElement('div');s.className='g-menu__separator';s.setAttribute('role','separator');li.appendChild(s);parent.appendChild(li);return}
@@ -137,6 +139,17 @@ function Menu(btn,items,{onSelect=()=>{}}={}){
       const from=typed.length>1?i:i+1;const order=[...list.slice(from),...list.slice(0,from)]
             const f=order.find(x=>x.querySelector('.g-menu__label').textContent.toLowerCase().startsWith(typed));if(f){e.preventDefault();focusItem(f)}}
   })
+  // M1 (#305): activo de cada lista = el enfocado en ella o, con el foco en un submenú, el padre expandido; el puntero
+  // (ratón o lápiz) sobre un elemento habilitado le pasa el foco. Escribe --_active-y/h, has-highlight e
+  // is-highlight-instant (dos cuadros) como GMenu.vue
+  const light=()=>{const f=document.activeElement;[root,...root.querySelectorAll('[role=menu]')].forEach(m=>{
+    let a=null;if(f&&m.contains(f)){const it=f.closest('.g-menu__item');a=it&&menuOf(it)===m?it:(items_(m).find(x=>x.parentElement.contains(f))||null)}
+    if(!a){m.classList.remove('has-highlight');return}
+    if(!m.classList.contains('has-highlight')){m.classList.add('is-highlight-instant');requestAnimationFrame(()=>requestAnimationFrame(()=>m.classList.remove('is-highlight-instant')))}
+    m.style.setProperty('--_active-y',a.offsetTop+'px');m.style.setProperty('--_active-h',a.offsetHeight+'px');m.classList.add('has-highlight')})}
+  root.addEventListener('focusin',()=>queueMicrotask(light));root.addEventListener('focusout',()=>queueMicrotask(light))
+  root.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const it=e.target.closest('.g-menu__item')
+    if(!it||it.getAttribute('aria-disabled')==='true'||document.activeElement===it)return;items_(menuOf(it)).forEach(x=>x.tabIndex=-1);it.tabIndex=0;it.focus({preventScroll:true})})
   return {open:openMenu,close:closeAll,root}
 }
 
