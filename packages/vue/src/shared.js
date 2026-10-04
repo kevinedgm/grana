@@ -3,7 +3,8 @@
 // llevar su propia copia. Así una página con GToaster y la captura de voz comparte un solo registro de reservas de
 // borde (edgeReserve), un solo seguimiento del modal superior (topModal), la misma lista de iconos de la librería y los
 // mismos GBtn, GSelect, GCheckbox y GProgress. La isla de estado (`@grana/vue/status`, #328) usa el mismo mecanismo
-// (vite.status.config.js; src/status.test.js comprueba sus importaciones).
+// (vite.status.config.js; src/status.test.js comprueba sus importaciones), y también la entrada `@grana/vue/combobox`
+// (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog y los dos GIcon.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -15,6 +16,9 @@ import GCheckbox from './components/GCheckbox/GCheckbox.vue'
 import GProgress from './components/GProgress/GProgress.vue'
 import GMenu from './components/GMenu/GMenu.vue'
 import GDialog from './components/GDialog/GDialog.vue'
+import GInput from './components/GInput/GInput.vue'
+import GAvatar from './components/GAvatar/GAvatar.vue'
+import GIcon from './components/GIcon/GIcon.vue'
 import { fieldGroupKey, formKey, layoutKey, sectionKey } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
@@ -33,6 +37,9 @@ export const shared = {
   'components/GProgress/GProgress.vue': { default: GProgress },
   'components/GMenu/GMenu.vue': { default: GMenu },
   'components/GDialog/GDialog.vue': { default: GDialog },
+  'components/GInput/GInput.vue': { default: GInput },
+  'components/GAvatar/GAvatar.vue': { default: GAvatar },
+  'components/GIcon/GIcon.vue': { default: GIcon },
   'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, sectionKey },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },

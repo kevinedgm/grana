@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "name": "GCombobox",
+  "tag": "g-combobox",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo para elegir una opción de un catálogo grande escribiendo (paciente entre miles, diagnóstico CIE-10, medicamento). APG «Combobox with list autocomplete» sobre GInput. A · el campo se abre (appearance=\"field\"): campo y lista son una sola forma y la primera coincidencia por prefijo se completa como texto fantasma. B · paleta con vista previa (appearance=\"palette\"; con el visor ≤ 520px, siempre, como hoja): un GDialog real con su propio campo y la ficha de la opción activa. C · el valor es un objeto: en reposo el campo enseña la ficha de lo elegido y distingue el texto libre. Sin fetch: emite search, more y create; la aplicación entrega options, loading, total, loadError y selectedOption.",
+  "contract": "design/contracts/combobox.md",
+  "decisions": "DECISIONS.md #329 a #338",
+  "prototype": "design/lab/combobox/r01/ y design/lab/combobox/r02/",
+  "style": "packages/vue/src/components/GCombobox/GCombobox.css",
+  "entry": "@grana/vue/combobox",
+  "exports": [
+    {
+      "name": "GCombobox",
+      "signature": "<GCombobox v-model v-model:custom :options />",
+      "purpose": "El componente"
+    },
+    {
+      "name": "default",
+      "signature": "{ install(app) }",
+      "purpose": "Plugin: app.use(Combobox) registra <g-combobox> si no lo estaba"
+    },
+    {
+      "name": "install",
+      "signature": "install(app)",
+      "purpose": "Lo mismo, con nombre"
+    }
+  ],
+  "bundle": {
+    "measured": "2026-10-04",
+    "entry": "dist/combobox.js",
+    "gzip": 13610,
+    "umdGzip": 12274,
+    "umdGlobal": "GranaCombobox",
+    "main": "dist/grana.js gzip 155075; GCombobox no está en el principal",
+    "note": "Vue y @grana/vue externos; GInput, GAvatar, GDialog, GIcon (público e interno), formContext, anchor, liveRegion, template y oneOf llegan de __shared (#240), sin copia. El CSS va en grana.css. Supera el tope de 8 KB gzip de #328: por eso la entrada propia (#337)."
+  },
+  "composes": [
+    "GInput (slots internos field y end, #309/#330)",
+    "GDialog (la superficie: paleta y hoja móvil)",
+    "GAvatar (hueco inicial de la opción)",
+    "GIcon público (icon de la opción) y GLibIcon (iconos propios)"
+  ],
+  "engine": "components/GCombobox/engine.js (fold, tokens, matches, parts, completion, secondary; sin estado ni DOM)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | Number | null",
+      "default": "null",
+      "note": "El value de la opción elegida (===). Nunca cambia de tipo: el texto libre va en custom (#331)"
+    },
+    {
+      "name": "custom",
+      "type": "String",
+      "default": "''",
+      "note": "v-model:custom. El texto libre cuando el valor no es una opción; solo actúa con allowCustom. Con modelValue a la vez gana modelValue (aviso)"
+    },
+    {
+      "name": "options",
+      "type": "Array",
+      "default": "[]",
+      "note": "Opciones { value, label, description?, code?, facts?, avatar?, icon?, disabled? } y grupos { label, options } sin anidar. Campos de más llegan a los slots"
+    },
+    {
+      "name": "selectedOption",
+      "type": "Object | null",
+      "default": "null",
+      "note": "La opción de modelValue cuando no está en options (búsqueda remota); si su value no es modelValue, se ignora y avisa"
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "field",
+      "values": [
+        "field",
+        "palette"
+      ],
+      "note": "field = A (la lista es el interior del campo abierto). palette = B (superficie modal con vista previa). Con el visor ≤ 520px siempre la superficie (hoja, sin vista previa). Cambiarla con la lista abierta la cierra"
+    },
+    {
+      "name": "filter",
+      "type": "Boolean | Function",
+      "default": "true",
+      "note": "true: filtro propio (todas las palabras, sin acentos ni mayúsculas, sobre label, code, description y valores de facts). Función (option, query) => Boolean. false: filtra la aplicación; solo entonces abrir emite search(''), «Mostrar más» emite more, total cuenta y existe la búsqueda pendiente (#332)"
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": "false",
+      "note": "Indicador de GInput y aria-busy en el listbox; no vacía la lista ni bloquea"
+    },
+    {
+      "name": "total",
+      "type": "Number | null",
+      "default": "null",
+      "note": "Con filter: false, resultados en el servidor; si es mayor que las opciones entregadas aparece «Mostrar más»"
+    },
+    {
+      "name": "loadError",
+      "type": "String",
+      "default": "undefined",
+      "note": "Error de carga: en el panel, con fila «Reintentar» y anuncio; no marca el campo inválido"
+    },
+    {
+      "name": "minChars",
+      "type": "Number",
+      "default": "0",
+      "note": "Con 1 a minChars − 1 caracteres no se emite search ni se pinta lista: labels.minChars"
+    },
+    {
+      "name": "delay",
+      "type": "Number",
+      "default": "250",
+      "note": "Antirrebote de search al escribir (ms); 0 lo desactiva. Abrir (sin escribir) y «Reintentar» emiten sin esperar"
+    },
+    {
+      "name": "limit",
+      "type": "Number",
+      "default": "50",
+      "note": "Filas pintadas con filtro local y cuántas añade «Mostrar más»"
+    },
+    {
+      "name": "allowCustom",
+      "type": "Boolean",
+      "default": "false"
+    },
+    {
+      "name": "customName",
+      "type": "String",
+      "default": "undefined",
+      "note": "name de un segundo oculto con el texto libre"
+    },
+    {
+      "name": "creatable",
+      "type": "Boolean",
+      "default": "false",
+      "note": "Fila «Agregar «texto»…» (con labels.create): emite create; no cambia el valor"
+    },
+    {
+      "name": "clearable",
+      "type": "Boolean",
+      "default": "false",
+      "note": "Botón de limpiar con valor (con labels.clear); ausente en solo lectura y deshabilitado"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": "{}",
+      "note": "Sin valores por defecto (#226): ver labels"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": "undefined",
+      "note": "Va al oculto del value y registra el campo en GForm; el <input> visible no lleva name"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": "undefined"
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": "undefined"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": "undefined"
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": "undefined"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": "undefined"
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": "false",
+      "note": "Marca y aria-required=\"true\"; nunca required nativo (#334)"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": "undefined"
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": "undefined → false",
+      "note": "readonly nativo + aria-readonly; enfocable, no abre, sin limpiar ni flecha, se envía (#266)"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": "undefined → false",
+      "note": "Nativo en el visible y en los ocultos (no se envía)"
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "undefined → contexto o default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "undefined",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": "undefined",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": "undefined → false"
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": "generado"
+    }
+  ],
+  "attrs": "placeholder, form, aria-*, data-* y escuchas van al <input> visible (class y style, a la raíz); form se copia a los ocultos. autocomplete=\"off\", autocapitalize=\"none\" y spellcheck=\"false\" van antes de $attrs; type, role y los aria-* del patrón, después y ganan. type y multiple se ignoran con aviso.",
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | Number | null",
+      "trigger": "Se elige una opción distinta; se limpia; al salir con el texto vacío; al confirmar un texto libre (null). Solo si cambia"
+    },
+    {
+      "name": "update:custom",
+      "payload": "String",
+      "trigger": "Se confirma un texto libre; se elige una opción, se limpia o se vacía (''). Solo si cambia"
+    },
+    {
+      "name": "change",
+      "payload": "{ value, custom, option }",
+      "trigger": "Una vez por cambio confirmado, después de los update:*; option es la opción elegida o null"
+    },
+    {
+      "name": "search",
+      "payload": "String (texto recortado)",
+      "trigger": "Al escribir tras delay (también con filtro local, informativo); al abrir sin escribir con filter: false; con «Reintentar»"
+    },
+    {
+      "name": "more",
+      "payload": "String (el texto actual)",
+      "trigger": "«Mostrar más» con filter: false"
+    },
+    {
+      "name": "create",
+      "payload": "String (el texto)",
+      "trigger": "Fila «Agregar «texto»…»; el foco ya volvió al campo"
+    },
+    {
+      "name": "open",
+      "payload": "—",
+      "trigger": "El panel o la superficie pasan a verse"
+    },
+    {
+      "name": "close",
+      "payload": "—",
+      "trigger": "Dejan de verse, por el motivo que sea"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "El de GInput"
+    },
+    {
+      "name": "hint",
+      "purpose": "El de GInput"
+    },
+    {
+      "name": "error",
+      "purpose": "El de GInput (mensaje del campo)"
+    },
+    {
+      "name": "prepend",
+      "purpose": "Icono decorativo del campo; coco lo oculta mientras hay ficha"
+    },
+    {
+      "name": "option",
+      "scope": "{ option, active, selected, query }",
+      "purpose": "Contenido de una fila de opción (dentro del li role=option; sin interactivos; debe conservar el texto que distingue)"
+    },
+    {
+      "name": "lead",
+      "scope": "{ option }",
+      "purpose": "Hueco inicial de una opción en fila, ficha y vista previa (decorativo); sustituye a avatar/icon"
+    },
+    {
+      "name": "value",
+      "scope": "{ option, custom }",
+      "purpose": "Contenido de la ficha en reposo (aria-hidden, una línea)"
+    },
+    {
+      "name": "preview",
+      "scope": "{ option }",
+      "purpose": "Ficha de la opción activa en la paleta; nunca la única fuente del dato que distingue (#335)"
+    },
+    {
+      "name": "empty",
+      "scope": "{ query }",
+      "purpose": "Estado sin resultados (el anuncio sigue usando labels.noResults)"
+    },
+    {
+      "name": "load-error",
+      "scope": "{ message, query }",
+      "purpose": "Estado de error de carga (la fila «Reintentar» y el anuncio se conservan)"
+    }
+  ],
+  "labels": [
+    "clear",
+    "close",
+    "loading",
+    "noResults {text}",
+    "minChars {count}",
+    "results {count} | (count) => String",
+    "partial {count} {total} | (count, total) => String",
+    "more {shown} {total}",
+    "retry",
+    "useCustom {text}",
+    "custom",
+    "create {text}",
+    "preview",
+    "previewEmpty",
+    "surfaceTitle"
+  ],
+  "keyboard": {
+    "closed": {
+      "carácter": "Abre y busca",
+      "↓ / ↑": "Abre; activa la elegida, o la primera / la última",
+      "Alt+↓": "Abre sin mover la activa",
+      "Intro": "Nativo (envío implícito)",
+      "Esc": "Con texto sin confirmar: restaura el de la opción elegida y lo selecciona (sin propagar). Si no, nativo",
+      "Tab": "Sale; aplica «al salir del campo»"
+    },
+    "open": {
+      "↓ / ↑": "Siguiente / anterior fila habilitada; no cicla; las filas de acción cuentan",
+      "Alt+↑": "Cierra",
+      "Av Pág / Re Pág": "Diez adelante / atrás",
+      "→": "Con texto fantasma y el cursor al final: acepta el texto sin elegir ni buscar",
+      "Intro": "Elige la activa o ejecuta la fila de acción; sin activa, nada (y no envía); con la resaltada sola y búsqueda pendiente, nada",
+      "Esc": "Cierra y conserva el texto; preventDefault + stopPropagation (no cierra un GDialog anfitrión)",
+      "Tab": "Cierra y sale. NO elige, salvo el texto fantasma con etiqueta única a la vista y sin «Mostrar más» (#333)"
+    },
+    "surface": "Disparador: Intro, Espacio, ↓, ↑, Alt+↓ o un carácter (texto inicial). Dentro: la tabla de lista abierta sobre el campo de búsqueda; Tab se mueve dentro del diálogo y nunca elige; Esc cierra la superficie (GDialog)."
+  },
+  "classes": [
+    "g-combobox",
+    "g-combobox--appearance-{field|palette}",
+    "is-open",
+    "is-up",
+    "is-surface",
+    "is-token",
+    "is-custom",
+    "g-combobox__value",
+    "g-combobox__field",
+    "g-combobox__ghost",
+    "g-combobox__ghost-typed",
+    "g-combobox__ghost-rest",
+    "g-combobox__token",
+    "g-combobox__token-label",
+    "g-combobox__token-meta",
+    "is-arriving (+ --_travel-x, --_travel-y)",
+    "g-combobox__about",
+    "g-combobox__clear",
+    "g-combobox__clear-text",
+    "g-combobox__arrow",
+    "g-combobox__live",
+    "g-combobox__popup (+ --_x, --_top, --_bottom, --_w, --_max, --_field-h)",
+    "g-combobox__popup-body",
+    "is-empty",
+    "g-combobox__panel",
+    "g-combobox__status",
+    "g-combobox__status--{hint|loading|empty|error}",
+    "g-combobox__list",
+    "g-combobox__group",
+    "g-combobox__group-label",
+    "g-combobox__option",
+    "is-active",
+    "g-combobox__action",
+    "g-combobox__action--{retry|more|custom|create}",
+    "g-combobox__lead",
+    "g-combobox__code",
+    "g-combobox__main",
+    "g-combobox__label",
+    "g-combobox__description",
+    "g-combobox__facts",
+    "g-combobox__fact",
+    "g-combobox__fact-label",
+    "g-combobox__check",
+    "g-combobox__mark",
+    "g-combobox-surface",
+    "g-combobox-surface--{palette|sheet}",
+    "g-combobox__search",
+    "g-combobox__search-icon",
+    "g-combobox__search-field",
+    "g-combobox__search-loader",
+    "g-combobox__surface-body",
+    "has-preview",
+    "g-combobox__preview",
+    "g-combobox__preview-head",
+    "g-combobox__preview-title",
+    "g-combobox__preview-facts",
+    "g-combobox__preview-empty"
+  ],
+  "constants": {
+    "ANNOUNCE_MS": 600,
+    "PAGE_ROWS": 10,
+    "UP_BELOW": "240 (abre hacia arriba)",
+    "PHONE_QUERY": "(max-width: 520px), literal de #42 y #56",
+    "avatar": "md en la fila, xs en la ficha, lg en la vista previa"
+  },
+  "warnings": [
+    "1 sin nombre accesible",
+    "2 labels que faltan (close al montar; los demás, al usarse)",
+    "3 opción sin value o label; value repetido",
+    "4 modelValue sin opción conocida; selectedOption que no coincide",
+    "5 modelValue y custom a la vez; custom sin allowCustom",
+    "6 allowCustom con name y sin customName",
+    "7 filter: false y la aplicación no responde tras search o more",
+    "8 total con filtro local o menor que las opciones",
+    "9 multiple, type, slots append/action, slot preview con field",
+    "10 dentro de GInputGroup",
+    "11 limit, delay o minChars fuera de rango"
+  ],
+  "tokens": [
+    "los de GInput",
+    "los de GDialog (la superficie)",
+    "--g-color-surface",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-color-focus",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-selection",
+    "--g-color-danger-text",
+    "--g-radius-xs",
+    "--g-radius-lg",
+    "--g-space-1",
+    "--g-border-width",
+    "--g-duration-fast",
+    "--g-duration-slow",
+    "--g-duration-spin",
+    "--g-ease-standard",
+    "--g-ease-out",
+    "--g-ease-spring"
+  ],
+  "states": [
+    "reposo vacío",
+    "reposo con valor (ficha)",
+    "reposo con texto libre (is-custom)",
+    "foco",
+    "escribiendo con fantasma",
+    "pista de mínimo",
+    "cargando sin resultados",
+    "cargando con resultados anteriores (aria-busy)",
+    "resultados",
+    "resultados con «Mostrar más»",
+    "sin resultados",
+    "error de carga con «Reintentar»",
+    "fila de texto libre",
+    "fila de agregar",
+    "solo lectura",
+    "deshabilitado",
+    "error, advertencia y válido (GInput)",
+    "is-rejected",
+    "abierto hacia arriba (is-up)",
+    "paleta",
+    "paleta dentro de GDialog",
+    "hoja móvil",
+    "RTL",
+    "reduced motion",
+    "forced-colors"
+  ],
+  "formSystem": "El campo lo registra GInput (name → clave de errors; el error se revela al salir). Escribir es escritura (input nativo); elegir, limpiar y confirmar un texto libre llaman a notifyChange (suben dirty y retiran is-rejected). En una GFormRow, coco declara --g-form-min: 60 sobre appearance=\"field\" (#336).",
+  "related": [
+    "GSelect (lista conocida sin escritura)",
+    "GInput + <datalist> (sugerencias de texto)",
+    "GMenu (acciones)"
+  ],
+  "implementation": [
+    "Región viva, popover y superficie se pintan dentro del slot field y se trasladan con <Teleport> a la raíz de GInput al montar (quedan como hijos de la raíz, fuera de flujo, como fija el contrato) sin tocar GInput. En el servidor y durante la hidratación se pintan en la celda.",
+    "Cerrado, el listbox existe y está vacío (aria-controls apunta a un elemento); las filas solo se calculan y pintan con la lista abierta.",
+    "Abrir escribiendo es escritura: el primer search lleva antirrebote (una emisión por pausa). Abrir sin escribir y «Reintentar» emiten sin esperar.",
+    "La activa que puso la persona (flechas, puntero, →) se respeta al asentarse una búsqueda si sigue a la vista; si no, la primera habilitada queda activa sola.",
+    "update:modelValue y update:custom solo se emiten si el valor cambia; change, solo si cambió alguno.",
+    "Sin prop locale: la comparación es NFD + minúsculas sin configuración regional y las cifras usan Intl.NumberFormat del lang del ancestro más cercano."
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto y con el oscuro; luego status candidate.",
+    "Solo en entorno real: lector de pantalla (eco de escritura con la primera activa, fantasma junto a aria-activedescendant, dos combobox y la vista previa, aria-describedby con la línea secundaria, filas de acción, recuentos), teclado virtual real sobre la hoja, IME real, forced-colors real, Safari real, zoom 200/400 %, pegado de texto largo.",
+    "Reservado (#338): multiple (se ignora con aviso), expandable, GInputGroupCombobox, editor de valor de GFilterBar, autoHighlight."
+  ]
+}

@@ -499,6 +499,97 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
           </div>
         </section>
+        <section class="pg-section" id="sec-combobox" data-pg-section>
+          <h2>GCombobox</h2>
+          <p class="pg-lead">Elegir una opción de un catálogo grande <b>escribiendo</b>. Va en su propia entrada, <code>@grana/vue/combobox</code> (aquí <code>dist/combobox.umd.js</code>, global <code>GranaCombobox</code>). <b>El campo se abre</b>: campo y lista son una sola forma y la primera coincidencia se completa como texto fantasma (<kbd>→</kbd> lo acepta; <kbd>Tab</kbd> solo elige si la etiqueta es única y la lista está completa). <b>El valor es un objeto</b>: en reposo el campo enseña la ficha de lo elegido. Sin <code>fetch</code>: el componente emite <code>search</code> y <code>more</code>, y esta página (con un servidor simulado) entrega <code>options</code>, <code>loading</code>, <code>total</code> y <code>loadError</code>.</p>
+          <h3>Paciente entre miles (servidor simulado, cuatro homónimas)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cb-pac" v-model="cb.pac.value" label="Paciente" hint="Nombre, apellidos o expediente" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
+        :options="cb.pac.options" :loading="cb.pac.loading" :total="cb.pac.total" :load-error="cb.pac.err" @search="cbSearch(cb.pac, $event)" @more="cbMore(cb.pac)" @change="cbChange('pac', $event)">
+        <template #prepend><g-icon name="user"></g-icon></template>
+      </g-combobox>
+      <g-combobox id="cb-pal" v-model="cb.pal.value" appearance="palette" label="Paciente (paleta con vista previa)" hint="Para homónimos: la ficha de la opción activa antes de elegir" placeholder="Buscar paciente" clearable :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels"
+        :options="cb.pal.options" :loading="cb.pal.loading" :total="cb.pal.total" :load-error="cb.pal.err" @search="cbSearch(cb.pal, $event)" @more="cbMore(cb.pal)">
+        <template #prepend><g-icon name="user"></g-icon></template>
+      </g-combobox>
+    </div>
+    <p class="log" id="cb-out-pac">paciente: {{ cb.pac.value === null ? 'null' : cb.pac.value }} · paleta: {{ cb.pal.value === null ? 'null' : cb.pal.value }}</p>
+    <p class="log" id="cb-log">{{ cb.log }}</p>
+          </div>
+          <h3>Diagnóstico CIE-10 (lista local, grupos, código y descripción)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cb-dx" v-model="cb.dx" label="Diagnóstico principal" placeholder="Código o descripción" clearable required :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions" @change="cbChange('dx', $event)"></g-combobox>
+    </div>
+    <p class="log" id="cb-out-dx">dx: {{ cb.dx === null ? 'null' : cb.dx }}</p>
+          </div>
+          <h3>Medicamento con texto libre · cliente con «Agregar» (filtro local corto)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cb-med" v-model="cb.med" v-model:custom="cb.medLibre" label="Medicamento" hint="Elige del cuadro básico o escribe otro" placeholder="Nombre y presentación" clearable allow-custom :delay="cb.delay" :labels="cb.labels" :options="cb.meds" @change="cbChange('med', $event)"></g-combobox>
+      <g-combobox id="cb-cli" v-model="cb.cliente" label="Cliente" placeholder="Buscar cliente" creatable :delay="cb.delay" :labels="cb.labels" :options="cb.clientes" @create="cbCreate">
+        <template #prepend><g-icon name="building-complex"></g-icon></template>
+      </g-combobox>
+    </div>
+    <p class="log" id="cb-out-med">med: {{ cb.med === null ? 'null' : cb.med }} · libre: {{ JSON.stringify(cb.medLibre) }}</p>
+    <p class="log" id="cb-out-cli">cliente: {{ cb.cliente === null ? 'null' : cb.cliente }} · creado: {{ cb.created }}</p>
+          </div>
+          <h3>Error de carga con «Reintentar» · quinientas opciones con «Mostrar más»</h3>
+          <div class="pg-panel">
+    <div class="row"><g-btn id="cb-fail" variant="outline" color="neutral" @click="cbFailNext">Fallar la próxima búsqueda</g-btn></div>
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cb-err" v-model="cb.errc.value" label="Paciente (red inestable)" placeholder="Buscar paciente" :filter="false" :delay="cb.delay" :labels="cb.labels"
+        :options="cb.errc.options" :loading="cb.errc.loading" :total="cb.errc.total" :load-error="cb.errc.err" @search="cbSearch(cb.errc, $event)" @more="cbMore(cb.errc)"></g-combobox>
+      <g-combobox id="cb-big" v-model="cb.big" label="Insumo" placeholder="Buscar insumo" :delay="cb.delay" :labels="cb.labels" :options="cb.bigOptions"></g-combobox>
+    </div>
+          </div>
+          <h3>Estados: solo lectura, deshabilitado, error</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cb-ro" model-value="I10" label="Diagnóstico (solo lectura)" readonly clearable :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+      <g-combobox id="cb-dis" model-value="J00" label="Diagnóstico (deshabilitado)" disabled :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+      <g-combobox id="cb-bad" v-model="cb.bad" label="Diagnóstico de egreso" required :error="cb.bad === null ? 'Elige un diagnóstico de la lista.' : undefined" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+    </div>
+          </div>
+          <h3>En una GFormRow de tres y en el envío</h3>
+          <div class="pg-panel">
+    <g-form id="cb-form" aria-label="Consulta" :labels="fm.labels" @submit="cbSubmit">
+      <g-form-layout id="cb-layout">
+        <g-form-row id="cb-row">
+          <g-combobox id="cb-f-pac" v-model="cb.fpac.value" name="paciente" label="Paciente" :filter="false" :min-chars="2" :delay="cb.delay" :labels="cb.labels" :selected-option="cb.fpacSelected"
+            :options="cb.fpac.options" :loading="cb.fpac.loading" :total="cb.fpac.total" :load-error="cb.fpac.err" @search="cbSearch(cb.fpac, $event)" @more="cbMore(cb.fpac)"></g-combobox>
+          <g-select id="cb-f-sel" v-model="cb.servicio" label="Servicio" :options="[{ value: 'a', label: 'Consulta externa' }, { value: 'b', label: 'Urgencias' }]"></g-select>
+          <g-input id="cb-f-nota" v-model="cb.nota" label="Nota" name="nota"></g-input>
+        </g-form-row>
+        <g-form-row id="cb-row2">
+          <g-combobox id="cb-f-med" v-model="cb.fmed" v-model:custom="cb.fmedLibre" name="medicamento" custom-name="medicamento_libre" label="Medicamento" allow-custom :delay="cb.delay" :labels="cb.labels" :options="cb.meds"></g-combobox>
+          <g-combobox id="cb-f-dx" v-model="cb.fdx" name="dx" label="Diagnóstico" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+        </g-form-row>
+      </g-form-layout>
+      <p><g-btn id="cb-send" type="submit">Guardar</g-btn></p>
+    </g-form>
+    <p class="log" id="cb-out-sent">{{ cb.sent }}</p>
+          </div>
+          <h3>Dentro de un GDialog (lista, texto libre y paleta sobre el diálogo)</h3>
+          <div class="pg-panel">
+    <g-btn id="cb-d-open" variant="outline" @click="cb.dlg = true">Abrir diálogo</g-btn>
+    <g-dialog id="cb-dlg" v-model="cb.dlg" title="Receta" close-label="Cerrar">
+      <div class="col" style="max-width:none">
+        <g-combobox id="cb-d-med" v-model="cb.med" v-model:custom="cb.medLibre" block label="Medicamento" allow-custom :delay="cb.delay" :labels="cb.labels" :options="cb.meds"></g-combobox>
+        <g-combobox id="cb-d-dx" v-model="cb.dx" block label="Diagnóstico" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions"></g-combobox>
+        <g-combobox id="cb-d-pal" v-model="cb.dpal" block appearance="palette" label="Médico tratante (paleta)" :delay="cb.delay" :labels="cb.labels" :options="cb.medicos"></g-combobox>
+      </div>
+    </g-dialog>
+          </div>
+          <h3>RTL</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px" dir="rtl" lang="ar">
+      <g-combobox id="cb-rtl" v-model="cb.rtl" label="الطبيب" placeholder="ابحث" clearable :delay="cb.delay" :labels="cb.rtlLabels" :options="cb.rtlOptions"></g-combobox>
+    </div>
+          </div>
+        </section>
+
         <section class="pg-section" id="sec-checkbox" data-pg-section>
           <h2>GCheckbox y GCheckboxGroup</h2>
           <p class="pg-lead">Casillas sueltas, en tarjeta, en chip y en grupo con casilla maestra.</p>
@@ -677,6 +768,11 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             <!-- Sexo: GRadioGroup segmentado (#181, #268); publica su ancho natural a la fila (#271) -->
             <g-radio-group v-model="fm.m.sexo" id="fm-sexo" appearance="segmented" label="Sexo" name="m-sexo" required :error="fm.E('fm-sexo')" :options="[{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decir' }]"></g-radio-group>
             <g-radio-group v-model="fm.m.primera" id="fm-primera" class="g-form-w-sm" appearance="inline" :label="fm.L('¿Primera consulta?', '¿Es la primera consulta en esta clínica?')" name="m-primera" :warning="fm.W('fm-primera')" :options="[{ value: true, label: 'Sí' }, { value: false, label: 'No' }]"></g-radio-group>
+          </g-form-row>
+          <!-- GCombobox (combobox.md): catálogo con ficha en reposo; en una fila, la forma se protege con --g-form-min: 60 (#336) -->
+          <g-form-row id="fm-clinica">
+            <g-combobox v-model="fm.m.medico" id="fm-medico" label="Médico tratante" name="m-medico" clearable :delay="cb.delay" :labels="cb.labels" :options="cb.medicos"></g-combobox>
+            <g-combobox v-model="fm.m.dxIngreso" id="fm-dx" :label="fm.L('Diagnóstico', 'Diagnóstico de ingreso')" name="m-dx" :delay="cb.delay" :labels="cb.labels" :options="cb.dxOptions" :hint="fm.H('fm-dx')"></g-combobox>
           </g-form-row>
         </g-form-layout>
       </g-form-section>
@@ -1914,6 +2010,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/grana.umd.js"></script>
   <script src="../dist/speech.umd.js"></script>
   <script src="../dist/status.umd.js"></script>
+  <script src="../dist/combobox.umd.js"></script>
+  <script src="./combobox-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./speech-adapters.js"></script>
   <script src="./lucide-icons.js"></script>
@@ -2579,7 +2677,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2629,11 +2727,70 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const nfSubmit = (e) => { nf.fd = 'FormData: ' + [...new FormData(e.target).entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
         const nfChange = (k, v) => { nf.log = `change: ${k}=${JSON.stringify(v)}` }
 
+        // ---------- GCombobox (@grana/vue/combobox → GranaCombobox): la aplicación busca; el componente emite ----------
+        // Regla del contrato (#332): al recibir `search` o `more`, loading a true EN EL MISMO manejador y a false al
+        // terminar; las respuestas fuera de orden se descartan aquí con un número de secuencia.
+        const CB = window.PlaygroundCombobox
+        const cbRemote = (value = null) => ({ value, options: [], loading: false, total: null, err: '', seq: 0, q: '' })
+        const cb = reactive({
+          delay: window.__cbFast ? 20 : 250,
+          labels: {
+            clear: 'Limpiar', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', minChars: 'Escribe al menos {count} caracteres',
+            results: (n) => (n === 1 ? '1 resultado' : n + ' resultados'), partial: '{count} de {total} resultados', more: 'Mostrar más ({shown} de {total})',
+            retry: 'Reintentar la búsqueda', useCustom: 'Usar «{text}» como texto libre', custom: 'Texto libre', create: 'Agregar «{text}» como cliente nuevo',
+            preview: 'Vista previa', previewEmpty: 'Recorre la lista para ver el detalle antes de elegir.', surfaceTitle: 'Buscar'
+          },
+          rtlLabels: { clear: 'مسح', close: 'إغلاق', loading: 'جارٍ البحث…', noResults: 'لا نتائج لـ «{text}»', results: '{count} نتائج', partial: '{count} من {total}', more: 'عرض المزيد ({shown} من {total})', retry: 'إعادة المحاولة', surfaceTitle: 'بحث' },
+          pac: cbRemote(), pal: cbRemote(), errc: cbRemote(), fpac: cbRemote(CB.patients[57].value), fpacSelected: CB.patients[57],
+          dxOptions: CB.dx, meds: CB.meds, bigOptions: CB.big, medicos: CB.medicos, rtlOptions: CB.rtl, clientes: CB.clientes.slice(),
+          dx: null, med: null, medLibre: '', cliente: null, created: '', big: null, bad: null, servicio: 'a', nota: '', fmed: null, fmedLibre: '', fdx: null,
+          dlg: false, dpal: null, rtl: null, sent: 'FormData: (envía el formulario)', log: 'change: —'
+        })
+        function cbSearch(st, q) {
+          const s = ++st.seq
+          st.q = q
+          st.loading = true
+          st.err = ''
+          CB.server.patients(q, 0).then((r) => {
+            if (s !== st.seq) return
+            st.options = q ? r.items : [{ label: 'Recientes', options: r.items }]
+            st.total = q ? r.total : null
+            st.loading = false
+          }).catch(() => {
+            if (s !== st.seq) return
+            st.loading = false
+            st.err = 'No se pudieron cargar los resultados.'
+          })
+        }
+        function cbMore(st) {
+          const s = ++st.seq
+          st.loading = true
+          CB.server.patients(st.q, st.options.length).then((r) => {
+            if (s !== st.seq) return
+            st.options = st.options.concat(r.items)
+            st.loading = false
+          }).catch(() => {
+            if (s !== st.seq) return
+            st.loading = false
+            st.err = 'No se pudieron cargar los resultados.'
+          })
+        }
+        const cbCreate = (t) => {
+          const o = { value: 'c' + cb.clientes.length, label: t, icon: 'building-complex' }
+          cb.clientes = cb.clientes.concat(o)
+          cb.cliente = o.value
+          cb.created = t
+        }
+        const cbChange = (k, e) => { cb.log = `change: ${k} ${JSON.stringify({ value: e.value, custom: e.custom, option: e.option ? e.option.label : null })}` }
+        const cbSubmit = () => { const f = document.getElementById('cb-form'); cb.sent = 'FormData: ' + JSON.stringify(Object.fromEntries(new FormData(f.matches('form') ? f : f.querySelector('form')))) }
+        const cbFailNext = () => { window.__cbFailNext = true }
+        window.__cb = cb
+
         // ---------- Formularios (GForm): la página calcula los errores; GForm decide cuándo se ven ----------
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
         const num = (v) => { const n = Number(String(v).replace(/,/g, '').trim()); return String(v).trim() === '' ? NaN : n }
-        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: null, sat: null, peso: null, estatura: null, rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', idioma: 'es', horario: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
+        const fmMediumInit = () => ({ nombre: '', apellido1: '', apellido2: '', nacimiento: null, sexo: null, primera: null, medico: null, dxIngreso: null, correo: '', lada: '+52', tel: '', ext: '', temp: '', unidad: 'C', sis: '', dia: '', fc: null, sat: null, peso: null, estatura: null, rfc: '', razon: '', regimen: null, cfdi: null, cpf: '', idioma: 'es', horario: '', avisos: [], privacidad: false, recordatorios: false, obs: '' })
         const fmFiscalEmpty = () => ({ rfc: '', razon: '', regimen: null, cfdi: null, cpf: '' })
         // Banco de distribución (form.md §12): ancho del contenedor, ayuda + mensajes de los cuatro tipos y etiquetas largas.
         // Los mensajes del banco son props explícitas (se ven siempre); sin el banco, GForm decide cuándo se ven.
@@ -2772,9 +2929,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
-    }).use(Grana).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
+    }).use(Grana).use(GranaCombobox).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
 </body>
 </html>

@@ -65,3 +65,6 @@
    de GBtn.css y GDialog.css */
 @import url("../components/GStatusIsland/GStatusIsland.css");
 @import url("../components/GStatusMark/GStatusMark.css");
+/* GCombobox (combobox.md, entrada @grana/vue/combobox, #337): compone GInput, GAvatar y GDialog (la superficie): va
+   después de sus hojas */
+@import url("../components/GCombobox/GCombobox.css");
