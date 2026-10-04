@@ -93,8 +93,6 @@
   "slots": [],
   "tokens": [],
   "states": [],
-  "pending": [
-    "Auditoría de coco (ver GStatusIsland.meta.json)."
-  ],
+  "pending": [],
   "entry": "@grana/vue/status (#328)"
 }

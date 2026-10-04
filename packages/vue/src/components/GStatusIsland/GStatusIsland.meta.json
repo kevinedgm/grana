@@ -245,10 +245,8 @@
     "history": "Registrada en el paquete principal pesaba +14,7 KB gzip (154 745 → 169 451), por encima de la compuerta de 8 KB de #317: pasó a entrada propia (#328). Lo compartido (GBtn, GDialog, GIcon interno, toaster.js, topModal, liveRegion, edgeReserve, template, oneOf) llega por __shared, sin copia."
   },
   "pending": [
-    "Auditoría de coco sobre el componente real con un tema distinto (status → candidate).",
     "Anuncio del cambio que quita el control con foco: se omite solo si el foco queda leyendo esa condición (es la del resumen, o está en la hoja móvil); si el resumen muestra otra, se anuncia. Confirmado por la coordinación; lima lo anota en el contrato.",
-    "Solo en entorno real: lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, role=timer), Safari y táctil reales, forced-colors, Alt+F8 en Linux.",
-    "No medido en Playwright: zoom 200/400 %, pointer: coarse (44px), tema oscuro, panel de voz abierto a la vez que la isla abierta."
+    "Solo en entorno real: lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, role=timer), Safari y táctil reales, forced-colors, Alt+F8 en Linux."
   ],
   "entry": "@grana/vue/status (dist/status.js, dist/status.umd.js global GranaStatus; #328). app.use(status) registra GStatusIsland, GStatusMark y GStatus. El CSS va en grana.css."
 }

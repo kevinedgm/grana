@@ -66,8 +66,6 @@
     "text",
     "busy"
   ],
-  "pending": [
-    "Auditoría de coco (ver GStatusIsland.meta.json)."
-  ],
+  "pending": [],
   "entry": "@grana/vue/status (#328)"
 }
