@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isla de estado · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/status.md («Estructura accesible», «GStatusMark», «Clases y datos»)
+     con el CSS real (GStatusIsland.css y GStatusMark.css de src/, dentro de grana.components como los registra bruno) y
+     los componentes reales de dist/ (GBtn, GDialog para la hoja móvil, GFormActions). XIsland, XList y XMark pintan lo que
+     pintarán GStatusIsland.vue y GStatusMark.vue (bruno) y nada más, y hacen de .vue en lo que el CSS necesita: miden
+     __inner con ResizeObserver y escriben --_island-w/--_island-h en px, ponen is-ready dos cuadros después de montar y
+     is-nudge hasta animationend. No es documentación ni el comportamiento (foco, anuncios, atajo: bruno).
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/alert/estilo-banco.html
+     Parámetros: ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?dark  ?rtl  ?n=1..9
+                 ?form=compact|open|dot  ?align=start|center|end  ?mobile (fuerza data-mobile)
+     Verificación: node design/lab/alert/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GStatusIsland/GStatusIsland.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GStatusMark/GStatusMark.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<script>
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  if (Q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  if (Q.has('rtl')) document.documentElement.dir = 'rtl'
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:96px clamp(12px,3vw,32px) 48px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1100px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;padding:8px 0;border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);color:var(--g-color-text);border:1px solid var(--g-color-border);border-radius:12px;padding:20px;min-inline-size:0}
+  .host + .host{margin-block-start:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px;align-items:start}
+  /* Ejemplares estáticos: la misma raíz, sacada de la capa superior y puesta en el flujo del banco */
+  .spec{position:relative;min-block-size:56px;padding:4px 0}
+  .spec .g-status-island{position:relative;inset:auto;pointer-events:auto}
+  .spec-label{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 4px}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .para{margin:0 0 8px;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>Isla de estado · banco de estilo</h1>
+  <p class="cap">Superficie inversa (text/surface, nunca brand), tres formas de una sola superficie con <code>--g-ease-spring</code>, insignia con anillo por tipo (sólido error, discontinuo warning, punteado info, sin anillo success), marca cápsula y marca de texto. La isla viva está arriba, en la capa superior.</p>
+  <div class="tools">
+    <label>Condiciones <select v-model.number="S.n" id="t-n"><option v-for="k in 9" :value="k">{{ k }}</option></select></label>
+    <label>Primera <select v-model="S.first" id="t-first"><option v-for="t in TYPES" :value="t">{{ t }}</option></select></label>
+    <label>Forma <select v-model="S.form" id="t-form"><option>compact</option><option>open</option><option>dot</option><option value="empty">empty</option></select></label>
+    <label>Alineación <select v-model="S.align" id="t-align"><option>start</option><option>center</option><option>end</option></select></label>
+    <label><input type="checkbox" v-model="S.busy" id="t-busy"> reintentando</label>
+    <label><input type="checkbox" v-model="S.details" id="t-details"> detalle abierto</label>
+    <button type="button" id="t-nudge" @click="nudge">Toque</button>
+    <button type="button" id="t-sheet" @click="S.sheet = !S.sheet">Hoja móvil</button>
+  </div>
+
+  <h2 class="b">Ejemplares por tipo (compacta, punto y abierta)</h2>
+  <div class="grid">
+    <div class="host" v-for="t in TYPES" :key="t" :data-test="'spec-' + t">
+      <p class="spec-label">{{ t }}</p>
+      <div class="spec" v-for="f in ['compact','dot','open']" :key="f"><x-island :items="specItems(t)" :form="f" align="start" :test="'spec-' + t + '-' + f"></x-island></div>
+    </div>
+  </div>
+
+  <h2 class="b">Marca enlace junto al origen (GFormActions real, Δ 0px al aparecer)</h2>
+  <div class="host" id="form-host">
+    <p class="para">Nueva factura · el botón «Guardar» falla y la marca aparece en su misma fila, antes del botón.</p>
+    <g-form-actions id="fa">
+      <x-mark v-for="t in TYPES" :key="t" :type="t" link :busy="S.busy && t === 'error'" :data-test="'mark-link-' + t">{{ MARK[t] }}</x-mark>
+      <g-btn id="save">Guardar</g-btn>
+    </g-form-actions>
+  </div>
+
+  <h2 class="b">Marca de texto (contenido de una sección)</h2>
+  <div class="host" id="text-host">
+    <p class="para" id="para">Datos de pago. El texto de la sección y la marca empiezan en el mismo borde.</p>
+    <div style="display:grid;gap:8px">
+      <x-mark v-for="t in TYPES" :key="t" :type="t" :data-test="'mark-text-' + t">{{ LONG[t] }}</x-mark>
+      <x-mark type="warning" data-test="mark-text-action">Tu tarjeta caduca este mes.<template #action><g-btn size="sm" variant="ghost" color="neutral">Actualizar tarjeta</g-btn></template></x-mark>
+    </div>
+  </div>
+
+  <h2 class="b">Página para desplazar bajo la isla</h2>
+  <div class="host"><p class="para" v-for="k in 12" :key="k">Párrafo {{ k }} de relleno. La isla no ocupa sitio en el contenido: nada se mueve cuando aparece, se abre o se repliega.</p></div>
+
+  <!-- La isla viva: capa superior (popover="manual"), como la monta GStatusIsland -->
+  <x-island live :items="liveItems" :form="S.form" :align="S.align" :mobile="mobile" :sheet="S.sheet" test="live" ref="live" @sheet-closed="S.sheet = false"></x-island>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, reactive, ref, computed, watch, onMounted, onBeforeUnmount, nextTick } = Vue
+const svg = (n) => `<svg class="g-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${window.LUCIDE_ICONS[n]}</svg>`
+const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert' }
+const T = { info: 'Información', success: 'Éxito', warning: 'Advertencia', error: 'Error' }
+const TYPES = ['error', 'warning', 'info', 'success']
+const SEV = { error: 4, warning: 3, info: 2, success: 1 }
+const MARK = { error: 'No se guardó', warning: 'Sesión por caducar', info: 'Mantenimiento', success: 'Guardada' }
+const LONG = {
+  error: 'No pudimos validar la dirección de facturación con el servicio externo.',
+  warning: 'Este cliente tiene 2 facturas abiertas y un saldo vencido desde hace más de treinta días.',
+  info: 'Los cambios en el régimen fiscal se aplican a partir de la siguiente factura.',
+  success: 'La tarjeta se verificó correctamente.'
+}
+const POOL = {
+  error: { title: 'No se pudo guardar la factura', description: 'El servidor no respondió; tus datos siguen en el formulario.', action: { label: 'Reintentar', busyLabel: 'Reintentando…' }, origin: { label: 'Ir al formulario' }, details: 'POST /api/invoices → 504 Gateway Timeout\nrequest-id: 7f3a9c2e-51b0-4d1e-9a77-0c4f1e2b8d63\nat InvoiceService.save (invoice.js:212)' },
+  warning: { title: 'Tu sesión está por caducar', description: '', action: { label: 'Seguir conectado' }, deadline: '4:59' },
+  info: { title: 'Mantenimiento programado', description: 'El sábado de 02:00 a 04:00 no se podrá facturar.', dismissible: true },
+  success: { title: 'Factura guardada', description: 'Folio F-0042.', link: { label: 'Ver factura', href: '#f-0042' } }
+}
+let UID = 0
+function makeItems(n, first, busy) {
+  const order = [first, ...TYPES.filter((t) => t !== first)]
+  const out = []
+  for (let k = 0; k < n; k++) {
+    const t = order[k % 4]
+    out.push({ uid: 'u' + k, type: t, ...POOL[t], title: POOL[t].title + (k >= 4 ? ` (${k + 1})` : ''), busy: busy && k === 0 && t === 'error', acknowledged: false })
+  }
+  return out.sort((a, b) => SEV[b.type] - SEV[a.type])
+}
+
+// ---------- XList: <ul class="g-status-island__list"> exacto del contrato ----------
+const XList = defineComponent({
+  name: 'XList',
+  props: { items: Array, rid: String, details: Boolean },
+  setup() { return { svg, ICON, T } },
+  template: `
+  <ul class="g-status-island__list">
+    <li v-for="c in items" :key="c.uid" :id="rid + '-i-' + c.uid" :data-type="c.type" :aria-busy="c.busy ? 'true' : undefined"
+        :class="['g-status-item', 'g-status-item--type-' + c.type, { 'is-busy': c.busy, 'is-acknowledged': c.acknowledged, 'has-action': !!c.action, 'has-details': !!c.details, 'is-dismissible': !!c.dismissible }]">
+      <span class="g-status-item__badge" :class="{ 'is-busy': c.busy }" :data-type="c.type" aria-hidden="true" v-html="svg(c.busy ? 'loader-circle' : ICON[c.type])"></span>
+      <div class="g-status-item__content">
+        <p class="g-status-item__title" :id="rid + '-i-' + c.uid + '-title'"><span class="g-status-item__type">{{ T[c.type] }}: </span>{{ c.title }}</p>
+        <p v-if="c.description" class="g-status-item__description">{{ c.description }}</p>
+        <span v-if="c.deadline" class="g-status-item__timer" role="timer" aria-live="off">{{ c.deadline }}</span>
+        <a v-if="c.link" class="g-status-item__link" :href="c.link.href">{{ c.link.label }}</a>
+        <template v-if="c.details">
+          <g-btn class="g-status-item__details-toggle" size="sm" variant="ghost" color="neutral" :aria-expanded="details ? 'true' : 'false'" :aria-controls="rid + '-i-' + c.uid + '-details'">Detalle técnico</g-btn>
+          <div class="g-status-item__details" :id="rid + '-i-' + c.uid + '-details'" :hidden="details ? undefined : true">
+            <pre class="g-status-item__details-text" dir="ltr">{{ c.details }}</pre>
+            <g-btn class="g-status-item__copy" size="sm" variant="ghost" color="neutral">Copiar</g-btn>
+          </div>
+        </template>
+      </div>
+      <div v-if="c.action || c.origin" class="g-status-item__actions">
+        <g-btn v-if="c.action" class="g-status-item__action" size="sm" variant="outline" color="neutral" :aria-disabled="c.busy ? 'true' : undefined">{{ c.busy ? c.action.busyLabel : c.action.label }}</g-btn>
+        <g-btn v-if="c.origin" class="g-status-item__origin" size="sm" variant="ghost" color="neutral">{{ c.origin.label }}</g-btn>
+      </div>
+      <g-btn v-if="c.dismissible" class="g-status-item__dismiss" icon size="sm" variant="ghost" color="neutral" :aria-label="'Descartar: ' + c.title"><span v-html="svg('x')" style="display:contents"></span></g-btn>
+    </li>
+  </ul>`
+})
+
+// ---------- XIsland: raíz, canales, section __shape, resumen, panel y hoja (lo que pintará GStatusIsland.vue) ----------
+const XIsland = defineComponent({
+  name: 'XIsland',
+  components: { XList },
+  props: { items: Array, form: String, align: { type: String, default: 'center' }, live: Boolean, mobile: Boolean, sheet: Boolean, test: String },
+  emits: ['sheet-closed'],
+  setup(props, { expose, emit }) {
+    const root = ref(null), shape = ref(null), inner = ref(null)
+    const ready = ref(false), nudging = ref(false)
+    const size = reactive({ w: 0, h: 0 })
+    const rid = 'isl-' + props.test
+    const count = computed(() => (props.form === 'empty' ? 0 : props.items.length))
+    const first = computed(() => (count.value ? props.items[0] : null))
+    const isOpen = computed(() => props.form === 'open')
+    const write = () => { const el = inner.value; if (!el) return; size.w = el.offsetWidth; size.h = el.offsetHeight }
+    let ro = null
+    onMounted(() => {
+      if (props.live && root.value.showPopover) root.value.showPopover()
+      write()
+      ro = new ResizeObserver(write); ro.observe(inner.value)
+      requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+    })
+    onBeforeUnmount(() => ro && ro.disconnect())
+    function nudge() { nudging.value = false; requestAnimationFrame(() => { nudging.value = true }) }
+    function onAnim(e) { if (e.animationName === 'g-status-nudge') nudging.value = false }
+    const sheetOpen = computed({ get: () => props.mobile && props.sheet, set: (v) => { if (!v) emit('sheet-closed') } })
+    expose({ nudge, root, shape, inner, size })
+    return { root, shape, inner, ready, nudging, size, rid, count, first, isOpen, nudge, onAnim, svg, ICON, T, sheetOpen }
+  },
+  template: `
+  <div ref="root" :id="rid" :data-test="test" :popover="live ? 'manual' : undefined"
+       :class="['g-status-island', 'g-status-island--position-top-' + align, { 'is-ready': ready, 'is-nudge': nudging }]"
+       :data-position="'top-' + align" :data-align="align" :data-form="count ? form : 'empty'" :data-type="first ? first.type : undefined"
+       :data-mobile="mobile ? '' : undefined" @animationend="onAnim">
+    <div class="g-status-island__live" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="g-status-island__live" role="alert" aria-atomic="true"></div>
+    <section ref="shape" class="g-status-island__shape" :hidden="count ? undefined : true" aria-label="Estado de la aplicación (Alt+F8)"
+             :style="size.w ? { '--_island-w': size.w + 'px', '--_island-h': size.h + 'px' } : undefined">
+      <div ref="inner" class="g-status-island__inner">
+        <button v-if="first" class="g-status-island__summary" :id="rid + '-summary'" type="button" :aria-expanded="isOpen ? 'true' : 'false'"
+                :aria-controls="mobile ? undefined : rid + '-panel'" :aria-haspopup="mobile ? 'dialog' : undefined" aria-keyshortcuts="Alt+F8">
+          <span class="g-status-island__badge" :class="{ 'is-busy': first.busy }" :data-type="first.type" aria-hidden="true" v-html="svg(first.busy ? 'loader-circle' : ICON[first.type])"></span>
+          <span class="g-status-island__text"><span class="g-status-island__sr">Estado: {{ count }} {{ count === 1 ? 'aviso' : 'avisos' }}. {{ T[first.type] }}: </span>{{ first.title }}</span>
+          <span v-if="first.deadline" class="g-status-island__timer" role="timer" aria-live="off">{{ first.deadline }}</span>
+          <span v-if="count > 1" class="g-status-island__more"><span aria-hidden="true">+{{ count - 1 }}</span><span class="g-status-island__sr">y {{ count - 1 }} más</span></span>
+        </button>
+        <div v-if="!mobile" class="g-status-island__panel" :id="rid + '-panel'" :hidden="isOpen && count ? undefined : true">
+          <x-list :items="items" :rid="rid" :details="$root.S.details"></x-list>
+          <div class="g-status-island__foot"><g-btn class="g-status-island__ack" size="sm" variant="outline" color="neutral">Entendido</g-btn></div>
+        </div>
+      </div>
+    </section>
+    <g-dialog v-if="mobile && live" v-model="sheetOpen" class="g-status-sheet" mobile="sheet" title="Estado de la aplicación" close-label="Cerrar">
+      <x-list :items="items" :rid="rid + '-sheet'" :details="$root.S.details"></x-list>
+      <template #footer><g-btn class="g-status-island__ack" size="sm" variant="outline" color="neutral">Entendido</g-btn></template>
+    </g-dialog>
+  </div>`
+})
+
+// ---------- XMark: enlace (button) o texto (div + p) exacto del contrato ----------
+const XMark = defineComponent({
+  name: 'XMark',
+  props: { type: { type: String, default: 'info' }, link: Boolean, busy: Boolean },
+  setup() { return { svg, ICON, T } },
+  template: `
+  <button v-if="link" type="button" :class="['g-status-mark', 'g-status-mark--link', 'g-status-mark--type-' + type, { 'is-busy': busy }]" :data-type="type"
+          aria-expanded="false" aria-controls="isl-live-panel" :aria-busy="busy ? 'true' : undefined">
+    <span class="g-status-mark__badge" :data-type="type" aria-hidden="true" v-html="svg(busy ? 'loader-circle' : ICON[type])"></span>
+    <span class="g-status-mark__text"><span class="g-status-mark__type">{{ T[type] }}: </span><slot /></span>
+  </button>
+  <div v-else :class="['g-status-mark', 'g-status-mark--text', 'g-status-mark--type-' + type]" :data-type="type">
+    <span class="g-status-mark__badge" :data-type="type" aria-hidden="true" v-html="svg(ICON[type])"></span>
+    <p class="g-status-mark__text"><span class="g-status-mark__type">{{ T[type] }}: </span><slot /></p>
+    <div v-if="$slots.action" class="g-status-mark__action"><slot name="action" /></div>
+  </div>`
+})
+
+const app = createApp({
+  components: { XIsland, XMark },
+  setup() {
+    const S = reactive({
+      n: Number(Q.get('n') || 3), first: Q.get('first') || 'error', form: Q.get('form') || 'compact', align: Q.get('align') || 'center',
+      busy: false, details: false, sheet: false, forceMobile: Q.has('mobile'), vw: innerWidth, acked: false
+    })
+    addEventListener('resize', () => { S.vw = innerWidth })
+    // Umbral de hoja de GDialog: space × 130 (medido, como el .vue)
+    const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 4
+    const mobile = computed(() => S.forceMobile || S.vw < space() * 130)
+    const liveItems = computed(() => makeItems(S.n, S.first, S.busy).map((c) => ({ ...c, acknowledged: S.acked })))
+    const specItems = (t) => makeItems(1, t, false)
+    const live = ref(null)
+    const nudge = () => live.value && live.value.nudge()
+    window.bench = { S, nudge, live }
+    return { S, TYPES, MARK, LONG, liveItems, specItems, mobile, live, nudge }
+  }
+})
+app.use(Grana)
+app.mount('#app')
+</script>
+</body>
+</html>

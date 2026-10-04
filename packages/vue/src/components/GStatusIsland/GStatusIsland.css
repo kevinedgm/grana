@@ -1,0 +1,641 @@
+/*
+  GStatusIsland · estilo de la isla de estado (g-status-island), de cada condición (g-status-item) y de la hoja móvil
+  (g-status-sheet)
+  Dueño: coco. Contrato: design/contracts/status.md. Estructura: design/lab/alert/r02/ (B · Isla de estado, aprobada por
+  el usuario mirándola). Notas y personalidad: design/lab/alert/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §31).
+  Únicos literales: 24px y 44px (área táctil), 0px (valor neutro de una variable en línea) y el patrón de texto oculto.
+  Los botones son GBtn: este archivo va DESPUÉS de GBtn.css (reasigna sus alias). La hoja es un GDialog real: va después
+  de GDialog.css.
+
+  Superficie inversa (#325): fondo --g-color-text, texto/iconos/anillos --g-color-surface. Nunca brand.
+
+  Constantes de diseño derivadas de space (no son tokens; status.md «No son tokens», estilo.md):
+    margen al borde            space × 2, combinado con env(safe-area-inset-*) y --_status-offset-top
+    alto de la compacta        space × 12 (borde incluido)          punto: space × 8 (borde incluido; ≥ 44px táctil)
+    insignia                   space × 8 (compacta, abierta, avisos) · space × 6 (punto) · icono space × 5 / space × 4
+    ancho de la abierta        min(space × 104, ancho disponible); la compacta nunca lo supera (crece al abrirse)
+    anillo de insignia         border-width × 2 (sólido error, discontinuo warning, punteado info, sin anillo success)
+    cascada del panel          retardo duration-fast / 5 por aviso, máximo 3 escalones (≤ 240ms en total, #71)
+  Constante de coreografía (tokens.md §29.6): 0.86, escala de partida del toque y del nacer.
+
+  Datos del .vue (status.md «Clases y datos»; se declaran aquí solo los que tienen valor neutro):
+    --_island-w, --_island-h   px del tamaño natural de __inner (ResizeObserver). Sin ellos, la forma mide auto
+    --_status-offset-top       calc(<offset.top> + <reserva de borde>px); neutro 0px
+*/
+
+/* ---------- Raíz: capa superior (popover="manual" siempre abierto), sin pintura, no captura el puntero ---------- */
+.g-status-island {
+  --_m: calc(var(--g-space-1) * 2);
+  --_status-offset-top: 0px;
+  --_safe-start: env(safe-area-inset-left);
+  --_safe-end: env(safe-area-inset-right);
+  --_top: calc(max(var(--_m), env(safe-area-inset-top)) + var(--_status-offset-top));
+  --_row: calc(var(--g-space-1) * 12);
+  --_dot: calc(var(--g-space-1) * 8);
+  --_badge: calc(var(--g-space-1) * 8);
+  --_badge-dot: calc(var(--g-space-1) * 6);
+  --_glyph: calc(var(--g-space-1) * 5);
+  --_glyph-dot: calc(var(--g-space-1) * 4);
+  --_wide: calc(var(--g-space-1) * 104);
+  --_origin-x: 50%;
+
+  position: fixed;
+  inset: auto;
+  inset-block-start: var(--_top);
+  inset-inline: max(var(--_m), var(--_safe-start)) max(var(--_m), var(--_safe-end));
+  box-sizing: border-box;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-align: start;
+  /* El ancho disponible (visor menos márgenes) es el contenedor de la forma: __inner lo lee en cqi sin depender del
+     tamaño animado de __shape (que a su vez sale de __inner: así no hay ciclo) */
+  container-type: inline-size;
+  pointer-events: none;
+}
+.g-status-island:dir(rtl) {
+  --_safe-start: env(safe-area-inset-right);
+  --_safe-end: env(safe-area-inset-left);
+}
+.g-status-island[data-align="start"] { --_origin-x: 0%; }
+.g-status-island[data-align="end"] { --_origin-x: 100%; }
+.g-status-island[data-align="start"]:dir(rtl) { --_origin-x: 100%; }
+.g-status-island[data-align="end"]:dir(rtl) { --_origin-x: 0%; }
+@media (pointer: coarse) {
+  .g-status-island {
+    --_row: max(44px, calc(var(--g-space-1) * 12));
+    --_dot: max(44px, calc(var(--g-space-1) * 8));
+  }
+}
+
+/* ---------- Texto oculto accesible: canales, prefijos y lo que el punto esconde ---------- */
+.g-status-island__live,
+.g-status-island__sr,
+.g-status-item__type,
+.g-status-island[data-form="dot"] .g-status-island__text,
+.g-status-island[data-form="dot"] .g-status-island__timer,
+.g-status-island[data-form="dot"] .g-status-island__more {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- La forma: una sola superficie que cambia de tamaño (D4) ---------- */
+.g-status-island__shape {
+  /* Contexto inverso: lo heredan el resumen, los avisos, sus insignias y sus botones */
+  --_ink: var(--g-color-surface);
+  --_rim: var(--g-color-surface);
+  --_tile: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
+  --_tile-edge: transparent;
+  --_well: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
+  --_veil: color-mix(in oklab, var(--g-color-surface) 12%, transparent);
+  --_link: var(--g-color-surface);
+  --_ring-color: var(--g-color-surface);
+  --_radius: min(var(--g-radius-pill), calc(var(--_row) / 2));
+
+  /* El borde (transparente; CanvasText en forced-colors) se suma al tamaño medido de __inner. Se calcula con border-box
+     explícito: un reinicio de la aplicación sin capa (`* { box-sizing: border-box }`) gana a esta capa y no debe cambiarlo */
+  box-sizing: border-box;
+  display: block;
+  inline-size: calc(var(--_island-w) + var(--g-border-width) * 2);
+  block-size: calc(var(--_island-h) + var(--g-border-width) * 2);
+  max-inline-size: 100%;
+  margin-inline: auto;
+  overflow: clip;
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--_radius);
+  background: var(--g-color-text);
+  color: var(--_ink);
+  box-shadow: var(--g-shadow-2);
+  transform-origin: var(--_origin-x) 0;
+  pointer-events: auto;
+}
+.g-status-island__shape[hidden] { display: none; }
+.g-status-island[data-align="start"] .g-status-island__shape { margin-inline: 0 auto; }
+.g-status-island[data-align="end"] .g-status-island__shape { margin-inline: auto 0; }
+.g-status-island[data-form="dot"] .g-status-island__shape { --_radius: min(var(--g-radius-pill), calc(var(--_dot) / 2)); }
+/* En móvil la abierta es la hoja: la forma se queda como la compacta */
+.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__shape { --_radius: var(--g-radius-xl); }
+
+/* El contenido se mide a su tamaño natural: max-content hasta el ancho de la abierta (la compacta nunca la supera) */
+.g-status-island__inner {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  inline-size: max-content;
+  max-inline-size: calc(min(var(--_wide), 100cqi) - var(--g-border-width) * 2);
+}
+.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__inner {
+  inline-size: calc(min(var(--_wide), 100cqi) - var(--g-border-width) * 2);
+  /* Sin máximo de condiciones: la lista desplaza y el pie queda a la vista */
+  max-block-size: calc(100dvh - var(--_top) - var(--_m) - var(--g-border-width) * 2);
+}
+
+/* ---------- Resumen (button): insignia concéntrica con el extremo de la píldora ---------- */
+.g-status-island__summary {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: calc(var(--_row) - var(--g-border-width) * 2);
+  margin: 0;
+  padding-block: var(--g-space-1);
+  padding-inline: calc((var(--_row) - var(--_badge)) / 2 - var(--g-border-width)) calc(var(--g-space-1) * 4);
+  border: 0;
+  border-radius: calc(var(--_radius) - var(--g-border-width));
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-status-island[data-form="dot"] .g-status-island__summary {
+  justify-content: center;
+  min-block-size: calc(var(--_dot) - var(--g-border-width) * 2);
+  padding: calc((var(--_dot) - var(--_badge-dot)) / 2 - var(--g-border-width));
+}
+.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__summary {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+@media (hover: hover) {
+  .g-status-island__summary:hover { background: var(--_veil); }
+}
+/* Foco: replegada, el anillo rodea toda la isla por fuera (es la isla); abierta, anillo interior en surface */
+.g-status-island__summary:focus-visible { outline: none; }
+.g-status-island:not([data-form="open"]) .g-status-island__shape:has(.g-status-island__summary:focus-visible),
+.g-status-island[data-mobile] .g-status-island__shape:has(.g-status-island__summary:focus-visible) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__summary:focus-visible {
+  outline: var(--g-focus-width) solid var(--_ring-color);
+  outline-offset: calc((var(--g-focus-width) + var(--g-border-width)) * -1);
+}
+
+.g-status-island__text {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--g-text-action-weight);
+}
+.g-status-island__timer {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* «+N»: cápsula con contorno (no es un control) */
+.g-status-island__more {
+  flex: none;
+  box-sizing: border-box;
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid currentColor;
+  border-radius: var(--g-radius-pill);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Insignia de tipo (isla, avisos): relleno del tipo, icono on-tipo y anillo con forma por tipo ---------- */
+.g-status-island__badge,
+.g-status-item__badge {
+  --_size: var(--_badge);
+  --_g: var(--_glyph);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_size);
+  block-size: var(--_size);
+  border: calc(var(--g-border-width) * 2) var(--_ring-style) var(--_rim);
+  border-radius: var(--g-radius-pill);
+  background: var(--_fill);
+  color: var(--_on);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-status-island__badge > .g-icon,
+.g-status-item__badge > .g-icon {
+  inline-size: var(--_g);
+  block-size: var(--_g);
+}
+.g-status-island[data-form="dot"] .g-status-island__badge {
+  --_size: var(--_badge-dot);
+  --_g: var(--_glyph-dot);
+}
+/* Tipo sin color (WCAG 1.4.1): forma del icono + prefijo oculto + estilo del anillo */
+.g-status-island__badge[data-type="info"],
+.g-status-item--type-info {
+  --_fill: var(--g-color-info); --_on: var(--g-color-on-info); --_ring-style: dotted;
+}
+.g-status-island__badge[data-type="success"],
+.g-status-item--type-success {
+  --_fill: var(--g-color-success); --_on: var(--g-color-on-success); --_ring-style: none;
+}
+.g-status-island__badge[data-type="warning"],
+.g-status-item--type-warning {
+  --_fill: var(--g-color-warning); --_on: var(--g-color-on-warning); --_ring-style: dashed;
+}
+.g-status-island__badge[data-type="error"],
+.g-status-item--type-error {
+  --_fill: var(--g-color-danger); --_on: var(--g-color-on-danger); --_ring-style: solid;
+}
+/* Memoria (D2): con más de una condición, un eco fino rodea la insignia del resumen, también en el punto («hay más») */
+.g-status-island__summary:has(.g-status-island__more) .g-status-island__badge {
+  box-shadow:
+    0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text),
+    0 0 0 calc(var(--g-border-width) * 3) var(--_ink);
+}
+
+/* ---------- Panel (escritorio): lista con desplazamiento propio y pie siempre visible ---------- */
+.g-status-island__panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding: 0 var(--g-space-2) var(--g-space-2);
+}
+.g-status-island__panel[hidden] { display: none; }
+.g-status-island__list {
+  display: grid;
+  align-content: start;
+  gap: var(--g-space-1);
+  flex: 1 1 auto;
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--_ink) 40%, transparent) transparent;
+}
+.g-status-island__foot {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: var(--g-space-2);
+}
+
+/* ---------- Aviso (li): insignia | contenido | descartar; acciones bajo el contenido ---------- */
+.g-status-item {
+  /* Contexto por defecto = superficie de la página (la hoja móvil); dentro de __shape, el inverso */
+  --_ink: var(--g-color-text);
+  --_rim: var(--g-color-text);
+  --_tile: var(--g-color-surface);
+  --_tile-edge: var(--g-color-border);
+  --_well: var(--g-color-surface-sunken);
+  --_link: var(--g-color-link);
+  --_ring-color: var(--g-color-focus);
+  --_size-badge: calc(var(--g-space-1) * 8);
+
+  display: grid;
+  grid-template-columns: [badge] auto [content] minmax(0, 1fr) [end] auto;
+  align-items: start;
+  column-gap: var(--g-space-3);
+  row-gap: var(--g-space-2);
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--g-space-2);
+  border: var(--g-border-width) solid var(--_tile-edge);
+  border-radius: var(--g-radius-lg);
+  background: var(--_tile);
+  color: var(--_ink);
+  overflow-wrap: anywhere;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-status-island__shape .g-status-item {
+  --_ink: var(--g-color-surface);
+  --_rim: var(--g-color-surface);
+  --_tile: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
+  --_tile-edge: transparent;
+  --_well: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
+  --_link: var(--g-color-surface);
+  --_ring-color: var(--g-color-surface);
+}
+/* Reconocida: sin tinte (ya vista); el contorno la mantiene como pieza */
+.g-status-item.is-acknowledged {
+  --_tile: transparent;
+}
+.g-status-island__shape .g-status-item.is-acknowledged {
+  --_tile-edge: color-mix(in oklab, var(--g-color-surface) 16%, transparent);
+}
+/* El li recibe el foco (tabindex="-1") en la hoja o cuando la marca no encuentra otro destino */
+.g-status-item:focus-visible {
+  outline: var(--g-focus-width) solid var(--_ring-color);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+.g-status-item__badge {
+  --_size: var(--_size-badge);
+  --_g: calc(var(--g-space-1) * 5);
+  grid-column: badge;
+  grid-row: 1 / span 2;
+}
+.g-status-item__content {
+  grid-column: content / end;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--g-space-1) / 2);
+  min-inline-size: 0;
+  /* El título se centra con la insignia */
+  padding-block-start: calc((var(--_size-badge) - var(--g-text-body-sm-line)) / 2);
+}
+.g-status-item.is-dismissible .g-status-item__content { grid-column: content; }
+.g-status-item__title,
+.g-status-item__description {
+  margin: 0;
+  max-inline-size: 100%;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-status-item__title { font-weight: var(--g-text-action-weight); }
+.g-status-item__timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--g-text-action-weight);
+}
+.g-status-item__link {
+  color: var(--_link);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
+  font-weight: var(--g-text-action-weight);
+  border-radius: var(--g-radius-xs);
+}
+@media (hover: hover) {
+  .g-status-item__link:hover { text-decoration-thickness: calc(var(--g-border-width) * 2); }
+}
+.g-status-item__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--_ring-color);
+  outline-offset: var(--g-focus-offset);
+}
+/* Detalle técnico: un pozo con el texto partido (se lee en 320px) y «Copiar» */
+.g-status-item__details {
+  display: grid;
+  justify-items: start;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  inline-size: 100%;
+  margin-block-start: var(--g-space-1);
+  padding: var(--g-space-2);
+  border-radius: var(--g-radius-md);
+  background: var(--_well);
+}
+.g-status-item__details[hidden] { display: none; }
+.g-status-item__details-text {
+  inline-size: 100%;
+  margin: 0;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-variant-numeric: tabular-nums;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: start;
+  color: inherit;
+}
+.g-status-item__actions {
+  grid-column: content / end;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-status-item__actions:empty { display: none; }
+.g-status-item__dismiss {
+  grid-column: end;
+  grid-row: 1;
+  /* Centrado con la insignia (GBtn sm mide space × 7) */
+  margin-block-start: calc((var(--_size-badge) - var(--g-space-1) * 7) / 2);
+}
+
+/* ---------- Botones (GBtn): acción y «Entendido» outline + neutral + sm; el resto ghost + neutral + sm ---------- */
+.g-status-item__action.g-btn,
+.g-status-island__ack.g-btn,
+.g-status-item__origin.g-btn,
+.g-status-item__details-toggle.g-btn,
+.g-status-item__copy.g-btn,
+.g-status-item__dismiss.g-btn {
+  --_radius: var(--g-radius-pill);
+  --_fg: var(--_ink);
+  --_fg-hover: var(--_ink);
+  --_bg: transparent;
+  --_bg-hover: var(--g-color-neutral-soft);
+  --_border: transparent;
+  --_border-hover: transparent;
+  white-space: nowrap;
+}
+.g-status-item__action.g-btn,
+.g-status-island__ack.g-btn {
+  --_border: var(--g-color-border-control);
+  --_border-hover: var(--g-color-text-muted);
+}
+/* El conmutador del detalle se alinea ópticamente con el texto (su relleno queda fuera del borde del contenido) */
+.g-status-item__details-toggle.g-btn {
+  margin-inline-start: calc(var(--_px) * var(--_density) * -1);
+}
+.g-status-item__dismiss .g-icon {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+/* Reintentando: enfocable con aria-disabled (nunca loading de GBtn): mismo color, cursor de progreso, sin pulsación */
+.g-status-item__action.g-btn[aria-disabled="true"] { cursor: progress; }
+.g-status-item__action.g-btn[aria-disabled="true"]:active:not(:disabled):not(.is-loading) { transform: none; }
+
+/* Sobre la superficie inversa: outline en surface que se ilumina al pasar (relleno surface, texto text: par garantizado) */
+.g-status-island__shape .g-btn {
+  --_bg-hover: var(--_veil);
+}
+.g-status-island__shape .g-status-item__action.g-btn,
+.g-status-island__shape .g-status-island__ack.g-btn {
+  --_border: var(--g-color-surface);
+  --_border-hover: var(--g-color-surface);
+  --_bg-hover: var(--g-color-surface);
+  --_fg-hover: var(--g-color-text);
+}
+.g-status-island__shape .g-status-item__action.g-btn[aria-disabled="true"] {
+  --_bg-hover: transparent;
+  --_fg-hover: var(--g-color-surface);
+}
+.g-status-island__shape .g-btn:focus-visible {
+  outline-color: var(--_ring-color);
+}
+
+/* ---------- Hoja móvil (GDialog real, mobile="sheet"): la misma lista sobre la superficie del diálogo ---------- */
+/* La raíz no captura el puntero; la hoja es su descendiente en el DOM (capa superior propia) */
+.g-status-sheet { pointer-events: auto; }
+.g-status-sheet .g-status-island__list {
+  display: grid;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-status-sheet .g-status-island__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------- Movimiento ---------- */
+/* Giro de loader-circle (reintentando): solo con movimiento permitido */
+@keyframes g-status-spin {
+  to { rotate: 1turn; }
+}
+/* Toque (is-nudge, una vez por suceso; bruno quita la clase en animationend con animationName === 'g-status-nudge') */
+@keyframes g-status-nudge {
+  from { scale: 0.86; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .g-status-island__badge.is-busy > .g-icon,
+  .g-status-item.is-busy .g-status-item__badge > .g-icon {
+    animation: g-status-spin var(--g-duration-spin) linear infinite;
+  }
+  /* Recolocación por la reserva del borde (la voz aparece o cambia): sin muelle */
+  .g-status-island.is-ready {
+    transition: inset-block-start var(--g-duration-press) var(--g-ease-out);
+  }
+  /* Cambio de forma (vigente fuera de @supports: con var(), una curva no soportada invalida la declaración entera) */
+  .g-status-island.is-ready .g-status-island__shape {
+    transition:
+      inline-size var(--g-duration-slow) var(--g-ease-out),
+      block-size var(--g-duration-slow) var(--g-ease-out),
+      border-radius var(--g-duration-slow) var(--g-ease-out),
+      opacity var(--g-duration-press) var(--g-ease-out),
+      scale var(--g-duration-press) var(--g-ease-out),
+      outline-color var(--g-duration-fast) var(--g-ease-standard),
+      display var(--g-duration-press);
+    transition-behavior: allow-discrete;
+  }
+  .g-status-island.is-ready.is-nudge .g-status-island__shape {
+    animation: g-status-nudge var(--g-duration-slow) var(--g-ease-out);
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-status-island.is-ready .g-status-island__shape {
+      transition:
+        inline-size var(--g-duration-slow) var(--g-ease-spring),
+        block-size var(--g-duration-slow) var(--g-ease-spring),
+        border-radius var(--g-duration-slow) var(--g-ease-spring),
+        opacity var(--g-duration-press) var(--g-ease-out),
+        scale var(--g-duration-press) var(--g-ease-out),
+        outline-color var(--g-duration-fast) var(--g-ease-standard),
+        display var(--g-duration-press);
+    transition-behavior: allow-discrete;
+    }
+    .g-status-island.is-ready.is-nudge .g-status-island__shape {
+      animation: g-status-nudge var(--g-duration-slow) var(--g-ease-spring);
+    }
+  }
+  /* Nacer (de vacía a visible): fundido y escala desde 0.86 colgando del borde; es una entrada, sin muelle (#324) */
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__shape {
+      opacity: 0;
+      scale: 0.86;
+    }
+  }
+  /* Vaciarse: fundido corto */
+  .g-status-island.is-ready .g-status-island__shape[hidden] {
+    opacity: 0;
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      display var(--g-duration-fast);
+    transition-behavior: allow-discrete;
+  }
+  /* Pulsar la isla replegada: se aprieta como un GBtn (la abierta no) */
+  .g-status-island.is-ready:not([data-form="open"]) .g-status-island__shape:has(.g-status-island__summary:active),
+  .g-status-island.is-ready[data-mobile] .g-status-island__shape:has(.g-status-island__summary:active) {
+    scale: var(--g-press-scale);
+  }
+  /* Contenido del panel: cae desde el resumen en una cascada corta (fundido + space × 1) */
+  .g-status-island.is-ready .g-status-island__shape .g-status-item,
+  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
+    --_i: 0;
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      opacity var(--g-duration-press) var(--g-ease-out) calc(var(--g-duration-fast) / 5 * var(--_i)),
+      translate var(--g-duration-press) var(--g-ease-out) calc(var(--g-duration-fast) / 5 * var(--_i));
+  }
+  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(2) { --_i: 1; }
+  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(3) { --_i: 2; }
+  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(n + 4),
+  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot { --_i: 3; }
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__shape .g-status-item,
+    .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+  }
+}
+
+/* Movimiento reducido (tokens.md §29.3): la isla no se mueve; solo fundidos de duration-fast */
+@media (prefers-reduced-motion: reduce) {
+  .g-status-island.is-ready .g-status-island__shape {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      display var(--g-duration-fast);
+    transition-behavior: allow-discrete;
+  }
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__shape { opacity: 0; }
+  }
+  .g-status-island.is-ready .g-status-island__shape[hidden] { opacity: 0; }
+  .g-status-island.is-ready .g-status-island__shape .g-status-item,
+  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__shape .g-status-item,
+    .g-status-island.is-ready .g-status-island__shape .g-status-island__foot { opacity: 0; }
+  }
+}
+
+/* ---------- Preferencias de contraste ---------- */
+@media (prefers-contrast: more) {
+  .g-status-island__shape .g-status-item {
+    --_tile: transparent;
+    --_tile-edge: var(--g-color-surface);
+  }
+  .g-status-item { --_tile-edge: var(--g-color-border-control); }
+}
+@media (forced-colors: active) {
+  .g-status-island__shape,
+  .g-status-item { border-color: CanvasText; }
+  .g-status-island__badge,
+  .g-status-item__badge { border-color: CanvasText; }
+  .g-status-item__details { border: var(--g-border-width) solid CanvasText; }
+  .g-status-island__summary:focus-visible,
+  .g-status-island__shape:has(.g-status-island__summary:focus-visible),
+  .g-status-item:focus-visible,
+  .g-status-item__link:focus-visible { outline-color: Highlight; }
+}
