@@ -736,7 +736,7 @@ Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un 
 
 ### 29.5 Datos del `.vue` al CSS (no son tokens)
 
-Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; reservados `--_select-x`/`--_select-y`), `--_active-y`/`--_active-h` (`GMenu`). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`) se fijan en cada contrato.
+Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; se retiran al quitar las escuchas, no en `pointerleave`; `--_select-x`/`--_select-y` reservados **sin uso**: C2 sale por anclaje CSS), `--_active-y`/`--_active-h` (`GMenu`). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`) se fijan en cada contrato.
 
 ### 29.6 Constantes de coreografía (neutras, #187)
 
@@ -760,6 +760,9 @@ Variables `--_*` **internas** del CSS de un componente (no se leen desde fuera, 
 | `--_tabs-clip` (`@property`, `<length>`) | `GTabs.css` | Margen del recorte de `g-tabs__panels` (= `--g-focus-width` + `--g-focus-offset`); registrada porque Chromium calcula `overflow-clip-margin: calc(…)` como `0px` y con una longitud ya resuelta sí lo aplica (#306) |
 | `--_from-x` y `--_from-y` | `GDialog.css` | **Alias** de la entrada y la salida de D1: el vector escrito por el `.vue` (`--_origin-x/y`) × `0.25`, acotado a ± `--g-space-1 × 8` por `clamp` (#301) |
 | `--_active-y` y `--_active-h` | `GMenu` (`.vue` → CSS) | **Dato** del `.vue` (px: posición y alto del elemento activo de cada lista), ya listado en §29.5; el CSS los lee y no los reescribe |
+| `--_card-veil`, `--_card-selected` (`<color>`) y `--_card-reach` (`<percentage>`, 0 % a 100 %) (`@property`) | `GCard.css` | **Velo de hover/pulsación, tinte de seleccionada y alcance del círculo** de C2 (#303). Se animan **en la raíz** y el `::before` los hereda (`inherit`), porque WebKit cancela las transiciones de un elemento colocado con `anchor()`; `--_card-reach` es `<percentage>` porque WebKit no interpola `<length-percentage>` entre longitud y porcentaje |
+| `--_card-glow` (`@property`, `<color>`) | `GCard.css` | Color del halo de C1 (dos capas del mismo `--g-card-hover`); se funde en `--g-duration-press` y se apaga al apretar |
+| `--g-card-select` (`anchor-name`, **no es un token**) | `GCard.css` | Nombre de anclaje **neutro** del indicador de selección (`g-card__selectbox`, `g-card__tick--static`); con `anchor-scope` en cada tarjeta. No se tematiza ni se lee desde fuera |
 | `--_pdir`, `--_shift` | `GTabs.css` | Sentido (±1, por `:dir(rtl)`) y magnitud (`--g-space-1 × 4`) de la entrada lateral del panel (T2, #302) |
 
 Un alias o propiedad registrada nueva de este tipo **no necesita decisión** mientras solo derive de tokens y constantes de §29.6; una **constante nueva** sí (#187).

@@ -248,34 +248,37 @@ Con `loading` no se renderizan principal, menú, acciones ni controles enfocable
 
 ## Personalidad (DECISIONS.md #303; lenguaje común, #299 y `tokens.md` §29)
 
-Ronda de kiwi `design/lab/personalidad/r01/` §6 (C1 prototipada sobre el componente real; C2 no). **La tarjeta no se mueve** (#127): todo es pintura. Ninguna prop, slot, evento ni clase nueva.
+Ronda de kiwi `design/lab/personalidad/r01/` §6; implementación y medidas de coco (plan 017) en `design/lab/card/estilo.md` «Personalidad». **La tarjeta no se mueve** (#127): todo es pintura. Ninguna prop, slot, evento ni clase nueva.
 
 ### C2 · La selección nace de la casilla
 
-- Al pasar a `is-selected`, el fondo de seleccionada (`--g-card-selected`) se **extiende en círculo desde el centro del indicador** (`g-card__selectbox`; en `toggle`, `g-card__tick--static`) hasta cubrir la tarjeta; al desmarcar, se **recoge** hacia él. Duración de bloque (`--g-duration-slow` o `--g-duration-press`, la elige coco) con `--g-ease-out`.
+- Al pasar a `is-selected`, el fondo de seleccionada (`--g-card-selected`) se **extiende en círculo desde el centro del indicador** (`g-card__selectbox`; en `toggle`, `g-card__tick--static`) hasta cubrir la tarjeta; al desmarcar, se **recoge** hacia él. Crece con `--g-duration-slow` y se recoge con `--g-duration-press`, ambas con `--g-ease-out` (la elige coco; medido en `design/lab/card/estilo.md`).
 - El borde doble y el ✓ siguen fundiéndose como hoy (plan 008); la selección sigue sin depender solo del color.
-- **Solo CSS** (coco), sobre la propiedad registrada del plan 008 (radio registrado de un `radial-gradient`). Si el CSS no puede situar el origen en todos los modos (`orientation`, media lateral, `compact`), bruno escribe **`--_select-x`** y **`--_select-y`** (px desde la caja de borde de la raíz al centro del indicador, con el `ResizeObserver` que ya tiene); nombres reservados desde ya, sin escribirlos hasta que coco lo pida.
-- Interacciones sin indicador (`button`, `link` sin `selectable`): no aplica.
+- **Solo CSS por anclaje, sin datos de JS** (coco, plan 017): el indicador lleva `anchor-name: --g-card-select`, cada tarjeta `anchor-scope: --g-card-select` (las anidadas no se cruzan) y el `::before` se coloca con `inset: min(0%, calc(anchor(--g-card-select center, 50%) * 2 - 100%))`, de modo que queda centrado en el indicador y su `farthest-corner` es la esquina más lejana (LTR, RTL, media lateral, `compact`, lista). Por eso **`--_select-x` y `--_select-y` quedan reservados sin uso**: bruno no los escribe.
+- **Límite conocido:** WebKit cancela las transiciones de un elemento colocado con `anchor()`. Por eso velo, tinte y radio se animan **en la raíz** con propiedades registradas privadas (`--_card-veil`, `--_card-selected`, `--_card-reach`; `tokens.md` §29.7) y el `::before` las hereda. No cambia la API.
+- **Sin anclaje** (navegador sin `anchor()`) o con `prefers-reduced-motion: reduce`: la capa es la tarjeta y el tinte se **funde** como en el plan 008. `forced-colors`: sin `::before`; la selección es el anillo del sistema.
+- Interacciones sin indicador (`button`, `link` sin `selectable`, `current`): no aplica.
 
 ### C1 · La luz sigue al puntero
 
-- Sobre el velo uniforme de hover (`--g-card-hover`, que **sigue siendo la señal**), un **halo** del mismo token concentrado donde está el puntero. Color y concentración los decide coco con `color-mix` del **mismo** token (**sin token nuevo**), medidos en claro y en oscuro; el halo aparece y se va con el hover (fundido de color) y su posición **no** se transiciona (sigue al puntero).
+- Sobre el velo uniforme de hover (`--g-card-hover`, que **sigue siendo la señal**), un **halo** del mismo token concentrado donde está el puntero. La concentración son **dos capas del mismo `--g-card-hover`** (sin token nuevo y sin `color-mix`, que solo rebaja el alfa), con radio `--g-space-1 × 40` (el halo sigue a `space`); aparece y se va con el hover (fundido de color en `--g-duration-press`) y su **posición no se transiciona** (sigue al puntero). **Al apretar se apaga** y manda el velo de pulsación (con halo, pulsada + seleccionada en oscuro bajaba a 4,40:1).
+- **Solo con** `(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)`; **no** con `forced-colors`, ni en tarjetas con media de fondo, ni en `is-disabled`/`is-loading`/no interactivas. Sin `--_pointer-x/y` el gradiente no es válido y no pinta nada.
 - **Dato nuevo** (bruno, `GCard.vue`): **`--_pointer-x`** y **`--_pointer-y`** en la raíz, px desde la caja de borde de la raíz.
   - Se escriben en `pointerenter` (antes del primer pintado del hover) y en `pointermove`, con **una escritura por cuadro** (`requestAnimationFrame`), solo para `pointerType` `mouse` o `pen`.
-  - Solo en tarjetas `is-interactive` sin `is-disabled` ni `is-loading`, y solo mientras `matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)')` se cumpla: las escuchas se ponen y se quitan al cambiar la consulta (en táctil no hay escuchas: ningún coste).
-  - Al salir el puntero no se borran (el halo se va con el hover).
-- Contraste: el texto sigue ≥ 4,5:1 **en el punto más intenso del halo** (coco lo mide junto al velo, §«Estados»).
+  - Solo en tarjetas `is-interactive` sin `is-disabled` ni `is-loading`, y solo mientras `matchMedia` cumpla la consulta anterior (las escuchas se ponen y se quitan al cambiar; en táctil no hay escuchas). Bruno puede añadir `(pointer: fine)` a su consulta (opcional: el CSS ya la exige).
+  - **No se borran en `pointerleave`**: el fundido de salida del halo las necesita. Se retiran **al quitar las escuchas** (consulta que deja de cumplirse, tarjeta desactivada o cargando, desmontaje).
+- Contraste: el texto sigue ≥ 4,5:1 **en el punto más intenso del halo** (medido por coco, claro y oscuro; `design/lab/card/estilo.md`).
 
 ### Movimiento reducido y táctil
 
-Sin halo (ni escuchas). C2: fundido, como hoy.
+Sin halo (ni escuchas). C2: fundido, como hoy (también sin anclaje).
 
 ### Verificación (criterio de hecho: la medida de kiwi)
 
 | Qué | Medida |
 | --- | --- |
 | C1 | Centro del halo = posición del puntero (±1px); caja de la tarjeta Δ 0px y `transform: none` (#127); velo uniforme conservado; táctil (`hover: none`) y `reduce`: sin halo y sin escuchas; texto ≥ 4,5:1 sobre el punto más intenso, claro y oscuro |
-| C2 | Radio intermedio entre 0 y el que cubre la tarjeta (al menos un cuadro intermedio); origen en el centro del indicador (±2px); se recoge al desmarcar; borde y ✓ siguen fundiéndose (plan 008); con `reduce`, fundido |
+| C2 | Radio intermedio entre 0 y el que cubre la tarjeta (al menos un cuadro intermedio); origen en el centro del indicador (±2px, por anclaje, sin datos de JS); se recoge al desmarcar; borde y ✓ siguen fundiéndose (plan 008); con `reduce`, fundido |
 | Reservadas | C3 («Mostrar más» con `grid-template-rows`): fuera de esta tanda. C4 (la media «respira») descartada salvo petición del usuario; inclinación 3D descartada (#127) |
 
 ## Jerarquía de superficies
