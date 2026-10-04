@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha de resumen · r02 · conceptos A, B y C</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../r01/summary.css">
+<link rel="stylesheet" href="../r01/lab.css">
+<link rel="stylesheet" href="./concepts.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="../r01/summary.js"></script>
+<script src="../r01/lab.js"></script>
+<script>
+const C = ['A', 'B', 'C'].includes(new URLSearchParams(location.search).get('c')) ? new URLSearchParams(location.search).get('c') : 'A'
+const TXT = {
+  A: ['A · Prioridad líquida', 'No hay tramos ni «versión compacta»: la ficha es siempre un título y una corriente de datos que se bebe por el final. El identificador va anclado; el alto no cambia.',
+    '<strong>Pruébalo.</strong> Arrastra el ancho despacio: los datos salen de uno en uno por el final y, al crecer, vuelven de uno en uno. Antes de soltar un dato, calla los rótulos que se explican solos («22 años», «Dra. Ruiz»). «+N» dice cuántos no se ven; el lector los lee todos.'],
+  B: ['B · Tira que se compara', 'Los datos son casillas de ancho fijo sin rótulo (los rótulos encabezan la lista una vez): quedan en columna entre fichas vecinas, y entre homónimos lo que distingue pesa y lo que comparten se apaga.',
+    '<strong>Pruébalo.</strong> Mira las cuatro «María García López» a 520px: expediente, edad y médico se leen en vertical, y la edad repetida (22 años) se apaga. Al estrechar, las columnas caen de una en una para todas las fichas a la vez.'],
+  C: ['C · Una forma, cuatro tamaños', 'La misma ficha es píldora, fila, tarjeta y panel según su ancho, con continuidad de forma entre tramos. Si un tramo calla datos, «+N» abre la cara siguiente en el sitio, sin navegar.',
+    '<strong>Pruébalo.</strong> En el caso 4, arrastra el ancho de 160 a 720: píldora (&lt; 200), fila (&lt; 320), tarjeta (&lt; 520), panel. Avatar y título viajan de un tramo al siguiente. En píldora o fila, pulsa «+N».']
+}
+SummaryLabMount('#app', C, { brand: 'Ficha de resumen · r02 · conceptos', title: TXT[C][0], lead: TXT[C][1], how: TXT[C][2], picks: ['A', 'B', 'C'] })
+document.title = 'Ficha de resumen · r02 · ' + TXT[C][0]
+</script>
+</body>
+</html>

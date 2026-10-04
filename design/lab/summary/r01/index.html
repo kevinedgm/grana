@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha de resumen · r01 · base funcional</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./summary.css">
+<link rel="stylesheet" href="./lab.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./summary.js"></script>
+<script src="./lab.js"></script>
+<script>
+SummaryLabMount('#app', 'base', {
+  brand: 'Ficha de resumen · r01',
+  title: 'Base funcional',
+  lead: 'Identidad, título, identificador y datos con prioridad que se adaptan al ancho de su propio contenedor. Lo que no cabe deja de verse por el final, nunca desborda y el lector lo sigue leyendo todo. Sin estilo: la forma se decide en r02.'
+})
+</script>
+</body>
+</html>

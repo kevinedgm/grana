@@ -1,0 +1,71 @@
+/* r02 (kiwi): tres conceptos DIVERGENTES sobre la base de r01, con los TOKENS REALES del tema por defecto.
+   A · Prioridad líquida      B · Tira que se compara      C · Una forma, cuatro tamaños
+   Clases su-* y data-concept: de prototipo; el CSS definitivo es de coco. */
+
+/* =====================================================================
+   A · PRIORIDAD LÍQUIDA. No hay tramos ni rejilla de pares: la ficha es siempre título + una corriente de datos
+   que se bebe por el final. Antes de soltar un dato, calla los rótulos que se explican solos. Lo que vuelve a caber, entra.
+   ===================================================================== */
+[data-concept=A] .su__k{color:var(--g-color-text-subtle)}
+[data-concept=A][data-terse] .su__fact.is-plain:not(.is-anchor) .su__k{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[data-concept=A] .su__fact:not(.is-anchor){padding-inline-start:var(--g-space-3);border-inline-start:var(--g-border-width) solid var(--g-color-border-strong)}
+[data-concept=A] .su__fact.is-anchor{font-weight:600}
+[data-concept=A] .su__more{border-color:transparent;background:var(--g-color-accent-soft);color:var(--g-color-accent-strong);font-weight:600}
+[data-concept=A][data-multi] .su__flow{row-gap:var(--g-space-1);max-block-size:calc(var(--_fl) * 1lh + (var(--_fl) - 1) * var(--g-space-1))}
+[data-concept=A][data-multi][data-free] .su__flow{max-block-size:none}
+@keyframes su-enter{from{opacity:0;translate:var(--_from) 0}}
+[data-concept=A] .su__fact{--_from:calc(var(--g-space-3) * -1)}
+[dir=rtl] [data-concept=A] .su__fact{--_from:var(--g-space-3)}
+[data-concept=A] .su__fact[data-enter]{animation:su-enter var(--g-duration-slow) var(--g-ease-out)}
+@media (prefers-reduced-motion:reduce){[data-concept=A] .su__fact[data-enter]{animation:none}}
+
+/* =====================================================================
+   B · TIRA QUE SE COMPARA. Los datos son casillas de ancho fijo, sin rótulo visible (una fila de rótulos encabeza la lista):
+   quedan en columna entre fichas vecinas. Entre homónimos, lo que distingue pesa y lo que comparten se apaga.
+   ===================================================================== */
+[data-concept=B]{--_slot:calc(var(--g-space-1) * 22);--_slot-a:calc(var(--g-space-1) * 24)}
+[data-concept=B].su--row:not([data-narrow]) .su__body{flex-direction:row;align-items:center;gap:var(--g-space-3)}
+[data-concept=B].su--row:not([data-narrow]) .su__head{flex:1 1 0;min-inline-size:max(calc(var(--g-space-1) * 28),38%)}
+[data-concept=B].su--row:not([data-narrow]) .su__data{flex:0 1 auto;min-inline-size:var(--_slot-a);align-items:center}
+[data-concept=B].su--row:not([data-narrow]) .su__flow{flex:0 1 auto}
+[data-concept=B].su--row:not([data-narrow]) .su__fact.is-anchor{flex:0 0 var(--_slot-a);inline-size:var(--_slot-a)}
+[data-concept=B].su--row:not([data-narrow]) .su__facts{flex:0 1 auto}
+[data-concept=B]:is(.su--row,.su--inline) .su__fact:not(.is-anchor){flex:0 0 var(--_slot);inline-size:var(--_slot);overflow:hidden;text-overflow:ellipsis}
+[data-concept=B]:is(.su--row,.su--inline) .su__fact:not(.is-anchor) .su__k{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[data-concept=B] .su__fact.is-same .su__v{color:var(--g-color-text-subtle)}
+[data-concept=B] .su__fact.is-diff .su__v{font-weight:600;color:var(--g-color-text)}
+[data-concept=B] .su__fact.is-anchor .su__v{font-weight:600}
+[data-concept=B].su--heading{font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-subtle);letter-spacing:0.02em}
+[data-concept=B].su--heading :is(.su__title,.su__v){font-size:inherit;line-height:inherit;font-weight:var(--g-text-caption-weight);color:inherit}
+[data-concept=B].su--heading .su__k{display:none}
+[data-concept=B].su--heading .su__more{visibility:hidden}
+[data-concept=B].su--heading .su__ghost{display:block;inline-size:calc(var(--g-space-1) * 8)}
+[data-concept=B].su--heading[data-narrow] .su__data{display:none}
+/* Bloque: pares en dos columnas (rótulo | valor), una línea por dato: las filas coinciden entre tarjetas vecinas */
+[data-concept=B].su--stack .su__flow{grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:var(--g-space-1) var(--g-space-3)}
+[data-concept=B].su--stack .su__fact{margin:0;display:grid;grid-template-columns:subgrid;grid-column:1 / -1;white-space:nowrap}
+[data-concept=B].su--stack .su__k{font-size:inherit;line-height:inherit;overflow:hidden;text-overflow:ellipsis}
+[data-concept=B].su--stack .su__data{padding-block-start:var(--g-space-2);border-block-start:var(--g-border-width) solid var(--g-color-border)}
+
+/* =====================================================================
+   C · UNA FORMA, CUATRO TAMAÑOS. La misma ficha es píldora, fila, tarjeta y panel según su ancho, con continuidad de forma
+   (identidad y título viajan de un tramo al otro). Si un tramo calla datos, «+N» abre la cara siguiente en el sitio.
+   ===================================================================== */
+[data-concept=C].su--inline{contain:none;inline-size:auto;max-inline-size:100%;padding-block:var(--g-space-1);padding-inline:var(--g-space-1) var(--g-space-3);border-radius:var(--g-radius-pill);background:var(--g-color-surface-sunken)}
+[data-concept=C].su--surface{background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border-strong);
+  transition:border-radius var(--g-duration-slow) var(--g-ease-out),padding var(--g-duration-slow) var(--g-ease-out),box-shadow var(--g-duration-slow) var(--g-ease-out)}
+[data-concept=C].su--inline[data-tight] .su__lead{display:none}
+[data-concept=C].su--inline[data-tight]{padding-inline-start:var(--g-space-3)}
+[data-concept=C].su--surface.su--inline{contain:inline-size;inline-size:100%;border-radius:var(--g-radius-pill)}
+[data-concept=C].su--surface.su--row{padding:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-xl)}
+[data-concept=C].su--surface.su--stack{padding:var(--g-space-4);border-radius:var(--g-radius-xl);box-shadow:var(--g-shadow-1)}
+[data-concept=C].su--surface.su--panel{padding:var(--g-space-6);border-radius:var(--g-radius-xl);box-shadow:var(--g-shadow-2)}
+[data-concept=C] .su__more--btn{cursor:pointer;min-block-size:24px;color:var(--g-color-accent-strong);border-color:var(--g-color-accent-text);position:relative}
+[data-concept=C] .su__more--btn:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+@media (pointer:coarse){[data-concept=C] .su__more--btn::after{content:"";position:absolute;inset:50% auto auto 50%;inline-size:44px;block-size:44px;translate:-50% -50%}}
+.su-face{position:fixed;inset:var(--_y) auto auto var(--_x);margin:0;inline-size:min(20rem,calc(100vw - var(--g-space-4)));padding:var(--g-space-4);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xl);background:var(--g-color-surface);color:var(--g-color-text);box-shadow:var(--g-shadow-3);
+  transition:opacity var(--g-duration-fast) var(--g-ease-out),translate var(--g-duration-slow) var(--g-ease-spring),display var(--g-duration-slow) allow-discrete,overlay var(--g-duration-slow) allow-discrete}
+.su-face:not(:popover-open){opacity:0;translate:0 calc(var(--g-space-2) * -1)}
+@starting-style{.su-face:popover-open{opacity:0;translate:0 calc(var(--g-space-2) * -1)}}
+@media (prefers-reduced-motion:reduce){[data-concept=C].su--surface,.su-face{transition:none}}
+@media (forced-colors:active){[data-concept=C].su--inline,[data-concept=C].su--surface,.su-face{border:var(--g-border-width) solid CanvasText}}

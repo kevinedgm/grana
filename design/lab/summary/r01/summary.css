@@ -1,0 +1,93 @@
+/* Ficha de resumen (nombre de trabajo GSummary) · kit de prototipo de r01 y r02 (kiwi). Clases su-*: de prototipo; el CSS definitivo es de coco.
+   Solo var(--g-*) del tema por defecto. Medidas literales: 24px, 44px y el texto oculto accesible.
+   Regla de la base: NADA se oculta con display:none ni visibility:hidden. Lo que no cabe salta a una línea recortada
+   (flex-wrap + max-block-size + overflow:hidden): deja de verse, sigue en el árbol de accesibilidad. */
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);color:var(--g-color-text);background:var(--g-color-bg)}
+.sr,.su .su-sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.g-icon{inline-size:1em;block-size:1em;flex:none}
+
+/* ---------- Raíz ---------- */
+.su{position:relative;display:flex;align-items:center;gap:var(--g-space-2);inline-size:100%;min-inline-size:0;max-inline-size:100%;color:var(--g-color-text);
+  font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-body-sm-weight);text-align:start;font-variant-numeric:tabular-nums;
+  contain:inline-size} /* el ancho lo da el contenedor, nunca el contenido (celda de tabla, fila flex): sin esto, la ficha ensancha a su anfitrión */
+/* Los textos ocultos accesibles quedan contenidos en su parte (si no, en RTL ensanchan el desplazamiento del anfitrión) */
+.su :is(.su__title,.su__code,.su__status,.su__sub,.su__fact,.su__more){position:relative}
+.su__lead{flex:none;display:inline-flex;align-items:center;justify-content:center;color:var(--g-color-text-muted)}
+.su__lead > .g-icon{inline-size:var(--_lead);block-size:var(--_lead);padding:calc(var(--_lead) / 5);border-radius:var(--g-radius-sm);background:var(--g-color-surface-sunken)}
+.su--size-xs{--_lead:calc(var(--g-space-1) * 5)}.su--size-sm{--_lead:calc(var(--g-space-1) * 6)}.su--size-md{--_lead:calc(var(--g-space-1) * 8)}
+.su--size-lg{--_lead:calc(var(--g-space-1) * 10)}.su--size-xl{--_lead:calc(var(--g-space-1) * 16)}
+.su__body{flex:1 1 0;min-inline-size:0;display:flex;flex-direction:column}
+/* Cabecera: el estado cede antes que el título (salta a una línea recortada; el lector lo sigue leyendo). La acción nunca cede: es un control */
+.su__head{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--g-space-2);min-inline-size:0;max-block-size:1lh;overflow:hidden}
+.su--size-md .su__head,.su--size-lg .su__head{font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.su--size-xl .su__head{font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line)}
+.su__name{flex:1 1 7ch;min-inline-size:0;display:flex;align-items:baseline;gap:var(--g-space-2)}
+.su__code{flex:none;font-weight:600;color:var(--g-color-text-muted);white-space:nowrap}
+.su__title{flex:0 1 auto;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.su__status{flex:none;display:inline-flex}
+.su__action{flex:none;display:inline-flex;align-self:flex-start}
+.su__sub{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--g-color-text-muted)}
+
+/* ---------- Datos: una línea que cede por el final ---------- */
+.su__data{display:flex;align-items:flex-end;gap:var(--g-space-2);min-inline-size:0}
+.su__flow{flex:1 1 0;min-inline-size:0;display:flex}
+.su__fact{flex:none;min-inline-size:0;white-space:nowrap}
+.su__fact.is-anchor{margin-inline-end:var(--g-space-3)}
+.su__fact.is-anchor{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
+.su__k{color:var(--g-color-text-muted)}
+.su__facts{flex:1 1 0;min-inline-size:0;display:flex;flex-wrap:wrap;column-gap:var(--g-space-3);max-block-size:1lh;overflow:hidden}
+/* Centinela de ancho cero: sin él, el primer dato de la línea nunca salta aunque no quepa (y se vería cortado) */
+.su__facts::before{content:"";inline-size:0;block-size:1lh;margin-inline-end:calc(var(--g-space-3) * -1)}
+.su__more{flex:none;display:inline-flex;align-items:center;justify-content:center;min-inline-size:24px;padding-inline:var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius:var(--g-radius-pill);font:inherit;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted);background:transparent;white-space:nowrap}
+.su__more[hidden]{display:none}
+
+/* Varias líneas de datos (lines ≥ 3): identificador y datos fluyen juntos; el identificador es el primero, siempre en la primera línea */
+.su[data-multi] .su__flow{flex-wrap:wrap;column-gap:var(--g-space-3);max-block-size:calc(var(--_fl) * 1lh);overflow:hidden}
+.su[data-multi][data-free] .su__flow{max-block-size:none}
+.su[data-multi] .su__facts{display:contents}
+.su[data-multi] .su__fact.is-anchor{margin-inline-end:0}
+.su[data-multi] .su__fact{max-inline-size:100%;overflow:hidden;text-overflow:ellipsis}
+.su[data-multi] .su__facts::before{content:none}
+
+/* ---------- inline: una sola línea (dentro de un campo, una celda densa, una ficha en reposo) ---------- */
+.su--inline .su__body{flex-direction:row;align-items:center;gap:var(--g-space-2)}
+.su--inline :is(.su__head,.su__name,.su__data,.su__flow){display:contents}
+/* Orden de cesión: datos (por el final) → título hasta su suelo → identificador con elipsis */
+.su--inline .su__title{flex:0 1000 auto;min-inline-size:min(4ch,100%)}
+.su--inline .su__fact.is-anchor{flex:0 1 auto;margin-inline-end:0}
+.su--inline[data-tight] .su__facts{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%)}
+.su--inline .su__sub{flex:1 1 0}
+.su--inline:has(.su__fact) .su__sub,.su--inline .su__status{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Apretado (el identificador ya no cabe entero): calla su rótulo y la marca «+N»; el valor del identificador es lo último en ceder */
+.su[data-tight] .su__fact.is-anchor .su__k{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.su[data-tight] .su__more:not(.su__more--btn){display:none}
+
+/* ---------- stack: cabecera + rejilla de pares (rótulo sobre valor). Crece en alto; no oculta ---------- */
+.su--stack{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:var(--g-space-3);row-gap:var(--g-space-1)}
+.su--stack .su__body{display:contents}
+.su--stack .su__lead{grid-row:1 / span 2;align-self:start}
+.su--stack .su__head{grid-column:2}
+.su--stack .su__sub{grid-column:2}
+.su--stack .su__action{grid-column:1 / -1;margin-block-start:var(--g-space-2)}
+.su--stack .su__data{grid-column:1 / -1;margin-block-start:var(--g-space-2)}
+.su--stack .su__flow,.su--panel .su__flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(calc(var(--g-space-1) * 28),100%),1fr));gap:var(--g-space-2) var(--g-space-3)}
+:is(.su--stack,.su--panel) .su__facts{display:contents}
+:is(.su--stack,.su--panel) .su__facts::before{content:none}
+:is(.su--stack,.su--panel) .su__fact{display:flex;flex-direction:column;white-space:normal;margin:0}
+:is(.su--stack,.su--panel) .su__k{font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line)}
+:is(.su--stack,.su--panel) .su__v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- panel: identidad grande al lado, pares en rejilla ---------- */
+.su--panel{align-items:flex-start;gap:var(--g-space-4)}
+.su--panel .su__body{gap:var(--g-space-1)}
+.su--panel .su__data{margin-block-start:var(--g-space-2)}
+.su--panel .su__flow{grid-template-columns:repeat(auto-fill,minmax(min(calc(var(--g-space-1) * 36),100%),1fr))}
+
+/* ---------- Carga y vacío ---------- */
+.su--loading .su__bone{display:block;border-radius:var(--g-radius-xs);background:var(--g-color-border-strong);block-size:calc(1lh - var(--g-space-2));margin-block:var(--g-space-1)}
+.su--loading .su__lead .su__bone{inline-size:var(--_lead);block-size:var(--_lead);border-radius:var(--g-radius-pill);margin:0}
+.su--empty .su__title{font-weight:var(--g-text-body-sm-weight);color:var(--g-color-text-muted)}
+
+@media (forced-colors:active){.su__more{border-color:CanvasText}.su--loading .su__bone{background:GrayText}}
