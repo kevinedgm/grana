@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox · r02 · tres conceptos de forma (A, B, C)</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../r01/combo.css">
+<style>
+/* r02 (kiwi): tres conceptos DIVERGENTES de forma y comportamiento sobre el motor de r01 (../r01/combo.js).
+   Componentes reales de dist/ y TOKENS REALES del tema por defecto. Clases xa-/xb-/xc-: de prototipo; el CSS es de coco.
+   A · El campo se abre      B · Paleta con vista previa      C · El valor es un objeto */
+.concept{margin:0 0 var(--g-space-6);padding:var(--g-space-4);border-radius:var(--g-radius-lg);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.concept strong{display:block;font-size:var(--g-text-body-size)}
+kbd{padding:0 var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xs);font:inherit;font-size:var(--g-text-caption-size);background:var(--g-color-surface)}
+
+/* =====================================================================
+   A · EL CAMPO SE ABRE. No hay panel flotante: la caja del campo crece y la lista es su interior.
+   Un solo contorno, un solo anillo de foco, una sola sombra. La primera coincidencia se completa en el propio campo.
+   ===================================================================== */
+.xc--A .xc-pop{inset-block-start:var(--_top);padding:var(--_fh) 0 0;background:transparent;pointer-events:none;border-radius:var(--g-radius-sm);border-color:var(--g-color-border-control);
+  outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset);box-shadow:var(--g-shadow-3)}
+.xc--A.is-up .xc-pop{padding:0 0 var(--_fh)}
+.xc--A .xc-pop.is-empty{visibility:hidden}
+.xc--A .xc-pop__in{pointer-events:auto;background:var(--g-color-surface);border-block-start:var(--g-border-width) solid var(--g-color-border);border-end-start-radius:inherit;border-end-end-radius:inherit;
+  grid-template-rows:1fr;transition:grid-template-rows var(--g-duration-slow) var(--g-ease-spring)}
+.xc--A.is-up .xc-pop__in{border-block-start:0;border-block-end:var(--g-border-width) solid var(--g-color-border);border-radius:0;border-start-start-radius:inherit;border-start-end-radius:inherit}
+.xc--A .xc-panel{min-block-size:0}
+@starting-style{.xc--A .xc-pop:popover-open .xc-pop__in{grid-template-rows:0fr}}
+/* Abierto, el anillo y el contorno son los de la forma completa (campo + lista), no los de la caja */
+.xc--A.is-open .g-input__control,.xc--A.is-open .g-input__row{outline-color:transparent}
+.xc--A.is-open:has(.xc-pop:not(.is-empty)) .g-input__control{border-color:transparent}
+/* Texto fantasma: la parte tecleada es invisible (ocupa su sitio) y el resto continúa la frase */
+.xc-ghost{position:absolute;inset-block:0;left:var(--_il);inline-size:var(--_iw);display:flex;align-items:center;overflow:hidden;white-space:pre;pointer-events:none;font-size:var(--_fs);line-height:var(--_lh)}
+.xc-ghost__typed{visibility:hidden}
+.xc-ghost__rest{color:var(--g-color-text-muted);background:var(--g-color-selection);border-radius:var(--g-radius-xs)}
+.xc--A .xc-opt.is-active{outline:0;background:var(--g-color-surface-sunken);box-shadow:inset var(--g-focus-width) 0 0 var(--g-color-text)}
+[dir=rtl] .xc--A .xc-opt.is-active{box-shadow:inset calc(var(--g-focus-width) * -1) 0 0 var(--g-color-text)}
+
+/* =====================================================================
+   B · PALETA CON VISTA PREVIA. El campo se eleva a una superficie con su propio campo, la lista y la ficha
+   de la opción activa: se elige viendo a quién se elige. En móvil es la hoja (misma estructura, sin ficha).
+   ===================================================================== */
+.xc-surface--palette .xc-surface__box{position:fixed;inset-block-start:12vh;inset-inline:0;margin-inline:auto;inline-size:min(46rem, calc(100vw - var(--g-space-8)));max-block-size:76vh;border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-lg);overflow:hidden}
+.xc-surface--palette .xc-surface__field{min-block-size:var(--g-space-12);border:0;border-radius:0;margin:0;padding-inline:var(--g-space-4);font-size:var(--g-text-title-sm-size)}
+.xc-surface--palette .xc-surface__field:has(:focus-visible){outline:0;box-shadow:inset 0 calc(var(--g-focus-width) * -1) 0 var(--g-color-focus)}
+.xc-surface--palette .xc-surface__body{grid-template-columns:minmax(0,1fr);block-size:min(24rem, 52vh)}
+.xc-surface--palette .xc-surface__body.has-preview{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+.xc-surface--palette .xc-panel{overflow:auto;max-block-size:100%}
+.xb-preview{min-inline-size:0;overflow:auto;padding:var(--g-space-4);background:var(--g-color-surface-sunken);border-inline-start:var(--g-border-width) solid var(--g-color-border)}
+.xb-preview__head{display:flex;align-items:center;gap:var(--g-space-3);margin-block-end:var(--g-space-4)}
+.xb-preview__name{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight);overflow-wrap:anywhere}
+.xb-preview__dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--g-space-1) var(--g-space-3);margin:0;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.xb-preview__dl dt{color:var(--g-color-text-muted)}
+.xb-preview__dl dd{margin:0;font-weight:var(--g-text-action-weight);overflow-wrap:anywhere}
+.xb-preview__text,.xb-preview__hint{margin:0;color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size)}
+.xc-code--lg{font-size:var(--g-text-title-sm-size);padding:var(--g-space-1) var(--g-space-3)}
+.xc--B .xc-opt.is-active{outline:0;background:var(--g-color-text);color:var(--g-color-surface)}
+.xc--B .xc-opt.is-active .xc-opt__desc,.xc--B .xc-opt.is-active .xc-opt__check,.xc--B .xc-opt.is-active .xc-opt__lead--icon{color:inherit}
+.xc--B .xc-opt.is-active .xc-code{color:var(--g-color-text)}
+
+/* =====================================================================
+   C · EL VALOR ES UN OBJETO. Elegido, el campo no enseña texto plano: enseña a quién (avatar, nombre,
+   expediente y edad) o qué (código y descripción). Los resultados son fichas con los datos que distinguen.
+   La ficha elegida viaja de la lista al campo. El texto libre lleva su propia marca.
+   ===================================================================== */
+.xc--C.is-token .g-input__field{color:transparent;caret-color:transparent}
+.xc--C.is-token .g-input__field::selection{background:transparent;color:transparent}
+.xc--C.is-token .g-input__prepend{display:none}
+.xc-token{position:absolute;inset-block:0;left:var(--_il);inline-size:var(--_iw);min-inline-size:0;display:flex;align-items:center;gap:var(--g-space-2);pointer-events:none;font-size:var(--_fs);line-height:var(--_lh)}
+.xc-token .g-avatar{flex:none}
+.xc-token__name{flex:0 1 auto;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:var(--g-text-action-weight)}
+.xc-token__meta{flex:0 100000 auto;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size);font-variant-numeric:tabular-nums}
+.xc-token__free{display:inline-grid;color:var(--g-color-text-muted)}
+.xc--C.is-custom .xc-token__name{font-weight:inherit;font-style:italic}
+.xc--C.is-token .g-input__control:has(.g-input__field:focus-visible) .xc-token__name{background:var(--g-color-selection);border-radius:var(--g-radius-xs);box-shadow:0 0 0 var(--g-space-1) var(--g-color-selection)}
+.xc--C .xc-pop{border-radius:var(--g-radius-lg)}
+.xc--C .xc-panel{padding:var(--g-space-2)}
+.xc--C .xc-opt{align-items:flex-start;padding:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-md);border:var(--g-border-width) solid transparent}
+.xc--C .xc-opt + .xc-opt{margin-block-start:var(--g-space-1)}
+.xc--C .xc-opt.is-active{outline:0;background:var(--g-color-surface);border-color:var(--g-color-text);box-shadow:var(--g-shadow-1)}
+.xc--C .xc-opt--action{align-items:center}
+.xc-facts{display:flex;flex-wrap:wrap;gap:0 var(--g-space-4);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-variant-numeric:tabular-nums}
+.xc-fact__k{color:var(--g-color-text-muted)}
+.xc--C .xc-opt .xc-code{margin-block-start:calc(var(--g-space-1) / 2)}
+
+/* A + C: la forma abierta es la de A (un contorno); las filas son las fichas de C */
+.xc--A.xc--C .xc-pop{border-radius:var(--g-radius-sm)}
+
+@media (prefers-reduced-motion:reduce){.xc--A .xc-pop__in{transition:none}}
+</style>
+</head>
+<body>
+<header class="sh-bar"><span class="sh-brand" id="brand">GCombobox · r02</span>
+  <nav class="sh-pick" aria-label="Conceptos"><a href="../r01/index.html">r01</a><a href="?c=A" data-c="A">A</a><a href="?c=B" data-c="B">B</a><a href="?c=C" data-c="C">C</a><a href="?c=AC" data-c="AC">A+C</a></nav></header>
+<main>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+  <div class="concept" id="concept"></div>
+  <div class="sim" role="group" aria-label="Simulador del servidor">
+    <strong>Servidor simulado</strong>
+    <label><input type="checkbox" id="sim-fail" onchange="window.__failNext = this.checked"> Fallar la próxima búsqueda</label>
+    <label><input type="checkbox" id="sim-slow" onchange="window.__slow = this.checked"> Respuesta lenta (1,8 s)</label>
+  </div>
+  <div id="app"></div>
+</main>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="../r01/combo.js"></script>
+<script>
+const P = new URLSearchParams(location.search)
+const C = ['A', 'B', 'C', 'AC'].includes(P.get('c')) ? P.get('c') : 'A'
+if (P.get('dir')) document.documentElement.dir = P.get('dir')
+const TXT = {
+  A: ['A · El campo se abre', 'No hay un panel flotante aparte: la caja del campo crece y la lista es su interior. Un contorno, un anillo de foco, una sombra.',
+    '<strong>Pruébalo</strong> Escribe «diab» en Diagnóstico: la primera coincidencia se completa en el propio campo. <kbd>→</kbd> acepta el texto, <kbd>Tab</kbd> o <kbd>Intro</kbd> eligen. En Paciente, «mar» da cuatro homónimas: el campo completa el nombre pero <kbd>Tab</kbd> no elige. La lista no flota: es el campo abierto.'],
+  B: ['B · Paleta con vista previa', 'Al activarlo, el campo se eleva a una superficie con su propio campo, los resultados y la ficha de la opción activa: se elige viendo a quién se elige.',
+    '<strong>Pruébalo</strong> Pulsa en Paciente (o escribe con el foco en él) y busca «maría garcía lópez»: hay cuatro homónimas; recorre con <kbd>↓</kbd> y mira la ficha antes de <kbd>Intro</kbd>.'],
+  C: ['C · El valor es un objeto', 'Elegido, el campo no enseña texto plano: enseña a quién (avatar, nombre, expediente, edad) o qué (código y descripción). Los resultados son fichas; la elegida viaja al campo.',
+    '<strong>Pruébalo</strong> Elige un paciente y un diagnóstico y mira el campo en reposo. Escribe un medicamento que no exista y sal del campo: el texto libre lleva su propia marca.'],
+  AC: ['A + C · La mezcla recomendada', 'A decide cómo se abre (el campo se abre y se completa) y C cómo queda en reposo (el valor es un objeto). No compiten: actúan en momentos distintos.',
+    '<strong>Pruébalo</strong> Escribe «diab» en Diagnóstico y pulsa <kbd>Tab</kbd>: el campo se completa y queda la ficha con su código. En Paciente, con cuatro homónimas, <kbd>Tab</kbd> no elige: hay que mirar el expediente.']
+}
+document.title = `GCombobox · r02 · ${TXT[C][0]}`
+document.getElementById('brand').textContent = 'GCombobox · r02 · conceptos'
+document.getElementById('title').textContent = TXT[C][0]
+document.getElementById('lead').textContent = TXT[C][1]
+document.getElementById('concept').innerHTML = TXT[C][2]
+document.querySelectorAll('.sh-pick a[data-c]').forEach((a) => { if (a.dataset.c === C) a.setAttribute('aria-current', 'page'); if (P.get('dir')) a.href += '&dir=' + P.get('dir') })
+ComboLab.mount('#app', C)
+</script>
+</body>
+</html>

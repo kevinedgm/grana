@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox · r01 · base funcional</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./combo.css">
+</head>
+<body>
+<header class="sh-bar"><span class="sh-brand">GCombobox · r01 · base funcional</span>
+  <nav class="sh-pick" aria-label="Rondas"><a href="./index.html" aria-current="page">r01</a><a href="../r02/index.html?c=A">A</a><a href="../r02/index.html?c=B">B</a><a href="../r02/index.html?c=C">C</a></nav></header>
+<main>
+  <h1>Combobox: base funcional</h1>
+  <p class="lead">Semántica, teclado, estados y anuncios (APG, <em>combobox</em> con autocompletado de lista). La forma de esta página es deliberadamente la convencional: no es propuesta de identidad; los conceptos están en r02. Compone el <code>GInput</code> real; el componente no pide datos: emite <code>search</code>.</p>
+  <div class="sim" role="group" aria-label="Simulador del servidor">
+    <strong>Servidor simulado</strong>
+    <label><input type="checkbox" id="sim-fail" onchange="window.__failNext = this.checked"> Fallar la próxima búsqueda</label>
+    <label><input type="checkbox" id="sim-slow" onchange="window.__slow = this.checked"> Respuesta lenta (1,8 s)</label>
+  </div>
+  <div id="app"></div>
+</main>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./combo.js"></script>
+<script>
+const P = new URLSearchParams(location.search)
+if (P.get('dir')) document.documentElement.dir = P.get('dir')
+ComboLab.mount('#app', 'base')
+</script>
+</body>
+</html>
