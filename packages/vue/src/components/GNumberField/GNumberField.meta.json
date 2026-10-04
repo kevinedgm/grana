@@ -353,8 +353,6 @@
     "GInputGroup (GInputGroupNumber reservado, #314)"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (design/lab/number-field/auditoria.md)",
-    "README (mora-docs)",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack)",
     "Móvil real: teclado decimal por región, «-» en iOS, −/+ sin abrir el teclado",
     "IME real; pegado real en Firefox; forced-colors real"

@@ -21,7 +21,7 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 
 | Qué | Fase | Origen |
 | --- | --- | --- |
-| `GNumberField`: **contratado** (#309 a #314, `number-field.md`), en construcción | 2 | #154, #168 |
+| `GNumberField`: **hecho** (`candidate`, #309 a #314). Queda: en WebKit con la fuente de serie el cursor al final desplaza 1px el número con foco; arreglo medido = hueco del cursor de 1px a 2px en `__mirror`/`__measure` (constante de #313: lima enmienda, coco cambia dos líneas; el mínimo publicado sube 1px) | 2 | hallazgo 1 de `design/lab/number-field/auditoria.md` |
 | `GInputGroupNumber` (número como parte de `GInputGroup`, estructura reservada en `form.md` §13) y `field` en `GNumberField` (necesita antes `field` en `GInput`) | 2 | #310, #314 |
 | `GSelect` y `GNumberField` como parte de `GInputGroup` | 2 | `form.md` §«Fases siguientes» |
 | «Agregar…» de varias instancias (`addable` repetible) y `GFormNav` (scroll-spy, estados) | 3 | `form.md` §3, #292 |
