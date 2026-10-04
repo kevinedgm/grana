@@ -56,7 +56,7 @@ Grana no valida (DECISIONS #157). Lo escrito o pegado fuera de `min`/`max` **no 
                 :error="edad != null && (edad < 0 || edad > 120) ? 'La edad debe estar entre 0 y 120 años.' : undefined"></g-number-field>
 ```
 
-`min` y `max` limitan los **pasos** (flechas, −/+, Re Pág/Av Pág) y se exponen al árbol de accesibilidad; desde un valor fuera de rango, un paso hacia dentro entra al límite (↓ desde 150 con `max` 120 → 120).
+`min` y `max` limitan los **pasos** (flechas, −/+, Re Pág/Av Pág) y se exponen al árbol de accesibilidad; desde un valor fuera de rango, un paso hacia dentro entra al límite (Flecha abajo desde 150 con `max` 120 → 120).
 
 ## Props
 
@@ -103,7 +103,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 
 - **`modelValue`:** `Number` finito o `null`. `undefined` (un `ref()` sin valor inicial) se lee como `null` sin aviso; `NaN` e `±Infinity` se leen como `null` **con aviso**. Una cadena la rechaza la comprobación de tipos de Vue en desarrollo; si es un número canónico («72.5») se muestra como ese número, y si no, como vacío. **El componente nunca emite cadenas.**
 - **`precision`:** número de decimales. **Redondea el modelo en el acto** (con «36,55» escrito y `precision` `1`, el modelo ya vale 36,6) y **el texto al salir o con Enter** («36,6»); al salir se muestran siempre `precision` decimales (37 → «37,0»). Con `0` el separador decimal no entra. Si `step` (o `min`) tiene más decimales que `precision`, se avisa en desarrollo: el resultado de un paso se redondea y puede salir de la rejilla.
-- **`step`:** los pasos encajan en la rejilla de `step` **contada desde `min`** (o desde 0 sin `min`): ↑ desde 72,53 con `step` `0.1` → 72,6; ↓ → 72,5. Sin error de coma flotante: 72,5 más tres pasos de 0,1 es exactamente 72,8. Un `step` menor o igual que 0 o no finito se sustituye por `1` y avisa.
+- **`step`:** los pasos encajan en la rejilla de `step` **contada desde `min`** (o desde 0 sin `min`): Flecha arriba desde 72,53 con `step` `0.1` → 72,6; Flecha abajo → 72,5. Sin error de coma flotante: 72,5 más tres pasos de 0,1 es exactamente 72,8. Un `step` menor o igual que 0 o no finito se sustituye por `1` y avisa.
 - **Vacío más paso:** pone el **punto de partida**, que es `0` o, si 0 queda fuera de los límites, el límite más cercano (con `min` 30 y `max` 45, 30). No suma un paso a «nada».
 - **`min` > `max`:** avisa y se ignoran **los dos** límites (sin límites en los pasos ni en el árbol). `min` decide también si se acepta el «-»: solo sin `min` o con `min` negativo.
 - **`grouping`:** miles al salir con la regla del idioma (`Intl.NumberFormat`: en `es`, «1234,5» y «12.345»). Ponlo en `false` para cifras que no se agrupan nunca: un año en `en-US` sería «2,026». Mientras se escribe, nunca hay miles.
@@ -209,7 +209,7 @@ La alternativa es un `GInputGroup` (una sola pregunta, un solo mensaje) con `GIn
                 steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
 ```
 
-- **Fuera del Tab, pero en el árbol:** son `<button tabindex="-1">` sin `aria-hidden`: el teclado ya tiene ↑/↓ y los lectores táctiles necesitan −/+ para ajustar sin teclado. Nombre accesible = su texto oculto + la etiqueta del campo («Restar Peso (opcional)»); respeta el slot `label`. Sin etiqueta visible, usan el `aria-labelledby` o el `aria-label` que pases al campo.
+- **Fuera del Tab, pero en el árbol:** son `<button tabindex="-1">` sin `aria-hidden`: el teclado ya tiene Flecha arriba/abajo y los lectores táctiles necesitan −/+ para ajustar sin teclado. Nombre accesible = su texto oculto + la etiqueta del campo («Restar Peso (opcional)»); respeta el slot `label`. Sin etiqueta visible, usan el `aria-labelledby` o el `aria-label` que pases al campo.
 - **Puntero:** `pointerdown` con el botón principal da un paso y **no mueve el foco**: sin foco previo, el campo no se enfoca (en un móvil, sumar no abre el teclado). **Al mantener**, otro paso a los 400ms y luego cada 60ms; se detiene al soltar, al perder la ventana el foco, al llegar al límite, al deshabilitarse y al desmontar. Un `change` por gesto.
 - **Sin puntero:** un `click` sin posición (lector de pantalla, activación por teclado de una tecnología de apoyo) da **un** paso con su `change`.
 - **Deshabilitados en los límites:** − con el modelo menor o igual que `min`, + con el modelo mayor o igual que `max` (con 150 y `max` 120: + deshabilitado y − habilitado), y los dos con el campo `disabled`. Con `null`, los dos habilitados.
@@ -219,12 +219,12 @@ La alternativa es un `GInputGroup` (una sola pregunta, un solo mensaje) con `GIn
 
 | Tecla | Acción |
 | --- | --- |
-| ↑ / ↓ | ± `step`, en la rejilla desde `min`; nunca rebasa `min`/`max` |
-| Shift + ↑ / ↓ | ± 10 × `step` (se pierde «extender la selección» de Shift+↑/↓: un campo de una línea) |
+| Flecha arriba / abajo | ± `step`, en la rejilla desde `min`; nunca rebasa `min`/`max` |
+| Shift + Flecha arriba / abajo | ± 10 × `step` (se pierde «extender la selección» de Shift con las flechas: un campo de una línea) |
 | Re Pág / Av Pág | ± 10 × `step` |
 | Inicio / Fin | **Edición de texto**, no saltan a `min`/`max`; en macOS no mueven el cursor, por convención del sistema |
-| Vacío + ↑/↓ | Punto de partida (0 o el límite más cercano) |
-| En el límite + ↑/↓ | No cambia; el número «topa» ([Personalidad](#personalidad)) si la pulsación no es una autorrepetición |
+| Vacío + Flecha arriba/abajo | Punto de partida (0 o el límite más cercano) |
+| En el límite + Flecha arriba/abajo | No cambia; el número «topa» ([Personalidad](#personalidad)) si la pulsación no es una autorrepetición |
 | Alt / Ctrl / Meta + flechas | Nativo: no se interceptan |
 | Enter | Confirma (redondea, formatea y emite `change` si toca) y **deja seguir el envío implícito** del formulario |
 | Tab | Entra y sale del campo; −/+ no están en el orden |
@@ -311,7 +311,7 @@ Las dos reacciones de `GInput` llegan sin CSS propio: al enviar con errores, `GF
 
 **P2 · Las cifras ruedan.** Al dar un paso **deliberado** (−/+, flechas, Re Pág/Av Pág), solo las cifras que cambian se deslizan en vertical: **arriba al sumar, abajo al restar** (19 → 20 mueve dos cifras; 20 → 21, una; 99 → 100 hace entrar la posición nueva). Un contador mecánico que confirma sentido y orden de magnitud justo cuando miras el valor y no el teclado. Medido sobre el componente real: 9 a 11 cuadros con la capa, 5 a 7 posiciones intermedias, retirada por `animationend` a los 142–177ms; los extremos de la capa coinciden con el rango completo del espejo (±0,1px). **No rueda** al mantener ni con autorrepetición (0 capas al mantener 1s: la animación nunca se queda atrás del dato), al escribir o pegar, con texto que no cabe en la celda ni si ya hay una capa (pasos rápidos).
 
-**P3 · El tope.** ↑ en el máximo (o ↓ en el mínimo), con una pulsación que no es autorrepetición, mueve el número `--g-space-1 × 0.5` hacia donde no puede ir y vuelve, una vez; el valor no cambia. Medido: **−2px** con `space` 4 y **−2,5px** con `space` 5 (sigue a la escala del tema), vuelta a 0. Fuera del límite no aparece, y con −/+ no hace falta (ya están deshabilitados).
+**P3 · El tope.** Flecha arriba en el máximo (o Flecha abajo en el mínimo), con una pulsación que no es autorrepetición, mueve el número `--g-space-1 × 0.5` hacia donde no puede ir y vuelve, una vez; el valor no cambia. Medido: **−2px** con `space` 4 y **−2,5px** con `space` 5 (sigue a la escala del tema), vuelta a 0. Fuera del límite no aparece, y con −/+ no hace falta (ya están deshabilitados).
 
 **−/+ dentro de la caja.** No son botones sueltos junto al campo: son parte de la caja, cuadrados de su alto y de borde a borde, con la esquina de la caja (la esquina de + coincide con la de la caja, también con `pill` y con un radio de 16px), separados por una línea del grosor del borde.
 
