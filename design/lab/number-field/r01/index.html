@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNumberField · r01 · estructura</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* Página de prototipo. GForm, GFormLayout, GFormRow, GInput, GSelect, GInputGroup (+ partes), GFormActions y GBtn son los
+   componentes REALES de dist/. XNumberField es el prototipo de kiwi: reutiliza las clases reales de GInput (g-input,
+   __label, __row, __control, __field, __prefix, __suffix, __support, __message…) para heredar su caja, su colocación en
+   GFormRow (subgrid), is-ready (I1) e is-rejected (I2), y añade partes x-num__* con valores de wireframe (gris, 2px,
+   tiempos de los tokens): NO son propuesta de estilo (eso es de coco). Lo que SÍ es propuesta: anatomía, teclado, modelo,
+   árbol accesible, −/+ dentro de la caja al final, sufijo pegado al valor (P1), cifras que ruedan (P2), tope (P3). */
+:root{--ink:#1f1f1f;--ink-2:#555;--line:#dcdcdc;--bg:#f3f3f3;--note:#fff8d6}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(12px,3vw,32px);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+main{max-inline-size:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:44px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+.ctl{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 0;background:var(--bg);font-size:13px;border-block-end:1px solid var(--line)}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame--320{--fw:320px;padding:16px}
+.frame--480{--fw:480px}
+.frame--720{--fw:720px}
+.frame--1100{--fw:1100px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px 24px;align-items:start}
+pre.out{font:12px/1.45 ui-monospace,Menlo,monospace;background:var(--note);padding:8px 10px;border-radius:6px;margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;min-block-size:2.9em}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* =====================================================================
+   XNumberField (prototipo). Raíz = <div class="g-input x-num">: la caja es la de GInput.
+   ===================================================================== */
+/* Valor: input + espejo (+ capa de rodillo) en la misma celda. Con P1 la celda mide el texto y el sufijo va pegado */
+.x-num__value{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;align-self:stretch;flex:1 1 auto;min-inline-size:0;position:relative}
+.x-num__value > *{grid-area:1 / 1}
+.x-num--glue .x-num__value{flex:0 1 auto;grid-template-columns:minmax(0,auto)}
+.x-num__field{inline-size:0;min-inline-size:100%;block-size:100%;font-variant-numeric:tabular-nums;text-align:match-parent}
+.x-num__mirror,.x-num__roll{font-size:var(--_fs);line-height:var(--_lh);font-variant-numeric:tabular-nums;white-space:pre;pointer-events:none;min-inline-size:0;text-align:match-parent}
+/* Espejo: solo da ancho (P1). 1px para el cursor al final del texto */
+.x-num__mirror{visibility:hidden;overflow:hidden;padding-inline-end:1px;min-inline-size:1ch}
+.x-num:not(.x-num--glue) .x-num__mirror{display:none}
+/* P2 · cifras que ruedan: capa aria-hidden sobre el texto, solo durante un paso */
+.x-num__roll{overflow:visible;color:inherit}
+.x-num__value.is-rolling > .x-num__field{color:transparent}
+.x-roll__slot{display:inline-block;position:relative;overflow:clip;vertical-align:top}
+.x-roll__new,.x-roll__old{display:inline-block}
+.x-roll__old{position:absolute;inset-inline-start:0;inset-block-start:0}
+/* −/+ : dentro de la caja, al final, cuadrados de la altura de la caja, de borde a borde (incluido el borde) */
+.x-num--steppers .g-input__control{padding-inline-end:0}
+.x-num__steppers{display:flex;align-self:stretch;margin-block:calc(var(--g-border-width) * -1);margin-inline-start:auto;flex:none}
+.x-num__suffix-gap{margin-inline-end:auto}
+.x-num__step{display:inline-grid;place-items:center;inline-size:var(--_h);min-inline-size:24px;min-block-size:24px;padding:0;margin:0;border:0;
+  border-inline-start:var(--g-border-width) solid #c8c8c8;background:transparent;color:var(--g-color-text-muted);font:inherit;cursor:pointer;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.x-num__step:last-child{border-start-end-radius:var(--_radius);border-end-end-radius:var(--_radius)}
+.x-num__step .g-icon{inline-size:1em;block-size:1em;font-size:var(--_fs)}
+@media (hover:hover){.x-num__step:hover:not(:disabled){background:#ececec;color:var(--g-color-text)}}
+.x-num__step:active:not(:disabled){background:#e0e0e0}
+.x-num__step:disabled{color:#a8a8a8;cursor:default}
+@media (pointer:coarse){.x-num__step{inline-size:max(44px,var(--_h))}}
+.g-input.is-disabled .x-num__step{cursor:not-allowed}
+/* El área vacía de la caja enfoca el campo (comodidad de puntero) */
+.x-num .g-input__control{cursor:text}
+.x-num .x-num__steppers{cursor:default}
+/* Medida de #270: oculto para el texto (solo existe para el árbol accesible) */
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+<div id="app">
+<main>
+  <h1>GNumberField · r01 · estructura</h1>
+  <p class="cap">Componentes reales de <code>dist/</code> (GForm, GFormLayout, GFormRow, GInput, GSelect, GInputGroup) y un <code>XNumberField</code> de prototipo con la caja de GInput. El gris del kit es de wireframe. Idioma de la página: <code>es</code> (coma decimal); cada campo puede llevar <code>locale</code>.</p>
+
+  <div class="ctl" role="group" aria-label="Controles del prototipo">
+    <label><input type="checkbox" v-model="proto.glue" id="t-glue"> P1 sufijo pegado al valor</label>
+    <label><input type="checkbox" v-model="proto.roll" id="t-roll"> P2 cifras que ruedan</label>
+    <label><input type="checkbox" v-model="proto.bump" id="t-bump"> P3 tope</label>
+    <label><input type="checkbox" v-model="proto.slow" id="t-slow"> Movimiento ×5</label>
+  </div>
+
+  <!-- ===================== 1. Casos ===================== -->
+  <h2 class="demo">1. Casos</h2>
+  <p class="cap">Edad (entero, sin decimales), peso con <code>kg</code>, temperatura con decimales y coma, porcentaje, cantidad con −/+. ↑/↓ suman un paso; Shift o Re Pág/Av Pág, diez. El modelo es <code>Number</code> o <code>null</code>.</p>
+  <div class="frame frame--480">
+    <g-form id="c-form" :labels="formLabels" @submit="onCasesSubmit">
+      <g-form-layout>
+        <x-number-field id="c-edad" name="edad" label="Edad" v-model="c.edad" :min="0" :max="120" :precision="0" suffix="años" required></x-number-field>
+        <x-number-field id="c-peso" name="peso" label="Peso" v-model="c.peso" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos" hint="Con un decimal."></x-number-field>
+        <x-number-field id="c-temp" name="temp" label="Temperatura" v-model="c.temp" :min="30" :max="45" :step="0.1" :precision="1" suffix="°C" suffix-label="grados Celsius" placeholder="36,5"></x-number-field>
+        <x-number-field id="c-pct" name="descuento" label="Descuento" v-model="c.pct" :min="0" :max="100" :step="5" :precision="0" suffix="%" suffix-label="por ciento" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="c-qty" name="cantidad" label="Cantidad" v-model="c.qty" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="c-pob" name="poblacion" label="Población atendida" v-model="c.pob" :min="0" :precision="0" hint="Con separador de miles al salir."></x-number-field>
+      </g-form-layout>
+      <g-form-actions><g-btn id="c-save" type="submit" variant="solid">Guardar</g-btn></g-form-actions>
+    </g-form>
+    <pre class="out" id="c-out">{{ modelText(c) }}</pre>
+    <pre class="out" id="c-fd">{{ casesFd }}</pre>
+  </div>
+
+  <!-- ===================== 2. En una fila ===================== -->
+  <h2 class="demo">2. En una fila con otros campos (tres pistas)</h2>
+  <p class="cap">GInput, GSelect y dos XNumberField en una GFormRow real; «Frecuencia cardiaca» parte su etiqueta y «Peso» lleva ayuda: las cajas comparten <code>top</code>.</p>
+  <template v-for="w in [1100, 720, 320]" :key="w">
+    <div class="frame-tag">{{ w }}px</div>
+    <div :class="['frame', 'frame--' + w]">
+      <g-form :id="'r-form-' + w" :labels="formLabels">
+        <g-form-layout>
+          <g-form-row :id="'r-row-' + w">
+            <g-input class="g-form-w-md" :id="'r-nom-' + w" label="Nombre" name="nombre"></g-input>
+            <g-select class="g-form-w-sm" :id="'r-sexo-' + w" label="Sexo" name="sexo" :options="sexos" v-model="r.sexo"></g-select>
+            <x-number-field class="g-form-w-xs" :id="'r-fc-' + w" name="fc" label="Frecuencia cardiaca" v-model="r.fc" :min="20" :max="250" :precision="0" suffix="lpm" suffix-label="latidos por minuto"></x-number-field>
+            <x-number-field class="g-form-w-xs" :id="'r-peso-' + w" name="peso" label="Peso" v-model="r.peso" :min="0" :max="400" :step="0.1" :precision="1" suffix="kg" suffix-label="kilogramos" hint="Sin ropa."></x-number-field>
+          </g-form-row>
+          <g-form-row :id="'r-row2-' + w">
+            <x-number-field class="g-form-w-sm" :id="'r-qty-' + w" name="cantidad" label="Cantidad" v-model="r.qty" :min="1" :max="99" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+            <g-input class="g-form-w-md" :id="'r-lote-' + w" label="Lote" name="lote" error="El lote no existe."></g-input>
+          </g-form-row>
+        </g-form-layout>
+      </g-form>
+    </div>
+  </template>
+
+  <!-- ===================== 3. Unidad elegible ===================== -->
+  <h2 class="demo">3. Unidad elegible (receta) y GInputGroup actual</h2>
+  <p class="cap">Arriba, la receta propuesta: XNumberField + GSelect «Unidad» en la misma fila (dos preguntas, dos etiquetas). Abajo, el GInputGroup real de la receta de signos vitales: su parte de texto no tiene motor numérico (ni formato, ni flechas, ni <code>Number</code>); «GNumberField como parte» se reserva (declaración §10).</p>
+  <div class="frame frame--480">
+    <g-form id="u-form" :labels="formLabels">
+      <g-form-layout>
+        <g-form-row id="u-row">
+          <x-number-field class="g-form-w-sm" id="u-temp" name="temp" label="Temperatura" v-model="u.temp" :step="0.1" :precision="1" :min="u.unit === 'F' ? 86 : 30" :max="u.unit === 'F' ? 113 : 45"></x-number-field>
+          <g-select class="g-form-w-xs" id="u-unit" name="temp-unidad" label="Unidad" :options="[{ value: 'C', label: '°C' }, { value: 'F', label: '°F' }]" v-model="u.unit"></g-select>
+        </g-form-row>
+        <g-input-group id="u-group" label="Temperatura (GInputGroup actual)" name="temp2">
+          <g-input-group-input v-model="u.temp2" name="temp2" principal inputmode="decimal" placeholder="36.5"></g-input-group-input>
+          <g-input-group-select v-model="u.unit2" name="temp2-unidad" part-label="Unidad" :options="[{ value: 'C', label: '°C' }, { value: 'F', label: '°F' }]"></g-input-group-select>
+        </g-input-group>
+      </g-form-layout>
+    </g-form>
+    <pre class="out" id="u-out">{{ modelText(u) }}</pre>
+  </div>
+
+  <!-- ===================== 4. Estados ===================== -->
+  <h2 class="demo">4. Estados</h2>
+  <div class="frame">
+    <g-form id="s-form" :labels="formLabels">
+      <div class="grid">
+        <x-number-field id="s-empty" label="Vacío" :model-value="null" :min="0" :max="10" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-value" label="Con valor" :model-value="1234.5" :precision="2"></x-number-field>
+        <x-number-field id="s-min" label="En el mínimo" :model-value="1" :min="1" :max="9" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-max" label="En el máximo" :model-value="9" :min="1" :max="9" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-out" label="Fuera de rango (la aplicación marca)" :model-value="150" :min="0" :max="120" :precision="0" suffix="años" error="La edad debe estar entre 0 y 120 años." steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-warn" label="Advertencia" :model-value="39.8" :precision="1" suffix="°C" suffix-label="grados Celsius" warning="Fiebre alta: confirma la lectura."></x-number-field>
+        <x-number-field id="s-ro" label="Solo lectura" :model-value="72.5" :precision="1" suffix="kg" suffix-label="kilogramos" readonly steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-dis" label="Deshabilitado" :model-value="3" :min="1" :max="9" disabled steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-prefix" label="Factor" :model-value="1.5" :step="0.25" :precision="2" prefix="×" prefix-label="multiplicado por" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="s-neg" label="Refrigerador" :model-value="-18" :min="-30" :max="10" :precision="0" suffix="°C" suffix-label="grados Celsius" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+      </div>
+    </g-form>
+  </div>
+
+  <!-- ===================== 5. Tamaños y densidad ===================== -->
+  <h2 class="demo">5. Tamaños y densidad (−/+ cuadrados de la altura de la caja; ≥ 24px, ≥ 44px con puntero grueso)</h2>
+  <div class="frame">
+    <div class="grid">
+      <x-number-field v-for="s in ['xs','sm','md','lg','xl']" :key="s" :id="'z-' + s" :size="s" :label="'size ' + s" :model-value="5" :min="0" :max="10" suffix="kg" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+      <x-number-field id="z-compact" size="xs" density="compact" label="xs compact" :model-value="5" :min="0" :max="10" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+    </div>
+  </div>
+
+  <!-- ===================== 6. RTL ===================== -->
+  <h2 class="demo">6. RTL</h2>
+  <p class="cap">Árabe de Egipto (<code>ar-EG</code>: cifras arábigo-índicas y «٫» decimal) y hebreo (<code>he</code>: cifras latinas). El <code>&lt;input&gt;</code> lleva <code>dir="ltr"</code> para que el signo menos no salte al final; la caja sigue el orden RTL.</p>
+  <div class="frame frame--480" dir="rtl" lang="ar-EG">
+    <g-form id="rtl-form" :labels="formLabels">
+      <g-form-layout>
+        <x-number-field id="rtl-ar" name="t-ar" label="درجة الحرارة" v-model="rt.ar" :min="-30" :max="10" :step="0.5" :precision="1" suffix="°م" steppers decrement-label="إنقاص" increment-label="زيادة"></x-number-field>
+        <x-number-field id="rtl-he" lang="he" locale="he" name="t-he" label="משקל" v-model="rt.he" :min="0" :max="400" :step="0.1" :precision="1" suffix="ק״ג" steppers decrement-label="הפחת" increment-label="הוסף"></x-number-field>
+      </g-form-layout>
+    </g-form>
+    <pre class="out" id="rtl-out" dir="ltr">{{ modelText(rt) }}</pre>
+  </div>
+
+  <!-- ===================== 7. 320 ===================== -->
+  <h2 class="demo">7. 320px</h2>
+  <div class="frame frame--320" id="n-frame">
+    <g-form id="n-form" :labels="formLabels">
+      <g-form-layout>
+        <x-number-field id="n-qty" name="cantidad" label="Cantidad" v-model="n.qty" :min="1" :max="999" :precision="0" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+        <x-number-field id="n-pob" name="pob" label="Población atendida en el periodo" v-model="n.pob" :precision="0" suffix="personas"></x-number-field>
+        <g-form-row id="n-row">
+          <x-number-field class="g-form-w-xs" id="n-peso" name="peso" label="Peso" v-model="n.peso" :precision="1" suffix="kg" suffix-label="kilogramos"></x-number-field>
+          <x-number-field class="g-form-w-xs" id="n-est" name="est" label="Estatura" v-model="n.est" :precision="0" suffix="cm" suffix-label="centímetros"></x-number-field>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+  </div>
+
+  <!-- ===================== 8. Envío ===================== -->
+  <h2 class="demo">8. Envío: la aplicación valida, GForm decide cuándo se ve</h2>
+  <p class="cap"><code>errors</code> los calcula la aplicación desde el modelo (<code>Number</code> o <code>null</code>): «Edad» entre 0 y 120; «Dosis» obligatoria. Al enviar con errores, cada campo que bloquea recibe <code>is-rejected</code> (I2, real).</p>
+  <div class="frame frame--480">
+    <g-form id="e-form" :labels="formLabels" :errors="eErrors" @submit="onESubmit" @invalid="onEInvalid">
+      <g-form-layout>
+        <x-number-field id="e-edad" name="edad" label="Edad" v-model="e.edad" :min="0" :max="120" :precision="0" suffix="años" required></x-number-field>
+        <x-number-field id="e-dosis" name="dosis" label="Dosis" v-model="e.dosis" :min="0" :step="0.5" :precision="1" suffix="mg" suffix-label="miligramos" required steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+      </g-form-layout>
+      <g-form-actions><g-btn id="e-save" type="submit" variant="solid">Enviar</g-btn></g-form-actions>
+    </g-form>
+    <pre class="out" id="e-out">{{ eOut }}</pre>
+  </div>
+
+  <!-- ===================== 9. Medida de #270 ===================== -->
+  <h2 class="demo">9. Medida: <code>required</code> nativo frente a <code>aria-required</code> (#270)</h2>
+  <p class="cap">Dos campos vacíos y obligatorios, iguales salvo el atributo. El verificador lee el árbol de accesibilidad de Chromium antes de tocar nada.</p>
+  <div class="frame frame--480">
+    <div class="stack">
+      <x-number-field id="m-native" label="Con required nativo" :model-value="null" required x-req="native"></x-number-field>
+      <x-number-field id="m-aria" label="Con aria-required" :model-value="null" required x-req="aria"></x-number-field>
+      <x-number-field id="m-plain" label="Alternativa: caja de texto sin rol" :model-value="12" :min="0" :max="99" x-role="textbox" steppers decrement-label="Restar" increment-label="Sumar"></x-number-field>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, reactive, computed, watch, inject, provide, onMounted, onBeforeUnmount, mergeProps, nextTick, useAttrs } = Vue
+const { useFormField } = Grana
+const icon = (n) => window.lucide(n)
+
+// ============================================================================================
+// Motor numérico (propuesta de comportamiento; en Grana: utilidad de bruno, compartida con la futura parte de GInputGroup)
+// ============================================================================================
+const BIDI = /[‎‏؜‪-‮⁦-⁩]/g
+const MINUS = /[−‒–-﹣－]/g
+const locCache = new Map()
+function loc(locale) {
+  if (locCache.has(locale)) return locCache.get(locale)
+  const nf = new Intl.NumberFormat(locale)
+  const parts = nf.formatToParts(-12345.6)
+  const decimal = parts.find((p) => p.type === 'decimal')?.value || '.'
+  const group = parts.find((p) => p.type === 'group')?.value || ''
+  const plain = new Intl.NumberFormat(locale, { useGrouping: false })
+  const dmap = new Map()
+  for (let i = 0; i < 10; i++) dmap.set(plain.format(i), String(i))
+  const L = { locale, decimal, group, dmap, numberingSystem: nf.resolvedOptions().numberingSystem }
+  locCache.set(locale, L)
+  return L
+}
+// Cifras del sistema del idioma y latinas → ASCII; signos menos → «-»; sin marcas bidi
+function toAscii(s, L) {
+  let out = ''
+  for (const ch of s.replace(BIDI, '').replace(MINUS, '-')) out += L.dmap.get(ch) ?? ch
+  return out
+}
+// Al teclear: un solo separador decimal, cualquiera de «, . ٫» o el del idioma (el teclado del móvil puede no coincidir)
+function typedAscii(s, L) {
+  return toAscii(s, L).replace(new RegExp('[.,٫' + L.decimal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ']', 'g'), '.')
+}
+const PARTIAL = /^-?\d*(\.\d*)?$/
+function partialOk(a, { decimals, negative }) {
+  if (!PARTIAL.test(a)) return false
+  if (!decimals && a.includes('.')) return false
+  if (!negative && a.includes('-')) return false
+  return true
+}
+const partialNumber = (a) => (['', '-', '.', '-.'].includes(a) ? null : Number(a))
+// Al pegar: regla del idioma con heurística (dos tipos de separador: el último es el decimal; uno repetido: miles;
+// uno solo seguido de exactamente 3 cifras y que es el de miles del idioma: miles; si no, decimal)
+function parsePasted(s, L) {
+  let a = toAscii(s.trim(), L).replace(/[\s  '’]/g, '').replace(/٬/g, ',').replace(/٫/g, '.')
+  const d = (a.match(/\./g) || []).length, c = (a.match(/,/g) || []).length
+  if (d && c) { const dec = a.lastIndexOf('.') > a.lastIndexOf(',') ? '.' : ','; a = a.split(dec === '.' ? ',' : '.').join('').replace(dec, '.') }
+  else if (d > 1 || c > 1) a = a.replace(/[.,]/g, '')
+  else if (d + c === 1) { const sep = d ? '.' : ','; const after = a.split(sep)[1]; a = (/^\d{3}$/.test(after) && L.group === sep) ? a.replace(sep, '') : a.replace(sep, '.') }
+  return /^-?(\d+(\.\d*)?|\.\d+)$/.test(a) ? Number(a) : null
+}
+function decimalsOf(n) {
+  if (n == null || !isFinite(n)) return 0
+  const s = String(n)
+  if (s.includes('e-')) return Number(s.split('e-')[1])
+  const i = s.indexOf('.')
+  return i < 0 ? 0 : s.length - i - 1
+}
+const roundTo = (v, p) => (v == null || p == null ? v : Number(Math.round(Number(v + 'e' + p)) + 'e-' + p))
+function format(v, L, { grouping = true, precision } = {}) {
+  if (v == null) return ''
+  return new Intl.NumberFormat(L.locale, {
+    useGrouping: grouping ? undefined : false,           // undefined = la regla del idioma («auto»: «1234» y «12.345» en es)
+    minimumFractionDigits: precision ?? 0,
+    maximumFractionDigits: precision ?? 20
+  }).format(v).replace(BIDI, '')
+}
+window.__engine = { loc, toAscii, typedAscii, parsePasted, format, roundTo }
+
+// Constantes neutras (como HOVER_MS de GMenu, #187/#308): no son tema
+const REPEAT_DELAY = 400, REPEAT_EVERY = 60
+
+const proto = reactive({ glue: true, roll: true, bump: true, slow: false })
+const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)')
+function tokenMs(name) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  const ms = v.endsWith('ms') ? parseFloat(v) : v.endsWith('s') ? parseFloat(v) * 1000 : 160
+  return ms * (proto.slow ? 5 : 1)
+}
+const tokenPx = (name) => { const el = document.createElement('div'); el.style.width = `var(${name})`; document.body.append(el); const w = el.getBoundingClientRect().width; el.remove(); return w }
+
+const registry = (window.__nf = new Map())
+
+// ============================================================================================
+// XNumberField (prototipo). En Grana: GNumberField (.vue de bruno, contrato de lima, CSS de coco)
+// ============================================================================================
+const XNumberField = defineComponent({
+  name: 'XNumberField',
+  inheritAttrs: false,
+  props: {
+    modelValue: { type: Number, default: null },
+    label: String, hint: String, error: String, warning: String, valid: String,
+    required: Boolean, mark: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined }, disabled: { type: Boolean, default: undefined },
+    size: { type: String, default: 'md' }, variant: { type: String, default: 'outline' },
+    density: { type: String, default: undefined }, block: { type: Boolean, default: undefined },
+    min: Number, max: Number, step: { type: Number, default: 1 }, precision: Number,
+    locale: String, grouping: { type: Boolean, default: true },
+    prefix: String, suffix: String, prefixLabel: String, suffixLabel: String,
+    steppers: Boolean, decrementLabel: String, incrementLabel: String,
+    id: String,
+    xReq: { type: String, default: 'aria' },        // solo prototipo: medida de #270
+    xRole: { type: String, default: 'spinbutton' }  // solo prototipo: alternativa medida
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit, attrs }) {
+    const uid = 'xn' + Math.random().toString(36).slice(2, 8)
+    const inputId = computed(() => props.id || uid)
+    const field = ref(null), rootEl = ref(null), valueEl = ref(null)
+    const ff = useFormField({
+      id: inputId, name: () => attrs.name,
+      error: () => props.error, warning: () => props.warning, valid: () => props.valid,
+      required: () => props.required, readonly: () => props.readonly, disabled: () => props.disabled,
+      density: () => props.density, block: () => props.block, mark: () => props.mark,
+      trigger: 'blur', control: field, root: rootEl
+    })
+    const isDisabled = ff.disabled, isReadonly = ff.readonly
+    const domLang = ref('es')
+    const L = computed(() => loc(props.locale || domLang.value || 'es'))
+    const allowDecimals = computed(() => (props.precision == null ? true : props.precision > 0))
+    const allowNegative = computed(() => props.min == null || props.min < 0)
+    const inputmode = computed(() => (allowDecimals.value ? 'decimal' : 'numeric'))
+
+    const focused = ref(false)
+    const text = ref('')
+    const display = (v) => format(v, L.value, { grouping: props.grouping, precision: props.precision })
+    const raw = (v) => format(v, L.value, { grouping: false, precision: props.precision })
+    const syncText = () => { text.value = focused.value ? raw(props.modelValue) : display(props.modelValue) }
+    watch(() => props.modelValue, (v) => {
+      // Cambio desde fuera (la aplicación): si el texto ya dice ese número, no se toca (texto parcial «1,» mientras se escribe)
+      const cur = partialNumber(typedAscii(text.value, L.value))
+      if (roundTo(cur, props.precision) !== v) syncText()
+    })
+    watch(L, syncText)
+
+    const model = computed(() => props.modelValue)
+    const atMin = computed(() => props.min != null && model.value != null && model.value <= props.min)
+    const atMax = computed(() => props.max != null && model.value != null && model.value >= props.max)
+    const editable = computed(() => !isDisabled.value && !isReadonly.value)
+    const showSteppers = computed(() => props.steppers && !isReadonly.value && Boolean(props.decrementLabel && props.incrementLabel))
+
+    function setModel(v) { if (v !== props.modelValue) emit('update:modelValue', v) }
+    const clamp = (v) => { if (props.max != null && v > props.max) v = props.max; if (props.min != null && v < props.min) v = props.min; return v }
+    function nextValue(v, dir, mult) {
+      if (v == null) return clamp(0)          // vacío: el primer paso pone el punto de partida (0, o el límite más cercano)
+      const base = props.min ?? 0, st = props.step
+      const sc = 10 ** Math.max(decimalsOf(st), decimalsOf(base), props.precision ?? 0, decimalsOf(v))
+      const k = Math.round(((v - base) / st) * 1e9) / 1e9
+      const n = dir > 0 ? Math.floor(k) + mult : Math.ceil(k) - mult   // se encaja en la rejilla de step desde min
+      return clamp(Math.round((base + n * st) * sc) / sc)
+    }
+
+    // ---- P2 cifras que ruedan y P3 tope ----
+    const roll = ref(null)          // [{ ch, old, changed }]
+    const rolling = ref(false)
+    let lastStepAt = 0, rollAnims = []
+    const motionOk = () => !reduceMQ.matches
+    function finishRoll() { rollAnims.forEach((a) => { try { a.finish() } catch {} }); rollAnims = []; roll.value = null; rolling.value = false }
+    async function startRoll(oldT, newT, dir) {
+      finishRoll()
+      const D = tokenMs('--g-duration-press')
+      const el = field.value
+      if (!proto.roll || !motionOk() || !oldT || el.scrollWidth > el.clientWidth + 1) return
+      const n = Math.max(oldT.length, newT.length)
+      const a = [...oldT].reverse(), b = [...newT].reverse()
+      const chars = []
+      for (let i = 0; i < n; i++) { const nw = b[i] ?? '', od = a[i] ?? ''; if (nw === '' ) continue; chars.unshift({ ch: nw, old: od, changed: nw !== od }) }
+      roll.value = chars; rolling.value = true
+      await nextTick()
+      const ease = getComputedStyle(document.documentElement).getPropertyValue('--g-ease-out').trim() || 'ease-out'
+      const s = dir > 0 ? 1 : -1
+      valueEl.value.querySelectorAll('.x-roll__slot').forEach((slot) => {
+        const nw = slot.querySelector('.x-roll__new'), od = slot.querySelector('.x-roll__old')
+        rollAnims.push(nw.animate([{ translate: `0 ${s * 100}%` }, { translate: '0 0' }], { duration: D, easing: ease }))
+        if (od) rollAnims.push(od.animate([{ translate: '0 0' }, { translate: `0 ${-s * 100}%` }], { duration: D, easing: ease, fill: 'forwards' }))
+      })
+      const mine = rollAnims
+      Promise.all(mine.map((x) => x.finished.catch(() => {}))).then(() => { if (rollAnims === mine) { roll.value = null; rolling.value = false; rollAnims = [] } })
+    }
+    let bumpAnim = null
+    function bump(dir) {
+      if (!proto.bump || !motionOk()) return
+      bumpAnim?.cancel()
+      const px = tokenPx('--g-space-1') * 0.5
+      bumpAnim = valueEl.value.animate([{ translate: '0 0' }, { translate: `0 ${-dir * px}px` }, { translate: '0 0' }],
+        { duration: tokenMs('--g-duration-press'), easing: getComputedStyle(document.documentElement).getPropertyValue('--g-ease-out').trim() })
+      window.__bumps = (window.__bumps || 0) + 1
+    }
+
+    function doStep(dir, mult, source) {
+      if (!editable.value) return false
+      const v = model.value
+      if (v != null && ((dir > 0 && atMax.value && v >= props.max) || (dir < 0 && atMin.value && v <= props.min))) { if (source === 'key') bump(dir); return false }
+      const nv = nextValue(v, dir, mult)
+      if (nv === v) { if (source === 'key') bump(dir); return false }
+      const oldT = text.value
+      const now = performance.now(), D = tokenMs('--g-duration-press')
+      // al repetir (botón mantenido o tecla con autorrepetición) no rueda: el valor va al instante
+      const deliberate = source !== 'repeat' && source !== 'keyrepeat' && now - lastStepAt >= D
+      lastStepAt = now
+      setModel(nv)
+      text.value = focused.value ? raw(nv) : display(nv)
+      if (focused.value) nextTick(() => { const el = field.value; el.setSelectionRange(el.value.length, el.value.length) })
+      if (deliberate) startRoll(oldT, text.value, dir); else finishRoll()
+      if (source.startsWith('key')) ff.handlers.onInput?.(); else ff.notifyChange()
+      return true
+    }
+
+    // ---- teclado ----
+    function onKeydown(e) {
+      if (e.key === 'Enter') { commit(); return }
+      const map = { ArrowUp: [1, 1], ArrowDown: [-1, 1], PageUp: [1, 10], PageDown: [-1, 10] }
+      const m = map[e.key]
+      if (!m || e.altKey || e.ctrlKey || e.metaKey || !editable.value) return
+      e.preventDefault()
+      doStep(m[0], m[1] === 1 && e.shiftKey ? 10 : m[1], e.repeat ? 'keyrepeat' : 'key')
+    }
+    // ---- escritura ----
+    function onInput(e) {
+      if (e.isComposing) return
+      const el = e.target
+      let t = el.value
+      const a = typedAscii(t, L.value)
+      if (!partialOk(a, { decimals: allowDecimals.value, negative: allowNegative.value })) {
+        const pos = Math.max(0, (el.selectionStart ?? t.length) - (t.length - text.value.length))
+        el.value = text.value; el.setSelectionRange(pos, pos)
+        window.__filtered = (window.__filtered || 0) + 1
+        return
+      }
+      // El separador tecleado se convierte al del idioma en el acto («.» → «,» en es)
+      const sepRe = /[.,٫]/
+      if (allowDecimals.value && sepRe.test(t) && !t.includes(L.value.decimal)) {
+        const pos = el.selectionStart; t = t.replace(sepRe, L.value.decimal); el.value = t; el.setSelectionRange(pos, pos)
+      }
+      text.value = t
+      finishRoll()
+      setModel(roundTo(partialNumber(a), props.precision))
+    }
+    function onPaste(e) {
+      const s = e.clipboardData?.getData('text') ?? ''
+      e.preventDefault()
+      const n = parsePasted(s, L.value)
+      if (n == null || (!allowNegative.value && n < 0)) { window.__filtered = (window.__filtered || 0) + 1; return }
+      const el = field.value
+      const ins = raw(roundTo(n, props.precision))
+      const t = el.value.slice(0, el.selectionStart) + ins + el.value.slice(el.selectionEnd)
+      const a = typedAscii(t, L.value)
+      const finalT = partialOk(a, { decimals: allowDecimals.value, negative: allowNegative.value }) ? t : ins
+      el.value = finalT; text.value = finalT
+      setModel(roundTo(partialNumber(typedAscii(finalT, L.value)), props.precision))
+      ff.handlers.onInput?.()
+    }
+    function commit() { text.value = focused.value ? raw(props.modelValue) : display(props.modelValue) }
+    function onFocus() {
+      focused.value = true
+      const el = field.value
+      const all = el.selectionStart === 0 && el.selectionEnd === el.value.length && el.value.length > 0
+      const r = raw(props.modelValue)
+      if (r !== text.value && props.modelValue != null) { text.value = r; el.value = r; if (all) el.select(); else el.setSelectionRange(r.length, r.length) }
+    }
+    function onBlur() { focused.value = false; finishRoll(); commit() }
+
+    // ---- −/+ con puntero: no roban el foco, repiten al mantener ----
+    let repT = null, repI = null
+    function stopRepeat() { clearTimeout(repT); clearInterval(repI); repT = repI = null; window.removeEventListener('pointerup', stopRepeat); window.removeEventListener('pointercancel', stopRepeat); window.removeEventListener('blur', stopRepeat) }
+    function onStepDown(dir, e) {
+      if (e.button !== 0) return
+      e.preventDefault()                 // sin foco en el botón y sin teclado virtual: el foco se queda donde estaba
+      if (!doStep(dir, 1, 'button')) return
+      window.addEventListener('pointerup', stopRepeat); window.addEventListener('pointercancel', stopRepeat); window.addEventListener('blur', stopRepeat)
+      repT = setTimeout(() => { repI = setInterval(() => { if (!doStep(dir, 1, 'repeat')) stopRepeat() }, REPEAT_EVERY) }, REPEAT_DELAY)
+    }
+    // Activación sin puntero (lector de pantalla táctil o de escritorio: click con detail 0)
+    function onStepClick(dir, e) { if (e.detail === 0) doStep(dir, 1, 'button') }
+    // Pulsar el área vacía de la caja (o el prefijo/sufijo) enfoca el campo con el cursor al final
+    function onBoxDown(e) {
+      if (e.target === field.value || e.target.closest('.x-num__steppers') || isDisabled.value) return
+      e.preventDefault()
+      const el = field.value; el.focus(); el.setSelectionRange(el.value.length, el.value.length)
+    }
+    onBeforeUnmount(stopRepeat)
+
+    const ready = ref(false)
+    onMounted(() => {
+      domLang.value = rootEl.value.closest('[lang]')?.getAttribute('lang') || 'es'
+      syncText()
+      requestAnimationFrame(() => requestAnimationFrame(() => (ready.value = true)))
+      registry.set(inputId.value, { text, model, focused, L, rolling })
+    })
+    onBeforeUnmount(() => registry.delete(inputId.value))
+
+    const prefixId = computed(() => inputId.value + '-prefix'), suffixId = computed(() => inputId.value + '-suffix'), hintId = computed(() => inputId.value + '-hint')
+    const describedBy = computed(() => [attrs['aria-describedby'], props.prefix && prefixId.value, props.suffix && suffixId.value, props.hint && hintId.value, ff.message.value && ff.messageId.value].filter(Boolean).join(' ') || undefined)
+    const inputAttrs = computed(() => { const { class: _c, style: _s, name: _n, ...rest } = attrs; return rest })
+    const spin = computed(() => props.xRole === 'spinbutton')
+    const controlled = computed(() => ({
+      id: inputId.value, type: 'text', value: text.value, dir: 'ltr', inputmode: inputmode.value,
+      autocomplete: attrs.autocomplete ?? 'off', spellcheck: 'false', autocorrect: 'off',
+      role: spin.value ? 'spinbutton' : undefined,
+      'aria-valuenow': spin.value && model.value != null ? model.value : undefined,
+      'aria-valuetext': spin.value && model.value != null ? display(model.value) : undefined,
+      'aria-valuemin': spin.value ? props.min : undefined,
+      'aria-valuemax': spin.value ? props.max : undefined,
+      disabled: isDisabled.value || undefined, readonly: isReadonly.value || undefined,
+      'aria-readonly': spin.value && isReadonly.value ? 'true' : undefined,   // Chromium no deriva readonly del atributo nativo en un spinbutton (medido)
+      required: props.required && props.xReq === 'native' ? true : undefined,
+      'aria-required': props.required && props.xReq === 'aria' ? 'true' : undefined,
+      'aria-invalid': ff.invalid.value ? 'true' : undefined,
+      'aria-describedby': describedBy.value
+    }))
+    const fieldBindings = computed(() => mergeProps(ff.handlers, { onInput, onKeydown, onFocus, onBlur, onPaste }, inputAttrs.value, controlled.value))
+    const canonical = computed(() => (model.value == null ? '' : String(model.value)))
+    const classes = computed(() => ['g-input', 'x-num', `g-input--variant-${props.variant}`, `g-input--size-${props.size}`, `g-input--density-${ff.density.value}`, {
+      'g-input--block': ff.block.value, 'g-input--has-prefix': !!props.prefix, 'g-input--has-suffix': !!props.suffix,
+      'is-disabled': isDisabled.value, 'is-readonly': isReadonly.value, 'is-invalid': ff.invalid.value,
+      'is-warning': ff.ownMessage.value?.type === 'warning', 'is-valid': ff.ownMessage.value?.type === 'valid',
+      'is-ready': ready.value, 'is-rejected': ff.rejected.value,
+      'x-num--glue': proto.glue, 'x-num--steppers': showSteppers.value
+    }])
+    const msgIcon = (t) => window.lucide(t === 'error' ? 'circle-alert' : t === 'warning' ? 'triangle-alert' : 'circle-check', 'g-input__message-icon')
+    return { ff, field, rootEl, valueEl, inputId, classes, fieldBindings, text, roll, rolling, showSteppers, atMin, atMax, isDisabled, canonical,
+      prefixId, suffixId, hintId, onStepDown, onStepClick, onBoxDown, icon, msgIcon, attrs, editable }
+  },
+  template: `
+  <div ref="rootEl" :class="[classes, attrs.class]" :style="attrs.style" :data-model="JSON.stringify(ff && $props.modelValue)" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+    <label v-if="label" class="g-input__label" :id="inputId + '-label'" :for="inputId">{{ label }}<template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
+    <div class="g-input__row">
+      <div class="g-input__control" @pointerdown="onBoxDown">
+        <template v-if="prefix"><span class="g-input__prefix" :id="prefixLabel ? undefined : prefixId" :aria-hidden="prefixLabel ? 'true' : undefined">{{ prefix }}</span><span v-if="prefixLabel" :id="prefixId" class="g-input__prefix-label">{{ prefixLabel }}</span></template>
+        <span ref="valueEl" :class="['x-num__value', { 'is-rolling': rolling }]">
+          <span class="x-num__mirror" aria-hidden="true">{{ text || attrs.placeholder || '' }}</span>
+          <input ref="field" v-bind="fieldBindings" class="g-input__field x-num__field">
+          <span v-if="roll" class="x-num__roll" aria-hidden="true" dir="ltr"><template v-for="(c, i) in roll" :key="i"><span v-if="c.changed" class="x-roll__slot"><span class="x-roll__new">{{ c.ch }}</span><span v-if="c.old" class="x-roll__old">{{ c.old }}</span></span><template v-else>{{ c.ch }}</template></template></span>
+        </span>
+        <template v-if="suffix"><span class="g-input__suffix" :id="suffixLabel ? undefined : suffixId" :aria-hidden="suffixLabel ? 'true' : undefined">{{ suffix }}</span><span v-if="suffixLabel" :id="suffixId" class="g-input__suffix-label">{{ suffixLabel }}</span></template>
+        <span v-if="showSteppers" class="x-num__steppers">
+          <button type="button" class="x-num__step x-num__step--dec" tabindex="-1" :id="inputId + '-dec'" :aria-label="decrementLabel + ' ' + (label || '')" :aria-controls="inputId"
+                  :disabled="isDisabled || atMin || undefined" @pointerdown="onStepDown(-1, $event)" @click="onStepClick(-1, $event)"><span v-html="icon('minus')"></span></button>
+          <button type="button" class="x-num__step x-num__step--inc" tabindex="-1" :id="inputId + '-inc'" :aria-label="incrementLabel + ' ' + (label || '')" :aria-controls="inputId"
+                  :disabled="isDisabled || atMax || undefined" @pointerdown="onStepDown(1, $event)" @click="onStepClick(1, $event)"><span v-html="icon('plus')"></span></button>
+        </span>
+      </div>
+      <input v-if="attrs.name" type="hidden" :name="attrs.name" :value="canonical" :disabled="isDisabled || undefined">
+    </div>
+    <div class="g-input__support">
+      <div v-if="hint" class="g-input__messages"><span :id="hintId" class="g-input__hint">{{ hint }}</span></div>
+      <div :id="ff.messageId.value" class="g-input__message" :aria-live="ff.live.value"><template v-if="ff.message.value"><span v-html="msgIcon(ff.message.value.type)" style="display:contents"></span><span v-if="ff.message.value.prefix" class="g-input__message-type">{{ ff.message.value.prefix }}</span>{{ ff.message.value.text }}</template></div>
+    </div>
+  </div>`
+})
+
+const formLabels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const sexos = [{ value: 'f', label: 'Femenino' }, { value: 'm', label: 'Masculino' }, { value: 'x', label: 'Prefiero no decirlo' }]
+
+const app = createApp({
+  setup() {
+    const c = reactive({ edad: null, peso: 72.5, temp: null, pct: 10, qty: 1, pob: 12345 })
+    const r = reactive({ sexo: null, fc: 72, peso: 70.2, qty: 2 })
+    const u = reactive({ temp: 36.5, unit: 'C', temp2: '', unit2: 'C' })
+    const rt = reactive({ ar: -4.5, he: 72.5 })
+    const n = reactive({ qty: 12, pob: 1234567, peso: 70.5, est: 172 })
+    const e = reactive({ edad: null, dosis: null })
+    const casesFd = ref('FormData: (envía el formulario)')
+    const eOut = ref('')
+    const eErrors = computed(() => {
+      const x = {}
+      if (e.edad == null) x.edad = 'Escribe la edad.'
+      else if (e.edad < 0 || e.edad > 120) x.edad = 'La edad debe estar entre 0 y 120 años.'
+      if (e.dosis == null) x.dosis = 'Escribe la dosis.'
+      return x
+    })
+    const modelText = (o) => Object.entries(o).map(([k, v]) => `${k}: ${JSON.stringify(v)} (${v === null ? 'null' : typeof v})`).join('  ·  ')
+    function onCasesSubmit({ data }) { casesFd.value = 'FormData: ' + [...data.entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+    function onESubmit({ data }) { eOut.value = 'submit · ' + [...data.entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+    function onEInvalid({ errors }) { eOut.value = 'invalid · ' + errors.map((x) => x.name).join(', ') }
+    watch(() => proto.slow, (v) => document.documentElement.classList.toggle('slow', v))
+    return { proto, c, r, u, rt, n, e, eErrors, eOut, casesFd, modelText, onCasesSubmit, onESubmit, onEInvalid, formLabels, sexos }
+  }
+})
+app.component('XNumberField', XNumberField)
+app.use(Grana)
+app.mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>
