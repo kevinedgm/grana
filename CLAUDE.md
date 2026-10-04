@@ -40,7 +40,7 @@ Cada rol es un agente en `.claude/agents/` con su modelo por defecto:
 - se posiciona sobre otros elementos (popover, menú, tooltip, hoja);
 - lleva un motor de datos o de estado (filtros, orden, paginación, fechas).
 
-**Fable** solo si el usuario lo pide o si Opus falla dos veces en lo mismo. **Haiku** para tareas mecánicas sin criterio (renumerar, actualizar índices, regenerar con un script existente).
+**Fable (el modelo más avanzado) en tareas pesadas de kiwi, lima y bruno** (decisión del usuario, 2026-10-04): rondas de estructura de un componente nuevo, contratos de un componente nuevo y la construcción del `.vue` con su motor y pruebas se lanzan con `model: "fable"`. coco sigue en Opus en componentes complejos y Sonnet en el resto; mora-docs en Sonnet. Correcciones pequeñas, textos de contrato y remates siguen en Sonnet (u Opus si hay criterio delicado), sea cual sea el rol. **Haiku** para tareas mecánicas sin criterio (renumerar, actualizar índices, regenerar con un script existente).
 
 ## Personalidad e innovación (regla del usuario)
 
