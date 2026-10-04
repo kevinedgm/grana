@@ -905,3 +905,211 @@ describe('GCard · orden del DOM, eventos y avisos', () => {
     expect(w.vm.layout).toBe('row')
   })
 })
+
+describe('GCard · personalidad C1: la luz sigue al puntero (#303)', () => {
+  // matchMedia simulado y controlable; requestAnimationFrame en cola (un cuadro = flushFrames)
+  let mq
+  let frames
+  const flushFrames = () => { const q = frames; frames = []; q.forEach((f) => f(0)) }
+  const mockMq = (matches) => {
+    mq = { matches, media: '', listeners: new Set(), queries: [],
+      addEventListener(t, f) { if (t === 'change') this.listeners.add(f) },
+      removeEventListener(t, f) { if (t === 'change') this.listeners.delete(f) },
+      set(m) { this.matches = m; this.listeners.forEach((f) => f({ matches: m, media: this.media })) } }
+    vi.stubGlobal('matchMedia', vi.fn((q) => { mq.queries.push(q); mq.media = q; return mq }))
+  }
+  beforeEach(() => {
+    frames = []
+    globalThis.requestAnimationFrame = (f) => { frames.push(f); return frames.length }
+    globalThis.cancelAnimationFrame = () => {}
+    // Caja de borde de la raíz en (100, 50)
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      return this.classList?.contains('g-card') ? { left: 100, top: 50, width: 320, height: 200, right: 420, bottom: 250, x: 100, y: 50 } : { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0, x: 0, y: 0 }
+    })
+  })
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  const ptr = (w, type, pointerType, x, y) => {
+    const e = new Event(type, { bubbles: type === 'pointermove' })
+    Object.defineProperties(e, { pointerType: { value: pointerType }, clientX: { value: x }, clientY: { value: y } })
+    w.element.dispatchEvent(e)
+  }
+  const vars = (w) => [w.element.style.getPropertyValue('--_pointer-x'), w.element.style.getPropertyValue('--_pointer-y')]
+  const link = (props = {}) => mk({ href: '/atlas', ...props })
+
+  it('consulta (hover: hover) and (prefers-reduced-motion: no-preference) una vez y, si se cumple, escucha en la raíz', async () => {
+    mockMq(true)
+    const add = vi.spyOn(HTMLElement.prototype, 'addEventListener')
+    const w = link()
+    await nextTick()
+    expect(mq.queries).toEqual(['(hover: hover) and (prefers-reduced-motion: no-preference)'])
+    const ours = add.mock.calls.filter(([t, f], i) => add.mock.contexts[i] === w.element && f.name === 'onPointer').map(([t]) => t)
+    expect(ours.sort()).toEqual(['pointerenter', 'pointermove'])
+    w.unmount()
+  })
+
+  it.each(['mouse', 'pen'])('%s: px desde la caja de borde, escritos en el cuadro siguiente', async (type) => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointermove', type, 130, 80)
+    expect(vars(w)).toEqual(['', '']) // todavía no: se escribe en el cuadro
+    flushFrames()
+    expect(vars(w)).toEqual(['30px', '30px'])
+    w.unmount()
+  })
+
+  it('pointerenter también escribe (antes del primer pintado del hover)', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointerenter', 'mouse', 400.5, 249.25)
+    flushFrames()
+    expect(vars(w)).toEqual(['300.5px', '199.25px'])
+    w.unmount()
+  })
+
+  it('una escritura por cuadro (la última posición) y solo si cambia', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    const set = vi.spyOn(w.element.style, 'setProperty')
+    ptr(w, 'pointermove', 'mouse', 110, 60)
+    ptr(w, 'pointermove', 'mouse', 120, 70)
+    ptr(w, 'pointermove', 'mouse', 140, 90)
+    expect(frames.length).toBe(1)
+    flushFrames()
+    expect(vars(w)).toEqual(['40px', '40px'])
+    expect(set.mock.calls.filter(([k]) => k.startsWith('--_pointer')).length).toBe(2)
+    ptr(w, 'pointermove', 'mouse', 140, 90) // misma posición
+    flushFrames()
+    expect(set.mock.calls.filter(([k]) => k.startsWith('--_pointer')).length).toBe(2)
+    w.unmount()
+  })
+
+  it('touch: nada (ni con la consulta cumplida)', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointerenter', 'touch', 130, 80)
+    ptr(w, 'pointermove', 'touch', 130, 80)
+    expect(frames.length).toBe(0)
+    flushFrames()
+    expect(vars(w)).toEqual(['', ''])
+    w.unmount()
+  })
+
+  it('al salir el puntero no se borran (el halo se va con el hover, card.md «Personalidad»)', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    ptr(w, 'pointerleave', 'mouse', 500, 500)
+    flushFrames()
+    expect(vars(w)).toEqual(['30px', '30px'])
+    w.unmount()
+  })
+
+  it('con reduce o sin hover (la consulta no se cumple): sin escuchas ni variables', async () => {
+    mockMq(false)
+    const add = vi.spyOn(HTMLElement.prototype, 'addEventListener')
+    const w = link()
+    await nextTick()
+    // (@vue/test-utils escucha todos los eventos en la raíz para `emitted()`: se cuentan solo las escuchas de GCard)
+    const ours = () => add.mock.calls.filter(([t, f], i) => add.mock.contexts[i] === w.element && /^pointer(move|enter)$/.test(t) && f.name === 'onPointer')
+    expect(ours()).toEqual([])
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    expect(vars(w)).toEqual(['', ''])
+    w.unmount()
+  })
+
+  it('las escuchas se ponen y se quitan al cambiar la consulta (y las variables se retiran al quitarlas)', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    expect(vars(w)).toEqual(['30px', '30px'])
+    mq.set(false) // p. ej. el sistema pasa a movimiento reducido
+    await nextTick()
+    expect(vars(w)).toEqual(['', ''])
+    ptr(w, 'pointermove', 'mouse', 150, 100)
+    flushFrames()
+    expect(vars(w)).toEqual(['', ''])
+    mq.set(true)
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 150, 100)
+    flushFrames()
+    expect(vars(w)).toEqual(['50px', '50px'])
+    w.unmount()
+  })
+
+  it.each([
+    ['no interactiva', {}],
+    ['disabled', { href: '/atlas', disabled: true }],
+    ['loading', { href: '/atlas', loading: true }]
+  ])('%s: sin escuchas', async (_, props) => {
+    mockMq(true)
+    const w = mk(props)
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    expect(vars(w)).toEqual(['', ''])
+    w.unmount()
+  })
+
+  it('pasar a loading quita las escuchas y las variables; al volver, se reanudan', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    await w.setProps({ loading: true })
+    await nextTick()
+    expect(vars(w)).toEqual(['', ''])
+    await w.setProps({ loading: false })
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 140, 90)
+    flushFrames()
+    expect(vars(w)).toEqual(['40px', '40px'])
+    w.unmount()
+  })
+
+  it('la tarjeta no se mueve: sin transform ni estilos en línea que no sean las dos variables (#127)', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    flushFrames()
+    const st = w.element.style
+    const props = Array.from({ length: st.length }, (_, i) => st[i]).filter((k) => !k.startsWith('--_pointer'))
+    expect(props).toEqual([])
+    expect(w.element.style.transform).toBe('')
+    w.unmount()
+  })
+
+  it('al desmontar quita la escucha de la consulta y cancela el cuadro pendiente', async () => {
+    mockMq(true)
+    const w = link()
+    await nextTick()
+    expect(mq.listeners.size).toBe(1)
+    ptr(w, 'pointermove', 'mouse', 130, 80)
+    const el = w.element
+    w.unmount()
+    expect(mq.listeners.size).toBe(0)
+    flushFrames()
+    expect(el.style.getPropertyValue('--_pointer-x')).toBe('')
+  })
+
+  it('SSR (renderToString): sin variables y sin consultar matchMedia', async () => {
+    mockMq(true)
+    const { createSSRApp } = await import('vue')
+    const { renderToString } = await import('vue/server-renderer')
+    const html = await renderToString(createSSRApp({ render: () => h(GCard, { ...base, href: '/atlas' }) }))
+    expect(html).toContain('g-card')
+    expect(html).not.toContain('--_pointer')
+    expect(mq.queries).toEqual([])
+  })
+})

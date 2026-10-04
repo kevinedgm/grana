@@ -219,6 +219,76 @@ export default defineComponent({
     onBeforeUnmount(() => { ro?.disconnect(); caf(frame) })
     watch(() => [props.description, props.descriptionLines, props.expandable, props.loading], () => nextTick(checkClamp))
 
+    // ---------- C1 · la luz sigue al puntero (card.md «Personalidad», #303) ----------
+    // `--_pointer-x/y` en px desde la caja de borde de la raíz; el halo es CSS de coco. Solo punteros `mouse`/`pen`, solo en
+    // tarjetas interactivas sin `disabled`/`loading` y solo mientras se cumpla POINTER_MQ: sin ella (táctil, movimiento
+    // reducido) no hay escuchas. Una escritura por cuadro y solo si cambia; se escribe en el DOM, sin pasar por el render.
+    // Al salir el puntero no se borran (el halo se va con el hover); se retiran al quitar las escuchas.
+    const POINTER_MQ = '(hover: hover) and (prefers-reduced-motion: no-preference)'
+    const pointerMq = ref(false)
+    let mql = null
+    const onMq = (e) => { pointerMq.value = e.matches }
+    let ptrFrame = 0
+    let ptrEvent = null
+    let ptrNode = null
+    let ptrLast = ''
+    const writePointer = () => {
+      ptrFrame = 0
+      const node = ptrNode
+      const e = ptrEvent
+      if (!node || !e) return
+      const r = node.getBoundingClientRect()
+      const x = `${Math.round((e.clientX - r.left) * 100) / 100}px`
+      const y = `${Math.round((e.clientY - r.top) * 100) / 100}px`
+      if (x + ' ' + y === ptrLast) return
+      ptrLast = x + ' ' + y
+      node.style.setProperty('--_pointer-x', x)
+      node.style.setProperty('--_pointer-y', y)
+    }
+    const onPointer = (e) => {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return
+      ptrEvent = { clientX: e.clientX, clientY: e.clientY }
+      if (!ptrFrame) ptrFrame = raf(writePointer)
+    }
+    const detachPointer = () => {
+      if (ptrFrame) { caf(ptrFrame); ptrFrame = 0 }
+      const node = ptrNode
+      ptrNode = null
+      ptrEvent = null
+      ptrLast = ''
+      if (!node) return
+      node.removeEventListener('pointerenter', onPointer)
+      node.removeEventListener('pointermove', onPointer)
+      node.style.removeProperty('--_pointer-x')
+      node.style.removeProperty('--_pointer-y')
+    }
+    const attachPointer = (node) => {
+      if (ptrNode === node) return
+      detachPointer()
+      if (!node) return
+      ptrNode = node
+      node.addEventListener('pointerenter', onPointer)
+      node.addEventListener('pointermove', onPointer)
+    }
+    const pointerOn = computed(() => pointerMq.value && hasPrimary.value && !props.disabled && !props.loading)
+    onMounted(() => {
+      if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+      mql = window.matchMedia(POINTER_MQ)
+      pointerMq.value = Boolean(mql.matches)
+      if (mql.addEventListener) mql.addEventListener('change', onMq)
+      else if (mql.addListener) mql.addListener(onMq)
+    })
+    // Tras el render (`post`): el nodo raíz cambia si cambia `as`, y entonces se vuelve a enganchar
+    watch([pointerOn, () => props.as], ([on]) => attachPointer(on ? el() : null), { flush: 'post' })
+    onBeforeUnmount(() => {
+      detachPointer()
+      if (mql) {
+        if (mql.removeEventListener) mql.removeEventListener('change', onMq)
+        else if (mql.removeListener) mql.removeListener(onMq)
+        mql = null
+      }
+    })
+
     const toggleExpand = () => {
       expanded.value = !expanded.value
       emit('expand', { expanded: expanded.value, region: 'description' })

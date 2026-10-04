@@ -468,6 +468,12 @@
     "status-error",
     "expanded"
   ],
+  "classes": {
+    "personality": [
+      "style --_pointer-x/--_pointer-y (px desde la caja de borde de la raíz): escritos por GCard.vue en pointerenter y pointermove, solo para pointerType mouse o pen, una escritura por cuadro (requestAnimationFrame) y solo si cambian; solo en is-interactive sin is-disabled ni is-loading y solo mientras matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)') se cumpla (escuchas que se ponen y se quitan al cambiar la consulta; en táctil y con reduce, ninguna). Al salir el puntero no se borran (el halo se va con el hover); se retiran al quitar las escuchas. Nunca en SSR. La tarjeta no se mueve (#127). C1, #303",
+      "--_select-x/--_select-y reservadas para C2: sin escribir hasta que coco las pida (#303)"
+    ]
+  },
   "pending": [
     "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack): nombre del article sin aria-labelledby con principal, título-enlace, aria-busy, role=\"status\" y role=\"alert\"",
