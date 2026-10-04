@@ -236,6 +236,7 @@ Las tres están prototipadas y medidas por kiwi (r01 §11), no cambian la API ni
 | `--g-space-1` | Lado de −/+ (el alto de caja `--_h` de `GInput`, derivado de `space`); P3 (`× 0.5`); separación de P1 (la de la caja) |
 | `--g-border-width` | Separador entre la caja y −/+ y entre − y +; margen negativo para que −/+ lleguen de borde a borde |
 | `--g-color-border-control` | Separador de −/+ (≥ 3:1: delimita un control) |
+| `--g-color-border-strong` | Separador de −/+ con el campo deshabilitado (el borde deshabilitado de la caja de `GInput`) |
 | `--g-color-text-muted` | Icono de −/+ en reposo (≥ 3:1, componente de interfaz) |
 | `--g-color-text` | Icono de −/+ al pasar y pulsar |
 | `--g-color-text-subtle` | Icono de −/+ deshabilitado |
@@ -244,7 +245,8 @@ Las tres están prototipadas y medidas por kiwi (r01 §11), no cambian la API ni
 | `--g-text-caption-size` … `--g-text-body-size` | Tamaño del icono (`1em` del texto escrito de cada `size`), del espejo y de la capa de P2 |
 | `--g-duration-fast`, `--g-ease-standard` | Fondo y color de −/+ |
 | `--g-duration-press`, `--g-ease-out` | P2 y P3 |
-| `--g-focus-*` | Sin anillo propio en −/+ (no reciben foco); el del campo es el de `GInput` |
+| `--g-focus-width` y el color de foco del campo | Anillo de seguridad **por dentro** de −/+ si una tecnología de apoyo los enfoca (no reciben foco por Tab ni al pulsarlos; no es un estilo nuevo); el anillo del campo es el de `GInput` |
+| `--_nf-border`, `--_nf-stroke` (alias locales, no tokens) | Borde real de la caja y trazo visible por estado (×2 en error y advertencia): −/+ cubren la caja de borde a borde (`tokens.md` §30) |
 
 **No son tokens** (`tokens.md` §29.6, §7, §30): repetición **400ms / 60ms** (constantes de JS, como `HOVER_MS`); **`0.5`** de P3; **`1px`** del cursor al final del espejo; **`1ch`** de ancho mínimo del espejo (unidad, #187); el **100 %** de P2 (geometría); `24px`/`44px` (área táctil, §7).
 
@@ -268,7 +270,7 @@ Bruno las emite; coco las estiliza. Las de `GInput` (raíz, caja, prefijo/sufijo
 | `g-number-field__step`, `--decrement`, `--increment` | `button` | −/+ pintados |
 | `g-number-field__step-label` | `span` texto oculto dentro del botón | −/+ pintados |
 
-**Para coco** (además de lo dicho en «Personalidad»): `font-variant-numeric: tabular-nums` en el campo, el espejo, el medidor y la capa (el ancho de P1 y la alineación de P2 lo necesitan); −/+ **cuadrados del alto de la caja** (`--_h` de `GInput`), de borde a borde incluido el borde, piso de **24px** y **44px** con `pointer: coarse` (medido por kiwi: xs 24, sm 28, md 36, lg 44, xl 52; xs `compact` 24; con puntero grueso 44×44); `touch-action: manipulation`, sin selección ni menú de toque largo (`user-select: none`, `-webkit-touch-callout: none`); hover dentro de `@media (hover: hover)`; `forced-colors`: −/+ con borde y color del sistema (`ButtonText`/`GrayText`), separador visible; el texto del campo alineado con `text-align: match-parent` (a la derecha en RTL cuando desborda); la sacudida de I2 ya mueve `g-input__row` y con ella −/+ (sin regla nueva); el `__measure` fuera de flujo (no cambia la caja) con la tipografía del campo; cursor de texto en el área vacía de la caja y normal sobre −/+.
+**Para coco** (además de lo dicho en «Personalidad»): `font-variant-numeric: tabular-nums` en el campo, el espejo, el medidor y la capa (el ancho de P1 y la alineación de P2 lo necesitan); −/+ **cuadrados del alto de la caja** (`--_h` de `GInput`), de borde a borde incluido el borde, piso de **24px** y **44px** con `pointer: coarse` (medido por kiwi: xs 24, sm 28, md 36, lg 44, xl 52; xs `compact` 24; con puntero grueso 44×44); `touch-action: manipulation`, sin selección ni menú de toque largo (`user-select: none`, `-webkit-touch-callout: none`); hover dentro de `@media (hover: hover)`; `forced-colors`: −/+ con borde y color del sistema (`ButtonText`/`GrayText`), separador visible; el texto del campo alineado con `text-align: match-parent` (a la derecha en RTL cuando desborda; Chromium no lo resuelve y se fija `right` desde `:dir(rtl)`); la sacudida de I2 ya mueve `g-input__row` y con ella −/+ (sin regla nueva); el `__measure` fuera de flujo (no cambia la caja) con la tipografía del campo; cursor de texto en el área vacía de la caja y **`pointer` sobre −/+** (como el botón de contraseña de `GInput`; `not-allowed` deshabilitado).
 
 ## RTL e idiomas
 
@@ -280,11 +282,12 @@ Bruno las emite; coco las estiliza. Las de `GInput` (raíz, caja, prefijo/sufijo
 
 Un campo con −/+ necesita más sitio que su clase de tamaño (−/+ ocupan 2 × alto de caja: 72px en `md`, 88px con puntero grueso). En vez de una cifra fija de `--g-form-min` (kiwi estimó ≈ 30 sin medir), el campo **publica su mínimo intrínseco** a la fila (#271, `setIntrinsicMin`, como el segmentado de `GRadioGroup`):
 
-- **Mínimo (px)** = ancho de la caja − ancho de la celda `__value` (padding, prefijo, sufijo, `output`, separaciones, −/+ y bordes, todo medido) + ancho del **texto de referencia** medido en `__measure`, redondeado hacia arriba.
-- **Texto de referencia** = el más ancho, medido, entre `min` y `max` formateados (con `grouping` y `precision`) y el `placeholder`; sin `min` ni `max`, **cuatro cifras** del sistema del idioma sin miles («8888»).
+- **Mínimo (px)** = lo que hay **antes de la celda** del valor (relleno y prefijo) + el ancho del **texto de referencia** + lo que hay **después de la celda** (sufijo y `output`, con sus separaciones) + −/+ con su separación y el borde final. Se mide **por posiciones** en `__control` (inicio de la celda menos inicio de la caja, final del último hijo en flujo menos final de la celda, y de −/+ al final de la caja), nunca como «ancho de la caja − ancho de la celda»: con P1 la celda solo mide su texto y el resto de la caja es **hueco libre**, que no cuenta (esa fórmula daría 295px en vez de 112px, corrección en línea de #312). Redondeado hacia arriba.
+- **En `readonly`** −/+ no se pintan pero cuentan: con su **última medida** o, si nunca se pintaron, con **2 × el alto de la caja** (piso 24px, 44px con `pointer: coarse`) más la separación.
+- **Texto de referencia** = lo más ancho, medido, entre `min` y `max` formateados (con `grouping` y `precision`) y el `placeholder`; sin `min` ni `max`, **cuatro cifras** del sistema del idioma sin miles («8888»).
 - **Cuándo:** solo con `steppers` y sus dos textos, **también en `readonly`** (se mide como si estuvieran: desbloquear no reparte la fila, #266) y solo si el sub‑contexto de la fila provee `setIntrinsicMin`; sin −/+ el campo se comporta como `GInput` (clase de tamaño y `--g-form-min`). Se vuelve a medir al montar, al cargar las fuentes, cuando cambian `min`, `max`, `precision`, `grouping`, `locale`, `placeholder`, `prefix`, `suffix`, `output`, `size`, `density` o `steppers`, y con un `ResizeObserver` sobre `__measure` y `__steppers` (cambian con el puntero grueso y la fuente); publica solo si cambia ≥ 0,5px y retira con `0` al desmontar o al dejar de tener −/+.
 - **Mínimo efectivo** (form.md §4) = el mayor entre el de su clase, `--g-form-min` × `space` y este. El consumidor puede seguir subiéndolo con `--g-form-min`.
-- **Valor de referencia para la receta** (no normativo): coco lo mide en `md` con `space` 4 para «Cantidad» 1–99 con −/+ y lo anota en su `estilo.md`; mora-docs lo lleva al README.
+- **Valor de referencia medido** (no normativo; coco, `estilo.md`): «Cantidad» 1–99 con −/+ = **112px** en `md` con `space` 4 (128px con puntero grueso; 129px en el «Tema de prueba»); mora-docs lo lleva al README.
 
 ---
 
@@ -327,9 +330,11 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 - **Chromium recorta `aria-valuenow` al rango** (150 con `max` 120 → 120); `aria-valuetext` conserva «150».
 - **Solo lectura en Chromium:** el `spinbutton` no expone `readonly` (ni nativo ni `aria-readonly`); es enfocable y sin `settable`. Lo que dice un lector real, sin verificar.
 - **Inicio/Fin** editan el texto (no saltan a `min`/`max`); en macOS (Firefox, WebKit) no mueven el cursor por convención del sistema.
+- **RTL en Chromium:** no resuelve `text-align: match-parent`; el campo fija `right` desde `:dir(rtl)` (coco).
 - **El teclado decimal del móvil** sigue la región del sistema, no el idioma de la página (por eso se aceptan «,», «.» y «٫»).
 - **Teclear «.» en `es`** lo convierte en «,» (decimal): «1.234» tecleado es 1,234; los miles se escriben sin separador y al salir los pone `Intl` con la regla del idioma («12345» → «12.345»; en `es`, «1234» queda «1234»). Pegar sí distingue miles.
-- **Idioma cambiado en caliente** en un ancestro: no se observa (pasar `locale` reactivo).
+- **Idioma cambiado en caliente** (`lang` de un ancestro): no se observa; pasar `locale` reactivo.
+- **SSR:** conviene pasar `locale` para que el HTML llegue ya formateado; sin él, el servidor escribe el texto canónico y se reformatea al montar.
 - **Agrupación india** (`en-IN`, «12,34,567») y `de-CH` (apóstrofo): el formato de salida es el de `Intl`; la regla de pegado no se midió con ellos.
 
 ## Verificación (cómo se da por hecho)
