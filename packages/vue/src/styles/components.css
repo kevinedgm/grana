@@ -61,3 +61,7 @@
 @import url("../components/GErrorSummary/GErrorSummary.css");
 @import url("../components/GIcon/GIcon.css");
 @import url("../components/GDivider/GDivider.css");
+/* Isla de estado (status.md, entrada @grana/vue/status, #328): reasigna alias de GBtn y su hoja es un GDialog: va después
+   de GBtn.css y GDialog.css */
+@import url("../components/GStatusIsland/GStatusIsland.css");
+@import url("../components/GStatusMark/GStatusMark.css");

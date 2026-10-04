@@ -7,70 +7,248 @@
   "description": "Isla de estado: región única y persistente de la aplicación (borde superior del visor, fuera del flujo) que reúne lo que pasa y dura: condiciones de página, fallos del servidor y resultados que deben quedarse. Servicio con clave (createStatus, también plugin de Vue): declarar dos veces la misma clave sustituye la condición en el mismo elemento. Tres formas sobre una sola superficie (punto, compacta, abierta), par propio de canales vivos, nunca toma el foco, Alt+F8 va y vuelve, lo grave se abre solo si no tapa lo que se usa, traslado al <dialog> modal superior, hoja móvil con GDialog real y borde compartido voz → isla → avisos.",
   "contract": "design/contracts/status.md",
   "prototype": "design/lab/alert/r02/",
-  "style": null,
+  "style": "packages/vue/src/components/GStatusIsland/GStatusIsland.css",
   "exports": [
-    { "name": "createStatus", "signature": "createStatus(options?) → Status", "purpose": "Crea el gestor de la aplicación; es plugin (app.use(status) hace provide(statusKey, status))" },
-    { "name": "useStatus", "signature": "useStatus() → Status | undefined", "purpose": "Inyecta el gestor provisto; sin gestor o fuera de setup: aviso en desarrollo y undefined" },
-    { "name": "statusKey", "signature": "InjectionKey (Symbol)", "purpose": "provide manual (pruebas, microfrontends)" },
-    { "name": "GStatusIsland", "signature": "<GStatusIsland :status? />", "purpose": "Pinta la isla del gestor (una por gestor; la segunda no pinta nada)" },
-    { "name": "GStatusMark", "signature": "<GStatusMark for? type? type-label? :status? />", "purpose": "Marca junto al origen (enlace a la isla) o línea de texto de una sección (GStatusMark.meta.json)" },
-    { "name": "GStatus", "signature": "<GStatus id … />", "purpose": "Declarativo sin pintura (GStatus.meta.json)" }
+    {
+      "name": "createStatus",
+      "signature": "createStatus(options?) → Status",
+      "purpose": "Crea el gestor de la aplicación; es plugin (app.use(status) hace provide(statusKey, status))"
+    },
+    {
+      "name": "useStatus",
+      "signature": "useStatus() → Status | undefined",
+      "purpose": "Inyecta el gestor provisto; sin gestor o fuera de setup: aviso en desarrollo y undefined"
+    },
+    {
+      "name": "statusKey",
+      "signature": "InjectionKey (Symbol)",
+      "purpose": "provide manual (pruebas, microfrontends)"
+    },
+    {
+      "name": "GStatusIsland",
+      "signature": "<GStatusIsland :status? />",
+      "purpose": "Pinta la isla del gestor (una por gestor; la segunda no pinta nada)"
+    },
+    {
+      "name": "GStatusMark",
+      "signature": "<GStatusMark for? type? type-label? :status? />",
+      "purpose": "Marca junto al origen (enlace a la isla) o línea de texto de una sección (GStatusMark.meta.json)"
+    },
+    {
+      "name": "GStatus",
+      "signature": "<GStatus id … />",
+      "purpose": "Declarativo sin pintura (GStatus.meta.json)"
+    }
   ],
   "options": [
-    { "name": "position", "type": "String", "default": "top-center", "values": ["top-center", "top-start", "top-end"] },
-    { "name": "offset", "type": "Object", "default": "{}", "values": "{ top? }: Number (px) o longitud CSS" },
-    { "name": "hotkey", "type": "String | false", "default": "Alt+F8", "values": "sintaxis de aria-keyshortcuts; F6 o ilegible se rechaza; F8 y Shift+F8 se aceptan con aviso" },
-    { "name": "autoOpen", "type": "Boolean", "default": true },
-    { "name": "labels", "type": "Object", "default": "{}", "values": "ver labels" }
+    {
+      "name": "position",
+      "type": "String",
+      "default": "top-center",
+      "values": [
+        "top-center",
+        "top-start",
+        "top-end"
+      ]
+    },
+    {
+      "name": "offset",
+      "type": "Object",
+      "default": "{}",
+      "values": "{ top? }: Number (px) o longitud CSS"
+    },
+    {
+      "name": "hotkey",
+      "type": "String | false",
+      "default": "Alt+F8",
+      "values": "sintaxis de aria-keyshortcuts; F6 o ilegible se rechaza; F8 y Shift+F8 se aceptan con aviso"
+    },
+    {
+      "name": "autoOpen",
+      "type": "Boolean",
+      "default": true
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": "{}",
+      "values": "ver labels"
+    }
   ],
   "conditionOptions": [
-    { "name": "type", "type": "String", "default": "info", "values": ["info", "success", "warning", "error"] },
-    { "name": "title", "type": "String", "required": true },
-    { "name": "description", "type": "String" },
-    { "name": "details", "type": "String", "values": "detalle técnico: Disclosure cerrado, dir=ltr, con «Copiar»" },
-    { "name": "action", "type": "Object", "values": "{ label, busyLabel?, onClick(condition) }; promesa → busy; cumplida con objeto = update; rechazada = se reanuncia" },
-    { "name": "link", "type": "Object", "values": "{ label, href, target?, rel?, onClick?(event, condition) }" },
-    { "name": "origin", "type": "Object", "values": "{ label, target }: id, Element o función" },
-    { "name": "persistent", "type": "Boolean", "default": "type !== 'success'" },
-    { "name": "dismissible", "type": "Boolean", "default": false },
-    { "name": "deadline", "type": "Number | Date" },
-    { "name": "politeness", "type": "String", "default": "assertive en error; polite en el resto", "values": ["polite", "assertive"] },
-    { "name": "onRemove", "type": "Function", "values": "(reason, condition): dismiss · acknowledge · api · clear · unmount" },
-    { "name": "onExpire", "type": "Function", "values": "(condition)" }
+    {
+      "name": "type",
+      "type": "String",
+      "default": "info",
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "error"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String"
+    },
+    {
+      "name": "details",
+      "type": "String",
+      "values": "detalle técnico: Disclosure cerrado, dir=ltr, con «Copiar»"
+    },
+    {
+      "name": "action",
+      "type": "Object",
+      "values": "{ label, busyLabel?, onClick(condition) }; promesa → busy; cumplida con objeto = update; rechazada = se reanuncia"
+    },
+    {
+      "name": "link",
+      "type": "Object",
+      "values": "{ label, href, target?, rel?, onClick?(event, condition) }"
+    },
+    {
+      "name": "origin",
+      "type": "Object",
+      "values": "{ label, target }: id, Element o función"
+    },
+    {
+      "name": "persistent",
+      "type": "Boolean",
+      "default": "type !== 'success'"
+    },
+    {
+      "name": "dismissible",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "deadline",
+      "type": "Number | Date"
+    },
+    {
+      "name": "politeness",
+      "type": "String",
+      "default": "assertive en error; polite en el resto",
+      "values": [
+        "polite",
+        "assertive"
+      ]
+    },
+    {
+      "name": "onRemove",
+      "type": "Function",
+      "values": "(reason, condition): dismiss · acknowledge · api · clear · unmount"
+    },
+    {
+      "name": "onExpire",
+      "type": "Function",
+      "values": "(condition)"
+    }
   ],
   "methods": [
-    "set(id, options) → id | null", "info|success|warning|error(id, title, options?) → id", "update(id, patch) → Boolean", "resolve(id, result?) → Boolean",
-    "remove(id) → Boolean", "clear()", "announce(id) → Boolean", "acknowledge()", "open(id?, { focus }?) → Boolean", "close()", "has(id)", "get(id)", "configure(patch)",
-    "conditions (reactivo, en el orden de la isla)", "state { form, count, mobile } (reactivo)", "install(app)"
+    "set(id, options) → id | null",
+    "info|success|warning|error(id, title, options?) → id",
+    "update(id, patch) → Boolean",
+    "resolve(id, result?) → Boolean",
+    "remove(id) → Boolean",
+    "clear()",
+    "announce(id) → Boolean",
+    "acknowledge()",
+    "open(id?, { focus }?) → Boolean",
+    "close()",
+    "has(id)",
+    "get(id)",
+    "configure(patch)",
+    "conditions (reactivo, en el orden de la isla)",
+    "state { form, count, mobile } (reactivo)",
+    "install(app)"
   ],
-  "labels": ["region {hotkey}", "summary {count}", "more {count}", "types.info|success|warning|error", "acknowledge", "dismiss {title}", "details", "copy", "copied", "remaining {time}", "sheetTitle", "close"],
-  "props": [{ "name": "status", "type": "Object", "default": "el gestor inyectado (statusKey)" }],
+  "labels": [
+    "region {hotkey}",
+    "summary {count}",
+    "more {count}",
+    "types.info|success|warning|error",
+    "acknowledge",
+    "dismiss {title}",
+    "details",
+    "copy",
+    "copied",
+    "remaining {time}",
+    "sheetTitle",
+    "close"
+  ],
+  "props": [
+    {
+      "name": "status",
+      "type": "Object",
+      "default": "el gestor inyectado (statusKey)"
+    }
+  ],
   "events": [],
   "slots": [],
   "classes": [
-    "g-status-island", "g-status-island--position-top-{start|center|end}", "data-position", "data-align", "data-form=empty|compact|open|dot", "data-type", "data-mobile", "is-ready", "is-nudge",
-    "--_status-offset-top (raíz, en línea)", "--_island-w / --_island-h (__shape, en línea, px)",
-    "g-status-island__live (2)", "__shape", "__inner", "__summary", "__badge (data-type, is-busy)", "__text", "__sr", "__timer", "__more", "__panel", "__list", "__foot", "__ack",
-    "g-status-item", "g-status-item--type-*", "is-busy", "is-acknowledged", "has-action", "has-details", "is-dismissible",
+    "g-status-island",
+    "g-status-island--position-top-{start|center|end}",
+    "data-position",
+    "data-align",
+    "data-form=empty|compact|open|dot",
+    "data-type",
+    "data-mobile",
+    "is-ready",
+    "is-nudge",
+    "--_status-offset-top (raíz, en línea)",
+    "--_island-w / --_island-h (__shape, en línea, px)",
+    "g-status-island__live (2)",
+    "__shape",
+    "__inner",
+    "__summary",
+    "__badge (data-type, is-busy)",
+    "__text",
+    "__sr",
+    "__timer",
+    "__more",
+    "__panel",
+    "__list",
+    "__foot",
+    "__ack",
+    "g-status-item",
+    "g-status-item--type-*",
+    "is-busy",
+    "is-acknowledged",
+    "has-action",
+    "has-details",
+    "is-dismissible",
     "g-status-item__badge|content|title|type|description|timer|link|details-toggle|details|details-text|copy|actions|action|origin|dismiss",
     "g-status-sheet (GDialog de la hoja móvil)"
   ],
   "tokens": [],
-  "states": ["empty", "compact", "open", "dot", "busy", "acknowledged", "mobile"],
+  "states": [
+    "empty",
+    "compact",
+    "open",
+    "dot",
+    "busy",
+    "acknowledged",
+    "mobile"
+  ],
   "bundle": {
     "measured": "2026-10-04",
-    "file": "dist/grana.js (gzip)",
-    "before": 154745,
-    "after": 169451,
-    "delta": 14706,
-    "gate": 8192,
-    "note": "Con los tres componentes y el gestor registrados en src/index.js. Supera la compuerta de #317 (8 KB): NO se registró en el paquete principal; decisión devuelta a lima. Referencia con la misma medida sobre las fuentes sin comentarios: GToast (toaster.js + GToaster.vue) 12,5 KB; la isla (status.js + GStatusIsland.vue + StatusList.vue + GStatusMark.vue + GStatus.vue) 16,3 KB. UMD minificado: +12,7 KB gzip."
+    "entry": "dist/status.js",
+    "gzip": 15828,
+    "umdGzip": 13740,
+    "main": "dist/grana.js gzip 155 025 (antes de la isla 154 745: +280 B por edgeReserve con order y #326); createStatus no está en el principal",
+    "history": "Registrada en el paquete principal pesaba +14,7 KB gzip (154 745 → 169 451), por encima de la compuerta de 8 KB de #317: pasó a entrada propia (#328). Lo compartido (GBtn, GDialog, GIcon interno, toaster.js, topModal, liveRegion, edgeReserve, template, oneOf) llega por __shared, sin copia."
   },
   "pending": [
-    "BLOQUEADO por la compuerta de peso (#317): el delta gzip de dist/grana.js es 14,7 KB (> 8 KB). Falta la decisión de lima/usuario: aceptar el peso en el paquete principal o entrada propia. Hasta entonces NO está en src/index.js ni en components.css, no hay sección en el playground ni tests/status.spec.mjs (Playwright).",
-    "Falta el CSS de coco (aún sin subir al escribir esto): sin él no se ha medido nada de geometría (tamaño natural de __inner, rectángulo abierto real, 24/44px, 320px).",
-    "Verificado solo en jsdom (vitest): capa superior real, traslado real al modal, foco tras reordenar en navegadores, hoja móvil real y borde compartido con GSpeechHost y GToaster reales quedan para Playwright.",
-    "Para lima: el anuncio de un cambio que quita el control con foco se omite solo si el foco queda leyendo esa condición (es la primera, la del resumen, o está en la hoja móvil); si el resumen muestra otra, se anuncia (el contrato dice «no se anuncia» sin distinguir).",
-    "Props de GBtn dentro de la isla elegidas por bruno a falta de coco: acción y «Entendido» size sm outline neutral; «Ir a…», detalle y copiar size sm ghost neutral; descartar icon sm ghost neutral."
-  ]
+    "Auditoría de coco sobre el componente real con un tema distinto (status → candidate).",
+    "Anuncio del cambio que quita el control con foco: se omite solo si el foco queda leyendo esa condición (es la del resumen, o está en la hoja móvil); si el resumen muestra otra, se anuncia. Confirmado por la coordinación; lima lo anota en el contrato.",
+    "Solo en entorno real: lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, role=timer), Safari y táctil reales, forced-colors, Alt+F8 en Linux.",
+    "No medido en Playwright: zoom 200/400 %, pointer: coarse (44px), tema oscuro, panel de voz abierto a la vez que la isla abierta."
+  ],
+  "entry": "@grana/vue/status (dist/status.js, dist/status.umd.js global GranaStatus; #328). app.use(status) registra GStatusIsland, GStatusMark y GStatus. El CSS va en grana.css."
 }

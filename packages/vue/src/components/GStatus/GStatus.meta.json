@@ -9,26 +9,92 @@
   "prototype": "design/lab/alert/r02/",
   "style": null,
   "props": [
-    { "name": "id", "type": "String | Number", "required": true },
-    { "name": "type", "type": "String", "default": "info", "values": ["info", "success", "warning", "error"] },
-    { "name": "title", "type": "String", "required": true },
-    { "name": "description", "type": "String" },
-    { "name": "details", "type": "String" },
-    { "name": "action", "type": "Object" },
-    { "name": "link", "type": "Object" },
-    { "name": "origin", "type": "Object" },
-    { "name": "persistent", "type": "Boolean", "default": "type !== 'success'" },
-    { "name": "dismissible", "type": "Boolean", "default": false },
-    { "name": "deadline", "type": "Number | Date" },
-    { "name": "politeness", "type": "String", "values": ["polite", "assertive"] },
-    { "name": "status", "type": "Object", "default": "el gestor inyectado" }
+    {
+      "name": "id",
+      "type": "String | Number",
+      "required": true
+    },
+    {
+      "name": "type",
+      "type": "String",
+      "default": "info",
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "error"
+      ]
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String"
+    },
+    {
+      "name": "details",
+      "type": "String"
+    },
+    {
+      "name": "action",
+      "type": "Object"
+    },
+    {
+      "name": "link",
+      "type": "Object"
+    },
+    {
+      "name": "origin",
+      "type": "Object"
+    },
+    {
+      "name": "persistent",
+      "type": "Boolean",
+      "default": "type !== 'success'"
+    },
+    {
+      "name": "dismissible",
+      "type": "Boolean",
+      "default": false
+    },
+    {
+      "name": "deadline",
+      "type": "Number | Date"
+    },
+    {
+      "name": "politeness",
+      "type": "String",
+      "values": [
+        "polite",
+        "assertive"
+      ]
+    },
+    {
+      "name": "status",
+      "type": "Object",
+      "default": "el gestor inyectado"
+    }
   ],
   "events": [
-    { "name": "remove", "payload": "reason", "trigger": "La condición se retiró por una vía distinta de su propio desmontaje (dismiss, acknowledge, api, clear)" },
-    { "name": "expire", "payload": "—", "trigger": "deadline llegó a cero" }
+    {
+      "name": "remove",
+      "payload": "reason",
+      "trigger": "La condición se retiró por una vía distinta de su propio desmontaje (dismiss, acknowledge, api, clear)"
+    },
+    {
+      "name": "expire",
+      "payload": "—",
+      "trigger": "deadline llegó a cero"
+    }
   ],
   "slots": [],
   "tokens": [],
   "states": [],
-  "pending": ["Ver GStatusIsland.meta.json: bloqueado por la compuerta de peso (#317); sin registrar en src/index.js."]
+  "pending": [
+    "Auditoría de coco (ver GStatusIsland.meta.json)."
+  ],
+  "entry": "@grana/vue/status (#328)"
 }

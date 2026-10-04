@@ -176,7 +176,8 @@ describe('GStatusIsland · estructura', () => {
     const ro = ros.find((o) => o.els.includes(inner))
     expect(ro).toBeTruthy()
     expect(shape().style.getPropertyValue('--_island-w')).toBe('')
-    ro.cb([{ target: inner, borderBoxSize: [{ inlineSize: 311.4, blockSize: 48 }] }])
+    // El resumen también se observa (reserva de borde): su entrada no cuenta para el tamaño de la forma
+    ro.cb([{ target: inner, borderBoxSize: [{ inlineSize: 311.4, blockSize: 48 }] }, { target: summary(), borderBoxSize: [{ inlineSize: 300, blockSize: 20 }] }])
     await flush()
     expect(shape().style.getPropertyValue('--_island-w')).toBe('312px')
     expect(shape().style.getPropertyValue('--_island-h')).toBe('48px')

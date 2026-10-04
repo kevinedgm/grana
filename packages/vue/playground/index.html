@@ -741,6 +741,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         </g-form-layout>
       </g-form-section>
       <g-form-actions sticky :status="fm.dirty ? 'Cambios sin guardar' : fm.saved">
+        <g-status-mark for="fm-save" id="fm-save-mark" v-slot="{ type, busy }">{{ type === 'success' ? 'Guardado' : busy ? 'Reintentando…' : 'No se guardó' }}</g-status-mark>
         <g-btn type="reset" variant="ghost">Restablecer</g-btn>
         <g-btn type="submit" variant="outline" formnovalidate name="intent" value="draft">Guardar borrador</g-btn>
         <g-btn type="submit" name="intent" value="save">Guardar</g-btn>
@@ -749,6 +750,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </div>
     <div class="row" style="margin-block-start:12px">
       <g-btn size="sm" variant="outline" id="fm-server" @click="fm.serverError">Simular error del servidor</g-btn>
+      <label><input type="checkbox" id="fm-fail" v-model="fm.failSave"> El servidor falla al guardar (500: va a la isla de estado, con marca junto a «Guardar»)</label>
     </div>
     <p class="log" id="fm-medium-log">{{ fm.log.mediano }}</p>
           </div>
@@ -1657,6 +1659,76 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
           </div>
         </section>
+        <section class="pg-section" id="sec-status" data-pg-section>
+          <h2>Isla de estado</h2>
+          <p class="pg-lead">Región única y persistente en el borde superior, fuera del flujo: reúne lo que <b>pasa y dura</b> (condiciones de página, fallos del servidor, resultados que deben quedarse). Nada se mueve en la página, nunca toma el foco y, reconocida, se repliega a un punto. Va en su propia entrada, <code>@grana/vue/status</code> (aquí <code>dist/status.umd.js</code>, global <code>GranaStatus</code>); <code>app.use(status)</code> registra <code>GStatusIsland</code>, <code>GStatusMark</code> y <code>GStatus</code>. <b>Alt+F8</b> va a la isla y vuelve. La isla se monta después de <code>GToaster</code> y <code>GSpeechHost</code>; con una sesión de voz activa y los avisos arriba, el orden desde el borde es voz, isla, avisos. Con <code>?status=seed</code> la página carga con dos condiciones ya declaradas (no se anuncian).</p>
+          <h3>Condiciones de página</h3>
+          <div class="pg-panel">
+    <div id="status-demo">
+      <div class="row">
+        <g-btn variant="outline" id="st-maint" @click="st.maint">Mantenimiento (descartable)</g-btn>
+        <g-btn variant="outline" id="st-readonly" @click="st.readonly">Solo lectura</g-btn>
+        <g-btn variant="outline" id="st-session" @click="st.session(305000)">Sesión por caducar (5:05)</g-btn>
+        <g-btn variant="outline" id="st-session-short" @click="st.session(33000)">Sesión por caducar (0:33)</g-btn>
+        <g-btn variant="outline" id="st-offline" @click="st.offline">Sin conexión</g-btn>
+        <g-btn variant="outline" id="st-online" @click="st.online">Vuelve la conexión</g-btn>
+        <g-btn variant="outline" id="st-success" @click="st.success">Éxito con enlace</g-btn>
+        <g-btn variant="outline" id="st-many" @click="st.many">Más de 6 condiciones</g-btn>
+        <g-btn variant="outline" id="st-again" @click="st.again">Reanunciar el error de guardado</g-btn>
+        <g-btn variant="ghost" id="st-clear" @click="st.clear">Quitar todas</g-btn>
+      </div>
+      <div class="row">
+        <label>Posición <select id="st-pos" v-model="st.pos" @change="st.configure({ position: $event.target.value })"><option v-for="p in ['top-center', 'top-start', 'top-end']" :key="p">{{ p }}</option></select></label>
+        <label><input type="checkbox" id="st-auto" v-model="st.auto" @change="st.configure({ autoOpen: $event.target.checked })"> Lo grave se abre solo</label>
+        <label>Campo <input id="st-field" value="Para probar Alt+F8"></label>
+        <span id="st-log">{{ st.log }}</span>
+      </div>
+      <p class="log" id="st-state">forma: {{ st.state.form }} · condiciones: {{ st.state.count }} · móvil: {{ st.state.mobile }}</p>
+    </div>
+          </div>
+          <h3>Error del servidor al guardar: marca junto a «Guardar» y «Reintentar» que se resuelve en el sitio</h3>
+          <div class="pg-panel">
+    <g-form id="st-form" aria-label="Factura" :labels="fm.labels" style="max-width:520px" @submit="st.save">
+      <g-form-layout>
+        <g-input v-model="st.cliente" id="st-cliente" label="Cliente" name="cliente"></g-input>
+      </g-form-layout>
+      <g-form-actions>
+        <g-status-mark for="st-save" id="st-save-mark" v-slot="{ type, busy }">{{ type === 'success' ? 'Guardada' : busy ? 'Reintentando…' : 'No se guardó' }}</g-status-mark>
+        <g-btn type="submit" id="st-save">Guardar</g-btn>
+      </g-form-actions>
+    </g-form>
+    <div class="row" style="margin-block-start:12px">
+      <label><input type="checkbox" id="st-save-fails" v-model="st.saveFails"> El servidor falla al guardar</label>
+    </div>
+          </div>
+          <h3>Fallo de carga de una tabla: <code>GStatus</code> declarativo y marca en el slot <code>empty</code></h3>
+          <div class="pg-panel">
+    <g-status v-if="st.tableFailed" id="st-table" type="error" title="No se pudieron cargar las facturas" description="El servidor tardó demasiado en responder." details="GET /api/facturas · 504 Gateway Timeout · req-7f3a91" :action="st.tableAction" :origin="{ label: 'Ir a Facturas', target: 'st-table-region' }" @remove="st.tableFailed = false"></g-status>
+    <div id="st-table-region" role="region" aria-label="Facturas" style="max-width:640px">
+      <g-table :columns="st.columns" :rows="st.rows" caption="Facturas" :labels="st.tableLabels">
+        <template #empty><g-status-mark for="st-table" id="st-table-mark">No se pudieron cargar</g-status-mark><span v-if="!st.tableFailed">Sin facturas todavía.</span></template>
+      </g-table>
+    </div>
+    <div class="row" style="margin-block-start:12px">
+      <g-btn variant="outline" size="sm" id="st-table-break" @click="st.breakTable">Simular fallo de carga</g-btn>
+      <label><input type="checkbox" id="st-table-fails" v-model="st.tableFails"> El reintento vuelve a fallar</label>
+    </div>
+          </div>
+          <h3>Marca de texto (contenido de una sección, no entra en la isla) y dentro de un diálogo</h3>
+          <div class="pg-panel">
+    <g-status-mark type="warning" id="st-text-mark">Tu tarjeta caduca este mes.<template #action><g-btn size="sm" variant="outline" color="neutral">Actualizar</g-btn></template></g-status-mark>
+    <div class="row" style="margin-block-start:12px">
+      <g-btn variant="outline" id="st-dialog" @click="st.dlg = true">Abrir diálogo</g-btn>
+    </div>
+    <g-dialog v-model="st.dlg" id="st-dlg" title="Editar factura" description="La isla se traslada al diálogo; Esc en la isla no lo cierra." close-label="Cerrar">
+      <g-status-mark type="warning" id="st-dlg-mark">Esta factura ya se envió al cliente.</g-status-mark>
+      <g-input id="st-dlg-name" label="Concepto" model-value="Consulta" block></g-input>
+      <template #footer>
+        <g-btn variant="outline" id="st-dlg-offline" @click="st.offline">Simular sin conexión</g-btn>
+      </template>
+    </g-dialog>
+          </div>
+        </section>
       </div>
       <div class="pg-group" id="cat-8">
         <p class="pg-cat">Avatar</p>
@@ -1835,11 +1907,13 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
 
     <g-toaster></g-toaster>
     <g-speech-host></g-speech-host>
+    <g-status-island></g-status-island>
 </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="../dist/grana.umd.js"></script>
   <script src="../dist/speech.umd.js"></script>
+  <script src="../dist/status.umd.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./speech-adapters.js"></script>
   <script src="./lucide-icons.js"></script>
@@ -1861,6 +1935,24 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       }
     })
     window.toaster = toaster
+    // Isla de estado (@grana/vue/status → GranaStatus): gestor de la aplicación, sin textos por defecto. app.use(status) lo
+    // provee y registra GStatusIsland, GStatusMark y GStatus. ?status=seed declara dos condiciones antes de montar.
+    const status = GranaStatus.createStatus({
+      labels: {
+        region: 'Estado de la aplicación ({hotkey})',
+        summary: (n) => (n === 1 ? 'Estado: 1 aviso.' : 'Estado: ' + n + ' avisos.'),
+        more: 'y {count} más',
+        types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' },
+        acknowledge: 'Entendido',
+        dismiss: 'Descartar: {title}',
+        details: 'Detalle técnico', copy: 'Copiar', copied: 'Detalle copiado',
+        remaining: 'Quedan {time}',
+        sheetTitle: 'Estado de la aplicación', close: 'Cerrar'
+      }
+    })
+    window.gStatus = status // (window.status es una propiedad heredada del navegador: siempre texto)
+    const stSeed = new URLSearchParams(location.search).get('status') === 'seed'
+    if (stSeed) status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true })
     // Captura de voz (@grana/vue/speech → GranaSpeech): gestor de la aplicación con el adaptador SIMULADO (@grana/vue/testing;
     // una app real aporta el suyo). app.use(speech) lo provee y registra GSpeechHost, GSpeechPill y GSpeechTrigger.
     // ?speech=self → el adaptador simula el micrófono (input.format 'self'); por defecto captura Grana (getUserMedia).
@@ -2001,6 +2093,48 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     createApp({
       setup() {
         const toast = Grana.useToast()
+        // Isla de estado: los casos del contrato (status.md «Frontera»); la red se simula con temporizadores
+        const stWait = (ms) => new Promise((r) => setTimeout(r, ms))
+        const ST_ROWS = [{ id: 1, folio: 'F-0040', cliente: 'Clínica Norte', total: '$1,200' }, { id: 2, folio: 'F-0041', cliente: 'Laboratorio Sur', total: '$860' }]
+        const st = reactive({
+          log: '', pos: 'top-center', auto: true, dlg: false, cliente: 'Clínica Norte',
+          saveFails: true, tableFails: false, tableFailed: stSeed, rows: stSeed ? [] : ST_ROWS,
+          get state() { return status.state },
+          columns: [{ key: 'folio', label: 'Folio' }, { key: 'cliente', label: 'Cliente' }, { key: 'total', label: 'Total', align: 'end' }],
+          tableLabels: { loading: 'Cargando facturas…', empty: 'Sin facturas todavía.', results: '{count} resultados' },
+          configure: (o) => status.configure(o),
+          maint: () => status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true, onRemove: (r) => { st.log = 'maint: ' + r } }),
+          readonly: () => status.warning('readonly', 'Modo de solo lectura', { description: 'Otra persona está editando este expediente.', link: { label: 'Ver quién edita', href: '#sec-status', onClick: (e) => { e.preventDefault(); st.log = 'enlace: ver quién edita' } } }),
+          session: (ms) => status.warning('session', 'La sesión está por caducar', { description: 'Guarda tu trabajo o sigue conectado.', deadline: Date.now() + ms, action: { label: 'Seguir conectado', onClick: () => { status.resolve('session', 'Sesión renovada') } }, onExpire: () => { st.log = 'session: expiró' } }),
+          offline: () => status.warning('offline', 'Sin conexión', { description: 'Los cambios se guardarán al volver.' }),
+          online: () => status.resolve('offline', 'Conexión restablecida'),
+          success: () => status.success('created', 'Factura F-0043 creada', { link: { label: 'Ver factura', href: '#f-0043' } }),
+          many: () => ['error', 'warning', 'warning', 'info', 'info', 'info', 'success'].forEach((type, i) => status.set('many-' + (i + 1), { type, title: 'Condición ' + (i + 1) + ' de prueba', description: 'Para comprobar el desplazamiento del panel.', dismissible: true })),
+          again: () => { st.log = 'announce: ' + status.announce('st-save') },
+          clear: () => { status.clear() },
+          // Guardar: el servidor falla (500). No es validación: va a la isla, con la marca junto al botón
+          saveRequest: () => stWait(900).then(() => {
+            if (st.saveFails) throw new Error('500')
+            return { type: 'success', title: 'Factura guardada con el folio F-0042', description: '', action: undefined, origin: undefined, persistent: false, link: { label: 'Ver factura', href: '#f-0042' } }
+          }),
+          save: () => {
+            if (!st.saveFails) { status.success('st-save', 'Factura guardada con el folio F-0042', { link: { label: 'Ver factura', href: '#f-0042' } }); return }
+            if (status.has('st-save') && status.get('st-save').type === 'error') { status.announce('st-save'); return }
+            status.error('st-save', 'No se pudo guardar la factura', {
+              description: 'El servidor no respondió; tus datos siguen en el formulario.',
+              details: 'POST /api/facturas · 500 Internal Server Error · req-2c41d7',
+              action: { label: 'Reintentar', busyLabel: 'Reintentando…', onClick: () => st.saveRequest() },
+              origin: { label: 'Ir al formulario', target: 'st-form' }
+            })
+          },
+          breakTable: () => { st.rows = []; st.tableFailed = true },
+          tableAction: { label: 'Reintentar', busyLabel: 'Cargando…', onClick: () => stWait(900).then(() => {
+            if (st.tableFails) throw new Error('504')
+            st.rows = ST_ROWS
+            st.tableFailed = false
+          }) }
+        })
+        window.__st = st
         const tsLog = ref('')
         const tsPos = ref('bottom-end')
         const tsKeep = ref(false)
@@ -2445,7 +2579,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2544,6 +2678,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           m: fmMediumInit(),
           d: { nombre: '', esp: null, fecha: null, motivo: '' },
           server: '',
+          failSave: false,
           dirty: false,
           saved: '',
           dlg: false,
@@ -2609,6 +2744,17 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           done(k, e) {
             const entries = e.data ? [...e.data.entries()].filter(([, v]) => v !== '').length : 0
             fm.log[k] = `submit${e.novalidate ? ' (borrador, sin validar)' : ''} · ${entries} valores${e.submitter && e.submitter.value ? ' · ' + e.submitter.value : ''}`
+            if (k === 'mediano' && fm.failSave && !e.novalidate) {
+              // Fallo del servidor (no es validación): condición de la isla + marca en GFormActions; los datos se quedan
+              const request = () => stWait(900).then(() => {
+                if (fm.failSave) throw new Error('500')
+                fm.dirty = false
+                return { type: 'success', title: 'Paciente guardado', description: '', action: undefined, origin: undefined, persistent: false }
+              })
+              if (status.has('fm-save') && status.get('fm-save').type === 'error') status.announce('fm-save')
+              else status.error('fm-save', 'No se pudo guardar al paciente', { description: 'El servidor no respondió; tus datos siguen en el formulario.', action: { label: 'Reintentar', busyLabel: 'Reintentando…', onClick: request }, origin: { label: 'Ir al formulario', target: 'fm-medium' } })
+              return
+            }
             if (k === 'mediano') { fm.dirty = false; fm.saved = 'Guardado a las ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }
           },
           bad(k, e) { fm.log[k] = `invalid · ${e.errors.length} error(es): ${e.errors.map((x) => x.name).join(', ')}` },
@@ -2619,9 +2765,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
-    }).use(Grana).use(appIcons).use(toaster).use(speech).mount('#app')
+    }).use(Grana).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
 </body>
 </html>

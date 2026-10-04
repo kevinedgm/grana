@@ -122,10 +122,12 @@ function measure() {
   publishReserve()
 }
 function onResizeObserved(entries) {
-  const e = entries[entries.length - 1]
+  // Se observan __inner (tamaño de la forma) y el resumen (reserva de borde): el tamaño sale solo de __inner
+  const inner = innerEl.value
+  const e = [...entries].reverse().find((x) => x.target === inner)
   const box = e && e.borderBoxSize && e.borderBoxSize[0]
   if (box) writeSize(box.inlineSize, box.blockSize)
-  else if (innerEl.value) writeSize(innerEl.value.offsetWidth, innerEl.value.offsetHeight)
+  else if (e && inner) writeSize(inner.offsetWidth, inner.offsetHeight)
   publishReserve()
 }
 const rectsOverlap = (a, b) => a.width > 0 && a.height > 0 && b.left < a.right && b.right > a.left && b.top < a.bottom && b.bottom > a.top

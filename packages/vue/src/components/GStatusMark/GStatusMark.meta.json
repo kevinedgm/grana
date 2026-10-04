@@ -7,20 +7,67 @@
   "description": "Marca en línea, complemento de la isla de estado. Con `for`: cápsula `button` junto al origen de una condición; existe solo mientras exista la condición, su tipo y su `busy` se derivan de ella y abre la isla en su condición con el foco en su acción. Sin `for`: línea de texto de una sección (insignia + texto + una acción opcional) que no entra en la isla. Ninguna anuncia.",
   "contract": "design/contracts/status.md",
   "prototype": "design/lab/alert/r02/",
-  "style": null,
+  "style": "packages/vue/src/components/GStatusMark/GStatusMark.css",
   "props": [
-    { "name": "for", "type": "String | Number", "default": null, "values": "id de una condición" },
-    { "name": "type", "type": "String", "default": "info", "values": ["info", "success", "warning", "error"], "note": "solo sin `for`" },
-    { "name": "typeLabel", "type": "String", "default": "labels.types[type] del gestor" },
-    { "name": "status", "type": "Object", "default": "el gestor inyectado" }
+    {
+      "name": "for",
+      "type": "String | Number",
+      "default": null,
+      "values": "id de una condición"
+    },
+    {
+      "name": "type",
+      "type": "String",
+      "default": "info",
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "error"
+      ],
+      "note": "solo sin `for`"
+    },
+    {
+      "name": "typeLabel",
+      "type": "String",
+      "default": "labels.types[type] del gestor"
+    },
+    {
+      "name": "status",
+      "type": "Object",
+      "default": "el gestor inyectado"
+    }
   ],
   "events": [],
   "slots": [
-    { "name": "default", "purpose": "Texto corto. Con `for`: alcance { condition, type, busy }; sin slot, el título de la condición" },
-    { "name": "action", "purpose": "Solo sin `for`: una acción opcional, fuera del `p`" }
+    {
+      "name": "default",
+      "purpose": "Texto corto. Con `for`: alcance { condition, type, busy }; sin slot, el título de la condición"
+    },
+    {
+      "name": "action",
+      "purpose": "Solo sin `for`: una acción opcional, fuera del `p`"
+    }
   ],
-  "classes": ["g-status-mark", "g-status-mark--link | --text", "g-status-mark--type-*", "data-type", "is-busy", "g-status-mark__badge", "g-status-mark__text", "g-status-mark__type", "g-status-mark__action"],
+  "classes": [
+    "g-status-mark",
+    "g-status-mark--link | --text",
+    "g-status-mark--type-*",
+    "data-type",
+    "is-busy",
+    "g-status-mark__badge",
+    "g-status-mark__text",
+    "g-status-mark__type",
+    "g-status-mark__action"
+  ],
   "tokens": [],
-  "states": ["link", "text", "busy"],
-  "pending": ["Ver GStatusIsland.meta.json: bloqueado por la compuerta de peso (#317) y a la espera del CSS de coco; sin registrar en src/index.js."]
+  "states": [
+    "link",
+    "text",
+    "busy"
+  ],
+  "pending": [
+    "Auditoría de coco (ver GStatusIsland.meta.json)."
+  ],
+  "entry": "@grana/vue/status (#328)"
 }
