@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNotice (aviso en línea y banda de página) · r01 · estructura</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* Página de prototipo. GForm, GFormLayout, GInput, GFormActions, GErrorSummary, GDialog, GCard, GTable, GBtn y GToaster son
+   los componentes REALES de dist/. XNotice es el prototipo de kiwi (nombre final propuesto: GNotice). Las clases x-notice__*
+   llevan valores de wireframe (gris, 1px, sin color por tipo): NO son propuesta de estilo (eso es de coco). Lo que SÍ es
+   propuesta: anatomía y orden del DOM, señal no cromática por tipo (icono + prefijo oculto + marca de borde de inicio sólida
+   o discontinua), anuncio por canal compartido (no role en el aviso), reglas de foco, cierre, detalle desplegable, banda de
+   página, N1 (crece hacia donde no estás), N2 (se transforma en el sitio) y N3 (cuenta atrás). */
+:root{--ink:#1f1f1f;--ink-2:#555;--line:#dcdcdc;--bg:#f3f3f3;--note:#fff8d6}
+*{box-sizing:border-box}
+html{scroll-padding-top:var(--x-top-reserve,0px)}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+main{max-inline-size:1100px;margin:0 auto;padding:clamp(12px,3vw,32px)}
+h1{font-size:22px;margin:0 0 4px}
+h2.demo{font-size:17px;margin:44px 0 6px}
+.cap{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-inline-size:100ch}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 0;font-size:13px}
+.ctl label{display:inline-flex;gap:6px;align-items:center;min-block-size:24px}
+.frame-tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-2);margin:10px 0 4px}
+.frame{inline-size:var(--fw,100%);max-inline-size:100%;padding:24px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.frame--320{--fw:320px;padding:12px}
+.frame--640{--fw:640px}
+.stack{display:flex;flex-direction:column;gap:16px}
+pre.out{font:12px/1.45 ui-monospace,Menlo,monospace;background:var(--note);padding:8px 10px;border-radius:6px;margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;min-block-size:2.9em}
+.spacer{block-size:60vh}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* =====================================================================
+   XNotice (prototipo). Raíz = caja que anima su altura; __box lleva borde y relleno.
+   ===================================================================== */
+.x-notice{display:block;min-inline-size:0;color:var(--ink);font-size:14px;line-height:1.45}
+.x-notice:focus{outline:2px solid #1f1f1f;outline-offset:2px}
+.x-notice__box{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;align-items:start;
+  padding:10px 10px 10px 12px;border:1px solid #8a8a8a;border-radius:8px;background:#fff}
+[dir=rtl] .x-notice__box{padding:10px 12px 10px 10px}
+/* Señal no cromática: marca de borde de inicio (misma convención que GToast y GCard): sólida en error, discontinua en aviso */
+.x-notice--type-error > .x-notice__box{border-inline-start:4px solid #333}
+.x-notice--type-warning > .x-notice__box{border-inline-start:4px dashed #333}
+.x-notice__icon{grid-column:1;display:inline-flex;align-items:center;block-size:1.45em;font-size:16px;color:#333}
+.x-notice__icon > span{display:inline-flex}
+.x-notice__main{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-inline-size:0}
+.x-notice__content{flex:1 1 26ch;min-inline-size:0;overflow-wrap:anywhere}
+.x-notice__title{margin:0;font:inherit;font-weight:650}
+.x-notice__body{margin:0;color:#333}
+.x-notice__body :is(a){color:inherit}
+.x-notice__timer{font-variant-numeric:tabular-nums;white-space:nowrap}
+.x-notice__actions{display:flex;flex-wrap:wrap;gap:8px;flex:0 1 auto;max-inline-size:100%;align-items:center}
+.x-notice__close{grid-column:3;margin-block:-3px;margin-inline-end:-3px}
+/* Detalle técnico desplegable (Disclosure) */
+.x-notice__details{margin-block-start:6px}
+.x-notice__toggle{display:inline-flex;align-items:center;gap:4px;min-block-size:24px;padding:0;border:0;background:none;font:inherit;font-size:13px;color:#333;text-decoration:underline;cursor:pointer}
+.x-notice__toggle:focus-visible{outline:2px solid #1f1f1f;outline-offset:2px}
+.x-notice__toggle .g-icon{inline-size:1em;block-size:1em;transition:rotate .15s}
+.x-notice__toggle[aria-expanded=true] .g-icon{rotate:180deg}
+.x-notice__panel{margin-block-start:6px;padding:8px;border:1px dashed #b5b5b5;border-radius:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.x-notice__panel[hidden]{display:none}
+.x-notice__detail{flex:1 1 20ch;min-inline-size:0;font:12px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;text-align:start;unicode-bidi:plaintext}
+.x-notice__detail pre{margin:0;font:inherit;white-space:inherit}
+/* Compacto y banda: título y cuerpo en la misma línea de texto */
+.x-notice--compact > .x-notice__box{padding-block:6px}
+.x-notice--compact .x-notice__title,.x-notice--compact .x-notice__body,
+.x-notice--banner .x-notice__title,.x-notice--banner .x-notice__body{display:inline}
+.x-notice--compact .x-notice__title::after,.x-notice--banner .x-notice__title::after{content:" "}
+/* Banda de página: a sangre, sin radio ni bordes laterales; el contenido se alinea con el ancho de página */
+.x-notice--banner > .x-notice__box{border-radius:0;border-inline:0;border-block-start:0;background:#e9e9e9;
+  padding-inline:max(12px, calc((100% - 1100px) / 2 + clamp(12px,3vw,32px)))}
+.x-notice--banner.x-notice--type-error > .x-notice__box{border-block-end:4px solid #333}
+.x-notice--banner.x-notice--type-warning > .x-notice__box{border-block-end:4px dashed #333}
+.x-notice--sticky{position:sticky;inset-block-start:0;z-index:20}
+@media (max-height:420px){.x-notice--sticky{position:static}}
+@media (pointer:coarse){.x-notice__toggle{min-block-size:44px}}
+@media (forced-colors:active){.x-notice__box{border-color:CanvasText}}
+/* N2 · cambio de tipo en el sitio: el icono entra con un fundido breve (valor de wireframe) */
+@media (prefers-reduced-motion:no-preference){
+  .x-notice__icon > span{animation:x-icon-in .24s ease-out}
+  @keyframes x-icon-in{from{opacity:0;scale:.6}}
+}
+/* Sin caja propia: una banda fija (sticky) necesita que su contenedor sea el de la página, no un envoltorio de su alto (L8) */
+#bands{display:contents}
+.table-wrap{margin-block-start:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick, getCurrentInstance } = Vue
+const svg = (n) => window.lucide(n)
+
+// ============================================================================================
+// Canal vivo compartido (propuesta: un par de canales por ANFITRIÓN —el body o el <dialog> modal que contiene al aviso—,
+// no un role por aviso). Mismo algoritmo que utils/liveRegion.js (createLiveWriter): vaciar, escribir en el ciclo
+// siguiente, vaciar a los 5 s; varios anuncios del mismo ciclo se unen. En Grana: útil interno de bruno.
+// ============================================================================================
+const liveLog = window.__live = []
+const announcers = new WeakMap()
+function announcerFor(host) {
+  let a = announcers.get(host)
+  if (a && a.box.isConnected) return a
+  const box = document.createElement('div')
+  box.className = 'x-live sr'
+  const mk = (role, live) => { const d = document.createElement('div'); d.setAttribute('role', role); if (live) d.setAttribute('aria-live', live); d.setAttribute('aria-atomic', 'true'); box.append(d); return d }
+  const node = { polite: mk('status', 'polite'), assertive: mk('alert') }
+  host.append(box)
+  const pending = { polite: [], assertive: [] }, wt = {}, ct = {}
+  a = {
+    box,
+    announce(text, politeness) {
+      const ch = politeness === 'assertive' ? 'assertive' : 'polite'
+      liveLog.push({ text, ch, host: host === document.body ? 'body' : 'dialog' })
+      clearTimeout(ct[ch]); node[ch].textContent = ''
+      pending[ch].push(text)
+      clearTimeout(wt[ch])
+      wt[ch] = setTimeout(() => { node[ch].textContent = pending[ch].join(' '); pending[ch] = []; ct[ch] = setTimeout(() => { node[ch].textContent = '' }, 5000) }, 50)
+    }
+  }
+  announcers.set(host, a)
+  return a
+}
+announcerFor(document.body) // existe antes del primer aviso (en Grana: al instalar el plugin o al montar el primer aviso)
+
+// «Vista nueva»: un diálogo que se acaba de abrir. Lo que se monta con él es contenido estático de esa vista y no se
+// anuncia. Emulación del prototipo (observa `open`); en Grana lo daría el propio GDialog por contexto (hallazgo L4).
+const seenDialogs = new WeakSet()
+new MutationObserver((list) => {
+  for (const m of list) {
+    const d = m.target
+    if (d.tagName !== 'DIALOG') continue
+    if (d.hasAttribute('open')) requestAnimationFrame(() => requestAnimationFrame(() => { if (d.hasAttribute('open')) seenDialogs.add(d) }))
+    else seenDialogs.delete(d)
+  }
+}).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['open'] })
+
+// ============================================================================================
+// Utilidades de foco y de desplazamiento
+// ============================================================================================
+const TABBABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+/** Siguiente elemento tabulable después de `el` (o el anterior si no hay), dentro del diálogo que lo contiene o del documento. */
+function neighbour(el) {
+  const scope = el.closest('dialog') || document
+  const all = [...scope.querySelectorAll(TABBABLE)].filter((x) => !el.contains(x) && x.getClientRects().length && !x.closest('[inert]'))
+  const next = all.find((x) => el.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING)
+  return next || all[all.length - 1] || null
+}
+// «Lo que la persona está usando»: el elemento con foco o, si el motor no enfoca los botones al pulsarlos con ratón
+// (WebKit en macOS), el último elemento pulsado hace menos de 1,5 s.
+let lastPress = null
+document.addEventListener('pointerdown', (e) => { lastPress = { el: e.target, t: performance.now() } }, true)
+function actor() {
+  const ae = document.activeElement
+  if (ae && ae !== document.body && ae !== document.documentElement) return ae
+  if (lastPress && lastPress.el.isConnected && performance.now() - lastPress.t < 1500) return lastPress.el
+  return null
+}
+function scrollerOf(el) {
+  for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY
+    if ((o === 'auto' || o === 'scroll') && p.scrollHeight - p.clientHeight > 1) return p
+  }
+  return document.scrollingElement
+}
+function rowGapOf(p) {
+  if (!p) return 0
+  const cs = getComputedStyle(p)
+  if (!/flex|grid/.test(cs.display)) return 0
+  const n = parseFloat(cs.rowGap)
+  return Number.isFinite(n) ? n : 0
+}
+const BASE_MS = 280
+const motionMs = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : BASE_MS * (window.__slow ? 5 : 1))
+window.__pins = [] // registro para la verificación: régimen elegido en cada entrada y salida
+
+/** N1 · crece (o se pliega) sin mover lo que la persona está usando. Anima altura + separación del contenedor y, si procede,
+ *  corrige el desplazamiento cuadro a cuadro para que el borde inferior del aviso (lo que viene después) no se mueva. */
+function runSize(el, entering, done) {
+  const sc = scrollerOf(el)
+  const isDoc = sc === document.scrollingElement
+  const anchorEls = isDoc ? [document.documentElement, document.body] : [sc]
+  const prevAnchor = anchorEls.map((e) => e.style.overflowAnchor)
+  anchorEls.forEach((e) => { e.style.overflowAnchor = 'none' }) // un solo compensador en los tres motores
+  const restore = () => anchorEls.forEach((e, i) => { e.style.overflowAnchor = prevAnchor[i] })
+  const gap = rowGapOf(el.parentElement)
+  const H = el.getBoundingClientRect().height
+  const collapsed = { height: '0px', marginBlockEnd: -gap + 'px', opacity: '0' }
+  const full = { height: H + 'px', marginBlockEnd: '0px', opacity: '1' }
+  const from = entering ? collapsed : full
+  const to = entering ? full : collapsed
+  el.style.overflow = 'clip'
+  Object.assign(el.style, from)
+  const refY = () => el.getBoundingClientRect().bottom + (parseFloat(getComputedStyle(el).marginBlockEnd) || 0)
+  const refY0 = refY()
+  const viewTop = (isDoc ? 0 : sc.getBoundingClientRect().top) + (parseFloat(getComputedStyle(isDoc ? document.documentElement : sc).scrollPaddingTop) || 0)
+  const r = el.getBoundingClientRect()
+  const ae = actor()
+  const focusBelow = !!ae && (isDoc || sc.contains(ae)) && !el.contains(ae) && !!(el.compareDocumentPosition(ae) & Node.DOCUMENT_POSITION_FOLLOWING)
+  const delta = H + gap
+  const canScroll = sc.scrollHeight - sc.clientHeight > 1
+  let pin = ''
+  if (entering) pin = r.top < viewTop - 0.5 ? 'above' : (focusBelow && canScroll && r.top - viewTop >= delta + 8 ? 'focus' : '')
+  else pin = r.bottom <= viewTop + 0.5 ? 'above' : (focusBelow && sc.scrollTop >= delta ? 'focus' : '')
+  window.__pins.push({ id: el.id, entering, pin, delta: Math.round(delta) })
+  const correct = () => { if (!pin) return; const d = refY() - refY0; if (Math.abs(d) >= 0.25) sc.scrollTop += d }
+  const clear = () => { el.style.height = el.style.marginBlockEnd = el.style.opacity = el.style.overflow = '' }
+  const ms = motionMs()
+  if (!ms) {
+    if (entering) clear(); else Object.assign(el.style, to)
+    correct(); done(); restore()
+    return
+  }
+  const anim = el.animate([from, to], { duration: ms, easing: 'cubic-bezier(.2,0,0,1)', fill: 'both' })
+  let raf = 0
+  const loop = () => { correct(); raf = requestAnimationFrame(loop) }
+  raf = requestAnimationFrame(loop)
+  const end = () => {
+    cancelAnimationFrame(raf)
+    if (entering) clear(); else Object.assign(el.style, to)
+    anim.cancel()
+    correct(); done(); restore()
+  }
+  anim.finished.then(end, () => { cancelAnimationFrame(raf); restore() })
+}
+
+// ============================================================================================
+// XNotice
+// ============================================================================================
+const TYPE_ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert' }
+const THRESHOLDS = [300, 60, 30] // segundos: cuándo se anuncia la cuenta atrás
+let seq = 0
+const XNotice = defineComponent({
+  name: 'XNotice',
+  inheritAttrs: false,
+  props: {
+    type: { type: String, default: 'neutral' }, // neutral | info | success | warning | error
+    title: String,
+    typeLabel: String, // prefijo oculto («Error»): señal de tipo para lector de pantalla y para el anuncio
+    icon: { type: [String, Boolean], default: undefined }, // nombre Lucide; false = sin icono
+    banner: Boolean,
+    sticky: Boolean,
+    density: { type: String, default: 'default' }, // default | compact
+    headingLevel: Number, // 2..6: el título es un encabezado; sin él, un <p> fuerte
+    dismissible: Boolean,
+    closeLabel: String,
+    modelValue: { type: Boolean, default: undefined },
+    announce: { type: String, default: 'auto' }, // auto | polite | assertive | off
+    detailsLabel: String,
+    copyLabel: String,
+    copiedLabel: String,
+    deadline: Number, // N3: instante (ms) en que vence
+    countdown: Function // (segundos) => texto visible y anunciado
+  },
+  emits: ['close', 'update:modelValue', 'copy', 'expire', 'reserve'],
+  setup(props, { emit, slots, expose }) {
+    const uid = 'x-notice-' + (++seq)
+    const inst = getCurrentInstance()
+    // «Aparece» = se monta cuando su componente padre ya estaba montado (v-if que pasa a true). Presente desde la carga = estático.
+    const appeared = !!(inst.parent && inst.parent.isMounted)
+    const inner = ref(true)
+    const open = computed(() => (props.modelValue === undefined ? inner.value : props.modelValue))
+    const root = ref(null), bodyEl = ref(null), titleEl = ref(null), detailEl = ref(null)
+    const detailsOpen = ref(false), copied = ref(false)
+    let freshView = false
+
+    const iconName = computed(() => (props.icon === false ? '' : props.icon || TYPE_ICON[props.type] || ''))
+    const hasTitle = computed(() => !!(props.title || slots.title))
+    const nameId = computed(() => (hasTitle.value ? uid + '-title' : props.typeLabel ? uid + '-kind' : undefined))
+    const titleTag = computed(() => (props.headingLevel >= 2 && props.headingLevel <= 6 ? 'h' + props.headingLevel : 'p'))
+    const classes = computed(() => ['x-notice', 'x-notice--type-' + props.type, { 'x-notice--banner': props.banner, 'x-notice--sticky': props.banner && props.sticky, 'x-notice--compact': props.density === 'compact' }])
+
+    // ---------- N3 · cuenta atrás ----------
+    const now = ref(Date.now())
+    let iv = 0
+    const remaining = computed(() => (props.deadline == null ? null : Math.max(0, Math.ceil((props.deadline - now.value) / 1000))))
+    const timerText = computed(() => (remaining.value == null || !props.countdown ? '' : props.countdown(remaining.value)))
+    watch(remaining, (r, prev) => {
+      if (r == null || prev == null) return
+      const t = THRESHOLDS.find((x) => prev > x && r <= x)
+      if (t !== undefined && props.announce !== 'off') nextTick(() => say('polite'))
+      if (r === 0 && prev > 0) emit('expire')
+    })
+
+    // ---------- Anuncio ----------
+    const clean = (el) => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.sr').forEach((n) => n.remove()); return c.textContent.replace(/\s+/g, ' ').trim() }
+    function text() {
+      const parts = []
+      const t = clean(titleEl.value), b = clean(bodyEl.value)
+      if (props.typeLabel) parts.push(props.typeLabel + ':')
+      if (t) parts.push(/[.!?…]$/.test(t) ? t : t + '.')
+      if (b) parts.push(b)
+      return parts.join(' ')
+    }
+    function say(force) {
+      if (!root.value) return
+      const ch = force || (props.announce === 'auto' ? (props.type === 'error' ? 'assertive' : 'polite') : props.announce)
+      if (ch === 'off') return
+      announcerFor(root.value.closest('dialog') || document.body).announce(text(), ch)
+    }
+
+    // ---------- Foco ----------
+    function focus(opts) {
+      const el = root.value
+      if (!el) return
+      el.tabIndex = -1
+      el.addEventListener('blur', () => el.removeAttribute('tabindex'), { once: true })
+      el.focus(opts)
+    }
+    function close(reason = 'close') {
+      emit('close', { reason })
+      emit('update:modelValue', false)
+      if (props.modelValue === undefined) inner.value = false
+    }
+
+    // ---------- Entrada y salida (N1) ----------
+    function onEnter(el, done) {
+      if (freshView) { done(); return }
+      runSize(el, true, done)
+    }
+    function onLeave(el, done) {
+      // El foco nunca cae al body: antes de salir pasa al siguiente elemento tabulable
+      if (el.contains(document.activeElement)) { const t = neighbour(el); if (t) t.focus({ preventScroll: true }) }
+      el.inert = true
+      emit('reserve', 0)
+      runSize(el, false, done)
+    }
+
+    // ---------- Cambio de tipo o de título en el sitio (N2) ----------
+    watch(() => [props.type, props.title], async () => {
+      const el = root.value
+      if (!open.value || !el) return
+      const had = el.contains(document.activeElement)
+      await nextTick()
+      const ae = document.activeElement
+      if (had && (!ae || ae === document.body || !ae.isConnected)) focus({ preventScroll: true }) // el foco leerá el nombre nuevo: sin anuncio duplicado
+      else say()
+    }, { flush: 'pre' })
+
+    // ---------- Detalle ----------
+    async function copy() {
+      const t = detailEl.value ? detailEl.value.innerText.trim() : ''
+      try { await navigator.clipboard.writeText(t) } catch { /* sin permiso: la aplicación recibe el evento igualmente */ }
+      emit('copy', { text: t })
+      copied.value = true
+      if (props.copiedLabel && root.value) announcerFor(root.value.closest('dialog') || document.body).announce(props.copiedLabel, 'polite')
+      setTimeout(() => { copied.value = false }, 2000)
+    }
+
+    // ---------- Montaje ----------
+    let ro = null
+    watch(open, (v, prev) => { if (v && !prev) nextTick(() => { say() }) })
+    onMounted(() => {
+      const el = root.value
+      if (!el) return
+      const d = el.closest('dialog')
+      announcerFor(d || document.body) // el canal existe desde que hay un aviso en ese anfitrión
+      const fresh = !!d && !seenDialogs.has(d)
+      if (appeared && !fresh) say()
+    })
+    // Cuenta atrás: un tic por segundo solo mientras hay plazo
+    watch(() => props.deadline, (d) => { clearInterval(iv); if (d != null) { now.value = Date.now(); iv = setInterval(() => { now.value = Date.now() }, 1000) } }, { immediate: true })
+    // Banda fija: publica su alto como reserva del borde superior mientras está a la vista y pegada
+    watch(root, (el) => {
+      if (ro) { ro.disconnect(); ro = null }
+      if (!el || !props.banner || !props.sticky || !window.ResizeObserver) return
+      ro = new ResizeObserver(() => emit('reserve', el.isConnected && getComputedStyle(el).position === 'sticky' ? Math.round(el.getBoundingClientRect().height) : 0))
+      ro.observe(el)
+    }, { flush: 'post' })
+    // Desmontado por la aplicación (v-if): Vue no ejecuta la transición de salida de un componente que se desmonta. La salida
+    // es inmediata, pero el foco se rescata igual y lo que la persona usa tampoco se mueve (una sola corrección).
+    let unpin = null
+    onBeforeUnmount(() => {
+      clearInterval(iv); if (ro) ro.disconnect()
+      const el = root.value
+      if (!el || !el.isConnected) return
+      if (el.contains(document.activeElement)) { const t = neighbour(el); if (t) t.focus({ preventScroll: true }) }
+      emit('reserve', 0)
+      const sc = scrollerOf(el), isDoc = sc === document.scrollingElement
+      const viewTop = isDoc ? 0 : sc.getBoundingClientRect().top
+      const r = el.getBoundingClientRect(), ae = actor()
+      const delta = r.height + rowGapOf(el.parentElement)
+      const focusBelow = !!ae && !el.contains(ae) && !!(el.compareDocumentPosition(ae) & Node.DOCUMENT_POSITION_FOLLOWING)
+      const pin = r.bottom <= viewTop + 0.5 ? 'above' : (focusBelow && sc.scrollTop >= delta ? 'focus' : '')
+      window.__pins.push({ id: el.id, entering: false, pin, delta: Math.round(delta), instant: true })
+      const ref = focusBelow ? ae : el.nextElementSibling
+      if (pin && ref) {
+        const els = isDoc ? [document.documentElement, document.body] : [sc]
+        const prev = els.map((e) => e.style.overflowAnchor); els.forEach((e) => { e.style.overflowAnchor = 'none' })
+        const y0 = ref.getBoundingClientRect().top
+        unpin = () => { const d = ref.getBoundingClientRect().top - y0; if (Math.abs(d) >= 0.25) sc.scrollTop += d; els.forEach((e, i) => { e.style.overflowAnchor = prev[i] }) }
+      }
+    })
+    Vue.onUnmounted(() => { if (unpin) unpin() })
+    // El diálogo que se abre monta su contenido en el mismo ciclo: la entrada no se anima (lo decide onEnter con el DOM ya insertado)
+    const enter = (el, done) => { const d = el.closest('dialog'); freshView = !!d && !seenDialogs.has(d); onEnter(el, done) }
+
+    expose({ focus, announce: () => say(), el: root })
+    return { uid, open, root, bodyEl, titleEl, detailEl, detailsOpen, copied, iconName, hasTitle, nameId, titleTag, classes, timerText, appeared, enter, onLeave, close, copy, svg }
+  },
+  template: `
+  <Transition :css="false" :appear="appeared" @enter="enter" @leave="onLeave">
+    <div v-if="open" ref="root" v-bind="$attrs" :class="classes" :role="nameId ? 'group' : undefined" :aria-labelledby="nameId" :data-type="type">
+      <div class="x-notice__box">
+        <span v-if="iconName || $slots.icon" class="x-notice__icon" aria-hidden="true"><slot name="icon"><span :key="iconName" v-html="svg(iconName)"></span></slot></span>
+        <div class="x-notice__main">
+          <div class="x-notice__content">
+            <component :is="titleTag" v-if="hasTitle" :id="uid + '-title'" ref="titleEl" class="x-notice__title"><span v-if="typeLabel" class="sr">{{ typeLabel }}: </span><slot name="title">{{ title }}</slot></component>
+            <div v-if="$slots.default || timerText" ref="bodyEl" class="x-notice__body"><span v-if="typeLabel && !hasTitle" class="sr"><span :id="uid + '-kind'">{{ typeLabel }}</span>: </span><slot /><template v-if="timerText"> <span class="x-notice__timer" role="timer" aria-live="off">{{ timerText }}</span></template></div>
+            <div v-if="$slots.details" class="x-notice__details">
+              <button type="button" class="x-notice__toggle" :aria-expanded="detailsOpen ? 'true' : 'false'" :aria-controls="uid + '-panel'" @click="detailsOpen = !detailsOpen"><span v-html="svg('chevron-down')"></span>{{ detailsLabel }}</button>
+              <div :id="uid + '-panel'" class="x-notice__panel" :hidden="detailsOpen ? undefined : true">
+                <div ref="detailEl" class="x-notice__detail"><slot name="details" /></div>
+                <g-btn v-if="copyLabel" class="x-notice__copy" size="sm" variant="outline" color="neutral" @click="copy"><template #prepend><span v-html="svg(copied ? 'check' : 'copy')"></span></template>{{ copied && copiedLabel ? copiedLabel : copyLabel }}</g-btn>
+              </div>
+            </div>
+          </div>
+          <div v-if="$slots.actions" class="x-notice__actions"><slot name="actions" /></div>
+        </div>
+        <g-btn v-if="dismissible" class="x-notice__close" icon size="sm" variant="ghost" color="neutral" :aria-label="closeLabel" @click="close('close')"><span v-html="svg('x')"></span></g-btn>
+      </div>
+    </div>
+  </Transition>`
+})
+
+// ============================================================================================
+// Aplicación de prueba
+// ============================================================================================
+const T = { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }
+const T_AR = { info: 'معلومة', success: 'تم', warning: 'تحذير', error: 'خطأ' }
+const SEVERITY = { error: 4, warning: 3, info: 2, success: 1, neutral: 0 }
+const MAX_BANDS = 2
+const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+const formLabels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const summaryLabels = { title: (n) => (n === 1 ? 'Hay 1 problema con el formulario' : `Hay ${n} problemas con el formulario`) }
+const tbColumns = [{ key: 'folio', label: 'Folio' }, { key: 'cliente', label: 'Cliente' }, { key: 'total', label: 'Total', align: 'end' }]
+const tbLabels = { loading: 'Cargando facturas…', empty: 'Sin facturas que mostrar.', results: '{count} resultados' }
+const ROWS = [{ id: 1, folio: 'F-0040', cliente: 'Clínica Norte', total: '$1,200' }, { id: 2, folio: 'F-0041', cliente: 'Laboratorio Sur', total: '$860' }]
+const fmt = (s) => (s > 60 ? `Se cerrará en ${Math.ceil(s / 60)} min.` : s > 0 ? `Se cerrará en ${s} s.` : 'La sesión se cerró.')
+
+const toaster = Grana.createToaster({ position: 'top-end', labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
+window.toaster = toaster
+
+const app = createApp({
+  setup() {
+    const proto = reactive({ slow: false })
+    watch(() => proto.slow, (v) => { window.__slow = v })
+
+    // ---- 2. Guardar: validación (GErrorSummary) frente a error de servidor (aviso) ----
+    const f = reactive({ nombre: 'Clínica Norte', rfc: 'CNO010203AB1' })
+    const errors = computed(() => ({ nombre: f.nombre ? '' : 'Escribe el nombre del cliente', rfc: f.rfc ? '' : 'Escribe el RFC' }))
+    const save = reactive({ shown: false, notice: 'error', busy: false, fails: true, submits: 0, invalids: 0 })
+    async function send() {
+      save.busy = true
+      await wait(window.__fast ? 20 : 500)
+      save.busy = false
+      save.notice = save.fails ? 'error' : 'success'
+      save.shown = true
+    }
+    function onSubmit() { save.submits++; send() }
+    function onInvalid() { save.invalids++; save.shown = false }
+
+    // ---- 3. Cargar: error sobre una tabla sin estado de error propio ----
+    const tb = reactive({ state: 'error', fails: false })
+    async function load() {
+      tb.state = tb.state === 'error' ? 'retrying' : 'loading'
+      await wait(window.__fast ? 20 : 500)
+      tb.state = tb.fails ? 'error' : 'ok'
+    }
+    function breakTable() { tb.state = 'error' }
+
+    // ---- 4. Bandas de página ----
+    const deadline = ref(0)
+    const on = reactive({ maint: true, readonly: false, session: false, offline: false })
+    const online = ref(false) // sin conexión resuelto: la misma banda pasa a éxito
+    const BANDS = {
+      maint: () => ({ id: 'maint', type: 'info', text: 'El sábado de 02:00 a 04:00 no se podrá facturar por mantenimiento.', title: 'Mantenimiento programado.', dismissible: true }),
+      readonly: () => ({ id: 'readonly', type: 'neutral', icon: 'lock', sticky: true, title: 'Modo solo lectura.', text: 'Puedes consultar, pero no editar.', action: 'Solicitar acceso' }),
+      session: () => ({ id: 'session', type: 'warning', title: 'Tu sesión está por caducar.', text: '', deadline: deadline.value, action: 'Seguir conectado' }),
+      offline: () => (online.value
+        ? { id: 'offline', type: 'success', title: 'Conexión restablecida.', text: 'Los cambios pendientes ya se guardaron.', dismissible: true }
+        : { id: 'offline', type: 'warning', icon: 'unplug', title: 'Sin conexión.', text: 'Los cambios se guardarán al volver.' })
+    }
+    // Todas montadas (v-model): la salida se anima. Orden del DOM = activas por gravedad; a la vista, las MAX_BANDS primeras
+    const bands = computed(() => {
+      const list = Object.keys(on).map((k) => ({ ...BANDS[k](), active: on[k] }))
+        .sort((a, b) => (b.active - a.active) || (SEVERITY[b.type] - SEVERITY[a.type]))
+      list.forEach((b, i) => { b.shown = b.active && i < MAX_BANDS })
+      return list
+    })
+    const waiting = computed(() => Math.max(0, Object.values(on).filter(Boolean).length - MAX_BANDS))
+    function toggleBand(k) {
+      if (k === 'session' && !on.session) deadline.value = Date.now() + 305000
+      if (k === 'offline' && !on.offline) online.value = false
+      on[k] = !on[k]
+    }
+    function bandAction(b) { if (b.id === 'session') on.session = false; log.value = 'acción de banda: ' + b.id }
+    function bandClose(b) { on[b.id] = false; if (b.id === 'offline') online.value = false }
+    const reserves = {}
+    function onReserve(id, px) {
+      reserves[id] = px
+      const total = Object.values(reserves).reduce((a, b) => a + b, 0)
+      document.documentElement.style.setProperty('--x-top-reserve', total + 'px')
+      toaster.configure({ offset: { top: total } }) // en Grana: edgeReserve.js (#225), sin opción pública
+    }
+
+    // ---- 5. Éxito persistente ----
+    const created = ref(false)
+    // ---- 6. Diálogo ----
+    const dlg = ref(false)
+    const dlgErr = ref(false)
+    const dlgNombre = ref('Clínica Norte')
+    watch(dlg, (v) => { if (!v) dlgErr.value = false })
+    // ---- 7. Con foco a petición ----
+    const blocked = ref(false)
+    const blockedRef = ref(null)
+    async function block() { blocked.value = true; await nextTick(); blockedRef.value.focus() }
+    // ---- 8. Aviso flotante + aviso en línea ----
+    const both = ref(false)
+    function toastAndNotice() { toaster.success('Copia enviada'); both.value = true }
+
+    const log = ref('—')
+    const api = { proto, f, save, tb, on, online, created, dlg, dlgErr, blocked, both, toggleBand, load, breakTable, deadline }
+    window.__app = api
+    return { ...api, errors, onSubmit, onInvalid, send, bands, waiting, bandAction, bandClose, onReserve, block, blockedRef, toastAndNotice, dlgNombre,
+      log, T, T_AR, fmt, formLabels, summaryLabels, tbColumns, tbLabels, ROWS, svg }
+  },
+  template: `
+  <!-- ===================== Bandas de página: primer contenido, antes de <main> ===================== -->
+  <div id="bands">
+    <x-notice v-for="b in bands" :key="b.id" :model-value="b.shown" :id="'band-' + b.id" banner :sticky="b.sticky" :type="b.type" :type-label="T[b.type]" :icon="b.icon" :title="b.title"
+      :dismissible="b.dismissible" close-label="Cerrar aviso" :deadline="b.deadline || undefined" :countdown="b.deadline ? fmt : undefined"
+      @close="bandClose(b)" @reserve="onReserve(b.id, $event)" @expire="log = 'expire: sesión'">
+      <template v-if="b.text">{{ b.text }}</template>
+      <template v-if="b.action" #actions><g-btn :id="'band-' + b.id + '-action'" size="sm" variant="outline" color="neutral" @click="bandAction(b)">{{ b.action }}</g-btn></template>
+    </x-notice>
+  </div>
+
+  <main>
+    <h1>GNotice · r01 · estructura</h1>
+    <p class="cap">Aviso persistente <strong>en línea</strong> (dentro del contenido) o como <strong>banda de página</strong> (a sangre, arriba). Componentes reales de <code>dist/</code> y un <code>XNotice</code> de prototipo. El gris es de wireframe: los tipos se distinguen sin color (icono, prefijo oculto y marca de borde).</p>
+    <div class="ctl" role="group" aria-label="Controles del prototipo">
+      <label><input type="checkbox" v-model="proto.slow" id="t-slow"> Movimiento ×5</label>
+    </div>
+
+    <!-- ===================== 1. Anatomía y tipos (estáticos: no se anuncian) ===================== -->
+    <h2 class="demo">1. Anatomía y tipos</h2>
+    <p class="cap">Presentes desde la carga: ninguno se anuncia. Icono Lucide por tipo, prefijo oculto de tipo, marca de inicio sólida (error) o discontinua (advertencia).</p>
+    <div class="frame frame--640 stack" id="gallery">
+      <x-notice id="g-neutral" title="Borrador sin publicar">Solo tú puedes ver esta página.</x-notice>
+      <x-notice id="g-info" type="info" :type-label="T.info" title="Hay una versión nueva del informe">Se generó hoy a las 09:40.
+        <template #actions><g-btn id="g-info-action" size="sm" variant="outline" color="neutral" @click="log = 'acción: actualizar'">Actualizar</g-btn></template>
+      </x-notice>
+      <x-notice id="g-success" type="success" :type-label="T.success" title="Importación terminada" dismissible close-label="Cerrar aviso">Se importaron 128 clientes.</x-notice>
+      <x-notice id="g-warning" type="warning" :type-label="T.warning" :heading-level="3" title="Faltan datos fiscales">Sin RFC no podrás emitir facturas.</x-notice>
+      <x-notice id="g-error" type="error" :type-label="T.error" title="No se pudo cargar el historial" details-label="Detalles técnicos" copy-label="Copiar" copied-label="Copiado">Vuelve a intentarlo en unos minutos.
+        <template #actions><g-btn id="g-error-retry" size="sm" variant="outline" color="neutral">Reintentar</g-btn></template>
+        <template #details><pre dir="ltr">GET /api/history 503 · req_8f2c1a9e
+upstream timeout after 30000ms</pre></template>
+      </x-notice>
+      <x-notice id="g-body" type="warning" :type-label="T.warning">Solo cuerpo, sin título: la factura no tiene método de pago.</x-notice>
+      <x-notice id="g-compact" type="info" :type-label="T.info" density="compact" title="Compacto." dismissible close-label="Cerrar aviso">Título y cuerpo en la misma línea.</x-notice>
+    </div>
+    <p class="frame-tag">320px</p>
+    <div class="frame frame--320 stack" id="narrow">
+      <x-notice id="n-error" type="error" :type-label="T.error" title="No se pudo guardar la factura" dismissible close-label="Cerrar aviso" details-label="Detalles técnicos" copy-label="Copiar" copied-label="Copiado">El servidor tardó demasiado en responder.
+        <template #actions><g-btn size="sm" variant="outline" color="neutral">Reintentar</g-btn><g-btn size="sm" variant="ghost" color="neutral">Guardar borrador</g-btn></template>
+        <template #details><pre dir="ltr">POST /api/invoices 504 · req_01HZX9K3T7Q2M5B8N4V6C0D1E2F3G4H5J6K7</pre></template>
+      </x-notice>
+      <x-notice id="n-info" type="info" :type-label="T.info" density="compact" title="Compacto.">Con una acción.
+        <template #actions><g-btn size="sm" variant="outline" color="neutral">Ver</g-btn></template>
+      </x-notice>
+    </div>
+    <p class="frame-tag">RTL (árabe)</p>
+    <div class="frame frame--640 stack" id="rtl" dir="rtl" lang="ar">
+      <x-notice id="r-error" type="error" :type-label="T_AR.error" title="تعذّر حفظ الفاتورة" dismissible close-label="إغلاق" details-label="تفاصيل تقنية" copy-label="نسخ" copied-label="تم النسخ">استغرق الخادم وقتًا طويلًا.
+        <template #actions><g-btn size="sm" variant="outline" color="neutral">إعادة المحاولة</g-btn></template>
+        <template #details><pre dir="ltr">POST /api/invoices 504 · req_8f2c1a9e</pre></template>
+      </x-notice>
+      <x-notice id="r-warning" type="warning" :type-label="T_AR.warning" title="بيانات ناقصة">لا يمكن إصدار الفواتير بدون الرقم الضريبي.</x-notice>
+    </div>
+
+    <!-- ===================== 2. Error de servidor al guardar ===================== -->
+    <h2 class="demo">2. Error de servidor al guardar (junto a GErrorSummary)</h2>
+    <p class="cap">Validación → <code>GErrorSummary</code> (enlaces a los campos, recibe el foco). Fallo del servidor → aviso junto al botón (no recibe el foco, se anuncia por el canal enérgico). «Reintentar» resuelto: el mismo aviso pasa a éxito (N2). Nunca los dos para el mismo suceso.</p>
+    <div class="ctl"><label><input type="checkbox" v-model="save.fails" id="s-fails"> El servidor falla</label></div>
+    <div class="frame frame--640">
+      <g-form id="s-form" :errors="errors" :labels="formLabels" @submit="onSubmit" @invalid="onInvalid">
+        <g-error-summary id="s-summary" :labels="summaryLabels"></g-error-summary>
+        <g-form-layout>
+          <g-input id="s-nombre" label="Nombre del cliente" name="nombre" required v-model="f.nombre"></g-input>
+          <g-input id="s-rfc" label="RFC" name="rfc" required v-model="f.rfc"></g-input>
+        </g-form-layout>
+        <x-notice v-model="save.shown" id="s-notice" :type="save.notice" :type-label="T[save.notice]"
+          :title="save.notice === 'error' ? 'No se pudo guardar la factura' : 'Factura guardada'"
+          :dismissible="save.notice === 'success'" close-label="Cerrar aviso" details-label="Detalles técnicos" copy-label="Copiar" copied-label="Copiado">
+          <template v-if="save.notice === 'error'">El servidor no respondió. Tus datos siguen en el formulario.</template>
+          <template v-else>Se registró con el folio <a id="s-link" href="#f-0042">F-0042</a>.</template>
+          <template v-if="save.notice === 'error'" #actions><g-btn id="s-retry" size="sm" variant="outline" color="neutral" :loading="save.busy" loading-text="Reintentando…" @click="send">Reintentar</g-btn></template>
+          <template v-if="save.notice === 'error'" #details><pre dir="ltr">POST /api/invoices 503 · req_8f2c1a9e</pre></template>
+        </x-notice>
+        <g-form-actions><g-btn id="s-save" type="submit" :loading="save.busy && !save.shown" loading-text="Guardando…">Guardar</g-btn></g-form-actions>
+      </g-form>
+    </div>
+
+    <!-- ===================== 3. Error al cargar ===================== -->
+    <h2 class="demo">3. Error de servidor al cargar (GTable no tiene estado de error)</h2>
+    <p class="cap">El aviso va encima de la tabla. Estático si el fallo ya venía con la página; si la recarga falla después, aparece y se anuncia. Al resolverse, el aviso sale y el foco de «Reintentar» pasa al siguiente control.</p>
+    <div class="ctl"><label><input type="checkbox" v-model="tb.fails" id="tb-fails"> La recarga falla</label><g-btn id="tb-break" size="sm" variant="outline" color="neutral" @click="breakTable">Simular fallo de recarga</g-btn></div>
+    <div class="frame" id="tb-frame">
+      <x-notice v-if="tb.state === 'error' || tb.state === 'retrying'" id="tb-notice" type="error" :type-label="T.error" title="No se pudieron cargar las facturas">Comprueba tu conexión y vuelve a intentarlo.
+        <template #actions><g-btn id="tb-retry" size="sm" variant="outline" color="neutral" :loading="tb.state === 'retrying'" loading-text="Cargando…" @click="load">Reintentar</g-btn></template>
+      </x-notice>
+      <div class="table-wrap"><g-table id="tb" :columns="tbColumns" :rows="tb.state === 'ok' ? ROWS : []" row-key="id" caption="Facturas" :loading="tb.state === 'loading' || tb.state === 'retrying'" :labels="tbLabels"></g-table></div>
+      <p><g-btn id="tb-after" size="sm" variant="ghost" color="neutral">Exportar</g-btn></p>
+    </div>
+
+    <!-- ===================== 4. Banda de página ===================== -->
+    <h2 class="demo" id="h-bands">4. Banda de página</h2>
+    <p class="cap">Las bandas viven al principio del documento, antes de <code>main</code>. Orden por gravedad (error, advertencia, información, éxito, neutro), como máximo {{ 2 }} a la vista{{ waiting ? ' (' + waiting + ' en espera)' : '' }}. No son fijas salvo <code>sticky</code> (solo lectura). La que aparece mientras lees más abajo no mueve lo que ves.</p>
+    <div class="ctl" role="group" aria-label="Bandas">
+      <g-btn id="b-maint" size="sm" variant="outline" color="neutral" :aria-pressed="on.maint ? 'true' : 'false'" @click="toggleBand('maint')">Mantenimiento</g-btn>
+      <g-btn id="b-readonly" size="sm" variant="outline" color="neutral" :aria-pressed="on.readonly ? 'true' : 'false'" @click="toggleBand('readonly')">Solo lectura (fija)</g-btn>
+      <g-btn id="b-session" size="sm" variant="outline" color="neutral" :aria-pressed="on.session ? 'true' : 'false'" @click="toggleBand('session')">Sesión por caducar</g-btn>
+      <g-btn id="b-offline" size="sm" variant="outline" color="neutral" :aria-pressed="on.offline ? 'true' : 'false'" @click="toggleBand('offline')">Sin conexión</g-btn>
+      <g-btn id="b-online" size="sm" variant="outline" color="neutral" :disabled="!on.offline || online" @click="online = true">Vuelve la conexión</g-btn>
+    </div>
+
+    <!-- ===================== 5. Resultado que debe quedarse ===================== -->
+    <h2 class="demo">5. Resultado que debe quedarse visible</h2>
+    <p class="cap">Éxito con enlace a lo creado. No se cierra solo (para eso está <code>GToast</code>). Al cerrarlo, el foco pasa al siguiente control, nunca al <code>body</code>.</p>
+    <div class="frame frame--640 stack">
+      <div><g-btn id="c-create" @click="created = true">Crear proyecto</g-btn></div>
+      <x-notice v-model="created" id="c-notice" type="success" :type-label="T.success" title="Proyecto creado" dismissible close-label="Cerrar aviso">Ya puedes invitar a tu equipo desde <a id="c-link" href="#atlas">Proyecto Atlas</a>.</x-notice>
+      <div><g-btn id="c-after" variant="outline" color="neutral">Ver todos los proyectos</g-btn></div>
+    </div>
+
+    <!-- ===================== 6. En una tarjeta y en un diálogo ===================== -->
+    <h2 class="demo">6. Advertencia en una tarjeta y avisos en un diálogo</h2>
+    <p class="cap">En el diálogo: la advertencia viene con la vista (no se anuncia); el error aparece tras «Guardar», se anuncia en el canal del propio diálogo y no mueve el foco.</p>
+    <div class="frame frame--640 stack">
+      <g-card id="k-card" title="Facturación" description="Plan Equipo · renovación el 1 de noviembre">
+        <x-notice id="k-notice" type="warning" :type-label="T.warning" density="compact" title="Tu tarjeta caduca este mes.">
+          <template #actions><g-btn size="sm" variant="outline" color="neutral">Actualizar tarjeta</g-btn></template>
+        </x-notice>
+      </g-card>
+      <div><g-btn id="d-open" variant="outline" color="neutral" @click="dlg = true">Editar cliente…</g-btn></div>
+    </div>
+    <g-dialog v-model="dlg" id="d-dialog" title="Editar cliente" close-label="Cerrar">
+      <div class="stack">
+        <x-notice id="d-warn" type="warning" :type-label="T.warning" density="compact">Este cliente tiene 2 facturas abiertas.</x-notice>
+        <g-input id="d-nombre" label="Nombre" v-model="dlgNombre"></g-input>
+        <x-notice v-if="dlgErr" id="d-error" type="error" :type-label="T.error" title="No se pudo guardar">El servidor no respondió.</x-notice>
+      </div>
+      <template #footer><g-btn id="d-save" @click="dlgErr = true">Guardar</g-btn></template>
+    </g-dialog>
+
+    <!-- ===================== 7. Foco a petición ===================== -->
+    <h2 class="demo">7. Foco solo a petición de la aplicación</h2>
+    <p class="cap">Un aviso nunca toma el foco al aparecer. Si el error bloquea la tarea, la aplicación llama a <code>focus()</code>: el aviso (grupo con nombre) recibe el foco y no se anuncia dos veces.</p>
+    <div class="frame frame--640 stack">
+      <x-notice v-if="blocked" ref="blockedRef" id="f-notice" type="error" :type-label="T.error" title="No tienes permiso para ver esta factura" announce="off" dismissible close-label="Cerrar aviso" @close="blocked = false">Pide acceso a la persona que la creó.</x-notice>
+      <div><g-btn id="f-open" variant="outline" color="neutral" @click="block">Abrir factura restringida</g-btn></div>
+    </div>
+
+    <!-- ===================== 8. Con GToaster ===================== -->
+    <h2 class="demo">8. Convivencia con GToaster</h2>
+    <p class="cap">Un aviso flotante (transitorio) y un aviso en línea (persistente) a la vez: cada texto se anuncia una vez.</p>
+    <div class="frame frame--640 stack">
+      <div><g-btn id="t-both" variant="outline" color="neutral" @click="toastAndNotice">Enviar copia</g-btn></div>
+      <x-notice v-if="both" id="t-notice" type="info" :type-label="T.info" dismissible close-label="Cerrar aviso" @close="both = false">La copia tardará unos minutos en llegar.</x-notice>
+    </div>
+
+    <pre class="out" id="log">{{ log }}</pre>
+    <div class="spacer" aria-hidden="true"></div>
+  </main>
+  <g-toaster></g-toaster>`
+})
+app.component('XNotice', XNotice)
+app.use(Grana)
+app.use(toaster)
+app.mount('#app')
+</script>
+</body>
+</html>
