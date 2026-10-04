@@ -50,11 +50,19 @@
   min-inline-size: 0;
   display: flex;
 }
+/* El texto del campo sigue la dirección de su contenido (combobox.md «RTL»): un nombre latino en una página RTL se
+   escribe de izquierda a derecha desde la izquierda, y el fantasma (misma regla) lo continúa donde debe. Sin esto, el
+   resto se pintaría encima de lo tecleado */
+.g-combobox .g-combobox__field,
+.g-combobox__ghost,
+.g-combobox__search-field {
+  unicode-bidi: plaintext;
+}
 
 /* ---------- A · Texto fantasma ---------- */
 /* Misma tipografía que el <input> (hereda la fuente de la caja; --_fs y --_lh de GInput), línea centrada en la celda
    como el texto del <input>. Bloque con hijos en línea (no flex): el algoritmo bidi ordena lo tecleado y el resto como
-   en el <input> (si bruno pone dir="auto" en el <input>, lo copia aquí). La parte tecleada ocupa su sitio, invisible */
+   en el <input> (los dos con unicode-bidi: plaintext). La parte tecleada ocupa su sitio, invisible */
 .g-combobox__ghost {
   position: absolute;
   inset: 0;
@@ -138,6 +146,9 @@
 /* La etiqueta conserva su sitio; el dato secundario se recorta primero (factor de encogimiento enorme frente a 1) */
 .g-combobox__token-label {
   flex: 0 1 auto;
+  /* La dirección del texto sigue al contenido (un nombre latino en una página RTL se recorta por su final, no por su
+     principio); la caja sigue en su sitio lógico */
+  unicode-bidi: plaintext;
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -145,6 +156,7 @@
 }
 .g-combobox__token-meta {
   flex: 0 100000 auto;
+  unicode-bidi: plaintext;
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -438,12 +450,11 @@
   cursor: pointer;
   overflow-wrap: anywhere;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    background-color var(--g-duration-fast) var(--g-ease-standard),
-    border-color var(--g-duration-fast) var(--g-ease-standard),
-    box-shadow var(--g-duration-fast) var(--g-ease-standard),
-    color var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Sin transición en la fila: la activa cambia en el acto. Con una transición por fila, la que sale se apaga mientras la
+   que entra se enciende y, con fichas altas, se leen dos marcos parpadeando (reporte del usuario). Medido: al recorrer
+   las opciones con el puntero hay como máximo una superficie resaltada por cuadro. Un resaltado único que VIAJA entre
+   opciones (como GMenu, #305) queda anotado para lima en estilo.md */
 .g-combobox__option + .g-combobox__option {
   margin-block-start: var(--g-space-1);
 }
@@ -506,19 +517,50 @@
   flex: 1 1 auto;
   min-inline-size: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+/* La ficha de opción ocupa como MÁXIMO DOS LÍNEAS: el nombre y una línea de datos. Nada desborda: cada línea se recorta
+   por el final con elipsis. El detalle completo vive en la vista previa de la paleta (el lector recibe todo el texto:
+   lo recortado sigue en el DOM). Arreglo mínimo a la espera del componente de fichas que prepara kiwi */
+.g-combobox__option:not(.g-combobox__action) .g-combobox__label {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .g-combobox__description {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   color: var(--g-color-text-muted);
 }
+/* Datos en UNA fila con separador (línea vertical, no un carácter). Los que no caben pasan a una segunda línea que no se
+   ve (alto de una línea, overflow: hidden): con más ancho caben más datos y ninguno queda partido. El primero (el
+   identificador, «Exp.») va siempre el primero de la línea visible; si ni él cabe, se recorta él con elipsis */
 .g-combobox__facts {
+  min-inline-size: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--g-space-4);
+  block-size: var(--g-text-body-sm-line);
+  overflow: hidden;
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   font-variant-numeric: tabular-nums;
+}
+.g-combobox__fact {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.g-combobox__fact + .g-combobox__fact {
+  margin-inline-start: var(--g-space-2);
+  padding-inline-start: var(--g-space-2);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
 }
 .g-combobox__fact-label {
   color: var(--g-color-text-muted);
@@ -550,6 +592,11 @@
 }
 .g-combobox__action--custom .g-combobox__label {
   font-style: italic;
+}
+/* Las filas de acción llevan el texto escrito («Usar «…» como texto libre»): se parten, no se recortan */
+.g-combobox__action .g-combobox__label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
 }
 /* La primera fila de acción tras las opciones lleva una línea encima (centrada en el hueco) */
 .g-combobox__list > :not(.g-combobox__action) + .g-combobox__action {
@@ -660,6 +707,9 @@
 /* El código conserva su caja clara dentro de la fila invertida */
 .g-combobox-surface .g-combobox__option.is-active .g-combobox__code {
   border-color: var(--g-color-surface);
+}
+.g-combobox-surface .g-combobox__option.is-active .g-combobox__fact + .g-combobox__fact {
+  border-inline-start-color: currentColor;
 }
 
 /* Vista previa de la opción activa (no es región viva) */

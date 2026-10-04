@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/combobox.md («Estructura accesible» y «Clases y datos») con el CSS
+     real de GCombobox.css (cargado DENTRO de la capa grana.components, después de todo dist/grana.css, como lo registrará
+     bruno tras GInput, GAvatar y GDialog) y los componentes reales de dist/ (GInput con sus slots internos field y end,
+     GAvatar, GDialog, GForm, GFormLayout, GFormRow, GSelect). XCombobox hace lo que hará GCombobox.vue y solo lo que el
+     estilo necesita: filtro local por palabras sin acentos, coincidencia marcada, activa, fantasma por prefijo, ficha,
+     llegada (--_travel-x/y + is-arriving, retirada por animationend g-combobox-arrive… o en el acto), colocación del
+     popover (--_x, --_top, --_bottom, --_w, --_max, --_field-h; is-up) y la superficie (GDialog real) en paleta y hoja.
+     No es documentación ni la implementación de bruno.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/combobox/estilo-banco.html
+     Parámetros: ?dark=1  ?test=1 (Tema de prueba)  ?theme=<generated/*.css>  ?slow=1 (×5)  ?dir=rtl
+     Verificación: node design/lab/combobox/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GCombobox/GCombobox.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="test-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:60vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .bottom{min-block-size:40vh}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GCombobox · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A · el campo se abre (una sola forma: contorno, anillo y sombra del popover), con texto fantasma. C · el valor es un objeto (ficha en reposo, fichas en la lista, la elegida llega con el muelle). B · paleta con vista previa (GDialog real) y hoja móvil anclada arriba. Escribe «mar» en Paciente (cuatro homónimas), «diab» en Diagnóstico (Tab elige), algo inexistente en Medicamento (texto libre).</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="reject">Rechazar (I2)</button>
+</div>
+
+<h2 class="b">1 · A + C en un formulario (casos interactivos)</h2>
+<div class="host">
+  <div class="grid">
+    <x-combobox case="pac" label="Paciente" :options="PATIENTS" hint="Busca por nombre o expediente" clearable placeholder="Nombre o expediente"></x-combobox>
+    <x-combobox case="dx" label="Diagnóstico (CIE-10)" :options="DX" clearable></x-combobox>
+    <x-combobox case="med" label="Medicamento" :options="MEDS" allow-custom clearable></x-combobox>
+    <x-combobox case="cli" label="Cliente" :options="CLIENTS" creatable></x-combobox>
+  </div>
+</div>
+
+<h2 class="b">2 · Reposo con valor (C) por tamaño · Δ0 de alto frente a GInput vacío</h2>
+<div class="host">
+  <div v-for="s in SIZES" :key="s" class="sizes">
+    <g-input :data-case="'in-' + s" :size="s" :label="'GInput ' + s" model-value="" block></g-input>
+    <x-combobox :case="'tok-' + s" :size="s" :label="'Paciente ' + s" :options="PATIENTS" :model-value="'p004512'" block></x-combobox>
+  </div>
+  <div class="sizes">
+    <x-combobox case="tok-dx" label="Diagnóstico" :options="DX" model-value="E11.9" block></x-combobox>
+    <x-combobox case="tok-free" label="Medicamento" :options="MEDS" allow-custom custom="Jarabe magistral de la casa 120 ml" block></x-combobox>
+    <x-combobox case="tok-ro" label="Solo lectura" :options="PATIENTS" model-value="p001000" readonly block></x-combobox>
+    <x-combobox case="tok-dis" label="Deshabilitado" :options="PATIENTS" model-value="p001000" disabled block></x-combobox>
+    <x-combobox case="tok-err" label="Con error" :options="PATIENTS" model-value="p001000" error="El paciente no tiene cita hoy" block></x-combobox>
+    <x-combobox case="tok-pill" label="Píldora" :options="DX" model-value="I10" rounded="pill" block></x-combobox>
+    <x-combobox case="tok-soft" label="Soft" variant="soft" :options="PATIENTS" model-value="p007731" block></x-combobox>
+    <x-combobox case="empty" label="Vacío" :options="PATIENTS" placeholder="Nombre o expediente" block></x-combobox>
+  </div>
+  <div style="inline-size:200px"><x-combobox case="tok-narrow" label="Estrecho (200)" :options="PATIENTS" model-value="p004512" block></x-combobox></div>
+</div>
+
+<h2 class="b">3 · Estados del panel (A) · se abren desde la barra o con __cb.open(caso)</h2>
+<div class="host">
+  <div class="grid">
+    <x-combobox case="st-loading" label="Cargando sin resultados" :options="[]" :fixed="{ text: 'gar', status: 'loading' }"></x-combobox>
+    <x-combobox case="st-busy" label="Cargando con anteriores" :options="PATIENTS" :fixed="{ text: 'mar', busy: true }"></x-combobox>
+    <x-combobox case="st-error" label="Error de carga" :options="PATIENTS.slice(0, 2)" :fixed="{ text: 'mar', status: 'error', actions: ['retry'] }"></x-combobox>
+    <x-combobox case="st-empty" label="Sin resultados + filas" :options="[]" :fixed="{ text: 'Paracetamol infantil', status: 'empty', actions: ['custom', 'create'] }"></x-combobox>
+    <x-combobox case="st-hint" label="Pista de mínimo" :options="[]" :fixed="{ text: 'm', status: 'hint' }"></x-combobox>
+    <x-combobox case="st-more" label="Mostrar más" :options="PATIENTS" :fixed="{ text: '', actions: ['more'] }"></x-combobox>
+    <x-combobox case="st-groups" label="Grupos y deshabilitada" :options="DX" :fixed="{ text: 'e' }"></x-combobox>
+  </div>
+</div>
+
+<h2 class="b">4 · Fila de tres en GFormRow (A funcional a 239px; --g-form-min: 60)</h2>
+<div v-for="w in ['w1100', 'w720', 'w320']" :key="w" :class="['host', w]" style="margin-block-end:16px">
+  <g-form :data-case="'form-' + w">
+    <g-form-layout>
+      <g-form-row>
+        <x-combobox :case="'row-' + w" label="Colonia" :options="PATIENTS" model-value="p004512"></x-combobox>
+        <g-input :data-case="'rowin-' + w" label="Calle"></g-input>
+        <g-select :data-case="'rowsel-' + w" label="Estado" :options="[{ value: 'cdmx', label: 'Ciudad de México' }]"></g-select>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">5 · B · Paleta con vista previa (GDialog real) · en móvil, hoja arriba</h2>
+<div class="host">
+  <div class="grid">
+    <x-combobox case="pal" appearance="palette" label="Paciente (paleta)" :options="PATIENTS" placeholder="Nombre o expediente"></x-combobox>
+    <x-combobox case="pal-dx" appearance="palette" label="Diagnóstico (paleta)" :options="DX"></x-combobox>
+  </div>
+</div>
+
+<h2 class="b">6 · Abre hacia arriba (is-up)</h2>
+<div class="host bottom" style="display:flex;align-items:flex-end">
+  <x-combobox case="up" label="Al pie" :options="PATIENTS" block></x-combobox>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, nextTick, reactive } = Vue
+const $ = (s) => document.querySelector(s)
+const svg = (n) => window.lucide(n)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const reg = window.__cb = { items: new Map() }
+
+// ---------- Datos ----------
+const P = (v, label, exp, age, last, med = 'Dra. Fernanda Villaseñor Arriaga') => ({ value: v, label, avatar: true, description: `Exp. ${exp} · ${age} años`, facts: [{ label: 'Exp.', value: exp }, { label: 'Edad', value: `${age} años` }, { label: 'Última visita', value: last }, { label: 'Médico', value: med }] })
+const PATIENTS = [
+  P('p001000', 'María García López', '001000', 22, '03/02/2026'), P('p004512', 'María García López', '004512', 47, '18/09/2026'),
+  P('p007731', 'María García López', '007731', 68, '27/08/2026'), P('p010204', 'María García López', '010204', 35, '01/10/2026'),
+  P('p002233', 'Mariana Gómez Ruiz', '002233', 29, '12/06/2026'), P('p003001', 'Mario Herrera Sánchez', '003001', 54, '22/07/2026'),
+  P('p008870', 'Ana Martínez Ortega', '008870', 41, '05/05/2026'), P('p009911', 'Ángel Torres Vega', '009911', 63, '30/09/2026')
+]
+const D = (code, label, extra = {}) => ({ value: code, code, label, ...extra })
+const DX = [
+  { label: 'Endocrinas (E00–E89)', options: [D('E10.9', 'Diabetes mellitus tipo 1 sin complicaciones'), D('E11.9', 'Diabetes mellitus tipo 2 sin complicaciones'), D('E03.9', 'Hipotiroidismo, no especificado', { disabled: true }), D('E66.9', 'Obesidad, no especificada')] },
+  { label: 'Sistema circulatorio (I00–I99)', options: [D('I10', 'Hipertensión esencial (primaria)'), D('I20.9', 'Angina de pecho, no especificada'), D('I48.91', 'Fibrilación auricular no especificada')] },
+  { label: 'Respiratorio (J00–J99)', options: [D('J45.909', 'Asma no especificada, sin complicaciones'), D('J06.9', 'Infección aguda de las vías respiratorias superiores')] }
+]
+const MEDS = [
+  { value: 'm1', label: 'Metformina 850 mg', description: 'Tableta · cuadro básico', icon: 'activity' },
+  { value: 'm2', label: 'Losartán 50 mg', description: 'Tableta · cuadro básico', icon: 'activity' },
+  { value: 'm3', label: 'Paracetamol 500 mg', description: 'Tableta · cuadro básico', icon: 'activity' },
+  { value: 'm4', label: 'Salbutamol 100 µg', description: 'Aerosol · cuadro básico', icon: 'activity' }
+]
+const CLIENTS = [{ value: 'c1', label: 'Farmacias del Centro S.A.' }, { value: 'c2', label: 'Hospital Ángeles Mocel' }, { value: 'c3', label: 'Clínica San Rafael' }]
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+
+// ---------- Coincidencia marcada: primera aparición de cada palabra, sin acentos ni mayúsculas ----------
+function parts(text, q) {
+  const words = norm(q).split(/\s+/).filter(Boolean)
+  const t = String(text ?? '')
+  if (!words.length || norm(t).length !== t.length) return [{ t, m: false }]
+  const n = norm(t); const marks = []
+  for (const w of words) { const i = n.indexOf(w); if (i >= 0 && !marks.some(([a, b]) => i < b && i + w.length > a)) marks.push([i, i + w.length]) }
+  marks.sort((a, b) => a[0] - b[0]); const out = []; let at = 0
+  for (const [a, b] of marks) { if (a > at) out.push({ t: t.slice(at, a), m: false }); out.push({ t: t.slice(a, b), m: true }); at = b }
+  if (at < t.length) out.push({ t: t.slice(at), m: false })
+  return out
+}
+const XM = defineComponent({ name: 'XM', props: { text: String, q: String }, setup: () => ({ parts }), template: `<template v-for="(p, i) in parts(text, q)" :key="i"><mark v-if="p.m" class="g-combobox__mark">{{ p.t }}</mark><template v-else>{{ p.t }}</template></template>` })
+
+// ---------- Panel (común a la lista de A y a la superficie) ----------
+const XPanel = defineComponent({
+  name: 'XPanel', components: { XM },
+  props: { id: String, blocks: Array, actions: Array, active: String, q: String, status: Object, busy: Boolean, selected: [String, Number] },
+  emits: ['pick', 'hover'],
+  setup: () => ({ svg }),
+  template: `
+  <div class="g-combobox__panel">
+    <p v-if="status" :class="['g-combobox__status', 'g-combobox__status--' + status.kind]" :id="id + '-status'"><span v-html="svg(status.icon)" style="display:contents"></span><span>{{ status.text }}</span></p>
+    <ul class="g-combobox__list" :id="id + '-list'" role="listbox" :aria-labelledby="id + '-label'" :aria-busy="busy ? 'true' : undefined" :hidden="!blocks.length && !actions.length">
+      <template v-for="(b, bi) in blocks" :key="bi">
+        <li v-if="b.group" role="presentation"><ul class="g-combobox__group" role="group" :aria-labelledby="id + '-grp-' + bi">
+          <li class="g-combobox__group-label" :id="id + '-grp-' + bi" role="presentation">{{ b.group }}</li>
+          <li v-for="r in b.rows" :key="r.id" :class="['g-combobox__option', { 'is-active': r.id === active }]" :id="r.id" role="option" :aria-selected="r.opt.value === selected ? 'true' : 'false'" :aria-disabled="r.opt.disabled ? 'true' : undefined" @click="$emit('pick', r, $event.currentTarget)" @pointermove="$emit('hover', r)">
+            <span v-if="r.opt.avatar" class="g-combobox__lead" aria-hidden="true"><g-avatar :name="r.opt.label" size="md"></g-avatar></span>
+            <span v-else-if="r.opt.icon" class="g-combobox__lead" aria-hidden="true" v-html="svg(r.opt.icon)"></span>
+            <span v-if="r.opt.code" class="g-combobox__code"><x-m :text="r.opt.code" :q="q"></x-m></span>
+            <span class="g-combobox__main"><span class="g-combobox__label"><x-m :text="r.opt.label" :q="q"></x-m></span>
+              <span v-if="r.opt.facts" class="g-combobox__facts"><span v-for="f in r.opt.facts" :key="f.label" class="g-combobox__fact"><span class="g-combobox__fact-label">{{ f.label }}</span> <x-m :text="f.value" :q="q"></x-m></span></span>
+              <span v-else-if="r.opt.description" class="g-combobox__description"><x-m :text="r.opt.description" :q="q"></x-m></span></span>
+            <span v-if="r.opt.value === selected" class="g-combobox__check" aria-hidden="true" v-html="svg('check')"></span>
+          </li>
+        </ul></li>
+        <template v-else>
+          <li v-for="r in b.rows" :key="r.id" :class="['g-combobox__option', { 'is-active': r.id === active }]" :id="r.id" role="option" :aria-selected="r.opt.value === selected ? 'true' : 'false'" :aria-disabled="r.opt.disabled ? 'true' : undefined" @click="$emit('pick', r, $event.currentTarget)" @pointermove="$emit('hover', r)">
+            <span v-if="r.opt.avatar" class="g-combobox__lead" aria-hidden="true"><g-avatar :name="r.opt.label" size="md"></g-avatar></span>
+            <span v-else-if="r.opt.icon" class="g-combobox__lead" aria-hidden="true" v-html="svg(r.opt.icon)"></span>
+            <span v-if="r.opt.code" class="g-combobox__code"><x-m :text="r.opt.code" :q="q"></x-m></span>
+            <span class="g-combobox__main"><span class="g-combobox__label"><x-m :text="r.opt.label" :q="q"></x-m></span>
+              <span v-if="r.opt.facts" class="g-combobox__facts"><span v-for="f in r.opt.facts" :key="f.label" class="g-combobox__fact"><span class="g-combobox__fact-label">{{ f.label }}</span> <x-m :text="f.value" :q="q"></x-m></span></span>
+              <span v-else-if="r.opt.description" class="g-combobox__description"><x-m :text="r.opt.description" :q="q"></x-m></span></span>
+            <span v-if="r.opt.value === selected" class="g-combobox__check" aria-hidden="true" v-html="svg('check')"></span>
+          </li>
+        </template>
+      </template>
+      <li v-for="a in actions" :key="a.id" :class="['g-combobox__option', 'g-combobox__action', 'g-combobox__action--' + a.kind, { 'is-active': a.id === active }]" :id="a.id" role="option" aria-selected="false" @click="$emit('pick', a, $event.currentTarget)" @pointermove="$emit('hover', a)">
+        <span class="g-combobox__lead" aria-hidden="true" v-html="svg(a.icon)"></span><span class="g-combobox__main"><span class="g-combobox__label">{{ a.label }}</span></span>
+      </li>
+    </ul>
+  </div>`
+})
+
+// ---------- XCombobox: lo que hará GCombobox.vue, solo lo que el estilo necesita ----------
+const XCombobox = defineComponent({
+  name: 'XCombobox', components: { XPanel },
+  inheritAttrs: false,
+  props: {
+    case: String, options: { type: Array, default: () => [] }, modelValue: { type: [String, Number], default: null }, custom: { type: String, default: '' },
+    appearance: { type: String, default: 'field' }, label: String, hint: String, error: String, readonly: Boolean, disabled: Boolean,
+    size: { type: String, default: 'md' }, variant: { type: String, default: 'outline' }, density: String, rounded: String, block: Boolean,
+    clearable: Boolean, allowCustom: Boolean, creatable: Boolean, placeholder: String, fixed: Object
+  },
+  setup(props) {
+    const id = props.case
+    const value = ref(props.modelValue), freeText = ref(props.custom)
+    const all = computed(() => props.options.flatMap((o) => (o.options ? o.options : [o])))
+    const selOpt = computed(() => all.value.find((o) => o.value === value.value) || null)
+    const text = ref(selOpt.value ? selOpt.value.label : freeText.value)
+    const q = ref(''), editing = ref(false), open = ref(false), active = ref(null), auto = ref(true), up = ref(false)
+    const arriving = ref(false), focused = ref(false), surfOpen = ref(false), narrow = ref(false), rejected = ref(false)
+    const inputEl = ref(null), popEl = ref(null), tokenEl = ref(null), rootRef = ref(null), qEl = ref(null)
+    const fixed = ref(null)
+    const surface = computed(() => props.appearance === 'palette' || narrow.value)
+    const ro = computed(() => props.readonly), dis = computed(() => props.disabled)
+    const match = (o, query) => { const ws = norm(query).split(/\s+/).filter(Boolean); const hay = norm([o.label, o.code, o.description, ...(o.facts || []).map((f) => f.value)].join(' ')); return ws.every((w) => hay.includes(w)) }
+    const blocks = computed(() => {
+      const query = fixed.value ? fixed.value.text : q.value
+      let n = 0; const out = []
+      for (const o of props.options) {
+        if (o.options) { const rows = o.options.filter((x) => match(x, query)).map((x) => ({ id: `${id}-opt-${n++}`, opt: x })); if (rows.length) out.push({ group: o.label, rows }) }
+        else if (match(o, query)) { const r = { id: `${id}-opt-${n++}`, opt: o }; const last = out[out.length - 1]; if (last && !last.group) last.rows.push(r); else out.push({ rows: [r] }) }
+      }
+      return out
+    })
+    const rows = computed(() => blocks.value.flatMap((b) => b.rows))
+    const ACT = { retry: ['rotate-ccw', 'Reintentar'], more: ['chevron-down', 'Mostrar más (8 de 2 400)'], custom: ['pencil', 'Usar «{t}» como texto libre'], create: ['plus', 'Agregar «{t}»…'] }
+    const actions = computed(() => {
+      const t = (fixed.value ? fixed.value.text : q.value).trim()
+      const kinds = fixed.value ? (fixed.value.actions || []) : [...(props.allowCustom && t && !rows.value.some((r) => norm(r.opt.label) === norm(t)) ? ['custom'] : []), ...(props.creatable && t ? ['create'] : [])]
+      return kinds.map((k) => ({ id: `${id}-opt-${k}`, kind: k, action: true, icon: ACT[k][0], label: ACT[k][1].replace('{t}', t) }))
+    })
+    const nav = computed(() => [...rows.value.filter((r) => !r.opt.disabled), ...actions.value])
+    const status = computed(() => {
+      const f = fixed.value
+      const kind = f ? f.status : (q.value && !rows.value.length ? 'empty' : null)
+      if (!kind) return null
+      const t = f ? f.text : q.value
+      return { kind, icon: { loading: 'loader-circle', error: 'circle-alert', empty: 'search', hint: 'search' }[kind], text: { loading: 'Buscando…', error: 'No se pudo cargar la lista. Revisa la conexión.', empty: `Sin resultados para «${t}»`, hint: 'Escribe al menos 2 caracteres' }[kind] }
+    })
+    const hasPanel = computed(() => Boolean(rows.value.length || actions.value.length || status.value))
+    const ghost = computed(() => {
+      if (surface.value || !open.value || fixed.value || !q.value || !rows.value.length) return ''
+      const first = nav.value[0]; if (!first || first.action || active.value !== first.id) return ''
+      const l = first.opt.label
+      return norm(l).startsWith(norm(q.value)) && l.length > q.value.length && norm(l.slice(0, q.value.length)) === norm(q.value) ? l.slice(q.value.length) : ''
+    })
+    const isToken = computed(() => Boolean((selOpt.value || (props.allowCustom && freeText.value)) && !editing.value && !(open.value && !surface.value)))
+    const isCustom = computed(() => !selOpt.value && Boolean(freeText.value))
+    const about = computed(() => (selOpt.value ? (selOpt.value.description || '') : (freeText.value ? 'Texto libre' : '')))
+    const meta = computed(() => (selOpt.value ? selOpt.value.description || '' : 'Texto libre'))
+    const activeOpt = computed(() => { const r = rows.value.find((x) => x.id === active.value); return r ? r.opt : null })
+
+    function place() {
+      if (!open.value || surface.value || !popEl.value) return
+      const c = rootRef.value.$el.querySelector('.g-input__control'); const r = c.getBoundingClientRect(); const p = popEl.value
+      const pad = 8, vh = window.innerHeight, below = vh - r.bottom - pad, above = r.top - pad
+      const natural = Math.min(p.querySelector('.g-combobox__panel')?.scrollHeight ?? 240, 384)
+      up.value = Boolean(fixed.value?.up) || (below < Math.min(natural, 240) && above > below)
+      const s = p.style
+      s.setProperty('--_x', r.left + 'px'); s.setProperty('--_w', r.width + 'px'); s.setProperty('--_field-h', r.height + 'px')
+      s.setProperty('--_max', Math.max(96, up.value ? above : below) + 'px')
+      if (up.value) { s.setProperty('--_top', 'auto'); s.setProperty('--_bottom', (vh - r.bottom) + 'px') } else { s.setProperty('--_bottom', 'auto'); s.setProperty('--_top', r.top + 'px') }
+    }
+    function show() {
+      if (ro.value || dis.value) return
+      if (surface.value) { openSurface(); return }
+      open.value = true
+      nextTick(() => { const p = popEl.value; if (p && !p.matches(':popover-open')) p.showPopover(); place() })
+    }
+    function hide() { open.value = false; fixed.value = null; const p = popEl.value; if (p && p.matches(':popover-open')) p.hidePopover() }
+    function openSurface(initial = '') { q.value = initial; active.value = null; surfOpen.value = true; nextTick(() => { qEl.value?.focus(); if (initial) settle() }) }
+    function settle() { auto.value = true; const f = nav.value[0]; active.value = q.value && f ? f.id : null }
+    function move(d) {
+      const list = nav.value; if (!list.length) return
+      const i = list.findIndex((r) => r.id === active.value)
+      active.value = list[Math.min(list.length - 1, Math.max(0, i < 0 ? (d > 0 ? 0 : list.length - 1) : i + d))].id; auto.value = false
+      nextTick(() => document.getElementById(active.value)?.scrollIntoView({ block: 'nearest' }))
+    }
+    function onInput(e) {
+      const v = e.target.value
+      if (surface.value) { e.target.value = text.value; openSurface(v); return }
+      text.value = v; q.value = v; editing.value = true; show(); settle(); nextTick(place)
+    }
+    function onSearch(e) { q.value = e.target.value; settle() }
+    function choose(r, el) {
+      if (!r || (r.opt && r.opt.disabled)) return
+      if (r.action) {
+        if (r.kind === 'custom') { value.value = null; freeText.value = q.value.trim(); text.value = freeText.value }
+        else { text.value = selOpt.value ? selOpt.value.label : freeText.value }
+        editing.value = false; hide(); surfOpen.value = false; return
+      }
+      const from = !surface.value && el ? el.getBoundingClientRect() : null
+      value.value = r.opt.value; freeText.value = ''; text.value = r.opt.label; editing.value = false; q.value = ''
+      const wasSurface = surface.value
+      hide(); surfOpen.value = false
+      if (wasSurface) nextTick(() => inputEl.value?.focus())
+      if (from) arrive(from)
+    }
+    function arrive(from) {
+      nextTick(() => {
+        const t = tokenEl.value; if (!t) return
+        const to = t.getBoundingClientRect()
+        t.style.setProperty('--_travel-x', (from.left - to.left) + 'px')
+        t.style.setProperty('--_travel-y', ((from.top + from.height / 2) - (to.top + to.height / 2)) + 'px')
+        arriving.value = true
+        nextTick(() => { if (getComputedStyle(t).animationName === 'none') arriving.value = false })
+      })
+    }
+    const onArriveEnd = (e) => { if (e.animationName.startsWith('g-combobox-arrive')) arriving.value = false }
+    function onKey(e) {
+      if (e.isComposing) return
+      const inSurf = e.target === qEl.value
+      if (surface.value && !inSurf) {
+        if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); openSurface() }
+        return
+      }
+      const isOpen = inSurf ? surfOpen.value : open.value
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!isOpen) { q.value = ''; show() } move(e.key === 'ArrowDown' ? 1 : -1) }
+      else if (e.key === 'Enter' && isOpen) { e.preventDefault(); const r = nav.value.find((x) => x.id === active.value); if (r) choose(r, document.getElementById(r.id)) }
+      else if (e.key === 'Escape') { if (isOpen && !inSurf) { e.preventDefault(); e.stopPropagation(); hide() } else if (!inSurf && editing.value) { e.preventDefault(); text.value = selOpt.value ? selOpt.value.label : freeText.value; editing.value = false; nextTick(() => e.target.select()) } }
+      else if (e.key === 'ArrowRight' && ghost.value && !inSurf) { e.preventDefault(); text.value = text.value + ghost.value; q.value = text.value; auto.value = false }
+      else if (e.key === 'Tab' && ghost.value && !inSurf) { const f = nav.value[0]; if (rows.value.filter((r) => norm(r.opt.label) === norm(f.opt.label)).length === 1) choose(f, document.getElementById(f.id)) }
+    }
+    function onFocus(e) { focused.value = true; if (isToken.value || selOpt.value) nextTick(() => e.target.select()) }
+    function onBlur() {
+      focused.value = false
+      if (surfOpen.value) return
+      if (editing.value) {
+        const t = text.value.trim()
+        if (!t) { value.value = null; freeText.value = '' }
+        else if (props.allowCustom && (!selOpt.value || selOpt.value.label !== t)) { value.value = null; freeText.value = t }
+        text.value = selOpt.value ? selOpt.value.label : freeText.value
+      }
+      editing.value = false; hide()
+    }
+    function onClick() { if (surface.value) { openSurface(); return } if (!open.value) { q.value = ''; editing.value = editing.value; show() } }
+    function toggle() { if (open.value) hide(); else { inputEl.value?.focus(); q.value = ''; show() } }
+    function clear() { value.value = null; freeText.value = ''; text.value = ''; q.value = ''; inputEl.value?.focus() }
+    function hover(r) { if (!(r.opt && r.opt.disabled)) { active.value = r.id; auto.value = false } }
+    function openFixed() { if (!props.fixed) return; fixed.value = { ...props.fixed }; q.value = props.fixed.text; text.value = props.fixed.text; editing.value = true; open.value = true; active.value = (nav.value[0] || {}).id ?? null; nextTick(() => { popEl.value?.showPopover(); place() }) }
+    const onMove = () => place()
+    const mq = matchMedia('(max-width: 520px)'); const onMq = () => { hide(); surfOpen.value = false; narrow.value = mq.matches }
+    onMounted(() => { narrow.value = mq.matches; window.addEventListener('scroll', onMove, true); window.addEventListener('resize', onMove); mq.addEventListener('change', onMq); reg.items.set(id, { openFixed, hide, show, openSurface, choose: (i) => { const r = rows.value[i]; choose(r, document.getElementById(r.id)) }, setText: (t) => { text.value = t; q.value = t; editing.value = true; show(); settle() }, reject: () => { rejected.value = false; nextTick(() => { rejected.value = true }) } }) })
+    onBeforeUnmount(() => { window.removeEventListener('scroll', onMove, true); window.removeEventListener('resize', onMove); mq.removeEventListener('change', onMq); reg.items.delete(id) })
+    watch(() => [rows.value.length, actions.value.length, status.value], () => nextTick(place))
+    const rootClasses = computed(() => ['g-combobox', 'g-combobox--appearance-' + props.appearance, { 'is-open': open.value && hasPanel.value && !surface.value, 'is-up': up.value && open.value, 'is-token': isToken.value, 'is-custom': isCustom.value && !editing.value, 'is-surface': surface.value, 'is-rejected': rejected.value }])
+    return { id, svg, value, freeText, text, q, open, active, blocks, rows, actions, status, hasPanel, ghost, isToken, isCustom, about, meta, selOpt, activeOpt, arriving, surfOpen, narrow, surface, ro, dis, inputEl, popEl, tokenEl, rootRef, qEl, rootClasses, onInput, onSearch, onKey, onFocus, onBlur, onClick, toggle, clear, hover, choose, onArriveEnd, fixed }
+  },
+  template: `
+  <g-input ref="rootRef" :id="id" :data-case="id" :class="rootClasses" :label="label" :hint="hint" :error="error" :readonly="readonly || undefined" :disabled="disabled || undefined"
+    :size="size" :variant="variant" :density="density" :rounded="rounded" :block="block || undefined" :placeholder="placeholder">
+    <template #field="{ bind }">
+      <span class="g-combobox__value">
+        <input v-bind="bind" ref="inputEl" class="g-input__field g-combobox__field" type="text" role="combobox" :value="text"
+          :aria-autocomplete="surface ? undefined : 'list'" :aria-haspopup="surface ? 'dialog' : 'listbox'" :aria-expanded="(surface ? surfOpen : open && hasPanel) ? 'true' : 'false'"
+          :aria-controls="surface ? id + '-surface' : id + '-list'" :aria-activedescendant="!surface && open && active ? active : undefined"
+          :inputmode="surface ? 'none' : undefined" autocomplete="off" autocapitalize="none" spellcheck="false"
+          @input="onInput" @keydown="onKey" @focus="onFocus" @blur="onBlur" @click="onClick">
+        <span v-if="ghost" class="g-combobox__ghost" aria-hidden="true"><span class="g-combobox__ghost-typed">{{ text }}</span><span class="g-combobox__ghost-rest">{{ ghost }}</span></span>
+        <span v-if="isToken" ref="tokenEl" :class="['g-combobox__token', { 'is-arriving': arriving }]" aria-hidden="true" @animationend="onArriveEnd" @animationcancel="onArriveEnd">
+          <span v-if="selOpt && selOpt.avatar" class="g-combobox__lead"><g-avatar :name="selOpt.label" size="xs"></g-avatar></span>
+          <span v-else-if="!selOpt" class="g-combobox__lead" v-html="svg('pencil')"></span>
+          <span v-else-if="selOpt.icon" class="g-combobox__lead" v-html="svg(selOpt.icon)"></span>
+          <span v-if="selOpt && selOpt.code" class="g-combobox__code">{{ selOpt.code }}</span>
+          <span class="g-combobox__token-label">{{ selOpt ? selOpt.label : freeText }}</span>
+          <span v-if="meta" class="g-combobox__token-meta">{{ meta }}</span>
+        </span>
+        <span v-if="about" class="g-combobox__about" :id="id + '-about'">{{ about }}</span>
+      </span>
+    </template>
+    <template #end>
+      <button v-if="clearable && (selOpt || freeText) && !ro && !dis" type="button" class="g-combobox__clear" :id="id + '-clear'" :aria-labelledby="id + '-clear-text ' + id + '-label'" @pointerdown.prevent @click="clear"><span class="g-combobox__clear-text" :id="id + '-clear-text'">Limpiar</span><span v-html="svg('x')" style="display:contents"></span></button>
+      <span v-if="!ro && !dis" class="g-combobox__arrow" aria-hidden="true" @pointerdown.prevent="toggle" v-html="svg(surface ? 'chevrons-up-down' : 'chevron-down')"></span>
+      <div v-if="!surface" ref="popEl" :class="['g-combobox__popup', { 'is-empty': !hasPanel }]" :id="id + '-popup'" popover="manual" @pointerdown.prevent>
+        <div class="g-combobox__popup-body"><x-panel :id="id" :blocks="blocks" :actions="actions" :active="active" :q="fixed ? fixed.text : q" :status="status" :busy="Boolean(fixed && fixed.busy)" :selected="value" @pick="choose" @hover="hover"></x-panel></div>
+      </div>
+      <div class="g-combobox__live" :id="id + '-live'" role="status" aria-live="polite" aria-atomic="true"></div>
+      <g-dialog v-if="surface" v-model="surfOpen" :id="id + '-surface'" :class="['g-combobox-surface', narrow ? 'g-combobox-surface--sheet' : 'g-combobox-surface--palette']" size="lg" mobile="sheet" :title="label" close-label="Cerrar" @closed="inputEl && inputEl.focus()">
+        <div class="g-combobox__search">
+          <span class="g-combobox__search-icon" aria-hidden="true" v-html="svg('search')"></span>
+          <input ref="qEl" class="g-combobox__search-field" :id="id + '-search'" type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" :aria-controls="id + '-list'" :aria-activedescendant="active || undefined"
+            :value="q" :placeholder="selOpt ? selOpt.label : placeholder" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" @input="onSearch" @keydown="onKey">
+        </div>
+        <div :class="['g-combobox__surface-body', { 'has-preview': appearance === 'palette' && !narrow }]">
+          <x-panel :id="id" :blocks="blocks" :actions="actions" :active="active" :q="q" :status="status" :selected="value" @pick="choose" @hover="hover"></x-panel>
+          <aside v-if="appearance === 'palette' && !narrow" class="g-combobox__preview" :id="id + '-preview'" aria-label="Vista previa">
+            <template v-if="activeOpt">
+              <div class="g-combobox__preview-head" :key="'h' + activeOpt.value">
+                <span v-if="activeOpt.avatar" class="g-combobox__lead" aria-hidden="true"><g-avatar :name="activeOpt.label" size="lg"></g-avatar></span>
+                <span v-else-if="activeOpt.code" class="g-combobox__code">{{ activeOpt.code }}</span>
+                <p class="g-combobox__preview-title">{{ activeOpt.label }}</p>
+              </div>
+              <dl v-if="activeOpt.facts" class="g-combobox__preview-facts" :key="'f' + activeOpt.value"><template v-for="f in activeOpt.facts" :key="f.label"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></template></dl>
+              <p v-else-if="activeOpt.description" class="g-combobox__description">{{ activeOpt.description }}</p>
+            </template>
+            <p v-else class="g-combobox__preview-empty">Recorre los resultados con ↑ ↓ para ver la ficha.</p>
+          </aside>
+        </div>
+        <div class="g-combobox__live" role="status" aria-live="polite" aria-atomic="true"></div>
+      </g-dialog>
+    </template>
+  </g-input>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    watch(slow, applySlow)
+    if (new URLSearchParams(location.search).get('slow')) slow.value = true
+    const reject = () => { for (const k of ['pac', 'dx', 'tok-md']) reg.items.get(k)?.reject() }
+    return { PATIENTS, DX, MEDS, CLIENTS, SIZES, slow, reject }
+  }
+})
+app.component('XCombobox', XCombobox)
+app.use(Grana)
+app.mount('#app')
+reg.open = (c) => { for (const [k, v] of reg.items) if (k !== c) v.hide(); reg.items.get(c)?.openFixed() }
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+// «Tema de prueba»: otra fuente, borde de 2px, space 5 y radios propios: nada de la forma ni de la ficha puede quedar fijo
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-color-selection:#d9ecec;--g-space-1:5px}'
+$('#t-theme').insertAdjacentHTML('afterbegin', '<option value="test">Tema de prueba</option>')
+const setTheme = (v) => { $('#test-css').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const qs = new URLSearchParams(location.search)
+const th = qs.get('test') ? 'test' : (qs.get('theme') || '')
+if (th) { $('#t-theme').value = th; setTheme(th) }
+if (qs.get('dir')) document.documentElement.dir = qs.get('dir')
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+raf2().then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>
