@@ -294,6 +294,9 @@
       "is-rejected en la raíz: la pone GForm tras un envío con errores o showErrors() si este campo bloquea (I2, #304)"
     ]
   },
+  "implementation": [
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_min y --_max se fijan al abrir, al cambiar el contenido, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra sin devolver el foco (no en la hoja móvil, que no la sigue). El puntero nunca desplaza la lista y solo activa con movimiento real (no la lista o la página que se mueven bajo el puntero quieto, ni la que aparece bajo el clic que la abrió)."
+  ],
   "pending": [
     "Lector de pantalla real (incluido aria-activedescendant en la hoja móvil)",
     "Hoja inferior con teclado virtual y táctil reales",

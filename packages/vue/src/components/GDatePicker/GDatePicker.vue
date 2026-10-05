@@ -6,7 +6,8 @@
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { messageIcon, useFormField } from '../GForm/formContext.js'
+import { messageIcon, spaceUnit, useFormField } from '../GForm/formContext.js'
+import { anchorGone, followFrame, isPhone, px, setVar, stickySide } from '../../utils/anchor.js'
 import { addDays, addMonths, daysBetween, daysInMonth, firstOfMonth, isISO, monthKey, parseISO, todayISO, weekday } from '../../utils/dates.js'
 
 defineOptions({ name: 'GDatePicker', inheritAttrs: false })
@@ -468,38 +469,53 @@ function anchorEl() {
   return openedBy.value || root.value
 }
 
-function place() {
+// Panel estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js): el lado se decide AL ABRIR y se
+// conserva (solo cambia si el actual baja de space × 40 y el otro ofrece space × 12 más); --_max se fija al abrir, al
+// cambiar de uno a dos meses, en resize y al cambiar de lado. Durante el desplazamiento de la página solo se escribe la
+// posición, una vez por cuadro y solo si cambia, con el ancho medido en la última colocación completa. Si el ancla sale
+// del visor (o de su contenedor con desplazamiento), el selector se cierra sin devolver el foco; la hoja móvil no la sigue.
+let side = null // 'bottom' | 'top' mientras está abierto
+let popW = 0
+function place(full = true) {
   const el = popEl.value
   const a = anchorEl()
   if (!el || !a) return
-  el.style.setProperty('--_max', 'none')
+  if (full) el.style.setProperty('--_max', 'none')
   const r = a.getBoundingClientRect()
   const vh = window.innerHeight
   const vw = document.documentElement.clientWidth || window.innerWidth
-  const need = el.offsetHeight
-  const w = el.offsetWidth
   const below = vh - r.bottom - 8
   const above = r.top - 8
-  const goUp = need > below && above > below
+  const prev = side
+  if (!side) side = el.offsetHeight > below && above > below ? 'top' : 'bottom'
+  else side = stickySide(side, { below, above, unit: spaceUnit(el) })
+  const goUp = side === 'top'
   up.value = goUp
+  if (full) popW = el.offsetWidth
   const rtl = getComputedStyle(el).direction === 'rtl'
-  const x = rtl ? Math.max(8, Math.min(vw - r.right, vw - w - 8)) : Math.max(8, Math.min(r.left, vw - w - 8))
-  el.style.setProperty('--_x', `${x}px`)
-  if (goUp) {
-    el.style.setProperty('--_top', 'auto')
-    el.style.setProperty('--_bottom', `${vh - r.top + 8}px`)
-    el.style.setProperty('--_max', `${Math.max(above, 0)}px`)
-  } else {
-    el.style.setProperty('--_top', `${r.bottom + 8}px`)
-    el.style.setProperty('--_bottom', 'auto')
-    el.style.setProperty('--_max', `${Math.max(below, 0)}px`)
-  }
+  const x = rtl ? Math.max(8, Math.min(vw - r.right, vw - popW - 8)) : Math.max(8, Math.min(r.left, vw - popW - 8))
+  setVar(el, '--_x', px(x))
+  setVar(el, '--_top', goUp ? 'auto' : px(r.bottom + 8))
+  setVar(el, '--_bottom', goUp ? px(vh - r.top + 8) : 'auto')
+  if (full || side !== prev) el.style.setProperty('--_max', px(Math.max(goUp ? above : below, 0)))
 }
-const onReposition = () => {
+const follow = followFrame((scroller) => {
+  if (!isOpen.value) return
+  if (!isPhone() && anchorGone(anchorEl(), scroller)) { close(false); return }
+  place(false)
+})
+const onResize = () => {
   if (!isOpen.value) return
   fit()
-  nextTick(place)
+  nextTick(() => place())
 }
+const onScroll = (event) => {
+  const t = event && event.target
+  if (!isOpen.value || (t && t.nodeType === 1 && popEl.value?.contains(t))) return // la propia superficie se desplaza
+  follow.schedule(t)
+}
+// Uno o dos meses con el selector abierto: cambia el tamaño, colocación completa (el lado se conserva)
+watch(n, () => { if (isOpen.value && !props.inline) nextTick(() => place()) }, { flush: 'post' })
 
 function show(trigger) {
   if (props.inline || isOpen.value || isDisabled.value || isReadonly.value) return
@@ -522,8 +538,8 @@ function show(trigger) {
     })
   })
   document.addEventListener('pointerdown', onOutside)
-  window.addEventListener('resize', onReposition)
-  window.addEventListener('scroll', onReposition, true)
+  window.addEventListener('resize', onResize)
+  window.addEventListener('scroll', onScroll, true)
   emit('update:open', true)
   emit('open')
 }
@@ -536,8 +552,10 @@ function close(returnFocus = false) {
   const el = popEl.value
   if (el && typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover()
   document.removeEventListener('pointerdown', onOutside)
-  window.removeEventListener('resize', onReposition)
-  window.removeEventListener('scroll', onReposition, true)
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('scroll', onScroll, true)
+  follow.cancel()
+  side = null
   emit('update:open', false)
   emit('close')
   if (returnFocus) (triggerEl || root.value?.querySelector(`[aria-controls="${popId.value}"]`))?.focus()

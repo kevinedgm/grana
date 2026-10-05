@@ -6,7 +6,8 @@
 import { Comment, Fragment, Text, computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { messageIcon, nextFrame, useFormField } from '../GForm/formContext.js'
+import { messageIcon, nextFrame, spaceUnit, useFormField } from '../GForm/formContext.js'
+import { anchorGone, followFrame, isPhone, px, setVar, stickySide } from '../../utils/anchor.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
 
@@ -128,6 +129,8 @@ const open = ref(false)
 const up = ref(false)
 const activeIndex = ref(-1)
 const activeId = computed(() => (open.value && activeIndex.value >= 0 ? optId(activeIndex.value) : undefined))
+let lastX = null // última posición del puntero sobre la lista (o la del clic que la abrió)
+let lastY = null
 
 function emitChange(value) {
   emit('update:modelValue', value)
@@ -135,33 +138,46 @@ function emitChange(value) {
 }
 
 // ---------- Posición: variables CSS dinámicas sobre la lista ----------
-function place() {
+// Panel estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js): el lado se decide AL ABRIR y se
+// conserva (solo cambia si el actual baja de space × 40 y el otro ofrece space × 12 más); --_min y --_max se fijan al abrir,
+// al cambiar el contenido, en resize y al cambiar de lado. Durante el desplazamiento de la página solo se escribe la
+// posición, una vez por cuadro y solo si cambia. Si la caja sale del visor (o de su contenedor con desplazamiento), la
+// lista se cierra; salvo en la hoja móvil, que no sigue a la caja.
+let side = null // 'bottom' | 'top' mientras está abierta
+function place(full = true) {
   const el = list.value
   const box = control.value
   if (!el || !box) return
   const r = box.getBoundingClientRect()
   const vh = window.innerHeight
-  const need = el.scrollHeight + 4
   const below = vh - r.bottom - 8
   const above = r.top - 8
-  const goUp = below < need && above > below
+  const prev = side
+  if (!side) {
+    const need = el.scrollHeight + 4
+    side = below < need && above > below ? 'top' : 'bottom'
+  } else side = stickySide(side, { below, above, unit: spaceUnit(rootEl.value) })
+  const goUp = side === 'top'
   up.value = goUp
-  el.style.setProperty('--_x', `${r.left}px`)
-  el.style.setProperty('--_min', `${r.width}px`)
-  if (goUp) {
-    el.style.setProperty('--_top', 'auto')
-    el.style.setProperty('--_bottom', `${vh - r.top + 4}px`)
-    el.style.setProperty('--_max', `${Math.max(above, 0)}px`)
-  } else {
-    el.style.setProperty('--_top', `${r.bottom + 4}px`)
-    el.style.setProperty('--_bottom', 'auto')
-    el.style.setProperty('--_max', `${Math.max(below, 0)}px`)
-  }
+  setVar(el, '--_x', px(r.left))
+  if (full) setVar(el, '--_min', px(r.width))
+  if (full || side !== prev) setVar(el, '--_max', px(Math.max(goUp ? above : below, 0)))
+  setVar(el, '--_top', goUp ? 'auto' : px(r.bottom + 4))
+  setVar(el, '--_bottom', goUp ? px(vh - r.top + 4) : 'auto')
 }
-const onReposition = () => {
+const follow = followFrame((scroller) => {
+  if (!open.value) return
+  if (!isPhone() && anchorGone(control.value, scroller)) { hide(); return }
+  place(false)
+})
+const onResize = () => {
   if (open.value) place()
 }
-
+const onScroll = (event) => {
+  const t = event && event.target
+  if (!open.value || (t && t.nodeType === 1 && list.value?.contains(t))) return // la propia lista se desplaza
+  follow.schedule(t)
+}
 function scrollActive() {
   nextTick(() => {
     const el = list.value?.ownerDocument.getElementById(optId(activeIndex.value))
@@ -182,8 +198,8 @@ function show() {
     scrollActive()
   })
   document.addEventListener('pointerdown', onOutside)
-  window.addEventListener('resize', onReposition)
-  window.addEventListener('scroll', onReposition, true)
+  window.addEventListener('resize', onResize)
+  window.addEventListener('scroll', onScroll, true)
   emit('open')
 }
 
@@ -195,8 +211,11 @@ function hide() {
   const el = list.value
   if (el && typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover()
   document.removeEventListener('pointerdown', onOutside)
-  window.removeEventListener('resize', onReposition)
-  window.removeEventListener('scroll', onReposition, true)
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('scroll', onScroll, true)
+  follow.cancel()
+  side = null
+  lastX = lastY = null
   emit('close')
 }
 
@@ -302,10 +321,14 @@ function onKeydown(event) {
   } else if (printable) { event.preventDefault(); typeahead(k) }
 }
 
-function onButtonClick() {
+function onButtonClick(event) {
   if (isDisabled.value || isReadonly.value) return
   if (open.value) hide()
-  else show()
+  else {
+    // Posición del clic: si la lista aparece bajo el puntero quieto, no le quita la activa al teclado
+    if (event && event.detail > 0) { lastX = event.clientX; lastY = event.clientY }
+    show()
+  }
 }
 
 // La lista no roba el foco del botón
@@ -318,7 +341,14 @@ function onListClick(event) {
   const item = itemAt(Number(li.dataset.index))
   if (item) choose(item)
 }
+// Solo un movimiento REAL del puntero activa: el primer evento tras abrir con teclado solo anota dónde está, y uno sin
+// desplazamiento (la lista o la página que se mueven bajo el puntero quieto) se ignora. La activa por puntero nunca
+// desplaza la lista (scrollActive es solo del teclado y de la apertura).
 function onListPointermove(event) {
+  const still = lastX === null || (event.clientX === lastX && event.clientY === lastY)
+  lastX = event.clientX
+  lastY = event.clientY
+  if (still) return
   const li = event.target.closest?.('[role="option"]')
   if (!li) return
   const item = itemAt(Number(li.dataset.index))
@@ -393,6 +423,8 @@ const hiddenValue = computed(() => (selected.value ? String(selected.value.value
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
 const hasIcon = (raw) => Boolean(slots.icon) && slots.icon({ option: raw }).some((v) => !isEmptyNode(v))
 const emptyVisible = computed(() => items.value.length === 0 && Boolean(props.emptyText || slots.empty))
+// Contenido nuevo con la lista abierta: --_max se vuelve a fijar (el lado se conserva)
+watch(() => [model.value, emptyVisible.value, createVisible.value], () => { if (open.value) nextTick(() => place()) }, { flush: 'post' })
 
 if (isDev) {
   if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {

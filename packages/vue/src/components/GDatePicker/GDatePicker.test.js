@@ -804,3 +804,97 @@ describe('GDatePicker · valor calculado `output` (form.md C14, #180)', () => {
     expect(mount(GDatePicker, { props: { label: 'F', mode: 'range', split: true, output: 'x' } }).find('.g-datepicker__output').exists()).toBe(false)
   })
 })
+
+// ---------- Reporte del usuario (GCombobox, c4b087d): el panel «pivotea, tintinea, parpadea» al desplazar ----------
+describe('GDatePicker · panel estable al desplazar la página', () => {
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+  const settle = async () => { for (let i = 0; i < 4; i++) await nextTick() }
+  const scroll = async (target = window) => { target.dispatchEvent(new Event('scroll')); await frame(); await settle() }
+  let restore = []
+  const fake = (prop, fn) => {
+    const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+    Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get() { return fn(this) } })
+    restore.push(() => { if (own) Object.defineProperty(HTMLElement.prototype, prop, own); else delete HTMLElement.prototype[prop] })
+  }
+  afterEach(() => { restore.forEach((f) => f()); restore = [] })
+  // Visor 1000 × 800; superficie de 360 × 300; con el código anterior el lado cambiaba en bottom > 432
+  const setup = async (top0) => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 })
+    fake('offsetHeight', (el) => (el.classList.contains('g-datepicker__pop') ? 360 : 0))
+    fake('offsetWidth', (el) => (el.classList.contains('g-datepicker__pop') ? 300 : 0))
+    const w = mk({ modelValue: '2026-10-20' })
+    const at = { top: top0 }
+    const b = w.find('button.g-datepicker__field')
+    b.element.getBoundingClientRect = () => ({ left: 100, right: 340, top: at.top, bottom: at.top + 36, width: 240, height: 36, x: 100, y: at.top })
+    await b.trigger('click'); await settle()
+    return { w, pop: w.find('.g-datepicker__pop').element, at }
+  }
+
+  it('vaivén de 4px alrededor del cruce: el lado no cambia y --_max no se reescribe', async () => {
+    const { w, pop, at } = await setup(380)
+    expect(pop.classList.contains('is-up')).toBe(false)
+    const max0 = pop.style.getPropertyValue('--_max')
+    expect(max0).toBe(`${800 - 416 - 8}px`)
+    const spy = vi.spyOn(pop.style, 'setProperty')
+    let flips = 0
+    let up = false
+    for (const d of [4, 4, 4, 4, 4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, 4, 4, 4, 4, 4]) {
+      at.top += d
+      await scroll()
+      const now = pop.classList.contains('is-up')
+      if (now !== up) flips++
+      up = now
+      expect(pop.style.getPropertyValue('--_top')).toBe(`${at.top + 36 + 8}px`)
+    }
+    expect(flips).toBe(0)
+    expect(spy.mock.calls.filter(([n]) => n === '--_max')).toEqual([])
+    expect(pop.style.getPropertyValue('--_max')).toBe(max0)
+    w.unmount()
+  })
+
+  it('cambia de lado solo si el actual baja de space × 40 y el otro ofrece space × 12 más; entonces fija --_max', async () => {
+    const { w, pop, at } = await setup(380)
+    at.top = 640 // debajo quedan 116px (< 160) y arriba 632
+    await scroll()
+    expect(pop.classList.contains('is-up')).toBe(true)
+    expect(pop.style.getPropertyValue('--_max')).toBe('632px')
+    expect(pop.style.getPropertyValue('--_bottom')).toBe(`${800 - 640 + 8}px`)
+    at.top = 380
+    await scroll()
+    expect(pop.classList.contains('is-up')).toBe(true)
+    expect(pop.style.getPropertyValue('--_max')).toBe('632px')
+    w.unmount()
+  })
+
+  it('si el ancla sale del visor, el selector se cierra sin devolver el foco', async () => {
+    const { w, at } = await setup(200)
+    const b = w.find('button.g-datepicker__field')
+    const focus = vi.spyOn(b.element, 'focus')
+    at.top = -30
+    await scroll()
+    expect(b.attributes('aria-expanded')).toBe('true')
+    at.top = 820
+    await scroll()
+    expect(b.attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    expect(focus).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('varios desplazamientos en un cuadro escriben la posición una sola vez, y solo si cambia; la propia superficie no recoloca', async () => {
+    const { w, pop, at } = await setup(200)
+    const spy = vi.spyOn(pop.style, 'setProperty')
+    at.top = 190
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('scroll'))
+    await frame(); await settle()
+    expect(spy.mock.calls).toEqual([['--_top', '234px']])
+    spy.mockClear()
+    await scroll()
+    expect(spy).not.toHaveBeenCalled()
+    at.top = 150
+    await scroll(pop)
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+})

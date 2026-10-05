@@ -38,6 +38,83 @@ export function placeSubmenu(a, { width, naturalHeight, vw, vh, rtl = false, pad
   return { x, y, room }
 }
 
+// ---------- Panel estable al desplazar la página (reporte del usuario sobre GCombobox, c4b087d) ----------
+// Mismas reglas en GCombobox, GSelect, GMenu, GDatePicker, GHelper y el editor de GFilterBar:
+//  1. el lado se decide AL ABRIR y se conserva: solo cambia si el actual deja de ser útil (menos de space × 40) y el otro
+//     ofrece claramente más (al menos space × 12 más), nunca en cada cuadro;
+//  2. el alto disponible (--_max) se fija al abrir, al cambiar el contenido, en resize y al cambiar de lado; durante el
+//     desplazamiento solo se escribe la posición, una vez por cuadro (followFrame) y solo si cambia (setVar);
+//  3. si el ancla sale del visor (o de su contenedor con desplazamiento), el panel se cierra (anchorGone);
+//  4. el puntero nunca desplaza la lista y solo activa con movimiento real (GSelect, GMenu y GCombobox, cada uno en su
+//     manejador de puntero).
+export const SIDE_MIN_SPACES = 40
+export const SIDE_FLIP_SPACES = 12
+
+/**
+ * Histéresis del lado vertical ('bottom' | 'top'). `below` y `above`: alto disponible en cada lado (px); `unit`: space
+ * en px. Devuelve el lado que se conserva o, si el actual dejó de ser útil y el otro ofrece claramente más, el otro.
+ */
+export function stickySide(side, { below, above, unit }) {
+  const top = side === 'top'
+  const cur = top ? above : below
+  const other = top ? below : above
+  if (cur >= unit * SIDE_MIN_SPACES || other < cur + unit * SIDE_FLIP_SPACES) return side
+  return top ? 'bottom' : 'top'
+}
+
+/** Umbral del visor móvil (literal de #42 y #56): por debajo, GSelect y GDatePicker son hoja y no siguen a su ancla */
+export const PHONE_QUERY = '(max-width: 520px)'
+export const isPhone = () => typeof matchMedia === 'function' && matchMedia(PHONE_QUERY).matches
+
+/**
+ * Regla 3: el ancla salió de la vista, del visor o del contenedor con desplazamiento (`scroller`, el destino del evento
+ * scroll) que la contiene. Entonces el panel se cierra, sin devolver el foco (devolverlo desplazaría la página).
+ * Comparación estricta: un ancla sin caja (0 × 0 en el origen) no cuenta como fuera.
+ */
+export function anchorGone(el, scroller) {
+  if (!el || typeof window === 'undefined') return false
+  const r = el.getBoundingClientRect()
+  const vh = window.innerHeight
+  const vw = document.documentElement.clientWidth || window.innerWidth
+  if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) return true
+  if (!scroller || scroller.nodeType !== 1 || scroller === document.documentElement || scroller === document.body || !scroller.contains(el)) return false
+  const c = scroller.getBoundingClientRect()
+  return r.bottom < c.top || r.top > c.bottom || r.right < c.left || r.left > c.right
+}
+
+/** px con dos decimales: la misma posición da la misma cadena (setVar no reescribe) */
+export const px = (n) => `${Math.round(n * 100) / 100}px`
+
+/** Variable CSS en línea, solo si cambia (style.setProperty: no pasa por el render ni por el atributo style) */
+export function setVar(el, name, value) {
+  if (el.style.getPropertyValue(name) === value) return false
+  el.style.setProperty(name, value)
+  return true
+}
+
+/**
+ * Seguimiento al desplazar: `schedule(arg)` ejecuta `fn(arg)` como mucho una vez por cuadro (los eventos del mismo cuadro
+ * se agrupan; vale el primero); `cancel()` lo anula al cerrar.
+ */
+export function followFrame(fn) {
+  let id = 0
+  let timer = false
+  return {
+    schedule(arg) {
+      if (id) return
+      const run = () => { id = 0; fn(arg) }
+      timer = typeof requestAnimationFrame !== 'function'
+      id = timer ? setTimeout(run, 16) : requestAnimationFrame(run)
+    },
+    cancel() {
+      if (!id) return
+      if (timer) clearTimeout(id)
+      else cancelAnimationFrame(id)
+      id = 0
+    }
+  }
+}
+
 const OPPOSITE = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' }
 const ORDER = ['top', 'right', 'bottom', 'left']
 

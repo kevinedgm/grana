@@ -393,6 +393,9 @@
     "warning",
     "valid"
   ],
+  "implementation": [
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al pasar de uno a dos meses, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el ancla sale del visor o de su contenedor con desplazamiento, el selector se cierra sin devolver el foco (no en la hoja móvil)."
+  ],
   "pending": [
     "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",
     "RTL completo, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",

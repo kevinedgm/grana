@@ -132,6 +132,9 @@
     "list-has-highlight",
     "list-highlight-instant"
   ],
+  "implementation": [
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado de la lista principal se decide al abrir y se conserva; con side auto solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir la lista o un submenú, al cambiar items, en resize y al cambiar de lado; durante el desplazamiento solo se mueve la posición (desfase respecto del ancla medido al colocar), una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el menú se cierra sin devolver el foco."
+  ],
   "pending": [
     "Lector de pantalla real (submenús, grupos, opciones)",
     "Firefox y Safari (popover, :dir())",

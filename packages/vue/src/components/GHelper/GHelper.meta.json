@@ -165,6 +165,9 @@
     "popover",
     "sheet"
   ],
+  "implementation": [
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir desde placement y se conserva mientras el contenido quepa entero en él; --_max y data-side se escriben al abrir, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el contenido se cierra sin devolver el foco."
+  ],
   "pending": [
     "Lector de pantalla real",
     "Firefox y Safari (@starting-style, popover)",

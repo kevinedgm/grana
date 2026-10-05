@@ -6,7 +6,7 @@
 // si no cabe (o el visor es más estrecho que el umbral de hoja), se abre en GDialog como hoja (DECISIONS.md #101 a #103).
 import { defineComponent, h, ref, computed, watch, nextTick, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { placeAround, parsePlacement, viewport } from '../../utils/anchor.js'
+import { anchorGone, followFrame, placeAround, parsePlacement, px, setVar, viewport } from '../../utils/anchor.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GDialog from '../GDialog/GDialog.vue'
 
@@ -78,31 +78,45 @@ export default defineComponent({
 
     // ---- Posición del contenido (popover) ----
     const spaceUnit = () => (root.value ? toPx(getComputedStyle(root.value).getPropertyValue('--g-space-1')) : NaN)
-    const place = () => {
+    // Contenido estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js): el lado se decide AL ABRIR
+    // desde `placement` y luego se conserva mientras el contenido quepa entero en él (placeAround prueba primero el lado
+    // en uso); --_max y data-side se escriben al abrir, en resize y al cambiar de lado. Durante el desplazamiento de la
+    // página solo se escribe la posición, una vez por cuadro y solo si cambia. Si el disparador sale del visor (o de su
+    // contenedor con desplazamiento), el contenido se cierra sin devolver el foco.
+    const place = (keep = false) => {
       const el = content.value
       const trigger = button.value
       if (!el || !trigger) return true
       const { width: vw, height: vh } = viewport()
       const space = spaceUnit()
       const pad = Number.isNaN(space) ? 8 : space * 2
+      const wanted = props.contentPlacement || props.placement
+      const placement = keep && usedSide.value ? `${usedSide.value}-${parsePlacement(wanted).align}` : wanted
       const r = placeAround(trigger.getBoundingClientRect(), {
         width: el.offsetWidth,
         height: el.offsetHeight,
         vw,
         vh,
-        placement: props.contentPlacement || props.placement,
+        placement,
         rtl: getComputedStyle(trigger).direction === 'rtl',
         pad,
         gap: pad
       })
-      el.style.setProperty('--_x', `${r.x}px`)
-      el.style.setProperty('--_y', `${r.y}px`)
-      el.style.setProperty('--_max', `${Math.max(0, r.room)}px`)
-      usedSide.value = r.side
-      el.setAttribute('data-side', r.side)
+      setVar(el, '--_x', px(r.x))
+      setVar(el, '--_y', px(r.y))
+      if (keep !== 'scroll' || r.side !== usedSide.value) {
+        el.style.setProperty('--_max', px(Math.max(0, r.room)))
+        usedSide.value = r.side
+        el.setAttribute('data-side', r.side)
+      }
       const comfortable = Number.isNaN(space) || vw >= space * COMFORT_UNITS
       return r.fits && comfortable
     }
+    const follow = followFrame((scroller) => {
+      if (!isOpen.value || presentation.value !== 'popover') return
+      if (anchorGone(button.value, scroller)) { close(false); return }
+      place('scroll')
+    })
 
     // ---- Escuchas mientras el popover está abierto ----
     let listening = false
@@ -120,22 +134,28 @@ export default defineComponent({
         close(true)
       }
     }
-    const onReposition = () => { if (isOpen.value && presentation.value === 'popover') place() }
+    const onResize = () => { if (isOpen.value && presentation.value === 'popover') place(true) }
+    const onScroll = (e) => {
+      const t = e && e.target
+      if (!isOpen.value || presentation.value !== 'popover' || (t && t.nodeType === 1 && content.value?.contains(t))) return
+      follow.schedule(t)
+    }
     const listen = () => {
       if (listening) return
       listening = true
       document.addEventListener('pointerdown', onOutside, true)
       document.addEventListener('keydown', onDocKeydown, true)
-      window.addEventListener('resize', onReposition)
-      window.addEventListener('scroll', onReposition, true)
+      window.addEventListener('resize', onResize)
+      window.addEventListener('scroll', onScroll, true)
     }
     const unlisten = () => {
       if (!listening) return
       listening = false
       document.removeEventListener('pointerdown', onOutside, true)
       document.removeEventListener('keydown', onDocKeydown, true)
-      window.removeEventListener('resize', onReposition)
-      window.removeEventListener('scroll', onReposition, true)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', onScroll, true)
+      follow.cancel()
     }
 
     const showPopover = () => {

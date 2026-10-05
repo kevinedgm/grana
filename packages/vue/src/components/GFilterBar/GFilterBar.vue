@@ -6,7 +6,7 @@
 // Produce `filters` ({ key, op, value }); Y entre filtros, O dentro de un enum. El motor vive en utils/filters.js.
 import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, inject, watch } from 'vue'
 import { OPS, parseValue, summarize } from '../../utils/filters.js'
-import { placeAround, viewport } from '../../utils/anchor.js'
+import { anchorGone, followFrame, placeAround, px, setVar, viewport } from '../../utils/anchor.js'
 import { fill } from '../../utils/template.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
@@ -78,17 +78,45 @@ export default defineComponent({
       if (editorEl.value?.contains(e.target) || anchorEl?.contains?.(e.target)) return
       closeEditor(false)
     }
-    const stopListening = () => document.removeEventListener('pointerdown', outside, true)
-    const placeEditor = () => {
+    // Editor estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js, como GHelper): el lado se decide
+    // AL ABRIR (debajo; el que quepa) y se conserva mientras el editor quepa entero en él; --_max se escribe al abrir, en
+    // resize y al cambiar de lado. Durante el desplazamiento de la página solo se escribe la posición, una vez por cuadro
+    // y solo si cambia. Si el ancla sale del visor (o de su contenedor con desplazamiento), el editor se cierra sin
+    // aplicar y sin devolver el foco.
+    let usedSide = null
+    const placeEditor = (keep = false) => {
       const el = editorEl.value
       if (!el || !anchorEl) return
       const { width: vw, height: vh } = viewport()
       const space = spaceUnit()
       const pad = Number.isNaN(space) ? 8 : space * 2
-      const r = placeAround(anchorEl.getBoundingClientRect(), { width: el.offsetWidth, height: el.offsetHeight, vw, vh, placement: 'bottom-start', pad, gap: pad })
-      el.style.setProperty('--_x', `${r.x}px`)
-      el.style.setProperty('--_y', `${r.y}px`)
-      el.style.setProperty('--_max', `${Math.max(0, r.room)}px`)
+      const placement = keep && usedSide ? `${usedSide}-start` : 'bottom-start'
+      const r = placeAround(anchorEl.getBoundingClientRect(), { width: el.offsetWidth, height: el.offsetHeight, vw, vh, placement, pad, gap: pad })
+      setVar(el, '--_x', px(r.x))
+      setVar(el, '--_y', px(r.y))
+      if (keep !== 'scroll' || r.side !== usedSide) {
+        el.style.setProperty('--_max', px(Math.max(0, r.room)))
+        usedSide = r.side
+      }
+    }
+    const isPopover = () => Boolean(editing.value && editing.value.presentation === 'popover')
+    const follow = followFrame((scroller) => {
+      if (!isPopover()) return
+      if (anchorGone(anchorEl, scroller)) { closeEditor(false); return }
+      placeEditor('scroll')
+    })
+    const onResize = () => { if (isPopover()) placeEditor(true) }
+    const onScroll = (e) => {
+      const t = e && e.target
+      if (!isPopover() || (t && t.nodeType === 1 && editorEl.value?.contains(t))) return // el propio editor se desplaza
+      follow.schedule(t)
+    }
+    const stopListening = () => {
+      document.removeEventListener('pointerdown', outside, true)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', onScroll, true)
+      follow.cancel()
+      usedSide = null
     }
     const focusFirst = () => {
       const scope = editing.value?.presentation === 'sheet' ? document.getElementById(`${uid}-sheet`) : editorEl.value
@@ -111,8 +139,11 @@ export default defineComponent({
         if (!sheet) {
           const el = editorEl.value
           if (el && typeof el.showPopover === 'function' && !el.matches?.(':popover-open')) el.showPopover()
+          usedSide = null
           placeEditor()
           document.addEventListener('pointerdown', outside, true)
+          window.addEventListener('resize', onResize)
+          window.addEventListener('scroll', onScroll, true)
         }
         nextTick(focusFirst)
       })

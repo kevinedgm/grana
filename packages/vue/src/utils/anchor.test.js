@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { placeBlock, placeSubmenu, placeAround, parsePlacement } from './anchor.js'
+import { describe, it, expect, vi } from 'vitest'
+import { placeBlock, placeSubmenu, placeAround, parsePlacement, stickySide, setVar, followFrame, px, anchorGone } from './anchor.js'
 
 const rect = (left, top, w = 32, h = 32) => ({ left, top, right: left + w, bottom: top + h, width: w, height: h })
 const V = { vw: 1000, vh: 800 }
@@ -72,5 +72,76 @@ describe('anchor · placeAround (contenido de GHelper)', () => {
   })
   it('room: alto disponible en el lado elegido', () => {
     expect(placeAround(rect(500, 300), { width: 200, height: 100, placement: 'bottom', ...V }).room).toBe(800 - 332 - 8 - 8)
+  })
+})
+
+describe('anchor · panel estable al desplazar (stickySide, setVar, followFrame)', () => {
+  const U = 4 // space: umbrales 160 (× 40) y 48 (× 12)
+  it('conserva el lado mientras siga siendo útil (≥ space × 40), aunque el otro ofrezca más', () => {
+    expect(stickySide('bottom', { below: 160, above: 600, unit: U })).toBe('bottom')
+    expect(stickySide('top', { below: 600, above: 200, unit: U })).toBe('top')
+  })
+  it('cambia solo si el actual baja de space × 40 Y el otro ofrece al menos space × 12 más', () => {
+    expect(stickySide('bottom', { below: 150, above: 197, unit: U })).toBe('bottom')
+    expect(stickySide('bottom', { below: 150, above: 198, unit: U })).toBe('top')
+    expect(stickySide('top', { below: 300, above: 100, unit: U })).toBe('bottom')
+  })
+  it('vaivén de 4px alrededor del cruce: como mucho un cambio', () => {
+    let side = 'bottom'
+    let flips = 0
+    // El ancla se mueve en el visor de 800px; alto del ancla 36 y margen 8
+    for (const top of [400, 404, 408, 412, 408, 404, 400, 396, 392, 396, 400, 404, 408, 412, 416, 420, 416, 412]) {
+      const next = stickySide(side, { below: 800 - (top + 36) - 8, above: top - 8, unit: U })
+      if (next !== side) flips++
+      side = next
+    }
+    expect(flips).toBe(0)
+  })
+  it('setVar escribe solo si cambia', () => {
+    const el = document.createElement('div')
+    const spy = vi.spyOn(el.style, 'setProperty')
+    expect(setVar(el, '--_x', px(10.004))).toBe(true)
+    expect(setVar(el, '--_x', px(10.001))).toBe(false)
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(el.style.getPropertyValue('--_x')).toBe('10px')
+  })
+  it('followFrame agrupa los eventos de un cuadro y cancel() anula el pendiente', async () => {
+    const fn = vi.fn()
+    const f = followFrame(fn)
+    f.schedule('a'); f.schedule('b'); f.schedule('c')
+    await new Promise((r) => setTimeout(r, 40))
+    expect(fn).toHaveBeenCalledTimes(1)
+    expect(fn).toHaveBeenCalledWith('a')
+    f.schedule('d'); f.cancel()
+    await new Promise((r) => setTimeout(r, 40))
+    expect(fn).toHaveBeenCalledTimes(1)
+  })
+  it('anchorGone: fuera del visor (estricto: en el borde aún no), o fuera del contenedor que lo contiene y se desplaza', () => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    const box = document.createElement('div')
+    const el = document.createElement('span')
+    box.appendChild(el)
+    document.body.appendChild(box)
+    const at = { r: rect(100, 100, 80, 32) }
+    el.getBoundingClientRect = () => at.r
+    box.getBoundingClientRect = () => rect(0, 200, 600, 300)
+    expect(anchorGone(el)).toBe(false)
+    expect(anchorGone(null)).toBe(false)
+    at.r = rect(100, -32, 80, 32) // borde inferior en 0
+    expect(anchorGone(el)).toBe(false)
+    at.r = rect(100, -33, 80, 32)
+    expect(anchorGone(el)).toBe(true)
+    at.r = rect(100, 801, 80, 32)
+    expect(anchorGone(el)).toBe(true)
+    at.r = rect(0, 0, 0, 0) // sin caja: no cuenta como fuera
+    expect(anchorGone(el)).toBe(false)
+    // Dentro del visor pero por encima del contenedor que se desplaza y la contiene
+    at.r = rect(100, 100, 80, 32)
+    expect(anchorGone(el, box)).toBe(true)
+    expect(anchorGone(el, document.createElement('div'))).toBe(false) // un contenedor que no la contiene no cuenta
+    expect(anchorGone(el, document)).toBe(false)
+    at.r = rect(100, 300, 80, 32)
+    expect(anchorGone(el, box)).toBe(false)
+    box.remove()
   })
 })

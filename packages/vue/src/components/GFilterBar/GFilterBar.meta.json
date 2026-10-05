@@ -66,6 +66,9 @@
     "editor-sheet",
     "error"
   ],
+  "implementation": [
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el editor (popover) se abre debajo del ancla si cabe y conserva su lado mientras quepa entero en él; --_max se escribe al abrir, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el ancla sale del visor o de su contenedor con desplazamiento, el editor se cierra sin aplicar y sin devolver el foco."
+  ],
   "pending": [
     "Lector de pantalla real",
     "Firefox y Safari",

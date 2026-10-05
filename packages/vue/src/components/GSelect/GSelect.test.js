@@ -25,6 +25,7 @@ const mk = (props = {}, opts = {}) => mount(GSelect, { attachTo: document.body, 
 const btn = (w) => w.find('button.g-select__button')
 const opts = (w) => w.findAll('[role="option"]')
 const key = async (w, k, extra = {}) => { await btn(w).trigger('keydown', { key: k, ...extra }); await nextTick() }
+const move = (el, x, y) => el.trigger('pointermove', { clientX: x, clientY: y })
 const activeText = (w) => {
   const id = btn(w).attributes('aria-activedescendant')
   return id ? document.getElementById(id)?.textContent : null
@@ -221,9 +222,10 @@ describe('GSelect · abrir, elegir y cerrar', () => {
   it('el movimiento del puntero sobre una opción la vuelve activa (no las deshabilitadas)', async () => {
     const w = mk()
     await btn(w).trigger('click')
-    await opts(w)[1].trigger('pointermove')
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[1], 10, 40)
     expect(activeText(w)).toBe('Estados Unidos')
-    await opts(w)[2].trigger('pointermove')
+    await move(opts(w)[2], 10, 80)
     expect(activeText(w)).toBe('Estados Unidos')
     w.unmount()
   })
@@ -681,7 +683,8 @@ describe('GSelect · fila «Agregar nuevo…» (r02)', () => {
   it('el ratón sobre la fila la vuelve activa; el elegido no se marca en ella', async () => {
     const w = mkc({ modelValue: 'mx', id: 's' })
     await btn(w).trigger('click')
-    await createRow(w).trigger('pointermove')
+    await move(createRow(w), 5, 5)
+    await move(createRow(w), 10, 12)
     expect(btn(w).attributes('aria-activedescendant')).toBe('s-opt-create')
     expect(createRow(w).attributes('aria-selected')).toBe('false')
     w.unmount()
@@ -712,5 +715,171 @@ describe('GSelect · personalidad I1: is-ready (#304, #306)', () => {
     const html = await renderToString(createSSRApp({ render: () => h(GSelect, { ...base, error: 'Mal' }) }))
     expect(html).toContain('g-select')
     expect(html).not.toContain('is-ready')
+  })
+})
+
+// ---------- Reporte del usuario (GCombobox, c4b087d): el panel «pivotea, tintinea, parpadea» al desplazar ----------
+describe('GSelect · panel estable al desplazar la página', () => {
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+  const scroll = async (target = window) => { target.dispatchEvent(new Event('scroll')); await frame(); await nextTick() }
+  // Visor de 800px, lista de 300px de alto natural; con el código anterior el lado cambiaba en bottom > 488
+  const setup = async (top0) => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    const w = mk()
+    const list = w.find('.g-select__list').element
+    Object.defineProperty(list, 'scrollHeight', { configurable: true, value: 300 })
+    const at = { top: top0 }
+    w.find('.g-select__control').element.getBoundingClientRect = () => ({ left: 40, right: 280, top: at.top, bottom: at.top + 36, width: 240, height: 36 })
+    await btn(w).trigger('click')
+    await nextTick(); await nextTick()
+    return { w, list, at }
+  }
+
+  it('vaivén de 4px alrededor del cruce: el lado no cambia y --_max no se reescribe', async () => {
+    const { w, list, at } = await setup(440)
+    expect(list.classList.contains('is-up')).toBe(false)
+    const max0 = list.style.getPropertyValue('--_max')
+    const spy = vi.spyOn(list.style, 'setProperty')
+    let flips = 0
+    let up = false
+    for (const d of [4, 4, 4, 4, 4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, 4, 4, 4, 4, 4]) {
+      at.top += d
+      await scroll()
+      const now = list.classList.contains('is-up')
+      if (now !== up) flips++
+      up = now
+      expect(list.style.getPropertyValue('--_top')).toBe(`${at.top + 36 + 4}px`) // la posición sí sigue a la caja
+    }
+    expect(flips).toBe(0)
+    expect(spy.mock.calls.filter(([n]) => n === '--_max' || n === '--_min')).toEqual([])
+    expect(list.style.getPropertyValue('--_max')).toBe(max0)
+    w.unmount()
+  })
+
+  it('cambia de lado solo si el actual baja de space × 40 y el otro ofrece space × 12 más; entonces fija --_max', async () => {
+    const { w, list, at } = await setup(440)
+    at.top = 620 // debajo quedan 136px (< 160) y arriba 612
+    await scroll()
+    expect(list.classList.contains('is-up')).toBe(true)
+    expect(list.style.getPropertyValue('--_max')).toBe('612px')
+    expect(list.style.getPropertyValue('--_bottom')).toBe(`${800 - 620 + 4}px`)
+    // De vuelta arriba: arriba sigue siendo útil, no vuelve
+    at.top = 440
+    await scroll()
+    expect(list.classList.contains('is-up')).toBe(true)
+    expect(list.style.getPropertyValue('--_max')).toBe('612px')
+    w.unmount()
+  })
+
+  it('varios desplazamientos en un cuadro escriben la posición una sola vez, y solo si cambia', async () => {
+    const { w, list, at } = await setup(200)
+    const spy = vi.spyOn(list.style, 'setProperty')
+    at.top = 190
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('scroll'))
+    await frame(); await nextTick()
+    expect(spy.mock.calls.filter(([n]) => n === '--_top')).toEqual([['--_top', '230px']])
+    spy.mockClear()
+    await scroll() // misma posición: nada que escribir
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('si la caja sale del visor, la lista se cierra sin devolver el foco; en el borde aún sigue abierta', async () => {
+    const { w, list, at } = await setup(200)
+    at.top = -36 // borde inferior justo en 0: aún no ha salido
+    await scroll()
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    const focus = vi.spyOn(btn(w).element, 'focus')
+    at.top = -40
+    await scroll()
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    expect(focus).not.toHaveBeenCalled()
+    expect(list.style.getPropertyValue('--_top')).toBe('4px') // la última posición escrita fue la del borde
+    w.unmount()
+  })
+
+  it('si la caja sale de su contenedor con desplazamiento, la lista se cierra; un contenedor ajeno no cuenta', async () => {
+    const { w, at } = await setup(200)
+    const box = document.createElement('div')
+    box.getBoundingClientRect = () => ({ left: 0, right: 600, top: 300, bottom: 500, width: 600, height: 200 })
+    document.body.appendChild(box)
+    await scroll(box) // la caja (200–236) está fuera de este contenedor, pero no lo contiene: no cuenta
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    const holder = w.element.parentElement
+    holder.getBoundingClientRect = () => ({ left: 0, right: 600, top: 300, bottom: 500, width: 600, height: 200 })
+    at.top = 250
+    await scroll(holder) // dentro del visor, pero por encima del contenedor que la desplaza
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    box.remove()
+    w.unmount()
+  })
+
+  it('el desplazamiento de la propia lista no recoloca nada', async () => {
+    const { w, list, at } = await setup(200)
+    const spy = vi.spyOn(list.style, 'setProperty')
+    at.top = 150
+    await scroll(list)
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('al cambiar el contenido con la lista abierta, --_max se vuelve a fijar (el lado se conserva)', async () => {
+    const { w, list, at } = await setup(440)
+    at.top = 400
+    await w.setProps({ options: [...OPTIONS, { value: 'fr', label: 'Francia' }] })
+    await nextTick(); await nextTick()
+    expect(list.style.getPropertyValue('--_max')).toBe(`${800 - 436 - 8}px`)
+    expect(list.classList.contains('is-up')).toBe(false)
+    w.unmount()
+  })
+
+  it('en resize, --_max se vuelve a fijar', async () => {
+    const { w, list } = await setup(440)
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 })
+    window.dispatchEvent(new Event('resize'))
+    await nextTick()
+    expect(list.style.getPropertyValue('--_max')).toBe(`${900 - 476 - 8}px`)
+    w.unmount()
+  })
+
+  it('el puntero quieto (pointermove sin desplazamiento, la lista que se mueve bajo él) no cambia la activa', async () => {
+    const { w } = await setup(200)
+    expect(activeText(w)).toBe('México')
+    await move(opts(w)[1], 50, 60) // primer evento tras abrir: solo anota dónde está
+    expect(activeText(w)).toBe('México')
+    await move(opts(w)[4], 50, 60) // la lista se movió bajo el puntero quieto
+    expect(activeText(w)).toBe('México')
+    await move(opts(w)[4], 52, 61) // movimiento real
+    expect(activeText(w)).toBe('Chile')
+    w.unmount()
+  })
+
+  it('la activa por puntero nunca desplaza la lista; la del teclado sí la lleva a la vista', async () => {
+    const { w } = await setup(200)
+    const spy = vi.spyOn(HTMLElement.prototype, 'scrollIntoView')
+    await nextTick()
+    spy.mockClear()
+    await move(opts(w)[0], 50, 20)
+    await move(opts(w)[5], 50, 200)
+    await nextTick()
+    expect(activeText(w)).toBe('España')
+    expect(spy).not.toHaveBeenCalled()
+    await key(w, 'ArrowUp')
+    await nextTick()
+    expect(spy).toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('al abrir con un clic, la posición del clic cuenta: la lista que aparece bajo el puntero quieto no roba la activa', async () => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    const w = mk({ modelValue: 'us' })
+    btn(w).element.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 70, clientY: 90, detail: 1 }))
+    await nextTick()
+    await move(opts(w)[0], 70, 90)
+    expect(activeText(w)).toBe('Estados Unidos')
+    await move(opts(w)[0], 71, 92)
+    expect(activeText(w)).toBe('México')
+    w.unmount()
   })
 })

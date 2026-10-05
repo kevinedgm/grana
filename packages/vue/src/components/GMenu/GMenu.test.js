@@ -737,3 +737,115 @@ describe('GMenu · M4 submenú con intención', () => {
     } finally { vi.useRealTimers() }
   })
 })
+
+// ---------- Reporte del usuario (GCombobox, c4b087d): el panel «pivotea, tintinea, parpadea» al desplazar ----------
+describe('GMenu · panel estable al desplazar la página', () => {
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+  const scroll = async (target = window) => { target.dispatchEvent(new Event('scroll')); await frame(); await settle() }
+  const ITEMS_S = [{ id: 'a', label: 'Abrir' }, { label: 'Exportar', items: [{ id: 'pdf', label: 'PDF' }] }, { id: 'b', label: 'Borrar' }]
+  let restore = []
+  const fake = (prop, fn) => {
+    const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+    Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get() { return fn(this) } })
+    // Vuelve el getter propio o, si era heredado (scrollHeight es de Element), lo deja ver de nuevo
+    restore.push(() => { if (own) Object.defineProperty(HTMLElement.prototype, prop, own); else delete HTMLElement.prototype[prop] })
+  }
+  afterEach(() => { restore.forEach((f) => f()); restore = [] })
+  // Visor 1000 × 800; lista de 300px de alto natural y 200 de ancho; con el código anterior el lado cambiaba en bottom > 484
+  const setup = async (top0, menu = {}) => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 })
+    fake('scrollHeight', (el) => (el.classList.contains('g-menu__list') ? 300 : 0))
+    fake('offsetWidth', (el) => (el.classList.contains('g-menu__list') ? 200 : 0))
+    fake('offsetHeight', (el) => (el.classList.contains('g-menu__list') ? 300 : 36))
+    const w = mk({ items: ITEMS_S, menu })
+    const at = { top: top0 }
+    trig(w).element.getBoundingClientRect = () => ({ left: 100, right: 180, top: at.top, bottom: at.top + 36, width: 80, height: 36, x: 100, y: at.top })
+    await trig(w).trigger('click'); await settle()
+    return { w, ul: list(w).element, at }
+  }
+
+  it('vaivén de 4px alrededor del cruce: el lado no cambia y --_max no se reescribe', async () => {
+    const { w, ul, at } = await setup(440)
+    expect(ul.dataset.side).toBe('bottom')
+    const max0 = ul.style.getPropertyValue('--_max')
+    const spy = vi.spyOn(ul.style, 'setProperty')
+    let flips = 0
+    let side = 'bottom'
+    for (const d of [4, 4, 4, 4, 4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, 4, 4, 4, 4, 4]) {
+      at.top += d
+      await scroll()
+      if (ul.dataset.side !== side) flips++
+      side = ul.dataset.side
+      expect(ul.style.getPropertyValue('--_y')).toBe(`${at.top + 36 + 4}px`) // la posición sí sigue al disparador
+    }
+    expect(flips).toBe(0)
+    expect(spy.mock.calls.filter(([n]) => n === '--_max')).toEqual([])
+    expect(ul.style.getPropertyValue('--_max')).toBe(max0)
+    w.unmount()
+  })
+
+  it('cambia de lado solo si el actual baja de space × 40 y el otro ofrece space × 12 más; entonces fija --_max', async () => {
+    const { w, ul, at } = await setup(440)
+    at.top = 640 // debajo quedan 112px (< 160) y arriba 628
+    await scroll()
+    expect(ul.dataset.side).toBe('top')
+    expect(ul.style.getPropertyValue('--_max')).toBe('628px')
+    expect(ul.style.getPropertyValue('--_y')).toBe(`${640 - 4 - 304}px`) // alto natural + 4, como placeBlock
+    at.top = 440 // arriba sigue siendo útil: no vuelve
+    await scroll()
+    expect(ul.dataset.side).toBe('top')
+    expect(ul.style.getPropertyValue('--_max')).toBe('628px')
+    expect(ul.style.getPropertyValue('--_y')).toBe(`${440 - 4 - 304}px`)
+    w.unmount()
+  })
+
+  it('con side fijo (bottom) no cambia de lado aunque no quepa', async () => {
+    const { w, ul, at } = await setup(440, { side: 'bottom' })
+    at.top = 700
+    await scroll()
+    expect(ul.dataset.side).toBe('bottom')
+    w.unmount()
+  })
+
+  it('varios desplazamientos en un cuadro escriben la posición una sola vez, y solo si cambia; la propia lista no recoloca', async () => {
+    const { w, ul, at } = await setup(200)
+    const spy = vi.spyOn(ul.style, 'setProperty')
+    at.top = 190
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('scroll'))
+    await frame(); await settle()
+    expect(spy.mock.calls).toEqual([['--_y', '230px']])
+    spy.mockClear()
+    await scroll()
+    expect(spy).not.toHaveBeenCalled()
+    at.top = 150
+    await scroll(ul)
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('el submenú abierto sigue a su padre sin reescribir --_max', async () => {
+    const { w, ul, at } = await setup(200)
+    const parent = label(w, 'Exportar')
+    let py = 260
+    parent.element.getBoundingClientRect = () => ({ left: 100, right: 300, top: py, bottom: py + 36, width: 200, height: 36, x: 100, y: py })
+    await key(parent, 'ArrowRight'); await settle()
+    const sub = w.findAll('ul[role="menu"]')[1].element
+    const y0 = parseFloat(sub.style.getPropertyValue('--_y'))
+    const spy = vi.spyOn(sub.style, 'setProperty')
+    at.top -= 20; py -= 20
+    await scroll()
+    expect(parseFloat(sub.style.getPropertyValue('--_y'))).toBe(y0 - 20)
+    expect(spy.mock.calls.filter(([n]) => n === '--_max')).toEqual([])
+    expect(ul).toBeTruthy()
+    w.unmount()
+  })
+
+  it('si el disparador sale del visor, el menú se cierra (comportamiento sin cambios)', async () => {
+    const { w, at } = await setup(200)
+    at.top = -100
+    await scroll()
+    expect(w.vm.isOpen).toBe(false)
+    w.unmount()
+  })
+})

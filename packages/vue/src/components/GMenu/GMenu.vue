@@ -8,7 +8,8 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { transitionMs } from '../../utils/motion.js'
-import { placeBlock, placeSubmenu, viewport } from '../../utils/anchor.js'
+import { anchorGone, followFrame, placeBlock, placeSubmenu, px, setVar, stickySide, viewport } from '../../utils/anchor.js'
+import { spaceUnit } from '../GForm/formContext.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const TYPES = ['item', 'checkbox', 'radio', 'separator', 'group']
@@ -186,6 +187,16 @@ export default defineComponent({
     onUpdated(queueHighlights)
 
     // ---------- Posición ----------
+    // Panel estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js). Colocación completa (`place`) al
+    // abrir la lista o un submenú, al cambiar `items`, en resize y al cambiar de lado: mide el alto natural (--_max a
+    // 9999px), decide el lado y fija --_max. El lado de la lista principal se decide al abrir y se conserva (con `side`
+    // auto, solo cambia si el actual baja de space × 40 y el otro ofrece space × 12 más). Durante el desplazamiento
+    // (`follow`) solo se mueve la posición, una vez por cuadro y solo si cambia: el desfase respecto del ancla medido en la
+    // colocación completa se conserva, sin volver a medir la lista. Si el disparador sale del visor, el menú se cierra.
+    const GAP = 4
+    const PAD = 8
+    const placed = new WeakMap() // lista → { side, dx, dy } respecto del ancla
+    const roomsOf = (a, vh) => ({ below: vh - a.bottom - PAD - GAP, above: a.top - PAD - GAP })
     const place = (menu, anchor, sub) => {
       if (!menu || !anchor) return
       const scroll = menu.scrollTop
@@ -194,35 +205,58 @@ export default defineComponent({
       const a = anchor.getBoundingClientRect()
       const { width: vw, height: vh } = viewport()
       const rtl = getComputedStyle(anchor).direction === 'rtl'
-      const opts = { width: menu.offsetWidth, naturalHeight: menu.scrollHeight + 4, vw, vh, rtl }
-      const { x, y, room } = sub ? placeSubmenu(a, opts) : placeBlock(a, { ...opts, align: props.align, side: props.side })
-      menu.dataset.side = sub ? 'bottom' : (y >= a.bottom ? 'bottom' : 'top')
+      const opts = { width: menu.offsetWidth, naturalHeight: menu.scrollHeight + 4, vw, vh, rtl, pad: PAD }
+      let side = props.side
+      const before = placed.get(menu)
+      if (!sub && side === 'auto' && before) side = stickySide(before.side, { ...roomsOf(a, vh), unit: spaceUnit(menu) })
+      const { x, y, room } = sub ? placeSubmenu(a, opts) : placeBlock(a, { ...opts, gap: GAP, align: props.align, side })
+      const usedSide = sub ? 'bottom' : (y >= a.bottom ? 'bottom' : 'top')
+      menu.dataset.side = usedSide
       menu.dataset.align = sub
         ? (x >= a.left ? 'left' : 'right')
         : (Math.abs(x - a.left) <= Math.abs(x + opts.width - a.right) ? 'left' : 'right')
-      menu.style.setProperty('--_max', `${Math.max(96, room)}px`)
-      menu.style.setProperty('--_x', `${x}px`)
-      menu.style.setProperty('--_y', `${y}px`)
+      placed.set(menu, { side: usedSide, dx: x - a.left, dy: y - (sub || usedSide === 'top' ? a.top : a.bottom) })
+      menu.style.setProperty('--_max', px(Math.max(96, room)))
+      setVar(menu, '--_x', px(x))
+      setVar(menu, '--_y', px(y))
       menu.scrollTop = scroll
     }
-    const placeAll = () => {
+    // Solo la posición: el ancla se movió, la lista conserva su lado, su alto y su desfase
+    const follow = (menu, anchor, sub) => {
+      const at = placed.get(menu)
+      if (!menu || !anchor || !at) return
+      const a = anchor.getBoundingClientRect()
+      if (!sub && props.side === 'auto' && stickySide(at.side, { ...roomsOf(a, viewport().height), unit: spaceUnit(menu) }) !== at.side) {
+        place(menu, anchor, false) // cambia de lado: colocación completa (fija --_max)
+        return
+      }
+      // Un submenú se ancla por arriba a su padre (placeSubmenu): el desfase cuenta desde a.top
+      setVar(menu, '--_x', px(a.left + at.dx))
+      setVar(menu, '--_y', px((sub || at.side === 'top' ? a.top : a.bottom) + at.dy))
+    }
+    const each = (fn) => {
       const root = listRef.value
       if (!root) return
-      place(root, trigger(), false)
+      fn(root, trigger(), false)
       root.querySelectorAll('[role="menu"]').forEach((m) => {
         const parent = document.getElementById(m.getAttribute('aria-labelledby'))
-        if (parent) place(m, parent, true)
+        if (parent) fn(m, parent, true)
       })
     }
-    const reposition = (e) => {
+    const placeAll = () => each(place)
+    // Fuera del visor (o de su contenedor con desplazamiento), el menú se cierra sin devolver el foco
+    const followAll = followFrame((scroller) => {
+      if (!props.modelValue) return
+      if (anchorGone(trigger(), scroller)) { close(false); return }
+      each(follow)
+    })
+    const onResize = () => { if (props.modelValue) placeAll() }
+    const onScroll = (e) => {
       if (!props.modelValue || (e && e.target && e.target.nodeType === 1 && listRef.value?.contains(e.target))) return
-      const t = trigger()
-      if (t) {
-        const r = t.getBoundingClientRect()
-        if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) { close(false); return }
-      }
-      placeAll()
+      followAll.schedule(e && e.target)
     }
+    // Contenido nuevo con el menú abierto: colocación completa (el lado se conserva)
+    watch(() => props.items, () => { if (props.modelValue && listRef.value) nextTick(placeAll) }, { flush: 'post' })
 
     // ---------- Abrir y cerrar ----------
     const onOutside = (e) => {
@@ -234,15 +268,16 @@ export default defineComponent({
       if (listening) return
       listening = true
       document.addEventListener('pointerdown', onOutside, true)
-      window.addEventListener('resize', reposition)
-      window.addEventListener('scroll', reposition, true)
+      window.addEventListener('resize', onResize)
+      window.addEventListener('scroll', onScroll, true)
     }
     const unlisten = () => {
       if (!listening) return
       listening = false
       document.removeEventListener('pointerdown', onOutside, true)
-      window.removeEventListener('resize', reposition)
-      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', onScroll, true)
+      followAll.cancel()
     }
     function close(focusTrigger) {
       if (!props.modelValue) return
@@ -262,6 +297,7 @@ export default defineComponent({
         const root = listRef.value
         if (!root) return
         checkTriggerId()
+        placed.delete(root) // reabierto durante la salida: el lado se decide de nuevo
         placeAll()
         listen()
         emit('open')

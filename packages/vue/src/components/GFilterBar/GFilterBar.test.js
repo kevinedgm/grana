@@ -181,3 +181,78 @@ describe('GFilterBar · quitar, limpiar y agregar', () => {
     expect(warn.mock.calls.some((c) => /faltan textos/.test(c[0]))).toBe(true)
   })
 })
+
+// ---------- Reporte del usuario (GCombobox, c4b087d): el panel «pivotea, tintinea, parpadea» al desplazar ----------
+describe('GFilterBar · editor estable al desplazar la página', () => {
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+  const scroll = async (target = window) => { target.dispatchEvent(new Event('scroll')); await frame(); await flush() }
+  let restore = []
+  const fake = (prop, fn) => {
+    const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+    Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get() { return fn(this) } })
+    restore.push(() => { if (own) Object.defineProperty(HTMLElement.prototype, prop, own); else delete HTMLElement.prototype[prop] })
+  }
+  afterEach(() => { restore.forEach((f) => f()); restore = [] })
+  // Visor 1000 × 800, editor de 280 × 200, separación y margen de 8 (sin tema): debajo cabe mientras bottom ≤ 584
+  const setup = async (top0) => {
+    vi.stubGlobal('innerWidth', 1000)
+    vi.stubGlobal('innerHeight', 800)
+    fake('offsetHeight', (el) => (el.classList.contains('g-filter-bar__editor') ? 200 : 0))
+    fake('offsetWidth', (el) => (el.classList.contains('g-filter-bar__editor') ? 280 : 0))
+    const w = mk()
+    const at = { top: top0 }
+    const chip = w.findAll('.g-filter-bar__suggest')[1]
+    chip.element.getBoundingClientRect = () => ({ left: 100, right: 180, top: at.top, bottom: at.top + 32, width: 80, height: 32, x: 100, y: at.top })
+    await chip.trigger('click'); await flush()
+    return { w, e: editor(w).element, at, chip }
+  }
+
+  it('sigue a su ancla: solo la posición, una vez por cuadro y solo si cambia; --_max fijo; el propio editor no recoloca', async () => {
+    const { w, e, at } = await setup(200)
+    expect(e.style.getPropertyValue('--_y')).toBe(`${200 + 32 + 8}px`)
+    const max0 = e.style.getPropertyValue('--_max')
+    const spy = vi.spyOn(e.style, 'setProperty')
+    at.top = 190
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('scroll'))
+    await frame(); await flush()
+    expect(spy.mock.calls).toEqual([['--_y', `${190 + 32 + 8}px`]])
+    spy.mockClear()
+    await scroll()
+    expect(spy).not.toHaveBeenCalled()
+    at.top = 150
+    await scroll(e)
+    expect(spy).not.toHaveBeenCalled()
+    expect(e.style.getPropertyValue('--_max')).toBe(max0)
+    w.unmount()
+  })
+
+  it('vaivén de 4px alrededor del cruce: como mucho un cambio de lado (se conserva mientras quepa)', async () => {
+    const { w, e, at } = await setup(548)
+    let flips = 0
+    let below = true
+    for (const d of [4, 4, 4, 4, 4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, 4, 4, 4, 4, 4]) {
+      at.top += d
+      await scroll()
+      const now = parseFloat(e.style.getPropertyValue('--_y')) >= at.top + 32
+      if (now !== below) flips++
+      below = now
+    }
+    expect(flips).toBeLessThanOrEqual(1)
+    w.unmount()
+  })
+
+  it('si el ancla sale del visor, el editor se cierra sin aplicar y sin devolver el foco; ya no escucha', async () => {
+    const { w, at, chip } = await setup(200)
+    const focus = vi.spyOn(chip.element, 'focus')
+    at.top = -40
+    await scroll()
+    expect(editor(w).element.hasAttribute('data-open')).toBe(false)
+    expect(w.emitted('update:filters')).toBeUndefined()
+    expect(focus).not.toHaveBeenCalled()
+    const spy = vi.spyOn(editor(w).element.style, 'setProperty')
+    at.top = 200
+    await scroll()
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+})

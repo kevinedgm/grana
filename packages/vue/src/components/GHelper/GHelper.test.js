@@ -296,3 +296,75 @@ describe('GHelper · validadores', () => {
     expect(v('offset')(0)).toBe(true)
   })
 })
+
+// ---------- Reporte del usuario (GCombobox, c4b087d): el panel «pivotea, tintinea, parpadea» al desplazar ----------
+describe('GHelper · contenido estable al desplazar la página', () => {
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+  const scroll = async (target = window) => { target.dispatchEvent(new Event('scroll')); await frame(); await flush() }
+  let restore = []
+  const fake = (prop, fn) => {
+    const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+    Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get() { return fn(this) } })
+    restore.push(() => { if (own) Object.defineProperty(HTMLElement.prototype, prop, own); else delete HTMLElement.prototype[prop] })
+  }
+  afterEach(() => { restore.forEach((f) => f()); restore = [] })
+  // Visor 1000 × 800, contenido de 200 × 200, separación y margen de 8: debajo cabe mientras bottom ≤ 584
+  const setup = async (top0) => {
+    vi.stubGlobal('innerWidth', 1000)
+    vi.stubGlobal('innerHeight', 800)
+    fake('offsetHeight', (el) => (el.classList.contains('g-helper__content') ? 200 : 0))
+    fake('offsetWidth', (el) => (el.classList.contains('g-helper__content') ? 200 : 0))
+    const w = mk({ contentPlacement: 'bottom-end' })
+    const at = { top: top0 }
+    btn(w).element.getBoundingClientRect = () => ({ left: 500, right: 524, top: at.top, bottom: at.top + 24, width: 24, height: 24, x: 500, y: at.top })
+    await btn(w).trigger('click'); await flush()
+    return { w, c: w.find('.g-helper__content').element, at }
+  }
+
+  it('vaivén de 4px alrededor del cruce: como mucho un cambio de lado (se conserva mientras quepa) y --_max solo al cambiar', async () => {
+    const { w, c, at } = await setup(556)
+    expect(c.dataset.side).toBe('bottom')
+    const spy = vi.spyOn(c.style, 'setProperty')
+    let flips = 0
+    let side = 'bottom'
+    for (const d of [4, 4, 4, 4, 4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, 4, 4, 4, 4, 4]) {
+      at.top += d
+      await scroll()
+      if (c.dataset.side !== side) flips++
+      side = c.dataset.side
+    }
+    expect(flips).toBeLessThanOrEqual(1)
+    expect(spy.mock.calls.filter(([n]) => n === '--_max').length).toBe(flips)
+    w.unmount()
+  })
+
+  it('si el disparador sale del visor, el contenido se cierra sin devolver el foco', async () => {
+    const { w, at } = await setup(200)
+    const focus = vi.spyOn(btn(w).element, 'focus')
+    at.top = -20
+    await scroll()
+    expect(w.emitted('toggle').at(-1)[0].open).toBe(true)
+    at.top = -30
+    await scroll()
+    expect(w.emitted('toggle').at(-1)[0]).toEqual({ open: false, presentation: 'popover' })
+    expect(w.emitted('update:open').at(-1)).toEqual([false])
+    expect(focus).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('varios desplazamientos en un cuadro escriben la posición una sola vez, y solo si cambia; el propio contenido no recoloca', async () => {
+    const { w, c, at } = await setup(200)
+    const spy = vi.spyOn(c.style, 'setProperty')
+    at.top = 190
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('scroll'))
+    await frame(); await flush()
+    expect(spy.mock.calls).toEqual([['--_y', `${190 + 24 + 8}px`]])
+    spy.mockClear()
+    await scroll()
+    expect(spy).not.toHaveBeenCalled()
+    at.top = 150
+    await scroll(c)
+    expect(spy).not.toHaveBeenCalled()
+    w.unmount()
+  })
+})
