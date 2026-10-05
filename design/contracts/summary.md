@@ -103,7 +103,7 @@ import { GSummary, summaryDiff } from '@grana/vue'   // app.use(Grana) registra 
 | `value` | String \| Number (obligatorio) | Valor **ya formateado** por la aplicación. Vacío, `null` o `undefined`: el dato se omite sin aviso |
 | `short` | String | Rótulo abreviado que se ve **en lugar** de `label` («Exp.»). El lector recibe ese mismo texto (dentro de `option` no cabe un `aria-label`) |
 | `priority` | Number | Menor = más importante. Sin ella, después de los que la declaran, en el orden del arreglo. Empates, por orden del arreglo |
-| `bare` | Boolean | El valor **se explica solo** («22 años», «Dra. Ruiz»): su rótulo puede callarse a la vista antes de soltar un dato. `false` por defecto: «03/02/2026» sin rótulo es ambiguo |
+| `bare` | Boolean | El valor **se explica solo** («22 años», «Dra. Ruiz»): su rótulo puede callarse a la vista antes de soltar un dato. `false` por defecto: «03/02/2026» sin rótulo es ambiguo. **En el dato identificador no tiene efecto sobre `data-terse`** (su rótulo cede en `data-tight`, «Orden de cesión», paso 5) |
 
 - **Orden:** el DOM sigue el orden de prioridad; orden visual = orden de lectura (WCAG 1.3.2). El arreglo no se muta.
 - **Identificador (#351):** `code` si lo hay; si no, **el dato de mayor prioridad** (`is-anchor`). No hay prop aparte. Con `code`, ningún dato ancla (el código ya identifica y va antes del título).
@@ -138,7 +138,7 @@ import { GSummary, summaryDiff } from '@grana/vue'   // app.use(Grana) registra 
 | **`stack`** | Cabecera + **rejilla de pares** (rótulo sobre valor). **No cede ni recorta**: crece en alto; título y valores saltan de línea. Acción al pie | Variable (lo que pida el contenido) | Vista previa, detalle, tarjeta con alto libre |
 
 - **`stack` no es la identidad: es la vista completa** (base r01, decisión 17). Existe porque la corriente de A es menos escaneable cuando sobra sitio, y porque la ficha recortada **nunca es la única fuente** de un dato: algún anfitrión ofrece la vista entera. **Nunca se elige solo** (no hay `auto` ni umbrales): lo pone el anfitrión.
-- **`lines` en `row`:** la primera línea es la cabecera. Con datos y `lines: 2`, la segunda es de los datos (identificador fijo al inicio; el resto salta y se recorta). Con `lines` ≥ 3, la segunda es `subtitle` si existe, y el resto son de datos: identificador y datos **fluyen juntos**, el identificador siempre el primero de la primera línea (`g-summary--multi`). Bruno escribe el número de líneas de datos en **`--_lines`** (variable en línea, excepción de `tokens.md` §29.5) y `g-summary--free` con `lines: 0`.
+- **`lines` en `row`:** la primera línea es la cabecera. Con datos y `lines: 2`, la segunda es de los datos (identificador fijo al inicio; el resto salta y se recorta). Con `lines` ≥ 3, la segunda es `subtitle` si existe, y el resto son de datos: identificador y datos **fluyen juntos**, el identificador siempre el primero de la primera línea (`g-summary--multi`, que existe **exactamente** con `lines` ≥ 3 o `0`: el CSS no puede leer `--_lines`, y en `row` sin `--multi` la línea secundaria con datos solo la recibe el lector). Bruno escribe el número de líneas de datos en **`--_lines`** (puede valer 1) (variable en línea, excepción de `tokens.md` §29.5) y `g-summary--free` con `lines: 0`.
 - **El ancho lo da el contenedor:** la raíz lleva `contain: inline-size` e `inline-size: 100%`. **La ficha no aporta ancho a su anfitrión** (sin esto, en una celda de `GTable` ensancha la tabla: medido por kiwi). Un anfitrión de ancho automático debe darle sitio: `min` en la columna de `GTable`, `min-inline-size` o `flex: 1` en una fila flex. Si tras montar mide 0 de ancho, aviso.
 - **Sin acción en `inline` ni `row`:** el anfitrión es lo accionable, y un control recortado seguiría recibiendo foco sin verse.
 
@@ -168,14 +168,14 @@ import { GSummary, summaryDiff } from '@grana/vue'   // app.use(Grana) registra 
 
 Al estrechar, en este orden:
 
-1. Los **rótulos `bare`** dejan de verse (todos a la vez), en cuanto un dato no cabe.
+1. Los **rótulos `bare`** dejan de verse (todos a la vez), en cuanto un dato no cabe (`data-terse`). **Salvo el del identificador**: aunque el dato sea `bare`, su rótulo solo se calla en el paso 5 (`data-tight`); el identificador es lo último en ceder, rótulo incluido.
 2. Los **datos**, por el final (menor prioridad primero). Aparece «+N».
 3. El **estado**, cuando el título ya no conserva su suelo a su lado (salta a una línea recortada de la cabecera). En `inline` nunca se ve.
 4. El **título**, con elipsis, hasta su suelo: **7ch** en `row`, **4ch** en `inline`.
-5. **«+N»** y el **rótulo del identificador** (`data-tight`).
+5. **«+N»** y el **rótulo del identificador** (`data-tight`). En `inline` y en `row` de una línea de datos (`lines: 2`), `data-tight` **retira de la vista todos los demás datos** (texto oculto accesible, nunca `display: none`): si no, al callar el rótulo del identificador cabría otra vez un dato y el orden de cesión se invertiría (medido por coco). El identificador pierde su margen final, que es ancho útil. En `inline` el **suelo de `4ch` del título cede también aquí** (hasta 0) **antes** que el valor del identificador, y este se limita a `100% − space × 2`.
 6. El **valor del identificador**, con elipsis. Es lo último.
 
-- En `inline` todo compite en una línea, y por eso **el identificador gana al título** (pasos 4 a 6). En `row`, cabecera y datos son líneas distintas: ceden en paralelo.
+- En `inline` todo compite en una línea, y por eso **el identificador gana al título** (pasos 4 a 6): el título conserva `4ch` mientras no haya `data-tight` y, con él, cede su suelo antes de que el valor del identificador toque su elipsis. En `row`, cabecera y datos son líneas distintas: ceden en paralelo.
 - La **identidad** (hueco inicial) no cede. El **código** no cede.
 - Los dos suelos (`7ch`, `4ch`) y el `1lh` son literales de unidad, no medidas de tema (`tokens.md` §34).
 
@@ -224,6 +224,30 @@ Al estrechar, en este orden:
 - **Bidi (kiwi L10):** título, línea secundaria, código, rótulo y valor llevan **`dir="auto"`** (precedente #282), para que «Exp. 001000» dentro de un contenedor RTL no se reordene.
 - **Cifras:** `font-variant-numeric: tabular-nums` en toda la ficha.
 - **Carga:** `aria-busy="true"`; las formas son `aria-hidden`. **Vacío:** el `placeholder` es texto normal, atenuado.
+
+### Marcado de carga y de vacío (fijado tras `estilo.md`)
+
+El CSS de coco depende de esta estructura exacta (la raíz lleva `is-loading` o `is-empty`):
+
+```html
+<!-- loading: sin contenido ni medida; las formas, decorativas -->
+<span class="g-summary g-summary--layout-row … is-loading" aria-busy="true">
+  <span class="g-summary__lead" aria-hidden="true"><span class="g-summary__bone"></span></span>  <!-- solo si habrá identidad (slot lead, avatar o icon) -->
+  <span class="g-summary__body" aria-hidden="true">
+    <span class="g-summary__head"><span class="g-summary__bone"></span></span>
+    <span class="g-summary__data"><span class="g-summary__bone"></span></span>                    <!-- salvo en layout="inline" -->
+  </span>
+</span>
+
+<!-- vacío: sin title y con placeholder; la identidad, si la hay, se conserva -->
+<span class="g-summary … is-empty">
+  [<span class="g-summary__lead" aria-hidden="true">…</span>]
+  <span class="g-summary__body"><span class="g-summary__head"><span class="g-summary__name"><span class="g-summary__title" dir="auto">{placeholder}</span></span></span></span>
+</span>
+```
+
+- Carga: `__lead[aria-hidden] > __bone` **solo si habrá identidad**; `__body[aria-hidden] > __head > __bone`; y, salvo en `inline`, `__data > __bone`. En `row` con `--multi`, la forma de datos mide las `--_lines` líneas (el máximo); el alto es Δ0 al llegar los datos.
+- Vacío: `__body > __head > __name > __title` con el texto de `placeholder` (sin `__data`, `__status` ni `__more`). Sin `placeholder` y sin `loading`, no se pinta nada y avisa (aviso 1).
 - **Sin foco propio, sin teclado, sin región viva.** Los controles del slot `action` son de la aplicación.
 
 ### Mínimos (no son tema)
@@ -258,7 +282,7 @@ const diffs = summaryDiff(visibles)          // [{ Edad: 'same', Expediente: 'di
 
 ## Coincidencia (`highlight`)
 
-- Con texto, la ficha marca con **`<mark class="g-summary__mark">`** la primera aparición de cada palabra (sin acentos ni mayúsculas) en `title`, `code`, `subtitle` y los **valores** de `facts` (no en los rótulos). **Peso y subrayado, no color** (WCAG 1.4.1). Si la forma sin acentos no mide lo mismo que el texto, no se marca. Es la regla de `GCombobox` (#335), ahora compartida.
+- Con texto, la ficha marca con **`<mark class="g-summary__mark">`** la primera aparición de cada palabra (sin acentos ni mayúsculas) en `title`, `code`, `subtitle` y los **valores** de `facts` (no en los rótulos). **Peso y subrayado, no color** (WCAG 1.4.1): peso de título y subrayado de **`--g-border-width` a `--g-space-1 / 2` de la línea base** (cabe dentro de una línea recortada de `1lh`; el de `GCombobox` anterior, `--g-focus-width` a `--g-space-1`, se cortaba en la corriente: medido por coco). Si la forma sin acentos no mide lo mismo que el texto, no se marca. Es la regla de `GCombobox` (#335), ahora compartida.
 - Bruno **sube al principal** las funciones puras que hoy viven en `GCombobox/engine.js` (`fold`, `tokens`, `parts`) como utilidad interna (`utils/`), y `GCombobox` las toma por `__shared`. `summaryDiff` usa el mismo `fold`.
 - Sin `highlight`, nada. No busca ni filtra: solo pinta.
 
@@ -322,11 +346,11 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 | `--g-space-1` (y sus múltiplos) | Lado de la identidad, separaciones, columnas de la rejilla de `stack` |
 | Roles `body`, `body-sm`, `caption`, `title-sm`; `--g-text-title-sm-weight` | «Tipografía» |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Título y valores; línea secundaria y código; rótulos y valores compartidos |
-| `--g-color-border-strong` | Separador entre datos (una línea al inicio de cada dato, no un carácter) |
+| `--g-color-border-strong` | Separador entre datos (un filete corto, no un carácter) y **formas de carga** (como el esqueleto de `GCard`: sobre `surface-sunken`, la vista previa de la paleta, no se verían) |
 | `--g-color-accent-soft`, `--g-color-on-accent-soft` | «+N» (par garantizado ≥ 4.5:1) |
 | `--g-radius-pill`, `--g-radius-sm`, `--g-radius-xs` | «+N»; caja del icono; formas de carga |
-| `--g-color-surface-sunken` | Caja del icono de identidad; formas de carga |
-| `--g-border-width` | Separador |
+| `--g-color-surface-sunken` | Caja del icono de identidad |
+| `--g-border-width` | Separador; subrayado de la coincidencia (`highlight`) |
 | `--g-duration-slow`, `--g-ease-out` | «Movimiento» |
 
 **No son tokens** (`tokens.md` §34): los suelos del título **`7ch`** y **`4ch`** y la unidad **`1lh`** (literales de unidad, #187); el mínimo de columna de la rejilla de `stack` (`space × 28`, constante de diseño que fija coco); el desplazamiento de entrada (`space × 3`); **`--_lines`** (variable en línea).
@@ -336,9 +360,9 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 | Clase / dato | Elemento | Cuándo | Quién |
 | --- | --- | --- | --- |
 | `g-summary`, `g-summary--layout-{inline\|row\|stack}`, `g-summary--size-{xs…xl}` | Raíz | Siempre | render |
-| `g-summary--multi` | Raíz | `row` con más de una línea de datos | render |
-| `g-summary--free` | Raíz | `row` con `lines: 0` | render |
-| `--_lines` | Raíz (en línea) | `row`: líneas de datos | render |
+| `g-summary--multi` | Raíz | `row` con **`lines` ≥ 3 o `0`** (no «más de una línea de datos»: `lines: 3` con `subtitle` deja una sola línea de datos y la ficha es `multi` igual) | render |
+| `g-summary--free` | Raíz | `row` con `lines: 0` (también lleva `--multi`) | render |
+| `--_lines` | Raíz (en línea) | `row`: líneas de datos (≥ 1; en carga, el máximo: `lines − 1`) | render |
 | `is-loading`, `is-empty` | Raíz | `loading`; sin `title` | render |
 | `g-summary__lead`, `__body`, `__head`, `__name`, `__code`, `__title`, `__status`, `__subtitle`, `__data`, `__flow`, `__facts`, `__more`, `__action`, `__sep`, `__mark`, `__bone` | Partes | Según contenido | render |
 | `g-summary__fact`, `__fact-label`, `__fact-value` | Dato | Por dato | render |
@@ -359,9 +383,9 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 - **Cabecera:** el estado cede antes de que el título baje de su suelo. En `stack`, la cabecera salta de línea: nada se recorta.
 - **`stack`:** rejilla `auto-fill` de pares (rótulo `caption` sobre valor); **los valores saltan de línea**, sin elipsis (el prototipo los cortaba: se corrige aquí, porque `stack` es la vista completa).
 - **`inline`:** una línea, `font` heredada; Δ0 de alto dentro de `g-combobox__token` con cualquier `size` y `density` del campo.
-- **Carga:** formas con el alto del `layout` (Δ0 medido: kiwi no lo midió), con el patrón de esqueleto de `GCard`.
+- **Carga:** formas con el alto del `layout` (Δ0 medido: kiwi no lo midió), con el patrón de esqueleto de `GCard` **y su tono, `--g-color-border-strong`** (no `surface-sunken`: medido por coco, forma/fondo ≥ 1,45:1; sobre la vista previa no se veía).
 - **`forced-colors`** (sin medir por kiwi: medir): separadores y «+N» con `CanvasText`; formas de carga con `GrayText`; el peso de `is-diff` se conserva; `is-same` en `GrayText` solo si sigue leyéndose.
-- **Contraste con otro tema y con el oscuro:** kiwi midió 4.72:1 (rótulo sobre la opción activa, tema claro por defecto): queda cerca del mínimo. Medir rótulo, `is-same` y «+N» sobre `surface`, `surface-sunken`, la opción activa de `field`, la activa invertida de la paleta y la ficha «seleccionada» del campo (`--g-color-selection`).
+- **Contraste con otro tema y con el oscuro:** kiwi midió 4.72:1 (rótulo sobre la opción activa, tema claro por defecto): queda cerca del mínimo. Medir rótulo, `is-same` y «+N» sobre `surface`, `surface-sunken`, la opción activa de `field`, la activa invertida de la paleta y la ficha «seleccionada» del campo (`--g-color-selection`). **Medido (`estilo.md`):** rótulo y compartido 5,05 sobre `bg`, 4,70 sobre `surface-sunken`, **4,43 sobre `selection`** (reapunte en «Adopción en `GCombobox`»); «+N» 4,51.
 - **Bidi real:** medir con texto árabe o hebreo (kiwi midió RTL con texto latino).
 
 ## Estados
@@ -396,6 +420,7 @@ Importar y renderizar en el servidor no toca `document`, `window` ni `matchMedia
 | — | `highlight` | El texto buscado (solo en la opción) |
 | — | `diff` | `summaryDiff` sobre las **opciones pintadas** (opción y vista previa) |
 
+- **Contraste sobre la selección (encargo de coco):** sobre `--g-color-selection` el rótulo (`text-subtle`) y el valor compartido (`is-same`) miden **4,43:1** con el tema por defecto (< 4,5:1; sobre `bg` 5,05 y sobre `surface-sunken` 4,70). La ficha «seleccionada» de `GCombobox` **reapunta ambos a `--g-color-text-muted`** (selector propio de `GCombobox.css` sobre `g-summary__fact-label` e `is-same`; `GSummary.css` no conoce al anfitrión) y coco mide el resultado con el tema por defecto, el oscuro y uno distinto.
 - `value`, `disabled` y los campos de más no llegan a la ficha. `status` **no** se añade a la opción en v0.1 (quien lo quiera, slot `option` con su propia `GSummary`).
 - Los slots `option`, `value` y `preview` **siguen ganando**; `GSummary` es pública para usarla dentro de ellos.
 - `ID-about`, el nombre de la opción (su texto), el modelo, el teclado y los anuncios **no cambian**.
@@ -447,6 +472,21 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 | L19 | Identidad | A + contraste de B, con lo que entra y lo que no; semillas descartadas | #349 |
 | L20 | `GCombobox` | Opción `row` `lines: 2`, ficha `inline`, vista previa `stack`; el contraste, sobre las opciones pintadas | #356 |
 
+### Enmiendas tras el estilo de coco (`design/lab/summary/estilo.md`, «Para lima»)
+
+Precisiones medidas por coco sobre el banco (4015/4015 en tres motores); **ninguna cambia una decisión registrada** (#349 a #357), por eso no llevan fila en `DECISIONS.md`.
+
+| # | Hueco | Resolución | Dónde |
+| --- | --- | --- | --- |
+| 1 | `g-summary--multi` | ⇔ `row` con `lines` ≥ 3 o `0`; `--free` con `lines: 0`; `--_lines` puede valer 1 | «Clases y datos», «Disposición» |
+| 2 | Tono de las formas de carga | `--g-color-border-strong` (como `GCard`), no `surface-sunken`; `tokens.md` §34 | «Tokens consumidos», «Para coco» |
+| 3 | Marcado de carga y de vacío | Fijado | «Marcado de carga y de vacío» |
+| 4 | `data-tight` | Retira los demás datos en `inline` y `row` de una línea; en `inline` el suelo de `4ch` cede antes que el valor del identificador | «Orden de cesión», paso 5 |
+| 5 | Identificador con `bare` | **Confirmado:** `data-terse` no calla su rótulo, solo `data-tight` (coherente con el paso 5 de #352) | «Datos», «Orden de cesión» |
+| 6 | Contraste sobre `selection` | 4,43:1: `GCombobox` reapunta a `text-muted` (encargo de coco) | «Adopción en `GCombobox`», `combobox.md` |
+| 7 | `stack` muy estrecho | Límite conocido (README) | «Límites conocidos» |
+| 8 | Subrayado de `highlight` | `--g-border-width` a `--g-space-1 / 2` de la línea base | «Coincidencia» |
+
 ## Límites conocidos (para el README)
 
 - **La ficha recortada nunca es la única fuente de un dato:** el anfitrión ofrece la vista completa (vista previa, detalle, `stack`). El `title` nativo de lo cortado solo sirve al puntero.
@@ -454,6 +494,7 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 - **`bare` mal marcado** deja un valor sin rótulo a la vista.
 - **`diff`** depende de que las vecinas traigan los mismos rótulos; con un tema cuyo peso de título sea igual al del cuerpo, lo único se distingue solo por tono.
 - **Un anfitrión de ancho automático** (celda de tabla, fila flex) debe dar ancho a la ficha.
+- **`stack` a muy poco ancho:** el estado puede llevar la elipsis propia de `GBadge` (antes que desbordar) y un `GBtn` del slot `action` (`white-space: nowrap`) puede desbordar: es contenido de la aplicación, que le da sitio.
 - **«+N»** no se localiza (cifras latinas).
 - **Sin virtualización:** cada ficha se mide; con cientos, la medida de las que no están a la vista puede llegar un instante después.
 - **Navegadores:** exige la unidad `lh` y `:has()` (los actuales).
