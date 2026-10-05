@@ -15,7 +15,7 @@ Ejecutar (requiere `npm run build`): `GRANA_PW_PORT=4209 node design/lab/combobo
 | # | Hallazgo | Severidad | Dueño | Estado |
 | --- | --- | --- | --- | --- |
 | 1 | **Abrir y cerrar rápido dejaba cuadros sin contorno y sin anillo.** Con la forma abierta, la caja de `GInput` perdía borde y anillo poniendo sus colores a `transparent`; pero `GInput` funde `border-color` y `outline-color` en `--g-duration-fast`: al cerrar, la forma desaparece en el acto y el borde y el anillo de la caja vuelven **fundiéndose desde transparente**. Medido con 8 clics reales en la flecha + teclas (Chromium, 86 cuadros): **1 cuadro sin contorno y 2 sin anillo con el foco puesto** (un parpadeo; WCAG 2.4.7 de forma transitoria). Corregido: el anillo de la caja se quita con `outline-style: none` (discreto, no se funde) y el borde con `border-image: linear-gradient(transparent, transparent) 1` (pinta en lugar del color, no cambia el ancho: Δ0, y tampoco se funde). Al cerrar vuelven en el acto con su color. Confirmado que **fallaba antes** (copia de `dist/` con las reglas viejas: 1 sin contorno, 2 sin anillo) y **pasa después** en los tres motores (0 y 0) | Media (foco, parpadeo) | coco | Corregido y verificado |
-| 2 | **Fichas con `GSummary` pendientes.** El contrato ya manda (#356) que opción, ficha del valor y vista previa se pinten con `GSummary`, y que `GCombobox.css` retire `__description`, `__facts`, `__fact`, `__fact-label`, `__token-label`, `__token-meta`, `__preview-*` y, en las opciones, `__lead`, `__code`, `__main`, `__label`, `__mark`. `GSummary` aún no está construida (contrato de lima `dcb7123`; sin `.vue` ni CSS). Hoy rige la regla provisional de dos líneas de `estilo.md`, que **cumple** las medidas del reporte del usuario (ver «Fichas de opción»). No bloquea: es una migración que depende de otro componente | Media (contrato) | **bruno** (`GCombobox.vue`: pintar con `GSummary`, `summaryDiff` sobre las opciones pintadas) y **coco** (retirar las clases y reapuntar los estados a `g-summary__*`), cuando `GSummary` pase su flujo | Pendiente, con dependencia |
+| 2 | **Fichas con `GSummary` pendientes.** El contrato ya manda (#356) que opción, ficha del valor y vista previa se pinten con `GSummary`, y que `GCombobox.css` retire `__description`, `__facts`, `__fact`, `__fact-label`, `__token-label`, `__token-meta`, `__preview-*` y, en las opciones, `__lead`, `__code`, `__main`, `__label`, `__mark`. `GSummary` aún no está construida (contrato de lima `dcb7123`; sin `.vue` ni CSS). Hoy rige la regla provisional de dos líneas de `estilo.md`, que **cumple** las medidas del reporte del usuario (ver «Fichas de opción»). No bloquea: es una migración que depende de otro componente | Media (contrato) | **bruno** (`GCombobox.vue`: pintar con `GSummary`, `summaryDiff` sobre las opciones pintadas) y **coco** (retirar las clases y reapuntar los estados a `g-summary__*`), cuando `GSummary` pase su flujo | **Resuelto** (bruno `1e57a05`, coco `eac1971`; ver «Addendum») |
 | 3 | **Márgenes justos de contraste que vienen del tema, no del componente.** Mínimos de 28 configuraciones: iniciales del avatar `md` **4,53** (categoría del tema), mensaje de error de carga **4,51** (`danger-text`), contorno de la forma **4,52** (≥ 3 exigido). Todos cumplen; el componente solo lee los tokens del rol. Si un tema generado bajara de 4,5, el aviso es del motor de tema | Informativo | `@grana/cli` (bruno), si algún día baja | Cumple |
 | 4 | **Arnés de esta auditoría** (no son defectos del producto): (a) la marca `__cbFailNext` se ponía antes de escribir «lu» y la consumía la búsqueda de «l» (red rápida): ahora se pone tras la primera letra y el error de carga se mide en todos los temas; (b) el recuento de «abrir y cerrar rápido» empieza con el anillo ya en reposo (el anillo de `GInput` entra fundiéndose al recibir el foco, como en todos los campos); (c) la comprobación «la caja conserva anillo o contorno» lee `outline-style` y `border-image` (el mecanismo del hallazgo 1); (d) WebKit, como Safari sin «Acceso total por teclado», no lleva el Tab a los botones: «Limpiar» se alcanza con `Alt+Tab` | — | coco | Hecho |
 | 5 | **Playground: el índice lateral marca «GSelect» con el título «GCombobox» ya a la vista** (captura a 1280, título a 245px del borde superior; con el título a 150px marca bien). Umbral del resaltado del índice, común a todas las secciones | Baja (demo) | bruno (`playground/index.html`) | Anotado |
@@ -57,7 +57,7 @@ Capturas lado a lado (Chromium) de `r02/?c=AC` y `?c=B` frente al playground rea
 - Lector de pantalla (VoiceOver, NVDA, TalkBack): eco de escritura con la primera opción activa, fantasma junto a `aria-activedescendant`, vista previa, `aria-describedby` con la línea secundaria, recuentos.
 - `forced-colors` real (solo emulado), Safari real, teclado virtual real sobre la hoja, IME real con el fantasma, zoom real del navegador (200 % aproximado con DPR, 400 % no), pegado de texto largo.
 - `pointer: coarse` en Firefox (no emulable).
-- La pintura con `GSummary` (hallazgo 2): se auditará cuando `GSummary` esté construida.
+- ~~La pintura con `GSummary` (hallazgo 2)~~: auditada tras la adopción; ver «Addendum».
 
 ## Pasada de cierre
 
@@ -68,3 +68,35 @@ Sobre el estado final (`GCombobox.css` corregido, `dist/` reconstruido; el árbo
 - `npm run build`: sin errores. `node packages/vue/scripts/check-icons.mjs`: 0 archivos con problemas.
 - Compuertas de CLAUDE.md (las tres de siempre, las de cada componente sobre `grana.css` incluida `g-combobox__ghost`, ni voz ni isla ni combobox en `grana.js`, `speech.js`/`status.js`/`combobox.js` presentes, `! grep -q "g-summary__" dist/combobox.js`): todas pasan.
 - Playwright (`design/lab/theme-playground`, puerto 4209): `combobox.spec.mjs`, `combobox-forma.spec.mjs` y `personalidad-combobox.spec.mjs` en Chromium, Firefox y WebKit: **99/99**.
+
+## Addendum · tras la adopción de `GSummary` (#356)
+
+Esta auditoría se escribió en `d9225bf`, antes de que existiera `GSummary`. Lo que sigue recoge lo que cambió después. Las cifras salen de `design/lab/combobox/estilo.md` («Fichas con `GSummary`») y del mensaje de `eac1971`. **El hallazgo 2 queda resuelto.**
+
+**Qué se hizo**
+
+- **bruno, `1e57a05`:** opción por defecto con `GSummary row lines 2`; ficha del valor `inline xs` en `__token`; vista previa `stack lg` con `key` por opción; `summaryDiff` sobre las opciones pintadas y `highlight` con el texto buscado; el mapeo de #335 sigue igual; `engine.js` retira `fold`/`tokens`/`parts`; `dist/combobox.js` pasa de 14 111 a 13 563 B gzip. Dejó tres specs de `combobox-forma` en rojo a la espera del CSS de coco.
+- **coco, `eac1971`:** `GCombobox.css` retira la regla provisional de dos líneas y las partes antiguas (`__description`, `__facts`, `__fact`, `__fact-label`, `__token-label`, `__token-meta`, `__preview-*` y, en las opciones, `__lead`, `__code`, `__main`, `__label`, `__mark`; las filas de acción conservan `__lead`, `__main` y `__label`). Solo da sitio a la ficha y reapunta tonos por estado sobre `g-summary__*`.
+
+**Cambios medidos**
+
+| Área | Resultado |
+| --- | --- |
+| Ficha del valor | Medía **0 de ancho** con `fit-content` + `contain: inline-size`; ahora `__token` con `inset-inline` = celda + `space-1` la dimensiona. «Seleccionada» es una banda de `--g-color-selection` sobre la celda entera (la ficha toma el ancho del contenedor, nunca del contenido) |
+| Contraste sobre la selección (rótulo e `is-same`, de `text-subtle` a `text-muted`; antes → después, tres motores iguales) | Por defecto claro **4,48 → 6,56**, oscuro 5,67 → 7,84; tema de auditoría claro 4,51 → 6,60, oscuro 5,60 → 7,75; `spotify` 4,49 → 6,56 / 5,62 → 7,78; `grana` 4,46 → 6,54 / 5,75 → 7,99 |
+| «+N» sobre la selección | Desaparecía (la selección del tema por defecto es `accent-soft`, igual que su píldora); con el foco se perfila con borde `on-accent-soft` |
+| `forced-colors` | `is-same` (especificidad 0,4,0) pasaba a `CanvasText` sobre `Highlight` en la activa; ahora `HighlightText` (y `GrayText` en la deshabilitada) |
+| Texto libre | Cursiva en `.is-custom .g-summary__title` (peso de texto); la cursiva sobresalía y el `overflow: hidden` mordía la última letra («miel»): relleno final de `space-1` con margen negativo igual (el hueco no cambia). La marca «Texto libre» no cede: cede el título |
+| Opción | Ficha `flex: 1 1 0`; `__check` alineado con la línea del título; columna de códigos sobre `g-summary__code` (`min-inline-size: space × 14`). Alto de la ficha **44px** a 240, 320 y 480px de campo; datos visibles 1 / 2 / 2 de 4 (defecto) y 1 / 2 / 3 (auditoría); identificador entero; sin desborde |
+| Vista previa | Entra desde la lista con `@starting-style` (fundido de `--g-duration-fast` y desplazamiento de `space × 2` desde el lado de la lista, invertido en RTL); con movimiento reducido, solo el fundido |
+
+**Verificación (componente real, `auditoria-verificar.mjs` con selectores de `GSummary`):** **2415/2415** en Chromium, Firefox y WebKit. Specs `combobox`, `combobox-forma`, `personalidad-combobox` y `summary`: **129/129** (43 por motor), incluidos los tres casos que bruno dejó en rojo. Mínimos de contraste en 28 configuraciones (Chromium; 8 en Firefox y WebKit): rótulo de opción **5,05**, «+N» **4,51**, ficha seleccionada **6,49**, rótulo de la vista previa **4,70**; activa de la paleta 15,18.
+
+**Las cifras de la tabla «Lo medido» sobre fichas** (filas «C · ficha del valor», «Fichas de opción a 240 / 320 / 480px» y «Llegada de la ficha») son de antes de `GSummary`; mandan las de este addendum.
+
+**Pendientes**
+
+- **coco:** migrar `estilo-banco.html` y `estilo-verificar.mjs` al marcado de #356 (siguen con el marcado a mano; el banco queda como registro del paso 3).
+- **lima (no bloquea):** en la ficha del valor, `GSummary inline` cede el título hasta 4ch antes que el identificador; si se quiere el nombre primero en el valor, es una prop o un orden de cesión por anfitrión (decisión de contrato).
+
+**No verificado (sin cambios):** lector de pantalla, `forced-colors` real, Safari real, IME real, zoom real, `pointer: coarse` en Firefox. En esta pasada no se ejecutó build ni Playwright (las cifras son las medidas en `eac1971`).
