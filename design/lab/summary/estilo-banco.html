@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSummary · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/summary.md («Semántica y accesibilidad», «Clases y datos») con el CSS
+     real de GSummary.css cargado DENTRO de la capa grana.components, después de todo dist/grana.css (como lo registrará
+     bruno), y los componentes reales de dist/ (GAvatar, GBadge, GBtn). XSummary hace lo que hará GSummary.vue y solo lo
+     que el estilo necesita: orden por prioridad, identificador (code o primer dato), --_lines, --multi, --free, diff,
+     highlight, y la MEDIDA del contrato (tres pasadas: data-terse → «+N» → data-tight; data-clipped; title nativo solo en
+     lo cortado; data-enter solo por cambio de tamaño, nunca al montar ni con reduce, retirado en animationend
+     g-summary-enter… o en el acto). No es documentación ni la implementación de bruno.
+     Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4211  →  /design/lab/summary/estilo-banco.html
+     Parámetros: ?dark=1  ?test=1 (Tema de prueba)  ?theme=<generated/*.css>  ?w=<px>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4211 node design/lab/summary/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GSummary/GSummary.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="test-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  :root{--w:360px}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:30vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:12px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px;align-items:start}
+  /* El escenario fija el ancho del anfitrión; la línea discontinua es su borde: nada la cruza */
+  .stage{inline-size:var(--w);max-inline-size:100%;outline:1px dashed var(--g-color-border-strong);outline-offset:2px;margin-block-end:12px}
+  .stage.fixed{inline-size:260px}
+  /* Anfitriones de prueba, con los tokens del tema */
+  .lb{list-style:none;margin:0;padding:var(--g-space-1);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md)}
+  .lb__opt{display:flex;align-items:center;gap:var(--g-space-2);padding:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-sm);color:var(--g-color-text)}
+  .lb__opt > .g-summary{flex:1;min-inline-size:0}
+  .lb__opt[aria-selected="true"]{background:var(--g-color-surface-sunken)}
+  .fld{display:flex;align-items:center;min-inline-size:0;padding-inline:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text)}
+  .fld--sm{font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);padding-block:var(--g-space-1)}
+  .fld--md{font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);padding-block:var(--g-space-2)}
+  .fld--lg{font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);padding-block:var(--g-space-2)}
+  .fld__plain{flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pv{padding:var(--g-space-4);background:var(--g-color-surface-sunken);border-radius:var(--g-radius-md)}
+  .card{padding:var(--g-space-4);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg)}
+  .tbl{inline-size:100%;border-collapse:collapse;table-layout:fixed;background:var(--g-color-surface)}
+  .tbl td,.tbl th{padding:var(--g-space-2) var(--g-space-3);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;font-size:var(--g-text-body-sm-size)}
+  .tbl th{overflow:hidden;white-space:nowrap} .tbl th:last-child{inline-size:calc(var(--g-space-1) * 14)}
+  .bg-bg{background:var(--g-color-bg)} .bg-surface{background:var(--g-color-surface)} .bg-sunken{background:var(--g-color-surface-sunken)} .bg-selection{background:var(--g-color-selection)}
+  .surf{padding:var(--g-space-3);color:var(--g-color-text)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GSummary · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A · prioridad líquida: identidad, título y una corriente de datos que se bebe por el final; antes de soltar un dato calla los rótulos que se explican solos; «+N» dice cuántos no se ven; al ensanchar, lo que vuelve a caber entra. Contraste de B entre homónimos: lo único pesa, lo compartido se apaga. Mueve el ancho: nada cruza la línea discontinua.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Ancho <input id="t-w" type="range" min="120" max="720" step="1" v-model.number="w"></label><output>{{ w }}px</output>
+  <button type="button" v-for="q in [120, 160, 240, 360, 520, 640]" :key="q" @click="w = q">{{ q }}</button>
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+</div>
+
+<h2 class="b">1 · Opción de lista (row, lines 2): cuatro homónimas y un vecino, con diff y highlight «mar»</h2>
+<div class="stage"><ul class="lb" role="listbox" aria-label="Paciente" data-case="opt">
+  <li v-for="(p, i) in PEOPLE" :key="p.id" class="lb__opt" role="option" :aria-selected="String(i === 0)"><x-summary v-bind="p" :status="null" :diff="DIFFS[i]" highlight="mar"></x-summary></li>
+</ul></div>
+<div class="stage"><ul class="lb" role="listbox" aria-label="Diagnóstico" data-case="opt-dx">
+  <li class="lb__opt" role="option" aria-selected="false"><x-summary v-bind="DX"></x-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><x-summary v-bind="PROD"></x-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><x-summary title="Ana Torres" subtitle="Sin datos: la línea secundaria ocupa la segunda línea" avatar></x-summary></li>
+</ul></div>
+
+<h2 class="b">2 · Valor dentro de un campo (inline, Δ0 de alto) en tres tamaños de campo</h2>
+<div class="grid">
+  <div v-for="s in ['sm', 'md', 'lg']" :key="s">
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'ref-' + s"><span class="fld__plain">María García López</span></div></div>
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'field-' + s"><x-summary v-bind="PEOPLE[0]" layout="inline"></x-summary></div></div>
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'field-dx-' + s"><x-summary v-bind="DX" layout="inline"></x-summary></div></div>
+  </div>
+</div>
+
+<h2 class="b">3 · Vista previa (stack, group, acción al pie) y tarjetas (row lines 4 y lines 0)</h2>
+<div class="grid">
+  <div class="stage"><div class="pv" data-case="preview"><x-summary v-bind="PEOPLE[0]" subtitle="Paciente desde 2019 · Consultorio 4, segundo piso, ala norte" layout="stack" group><template #action><g-btn size="sm" variant="soft">Abrir</g-btn></template></x-summary></div></div>
+  <div class="stage"><div class="card" data-case="card4"><x-summary v-bind="PROD" subtitle="Analgésico y antipirético de venta libre" layout="row" :lines="4" size="lg"></x-summary></div></div>
+  <div class="stage"><div class="card" data-case="card0"><x-summary v-bind="PEOPLE[1]" layout="row" :lines="0" size="lg"></x-summary></div></div>
+  <div class="stage"><div class="card" data-case="card3"><x-summary v-bind="PEOPLE[2]" subtitle="Con lines 3 y línea secundaria: una línea de datos" layout="row" :lines="3"></x-summary></div></div>
+</div>
+
+<h2 class="b">4 · Celda de tabla (la ficha no aporta ancho)</h2>
+<div class="stage"><table class="tbl" data-case="cell"><thead><tr><th>Paciente</th><th>Sala</th></tr></thead><tbody>
+  <tr v-for="p in PEOPLE.slice(0, 2)" :key="p.id"><td class="su-cell"><x-summary v-bind="p" size="sm"></x-summary></td><td>4B</td></tr>
+</tbody></table></div>
+
+<h2 class="b">5 · Bidi con texto RTL real (árabe y hebreo) y latino en contenedor RTL</h2>
+<div class="stage" dir="rtl"><ul class="lb" role="listbox" aria-label="مريض" data-case="rtl-opt">
+  <li v-for="p in RTL" :key="p.id" class="lb__opt" role="option" aria-selected="false"><x-summary v-bind="p"></x-summary></li>
+</ul></div>
+<div class="stage" dir="rtl"><div class="fld fld--md" data-case="rtl-field"><x-summary v-bind="RTL[0]" layout="inline"></x-summary></div></div>
+<div class="stage" dir="rtl"><ul class="lb" role="listbox" aria-label="Paciente" data-case="rtl-latin">
+  <li class="lb__opt" role="option" aria-selected="false"><x-summary v-bind="PEOPLE[0]"></x-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><x-summary v-bind="DX"></x-summary></li>
+</ul></div>
+<div class="stage" dir="rtl"><div class="pv" data-case="rtl-preview"><x-summary v-bind="RTL[1]" layout="stack" group></x-summary></div></div>
+
+<h2 class="b">6 · Carga (Δ0) y vacío</h2>
+<div class="grid" data-case="loading">
+  <div class="stage"><ul class="lb"><li class="lb__opt" data-pair="row2"><x-summary v-bind="PEOPLE[0]"></x-summary></li><li class="lb__opt" data-pair="row2"><x-summary v-bind="PEOPLE[0]" loading></x-summary></li></ul></div>
+  <div class="stage"><div class="card" data-pair="row4"><x-summary v-bind="PROD" layout="row" :lines="4" size="lg"></x-summary></div><div class="card" data-pair="row4"><x-summary icon="tag" layout="row" :lines="4" size="lg" loading></x-summary></div></div>
+  <div class="stage"><div class="fld fld--md" data-pair="inline"><x-summary v-bind="PEOPLE[0]" layout="inline"></x-summary></div><div class="fld fld--md" data-pair="inline"><x-summary avatar layout="inline" loading></x-summary></div></div>
+  <div class="stage"><div class="pv" data-pair="stack"><x-summary avatar layout="stack" loading></x-summary></div><div class="pv" data-case="empty"><x-summary placeholder="Sin paciente" avatar></x-summary></div></div>
+</div>
+
+<h2 class="b">7 · Tamaños (row, lines 2) y superficies (contraste de rótulos, compartido, secundaria, código, «+N»)</h2>
+<div class="grid">
+  <div class="stage" data-case="sizes"><div v-for="s in ['xs', 'sm', 'md', 'lg', 'xl']" :key="s" class="card" style="margin-block-end:8px"><x-summary v-bind="PEOPLE[3]" :size="s"></x-summary></div></div>
+  <div class="stage fixed" data-case="surfaces">
+    <div v-for="b in ['bg', 'surface', 'sunken', 'selection']" :key="b" :class="['surf', 'bg-' + b]" :data-bg="b">
+      <x-summary v-bind="PEOPLE[1]" :diff="DIFFS[1]" subtitle="Línea secundaria"></x-summary>
+      <x-summary v-bind="DX" layout="stack" :diff="{ Grupo: 'same', 'Última revisión': 'diff' }"></x-summary>
+      <x-summary placeholder="Sin paciente"></x-summary>
+    </div>
+  </div>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, watch, onMounted, onBeforeUnmount, onUpdated, h } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+const fold = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+// ---- Datos ----
+const P = (id, title, exp, edad, visita, medico, status) => ({ id, title, avatar: true, status,
+  facts: [{ label: 'Expediente', short: 'Exp.', value: exp, priority: 1 }, { label: 'Edad', value: edad, priority: 2, bare: true },
+    { label: 'Última visita', value: visita, priority: 3 }, { label: 'Médico', value: medico, priority: 4, bare: true }] })
+const PEOPLE = [
+  P('p1', 'María García López', '001000', '22 años', '03/02/2026', 'Dra. Ruiz', { label: 'Activa', color: 'success' }),
+  P('p2', 'María García López', '004417', '47 años', '19/08/2026', 'Dr. Peña', { label: 'Activa', color: 'success' }),
+  P('p3', 'María García López', '010238', '22 años', '03/02/2026', 'Dr. Ortega', { label: 'Alta', color: 'neutral' }),
+  P('p4', 'María García López', '020951', '71 años', '11/11/2025', 'Dra. Ruiz', { label: 'Activa', color: 'success' }),
+  P('p5', 'Mario Garza Lozano', '000317', '35 años', '27/09/2026', 'Dr. Peña', { label: 'Pendiente', color: 'warning' })
+]
+const DX = { title: 'Diabetes mellitus tipo 2 sin complicaciones', code: 'E11.9', icon: 'activity',
+  facts: [{ label: 'Grupo', value: 'Endocrinas' }, { label: 'Crónica', value: 'Sí' }, { label: 'Última revisión', value: '2026' }] }
+const PROD = { title: 'Paracetamol 500 mg, caja con 20 tabletas', icon: 'tag', status: { label: 'Agotado', color: 'danger' },
+  facts: [{ label: 'SKU', value: 'MED-000482-MX', priority: 1 }, { label: 'Precio', value: '$ 48.50', priority: 2 }, { label: 'Existencia', value: '0 cajas', priority: 3 }, { label: 'Proveedor', value: 'Laboratorios Farmacéuticos del Sureste, S.A. de C.V.', priority: 4 }] }
+// Texto RTL real: árabe y hebreo, con cifras latinas en el identificador
+const RTL = [
+  { id: 'r1', title: 'مريم غارسيا لوبيز', avatar: true, status: { label: 'نشطة', color: 'success' }, subtitle: 'عيادة ٤',
+    facts: [{ label: 'الملف', value: '001000', priority: 1 }, { label: 'العمر', value: '22 سنة', priority: 2, bare: true }, { label: 'آخر زيارة', value: '03/02/2026', priority: 3 }, { label: 'الطبيب', value: 'د. رويز', priority: 4, bare: true }] },
+  { id: 'r2', title: 'מרים גרסיה לופס', avatar: true, subtitle: 'מטופלת מאז 2019',
+    facts: [{ label: 'מס׳ תיק', value: '004417', priority: 1 }, { label: 'גיל', value: '47 שנים', priority: 2, bare: true }, { label: 'ביקור אחרון', value: '19/08/2026', priority: 3 }, { label: 'רופא', value: 'ד״ר פניה', priority: 4, bare: true }] }
+]
+// Contraste de B (lo que hará summaryDiff): homónimos por título plegado; único = diff, compartido = same
+function diffOf(list) {
+  const key = (t) => fold(t).trim().replace(/\s+/g, ' '), by = new Map()
+  list.forEach((it) => { const k = key(it.title); (by.get(k) || by.set(k, []).get(k)).push(it) })
+  return list.map((it) => {
+    const twins = by.get(key(it.title)); if (twins.length < 2) return null
+    const out = {}
+    ;(it.facts || []).forEach((f) => { out[f.label] = twins.some((t) => t !== it && String((t.facts || []).find((x) => x.label === f.label)?.value ?? '').trim() === String(f.value).trim()) ? 'same' : 'diff' })
+    return out
+  })
+}
+const DIFFS = diffOf(PEOPLE)
+
+// ---- Medida (lo que hará GSummary.vue con utils/sizeObserver.js): un observador para todas las fichas ----
+const live = new Map()
+const ro = new ResizeObserver((entries) => {
+  requestAnimationFrame(() => entries.forEach((e) => { const m = live.get(e.target); if (m) { if (m.seen) m.measure(true); else m.seen = true } }))
+})
+
+function measure(el, fromResize, state) {
+  if (!el || el.classList.contains('is-loading') || el.classList.contains('g-summary--layout-stack')) return
+  const facts = [...el.querySelectorAll('.g-summary__fact:not(.is-anchor)')]
+  const more = el.querySelector('.g-summary__more')
+  const flow = el.querySelector('.g-summary__flow'), box = el.querySelector('.g-summary__facts')
+  const clipOf = () => [box, flow].find((x) => { if (!x) return false; const cs = getComputedStyle(x); return cs.display !== 'contents' && cs.overflowY !== 'visible' })
+  const pass = () => {
+    const clip = clipOf(); if (!clip) { facts.forEach((f) => f.removeAttribute('data-clipped')); return 0 }
+    const cb = clip.getBoundingClientRect(); let n = 0
+    const rs = facts.map((f) => f.getBoundingClientRect())   // leer todo antes de escribir
+    rs.forEach((r, i) => { const out = r.top >= cb.bottom - 1 || r.bottom > cb.bottom + 1 || r.width === 0 || cb.width < 2; facts[i].toggleAttribute('data-clipped', out); if (out) n++ })
+    return n
+  }
+  el.removeAttribute('data-terse'); el.removeAttribute('data-tight')
+  if (more) more.hidden = true
+  let n = pass()
+  if (n && facts.some((f) => f.classList.contains('is-bare'))) { el.setAttribute('data-terse', ''); n = pass() }
+  if (more && n) { more.hidden = false; more.textContent = '+' + n; n = pass(); more.textContent = '+' + n; more.hidden = !n }
+  const anc = el.querySelector('.g-summary__fact.is-anchor'), body = el.querySelector('.g-summary__body')
+  const cut = anc && (() => { const v = anc.querySelector('.g-summary__fact-value').getBoundingClientRect(), a = anc.getBoundingClientRect(); return anc.scrollWidth > anc.clientWidth + 1 || v.right > a.right + 0.5 || v.left < a.left - 0.5 })()
+  if (cut || body.scrollWidth > body.clientWidth + 1) { el.setAttribute('data-tight', ''); n = pass(); if (more) more.hidden = true }
+  // Movimiento: solo lo que pasó de recortado a visible por un CAMBIO DE TAMAÑO, nunca al montar ni con reduce
+  const now = new Set(facts.filter((f) => f.hasAttribute('data-clipped')))
+  if (fromResize && !reduced()) facts.forEach((f) => {
+    if (state.prev.has(f) && !now.has(f)) {
+      f.setAttribute('data-enter', '')
+      if (getComputedStyle(f).animationName === 'none') { f.removeAttribute('data-enter'); return }
+      const done = (e) => { if (e.target === f && e.animationName.startsWith('g-summary-enter')) { f.removeAttribute('data-enter'); f.removeEventListener('animationend', done); f.removeEventListener('animationcancel', done) } }
+      f.addEventListener('animationend', done); f.addEventListener('animationcancel', done)
+    }
+  })
+  state.prev = now
+  // title nativo solo en lo cortado
+  el.querySelectorAll(':is(.g-summary__title, .g-summary__subtitle, .g-summary__fact.is-anchor, .g-summary__fact-value)').forEach((t) => {
+    if (t.scrollWidth > t.clientWidth + 1) t.title = t.textContent.replace(/;\s*$/, '').trim(); else t.removeAttribute('title')
+  })
+}
+
+// Coincidencia: primera aparición de cada palabra (sin acentos ni mayúsculas); si la forma plegada no mide lo mismo, no se marca
+function marked(text, q) {
+  text = String(text ?? ''); if (!q) return text
+  const words = fold(q).split(/\s+/).filter(Boolean), f = fold(text); if (f.length !== text.length) return text
+  const hits = []
+  words.forEach((w) => { const i = f.indexOf(w); if (i >= 0 && !hits.some(([a, b]) => i < b && i + w.length > a)) hits.push([i, i + w.length]) })
+  if (!hits.length) return text
+  hits.sort((a, b) => a[0] - b[0]); const out = []; let at = 0
+  hits.forEach(([a, b]) => { if (a > at) out.push(text.slice(at, a)); out.push(h('mark', { class: 'g-summary__mark' }, text.slice(a, b))); at = b })
+  if (at < text.length) out.push(text.slice(at))
+  return out
+}
+
+let uid = 0
+const SIZE = { inline: 'xs', row: 'md', stack: 'lg' }
+const XSummary = defineComponent({
+  name: 'XSummary',
+  props: { title: String, subtitle: String, code: String, avatar: [Boolean, Object], icon: String, facts: { type: Array, default: () => [] },
+    status: Object, layout: { type: String, default: 'row' }, lines: { type: Number, default: 2 }, size: String, diff: Object,
+    highlight: String, group: Boolean, loading: Boolean, placeholder: String, id: String },
+  setup(props, { slots }) {
+    const root = ref(null), tid = 'su-' + (++uid) + '-title', state = { prev: new Set() }
+    const m = { seen: false, measure: (r) => measure(root.value, r, state) }
+    onMounted(() => { live.set(root.value, m); ro.observe(root.value); m.measure(false); document.fonts?.ready.then(() => m.measure(false)) })
+    onUpdated(() => m.measure(false))
+    onBeforeUnmount(() => { ro.unobserve(root.value); live.delete(root.value) })
+    return () => {
+      const L = props.layout, S = props.size || SIZE[L]
+      const all = props.facts.filter((f) => f.label && f.value !== '' && f.value != null).map((f, i) => ({ ...f, _i: i }))
+        .sort((a, b) => (a.priority ?? 1e6) - (b.priority ?? 1e6) || a._i - b._i)
+      const anchor = props.code ? null : all[0], rest = anchor ? all.slice(1) : all
+      const lines = props.lines === 1 || props.lines < 0 || !Number.isInteger(props.lines) ? 2 : props.lines
+      const multi = L === 'row' && (lines === 0 || lines >= 3)
+      const dataLines = L !== 'row' ? 1 : lines === 0 ? 1 : Math.max(1, lines - 1 - (multi && props.subtitle ? 1 : 0))
+      const empty = !props.title && !props.loading
+      const cls = ['g-summary', 'g-summary--layout-' + L, 'g-summary--size-' + S, multi && 'g-summary--multi', L === 'row' && lines === 0 && 'g-summary--free', props.loading && 'is-loading', empty && 'is-empty']
+      const attrs = { ref: root, class: cls, style: L === 'row' ? { '--_lines': dataLines } : null }
+      if (props.group && props.title) { attrs.role = 'group'; attrs['aria-labelledby'] = tid }
+      const hasLead = !!(slots.lead || props.avatar || props.icon)
+      const lead = (inner) => h('span', { class: 'g-summary__lead', 'aria-hidden': 'true' }, inner)
+      if (props.loading) {
+        attrs['aria-busy'] = 'true'
+        return h('span', attrs, [
+          hasLead && lead(h('span', { class: 'g-summary__bone' })),
+          h('span', { class: 'g-summary__body', 'aria-hidden': 'true' }, [
+            h('span', { class: 'g-summary__head' }, h('span', { class: 'g-summary__bone' })),
+            L !== 'inline' && h('span', { class: 'g-summary__data' }, h('span', { class: 'g-summary__bone' }))
+          ])
+        ])
+      }
+      const sep = (t = '; ') => h('span', { class: 'g-summary__sep' }, t)
+      const leadNode = slots.lead ? lead(slots.lead({ size: S }))
+        : props.avatar ? lead(h(Grana.GAvatar, { ...(typeof props.avatar === 'object' ? props.avatar : {}), name: (props.avatar && props.avatar.name) || props.title, size: S, label: undefined }))
+        : props.icon ? lead(h('span', { style: 'display:contents', innerHTML: window.lucide(props.icon) })) : null
+      if (empty) return h('span', attrs, [leadNode, h('span', { class: 'g-summary__body' }, h('span', { class: 'g-summary__head' }, h('span', { class: 'g-summary__name' }, h('span', { class: 'g-summary__title', dir: 'auto' }, props.placeholder || ''))))])
+      const d = props.diff || {}
+      const fact = (f, isAnchor) => h('span', { key: f.label, class: ['g-summary__fact', isAnchor && 'is-anchor', f.bare && 'is-bare', (d[f.label] === 'same' || d[f.label] === 'diff') && 'is-' + d[f.label]] },
+        [h('span', { class: 'g-summary__fact-label', dir: 'auto' }, f.short || f.label), ' ', h('span', { class: 'g-summary__fact-value', dir: 'auto' }, marked(f.value, props.highlight)), sep()])
+      return h('span', attrs, [
+        leadNode,
+        h('span', { class: 'g-summary__body' }, [
+          h('span', { class: 'g-summary__head' }, [
+            h('span', { class: 'g-summary__name' }, [
+              props.code && [h('span', { class: 'g-summary__code', dir: 'auto' }, marked(props.code, props.highlight)), sep(' ')],
+              h('span', { class: 'g-summary__title', id: tid, dir: 'auto' }, marked(props.title, props.highlight)), sep()
+            ]),
+            (slots.status || props.status?.label) && h('span', { class: 'g-summary__status' }, [slots.status ? slots.status() : h(Grana.GBadge, { color: props.status.color || 'neutral', size: 'sm' }, () => props.status.label), sep()])
+          ]),
+          props.subtitle && [h('span', { class: 'g-summary__subtitle', dir: 'auto' }, marked(props.subtitle, props.highlight)), sep()],
+          all.length ? h('span', { class: 'g-summary__data' }, [
+            h('span', { class: 'g-summary__flow' }, [anchor && fact(anchor, true), rest.length ? h('span', { class: 'g-summary__facts' }, rest.map((f) => fact(f, false))) : null]),
+            h('span', { class: 'g-summary__more', 'aria-hidden': 'true', hidden: true }, '+0')
+          ]) : null
+        ]),
+        slots.action && L === 'stack' ? h('span', { class: 'g-summary__action' }, slots.action()) : null
+      ])
+    }
+  }
+})
+
+const qs = new URLSearchParams(location.search)
+const app = createApp({
+  setup() {
+    const w = ref(Number(qs.get('w')) || 360), slow = ref(!!qs.get('slow'))
+    watch(w, (v) => document.documentElement.style.setProperty('--w', v + 'px'), { immediate: true })
+    watch(slow, (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-slow:1200ms;--g-duration-fast:600ms}' : '' }, { immediate: true })
+    return { w, slow, PEOPLE, DX, PROD, RTL, DIFFS }
+  }
+})
+app.component('XSummary', XSummary)
+app.use(Grana)
+app.mount('#app')
+window.__su = { setW: (v) => document.documentElement.style.setProperty('--w', v + 'px'), measureAll: () => live.forEach((m, el) => measure(el, false, { prev: new Set() })) }
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+// «Tema de prueba»: otra fuente, borde de 2px, space 5 y tonos propios: nada de la ficha puede quedar fijo
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-border-strong:#b49a78;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-accent-soft:#d9ecec;--g-color-on-accent-soft:#145454;--g-color-focus:#1C6E6E;--g-color-selection:#d9ecec;--g-space-1:5px}'
+$('#t-theme').insertAdjacentHTML('afterbegin', '<option value="test">Tema de prueba</option>')
+const setTheme = (v) => { $('#test-css').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const th = qs.get('test') ? 'test' : (qs.get('theme') || '')
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+Promise.all([document.fonts.ready, raf2()]).then(() => { window.__su.measureAll(); return raf2() }).then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>

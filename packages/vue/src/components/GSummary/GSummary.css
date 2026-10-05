@@ -1,0 +1,418 @@
+/*
+  GSummary · ficha de resumen adaptable (identidad + título + datos con prioridad + estado)
+  Dueño: coco. Contrato: design/contracts/summary.md (DECISIONS.md #349 a #357; tokens.md §34). Estructura:
+  design/lab/summary/r01/ (base) y r02/ (concepto A + el contraste de B). Estética: design/lab/summary/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*) (propios --_su-*; --_lines lo escribe bruno en línea); sin @layer
+  (lo aplica el registro); sin valores de respaldo. Literales: 7ch y 4ch (suelos del título), 1lh (una línea de la
+  corriente y su centinela; tokens.md §34) y el patrón de texto oculto accesible. Nada más.
+  Regla de la base: NADA cede con display:none ni visibility:hidden. Lo que no cabe salta entero a una línea recortada
+  (flex-wrap + max-block-size + overflow:hidden) o se retira con el patrón de texto oculto: deja de verse y sigue en el
+  árbol de accesibilidad. display:none solo en «+N» (decorativo, aria-hidden).
+  Carácter (A · prioridad líquida): una corriente de datos que se bebe por el final, separada por filetes cortos (no
+  caracteres) que respiran dentro de la línea; el identificador en peso de título y cifras tabulares; un solo acento de
+  color, «+N». Lo que vuelve a caber entra deslizándose desde el inicio de su sitio. El contraste de B pinta peso
+  (lo único) y tono (lo compartido), nunca solo color.
+*/
+
+/* ---------- Raíz: el ancho lo da el contenedor, nunca el contenido ---------- */
+.g-summary {
+  --_su-lead: calc(var(--g-space-1) * 8);
+  --_su-gap: var(--g-space-3);
+  --_su-rhythm: var(--g-space-3);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--_su-gap);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  contain: inline-size;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  letter-spacing: var(--g-text-body-sm-tracking);
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+}
+.g-summary *,
+.g-summary *::before { box-sizing: border-box; }
+
+.g-summary--size-xs { --_su-lead: calc(var(--g-space-1) * 5); --_su-gap: var(--g-space-2); }
+.g-summary--size-sm { --_su-lead: calc(var(--g-space-1) * 6); --_su-gap: var(--g-space-2); }
+.g-summary--size-md { --_su-lead: calc(var(--g-space-1) * 8); }
+.g-summary--size-lg { --_su-lead: calc(var(--g-space-1) * 10); }
+.g-summary--size-xl { --_su-lead: calc(var(--g-space-1) * 16); --_su-gap: var(--g-space-4); }
+
+/* Texto oculto accesible: separadores para el lector y lo que se retira de la vista sin recorte.
+   Cada uno queda contenido en una parte con position: relative (en RTL ensancharía el desplazamiento del anfitrión). */
+.g-summary__sep,
+.g-summary[data-terse] .g-summary__fact.is-bare:not(.is-anchor) .g-summary__fact-label,
+.g-summary[data-tight] .g-summary__fact.is-anchor .g-summary__fact-label,
+.g-summary--layout-inline .g-summary__status,
+.g-summary[data-tight]:not(.g-summary--multi) .g-summary__facts,
+.g-summary--layout-inline:has(.g-summary__fact) .g-summary__subtitle,
+.g-summary--layout-row:not(.g-summary--multi):has(.g-summary__fact) .g-summary__subtitle {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Identidad (hueco inicial): no cede ---------- */
+.g-summary__lead {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--g-color-text-muted);
+}
+.g-summary__lead > .g-icon {
+  inline-size: var(--_su-lead);
+  block-size: var(--_su-lead);
+  padding: calc(var(--_su-lead) / 5);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+}
+
+/* ---------- Cuerpo y cabecera ---------- */
+.g-summary__body {
+  position: relative;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* El estado cede antes de que el título baje de su suelo: salta a una segunda línea recortada (sigue en el árbol) */
+.g-summary__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--g-space-2);
+  min-inline-size: 0;
+  max-block-size: 1lh;
+  overflow: hidden;
+}
+.g-summary:not(.g-summary--layout-inline):is(.g-summary--size-md, .g-summary--size-lg) .g-summary__head {
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-body-tracking);
+}
+.g-summary--size-xl:not(.g-summary--layout-inline) .g-summary__head {
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+}
+.g-summary__name {
+  position: relative;
+  flex: 1 1 7ch;
+  min-inline-size: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--g-space-2);
+}
+.g-summary__code {
+  flex: none;
+  white-space: nowrap;
+  color: var(--g-color-text-muted);
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-summary__title {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-summary__status {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+}
+.g-summary__subtitle {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--g-color-text-muted);
+}
+.g-summary__action {
+  flex: none;
+  display: inline-flex;
+}
+
+/* ---------- Corriente de datos (A): una línea que se bebe por el final ---------- */
+.g-summary__data {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-summary__flow {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  display: flex;
+}
+.g-summary__fact {
+  position: relative;
+  flex: none;
+  min-inline-size: 0;
+  white-space: nowrap;
+}
+.g-summary__fact-label { color: var(--g-color-text-subtle); }
+/* Identificador: anclado al inicio, en peso de título; es lo último en ceder (elipsis) */
+.g-summary__fact.is-anchor {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-inline-end: var(--_su-rhythm);
+}
+.g-summary__fact.is-anchor .g-summary__fact-value { font-weight: var(--g-text-title-sm-weight); }
+/* Apretado, los demás datos ya no están a la vista: el margen que los separaba es ancho útil del identificador */
+.g-summary[data-tight] .g-summary__fact.is-anchor { margin-inline-end: 0; }
+.g-summary__facts {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--_su-rhythm);
+  max-block-size: 1lh;
+  overflow: hidden;
+}
+/* Centinela de ancho cero y una línea de alto: sin él, el primer dato nunca salta aunque no quepa (se vería cortado) */
+.g-summary__facts::before {
+  content: "";
+  inline-size: 0;
+  block-size: 1lh;
+  margin-inline-end: calc(var(--_su-rhythm) * -1);
+}
+/* Separador: un filete corto al inicio de cada dato que no es el identificador (borde, no carácter ni fondo) */
+.g-summary__fact:not(.is-anchor) { padding-inline-start: var(--_su-rhythm); }
+.g-summary__fact:not(.is-anchor)::before {
+  content: "";
+  position: absolute;
+  inset-block: var(--g-space-1);
+  inset-inline-start: 0;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+}
+/* «+N»: el único acento de color de la ficha. Decorativo (aria-hidden): el lector ya recibe todos los datos */
+.g-summary__more {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  white-space: nowrap;
+}
+.g-summary__more[hidden],
+.g-summary[data-tight] .g-summary__more,
+.g-summary--layout-stack .g-summary__more { display: none; }
+
+/* ---------- Contraste entre homónimos (B): lo único pesa, lo compartido se apaga. El identificador nunca se apaga ---------- */
+.g-summary__fact.is-diff .g-summary__fact-value { font-weight: var(--g-text-title-sm-weight); }
+.g-summary__fact.is-same:not(.is-anchor) .g-summary__fact-value { color: var(--g-color-text-subtle); }
+
+/* ---------- Coincidencia (highlight): peso y subrayado, no color ---------- */
+.g-summary__mark {
+  background: transparent;
+  color: inherit;
+  font-weight: var(--g-text-title-sm-weight);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: calc(var(--g-space-1) / 2);
+}
+
+/* ---------- row con varias líneas de datos (lines ≥ 3 o 0): identificador y datos fluyen juntos ---------- */
+.g-summary--multi { align-items: flex-start; }
+.g-summary--multi .g-summary__flow {
+  flex-wrap: wrap;
+  column-gap: var(--_su-rhythm);
+  row-gap: var(--g-space-1);
+  max-block-size: calc(var(--_lines) * 1lh + (var(--_lines) - 1) * var(--g-space-1));
+  overflow: hidden;
+}
+.g-summary--free .g-summary__flow { max-block-size: none; }
+.g-summary--multi .g-summary__facts { display: contents; }
+.g-summary--multi .g-summary__facts::before { content: none; }
+.g-summary--multi .g-summary__fact {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-summary--multi .g-summary__fact.is-anchor { margin-inline-end: 0; }
+
+/* ---------- inline: una línea, tipografía del anfitrión, Δ0 de alto ---------- */
+.g-summary--layout-inline {
+  --_su-rhythm: var(--g-space-2);
+  gap: var(--g-space-2);
+  block-size: 1lh;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+.g-summary--layout-inline .g-summary__body {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--g-space-2);
+  overflow: hidden;
+}
+.g-summary--layout-inline :is(.g-summary__head, .g-summary__name, .g-summary__data, .g-summary__flow) { display: contents; }
+/* Orden de cesión en una línea: datos (por el final) → título hasta 4ch → «+N» y rótulo → valor del identificador */
+.g-summary--layout-inline .g-summary__title {
+  flex: 0 1000 auto;
+  min-inline-size: min(4ch, 100%);
+}
+/* El identificador no encoge por reparto: con flex-shrink proporcional perdería fracciones de píxel (y mostraría una
+   elipsis) aunque el título aún pudiera ceder. Su tope es el ancho del cuerpo; sin medida, el cuerpo recorta */
+.g-summary--layout-inline .g-summary__fact.is-anchor {
+  flex: none;
+  max-inline-size: 100%;
+  margin-inline-end: 0;
+}
+/* Apretado: tampoco encoge por reparto proporcional (el título, con shrink 1000, le pasaría fracciones de píxel y una
+   elipsis falsa); se limita al ancho del cuerpo menos el hueco que lo separa del título, que cede antes hasta 0 */
+.g-summary--layout-inline[data-tight] .g-summary__fact.is-anchor { max-inline-size: calc(100% - var(--g-space-2)); }
+/* Apretado: el suelo del título cede antes que el valor del identificador (que es lo último) y que el código */
+.g-summary--layout-inline[data-tight] .g-summary__title { min-inline-size: 0; }
+.g-summary--layout-inline .g-summary__subtitle { flex: 1 1 0; }
+
+/* ---------- stack: la vista completa. Cabecera + rejilla de pares; no cede ni recorta, crece en alto ---------- */
+.g-summary--layout-stack {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  row-gap: var(--g-space-1);
+  column-gap: var(--_su-gap);
+}
+.g-summary--layout-stack:not(:has(> .g-summary__lead)) { grid-template-columns: minmax(0, 1fr); }
+.g-summary--layout-stack .g-summary__body { display: contents; }
+.g-summary--layout-stack .g-summary__lead {
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+.g-summary--layout-stack:has(> .g-summary__lead) :is(.g-summary__head, .g-summary__subtitle) { grid-column: 2; }
+.g-summary--layout-stack :is(.g-summary__data, .g-summary__action) {
+  grid-column: 1 / -1;
+  margin-block-start: var(--g-space-2);
+}
+.g-summary--layout-stack .g-summary__action {
+  justify-self: start;
+  flex-wrap: wrap;
+  gap: var(--g-space-2);
+  max-inline-size: 100%;
+}
+/* En stack nada salta a una línea recortada: el estado se queda y, si no cabe ni solo, GBadge pone su elipsis */
+.g-summary--layout-stack .g-summary__status {
+  flex-shrink: 1;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.g-summary--layout-stack .g-summary__head {
+  max-block-size: none;
+  overflow: visible;
+  row-gap: var(--g-space-1);
+}
+.g-summary--layout-stack :is(.g-summary__title, .g-summary__subtitle) {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.g-summary--layout-stack .g-summary__flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(calc(var(--g-space-1) * 28), 100%), 1fr));
+  gap: var(--g-space-2) var(--g-space-3);
+}
+.g-summary--layout-stack .g-summary__facts { display: contents; }
+.g-summary--layout-stack .g-summary__facts::before { content: none; }
+.g-summary--layout-stack .g-summary__fact {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.g-summary--layout-stack .g-summary__fact::before { content: none; }
+.g-summary--layout-stack .g-summary__fact-label {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+}
+
+/* ---------- Vacío y carga ---------- */
+.g-summary.is-empty .g-summary__title {
+  font-weight: var(--g-text-body-weight);
+  color: var(--g-color-text-muted);
+}
+/* Formas decorativas (aria-hidden) con el alto exacto de cada línea: Δ0 al llegar los datos. Tono border-strong, como el
+   esqueleto de GCard: surface-sunken (tokens.md §34) desaparece sobre la vista previa, que ya es surface-sunken (medido) */
+.g-summary.is-loading .g-summary__bone {
+  display: block;
+  flex: none;
+  inline-size: 60%;
+  block-size: calc(1lh - var(--g-space-2));
+  margin-block: var(--g-space-1);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-border-strong);
+}
+.g-summary.is-loading .g-summary__data > .g-summary__bone { inline-size: 85%; }
+.g-summary--multi.is-loading .g-summary__data > .g-summary__bone {
+  block-size: calc(var(--_lines) * 1lh + (var(--_lines) - 1) * var(--g-space-1) - var(--g-space-2));
+}
+.g-summary.is-loading .g-summary__lead > .g-summary__bone {
+  inline-size: var(--_su-lead);
+  block-size: var(--_su-lead);
+  margin: 0;
+  border-radius: var(--g-radius-pill);
+}
+.g-summary--layout-inline.is-loading .g-summary__head > .g-summary__bone { inline-size: 70%; }
+
+/* ---------- Movimiento: el dato que vuelve a caber entra desde el inicio de su sitio (solo por cambio de tamaño) ---------- */
+@keyframes g-summary-enter {
+  from { opacity: 0; translate: calc(var(--g-space-1) * -3) 0; }
+}
+@keyframes g-summary-enter-rtl {
+  from { opacity: 0; translate: calc(var(--g-space-1) * 3) 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-summary__fact[data-enter] { animation: g-summary-enter var(--g-duration-slow) var(--g-ease-out); }
+  .g-summary__fact[data-enter]:dir(rtl) { animation-name: g-summary-enter-rtl; }
+}
+
+/* ---------- Preferencias del sistema ---------- */
+@media (prefers-contrast: more) {
+  .g-summary__fact-label,
+  .g-summary__fact.is-same:not(.is-anchor) .g-summary__fact-value { color: var(--g-color-text-muted); }
+  .g-summary__fact:not(.is-anchor)::before { border-inline-start-color: var(--g-color-border-control); }
+}
+@media (forced-colors: active) {
+  .g-summary__fact:not(.is-anchor)::before { border-inline-start-color: CanvasText; }
+  .g-summary__more { border-color: CanvasText; }
+  .g-summary__lead > .g-icon { outline: var(--g-border-width) solid CanvasText; }
+  .g-summary.is-loading .g-summary__bone {
+    forced-color-adjust: none;
+    background: GrayText;
+  }
+}
