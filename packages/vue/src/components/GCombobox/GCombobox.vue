@@ -23,7 +23,7 @@ import GSummary from '../GSummary/GSummary.vue'
 import { summaryDiff } from '../GSummary/diff.js'
 import GIcon from '../GIcon/GLibIcon.js'    // iconos propios: SOLO la lista de la librería
 import { formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
-import { completion, matches, secondary, validOption } from './engine.js'
+import { completion, matches, secondary, validOption, visibleFact } from './engine.js'
 
 defineOptions({ name: 'GCombobox', inheritAttrs: false })
 
@@ -131,6 +131,11 @@ const flat = computed(() => {
     }
     if (seen.has(o.value)) warnOnce(`option-dup:${String(o.value)}`, `dos opciones tienen el mismo value (${String(o.value)}): debe ser único.`)
     seen.add(o.value)
+    // Dato sin label (#335, #356 «Dato visible»): no se pinta, no se busca ni se anuncia. Aviso propio aunque la opción
+    // no llegue a pintarse (o la pinte el slot option, sin GSummary que avise)
+    if (isDev && Array.isArray(o.facts) && o.facts.some((f) => f && typeof f === 'object' && !visibleFact({ label: f.label, value: 'x' })) /* rótulo ausente, misma regla */) {
+      warnOnce('fact-label', 'una opción tiene un dato de facts sin label: no se pinta, no se busca ni se lee en la descripción accesible. El rótulo es obligatorio.')
+    }
     out.push({ o, group })
   }
   for (const o of props.options || []) {
@@ -1010,7 +1015,8 @@ function onPanelMove(e) {
 // ni se lee dos veces; sigue alimentando ID-about por `secondary`); code, avatar, icon y facts tal cual (priority, short
 // y bare son opcionales y aditivos; un dato sin label lo omite la ficha y avisa). value, disabled y los campos de más
 // no llegan a la ficha. La identidad y el texto oculto accesible los pone la ficha.
-const hasFacts = (o) => Array.isArray(o.facts) && o.facts.some((f) => f && typeof f === 'object' && f.label != null && String(f.label).trim() !== '' && f.value != null && String(f.value).trim() !== '')
+// Dato visible = visibleFact de engine.js: la misma regla filtra la búsqueda y la línea secundaria (combobox.md «Dato visible»)
+const hasFacts = (o) => Array.isArray(o.facts) && o.facts.some(visibleFact)
 function summaryProps(o) {
   const out = { title: o.label }
   if (typeof o.code === 'string' && o.code) out.code = o.code

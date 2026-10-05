@@ -2749,11 +2749,19 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         onMounted(() => {
           const bar = pgBar.value
           // La isla de estado y los avisos cuelgan del borde superior: la cabecera fija (que se parte en varias filas) es su reserva (offset.top)
+          // --pg-bar-h va en el índice (#pg-nav, su único lector), no en <html>: una propiedad propia en la raíz invalida el
+          // estilo de toda la página, y en WebKit ese cuadro tardaba ~550 ms, así que la isla seguía a la cabecera tarde
+          // (status.spec.mjs «cabecera fija», fallo de WebKit). Solo se escribe si el alto cambió.
+          const nav = document.getElementById('pg-nav')
+          let lastH = -1
           const setH = () => {
             if (!bar) return
-            document.documentElement.style.setProperty('--pg-bar-h', bar.offsetHeight + 'px')
-            status.configure({ offset: { top: bar.offsetHeight } })
-            toaster.configure({ offset: { top: bar.offsetHeight } })
+            const h = bar.offsetHeight
+            if (h === lastH) return
+            lastH = h
+            if (nav) nav.style.setProperty('--pg-bar-h', h + 'px')
+            status.configure({ offset: { top: h } })
+            toaster.configure({ offset: { top: h } })
           }
           setH(); window.addEventListener('resize', setH)
           if (bar && typeof ResizeObserver === 'function') new ResizeObserver(setH).observe(bar, { box: 'border-box' })

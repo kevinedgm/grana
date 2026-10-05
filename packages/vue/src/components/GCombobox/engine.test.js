@@ -5,11 +5,11 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { tokens } from '../../utils/match.js'
 import * as engine from './engine.js'
-import { completion, matches, secondary, validOption } from './engine.js'
+import { completion, matches, secondary, validOption, visibleFact } from './engine.js'
 
 describe('GCombobox · engine', () => {
   it('no exporta ni define fold, tokens ni parts: los toma de utils/match.js (una sola copia, #356)', () => {
-    expect(Object.keys(engine).sort()).toEqual(['completion', 'matches', 'secondary', 'validOption'])
+    expect(Object.keys(engine).sort()).toEqual(['completion', 'matches', 'secondary', 'validOption', 'visibleFact'])
     const src = readFileSync(resolve(process.cwd(), 'src/components/GCombobox/engine.js'), 'utf8')
     expect(src).toContain("from '../../utils/match.js'")
     expect(src).not.toMatch(/normalize\('NFD'\)/)
@@ -21,6 +21,19 @@ describe('GCombobox · engine', () => {
     expect(matches(o, tokens('endocrinas iv'))).toBe(true)
     expect(matches(o, tokens('capítulo'))).toBe(false) // los rótulos no se buscan
     expect(matches(o, tokens('diabetes tipo 7'))).toBe(false)
+  })
+
+  it('dato visible (#356): un dato sin label (o con valor vacío) no se busca ni entra en la línea secundaria', () => {
+    expect(visibleFact({ label: 'Exp.', value: '7' })).toBe(true)
+    expect(visibleFact({ label: 'Exp.', value: 7 })).toBe(true)
+    for (const f of [{ value: '7' }, { label: '  ', value: '7' }, { label: 'Exp.', value: ' ' }, { label: 'Exp.', value: null }, { label: true, value: '7' }, null, '7']) expect(visibleFact(f), JSON.stringify(f)).toBe(false)
+    const o = { label: 'Ana', facts: [{ value: 'ZK-991' }, { label: 'Edad', value: '3 años' }, { label: '', value: 'oculto' }] }
+    expect(matches(o, tokens('zk-991'))).toBe(false)
+    expect(matches(o, tokens('oculto'))).toBe(false)
+    expect(matches(o, tokens('ana 3'))).toBe(true)
+    expect(secondary(o)).toBe('Edad 3 años')
+    expect(secondary({ facts: [{ value: 'solo valor' }] })).toBe('')
+    expect(secondary({ facts: [{ label: ' Exp. ', value: ' 7 ' }] })).toBe('Exp. 7')
   })
 
   it('completion: por prefijo sin acentos ni mayúsculas y solo si la etiqueta es más larga', () => {

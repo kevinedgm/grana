@@ -5,12 +5,22 @@
 // Contrato: design/contracts/combobox.md («Reglas de props» · filter, «El panel» · Coincidencia, «Opciones»).
 import { fold } from '../../utils/match.js'
 
+// Texto presente: ni null/undefined ni booleano ni vacío tras recortar (un número cuenta, con String()); la misma
+// regla que `present` de GSummary, para que lo que se busca y se anuncia sea exactamente lo que la ficha pinta
+const shown = (v) => v != null && typeof v !== 'boolean' && String(v).trim() !== ''
+/**
+ * Dato visible de `facts` (combobox.md «Dato visible», precisión de #356): `label` y `value` presentes. Solo los
+ * visibles se pintan, entran en la búsqueda (`haystack`) y en `secondary()` (ID-about, aria-describedby). GCombobox.vue
+ * usa esta misma función para decidir si la ficha lleva `facts` y para avisar del dato sin `label`.
+ */
+export const visibleFact = (f) => Boolean(f) && typeof f === 'object' && shown(f.label) && shown(f.value)
+
 const haystacks = new WeakMap()
-/** Dónde se busca: label, code, description y los valores de facts */
+/** Dónde se busca: label, code, description y los valores de los facts VISIBLES (los rótulos no se buscan) */
 function haystack(o) {
   let h = haystacks.get(o)
   if (h === undefined) {
-    const facts = Array.isArray(o.facts) ? o.facts.map((f) => (f && f.value != null ? f.value : '')).join(' ') : ''
+    const facts = Array.isArray(o.facts) ? o.facts.filter(visibleFact).map((f) => f.value).join(' ') : ''
     h = fold(`${o.label} ${o.code ?? ''} ${o.description ?? ''} ${facts}`)
     haystacks.set(o, h)
   }
@@ -32,14 +42,14 @@ export function completion(label, typed) {
   return label.slice(typed.length)
 }
 
-/** Línea secundaria: description; sin ella, los facts como «rótulo valor · rótulo valor»; sin ninguno, '' */
+/** Línea secundaria: description; sin ella, los facts VISIBLES como «rótulo valor · rótulo valor»; sin ninguno, '' */
 export function secondary(o) {
   if (!o) return ''
   if (typeof o.description === 'string' && o.description) return o.description
   if (Array.isArray(o.facts)) {
     return o.facts
-      .filter((f) => f && f.value != null && f.value !== '')
-      .map((f) => (f.label ? `${f.label} ${f.value}` : String(f.value)))
+      .filter(visibleFact)
+      .map((f) => `${String(f.label).trim()} ${String(f.value).trim()}`)
       .join(' · ')
   }
   return ''

@@ -996,7 +996,28 @@ describe('GCombobox · opciones y slots (#335)', () => {
     expect(facts[0].classes()).toEqual(expect.arrayContaining(['is-anchor', 'is-bare']))
     expect(rows(w)[0].text()).not.toContain('sin rótulo')
     expect(warn.mock.calls.some((c) => String(c[0]).includes('[Grana GSummary]') && String(c[0]).includes('no tiene label'))).toBe(true)
-    expect(warnings()).toEqual([])
+    expect(warnings()).toEqual(['[Grana GCombobox] una opción tiene un dato de facts sin label: no se pinta, no se busca ni se lee en la descripción accesible. El rótulo es obligatorio.'])
+  })
+
+  it('dato visible (#356): un dato sin label cuyo valor coincide no aparece al buscarlo ni se lee en ID-about; aviso propio una vez', async () => {
+    const opts = [
+      { value: 'a', label: 'Ana', facts: [{ value: 'ZK-991' }, { label: 'Edad', value: '3 años' }] },
+      { value: 'b', label: 'Bruno', facts: [{ value: 'ZK-991' }] },
+      { value: 'c', label: 'Carla', facts: [{ label: 'Exp.', value: 'ZK-992' }] }
+    ]
+    const w = await mk({ options: opts })
+    await typeText(w, 'zk-991')
+    expect(rows(w).length).toBe(0)
+    await typeText(w, 'zk-992')
+    expect(rowTexts(w).length).toBe(1)
+    expect(rows(w)[0].text()).toContain('Carla')
+    const w2 = await mk({ options: opts, modelValue: 'a' })
+    expect(w2.find('.g-combobox__about').text()).toBe('Edad 3 años')
+    const w3 = await mk({ options: opts, modelValue: 'b' })
+    expect(w3.find('.g-combobox__about').exists()).toBe(false)
+    expect(field(w3).attributes('aria-describedby') || '').not.toMatch(/-about/)
+    expect(w.text()).not.toContain('ZK-991')
+    expect(warnings().filter((t) => t.includes('sin label')).length).toBe(3) // una por instancia (tres montajes)
   })
 
   it('ID-about y el nombre de la opción no cambian con la ficha: secondary(option) sigue alimentando la descripción accesible', async () => {

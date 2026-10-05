@@ -59,10 +59,10 @@
     "8 · tras montar mide 0 de ancho (el anfitrión no le da sitio)"
   ],
   "verification": {
-    "vitest": "GSummary.test.js (36) + GSummary.ssr.test.js (3): datos, disposición, semántica, identidad y estado, diff y summaryDiff, highlight, medida con cajas simuladas (pasadas terse → +N → tight y su convergencia, title solo en lo cortado, data-enter solo por cambio de tamaño y su retirada, reduce, multi, stack/loading sin medida, sin ResizeObserver), avisos, empaquetado (__shared, sin la cadena del anfitrión, components.css en orden), SSR",
+    "vitest": "41 pruebas: GSummary.test.js (38) + GSummary.ssr.test.js (3): datos, disposición, semántica, identidad y estado, diff y summaryDiff, highlight, medida con cajas simuladas (pasadas terse → +N → tight y su convergencia, title solo en lo cortado, data-enter solo por cambio de tamaño y su retirada, reduce, multi, stack/loading sin medida, sin ResizeObserver), avisos, empaquetado (__shared, sin la cadena del anfitrión, components.css en orden), SSR",
     "playwright": "design/lab/theme-playground/tests/summary.spec.mjs sobre packages/vue/playground/summary.html (componente real de dist/): barrido 160 a 720px en opción, campo sm/md/lg, vista previa, tarjetas lines 4/3/0, celda, árabe, hebreo, latino en RTL y tamaños (sin desborde, nada cortado a medias, identificador entero, título ≥ 20px, «+N» = data-clipped, recortados = final de la prioridad, data-terse antes de soltar, data-tight ⇒ datos fuera, el lector lo recibe todo, alto constante 44px en row md lines 2, Δ0 en el campo, 1/2/4 de 4 datos a 240/360/520, monotonía); contraste de B; carga Δ0 y paso de carga a datos; bidi; móvil 320; entrada LTR/RTL y nada con reduce; semántica (group, +N aria-hidden, texto de la opción con los cuatro datos, ariaSnapshot); rendimiento",
     "gzip": { "before": 163476, "after": 168553, "delta": 5077, "note": "dist/grana.js gzip, mismo árbol (con GAdaptiveLayout de otra sesión en ambos); límite ≤ 8192 (#350)" },
-    "performance": { "note": "ver el informe de bruno y la anotación del spec «rendimiento»; cifras por motor con --workers=1 en la sección Rendimiento del informe", "target": "< 150 ms (contrato) para la medida con 500 fichas" }
+    "performance": { "target": "< 150 ms (contrato) para la medida con 500 fichas", "spec": "design/lab/theme-playground/tests/summary.spec.mjs «rendimiento» (anotación por motor)", "mount": "medida al montar con 500 fichas, --workers=1: 14 ms Chromium, 10 ms Firefox, 21 ms WebKit (001c1e3)", "resize": "cambio de ancho de la rejilla (todas medidas por lotes), --workers=1: ≤ 81 ms en los tres motores (001c1e3)", "closingPass": "pasada completa de cierre del lote GSummary + GCombobox (en paralelo): WebKit, resize [25, 95, 15] ms con 500 fichas; bajo 150 ms" }
   },
   "limits": [
     "La ficha recortada nunca es la única fuente de un dato: el anfitrión ofrece la vista completa (stack, vista previa, detalle); el title nativo de lo cortado solo sirve al puntero.",
@@ -78,8 +78,5 @@
   "consumers": [
     "GCombobox (#356, fase 2 hecha): opción por defecto row lines 2 (md; sm con el campo en xs/sm), ficha del valor inline xs dentro de g-combobox__token, vista previa stack lg; summaryDiff sobre las opciones pintadas; highlight con el texto buscado; GCombobox.css reapunta los tonos por estado (coco)"
   ],
-  "pending": [
-    "Auditoría de coco sobre el componente real con otro tema y el oscuro (design/lab/summary/auditoria.md) → candidate.",
-    "README (mora-docs)."
-  ]
+  "pending": []
 }
