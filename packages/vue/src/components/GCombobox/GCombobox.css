@@ -324,13 +324,18 @@
 .g-combobox__popup.is-empty {
   display: none;
 }
-/* Abierto con panel: el anillo y el contorno son los de la forma completa, no los de la caja */
+/* Abierto con panel: el anillo y el contorno son los de la forma completa, no los de la caja. El relevo es EN EL ACTO y
+   en los dos sentidos (auditoría, hallazgo 1): la caja de GInput funde border-color y outline-color en
+   --g-duration-fast; si se usaran colores transparentes, al cerrar la forma desaparece en el acto y el borde y el anillo
+   de la caja vuelven fundiéndose desde transparente: uno o dos cuadros sin contorno ni anillo (un parpadeo). Por eso el
+   anillo se quita con outline-style (discreto, no se funde) y el contorno con una imagen de borde transparente (pinta en
+   lugar del color, no cambia el ancho: Δ0, y tampoco se funde). Al cerrar vuelven tal cual, ya con su color */
 .g-combobox--appearance-field.is-open .g-input__row,
 .g-combobox--appearance-field.is-open .g-input__row:has(.g-combobox__field:focus-visible) {
-  outline-color: transparent;
+  outline-style: none;
 }
 .g-combobox--appearance-field.is-open:has(.g-combobox__popup:not(.is-empty)) .g-input__control {
-  border-color: transparent;
+  border-image: linear-gradient(transparent, transparent) 1;
 }
 .g-combobox.is-open:has(.g-combobox__field:focus-visible) .g-combobox__popup {
   border-color: var(--_focus);

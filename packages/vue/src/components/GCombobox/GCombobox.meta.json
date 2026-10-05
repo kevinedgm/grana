@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GCombobox",
   "tag": "g-combobox",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo para elegir una opción de un catálogo grande escribiendo (paciente entre miles, diagnóstico CIE-10, medicamento). APG «Combobox with list autocomplete» sobre GInput. A · el campo se abre (appearance=\"field\"): campo y lista son una sola forma y la primera coincidencia por prefijo se completa como texto fantasma. B · paleta con vista previa (appearance=\"palette\"; con el visor ≤ 520px, siempre, como hoja): un GDialog real con su propio campo y la ficha de la opción activa. C · el valor es un objeto: en reposo el campo enseña la ficha de lo elegido y distingue el texto libre. Sin fetch: emite search, more y create; la aplicación entrega options, loading, total, loadError y selectedOption.",
   "contract": "design/contracts/combobox.md",
@@ -554,7 +554,7 @@
     "El foco inicial de la superficie se fija en el campo de búsqueda al abrir (también al reabrir durante la salida de GDialog, cuando el navegador enfocaría el botón de cierre, que va antes en el DOM)."
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto y con el oscuro; luego status candidate.",
+    "Pintar opción, ficha del valor y vista previa con GSummary cuando esté construida (combobox.md «Fichas con GSummary», #356; auditoría de coco, hallazgo 2): bruno en GCombobox.vue y coco retirando las clases __description, __facts, __fact*, __token-label, __token-meta, __preview-* y las de opción. Hasta entonces rige la regla provisional de dos líneas, auditada en design/lab/combobox/auditoria.md.",
     "Solo en entorno real: lector de pantalla (eco de escritura con la primera activa, fantasma junto a aria-activedescendant, dos combobox y la vista previa, aria-describedby con la línea secundaria, filas de acción, recuentos), teclado virtual real sobre la hoja, IME real, forced-colors real, Safari real, zoom 200/400 %, pegado de texto largo.",
     "Reservado (#338): multiple (se ignora con aviso), expandable, GInputGroupCombobox, editor de valor de GFilterBar, autoHighlight."
   ]

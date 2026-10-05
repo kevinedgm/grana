@@ -82,4 +82,4 @@
 
 ## No verificado
 
-`forced-colors` real (solo emulado); lector de pantalla; teclado virtual real sobre la hoja; IME con el fantasma; Safari real; zoom 200/400 %; la auditoría del componente real (paso 5) con tema distinto y oscuro.
+`forced-colors` real (solo emulado); lector de pantalla; teclado virtual real sobre la hoja; IME con el fantasma; Safari real; zoom 200/400 % real. La auditoría del componente real (paso 5) con tema distinto y oscuro está en `auditoria.md`.

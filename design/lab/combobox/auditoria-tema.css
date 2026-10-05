@@ -1,0 +1,137 @@
+/* Generado por @grana/cli a partir de design/lab/combobox/auditoria-tema.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 1px;
+  --g-radius-sm: 1px;
+  --g-radius-md: 2px;
+  --g-radius-lg: 3px;
+  --g-radius-xl: 4px;
+  --g-radius-shape: var(--g-radius-md);
+  --g-space-1: 3px;
+  --g-space-2: 6px;
+  --g-space-3: 9px;
+  --g-space-4: 12px;
+  --g-space-5: 15px;
+  --g-space-6: 18px;
+  --g-space-8: 24px;
+  --g-space-12: 36px;
+  --g-space-16: 48px;
+  --g-text-caption-size: 0.75rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.8203rem;
+  --g-text-body-sm-line: 1.25rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 0.9375rem;
+  --g-text-body-line: 1.5rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.1719rem;
+  --g-text-title-sm-line: 1.75rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.4648rem;
+  --g-text-title-line: 2rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 1.8311rem;
+  --g-text-title-lg-line: 2.25rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 2.2888rem;
+  --g-text-display-line: 2.75rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #0F5C5C;
+  --g-color-brand-strong: #004545;
+  --g-color-brand-soft: #E1F5F4;
+  --g-color-brand-text: #0F5C5C;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #0F5C5C;
+  --g-color-accent: #0F5C5C;
+  --g-color-accent-strong: #004545;
+  --g-color-accent-soft: #E1F5F4;
+  --g-color-accent-text: #0F5C5C;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #0F5C5C;
+  --g-color-surface-sunken: #F2F7F7;
+  --g-color-text: #171B1B;
+  --g-color-text-muted: #515656;
+  --g-color-text-subtle: #6A6F6F;
+  --g-color-border-control: #868B8B;
+  --g-color-border: rgb(23 27 27 / 0.08);
+  --g-color-border-strong: rgb(23 27 27 / 0.16);
+  --g-color-neutral: #676C6C;
+  --g-color-neutral-strong: #515555;
+  --g-color-neutral-soft: #EFF0F0;
+  --g-color-neutral-text: #676C6C;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #676C6C;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --g-color-brand: #4C908F;
+    --g-color-brand-strong: #5EA2A2;
+    --g-color-brand-soft: #152828;
+    --g-color-brand-text: #4C908F;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #529695;
+    --g-color-accent: #4C908F;
+    --g-color-accent-strong: #5FA2A1;
+    --g-color-accent-soft: #152827;
+    --g-color-accent-text: #4C908F;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #529695;
+    --g-color-surface-sunken: #0D1111;
+    --g-color-text: #EEF3F3;
+    --g-color-text-muted: #B4B9B9;
+    --g-color-text-subtle: #989D9D;
+    --g-color-border-control: #7C8181;
+    --g-color-border: rgb(238 243 243 / 0.10);
+    --g-color-border-strong: rgb(238 243 243 / 0.20);
+    --g-color-neutral: #818686;
+    --g-color-neutral-strong: #939898;
+    --g-color-neutral-soft: #232424;
+    --g-color-neutral-text: #818686;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #878C8C;
+    --g-color-bg: #111515;
+    --g-color-surface: #191D1D;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #4C908F;
+  --g-color-brand-strong: #5EA2A2;
+  --g-color-brand-soft: #152828;
+  --g-color-brand-text: #4C908F;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #529695;
+  --g-color-accent: #4C908F;
+  --g-color-accent-strong: #5FA2A1;
+  --g-color-accent-soft: #152827;
+  --g-color-accent-text: #4C908F;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #529695;
+  --g-color-surface-sunken: #0D1111;
+  --g-color-text: #EEF3F3;
+  --g-color-text-muted: #B4B9B9;
+  --g-color-text-subtle: #989D9D;
+  --g-color-border-control: #7C8181;
+  --g-color-border: rgb(238 243 243 / 0.10);
+  --g-color-border-strong: rgb(238 243 243 / 0.20);
+  --g-color-neutral: #818686;
+  --g-color-neutral-strong: #939898;
+  --g-color-neutral-soft: #232424;
+  --g-color-neutral-text: #818686;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #878C8C;
+  --g-color-bg: #111515;
+  --g-color-surface: #191D1D;
+}
