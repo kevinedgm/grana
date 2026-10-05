@@ -18,7 +18,7 @@
 | --- | --- |
 | Raíz | `display: flex`, `inline-size: 100%`, `contain: inline-size` (no aporta ancho al anfitrión), body-sm, `tabular-nums`. El color del título y de los valores **se hereda** del anfitrión (no se fija en la raíz) |
 | Identidad | Lado `space × 5/6/8/10/16` (`--_su-lead`); `GIcon` en una caja `surface-sunken` con `radius-sm` y relleno de 1/5; hueco a `space × 2` (xs, sm), `× 3` (md, lg) o `× 4` (xl) |
-| Cabecera | Una línea (`max-block-size: 1lh` + `overflow: hidden`, salto con `flex-wrap`): `__name` con base `7ch` y el estado detrás; cuando el nombre ya no conserva sus 7ch, el estado **salta** a la línea recortada (cede entero, sigue en el árbol). Título body (md, lg) o title-sm con `--g-font-title` (xl), en peso de título; código `text-muted` en peso de título |
+| Cabecera | Una línea (`max-block-size: 1lh` + `overflow: hidden`, salto con `flex-wrap`): `__name` con base `7ch` y el estado detrás; cuando el nombre ya no conserva sus 7ch, el estado **salta** a la línea recortada (cede entero, sigue en el árbol). Título body (md, lg) o title-sm con `--g-font-title` (xl), en peso de título; código `text-muted` en peso de título; el código no cede por reparto (`flex: none`) y, **si él solo no cabe** en el nombre (fuera del rango 160–720 o un código muy largo), lleva elipsis dentro de su caja (`max-inline-size: 100%`), como el valor del identificador: nunca un corte sin señal (auditoría, punto a) |
 | Corriente (`row`, `lines: 2`) | `__flow` = identificador (`flex: 0 1 auto`, elipsis, margen `space × 3`) + `__facts` (`flex: 1 1 0`, salto, `max-block-size: 1lh`, `overflow: hidden`) con **centinela** de ancho cero y `1lh` de alto. Lo que no cabe salta entero a la segunda línea, que no se ve. «+N» al final de la línea |
 | `--multi` (`lines` ≥ 3 o 0) | Identificador y datos fluyen juntos en `--_lines` líneas con `row-gap: space × 1`; cada dato lleva elipsis si él solo no cabe; identidad arriba; `--free` sin tope |
 | `inline` | Una línea, tipografía **heredada** del anfitrión, `block-size: 1lh` (Δ0 por construcción: una identidad mayor que la línea desborda sin empujar). `__head`, `__name`, `__data` y `__flow` son `display: contents`; el estado y la secundaria (si hay datos) van al texto oculto. El título encoge primero (`flex-shrink: 1000`) hasta `4ch`; el identificador **no encoge por reparto** (`flex: none`, tope `100%`; con reparto proporcional perdía fracciones de píxel y mostraba una elipsis falsa: medido); el cuerpo recorta (`overflow: hidden`) solo sin medida |
@@ -78,6 +78,10 @@
 5. **Identificador con `bare`:** `data-terse` no calla su rótulo (solo `data-tight`). Confirmar.
 6. **Contraste al filo:** «+N» 4,51:1 y rótulo/compartido sobre `surface-sunken` 4,70:1 con el tema por defecto; sobre `--g-color-selection` 4,43:1 (< 4,5): la ficha «seleccionada» de `GCombobox` tiene que reapuntar rótulos y compartidos a `text-muted` (auditoría del combobox).
 7. **`stack` a muy poco ancho:** el estado puede llevar la elipsis propia de `GBadge` (antes que desbordar) y un botón del slot `action` (`white-space: nowrap`) puede desbordar: contenido de la aplicación, regla para el README.
+
+## Auditoría sobre el componente real
+
+`design/lab/summary/auditoria.md` y `auditoria-verificar.mjs` (paso 5, con `auditoria-tema.css` y el oscuro). Cambio en el CSS: elipsis de último recurso del código (arriba). Lo que queda «No verificado» abajo se midió allí sobre el componente real, salvo lector, `forced-colors` real, Safari y táctil reales y CJK.
 
 ## No verificado
 

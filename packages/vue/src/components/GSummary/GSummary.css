@@ -118,8 +118,13 @@
   align-items: baseline;
   gap: var(--g-space-2);
 }
+/* El código no cede por reparto (flex: none); si él solo no cabe en el nombre (fuera del rango del contrato o un código
+   muy largo), lleva elipsis dentro de su caja como el valor del identificador, nunca un corte sin señal (auditoría) */
 .g-summary__code {
   flex: none;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--g-color-text-muted);
   font-weight: var(--g-text-title-sm-weight);

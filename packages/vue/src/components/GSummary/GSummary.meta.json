@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSummary",
   "tag": "g-summary",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Ficha de resumen adaptable de una entidad (persona, paciente, diagnóstico, cliente, producto): identidad + título + línea secundaria + datos con prioridad + estado, que se adapta al ancho de su propio contenedor y al texto real (A · prioridad líquida): la corriente de datos se bebe por el final, antes de soltar un dato calla los rótulos que se explican solos, «+N» dice cuántos no se ven, lo que vuelve a caber entra; entre homónimos, lo único pesa y lo compartido se apaga (el contraste de B, summaryDiff). Ceder no es ocultar: todo sigue en el árbol de accesibilidad. Contenido de frase (span), sin eventos ni teclado; va en el paquete principal y las entradas secundarias la reciben por __shared.",
   "contract": "design/contracts/summary.md",
