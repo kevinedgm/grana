@@ -180,6 +180,9 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 | `color` | String | los siete colores | `brand` |
 | `size` | String | `sm` `md` | `md` |
 | `showValue` | Boolean | | `true` |
+| `showLabel` | Boolean | | `true` |
+
+**`showLabel`** (DECISIONS.md #375, para la ficha de `GFileField`, `file-field.md`): con `false` la etiqueta no se pinta pero **sigue siendo el nombre accesible** (`aria-label`, sigue obligatoria); con `showLabel` y `showValue` a `false` no hay `g-progress__row` (barra sola).
 
 `<div class="g-progress">` con la fila de texto (etiqueta y `valueText`) y `<div class="g-progress__bar" role="progressbar" aria-valuenow aria-valuemin="0" aria-valuemax aria-valuetext aria-label>`. El valor se recorta a `[0, max]`; sin `label`, avisa.
 
