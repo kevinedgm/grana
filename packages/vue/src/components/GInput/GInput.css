@@ -567,7 +567,7 @@
 }
 .g-form-row > .g-input > * { grid-column: 1; }
 .g-form-row > .g-input > .g-input__label { grid-row: 1; align-self: end; }
-.g-form-row > .g-input > .g-input__row { grid-row: 2; }
+.g-form-row > .g-input > .g-input__row { grid-row: 2; align-self: start; } /* una caja más alta alarga su línea, no estira a las vecinas (form.md §4, #379) */
 .g-form-row > .g-input > .g-input__support { grid-row: 3; }
 @media (hover: hover) {
   .g-input__toggle:hover {

@@ -616,7 +616,7 @@
 }
 .g-form-row > .g-select > * { grid-column: 1; }
 .g-form-row > .g-select > .g-select__label { grid-row: 1; align-self: end; }
-.g-form-row > .g-select > .g-select__control { grid-row: 2; }
+.g-form-row > .g-select > .g-select__control { grid-row: 2; align-self: start; } /* una caja más alta alarga su línea, no estira a las vecinas (form.md §4, #379) */
 .g-form-row > .g-select > .g-select__support { grid-row: 3; }
 
 /* ---------- Rechazo al enviar (I2 de GInput extendida; form.md §2, DECISIONS.md #304) ---------- */

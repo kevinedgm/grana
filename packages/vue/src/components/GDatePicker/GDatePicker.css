@@ -741,7 +741,7 @@
 }
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > * { grid-column: 1; }
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__label { grid-row: 1; align-self: end; }
-.g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__field, .g-datepicker__fields) { grid-row: 2; }
+.g-form-row > .g-datepicker:not(.g-datepicker--inline) > :is(.g-datepicker__field, .g-datepicker__fields) { grid-row: 2; align-self: start; } /* una caja más alta alarga su línea, no estira a las vecinas (form.md §4, #379) */
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) > .g-datepicker__support { grid-row: 3; }
 
 /* ---------- Aparición del popover ---------- */

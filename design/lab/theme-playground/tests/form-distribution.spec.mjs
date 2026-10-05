@@ -324,4 +324,44 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     expect(errs, browserName).toEqual([])
     expect(await roBlame(page)).toEqual([])
   })
+  // form.md §4 «Caja» (#379): un vecino más alto alarga la línea pero no estira las cajas de los demás (align-self: start)
+  test('un vecino más alto alarga su línea sin estirar las cajas de GInput, GSelect, GInputGroup ni GDatePicker', async ({ page, browserName }) => {
+    const errs = await watchConsole(page)
+    await open(page, 1280)
+    const BOX = ':scope > .g-input__row, :scope > .g-select__control, :scope > .g-datepicker__field, :scope > .g-input-group__box'
+    const res = await page.evaluate(async (BOXSEL) => {
+      const settleP = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 30))))
+      const out = { pairs: 0, kinds: new Set(), fails: [] }
+      for (const row of document.querySelectorAll('#sec-form .g-form-row[data-lines]')) {
+        const lines = new Map()
+        for (const c of row.children) {
+          const k = c.dataset.line ?? String(Math.round(c.getBoundingClientRect().top))
+          if (!lines.has(k)) lines.set(k, [])
+          lines.get(k).push(c)
+        }
+        for (const ks of lines.values()) {
+          const boxes = ks.map((k) => k.querySelector(BOXSEL)).filter(Boolean)
+          if (ks.length < 2 || boxes.length < 2) continue
+          const before = boxes.map((b) => b.getBoundingClientRect().height)
+          boxes[0].style.minBlockSize = '156px' // el vecino alto
+          await settleP()
+          const after = boxes.map((b) => b.getBoundingClientRect().height)
+          const tops = boxes.map((b) => b.getBoundingClientRect().top)
+          out.pairs++
+          boxes.forEach((b) => out.kinds.add(b.parentElement.className.split(' ')[0]))
+          if (after[0] < 150) out.fails.push('el vecino alto no creció')
+          for (let i = 1; i < boxes.length; i++) {
+            if (Math.abs(after[i] - before[i]) > 1) out.fails.push(`${boxes[i].parentElement.className.split(' ')[0]} estirado: ${before[i]} → ${after[i]}`)
+            if (Math.abs(tops[i] - tops[0]) > 1) out.fails.push('cajas desalineadas arriba')
+          }
+          boxes[0].style.minBlockSize = ''
+          await settleP()
+        }
+      }
+      return { pairs: out.pairs, kinds: [...out.kinds], fails: out.fails }
+    }, BOX)
+    expect(res.pairs, JSON.stringify(res)).toBeGreaterThan(2)
+    expect(res.fails, browserName).toEqual([])
+    expect(errs, browserName).toEqual([])
+  })
 })

@@ -390,7 +390,7 @@ select.g-input-group__control {
 }
 .g-form-row > .g-input-group > * { grid-column: 1; }
 .g-form-row > .g-input-group > .g-input-group__label { grid-row: 1; align-self: end; }
-.g-form-row > .g-input-group > .g-input-group__box { grid-row: 2; }
+.g-form-row > .g-input-group > .g-input-group__box { grid-row: 2; align-self: start; } /* una caja más alta alarga su línea, no estira a las vecinas (form.md §4, #379) */
 .g-form-row > .g-input-group > .g-input-group__support { grid-row: 3; }
 
 /* ---------- Preferencias del sistema ---------- */
