@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "name": "GAdaptiveLayout",
+  "tag": "g-adaptive-layout",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Contenedor sin superficie que reparte a sus hijos directos en líneas contiguas, en orden del DOM, según lo que cada uno necesita (etiqueta, dominio, opciones, chrome) y el ancho disponible; los campos cortos conservan su ancho y los nodos nunca se mueven.",
+  "contract": "design/contracts/adaptive-layout.md",
+  "prototype": "design/lab/adaptive-layout/r01/",
+  "style": "packages/vue/src/components/GAdaptiveLayout/GAdaptiveLayout.css",
+  "props": [
+    {
+      "name": "horizontal",
+      "type": "String",
+      "default": "start",
+      "values": [
+        "start",
+        "center",
+        "end"
+      ],
+      "note": "Lógico (#359): coloca la línea que no se llena; en RTL, start es la derecha"
+    },
+    {
+      "name": "vertical",
+      "type": "String",
+      "default": "top",
+      "values": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    {
+      "name": "gap",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "none",
+        "sm",
+        "md",
+        "lg"
+      ],
+      "note": "Factor 0 · 0,5 · 1 · 2 sobre las separaciones de formulario × densidad (#360)"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "note": "Por defecto la del sub-contexto de distribución, la de GForm o default; se re-provee a los campos"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Hijos directos en orden del DOM: campos, contenido genérico, avatar, GSummary, tablas y otro GAdaptiveLayout (grupo); las pistas van en el propio hijo"
+    }
+  ],
+  "exposes": [
+    {
+      "name": "refresh",
+      "type": "() => void",
+      "purpose": "Programa una nueva medida en el siguiente cuadro (cambios que el navegador no notifica: CSSOM, adoptedStyleSheets)"
+    }
+  ],
+  "classes": [
+    "g-adaptive-layout",
+    "g-adaptive-layout--horizontal-{start|center|end}",
+    "g-adaptive-layout--vertical-{top|center|bottom}",
+    "g-adaptive-layout--gap-{none|sm|md|lg}",
+    "g-adaptive-layout--density-{d}",
+    "is-ready",
+    "has-shared-tracks",
+    "g-adapt-short",
+    "g-adapt-standard",
+    "g-adapt-wide",
+    "g-adapt-full",
+    "g-adapt-natural"
+  ],
+  "inputs": [
+    {
+      "name": "--g-adapt-chars",
+      "type": "<number>",
+      "note": "Longitud esperada de un hijo en glifos de referencia, entero positivo; 0 = inferida (entrada pública, @property sin herencia)"
+    },
+    {
+      "name": "--g-adapt-weight",
+      "type": "<number>",
+      "note": "Peso del hijo en el reparto del sobrante, positivo; 0 = inferido (entrada pública, @property sin herencia)"
+    }
+  ],
+  "writes": {
+    "root": [
+      "--_adaptive-rows",
+      "data-lines",
+      "data-strategy"
+    ],
+    "children": [
+      "--_adaptive-line",
+      "--_adaptive-track",
+      "--_adaptive-width",
+      "--_adaptive-start",
+      "data-line"
+    ]
+  },
+  "reads": [
+    "--g-adapt-chars",
+    "--g-adapt-weight",
+    "--_adaptive-row-gap"
+  ],
+  "tokens": [
+    "--g-form-column-gap",
+    "--g-form-gap"
+  ],
+  "states": [
+    "sin medir (pila legible)",
+    "listo (is-ready)",
+    "vacío",
+    "óptimo hasta 64 hijos",
+    "voraz con más de 64 hijos",
+    "pistas compartidas (has-shared-tracks)",
+    "stack heredado",
+    "RTL",
+    "grupo anidado"
+  ],
+  "warnings": [
+    "Clase g-adapt-* desconocida (incluida g-adapt-auto)",
+    "Dos o más clases de familia g-adapt-* en un hijo (no se aplica ninguna)",
+    "--g-adapt-chars que no es un entero positivo o --g-adapt-weight que no es positivo",
+    "Valor no numérico de --g-adapt-chars o --g-adapt-weight en el style en línea",
+    "Pista sin efecto en ese hijo (bloque completo, grupo, g-adapt-natural en un campo o en GSummary, combinación redundante)",
+    "Clase g-form-w-* en un hijo directo (usa g-adapt-*)",
+    "Texto suelto como hijo directo",
+    "Más de 64 hijos (respaldo voraz)",
+    "Dentro de una GFormRow",
+    "Hijo con order distinto de 0 o rejilla con dense"
+  ],
+  "pending": [
+    "Auditoría de coco (ronda 2) sobre la versión corregida (#359, #360, #363, #364) antes de candidate"
+  ],
+  "audit": "design/lab/adaptive-layout/auditoria-coco.md"
+}

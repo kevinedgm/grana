@@ -71,3 +71,5 @@
 /* GCombobox (combobox.md, entrada @grana/vue/combobox, #337): compone GInput, GAvatar y GDialog (la superficie): va
    después de sus hojas */
 @import url("../components/GCombobox/GCombobox.css");
+
+@import url("../components/GAdaptiveLayout/GAdaptiveLayout.css");

@@ -1,0 +1,440 @@
+{
+ "fecha": "2026-10-05T07:39:08.977Z",
+ "motores": {
+  "chromium": {
+   "checks": 21960,
+   "fallos": [],
+   "notas": [
+    {
+     "k": "contraste mínimo de texto (etiquetas, valores, título de ficha, celdas)",
+     "v": {
+      "defecto-claro": 7.455177810447525,
+      "defecto-oscuro": 8.591152319747797,
+      "auditoria-claro": 7.509523298983511,
+      "auditoria-oscuro": 8.603287011434148
+     }
+    },
+    {
+     "k": "overflow-wrap heredado en celdas de GTable dentro del layout",
+     "v": "break-word"
+    },
+    {
+     "k": "GSummary a 240",
+     "v": "sum L2 w240 suelo 120 título 143 · sum1 L1 w240 suelo 76 título 209 (recortado) · sum2 L2 w240 suelo 76 título 177 · sum3 L1 w240 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 280",
+     "v": "sum L2 w280 suelo 120 título 143 · sum1 L1 w280 suelo 76 título 242 · sum2 L2 w280 suelo 76 título 177 · sum3 L1 w280 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 320",
+     "v": "sum L2 w320 suelo 120 título 143 · sum1 L1 w320 suelo 76 título 242 · sum2 L2 w320 suelo 76 título 177 · sum3 L1 w320 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 360",
+     "v": "sum L2 w360 suelo 120 título 143 · sum1 L1 w360 suelo 76 título 242 · sum2 L2 w360 suelo 76 título 177 · sum3 L1 w360 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 400",
+     "v": "sum L1 w344 suelo 120 título 143 compartida · sum1 L1 w400 suelo 76 título 242 · sum2 L2 w400 suelo 76 título 177 · sum3 L1 w400 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 460",
+     "v": "sum L1 w404 suelo 120 título 143 compartida · sum1 L1 w460 suelo 76 título 242 · sum2 L2 w460 suelo 76 título 177 · sum3 L1 w351 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "GSummary a 600",
+     "v": "sum L1 w418 suelo 120 título 143 compartida · sum1 L1 w600 suelo 76 título 242 · sum2 L2 w600 suelo 76 título 177 · sum3 L1 w491 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "anchos a 720 con pistas → sin pistas",
+     "v": {
+      "con": {
+       "h-area": 161.0625,
+       "h-piso": 103,
+       "h-rule": 78.15625,
+       "h-sel": 183.0625
+      },
+      "sin": {
+       "h-area": 601,
+       "h-piso": 103,
+       "h-rule": 430.953125,
+       "h-sel": 273.03125
+      }
+     }
+    },
+    {
+     "k": "#365 tema de auditoría ltr sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría ltr g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "espaciado de texto a 320 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 460 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 720 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "CPU del barrido de 53 anchos (mediana de 5, ms): GAdaptiveLayout vs GFormLayout con el mismo contenido",
+     "v": {
+      "adaptive": {
+       "total": 623.4,
+       "estilo": 431.3,
+       "layout": 110.8,
+       "script": 85.4
+      },
+      "formLayout": {
+       "total": 285.9,
+       "estilo": 213.4,
+       "layout": 67.6,
+       "script": 4.4
+      },
+      "porPaso": 6.37
+     }
+    },
+    {
+     "k": "barrido 240→1280 (53 pasos, 7 layouts, 3 cuadros por paso), ms por paso",
+     "v": {
+      "pasos": 53,
+      "p50": 50,
+      "p95": 51.20000001788139,
+      "max": 51.900000005960464
+     }
+    },
+    {
+     "k": "tecleo: mediana ms hasta el siguiente cuadro, dentro vs fuera del layout",
+     "v": {
+      "dentro": 16.599999994039536,
+      "fuera": 16.69999998807907
+     }
+    },
+    {
+     "k": "GAvatar con texto al 200 %: iniciales fuera de su caja (ajeno al layout, también fuera de él)",
+     "v": [
+      "texto200/320 av",
+      "texto200/320 av2",
+      "texto200/640 av",
+      "texto200/640 av2",
+      "texto200/1280 av",
+      "texto200/1280 av2"
+     ]
+    },
+    {
+     "k": "errores",
+     "v": []
+    }
+   ]
+  },
+  "firefox": {
+   "checks": 21581,
+   "fallos": [],
+   "notas": [
+    {
+     "k": "contraste mínimo de texto (etiquetas, valores, título de ficha, celdas)",
+     "v": {
+      "defecto-claro": 7.455177810447525,
+      "defecto-oscuro": 8.591152319747797,
+      "auditoria-claro": 7.509523298983511,
+      "auditoria-oscuro": 8.603287011434148
+     }
+    },
+    {
+     "k": "overflow-wrap heredado en celdas de GTable dentro del layout",
+     "v": "break-word"
+    },
+    {
+     "k": "GSummary a 240",
+     "v": "sum L2 w240 suelo 120 título 143 · sum1 L1 w240 suelo 76 título 209 (recortado) · sum2 L2 w240 suelo 76 título 177 · sum3 L1 w240 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 280",
+     "v": "sum L2 w280 suelo 120 título 143 · sum1 L1 w280 suelo 76 título 242 · sum2 L2 w280 suelo 76 título 177 · sum3 L1 w280 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 320",
+     "v": "sum L2 w320 suelo 120 título 143 · sum1 L1 w320 suelo 76 título 242 · sum2 L2 w320 suelo 76 título 177 · sum3 L1 w320 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 360",
+     "v": "sum L2 w360 suelo 120 título 143 · sum1 L1 w360 suelo 76 título 242 · sum2 L2 w360 suelo 76 título 177 · sum3 L1 w360 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 400",
+     "v": "sum L1 w344 suelo 120 título 143 compartida · sum1 L1 w400 suelo 76 título 242 · sum2 L2 w400 suelo 76 título 177 · sum3 L1 w400 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 460",
+     "v": "sum L1 w404 suelo 120 título 143 compartida · sum1 L1 w460 suelo 76 título 242 · sum2 L2 w460 suelo 76 título 177 · sum3 L1 w351 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "GSummary a 600",
+     "v": "sum L1 w418 suelo 120 título 143 compartida · sum1 L1 w600 suelo 76 título 242 · sum2 L2 w600 suelo 76 título 177 · sum3 L1 w491 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "anchos a 720 con pistas → sin pistas",
+     "v": {
+      "con": {
+       "h-area": 161.06666564941406,
+       "h-piso": 103,
+       "h-rule": 78.14999389648438,
+       "h-sel": 183.06668090820312
+      },
+      "sin": {
+       "h-area": 601,
+       "h-piso": 103,
+       "h-rule": 430.9666748046875,
+       "h-sel": 273.0333251953125
+      }
+     }
+    },
+    {
+     "k": "#365 tema de auditoría ltr sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría ltr g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "espaciado de texto a 320 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 460 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 720 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "barrido 240→1280 (53 pasos, 7 layouts, 3 cuadros por paso), ms por paso",
+     "v": {
+      "pasos": 53,
+      "p50": 50,
+      "p95": 51,
+      "max": 52
+     }
+    },
+    {
+     "k": "tecleo: mediana ms hasta el siguiente cuadro, dentro vs fuera del layout",
+     "v": {
+      "dentro": 16,
+      "fuera": 16
+     }
+    },
+    {
+     "k": "GAvatar con texto al 200 %: iniciales fuera de su caja (ajeno al layout, también fuera de él)",
+     "v": [
+      "texto200/320 av",
+      "texto200/320 av2",
+      "texto200/640 av",
+      "texto200/640 av2",
+      "texto200/1280 av",
+      "texto200/1280 av2"
+     ]
+    },
+    {
+     "k": "errores",
+     "v": []
+    }
+   ]
+  },
+  "webkit": {
+   "checks": 21581,
+   "fallos": [],
+   "notas": [
+    {
+     "k": "contraste mínimo de texto (etiquetas, valores, título de ficha, celdas)",
+     "v": {
+      "defecto-claro": 7.455177810447525,
+      "defecto-oscuro": 8.591152319747797,
+      "auditoria-claro": 7.509523298983511,
+      "auditoria-oscuro": 8.603287011434148
+     }
+    },
+    {
+     "k": "overflow-wrap heredado en celdas de GTable dentro del layout",
+     "v": "break-word"
+    },
+    {
+     "k": "GSummary a 240",
+     "v": "sum L2 w240 suelo 120 título 143 · sum1 L1 w240 suelo 76 título 209 (recortado) · sum2 L2 w240 suelo 76 título 177 · sum3 L1 w240 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 280",
+     "v": "sum L2 w280 suelo 120 título 143 · sum1 L1 w280 suelo 76 título 242 · sum2 L2 w280 suelo 76 título 177 · sum3 L1 w280 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 320",
+     "v": "sum L2 w320 suelo 120 título 143 · sum1 L1 w320 suelo 76 título 242 · sum2 L2 w320 suelo 76 título 177 · sum3 L1 w320 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 360",
+     "v": "sum L2 w360 suelo 120 título 143 · sum1 L1 w360 suelo 76 título 242 · sum2 L2 w360 suelo 76 título 177 · sum3 L1 w360 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 400",
+     "v": "sum L1 w344 suelo 120 título 143 compartida · sum1 L1 w400 suelo 76 título 242 · sum2 L2 w400 suelo 76 título 177 · sum3 L1 w400 suelo 120 título 143"
+    },
+    {
+     "k": "GSummary a 460",
+     "v": "sum L1 w404 suelo 120 título 143 compartida · sum1 L1 w460 suelo 76 título 242 · sum2 L2 w460 suelo 76 título 177 · sum3 L1 w351 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "GSummary a 600",
+     "v": "sum L1 w418 suelo 120 título 143 compartida · sum1 L1 w600 suelo 76 título 242 · sum2 L2 w600 suelo 76 título 177 · sum3 L1 w491 suelo 120 título 143 compartida"
+    },
+    {
+     "k": "anchos a 720 con pistas → sin pistas",
+     "v": {
+      "con": {
+       "h-area": 161.0625,
+       "h-piso": 103,
+       "h-rule": 78.15625,
+       "h-sel": 183.0625
+      },
+      "sin": {
+       "h-area": 601,
+       "h-piso": 103,
+       "h-rule": 430.953125,
+       "h-sel": 273.03125
+      }
+     }
+    },
+    {
+     "k": "#365 tema de auditoría ltr sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría ltr g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl sin pista",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "#365 tema de auditoría rtl g-adapt-full",
+     "v": [
+      1,
+      2,
+      2
+     ]
+    },
+    {
+     "k": "espaciado de texto a 320 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 460 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "espaciado de texto a 720 sin refresh(): palabras de etiqueta partidas",
+     "v": 0
+    },
+    {
+     "k": "barrido 240→1280 (53 pasos, 7 layouts, 3 cuadros por paso), ms por paso",
+     "v": {
+      "pasos": 53,
+      "p50": 50,
+      "p95": 56,
+      "max": 92
+     }
+    },
+    {
+     "k": "tecleo: mediana ms hasta el siguiente cuadro, dentro vs fuera del layout",
+     "v": {
+      "dentro": 17,
+      "fuera": 17
+     }
+    },
+    {
+     "k": "GAvatar con texto al 200 %: iniciales fuera de su caja (ajeno al layout, también fuera de él)",
+     "v": [
+      "texto200/320 av",
+      "texto200/320 av2",
+      "texto200/640 av",
+      "texto200/640 av2",
+      "texto200/1280 av",
+      "texto200/1280 av2"
+     ]
+    },
+    {
+     "k": "errores",
+     "v": []
+    }
+   ]
+  }
+ }
+}

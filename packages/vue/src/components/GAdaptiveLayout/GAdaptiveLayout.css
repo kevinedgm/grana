@@ -1,0 +1,151 @@
+/* GAdaptiveLayout · coco. Contrato adaptive-layout.md, decisiones #339–348 y #359–363.
+   Sin superficie ni movimiento: la identidad está en el reparto (#362).
+   bruno publica en cada raíz visible --_adaptive-line (línea entera),
+   --_adaptive-width (longitud medida) y --_adaptive-start (desplazamiento desde el inicio en línea, #359).
+   Colocación solo con propiedades lógicas: en RTL el inicio es la derecha, sin reglas propias de dirección.
+   Filas comparten celda; sus alturas siguen el contenido sin posición absoluta.
+   Los aliases se reinician en cada hijo para aislar grupos anidados.
+   Sin medición, auto coloca una raíz por fila, en el mismo orden DOM. */
+/* Pistas en el hijo (#364): propiedades de entrada públicas que lee el motor (JS) en cada raíz hija.
+   Registradas sin herencia, como --g-form-min (#174): una pista puesta en un grupo no baja a sus campos.
+   Ninguna regla de estilo las lee ni selecciona .g-adapt-*: son datos de comportamiento, no aspecto. */
+@property --g-adapt-chars {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --g-adapt-weight {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+/* Alias de colocación que escribe el motor en cada redimensionado: sin herencia. Un alias heredable que cambia
+   obliga a recalcular el estilo de todo el subárbol del hijo; registrados así, solo el elemento que los lee.
+   «*» conserva el valor tal cual (auto, 100%, Npx, la plantilla de filas con var()) y su sustitución en el elemento.
+   Cada uno lo lee solo el elemento donde se escribe, salvo --_adaptive-width: etiqueta y pie lo toman con
+   «inherit» explícito (abajo), solo esos dos nietos, nunca el resto del campo. */
+@property --_adaptive-line { syntax: "*"; inherits: false; }
+@property --_adaptive-track { syntax: "*"; inherits: false; }
+@property --_adaptive-width { syntax: "*"; inherits: false; }
+@property --_adaptive-start { syntax: "*"; inherits: false; }
+@property --_adaptive-rows { syntax: "*"; inherits: false; }
+
+.g-adaptive-layout {
+  --_adaptive-density: 1;
+  --_adaptive-gap-factor: 1;
+  --_adaptive-rows: none;
+  --_adaptive-column-gap: calc(var(--g-form-column-gap) * var(--_adaptive-density) * var(--_adaptive-gap-factor));
+  --_adaptive-row-gap: calc(var(--g-form-gap) * var(--_adaptive-density) * var(--_adaptive-gap-factor));
+
+  display: grid;
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  column-gap: var(--_adaptive-column-gap);
+  row-gap: var(--_adaptive-row-gap);
+  align-items: start;
+  align-content: start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-adaptive-layout--density-default { --_adaptive-density: 1; }
+.g-adaptive-layout--density-comfortable { --_adaptive-density: 0.875; }
+.g-adaptive-layout--density-compact { --_adaptive-density: 0.75; }
+/* gap (#360): factor 0 · 0,5 · 1 · 2 sobre la separación de formulario × densidad; md por defecto */
+.g-adaptive-layout--gap-none { --_adaptive-gap-factor: 0; }
+.g-adaptive-layout--gap-sm { --_adaptive-gap-factor: 0.5; }
+.g-adaptive-layout--gap-md { --_adaptive-gap-factor: 1; }
+.g-adaptive-layout--gap-lg { --_adaptive-gap-factor: 2; }
+.g-adaptive-layout--vertical-top { align-items: start; align-content: start; }
+/* Con altura fija menor que el contenido, center/end sin «safe» empujan las primeras filas por encima del
+   área desplazable (inalcanzables). «safe» cae a start al desbordar; la línea previa es para motores sin «safe». */
+.g-adaptive-layout--vertical-center { align-items: center; align-content: center; align-content: safe center; }
+.g-adaptive-layout--vertical-bottom { align-items: end; align-content: end; align-content: safe end; }
+
+.g-adaptive-layout.g-adaptive-layout > * {
+  --_adaptive-line: auto;
+  --_adaptive-track: auto;
+  --_adaptive-width: 100%;
+  --_adaptive-start: 0;
+
+  grid-column: 1;
+  grid-row: var(--_adaptive-line);
+  justify-self: start;
+  inline-size: var(--_adaptive-width);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  margin-inline-start: var(--_adaptive-start);
+  /* break-word, no anywhere: parte solo lo que de verdad desborda y NO rebaja el min-content heredado.
+     Con anywhere, una GTable hija partía palabras de sus celdas en lugar de usar su propio scroll. */
+  overflow-wrap: break-word;
+}
+/* C12 peers share label / box / footer tracks only after useful measurement
+   and when the plan has at least one pair of recognized fields on a line.
+   Bruno emits `auto auto auto` per logical line and a
+   `var(--_adaptive-row-gap)` separator track between logical lines.
+   A ready generic root spans the same three tracks without subgrid. */
+@supports (grid-template-rows: subgrid) {
+  .g-adaptive-layout.is-ready.has-shared-tracks {
+    grid-template-rows: var(--_adaptive-rows);
+    row-gap: 0;
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > * {
+    grid-row: var(--_adaptive-track) / span 3;
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > :is(.g-input, .g-select, .g-textarea) {
+    container-type: normal;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: subgrid;
+    align-self: stretch;
+    row-gap: 0;
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > :is(.g-input, .g-select, .g-textarea) > * {
+    grid-column: 1;
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-input > .g-input__label,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-select > .g-select__label,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-textarea > .g-textarea__label {
+    --_adaptive-width: inherit;
+    grid-row: 1;
+    align-self: end;
+    max-inline-size: var(--_adaptive-width);
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-input > .g-input__row,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-select > .g-select__control,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-textarea > .g-textarea__control {
+    grid-row: 2;
+    align-self: start;
+  }
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-input > .g-input__support,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-select > .g-select__support,
+  .g-adaptive-layout.is-ready.has-shared-tracks > .g-textarea > .g-textarea__support {
+    --_adaptive-width: inherit;
+    grid-row: 3;
+    max-inline-size: var(--_adaptive-width);
+  }
+}
+/* A closed reveal keeps its measurable descendants outside normal flow,
+   contributing no implicit row/gap even before the planner is ready.
+   Only excluded invisible/inert content uses absolute positioning;
+   visible planned roots remain regular Grid items. */
+.g-adaptive-layout.g-adaptive-layout > .g-form-reveal:not(.is-open)[inert] {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  inline-size: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+/* Author display:flex on a field must not override the hidden attribute.
+   Hidden is semantic exclusion; readonly/disabled remain ordinary items. */
+.g-adaptive-layout[hidden],
+.g-adaptive-layout.g-adaptive-layout.g-adaptive-layout > [hidden] {
+  display: none;
+}
+/* horizontal (start/center/end, lógico) lo resuelve el motor en --_adaptive-start; antes de medir, pila
+   legible a ancho completo. Hover, foco, disabled, carga, puntero grueso y forced-colors son de los hijos:
+   este contenedor no interactivo no recorta su foco ni cambia colores, fuente, dianas, opacidad o transiciones. */

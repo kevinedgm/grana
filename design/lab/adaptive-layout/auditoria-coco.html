@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría coco · GAdaptiveLayout</title>
+<!-- coco · banco de auditoría del componente real (paso 5). Sirve la raíz del repositorio:
+     python3 -m http.server 4209  →  http://localhost:4209/design/lab/adaptive-layout/auditoria-coco.html
+     Sin pistas (ni hints ni g-adapt-*): todo se infiere; gap, density y horizontal quedan en su valor por defecto
+     salvo cuando el script los fija, así el banco sirve antes y después del cambio de API (#359, #360, #364).
+     Usa dist/ tal como se publica (grana.css, grana.umd.js, combobox.umd.js). El estilo de la página no toca componentes. -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" id="theme-css" disabled>
+<style>
+  body { margin: 0; padding: 16px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  h2 { font-size: var(--g-text-body-size); margin: var(--g-space-6) 0 var(--g-space-2); }
+  .host { inline-size: var(--w, 460px); max-inline-size: 100%; outline: 1px dashed var(--g-color-border); }
+  .tall { block-size: 160px; overflow: auto; }
+  .aud-chars-1 { --g-adapt-chars: 1; } /* pista desde una regla del consumidor, no desde style */
+</style>
+</head>
+<body>
+<main id="app">
+  <div :dir="dir">
+    <h2>A · Dirección</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-address" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-input id="street" name="street" label="Calle" v-model="street" :error="err ? 'Revisa la dirección completa para continuar.' : undefined"></g-input>
+        <g-number-field id="ext" name="ext" label="Exterior" steppers decrement-label="Reducir exterior" increment-label="Aumentar exterior" :precision="0" :min="0" :max="9" v-model="ext"></g-number-field>
+        <g-number-field id="int" name="int" label="Interior" steppers decrement-label="Reducir interior" increment-label="Aumentar interior" :precision="0" :min="0" :max="9" v-model="int"></g-number-field>
+        <g-form-reveal id="rev" :when="reveal"><g-input id="ref" name="ref" label="Referencia" v-model="refText"></g-input></g-form-reveal>
+        <g-input id="cp" name="cp" label="Código postal" maxlength="5" v-model="cp"></g-input>
+      </component>
+    </div>
+
+    <h2>B · Campos de Grana</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-fields" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-input id="nombre" name="nombre" label="Nombre completo" v-model="nombre"></g-input>
+        <g-select id="estado" name="estado" label="Estado civil" :options="[{value:1,label:'Soltera'},{value:2,label:'Casada'},{value:3,label:'Unión libre'}]" v-model="estado"></g-select>
+        <g-combobox id="dx" name="dx" label="Diagnóstico" :options="dxOptions" v-model="dx"></g-combobox>
+        <g-number-field id="peso" name="peso" label="Peso" suffix="kg" suffix-label="kilogramos" :precision="1" :min="0" :max="300" v-model="peso"></g-number-field>
+        <g-input id="correo" name="correo" type="email" label="Correo electrónico" v-model="correo"></g-input>
+      </component>
+    </div>
+
+    <h2>C · Identidad con ficha de resumen</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-ident" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-avatar id="av" name="María García López" size="lg"></g-avatar>
+        <g-summary id="sum" title="María García López" subtitle="Expediente 004512" avatar :facts="[{label:'Edad',value:'42 años'},{label:'Médico',value:'Dra. Ruiz'},{label:'Plan',value:'Anual'}]"></g-summary>
+        <g-input id="tel" name="tel" label="Teléfono" maxlength="10" v-model="tel"></g-input>
+      </component>
+    </div>
+
+    <h2>D · Tabla directa</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-table" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-avatar id="av2" name="Equipo de enfermería" size="md"></g-avatar>
+        <g-input id="buscar" name="buscar" label="Buscar" v-model="buscar"></g-input>
+        <g-table id="tabla" caption="Historial" :columns="columns" :rows="rows"></g-table>
+      </component>
+    </div>
+    <div class="host" :style="{ '--w': w + 'px' }" id="ref-table-host">
+      <g-table id="ref-table" caption="Historial de referencia" :columns="columns" :rows="rows"></g-table>
+    </div>
+
+    <h2>E · Solo fichas</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-sums" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-summary id="sum1" title="Hipertensión esencial (primaria)" code="I10" :facts="[{label:'Desde',value:'2019'}]"></g-summary>
+        <g-summary id="sum2" title="Diabetes mellitus tipo 2" code="E11.9" :facts="[{label:'Desde',value:'2021'}]"></g-summary>
+      </component>
+    </div>
+
+    <h2>G · Ficha junto a campos compactos</h2>
+    <div class="host" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-squeeze" :gap="gap" :density="density" :horizontal="horizontal">
+        <g-summary id="sum3" title="María García López" avatar :facts="[{label:'Edad',value:'42 años'}]"></g-summary>
+        <g-number-field id="cama" name="cama" label="Cama" :precision="0" :min="0" :max="99" v-model="cama"></g-number-field>
+        <g-number-field id="piso" name="piso" label="Piso" :precision="0" :min="0" :max="9" v-model="piso"></g-number-field>
+      </component>
+    </div>
+
+    <h2>Referencia fuera del layout</h2>
+    <div class="host" :style="{ '--w': w + 'px' }"><g-input id="ref-input" name="ref-input" label="Calle (referencia)" v-model="refStreet"></g-input></div>
+
+    <h2>F · Altura fija con desbordamiento</h2>
+    <div class="host tall" :style="{ '--w': w + 'px' }">
+      <component :is="L" id="fx-tall" :vertical="vertical" :horizontal="horizontal" style="block-size: 100%">
+        <g-input id="t1" name="t1" label="Primero" maxlength="40"></g-input>
+        <g-input id="t2" name="t2" label="Segundo con texto largo" maxlength="40"></g-input>
+        <g-input id="t3" name="t3" label="Tercero" maxlength="40"></g-input>
+        <g-input id="t4" name="t4" label="Cuarto" maxlength="40"></g-input>
+      </component>
+    </div>
+
+    <!-- Ronda 2 (#364, #365). Solo se monta cuando el script lo pide (extra), para no alterar el coste comparado
+         con ?base=1. Siempre g-adaptive-layout: las pistas g-adapt-* son de este componente. -->
+    <template v-if="extra">
+      <h2>H · Pistas en el hijo (#364)</h2>
+      <div class="host" :style="{ '--w': w + 'px' }">
+        <g-adaptive-layout id="fx-hints">
+          <g-input id="h-area" name="h-area" label="Código de área" class="g-adapt-short" v-model="hArea"></g-input>
+          <g-number-field id="h-piso" name="h-piso" label="Piso del edificio" steppers decrement-label="Bajar piso" increment-label="Subir piso" :precision="0" :min="0" :max="9" style="--g-adapt-chars: 1" v-model="hPiso"></g-number-field>
+          <g-input id="h-rule" name="h-rule" label="Clave por regla del consumidor" class="aud-chars-1" v-model="hRule"></g-input>
+          <g-select id="h-sel" name="h-sel" label="Turno asignado" class="g-adapt-short" :options="[{value:1,label:'Matutino'},{value:2,label:'Vespertino'}]" v-model="hSel"></g-select>
+          <g-adaptive-layout id="fx-group" style="--g-adapt-weight: 5">
+            <g-input id="h-g1" name="h-g1" label="Contacto de emergencia" v-model="hG1"></g-input>
+            <g-input id="h-g2" name="h-g2" label="Parentesco" maxlength="12" v-model="hG2"></g-input>
+          </g-adaptive-layout>
+        </g-adaptive-layout>
+      </div>
+
+      <h2>J · Regresión de alineación #348</h2>
+      <div class="host" :style="{ '--w': w + 'px' }">
+        <g-adaptive-layout id="fx-c12">
+          <g-input id="c12-dis" name="c12-dis" label="Dato deshabilitado" disabled model-value="Fijo"></g-input>
+          <g-number-field id="c12-num" name="c12-num" label="Cantidad de prueba" :precision="0" :min="0" :max="9" v-model="c12"></g-number-field>
+        </g-adaptive-layout>
+      </div>
+
+      <h2>I · Límite conocido #365</h2>
+      <div class="host" :style="{ '--w': w + 'px' }">
+        <g-adaptive-layout id="fx-365">
+          <g-input id="calle" name="calle" label="Calle" :class="{ 'g-adapt-full': calleFull }" v-model="calle"></g-input>
+          <g-number-field id="exterior" name="exterior" label="Exterior" :precision="0" :min="0" :max="99999" v-model="exterior"></g-number-field>
+          <g-number-field id="interior" name="interior" label="Interior" :precision="0" :min="0" :max="9999" v-model="interior"></g-number-field>
+        </g-adaptive-layout>
+      </div>
+    </template>
+  </div>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/combobox.umd.js"></script>
+<script>
+const { createApp, reactive, toRefs } = Vue
+const state = reactive({
+  w: 460, dir: 'ltr', gap: undefined, density: undefined, horizontal: undefined, vertical: 'top', reveal: false, err: false,
+  street: 'Av. Ejemplo', ext: 1, int: 2, refText: '', cp: '', nombre: 'Ana', estado: 1, dx: null, peso: 64.5, correo: '', tel: '', buscar: '', cama: 12, piso: 3, refStreet: 'Av. Ejemplo',
+  extra: false, c12: 4, calleFull: false, calle: 'Av. Ejemplo', exterior: 1234, interior: 12, hArea: '55', hPiso: 3, hRule: 'A1', hSel: 1, hG1: 'Juan Pérez', hG2: 'Hermano',
+  dxOptions: [{ value: 'E11.9', label: 'Diabetes mellitus tipo 2' }, { value: 'I10', label: 'Hipertensión esencial (primaria)' }],
+  columns: [{ key: 'fecha', label: 'Fecha' }, { key: 'desc', label: 'Descripción' }, { key: 'estado', label: 'Estado' }, { key: 'resp', label: 'Responsable' }],
+  rows: [
+    { id: 1, fecha: '04 octubre', desc: 'Interconsulta de seguimiento posoperatorio', estado: 'Pendiente', resp: 'Dra. Ruiz' },
+    { id: 2, fecha: '02 octubre', desc: 'Toma de signos vitales', estado: 'Hecho', resp: 'Enf. Pérez' },
+    { id: 3, fecha: '28 septiembre', desc: 'Estudios de laboratorio', estado: 'Hecho', resp: 'Lab. central' }
+  ]
+})
+const L = new URLSearchParams(location.search).has("base") ? "g-form-layout" : "g-adaptive-layout"
+const app = createApp({ setup: () => ({ ...toRefs(state), L }) })
+app.use(Grana.default).use(GranaCombobox.default ?? GranaCombobox)
+app.mount('#app')
+window.audit = { state }
+</script>
+</body>
+</html>

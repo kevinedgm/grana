@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banco de estilo · GAdaptiveLayout</title>
+<!-- coco · banco del CSS fuente de GAdaptiveLayout con alias escritos a mano (sin motor), para comprobar la
+     colocación lógica (#359) y los factores de gap (#360) antes de que bruno cambie el JS. Tokens de dist/grana.css;
+     la hoja del componente se carga desde src/, en la capa grana.components, para ganar a la copia de dist/. -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  @import url("../../../packages/vue/src/components/GAdaptiveLayout/GAdaptiveLayout.css") layer(grana.components);
+  body { margin: 0; padding: 16px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .host { inline-size: 400px; margin-block-end: var(--g-space-6); }
+  .item { block-size: 40px; background: var(--g-color-surface-sunken); border: 1px solid var(--g-color-border); box-sizing: border-box; }
+</style>
+</head>
+<body>
+  <section dir="ltr" class="host"><div id="ltr" class="g-adaptive-layout g-adaptive-layout--gap-md g-adaptive-layout--density-default is-ready">
+    <div class="item" id="ltr-a" style="--_adaptive-line:1;--_adaptive-width:100px;--_adaptive-start:0px"></div>
+    <div class="item" id="ltr-b" style="--_adaptive-line:1;--_adaptive-width:80px;--_adaptive-start:116px"></div>
+    <div class="item" id="ltr-c" style="--_adaptive-line:2;--_adaptive-width:60px;--_adaptive-start:340px"></div>
+  </div></section>
+  <section dir="rtl" class="host"><div id="rtl" class="g-adaptive-layout g-adaptive-layout--gap-md g-adaptive-layout--density-default is-ready">
+    <div class="item" id="rtl-a" style="--_adaptive-line:1;--_adaptive-width:100px;--_adaptive-start:0px"></div>
+    <div class="item" id="rtl-b" style="--_adaptive-line:1;--_adaptive-width:80px;--_adaptive-start:116px"></div>
+    <div class="item" id="rtl-c" style="--_adaptive-line:2;--_adaptive-width:60px;--_adaptive-start:340px"></div>
+  </div></section>
+  <section class="host"><div id="fallback" class="g-adaptive-layout g-adaptive-layout--gap-md">
+    <div class="item" id="fb-a"></div><div class="item" id="fb-b"></div>
+  </div></section>
+  <section class="host">
+    <div id="gap-none" class="g-adaptive-layout g-adaptive-layout--gap-none"></div>
+    <div id="gap-sm" class="g-adaptive-layout g-adaptive-layout--gap-sm"></div>
+    <div id="gap-md" class="g-adaptive-layout g-adaptive-layout--gap-md"></div>
+    <div id="gap-lg" class="g-adaptive-layout g-adaptive-layout--gap-lg"></div>
+    <div id="gap-lg-compact" class="g-adaptive-layout g-adaptive-layout--gap-lg g-adaptive-layout--density-compact"></div>
+    <div id="adapt-parent" class="g-adapt-wide" style="--g-adapt-chars: 5; --g-adapt-weight: 2"><div id="adapt-child"></div></div>
+    <div id="adapt-bad" style="--g-adapt-chars: ancho"></div>
+    <div id="base" style="inline-size: var(--g-form-column-gap); block-size: var(--g-form-gap)"></div>
+  </section>
+</body>
+</html>

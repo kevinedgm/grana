@@ -1,0 +1,14 @@
+import { chromium } from '../../theme-playground/node_modules/playwright/index.mjs';
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1280,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.route('http://layout.test/**',async route=>{const name=new URL(route.request().url()).pathname.slice(1)||'index.html';try{await route.fulfill({body:await fs.readFile(new URL(name,import.meta.url)),contentType:name.endsWith('.mjs')?'text/javascript':'text/html'})}catch{await route.fulfill({status:404,body:''})}});
+await page.goto('http://layout.test/');await page.waitForTimeout(100);let checks=0;
+for(const width of [240,320,360,460,720,1120])for(const rtl of [false,true])for(const grouped of [false,true]){
+ await page.locator('#width').evaluate((el,w)=>{el.value=w;el.dispatchEvent(new Event('input',{bubbles:true}))},width);
+ await page.locator('#direction').selectOption(rtl?'rtl':'ltr');await page.locator('#grouped').setChecked(grouped);await page.waitForTimeout(40);
+ const result=await page.evaluate(()=>{const host=document.getElementById('layout').getBoundingClientRect();return [...document.querySelectorAll('#layout input')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {id:el.id,left:r.left,right:r.right,width:r.width,top:r.top,hostLeft:host.left,hostRight:host.right}})});
+ for(const r of result){assert.ok(r.left>=r.hostLeft-.5&&r.right<=r.hostRight+.5,JSON.stringify({width,rtl,grouped,r}));checks++}
+ if(width===460&&!grouped){assert.ok(result[0].top<result[1].top&&Math.abs(result[1].top-result[2].top)<1,'calle arriba números juntos');assert.ok(result[1].width<150,'compacto');checks+=2}
+}
+await page.locator('#reveal').check();await page.locator('#long').check();await page.locator('#message').check();await page.locator('#streetInput').focus();await page.keyboard.type('Texto largo no cambia el perfil');await page.locator('#streetInput').evaluate(el=>el.setSelectionRange(2,8,'backward')); const order=await page.evaluate(()=>[...document.querySelectorAll('#layout input')].filter(el=>el.getClientRects().length).map(el=>el.id));assert.deepEqual(order,['streetInput','exteriorInput','interiorInput','referenceInput']);checks++;await page.setViewportSize({width:380,height:1000});await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>document.activeElement.id),'streetInput');checks++;assert.deepEqual(await page.locator('#streetInput').evaluate(el=>[el.selectionStart,el.selectionEnd,el.selectionDirection]),[2,8,'backward']);checks++;
+assert.equal(errors.length,0,errors.join('\n'));checks++;await page.screenshot({path:new URL('preview.png',import.meta.url).pathname,fullPage:true});await browser.close();console.log(`${checks} comprobaciones Chromium correctas`);
