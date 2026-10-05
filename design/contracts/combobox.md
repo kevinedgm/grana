@@ -123,7 +123,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 
 - **Grupo:** `{ label, options }`; `label` es su nombre accesible (`role="group"`).
 - Una opción sin `value` o sin `label` se ignora y avisa; un `value` repetido avisa.
-- **Línea secundaria** (ficha en reposo y descripción accesible) = `description`; sin ella, los `facts` unidos como «rótulo valor · rótulo valor»; sin ninguno, nada.
+- **Línea secundaria** (ficha en reposo y descripción accesible) = `description`; sin ella, los `facts` unidos como «rótulo valor · rótulo valor»; sin ninguno, nada. Solo cuentan los datos **visibles** (rótulo y valor no vacíos; «Fichas con `GSummary`»).
 - Campos de más en la opción se conservan y llegan a los slots (`option`, `value`, `preview`, `lead`).
 
 ### Reglas de props
@@ -131,7 +131,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 - **`modelValue`:** el `value` de la opción elegida, comparado con `===`. `null` o `undefined` = sin opción. El componente recuerda toda opción que haya pintado y elegido; para un valor inicial que no está en `options` (búsqueda remota), la aplicación pasa **`selectedOption`** (con `value === modelValue`; si no coincide, se ignora). Un valor sin opción conocida deja el campo vacío y avisa, **pero se envía igual**.
 - **`custom`** (#331): el texto libre cuando el valor **no** es una opción. Exactamente uno de los dos tiene valor: elegir una opción emite `update:custom` con `''`; confirmar un texto libre emite `update:modelValue` con `null` y `update:custom` con el texto. Solo actúa con **`allowCustom`** (sin ella, un `custom` no vacío se ignora con aviso). Con los dos a la vez gana `modelValue` y se avisa. El componente no guarda copia: pinta las props.
 - **`appearance`** (#330): `field` = A (la lista es el interior del campo abierto). `palette` = B (superficie modal con vista previa). **Con el visor ≤ 520px siempre se usa la superficie** (hoja, sin vista previa), con cualquier valor. Cambiarla con la lista abierta la cierra.
-- **`filter`** (#332): `true`, el componente filtra `options` con su regla (todas las palabras del texto, sin acentos ni mayúsculas, sobre `label`, `code`, `description` y los valores de `facts`); una **función** sustituye la regla (`query` llega recortado); **`false`: la aplicación filtra** y el componente pinta lo que llega (resultados del servidor). Con `false` cambian cuatro cosas, y solo con `false`: abrir emite `search('')`, «Mostrar más» emite `more`, `total` cuenta, y existe la búsqueda **pendiente** («Datos»).
+- **`filter`** (#332): `true`, el componente filtra `options` con su regla (todas las palabras del texto, sin acentos ni mayúsculas, sobre `label`, `code`, `description` y los valores de los `facts` visibles); una **función** sustituye la regla (`query` llega recortado); **`false`: la aplicación filtra** y el componente pinta lo que llega (resultados del servidor). Con `false` cambian cuatro cosas, y solo con `false`: abrir emite `search('')`, «Mostrar más» emite `more`, `total` cuenta, y existe la búsqueda **pendiente** («Datos»).
 - **`loading`:** indicador de `GInput` (y `aria-busy` en el `listbox`); **no vacía la lista** ni bloquea.
 - **`total`:** con `filter: false`, cuántos resultados hay en el servidor para el texto actual; si es mayor que las opciones entregadas, aparece «Mostrar más». `null` = desconocido (no hay fila). Con filtro local se ignora (lo cuenta el componente) y avisa.
 - **`loadError`:** con texto, el panel lo muestra con la fila «Reintentar» y lo anuncia; **no** marca el campo inválido.
@@ -243,7 +243,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 
 - **Estado** (fuera del `listbox`, a lo sumo uno, en este orden): error de carga (`loadError`, icono `circle-alert`) › pista de mínimo (`labels.minChars`, `search`) › nada si hay opciones › «Buscando…» (`labels.loading`, `loader-circle` que gira) › «Sin resultados para «x»» (`labels.noResults` o slot `empty`, `search`).
 - **Opción:** `aria-selected="true"` **solo en la elegida** (además, más peso y `check`); la **activa** lleva `is-active`. `aria-disabled="true"` en las no elegibles. Sin `tabindex`. `pointerdown` sobre el panel **no quita el foco** del campo (`preventDefault`).
-- **Coincidencia** (desde #356 la pinta `GSummary` con su prop `highlight`: la marca es `<mark class="g-summary__mark">`, misma regla)**:** `<mark>` sobre la primera aparición de cada palabra buscada (sin acentos ni mayúsculas) en `label`, `code`, `description` y los valores de `facts`; peso y subrayado, **no color** (WCAG 1.4.1). Si la forma sin acentos no mide lo mismo que el texto (ligaduras), no se marca.
+- **Coincidencia** (desde #356 la pinta `GSummary` con su prop `highlight`: la marca es `<mark class="g-summary__mark">`, misma regla)**:** `<mark>` sobre la primera aparición de cada palabra buscada (sin acentos ni mayúsculas) en `label`, `code`, `description` y los valores de los `facts` visibles; peso y subrayado, **no color** (WCAG 1.4.1). Si la forma sin acentos no mide lo mismo que el texto (ligaduras), no se marca.
 - **Filas de acción** (#57): `role="option"` con `aria-selected="false"`, hijas directas del `listbox`, **fuera de los grupos y siempre al final**, en este orden: **`retry`** (solo con `loadError`; sustituye a `more`) o **`more`** · **`custom`** · **`create`**. Cuentan en la navegación. Iconos: `rotate-ccw`, `chevron-down`, `pencil`, `plus`.
   - `custom` (con `allowCustom`, texto no vacío y **ninguna opción a la vista con esa misma etiqueta**): elige el texto como `custom`, cierra.
   - `create` (con `creatable` y texto no vacío): cierra, **deja el foco en el campo antes de emitir** `create(texto)`, restaura el texto de la opción elegida y **no cambia el valor**.
@@ -282,7 +282,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 
 - **Es un `GDialog` real** (#330; precedentes #103 y la hoja de la isla): `title` = el nombre del campo, `closeLabel = labels.close`, `size="lg"`, `mobile="sheet"`, clase `g-combobox-surface` y `--palette` (por encima de 520px) o `--sheet` (móvil). Foco atrapado, capa superior, Esc, fondo y vuelta del foco son los de `GDialog`; el foco inicial va al campo de búsqueda (#292). Va dentro de la raíz del componente (dentro de un `GDialog` anfitrión es un modal sobre otro: medido por kiwi, elige, vuelve al campo y el anfitrión sigue abierto).
 - **Título:** la prop `label`; sin ella, el `aria-label` del consumidor; sin ninguno, `labels.surfaceTitle`. Si no hay ninguno, aviso.
-- **El campo de la página es el disparador:** conserva `role="combobox"` con `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls="ID-surface"`, **sin** `aria-autocomplete` ni `aria-activedescendant`, y `inputmode="none"` (no abre el teclado virtual). La raíz lleva `is-surface` y la flecha pasa a `chevrons-up-down`. Abre con clic, Intro, Espacio, ↓, ↑, Alt+↓ **o al escribir** (la primera tecla, o lo pegado, **no se pierde**: es el texto inicial de la búsqueda). Enfocar no abre.
+- **El campo de la página es el disparador:** conserva `role="combobox"` con `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls="ID-surface"`, **sin** `aria-autocomplete` ni `aria-activedescendant`, y `inputmode="none"` (no abre el teclado virtual). La raíz lleva `is-surface` y la flecha pasa a `chevrons-up-down`. Abre con clic, Intro, Espacio, ↓, ↑, Alt+↓, Alt+↑ **o al escribir** (la primera tecla, o lo pegado, **no se pierde**: es el texto inicial de la búsqueda). Enfocar no abre.
 - **Campo de búsqueda:** el `combobox` de APG completo; nombre por `aria-labelledby` al título; `placeholder` = la etiqueta de la opción elegida o el `placeholder` del campo. Sin `name` ni contexto de `GForm`.
 - **Vista previa** (`palette` por encima de 520px): `aside` con nombre `labels.preview`; pinta la **opción activa** (slot `preview`, o por defecto, desde #356, una **`GSummary layout="stack"`** con los datos de la fila: identidad `lg`, `code`, `label`, `description` si no hay `facts`, y los `facts` como rejilla de pares, sin `dl`); sin opción activa, `labels.previewEmpty` (si se da). **No es región viva.** **Regla (#335): la vista previa nunca es la única fuente del dato que distingue**; ese dato va también en la opción (`description` o `facts`). La vista previa por defecto la cumple por construcción (solo pinta datos de la fila); el slot `preview` queda bajo responsabilidad de la aplicación (README).
 - **Móvil (visor ≤ 520px, `matchMedia`, literal de #42 y #56):** la misma superficie como **hoja anclada arriba**, de ancho completo, **sin vista previa**, opciones ≥ 44px. Arriba para que el teclado virtual no tape la lista (coco la coloca desde `g-combobox-surface--sheet`). Cruzar el umbral con la lista abierta la cierra.
@@ -312,6 +312,7 @@ Decisión del usuario del 2026-10-04. El reporte de origen (fichas de opción am
 | `avatar`, `icon` | `avatar`, `icon` | Tal cual (la derivación de props de `GAvatar` pasa a la ficha) |
 | slot `lead` (`{ option }`) | slot `lead` de la ficha | Manda sobre `avatar` e `icon` |
 
+- **Dato visible (precisión de #356, encargo para bruno):** un dato de `facts` es **visible** si su `label` y su `value` son cadenas no vacías (tras recortar). Solo los visibles se pintan, **entran en la búsqueda** (`haystack` de `engine.js`: `label`, `code`, `description` y los valores de los visibles) y en `secondary()` (por tanto en `ID-about` y en `aria-describedby`). Un dato sin `label` ni se pinta, ni se busca, ni se anuncia, y avisa en desarrollo (#335, #356). Así lo que se busca y se oye coincide con lo que se ve; nada invisible produce un resultado «sin explicación». Bruno: `engine.js` filtra por `visibleFact(f)` (misma función que `hasFacts` de `GCombobox.vue`) y añade prueba en `engine`/`combobox.test.js`: opción con un dato sin `label` cuyo valor coincide **no** aparece al buscarlo ni lo lee `ID-about`. `description` con `facts` sigue sin pintarse pero alimentando búsqueda y `ID-about`: es la excepción documentada de #335, no cambia.
 - **`highlight`** = el texto buscado recortado, solo en la opción.
 - **Contraste entre homónimos:** `GCombobox` calcula `summaryDiff` sobre las **opciones pintadas** (no sobre el total del servidor), lo recalcula cuando cambian y pasa a cada ficha su `diff` (también a la vista previa de esa opción). Sin homónimos a la vista, ninguna marca. Completa la regla de #333: Tab no elige entre homónimas, y ahora se ve en qué se diferencian.
 - **Texto libre:** la ficha del valor es `GSummary inline` con `title` = el texto, `subtitle` = `labels.custom` y el icono `pencil` en el slot `lead`; la cursiva sigue colgando de `is-custom`.
@@ -349,7 +350,7 @@ Decisión del usuario del 2026-10-04. El reporte de origen (fichas de opción am
 | `label`, `hint`, `error` | Los de `GInput` (`error` es el **mensaje del campo**) | | Como `GInput` |
 | `prepend` | Icono decorativo del campo (lupa, icono del dominio) | | Como `GInput`: envuelto en `aria-hidden`. Se oculta mientras hay ficha (el hueco inicial de la opción lo sustituye, como en `GSelect`, #58) |
 | `option` | Contenido de una fila de opción | `{ option, active, selected, query }` | Dentro del `li role="option"`; sin interactivos; **debe conservar el texto que distingue**; el nombre accesible es su texto |
-| `lead` | Hueco inicial de una opción (sustituye a `avatar`/`icon`) | `{ option }` | Decorativo (`g-combobox__lead`, `aria-hidden`); se usa en fila, ficha y vista previa. Un `.g-avatar` manda su caja (#295) |
+| `lead` | Hueco inicial de una opción (sustituye a `avatar`/`icon`) | `{ option }` | Llega al slot `lead` de la `GSummary` de la fila, la ficha y la vista previa (decorativo, `aria-hidden`; `g-combobox__lead` es hoy solo el icono de las filas de acción). Un `.g-avatar` manda su caja (#295) |
 | `value` | Contenido de la ficha en reposo | `{ option, custom }` (`option` `null` con texto libre) | Dentro de `g-combobox__token` (`aria-hidden`, una línea, sin interactivos, sin cambiar el alto) |
 | `preview` | Ficha de la opción activa en la paleta | `{ option }` | Dentro de `g-combobox__preview`; sin interactivos; regla de la vista previa |
 | `empty` | Estado sin resultados | `{ query }` | Sustituye al texto de `labels.noResults`; el anuncio sigue usando `labels.noResults` |
@@ -395,7 +396,7 @@ Las cifras de `{count}`, `{shown}` y `{total}` se formatean con `Intl.NumberForm
 | Carácter | Abre y busca | Busca |
 | ↓ / ↑ | Abre; activa la elegida, o la primera / la última | Siguiente / anterior fila habilitada; **no cicla**; salta encabezados y deshabilitadas; las filas de acción cuentan |
 | Alt+↓ | Abre sin mover la activa | — |
-| Alt+↑ | — | Cierra |
+| Alt+↑ | — (en `field`; el disparador de la superficie sí abre) | Cierra |
 | Av Pág / Re Pág | — | Diez adelante / atrás |
 | Inicio / Fin / ← | Edición del texto | Edición del texto (no son de lista) |
 | → | Edición del texto | Con texto fantasma y el cursor al final: **acepta el texto** (el campo queda con la etiqueta completa) **sin elegir** y sin nueva búsqueda; la opción pasa a contar como activada por la persona. Si no, edición |
@@ -408,7 +409,7 @@ Las cifras de `{count}`, `{shown}` y `{total}` se formatean con `Intl.NumberForm
 - **Única excepción (A):** Tab elige la opción del **texto fantasma** cuando, además de las condiciones del fantasma, su etiqueta es **única** entre las opciones a la vista (sin acentos ni mayúsculas) **y no quedan resultados sin pintar** (no hay fila «Mostrar más»). Con homónimas, o con más resultados de los pintados, el campo completa el nombre pero Tab no elige. Es lo que la persona ve escrito en el campo, no una fila que no miró.
 - **Intro y resultados obsoletos:** «pendiente» es el de «Datos». Una opción activada por la persona (flechas, puntero, →) sí se elige con Intro.
 - **Composición (IME):** ninguna tecla de lista actúa mientras `isComposing`; no hay texto fantasma durante la composición.
-- **En la superficie:** el disparador abre con Intro, Espacio, ↓, ↑, Alt+↓ o un carácter. Dentro, la tabla de «Lista abierta» sobre el campo de búsqueda, salvo que **Tab se mueve dentro del diálogo** (campo → cierre) y **nunca elige**, y Esc cierra la superficie (un nivel).
+- **En la superficie:** el disparador abre con Intro, Espacio, ↓, ↑, Alt+↓, Alt+↑ o un carácter (en el disparador Alt no cambia nada: abrir no elige ni mueve, así que no choca con #333; en `field`, con la lista cerrada, Alt+↑ no hace nada, y la asimetría se deja así a propósito). Dentro, la tabla de «Lista abierta» sobre el campo de búsqueda, salvo que **Tab se mueve dentro del diálogo** (campo → cierre) y **nunca elige**, y Esc cierra la superficie (un nivel).
 - **Puntero:** pasar sobre una fila la activa; el clic elige (o ejecuta la acción). Un `pointerdown` fuera cierra (en `field`, es la salida del campo).
 
 ## Estados
@@ -474,7 +475,7 @@ Las de `GInput` siguen siendo de `GInput`. Bruno emite estas; coco las estiliza.
 | `is-custom` | Raíz | El valor es texto libre |
 | `g-combobox__value`, `__field` | Celda; `<input>` visible | Siempre |
 | `g-combobox__ghost`, `__ghost-typed`, `__ghost-rest` | Capa fantasma | Con texto fantasma |
-| `g-combobox__token`, `__token-label`, `__token-meta` | Ficha en reposo | Con `is-token` |
+| `g-combobox__token` | Ficha en reposo: contiene la `g-summary` del valor (partes `g-summary__*`, `summary.md`) | Con `is-token` |
 | `is-arriving` + `--_travel-x`, `--_travel-y` | `__token` | Mientras llega |
 | `g-combobox__about`, `__clear-text` | Textos ocultos accesibles | Con valor; con limpiar |
 | `g-combobox__clear`, `__arrow` | Limpiar; flecha | `clearable` con valor; editable |
@@ -484,14 +485,15 @@ Las de `GInput` siguen siendo de `GInput`. Bruno emite estas; coco las estiliza.
 | `g-combobox__group`, `__group-label` | Grupo | Por grupo |
 | `g-combobox__option`, `is-active` | Fila | Por opción y fila de acción |
 | `g-combobox__action`, `__action--{retry\|more\|custom\|create}` | Fila de acción | Según estado |
-| `g-combobox__lead`, `__code`, `__main`, `__label`, `__description`, `__facts`, `__fact`, `__fact-label`, `__check`, `__mark` | Partes de la fila (y de ficha y vista previa donde aplique) | Según la opción |
+| `g-combobox__check` | Marca de la opción elegida (`aria-selected`) | Opción elegida |
+| `g-combobox__lead`, `__main`, `__label` | Partes de las **filas de acción** (icono, columna y texto). Las opciones llevan una `g-summary` (`g-summary__lead`, `__code`, `__title`, `__subtitle`, `__fact*`, `__mark`, `summary.md`) | Filas de acción |
 | `g-combobox-surface`, `--palette`, `--sheet` | El `GDialog` | Superficie |
 | `g-combobox__search`, `__search-icon`, `__search-field`, `__search-loader` | Campo de la superficie | Superficie |
-| `g-combobox__surface-body`, `has-preview`, `g-combobox__preview`, `__preview-head`, `__preview-title`, `__preview-facts`, `__preview-empty` | Cuerpo y vista previa | Superficie; `palette` |
+| `g-combobox__surface-body`, `has-preview`, `g-combobox__preview`, `__preview-empty` | Cuerpo y vista previa (la ficha de la vista previa es una `g-summary` `stack`) | Superficie; `palette` |
 
 El estado elegida y deshabilitada de una opción se estiliza con `aria-selected` y `aria-disabled`.
 
-**Desde #356:** de esta tabla dejan de emitirse `__token-label`, `__token-meta`, `__description`, `__facts`, `__fact`, `__fact-label`, `__preview-head`, `__preview-title` y `__preview-facts`, y en las opciones `__lead`, `__code`, `__main`, `__label` y `__mark`; en su lugar va una `g-summary` (clases en `summary.md`). Lista completa en «Fichas con `GSummary`».
+**Desde #356 (comprobado contra `GCombobox.vue` y `GCombobox.css`):** ya no existen `__token-label`, `__token-meta`, `__description`, `__facts`, `__fact`, `__fact-label`, `__preview-head`, `__preview-title` y `__preview-facts`, y en las opciones `__lead`, `__code`, `__main`, `__label` y `__mark` (las filas de acción conservan `__lead`, `__main` y `__label`); en su lugar va una `g-summary` (clases en `summary.md`). Lista completa en «Fichas con `GSummary`».
 
 **Para coco:**
 
