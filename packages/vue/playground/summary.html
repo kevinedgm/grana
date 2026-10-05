@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSummary · banco del componente real (bruno)</title>
+<!-- Banco de bruno para el COMPONENTE REAL (dist/grana.umd.js): los mismos casos que el banco de coco
+     (design/lab/summary/estilo-banco.html) con <g-summary> en vez de la simulación XSummary, más una rejilla de N fichas
+     para medir el rendimiento de la medida por lotes. Lo verifica design/lab/theme-playground/tests/summary.spec.mjs.
+     Requiere `npm run build`. Desde la raíz del repo: python3 -m http.server 4173 → /packages/vue/playground/summary.html
+     Parámetros: ?w=<px> (ancho de los escenarios) · ?n=<fichas> (rejilla de rendimiento) · ?dark=1 · ?slow=1 (×5) -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  :root{--w:360px}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:30vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:12px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px;align-items:start}
+  .stage{inline-size:var(--w);max-inline-size:100%;outline:1px dashed var(--g-color-border-strong);outline-offset:2px;margin-block-end:12px}
+  .stage.fixed{inline-size:260px}
+  .lb{list-style:none;margin:0;padding:var(--g-space-1);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md)}
+  .lb__opt{display:flex;align-items:center;gap:var(--g-space-2);padding:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-sm);color:var(--g-color-text)}
+  .lb__opt > .g-summary{flex:1;min-inline-size:0}
+  .lb__opt[aria-selected="true"]{background:var(--g-color-surface-sunken)}
+  .fld{display:flex;align-items:center;min-inline-size:0;padding-inline:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text)}
+  .fld--sm{font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);padding-block:var(--g-space-1)}
+  .fld--md{font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);padding-block:var(--g-space-2)}
+  .fld--lg{font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);padding-block:var(--g-space-2)}
+  .fld__plain{flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pv{padding:var(--g-space-4);background:var(--g-color-surface-sunken);border-radius:var(--g-radius-md)}
+  .card{padding:var(--g-space-4);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg)}
+  .tbl{inline-size:100%;border-collapse:collapse;table-layout:fixed;background:var(--g-color-surface)}
+  .tbl td,.tbl th{padding:var(--g-space-2) var(--g-space-3);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;font-size:var(--g-text-body-sm-size)}
+  .tbl th{overflow:hidden;white-space:nowrap} .tbl th:last-child{inline-size:calc(var(--g-space-1) * 14)}
+  .bg-bg{background:var(--g-color-bg)} .bg-surface{background:var(--g-color-surface)} .bg-sunken{background:var(--g-color-surface-sunken)} .bg-selection{background:var(--g-color-selection)}
+  .surf{padding:var(--g-space-3);color:var(--g-color-text)}
+  /* Rendimiento: N fichas en una rejilla cuyo ancho cambia de golpe */
+  .perf{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--pw,220px),1fr));gap:var(--g-space-2)}
+  .perf > .g-summary{padding:var(--g-space-1) 0}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GSummary · banco del componente real</h1>
+<p class="cap"><b>bruno</b> · los casos del banco de coco con <code>&lt;g-summary&gt;</code> real: A · prioridad líquida (la corriente se bebe por el final; rótulos evidentes callados antes de soltar; «+N»; lo que vuelve a caber entra) y el contraste de B entre homónimas (<code>summaryDiff</code>). Mueve el ancho: nada cruza la línea discontinua.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Ancho <input id="t-w" type="range" min="120" max="720" step="1" v-model.number="w"></label><output>{{ w }}px</output>
+  <button type="button" v-for="q in [120, 160, 240, 360, 520, 640]" :key="q" @click="w = q">{{ q }}</button>
+  <button type="button" id="t-dark" @click="dark = !dark">{{ dark ? 'Claro' : 'Oscuro' }}</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <label>Rendimiento: fichas <input type="number" min="0" max="2000" step="100" v-model.number="n" style="inline-size:6em"></label>
+</div>
+
+<h2 class="b">1 · Opción de lista (row, lines 2): cuatro homónimas y un vecino, con diff y highlight «mar»</h2>
+<div class="stage"><ul class="lb" role="listbox" aria-label="Paciente" data-case="opt">
+  <li v-for="(p, i) in PEOPLE" :key="p.id" class="lb__opt" role="option" :aria-selected="String(i === 0)"><g-summary v-bind="p" :status="undefined" :diff="DIFFS[i]" highlight="mar"></g-summary></li>
+</ul></div>
+<div class="stage"><ul class="lb" role="listbox" aria-label="Diagnóstico" data-case="opt-dx">
+  <li class="lb__opt" role="option" aria-selected="false"><g-summary v-bind="DX"></g-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><g-summary v-bind="PROD"></g-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><g-summary title="Ana Torres" subtitle="Sin datos: la línea secundaria ocupa la segunda línea" avatar></g-summary></li>
+</ul></div>
+
+<h2 class="b">2 · Valor dentro de un campo (inline, Δ0 de alto) en tres tamaños de campo</h2>
+<div class="grid">
+  <div v-for="s in ['sm', 'md', 'lg']" :key="s">
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'ref-' + s"><span class="fld__plain">María García López</span></div></div>
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'field-' + s"><g-summary v-bind="PEOPLE[0]" layout="inline"></g-summary></div></div>
+    <div class="stage"><div :class="['fld', 'fld--' + s]" :data-case="'field-dx-' + s"><g-summary v-bind="DX" layout="inline"></g-summary></div></div>
+  </div>
+</div>
+
+<h2 class="b">3 · Vista previa (stack, group, acción al pie) y tarjetas (row lines 4, 0 y 3)</h2>
+<div class="grid">
+  <div class="stage"><div class="pv" data-case="preview"><g-summary v-bind="PEOPLE[0]" subtitle="Paciente desde 2019 · Consultorio 4, segundo piso, ala norte" layout="stack" group><template #action><g-btn size="sm" variant="soft">Abrir</g-btn></template></g-summary></div></div>
+  <div class="stage"><div class="card" data-case="card4"><g-summary v-bind="PROD" subtitle="Analgésico y antipirético de venta libre" layout="row" :lines="4" size="lg"></g-summary></div></div>
+  <div class="stage"><div class="card" data-case="card0"><g-summary v-bind="PEOPLE[1]" layout="row" :lines="0" size="lg"></g-summary></div></div>
+  <div class="stage"><div class="card" data-case="card3"><g-summary v-bind="PEOPLE[2]" subtitle="Con lines 3 y línea secundaria: una línea de datos" layout="row" :lines="3"></g-summary></div></div>
+</div>
+
+<h2 class="b">4 · Celda de tabla (la ficha no aporta ancho)</h2>
+<div class="stage"><table class="tbl" data-case="cell"><thead><tr><th>Paciente</th><th>Sala</th></tr></thead><tbody>
+  <tr v-for="p in PEOPLE.slice(0, 2)" :key="p.id"><td class="su-cell"><g-summary v-bind="p" size="sm"></g-summary></td><td>4B</td></tr>
+</tbody></table></div>
+
+<h2 class="b">5 · Bidi con texto RTL real (árabe y hebreo) y latino en contenedor RTL</h2>
+<div class="stage" dir="rtl"><ul class="lb" role="listbox" aria-label="مريض" data-case="rtl-opt">
+  <li v-for="p in RTL" :key="p.id" class="lb__opt" role="option" aria-selected="false"><g-summary v-bind="p"></g-summary></li>
+</ul></div>
+<div class="stage" dir="rtl"><div class="fld fld--md" data-case="rtl-field"><g-summary v-bind="RTL[0]" layout="inline"></g-summary></div></div>
+<div class="stage" dir="rtl"><ul class="lb" role="listbox" aria-label="Paciente" data-case="rtl-latin">
+  <li class="lb__opt" role="option" aria-selected="false"><g-summary v-bind="PEOPLE[0]"></g-summary></li>
+  <li class="lb__opt" role="option" aria-selected="false"><g-summary v-bind="DX"></g-summary></li>
+</ul></div>
+<div class="stage" dir="rtl"><div class="pv" data-case="rtl-preview"><g-summary v-bind="RTL[1]" layout="stack" group></g-summary></div></div>
+
+<h2 class="b">6 · Carga (Δ0) y vacío. El botón cambia la primera ficha de carga a datos sin que el alto se mueva</h2>
+<p class="cap"><button type="button" id="t-load" @click="loaded = !loaded">{{ loaded ? 'Volver a carga' : 'Cargar datos' }}</button></p>
+<div class="grid" data-case="loading">
+  <div class="stage"><ul class="lb"><li class="lb__opt" data-pair="row2"><g-summary v-bind="PEOPLE[0]"></g-summary></li><li class="lb__opt" data-pair="row2"><g-summary v-bind="PEOPLE[0]" :loading="!loaded" data-test="swap"></g-summary></li></ul></div>
+  <div class="stage"><div class="card" data-pair="row4"><g-summary v-bind="PROD" layout="row" :lines="4" size="lg"></g-summary></div><div class="card" data-pair="row4"><g-summary icon="tag" layout="row" :lines="4" size="lg" loading></g-summary></div></div>
+  <div class="stage"><div class="fld fld--md" data-pair="inline"><g-summary v-bind="PEOPLE[0]" layout="inline"></g-summary></div><div class="fld fld--md" data-pair="inline"><g-summary avatar layout="inline" loading></g-summary></div></div>
+  <div class="stage"><div class="pv" data-pair="stack"><g-summary avatar layout="stack" loading></g-summary></div><div class="pv" data-case="empty"><g-summary placeholder="Sin paciente" avatar></g-summary></div></div>
+</div>
+
+<h2 class="b">7 · Tamaños (row, lines 2) y superficies</h2>
+<div class="grid">
+  <div class="stage" data-case="sizes"><div v-for="s in ['xs', 'sm', 'md', 'lg', 'xl']" :key="s" class="card" style="margin-block-end:8px"><g-summary v-bind="PEOPLE[3]" :size="s"></g-summary></div></div>
+  <div class="stage fixed" data-case="surfaces">
+    <div v-for="b in ['bg', 'surface', 'sunken', 'selection']" :key="b" :class="['surf', 'bg-' + b]" :data-bg="b">
+      <g-summary v-bind="PEOPLE[1]" :diff="DIFFS[1]" subtitle="Línea secundaria"></g-summary>
+      <g-summary v-bind="DX" layout="stack" :diff="{ Grupo: 'same', 'Última revisión': 'diff' }"></g-summary>
+      <g-summary placeholder="Sin paciente"></g-summary>
+    </div>
+  </div>
+</div>
+
+<h2 class="b">8 · Rendimiento: {{ n }} fichas en una rejilla; cambiar el ancho de la columna mide todas por lotes</h2>
+<p class="cap">Columnas de <button type="button" @click="pw = 180">180</button> <button type="button" @click="pw = 220">220</button> <button type="button" @click="pw = 320">320</button> px · última medida: <output id="perf-out">{{ perfMs }}</output></p>
+<div class="perf" data-case="perf" :style="{ '--pw': pw + 'px' }">
+  <g-summary v-for="p in MANY" :key="p.id" v-bind="p" :diff="MANY_DIFFS[p.id]"></g-summary>
+</div>
+</main>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+const { createApp, ref, watch, computed } = Vue
+const qs = new URLSearchParams(location.search)
+
+// ---- Datos (los del banco de coco) ----
+const P = (id, title, exp, edad, visita, medico, status) => ({ id, title, avatar: true, status,
+  facts: [{ label: 'Expediente', short: 'Exp.', value: exp, priority: 1 }, { label: 'Edad', value: edad, priority: 2, bare: true },
+    { label: 'Última visita', value: visita, priority: 3 }, { label: 'Médico', value: medico, priority: 4, bare: true }] })
+const PEOPLE = [
+  P('p1', 'María García López', '001000', '22 años', '03/02/2026', 'Dra. Ruiz', { label: 'Activa', color: 'success' }),
+  P('p2', 'María García López', '004417', '47 años', '19/08/2026', 'Dr. Peña', { label: 'Activa', color: 'success' }),
+  P('p3', 'María García López', '010238', '22 años', '03/02/2026', 'Dr. Ortega', { label: 'Alta', color: 'neutral' }),
+  P('p4', 'María García López', '020951', '71 años', '11/11/2025', 'Dra. Ruiz', { label: 'Activa', color: 'success' }),
+  P('p5', 'Mario Garza Lozano', '000317', '35 años', '27/09/2026', 'Dr. Peña', { label: 'Pendiente', color: 'warning' })
+]
+const DX = { title: 'Diabetes mellitus tipo 2 sin complicaciones', code: 'E11.9', icon: 'folder',
+  facts: [{ label: 'Grupo', value: 'Endocrinas' }, { label: 'Crónica', value: 'Sí' }, { label: 'Última revisión', value: '2026' }] }
+const PROD = { title: 'Paracetamol 500 mg, caja con 20 tabletas', icon: 'tag', status: { label: 'Agotado', color: 'danger' },
+  facts: [{ label: 'SKU', value: 'MED-000482-MX', priority: 1 }, { label: 'Precio', value: '$ 48.50', priority: 2 }, { label: 'Existencia', value: '0 cajas', priority: 3 }, { label: 'Proveedor', value: 'Laboratorios Farmacéuticos del Sureste, S.A. de C.V.', priority: 4 }] }
+const RTL = [
+  { id: 'r1', title: 'مريم غارسيا لوبيز', avatar: true, status: { label: 'نشطة', color: 'success' }, subtitle: 'عيادة ٤',
+    facts: [{ label: 'الملف', value: '001000', priority: 1 }, { label: 'العمر', value: '22 سنة', priority: 2, bare: true }, { label: 'آخر زيارة', value: '03/02/2026', priority: 3 }, { label: 'الطبيب', value: 'د. رويز', priority: 4, bare: true }] },
+  { id: 'r2', title: 'מרים גרסיה לופס', avatar: true, subtitle: 'מטופלת מאז 2019',
+    facts: [{ label: 'מס׳ תיק', value: '004417', priority: 1 }, { label: 'גיל', value: '47 שנים', priority: 2, bare: true }, { label: 'ביקור אחרון', value: '19/08/2026', priority: 3 }, { label: 'רופא', value: 'ד״ר פניה', priority: 4, bare: true }] }
+]
+const DIFFS = Grana.summaryDiff(PEOPLE)
+
+// Rendimiento: N fichas (homónimas por grupos, para que summaryDiff también trabaje)
+const N = Math.max(0, Number(qs.get('n')) || 0)
+const NAMES = ['María García López', 'Mario Garza Lozano', 'Ana Torres Vidal', 'Luis Peña Ortega', 'Elena Vega Cano']
+const DOCS = ['Dra. Ruiz', 'Dr. Peña', 'Dr. Ortega', 'Dra. Mora']
+const many = (n) => Array.from({ length: n }, (_, i) => P('m' + i, NAMES[i % NAMES.length], String(100000 + i * 7), (20 + (i * 13) % 60) + ' años', `${String(1 + i % 28).padStart(2, '0')}/0${1 + i % 9}/2026`, DOCS[i % DOCS.length], undefined))
+
+const app = createApp({
+  setup() {
+    const w = ref(Number(qs.get('w')) || 360), slow = ref(!!qs.get('slow')), dark = ref(!!qs.get('dark')), loaded = ref(false), n = ref(N), pw = ref(220), perfMs = ref('—')
+    watch(w, (v) => document.documentElement.style.setProperty('--w', v + 'px'), { immediate: true })
+    watch(slow, (v) => { document.getElementById('slow-css').textContent = v ? ':root{--g-duration-slow:1200ms;--g-duration-fast:600ms}' : '' }, { immediate: true })
+    watch(dark, (v) => { document.documentElement.dataset.theme = v ? 'dark' : 'light' }, { immediate: true })
+    const MANY = computed(() => many(n.value))
+    const MANY_DIFFS = computed(() => { const d = Grana.summaryDiff(MANY.value); const out = {}; MANY.value.forEach((p, i) => { out[p.id] = d[i] }); return out })
+    watch(pw, () => { const t0 = performance.now(); requestAnimationFrame(() => requestAnimationFrame(() => { perfMs.value = (performance.now() - t0).toFixed(1) + ' ms' })) })
+    return { w, slow, dark, loaded, n, pw, perfMs, PEOPLE, DX, PROD, RTL, DIFFS, MANY, MANY_DIFFS }
+  }
+})
+app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+// Rendimiento: tiempo del montaje (render + onMounted) y de la primera medida por lotes (la microtarea que sigue)
+const t0 = performance.now()
+app.mount('#app')
+const t1 = performance.now()
+document.body.getBoundingClientRect() // el primer maquetado de la página es de la página, no de la medida
+const t2 = performance.now()
+queueMicrotask(() => { window.__perf = { n: N, mount: +(t1 - t0).toFixed(1), layout: +(t2 - t1).toFixed(1), measure: +(performance.now() - t2).toFixed(1) } })
+window.__su = {
+  setW: (v) => document.documentElement.style.setProperty('--w', v + 'px'),
+  setPw: (v) => document.querySelector('.perf').style.setProperty('--pw', v + 'px'),
+  // Tiempo de la medida tras un cambio de ancho de la rejilla: la devolución del observador de tamaño llega en un
+  // requestAnimationFrame y la medida por lotes en la microtarea que lo sigue; se cronometra el rAF más largo con sus microtareas
+  timePw: (v) => new Promise((resolve) => {
+    const orig = window.requestAnimationFrame
+    let worst = 0, seen = 0
+    window.requestAnimationFrame = (cb) => orig((ts) => { const a = performance.now(); cb(ts); queueMicrotask(() => { worst = Math.max(worst, performance.now() - a); seen++ }) })
+    window.__su.setPw(v)
+    // WebKit entrega la devolución del observador hasta 800 ms después con cientos de fichas: se espera a la medida
+    const t0 = performance.now()
+    const tick = () => { if ((seen && performance.now() - t0 > 150) || performance.now() - t0 > 2500) { window.requestAnimationFrame = orig; resolve(+worst.toFixed(1)) } else setTimeout(tick, 50) }
+    setTimeout(tick, 150)
+  })
+}
+Promise.all([document.fonts.ready, new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))]).then(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))).then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>

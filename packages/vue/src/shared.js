@@ -4,7 +4,8 @@
 // borde (edgeReserve), un solo seguimiento del modal superior (topModal), la misma lista de iconos de la librería y los
 // mismos GBtn, GSelect, GCheckbox y GProgress. La isla de estado (`@grana/vue/status`, #328) usa el mismo mecanismo
 // (vite.status.config.js; src/status.test.js comprueba sus importaciones), y también la entrada `@grana/vue/combobox`
-// (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog y los dos GIcon.
+// (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog y los dos GIcon. La ficha de resumen (GSummary, summaryDiff y
+// utils/match.js; summary.md, #350) vive en el principal y las entradas secundarias la reciben por aquí, sin copia.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -19,12 +20,15 @@ import GDialog from './components/GDialog/GDialog.vue'
 import GInput from './components/GInput/GInput.vue'
 import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
+import GSummary from './components/GSummary/GSummary.vue'
+import { summaryDiff } from './components/GSummary/diff.js'
 import { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { createLiveWriter } from './utils/liveRegion.js'
+import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
 import { createTopModal } from './utils/topModal.js'
@@ -40,12 +44,15 @@ export const shared = {
   'components/GInput/GInput.vue': { default: GInput },
   'components/GAvatar/GAvatar.vue': { default: GAvatar },
   'components/GIcon/GIcon.vue': { default: GIcon },
+  'components/GSummary/GSummary.vue': { default: GSummary },
+  'components/GSummary/diff.js': { summaryDiff },
   'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },
   'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve },
   'utils/liveRegion.js': { createLiveWriter },
+  'utils/match.js': { fold, parts, tokens },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },
   'utils/topModal.js': { createTopModal }

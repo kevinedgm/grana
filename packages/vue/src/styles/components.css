@@ -65,6 +65,9 @@
    de GBtn.css y GDialog.css */
 @import url("../components/GStatusIsland/GStatusIsland.css");
 @import url("../components/GStatusMark/GStatusMark.css");
+/* GSummary (summary.md, #350): compone GAvatar, GBadge y GIcon (va después de sus hojas) y antes de sus anfitriones,
+   que reapuntan sus tonos con selectores propios sobre las clases de la ficha */
+@import url("../components/GSummary/GSummary.css");
 /* GCombobox (combobox.md, entrada @grana/vue/combobox, #337): compone GInput, GAvatar y GDialog (la superficie): va
    después de sus hojas */
 @import url("../components/GCombobox/GCombobox.css");

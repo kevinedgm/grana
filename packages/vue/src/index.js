@@ -48,6 +48,8 @@ import GFormActions from './components/GFormActions/GFormActions.vue'
 import GErrorSummary from './components/GErrorSummary/GErrorSummary.vue'
 import GDivider from './components/GDivider/GDivider.vue'
 import GIcon from './components/GIcon/GIcon.vue'
+import GSummary from './components/GSummary/GSummary.vue'
+import { summaryDiff } from './components/GSummary/diff.js'
 import { formKey, useFormField } from './components/GForm/formContext.js'
 import { createToaster, useToast, toasterKey } from './components/GToast/toaster.js'
 import { createIcons, iconsKey } from './components/GIcon/registry.js'
@@ -55,19 +57,21 @@ import { shared } from './shared.js'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
+export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary }
 // Formularios: composable para campos (de Grana y propios) y clave del contexto para `provide` manual (form.md §2)
 export { useFormField, formKey }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
 export { createToaster, useToast, toasterKey }
 // Iconos de la aplicación: registro por aplicación con cadenas de lucide-static (docs/contract/icons.md §5, #200)
 export { createIcons, iconsKey }
+// Ficha de resumen: contraste entre homónimos de una lista (design/contracts/summary.md, #354)
+export { summaryDiff }
 // La captura de voz (createSpeech, GSpeechHost…) NO está aquí: va en su propia entrada `@grana/vue/speech` (#238).
 // Uso INTERNO de esa entrada (no es API pública, puede cambiar sin aviso): las piezas que comparte con el principal (src/shared.js)
 export { shared as __shared }
 
 
-const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon }
+const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

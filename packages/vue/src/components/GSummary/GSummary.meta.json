@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "name": "GSummary",
+  "tag": "g-summary",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Ficha de resumen adaptable de una entidad (persona, paciente, diagnóstico, cliente, producto): identidad + título + línea secundaria + datos con prioridad + estado, que se adapta al ancho de su propio contenedor y al texto real (A · prioridad líquida): la corriente de datos se bebe por el final, antes de soltar un dato calla los rótulos que se explican solos, «+N» dice cuántos no se ven, lo que vuelve a caber entra; entre homónimos, lo único pesa y lo compartido se apaga (el contraste de B, summaryDiff). Ceder no es ocultar: todo sigue en el árbol de accesibilidad. Contenido de frase (span), sin eventos ni teclado; va en el paquete principal y las entradas secundarias la reciben por __shared.",
+  "contract": "design/contracts/summary.md",
+  "decisions": ["#349", "#350", "#351", "#352", "#353", "#354", "#355", "#356", "#357"],
+  "prototype": "design/lab/summary/r01/ y design/lab/summary/r02/",
+  "style": "packages/vue/src/components/GSummary/GSummary.css",
+  "styleNotes": "design/lab/summary/estilo.md",
+  "entry": "@grana/vue (principal; __shared: components/GSummary/GSummary.vue, components/GSummary/diff.js, utils/match.js)",
+  "exports": ["GSummary", "summaryDiff"],
+  "props": [
+    { "name": "title", "type": "String", "default": null, "description": "Nombre de la entidad. Sin title (y sin loading) la ficha está vacía: pinta placeholder atenuado, o nada con aviso." },
+    { "name": "subtitle", "type": "String", "default": null, "description": "Línea secundaria. En inline y en row con lines 2, si hay datos solo la recibe el lector; sin datos ocupa esa línea con elipsis. En row con lines ≥ 3 o 0, y en stack, se ve siempre bajo el título." },
+    { "name": "code", "type": "String", "default": null, "description": "Identificador corto («E11.9») que va antes del título y no cede. Con code ningún dato ancla." },
+    { "name": "avatar", "type": "Boolean | Object", "default": false, "description": "true = GAvatar con name = title; objeto = props de GAvatar (src, name, initials, icon, color, categories, colorKey, shape). size y label del objeto se ignoran: el lado es el de la ficha y la identidad es decorativa." },
+    { "name": "icon", "type": "String", "default": null, "description": "Nombre de Lucide (GIcon público: registro de la aplicación → librería) en el hueco inicial, si no hay avatar. Precedencia: slot lead › avatar › icon." },
+    { "name": "facts", "type": "Array", "default": "[]", "description": "Datos [{ label, value, short?, priority?, bare? }]. label es obligatorio y es la clave (único); value ya formateado (vacío, null o undefined: se omite); short se ve en lugar de label; priority menor = más importante (sin ella, después de los que la declaran, por orden del arreglo); bare = el valor se explica solo y su rótulo puede callarse antes de soltar un dato (salvo en el identificador). El arreglo no se muta." },
+    { "name": "status", "type": "Object", "default": null, "description": "{ label, color? }: GBadge size sm con color (neutral por defecto). Para otra cosa, slot status. En inline solo lo recibe el lector." },
+    { "name": "layout", "type": "String", "default": "row", "values": ["inline", "row", "stack"], "description": "inline = una línea con la tipografía del anfitrión (Δ0 de alto); row = cabecera + corriente de datos en lines líneas; stack = vista completa en rejilla de pares, no cede ni recorta. panel y auto están reservados (el validador los rechaza)." },
+    { "name": "lines", "type": "Number", "default": 2, "description": "Solo en row: líneas totales (título + lo demás). 2 = título y una línea de datos (alto constante en cualquier ancho); ≥ 3 = la secundaria si existe y el resto de datos, identificador y datos fluyen juntos (g-summary--multi); 0 = sin límite (g-summary--free). 1, negativos o no enteros: aviso y 2. Fuera de row se ignora con aviso." },
+    { "name": "size", "type": "String", "default": "según layout (inline xs, row md, stack lg)", "values": ["xs", "sm", "md", "lg", "xl"], "description": "Lado de la identidad (space × 5/6/8/10/16) y escala del título. En inline solo fija la identidad." },
+    { "name": "diff", "type": "Object", "default": null, "description": "{ [label]: 'same' | 'diff' } (lo calcula summaryDiff en el anfitrión de la lista): is-diff pesa, is-same se apaga; el identificador nunca se apaga. Otra clave se ignora con aviso. No cambia la cesión." },
+    { "name": "highlight", "type": "String", "default": null, "description": "Texto buscado: marca con <mark> la primera aparición de cada palabra (sin acentos ni mayúsculas) en title, code, subtitle y los valores (no en los rótulos). Peso y subrayado, no color." },
+    { "name": "group", "type": "Boolean", "default": false, "description": "Ficha suelta: role=\"group\" + aria-labelledby al título (id de useId). Nunca dentro de un anfitrión interactivo ni de un contenedor aria-hidden." },
+    { "name": "loading", "type": "Boolean", "default": false, "description": "aria-busy=\"true\" y formas decorativas del alto del layout (Δ0 al llegar los datos); no pinta contenido ni mide. El anuncio es del anfitrión." },
+    { "name": "placeholder", "type": "String", "default": null, "description": "Texto atenuado cuando no hay title («Sin paciente»)." }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "lead", "purpose": "Identidad propia (sustituye a avatar e icon), dentro de g-summary__lead (aria-hidden); decorativo, sin interactivos. Un hijo directo .g-avatar manda su caja.", "scope": "{ size }" },
+    { "name": "status", "purpose": "Estado propio (sustituye a la GBadge de status), dentro de g-summary__status; texto real, sin interactivos, una línea." },
+    { "name": "action", "purpose": "Acción al pie, solo en stack (dentro de g-summary__action). En inline y row no se pinta y avisa. Nunca dentro de un anfitrión interactivo." }
+  ],
+  "functions": [
+    { "name": "summaryDiff(list)", "description": "Función pura: recibe objetos con title y facts y devuelve un arreglo paralelo con el diff de cada uno ({ [label]: 'same' | 'diff' }) o null si no tiene homónimos (mismo título sin acentos ni mayúsculas, recortado y con los espacios colapsados). Un valor es diff si ninguna otra ficha del grupo lo tiene en un dato con el mismo label; los datos sin valor no entran. Solo entre fichas a la vista." }
+  ],
+  "classes": {
+    "render": ["g-summary", "g-summary--layout-{inline|row|stack}", "g-summary--size-{xs|sm|md|lg|xl}", "g-summary--multi", "g-summary--free", "is-loading", "is-empty", "g-summary__lead", "g-summary__body", "g-summary__head", "g-summary__name", "g-summary__code", "g-summary__title", "g-summary__status", "g-summary__subtitle", "g-summary__data", "g-summary__flow", "g-summary__facts", "g-summary__fact", "g-summary__fact-label", "g-summary__fact-value", "g-summary__more", "g-summary__action", "g-summary__sep", "g-summary__mark", "g-summary__bone", "is-anchor", "is-bare", "is-diff", "is-same", "--_lines (en línea)"],
+    "measured": ["data-terse", "data-tight", "data-clipped", "data-enter", "hidden en g-summary__more", "title en la parte con elipsis"]
+  },
+  "measure": {
+    "how": "components/GSummary/measure.js: un ResizeObserver compartido (utils/sizeObserver.js) y medida POR LOTES: todas las fichas que la piden en el mismo turno se miden juntas por fases (se lee todo, se escribe después), tres pasadas como máximo (data-terse → «+N» → data-tight), sin estado reactivo por dato. Al estrechar las marcas solo se añaden (lo que cedía sigue cediendo). Las fichas a más de un visor de distancia se aplazan (IntersectionObserver, rootMargin 100 %) hasta acercarse. Se mide al montar (antes del primer pintado), al cambiar de tamaño, al cambiar el contenido y en document.fonts.ready; no con loading ni en stack. Sin ResizeObserver o sin medida la ficha ya está bien por CSS.",
+    "enter": "data-enter solo en los datos que pasan de recortados a visibles por un cambio de tamaño entre dos anchos reales (nunca al montar, al mostrarse, al cambiar los datos ni con prefers-reduced-motion: reduce); se retira en animationend/animationcancel de g-summary-enter… o en el acto si no hay animación calculada."
+  },
+  "tokens": ["--g-space-1", "--g-space-2", "--g-space-3", "--g-space-4", "--g-font-ui", "--g-font-title", "--g-text-body-size", "--g-text-body-line", "--g-text-body-weight", "--g-text-body-tracking", "--g-text-body-sm-size", "--g-text-body-sm-line", "--g-text-body-sm-weight", "--g-text-body-sm-tracking", "--g-text-caption-size", "--g-text-caption-line", "--g-text-caption-tracking", "--g-text-title-sm-size", "--g-text-title-sm-line", "--g-text-title-sm-tracking", "--g-text-title-sm-weight", "--g-color-text-muted", "--g-color-text-subtle", "--g-color-border-strong", "--g-color-border-control", "--g-color-accent-soft", "--g-color-on-accent-soft", "--g-color-surface-sunken", "--g-radius-pill", "--g-radius-sm", "--g-radius-xs", "--g-border-width", "--g-duration-slow", "--g-ease-out"],
+  "states": ["normal", "con recorte (+N)", "rótulos callados (data-terse)", "apretado (data-tight)", "título con elipsis (title)", "sin identidad", "con avatar", "con icono", "con código", "sin datos", "con estado", "con diff (único, compartido, sin homónimos)", "con highlight", "inline", "row lines 2", "row lines ≥ 3 (multi)", "row lines 0 (free)", "stack", "stack con acción", "carga", "vacío con placeholder", "suelta con group", "dato que entra (data-enter)", "RTL", "reduced motion", "forced-colors"],
+  "warnings": [
+    "1 · sin title, placeholder ni loading (ficha vacía, no pinta nada)",
+    "2 · dato sin label (se omite); dos datos con el mismo label (se pintan los dos, diff ambiguo)",
+    "3 · lines 1, negativo o no entero (se usa 2); lines distinto de 2 fuera de row (se ignora)",
+    "4 · slot action fuera de stack (no se pinta)",
+    "5 · diff con un valor que no es same ni diff (se ignora esa clave)",
+    "6 · status sin label y sin slot status (no se pinta)",
+    "7 · group sin title",
+    "8 · tras montar mide 0 de ancho (el anfitrión no le da sitio)"
+  ],
+  "verification": {
+    "vitest": "GSummary.test.js (36) + GSummary.ssr.test.js (3): datos, disposición, semántica, identidad y estado, diff y summaryDiff, highlight, medida con cajas simuladas (pasadas terse → +N → tight y su convergencia, title solo en lo cortado, data-enter solo por cambio de tamaño y su retirada, reduce, multi, stack/loading sin medida, sin ResizeObserver), avisos, empaquetado (__shared, sin la cadena del anfitrión, components.css en orden), SSR",
+    "playwright": "design/lab/theme-playground/tests/summary.spec.mjs sobre packages/vue/playground/summary.html (componente real de dist/): barrido 160 a 720px en opción, campo sm/md/lg, vista previa, tarjetas lines 4/3/0, celda, árabe, hebreo, latino en RTL y tamaños (sin desborde, nada cortado a medias, identificador entero, título ≥ 20px, «+N» = data-clipped, recortados = final de la prioridad, data-terse antes de soltar, data-tight ⇒ datos fuera, el lector lo recibe todo, alto constante 44px en row md lines 2, Δ0 en el campo, 1/2/4 de 4 datos a 240/360/520, monotonía); contraste de B; carga Δ0 y paso de carga a datos; bidi; móvil 320; entrada LTR/RTL y nada con reduce; semántica (group, +N aria-hidden, texto de la opción con los cuatro datos, ariaSnapshot); rendimiento",
+    "gzip": { "before": 163476, "after": 168553, "delta": 5077, "note": "dist/grana.js gzip, mismo árbol (con GAdaptiveLayout de otra sesión en ambos); límite ≤ 8192 (#350)" },
+    "performance": { "note": "ver el informe de bruno y la anotación del spec «rendimiento»; cifras por motor con --workers=1 en la sección Rendimiento del informe", "target": "< 150 ms (contrato) para la medida con 500 fichas" }
+  },
+  "limits": [
+    "La ficha recortada nunca es la única fuente de un dato: el anfitrión ofrece la vista completa (stack, vista previa, detalle); el title nativo de lo cortado solo sirve al puntero.",
+    "El estado es de lo primero que cede: lo crítico va como dato con priority alta.",
+    "bare mal marcado deja un valor sin rótulo a la vista.",
+    "diff exige que las vecinas traigan los mismos rótulos; con un tema cuyo peso de título sea igual al del cuerpo, lo único se distingue solo por tono.",
+    "Un anfitrión de ancho automático (celda de tabla, fila flex) debe dar ancho a la ficha (aviso 8).",
+    "«+N» no se localiza (cifras latinas).",
+    "Por debajo de ~140px con código e icono (32px) el código desborda 2px: ni el código ni la identidad ceden (el barrido del contrato empieza en 160px).",
+    "Las fichas a más de un visor de distancia se miden al acercarse: «+N» puede llegar un instante después.",
+    "Exige la unidad lh y :has() (navegadores actuales)."
+  ],
+  "pending": [
+    "Fase 2 (otro encargo, tras la auditoría de coco): adopción en GCombobox (opción row lines 2, ficha del valor inline, vista previa stack; summaryDiff sobre las opciones pintadas; engine.js toma fold/tokens/parts de utils/match.js por __shared y retira su copia).",
+    "Auditoría de coco sobre el componente real con otro tema y el oscuro (design/lab/summary/auditoria.md) → candidate.",
+    "README (mora-docs)."
+  ]
+}
