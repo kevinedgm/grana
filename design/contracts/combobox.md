@@ -1,6 +1,6 @@
 # Contrato · GCombobox
 
-**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32
+**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32 · **Enmendado por #356** (2026-10-04, decisión del usuario): opción, ficha del valor y vista previa se pintan con **`GSummary`** (`summary.md`); ver «Fichas con `GSummary`»
 **Tag:** `g-combobox` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/combobox` (#337)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: teclado compuesto, se posiciona sobre otros elementos, motor de datos, compone `GInput`, `GAvatar` y `GDialog`): **coco en Opus, bruno en Fable**.
 
@@ -51,7 +51,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 
 - **Entrada propia `@grana/vue/combobox`** (`dist/combobox.js` y `dist/combobox.umd.js`, global UMD **`GranaCombobox`**, requiere `Vue` y `Grana`). `@grana/vue` **no** lo exporta ni lo registra en su `install`. Exporta `GCombobox` y, por defecto, un plugin (`install(app)` registra `GCombobox`). Sin gestor: no es un servicio.
 - **Por qué ya** (para que bruno no se detenga a mitad): dos presentaciones, motor de datos, ficha y fantasma; el precedente más cercano (`GStatusIsland`, 29 K de fuente) pesó 16,3 KB gzip y el tope para entrar en el principal es 8 KB (#328). La estimación (35 a 45 K de fuente) lo supera con margen. Bruno **mide y anota** el peso en `GCombobox.meta.json`; el resultado no cambia la decisión.
-- Lo compartido con el principal (`GInput`, `GAvatar`, `GDialog`, `GIcon` público y `GLibIcon`, `utils/anchor.js`, `utils/liveRegion.js`, `utils/template.js`, `utils/oneOf.js`) llega por **`__shared`** (#240) **sin duplicarse**: bruno añade a `src/shared.js` lo que falte (`GInput`, `GAvatar`, `GIcon`) y lo comprueba como en `status.test.js`.
+- Lo compartido con el principal (`GInput`, `GAvatar`, `GDialog`, `GIcon` público y `GLibIcon`, `utils/anchor.js`, `utils/liveRegion.js`, `utils/template.js`, `utils/oneOf.js`; **desde #356, también `GSummary` y la utilidad de coincidencias** `fold`/`tokens`/`parts`, que suben de `engine.js` al principal) llega por **`__shared`** (#240) **sin duplicarse**: bruno añade a `src/shared.js` lo que falte (`GInput`, `GAvatar`, `GIcon`) y lo comprueba como en `status.test.js`.
 - **El CSS sigue en `grana.css`** (una sola hoja; inerte sin su marcado).
 - **Compuertas:** `grep -q "g-combobox__ghost" packages/vue/dist/grana.css`, `! grep -q "GCombobox" packages/vue/dist/grana.js`, `test -f packages/vue/dist/combobox.js`.
 
@@ -116,7 +116,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 | `label` | String (obligatorio) | Texto del campo, nombre de la opción, lo que se busca | Fila, campo, ficha, vista previa |
 | `description` | String | **Línea secundaria**: lo que distingue («Exp. 001000 · 22 años») | Fila (si no hay `facts`), ficha en reposo, `aria-describedby`, vista previa |
 | `code` | String | Código en su caja («E11.9») | Antes de la etiqueta en fila, ficha y vista previa; se busca |
-| `facts` | Array de `{ label, value }` (Strings) | Datos que distinguen, con rótulo | Fila (en lugar de `description`) y vista previa (`dl`) |
+| `facts` | Array de `{ label, value }` (Strings); **opcionales desde #356:** `priority` (Number, menor = más importante), `short` (rótulo abreviado visible) y `bare` (Boolean: el valor se explica solo y su rótulo puede callarse a la vista), los de `summary.md` «Datos» | Datos que distinguen, con rótulo. **El de mayor prioridad (o el primero) es el identificador: lo último en ceder** | Fila (en lugar de `description`), ficha del valor y vista previa (rejilla de pares) |
 | `avatar` | Boolean \| Object | `true` = `GAvatar` con `name = label`; objeto = props de `GAvatar` (`src`, `name`, `initials`, `icon`, `color`, `categories`, `colorKey`, `shape`; `size` y `label` se ignoran) | Hueco inicial de fila, ficha y vista previa (decorativo) |
 | `icon` | String | Nombre de Lucide («dato → nombre», #202): `GIcon` público | Hueco inicial si no hay `avatar` |
 | `disabled` | Boolean | No elegible; sigue visible | `aria-disabled="true"` |
@@ -195,10 +195,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
           <span class="g-combobox__ghost-typed">mar</span><span class="g-combobox__ghost-rest">ía García López</span>
         </span>
         <span class="g-combobox__token [is-arriving]" aria-hidden="true">                     <!-- C: con valor y sin editar -->
-          <span class="g-combobox__lead">…GAvatar xs | GIcon…</span>
-          <span class="g-combobox__code">E11.9</span>
-          <span class="g-combobox__token-label">María García López</span>
-          <span class="g-combobox__token-meta">Exp. 001000 · 22 años</span>
+          <span class="g-summary g-summary--layout-inline g-summary--size-xs">…</span>          <!-- #356: GSummary inline (summary.md) -->
         </span>
         <span class="g-combobox__about" id="ID-about">Exp. 001000 · 22 años</span>            <!-- texto oculto accesible -->
         <input type="hidden" name="paciente" value="p001000">                                 <!-- solo con name -->
@@ -235,13 +232,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
     <li role="presentation"><ul class="g-combobox__group" role="group" aria-labelledby="ID-grp-0">
       <li class="g-combobox__group-label" id="ID-grp-0" role="presentation">Recientes</li>
       <li class="g-combobox__option [is-active]" id="ID-opt-0" role="option" aria-selected="false" [aria-disabled="true"]>
-        <span class="g-combobox__lead" aria-hidden="true">…</span>
-        <span class="g-combobox__code"><mark class="g-combobox__mark">E11</mark>.9</span>
-        <span class="g-combobox__main">
-          <span class="g-combobox__label"><mark class="g-combobox__mark">Mar</mark>ía García López</span>
-          <span class="g-combobox__facts"><span class="g-combobox__fact"><span class="g-combobox__fact-label">Exp.</span> 001000</span>…</span>
-          <span class="g-combobox__description">…</span>                                      <!-- sin facts -->
-        </span>
+        <span class="g-summary g-summary--layout-row g-summary--size-md">…</span>              <!-- #356: GSummary row, lines 2 (summary.md): identidad, código, título, datos, «+N» -->
         <span class="g-combobox__check" aria-hidden="true">[GIcon check]</span>               <!-- la elegida -->
       </li>
     </ul></li>
@@ -252,7 +243,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 
 - **Estado** (fuera del `listbox`, a lo sumo uno, en este orden): error de carga (`loadError`, icono `circle-alert`) › pista de mínimo (`labels.minChars`, `search`) › nada si hay opciones › «Buscando…» (`labels.loading`, `loader-circle` que gira) › «Sin resultados para «x»» (`labels.noResults` o slot `empty`, `search`).
 - **Opción:** `aria-selected="true"` **solo en la elegida** (además, más peso y `check`); la **activa** lleva `is-active`. `aria-disabled="true"` en las no elegibles. Sin `tabindex`. `pointerdown` sobre el panel **no quita el foco** del campo (`preventDefault`).
-- **Coincidencia:** `<mark class="g-combobox__mark">` sobre la primera aparición de cada palabra buscada (sin acentos ni mayúsculas) en `label`, `code`, `description` y los valores de `facts`; peso y subrayado, **no color** (WCAG 1.4.1). Si la forma sin acentos no mide lo mismo que el texto (ligaduras), no se marca.
+- **Coincidencia** (desde #356 la pinta `GSummary` con su prop `highlight`: la marca es `<mark class="g-summary__mark">`, misma regla)**:** `<mark>` sobre la primera aparición de cada palabra buscada (sin acentos ni mayúsculas) en `label`, `code`, `description` y los valores de `facts`; peso y subrayado, **no color** (WCAG 1.4.1). Si la forma sin acentos no mide lo mismo que el texto (ligaduras), no se marca.
 - **Filas de acción** (#57): `role="option"` con `aria-selected="false"`, hijas directas del `listbox`, **fuera de los grupos y siempre al final**, en este orden: **`retry`** (solo con `loadError`; sustituye a `more`) o **`more`** · **`custom`** · **`create`**. Cuentan en la navegación. Iconos: `rotate-ccw`, `chevron-down`, `pencil`, `plus`.
   - `custom` (con `allowCustom`, texto no vacío y **ninguna opción a la vista con esa misma etiqueta**): elige el texto como `custom`, cierra.
   - `create` (con `creatable` y texto no vacío): cierra, **deja el foco en el campo antes de emitir** `create(texto)`, restaura el texto de la opción elegida y **no cambia el valor**.
@@ -293,10 +284,44 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 - **Título:** la prop `label`; sin ella, el `aria-label` del consumidor; sin ninguno, `labels.surfaceTitle`. Si no hay ninguno, aviso.
 - **El campo de la página es el disparador:** conserva `role="combobox"` con `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls="ID-surface"`, **sin** `aria-autocomplete` ni `aria-activedescendant`, y `inputmode="none"` (no abre el teclado virtual). La raíz lleva `is-surface` y la flecha pasa a `chevrons-up-down`. Abre con clic, Intro, Espacio, ↓, ↑, Alt+↓ **o al escribir** (la primera tecla, o lo pegado, **no se pierde**: es el texto inicial de la búsqueda). Enfocar no abre.
 - **Campo de búsqueda:** el `combobox` de APG completo; nombre por `aria-labelledby` al título; `placeholder` = la etiqueta de la opción elegida o el `placeholder` del campo. Sin `name` ni contexto de `GForm`.
-- **Vista previa** (`palette` por encima de 520px): `aside` con nombre `labels.preview`; pinta la **opción activa** (slot `preview`, o por defecto: hueco inicial en grande, `code`, `label`, `description` y `facts` como `dl`); sin opción activa, `labels.previewEmpty` (si se da). **No es región viva.** **Regla (#335): la vista previa nunca es la única fuente del dato que distingue**; ese dato va también en la opción (`description` o `facts`). La vista previa por defecto la cumple por construcción (solo pinta datos de la fila); el slot `preview` queda bajo responsabilidad de la aplicación (README).
+- **Vista previa** (`palette` por encima de 520px): `aside` con nombre `labels.preview`; pinta la **opción activa** (slot `preview`, o por defecto, desde #356, una **`GSummary layout="stack"`** con los datos de la fila: identidad `lg`, `code`, `label`, `description` si no hay `facts`, y los `facts` como rejilla de pares, sin `dl`); sin opción activa, `labels.previewEmpty` (si se da). **No es región viva.** **Regla (#335): la vista previa nunca es la única fuente del dato que distingue**; ese dato va también en la opción (`description` o `facts`). La vista previa por defecto la cumple por construcción (solo pinta datos de la fila); el slot `preview` queda bajo responsabilidad de la aplicación (README).
 - **Móvil (visor ≤ 520px, `matchMedia`, literal de #42 y #56):** la misma superficie como **hoja anclada arriba**, de ancho completo, **sin vista previa**, opciones ≥ 44px. Arriba para que el teclado virtual no tape la lista (coco la coloca desde `g-combobox-surface--sheet`). Cruzar el umbral con la lista abierta la cierra.
 - **Cerrar:** Esc, el fondo y el botón de cierre (`dismiss` de `GDialog`) cierran **sin elegir** y devuelven el foco al campo. Elegir cierra y devuelve el foco. No hay confirmación de texto al cerrar.
 - **El cuerpo del diálogo no se desplaza:** se desplaza el panel (y la vista previa); `g-dialog__body` no debe recibir `tabindex` (coco fija el alto del cuerpo de la superficie; bruno lo prueba).
+
+---
+
+## Fichas con `GSummary` (#356; sustituye la regla provisional de dos líneas)
+
+Decisión del usuario del 2026-10-04. El reporte de origen (fichas de opción amontonadas y desbordadas a 240px: 122px de alto, cinco líneas, `__main` 161 en 152px) se cierra con el componente **`GSummary`** (`design/contracts/summary.md`, #349 a #357), no con el arreglo mínimo de `GCombobox.css`. **Este apartado manda sobre lo que el resto del contrato diga de la pintura por defecto de fila, ficha y vista previa.** Modelo, datos, teclado, anuncios, slots y nombre accesible **no cambian**.
+
+| Dónde | `GSummary` | Props |
+| --- | --- | --- |
+| **Opción** por defecto (sin slot `option`) | `layout="row"` `:lines="2"`; `size` `md` (con el campo en `xs` o `sm`, `sm`) | `title`, `code`, `subtitle`, `facts`, `avatar`, `icon`, `highlight`, `diff`; slot `lead` |
+| **Ficha del valor** (dentro de `g-combobox__token`, sin slot `value`) | `layout="inline"` `size="xs"` | `title`, `code`, `subtitle`, `facts`, `avatar`, `icon`; slot `lead` |
+| **Vista previa** de la paleta (sin slot `preview`) | `layout="stack"` `size="lg"` | Como la opción, sin `highlight` |
+
+**Traducción de la opción (#335 intacto):**
+
+| Campo | Prop | Regla |
+| --- | --- | --- |
+| `label` | `title` | Siempre |
+| `description` | `subtitle` | **Solo si la opción no trae `facts`** (como hoy: «fila, si no hay `facts`»). Con `facts` no se pinta ni se lee dos veces; sigue alimentando `ID-about` |
+| `code` | `code` | Identificador: no cede |
+| `facts` | `facts` | Sin valor vacío (como hoy). Un dato **sin `label`** deja de pintarse y avisa (#335 ya lo pedía con rótulo). `priority`, `short` y `bare`, opcionales |
+| `avatar`, `icon` | `avatar`, `icon` | Tal cual (la derivación de props de `GAvatar` pasa a la ficha) |
+| slot `lead` (`{ option }`) | slot `lead` de la ficha | Manda sobre `avatar` e `icon` |
+
+- **`highlight`** = el texto buscado recortado, solo en la opción.
+- **Contraste entre homónimos:** `GCombobox` calcula `summaryDiff` sobre las **opciones pintadas** (no sobre el total del servidor), lo recalcula cuando cambian y pasa a cada ficha su `diff` (también a la vista previa de esa opción). Sin homónimos a la vista, ninguna marca. Completa la regla de #333: Tab no elige entre homónimas, y ahora se ve en qué se diferencian.
+- **Texto libre:** la ficha del valor es `GSummary inline` con `title` = el texto, `subtitle` = `labels.custom` y el icono `pencil` en el slot `lead`; la cursiva sigue colgando de `is-custom`.
+- **La elegida:** sigue con `aria-selected="true"` y `check`. El título de la ficha ya lleva peso de título en todas las opciones, así que **«más peso» deja de ser la señal**: la no cromática es `check`.
+- **Llegada de la ficha (C):** sin cambios; el origen del vector es la `.g-summary` de la fila elegida.
+- **`ID-about`**, la línea secundaria accesible, sigue saliendo de `secondary(option)`; la ficha del valor es `aria-hidden`.
+- **Slots:** `option`, `value` y `preview` siguen ganando y reciben lo de siempre. `GSummary` es pública (`@grana/vue`): es lo que se recomienda poner dentro de ellos.
+- **Clases que dejan de pintarse** (se retiran de `GCombobox.css`; el componente es `candidate`): `g-combobox__description`, `__facts`, `__fact`, `__fact-label`, `__token-label`, `__token-meta`, `__preview-head`, `__preview-title`, `__preview-facts`; y en las opciones, `__lead`, `__code`, `__main`, `__label` y `__mark` (las **filas de acción** conservan `__main` y `__label`). Sus equivalentes son las partes `g-summary__*`, que `GCombobox.css` puede reapuntar por estado (activa, activa invertida de la paleta, deshabilitada, `is-custom`, ficha «seleccionada»).
+- **Altos:** una opción con datos mide lo que una ficha de dos líneas (44px en `md`) más el relleno de la fila, **igual en cualquier ancho**; sin datos ni descripción, una línea. Ficha del valor: Δ0. Hoja móvil: opciones ≥ 44px, como hoy.
+- **Compuertas que siguen:** «500 opciones < 150 ms», `--g-form-min: 60`, las tres de #337 y las nuevas de #350 (`! grep -q "g-summary__" packages/vue/dist/combobox.js`).
 
 ---
 
@@ -464,6 +489,8 @@ Las de `GInput` siguen siendo de `GInput`. Bruno emite estas; coco las estiliza.
 | `g-combobox__surface-body`, `has-preview`, `g-combobox__preview`, `__preview-head`, `__preview-title`, `__preview-facts`, `__preview-empty` | Cuerpo y vista previa | Superficie; `palette` |
 
 El estado elegida y deshabilitada de una opción se estiliza con `aria-selected` y `aria-disabled`.
+
+**Desde #356:** de esta tabla dejan de emitirse `__token-label`, `__token-meta`, `__description`, `__facts`, `__fact`, `__fact-label`, `__preview-head`, `__preview-title` y `__preview-facts`, y en las opciones `__lead`, `__code`, `__main`, `__label` y `__mark`; en su lugar va una `g-summary` (clases en `summary.md`). Lista completa en «Fichas con `GSummary`».
 
 **Para coco:**
 
