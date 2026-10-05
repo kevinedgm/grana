@@ -176,7 +176,7 @@ Al estrechar, en este orden:
 6. El **valor del identificador**, con elipsis. Es lo último.
 
 - En `inline` todo compite en una línea, y por eso **el identificador gana al título** (pasos 4 a 6): el título conserva `4ch` mientras no haya `data-tight` y, con él, cede su suelo antes de que el valor del identificador toque su elipsis. En `row`, cabecera y datos son líneas distintas: ceden en paralelo.
-- La **identidad** (hueco inicial) no cede. El **código** no cede.
+- La **identidad** (hueco inicial) no cede. El **código** no cede por reparto ante los demás datos; si él solo no cabe, lleva elipsis y `title` con el texto completo, como el valor del identificador en el paso 6.
 - Los dos suelos (`7ch`, `4ch`) y el `1lh` son literales de unidad, no medidas de tema (`tokens.md` §34).
 
 ---
@@ -486,6 +486,7 @@ Precisiones medidas por coco sobre el banco (4015/4015 en tres motores); **ningu
 | 6 | Contraste sobre `selection` | 4,43:1: `GCombobox` reapunta a `text-muted` (encargo de coco) | «Adopción en `GCombobox`», `combobox.md` |
 | 7 | `stack` muy estrecho | Límite conocido (README) | «Límites conocidos» |
 | 8 | Subrayado de `highlight` | `--g-border-width` a `--g-space-1 / 2` de la línea base | «Coincidencia» |
+| 9 | Código que no cabe solo (auditoría de coco, hallazgo 1) | No cede por reparto ante los demás datos; si él solo no cabe, elipsis y `title` con el texto completo, como el valor del identificador (paso 6) | «Orden de cesión», «Límites conocidos» |
 
 ## Límites conocidos (para el README)
 
@@ -495,6 +496,7 @@ Precisiones medidas por coco sobre el banco (4015/4015 en tres motores); **ningu
 - **`diff`** depende de que las vecinas traigan los mismos rótulos; con un tema cuyo peso de título sea igual al del cuerpo, lo único se distingue solo por tono.
 - **Un anfitrión de ancho automático** (celda de tabla, fila flex) debe dar ancho a la ficha.
 - **`stack` a muy poco ancho:** el estado puede llevar la elipsis propia de `GBadge` (antes que desbordar) y un `GBtn` del slot `action` (`white-space: nowrap`) puede desbordar: es contenido de la aplicación, que le da sitio.
+- **Por debajo de 160 px con `code` + `icon`** el código puede llevar elipsis (su `title` conserva el texto completo).
 - **«+N»** no se localiza (cifras latinas).
 - **Sin virtualización:** cada ficha se mide; con cientos, la medida de las que no están a la vista puede llegar un instante después.
 - **Navegadores:** exige la unidad `lh` y `:has()` (los actuales).
