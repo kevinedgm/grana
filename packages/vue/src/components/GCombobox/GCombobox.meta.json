@@ -30,19 +30,26 @@
   "bundle": {
     "measured": "2026-10-04",
     "entry": "dist/combobox.js",
-    "gzip": 14111,
-    "umdGzip": 12740,
+    "gzip": 13563,
+    "umdGzip": 12263,
     "umdGlobal": "GranaCombobox",
-    "main": "dist/grana.js gzip 155080; GCombobox no está en el principal",
-    "note": "Vue y @grana/vue externos; GInput, GAvatar, GDialog, GIcon (público e interno), formContext, anchor, liveRegion, template y oneOf llegan de __shared (#240), sin copia. El CSS va en grana.css. Supera el tope de 8 KB gzip de #328: por eso la entrada propia (#337)."
+    "main": "dist/grana.js gzip 168553; GCombobox no está en el principal",
+    "note": "Vue y @grana/vue externos; GInput, GDialog, GSummary y summaryDiff (#356), GLibIcon, formContext, anchor, liveRegion, utils/match, template y oneOf llegan de __shared (#240), sin copia (! grep -q \"g-summary__\" dist/combobox.js). El CSS va en grana.css. Supera el tope de 8 KB gzip de #328: por eso la entrada propia (#337). Fase 2 de GSummary: 14 111 → 13 563 B gzip (−548; la ficha, el avatar y la coincidencia salen del .vue)."
   },
   "composes": [
     "GInput (slots internos field y end, #309/#330)",
     "GDialog (la superficie: paleta y hoja móvil)",
-    "GAvatar (hueco inicial de la opción)",
-    "GIcon público (icon de la opción) y GLibIcon (iconos propios)"
+    "GSummary (opción por defecto row lines 2, ficha del valor inline xs, vista previa stack lg; #356): la identidad (GAvatar, GIcon público) la pinta la ficha",
+    "GLibIcon (iconos propios)"
   ],
-  "engine": "components/GCombobox/engine.js (fold, tokens, matches, parts, completion, secondary; sin estado ni DOM)",
+  "engine": "components/GCombobox/engine.js (matches, completion, secondary, validOption; sin estado ni DOM). fold, tokens y parts viven en utils/match.js, compartidos con GSummary y summaryDiff (#356)",
+  "summary": {
+    "option": "GSummary layout=row lines=2, size md (sm con el campo en xs o sm); highlight = el texto buscado; diff = summaryDiff sobre las opciones pintadas",
+    "value": "GSummary layout=inline size=xs dentro de g-combobox__token; con texto libre: title = el texto, subtitle = labels.custom, lápiz en lead",
+    "preview": "GSummary layout=stack size=lg con key por opción; el mismo diff de la opción; sin highlight",
+    "mapping": "label → title; description → subtitle solo sin facts (sigue alimentando ID-about); code, facts (priority, short, bare opcionales), avatar e icon tal cual; slot lead ({ option }) → slot lead de la ficha; value, disabled y campos de más no llegan",
+    "arrive": "el origen del viaje is-arriving es la .g-summary de la fila elegida (con slot option, la fila)"
+  },
   "props": [
     {
       "name": "modelValue",
@@ -341,17 +348,17 @@
     {
       "name": "lead",
       "scope": "{ option }",
-      "purpose": "Hueco inicial de una opción en fila, ficha y vista previa (decorativo); sustituye a avatar/icon"
+      "purpose": "Hueco inicial de una opción en fila, ficha y vista previa: pasa al slot lead de la GSummary (decorativo); manda sobre avatar/icon"
     },
     {
       "name": "value",
       "scope": "{ option, custom }",
-      "purpose": "Contenido de la ficha en reposo (aria-hidden, una línea)"
+      "purpose": "Contenido de la ficha en reposo (aria-hidden, una línea); por defecto, GSummary inline"
     },
     {
       "name": "preview",
       "scope": "{ option }",
-      "purpose": "Ficha de la opción activa en la paleta; nunca la única fuente del dato que distingue (#335)"
+      "purpose": "Ficha de la opción activa en la paleta; por defecto, GSummary stack; nunca la única fuente del dato que distingue (#335)"
     },
     {
       "name": "empty",
@@ -414,9 +421,7 @@
     "g-combobox__ghost",
     "g-combobox__ghost-typed",
     "g-combobox__ghost-rest",
-    "g-combobox__token",
-    "g-combobox__token-label",
-    "g-combobox__token-meta",
+    "g-combobox__token (contiene una g-summary--layout-inline)",
     "is-arriving (+ --_travel-x, --_travel-y)",
     "g-combobox__about",
     "g-combobox__clear",
@@ -436,16 +441,9 @@
     "is-active",
     "g-combobox__action",
     "g-combobox__action--{retry|more|custom|create}",
-    "g-combobox__lead",
-    "g-combobox__code",
-    "g-combobox__main",
-    "g-combobox__label",
-    "g-combobox__description",
-    "g-combobox__facts",
-    "g-combobox__fact",
-    "g-combobox__fact-label",
+    "g-combobox__lead, g-combobox__main, g-combobox__label (solo en las filas de acción)",
+    "g-summary* en la opción por defecto (row lines 2; ver GSummary.meta.json)",
     "g-combobox__check",
-    "g-combobox__mark",
     "g-combobox-surface",
     "g-combobox-surface--{palette|sheet}",
     "g-combobox__search",
@@ -454,10 +452,7 @@
     "g-combobox__search-loader",
     "g-combobox__surface-body",
     "has-preview",
-    "g-combobox__preview",
-    "g-combobox__preview-head",
-    "g-combobox__preview-title",
-    "g-combobox__preview-facts",
+    "g-combobox__preview (contiene una g-summary--layout-stack)",
     "g-combobox__preview-empty"
   ],
   "constants": {
@@ -554,7 +549,7 @@
     "El foco inicial de la superficie se fija en el campo de búsqueda al abrir (también al reabrir durante la salida de GDialog, cuando el navegador enfocaría el botón de cierre, que va antes en el DOM)."
   ],
   "pending": [
-    "Pintar opción, ficha del valor y vista previa con GSummary cuando esté construida (combobox.md «Fichas con GSummary», #356; auditoría de coco, hallazgo 2): bruno en GCombobox.vue y coco retirando las clases __description, __facts, __fact*, __token-label, __token-meta, __preview-* y las de opción. Hasta entonces rige la regla provisional de dos líneas, auditada en design/lab/combobox/auditoria.md.",
+    "coco (GCombobox.css, tras la fase 2 de GSummary): retirar la regla provisional de dos líneas y las reglas de __description, __facts, __fact, __fact-label, __token-label, __token-meta, __preview-head, __preview-title y __preview-facts (ya no se emiten); dar sitio a la ficha en la opción, en __token (hoy mide 0 de ancho: fit-content + contain: inline-size) y en __preview; reapuntar los tonos de g-summary__* en la activa de field, la activa invertida de la paleta, la deshabilitada, is-custom y la ficha «seleccionada» (text-muted sobre selection, 4,43:1); conservar la columna de códigos sobre g-summary__code si sigue midiendo bien. Luego auditoría con la ficha (design/lab/summary/auditoria.md).",
     "Solo en entorno real: lector de pantalla (eco de escritura con la primera activa, fantasma junto a aria-activedescendant, dos combobox y la vista previa, aria-describedby con la línea secundaria, filas de acción, recuentos), teclado virtual real sobre la hoja, IME real, forced-colors real, Safari real, zoom 200/400 %, pegado de texto largo.",
     "Reservado (#338): multiple (se ignora con aviso), expandable, GInputGroupCombobox, editor de valor de GFilterBar, autoHighlight."
   ]

@@ -75,8 +75,10 @@
     "Las fichas a más de un visor de distancia se miden al acercarse: «+N» puede llegar un instante después.",
     "Exige la unidad lh y :has() (navegadores actuales)."
   ],
+  "consumers": [
+    "GCombobox (#356, fase 2 hecha): opción por defecto row lines 2 (md; sm con el campo en xs/sm), ficha del valor inline xs dentro de g-combobox__token, vista previa stack lg; summaryDiff sobre las opciones pintadas; highlight con el texto buscado; GCombobox.css reapunta los tonos por estado (coco)"
+  ],
   "pending": [
-    "Fase 2 (otro encargo, tras la auditoría de coco): adopción en GCombobox (opción row lines 2, ficha del valor inline, vista previa stack; summaryDiff sobre las opciones pintadas; engine.js toma fold/tokens/parts de utils/match.js por __shared y retira su copia).",
     "Auditoría de coco sobre el componente real con otro tema y el oscuro (design/lab/summary/auditoria.md) → candidate.",
     "README (mora-docs)."
   ]

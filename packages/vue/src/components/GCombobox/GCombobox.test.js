@@ -117,9 +117,12 @@ describe('GCombobox · modelo, envío y texto libre (#331)', () => {
     expect(root(w).classes()).toContain('is-token')
     expect(root(w).classes()).not.toContain('is-custom')
     expect(w.find('.g-combobox__token').attributes('aria-hidden')).toBe('true')
-    expect(w.find('.g-combobox__token .g-combobox__code').text()).toBe('I10')
-    expect(w.find('.g-combobox__token-label').text()).toBe('Hipertensión esencial')
-    expect(w.find('.g-combobox__token-meta').text()).toBe('Circulatorio')
+    // La ficha del valor es una GSummary inline xs (#356)
+    const card = w.find('.g-combobox__token .g-summary')
+    expect(card.classes()).toEqual(expect.arrayContaining(['g-summary--layout-inline', 'g-summary--size-xs']))
+    expect(card.find('.g-summary__code').text()).toBe('I10')
+    expect(card.find('.g-summary__title').text()).toBe('Hipertensión esencial')
+    expect(card.find('.g-summary__subtitle').text()).toBe('Circulatorio')
     expect(w.find('input[name="dx"]').element.value).toBe('I10')
     expect(w.find('input[name="dx_libre"]').element.value).toBe('')
   })
@@ -128,7 +131,11 @@ describe('GCombobox · modelo, envío y texto libre (#331)', () => {
     const w = await mk({ name: 'dx', customName: 'dx_libre', allowCustom: true, custom: 'Dolor raro' })
     expect(field(w).element.value).toBe('Dolor raro')
     expect(root(w).classes()).toEqual(expect.arrayContaining(['is-token', 'is-custom']))
-    expect(w.find('.g-combobox__token-meta').text()).toBe('Texto libre')
+    // Texto libre: el texto como título, labels.custom como línea secundaria y el lápiz en el hueco inicial
+    const card = w.find('.g-combobox__token .g-summary--layout-inline')
+    expect(card.find('.g-summary__title').text()).toBe('Dolor raro')
+    expect(card.find('.g-summary__subtitle').text()).toBe('Texto libre')
+    expect(card.find('.g-summary__lead svg.g-icon').exists()).toBe(true)
     expect(w.find('input[name="dx"]').element.value).toBe('')
     expect(w.find('input[name="dx_libre"]').element.value).toBe('Dolor raro')
   })
@@ -168,7 +175,7 @@ describe('GCombobox · modelo, envío y texto libre (#331)', () => {
   it('selectedOption pinta un valor que no está en options; si no coincide, se ignora y avisa', async () => {
     const w = await mk({ filter: false, options: [], modelValue: 'p9', selectedOption: { value: 'p9', label: 'Ana Ruiz', description: 'Exp. 9' } })
     expect(field(w).element.value).toBe('Ana Ruiz')
-    expect(w.find('.g-combobox__token-meta').text()).toBe('Exp. 9')
+    expect(w.find('.g-combobox__token .g-summary__subtitle').text()).toBe('Exp. 9')
     const w2 = await mk({ filter: false, options: [], modelValue: 'p9', selectedOption: { value: 'otro', label: 'Otro' }, name: 'pac' })
     expect(field(w2).element.value).toBe('')
     expect(w2.find('input[name="pac"]').element.value).toBe('p9') // se envía igual
@@ -257,7 +264,7 @@ describe('GCombobox · datos sin fetch (#332)', () => {
   it('filtro local: todas las palabras, sin acentos ni mayúsculas, sobre label, code, description y facts', async () => {
     const w = await mk({ options: [...DX, ...PEOPLE] })
     await typeText(w, 'HIPERTENSION')
-    expect(rowTexts(w)).toEqual(['I10Hipertensión esencialCirculatorio'])
+    expect(rowTexts(w)).toEqual(['I10 Hipertensión esencial; Circulatorio;'])
     await typeText(w, 'e11')
     expect(rows(w).length).toBe(1)
     await typeText(w, 'tipo diabetes 2')
@@ -274,7 +281,7 @@ describe('GCombobox · datos sin fetch (#332)', () => {
     const w = await mk({ filter: fn })
     await typeText(w, ' 2 ')
     expect(fn).toHaveBeenCalledWith(expect.objectContaining({ value: 'E10.9' }), '2')
-    expect(rowTexts(w)).toEqual(['E11.9Diabetes mellitus tipo 2Endocrinas'])
+    expect(rowTexts(w)).toEqual(['E11.9 Diabetes mellitus tipo 2; Endocrinas;'])
     const w2 = await mk({ filter: false })
     await typeText(w2, 'zzz')
     expect(rows(w2).length).toBe(5)
@@ -289,7 +296,7 @@ describe('GCombobox · datos sin fetch (#332)', () => {
     expect(more.attributes('aria-selected')).toBe('false')
     expect(more.element.parentElement.getAttribute('role')).toBe('listbox')
     await key(w, 'ArrowUp') // no cicla: sigue en la primera
-    expect(activeEl(w).textContent).toBe('Insumo 001')
+    expect(activeEl(w).textContent.trim()).toBe('Insumo 001;')
     await key(w, 'PageDown', {}, field(w))
     for (let i = 0; i < 5; i++) await key(w, 'PageDown')
     expect(activeEl(w).className).toContain('g-combobox__action--more')
@@ -298,7 +305,7 @@ describe('GCombobox · datos sin fetch (#332)', () => {
     await key(w, 'Enter')
     expect(w.findAll('.g-combobox__option:not(.g-combobox__action)').length).toBe(100)
     expect(field(w).attributes('aria-expanded')).toBe('true')
-    expect(activeEl(w).textContent).toBe('Insumo 051')
+    expect(activeEl(w).textContent.trim()).toBe('Insumo 051;')
     expect(w.emitted('more')).toBeUndefined()
   })
 
@@ -805,8 +812,9 @@ describe('GCombobox · semántica y composición de GInput (#330, #334)', () => 
     expect(sel[0].text()).toContain('tipo 2')
     expect(sel[0].find('.g-combobox__check').attributes('aria-hidden')).toBe('true')
     await typeText(w, 'tipo e11')
-    const marks = w.findAll('mark.g-combobox__mark').map((m) => m.text())
+    const marks = w.findAll('mark.g-summary__mark').map((m) => m.text())
     expect(marks).toEqual(['E11', 'tipo'])
+    expect(w.find('mark.g-combobox__mark').exists()).toBe(false)
   })
 
   it('required: aria-required y marca, nunca required nativo; el visible no lleva name', async () => {
@@ -954,17 +962,110 @@ describe('GCombobox · semántica y composición de GInput (#330, #334)', () => 
 })
 
 describe('GCombobox · opciones y slots (#335)', () => {
-  it('fila por defecto: hueco inicial (avatar o icono), código, etiqueta y facts con rótulo (en lugar de description)', async () => {
+  it('fila por defecto: una GSummary row lines 2 (md) con label → title, code, avatar o icon, y facts con rótulo (description solo sin facts)', async () => {
     const w = await mk({ options: [...PEOPLE, { value: 'c', label: 'Clínica', icon: 'user' }] })
     await key(w, 'ArrowDown')
     const first = rows(w)[0]
-    expect(first.find('.g-combobox__lead').attributes('aria-hidden')).toBe('true')
-    expect(first.find('.g-combobox__lead .g-avatar').exists()).toBe(true)
-    expect(first.findAll('.g-combobox__fact').map((f) => f.text())).toEqual(['Exp. 001000', 'Edad 22 años'])
-    expect(first.find('.g-combobox__fact-label').text()).toBe('Exp.')
-    expect(first.find('.g-combobox__description').exists()).toBe(false)
-    expect(rows(w)[2].find('.g-combobox__description').text()).toBe('Exp. 001014 · 40 años')
-    expect(rows(w)[3].find('.g-combobox__lead svg.g-icon').exists()).toBe(true)
+    const card = first.find('.g-summary')
+    expect(card.classes()).toEqual(expect.arrayContaining(['g-summary--layout-row', 'g-summary--size-md']))
+    expect(card.classes()).not.toContain('g-summary--multi')
+    expect(card.find('.g-summary__lead').attributes('aria-hidden')).toBe('true')
+    expect(card.find('.g-summary__lead .g-avatar').exists()).toBe(true)
+    expect(card.find('.g-summary__title').text()).toBe('María García López')
+    expect(card.findAll('.g-summary__fact').map((f) => `${f.find('.g-summary__fact-label').text()} ${f.find('.g-summary__fact-value').text()}`)).toEqual(['Exp. 001000', 'Edad 22 años'])
+    expect(card.find('.g-summary__fact.is-anchor .g-summary__fact-value').text()).toBe('001000')
+    // Con facts, description no se pinta (ni se lee dos veces): sigue alimentando ID-about
+    expect(card.find('.g-summary__subtitle').exists()).toBe(false)
+    expect(rows(w)[2].find('.g-summary__subtitle').text()).toBe('Exp. 001014 · 40 años')
+    expect(rows(w)[3].find('.g-summary__lead svg.g-icon').exists()).toBe(true)
+    // Nada de las clases de ficha antiguas (combobox.md «Clases que dejan de pintarse»)
+    for (const c of ['__description', '__facts', '__fact', '__fact-label', '__token-label', '__token-meta', '__preview-head', '__preview-title', '__preview-facts']) expect(w.find(`.g-combobox${c}`).exists(), c).toBe(false)
+    for (const c of ['__lead', '__code', '__main', '__label', '__mark']) expect(first.find(`.g-combobox${c}`).exists(), c).toBe(false)
+    // El código va en la ficha
+    const w2 = await mk({ modelValue: null })
+    await key(w2, 'ArrowDown')
+    expect(rows(w2)[0].find('.g-summary__code').text()).toBe('E10.9')
+    expect(rows(w2)[0].find('.g-summary__subtitle').text()).toBe('Endocrinas')
+  })
+
+  it('traducción: value, disabled y campos de más no llegan a la ficha; priority, short y bare pasan; un dato sin label lo omite la ficha y avisa', async () => {
+    const w = await mk({ options: [{ value: 'x', label: 'Ana', extra: 1, disabled: false, facts: [{ label: 'Edad', value: '3', priority: 2 }, { label: 'Expediente', short: 'Exp.', value: '7', priority: 1, bare: true }, { value: 'sin rótulo' }] }] })
+    await key(w, 'ArrowDown')
+    const facts = rows(w)[0].findAll('.g-summary__fact')
+    expect(facts.map((f) => f.find('.g-summary__fact-label').text())).toEqual(['Exp.', 'Edad'])
+    expect(facts[0].classes()).toEqual(expect.arrayContaining(['is-anchor', 'is-bare']))
+    expect(rows(w)[0].text()).not.toContain('sin rótulo')
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('[Grana GSummary]') && String(c[0]).includes('no tiene label'))).toBe(true)
+    expect(warnings()).toEqual([])
+  })
+
+  it('ID-about y el nombre de la opción no cambian con la ficha: secondary(option) sigue alimentando la descripción accesible', async () => {
+    const w = await mk({ options: PEOPLE, modelValue: 'p1' })
+    expect(w.find('.g-combobox__about').text()).toBe('Exp. 001000 · 22 años')
+    expect(field(w).attributes('aria-describedby').split(' ')[0]).toBe(w.find('.g-combobox__about').attributes('id'))
+    // La ficha del valor no se lee (aria-hidden) y no repite la descripción
+    expect(w.find('.g-combobox__token').attributes('aria-hidden')).toBe('true')
+    expect(w.find('.g-combobox__token .g-summary__title').text()).toBe('María García López')
+    expect(w.find('.g-combobox__token .g-summary__subtitle').exists()).toBe(false)
+    expect(w.find('.g-combobox__token .g-summary__fact.is-anchor .g-summary__fact-value').text()).toBe('001000')
+  })
+
+  it('highlight: la coincidencia se marca en la ficha (title, code, subtitle y valores; no en los rótulos); solo en la opción, no en la ficha del valor ni en la vista previa', async () => {
+    const w = await mk({ options: PEOPLE })
+    await typeText(w, 'mar 0010')
+    const first = rows(w)[0]
+    expect(first.find('.g-summary').attributes('class')).toContain('g-summary')
+    expect(first.findAll('mark.g-summary__mark').map((m) => m.text())).toEqual(['Mar', '0010'])
+    expect(first.find('.g-summary__fact-label mark').exists()).toBe(false)
+    await key(w, 'Enter')
+    expect(w.find('.g-combobox__token mark').exists()).toBe(false)
+  })
+
+  it('diff: summaryDiff sobre las opciones pintadas; las homónimas marcan is-diff / is-same y la vecina sin homónimos no lleva marcas; la vista previa recibe el mismo diff', async () => {
+    const w = await mk({ options: PEOPLE })
+    await key(w, 'ArrowDown')
+    const [r1, r2, r3] = rows(w)
+    expect(r1.find('.g-summary__fact.is-anchor').classes()).toContain('is-diff')
+    expect(r2.find('.g-summary__fact.is-anchor').classes()).toContain('is-diff')
+    expect(r1.findAll('.g-summary__fact').map((f) => f.classes().filter((c) => c.startsWith('is-')).join(' '))).toEqual(['is-anchor is-diff', 'is-diff'])
+    expect(r3.find('.is-diff, .is-same').exists()).toBe(false)
+    // Con un dato compartido entre homónimas, is-same
+    const w2 = await mk({ options: [{ value: 'a', label: 'Ana', facts: [{ label: 'Exp.', value: '1' }, { label: 'Sala', value: 'B' }] }, { value: 'b', label: 'ANA ', facts: [{ label: 'Exp.', value: '2' }, { label: 'Sala', value: 'B' }] }] })
+    await key(w2, 'ArrowDown')
+    expect(rows(w2)[0].findAll('.g-summary__fact').map((f) => f.classes().filter((c) => c.startsWith('is-')).join(' '))).toEqual(['is-anchor is-diff', 'is-same'])
+    // Sobre las PINTADAS: al filtrar hasta dejar una sola «Ana», no hay homónimas a la vista
+    await typeText(w2, 'ana 1')
+    expect(rows(w2).length).toBe(1)
+    expect(rows(w2)[0].find('.is-diff, .is-same').exists()).toBe(false)
+    // Vista previa (paleta) con el diff de la opción activa
+    const w3 = await mk({ appearance: 'palette', options: PEOPLE })
+    await key(w3, 'ArrowDown')
+    await key(w3, 'ArrowDown', {}, w3.find('.g-combobox__search-field'))
+    expect(w3.find('.g-combobox__preview .g-summary__fact.is-anchor').classes()).toContain('is-diff')
+  })
+
+  it('tamaño de la ficha de opción: md; con el campo en xs o sm, sm', async () => {
+    const w = await mk({ size: 'sm' })
+    await key(w, 'ArrowDown')
+    expect(rows(w)[0].find('.g-summary').classes()).toContain('g-summary--size-sm')
+    const w2 = await mk({ size: 'xl' })
+    await key(w2, 'ArrowDown')
+    expect(rows(w2)[0].find('.g-summary').classes()).toContain('g-summary--size-md')
+    expect(w2.find('.g-combobox__token .g-summary').exists()).toBe(false)
+    const w3 = await mk({ size: 'xl', modelValue: 'I10' })
+    expect(w3.find('.g-combobox__token .g-summary').classes()).toContain('g-summary--size-xs')
+  })
+
+  it('las filas de acción no cambian: conservan __lead, __main y __label, sin ficha', async () => {
+    const w = await mk({ allowCustom: true, creatable: true })
+    await typeText(w, 'zzz')
+    const acts = w.findAll('.g-combobox__action')
+    expect(acts.length).toBe(2)
+    for (const a of acts) {
+      expect(a.find('.g-combobox__lead').exists()).toBe(true)
+      expect(a.find('.g-combobox__main .g-combobox__label').exists()).toBe(true)
+      expect(a.find('.g-summary').exists()).toBe(false)
+    }
   })
 
   it('opción sin value o sin label se ignora y avisa; value repetido avisa', async () => {
@@ -986,10 +1087,19 @@ describe('GCombobox · opciones y slots (#335)', () => {
     await typeText(w, 'hiper')
     expect(w.find('.mio').text()).toBe('Hipertensión esencial|true|true|hiper')
     expect(rows(w)[0].find('.g-combobox__check').exists()).toBe(true)
-    const w2 = await mk({ options: PEOPLE, modelValue: 'p3' }, { slots: { lead: ({ option }) => h('i', { class: 'l' }, option.value) } })
-    expect(w2.find('.g-combobox__token .g-combobox__lead .l').text()).toBe('p3')
+    expect(rows(w)[0].find('.g-summary').exists(), 'con el slot option no hay ficha').toBe(false)
+    expect(w.find('.g-combobox__token .g-summary').exists(), 'con el slot value no hay ficha').toBe(false)
+    // El slot lead ({ option }) pasa al slot lead de la ficha y manda sobre avatar e icon
+    const w2 = await mk({ options: PEOPLE, modelValue: 'p1' }, { slots: { lead: ({ option }) => h('i', { class: 'l' }, option.value) } })
+    expect(w2.find('.g-combobox__token .g-summary__lead .l').text()).toBe('p1')
+    expect(w2.find('.g-combobox__token .g-avatar').exists()).toBe(false)
     await key(w2, 'ArrowDown')
-    expect(rows(w2)[0].find('.g-combobox__lead .l').text()).toBe('p1')
+    expect(rows(w2)[0].find('.g-summary__lead .l').text()).toBe('p1')
+    expect(rows(w2)[0].find('.g-avatar').exists()).toBe(false)
+    // Un slot lead vacío deja decidir a la ficha (avatar)
+    const w3 = await mk({ options: PEOPLE }, { slots: { lead: () => null } })
+    await key(w3, 'ArrowDown')
+    expect(rows(w3)[0].find('.g-summary__lead .g-avatar').exists()).toBe(true)
   })
 
   it('slots label, hint, error y prepend son los de GInput; append y action no se pintan y avisan', async () => {
@@ -1074,7 +1184,7 @@ describe('GCombobox · la superficie: appearance="palette" y móvil (#330)', () 
     expect(emitted(w, 'close').length).toBe(1)
   })
 
-  it('vista previa: región con nombre, pinta la opción activa por defecto (solo datos de la fila) o por el slot', async () => {
+  it('vista previa: región con nombre, pinta la opción activa por defecto (GSummary stack lg con los datos de la fila, sin highlight) o por el slot', async () => {
     const w = await mk({ appearance: 'palette', options: PEOPLE })
     await key(w, 'ArrowDown')
     const p = w.find('aside.g-combobox__preview')
@@ -1083,16 +1193,23 @@ describe('GCombobox · la superficie: appearance="palette" y móvil (#330)', () 
     expect(w.find('.g-combobox__surface-body').classes()).toContain('has-preview')
     expect(p.find('.g-combobox__preview-empty').text()).toBe('Recorre la lista')
     const s = w.find('.g-combobox__search-field')
+    await typeText(w, 'mar', s)
+    const card = () => w.find('.g-combobox__preview .g-summary')
+    expect(card().classes()).toEqual(expect.arrayContaining(['g-summary--layout-stack', 'g-summary--size-lg']))
+    expect(card().find('.g-summary__title').text()).toBe('María García López')
+    expect(card().find('.g-summary__lead .g-avatar').exists()).toBe(true)
+    expect(card().findAll('.g-summary__fact-label').map((x) => x.text())).toEqual(['Exp.', 'Edad'])
+    expect(card().findAll('.g-summary__fact-value').map((x) => x.text())).toEqual(['001000', '22 años'])
+    expect(card().find('mark').exists(), 'sin highlight en la vista previa').toBe(false)
+    expect(p.find('.g-combobox__preview-head, .g-combobox__preview-facts, dl').exists()).toBe(false)
+    const el1 = card().element
     await key(w, 'ArrowDown', {}, s)
-    expect(p.find('.g-combobox__preview-title').text()).toBe('María García López')
-    expect(p.find('.g-combobox__preview-head .g-combobox__lead .g-avatar').exists()).toBe(true)
-    expect(p.findAll('dt').map((x) => x.text())).toEqual(['Exp.', 'Edad'])
-    expect(p.findAll('dd').map((x) => x.text())).toEqual(['001000', '22 años'])
-    await key(w, 'ArrowDown', {}, s)
-    expect(p.findAll('dd')[0].text()).toBe('001007')
+    expect(card().findAll('.g-summary__fact-value')[0].text()).toBe('001007')
+    expect(card().element, 'con key por opción: el contenido se vuelve a crear').not.toBe(el1)
     const w2 = await mk({ appearance: 'palette', options: PEOPLE }, { slots: { preview: ({ option }) => h('p', { class: 'ficha' }, option.description) } })
     await key(w2, 'm')
     expect(w2.find('.g-combobox__preview .ficha').text()).toBe('Exp. 001000 · 22 años')
+    expect(w2.find('.g-combobox__preview .g-summary').exists()).toBe(false)
   })
 
   it('dismiss de GDialog (Esc, fondo, cierre) cierra sin elegir; no hay confirmación de texto', async () => {

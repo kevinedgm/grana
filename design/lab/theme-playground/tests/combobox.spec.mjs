@@ -65,7 +65,7 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
     expect(s.activeOk).toBe(true)
     expect(s.oneActive).toBe(true)
     expect(s.focus, 'el foco real no sale del campo').toBe('cb-pac')
-    expect(await page.evaluate(() => document.querySelector('#cb-pac-list [role=option] mark.g-combobox__mark')?.textContent.toLowerCase())).toBe('mar')
+    expect(await page.evaluate(() => document.querySelector('#cb-pac-list [role=option] mark.g-summary__mark')?.textContent.toLowerCase())).toBe('mar')
     expect(await page.locator('#cb-pac-list .g-combobox__action--more').textContent()).toMatch(/^Mostrar más \(20 de \d+\)$/)
     await page.waitForTimeout(800)
     const lv = (await live(page)).filter((x) => /resultados/.test(x.text))
@@ -424,7 +424,7 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
-  test('quinientas opciones: tope de 50, «Mostrar más», abrir < 150 ms y el filtro recorre todas', async ({ page }) => {
+  test('quinientas opciones: tope de 50, «Mostrar más», abrir < 150 ms y el filtro recorre todas', async ({ page, browserName }, testInfo) => {
     const errs = await watchConsole(page)
     await open(page)
     await page.focus('#cb-big')
@@ -438,6 +438,9 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
     expect(s.n).toBe(50)
     expect(s.acts).toEqual(['more'])
     expect(await page.locator('#cb-big-list .g-combobox__action--more').textContent()).toBe('Mostrar más (50 de 500)')
+    // Cifra por motor (informe de bruno; con la ficha GSummary en cada fila, #356): anotada en el reporte y en la salida
+    testInfo.annotations.push({ type: 'perf', description: `abrir con 500 opciones (50 fichas pintadas): ${Math.round(ms)} ms en ${browserName}` })
+    console.log(`[500 opciones] ${browserName}: ${Math.round(ms)} ms`)
     expect(ms, `abrir con 500 opciones: ${Math.round(ms)} ms`).toBeLessThan(150)
     await page.keyboard.type('499', { delay: 15 })
     await page.waitForTimeout(200)
@@ -501,7 +504,7 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
     const r = await page.evaluate(() => {
       const c = document.getElementById('cb-rtl').closest('.g-input__control').getBoundingClientRect()
       const p = document.getElementById('cb-rtl-popup').getBoundingClientRect()
-      const o = document.querySelector('#cb-rtl-list [role=option] .g-combobox__label').getBoundingClientRect()
+      const o = document.querySelector('#cb-rtl-list [role=option] .g-summary__title').getBoundingClientRect()
       return { dl: Math.abs(c.left - p.left), dr: Math.abs(c.right - p.right), inside: p.left >= 0 && p.right <= innerWidth, labelAtStart: c.right - o.right < c.width / 2, dir: getComputedStyle(document.getElementById('cb-rtl')).direction }
     })
     expect(r.dir).toBe('rtl')
@@ -521,10 +524,16 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
   test('contraste ≥ 4.5: opción activa, encabezado de grupo, código y línea secundaria', async ({ page }) => {
     await open(page)
     await type(page, 'cb-dx', 'diab')
-    const cA = await contrast(page, '#cb-dx-list .is-active .g-combobox__label')
+    // La opción es una GSummary (#356): título, código y línea secundaria son sus partes
+    const cA = await contrast(page, '#cb-dx-list .is-active .g-summary__title')
     const cG = await contrast(page, '#cb-dx-list .g-combobox__group-label')
-    const cC = await contrast(page, '#cb-dx-list .is-active .g-combobox__code')
-    const cD = await contrast(page, '#cb-dx-list .is-active .g-combobox__description')
+    const cC = await contrast(page, '#cb-dx-list .is-active .g-summary__code')
+    const cD = await contrast(page, '#cb-dx-list .is-active .g-summary__subtitle')
     for (const [name, c] of [['activa', cA], ['grupo', cG], ['código', cC], ['secundaria', cD]]) expect(c, `${name} ${c?.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
+    // Y en la lista de pacientes, el rótulo y el valor de un dato de la ficha activa
+    await type(page, 'cb-pac', 'maría garcía', { wait: 350 })
+    const cL = await contrast(page, '#cb-pac-list .is-active .g-summary__fact-label')
+    const cV = await contrast(page, '#cb-pac-list .is-active .g-summary__fact-value')
+    for (const [name, c] of [['rótulo', cL], ['valor', cV]]) expect(c, `${name} ${c?.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
   })
 })

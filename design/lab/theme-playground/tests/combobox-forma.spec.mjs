@@ -244,9 +244,10 @@ test.describe('GCombobox · B · paleta con vista previa', () => {
     })
     expect(d).toEqual({ modal: true, palette: true, inView: true, title: 'Paciente (paleta con vista previa)', fieldName: 'Paciente (paleta con vista previa)', fieldAttrs: ['combobox', 'list', 'true', 'cb-pal-list'], previewTag: 'ASIDE', previewName: 'Vista previa', previewLive: null, bodyTab: null, bodyScrolls: false, liveIn: true, inRoot: true })
     expect(s.n).toBeGreaterThanOrEqual(4)
-    const exp = () => page.evaluate(() => document.querySelector('#cb-pal-preview .g-combobox__preview-facts dd')?.textContent)
+    // La vista previa es una GSummary stack lg (#356): el identificador es el primer dato
+    const exp = () => page.evaluate(() => document.querySelector('#cb-pal-preview .g-summary--layout-stack .g-summary__fact.is-anchor .g-summary__fact-value')?.textContent)
     const e1 = await exp()
-    expect(await page.locator('#cb-pal-preview .g-combobox__preview-title').textContent()).toBe('María García López')
+    expect(await page.locator('#cb-pal-preview .g-summary__title').textContent()).toBe('María García López')
     await page.keyboard.press('ArrowDown')
     await frames(page)
     const e2 = await exp()
@@ -254,7 +255,7 @@ test.describe('GCombobox · B · paleta con vista previa', () => {
     // El dato que distingue va también en la fila (la vista previa nunca es la única fuente, #335)
     expect((await st(page, 'cb-pal')).activeText).toContain('001007')
     await page.waitForTimeout(250)
-    const cB = await contrast(page, '#cb-pal-list .is-active .g-combobox__label')
+    const cB = await contrast(page, '#cb-pal-list .is-active .g-summary__title')
     expect(cB, `activa invertida ${cB?.toFixed(1)}`).toBeGreaterThanOrEqual(4.5)
     await page.keyboard.press('Enter')
     await page.waitForFunction(() => !document.getElementById('cb-pal-surface').open)
@@ -348,9 +349,10 @@ test.describe('GCombobox · C · el valor es un objeto', () => {
     const hDx0 = (await geo(page, 'cb-dx')).h
     await type(page, 'cb-pac', 'maría garcía', { wait: 350 })
     // Fichas con rótulo en la lista
-    const facts = await page.evaluate(() => [...document.querySelectorAll('#cb-pac-list [role=option]')[0].querySelectorAll('.g-combobox__fact')].map((f) => [f.querySelector('.g-combobox__fact-label').textContent, f.textContent]))
+    // Fichas con rótulo en la lista: la opción es una GSummary row lines 2 (#356); el identificador (Exp.) va el primero
+    const facts = await page.evaluate(() => [...document.querySelectorAll('#cb-pac-list [role=option]')[0].querySelectorAll('.g-summary__fact')].map((f) => [f.querySelector('.g-summary__fact-label').textContent, f.querySelector('.g-summary__fact-value').textContent, f.classList.contains('is-anchor')]))
     expect(facts.map((f) => f[0])).toEqual(['Exp.', 'Edad', 'Última visita', 'Médico'])
-    expect(facts[0][1]).toBe('Exp. 001000')
+    expect(facts[0]).toEqual(['Exp.', '001000', true])
     await page.keyboard.press('Enter')
     await frames(page, 3)
     const tok = (id) => page.evaluate((id) => {
@@ -358,21 +360,25 @@ test.describe('GCombobox · C · el valor es un objeto', () => {
       const i = document.getElementById(id); const cs = getComputedStyle(i)
       const c = root.querySelector('.g-input__control').getBoundingClientRect(); const r = t.getBoundingClientRect()
       return {
-        hidden: t.getAttribute('aria-hidden'), pe: getComputedStyle(t).pointerEvents, avatar: Boolean(t.querySelector('.g-combobox__lead .g-avatar--size-xs')), icon: Boolean(t.querySelector('.g-combobox__lead svg')),
-        code: t.querySelector('.g-combobox__code')?.textContent || null, label: t.querySelector('.g-combobox__token-label').textContent, meta: t.querySelector('.g-combobox__token-meta')?.textContent || null,
+        hidden: t.getAttribute('aria-hidden'), pe: getComputedStyle(t).pointerEvents, inline: t.querySelector('.g-summary').className, avatar: Boolean(t.querySelector('.g-summary__lead .g-avatar--size-xs')), icon: Boolean(t.querySelector('.g-summary__lead svg')),
+        code: t.querySelector('.g-summary__code')?.textContent || null, label: t.querySelector('.g-summary__title').textContent, meta: t.querySelector('.g-summary__subtitle')?.textContent || null,
+        facts: [...t.querySelectorAll('.g-summary__fact')].map((f) => f.querySelector('.g-summary__fact-label').textContent + ' ' + f.querySelector('.g-summary__fact-value').textContent),
         inputTransparent: /rgba\(0, 0, 0, 0\)|transparent/.test(cs.color), value: i.value, inside: r.left >= c.left - 1 && r.right <= c.right + 1 && r.top >= c.top - 1 && r.bottom <= c.bottom + 1,
         prependHidden: (() => { const p = root.querySelector('.g-input__prepend'); return p ? getComputedStyle(p).display === 'none' : null })()
       }
     }, id)
     let t = await tok('cb-pac')
-    expect(t).toMatchObject({ hidden: 'true', pe: 'none', avatar: true, code: null, label: 'María García López', meta: 'Exp. 001000 · 22 años', inputTransparent: true, value: 'María García López', inside: true, prependHidden: true })
+    // Con facts la ficha no pinta description (sigue en ID-about): los datos van como facts, el identificador el primero
+    expect(t).toMatchObject({ hidden: 'true', pe: 'none', inline: 'g-summary g-summary--layout-inline g-summary--size-xs', avatar: true, code: null, label: 'María García López', meta: null, inputTransparent: true, value: 'María García López', inside: true, prependHidden: true })
+    expect(t.facts.length).toBe(4)
+    expect(t.facts.slice(0, 2)).toEqual(['Exp. 001000', 'Edad 22 años'])
     let s = await st(page, 'cb-pac')
     expect(s.focus, 'el foco sigue en el campo con la ficha puesta').toBe('cb-pac')
     expect(s.about).toBe('Exp. 001000 · 22 años')
     expect(s.describedby.split(' ')[0]).toBe('cb-pac-about')
     expect(Math.abs((await geo(page, 'cb-pac')).h - h0), 'Δ0 de alto con ficha').toBeLessThan(0.5)
-    const cT = await contrast(page, '#sec-combobox .g-combobox__token-meta')
-    expect(cT, `dato secundario ${cT?.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
+    const cT = await contrast(page, '#sec-combobox .g-combobox__token .g-summary__fact-label')
+    expect(cT, `rótulo del dato en la ficha del valor ${cT?.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
     // Diagnóstico: código en su caja
     await type(page, 'cb-dx', 'e11')
     await page.keyboard.press('Enter')
@@ -442,14 +448,83 @@ test.describe('GCombobox · C · el valor es un objeto', () => {
     await frames(page, 3)
     const n = await page.evaluate(() => {
       const root = document.getElementById('cb-pac').closest('.g-combobox'); const c = root.querySelector('.g-input__control').getBoundingClientRect()
-      const t = root.querySelector('.g-combobox__token').getBoundingClientRect(); const name = root.querySelector('.g-combobox__token-label'); const meta = root.querySelector('.g-combobox__token-meta')
-      return { fits: t.left >= c.left - 1 && t.right <= c.right + 1, name: name.getBoundingClientRect().width, nameCut: name.scrollWidth > name.clientWidth + 1, meta: meta.getBoundingClientRect().width, sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }
+      const tok = root.querySelector('.g-combobox__token'); const t = tok.getBoundingClientRect(); const su = tok.querySelector('.g-summary'); const name = su.querySelector('.g-summary__title'); const data = su.querySelector('.g-summary__data')
+      return { fits: t.left >= c.left - 1 && t.right <= c.right + 1, name: name.getBoundingClientRect().width, nameCut: name.scrollWidth > name.clientWidth + 1, data: data ? data.getBoundingClientRect().width : 0, tight: su.hasAttribute('data-tight'), sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }
     })
     expect(n.fits).toBe(true)
-    // El dato secundario se recorta primero: el nombre solo se recorta cuando el secundario ya no ocupa nada
-    expect(!n.nameCut || n.meta < 1, `el nombre gana sitio (${Math.round(n.name)}px; secundaria ${Math.round(n.meta)}px)`).toBe(true)
-    expect(n.name).toBeGreaterThan(n.meta)
+    // Ficha inline (#356): los datos ceden antes que el título; el título solo se recorta cuando la ficha ya está
+    // apretada (data-tight: los datos fuera) y conserva al menos su suelo
+    expect(!n.nameCut || n.tight, `el nombre gana sitio (${Math.round(n.name)}px; datos ${Math.round(n.data)}px; tight ${n.tight})`).toBe(true)
+    expect(n.name).toBeGreaterThan(20)
     expect(n.sw).toBeLessThanOrEqual(n.cw)
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+  test('fichas con GSummary a 240, 320 y 480px (#356): sin desborde, identificador entero, «+N» = data-clipped, alto de la opción igual en los tres anchos, homónimas con diff y coincidencia; la ficha del valor Δ0', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    const h0 = (await geo(page, 'cb-pac')).h
+    const by = {}
+    for (const w of [240, 320, 480]) {
+      await page.evaluate((w) => { document.getElementById('cb-pac').closest('.col').style.maxWidth = w + 'px' }, w)
+      await frames(page)
+      await type(page, 'cb-pac', 'maría garcía', { wait: 350 })
+      await frames(page, 3)
+      by[w] = await page.evaluate(() => {
+        const pop = document.getElementById('cb-pac-popup')
+        const opts = [...document.querySelectorAll('#cb-pac-list [role=option]:not(.g-combobox__action)')]
+        return {
+          popOverflow: pop.scrollWidth > pop.clientWidth + 1, docOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+          rows: opts.slice(0, 4).map((o) => {
+            const su = o.querySelector('.g-summary'); const r = o.getBoundingClientRect(); const s = su.getBoundingClientRect()
+            const anchor = su.querySelector('.g-summary__fact.is-anchor'); const more = su.querySelector('.g-summary__more')
+            return {
+              h: Math.round(r.height * 10) / 10, overflow: o.scrollWidth > o.clientWidth + 1, inside: s.left >= r.left - 0.5 && s.right <= r.right + 0.5,
+              anchorWhole: anchor.scrollWidth <= anchor.clientWidth + 1, anchorValue: anchor.querySelector('.g-summary__fact-value').textContent,
+              more: more && !more.hidden ? more.textContent.trim() : null, clipped: su.querySelectorAll('.g-summary__fact[data-clipped]').length,
+              diff: anchor.classList.contains('is-diff'), marks: su.querySelectorAll('mark.g-summary__mark').length, facts: su.querySelectorAll('.g-summary__fact').length
+            }
+          })
+        }
+      })
+      await page.keyboard.press('Escape') // cierra y conserva el texto
+      await page.keyboard.press('Escape') // restaura el texto de la opción elegida (ninguna: vacío)
+      await frames(page)
+    }
+    for (const w of [240, 320, 480]) {
+      const b = by[w]
+      expect(b.popOverflow, `${w}px: el panel no desborda`).toBe(false)
+      expect(b.docOverflow, `${w}px: la página no desborda`).toBe(false)
+      expect(b.rows.length, `${w}px: cuatro homónimas pintadas (${JSON.stringify(b)})`).toBe(4)
+      for (const r of b.rows) {
+        expect(r.overflow, `${w}px: la opción no desborda`).toBe(false)
+        expect(r.inside, `${w}px: la ficha cabe en la opción`).toBe(true)
+        expect(r.anchorWhole, `${w}px: el identificador (Exp.) entero`).toBe(true)
+        expect(r.facts).toBe(4)
+        expect(r.more === null ? 0 : Number(r.more.replace(/\D/g, '')), `${w}px: «+N» = datos fuera (${r.more} / ${r.clipped})`).toBe(r.clipped)
+        expect(r.diff, `${w}px: cuatro homónimas: el expediente las distingue`).toBe(true)
+        expect(r.marks, `${w}px: la coincidencia se marca`).toBeGreaterThan(0)
+      }
+      // Las cuatro homónimas: expedientes distintos
+      expect(new Set(b.rows.map((r) => r.anchorValue)).size).toBe(4)
+    }
+    // Alto de la opción igual en cualquier ancho (dos líneas: título + una de datos)
+    const hs = [240, 320, 480].map((w) => by[w].rows[0].h)
+    expect(Math.max(...hs) - Math.min(...hs), `alto de la opción a 240/320/480: ${hs.join(' / ')}`).toBeLessThan(1)
+    // Con más ancho caben más datos (240 < 480)
+    expect(by[240].rows[0].clipped).toBeGreaterThanOrEqual(by[480].rows[0].clipped)
+    // Elegir a 240px: la ficha del valor cabe y no cambia el alto del campo
+    await type(page, 'cb-pac', 'maría garcía', { wait: 350 })
+    await page.keyboard.press('Enter')
+    await frames(page, 3)
+    const tok = await page.evaluate(() => {
+      const root = document.getElementById('cb-pac').closest('.g-combobox'); const c = root.querySelector('.g-input__control').getBoundingClientRect(); const t = root.querySelector('.g-combobox__token').getBoundingClientRect()
+      const su = root.querySelector('.g-combobox__token .g-summary').getBoundingClientRect()
+      return { fits: t.left >= c.left - 1 && t.right <= c.right + 1, suW: su.width, title: root.querySelector('.g-combobox__token .g-summary__title').textContent }
+    })
+    expect(tok.fits).toBe(true)
+    expect(tok.title).toBe('María García López')
+    expect(tok.suW, 'la ficha del valor tiene ancho (sitio en __token)').toBeGreaterThan(40)
+    expect(Math.abs((await geo(page, 'cb-pac')).h - h0), 'Δ0 de alto con la ficha a 240px').toBeLessThan(0.5)
     expect(errs, errs.join('\n')).toEqual([])
   })
 })

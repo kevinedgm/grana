@@ -1,12 +1,18 @@
-// Motor de texto de GCombobox (combobox.md: filter, coincidencia, línea secundaria)
+// Motor de texto de GCombobox (combobox.md: filter, texto fantasma, línea secundaria). fold, tokens y parts se prueban
+// en utils/match.test.js (compartidos con GSummary, #356): engine.js ya no lleva copia
 import { describe, it, expect } from 'vitest'
-import { completion, fold, matches, parts, secondary, tokens, validOption } from './engine.js'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { tokens } from '../../utils/match.js'
+import * as engine from './engine.js'
+import { completion, matches, secondary, validOption } from './engine.js'
 
 describe('GCombobox · engine', () => {
-  it('fold: sin acentos ni mayúsculas, carácter a carácter', () => {
-    expect(fold('María ÑANDÚ Óscar')).toBe('maria nandu oscar')
-    expect(fold('María').length).toBe('María'.length)
-    expect(tokens('  Tipo   2 ')).toEqual(['tipo', '2'])
+  it('no exporta ni define fold, tokens ni parts: los toma de utils/match.js (una sola copia, #356)', () => {
+    expect(Object.keys(engine).sort()).toEqual(['completion', 'matches', 'secondary', 'validOption'])
+    const src = readFileSync(resolve(process.cwd(), 'src/components/GCombobox/engine.js'), 'utf8')
+    expect(src).toContain("from '../../utils/match.js'")
+    expect(src).not.toMatch(/normalize\('NFD'\)/)
   })
 
   it('matches: todas las palabras sobre label, code, description y los valores de facts', () => {
@@ -15,13 +21,6 @@ describe('GCombobox · engine', () => {
     expect(matches(o, tokens('endocrinas iv'))).toBe(true)
     expect(matches(o, tokens('capítulo'))).toBe(false) // los rótulos no se buscan
     expect(matches(o, tokens('diabetes tipo 7'))).toBe(false)
-  })
-
-  it('parts: primera aparición de cada palabra; sin búsqueda, un solo trozo; si la forma plegada no mide igual, no marca', () => {
-    expect(parts('María García', 'gar mar')).toEqual([{ t: 'Mar', m: true }, { t: 'ía ', m: false }, { t: 'Gar', m: true }, { t: 'cía', m: false }])
-    expect(parts('Texto', '')).toEqual([{ t: 'Texto', m: false }])
-    expect(parts('', 'x')).toEqual([])
-    expect(parts('a😀b', 'b')).toEqual([{ t: 'a😀b', m: false }])
   })
 
   it('completion: por prefijo sin acentos ni mayúsculas y solo si la etiqueta es más larga', () => {

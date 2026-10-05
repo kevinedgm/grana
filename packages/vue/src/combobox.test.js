@@ -52,6 +52,21 @@ describe('@grana/vue/combobox · entrada propia (#337)', () => {
     expect(cfg).toContain('this.error(')
   })
 
+  it('GCombobox.vue y engine.js toman GSummary, summaryDiff y utils/match.js del principal: sus claves están en shared.js y no hay copia de fold (#356)', () => {
+    const vue = readFileSync(resolve(SRC, 'components/GCombobox/GCombobox.vue'), 'utf8')
+    const eng = readFileSync(resolve(SRC, 'components/GCombobox/engine.js'), 'utf8')
+    const decl = readFileSync(resolve(SRC, 'shared.js'), 'utf8')
+    for (const [file, from, key] of [[vue, "'../GSummary/GSummary.vue'", 'components/GSummary/GSummary.vue'], [vue, "'../GSummary/diff.js'", 'components/GSummary/diff.js'], [vue, "'../../utils/match.js'", 'utils/match.js'], [eng, "'../../utils/match.js'", 'utils/match.js']]) {
+      expect(file).toContain(from)
+      expect(decl).toContain(`'${key}':`)
+    }
+    expect(shared['components/GSummary/GSummary.vue'].default.name).toBe('GSummary')
+    expect(typeof shared['components/GSummary/diff.js'].summaryDiff).toBe('function')
+    expect(typeof shared['utils/match.js'].parts).toBe('function')
+    expect(eng).not.toMatch(/normalize\('NFD'\)/)
+    expect(vue).not.toMatch(/normalize\('NFD'\)/)
+  })
+
   it('el CSS sigue en grana.css: components.css importa GCombobox.css después de GInput, GAvatar y GDialog', () => {
     const css = readFileSync(resolve(SRC, 'styles/components.css'), 'utf8')
     const at = (name) => css.indexOf(`components/${name}/${name}.css`)
@@ -73,6 +88,7 @@ describe('@grana/vue/combobox · entrada propia (#337)', () => {
     expect(readFileSync(resolve(dist, 'grana.css'), 'utf8')).toContain('g-combobox__ghost')
     expect(readFileSync(resolve(dist, 'grana.js'), 'utf8')).not.toContain('GCombobox')
     expect(js.toString()).toContain('__shared')
+    expect(js.toString(), 'la ficha (GSummary) llega por __shared, sin copia (#350, #356)').not.toContain('g-summary__')
     const meta = JSON.parse(readFileSync(resolve(SRC, 'components/GCombobox/GCombobox.meta.json'), 'utf8'))
     expect(Math.abs(gzipSync(js).length - meta.bundle.gzip)).toBeLessThan(1024)
   })

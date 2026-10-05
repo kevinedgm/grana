@@ -36,7 +36,9 @@ describe('SSR · GCombobox', () => {
     const html = await render({ name: 'dx', id: 'c', modelValue: 'I10', clearable: true })
     expect(html).toContain('is-token')
     expect(html).toMatch(/<input[^>]*id="c"[^>]*aria-describedby="c-about"[^>]*value="Hipertensión esencial"/)
-    expect(html).toMatch(/<span class="g-combobox__token"[^>]*aria-hidden="true">.*<span class="g-combobox__code">I10<\/span><span class="g-combobox__token-label">Hipertensión esencial<\/span><span class="g-combobox__token-meta">Circulatorio<\/span>/)
+    // La ficha del valor es una GSummary inline xs pintada entera en el servidor (#356)
+    expect(html).toMatch(/<span class="g-combobox__token"[^>]*aria-hidden="true">.*<span class="g-summary g-summary--layout-inline g-summary--size-xs">.*<span class="g-summary__code" dir="auto">I10<\/span>.*<span class="g-summary__title" id="[^"]+" dir="auto">Hipertensión esencial<\/span>.*<span class="g-summary__subtitle" dir="auto">Circulatorio<\/span>/)
+    expect(html).not.toContain('g-combobox__token-label')
     expect(html).toContain('<span id="c-about" class="g-combobox__about">Circulatorio</span>')
     expect(html).toContain('<input type="hidden" name="dx" value="I10">')
     expect(html).toMatch(/<button id="c-clear" type="button" class="g-combobox__clear" aria-labelledby="c-clear-text c-label">/)
@@ -46,9 +48,10 @@ describe('SSR · GCombobox', () => {
     const html = await render({ id: 'c', name: 'dx', customName: 'dx_libre', allowCustom: true, custom: 'Dolor raro' })
     expect(html).toContain('is-token is-custom')
     expect(html).toContain('<input type="hidden" name="dx_libre" value="Dolor raro">')
-    expect(html).toContain('<span class="g-combobox__token-meta">Texto libre</span>')
+    expect(html).toMatch(/<span class="g-summary__lead" aria-hidden="true"><svg class="g-icon"/) // el lápiz
+    expect(html).toMatch(/<span class="g-summary__title"[^>]*>Dolor raro<\/span>.*<span class="g-summary__subtitle" dir="auto">Texto libre<\/span>/)
     const html2 = await render({ id: 'c', modelValue: 'p1' })
-    expect(html2).toMatch(/<span class="g-combobox__lead" aria-hidden="true"><span class="g-avatar g-avatar--size-xs/)
+    expect(html2).toMatch(/<span class="g-summary__lead" aria-hidden="true"><span class="g-avatar g-avatar--size-xs/)
   })
 
   it('appearance="palette": el servidor pinta el disparador y la superficie cerrada (un <dialog> sin contenido)', async () => {

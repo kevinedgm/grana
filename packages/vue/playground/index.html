@@ -2757,17 +2757,34 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           }
           setH(); window.addEventListener('resize', setH)
           if (bar && typeof ResizeObserver === 'function') new ResizeObserver(setH).observe(bar, { box: 'border-box' })
+          // Índice lateral: la sección activa es la ÚLTIMA cuyo inicio ya cruzó la línea de lectura (bajo la cabecera, al
+          // 30 % del visor restante). Antes se tomaba la primera sección aún visible, y una sección larga que todavía
+          // asomaba por arriba seguía marcada con el título de la siguiente ya a la vista (auditoría de GCombobox,
+          // hallazgo 5: «GSelect» con «GCombobox» a 245px). Se recalcula al desplazarse y al cambiar de tamaño, una vez
+          // por cuadro; sin IntersectionObserver (no hace falta: son unas decenas de rectángulos)
           const secs = [...document.querySelectorAll('[data-pg-section]')]
-          const visible = new Set()
-          pgObserver = new IntersectionObserver((entries) => {
-            for (const e of entries) e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)
-            const first = secs.find((x) => visible.has(x.id))
-            if (first) pgActive.value = first.id
-          }, { rootMargin: '-80px 0px -60% 0px' })
-          secs.forEach((x) => pgObserver.observe(x))
+          let pgFrame = 0
+          const pickActive = () => {
+            pgFrame = 0
+            const barH = bar ? bar.offsetHeight : 0
+            const line = barH + (window.innerHeight - barH) * 0.3
+            let hit = null
+            for (const s of secs) {
+              const r = s.getBoundingClientRect()
+              if (r.bottom <= barH) continue // ya pasó entera
+              if (r.top <= line) hit = s
+              else break
+            }
+            if (!hit) hit = secs.find((s) => s.getBoundingClientRect().bottom > barH) || null
+            if (hit) pgActive.value = hit.id
+          }
+          pgObserver = () => { if (!pgFrame) pgFrame = requestAnimationFrame(pickActive) }
+          window.addEventListener('scroll', pgObserver, { passive: true })
+          window.addEventListener('resize', pgObserver)
           if (location.hash.startsWith('#sec-')) pgActive.value = location.hash.slice(1)
+          else pickActive()
         })
-        onBeforeUnmount(() => pgObserver && pgObserver.disconnect())
+        onBeforeUnmount(() => { if (pgObserver) { window.removeEventListener('scroll', pgObserver); window.removeEventListener('resize', pgObserver) } })
 
         // ---------- GNumberField: modelos Number | null y envío canónico ----------
         const nf = reactive({ lock: false, edad: null, peso: 72.5, temp: null, pct: 10, qty: 1, pob: 12345, out: 150, max: 9, neg: -18, big: 1234.5, ar: -4.5, he: 72.5, fd: 'FormData: (envía el formulario)', log: 'change: —' })

@@ -53,7 +53,7 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     await page.waitForTimeout(500)
     for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown') // una fila lejana: el viaje se ve
     await frames(page)
-    const from = await page.evaluate(() => { const r = document.querySelector('#cb-dx-list .is-active .g-combobox__main').getBoundingClientRect(); return { x: r.left, y: r.top } })
+    const from = await page.evaluate(() => { const r = document.querySelector('#cb-dx-list .is-active .g-summary').getBoundingClientRect(); return { x: r.left, y: r.top } }) // el origen es la ficha de la fila (#356)
     const run = sample(page, () => {
       const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token')
       if (!t) return null

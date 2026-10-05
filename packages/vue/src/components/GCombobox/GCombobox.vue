@@ -7,18 +7,23 @@
 // <Teleport>: quedan como hijos de la raíz, fuera de flujo, tal como fija el contrato, sin tocar GInput.
 // Sin fetch (#332): emite `search`, `more` y `create`; la aplicación entrega options, loading, total y loadError.
 // APG «Combobox with list autocomplete»: el foco nunca sale del campo; la opción activa va por aria-activedescendant.
-import { Comment, Fragment, Text, computed, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, unref, useAttrs, useId, useSlots, watch } from 'vue'
+// Fichas (#356, summary.md «Adopción en GCombobox»): la opción por defecto, la ficha del valor y la vista previa se
+// pintan con GSummary (row lines 2 · inline · stack); el contraste entre homónimas (summaryDiff) se calcula sobre las
+// opciones PINTADAS. Los slots option, value y preview siguen ganando. GSummary, summaryDiff y utils/match.js viven en
+// el paquete principal y llegan aquí por `__shared` (vite.combobox.config.js), sin copia.
+import { Fragment, computed, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, unref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { placeBlock } from '../../utils/anchor.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
+import { fold, tokens } from '../../utils/match.js'
 import GInput from '../GInput/GInput.vue'
 import GDialog from '../GDialog/GDialog.vue'
-import GAvatar from '../GAvatar/GAvatar.vue'
-import GAppIcon from '../GIcon/GIcon.vue'   // iconos por nombre de la opción (`icon`): registro de la aplicación → librería (#202)
+import GSummary from '../GSummary/GSummary.vue'
+import { summaryDiff } from '../GSummary/diff.js'
 import GIcon from '../GIcon/GLibIcon.js'    // iconos propios: SOLO la lista de la librería
 import { formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
-import { completion, fold, matches, parts, secondary, tokens, validOption } from './engine.js'
+import { completion, matches, secondary, validOption } from './engine.js'
 
 defineOptions({ name: 'GCombobox', inheritAttrs: false })
 
@@ -296,7 +301,6 @@ const about = computed(() => {
   if (selected.value) return secondary(selected.value)
   return L.value.custom || ''
 })
-const tokenMeta = computed(() => (selected.value ? secondary(selected.value) : L.value.custom || ''))
 
 // ---------- Contexto de GInput (slot interno `field`) ----------
 let ctx = null
@@ -705,8 +709,9 @@ function pick(row, { el = null, leaving = false } = {}) {
   const wasSurface = surface.value
   let from = null
   if (!wasSurface && typeof document !== 'undefined') {
+    // El origen del viaje es la ficha de la fila elegida (#356); con el slot `option`, la fila entera
     const rowEl = el || document.getElementById(row.id)
-    const src = rowEl && (rowEl.querySelector('.g-combobox__main') || rowEl)
+    const src = rowEl && (rowEl.querySelector('.g-summary') || rowEl)
     if (src && src.getBoundingClientRect) from = src.getBoundingClientRect()
   }
   known.set(o.value, o)
@@ -1000,43 +1005,38 @@ function onPanelMove(e) {
   if (hit && !hit.row.disabled && activeRow.value !== hit.row) setActive(hit.row, false, false)
 }
 
-// ---------- Piezas de pintado ----------
-const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
-const AVATAR_PROPS = ['src', 'name', 'initials', 'icon', 'color', 'categories', 'colorKey', 'shape']
-function avatarProps(o) {
-  if (o.avatar === true) return { name: o.label }
-  const out = {}
-  for (const k of AVATAR_PROPS) if (o.avatar[k] !== undefined) out[k] = o.avatar[k]
-  if (out.name === undefined && out.src === undefined && out.initials === undefined && out.icon === undefined) out.name = o.label
+// ---------- Piezas de pintado: la ficha (GSummary, #356) ----------
+// Traducción de la opción (#335 intacto): label → title; description → subtitle SOLO sin facts (con facts no se pinta
+// ni se lee dos veces; sigue alimentando ID-about por `secondary`); code, avatar, icon y facts tal cual (priority, short
+// y bare son opcionales y aditivos; un dato sin label lo omite la ficha y avisa). value, disabled y los campos de más
+// no llegan a la ficha. La identidad y el texto oculto accesible los pone la ficha.
+const hasFacts = (o) => Array.isArray(o.facts) && o.facts.some((f) => f && typeof f === 'object' && f.label != null && String(f.label).trim() !== '' && f.value != null && String(f.value).trim() !== '')
+function summaryProps(o) {
+  const out = { title: o.label }
+  if (typeof o.code === 'string' && o.code) out.code = o.code
+  if (o.avatar) out.avatar = o.avatar
+  if (typeof o.icon === 'string' && o.icon) out.icon = o.icon
+  if (hasFacts(o)) out.facts = o.facts
+  else if (typeof o.description === 'string' && o.description) out.subtitle = o.description
   return out
 }
-/** Hueco inicial de una opción (fila, ficha y vista previa): slot `lead` › avatar › icon. Decorativo. */
-function leadNode(o, size) {
-  let inner = null
-  if (slots.lead) {
-    const c = slots.lead({ option: o })
-    if (c && c.some((v) => !isEmptyNode(v))) inner = c
-  } else if (o.avatar) inner = [h(GAvatar, { ...avatarProps(o), size })]
-  else if (typeof o.icon === 'string' && o.icon) inner = [h(GAppIcon, { name: o.icon })]
-  return inner ? h('span', { class: 'g-combobox__lead', 'aria-hidden': 'true' }, inner) : null
-}
-const marked = (textValue, query_) => parts(textValue, query_).map((p) => (p.m ? h('mark', { class: 'g-combobox__mark' }, p.t) : p.t))
+/** Slot `lead` de GCombobox ({ option }) → slot `lead` de la ficha (manda sobre avatar e icon; vacío, la ficha decide) */
+const leadSlot = (o) => (slots.lead ? { lead: () => slots.lead({ option: o }) } : undefined)
+// Tamaño de la ficha de opción: md; con el campo en xs o sm, sm (combobox.md «Fichas con GSummary»)
+const optionSize = computed(() => (props.size === 'xs' || props.size === 'sm' ? 'sm' : 'md'))
+// Contraste entre homónimas (#354) sobre las opciones PINTADAS: paralelo a rows.optionRows (índice = row.index, porque
+// las opciones van antes que las filas de acción en `all`). Se recalcula solo cuando cambian las filas
+const diffs = computed(() => {
+  const list = rows.value.optionRows
+  return list.length > 1 ? summaryDiff(list.map((r) => ({ title: r.o.label, facts: r.o.facts }))) : []
+})
+const diffOf = (row) => (row ? diffs.value[row.index] || undefined : undefined)
 function optionContent(row) {
   const o = row.o
   const qq = qTrim.value
   const isActive = activeRow.value === row
   if (slots.option) return slots.option({ option: o, active: isActive, selected: row.selected, query: qq })
-  const facts = Array.isArray(o.facts) ? o.facts.filter((f) => f && f.value != null && f.value !== '') : []
-  return [
-    leadNode(o, 'md'),
-    o.code ? h('span', { class: 'g-combobox__code' }, marked(o.code, qq)) : null,
-    h('span', { class: 'g-combobox__main' }, [
-      h('span', { class: 'g-combobox__label' }, marked(o.label, qq)),
-      facts.length
-        ? h('span', { class: 'g-combobox__facts' }, facts.map((f, i) => h('span', { class: 'g-combobox__fact', key: i }, [f.label ? h('span', { class: 'g-combobox__fact-label' }, f.label) : null, f.label ? ' ' : null, ...marked(f.value, qq)])))
-        : o.description ? h('span', { class: 'g-combobox__description' }, marked(o.description, qq)) : null
-    ])
-  ]
+  return h(GSummary, { ...summaryProps(o), layout: 'row', lines: 2, size: optionSize.value, highlight: qq || undefined, diff: diffOf(row) }, leadSlot(o))
 }
 function rowNode(row) {
   const isActive = activeRow.value === row
@@ -1092,27 +1092,23 @@ const Panel = () => {
     ])
   ])
 }
-/** Vista previa de la opción activa (paleta): slot `preview` o, por defecto, solo datos de la fila (#335) */
-const previewOption = computed(() => (activeRow.value && activeRow.value.kind === 'option' ? activeRow.value.o : null))
+/** Vista previa de la opción activa (paleta): slot `preview` o, por defecto, la ficha en `stack` con los datos de la
+ * fila (#335) y su mismo `diff`; sin `highlight`. Con `key` por opción: el contenido se vuelve a crear al cambiar la
+ * activa (coco puede hacerlo entrar con un fundido) */
+const previewRow = computed(() => (activeRow.value && activeRow.value.kind === 'option' ? activeRow.value : null))
 const Preview = () => {
-  const o = previewOption.value
-  if (!o) return L.value.previewEmpty ? h('p', { class: 'g-combobox__preview-empty' }, L.value.previewEmpty) : null
+  const row = previewRow.value
+  if (!row) return L.value.previewEmpty ? h('p', { class: 'g-combobox__preview-empty' }, L.value.previewEmpty) : null
+  const o = row.o
   if (slots.preview) return slots.preview({ option: o })
-  const facts = Array.isArray(o.facts) ? o.facts.filter((f) => f && f.value != null && f.value !== '') : []
-  return [
-    h('div', { class: 'g-combobox__preview-head' }, [
-      leadNode(o, 'lg'),
-      o.code ? h('span', { class: 'g-combobox__code' }, o.code) : null,
-      h('p', { class: 'g-combobox__preview-title' }, o.label)
-    ]),
-    o.description ? h('p', { class: 'g-combobox__description' }, o.description) : null,
-    facts.length ? h('dl', { class: 'g-combobox__preview-facts' }, facts.flatMap((f, i) => [h('dt', { key: `t${i}` }, f.label), h('dd', { key: `d${i}` }, String(f.value))])) : null
-  ]
+  return h(GSummary, { key: String(o.value), ...summaryProps(o), layout: 'stack', size: 'lg', diff: diffOf(row) }, leadSlot(o))
 }
-const TokenLead = () => {
+/** Ficha del valor (C): la opción elegida en `inline`; con texto libre, el texto como título, labels.custom como línea
+ * secundaria y el lápiz en el hueco inicial (la cursiva cuelga de is-custom, en el CSS) */
+const TokenCard = () => {
   const o = selected.value
-  if (o) return leadNode(o, 'xs')
-  return h('span', { class: 'g-combobox__lead', 'aria-hidden': 'true' }, [h(GIcon, { name: 'pencil' })])
+  if (o) return h(GSummary, { ...summaryProps(o), layout: 'inline', size: 'xs' }, leadSlot(o))
+  return h(GSummary, { title: customText.value, subtitle: L.value.custom || undefined, layout: 'inline', size: 'xs' }, { lead: () => h(GIcon, { name: 'pencil' }) })
 }
 const hasPreview = computed(() => props.appearance === 'palette' && !narrow.value)
 
@@ -1359,12 +1355,7 @@ if (isDev) {
           @animationend="onTokenAnimationEnd"
           @animationcancel="onTokenAnimationEnd"
         >
-          <slot name="value" :option="selected" :custom="customText">
-            <TokenLead />
-            <span v-if="selected && selected.code" class="g-combobox__code">{{ selected.code }}</span>
-            <span class="g-combobox__token-label">{{ displayText }}</span>
-            <span v-if="tokenMeta" class="g-combobox__token-meta">{{ tokenMeta }}</span>
-          </slot>
+          <slot name="value" :option="selected" :custom="customText"><TokenCard /></slot>
         </span>
         <span v-if="about" :id="sub('about')" class="g-combobox__about">{{ about }}</span>
         <input v-if="name" type="hidden" :name="name" :value="hiddenValue" :disabled="f.disabled || undefined" :form="attrs.form">
