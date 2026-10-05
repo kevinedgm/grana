@@ -1,0 +1,168 @@
+/* r02 (kiwi): tres conceptos DIVERGENTES del campo de archivos con los TOKENS REALES del tema por defecto.
+   A · Línea de adjuntos      B · Mesa de luz      C · Lo que falta
+   Clases ffa-/ffb-/ffc-/ffx-: de prototipo; el CSS definitivo es de coco. Solo var(--g-*), 24px y 44px. */
+.ff-sr,.ffx-input{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.ff-ico{inline-size:1.25em;block-size:1.25em;flex:none;vertical-align:middle}
+.ffx-req{color:var(--g-color-danger-text)}
+.ffx-opt{color:var(--g-color-text-muted);font-weight:400}
+.ffx-msg{display:flex;gap:var(--g-space-1);align-items:center;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-danger-text)}
+.ffx-msg:empty{display:none}
+.ffx-notice{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:var(--g-space-2);padding:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-sm);background:var(--g-color-warning-soft);color:var(--g-color-on-warning-soft);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.ffx-notice__icon{padding-block-start:2px}
+.ffx-notice__list{margin:0;padding:0;list-style:none;overflow-wrap:anywhere}
+@keyframes ffx-land{from{opacity:0;scale:0.86}}
+@media (prefers-reduced-motion:reduce){.is-landing{animation:none !important}}
+
+/* =====================================================================
+   A · LÍNEA DE ADJUNTOS. El campo mide lo que un GInput y comparte fila. Los archivos son fichas (GSummary inline) dentro de
+   la caja; la última pieza es «Adjuntar», que es el <input type="file">. Sin zona de soltar: al arrastrar archivos sobre la
+   página, cada campo que los admite enciende su destino (capa más grande que la caja; solo pintura, Δ0).
+   ===================================================================== */
+.ffa{--_h:calc(var(--g-space-1) * 9);position:relative;display:flex;flex-direction:column;min-inline-size:0;font-family:var(--g-font-ui);color:var(--g-color-text)}
+.ffa__label{display:block;margin-block-end:var(--g-space-1);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight);overflow-wrap:anywhere}
+.ffa__box{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-1);box-sizing:border-box;min-block-size:var(--_h);padding:calc(var(--g-space-1) * 0.75);
+  border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);cursor:pointer;
+  transition:border-color var(--g-duration-fast) var(--g-ease-out)}
+.ffa__box:has(.ffx-input:focus-visible){outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.ffa__chips{display:contents;margin:0;padding:0;list-style:none}
+.ffa-chip{--_p:0;position:relative;display:inline-flex;align-items:center;gap:calc(var(--g-space-1) * 0.5);max-inline-size:100%;min-inline-size:0;block-size:calc(var(--_h) - var(--g-space-2));box-sizing:border-box;
+  padding-inline:var(--g-space-1) 0;border-radius:var(--g-radius-xs);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);cursor:default;overflow:hidden;isolation:isolate}
+.ffa-chip{flex:0 1 calc(var(--g-space-1) * 52)}
+.ffa-chip__sum{flex:1 1 auto;min-inline-size:0}
+/* La ficha es la barra: el fondo se llena hacia el final de la lectura mientras sube */
+.ffa-chip::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--g-color-accent-soft);transform-origin:left;transform:scaleX(var(--_p));opacity:0;transition:transform var(--g-duration-fast) linear,opacity var(--g-duration-slow) var(--g-ease-out)}
+[dir=rtl] .ffa-chip::before{transform-origin:right}
+.ffa-chip:is(.is-uploading,.is-queued)::before{opacity:1}
+.ffa-chip.is-error{background:var(--g-color-danger-soft);color:var(--g-color-on-danger-soft)}
+.ffa-chip.is-error .g-summary{--g-color-text-muted:currentColor}
+.ffa-chip.is-done{box-shadow:inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-success-text)}
+.ffa-chip.is-landing{animation:ffx-land var(--g-duration-slow) var(--g-ease-spring)}
+.ffa__add{position:relative;display:inline-flex;align-items:center;gap:var(--g-space-1);flex:1 1 auto;min-inline-size:0;min-block-size:24px;padding-inline:var(--g-space-2);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-accent-text);font-weight:var(--g-text-action-weight);white-space:nowrap}
+.ffa__add-hint{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;color:var(--g-color-text-muted);font-weight:400}
+.ffa__add-hint::before{content:"·";margin-inline-end:var(--g-space-1)}
+.ffa.has-files .ffa__add{flex:0 0 auto}
+.ffa__foot{display:grid;gap:var(--g-space-1);padding-block-start:var(--g-space-1)}
+.ffa__meta{display:flex;flex-wrap:wrap;gap:0 var(--g-space-2);margin:0;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.ffa:not(.has-files) .ffa__status{display:none}
+/* Destino: capa encima de la caja que sobresale space×2 por cada lado (blanco más fácil) — no ocupa sitio */
+.ffa__portal{position:absolute;inset:calc(var(--g-space-2) * -1);z-index:2;display:none;place-items:center;border-radius:var(--g-radius-md);
+  border:calc(var(--g-border-width) * 2) solid var(--g-color-accent);background:color-mix(in oklab,var(--g-color-accent-soft) 88%,transparent);color:var(--g-color-on-accent-soft);
+  font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight);pointer-events:none}
+.ffa.is-awake-ok .ffa__portal,.ffa.is-over .ffa__portal{display:grid;pointer-events:auto;animation:ffa-wake var(--g-duration-slow) var(--g-ease-spring)}
+.ffa.is-awake-no .ffa__portal{display:grid;border-style:dashed;border-color:var(--g-color-border-strong);background:color-mix(in oklab,var(--g-color-surface-sunken) 92%,transparent);color:var(--g-color-text-muted)}
+.ffa.is-over:not(.is-over-invalid) .ffa__portal{background:var(--g-color-accent);color:var(--g-color-on-accent)}
+.ffa.is-over-invalid .ffa__portal{border-color:var(--g-color-danger-text);background:var(--g-color-danger-soft);color:var(--g-color-on-danger-soft)}
+@keyframes ffa-wake{from{opacity:0;scale:0.97}}
+.ffa.is-readonly .ffa__box{cursor:default;background:var(--g-color-surface-sunken);border-style:dashed}
+.ffa.is-disabled .ffa__box{cursor:not-allowed;background:var(--g-color-surface-sunken);border-color:var(--g-color-border-strong)}
+.ffa.is-disabled{color:var(--g-color-text-subtle)}
+.ffa.is-full .ffa__add{color:var(--g-color-text-muted);font-weight:400;cursor:default}
+.ffa.is-invalid .ffa__box{border-color:var(--g-color-danger-text)}
+/* En una GFormRow: etiqueta · caja · pie en las tres pistas (como GInput) */
+.g-form-row > .ffa{display:grid;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr)}
+.g-form-row > .ffa > .ffa__label{grid-row:1;align-self:end}
+.g-form-row > .ffa > .ffa__box{grid-row:2;align-self:start}
+.g-form-row > .ffa > .ffa__foot{grid-row:3}
+@media (prefers-reduced-motion:reduce){.ffa-chip::before{transition:none}.ffa.is-awake-ok .ffa__portal,.ffa.is-over .ffa__portal{animation:none}}
+@media (forced-colors:active){.ffa__portal{border-color:Highlight}.ffa-chip{border:var(--g-border-width) solid CanvasText}}
+
+/* =====================================================================
+   B · MESA DE LUZ. Rejilla de piezas cuadradas; «Añadir» es la última pieza (y el <input>). Subir = revelar: un velo de la
+   superficie se retira de abajo arriba. La pieza nunca cambia de tamaño entre estados.
+   ===================================================================== */
+.ffb{display:grid;gap:var(--g-space-2);min-inline-size:0;font-family:var(--g-font-ui);color:var(--g-color-text)}
+.ffb__label{font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight)}
+.ffb__meta{display:flex;flex-wrap:wrap;gap:0 var(--g-space-2);margin:0;margin-block-start:calc(var(--g-space-1) * -1);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.ffb__table{--_tile:calc(var(--g-space-1) * 30);display:grid;grid-template-columns:repeat(auto-fill,minmax(min(var(--_tile),100%),1fr));gap:var(--g-space-3);padding:var(--g-space-3);border-radius:var(--g-radius-lg);background:var(--g-color-surface-sunken);
+  transition:background-color var(--g-duration-fast) var(--g-ease-out)}
+.ffb__grid{display:contents;margin:0;padding:0;list-style:none}
+.ffb-tile{--_p:0;position:relative;display:grid;grid-template-rows:auto auto;min-inline-size:0;border-radius:var(--g-radius-md);background:var(--g-color-surface);box-shadow:var(--g-shadow-1);overflow:hidden}
+.ffb-tile.is-landing{animation:ffx-land var(--g-duration-slow) var(--g-ease-spring)}
+.ffb-tile__media{position:relative;aspect-ratio:4/3;background:var(--g-color-surface-sunken);overflow:hidden}
+.ffb-tile__img{display:block;inline-size:100%;block-size:100%;object-fit:cover}
+.ffb-tile__doc{display:grid;place-items:center;align-content:center;gap:var(--g-space-1);block-size:100%;color:var(--g-color-text-muted)}
+.ffb-tile__doc .ff-ico{inline-size:calc(var(--g-space-1) * 8);block-size:calc(var(--g-space-1) * 8)}
+.ffb-tile__ext{font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight);color:var(--g-color-text);letter-spacing:0.04em}
+/* El velo cubre la parte aún no subida: se retira de abajo arriba (transform: sin layout) */
+.ffb-tile__veil{position:absolute;inset:0;aspect-ratio:4/3;block-size:auto;display:grid;place-items:center;pointer-events:none}
+.ffb-tile__veil::before{content:"";position:absolute;inset:0;background:color-mix(in oklab,var(--g-color-surface) 78%,transparent);backdrop-filter:grayscale(1);transform-origin:top;transform:scaleY(calc(1 - var(--_p)));transition:transform var(--g-duration-slow) var(--g-ease-out)}
+.ffb-tile__pct{position:relative;padding:calc(var(--g-space-1) * 0.5) var(--g-space-2);border-radius:var(--g-radius-pill);background:var(--g-color-surface);color:var(--g-color-text);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-action-weight);font-variant-numeric:tabular-nums;box-shadow:var(--g-shadow-1)}
+.ffb-tile__cap{padding:var(--g-space-2)}
+.ffb-tile.is-error{box-shadow:0 0 0 calc(var(--g-border-width) * 2) var(--g-color-danger-text)}
+.ffb-tile.is-error .ffb-tile__media{filter:grayscale(1);opacity:0.7}
+.ffb-tile.is-error .g-summary__subtitle{color:var(--g-color-danger-text)}
+.ffb-tile__acts{position:absolute;inset-block-start:var(--g-space-1);inset-inline-end:var(--g-space-1);display:flex;gap:var(--g-space-1)}
+.ffb-tile__acts .g-btn{background:var(--g-color-surface);box-shadow:var(--g-shadow-1)}
+.ffb-add{position:relative;display:grid;place-items:center;align-content:center;gap:var(--g-space-1);min-block-size:calc(var(--g-space-1) * 30);border-radius:var(--g-radius-md);
+  border:var(--g-border-width) solid var(--g-color-border-control);background:var(--g-color-surface);color:var(--g-color-accent-text);cursor:pointer;
+  font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight);transition:background-color var(--g-duration-fast) var(--g-ease-out),border-color var(--g-duration-fast) var(--g-ease-out)}
+.ffb-tile ~ .ffb-add,.ffb__grid + .ffb-add{min-block-size:0}
+.ffb-add__icon{display:grid;place-items:center;inline-size:calc(var(--g-space-1) * 10);block-size:calc(var(--g-space-1) * 10);border-radius:var(--g-radius-pill);background:var(--g-color-accent-soft);color:var(--g-color-on-accent-soft);transition:scale var(--g-duration-slow) var(--g-ease-spring)}
+.ffb-add__count{font-weight:400;color:var(--g-color-text-muted);font-size:var(--g-text-caption-size);font-variant-numeric:tabular-nums}
+.ffb-add:has(.ffx-input:focus-visible){outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.ffb.is-awake .ffb__table{background:var(--g-color-accent-soft)}
+.ffb.is-awake .ffb-add{border-style:dashed;border-color:var(--g-color-accent)}
+.ffb.is-over:not(.is-over-invalid) .ffb-add{background:var(--g-color-accent);color:var(--g-color-on-accent);border-color:var(--g-color-accent)}
+.ffb.is-over:not(.is-over-invalid) .ffb-add__icon{scale:1.15;background:var(--g-color-on-accent);color:var(--g-color-accent)}
+.ffb.is-over-invalid .ffb-add{background:var(--g-color-danger-soft);color:var(--g-color-on-danger-soft);border-color:var(--g-color-danger-text);cursor:not-allowed}
+.ffb.is-full .ffb-add,.ffb.is-readonly .ffb-add{cursor:default;color:var(--g-color-text-muted);font-weight:400}
+.ffb.is-full .ffb-add__icon,.ffb.is-readonly .ffb-add__icon{background:var(--g-color-surface-sunken);color:var(--g-color-text-muted)}
+.ffb.is-disabled .ffb__table{opacity:0.6}
+.ffb.is-disabled .ffb-add{cursor:not-allowed}
+.ffb.is-invalid .ffb__table{box-shadow:inset 0 0 0 var(--g-border-width) var(--g-color-danger-text)}
+@media (prefers-reduced-motion:reduce){.ffb-tile__veil::before,.ffb-add__icon{transition:none}}
+@media (forced-colors:active){.ffb-tile,.ffb-add{border:var(--g-border-width) solid CanvasText}.ffb.is-over .ffb-add{border-color:Highlight}}
+
+/* =====================================================================
+   C · LO QUE FALTA. Un fieldset con una casilla por documento esperado: marca (vacía, falta, subiendo, lista, error), nombre,
+   y su propio <input type="file">. Arriba, «2 de 3 · Falta: …». Soltar en el grupo reparte en las casillas libres.
+   ===================================================================== */
+.ffc{position:relative;display:grid;gap:var(--g-space-3);min-inline-size:0;margin:0;padding:0;border:0;font-family:var(--g-font-ui);color:var(--g-color-text)}
+.ffc__legend{padding:0;margin-block-end:var(--g-space-1);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight)}
+.ffc__progress{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-1) var(--g-space-3);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.ffc__count{font-weight:var(--g-text-action-weight);font-variant-numeric:tabular-nums}
+.ffc__bar{display:flex;gap:calc(var(--g-space-1) * 0.5)}
+.ffc__seg{inline-size:calc(var(--g-space-1) * 6);block-size:calc(var(--g-space-1) * 1.5);border-radius:var(--g-radius-pill);background:var(--g-color-surface-sunken);outline:var(--g-border-width) solid var(--g-color-border);outline-offset:calc(var(--g-border-width) * -1);transition:background-color var(--g-duration-slow) var(--g-ease-out)}
+.ffc__seg.is-on{background:var(--g-color-success-text);outline-color:transparent}
+.ffc__missing{color:var(--g-color-text-muted)}
+.ffc.is-complete .ffc__missing{color:var(--g-color-success-text);font-weight:var(--g-text-action-weight)}
+.ffc__help{margin:0;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.ffc__slots{display:grid;margin:0;padding:0;list-style:none;border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);background:var(--g-color-surface);overflow:hidden}
+.ffc-slot{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"mark head" "mark body" ". foot";column-gap:var(--g-space-3);row-gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);
+  transition:background-color var(--g-duration-slow) var(--g-ease-out)}
+.ffc-slot + .ffc-slot{border-block-start:var(--g-border-width) solid var(--g-color-border)}
+.ffc-slot__mark{grid-area:mark;display:grid;place-items:center;inline-size:calc(var(--g-space-1) * 6);block-size:calc(var(--g-space-1) * 6);color:var(--g-color-text-subtle)}
+.ffc-slot__mark.is-filled{color:var(--g-color-success-text);animation:ffc-pop var(--g-duration-slow) var(--g-ease-bounce)}
+.ffc-slot__mark.is-missing,.ffc-slot__mark.is-error{color:var(--g-color-danger-text)}
+.ffc-slot__mark.is-uploading{color:var(--g-color-accent-text)}
+.ffc-slot__mark.is-uploading .ff-ico{animation:ffc-spin var(--g-duration-spin) linear infinite}
+@keyframes ffc-pop{from{scale:0.4}}
+@keyframes ffc-spin{to{rotate:1turn}}
+.ffc-slot__head{grid-area:head;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--g-space-2);min-block-size:calc(var(--g-space-1) * 6);align-content:center}
+.ffc-slot__label{font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);font-weight:var(--g-text-action-weight)}
+.ffc-slot__hint{font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.ffc-slot__body{grid-area:body;display:grid;gap:var(--g-space-2);min-inline-size:0}
+.ffc-slot__foot{grid-area:foot;display:grid;gap:var(--g-space-1)}
+.ffc-slot__foot:empty{display:none}
+.ffc-file{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--g-space-2);padding:var(--g-space-2) var(--g-space-2) var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-sm);background:var(--g-color-surface-sunken)}
+.ffc-file.is-landing{animation:ffx-land var(--g-duration-slow) var(--g-ease-spring)}
+.ffc-file.is-error{background:var(--g-color-danger-soft)}
+.ffc-file.is-error .g-summary__subtitle{color:var(--g-color-danger-text)}
+.ffc-file__acts{display:flex;gap:var(--g-space-1)}
+.ffc-file__rail{position:absolute;inset-inline:var(--g-space-3);inset-block-end:calc(var(--g-space-1) * 0.5)}
+.ffc-file__rail .g-progress__row{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ffc-slot__pick{position:relative;justify-self:start;display:inline-flex;align-items:center;gap:var(--g-space-1);min-block-size:calc(var(--g-space-1) * 8);padding-inline:var(--g-space-3);border-radius:var(--g-radius-sm);
+  border:var(--g-border-width) solid var(--g-color-border-control);background:var(--g-color-surface);color:var(--g-color-accent-text);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);font-weight:var(--g-text-action-weight);cursor:pointer}
+.ffc-slot__pick.is-quiet{border-color:transparent;min-block-size:24px;padding-inline:var(--g-space-1)}
+.ffc-slot__pick:has(.ffx-input:focus-visible){outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.ffc.is-awake .ffc-slot:is(.is-empty,.is-missing,.is-many) .ffc-slot__pick{border-style:dashed;border-color:var(--g-color-accent)}
+.ffc-slot.is-over{background:var(--g-color-accent-soft)}
+.ffc-slot.is-over .ffc-slot__pick{background:var(--g-color-accent);color:var(--g-color-on-accent);border-color:var(--g-color-accent)}
+.ffc-slot.is-over-invalid{background:var(--g-color-danger-soft)}
+.ffc-slot.is-assigned{background:var(--g-color-accent-soft)}
+.ffc-slot.is-readonly .ffc-slot__pick{cursor:default;color:var(--g-color-text-muted);font-weight:400;border-style:dashed}
+.ffc__drop{position:absolute;inset:0;display:none;place-items:center;border-radius:var(--g-radius-md);font-weight:var(--g-text-action-weight);pointer-events:none}
+.ffc.is-over:not(:has(.ffc-slot.is-over)) .ffc__slots{box-shadow:0 0 0 calc(var(--g-border-width) * 2) var(--g-color-accent)}
+@media (prefers-reduced-motion:reduce){.ffc-slot__mark.is-filled{animation:none}.ffc-slot__mark.is-uploading .ff-ico{animation:none}.ffc-slot,.ffc__seg{transition:none}}
+@media (forced-colors:active){.ffc__seg.is-on{background:CanvasText}.ffc-slot.is-over{outline:2px solid Highlight}}
+.ffa-chip .g-btn{flex:none;min-inline-size:24px}

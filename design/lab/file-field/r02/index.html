@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campo de archivos · r02 · conceptos A, B y C</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../lab.css">
+<link rel="stylesheet" href="./concepts.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="../engine.js"></script>
+<script src="../parts.js"></script>
+<script src="./concepts.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, computed } = Vue
+  const { SAMPLES, fakeUpload, net } = FF
+  const q = new URLSearchParams(location.search)
+  const C = ['A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'A'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  const log = reactive([]); FF.log = (who, t) => { log.unshift({ who, t, at: new Date().toLocaleTimeString('es-MX') }); log.splice(8) }
+  const TXT = {
+    A: ['A · Línea de adjuntos', 'El campo es un campo: mide lo que un GInput y comparte fila con otros. Los archivos son fichas dentro de la caja; «Adjuntar» es la última pieza. No hay zona de soltar: cuando arrastras archivos sobre la página, cada campo que los admite enciende su destino (más grande que la caja) y los que no, lo dicen.',
+      '<strong>Pruébalo.</strong> Arrastra uno o varios archivos desde el escritorio y pásalos por la página <em>sin soltar</em>: se encienden los destinos que los admiten. Suelta fuera de un campo: no pasa nada (la página no se pierde). Con el teclado: Tab hasta «Adjuntar» y Espacio; o pega una captura con <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>V</kbd>.'],
+    B: ['B · Mesa de luz', 'Los archivos son objetos sobre una mesa: piezas cuadradas con su miniatura (o su tipo, en grande). «Añadir» es una pieza más, en el sitio donde aparecerá lo nuevo. Subir es revelar: un velo se retira de abajo arriba sobre la foto.',
+      '<strong>Pruébalo.</strong> Añade «3 fotos» y mira cómo cada miniatura se revela al subir. Arrastra archivos encima: la mesa entera los recibe y la pieza «Añadir» dice cuántos vas a soltar. Una foto que falla se queda gris con «Reintentar» encima.'],
+    C: ['C · Lo que falta', 'El campo sabe qué espera: una casilla con nombre por documento, cada una con su propio <input type="file">, su marca y su error. Arriba, «2 de 3 · Falta: …». Soltar varios archivos en el grupo los reparte en las casillas libres (el nombre del archivo ayuda a elegir).',
+      '<strong>Pruébalo.</strong> Pulsa «+ INE por los dos lados (soltar en el grupo)»: «INE frente.png» va a «INE · frente» y «INE reverso.png» a «INE · reverso». Envía con una casilla vacía: el resumen enlaza a <em>esa</em> casilla.']
+  }
+  const CMP = { A: FFConcepts.XFieldA, B: FFConcepts.XFieldB }
+  createApp({
+    components: { XFieldA: FFConcepts.XFieldA, XFieldB: FFConcepts.XFieldB, XFieldC: FFConcepts.XFieldC },
+    setup() {
+      const rx = ref([]), photos = ref([]), ids = ref([]), slotsP = ref({}), slotsD = ref({}), slotsR = ref({})
+      const fr = ref(null), fp = ref(null), fd = ref(null), cP = ref(null), cD = ref(null), cR = ref(null)
+      const ro = ref(false), dis = ref(false), folio = ref('')
+      const sent = ref(null)
+      const pend = (arr) => arr.some((x) => x.state === 'uploading' || x.state === 'queued'), fail = (arr) => arr.some((x) => x.state === 'error')
+      const SL_P = [{ key: 'frontal', label: 'Vista frontal', accept: 'image/*' }, { key: 'lateral', label: 'Vista lateral', accept: 'image/*' }, { key: 'detalle', label: 'Detalle', accept: 'image/*' },
+        { key: 'otras', label: 'Otras fotos', accept: 'image/*', multiple: true, max: 3, optional: true }]
+      const SL_D = [{ key: 'ine-frente', label: 'INE · frente', accept: '.pdf,image/*' }, { key: 'ine-reverso', label: 'INE · reverso', accept: '.pdf,image/*' }, { key: 'comprobante', label: 'Comprobante de domicilio', accept: '.pdf,image/*', help: 'No mayor a 3 meses' }]
+      const SL_R = [{ key: 'receta', label: 'Receta escaneada', accept: '.pdf,image/*' }]
+      const errP = computed(() => {
+        const e = {}
+        if (C === 'C') { for (const s of SL_P) { const v = slotsP.value[s.key] || []; if (!v.length && !s.optional) e[`fotos[${s.key}]`] = `Falta la foto: ${s.label.toLowerCase()}`; else if (pend(v)) e[`fotos[${s.key}]`] = 'Espera a que termine de subir'; else if (fail(v)) e[`fotos[${s.key}]`] = 'No se pudo subir: reinténtala o quítala' } return e }
+        const p = photos.value
+        if (!p.length) e.fotos = 'Añade al menos una foto de la lesión'
+        else if (pend(p)) e.fotos = 'Espera a que terminen de subir las fotos'
+        else if (fail(p)) e.fotos = 'Una foto no se pudo subir: reinténtala o quítala'
+        return e
+      })
+      const errD = computed(() => {
+        const e = {}
+        if (C === 'C') { for (const s of SL_D) { const v = slotsD.value[s.key] || []; if (!v.length) e[`docs[${s.key}]`] = `Falta: ${s.label}`; else if (pend(v)) e[`docs[${s.key}]`] = 'Espera a que termine de subir'; else if (fail(v)) e[`docs[${s.key}]`] = 'No se pudo subir: reinténtalo o quítalo' } return e }
+        if (ids.value.length < 3) e.docs = 'Faltan documentos: INE por ambos lados y comprobante'
+        else if (pend(ids.value)) e.docs = 'Espera a que terminen de subir'
+        return e
+      })
+      const onSubmit = ({ data }) => { sent.value = [...data].map(([k, v]) => [k, v instanceof File ? `File «${v.name}»` : v]) }
+      const add = (r, k) => { const x = r && 'value' in r ? r.value : r; x.add(SAMPLES[k](), 'picker') }
+      const addSlot = (r, key, k) => { const x = r && 'value' in r ? r.value : r; x.refs[key].add(SAMPLES[k](), 'picker') }
+      const spread = (r, k) => { const x = r && 'value' in r ? r.value : r; x.distribute(SAMPLES[k]()) }
+      return { C, T: TXT[C], rx, photos, ids, slotsP, slotsD, slotsR, fr, fp, fd, cP, cD, cR, ro, dis, folio, sent, errP, errD, onSubmit, add, addSlot, spread, net, log, fakeUpload, SL_P, SL_D, SL_R,
+        labels: { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' } }
+    },
+    template: `
+    <header class="lab-bar"><span class="lab-brand">Campo de archivos · r02 · conceptos</span>
+      <span class="lab-links"><a href="?c=A" :aria-current="C==='A' ? 'page' : null">A · Línea de adjuntos</a> · <a href="?c=B" :aria-current="C==='B' ? 'page' : null">B · Mesa de luz</a> · <a href="?c=C" :aria-current="C==='C' ? 'page' : null">C · Lo que falta</a> · <a href="../r01/">Base (r01)</a></span></header>
+    <main class="lab" :data-concept="C">
+      <div><h1 class="lab-title">{{ T[0] }}</h1><p class="lab-lead">{{ T[1] }}</p><p class="lab-how" v-html="T[2]"></p></div>
+
+      <section class="lab-case" id="case-row">
+        <h2>1 · En un formulario, junto a otros campos</h2>
+        <p class="lab-how">Un archivo, PDF o imagen de 5 MB, subido por el adaptador de la aplicación.</p>
+        <g-form id="form-row" :labels="labels" @submit="onSubmit">
+          <g-form-layout>
+            <g-form-row v-if="C==='A'">
+              <g-input v-model="folio" label="Folio de receta" name="folio"></g-input>
+              <x-field-a ref="fr" v-model="rx" label="Receta escaneada" name="receta" accept=".pdf,image/*" :max-size="5000000" :uploader="fakeUpload"></x-field-a>
+            </g-form-row>
+            <template v-else>
+              <g-input v-model="folio" label="Folio de receta" name="folio"></g-input>
+              <x-field-b v-if="C==='B'" ref="fr" v-model="rx" label="Receta escaneada" name="receta" accept=".pdf,image/*" :max-size="5000000" :uploader="fakeUpload"></x-field-b>
+              <x-field-c v-else ref="cR" v-model="slotsR" label="Receta" name="receta" :slots="SL_R" :max-size="5000000" :uploader="fakeUpload"></x-field-c>
+            </template>
+          </g-form-layout>
+        </g-form>
+        <div class="lab-row"><button class="lab-btn" type="button" @click="C==='C' ? addSlot(cR,'receta','pdf') : add(fr,'pdf')">+ PDF</button><button class="lab-btn" type="button" @click="C==='C' ? addSlot(cR,'receta','exe') : add(fr,'exe')">+ .exe</button></div>
+      </section>
+
+      <section class="lab-case" id="case-photos">
+        <h2>2 · Fotos de la lesión: varias, con vista previa y subida inmediata</h2>
+        <p class="lab-how">«radiografia-falla» falla al primer intento; «…-lento» tarda. Envía con subidas en curso o fallidas: se bloquea y el resumen enlaza al campo.</p>
+        <g-form id="form-photos" :errors="errP" :labels="labels" @submit="onSubmit">
+          <g-error-summary :labels="{ title: 'Revisa el formulario' }"></g-error-summary>
+          <x-field-a v-if="C==='A'" ref="fp" v-model="photos" label="Fotos de la lesión" name="fotos" accept="image/*" :max-size="8000000" :max="5" multiple required :uploader="fakeUpload" :readonly="ro" :disabled="dis"></x-field-a>
+          <x-field-b v-else-if="C==='B'" ref="fp" v-model="photos" label="Fotos de la lesión" name="fotos" accept="image/*" :max-size="8000000" :max="5" multiple required :uploader="fakeUpload" :readonly="ro" :disabled="dis"></x-field-b>
+          <x-field-c v-else ref="cP" v-model="slotsP" label="Fotos de la lesión" name="fotos" :slots="SL_P" :max-size="8000000" :uploader="fakeUpload" :readonly="ro" :disabled="dis" help="Imágenes de hasta 8 MB"></x-field-c>
+          <div class="lab-row"><g-btn type="submit">Guardar</g-btn>
+            <template v-if="C!=='C'"><button class="lab-btn" type="button" @click="add(fp,'photos')">+ 3 fotos</button><button class="lab-btn" type="button" @click="add(fp,'fail')">+ foto que falla</button><button class="lab-btn" type="button" @click="add(fp,'mixed')">+ mezcla (PDF, foto, txt)</button></template>
+            <template v-else><button class="lab-btn" type="button" @click="spread(cP,'photos')">+ 3 fotos (soltar en el grupo)</button><button class="lab-btn" type="button" @click="addSlot(cP,'otras','fail')">+ foto que falla (en «Otras»)</button></template>
+            <label class="lab-check"><input type="checkbox" v-model="net.offline"> Sin conexión</label><label class="lab-check"><input type="checkbox" v-model="ro" id="t-ro"> Solo lectura</label><label class="lab-check"><input type="checkbox" v-model="dis" id="t-dis"> Deshabilitado</label></div>
+        </g-form>
+      </section>
+
+      <section class="lab-case" id="case-docs">
+        <h2>3 · Documentos de identidad: varios documentos <em>distintos</em></h2>
+        <p class="lab-how">INE por los dos lados y comprobante de domicilio. Es el caso que una «bolsa de archivos» resuelve peor.</p>
+        <g-form id="form-docs" :errors="errD" :labels="labels" @submit="onSubmit">
+          <g-error-summary :labels="{ title: 'Revisa el formulario' }"></g-error-summary>
+          <x-field-a v-if="C==='A'" ref="fd" v-model="ids" label="Documentos de identidad" name="docs" accept=".pdf,image/*" :max-size="10000000" :max="3" multiple required :uploader="fakeUpload" help="INE por ambos lados y comprobante de domicilio · PDF o imagen · hasta 10 MB"></x-field-a>
+          <x-field-b v-else-if="C==='B'" ref="fd" v-model="ids" label="Documentos de identidad" name="docs" accept=".pdf,image/*" :max-size="10000000" :max="3" multiple required :uploader="fakeUpload" help="INE por ambos lados y comprobante de domicilio · PDF o imagen · hasta 10 MB"></x-field-b>
+          <x-field-c v-else ref="cD" v-model="slotsD" label="Documentos de identidad" name="docs" :slots="SL_D" :max-size="10000000" :uploader="fakeUpload" help="PDF o imagen · hasta 10 MB cada uno"></x-field-c>
+          <div class="lab-row"><g-btn type="submit">Enviar</g-btn>
+            <button class="lab-btn" type="button" @click="C==='C' ? spread(cD,'ine') : add(fd,'ine')">+ INE por los dos lados{{ C==='C' ? ' (soltar en el grupo)' : '' }}</button>
+            <button class="lab-btn" type="button" @click="C==='C' ? spread(cD,'pdf') : add(fd,'pdf')">+ comprobante (PDF)</button></div>
+        </g-form>
+      </section>
+      <pre class="lab-out" v-if="sent" id="sent-out">submit · FormData: {{ sent }}</pre>
+      <aside class="lab-log" aria-label="Registro de anuncios (solo del laboratorio)"><h2>Anuncios (región viva de cada campo)</h2><ol><li v-for="(l,i) in log" :key="i"><span>{{ l.at }} · {{ l.who }}</span> {{ l.t }}</li></ol></aside>
+    </main>`
+  }).use(Grana).use(FFParts.appIcons()).mount('#app')
+})()
+</script>
+</body>
+</html>

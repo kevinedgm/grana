@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campo de archivos · r01 · base funcional</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./field.css">
+<link rel="stylesheet" href="../lab.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="../engine.js"></script>
+<script src="../parts.js"></script>
+<script src="./field.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, computed } = Vue
+  const { SAMPLES, fakeUpload, net, pngFile } = FF
+  if (new URLSearchParams(location.search).get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  const log = reactive([]); FF.log = (who, t) => { log.unshift({ who, t, at: new Date().toLocaleTimeString('es-MX') }); log.splice(8) }
+  const thumb = URL.createObjectURL(pngFile('x.png', 160, 120, 95))
+
+  createApp({
+    components: { XFileField },
+    setup() {
+      const one = ref([]), photos = ref([]), docs = ref([
+        { key: 'd1', name: 'Consentimiento informado firmado.pdf', size: 812_000, type: 'application/pdf', value: 'srv-d1' },
+        { key: 'd2', name: 'Foto de ingreso.png', size: 1_430_000, type: 'image/png', value: 'srv-d2', url: thumb }
+      ])
+      const f1 = ref(null), f2 = ref(null), f3 = ref(null), form1 = ref(null)
+      const sent1 = ref(null), sent2 = ref(null)
+      const ro = ref(false), dis = ref(false)
+      // Errores de la aplicación (en el real, el bloqueo por subidas pendientes o fallidas lo aporta el propio campo: hallazgo L7)
+      const errors = computed(() => {
+        const e = {}, p = photos.value
+        if (!p.length) e.fotos = 'Añade al menos una foto de la lesión'
+        else if (p.some((x) => x.state === 'uploading' || x.state === 'queued')) e.fotos = 'Espera a que terminen de subir las fotos'
+        else if (p.some((x) => x.state === 'error')) e.fotos = 'Una foto no se pudo subir: reinténtala o quítala'
+        return e
+      })
+      const nativeSubmit = (ev) => { ev.preventDefault(); sent1.value = [...new FormData(ev.target)].map(([k, v]) => [k, v instanceof File ? `File «${v.name}» (${v.size} B)` : v]) }
+      const onSubmit = ({ data }) => { sent2.value = [...data].map(([k, v]) => [k, v instanceof File ? `File «${v.name}»` : v]) }
+      const inject = (r, k) => (r && 'value' in r ? r.value : r).add(SAMPLES[k](), 'picker')
+      const show = (m) => JSON.stringify(m.map(({ file, ...x }) => ({ ...x, file: file ? 'File' : null })), null, 1)
+      return { one, photos, docs, f1, f2, f3, form1, sent1, sent2, ro, dis, errors, nativeSubmit, onSubmit, inject, show, net, log, fakeUpload,
+        labels: { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' } }
+    },
+    template: `
+    <header class="lab-bar"><span class="lab-brand">Campo de archivos · r01 · base funcional</span>
+      <span class="lab-links"><a href="../r02/">Conceptos (r02)</a> · <a href="?dir=rtl">RTL</a></span></header>
+    <main class="lab">
+      <p class="lab-lead">La <strong>base funcional</strong>: un <code>&lt;input type="file"&gt;</code> real que el envío y <code>FormData</code> entienden, teclado, pegar, arrastrar, validación, subida por adaptador de la aplicación y anuncios. La forma (zona rectangular) es la convencional <em>a propósito</em>: se cuestiona en r02. Componentes reales de <code>dist/</code>: <code>GSummary</code>, <code>GProgress</code>, <code>GBtn</code>, <code>GIcon</code>, <code>GForm</code>, <code>GErrorSummary</code>.</p>
+      <section class="lab-case" id="case-native">
+        <h2>1 · Un archivo, envío nativo (sin adaptador)</h2>
+        <p class="lab-how">Sin subida previa: el archivo viaja con el formulario. Elegir otro <strong>reemplaza</strong>. Prueba también <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>V</kbd> con una captura en el portapapeles y el foco en el campo.</p>
+        <form class="lab-form" @submit="nativeSubmit" id="native-form">
+          <x-file-field ref="f1" v-model="one" label="Comprobante de domicilio" name="comprobante" accept=".pdf,image/*" :max-size="5000000" required></x-file-field>
+          <div class="lab-row"><button class="lab-btn" type="submit">Enviar (nativo)</button>
+            <button class="lab-btn" type="button" @click="inject(f1,'pdf')">+ PDF de prueba</button><button class="lab-btn" type="button" @click="inject(f1,'big')">+ PDF de 12,8 MB</button><button class="lab-btn" type="button" @click="inject(f1,'exe')">+ .exe</button></div>
+          <pre class="lab-out" v-if="sent1" id="native-out">FormData: {{ sent1 }}</pre>
+        </form>
+      </section>
+      <section class="lab-case" id="case-upload">
+        <h2>2 · Varios, subida inmediata con el adaptador de la aplicación, dentro de <code>GForm</code></h2>
+        <p class="lab-how">Hasta 5 imágenes de 8 MB. «radiografia-falla» falla al primer intento; «…-lento» tarda. Envía con subidas en curso o fallidas: el envío se bloquea y el resumen enlaza al campo.</p>
+        <g-form id="form-upload" :errors="errors" :labels="labels" @submit="onSubmit">
+          <g-error-summary :labels="{ title: 'Revisa el formulario' }"></g-error-summary>
+          <x-file-field ref="f2" v-model="photos" label="Fotos de la lesión" name="fotos" accept="image/*" :max-size="8000000" :max="5" multiple required :uploader="fakeUpload"></x-file-field>
+          <div class="lab-row"><g-btn type="submit">Guardar</g-btn>
+            <button class="lab-btn" type="button" @click="inject(f2,'photos')">+ 3 fotos</button><button class="lab-btn" type="button" @click="inject(f2,'fail')">+ foto que falla</button><button class="lab-btn" type="button" @click="inject(f2,'mixed')">+ mezcla (PDF, foto, txt)</button>
+            <label class="lab-check"><input type="checkbox" v-model="net.offline"> Sin conexión</label></div>
+        </g-form>
+        <pre class="lab-out" v-if="sent2" id="upload-out">submit · FormData: {{ sent2 }}</pre>
+        <details class="lab-model"><summary>Modelo (<code>v-model</code>)</summary><pre>{{ show(photos) }}</pre></details>
+      </section>
+      <section class="lab-case" id="case-existing">
+        <h2>3 · Con archivos ya guardados (edición), solo lectura y deshabilitado</h2>
+        <p class="lab-how">Los guardados llegan en el modelo con su <code>value</code> del servidor (y la miniatura de la aplicación). Solo lectura: enfocable, se envía, no abre el selector, sin quitar. Deshabilitado: fuera del Tab y del envío.</p>
+        <form class="lab-form" @submit.prevent id="docs-form">
+          <x-file-field ref="f3" v-model="docs" label="Documentos del expediente" name="docs" accept=".pdf,.docx,image/*" :max-size="10000000" :max="3" multiple :uploader="fakeUpload" :readonly="ro" :disabled="dis" help="PDF, Word o imagen · hasta 10 MB cada uno · máximo 3"></x-file-field>
+          <div class="lab-row"><label class="lab-check"><input type="checkbox" v-model="ro" id="t-ro"> Solo lectura</label><label class="lab-check"><input type="checkbox" v-model="dis" id="t-dis"> Deshabilitado</label>
+            <button class="lab-btn" type="button" @click="inject(f3,'server')">+ PDF que el servidor rechaza</button></div>
+        </form>
+      </section>
+      <aside class="lab-log" aria-label="Registro de anuncios (solo del laboratorio)"><h2>Anuncios (región viva de cada campo)</h2><ol><li v-for="(l,i) in log" :key="i"><span>{{ l.at }} · {{ l.who }}</span> {{ l.t }}</li></ol></aside>
+    </main>`
+  }).use(Grana).use(FFParts.appIcons()).mount('#app')
+})()
+</script>
+</body>
+</html>
