@@ -92,16 +92,18 @@
   .g-combobox__ghost-rest { opacity: 0; }
 }
 
-/* ---------- C · La ficha en reposo ---------- */
-/* Sobre la celda, a la altura de siempre (Δ0: es absoluta, no cambia la caja). Se encoge a su contenido y se desplaza
-   space-1 hacia el inicio con el mismo relleno: el texto queda donde estaría el del <input> y el fondo de «seleccionada»
-   tiene aire a los lados. Alto = el de su línea (o el avatar xs), centrada en la celda */
+/* ---------- C · La ficha en reposo (GSummary inline xs, #356) ---------- */
+/* Sobre la celda, a la altura de siempre (Δ0: es absoluta, no cambia la caja). ANCHO DEFINIDO = el de la celda más
+   space-1 a cada lado (inset-inline), con el mismo relleno: el texto queda donde estaría el del <input> y el fondo de
+   «seleccionada» tiene aire a los lados. La ficha toma su ancho del contenedor, nunca del contenido (summary.md: inline-size
+   100% + contain: inline-size), así que la caja ya no se encoge a lo que se lee: con el foco, la banda de «seleccionada»
+   cubre la celda entera (el valor entero está seleccionado; escribir lo reemplaza). Alto = el de su línea (o el avatar
+   xs), centrada en la celda */
 .g-combobox__token {
   position: absolute;
   inset-block: 0;
-  inset-inline-start: calc(var(--g-space-1) * -1);
+  inset-inline: calc(var(--g-space-1) * -1);
   box-sizing: border-box;
-  max-inline-size: calc(100% + var(--g-space-1) * 2);
   block-size: fit-content;
   margin-block: auto;
   padding-inline: var(--g-space-1);
@@ -116,6 +118,11 @@
   pointer-events: none;
   user-select: none;
   transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* La ficha llena la ficha del campo (la del slot value, si la hay, decide su propio ancho) */
+.g-combobox__token > .g-summary {
+  flex: 1 1 0;
+  min-inline-size: 0;
 }
 /* Con ficha, el texto real del <input> (la etiqueta) y su cursor no se ven; el lector sigue leyendo el <input> */
 .g-combobox.is-token .g-combobox__field {
@@ -134,45 +141,29 @@
 .g-combobox.is-token:has(.g-combobox__field:focus-visible) .g-combobox__token {
   background: var(--g-color-selection);
 }
-.g-combobox__token > .g-combobox__lead {
-  display: inline-flex;
-  flex: none;
-}
-.g-combobox__token > .g-combobox__code {
-  padding-inline: var(--g-space-1);
-  font-size: var(--g-text-caption-size);
-  line-height: var(--g-text-caption-line);
-}
-/* La etiqueta conserva su sitio; el dato secundario se recorta primero (factor de encogimiento enorme frente a 1) */
-.g-combobox__token-label {
-  flex: 0 1 auto;
-  /* La dirección del texto sigue al contenido (un nombre latino en una página RTL se recorta por su final, no por su
-     principio); la caja sigue en su sitio lógico */
-  unicode-bidi: plaintext;
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: var(--g-text-action-weight);
-}
-.g-combobox__token-meta {
-  flex: 0 100000 auto;
-  unicode-bidi: plaintext;
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Sobre la selección, el rótulo y el valor compartido de la ficha (text-subtle) bajan de 4.5:1 (4,48 medido con el tema
+   por defecto): suben a text-muted (summary.md «Adopción en GCombobox»; GSummary.css no conoce al anfitrión) */
+.g-combobox.is-token:has(.g-combobox__field:focus-visible) .g-combobox__token .g-summary__fact-label,
+.g-combobox.is-token:has(.g-combobox__field:focus-visible) .g-combobox__token .g-summary__fact.is-same .g-summary__fact-value {
   color: var(--g-color-text-muted);
-  font-variant-numeric: tabular-nums;
 }
-/* Texto libre: lápiz, cursiva y la marca «Texto libre» como etiqueta pequeña con borde. La marca no se recorta (es lo
-   que distingue catálogo de tecleado): cede la etiqueta */
-.g-combobox.is-custom .g-combobox__token-label {
+/* «+N» es una píldora accent-soft y la selección suele ser accent-soft (el tema por defecto la deriva de ahí): sobre la
+   banda perdería la forma. Con el foco se perfila con su propio color de texto (≥ 4.5:1 sobre ella, medido) */
+.g-combobox.is-token:has(.g-combobox__field:focus-visible) .g-combobox__token .g-summary__more {
+  border-color: var(--g-color-on-accent-soft);
+}
+/* Texto libre: lápiz (en el hueco de la ficha), cursiva en peso de texto y la marca «Texto libre» (la línea secundaria
+   de la ficha) como etiqueta pequeña con borde. La marca no se recorta (es lo que distingue catálogo de tecleado): cede
+   el título, con su elipsis y su suelo */
+.g-combobox.is-custom .g-combobox__token .g-summary__title {
   font-style: italic;
   font-weight: inherit;
+  /* La cursiva vuela sobre el final de su caja y el título recorta (overflow: hidden): sin este relleno, la última letra
+     sale mordida («miel»). El margen negativo devuelve el hueco: la marca queda donde estaba */
+  padding-inline-end: var(--g-space-1);
+  margin-inline-end: calc(var(--g-space-1) * -1);
 }
-.g-combobox.is-custom .g-combobox__token > .g-combobox__lead {
-  color: var(--g-color-text-muted);
-}
-.g-combobox.is-custom .g-combobox__token-meta {
+.g-combobox.is-custom .g-combobox__token .g-summary__subtitle {
   flex: none;
   padding-inline: var(--g-space-1);
   border: var(--g-border-width) solid var(--g-color-border-strong);
@@ -182,7 +173,7 @@
   font-weight: var(--g-text-action-weight);
 }
 .g-combobox.is-disabled .g-combobox__token,
-.g-combobox.is-disabled .g-combobox__token-meta {
+.g-combobox.is-disabled .g-combobox__token :is(.g-summary__code, .g-summary__subtitle, .g-summary__lead) {
   color: var(--g-color-text-subtle);
 }
 
@@ -381,8 +372,8 @@
 }
 
 /* =====================================================================================================================
-   PANEL (común a la lista de A y a la superficie). Las filas son FICHAS (C): una columna, nombre con la coincidencia
-   marcada y los datos que distinguen con su rótulo
+   PANEL (común a la lista de A y a la superficie). Las filas son FICHAS (C): una GSummary row lines 2 por opción (#356),
+   que pinta título, coincidencia, datos con rótulo, «+N» y contraste entre homónimas; aquí solo la fila y sus estados
    ===================================================================================================================== */
 .g-combobox__panel {
   box-sizing: border-box;
@@ -471,105 +462,26 @@
   background: var(--g-color-surface);
   box-shadow: var(--g-shadow-1);
 }
-.g-combobox__option[aria-selected="true"] .g-combobox__label {
-  font-weight: var(--g-text-action-weight);
-}
 .g-combobox__option[aria-disabled="true"] {
   color: var(--g-color-text-subtle);
   cursor: default;
 }
-.g-combobox__option[aria-disabled="true"] .g-combobox__description,
-.g-combobox__option[aria-disabled="true"] .g-combobox__fact-label,
-.g-combobox__option[aria-disabled="true"] .g-combobox__code {
+.g-combobox__option[aria-disabled="true"] :is(.g-summary__code, .g-summary__subtitle, .g-summary__lead) {
   color: var(--g-color-text-subtle);
 }
 
-/* Partes de la fila */
-.g-combobox__lead {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
+/* La ficha de la opción (GSummary row lines 2, #356): toma el ancho que deja la marca de elegida. Dos líneas en cualquier
+   ancho (título + una línea de datos que se bebe por el final, «+N»): la regla provisional de dos líneas se retira */
+.g-combobox__option > .g-summary {
+  flex: 1 1 0;
+  min-inline-size: 0;
 }
-/* En la fila el hueco inicial mide lo que un avatar md (space × 8), así las etiquetas se alinean con o sin avatar */
-.g-combobox__option > .g-combobox__lead {
-  min-inline-size: calc(var(--g-space-1) * 8);
-  min-block-size: var(--g-text-body-line);
-  color: var(--g-color-text-muted);
-}
-.g-combobox__code {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  padding-inline: var(--g-space-2);
-  border: var(--g-border-width) solid var(--g-color-border-strong);
-  border-radius: var(--g-radius-sm);
-  background: var(--g-color-surface);
-  color: var(--g-color-text);
-  font-size: var(--g-text-body-sm-size);
-  line-height: var(--g-text-body-sm-line);
-  font-weight: var(--g-text-action-weight);
-  font-variant-numeric: tabular-nums lining-nums;
-  white-space: nowrap;
-}
-/* En la fila: columna de códigos (space × 14) alineada con la primera línea de la etiqueta */
-.g-combobox__option > .g-combobox__code {
+/* Columna de códigos (space × 14): con código, los títulos de un catálogo (CIE-10) empiezan a la misma altura en todas
+   las filas. Es un mínimo: un código más largo empuja su título, no se recorta antes de tiempo */
+.g-combobox__option > .g-summary .g-summary__code {
   min-inline-size: calc(var(--g-space-1) * 14);
-  margin-block-start: calc((var(--g-text-body-line) - var(--g-text-body-sm-line)) / 2 - var(--g-border-width));
 }
-.g-combobox__main {
-  flex: 1 1 auto;
-  min-inline-size: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-/* La ficha de opción ocupa como MÁXIMO DOS LÍNEAS: el nombre y una línea de datos. Nada desborda: cada línea se recorta
-   por el final con elipsis. El detalle completo vive en la vista previa de la paleta (el lector recibe todo el texto:
-   lo recortado sigue en el DOM). Arreglo mínimo a la espera del componente de fichas que prepara kiwi */
-.g-combobox__option:not(.g-combobox__action) .g-combobox__label {
-  min-inline-size: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.g-combobox__description {
-  min-inline-size: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: var(--g-text-body-sm-size);
-  line-height: var(--g-text-body-sm-line);
-  color: var(--g-color-text-muted);
-}
-/* Datos en UNA fila con separador (línea vertical, no un carácter). Los que no caben pasan a una segunda línea que no se
-   ve (alto de una línea, overflow: hidden): con más ancho caben más datos y ninguno queda partido. El primero (el
-   identificador, «Exp.») va siempre el primero de la línea visible; si ni él cabe, se recorta él con elipsis */
-.g-combobox__facts {
-  min-inline-size: 0;
-  display: flex;
-  flex-wrap: wrap;
-  block-size: var(--g-text-body-sm-line);
-  overflow: hidden;
-  font-size: var(--g-text-body-sm-size);
-  line-height: var(--g-text-body-sm-line);
-  font-variant-numeric: tabular-nums;
-}
-.g-combobox__fact {
-  flex: 0 1 auto;
-  min-inline-size: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.g-combobox__fact + .g-combobox__fact {
-  margin-inline-start: var(--g-space-2);
-  padding-inline-start: var(--g-space-2);
-  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
-}
-.g-combobox__fact-label {
-  color: var(--g-color-text-muted);
-}
+/* La marca de elegida se alinea con la primera línea de la ficha (la del título) */
 .g-combobox__check {
   flex: none;
   display: inline-grid;
@@ -577,23 +489,33 @@
   min-block-size: var(--g-text-body-line);
   color: var(--g-color-text);
 }
-/* Coincidencia: peso y subrayado, nunca color (WCAG 1.4.1) */
-.g-combobox__mark {
-  background: transparent;
-  color: inherit;
-  font-weight: var(--g-text-action-weight);
-  text-decoration: underline;
-  text-decoration-thickness: var(--g-focus-width);
-  text-underline-offset: var(--g-space-1);
+.g-combobox:is(.g-input--size-xs, .g-input--size-sm) .g-combobox__check {
+  min-block-size: var(--g-text-body-sm-line);
 }
 
-/* ---------- Filas de acción (al final, fuera de los grupos) ---------- */
+/* ---------- Filas de acción (al final, fuera de los grupos): conservan lead, main y label propios ---------- */
 .g-combobox__action {
   align-items: center;
   font-weight: var(--g-text-action-weight);
 }
+/* El hueco inicial mide lo que el de la ficha (avatar md, space × 8; sm con el campo xs o sm, space × 6): el texto de
+   la acción empieza donde los títulos de las opciones */
 .g-combobox__action > .g-combobox__lead {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: calc(var(--g-space-1) * 8);
+  min-block-size: var(--g-text-body-line);
   color: var(--g-color-text);
+}
+.g-combobox:is(.g-input--size-xs, .g-input--size-sm) .g-combobox__action > .g-combobox__lead {
+  min-inline-size: calc(var(--g-space-1) * 6);
+}
+.g-combobox__action > .g-combobox__main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 .g-combobox__action--custom .g-combobox__label {
   font-style: italic;
@@ -703,17 +625,15 @@
   color: var(--g-color-surface);
   box-shadow: none;
 }
-.g-combobox-surface .g-combobox__option.is-active .g-combobox__description,
-.g-combobox-surface .g-combobox__option.is-active .g-combobox__fact-label,
+/* Los tonos apagados de la ficha (código, línea secundaria, rótulos, valor compartido) y la marca de elegida pasan al
+   texto invertido; los filetes, a currentColor. Lo compartido deja de apagarse aquí: lo único conserva su peso (la señal
+   de #354 no es solo tono). El hueco de icono, «+N» y el avatar llevan su propio fondo: no se tocan */
+.g-combobox-surface .g-combobox__option.is-active :is(.g-summary__code, .g-summary__subtitle, .g-summary__fact-label, .g-summary__fact-value),
 .g-combobox-surface .g-combobox__option.is-active .g-combobox__check,
 .g-combobox-surface .g-combobox__option.is-active > .g-combobox__lead {
   color: inherit;
 }
-/* El código conserva su caja clara dentro de la fila invertida */
-.g-combobox-surface .g-combobox__option.is-active .g-combobox__code {
-  border-color: var(--g-color-surface);
-}
-.g-combobox-surface .g-combobox__option.is-active .g-combobox__fact + .g-combobox__fact {
+.g-combobox-surface .g-combobox__option.is-active .g-summary__fact::before {
   border-inline-start-color: currentColor;
 }
 
@@ -729,60 +649,29 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
 }
-.g-combobox__preview-head {
-  display: flex;
-  align-items: center;
-  gap: var(--g-space-3);
-  margin-block-end: var(--g-space-4);
-}
-.g-combobox__preview-head > .g-combobox__lead {
-  color: var(--g-color-text-muted);
-}
-.g-combobox__preview-head > .g-combobox__code {
-  padding: var(--g-space-1) var(--g-space-3);
-  font-size: var(--g-text-title-sm-size);
-  line-height: var(--g-text-title-sm-line);
-}
-.g-combobox__preview-title {
-  min-inline-size: 0;
-  margin: 0;
-  font-family: var(--g-font-title);
-  font-size: var(--g-text-title-sm-size);
-  line-height: var(--g-text-title-sm-line);
-  font-weight: var(--g-text-title-sm-weight);
-  letter-spacing: var(--g-text-title-sm-tracking);
-  overflow-wrap: anywhere;
-}
-.g-combobox__preview .g-combobox__description {
-  margin: 0 0 var(--g-space-4);
-}
-.g-combobox__preview-facts {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--g-space-1) var(--g-space-3);
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-.g-combobox__preview-facts dt {
-  color: var(--g-color-text-muted);
-}
-.g-combobox__preview-facts dd {
-  margin: 0;
-  font-weight: var(--g-text-action-weight);
-  overflow-wrap: anywhere;
-}
 .g-combobox__preview-empty {
   margin: 0;
   color: var(--g-color-text-muted);
 }
-/* La ficha cambia con ↑ ↓: si bruno vuelve a crear el contenido por opción (key), entra con un fundido corto */
-.g-combobox__preview-head,
-.g-combobox__preview-facts {
+/* La vista previa es la ficha completa (GSummary stack lg, key por opción, #356): con ↑ ↓ se vuelve a crear y ENTRA
+   DESDE LA LISTA: un fundido corto con un desplazamiento de space × 2 desde el lado de la lista (inicio; en RTL, el
+   otro), como si la fila activa se proyectara en el panel. Con movimiento reducido, solo el fundido */
+.g-combobox__preview > .g-summary {
   transition: opacity var(--g-duration-fast) var(--g-ease-standard);
 }
 @starting-style {
-  .g-combobox__preview-head,
-  .g-combobox__preview-facts { opacity: 0; }
+  .g-combobox__preview > .g-summary { opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__preview > .g-summary {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      translate var(--g-duration-fast) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-combobox__preview > .g-summary { translate: calc(var(--g-space-1) * -2) 0; }
+    .g-combobox__preview > .g-summary:dir(rtl) { translate: calc(var(--g-space-1) * 2) 0; }
+  }
 }
 
 /* ---------- Hoja móvil (visor ≤ 520px): la misma superficie, anclada ARRIBA (el teclado virtual no tapa la lista) ---- */
@@ -881,9 +770,13 @@
   .g-combobox-surface .g-combobox__option.is-active * {
     color: HighlightText;
   }
-  .g-combobox__option.is-active .g-combobox__code {
-    border-color: HighlightText;
-    background: Highlight;
+  /* Los tonos de la ficha con más especificidad que «*» (el valor compartido, is-same: 0,4,0) también pasan a
+     HighlightText; si no, el sistema los pinta CanvasText sobre Highlight (medido: sin contraste) */
+  .g-combobox .g-combobox__option.is-active .g-summary :is(.g-summary__fact-label, .g-summary__fact-value, .g-summary__code, .g-summary__subtitle) {
+    color: HighlightText;
+  }
+  .g-combobox .g-combobox__option[aria-disabled="true"] .g-summary :is(.g-summary__fact-label, .g-summary__fact-value, .g-summary__code, .g-summary__subtitle) {
+    color: GrayText;
   }
   .g-combobox__option[aria-disabled="true"],
   .g-combobox__option[aria-disabled="true"] * {

@@ -222,12 +222,14 @@ for (const engine of ENGINES) {
       const vars = ['--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h'].map((k) => [k, s.getPropertyValue(k)])
       const ctl = document.getElementById('cb-pac').closest('.g-input__control').getBoundingClientRect()
       const o = pop.querySelector('.g-combobox__option')
-      return { vars, fh: parseFloat(s.getPropertyValue('--_field-h')), ctlH: ctl.height, avatarMd: Boolean(o.querySelector('.g-avatar--size-md')), parts: ['g-combobox__lead', 'g-combobox__main', 'g-combobox__label', 'g-combobox__facts', 'g-combobox__fact', 'g-combobox__fact-label', 'g-combobox__mark'].filter((c) => !o.querySelector('.' + c)),
+      return { vars, fh: parseFloat(s.getPropertyValue('--_field-h')), ctlH: ctl.height, avatarMd: Boolean(o.querySelector('.g-avatar--size-md')), parts: ['g-summary--layout-row', 'g-summary__lead', 'g-summary__title', 'g-summary__facts', 'g-summary__fact', 'g-summary__fact-label', 'g-summary__mark'].filter((c) => !o.querySelector('.' + c)),
+        old: ['g-combobox__lead', 'g-combobox__main', 'g-combobox__label', 'g-combobox__facts', 'g-combobox__fact', 'g-combobox__mark', 'g-combobox__code', 'g-combobox__description'].filter((c) => o.querySelector('.' + c)),
         popover: pop.matches(':popover-open'), ghost: Boolean(document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__ghost-rest')) }
     })
     ok(m1.vars.every(([, v]) => v !== ''), tag('marcado: variables en línea del popup ' + JSON.stringify(m1.vars)))
     ok(Math.abs(m1.fh - m1.ctlH) < 0.5, tag(`marcado: --_field-h ${m1.fh} ≠ alto de la caja ${m1.ctlH}`))
     ok(m1.avatarMd && !m1.parts.length && m1.popover && m1.ghost, tag('marcado: fila sin avatar md o sin partes ' + m1.parts + ' o sin fantasma'))
+    ok(!m1.old.length, tag('marcado: la opción aún emite partes retiradas por #356 ' + m1.old))
     await close(page)
     await ctx.close()
   }
@@ -239,15 +241,17 @@ for (const engine of ENGINES) {
       const out = []
       await openWith(page, 'cb-pac', 'mar')
       out.push(...await page.evaluate(`(() => { const { pair, parse, ratio, bgOf } = ${L}; const pop = document.getElementById('cb-pac-popup'); const rows = [...pop.querySelectorAll('.g-combobox__option')]; const act = pop.querySelector('.g-combobox__option.is-active'); const idle = rows.find((x) => !x.classList.contains('is-active'))
-        return [pair('opción: etiqueta', idle.querySelector('.g-combobox__label'), 4.5), pair('opción: coincidencia', idle.querySelector('.g-combobox__mark'), 4.5), pair('opción: rótulo de dato', idle.querySelector('.g-combobox__fact-label'), 4.5), pair('opción: dato', idle.querySelector('.g-combobox__fact'), 4.5),
+        return [pair('opción: etiqueta', idle.querySelector('.g-summary__title'), 4.5), pair('opción: coincidencia', idle.querySelector('.g-summary__mark'), 4.5), pair('opción: rótulo de dato', idle.querySelector('.g-summary__fact-label'), 4.5), pair('opción: dato', idle.querySelector('.g-summary__fact-value'), 4.5),
+          pair('opción: «+N»', idle.querySelector('.g-summary__more:not([hidden])'), 4.5),
           pair('avatar md (iniciales)', idle.querySelector('.g-avatar__initials'), 4.5),
-          act ? pair('activa: etiqueta', act.querySelector('.g-combobox__label'), 4.5) : { k: 'activa (no hay)', r: 0, min: 4.5 },
+          act ? pair('activa: etiqueta', act.querySelector('.g-summary__title'), 4.5) : { k: 'activa (no hay)', r: 0, min: 4.5 },
+          act ? pair('activa: rótulo de dato', act.querySelector('.g-summary__fact-label'), 4.5) : { k: 'activa rótulo (no hay)', r: 0, min: 4.5 },
           act ? { k: 'activa: borde de ficha', r: ratio(parse(getComputedStyle(act).borderTopColor), bgOf(act.parentElement)), min: 3 } : { k: 'activa borde (no hay)', r: 0, min: 3 },
           { k: 'forma: contorno', r: ratio(parse(getComputedStyle(pop).borderTopColor), bgOf(document.body)), min: 3 },
           pair('fantasma: resto', document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__ghost-rest'), 4.5)] })()`))
       await close(page)
       await openWith(page, 'cb-dx', '', 300)
-      out.push(...await page.evaluate(`(() => { const { pair } = ${L}; const pop = document.getElementById('cb-dx-popup'); return [pair('código', pop.querySelectorAll('.g-combobox__option .g-combobox__code')[1], 4.5), pair('encabezado de grupo', pop.querySelector('.g-combobox__group-label'), 4.5), pair('descripción', pop.querySelectorAll('.g-combobox__description')[1], 4.5)] })()`))
+      out.push(...await page.evaluate(`(() => { const { pair } = ${L}; const pop = document.getElementById('cb-dx-popup'); return [pair('código', pop.querySelectorAll('.g-combobox__option .g-summary__code')[1], 4.5), pair('encabezado de grupo', pop.querySelector('.g-combobox__group-label'), 4.5), pair('descripción', pop.querySelectorAll('.g-combobox__option .g-summary__subtitle')[1], 4.5)] })()`))
       await close(page)
       await openWith(page, 'cb-dx', 'zzqq', 300)
       out.push(...await page.evaluate(`(() => { const { pair } = ${L}; return [pair('sin resultados', document.querySelector('#cb-dx-popup .g-combobox__status'), 4.5)] })()`))
@@ -263,16 +267,22 @@ for (const engine of ENGINES) {
       await page.evaluate(() => { window.__cb.medLibre = 'Jarabe casero de miel'; window.__cb.dx = 'E11.9' })
       await settle(page, 150)
       out.push(...await page.evaluate(`(() => { const { pair, root } = ${L}; const t = (id, s) => root(id).querySelector(s)
-        return [pair('ficha: etiqueta', t('cb-f-pac', '.g-combobox__token-label'), 4.5), pair('ficha: dato secundario', t('cb-f-pac', '.g-combobox__token-meta'), 4.5), pair('ficha: código', t('cb-dx', '.g-combobox__token .g-combobox__code'), 4.5),
-          pair('ficha: texto libre', t('cb-med', '.g-combobox__token-label'), 4.5), pair('marca «Texto libre»', t('cb-med', '.g-combobox__token-meta'), 4.5), pair('ficha solo lectura', t('cb-ro', '.g-combobox__token-label'), 4.5), pair('ficha solo lectura: dato', t('cb-ro', '.g-combobox__token-meta'), 4.5)] })()`))
+        return [pair('ficha: etiqueta', t('cb-f-pac', '.g-combobox__token .g-summary__title'), 4.5), pair('ficha: rótulo de dato', t('cb-f-pac', '.g-combobox__token .g-summary__fact-label'), 4.5), pair('ficha: dato', t('cb-f-pac', '.g-combobox__token .g-summary__fact-value'), 4.5), pair('ficha: código', t('cb-dx', '.g-combobox__token .g-summary__code'), 4.5), pair('ficha: capítulo', t('cb-dx', '.g-combobox__token .g-summary__subtitle'), 4.5),
+          pair('ficha: texto libre', t('cb-med', '.g-combobox__token .g-summary__title'), 4.5), pair('marca «Texto libre»', t('cb-med', '.g-combobox__token .g-summary__subtitle'), 4.5), pair('ficha solo lectura', t('cb-ro', '.g-combobox__token .g-summary__title'), 4.5), pair('ficha solo lectura: dato', t('cb-ro', '.g-combobox__token :is(.g-summary__fact-label, .g-summary__subtitle)'), 4.5)] })()`))
       await center(page, 'cb-f-pac'); await page.focus('#cb-f-pac'); await settle(page, 200)
-      out.push(...await page.evaluate(`(() => { const { pair, root } = ${L}; const t = (s) => root('cb-f-pac').querySelector(s); return [pair('ficha seleccionada: etiqueta', t('.g-combobox__token-label'), 4.5), pair('ficha seleccionada: dato', t('.g-combobox__token-meta'), 4.5)] })()`))
+      // Ficha seleccionada (foco: fondo --g-color-selection). La ficha del valor no recibe diff (no hay homónimas en el campo):
+      // el valor compartido (is-same) se mide marcando un dato a mano, para comprobar el reapunte de GCombobox.css
+      out.push(...await page.evaluate(`(() => { const { pair, root } = ${L}; const t = (s) => root('cb-f-pac').querySelector(s); const f = t('.g-combobox__token .g-summary__fact:not(.is-anchor)'); if (f) f.classList.add('is-same')
+        const r = [pair('ficha seleccionada: etiqueta', t('.g-combobox__token .g-summary__title'), 4.5), pair('ficha seleccionada: rótulo', t('.g-combobox__token .g-summary__fact-label'), 4.5), pair('ficha seleccionada: dato', t('.g-combobox__token .g-summary__fact-value'), 4.5), pair('ficha seleccionada: compartido (is-same)', f && f.querySelector('.g-summary__fact-value'), 4.5)]
+        if (f) f.classList.remove('is-same'); return r })()`))
+      await center(page, 'cb-dx'); await page.focus('#cb-dx'); await settle(page, 200)
+      out.push(...await page.evaluate(`(() => { const { pair, root } = ${L}; const t = (s) => root('cb-dx').querySelector(s); return [pair('ficha seleccionada: código', t('.g-combobox__token .g-summary__code'), 4.5), pair('ficha seleccionada: capítulo', t('.g-combobox__token .g-summary__subtitle'), 4.5)] })()`))
       await page.evaluate(() => { document.activeElement.blur(); window.__cb.medLibre = ''; window.__cb.dx = null })
       await center(page, 'cb-pal'); await page.click('#cb-pal'); await settle(page, 400); await page.keyboard.type('mar', { delay: 25 }); await settle(page, 500); await page.keyboard.press('ArrowDown'); await settle(page, 300)
       out.push(...await page.evaluate(`(() => { const { pair } = ${L}; const d = document.querySelector('dialog[open].g-combobox-surface'); if (!d) return [{ k: 'paleta (no abre)', r: 0, min: 4.5 }]; const act = d.querySelector('.g-combobox__option.is-active')
-        return [pair('paleta activa: etiqueta', act.querySelector('.g-combobox__label'), 4.5), pair('paleta activa: rótulo', act.querySelector('.g-combobox__fact-label'), 4.5), pair('paleta activa: dato', act.querySelector('.g-combobox__fact'), 4.5),
+        return [pair('paleta activa: etiqueta', act.querySelector('.g-summary__title'), 4.5), pair('paleta activa: rótulo', act.querySelector('.g-summary__fact-label'), 4.5), pair('paleta activa: dato', act.querySelector('.g-summary__fact-value'), 4.5),
           pair('paleta: búsqueda', d.querySelector('.g-combobox__search-field'), 4.5), pair('paleta: título', d.querySelector('.g-dialog__title'), 4.5),
-          pair('vista previa: título', d.querySelector('.g-combobox__preview-title'), 4.5), pair('vista previa: dt', d.querySelector('.g-combobox__preview-facts dt'), 4.5), pair('vista previa: dd', d.querySelector('.g-combobox__preview-facts dd'), 4.5)] })()`))
+          pair('vista previa: título', d.querySelector('.g-combobox__preview .g-summary__title'), 4.5), pair('vista previa: rótulo', d.querySelector('.g-combobox__preview .g-summary__fact-label'), 4.5), pair('vista previa: dato', d.querySelector('.g-combobox__preview .g-summary__fact-value'), 4.5)] })()`))
       await page.keyboard.press('Escape'); await settle(page, 350)
       return out
     }
@@ -388,7 +398,7 @@ for (const engine of ENGINES) {
       ok(/rgba\(0, 0, 0, 0\)|transparent/.test(h.color), t('el texto del <input> se ve bajo la ficha ' + h.color))
       note('C Δ0 (px)', `${engine} ${theme || 'defecto'}: fila ${h.row.toFixed(2)} · vacío→ficha ${h.dEmpty.toFixed(2)} · centrado ${h.center.toFixed(2)}`)
       // Recorte: el dato secundario (capítulo) se recorta antes que la etiqueta; nada sale de la caja
-      const sw = await page.evaluate(() => { const r = document.getElementById('cb-dx').closest('.g-combobox'); const lab = r.querySelector('.g-combobox__token-label'), meta = r.querySelector('.g-combobox__token-meta'), tk = r.querySelector('.g-combobox__token'); const res = []
+      const sw = await page.evaluate(() => { const r = document.getElementById('cb-dx').closest('.g-combobox'); const lab = r.querySelector('.g-combobox__token .g-summary__title'), meta = r.querySelector('.g-combobox__token .g-summary__subtitle'), tk = r.querySelector('.g-combobox__token'); const res = []
         for (let w = 760; w >= 150; w -= 10) { r.style.inlineSize = w + 'px'; const c = r.querySelector('.g-input__control').getBoundingClientRect(), T = tk.getBoundingClientRect(); res.push({ w, lc: lab.scrollWidth > lab.clientWidth + 1, mc: meta.scrollWidth > meta.clientWidth + 1, mw: meta.getBoundingClientRect().width, out: T.right > c.right + 0.5 || T.left < c.left - 0.5 }) }
         r.style.inlineSize = ''; return res })
       ok(sw.every((x) => !(x.lc && x.mw > 1)) && sw.some((x) => x.mc && !x.lc) && sw.every((x) => !x.out), t('recorte: la etiqueta se recorta antes que el secundario o la ficha sale de la caja ' + JSON.stringify(sw.find((x) => (x.lc && x.mw > 1) || x.out))))
@@ -407,13 +417,20 @@ for (const engine of ENGINES) {
   /* 6 · Fichas de opción a 240 / 320 / 480 de campo (reporte del usuario 1) y en la hoja */
   const fichas = (page, sel) => page.evaluate(`(() => { const { px } = ${L}; const host = document.querySelector('${sel}'); const lim = px('--g-text-body-line') + px('--g-text-body-sm-line') + 0.5; const bad = []; let maxH = 0, n = 0, vis = []
     for (const o of host.querySelectorAll('.g-combobox__option:not(.g-combobox__action)')) { n++
-      const R = o.getBoundingClientRect(), main = o.querySelector('.g-combobox__main'), mh = main.getBoundingClientRect().height; maxH = Math.max(maxH, mh)
+      const R = o.getBoundingClientRect(), main = o.querySelector('.g-summary'), mh = main.getBoundingClientRect().height; maxH = Math.max(maxH, mh)
       if (mh > lim) bad.push('más de dos líneas ' + mh)
       if (o.scrollWidth > o.clientWidth + 0.5 || main.scrollWidth > main.clientWidth + 0.5) bad.push('desborda ' + main.scrollWidth + '/' + main.clientWidth)
-      for (const k of o.querySelectorAll('*')) { const r = k.getBoundingClientRect(); if (r.width && (r.right > R.right + 0.5 || r.left < R.left - 0.5)) { bad.push('hijo fuera ' + k.className); break } }
-      const fs = o.querySelector('.g-combobox__facts'), f = o.querySelector('.g-combobox__fact')
-      if (f) { const a = f.getBoundingClientRect(), b = fs.getBoundingClientRect(); if (!(a.top >= b.top - 0.5 && a.bottom <= b.bottom + 0.5 && a.width > 0) || f.scrollWidth > f.clientWidth + 0.5) bad.push('identificador oculto o recortado'); vis.push([...o.querySelectorAll('.g-combobox__fact')].filter((x) => x.getBoundingClientRect().top < b.bottom - 0.5).length) }
-      for (const x of o.querySelectorAll('.g-combobox__fact')) { const a = x.getBoundingClientRect(), b = fs.getBoundingClientRect(); if (a.top < b.bottom - 0.5 && x.scrollWidth > x.clientWidth + 0.5 && x !== f) bad.push('dato visible partido') }
+      // Lo que se ve de cada hijo: su caja recortada por los antepasados con overflow (un dato que saltó a la línea que no se
+      // ve de la corriente puede ser más ancho que ella, pero no se pinta)
+      const seen = (k) => { let l = k.getBoundingClientRect().left, r = k.getBoundingClientRect().right, t = k.getBoundingClientRect().top, b = k.getBoundingClientRect().bottom
+        for (let n = k.parentElement; n && n !== o; n = n.parentElement) { if (getComputedStyle(n).overflowX !== 'visible') { const c = n.getBoundingClientRect(); l = Math.max(l, c.left); r = Math.min(r, c.right); t = Math.max(t, c.top); b = Math.min(b, c.bottom) } }
+        return r - l > 0.5 && b - t > 0.5 ? { l, r } : null }
+      for (const k of o.querySelectorAll('*')) { const r = seen(k); if (r && (r.r > R.right + 0.5 || r.l < R.left - 0.5)) { bad.push('hijo fuera ' + k.className); break } }
+      // GSummary row (#356): el identificador (is-anchor) va en la corriente, fuera de __facts; los demás en __facts (una
+      // línea, los que no caben saltan a una segunda que no se ve). Visible = dentro de la caja de la corriente (__data)
+      const fs = o.querySelector('.g-summary__data'), f = o.querySelector('.g-summary__fact.is-anchor')
+      if (f) { const a = f.getBoundingClientRect(), b = fs.getBoundingClientRect(); if (!(a.top >= b.top - 0.5 && a.bottom <= b.bottom + 0.5 && a.width > 0) || f.scrollWidth > f.clientWidth + 0.5) bad.push('identificador oculto o recortado'); vis.push([...o.querySelectorAll('.g-summary__fact')].filter((x) => x.getBoundingClientRect().top < b.bottom - 0.5).length) }
+      for (const x of o.querySelectorAll('.g-summary__fact')) { const a = x.getBoundingClientRect(), b = fs.getBoundingClientRect(); if (a.top < b.bottom - 0.5 && a.bottom <= b.bottom + 0.5 && x.scrollWidth > x.clientWidth + 0.5 && x !== f) bad.push('dato visible partido') }
     }
     return { n, maxH: +maxH.toFixed(1), lim, bad: [...new Set(bad)], vis: [Math.min(...vis), Math.max(...vis)] } })()`)
   if (run('fichas')) {
@@ -428,9 +445,9 @@ for (const engine of ENGINES) {
         note('fichas de opción (campo → alto nombre+datos, datos visibles min–máx de 4)', `${engine} ${theme || 'defecto'} ${w}px: ${res.maxH}px ≤ ${res.lim.toFixed(1)}, ${res.vis.join('–')} de 4`)
         // La ficha del valor elegida a ese ancho no sale de la caja
         await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); await settle(page, 200)
-        const tk = await page.evaluate(() => { const r = document.getElementById('cb-pac').closest('.g-combobox'); const c = r.querySelector('.g-input__control').getBoundingClientRect(); const t = r.querySelector('.g-combobox__token'); if (!t) return { none: true }; const T = t.getBoundingClientRect(); return { inside: T.right <= c.right + 0.5 && T.left >= c.left - 0.5, lab: r.querySelector('.g-combobox__token-label').getBoundingClientRect().width } })
-        ok(!tk.none && tk.inside && tk.lab > 20, tag(`${theme || 'defecto'} ficha del valor a ${w}px: ${JSON.stringify(tk)}`))
-        note('ficha del valor (ancho visible de la etiqueta)', `${engine} ${theme || 'defecto'} ${w}px: ${tk.lab?.toFixed(0)}px`)
+        const tk = await page.evaluate(() => { const r = document.getElementById('cb-pac').closest('.g-combobox'); const c = r.querySelector('.g-input__control').getBoundingClientRect(); const t = r.querySelector('.g-combobox__token'); if (!t) return { none: true }; const T = t.getBoundingClientRect(); return { inside: T.right <= c.right + 0.5 && T.left >= c.left - 0.5, lab: r.querySelector('.g-combobox__token .g-summary__title').getBoundingClientRect().width, su: r.querySelector('.g-combobox__token .g-summary').getBoundingClientRect().width } })
+        ok(!tk.none && tk.inside && tk.lab > 20 && tk.su > 40, tag(`${theme || 'defecto'} ficha del valor a ${w}px: ${JSON.stringify(tk)}`))
+        note('ficha del valor (ancho de la ficha · de la etiqueta)', `${engine} ${theme || 'defecto'} ${w}px: ${tk.su?.toFixed(0)} · ${tk.lab?.toFixed(0)}px`)
         await page.evaluate(() => { window.__cb.pac.value = null; document.activeElement.blur(); document.getElementById('cb-pac').closest('.g-combobox').style.inlineSize = '' })
         await settle(page, 100)
       }
@@ -683,7 +700,7 @@ for (const engine of ENGINES) {
         await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await settle(page, 150)
         const geo1 = await page.evaluate(() => { const r = document.querySelector('dialog[open].g-combobox-surface').getBoundingClientRect(); return [r.top, r.height] })
         ok(Math.abs(geo0[0] - geo1[0]) < 0.5 && Math.abs(geo0[1] - geo1[1]) < 0.5, tag(`paleta: la superficie salta al cambiar resultados ${geo0} → ${geo1}`))
-        const pv = await page.evaluate(() => { const v = document.querySelector('dialog[open] .g-combobox__preview'); const o = [...document.querySelectorAll('dialog[open] .g-combobox__option:not(.g-combobox__action) .g-combobox__main')]; return { pv: v.scrollWidth - v.clientWidth, dd: v.querySelectorAll('dd').length, rows: o.every((m) => m.scrollWidth <= m.clientWidth + 0.5) } })
+        const pv = await page.evaluate(() => { const v = document.querySelector('dialog[open] .g-combobox__preview'); const o = [...document.querySelectorAll('dialog[open] .g-combobox__option:not(.g-combobox__action) > .g-summary')]; return { pv: v.scrollWidth - v.clientWidth, dd: v.querySelectorAll('.g-summary--layout-stack .g-summary__fact').length, rows: o.every((m) => m.scrollWidth <= m.clientWidth + 0.5) } })
         ok(pv.pv <= 0.5 && pv.dd === 4 && pv.rows, tag('paleta: vista previa o fichas desbordan ' + JSON.stringify(pv)))
         note('paleta 1280', `${engine}: cuerpo ${pal.sbh}px, lista/vista ${pal.ratio.toFixed(2)}, superficie quieta al cambiar resultados (top ${geo0[0].toFixed(1)}, alto ${geo0[1].toFixed(1)})`)
         // Reapertura durante la salida: Esc y volver a abrir a los 60 ms
@@ -740,8 +757,8 @@ for (const engine of ENGINES) {
       const f = await page.evaluate(() => { const r = document.getElementById('cb-f-pac').closest('.g-combobox'); const t = r.querySelector('.g-combobox__token'); const inp = document.getElementById('cb-f-pac'); const i = document.createElement('i'); i.style.color = 'FieldText'; r.querySelector('.g-input__control').append(i); const ft = getComputedStyle(i).color; i.remove(); return { token: getComputedStyle(t).display, same: getComputedStyle(inp).color === ft } })
       ok(f.token === 'none' && f.same, tag(`forced-colors: la ficha no se retira o el texto no se ve ${JSON.stringify(f)}`))
       await openWith(page, 'cb-pac', 'mar', 300)
-      const g = await page.evaluate(() => { const r = document.getElementById('cb-pac').closest('.g-combobox'); const sys = (k, p) => { const i = document.createElement('i'); i.style[p] = k; r.querySelector('.g-input__control').append(i); const v = getComputedStyle(i)[p]; i.remove(); return v }; const act = r.querySelector('.g-combobox__option.is-active'); const pop = getComputedStyle(document.getElementById('cb-pac-popup')); const mark = getComputedStyle(r.querySelector('.g-combobox__option:not(.is-active) .g-combobox__mark'))
-        return { actBg: act && getComputedStyle(act).backgroundColor === sys('Highlight', 'backgroundColor'), actFg: act && getComputedStyle(act.querySelector('.g-combobox__label')).color === sys('HighlightText', 'color'), border: pop.borderTopColor === sys('CanvasText', 'color'), ring: pop.outlineColor === sys('Highlight', 'color') && pop.outlineStyle === 'solid', ghost: getComputedStyle(r.querySelector('.g-combobox__ghost-rest')).color === sys('GrayText', 'color'), mark: /underline/.test(mark.textDecorationLine) } })
+      const g = await page.evaluate(() => { const r = document.getElementById('cb-pac').closest('.g-combobox'); const sys = (k, p) => { const i = document.createElement('i'); i.style[p] = k; r.querySelector('.g-input__control').append(i); const v = getComputedStyle(i)[p]; i.remove(); return v }; const act = r.querySelector('.g-combobox__option.is-active'); const pop = getComputedStyle(document.getElementById('cb-pac-popup')); const mark = getComputedStyle(r.querySelector('.g-combobox__option:not(.is-active) .g-summary__mark'))
+        return { actBg: act && getComputedStyle(act).backgroundColor === sys('Highlight', 'backgroundColor'), actFg: act && [...act.querySelectorAll('.g-summary__title, .g-summary__fact-label, .g-summary__fact-value')].every((x) => getComputedStyle(x).color === sys('HighlightText', 'color')), border: pop.borderTopColor === sys('CanvasText', 'color'), ring: pop.outlineColor === sys('Highlight', 'color') && pop.outlineStyle === 'solid', ghost: getComputedStyle(r.querySelector('.g-combobox__ghost-rest')).color === sys('GrayText', 'color'), mark: /underline/.test(mark.textDecorationLine) } })
       for (const [k, v] of Object.entries(g)) ok(v, tag(`forced-colors: ${k}`))
       await close(page)
       await center(page, 'cb-pal'); await page.click('#cb-pal'); await settle(page, 400); await page.keyboard.type('mar'); await settle(page, 500); await page.keyboard.press('ArrowDown'); await settle(page, 200)
@@ -760,7 +777,7 @@ for (const engine of ENGINES) {
     await openWith(page, 'cb-pac', 'mar', 600)
     const r = await shape(page, 'cb-pac')
     ok(Math.abs(r.P.l - r.ctl.l) < 1 && Math.abs(r.P.w - r.ctl.w) < 1 && r.outline === 'solid', tag('RTL: la forma no coincide con la caja'))
-    const lead = await page.evaluate(() => { const o = document.querySelector('#cb-pac-popup .g-combobox__option'); const a = o.querySelector('.g-combobox__lead').getBoundingClientRect(), m = o.querySelector('.g-combobox__main').getBoundingClientRect(); return a.left > m.left })
+    const lead = await page.evaluate(() => { const o = document.querySelector('#cb-pac-popup .g-combobox__option'); const a = o.querySelector('.g-summary__lead').getBoundingClientRect(), m = o.querySelector('.g-summary__body').getBoundingClientRect(); return a.left > m.left })
     ok(lead, tag('RTL: el avatar de la fila no está al inicio (derecha)'))
     await close(page)
     await go(page)
@@ -780,7 +797,7 @@ for (const engine of ENGINES) {
     for (const [w, h] of [[1280, 900], [900, 900], [600, 800]]) { // ≤ 520 el campo usa la hoja (sección 14)
       const { ctx, page } = await mk({ width: w, height: h })
       await go(page, { motion: 'reduce' })
-      const fr = await page.evaluate(() => { const cb = document.getElementById('cb-f-pac').closest('.g-combobox'), sel = document.getElementById('cb-f-sel').closest('.g-select, .g-input') || document.getElementById('cb-f-sel'), nota = document.getElementById('cb-f-nota').closest('.g-input'); const a = cb.getBoundingClientRect(), b = nota.getBoundingClientRect(); const lab = cb.querySelector('.g-combobox__token-label'); return { min: getComputedStyle(cb).getPropertyValue('--g-form-min').trim(), w: a.width, sameLine: Math.abs(a.top - b.top) < 1, lab: lab ? lab.getBoundingClientRect().width : 0, labCut: lab ? lab.scrollWidth > lab.clientWidth + 1 : null, ctlTop: Math.abs(cb.querySelector('.g-input__control').getBoundingClientRect().top - nota.querySelector('.g-input__control').getBoundingClientRect().top) } })
+      const fr = await page.evaluate(() => { const cb = document.getElementById('cb-f-pac').closest('.g-combobox'), sel = document.getElementById('cb-f-sel').closest('.g-select, .g-input') || document.getElementById('cb-f-sel'), nota = document.getElementById('cb-f-nota').closest('.g-input'); const a = cb.getBoundingClientRect(), b = nota.getBoundingClientRect(); const lab = cb.querySelector('.g-combobox__token .g-summary__title'); return { min: getComputedStyle(cb).getPropertyValue('--g-form-min').trim(), w: a.width, sameLine: Math.abs(a.top - b.top) < 1, lab: lab ? lab.getBoundingClientRect().width : 0, labCut: lab ? lab.scrollWidth > lab.clientWidth + 1 : null, ctlTop: Math.abs(cb.querySelector('.g-input__control').getBoundingClientRect().top - nota.querySelector('.g-input__control').getBoundingClientRect().top) } })
       ok(fr.min === '60' && fr.w >= 239, tag(`fila ${w}: --g-form-min ${fr.min}, campo ${fr.w.toFixed(0)}px`))
       if (fr.sameLine) ok(fr.ctlTop < 1, tag(`fila ${w}: cajas desalineadas ${fr.ctlTop}`))
       note('fila de tres (#cb-row)', `${engine} ${w}: campo ${fr.w.toFixed(0)}px ${fr.sameLine ? 'en línea' : 'partida'}; etiqueta de la ficha ${fr.lab.toFixed(0)}px${fr.labCut ? ' (recortada)' : ''}`)
