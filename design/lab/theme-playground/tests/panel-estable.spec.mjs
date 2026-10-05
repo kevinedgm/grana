@@ -113,6 +113,45 @@ test.describe('panel estable al desplazar la página (GSelect, GMenu, GDatePicke
     expect(errs, errs.join('\n')).toEqual([])
   })
 
+  // Safari/WebKit no enfocan un botón al hacer clic: sin foco en el disparador, Esc, Inicio y Fin no llegaban. Aquí NO se
+  // enfoca nada a mano: se abre con clic de puntero y el teclado actúa sobre lo que el navegador deje enfocado.
+  test('GSelect · abierto con clic de puntero, Fin/Inicio mueven la activa y Esc cierra la lista (sin enfocar a mano)', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await ready(page)
+    const combo = page.getByRole('combobox', { name: /Muchas opciones/ })
+    await combo.scrollIntoViewIfNeeded()
+    await combo.click()
+    await frames(page, 3)
+    await expect(combo).toHaveAttribute('aria-expanded', 'true')
+    await page.keyboard.press('End')
+    await frames(page)
+    const last = await combo.getAttribute('aria-activedescendant')
+    await page.keyboard.press('Home')
+    await frames(page)
+    const first = await combo.getAttribute('aria-activedescendant')
+    expect(last, 'Fin llega a la lista').not.toBe(first)
+    await page.keyboard.press('Escape')
+    await frames(page)
+    await expect(combo).toHaveAttribute('aria-expanded', 'false')
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+
+  test('GDatePicker · abierto con clic de puntero, Esc cierra el selector (sin enfocar a mano)', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await ready(page)
+    const f = page.locator('.g-datepicker', { hasText: 'Fecha de entrega' }).locator('button.g-datepicker__field').first()
+    const popId = await f.getAttribute('aria-controls')
+    await f.scrollIntoViewIfNeeded()
+    await f.click()
+    await frames(page, 4)
+    const open = () => page.evaluate((id) => document.getElementById(id).matches(':popover-open'), popId)
+    expect(await open(), 'abierto').toBe(true)
+    await page.keyboard.press('Escape')
+    await frames(page)
+    expect(await open(), 'Esc lo cierra').toBe(false)
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+
   test('GMenu · 0 cambios de lado y alto constante en el vaivén', async ({ page }) => {
     const errs = await watchConsole(page)
     await ready(page)

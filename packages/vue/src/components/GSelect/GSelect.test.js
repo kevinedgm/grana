@@ -882,4 +882,17 @@ describe('GSelect · panel estable al desplazar la página', () => {
     expect(activeText(w)).toBe('México')
     w.unmount()
   })
+
+  it('al abrir con clic enfoca el botón (Safari/WebKit no lo enfocan al hacer clic): Esc, Inicio y Fin llegan', async () => {
+    const w = mk({ modelValue: 'mx' })
+    expect(document.activeElement).not.toBe(btn(w).element) // un clic sintético no enfoca, como Safari
+    await btn(w).trigger('click')
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    expect(document.activeElement).toBe(btn(w).element)
+    await key(w, 'End')
+    expect(activeText(w)).toBe('España')
+    await key(w, 'Escape')
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    w.unmount()
+  })
 })

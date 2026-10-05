@@ -327,6 +327,9 @@ function onButtonClick(event) {
   else {
     // Posición del clic: si la lista aparece bajo el puntero quieto, no le quita la activa al teclado
     if (event && event.detail > 0) { lastX = event.clientX; lastY = event.clientY }
+    // Safari y Firefox en macOS no enfocan un botón al hacer clic: sin foco en él, Esc, Inicio, Fin y las flechas no llegan
+    // (verificado con Playwright en WebKit). En Chromium ya está enfocado: no cambia nada. preventScroll: no mueve la página.
+    if (button.value && button.value.ownerDocument.activeElement !== button.value) button.value.focus({ preventScroll: true })
     show()
   }
 }
