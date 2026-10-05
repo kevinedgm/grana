@@ -40,7 +40,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 
 - **Chip sugerido** (`suggest`, no aplicado) → abre el editor de ese campo.
 - **«Agregar filtro»** → `GMenu` con los campos filtrables no aplicados → editor.
-- **Editor:** diálogo no modal (nombre «{filterBy}»), regla (`select`, si hay más de una), valor según tipo, Cancelar y Aplicar. **Enter aplica; Esc cancela;** el foco vuelve al chip (o a «Agregar filtro»). Se posiciona con `utils/anchor.js` y, por debajo de `space × 130`, se abre como **hoja** (`GDialog`), con el mismo criterio que `GHelper` (DECISIONS.md #103).
+- **Editor:** diálogo no modal (nombre «{filterBy}»), regla (`select`, si hay más de una), valor según tipo, Cancelar y Aplicar. **Enter aplica; Esc cancela;** el foco vuelve al chip (o a «Agregar filtro»). Se posiciona con `utils/anchor.js` y, por debajo de `space × 130`, se abre como **hoja** (`GDialog`), con el mismo criterio que `GHelper` (DECISIONS.md #103). **Sigue a su ancla al desplazar** con las reglas comunes de los paneles anclados (`docs/contract/api.md`, #358): si el ancla sale de la vista, el editor se cierra **sin aplicar y pierde el borrador**, y el foco no vuelve al chip (en la hoja no rige).
 - **Chip aplicado:** dos botones: el resumen («Total mayor que $3,000») reabre el editor; la × quita el filtro y el foco pasa al chip siguiente (o a «Agregar filtro»).
 - **«Limpiar filtros»:** solo con filtros; el foco va a «Agregar filtro».
 - **Recuento** (`count`) visible y anunciado (región viva cortés) tras cada cambio.

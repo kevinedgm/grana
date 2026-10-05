@@ -130,7 +130,8 @@ Para catálogos cerrados pero incompletos: la lista termina con una fila de acci
 ## Posición y capa superior
 
 - La lista se muestra con `showPopover()` (y se oculta con `hidePopover()`), anclada al selector con su **ancho mínimo** (el ancho de la caja) y **debajo**; si no cabe debajo y hay más sitio arriba, se abre **hacia arriba** (clase `is-up` en la lista). Con scroll interno, la opción activa siempre se ve.
-- Bruno calcula la posición y la entrega con **variables CSS dinámicas** sobre la lista (`--_x`, `--_top`, `--_bottom`, `--_min` y `--_max`; única excepción a "sin estilos en línea"), y las recalcula al redimensionar la ventana y al desplazarse cualquier ancestro.
+- Bruno calcula la posición y la entrega con **variables CSS dinámicas** sobre la lista (`--_x`, `--_top`, `--_bottom`, `--_min` y `--_max`; única excepción a "sin estilos en línea"), y las recalcula al redimensionar la ventana y al abrir; **al desplazarse cualquier ancestro solo sigue al ancla** (lado con histéresis, `--_max` fijo, cierre sin devolver el foco si el ancla sale de la vista; el puntero quieto no desplaza la lista).
+- Reglas comunes de los paneles anclados: `docs/contract/api.md` «Paneles anclados» (#358).
 - **Móvil (≤ ~520px de ancho del visor):** la lista es una **hoja inferior** pegada abajo y de ancho completo, con fondo (`::backdrop`); el CSS ignora las variables de posición. Umbral literal de consulta de medios (excepción documentada: DECISIONS.md #42; ver #56).
 - **Cierre por clic fuera:** un `pointerdown` fuera del selector y de la lista cierra; en la hoja, el fondo cuenta como fuera.
 

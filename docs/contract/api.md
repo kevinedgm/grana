@@ -79,6 +79,17 @@ Para lo que nace de un **evento** y no de un estado de la vista (primer caso: av
 - **Entradas propias que no son servicios** (#337): **`@grana/vue/combobox`** (global UMD `GranaCombobox`) exporta `GCombobox` y, por defecto, un plugin que solo lo registra (`app.use(Combobox)`); no hay gestor ni `use…()`. Mismo criterio de peso que #238 y #328 (tope de 8 KB gzip para entrar en el principal) y mismo mecanismo `__shared` (#240); el CSS sigue en `grana.css`.
 - **Convivencia de servicios:** cada uno tiene **sus** canales vivos y **su** atajo (F8 avisos, Mayús+F8 voz, **Alt+F8 isla de estado**). **Un suceso, un canal:** o aviso flotante o isla. Orden en un borde compartido: voz → isla → avisos (registro interno con `order`, #322). Cuando dos regiones comparten borde del visor, el elemento **persistente** (pill de voz) conserva el borde y el **transitorio** (avisos) se apila por dentro, con un registro interno de reservas por documento (no es API; `speech.md` §6.7, #225). El seguimiento del `<dialog>` modal superior es un útil interno compartido (`utils/topModal.js`, #213).
 
+## Paneles anclados: cuatro reglas comunes (#358)
+
+Valen para todo panel que se coloca junto a un ancla y sigue al desplazar la página: `GCombobox` (`appearance="field"`), `GSelect`, `GMenu`, `GDatePicker` (popover), `GHelper` (popover) y el editor de `GFilterBar`. La lógica compartida vive en `utils/anchor.js` (`stickySide`, `setVar`, `followFrame`, `anchorGone`); cada contrato solo remite aquí.
+
+1. **El lado se decide al abrir y se conserva.** Solo cambia, con histéresis, si el lado actual ofrece menos de `space × 40` **y** el otro ofrece al menos `space × 12` más. Nunca se reevalúa «a secas» en cada cuadro del desplazamiento.
+2. **`--_max` queda fijo durante el desplazamiento.** Se calcula al abrir, al cambiar el contenido, al redimensionar y al cambiar de lado; mientras se desplaza la página solo se escribe la posición (una vez por cuadro y solo si cambia), de modo que el alto del panel no «respira».
+3. **Si el ancla sale de la vista, el panel se cierra, sin devolver el foco** (devolverlo desplazaría la página). «Salir» es salir del visor o del contenedor con desplazamiento que contiene al ancla. No rige en la **hoja móvil** (≤ ~520px, #42, #56), que no sigue a un ancla.
+4. **El puntero quieto nunca desplaza la lista.** Mantener el puntero sobre una opción mientras la página o la lista se desplaza no cambia la opción activa ni mueve el scroll; solo activa un movimiento real del puntero. La opción activa por teclado sí se mantiene a la vista, desplazando el panel y nunca la página.
+
+Los umbrales derivan de `space`; no hay tokens nuevos. Se verifica con `tests/panel-estable.spec.mjs` (vaivén de ±20px sin cambios de lado y cierre al salir del visor, en los tres motores).
+
 ## Iconos en los componentes: «dato → nombre; plantilla → slot» (#202)
 
 Contrato de iconos: `docs/contract/icons.md` v0.2 (`GIcon` público, registro `createIcons`, solo Lucide). Regla única para todos los componentes:

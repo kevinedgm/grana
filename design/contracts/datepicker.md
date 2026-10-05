@@ -202,7 +202,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 
 - Abrir: el foco va al **día elegido** (o al inicio del rango, o a hoy). Cerrar (Esc, «Listo», elegir con `closeOnSelect`): el foco **vuelve al campo** que abrió (con `split`, al botón que lo abrió).
 - Cierra también con **clic fuera** y cuando **el foco sale** de la superficie (Tab): en ese caso **no** devuelve el foco (sigue el orden natural).
-- Posición: debajo del ancla, o **encima** si no cabe debajo y hay más sitio arriba (clase `is-up`); bruno la entrega con variables CSS dinámicas (`--_x`, `--_top`, `--_bottom`, `--_max`; excepción a «sin estilos en línea»). Se recalcula al redimensionar y al desplazarse cualquier ancestro.
+- Posición: debajo del ancla, o **encima** si no cabe debajo y hay más sitio arriba (clase `is-up`); bruno la entrega con variables CSS dinámicas (`--_x`, `--_top`, `--_bottom`, `--_max`; excepción a «sin estilos en línea»). Se recalcula al abrir y al redimensionar; **al desplazarse cualquier ancestro solo sigue al ancla** (no en la hoja móvil). Reglas comunes de los paneles anclados (lado con histéresis, `--_max` fijo, cierre sin devolver el foco si el ancla sale de la vista): `docs/contract/api.md` «Paneles anclados» (#358).
 - **Móvil (≤ ~520px del visor):** el popover es una **hoja inferior** pegada abajo, de ancho completo, con `::backdrop`, asa, cabecera con cierre y **un mes** con botones y **deslizamiento horizontal** (umbral 48px y más horizontal que vertical). El CSS ignora las variables de posición. Umbral de consulta de medios **literal** (excepción: DECISIONS.md #42, #56 y #65).
 - **En `inline`** no hay popover, foco de apertura ni cierre.
 

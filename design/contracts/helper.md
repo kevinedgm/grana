@@ -79,7 +79,7 @@ Contenedor que fija el contexto de posición de los `GHelper` flotantes que cont
 
 ## Colisión (utilidad interna compartida)
 
-El contenido prueba, en orden: el lado pedido, el **opuesto** y los dos **perpendiculares**. En el primero que cabe en el visor (con un margen de `space × 2`), se **desplaza** sobre el eje secundario hasta quedar dentro. La posición se recalcula al desplazar la página o cambiar el tamaño del visor mientras está abierto.
+El contenido prueba, en orden: el lado pedido, el **opuesto** y los dos **perpendiculares**. En el primero que cabe en el visor (con un margen de `space × 2`), se **desplaza** sobre el eje secundario hasta quedar dentro. El lado y el alto (`--_max`) se deciden al abrir y al cambiar el tamaño del visor; **al desplazar la página solo se sigue al ancla**, sin reevaluar el lado salvo con la histéresis común, y si el ancla sale de la vista el popover se cierra sin devolver el foco (no en la hoja móvil). Reglas: `docs/contract/api.md` «Paneles anclados» (#358).
 
 La implementa una utilidad interna (`src/utils/anchor.js`) **extraída de `GMenu`**, que pasa a usarla en la misma entrega (DECISIONS.md #102). No es API pública: los consumidores no dependen de ella.
 
