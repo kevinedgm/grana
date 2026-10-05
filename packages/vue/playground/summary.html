@@ -44,7 +44,7 @@
   .bg-bg{background:var(--g-color-bg)} .bg-surface{background:var(--g-color-surface)} .bg-sunken{background:var(--g-color-surface-sunken)} .bg-selection{background:var(--g-color-selection)}
   .surf{padding:var(--g-space-3);color:var(--g-color-text)}
   /* Rendimiento: N fichas en una rejilla cuyo ancho cambia de golpe */
-  .perf{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--pw,220px),1fr));gap:var(--g-space-2)}
+  .perf{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--g-space-2)}
   .perf > .g-summary{padding:var(--g-space-1) 0}
   [v-cloak]{display:none}
 </style>
@@ -127,7 +127,7 @@
 
 <h2 class="b">8 · Rendimiento: {{ n }} fichas en una rejilla; cambiar el ancho de la columna mide todas por lotes</h2>
 <p class="cap">Columnas de <button type="button" @click="pw = 180">180</button> <button type="button" @click="pw = 220">220</button> <button type="button" @click="pw = 320">320</button> px · última medida: <output id="perf-out">{{ perfMs }}</output></p>
-<div class="perf" data-case="perf" :style="{ '--pw': pw + 'px' }">
+<div class="perf" data-case="perf" :style="{ gridTemplateColumns: 'repeat(auto-fill,minmax(' + pw + 'px,1fr))' }">
   <g-summary v-for="p in MANY" :key="p.id" v-bind="p" :diff="MANY_DIFFS[p.id]"></g-summary>
 </div>
 </main>
@@ -190,7 +190,7 @@ const t2 = performance.now()
 queueMicrotask(() => { window.__perf = { n: N, mount: +(t1 - t0).toFixed(1), layout: +(t2 - t1).toFixed(1), measure: +(performance.now() - t2).toFixed(1) } })
 window.__su = {
   setW: (v) => document.documentElement.style.setProperty('--w', v + 'px'),
-  setPw: (v) => document.querySelector('.perf').style.setProperty('--pw', v + 'px'),
+  setPw: (v) => { document.querySelector('.perf').style.gridTemplateColumns = 'repeat(auto-fill,minmax(' + v + 'px,1fr))' },
   // Tiempo de la medida tras un cambio de ancho de la rejilla: la devolución del observador de tamaño llega en un
   // requestAnimationFrame y la medida por lotes en la microtarea que lo sigue; se cronometra el rAF más largo con sus microtareas
   timePw: (v) => new Promise((resolve) => {

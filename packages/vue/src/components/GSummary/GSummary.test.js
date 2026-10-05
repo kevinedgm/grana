@@ -407,6 +407,42 @@ describe('GSummary · medida (cajas simuladas)', () => {
     await frames()
     expect(w.find('.g-summary__title').attributes('title')).toBeUndefined()
   })
+  it('el código cortado con elipsis lleva title nativo (y solo él)', async () => {
+    const w = make({ code: 'E11.9-MUY-LARGO' }, { attachTo: document.body })
+    scene(w, { width: 400, widths: W })
+    const code = w.find('.g-summary__code').element
+    Object.defineProperty(code, 'scrollWidth', { configurable: true, get: () => 90 })
+    Object.defineProperty(code, 'clientWidth', { configurable: true, get: () => 60 })
+    await tick()
+    expect(w.find('.g-summary__code').attributes('title')).toBe('E11.9-MUY-LARGO')
+    expect(w.find('.g-summary__title').attributes('title')).toBeUndefined()
+  })
+  it('inline: un desborde fraccionario del cuerpo (1 a 2 px) pasa a data-tight; por debajo de 0,5 px no', async () => {
+    const R = (left, right) => ({ left, right, top: 0, bottom: 20, width: right - left, height: 20, x: left, y: 0 })
+    const stub = (w, over) => {
+      const body = w.find('.g-summary__body').element
+      body.getBoundingClientRect = () => R(0, 400.4)
+      const last = w.find('.g-summary__title').element
+      last.getBoundingClientRect = () => R(180, 400.4 + over)
+    }
+    const near = make({ layout: 'inline' }, { attachTo: document.body })
+    scene(near, { width: 400, widths: W })
+    stub(near, 0.3)
+    await tick()
+    expect(near.attributes('data-tight')).toBeUndefined()
+    const wide = make({ layout: 'inline' }, { attachTo: document.body })
+    scene(wide, { width: 400, widths: W })
+    stub(wide, 1.3)
+    await tick()
+    expect(wide.attributes('data-tight')).toBe('')
+    // rtl: el desborde por la izquierda también cuenta
+    const rtl = make({ layout: 'inline' }, { attachTo: document.body })
+    scene(rtl, { width: 400, widths: W })
+    rtl.find('.g-summary__body').element.getBoundingClientRect = () => R(0, 400.4)
+    rtl.find('.g-summary__title').element.getBoundingClientRect = () => R(-1.3, 100)
+    await tick()
+    expect(rtl.attributes('data-tight')).toBe('')
+  })
   it('data-enter solo en los datos que pasan de recortados a visibles por un cambio de tamaño; nunca al montar ni al cambiar los datos', async () => {
     const w = make({}, { attachTo: document.body })
     scene(w, { width: 200, widths: W })

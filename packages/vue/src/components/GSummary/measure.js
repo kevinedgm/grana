@@ -28,9 +28,33 @@ function collect(r) {
   r.clip = r.facts.length ? el.querySelector(r.multi ? '.g-summary__flow' : '.g-summary__facts') : null
   r.bare = r.facts.some((f) => f.classList.contains('is-bare'))
   // Partes que pueden llevar elipsis (la línea secundaria, solo si se ve: con datos y una línea es texto oculto)
-  r.tips = [el.querySelector('.g-summary__title'), r.anchor, ...(r.multi ? r.facts : [])]
+  r.tips = [el.querySelector('.g-summary__title'), el.querySelector('.g-summary__code'), r.anchor, ...(r.multi ? r.facts : [])]
   if (r.multi || !(r.facts.length || r.anchor)) r.tips.push(el.querySelector('.g-summary__subtitle'))
   r.tips = r.tips.filter(Boolean)
+  // En `inline` el cuerpo es una fila que no encoge y las cajas de cabecera, nombre y datos son `display: contents`:
+  // sus elementos de flujo son los hijos de esas cajas (el desborde se mide con sus cajas, no con scrollWidth, que redondea)
+  r.items = null
+  if (r.body && el.classList.contains('g-summary--layout-inline')) {
+    r.items = []
+    const walk = (n) => {
+      for (const c of n.children) {
+        if (c.matches('.g-summary__head, .g-summary__name, .g-summary__data, .g-summary__flow')) walk(c)
+        else r.items.push(c)
+      }
+    }
+    walk(r.body)
+  }
+}
+
+/** Desborde del cuerpo de `inline` por cajas (los anchos de scrollWidth y clientWidth son enteros: 1 a 2 px se les escapan) */
+function overflows(r) {
+  const b = r.body.getBoundingClientRect()
+  for (const c of r.items) {
+    const x = c.getBoundingClientRect()
+    if (x.width <= 1) continue // sin caja (oculta, como «+N» sin mostrar) o texto oculto accesible de 1px (data-tight)
+    if (x.right > b.right + 0.5 || x.left < b.left - 0.5) return true
+  }
+  return false
 }
 
 /** Lectura: qué datos quedan fuera de la caja visible */
@@ -49,7 +73,7 @@ function count(r) {
 
 /** Lectura: ¿el identificador ya no cabe entero? (elipsis propia, o el cuerpo desborda: en `inline` no encoge) */
 function cramped(r) {
-  if (r.body && r.body.scrollWidth > r.body.clientWidth + 1) return true
+  if (r.body && (r.items ? overflows(r) : r.body.scrollWidth > r.body.clientWidth + 1)) return true
   if (!r.anchor || !r.value) return false
   if (r.anchor.scrollWidth > r.anchor.clientWidth + 1) return true
   const v = r.value.getBoundingClientRect()
