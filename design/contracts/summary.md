@@ -346,6 +346,7 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 | `--g-space-1` (y sus múltiplos) | Lado de la identidad, separaciones, columnas de la rejilla de `stack` |
 | Roles `body`, `body-sm`, `caption`, `title-sm`; `--g-text-title-sm-weight` | «Tipografía» |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Título y valores; línea secundaria y código; rótulos y valores compartidos |
+| `--g-color-border-control` | Contorno de la caja del icono de identidad |
 | `--g-color-border-strong` | Separador entre datos (un filete corto, no un carácter) y **formas de carga** (como el esqueleto de `GCard`: sobre `surface-sunken`, la vista previa de la paleta, no se verían) |
 | `--g-color-accent-soft`, `--g-color-on-accent-soft` | «+N» (par garantizado ≥ 4.5:1) |
 | `--g-radius-pill`, `--g-radius-sm`, `--g-radius-xs` | «+N»; caja del icono; formas de carga |
@@ -414,7 +415,7 @@ Importar y renderizar en el servidor no toca `document`, `window` ni `matchMedia
 | --- | --- | --- |
 | `label` | `title` | Traduce `GCombobox`; la ficha no acepta sinónimos |
 | `description` | `subtitle`, **solo si la opción no trae `facts`** | Como hoy («fila, si no hay `facts`»): con `facts`, `description` sigue siendo el respaldo de la descripción accesible (`ID-about`) y no se pinta dos veces |
-| `code` | `code` | Identificador: no cede |
+| `code` | `code` | Identificador: no cede por reparto; si él solo no cabe, elipsis y `title` |
 | `facts` | `facts` | Se añaden, **opcionales y aditivos**, `priority`, `short` y `bare` |
 | `avatar`, `icon` | `avatar`, `icon` | Tal cual; el slot `lead` de `GCombobox` pasa al slot `lead` de la ficha |
 | — | `highlight` | El texto buscado (solo en la opción) |
