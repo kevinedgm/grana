@@ -254,6 +254,8 @@
   --_icon: calc(var(--_fs) * 1.4);
   inline-size: var(--_h);
   padding-inline: 0;
+  /* Dentro de un contenedor flex el cuadrado no cede: encogido bajaba del mínimo de 24px de área táctil (21,5px en xs) */
+  flex: none;
 }
 /* El icono (svg inline) se posaría en la línea base del texto: se centra como flex. La caja mide el interlineado
    (no el icono, que es mayor): así el icono no añade altura al botón y se centra desbordando por igual */
