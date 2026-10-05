@@ -1,6 +1,6 @@
 # Contrato · GFileField
 
-**Dueño:** lima · **Estado:** aprobado (concepto **A «Línea de adjuntos»** por defecto, subida al añadir, envío bloqueado con subidas pendientes o fallidas y página entera que responde al arrastre: decisiones del usuario del 2026-10-05; **C** y **B** reservados para entregas siguientes; el resto deriva de HTML, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/file-field/r01/` (kiwi; base funcional: 29 decisiones, L1 a L16) y `design/lab/file-field/r02/` (kiwi, commit `3e6f81f`; conceptos A, B y C, comparativa, L17 a L25; `verificar.mjs` 558/558 en los tres motores) · **Decisiones:** DECISIONS.md **#366 a #378** · **Convive con:** `form.md` (contexto, `useFormField`, `GFormRow`, envío; Fase 5; error propio, #372), `summary.md` (cada archivo es una `GSummary`), `widget.md` (`GProgress`, nueva prop `showLabel`, #375), `btn.md` (acciones), `icons.md` v0.8 (`file-text`, `image`, #377), `speech.md` §4 (patrón de adaptador), `combobox.md` (entrada propia, sin `fetch`), `tokens.md` §35
+**Dueño:** lima · **Estado:** aprobado (concepto **A «Línea de adjuntos»** por defecto, subida al añadir, envío bloqueado con subidas pendientes o fallidas y página entera que responde al arrastre: decisiones del usuario del 2026-10-05; **C** y **B** reservados para entregas siguientes; el resto deriva de HTML, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/file-field/r01/` (kiwi; base funcional: 29 decisiones, L1 a L16) y `design/lab/file-field/r02/` (kiwi, commit `3e6f81f`; conceptos A, B y C, comparativa, L17 a L25; `verificar.mjs` 558/558 en los tres motores) · **Decisiones:** DECISIONS.md **#366 a #379** (#379: enmienda tras el estilo de coco, commit `7e3c7df`) · **Convive con:** `form.md` (contexto, `useFormField`, `GFormRow`, envío; Fase 5; error propio, #372), `summary.md` (cada archivo es una `GSummary`), `widget.md` (`GProgress`, nueva prop `showLabel`, #375), `btn.md` (acciones), `icons.md` v0.8 (`file-text`, `image`, #377), `speech.md` §4 (patrón de adaptador), `combobox.md` (entrada propia, sin `fetch`), `tokens.md` §35 · **Estilo medido:** `design/lab/file-field/estilo.md` (coco)
 **Tag:** `g-file-field` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/file-field` (#367)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GSummary`, `GProgress`, `GBtn` y `GIcon`; lleva un motor de estado: cola de subida, validación y arrastre de página; cambia `GForm`): **coco en Opus; bruno en el modelo avanzado de tareas pesadas**.
 
@@ -234,10 +234,10 @@ El campo **bloquea el envío de `GForm` por sí mismo**, sin que la aplicación 
             [is-awake is-awake-ok | is-awake is-awake-no] [is-over]">
   <label class="g-file-field__label" id="ID-label" for="ID">Fotos de la lesión{ (opcional)| *}</label>
   <div class="g-file-field__box">                                                   <!-- un clic fuera de fichas y botones llama a input.click() -->
-    <ul class="g-file-field__list" aria-label="Archivos de Fotos de la lesión">      <!-- solo con archivos; labels.list -->
+    <ul class="g-file-field__list" role="list" aria-label="Archivos de Fotos de la lesión">   <!-- solo con archivos; labels.list; role="list" explícito: VoiceOver deja de anunciar como lista un <ul> sin viñetas -->
       <li class="g-file-field__chip [is-landing]" data-state="uploading" [data-stored]>
         <span class="g-summary g-summary--layout-inline g-summary--size-xs">…</span>  <!-- nombre, tamaño, miniatura o icono; en error, el mensaje -->
-        <div class="g-progress g-progress--size-sm g-file-field__progress">…role="progressbar"…</div>   <!-- queued/uploading; sin fila de texto -->
+        <div class="g-progress g-progress--size-sm g-file-field__progress">…role="progressbar"…</div>   <!-- queued/uploading; showLabel: false y showValue: false: sin g-progress__row -->
         <span class="g-file-field__error" id="ID-e3-error" hidden>Error: Se interrumpió la conexión</span>   <!-- solo en error -->
         <button class="g-btn … g-file-field__retry" id="ID-e3-retry" aria-label="Reintentar radiografia.png" aria-describedby="ID-e3-error">[GIcon rotate-ccw]</button>   <!-- solo en error -->
         <button class="g-btn … g-file-field__remove" aria-label="Quitar lesion-frontal.png | Cancelar subida de lesion-frontal.png">[GIcon x]</button>
@@ -302,9 +302,9 @@ El campo **bloquea el envío de `GForm` por sí mismo**, sin que la aplicación 
 | --- | --- |
 | Área táctil ≥ 24px (≥ 44px con `pointer: coarse`) | La caja entera es el objetivo del control (≥ el alto de `GInput`, piso 24px; 44px táctil). «Quitar» y «Reintentar» ≥ 24px (44px táctil): la ficha mide **al menos** lo que sus botones y la caja crece por líneas si hace falta (L23, resuelto por coco en `fc3bf9c`: `GBtn` de solo icono ya no encoge en un flex) |
 | Texto ≥ 12px | El rol más pequeño es `caption` (pie) |
-| Contraste ≥ 4.5:1 (texto), 3:1 (controles y gráficos) | Texto de la cara, pista, estado, nombre y mensaje del fallo; **el avance de la ficha** se lee por un borde de `--g-color-accent` ≥ 3:1 (WCAG 1.4.11), no solo por el relleno suave (#375) |
+| Contraste ≥ 4.5:1 (texto), 3:1 (controles y gráficos) | Texto de la cara, pista, estado, nombre y mensaje del fallo; **el avance de la ficha** se lee por un borde de `--g-color-on-accent-soft` ≥ 3:1 (WCAG 1.4.11; medido ≥ 4,51:1 contra el relleno y ≥ 4,74:1 contra la ficha en los once temas; `accent` no llegaba a 3:1 en claro, #379), no solo por el relleno suave (#375). Texto de la cara en `soft`: `on-accent-soft` (≥ 4,74:1; `accent-text` sobre `surface-sunken` bajaba a 4,19:1) |
 | Foco siempre visible | Anillo en la caja con el control enfocado; anillo propio de cada `GBtn` |
-| No solo color | Error: mensaje en la ficha + «Reintentar»; subida: la forma del relleno + el estado; destino que no admite: texto y borde discontinuo; completado: filo + estado del pie |
+| No solo color | Error: mensaje en la ficha + «Reintentar»; subida: la forma del relleno + el estado; destino que no admite: texto y borde discontinuo (`border-control` ≥ 3:1); completado: filo + estado del pie |
 
 ---
 
@@ -323,7 +323,7 @@ Una **`GSummary` `layout="inline"` `size="xs"`** (`summary.md`) más acciones y 
 | `state` `error` | `facts: [{ label: labels.error, value: error, bare: true }]` | El mensaje **se ve** en la ficha (el tamaño pasa al lector, regla de `inline`); `bare` deja callar el rótulo si aprieta |
 
 - **Acciones al lado** (r01, 20): **«Reintentar {nombre}»** (`GBtn` de solo icono `rotate-ccw`, `labels.retry`, `aria-describedby` = el `g-file-field__error` oculto con `labels.error` + el mensaje) solo en `error`, y **un mismo botón** en el mismo sitio que dice **«Quitar {nombre}»** (`labels.remove`) o **«Cancelar subida de {nombre}»** (`labels.cancel`, en `queued` y `uploading`), icono `x`. Variante `ghost`, `color="neutral"`, `size="xs"`; ≥ 24px (44px táctil). Ninguna en solo lectura ni deshabilitado.
-- **Progreso: `GProgress` dentro de la ficha** en `queued` y `uploading` (L13, L20): `size="sm"`, `color="accent"`, **`showLabel: false`** y **`showValue: false`** (sin fila de texto: prop nueva de `GProgress`, `widget.md`), `label` = `labels.progress` (`{name}`, nombre accesible de la barra), `valueText` = `labels.progressText` (`{percent}`, `{loaded}`, `{total}`, formateados con `Intl`) y, en cola, `labels.queued` con `value` 0. **La ficha es la barra:** coco coloca el `GProgress` como **capa** de la ficha (detrás del contenido, sin puntero, sin alto propio) y pinta su relleno como el relleno de la ficha; el avance usa el `translate` del relleno de `GProgress` (sin layout; espejo en RTL por `GProgress`). Así la semántica (`role="progressbar"` con `aria-valuenow` y `aria-valuetext`) **es** lo que se ve, sin una barra oculta duplicada.
+- **Progreso: `GProgress` dentro de la ficha** en `queued` y `uploading` (L13, L20): `class="g-file-field__progress"`, `size="sm"`, `color="accent"`, **`showLabel: false`** y **`showValue: false`** (sin fila de texto: prop nueva de `GProgress`, `widget.md`), `label` = `labels.progress` (`{name}`, nombre accesible de la barra), `valueText` = `labels.progressText` (`{percent}`, `{loaded}`, `{total}`, formateados con `Intl`) y, en cola, `labels.queued` con `value` 0. **La ficha es la barra:** coco coloca el `GProgress` como **capa** de la ficha (detrás del contenido, sin puntero, sin alto propio) y pinta su relleno como el relleno de la ficha; el avance usa el `translate` del relleno de `GProgress` (sin layout; espejo en RTL por `GProgress`). Así la semántica (`role="progressbar"` con `aria-valuenow` y `aria-valuetext`) **es** lo que se ve, sin una barra oculta duplicada.
 - **Altos:** **Δ0 de la ficha** entre `queued`, `uploading`, `done` y `error` (kiwi lo midió en los tres motores). La ficha mide lo mismo en todos los estados.
 
 ## Disposición (concepto A; L18)
@@ -331,7 +331,7 @@ Una **`GSummary` `layout="inline"` `size="xs"`** (`summary.md`) más acciones y 
 - **Caja vacía** = la caja de un `GInput` del mismo `size` y `density` (mismo alias de alto, derivado de `--g-space-1`; piso 24px, 44px táctil): borde, radio, fondo y foco de la familia de los campos.
 - **Con archivos:** las fichas fluyen **en línea** dentro de la caja (salto de línea al llenarse) y la última pieza es «Adjuntar»; la caja crece **hacia abajo** por líneas; nada de encima se mueve. Cada línea de fichas mide al menos lo que sus botones (24px; 44px táctil): en `xs`, `sm` o `compact` la caja con fichas puede ser más alta que la de un `GInput` vecino, **con la parte superior alineada** (pista 2 de la fila, `align-self: start`).
 - **«Adjuntar»** muestra el texto de la cara (`ID-action`): vacío y editable, `labels.add` (sin `multiple`) o `labels.addMany`; con archivos, `labels.addMore` (con `multiple`) o `labels.change` (sin él); lleno, `labels.full` (`{count}`, `{max}`); solo lectura, `labels.readonly` (o `labels.none` sin archivos). Vacío y editable, la **pista** se ve a su lado (copia `aria-hidden`; la de `ID-hint` va al pie, oculta a la vista mientras está la copia y visible con archivos).
-- **En una `GFormRow`:** admitido como hijo; tres pistas por `subgrid` como `GInput` (coco). Para que la fila se parta **antes** de que «Adjuntar» quede sin sitio, coco **mide** el ancho mínimo funcional de A (una ficha con el nombre en su suelo y «Quitar», y «Adjuntar archivo» entero, en `md`) y declara **`--g-form-min`** con ese valor en `space` sobre `.g-form-row > .g-file-field` (propiedad pública de entrada, `form.md` §4: el consumidor la sobrescribe), como `GCombobox` (`--g-form-min: 60`). Sin `setIntrinsicMin`.
+- **En una `GFormRow`:** admitido como hijo; tres pistas por `subgrid` como `GInput` (coco). Para que la fila se parta **antes** de que «Adjuntar» quede sin sitio, coco **mide** el ancho mínimo funcional de A (una ficha con el nombre en su suelo y «Quitar», y «Adjuntar archivo» entero, en `md`) y declara **`--g-form-min: 62`** (en `space`) sobre `.g-form-row > .g-file-field` (propiedad pública de entrada, `form.md` §4: el consumidor la sobrescribe), como `GCombobox` (`--g-form-min: 60`). **Medido** (`estilo.md`): borde 2 + relleno 6 + lista en su suelo 96 + separación 4 + «Adjuntar archivo» 137 = 245 px = `space × 61,3`; con 60 «Adjuntar archivo» bajaba de línea entre 552 y 536 px (#379). Depende de la fuente y del idioma de `labels.add`: el consumidor lo sube con `style`. Sin `setIntrinsicMin`.
 - Fuera de una fila, el ancho es del consumidor; A funciona a cualquier ancho (las fichas se apilan; a 320px, sin desbordamiento ni en LTR ni en RTL, medido por kiwi).
 
 ## Arrastre de página y destino (#373; decisión del usuario 4; L11, L19)
@@ -341,9 +341,9 @@ Una **`GSummary` `layout="inline"` `size="xs"`** (`summary.md`) más acciones y 
 - **Protección siempre activa** (no es opción): mientras haya un campo montado, un `dragover` con archivos que nadie atendió (`!defaultPrevented`) recibe `preventDefault()` y `dropEffect = 'none'`, y un `drop` con archivos que nadie atendió recibe `preventDefault()`: el navegador **no** navega al archivo y la página no pierde lo escrito (r01, 13). Las escuchas van en fase de burbuja: un destino propio de la aplicación que llama a `preventDefault()` sigue funcionando.
 - **Despertar:** con `dragging`, un campo **despierta** (`is-awake`) si **no** está en solo lectura ni deshabilitado, **no** está dentro de un subárbol `inert` (un `GFormReveal` cerrado, una sección plegada, la página bajo un modal), **está a la vista** (tiene cajas de layout) y, si hay un `<dialog>` modal abierto, **está dentro del superior** (`topModal.js`). Además lleva **`is-awake-ok`** si admite lo que se arrastra y no está lleno, o **`is-awake-no`** si no.
 - **Tipos durante el arrastre** (`dragAccepts`, r01, 12): el navegador solo da el MIME (Safari a veces ni eso; nunca el nombre). Si `accept` lleva alguna extensión, o no hay tipos, **se da por bueno** y la decisión final es al soltar (con el aviso de no añadidos si toca); si no, cada MIME debe casar con `accept`.
-- **El destino** (`g-file-field__target`, `aria-hidden`): capa encima de la caja, **más grande que ella** (kiwi: `space × 2` por lado, 358 × 50 sobre 344 × 36), **solo pintura** (Δ0 de la caja y de lo que la sigue). Recibe el puntero **solo** con `is-awake-ok` (hace el blanco más fácil); en reposo no existe para el puntero. Textos: despierto y admite, `labels.drop` (`{hint}` = la prop `hint`); despierto y no admite, `labels.dropRejected`; lleno, `labels.dropFull`; **encima** (`is-over`, la raíz o el destino reciben `dragenter`), `labels.dropInto` (`{label}`) si admite o `labels.dropRejected` si no (`dropEffect = 'none'`: el navegador no entrega el `drop`).
+- **El destino** (`g-file-field__target`, `aria-hidden`): capa encima de la caja, **más grande que ella** (kiwi medía `space × 2` por lado; **medido por coco y vigente: `space × 1`** por lado, acotado en línea por `column-gap × 0.375`, #379; con `space × 2` dos destinos vecinos se solapaban en `compact`), **solo pintura** (Δ0 de la caja y de lo que la sigue). Recibe el puntero **solo** con `is-awake-ok` (hace el blanco más fácil); en reposo no existe para el puntero. Textos: despierto y admite, `labels.drop` (`{hint}` = la prop `hint`); despierto y no admite, `labels.dropRejected`; lleno, `labels.dropFull`; **encima** (`is-over`, la raíz o el destino reciben `dragenter`), `labels.dropInto` (`{label}`) si admite o `labels.dropRejected` si no (`dropEffect = 'none'`: el navegador no entrega el `drop`).
 - **Soltar en un campo** añade (vía `drop`) con la validación de siempre. **Al soltar en cualquier sitio, salir de la ventana o `dragend`**, todo se apaga.
-- **Lo que no hace:** no hay zona fija; los destinos no anuncian nada (arrastrar es un gesto de puntero; las tres vías siguen); dos destinos vecinos de una `GFormRow` **no se solapan** (coco lo mide con la separación de columna en `compact`).
+- **Lo que no hace:** no hay zona fija; los destinos no anuncian nada (arrastrar es un gesto de puntero; las tres vías siguen); dos destinos vecinos de una `GFormRow` **no se solapan** (el sobresaliente en línea es `min(space × 1, column-gap × 0.375)`: `0,375` = densidad `compact` 0,75 / 2, así no depende de la densidad del campo; medido: 4 px por lado y 4 px entre vecinos en `compact`).
 
 ## Teclado
 
@@ -452,18 +452,18 @@ Con `prefers-reduced-motion: reduce` **nada se desplaza ni se escala** (§29.3);
 | Los de la caja de `GInput` (`--g-color-surface`, `--g-color-border-control`, `--g-color-surface-sunken` en `soft` y solo lectura, `--g-radius-{rounded}`, `--g-border-width`, `--g-space-1`) | Caja, alto, rellenos y separaciones (piso 24px, 44px táctil) |
 | `--g-focus-width`, `--g-focus-offset`, `--g-color-focus` | Anillo de la caja con el control enfocado |
 | `--g-color-surface-sunken`, `--g-radius-xs` | Fondo y radio de la ficha |
-| `--g-color-accent-soft` + `--g-color-accent` | Relleno de la ficha que sube + su borde de avance (≥ 3:1, WCAG 1.4.11) |
+| `--g-color-accent-soft` + `--g-color-on-accent-soft` | Relleno de la ficha que sube + su **frente de avance** (≥ 3:1, WCAG 1.4.11; `accent` no llega en claro, #379) |
 | `--g-color-success-text` | Filo de la ficha subida en esta sesión |
 | `--g-color-danger-soft`, `--g-color-on-danger-soft`, `--g-color-danger-text` | Ficha en error; borde de la caja con error (`is-invalid`) y mensaje |
 | `--g-color-warning-soft`, `--g-color-on-warning-soft` | Aviso de no añadidos |
-| `--g-color-accent-text` | Texto de «Adjuntar» (kiwi: 5.69:1 sobre la superficie) |
+| `--g-color-accent-text`, `--g-color-on-accent-soft` | Texto de «Adjuntar» (kiwi: 5.69:1 sobre la superficie); en la variante `soft` (sobre `surface-sunken`), `on-accent-soft` (4,74:1; `accent-text` daba 4,19:1 en apple claro, #379) |
 | `--g-color-text-muted`, `--g-color-text-subtle` | Pista, estado, cara llena y en solo lectura; deshabilitado |
-| `--g-color-accent`, `--g-color-on-accent`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-border-strong`, `--g-radius-md` | Destino (admite, encima, no admite con borde discontinuo) |
+| `--g-color-accent`, `--g-color-on-accent`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-border-control`, `--g-color-text-muted`, `--g-radius-md` | Destino: admite (relleno `accent-soft`, texto y **borde `on-accent-soft`**), encima (relleno `accent` con `on-accent`), no admite (borde discontinuo `border-control` ≥ 3:1, no `border-strong`: es translúcido, ≈ 1,5:1; texto `text-muted`) |
 | Roles `body-sm`, `caption` y el peso `action` (`tokens.md` §23) | Etiqueta y cara, pie |
 | `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`, `--g-ease-standard` | «Movimiento» |
 
 - **Fondo del destino (L25):** `--g-color-accent-soft` **sólido** por defecto (el texto del destino ya nombra el campo: no hace falta ver la caja debajo). Si coco prefiere dejar ver la caja con `color-mix`, el porcentaje es una **constante de diseño** que anota en su `estilo.md` y mide el contraste del texto del destino sobre el resultado **en el tema claro, en el oscuro y en uno distinto**.
-- **No son tokens:** `0.86` (§29.6); el sobresaliente del destino (`space × 2` por lado en el prototipo) y la base de ancho de una ficha (`space × 52` en el prototipo): constantes de diseño derivadas de `space` que fija coco en su `estilo.md`; **`--g-form-min`** que declara el CSS en una `GFormRow` (propiedad de entrada de §21, no del tema); `concurrency` (prop) y el coalescido del progreso a un cuadro (JS); `24px`/`44px` (§7).
+- **No son tokens:** `0.86` (§29.6); el sobresaliente del destino (`space × 1` por lado, acotado en línea por `column-gap × 0.375`) y la base de ancho de una ficha (`space × 52`): constantes de diseño derivadas de `space` que fija coco en su `estilo.md`; **`--g-form-min: 62`** que declara el CSS en una `GFormRow` (propiedad de entrada de §21, no del tema); `concurrency` (prop) y el coalescido del progreso a un cuadro (JS); `24px`/`44px` (§7).
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -472,8 +472,8 @@ Bruno emite estas; coco las estiliza.
 | Clase / dato | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-file-field`, `--size-{xs\|sm\|md\|lg\|xl}`, `--variant-{outline\|soft}`, `--density-{…}`, `--rounded-{…}`, `--block` | Raíz | Según props (como `GInput`) |
-| `is-ready` | Raíz | Tras montar (nada se anima antes) |
-| `has-files`, `is-multiple`, `is-full` | Raíz | Hay entradas; `multiple`; `max` alcanzado |
+| `is-ready` | Raíz | Tras montar (nada se anima antes: las transiciones del destino y del mensaje solo existen con ella) |
+| `has-files`, `is-multiple`, `is-full` | Raíz | Hay entradas; `multiple` (cambia la disposición: sin ella, una ficha que llena la línea y «Cambiar archivo» al final); `max` alcanzado |
 | `is-readonly`, `is-disabled` | Raíz | Resueltos con la precedencia de `GForm` |
 | `is-invalid`, `is-warning`, `is-valid` | Raíz | Mensaje visible de ese tipo (error de la aplicación o propio) |
 | `is-rejected` | Raíz | Rechazo al enviar (#304) |
@@ -481,23 +481,25 @@ Bruno emite estas; coco las estiliza.
 | `is-over` | Raíz | El arrastre está sobre este campo (con `is-awake-ok` admite; con `is-awake-no`, no) |
 | `g-file-field__label`, `__optional`, `__required` | Etiqueta y marcas | Como `GInput` |
 | `g-file-field__box` | Caja | Siempre |
-| `g-file-field__list` | `<ul>` | Con archivos |
-| `g-file-field__chip` + **`data-state`** (`ready` `queued` `uploading` `done` `error`) + **`data-stored`** (guardado) + `is-landing` | `<li>` de cada archivo | Por entrada. Se estiliza por atributo (no `is-ready`, que ya es de la raíz) |
-| `g-file-field__progress` | El `GProgress` de la ficha | `queued`, `uploading` |
+| `g-file-field__list` | `<ul role="list">` | Con archivos (`role="list"` explícito: con `list-style: none` VoiceOver dejaría de anunciarlo como lista) |
+| `g-file-field__chip` + **`data-state`** (`ready` `queued` `uploading` `done` `error`) + **`data-stored`** (atributo vacío, solo guardados) + `is-landing` | `<li>` de cada archivo | Por entrada. Se estiliza por atributo (no `is-ready`, que ya es de la raíz); el filo de éxito sale de `[data-state="done"]:not([data-stored])` |
+| `is-landing` | `<li>` (`__chip`) | Solo al añadir por un gesto (nunca al montar ni al conciliar el modelo). Bruno la retira en `animationend`/`animationcancel` cuyo `animationName` empiece por **`g-file-field-land`** (con `reduce` también hay animación: `g-file-field-land-fade`, solo fundido), o en el acto si `animationName` es `none` |
+| `g-file-field__progress` | El `GProgress` de la ficha (`class`) | `queued`, `uploading`; con `showLabel: false` y `showValue: false`: **sin `g-progress__row`** (su texto quedaría dentro de la capa) |
 | `g-file-field__error` | Texto oculto (`hidden`) del fallo | `error` |
 | `g-file-field__retry`, `__remove` | Los `GBtn` de la ficha | Según estado; editable |
-| `g-file-field__add`, `__input`, `__add-icon`, `__action`, `__add-hint` | Pieza «Adjuntar» y el control | Siempre (`__add-hint` vacío y editable) |
+| `g-file-field__add`, `__input`, `__add-icon`, `__action`, `__add-hint` | Pieza «Adjuntar» y el control | Siempre (`__add-hint` **solo** vacío y editable: su presencia oculta a la vista la pista del pie, `:has`) |
 | `g-file-field__target`, `__target-text` | Destino | Siempre en el DOM; visible con `is-awake` |
 | `g-file-field__foot`, `__meta`, `__hint`, `__status` | Pie | Siempre (`__status` con texto) |
 | `g-file-field__notice`, `__notice-list` | Aviso de no añadidos | Tras un gesto con rechazos |
 | `g-file-field__message` | Región de mensaje | Siempre (vacía = sin nodos de texto, `form.md` §1) |
+| `g-file-field__message-type`, `__message-icon` | Prefijo oculto (`labels.error` de `GForm`) y `GIcon` del mensaje | Con mensaje, como las partes de `GInput` |
 | `g-file-field__live` | Región viva | Siempre (y su copia en el modal superior, cuando toca) |
 
 **Para coco:**
 
 - **La caja es la de un campo:** mismo alto que `GInput` vacía (Δ0 de `top` y alto con un `GInput` vecino en una `GFormRow`, en los tres motores); `:has(.g-file-field__input:focus-visible)` pinta el anillo; `cursor: pointer` en la caja editable; con archivos, flex con salto; la pieza «Adjuntar» ocupa el resto de la última línea vacía y su ancho natural con fichas.
-- **Ficha:** `GSummary` `inline` `xs` reapuntada si hace falta sobre `danger-soft` (como `GCombobox` sobre `selection`: selectores propios sobre `g-summary__*`, `GSummary.css` no conoce al anfitrión); **medir** nombre, tamaño y mensaje de fallo ≥ 4.5:1 sobre `surface-sunken`, `accent-soft` (subiendo) y `danger-soft`, en claro, oscuro y un tema distinto. `GProgress` como capa: barra sin contorno ni fondo, del tamaño de la ficha, detrás del contenido, `pointer-events: none`; relleno `accent-soft` con su **borde de avance `accent`** (≥ 3:1 contra la superficie de la ficha, medido); el resto de `GProgress.css` intacto. Botones `flex: none`, ≥ 24px (44px táctil).
-- **Destino:** capa absoluta mayor que la caja, sin layout (Δ0 de la caja y del siguiente elemento al despertar), puntero solo con `is-awake-ok`; tres apariencias distinguibles **sin color** (admite: borde sólido; encima: relleno sólido `accent` con `on-accent`; no admite o lleno: borde discontinuo y tono apagado), con texto ≥ 4.5:1. Dos destinos vecinos no se solapan.
+- **Ficha:** `GSummary` `inline` `xs` reapuntada si hace falta sobre `danger-soft` (como `GCombobox` sobre `selection`: selectores propios sobre `g-summary__*`, `GSummary.css` no conoce al anfitrión); **medir** nombre, tamaño y mensaje de fallo ≥ 4.5:1 sobre `surface-sunken`, `accent-soft` (subiendo) y `danger-soft`, en claro, oscuro y un tema distinto. `GProgress` como capa: barra sin contorno ni fondo, del tamaño de la ficha, detrás del contenido, `pointer-events: none`; relleno `accent-soft` con su **borde de avance `on-accent-soft`** (≥ 3:1 contra el relleno y contra la ficha, medido; #379); el resto de `GProgress.css` intacto. Botones `flex: none`, ≥ 24px (44px táctil).
+- **Destino:** capa absoluta mayor que la caja, sin layout (Δ0 de la caja y del siguiente elemento al despertar), puntero solo con `is-awake-ok`; tres apariencias distinguibles **sin color** (admite: borde sólido; encima: relleno sólido `accent` con `on-accent`; no admite o lleno: borde discontinuo `border-control` y tono apagado), con texto ≥ 4.5:1; el borde del que admite es `on-accent-soft` (#379). Sobresaliente `space × 1` acotado. Dos destinos vecinos no se solapan.
 - **`--g-form-min`** de A medido (ver «Disposición»).
 - **`forced-colors`:** ficha con borde `CanvasText`; destino con `Highlight`; progreso visible (la barra de `GProgress` ya tiene regla; comprobar que la capa no la oculta); anillo del control con `Highlight`; error con texto (no depende del fondo).
 - **Movimiento** de la tabla, con `reduce` y sin nada al montar; nombres de keyframes `g-file-field-land…` y `g-reject-file-field…`.
@@ -561,6 +563,17 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 | L23 | `GBtn` en flex | **Resuelto por coco** (`fc3bf9c`, spec `btn-icon-flex`); el contrato exige ≥ 24px en la ficha | — |
 | L24 | Movimiento | Sin tokens nuevos y **sin usos nuevos del muelle**: aterrizaje con `--g-ease-out` (era una entrada); destino con fundido | #376 |
 | L25 | Superficie del destino | `accent-soft` sólido por defecto; `color-mix` solo con contraste medido y constante anotada | #376 |
+
+### Estilo de coco (`design/lab/file-field/estilo.md`, commit `7e3c7df`; DECISIONS #379)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L26 | Colores que no cumplían en todos los temas | El frente de avance de la ficha y el borde del destino que admite pasan de `accent` a **`on-accent-soft`** (`accent` en claro: spotify 1,15, amazon 1,88, stripe 2,34, linear 2,86; `on-accent-soft` ≥ 4,51:1 en los once temas); el discontinuo del destino que no admite, de `border-strong` (translúcido, ≈ 1,5:1) a **`border-control`** (≥ 3,43:1); la cara de la variante `soft`, de `accent-text` a **`on-accent-soft`** (4,19 → 4,74:1 en apple claro) | #379 |
+| L27 | Sobresaliente del destino | `space × 1` acotado en línea por `column-gap × 0.375` (con `space × 2`, dos vecinos se solapaban en `compact`) | #379 |
+| L28 | `--g-form-min` | **62**, medido (suma 245 px; con 60 «Adjuntar archivo» bajaba de línea) | #379 |
+| L29 | Clases y datos | Añadidas a «Clases y datos»: `is-multiple`, `data-state`, `data-stored`, `__message-type`, `__message-icon`, `__add-hint`, `is-landing` y su retirada, `is-ready`, `role="list"`, `GProgress` con `class="g-file-field__progress"`, `showLabel: false`, `showValue: false` | #379 |
+
+**Pendiente fuera de este componente (coco; no es de `GFileField`):** dentro de una `GFormRow`, la caja de `GInput`, `GSelect`, `GInputGroup` y `GDatePicker` **se estira** cuando un vecino es más alto (medido: 156 px de `GInput` junto a un `GFileField` con cuatro fichas en dos líneas; `estilo.md`, «Pendientes»). Solución propuesta: `align-self: start` en esas cajas dentro de la fila (`.g-form-row > .g-input > .g-input__row` y equivalentes). La regla de `form.md` §4 «Caja» se precisa para que lo cubra (una caja más alta alarga su línea, no estira a sus vecinas); está escrita allí.
 
 ## Límites conocidos (para el README)
 
@@ -627,7 +640,7 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): el control oculto con nombre com
 
 1. **Concepto A** con los tokens de «Tokens consumidos» y las clases de «Clases y datos», siguiendo «Para coco». Plan de movimiento en `plans/` si lo necesita.
 2. **Medir y declarar `--g-form-min`** de A (en `space`) sobre `.g-form-row > .g-file-field`.
-3. **Ficha:** `GProgress` como capa con borde de avance `accent` ≥ 3:1 (medido); reapuntar la `GSummary` sobre `danger-soft` y `accent-soft` con contraste medido en claro, oscuro y un tema distinto.
+3. **Ficha:** `GProgress` como capa con frente de avance `on-accent-soft` ≥ 3:1 (medido, #379); reapuntar la `GSummary` sobre `danger-soft` y `accent-soft` con contraste medido en claro, oscuro y un tema distinto.
 4. **Destino:** cuatro apariencias distinguibles sin color, Δ0, vecinos sin solape en `compact`; decidir sólido o `color-mix` (L25) y anotarlo en `design/lab/file-field/estilo.md`.
 5. **Movimiento:** `g-file-field-land…` (`--g-duration-press`, `--g-ease-out`, escala desde `0.86`), fundido de los destinos, `g-reject-file-field…`; nada con `reduce`; nada al montar.
 6. **`forced-colors`** con medida. Registrar `GFileField.css` en `components.css` lo hace bruno.
