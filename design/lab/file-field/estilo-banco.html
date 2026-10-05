@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFileField · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/file-field.md («Estructura accesible» y «Clases y datos») con el CSS
+     real de GFileField.css (cargado DENTRO de la capa grana.components, después de todo dist/grana.css, como lo registrará
+     bruno) y los componentes reales de dist/ (GSummary, GBtn, GIcon, GInput, GForm, GFormLayout, GFormRow). XFileField
+     pinta lo que pintará GFileField.vue y solo lo que el estilo necesita: estados de la ficha (data-state, data-stored,
+     is-landing retirada en animationend de g-file-field-land… o en el acto), progreso, aviso, mensaje, destino
+     (is-awake, is-awake-ok/-no, is-over) e is-rejected (retirada en animationend de g-reject…). El GProgress de la ficha
+     se escribe a mano con el marcado exacto de GProgress con showLabel: false y showValue: false (la prop showLabel es
+     de bruno y aún no está en dist/). No es documentación ni la implementación de bruno.
+     Requiere dist/ (npm run build). Desde la raíz:  python3 -m http.server 4211  →  /design/lab/file-field/estilo-banco.html
+     Parámetros: ?dark=1  ?test=1 (Tema de prueba)  ?theme=<generated/*.css>  ?slow=1 (×5)  ?dir=rtl  ?drag=1
+     Verificación: GRANA_PW_PORT=4211 node design/lab/file-field/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GFileField/GFileField.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="test-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:30vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .stack{display:grid;gap:var(--g-space-5)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:var(--g-space-6);align-items:start}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .tag{font-size:12px;color:var(--g-color-text-muted);margin:0 0 4px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GFileField · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Línea de adjuntos». La caja mide lo que un GInput; las fichas nacen de «Adjuntar», se llenan al subir (frente de avance accent) y se subrayan al terminar. «Despertar» simula el arrastre de archivos sobre la página.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="drag = drag ? 0 : 1">{{ drag ? 'Dormir' : 'Despertar (arrastre)' }}</button>
+  <button type="button" @click="add('multi')">Añadir a «Fotos»</button>
+  <button type="button" @click="tick">Avanzar subida</button>
+  <button type="button" @click="reject">Rechazar al enviar</button>
+</div>
+
+<h2 class="b">1 · En una GFormRow junto a GInput · Δ0 de top y alto (vacía y con un archivo) por tamaño y densidad</h2>
+<div class="host stack">
+  <template v-for="d in DENSITIES" :key="d">
+    <g-form v-for="s in SIZES" :key="d + s" :density="d">
+      <g-form-layout>
+        <g-form-row>
+          <g-input :data-case="'in-' + s + '-' + d" :size="s" label="Folio de receta" hint="Del recetario"></g-input>
+          <x-file-field :case="'empty-' + s + '-' + d" :size="s" :density="d" label="Receta escaneada" hint="PDF o imagen · hasta 5 MB"></x-file-field>
+        </g-form-row>
+        <g-form-row>
+          <g-input :data-case="'in1-' + s + '-' + d" :size="s" label="Folio del comprobante"></g-input>
+          <x-file-field :case="'one-' + s + '-' + d" :size="s" :density="d" label="Comprobante" :entries="[E.ready]" hint="PDF · hasta 5 MB"></x-file-field>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+  </template>
+</div>
+
+<h2 class="b">2 · La ficha en sus estados (Δ0 entre estados) · variantes</h2>
+<div class="host stack">
+  <x-file-field case="multi" label="Fotos de la lesión" multiple :max="8" :entries="multi" hint="Imagen · hasta 8 MB · máximo 8" block></x-file-field>
+  <div class="grid">
+    <x-file-field case="soft" variant="soft" label="Soft" multiple :entries="[E.ready, E.up, E.err, E.done]" block></x-file-field>
+    <x-file-field case="pill" rounded="pill" label="Píldora" :entries="[E.done]" block></x-file-field>
+    <x-file-field case="ro" readonly label="Solo lectura" multiple :entries="[E.stored, E.ready]" block></x-file-field>
+    <x-file-field case="ro-empty" readonly label="Solo lectura vacío" block></x-file-field>
+    <x-file-field case="dis" disabled label="Deshabilitado" multiple :entries="[E.stored, E.ready]" hint="PDF · hasta 5 MB" block></x-file-field>
+    <x-file-field case="full" label="Lleno" multiple :max="2" full :entries="[E.stored, E.done]" block></x-file-field>
+    <x-file-field case="inv" label="Con error del campo" message="Adjunta la receta" msg-type="error" multiple :entries="[E.err]" block></x-file-field>
+    <x-file-field case="warn" label="Advertencia" message="La imagen es pequeña" msg-type="warning" :entries="[E.ready]" block></x-file-field>
+    <x-file-field case="valid" label="Válido" message="Listo" msg-type="valid" :entries="[E.done]" block></x-file-field>
+    <x-file-field case="notice" label="Aviso de no añadidos" multiple :entries="[E.ready]" :notice="NOTICE" block></x-file-field>
+  </div>
+  <div class="grid">
+    <x-file-field v-for="s in SIZES" :key="s" :case="'states-' + s" :size="s" :label="'Estados ' + s" multiple :entries="[E.ready, E.queued, E.up, E.done, E.err, E.stored]" block></x-file-field>
+  </div>
+</div>
+
+<h2 class="b">3 · Destino de soltar · cuatro apariencias · vecinos en compact (sin solape)</h2>
+<div class="host stack">
+  <g-form density="compact">
+    <g-form-layout>
+      <g-form-row>
+        <x-file-field case="t-ok" density="compact" label="Receta" accept=".pdf" :awake="drag ? 'ok' : null" :drop-text="'Soltar aquí · PDF'"></x-file-field>
+        <x-file-field case="t-over" density="compact" label="Comprobante" :awake="drag ? 'ok' : null" :over="!!drag" :drop-text="'Soltar en Comprobante'"></x-file-field>
+        <x-file-field case="t-no" density="compact" label="Fotos" :awake="drag ? 'no' : null" :drop-text="'No admite estos archivos'"></x-file-field>
+      </g-form-row>
+      <g-form-row>
+        <x-file-field case="t-overno" density="compact" label="INE" :awake="drag ? 'no' : null" :over="!!drag" :drop-text="'INE no admite estos archivos'" :entries="[E.ready]"></x-file-field>
+        <x-file-field case="t-full" density="compact" label="Lleno" multiple :max="1" full :awake="drag ? 'no' : null" :drop-text="'Lleno: 1 de 1'" :entries="[E.done]"></x-file-field>
+        <g-input data-case="t-input" label="Folio"></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">4 · 320px · LTR y RTL</h2>
+<div class="grid">
+  <div class="host w320" data-case="w320-ltr">
+    <x-file-field case="n-ltr" label="Fotos de la lesión" multiple :entries="NARROW" :awake="drag ? 'ok' : null" :drop-text="'Soltar aquí'" block></x-file-field>
+    <x-file-field case="n-ltr-one" label="Receta" :entries="[E.up]" block style="margin-top:16px"></x-file-field>
+  </div>
+  <div class="host w320" dir="rtl" lang="ar" data-case="w320-rtl">
+    <x-file-field case="n-rtl" label="صور" multiple :entries="NARROW" :awake="drag ? 'ok' : null" :drop-text="'أفلت هنا'" block></x-file-field>
+    <x-file-field case="n-rtl-one" label="وصفة" :entries="[E.up]" block style="margin-top:16px"></x-file-field>
+  </div>
+</div>
+
+<h2 class="b">5 · --g-form-min: barrido de una fila con GInput (un archivo, md)</h2>
+<div class="host" data-case="sweep-host" style="inline-size:900px;max-inline-size:100%">
+  <g-form>
+    <g-form-layout>
+      <g-form-row>
+        <g-input data-case="sw-in" label="Folio de receta"></g-input>
+        <x-file-field case="sw-ff" label="Receta escaneada" :entries="[E.long]" face="Adjuntar archivo"></x-file-field>
+      </g-form-row>
+      <g-form-row>
+        <g-input data-case="tall-in" label="Folio de la consulta"></g-input>
+        <x-file-field case="tall-ff" label="Fotos" multiple :entries="NARROW"></x-file-field>
+      </g-form-row>
+      <g-form-row>
+        <g-input data-case="sw2-in" label="Folio"></g-input>
+        <x-file-field case="sw2-ff" label="Receta" :entries="[E.long]" style="--g-form-min: 80"></x-file-field>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+<div class="host" style="margin-top:16px">
+  <p class="tag">Medida de --g-form-min: caja que se encoge a su contenido mínimo</p>
+  <x-file-field case="minw" label="Receta" :entries="[E.long]" face="Adjuntar archivo" style="inline-size:min-content"></x-file-field>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, h, ref, reactive, computed, nextTick, watch } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const reg = window.__ff = { items: new Map() }
+
+// Miniatura de prueba (una imagen que el navegador pinta)
+const thumb = (() => { const c = document.createElement('canvas'); c.width = c.height = 40; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 40, 40); g.addColorStop(0, '#d9a07a'); g.addColorStop(1, '#7a4a3a'); x.fillStyle = g; x.fillRect(0, 0, 40, 40); x.fillStyle = '#f3d6c2'; x.beginPath(); x.arc(22, 18, 9, 0, 7); x.fill(); return c.toDataURL('image/png') })()
+const fmt = (b) => new Intl.NumberFormat('es-MX', { style: 'unit', unit: b >= 1e6 ? 'megabyte' : 'kilobyte', unitDisplay: 'short', maximumFractionDigits: (b >= 1e6 ? b / 1e6 : b / 1e3) < 10 ? 1 : 0 }).format(b >= 1e6 ? b / 1e6 : b / 1e3)
+let seq = 0
+const entry = (o) => ({ key: 'k' + (++seq), size: 220000, type: 'application/pdf', state: 'ready', progress: 0, ...o })
+const E = {
+  ready: entry({ name: 'Receta médica.pdf' }),
+  queued: entry({ name: 'lesion-lateral.png', type: 'image/png', size: 48211, state: 'queued', thumb }),
+  up: entry({ name: 'lesion-frontal.png', type: 'image/png', size: 48211, state: 'uploading', progress: 0.42, thumb }),
+  done: entry({ name: 'lesion-dorsal.png', type: 'image/png', size: 51022, state: 'done', thumb }),
+  err: entry({ name: 'radiografia.png', type: 'image/png', size: 51022, state: 'error', error: 'Se interrumpió la conexión', thumb }),
+  stored: entry({ name: 'Estudio previo.pdf', state: 'done', stored: true }),
+  long: entry({ name: 'Receta escaneada del doctor Villaseñor octubre.pdf' })
+}
+const NARROW = [E.ready, E.up, E.err, E.done]
+const NOTICE = [{ name: 'enorme.png', text: 'pesa 9 MB, el máximo es 8 MB' }, { name: 'nota.txt', text: 'no es una imagen' }]
+
+// ---------- XFileField: el marcado del contrato, sin motor ----------
+let uid = 0
+const XFileField = {
+  name: 'XFileField', inheritAttrs: false,
+  props: { case: String, label: String, hint: String, entries: { type: Array, default: () => [] }, multiple: Boolean, max: Number, full: Boolean, readonly: Boolean, disabled: Boolean,
+    size: { type: String, default: 'md' }, variant: { type: String, default: 'outline' }, density: { type: String, default: 'default' }, rounded: String, block: Boolean,
+    message: String, msgType: String, notice: Array, awake: String, over: Boolean, dropText: String, accept: String, face: String },
+  setup(props, { attrs, expose }) {
+    const id = 'ff' + (++uid)
+    const rootEl = ref(null), inputEl = ref(null)
+    const rejected = ref(false), ready = ref(false), landing = reactive(new Set())
+    const live = reactive({ list: null })
+    nextTick(() => { ready.value = true })
+    const api = { root: () => rootEl.value, input: () => inputEl.value, reject() { rejected.value = false; nextTick(() => { rejected.value = true; nextTick(() => { if (getComputedStyle(rootEl.value.querySelector('.g-file-field__box')).animationName === 'none') rejected.value = false }) }) },
+      land(key) { landing.add(key); nextTick(() => { const li = rootEl.value.querySelector(`[data-key="${key}"]`); if (li && getComputedStyle(li).animationName === 'none') landing.delete(key) }) } }
+    reg.items.set(props.case, api)
+    const onAnimEnd = (e) => {
+      const n = String(e.animationName || '')
+      if (n.startsWith('g-reject')) rejected.value = false
+      if (n.startsWith('g-file-field-land')) { const k = e.target.dataset.key; if (k) landing.delete(k) }
+    }
+    const onAnimCancel = onAnimEnd
+    return () => {
+      const files = props.entries
+      const has = files.length > 0
+      const editable = !props.readonly && !props.disabled
+      const awake = editable ? props.awake : null
+      const msg = props.message
+      const face = props.face || (props.readonly ? (has ? 'Solo lectura' : 'Sin archivos') : props.full ? `${files.length} de ${props.max}` : has ? (props.multiple ? 'Añadir más' : 'Cambiar archivo') : (props.multiple ? 'Adjuntar archivos' : 'Adjuntar archivo'))
+      const cls = ['g-file-field', `g-file-field--size-${props.size}`, `g-file-field--variant-${props.variant}`, `g-file-field--density-${props.density}`, props.rounded && `g-file-field--rounded-${props.rounded}`, props.block && 'g-file-field--block',
+        { 'is-ready': ready.value, 'has-files': has, 'is-multiple': props.multiple, 'is-full': props.full, 'is-readonly': props.readonly, 'is-disabled': props.disabled,
+          'is-invalid': msg && props.msgType === 'error', 'is-warning': msg && props.msgType === 'warning', 'is-valid': msg && props.msgType === 'valid', 'is-rejected': rejected.value,
+          'is-awake': !!awake, 'is-awake-ok': awake === 'ok', 'is-awake-no': awake === 'no', 'is-over': !!awake && props.over }, attrs.class]
+      const chip = (e, i) => {
+        const up = e.state === 'queued' || e.state === 'uploading'
+        const img = /^image\/(png|jpe?g|gif|webp|avif|bmp|svg)/.test(e.type)
+        const sum = { layout: 'inline', size: 'xs', title: e.name, subtitle: fmt(e.size),
+          ...(img && e.thumb ? { avatar: { src: e.thumb, shape: 'square', icon: 'image' } } : { icon: img ? 'image' : 'file-text' }),
+          ...(e.state === 'queued' ? { status: { label: 'En cola' } } : e.state === 'done' && !e.stored ? { status: { label: 'Subido' } } : {}),
+          ...(e.state === 'error' ? { facts: [{ label: 'Error', value: e.error, bare: true }] } : {}) }
+        const pct = Math.round((e.progress || 0) * 100)
+        return h('li', { key: e.key, 'data-key': e.key, class: ['g-file-field__chip', { 'is-landing': landing.has(e.key) }], 'data-state': e.state, 'data-stored': e.stored ? '' : undefined }, [
+          h(Grana.GSummary, sum),
+          up ? h('div', { class: 'g-progress g-progress--size-sm g-progress--color-accent g-file-field__progress' }, [
+            h('div', { class: 'g-progress__bar', role: 'progressbar', 'aria-valuenow': pct, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuetext': e.state === 'queued' ? 'En cola' : `${pct} %`, 'aria-label': 'Subida de ' + e.name }, [
+              h('span', { class: 'g-progress__fill', style: { '--_value': pct + '%' } })])]) : null,
+          e.state === 'error' ? h('span', { class: 'g-file-field__error', id: `${id}-e${i}-error`, hidden: true }, 'Error: ' + e.error) : null,
+          e.state === 'error' && editable ? h(Grana.GBtn, { class: 'g-file-field__retry', id: `${id}-e${i}-retry`, variant: 'ghost', color: 'neutral', size: 'xs', icon: true, 'aria-label': 'Reintentar ' + e.name, 'aria-describedby': `${id}-e${i}-error` }, () => h(Grana.GIcon, { name: 'rotate-ccw' })) : null,
+          editable ? h(Grana.GBtn, { class: 'g-file-field__remove', variant: 'ghost', color: 'neutral', size: 'xs', icon: true, 'aria-label': (up ? 'Cancelar subida de ' : 'Quitar ') + e.name }, () => h(Grana.GIcon, { name: 'x' })) : null
+        ])
+      }
+      return h('div', { ...attrs, class: cls, ref: rootEl, 'data-case': props.case, onAnimationend: onAnimEnd, onAnimationcancel: onAnimCancel }, [
+        h('label', { class: 'g-file-field__label', id: id + '-label', for: id }, props.label),
+        h('div', { class: 'g-file-field__box', onClick: (ev) => { if (ev.target.closest('button, input, .g-file-field__chip')) return; if (editable && !props.full) inputEl.value?.focus() } }, [
+          has ? h('ul', { class: 'g-file-field__list', 'aria-label': 'Archivos de ' + props.label }, files.map(chip)) : null,
+          h('span', { class: 'g-file-field__add' }, [
+            h('input', { ref: inputEl, class: 'g-file-field__input', type: 'file', id, accept: props.accept, multiple: props.multiple, disabled: props.disabled,
+              'aria-labelledby': `${id}-label ${id}-action`, 'aria-describedby': `${id}-hint ${id}-status${msg ? ' ' + id + '-message' : ''}`, 'aria-disabled': (props.readonly || props.full) ? 'true' : undefined, onClick: (e) => e.preventDefault() }),
+            h('span', { class: 'g-file-field__add-icon', 'aria-hidden': 'true' }, [h(Grana.GIcon, { name: props.readonly ? 'lock' : props.full ? 'check' : 'plus' })]),
+            h('span', { class: 'g-file-field__action', id: id + '-action' }, face),
+            !has && editable && props.hint ? h('span', { class: 'g-file-field__add-hint', 'aria-hidden': 'true' }, props.hint) : null
+          ]),
+          h('div', { class: 'g-file-field__target', 'aria-hidden': 'true' }, [h('span', { class: 'g-file-field__target-text' }, props.dropText || 'Soltar aquí')])
+        ]),
+        h('div', { class: 'g-file-field__foot' }, [
+          h('p', { class: 'g-file-field__meta' }, [h('span', { class: 'g-file-field__hint', id: id + '-hint' }, props.hint || ''), ' ',
+            h('span', { class: 'g-file-field__status', id: id + '-status' }, has ? `${files.length}${props.max ? ' de ' + props.max : ''}` + (files.some((f) => f.state === 'uploading') ? ' · 1 subiendo' : '') + (files.some((f) => f.state === 'error') ? ' · 1 con error' : '') : '')]),
+          props.notice ? h('div', { class: 'g-file-field__notice', role: 'group', 'aria-label': 'Archivos no añadidos' }, [
+            h(Grana.GIcon, { name: 'triangle-alert' }),
+            h('ul', { class: 'g-file-field__notice-list' }, props.notice.map((n) => h('li', null, [h('strong', null, n.name), ': ' + n.text]))),
+            h(Grana.GBtn, { variant: 'ghost', color: 'neutral', size: 'sm', icon: true, 'aria-label': 'Descartar aviso' }, () => h(Grana.GIcon, { name: 'x' }))]) : null,
+          h('div', { class: 'g-file-field__message', id: id + '-message', 'aria-live': 'polite' }, msg ? [
+            h('span', { class: 'g-file-field__message-type' }, ({ error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' })[props.msgType]),
+            h(Grana.GIcon, { name: ({ error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' })[props.msgType], class: 'g-file-field__message-icon' }), msg] : null)
+        ]),
+        h('div', { class: 'g-file-field__live', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' })
+      ])
+    }
+  }
+}
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    watch(slow, (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }, { immediate: false })
+    const qs = new URLSearchParams(location.search)
+    if (qs.get('slow')) { slow.value = true; $('#slow-css').textContent = ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' }
+    const drag = ref(qs.get('drag') ? 1 : 0)
+    const multi = reactive([E.ready, E.queued, E.up, E.done, E.err, E.stored].map((e) => ({ ...e })))
+    const NAMES = ['IMG_2041.jpg', 'IMG_2042.jpg', 'captura de pantalla 2026-10-05.png', 'lesion-zoom.webp']
+    let n = 0
+    const add = (c) => { const e = entry({ name: NAMES[n++ % NAMES.length], type: 'image/png', size: 31000 + n * 1700, state: 'uploading', progress: 0.08, thumb }); multi.push(e); nextTick(() => reg.items.get(c).land(e.key)) }
+    const tick = () => { for (const e of multi) if (e.state === 'uploading') e.progress = Math.min(1, e.progress + 0.2) }
+    const reject = () => { for (const k of ['multi', 'inv', 'empty-md-default']) reg.items.get(k)?.reject() }
+    reg.add = add; reg.multi = multi; reg.drag = drag
+    return { SIZES: ['xs', 'sm', 'md', 'lg', 'xl'], DENSITIES: ['default', 'comfortable', 'compact'], E, NARROW, NOTICE, slow, drag, multi, add, tick, reject }
+  }
+})
+app.component('XFileField', XFileField)
+app.use(Grana)
+// Iconos de la aplicación (createIcons, icons.md §5): file-text e image entran en la lista de la librería con bruno (#377)
+app.use(Grana.createIcons(['file-text', 'image'].map((n) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${n}">${window.LUCIDE_ICONS[n]}</svg>`)))
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+// «Tema de prueba»: otra fuente, borde de 2px, space 5 y radios propios: nada de la caja ni de la ficha puede quedar fijo
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-radius-sm:2px;--g-radius-xs:1px;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-neutral-soft:#ece0cc;--g-color-bg:#f4ecdf;--g-color-border-control:#8a6d4b;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-color-text-subtle:#6f553b;--g-color-focus:#1C6E6E;--g-color-accent:#1C6E6E;--g-color-accent-text:#1C6E6E;--g-color-accent-soft:#d9ecec;--g-color-on-accent-soft:#134d4d;--g-space-1:5px}'
+$('#t-theme').insertAdjacentHTML('afterbegin', '<option value="test">Tema de prueba</option>')
+const setTheme = (v) => { $('#test-css').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const qs = new URLSearchParams(location.search)
+const th = qs.get('test') ? 'test' : (qs.get('theme') || '')
+if (th) { $('#t-theme').value = th; setTheme(th) }
+if (qs.get('dir')) document.documentElement.dir = qs.get('dir')
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+raf2().then(() => document.fonts.ready).then(raf2).then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>

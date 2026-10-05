@@ -1,0 +1,750 @@
+/*
+  GFileField · campo de archivos, concepto A «Línea de adjuntos»
+  Dueño: coco. Contrato: design/contracts/file-field.md (DECISIONS.md #366 a #378; tokens.md §35). Estructura:
+  design/lab/file-field/r01/ (base) y r02/ (concepto A). Estética y medidas: design/lab/file-field/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*) (propios --_ff-*; --_h, --_px, --_fs… como en GInput); sin @layer
+  (lo aplica el registro); sin valores de respaldo. Únicos literales de medida: 24px y 44px (área táctil) y el patrón de
+  texto oculto accesible.
+  Carácter: un campo que mide lo que un campo. Los archivos son fichas dentro de la caja que NACEN de «Adjuntar» (escala
+  desde su lado, el del final de la lectura), se LLENAN mientras suben con un frente de avance nítido y se SUBRAYAN al
+  terminar. Al arrastrar archivos sobre la página, todos los campos despiertan a la vez con un destino algo mayor que su
+  caja; encima, el destino se enciende. Nada salta: arrastrar, subir y fallar son pintura.
+*/
+
+/* ---------- Raíz: tres hijos en flujo (etiqueta · caja · pie), como GInput ---------- */
+.g-file-field {
+  /* Variante (se reasigna por --variant-*); por defecto: outline */
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+  /* Fondo de la ficha: un paso por debajo de la caja; sobre una caja ya hundida (soft, solo lectura, deshabilitado),
+     la superficie (si no, la ficha desaparecería sobre su propio fondo) */
+  --_ff-chip-bg: var(--g-color-surface-sunken);
+
+  /* Medidas (las de GInput: se reasignan por --size-* y --density-*); por defecto: md */
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+
+  /* La ficha: alto de la caja menos space × 2 (md: 28 en 36), nunca por debajo de sus botones (24px; 44px táctil). La
+     caja reparte el resto arriba y abajo: así una línea de fichas mide lo que la caja vacía (Δ0 con GInput) y, donde
+     la ficha toca el piso (xs), la caja crece lo justo. El relleno negativo se recorta a 0 (como GBtn) */
+  --_ff-chip-h: max(24px, calc(var(--_h) - var(--g-space-2)));
+  --_ff-py: calc((var(--_h) - var(--_ff-chip-h)) / 2 - var(--g-border-width));
+  --_ff-pin: calc(var(--g-space-1) * 0.75);
+  /* Sobresaliente del destino: space × 1 por lado, sin pasar en línea de media separación de columna de una GFormRow
+     compacta (× 0.75 / 2; no depende de la densidad del campo): dos destinos vecinos nunca se solapan. Arriba y abajo,
+     space × 1: llega al pie de la etiqueta sin taparla */
+  --_ff-reach: min(var(--g-space-1), calc(var(--g-form-column-gap) * 0.375));
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  inline-size: min(100%, calc(var(--g-space-1) * 90));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* ---------- Etiqueta (la de GInput) ---------- */
+.g-file-field__label {
+  overflow-wrap: anywhere;
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-file-field__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+.g-file-field__optional {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- Caja: la de un campo; el objetivo del control entero ---------- */
+.g-file-field__box {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-block-size: var(--_h);
+  padding-block: var(--_ff-py);
+  padding-inline: var(--_ff-pin);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (pointer: coarse) {
+  .g-file-field__box {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+@media (forced-colors: none) {
+  .g-file-field__box {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+.g-file-field:not(.is-readonly):not(.is-disabled):not(.is-full) .g-file-field__box {
+  cursor: pointer;
+}
+/* El foco del control (<input type="file"> con texto oculto) se pinta en la caja: anillo pegado al borde, como GInput */
+.g-file-field__box:has(.g-file-field__input:focus-visible) {
+  --_border: var(--g-color-focus);
+  --_border-end: var(--g-color-focus);
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+
+/* El control: texto oculto accesible (una de las tres excepciones literales), enfocable */
+.g-file-field__input,
+.g-file-field__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Lista de fichas ---------- */
+/* La lista es su propio contenedor flexible (no display: contents: conserva su rol en todos los motores). Con varios
+   archivos ocupa lo que piden sus fichas y «Adjuntar» la sigue o baja a su línea. Con uno solo, la ficha llena la línea
+   y «Cambiar archivo» queda al final, como el valor y la acción de un campo */
+.g-file-field__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1);
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-file-field:not(.is-multiple) .g-file-field__list {
+  flex: 1 1 0;
+  min-inline-size: min(100%, calc(var(--g-space-1) * 24));
+}
+
+/* ---------- Ficha: GSummary inline xs + acciones al lado; el GProgress es su capa de fondo ---------- */
+.g-file-field__chip {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  /* Ancho base de una ficha (constante de diseño, estilo.md): con varias, todas iguales; cede si la caja es estrecha. Es
+     inline-size y no flex-basis: así la lista mide (max-content) lo que suman sus fichas */
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 52);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  block-size: var(--_ff-chip-h);
+  padding-inline: var(--g-space-1) 0;
+  border-radius: var(--g-radius-xs);
+  background: var(--_ff-chip-bg);
+  color: var(--g-color-text);
+  cursor: default;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-file-field:not(.is-multiple) .g-file-field__chip {
+  flex: 1 1 0;
+  inline-size: auto;
+}
+/* Sin acciones (solo lectura, deshabilitado): el título no toca el borde */
+.g-file-field__chip:not(:has(.g-btn)) {
+  padding-inline-end: var(--g-space-2);
+}
+.g-file-field__chip > .g-summary {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+/* Miniatura e icono: una tesela de la superficie (sobre el relleno de la subida tampoco desaparece) */
+.g-file-field__chip .g-summary__lead > .g-icon {
+  background: var(--g-color-surface);
+}
+.g-file-field__chip > .g-btn {
+  flex: none;
+}
+@media (pointer: coarse) {
+  .g-file-field__chip {
+    block-size: max(44px, var(--_ff-chip-h));
+  }
+  .g-file-field__chip > .g-btn {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+
+/* La ficha es la barra (#375): el GProgress real, como capa detrás del contenido, sin puntero ni alto propio. Su relleno
+   (que avanza con el translate de GProgress, espejo en RTL) pinta accent-soft y lleva el FRENTE de avance: un borde de
+   doble grosor al final del relleno en on-accent-soft, la tinta del par garantizado de accent-soft (≥ 3:1 contra los dos
+   lados en todos los temas medidos; --g-color-accent no lo garantiza: 1,15:1 en spotify claro; estilo.md, WCAG 1.4.11) */
+.g-file-field__progress {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.g-file-field__progress .g-progress__bar {
+  block-size: 100%;
+  border-radius: inherit;
+  background: transparent;
+  outline: 0;
+}
+.g-file-field__progress .g-progress__fill {
+  box-sizing: border-box;
+  border-radius: 0;
+  background: var(--g-color-accent-soft);
+  border-inline-end: calc(var(--g-border-width) * 2) solid var(--g-color-on-accent-soft);
+}
+
+/* Subida terminada en esta sesión: un filo de éxito bajo la ficha, sin tocar las esquinas (sin layout, sin recorte) */
+.g-file-field__chip::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--g-radius-xs);
+  inset-block-end: 0;
+  block-size: calc(var(--g-border-width) * 2);
+  background: var(--g-color-success-text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-file-field__chip[data-state="done"]:not([data-stored])::after {
+  opacity: 1;
+}
+
+/* Error: la ficha entera pasa a danger-soft y su texto a on-danger-soft; la GSummary se reapunta (GSummary.css no
+   conoce al anfitrión): rótulo, separador e icono toman el color de la ficha */
+.g-file-field__chip[data-state="error"] {
+  background: var(--g-color-danger-soft);
+  color: var(--g-color-on-danger-soft);
+}
+.g-file-field__chip[data-state="error"] :is(.g-summary__subtitle, .g-summary__fact-label, .g-summary__lead) {
+  color: var(--g-color-on-danger-soft);
+}
+/* En error la ficha dice QUÉ archivo y QUÉ pasó: el nombre (peso de título) y el mensaje (peso normal) ceden a la par
+   (el mensaje el doble de rápido), en vez de que el mensaje, que GSummary trata como identificador, borre el nombre */
+.g-file-field__chip[data-state="error"] .g-summary__title {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+.g-file-field__chip[data-state="error"] .g-summary__fact.is-anchor {
+  flex: 0 2 auto;
+  min-inline-size: 0;
+  max-inline-size: none;
+}
+.g-file-field__chip[data-state="error"] .g-summary__fact.is-anchor .g-summary__fact-value {
+  font-weight: var(--g-text-body-sm-weight);
+}
+
+/* ---------- «Adjuntar»: la última pieza, la cara del control ---------- */
+.g-file-field__add {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  /* El icono empieza donde empieza el texto de un GInput vecino (su relleno menos el de la caja) */
+  padding-inline: calc(var(--_px) * var(--_density) - var(--_ff-pin)) var(--g-space-1);
+  color: var(--g-color-accent-text);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+}
+.g-file-field:not(.has-files) .g-file-field__add {
+  flex: 1 1 auto;
+}
+.g-file-field.has-files .g-file-field__add {
+  padding-inline-start: var(--g-space-2);
+}
+.g-file-field__add-icon {
+  flex: none;
+  display: inline-flex;
+}
+.g-file-field__action {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* La pista junto a la cara cede antes que la cara; la separa un filete corto (no un carácter) */
+.g-file-field__add-hint {
+  position: relative;
+  flex: 0 1000 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-inline-start: var(--g-space-1);
+  padding-inline-start: var(--g-space-2);
+  color: var(--g-color-text-muted);
+  font-weight: var(--g-text-body-sm-weight);
+}
+.g-file-field__add-hint::before {
+  content: "";
+  position: absolute;
+  inset-block: var(--g-space-1);
+  inset-inline-start: 0;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+}
+.g-file-field--variant-soft .g-file-field__add {
+  /* accent-text no llega a 4.5:1 sobre surface-sunken en todos los temas (4,19:1 en apple claro); on-accent-soft sí */
+  color: var(--g-color-on-accent-soft);
+}
+.g-file-field.is-full .g-file-field__add,
+.g-file-field.is-readonly .g-file-field__add {
+  color: var(--g-color-text-muted);
+  font-weight: var(--g-text-body-sm-weight);
+}
+
+/* ---------- Destino de soltar: capa encima de la caja, algo mayor; solo pintura ---------- */
+.g-file-field__target {
+  position: absolute;
+  inset-inline: calc((var(--_ff-reach) + var(--g-border-width)) * -1);
+  inset-block: calc((var(--g-space-1) + var(--g-border-width)) * -1);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-inline: var(--g-space-3);
+  border: calc(var(--g-border-width) * 2) solid var(--g-color-on-accent-soft);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.g-file-field__target-text {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Despierto: todos a la vez, con un fundido (dormir es más corto que despertar, #152) */
+.g-file-field.is-awake .g-file-field__target {
+  opacity: 1;
+  visibility: visible;
+}
+.g-file-field.is-ready .g-file-field__target {
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    visibility 0s linear var(--g-duration-fast),
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-file-field.is-ready.is-awake .g-file-field__target {
+  transition:
+    opacity var(--g-duration-press) var(--g-ease-out),
+    visibility 0s,
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Admite: borde sólido (on-accent-soft: ≥ 3:1 contra la página en todos los temas medidos) y relleno suave; recibe el
+   puntero (el blanco es más fácil) */
+.g-file-field.is-awake-ok .g-file-field__target {
+  pointer-events: auto;
+}
+/* Encima y admite: se enciende (relleno sólido accent, texto on-accent) */
+.g-file-field.is-awake-ok.is-over .g-file-field__target {
+  background: var(--g-color-accent);
+  color: var(--g-color-on-accent);
+}
+/* No admite o lleno: borde discontinuo y tono apagado; encima, el borde sube a texto atenuado (el texto lo dice) */
+.g-file-field.is-awake-no .g-file-field__target {
+  border-style: dashed;
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+}
+.g-file-field.is-awake-no.is-over .g-file-field__target {
+  border-color: var(--g-color-text-muted);
+}
+
+/* ---------- Pie: pista y estado, aviso, mensaje ---------- */
+.g-file-field__foot {
+  min-inline-size: 0;
+}
+.g-file-field__meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--g-space-2);
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* El hueco sobre el pie solo existe si algo del pie se ve (vacío y editable, la pista está en la caja) */
+.g-file-field.has-files .g-file-field__meta:has(.g-file-field__status:not(:empty)),
+.g-file-field:not(:has(.g-file-field__add-hint)) .g-file-field__meta:has(.g-file-field__hint:not(:empty)) {
+  margin-block-start: var(--g-space-1);
+}
+.g-file-field__hint,
+.g-file-field__status {
+  position: relative;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.g-file-field__hint:not(:empty) + .g-file-field__status:not(:empty) {
+  padding-inline-start: var(--g-space-2);
+}
+.g-file-field__hint:not(:empty) + .g-file-field__status:not(:empty)::before {
+  content: "";
+  position: absolute;
+  inset-block: calc(var(--g-space-1) / 2);
+  inset-inline-start: 0;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+}
+/* Vacío y editable, la pista se ve en la caja (copia aria-hidden) y la del pie solo la oye el lector; sin archivos, el
+   estado («0 de 5») tampoco se ve. Patrón de texto oculto: siguen en la descripción */
+.g-file-field:has(.g-file-field__add-hint) .g-file-field__hint,
+.g-file-field:not(.has-files) .g-file-field__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Aviso de archivos no añadidos: no desaparece solo; icono, lista con motivo y «Descartar» */
+.g-file-field__notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--g-space-2);
+  margin-block-start: var(--g-space-1);
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-3) var(--g-space-1);
+  border-radius: var(--_radius);
+  background: var(--g-color-warning-soft);
+  color: var(--g-color-on-warning-soft);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-file-field__notice > .g-icon {
+  block-size: var(--g-text-body-sm-line);
+  margin-block-start: var(--g-space-1);
+}
+.g-file-field__notice-list {
+  margin: 0;
+  padding: 0;
+  padding-block: var(--g-space-1);
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+.g-file-field__notice > .g-btn {
+  color: var(--g-color-on-warning-soft);
+}
+
+/* Mensaje del campo (form.md C4/C5): un hueco para error, advertencia o válido; vacío no ocupa sitio */
+.g-file-field__message {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-file-field__message:not(:empty) {
+  margin-block-start: var(--g-space-1);
+}
+.g-file-field.is-warning .g-file-field__message {
+  color: var(--g-color-warning-text);
+}
+.g-file-field.is-valid .g-file-field__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+.g-file-field__message-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
+}
+.g-file-field__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* I1 de GInput: el mensaje sale del campo (transición, solo tras montar) */
+.g-file-field__message:empty {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-file-field__message:empty {
+    translate: 0 calc(var(--g-space-1) * -1);
+  }
+  .g-file-field.is-ready .g-file-field__message {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-file-field.is-ready .g-file-field__message {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+
+/* ---------- Movimiento (#376) ---------- */
+/* La ficha nace de «Adjuntar»: escala desde 0.86 (§29.6) con su origen en el lado del final de la lectura, donde está
+   la cara que la trajo; --g-ease-out, nunca el muelle (§29.1: es una entrada). Bruno retira is-landing en animationend
+   de g-file-field-land… (o en el acto si no hay animación). Con movimiento reducido, solo el fundido */
+@keyframes g-file-field-land {
+  from { opacity: 0; scale: 0.86; }
+}
+@keyframes g-file-field-land-fade {
+  from { opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-file-field__chip.is-landing {
+    transform-origin: right center;
+    animation: g-file-field-land var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-file-field__chip.is-landing:dir(rtl) {
+    transform-origin: left center;
+  }
+  /* Rechazo al enviar (I2, #304): una sacudida de la caja (lleva el anillo y el destino con ella) */
+  .g-file-field.is-rejected .g-file-field__box {
+    animation: g-reject-file-field var(--g-duration-slow) linear;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-file-field__chip.is-landing {
+    animation: g-file-field-land-fade var(--g-duration-fast) linear;
+  }
+}
+@keyframes g-reject-file-field {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
+/* ---------- Tamaño (los de GInput) ---------- */
+.g-file-field--size-xs { --_units: 6;  --_px: var(--g-space-2); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-file-field--size-sm { --_units: 7;  --_px: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-file-field--size-md { --_units: 9;  --_px: var(--g-space-3); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-file-field--size-lg { --_units: 11; --_px: var(--g-space-4); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-file-field--size-xl { --_units: 13; --_px: var(--g-space-5); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+
+/* ---------- Densidad ---------- */
+.g-file-field--density-default { --_density: 1; }
+.g-file-field--density-comfortable { --_density: 0.875; }
+.g-file-field--density-compact { --_density: 0.75; }
+
+/* ---------- Forma ---------- */
+.g-file-field--rounded-none { --_radius: var(--g-radius-none); }
+.g-file-field--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-file-field--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-file-field--rounded-md { --_radius: var(--g-radius-md); }
+.g-file-field--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-file-field--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-file-field--rounded-pill { --_radius: var(--g-radius-pill); }
+
+/* ---------- Variante ---------- */
+/* soft: caja rellena con la línea inferior del borde de control (WCAG 1.4.11), como GInput */
+.g-file-field--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+  --_ff-chip-bg: var(--g-color-surface);
+}
+
+/* ---------- Ancho ---------- */
+.g-file-field--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Estados ---------- */
+@media (hover: hover) {
+  .g-file-field:not(.is-disabled):not(.is-readonly):not(.is-full):not(.is-invalid):not(.is-warning):not(.is-valid) .g-file-field__box:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+.g-file-field.is-invalid .g-file-field__box {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  /* Segundo trazo interior: borde de doble grosor sin mover el contenido */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-file-field.is-warning .g-file-field__box {
+  --_border: var(--g-color-warning-text);
+  --_border-end: var(--g-color-warning-text);
+  border-style: dashed;
+  border-width: calc(var(--g-border-width) * 2);
+  padding-block: calc(var(--_ff-py) - var(--g-border-width));
+  padding-inline: calc(var(--_ff-pin) - var(--g-border-width));
+}
+.g-file-field.is-valid .g-file-field__box {
+  --_border: var(--g-color-success-text);
+  --_border-end: var(--g-color-success-text);
+}
+/* Solo lectura (C7): contraste completo, relleno neutro y borde discontinuo; enfocable, sin acciones */
+.g-file-field.is-readonly {
+  --_ff-chip-bg: var(--g-color-surface);
+}
+.g-file-field.is-readonly .g-file-field__box {
+  --_bg: var(--g-color-neutral-soft);
+  border-style: dashed;
+}
+/* Deshabilitado: lista atenuada, sin acciones; no despierta (bruno no pone is-awake) */
+.g-file-field.is-disabled {
+  --_ff-chip-bg: var(--g-color-surface);
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-file-field.is-disabled .g-file-field__label,
+.g-file-field.is-disabled .g-file-field__add,
+.g-file-field.is-disabled .g-file-field__chip,
+.g-file-field.is-disabled .g-file-field__chip :is(.g-summary__subtitle, .g-summary__fact-label, .g-summary__lead) {
+  color: var(--g-color-text-subtle);
+}
+.g-file-field.is-disabled .g-file-field__add {
+  font-weight: var(--g-text-body-sm-weight);
+}
+.g-file-field.is-disabled .g-file-field__box {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+  cursor: not-allowed;
+}
+.g-file-field.is-disabled .g-file-field__chip {
+  cursor: not-allowed;
+}
+
+/* ---------- Dentro de una GFormRow (form.md §4, C12): tres pistas compartidas por línea ---------- */
+/* La caja con fichas puede ser más alta que la de un vecino (xs, compact, varias líneas): se apoya arriba. Mínimo propio
+   medido (estilo.md): una ficha en su suelo y «Adjuntar archivo» entero en la MISMA línea, en md. Propiedad pública de
+   ENTRADA (no del tema): el consumidor la sobrescribe con style */
+.g-form-row > .g-file-field {
+  --g-form-min: 62;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
+}
+.g-form-row > .g-file-field > * { grid-column: 1; }
+.g-form-row > .g-file-field > .g-file-field__label { grid-row: 1; align-self: end; }
+.g-form-row > .g-file-field > .g-file-field__box { grid-row: 2; align-self: start; }
+.g-form-row > .g-file-field > .g-file-field__foot { grid-row: 3; }
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-file-field__box {
+    border-color: ButtonText;
+  }
+  .g-file-field__box:has(.g-file-field__input:focus-visible) {
+    border-color: ButtonText;
+    outline-color: Highlight;
+  }
+  .g-file-field.is-invalid .g-file-field__box {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+  .g-file-field.is-disabled .g-file-field__box {
+    border-color: GrayText;
+  }
+  /* La ficha conserva su forma sin depender del fondo (contorno, sin layout) */
+  .g-file-field__chip {
+    outline: var(--g-border-width) solid CanvasText;
+    outline-offset: calc(var(--g-border-width) * -1);
+  }
+  .g-file-field__chip[data-state="error"] {
+    outline-style: dashed;
+  }
+  /* GIcon conserva el color del padre (preserve-parent-color): la tesela no se fuerza y el trazo CanvasText desaparecía
+     sobre la superficie clara (medido) */
+  .g-file-field__chip .g-summary__lead > .g-icon {
+    background: Canvas;
+  }
+  /* Progreso: el relleno sería Highlight bajo el texto (sin contraste); queda el frente de avance y una línea inferior
+     del avance, en Highlight. El carril de GProgress no dibuja otro contorno dentro de la ficha */
+  .g-file-field__progress .g-progress__bar {
+    border: 0;
+  }
+  .g-file-field__progress .g-progress__fill {
+    forced-color-adjust: none;
+    background: transparent;
+    border-inline-end-color: Highlight;
+    border-block-end: calc(var(--g-border-width) * 2) solid Highlight;
+  }
+  .g-file-field__chip::after {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .g-file-field__target {
+    border-color: Highlight;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .g-file-field.is-awake-ok.is-over .g-file-field__target {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-file-field.is-awake-no .g-file-field__target {
+    border-color: CanvasText;
+    color: CanvasText;
+  }
+  /* Chromium pinta la placa de lectura del texto que queda bajo el destino («Adjuntar») por encima de él (medido): con el
+     destino despierto, lo de debajo se funde a 0 (sin layout; el control sigue enfocable) */
+  .g-file-field.is-awake .g-file-field__box > :not(.g-file-field__target) {
+    opacity: 0;
+  }
+  .g-file-field__notice {
+    outline: var(--g-border-width) solid CanvasText;
+    outline-offset: calc(var(--g-border-width) * -1);
+  }
+}
