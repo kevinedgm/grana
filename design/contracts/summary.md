@@ -344,7 +344,7 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 | Token | Para qué |
 | --- | --- |
 | `--g-space-1` (y sus múltiplos) | Lado de la identidad, separaciones, columnas de la rejilla de `stack` |
-| Roles `body`, `body-sm`, `caption`, `title-sm`; `--g-text-title-sm-weight` | «Tipografía» |
+| Roles `body`, `body-sm`, `caption`, `title-sm` (tamaño, interlínea, tracking, peso); `--g-font-ui`, `--g-font-title` | «Tipografía» |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Título y valores; línea secundaria y código; rótulos y valores compartidos |
 | `--g-color-border-control` | Contorno de la caja del icono de identidad |
 | `--g-color-border-strong` | Separador entre datos (un filete corto, no un carácter) y **formas de carga** (como el esqueleto de `GCard`: sobre `surface-sunken`, la vista previa de la paleta, no se verían) |
