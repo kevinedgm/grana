@@ -228,7 +228,7 @@ La opción, la ficha del valor y la vista previa se pintan con [`GSummary`](../G
 | `label` | `title` | Siempre |
 | `description` | `subtitle` | **Solo si la opción no trae `facts`**: con `facts` no se pinta ni se lee dos veces, y sigue alimentando la descripción accesible del valor |
 | `code` | `code` | Identificador: no cede por reparto |
-| `facts` | `facts` | Sin valor vacío. Un dato **sin `label`** no se pinta y avisa. `priority`, `short` y `bare` son opcionales (ver el README de `GSummary`, «Datos») |
+| `facts` | `facts` | Solo es **visible** un dato con `label` (cadena no vacía tras recortar) y `value` (cadena no vacía tras recortar, o número). Uno sin `label` no se pinta, no se busca ni se lee en la descripción accesible, y avisa (#12). `priority`, `short` y `bare` son opcionales (ver el README de `GSummary`, «Datos») |
 | `avatar`, `icon` | `avatar`, `icon` | Tal cual |
 | slot `lead` | slot `lead` de la ficha | Manda sobre `avatar` e `icon` |
 
@@ -539,8 +539,7 @@ Prefijo `[Grana GCombobox]`; una vez por instancia y motivo; solo fuera de produ
 | 9 | `multiple` o `type` en los atributos; slots `append` o `action`; slot `preview` con `appearance="field"` | Se ignoran y no se pintan |
 | 10 | Dentro de un `GInputGroup` | Avisa (no admitido) |
 | 11 | `limit` menor que 1, `delay` negativo o `minChars` negativo | Se usa el valor por defecto (50, 250, 0) |
-
-Además, un dato de `facts` sin `label` lo omite la ficha y avisa (`[Grana GSummary]`).
+| 12 | Una opción trae un dato de `facts` sin `label` (cadena vacía tras recortar o ausente) | El dato no se pinta, no se busca ni se lee en la descripción accesible; avisa una vez por instancia |
 
 ## Clases
 
@@ -564,7 +563,7 @@ Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) 
 - **Tab solo elige en A**, con etiqueta única y lista completa; en la paleta y en móvil, nunca.
 - **El texto fantasma** solo existe con coincidencia por prefijo (no al buscar por código o expediente) y no durante la composición IME.
 - **`diff` entre homónimos** exige que las fichas vecinas traigan los mismos rótulos en `facts`; con listas heterogéneas casi todo sale distinto. Se calcula sobre lo pintado: si la homónima no está a la vista, no hay marca.
-- **Un dato sin `label`** no se pinta en la ficha, pero **sí cuenta para la búsqueda y para la descripción accesible del valor** (que une los valores sin rótulo): ponle siempre `label`. Es una discrepancia anotada a bruno.
+- **Un dato de `facts` sin `label` no existe para el componente:** ni se pinta, ni se busca, ni entra en la descripción accesible del valor (que une «rótulo valor · rótulo valor»). Ponle siempre `label`; el aviso 12 solo sale en desarrollo.
 - **Paleta dentro de un `GDialog`:** modal sobre modal; funciona pero tapa el contexto.
 - **`required`** no participa en la validación nativa: valida tu aplicación y usa `error`.
 - **WebKit:** Tab no llega al botón de cierre de la superficie (ni a «Limpiar») salvo el ajuste de teclado del sistema; Esc y el fondo cierran, y «Limpiar» se alcanza con Alt+Tab en las pruebas.
