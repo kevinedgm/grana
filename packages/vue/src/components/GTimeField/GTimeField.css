@@ -91,12 +91,19 @@
    (#410) no tiene que contarla. Texto muted (≥ 4.5:1), cursor de escribir (pulsarla enfoca el campo) */
 .g-time-field__reading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   flex: 1 1 0;
   max-inline-size: max-content;
   min-inline-size: 0;
+  /* Todo o nada (auditoría, hallazgo 1): una sola línea visible del alto del texto. Lo que no cabe ENTERO (la hora
+     entendida, o la palabra por debajo de su mínimo legible) baja a otra línea, una línea más abajo, y queda fuera del
+     recorte: nunca asoma medio glifo ni una hora a medias («9:3»). El recorte va en línea en el borde y en bloque a
+     --g-space-1 por fuera, para que la palabra que entra suba desde ahí sin cortarse */
+  block-size: var(--_lh);
+  row-gap: var(--_lh);
+  clip-path: inset(calc(var(--g-space-1) * -1) 0);
   margin-inline-start: calc(var(--_gap) * var(--_density) * -1);
-  overflow-x: clip;
   font-size: var(--_fs);
   line-height: var(--_lh);
   color: var(--g-color-text-muted);
@@ -107,21 +114,23 @@
 }
 .g-time-field__reading::before {
   content: "";
-  flex: 0 1 auto;
+  flex: none;
   inline-size: calc(var(--_gap) * var(--_density));
-  min-inline-size: 0;
 }
 /* La hora entendida mientras se escribe («930» → «9:30»): cifras tabulares y un espacio de separación con la palabra
-   (--g-space-1, el ancho de un espacio de texto; sin carácter de puntuación como adorno) */
+   (--g-space-1, el ancho de un espacio de texto; sin carácter de puntuación como adorno). Entera o fuera */
 .g-time-field__reading-time {
   flex: none;
   margin-inline-end: var(--g-space-1);
   font-variant-numeric: tabular-nums;
 }
-/* La franja del día: se recorta con elipsis (es redundante con aria-valuetext). Bloque, para que translate se aplique
-   en la entrada (translate no mueve cajas en línea) */
+/* La franja del día: crece hasta su ancho natural y se recorta con elipsis (es redundante con aria-valuetext) hasta su
+   mínimo legible, dos veces el tamaño del texto (una sílaba y la elipsis); por debajo, baja de línea y no se ve. Bloque,
+   para que translate se aplique en la entrada (translate no mueve cajas en línea) */
 .g-time-field__reading-word {
   display: block;
+  flex: 1 1 calc(var(--_fs) * 2);
+  max-inline-size: max-content;
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;

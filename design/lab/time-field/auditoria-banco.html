@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTimeField · banco de auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GTimeField de dist/time-field.umd.js (global GranaTimeField, la
+     entrada propia @grana/vue/time-field) con GInput, GForm, GFormLayout, GFormRow, GErrorSummary, GDatePicker, GSelect,
+     GTooltip y GBtn de dist/grana.umd.js, y dist/grana.css + dist/fonts.css (el CSS y la fuente tal como se publican).
+     Mismos casos que el banco de estilo (estilo-banco.html) con el `id` del caso en el <input>; el marcado lo pone
+     GTimeField.vue, el mínimo lo publica el .vue a la GFormRow, is-rejected lo pone GForm al enviar, el foco llega desde
+     GErrorSummary. Secciones nuevas: mínimo publicado en una fila real (6), envío con GForm y fuera de GForm (7), teclado (8),
+     GTooltip envolviendo el campo (9). No es documentación.
+     Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/time-field/auditoria-banco.html
+     Parámetros: ?dark=1  ?theme=auditoria (auditoria-tema.css, @grana/cli)  ?theme=propio (estilo-tema.css)
+                 ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)  ?text=200 (texto al 200 %)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/time-field/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .narrow{inline-size:180px}
+  .sweep{inline-size:600px;max-inline-size:100%}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GTimeField · banco de auditoría</h1>
+<p class="cap"><b>coco</b> · paso 5 sobre el componente real (<code>dist/time-field.umd.js</code>). Escribe «930», «9 noche», «9p».</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (@grana/cli)</option><option value="propio">Propio del estilo</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+</div>
+
+<h2 class="b">1 · Tamaños (con GInput real del mismo tamaño)</h2>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <g-input :id="'in-' + s.id" :size="s.size" :density="s.density" :label="'GInput ' + s.id" model-value="21:30" block></g-input>
+    <g-time-field :id="'t24-' + s.id" :size="s.size" :density="s.density" :label="'Hora ' + s.id" v-model="v['t24-' + s.id]" locale="es" block :labels="tl"></g-time-field>
+    <g-time-field :id="'t12-' + s.id" :size="s.size" :density="s.density" :label="'Toma ' + s.id" v-model="v['t12-' + s.id]" locale="es-MX" block :labels="tl"></g-time-field>
+  </div>
+</div>
+
+<h2 class="b">2 · Estados</h2>
+<div class="host"><div class="grid">
+  <g-time-field id="s-rest" label="12 h en reposo" v-model="v['s-rest']" locale="es-MX" :labels="tl"></g-time-field>
+  <g-time-field id="s-24" label="24 h" v-model="v['s-24']" locale="es" :labels="tl"></g-time-field>
+  <g-time-field id="s-empty" label="Vacío (12 h)" v-model="v['s-empty']" locale="es-MX" placeholder="9:30 a.m." :labels="tl"></g-time-field>
+  <g-time-field id="s-pending" label="Vacío con p.m. pendiente" v-model="v['s-pending']" locale="es-MX" :labels="tl"></g-time-field>
+  <g-time-field id="s-readonly" label="Solo lectura (12 h)" v-model="v['s-readonly']" locale="es-MX" readonly :labels="tl"></g-time-field>
+  <g-time-field id="s-disabled" label="Deshabilitado (12 h)" v-model="v['s-disabled']" locale="es-MX" disabled :labels="tl"></g-time-field>
+  <g-time-field id="s-invalid" label="Con error" v-model="v['s-invalid']" locale="es-MX" error="Fuera del turno." :labels="tl"></g-time-field>
+  <g-time-field id="s-own" label="No es una hora (error propio, sin GForm)" v-model="v['s-own']" locale="es" :labels="tl"></g-time-field>
+  <g-time-field id="s-warning" label="Con advertencia" v-model="v['s-warning']" locale="es-MX" warning="Muy tarde para la toma." :labels="tl"></g-time-field>
+  <g-time-field id="s-valid" label="Válido" v-model="v['s-valid']" locale="es-MX" valid="Dentro del horario." :labels="tl"></g-time-field>
+  <g-time-field id="s-soft" label="Variante soft" variant="soft" v-model="v['s-soft']" locale="es-MX" :labels="tl"></g-time-field>
+  <g-time-field id="s-pill" label="rounded pill" rounded="pill" v-model="v['s-pill']" locale="es-MX" :labels="tl"></g-time-field>
+  <g-time-field id="s-zone" label="Con zona (sufijo)" v-model="v['s-zone']" locale="es" suffix="CDMX" suffix-label="hora del centro de México" :labels="tl"></g-time-field>
+  <g-time-field id="s-output" label="Fin con output" v-model="v['s-output']" locale="es" output="8 h · +1 día" :labels="tl"></g-time-field>
+  <g-time-field id="s-long" label="Lectura larga (en)" v-model="v['s-long']" locale="en-US" :labels="tl"></g-time-field>
+</div></div>
+
+<h2 class="b">3 · Las dos lecturas (24 h, con foco y hora ambigua)</h2>
+<div class="host"><div class="grid">
+  <g-time-field id="c-wide" label="Hora de la toma" v-model="v['c-wide']" locale="es" block :labels="tl"></g-time-field>
+  <div class="narrow"><g-time-field id="c-narrow" label="Hora" v-model="v['c-narrow']" locale="es" block :labels="tl"></g-time-field></div>
+  <div class="narrow"><g-time-field id="c-xs" size="xs" label="Hora xs" v-model="v['c-xs']" locale="es" block :labels="tl"></g-time-field></div>
+</div></div>
+
+<h2 class="b">4 · En una fila (GFormRow real) a 1100 · 720 · 320</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'r-form-' + w" :labels="labels">
+    <g-form-layout>
+      <g-form-row :id="'r-row-' + w" :data-row="'a-' + w">
+        <g-date-picker class="g-form-w-sm" :id="'r-fecha-' + w" label="Fecha" name="fecha" model-value="2026-10-06" locale="es"></g-date-picker>
+        <g-time-field class="g-form-w-xs" :id="'r-hora-' + w" label="Hora" name="hora" v-model="v['r-hora-' + w]" locale="es" :labels="tl"></g-time-field>
+        <g-input class="g-form-w-md" :id="'r-nom-' + w" label="Paciente" name="paciente"></g-input>
+        <g-select class="g-form-w-sm" :id="'r-via-' + w" label="Vía" name="via" :options="vias" v-model="via"></g-select>
+      </g-form-row>
+      <g-form-row :id="'r-row2-' + w" :data-row="'b-' + w">
+        <g-time-field class="g-form-w-sm" :id="'r-toma-' + w" label="Toma" name="toma" v-model="v['r-toma-' + w]" locale="es-MX" hint="Por ejemplo 9:30 o 9 de la noche." :labels="tl"></g-time-field>
+        <g-date-picker class="g-form-w-sm" :id="'r-fecha2-' + w" label="Desde" name="desde" locale="es"></g-date-picker>
+        <g-input class="g-form-w-md" :id="'r-lote-' + w" label="Lote" name="lote" error="El lote no existe."></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">5 · RTL (ar-EG) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <g-time-field id="rtl-ar12" hour-cycle="h12" label="وقت الجرعة" v-model="v['rtl-ar12']" block :labels="{ invalid: 'اكتب وقتًا' }"></g-time-field>
+    <div style="block-size:12px"></div>
+    <g-time-field id="rtl-ar24" hour-cycle="h23" label="الوقت" v-model="v['rtl-ar24']" suffix="القاهرة" suffix-label="توقيت القاهرة" block :labels="{ invalid: 'اكتب وقتًا' }"></g-time-field>
+  </div>
+  <div class="host w320">
+    <g-time-field id="n320-12" label="Hora de la toma" v-model="v['n320-12']" locale="en-US" seconds block :labels="tl"></g-time-field>
+    <div style="block-size:12px"></div>
+    <g-time-field id="n320-24" label="Hora" v-model="v['n320-24']" locale="es" suffix="CDMX" suffix-label="hora del centro de México" output="8 h · +1 día" block :labels="tl"></g-time-field>
+  </div>
+</div>
+
+<h2 class="b">6 · Mínimo publicado (#410) en una GFormRow real</h2>
+<p class="cap">«Toma» (12 h, <code>es-MX</code>) y «Hora» (24 h, <code>es</code>) junto a un <code>GInput</code> <code>xs</code>; el verificador barre el ancho del contenedor. Bloquear: <label><input type="checkbox" id="mn-lock" v-model="lock"> solo lectura</label></p>
+<div class="host sweep" id="mn-host">
+  <g-form-layout>
+    <g-form-row id="mn-row12" data-min-row="12">
+      <g-time-field class="g-form-w-xs" id="mn-12" label="Toma" name="toma" v-model="v['mn-12']" locale="es-MX" :readonly="lock" :labels="tl"></g-time-field>
+      <g-input class="g-form-w-xs" id="mn-12-n" label="Dosis" model-value="1"></g-input>
+    </g-form-row>
+    <g-form-row id="mn-row24" data-min-row="24">
+      <g-time-field class="g-form-w-xs" id="mn-24" label="Hora" name="hora" v-model="v['mn-24']" locale="es" :readonly="lock" :labels="tl"></g-time-field>
+      <g-input class="g-form-w-xs" id="mn-24-n" label="Dosis" model-value="1"></g-input>
+    </g-form-row>
+  </g-form-layout>
+</div>
+
+<h2 class="b">7 · Envío: error propio con GForm y GErrorSummary</h2>
+<div class="host">
+  <g-form id="ef-form" :labels="labels" @submit="efLog = 'submit ' + [...$event.data.entries()].map(([k, x]) => k + '=' + x).join(' ')" @invalid="efLog = 'invalid ' + $event.errors.map((x) => x.name).join(',')">
+    <g-error-summary :labels="{ title: 'Revisa estos campos' }"></g-error-summary>
+    <g-form-layout>
+      <g-form-row>
+        <g-time-field id="ef-hora" class="g-form-w-sm" name="hora" label="Hora de la toma" v-model="v['ef-hora']" locale="es-MX" :labels="tl"></g-time-field>
+        <g-input id="ef-nom" name="nombre" label="Nombre" model-value="Ana"></g-input>
+      </g-form-row>
+    </g-form-layout>
+    <g-form-actions><g-btn id="ef-send" type="submit">Enviar</g-btn></g-form-actions>
+  </g-form>
+  <p class="tag" id="ef-log">{{ efLog }}</p>
+  <form id="nat-form" @submit.prevent="natLog = 'submit'" style="margin-block-start:16px">
+    <g-time-field id="nat-hora" name="nat" label="Hora (form nativo, sin GForm)" v-model="v['nat-hora']" locale="es" :labels="tl"></g-time-field>
+    <button id="nat-send" type="submit">Enviar nativo</button>
+  </form>
+  <p class="tag" id="nat-log">{{ natLog }}</p>
+</div>
+
+<h2 class="b">8 · Teclado</h2>
+<div class="host"><div class="grid">
+  <g-time-field id="k-24" label="Paso 15 (8:00 a 18:00)" v-model="v['k-24']" locale="es" :step="15" min="08:00" max="18:00" :labels="tl"></g-time-field>
+  <g-time-field id="k-arc" label="Turno 22:00 a 6:00 (paso 30)" v-model="v['k-arc']" locale="es" :step="30" min="22:00" max="06:00" :labels="tl"></g-time-field>
+  <g-time-field id="k-12" label="12 h, a / p" v-model="v['k-12']" locale="es-MX" :labels="tl"></g-time-field>
+</div></div>
+
+<h2 class="b">9 · GTooltip envolviendo el campo</h2>
+<div class="host"><div class="grid">
+  <button type="button" id="tt-before">Antes</button>
+  <g-tooltip text="Hora local de la clínica" placement="bottom">
+    <g-time-field id="tt-12" label="Toma con tooltip" v-model="v['tt-12']" locale="es-MX" :labels="tl"></g-time-field>
+  </g-tooltip>
+  <g-tooltip text="Hora local de la clínica" placement="bottom">
+    <g-time-field id="tt-24" label="Hora con tooltip" v-model="v['tt-24']" locale="es" suffix="CDMX" suffix-label="hora del centro de México" :labels="tl"></g-time-field>
+  </g-tooltip>
+</div></div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/time-field.umd.js"></script>
+<script>
+const { createApp, ref, reactive, watch } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const tl = { invalid: 'Escribe una hora, por ejemplo 9:30.' }
+const vias = [{ value: 'vo', label: 'Oral' }, { value: 'iv', label: 'Intravenosa' }, { value: 'sc', label: 'Subcutánea' }]
+const sizes = [['xs'], ['sm'], ['md'], ['lg'], ['xl'], ['md', 'compact'], ['xs', 'compact']].map(([size, density = 'default']) => ({ id: size + (density === 'default' ? '' : '-' + density), size, density }))
+const init = {
+  's-rest': '09:30', 's-24': '12:15', 's-empty': null, 's-pending': null, 's-readonly': '21:30', 's-disabled': '21:30', 's-invalid': '03:00', 's-own': null,
+  's-warning': '23:45', 's-valid': '08:00', 's-soft': '14:00', 's-pill': '06:15', 's-zone': '21:30', 's-output': '06:00', 's-long': '00:30',
+  'c-wide': null, 'c-narrow': null, 'c-xs': null, 'rtl-ar12': '21:30', 'rtl-ar24': '21:30', 'n320-12': '00:30:00', 'n320-24': '21:30',
+  'mn-12': '09:30', 'mn-24': '09:30', 'ef-hora': null, 'nat-hora': null, 'k-24': '09:00', 'k-arc': null, 'k-12': '09:30', 'tt-12': '21:30', 'tt-24': '21:30'
+}
+for (const s of sizes) { init['t24-' + s.id] = '21:30'; init['t12-' + s.id] = '21:30' }
+for (const w of [1100, 720, 320]) { init['r-hora-' + w] = '21:30'; init['r-toma-' + w] = '21:30' }
+const v = window.__v = reactive(init)
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (x) => { $('#slow-css').textContent = (x ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '') + (q.get('text') ? `html{font-size:${q.get('text')}%}` : '') }
+    applySlow(slow.value); watch(slow, applySlow)
+    const via = ref('vo'), lock = ref(false), efLog = ref('—'), natLog = ref('—')
+    window.__lock = lock
+    return { slow, via, vias, sizes, labels, tl, v, lock, efLog, natLog }
+  }
+})
+app.use(Grana).use(GranaTimeField)
+app.mount('#app')
+
+// p.m. pendiente: un toque en p.m. con el campo vacío (sin foco)
+;(async () => { await raf2(); const b = document.getElementById('s-pending').closest('.g-input').querySelectorAll('.g-time-field__half')[1]; b.click() })()
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (x) => { $('#gen').href = x === 'auditoria' ? 'auditoria-tema.css' : x === 'propio' ? 'estilo-tema.css' : x ? '../tema-oscuro/dark-color-presence/generated/' + x + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+const ready = () => document.fonts.ready.then(raf2).then(raf2).then(() => { document.documentElement.dataset.ready = '1' })
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>
