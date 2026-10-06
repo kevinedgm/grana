@@ -24,6 +24,7 @@ async function open(page, motion) {
 const sampleLanding = (page) => page.evaluate(async () => {
   const root = document.getElementById('ff-rx').closest('.g-file-field')
   const field = document.getElementById('ff-rx')
+  await new Promise((r) => requestAnimationFrame(r)) // un cuadro tras el desplazamiento, como en un gesto real
   const dt = new DataTransfer()
   dt.items.add(new File([new Uint8Array(400)], 'aterriza.pdf', { type: 'application/pdf' }))
   field.files = dt.files
@@ -75,11 +76,12 @@ test.describe('GFileField · personalidad (#376)', () => {
     expect(s.landing.at(-1)).toBe(false)
   })
 
-  test('los destinos despiertan juntos con un fundido, sin mover nada (Δ0 de cajas y raíces); dormir al soltar fuera', async ({ page, browserName }) => {
+  test('los destinos despiertan juntos con un fundido, sin mover nada (Δ0 de cajas y raíces); dormir al soltar fuera', async ({ page }) => {
     await open(page, 'no-preference')
     const geo = () => page.evaluate(() => [...document.querySelectorAll('#sec-file-field .g-file-field')].map((r) => { const a = r.getBoundingClientRect(); const b = r.querySelector('.g-file-field__box').getBoundingClientRect(); return [a.top, a.height, b.top, b.height] }))
     const g0 = await geo()
     const t = await page.evaluate(async () => {
+      await new Promise((r) => requestAnimationFrame(r)) // un cuadro entre el desplazamiento y el dragenter, como en un arrastre real
       const dt = new DataTransfer()
       dt.items.add(new File([new Uint8Array(5)], 'x.png', { type: 'image/png' }))
       document.body.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: dt }))
@@ -104,16 +106,10 @@ test.describe('GFileField · personalidad (#376)', () => {
     const durs = await page.evaluate(() => ['ff-rx', 'ff-photos', 'ff-ine-a'].map((id) => getComputedStyle(document.getElementById(id).closest('.g-file-field').querySelector('.g-file-field__target')).transitionDuration.split(',')[0].trim()))
     expect(new Set(durs).size, 'la misma transición en todos').toBe(1)
     expect(parseFloat(durs[0])).toBeGreaterThan(0)
-    if (browserName === 'webkit') {
-      // Hallazgo para coco (pendiente): en WebKit la transición de opacidad del destino arranca y termina en el cuadro
-      // siguiente (sin valores intermedios) aunque declara 0.16s; se comprueba solo que despierta y termina visible
-      test.info().annotations.push({ type: 'pendiente-coco', description: 'WebKit: el fundido del destino no interpola (aparece en un cuadro)' })
-    } else {
-      const mids = t.samples.filter((row) => row.some((o) => o > 0.02 && o < 0.98))
-      expect(mids.length, 'fundido con valores intermedios ' + JSON.stringify(t)).toBeGreaterThanOrEqual(1)
-      for (const row of t.samples) expect(Math.max(...row) - Math.min(...row), 'juntos').toBeLessThan(0.15)
-      expect(new Set(t.fades).size, 'la misma transición en todos').toBe(1)
-    }
+    const mids = t.samples.filter((row) => row.some((o) => o > 0.02 && o < 0.98))
+    expect(mids.length, 'fundido con valores intermedios ' + JSON.stringify(t)).toBeGreaterThanOrEqual(1)
+    for (const row of t.samples) expect(Math.max(...row) - Math.min(...row), 'juntos').toBeLessThan(0.15)
+    expect(new Set(t.fades).size, 'la misma transición en todos').toBe(1)
     expect(t.end).toEqual([1, 1, 1])
     expect(await geo(), 'despertar es pintura').toEqual(g0)
     await page.evaluate(() => {

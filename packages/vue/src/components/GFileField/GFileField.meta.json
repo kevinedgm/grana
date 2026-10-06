@@ -366,7 +366,7 @@
     "playground": "packages/vue/playground/index.html#sec-file-field"
   },
   "pending": [
-    "Paso 5: auditoría de coco sobre el componente real (design/lab/file-field/auditoria.md); luego README (mora-docs) y status candidate.",
+    "Auditoría de coco hecha (design/lab/file-field/auditoria.md, 98f46cf; hallazgos 2 a 4 corregidos) y README hecho. Quedan informativos: márgenes justos que vienen del tema (hallazgo 7: 4,50 en el par on-accent-soft/accent-soft, 4,14 en «Cancelar» sobre el relleno, ≥ 3 exigido) y el gesto con un fallo inmediato que llegan en un solo anuncio (hallazgo 8, ventana de 50 ms del escritor de la región).",
     "Solo en entorno real: lector de pantalla (control oculto con nombre compuesto y descripción, recuento nativo, lista, anuncios por lote, barra en la ficha), diálogo del sistema y hoja móvil reales, arrastre real desde el escritorio, pegar real (Firefox no admite archivos en un ClipboardEvent construido), forced-colors real, zoom 200 %, archivos de varios GB, HEIC.",
     "Reservado (#378): appearance=\"gallery\" (B), expected (C), validate, capture como prop, reorderable, directory, slots item/lead, color, GInputGroup/GFieldGroup."
   ]
