@@ -73,7 +73,7 @@ const note = (k, v) => { (measures[k] ??= []).push(v) }
   ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del texto oculto: ' + onePx)
   ok(!/\d(?:ch|em|rem|vw|vh|lh)\b/.test(css.replace(/-0\.125em/g, '')), 'CSS: unidad literal no permitida (ch, em, rem, vw, vh, lh)')
   const nums = [...css.matchAll(/[*/]\s*(-?\d*\.?\d+)\b(?!px|ms|%|fr|turn)/g)].map((m) => m[1])
-  const NUMS = ['-1', '2', '0.75', '0.375', '24', '52', '90', '-0.5', '0.25']
+  const NUMS = ['-1', '2', '0.75', '0.375', '24', '52', '90', '-0.5', '0.25', '6']
   ok(nums.every((n) => NUMS.includes(n)), 'CSS: factores no previstos: ' + [...new Set(nums.filter((n) => !NUMS.includes(n)))])
   const kf = [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1])
   ok(kf.length === 3 && ['g-file-field-land', 'g-file-field-land-fade', 'g-reject-file-field'].every((k) => kf.includes(k)), 'CSS: keyframes ' + kf)
@@ -224,7 +224,7 @@ for (const engine of ENGINES) {
       ok(Math.abs(r.e.t - r.gi.t) < 0.5 && Math.abs(r.e.h - r.gi.h) < 0.5, t(`caja vacía Δtop ${(r.e.t - r.gi.t).toFixed(2)} Δalto ${(r.e.h - r.gi.h).toFixed(2)}`))
       ok(Math.abs(r.el.t - r.gl.t) < 0.5, t(`etiqueta Δtop ${(r.el.t - r.gl.t).toFixed(2)}`))
       ok(Math.abs(r.o.t - r.g1.t) < 0.5, t(`caja con archivo Δtop ${(r.o.t - r.g1.t).toFixed(2)}`))
-      const expect = Math.max(r.h, 24 + 2 * r.bw)
+      const expect = Math.max(r.h, r.chip.h + 2 * r.bw) // la ficha mide al menos sus botones (auditoría, hallazgo 2)
       ok(Math.abs(r.o.h - expect) < 0.5, t(`caja con archivo ${r.o.h} ≠ ${expect} (alto de GInput ${r.h})`))
       ok(r.chip.h >= 24 - 0.01, t(`ficha ${r.chip.h} < 24`))
       if (Math.abs(r.o.h - r.h) > 0.01) note('caja con un archivo más alta que la de GInput (permitido: la ficha toca su piso de 24px); el GInput vecino se estira', `${engine} ?${qs} ${r.s}/${r.d} ${r.o.h} vs ${r.h.toFixed(2)} (GInput vecino ${r.g1.h})`)

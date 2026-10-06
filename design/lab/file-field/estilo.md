@@ -30,7 +30,7 @@ Todo lo que distingue a A sale del contrato («Qué lo hace distinto»); el CSS 
 
 | Constante | Valor | Dónde |
 | --- | --- | --- |
-| Alto de la ficha | `max(24px, --_h − space × 2)` (md 28 en 36; lg 36; xl 44; xs y sm, 24) | Una línea de fichas mide lo que la caja vacía; la caja reparte `(--_h − ficha) / 2 − borde` arriba y abajo (negativo → 0, como `GBtn`) |
+| Alto de la ficha | **Mínimo** `max(24px, --_h − space × 2, space × 6)` (md 28 en 36; lg 36; xl 44; xs y sm, 24; con `space` 5, xs y sm 30) | Una línea de fichas mide lo que la caja vacía; la caja reparte `(--_h − max(ficha, línea de texto)) / 2 − borde` arriba y abajo (negativo → 0, como `GBtn`). `space × 6` = alto de sus botones (`GBtn` xs). Es un mínimo: con el texto al 200 % la ficha crece con su línea (auditoría, hallazgos 2 y 4) |
 | Relleno lateral de la caja | `space × 0.75` | La ficha casi toca el borde (radio `xs` dentro de `sm`) |
 | Ancho base de una ficha (`multiple`) | `space × 52` (208px) | El del prototipo; es `inline-size` (no `flex-basis`) para que la lista mida lo que suman sus fichas |
 | Suelo de la lista con un archivo | `min(100 %, space × 24)` (96px) | Lo mínimo que se conserva antes de que «Cambiar archivo» baje de línea |
@@ -60,6 +60,7 @@ Criterio: con un archivo y sin `multiple`, en `md`, la lista en su suelo (`space
 
 ## Mediciones (Chromium, Firefox, WebKit; 2683/2683)
 
+- **Actualizado en la auditoría** (`auditoria.md`, hallazgos 2 a 4): la ficha tiene alto mínimo (no fijo) que cuenta sus botones; el reparto de la caja cuenta la línea de texto; el tamaño se ve entero o no se ve. Las medidas de abajo son las del banco de estilo; las del componente real están en `auditoria.md`.
 - **Δ0 en una `GFormRow` con `GInput`** (5 tamaños × 3 densidades, tema por defecto y Tema de prueba con `space` 5 y borde 2px): caja vacía Δtop 0 y Δalto 0; etiqueta Δtop 0; con un archivo, Δtop 0 y alto = `max(--_h, 24 + 2 × borde)`. Donde la ficha toca su piso de 24px (xs, sm/comfortable, sm/compact y xs/compact), la caja con un archivo mide 26 frente a 24–24,5 de la de `GInput` (28 frente a 24–26,25 en el Tema de prueba): permitido por el contrato («Disposición»), y el `GInput` vecino **se estira** a 26 (ver Pendientes).
 - **Ficha:** Δ0 entre `ready`, `queued`, `uploading`, `done`, `error` y guardado en los cinco tamaños; alto xs 24 · sm 24 · md 28 · lg 36 · xl 44 (Tema de prueba 24 · 27 · 37 · 47 · 57); botones ≥ 24 × 24. Con `pointer: coarse` (Chromium, `isMobile`): caja, ficha y botones ≥ 44px.
 - **Contraste** (peor caso; Chromium en claro, oscuro, Tema de prueba y los once temas generados claro y oscuro; Firefox y WebKit en por defecto claro y oscuro y spotify claro y oscuro): cara 4,52 · pista y estado 6,99 · nombre 13,36 · tamaño 5,94 · subiendo sobre el relleno: nombre 13,36, tamaño 5,94 · **frente de avance** 4,51 contra el relleno y 4,74 contra la ficha · **filo de éxito** 4,37 · **error**: nombre 4,53, mensaje 4,53, iconos 4,27 · Quitar 4,36 · soft: cara 4,74 · solo lectura: cara 5,57 · aviso 4,66 · mensajes 4,51 / 4,53 / 4,60 · borde de la caja 3,43 · borde con error 4,51 · foco 4,52 · destino: admite 4,51 (borde 4,86), encima 4,51 (borde 4,86), no admite 5,94 (borde 3,43).
@@ -84,6 +85,8 @@ Las del contrato («Clases y datos»), más:
 - La lista lleva `list-style: none`: VoiceOver deja de anunciar como lista un `<ul>` sin viñetas; con `role="list"` explícito se conserva.
 
 ## Pendientes
+
+- **Hechos en la auditoría (paso 5):** el `align-self: start` de las cajas vecinas en una `GFormRow` (`3aea306`, #379) y los hallazgos 2 a 4 de `auditoria.md`. Lo que sigue queda como estaba escrito al cerrar el estilo.
 
 - **coco (fuera de este encargo):** el `GInput` vecino (y `GSelect`, `GInputGroup`, `GDatePicker`, que tampoco ponen `align-self` en la pista de la caja) **se estira** en una `GFormRow` cuando la caja de archivos es más alta: medido 156px de `GInput` junto a un campo con cuatro fichas en dos líneas (`tall-in` en el banco). Propuesta: `align-self: start` en `.g-form-row > .g-input > .g-input__row` y en sus equivalentes (como `GRadioGroup` inline/segmentado y este campo). No lo toco aquí (archivos de otros componentes).
 - **coco:** `GSummary` en `forced-colors`: la tesela del icono (`surface-sunken`) no se fuerza (`GIcon` con `preserve-parent-color`) y el trazo `CanvasText` puede desaparecer; aquí lo corrijo en el anfitrión.

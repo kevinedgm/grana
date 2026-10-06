@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFileField",
   "tag": "g-file-field",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo para adjuntar archivos a un formulario, concepto A «Línea de adjuntos»: la caja mide lo que la de GInput y los archivos son fichas dentro de ella (GSummary inline xs con un GProgress como capa, «Reintentar» y «Quitar» al lado); el control es el <input type=\"file\"> real y lleva siempre los File de la lista. Elegir, arrastrar (la página entera despierta los campos alcanzables) y pegar. Sin red: la subida es un adaptador de la aplicación (uploader) y empieza al añadir; con subidas pendientes o fallidas el campo bloquea el envío de GForm por sí mismo (error propio, solo al enviar). Sin uploader, los binarios van en el envío nativo.",
   "contract": "design/contracts/file-field.md",

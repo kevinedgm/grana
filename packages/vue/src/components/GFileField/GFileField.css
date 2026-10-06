@@ -32,9 +32,13 @@
 
   /* La ficha: alto de la caja menos space × 2 (md: 28 en 36), nunca por debajo de sus botones (24px; 44px táctil). La
      caja reparte el resto arriba y abajo: así una línea de fichas mide lo que la caja vacía (Δ0 con GInput) y, donde
-     la ficha toca el piso (xs), la caja crece lo justo. El relleno negativo se recorta a 0 (como GBtn) */
-  --_ff-chip-h: max(24px, calc(var(--_h) - var(--g-space-2)));
-  --_ff-py: calc((var(--_h) - var(--_ff-chip-h)) / 2 - var(--g-border-width));
+     la ficha toca el piso (xs), la caja crece lo justo. Con el texto ampliado (200 %), la línea de texto pasa a mandar:
+     el reparto se calcula desde la mayor de las dos, como GInput, que centra su línea sin relleno (auditoría, hallazgo
+     2: con la ficha sola, la caja vacía medía 48 frente a 42 de GInput). La ficha tampoco baja del alto de sus botones
+     (GBtn xs: space × 6): con space 5, 30px de botón en una ficha fija de 24 salían de la caja. El relleno negativo se
+     recorta a 0 (como GBtn) */
+  --_ff-chip-h: max(24px, calc(var(--_h) - var(--g-space-2)), calc(var(--g-space-1) * 6));
+  --_ff-py: calc((var(--_h) - max(var(--_ff-chip-h), var(--_lh))) / 2 - var(--g-border-width));
   --_ff-pin: calc(var(--g-space-1) * 0.75);
   /* Sobresaliente del destino: space × 1 por lado, sin pasar en línea de media separación de columna de una GFormRow
      compacta (× 0.75 / 2; no depende de la densidad del campo): dos destinos vecinos nunca se solapan. Arriba y abajo,
@@ -167,7 +171,8 @@
   inline-size: calc(var(--g-space-1) * 52);
   min-inline-size: 0;
   max-inline-size: 100%;
-  block-size: var(--_ff-chip-h);
+  /* Mínimo, no alto: con el texto ampliado la ficha crece con su línea (y con sus botones) en vez de dejarla salir */
+  min-block-size: var(--_ff-chip-h);
   padding-inline: var(--g-space-1) 0;
   border-radius: var(--g-radius-xs);
   background: var(--_ff-chip-bg);
@@ -189,6 +194,17 @@
   flex: 1 1 0;
   min-inline-size: 0;
 }
+/* El tamaño se ve entero o no se ve (sigue en el árbol): sin datos, la GSummary inline le da a la línea secundaria lo
+   que sobra tras el título, y una sobra menor que la elipsis pintaba un trozo de cifra junto al nombre (auditoría,
+   hallazgo 3: «Receta guardada md.pdf ⌐2»). Aquí no encoge: si no cabe entera junto al título, pasa a una segunda
+   línea que el cuerpo recorta (el patrón de la cabecera de GSummary). El título cede igual que antes */
+.g-file-field__chip .g-summary:not(:has(.g-summary__fact)) .g-summary__body {
+  flex-wrap: wrap;
+  max-block-size: var(--_lh);
+}
+.g-file-field__chip .g-summary:not(:has(.g-summary__fact)) .g-summary__subtitle {
+  flex: 0 0 auto;
+}
 /* Miniatura e icono: una tesela de la superficie (sobre el relleno de la subida tampoco desaparece) */
 .g-file-field__chip .g-summary__lead > .g-icon {
   background: var(--g-color-surface);
@@ -198,7 +214,7 @@
 }
 @media (pointer: coarse) {
   .g-file-field__chip {
-    block-size: max(44px, var(--_ff-chip-h));
+    min-block-size: max(44px, var(--_ff-chip-h));
   }
   .g-file-field__chip > .g-btn {
     min-inline-size: 44px;

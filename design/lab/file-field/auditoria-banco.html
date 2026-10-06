@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFileField · banco de auditoría</title>
+<!-- Banco de la auditoría de coco (paso 5) sobre el COMPONENTE REAL: dist/grana.umd.js + dist/file-field.umd.js +
+     dist/grana.css tal como se publican (nada del CSS ni del marcado se escribe aquí). Un adaptador de subida propio y
+     determinista (sin red) deja cada ficha en el estado que se mide: «ok-…» sube al instante, «err-…» falla siempre,
+     «once-…» falla al primer intento y luego se queda subiendo, «hold-…» se queda al 42 %. Con concurrency 1, una lista
+     [guardado, ok, err, hold, queued] queda con sus seis estados (ready: el mismo campo sin adaptador).
+     Requiere dist/ (npm run build). Desde la raíz:  python3 -m http.server 4209  →  /design/lab/file-field/auditoria-banco.html
+     Parámetros: ?theme=audit|<generated>  ?dark=1  ?zoom=2 (texto al 200 %: tamaño de letra raíz)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/file-field/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<script>
+  // Tema antes del montaje: ?theme=audit (auditoria-tema.css, @grana/cli) o un generado de dark-color-presence; ?dark=1
+  const P = new URLSearchParams(location.search)
+  const th = P.get('theme')
+  if (th) document.write(`<link rel="stylesheet" href="${th === 'audit' ? './auditoria-tema.css' : `../tema-oscuro/dark-color-presence/generated/${th}.css`}">`)
+  document.documentElement.dataset.theme = P.get('dark') ? 'dark' : 'light'
+  if (P.get('zoom')) document.documentElement.style.fontSize = (100 * Number(P.get('zoom'))) + '%'
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:40vh}
+  h2{font-size:15px;margin:32px 0 8px}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:12px;padding:20px;min-inline-size:0}
+  .stack{display:grid;gap:20px}
+  .w320{inline-size:320px;max-inline-size:100%;padding:12px}
+  .w420{inline-size:420px;max-inline-size:100%}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h2>1 · En una GFormRow junto a GInput (vacía y con un archivo), 5 tamaños × 3 densidades</h2>
+<div class="host stack">
+  <template v-for="d in DENS" :key="d">
+    <g-form v-for="s in SIZES" :key="d + s" :aria-label="'Fila ' + s + ' ' + d">
+      <g-form-layout>
+        <g-form-row :data-case="'row-' + s + '-' + d">
+          <g-input :size="s" :density="d" label="Folio" :data-case="'in-' + s + '-' + d"></g-input>
+          <g-file-field :size="s" :density="d" label="Receta" hint="PDF" :labels="L" :data-case="'e-' + s + '-' + d"></g-file-field>
+        </g-form-row>
+        <g-form-row>
+          <g-input :size="s" :density="d" label="Folio" :data-case="'in1-' + s + '-' + d"></g-input>
+          <g-file-field :size="s" :density="d" label="Receta" :labels="L" :model-value="[stored('Receta médica de marzo.pdf')]" :data-case="'o-' + s + '-' + d"></g-file-field>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+  </template>
+</div>
+
+<h2>2 · La ficha en sus seis estados, por tamaño (guardado · subido · error · subiendo · en cola; ready sin adaptador)</h2>
+<div class="host stack">
+  <template v-for="s in SIZES" :key="s">
+    <g-file-field :size="s" block multiple :concurrency="1" :uploader="up" :labels="L" label="Estudios" :model-value="six(s)" :data-case="'st-' + s"></g-file-field>
+    <g-file-field :size="s" block multiple :labels="L" label="Estudios sin adaptador" :model-value="[fresh('ready-' + s + '.pdf')]" :data-case="'rd-' + s"></g-file-field>
+  </template>
+  <g-file-field variant="soft" block multiple :concurrency="1" :uploader="up" :labels="L" label="Estudios (soft)" :model-value="six('soft')" data-case="st-soft"></g-file-field>
+  <g-file-field variant="soft" block multiple :labels="L" label="Estudios (soft, sin adaptador)" :model-value="[fresh('ready-soft.pdf')]" data-case="rd-soft"></g-file-field>
+</div>
+
+<h2>3 · Estados del campo</h2>
+<div class="host stack w420">
+  <g-file-field label="Receta escaneada" hint="PDF o imagen · hasta 5 MB" :labels="L" data-case="empty"></g-file-field>
+  <g-file-field label="Fotos" multiple variant="soft" hint="Imagen" :labels="L" data-case="empty-soft"></g-file-field>
+  <g-file-field label="Estudios (solo lectura)" multiple readonly :labels="L" :model-value="[stored('Radiografía de tórax.pdf')]" data-case="ro"></g-file-field>
+  <g-file-field label="Sin adjuntos (solo lectura)" readonly :labels="L" data-case="ro-empty"></g-file-field>
+  <g-file-field label="Estudios (deshabilitado)" multiple disabled :labels="L" :model-value="[stored('Radiografía de tórax.pdf')]" data-case="dis"></g-file-field>
+  <g-file-field label="Fotos (lleno)" multiple :max="2" :labels="L" :model-value="[stored('a.png', 'image/png'), stored('b.png', 'image/png')]" data-case="full"></g-file-field>
+  <g-file-field label="Consentimiento" required :labels="L" error="Adjunta el consentimiento firmado." data-case="inv"></g-file-field>
+  <g-file-field label="Comprobante" :labels="L" warning="El comprobante tiene más de tres meses." :model-value="[stored('cfe.pdf')]" data-case="warn"></g-file-field>
+  <g-file-field label="Identificación" :labels="L" valid="Documento verificado." :model-value="[stored('ine.pdf')]" data-case="valid"></g-file-field>
+  <g-file-field ref="noticeRef" label="Fotos (con aviso)" multiple accept="image/*" :max-size="1000" :labels="L" data-case="notice"></g-file-field>
+</div>
+
+<h2>4 · Arrastre de página: destinos (fila compacta)</h2>
+<div class="host stack">
+  <g-form aria-label="Destinos" density="compact">
+    <g-form-layout>
+      <g-form-row data-case="trow-a">
+        <g-file-field label="Fotos" accept="image/*" multiple :labels="L" hint="Imagen" data-case="t-ok"></g-file-field>
+        <g-file-field label="Fotos de frente" accept="image/*" :labels="L" hint="Imagen" data-case="t-over"></g-file-field>
+        <g-file-field label="Factura" accept="application/pdf" :labels="L" data-case="t-no"></g-file-field>
+      </g-form-row>
+      <g-form-row data-case="trow-b">
+        <g-file-field label="Contrato" accept="application/pdf" :labels="L" data-case="t-overno"></g-file-field>
+        <g-file-field label="INE" multiple :max="1" :labels="L" :model-value="[stored('ine.png', 'image/png')]" data-case="t-full"></g-file-field>
+        <g-input label="Nota" data-case="t-input"></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+  <p><g-btn id="dlg-open" variant="outline" @click="dlg = true">Abrir diálogo</g-btn></p>
+  <g-dialog v-model="dlg" title="Adjuntar a la consulta" close-label="Cerrar">
+    <g-file-field ref="dlgRef" block label="Fotos del diálogo" multiple accept="image/*" :uploader="up" :labels="L" data-case="dlg"></g-file-field>
+  </g-dialog>
+</div>
+
+<h2>4b · Un campo inerte y el barrido de --g-form-min</h2>
+<div inert data-case="inert-host"><g-file-field label="Campo en un subárbol inerte" :labels="L" data-case="inert-ff"></g-file-field></div>
+<div data-case="sweep-host">
+  <g-form aria-label="Barrido"><g-form-layout><g-form-row>
+    <g-input label="Folio" data-case="sw-in"></g-input>
+    <g-file-field label="Receta" :labels="L" :model-value="[stored('Receta médica de marzo.pdf')]" data-case="sw-ff"></g-file-field>
+  </g-form-row></g-form-layout></g-form>
+</div>
+
+<h2>5 · Foco, anuncios y envío bloqueado</h2>
+<div class="host stack w420">
+  <g-file-field ref="focusRef" label="Adjuntos" multiple :uploader="up" :labels="L" data-case="focus"></g-file-field>
+  <g-form ref="formRef" aria-label="Expediente" :labels="FL" @submit="sent = 'enviado'" @invalid="sent = 'invalid'" data-case="form">
+    <g-error-summary :labels="{ title: 'Revisa estos campos' }"></g-error-summary>
+    <g-form-layout>
+      <g-file-field ref="blockRef" name="fotos" label="Fotos de la lesión" multiple :uploader="up" :labels="L" data-case="block"></g-file-field>
+    </g-form-layout>
+    <p><g-btn id="send" type="submit">Guardar</g-btn></p>
+  </g-form>
+  <p id="sent">{{ sent }}</p>
+</div>
+
+<h2>6 · 320px en LTR y RTL; frente de avance</h2>
+<div class="host stack">
+  <div class="w320" data-case="w320-ltr"><g-file-field block multiple :concurrency="1" :uploader="up" :labels="L" label="Fotos de la lesión con un nombre largo" hint="Imagen" :model-value="six('w320l')"></g-file-field></div>
+  <div class="w320" dir="rtl" lang="ar" data-case="w320-rtl"><g-file-field block multiple :concurrency="1" :uploader="up" :labels="L" label="الصور" :model-value="six('w320r')"></g-file-field></div>
+  <div class="w420" data-case="up-ltr"><g-file-field block :uploader="up" :labels="L" label="Una" :model-value="[fresh('hold-ltr.pdf', 1000)]"></g-file-field></div>
+  <div class="w420" dir="rtl" lang="ar" data-case="up-rtl"><g-file-field block :uploader="up" :labels="L" label="واحد" :model-value="[fresh('hold-rtl.pdf', 1000)]"></g-file-field></div>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/file-field.umd.js"></script>
+<script>
+  const { createApp, ref } = Vue
+  // Adaptador determinista (sin red): por el nombre del archivo
+  const attempts = new Map()
+  function up(file, { signal, progress }) {
+    const n = (attempts.get(file.name) || 0) + 1
+    attempts.set(file.name, n)
+    return new Promise((resolve, reject) => {
+      const abort = () => reject(new DOMException('aborted', 'AbortError'))
+      if (signal.aborted) return abort()
+      signal.addEventListener('abort', abort, { once: true })
+      if (/^ok-/.test(file.name)) return setTimeout(() => resolve({ value: 'srv-' + file.name }), 0)
+      if (/^err-/.test(file.name) || (/^once-/.test(file.name) && n === 1)) return setTimeout(() => reject(new Error('Se interrumpió la conexión con el servidor')), 0)
+      if (/^hold-|^once-/.test(file.name)) return setTimeout(() => progress(420, 1000), 0)
+      // fast-…: sube en ~300 ms en tres pasos
+      let p = 0
+      const t = setInterval(() => { p += 1 / 3; progress(Math.min(1, p) * 1000, 1000); if (p >= 1) { clearInterval(t); resolve({ value: 'srv-' + file.name }) } }, 100)
+    })
+  }
+  let seq = 0
+  const stored = (name, type = 'application/pdf') => ({ key: 's' + (++seq), name, size: 220000, type, value: 'doc-' + seq })
+  const fresh = (name, size = 3000) => ({ key: 'n' + (++seq), name, size, type: 'application/pdf', file: new File([new Uint8Array(size)], name, { type: 'application/pdf' }) })
+  const six = (s) => [stored('Receta guardada ' + s + '.pdf'), fresh('ok-subido-' + s + '.pdf'), fresh('err-fallido-' + s + '.pdf'), fresh('hold-subiendo-' + s + '.pdf', 1000), fresh('cola-' + s + '.pdf')]
+  const plural = (n, one, many) => (n === 1 ? one : many.replace('{n}', n))
+  const L = {
+    add: 'Adjuntar archivo', addMany: 'Adjuntar archivos', addMore: 'Añadir más', change: 'Cambiar archivo',
+    full: (count, max) => `${count} de ${max}`, readonly: 'Solo lectura', none: 'Sin archivos',
+    status: ({ count, max, active, failed }) => [max && max > 1 ? `${count} de ${max}` : plural(count, '1 archivo', '{n} archivos'), active ? `${active} subiendo` : '', failed ? plural(failed, '1 con error', '{n} con error') : ''].filter(Boolean).join(' · '),
+    list: 'Archivos de {label}', drop: 'Soltar aquí · {hint}', dropInto: 'Soltar en {label}', dropRejected: '{label} no admite estos archivos', dropFull: '{label} está lleno',
+    remove: 'Quitar {name}', cancel: 'Cancelar subida de {name}', retry: 'Reintentar {name}',
+    queued: 'En cola', done: 'Subido', error: 'Error:', progress: 'Subida de {name}', progressText: '{percent} %, {loaded} de {total}',
+    uploadFailed: 'No se pudo subir', notAdded: 'Archivos no añadidos', dismiss: 'Descartar',
+    reasons: { type: 'no es un tipo admitido', empty: 'está vacío', duplicate: 'ya está en la lista', size: 'pesa {size}, el máximo es {limit}', count: 'ya hay {limit}, el máximo' },
+    added: 'Añadido {name}.', addedMany: (n) => `Añadidos ${n} archivos.`, replaced: '{old} reemplazado por {name}.',
+    rejected: 'No se añadió {name}: {reason}.', rejectedMany: 'No se añadieron {count} archivos: {list}.',
+    uploading: (n) => (n === 1 ? 'Subiendo.' : `Subiendo ${n}.`), uploaded: '{name} subido.', uploadedMany: (n) => `${n} archivos subidos.`,
+    uploadError: 'No se pudo subir {name}: {message}.', retrying: 'Reintentando {name}.',
+    removed: (n, name) => `Quitado ${name}. ` + (n ? plural(n, 'Queda 1 archivo.', 'Quedan {n} archivos.') : 'Sin archivos.'),
+    canceled: (n, name) => `Subida de ${name} cancelada. ` + (n ? plural(n, 'Queda 1 archivo.', 'Quedan {n} archivos.') : 'Sin archivos.'),
+    pending: (n, name) => (n === 1 ? `Espera a que termine de subir ${name}.` : `Esperan ${n} archivos por subir.`),
+    failed: (n, name) => (n === 1 ? `No se pudo subir ${name}: reinténtalo o quítalo.` : `${n} archivos no se subieron: reinténtalos o quítalos.`)
+  }
+  const FL = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+  const app = createApp({
+    setup() {
+      const refs = { noticeRef: ref(null), dlgRef: ref(null), focusRef: ref(null), blockRef: ref(null), formRef: ref(null) }
+      const dlg = ref(false), sent = ref('')
+      window.__ab = { refs, dlg, attempts, file: (name, size = 3000, type = 'application/pdf') => new File([new Uint8Array(size)], name, { type }) }
+      return { SIZES: ['xs', 'sm', 'md', 'lg', 'xl'], DENS: ['default', 'comfortable', 'compact'], L, FL, up, stored, fresh, six, dlg, sent, ...refs }
+    }
+  })
+  app.use(Grana).use(GranaFileField).mount('#app')
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.setAttribute('data-ready', '')))
+</script>
+</body>
+</html>
