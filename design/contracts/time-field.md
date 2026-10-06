@@ -309,6 +309,24 @@ El campo **publica su mínimo intrínseco** a la fila con `setIntrinsicMin` (#27
 - **Cuándo:** solo si la fila provee `setIntrinsicMin`. Al montar, al cargar las fuentes, cuando cambian `locale`, `hourCycle`, `seconds`, `placeholder`, `prefix`, `suffix`, `output`, `size`, `density` o `readonly`, y con un `ResizeObserver` sobre `__measure` (puntero grueso, fuente); publica solo si cambia ≥ 0,5px; retira con `0` al desmontar.
 - **Mínimo efectivo** (form.md §4) = el mayor entre el de su clase, `--g-form-min` × `space` y este. El valor de referencia medido lo anota coco en su `estilo.md` (kiwi estimó ≈ 224px un campo de 12 h con a. m./p. m. y `--g-form-min: 56` en su prototipo de C).
 - **Mínimos de referencia medidos** (coco, `design/lab/time-field/estilo.md`; `md`, `space` 4): 12 h `es-MX` **186px** (también en solo lectura); 24 h `es` **66px**, por debajo de cualquier clase de tamaño (no cambia nada). El efectivo lo sube la clase o `--g-form-min`.
+- **Con la fuente servida** (`dist/fonts.css`, Instrument Sans; hallazgo 5 de la auditoría): el componente real publica **180px** (12 h `es-MX`) y **65px** (24 h `es`), exactos al píxel por posiciones en los tres motores. Las referencias 186/66 de arriba se midieron **sin** la fuente. No es un defecto: el mínimo se mide en vivo con la tipografía que haya; las cifras son orientativas.
+
+### Fuera de una fila: el mismo mínimo en la raíz (#416; hallazgo 2 de la auditoría)
+
+**Problema medido:** `GInput` fija el ancho de su raíz en `min(100%, space × 60)` (240px) y no crece con el texto. Con el texto al 200 % (zoom de solo texto, WCAG 1.4.4), un campo de 12 h **fuera de una fila y sin `block`** no cabe («9:30 a.m.» 116px más a. m./p. m. ≈ 140px) y recorta la hora a «8:0…»: los minutos se pierden. Dentro de una `GFormRow` o con `block` no pasa.
+
+**Decisión: aceptado.** Fuera de una fila, el campo usa **su mínimo medido** (el mismo cálculo por posiciones de arriba) como suelo del ancho de su raíz, **acotado al 100 % del contenedor**. Con el texto normal el mínimo (180/65px) queda por debajo de los 240px y **no cambia nada** (la raíz sigue en 240px, Δ 0); solo crece cuando el texto lo exige, y nunca más allá de lo que el contenedor da (entonces vale el recorte «todo o nada» de la lectura, hallazgo 1).
+
+**Cómo se publica (sin API pública, sin token nuevo):**
+
+1. **El `.vue` mide y escribe; no calcula estilo.** Cuando **no** hay `setIntrinsicMin` (`canPublish` falso: sin fila, o en un `GFormLayout`/contenedor que no lo provee) y el campo **no es `block`**, el `.vue` monta `__measure` igual que dentro de una fila y, con la misma medida, los mismos disparadores y el mismo umbral de 0,5px (incluido el `ResizeObserver` de `__measure`, que es lo que dispara el zoom de solo texto), escribe en la **raíz** (`.g-input.g-time-field`):
+   - la **variable en línea `--_min-inline`** con el mínimo en píxeles (`'180px'`), con **`style`** fusionado con el `style` del consumidor (el de la raíz de `GInput` ya recibe `attrs.style`: añadir la variable sin pisarlo; con un `style` del consumidor que defina `--_min-inline`, gana el del consumidor);
+   - el atributo **`data-fit`** (valor vacío) mientras la variable esté escrita.
+   Con `canPublish` verdadero, con `block` o antes de medir (SSR, primer render), **ni variable ni `data-fit`**. Al desmontarse `__measure` o pasar a `block`, el `.vue` quita las dos.
+2. **coco aplica.** Una sola regla en `GTimeField.css`: `.g-time-field[data-fit] { min-inline-size: min(100%, var(--_min-inline)); }`. Sin valor de respaldo (la regla solo existe con `data-fit`, que solo existe con la variable escrita). `GInput.css` no se toca. Gana a `min-inline-size: 0` de la raíz de `GInput` por especificidad; la variable la escribe el `.vue` y no se documenta como API.
+3. **Qué no cambia:** el mínimo que se publica a una fila, los límites de la fila, `block` (100 %), el recorte «todo o nada» de la lectura, y el ancho a texto normal. Un `inline-size` del consumidor menor que el mínimo pierde frente al mínimo (es el suelo de legibilidad), salvo que el contenedor sea más estrecho (el 100 % manda).
+
+**Verificación (decide la prueba, no el código):** con `html` al 200 %, en 12 h `es-MX` (y 24 h con `seconds`) fuera de una fila, sin `block`: la hora se lee **entera** en el espejo (sin «8:0…») y la raíz mide ≥ el mínimo medido por posiciones (calculado aparte, como en #410) y ≤ el contenedor; con texto al 100 % la raíz mide **240px exactos**, igual que un `GInput` vecino (Δ 0); con `block` y dentro de una `GFormRow` no hay `data-fit` ni `--_min-inline`; en un visor de 320px y texto al 200 % no desborda. Banco de coco: el caso «Texto al 200 %» ya lo mide («8:0…» hoy).
 
 ## Fecha y hora, y zona horaria (#411)
 
@@ -362,7 +380,8 @@ Bruno las emite; coco las estiliza. Las de `GInput` siguen siendo de `GInput`.
 | `g-time-field__choices` (+ `data-compact`) | `span` contenedor | 24 h, foco, hora ambigua, sin `readonly` |
 | `g-time-field__choice` (+ `is-on`) | `button` | Con `__choices` |
 | `g-time-field__choice-time`, `g-time-field__choice-word` | `span` dentro del botón | Con `__choices`; sin `data-compact`, `-time` es texto oculto accesible; con él, `-word` |
-| `g-time-field__measure` | `span` `aria-hidden` fuera de flujo | Dentro de una `GFormRow` que provee `setIntrinsicMin` |
+| `g-time-field__measure` | `span` `aria-hidden` fuera de flujo | Dentro de una `GFormRow` que provee `setIntrinsicMin`, o (#416) fuera de ella sin `block` |
+| `data-fit` + variable en línea `--_min-inline` | Raíz | Fuera de una fila y sin `block`, una vez medido el mínimo (#416); sin ellos, ninguno |
 
 **Para coco:** `font-variant-numeric: tabular-nums` en el campo, el espejo, `__measure` y `__choice-time`; la celda y la lectura en línea con la separación de la caja (8px en `md`), la lectura con elipsis y `cursor: text`; a. m./p. m. y las lecturas **del alto de la caja**, de borde a borde incluido el borde (alias locales como `--_nf-border`/`--_nf-stroke` de `GNumberField` si hacen falta, con nombre propio), piso **24px** y **44px** con `pointer: coarse`, `touch-action: manipulation`, sin selección ni menú de toque largo, `cursor: pointer` (`not-allowed` deshabilitado), hover dentro de `@media (hover: hover)`; `padding-inline-end: 0` en el control con `g-time-field--h12` (sin `readonly`) o `has-choices`; `text-align: match-parent` en el campo con la corrección de `:dir(rtl)` de `GNumberField` si Chromium la necesita; `__measure` fuera de flujo con la tipografía del campo; la sacudida de I2 ya mueve `g-input__row` y con ella los botones; **`forced-colors`**: botones con `ButtonText`/`ButtonFace` y separador visible, pulsado con `Highlight`/`HighlightText` **y** el peso, con **`forced-color-adjust: none`** (sin eso Chromium pinta una placa `Canvas` detrás del texto pulsado y `HighlightText` no se ve), deshabilitado `GrayText`, lectura en `CanvasText`; **no** estilizar `:invalid`/`:user-invalid`.
 
@@ -428,6 +447,7 @@ B (#414) volvería a decidirse; con esta entrada ya es la casa natural de `picke
 | L20 | C | Reservado como **`mode="range"`** (no `GTimeRange`) con su forma y las decisiones del usuario 3 y 4 | #413 |
 | L21 | Movimiento | Sin tokens nuevos: `--g-duration-press` + `--g-ease-out` (A; C cuando entre); `--g-duration-slow` + `--g-ease-out` (minutos de B cuando entre); sin muelle ni rebote | #412 |
 | L22 | Mínimo de C | Cada campo del tramo publica el suyo (#410); sin `--g-form-min` fijo | #413 |
+| L23 | Auditoría, hallazgo 2: 12 h al 200 % de texto fuera de una fila | El mínimo medido es el suelo de la raíz, acotado al 100 %: variable en línea `--_min-inline` + `data-fit` (bruno) y una regla `min-inline-size` (coco); Δ 0 a texto normal | #416 |
 
 ## Fuera de v0.1 (reservado con nombre y forma)
 
@@ -502,6 +522,11 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): un `spinbutton` cuyo `valuetext`
 2. Keyframes `g-time-reading-rise` (texto: la palabra con `is-entering` y el texto de las lecturas) y `g-time-reading-fade` (el par `__choices` al insertarse, solo opacidad), `--g-duration-press` + `--g-ease-out`, desplazamiento `--g-space-1 × 1`, solo con `prefers-reduced-motion: no-preference`.
 3. Banco de estilo en `design/lab/time-field/` y `estilo.md` con las medidas: separación lectura–hora por tamaño, alto y ancho de los botones, **mínimo publicado de referencia** en 12 h y 24 h (`md`, `space` 4), contrastes.
 4. Auditoría del componente real con un tema distinto (paso 5): `design/lab/time-field/auditoria.md`.
+
+### Encargos de la auditoría (#416)
+
+- **bruno (`GTimeField.vue` y sus pruebas):** medir y escribir `--_min-inline` y `data-fit` en la raíz **fuera de una fila y sin `block`**, según «Fuera de una fila: el mismo mínimo en la raíz». Reutilizar `__measure`, la medida y los disparadores de `publish` (cambia solo a dónde va el número); no añadir props ni eventos. Pruebas: `data-fit` y la variable presentes fuera de una fila sin `block`, ausentes con `block` y dentro de una `GFormRow`; el `style` del consumidor se conserva; la variable se actualiza con `locale`/`hourCycle`/`seconds`.
+- **coco (`GTimeField.css`, banco y `auditoria-verificar.mjs`):** la regla `.g-time-field[data-fit] { min-inline-size: min(100%, var(--_min-inline)); }` y volver a medir «Texto al 200 %» (hora entera; raíz ≥ mínimo y ≤ contenedor; 240px exactos a texto normal, Δ 0 con `GInput`; 320px sin desborde) en los tres motores; cerrar el hallazgo 2 en `auditoria.md`. Anotar en `estilo.md` que 186/66 eran sin la fuente y que con ella son 180/65 (hallazgo 5).
 
 ### bruno (Opus; `.vue`, motor, pruebas, registro)
 
