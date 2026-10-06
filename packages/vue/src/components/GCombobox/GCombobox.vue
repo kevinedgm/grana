@@ -1008,8 +1008,22 @@ function scrollActive() {
   if (!sc) return
   const a = el.getBoundingClientRect()
   const b = sc.getBoundingClientRect()
-  if (a.top < b.top) sc.scrollTop -= b.top - a.top
-  else if (a.bottom > b.bottom) sc.scrollTop += a.bottom - b.bottom
+  // Posición de la activa respecto al borde visible del panel que toca el campo, y alto visible (el FINAL si se despliega)
+  const top = a.top - b.top
+  const view = settledView(sc, b.height)
+  if (top < 0) sc.scrollTop += top
+  else if (top + a.height > view) sc.scrollTop += top + a.height - view
+}
+// Al abrir, la parte con fondo se despliega (0fr → 1fr en --g-duration-slow, CSS de coco) y el panel mide durante esos
+// cuadros menos de lo que medirá: desplazarlo contra ese alto pasajero empujaba la activa fuera de la vista, bajo el campo
+// (82 px en el primer cuadro). Mientras el despliegue corre se mide contra el alto final: el de su contenido con su tope.
+function settledView(sc, now) {
+  const body = sc.matches('.g-combobox__panel') && sc.closest('.g-combobox__popup-body')
+  if (!body || typeof body.getAnimations !== 'function') return now
+  const growing = body.getAnimations().some((x) => x.transitionProperty === 'grid-template-rows' && x.playState !== 'finished')
+  if (!growing) return now
+  const cap = parseFloat(getComputedStyle(sc).maxBlockSize)
+  return Math.max(now, Math.min(sc.scrollHeight, Number.isFinite(cap) ? cap : Infinity))
 }
 watch(activeRow, (r) => { if (r && revealActive) nextTick(scrollActive) }, { flush: 'post' })
 watch(() => (opened.value && !surface.value ? [hasPanel.value, rows.value.all.length, status.value?.kind].join('|') : ''), (v) => { if (v) nextTick(place) }, { flush: 'post' })
