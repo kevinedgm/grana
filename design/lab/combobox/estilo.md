@@ -139,7 +139,7 @@ Mínimos de las 28 configuraciones: contorno 15,18, activa invertida 15,18, marc
 
 - **Proporción frase/texto con el foco: 55 %** de la celda como máximo para la frase (la de kiwi en r03); el `<input>` toma el resto (base 0: no compite por su ancho intrínseco). Medido: con tres elegidas en 240px, la frase cede a «Penicilina y 2 más» y ocupa el 41 %.
 - **Casilla:** `space × 5` (× 4 con el campo `xs`/`sm`, cuando la ficha es `sm`), el tamaño de `GCheckbox md`/`sm`; marca al **0,72** de la casilla (la proporción de `GCheckbox`); centrada en la línea del título (`body-line`; `body-sm-line` con la ficha `sm`): Δ ≤ 1px medido. Alias `--_cb-box`, `--_cb-line`.
-- **Renglón (B y C):** alto mínimo `--_cb-rowh` = `body-line + body-sm-line + space × 2` (la `GSummary row` de dos líneas `md` + `space-1` arriba y abajo): **52px** en el tema por defecto (50px en el de auditoría). El rastro toma el mismo mínimo, por eso mide igual. Columnas fijas (número · ficha · «Nueva» · botón): una pieza ausente deja su pista en 0. Número en `space × 5` de ancho, cifras tabulares.
+- **Renglón (B y C):** alto mínimo `--_cb-rowh` = `body-line + body-sm-line + space × 2` (la `GSummary row` de dos líneas `md` + `space-1` arriba y abajo): **52px** en el tema por defecto (50px en el de auditoría). El rastro toma como mínimo **`--_row-h`**, el alto medido del renglón que escribe el `.vue` al convertirlo (#429); sin medida, el mismo mínimo del renglón. Así mide igual también con un slot `chosen` de más de dos líneas (auditoría: 93px → 93px; antes de la corrección, 93 → 52). Columnas fijas (número · ficha · «Nueva» · botón): una pieza ausente deja su pista en 0. Número en `space × 5` de ancho, cifras tabulares.
 - **Barra de «Nueva»:** `--g-focus-width` de ancho (la de la activa del prototipo).
 - **Cesta:** 6 : 5 frente a los resultados (la proporción de la vista previa que sustituye); medido 1,200.
 - **Cifras:** el hueco de la cifra (100 %) es la geometría del giro; escala 0,4 de la casilla (§29.6); cota del viaje `space × 2 / 0.038` (la de la Fase 1, alias `--_cb-tx/ty`).
@@ -184,8 +184,8 @@ Mínimos de las 28 configuraciones: contorno 15,18, activa invertida 15,18, marc
 
 ## Pendientes
 
-- **lima:** registrar los cuatro desvíos de la tabla de arriba en `combobox.md` §«Tokens (Fase 2)» y `tokens.md` §32 (siguen sin tokens nuevos). **Hueco:** el rastro mide lo mismo que el renglón porque los dos toman el alto de la `GSummary` de dos líneas; un slot `chosen` más alto que dos líneas haría el rastro más bajo (Δ ≠ 0). Si se quiere garantizar con cualquier slot, el `.vue` tendría que escribir el alto medido del renglón en línea al convertirlo (p. ej. `--_row-h`, §29.5); hoy el contrato dice «sin interactivos» pero no limita el alto.
-- **bruno:** lo de «Lo que el CSS espera del `.vue`». Auditoría del componente real (paso 5): `design/lab/combobox/auditoria-multiple.md`.
+- ~~**lima:** registrar los cuatro desvíos~~ (hecho, #429 y #430). ~~**Hueco** del rastro con un slot `chosen` alto~~: resuelto con `--_row-h` (#429; el `.vue` lo escribe y, desde la auditoría, el CSS lo usa como `min-block-size` del rastro y como alto de partida del pliegue `g-combobox-row-out`).
+- Auditoría del componente real (paso 5): `design/lab/combobox/auditoria-multiple.md`.
 
 ## No verificado
 

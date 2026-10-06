@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox multiple · banco de auditoría (coco)</title>
+<!-- Banco de coco para la auditoría (paso 5) de la Fase 2 de GCombobox (multiple) sobre el COMPONENTE REAL: dist/grana.css,
+     dist/grana.umd.js y dist/combobox.umd.js tal como se publican. Solo los casos que el playground no tiene:
+       1 · B con un slot `chosen` de más de dos líneas (el rastro debe medir lo mismo: --_row-h, #429), en la receta y en
+           la cesta.
+       2 · Un GTooltip envolviendo el campo con multiple, en A (frase), B (receta) y C (paleta + cesta).
+     Lo demás se audita en el playground (packages/vue/playground/index.html, #sec-combobox-multiple, ?cm=A|B|C).
+     Servidor: GRANA_PW_PORT=4209 node design/lab/combobox/auditoria-multiple-verificar.mjs --serve
+     Parámetros: ?theme=auditoria | auditoria-primary | <generated/*.css>   ?dark=1   ?dir=rtl -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:960px;margin:0 auto;padding-block-end:70vh;display:grid;gap:var(--g-space-6)}
+  h1{font-size:18px;margin:0}
+  h2{font-size:15px;margin:var(--g-space-4) 0 0}
+  .col{display:grid;gap:var(--g-space-4);max-inline-size:420px}
+  .after{margin:0;padding:8px;border:1px dashed var(--g-color-border-strong);font-size:13px;color:var(--g-color-text-muted)}
+  /* Slot chosen alto: cuatro líneas de texto (contenido del consumidor, sin interactivos) */
+  .tall{display:grid;gap:0;padding-block:var(--g-space-1)}
+  .tall b{font-weight:var(--g-text-action-weight)}
+  .tall span{font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text-muted)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>GCombobox multiple · banco de auditoría</h1>
+  <h2>1 · Slot <code>chosen</code> de cuatro líneas (receta y cesta)</h2>
+  <div class="col">
+    <g-combobox id="ab-tall" multiple selection="list" numbered block v-model="tall" label="Medicamentos (slot chosen alto)" placeholder="Agregar medicamento" :delay="20" :labels="labels" :options="meds">
+      <template #chosen="{ option, custom }">
+        <span class="tall"><b>{{ option ? option.label : custom }}</b><span>{{ option ? option.description : 'Texto libre' }}</span><span>Dosis: según indicación médica</span><span>Vigencia: hasta nueva orden</span></span>
+      </template>
+    </g-combobox>
+    <p class="after" id="ab-tall-after">Lo de debajo de la receta</p>
+    <g-combobox id="ab-tall-c" multiple appearance="palette" numbered block v-model="tallC" label="Medicamentos (cesta, slot chosen alto)" placeholder="Agregar medicamento" :delay="20" :labels="labels" :options="meds">
+      <template #chosen="{ option, custom }">
+        <span class="tall"><b>{{ option ? option.label : custom }}</b><span>{{ option ? option.description : 'Texto libre' }}</span><span>Dosis: según indicación médica</span><span>Vigencia: hasta nueva orden</span></span>
+      </template>
+    </g-combobox>
+  </div>
+  <h2>2 · GTooltip envolviendo el campo</h2>
+  <div class="col">
+    <button type="button" id="ab-before">Antes</button>
+    <g-tooltip text="Alergias conocidas del paciente" kind="description">
+      <g-combobox id="ab-tip-a" multiple block v-model="tipA" label="Alergias" placeholder="Buscar alergia" :delay="20" :labels="labels" :options="allergens"></g-combobox>
+    </g-tooltip>
+    <g-tooltip text="Hasta tres, en orden de importancia" kind="description">
+      <g-combobox id="ab-tip-b" multiple selection="list" numbered :max="3" block v-model="tipB" label="Diagnósticos" placeholder="Código o descripción" :delay="20" :labels="labels" :options="dx"></g-combobox>
+    </g-tooltip>
+    <g-tooltip text="Busca por nombre o área" kind="description">
+      <g-combobox id="ab-tip-c" multiple appearance="palette" block v-model="tipC" label="Responsables" placeholder="Nombre o área" :delay="20" :labels="labels" :options="people"></g-combobox>
+    </g-tooltip>
+    <button type="button" id="ab-after">Después</button>
+  </div>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../../packages/vue/playground/combobox-data.js"></script>
+<script>
+const qs = new URLSearchParams(location.search)
+const theme = qs.get('theme')
+const ready = () => document.documentElement.setAttribute('data-ready', '')
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+if (qs.get('dir')) document.documentElement.dir = qs.get('dir')
+const CB = window.PlaygroundCombobox
+const sel = (n) => (n === 1 ? '1 seleccionado' : `${n} seleccionados`)
+const labels = {
+  clear: 'Quitar todos', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', results: (n) => (n === 1 ? '1 resultado' : n + ' resultados'),
+  partial: '{count} de {total} resultados', more: 'Mostrar más ({shown} de {total})', retry: 'Reintentar', custom: 'Texto libre', surfaceTitle: 'Buscar',
+  selected: sel, about: (n, list) => `${sel(n)}: ${list}`, added: (l, n) => `Se agregó ${l}. ${sel(n)}.`, removed: (l, n) => `Se quitó ${l}. ${sel(n)}.`,
+  restored: (l, n) => `Se restauró ${l}. ${sel(n)}.`, clearedAll: 'Se quitaron todos', restoredAll: (n) => `Se restauraron ${n}`, armed: 'Pulsa Retroceso otra vez para quitar {label}',
+  already: '{label} ya está elegido', chosen: 'Elegidos', rest: '{count} más', showAll: 'Ver los {count}', showLess: 'Ver menos', done: 'Listo', remove: 'Quitar {label}',
+  undo: 'Deshacer', trace: '{label} quitado', fresh: 'Nuevo', basketEmpty: 'Aún no hay ninguno.', max: (m) => `Máximo ${m}`, ofMax: '{count} de {max}', customItem: '{text} (texto libre)'
+}
+const state = Vue.reactive({ tall: ['m0', 'm4'], tallC: ['m0', 'm4'], tipA: ['penicilina', 'latex'], tipB: ['E11.9'], tipC: ['u3'] })
+window.__ab = state
+const mount = () => {
+  Vue.createApp({ setup: () => ({ ...Vue.toRefs(state), labels, meds: CB.meds, allergens: CB.allergens, dx: CB.dx, people: CB.people }) }).use(Grana).use(GranaCombobox).mount('#app')
+  document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(ready)))
+}
+if (theme) {
+  const l = document.createElement('link')
+  l.rel = 'stylesheet'
+  l.href = /^auditoria/.test(theme) ? `${theme === 'auditoria' ? 'auditoria-tema' : 'auditoria-tema-primary'}.css` : `../tema-oscuro/dark-color-presence/generated/${theme}.css`
+  l.onload = l.onerror = mount
+  document.head.append(l)
+} else mount()
+</script>
+</body>
+</html>

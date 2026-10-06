@@ -96,7 +96,7 @@ if (run('static')) {
   const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v)))]
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
-  ok([...own].every((v) => v.startsWith('--_cb-')), 'CSS: alias propio sin prefijo --_cb-: ' + [...own])
+  ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_row-h'), 'CSS: alias propio sin prefijo --_cb-: ' + [...own]) // --_row-h: dato del .vue (#429) con su valor por defecto
   const allowed = ['--_focus', '--_radius', '--_fs', '--_lh', '--_gap', '--_density', '--_inset-radius', '--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h', '--_travel-x', '--_travel-y']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !allowed.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* no previsto: ' + strange)

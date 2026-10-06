@@ -937,6 +937,9 @@
 }
 .g-combobox__row {
   --_cb-rowh: calc(var(--g-text-body-line) + var(--g-text-body-sm-line) + var(--g-space-1) * 2);
+  /* --_row-h (#429, dato del .vue en línea, px): el alto medido del renglón al convertirse en rastro. Aquí solo su valor
+     por defecto (sin medida, el alto mínimo del renglón); el de línea gana siempre */
+  --_row-h: var(--_cb-rowh);
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -1085,9 +1088,10 @@
     background: var(--g-color-neutral-soft);
   }
 }
-/* El rastro: mismo alto que el renglón (su alto mínimo), el nombre tachado en text-muted y «Deshacer»; aparece con un
-   fundido (también con movimiento reducido: es opacidad) */
+/* El rastro: mismo alto que el renglón (--_row-h, medido por el .vue; sin medida, el alto mínimo del renglón), el nombre
+   tachado en text-muted y «Deshacer»; aparece con un fundido (también con movimiento reducido: es opacidad) */
 .g-combobox__row.is-trace {
+  min-block-size: var(--_row-h);
   background: var(--g-color-surface-sunken);
 }
 .g-combobox__trace {
@@ -1234,7 +1238,7 @@
   to { grid-template-rows: 1fr; min-block-size: var(--_cb-rowh); opacity: 1; }
 }
 @keyframes g-combobox-row-out {
-  from { grid-template-rows: 1fr; min-block-size: var(--_cb-rowh); opacity: 1; }
+  from { grid-template-rows: 1fr; min-block-size: var(--_row-h); opacity: 1; }
   to { grid-template-rows: 0fr; min-block-size: 0; opacity: 0; border-block-width: 0; }
 }
 /* Mientras crece o se pliega, el contenido no impone su alto y se recorta */
