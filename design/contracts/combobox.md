@@ -1,6 +1,6 @@
 # Contrato · GCombobox
 
-**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32 · **Enmendado por #356** (2026-10-04, decisión del usuario): opción, ficha del valor y vista previa se pintan con **`GSummary`** (`summary.md`); ver «Fichas con `GSummary`»
+**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32 · **Enmendado por #356** (2026-10-04, decisión del usuario): opción, ficha del valor y vista previa se pintan con **`GSummary`** (`summary.md`); ver «Fichas con `GSummary`» · **Fase 2 (`multiple`) contratada por #417 a #428** (2026-10-06, decisiones del usuario: A «La frase» por defecto, B «La receta» como `selection="list"`, C «La cesta» = `palette` + `multiple`; kiwi `design/lab/combobox/r03/`, commit `a6f731f`, L26 a L42): ver «Fase 2 · Selección múltiple», que manda con `multiple`
 **Tag:** `g-combobox` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/combobox` (#337)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: teclado compuesto, se posiciona sobre otros elementos, motor de datos, compone `GInput`, `GAvatar` y `GDialog`): **coco en Opus, bruno en Fable**.
 
@@ -38,7 +38,7 @@ Las tres reglas de seguridad de la base (Tab, Intro, lista que no parpadea) son 
 | Sugerencias de **texto** sin valor asociado ni estados | `GInput` + `<datalist>` nativo (`list` por `$attrs`) | `GCombobox` |
 | Ejecutar una acción | `GMenu` | `GCombobox` |
 | Filtrar una colección | `GFilterBar` (podrá componer `GCombobox` como editor de valor: reservado, #338) | — |
-| Varias opciones | **Fase 2**: `multiple` del mismo componente (reservado, #338). Etiquetas sin catálogo: `GTagInput` (reservado) | Varios `GCombobox` |
+| Varias opciones de un catálogo | **`multiple`** del mismo componente (Fase 2, #417 a #428; frontera completa en «Fase 2 · Cuándo usarlo»). Etiquetas sin catálogo: `GTagInput` (reservado) | Varios `GCombobox` |
 
 ---
 
@@ -96,7 +96,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
 | `id` | String | | generado | propia |
 
-**No existen** (#330, #338): `remote` (es `filter: false`), `multiple`, `selectedOptions` (reservados para la Fase 2; `multiple` se ignora con aviso), `expandable` (reservado: ampliar a la paleta desde `field`), `autoHighlight` (la primera opción activa es fija; nombre reservado), `createLabel` y `clearLabel` (van en `labels`), `emptyText`, `placeholder` como prop (es atributo, como en `GInput`), `prefix`, `suffix`, `output`, `type`, `surface` (colisiona con `GSurface` y `--g-surface-*`), `mode`.
+**Fase 2:** `multiple`, `selectedOptions`, `selection`, `numbered` y `max` están en «Fase 2 · Selección múltiple» (#417 a #428). **No existen** (#330, #338): `remote` (es `filter: false`), `expandable` (reservado: ampliar a la paleta desde `field`), `autoHighlight` (la primera opción activa es fija; nombre reservado), `createLabel` y `clearLabel` (van en `labels`), `emptyText`, `placeholder` como prop (es atributo, como en `GInput`), `prefix`, `suffix`, `output`, `type`, `surface` (colisiona con `GSurface` y `--g-surface-*`), `mode`.
 
 ### Opciones
 
@@ -526,9 +526,399 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 6. `allowCustom` con `name` y sin `customName`: el texto libre no viaja en `FormData`.
 7. `filter: false` y, tras emitir `search` o `more`, la aplicación no responde en el siguiente ciclo (ni `loading`, ni `options`, `total` o `loadError`).
 8. `total` con filtro local (se ignora), o menor que las opciones entregadas.
-9. `multiple` (reservado para la Fase 2: se ignora); `type` en `$attrs`; slots `append` o `action`; slot `preview` con `appearance="field"`.
+9. `type` en `$attrs`; slots `append` o `action`; slot `preview` con `appearance="field"`.
 10. Dentro de un `GInputGroup` (no admitido en v0.1).
 11. `limit` < 1, `delay` < 0 o `minChars` < 0 (además del validador: se usa el valor por defecto).
+
+---
+
+## Fase 2 · Selección múltiple (`multiple`) (#417 a #428)
+
+**Origen:** kiwi `design/lab/combobox/r03/` (commit `a6f731f`; base funcional y conceptos A «La frase», B «La receta», C «La cesta», con los componentes reales de `dist/` y los tokens del tema por defecto; `verificar.mjs` **1077/1077** en Chromium, Firefox y WebKit; hallazgos L26 a L42) y las **decisiones del usuario del 2026-10-06** (las cuatro preguntas de la declaración). El resto deriva de APG (*Combobox* con *listbox popup*; *Listbox* de selección múltiple), WCAG 2.2 y los contratos vigentes. **Ninguna pregunta de producto abierta.**
+
+**Alcance.** `multiple` es un **modo del mismo componente** (#338). Con `multiple`, **este apartado manda** sobre lo que el resto del contrato diga del modelo, el envío, la ficha (C de la Fase 1), el teclado, los textos y los anuncios. Lo que no se nombra aquí **sigue como en la Fase 1**: datos sin `fetch` (`filter`, `search`, `more`, pendiente, `loading`, `loadError`, «Mostrar más»), texto fantasma y aceptación con →, forma de A, superficie `GDialog`, `GSummary` en las opciones (#356), paneles anclados (#358), `--g-form-min`, `aria-required`, región viva propia, IME. **Componente complejo:** coco y bruno en Opus.
+
+### Qué lo hace distinto (Fase 2; #417, decisión del usuario)
+
+| | Concepto | Cómo se pide | Qué hace | Por qué sirve |
+| --- | --- | --- | --- | --- |
+| **A** | **La frase** (por defecto) | `multiple` (`selection="inline"`, con `appearance="field"`) | Lo elegido se escribe **en la línea del campo** como una frase de `Intl.ListFormat` («Penicilina, Látex y 3 más»), sin fichas ni ×; cede **por texto**, no con una insignia; al abrir, el grupo **«Elegidas»** va arriba. **El campo nunca crece** | Formularios densos sin saltos (Δ0 medido de 2 a 8 en una `GFormRow`); lo elegido se lee en reposo, impreso o en una captura; ningún objetivo diminuto junto a otro |
+| **B** | **La receta** (opción) | `selection="list"` | La caja es solo la búsqueda; los elegidos van **debajo**, como renglones completos (`GSummary row`) en orden, numerados con `numbered`; lo agregado en la pasada dice «Nueva» y quitar deja un **rastro con «Deshacer» en el mismo sitio** | Diagnósticos, medicamentos, órdenes: cada elegido se verifica **entero**; quitar por error no mueve ni pierde nada; quien revisa ve qué cambió |
+| **C** | **La cesta** | `appearance="palette"` + `multiple` | La paleta de la Fase 1 con **los resultados a un lado y la cesta de lo elegido al otro**, en el sitio de la vista previa; lo marcado **viaja** a la cesta; quitar deja rastro con «Deshacer»; en reposo, la frase de A (o la receta, con `list`) | Revisar y quitar **mientras se busca**; entre homónimos, `summaryDiff` compara en resultados y cesta: se comprueba que quedó la persona correcta |
+
+**En los tres, quitar nunca es irreversible ni accidental** (la identidad de la base): Intro no borra lo que ya está, Retroceso sostenido no se lleva nada, quitar con Retroceso pide una segunda pulsación y todo quitar se deshace (**Ctrl/⌘+Z en los tres; rastro visible con «Deshacer» en B y C**, decisión del usuario 3). Ninguna regla añade pasos al camino normal: escribir, Intro, escribir, Intro.
+
+**Semillas descartadas** (kiwi, `r03/brief.md`; #417): fichas con × dentro de una caja que crece (la referencia `?c=base`: la caja y lo de debajo, +168px de 2 a 8), fichas navegables con ← →, carril de fichas con desplazamiento horizontal, «+N» como única cesión, solo el recuento en el campo, borrador con «Aplicar» en la superficie y Tab que agrega. Sin reserva de nombres; se reabren solo con motivo nuevo.
+
+### Cuándo usarlo (frontera, #428)
+
+| Necesidad | Usar | Por qué no el otro |
+| --- | --- | --- |
+| Varias de hasta ~7 opciones a la vista | `GCheckboxGroup` | No hay nada que buscar: verlas todas es mejor que escribir |
+| Una de una lista conocida y corta | `GSelect` | **`GSelect` no gana `multiple`** (`select.md`) |
+| **Varias de un catálogo grande o del servidor**; cada una es un `value` con su etiqueta; texto libre opcional y marcado | **`GCombobox multiple`** | — |
+| Etiquetas de texto **sin catálogo** (correos, palabras clave, folios): lo escrito es el valor, separadores (coma, Intro, pegar varios), validación por etiqueta | `GTagInput` (reservado, #338) | En `GCombobox multiple` pegar «penicilina, látex» es **un texto de búsqueda**, no dos valores; el texto libre es la excepción marcada y entra solo por su fila |
+| Archivos | `GFileField` | Sus fichas en la caja son para archivos (#366) |
+| Elegidos con prioridad que se reordena (el primero es el principal) | Fuera de esta fase (#420) | Hoy: orden de elección fijo, numerado en B |
+
+### Props (Fase 2)
+
+| Prop | Tipo | Valores | Default | Origen |
+| --- | --- | --- | --- | --- |
+| `multiple` | Boolean | | `false` | propia (#338) |
+| `modelValue` | **Array** de `value` | en el orden de elección | `[]` | compartida (#338, #420) |
+| `custom` | **Array** de String | los textos libres, en el orden de elección | `[]` | propia (#338) |
+| `selectedOptions` | Array | las opciones de los `value` elegidos que no están en `options` | `[]` | propia (#338) |
+| `selection` | String | `inline` `list` | `inline` | propia (#426) |
+| `numbered` | Boolean | | `false` | propia (#426) |
+| `max` | Number | entero ≥ 1 | sin valor (sin límite) | propia (#422; el nombre de `GFileField`) |
+
+- **`multiple`** se lee **al montar**: cambiarlo después no tiene efecto y avisa (aviso 13); para cambiar de modo, la aplicación cambia la `key`. Sin `multiple`, `selectedOptions`, `selection`, `numbered` y `max` se ignoran con aviso 15.
+- **`modelValue`:** arreglo de `value` (String o Number), **nunca `null`**. `null`, `undefined` o `''` cuentan como `[]` sin aviso; cualquier otro no arreglo cuenta como `[v]` y avisa (14). Comparación `===`; un repetido se pinta y se envía una vez y avisa (14). Cada emisión es un **arreglo nuevo** (nunca se muta el de la prop). El componente no guarda copia: pinta las props (Fase 1).
+- **`custom`:** arreglo de textos libres recortados y no vacíos, solo con `allowCustom` (sin ella, uno no vacío se ignora con aviso 5). Dos textos iguales sin acentos ni mayúsculas son el mismo: se pinta el primero y avisa (14). **Valores y textos libres conviven** (en la Fase 1 era uno u otro).
+- **`selectedOptions`:** la forma de varios de `selectedOption`: las opciones de los `value` elegidos que la aplicación no entrega en `options` (búsqueda remota). Las que no son de `modelValue` se ignoran. `selectedOption` con `multiple` se ignora con aviso 15.
+- **Valor sin opción conocida** (ni en `options`, ni recordada, ni en `selectedOptions`): **se pinta con `String(value)` como etiqueta** (frase, renglón, «Elegidas», `ID-about`), se puede quitar, **se envía** y avisa (14). Difiere de la Fase 1 (campo vacío) a propósito: entre varios, un valor invisible se enviaría sin que nadie pudiera verlo ni quitarlo (#420).
+- **`selection`** (#426): dónde viven los elegidos **en reposo**. `inline` = A (la frase, en la línea del campo); `list` = B (la receta, debajo de la caja). Con `appearance="palette"` decide igual el reposo; la paleta abierta enseña siempre la cesta (C). En la hoja móvil el reposo conserva su `selection` (la receta sigue debajo de la caja).
+- **`numbered`:** numera los renglones de la receta (B) y de la cesta (C) en el orden de elección, para cuando el orden significa algo (diagnósticos 1, 2, 3). Con `selection="inline"` y `appearance="field"` no hay renglones: se ignora con aviso 15.
+- **`max`** (#422): ver «Tope».
+- **`clearable`:** con elegidos, botón **«Quitar todas»** (`labels.clear`; mismo hueco y misma regla de nombre de la Fase 1: «Quitar todas Alergias»). Quita valores y textos libres en un gesto, lo anuncia (`clearedAll`), devuelve el foco al campo y se deshace con Ctrl/⌘+Z.
+- **`allowCustom`:** la fila «Usar «texto» como texto libre» **agrega** el texto a `custom` y la lista sigue abierta. No se pinta si hay una opción a la vista con esa etiqueta (Fase 1) **ni si el texto ya está en `custom`** (sin acentos ni mayúsculas). **Salir nunca agrega**, tampoco en `field` (#418).
+- **`creatable`:** como en la Fase 1 (cierra, deja el foco en el campo, emite `create(texto)`, no cambia el valor). Si la aplicación crea la opción y quiere elegirla, la añade ella a `modelValue`.
+- **`required`:** `aria-required="true"` en el `<input>` visible (#334); «vacío» = sin elegidos. Valida la aplicación (#157).
+- **`readonly`:** no abre; sin «Quitar», «Quitar todas», flecha ni rastros; lo elegido visible y en `ID-about`; **se envía**. **`disabled`:** sin botones; ocultos `disabled` (no se envía).
+- `filter`, `loading`, `total`, `loadError`, `minChars`, `delay`, `limit`, `appearance`, `name`, `customName` y las compartidas: **como en la Fase 1**.
+
+### Modelo, orden y envío (#420, #421)
+
+| Estado | `modelValue` | `custom` | Ocultos `name` | Ocultos `customName` |
+| --- | --- | --- | --- | --- |
+| Sin elegidos | `[]` | `[]` | **ninguno** | ninguno |
+| Solo valores | `['I10', 'E11.9']` | `[]` | uno por valor, en orden | ninguno |
+| Valores y textos libres | `['penicilina']` | `['Polen de olivo']` | uno por valor | uno por texto, en orden |
+
+- **Orden = orden de elección** (decisión del usuario 4): agregar pone al **final** de su arreglo; deshacer devuelve **a su posición**; marcar o desmarcar **no reordena** nada a la vista. **Sin reordenar** en esta versión (reservado, «Fuera de esta fase»).
+- **No existe un orden mezclado (L29):** se conserva la forma de #338 (dos arreglos), **sin `order` ni otra prop**. Lo elegido se pinta, se lee y se envía **primero los valores en su orden y después los textos libres en el suyo**, en la frase, la receta, «Elegidas», la cesta, `ID-about` y `FormData`. Así lo que se ve es lo que se envía y lo que vuelve al recargar (el envío, con dos nombres, tampoco puede guardar el orden entre ambos). Consecuencia documentada: un valor agregado después de un texto libre se pinta **antes** que él (en la receta, el texto libre baja un renglón). Si en un producto un texto libre debe ocupar un puesto (el diagnóstico principal), la vía es `creatable`: pasa a ser opción del catálogo.
+- **Envío** (#421): un `<input type="hidden">` **por valor** (`String(value)`), con el mismo `name`, en orden; **sin elegidos, ninguno** (como `<select multiple>`: `FormData` sin la clave y `getAll(name)` = `[]`). Igual con `customName` para los textos libres. `form` copiado a todos; con el campo deshabilitado, todos `disabled`; en solo lectura se envían. El `<input>` visible sigue **sin `name`**. El aviso 6 (`allowCustom` + `name` sin `customName`) sigue.
+- **`GForm`:** registro por `name` (clave de `errors`), como en la Fase 1; cada gesto que cambia lo elegido llama **una vez** a `notifyChange()`.
+
+### Eventos (Fase 2)
+
+| Evento | Payload | Cuándo |
+| --- | --- | --- |
+| `update:modelValue` | Array (nuevo) | Un gesto cambia los valores. Solo si cambian |
+| `update:custom` | Array de String (nuevo) | Un gesto cambia los textos libres. Solo si cambian |
+| `change` | `{ value, custom, options, added, removed }` | **Una vez por gesto**, después de los `update:*` |
+
+- **Elemento** = la forma del `change` de la Fase 1: `{ value, custom: '', option }` para un valor (`option` `null` si no se conoce) y `{ value: null, custom: texto, option: null }` para un texto libre. **`added` y `removed`** son arreglos de elementos (como `GFileField`, #371: dicen qué cambió sin comparar arreglos). **`options`** es el arreglo de opciones alineado con `value` (`null` donde no se conoce).
+- **Gestos:** marcar o desmarcar (Intro, clic), la fila de texto libre, la segunda pulsación de Retroceso, «Quitar» de un renglón, «Quitar todas» (`removed` con todo), Ctrl/⌘+Z y «Deshacer» (`added` con lo restaurado). Un cambio de `modelValue`/`custom` desde la aplicación no emite.
+- `search`, `more`, `create`, `open` y `close` como en la Fase 1. Elegir no cierra, así que no emite `close`.
+
+### Estructura accesible (Fase 2; #418)
+
+```html
+<div class="g-input … g-combobox g-combobox--appearance-field g-combobox--multiple g-combobox--selection-inline [has-chosen] [is-full] [is-open] [is-up] [is-surface]">
+  <label class="g-input__label" id="ID-label" for="ID">Alergias</label>
+  <div class="g-input__row"><div class="g-input__control">
+    <span class="g-input__prepend" aria-hidden="true">…</span>
+    <span class="g-combobox__value">                                                           <!-- slot interno field -->
+      <span class="g-combobox__sentence" aria-hidden="true">                                    <!-- A: solo inline, con elegidos -->
+        <span class="g-combobox__sentence-item">Penicilina</span><span class="g-combobox__sentence-sep">, </span>
+        <span class="g-combobox__sentence-item is-custom">[GIcon pencil]Polen de olivo</span><span class="g-combobox__sentence-sep"> y </span>
+        <span class="g-combobox__sentence-rest"><span class="g-combobox__num">3</span> más</span>
+      </span>
+      <input class="g-input__field g-combobox__field" id="ID" type="text" role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+             aria-expanded="true" aria-controls="ID-list" aria-activedescendant="ID-opt-c0" aria-describedby="ID-about ID-hint ID-message" …>
+      <span class="g-combobox__ghost" aria-hidden="true">…</span>
+      <span class="g-combobox__about" id="ID-about">5 seleccionadas: Penicilina, Látex, Ibuprofeno, Sulfonamidas y Polen de olivo (texto libre)</span>
+      <input type="hidden" name="alergias" value="penicilina"> …                                <!-- uno por valor; ninguno sin elegidos -->
+      <input type="hidden" name="alergias_libre" value="Polen de olivo">                         <!-- uno por texto libre, con customName -->
+    </span>
+    <button type="button" class="g-combobox__clear" aria-labelledby="ID-clear-text ID-label"><span class="g-combobox__clear-text" id="ID-clear-text">Quitar todas</span>[GIcon x]</button>
+    <span class="g-combobox__arrow" aria-hidden="true">…</span>
+  </div></div>
+  <div class="g-input__support"> ayuda · región g-input__message
+    <div class="g-combobox__chosen">                                                         <!-- B: selection="list", slot interno below de GInput (N5) -->
+      <ul class="g-combobox__rows" id="ID-rows" aria-labelledby="ID-label">
+        <li class="g-combobox__row [is-fresh] [is-armed] [is-custom] [is-entering]">
+          <span class="g-combobox__row-number">1</span>                                         <!-- con numbered; se lee -->
+          <span class="g-summary g-summary--layout-row …">…</span>                              <!-- slot chosen -->
+          <span class="g-combobox__row-fresh">Nueva</span>
+          <button type="button" class="g-combobox__remove" aria-label="Quitar E11.9 Diabetes mellitus tipo 2">[GIcon x]</button>
+        </li>
+        <li class="g-combobox__row is-trace">
+          <span class="g-combobox__trace" id="ID-trace-1">I10 Hipertensión esencial quitada</span>
+          <button type="button" class="g-combobox__undo" aria-describedby="ID-trace-1">[GIcon undo-2]Deshacer</button>
+        </li>
+      </ul>
+      <button type="button" class="g-combobox__rows-all" aria-expanded="false" aria-controls="ID-rows">[GIcon chevron-down]Ver los 8</button>
+    </div>
+  </div>
+  <div class="g-combobox__live" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="g-combobox__popup" popover="manual">…panel…</div>                                   <!-- o la superficie -->
+</div>
+```
+
+Panel con varios (común a la forma de A y a la superficie):
+
+```html
+<ul class="g-combobox__list" id="ID-list" role="listbox" aria-multiselectable="true" aria-labelledby="ID-label">
+  <li role="presentation"><ul class="g-combobox__group is-chosen" role="group" aria-labelledby="ID-grp-chosen">   <!-- «Elegidas»: A y hoja, texto vacío -->
+    <li class="g-combobox__group-label" id="ID-grp-chosen" role="presentation">Elegidas <span class="g-combobox__group-tally"><span class="g-combobox__num">5</span></span></li>
+    <li class="g-combobox__option [is-active] [is-armed]" id="ID-opt-c0" role="option" aria-selected="true">
+      <span class="g-combobox__box [is-ticking]" aria-hidden="true">[GIcon check]</span>
+      <span class="g-summary g-summary--layout-row …">…</span>
+    </li>
+    <li class="g-combobox__option g-combobox__action g-combobox__action--all" id="ID-opt-all" role="option" aria-selected="false">…Ver las 40</li>
+  </ul></li>
+  <li role="presentation"><ul class="g-combobox__group" role="group" aria-labelledby="ID-grp-0">…
+    <li class="g-combobox__option" id="ID-opt-3" role="option" aria-selected="false" [aria-disabled="true"]>…</li>   <!-- con el tope: no elegible, recorrible -->
+  </ul></li>
+  …filas de acción de la Fase 1 (aria-selected="false")…
+</ul>
+```
+
+- **`aria-multiselectable="true"`** en el `listbox`; **todas** las opciones con `aria-selected` **explícito** (`"true"`/`"false"`). **No `aria-checked`**: APG admite uno u otro, nunca los dos; `aria-selected` es el de la Fase 1 y el mejor soportado con `aria-activedescendant`.
+- **Casilla** `g-combobox__box` al inicio de cada opción: forma de control, como `GCheckbox`, con la marca `check` del `GLibIcon`; **decorativa** (`aria-hidden`). Es la señal no cromática de «aquí se eligen varias» y del estado. Con `multiple` no se pinta el `g-combobox__check` del final.
+- **Selección y opción activa son independientes:** mover la activa (flechas, puntero) nunca cambia la selección (APG, la selección no sigue al foco).
+- **El `<input>` contiene siempre el texto de búsqueda**, nunca la etiqueta de un elegido: con `multiple` no hay ficha (`is-token`), ni llegada de la ficha al campo, ni slot `value` (aviso 15).
+- **`ID-about`** (#423), solo con elegidos y primero en `aria-describedby`: `labels.about` con `{count}` y `{list}`; `list` = `Intl.ListFormat(lang, { type: 'conjunction' })` de los **nombres** de lo elegido, en el orden pintado, con `lang` el del ancestro más cercano (como las cifras de la Fase 1, sin prop `locale`). **Nombre de un elemento:** `code` + espacio + `label` si tiene `code`; si no, `label`; un texto libre, `labels.customItem` con `{text}`. Sin tope de longitud en v1 (40 elegidas son 40 nombres): se revisa con lector real.
+- La frase (A) es `aria-hidden` (la dice `ID-about`). La receta (B) y la cesta (C) son **listas con nombre** (la etiqueta del campo; la cesta, su título) con botones reales.
+- **«Quitar»** de un renglón: `aria-label` = `labels.remove` con `{label}` = el nombre del elemento; icono `x`; objetivo ≥ 24px (44px con `pointer: coarse`), aislado al final del renglón. **«Deshacer»** de un rastro: texto visible `labels.undo` con icono `undo-2` decorativo y `aria-describedby` = el texto del rastro.
+- Los ids de las filas de «Elegidas» son propios (`ID-opt-c{n}`): la elegida que está en la instantánea **no se repite** en los grupos del catálogo de debajo.
+
+### Teclado (Fase 2; #418, #419)
+
+| Tecla | Lista cerrada | Lista abierta |
+| --- | --- | --- |
+| Carácter | Abre y busca | Busca |
+| ↓ / ↑ | Abre; la primera / la última fila | Siguiente / anterior; no cicla; salta las deshabilitadas **del catálogo**; las no elegibles **por el tope sí se recorren** |
+| Alt+↓ / Alt+↑ | Como la Fase 1 | Alt+↑ cierra |
+| Av Pág / Re Pág | — | Diez adelante / atrás |
+| → | Edición | Con texto fantasma y el cursor al final: acepta el texto **sin elegir** (Fase 1) |
+| **Intro** | Nativo (envío implícito, como `GInput`) | **Alterna** la activa (marca o desmarca) y **la lista sigue abierta** con el texto **seleccionado**; sobre una fila de acción, la ejecuta. Excepciones de seguridad abajo |
+| Esc | Con texto: lo vacía (sin propagar). Si no, nativo | Cierra y conserva el texto (`stopPropagation`: no cierra un `GDialog` anfitrión) |
+| Tab | Sale (descarta el texto) | Cierra y sale. **Nunca elige** |
+| **Retroceso** | Con texto, edita. **Campo vacío: en dos tiempos** | Igual |
+| **Ctrl/⌘+Z** | Si lo último fue quitar, lo devuelve; si no, el deshacer nativo del texto | Igual |
+| Espacio | Escribe un espacio (es un campo de texto: no marca) | Igual |
+
+- **Intro alterna y la lista se queda** (decisión del usuario 2): tras marcar o desmarcar, los resultados siguen a la vista, la activa no se mueve y **el texto buscado queda seleccionado**: lo siguiente que se teclea lo reemplaza, y se pueden marcar varias del mismo resultado («amoxi» → dos presentaciones). Marcar o desmarcar **no reordena** (#358, regla 4); el orden se rehace al abrir y al cambiar el texto. El clic en una fila alterna igual.
+- **Seguridad (#333 llevado a varios):**
+  - **Intro sobre una opción ya elegida que quedó activa sola** (resaltado automático al escribir) **no la quita**: anuncia `labels.already` y selecciona el texto. Desmarcar con Intro exige haberla activado la persona (flechas, puntero o →). Sigue la regla de la Fase 1: con la activa puesta sola y búsqueda pendiente, Intro no hace nada.
+  - **Tab nunca elige.** Con `multiple` no hay excepción del texto fantasma: Intro es la tecla de agregar y Tab es salir.
+  - **Salir descarta** el texto a medio escribir (blur, Tab, `pointerdown` fuera): nunca se agrega al pasar, tampoco con `allowCustom`.
+- **Retroceso en dos tiempos** (con el campo vacío; también en el campo de búsqueda de la superficie): la primera pulsación **marca** el último elegido (el último en el orden pintado) con `is-armed` donde se pinte (elemento de la frase, renglón de la receta o de la cesta, fila de «Elegidas»; si estaba cedido en «y N más» o pasado el tope de renglones, se saca a la vista) y anuncia `labels.armed`; la segunda lo quita (un gesto, con `change`). **Desarman:** cualquier otra tecla, el puntero, salir del campo, cerrar la superficie o un cambio del modelo. **Con `event.repeat` (Retroceso sostenido para borrar la búsqueda) ni marca ni quita.**
+- **Ctrl/⌘+Z** (#419; en el campo y en el de búsqueda): si lo último que cambió lo elegido **en este campo** fue **quitar** (desmarcar, Retroceso, «Quitar», «Quitar todas»), lo devuelve **a su posición**, anuncia `restored` (o `restoredAll`) y hace `preventDefault`. **Un nivel.** El deshacer **caduca** al escribir en el campo, con cualquier otro gesto que cambie lo elegido o si la aplicación cambia `modelValue`/`custom`; caducado, Ctrl/⌘+Z es el deshacer nativo del texto. Si lo restaurado no cabe en `max` (la aplicación lo bajó), no restaura nada y anuncia `max`. Ctrl/⌘+Mayús+Z no se intercepta. Ninguna tecla actúa durante la composición IME (`isComposing`).
+- **En la superficie:** la tabla de «Lista abierta» sobre el campo de búsqueda; Tab se mueve dentro del diálogo (campo → botones de la cesta → «Listo» → cierre, en el orden del DOM de `GDialog`) y nunca elige; Esc cierra la superficie (un nivel), conservando lo elegido.
+
+### Tope (`max`, #422)
+
+- **Lleno** cuando `modelValue.length + custom.length ≥ max`: la raíz lleva `is-full`; las opciones **no elegidas** llevan `aria-disabled="true"` **pero se recorren** con flechas (las deshabilitadas del catálogo se siguen saltando): se leen y se sabe por qué; Intro o clic sobre una no cambian nada y anuncian `labels.max`; la fila de texto libre lleva `aria-disabled="true"`; las elegidas siguen activas para desmarcar; «Agregar…» (`create`) sigue (no cambia el valor). Precedente: el tope de `GFileField` (#366).
+- **Estado** `g-combobox__status--max` (`labels.max`, icono `triangle-alert`) en el panel, fuera del `listbox`. Orden de los estados (a lo sumo uno, Fase 1): error de carga › **tope** › pista de mínimo › nada si hay opciones › «Buscando…» › «Sin resultados».
+- Recuento con tope: `labels.ofMax` («3 de 3») en «Elegidas», en la cesta y en el pie de la superficie.
+- Un `modelValue` que llega con más elegidos que `max` se pinta y se envía **entero** (no se recorta), con `is-full` y aviso 16. Grana no valida (#157): `max` es un límite del control, como `maxlength`.
+
+### A · La frase (`selection="inline"`, #425)
+
+- **`g-combobox__sentence`** (`aria-hidden`) en la celda, antes del `<input>`: las partes de `Intl.ListFormat#formatToParts` (`type: 'conjunction'`, `lang` del ancestro); cada `element` es un **`__sentence-item`** y cada `literal` un **`__sentence-sep`**. **Elemento:** el `code` de la opción si lo tiene (así se escriben los diagnósticos: «E11.9, I10 y J45.9»); si no, `label`; un texto libre, su texto con `is-custom` (cursiva de coco) y el icono `pencil` decorativo.
+- **Cede por el final y por texto**, no con una insignia: cuando no caben todos, el último elemento de la lista formateada es **`labels.rest`** con `{count}` («3 más»), en **`__sentence-rest`** con la cifra en `__num`: «Penicilina, Látex y 3 más». Si ni el primero cabe, el primero se recorta con elipsis y «y N más» se conserva. **Medida por lotes** como `GSummary` (#352; sin consultas de contenedor): una lectura del ancho de la frase y una escritura por cuadro; se rehace con `ResizeObserver`, al cambiar lo elegido o el `lang` y en `document.fonts.ready`.
+- **Con el foco** la frase cede sitio al texto que se escribe y se apaga a `text-muted`; la proporción la fija coco (el prototipo da a la frase el 55 % de la celda; `estilo.md`) y la medida usa el ancho real. Sin elegidos, la celda es toda del `<input>` (y del `placeholder`).
+- **La caja mide siempre lo mismo** (Δ0 de 0 a N elegidos; medido por kiwi de 2 a 8 en una `GFormRow`, caja, vecinas y línea de debajo).
+- **Grupo «Elegidas»** (A en `field`, y la hoja móvil en los tres): al abrir con el texto vacío, y cada vez que el texto vuelve a quedar vacío con la lista abierta, es el **primer grupo**: `role="group"` con nombre `labels.chosen` y su recuento (`__group-tally`, cifra en `__num`; con `max`, `ofMax`). Es una **instantánea** de lo elegido en ese momento, en orden: desmarcar deja la fila en su sitio, sin marca, hasta cerrar o escribir; lo que se marca mientras tanto se marca donde está. Con texto escrito no hay «Elegidas»: las elegidas salen marcadas en su sitio del catálogo.
+- **Tope de 12** filas en «Elegidas» (constante de diseño de JS, como las 10 de Av Pág; no es tema): con más, una fila de acción **«Ver las N»** (`labels.showAll`, `{count}`; icono `chevron-down`; `g-combobox__action--all`) **al final del propio grupo** (única fila de acción dentro de un grupo); ejecutarla pinta el resto y deja activa la fila 13.
+
+### B · La receta (`selection="list"`, #426)
+
+- **Hueco:** el **slot interno `below` de `GInput`** (N5, `input.md`): se pinta al final de `g-input__support`, después de la región del mensaje, y por tanto **en la tercera pista** de una `GFormRow` (la raíz sigue con tres hijos en flujo, C10). La receta **no** va en la ayuda: sería descripción del campo, con botones dentro.
+- **La caja es solo la búsqueda** (el `placeholder` del consumidor, p. ej. «Agregar…»); sin frase.
+- **`g-combobox__chosen` → `ul.g-combobox__rows`** (nombre por `aria-labelledby` = `ID-label`) → un **`li.g-combobox__row`** por elemento, en orden: `__row-number` (con `numbered`; **se lee**, es contenido; cuenta solo los renglones vivos) · `GSummary` `layout="row"` `:lines="2"` `size="md"` (o el slot `chosen`; mismas props que la opción, sin `highlight`; `diff` = `summaryDiff` sobre los renglones pintados) · `__row-fresh` · botón `__remove`.
+- **«Nueva»** (`labels.fresh`, texto que se lee, más la barra de acento de coco) en lo agregado **en la pasada actual**.
+- **Quitar no cierra el hueco:** el renglón pasa a **rastro** (`is-trace`) del **mismo alto**: `__trace` (`labels.trace` con `{label}`, tachado) y el botón **«Deshacer»** `__undo`; **el foco pasa a «Deshacer», en el mismo sitio**. «Deshacer» devuelve el elemento a su posición (si cabe en `max`; si no, anuncia `max`), retira el rastro y deja el foco en su «Quitar». «Quitar todas» convierte todos los renglones en rastros (el foco vuelve al campo).
+- **Pasada** (#419): una pasada nueva empieza cuando la persona, **después de haber salido del componente, vuelve a escribir en el campo** (el primer `input`). Entonces los rastros se pliegan (`is-leaving`) y se retiran las marcas «Nueva». **Salir no pliega nada** (la línea a la que salta no se mueve bajo su atención). Un cambio de `modelValue`/`custom` que el componente no emitió (la aplicación reinicia el formulario) retira rastros y marcas, sin animación.
+- **Tope de 6** renglones en reposo (constante de diseño de JS): los seis primeros en orden **más** los nuevos, los rastros y el marcado por Retroceso, que se ven siempre. Si quedan más, el botón **«Ver los N»** (`labels.showAll`; icono `chevron-down`; `__rows-all`) con `aria-expanded` y `aria-controls`, que pasa a «Ver menos» (`labels.showLess`; el mismo icono, girado por coco).
+- **Mientras la lista está abierta, la forma de A tapa la receta** (límite aceptado): lo nuevo se ve al cerrar, con «Nueva». En `field` no hay grupo «Elegidas» (lo elegido está en la receta; al escribir, marcado en su sitio).
+- **Crece:** lo de debajo baja un renglón por elección (kiwi: 196px de 2 a 8, con el tope de 6). Es su promesa, y la razón de que no sea el valor por defecto.
+
+### C · La cesta (`appearance="palette"` + `multiple`, #424)
+
+- La superficie de la Fase 1 (`GDialog`) con su campo de búsqueda; en el cuerpo, **los resultados a un lado y la cesta al otro, en el sitio de la vista previa** (`has-basket` en `g-combobox__surface-body`). **Con `multiple` la vista previa no se pinta** (el slot `preview` se ignora con aviso 15); la regla de #335 se cumple por la fila, que ya lleva el dato que distingue y la marca de `summaryDiff`. **Descartada** la vista previa compacta encima de la cesta: dos zonas compitiendo por el mismo lado y más coste de pintado (L41).
+- **`section.g-combobox__basket`** (`aria-labelledby` → **`h3.g-combobox__basket-title`** = `labels.chosen` y `__basket-tally` con `selected` u `ofMax`); vacía, **`__basket-empty`** (`labels.basketEmpty`). Renglones **como los de B** (`numbered`, «Quitar», rastro con «Deshacer» y el foco en él), **sin «Nueva»**; los rastros duran **hasta cerrar** la superficie; tope de **12** con el botón «Ver las N» / «Ver menos» (`__rows-all`, como en B).
+- **Homónimos:** `summaryDiff` sobre los renglones de la cesta, además de en los resultados.
+- En la hoja móvil la cesta no cabe: la hoja común.
+
+### Superficie y hoja móvil (#424)
+
+- **Elegir no cierra** (paleta y hoja). Pie **`g-combobox__foot`**: el recuento (`__foot-tally`, `selected` u `ofMax`, texto visible) y **«Listo»** (`labels.done`): un `GBtn` con sus valores por defecto y el `size` del campo. **Esc, el fondo, el cierre y «Listo» cierran conservando** lo elegido: **no hay borrador** (el modelo cambia en cada gesto, como en `field`; el error se cubre con deshacer). El foco vuelve al campo (Fase 1). La primera tecla abre y no se pierde (Fase 1).
+- **Hoja móvil (visor ≤ 520px), la misma para A, B y C:** búsqueda, lista con **«Elegidas» arriba** (el mecanismo de A) y el pie. Opciones ≥ 44px; sin desbordamiento a 375 ni a 320px.
+- Los anuncios van a la región viva **de dentro** de la superficie.
+
+### Anuncios (Fase 2; #423)
+
+| Suceso | Texto |
+| --- | --- |
+| Agregar (Intro, clic, fila de texto libre) | `added` (`{label}` = el nombre del elemento, `{count}` = elegidos después) |
+| Quitar (desmarcar, Retroceso, «Quitar») | `removed` |
+| Deshacer de uno (Ctrl/⌘+Z o «Deshacer») | `restored` |
+| «Quitar todas» · su deshacer | `clearedAll` · `restoredAll` (`{count}` = cuántos) |
+| Primera pulsación de Retroceso | `armed` |
+| Intro sobre una elegida resaltada sola | `already` |
+| Intento con el tope alcanzado | `max` |
+
+- **Se anuncia también al marcar dentro de la lista:** `aria-selected` cambia, pero con `aria-activedescendant` no todos los lectores lo dicen, y el recuento no lo da nadie más (puede duplicarse con algún lector: «No verificado»).
+- Los de un gesto se anuncian **en el acto** (los 600 ms de la Fase 1 son para no pisar el eco de escritura en los recuentos de resultados, que siguen igual); un anuncio por gesto. No se anuncian abrir, cerrar, «Ver las N» ni el pliegue de los rastros.
+
+### Textos nuevos (`labels`, sin valores por defecto; #423)
+
+Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). Los contados admiten String con marcadores **o Function** (plural y género los pone la aplicación: «seleccionadas», «diagnósticos», «Ver los 8» frente a «Ver las 40»).
+
+| Clave | Marcadores / firma | Dónde | Si falta |
+| --- | --- | --- | --- |
+| `selected` | `{count}` · `(count) => String` | Recuento: pie de la superficie y título de la cesta («3 seleccionadas») | Sin recuento; aviso al montar con `multiple` |
+| `about` | `{count}`, `{list}` · `(count, list) => String` | `ID-about` («3 seleccionadas: Penicilina, Látex y Sulfonamidas») | `ID-about` = solo la lista; aviso |
+| `customItem` | `{text}` | Nombre de un texto libre en `ID-about` y en los anuncios («Polen de olivo (texto libre)») | El texto solo; aviso con `allowCustom` |
+| `added`, `removed`, `restored` | `{label}`, `{count}` · `(label, count) => String` | Anuncios | Sin ese anuncio; aviso al necesitarse |
+| `clearedAll`, `restoredAll` | `{count}` · `(count) => String` | Anuncios de «Quitar todas» y de su deshacer | Ídem |
+| `armed` | `{label}` | Anuncio de la primera pulsación de Retroceso | Ídem |
+| `already` | `{label}` | Intro sobre una elegida resaltada sola | Ídem |
+| `max` | `{max}` · `(max) => String` | Estado del tope y su anuncio | Estado sin texto; aviso con `max` |
+| `ofMax` | `{count}`, `{max}` · `(count, max) => String` | Recuento con tope («3 de 3») | Usa `selected`; aviso con `max` |
+| `chosen` | | Nombre del grupo «Elegidas» y título de la cesta | Grupo y cesta sin nombre visible; aviso al montar con `multiple` |
+| `rest` | `{count}` · `(count) => String` | Último elemento de la frase cedida («3 más») | La frase se recorta con elipsis sin decir cuántas faltan; aviso con `selection="inline"` |
+| `showAll` | `{count}` · `(count) => String` | «Ver las 40» («Elegidas», cesta) · «Ver los 8» (receta) | Sin fila ni botón: se pinta todo, sin tope; aviso al necesitarse |
+| `showLess` | | «Ver menos» de la receta y de la cesta | Desplegada, no se vuelve a plegar; aviso al necesitarse |
+| `done` | | «Listo» del pie de la superficie | Sin botón (cierran Esc, el fondo y el cierre); aviso al montar con `multiple` (la superficie existe siempre en móvil) |
+| `remove` | `{label}` | Nombre de «Quitar» de un renglón (#338) | Sin «Quitar» (se quita desde la lista o con Retroceso); aviso con renglones |
+| `undo` | | «Deshacer» del rastro | Sin rastro: quitar retira el renglón (Ctrl/⌘+Z sigue); aviso con renglones |
+| `trace` | `{label}` | Texto del rastro («Diabetes mellitus tipo 2 quitada») | Ídem |
+| `fresh` | | Marca «Nueva» de la receta | Solo la barra; aviso con `selection="list"` |
+| `basketEmpty` | | Cesta vacía | Vacía, sin texto; aviso con `appearance="palette"` |
+| `clear` (Fase 1) | | Con `multiple`, el texto de «Quitar todas» | Como en la Fase 1 |
+
+### Movimiento (Fase 2; #427)
+
+| Pieza | Qué | Duración y curva |
+| --- | --- | --- |
+| **Cifras que ruedan** | La cifra (`__num`) de «y N más», de «Elegidas», de la cesta y del pie, cuando el recuento cambia **por un gesto**: bruno pone **`is-rolling`**, coco anima con keyframes **`g-combobox-roll…`** (la cifra nueva entra desde abajo) y bruno la retira en `animationend`/`animationcancel` de ese prefijo, o en el acto sin animación calculada (patrón de #313) | `--g-duration-press` + `--g-ease-out`, como `g-number-roll` de `GNumberField` (#313); **no** el muelle del prototipo |
+| **La casilla salta** | La marca `check` de `__box` al **marcar** por un gesto: bruno pone **`is-ticking`**, keyframes **`g-combobox-tick…`**, escala desde **0,4** (constante de §29.6), retirada como arriba. Desmarcar: la marca se funde | `--g-duration-slow` + **`--g-ease-bounce`** dentro de `@supports`; fuera, `--g-ease-out`. **Segundo uso aprobado del rebote** (§29.1). El fundido, `--g-duration-fast` |
+| **B · el renglón nuevo** | `is-entering`: crece desde la línea anterior (`grid-template-rows` 0fr → 1fr, keyframes `g-combobox-row…`), retirada como arriba | `--g-duration-slow` + `--g-ease-out` |
+| **B · el rastro** | Aparece con un fundido; al plegarse en la pasada siguiente (`is-leaving`) encoge como crece el nuevo y bruno retira el nodo en `animationend` o en el acto | Fundido `--g-duration-fast`; pliegue `--g-duration-slow` + `--g-ease-out` |
+| **C · lo marcado viaja a la cesta** | El renglón nuevo de la cesta llega desde la fila marcada: bruno escribe `--_travel-x`/`--_travel-y` (px) y pone `is-arriving` en `g-combobox__row`; keyframes `g-combobox-arrive…` (los de la ficha de la Fase 1) | `--g-duration-slow` + `--g-ease-spring` dentro de `@supports`: **el mismo uso de #336** (algo elegido que llega), no uno nuevo |
+| Despliegue de A, entrada de la paleta | Sin cambios (Fase 1) | |
+
+- **Solo tras un gesto:** nada se anima al montar, al abrir, al cambiar el texto ni cuando la aplicación cambia el modelo (#336; medido por kiwi).
+- **Movimiento reducido** (§29.3): nada se desplaza, crece ni escala; los fundidos de color y opacidad se quedan; las clases se retiran en el acto.
+- Marcar no reordena ni mueve nada bajo el puntero (#358, regla 4).
+
+### Tokens (Fase 2; #427)
+
+**Ningún token nuevo** (`tokens.md` §32). Además de los de la Fase 1:
+
+| Token | Para qué |
+| --- | --- |
+| `--g-color-border-control`; `--g-color-brand` / `--g-color-on-brand` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1) y casilla marcada (fondo y marca) |
+| `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado: no solo color) |
+| `--g-color-accent-soft` / `--g-color-on-accent-soft`; `--g-color-accent` | «Nueva» (5:1) y su barra (≥ 3:1) |
+| `--g-color-warning-soft` / `--g-color-warning-text` | Estado del tope (5.01:1) |
+| `--g-color-accent-text` | «Deshacer» (5.27:1) |
+| `--g-color-text-muted` | Frase con el foco, número, rastro, recuentos |
+| `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
+| `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | «Movimiento» |
+
+**No son tokens:** **12** (filas de «Elegidas» y de la cesta antes de «Ver las N») y **6** (renglones de la receta en reposo), constantes de diseño de JS; **`0.4`**, escala de partida de la marca de la casilla (`tokens.md` §29.6, #427); la proporción frase/texto con el foco (coco, `estilo.md`); `--_travel-x`/`--_travel-y` (ya en §32).
+
+### Clases y datos (Fase 2; contrato bruno ↔ coco)
+
+| Clase / dato | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-combobox--multiple`, `g-combobox--selection-{inline\|list}` | Raíz | Con `multiple` |
+| `has-chosen`, `is-full` | Raíz | Con elegidos; tope alcanzado |
+| `g-combobox__sentence`, `__sentence-item` (`is-custom`, `is-armed`), `__sentence-sep`, `__sentence-rest`, `__sentence-icon` | Frase (A) | `selection="inline"` con elegidos |
+| `g-combobox__num`, `is-rolling` | Cifra de un recuento | Siempre; `is-rolling` mientras rueda |
+| `g-combobox__box`, `is-ticking` | Casilla de una opción | Cada opción con `multiple`; `is-ticking` mientras salta |
+| `g-combobox__group.is-chosen`, `__group-tally` | Grupo «Elegidas» | A y hoja, texto vacío |
+| `g-combobox__action--all` | «Ver las N» de «Elegidas» | Más de 12 |
+| `g-combobox__option.is-armed` | Fila de «Elegidas» marcada para quitar | Retroceso |
+| `g-combobox__status--max` | Estado del tope | `is-full` con el panel abierto |
+| `g-combobox__chosen`, `__rows`, `__rows-all` | Receta (B) y su «Ver los N» | `selection="list"` con elegidos o rastros |
+| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-arriving` + `--_travel-x`, `--_travel-y`) | Renglón (B y C) | Por elemento |
+| `g-combobox__row-number`, `__row-fresh`, `__remove`, `__trace`, `__undo` | Partes del renglón | Con `numbered`; nuevo; editable; rastro |
+| `g-combobox__surface-body.has-basket`, `g-combobox__basket`, `__basket-title`, `__basket-tally`, `__basket-empty` | Cesta (C) | `palette` con `multiple`, por encima de 520px |
+| `g-combobox__foot`, `__foot-tally`, `__done` | Pie de la superficie («Listo» es un `GBtn` con esa clase) | Superficie con `multiple` |
+
+Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan con `aria-selected` y `aria-disabled` (como en la Fase 1).
+
+**Para coco** (`GCombobox.css`; nada en `GInput.css` ni en `GSummary.css`):
+
+- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada `brand`/`on-brand`; en la activa invertida de la paleta, que siga ≥ 3:1.
+- **Frase (A):** una línea, sin saltos ni alto nuevo (Δ0); elipsis del primero; `__sentence-rest` con peso de acción; libres en cursiva con `pencil`; con el foco, la proporción frase/texto (anotarla en `estilo.md`) y `text-muted`; **marcada para quitar: tachado + `selection`** (no solo color).
+- **Receta (B):** en la tercera pista de `GFormRow` sin romper el *subgrid*; renglones con `GSummary row` de dos líneas, número, «Nueva» (par `accent-soft` + barra `accent` al inicio, reflejada en RTL), «Quitar» ≥ 24px / 44px aislado al final; **rastro del mismo alto** que el renglón (Δ0, medir), tachado en `text-muted`, «Deshacer» en `accent-text`; «Ver los N» con el chevron girado al desplegar.
+- **Cesta (C):** en el sitio de la vista previa, con su proporción; pie con recuento y «Listo»; estado del tope con el par `warning-soft`/`warning-text`.
+- **Movimiento** de la tabla, con `prefers-reduced-motion` (§29.3) y `@supports` para las dos curvas.
+- **`forced-colors`** (L42, **sin medir por kiwi: medir**): casilla con `CanvasText` y marcada con `Highlight`; marca de Retroceso conserva el tachado; rastro y «Nueva» por su texto; recuentos legibles.
+- **Medir** en el tema por defecto, en el oscuro y en uno distinto: casilla, «Nueva», barra, tope, rastro, «Deshacer», frase con foco, recuentos.
+
+### En una `GFormRow` (Fase 2)
+
+- **A y C:** la caja no cambia de alto (Δ0 de 2 a 8, medido); comparte fila como en la Fase 1 (`--g-form-min: 60` sigue).
+- **B:** caja y etiqueta no se mueven; la receta crece en la **tercera pista** (la del pie) y lo de debajo baja. En una fila estrecha la receta ocupa la columna del campo: el consumidor sube `--g-form-min` o da al campo su propia fila (README).
+
+### Rendimiento (#428)
+
+- **Compuerta:** abrir con **500 opciones locales y 40 elegidas**, hasta el segundo cuadro, **< 150 ms en Chromium y Firefox y < 200 ms en WebKit**, con «Elegidas» (A) y con la cesta (C), con un solo worker (`--workers=1`, como #264). La mide bruno sobre el componente real; la del prototipo es orientativa (WebKit 133 a 187 ms en A con el prototipo compilando plantillas en el navegador).
+- Los topes de 12 y 6 existen también por esto (WebKit sin tope, 91 filas: 165 a 284 ms en el prototipo). La frase se mide por lotes, nunca por elemento.
+
+### Paquete (#428)
+
+- **Sigue en `@grana/vue/combobox`** (un modo del mismo componente, una entrada); `@grana/vue` no cambia. **La entrada crecerá:** la Fase 1 mide 13,6 KB gzip; la Fase 2 (frase con su medida, renglones con rastro y pasada, deshacer, tope, «Elegidas», cesta, anuncios) se estima en **+4 a +7 KB gzip** (≈ 18 a 21 KB), que también paga quien use solo una opción. Bruno mide y lo anota en `GCombobox.meta.json`; **si el incremento supera 8 KB gzip** (el tope de #328), vuelve a lima antes de cerrar (alternativa prevista: llevar el modo a una entrada `@grana/vue/combobox-multiple` que lo active).
+- `GBtn` («Listo») llega por `__shared` sin copia (bruno lo añade a `src/shared.js` si falta). **Compuertas nuevas:** `grep -q "g-combobox__sentence" packages/vue/dist/grana.css` y `grep -q "g-combobox__trace" packages/vue/dist/grana.css`; las de #337 y #350 siguen.
+
+### SSR y RTL (Fase 2)
+
+- **SSR:** el servidor pinta los ocultos (uno por valor y por texto), la receta (B), la frase **completa** (sin cesión) y `ID-about`, con `Intl` **sin `locale`**; al montar se lee el `lang` del ancestro y se rehacen frase, `ID-about` y cifras, y se mide la cesión (el primer pintado del cliente coincide con el del servidor). Nada se anima.
+- **RTL:** propiedades lógicas; frase y renglones empiezan en el borde de inicio (medido); casilla y barra de «Nueva» al inicio; `Intl.ListFormat` sigue el `lang`, no `dir`; los textos de los elementos con `dir="auto"` (los de `GSummary`).
+
+### Slots (Fase 2)
+
+| Slot | Con `multiple` |
+| --- | --- |
+| `option`, `lead`, `empty`, `load-error`, `label`, `hint`, `error`, `prepend` | Como en la Fase 1 (el slot `option` va **después** de la casilla, que no se sustituye) |
+| **`chosen`** (nuevo) | Contenido de un renglón de la receta y de la cesta. Alcance `{ option, custom }` (`option` `null` con texto libre). Sin interactivos; **conserva el texto que distingue**. Por defecto, la `GSummary row` |
+| `value` | No aplica (no hay ficha): se ignora con aviso 15 |
+| `preview` | No se pinta con `appearance="palette"` (la cesta ocupa su sitio): aviso 15 |
+
+### Avisos de desarrollo (Fase 2; siguen a los de la Fase 1)
+
+12. Un dato de `facts` sin `label` (no se pinta, ni se busca, ni se anuncia; #356, ya existente).
+13. `multiple` cambiado después de montar (sin efecto; cambiar la `key`).
+14. Con `multiple`: `modelValue` o `custom` que no son arreglos (se normalizan), repetidos (se pinta y se envía uno), `value` sin opción conocida ni en `selectedOptions` (se pinta `String(value)`).
+15. `selectedOption` con `multiple` o `selectedOptions` sin él; `selection`, `numbered` o `max` sin `multiple`; `numbered` sin renglones (`inline` en `field`); slot `value` con `multiple`; slot `preview` con `multiple` en `palette`; slot `chosen` sin `multiple`.
+16. `max` < 1 (además del validador: sin límite) o más elegidos que `max` (se pinta y envía todo).
+17. Los textos de la tabla de «Textos nuevos» que hacen falta y no están (aviso 2 ampliado): `selected`, `chosen` y `done` al montar con `multiple`; los demás, la primera vez que se necesitan.
+
+### Verificación (Fase 2)
+
+**Criterio de hecho:** las medidas de kiwi (`r03/verificar.mjs`: A 89, B 94 y C 93 comprobaciones por motor; la base es referencia y no se reproduce) **sobre el componente real**, más lo de abajo. Verificación por niveles (CLAUDE.md); puerto propio de Playwright por agente.
+
+- **bruno (vitest + jsdom):** modelo (normalización, repetidos, valor desconocido pintado y enviado, `selectedOptions`, textos libres sin duplicar, orden valores → libres); `change` una vez por gesto con `added`/`removed`/`options` y orden `update:*` → `change`; envío (un oculto por valor, ninguno sin elegidos, `customName`, `form`, `disabled`, solo lectura); teclado entero (Intro alterna y la lista sigue con el texto seleccionado; Intro sobre elegida resaltada sola no la quita y anuncia; con búsqueda pendiente no hace nada; Tab nunca elige, también con fantasma único; salir descarta; Retroceso en dos tiempos, desarme y `repeat` que no quita; Ctrl/⌘+Z de un nivel, su caducidad y el tope; Espacio escribe; IME); tope (`aria-disabled` recorrible, estado, anuncio, fila de texto libre); «Elegidas» (instantánea, sin repetir, 12 y «Ver las N», activa en la 13); semántica (`aria-multiselectable`, `aria-selected` en todas, casilla `aria-hidden`, `ID-about` con `Intl.ListFormat` y `lang` del ancestro, nombres de «Quitar» y «Deshacer»); receta (N5 en `g-input__support`, rastro con el foco en «Deshacer», «Deshacer» con el foco en «Quitar», pasada, 6 y «Ver los N», `numbered`); superficie (elegir no cierra, pie con «Listo», cerrar conserva, cesta sin vista previa, región de dentro); anuncios; movimiento (clases puestas solo tras un gesto y retiradas por `animationend` o en el acto); SSR; avisos 12 a 17; **la Fase 1 sin `multiple` no cambia** (sus pruebas en verde) y `GInput` sin N5 se pinta igual (instantánea).
+- **Playwright** (`tests/combobox-multiple.spec.mjs` y `tests/personalidad-combobox-multiple.spec.mjs`, Chromium, Firefox y WebKit): la batería de `r03/verificar.mjs` por concepto (Δ0 de A y C en la `GFormRow` de 2 a 8; B: caja Δ0 y lo de debajo baja; rastro del mismo alto; cesión de la frase con 40; «Elegidas»; cesta con homónimos; dentro de `GDialog`; 375 y 320; RTL; contraste; consola limpia), la compuerta de rendimiento y el movimiento (cifras, casilla, renglón, viaje; con `reduce`, nada se mueve y no quedan clases). `tests/form-distribution.spec.mjs` sigue pasando.
+- **coco:** auditoría con un tema distinto y con el oscuro; `forced-colors` emulado con medida (L42); resultado en `design/lab/combobox/auditoria-multiple.md`.
+
+### No verificado (entorno real, Fase 2)
+
+Lector de pantalla (VoiceOver, NVDA, TalkBack): si `aria-selected` se anuncia al cambiar con `aria-activedescendant` (el anuncio propio puede duplicarse), `ID-about` largo con 40 elegidas, la frase `aria-hidden` junto al campo, el grupo «Elegidas», la receta y la cesta como listas con botones, el rastro descrito y el foco en «Deshacer», los dos `combobox` de la superficie; `forced-colors` real; táctil y teclado virtual sobre la hoja; IME con varios; Safari y el foco en «Deshacer»/«Listo» (WebKit no tabula a botones salvo ajuste del sistema).
+
+### Fuera de esta fase (reservado, #428)
+
+| Qué | Nombres y forma | Requiere |
+| --- | --- | --- |
+| **Reordenar** (Alt+↑/↓ y arrastre; el primero como principal) | Prop **`reorderable`** (Boolean; el nombre de `GFileField`) | Ronda propia de kiwi; con ella se decide si hace falta guardar el orden mezclado entre valores y textos libres (hoy no existe, #420) |
+| Tope de longitud de `ID-about` | — | Verificación con lector real |
+| `GTagInput` | Etiquetas de texto sin catálogo (#338) | Ronda propia |
+| Editor de valor de `GFilterBar` con `multiple` (filtro «uno de») | — | Ronda de `GFilterBar` (#338) |
+| `multiple` en `GSelect` | **No**: `GSelect` no lo gana | — |
+| Semillas descartadas (fichas con ×, ← → entre fichas, carril, «+N», solo recuento, borrador con «Aplicar», Tab que agrega; vista previa compacta sobre la cesta) | Sin reserva (#417, #424) | Motivo nuevo |
+
+---
 
 ## Resolución de hallazgos
 
@@ -566,6 +956,28 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 | L23 | C · `forced-colors` | Retirar la ficha y mostrar el texto del `<input>`: encargo a coco **con medida** | «Para coco» |
 | L24 | Personalidad | A + B + C registradas con su «Qué lo hace distinto»; nada queda descartado: semillas y reservas a `PENDIENTES.md` | #329, #338 |
 | L25 | Tokens | Ninguno nuevo. El muelle solo en la llegada de la ficha (cuarto uso); el despliegue de A y la entrada de B, sin muelle | #336 |
+
+### r03 (`design/lab/combobox/r03/declaracion.md`, Fase 2)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L26 | Identidad | Decisión del usuario: A por defecto (`selection="inline"`), B como `selection="list"`, C = `palette` + `multiple`; «Qué lo hace distinto» y semillas descartadas registradas | #417 |
+| L27 | Semántica | `aria-multiselectable`, `aria-selected` explícito en todas (no `aria-checked`), casilla `g-combobox__box` decorativa con `check` | #418 |
+| L28 | Teclado | Intro alterna y la lista sigue con el texto seleccionado (decisión del usuario 2); Intro sobre elegida resaltada sola no la quita (`already`); Tab nunca elige; Retroceso en dos tiempos sin `repeat` (`armed`); Ctrl/⌘+Z de un nivel; Espacio escribe | #418, #419 |
+| L29 | Orden | Orden de elección fijo (decisión del usuario 4). **Se conserva la forma de #338** (dos arreglos, sin `order`): se pinta, lee y envía valores y después textos libres; un texto libre con puesto entra por `creatable`. Reordenar y orden mezclado, a la ronda de `reorderable` | #420 |
+| L30 | Envío | Un oculto por valor en orden; ninguno sin elegidos; `customName` igual; `form` a todos | #421 |
+| L31 | `change` | `{ value, custom, options, added, removed }`; elementos con la forma `{ value, custom, option }` de la Fase 1 | #421 |
+| L32 | `max` | Prop `max`; no elegidas `aria-disabled` y recorribles; estado `--max` y anuncio; fila de texto libre deshabilitada; deshacer respeta el tope; más elegidos que `max`, se pinta todo y avisa | #422 |
+| L33 | Textos | Tabla de «Textos nuevos». Cambios sobre la propuesta: `more` de la frase → **`rest`** (`more` ya es «Mostrar más» de la Fase 1); `tomb` → **`trace`**; se añaden `about`, `customItem` y `restoredAll`; anuncios con `{label}` y `{count}` o función | #423 |
+| L34 | `ID-about` | `about` con `{count}` y `{list}`; `Intl.ListFormat` del `lang` del ancestro; nombre = `code` + `label`; libres con `customItem`; sin tope de longitud en v1 | #423 |
+| L35 | Superficie | Elegir no cierra; pie con recuento y «Listo» (`GBtn`); cerrar conserva, sin borrador; región de dentro | #424 |
+| L36 | A · frase | `g-combobox__sentence` con `formatToParts`; elemento = `code` o `label`; cede con `rest` medido por lotes; «Elegidas» como instantánea, sin repetir en el catálogo, tope 12 y «Ver las N» dentro del grupo | #425 |
+| L37 | B · receta | **Slot interno `below` de `GInput`** (N5) al final de `g-input__support`; prop **`selection="list"`** (no `layout` ni `display`) y **`numbered`**; «Nueva», rastro con el foco en «Deshacer», pasada al volver a escribir tras salir; tope 6 y «Ver los N»; slot `chosen` | #426 |
+| L38 | C · cesta | La cesta ocupa el sitio de la vista previa; la vista previa no se pinta y el slot `preview` se ignora con aviso; #335 por la fila con `summaryDiff`; descartada la vista previa compacta; rastros hasta cerrar, tope 12, viaje con el mecanismo de la ficha | #424 |
+| L39 | Tokens | Ninguno nuevo. Cifras con `press` + `ease-out` (como #313, no el muelle); casilla con `--g-ease-bounce` (**segundo uso**) desde `0.4` (constante nueva de §29.6); viaje a la cesta = el uso de #336 | #427 |
+| L40 | Frontera | `GCheckboxGroup` · `GCombobox multiple` · `GTagInput` (reservado); `GSelect` sin `multiple` | #428 |
+| L41 | Rendimiento | 500 opciones y 40 elegidas < 150 ms (Chromium, Firefox) y < 200 ms (WebKit) con «Elegidas» y con la cesta; topes 12 y 6 | #428 |
+| L42 | `forced-colors` | Encargo a coco con medida (casilla, marca de Retroceso, rastro, «Nueva») | «Para coco» de la Fase 2 |
 
 ## Límites conocidos (para el README)
 
@@ -617,7 +1029,7 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): eco de escritura con la primera 
 
 | Qué | Nombres y forma reservados | Requiere |
 | --- | --- | --- |
-| **Selección múltiple** (Fase 2, decisión del usuario) | Prop **`multiple`** (Boolean). Con ella: `modelValue` = **Array** de `value` (`[]` sin selección, nunca `null`), `custom` = **Array** de Strings, **`selectedOptions`** (Array) en lugar de `selectedOption`, un oculto por valor con el mismo `name` (y `customName`), `change` con `{ value: Array, custom: Array, options: Array }`, `labels.remove` y `labels.selected` | Ronda propia de kiwi: anatomía de etiquetas dentro de la caja (choca con «sin saltos»), Retroceso y flechas entre etiquetas, anuncios de agregado y quitado |
+| ~~Selección múltiple~~ | **Contratada** (Fase 2, #417 a #428): ver «Fase 2 · Selección múltiple». La forma de #338 se conserva y se amplía (`change` con `added`/`removed`, #421) | Hecho: ronda r03 de kiwi |
 | `GTagInput` | Etiquetas de texto libre **sin catálogo** | Ronda propia |
 | **Ampliar a la paleta desde `field`** | Prop **`expandable`** (Boolean), `labels.expand`, icono `maximize-2` | Ronda corta de kiwi: no deriva limpio. Una fila de acción al final queda lejos de las homónimas (hasta 50 filas); un botón en la caja pierde el texto al salir del campo; un atajo no está en APG. Hay que medir el disparador y el traspaso lista → modal con búsqueda pendiente. Hoy: `appearance="palette"` en los campos con homónimos |
 | Parte de `GInputGroup` (CP + colonia) | `GInputGroupCombobox` | Medir A en una caja fusionada |

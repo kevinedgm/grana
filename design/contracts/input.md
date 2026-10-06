@@ -320,3 +320,13 @@ I1: solo fundido, sin desplazamiento. I2: **no existe** (el error ya es borde, i
 | N4 | **Error propio del componente que compone** (#409) | `GInput` acepta del componente que lo compone las opciones internas **`ownError`**, **`ownTarget`** y **`ownReveal`** de `useFormField` (`form.md` §2 «Error propio del componente») y las pasa a **su** `useFormField`. Mecanismo interno, a elección de bruno (p. ej. una clave interna provista por el que compone e inyectada solo por `GInput`, no exportada desde `src/index.js`): **ninguna prop, slot ni evento público**, como N2 y N3. Sin consumidor, nada cambia (instantánea igual). El mensaje, `aria-invalid`, el bloqueo, el enlace del resumen y `is-rejected` salen por las vías que `GInput` ya tiene |
 
 - **Pruebas (bruno):** `GInput` sin N4 se renderiza igual; con N4, el error propio se pinta solo revelado (por salida con `ownReveal: 'blur'`, por envío con los dos), bloquea el envío de `GForm` y el resumen enlaza a `ownTarget`.
+
+**`GCombobox multiple` con `selection="list"` (la receta, B)** (`design/contracts/combobox.md` «Fase 2», DECISIONS.md #426) **pide un añadido interno nuevo:**
+
+| # | Cambio | Detalle |
+| --- | --- | --- |
+| N5 | **Slot interno `below`** (con alcance: `readonly`, `disabled`) | Se pinta **al final de `g-input__support`**, después de la región `g-input__message`, **sin** envoltura `aria-hidden` (lleva botones reales: «Quitar», «Deshacer», «Ver los N»). Así queda dentro del pie y, en una `GFormRow`, **en la tercera pista**: la raíz sigue con tres hijos en flujo (C10). **No** entra en `aria-describedby` del control (no es ayuda ni mensaje; el componente que compone describe lo suyo). Ninguna prop, evento ni slot público, como N2 a N4. Sin el slot, nada cambia |
+
+- **Por qué no el slot `hint`:** lo de la ayuda es descripción del campo (`aria-describedby`); una lista con botones no puede serlo. **Por qué no un cuarto hijo:** rompería las tres pistas compartidas de `GFormRow` (`form.md` §4, C10).
+- **Coco:** nada en `GInput.css`; lo propio (`g-combobox__chosen`, `__rows`) va en `GCombobox.css`.
+- **Pruebas (bruno):** `GInput` sin N5 se renderiza igual (instantánea); con N5, el contenido es el último hijo de `g-input__support`, después del mensaje, sin `aria-hidden`, fuera de `aria-describedby`, y recibe `readonly` y `disabled` resueltos.
