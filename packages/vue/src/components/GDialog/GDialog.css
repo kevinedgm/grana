@@ -173,7 +173,9 @@ html:has(.g-dialog[open]) {
 }
 .g-dialog__body:empty { display: none; }
 .g-dialog__body > :first-child { margin-block-start: 0; }
-.g-dialog__body > :last-child { margin-block-end: 0; }
+/* El último hijo de la aplicación, sin contar el nodo hermano de un GTooltip (#383, api.md «Nodos hermanos»).
+   :where() deja la especificidad de :last-child (0,1,0): Δ0 frente a la regla anterior */
+.g-dialog__body > :nth-last-child(1 of :not(:where(.g-tooltip))) { margin-block-end: 0; }
 .g-dialog__body:focus-visible {
   outline: var(--_ring) solid var(--g-color-focus);
   outline-offset: calc(var(--_ring) * -1);

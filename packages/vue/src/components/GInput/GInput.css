@@ -229,14 +229,15 @@
 
 /* ---------- Botón de acción (slot action) ---------- */
 /* El GBtn del consumidor queda pegado a la caja con la misma altura; este archivo solo le ajusta
-   esquinas, solapamiento de bordes y orden de apilado (DECISIONS.md #33). */
+   esquinas, solapamiento de bordes y orden de apilado (DECISIONS.md #33). El nodo hermano de un GTooltip
+   (`<GBtn tooltip>`) no es un botón: se excluye sin sumar especificidad (#383) */
 .g-input__action {
   display: flex;
   align-items: stretch;
   flex: none;
   margin-inline-start: calc(var(--g-border-width) * -1);
 }
-.g-input__action > * {
+.g-input__action > :not(:where(.g-tooltip)) {
   align-self: stretch;
   white-space: nowrap;
 }
@@ -244,7 +245,7 @@
   border-start-end-radius: 0;
   border-end-end-radius: 0;
 }
-.g-input--has-action .g-input__action > * {
+.g-input--has-action .g-input__action > :not(:where(.g-tooltip)) {
   border-start-start-radius: 0;
   border-end-start-radius: 0;
   border-start-end-radius: var(--_field-radius);
@@ -253,7 +254,7 @@
 /* Táctil: el área de toque del GBtn (44px) sobresaldría dentro de la caja y le robaría toques
    si el botón fuera más estrecho; se le da 44px reales de ancho */
 @media (pointer: coarse) {
-  .g-input__action > * {
+  .g-input__action > :not(:where(.g-tooltip)) {
     min-inline-size: 44px;
   }
 }
@@ -285,7 +286,7 @@
     flex: 1 1 100%;
     margin-inline-start: 0;
   }
-  .g-input--has-action .g-input__action > * {
+  .g-input--has-action .g-input__action > :not(:where(.g-tooltip)) {
     border-radius: var(--_field-radius);
   }
   .g-input--has-action .g-input__control:has(+ .g-input__action > .g-btn--icon) {

@@ -427,7 +427,8 @@
   gap: var(--g-space-1) calc(var(--_gap) * 1.5);
   margin: 0;
 }
-.g-card__meta > * {
+/* Sin el nodo hermano de un GTooltip (#383): display: flex lo dejaría visible cerrado; :where() no suma especificidad */
+.g-card__meta > :not(:where(.g-tooltip)) {
   display: flex;
   gap: var(--g-space-1);
   margin: 0;

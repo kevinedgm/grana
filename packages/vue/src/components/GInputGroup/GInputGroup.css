@@ -120,8 +120,10 @@
   inline-size: max(var(--_target), calc(var(--_input-group-chars) * 1ch + var(--_px) * var(--_density) * 2));
 }
 /* Línea entre dos partes que son controles (País | Número; Valor | Unidad). Entre un control y un texto («/», «mmHg»)
-   no hay línea: el texto ya separa */
-.g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
+   no hay línea: el texto ya separa. La segunda forma salta el nodo hermano de un GTooltip que envuelve la parte (#383;
+   :where() no suma especificidad) */
+.g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select),
+.g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + :where(.g-tooltip) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
   border-inline-start: var(--g-border-width) var(--_divider-style) var(--_divider);
 }
 
@@ -151,10 +153,12 @@
 }
 /* Junto a un texto («120 / 80», «18 a 65 años») el control se acerca a él: el texto ya separa */
 .g-input-group__part--text + .g-input-group__part > .g-input-group__control,
-.g-input-group__part--text + .g-input-group__text-label + .g-input-group__part > .g-input-group__control {
+.g-input-group__part--text + .g-input-group__text-label + .g-input-group__part > .g-input-group__control,
+.g-input-group__part--text + :where(.g-tooltip) + .g-input-group__part > .g-input-group__control {
   padding-inline-start: calc(var(--_gap) * var(--_density));
 }
-.g-input-group__part:has(+ .g-input-group__part--text) > .g-input-group__control {
+.g-input-group__part:has(+ .g-input-group__part--text) > .g-input-group__control,
+.g-input-group__part:has(+ :where(.g-tooltip) + .g-input-group__part--text) > .g-input-group__control {
   padding-inline-end: calc(var(--_gap) * var(--_density));
 }
 /* <select> nativo (autocompletado por parte, #178): sin flecha del sistema; la pone el icono de Lucide */
@@ -189,8 +193,8 @@ select.g-input-group__control {
   user-select: none;
 }
 /* Al final de la caja, la unidad respira como el relleno de la caja */
-.g-input-group__part--text:last-child,
-.g-input-group__part--text:has(+ .g-input-group__text-label:last-child) {
+.g-input-group__part--text:nth-last-child(1 of :not(:where(.g-tooltip))),
+.g-input-group__part--text:has(+ .g-input-group__text-label:nth-last-child(1 of :not(:where(.g-tooltip)))) {
   padding-inline-end: calc(var(--_px) * var(--_density));
 }
 /* Al principio («$ 1,250»), igual por el otro lado */
@@ -325,7 +329,8 @@ select.g-input-group__control {
 .g-input-group.is-warning .g-input-group__box > :first-child {
   margin-inline-start: calc(var(--g-border-width) * -1);
 }
-.g-input-group.is-warning .g-input-group__box > :last-child {
+/* Última parte sin contar el nodo hermano de un GTooltip (#383); :where() deja la especificidad de :last-child */
+.g-input-group.is-warning .g-input-group__box > :nth-last-child(1 of :not(:where(.g-tooltip))) {
   margin-inline-end: calc(var(--g-border-width) * -1);
 }
 /* Válido (C5): borde sencillo del color de éxito */
@@ -403,7 +408,8 @@ select.g-input-group__control {
   .g-input-group__box {
     border-color: ButtonText;
   }
-  .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
+  .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select),
+  .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) + :where(.g-tooltip) + .g-input-group__part:is(.g-input-group__part--input, .g-input-group__part--select) {
     border-inline-start-color: ButtonText;
   }
   .g-input-group__part:has(> .g-input-group__control:focus-visible) {

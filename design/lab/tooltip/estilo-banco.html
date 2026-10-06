@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTooltip · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/tooltip.md («Semántica» y «Clases y datos») con el CSS real de
+     GTooltip.css (cargado DENTRO de la capa grana.components, después de todo el CSS de src/, como lo registrará bruno)
+     y GBtn, GIcon y GInputGroup reales de dist/ (solo su JS: el CSS sale de src/styles/grana.css). XTooltip pinta el nodo
+     hermano que pintará GTooltip.vue y lo coloca como lo hará el motor (placeAround de utils/anchor.js con gap
+     space × 1.5 y margen space × 2; --_tooltip-aw/-ah y data-side antes de medir). El motor del banco es mínimo
+     (350 ms, relevo, viaje en el grupo del padre o del rol, reposo de 700 ms, Esc): sirve para mirar, no es el de bruno.
+     window.TT expone open/travel/dwell/close para la verificación.
+     Requiere dist/ (JS). Desde la raíz:  python3 -m http.server 4209  →  /design/lab/tooltip/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=estilo (tema de esta entrega, estilo-tema.css) | <generated/*.css>  ?dir=rtl  ?slow=1
+     ?css=head (CSS de src/ en el commit 5dba395 salvo GTooltip.css; solo con estilo-serve.mjs)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/tooltip/estilo-verificar.mjs -->
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search)
+    var head = q.get('css') === 'head'
+    var root = head ? '/__head/' : '../../../'
+    var css = [root + 'packages/vue/src/styles/grana.css']
+    document.write('<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">')
+    document.write('<link rel="stylesheet" href="' + css[0] + '">')
+    // GTooltip.css siempre el del árbol de trabajo (en el commit de referencia no existe): con ?css=head se mide el resto
+    // del CSS tal como estaba antes de #383 junto al nodo ya estilado
+    document.write('<style>@import url("../../../packages/vue/src/components/GTooltip/GTooltip.css") layer(grana.components);</style>')
+    var th = q.get('theme')
+    if (th) document.write('<link rel="stylesheet" href="' + (th === 'estilo' ? './estilo-tema.css' : '../tema-oscuro/dark-color-presence/generated/' + th + '.css') + '">')
+    if (q.get('slow')) document.write('<style>:root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}</style>')
+    document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+    if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  })()
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:960px;margin:0 auto;padding-block-end:40vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-1);padding:var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);inline-size:fit-content;background:var(--g-color-surface)}
+  .rail{flex-direction:column}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-6)}
+  .sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:120px 40px;padding:90px clamp(8px,12vw,120px);justify-items:center}
+  .edges{display:flex;justify-content:space-between;margin-inline:-16px}
+  .note{padding:var(--g-space-3);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:13px;color:var(--g-color-text-muted)}
+  .fx{display:grid;gap:12px}
+  .fx > div{border:1px dotted var(--g-color-border-strong)}
+  .w640{inline-size:min(100%,640px)}
+  .bank-input{font:inherit;padding:6px 8px;border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);color:var(--g-color-text)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GTooltip · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Pestaña que viaja» + la segunda etapa de C. La etiqueta (superficie inversa) cuelga del control por una pestaña que mide lo que él; las curvas de unión la hacen nacer de la etiqueta. Recorre la barra: una sola etiqueta viaja. Quieto 700 ms sobre «Duplicar», «Marcar» o «Eliminar»: crece con la descripción y el atajo.</p>
+
+<h2 class="b">1 · Barra (grupo horizontal: lado abajo, viaje)</h2>
+<div class="host">
+  <div class="bar" role="toolbar" aria-label="Edición de la nota" id="toolbar">
+    <x-tooltip v-for="t in TOOLS" :key="t.tid" :tid="t.tid" :text="t.text" :detail="t.detail" :shortcut="t.shortcut">
+      <g-btn icon variant="ghost" color="neutral" size="sm"><g-icon :name="t.icon"></g-icon></g-btn>
+    </x-tooltip>
+  </div>
+  <p class="note">Primera línea del contenido bajo la barra: la etiqueta la tapa mientras está abierta (límite de A).</p>
+</div>
+
+<h2 class="b">2 · Riel vertical (lado fin de línea; en RTL, a la izquierda)</h2>
+<div class="host">
+  <div class="bar rail" role="toolbar" aria-orientation="vertical" aria-label="Secciones" id="rail">
+    <x-tooltip v-for="t in RAIL" :key="t.tid" :tid="t.tid" :text="t.text" :detail="t.detail" vertical>
+      <g-btn icon variant="ghost" color="neutral" size="md"><g-icon :name="t.icon"></g-icon></g-btn>
+    </x-tooltip>
+  </div>
+</div>
+
+<h2 class="b">3 · Controles con texto: de 120 px y block (la etiqueta mide al menos lo que la pestaña, hasta space × 70)</h2>
+<div class="host" style="display:grid;gap:24px">
+  <div class="row">
+    <x-tooltip tid="w120" text="Listo"><g-btn style="inline-size:120px" color="brand" size="sm">Publicar</g-btn></x-tooltip>
+    <x-tooltip tid="w120b" text="Visible para todo el equipo de la clínica" shortcut="Ctrl P"><g-btn style="inline-size:120px" variant="outline" color="neutral" size="sm">Compartir</g-btn></x-tooltip>
+  </div>
+  <div class="w640"><x-tooltip tid="block" text="Se envía al responsable del expediente"><g-btn block color="brand">Enviar expediente</g-btn></x-tooltip></div>
+</div>
+
+<h2 class="b">4 · Los cuatro lados, con segunda etapa (crece hacia fuera del control)</h2>
+<div class="host sides">
+  <x-tooltip tid="s-top" placement="top" text="Bloqueado" detail="Lo está editando Luis Mena desde las 10:42" shortcut="Ctrl L"><g-btn icon variant="outline" color="neutral" size="sm"><g-icon name="lock"></g-icon></g-btn></x-tooltip>
+  <x-tooltip tid="s-bottom" placement="bottom" text="Marcar para revisión" detail="Avisa al responsable del expediente" shortcut="Ctrl M"><g-btn icon variant="outline" color="neutral" size="sm"><g-icon name="flag"></g-icon></g-btn></x-tooltip>
+  <x-tooltip tid="s-left" placement="left" text="Anterior" detail="Vuelve al paciente anterior de la lista"><g-btn icon variant="outline" color="neutral" size="md"><g-icon name="undo-2"></g-icon></g-btn></x-tooltip>
+  <x-tooltip tid="s-right" placement="right" text="Siguiente" shortcut="J"><g-btn icon variant="outline" color="neutral" size="md"><g-icon name="redo-2"></g-icon></g-btn></x-tooltip>
+</div>
+
+<h2 class="b">5 · Junto a los bordes del visor (la etiqueta se desplaza; la pestaña sigue al control)</h2>
+<div class="edges">
+  <x-tooltip tid="edge-start" text="Volver al inicio del expediente"><g-btn icon variant="ghost" color="neutral" size="sm"><g-icon name="house"></g-icon></g-btn></x-tooltip>
+  <x-tooltip tid="edge-end" text="Ajustes de la nota clínica"><g-btn icon variant="ghost" color="neutral" size="sm"><g-icon name="settings"></g-icon></g-btn></x-tooltip>
+</div>
+
+<h2 class="b">6 · Un campo nativo (táctil: el campo conserva la selección de texto)</h2>
+<div class="host row">
+  <x-tooltip tid="field" text="Folio de la receta" detail="Lo encuentras arriba a la derecha de la receta"><input class="bank-input" aria-label="Folio" value="RX-0042"></x-tooltip>
+</div>
+
+<h2 class="b">7 · #383: nodo hermano y selectores estructurales (Δ0 sin tooltip; aspecto conservado con él)</h2>
+<div class="host fx" id="fx">
+  <div class="g-dialog__body" data-fx="dialog"><p>Párrafo con margen.</p><p data-fx-last>Último hijo de la aplicación.</p></div>
+  <div class="g-dialog__body" data-fx="dialog-tt"><p>Párrafo con margen.</p><p data-fx-last>Último hijo de la aplicación.</p></div>
+  <g-input-group data-fx="ig" label="Tensión arterial"><g-input-group-input label="Sistólica" :chars="3"></g-input-group-input><g-input-group-text text="/"></g-input-group-text><g-input-group-input label="Diastólica" :chars="3"></g-input-group-input><g-input-group-text text="mmHg"></g-input-group-text></g-input-group>
+  <g-input-group data-fx="ig-tt" label="Tensión arterial"><g-input-group-input label="Sistólica" :chars="3"></g-input-group-input><g-input-group-text text="/"></g-input-group-text><g-input-group-input label="Diastólica" :chars="3"></g-input-group-input><g-input-group-text text="mmHg"></g-input-group-text></g-input-group>
+  <g-input-group data-fx="ig2" label="Teléfono" warning="Revisa la lada"><g-input-group-select label="País" :options="[{ value: '52', label: '+52' }, { value: '34', label: '+34' }]"></g-input-group-select><g-input-group-input label="Número"></g-input-group-input></g-input-group>
+  <g-input-group data-fx="ig2-tt" label="Teléfono" warning="Revisa la lada"><g-input-group-select label="País" :options="[{ value: '52', label: '+52' }, { value: '34', label: '+34' }]"></g-input-group-select><g-input-group-input label="Número"></g-input-group-input></g-input-group>
+  <div class="g-form-row" data-fx="row"><input aria-label="a"><input aria-label="b"></div>
+  <div class="g-form-row" data-fx="row-tt"><input aria-label="a"><input aria-label="b"></div>
+  <div class="g-adaptive-layout" data-fx="adapt"><button type="button">Uno</button></div>
+  <div class="g-adaptive-layout" data-fx="adapt-tt"><button type="button">Uno</button></div>
+  <dl class="g-card__meta" data-fx="meta"><div><dt>Folio</dt><dd>0042</dd></div></dl>
+  <dl class="g-card__meta" data-fx="meta-tt"><div><dt>Folio</dt><dd>0042</dd></div></dl>
+  <div class="g-input g-input--has-action" data-fx="action"><div class="g-input__row"><div class="g-input__action"><button type="button">Buscar</button></div></div></div>
+  <div class="g-input g-input--has-action" data-fx="action-tt"><div class="g-input__row"><div class="g-input__action"><button type="button">Buscar</button></div></div></div>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script type="module">
+import { placeAround, parsePlacement, setVar, px } from '../../../packages/vue/src/utils/anchor.js'
+const { createApp, h, ref, onMounted, onBeforeUnmount } = Vue
+const q = new URLSearchParams(location.search)
+const ICONS = ['undo-2', 'redo-2', 'copy', 'pencil', 'tag', 'flag', 'trash', 'share-2', 'lock', 'house', 'inbox', 'calendar', 'users', 'folder', 'settings']
+const icons = Grana.createIcons(ICONS.map((n) => `<svg class="lucide lucide-${n}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${window.LUCIDE_ICONS[n]}</svg>`))
+
+/* ---------- Colocación (como la hará el motor) ---------- */
+const unit = () => { const i = document.createElement('i'); i.style.cssText = 'position:absolute;inline-size:var(--g-space-1)'; document.body.append(i); const v = i.getBoundingClientRect().width; i.remove(); return v }
+const vp = () => ({ vw: window.innerWidth, vh: window.innerHeight })
+const isOpen = (n) => { try { return n.matches(':popover-open') } catch { return false } }
+const FOCUSABLE = 'button, a[href], input, select, textarea, summary, [tabindex]'
+const insts = new Map()
+const GROUP = '[role="toolbar"], [role="tablist"], [role="radiogroup"], [role="menubar"], [role="group"], nav, [role="navigation"]'
+const groupOf = (inst) => inst.ctrl.closest(GROUP) || inst.node.parentElement
+
+function place(inst, keepSide) {
+  const { node, ctrl } = inst
+  const a = ctrl.getBoundingClientRect()
+  const u = unit()
+  const rtl = getComputedStyle(ctrl).direction === 'rtl'
+  const want = inst.placement || (inst.vertical ? 'right' : 'bottom')
+  const { side, align } = parsePlacement(want)
+  // Lado y tamaño del control antes de medir: la etiqueta mide al menos lo que él en el eje del lado
+  node.dataset.side = keepSide || side
+  setVar(node, '--_tooltip-aw', px(a.width))
+  setVar(node, '--_tooltip-ah', px(a.height))
+  const { vw, vh } = vp()
+  const opts = { vw, vh, rtl, pad: u * 2, gap: u * 1.5 }
+  let r = placeAround(a, { ...opts, width: node.offsetWidth, height: node.offsetHeight, placement: `${keepSide || side}-${align}` })
+  if (r.side !== node.dataset.side) {
+    node.dataset.side = r.side
+    r = placeAround(a, { ...opts, width: node.offsetWidth, height: node.offsetHeight, placement: `${r.side}-${align}` })
+  }
+  setVar(node, '--_x', px(r.x))
+  setVar(node, '--_y', px(r.y))
+  setVar(node, '--_yb', px(vh - r.y - node.offsetHeight))
+  setVar(node, '--_tooltip-ax', px(a.left - r.x))
+  setVar(node, '--_tooltip-ay', px(a.top - r.y))
+  return r
+}
+const GEOM = ['--_x', '--_y', '--_yb', '--_tooltip-ax', '--_tooltip-ay', '--_tooltip-aw', '--_tooltip-ah']
+const readGeom = (n) => ({ ...Object.fromEntries(GEOM.map((k) => [k, n.style.getPropertyValue(k)])), w: n.getBoundingClientRect().width, side: n.dataset.side })
+const writeGeom = (n, g) => { for (const k of GEOM) setVar(n, k, g[k]); n.style.inlineSize = px(g.w) }
+const pressMs = () => { const d = getComputedStyle(document.documentElement).getPropertyValue('--g-duration-press').trim(); return d.endsWith('ms') ? parseFloat(d) : parseFloat(d) * 1000 }
+
+let current = null
+let closedAt = 0
+const clearState = (n) => { for (const a of ['data-instant', 'data-travel', 'data-dwell', 'data-touch']) n.removeAttribute(a); n.style.removeProperty('inline-size') }
+function hideNow(inst) {
+  clearTimeout(inst.dwellT)
+  inst.node.setAttribute('data-instant', '')
+  if (isOpen(inst.node)) inst.node.hidePopover()
+  if (current === inst) current = null
+}
+const TT = {
+  open(tid, { instant = false } = {}) {
+    const inst = insts.get(tid)
+    if (current && current !== inst) hideNow(current)
+    clearState(inst.node)
+    if (instant) inst.node.setAttribute('data-instant', '')
+    inst.node.showPopover()
+    place(inst)
+    current = inst
+    return true
+  },
+  // Relevo con continuidad (#388): el entrante se mide en su sitio, salta a la geometría del saliente sin transición
+  // y transiciona a la suya; el saliente se oculta sin salida. Mismo grupo y mismo lado; si no, aparece al instante
+  travel(fromTid, toTid) {
+    const A = insts.get(fromTid), B = insts.get(toTid)
+    const g0 = readGeom(A.node)
+    clearState(B.node)
+    B.node.setAttribute('data-instant', '')
+    B.node.showPopover()
+    const r = place(B, g0.side)
+    const same = groupOf(A) === groupOf(B) && r.side === g0.side
+    if (!same) { hideNow(A); current = B; return false }
+    const g1 = readGeom(B.node)
+    writeGeom(B.node, g0)
+    getComputedStyle(B.node).translate
+    B.node.offsetWidth
+    B.node.removeAttribute('data-instant')
+    B.node.setAttribute('data-travel', '')
+    writeGeom(B.node, g1)
+    hideNow(A)
+    current = B
+    const done = () => { clearTimeout(B.travelT); B.node.removeEventListener('transitionend', onEnd); B.node.removeAttribute('data-travel'); B.node.style.removeProperty('inline-size') }
+    const onEnd = (e) => { if (e.target === B.node && e.propertyName === 'translate') done() }
+    B.node.addEventListener('transitionend', onEnd)
+    B.travelT = setTimeout(done, pressMs() + 80)
+    return true
+  },
+  // Segunda etapa (#389): el ancho llega en el acto (una recolocación en x, el lado se conserva); el alto crece
+  dwell(tid) {
+    const inst = insts.get(tid)
+    if (!inst.node.classList.contains('g-tooltip--detail')) return false
+    inst.node.style.removeProperty('inline-size')
+    inst.node.setAttribute('data-dwell', '')
+    place(inst, inst.node.dataset.side)
+    return true
+  },
+  touch(tid) { TT.open(tid); const n = insts.get(tid).node; n.setAttribute('data-touch', ''); n.setAttribute('data-dwell', ''); place(insts.get(tid), n.dataset.side); return true },
+  close(tid, { instant = false } = {}) {
+    const inst = insts.get(tid)
+    clearTimeout(inst.dwellT)
+    if (instant) inst.node.setAttribute('data-instant', '')
+    else inst.node.removeAttribute('data-instant')
+    if (isOpen(inst.node)) inst.node.hidePopover()
+    if (current === inst) current = null
+    closedAt = performance.now()
+    return true
+  },
+  place(tid) { const i = insts.get(tid); return place(i, i.node.dataset.side) },
+  get: (tid) => insts.get(tid),
+  unit
+}
+window.TT = TT
+
+/* ---------- Motor mínimo del banco (para mirar): 350 ms, relevo, viaje, reposo, Esc ---------- */
+function wire(inst) {
+  const { ctrl, node } = inst
+  let openT = 0, closeT = 0
+  const armDwell = () => { clearTimeout(inst.dwellT); inst.dwellT = setTimeout(() => { if (current === inst) TT.dwell(inst.tid) }, 700) }
+  const show = () => {
+    clearTimeout(closeT)
+    if (current === inst) return
+    if (current && isOpen(current.node)) { TT.travel(current.tid, inst.tid); armDwell(); return }
+    if (performance.now() - closedAt < 600) { TT.open(inst.tid, { instant: true }); armDwell(); return }
+    clearTimeout(openT)
+    openT = setTimeout(() => { TT.open(inst.tid); armDwell() }, 350)
+  }
+  const leave = (e) => { clearTimeout(openT); if (node.contains(e.relatedTarget)) return; closeT = setTimeout(() => { if (current === inst) TT.close(inst.tid) }, 100) }
+  ctrl.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') show() })
+  ctrl.addEventListener('pointerleave', leave)
+  ctrl.addEventListener('pointermove', () => { if (current === inst && !node.hasAttribute('data-dwell')) armDwell() })
+  node.addEventListener('pointerenter', () => clearTimeout(closeT))
+  node.addEventListener('pointerleave', (e) => { if (e.relatedTarget === ctrl || ctrl.contains(e.relatedTarget)) return; closeT = setTimeout(() => { if (current === inst) TT.close(inst.tid) }, 100) })
+  ctrl.addEventListener('focus', () => { if (ctrl.matches(':focus-visible')) show() })
+  ctrl.addEventListener('blur', () => { if (current === inst) TT.close(inst.tid) })
+  ctrl.addEventListener('pointerdown', () => { clearTimeout(openT); if (current === inst) TT.close(inst.tid) })
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && current) { e.preventDefault(); TT.close(current.tid) } }, true)
+
+const XTooltip = {
+  props: { tid: String, text: String, detail: String, shortcut: String, placement: String, vertical: Boolean },
+  setup(props, { slots }) {
+    const node = ref(null)
+    onMounted(() => {
+      const root = node.value.previousElementSibling
+      const ctrl = root.matches(FOCUSABLE) ? root : root.querySelector(FOCUSABLE)
+      ctrl.setAttribute('aria-labelledby', props.tid + '-name')
+      if (props.detail) ctrl.setAttribute('aria-describedby', props.tid + '-detail')
+      ctrl.setAttribute('data-g-tooltip', '')
+      const inst = { tid: props.tid, node: node.value, ctrl, placement: props.placement, vertical: props.vertical }
+      insts.set(props.tid, inst)
+      wire(inst)
+    })
+    return () => {
+      const kbd = props.shortcut ? h('kbd', { class: 'g-tooltip__kbd', 'aria-hidden': 'true' }, props.shortcut) : null
+      const body = [h('span', { class: 'g-tooltip__text', id: props.tid + '-name' }, props.text)]
+      if (props.detail) body.push(h('span', { class: 'g-tooltip__more' }, [h('span', { class: 'g-tooltip__more-in' }, [h('span', { class: 'g-tooltip__detail', id: props.tid + '-detail' }, props.detail), kbd])]))
+      else if (kbd) body.push(kbd)
+      return [
+        slots.default(),
+        h('div', { ref: node, class: ['g-tooltip', props.detail && 'g-tooltip--detail'], id: props.tid, role: 'tooltip', popover: 'manual', 'data-tt': props.tid }, [
+          h('span', { class: 'g-tooltip__tab', 'aria-hidden': 'true' }),
+          h('span', { class: 'g-tooltip__body' }, body)
+        ])
+      ]
+    }
+  }
+}
+
+/* ---------- Nodos del #383: el mismo marcado que pondrá GTooltip detrás del control ---------- */
+function ttNode(tid, text) {
+  const d = document.createElement('div')
+  d.className = 'g-tooltip'; d.id = tid; d.setAttribute('role', 'tooltip'); d.setAttribute('popover', 'manual'); d.dataset.tt = tid
+  d.innerHTML = `<span class="g-tooltip__tab" aria-hidden="true"></span><span class="g-tooltip__body"><span class="g-tooltip__text" id="${tid}-name">${text}</span></span>`
+  return d
+}
+function fixtures() {
+  const fx = (k) => document.querySelector(`[data-fx="${k}"]`)
+  fx('dialog-tt').append(ttNode('fx-dialog', 'Pista'))
+  // Entre la primera parte y el texto, y detrás de la última parte de control (antes de la unidad)
+  const parts = fx('ig-tt').querySelectorAll('.g-input-group__part--input')
+  parts[0].after(ttNode('fx-ig-a', 'Sistólica'))
+  parts[1].after(ttNode('fx-ig-b', 'Diastólica'))
+  const p2 = fx('ig2-tt').querySelectorAll('.g-input-group__part')
+  p2[0].after(ttNode('fx-ig2-a', 'País'))
+  p2[1].after(ttNode('fx-ig2-b', 'Número'))
+  fx('row-tt').firstElementChild.after(ttNode('fx-row', 'Pista de a'))
+  fx('adapt-tt').append(ttNode('fx-adapt', 'Pista'))
+  fx('meta-tt').append(ttNode('fx-meta', 'Pista'))
+  fx('action-tt').querySelector('.g-input__action').append(ttNode('fx-action', 'Buscar en el expediente'))
+}
+
+const TOOLS = [
+  { tid: 't-undo', icon: 'undo-2', text: 'Deshacer', shortcut: 'Ctrl Z' },
+  { tid: 't-redo', icon: 'redo-2', text: 'Rehacer', shortcut: 'Ctrl Mayús Z' },
+  { tid: 't-copy', icon: 'copy', text: 'Duplicar', detail: 'Crea una copia en borrador', shortcut: 'Ctrl D' },
+  { tid: 't-edit', icon: 'pencil', text: 'Editar', shortcut: 'E' },
+  { tid: 't-tag', icon: 'tag', text: 'Etiquetar' },
+  { tid: 't-flag', icon: 'flag', text: 'Marcar para revisión', detail: 'Avisa al responsable del expediente' },
+  { tid: 't-share', icon: 'share-2', text: 'Compartir' },
+  { tid: 't-trash', icon: 'trash', text: 'Eliminar', detail: 'Se puede deshacer durante 10 segundos', shortcut: 'Supr' }
+]
+const RAIL = [
+  { tid: 'r-home', icon: 'house', text: 'Inicio' }, { tid: 'r-inbox', icon: 'inbox', text: 'Bandeja', detail: '12 sin leer' },
+  { tid: 'r-cal', icon: 'calendar', text: 'Agenda' }, { tid: 'r-users', icon: 'users', text: 'Pacientes' }, { tid: 'r-folder', icon: 'folder', text: 'Expedientes' }
+]
+
+const app = createApp({ setup: () => ({ TOOLS, RAIL }) })
+app.component('XTooltip', XTooltip)
+app.use(Grana).use(icons).mount('#app')
+fixtures()
+await document.fonts.ready
+document.body.dataset.ready = ''
+</script>
+</body>
+</html>

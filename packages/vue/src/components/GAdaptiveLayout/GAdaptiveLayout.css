@@ -62,7 +62,9 @@
 .g-adaptive-layout--vertical-center { align-items: center; align-content: center; align-content: safe center; }
 .g-adaptive-layout--vertical-bottom { align-items: end; align-content: end; align-content: safe end; }
 
-.g-adaptive-layout.g-adaptive-layout > * {
+/* El nodo hermano de un GTooltip no se coloca (#383): inline-size 100 % lo haría tan ancho como el visor; :where() no
+   suma especificidad */
+.g-adaptive-layout.g-adaptive-layout > :not(:where(.g-tooltip)) {
   --_adaptive-line: auto;
   --_adaptive-track: auto;
   --_adaptive-width: 100%;

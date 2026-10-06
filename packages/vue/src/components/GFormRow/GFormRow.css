@@ -60,7 +60,8 @@
   min-inline-size: 0;
   margin: 0;
 }
-/* Sin medir (SSR, sin ResizeObserver): una línea por hijo, separadas como filas */
-.g-form-row:not([data-lines]) > * + * {
+/* Sin medir (SSR, sin ResizeObserver): una línea por hijo, separadas como filas. El nodo hermano de un GTooltip no es
+   un hijo de la fila (#383): un margen desplazaría la etiqueta, que es fija; :where() no suma especificidad */
+.g-form-row:not([data-lines]) > * + :not(:where(.g-tooltip)) {
   margin-block-start: var(--_form-row-line-gap);
 }

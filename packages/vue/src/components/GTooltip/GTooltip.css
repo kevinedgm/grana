@@ -1,0 +1,405 @@
+/*
+  GTooltip · estilo (coco)
+  Contrato: design/contracts/tooltip.md (#380 a #393; tokens.md §29.5 a §29.7 y §36). Estructura: design/lab/tooltip/r01/
+  (base) y r02/ (A «Pestaña que viaja» + la segunda etapa de C). Estilo, constantes y medidas: design/lab/tooltip/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo pone components.css); sin respaldos; sin literales de
+  tema ni de medida.
+
+  Del .vue (bruno), en línea en el nodo `.g-tooltip`:
+    --_x, --_y, --_yb            posición de la etiqueta en el visor (px; --_yb desde el borde inferior, para crecer hacia
+                                 arriba con data-side="top")
+    --_tooltip-ax, -ay, -aw, -ah  caja del control relativa a la etiqueta (px): de ella salen la pestaña, las curvas de
+                                 unión y las esquinas de la etiqueta. Se escriben -aw/-ah ANTES de medir la etiqueta
+                                 (la etiqueta mide al menos lo que el control, en el eje del lado)
+    data-side (top right bottom left, lógico; antes de medir), data-instant, data-travel, data-dwell, data-touch
+    inline-size (solo durante el viaje: del ancho del saliente al propio; se retira al terminar)
+
+  `display` solo bajo :popover-open (#383): cerrado manda el display: none del agente de usuario.
+*/
+
+/* Geometría del control relativa a la etiqueta. Registradas para que la pestaña, las curvas de unión y las esquinas de
+   la etiqueta viajen con ella (se interpolan en el nodo y las piezas las heredan). Privadas, con el nombre del
+   componente (tokens.md §29.7: @property es global) */
+@property --_tooltip-ax {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --_tooltip-ay {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --_tooltip-aw {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --_tooltip-ah {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- El nodo: capa superior, sin caja propia ---------- */
+.g-tooltip {
+  /* Largo de la pestaña = hueco entre el control y la etiqueta (bruno pasa este mismo valor como `gap` a placeAround) */
+  --_tab: calc(var(--g-space-1) * 1.5);
+  /* Ancho máximo: space × 70, y nunca más que el visor menos sus dos márgenes (100 % es el visor: posición fija) */
+  --_max: min(calc(var(--g-space-1) * 70), calc(100% - var(--g-space-1) * 4));
+  --_r: var(--g-radius-md);
+  --_fl: var(--g-radius-sm);
+  --_bw: var(--g-border-width);
+  /* Lo que sobra de etiqueta a cada lado de la pestaña (en el eje del lado) */
+  --_lead-x: var(--_tooltip-ax);
+  --_tail-x: calc(100% - var(--_tooltip-ax) - var(--_tooltip-aw));
+  --_lead-y: var(--_tooltip-ay);
+  --_tail-y: calc(100% - var(--_tooltip-ay) - var(--_tooltip-ah));
+
+  /* Reinicio del popover del agente de usuario; coordenadas físicas de visor (como GHelper y GMenu) */
+  position: fixed;
+  inset: 0 auto auto 0;
+  translate: var(--_x) var(--_y);
+  box-sizing: border-box;
+  inline-size: max-content;
+  block-size: auto;
+  max-inline-size: var(--_max);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--g-color-surface);
+  opacity: 0;
+  /* Recibe el puntero (1.4.13) y su texto se puede seleccionar, aunque el contenedor del control diga otra cosa */
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: default;
+
+  /* Tipografía propia: el nodo es hermano del control y heredaría la de su contenedor */
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  font-style: normal;
+  letter-spacing: var(--g-text-body-sm-tracking);
+  text-align: start;
+  text-indent: 0;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Arriba: anclada por el borde inferior, para que la segunda etapa crezca hacia fuera del control */
+.g-tooltip[data-side="top"] {
+  inset: auto auto 0 0;
+  translate: var(--_x) calc(var(--_yb) * -1);
+}
+/* La etiqueta mide al menos lo que el control en el eje del lado (la pestaña nunca sobresale); con un control más
+   ancho que el máximo, la pestaña se acota a la etiqueta */
+.g-tooltip:is([data-side="top"], [data-side="bottom"]) {
+  min-inline-size: min(var(--_tooltip-aw), var(--_max));
+}
+.g-tooltip:is([data-side="left"], [data-side="right"]) {
+  min-block-size: min(var(--_tooltip-ah), calc(100% - var(--g-space-1) * 4));
+}
+.g-tooltip:popover-open {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+}
+
+/* ---------- La etiqueta: superficie inversa (#325) ---------- */
+.g-tooltip__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  column-gap: calc(var(--g-space-1) * 2);
+  box-sizing: border-box;
+  padding: var(--g-space-1) calc(var(--g-space-1) * 2.5);
+  /* Transparente: aparece en forced-colors */
+  border: var(--_bw) solid transparent;
+  border-radius: var(--_r);
+  background: var(--g-color-text);
+  color: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+  white-space: normal;
+}
+.g-tooltip__text {
+  min-inline-size: 0;
+  font-weight: var(--g-text-action-weight);
+}
+/* La esquina de la etiqueta que toca la pestaña se cuadra (la pestaña la continúa en línea recta): el radio horizontal
+   (o vertical, en un riel) es lo que sobra de etiqueta junto a la pestaña, hasta --g-radius-md */
+.g-tooltip[data-side="bottom"] .g-tooltip__body {
+  border-top-left-radius: clamp(0px, var(--_lead-x), var(--_r)) var(--_r);
+  border-top-right-radius: clamp(0px, var(--_tail-x), var(--_r)) var(--_r);
+}
+.g-tooltip[data-side="top"] .g-tooltip__body {
+  border-bottom-left-radius: clamp(0px, var(--_lead-x), var(--_r)) var(--_r);
+  border-bottom-right-radius: clamp(0px, var(--_tail-x), var(--_r)) var(--_r);
+}
+.g-tooltip[data-side="right"] .g-tooltip__body {
+  border-start-start-radius: var(--_r) clamp(0px, var(--_lead-y), var(--_r));
+  border-end-start-radius: var(--_r) clamp(0px, var(--_tail-y), var(--_r));
+}
+.g-tooltip[data-side="left"] .g-tooltip__body {
+  border-start-end-radius: var(--_r) clamp(0px, var(--_lead-y), var(--_r));
+  border-end-end-radius: var(--_r) clamp(0px, var(--_tail-y), var(--_r));
+}
+
+/* Atajo: tecla con borde del color del texto; no se espeja (toma la dirección de su propio texto) */
+.g-tooltip__kbd {
+  flex: none;
+  margin-inline-start: auto;
+  padding-inline: var(--g-space-1);
+  border: var(--_bw) solid currentColor;
+  border-radius: var(--g-radius-xs);
+  font-family: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  letter-spacing: var(--g-text-caption-tracking);
+  white-space: nowrap;
+  unicode-bidi: plaintext;
+}
+
+/* ---------- La pestaña: mide lo que mide el control y llena el hueco hasta su borde (es el puente del puntero) ----------
+   Entra --g-border-width en la etiqueta para que no quede costura. Las esquinas del lado del control, --g-radius-sm */
+.g-tooltip__tab {
+  position: absolute;
+  background: var(--g-color-text);
+}
+.g-tooltip:not([data-side]) .g-tooltip__tab { display: none; }
+.g-tooltip:is([data-side="top"], [data-side="bottom"]) .g-tooltip__tab {
+  left: max(0px, var(--_lead-x));
+  right: max(0px, var(--_tail-x));
+  block-size: calc(var(--_tab) + var(--_bw));
+}
+.g-tooltip:is([data-side="left"], [data-side="right"]) .g-tooltip__tab {
+  top: max(0px, var(--_lead-y));
+  bottom: max(0px, var(--_tail-y));
+  inline-size: calc(var(--_tab) + var(--_bw));
+}
+.g-tooltip[data-side="bottom"] .g-tooltip__tab {
+  bottom: calc(100% - var(--_bw));
+  border-radius: var(--_fl) var(--_fl) 0 0;
+}
+.g-tooltip[data-side="top"] .g-tooltip__tab {
+  top: calc(100% - var(--_bw));
+  border-radius: 0 0 var(--_fl) var(--_fl);
+}
+.g-tooltip[data-side="right"] .g-tooltip__tab {
+  inset-inline-end: calc(100% - var(--_bw));
+  border-start-start-radius: var(--_fl);
+  border-end-start-radius: var(--_fl);
+}
+.g-tooltip[data-side="left"] .g-tooltip__tab {
+  inset-inline-start: calc(100% - var(--_bw));
+  border-start-end-radius: var(--_fl);
+  border-end-end-radius: var(--_fl);
+}
+
+/* ---------- Curvas de unión: la pestaña nace de la etiqueta como la de una carpeta ----------
+   Un cuarto de círculo cóncavo de --g-radius-sm a cada lado de la pestaña, donde la etiqueta sigue (si la pestaña llega
+   a la esquina, no hay curva: la esquina ya es recta). ::before va antes de la pestaña (inicio o arriba), ::after
+   después. Cada una es un cuadrado de lado `curva + borde` que entra --g-border-width en la etiqueta; el círculo se
+   centra en su esquina más lejana y deja pintado el rincón entre la pestaña y la etiqueta */
+.g-tooltip::before,
+.g-tooltip::after {
+  position: absolute;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.g-tooltip:is([data-side="top"], [data-side="bottom"])::before,
+.g-tooltip:is([data-side="top"], [data-side="bottom"])::after {
+  content: "";
+}
+.g-tooltip:is([data-side="top"], [data-side="bottom"])::before {
+  --_s: calc(clamp(0px, var(--_lead-x) - var(--_r), var(--_fl)) + var(--_bw));
+  left: calc(var(--_tooltip-ax) - var(--_s));
+  inline-size: var(--_s);
+}
+.g-tooltip:is([data-side="top"], [data-side="bottom"])::after {
+  --_s: calc(clamp(0px, var(--_tail-x) - var(--_r), var(--_fl)) + var(--_bw));
+  left: calc(var(--_tooltip-ax) + var(--_tooltip-aw));
+  inline-size: var(--_s);
+}
+.g-tooltip[data-side="bottom"]::before,
+.g-tooltip[data-side="bottom"]::after { bottom: calc(100% - var(--_bw)); }
+.g-tooltip[data-side="top"]::before,
+.g-tooltip[data-side="top"]::after { top: calc(100% - var(--_bw)); }
+.g-tooltip[data-side="bottom"]::before { background: radial-gradient(circle farthest-side at 0 0, transparent 94%, var(--g-color-text) 100%); }
+.g-tooltip[data-side="bottom"]::after { background: radial-gradient(circle farthest-side at 100% 0, transparent 94%, var(--g-color-text) 100%); }
+.g-tooltip[data-side="top"]::before { background: radial-gradient(circle farthest-side at 0 100%, transparent 94%, var(--g-color-text) 100%); }
+.g-tooltip[data-side="top"]::after { background: radial-gradient(circle farthest-side at 100% 100%, transparent 94%, var(--g-color-text) 100%); }
+
+.g-tooltip:is([data-side="left"], [data-side="right"])::before,
+.g-tooltip:is([data-side="left"], [data-side="right"])::after {
+  content: "";
+}
+.g-tooltip:is([data-side="left"], [data-side="right"])::before {
+  --_s: calc(clamp(0px, var(--_lead-y) - var(--_r), var(--_fl)) + var(--_bw));
+  top: calc(var(--_tooltip-ay) - var(--_s));
+  block-size: var(--_s);
+}
+.g-tooltip:is([data-side="left"], [data-side="right"])::after {
+  --_s: calc(clamp(0px, var(--_tail-y) - var(--_r), var(--_fl)) + var(--_bw));
+  top: calc(var(--_tooltip-ay) + var(--_tooltip-ah));
+  block-size: var(--_s);
+}
+.g-tooltip[data-side="right"]::before,
+.g-tooltip[data-side="right"]::after { inset-inline-end: calc(100% - var(--_bw)); }
+.g-tooltip[data-side="left"]::before,
+.g-tooltip[data-side="left"]::after { inset-inline-start: calc(100% - var(--_bw)); }
+/* La pestaña a la izquierda física de la etiqueta: «right» en LTR, «left» en RTL */
+.g-tooltip[data-side="right"]::before,
+.g-tooltip[data-side="left"]:dir(rtl)::before { background: radial-gradient(circle farthest-side at 0 0, transparent 94%, var(--g-color-text) 100%); }
+.g-tooltip[data-side="right"]::after,
+.g-tooltip[data-side="left"]:dir(rtl)::after { background: radial-gradient(circle farthest-side at 0 100%, transparent 94%, var(--g-color-text) 100%); }
+/* A la derecha física: «left» en LTR, «right» en RTL */
+.g-tooltip[data-side="left"]::before,
+.g-tooltip[data-side="right"]:dir(rtl)::before { background: radial-gradient(circle farthest-side at 100% 0, transparent 94%, var(--g-color-text) 100%); }
+.g-tooltip[data-side="left"]::after,
+.g-tooltip[data-side="right"]:dir(rtl)::after { background: radial-gradient(circle farthest-side at 100% 100%, transparent 94%, var(--g-color-text) 100%); }
+
+/* ---------- Segunda etapa (#389): primero el nombre; con reposo crece hacia fuera con la descripción y el atajo ----------
+   Cerrada no aporta ancho (inline-size 0, pero llena la etiqueta); abierta, el ancho final llega en el acto y el alto
+   crece con grid-template-rows. La etiqueta es una columna flexible y no una rejilla: WebKit calculaba el alto de la
+   fila de una rejilla con el ancho anterior y lo corregía un segundo después (medido) */
+.g-tooltip--detail .g-tooltip__body {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: center;
+}
+.g-tooltip__more {
+  display: grid;
+  grid-template-rows: 0fr;
+  inline-size: 0;
+  min-inline-size: 100%;
+}
+.g-tooltip__more-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--g-space-1) * 2);
+  min-block-size: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+/* La separación del nombre va dentro de lo que crece (un relleno contaría como alto mínimo de la pista) */
+.g-tooltip__more-in > * { margin-block-start: var(--g-space-1); }
+.g-tooltip__detail {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.g-tooltip:is([data-dwell], [data-touch]) .g-tooltip__more {
+  grid-template-rows: 1fr;
+  inline-size: auto;
+}
+.g-tooltip:is([data-dwell], [data-touch]) .g-tooltip__more-in { opacity: 1; }
+
+/* ---------- Movimiento (tooltip.md §«Movimiento»; tokens.md §29) ----------
+   Aparecer y cerrar: fundido --g-duration-fast. Viaje: translate, ancho y geometría del control (de ella salen pestaña,
+   curvas y esquinas) con --g-duration-press + --g-ease-out, sin muelle. Segunda etapa: alto en press, ease-out.
+   data-instant: sin entrada ni salida (relevo del grupo; el saliente de un viaje se oculta así). Nada al montar. */
+@media (prefers-reduced-motion: no-preference) {
+  .g-tooltip {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-tooltip[data-travel] {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-ax var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-ay var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-aw var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-ah var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  /* Mientras viaja, el texto nuevo no se reparte en líneas a cada cuadro: se descubre con el ancho */
+  .g-tooltip[data-travel] .g-tooltip__body {
+    min-inline-size: 0;
+    overflow: clip;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  /* La segunda etapa coloca el ancho y la x en el acto aunque el viaje no se haya retirado aún */
+  .g-tooltip[data-travel][data-dwell] {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-tooltip[data-travel][data-dwell] .g-tooltip__body {
+    min-inline-size: auto;
+    overflow: visible;
+    white-space: normal;
+  }
+  .g-tooltip__more { transition: grid-template-rows var(--g-duration-press) var(--g-ease-out); }
+  .g-tooltip__more-in { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
+}
+/* Movimiento reducido (§29.3): el viaje salta y la segunda etapa aparece sin crecer; los fundidos se quedan */
+@media (prefers-reduced-motion: reduce) {
+  .g-tooltip {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-tooltip__more-in { transition: opacity var(--g-duration-fast) linear; }
+}
+@starting-style {
+  .g-tooltip:popover-open:not([data-travel]) { opacity: 0; }
+}
+/* data-instant quita la entrada y la salida del nodo, no el crecimiento de la segunda etapa (puede seguir puesto
+   mientras está abierto); en táctil todo llega de una vez */
+.g-tooltip[data-instant],
+.g-tooltip[data-touch] .g-tooltip__more,
+.g-tooltip[data-touch] .g-tooltip__more-in {
+  transition: none;
+}
+
+/* ---------- Táctil (#385): la pulsación larga pregunta; sin menú del sistema ni selección durante ella ---------- */
+@media (pointer: coarse) {
+  [data-g-tooltip] { -webkit-touch-callout: none; }
+  [data-g-tooltip]:not(input, textarea) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* ---------- Colores forzados: la pestaña es un fondo y desaparecería ----------
+   Etiqueta con borde del sistema; la pestaña, del color del lienzo, con sus dos lados largos en CanvasText y abierta
+   hacia la etiqueta (tapa el tramo de borde que la une) y hacia el control. Sin curvas de unión (son degradados) */
+@media (forced-colors: active) {
+  .g-tooltip__body {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .g-tooltip__tab {
+    border: 0 solid CanvasText;
+    border-radius: 0;
+    background: Canvas;
+  }
+  .g-tooltip:is([data-side="top"], [data-side="bottom"]) .g-tooltip__tab {
+    border-left-width: var(--_bw);
+    border-right-width: var(--_bw);
+  }
+  .g-tooltip:is([data-side="left"], [data-side="right"]) .g-tooltip__tab {
+    border-top-width: var(--_bw);
+    border-bottom-width: var(--_bw);
+  }
+  .g-tooltip[data-side]::before,
+  .g-tooltip[data-side]::after { content: none; }
+  .g-tooltip__kbd { border-color: CanvasText; }
+}
