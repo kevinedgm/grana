@@ -141,7 +141,7 @@
     "Hijo con order distinto de 0 o rejilla con dense"
   ],
   "pending": [
-    "Auditoría de coco (ronda 2) sobre la versión corregida (#359, #360, #363, #364) antes de candidate"
+    "Auditoría de coco hecha (ronda 2, 65 122/65 122 en tres motores, design/lab/adaptive-layout/auditoria-coco.md). Queda: más de un nivel de grupos anidados sin probar; coste de redimensionar y forced-colors medidos solo en Chromium"
   ],
   "audit": "design/lab/adaptive-layout/auditoria-coco.md"
 }
