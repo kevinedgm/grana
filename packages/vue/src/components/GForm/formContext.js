@@ -90,7 +90,11 @@ export function revealAndFocus(control, root) {
 /**
  * Composable para campos (los de Grana y los del consumidor). Cada opción admite valor, `ref` o getter.
  * Opciones públicas: name, id, error, warning, valid, required, readonly, disabled, density, block, mark, trigger, control, root.
- * Opciones internas (campos de Grana): markRule ('both' | 'required' | 'none'), role ('field' | 'group'), register (false: no se registra).
+ * Opciones internas (campos de Grana): markRule ('both' | 'required' | 'none'), role ('field' | 'group'), register (false: no se registra),
+ * ownError (getter → String; '' = sin error) y ownTarget (getter → elemento enfocable del error propio): el error que solo el
+ * campo conoce (subidas pendientes o fallidas de GFileField; form.md §2 «Error propio del componente», #372). Precedencia del
+ * error resuelto: prop `error` explícita (no vacía) › error propio › `errors[name]`; el propio solo se pinta revelado por GForm
+ * (envío o showErrors(), nunca blur ni change).
  */
 export function useFormField(options = {}) {
   const form = inject(formKey, null)
@@ -138,7 +142,25 @@ export function useFormField(options = {}) {
     if (v !== undefined && v !== null) return String(v)
     return kind ? fromForm(kind) : ''
   }
-  const errorText = computed(() => pick('error', 'error'))
+  // Error propio (#372): lo que solo el campo sabe. Se pinta solo si GForm lo reveló (envío o showErrors()) y el registro
+  // está activo; fuera de GForm nunca se pinta (no hay envío que revelar)
+  const ownErr = () => {
+    if (options.ownError === undefined) return ''
+    const v = toValue(options.ownError)
+    return v ? String(v) : ''
+  }
+  const ownShownText = computed(() => {
+    if (!form || !name.value || typeof form.ownVisible !== 'function' || !form.ownVisible(name.value)) return ''
+    return ownErr()
+  })
+  // Precedencia (#372): prop explícita no vacía › error propio revelado › la explícita vacía (oculta errors[name]) › errors[name]
+  const errorText = computed(() => {
+    const v = o('error')
+    const explicit = v !== undefined && v !== null ? String(v) : undefined
+    if (explicit) return explicit
+    if (ownShownText.value) return ownShownText.value
+    return explicit !== undefined ? explicit : fromForm('error')
+  })
   const warningText = computed(() => pick('warning', 'warning'))
   const validText = computed(() => pick('valid', null))
 
@@ -237,12 +259,24 @@ export function useFormField(options = {}) {
       explicitError,
       ownMessage: () => ownMessage.value,
       invalid: () => invalid.value,
+      // Error propio (#372): GForm lo revela en el envío y en showErrors(); sin la opción, siempre ''
+      ownError: ownErr,
+      ownTarget: () => el('ownTarget'),
       blocking(errors) {
         const e = explicitError()
+        if (e) return { name: name.value ?? null, message: e, id: el('control')?.id || null }
+        // Con el error propio ganando, el resumen enlaza a su destino (el «Reintentar» del primer fallido o el control)
+        const own = ownErr()
+        if (own) return { name: name.value ?? null, message: own, id: el('ownTarget')?.id || el('control')?.id || null }
         const msg = e !== undefined ? e : (name.value && errors ? errors[name.value] : '')
         return msg ? { name: name.value ?? null, message: String(msg), id: el('control')?.id || null } : null
       },
-      visibleTarget: () => (invalid.value ? { control: el('control'), root: el('root') } : null)
+      visibleTarget() {
+        if (!invalid.value) return null
+        const e = explicitError()
+        const control = !e && ownShownText.value ? el('ownTarget') || el('control') : el('control')
+        return { control, root: el('root') }
+      }
     }
     let offForm = null
     let offSection = null

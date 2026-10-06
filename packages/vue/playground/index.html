@@ -601,6 +601,78 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </div>
         </section>
 
+        <section class="pg-section" id="sec-file-field" data-pg-section>
+          <h2>GFileField</h2>
+          <p class="pg-lead">Adjuntar archivos a un formulario, concepto A <b>«Línea de adjuntos»</b>: la caja mide lo que un <code>GInput</code> y los archivos son fichas dentro de ella; la última pieza, «Adjuntar», es el control (el <code>&lt;input type="file"&gt;</code> real). Se elige, se <b>arrastra</b> (al entrar arrastrando archivos en la ventana despiertan <b>todos</b> los campos alcanzables) o se <b>pega</b> con el foco en el campo. Va en su propia entrada, <code>@grana/vue/file-field</code> (aquí <code>dist/file-field.umd.js</code>, global <code>GranaFileField</code>). Sin red: la subida es el adaptador simulado de <code>@grana/vue/testing</code> (<code>createSimulatedUploader</code>); un nombre con «falla» falla al primer intento, con «lento» sube despacio. Con subidas pendientes o fallidas, <b>el envío se bloquea</b> y el resumen lleva al archivo.</p>
+          <h3>La receta junto a su folio (una GFormRow, sin subida: envío nativo)</h3>
+          <div class="pg-panel">
+    <g-form id="ff-rx-form" aria-label="Receta" :labels="fm.labels" @submit="ffSent('rx', $event)">
+      <g-form-layout>
+        <g-form-row id="ff-rx-row">
+          <g-input id="ff-rx-folio" v-model="ff.folio" name="folio" label="Folio de la receta"></g-input>
+          <g-file-field id="ff-rx" v-model="ff.rx" name="receta" label="Receta escaneada" accept=".pdf,image/*" :max-size="5000000" :hint="ff.rxHint" :labels="ff.labels" @change="ffLog('rx', $event)" @reject="ffLog('rx', $event, 'reject')"></g-file-field>
+        </g-form-row>
+      </g-form-layout>
+      <p><g-btn id="ff-rx-send" type="submit">Guardar</g-btn></p>
+    </g-form>
+    <p class="log" id="ff-rx-out">{{ ff.out.rx }}</p>
+          </div>
+          <h3>Fotos de la lesión (subida simulada, un fallo, bloqueo al enviar)</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <g-btn id="ff-demo-add" variant="outline" color="neutral" @click="ffAddSamples">Añadir tres fotos de prueba</g-btn>
+      <g-btn id="ff-demo-fail" variant="outline" color="neutral" @click="ffAddFail">Añadir una que falla</g-btn>
+      <g-btn id="ff-demo-offline" variant="outline" color="neutral" :aria-pressed="ff.offline ? 'true' : 'false'" @click="ffToggleOffline">Sin conexión</g-btn>
+    </div>
+    <g-form id="ff-photos-form" aria-label="Expediente" :labels="fm.labels" :errors="ff.photosErrors" @submit="ffSent('photos', $event)" @invalid="ffInvalid('photos', $event)">
+      <g-error-summary :labels="{ title: fm.summaryTitle }"></g-error-summary>
+      <g-form-layout>
+        <g-file-field id="ff-photos" ref="ffPhotos" v-model="ff.photos" name="fotos" label="Fotos de la lesión" multiple :max="5" accept="image/*" :max-size="8000000" :hint="ff.photosHint" :uploader="ff.uploader" :labels="ff.labels" @change="ffLog('photos', $event)" @reject="ffLog('photos', $event, 'reject')"></g-file-field>
+        <g-input id="ff-photos-note" v-model="ff.note" name="nota" label="Nota"></g-input>
+      </g-form-layout>
+      <p class="row"><g-btn id="ff-photos-send" type="submit">Guardar expediente</g-btn><g-btn id="ff-photos-draft" type="submit" variant="outline" color="neutral" formnovalidate>Guardar borrador</g-btn></p>
+    </g-form>
+    <p class="log" id="ff-photos-model">modelo: {{ ff.photos.map((e) => e.name + ' · ' + e.state + (e.value ? ' · ' + e.value : '')).join(' | ') || '[]' }}</p>
+    <p class="log" id="ff-photos-out">{{ ff.out.photos }}</p>
+    <p class="log" id="ff-log">{{ ff.log }}</p>
+          </div>
+          <h3>Documentos de identidad: un campo por documento</h3>
+          <div class="pg-panel">
+    <g-form id="ff-id-form" aria-label="Identificación" :labels="fm.labels" density="compact">
+      <g-form-layout>
+        <g-form-row id="ff-id-row">
+          <g-file-field id="ff-ine-a" v-model="ff.ineA" name="ine_frente" label="INE frente" accept="image/*" :uploader="ff.uploader" :labels="ff.labels"></g-file-field>
+          <g-file-field id="ff-ine-b" v-model="ff.ineB" name="ine_reverso" label="INE reverso" accept="image/*" :uploader="ff.uploader" :labels="ff.labels"></g-file-field>
+          <g-file-field id="ff-cfe" v-model="ff.cfe" name="comprobante" label="Comprobante de domicilio" accept="application/pdf" hint="PDF" :uploader="ff.uploader" :labels="ff.labels"></g-file-field>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+          </div>
+          <h3>Estados: guardados, solo lectura, deshabilitado, error de la aplicación</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-file-field id="ff-saved" v-model="ff.saved" name="estudios" label="Estudios (con guardados)" multiple :uploader="ff.uploader" :labels="ff.labels"></g-file-field>
+      <g-file-field id="ff-ro" :model-value="ff.savedRo" label="Estudios (solo lectura)" multiple readonly :labels="ff.labels"></g-file-field>
+      <g-file-field id="ff-ro-empty" label="Sin adjuntos (solo lectura)" readonly :labels="ff.labels"></g-file-field>
+      <g-file-field id="ff-dis" :model-value="ff.savedRo" label="Estudios (deshabilitado)" multiple disabled :labels="ff.labels"></g-file-field>
+      <g-file-field id="ff-err" v-model="ff.errList" label="Consentimiento firmado" required accept=".pdf" :error="ff.errList.length ? undefined : 'Adjunta el consentimiento firmado.'" :labels="ff.labels"></g-file-field>
+    </div>
+          </div>
+          <h3>Dentro de un GDialog (los anuncios se trasladan al modal)</h3>
+          <div class="pg-panel">
+    <g-btn id="ff-d-open" variant="outline" @click="ff.dlg = true">Abrir diálogo</g-btn>
+    <g-dialog id="ff-dlg" v-model="ff.dlg" title="Adjuntar a la consulta" close-label="Cerrar">
+      <g-file-field id="ff-d" v-model="ff.dPhotos" block label="Fotos" multiple accept="image/*" :uploader="ff.uploader" :labels="ff.labels"></g-file-field>
+    </g-dialog>
+          </div>
+          <h3>RTL</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px" dir="rtl" lang="ar">
+      <g-file-field id="ff-rtl" v-model="ff.rtl" label="الصور" multiple accept="image/*" :uploader="ff.uploader" :labels="ff.rtlLabels"></g-file-field>
+    </div>
+          </div>
+        </section>
+
         <section class="pg-section" id="sec-checkbox" data-pg-section>
           <h2>GCheckbox y GCheckboxGroup</h2>
           <p class="pg-lead">Casillas sueltas, en tarjeta, en chip y en grupo con casilla maestra.</p>
@@ -2086,6 +2158,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/speech.umd.js"></script>
   <script src="../dist/status.umd.js"></script>
   <script src="../dist/combobox.umd.js"></script>
+  <script src="../dist/file-field.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./speech-adapters.js"></script>
@@ -2768,7 +2841,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -2842,6 +2915,82 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const nfModel = computed(() => ['edad', 'peso', 'temp', 'pct', 'qty', 'pob'].map((k) => `${k}: ${JSON.stringify(nf[k])} (${nf[k] === null ? 'null' : typeof nf[k]})`).join(' · '))
         const nfSubmit = (e) => { nf.fd = 'FormData: ' + [...new FormData(e.target).entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
         const nfChange = (k, v) => { nf.log = `change: ${k}=${JSON.stringify(v)}` }
+
+        // ---------- GFileField (@grana/vue/file-field → GranaFileField): la aplicación sube con su adaptador ----------
+        // Adaptador simulado de @grana/vue/testing (sin red). window.__ffFast acelera la subida para las pruebas.
+        const ffUploader = GranaTesting.createSimulatedUploader({
+          interval: window.__ffFast ? 25 : 140, steps: window.__ffFast ? 6 : 12, slowSteps: window.__ffFast ? 60 : 40,
+          failMessage: 'Se interrumpió la conexión', serverMessage: 'El servidor no admite este archivo', offlineMessage: 'Sin conexión'
+        })
+        const ffSize = (b) => GranaFileField.formatFileSize(b, 'es-MX')
+        const ffPlural = (n, one, many) => (n === 1 ? one : many.replace('{n}', n))
+        const ff = reactive({
+          uploader: ffUploader, offline: false, dlg: false, folio: '', note: '',
+          rx: [], photos: [], ineA: [], ineB: [], cfe: [], dPhotos: [], rtl: [], errList: [],
+          saved: [{ key: 'doc-118', name: 'Receta médica.pdf', size: 220000, type: 'application/pdf', value: 'doc-118' }, { key: 'doc-119', name: 'Biometría hemática marzo 2026.pdf', size: 1240000, type: 'application/pdf', value: 'doc-119' }],
+          savedRo: [{ key: 'doc-118', name: 'Receta médica.pdf', size: 220000, type: 'application/pdf', value: 'doc-118' }, { key: 'doc-120', name: 'Radiografía de tórax.pdf', size: 3100000, type: 'application/pdf', value: 'doc-120' }],
+          rxHint: 'PDF o imagen · hasta ' + ffSize(5000000),
+          photosHint: 'Imagen · hasta ' + ffSize(8000000) + ' cada una · máximo 5',
+          get photosErrors() { return { nota: ff.note.length > 140 ? 'La nota no puede pasar de 140 caracteres' : '' } },
+          out: { rx: 'FormData: (envía el formulario)', photos: 'FormData: (envía el formulario)' },
+          log: 'change: —',
+          labels: {
+            add: 'Adjuntar archivo', addMany: 'Adjuntar archivos', addMore: 'Añadir más', change: 'Cambiar archivo',
+            full: (count, max) => `${count} de ${max}`, readonly: 'Solo lectura', none: 'Sin archivos',
+            status: ({ count, max, active, failed }) => [max && max > 1 ? `${count} de ${max}` : ffPlural(count, '1 archivo', '{n} archivos'), active ? `${active} subiendo` : '', failed ? ffPlural(failed, '1 con error', '{n} con error') : ''].filter(Boolean).join(' · '),
+            list: 'Archivos de {label}', drop: 'Soltar aquí · {hint}', dropInto: 'Soltar en {label}', dropRejected: '{label} no admite estos archivos', dropFull: '{label} está lleno',
+            remove: 'Quitar {name}', cancel: 'Cancelar subida de {name}', retry: 'Reintentar {name}',
+            queued: 'En cola', done: 'Subido', error: 'Error:', progress: 'Subida de {name}', progressText: '{percent} %, {loaded} de {total}',
+            uploadFailed: 'No se pudo subir', notAdded: 'Archivos no añadidos', dismiss: 'Descartar',
+            reasons: { type: 'no es un tipo admitido', empty: 'está vacío', duplicate: 'ya está en la lista', size: 'pesa {size}, el máximo es {limit}', count: 'ya hay {limit}, el máximo' },
+            added: 'Añadido {name}.', addedMany: (n) => `Añadidos ${n} archivos.`, replaced: '{old} reemplazado por {name}.',
+            rejected: 'No se añadió {name}: {reason}.', rejectedMany: 'No se añadieron {count} archivos: {list}.',
+            uploading: (n) => (n === 1 ? 'Subiendo.' : `Subiendo ${n}.`), uploaded: '{name} subido.', uploadedMany: (n) => `${n} archivos subidos.`,
+            uploadError: 'No se pudo subir {name}: {message}.', retrying: 'Reintentando {name}.',
+            removed: (n, name) => `Quitado ${name}. ` + (n ? ffPlural(n, 'Queda 1 archivo.', 'Quedan {n} archivos.') : 'Sin archivos.'),
+            canceled: (n, name) => `Subida de ${name} cancelada. ` + (n ? ffPlural(n, 'Queda 1 archivo.', 'Quedan {n} archivos.') : 'Sin archivos.'),
+            pending: (n, name) => (n === 1 ? `Espera a que termine de subir ${name}.` : `Esperan ${n} archivos por subir.`),
+            failed: (n, name) => (n === 1 ? `No se pudo subir ${name}: reinténtalo o quítalo.` : `${n} archivos no se subieron: reinténtalos o quítalos.`)
+          },
+          rtlLabels: {
+            add: 'إرفاق ملف', addMany: 'إرفاق ملفات', addMore: 'إضافة المزيد', change: 'تغيير الملف', status: ({ count }) => `${count} ملفات`, list: 'ملفات {label}',
+            drop: 'أفلت هنا', dropInto: 'أفلت في {label}', dropRejected: '{label} لا يقبل هذا', remove: 'إزالة {name}', cancel: 'إلغاء رفع {name}', retry: 'إعادة {name}',
+            queued: 'في الانتظار', done: 'تم الرفع', error: 'خطأ:', progress: 'رفع {name}', uploadFailed: 'تعذر الرفع', notAdded: 'ملفات لم تُضف', dismiss: 'تجاهل',
+            reasons: { type: 'نوع غير مقبول', empty: 'فارغ', duplicate: 'موجود بالفعل', size: '{size} أكبر من {limit}', count: 'الحد {limit}' },
+            added: 'أضيف {name}.', addedMany: '{count} ملفات أضيفت.', rejected: 'لم يُضف {name}: {reason}.', rejectedMany: 'لم تُضف {count} ملفات: {list}.', uploading: 'جارٍ الرفع.',
+            uploaded: 'رُفع {name}.', uploadedMany: 'رُفعت {count} ملفات.', uploadError: 'تعذر رفع {name}: {message}.', retrying: 'إعادة {name}.',
+            removed: 'أزيل {name}.', canceled: 'أُلغي رفع {name}.', pending: 'انتظر انتهاء الرفع.', failed: 'تعذر رفع بعض الملفات.'
+          }
+        })
+        // Archivos de prueba (sin red): PNG pintados en un lienzo y PDF de bytes vacíos
+        function ffPng(name, hue = 210, w = 320, h = 240) {
+          const c = document.createElement('canvas'); c.width = w; c.height = h
+          const g = c.getContext('2d')
+          const grd = g.createLinearGradient(0, 0, w, h); grd.addColorStop(0, `hsl(${hue} 45% 62%)`); grd.addColorStop(1, `hsl(${(hue + 50) % 360} 40% 38%)`)
+          g.fillStyle = grd; g.fillRect(0, 0, w, h)
+          g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(w * 0.35, h * 0.45, h * 0.22, 0, Math.PI * 2); g.fill()
+          const bin = atob(c.toDataURL('image/png').split(',')[1]); const u = new Uint8Array(bin.length)
+          for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i)
+          return new File([u], name, { type: 'image/png', lastModified: 1767225600000 })
+        }
+        const ffBlob = (name, type, size) => new File([new Uint8Array(size)], name, { type, lastModified: 1767225600000 })
+        window.PlaygroundFileField = { uploader: ffUploader, png: ffPng, blob: ffBlob, state: ff }
+        const ffPhotos = ref(null)
+        const ffAddSamples = () => ffPhotos.value?.add([ffPng('lesion-frontal.png', 12), ffPng('lesion-lateral.png', 140, 240, 320), ffPng('lesion-detalle-lento.png', 260, 320, 320)])
+        const ffAddFail = () => ffPhotos.value?.add([ffPng('radiografia-falla.png', 30)])
+        const ffToggleOffline = () => { ff.offline = !ff.offline; ffUploader.setOffline(ff.offline) }
+        const ffNames = (list) => (list || []).map((e) => e.name || e).join(', ')
+        function ffLog(which, e, kind = 'change') {
+          ff.log = kind === 'reject'
+            ? `reject (${which}, ${e.via}): ${e.items.map((i) => i.name + ' · ' + i.reason).join(', ')}`
+            : `change (${which}, ${e.via}): +[${ffNames(e.added)}] −[${ffNames(e.removed)}]`
+        }
+        function ffSent(which, e) {
+          const parts = []
+          for (const [k, v] of e.data.entries()) parts.push(k + '=' + (typeof v === 'string' ? v : 'File(' + v.name + ')'))
+          ff.out[which] = (e.novalidate ? 'FormData (borrador): ' : 'FormData: ') + (parts.join(' & ') || '(vacío)')
+        }
+        function ffInvalid(which, e) { ff.out[which] = 'invalid: ' + e.errors.map((x) => x.name + ' → ' + x.message + ' (#' + x.id + ')').join(' | ') }
 
         // ---------- GCombobox (@grana/vue/combobox → GranaCombobox): la aplicación busca; el componente emite ----------
         // Regla del contrato (#332): al recibir `search` o `more`, loading a true EN EL MISMO manejador y a false al
@@ -3045,9 +3194,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
-    }).use(Grana).use(GranaCombobox).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
+    }).use(Grana).use(GranaCombobox).use(GranaFileField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
 </body>
 </html>

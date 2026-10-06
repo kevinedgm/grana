@@ -102,6 +102,25 @@ function visible(n, kind) {
 }
 const isShown = (n) => !isInactive(n) && (shownErr.has(n) || shownWarn.has(n))
 
+// ---------- Error propio del componente (form.md §2, #372; GFileField) ----------
+// Nombres con el error propio REVELADO. Entran solo en revealAll() (envío y showErrors()), nunca por blur, change ni
+// notifyChange; salen cuando su ownError() pasa a '' (como un error corregido, #162: el siguiente espera a otro envío), al
+// pasar a inactivos y con reset/resetState()
+const ownShown = reactive(new Set())
+const ownVisible = (n) => Boolean(n) && !isInactive(n) && ownShown.has(n)
+const hasOwn = (e) => typeof e.ownError === 'function'
+watch(
+  () => {
+    const gone = []
+    for (const e of entries.values()) {
+      if (!hasOwn(e) || e.ownError()) continue
+      for (const n of e.names()) if (ownShown.has(n)) gone.push(n)
+    }
+    return gone.join('\u0000')
+  },
+  (gone) => { if (gone) for (const n of gone.split('\u0000')) ownShown.delete(n) }
+)
+
 // ---------- Estado sucio ----------
 const dirtyLocal = ref(props.dirty)
 watch(() => props.dirty, (v) => { dirtyLocal.value = v })
@@ -198,6 +217,7 @@ watch(
       edited.delete(n)
       shownErr.delete(n)
       shownWarn.delete(n)
+      ownShown.delete(n)
     }
     const keys = snapshot.value
     if (keys && uids.some((u) => keys.has(u))) snapshot.value = new Set([...keys].filter((k) => !uids.includes(k)))
@@ -215,6 +235,8 @@ async function revealAll() {
   for (const e of entries.values()) {
     if (isInactiveEntry(e)) continue
     for (const n of e.names()) { shownErr.add(n); shownWarn.add(n) }
+    // El error propio se revela solo si existe ahora (#372)
+    if (hasOwn(e) && e.ownError()) for (const n of e.names()) ownShown.add(n)
   }
   for (const k of Object.keys(props.errors || {})) if (!isInactive(k)) shownErr.add(k)
   await nextTick() // la aplicación recalcula `errors`
@@ -277,6 +299,7 @@ function resetState() {
   edited.clear()
   shownErr.clear()
   shownWarn.clear()
+  ownShown.clear()
   snapshot.value = null
   dirtyLocal.value = false
   emit('update:dirty', false)
@@ -398,6 +421,7 @@ provide(formKey, {
   notifyChange,
   isShown,
   visible,
+  ownVisible,
   isRejected,
   endRejected,
   setActionsSize,

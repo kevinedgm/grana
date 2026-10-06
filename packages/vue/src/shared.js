@@ -5,7 +5,10 @@
 // mismos GBtn, GSelect, GCheckbox y GProgress. La isla de estado (`@grana/vue/status`, #328) usa el mismo mecanismo
 // (vite.status.config.js; src/status.test.js comprueba sus importaciones), y también la entrada `@grana/vue/combobox`
 // (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog y los dos GIcon. La ficha de resumen (GSummary, summaryDiff y
-// utils/match.js; summary.md, #350) vive en el principal y las entradas secundarias la reciben por aquí, sin copia.
+// utils/match.js; summary.md, #350) vive en el principal y las entradas secundarias la reciben por aquí, sin copia. El campo de
+// archivos (`@grana/vue/file-field`, #367: vite.file-field.config.js y src/file-field.test.js) toma de aquí GSummary,
+// GProgress, GBtn, el GIcon interno y useFormField con las claves de contexto (formKey, revealKey…): una copia propia de
+// formContext.js crearía otro Symbol y el campo no vería su GForm.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -22,7 +25,7 @@ import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
-import { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit } from './components/GForm/formContext.js'
+import { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
@@ -46,7 +49,7 @@ export const shared = {
   'components/GIcon/GIcon.vue': { default: GIcon },
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
-  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, sectionKey, spaceUnit },
+  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, revealKey, sectionKey, spaceUnit, useFormField },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },

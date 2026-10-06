@@ -56,6 +56,12 @@
       "name": "showValue",
       "type": "Boolean",
       "default": true
+    },
+    {
+      "name": "showLabel",
+      "type": "Boolean",
+      "default": true,
+      "note": "Con false la etiqueta no se pinta pero sigue siendo el nombre accesible (aria-label, sigue obligatoria); con showLabel y showValue a false no hay g-progress__row (barra sola). widget.md, DECISIONS.md #375 (la ficha de GFileField)"
     }
   ],
   "events": [],

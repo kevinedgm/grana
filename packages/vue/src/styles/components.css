@@ -71,5 +71,8 @@
 /* GCombobox (combobox.md, entrada @grana/vue/combobox, #337): compone GInput, GAvatar y GDialog (la superficie): va
    después de sus hojas */
 @import url("../components/GCombobox/GCombobox.css");
+/* GFileField (file-field.md, entrada @grana/vue/file-field, #367): cada archivo es una GSummary con un GProgress como capa
+   (reapunta sus clases con selectores propios): va después de GSummary.css y GProgress.css */
+@import url("../components/GFileField/GFileField.css");
 
 @import url("../components/GAdaptiveLayout/GAdaptiveLayout.css");

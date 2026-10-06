@@ -2,3 +2,5 @@
 // No viaja en el paquete principal (`@grana/vue`): se construye aparte (vite.testing.config.js → dist/testing.js y
 // dist/testing.umd.js, global GranaTesting) y no importa Vue.
 export { createSimulatedSpeechAdapter } from './components/GSpeechHost/simulatedAdapter.js'
+// Adaptador de subida simulado de GFileField (file-field.md «Entrega y empaquetado», #367): sin red, sin dependencias.
+export { createSimulatedUploader } from './components/GFileField/simulatedUploader.js'

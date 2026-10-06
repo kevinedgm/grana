@@ -13,7 +13,10 @@ const props = defineProps({
   valueText: { type: String, default: undefined },
   color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   size: { type: String, default: 'md', validator: oneOf(['sm', 'md']) },
-  showValue: { type: Boolean, default: true }
+  showValue: { type: Boolean, default: true },
+  // Con false la etiqueta no se pinta pero sigue siendo el nombre accesible (aria-label); con showLabel y showValue a false
+  // no hay g-progress__row: barra sola (widget.md, #375; la ficha del campo de archivos)
+  showLabel: { type: Boolean, default: true }
 })
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -22,13 +25,14 @@ if (isDev && !props.label) console.warn('[Grana] <GProgress> necesita label (nom
 const clamped = computed(() => Math.min(Math.max(Number(props.value) || 0, 0), props.max))
 const pct = computed(() => (clamped.value / props.max) * 100)
 const text = computed(() => props.valueText ?? `${Math.round(pct.value)}%`)
+// class, style y demás atributos van a la raíz (v-bind="$attrs"): la ficha del campo de archivos la coloca como capa con su clase (#375)
 const classes = computed(() => ['g-progress', `g-progress--size-${props.size}`, `g-progress--color-${props.color}`])
 </script>
 
 <template>
-  <div :class="classes">
-    <div v-if="label || showValue" class="g-progress__row">
-      <span v-if="label">{{ label }}</span>
+  <div v-bind="$attrs" :class="classes">
+    <div v-if="(label && showLabel) || showValue" class="g-progress__row">
+      <span v-if="label && showLabel">{{ label }}</span>
       <span v-if="showValue">{{ text }}</span>
     </div>
     <div class="g-progress__bar" role="progressbar" :aria-valuenow="clamped" aria-valuemin="0" :aria-valuemax="max" :aria-valuetext="text" :aria-label="label">

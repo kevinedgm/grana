@@ -24,6 +24,9 @@
     "./combobox": {
       "import": "./dist/combobox.js"
     },
+    "./file-field": {
+      "import": "./dist/file-field.js"
+    },
     "./testing": {
       "import": "./dist/testing.js"
     },
@@ -34,7 +37,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs",
+    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs",
     "test": "vitest run",
     "icons": "node scripts/build-icons.mjs"
   },

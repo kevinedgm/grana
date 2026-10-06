@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "name": "GFileField",
+  "tag": "g-file-field",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo para adjuntar archivos a un formulario, concepto A «Línea de adjuntos»: la caja mide lo que la de GInput y los archivos son fichas dentro de ella (GSummary inline xs con un GProgress como capa, «Reintentar» y «Quitar» al lado); el control es el <input type=\"file\"> real y lleva siempre los File de la lista. Elegir, arrastrar (la página entera despierta los campos alcanzables) y pegar. Sin red: la subida es un adaptador de la aplicación (uploader) y empieza al añadir; con subidas pendientes o fallidas el campo bloquea el envío de GForm por sí mismo (error propio, solo al enviar). Sin uploader, los binarios van en el envío nativo.",
+  "contract": "design/contracts/file-field.md",
+  "decisions": "DECISIONS.md #366 a #379",
+  "prototype": "design/lab/file-field/r01/ y design/lab/file-field/r02/ (concepto A)",
+  "style": "packages/vue/src/components/GFileField/GFileField.css (estilo: design/lab/file-field/estilo.md)",
+  "entry": "@grana/vue/file-field",
+  "exports": [
+    {
+      "name": "GFileField",
+      "signature": "<GFileField v-model :uploader :labels />",
+      "purpose": "El componente"
+    },
+    {
+      "name": "formatFileSize",
+      "signature": "formatFileSize(bytes: number, locale?: string): string",
+      "purpose": "Tamaño legible con Intl (unidades decimales, una cifra decimal por debajo de 10): la misma función escribe la ficha, el aviso y la pista de la aplicación (L9)"
+    },
+    {
+      "name": "default",
+      "signature": "{ install(app) }",
+      "purpose": "Plugin: app.use(FileField) registra <g-file-field> si no lo estaba"
+    },
+    {
+      "name": "install",
+      "signature": "install(app)",
+      "purpose": "Lo mismo, con nombre"
+    }
+  ],
+  "bundle": {
+    "measured": "2026-10-05",
+    "entry": "dist/file-field.js",
+    "gzip": 12444,
+    "umdGzip": 11113,
+    "umdGlobal": "GranaFileField",
+    "main": "dist/grana.js gzip 171422; GFileField no está en el principal",
+    "note": "Vue y @grana/vue externos; GSummary, GProgress, GBtn, GLibIcon, formContext (useFormField, messageIcon, nextFrame y las claves: un solo Symbol(GForm)), liveRegion, topModal, template y oneOf llegan de __shared (#240), sin copia (! grep -q \"g-summary__\" dist/file-field.js). utils/fileDrag.js va en la entrada. Kiwi estimaba 7 a 10 KB; medido 12,4 KB (ES sin minificar, como el resto de entradas) / 11,1 KB UMD: supera el tope de 8 KB de #328, la entrada propia (#367) se confirma. El CSS va en grana.css."
+  },
+  "composes": [
+    "GSummary layout=inline size=xs (la ficha: title, subtitle = formatFileSize, avatar con miniatura o icon image/file-text, status queued/done, facts con el error)",
+    "GProgress size=sm color=accent showLabel=false showValue=false como capa de la ficha (class g-file-field__progress)",
+    "GBtn ghost neutral xs de solo icono («Reintentar» rotate-ccw, «Quitar»/«Cancelar subida» x) y sm («Descartar» del aviso)",
+    "GLibIcon (plus, lock, check, triangle-alert, circle-alert…)",
+    "useFormField (con las opciones internas ownError y ownTarget, #372)"
+  ],
+  "engine": "components/GFileField/engine.js (formatFileSize, accepts, dragAccepts, validate, isPreviewable, iconOf, sameFile; sin estado ni DOM) y utils/fileDrag.js (escucha de página con cuenta de referencias, protección contra soltar fuera, modal superior compartido)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Array",
+      "default": null,
+      "note": "Entradas { key, name, size, type, state, value, url, error, file } (#368). Sin v-model el campo guarda la lista y la emite igual. Conciliación por key"
+    },
+    {
+      "name": "accept",
+      "type": "String",
+      "default": null,
+      "note": "Atributo nativo y comprobación propia en las tres vías (extensión sin mayúsculas y MIME; sin MIME, solo extensión)"
+    },
+    {
+      "name": "multiple",
+      "type": "Boolean",
+      "default": false,
+      "note": "Cada gesto suma; sin él, el nuevo reemplaza (labels.replaced)"
+    },
+    {
+      "name": "max",
+      "type": "Number",
+      "default": null,
+      "note": "Entero ≥ 1, solo con multiple (sin él, aviso 3). Cuentan los guardados"
+    },
+    {
+      "name": "maxSize",
+      "type": "Number",
+      "default": null,
+      "note": "Bytes, > 0"
+    },
+    {
+      "name": "uploader",
+      "type": "Function",
+      "default": null,
+      "note": "(file, { signal, progress }) => Promise<{ value, url? }>. Sin él, envío nativo"
+    },
+    {
+      "name": "concurrency",
+      "type": "Number",
+      "default": 2,
+      "note": "Entero ≥ 1 (si no, aviso 3 y 2)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "note": "prop › lang del ancestro › navigator.language (al montar); antes de montar (SSR), en-US"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "Ver labels"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "Registra el campo en GForm y nombra lo que se envía"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null,
+      "note": "Texto de la aplicación (formatFileSize para el límite)"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-required y marca; nunca required nativo"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "note": "Contexto de GForm si no se da"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "note": "Contexto de GForm si no se da"
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "Generado si no se da"
+    }
+  ],
+  "attrs": "class y style a la raíz; el resto (form, capture, aria-*, data-*, escuchas) al <input type=\"file\">, con los manejadores propios primero. form se copia a los ocultos. type, webkitdirectory, directory y aria-invalid se ignoran (aviso 7); appearance y expected, reservados (aviso 7). aria-describedby del consumidor se añade al final; aria-label/aria-labelledby sin label sustituyen a ID-label en el nombre (aria-label va a un <span hidden> referido)",
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Entry[] (copias planas)",
+      "trigger": "Cambia la lista o el state/value/url/error de una entrada; nunca por progreso"
+    },
+    {
+      "name": "change",
+      "payload": "{ added: Entry[], removed: Entry[], via: 'picker'|'drop'|'paste'|'api'|'remove'|'cancel' }",
+      "trigger": "Una vez por gesto que cambia qué archivos hay, después de update:modelValue"
+    },
+    {
+      "name": "reject",
+      "payload": "{ items: [{ file, name, reason: 'type'|'empty'|'size'|'duplicate'|'count' }], via }",
+      "trigger": "Un gesto con archivos rechazados"
+    }
+  ],
+  "methods": [
+    {
+      "name": "add",
+      "signature": "add(files: FileList | File[]) → { added: Entry[], rejected: [{ file, name, reason }] }",
+      "purpose": "Añadir con la validación, el aviso, los anuncios y los eventos (via api); nada en solo lectura ni deshabilitado"
+    },
+    {
+      "name": "open",
+      "signature": "open()",
+      "purpose": "input.click() si no está lleno, en solo lectura ni deshabilitado (dentro de un gesto)"
+    },
+    {
+      "name": "focus",
+      "signature": "focus()",
+      "purpose": "Enfoca el control"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Como GInput (dentro del <label>)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Dentro de ID-hint; la copia junto a la cara repite el slot"
+    },
+    {
+      "name": "error",
+      "purpose": "Mensaje de error del campo, tras el prefijo oculto"
+    }
+  ],
+  "labels": {
+    "strings": "add, addMany, addMore, change, readonly, none, list {label}, drop {hint}, dropInto {label}, dropRejected {label}, dropFull {label}, remove/cancel/retry {name}, queued, done, error, progress {name}, progressText {percent} {loaded} {total}, uploadFailed, notAdded, dismiss, reasons.type/empty/duplicate, reasons.size {size} {limit}, reasons.count {limit}, added/uploaded/retrying {name}, replaced {old} {name}, rejected {name} {reason}, uploadError {name} {message}",
+    "countedFunctions": "full(count, max) · status({ count, max, active, failed }) (o String con esos marcadores; max es null sin límite y 1 sin multiple) · addedMany(count) · uploadedMany(count) · uploading(count) · rejectedMany(items: [{ file, name, reason, text }]) · removed(count, name) · canceled(count, name) · pending(count, name) · failed(count, name). Con String: {count}, {max} y {limit} formateados con Intl.NumberFormat(locale); tamaños con formatFileSize",
+    "composition": "Aviso de no añadidos: <strong>{name}</strong>: {texto del motivo} (los dos puntos los pone el componente). Descripción del fallo (g-file-field__error): labels.error + espacio + el mensaje (incluye en labels.error la puntuación que quieras, p. ej. «Error:»)",
+    "atMount": "add/addMany, status, remove, cancel; con uploader retry, pending y failed; con readonly readonly y none; con max full"
+  },
+  "keyboard": [
+    {
+      "key": "Tab / Mayús+Tab",
+      "where": "Campo",
+      "action": "Botones de cada ficha y después el control, en orden del DOM"
+    },
+    {
+      "key": "Espacio (Intro donde el navegador lo admita)",
+      "where": "Control",
+      "action": "Diálogo del sistema; lleno o solo lectura: nada (click cancelado)"
+    },
+    {
+      "key": "⌘V / Ctrl+V",
+      "where": "Control",
+      "action": "Pega archivos del portapapeles"
+    },
+    {
+      "key": "Intro / Espacio",
+      "where": "Botón de una ficha",
+      "action": "Reintentar / Quitar / Cancelar subida"
+    }
+  ],
+  "classes": [
+    "g-file-field",
+    "g-file-field--size-*",
+    "g-file-field--variant-*",
+    "g-file-field--density-*",
+    "g-file-field--rounded-*",
+    "g-file-field--block",
+    "is-ready",
+    "has-files",
+    "is-multiple",
+    "is-full",
+    "is-readonly",
+    "is-disabled",
+    "is-invalid",
+    "is-warning",
+    "is-valid",
+    "is-rejected",
+    "is-awake",
+    "is-awake-ok",
+    "is-awake-no",
+    "is-over",
+    "g-file-field__label",
+    "__optional",
+    "__required",
+    "__box",
+    "__list (role=list)",
+    "__chip (data-state, data-stored, is-landing)",
+    "__progress",
+    "__error (hidden)",
+    "__retry",
+    "__remove",
+    "__add",
+    "__input",
+    "__add-icon",
+    "__action",
+    "__add-hint",
+    "__target",
+    "__target-text",
+    "__foot",
+    "__meta",
+    "__hint",
+    "__status",
+    "__notice",
+    "__notice-list",
+    "__message",
+    "__message-type",
+    "__message-icon",
+    "__live"
+  ],
+  "formSystem": "useFormField con trigger change; añadir, quitar, cancelar y reemplazar llaman a notifyChange (sucio, revela errors[name], retira is-rejected); reintentar y el progreso no. Error propio (#372): opciones internas ownError (labels.failed › labels.pending, solo con uploader) y ownTarget (primer «Reintentar» o el control); GForm lo revela solo al enviar o con showErrors() y lo retira cuando se vacía; precedencia prop error no vacía › propio › errors[name]. Fuera de GForm: setCustomValidity en el control. Dentro de GInputGroup/GFieldGroup: no admitido (aviso 8)",
+  "testing": {
+    "entry": "@grana/vue/testing",
+    "name": "createSimulatedUploader(options)",
+    "options": "interval 120, steps 12, slowSteps 40, speed 1, failOnce /falla|fail/i (falla al primer intento al llegar a failAt 0.45), failAlways /servidor|server/i (al 20 %), slow /lento|slow/i, noValue false (resuelve sin value), failMessage, serverMessage, offlineMessage, offline false, value(file, n) → 'srv-n', url(file) → null. Los predicados admiten RegExp, función o booleano",
+    "controls": "setOffline(bool) (rechaza también lo que esté en curso), setSpeed(n), stats() → { calls, active, done, failed, aborted }, attempts(name), reset()",
+    "note": "Sin red ni dependencias; AbortError (DOMException) al abortar signal. No es contrato del adaptador"
+  },
+  "warnings": [
+    "1 sin nombre accesible",
+    "2 labels que faltan (al montar o al necesitarse)",
+    "3 max sin multiple, max < 1, maxSize ≤ 0, concurrency < 1",
+    "4 entrada sin key/name, key repetida, guardado con state ≠ done o sin value",
+    "5 la aplicación cambió una entrada que se sube",
+    "6 el adaptador resolvió sin value",
+    "7 type, webkitdirectory, directory, aria-invalid; appearance y expected reservados",
+    "8 dentro de GInputGroup o GFieldGroup"
+  ],
+  "verification": {
+    "vitest": "GFileField.test.js, GFileField.form.test.js, GFileField.ssr.test.js, engine.test.js, utils/fileDrag.test.js, src/file-field.test.js, GForm/ownError.test.js, GProgress/GProgress.test.js, testing.test.js",
+    "playwright": "design/lab/theme-playground/tests/file-field.spec.mjs y personalidad-file-field.spec.mjs (Chromium, Firefox, WebKit; GRANA_PW_PORT propio)",
+    "playground": "packages/vue/playground/index.html#sec-file-field"
+  },
+  "pending": [
+    "Paso 5: auditoría de coco sobre el componente real (design/lab/file-field/auditoria.md); luego README (mora-docs) y status candidate.",
+    "Solo en entorno real: lector de pantalla (control oculto con nombre compuesto y descripción, recuento nativo, lista, anuncios por lote, barra en la ficha), diálogo del sistema y hoja móvil reales, arrastre real desde el escritorio, pegar real (Firefox no admite archivos en un ClipboardEvent construido), forced-colors real, zoom 200 %, archivos de varios GB, HEIC.",
+    "Reservado (#378): appearance=\"gallery\" (B), expected (C), validate, capture como prop, reorderable, directory, slots item/lead, color, GInputGroup/GFieldGroup."
+  ]
+}
