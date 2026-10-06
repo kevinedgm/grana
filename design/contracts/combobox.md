@@ -815,7 +815,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 
 | Token | Para qué |
 | --- | --- |
-| `--g-color-border-control`; `--g-color-brand` / `--g-color-on-brand`; `--g-color-text`; `--g-color-surface` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1). **Marcada** (enmienda #429): relleno `brand`, marca `on-brand` y **contorno `text`** (`surface` en la opción activa invertida de la paleta); `brand` solo como forma da 1,77 en lustre y 1,92 en spotify |
+| `--g-color-border-control`; `--g-color-primary` / `--g-color-on-primary`; `--g-color-text`; `--g-color-surface` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1). **Marcada** (enmiendas #429 y #430): relleno **`primary`** y marca **`on-primary`**, los mismos tokens que la casilla marcada de `GCheckbox` con su `color` por defecto (`tokens.md` §17.2: los componentes no leen `brand`), y **contorno `text`** (`surface` en la opción activa invertida de la paleta); `primary` solo como forma da 1,77 en lustre y 1,92 en spotify (medido con `brand`, que es su valor sin clave `primary`) |
 | `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado: no solo color) |
 | `--g-color-accent-soft` / `--g-color-on-accent-soft`; `--g-color-accent-text` | «Nueva» (5:1) y su barra en **`accent-text`** (enmienda #429: `accent` como trazo da 1,29 en spotify, 2,14 en amazon y 2,64 en stripe, #228; con `accent-text`, 4,52 mínimo) |
 | `--g-color-warning-soft` / `--g-color-on-warning-soft` | Estado del tope (enmienda #429: `warning-text` sobre `warning-soft` da 4,15:1 en el tema por defecto oscuro; el par del tinte llega a 4,66 mínimo) |
@@ -852,7 +852,7 @@ Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan co
 
 **Para coco** (`GCombobox.css`; nada en `GInput.css` ni en `GSummary.css`):
 
-- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada relleno `brand`, marca `on-brand` y contorno `text` (`surface` en la activa invertida de la paleta; #429).
+- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada relleno `primary`, marca `on-primary` (los de `GCheckbox`, #430) y contorno `text` (`surface` en la activa invertida de la paleta; #429).
 - **Frase (A):** una línea, sin saltos ni alto nuevo (Δ0); elipsis del primero; `__sentence-rest` con peso de acción; libres en cursiva con `pencil`; con el foco, la proporción frase/texto (anotarla en `estilo.md`) y `text-muted`; **marcada para quitar: tachado + `selection`** (no solo color).
 - **Receta (B):** en la tercera pista de `GFormRow` sin romper el *subgrid*; renglones con `GSummary row` de dos líneas, número, «Nueva» (par `accent-soft` + barra `accent-text` al inicio, reflejada en RTL), «Quitar» ≥ 24px / 44px aislado al final; **rastro del mismo alto** que el renglón (Δ0, medir), tachado en `text-muted` (alto = `--_row-h`), «Deshacer» como píldora `accent-soft`/`on-accent-soft` (al pasar `accent`/`on-accent`); «Ver los N» en `text` con peso de acción, con el chevron girado al desplegar.
 - **Cesta (C):** en el sitio de la vista previa, con su proporción; pie con recuento y «Listo»; estado del tope con el par `warning-soft`/`on-warning-soft`.
