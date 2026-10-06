@@ -1,0 +1,387 @@
+/*
+  GTimeField · estilo
+  Dueño: coco. Contrato: design/contracts/time-field.md (#400 a #414; concepto A «La hora dicha», #407; tokens.md §37).
+  Estructura: design/lab/time-field/r01/ (base) y r02/?c=A (kiwi). Banco y medidas: design/lab/time-field/estilo.md.
+  Compone GInput (#400): la caja, la etiqueta, el prefijo/sufijo, el output, el pie, el foco, is-ready (I1) e is-rejected
+  (I2) son de GInput.css y aquí NO se repiten. Este archivo solo pinta lo propio: la celda que mide el texto (como P1 de
+  GNumberField), la lectura en palabras pegada detrás, a. m./p. m. (12 h) y las dos lecturas (24 h) en el slot interno
+  `end`, el medidor del mínimo (#410) y la entrada de la palabra.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
+  Literales: 24px y 44px (área táctil), el patrón de texto oculto accesible y las constantes neutras de §7 y §29.6:
+  1px de hueco del cursor al final del espejo, 1ch de ancho mínimo del espejo y --g-space-1 × 1 de la entrada.
+  Keyframes: g-time-reading-* (nunca g-reject-*: GInput y GForm retiran is-rejected filtrando por ese prefijo).
+  No se estiliza :invalid ni :user-invalid (#409): el estado visible es el de GInput (aria-invalid + mensaje).
+  Ningún selector toma hijos de la aplicación por estructura (#383, #394): solo clases propias.
+*/
+
+/* ---------- Raíz ---------- */
+.g-time-field {
+  /* Borde real de la caja (lo que a. m./p. m. y las lecturas tapan con margen negativo) y trazo visible (borde +
+     segundo trazo interior de is-invalid): los botones dejan ese trazo transparente para no pisar la línea de la caja */
+  --_tf-border: var(--g-border-width);
+  --_tf-stroke: var(--g-border-width);
+}
+
+/* Pulsar el área vacía de la caja o la lectura enfoca el campo con el cursor al final (lo hace el .vue, A1). La caja es
+   el bloque de referencia del medidor (fuera de flujo) */
+.g-time-field .g-input__control {
+  position: relative;
+  cursor: text;
+}
+.g-time-field.is-disabled .g-input__control {
+  cursor: not-allowed;
+}
+
+/* ---------- A1 · La celda del valor: espejo + campo en la misma celda de rejilla ---------- */
+/* La celda mide el TEXTO (el espejo), no la caja: la lectura, el sufijo y el output la siguen al gap de la caja
+   (calc(--_gap × --_density) de GInput: space × 2 en md, × 1 en xs/sm, × 3 en xl) y el hueco libre queda detrás, antes
+   de a. m./p. m. Con un texto que no cabe, la celda encoge (minmax(0, …) y min-inline-size 0), pero solo después de que
+   la lectura se haya recortado entera (la lectura parte de 0: ver abajo). overflow: clip: el espejo nunca desborda */
+.g-time-field__value {
+  position: relative;
+  flex: 0 1 auto;
+  align-self: stretch;
+  min-inline-size: 0;
+  display: grid;
+  grid-template-columns: minmax(0, auto);
+  align-items: center;
+  overflow: clip;
+}
+.g-time-field__mirror,
+.g-time-field .g-time-field__field {
+  grid-area: 1 / 1;
+}
+
+/* El <input> no aporta ancho (0) y llena la celda (100 %): el ancho lo pone el espejo. Todo el alto de la caja
+   (align-self: stretch de GInput), así pulsar en vertical sobre la hora también la enfoca. El dir del idioma va en el
+   atributo (#403): con la misma dirección que el espejo, la alineación de inicio coincide en los tres motores */
+.g-time-field .g-time-field__field {
+  inline-size: 0;
+  min-inline-size: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Espejo: invisible, misma tipografía que el campo, solo da ancho. 1px al final = el hueco del cursor (constante
+   neutra, §7); 1ch = ancho mínimo sin texto ni placeholder */
+.g-time-field__mirror {
+  visibility: hidden;
+  overflow: hidden;
+  min-inline-size: 1ch;
+  padding-inline-end: 1px;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Con las dos lecturas a la vista (sin compactar), la hora escrita no cede su sitio: si el par no cabe, desborda la
+   caja y el .vue lo detecta (scrollWidth > clientWidth del control) y pone data-compact. Compactado, la celda vuelve a
+   poder encoger: el par ya es lo más corto posible */
+.g-time-field.has-choices:not(:has(.g-time-field__choices[data-compact])) .g-time-field__value {
+  flex-shrink: 0;
+}
+
+/* ---------- A1 · La lectura en palabras ---------- */
+/* Pegada a la hora, a la separación de la caja. Parte de 0 y crece hasta su ancho natural (flex: 1 1 0 +
+   max-content): nunca le quita sitio a la hora; el hueco que sobra queda detrás (antes de a. m./p. m.). Su separación
+   va DENTRO (::before), no en el gap de la caja (que se cancela con el margen negativo, el patrón de
+   .g-input__output:empty): así, sin sitio, la lectura desaparece entera, separación incluida, y el mínimo publicado
+   (#410) no tiene que contarla. Texto muted (≥ 4.5:1), cursor de escribir (pulsarla enfoca el campo) */
+.g-time-field__reading {
+  display: flex;
+  align-items: baseline;
+  flex: 1 1 0;
+  max-inline-size: max-content;
+  min-inline-size: 0;
+  margin-inline-start: calc(var(--_gap) * var(--_density) * -1);
+  overflow-x: clip;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.g-time-field__reading::before {
+  content: "";
+  flex: 0 1 auto;
+  inline-size: calc(var(--_gap) * var(--_density));
+  min-inline-size: 0;
+}
+/* La hora entendida mientras se escribe («930» → «9:30»): cifras tabulares y un espacio de separación con la palabra
+   (--g-space-1, el ancho de un espacio de texto; sin carácter de puntuación como adorno) */
+.g-time-field__reading-time {
+  flex: none;
+  margin-inline-end: var(--g-space-1);
+  font-variant-numeric: tabular-nums;
+}
+/* La franja del día: se recorta con elipsis (es redundante con aria-valuetext). Bloque, para que translate se aplique
+   en la entrada (translate no mueve cajas en línea) */
+.g-time-field__reading-word {
+  display: block;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-input.is-disabled .g-time-field__reading {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+
+/* ---------- a. m./p. m. (12 h) y las dos lecturas (24 h): slot interno `end` de GInput ---------- */
+/* Dentro de la caja, al final: la caja pierde su relleno final y los botones llegan de borde a borde (margen negativo
+   del borde real en el bloque y al final), del alto de la caja (piso 24px; 44px con puntero grueso). El hueco libre
+   queda antes (margin-inline-start: auto) */
+.g-input.g-time-field--h12:not(.is-readonly) > .g-input__row > .g-input__control,
+.g-input.g-time-field.has-choices > .g-input__row > .g-input__control {
+  padding-inline-end: 0;
+}
+.g-time-field__halves,
+.g-time-field__choices {
+  display: flex;
+  flex: none;
+  align-self: stretch;
+  margin-block: calc(var(--_tf-border) * -1);
+  margin-inline-start: auto;
+  margin-inline-end: calc(var(--_tf-border) * -1);
+  cursor: default;
+}
+.g-time-field__half,
+.g-time-field__choice {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: max(24px, var(--_h));
+  min-block-size: 24px;
+  margin: 0;
+  padding-block: 0;
+  /* Relleno en línea = la separación de la caja de cada tamaño */
+  padding-inline: calc(var(--_gap) * var(--_density));
+  /* Separador hacia el valor y entre los dos botones. Arriba, abajo (y al final, en el último) el trazo de la caja queda
+     transparente: se ve la línea de la caja por debajo y el fondo de pasar/pulsar se recorta dentro de ella */
+  border: 0;
+  border-block: var(--_tf-stroke) solid transparent;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: 0;
+  background: transparent;
+  background-clip: padding-box;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-time-field__half:last-child,
+.g-time-field__choice:last-child {
+  border-inline-end: var(--_tf-stroke) solid transparent;
+  border-start-end-radius: var(--_radius);
+  border-end-end-radius: var(--_radius);
+}
+@media (pointer: coarse) {
+  .g-time-field__half,
+  .g-time-field__choice {
+    min-inline-size: max(44px, var(--_h));
+    min-block-size: 44px;
+  }
+}
+
+/* Pulsado: UN solo estilo para los dos pares (acento suave) y además el peso de acción (WCAG 1.4.1: el estado no
+   depende solo del color) */
+.g-time-field__half.is-on,
+.g-time-field__choice.is-on {
+  background-color: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-weight: var(--g-text-action-weight);
+}
+@media (hover: hover) {
+  .g-time-field__half:hover:not(:disabled):not(.is-on),
+  .g-time-field__choice:hover:not(:disabled):not(.is-on) {
+    background-color: var(--g-color-neutral-soft);
+    color: var(--g-color-text);
+  }
+}
+.g-time-field__half:active:not(:disabled):not(.is-on),
+.g-time-field__choice:active:not(:disabled):not(.is-on) {
+  background-color: var(--g-color-neutral-soft);
+  color: var(--g-color-text);
+}
+/* Fuera del Tab (tabindex -1) y sin tomar el foco al pulsar; si una tecnología de apoyo los enfoca, el anillo es el
+   del campo, por dentro (no lo tapa la caja ni el vecino) */
+.g-time-field__half:focus-visible,
+.g-time-field__choice:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-time-field__half:disabled,
+.g-time-field__choice:disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+/* Deshabilitado y pulsado: conserva el peso (la forma dice cuál) sobre el neutro, sin el acento */
+.g-time-field__half.is-on:disabled,
+.g-time-field__choice.is-on:disabled {
+  background-color: var(--g-color-neutral-soft);
+}
+.g-input.is-disabled .g-time-field__half,
+.g-input.is-disabled .g-time-field__choice {
+  border-inline-start-color: var(--g-color-border-strong);
+}
+
+/* Las dos lecturas: sin compactar se ve la franja («de la mañana» · «de la noche») y la hora queda como texto oculto
+   accesible; compactadas (data-compact, el par no cabía) se ve la hora («9:00» · «21:00») y la franja queda oculta. El
+   nombre accesible no cambia */
+.g-time-field__choice-time,
+.g-time-field__choice-word {
+  display: inline-block;
+}
+.g-time-field__choice-time {
+  font-variant-numeric: tabular-nums;
+}
+.g-time-field__choices:not([data-compact]) .g-time-field__choice-time,
+.g-time-field__choices[data-compact] .g-time-field__choice-word {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Estados de la caja que cambian su borde: los botones siguen tapando exactamente el borde real y dejan visible el
+   trazo */
+.g-input.g-time-field.is-invalid {
+  /* borde + segundo trazo interior (box-shadow inset de GInput) */
+  --_tf-stroke: calc(var(--g-border-width) * 2);
+}
+.g-input.g-time-field.is-warning {
+  /* borde discontinuo de doble grosor */
+  --_tf-border: calc(var(--g-border-width) * 2);
+  --_tf-stroke: calc(var(--g-border-width) * 2);
+}
+
+/* ---------- Medidor del mínimo publicado a la GFormRow (#410) ---------- */
+/* Fuera de flujo (no cambia la caja), invisible, con la tipografía del campo y el mismo hueco del cursor que el espejo.
+   Lleva el texto de referencia (una línea por candidato: white-space: pre, su ancho es el del más ancho) y, en 12 h, la
+   copia inerte de a. m./p. m. (span.g-time-field__half, con las medidas de los botones). Anclado al FINAL de la caja:
+   si alguna vez es más ancho que ella, lo que sobra cae hacia el inicio, que nunca genera desplazamiento de página.
+   Las copias de a. m./p. m. van siempre con el peso de pulsado: el mínimo cuenta la mitad más ancha */
+.g-time-field__measure {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: flex-start;
+  visibility: hidden;
+  padding-inline-end: 1px;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+  pointer-events: none;
+  user-select: none;
+}
+.g-time-field__measure .g-time-field__half {
+  font-weight: var(--g-text-action-weight);
+}
+
+/* ---------- Movimiento: la franja del día entra (A, #407) ---------- */
+/* Reacción única a un suceso (§29.4): la palabra se crea de nuevo (otra key) con is-entering cuando la franja cambia con
+   el foco en el campo; las dos lecturas, al insertarse. Sube --g-space-1 × 1 desde abajo (§29.6, la del mensaje de
+   GInput) y aparece, con --g-duration-press + --g-ease-out; sin muelle ni rebote (§29.1: es una entrada). En las dos
+   lecturas sube el TEXTO y el par solo aparece: los botones van de borde a borde y su fondo no puede salir de la caja */
+@keyframes g-time-reading-rise {
+  from {
+    opacity: 0;
+    translate: 0 calc(var(--g-space-1) * 1);
+  }
+}
+@keyframes g-time-reading-fade {
+  from {
+    opacity: 0;
+  }
+}
+/* Solo sin preferencia de movimiento reducido (#299 (3)): con reduce el texto cambia en su sitio, 0 animaciones */
+@media (prefers-reduced-motion: no-preference) {
+  .g-time-field__reading-word.is-entering,
+  .g-time-field__choice-time,
+  .g-time-field__choice-word {
+    animation: g-time-reading-rise var(--g-duration-press) var(--g-ease-out) backwards;
+  }
+  .g-time-field__choices {
+    animation: g-time-reading-fade var(--g-duration-press) var(--g-ease-out) backwards;
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+/* Botones con el color de botón del sistema y separador visible; pulsado con Highlight/HighlightText y el peso;
+   deshabilitado en GrayText; la lectura en CanvasText. El trazo transparente cae exactamente sobre el borde de la caja */
+@media (forced-colors: active) {
+  .g-time-field__half,
+  .g-time-field__choice {
+    color: ButtonText;
+    border-inline-start-color: ButtonText;
+  }
+  /* forced-color-adjust: none: sin él, Chromium pinta la placa de Canvas detrás del texto y HighlightText queda sobre
+     Canvas, invisible (medido). Con none, todos los colores del botón pulsado son de sistema y explícitos */
+  .g-time-field__half.is-on,
+  .g-time-field__choice.is-on {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    border-inline-start-color: ButtonText;
+  }
+  .g-time-field__half:disabled,
+  .g-time-field__choice:disabled,
+  .g-time-field__half.is-on:disabled,
+  .g-time-field__choice.is-on:disabled {
+    background-color: Canvas;
+    color: GrayText;
+  }
+  .g-input.is-disabled .g-time-field__half,
+  .g-input.is-disabled .g-time-field__choice {
+    border-inline-start-color: GrayText;
+  }
+  .g-time-field__half:focus-visible,
+  .g-time-field__choice:focus-visible {
+    outline-color: ButtonText;
+  }
+  .g-time-field__half.is-on:focus-visible,
+  .g-time-field__choice.is-on:focus-visible {
+    outline-color: HighlightText;
+  }
+  .g-time-field__reading {
+    color: CanvasText;
+  }
+  .g-input.is-disabled .g-time-field__reading {
+    color: GrayText;
+  }
+  /* GInput engrosa el borde del error en este modo (sin box-shadow): los botones tapan ese borde real */
+  .g-input.g-time-field.is-invalid {
+    --_tf-border: calc(var(--g-border-width) * 2);
+  }
+  @media (hover: hover) {
+    .g-time-field__half:hover:not(:disabled):not(.is-on),
+    .g-time-field__choice:hover:not(:disabled):not(.is-on) {
+      color: Highlight;
+    }
+  }
+  .g-time-field__half:active:not(:disabled):not(.is-on),
+  .g-time-field__choice:active:not(:disabled):not(.is-on) {
+    color: Highlight;
+  }
+}

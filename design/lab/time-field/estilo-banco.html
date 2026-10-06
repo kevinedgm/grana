@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTimeField · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/time-field.md («Estructura accesible» y «Clases y datos») con el CSS
+     real de GTimeField.css (cargado DENTRO de la capa grana.components, después de GInput, como lo registrará bruno) y los
+     componentes reales de dist/ (GInput como caja, con sus slots internos `field` y `end`; GForm, GFormLayout, GFormRow,
+     GDatePicker y GSelect como vecinos). XTimeField hace lo que hará GTimeField.vue y SOLO lo que el estilo necesita: la
+     celda __value con espejo y campo, la lectura (__reading-time mientras lo escrito no es la forma final y
+     __reading-word, recreada con is-entering cuando la franja cambia con el foco), a. m./p. m. con pointerdown +
+     preventDefault, las dos lecturas en 24 h con foco y hora ambigua (data-compact si el par no cabe: scrollWidth >
+     clientWidth del control), has-choices y __measure en una fila. El motor es el de referencia de kiwi (../engine.js,
+     window.TF): Intl con las franjas de CLDR. No es documentación ni la implementación de bruno.
+     Requiere dist/ (el JS de GInput). Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/time-field/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=propio (estilo-tema.css, @grana/cli)  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/time-field/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GTimeField/GTimeField.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  @media (max-width:700px){.sizes{grid-template-columns:minmax(0,1fr)}}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .narrow{inline-size:180px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GTimeField · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «La hora dicha». La caja es la de <code>GInput</code>. Lo propio: la celda mide el texto y la <b>franja del día en palabras</b> va pegada detrás, a la separación de la caja, en <code>text-muted</code>, con elipsis y sin quitarle nunca sitio a la hora; a. m./p. m. (12 h) y las dos lecturas (24 h, con foco y hora ambigua) de borde a borde, con un solo pulsado (<code>accent-soft</code> + peso de acción). La palabra entra desde <code>--g-space-1</code> por debajo con <code>--g-duration-press</code> + <code>--g-ease-out</code> cuando la franja cambia con el foco (↑ que cruza las 12:00). Escribe «930», «9 noche», «9p».</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="propio">Propio (@grana/cli)</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="reject">Rechazar (I2)</button>
+</div>
+
+<h2 class="b">1 · Tamaños (con GInput real del mismo tamaño)</h2>
+<p class="cap">GInput · 24 h (<code>es</code>) · 12 h (<code>es-MX</code>, a. m./p. m. del alto de la caja: 24 · 28 · 36 · 44 · 52; con puntero grueso ≥ 44).</p>
+<div class="host">
+  <div v-for="s in sizes" :key="s.id" class="sizes">
+    <g-input :id="'in-' + s.id" :size="s.size" :density="s.density" :label="'GInput ' + s.id" model-value="21:30" block></g-input>
+    <x-time-field :case="'t24-' + s.id" :size="s.size" :density="s.density" :label="'Hora ' + s.id" model-value="21:30" locale="es" block></x-time-field>
+    <x-time-field :case="'t12-' + s.id" :size="s.size" :density="s.density" :label="'Toma ' + s.id" model-value="21:30" locale="es-MX" cycle="h12" block></x-time-field>
+  </div>
+</div>
+
+<h2 class="b">2 · Estados</h2>
+<div class="host"><div class="grid">
+  <x-time-field case="s-rest" label="12 h en reposo" model-value="09:30" locale="es-MX" cycle="h12"></x-time-field>
+  <x-time-field case="s-24" label="24 h" model-value="12:15" locale="es"></x-time-field>
+  <x-time-field case="s-empty" label="Vacío (12 h)" :model-value="null" locale="es-MX" cycle="h12" placeholder="9:30 a.m."></x-time-field>
+  <x-time-field case="s-pending" label="Vacío con p.m. pendiente" :model-value="null" locale="es-MX" cycle="h12" pending="pm"></x-time-field>
+  <x-time-field case="s-readonly" label="Solo lectura (12 h)" model-value="21:30" locale="es-MX" cycle="h12" readonly></x-time-field>
+  <x-time-field case="s-disabled" label="Deshabilitado (12 h)" model-value="21:30" locale="es-MX" cycle="h12" disabled></x-time-field>
+  <x-time-field case="s-invalid" label="Con error" model-value="03:00" locale="es-MX" cycle="h12" error="Fuera del turno."></x-time-field>
+  <x-time-field case="s-own" label="No es una hora (error propio)" initial-text="99:99" locale="es" error="Escribe una hora, por ejemplo 9:30."></x-time-field>
+  <x-time-field case="s-warning" label="Con advertencia" model-value="23:45" locale="es-MX" cycle="h12" warning="Muy tarde para la toma."></x-time-field>
+  <x-time-field case="s-valid" label="Válido" model-value="08:00" locale="es-MX" cycle="h12" valid="Dentro del horario."></x-time-field>
+  <x-time-field case="s-soft" label="Variante soft" variant="soft" model-value="14:00" locale="es-MX" cycle="h12"></x-time-field>
+  <x-time-field case="s-pill" label="rounded pill" rounded="pill" model-value="06:15" locale="es-MX" cycle="h12"></x-time-field>
+  <x-time-field case="s-zone" label="Con zona (sufijo)" model-value="21:30" locale="es" suffix="CDMX" suffix-label="hora del centro de México"></x-time-field>
+  <x-time-field case="s-output" label="Fin con output" model-value="06:00" locale="es" output="8 h · +1 día"></x-time-field>
+  <x-time-field case="s-reject" label="I2 · rechazo" model-value="21:30" locale="es-MX" cycle="h12" error="Revisa la hora."></x-time-field>
+  <x-time-field case="s-long" label="Lectura larga (en)" model-value="00:30" locale="en-US" cycle="h12"></x-time-field>
+</div></div>
+
+<h2 class="b">3 · Las dos lecturas (24 h, con foco y hora ambigua)</h2>
+<p class="cap">Enfoca y escribe «9»: aparecen «de la mañana» (pulsada) y «de la noche». En una caja estrecha se compactan a la hora (<code>data-compact</code>).</p>
+<div class="host"><div class="grid">
+  <x-time-field case="c-wide" label="Hora de la toma" :model-value="null" locale="es" block></x-time-field>
+  <div class="narrow"><x-time-field case="c-narrow" label="Hora" :model-value="null" locale="es" block></x-time-field></div>
+  <div class="narrow"><x-time-field case="c-xs" size="xs" label="Hora xs" :model-value="null" locale="es" block></x-time-field></div>
+</div></div>
+
+<h2 class="b">4 · En una fila (GFormRow real) a 1100 · 720 · 320</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'r-form-' + w" :labels="labels">
+    <g-form-layout>
+      <g-form-row :id="'r-row-' + w" :data-row="'a-' + w">
+        <g-date-picker class="g-form-w-sm" :id="'r-fecha-' + w" label="Fecha" name="fecha" model-value="2026-10-06" locale="es"></g-date-picker>
+        <x-time-field class="g-form-w-xs" :case="'r-hora-' + w" label="Hora" model-value="21:30" locale="es" block in-row></x-time-field>
+        <g-input class="g-form-w-md" :id="'r-nom-' + w" label="Paciente" name="paciente"></g-input>
+        <g-select class="g-form-w-sm" :id="'r-via-' + w" label="Vía" name="via" :options="vias" v-model="via"></g-select>
+      </g-form-row>
+      <g-form-row :id="'r-row2-' + w" :data-row="'b-' + w">
+        <x-time-field class="g-form-w-sm" :case="'r-toma-' + w" label="Toma" model-value="21:30" locale="es-MX" cycle="h12" hint="Por ejemplo 9:30 o 9 de la noche." block in-row></x-time-field>
+        <g-date-picker class="g-form-w-sm" :id="'r-fecha2-' + w" label="Desde" name="desde" locale="es"></g-date-picker>
+        <g-input class="g-form-w-md" :id="'r-lote-' + w" label="Lote" name="lote" error="El lote no existe."></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">5 · RTL (ar-EG) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <x-time-field case="rtl-ar12" locale="ar-EG" cycle="h12" label="وقت الجرعة" model-value="21:30" block></x-time-field>
+    <div style="block-size:12px"></div>
+    <x-time-field case="rtl-ar24" locale="ar-EG" cycle="h23" label="الوقت" model-value="21:30" suffix="القاهرة" block></x-time-field>
+  </div>
+  <div class="host w320">
+    <x-time-field case="n320-12" label="Hora de la toma" model-value="00:30" locale="en-US" cycle="h12" seconds block></x-time-field>
+    <div style="block-size:12px"></div>
+    <x-time-field case="n320-24" label="Hora" model-value="21:30" locale="es" suffix="CDMX" suffix-label="hora del centro de México" output="8 h · +1 día" block></x-time-field>
+  </div>
+</div>
+
+<h2 class="b">6 · Mínimo de referencia (#410): md, space 4</h2>
+<p class="cap">Medido por posiciones: lo de antes de la celda + texto de referencia (el más ancho de las 24 horas a los :59, con el hueco del cursor) + lo de después sin la lectura + a. m./p. m. con su borde final. 12 h <code>es-MX</code>: <b id="ref-12-out">{{ ref12 }}</b> · 24 h <code>es</code>: <b id="ref-24-out">{{ ref24 }}</b>.</p>
+<div class="host w320">
+  <x-time-field case="ref-12" label="Toma" model-value="09:30" locale="es-MX" cycle="h12" block in-row></x-time-field>
+  <div style="block-size:12px"></div>
+  <x-time-field case="ref-24" label="Hora" model-value="09:30" locale="es" block in-row></x-time-field>
+  <div style="block-size:12px"></div>
+  <x-time-field case="ref-12ro" label="Toma (solo lectura)" model-value="09:30" locale="es-MX" cycle="h12" readonly block in-row></x-time-field>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="engine.js"></script>
+<script>
+const { createApp, defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, nextTick, mergeProps } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const registry = window.__tf = new Map()
+const TF = window.TF
+
+// ---- XTimeField: lo que hará GTimeField.vue (bruno), solo lo que el estilo necesita ----
+const XTimeField = defineComponent({
+  name: 'XTimeField',
+  inheritAttrs: false,
+  props: {
+    case: String, modelValue: { type: String, default: null }, initialText: String, locale: { type: String, default: 'es' }, cycle: String, seconds: Boolean,
+    min: String, max: String, step: { type: Number, default: 1 }, pending: String,
+    prefix: String, prefixLabel: String, suffix: String, suffixLabel: String, label: String, hint: String, error: String, warning: String, valid: String,
+    output: String, placeholder: String, readonly: Boolean, disabled: Boolean, size: { type: String, default: 'md' }, variant: { type: String, default: 'outline' },
+    density: { type: String, default: 'default' }, rounded: String, color: String, block: Boolean, inRow: Boolean
+  },
+  setup(props, { attrs }) {
+    const id = props.case
+    const info = TF.localeInfo(props.locale, props.cycle)
+    const h12 = info.cycle === 'h12'
+    const dir = info.dir
+    const sec = ref(TF.fromCanonical(props.modelValue))
+    const fmt = (v) => TF.format(v, info, props.seconds)
+    const text = ref(props.initialText ?? fmt(sec.value))
+    const focused = ref(false)
+    const pendingHalf = ref(props.pending || null)
+    const fieldEl = ref(null)
+    const ctlEl = ref(null)
+    const compact = ref(false)
+    const rejected = ref(false)
+    const editable = computed(() => !props.readonly && !props.disabled)
+    const parsed = computed(() => TF.parse(text.value, info, { seconds: props.seconds, words: true }))
+    // 24 h: «una hora a secas de 1 a 11 sin cero delante» es ambigua (#407)
+    const ambiguous24 = computed(() => {
+      if (h12 || !focused.value || !editable.value) return false
+      const t = TF.toLatin(text.value, info).trim()
+      return /^[1-9](?:[:.,h]?[0-5]\d)?$/.test(t) && parsed.value.status === 'ok' && parsed.value.value < 12 * 3600
+    })
+    const showChoices = computed(() => ambiguous24.value)
+    const choices = computed(() => {
+      if (!showChoices.value) return []
+      const v = parsed.value.value
+      return [v, v + 12 * 3600].map((x) => ({ value: x, time: fmt(x), word: TF.period(x, info) }))
+    })
+    const word = computed(() => {
+      if (sec.value == null) return ''
+      const w = TF.period(sec.value, info)
+      return w && !fmt(sec.value).includes(w) ? w : ''
+    })
+    const readingTime = computed(() => (focused.value && sec.value != null && text.value.trim() !== fmt(sec.value) ? fmt(sec.value) : ''))
+    const showReading = computed(() => Boolean(word.value) && !showChoices.value)
+    const wordKey = ref(0), entering = ref(false)
+    // La palabra se crea de nuevo con is-entering solo cuando la franja CAMBIA con el foco (o es la primera): la última
+    // franja vista se recuerda aunque el texto pase por un estado sin hora («12:3»), así escribir cifras no la repite.
+    // Un nodo que se crea por otro motivo (vuelve a haber valor sin foco) nace sin la clase
+    let lastWord = word.value
+    watch(word, (n) => {
+      if (focused.value && n && n !== lastWord) { wordKey.value++; entering.value = true }
+      else if (!focused.value || !n) { if (!n) entering.value = false }
+      if (n) lastWord = n
+    })
+    watch(focused, (f) => { if (f) lastWord = word.value })
+    const half = computed(() => (sec.value == null ? pendingHalf.value : sec.value >= 12 * 3600 ? 'pm' : 'am'))
+    const message = computed(() => props.error ? 'error' : props.warning ? 'warning' : props.valid ? 'valid' : null)
+    const classes = computed(() => ['g-time-field', attrs.class, { 'g-time-field--h12': h12, 'has-choices': showChoices.value, 'is-rejected': rejected.value }])
+    // Medidor (#410): las 24 horas a los :59 (y el placeholder), una por línea; en 12 h, la copia inerte de a. m./p. m.
+    const measureText = computed(() => [...Array.from({ length: 24 }, (_, h) => fmt(h * 3600 + 59 * 60 + (props.seconds ? 59 : 0))), props.placeholder].filter(Boolean).join('\n'))
+    function setValue(v, { format = true } = {}) {
+      sec.value = v
+      if (format) text.value = fmt(v)
+      if (fieldEl.value && format) { fieldEl.value.value = text.value; if (document.activeElement === fieldEl.value) fieldEl.value.setSelectionRange(text.value.length, text.value.length) }
+    }
+    function onInput(e) {
+      text.value = e.target.value
+      rejected.value = false
+      const p = parsed.value
+      if (p.status === 'ok') {
+        let v = p.value
+        if (h12 && p.ambiguous && pendingHalf.value) v = (v % (12 * 3600)) + (pendingHalf.value === 'pm' ? 12 * 3600 : 0)
+        sec.value = v
+      } else sec.value = null
+      if (!text.value) pendingHalf.value = null
+    }
+    function onKeydown(e) {
+      const k = { ArrowUp: 1, ArrowDown: -1, PageUp: 1, PageDown: -1 }[e.key]
+      if (!k || e.altKey || e.ctrlKey || e.metaKey || !editable.value) return
+      e.preventDefault()
+      setValue(TF.stepValue(sec.value, k, { big: e.shiftKey || e.key.startsWith('Page'), step: props.step, min: TF.fromCanonical(props.min), max: TF.fromCanonical(props.max), seconds: props.seconds }))
+    }
+    function onFocus() { focused.value = true }
+    function onBlur() { focused.value = false; if (parsed.value.status === 'ok') setValue(sec.value) }
+    function pick(v, e) {
+      if (e.type === 'pointerdown') { if (e.button !== 0) return; e.preventDefault() } else if (e.detail !== 0) return
+      setValue(v)
+    }
+    function pickHalf(h, e) {
+      if (e.type === 'pointerdown') { if (e.button !== 0) return; e.preventDefault() } else if (e.detail !== 0) return
+      if (sec.value == null) { pendingHalf.value = h; return }
+      const base = sec.value % (12 * 3600)
+      setValue(base + (h === 'pm' ? 12 * 3600 : 0))
+    }
+    // Pulsar el área vacía de la caja, la lectura, el prefijo, el sufijo o el output: enfoca con el cursor al final
+    function onBoxDown(e) {
+      if (!fieldEl.value || e.target === fieldEl.value || e.target.closest('.g-time-field__halves, .g-time-field__choices') || !editable.value) return
+      e.preventDefault()
+      fieldEl.value.focus()
+      const n = fieldEl.value.value.length
+      fieldEl.value.setSelectionRange(n, n)
+    }
+    // data-compact: el par no cabe (medido al aparecer y al cambiar el tamaño mientras está)
+    async function measureCompact() {
+      if (!showChoices.value || !ctlEl.value) { compact.value = false; return }
+      compact.value = false
+      await nextTick()
+      const c = ctlEl.value
+      // Los botones tapan el borde final de la caja (margen negativo): ese borde ya cuenta como desborde y no es «no cabe»
+      compact.value = c.scrollWidth > c.clientWidth + parseFloat(getComputedStyle(c).borderInlineEndWidth) + 0.5
+    }
+    watch(showChoices, (v) => { if (v) measureCompact(); else compact.value = false })
+    let ro = null
+    onMounted(() => {
+      ctlEl.value = fieldEl.value && fieldEl.value.closest('.g-input__control')
+      if (ctlEl.value) { ctlEl.value.addEventListener('pointerdown', onBoxDown); ro = new ResizeObserver(() => { if (showChoices.value) measureCompact() }); ro.observe(ctlEl.value) }
+      registry.set(id, { sec, text, focused, compact, rejected, word, wordKey, entering, setValue, info, fmt, measureText })
+    })
+    onBeforeUnmount(() => { ro && ro.disconnect(); ctlEl.value && ctlEl.value.removeEventListener('pointerdown', onBoxDown) })
+    function fieldProps(f) {
+      const { name: _n, required: _r, ...bind } = f.bind
+      return mergeProps(
+        { inputmode: 'numeric', autocomplete: 'off', spellcheck: 'false', autocorrect: 'off', placeholder: props.placeholder },
+        bind,
+        { class: 'g-time-field__field', onInput, onKeydown, onFocus, onBlur },
+        {
+          type: 'text', role: 'spinbutton', dir, value: text.value,
+          'aria-valuenow': sec.value != null ? Math.floor(sec.value / 60) : undefined,
+          'aria-valuetext': sec.value != null ? (TF.reading(sec.value, info, props.seconds)) : (text.value || undefined),
+          'aria-readonly': f.readonly ? 'true' : undefined,
+          'aria-invalid': props.error ? 'true' : undefined
+        }
+      )
+    }
+    const setField = (f) => (el) => { fieldEl.value = el; f.setControl(el) }
+    const canonical = computed(() => TF.canonical(sec.value, props.seconds))
+    return { id, info, h12, dir, text, sec, canonical, half, word, wordKey, entering, readingTime, showReading, showChoices, choices, compact, classes, measureText, editable,
+      fieldProps, setField, pick, pickHalf, attrs }
+  },
+  template: `
+  <g-input :id="id" :class="classes" :style="attrs.style" :label="label" :hint="hint" :error="error" :warning="warning" :valid="valid" :output="output"
+           :size="size" :variant="variant" :density="density" :color="color" :rounded="rounded" :block="block" :readonly="readonly" :disabled="disabled"
+           :prefix="prefix" :suffix="suffix" :prefix-label="prefixLabel" :suffix-label="suffixLabel">
+    <template #field="f">
+      <span class="g-time-field__value">
+        <span class="g-time-field__mirror" aria-hidden="true" :dir="dir">{{ text || placeholder || '' }}</span>
+        <input :ref="setField(f)" v-bind="fieldProps(f)">
+      </span>
+      <span v-if="showReading" class="g-time-field__reading" aria-hidden="true" :dir="dir"><span v-if="readingTime" class="g-time-field__reading-time">{{ readingTime }}</span><span :key="wordKey" :class="['g-time-field__reading-word', { 'is-entering': entering }]">{{ word }}</span></span>
+      <input type="hidden" :name="id" :value="canonical" :disabled="f.disabled || undefined">
+    </template>
+    <template #end="e">
+      <span v-if="h12 && !e.readonly" class="g-time-field__halves">
+        <button v-for="h in ['am', 'pm']" :key="h" type="button" :class="['g-time-field__half', { 'is-on': half === h }]" :data-half="h" tabindex="-1"
+                :aria-pressed="half === h ? 'true' : 'false'" :aria-controls="id" :aria-labelledby="id + '-' + h + ' ' + id + '-label'" :disabled="e.disabled || undefined"
+                @pointerdown="pickHalf(h, $event)" @click="pickHalf(h, $event)"><span class="g-time-field__half-text" :id="id + '-' + h">{{ h === 'am' ? info.am : info.pm }}</span></button>
+      </span>
+      <span v-else-if="showChoices" class="g-time-field__choices" :data-compact="compact ? '' : undefined">
+        <button v-for="(c, i) in choices" :key="i" type="button" :class="['g-time-field__choice', { 'is-on': sec === c.value }]" tabindex="-1"
+                :aria-pressed="sec === c.value ? 'true' : 'false'" :aria-controls="id" :aria-labelledby="id + '-choice-' + i + ' ' + id + '-label'"
+                @pointerdown="pick(c.value, $event)" @click="pick(c.value, $event)"><span :id="id + '-choice-' + i"><span class="g-time-field__choice-time">{{ c.time }}</span> <span class="g-time-field__choice-word">{{ c.word }}</span></span></button>
+      </span>
+      <span v-if="inRow" class="g-time-field__measure" aria-hidden="true">{{ measureText }}<template v-if="h12"><span class="g-time-field__half">{{ info.am }}</span><span class="g-time-field__half">{{ info.pm }}</span></template></span>
+    </template>
+  </g-input>`
+})
+
+const labels = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+const vias = [{ value: 'vo', label: 'Oral' }, { value: 'iv', label: 'Intravenosa' }, { value: 'sc', label: 'Subcutánea' }]
+const sizes = [['xs'], ['sm'], ['md'], ['lg'], ['xl'], ['md', 'compact'], ['xs', 'compact']].map(([size, density = 'default']) => ({ id: size + (density === 'default' ? '' : '-' + density), size, density }))
+
+// Mínimo de referencia (#410) por posiciones en __control (LTR): lo que hay antes de la celda + el texto de referencia más
+// ancho con el hueco del cursor (un espejo de prueba con cada candidato) + lo que hay después sin la lectura (sufijo y
+// output con sus separaciones) + a. m./p. m. medidos en __measure (las copias, con el peso de pulsado) con su borde final.
+// Equivale a: caja − celda − lectura − hueco libre + texto de referencia (+ copias − botones reales, 0 sin pulsado)
+function referenceMin(c) {
+  const input = document.getElementById(c)
+  if (!input) return null
+  const root = input.closest('.g-input')
+  const R = (el) => el.getBoundingClientRect()
+  const ctl = root.querySelector('.g-input__control'), cell = root.querySelector('.g-time-field__value')
+  const reading = root.querySelector('.g-time-field__reading'), halves = root.querySelector('.g-time-field__halves')
+  const meas = root.querySelector('.g-time-field__measure')
+  const cr = R(ctl), cl = R(cell)
+  // Texto de referencia: el más ancho de las líneas de __measure, con la clase del espejo (misma tipografía + 1px)
+  const lines = meas.firstChild.textContent.split('\n')
+  let text = 0, widest = ''
+  for (const l of lines) {
+    const s = document.createElement('span'); s.className = 'g-time-field__mirror'; s.textContent = l; s.style.gridArea = '1 / 1'; s.style.justifySelf = 'start'
+    cell.append(s); const w = R(s).width; s.remove()
+    if (w > text) { text = w; widest = l }
+  }
+  const before = cl.left - cr.left
+  const readW = reading ? R(reading).width : 0
+  const cs = getComputedStyle(ctl)
+  const copies = [...meas.querySelectorAll('.g-time-field__half')].reduce((a, s) => a + R(s).width, 0)
+  let after
+  if (halves) {
+    // Después de la celda: gaps, sufijo y output; sin la lectura, sin el hueco libre (margen automático) y sin los botones
+    after = cr.right - cl.right - readW - parseFloat(getComputedStyle(halves).marginInlineStart) - R(halves).width
+  } else {
+    const items = [...ctl.children].filter((k) => getComputedStyle(k).display !== 'none' && getComputedStyle(k).position !== 'absolute')
+    const free = cr.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight) - Math.max(...items.map((k) => R(k).right))
+    after = cr.right - cl.right - readW - free
+    // 12 h en solo lectura: a. m./p. m. no se pintan pero cuentan como si estuvieran (desbloquear no reparte la fila): el
+    // relleno final y el borde de la caja se cambian por el gap y las copias (que llevan el borde final del último botón)
+    if (copies) after = after - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth) + parseFloat(cs.columnGap)
+  }
+  return { min: Math.ceil(before + text + after + copies - 0.01), before, text, widest, after, copies, real: halves ? R(halves).width : copies, readW }
+}
+window.__referenceMin = referenceMin
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    applySlow(slow.value); watch(slow, applySlow)
+    const via = ref('vo')
+    const ref12 = ref('…'), ref24 = ref('…')
+    onMounted(async () => { await document.fonts.ready; await raf2(); ref12.value = referenceMin('ref-12').min + 'px'; ref24.value = referenceMin('ref-24').min + 'px' })
+    const reject = () => { const r = registry.get('s-reject'); r.rejected.value = false; requestAnimationFrame(() => { r.rejected.value = true }) }
+    return { slow, via, vias, sizes, labels, ref12, ref24, reject }
+  }
+})
+app.component('XTimeField', XTimeField)
+app.use(Grana)
+app.mount('#app')
+
+// GInput retira is-rejected con su animationend; aquí la pone el banco: se retira igual al acabar la sacudida
+document.addEventListener('animationend', (e) => { if (e.animationName.startsWith('g-reject')) for (const r of registry.values()) r.rejected.value = false })
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v === 'propio' ? 'estilo-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+const ready = () => raf2().then(() => { document.documentElement.dataset.ready = '1' })
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>
