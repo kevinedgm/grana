@@ -81,7 +81,7 @@ export default defineComponent({
       if (!child || !hasText.value) { detach(); return }
       const start = child.el
       const end = child.anchor || (child.component && child.component.subTree && child.component.subTree.anchor) || node.value
-      const target = start ? resolveTarget(start, end) : null
+      const target = start ? resolveTarget(start, end, own()) : null
       // Ancla (#395): la caja visible marcada más cercana del elemento resuelto dentro del hijo; si no, él mismo
       const anchor = target ? resolveBox(target, firstElement(start, end)) : null
       if (target && target === el && anchor === box && inst) return

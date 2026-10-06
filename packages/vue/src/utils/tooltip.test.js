@@ -77,6 +77,30 @@ describe('nombre y elemento resuelto', () => {
   })
 })
 
+describe('resolveTarget con referencias propias (#399)', () => {
+  it('el enfocable con data-g-tooltip de este tooltip gana al primer enfocable; un tooltip anidado ajeno no cuenta', () => {
+    document.body.innerHTML = '<div id="w"><div class="f"><button id="rm">x</button><button id="rm2">x</button><span class="add"><input id="in" data-g-tooltip aria-describedby="a-name"></span></div></div>'
+    const w = document.getElementById('w')
+    const anchor = document.createTextNode('')
+    w.prepend(anchor)
+    expect(resolveTarget(anchor, null).id).toBe('in') // sin ids: cualquier data-g-tooltip
+    expect(resolveTarget(anchor, null, ['a-name']).id).toBe('in')
+    expect(resolveTarget(anchor, null, ['a', 'a-name', 'a-detail']).id).toBe('in')
+    // Marca de otro tooltip (anidado): no es la de este
+    expect(resolveTarget(anchor, null, ['b-name']).id).toBe('rm')
+    // La marca en el propio elemento raíz del hijo y enfocable
+    document.body.innerHTML = '<div id="w2"><button id="b" data-g-tooltip aria-labelledby="c-name"></button></div>'
+    const a2 = document.createTextNode('')
+    document.getElementById('w2').prepend(a2)
+    expect(resolveTarget(a2, null, ['c-name']).id).toBe('b')
+    // Una marca en un elemento no enfocable no cuenta
+    document.body.innerHTML = '<div id="w3"><div class="box" data-g-tooltip aria-labelledby="d-name"><input id="i3"></div></div>'
+    const a3 = document.createTextNode('')
+    document.getElementById('w3').prepend(a3)
+    expect(resolveTarget(a3, null, ['d-name']).id).toBe('i3')
+  })
+})
+
 describe('abrir y cerrar con el puntero', () => {
   it('nada a los 200 ms, abierto a los 350; cierra a los 100 ms de salir', () => {
     vi.useFakeTimers()

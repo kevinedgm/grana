@@ -509,7 +509,8 @@ const MATRIX = [
   ['GSwitch', 'tt-f-switch', '.g-switch__control', ''],
   ['GCheckbox', 'tt-f-checkbox', '.g-checkbox__box', ''],
   ['GHelper', '.tt-fields .g-helper__trigger', '', ''],
-  ['GFileField', 'tt-f-file', '.g-file-field__add', '']
+  ['GFileField', 'tt-f-file', '.g-file-field__add', ''],
+  ['GFileField con archivos', 'tt-f-files', '.g-file-field__add', '']
 ]
 const BOXED = ['.g-input__control', '.g-textarea__control', '.g-select__control', '.g-file-field__add']
 /** Elemento resuelto (con data-g-tooltip), raíz del hijo (su hermano siguiente es el nodo) y caja visible */
@@ -604,6 +605,43 @@ test.describe('GTooltip · matriz de componentes hijo', () => {
     expect(await page.evaluate(() => document.getElementById('tt-f-number').value)).not.toBe('')
     await page.waitForTimeout(450)
     expect(await openTips(page)).toEqual([])
+  })
+
+  test('#399 GFileField con archivos: el elemento resuelto es el <input type="file">, no el «Quitar» de la primera ficha; Tab desde fuera lo enfoca y abre el del campo', async ({ page, browserName }) => {
+    const errs = await watchConsole(page)
+    await open(page, { target: '.tt-fields' })
+    const info = await page.evaluate(() => {
+      const root = document.getElementById('tt-f-files').closest('.g-file-field')
+      const marked = [...root.querySelectorAll('[data-g-tooltip]')]
+      const first = root.querySelector('button, a[href], input, select, textarea, summary, [tabindex]')
+      return { n: marked.length, tag: marked[0]?.localName, type: marked[0]?.type, firstIsRemove: first?.classList.contains('g-file-field__remove'), removes: root.querySelectorAll('.g-file-field__remove').length, boxHasMarked: Boolean(root.querySelector('.g-file-field__add[data-g-tooltip-box] [data-g-tooltip]')) }
+    })
+    // Con archivos: dos «Quitar» antes del campo y un solo elemento con la referencia: el <input type="file">
+    expect(info).toEqual({ n: 1, tag: 'input', type: 'file', firstIsRemove: true, removes: 2, boxHasMarked: true })
+    // Un «Quitar» no lleva las referencias ni abre el del campo con el foco
+    expect(await page.evaluate(() => document.querySelectorAll('.g-file-field:has(#tt-f-files) .g-file-field__remove[data-g-tooltip], .g-file-field:has(#tt-f-files) .g-file-field__remove[aria-labelledby$="-name"]').length)).toBe(0)
+    const T = TAB(browserName)
+    await page.evaluate(() => document.querySelector('.g-file-field:has(#tt-f-files) .g-file-field__remove').focus())
+    await page.keyboard.press(T)
+    // El orden de foco recorre las fichas y llega al campo: el tooltip del campo se abre al llegar por teclado al <input>
+    for (let i = 0; i < 6; i++) {
+      const on = await page.evaluate(() => document.activeElement?.matches('input#tt-f-files'))
+      if (on) break
+      await page.keyboard.press(T)
+    }
+    expect(await page.evaluate(() => document.activeElement.matches('input#tt-f-files'))).toBe(true)
+    await expect.poll(() => page.evaluate(() => [...document.querySelectorAll('.g-tooltip')].filter((n) => n.matches(':popover-open')).map((n) => n.id))).toHaveLength(1)
+    // La pestaña mide la caja __add, no un «Quitar»
+    const m = await page.evaluate(() => {
+      const root = document.getElementById('tt-f-files').closest('.g-file-field')
+      const box = root.querySelector('.g-file-field__add').getBoundingClientRect()
+      const n = [...document.querySelectorAll('.g-tooltip')].find((x) => x.matches(':popover-open'))
+      const t = n.querySelector('.g-tooltip__tab').getBoundingClientRect()
+      return { inOwn: n.previousElementSibling === root, d: ['top', 'bottom'].includes(n.dataset.side) ? Math.abs(t.width - box.width) : Math.abs(t.height - box.height) }
+    })
+    expect(m.inOwn).toBe(true)
+    expect(m.d).toBeLessThan(0.5)
+    expect(errs).toEqual([])
   })
 
   test('GHelper envuelto: atributos en su botón; abre con el puntero', async ({ page }) => {

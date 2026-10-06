@@ -126,13 +126,26 @@ export function firstElement(start, end) {
   return !e || (end && e === end) ? null : e
 }
 
+/** ¿Lleva el elemento las referencias de este tooltip? (`own`: sus ids; sin ids, basta `data-g-tooltip`) */
+const marked = (el, own) => {
+  if (!el.hasAttribute('data-g-tooltip') || !is(el, FOCUSABLE)) return false
+  if (!own.length) return true
+  const refs = ids(el, 'aria-labelledby').concat(ids(el, 'aria-describedby'))
+  return own.some((id) => refs.includes(id))
+}
+
 /**
- * Elemento resuelto del hijo (#381): desde el primer nodo del hijo (`start`), su primer elemento antes de `end`
- * (fragmento) y, si no es enfocable, su primer descendiente enfocable. `null` si no hay.
+ * Elemento resuelto del hijo (#381, #399): desde el primer nodo del hijo (`start`), su primer elemento antes de `end`
+ * (fragmento). Si dentro (o él mismo) hay un enfocable con `data-g-tooltip` de este tooltip (`own`: sus ids; así un
+ * tooltip anidado no cuenta), ese es el resuelto: donde el hijo reenvió las referencias (p. ej. el `<input type="file">`
+ * de `GFileField`, aunque haya botones antes). Si no, el elemento si es enfocable y, si no, su primer descendiente
+ * enfocable. `null` si no hay.
  */
-export function resolveTarget(start, end) {
+export function resolveTarget(start, end, own = []) {
   const e = firstElement(start, end)
   if (!e) return null
+  if (marked(e, own)) return e
+  for (const c of e.querySelectorAll('[data-g-tooltip]')) if (marked(c, own)) return c
   return is(e, FOCUSABLE) ? e : e.querySelector(FOCUSABLE)
 }
 

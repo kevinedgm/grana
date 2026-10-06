@@ -350,6 +350,39 @@ describe('caja visible (#395)', () => {
       w.unmount(); wrappers.pop()
     })
   }
+  // #399: con archivos hay «Quitar» antes del campo; el resuelto es el elemento con data-g-tooltip (el <input type="file">)
+  for (const n of [1, 3]) {
+    it(`GFileField con ${n} archivo${n > 1 ? 's' : ''} guardado${n > 1 ? 's' : ''} (#399): el ancla es __add y el elemento resuelto el <input type="file">, no el «Quitar» de la primera ficha`, async () => {
+      quiet()
+      vi.useFakeTimers()
+      fakeRects((el) => (el.matches('.g-file-field__add') ? { left: 100, top: 50, width: 240, height: 40 } : el.matches('.g-file-field__remove') ? { left: 10, top: 10, width: 24, height: 24 } : null))
+      const stored = Array.from({ length: n }, (_, i) => ({ key: `g${i}`, name: `estudio-${i}.pdf`, size: 5, type: 'application/pdf', value: `srv-${i}` }))
+      mkT('<GTooltip text="Pista" kind="description" id="fx"><GFileField label="Estudios" multiple :model-value="stored" :labels="ffLabels" /></GTooltip>', { GFileField }, () => ({ ffLabels: FF_LABELS, stored }))
+      await nextTick(); await nextTick()
+      const removes = [...document.querySelectorAll('.g-file-field__remove')]
+      expect(removes).toHaveLength(n)
+      // El primer enfocable del hijo sería el «Quitar»; las referencias están en el <input type="file">
+      expect(document.querySelector('.g-file-field').querySelector('button, a[href], input, select, textarea, summary, [tabindex]')).toBe(removes[0])
+      const marked = [...document.querySelectorAll('[data-g-tooltip]')]
+      expect(marked).toHaveLength(1)
+      expect(marked[0].matches('input[type="file"]')).toBe(true)
+      for (const r of removes) expect(r.hasAttribute('data-g-tooltip') || ids(r, 'aria-describedby').includes('fx-name')).toBe(false)
+      const node = document.getElementById('fx')
+      // Foco por navegación en el <input>: abre; en un «Quitar»: no
+      removes[0].dispatchEvent(new FocusEvent('focus')); removes[0].dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      vi.advanceTimersByTime(OPEN)
+      expect(node.hasAttribute('data-test-open')).toBe(false)
+      // Puntero sobre la caja __add (ancla): abre y la pestaña mide la caja
+      const box = document.querySelector('.g-file-field__add')
+      expect(box.hasAttribute('data-g-tooltip-box')).toBe(true)
+      box.dispatchEvent(ev('pointerover', { bubbles: true }))
+      box.dispatchEvent(ev('pointerenter'))
+      vi.advanceTimersByTime(OPEN)
+      expect(node.hasAttribute('data-test-open')).toBe(true)
+      expect(node.style.getPropertyValue('--_tooltip-aw')).toBe('240px')
+      expect(node.style.getPropertyValue('--_tooltip-ah')).toBe('40px')
+    })
+  }
   it('sin marca (GBtn): el ancla es el propio botón', async () => {
     quiet()
     vi.useFakeTimers()
