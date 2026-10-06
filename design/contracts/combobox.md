@@ -815,11 +815,12 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 
 | Token | Para qué |
 | --- | --- |
-| `--g-color-border-control`; `--g-color-brand` / `--g-color-on-brand` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1) y casilla marcada (fondo y marca) |
+| `--g-color-border-control`; `--g-color-brand` / `--g-color-on-brand`; `--g-color-text`; `--g-color-surface` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1). **Marcada** (enmienda #429): relleno `brand`, marca `on-brand` y **contorno `text`** (`surface` en la opción activa invertida de la paleta); `brand` solo como forma da 1,77 en lustre y 1,92 en spotify |
 | `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado: no solo color) |
-| `--g-color-accent-soft` / `--g-color-on-accent-soft`; `--g-color-accent` | «Nueva» (5:1) y su barra (≥ 3:1) |
-| `--g-color-warning-soft` / `--g-color-warning-text` | Estado del tope (5.01:1) |
-| `--g-color-accent-text` | «Deshacer» (5.27:1) |
+| `--g-color-accent-soft` / `--g-color-on-accent-soft`; `--g-color-accent-text` | «Nueva» (5:1) y su barra en **`accent-text`** (enmienda #429: `accent` como trazo da 1,29 en spotify, 2,14 en amazon y 2,64 en stripe, #228; con `accent-text`, 4,52 mínimo) |
+| `--g-color-warning-soft` / `--g-color-on-warning-soft` | Estado del tope (enmienda #429: `warning-text` sobre `warning-soft` da 4,15:1 en el tema por defecto oscuro; el par del tinte llega a 4,66 mínimo) |
+| `--g-color-accent-soft` / `--g-color-on-accent-soft` (al pasar `--g-color-accent` / `--g-color-on-accent`) | «Deshacer»: **píldora** (enmienda #429: `accent-text` sobre `surface-sunken` da 4,19 a 4,32 en siete temas claros; el par del tinte, 4,51 mínimo) |
+| `--g-color-text` | «Ver las N» y «Ver los N» con peso de acción (como «Mostrar más»; `accent-text` no está garantizado sobre `surface-sunken`, la cesta) |
 | `--g-color-text-muted` | Frase con el foco, número, rastro, recuentos |
 | `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
 | `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | «Movimiento» |
@@ -840,19 +841,21 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 | `g-combobox__option.is-armed` | Fila de «Elegidas» marcada para quitar | Retroceso |
 | `g-combobox__status--max` | Estado del tope | `is-full` con el panel abierto |
 | `g-combobox__chosen`, `__rows`, `__rows-all` | Receta (B) y su «Ver los N» | `selection="list"` con elegidos o rastros |
-| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-arriving` + `--_travel-x`, `--_travel-y`) | Renglón (B y C) | Por elemento |
+| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-arriving` + `--_travel-x`, `--_travel-y`; en el rastro, **`--_row-h`**) | Renglón (B y C) | Por elemento |
 | `g-combobox__row-number`, `__row-fresh`, `__remove`, `__trace`, `__undo` | Partes del renglón | Con `numbered`; nuevo; editable; rastro |
 | `g-combobox__surface-body.has-basket`, `g-combobox__basket`, `__basket-title`, `__basket-tally`, `__basket-empty` | Cesta (C) | `palette` con `multiple`, por encima de 520px |
 | `g-combobox__foot`, `__foot-tally`, `__done` | Pie de la superficie («Listo» es un `GBtn` con esa clase) | Superficie con `multiple` |
+
+**`--_row-h`** (dato del `.vue`, px; #429): al convertir un renglón en rastro, bruno escribe en línea el **alto medido del renglón** (antes de cambiar el contenido, fuera del render) y el CSS lo usa como `min-block-size` del rastro, de modo que el rastro tenga el mismo alto (Δ0) aunque el slot `chosen` mida más de dos líneas. Se retira con el rastro; sin medida (sin layout) no se escribe. Es una variable en línea de §29.5, no un token.
 
 Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan con `aria-selected` y `aria-disabled` (como en la Fase 1).
 
 **Para coco** (`GCombobox.css`; nada en `GInput.css` ni en `GSummary.css`):
 
-- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada `brand`/`on-brand`; en la activa invertida de la paleta, que siga ≥ 3:1.
+- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada relleno `brand`, marca `on-brand` y contorno `text` (`surface` en la activa invertida de la paleta; #429).
 - **Frase (A):** una línea, sin saltos ni alto nuevo (Δ0); elipsis del primero; `__sentence-rest` con peso de acción; libres en cursiva con `pencil`; con el foco, la proporción frase/texto (anotarla en `estilo.md`) y `text-muted`; **marcada para quitar: tachado + `selection`** (no solo color).
-- **Receta (B):** en la tercera pista de `GFormRow` sin romper el *subgrid*; renglones con `GSummary row` de dos líneas, número, «Nueva» (par `accent-soft` + barra `accent` al inicio, reflejada en RTL), «Quitar» ≥ 24px / 44px aislado al final; **rastro del mismo alto** que el renglón (Δ0, medir), tachado en `text-muted`, «Deshacer» en `accent-text`; «Ver los N» con el chevron girado al desplegar.
-- **Cesta (C):** en el sitio de la vista previa, con su proporción; pie con recuento y «Listo»; estado del tope con el par `warning-soft`/`warning-text`.
+- **Receta (B):** en la tercera pista de `GFormRow` sin romper el *subgrid*; renglones con `GSummary row` de dos líneas, número, «Nueva» (par `accent-soft` + barra `accent-text` al inicio, reflejada en RTL), «Quitar» ≥ 24px / 44px aislado al final; **rastro del mismo alto** que el renglón (Δ0, medir), tachado en `text-muted` (alto = `--_row-h`), «Deshacer» como píldora `accent-soft`/`on-accent-soft` (al pasar `accent`/`on-accent`); «Ver los N» en `text` con peso de acción, con el chevron girado al desplegar.
+- **Cesta (C):** en el sitio de la vista previa, con su proporción; pie con recuento y «Listo»; estado del tope con el par `warning-soft`/`on-warning-soft`.
 - **Movimiento** de la tabla, con `prefers-reduced-motion` (§29.3) y `@supports` para las dos curvas.
 - **`forced-colors`** (L42, **sin medir por kiwi: medir**): casilla con `CanvasText` y marcada con `Highlight`; marca de Retroceso conserva el tachado; rastro y «Nueva» por su texto; recuentos legibles.
 - **Medir** en el tema por defecto, en el oscuro y en uno distinto: casilla, «Nueva», barra, tope, rastro, «Deshacer», frase con foco, recuentos.
