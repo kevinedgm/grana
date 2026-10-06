@@ -274,7 +274,7 @@ Bruno las emite; coco las estiliza. Las de `GInput` (raíz, caja, prefijo/sufijo
 
 ## RTL e idiomas
 
-- La caja sigue el orden RTL (valor a la derecha, −/+ a la izquierda, medido) y el `<input>` lleva **`dir="ltr"`** siempre (sin él, el «-» de «-4,5» se dibuja al final por el algoritmo bidi). La capa de P2 también `dir="ltr"`.
+- La caja sigue el orden RTL (valor a la derecha, −/+ a la izquierda, medido) y el `<input>` lleva **`dir="ltr"`** siempre (sin él, el «-» de «-4,5» se dibuja al final por el algoritmo bidi). La capa de P2 también `dir="ltr"`. (`GTimeField` hace lo contrario, `dir` del idioma, porque una hora no tiene signo y «٩:٣٠ م» necesita su marcador al final lógico; `time-field.md`, #403.)
 - Los iconos `minus`/`plus` no se reflejan (no son direccionales).
 - P2 «arriba»/«abajo» es vertical: no cambia con RTL.
 
