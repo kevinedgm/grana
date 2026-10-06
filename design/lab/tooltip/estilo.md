@@ -76,7 +76,7 @@ La pestaña es un fondo y desaparecería: pasa a `Canvas` con sus **dos lados la
 | Segunda etapa | Borde junto al control Δ < 0,5px mientras crece, hacia abajo (`bottom`) y hacia arriba (`top`); alto continuo y estable después |
 | Entrada / salida | Fundido `--g-duration-fast`; `data-instant` sin ninguno. **La salida con fundido solo en Chromium**: Firefox y WebKit de Playwright no transicionan `display` de un popover y cierran en el acto (igual que `GMenu` y `GSelect`) |
 | Movimiento reducido | Viaje sin `translate` ni `inline-size` ni pestaña en la transición (salta); segunda etapa sin crecer; fundido conservado |
-| Táctil | Control con `data-g-tooltip`: `user-select: none`; el `<input>`: `auto`; `-webkit-touch-callout` no existe en los motores de escritorio (no medido) |
+| Táctil | Control con `data-g-tooltip`: `user-select: none`; el `<input>`: `auto`; `-webkit-touch-callout` no existe en los motores de escritorio (no medido). La caja `[data-g-tooltip-box]` que contiene un control con tooltip (#395: prefijo y sufijo de un campo) también: `user-select: none` y sin lupa, salvo `input` y `textarea` (`:where()`, especificidad 0; medido en Chromium con `pointer: coarse` emulado, marca puesta a mano) |
 | `forced-colors` (emulado) | Borde de la etiqueta y lados de la pestaña en `CanvasText`, pestaña `Canvas`, sin curvas |
 
 ## No verificado

@@ -375,6 +375,17 @@
     -webkit-user-select: none;
     user-select: none;
   }
+  /* La caja visible (#395): la pulsación larga sobre el prefijo o el sufijo de un campo tampoco abre la lupa ni
+     selecciona texto; el propio campo sigue siendo editable. Con :where() la especificidad queda en cero */
+  :where([data-g-tooltip-box]:has([data-g-tooltip])) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  :where([data-g-tooltip-box]:has([data-g-tooltip])) :where(input, textarea) {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 /* ---------- Colores forzados: la pestaña es un fondo y desaparecería ----------

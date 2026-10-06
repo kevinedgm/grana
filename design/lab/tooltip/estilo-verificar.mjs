@@ -410,6 +410,24 @@ for (const engine of ENGINES) {
         ok(t.marked && t.btn === 'none' && t.inp !== 'none', tag(`táctil: selección ${JSON.stringify(t)}`))
         ok(t.callout === 'no admitido' || t.callout === 'none', tag(`táctil: -webkit-touch-callout ${t.callout}`))
         note('táctil', `${engine} control user-select ${t.btn} · campo ${t.inp} · touch-callout ${t.callout}`)
+        // #395: caja marcada con `data-g-tooltip-box` que contiene un control con `data-g-tooltip` (en el componente real la
+        // marca la pone bruno; aquí se pone a mano): la caja y su prefijo no se seleccionan, el campo sí
+        const bx = await tp.evaluate(() => {
+          const box = document.createElement('div')
+          box.setAttribute('data-g-tooltip-box', '')
+          box.innerHTML = '<span class="pre">+52</span><input aria-label="Teléfono" data-g-tooltip><textarea aria-label="Nota"></textarea>'
+          document.body.append(box)
+          const us = (e) => getComputedStyle(e).userSelect || getComputedStyle(e).webkitUserSelect
+          const r = { box: us(box), pre: us(box.firstChild), inp: us(box.querySelector('input')), ta: us(box.querySelector('textarea')), callout: CSS.supports('-webkit-touch-callout', 'none') ? getComputedStyle(box).getPropertyValue('-webkit-touch-callout') : 'no admitido' }
+          const lone = document.createElement('div'); lone.setAttribute('data-g-tooltip-box', ''); lone.innerHTML = '<span>x</span><input aria-label="Sin tooltip">'
+          document.body.append(lone); r.lone = us(lone)
+          box.remove(); lone.remove()
+          return r
+        })
+        ok(bx.box === 'none' && bx.pre === 'none' && bx.inp !== 'none' && bx.ta !== 'none', tag(`táctil: caja marcada ${JSON.stringify(bx)}`))
+        ok(bx.callout === 'no admitido' || bx.callout === 'none', tag(`táctil: caja -webkit-touch-callout ${bx.callout}`))
+        ok(bx.lone !== 'none', tag(`táctil: caja marcada sin tooltip dentro no se toca (${bx.lone})`))
+        note('táctil', `${engine} caja user-select ${bx.box} · prefijo ${bx.pre} · input ${bx.inp} · textarea ${bx.ta} · sin tooltip ${bx.lone}`)
       } else note('táctil', `${engine}: (pointer: coarse) no se emula (no medido)`)
       await tctx.close()
     }
