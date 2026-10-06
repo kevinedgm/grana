@@ -54,7 +54,8 @@
     "personality": [
       "is-ready en la raíz: dos cuadros después de montar (tras el primer pintado), nunca en SSR; sin ella no se anima la entrada del mensaje (I1, #304)",
       "is-rejected en la raíz: la pone GForm tras un envío con errores (no formnovalidate) o showErrors() si este campo bloquea; se retira con animationend/animationcancel de una animación cuyo nombre empieza por g-reject (escucha en la raíz), con el siguiente input/change o al desmontar; nunca al escribir ni al salir del campo (I2, #304)"
-    ]
+    ],
+    "tooltipBox": ["data-g-tooltip-box (vacío y estático, también en SSR) en g-input__control: caja visible del control; GTooltip ancla en ella la posición, la pestaña y el puntero (#395, api.md «Caja visible») · la heredan GNumberField y GCombobox (field y palette), que componen GInput"]
   },
   "pending": ["Lector de pantalla real: aria-live junto a aria-describedby y anuncio del conjunto con acción", "Ancho del botón mostrar/ocultar con textos largos"],
   "formSystem": {"contract": "design/contracts/form.md §10", "changes": ["C1 contexto con useFormField", "C3 marcas", "C4 región __message", "C5 warning/valid", "C6 iconos", "C8 manejadores primero", "C10 registro", "C13 prefix/suffix"]}

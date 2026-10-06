@@ -198,7 +198,7 @@ if (isDev) {
   <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" :id="`${inputId}-label`" class="g-input__label" :for="inputId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
     <div class="g-input__row">
-      <div class="g-input__control">
+      <div class="g-input__control" data-g-tooltip-box>
         <span v-if="slots.prepend" class="g-input__prepend" aria-hidden="true"><slot name="prepend" /></span>
         <template v-if="prefix">
           <span class="g-input__prefix" :id="prefixLabel ? undefined : prefixId" :aria-hidden="prefixLabel ? 'true' : undefined" @click="focusField">{{ prefix }}</span>

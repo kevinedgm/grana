@@ -292,7 +292,8 @@
     "personality": [
       "is-ready en la raíz: dos cuadros después de montar (tras el primer pintado), nunca en SSR; sin ella no se anima la entrada del mensaje (I1, #304 y #306; el CSS de I1 es de coco)",
       "is-rejected en la raíz: la pone GForm tras un envío con errores o showErrors() si este campo bloquea (I2, #304)"
-    ]
+    ],
+    "tooltipBox": ["data-g-tooltip-box (vacío y estático, también en SSR) en g-select__control: caja visible del control; GTooltip ancla en ella la posición, la pestaña y el puntero (#395, api.md «Caja visible») · el botón de borrar va dentro de la caja: el puntero sobre él muestra el tooltip del campo"]
   },
   "implementation": [
     "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_min y --_max se fijan al abrir, al cambiar el contenido, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra sin devolver el foco (no en la hoja móvil, que no la sigue). El puntero nunca desplaza la lista y solo activa con movimiento real (no la lista o la página que se mueven bajo el puntero quieto, ni la que aparece bajo el clic que la abrió)."

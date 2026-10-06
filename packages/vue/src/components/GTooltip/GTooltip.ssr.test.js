@@ -6,6 +6,9 @@ import { createSSRApp, h } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import GTooltip from './GTooltip.vue'
 import GBtn from '../GBtn/GBtn.vue'
+import GInput from '../GInput/GInput.vue'
+import GTextarea from '../GTextarea/GTextarea.vue'
+import GSelect from '../GSelect/GSelect.vue'
 
 afterEach(() => vi.restoreAllMocks())
 const render = (fn) => renderToString(createSSRApp({ render: fn }))
@@ -35,5 +38,12 @@ describe('SSR · GTooltip', () => {
     expect((a.match(/role="tooltip"/g) || []).length).toBe(2)
     expect(warn.mock.calls.filter((c) => String(c[0]).includes('[Vue warn]'))).toHaveLength(0)
     expect(warn.mock.calls.filter((c) => String(c[0]).includes('<GBtn icon> necesita'))).toHaveLength(0)
+  })
+  it('caja visible (#395): data-g-tooltip-box estático también en el servidor', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const html = await render(() => h('div', [h(GTooltip, { text: 'A' }, () => h(GInput, { label: 'Correo' })), h(GTextarea, { label: 'Nota' }), h(GSelect, { label: 'País', options: [] })]))
+    expect(html).toMatch(/<div class="g-input__control" data-g-tooltip-box>/)
+    expect(html).toMatch(/<div class="g-textarea__control" data-g-tooltip-box>/)
+    expect(html).toMatch(/<div class="g-select__control" data-g-tooltip-box>/)
   })
 })

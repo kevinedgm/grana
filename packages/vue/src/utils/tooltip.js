@@ -1,9 +1,12 @@
-// Motor interno de GTooltip (dueño: bruno). design/contracts/tooltip.md (#380 a #394); forma y receta del viaje:
+// Motor interno de GTooltip (dueño: bruno). design/contracts/tooltip.md (#380 a #398); forma y receta del viaje:
 // design/lab/tooltip/estilo.md («Lo que el CSS espera del .vue»). Interno, no público: lo usan GTooltip y, en encargos
 // aparte, GTabs, GRadioGroup y el riel de GSidebar (#392).
 // Tiempos, uno solo abierto, foco por navegación, Esc en captura, puente 1.4.13, táctil con lectura, posición con
 // anchor.js (#358 reglas 1 estricta y 3), viaje por relevo en un grupo y segunda etapa. Sin lecturas de document o
 // window fuera de attach() (SSR).
+// Caja visible (#395): el ancla es el ancestro con `data-g-tooltip-box` del elemento resuelto dentro del hijo (o él
+// mismo). Puntero, pulsación, menú contextual, pulsar fuera, posición, pestaña y seguimiento van al ancla; foco, ARIA,
+// aria-expanded, disabled y kind, al elemento resuelto. El motor no conoce ninguna clase de ningún componente.
 import { anchorGone, followFrame, parsePlacement, placeAround, px, setVar } from './anchor.js'
 
 // ---------- Tiempos (constantes de JS, no tokens; tooltip.md §«Tiempos», tokens.md §29.6) ----------
@@ -25,6 +28,8 @@ const MODIFIERS = new Set(['Shift', 'Alt', 'Control', 'Meta', 'AltGraph', 'CapsL
 const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'F6'])
 /** Enfocable (#381): también `tabindex="-1"` (tabindex itinerante de una barra, APG) */
 export const FOCUSABLE = 'button, a[href], input, select, textarea, summary, [tabindex]'
+/** Marca de la caja visible de un control (#395; la pone cada componente, estática) */
+export const BOX = '[data-g-tooltip-box]'
 const GROUP = '[role="toolbar"], [role="tablist"], [role="radiogroup"], [role="menubar"], [role="group"], nav, [role="navigation"]'
 // Geometría que viaja (receta TT.travel del banco de coco)
 const GEOM = ['--_x', '--_y', '--_yb', '--_tooltip-ax', '--_tooltip-ay', '--_tooltip-aw', '--_tooltip-ah']
@@ -63,7 +68,7 @@ function install() {
   document.addEventListener('pointerdown', (e) => {
     state.navAt = -Infinity
     const c = state.current
-    if (c && !c.ctrl.contains(e.target) && !c.node.contains(e.target)) c.hide('outside')
+    if (c && !c.box.contains(e.target) && !c.node.contains(e.target)) c.hide('outside')
   }, o)
   // Tras una pulsación larga, soltar no activa: el clic que la sigue se cancela (#385)
   document.addEventListener('click', (e) => {
@@ -111,26 +116,46 @@ export const resolveKind = (el, text, own) => {
   return !n || n === norm(text) ? 'label' : 'description'
 }
 
-/**
- * Elemento resuelto del hijo (#381): desde el primer nodo del hijo (`start`), su primer elemento antes de `end`
- * (fragmento) y, si no es enfocable, su primer descendiente enfocable. `null` si no hay.
- */
-export function resolveTarget(start, end) {
+/** Primer elemento del hijo: desde su primer nodo (`start`) hasta `end` (fragmento). `null` si no hay. */
+export function firstElement(start, end) {
   let e = start
   while (e && e.nodeType !== 1) {
     if (e === end) return null
     e = e.nextSibling
   }
-  if (!e || (end && e === end)) return null
+  return !e || (end && e === end) ? null : e
+}
+
+/**
+ * Elemento resuelto del hijo (#381): desde el primer nodo del hijo (`start`), su primer elemento antes de `end`
+ * (fragmento) y, si no es enfocable, su primer descendiente enfocable. `null` si no hay.
+ */
+export function resolveTarget(start, end) {
+  const e = firstElement(start, end)
+  if (!e) return null
   return is(e, FOCUSABLE) ? e : e.querySelector(FOCUSABLE)
 }
 
 /**
+ * Ancla del tooltip (#395): el ancestro más cercano del elemento resuelto (`target`, él incluido) con
+ * `data-g-tooltip-box`, si está dentro del primer elemento del hijo (`first`) o es él; si no, el propio `target`.
+ * Una marca fuera del hijo (la caja de otro componente que lo contiene) se ignora.
+ */
+export function resolveBox(target, first) {
+  if (!target) return null
+  const b = target.closest(BOX)
+  return b && first && (b === first || first.contains(b)) ? b : target
+}
+
+/**
  * Engancha el comportamiento a un control (`ctrl`, el elemento resuelto) y su nodo `role="tooltip"` (`node`, hermano).
- * opt: { placement(): string|undefined, detail(): bool, disabled(): bool, chars(): number }
+ * opt: { box: Element (ancla, #395; por defecto ctrl), placement(): string|undefined, detail(): bool, disabled(): bool,
+ * chars(): number }
  * Devuelve { show, hide, check, destroy } (show/hide para pruebas y para los clientes internos).
  */
 export function attach(ctrl, node, opt = {}) {
+  // Ancla (caja visible): solo si contiene al elemento resuelto; si no, el propio elemento
+  const box = opt.box && opt.box.contains(ctrl) ? opt.box : ctrl
   install()
   const ac = new AbortController()
   const on = (t, type, fn, o) => t.addEventListener(type, fn, { ...o, signal: ac.signal })
@@ -156,7 +181,7 @@ export function attach(ctrl, node, opt = {}) {
   // la pestaña) y pad = space × 2; si el lado resultante es otro, ese data-side y se mide de nuevo. ax/ay físicos.
   // `lock`: el lado se conserva (regla 1 estricta: desplazamiento, resize y segunda etapa). `side`: lado pedido.
   function place(lock, side) {
-    const a = ctrl.getBoundingClientRect()
+    const a = box.getBoundingClientRect()
     const u = unit()
     const de = document.documentElement
     const vw = de.clientWidth || window.innerWidth
@@ -201,7 +226,7 @@ export function attach(ctrl, node, opt = {}) {
   // Seguimiento al desplazar: una vez por cuadro, sin cambiar de lado; fuera del visor o de su contenedor, cierra (#358)
   const follow = followFrame((scroller) => {
     if (!open) return
-    if (anchorGone(ctrl, scroller)) { hide('gone'); return }
+    if (anchorGone(box, scroller)) { hide('gone'); return }
     place(true, node.getAttribute('data-side'))
   })
   let live = null
@@ -292,6 +317,7 @@ export function attach(ctrl, node, opt = {}) {
 
   const inst = {
     ctrl,
+    box,
     node,
     isOpen: () => open,
     geom,
@@ -303,15 +329,26 @@ export function attach(ctrl, node, opt = {}) {
     check() { if (open && !canShow()) hide('state') },
     destroy() {
       hide('destroy')
-      if (state.blockClick === ctrl) state.blockClick = null
+      if (state.blockClick === box) state.blockClick = null
       ac.abort()
       uninstall()
     }
   }
 
   const mouse = (e) => e.pointerType !== 'touch'
-  on(ctrl, 'pointerenter', (e) => {
-    if (!mouse(e)) return
+  // El más interno gana el puntero (#395): otro control con su propio tooltip dentro de la caja (o su nodo) no cuenta
+  // para este (ni abre ni lo mantiene). Los botones propios de la caja (contraseña, borrar, −/+) no llevan marca: cuentan.
+  const foreign = (t) => {
+    if (box === ctrl || !t || t.nodeType !== 1 || t === box) return false
+    const f = t.closest('[data-g-tooltip], .g-tooltip')
+    return Boolean(f && f !== ctrl && f !== node && f !== box && box.contains(f) && !f.contains(ctrl))
+  }
+  // pointerover (con burbuja) llega antes que pointerenter y dice sobre qué está el puntero dentro de la caja
+  let inBox = false
+  let overForeign = false
+  let hovering = false
+  const enter = () => {
+    hovering = true
     reasons.add('hover')
     clearTimeout(closeT)
     if (suppressed || open) return
@@ -319,18 +356,37 @@ export function attach(ctrl, node, opt = {}) {
     clearTimeout(openT)
     if ((c && c !== inst && c.isOpen()) || now() - state.lastHide < SKIP) inst.show('hover')
     else openT = setTimeout(() => inst.show('hover'), OPEN)
-  })
-  on(ctrl, 'pointermove', (e) => {
-    if (mouse(e)) { if (open) armDwell(); return }
-    if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > MOVE) { clearTimeout(longT); start = null }
-  })
-  on(ctrl, 'pointerleave', (e) => {
-    if (!mouse(e)) return
-    suppressed = false
+  }
+  const leave = (rel) => {
+    hovering = false
     clearTimeout(openT)
     reasons.delete('hover')
-    if (e.relatedTarget && node.contains(e.relatedTarget)) { reasons.add('tip'); return }
+    if (rel && node.contains(rel)) { reasons.add('tip'); return }
     scheduleClose()
+  }
+  on(box, 'pointerover', (e) => {
+    if (!mouse(e)) return
+    overForeign = foreign(e.target)
+    if (!inBox) return
+    if (overForeign && hovering) leave(null)
+    else if (!overForeign && !hovering) enter()
+  })
+  on(box, 'pointerenter', (e) => {
+    if (!mouse(e)) return
+    inBox = true
+    if (!overForeign) enter()
+  })
+  on(box, 'pointermove', (e) => {
+    if (mouse(e)) { if (open && !foreign(e.target)) armDwell(); return }
+    if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > MOVE) { clearTimeout(longT); start = null }
+  })
+  on(box, 'pointerleave', (e) => {
+    if (!mouse(e)) return
+    inBox = false
+    overForeign = false
+    suppressed = false
+    if (hovering) leave(e.relatedTarget)
+    else clearTimeout(openT)
   })
   // El puntero que cruza a la etiqueta (la pestaña es el puente) la mantiene abierta (1.4.13)
   on(node, 'pointerenter', (e) => { if (mouse(e) && open) { reasons.add('tip'); clearTimeout(closeT) } })
@@ -338,7 +394,8 @@ export function attach(ctrl, node, opt = {}) {
   on(node, 'pointerleave', (e) => {
     if (!mouse(e)) return
     reasons.delete('tip')
-    if (e.relatedTarget && ctrl.contains(e.relatedTarget)) return
+    const rel = e.relatedTarget
+    if (rel && rel.nodeType === 1 && box.contains(rel) && !foreign(rel)) return
     scheduleClose()
   })
 
@@ -355,7 +412,8 @@ export function attach(ctrl, node, opt = {}) {
     scheduleClose(0)
   })
 
-  on(ctrl, 'pointerdown', (e) => {
+  on(box, 'pointerdown', (e) => {
+    if (foreign(e.target)) return
     if (mouse(e)) {
       // Pulsar es usar: se va y no vuelve hasta salir y entrar
       if (e.button === 0) { hide('press'); suppressed = true }
@@ -367,7 +425,7 @@ export function attach(ctrl, node, opt = {}) {
     clearTimeout(longT)
     longT = setTimeout(() => {
       longFired = true
-      state.blockClick = ctrl
+      state.blockClick = box
       reasons.add('touch')
       show('touch')
     }, LONG)
@@ -380,12 +438,12 @@ export function attach(ctrl, node, opt = {}) {
     longFired = false
     clearTimeout(lingerT)
     lingerT = setTimeout(() => { reasons.delete('touch'); if (!reasons.size) hide('linger') }, readTime(opt.chars ? opt.chars() : 0))
-    setTimeout(() => { if (state.blockClick === ctrl) state.blockClick = null }, 400)
+    setTimeout(() => { if (state.blockClick === box) state.blockClick = null }, 400)
   }
-  on(ctrl, 'pointerup', endTouch)
-  on(ctrl, 'pointercancel', endTouch)
+  on(box, 'pointerup', endTouch)
+  on(box, 'pointercancel', endTouch)
   // El menú contextual del sistema se cancela solo durante la pulsación
-  on(ctrl, 'contextmenu', (e) => { if (start || longFired || (open && node.hasAttribute('data-touch'))) e.preventDefault() })
+  on(box, 'contextmenu', (e) => { if (foreign(e.target)) return; if (start || longFired || (open && node.hasAttribute('data-touch'))) e.preventDefault() })
 
   return inst
 }

@@ -886,7 +886,7 @@ defineExpose({
           <GBtn v-if="editable" class="g-file-field__remove" variant="ghost" color="neutral" size="xs" icon :aria-label="removeLabel(e)" @click="remove(e.key)"><GIcon name="x" /></GBtn>
         </li>
       </ul>
-      <span class="g-file-field__add">
+      <span class="g-file-field__add" data-g-tooltip-box>
         <input ref="inputEl" class="g-file-field__input" v-bind="inputBindings">
         <span class="g-file-field__add-icon" aria-hidden="true"><GIcon :name="addIcon" /></span>
         <span :id="actionId" class="g-file-field__action">{{ faceText }}</span>

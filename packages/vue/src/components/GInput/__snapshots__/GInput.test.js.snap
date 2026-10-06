@@ -5,7 +5,7 @@ exports[`GInput · slots internos (N1–N3) > N1: la etiqueta lleva id="{id}-lab
     <!--v-if--><span class="g-input__required" aria-hidden="true">*</span>
   </label>
   <div class="g-input__row">
-    <div class="g-input__control">
+    <div class="g-input__control" data-g-tooltip-box="">
       <!--v-if-->
       <!--v-if--><input name="correo" id="c" type="text" required="" aria-describedby="c-suffix c-hint" class="g-input__field" value=""><span class="g-input__suffix" aria-hidden="true">kg</span><span id="c-suffix" class="g-input__suffix-label">kilos</span>
       <!--v-if-->

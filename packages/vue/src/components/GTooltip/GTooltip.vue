@@ -1,12 +1,12 @@
 <script>
 // GTooltip · nombre o descripción breve de un control (dueño: bruno)
-// Contrato: design/contracts/tooltip.md (#380 a #394) · Estructura: design/lab/tooltip/r01/ y r02/ (kiwi) ·
+// Contrato: design/contracts/tooltip.md (#380 a #398) · Estructura: design/lab/tooltip/r01/ y r02/ (kiwi) ·
 // Estilo: GTooltip.css (coco; lo que espera del .vue en design/lab/tooltip/estilo.md) · Motor: utils/tooltip.js.
 // Envoltorio de un único hijo sin elementos añadidos: clona el control con sus referencias ARIA y renderiza justo detrás
 // su nodo role="tooltip" persistente (popover="manual"). Sin <style>, sin textos propios.
 import { Comment, Fragment, Text, cloneVNode, computed, defineComponent, h, onBeforeUnmount, onMounted, onUpdated, ref, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { attach, resolveKind, resolveTarget } from '../../utils/tooltip.js'
+import { attach, firstElement, resolveBox, resolveKind, resolveTarget } from '../../utils/tooltip.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PLACEMENTS = ['top-start', 'top', 'top-end', 'right-start', 'right', 'right-end', 'bottom-end', 'bottom', 'bottom-start', 'left-end', 'left', 'left-start']
@@ -50,6 +50,7 @@ export default defineComponent({
     const node = ref(null)
     let child = null
     let el = null
+    let box = null
     let inst = null
     let mo = null
 
@@ -73,6 +74,7 @@ export default defineComponent({
       inst = null
       mo = null
       el = null
+      box = null
     }
     // Resuelve el elemento del hijo y engancha el motor; se repite si el hijo cambia
     function sync() {
@@ -80,7 +82,9 @@ export default defineComponent({
       const start = child.el
       const end = child.anchor || (child.component && child.component.subTree && child.component.subTree.anchor) || node.value
       const target = start ? resolveTarget(start, end) : null
-      if (target && target === el && inst) return
+      // Ancla (#395): la caja visible marcada más cercana del elemento resuelto dentro del hijo; si no, él mismo
+      const anchor = target ? resolveBox(target, firstElement(start, end)) : null
+      if (target && target === el && anchor === box && inst) return
       detach()
       if (!target || target === node.value) {
         if (start) { warn('focusable', 'el hijo no tiene un elemento enfocable: el tooltip va en el control (no se activa).'); usable.value = false }
@@ -89,10 +93,12 @@ export default defineComponent({
       usable.value = true
       if (!node.value) return // se renderiza en el ciclo siguiente (onUpdated)
       el = target
+      box = anchor
       if (target.disabled === true) warn('disabled', 'el control tiene `disabled` nativo y no recibe foco: el tooltip no se mostrará. Usa aria-disabled si el motivo importa.')
       if (target.hasAttribute('title')) warn('title', 'el control trae `title`: dos pistas para lo mismo (quita `title`).')
       measure()
       inst = attach(target, node.value, {
+        box: anchor,
         placement: () => props.placement,
         detail: () => Boolean(props.detail),
         disabled: () => props.disabled,

@@ -1,4 +1,4 @@
-// GTooltip · design/contracts/tooltip.md (#380 a #394) §«Verificación · bruno»: props y validadores, un hijo, semántica
+// GTooltip · design/contracts/tooltip.md (#380 a #398) §«Verificación · bruno»: props y validadores, un hijo, semántica
 // (kind, detail, atajo), nodo hermano detrás, disabled, avisos 1 a 8, matriz de componentes hijo, GBtn tooltip (#390),
 // GHelper (#391) y los componentes que miden a sus hijos por JS (GFormRow, GAdaptiveLayout, GInputGroup).
 // jsdom no tiene popover: showPopover/hidePopover se simulan con un atributo. El comportamiento con tiempos está en
@@ -23,7 +23,9 @@ import GInputGroupInput from '../GInputGroup/GInputGroupInput.vue'
 import GInputGroupSelect from '../GInputGroup/GInputGroupSelect.vue'
 import GFormRow from '../GFormRow/GFormRow.vue'
 import GAdaptiveLayout from '../GAdaptiveLayout/GAdaptiveLayout.vue'
-import { _state, OPEN } from '../../utils/tooltip.js'
+import GFileField from '../GFileField/GFileField.vue'
+import { LABELS as FF_LABELS } from '../GFileField/fileFieldTestEnv.js'
+import { _state, OPEN, CLOSE } from '../../utils/tooltip.js'
 
 beforeAll(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-test-open', '') }
@@ -307,6 +309,129 @@ describe('matriz de componentes hijo', () => {
   })
 })
 
+// Caja visible (#395): data-g-tooltip-box estático en la caja de cada campo; el motor ancla en la marcada más cercana
+// del elemento resuelto dentro del hijo (sin marca: el propio elemento)
+const BOXES = [
+  ['GInput', { GInput }, '<GInput label="Correo" prefix="@" suffix="kg" />', '.g-input__control'],
+  ['GNumberField', { GNumberField }, '<GNumberField label="Peso" locale="es" decrement-label="Menos" increment-label="Más" />', '.g-input__control'],
+  ['GCombobox (field)', { GCombobox }, MATRIX.find((m) => m[0] === 'GCombobox')[2], '.g-input__control'],
+  ['GCombobox (palette)', { GCombobox }, MATRIX.find((m) => m[0] === 'GCombobox')[2].replace('<GCombobox ', '<GCombobox appearance="palette" '), '.g-input__control'],
+  ['GTextarea', { GTextarea }, '<GTextarea label="Nota" />', '.g-textarea__control'],
+  ['GSelect', { GSelect }, '<GSelect label="País" clearable :options="[{ value: \'mx\', label: \'México\' }]" model-value="mx" />', '.g-select__control'],
+  ['GFileField', { GFileField }, '<GFileField label="Receta" :labels="ffLabels" />', '.g-file-field__add']
+]
+const fakeRects = (map) => vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+  const r = map(this) || { left: 0, top: 0, width: 0, height: 0 }
+  return { ...r, x: r.left, y: r.top, right: r.left + r.width, bottom: r.top + r.height, toJSON() {} }
+})
+describe('caja visible (#395)', () => {
+  for (const [name, comps, tpl, sel] of BOXES) {
+    it(`${name}: data-g-tooltip-box en ${sel}; el tooltip ancla en esa caja (pestaña y puntero)`, async () => {
+      quiet()
+      vi.useFakeTimers()
+      fakeRects((el) => (el.matches('[data-g-tooltip-box]') ? { left: 100, top: 50, width: 240, height: 40 } : el.matches('[data-g-tooltip]') ? { left: 113, top: 55, width: 10, height: 30 } : null))
+      const w = mkT(`<GTooltip text="Pista" kind="description" id="bx">${tpl}</GTooltip>`, comps, () => ({ ffLabels: FF_LABELS }))
+      await nextTick(); await nextTick()
+      const boxes = [...document.querySelectorAll('[data-g-tooltip-box]')]
+      expect(boxes, 'una sola caja marcada').toHaveLength(1)
+      const box = boxes[0]
+      expect(box.matches(sel)).toBe(true)
+      expect(box.getAttribute('data-g-tooltip-box')).toBe('')
+      const ctrl = document.querySelector('[data-g-tooltip]')
+      expect(box.contains(ctrl) && box !== ctrl).toBe(true)
+      // El puntero sobre la caja (no sobre el enfocable) abre el del campo y la pestaña mide la caja
+      box.dispatchEvent(ev('pointerover', { bubbles: true }))
+      box.dispatchEvent(ev('pointerenter'))
+      vi.advanceTimersByTime(OPEN)
+      const node = document.getElementById('bx')
+      expect(node.hasAttribute('data-test-open')).toBe(true)
+      expect(node.style.getPropertyValue('--_tooltip-aw')).toBe('240px')
+      expect(node.style.getPropertyValue('--_tooltip-ah')).toBe('40px')
+      w.unmount(); wrappers.pop()
+    })
+  }
+  it('sin marca (GBtn): el ancla es el propio botón', async () => {
+    quiet()
+    vi.useFakeTimers()
+    fakeRects((el) => (el.matches('button') ? { left: 10, top: 10, width: 32, height: 32 } : null))
+    const w = mkT('<GTooltip text="Duplicar" id="nb"><GBtn icon><svg aria-hidden="true"></svg></GBtn></GTooltip>')
+    await nextTick()
+    w.find('button').element.dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(document.getElementById('nb').style.getPropertyValue('--_tooltip-aw')).toBe('32px')
+  })
+  it('una marca fuera del hijo (la caja de quien lo contiene) se ignora: el ancla es el elemento resuelto', async () => {
+    quiet()
+    vi.useFakeTimers()
+    fakeRects((el) => (el.matches('.outer') ? { left: 0, top: 0, width: 400, height: 60 } : el.matches('button') ? { left: 10, top: 10, width: 32, height: 32 } : null))
+    mkT('<div class="outer" data-g-tooltip-box><span class="pre">x</span><GTooltip text="Duplicar" id="mo"><button type="button"></button></GTooltip></div>')
+    await nextTick()
+    const outer = document.querySelector('.outer')
+    const node = document.getElementById('mo')
+    // El puntero en la caja ajena no abre
+    outer.querySelector('.pre').dispatchEvent(ev('pointerover', { bubbles: true }))
+    outer.dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(OPEN * 2)
+    expect(node.hasAttribute('data-test-open')).toBe(false)
+    document.querySelector('button').dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(node.hasAttribute('data-test-open')).toBe(true)
+    expect(node.style.getPropertyValue('--_tooltip-aw')).toBe('32px')
+  })
+  it('el más interno gana: un control con su propio tooltip dentro de la caja abre el suyo, no el del campo', async () => {
+    quiet()
+    vi.useFakeTimers()
+    // Control compuesto de la aplicación: marca su caja y reenvía los atributos a su <input> (receta del contrato)
+    const AppField = defineComponent({ inheritAttrs: false, template: '<div class="box" data-g-tooltip-box><input class="f" v-bind="$attrs"><slot /></div>' })
+    mkT('<GTooltip text="Campo" id="out"><AppField><GTooltip text="Interior" id="in"><button type="button" class="b"></button></GTooltip></AppField></GTooltip>', { AppField })
+    await nextTick(); await nextTick()
+    const box = document.querySelector('.box')
+    const inner = document.querySelector('.b')
+    expect(document.querySelector('.f').hasAttribute('data-g-tooltip')).toBe(true)
+    expect(inner.hasAttribute('data-g-tooltip')).toBe(true)
+    const shown = []
+    const show = HTMLElement.prototype.showPopover
+    vi.spyOn(HTMLElement.prototype, 'showPopover').mockImplementation(function () { shown.push(this.id); show.call(this) })
+    // Orden real: pointerover en el de debajo, luego pointerenter de fuera hacia dentro
+    inner.dispatchEvent(ev('pointerover', { bubbles: true }))
+    box.dispatchEvent(ev('pointerenter'))
+    inner.dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(OPEN * 2)
+    expect(shown, 'el exterior no llega a abrirse').toEqual(['in'])
+    expect(document.getElementById('in').hasAttribute('data-test-open')).toBe(true)
+    // Del control interior al campo: relevo al del campo
+    inner.dispatchEvent(ev('pointerleave', { relatedTarget: document.querySelector('.f') }))
+    document.querySelector('.f').dispatchEvent(ev('pointerover', { bubbles: true }))
+    expect(document.getElementById('out').hasAttribute('data-test-open')).toBe(true)
+    // Y de vuelta al interior: el exterior no se mantiene
+    inner.dispatchEvent(ev('pointerover', { bubbles: true }))
+    inner.dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(CLOSE)
+    expect(document.getElementById('out').hasAttribute('data-test-open')).toBe(false)
+  })
+  it('controles propios de la caja (borrar de GSelect): el puntero muestra el del campo; su foco no lo abre', async () => {
+    quiet()
+    vi.useFakeTimers()
+    mkT('<GTooltip text="País del envío" kind="description" id="cs"><GSelect label="País" clearable clear-label="Borrar" :options="[{ value: \'mx\', label: \'México\' }]" model-value="mx" /></GTooltip>', { GSelect })
+    await nextTick(); await nextTick()
+    const clear = document.querySelector('.g-select__clear')
+    const box = document.querySelector('.g-select__control')
+    expect(clear).not.toBe(null)
+    expect(clear.hasAttribute('data-g-tooltip')).toBe(false)
+    const node = document.getElementById('cs')
+    clear.dispatchEvent(ev('pointerover', { bubbles: true }))
+    box.dispatchEvent(ev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(node.hasAttribute('data-test-open')).toBe(true)
+    box.dispatchEvent(ev('pointerleave'))
+    vi.advanceTimersByTime(OPEN)
+    expect(node.hasAttribute('data-test-open')).toBe(false)
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+    clear.focus()
+    expect(node.hasAttribute('data-test-open')).toBe(false)
+  })
+})
+
 describe('GBtn tooltip (#390)', () => {
   it('icono sin aria-label: el tooltip es su nombre; estructura botón, nodo, estado; sin aviso de nombre', async () => {
     const spy = quiet()
@@ -345,9 +470,9 @@ describe('GBtn tooltip (#390)', () => {
     expect(w.find('button').attributes('aria-labelledby')).toBe('w-name')
     expect(spy.mock.calls.some((c) => String(c[0]).includes('<GBtn tooltip> dentro de un <GTooltip>'))).toBe(true)
   })
-  it('un GBtn tooltip más adentro (append de un GInput envuelto) conserva el suyo', async () => {
+  it('un GBtn tooltip más adentro (action de un GInput envuelto, #397) conserva el suyo', async () => {
     const spy = quiet()
-    const w = mkT('<GTooltip text="Correo de la cuenta" id="outer"><GInput label="Correo"><template #append><GBtn icon variant="ghost" tooltip="Borrar"><svg aria-hidden="true"></svg></GBtn></template></GInput></GTooltip>', { GInput })
+    const w = mkT('<GTooltip text="Correo de la cuenta" id="outer"><GInput label="Correo"><template #action><GBtn icon variant="ghost" tooltip="Borrar"><svg aria-hidden="true"></svg></GBtn></template></GInput></GTooltip>', { GInput })
     await nextTick(); await nextTick()
     const nodes = [...document.querySelectorAll('.g-tooltip')]
     expect(nodes).toHaveLength(2)
@@ -355,7 +480,20 @@ describe('GBtn tooltip (#390)', () => {
     expect(inner.getAttribute('aria-labelledby')).toMatch(/-name$/)
     expect(inner.getAttribute('aria-labelledby')).not.toBe('outer-name')
     expect(w.find('input').element.hasAttribute('data-g-tooltip')).toBe(true)
+    // El botón va en la fila, fuera de la caja visible del campo
+    expect(inner.closest('.g-input__action')).not.toBe(null)
+    expect(inner.closest('[data-g-tooltip-box]')).toBe(null)
     expect(spy.mock.calls.some((c) => String(c[0]).includes('<GBtn tooltip> dentro de un <GTooltip>'))).toBe(false)
+  })
+  it('orden del nodo con un hijo fragmento (#398): envoltorio → botón, estado, nodo; GBtn tooltip → botón, nodo, estado', async () => {
+    quiet()
+    const w = mkT('<div><div id="a"><GTooltip text="Guardar"><GBtn icon loading-text="Guardando"><svg aria-hidden="true"></svg></GBtn></GTooltip></div><div id="b"><GBtn icon tooltip="Guardar" loading-text="Guardando"><svg aria-hidden="true"></svg></GBtn></div></div>')
+    await nextTick(); await nextTick()
+    const order = (id) => [...w.find(`#${id}`).element.children].map((c) => c.className.split(' ')[0])
+    expect(order('a')).toEqual(['g-btn', 'g-btn__status', 'g-tooltip'])
+    expect(order('b')).toEqual(['g-btn', 'g-tooltip', 'g-btn__status'])
+    // En los dos, las referencias llegan al botón
+    for (const id of ['a', 'b']) expect(w.find(`#${id} button`).attributes('aria-labelledby')).toMatch(/-name$/)
   })
   it('GBtn.props.tooltip es String sin valor por defecto', () => {
     expect(GBtn.props.tooltip.type).toBe(String)
@@ -392,5 +530,8 @@ describe('medición por JS que salta el nodo (#394)', () => {
     await nextTick(); await nextTick()
     const msgs = spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('[Grana GInputGroup]') && m.includes('no es una parte'))
     expect(msgs.some((m) => m.includes('g-tooltip'))).toBe(false)
+    // #397: el GBtn no es una parte (aviso 4, correcto) y el nodo no añade otro: un solo aviso
+    expect(msgs).toHaveLength(1)
+    expect(msgs[0]).toContain('g-btn')
   })
 })

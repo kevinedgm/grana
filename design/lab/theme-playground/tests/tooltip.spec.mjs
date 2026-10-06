@@ -5,7 +5,8 @@
 // (quieto sí, en movimiento no, borde junto al control fijo), puntero que cruza a la etiqueta (1.4.13), Esc sin mover el
 // foco, foco por navegación sí y por clic o programa no, volteo, RTL, seguir al desplazar y cerrar al salir (#358),
 // disabled / aria-disabled / aria-expanded, GDialog (foco al abrir no muestra; primer Esc el tooltip, segundo el diálogo),
-// táctil sintético, GHelper envuelto, contraste y tamaños, y la matriz de componentes hijo (atributos y caja).
+// táctil sintético, GHelper envuelto, contraste y tamaños, la matriz de componentes hijo (atributos y caja visible, #395)
+// y el foco con Tab de #396.
 // Un solo proceso por puerto: GRANA_PW_PORT=4210 (bruno).
 import { test, expect } from '@playwright/test'
 
@@ -232,6 +233,69 @@ test.describe('GTooltip · teclado y foco', () => {
     expect(await openTips(page)).toEqual([])
   })
 
+  test('#396 Tab + Intro con GDialog: llegar por Tab a un control sin tooltip cierra el saliente; Intro abre el diálogo sin mostrar', async ({ page, browserName }) => {
+    await open(page, { target: '#tt-open-dlg' })
+    const T = TAB(browserName)
+    // Por teclado al control anterior (con tooltip), que se abre al llegar
+    await page.evaluate(() => document.getElementById('tt-open-dlg').focus())
+    await page.keyboard.press(`Shift+${T}`)
+    const prev = await page.evaluate(() => document.activeElement.id)
+    expect(prev).toBe('tt-rtl-left')
+    await expect.poll(() => openTips(page)).toEqual(['tt-rtl-left'])
+    // Tab a «Abrir diálogo» (sin tooltip, fuera del grupo): el saliente cierra
+    await page.keyboard.press(T)
+    await expect.poll(() => page.evaluate(() => document.activeElement.id)).toBe('tt-open-dlg')
+    await expect.poll(() => openTips(page)).toEqual([])
+    // Intro: el diálogo enfoca su primer control (foco por programa) y no muestra su tooltip
+    await page.keyboard.press('Enter')
+    await expect(page.locator('dialog[open]')).toHaveCount(1)
+    await expect.poll(() => page.evaluate(() => document.activeElement.id)).toBe('tt-dlg-undo')
+    await page.waitForTimeout(450)
+    expect(await openTips(page)).toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(page.locator('dialog[open]')).toHaveCount(0)
+  })
+
+  test('#396 Tab con relevo en una barra sin tabindex itinerante: viaja sin cuadro vacío; Tab a otro grupo aparece sin viaje', async ({ page, browserName }) => {
+    await open(page, { target: '.tt-rows' })
+    const T = TAB(browserName)
+    await page.evaluate(() => document.getElementById('tt-row-dl-F-0041').focus())
+    await page.keyboard.press(`Shift+${T}`)
+    await expect.poll(() => openTips(page)).toEqual(['tt-row-edit-F-0041'])
+    await page.waitForTimeout(250)
+    await page.evaluate(() => {
+      window.__tt = []
+      window.__ttStop = false
+      const loop = () => {
+        const vis = [...document.querySelectorAll('.g-tooltip')].filter((n) => n.matches(':popover-open') && parseFloat(getComputedStyle(n).opacity) > 0.01)
+        window.__tt.push({ n: vis.length, travel: vis.some((n) => n.hasAttribute('data-travel')) })
+        if (!window.__ttStop) requestAnimationFrame(loop)
+      }
+      requestAnimationFrame(loop)
+      // El viaje se registra por mutación (con carga, WebKit puede no pintar un cuadro durante los 120 ms del viaje)
+      window.__travel = false
+      const n = document.getElementById('tt-row-dl-F-0041').nextElementSibling
+      new MutationObserver(() => { if (n.hasAttribute('data-travel')) window.__travel = true }).observe(n, { attributes: true, attributeFilter: ['data-travel'] })
+    })
+    await page.keyboard.press(T)
+    await expect.poll(() => openTips(page)).toEqual(['tt-row-dl-F-0041'])
+    await page.waitForTimeout(350)
+    const samples = await page.evaluate(() => { window.__ttStop = true; return window.__tt })
+    expect(samples.length).toBeGreaterThan(5)
+    expect(samples.filter((x) => x.n !== 1)).toEqual([])
+    expect(await page.evaluate(() => window.__travel)).toBe(true)
+    const g = await geo(page, 'tt-row-dl-F-0041')
+    expect(Math.abs(g.tab.w - g.c.w)).toBeLessThan(0.05)
+    expect(Math.abs(g.tab.l - g.c.l)).toBeLessThan(0.5)
+    // Al último de la fila y Tab a la fila siguiente (otro grupo): uno solo abierto y sin viaje
+    await page.keyboard.press(T)
+    await expect.poll(() => openTips(page)).toEqual(['tt-row-del-F-0041'])
+    await page.waitForTimeout(250)
+    await page.keyboard.press(T)
+    await expect.poll(() => openTips(page)).toEqual(['tt-row-edit-F-0042'])
+    expect(await page.evaluate(() => document.getElementById('tt-row-edit-F-0042').nextElementSibling.hasAttribute('data-travel'))).toBe(false)
+  })
+
   test('GDialog: el foco al abrir (Intro) no muestra; primer Esc cierra el tooltip y el segundo el diálogo', async ({ page }) => {
     await open(page, { target: '#tt-open-dlg' })
     await page.evaluate(() => document.getElementById('tt-open-dlg').focus())
@@ -426,38 +490,120 @@ test.describe('GTooltip · forma, contraste y tamaños', () => {
   })
 })
 
-// Matriz de componentes hijo (tooltip.md §«El hijo», #394): los atributos llegan al elemento enfocable; se mide además
-// si su caja coincide con la del control visible (si no, es un pendiente para lima, no se parchea)
+// Matriz de componentes hijo (tooltip.md §«El hijo», #394; caja visible, #395): los atributos llegan al elemento
+// enfocable y la pestaña se mide contra la CAJA VISIBLE del control (Δ ≤ 0,5 px de ancho, o de alto en un riel, y del
+// borde). El puntero se pone donde se pide (el prefijo, −/+, «Mostrar»): abre siempre el tooltip del campo.
 const MATRIX = [
-  // [id del elemento resuelto o del campo, selector del control visible desde el elemento resuelto, caja esperada]
-  ['tt-f-input', '.g-input__control', 'distinta'],
-  ['tt-f-textarea', '.g-textarea__control', 'borde'],
-  ['tt-f-select', '.g-select__control', 'borde'],
-  ['tt-f-number', '.g-input__control', 'distinta'],
-  ['tt-f-combobox', '.g-input__control', 'distinta'],
-  ['tt-f-date', '.g-datepicker__field', 'igual'],
-  ['tt-f-switch', '.g-switch__control', 'igual'],
-  ['tt-f-checkbox', '.g-checkbox__box', 'igual']
+  // [nombre, id del elemento resuelto o del campo, selector de la caja visible desde el elemento resuelto (vacío: él mismo), dónde poner el puntero (dentro de la raíz del hijo; vacío: la caja)]
+  ['GBtn (button)', 'tt-publish', '', ''],
+  ['GBtn (a)', 'tt-f-link', '', ''],
+  ['GInput', 'tt-f-input', '.g-input__control', ''],
+  ['GInput prefix + suffix + action', 'tt-f-money', '.g-input__control', '.g-input__prefix'],
+  ['GInput contraseña', 'tt-f-pass', '.g-input__control', '.g-input__toggle'],
+  ['GTextarea', 'tt-f-textarea', '.g-textarea__control', ''],
+  ['GSelect', 'tt-f-select', '.g-select__control', ''],
+  ['GNumberField −/+', 'tt-f-number', '.g-input__control', '.g-number-field__step--increment'],
+  ['GCombobox field', 'tt-f-combobox', '.g-input__control', ''],
+  ['GCombobox palette', 'tt-f-palette', '.g-input__control', ''],
+  ['GDatePicker', 'tt-f-date', '.g-datepicker__field', ''],
+  ['GSwitch', 'tt-f-switch', '.g-switch__control', ''],
+  ['GCheckbox', 'tt-f-checkbox', '.g-checkbox__box', ''],
+  ['GHelper', '.tt-fields .g-helper__trigger', '', ''],
+  ['GFileField', 'tt-f-file', '.g-file-field__add', '']
 ]
+const BOXED = ['.g-input__control', '.g-textarea__control', '.g-select__control', '.g-file-field__add']
+/** Elemento resuelto (con data-g-tooltip), raíz del hijo (su hermano siguiente es el nodo) y caja visible */
+const parts = (page, id, visual) => page.evaluate(([id, visual]) => {
+  const byId = document.getElementById(id) || document.querySelector(id)
+  const el = byId?.matches('[data-g-tooltip]') ? byId : byId?.querySelector('[data-g-tooltip]') || byId?.closest('.g-helper')?.querySelector('[data-g-tooltip]')
+  if (!el) return null
+  let root = el
+  while (root && !root.nextElementSibling?.matches('.g-tooltip')) root = root.parentElement
+  const box = visual ? el.closest(visual) : el
+  root.setAttribute('data-pw-root', id)
+  box?.setAttribute('data-pw-box', id)
+  const desc = (el.getAttribute('aria-describedby') || '').split(' ').filter(Boolean)
+  const lb = (el.getAttribute('aria-labelledby') || '').split(' ').filter(Boolean)
+  return {
+    focusable: el.matches('button, a[href], input, select, textarea, [tabindex]'),
+    name: [...desc, ...lb].some((d) => /-name$/.test(d) && document.getElementById(d)?.closest('.g-tooltip') === root.nextElementSibling),
+    marked: box?.hasAttribute('data-g-tooltip-box') || box === el,
+    nodeId: root.nextElementSibling.id
+  }
+}, [id, visual])
 test.describe('GTooltip · matriz de componentes hijo', () => {
-  test('atributos en el elemento enfocable y caja frente al control visible', async ({ page }) => {
+  test('atributos en el elemento enfocable; la pestaña mide la caja visible (Δ ≤ 0,5 px) y el puntero en ella abre el del campo', async ({ page }) => {
+    const errs = await watchConsole(page)
     await open(page, { target: '.tt-fields' })
-    for (const [id, visual, expected] of MATRIX) {
-      const r = await page.evaluate(([id, visual]) => {
-        const el = document.getElementById(id)?.matches('[data-g-tooltip]') ? document.getElementById(id) : document.getElementById(id)?.querySelector('[data-g-tooltip]') || document.querySelector(`#${id} [data-g-tooltip], [data-g-tooltip]#${id}`)
-        if (!el) return null
-        const v = el.closest(visual) || el.parentElement.closest(visual) || el.querySelector(visual)
-        const a = el.getBoundingClientRect(), b = (v || el).getBoundingClientRect()
-        const desc = (el.getAttribute('aria-describedby') || '').split(' ').filter(Boolean)
-        return { focusable: el.matches('button, a[href], input, select, textarea, [tabindex]'), name: desc.some((d) => /-name$/.test(d) && document.getElementById(d)?.closest('.g-tooltip')), dl: Math.abs(a.left - b.left), dw: Math.abs(a.width - b.width), dh: Math.abs(a.height - b.height) }
-      }, [id, visual])
-      expect(r, id).not.toBe(null)
-      expect(r.focusable, id).toBe(true)
-      expect(r.name, id).toBeTruthy()
-      if (expected === 'igual') expect(r.dw + r.dl + r.dh, id).toBeLessThan(0.5)
-      else if (expected === 'borde') expect(Math.max(r.dl, r.dw / 2, r.dh / 2), id).toBeLessThanOrEqual(1.5)
-      else test.info().annotations.push({ type: 'caja distinta (pendiente para lima)', description: `${id}: Δx ${r.dl.toFixed(1)} Δancho ${r.dw.toFixed(1)}` })
+    const rows = []
+    for (const [name, id, visual, pointAt] of MATRIX) {
+      const p = await parts(page, id, visual)
+      expect(p, name).not.toBe(null)
+      expect(p.focusable, name).toBe(true)
+      expect(p.name, name).toBeTruthy()
+      // Las cajas que no coinciden con su enfocable llevan la marca; GDatePicker, GSwitch y GCheckbox coinciden sin ella
+      if (BOXED.includes(visual)) expect(p.marked, `${name}: caja marcada`).toBe(true)
+      await page.evaluate((id) => document.querySelector(`[data-pw-box="${id}"]`).scrollIntoView({ block: 'center' }), id)
+      await page.mouse.move(2, 2)
+      await page.waitForTimeout(250)
+      await hover(page, pointAt ? `[data-pw-root="${id}"] ${pointAt}` : `[data-pw-box="${id}"]`)
+      await expect.poll(() => page.evaluate(() => [...document.querySelectorAll('.g-tooltip')].filter((x) => x.matches(':popover-open')).map((x) => x.id)), { message: name }).toEqual([p.nodeId])
+      await frames(page, 3)
+      const m = await page.evaluate(([id, nodeId]) => {
+        const b = document.querySelector(`[data-pw-box="${id}"]`).getBoundingClientRect()
+        const n = document.getElementById(nodeId)
+        const t = n.querySelector('.g-tooltip__tab').getBoundingClientRect()
+        const side = n.dataset.side
+        const v = side === 'top' || side === 'bottom'
+        return {
+          side,
+          dSize: Math.abs(v ? t.width - b.width : t.height - b.height),
+          dStart: Math.abs(v ? t.left - b.left : t.top - b.top),
+          dEdge: Math.abs(side === 'bottom' ? t.top - b.bottom : side === 'top' ? t.bottom - b.top : side === 'right' ? t.left - b.right : t.right - b.left),
+          box: Math.round(v ? b.width : b.height)
+        }
+      }, [id, p.nodeId])
+      rows.push(`${name}: ${m.side} caja ${m.box}px Δtamaño ${m.dSize.toFixed(2)} Δinicio ${m.dStart.toFixed(2)} Δborde ${m.dEdge.toFixed(2)}`)
+      expect(m.dSize, `${name} Δ tamaño`).toBeLessThanOrEqual(0.5)
+      expect(m.dStart, `${name} Δ inicio`).toBeLessThanOrEqual(0.5)
+      expect(m.dEdge, `${name} Δ borde`).toBeLessThanOrEqual(0.5)
     }
+    test.info().annotations.push({ type: 'matriz', description: rows.join(' | ') })
+    expect(errs).toEqual([])
+  })
+
+  test('controles dentro de la caja: el GBtn del action conserva su tooltip (#397) y el foco de «Mostrar» o −/+ no abre el del campo', async ({ page, browserName }) => {
+    await open(page, { target: '.tt-fields' })
+    // El GBtn tooltip del action está fuera de la caja y abre el suyo (uno solo)
+    await page.mouse.move(2, 2)
+    await hover(page, '#tt-f-action')
+    await expect.poll(() => openTips(page)).toEqual(['tt-f-action'])
+    expect(await page.evaluate(() => document.getElementById('tt-f-action').closest('[data-g-tooltip-box]'))).toBe(null)
+    await page.mouse.move(2, 2)
+    await page.waitForTimeout(300)
+    // Tab desde el campo de contraseña a «Mostrar»: el del campo se abre al llegar y se cierra al salir del campo
+    await page.evaluate(() => document.getElementById('tt-f-pass').focus())
+    const T = TAB(browserName)
+    await page.keyboard.press(`Shift+${T}`)
+    await page.keyboard.press(T)
+    await expect.poll(() => page.evaluate(() => document.activeElement.id)).toBe('tt-f-pass')
+    const passNode = await page.evaluate(() => { let r = document.getElementById('tt-f-pass'); while (!r.nextElementSibling?.matches('.g-tooltip')) r = r.parentElement; return r.nextElementSibling.id })
+    await expect.poll(() => page.evaluate((n) => document.getElementById(n).matches(':popover-open'), passNode)).toBe(true)
+    await page.keyboard.press(T)
+    await expect.poll(() => page.evaluate(() => document.activeElement.className)).toContain('g-input__toggle')
+    await expect.poll(() => openTips(page)).toEqual([])
+    // −/+ de GNumberField: el puntero encima muestra el del campo; pulsar es usar (cierra y no vuelve mientras siga encima)
+    await page.mouse.move(2, 2)
+    await page.waitForTimeout(300)
+    const inc = '#tt-f-number ~ .g-number-field__steppers .g-number-field__step--increment, .g-number-field:has(#tt-f-number) .g-number-field__step--increment'
+    await hover(page, inc)
+    const numNode = await page.evaluate(() => { let r = document.getElementById('tt-f-number'); while (!r.nextElementSibling?.matches('.g-tooltip')) r = r.parentElement; return r.nextElementSibling.id })
+    await expect.poll(() => page.evaluate((n) => document.getElementById(n).matches(':popover-open'), numNode)).toBe(true)
+    await page.mouse.down()
+    await page.mouse.up()
+    expect(await page.evaluate(() => document.getElementById('tt-f-number').value)).not.toBe('')
+    await page.waitForTimeout(450)
+    expect(await openTips(page)).toEqual([])
   })
 
   test('GHelper envuelto: atributos en su botón; abre con el puntero', async ({ page }) => {

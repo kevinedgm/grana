@@ -442,7 +442,7 @@ if (isDev) {
 <template>
   <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
-    <div ref="control" class="g-select__control">
+    <div ref="control" class="g-select__control" data-g-tooltip-box>
       <button ref="button" v-bind="buttonBindings" class="g-select__button">
         <span v-if="slots.prepend" class="g-select__prepend" aria-hidden="true"><slot name="prepend" /></span>
         <span class="g-select__value" :class="{ 'g-select__value--placeholder': !selected }"><template v-if="selected"><span v-if="!slots.value && hasIcon(selected.raw)" class="g-select__icon" aria-hidden="true"><slot name="icon" :option="selected.raw" /></span><slot name="value" :option="selected.raw">{{ selected.label }}</slot></template><template v-else>{{ placeholder }}</template></span>

@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Nombre visible, descripción breve y atajo de un control enfocable: aparece con el puntero (350 ms), con el foco por navegación y con la pulsación larga en táctil. Forma A «pestaña que viaja» (la etiqueta cuelga del control por una pestaña de su tamaño y acompaña de un control al siguiente en un grupo) con segunda etapa para detail. Envoltorio de un único hijo sin elementos añadidos; su nodo role=\"tooltip\" persistente (popover=\"manual\") va detrás del control.",
   "contract": "design/contracts/tooltip.md",
-  "decisions": "DECISIONS.md #380 a #394",
+  "decisions": "DECISIONS.md #380 a #398",
   "prototype": "design/lab/tooltip/r01/ y design/lab/tooltip/r02/",
   "style": "packages/vue/src/components/GTooltip/GTooltip.css",
   "entry": "@grana/vue (principal, #380)",
@@ -26,8 +26,17 @@
   ],
   "childAttributes": ["aria-labelledby", "aria-describedby", "aria-keyshortcuts", "data-g-tooltip"],
   "childMatrix": {
-    "admitted": ["GBtn (button y a)", "GInput", "GTextarea", "GSelect", "GNumberField", "GCombobox", "GDatePicker", "GSwitch", "GCheckbox", "GHelper (#391)"],
+    "admitted": ["GBtn (button y a)", "GInput", "GTextarea", "GSelect", "GNumberField", "GCombobox", "GDatePicker", "GSwitch", "GCheckbox", "GHelper (#391)", "GFileField (ancla en g-file-field__add, #395)"],
     "notAdmitted": ["GInputGroupInput", "GInputGroupSelect (#394, aviso 8)"]
+  },
+  "anchor": {
+    "attribute": "data-g-tooltip-box (no es prop: la pone cada componente en su caja, vacío y estático; api.md «Caja visible», #395)",
+    "rule": "Ancla = el ancestro más cercano del elemento resuelto (él incluido) con data-g-tooltip-box dentro del primer elemento del hijo (o él mismo); sin marca, el propio elemento resuelto. Una marca fuera del hijo se ignora.",
+    "marked": ["GInput (g-input__control; lo heredan GNumberField y GCombobox en sus dos apariencias)", "GTextarea (g-textarea__control)", "GSelect (g-select__control)", "GFileField (g-file-field__add)"],
+    "box": ["posición y volteo", "pestaña (--_tooltip-ax/ay/aw/ah)", "seguimiento y anchorGone", "puntero (entrar, salir, quieto para DWELL)", "pulsar para usar", "pulsación larga", "menú contextual", "pulsar fuera", "clic bloqueado tras la pulsación larga"],
+    "resolved": ["referencias ARIA y data-g-tooltip", "foco y :focus-visible", "aria-expanded", "disabled", "nombre que mide kind=\"auto\""],
+    "innermost": "Un [data-g-tooltip] ajeno dentro de la caja (o su nodo) no abre ni mantiene el exterior; los botones propios de la caja (contraseña, borrar de GSelect, −/+ de GNumberField) muestran el del campo al pasar y su foco no lo abre",
+    "appRecipe": "Un control compuesto de la aplicación marca su caja con data-g-tooltip-box y reenvía los atributos a su elemento enfocable"
   },
   "tokens": [
     "--g-color-text", "--g-color-surface", "--g-radius-md", "--g-radius-sm", "--g-radius-xs", "--g-shadow-2", "--g-space-1",
@@ -38,6 +47,7 @@
   "states": ["closed", "open", "instant", "travel", "dwell", "touch", "side-top", "side-right", "side-bottom", "side-left", "disabled"],
   "timing": { "OPEN": 350, "CLOSE": 100, "SKIP": 600, "NAV": 1000, "DWELL": 700, "LONG": 500, "MOVE": 10, "LINGER": 1500, "READ_BASE": 1000, "READ_CHAR": 50, "READ_MAX": 6000 },
   "implementation": [
+    "Caja visible (#395): GTooltip resuelve el ancla con resolveBox(elemento resuelto, primer elemento del hijo) y la pasa al motor (attach(ctrl, node, { box })). pointerover (con burbuja, antes que pointerenter) dice si el puntero está sobre otro control con tooltip dentro de la caja: el más interno gana.",
     "Motor interno utils/tooltip.js (no público): una escucha de documento compartida (teclas de navegación, Esc en captura, pulsar fuera, clic tras la pulsación larga) que se retira con el último tooltip; escuchas nativas en el elemento resuelto y en el nodo.",
     "Uno solo abierto en el documento; relevo del grupo al instante. Perder el foco cierra en el ciclo siguiente para que el control siguiente (Tab, flechas) tome el relevo y viaje.",
     "Viaje (#388, receta TT.travel de design/lab/tooltip/estilo-banco.html): el entrante abre con data-instant en su sitio con el lado del saliente, salta a la geometría del saliente (variables + inline-size) y transiciona a la suya con data-travel; el saliente se oculta con data-instant + hidePopover. data-travel e inline-size se retiran en transitionend de translate o a --g-duration-press + 80 ms.",

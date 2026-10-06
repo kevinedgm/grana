@@ -230,7 +230,7 @@ if (isDev) {
 <template>
   <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" class="g-textarea__label" :for="fieldId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-textarea__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-textarea__required" aria-hidden="true">*</span></label>
-    <div class="g-textarea__control">
+    <div class="g-textarea__control" data-g-tooltip-box>
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />
       <GIcon v-if="loading" class="g-textarea__loader" name="loader-circle" />
     </div>

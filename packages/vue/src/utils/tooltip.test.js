@@ -1,7 +1,7 @@
 // Motor de GTooltip (utils/tooltip.js) · design/contracts/tooltip.md §«Comportamiento», §«Táctil», §«El viaje y el grupo»,
-// §«Segunda etapa» (#384 a #389). jsdom no tiene popover: showPopover/hidePopover se simulan con un atributo.
+// §«Segunda etapa» (#384 a #389) y §«Caja visible» (#395). jsdom no tiene popover: showPopover/hidePopover se simulan con un atributo.
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
-import { attach, nameOf, resolveKind, resolveTarget, readTime, _state, OPEN, CLOSE, SKIP, DWELL, LONG, LINGER, READ_MAX } from './tooltip.js'
+import { attach, firstElement, nameOf, resolveBox, resolveKind, resolveTarget, readTime, _state, OPEN, CLOSE, SKIP, DWELL, LONG, LINGER, READ_MAX } from './tooltip.js'
 
 beforeAll(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-test-open', '') }
@@ -428,6 +428,124 @@ describe('táctil (#385)', () => {
     ctrl.dispatchEvent(ev('pointerenter', { pointerType: 'touch' }))
     vi.advanceTimersByTime(OPEN * 2)
     expect(isOpen(node)).toBe(false)
+  })
+})
+
+// Caja visible (#395): el ancla es la caja marcada con data-g-tooltip-box; foco y ARIA siguen en el elemento resuelto
+/** Una caja `[data-g-tooltip-box]` con prefijo, el campo (ctrl), un botón propio y, si se pide, un control ajeno con su
+ * propio tooltip; el nodo del campo va detrás de la raíz */
+function makeBox({ foreignCtl = false } = {}) {
+  document.body.insertAdjacentHTML('beforeend', `<div class="root"><div class="box" data-g-tooltip-box><span class="pre" aria-hidden="true">$</span><input class="ctrl"><button type="button" class="own">Mostrar</button>${foreignCtl ? '<button type="button" class="inner" data-g-tooltip></button><div class="g-tooltip inner-node"><span class="in">x</span></div>' : ''}</div></div>`)
+  const root = document.body.lastElementChild
+  const node = document.createElement('div')
+  node.className = 'g-tooltip'
+  root.after(node)
+  const box = root.querySelector('.box')
+  const ctrl = root.querySelector('.ctrl')
+  const inst = attach(ctrl, node, { box })
+  live.push(inst)
+  return { root, box, ctrl, node, inst, $: (s) => root.querySelector(s) }
+}
+const rect = (map) => vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+  const r = map(this) || { left: 0, top: 0, width: 0, height: 0 }
+  return { ...r, x: r.left, y: r.top, right: r.left + r.width, bottom: r.top + r.height, toJSON() {} }
+})
+/** pointerover en el elemento (con burbuja) y, si entra en la caja desde fuera, pointerenter en la caja */
+const over = (el, box, fromOutside = false) => {
+  el.dispatchEvent(ev('pointerover', { bubbles: true }))
+  if (fromOutside) box.dispatchEvent(ev('pointerenter'))
+}
+
+describe('caja visible (#395)', () => {
+  it('resolveBox: la caja marcada más cercana dentro del hijo; la marca fuera del hijo se ignora; sin marca, el propio', () => {
+    document.body.innerHTML = '<div data-g-tooltip-box id="out"><div id="first"><div data-g-tooltip-box id="box"><input id="i"></div></div></div><button id="b" data-g-tooltip-box></button><div data-g-tooltip-box id="o2"><button id="c"></button></div>'
+    const $ = (id) => document.getElementById(id)
+    expect(resolveBox($('i'), $('first')).id).toBe('box')
+    // La caja es el primer elemento del hijo
+    expect(resolveBox($('i'), $('box')).id).toBe('box')
+    // El propio elemento resuelto marcado
+    expect(resolveBox($('b'), $('b')).id).toBe('b')
+    // Marca en un ancestro fuera del hijo: el elemento resuelto
+    expect(resolveBox($('c'), $('c')).id).toBe('c')
+    expect(resolveBox(null, null)).toBe(null)
+    const w = $('first')
+    const t = document.createTextNode('')
+    w.prepend(t)
+    expect(firstElement(t, null).id).toBe('box')
+  })
+  it('posición, pestaña y puntero en la caja; ARIA y foco en el elemento resuelto', () => {
+    vi.useFakeTimers()
+    rect((el) => (el.matches('.box') ? { left: 100, top: 50, width: 240, height: 40 } : el.matches('.ctrl') ? { left: 113, top: 55, width: 180, height: 30 } : null))
+    const { box, ctrl, node, $ } = makeBox()
+    // Puntero sobre el prefijo (fuera del <input>): abre el del campo
+    over($('.pre'), box, true)
+    vi.advanceTimersByTime(OPEN)
+    expect(isOpen(node)).toBe(true)
+    expect(node.style.getPropertyValue('--_tooltip-aw')).toBe('240px')
+    expect(node.style.getPropertyValue('--_tooltip-ah')).toBe('40px')
+    // Pasar del prefijo al botón propio de la caja sigue siendo la caja: no cierra
+    over($('.own'), box)
+    vi.advanceTimersByTime(CLOSE * 2)
+    expect(isOpen(node)).toBe(true)
+    // Pulsar en la caja (fuera del <input>) es usar: cierra; pulsar fuera de la caja también cuenta como fuera
+    $('.pre').dispatchEvent(ev('pointerdown'))
+    expect(isOpen(node)).toBe(false)
+    box.dispatchEvent(ev('pointerleave'))
+    // El foco del botón propio no abre (el foco escucha en el elemento resuelto); el del campo sí
+    key('Tab', document.body)
+    $('.own').focus()
+    expect(isOpen(node)).toBe(false)
+    key('Tab', document.body)
+    ctrl.focus()
+    expect(isOpen(node)).toBe(true)
+  })
+  it('pulsar fuera: dentro de la caja no es fuera (lo trata la caja); fuera de ella cierra', () => {
+    vi.useFakeTimers()
+    const { box, ctrl, node, $ } = makeBox()
+    key('Tab', document.body)
+    ctrl.focus()
+    expect(isOpen(node)).toBe(true)
+    document.body.dispatchEvent(ev('pointerdown'))
+    expect(isOpen(node)).toBe(false)
+  })
+  it('el más interno gana el puntero: un control ajeno con su tooltip dentro de la caja no abre ni mantiene el exterior', () => {
+    vi.useFakeTimers()
+    const { box, node, $ } = makeBox({ foreignCtl: true })
+    // Entra directamente sobre el ajeno: no abre
+    over($('.inner'), box, true)
+    vi.advanceTimersByTime(OPEN * 2)
+    expect(isOpen(node)).toBe(false)
+    // Del ajeno al prefijo: ahora sí (la caja)
+    over($('.pre'), box)
+    vi.advanceTimersByTime(OPEN)
+    expect(isOpen(node)).toBe(true)
+    // Al ajeno (o a su nodo): no lo mantiene
+    over($('.in'), box)
+    vi.advanceTimersByTime(CLOSE)
+    expect(isOpen(node)).toBe(false)
+    // Movimiento y pulsación sobre el ajeno no cuentan
+    $('.inner').dispatchEvent(ev('pointerdown'))
+    expect(_state.blockClick).toBe(null)
+  })
+  it('táctil: la pulsación larga en la caja muestra el del campo y bloquea el clic en la caja', () => {
+    vi.useFakeTimers()
+    const { box, node, $ } = makeBox()
+    $('.pre').dispatchEvent(ev('pointerdown', { pointerType: 'touch', bubbles: true }))
+    vi.advanceTimersByTime(LONG)
+    expect(isOpen(node)).toBe(true)
+    expect(_state.blockClick).toBe(box)
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    $('.own').dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
+  })
+  it('opt.box que no contiene al elemento resuelto: se ignora (ancla = elemento)', () => {
+    vi.useFakeTimers()
+    document.body.innerHTML = '<div class="other" data-g-tooltip-box></div><button class="c"></button><div class="g-tooltip"></div>'
+    const ctrl = document.querySelector('.c')
+    const node = document.querySelector('.g-tooltip')
+    const inst = attach(ctrl, node, { box: document.querySelector('.other') })
+    live.push(inst)
+    expect(inst.box).toBe(ctrl)
   })
 })
 

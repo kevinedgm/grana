@@ -23,7 +23,9 @@
     .tt-actions { display: flex; gap: 2px; }
     .tt-scroll { block-size: 120px; inline-size: 200px; overflow: auto; border: var(--g-border-width) dashed var(--g-color-border); }
     .tt-scroll-in { block-size: 400px; padding: 40px 16px; }
-    .tt-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+    .tt-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 260px)); gap: 16px; align-items: start; justify-items: start; }
+    .tt-fields > :not(:where(.g-tooltip)) { inline-size: 100%; }
+    .tt-fields > .g-btn { inline-size: auto; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
     .col { display: grid; gap: 16px; max-width: 320px; }
     .rg-demo { display: grid; gap: 24px; max-inline-size: 640px; }
@@ -1943,11 +1945,18 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <g-tooltip text="Solo para avisos de la cuenta" kind="description"><g-input id="tt-f-input" label="Correo" hint="Nunca lo compartimos"></g-input></g-tooltip>
       <g-tooltip text="Lo lee el responsable" kind="description"><g-textarea id="tt-f-textarea" label="Nota"></g-textarea></g-tooltip>
       <g-tooltip text="País del envío" kind="description"><g-select id="tt-f-select" label="País" :options="selCountries"></g-select></g-tooltip>
-      <g-tooltip text="Peso en kilos" kind="description"><g-number-field id="tt-f-number" label="Peso" locale="es"></g-number-field></g-tooltip>
+      <g-tooltip text="Peso en kilos" kind="description"><g-number-field id="tt-f-number" label="Peso" locale="es" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field></g-tooltip>
       <g-tooltip text="Código CIE-10" kind="description"><g-combobox id="tt-f-combobox" label="Diagnóstico" :options="[]" :labels="cb.labels"></g-combobox></g-tooltip>
       <g-tooltip text="Día de la cita" kind="description"><g-date-picker id="tt-f-date" label="Fecha" locale="es" :labels="dpLabels"></g-date-picker></g-tooltip>
       <g-tooltip text="Por correo y en la app" kind="description"><g-switch id="tt-f-switch" label="Avisos"></g-switch></g-tooltip>
       <g-tooltip text="Obligatorio para continuar" kind="description"><g-checkbox id="tt-f-checkbox" label="Acepto las condiciones"></g-checkbox></g-tooltip>
+      <!-- Caja visible (#395): la pestaña mide la caja (data-g-tooltip-box), no el <input>; el puntero sobre el prefijo,
+           el sufijo, «Mostrar» o −/+ muestra el del campo; el GBtn del action conserva el suyo (#397) -->
+      <g-tooltip text="Importe con impuestos" kind="description"><g-input id="tt-f-money" label="Importe" prefix="$" suffix="MXN"><template #action><g-btn variant="outline" id="tt-f-action" tooltip="Recalcula el importe">Calcular</g-btn></template></g-input></g-tooltip>
+      <g-tooltip text="Mínimo 12 caracteres" kind="description"><g-input id="tt-f-pass" label="Contraseña" type="password" show-password-label="Mostrar" hide-password-label="Ocultar"></g-input></g-tooltip>
+      <g-tooltip text="Busca por nombre o código" kind="description"><g-combobox id="tt-f-palette" appearance="palette" label="Medicamento" :options="[]" :labels="cb.labels"></g-combobox></g-tooltip>
+      <g-tooltip text="PDF o imagen de hasta 5 MB" kind="description"><g-file-field id="tt-f-file" label="Receta" accept=".pdf,image/*" :labels="ff.labels"></g-file-field></g-tooltip>
+      <g-tooltip text="Abre el expediente completo"><g-btn variant="outline" href="#sec-tooltip" id="tt-f-link">Expediente</g-btn></g-tooltip>
       <g-tooltip text="Abre la ayuda del formulario" kind="description"><g-helper id="tt-f-helper" aria-label="Ayuda" content-label="Ayuda" close-label="Cerrar"><template #content>Completa los campos obligatorios.</template></g-helper></g-tooltip>
       <g-input-group id="tt-f-group" label="Teléfono">
         <g-input-group-input principal></g-input-group-input>
