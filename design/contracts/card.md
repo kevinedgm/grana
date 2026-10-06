@@ -186,7 +186,7 @@ Orden del DOM = orden de lectura = orden de foco:
 - **Principal:** `aria-describedby` → descripción (si existe). `aria-pressed` solo en `toggle`; **sin `aria-selected`** (no es un `option` ni un `tab`). En `select`, el `<input>` nativo aporta `checked`/`aria-checked`.
 - **Disabled:** el `<a>` sin `href` con `role="link"` y `aria-disabled="true"`; los `button` y `input`, `disabled`; el botón del menú va `disabled`; **`g-card__content`, `g-card__actions`, `g-card__footer` y `g-card__more` pasan a `inert`** (sin foco ni interacción, como el cuerpo de `GWidget`); la descripción sigue enlazada por `aria-describedby` (se lee aunque esté `inert`).
 - **Menú:** botón con `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`; el nombre es `labels.menu` (en `aria-label`) más el título, mediante `aria-labelledby="ID-menu ID-title"` («Acciones de Ingresos»).
-- **Solo iconos en `actions`:** el consumidor pone `aria-label` (aviso en desarrollo si un `GBtn` de solo icono no lo tiene; lo verifica bruno sobre el slot). Tooltip: sin tooltip propio en v0.1 (#113); no se resuelve aquí.
+- **Solo iconos en `actions`:** el consumidor pone `aria-label` (aviso en desarrollo si un `GBtn` de solo icono no lo tiene; lo verifica bruno sobre el slot). Tooltip: la aplicación envuelve cada acción en `GTooltip` o usa `<GBtn icon tooltip="…">` (`tooltip.md`, #380, #390); la tarjeta no añade uno propio. El tooltip vive en la capa superior: la raíz con `overflow: clip` no lo recorta.
 - **Carga:** `aria-busy="true"` en la raíz y la región `role="status"` (`g-card__live`), que **existe desde el montaje**, anuncia `labels.loading` al empezar (y `labels.loaded` al terminar, si se da). El esqueleto es decorativo (`aria-hidden`).
 - **Estados de aviso:** `role="alert"` solo cuando el `error` aparece **después de montar** (al montar con él, `role="status"`); `role="status"` para los demás.
 - **Decorativos** (`aria-hidden`): `lead`, escrim, marcas, iconos, `chevron-right` de «actual», media decorativa. Media informativa: `role="img"` + nombre.
@@ -431,6 +431,6 @@ En `icons.md` §4 (ya en la librería, `packages/vue/scripts/icons.json`, #137):
 ## Fuera de v0.1 (diferido, no abierto al usuario)
 
 - **`GCardGroup`** (`v-model`, mínimo/máximo, casilla maestra): decisión del usuario (#124); mientras tanto, radios con `name` y `role="radiogroup"` del consumidor y `modelValue` por tarjeta.
-- **Menú contextual de clic derecho**, **`subgrid`**, tooltip de solo iconos (#113), tipos de celda y de contenido dentro de la tarjeta.
+- **Menú contextual de clic derecho**, **`subgrid`**, tipos de celda y de contenido dentro de la tarjeta.
 - **Migrar `GWidget` sobre `GCard`:** se evaluará cuando `GCard` esté verificada (#125).
 - **Preguntas de producto abiertas: ninguna.**

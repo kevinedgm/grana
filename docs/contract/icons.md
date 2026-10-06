@@ -63,7 +63,7 @@ Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y trián
   - **Sin token de tamaño de icono** (#205, §9).
 - **Grosor:** el de Lucide (2 en una caja de 24).
 - **Giro:** los componentes que lo necesitan ya lo resuelven en su estado `loading` (`loader-circle`); un icono suelto no gira.
-- **`title`:** no se emite `<title>` (tooltip nativo inconsistente entre navegadores y lectores; el nombre va en `aria-label`). Un tooltip, cuando exista el componente (#113), se pone en el control, no en el icono.
+- **`title`:** no se emite `<title>` (tooltip nativo inconsistente entre navegadores y lectores; el nombre va en `aria-label`). El tooltip es **`GTooltip`** (`design/contracts/tooltip.md`, #380): se pone en el **control** (`GBtn icon` con `tooltip`, o envuelto en `GTooltip`), nunca en el icono; un `GIcon` con `label` no es enfocable y `GTooltip` no se activa sobre él (aviso en desarrollo).
 
 ### 2.3 Anatomía del `svg`
 
@@ -325,4 +325,4 @@ Pruebas de bruno; **fallan** si:
 - **Token de tamaño de icono: cerrado sin token (#205).** Cada hueco sigue con su alias local en `em` (o en `space` si es una caja fija); `GBtn` gana el suyo (`--_icon`). Un token global no tendría un valor válido para todos los huecos (16,1px en `GTabs`, 17,7px en `GMenu`, 20px en `GSidebar` con el mismo texto de 14px) y daría a la aplicación una segunda forma de pisar el hueco además de la clase (#204).
 - **CLI `grana icons add`** y uso **sin empaquetador** (UMD/CDN importando `lucide-static` desde una CDN): solo si hay demanda.
 - **Tipos de TypeScript** para los nombres (autocompletado).
-- **Tooltip** para iconos solos: cuando exista el componente (#113), en el control.
+- ~~**Tooltip** para iconos solos~~: resuelto por `GTooltip` (`tooltip.md`, #380, #390), en el control. Queda diferido el motor interno en `GTabs`, `GRadioGroup` y el riel de `GSidebar` (#392).

@@ -8,7 +8,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 ## Principios
 
 - **Orientación primero.** El item activo (`aria-current="page"`) y su **rama** son reconocibles en los cuatro formatos; un solo estado de navegación (destino actual y ramas abiertas) se comparte entre ellos.
-- **El nombre vive en el DOM.** Las etiquetas del riel y de los items inactivos de la píldora se ocultan **visualmente**, no se quitan; el tooltip es ayuda visual y `aria-hidden`, **nunca la única fuente del nombre**.
+- **El nombre vive en el DOM.** Las etiquetas del riel y de los items inactivos de la píldora se ocultan **visualmente**, no se quitan; el tooltip es ayuda visual y `aria-hidden`, **nunca la única fuente del nombre**. La pista del riel (`g-sidebar__tip`) pasará al motor interno de `GTooltip` en modo `none` (misma forma, mismos tiempos 350/600) en un encargo aparte (#392, `tooltip.md`).
 - **No depende del puntero.** Un panel flotante se abre con clic, Enter, Espacio o →; el foco solo no lo abre; Esc lo cierra y devuelve el foco.
 - **Profundidad contenida:** grupos → items → **un nivel** de hijos.
 - **Presenta y emite intención.** El destino actual es un prop (`modelValue`); el componente emite `navigate` (con el evento nativo, cancelable) y `update:modelValue`. La navegación real (router, `href`) es de la aplicación.

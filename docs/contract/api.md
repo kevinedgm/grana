@@ -90,6 +90,12 @@ Valen para todo panel que se coloca junto a un ancla y sigue al desplazar la pá
 
 Los umbrales derivan de `space`; no hay tokens nuevos. Se verifica con `tests/panel-estable.spec.mjs` (vaivén de ±20px sin cambios de lado y cierre al salir del visor, en los tres motores).
 
+**`GTooltip`** (`design/contracts/tooltip.md`, #386) sigue las reglas **1** y **3** con una salvedad: la regla 1 en su forma **estricta** (el lado se decide al abrir y no cambia mientras está abierto, sin histéresis; se reevalúa al reabrir y al viajar de un control a otro), con `followFrame` y `setVar`; la 3 con `anchorGone`. Las reglas **2** (`--_max`) y **4** (lista) **no aplican**: el tooltip no tiene alto máximo ni lista. Sin hoja móvil.
+
+## Nodos hermanos de `GTooltip` (#383)
+
+`GTooltip` no añade envoltorio: renderiza su nodo `role="tooltip"` (`.g-tooltip`, `popover="manual"`) **inmediatamente después** de la raíz del control que envuelve (también con `<GBtn tooltip>`, #390). Cerrado no ocupa sitio, pero **cuenta para los selectores estructurales** (`:last-child`, `:only-child`, `:nth-child()` de los siguientes, `:nth-last-child()`, `+` y `~` desde el control). Regla para el CSS de Grana que selecciona por estructura **hijos que pone la aplicación**: ignorar `.g-tooltip` (`:nth-last-child(1 of :not(.g-tooltip))` en lugar de `:last-child`; en una combinación adyacente, también la variante `A + .g-tooltip + B`, o `:has()`). Un `:first-child` no se ve afectado. Revisión inicial y archivos afectados: `tooltip.md` §«Nodo hermano». Los selectores sobre piezas internas de un componente no cambian mientras esas piezas no lleven tooltip.
+
 ## Iconos en los componentes: «dato → nombre; plantilla → slot» (#202)
 
 Contrato de iconos: `docs/contract/icons.md` v0.2 (`GIcon` público, registro `createIcons`, solo Lucide). Regla única para todos los componentes:

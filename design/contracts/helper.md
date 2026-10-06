@@ -58,6 +58,7 @@ Contenedor que fija el contexto de posición de los `GHelper` flotantes que cont
 - **`contentLabel`:** nombre accesible del contenido (`aria-label` del diálogo no modal) y **título de la hoja**. Sin valor por defecto; sin él, `console.warn` en desarrollo.
 - **`closeLabel`:** nombre del botón de cierre de la hoja (`GDialog`). Sin valor por defecto; con `adaptive` y sin él, `console.warn` en desarrollo.
 - **Resto de atributos** (`class`, `style`, `data-*`, escuchas): van a la raíz (`span.g-helper`). Los `aria-*` del botón se controlan con las props.
+- **Excepción para `GTooltip`** (#391, L21 de `design/lab/tooltip/r01/`): `aria-labelledby`, `aria-describedby`, `aria-keyshortcuts` y `data-g-tooltip` recibidos en `$attrs` van **al botón** `g-helper__trigger`, no a la raíz (así un `GTooltip` que envuelve un `GHelper` nombra o describe el disparador; `tooltip.md`). El resto sigue en la raíz. Con `aria-labelledby` recibido, el aviso por `ariaLabel` ausente no salta (el nombre llega por la referencia). El tooltip no aparece con el `GHelper` abierto (`aria-expanded="true"`).
 
 ## Estructura accesible
 
