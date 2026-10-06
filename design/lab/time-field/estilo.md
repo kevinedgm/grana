@@ -39,13 +39,15 @@ Con el tema propio (`space` 5): alto 30 · 35 · 45 · 55 · 65; lectura–hora 
 
 ## Mínimo de referencia (#410), `md`, `space` 4
 
+> **Cifras vigentes (#416, hallazgo 5):** los mínimos reales, con Instrument Sans servida, son **180px** (12 h) y **65px** (24 h). Las referencias 186/66 del banco se midieron sin `dist/fonts.css`; las celdas de la tabla de abajo (texto de referencia, copias) y el tema propio (203/74) son de aquel banco sin fuente.
+>
 > **Auditoría (paso 5):** estas cifras se midieron sin `dist/fonts.css` (el banco de estilo no carga la fuente servida). Con Instrument Sans servida, el componente real publica **180px** en 12 h y **65px** en 24 h (`md`, `space` 4), comprobados al píxel en una `GFormRow` real; ver `auditoria.md`.
 
 | Campo | Mínimo | Texto de referencia | a. m./p. m. (copias) |
 | --- | --- | --- | --- |
-| 12 h `es-MX` | **186px** | «12:59 p.m.» 71,77px (+ 1px del cursor) | 92,78px (con el peso de pulsado y el borde final) |
-| 12 h `es-MX`, **solo lectura** | **186px** (igual: desbloquear no reparte la fila) | ídem | no se pintan pero cuentan |
-| 24 h `es` | **66px** (por debajo de cualquier clase de tamaño: no cambia nada) | «10:59» 39,69px | — |
+| 12 h `es-MX` | **180px** con la fuente servida (186px sin `dist/fonts.css`) | «12:59 p.m.» 71,77px (+ 1px del cursor) | 92,78px (con el peso de pulsado y el borde final) |
+| 12 h `es-MX`, **solo lectura** | **180px** (186px sin la fuente; igual: desbloquear no reparte la fila) | ídem | no se pintan pero cuentan |
+| 24 h `es` | **65px** con la fuente servida (66px sin ella; por debajo de cualquier clase de tamaño: no cambia nada) | «10:59» 39,69px | — |
 | Tema propio (`space` 5, borde 2px): 12 h · 24 h | 203px · 74px | | 103,78px |
 
 **Por posiciones**, como pide #410: lo de antes de la celda (borde + relleno + prefijo) + el texto de referencia más ancho con el hueco del cursor + lo de después **sin la lectura y sin el hueco libre** (sufijo, `output` y sus separaciones; con a. m./p. m., el `gap` que los separa) + las copias de a. m./p. m. de `__measure`. Comprobado al píxel: con ese ancho la hora más ancha cabe entera y la lectura mide 0; con 1px menos (descontando el peso de pulsado que las copias cuentan en las dos mitades, < 1px), ya no. kiwi estimó ≈ 224px para su prototipo de C con `--g-form-min: 56`; el intrínseco real es 186px y el efectivo lo sube la clase o `--g-form-min`.

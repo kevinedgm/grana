@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTimeField",
   "tag": "g-time-field",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Campo para una hora del reloj (cita, toma, inicio de turno) que se escribe como se dice («930», «9h30», «9 noche»), vuelve en palabras pegadas al número y ofrece la otra lectura cuando puede ser de mañana o de noche. Modelo «HH:mm[:ss]» o null (hora de pared, sin fecha ni zona). Compone GInput.",
   "contract": "design/contracts/time-field.md",

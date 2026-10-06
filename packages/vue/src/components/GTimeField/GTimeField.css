@@ -32,6 +32,12 @@
   cursor: not-allowed;
 }
 
+/* Fuera de una fila y sin block (#416): el mínimo medido por posiciones es el suelo de la raíz, acotado al 100 % del
+   contenedor. La variable y data-fit los escribe el .vue una vez medido; sin ellos la regla no existe (sin respaldo) */
+.g-time-field[data-fit] {
+  min-inline-size: min(100%, var(--_min-inline));
+}
+
 /* ---------- A1 · La celda del valor: espejo + campo en la misma celda de rejilla ---------- */
 /* La celda mide el TEXTO (el espejo), no la caja: la lectura, el sufijo y el output la siguen al gap de la caja
    (calc(--_gap × --_density) de GInput: space × 2 en md, × 1 en xs/sm, × 3 en xl) y el hueco libre queda detrás, antes

@@ -64,7 +64,8 @@ const bwOf = (qs) => (/propio/.test(qs) ? 2 : 1)
   s(!vars.filter((v) => v.startsWith('--g-') && !defined.has(v)).length, 'CSS: tokens que no existen en defaults.css')
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   const fromInput = ['--_h', '--_fs', '--_lh', '--_radius', '--_focus', '--_gap', '--_density']
-  s(!vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v)).length && [...own].every((v) => v.startsWith('--_tf-')), 'CSS: alias --_* ajenos')
+  const fromVue = ['--_min-inline'] // la escribe GTimeField.vue en la raíz (#416); la regla [data-fit] solo existe con ella
+  s(!vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v) && !fromVue.includes(v)).length && [...own].every((v) => v.startsWith('--_tf-')), 'CSS: alias --_* ajenos')
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
   s(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px)
   const kf = [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1])
@@ -201,7 +202,10 @@ const markup = () => {
     e(!cell.getAttribute('style') && !f.getAttribute('style'), 'estilo en línea en la celda o el campo')
     const m = root.querySelector('.g-time-field__measure')
     const inRow = root.parentElement?.classList.contains('g-form-row')
-    e(Boolean(m) === Boolean(inRow), `__measure ${m ? 'fuera' : 'ausente dentro'} de una GFormRow`)
+    // #416: fuera de una fila y sin block también se mide (el mínimo es el suelo de la raíz, con data-fit y --_min-inline)
+    const wantsMeasure = Boolean(inRow) || !root.classList.contains('g-input--block')
+    e(Boolean(m) === wantsMeasure, `__measure ${m ? 'presente' : 'ausente'} con ${inRow ? 'fila' : root.classList.contains('g-input--block') ? 'block' : 'ancho por defecto'}`)
+    e(root.hasAttribute('data-fit') === Boolean(m && !inRow) && Boolean(root.style.getPropertyValue('--_min-inline')) === root.hasAttribute('data-fit'), `data-fit o --_min-inline mal puestos (${root.hasAttribute('data-fit')}, ${m ? 'con' : 'sin'} medidor, ${inRow ? 'fila' : 'fuera'})`)
     if (m) {
       e(m.parentElement === ctl && m.getAttribute('aria-hidden') === 'true', '__measure no es hijo de la caja o sin aria-hidden')
       e(m.firstElementChild && !m.firstElementChild.className && /\n/.test(m.firstElementChild.textContent), '__measure: el texto de referencia no es el primer hijo')
@@ -304,6 +308,33 @@ const SAMPLER = ([id, ms]) => new Promise((res) => {
     if (performance.now() - t0 < ms) requestAnimationFrame(frame); else res(out)
   })()
 })
+
+
+// Fuera de una fila y sin block (#416): el mínimo medido es el suelo de la raíz, acotado al contenedor. La hora más ancha en
+// cada campo; el mínimo esperado por posiciones se calcula aquí aparte, sin leer --_min-inline
+const FIT = async () => {
+  const { raf2 } = window.__lib
+  const out = {}
+  for (const id of ['fit-12', 'fit-24s']) {
+    const field = document.getElementById(id), tf = field.closest('.g-time-field'), cell = tf.querySelector('.g-time-field__value')
+    const lines = tf.querySelector('.g-time-field__measure').firstElementChild.textContent.split('\n')
+    const seconds = /:\d\d:\d\d/.test(lines[0])
+    let need = 0, idx = 0
+    lines.forEach((l, i) => { const sp = document.createElement('span'); sp.className = 'g-time-field__mirror'; sp.textContent = l; sp.style.cssText = 'grid-area:1/1;justify-self:start'; cell.append(sp); const w = sp.getBoundingClientRect().width; sp.remove(); if (w > need) { need = w; idx = i } })
+    window.__v[id] = String(idx).padStart(2, '0') + ':59' + (seconds ? ':59' : '')
+    await raf2(); await raf2(); await raf2()
+    const ctl = tf.querySelector('.g-input__control'), cs = getComputedStyle(ctl)
+    const copies = [...tf.querySelectorAll('.g-time-field__measure .g-time-field__half')].reduce((a, k) => a + k.getBoundingClientRect().width, 0)
+    const expected = Math.ceil(cell.getBoundingClientRect().left - ctl.getBoundingClientRect().left + need + (copies ? parseFloat(cs.columnGap) + copies : parseFloat(cs.paddingRight) + parseFloat(cs.borderRightWidth)))
+    const host = document.getElementById('fit-host'), hs = getComputedStyle(host)
+    const cont = host.getBoundingClientRect().width - parseFloat(hs.paddingLeft) - parseFloat(hs.paddingRight) - 2 * parseFloat(hs.borderLeftWidth)
+    out[id] = { root: +tf.getBoundingClientRect().width.toFixed(2), expected, cont: +cont.toFixed(2), fit: tf.hasAttribute('data-fit'), varr: tf.style.getPropertyValue('--_min-inline'), clips: field.scrollWidth - field.clientWidth, value: field.value }
+  }
+  const gin = document.getElementById('fit-in').closest('.g-input')
+  out.ref = { root: +gin.getBoundingClientRect().width.toFixed(2) }
+  out.overflow = document.documentElement.scrollWidth - innerWidth
+  return out
+}
 
 // Barrido del mínimo publicado (#410) en la GFormRow real: la hora más ancha en el campo, el contenedor de 1px en 1px
 const SWEEP = async ([rowId, hi, lo]) => {
@@ -757,12 +788,8 @@ for (const engine of ENGINES) {
     const g = await p2.evaluate(geometry)
     ok(g.overflow <= 0, tag(`${label}: desborde de la página ${g.overflow}`))
     ok(!g.overlap.length, tag(`${label}: solapes ${g.overlap}`))
-    // Hallazgo 2 (abierto, lima → bruno): con el texto al 200 % un 12 h con el ancho por defecto de GInput (space × 60, en
-    // px) no cabe; se anota. Cualquier otro campo que no quepa es fallo
-    const h12def = await p2.evaluate(() => [...document.querySelectorAll('.g-time-field--h12:not(.g-input--block):not(.is-readonly)')].filter((r) => !r.closest('.g-form-row')).map((r) => r.querySelector('.g-time-field__field').id))
-    const other = g.scrolls.filter((x) => !h12def.includes(x.split(' ')[0]))
-    ok(!other.length, tag(`${label}: la hora no cabe ${other}`))
-    if (g.scrolls.length > other.length) notes.push(`${engine} ${label}: 12 h con el ancho por defecto (sin block ni fila) no caben: ${g.scrolls.filter((x) => !other.includes(x)).join(', ')}`)
+    // Hallazgo 2 (cerrado, #416): sin tolerancia, ninguna hora recortada, tampoco un 12 h fuera de una fila con el ancho por defecto
+    ok(!g.scrolls.length, tag(`${label}: la hora no cabe ${g.scrolls}`))
     // Δ0 de GTimeField con GInput en cada fila; GDatePicker vacío aparte (hallazgo 3, de su CSS, no de este componente)
     for (const r of g.rows) for (const l of r.lines) {
       const mine = l.filter((k) => !/fecha/.test(k.c))
@@ -774,6 +801,35 @@ for (const engine of ENGINES) {
     const fs = await p2.evaluate(() => parseFloat(getComputedStyle(document.getElementById('s-rest')).fontSize))
     if (qs.includes('text')) ok(fs >= 27.9, tag(`${label}: el texto no crece (${fs}px)`))
     await ctx.close()
+  }
+
+  /* 13b · Fuera de una fila y sin block (#416): 240px exactos a texto normal (Δ0 con un GInput vecino), el mínimo medido a texto
+     al 200 % (hora entera, raíz ≥ mínimo por posiciones y ≤ contenedor) y sin desborde en 320px; con block o dentro de una
+     fila, ni data-fit ni variable */
+  for (const [label, qs, vp] of [['normal', '', { width: 1280, height: 900 }], ['normal auditoría', '?theme=auditoria', { width: 1280, height: 900 }], ['texto 200 %', '?text=200', { width: 1280, height: 900 }], ['texto 200 % auditoría', '?text=200&theme=auditoria', { width: 1280, height: 900 }], ['texto 200 % 320px', '?text=200', { width: 320, height: 800 }], ['texto 100 % 320px', '', { width: 320, height: 800 }]]) {
+    const ctx = await browser.newContext({ viewport: vp })
+    const p3 = await ctx.newPage(); watch(p3); await go(qs, p3)
+    const f = await p3.evaluate(FIT)
+    const wide = qs.includes('text=200'), tag3 = (m) => tag(`fit ${label}: ${m}`)
+    for (const id of ['fit-12', 'fit-24s']) {
+      const r = f[id]
+      ok(r.fit && /^\d+(\.\d+)?px$/.test(r.varr), tag3(`${id} sin data-fit o variable ${JSON.stringify(r)}`))
+      // Con el mínimo por encima del contenedor (320px y texto al 200 %) la raíz se acota al 100 %: sin desborde, la hora cede
+      const capped = r.expected > r.cont + 0.5
+      ok(capped || r.clips <= 1, tag3(`${id} la hora no cabe entera (${r.clips}px, «${r.value}»)`))
+      ok(r.root >= Math.min(r.expected, r.cont) - 0.51 && r.root <= r.cont + 0.01, tag3(`${id} la raíz mide ${r.root}px, mínimo por posiciones ${r.expected}, contenedor ${r.cont}`))
+      if (!wide && vp.width > 400) ok(near(r.root, f.ref.root, 0.01) && (qs.includes('auditoria') || near(r.root, 240, 0.01)), tag3(`${id} mide ${r.root}px y el GInput vecino ${f.ref.root}px (esperado 240 a texto normal)`))
+    }
+    ok(f.overflow <= 0, tag3(`desborde de la página ${f.overflow}`))
+    if (engine === 'chromium' && vp.width <= 400 && wide) notes.push(`${engine} fit ${label}: el mínimo (${f['fit-12'].expected}px en 12 h) supera el contenedor (${f['fit-12'].cont}px): la raíz se acota al 100 % (${f['fit-12'].root}px), sin desborde, y la hora cede ${f['fit-12'].clips}px (límite aceptado de #416)`)
+    if (engine === 'chromium' && vp.width > 400) notes.push(`${engine} fit ${label}: 12 h ${f['fit-12'].root}px (mínimo ${f['fit-12'].expected}), 24 h con segundos ${f['fit-24s'].root}px (mínimo ${f['fit-24s'].expected}), GInput ${f.ref.root}px, contenedor ${f['fit-12'].cont}px`)
+    await ctx.close()
+  }
+  {
+    // Con block o dentro de una fila no hay data-fit ni variable
+    await go('')
+    const bad = await page.evaluate(() => [...document.querySelectorAll('.g-time-field')].filter((r) => r.closest('.g-input--block, .g-form-row') && (r.hasAttribute('data-fit') || r.style.getPropertyValue('--_min-inline'))).map((r) => r.querySelector('.g-time-field__field').id))
+    ok(!bad.length, tag(`fit: con block o en una fila hay data-fit o variable ${bad}`))
   }
 
   /* 14 · forced-colors (solo Chromium lo emula) */
