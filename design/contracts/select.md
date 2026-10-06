@@ -212,6 +212,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-disabled`, `is-readonly`, `is-invalid`, `is-loading` | Raíz | Según las props |
 | `g-select__label`, `g-select__required` | Etiqueta; marca | Si hay `label`; `required` |
 | `g-select__control` | Caja | Siempre |
+| `data-g-tooltip-box` | `g-select__control` | Siempre (estático; ancla de `GTooltip`, `tooltip.md` §«Caja visible», #395) |
 | `g-select__button` | Botón `combobox` | Siempre |
 | `g-select__value` | Valor mostrado | Siempre |
 | `g-select__value--placeholder` | Valor mostrado | Sin opción elegida |

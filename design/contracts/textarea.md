@@ -134,6 +134,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-textarea__label` | `label` | Si hay `label` o slot `label` |
 | `g-textarea__required` | `span` `aria-hidden` | `required` |
 | `g-textarea__control` | Caja | Siempre |
+| `data-g-tooltip-box` | `g-textarea__control` | Siempre (estático; ancla de `GTooltip`, `tooltip.md` §«Caja visible», #395) |
 | `g-textarea__field` | `<textarea>` | Siempre |
 | `g-textarea__loader` | `span` `aria-hidden` | Solo con `loading` |
 | `g-textarea__messages` | Contenedor de ayuda y contador | Si hay `hint`, slot `hint` o `counter` |

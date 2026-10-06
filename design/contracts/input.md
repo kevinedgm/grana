@@ -171,6 +171,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-input--has-action` | Raíz | Solo con el slot `action` |
 | `g-input__row` | Contenedor de caja y acción | Siempre |
 | `g-input__control` | Caja | Siempre |
+| `data-g-tooltip-box` | `g-input__control` | Siempre (estático; ancla de `GTooltip`: su pestaña mide la caja y no el `<input>`; `tooltip.md` §«Caja visible», #395; lo heredan `GNumberField` y `GCombobox`) |
 | `g-input__action` | Envoltura del slot `action` | Solo con el slot `action` |
 | `g-input__prepend` / `g-input__append` | Envoltura del slot | Si hay slot |
 | `g-input__field` | `<input>` | Siempre |

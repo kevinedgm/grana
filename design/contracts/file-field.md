@@ -501,6 +501,7 @@ Bruno emite estas; coco las estiliza.
 | `g-file-field__error` | Texto oculto (`hidden`) del fallo | `error` |
 | `g-file-field__retry`, `__remove` | Los `GBtn` de la ficha | Según estado; editable |
 | `g-file-field__add`, `__input`, `__add-icon`, `__action`, `__add-hint` | Pieza «Adjuntar» y el control | Siempre (`__add-hint` **solo** vacío y editable: su presencia oculta a la vista la pista del pie, `:has`) |
+| `data-g-tooltip-box` | `g-file-field__add` | Siempre (estático; ancla de `GTooltip`: el `<input type="file">` es texto oculto y mediría 1px; `tooltip.md` §«Caja visible», #395) |
 | `g-file-field__target`, `__target-text` | Destino | Siempre en el DOM; visible con `is-awake` |
 | `g-file-field__foot`, `__meta`, `__hint`, `__status` | Pie | Siempre (`__status` con texto) |
 | `g-file-field__notice`, `__notice-list` | Aviso de no añadidos | Tras un gesto con rechazos |

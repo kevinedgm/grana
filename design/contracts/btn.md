@@ -30,7 +30,7 @@
 - **`tooltip`** (#390, decisión del usuario del 2026-10-06; `tooltip.md` §«Atajo `GBtn tooltip`»): azúcar de `<GTooltip :text="tooltip"><GBtn …/></GTooltip>` con todo lo demás por defecto (`kind="auto"`, sin `detail`, sin atajo, lado por defecto). Para `detail`, `shortcut`, `kind` o `placement`, el envoltorio.
   - **Nombre accesible:** no cambia salvo por `kind="auto"`: sin `aria-label` (el caso de `icon`), el `tooltip` **es** el nombre (`aria-labelledby` → su texto); con `aria-label` igual, un solo nombre; con `aria-label` distinto o con etiqueta propia («Publicar»), el `tooltip` **describe** (`aria-describedby`, añadido).
   - **Estructura:** `button` (o `a`), el nodo `g-tooltip` (`role="tooltip"`, hermano, `popover="manual"`) y, si hay `loadingText`, `g-btn__status`, en ese orden. `$attrs` sigue yendo al botón.
-  - **Con un `GTooltip` envolviendo el mismo `GBtn`** (hijo directo): gana el envoltorio; `GBtn` no crea el suyo y avisa en desarrollo. Un `GBtn tooltip` más adentro de lo envuelto (p. ej. en el `append` de un `GInput`) conserva el suyo.
+  - **Con un `GTooltip` envolviendo el mismo `GBtn`** (hijo directo): gana el envoltorio; `GBtn` no crea el suyo y avisa en desarrollo. Un `GBtn tooltip` más adentro de lo envuelto (p. ej. en el slot `action` de un `GInput`; no en `append`, que es `aria-hidden`, #397) conserva el suyo.
   - Con `disabled` (nativo) el tooltip no abre (aviso de `GTooltip`: usar `aria-disabled` si el motivo importa, #236); con `loading`, sigue nombrando.
 - **`loadingText`:** texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. **Sin valor por defecto**, porque Grana es internacional: un texto fijo estaría en el idioma equivocado para la mayoría. Sin `loadingText`, solo queda `aria-busy`.
 
