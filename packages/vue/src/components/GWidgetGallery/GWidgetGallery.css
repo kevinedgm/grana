@@ -103,9 +103,10 @@
     color var(--g-duration-fast) var(--g-ease-standard);
 }
 /* Seleccionada: relleno y una marca (no solo el color) */
+/* Contorno primary-text (tokens.md §7.1, #431); relleno y texto sin cambio */
 .g-widget-gallery__cat > input:checked + span {
   background: var(--g-color-primary);
-  border-color: var(--g-color-primary);
+  border-color: var(--g-color-primary-text);
   color: var(--g-color-on-primary);
   font-weight: var(--g-text-action-weight);
 }

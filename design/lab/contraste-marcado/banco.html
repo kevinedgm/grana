@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contraste de lo marcado · banco (coco)</title>
+<!-- Banco de coco para tokens.md §7.1 (DECISIONS.md #431 y #432): todo control marcado, elegido, pulsado o seleccionado
+     con relleno de familia, sobre los COMPONENTES REALES (grana.css y grana.umd.js tal como se publican).
+     Parámetros: ?scene=controls|menu|calendar|week|strip|gallery|combobox|filter|navbar   ?theme=lustre|spotify|primary|<generated>
+                 ?dark=1   ?css=antes (sirve /__antes/grana.css: copia de dist anterior al cambio, para el Δ0)
+     Servidor y medida: GRANA_PW_PORT=4209 node design/lab/contraste-marcado/verificar.mjs (--serve para abrirlo a mano). -->
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{display:grid;gap:20px;max-inline-size:1100px}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+  .cell{display:grid;gap:8px;min-inline-size:200px}
+  h2{font-size:14px;margin:8px 0 0}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <template v-if="scene === 'controls'">
+    <h2>GCheckbox</h2>
+    <div class="row">
+      <div class="cell" v-for="c in colors" :key="'cb' + c" :data-color="c">
+        <g-checkbox :color="c" :model-value="true" label="Marcada" data-case="cb-checked"></g-checkbox>
+        <g-checkbox :color="c" :model-value="false" indeterminate label="Mixta" data-case="cb-mixed"></g-checkbox>
+        <g-checkbox :color="c" layout="chip" :model-value="true" label="Chip" data-case="cb-chip"></g-checkbox>
+        <g-checkbox :color="c" layout="card" :model-value="true" label="Tarjeta" data-case="cb-card"></g-checkbox>
+      </div>
+    </div>
+    <h2>GSwitch</h2>
+    <div class="row">
+      <g-switch v-for="c in colors" :key="'sw' + c" :color="c" :model-value="true" :label="'Encendido ' + c" :data-color="c" data-case="sw-on"></g-switch>
+    </div>
+    <h2>GRadioGroup</h2>
+    <div class="row" v-for="c in colors" :key="'rg' + c">
+      <g-radio-group v-for="a in ['list', 'chip', 'segmented', 'card']" :key="a" :appearance="a" :color="c" :options="rgOptions" model-value="b" :label="a + ' ' + c" :data-color="c" :data-case="'rg-' + a"></g-radio-group>
+    </div>
+    <h2>GStepper</h2>
+    <div v-for="c in colors" :key="'st' + c" :data-color="c">
+      <g-stepper v-for="i in ['number', 'dot', 'line', 'segment']" :key="i" :indicator="i" :color="c" :steps="steps" model-value="pago" :labels="stepLabels" :aria-label="'Pasos ' + i" :data-case="'st-' + i"></g-stepper>
+    </div>
+    <h2>GDatePicker</h2>
+    <div class="row">
+      <div v-for="c in colors" :key="'dp' + c" :data-color="c" class="cell">
+        <div data-case="dp-range"><g-datepicker :color="c" mode="range" inline :model-value="range" :labels="dpLabels"></g-datepicker></div>
+        <div data-case="dp-today"><g-datepicker :color="c" inline :model-value="today" :labels="dpLabels"></g-datepicker></div>
+      </div>
+    </div>
+    <h2>GTable</h2>
+    <g-table data-case="tb-table" :columns="columns" :rows="rows" caption="Tabla" selectable responsive="table" :selected="['c0', 'c2']" :labels="tbLabels"></g-table>
+    <div style="max-inline-size:420px"><g-table data-case="tb-cards" :columns="columns" :rows="rows" caption="Tarjetas" selectable responsive="cards" :selected="['c0']" :labels="tbLabels"></g-table></div>
+    <h2>GProgress</h2>
+    <div class="row">
+      <div v-for="c in colors" :key="'pg' + c" style="inline-size:240px" :data-color="c"><g-progress :color="c" :value="40" :label="'Avance ' + c" data-case="pg"></g-progress></div>
+    </div>
+  </template>
+
+  <template v-if="scene === 'menu'">
+    <g-menu v-model="menuOpen" :items="menuItems" label="Vista">
+      <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Vista</g-btn></template>
+    </g-menu>
+  </template>
+
+  <template v-if="scene === 'calendar' || scene === 'week' || scene === 'strip'">
+    <g-calendar v-model:view="calView" v-model:date="calDate" :events="[]" timezone="America/Mexico_City" locale="es-MX" :now="calNow" label="Calendario" :labels="calLabels" data-case="cal"></g-calendar>
+  </template>
+
+  <template v-if="scene === 'gallery'">
+    <g-widget-gallery v-model="galOpen" title="Añadir widget" :items="galItems" :sizes="galSizes" :added="{}" :labels="galLabels"></g-widget-gallery>
+  </template>
+
+  <template v-if="scene === 'combobox'">
+    <div style="max-inline-size:420px;display:grid;gap:24px">
+      <g-combobox id="cm-a" multiple block v-model="cmA" label="Alergias" placeholder="Buscar alergia" :delay="20" :labels="cmLabels" :options="allergens"></g-combobox>
+      <g-combobox id="cm-c" multiple appearance="palette" block v-model="cmC" label="Alergias (paleta)" placeholder="Buscar alergia" :delay="20" :labels="cmLabels" :options="allergens"></g-combobox>
+    </div>
+  </template>
+
+  <template v-if="scene === 'filter'">
+    <g-table data-case="tb-filter" :columns="columns" :rows="rows" caption="Filtros" :labels="tbLabels" v-model:filters="filters"></g-table>
+  </template>
+
+  <template v-if="scene === 'navbar'">
+    <div style="position:relative;block-size:420px;inline-size:390px;border:1px solid var(--g-color-border)">
+      <g-sidebar v-model="sbActive" :items="sbItems" label="Principal" :labels="sbLabels" mode="navbar" contained></g-sidebar>
+    </div>
+  </template>
+</main>
+<script>
+const qs = new URLSearchParams(location.search)
+const scene = qs.get('scene') || 'controls'
+const theme = qs.get('theme')
+const cssBase = qs.get('css') === 'antes' ? '/__antes/' : '/packages/vue/dist/'
+const jsBase = qs.get('js') === 'dist' ? '/packages/vue/dist/' : '/__antes/'
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+const load = (tag, attrs) => new Promise((ok, ko) => { const e = Object.assign(document.createElement(tag), attrs); e.onload = ok; e.onerror = () => ko(new Error(attrs.href || attrs.src)); document.head.append(e) })
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const now = new Date()
+const plus = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return iso(d) }
+;(async () => {
+  await load('link', { rel: 'stylesheet', href: '/packages/vue/dist/fonts.css' })
+  await load('link', { rel: 'stylesheet', href: cssBase + 'grana.css' })
+  if (theme) {
+    const href = theme === 'primary' ? '/design/lab/combobox/auditoria-tema-primary.css' : `/design/lab/tema-oscuro/dark-color-presence/generated/${theme}.css`
+    await load('link', { rel: 'stylesheet', href })
+  }
+  await load('script', { src: '/node_modules/vue/dist/vue.global.js' })
+  await load('script', { src: jsBase + 'grana.umd.js' })
+  await load('script', { src: jsBase + 'combobox.umd.js' })
+  await load('script', { src: '/packages/vue/playground/combobox-data.js' })
+  const { ref } = Vue
+  const sel = (n) => (n === 1 ? '1 seleccionado' : `${n} seleccionados`)
+  const app = Vue.createApp({
+    setup: () => ({
+      scene,
+      colors: ['brand', 'accent', 'warning'],
+      rgOptions: [{ value: 'a', label: 'Uno', icon: 'tag' }, { value: 'b', label: 'Dos', icon: 'user' }, { value: 'c', label: 'Tres', icon: 'folder' }],
+      steps: [{ id: 'plan', label: 'Plan' }, { id: 'cuenta', label: 'Cuenta' }, { id: 'pago', label: 'Pago' }, { id: 'fin', label: 'Confirmación' }],
+      stepLabels: { complete: 'completado', current: 'paso actual', pending: 'pendiente', error: 'con error', warning: 'con advertencia', disabled: 'bloqueado', optional: 'opcional', progress: 'Paso {current} de {total}', showAll: 'Ver todos los pasos', hideAll: 'Ocultar pasos' },
+      range: { start: plus(1), end: plus(4) },
+      today: iso(now),
+      dpLabels: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar', today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible', clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango', announceStart: 'Inicio: {date}.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado.', announceClear: 'Selección borrada.' },
+      columns: [
+        { key: 'nombre', label: 'Cliente' },
+        { key: 'plan', label: 'Plan' },
+        { key: 'estado', label: 'Estado', filter: { type: 'enum', options: ['activo', 'pausado', 'vencido'], suggest: true } }
+      ],
+      rows: ['Ana López', 'Luis Torres', 'Marta Gil', 'Zoë Núñez'].map((n, i) => ({ id: 'c' + i, nombre: n, plan: ['Básico', 'Pro', 'Equipo'][i % 3], estado: ['activo', 'pausado', 'vencido'][i % 3] })),
+      tbLabels: { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', sortBy: 'Ordenar por', ascending: 'ascendente', descending: 'descendente', sorted: 'Ordenado por {label}, {direction}', loading: 'Cargando…', empty: 'Vacío.', emptyFiltered: 'Nada.', clearFilters: 'Limpiar filtros', results: '{count} resultados',
+        filters: { group: 'Filtros', add: 'Agregar filtro', clear: 'Limpiar filtros', filterBy: 'Filtrar por {label}', edit: 'Editar filtro: {summary}', remove: 'Quitar filtro: {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Indica un valor.', range: 'Rango no válido.', rule: 'Regla', value: 'Valor', from: 'Desde', to: 'Hasta', and: 'y', days: '{n} días', results: '{count} resultados', ops: { contains: 'contiene', is: 'es', starts: 'empieza por', gt: 'mayor que', lt: 'menor que', eq: 'igual a', between: 'entre', after: 'después de', before: 'antes de', last: 'últimos', in: 'es cualquiera de' } } },
+      filters: ref([]),
+      menuOpen: ref(false),
+      menuItems: ref([
+        { id: 'rename', label: 'Renombrar' },
+        { type: 'group', label: 'Mostrar', items: [{ type: 'checkbox', id: 'grid', label: 'Cuadrícula', checked: true }, { type: 'checkbox', id: 'list', label: 'Lista' }, { type: 'radio', id: 'by-name', label: 'Por nombre', checked: true }, { type: 'radio', id: 'by-date', label: 'Por fecha' }] }
+      ]),
+      calView: ref(scene === 'strip' || scene === 'week' ? 'week' : 'month'),
+      calDate: ref(iso(now)),
+      calNow: iso(now) + 'T10:10',
+      calLabels: { calendar: 'Calendario', previous: 'Anterior', next: 'Siguiente', today: 'Hoy', views: 'Vista', day: 'Día', week: 'Semana', month: 'Mes', timeline: 'Timeline', resources: 'Recursos', allDay: 'Día completo', now: 'ahora', noEvents: 'Sin eventos.', loading: 'Cargando', retry: 'Reintentar', close: 'Cerrar', tooManyResources: 'Demasiados recursos.', moreEvents: (n) => '+' + n + ' más', outOfRange: (n) => n + ' fuera', unavailable: (a, b, w) => 'No disponible ' + w, createEvent: (r, d, t) => 'Crear ' + d + ' ' + t, monthDay: (d, n) => d.toISOString().slice(0, 10) + ', ' + n + ' evento(s)', eventName: (e) => e.title },
+      galOpen: ref(scene === 'gallery'),
+      galSizes: [{ id: 's', label: 'Pequeño' }, { id: 'm', label: 'Mediano' }],
+      galItems: [
+        { id: 'revenue', title: 'Ingresos', category: 'Finanzas', description: 'Ingresos del periodo.', sizes: ['s', 'm'], value: '$48.2k' },
+        { id: 'tasks', title: 'Tareas', category: 'Equipo', description: 'Tareas pendientes.', sizes: ['s', 'm'], value: '23' }
+      ],
+      galLabels: { search: 'Buscar widgets', all: 'Todas', categories: 'Categoría', add: 'Añadir', size: 'Tamaño inicial', results: '{count} widgets', empty: 'Nada.', added: 'Ya añadido', addedCount: 'En el panel: {count}', addedShort: 'Añadido', addedToPanel: '{title} añadido', alreadyAdded: '{title} ya está', close: 'Cerrar', list: 'Widgets disponibles' },
+      cmA: ref(['penicilina', 'latex']),
+      cmC: ref(['penicilina', 'latex']),
+      allergens: window.PlaygroundCombobox.allergens,
+      cmLabels: { clear: 'Quitar todos', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', results: (n) => n + ' resultados', partial: '{count} de {total}', more: 'Mostrar más', retry: 'Reintentar', custom: 'Texto libre', surfaceTitle: 'Buscar', selected: sel, about: (n, list) => `${sel(n)}: ${list}`, added: (l, n) => `Se agregó ${l}. ${sel(n)}.`, removed: (l, n) => `Se quitó ${l}. ${sel(n)}.`, restored: (l) => `Se restauró ${l}.`, clearedAll: 'Se quitaron todos', restoredAll: (n) => `Se restauraron ${n}`, armed: 'Pulsa Retroceso otra vez para quitar {label}', already: '{label} ya está elegido', chosen: 'Elegidos', rest: '{count} más', showAll: 'Ver los {count}', showLess: 'Ver menos', done: 'Listo', remove: 'Quitar {label}', undo: 'Deshacer', trace: '{label} quitado', fresh: 'Nuevo', basketEmpty: 'Aún no hay ninguno.', max: (m) => `Máximo ${m}`, ofMax: '{count} de {max}', customItem: '{text} (texto libre)' },
+      sbActive: ref('inbox'),
+      sbItems: [{ label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox' }, { id: 'team', label: 'Equipo', href: '#team', icon: 'users' }, { id: 'set', label: 'Ajustes', href: '#set', icon: 'settings' }] }],
+      sbLabels: { collapse: 'Contraer', expand: 'Expandir', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+    })
+  })
+  app.use(Grana).use(GranaCombobox).mount('#app')
+  await document.fonts.ready
+  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.setAttribute('data-ready', '')))
+})().catch((e) => { document.documentElement.setAttribute('data-error', e.message) })
+</script>
+</body>
+</html>

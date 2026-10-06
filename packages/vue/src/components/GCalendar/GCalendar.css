@@ -110,9 +110,12 @@
     border-color: var(--g-color-text-muted);
   }
 }
+/* Pulsado, hoy (cabecera y Mes) y día de la tira: relleno primary con on-primary y contorno primary-text (tokens.md §7.1,
+   #431): con una marca pálida, primary como forma no llega a 3:1. Sin borde propio, un trazo interior (nunca un anillo
+   exterior: es del foco). En el tema por defecto primary-text = primary: sin cambio visible */
 .g-calendar__toolbar button[aria-pressed="true"] {
   background: var(--g-color-primary);
-  border-color: var(--g-color-primary);
+  border-color: var(--g-color-primary-text);
   color: var(--g-color-on-primary);
 }
 .g-calendar__resource-select select {
@@ -239,6 +242,7 @@
   border-radius: var(--g-radius-pill);
   background: var(--g-color-primary);
   color: var(--g-color-on-primary);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-primary-text);
 }
 .g-calendar__allday {
   display: grid;
@@ -739,6 +743,7 @@
 .g-calendar__month td[aria-current="date"] .g-calendar__day {
   background: var(--g-color-primary);
   color: var(--g-color-on-primary);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-primary-text);
 }
 .g-calendar__day:focus-visible,
 .g-calendar__more:focus-visible {
@@ -878,6 +883,7 @@
 .g-calendar__strip > button[aria-pressed="true"] {
   background: var(--g-color-primary);
   color: var(--g-color-on-primary);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-primary-text);
 }
 .g-calendar__strip > button:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);

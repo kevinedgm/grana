@@ -174,7 +174,7 @@
   inline-size: calc(var(--g-space-1) * 4.5);
   block-size: calc(var(--g-space-1) * 4.5);
   margin: 0;
-  accent-color: var(--g-color-primary);
+  accent-color: var(--g-color-primary-text); /* casilla nativa: tokens.md §7.1, #431 */
 }
 .g-filter-bar__rule:focus-visible,
 .g-filter-bar__value input:focus-visible {

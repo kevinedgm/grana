@@ -172,8 +172,10 @@ button.g-stepper__hit:focus-visible {
 
 /* ---------- Estados derivados ---------- */
 .g-stepper__step.is-complete .g-stepper__label { color: var(--g-color-text); }
+/* Completado (relleno {color}) y actual (aro sobre surface): borde {color}-text (tokens.md §7.1, #431); el relleno solo
+   no llega a 3:1 contra la superficie con una marca pálida. En el tema por defecto -text = base: sin cambio visible */
 .g-stepper__step.is-complete .g-stepper__indicator {
-  border-color: var(--_base);
+  border-color: var(--_text);
   background: var(--_base);
   color: var(--_on);
 }
@@ -182,7 +184,7 @@ button.g-stepper__hit:focus-visible {
   font-weight: var(--g-text-title-weight);
 }
 .g-stepper__step.is-current .g-stepper__indicator {
-  border-color: var(--_base);
+  border-color: var(--_text);
   background: var(--g-color-surface);
   color: var(--_text);
   box-shadow: 0 0 0 calc(var(--g-space-1) * 0.75) var(--_soft);

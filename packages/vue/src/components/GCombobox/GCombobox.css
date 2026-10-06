@@ -860,10 +860,11 @@
   opacity: 0;
   transition: opacity var(--g-duration-fast) var(--g-ease-standard);
 }
-/* Marcada: relleno primary con su marca on-primary (par garantizado, #430). El contorno es de tinta (text), no primary:
-   primary solo está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie */
+/* Marcada: relleno primary con su marca on-primary (par garantizado, #430). El contorno es primary-text, la regla de todo
+   control marcado (tokens.md §7.1, #432; antes text, #429): primary solo está garantizado como relleno con su par, no
+   como forma ≥ 3:1 sobre la superficie; primary-text sí, y es el mismo contorno que la casilla de GCheckbox */
 .g-combobox__option[aria-selected="true"] > .g-combobox__box {
-  border-color: var(--g-color-text);
+  border-color: var(--g-color-primary-text);
   background: var(--g-color-primary);
 }
 .g-combobox__option[aria-selected="true"] > .g-combobox__box > .g-icon {

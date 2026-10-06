@@ -15,6 +15,8 @@
   --_c: var(--g-color-primary);
   --_c-strong: var(--g-color-primary-strong);
   --_on: var(--g-color-on-primary);
+  /* Contorno del riel encendido (tokens.md §7.1, #431) */
+  --_text: var(--g-color-primary-text);
 
   /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Alto y ancho del riel en unidades de space */
   --_th-units: 6;
@@ -121,10 +123,12 @@
     translate var(--g-duration-press) var(--g-ease-out),
     background-color var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Encendido: riel {color} con contorno {color}-text (tokens.md §7.1, #431: el relleno solo no llega a 3:1 contra la
+   superficie con una marca pálida); pulgar y marcas, sin cambio (pares garantizados) */
 .g-switch__input:checked {
   --_x: var(--_travel);
   background: var(--_c);
-  border-color: var(--_c);
+  border-color: var(--_text);
   color: var(--_c);
 }
 .g-switch__input:checked::before {
@@ -269,13 +273,13 @@
 .g-switch--density-compact { --_density: 0.75; }
 
 /* ---------- Color (relleno del riel encendido) ---------- */
-.g-switch--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); }
-.g-switch--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); }
-.g-switch--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); }
-.g-switch--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); }
-.g-switch--color-warning { --_c: var(--g-color-warning); --_c-strong: var(--g-color-warning-strong); --_on: var(--g-color-on-warning); }
-.g-switch--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); }
-.g-switch--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); }
+.g-switch--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); --_text: var(--g-color-primary-text); }
+.g-switch--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); --_text: var(--g-color-accent-text); }
+.g-switch--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); --_text: var(--g-color-neutral-text); }
+.g-switch--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); --_text: var(--g-color-success-text); }
+.g-switch--color-warning { --_c: var(--g-color-warning); --_c-strong: var(--g-color-warning-strong); --_on: var(--g-color-on-warning); --_text: var(--g-color-warning-text); }
+.g-switch--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); --_text: var(--g-color-danger-text); }
+.g-switch--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); --_text: var(--g-color-info-text); }
 
 /* ---------- Estados ---------- */
 @media (hover: hover) {
@@ -288,7 +292,7 @@
   }
   .g-switch:not(.is-disabled):not(.is-readonly) .g-switch__row:hover .g-switch__input:checked {
     background: var(--_c-strong);
-    border-color: var(--_c-strong);
+    border-color: var(--_text);
   }
 }
 /* Pulsar: el riel se hunde un poco (mismo gesto que el botón) */

@@ -20,6 +20,8 @@
   --_on: var(--g-color-on-primary);
   --_soft: var(--g-color-primary-soft);
   --_on-soft: var(--g-color-on-primary-soft);
+  /* Contorno del día elegido (tokens.md §7.1, #431) */
+  --_text: var(--g-color-primary-text);
 
   /* Variante del campo (se reasigna por --variant-*); por defecto: outline */
   --_bg: var(--g-color-surface);
@@ -491,11 +493,15 @@
   inline-size: calc(var(--g-space-1) * 1.25);
   block-size: calc(var(--g-space-1) * 1.25);
 }
-/* Seleccionado (fecha única, inicio o fin): círculo relleno; no cambia la celda */
+/* Seleccionado (fecha única, inicio o fin): círculo relleno; no cambia la celda. Trazo interior {color}-text (tokens.md
+   §7.1, #431): con una marca pálida el relleno solo no llega a 3:1 contra la superficie ni contra la franja. Elegido y
+   hoy a la vez conserva su aro on-{color} en el borde: on-{color} o el relleno contrastan ya con la superficie (par
+   garantizado) y el aro es la señal de hoy */
 .g-datepicker__day.is-selected {
   background: var(--_color);
   color: var(--_on);
   font-weight: var(--g-text-action-weight);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
 }
 .g-datepicker__day.is-selected.is-today {
   box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);
@@ -645,13 +651,13 @@
 .g-datepicker--rounded-pill { --_radius: var(--g-radius-pill); }
 
 /* ---------- Color de la selección ---------- */
-.g-datepicker--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); }
-.g-datepicker--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); }
-.g-datepicker--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); }
-.g-datepicker--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); }
-.g-datepicker--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); }
-.g-datepicker--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); }
-.g-datepicker--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); }
+.g-datepicker--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); --_text: var(--g-color-primary-text); }
+.g-datepicker--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); --_text: var(--g-color-accent-text); }
+.g-datepicker--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); --_soft: var(--g-color-neutral-soft); --_on-soft: var(--g-color-on-neutral-soft); --_text: var(--g-color-neutral-text); }
+.g-datepicker--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); --_text: var(--g-color-success-text); }
+.g-datepicker--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); --_text: var(--g-color-warning-text); }
+.g-datepicker--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); --_text: var(--g-color-danger-text); }
+.g-datepicker--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); --_text: var(--g-color-info-text); }
 
 /* ---------- Variante del campo ---------- */
 /* outline: los valores por defecto del esqueleto */

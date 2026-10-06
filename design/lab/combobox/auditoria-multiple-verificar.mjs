@@ -492,7 +492,7 @@ for (const engine of ENGINES) {
         out.push(...await E(page, `const l = document.getElementById('cm-alg-list'), g = l.querySelector('.g-combobox__group.is-chosen'), sel = g.querySelector('[role=option][aria-selected=true]:not(.is-active)') || g.querySelector('[role=option][aria-selected=true]'), un = l.querySelector('[role=option][aria-selected=false]:not(.g-combobox__action):not(.is-active)')
           const bs = sel.querySelector('.g-combobox__box'), bu = un.querySelector('.g-combobox__box'), cs = getComputedStyle(bs)
           return [H.pair('«Elegidas»: rótulo', g.querySelector('.g-combobox__group-label')), H.pair('«Elegidas»: recuento', g.querySelector('.g-combobox__group-tally')),
-            H.vs('casilla sin marcar: borde', getComputedStyle(bu).borderTopColor, un), H.vs('casilla marcada: contorno text', cs.borderTopColor, sel), H.vs('casilla marcada: marca on-primary / primary', getComputedStyle(bs.querySelector('svg')).color, bs),
+            H.vs('casilla sin marcar: borde', getComputedStyle(bu).borderTopColor, un), H.vs('casilla marcada: contorno primary-text', cs.borderTopColor, sel), H.vs('casilla marcada: marca on-primary / primary', getComputedStyle(bs.querySelector('svg')).color, bs),
             { k: 'casilla marcada: es primary', r: H.same(cs.backgroundColor, H.tok('--g-color-primary', 'backgroundColor')) ? 9 : 0, min: 1 }]`))
         await page.keyboard.press('Escape'); await page.keyboard.press('Escape')
         // Tope (cm-dx, B, max 3): estado; receta: número, «Nueva», barra, «Quitar», rastro, «Deshacer», marcado, «Ver los N»

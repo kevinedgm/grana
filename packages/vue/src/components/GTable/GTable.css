@@ -113,7 +113,8 @@
   block-size: calc(var(--g-space-1) * 4.5);
   margin: 0;
   vertical-align: middle;
-  accent-color: var(--g-color-primary);
+  /* Casilla nativa: sin contorno fiable, el tono de la marca va en primary-text (tokens.md §7.1, #431) */
+  accent-color: var(--g-color-primary-text);
   cursor: pointer;
 }
 
@@ -266,7 +267,7 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   background: var(--g-color-surface);
 }
 .g-table--mode-cards .g-table__row.is-selected {
-  border-color: var(--g-color-primary);
+  border-color: var(--g-color-primary-text);
   background: var(--g-color-primary-soft);
 }
 .g-table--mode-cards .g-table__table td {

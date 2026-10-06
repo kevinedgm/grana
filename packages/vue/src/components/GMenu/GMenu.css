@@ -195,8 +195,10 @@
   background: var(--g-color-surface);
 }
 [role="menuitemradio"] > .g-menu__mark { border-radius: var(--g-radius-pill); }
+/* Marcada: relleno primary y marca on-primary; contorno primary-text (tokens.md §7.1, #431: con una marca pálida, primary
+   como forma no llega a 3:1 contra la superficie del menú). En el tema por defecto, igual que antes */
 [aria-checked="true"] > .g-menu__mark {
-  border-color: var(--g-color-primary);
+  border-color: var(--g-color-primary-text);
   background: var(--g-color-primary);
   color: var(--g-color-on-primary);
 }

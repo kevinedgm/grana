@@ -100,16 +100,19 @@
   transition: clip-path var(--g-duration-press) var(--g-ease-out);
 }
 .g-checkbox__dash { clip-path: inset(0 50% 0 50%); }
+/* Marcada e indeterminada: relleno {color} con su marca on-{color}; el contorno es {color}-text (tokens.md §7.1, #431):
+   el motor garantiza {color} como relleno con su par, no como forma; -text llega a 3:1 contra la superficie aunque la
+   marca sea pálida. En el tema por defecto -text = base con brand y accent: sin cambio visible */
 .g-checkbox__input:checked {
   background: var(--_c);
-  border-color: var(--_c);
+  border-color: var(--_text);
 }
 .g-checkbox__input:checked ~ .g-checkbox__check {
   clip-path: inset(0);
 }
 .g-checkbox__input:indeterminate {
   background: var(--_c);
-  border-color: var(--_c);
+  border-color: var(--_text);
 }
 .g-checkbox__input:indeterminate ~ .g-checkbox__check {
   clip-path: inset(0 100% 0 0);
@@ -235,7 +238,7 @@
   .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:checked,
   .g-checkbox:not(.is-disabled):not(.is-readonly) .g-checkbox__row:hover .g-checkbox__input:indeterminate {
     background: var(--_c-strong);
-    border-color: var(--_c-strong);
+    border-color: var(--_text);
   }
 }
 /* Pulsar: el cuadro se hunde un poco (mismo gesto que el botón) */
@@ -451,9 +454,10 @@
     margin-inline-end var(--g-duration-press) var(--g-ease-out),
     opacity var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Chip marcado: relleno {color}, texto on-{color} y contorno {color}-text (§7.1, #431; ya lo decía el contrato) */
 .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) {
   background: var(--_c);
-  border-color: var(--_c);
+  border-color: var(--_text);
   color: var(--_on);
 }
 .g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked) .g-checkbox__label {
@@ -470,7 +474,7 @@
   }
   .g-checkbox--layout-chip:not(.is-disabled):not(.is-readonly) .g-checkbox__row:has(.g-checkbox__input:checked):hover {
     background: var(--_c-strong);
-    border-color: var(--_c-strong);
+    border-color: var(--_text);
   }
 }
 .g-checkbox--layout-chip .g-checkbox__input:focus-visible {
