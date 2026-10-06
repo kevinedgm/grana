@@ -296,11 +296,12 @@ Un campo puede tener un error que **solo él conoce** y que no está en `errors`
 
 | Pieza | Regla |
 | --- | --- |
-| `useFormField` | Opciones internas **`ownError`** (getter → String, `''` = sin error) y **`ownTarget`** (getter → elemento enfocable del error propio). El registro (`entry`) gana las dos. Sin ellas, nada cambia |
-| Precedencia | Error resuelto = **prop `error` explícita** › **error propio** › `errors[name]` |
+| `useFormField` | Opciones internas **`ownError`** (getter → String, `''` = sin error; **un campo que bloquea sin tener texto devuelve un espacio**, nunca `''`) y **`ownTarget`** (getter → elemento enfocable del error propio). El registro (`entry`) gana las dos. Sin ellas, nada cambia |
+| Precedencia | Error resuelto = **prop `error` con texto** › **error propio** › `errors[name]`. Una prop `error=""` explícita **no oculta el error propio** (se bloquearía el envío sin pintar nada) pero sí sigue ocultando `errors[name]` (#158) |
 | `GForm` · `blocking()` | Aplica la precedencia; con el error propio ganando, `id` = el de `ownTarget()` (el resumen enlaza ahí) |
 | `GForm` · visibilidad | Conjunto interno de nombres con el error propio **revelado**: entran **solo** en `revealAll()` (paso 3 de «Envío» y `showErrors()`), nunca por `blur`, `change` ni `notifyChange`; salen cuando su `ownError()` pasa a `''` (como un error corregido, #162) y con `reset`/`resetState()`. `useFormField` pinta el error propio solo revelado |
 | `GForm` · `visibleTarget()` / `focusFirstError()` | Con el error propio visible, el destino es `ownTarget()` |
+| Nombre | El campo debe tener **`name`** para registrarse (como cualquier campo, §2): sin él, el error propio **no bloquea** el envío |
 | Lo demás | Inactivos, deshabilitados, `is-rejected`, `invalid` y `formnovalidate`: como cualquier error que bloquea. Un campo con error propio dentro de un `GFieldGroup` o `GInputGroup` **no** está admitido en v0.1 (`useCompositeField` no lo recoge) |
 
 ---

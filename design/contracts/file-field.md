@@ -106,7 +106,7 @@ app.use(FileField)            // registra <g-file-field>; o: components: { GFile
 - **`uploader`:** ver «Adaptador». Con él, cada archivo añadido **empieza a subir solo** (decisión del usuario 2). Sin él, los archivos quedan en estado `ready` y viajan con el envío.
 - **`concurrency`:** subidas a la vez (cola en el orden de la lista). Un valor < 1 avisa y usa `2`.
 - **`locale`:** idioma de las cifras y tamaños (`Intl`). Resolución de `GNumberField` (`number-field.md` «Idioma»): la prop › el `lang` del ancestro más cercano › `navigator.language`; se lee al montar y al cambiar la prop.
-- **`name`:** registra el campo en `GForm` (clave de `errors`) y nombra lo que se envía (ver «Envío»).
+- **`name`:** registra el campo en `GForm` (clave de `errors`) y nombra lo que se envía (ver «Envío»). **Sin `name` el campo no se registra** (como el resto de campos, `form.md` §2): no cuenta en el resumen ni **bloquea el envío** con subidas pendientes o fallidas (#372), y sin `uploader` no lleva los binarios. En la práctica, dentro de un `GForm`, **un `GFileField` con `uploader` necesita `name`**. No hay aviso de desarrollo para esto (un campo sin `name` es válido fuera de un formulario): lo cubre el README.
 - **`required`:** marca según la convención de `GForm` y **`aria-required="true"`** en el `<input>`; **nunca `required` nativo** (#270, #334: los archivos guardados no están en el `<input>` y el nativo los daría por ausentes). El campo no valida la obligatoriedad: la decide la aplicación con `errors`, como en `GSelect`.
 - **`readonly`:** lista visible y sin acciones; el `<input>` **sigue enfocable y en el envío** con `aria-disabled="true"`; no abre el diálogo, no admite soltar ni pegar (r01, 28; C7, #165, #266). **`disabled`:** `disabled` nativo en el `<input type="file">` y en los ocultos (fuera del Tab y del envío), lista atenuada, sin acciones, no despierta al arrastrar.
 - **`size`, `density`, `variant`, `rounded`, `block`:** los de `GInput`, con el mismo sentido: la **caja vacía** mide lo que la caja de un `GInput` del mismo `size` y `density` (L18). Con fichas, la caja crece hacia abajo lo que pidan sus líneas (ver «Disposición»).
@@ -204,14 +204,14 @@ type Uploader = (file: File, ctx: {
 
 El campo **bloquea el envío de `GForm` por sí mismo**, sin que la aplicación lo ponga en `errors`, y **solo al enviar**: añadir un archivo nunca pinta un error.
 
-**Cuándo hay error propio:** con `uploader`, si alguna entrada está en `error` → **`labels.failed`** (`{count}` de fallidas, `{name}` de la primera); si no, si alguna está en `queued` o `uploading` → **`labels.pending`** (`{count}`, `{name}`). Sin ninguna, no hay. Sin `uploader`, nunca.
+**Cuándo hay error propio:** con `uploader`, si alguna entrada está en `error` → **`labels.failed`** (`{count}` de fallidas, `{name}` de la primera); si no, si alguna está en `queued` o `uploading` → **`labels.pending`** (`{count}`, `{name}`). Sin ninguna, no hay. Sin `uploader`, nunca. **Sin `labels.failed` o `labels.pending`** (que el aviso 2 ya señala al montar), el campo **bloquea igual**: el error propio es **un espacio** (` `), no `''`, porque `''` significa «sin error» y desbloquearía el envío. El resumen y el pie mostrarían un mensaje en blanco; por eso el aviso es al montar y no al necesitarse.
 
 **Cómo entra en `GForm`** (cambio interno de `formContext.js`; `form.md` §2 «Error propio del componente»):
 
 | Pieza | Regla |
 | --- | --- |
 | `useFormField` | Dos **opciones internas** nuevas (no contractuales para campos del consumidor en v0.1, como `markRule`): **`ownError`** (getter → String; `''` = sin error) y **`ownTarget`** (getter → elemento enfocable del error propio). El registro gana `ownError` y `ownTarget` |
-| Precedencia | Error resuelto del registro = **prop `error` explícita** › **error propio** › `errors[name]`. La prop explícita es de la aplicación y siempre gana (#158); el error propio describe un hecho que solo el campo conoce y gana a un `errors[name]` calculado sin él |
+| Precedencia | Error resuelto del registro = **prop `error` con texto** › **error propio** › `errors[name]`. La prop con texto es de la aplicación y siempre gana (#158); el error propio describe un hecho que solo el campo conoce y gana a un `errors[name]` calculado sin él. **Una prop `error=""` explícita no oculta el error propio** (si lo hiciera, el envío se bloquearía sin pintar nada: nunca sale nada a medias), **pero sí sigue ocultando `errors[name]`** (#158). Con el error propio revelado y `error=""`, gana el propio |
 | `GForm` · `blocking()` | Usa la precedencia de arriba. Con el error propio ganando, el `id` del elemento es el de **`ownTarget()`** (abajo); así el resumen enlaza **al archivo** |
 | Visibilidad | `GForm` guarda un conjunto interno de nombres con el error propio **revelado**: entran en el paso 3 de «Envío» y en `showErrors()` (`revealAll`), **y solo ahí** (ni `blur`, ni `change`, ni `notifyChange`); salen cuando su `ownError()` pasa a `''` (como un error corregido, #162: el siguiente espera a otro envío) y con `reset`/`resetState()`. `useFormField` pinta el error propio solo si está revelado |
 | `focusFirstError()` / `visibleTarget()` | Con el error propio visible, el destino es `ownTarget()` |
@@ -323,7 +323,7 @@ Una **`GSummary` `layout="inline"` `size="xs"`** (`summary.md`) más acciones y 
 | `state` `error` | `facts: [{ label: labels.error, value: error, bare: true }]` | El mensaje **se ve** en la ficha (el tamaño pasa al lector, regla de `inline`); `bare` deja callar el rótulo si aprieta |
 
 - **Acciones al lado** (r01, 20): **«Reintentar {nombre}»** (`GBtn` de solo icono `rotate-ccw`, `labels.retry`, `aria-describedby` = el `g-file-field__error` oculto con `labels.error` + el mensaje) solo en `error`, y **un mismo botón** en el mismo sitio que dice **«Quitar {nombre}»** (`labels.remove`) o **«Cancelar subida de {nombre}»** (`labels.cancel`, en `queued` y `uploading`), icono `x`. Variante `ghost`, `color="neutral"`, `size="xs"`; ≥ 24px (44px táctil). Ninguna en solo lectura ni deshabilitado.
-- **Progreso: `GProgress` dentro de la ficha** en `queued` y `uploading` (L13, L20): `class="g-file-field__progress"`, `size="sm"`, `color="accent"`, **`showLabel: false`** y **`showValue: false`** (sin fila de texto: prop nueva de `GProgress`, `widget.md`), `label` = `labels.progress` (`{name}`, nombre accesible de la barra), `valueText` = `labels.progressText` (`{percent}`, `{loaded}`, `{total}`, formateados con `Intl`) y, en cola, `labels.queued` con `value` 0. **La ficha es la barra:** coco coloca el `GProgress` como **capa** de la ficha (detrás del contenido, sin puntero, sin alto propio) y pinta su relleno como el relleno de la ficha; el avance usa el `translate` del relleno de `GProgress` (sin layout; espejo en RTL por `GProgress`). Así la semántica (`role="progressbar"` con `aria-valuenow` y `aria-valuetext`) **es** lo que se ve, sin una barra oculta duplicada.
+- **Progreso: `GProgress` dentro de la ficha** en `queued` y `uploading` (L13, L20): `class="g-file-field__progress"`, `size="sm"`, `color="accent"`, **`showLabel: false`** y **`showValue: false`** (sin fila de texto: prop nueva de `GProgress`, `widget.md`), `label` = `labels.progress` (`{name}`, nombre accesible de la barra), `valueText` = `labels.progressText` (`{percent}`, `{loaded}`, `{total}`, formateados con `Intl`) y, en cola, `labels.queued` con `value` 0. `GProgress` pasa `$attrs` a su **raíz** (`g-progress`; `widget.md`) para que llegue `g-file-field__progress`. **La ficha es la barra:** coco coloca el `GProgress` como **capa** de la ficha (detrás del contenido, sin puntero, sin alto propio) y pinta su relleno como el relleno de la ficha; el avance usa el `translate` del relleno de `GProgress` (sin layout; espejo en RTL por `GProgress`). Así la semántica (`role="progressbar"` con `aria-valuenow` y `aria-valuetext`) **es** lo que se ve, sin una barra oculta duplicada.
 - **Altos:** **Δ0 de la ficha** entre `queued`, `uploading`, `done` y `error` (kiwi lo midió en los tres motores). La ficha mide lo mismo en todos los estados.
 
 ## Disposición (concepto A; L18)
@@ -399,9 +399,9 @@ Marcadores con `fill` (`utils/template.js`). Los **contados** admiten String con
 | --- | --- | --- | --- |
 | `add` · `addMany` | | Cara vacía (sin / con `multiple`) | Cara sin texto; aviso al montar |
 | `addMore` · `change` | | Cara con archivos (con / sin `multiple`) | Ídem, al necesitarse |
-| `full` | `{count}`, `{max}` · Function | Cara llena («5 de 5») | Ídem, con `max` |
+| `full` | `{count}`, `{max}` · Function `(count, max)` | Cara llena («5 de 5») | Ídem, con `max` |
 | `readonly` · `none` | | Cara en solo lectura con / sin archivos | Ídem, con `readonly` |
-| `status` | Function `({ count, max, active, failed }) => String` (`active` = en cola + subiendo) | `ID-status` (pie y descripción) | Sin estado; aviso al montar |
+| `status` | Function `({ count, max, active, failed }) => String` (`active` = en cola + subiendo; `max` es `null` sin límite y `1` sin `multiple`) **o String** con `{count}`, `{max}`, `{active}`, `{failed}` (cifras con `Intl.NumberFormat(locale)`; `{max}` vacío sin límite) | `ID-status` (pie y descripción) | Sin estado; aviso al montar |
 | `list` | `{label}` | Nombre de la lista | Lista sin nombre; aviso |
 | `drop` | `{hint}` | Destino despierto que admite | Destino sin texto; aviso al primer arrastre |
 | `dropInto` | `{label}` | Destino con el puntero encima | Usa `drop`; aviso |
@@ -421,12 +421,24 @@ Marcadores con `fill` (`utils/template.js`). Los **contados** admiten String con
 | `addedMany` · `uploadedMany` · `uploading` | `{count}` · Function | Anuncios | Ídem |
 | `replaced` | `{old}`, `{name}` | Anuncio de reemplazo (sin `multiple`) | Ídem |
 | `rejected` | `{name}`, `{reason}` | Anuncio de un rechazo | Ídem |
-| `rejectedMany` | `{count}`, `{list}` · Function `(items) => String` | Anuncio de varios (`{list}` = «nombre, motivo» unidos con «; ») | Ídem |
+| `rejectedMany` | `{count}`, `{list}` · Function `(items) => String` con `items: [{ file, name, reason, text }]` (`reason` = motivo de `reject`; `text` = el motivo ya escrito) | Anuncio de varios (`{list}` = «nombre, motivo» unidos con «; ») | Ídem |
 | `uploadError` | `{name}`, `{message}` | Anuncio de un fallo | Ídem |
-| `removed` · `canceled` | `{name}`, `{count}` (los que quedan) · Function | Anuncios | Ídem |
-| `pending` · `failed` | `{count}`, `{name}` · Function `(count, name)` | Error propio al enviar (#372) | **Aviso al montar con `uploader`**: sin ellos el bloqueo no tendría mensaje (bloquea igual, con el texto vacío) |
+| `removed` · `canceled` | `{name}`, `{count}` (los que quedan) · Function `(count, name)` | Anuncios | Ídem |
+| `pending` · `failed` | `{count}`, `{name}` · Function `(count, name)` | Error propio al enviar (#372) | **Aviso al montar con `uploader`**: sin ellos el bloqueo no tendría mensaje (bloquea igual, con un espacio como mensaje: `''` sería «sin error») |
 
 ---
+
+**Firmas de las funciones** (todas devuelven String; un valor `null`/`undefined` se toma como `''`): `full(count, max)` · `removed(count, name)` y `canceled(count, name)` (`count` = los que quedan) · `pending(count, name)` y `failed(count, name)` (`name` = el primero) · `addedMany(count)` · `uploadedMany(count)` · `uploading(count)` · `rejectedMany(items)` · `status({ count, max, active, failed })`. `count` y `max` llegan **sin formatear** (la función los escribe con el plural de su idioma); en la forma String los formatea el componente.
+
+**Texto que compone el componente** (lo único que no está entero en `labels`; la puntuación es de Grana, no del idioma, y por eso `labels` no la lleva):
+
+| Dónde | Composición |
+| --- | --- |
+| Aviso de no añadidos (`g-file-field__notice-list`) | Por archivo: `<strong dir="auto">{nombre}</strong>` + `: ` + el motivo (`reasons.*`); sin motivo, solo el nombre. Los dos puntos los pone el componente |
+| Descripción del fallo de una ficha (`g-file-field__error`, oculta, a la que apunta `aria-describedby` de «Reintentar») | `labels.error` + un espacio + el mensaje (`error` de la entrada); sin mensaje, solo `labels.error`. Si se quiere puntuación («Error:»), va dentro de `labels.error` |
+| Anuncio de varios rechazos sin función | `labels.rejectedMany` con `{list}` = `nombre, motivo` unidos con `; ` |
+| Anuncio de un gesto | Las partes (reemplazo o añadidos, rechazos, «subiendo») unidas con un espacio |
+| «Descartar» del aviso | **Botón de solo icono** (`GBtn` `ghost` `neutral` `sm` con `x`): su nombre accesible es `labels.dismiss` (`aria-label`); no pinta texto. Sin `labels.dismiss`, aviso 2 |
 
 ## Movimiento (#376)
 
@@ -510,7 +522,7 @@ La caja, las fichas y la pieza «Adjuntar» usan propiedades lógicas; el rellen
 
 ## SSR
 
-Importar y renderizar en el servidor no toca `document`, `window`, `navigator`, `URL.createObjectURL` ni `DataTransfer`. El servidor pinta la etiqueta, la caja con las fichas del `modelValue` (los guardados con su `url` como miniatura; los demás con su icono), la cara, el pie y los ocultos; sin `locale`, los tamaños con el formato del primer render del cliente (README: en SSR, pasar `locale`). El módulo de arrastre, la cola de subida, las URL de objeto, la sincronía de `input.files` y la región en el modal, solo al montar.
+Importar y renderizar en el servidor no toca `document`, `window`, `navigator`, `URL.createObjectURL` ni `DataTransfer`. El servidor pinta la etiqueta, la caja con las fichas del `modelValue` (los guardados con su `url` como miniatura; los demás con su icono), la cara, el pie y los ocultos; sin `locale`, **antes de montar** (servidor y primer render de la hidratación) las cifras y los tamaños se formatean con **`en-US`**, para que servidor y cliente coincidan; al montar pasa a la resolución normal (`locale` › `lang` del ancestro › `navigator.language`) y puede cambiar el texto de la ficha. README: en SSR, pasar `locale`. El módulo de arrastre, la cola de subida, las URL de objeto, la sincronía de `input.files` y la región en el modal, solo al montar.
 
 ---
 
