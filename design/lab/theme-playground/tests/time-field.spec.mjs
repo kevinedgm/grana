@@ -321,7 +321,7 @@ test.describe('GTimeField · componente real (time-field.md)', () => {
     const ro = await page.evaluate(() => { const i = document.getElementById('tf-ro'); const g = i.closest('.g-input'); return { ro: i.readOnly, aria: i.getAttribute('aria-readonly'), v: i.value, hidden: g.querySelector('input[type=hidden]').disabled } })
     expect(ro).toEqual({ ro: true, aria: 'true', v: '7:45', hidden: false })
     expect(await page.locator('#tf-ro12 >> xpath=ancestor::div[contains(@class,"g-input ")][1]').locator('.g-time-field__halves').count()).toBe(0)
-    const dis = await page.evaluate(() => { const i = document.getElementById('tf-dis'); const g = i.closest('.g-input'); return [i.disabled, g.querySelector('input[type=hidden]').disabled, [...g.querySelectorAll('.g-time-field__half')].every((b) => b.disabled)] })
+    const dis = await page.evaluate(() => { const i = document.getElementById('tf-dis'); const g = i.closest('.g-input'); return [i.disabled, g.querySelector('input[type=hidden]').disabled, [...g.querySelectorAll('.g-time-field__halves .g-time-field__half')].every((b) => b.disabled)] })
     expect(dis).toEqual([true, true, true])
   })
 
@@ -416,4 +416,38 @@ test.describe('GTimeField · componente real (time-field.md)', () => {
       expect(r.page).toBeLessThanOrEqual(1)
     })
   }
+})
+
+// Hallazgo 4 de design/lab/time-field/auditoria.md: en WebKit con toque, preventDefault en pointerdown cancela el click;
+// a. m./p. m. y las lecturas actúan al bajar, como los −/+ de GNumberField
+test.describe('GTimeField · toque (hasTouch + isMobile)', () => {
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox: sin isMobile ni puntero grueso en Playwright')
+  test.use({ hasTouch: true, isMobile: true })
+  test('un toque en p. m. y en a. m. cambia la mitad sin enfocar el campo', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { width: 390 })
+    await setVal(page, 'tf12-cita', '9:30')
+    expect(await model(page, 'c12')).toBe('09:30')
+    await page.evaluate(() => document.activeElement?.blur())
+    await root(page, 'tf12-cita').locator('.g-time-field__half[data-half=pm]').tap()
+    await settle(page)
+    expect(await model(page, 'c12')).toBe('21:30')
+    expect(await act(page)).not.toBe('tf12-cita')
+    await root(page, 'tf12-cita').locator('.g-time-field__half[data-half=am]').tap()
+    await settle(page)
+    expect(await model(page, 'c12')).toBe('09:30')
+    expect(errs).toEqual([])
+  })
+  test('un toque en la segunda lectura la fija con el foco en el campo', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { width: 390 })
+    await setVal(page, 'tf-toma', '9', { blur: false })
+    expect(await root(page, 'tf-toma').locator('.g-time-field__choice').count()).toBe(2)
+    await root(page, 'tf-toma').locator('.g-time-field__choice').nth(1).tap()
+    await settle(page)
+    expect(await model(page, 'toma')).toBe('21:00')
+    expect(await val(page, 'tf-toma')).toBe('21:00')
+    expect(await act(page)).toBe('tf-toma')
+    expect(errs).toEqual([])
+  })
 })

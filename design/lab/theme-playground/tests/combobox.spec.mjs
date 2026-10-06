@@ -537,3 +537,28 @@ test.describe('GCombobox · componente real (combobox.md)', () => {
     for (const [name, c] of [['rótulo', cL], ['valor', cV]]) expect(c, `${name} ${c?.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+// En WebKit con toque, el preventDefault de pointerdown cancela el click (hallazgo 4 de design/lab/time-field/auditoria.md):
+// la flecha, las opciones y limpiar actúan en touchend
+test.describe('GCombobox · toque (hasTouch + isMobile)', () => {
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox: sin isMobile ni puntero grueso en Playwright')
+  test.use({ hasTouch: true, isMobile: true })
+  test('un toque en la flecha abre, en una opción la elige y en limpiar borra', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { width: 390, height: 844 })
+    const box = page.locator('#cb-dx >> xpath=ancestor::div[contains(@class,"g-combobox")][1]')
+    await box.scrollIntoViewIfNeeded()
+    await box.locator('.g-combobox__arrow').tap()
+    await frames(page, 4)
+    expect(await page.locator('#cb-dx').getAttribute('aria-expanded')).toBe('true')
+    const lb = await page.locator('#cb-dx').getAttribute('aria-controls')
+    await page.locator(`#${lb} [role=option]`).first().tap()
+    await frames(page, 4)
+    expect(await out(page, 'cb-out-dx')).not.toBe('dx: null')
+    await expect(page.locator('#cb-dx')).toHaveAttribute('aria-expanded', 'false')
+    await box.locator('.g-combobox__clear').tap()
+    await frames(page, 4)
+    expect(await out(page, 'cb-out-dx')).toBe('dx: null')
+    expect(errs).toEqual([])
+  })
+})

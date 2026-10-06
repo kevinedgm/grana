@@ -427,14 +427,22 @@ describe('GTimeField · 12 h: a. m./p. m. (#406)', () => {
     expect(halfBtn(b, 'pm').attributes('aria-label')).toMatch(/^p\.\s?m\. Hora de la toma$/)
   })
 
-  it('pointerdown con preventDefault (sin foco); click cambia la mitad, notifyChange y un change por activación', async () => {
+  it('pointerdown (botón 0) cambia la mitad con preventDefault y sin foco; su click no repite; un change por activación', async () => {
     const w = mk({ locale: 'es-MX', modelValue: '09:30' })
+    const r = pointer(halfBtn(w, 'pm').element, 'pointerdown', { button: 2 }) // otro botón: nada
+    await nextTick()
+    expect(r.defaultPrevented).toBe(false)
+    expect(models(w)).toEqual([])
+    // Hallazgo 4 (WebKit táctil): con preventDefault en pointerdown no llega click; la acción va al bajar
     const e = pointer(halfBtn(w, 'pm').element, 'pointerdown')
+    await nextTick()
     expect(e.defaultPrevented).toBe(true)
     expect(document.activeElement).not.toBe(field(w).element)
-    await halfBtn(w, 'pm').trigger('click')
     expect(models(w)).toEqual(['21:30'])
     expect(changes(w)).toEqual(['21:30'])
+    pointer(halfBtn(w, 'am').element, 'click', { detail: 1 }) // el click del mismo gesto de puntero no actúa
+    await nextTick()
+    expect(models(w)).toEqual(['21:30'])
     await halfBtn(w, 'pm').trigger('click')
     expect(changes(w)).toEqual(['21:30'])
     halfBtn(w, 'am').element.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 })) // sin puntero: misma acción
@@ -502,14 +510,28 @@ describe('GTimeField · A «La hora dicha» (#407)', () => {
     expect(bs[1].attributes('aria-labelledby')).toBe('t-choice-1 t-label')
     expect(w.find('#t-choice-1').text().replace(/\s+/g, ' ')).toBe('21:00 de la noche')
     expect(bs[0].classes()).toContain('is-on')
-    const e = pointer(bs[1].element, 'pointerdown')
+    const e = pointer(bs[1].element, 'pointerdown') // actúa al bajar (WebKit táctil no entrega el click)
     expect(e.defaultPrevented).toBe(true)
-    await bs[1].trigger('click')
+    pointer(bs[1].element, 'click', { detail: 1 }) // su click no repite
+    await nextTick()
     expect(models(w).at(-1)).toBe('21:00')
     expect(changes(w)).toEqual(['21:00'])
     expect(field(w).element.value).toBe('21:00')
     expect(choiceBtns(w).length).toBe(0)
     expect(root(w).classes()).not.toContain('has-choices')
+  })
+
+  it('las lecturas sin puntero: click con detail 0 fija la lectura; un pointerdown de otro botón no', async () => {
+    const w = mk({ id: 't' })
+    await field(w).trigger('focus')
+    await typeText(w, '9')
+    pointer(choiceBtns(w)[1].element, 'pointerdown', { button: 1 })
+    await nextTick()
+    expect(choiceBtns(w).length).toBe(2)
+    choiceBtns(w)[1].element.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }))
+    await nextTick()
+    expect(models(w).at(-1)).toBe('21:00')
+    expect(changes(w)).toEqual(['21:00'])
   })
 
   it('las lecturas: nunca en 12 h, no con cero delante, se van al salir; no aparecen al entrar en un «9:00» ya formateado', async () => {
@@ -788,8 +810,89 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     expect(calls.at(-1)[1]).toBe(Math.ceil(10 + 41))
   })
 
-  it('fuera de una fila no hay medidor', () => {
-    expect(mk().find('.g-time-field__measure').exists()).toBe(false)
+  // Fuera de una fila y sin block (#416): el mismo mínimo como suelo de la raíz, --_min-inline + data-fit
+  const fitOf = (w) => {
+    const r = w.find('.g-input').element
+    return { fit: r.hasAttribute('data-fit'), v: r.style.getPropertyValue('--_min-inline') }
+  }
+  const RECTS12 = {
+    '.g-input__control': [0, 300],
+    '.g-time-field__value': [40, 80],
+    '.g-input__suffix': [88, 120],
+    '.g-time-field__measure > span:first-child': [0, 90],
+    '.g-time-field__measure .g-time-field__half': [0, 40]
+  }
+
+  it('fuera de una fila, sin block: la raíz lleva --_min-inline con el mínimo medido y data-fit; antes de medir, nada', async () => {
+    fakeRects(RECTS12)
+    const w = mk({ locale: 'es-MX', suffix: 'CDMX' })
+    expect(fitOf(w)).toEqual({ fit: false, v: '' }) // primer render: sin medir
+    await settle()
+    expect(w.find('.g-time-field__measure').exists()).toBe(true)
+    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 91 + 32 + 80)}px` })
+    expect(w.find('input.g-time-field__field').attributes('data-fit')).toBeUndefined() // en la raíz, no en el <input>
+  })
+
+  it('con block, con block heredado de un contenedor y dentro de una GFormRow: ni variable ni data-fit', async () => {
+    fakeRects(RECTS12)
+    const b = mk({ locale: 'es-MX', block: true })
+    await settle()
+    expect(fitOf(b)).toEqual({ fit: false, v: '' })
+    expect(b.find('.g-time-field__measure').exists()).toBe(false)
+    const Lay = defineComponent({ setup(_, { slots }) { provide(layoutKey, { block: true }); return () => slots.default() } })
+    const l = mount(defineComponent({ components: { Lay, GTimeField }, template: '<Lay><GTimeField label="Hora" locale="es-MX" /></Lay>' }), { attachTo: document.body })
+    mounted.push(l)
+    await settle()
+    expect(fitOf(l)).toEqual({ fit: false, v: '' })
+    const { w, calls } = rowHost({ label: 'Hora', locale: 'es-MX', labels: INVALID })
+    await settle()
+    expect(calls.at(-1)[1]).toBeGreaterThan(0)
+    expect(fitOf(w)).toEqual({ fit: false, v: '' })
+  })
+
+  it('pasar a block quita las dos; volver las repone', async () => {
+    fakeRects(RECTS12)
+    const w = mk({ locale: 'es-MX' })
+    await settle()
+    expect(fitOf(w).fit).toBe(true)
+    await w.setProps({ block: true })
+    await settle()
+    expect(fitOf(w)).toEqual({ fit: false, v: '' })
+    await w.setProps({ block: false })
+    await settle()
+    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 91 + 80)}px` })
+  })
+
+  it('el style del consumidor se conserva; si define --_min-inline, gana el suyo', async () => {
+    fakeRects(RECTS12)
+    const a = mk({ locale: 'es-MX' }, { attrs: { style: 'color: red; inline-size: 200px' } })
+    await settle()
+    const ra = a.find('.g-input').element
+    expect([ra.style.color, ra.style.inlineSize, ra.style.getPropertyValue('--_min-inline')]).toEqual(['red', '200px', `${Math.ceil(40 + 91 + 80)}px`])
+    const b = mk({ locale: 'es-MX' }, { attrs: { style: { '--_min-inline': '300px', color: 'blue' } } })
+    await settle()
+    expect(fitOf(b)).toEqual({ fit: true, v: '300px' })
+    expect(b.find('.g-input').element.style.color).toBe('blue')
+  })
+
+  it('la variable se actualiza con locale, hourCycle y seconds (solo si cambia ≥ 0,5px)', async () => {
+    fakeRects({ ...RECTS12, '.g-time-field__measure > span:first-child': (el) => [0, el.textContent.length / 4] })
+    const w = mk({ locale: 'es' })
+    await settle()
+    const px = () => parseFloat(fitOf(w).v)
+    const v24 = px()
+    expect(v24).toBeGreaterThan(0)
+    await w.setProps({ locale: 'es-MX' })
+    await settle()
+    const v12 = px()
+    expect(v12).toBeGreaterThan(v24 + 40) // a. m./p. m. y el texto de 12 h
+    await w.setProps({ hourCycle: 'h23' })
+    await settle()
+    expect(px()).toBeLessThan(v12)
+    const h23 = px()
+    await w.setProps({ seconds: true })
+    await settle()
+    expect(px()).toBeGreaterThan(h23)
   })
 })
 

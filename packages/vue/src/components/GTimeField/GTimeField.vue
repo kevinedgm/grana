@@ -364,9 +364,18 @@ const halves = computed(() => {
   if (!i) return []
   return [['am', i.am], ['pm', i.pm]].map(([half, txt]) => ({ half, txt, id: `${inputId.value}-${half}`, on: halfOn(half), naming: naming(half, txt), pick: () => pickHalf(half) }))
 })
-// Puntero: el foco se queda donde estaba y, sin foco previo, el campo no se enfoca (sin teclado en un móvil)
-function onButtonDown(e) {
-  if (e.button === 0) e.preventDefault()
+// Puntero: actúa al bajar (botón 0), como los −/+ de GNumberField. preventDefault deja el foco donde estaba y, sin foco
+// previo, no enfoca el campo (sin teclado en un móvil); en WebKit táctil ese preventDefault cancela el click, por eso la
+// acción no puede esperar al click (hallazgo 4 de design/lab/time-field/auditoria.md)
+function onButtonDown(b, e) {
+  if (e.button !== 0) return
+  e.preventDefault()
+  b.pick()
+}
+// Activación sin puntero (tecnología de apoyo, Intro sobre el botón): click con detail 0; el del puntero ya actuó al bajar
+function onButtonClick(b, e) {
+  if (e.detail !== 0) return
+  b.pick()
 }
 function pickHalf(half) {
   if (!editable.value) return
@@ -474,6 +483,24 @@ function publish(px) {
   publishedEl = px ? el : null
   layout.setIntrinsicMin(el, px)
 }
+// Fuera de una fila y sin block (#416): el mismo mínimo va a la raíz como suelo de su ancho (--_min-inline + data-fit;
+// la regla es de coco: min-inline-size: min(100%, var(--_min-inline))). Antes de medir, con fila o con block, nada
+const isBlock = computed(() => props.block ?? unref(layout?.block) ?? false)
+const fitOn = computed(() => !canPublish.value && !isBlock.value)
+const fitPx = ref(0)
+function fit(px) {
+  if (!fitOn.value) px = 0
+  if (Math.abs(px - fitPx.value) < 0.5) return
+  fitPx.value = px
+}
+watch(fitOn, (on) => { if (!on) fitPx.value = 0 })
+// data-fit en la raíz de GInput (solo recibe class y style; el resto va al <input>): mientras la variable esté escrita
+watch(fitPx, (px) => {
+  const root = valueEl.value?.closest('.g-input')
+  if (!root) return
+  if (px > 0) root.setAttribute('data-fit', '')
+  else root.removeAttribute('data-fit')
+}, { flush: 'post' })
 // Texto de referencia: las 24 horas a los :59 (y :59 s) en el idioma y ciclo, y el placeholder (una línea cada uno)
 const referenceText = computed(() => {
   const i = info.value
@@ -487,7 +514,7 @@ const referenceText = computed(() => {
 // output con su separación + a. m./p. m. en 12 h (la copia inerte del medidor, con su borde final; también en solo lectura) o
 // el final de la caja. Por posiciones, nunca «caja − celda»; sin la lectura (se recorta) ni las dos lecturas (se compactan)
 function measure() {
-  if (!canPublish.value) return publish(0)
+  if (!canPublish.value && !fitOn.value) return fit(0)
   const cell = valueEl.value
   const meas = measureEl.value
   const ctl = cell?.closest('.g-input__control')
@@ -520,7 +547,9 @@ function measure() {
   } else {
     tail = (parseFloat(cs.paddingInlineEnd) || 0) + (parseFloat(cs.borderInlineEndWidth) || 0)
   }
-  publish(Math.ceil((S(c) - S(box)) + ref + after + tail))
+  const px = Math.ceil((S(c) - S(box)) + ref + after + tail)
+  if (canPublish.value) publish(px)
+  else fit(px)
 }
 let measureQueued = false
 function scheduleMeasure() {
@@ -532,7 +561,7 @@ function scheduleMeasure() {
   }))
 }
 watch(
-  () => [canPublish.value, referenceText.value, info.value?.cycle, props.prefix, props.suffix, props.prefixLabel, props.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value],
+  () => [canPublish.value, fitOn.value, referenceText.value, info.value?.cycle, props.prefix, props.suffix, props.prefixLabel, props.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value],
   () => scheduleMeasure()
 )
 let offMeasure = null
@@ -641,7 +670,9 @@ const buttons = computed(() => (showHalves.value ? halves.value : choices.value)
 // Props que pasan tal cual a GInput (time-field.md «Reglas de props»)
 const PASS = ['name', 'label', 'hint', 'error', 'warning', 'valid', 'output', 'required', 'mark', 'readonly', 'disabled', 'size', 'variant', 'density', 'color', 'rounded', 'block', 'prefix', 'suffix', 'prefixLabel', 'suffixLabel']
 const inputProps = computed(() => {
-  const o = { ...forwardAttrs.value, id: inputId.value, class: rootClasses.value, style: attrs.style }
+  // --_min-inline primero: un style del consumidor que la defina gana (#416)
+  const style = fitPx.value > 0 ? [{ '--_min-inline': `${fitPx.value}px` }, attrs.style] : attrs.style
+  const o = { ...forwardAttrs.value, id: inputId.value, class: rootClasses.value, style }
   for (const k of PASS) o[k] = props[k]
   return o
 })
@@ -684,11 +715,11 @@ if (isDev) {
           :aria-controls="inputId"
           v-bind="b.naming"
           :disabled="e.disabled || undefined"
-          @pointerdown="onButtonDown"
-          @click="b.pick()"
+          @pointerdown="onButtonDown(b, $event)"
+          @click="onButtonClick(b, $event)"
         ><span v-if="b.half" :id="b.id" class="g-time-field__half-text">{{ b.txt }}</span><span v-else :id="b.id"><span class="g-time-field__choice-time">{{ b.time }}</span> <span class="g-time-field__choice-word">{{ b.word }}</span></span></button>
       </span>
-      <span v-if="canPublish && mounted" ref="measureEl" class="g-time-field__measure" aria-hidden="true"><span ref="measureTextEl">{{ referenceText }}</span><template v-if="h12"><span v-for="h in halves" :key="h.half" class="g-time-field__half">{{ h.txt }}</span></template></span>
+      <span v-if="(canPublish || fitOn) && mounted" ref="measureEl" class="g-time-field__measure" aria-hidden="true"><span ref="measureTextEl">{{ referenceText }}</span><template v-if="h12"><span v-for="h in halves" :key="h.half" class="g-time-field__half">{{ h.txt }}</span></template></span>
     </template>
   </GInput>
 </template>

@@ -35,8 +35,8 @@
   "bundle": {
     "measured": "2026-10-06",
     "entry": "dist/time-field.js",
-    "gzip": 10279,
-    "umdGzip": 9280,
+    "gzip": 10494,
+    "umdGzip": 9494,
     "umdGlobal": "GranaTimeField",
     "main": "dist/grana.js +279 B gzip −9 (+286 B gzip −6): N4 de GInput y ownReveal de GForm (#409); GTimeField no está en el principal",
     "note": "En el principal medía +8379 B gzip (−9), +8,47 kB con Vite: supera el tope de 8 KB de #328, entrada propia como GCombobox (#337) y GFileField (#367). Vue y @grana/vue externos; GInput, formContext (useFormField, formKey, layoutKey, nextFrame y ownFieldKey: un solo Symbol(GForm)), oneOf y sizeObserver llegan de __shared, sin copia. utils/timeInput.js va en la entrada. El CSS va en grana.css."
@@ -272,8 +272,6 @@
     ]
   },
   "pending": [
-    "Auditoría de coco con un tema distinto (paso 5): design/lab/time-field/auditoria.md",
-    "README (mora-docs)",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack); teclado numérico real (iOS, Android); IME real; pegado real en Firefox; forced-colors real; franjas de CLDR en Safari real",
     "Reservados: mode=\"range\" (C, #413), picker (B, #414), GDateTimeField, secondStep, prefer"
   ]

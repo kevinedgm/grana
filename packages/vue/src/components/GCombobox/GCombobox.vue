@@ -960,6 +960,56 @@ function toggle() {
   show()
 }
 const keep = (e) => e.preventDefault() // el panel, limpiar y la flecha no quitan el foco del campo
+// Puntero en la flecha, limpiar y las opciones. El preventDefault de pointerdown deja el foco en el campo, pero en WebKit
+// táctil también cancela el click: con toque se actúa en touchend (con preventDefault, que quita el click de
+// compatibilidad: abrir la hoja o cerrar la lista no deja un click fantasma sobre lo que quede debajo) y con lápiz en
+// pointerup, solo si el gesto empezó en la pieza y no se desplazó. Con ratón, la flecha y limpiar actúan al bajar (como
+// los −/+ de GNumberField) y la opción con su clic. El click sin puntero (detail 0: Intro o Espacio en limpiar, tecnología
+// de apoyo) actúa siempre; el de un gesto de puntero, nunca (ese gesto ya actuó)
+const MOVE_TOLERANCE = 10
+let gesture = null // { kind: 'touch' | 'pen', id, x, y, act }
+function downOn(e, act) {
+  keep(e)
+  gesture = null
+  if (e.button !== 0) return false
+  if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+    gesture = { kind: e.pointerType, id: e.pointerId, x: e.clientX, y: e.clientY, act }
+    return false
+  }
+  return true // ratón
+}
+function endGesture(kind, x, y, id) {
+  const g = gesture
+  if (!g || g.kind !== kind || (kind === 'pen' && id !== g.id)) return null
+  gesture = null
+  return Math.hypot(x - g.x, y - g.y) > MOVE_TOLERANCE ? null : g // un desplazamiento no es un toque
+}
+function onGestureTouchend(e) {
+  const t = e.changedTouches?.[0]
+  const g = t ? endGesture('touch', t.clientX, t.clientY) : null
+  if (!g) return
+  if (e.cancelable) e.preventDefault()
+  g.act(e)
+}
+function onGesturePointerup(e) {
+  const g = e.pointerType === 'pen' ? endGesture('pen', e.clientX, e.clientY, e.pointerId) : null
+  if (g) g.act(e)
+}
+function onGestureCancel() {
+  gesture = null
+}
+function onArrowDown(e) {
+  if (downOn(e, toggle)) toggle()
+}
+function onArrowClick(e) {
+  if (e.detail === 0) toggle()
+}
+function onClearDown(e) {
+  if (downOn(e, clear)) clear()
+}
+function onClearClick(e) {
+  if (e.detail === 0) clear()
+}
 
 // ---------- Campo de búsqueda de la superficie ----------
 // El foco inicial es el campo de búsqueda (#292). GDialog no roba un foco que ya está dentro, y al reabrir durante la
@@ -992,9 +1042,23 @@ function rowFromEvent(e) {
   const row = rows.value.all[Number(li.dataset.index)]
   return row ? { row, el: li } : null
 }
-function onPanelClick(e) {
+// Una opción: con toque o lápiz, al soltar sin desplazarse (elegir al bajar impediría desplazar la lista); con ratón, con
+// su clic, solo si el gesto empezó en una opción del panel (el click que sigue a abrir con la flecha no elige lo de debajo)
+let mouseDownInPanel = false
+const pickFrom = (e) => {
   const hit = rowFromEvent(e)
   if (hit) pick(hit.row, { el: hit.el })
+}
+function onPanelDown(e) {
+  const onRow = Boolean(rowFromEvent(e))
+  const mouse = downOn(e, pickFrom) // siempre: preventDefault (el foco sigue en el campo) aunque no sea sobre una opción
+  if (!onRow) gesture = null
+  mouseDownInPanel = onRow && mouse
+}
+function onPanelClick(e) {
+  const mouse = mouseDownInPanel
+  mouseDownInPanel = false
+  if (e.detail === 0 || mouse) pickFrom(e)
 }
 let lastX = null
 let lastY = null
@@ -1081,7 +1145,7 @@ const Panel = () => {
   // Cerrado no se pinta ninguna fila (ni se filtra): el listbox existe, vacío, para que aria-controls apunte a algo
   const r = opened.value ? rows.value : NO_ROWS
   const s = opened.value ? status.value : null
-  return h('div', { class: 'g-combobox__panel', onPointerdown: keep, onMousedown: keep, onClick: onPanelClick, onPointermove: onPanelMove }, [
+  return h('div', { class: 'g-combobox__panel', onPointerdown: onPanelDown, onTouchend: onGestureTouchend, onPointerup: onGesturePointerup, onPointercancel: onGestureCancel, onMousedown: keep, onClick: onPanelClick, onPointermove: onPanelMove }, [
     s
       ? h('p', { class: ['g-combobox__status', `g-combobox__status--${s.kind}`], id: sub('status') }, [h(GIcon, { name: s.icon, key: s.icon }), h('span', null, statusContent(s))])
       : null,
@@ -1377,11 +1441,14 @@ if (isDev) {
         type="button"
         class="g-combobox__clear"
         v-bind="clearNaming"
-        @pointerdown="keep"
+        @pointerdown="onClearDown"
+        @touchend="onGestureTouchend"
+        @pointerup="onGesturePointerup"
+        @pointercancel="onGestureCancel"
         @mousedown="keep"
-        @click="clear"
+        @click="onClearClick"
       ><span :id="sub('clear-text')" class="g-combobox__clear-text">{{ L.clear }}</span><GIcon name="x" /></button>
-      <span v-if="!e.readonly && !e.disabled" class="g-combobox__arrow" aria-hidden="true" @pointerdown="keep" @mousedown="keep" @click="toggle"><GIcon :name="surface ? 'chevrons-up-down' : 'chevron-down'" /></span>
+      <span v-if="!e.readonly && !e.disabled" class="g-combobox__arrow" aria-hidden="true" @pointerdown="onArrowDown" @touchend="onGestureTouchend" @pointerup="onGesturePointerup" @pointercancel="onGestureCancel" @mousedown="keep" @click="onArrowClick"><GIcon :name="surface ? 'chevrons-up-down' : 'chevron-down'" /></span>
     </template>
   </GInput>
 </template>
