@@ -316,6 +316,32 @@ describe('GAdaptiveLayout public behavior', () => {
     expect(walker.mock.calls.length).toBe(rootSettled)
     document.body.removeAttribute('data-test-theme')
   })
+  it('a burst of ancestor mutations re-measures once per frame; mutations in a foreign branch never measure', async () => {
+    // Diagnóstico 2026-10-05 (form-distribution colgado): el observador de antepasados no debe convertir ráfagas del
+    // tema ni el trabajo de otras secciones de la página en medidas repetidas.
+    const { resize } = stubEngine()
+    const walker = vi.spyOn(Document.prototype, 'createTreeWalker')
+    const foreign = document.createElement('div'); document.body.append(foreign)
+    const wrapper = own(mount(GAdaptiveLayout, { attachTo: document.body, slots: { default: '<label>Nombre<input name="name"></label>' } }))
+    resize(wrapper.element, 460); await settle(30)
+    let calls = walker.mock.calls.length
+    for (let i = 0; i < 200; i++) {
+      document.body.setAttribute('data-burst', String(i))
+      document.documentElement.style.setProperty('--g-color-text', i % 2 ? '#111' : '#222')
+    }
+    await settle(30)
+    expect(walker.mock.calls.length - calls).toBe(1)
+    calls = walker.mock.calls.length
+    await settle(40)
+    expect(walker.mock.calls.length).toBe(calls)
+    for (let i = 0; i < 200; i++) {
+      foreign.classList.toggle('is-x'); foreign.style.setProperty('--g-space-1', `${i}px`); foreign.setAttribute('data-step', String(i))
+      foreign.textContent = `paso ${i}`
+    }
+    await settle(30)
+    expect(walker.mock.calls.length).toBe(calls)
+    document.body.removeAttribute('data-burst'); document.documentElement.style.removeProperty('--g-color-text'); foreign.remove()
+  })
   it('updates a direct native control profile when its external label changes', async () => {
     let emit
     vi.stubGlobal('ResizeObserver', class { constructor(fn) { emit = fn } observe() {} unobserve() {} disconnect() {} })
