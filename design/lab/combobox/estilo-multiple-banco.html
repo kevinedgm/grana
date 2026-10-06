@@ -15,7 +15,7 @@
      (is-rolling) y casilla (is-ticking) retiradas por animationend o en el acto. No es documentación ni la
      implementación de bruno.
      Servidor: GRANA_PW_PORT=4209 node design/lab/combobox/estilo-multiple-verificar.mjs --serve  →  /design/lab/combobox/estilo-multiple-banco.html
-     Parámetros: ?dark=1  ?theme=<generated/*.css> | ?theme=auditoria (tema del CLI de auditoria-tema.json)  ?slow=1 (×5)  ?dir=rtl -->
+     Parámetros: ?dark=1  ?theme=<generated/*.css> | ?theme=auditoria (tema del CLI de auditoria-tema.json) | ?theme=auditoria-primary (idem con primary propia)  ?slow=1 (×5)  ?dir=rtl -->
 <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
 <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
 <style>@import url("../../../packages/vue/src/components/GCombobox/GCombobox.css") layer(grana.components);</style>
@@ -46,7 +46,7 @@
 <h1>GCombobox multiple · banco de estilo</h1>
 <p class="cap"><b>coco</b> · A · la frase (el campo nunca crece; cede por texto; «Elegidas» arriba al abrir). B · la receta (renglones debajo, numerados, «Nueva», rastro con «Deshacer» del mismo alto). C · la cesta (paleta: resultados y cesta lado a lado; lo marcado viaja). Intro alterna, Retroceso en dos tiempos, Ctrl/⌘+Z devuelve lo último quitado.</p>
 <div class="tools" role="group" aria-label="Controles del banco">
-  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (CLI)</option></select></label>
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (CLI)</option><option value="auditoria-primary">Auditoría con primary propia (CLI)</option></select></label>
   <button type="button" id="t-dark">Oscuro</button>
   <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
 </div>
@@ -557,7 +557,7 @@ app.mount('#app')
 // ---- Tema ----
 const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
 GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
-const setTheme = (v) => { $('#gen').href = v === 'auditoria' ? 'auditoria-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+const setTheme = (v) => { $('#gen').href = v === 'auditoria' ? 'auditoria-tema.css' : v === 'auditoria-primary' ? 'auditoria-tema-primary.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
 $('#t-theme').onchange = (e) => setTheme(e.target.value)
 $('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
 const qs = new URLSearchParams(location.search)

@@ -112,7 +112,7 @@ async function load(page, qs = '') {
 const settle = (page, ms = 120) => page.waitForTimeout(ms)
 const m = (page, fn, arg) => page.evaluate(fn, arg).catch((e) => { throw new Error(e.message.split('\n')[0] + ' ⟵ ' + fn.toString().slice(0, 160).replace(/\s+/g, ' ')) })
 
-const THEMES = [['', 'por defecto'], ['auditoria', 'auditoría (CLI)']]
+const THEMES = [['', 'por defecto'], ['auditoria', 'auditoría (CLI)'], ['auditoria-primary', 'auditoría con primary propia (CLI)']]
 const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
 
 // ---------- Contraste de todo lo nuevo en una configuración ----------
@@ -209,6 +209,9 @@ async function contrast(page, label) {
     ok(v >= need, `${label} · contraste ${k} ${v.toFixed(2)} ≥ ${need}`)
     note('contraste ' + k, v)
   }
+  // Cifras de la casilla marcada (#430) por tema, para estilo.md
+  const bx = {}; for (const k of ['boxBorder', 'boxSel', 'mark', 'invSelBox']) bx[k] = +all[k].toFixed(2)
+  ;(measures['casilla por tema'] ??= []).push(`${label}: ${JSON.stringify(bx)}`)
 }
 
 // ---------- Batería completa en un motor ----------
@@ -218,6 +221,7 @@ async function full(browser, engine) {
   const errors = []
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()) })
   page.on('pageerror', (e) => errors.push(e.message))
+  page.on('response', (r) => { if (r.status() === 404) errors.push('404 ' + r.url()) })
   ctxName = engine
   await load(page)
 

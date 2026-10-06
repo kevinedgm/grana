@@ -835,7 +835,7 @@
 }
 
 /* ---------- La casilla (decorativa): la señal no cromática de «aquí se eligen varias» ---------- */
-/* Forma de control como GCheckbox: borde border-control (≥ 3:1), radio xs; marcada brand / on-brand. La marca check se
+/* Forma de control como GCheckbox: borde border-control (≥ 3:1), radio xs; marcada primary / on-primary. La marca check se
    funde al desmarcar; al marcar por un gesto salta (is-ticking) */
 .g-combobox__box {
   flex: none;
@@ -848,7 +848,7 @@
   border: var(--g-border-width) solid var(--g-color-border-control);
   border-radius: var(--g-radius-xs);
   background: var(--g-color-surface);
-  color: var(--g-color-on-brand);
+  color: var(--g-color-on-primary);
   transition:
     background-color var(--g-duration-fast) var(--g-ease-standard),
     border-color var(--g-duration-fast) var(--g-ease-standard);
@@ -860,11 +860,11 @@
   opacity: 0;
   transition: opacity var(--g-duration-fast) var(--g-ease-standard);
 }
-/* Marcada: relleno brand con su marca on-brand (par garantizado). El contorno es de tinta (text), no brand: brand solo
-   está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie (medido: lustre 1.77, spotify 1.92) */
+/* Marcada: relleno primary con su marca on-primary (par garantizado, #430). El contorno es de tinta (text), no primary:
+   primary solo está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie */
 .g-combobox__option[aria-selected="true"] > .g-combobox__box {
   border-color: var(--g-color-text);
-  background: var(--g-color-brand);
+  background: var(--g-color-primary);
 }
 .g-combobox__option[aria-selected="true"] > .g-combobox__box > .g-icon {
   opacity: 1;
@@ -875,7 +875,7 @@
   background: var(--g-color-surface-sunken);
 }
 /* En la activa invertida de la paleta, la casilla se perfila con el color de la superficie (sobre el fondo de texto,
-   brand puede ser casi el mismo tono: el borde de superficie la mantiene ≥ 3:1) */
+   primary puede ser casi el mismo tono: el borde de superficie la mantiene ≥ 3:1) */
 .g-combobox-surface .g-combobox__option.is-active > .g-combobox__box {
   border-color: var(--g-color-surface);
 }

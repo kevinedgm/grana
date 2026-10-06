@@ -117,10 +117,23 @@ Todo el movimiento ocurre solo tras un gesto (bruno pone y retira las clases) y 
 | Estado del tope `warning-soft` / **`warning-text`** | `warning-soft` / **`on-warning-soft`** | `warning-text` solo está garantizado sobre la superficie: sobre el tinte, **4,15:1 en el tema por defecto oscuro**. El par garantizado del tinte llega a 4,66 mínimo en 26 configuraciones |
 | Barra de «Nueva» en **`accent`** | **`accent-text`** | Regla transversal de #228: `accent` no es un trazo. Medido: spotify 1,29, amazon 2,14, stripe 2,64. Con `accent-text`: 4,52 mínimo |
 | «Deshacer» en **`accent-text`** | **Píldora `accent-soft` / `on-accent-soft`** (al pasar: `accent` / `on-accent`) | El rastro va sobre `surface-sunken`, donde `accent-text` no está garantizado: 4,19 a 4,32 en siete temas generados claros. El par del tinte: 4,51 mínimo, también en la cesta |
-| Casilla marcada `brand` / `on-brand` | Relleno `brand`, marca `on-brand`, **contorno `text`** (en la activa invertida de la paleta, contorno `surface`) | `brand` está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie: lustre 1,77 y spotify 1,92. Con el contorno de tinta, 15,18 mínimo; en el tema por defecto `text` y `brand` son casi el mismo tono (no cambia el aspecto) |
+| Casilla marcada `primary` / `on-primary` (#430; antes `brand` / `on-brand`) | Relleno `primary`, marca `on-primary`, **contorno `text`** (en la activa invertida de la paleta, contorno `surface`) | `primary` está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie: lustre 1,77 y spotify 1,92 (claro). Con el contorno de tinta, 15,18 mínimo; en el tema por defecto `text` y `primary` son casi el mismo tono (no cambia el aspecto). Cifras tras #430 en el apartado siguiente |
 | «Ver los N» (sin color fijado) | `text` con peso de acción | Como «Mostrar más» de la Fase 1; sobre `surface-sunken` (la cesta) `accent-text` tampoco estaría garantizado |
 
 Ninguno añade tokens; los cuatro usan pares que el motor ya garantiza.
+
+### Casilla marcada tras #430 (`primary` / `on-primary`), Chromium, `estilo-multiple-verificar.mjs`
+
+971/971 comprobaciones, 28 configuraciones (por defecto, auditoría del CLI con `brand` sola, auditoría del CLI con `primary` propia —`auditoria-tema-primary.json`, `brand` #0F5C5C y `primary` #7D1230—, y los once temas generados, claro y oscuro). Contorno `text` contra `surface` (casilla elegida) · contorno `surface` contra el fondo `text` de la activa invertida · marca `on-primary` contra relleno `primary` (todo ≥ 3:1):
+
+| Tema | Contorno `text` / `surface` | Contorno `surface` / activa invertida | Marca `on-primary` / `primary` |
+| --- | --- | --- | --- |
+| Por defecto claro / oscuro | 17,40 / 15,22 | 17,40 / 15,22 | 16,48 / 16,19 |
+| `lustre` claro / oscuro | 17,38 / 15,23 | 17,38 / 15,23 | 10,27 / 10,27 |
+| `spotify` claro / oscuro | 17,41 / 15,31 | 17,41 / 15,31 | 9,45 / 9,45 |
+| `primary` propia (CLI) claro / oscuro | 17,37 / 15,18 | 17,37 / 15,18 | 10,49 / 4,90 |
+
+Mínimos de las 28 configuraciones: contorno 15,18, activa invertida 15,18, marca **4,70** (`linear` y `stripe` claros; antes de #430, con `on-brand` sobre `brand`, el par era el mismo salvo en temas con `primary` propia). Casilla sin marcar (contorno `border-control` contra la fila): 3,43 a 4,35. Con `primary` propia la casilla ya sigue a la acción principal y no a la marca. Pruebas: `npx vitest run src/tokens/roles.test.js` pasa (2/2).
 
 ## Constantes y alias (no son tokens)
 
