@@ -280,7 +280,7 @@ Regla común en `tooltip.md` §«Modo visual» (#433); aquí, lo propio de `GSid
 - **Táctil** (riel en una tableta). Pulsación larga sobre un item muestra el nombre y **no navega**: no se emiten `navigate` ni `update:modelValue`, el enlace no se sigue y el menú o la vista previa del enlace del sistema no aparecen (`-webkit-touch-callout: none` de `[data-g-tooltip]`); sobre un padre, no abre el panel. Un toque normal hace lo de siempre.
 - **Sin duplicar el anuncio:** nombre real de cada enlace y botón sin cambio (etiqueta oculta o `aria-label`, `g-sidebar__sr`); ningún `aria-*` nuevo.
 - **#383:** los nodos son hijos de la raíz: todo selector de `GSidebar.css` sobre los hijos de la raíz (`> *`, `:last-child`, `+`, `~`) lleva la exclusión `:where(.g-tooltip)`; ninguna medida del sidebar (umbrales del contenedor) los cuenta.
-- **Fuera de este encargo:** la **navbar** (sus items inactivos muestran solo el icono, «Límites conocidos»): la pulsación larga podría nombrarlos con el mismo motor; queda como **pregunta para el usuario**, no decidida aquí.
+- **Fuera de este encargo, por decisión del usuario (2026-10-06, #437):** la **navbar** se queda como está. Sus items inactivos muestran solo el icono y **no** ganan la pista del motor con la pulsación larga: se respeta el comportamiento táctil elegido en #68. El nombre sigue en el DOM (texto oculto), así que nada se pierde para quien usa lector de pantalla.
 
 ### Encargo a bruno (Opus: se posiciona sobre otros) · `GSidebar.vue`, pruebas, `meta.json`
 
