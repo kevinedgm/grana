@@ -2,7 +2,7 @@
 
 **Dueño:** lima · **Estado:** aprobado (forma **A «Pestaña que viaja»** por defecto con la **segunda etapa de C** para `detail`; viaje con `--g-ease-out`, sin muelle; en táctil la pulsación larga muestra y **no** activa; atajo `<GBtn tooltip>` además del envoltorio: decisiones del usuario del 2026-10-06. **B «La barra habla»** queda reservada. El resto deriva de WAI-ARIA APG (Tooltip), WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/tooltip/r01/` (kiwi, base funcional, L1 a L21) y `design/lab/tooltip/r02/` (kiwi, commit `e4308c6`; conceptos A, B y C, comparativa, L22 a L28; `verificar.mjs` 246/246 en los tres motores).
 **Tag:** `g-tooltip` · **Categoría:** superposiciones · **Entrada del paquete:** `@grana/vue` (principal, #380)
-**Decisiones:** #380 a #393.
+**Decisiones:** #380 a #393; enmienda tras el estilo de coco en #394.
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: se posiciona sobre otros elementos y lo usarán otros componentes por dentro): **coco y bruno en Opus**.
 
 Un **nombre visible** para lo que solo tiene icono (`GBtn icon` en una barra, las acciones de una fila o de una tarjeta) y, en segundo lugar, una **descripción corta** y el **atajo** de un control que ya tiene nombre. Aparece al pasar el puntero, al llegar navegando con el teclado y con la pulsación larga en táctil.
@@ -96,6 +96,7 @@ Movimiento sobrio por decisión del usuario: el viaje usa `--g-ease-out` (sin mu
 - **Sin elemento enfocable** (un `GIcon` con `label`, un texto, un `GAvatar`): **no se activa en absoluto** (ni por puntero: una pista que solo ve el ratón excluye al teclado, 2.1.1), no pone referencias y avisa en desarrollo: «el tooltip va en el control».
 - **Por qué no una directiva** (`v-g-tooltip`): sobre un componente cae en su raíz, que no siempre es el control (en `GInput` es la caja); no puede renderizar el nodo persistente con Vue; sin SSR sin `getSSRProps`.
 - **Componentes de Grana como hijo:** los tres atributos ARIA y `data-g-tooltip` deben llegar al elemento enfocable. bruno lo verifica en `GBtn` (`button` y `a`), `GInput`, `GTextarea`, `GSelect`, `GNumberField`, `GCombobox`, `GDatePicker`, `GSwitch`, `GCheckbox` y `GHelper` (este último, tras la enmienda de #391). Un componente donde no lleguen, o donde la caja del elemento resuelto no coincida con el control visible (un `<input>` nativo oculto bajo su dibujo), **se devuelve a lima** como pendiente; no se parchea escribiendo en el DOM del otro componente.
+- **`GInputGroupInput` y `GInputGroupSelect`: no se admiten como hijo** (#394). Medido en su código: `class` y `style` van a la parte (`span.g-input-group__part`) y el resto de `$attrs` al `<input>`/`<select>`, pero **(a)** el elemento resuelto sería el control nativo y la caja visible del control es la **parte** (con su anillo y su nombre de parte): la pestaña mediría el elemento equivocado, el caso que esta sección devuelve a lima; **(b)** la parte fija su propio `aria-labelledby` (etiqueta + parte, `form.md` §13) y gana al recibido, así que `kind="label"` no se cumpliría, y con `auto` el control ya tiene nombre. Reenviar al control no lo arregla; el consejo de una parte va en el `hint` del grupo (el tooltip no sustituye `hint`). `GInputGroup` entero tampoco es hijo (su raíz es un `fieldset`, no un control). **Sí** se admite un `GBtn` (o `a`) puesto como parte o como `action` (es lo que cubren #383 y `GInput.css`). **Encargo a bruno:** `GTooltip` reconoce el hijo por el nombre del componente (`GInputGroupInput`, `GInputGroupSelect`), **no se activa** (sin referencias ni escuchas, como el aviso 2) y avisa en desarrollo (aviso 8); no se toca el `.vue` de ninguno de los dos.
 
 ## Semántica (#382)
 
@@ -142,15 +143,22 @@ Con `detail` (segunda etapa, #389):
 
 El nodo va **inmediatamente después** del elemento raíz del hijo, nunca antes: así no altera el `:first-child` del control ni de los anteriores. Cerrado no ocupa sitio ni genera hueco de `gap` (`display: none` del agente de usuario mientras no está abierto: **coco no fija `display` en `.g-tooltip` fuera de `:popover-open`**, o anularía el cierre); abierto vive en la capa superior, fuera del flujo. Pero **cuenta** para los selectores estructurales: `:last-child`, `:only-child`, `:nth-child()` de los hermanos siguientes, `:nth-last-child()`, y las combinaciones `+` y `~` que parten del control.
 
-**Regla transversal** (`api.md`, «Nodos hermanos de `GTooltip`»): el CSS de Grana que selecciona por estructura **hijos que pone la aplicación** ignora `.g-tooltip`: `:nth-last-child(1 of :not(.g-tooltip))` en lugar de `:last-child`, y en las combinaciones adyacentes, la variante con el nodo intermedio (`A + .g-tooltip + B` junto a `A + B`) o `:has()`. Los tres motores admiten `:nth-child(… of S)`.
+**Regla transversal** (`api.md`, «Nodos hermanos de `GTooltip`»): el CSS de Grana que selecciona por estructura **hijos que pone la aplicación** ignora `.g-tooltip`, **siempre con `:where(.g-tooltip)`** (no suma especificidad, así cada selector conserva la que tenía y no hay que reordenar la cascada; #394): `:nth-last-child(1 of :not(:where(.g-tooltip)))` en lugar de `:last-child`; `> :not(:where(.g-tooltip))` en lugar de `> *` (reglas que dan `display`, `inline-size`, márgenes o `white-space` a todos los hijos de la aplicación: el nodo, fijo y oculto, las heredaría); y en las combinaciones adyacentes, la variante con el nodo intermedio (`A + :where(.g-tooltip) + B` junto a `A + B`) o `:has()`. Los tres motores admiten `:nth-child(… of S)`.
 
-Revisado en el CSS de hoy (lo corrige coco, encargo 6):
+Revisado en el CSS de hoy (corregido por coco, encargo 6; commit `8df1d85`, Δ0 de rectángulos, márgenes, bordes y rellenos frente a `5dba395`). La primera revisión de lima (tres filas) se quedó corta: el repaso con `grep` de coco añadió cinco archivos (#394):
 
 | Archivo | Selector | Riesgo |
 | --- | --- | --- |
 | `GDialog.css` | `.g-dialog__body > :last-child` (margen final 0) | Un control con tooltip al final del cuerpo deja de ser `:last-child` |
-| `GInputGroup.css` | `.g-input-group__part:is(--input, --select) + .g-input-group__part:is(…)` (líneas 124 y 406: la línea entre dos partes) | Una parte con tooltip rompe la adyacencia y desaparece la línea |
+| `GInputGroup.css` | línea entre partes (`A + B`, también en `forced-colors`) | Una parte con tooltip rompe la adyacencia y desaparece la línea |
 | `GInputGroup.css` | `.is-warning .g-input-group__box > :last-child` (margen del borde doble) | La última parte con tooltip deja de ser `:last-child` |
+| `GInputGroup.css` | `__part:has(+ --text)`, `--text + __part`, `--text:last-child` (también con `__text-label`) | Una parte de control con tooltip seguida de su unidad («120 mmHg») pierde el acercamiento al texto |
+| `GFormRow.css` | `:not([data-lines]) > * + *` (margen de línea) | El nodo abierto (fijo) heredaba el margen y se desplazaba |
+| `GAdaptiveLayout.css` | `> *` (`inline-size: 100%`) | La etiqueta tomaba el ancho del visor |
+| `GCard.css` | `.g-card__meta > *` (`display: flex`) | Dejaba el nodo **visible cerrado** |
+| `GInput.css` | `.g-input__action > *` (4 reglas) | Con `<GBtn tooltip>` en `action`: `white-space: nowrap` heredado y 44px de mínimo en táctil |
+
+El resto del CSS (`GTable`, `GNumberField`, `GCalendar`, `GDatePicker`, `GStepper`, `GTranscript`, `GSidebar`, `GCombobox`, `GCheckbox`, `GSwitch`, `GErrorSummary`, `GFileField`, `GWidget*`, `GToast`, `GStatusIsland`) solo selecciona piezas internas; `GFormLayout > *`, `GFormReveal__body > *` y `GCard__content > *` ponen `margin: 0`/`min-inline-size: 0` (inocuos para un nodo fijo). **Regla para quien escriba CSS nuevo** (coco, y los encargos de #392): todo `> *`, `> :last-child`, `+` o `~` sobre hijos que pone la aplicación lleva la exclusión con `:where(.g-tooltip)`.
 
 Los `:first-child` (`GDialog`, `GFormSection`, `GInputGroup`) no se ven afectados por ir el nodo detrás. Los selectores estructurales sobre piezas **internas** de un componente (`GStepper`, `GCalendar`, `GTable`…) no cambian mientras esas piezas no lleven tooltip; cuando el motor interno llegue a `GTabs`, `GRadioGroup` y `GSidebar` (#392), su pista es un nodo del propio componente y cada encargo revisa su CSS. **Límite para el consumidor** (README): sus propios selectores estructurales también ven el nodo; la receta es la misma.
 
@@ -226,14 +234,14 @@ En táctil no hay *hover*, y un icono sin nombre visible es justo el problema qu
 - **`placeAround` de `utils/anchor.js`**, sin utilidad nueva: el lado pedido, el opuesto y los perpendiculares; en el primero que cabe, desplazado en el eje secundario hasta quedar dentro con margen `space × 2`. Lado por defecto: §«Reglas de props».
 - **Ancla:** el elemento resuelto (§«El hijo»).
 - **Capa superior** (`popover="manual"`, posición fija): ningún `overflow: hidden` lo recorta (el límite que anotaba `card.md` no aplica). Por ser **hermano del control**, dentro de un `<dialog>` modal vive dentro del diálogo y no queda inerte (medido por kiwi).
-- **Paneles anclados (`api.md`, #358):** regla **1** sí, en su forma estricta (el lado se decide al abrir y **no cambia mientras está abierto**, sin histéresis: se reevalúa al reabrir y al viajar; con `followFrame` y `setVar`); regla **3** sí (`anchorGone`: si el control sale del visor o de su contenedor con desplazamiento, cierra sin mover el foco). Reglas **2** (`--_max`) y **4** (lista) **no aplican**: el tooltip no tiene alto máximo ni lista. Sin hoja móvil: en un visor estrecho sigue siendo un tooltip (cabe: `space × 70` + 2 márgenes = 296px en 320px).
-- Hueco entre control y etiqueta: el largo de la pestaña (constante de diseño de coco desde `space`; kiwi: `space × 1.5`). Ancho máximo de la etiqueta **`space × 70`** (280px con `space` 4); el texto se parte (`overflow-wrap: anywhere`) y **nunca se recorta**.
+- **Paneles anclados (`api.md`, #358):** regla **1** sí, en su forma estricta (el lado se decide al abrir y **no cambia mientras está abierto**, sin histéresis: se reevalúa al reabrir y al viajar; con `followFrame` y `setVar`); regla **3** sí (`anchorGone`: si el control sale del visor o de su contenedor con desplazamiento, cierra sin mover el foco). Reglas **2** (`--_max`) y **4** (lista) **no aplican**: el tooltip no tiene alto máximo ni lista. Sin hoja móvil: en un visor estrecho sigue siendo un tooltip: el ancho máximo es **`min(space × 70, visor − space × 4)`** (#394), así que cabe siempre con sus dos márgenes (con `space` 4, `space × 70` + 2 márgenes = 296px en 320px; con `space` 5, 350px no cabría y manda el visor: 300px).
+- Hueco entre control y etiqueta: el largo de la pestaña (constante de diseño de coco desde `space`; kiwi: `space × 1.5`). Ancho máximo de la etiqueta **`min(space × 70, visor − space × 4)`** (280px con `space` 4 en un visor ancho; #394); el texto se parte (`overflow-wrap: anywhere`) y **nunca se recorta**.
 
 ## Forma: la pestaña (#387; decisión del usuario 1)
 
 - **Etiqueta** (`g-tooltip__body`): superficie **inversa** (`--g-color-text` de fondo, `--g-color-surface` de texto; #325), `--g-radius-md`, `--g-shadow-2`, borde transparente de `--g-border-width` (aparece en `forced-colors`). Nombre con el peso de acción; atajo en `<kbd>` con borde `currentColor`; detalle debajo, a ancho completo.
 - **Pestaña** (`g-tooltip__tab`, `aria-hidden`): del mismo fondo que la etiqueta, une su borde con el del control y **mide lo que mide el control** en el eje del lado (ancho con `top`/`bottom`, alto con `left`/`right`); su geometría llega en `--_tooltip-ax`, `--_tooltip-ay`, `--_tooltip-aw`, `--_tooltip-ah` (px, relativos a la etiqueta; los escribe el `.vue`). Medido por kiwi: Δ 0px de ancho y Δ < 0,01px del borde del control en los tres motores.
-- **Control más ancho que su etiqueta:** la etiqueta mide **al menos lo que la pestaña** (la pestaña nunca sobresale de la etiqueta), hasta el ancho máximo; con un control más ancho que `space × 70` (un botón `block`), la pestaña se acota a la etiqueta, centrada sobre el control. coco lo comprueba con un `GBtn` de texto de 120px y uno `block`.
+- **Control más ancho que su etiqueta:** la etiqueta mide **al menos lo que la pestaña** (la pestaña nunca sobresale de la etiqueta), hasta el ancho máximo; **a los lados** (`left`/`right`, un riel), el alto mínimo de la etiqueta es **`min(alto del control, alto del visor − space × 4)`** (#394), con el mismo acotado; con un control más ancho que el máximo (un botón `block`), la pestaña se acota a la etiqueta, centrada sobre el control. coco lo comprueba con un `GBtn` de texto de 120px y uno `block`. **Límite medido** (#394): con un control relleno y la pestaña a ancho completo de la etiqueta, las esquinas `--g-radius-sm` de la pestaña asoman ~2px por encima del borde de la etiqueta; aceptado.
 - **Un control suelto** lleva la misma forma. No hay flecha.
 - **`forced-colors`:** la pestaña es un **fondo** y desaparecería (hallazgo de kiwi): coco la mantiene visible y unida a la etiqueta con colores del sistema (p. ej. `CanvasText`/`Canvas` y su borde) y lo mide.
 
@@ -296,13 +304,13 @@ Hoy `GHelper` deja los atributos que recibe en su raíz `span` (`helper.md`: «l
 | Relevo del grupo sin viaje | Sin entrada (`data-instant`) | Igual |
 | Viaje | `--g-duration-press` + `--g-ease-out` (`translate`, `inline-size`, pestaña) | **Salta** (solo opacidad) |
 | Segunda etapa | Alto con `grid-template-rows`, `--g-duration-press` + `--g-ease-out`; ancho en el acto | Aparece sin crecer |
-| Cerrar | Fundido `--g-duration-fast` (más corto o igual que la entrada, #152) | Igual |
+| Cerrar | Fundido `--g-duration-fast` (más corto o igual que la entrada, #152); **solo en Chromium**: Firefox y WebKit no transicionan `display` de un popover y cierran en el acto, como `GMenu` y `GSelect` (#394) | Igual |
 
 Transiciones, no keyframes (§29.4). Ningún uso nuevo de `--g-ease-spring` ni de `--g-ease-bounce`.
 
 ## Tokens consumidos (#393)
 
-Existentes: `--g-color-text` (fondo de etiqueta y pestaña), `--g-color-surface` (texto, detalle y borde del `<kbd>` vía `currentColor`), `--g-radius-md` (etiqueta), `--g-radius-sm` (esquinas de la pestaña), `--g-radius-xs` (`<kbd>`), `--g-shadow-2`, `--g-space-1` (relleno, separación, hueco/pestaña, ancho máximo `× 70`, márgenes al visor `× 2`), `--g-border-width`, `--g-font-ui`, `--g-text-body-sm-{size|line}` (nombre y detalle), `--g-text-caption-{size|line}` (`<kbd>`), `--g-text-action-weight` (nombre), `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`.
+Existentes: `--g-color-text` (fondo de etiqueta y pestaña), `--g-color-surface` (texto, detalle y borde del `<kbd>` vía `currentColor`), `--g-radius-md` (etiqueta), `--g-radius-sm` (esquinas de la pestaña), `--g-radius-xs` (`<kbd>`), `--g-shadow-2`, `--g-space-1` (relleno, separación, hueco/pestaña, ancho máximo `min(× 70, visor − × 4)`, márgenes al visor `× 2`), `--g-border-width`, `--g-font-ui`, `--g-text-body-sm-{size|line|weight|tracking}` (nombre y detalle), `--g-text-caption-{size|line|weight|tracking}` (`<kbd>`), `--g-text-action-weight` (nombre; #394 completa la lista con `weight` y `tracking` de los dos roles, que el CSS ya leía), `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`.
 
 **Sin tokens nuevos** (`tokens.md` §36; §17.6: ningún existente se queda corto). Superficie inversa como la isla de estado (#325) y la paleta de `GCombobox`; se invierte sola en el oscuro (§15). Contraste medido por kiwi con el tema por defecto: 17,40:1 en nombre, detalle y atajo.
 
@@ -322,12 +330,13 @@ Existentes: `--g-color-text` (fondo de etiqueta y pestaña), `--g-color-surface`
 | `g-tooltip__detail` | Detalle (`ID-detail`) | Con `detail` |
 | `:popover-open` | Nodo | Abierto |
 | `data-side` | Nodo | Abierto: lado real tras el volteo (`top` `right` `bottom` `left`, lógico) |
-| `data-instant` | Nodo | Abre en el grupo sin entrada |
-| `data-travel` | Nodo | Abre viajando desde el anterior |
+| `data-instant` | Nodo | Abre en el grupo **sin entrada y sin salida** (quita la entrada y la salida del nodo, no el crecimiento de la segunda etapa; puede quedar puesto mientras está abierto). El **saliente de un relevo** (con o sin viaje) se oculta así: `data-instant` y luego `hidePopover()`, para que nunca haya dos etiquetas visibles (#394) |
+| `data-travel` | Nodo | Abre viajando desde el anterior. **Mientras está puesto**, el texto va en una línea y se recorta (se descubre con el ancho); el `.vue` lo retira **al terminar** (`transitionend` de `translate`, o `--g-duration-press` + margen, que es lo que llega con movimiento reducido) junto con el `inline-size` en línea (#394) |
 | `data-dwell` | Nodo | Segunda etapa abierta |
 | `data-touch` | Nodo | Abierto por pulsación larga |
 | `--_x`, `--_y`, `--_yb` (en línea) | Nodo | Posición (px; `--_yb` desde el borde inferior del visor, para crecer hacia arriba) |
 | `--_tooltip-ax`, `--_tooltip-ay`, `--_tooltip-aw`, `--_tooltip-ah` (en línea) | Nodo | Geometría de la pestaña relativa a la etiqueta (px). Si coco las registra con `@property`, con estos nombres (§29.7: `@property` es global) |
+| `inline-size` (en línea) | Nodo | **Solo durante el viaje:** primero el ancho del saliente, luego el final, para que la etiqueta lo transicione junto con `translate` y la pestaña; se retira con `data-travel` al terminar, o un nombre largo quedaría recortado (#394) |
 | `data-g-tooltip` | Elemento resuelto del hijo | Siempre que el tooltip esté activo (marca para el CSS táctil) |
 
 ## RTL
@@ -349,6 +358,7 @@ Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`. S
 5. `shortcut` sin `keyshortcuts`.
 6. El control trae **`title`**.
 7. **`GBtn` con `tooltip` como hijo directo** de un `GTooltip`: gana el envoltorio (aviso de `GBtn`).
+8. El hijo es **`GInputGroupInput` o `GInputGroupSelect`** (#394): no se admiten; no se activa. «Usa el `hint` del grupo.»
 
 `placement` y `kind` fuera de su lista: validador de la prop.
 
@@ -407,13 +417,16 @@ Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`. S
 - Los selectores estructurales de la aplicación ven el nodo hermano (#383).
 - Un tooltip no sustituye la etiqueta de un campo ni su `hint`.
 - Sin `popover="hint"` (soporte desigual): el cierre por Esc y por pulsar fuera lo hace el motor, no el navegador; abrir el tooltip no cierra los `popover="auto"` de otras bibliotecas ni ellos lo cierran a él.
+- **Salida con fundido solo en Chromium:** Firefox y WebKit cierran el popover en el acto (no transicionan `display`), igual que `GMenu` y `GSelect` (#394).
+- Con un control relleno y la pestaña a ancho completo de la etiqueta, las esquinas `--g-radius-sm` de la pestaña asoman ~2px (aceptado, #394).
+- `GInputGroupInput` y `GInputGroupSelect` no se admiten como hijo (§«El hijo», #394): el consejo de una parte va en el `hint` del grupo.
 - La caja del elemento resuelto es el ancla: en un control cuyo elemento enfocable no coincide con su dibujo, la pestaña mediría el elemento (§«El hijo»: se devuelve a lima si aparece).
 
 ## Verificación (cómo se da por hecho)
 
 ### bruno (vitest + jsdom)
 
-Props y validadores; un hijo / varios / ninguno / no enfocable (avisos 1 y 2); referencias en `GBtn` (`button` y `a`), `GInput`, `GTextarea`, `GSelect`, `GNumberField`, `GCombobox`, `GDatePicker`, `GSwitch`, `GCheckbox` y `GHelper` (tras #391): `aria-labelledby`/`aria-describedby` añadido sin reemplazar/`aria-keyshortcuts`/`data-g-tooltip` en el elemento enfocable; `kind` (`auto` sin nombre, mismo nombre, otro nombre, provisional antes de montar, reevaluado al cambiar `text`); `detail` siempre en `describedby`; nodo detrás del hijo; `disabled` conserva referencias; SSR sin globals; desmontaje sin escuchas; `GBtn tooltip` (nombre, descripción, aviso de nombre que no salta, gana el envoltorio solo con el hijo directo, `GBtn tooltip` dentro del `append` de un `GInput` envuelto conserva el suyo); temporizadores con relojes falsos (`OPEN`, `CLOSE`, `SKIP`, `DWELL`, `LONG`, lectura).
+Props y validadores; un hijo / varios / ninguno / no enfocable (avisos 1 y 2); referencias en `GBtn` (`button` y `a`), `GInput`, `GTextarea`, `GSelect`, `GNumberField`, `GCombobox`, `GDatePicker`, `GSwitch`, `GCheckbox` y `GHelper` (tras #391; y `GInputGroupInput`/`GInputGroupSelect` **no activos** con el aviso 8, #394): `aria-labelledby`/`aria-describedby` añadido sin reemplazar/`aria-keyshortcuts`/`data-g-tooltip` en el elemento enfocable; `kind` (`auto` sin nombre, mismo nombre, otro nombre, provisional antes de montar, reevaluado al cambiar `text`); `detail` siempre en `describedby`; nodo detrás del hijo; `disabled` conserva referencias; SSR sin globals; desmontaje sin escuchas; `GBtn tooltip` (nombre, descripción, aviso de nombre que no salta, gana el envoltorio solo con el hijo directo, `GBtn tooltip` dentro del `append` de un `GInput` envuelto conserva el suyo); temporizadores con relojes falsos (`OPEN`, `CLOSE`, `SKIP`, `DWELL`, `LONG`, lectura).
 
 ### Playwright (Chromium, Firefox, WebKit; `design/lab/theme-playground/`, puerto propio)
 
@@ -440,7 +453,7 @@ Lector de pantalla real (VoiceOver, NVDA, TalkBack) con nombre, descripción, `a
 ### coco (Opus) · `GTooltip.css`
 
 1. Forma A con tokens: etiqueta inversa, pestaña del ancho/alto del control unida al borde (es también el puente 1.4.13), `<kbd>`, detalle; `display` solo bajo `:popover-open` (#383).
-2. Etiqueta ≥ pestaña; acotada a `space × 70`; control `block`.
+2. Etiqueta ≥ pestaña; acotada a `min(space × 70, visor − space × 4)` (alto mínimo a los lados: `min(alto del control, visor − space × 4)`); control `block`.
 3. Viaje (`data-travel`): `translate`, `inline-size` y pestaña con `--g-duration-press` + `--g-ease-out`; con `reduce`, solo opacidad. Aparecer y cerrar con fundido `--g-duration-fast`; `data-instant` sin entrada; nada al montar.
 4. Segunda etapa (`data-dwell`): `grid-template-rows` 0fr → 1fr, crece hacia fuera (`--_yb` con `data-side="top"`); con `reduce`, sin crecer.
 5. Táctil: `[data-g-tooltip]` con `pointer: coarse` (`-webkit-touch-callout: none`; `user-select: none` salvo `input`/`textarea`). `forced-colors`: pestaña y borde visibles.
@@ -455,7 +468,8 @@ Lector de pantalla real (VoiceOver, NVDA, TalkBack) con nombre, descripción, `a
 4. `GHelper`: reenvío de los cuatro atributos al botón (#391); prueba con `GTooltip`.
 5. Registro en `src/index.js` y `components.css`; medir el peso (tope #380); `GTooltip.meta.json`; compuertas nuevas (`grep -q "g-tooltip__tab" packages/vue/dist/grana.css`).
 6. Pruebas de §«Verificación»; playground con barra, riel, acciones por fila, controles sueltos con `detail`, `GDialog` y `GHelper`.
-7. Lo que no llegue a su sitio en la matriz de componentes hijo: a lima, sin parche.
+7. Lo que no llegue a su sitio en la matriz de componentes hijo: a lima, sin parche. `GInputGroupInput` y `GInputGroupSelect` no se admiten (aviso 8, #394).
+8. **Lo que el CSS de coco espera del `.vue`** está medido en `design/lab/tooltip/estilo.md` («Lo que el CSS espera del `.vue`»): orden al colocar (`data-side` y `--_tooltip-aw/-ah` antes de medir), receta del viaje, `inline-size` y `data-travel` retirados al terminar, `data-instant` con `hidePopover()` para el saliente. Además, `GFormRow` (`data-lines`) y `GAdaptiveLayout` miden a sus hijos por JS y deben **saltarse `.g-tooltip`** (el nodo cerrado mide 0), igual que cualquier recorrido de hijos de `GInputGroup.vue` (#394; esos tres `.vue` son de bruno).
 
 ### mora-docs · `GTooltip/README.md` (tras la auditoría)
 
