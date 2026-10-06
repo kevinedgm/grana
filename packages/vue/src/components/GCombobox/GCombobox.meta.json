@@ -619,8 +619,7 @@
     "Solo en entorno real: lector de pantalla (eco de escritura con la primera activa, fantasma junto a aria-activedescendant, dos combobox y la vista previa, aria-describedby con la línea secundaria, filas de acción, recuentos), teclado virtual real sobre la hoja, IME real, forced-colors real, Safari real, zoom 200/400 %, pegado de texto largo.",
     "Reservado (#338, #428): expandable, GInputGroupCombobox, editor de valor de GFilterBar, autoHighlight, reorderable (reordenar con Alt+↑/↓ y arrastre), GTagInput.",
     "Fase 2, solo en entorno real: lector de pantalla (aria-selected con aria-activedescendant y el anuncio propio duplicado, ID-about largo con 40, la frase aria-hidden, «Elegidas», receta y cesta como listas con botones, rastro descrito y foco en «Deshacer», dos combobox en la superficie), forced-colors real, táctil y teclado virtual sobre la hoja, IME con varios, Safari real (WebKit no tabula a «Deshacer»/«Listo» sin ajuste del sistema).",
-    "Fase 2 · peso: +7,4 KB gzip sobre la entrada (tope 8 KB): cualquier crecimiento futuro del modo pide la entrada @grana/vue/combobox-multiple (#428).",
-    "Defecto de la Fase 1 visto al construir la Fase 2 (no corregido para no cambiar la Fase 1): con movimiento, abrir A con ↓ desplaza el panel ~82px mientras se despliega (scrollActive mide el panel a medio crecer) y la primera opción activa queda tapada por el campo; afecta también a multiple. Los specs usan reduced motion y no lo ven."
+    "Fase 2 · peso: +7,4 KB gzip sobre la entrada (tope 8 KB): cualquier crecimiento futuro del modo pide la entrada @grana/vue/combobox-multiple (#428)."
   ],
   "phase2": {
     "contract": "design/contracts/combobox.md «Fase 2 · Selección múltiple» (#417 a #429)",
