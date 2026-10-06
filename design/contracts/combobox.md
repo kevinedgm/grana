@@ -691,7 +691,7 @@ Panel con varios (común a la forma de A y a la superficie):
 | Tecla | Lista cerrada | Lista abierta |
 | --- | --- | --- |
 | Carácter | Abre y busca | Busca |
-| ↓ / ↑ | Abre; la primera / la última fila | Siguiente / anterior; no cicla; salta las deshabilitadas **del catálogo**; las no elegibles **por el tope sí se recorren** |
+| ↓ / ↑ | **`field`:** abre y activa la primera / la última fila. **Superficie** (paleta y hoja): abre **sin fila activa**, como en la Fase 1 (regla de «La superficie»: en el disparador, abrir no elige ni mueve); la siguiente ↓ / ↑ activa la primera / la última | Siguiente / anterior; no cicla; salta las deshabilitadas **del catálogo**; las no elegibles **por el tope sí se recorren** |
 | Alt+↓ / Alt+↑ | Como la Fase 1 | Alt+↑ cierra |
 | Av Pág / Re Pág | — | Diez adelante / atrás |
 | → | Edición | Con texto fantasma y el cursor al final: acepta el texto **sin elegir** (Fase 1) |
