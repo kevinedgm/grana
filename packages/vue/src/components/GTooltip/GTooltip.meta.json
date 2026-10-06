@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Nombre visible, descripción breve y atajo de un control enfocable: aparece con el puntero (350 ms), con el foco por navegación y con la pulsación larga en táctil. Forma A «pestaña que viaja» (la etiqueta cuelga del control por una pestaña de su tamaño y acompaña de un control al siguiente en un grupo) con segunda etapa para detail. Envoltorio de un único hijo sin elementos añadidos; su nodo role=\"tooltip\" persistente (popover=\"manual\") va detrás del control.",
   "contract": "design/contracts/tooltip.md",
-  "decisions": "DECISIONS.md #380 a #398",
+  "decisions": "DECISIONS.md #380 a #399",
   "prototype": "design/lab/tooltip/r01/ y design/lab/tooltip/r02/",
   "style": "packages/vue/src/components/GTooltip/GTooltip.css",
   "entry": "@grana/vue (principal, #380)",
