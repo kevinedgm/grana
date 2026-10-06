@@ -1,7 +1,7 @@
 # Contrato · GTimeField
 
 **Dueño:** lima · **Estado:** aprobado (concepto **A «La hora dicha»** por defecto y la regla de la hora ambigua sin pista: decisiones del usuario del 2026-10-06; **C «Tramo»** reservado como `mode="range"` para una segunda entrega con sus dos reglas ya decididas por el usuario; **B «Rejilla del día»** reservado como `picker` para una tercera, solo si un producto la pide; el resto deriva de HTML, WAI-ARIA APG *Spinbutton*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/time-field/r01/` (kiwi; base funcional: 23 decisiones, hallazgos L1 a L16) y `design/lab/time-field/r02/` (kiwi; conceptos A, B y C, comparativa, L17 a L22; `verificar.mjs` 339/339 en los tres motores; commit `388f33b`) · **Decisiones:** DECISIONS.md **#400 a #414** · **Convive con:** `input.md` (la caja; tercer consumidor de los slots internos y un añadido interno nuevo, N4), `form.md` (contexto, `useFormField`, error propio ampliado §2, `GFormRow` §4, receta «Fecha y hora» §8; Fase 5), `number-field.md` (mismo patrón de `spinbutton` editable y de canónico oculto; motor distinto), `datepicker.md` (fecha + hora en una fila; reservado B), `tooltip.md` (caja visible, #395), `tokens.md` §37
-**Tag:** `g-time-field` · **Categoría:** entradas · **Fase 5 del sistema de formularios** (rondas propias de kiwi, #168)
+**Tag:** `g-time-field` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/time-field` (#415, enmienda #400) · **Fase 5 del sistema de formularios** (rondas propias de kiwi, #168)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GInput` y lleva un motor de interpretación propio): **coco y bruno en Opus**.
 
 Un campo para **una hora del reloj** (una cita, una toma, el inicio de un turno): se **escribe como se dice** («930», «21», «9.30p», «9 noche»), vuelve **en palabras** pegadas al número («9:30 · de la noche») y, cuando lo escrito puede ser de mañana o de noche, **ofrece la otra lectura a un toque**. El modelo es una cadena `"HH:mm"` (o `"HH:mm:ss"`) o `null`: una hora de pared, sin fecha ni zona.
@@ -389,7 +389,14 @@ Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'prod
 
 ## Paquete y peso (#400)
 
-En el **paquete principal** `@grana/vue` (motor + campo estimados por kiwi en 3 a 4 KB gzip; tope de 8 KB de #238/#337/#380). bruno mide el incremento real; si supera 8 KB, vuelve a lima. B (#414) volvería a decidirse (probablemente entrada propia).
+**Entrada propia `@grana/vue/time-field`** (`dist/time-field.js` y `dist/time-field.umd.js`, global UMD **`GranaTimeField`**, requiere `Vue` y `Grana`), como `GCombobox` (#337) y `GFileField` (#367). **Enmienda de #400 (#415):** kiwi estimó 3 a 4 KB gzip para el paquete principal; bruno midió **+8379 B gzip -9** (+8,47 kB con Vite), por encima del tope de 8 KB (#238, #328, #337, #380). El componente y `utils/timeInput.js` pesan ~3 KB por sí solos; el resto del incremento medido, ~270 B, es de N4 (`GInput`) y de `ownReveal` (`GForm`), que **se quedan en el principal** (sin API pública nueva).
+
+- `@grana/vue` **no** exporta ni registra `GTimeField`. La entrada exporta `GTimeField` y, por defecto, un plugin que solo lo registra (`app.use(TimeField)`); sin gestor: no es un servicio.
+- Lo compartido llega por **`__shared`** sin duplicarse: `GInput`, `useFormField` y las claves de contexto (una copia propia crearía otro `Symbol` y el campo no vería su `GForm`). `utils/timeInput.js` viaja solo en esta entrada.
+- El CSS sigue en `grana.css` (`GTimeField.css` registrado en `components.css`).
+- **Compuertas:** `grep -q "g-time-field__reading" packages/vue/dist/grana.css`, `! grep -q "GTimeField" packages/vue/dist/grana.js`, `test -f packages/vue/dist/time-field.js`. Siguen las de #337 y #367.
+
+B (#414) volvería a decidirse; con esta entrada ya es la casa natural de `picker`.
 
 ---
 
@@ -409,7 +416,7 @@ En el **paquete principal** `@grana/vue` (motor + campo estimados por kiwi en 3 
 | L10 | Dirección | `dir` del idioma en el campo; el porqué, anotado aquí y en «RTL e idiomas» de `number-field.md` (que no cambia de comportamiento) | #403 |
 | L11 | Segundos | `step` siempre en minutos; `secondStep` reservado | #402 |
 | L12 | «Ahora» | Vacío + paso = `min` o la hora del dispositivo redondeada hacia arriba (con `max` sin `min`, acotada), solo en el cliente; SSR como `GNumberField` | #405 |
-| L13 | Peso | Paquete principal (≤ 8 KB gzip medido por bruno) | #400 |
+| L13 | Peso | Entrada propia `@grana/vue/time-field` (medido +8379 B gzip en el principal, sobre el tope de 8 KB) | #400, #415 |
 | L14 | Tokens e iconos | Ninguno nuevo; ningún icono propio (`prepend` para un adorno) | #412 |
 | L15 | Receta | `form.md` §8 «Fecha y hora» con la nota de zona | #411 |
 | L16 | Reservas | `GDateTimeField`, `mode="range"`, `secondStep`, `prefer`, `suggestions` | #411, #413, #414 |
@@ -437,7 +444,7 @@ En el **paquete principal** `@grana/vue` (motor + campo estimados por kiwi en 3 
 
 - **Forma:** botón al final de la caja (cuadrado del alto de la caja, icono **`clock`**, que entraría en la lista de la librería, `icons.md` §4; `chevron-down` promete una lista) que abre un **diálogo no modal** (`popover="manual"`, APG *Date Picker Dialog* como `GDatePicker`; hoja inferior a ≤ 520px; reglas 1 y 3 de #358) con **horas habituales** de la aplicación arriba y **el día en cuatro filas de seis** (`role="grid"`, `rowheader` de la aplicación); elegir una hora despliega sus minutos según el paso.
 - **API reservada:** `picker` (Boolean), `suggestions` (`[{ time, label? }]`), `labels` `open`, `dialog`, `hours`, `minutes`, `rows` (4), `suggestions`, `now`, `nowMark`, `exact`. **`aria-keyshortcuts="Alt+ArrowDown"`** en el campo; `aria-haspopup="dialog"` y `aria-expanded` **en el botón**, nunca en el `spinbutton`.
-- **Peso:** volver a decidir el paquete (probablemente entrada propia, como `GCombobox`, #337).
+- **Peso:** irá en la entrada propia `@grana/vue/time-field` (#415); el diálogo y la rejilla se medirán antes de decidir si ensanchan esa entrada o van en otra.
 
 ### Otros nombres reservados
 
@@ -495,5 +502,5 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): un `spinbutton` cuyo `valuetext`
 1. `packages/vue/src/utils/timeInput.js` + `timeInput.test.js` («Motor»).
 2. **`formContext.js` y `GForm.vue`**: opción interna **`ownReveal`** (`'submit'` por defecto, `'blur'`) según `form.md` §2 ampliado: revelado por la salida del campo (con #326 y `showErrorsOn`), revelado propio sin contexto, salida al pasar a `''`. **Las pruebas de `GFileField` y `ownError.test.js` siguen en verde.**
 3. **`GInput.vue`**: añadido interno **N4** (`input.md`): recibe del componente que lo compone `ownError`, `ownTarget` y `ownReveal` para su `useFormField`, sin prop, slot ni evento públicos; sin consumidor, nada cambia (instantánea de `GInput` igual).
-4. `packages/vue/src/components/GTimeField/GTimeField.vue` (compone `GInput` con `field` y `end`; A completo; error propio con `setCustomValidity` fuera de `GForm`; mínimo publicado #410), `GTimeField.test.js`, `GTimeField.meta.json` (`status: "draft"` hasta la auditoría), registro en `src/index.js` y `components.css`, compuerta `grep -q "g-time-field__reading" packages/vue/dist/grana.css`; medir el incremento gzip del paquete principal (≤ 8 KB, si no, a lima).
+4. `packages/vue/src/components/GTimeField/GTimeField.vue` (compone `GInput` con `field` y `end`; A completo; error propio con `setCustomValidity` fuera de `GForm`; mínimo publicado #410), `GTimeField.test.js`, `GTimeField.meta.json` (`status: "draft"` hasta la auditoría), registro del CSS en `components.css` y **entrada propia `@grana/vue/time-field`** (#415: `src/time-field.js`, `vite.time-field.config.js`, global `GranaTimeField`; `useFormField`, `GInput` y las claves de contexto por `src/shared.js`; `GTimeField` fuera de `src/index.js`), compuertas `grep -q "g-time-field__reading" packages/vue/dist/grana.css`, `! grep -q "GTimeField" packages/vue/dist/grana.js` y `test -f packages/vue/dist/time-field.js`; peso de la entrada en `GTimeField.meta.json`.
 5. Playground: sección del campo de hora (12 h `es-MX`, 24 h `es`, `ar-EG`, arco 22:00–06:00, error propio, `?now=` para fijar la hora) y la receta «Fecha y hora» en el formulario; specs de Playwright de «Verificación».
