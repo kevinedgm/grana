@@ -1,0 +1,31 @@
+/* Kit GRIS de r01 (kiwi): estructura y comportamiento, no estética. La forma la decide r02 y el CSS final es de coco. */
+.xt{
+  position:fixed; inset:auto; left:var(--_x); top:var(--_y); margin:0;
+  max-inline-size:calc(var(--g-space-1) * 70);
+  padding:var(--g-space-1) var(--g-space-2);
+  border:var(--g-border-width) solid transparent; /* visible en forced-colors */
+  border-radius:var(--g-radius-sm);
+  background:#5a5a5a; color:#ffffff;            /* gris de maqueta (7:1); r02 usa la superficie inversa del tema */
+  font-family:var(--g-font-ui); font-size:var(--g-text-body-sm-size); line-height:var(--g-text-body-sm-line);
+  overflow:visible; overflow-wrap:anywhere;
+  opacity:0;
+}
+.xt:popover-open{display:flex; align-items:baseline; gap:var(--g-space-2); opacity:1}
+/* Puente invisible sobre el hueco: el puntero cruza del control al tooltip sin «salir» (WCAG 1.4.13) */
+.xt::before{content:""; position:absolute}
+.xt[data-side="top"]::before{inset-inline:0; inset-block-start:100%; block-size:var(--_gap)}
+.xt[data-side="bottom"]::before{inset-inline:0; inset-block-end:100%; block-size:var(--_gap)}
+.xt[data-side="left"]::before{inset-block:0; inset-inline-start:100%; inline-size:var(--_gap)}
+.xt[data-side="right"]::before{inset-block:0; inset-inline-end:100%; inline-size:var(--_gap)}
+.xt__kbd{padding:0 var(--g-space-1); border:var(--g-border-width) solid currentColor; border-radius:var(--g-radius-xs); font:inherit; font-size:var(--g-text-caption-size); white-space:nowrap; opacity:0.85}
+/* Entrada: solo opacidad (fundido de --g-duration-fast). Sin desplazamiento: con o sin movimiento reducido, igual. */
+@media (prefers-reduced-motion: no-preference){
+  .xt{transition:opacity var(--g-duration-fast) var(--g-ease-out), overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete}
+}
+@media (prefers-reduced-motion: reduce){
+  .xt{transition:opacity var(--g-duration-fast) linear, overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete}
+}
+.xt[data-instant]{transition-duration:0s}
+@starting-style{ .xt:popover-open{opacity:0} }
+/* Táctil: la pulsación larga no selecciona texto ni abre el menú del sistema sobre el control */
+@media (pointer: coarse){ [aria-labelledby^="tt-"],[aria-describedby*="tt-"]{-webkit-touch-callout:none; user-select:none} }

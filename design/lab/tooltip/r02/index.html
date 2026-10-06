@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tooltip · r02 · conceptos</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../lab.css">
+<link rel="stylesheet" href="./concepts.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script type="module">
+import { makeXTooltip, log, TIMING } from '../engine.js'
+import { makeXTipGroup, conceptFor } from './concepts.js'
+const { createApp, provide, reactive, onMounted } = Vue
+const q = new URLSearchParams(location.search)
+const C = ['0', 'A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'A'
+const reserved = q.get('reserved') === '1'
+if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+document.documentElement.dataset.concept = C
+const ICONS = ['undo-2', 'redo-2', 'copy', 'pencil', 'tag', 'flag', 'trash', 'share-2', 'settings', 'search', 'plus', 'upload', 'house', 'inbox', 'calendar', 'users', 'folder', 'mail', 'ellipsis-vertical', 'lock']
+const icons = Grana.createIcons(ICONS.map((n) => `<svg class="lucide lucide-${n}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${window.LUCIDE_ICONS[n]}</svg>`))
+const XTooltip = makeXTooltip(Vue)
+const XTipGroup = makeXTipGroup(Vue)
+window.TT = { log, TIMING, C }
+
+const NAMES = { '0': 'Referencia: globo convencional', A: 'A · Pestaña que viaja', B: 'B · La barra habla', C: 'C · Pista en dos tiempos' }
+const LEADS = {
+  '0': 'El patrón de todos los frameworks, con los tokens del tema: globo inverso encima del control, sin flecha. Sirve para comparar; no es una propuesta.',
+  A: 'El nombre cuelga del control por una pestaña que mide lo que mide el control: en una barra densa no hay duda de a cuál nombra. En un grupo hay una sola etiqueta que <strong>viaja</strong> de un control al siguiente en vez de apagarse y encenderse en otro sitio.',
+  B: 'El grupo tiene <strong>una leyenda fija</strong> pegada a su borde: el texto aparece siempre en el mismo lugar y una marca de acento señala el control. No tapa la barra; con <a href="?c=B&reserved=1">la variante reservada</a> no tapa nada.',
+  C: 'Primero solo el nombre, pequeño. Si el puntero se queda quieto (700 ms) o el foco se mantiene, la pista <strong>crece hacia fuera</strong> con la descripción y el atajo. En táctil se ve todo de una vez, el tiempo que pide su texto.'
+}
+
+createApp({
+  components: { XTooltip, XTipGroup },
+  setup() {
+    provide('xt-concept', conceptFor(C, null))
+    const events = reactive([])
+    onMounted(() => setInterval(() => events.splice(0, events.length, ...log.slice(-6).reverse()), 250))
+    const tools = [
+      { icon: 'undo-2', text: 'Deshacer', shortcut: 'Ctrl Z', keys: 'Control+Z', detail: 'Deshace el último cambio de la nota' },
+      { icon: 'redo-2', text: 'Rehacer', shortcut: 'Ctrl Mayús Z', keys: 'Control+Shift+Z' },
+      { icon: 'copy', text: 'Duplicar', shortcut: 'Ctrl D', keys: 'Control+D', detail: 'Crea una copia en borrador' },
+      { icon: 'pencil', text: 'Editar', shortcut: 'E', keys: 'E' },
+      { icon: 'tag', text: 'Etiquetar' },
+      { icon: 'flag', text: 'Marcar para revisión', detail: 'Avisa al responsable del expediente' },
+      { icon: 'share-2', text: 'Compartir' },
+      { icon: 'trash', text: 'Eliminar', shortcut: 'Supr', keys: 'Delete', detail: 'Se puede deshacer durante 10 segundos' }
+    ]
+    const rail = [
+      { icon: 'house', text: 'Inicio' }, { icon: 'inbox', text: 'Bandeja', detail: '12 sin leer' }, { icon: 'calendar', text: 'Agenda' },
+      { icon: 'users', text: 'Pacientes' }, { icon: 'folder', text: 'Expedientes' }
+    ]
+    const rows = [
+      { id: '0042', name: 'Ana Ruiz', date: '3 oct' }, { id: '0043', name: 'Luis Mena', date: '4 oct' }, { id: '0044', name: 'Sara Gil', date: '5 oct' }
+    ]
+    const fmt = (e) => `${e.type}${e.why ? ' · ' + e.why : ''}${e.reason ? ' · ' + e.reason : ''}${e.instant ? ' · instantáneo' : ''}`
+    return { C, NAMES, LEADS, reserved, tools, rail, rows, events, fmt }
+  },
+  template: `
+  <header class="lab-bar">
+    <span class="lab-brand">Tooltip · r02 · conceptos</span>
+    <nav class="lab-links" aria-label="Conceptos">
+      <a href="../r01/">Base (r01)</a>
+      <a v-for="k in ['0','A','B','C']" :key="k" :href="'?c=' + k" :aria-current="k === C && !reserved ? 'page' : undefined">{{ k === '0' ? 'Referencia' : k }}</a>
+      <a :href="'?c=' + C + '&dir=rtl'">RTL</a>
+    </nav>
+  </header>
+  <main class="lab">
+    <div class="lab-case">
+      <h1 class="lab-title">{{ NAMES[C] }}{{ reserved ? ' (reservada)' : '' }}</h1>
+      <p class="lab-lead" v-html="LEADS[C]"></p>
+      <p class="lab-how">Misma base que r01 en los cuatro: el nombre y la descripción están en el DOM desde el montaje (<code>aria-labelledby</code>/<code>aria-describedby</code> al texto), 350 ms la primera vez y sin espera al recorrer, <kbd>Esc</kbd>, el puntero puede cruzar al tooltip, foco por navegación, pulsación larga en táctil, posición de <code>anchor.js</code>.</p>
+    </div>
+
+    <section class="lab-case" id="case-toolbar">
+      <h2>1 · Barra de edición</h2>
+      <p class="lab-how">Recorre la barra con el puntero de punta a punta, o entra con <kbd>Tab</kbd> y usa las flechas.</p>
+      <x-tip-group :concept="C" label="Edición de la nota" :reserved="reserved" id="toolbar">
+        <x-tooltip v-for="t in tools" :key="t.icon" :text="t.text" :shortcut="t.shortcut" :keyshortcuts="t.keys" :detail="t.detail">
+          <g-btn :data-tool="t.icon" icon variant="ghost" color="neutral" size="sm"><g-icon :name="t.icon"/></g-btn>
+        </x-tooltip>
+      </x-tip-group>
+      <div class="lab-content" id="under-toolbar">Texto de la nota bajo la barra. Paciente refiere dolor lumbar de tres días de evolución, sin irradiación; se indica reposo relativo y control en una semana.</div>
+    </section>
+
+    <section class="lab-case" id="case-rail">
+      <h2>2 · Riel vertical</h2>
+      <x-tip-group :concept="C" orientation="vertical" label="Secciones" id="rail">
+        <x-tooltip v-for="t in rail" :key="t.icon" :text="t.text" :detail="t.detail" placement="right">
+          <g-btn :data-rail="t.icon" icon variant="ghost" color="neutral" size="md"><g-icon :name="t.icon"/></g-btn>
+        </x-tooltip>
+      </x-tip-group>
+    </section>
+
+    <section class="lab-case" id="case-table">
+      <h2>3 · Acciones por fila</h2>
+      <table class="lab-table">
+        <thead><tr><th>Folio</th><th>Paciente</th><th>Fecha</th><th>Acciones</th></tr></thead>
+        <tbody>
+          <tr v-for="r in rows" :key="r.id">
+            <td>{{ r.id }}</td><td>{{ r.name }}</td><td>{{ r.date }}</td>
+            <td><x-tip-group :concept="C" :label="'Acciones de ' + r.id" :data-row="r.id">
+              <x-tooltip text="Editar"><g-btn icon variant="ghost" color="neutral" size="xs"><g-icon name="pencil"/></g-btn></x-tooltip>
+              <x-tooltip text="Compartir"><g-btn icon variant="ghost" color="neutral" size="xs"><g-icon name="share-2"/></g-btn></x-tooltip>
+              <x-tooltip text="Eliminar" detail="Pide confirmación"><g-btn icon variant="ghost" color="neutral" size="xs"><g-icon name="trash"/></g-btn></x-tooltip>
+            </x-tip-group></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="lab-case" id="case-single">
+      <h2>4 · Un control suelto con descripción</h2>
+      <div class="lab-row">
+        <x-tooltip text="Visible para todo el equipo de la clínica" :detail="C === 'C' ? 'Puedes cambiarlo después en Compartir' : undefined"><g-btn id="publish" color="brand" size="sm">Publicar</g-btn></x-tooltip>
+        <x-tooltip text="Bloqueado" detail="Lo está editando Luis Mena"><g-btn id="lock" icon variant="outline" color="neutral" size="sm"><g-icon name="lock"/></g-btn></x-tooltip>
+      </div>
+    </section>
+
+    <section class="lab-log" aria-label="Registro">
+      <h2>Registro del motor</h2>
+      <ol><li v-for="(e, i) in events" :key="i">{{ fmt(e) }}</li></ol>
+    </section>
+  </main>`
+}).use(Grana).use(icons).mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tooltip · r01 · base funcional</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../lab.css">
+<link rel="stylesheet" href="./tt-base.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script type="module">
+import { makeXTooltip, log, TIMING, roving } from '../engine.js'
+const { createApp, ref, reactive, onMounted, onBeforeUnmount } = Vue
+if (new URLSearchParams(location.search).get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+const ICONS = ['undo-2', 'redo-2', 'copy', 'pencil', 'tag', 'flag', 'trash', 'share-2', 'settings', 'search', 'plus', 'upload', 'refresh-cw', 'bell', 'mail', 'ellipsis-vertical', 'panel-left', 'x', 'lock']
+const icons = Grana.createIcons(ICONS.map((n) => `<svg class="lucide lucide-${n}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${window.LUCIDE_ICONS[n]}</svg>`))
+const XTooltip = makeXTooltip(Vue)
+window.TT = { log, TIMING }
+
+createApp({
+  components: { XTooltip },
+  setup() {
+    const dlg = ref(false)
+    const expanded = ref(false)
+    const events = reactive([])
+    let timer = 0
+    onMounted(() => { document.querySelectorAll('[role=toolbar]').forEach((b) => roving(b)); timer = setInterval(() => { const tail = log.slice(-8).reverse(); events.splice(0, events.length, ...tail) }, 250) })
+    onBeforeUnmount(() => clearInterval(timer))
+    const tools = [
+      { icon: 'undo-2', text: 'Deshacer', shortcut: 'Ctrl Z', keys: 'Control+Z' },
+      { icon: 'redo-2', text: 'Rehacer', shortcut: 'Ctrl Mayús Z', keys: 'Control+Shift+Z' },
+      { sep: true },
+      { icon: 'copy', text: 'Duplicar' },
+      { icon: 'pencil', text: 'Editar' },
+      { icon: 'tag', text: 'Etiquetar' },
+      { icon: 'flag', text: 'Marcar para revisión' },
+      { sep: true },
+      { icon: 'trash', text: 'Eliminar' }
+    ]
+    const fmt = (e) => `${e.type}${e.why ? ' · ' + e.why : ''}${e.reason ? ' · ' + e.reason : ''}${e.instant ? ' · instantáneo' : ''} · ${e.id || ''}`
+    const countClick = () => { window.__touchClicks = (window.__touchClicks || 0) + 1 }
+    return { dlg, expanded, events, tools, fmt, countClick }
+  },
+  template: `
+  <header class="lab-bar">
+    <span class="lab-brand">Tooltip · r01 · base funcional</span>
+    <span class="lab-links">
+      <x-tooltip text="Buscar en el expediente" shortcut="Ctrl K" keyshortcuts="Control+K"><g-btn id="top-search" icon variant="ghost" color="neutral" size="sm"><g-icon name="search"/></g-btn></x-tooltip>
+      <a href="./" aria-current="page">r01</a><a href="../r02/">Conceptos (r02)</a><a href="?dir=rtl">RTL</a>
+    </span>
+  </header>
+  <main class="lab">
+    <p class="lab-lead">La <strong>base funcional</strong> en el kit gris: semántica, retrasos, grupo, Esc, puente del puntero, foco por navegación, táctil, RTL, bordes del visor, desplazamiento y diálogo. Botones reales de <code>dist/</code> (<code>GBtn</code>, <code>GIcon</code>, <code>GDialog</code>, <code>GHelper</code>); la posición es la de <code>utils/anchor.js</code> (<code>placeAround</code>, <code>anchorGone</code>, <code>followFrame</code>). La forma gris es la convencional <em>a propósito</em>: se cuestiona en r02.</p>
+
+    <section class="lab-case" id="case-toolbar">
+      <h2>1 · Barra de iconos: el tooltip es el nombre</h2>
+      <p class="lab-how">Ningún botón tiene <code>aria-label</code>: el tooltip es su nombre (<code>aria-labelledby</code>). Pasa el puntero (350 ms la primera vez; recorrer la barra no espera: ventana de grupo de 600 ms). Con teclado, <kbd>Tab</kbd> entra en la barra y las flechas la recorren: el tooltip aparece al instante; un clic no. <kbd>Esc</kbd> lo cierra sin mover el foco.</p>
+      <div class="lab-toolbar" role="toolbar" aria-label="Acciones del expediente" id="toolbar">
+        <template v-for="(t, i) in tools" :key="i">
+          <span v-if="t.sep" class="lab-sep" aria-hidden="true"></span>
+          <x-tooltip v-else :text="t.text" :shortcut="t.shortcut" :keyshortcuts="t.keys"><g-btn :data-tool="t.icon" icon variant="ghost" color="neutral" size="sm"><g-icon :name="t.icon"/></g-btn></x-tooltip>
+        </template>
+      </div>
+      <div class="lab-content">Contenido debajo de la barra: el tooltip lo tapa mientras está abierto (y se puede descartar con Esc).</div>
+    </section>
+
+    <section class="lab-case" id="case-kinds">
+      <h2>2 · Nombre o descripción (<code>kind="auto"</code>)</h2>
+      <p class="lab-how">Si el control ya tiene otro nombre, el tooltip lo <strong>describe</strong> (<code>aria-describedby</code>); si no tiene nombre o es el mismo texto, lo <strong>nombra</strong>. Nunca se lee dos veces lo mismo.</p>
+      <div class="lab-row">
+        <x-tooltip text="Visible para todo el equipo de la clínica"><g-btn id="publish" color="brand" size="sm">Publicar</g-btn></x-tooltip>
+        <x-tooltip text="Compartir"><g-btn id="share-same" icon aria-label="Compartir" variant="outline" color="neutral" size="sm"><g-icon name="share-2"/></g-btn></x-tooltip>
+        <x-tooltip text="Se abre en otra pestaña"><a id="policy" class="lab-link" href="#politica" target="_blank">Política de privacidad</a></x-tooltip>
+        <x-tooltip text="Avisos: 3 sin leer" kind="label"><g-btn id="bell" icon aria-label="Avisos" variant="ghost" color="neutral" size="sm"><g-icon name="bell"/></g-btn></x-tooltip>
+      </div>
+    </section>
+
+    <section class="lab-case" id="case-long">
+      <h2>3 · Texto largo, atajo y desbordes</h2>
+      <p class="lab-how">El texto se parte en líneas a <code>space × 70</code> (280px); nunca se recorta. El atajo es visible y <code>aria-hidden</code>; el control lleva <code>aria-keyshortcuts</code>. Los botones de los extremos se desplazan para no salir del visor; el de la cabecera (lupa) no cabe arriba y se abre abajo.</p>
+      <div class="lab-edges">
+        <x-tooltip text="Exportar el expediente completo con estudios adjuntos, notas de evolución y consentimientos firmados"><g-btn id="edge-start" icon variant="outline" color="neutral" size="sm"><g-icon name="upload"/></g-btn></x-tooltip>
+        <x-tooltip text="Guardar borrador" shortcut="Ctrl S" keyshortcuts="Control+S"><g-btn id="save" size="sm" variant="outline" color="neutral">Guardar</g-btn></x-tooltip>
+        <x-tooltip text="Configurar columnas visibles" placement="left"><g-btn id="edge-end" icon variant="outline" color="neutral" size="sm"><g-icon name="settings"/></g-btn></x-tooltip>
+      </div>
+    </section>
+
+    <section class="lab-case" id="case-scroll">
+      <h2>4 · Dentro de un contenedor con desplazamiento</h2>
+      <p class="lab-how">Abierto, el tooltip sigue a su control (una vez por cuadro, sin cambiar de lado). Si el control sale del contenedor o del visor, se cierra sin mover el foco (regla 3 de «Paneles anclados», #358).</p>
+      <div class="lab-scroll" id="scroller"><div>
+        <x-tooltip text="Recargar resultados"><g-btn id="in-scroll" icon variant="outline" color="neutral" size="sm"><g-icon name="refresh-cw"/></g-btn></x-tooltip>
+        <span class="lab-how">… más contenido …</span>
+      </div></div>
+    </section>
+
+    <section class="lab-case" id="case-dialog">
+      <h2>5 · En un diálogo modal</h2>
+      <p class="lab-how">El tooltip es hermano del control, así que vive dentro del <code>&lt;dialog&gt;</code> (no queda inerte). Abrir el diálogo con <kbd>Intro</kbd> enfoca su cierre por programa: <strong>no</strong> aparece el tooltip. Con un tooltip abierto, el primer <kbd>Esc</kbd> lo cierra y el diálogo sigue; el segundo cierra el diálogo.</p>
+      <div class="lab-row"><g-btn id="open-dialog" size="sm" variant="outline" color="neutral" @click="dlg = true">Abrir diálogo</g-btn></div>
+      <g-dialog v-model="dlg" title="Nota de evolución" close-label="Cerrar" size="sm">
+        <div class="lab-dialog-body">
+          <p class="lab-how">Herramientas de la nota:</p>
+          <div class="lab-toolbar" role="toolbar" aria-label="Herramientas de la nota">
+            <x-tooltip text="Adjuntar archivo"><g-btn id="dlg-attach" icon variant="ghost" color="neutral" size="sm"><g-icon name="upload"/></g-btn></x-tooltip>
+            <x-tooltip text="Enviar por correo"><g-btn id="dlg-mail" icon variant="ghost" color="neutral" size="sm"><g-icon name="mail"/></g-btn></x-tooltip>
+          </div>
+        </div>
+      </g-dialog>
+    </section>
+
+    <section class="lab-case" id="case-states">
+      <h2>6 · Estados del control</h2>
+      <p class="lab-how">Un control <code>disabled</code> nativo no recibe foco: su tooltip <strong>no</strong> se muestra (solo el ratón lo vería). Si el motivo importa, el control va con <code>aria-disabled</code> (sigue enfocable) y el tooltip lo describe. Con <code>aria-expanded="true"</code> (su menú o panel abierto), el tooltip no aparece para no taparlo. A la derecha, <code>GHelper</code> (la ayuda que se pulsa y puede tener un enlace) con un tooltip que nombra su disparador: abierto el <code>GHelper</code>, el tooltip no aparece.</p>
+      <div class="lab-row">
+        <x-tooltip text="Eliminar"><g-btn id="disabled-native" icon disabled variant="outline" color="neutral" size="sm"><g-icon name="trash"/></g-btn></x-tooltip>
+        <x-tooltip text="Necesitas permiso de edición"><g-btn id="disabled-aria" aria-disabled="true" variant="outline" color="neutral" size="sm">Firmar nota</g-btn></x-tooltip>
+        <x-tooltip text="Más acciones"><g-btn id="disclosure" icon variant="outline" color="neutral" size="sm" :aria-expanded="String(expanded)" @click="expanded = !expanded"><g-icon name="ellipsis-vertical"/></g-btn></x-tooltip>
+        <span class="lab-how" id="disclosure-state">{{ expanded ? 'menú abierto (aria-expanded=true)' : 'menú cerrado' }}</span>
+        <x-tooltip text="Ayuda sobre la firma"><g-helper id="helper" aria-label="Ayuda sobre la firma" content-label="Ayuda sobre la firma" close-label="Cerrar">
+          <template #content><div class="lab-dialog-body" style="padding: var(--g-space-3); max-inline-size: calc(var(--g-space-1) * 65)"><p class="lab-how">La firma electrónica requiere tu certificado vigente.</p><a class="lab-link" href="#cert">Cómo renovarlo</a></div></template>
+        </g-helper></x-tooltip>
+      </div>
+    </section>
+
+    <section class="lab-case" id="case-touch">
+      <h2>7 · Táctil</h2>
+      <p class="lab-how">Sin hover: una <strong>pulsación larga</strong> (500 ms, sin moverse más de 10px) muestra el nombre, que queda 1,5 s al soltar; el clic que sigue a la pulsación larga <strong>no</strong> activa el botón. Un toque normal actúa y no muestra nada. Pruébalo con la emulación táctil de las herramientas del navegador.</p>
+      <div class="lab-row">
+        <x-tooltip text="Nueva nota"><g-btn id="touch-add" icon variant="outline" color="neutral" size="sm" @click="countClick"><g-icon name="plus"/></g-btn></x-tooltip>
+      </div>
+    </section>
+
+    <section class="lab-log" aria-label="Registro">
+      <h2>Registro del motor</h2>
+      <ol><li v-for="(e, i) in events" :key="i">{{ fmt(e) }}</li></ol>
+    </section>
+  </main>`
+}).use(Grana).use(icons).mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

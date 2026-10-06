@@ -1,0 +1,123 @@
+/* Conceptos del tooltip (kiwi r02) con los TOKENS del tema por defecto. Solo var(--g-*) y alias locales; los únicos
+   literales son de maqueta y se señalan. El CSS definitivo es de coco. */
+
+@property --_ax { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --_aw { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --_ay { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --_ah { syntax: "<length>"; inherits: true; initial-value: 0px; }
+
+/* ---------- Común: el nodo role="tooltip" de cada control (capa superior, popover manual) ---------- */
+.xt, .ca-tag, .cb-legend {
+  position: fixed; inset: auto; left: var(--_x); top: var(--_y); margin: 0; padding: 0;
+  border: var(--g-border-width) solid transparent; /* aparece en forced-colors */
+  overflow: visible; overflow-wrap: anywhere;
+  font-family: var(--g-font-ui); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+  max-inline-size: calc(var(--g-space-1) * 70);
+  opacity: 0;
+}
+.xt:popover-open, .ca-tag:popover-open, .cb-legend:popover-open { opacity: 1; }
+.xt::before { content: ""; position: absolute; }
+.xt[data-side="top"]::before { inset-inline: 0; inset-block-start: 100%; block-size: var(--_gap); }
+.xt[data-side="bottom"]::before { inset-inline: 0; inset-block-end: 100%; block-size: var(--_gap); }
+.xt[data-side="left"]::before { inset-block: 0; inset-inline-start: 100%; inline-size: var(--_gap); }
+.xt[data-side="right"]::before { inset-block: 0; inset-inline-end: 100%; inline-size: var(--_gap); }
+.xt__kbd {
+  display: inline-block; padding: 0 var(--g-space-1);
+  border: var(--g-border-width) solid currentColor; border-radius: var(--g-radius-xs);
+  font: inherit; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); white-space: nowrap;
+}
+.xt__kbd[hidden], .xt__detail[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .xt, .ca-tag, .cb-legend { transition: opacity var(--g-duration-fast) var(--g-ease-out), overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xt, .ca-tag, .cb-legend { transition: opacity var(--g-duration-fast) linear, overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete; }
+}
+.xt[data-instant], .ca-tag[data-instant], .cb-legend[data-instant] { transition-duration: 0s; }
+@starting-style { .xt:popover-open, .ca-tag:popover-open, .cb-legend:popover-open { opacity: 0; } }
+
+/* ---------- Referencia: el globo convencional, con los tokens (para comparar) ---------- */
+.xt.x0 { display: none; padding: var(--g-space-1) var(--g-space-2); border-radius: var(--g-radius-md); background: var(--g-color-text); color: var(--g-color-surface); box-shadow: var(--g-shadow-2); }
+.xt.x0:popover-open { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-space-2); }
+.xt.x0 .xt__detail { flex-basis: 100%; }
+
+/* ---------- A · Pestaña que viaja ---------- */
+.ca-tag, .xt.ca {
+  left: 0; top: 0; translate: var(--_x) var(--_y);
+  background: transparent; color: var(--g-color-surface); border: 0;
+}
+.ca-tag:popover-open, .xt.ca:popover-open { display: block; }
+.ca__body {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-space-2);
+  padding: var(--g-space-1) var(--g-space-3);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-text); box-shadow: var(--g-shadow-2);
+  overflow: clip; white-space: nowrap;
+}
+.ca__body .xt__detail { flex-basis: 100%; white-space: normal; color: inherit; }
+.ca__body .xt__text { font-weight: var(--g-text-action-weight); }
+/* La pestaña: mide lo que mide el control y llena el hueco hasta su borde (también es el puente del puntero) */
+.ca__tab { position: absolute; background: var(--g-color-text); }
+:is(.ca-tag, .xt.ca)[data-side="bottom"] .ca__tab { inset-block-end: calc(100% - var(--g-border-width)); left: var(--_ax); inline-size: var(--_aw); block-size: calc(var(--g-space-1) * 1.5 + var(--g-border-width)); border-radius: var(--g-radius-sm) var(--g-radius-sm) 0 0; }
+:is(.ca-tag, .xt.ca)[data-side="top"] .ca__tab { inset-block-start: calc(100% - var(--g-border-width)); left: var(--_ax); inline-size: var(--_aw); block-size: calc(var(--g-space-1) * 1.5 + var(--g-border-width)); border-radius: 0 0 var(--g-radius-sm) var(--g-radius-sm); }
+:is(.ca-tag, .xt.ca)[data-side="right"] .ca__tab { inset-inline-end: calc(100% - var(--g-border-width)); top: var(--_ay); block-size: var(--_ah); inline-size: calc(var(--g-space-1) * 1.5 + var(--g-border-width)); border-start-start-radius: var(--g-radius-sm); border-end-start-radius: var(--g-radius-sm); }
+:is(.ca-tag, .xt.ca)[data-side="left"] .ca__tab { inset-inline-start: calc(100% - var(--g-border-width)); top: var(--_ay); block-size: var(--_ah); inline-size: calc(var(--g-space-1) * 1.5 + var(--g-border-width)); border-start-end-radius: var(--g-radius-sm); border-end-end-radius: var(--g-radius-sm); }
+/* Viajar: posición, ancho y pestaña se desplazan juntos; el texto cambia en el acto. Con movimiento reducido, salta. */
+@media (prefers-reduced-motion: no-preference) {
+  .ca-tag[data-travel] { transition: translate var(--g-duration-press) var(--g-ease-out), inline-size var(--g-duration-press) var(--g-ease-out), opacity var(--g-duration-fast) var(--g-ease-out); }
+  .ca-tag[data-travel] .ca__tab { transition: left var(--g-duration-press) var(--g-ease-out), inline-size var(--g-duration-press) var(--g-ease-out), top var(--g-duration-press) var(--g-ease-out), block-size var(--g-duration-press) var(--g-ease-out), --_ax var(--g-duration-press) var(--g-ease-out), --_aw var(--g-duration-press) var(--g-ease-out), --_ay var(--g-duration-press) var(--g-ease-out), --_ah var(--g-duration-press) var(--g-ease-out); }
+}
+
+/* ---------- B · La barra habla ---------- */
+.cb-legend, .xt.cb-own {
+  display: none; gap: var(--g-space-1);
+  --_minw: 0px; --_minh: 0px; min-inline-size: var(--_minw); min-block-size: var(--_minh); align-content: start;
+  max-inline-size: calc(var(--g-space-1) * 120);
+  padding: var(--g-space-2) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface); color: var(--g-color-text);
+  box-shadow: var(--g-shadow-2);
+}
+.cb-legend:popover-open, .xt.cb-own:popover-open, .cb-legend.is-reserved { display: grid; }
+.cb__line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-space-2); }
+.cb__name, .xt.cb-own .xt__text { font-weight: var(--g-text-action-weight); }
+.cb__detail, .xt.cb-own .xt__detail { color: var(--g-color-text-muted); }
+.xt.cb-own { grid-template-columns: auto auto; justify-content: start; align-items: baseline; column-gap: var(--g-space-2); }
+.xt.cb-own .xt__detail { grid-column: 1 / -1; }
+.cb__marker { position: absolute; background: var(--g-color-accent); }
+.cb-legend:not([data-orientation="vertical"]) .cb__marker { inset-block-start: calc(var(--g-border-width) * -1); left: var(--_mx); inline-size: var(--_mw); block-size: calc(var(--g-border-width) * 2); }
+.cb-legend[data-orientation="vertical"] .cb__marker { inset-inline-start: calc(var(--g-border-width) * -1); top: var(--_my); block-size: var(--_mh); inline-size: calc(var(--g-border-width) * 2); }
+.cb-legend:not([data-active]) .cb__marker { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .cb-legend[data-swap] .cb__marker { transition: left var(--g-duration-press) var(--g-ease-out), inline-size var(--g-duration-press) var(--g-ease-out), top var(--g-duration-press) var(--g-ease-out), block-size var(--g-duration-press) var(--g-ease-out); }
+}
+/* Variante reservada: la línea vive en el flujo, debajo de la barra; no tapa nada (1.4.13 por construcción) */
+.cb-legend.is-reserved { position: static; left: auto; top: auto; opacity: 1; box-shadow: none; border-style: dashed; border-color: var(--g-color-border-strong); min-inline-size: 0; max-inline-size: none; min-block-size: calc(var(--g-space-1) * 16); align-content: start; }
+.cb-legend.is-reserved:not([data-active]) .cb__line, .cb-legend.is-reserved:not([data-active]) .cb__detail { display: none; }
+.cb-legend.is-reserved[data-active] .cb__idle { display: none; }
+.cb__idle { color: var(--g-color-text-muted); }
+.x-group-wrap { display: grid; gap: var(--g-space-1); inline-size: fit-content; }
+
+/* ---------- C · Pista en dos tiempos ---------- */
+.xt.cc { display: none; padding: var(--g-space-1) var(--g-space-2); border-radius: var(--g-radius-md); background: var(--g-color-text); color: var(--g-color-surface); box-shadow: var(--g-shadow-2); }
+.xt.cc:popover-open { display: grid; }
+.xt.cc[data-side="top"] { top: auto; bottom: var(--_yb); }
+.xt.cc .xt__text { font-weight: var(--g-text-action-weight); }
+.cc-more { display: grid; grid-template-rows: 0fr; max-inline-size: 0; opacity: 0; }
+.cc-more__in { min-block-size: 0; overflow: hidden; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--g-space-1) var(--g-space-2); }
+.xt.cc[data-dwell] .cc-more { grid-template-rows: 1fr; max-inline-size: none; opacity: 1; }
+.xt.cc[data-dwell] .cc-more__in { padding-block-start: var(--g-space-1); }
+@media (prefers-reduced-motion: no-preference) {
+  .cc-more { transition: grid-template-rows var(--g-duration-press) var(--g-ease-out), opacity var(--g-duration-fast) var(--g-ease-out); }
+  .xt.cc { transition: opacity var(--g-duration-fast) var(--g-ease-out), left var(--g-duration-fast) var(--g-ease-out), overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-more { transition: opacity var(--g-duration-fast) linear; }
+}
+
+/* ---------- Grupos de la maqueta ---------- */
+.x-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-1); padding: var(--g-space-1); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); inline-size: fit-content; background: var(--g-color-surface); }
+.x-group--vertical { flex-direction: column; }
+@media (pointer: coarse) { .x-group :is(button, a) { -webkit-touch-callout: none; user-select: none; } }
