@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox múltiple · r03</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./multi.css">
+</head>
+<body>
+<header class="sh-bar">
+  <span class="sh-brand">GCombobox · Fase 2 · <code>multiple</code> · r03</span>
+  <nav class="sh-pick" aria-label="Concepto" id="pick"></nav>
+</header>
+<main>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+  <p class="try" id="try"></p>
+  <div id="app"></div>
+</main>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./multi.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const C = ['base', 'A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'A'
+  const rtl = q.get('dir') === 'rtl'
+  if (rtl) document.documentElement.dir = 'rtl'
+  const TXT = {
+    base: ['Base · referencia convencional', 'La semántica, el teclado, el modelo y los anuncios son los de la base (comunes a A, B y C). La forma de esta página es la de cualquier framework: fichas con × dentro de la caja, que crece por líneas. Sirve de referencia para medir qué cambia cada concepto.',
+      'Elige varias alergias: la caja crece y la línea «Notas» del formulario baja. <kbd>Retroceso</kbd> con el campo vacío marca la última; otra vez, la quita. <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> la devuelve.'],
+    A: ['A · La frase', 'Los elegidos viven en la línea del campo, escritos como una frase: «Penicilina, Látex y 3 más». Sin fichas ni ×: la frase cede por el final y el campo mide siempre lo mismo. Al abrir, la forma de la Fase 1 («el campo se abre») trae arriba el grupo «Elegidas», donde se revisan y se desmarcan.',
+      'Abre «Alergias» con <kbd>↓</kbd>: arriba están las elegidas, marcadas. Escribe «ibu» e <kbd>Intro</kbd>: la lista sigue abierta y el texto queda seleccionado para la siguiente. <kbd>Retroceso</kbd> ×2 con el campo vacío quita la última (la frase la tacha antes). Mira la fila del formulario: nada se mueve.'],
+    B: ['B · La receta', 'La caja es solo la búsqueda. Los elegidos viven debajo, como renglones completos —código, nombre y datos— en el orden en que se eligieron (numerados en diagnósticos). Quitar no cierra el hueco: deja un rastro con «Deshacer» en el mismo sitio, y las nuevas llevan «Nueva» hasta la siguiente pasada.',
+      'Agrega dos diagnósticos y pulsa «Quitar» en uno: el foco queda en «Deshacer», en el mismo sitio. Sal del campo y vuelve a escribir en él: los rastros se pliegan y las marcas «Nueva» se van. En la fila del formulario, la caja de «Etiquetas» no se mueve; la receta crece hacia abajo.'],
+    C: ['C · La cesta', 'Elegir varios es una sesión de trabajo: el campo se eleva a la paleta (identidad B de la Fase 1) con los resultados a un lado y, al otro, la cesta de lo elegido, siempre a la vista mientras se busca. Lo que marcas viaja a la cesta. En reposo, el campo dice lo elegido con la frase de A.',
+      'Pulsa en «Responsables» o escribe: entre las dos «Ana López Ruiz», el área distingue. Marca varias con <kbd>Intro</kbd> o con el puntero y mira cómo llegan a la cesta; quítalas desde la cesta (queda «Deshacer»). <kbd>Esc</kbd> o «Listo» cierran conservando lo elegido.']
+  }
+  document.getElementById('title').textContent = TXT[C][0]
+  document.getElementById('lead').textContent = TXT[C][1]
+  document.getElementById('try').innerHTML = '<strong>Pruébalo.</strong> ' + TXT[C][2]
+  const pick = document.getElementById('pick')
+  for (const k of ['base', 'A', 'B', 'C']) {
+    const a = document.createElement('a'); a.href = `?c=${k}${rtl ? '&dir=rtl' : ''}`; a.textContent = k === 'base' ? 'Base' : k
+    if (k === C) a.setAttribute('aria-current', 'page')
+    pick.append(a)
+  }
+  const r = document.createElement('a'); r.href = `?c=${C}${rtl ? '' : '&dir=rtl'}`; r.textContent = rtl ? 'LTR' : 'RTL'; pick.append(r)
+  window.__concept = C
+  MultiLab.mount('#app', C)
+})()
+</script>
+</body>
+</html>
