@@ -1,0 +1,22 @@
+/* r01 (kiwi): kit de la BASE del campo de hora. Forma convencional a propósito: la identidad se decide en ../r02/.
+   La caja es la de GInput real; aquí solo lo propio (a. m./p. m.) con neutros del tema. Clases x-tf__*: de prototipo. */
+.x-tf .x-tf__field{font-variant-numeric:tabular-nums}
+/* a. m./p. m. (12 h): dentro de la caja, al final, de borde a borde y del alto de la caja; fuera del Tab */
+.g-input.x-tf--h12 > .g-input__row > .g-input__control{padding-inline-end:0}
+.x-tf__halves{display:flex;flex:none;align-self:stretch;margin-block:calc(var(--g-border-width) * -1);margin-inline-start:auto;margin-inline-end:calc(var(--g-border-width) * -1)}
+.x-tf__half{display:inline-grid;place-items:center;box-sizing:border-box;min-inline-size:max(24px,var(--_h));min-block-size:24px;padding:0 var(--g-space-2);margin:0;border:0;
+  border-inline-start:var(--g-border-width) solid var(--g-color-border-control);background:transparent;color:var(--g-color-text-muted);font:inherit;font-size:var(--_fs);
+  cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;white-space:nowrap}
+.x-tf__half:last-child{border-start-end-radius:var(--_radius);border-end-end-radius:var(--_radius)}
+.x-tf__half.is-on{background:var(--g-color-neutral-soft);color:var(--g-color-text);font-weight:var(--g-text-action-weight)}
+@media (hover:hover){.x-tf__half:hover:not(:disabled):not(.is-on){color:var(--g-color-text)}}
+.x-tf__half:disabled{color:var(--g-color-text-subtle);cursor:not-allowed}
+@media (pointer:coarse){.x-tf__half{min-inline-size:max(44px,var(--_h));min-block-size:44px}}
+@media (forced-colors:active){.x-tf__half{border-inline-start-color:ButtonText;color:ButtonText}.x-tf__half.is-on{forced-color-adjust:none;background:Highlight;color:HighlightText}}
+/* Tabla de interpretaciones y página */
+.lab-table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);inline-size:100%}
+.lab-table th,.lab-table td{padding:var(--g-space-1) var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-table th{font-weight:var(--g-text-action-weight);color:var(--g-color-text-muted)}
+.lab-table code{font-size:inherit}
+.lab-wrap{overflow-x:auto}
+.lab-frame{max-inline-size:100%;padding:var(--g-space-4);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);background:var(--g-color-surface)}

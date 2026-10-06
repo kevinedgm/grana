@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campo de hora · r01 · base funcional</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../lab.css">
+<link rel="stylesheet" href="./field.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../engine.js"></script>
+<script src="../field.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, computed } = Vue
+  const q = new URLSearchParams(location.search)
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('now')) TF.setNow(TF.fromCanonical(q.get('now')))
+  const EXAMPLES = ['930', '9:30', '9.30', '0930', '2130', '21', '9h30', '9', '12', '12a', '9.30p', '9 p. m.', '24', '2026-10-06T14:05', '٩:٣٠', '9:3', '99:99']
+  createApp({
+    components: { XTimeField },
+    setup() {
+      const es = TF.localeInfo('es'), mx = TF.localeInfo('es-MX')
+      const show = (r) => r.status === 'ok' ? TF.canonical(r.value) + (r.ambiguous ? ` (o ${TF.canonical(r.alt)})` : '') : r.status === 'empty' ? '—' : 'sin interpretar'
+      const rows = EXAMPLES.map((t) => ({ t, es: show(TF.parse(t, es)), mx: show(TF.parse(t, mx)) }))
+      const c = reactive({ toma: null, cita: '09:07', turno: '23:30', evento: '14:05:30', tele: '17:00' })
+      const h12 = reactive({ toma: '21:30', cita: null, en: '00:05' })
+      const intl = reactive({ ar: '21:30', fi: '21:30', ko: '21:30', he: '21:30' })
+      const row = reactive({ fecha: '2026-10-06', hora: '21:30', consultorio: 'c2' })
+      const st = reactive({ ro: '07:45', dis: '07:45', err: '03:15', bad: null })
+      const sent = ref(null), log = reactive([]), count = ref(0)
+      const errors = computed(() => {
+        const e = {}
+        if (!c.toma) e.toma = 'Escribe la hora de la toma'
+        const v = TF.fromCanonical(c.cita)
+        if (v != null && (v < 8 * 3600 || v > 18 * 3600)) e.cita = 'La consulta atiende de 8:00 a 18:00'
+        return e
+      })
+      const onSubmit = ({ data }) => { sent.value = [...data].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+      const onChange = (who) => (v) => { count.value++; log.unshift(`${who}: change → ${JSON.stringify(v)}`); log.splice(8) }
+      const stamp = computed(() => row.fecha && row.hora ? `${row.fecha}T${row.hora}` : '—')
+      const dpLabels = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar' }
+      const formLabels = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' }
+      const opts = [{ value: 'c1', label: 'Consultorio 1' }, { value: 'c2', label: 'Consultorio 2' }]
+      const invalid = { invalid: 'Escribe una hora, por ejemplo 9:30' }
+      const models = computed(() => JSON.stringify({ ...c }, null, 0))
+      return { count, rows, c, h12, intl, row, st, sent, log, errors, onSubmit, onChange, stamp, dpLabels, formLabels, opts, invalid, models }
+    },
+    template: `
+    <header class="lab-bar"><span class="lab-brand">Campo de hora · r01 · base funcional</span>
+      <span class="lab-links"><a href="./" aria-current="page">Base (r01)</a> · <a href="../r02/?c=A">A · La hora dicha</a> · <a href="../r02/?c=B">B · Rejilla del día</a> · <a href="../r02/?c=C">C · Tramo</a></span></header>
+    <main class="lab">
+      <div><h1 class="lab-title">Campo de hora · base funcional</h1>
+        <p class="lab-lead">Un solo campo de texto con rol <code>spinbutton</code>, compuesto sobre el <code>GInput</code> real. Se escribe libre y rápido; ↑/↓ dan pasos; el modelo y el envío son <code>HH:mm</code>. La forma es la convencional a propósito: la identidad se decide en r02.</p>
+        <p class="lab-how"><strong>Pruébalo.</strong> Escribe <kbd>930</kbd>, <kbd>9.30p</kbd>, <kbd>21</kbd> o pega <code>2026-10-06T14:05</code>; sal con Tab. ↑/↓ = un paso; <kbd>Mayús</kbd>+↑/↓ o Re Pág/Av Pág = una hora. En 12 h, <kbd>a</kbd>/<kbd>p</kbd> cambian la mitad del día.</p></div>
+
+      <section class="lab-case" id="case-parse">
+        <h2>1 · Cómo se interpreta lo escrito</h2>
+        <p class="lab-how">El mismo motor en un idioma de 24 h (<code>es</code>) y en uno de 12 h (<code>es-MX</code>). «(o …)»: hora de 1 a 12 sin marcador en 12 h; se elige por la regla del punto 13 de la declaración.</p>
+        <div class="lab-wrap"><table class="lab-table" id="parse-table"><thead><tr><th scope="col">Escribe</th><th scope="col">es (24 h)</th><th scope="col">es-MX (12 h)</th></tr></thead>
+          <tbody><tr v-for="r in rows" :key="r.t"><td><code>{{ r.t }}</code></td><td>{{ r.es }}</td><td>{{ r.mx }}</td></tr></tbody></table></div>
+      </section>
+
+      <section class="lab-case" id="case-24">
+        <h2>2 · Casos en 24 h (página en <code>es</code>)</h2>
+        <g-form id="f-casos" :errors="errors" :labels="formLabels" @submit="onSubmit">
+          <g-error-summary :labels="{ title: 'Revisa el formulario' }"></g-error-summary>
+          <g-form-layout>
+            <x-time-field id="t-toma" v-model="c.toma" name="toma" label="Hora de la toma" hint="Por ejemplo, 9:30 o 2130" required :labels="invalid" @change="onChange('toma')($event)"></x-time-field>
+            <x-time-field id="t-cita" v-model="c.cita" name="cita" label="Hora de la cita" :step="15" min="08:00" max="18:00" hint="De 8:00 a 18:00, cada 15 minutos" :labels="invalid" @change="onChange('cita')($event)"></x-time-field>
+            <x-time-field id="t-turno" v-model="c.turno" name="turno" label="Entrada del turno de noche" :step="30" min="22:00" max="06:00" hint="De 22:00 a 6:00 (cruza la medianoche)" :labels="invalid"></x-time-field>
+            <x-time-field id="t-evento" v-model="c.evento" name="evento" label="Hora exacta del evento" seconds :labels="invalid"></x-time-field>
+            <x-time-field id="t-tele" v-model="c.tele" name="tele" label="Hora de la teleconsulta" suffix="CDMX" suffix-label="hora del centro de México" :step="15" :labels="invalid"></x-time-field>
+          </g-form-layout>
+          <g-form-actions><g-btn id="b-casos" type="submit">Guardar</g-btn></g-form-actions>
+        </g-form>
+        <pre class="lab-out" id="out-models">modelo: {{ models }}</pre>
+        <pre class="lab-out" id="out-sent">envío: {{ sent || '—' }}</pre>
+      </section>
+
+      <section class="lab-case" id="case-12" lang="es-MX">
+        <h2>3 · 12 h (bloque <code>lang="es-MX"</code>) y <code>en-US</code></h2>
+        <p class="lab-how">a. m./p. m. a la derecha de la caja: botones fuera del Tab (el teclado escribe <kbd>a</kbd>/<kbd>p</kbd>), del alto de la caja, que no mueven el foco. Escribir en 24 h también vale: <kbd>2130</kbd> → 9:30 p. m.</p>
+        <g-form id="f-12" :labels="formLabels" @submit="onSubmit">
+          <g-form-layout>
+            <x-time-field id="t12-toma" v-model="h12.toma" name="toma12" label="Hora de la toma" :labels="invalid"></x-time-field>
+            <x-time-field id="t12-cita" v-model="h12.cita" name="cita12" label="Hora de la cita" :step="15" min="08:00" max="18:00" :labels="invalid"></x-time-field>
+            <x-time-field id="t12-en" v-model="h12.en" name="en" label="Medication time" locale="en-US" :labels="{ invalid: 'Enter a time, for example 9:30 AM' }"></x-time-field>
+          </g-form-layout>
+        </g-form>
+        <pre class="lab-out" id="out-12">modelo: {{ JSON.stringify(h12) }}</pre>
+      </section>
+
+      <section class="lab-case" id="case-intl">
+        <h2>4 · Otros idiomas</h2>
+        <p class="lab-how">Árabe de Egipto (12 h, cifras arábigo-índicas, el campo en <code>dir="rtl"</code> por su idioma), hebreo (24 h, RTL), finés (separador «.») y coreano (la mitad del día va <em>antes</em> de la hora).</p>
+        <g-form-layout>
+          <g-form-row>
+            <x-time-field id="t-ar" v-model="intl.ar" locale="ar-EG" label="الوقت" name="ar"></x-time-field>
+            <x-time-field id="t-he" v-model="intl.he" locale="he" label="שעה" name="he"></x-time-field>
+          </g-form-row>
+          <g-form-row>
+            <x-time-field id="t-fi" v-model="intl.fi" locale="fi" label="Aika" name="fi"></x-time-field>
+            <x-time-field id="t-ko" v-model="intl.ko" locale="ko" label="시간" name="ko"></x-time-field>
+          </g-form-row>
+        </g-form-layout>
+        <pre class="lab-out" id="out-intl">modelo: {{ JSON.stringify(intl) }}</pre>
+      </section>
+
+      <section class="lab-case" id="case-row">
+        <h2>5 · Fecha y hora en una fila con otros campos</h2>
+        <p class="lab-how"><code>GInput</code>, <code>GDatePicker</code>, el campo de hora y <code>GSelect</code> reales en una <code>GFormRow</code>: las cajas comparten <code>top</code> y alto. La aplicación junta fecha y hora en una hora de pared sin zona.</p>
+        <template v-for="w in [1100, 720, 320]" :key="w">
+          <p class="lab-how">{{ w }}px</p>
+          <div class="lab-wrap"><div class="lab-frame" :style="{ inlineSize: w + 'px' }" :id="'frame-' + w">
+            <g-form :id="'f-row-' + w" :labels="formLabels">
+              <g-form-layout>
+                <g-form-row :id="'row-' + w">
+                  <g-input class="g-form-w-md" :id="'r-pac-' + w" label="Paciente" name="paciente"></g-input>
+                  <g-date-picker class="g-form-w-sm" :id="'r-fecha-' + w" v-model="row.fecha" label="Fecha" name="fecha" :labels="dpLabels"></g-date-picker>
+                  <x-time-field class="g-form-w-xs" :id="'r-hora-' + w" v-model="row.hora" label="Hora" name="hora" :step="15" hint="Cada 15 min"></x-time-field>
+                  <g-select class="g-form-w-sm" :id="'r-cons-' + w" v-model="row.consultorio" label="Consultorio" name="consultorio" :options="opts"></g-select>
+                </g-form-row>
+              </g-form-layout>
+            </g-form>
+          </div></div>
+        </template>
+        <pre class="lab-out" id="out-stamp">la aplicación guarda: {{ stamp }}</pre>
+      </section>
+
+      <section class="lab-case" id="case-states">
+        <h2>6 · Estados</h2>
+        <g-form id="f-states" :labels="formLabels">
+          <g-form-layout>
+            <g-form-row>
+              <x-time-field id="s-ro" v-model="st.ro" name="ro" label="Solo lectura" readonly></x-time-field>
+              <x-time-field id="s-dis" v-model="st.dis" name="dis" label="Deshabilitado" disabled></x-time-field>
+            </g-form-row>
+            <g-form-row>
+              <x-time-field id="s-err" v-model="st.err" name="err" label="Con error de la aplicación" error="A esta hora no hay servicio"></x-time-field>
+              <x-time-field id="s-bad" v-model="st.bad" name="bad" label="Lo escrito sin interpretar" :labels="invalid" hint="Escribe 99:99 y sal"></x-time-field>
+            </g-form-row>
+          </g-form-layout>
+        </g-form>
+      </section>
+
+      <aside class="lab-log" aria-label="Eventos change (solo del laboratorio)"><h2>Eventos <code>change</code> (<span id="change-count">{{ count }}</span>)</h2><ol id="log"><li v-for="(l,i) in log" :key="i">{{ l }}</li></ol></aside>
+    </main>`
+  }).use(Grana).mount('#app')
+})()
+</script>
+</body>
+</html>

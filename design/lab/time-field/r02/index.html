@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campo de hora · r02 · conceptos A, B y C</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../lab.css">
+<link rel="stylesheet" href="./concepts.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="../engine.js"></script>
+<script src="../field.js"></script>
+<script src="./concepts.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, computed } = Vue
+  const q = new URLSearchParams(location.search)
+  const C = ['A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'A'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  TF.setNow(TF.fromCanonical(q.get('now') || '10:40'))
+  const TXT = {
+    A: ['A · La hora dicha', 'El campo no necesita un selector: la forma más rápida de dar una hora es escribirla, y los errores vienen de la ambigüedad (¿9 de la mañana o de la noche?). Se escribe como se dice —«930», «9 noche», «mediodía»— y la hora vuelve en palabras, pegada al número. Una hora a secas que puede ser de mañana o de noche ofrece las dos lecturas para elegir de un toque.',
+      '<strong>Pruébalo.</strong> Escribe <kbd>9</kbd> y mira las dos lecturas; escribe <kbd>9 noche</kbd>, <kbd>7 de la tarde</kbd>, <kbd>mediodía</kbd> o <kbd>3 madrugada</kbd>. Con ↑/↓ cruza las 12:00 y mira cambiar la franja.'],
+    B: ['B · Rejilla del día', 'En vez de una lista de 48 o 96 horas: las horas habituales de la aplicación arriba (un toque) y el día entero en cuatro filas de seis (madrugada, mañana, tarde, noche). Elegir una hora despliega sus minutos debajo, según el paso. Dos toques para cualquier hora; las 9 de la mañana y las 9 de la noche nunca están en la misma fila.',
+      '<strong>Pruébalo.</strong> Pulsa la flecha del campo o <kbd>Alt</kbd>+<kbd>↓</kbd> desde él. Flechas para moverte por las horas, Intro para desplegar los minutos, Intro para elegir, Esc para volver. Las horas fuera de 8:00–18:00 están tachadas.'],
+    C: ['C · Tramo', 'Muchas horas no viven solas: un turno, una cita, una toma cada cierto tiempo. El tramo junta inicio y fin, dice lo que dura entre los dos y lo pinta en una regla del día. El fin admite una duración («+8», «+1:30»), mover el inicio conserva la duración y un fin anterior al inicio es «el día siguiente», dicho en texto.',
+      '<strong>Pruébalo.</strong> En «Salida» escribe <kbd>+8:30</kbd>. Cambia la entrada: la salida se mueve con ella. En la cita, los botones de duración ponen el fin de un toque.']
+  }
+  const L = {
+    invalid: 'Escribe una hora, por ejemplo 9:30', choose: 'Lectura de la hora', open: 'Elegir hora', dialog: 'Elegir hora', hours: 'Horas', minutes: 'Minutos de las',
+    suggestions: 'Habituales', now: 'Ahora', nowMark: 'ahora', rows: ['Madrugada', 'Mañana', 'Tarde', 'Noche'], exact: 'Para un minuto exacto, escríbelo en el campo.',
+    nextDay: '+1 día', durations: 'Duración'
+  }
+  const LMX = { ...L }
+  createApp({
+    components: { XTimeField, ...TFConcepts },
+    setup() {
+      const a = reactive({ toma: null, toma12: '21:30', fecha: '2026-10-06', hora: '09:30', pac: '' })
+      const b = reactive({ cita: null, toma: '08:00', turno: null, toma12: null })
+      const c = reactive({ turno: { start: '22:00', end: '06:00' }, cita: { start: '09:00', end: '09:30' }, fecha: '2026-10-06', toma12: { start: '19:00', end: '07:00' } })
+      const sent = ref(null)
+      const onSubmit = ({ data }) => { sent.value = [...data].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+      const formLabels = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' }
+      const dpLabels = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar' }
+      const meds = [{ time: '08:00', label: 'Desayuno' }, { time: '14:00', label: 'Comida' }, { time: '22:00', label: 'Antes de dormir' }]
+      const slots = [{ time: '09:00', label: 'Primera hora' }, { time: '13:30', label: 'Tras la comida' }, { time: '19:00', label: 'Fuera de horario' }]
+      const model = computed(() => JSON.stringify(C === 'A' ? a : C === 'B' ? b : c))
+      return { C, T: TXT[C], a, b, c, sent, onSubmit, formLabels, dpLabels, meds, slots, L, LMX, model }
+    },
+    template: `
+    <header class="lab-bar"><span class="lab-brand">Campo de hora · r02 · conceptos</span>
+      <span class="lab-links"><a href="?c=A" :aria-current="C==='A' ? 'page' : null">A · La hora dicha</a> · <a href="?c=B" :aria-current="C==='B' ? 'page' : null">B · Rejilla del día</a> · <a href="?c=C" :aria-current="C==='C' ? 'page' : null">C · Tramo</a> · <a href="../r01/">Base (r01)</a></span></header>
+    <main class="lab" :data-concept="C">
+      <div><h1 class="lab-title">{{ T[0] }}</h1><p class="lab-lead">{{ T[1] }}</p><p class="lab-how" v-html="T[2]"></p></div>
+
+      <template v-if="C==='A'">
+        <section class="lab-case" id="case-a1"><h2>1 · Toma de un medicamento (24 h, <code>es</code>)</h2>
+          <g-form id="f-a" :labels="formLabels" @submit="onSubmit"><g-form-layout>
+            <x-time-field-a id="a-toma" v-model="a.toma" name="toma" label="Hora de la toma" hint="Escribe como lo dirías: 930, 9 noche, mediodía" :labels="L"></x-time-field-a>
+          </g-form-layout><g-form-actions><g-btn type="submit">Guardar</g-btn></g-form-actions></g-form></section>
+        <section class="lab-case" id="case-a2" lang="es-MX"><h2>2 · Lo mismo en 12 h (<code>es-MX</code>)</h2>
+          <g-form-layout><x-time-field-a id="a-toma12" v-model="a.toma12" name="toma12" label="Hora de la toma" :labels="L"></x-time-field-a></g-form-layout></section>
+        <section class="lab-case" id="case-a3"><h2>3 · En una fila con la fecha</h2>
+          <g-form-layout><g-form-row id="a-row">
+            <g-input class="g-form-w-md" id="a-pac" v-model="a.pac" label="Paciente" name="paciente"></g-input>
+            <g-date-picker class="g-form-w-sm" id="a-fecha" v-model="a.fecha" label="Fecha" name="fecha" :labels="dpLabels"></g-date-picker>
+            <x-time-field-a class="g-form-w-sm" id="a-hora" v-model="a.hora" label="Hora" name="hora" :labels="L"></x-time-field-a>
+          </g-form-row></g-form-layout></section>
+      </template>
+
+      <template v-if="C==='B'">
+        <section class="lab-case" id="case-b1"><h2>1 · Hora de la cita (de 8:00 a 18:00, cada 15 min)</h2>
+          <g-form id="f-b" :labels="formLabels" @submit="onSubmit"><g-form-layout>
+            <x-time-field-b id="b-cita" v-model="b.cita" name="cita" label="Hora de la cita" :step="15" min="08:00" max="18:00" :suggestions="slots" :labels="L"></x-time-field-b>
+            <x-time-field-b id="b-toma" v-model="b.toma" name="toma" label="Hora de la toma" :step="5" :suggestions="meds" :labels="L" hint="Las habituales las pone la aplicación"></x-time-field-b>
+            <x-time-field-b id="b-turno" v-model="b.turno" name="turno" label="Entrada del turno de noche" :step="30" min="22:00" max="06:00" :labels="L"></x-time-field-b>
+          </g-form-layout><g-form-actions><g-btn type="submit">Guardar</g-btn></g-form-actions></g-form></section>
+        <section class="lab-case" id="case-b2" lang="es-MX"><h2>2 · 12 h (<code>es-MX</code>)</h2>
+          <g-form-layout><x-time-field-b id="b-toma12" v-model="b.toma12" name="toma12" label="Hora de la toma" :step="15" :suggestions="meds" :labels="L"></x-time-field-b></g-form-layout></section>
+      </template>
+
+      <template v-if="C==='C'">
+        <section class="lab-case" id="case-c1"><h2>1 · Turno de noche</h2>
+          <g-form id="f-c" :labels="formLabels" @submit="onSubmit">
+            <x-time-range id="c-turno" v-model="c.turno" name="turno" label="Turno de noche" label-start="Entrada" label-end="Salida" :step="30" :labels="L" hint="O escribe la duración: +8"></x-time-range>
+            <g-form-actions><g-btn type="submit">Guardar</g-btn></g-form-actions>
+          </g-form></section>
+        <section class="lab-case" id="case-c2"><h2>2 · Una cita con su fecha y duraciones de un toque</h2>
+          <g-form-layout><g-date-picker id="c-fecha" v-model="c.fecha" label="Fecha" name="fecha" :labels="dpLabels"></g-date-picker></g-form-layout>
+          <x-time-range id="c-cita" v-model="c.cita" name="cita" label="Cita" label-start="Empieza" label-end="Termina" :step="15" :durations="[15, 30, 45, 60]" :labels="L"></x-time-range></section>
+        <section class="lab-case" id="case-c3" lang="es-MX"><h2>3 · 12 h (<code>es-MX</code>)</h2>
+          <x-time-range id="c-12" v-model="c.toma12" name="guardia" label="Guardia" label-start="Inicio" label-end="Fin" :step="30" :labels="LMX"></x-time-range></section>
+      </template>
+
+      <pre class="lab-out" id="out-model">modelo: {{ model }}</pre>
+      <pre class="lab-out" id="out-sent">envío: {{ sent || '—' }}</pre>
+    </main>`
+  }).use(Grana).mount('#app')
+})()
+</script>
+</body>
+</html>
