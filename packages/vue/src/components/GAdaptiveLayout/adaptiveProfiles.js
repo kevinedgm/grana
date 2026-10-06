@@ -76,6 +76,8 @@ export function effectiveHints(hint, kind) {
 /** Cache key part: the hints actually applied. */
 export const hintKey = hint => `${hint.width || ''}|${hint.characters ?? ''}|${hint.weight ?? ''}`
 export function visibleChild(root, style = getComputedStyle(root)) {
+  // El nodo de GTooltip (#383, #394) no es un hijo de la distribución: cerrado mide 0 y abierto vive en la capa superior
+  if (root.classList.contains('g-tooltip')) return false
   if (root.hidden || style.display === 'none' || !root.getClientRects().length) return false
   if (root.matches('.g-form-reveal') && root.hasAttribute('inert')) return false
   return true

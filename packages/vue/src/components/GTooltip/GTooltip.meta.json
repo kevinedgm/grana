@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "name": "GTooltip",
+  "tag": "g-tooltip",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Nombre visible, descripción breve y atajo de un control enfocable: aparece con el puntero (350 ms), con el foco por navegación y con la pulsación larga en táctil. Forma A «pestaña que viaja» (la etiqueta cuelga del control por una pestaña de su tamaño y acompaña de un control al siguiente en un grupo) con segunda etapa para detail. Envoltorio de un único hijo sin elementos añadidos; su nodo role=\"tooltip\" persistente (popover=\"manual\") va detrás del control.",
+  "contract": "design/contracts/tooltip.md",
+  "decisions": "DECISIONS.md #380 a #394",
+  "prototype": "design/lab/tooltip/r01/ y design/lab/tooltip/r02/",
+  "style": "packages/vue/src/components/GTooltip/GTooltip.css",
+  "entry": "@grana/vue (principal, #380)",
+  "props": [
+    { "name": "text", "type": "String", "required": true, "default": null, "note": "Nombre o descripción según kind; vacío: no se activa (aviso)" },
+    { "name": "detail", "type": "String", "default": null, "note": "Segunda etapa (#389); siempre aria-describedby → ID-detail" },
+    { "name": "kind", "type": "String", "default": "auto", "values": ["auto", "label", "description"] },
+    { "name": "placement", "type": "String", "default": null, "values": ["top-start", "top", "top-end", "right-start", "right", "right-end", "bottom-end", "bottom", "bottom-start", "left-end", "left", "left-start"], "note": "Sin valor: bottom; right en un grupo vertical (aria-orientation=\"vertical\"). left/right lógicos" },
+    { "name": "shortcut", "type": "String", "default": null, "note": "Texto visible del atajo (<kbd> aria-hidden)" },
+    { "name": "keyshortcuts", "type": "String", "default": null, "note": "aria-keyshortcuts del control" },
+    { "name": "disabled", "type": "Boolean", "default": false, "note": "No abre; conserva las referencias ARIA" },
+    { "name": "id", "type": "String", "default": null, "note": "Generado con useId (estable en SSR); el nombre es ID-name y el detalle ID-detail" }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "default", "purpose": "Un único hijo: el control (elemento o componente). Se clona con aria-labelledby/aria-describedby (añadido), aria-keyshortcuts y data-g-tooltip en su elemento enfocable" }
+  ],
+  "childAttributes": ["aria-labelledby", "aria-describedby", "aria-keyshortcuts", "data-g-tooltip"],
+  "childMatrix": {
+    "admitted": ["GBtn (button y a)", "GInput", "GTextarea", "GSelect", "GNumberField", "GCombobox", "GDatePicker", "GSwitch", "GCheckbox", "GHelper (#391)"],
+    "notAdmitted": ["GInputGroupInput", "GInputGroupSelect (#394, aviso 8)"]
+  },
+  "tokens": [
+    "--g-color-text", "--g-color-surface", "--g-radius-md", "--g-radius-sm", "--g-radius-xs", "--g-shadow-2", "--g-space-1",
+    "--g-border-width", "--g-font-ui", "--g-text-body-sm-size", "--g-text-body-sm-line", "--g-text-body-sm-weight",
+    "--g-text-body-sm-tracking", "--g-text-caption-size", "--g-text-caption-line", "--g-text-caption-weight",
+    "--g-text-caption-tracking", "--g-text-action-weight", "--g-duration-fast", "--g-duration-press", "--g-ease-out"
+  ],
+  "states": ["closed", "open", "instant", "travel", "dwell", "touch", "side-top", "side-right", "side-bottom", "side-left", "disabled"],
+  "timing": { "OPEN": 350, "CLOSE": 100, "SKIP": 600, "NAV": 1000, "DWELL": 700, "LONG": 500, "MOVE": 10, "LINGER": 1500, "READ_BASE": 1000, "READ_CHAR": 50, "READ_MAX": 6000 },
+  "implementation": [
+    "Motor interno utils/tooltip.js (no público): una escucha de documento compartida (teclas de navegación, Esc en captura, pulsar fuera, clic tras la pulsación larga) que se retira con el último tooltip; escuchas nativas en el elemento resuelto y en el nodo.",
+    "Uno solo abierto en el documento; relevo del grupo al instante. Perder el foco cierra en el ciclo siguiente para que el control siguiente (Tab, flechas) tome el relevo y viaje.",
+    "Viaje (#388, receta TT.travel de design/lab/tooltip/estilo-banco.html): el entrante abre con data-instant en su sitio con el lado del saliente, salta a la geometría del saliente (variables + inline-size) y transiciona a la suya con data-travel; el saliente se oculta con data-instant + hidePopover. data-travel e inline-size se retiran en transitionend de translate o a --g-duration-press + 80 ms.",
+    "Posición: placeAround de utils/anchor.js con gap = space × 1,5 y pad = space × 2; data-side y --_tooltip-aw/-ah antes de medir; si el lado cambia, se mide de nuevo con ese lado (only). Regla 1 estricta de #358: desplazamiento, resize y segunda etapa conservan el lado (placeAround con only: true). Regla 3: anchorGone cierra sin mover el foco.",
+    "kind=\"auto\": label hasta medir (SSR y primer render); al montar, por el nombre real del control (aria-labelledby ajeno, aria-label, <label>, contenido sin aria-hidden); se reevalúa al cambiar text y con un MutationObserver sobre el control (que también cierra si aparece aria-expanded=\"true\" o disabled).",
+    "GBtn tooltip (#390): GBtn envuelve su botón en un GTooltip con text; si su padre directo es un GTooltip, no crea el suyo y avisa. GHelper (#391) reenvía los cuatro atributos a su botón.",
+    "GFormRow, GAdaptiveLayout (visibleChild y mutaciones), GInputGroup (aviso de partes), GFormSection (ancho de las acciones) y GFieldGroup saltan el nodo .g-tooltip al medir o recorrer hijos (#394)."
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5) con un tema distinto al por defecto",
+    "README (mora-docs) tras la auditoría",
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack): nombre, descripción, aria-keyshortcuts y detail",
+    "Táctil real (menú contextual de iOS con -webkit-touch-callout), Safari real con Tab por defecto y forced-colors real",
+    "Motor interno en GTabs, GRadioGroup (labelMode=\"icon\") y el riel de GSidebar en modo none (#392, encargos aparte tras candidate)"
+  ]
+}

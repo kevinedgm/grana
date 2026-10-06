@@ -15,6 +15,15 @@
     .pg-ic-48 { inline-size: calc(var(--g-space-1) * 12); block-size: calc(var(--g-space-1) * 12); }
     body { margin: 0; font-family: var(--g-font-ui); color: var(--g-color-text); background: var(--g-color-bg); }
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
+    /* GTooltip (banco del playground): barra, riel, filas y contenedor con desplazamiento */
+    .tt-bar { display: flex; gap: 2px; padding: 4px; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); }
+    .tt-rail { display: flex; flex-direction: column; gap: 2px; padding: 4px; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); }
+    .tt-rows { display: grid; gap: 4px; flex: 1 1 320px; }
+    .tt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 8px; border-block-end: var(--g-border-width) solid var(--g-color-border); }
+    .tt-actions { display: flex; gap: 2px; }
+    .tt-scroll { block-size: 120px; inline-size: 200px; overflow: auto; border: var(--g-border-width) dashed var(--g-color-border); }
+    .tt-scroll-in { block-size: 400px; padding: 40px 16px; }
+    .tt-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
     #log { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
     .col { display: grid; gap: 16px; max-width: 320px; }
     .rg-demo { display: grid; gap: 24px; max-inline-size: 640px; }
@@ -1862,6 +1871,92 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </div>
         </section>
       </div>
+        <section class="pg-section" id="sec-tooltip" data-pg-section>
+          <h2>GTooltip</h2>
+          <p class="pg-lead">Nombre visible, descripción breve y atajo de un <b>control</b>: con el puntero (350 ms), al llegar <b>navegando</b> con el teclado y con la <b>pulsación larga</b> en táctil (que no activa). La etiqueta cuelga del control por una <b>pestaña de su tamaño</b> y, en un grupo, <b>viaja</b> de un control al siguiente. Con <code>detail</code>, primero el nombre y, si el puntero se queda quieto, la descripción y el atajo. Esc la cierra sin mover el foco; pulsar el control también. El atajo de <code>GBtn</code>: <code>&lt;g-btn tooltip="…"&gt;</code>.</p>
+          <h3>Barra de herramientas y riel (grupos: la etiqueta viaja)</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <div role="toolbar" aria-label="Edición" id="tt-bar" class="tt-bar" data-tt-roving @keydown="ttRove" @focusin="ttRoveFocus">
+        <g-tooltip v-for="t in ttTools" :key="t.id" :text="t.text" :detail="t.detail" :shortcut="t.sc" :keyshortcuts="t.ks">
+          <g-btn icon variant="ghost" :id="'tt-' + t.id" @click="tt.log = t.text"><g-icon :name="t.icon"></g-icon></g-btn>
+        </g-tooltip>
+      </div>
+      <span>Último: <b id="tt-log">{{ tt.log || 'nada' }}</b></span>
+    </div>
+    <div class="row" style="align-items:flex-start">
+      <div role="toolbar" aria-label="Secciones" aria-orientation="vertical" id="tt-rail" class="tt-rail" data-tt-roving @keydown="ttRove" @focusin="ttRoveFocus">
+        <g-btn v-for="r in ttRail" :key="r.id" icon variant="ghost" :id="'tt-rail-' + r.id" :tooltip="r.text" @click="tt.log = r.text"><g-icon :name="r.icon"></g-icon></g-btn>
+      </div>
+      <div class="tt-rows">
+        <div class="tt-row" v-for="f in ['F-0041', 'F-0042']" :key="f">
+          <span>Factura {{ f }}</span>
+          <span class="tt-actions" :id="'tt-row-' + f">
+            <g-btn icon variant="ghost" size="sm" tooltip="Editar" :id="'tt-row-edit-' + f" @click="tt.log = 'editar ' + f"><g-icon name="pencil"></g-icon></g-btn>
+            <g-btn icon variant="ghost" size="sm" tooltip="Descargar" :id="'tt-row-dl-' + f" @click="tt.log = 'descargar ' + f"><g-icon name="download"></g-icon></g-btn>
+            <g-btn icon variant="ghost" size="sm" tooltip="Eliminar" :id="'tt-row-del-' + f" @click="tt.log = 'eliminar ' + f"><g-icon name="trash"></g-icon></g-btn>
+          </span>
+        </div>
+      </div>
+    </div>
+          </div>
+          <h3>Controles sueltos: detalle, nombre propio, estados</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <g-tooltip text="Marcar para revisión" detail="Avisa al responsable del expediente y lo pone en su bandeja" shortcut="Ctrl M" keyshortcuts="Control+M">
+        <g-btn icon variant="outline" id="tt-flag" @click="tt.log = 'marcar'"><g-icon name="tag"></g-icon></g-btn>
+      </g-tooltip>
+      <g-tooltip text="Visible para todo el equipo"><g-btn id="tt-publish" @click="tt.log = 'publicar'">Publicar</g-btn></g-tooltip>
+      <g-tooltip text="Necesitas permiso de edición para archivar"><g-btn variant="outline" aria-disabled="true" id="tt-aria-disabled">Archivar</g-btn></g-tooltip>
+      <g-tooltip text="No disponible"><g-btn variant="outline" disabled id="tt-disabled">Borrar</g-btn></g-tooltip>
+      <g-menu v-model="tt.menu" :items="mnItems" label="Más acciones" @select="tt.log = 'menú · ' + $event.id">
+        <template #trigger="{ attrs }"><g-tooltip text="Más acciones"><g-btn v-bind="attrs" icon variant="ghost" id="tt-menu"><g-icon name="ellipsis-vertical"></g-icon></g-btn></g-tooltip></template>
+      </g-menu>
+      <g-btn variant="soft" id="tt-wide" tooltip="Guardar">Guardar los cambios del expediente</g-btn>
+      <g-tooltip text="Agrupa las facturas pendientes por cliente, vencimiento y estado de cobro para revisarlas juntas"><g-btn icon variant="ghost" id="tt-long"><g-icon name="folder"></g-icon></g-btn></g-tooltip>
+    </div>
+    <div class="row"><g-btn block tooltip="Continúa con el pago" id="tt-block">Continuar</g-btn></div>
+    <div class="row">
+      <div id="tt-scroll" class="tt-scroll"><div class="tt-scroll-in"><g-btn icon variant="outline" id="tt-scroll-btn" tooltip="Dentro de un contenedor con desplazamiento"><g-icon name="inbox"></g-icon></g-btn></div></div>
+      <div dir="rtl" class="row" id="tt-rtl" style="margin:0">
+        <div role="toolbar" aria-label="أدوات" class="tt-bar" data-tt-roving @keydown="ttRove" @focusin="ttRoveFocus">
+          <g-btn icon variant="ghost" id="tt-rtl-a" tooltip="نسخ"><g-icon name="copy"></g-icon></g-btn>
+          <g-btn icon variant="ghost" id="tt-rtl-b" tooltip="تعديل"><g-icon name="pencil"></g-icon></g-btn>
+        </div>
+        <g-tooltip text="Al inicio de la línea" placement="left"><g-btn variant="outline" id="tt-rtl-left">placement="left"</g-btn></g-tooltip>
+      </div>
+    </div>
+          </div>
+          <h3>Dentro de un diálogo y sobre campos</h3>
+          <div class="pg-panel">
+    <div class="row">
+      <g-btn variant="outline" id="tt-open-dlg" @click="tt.dlg = true">Abrir diálogo con barra</g-btn>
+    </div>
+    <g-dialog v-model="tt.dlg" title="Editar expediente" description="La barra nombra sus iconos; el primer Esc cierra el tooltip y el segundo el diálogo." close-label="Cerrar" size="sm" @closed="tt.log = 'diálogo cerrado'">
+      <div role="toolbar" aria-label="Formato" class="tt-bar" id="tt-dlg-bar" data-tt-roving @keydown="ttRove" @focusin="ttRoveFocus">
+        <g-btn v-for="t in ttTools.slice(0, 4)" :key="t.id" icon variant="ghost" :id="'tt-dlg-' + t.id" :tooltip="t.text"><g-icon :name="t.icon"></g-icon></g-btn>
+      </div>
+      <p>El último control del cuerpo lleva tooltip: su margen final sigue siendo 0 (#383).</p>
+      <g-btn variant="outline" id="tt-dlg-last" tooltip="Guarda sin cerrar">Guardar borrador</g-btn>
+    </g-dialog>
+    <div class="tt-fields">
+      <g-tooltip text="Solo para avisos de la cuenta" kind="description"><g-input id="tt-f-input" label="Correo" hint="Nunca lo compartimos"></g-input></g-tooltip>
+      <g-tooltip text="Lo lee el responsable" kind="description"><g-textarea id="tt-f-textarea" label="Nota"></g-textarea></g-tooltip>
+      <g-tooltip text="País del envío" kind="description"><g-select id="tt-f-select" label="País" :options="selCountries"></g-select></g-tooltip>
+      <g-tooltip text="Peso en kilos" kind="description"><g-number-field id="tt-f-number" label="Peso" locale="es"></g-number-field></g-tooltip>
+      <g-tooltip text="Código CIE-10" kind="description"><g-combobox id="tt-f-combobox" label="Diagnóstico" :options="[]" :labels="cb.labels"></g-combobox></g-tooltip>
+      <g-tooltip text="Día de la cita" kind="description"><g-date-picker id="tt-f-date" label="Fecha" locale="es" :labels="dpLabels"></g-date-picker></g-tooltip>
+      <g-tooltip text="Por correo y en la app" kind="description"><g-switch id="tt-f-switch" label="Avisos"></g-switch></g-tooltip>
+      <g-tooltip text="Obligatorio para continuar" kind="description"><g-checkbox id="tt-f-checkbox" label="Acepto las condiciones"></g-checkbox></g-tooltip>
+      <g-tooltip text="Abre la ayuda del formulario" kind="description"><g-helper id="tt-f-helper" aria-label="Ayuda" content-label="Ayuda" close-label="Cerrar"><template #content>Completa los campos obligatorios.</template></g-helper></g-tooltip>
+      <g-input-group id="tt-f-group" label="Teléfono">
+        <g-input-group-input principal></g-input-group-input>
+        <g-tooltip text="No se admite (aviso 8)"><g-input-group-input part-label="Ext." id="tt-f-part"></g-input-group-input></g-tooltip>
+        <g-btn icon variant="ghost" tooltip="Llamar" id="tt-f-call"><g-icon name="message-circle"></g-icon></g-btn>
+      </g-input-group>
+    </div>
+          </div>
+        </section>
       <div class="pg-group" id="cat-7">
         <p class="pg-cat">Avisos</p>
         <section class="pg-section" id="sec-toaster" data-pg-section>
@@ -2580,6 +2675,45 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const icSideItems = [{ id: 'inicio', label: 'Inicio', href: '#inicio', icon: 'house' }, { id: 'bandeja', label: 'Bandeja', href: '#bandeja', icon: 'inbox' }, { id: 'acceso', label: 'Acceso', href: '#acceso', icon: 'lock-open' }]
         const mnOpen = ref(false)
         const mnLog = ref('—')
+        // ---------- GTooltip: barra, riel y estado del banco ----------
+        const tt = reactive({ log: '', dlg: false, menu: false })
+        const ttTools = [
+          { id: 'undo', icon: 'rotate-ccw', text: 'Deshacer', sc: 'Ctrl Z', ks: 'Control+Z' },
+          { id: 'redo', icon: 'redo-2', text: 'Rehacer', sc: 'Ctrl Y', ks: 'Control+Y' },
+          { id: 'copy', icon: 'copy', text: 'Duplicar', sc: 'Ctrl D', ks: 'Control+D' },
+          { id: 'edit', icon: 'pencil', text: 'Editar' },
+          { id: 'tag', icon: 'tag', text: 'Etiquetar', detail: 'Agrupa el expediente con los que llevan la misma etiqueta', sc: 'Ctrl E', ks: 'Control+E' },
+          { id: 'share', icon: 'share-2', text: 'Compartir' },
+          { id: 'lock', icon: 'lock', text: 'Bloquear' },
+          { id: 'trash', icon: 'trash', text: 'Eliminar', sc: 'Supr', ks: 'Delete' }
+        ]
+        const ttRail = [
+          { id: 'home', icon: 'house', text: 'Inicio' },
+          { id: 'inbox', icon: 'inbox', text: 'Bandeja de entrada' },
+          { id: 'cal', icon: 'calendar', text: 'Agenda' },
+          { id: 'users', icon: 'users', text: 'Equipo' },
+          { id: 'settings', icon: 'settings', text: 'Ajustes' }
+        ]
+        // Barra de APG: una sola parada de Tab y flechas, Inicio y Fin (tabindex itinerante)
+        const ttItems = (bar) => [...bar.querySelectorAll('button:not(:disabled)')].filter((b) => b.closest('[data-tt-roving]') === bar)
+        const ttSet = (bar, cur) => ttItems(bar).forEach((b) => b.setAttribute('tabindex', b === cur ? '0' : '-1'))
+        const ttRoveFocus = (e) => { const bar = e.currentTarget; if (ttItems(bar).includes(e.target)) ttSet(bar, e.target) }
+        const ttRove = (e) => {
+          const bar = e.currentTarget
+          const list = ttItems(bar)
+          const i = list.indexOf(document.activeElement)
+          if (i < 0) return
+          const vertical = bar.getAttribute('aria-orientation') === 'vertical'
+          const rtl = getComputedStyle(bar).direction === 'rtl'
+          const next = vertical ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight'
+          const prev = vertical ? 'ArrowUp' : rtl ? 'ArrowRight' : 'ArrowLeft'
+          const j = e.key === next ? (i + 1) % list.length : e.key === prev ? (i - 1 + list.length) % list.length : e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : -1
+          if (j < 0) return
+          e.preventDefault()
+          ttSet(bar, list[j])
+          list[j].focus()
+        }
+        onMounted(() => { for (const bar of document.querySelectorAll('[data-tt-roving]')) ttSet(bar, ttItems(bar)[0]) })
         const mnItems = ref([
           { id: 'rename', label: 'Renombrar', icon: 'tag', shortcut: 'F2', keyshortcuts: 'F2' },
           { id: 'move', label: 'Mover a…', disabled: true },
@@ -2841,7 +2975,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3194,7 +3328,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>

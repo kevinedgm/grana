@@ -129,6 +129,7 @@ onMounted(() => {
   for (const p of controls.value) if (p !== principal.value && !p.partLabel()) warn('una parte no principal sin `partLabel`: su nombre accesible sería solo la etiqueta del grupo.')
   const box = root.value?.querySelector('.g-input-group__box')
   if (box) for (const c of box.children) {
+    if (c.matches('.g-tooltip')) continue // nodo hermano de GTooltip (#383, #394)
     if (!c.matches('.g-input-group__part, .g-input-group__text-label')) warn(`«${c.className || c.localName}» no es una parte: solo GInputGroupInput, GInputGroupSelect y GInputGroupText (cada campo trae su propia etiqueta y caja).`)
   }
 })

@@ -58,6 +58,11 @@ function readItems(kids, unit) {
   })
 }
 
+// El nodo de GTooltip es hermano del control (#383, #394): no es un hijo de la fila (cerrado mide 0; abierto vive en la
+// capa superior y sus estilos en línea cambian al colocarse)
+const isTooltip = (el) => el.classList.contains('g-tooltip')
+const rowKids = (el) => [...el.children].filter((k) => !isTooltip(k))
+
 function setIf(el, prop, value) {
   if (el.style.getPropertyValue(prop) !== value) el.style.setProperty(prop, value)
 }
@@ -65,7 +70,7 @@ function setIf(el, prop, value) {
 function run(width) {
   const el = root.value
   if (!el || !(width > 0)) return
-  const kids = [...el.children]
+  const kids = rowKids(el)
   if (isDev) checkChildren(kids)
   if (!kids.length) return
   const cs = typeof getComputedStyle === 'function' ? getComputedStyle(el) : null
@@ -122,12 +127,12 @@ onMounted(() => {
   const el = root.value
   if (!el) return
   rowRoots.add(el)
-  if (isDev) checkChildren([...el.children])
+  if (isDev) checkChildren(rowKids(el))
   stop = observeRow(el, run)
   // Hijos o sus clases/estilos cambian (v-if, g-form-w-*, --g-form-min): se recalcula con el último ancho medido
   if (typeof MutationObserver !== 'undefined') {
     mo = new MutationObserver((records) => {
-      const relevant = records.some((r) => r.target === el || (r.type === 'attributes' && r.target.parentElement === el))
+      const relevant = records.some((r) => r.target === el || (r.type === 'attributes' && r.target.parentElement === el && !isTooltip(r.target)))
       if (relevant && knownWidth(el)) scheduleRow(el)
     })
     mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] })

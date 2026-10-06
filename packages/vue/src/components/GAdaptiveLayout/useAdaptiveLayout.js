@@ -4,7 +4,7 @@ import { observeRow, scheduleRow } from '../GFormRow/rowEngine.js'
 import { aggregateProfiles, placeAdaptive, planAdaptive } from './adaptivePlan.js'
 import { adaptiveGroups, classify, createTextMeasurer, effectiveHints, hintKey, measureProfile, readHints, visibleChild } from './adaptiveProfiles.js'
 const LABEL = 'label,.g-select__label,.g-textarea__label,.g-input__prefix,.g-input__suffix,option'
-const NOISE = '.g-number-field__mirror,.g-number-field__roll,.g-number-field__measure,.g-input__counter,.g-select__value'
+const NOISE = '.g-tooltip,.g-number-field__mirror,.g-number-field__roll,.g-number-field__measure,.g-input__counter,.g-select__value'
 // Mutation verdicts: ignore · the hints of one direct child changed (re-plan, re-measure only that child) · invalidate.
 const IGNORE = 0, HINT = 1, INVALIDATE = 2
 // Ancestor declarations that only size or move boxes: the ResizeObserver already reports their effect on the width

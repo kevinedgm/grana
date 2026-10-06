@@ -142,10 +142,12 @@ function candidate(a, width, height, side, align, rtl, gap) {
  * Contenido flotante (GHelper): prueba el lado pedido, el opuesto y los perpendiculares; en el primero que cabe
  * entero en el visor (con margen `pad`), lo desplaza sobre el eje secundario hasta quedar dentro.
  * Devuelve { x, y, side, room, fits }. Si ningún lado cabe, `fits` es false y se devuelve el pedido ajustado al visor.
+ * `only`: solo el lado pedido (GTooltip, regla 1 estricta de #358/#386: el lado no cambia mientras está abierto); si no
+ * cabe, se devuelve ajustado al visor con `fits: false`.
  */
-export function placeAround(a, { width, height, vw, vh, placement = 'bottom', rtl = false, pad = 8, gap = 8 }) {
+export function placeAround(a, { width, height, vw, vh, placement = 'bottom', rtl = false, pad = 8, gap = 8, only = false }) {
   const { side, align } = parsePlacement(placement)
-  const order = [side, OPPOSITE[side], ...ORDER.filter((s) => s !== side && s !== OPPOSITE[side])]
+  const order = only ? [side] : [side, OPPOSITE[side], ...ORDER.filter((s) => s !== side && s !== OPPOSITE[side])]
   const roomOf = (s, c) => (s === 'top' ? a.top - gap - pad : s === 'bottom' ? vh - a.bottom - gap - pad : vh - 2 * pad)
   const tooBig = width > vw - 2 * pad || height > vh - 2 * pad
   if (!tooBig) {

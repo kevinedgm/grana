@@ -58,6 +58,10 @@ describe('anchor · placeAround (contenido de GHelper)', () => {
     const r = placeAround(rect(980, 300, 16, 16), { width: 200, height: 100, placement: 'bottom-start', ...V })
     expect(r.x).toBe(1000 - 8 - 200)
   })
+  it('only: conserva el lado pedido aunque no quepa (GTooltip, regla 1 estricta), ajustado al visor', () => {
+    const r = placeAround(rect(500, 740), { width: 200, height: 100, placement: 'bottom', only: true, ...V })
+    expect(r).toMatchObject({ side: 'bottom', fits: false, y: 800 - 8 - 100 })
+  })
   it('centro', () => {
     expect(placeAround(rect(484, 300), { width: 200, height: 100, placement: 'top', ...V }).x).toBe(400)
   })

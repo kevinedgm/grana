@@ -166,7 +166,8 @@
     "sheet"
   ],
   "implementation": [
-    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir desde placement y se conserva mientras el contenido quepa entero en él; --_max y data-side se escriben al abrir, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el contenido se cierra sin devolver el foco."
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir desde placement y se conserva mientras el contenido quepa entero en él; --_max y data-side se escriben al abrir, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el contenido se cierra sin devolver el foco.",
+    "Reenvío para GTooltip (#391, helper.md): aria-labelledby, aria-describedby, aria-keyshortcuts y data-g-tooltip recibidos en $attrs van al botón g-helper__trigger; el resto (class, style, data-*, escuchas) a la raíz (inheritAttrs: false). Con aria-labelledby recibido no avisa por ariaLabel ausente."
   ],
   "pending": [
     "Lector de pantalla real",

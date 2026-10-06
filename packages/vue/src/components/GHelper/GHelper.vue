@@ -4,7 +4,7 @@
 // El disparador se coloca con CSS (placement × attach × offset) respecto al ancestro posicionado más cercano.
 // El contenido es un diálogo no modal en la capa superior (popover="manual"), justo después del botón en el DOM;
 // si no cabe (o el visor es más estrecho que el umbral de hoja), se abre en GDialog como hoja (DECISIONS.md #101 a #103).
-import { defineComponent, h, ref, computed, watch, nextTick, onBeforeUnmount, useId } from 'vue'
+import { defineComponent, h, ref, computed, watch, nextTick, onBeforeUnmount, useId, mergeProps } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { anchorGone, followFrame, placeAround, parsePlacement, px, setVar, viewport } from '../../utils/anchor.js'
 import GIcon from '../GIcon/GLibIcon.js'
@@ -15,6 +15,9 @@ const PLACEMENTS = ['top-start', 'top', 'top-end', 'right-start', 'right', 'righ
 // Espacio mínimo del visor para un popover: space × 130 (520px con space 4), el mismo umbral en que GDialog
 // pasa a hoja. Por debajo, o si ninguna posición cabe, el contenido se abre como hoja (DECISIONS.md #103).
 const COMFORT_UNITS = 130
+
+// Atributos que un GTooltip envolvente pone en el control: van al botón, no a la raíz (#391, helper.md)
+const TO_BUTTON = ['aria-labelledby', 'aria-describedby', 'aria-keyshortcuts', 'data-g-tooltip']
 
 // Un solo helper abierto a la vez: el que se abre cierra al anterior
 let current = null
@@ -28,6 +31,7 @@ const toPx = (value) => {
 
 export default defineComponent({
   name: 'GHelper',
+  inheritAttrs: false,
   props: {
     mode: { type: String, default: 'inline', validator: oneOf(['inline', 'float']) },
     placement: { type: String, default: 'bottom-end', validator: oneOf(PLACEMENTS) },
@@ -43,7 +47,7 @@ export default defineComponent({
     id: { type: String, default: undefined }
   },
   emits: ['update:open', 'toggle'],
-  setup(props, { emit, slots }) {
+  setup(props, { emit, slots, attrs }) {
     const uid = useId()
     const baseId = computed(() => props.id || `g-helper-${uid}`)
     const contentId = computed(() => `${baseId.value}-content`)
@@ -60,7 +64,7 @@ export default defineComponent({
 
     // ---- Avisos de desarrollo ----
     if (isDev) {
-      if (!props.ariaLabel && !slots.trigger) console.warn('[Grana] <GHelper> necesita ariaLabel: el disparador por defecto no tiene texto visible.')
+      if (!props.ariaLabel && !slots.trigger && !attrs['aria-labelledby']) console.warn('[Grana] <GHelper> necesita ariaLabel: el disparador por defecto no tiene texto visible.')
       if (!props.contentLabel) console.warn('[Grana] <GHelper> necesita contentLabel: nombre del contenido (y título de la hoja).')
       if (props.adaptive && !props.closeLabel) console.warn('[Grana] <GHelper> con adaptive necesita closeLabel para el botón de cierre de la hoja.')
     }
@@ -225,7 +229,11 @@ export default defineComponent({
 
       const sheet = presentation.value === 'sheet'
       const custom = Boolean(slots.trigger)
+      const toButton = {}
+      const toRoot = {}
+      for (const [k, v] of Object.entries(attrs)) (TO_BUTTON.includes(k) ? toButton : toRoot)[k] = v
       const trigger = h('button', {
+        ...toButton,
         ref: button,
         type: 'button',
         class: ['g-helper__trigger', custom ? 'g-helper__trigger--custom' : 'g-helper__trigger--default'],
@@ -260,13 +268,13 @@ export default defineComponent({
         }, { default: () => (sheet ? renderContent() : null) }))
       }
 
-      return h('span', {
+      return h('span', mergeProps(toRoot, {
         ref: root,
         class: classes,
         style: { '--_offset': props.offset },
         onKeydown,
         onFocusout
-      }, kids)
+      }), kids)
     }
   }
 })

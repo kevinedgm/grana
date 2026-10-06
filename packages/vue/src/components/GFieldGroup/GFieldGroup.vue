@@ -66,7 +66,7 @@ onMounted(() => {
   if (!isDev) return
   nextFrame(() => {
     const p = root.value?.parentElement
-    if (p && rowRoots.has(p) && p.children.length > 1) console.warn('[Grana GFieldGroup] va en su propia fila (hijo directo de GFormLayout), no junto a otros campos en una GFormRow.')
+    if (p && rowRoots.has(p) && [...p.children].filter((c) => !c.classList.contains('g-tooltip')).length > 1) console.warn('[Grana GFieldGroup] va en su propia fila (hijo directo de GFormLayout), no junto a otros campos en una GFormRow.')
   })
 })
 

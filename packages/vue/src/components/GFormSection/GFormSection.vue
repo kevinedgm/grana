@@ -306,7 +306,7 @@ function measure() {
   const a = actions.value
   if (!s && h && a && a.children.length) {
     // Ancho natural de las acciones (hijos + separaciones): igual en los dos estados, sin vaivén
-    const kids = [...a.children]
+    const kids = [...a.children].filter((k) => !k.classList.contains('g-tooltip')) // nodo hermano de GTooltip (#394)
     const gap = parseFloat(getComputedStyle(a).columnGap) || 0
     const natural = kids.reduce((sum, k) => sum + k.getBoundingClientRect().width, 0) + gap * (kids.length - 1)
     const hgap = parseFloat(getComputedStyle(h).columnGap) || 0

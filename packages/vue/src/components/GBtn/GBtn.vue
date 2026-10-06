@@ -1,9 +1,10 @@
 <script setup>
 // GBtn · lógica del botón (dueño: bruno)
 // Contrato: design/contracts/btn.md · Estructura: design/lab/btn/r01/ · Estilo: GBtn.css (coco)
-import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useSlots, watch } from 'vue'
+import { computed, getCurrentInstance, h, onBeforeUnmount, onMounted, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
+import GTooltip from '../GTooltip/GTooltip.vue'
 
 defineOptions({ name: 'GBtn', inheritAttrs: false })
 
@@ -19,7 +20,9 @@ const props = defineProps({
   type: { type: String, default: 'button', validator: oneOf(['button', 'submit', 'reset']) },
   href: { type: String, default: undefined },
   icon: Boolean,
-  loadingText: { type: String, default: undefined }
+  loadingText: { type: String, default: undefined },
+  // Atajo de <GTooltip :text> con todo lo demás por defecto (#390, tooltip.md «Atajo GBtn tooltip»)
+  tooltip: { type: String, default: undefined }
 })
 
 // Declarar `click` evita que el @click del consumidor llegue al elemento nativo por $attrs
@@ -98,17 +101,32 @@ function onClick(event) {
 
 // Aviso solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-  console.warn('[Grana] <GBtn icon> necesita aria-label o aria-labelledby para tener un nombre accesible.')
+if (isDev && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby'] && !props.tooltip) {
+  console.warn('[Grana] <GBtn icon> necesita aria-label, aria-labelledby o tooltip para tener un nombre accesible.')
 }
+
+// Prop `tooltip` (#390): con un GTooltip como padre directo gana el envoltorio (más rico y explícito) y GBtn no crea el
+// suyo. Solo el hijo directo: un GBtn tooltip más adentro de lo envuelto (el `append` de un GInput) conserva el suyo.
+const wrapped = getCurrentInstance()?.parent?.type === GTooltip
+if (isDev && wrapped && props.tooltip) {
+  console.warn('[Grana] <GBtn tooltip> dentro de un <GTooltip>: gana el envoltorio y la prop `tooltip` se ignora.')
+}
+const ownTooltip = computed(() => (wrapped ? undefined : props.tooltip))
+// Envuelve el botón en un GTooltip solo con `tooltip`; si no, lo deja tal cual (estructura: botón, nodo, estado)
+const TooltipWrap = (p, { slots: s }) => {
+  if (p.text) return h(GTooltip, { text: p.text }, s)
+  const k = s.default()
+  return k.length === 1 ? k[0] : k // sin fragmento añadido: el DOM de GBtn sin tooltip no cambia
+}
+TooltipWrap.props = ['text']
 </script>
 
 <template>
-  <component :is="isLink ? 'a' : 'button'" v-bind="rootBindings" :class="classes" @click="onClick">
+  <TooltipWrap :text="ownTooltip"><component :is="isLink ? 'a' : 'button'" v-bind="rootBindings" :class="classes" @click="onClick">
     <span v-if="slots.prepend" class="g-btn__prepend" aria-hidden="true"><slot name="prepend" /></span>
     <span class="g-btn__label"><slot /></span>
     <span v-if="slots.append" class="g-btn__append" aria-hidden="true"><slot name="append" /></span>
     <GIcon class="g-btn__loader" name="loader-circle" />
-  </component>
+  </component></TooltipWrap>
   <span v-if="loadingText" class="g-btn__status" role="status">{{ statusText }}</span>
 </template>

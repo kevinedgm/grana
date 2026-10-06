@@ -20,7 +20,8 @@
     { "name": "type", "type": "String", "default": "button", "values": ["button", "submit", "reset"] },
     { "name": "href", "type": "String", "default": null },
     { "name": "icon", "type": "Boolean", "default": false },
-    { "name": "loadingText", "type": "String", "default": null }
+    { "name": "loadingText", "type": "String", "default": null },
+    { "name": "tooltip", "type": "String", "default": null, "since": "0.1.0", "note": "Atajo de <GTooltip :text> con todo lo demás por defecto (#390). Envuelto por un GTooltip como hijo directo, gana el envoltorio y avisa en desarrollo" }
   ],
   "events": [
     { "name": "click", "payload": "MouseEvent", "trigger": "Activación con puntero o teclado, nunca con disabled o loading" }
