@@ -20,7 +20,7 @@ Sobrio a propósito (decisión del usuario): ningún muelle ni rebote, entrada y
 | Relleno de la etiqueta | `space × 1` arriba y abajo, `space × 2,5` a los lados | Etiqueta de una línea: 30px con el tema por defecto (texto `body-sm` 20px + 8 + borde 2) |
 | Separación nombre–atajo | `space × 2` (en línea) | Y entre detalle y atajo |
 | Separación nombre–detalle | `space × 1` | Margen del contenido que crece (un relleno contaría como alto mínimo de la fila `0fr`) |
-| Curva de unión | `--g-radius-sm`, solo si sobra más de `--g-radius-md` de etiqueta junto a la pestaña | Cuadrado de `curva + borde` con un círculo centrado en su esquina lejana (degradado radial del color de la etiqueta) |
+| Curva de unión | `--g-radius-sm`, solo si sobra más de `--g-radius-md` de etiqueta junto a la pestaña | Cuadrado de `curva + borde` con un círculo centrado en su esquina lejana (degradado radial del color de la etiqueta). El borde que entra se acota a lo que sobra de etiqueta junto a la pestaña (`clamp(0, sobra, borde)`): con la pestaña en el borde de la etiqueta o un control más ancho que ella, el cuadrado mide 0 (auditoría, hallazgo 1) |
 | Esquinas de la pestaña, lado del control | `--g-radius-sm` | Contrato |
 | Ancho máximo | `min(space × 70, visor − space × 4)` | `space × 70` es el del contrato; con `space` 5 (350px) no cabría en 320px con sus márgenes: el visor manda |
 | Mínimo de la etiqueta | Arriba y abajo: `min(ancho del control, máximo)`; a los lados: `min(alto del control, visor − space × 4)` | La pestaña nunca sobresale; con un control más ancho que el máximo la pestaña se acota a la etiqueta, centrada sobre el control |
@@ -78,6 +78,10 @@ La pestaña es un fondo y desaparecería: pasa a `Canvas` con sus **dos lados la
 | Movimiento reducido | Viaje sin `translate` ni `inline-size` ni pestaña en la transición (salta); segunda etapa sin crecer; fundido conservado |
 | Táctil | Control con `data-g-tooltip`: `user-select: none`; el `<input>`: `auto`; `-webkit-touch-callout` no existe en los motores de escritorio (no medido). La caja `[data-g-tooltip-box]` que contiene un control con tooltip (#395: prefijo y sufijo de un campo) también: `user-select: none` y sin lupa, salvo `input` y `textarea` (`:where()`, especificidad 0; medido en Chromium con `pointer: coarse` emulado, marca puesta a mano) |
 | `forced-colors` (emulado) | Borde de la etiqueta y lados de la pestaña en `CanvasText`, pestaña `Canvas`, sin curvas |
+
+## Auditoría (paso 5)
+
+`design/lab/tooltip/auditoria.md` y `auditoria-verificar.mjs` sobre el componente real. Corrección de esta hoja: hallazgo 1 (mota de la curva de unión fuera de la etiqueta con la pestaña en su borde o un control más ancho que ella, p. ej. cualquier campo de más de `space × 70`).
 
 ## No verificado
 

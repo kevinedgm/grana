@@ -206,7 +206,9 @@
    Un cuarto de círculo cóncavo de --g-radius-sm a cada lado de la pestaña, donde la etiqueta sigue (si la pestaña llega
    a la esquina, no hay curva: la esquina ya es recta). ::before va antes de la pestaña (inicio o arriba), ::after
    después. Cada una es un cuadrado de lado `curva + borde` que entra --g-border-width en la etiqueta; el círculo se
-   centra en su esquina más lejana y deja pintado el rincón entre la pestaña y la etiqueta */
+   centra en su esquina más lejana y deja pintado el rincón entre la pestaña y la etiqueta. El borde que entra se acota a
+   lo que sobra de etiqueta junto a la pestaña (auditoría, hallazgo 1): con la pestaña en el borde de la etiqueta
+   (alineación start/end, 120px, block, visor) el cuadrado mide 0 y no asoma una mota fuera de ella */
 .g-tooltip::before,
 .g-tooltip::after {
   position: absolute;
@@ -218,12 +220,12 @@
   content: "";
 }
 .g-tooltip:is([data-side="top"], [data-side="bottom"])::before {
-  --_s: calc(clamp(0px, var(--_lead-x) - var(--_r), var(--_fl)) + var(--_bw));
+  --_s: calc(clamp(0px, var(--_lead-x) - var(--_r), var(--_fl)) + clamp(0px, var(--_lead-x), var(--_bw)));
   left: calc(var(--_tooltip-ax) - var(--_s));
   inline-size: var(--_s);
 }
 .g-tooltip:is([data-side="top"], [data-side="bottom"])::after {
-  --_s: calc(clamp(0px, var(--_tail-x) - var(--_r), var(--_fl)) + var(--_bw));
+  --_s: calc(clamp(0px, var(--_tail-x) - var(--_r), var(--_fl)) + clamp(0px, var(--_tail-x), var(--_bw)));
   left: calc(var(--_tooltip-ax) + var(--_tooltip-aw));
   inline-size: var(--_s);
 }
@@ -241,12 +243,12 @@
   content: "";
 }
 .g-tooltip:is([data-side="left"], [data-side="right"])::before {
-  --_s: calc(clamp(0px, var(--_lead-y) - var(--_r), var(--_fl)) + var(--_bw));
+  --_s: calc(clamp(0px, var(--_lead-y) - var(--_r), var(--_fl)) + clamp(0px, var(--_lead-y), var(--_bw)));
   top: calc(var(--_tooltip-ay) - var(--_s));
   block-size: var(--_s);
 }
 .g-tooltip:is([data-side="left"], [data-side="right"])::after {
-  --_s: calc(clamp(0px, var(--_tail-y) - var(--_r), var(--_fl)) + var(--_bw));
+  --_s: calc(clamp(0px, var(--_tail-y) - var(--_r), var(--_fl)) + clamp(0px, var(--_tail-y), var(--_bw)));
   top: calc(var(--_tooltip-ay) + var(--_tooltip-ah));
   block-size: var(--_s);
 }

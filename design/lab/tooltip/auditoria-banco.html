@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTooltip · banco de auditoría</title>
+<!-- Banco de la auditoría de coco (paso 5) sobre el COMPONENTE REAL: dist/grana.umd.js + dist/combobox.umd.js +
+     dist/file-field.umd.js + dist/grana.css tal como se publican (aquí no se escribe nada del CSS ni del marcado de
+     Grana; el andamio solo coloca los controles).
+     Requiere dist/ (npm run build). Desde la raíz: python3 -m http.server 4209 → /design/lab/tooltip/auditoria-banco.html
+     Parámetros: ?theme=audit|<generado de dark-color-presence>  ?dark=1  ?part=matrix|sides|edge|rtl|narrow|motion|x383|all
+     Verificación: GRANA_PW_PORT=4209 node design/lab/tooltip/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<script>
+  const P = new URLSearchParams(location.search)
+  const th = P.get('theme')
+  if (th) document.write(`<link rel="stylesheet" href="${th === 'audit' ? './auditoria-tema.css' : `../tema-oscuro/dark-color-presence/generated/${th}.css`}">`)
+  document.documentElement.dataset.theme = P.get('dark') ? 'dark' : 'light'
+  window.PART = P.get('part') || 'all'
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:60vh}
+  h2{font-size:15px;margin:32px 0 8px}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:12px;padding:20px;min-inline-size:0}
+  .matrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:56px 32px;align-items:start}
+  .matrix > :not(:where(.g-tooltip)){inline-size:100%}
+  .matrix > .g-btn, .matrix > a.g-btn{inline-size:auto;justify-self:start}
+  .sides{display:grid;grid-template-columns:1fr;gap:0}
+  .cell{display:grid;place-items:center;block-size:260px;border:1px dashed var(--g-color-border)}
+  .bar{display:flex;gap:4px;padding:4px;border:1px solid var(--g-color-border);border-radius:8px;inline-size:max-content}
+  .w120{inline-size:120px}
+  .edge{position:fixed;z-index:1}
+  .row{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-block:24px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  .pair > div{min-inline-size:0}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+
+<template v-if="on('matrix')">
+<h2>1 · Matriz de hijos admitidos (la pestaña contra la caja visible)</h2>
+<div class="host matrix">
+  <g-tooltip text="Duplicar" shortcut="Ctrl D" keyshortcuts="Control+D"><g-btn icon variant="ghost" data-case="btn"><g-icon name="copy"></g-icon></g-btn></g-tooltip>
+  <g-tooltip text="Abre el expediente completo"><g-btn variant="outline" href="#x" data-case="a">Expediente</g-btn></g-tooltip>
+  <g-tooltip text="Importe con impuestos" kind="description"><g-input data-case="input-ps" label="Importe" prefix="$" suffix="MXN"><template #action><g-btn variant="outline" data-case="input-action" tooltip="Recalcula el importe">Calcular</g-btn></template></g-input></g-tooltip>
+  <g-tooltip text="Mínimo 12 caracteres" kind="description"><g-input data-case="pass" label="Contraseña" type="password" show-password-label="Mostrar" hide-password-label="Ocultar"></g-input></g-tooltip>
+  <g-tooltip text="Lo lee el responsable" kind="description"><g-textarea data-case="textarea" label="Nota"></g-textarea></g-tooltip>
+  <g-tooltip text="País del envío" kind="description"><g-select data-case="select" label="País" :options="countries"></g-select></g-tooltip>
+  <g-tooltip text="Peso en kilos" kind="description"><g-number-field data-case="number" label="Peso" locale="es" steppers decrement-label="Restar" increment-label="Sumar"></g-number-field></g-tooltip>
+  <g-tooltip text="Código CIE-10" kind="description"><g-combobox data-case="cb-field" label="Diagnóstico" :options="[]" :labels="cbLabels"></g-combobox></g-tooltip>
+  <g-tooltip text="Busca por nombre o código" kind="description"><g-combobox data-case="cb-palette" appearance="palette" label="Medicamento" :options="[]" :labels="cbLabels"></g-combobox></g-tooltip>
+  <g-tooltip text="Día de la cita" kind="description"><g-date-picker data-case="date" label="Fecha" locale="es" :labels="dpLabels"></g-date-picker></g-tooltip>
+  <g-tooltip text="Por correo y en la app" kind="description"><g-switch data-case="switch" label="Avisos"></g-switch></g-tooltip>
+  <g-tooltip text="Obligatorio para continuar" kind="description"><g-checkbox data-case="checkbox" label="Acepto las condiciones"></g-checkbox></g-tooltip>
+  <g-tooltip text="Abre la ayuda del formulario" kind="description"><g-helper data-case="helper" aria-label="Ayuda" content-label="Ayuda" close-label="Cerrar"><template #content>Completa los campos obligatorios.</template></g-helper></g-tooltip>
+  <g-tooltip text="PDF o imagen de hasta 5 MB" kind="description"><g-file-field data-case="file-empty" label="Receta" accept=".pdf,image/*" :labels="ffLabels"></g-file-field></g-tooltip>
+  <g-tooltip text="Adjunta los estudios del paciente" kind="description"><g-file-field data-case="file-files" label="Estudios" multiple :model-value="saved" :labels="ffLabels"></g-file-field></g-tooltip>
+</div>
+</template>
+
+<template v-if="on('sides')">
+<h2>2 · Control relleno a los doce lados, 120 px y block</h2>
+<div class="host sides">
+  <div class="cell" v-for="p in PLACEMENTS" :key="p">
+    <g-tooltip :text="/left|right/.test(p) ? LONG : 'Guardar y continuar'" :placement="p"><g-btn :data-case="'side-' + p">Ir</g-btn></g-tooltip>
+  </div>
+  <div class="cell"><g-tooltip text="Listo"><g-btn class="w120" data-case="w120">Confirmar</g-btn></g-tooltip></div>
+  <div class="cell"><g-tooltip text="Listo" placement="top"><g-btn class="w120" variant="soft" data-case="w120-top">Confirmar</g-btn></g-tooltip></div>
+  <div class="cell"><g-tooltip text="Guardar el expediente" detail="Se guarda una versión con tu nombre y la hora" shortcut="Ctrl S" keyshortcuts="Control+S"><g-btn data-case="detail-solid">Guardar</g-btn></g-tooltip></div>
+</div>
+<div class="host" style="margin-block-start:24px"><g-tooltip text="Continúa con el pago"><g-btn block data-case="block">Continuar</g-btn></g-tooltip></div>
+</template>
+
+<template v-if="on('edge')">
+  <g-tooltip text="Esquina superior izquierda con nombre largo" placement="top"><g-btn class="edge" style="inset-block-start:0;inset-inline-start:0" data-case="edge-tl">A</g-btn></g-tooltip>
+  <g-tooltip text="Esquina superior derecha con nombre largo"><g-btn class="edge" style="inset-block-start:0;inset-inline-end:0" data-case="edge-tr">B</g-btn></g-tooltip>
+  <g-tooltip text="Esquina inferior izquierda con nombre largo" placement="left"><g-btn class="edge" style="inset-block-end:0;inset-inline-start:0" data-case="edge-bl">C</g-btn></g-tooltip>
+  <g-tooltip text="Esquina inferior derecha con nombre largo" placement="right-end"><g-btn class="edge" style="inset-block-end:0;inset-inline-end:0" data-case="edge-br">D</g-btn></g-tooltip>
+</template>
+
+<template v-if="on('rtl')">
+<h2>3 · RTL</h2>
+<div class="host" dir="rtl">
+  <div class="row">
+    <div role="toolbar" aria-label="أدوات" class="bar">
+      <g-btn icon variant="ghost" data-case="rtl-a" tooltip="نسخ"><g-icon name="copy"></g-icon></g-btn>
+      <g-btn icon variant="ghost" data-case="rtl-b" tooltip="تعديل"><g-icon name="pencil"></g-icon></g-btn>
+    </div>
+    <g-tooltip text="Al inicio de la línea" placement="left"><g-btn data-case="rtl-left">يسار</g-btn></g-tooltip>
+    <g-tooltip text="Alineada al inicio en RTL" placement="bottom-start"><g-btn data-case="rtl-bs">بداية</g-btn></g-tooltip>
+    <g-tooltip :text="LONG" placement="right-end"><g-btn data-case="rtl-re">نهاية</g-btn></g-tooltip>
+  </div>
+  <div style="inline-size:320px"><g-tooltip text="المبلغ مع الضريبة" kind="description"><g-input data-case="rtl-input" label="المبلغ" prefix="$" suffix="MXN"></g-input></g-tooltip></div>
+</div>
+</template>
+
+<template v-if="on('narrow')">
+<h2>4 · 320 px</h2>
+<div class="host" style="padding:8px">
+  <g-tooltip :text="LONG"><g-btn icon variant="outline" data-case="n-long"><g-icon name="search"></g-icon></g-btn></g-tooltip>
+  <div style="margin-block:56px"><g-tooltip text="Continúa con el pago de la factura pendiente"><g-btn block data-case="n-block">Continuar</g-btn></g-tooltip></div>
+  <g-tooltip text="Importe con impuestos" kind="description"><g-input data-case="n-input" label="Importe" prefix="$" suffix="MXN"></g-input></g-tooltip>
+</div>
+</template>
+
+<template v-if="on('motion')">
+<h2>5 · Movimiento: barra (viaje), segunda etapa abajo y arriba</h2>
+<div class="host">
+  <div class="row">
+    <div role="toolbar" aria-label="Edición" class="bar" data-case="bar">
+      <g-btn v-for="t in TOOLS" :key="t.id" icon variant="ghost" :data-case="'bar-' + t.id" :tooltip="t.text"><g-icon :name="t.icon"></g-icon></g-btn>
+      <g-tooltip text="Etiquetar" detail="Agrupa el expediente con los que llevan la misma etiqueta" shortcut="Ctrl E" keyshortcuts="Control+E"><g-btn icon variant="ghost" data-case="bar-tag"><g-icon name="file-text"></g-icon></g-btn></g-tooltip>
+    </div>
+  </div>
+  <div class="row" style="margin-block-start:160px">
+    <g-tooltip text="Marcar para revisión" detail="Avisa al responsable del expediente y lo pone en su bandeja" shortcut="Ctrl M" keyshortcuts="Control+M" placement="top"><g-btn icon variant="outline" data-case="dwell-top"><g-icon name="file-text"></g-icon></g-btn></g-tooltip>
+    <g-btn variant="outline" data-case="plain">Sin tooltip</g-btn>
+    <g-tooltip text="Publicar"><g-btn data-case="solo">Publicar</g-btn></g-tooltip>
+  </div>
+</div>
+</template>
+
+<template v-if="on('x383')">
+<h2>6 · #383: con tooltip (izquierda) y sin él (derecha)</h2>
+<div class="host">
+  <div class="row">
+    <g-btn variant="outline" data-case="dlg-open-tt" @click="dlg.tt = true">Diálogo con tooltip</g-btn>
+    <g-btn variant="outline" data-case="dlg-open" @click="dlg.plain = true">Diálogo sin tooltip</g-btn>
+  </div>
+  <g-dialog v-model="dlg.tt" title="Editar expediente" description="Último control con tooltip." close-label="Cerrar" size="sm">
+    <p>Párrafo con margen.</p>
+    <g-btn variant="outline" data-case="dlg-last-tt" tooltip="Guarda sin cerrar">Guardar borrador</g-btn>
+  </g-dialog>
+  <g-dialog v-model="dlg.plain" title="Editar expediente" description="Último control con tooltip." close-label="Cerrar" size="sm">
+    <p>Párrafo con margen.</p>
+    <g-btn variant="outline" data-case="dlg-last">Guardar borrador</g-btn>
+  </g-dialog>
+
+  <div class="pair" data-x="input">
+    <div><g-input label="Importe" prefix="$" suffix="MXN"><template #action><g-btn variant="outline" tooltip="Recalcula el importe" data-case="x-action">Calcular</g-btn></template></g-input></div>
+    <div><g-input label="Importe" prefix="$" suffix="MXN"><template #action><g-btn variant="outline">Calcular</g-btn></template></g-input></div>
+  </div>
+  <div class="pair" data-x="group">
+    <div><g-input-group label="Tensión arterial"><g-input-group-input label="Sistólica" :chars="3"></g-input-group-input><g-input-group-text text="/"></g-input-group-text><g-input-group-input label="Diastólica" :chars="3"></g-input-group-input><g-btn icon variant="ghost" tooltip="Llamar" data-case="x-part"><g-icon name="globe"></g-icon></g-btn><g-input-group-text text="mmHg"></g-input-group-text></g-input-group></div>
+    <div><g-input-group label="Tensión arterial"><g-input-group-input label="Sistólica" :chars="3"></g-input-group-input><g-input-group-text text="/"></g-input-group-text><g-input-group-input label="Diastólica" :chars="3"></g-input-group-input><g-btn icon variant="ghost" aria-label="Llamar"><g-icon name="globe"></g-icon></g-btn><g-input-group-text text="mmHg"></g-input-group-text></g-input-group></div>
+  </div>
+  <div class="pair" data-x="group-warn">
+    <div><g-input-group label="Teléfono" warning="Revisa la lada"><g-input-group-input label="Número" principal></g-input-group-input><g-btn icon variant="ghost" tooltip="Llamar" data-case="x-part-warn"><g-icon name="globe"></g-icon></g-btn></g-input-group></div>
+    <div><g-input-group label="Teléfono" warning="Revisa la lada"><g-input-group-input label="Número" principal></g-input-group-input><g-btn icon variant="ghost" aria-label="Llamar"><g-icon name="globe"></g-icon></g-btn></g-input-group></div>
+  </div>
+  <div class="pair" data-x="row">
+    <div><g-form aria-label="Con tooltip"><g-form-layout><g-form-row><g-tooltip text="Como aparece en la identificación" kind="description"><g-input label="Nombre" data-case="x-row"></g-input></g-tooltip><g-input label="Apellido"></g-input><g-btn tooltip="Busca en el padrón" data-case="x-row-btn">Buscar</g-btn></g-form-row></g-form-layout></g-form></div>
+    <div><g-form aria-label="Sin tooltip"><g-form-layout><g-form-row><g-input label="Nombre"></g-input><g-input label="Apellido"></g-input><g-btn>Buscar</g-btn></g-form-row></g-form-layout></g-form></div>
+  </div>
+  <div class="pair" data-x="adapt">
+    <div><g-adaptive-layout><g-tooltip text="Como aparece en la identificación" kind="description"><g-input class="g-adapt-short" label="Folio" data-case="x-adapt"></g-input></g-tooltip><g-input class="g-adapt-wide" label="Dirección"></g-input><g-btn tooltip="Guarda el registro" data-case="x-adapt-btn">Guardar</g-btn></g-adaptive-layout></div>
+    <div><g-adaptive-layout><g-input class="g-adapt-short" label="Folio"></g-input><g-input class="g-adapt-wide" label="Dirección"></g-input><g-btn>Guardar</g-btn></g-adaptive-layout></div>
+  </div>
+  <div class="pair" data-x="card">
+    <div><g-card title="Proyecto Atlas" subtitle="Equipo de datos" size="narrow"><template #meta><dl class="g-card__meta"><div><dt>Folio</dt><dd>0042</dd></div><g-btn icon size="sm" variant="ghost" tooltip="Copiar el folio" data-case="x-meta"><g-icon name="copy"></g-icon></g-btn></dl></template><template #actions><g-btn variant="outline" tooltip="Abre el proyecto" data-case="x-card-a">Abrir</g-btn><g-btn icon variant="ghost" tooltip="Compartir" data-case="x-card-b"><g-icon name="users"></g-icon></g-btn></template></g-card></div>
+    <div><g-card title="Proyecto Atlas" subtitle="Equipo de datos" size="narrow"><template #meta><dl class="g-card__meta"><div><dt>Folio</dt><dd>0042</dd></div><g-btn icon size="sm" variant="ghost" aria-label="Copiar el folio"><g-icon name="copy"></g-icon></g-btn></dl></template><template #actions><g-btn variant="outline">Abrir</g-btn><g-btn icon variant="ghost" aria-label="Compartir"><g-icon name="users"></g-icon></g-btn></template></g-card></div>
+  </div>
+</div>
+</template>
+
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../../packages/vue/dist/file-field.umd.js"></script>
+<script>
+  const { createApp, reactive } = Vue
+  const app = createApp({
+    setup() {
+      const on = (p) => window.PART === 'all' || window.PART === p
+      const PLACEMENTS = ['top-start', 'top', 'top-end', 'right-start', 'right', 'right-end', 'bottom-end', 'bottom', 'bottom-start', 'left-end', 'left', 'left-start']
+      const LONG = 'Agrupa las facturas pendientes por cliente, vencimiento y estado de cobro para revisarlas juntas'
+      const TOOLS = [
+        { id: 'undo', icon: 'rotate-ccw', text: 'Deshacer' }, { id: 'redo', icon: 'redo-2', text: 'Rehacer' },
+        { id: 'copy', icon: 'copy', text: 'Duplicar' }, { id: 'edit', icon: 'pencil', text: 'Editar' },
+        { id: 'share', icon: 'users', text: 'Compartir con todo el equipo' }, { id: 'lock', icon: 'lock', text: 'Bloquear' }
+      ]
+      const countries = [{ value: 'mx', label: 'México' }, { value: 'es', label: 'España' }]
+      const cbLabels = { clear: 'Limpiar', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', minChars: 'Escribe al menos {count} caracteres', results: (n) => n + ' resultados', partial: '{count} de {total}', more: 'Más', retry: 'Reintentar', useCustom: 'Usar «{text}»', custom: 'Texto libre', create: 'Agregar «{text}»', preview: 'Vista previa', previewEmpty: 'Recorre la lista.', surfaceTitle: 'Buscar' }
+      const dpLabels = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio', rangeEnd: 'fin', rangeSingle: 'inicio y fin', inRange: 'dentro', unavailable: 'no disponible', clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar', announceStart: '{date}', announceEnd: '{start} a {end}', announceDate: '{date}', announceWiden: '{start} a {end}', announceClear: 'Borrada' }
+      const ffLabels = { add: 'Adjuntar archivo', addMany: 'Adjuntar archivos', addMore: 'Añadir más', change: 'Cambiar archivo', full: (c, m) => `${c} de ${m}`, readonly: 'Solo lectura', none: 'Sin archivos', status: ({ count }) => count + ' archivos', list: 'Archivos de {label}', drop: 'Soltar aquí', dropInto: 'Soltar en {label}', dropRejected: 'No admite', dropFull: 'Lleno', remove: 'Quitar {name}', cancel: 'Cancelar {name}', retry: 'Reintentar {name}', queued: 'En cola', done: 'Subido', error: 'Error:', progress: 'Subida de {name}', progressText: '{percent} %', uploadFailed: 'No se pudo subir', notAdded: 'No añadidos', dismiss: 'Descartar', reasons: { type: 'tipo', empty: 'vacío', duplicate: 'repetido', size: 'grande', count: 'máximo' } }
+      const saved = [{ key: 'd1', name: 'Receta médica.pdf', size: 220000, type: 'application/pdf', value: 'd1' }, { key: 'd2', name: 'Biometría hemática.pdf', size: 1240000, type: 'application/pdf', value: 'd2' }]
+      const dlg = reactive({ tt: false, plain: false })
+      return { on, PLACEMENTS, LONG, TOOLS, countries, cbLabels, dpLabels, ffLabels, saved, dlg }
+    }
+  })
+  app.use(Grana).use(GranaCombobox).use(GranaFileField).mount('#app')
+  window.__ready = true
+</script>
+</body>
+</html>
