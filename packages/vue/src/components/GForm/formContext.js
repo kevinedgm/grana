@@ -1,7 +1,7 @@
 // Contexto del sistema de formularios y useFormField() (dueño: bruno)
 // Contrato: design/contracts/form.md §1 y §2 (DECISIONS.md #157, #158). Ningún campo importa GForm: leen estas claves
 // SOLO si existen; fuera de GForm cada campo resuelve los valores de siempre. La prop explícita del campo siempre gana.
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, shallowReactive, toValue, unref, useId, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowReactive, toValue, unref, useId, watch } from 'vue'
 
 /** InjectionKey pública del contexto de GForm (para `provide` manual: pruebas, microfrontends). */
 export const formKey = Symbol('GForm')
@@ -16,6 +16,11 @@ export const fieldGroupKey = Symbol('GFieldGroup') // partes de un GFieldGroup
 // fromReveal: boolean }. `active` = estado propio y el del ancestro; `fromReveal` = lo provee un GFormReveal o ya lo tenía el
 // ancestro (una sección agregable hereda el del ancestro). Interna: NO se exporta desde src/index.js
 export const revealKey = Symbol('GFormReveal')
+// Añadido interno N4 de GInput (input.md, #409): el componente que compone GInput (GTimeField) le provee las opciones
+// internas ownError, ownTarget y ownReveal de su useFormField, y opcionalmente connect({ revealOwn }) para recibir la función
+// que revela el error propio sin GForm (Enter). Solo el GInput hijo directo la consume (la anula para sus descendientes).
+// Interna: NO se exporta desde src/index.js
+export const ownFieldKey = Symbol('GInputOwn')
 
 export const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
@@ -92,9 +97,12 @@ export function revealAndFocus(control, root) {
  * Opciones públicas: name, id, error, warning, valid, required, readonly, disabled, density, block, mark, trigger, control, root.
  * Opciones internas (campos de Grana): markRule ('both' | 'required' | 'none'), role ('field' | 'group'), register (false: no se registra),
  * ownError (getter → String; '' = sin error) y ownTarget (getter → elemento enfocable del error propio): el error que solo el
- * campo conoce (subidas pendientes o fallidas de GFileField; form.md §2 «Error propio del componente», #372). Precedencia del
- * error resuelto: prop `error` explícita (no vacía) › error propio › `errors[name]`; el propio solo se pinta revelado por GForm
- * (envío o showErrors(), nunca blur ni change).
+ * campo conoce (subidas pendientes o fallidas de GFileField; un texto que no es una hora en GTimeField; form.md §2 «Error
+ * propio del componente», #372, #409). Precedencia del error resuelto: prop `error` explícita (no vacía) › error propio ›
+ * `errors[name]`; el propio solo se pinta revelado. ownReveal ('submit' por defecto | 'blur'): con 'submit' lo revela GForm
+ * solo en el envío o showErrors() (GFileField); con 'blur' también la salida del campo habiendo editado, con las reglas de
+ * un error de escritura (showErrorsOn y #326). Sin contexto de GForm (o sin name), con 'blur' el campo guarda su propio
+ * revelado: entra al salir (o con revealOwn(), p. ej. Enter) y sale cuando ownError() pasa a ''.
  */
 export function useFormField(options = {}) {
   const form = inject(formKey, null)
@@ -149,8 +157,19 @@ export function useFormField(options = {}) {
     const v = toValue(options.ownError)
     return v ? String(v) : ''
   }
+  // ownReveal (#409): 'submit' (por defecto) o 'blur'
+  const ownMode = () => (toValue(options.ownReveal) === 'blur' ? 'blur' : 'submit')
+  // Sin GForm (o sin name, que no se registra) el revelado 'blur' lo guarda el campo
+  const ownLocalScope = () => !form || !name.value
+  const ownLocal = ref(false)
+  function revealOwn() {
+    if (ownMode() === 'blur' && ownLocalScope() && ownErr()) ownLocal.value = true
+  }
+  // Al montar: el getter del campo puede leer estado que se declara después de llamar a useFormField (GFileField)
+  if (options.ownError !== undefined) onMounted(() => watch(ownErr, (v) => { if (!v) ownLocal.value = false }))
   const ownShownText = computed(() => {
-    if (!form || !name.value || typeof form.ownVisible !== 'function' || !form.ownVisible(name.value)) return ''
+    if (ownLocalScope()) return ownMode() === 'blur' && ownLocal.value ? ownErr() : ''
+    if (typeof form.ownVisible !== 'function' || !form.ownVisible(name.value)) return ''
     return ownErr()
   })
   // Precedencia (#372): prop explícita no vacía › error propio revelado › la explícita vacía (oculta errors[name]) › errors[name]
@@ -221,7 +240,10 @@ export function useFormField(options = {}) {
       if (!ns.length) form.notifyChange?.(null, false)
       for (const n of ns) form.notifyChange?.(n, trigger() === 'change')
     },
-    onFocusout: () => { if (form) for (const n of names()) form.notifyBlur?.(n) }
+    onFocusout: () => {
+      revealOwn()
+      if (form) for (const n of names()) form.notifyBlur?.(n)
+    }
   }
   /** Para controles sin evento nativo (GSelect, GDatePicker, propios): marca sucio y, con trigger 'change', revela. */
   function notifyChange() {
@@ -262,6 +284,8 @@ export function useFormField(options = {}) {
       // Error propio (#372): GForm lo revela en el envío y en showErrors(); sin la opción, siempre ''
       ownError: ownErr,
       ownTarget: () => el('ownTarget'),
+      // 'blur': GForm también lo revela por la salida del campo (#409)
+      ownReveal: ownMode,
       blocking(errors) {
         const e = explicitError()
         if (e) return { name: name.value ?? null, message: e, id: el('control')?.id || null }
@@ -324,7 +348,8 @@ export function useFormField(options = {}) {
     regKey,
     rejected,
     endRejected,
-    onRejectEnd
+    onRejectEnd,
+    revealOwn
   }
 }
 

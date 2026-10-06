@@ -102,13 +102,21 @@ function visible(n, kind) {
 }
 const isShown = (n) => !isInactive(n) && (shownErr.has(n) || shownWarn.has(n))
 
-// ---------- Error propio del componente (form.md §2, #372; GFileField) ----------
-// Nombres con el error propio REVELADO. Entran solo en revealAll() (envío y showErrors()), nunca por blur, change ni
-// notifyChange; salen cuando su ownError() pasa a '' (como un error corregido, #162: el siguiente espera a otro envío), al
-// pasar a inactivos y con reset/resetState()
+// ---------- Error propio del componente (form.md §2, #372, #409; GFileField, GTimeField) ----------
+// Nombres con el error propio REVELADO. Entran en revealAll() (envío y showErrors()) y, solo los registros con
+// ownReveal 'blur' (GTimeField), también por la salida del campo habiendo editado (revealOnBlur, con showErrorsOn y #326);
+// nunca por change ni notifyChange. Salen cuando su ownError() pasa a '' (como un error corregido, #162: el siguiente espera
+// a otra salida o a otro envío), al pasar a inactivos y con reset/resetState()
 const ownShown = reactive(new Set())
 const ownVisible = (n) => Boolean(n) && !isInactive(n) && ownShown.has(n)
 const hasOwn = (e) => typeof e.ownError === 'function'
+const ownOnBlur = (e) => hasOwn(e) && typeof e.ownReveal === 'function' && e.ownReveal() === 'blur'
+function revealOwnBlur(n) {
+  for (const e of entries.values()) {
+    if (!ownOnBlur(e) || isInactiveEntry(e) || !e.names().includes(n)) continue
+    if (e.ownError()) ownShown.add(n)
+  }
+}
 watch(
   () => {
     const gone = []
@@ -144,7 +152,7 @@ function flushDeferred() {
   deferTimer = null
   const names = [...deferred]
   deferred.clear()
-  for (const n of names) if (!isInactive(n) && props.showErrorsOn === 'blur' && edited.has(n)) reveal(n)
+  for (const n of names) if (!isInactive(n) && props.showErrorsOn === 'blur' && edited.has(n)) revealOnBlur(n)
 }
 function endPress(event) {
   if (!press) return
@@ -165,10 +173,15 @@ function onDocPointerdown(event) {
 }
 onMounted(() => document.addEventListener('pointerdown', onDocPointerdown, true))
 
+// Revelado por la fila «Sale del campo habiendo editado»: errors/warnings y el error propio con ownReveal 'blur' (#409)
+function revealOnBlur(n) {
+  reveal(n)
+  revealOwnBlur(n)
+}
 function notifyBlur(n) {
   if (!n || isInactive(n) || props.showErrorsOn !== 'blur' || !edited.has(n)) return
   if (press) deferred.add(n)
-  else reveal(n)
+  else revealOnBlur(n)
 }
 function notifyChange(n, revealNow) {
   markDirty()

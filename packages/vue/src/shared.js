@@ -9,6 +9,9 @@
 // archivos (`@grana/vue/file-field`, #367: vite.file-field.config.js y src/file-field.test.js) toma de aquí GSummary,
 // GProgress, GBtn, el GIcon interno y useFormField con las claves de contexto (formKey, revealKey…): una copia propia de
 // formContext.js crearía otro Symbol y el campo no vería su GForm.
+// El campo de hora (`@grana/vue/time-field`, #400: vite.time-field.config.js y src/time-field.test.js) toma de aquí GInput,
+// useFormField con las claves de contexto (incluida ownFieldKey, el añadido N4 de GInput, #409), oneOf y el observador de
+// tamaño compartido (sizeObserver); su motor (utils/timeInput.js) vive en la entrada.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -25,12 +28,13 @@ import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
-import { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
+import { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { createLiveWriter } from './utils/liveRegion.js'
+import { observeSize } from './utils/sizeObserver.js'
 import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
@@ -49,13 +53,14 @@ export const shared = {
   'components/GIcon/GIcon.vue': { default: GIcon },
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
-  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, revealKey, sectionKey, spaceUnit, useFormField },
+  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },
   'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve },
   'utils/liveRegion.js': { createLiveWriter },
   'utils/match.js': { fold, parts, tokens },
+  'utils/sizeObserver.js': { observeSize },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },
   'utils/topModal.js': { createTopModal }

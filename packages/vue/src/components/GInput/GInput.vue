@@ -1,10 +1,10 @@
 <script setup>
 // GInput · lógica del campo de texto (dueño: bruno)
 // Contrato: design/contracts/input.md · Estructura: design/lab/input/r01/ · Estilo: GInput.css (coco)
-import { computed, mergeProps, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots } from 'vue'
+import { computed, inject, mergeProps, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { messageIcon, nextFrame, useFormField } from '../GForm/formContext.js'
+import { messageIcon, nextFrame, ownFieldKey, useFormField } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GInput', inheritAttrs: false })
 
@@ -57,8 +57,13 @@ const hasOutput = computed(() => Boolean(props.output))
 
 const field = ref(null)
 const rootEl = ref(null)
+// N4 (input.md, #409): error propio del componente que compone este GInput (GTimeField). Interno, sin API pública; solo lo
+// consume este GInput (sus descendientes no lo heredan). Sin él, nada cambia
+const own = inject(ownFieldKey, null)
+if (own) provide(ownFieldKey, null)
 // Contexto de GForm (form.md §2): densidad, estados, marca, mensaje y registro (name de $attrs)
 const ff = useFormField({
+  ...(own ? { ownError: own.ownError, ownTarget: own.ownTarget, ownReveal: own.ownReveal } : {}),
   id: inputId,
   name: () => attrs.name,
   error: () => props.error,
@@ -74,6 +79,7 @@ const ff = useFormField({
   control: field,
   root: rootEl
 })
+if (own && typeof own.connect === 'function') own.connect({ revealOwn: ff.revealOwn })
 const density = ff.density
 const isDisabled = ff.disabled
 const isReadonly = ff.readonly

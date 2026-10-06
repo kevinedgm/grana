@@ -6,6 +6,8 @@
 @import url("../components/GInput/GInput.css");
 /* GNumberField compone GInput (#309): su CSS va después del de GInput */
 @import url("../components/GNumberField/GNumberField.css");
+/* GTimeField compone GInput (#400): su CSS va después del de GInput (y de GNumberField) */
+@import url("../components/GTimeField/GTimeField.css");
 @import url("../components/GCheckbox/GCheckbox.css");
 @import url("../components/GCheckboxGroup/GCheckboxGroup.css");
 @import url("../components/GRadioGroup/GRadioGroup.css");

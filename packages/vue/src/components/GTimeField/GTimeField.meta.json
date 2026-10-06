@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "name": "GTimeField",
+  "tag": "g-time-field",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Campo para una hora del reloj (cita, toma, inicio de turno) que se escribe como se dice («930», «9h30», «9 noche»), vuelve en palabras pegadas al número y ofrece la otra lectura cuando puede ser de mañana o de noche. Modelo «HH:mm[:ss]» o null (hora de pared, sin fecha ni zona). Compone GInput.",
+  "contract": "design/contracts/time-field.md",
+  "decisions": [
+    "#400",
+    "#401",
+    "#402",
+    "#403",
+    "#404",
+    "#405",
+    "#406",
+    "#407",
+    "#408",
+    "#409",
+    "#410",
+    "#411",
+    "#412",
+    "#413",
+    "#414",
+    "#415"
+  ],
+  "prototype": "design/lab/time-field/r01/ y r02/ (concepto A)",
+  "style": "packages/vue/src/components/GTimeField/GTimeField.css",
+  "entry": "@grana/vue/time-field",
+  "exports": [
+    "GTimeField",
+    "install",
+    "default (plugin)"
+  ],
+  "bundle": {
+    "measured": "2026-10-06",
+    "entry": "dist/time-field.js",
+    "gzip": 10279,
+    "umdGzip": 9280,
+    "umdGlobal": "GranaTimeField",
+    "main": "dist/grana.js +279 B gzip −9 (+286 B gzip −6): N4 de GInput y ownReveal de GForm (#409); GTimeField no está en el principal",
+    "note": "En el principal medía +8379 B gzip (−9), +8,47 kB con Vite: supera el tope de 8 KB de #328, entrada propia como GCombobox (#337) y GFileField (#367). Vue y @grana/vue externos; GInput, formContext (useFormField, formKey, layoutKey, nextFrame y ownFieldKey: un solo Symbol(GForm)), oneOf y sizeObserver llegan de __shared, sin copia. utils/timeInput.js va en la entrada. El CSS va en grana.css."
+  },
+  "composes": [
+    "GInput (slots internos field y end; añadido interno N4, input.md, #409)"
+  ],
+  "engine": "packages/vue/src/utils/timeInput.js (interno, no exportado; en la entrada time-field)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | null",
+      "default": null,
+      "note": "«HH:mm» o «HH:mm:ss» (24 h, cero delante); undefined y '' = null; otro formato = null con aviso; segundos sin seconds se ignoran con aviso. Emite siempre «HH:mm[:ss]» o null"
+    },
+    {
+      "name": "min",
+      "type": "String",
+      "default": null,
+      "note": "Limita los pasos; aria-valuemin solo con min ≤ max; min > max = arco que cruza la medianoche (sin aviso)"
+    },
+    {
+      "name": "max",
+      "type": "String",
+      "default": null,
+      "note": "Limita los pasos; aria-valuemax solo con min ≤ max"
+    },
+    {
+      "name": "step",
+      "type": "Number",
+      "default": 1,
+      "note": "Minutos (entero ≥ 1); rejilla desde min; no redondea lo escrito"
+    },
+    {
+      "name": "seconds",
+      "type": "Boolean",
+      "default": false,
+      "note": "Canónico, formato y aria-value* con segundos"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "note": "prop › lang del ancestro › navigator.language; inválido avisa"
+    },
+    {
+      "name": "hourCycle",
+      "type": "String",
+      "default": null,
+      "note": "h12 | h23; sin valor, el del idioma"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "{ invalid }: mensaje del error propio; sin él bloquea con un espacio y avisa"
+    },
+    {
+      "name": "prefix / suffix / prefixLabel / suffixLabel",
+      "type": "String",
+      "default": null,
+      "note": "Como GInput; el sufijo dice la zona (#411)"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "Va al <input type=hidden> canónico; el visible no lleva name"
+    },
+    {
+      "name": "label / hint / error / warning / valid / output",
+      "type": "String",
+      "default": null,
+      "note": "Pasan a GInput"
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-required (nunca required nativo)"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null,
+      "note": "Como GInput"
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "note": "readonly + aria-readonly; sin pasos ni botones; se envía"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "note": "disabled en el campo, los botones y el oculto"
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "note": "xs | sm | md | lg | xl"
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "note": "outline | soft"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "note": "default | comfortable | compact (contexto)"
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": null,
+      "note": "Color del foco, como GInput"
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "note": "Como GInput"
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": null,
+      "note": "Como GInput"
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "Generado si falta"
+    }
+  ],
+  "attrs": "Al <input> visible (class y style a la raíz); inputmode numeric y autocomplete off por defecto, sobrescribibles; type, role, dir y aria-value* los fija el campo; form se copia al oculto",
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | null",
+      "trigger": "Cada cambio de la hora (no del texto): al escribir («930»: 09:00, null, 09:30), pegar, cada paso, a. m./p. m. y las lecturas"
+    },
+    {
+      "name": "change",
+      "payload": "String | null",
+      "trigger": "Hora confirmada: al salir o con Enter si cambió; una vez por gesto de paso (keyup); una vez por activación de a. m./p. m. o de una lectura"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (como GInput)"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico"
+    },
+    {
+      "name": "error",
+      "purpose": "Error con contenido rico"
+    },
+    {
+      "name": "prepend",
+      "purpose": "Icono decorativo antes del prefijo"
+    }
+  ],
+  "keyboard": {
+    "ArrowUp/ArrowDown": "± step encajando en la rejilla desde min; sin límites da la vuelta a medianoche; con límites se detiene; arco por 00:00; fuera del arco entra por min o max",
+    "Shift+ArrowUp/ArrowDown, PageUp/PageDown": "± 1 hora sin encajar",
+    "Vacío + paso": "min o la hora del dispositivo redondeada hacia arriba (acotada por max sin min)",
+    "a / p (12 h)": "con la hora escrita entera, cambian la mitad del día",
+    "Enter": "confirma (formatea, error propio, change) y deja seguir el envío",
+    "Home/End, Alt/Ctrl/Meta + flechas, rueda": "nativo / nada"
+  },
+  "classes": {
+    "root": [
+      "g-time-field",
+      "g-time-field--h12",
+      "has-choices"
+    ],
+    "elements": [
+      "g-time-field__value",
+      "g-time-field__mirror",
+      "g-time-field__field",
+      "g-time-field__reading",
+      "g-time-field__reading-time",
+      "g-time-field__reading-word",
+      "is-entering",
+      "g-time-field__halves",
+      "g-time-field__half",
+      "is-on",
+      "g-time-field__half-text",
+      "g-time-field__choices",
+      "data-compact",
+      "g-time-field__choice",
+      "g-time-field__choice-time",
+      "g-time-field__choice-word",
+      "g-time-field__measure"
+    ]
+  },
+  "formSystem": {
+    "contract": "design/contracts/form.md §2 (error propio, ownReveal), §4 (#410), §8 «Fecha y hora»",
+    "notes": [
+      "Registro por name (GInput)",
+      "Escribir, pegar y flechas = escritura (notifyInput); a. m./p. m. y lecturas = cambio (notifyChange)",
+      "Error propio (texto que no es una hora): se conserva, bloquea el envío, se revela al salir (ownReveal 'blur', con showErrorsOn y #326); fuera de GForm, revelado propio y setCustomValidity",
+      "Publica su mínimo con setIntrinsicMin en una GFormRow (12 h y 24 h; a. m./p. m. cuentan también en readonly)"
+    ]
+  },
+  "warnings": [
+    "sin nombre accesible",
+    "sin labels.invalid (al montar)",
+    "modelValue con formato inválido",
+    "modelValue con segundos sin seconds",
+    "min o max con formato inválido",
+    "step que no es entero ≥ 1",
+    "locale que Intl rechaza",
+    "type en $attrs o slots append/action"
+  ],
+  "verification": {
+    "vitest": "timeInput.test.js, GTimeField.test.js, GTimeField.ssr.test.js, src/time-field.test.js",
+    "playwright": "design/lab/theme-playground/tests/time-field.spec.mjs y personalidad-time-field.spec.mjs (Chromium, Firefox, WebKit)",
+    "limits": [
+      "Chromium: en un spinbutton editable el árbol expone como valuetext el texto del campo, no aria-valuetext (la franja no llega por Chromium; medido con CDP en time-field.spec.mjs)",
+      "Firefox: el pegado no se verifica con un evento sintético (se omite)"
+    ]
+  },
+  "pending": [
+    "Auditoría de coco con un tema distinto (paso 5): design/lab/time-field/auditoria.md",
+    "README (mora-docs)",
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack); teclado numérico real (iOS, Android); IME real; pegado real en Firefox; forced-colors real; franjas de CLDR en Safari real",
+    "Reservados: mode=\"range\" (C, #413), picker (B, #414), GDateTimeField, secondStep, prefer"
+  ]
+}

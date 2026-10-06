@@ -68,6 +68,7 @@ export { createToaster, useToast, toasterKey }
 export { createIcons, iconsKey }
 // Ficha de resumen: contraste entre homónimos de una lista (design/contracts/summary.md, #354)
 export { summaryDiff }
+// El campo de hora (GTimeField) NO está aquí: va en su propia entrada `@grana/vue/time-field` (más de 8 KB gzip, criterio de #328).
 // La captura de voz (createSpeech, GSpeechHost…) NO está aquí: va en su propia entrada `@grana/vue/speech` (#238).
 // Uso INTERNO de esa entrada (no es API pública, puede cambiar sin aviso): las piezas que comparte con el principal (src/shared.js)
 export { shared as __shared }
