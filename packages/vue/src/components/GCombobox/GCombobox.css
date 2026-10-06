@@ -14,8 +14,13 @@
   el 1turn del giro de GInput), «/ 2» de geometría (radio de píldora = medio alto; costura centrada) y la cota del
   vector de llegada «space × 2 / 0.038» (rebase máximo space × 2 con el 3,8 % de --g-ease-spring, tokens.md §29.1;
   combobox.md «Movimiento»: alias local, sin constante nueva de coreografía).
-  Keyframes: g-combobox-arrive (la ficha llega) y g-combobox-spin (carga). Nunca g-reject…: GInput y GForm retiran
-  is-rejected filtrando por ese prefijo.
+  Keyframes: g-combobox-arrive (la ficha llega; con multiple, el renglón que llega a la cesta) y g-combobox-spin (carga).
+  Nunca g-reject…: GInput y GForm retiran is-rejected filtrando por ese prefijo.
+  Fase 2 (multiple; combobox.md «Fase 2», #417 a #428; kiwi r03): sección «FASE 2 · VARIAS» al final. Keyframes
+  g-combobox-roll (cifras), g-combobox-tick (marca de la casilla, desde 0.4 de tokens.md §29.6, con --g-ease-bounce) y
+  g-combobox-row-in / -row-out (renglón que crece y rastro que se pliega). Literales propios: 55% (proporción frase/texto
+  con el foco, estilo.md), 0.72 (marca/casilla, la de GCheckbox), 1fr/0fr y 100% (geometría). Alias --_cb-box,
+  --_cb-line, --_cb-rowh. Bruno pone is-rolling, is-ticking, is-entering, is-leaving e is-arriving (+ --_travel-x/y).
 */
 
 /* ---------- Raíz ---------- */
@@ -718,6 +723,625 @@
 /* Propiedad pública de ENTRADA (no del tema): el consumidor la sobrescribe con style */
 .g-form-row > .g-combobox--appearance-field {
   --g-form-min: 60;
+}
+
+/* =====================================================================================================================
+   FASE 2 · VARIAS (multiple; combobox.md «Fase 2 · Selección múltiple», #417 a #428; kiwi r03). Todo cuelga de clases
+   que solo existen con multiple (g-combobox--multiple, __sentence, __box, __row…): sin multiple, nada de esto aplica y
+   la Fase 1 no cambia. Banco y medidas: design/lab/combobox/estilo-multiple-banco.html y estilo.md «Fase 2».
+   ===================================================================================================================== */
+.g-combobox--multiple {
+  /* Casilla: el tamaño relativo de GCheckbox (space × 5; × 4 con la ficha sm, campo xs o sm), centrada en la línea del
+     título de la ficha (body-line; body-sm-line con la ficha sm) */
+  --_cb-box: calc(var(--g-space-1) * 5);
+  --_cb-line: var(--g-text-body-line);
+}
+.g-combobox--multiple:is(.g-input--size-xs, .g-input--size-sm) {
+  --_cb-box: calc(var(--g-space-1) * 4);
+  --_cb-line: var(--g-text-body-sm-line);
+}
+
+/* ---------- Cifras que ruedan (frase, «Elegidas», cesta, pie) ---------- */
+/* inline-block: translate no actúa sobre una caja en línea. Cifras tabulares: un recuento que cambia no mueve el texto */
+.g-combobox__num {
+  display: inline-block;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ---------- A · La frase (selection="inline") ---------- */
+/* Con varios, el <input> toma lo que la frase deja (base 0: no compite por su ancho intrínseco) */
+.g-combobox--multiple .g-combobox__value > .g-combobox__field {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+/* Una línea, siempre: el alto es el de la línea del campo (Δ0 de 0 a N elegidos). Cede por el final (el .vue mide por
+   lotes y escribe «y N más»); si ni el primero cabe, el primero se recorta con elipsis. Sin elegidos no existe */
+.g-combobox__sentence {
+  flex: 0 1 auto;
+  align-self: center;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  display: flex;
+  align-items: baseline;
+  overflow: hidden;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  white-space: pre;
+  color: var(--g-color-text);
+  pointer-events: none;
+  user-select: none;
+  transition: color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Con el foco (o abierta la forma de A) la frase cede sitio al texto que se escribe: como mucho el 55 % de la celda
+   (proporción de kiwi, r03, que el .vue mide con el ancho real; estilo.md) y se apaga a text-muted */
+.g-combobox__value:focus-within > .g-combobox__sentence,
+.g-combobox--appearance-field.is-open .g-combobox__sentence {
+  max-inline-size: 55%;
+  color: var(--g-color-text-muted);
+}
+.g-combobox.is-disabled .g-combobox__sentence {
+  color: var(--g-color-text-subtle);
+}
+/* Con elegidos, el placeholder no se escribe junto a la frase (la celda es de la frase; sin elegidos, del <input>) */
+.g-combobox--selection-inline.has-chosen .g-combobox__field::placeholder {
+  opacity: 0;
+}
+.g-combobox__sentence-item,
+.g-combobox__sentence-sep,
+.g-combobox__sentence-rest {
+  flex: none;
+}
+.g-combobox__sentence-item {
+  border-radius: var(--g-radius-xs);
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* El primero es el único que se recorta (con su elipsis), y SOLO cuando ya va solo (o solo con «y N más»): mientras
+   haya varios, ninguno cede y el desbordamiento de la frase es lo que el .vue mide para ceder uno más (si el primero
+   encogiera siempre, la frase nunca desbordaría y la cesión no llegaría). «y N más» se conserva siempre */
+.g-combobox__sentence-item:first-child:is(:last-child, :has(+ .g-combobox__sentence-sep + .g-combobox__sentence-rest:last-child)) {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Texto libre: cursiva y el lápiz (decorativo) */
+.g-combobox__sentence-item.is-custom {
+  font-style: italic;
+}
+/* La cursiva vuela sobre el final de su caja; el primero recorta (overflow): relleno y margen negativo iguales */
+.g-combobox__sentence-item.is-custom:first-child:is(:last-child, :has(+ .g-combobox__sentence-sep + .g-combobox__sentence-rest:last-child)) {
+  padding-inline-end: var(--g-space-1);
+  margin-inline-end: calc(var(--g-space-1) * -1);
+}
+.g-combobox__sentence-icon,
+.g-combobox__sentence-item > .g-icon {
+  margin-inline-end: calc(var(--g-space-1) / 2);
+  vertical-align: -0.125em;
+  color: var(--g-color-text-muted);
+}
+/* «y N más»: peso de acción (la frase cede por texto, no con una insignia) */
+.g-combobox__sentence-rest {
+  font-weight: var(--g-text-action-weight);
+}
+/* Retroceso marcado (primera pulsación): tachado + selección (no solo color); el texto vuelve a text con el foco */
+.g-combobox__sentence-item.is-armed {
+  background: var(--g-color-selection);
+  color: var(--g-color-text);
+  text-decoration-line: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+.g-combobox__sentence-item.is-armed > .g-icon {
+  color: var(--g-color-text);
+}
+
+/* ---------- La casilla (decorativa): la señal no cromática de «aquí se eligen varias» ---------- */
+/* Forma de control como GCheckbox: borde border-control (≥ 3:1), radio xs; marcada brand / on-brand. La marca check se
+   funde al desmarcar; al marcar por un gesto salta (is-ticking) */
+.g-combobox__box {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_cb-box);
+  block-size: var(--_cb-box);
+  margin-block-start: calc((var(--_cb-line) - var(--_cb-box)) / 2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+  color: var(--g-color-on-brand);
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* La marca: el tamaño relativo de la de GCheckbox (0.72 de la casilla) */
+.g-combobox__box > .g-icon {
+  inline-size: calc(var(--_cb-box) * 0.72);
+  block-size: calc(var(--_cb-box) * 0.72);
+  opacity: 0;
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Marcada: relleno brand con su marca on-brand (par garantizado). El contorno es de tinta (text), no brand: brand solo
+   está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie (medido: lustre 1.77, spotify 1.92) */
+.g-combobox__option[aria-selected="true"] > .g-combobox__box {
+  border-color: var(--g-color-text);
+  background: var(--g-color-brand);
+}
+.g-combobox__option[aria-selected="true"] > .g-combobox__box > .g-icon {
+  opacity: 1;
+}
+/* No elegible (tope) o deshabilitada: la casilla se apaga con la fila */
+.g-combobox__option[aria-disabled="true"] > .g-combobox__box {
+  border-color: var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+}
+/* En la activa invertida de la paleta, la casilla se perfila con el color de la superficie (sobre el fondo de texto,
+   brand puede ser casi el mismo tono: el borde de superficie la mantiene ≥ 3:1) */
+.g-combobox-surface .g-combobox__option.is-active > .g-combobox__box {
+  border-color: var(--g-color-surface);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__box.is-ticking > .g-icon {
+    animation: g-combobox-tick var(--g-duration-slow) var(--g-ease-out) both;
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-combobox__box.is-ticking > .g-icon {
+      animation-timing-function: var(--g-ease-bounce);
+    }
+  }
+}
+@keyframes g-combobox-tick {
+  from { scale: 0.4; }
+  to { scale: 1; }
+}
+
+/* ---------- «Elegidas» (A y hoja): primer grupo, instantánea de lo elegido ---------- */
+.g-combobox__group.is-chosen > .g-combobox__group-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  color: var(--g-color-text);
+}
+.g-combobox__group-tally {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+/* Fila de «Elegidas» marcada por Retroceso: selección y la ficha tachada (también si es la activa, levantada o invertida) */
+.g-combobox .g-combobox__option.is-armed {
+  background: var(--g-color-selection);
+  color: var(--g-color-text);
+}
+.g-combobox .g-combobox__option.is-armed :is(.g-summary__title, .g-summary__code) {
+  color: var(--g-color-text);
+  text-decoration-line: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+
+/* ---------- Estado del tope (fuera del listbox) ---------- */
+/* Sobre el tinte, su par garantizado on-warning-soft (tokens.md §2): warning-text está garantizado sobre la superficie,
+   no sobre warning-soft (medido: 4.15:1 en el tema por defecto oscuro) */
+.g-combobox__status--max {
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-warning-soft);
+  color: var(--g-color-on-warning-soft);
+}
+
+/* ---------- Renglones (B · la receta y C · la cesta) ---------- */
+/* Una rejilla de una pista: crece de 0fr a 1fr al entrar y se pliega al revés (sin medir alturas en JS). Columnas fijas
+   por pieza (número, ficha, «Nueva», botón): una pieza ausente deja su pista en 0. Alto mínimo = el de la GSummary row de
+   dos líneas md + space-1 por arriba y por abajo: el rastro mide lo mismo que el renglón (Δ0) */
+.g-combobox__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-combobox__row {
+  --_cb-rowh: calc(var(--g-text-body-line) + var(--g-text-body-sm-line) + var(--g-space-1) * 2);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: 1fr;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: var(--_cb-rowh);
+  padding-inline: var(--g-space-3) var(--g-space-1);
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  overflow-wrap: anywhere;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* La ficha (o el contenido del slot chosen) va en la pista flexible */
+.g-combobox__row > :not(.g-combobox__row-number, .g-combobox__row-fresh, .g-combobox__remove, .g-combobox__trace, .g-combobox__undo, :where(.g-tooltip)) {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+.g-combobox__row-number {
+  grid-column: 1;
+  min-inline-size: calc(var(--g-space-1) * 5);
+  margin-inline-end: var(--g-space-2);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+  color: var(--g-color-text-muted);
+}
+/* «Nueva»: etiqueta accent-soft (texto que se lee) y una barra de acento al inicio (lógica: en RTL, a la derecha) */
+.g-combobox__row-fresh {
+  grid-column: 3;
+  margin-inline-start: var(--g-space-2);
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+}
+/* La barra es un trazo: accent-text (#228; accent no llega a 3:1 como trazo con un acento pálido: spotify 1.29) */
+.g-combobox__row.is-fresh::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--g-focus-width);
+  background: var(--g-color-accent-text);
+  pointer-events: none;
+}
+/* Texto libre: cursiva en peso de texto (no es del catálogo); el relleno evita que el recorte muerda la última letra */
+.g-combobox__row.is-custom .g-summary__title {
+  font-style: italic;
+  font-weight: inherit;
+  padding-inline-end: var(--g-space-1);
+  margin-inline-end: calc(var(--g-space-1) * -1);
+}
+/* Retroceso marcado: selección + la ficha tachada */
+.g-combobox__row.is-armed {
+  background: var(--g-color-selection);
+}
+.g-combobox__row.is-armed :is(.g-summary__title, .g-summary__code) {
+  text-decoration-line: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+/* Botones del renglón: «Quitar» (icono, ≥ 24px; 44px con puntero grueso), aislado al final; «Deshacer» (texto
+   accent-text con su icono). Anillo hacia dentro: la receta recorta sus esquinas */
+.g-combobox__remove,
+.g-combobox__undo,
+.g-combobox__rows-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-inline-size: 24px;
+  min-block-size: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-combobox__remove {
+  grid-column: 4;
+  margin-inline-start: var(--g-space-2);
+  color: var(--g-color-text-muted);
+}
+/* «Deshacer»: una píldora accent-soft con su par on-accent-soft (garantizado sobre el tinte; accent-text solo lo está
+   sobre surface y el rastro va sobre surface-sunken: medido 4.19 a 4.32 en siete temas). Es lo único con color en el
+   rastro: se descubre sin buscarlo. «Ver los N»: texto de acción en text, como «Mostrar más» de la Fase 1 */
+.g-combobox__undo,
+.g-combobox__rows-all {
+  padding-inline: var(--g-space-2);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+}
+.g-combobox__undo {
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+}
+.g-combobox__rows-all {
+  color: var(--g-color-text);
+}
+.g-combobox__undo {
+  grid-column: 4;
+  margin-inline-start: var(--g-space-2);
+}
+@media (pointer: coarse) {
+  .g-combobox__remove,
+  .g-combobox__undo,
+  .g-combobox__rows-all {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+.g-combobox__remove:focus-visible,
+.g-combobox__undo:focus-visible,
+.g-combobox__rows-all:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-offset) * -1);
+}
+@media (hover: hover) {
+  .g-combobox__remove:hover {
+    background: var(--g-color-neutral-soft);
+    color: var(--g-color-text);
+  }
+  .g-combobox__undo:hover {
+    background: var(--g-color-accent);
+    color: var(--g-color-on-accent);
+  }
+  .g-combobox__rows-all:hover {
+    background: var(--g-color-neutral-soft);
+  }
+}
+/* El rastro: mismo alto que el renglón (su alto mínimo), el nombre tachado en text-muted y «Deshacer»; aparece con un
+   fundido (también con movimiento reducido: es opacidad) */
+.g-combobox__row.is-trace {
+  background: var(--g-color-surface-sunken);
+}
+.g-combobox__trace {
+  grid-column: 1 / 4;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  text-decoration-line: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+.g-combobox__trace,
+.g-combobox__undo {
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+@starting-style {
+  .g-combobox__trace,
+  .g-combobox__undo { opacity: 0; }
+}
+.g-combobox.is-disabled .g-combobox__row,
+.g-combobox.is-disabled .g-combobox__row :is(.g-summary__code, .g-summary__subtitle, .g-summary__lead) {
+  color: var(--g-color-text-subtle);
+}
+
+/* B · la receta: en el hueco below de GInput (N5), al final del pie: en una GFormRow, en la tercera pista */
+.g-combobox__chosen {
+  min-inline-size: 0;
+  margin-block-start: var(--g-space-2);
+}
+.g-combobox__chosen > .g-combobox__rows {
+  overflow: clip;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+.g-combobox__chosen .g-combobox__row + .g-combobox__row {
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-combobox__rows-all {
+  margin-block-start: var(--g-space-1);
+}
+/* «Ver los N» / «Ver menos»: el mismo chevron, girado al desplegar */
+.g-combobox__rows-all[aria-expanded="true"] .g-icon {
+  rotate: 0.5turn;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__rows-all .g-icon {
+    transition: rotate var(--g-duration-fast) var(--g-ease-out);
+  }
+}
+
+/* C · la cesta: en el sitio de la vista previa, con su proporción (6 : 5), sobre surface-sunken. Renglones como tarjetas */
+.g-combobox__surface-body.has-basket {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+}
+.g-combobox__basket {
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--g-space-4);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+}
+.g-combobox__basket-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  margin: 0 0 var(--g-space-3);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+}
+.g-combobox__basket-tally,
+.g-combobox__foot-tally {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--g-color-text-muted);
+}
+.g-combobox__basket-empty {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.g-combobox__basket > .g-combobox__rows {
+  display: grid;
+  gap: var(--g-space-1);
+}
+.g-combobox__basket .g-combobox__row {
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+/* El rastro de la cesta: un hueco con borde discontinuo (la tarjeta que se fue) */
+.g-combobox__basket .g-combobox__row.is-trace {
+  border-style: dashed;
+  border-color: var(--g-color-border-strong);
+  background: transparent;
+}
+.g-combobox__basket .g-combobox__row.is-armed {
+  background: var(--g-color-selection);
+}
+.g-combobox__basket .g-combobox__rows-all {
+  margin-block-start: var(--g-space-2);
+}
+
+/* Pie de la superficie con varios: recuento y «Listo» (un GBtn con sus valores; aquí solo el sitio) */
+.g-combobox__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-3);
+  padding: var(--g-space-2) var(--g-space-4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+}
+.g-combobox__foot-tally {
+  min-inline-size: 0;
+}
+.g-combobox__done {
+  flex: none;
+}
+
+/* ---------- Movimiento de la Fase 2: solo tras un gesto (el .vue pone y retira las clases) ---------- */
+/* Cifras: la nueva entra desde abajo, recortada a su propia caja (translate y clip-path con la misma curva: lo visible
+   es siempre el hueco de la cifra), como g-number-roll (#313) */
+@keyframes g-combobox-roll {
+  from { translate: 0 100%; clip-path: inset(0 0 100% 0); }
+  to { translate: 0 0; clip-path: inset(0); }
+}
+/* El renglón nuevo crece desde la línea anterior; el rastro, en la pasada siguiente, se pliega igual al revés */
+@keyframes g-combobox-row-in {
+  from { grid-template-rows: 0fr; min-block-size: 0; opacity: 0; }
+  to { grid-template-rows: 1fr; min-block-size: var(--_cb-rowh); opacity: 1; }
+}
+@keyframes g-combobox-row-out {
+  from { grid-template-rows: 1fr; min-block-size: var(--_cb-rowh); opacity: 1; }
+  to { grid-template-rows: 0fr; min-block-size: 0; opacity: 0; border-block-width: 0; }
+}
+/* Mientras crece o se pliega, el contenido no impone su alto y se recorta */
+.g-combobox__row:is(.is-entering, .is-leaving) {
+  overflow: clip;
+}
+.g-combobox__row:is(.is-entering, .is-leaving) > :not(:where(.g-tooltip)) {
+  min-block-size: 0;
+}
+/* C: el renglón llega a la cesta desde la fila marcada (vector de bruno, acotado como la ficha de la Fase 1, #336) */
+.g-combobox__row.is-arriving {
+  --_cb-tx: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-x), calc(var(--g-space-1) * 2 / 0.038));
+  --_cb-ty: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-y), calc(var(--g-space-1) * 2 / 0.038));
+  z-index: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__num.is-rolling {
+    animation: g-combobox-roll var(--g-duration-press) var(--g-ease-out) both;
+  }
+  .g-combobox__row.is-entering {
+    animation: g-combobox-row-in var(--g-duration-slow) var(--g-ease-out) backwards;
+  }
+  .g-combobox__row.is-leaving {
+    animation: g-combobox-row-out var(--g-duration-slow) var(--g-ease-out) forwards;
+  }
+  .g-combobox__row.is-arriving {
+    animation: g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
+  }
+  .g-combobox__row.is-arriving.is-entering {
+    animation:
+      g-combobox-row-in var(--g-duration-slow) var(--g-ease-out) backwards,
+      g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-combobox__row.is-arriving {
+      animation-timing-function: var(--g-ease-spring);
+    }
+    .g-combobox__row.is-arriving.is-entering {
+      animation-timing-function: var(--g-ease-out), var(--g-ease-spring);
+    }
+  }
+}
+
+/* ---------- Colores forzados (L42, medido): casilla CanvasText y marcada Highlight; la marca de Retroceso es
+   Highlight/HighlightText y conserva el tachado; rastro y «Nueva» por su texto (la etiqueta con su borde); la barra
+   de «Nueva», CanvasText ---------- */
+@media (forced-colors: active) {
+  .g-combobox__box {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+    color: HighlightText;
+  }
+  .g-combobox__option[aria-selected="true"] > .g-combobox__box {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-combobox__option[aria-disabled="true"] > .g-combobox__box {
+    border-color: GrayText;
+    background: Canvas;
+  }
+  /* En la activa (Highlight) la casilla se invierte para no fundirse con la fila */
+  .g-combobox .g-combobox__option.is-active > .g-combobox__box {
+    border-color: HighlightText;
+    background: Highlight;
+  }
+  .g-combobox .g-combobox__option.is-active[aria-selected="true"] > .g-combobox__box {
+    border-color: HighlightText;
+    background: HighlightText;
+    color: Highlight;
+  }
+  .g-combobox__sentence-item.is-armed,
+  .g-combobox .g-combobox__option.is-armed,
+  .g-combobox__row.is-armed {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-combobox__sentence-item.is-armed *,
+  .g-combobox .g-combobox__option.is-armed *,
+  .g-combobox__row.is-armed * {
+    color: HighlightText;
+  }
+  .g-combobox__row-fresh {
+    border-color: CanvasText;
+  }
+  .g-combobox__row.is-fresh::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .g-combobox__remove,
+  .g-combobox__undo,
+  .g-combobox__rows-all {
+    color: ButtonText;
+  }
+  .g-combobox__remove:focus-visible,
+  .g-combobox__undo:focus-visible,
+  .g-combobox__rows-all:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-combobox__trace {
+    color: CanvasText;
+  }
+  .g-combobox__status--max {
+    border: var(--g-border-width) solid CanvasText;
+  }
 }
 
 /* ---------- Preferencias del sistema ---------- */

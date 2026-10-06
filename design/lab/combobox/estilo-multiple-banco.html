@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox multiple · banco de estilo (coco)</title>
+<!-- Banco de coco, Fase 2 (multiple): marcado EXACTO de design/contracts/combobox.md «Fase 2 · Selección múltiple»
+     («Estructura accesible» y «Clases y datos») con el CSS real de GCombobox.css cargado DENTRO de la capa
+     grana.components, después de todo dist/grana.css, y los componentes reales de dist/ (GInput con sus slots internos
+     field y end, GSummary, GDialog, GBtn, GForm, GFormLayout, GFormRow, GSelect). La receta (B) va al final de
+     g-input__support con <Teleport defer>, que es donde la pondrá el slot interno below de GInput (input.md N5) mientras
+     bruno lo construye. XMulti hace lo que hará GCombobox.vue y solo lo que el estilo necesita: frase con cesión por
+     lotes (formatToParts), «Elegidas» como instantánea con tope 12, Intro alterna, Retroceso en dos tiempos, Ctrl/⌘+Z,
+     tope (max), renglones con «Nueva», rastro, pasada y tope 6, cesta con viaje (--_travel-x/y + is-arriving), cifras
+     (is-rolling) y casilla (is-ticking) retiradas por animationend o en el acto. No es documentación ni la
+     implementación de bruno.
+     Servidor: GRANA_PW_PORT=4209 node design/lab/combobox/estilo-multiple-verificar.mjs --serve  →  /design/lab/combobox/estilo-multiple-banco.html
+     Parámetros: ?dark=1  ?theme=<generated/*.css> | ?theme=auditoria (tema del CLI de auditoria-tema.json)  ?slow=1 (×5)  ?dir=rtl -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GCombobox/GCombobox.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:60vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:var(--g-space-6);align-items:start}
+  .sizes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--g-space-4);align-items:end;margin-block-end:var(--g-space-4)}
+  .after{margin:var(--g-space-3) 0 0;padding:8px;border:1px dashed var(--g-color-border-strong);font-size:13px;color:var(--g-color-text-muted)}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .bottom{min-block-size:40vh}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GCombobox multiple · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A · la frase (el campo nunca crece; cede por texto; «Elegidas» arriba al abrir). B · la receta (renglones debajo, numerados, «Nueva», rastro con «Deshacer» del mismo alto). C · la cesta (paleta: resultados y cesta lado a lado; lo marcado viaja). Intro alterna, Retroceso en dos tiempos, Ctrl/⌘+Z devuelve lo último quitado.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (CLI)</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+</div>
+
+<h2 class="b">1 · A · la frase en una GFormRow (Δ0 de 0 a 8 y 40)</h2>
+<div class="host">
+  <g-form>
+    <g-form-layout>
+      <g-form-row>
+        <x-multi case="a-row" label="Alergias" :options="ALLERGY" :value="['penicilina', 'latex']" clearable placeholder="Buscar alergia…"></x-multi>
+        <g-input label="Notas" class="xn-a-row"></g-input>
+        <g-select label="Severidad" :options="[{ value: 'm', label: 'Moderada' }]"></g-select>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+  <p class="after" data-after="a-row">Lo de debajo (no se mueve en A)</p>
+</div>
+
+<h2 class="b">2 · A · estados en reposo</h2>
+<div class="host">
+  <div class="grid">
+    <x-multi case="a-dx" label="Diagnósticos (código)" :options="DX" :value="['E11.9', 'I10', 'J45.9']"></x-multi>
+    <x-multi case="a-free" label="Con texto libre" :options="ALLERGY" :value="['penicilina']" :custom="['Polen de olivo']" allow-custom></x-multi>
+    <x-multi case="a-armed" label="Retroceso marcado" :options="ALLERGY" :value="['penicilina', 'latex', 'ibuprofeno']" :armed-last="true"></x-multi>
+    <x-multi case="a-many" label="Cuarenta elegidas" :options="ALLERGY" :value="ALLERGY.slice(0, 40).map((o) => o.value)"></x-multi>
+    <x-multi case="a-narrow" label="Estrecho, primero largo" :options="DXL" :value="['x1', 'x2', 'x3']" style="inline-size:200px"></x-multi>
+    <x-multi case="a-dis" label="Deshabilitado" :options="ALLERGY" :value="['penicilina', 'latex']" disabled></x-multi>
+    <x-multi case="a-ro" label="Solo lectura" :options="ALLERGY" :value="['penicilina', 'latex']" readonly></x-multi>
+    <x-multi case="a-empty" label="Sin elegidas" :options="ALLERGY" placeholder="Buscar alergia…"></x-multi>
+  </div>
+  <div v-for="s in SIZES" :key="s" class="sizes">
+    <g-input :class="'xn-in-' + s" :size="s" :label="'GInput ' + s"></g-input>
+    <x-multi :case="'a-' + s" :size="s" :label="'Alergias ' + s" :options="ALLERGY" :value="['penicilina', 'latex', 'ibuprofeno', 'sulfonamidas']"></x-multi>
+  </div>
+</div>
+
+<h2 class="b">3 · A · lista abierta (casilla, «Elegidas», tope) · se abren al enfocar o con __cbm.get(caso).open()</h2>
+<div class="host">
+  <div class="grid">
+    <x-multi case="a-open" label="Alergias (abre)" :options="ALLERGY" :value="['penicilina', 'latex', 'ibuprofeno']" clearable></x-multi>
+    <x-multi case="a-max" label="Hasta 3 (tope)" :options="ALLERGY" :value="['penicilina', 'latex', 'ibuprofeno']" :max="3"></x-multi>
+    <x-multi case="a-chosen13" label="Trece elegidas («Ver las 13»)" :options="ALLERGY" :value="ALLERGY.slice(0, 13).map((o) => o.value)"></x-multi>
+  </div>
+</div>
+
+<h2 class="b">4 · B · la receta (selection="list", numbered) en una GFormRow</h2>
+<div class="host">
+  <g-form>
+    <g-form-layout>
+      <g-form-row>
+        <x-multi case="b-row" selection="list" numbered label="Diagnósticos" :options="DX" :value="['E11.9', 'I10']" placeholder="Agregar diagnóstico…"></x-multi>
+        <g-input label="Médico" class="xn-b-row"></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+  <p class="after" data-after="b-row">Lo de debajo (baja un renglón por elección)</p>
+  <div class="grid" style="margin-block-start:24px">
+    <x-multi case="b-states" selection="list" numbered label="Estados del renglón" :options="DX" :value="['E11.9', 'I10', 'J45.9']" :custom="['Dolor torácico atípico']" allow-custom :fresh="['J45.9']" :traces="['K21.9']" :armed-last="true"></x-multi>
+    <x-multi case="b-many" selection="list" label="Ocho («Ver los 8»)" :options="DX" :value="DX.slice(0, 8).map((o) => o.value)"></x-multi>
+    <x-multi case="b-dis" selection="list" label="Deshabilitada" :options="DX" :value="['E11.9', 'I10']" disabled></x-multi>
+  </div>
+</div>
+
+<h2 class="b">5 · C · la cesta (appearance="palette") · en ≤ 520px, la hoja común</h2>
+<div class="host">
+  <div class="grid">
+    <x-multi case="c-pal" appearance="palette" label="Responsables" :options="PEOPLE" :value="['ana1', 'luis']" numbered></x-multi>
+    <x-multi case="c-max" appearance="palette" label="Responsables (hasta 2)" :options="PEOPLE" :value="['ana1', 'luis']" :max="2"></x-multi>
+    <x-multi case="c-empty" appearance="palette" label="Responsables (vacía)" :options="PEOPLE"></x-multi>
+    <x-multi case="c-list" appearance="palette" selection="list" label="Responsables (paleta + receta)" :options="PEOPLE" :value="['ana2']"></x-multi>
+  </div>
+</div>
+
+<h2 class="b">6 · Abre hacia arriba</h2>
+<div class="host bottom" style="display:flex;align-items:flex-end">
+  <x-multi case="a-up" label="Al pie" :options="ALLERGY" :value="['penicilina']" style="inline-size:100%"></x-multi>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, nextTick, reactive, Teleport } = Vue
+const $ = (s) => document.querySelector(s)
+const svg = (n, cls = '') => window.lucide(n, cls)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const reg = window.__cbm = { items: new Map(), get: (c) => reg.items.get(c) }
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+const RM_ROWS = 6, RM_CHOSEN = 12
+// ¿Hay una animación calculada con ese prefijo? (las transiciones de color u opacidad no cuentan: patrón de #313)
+const hasAnim = (el, prefix) => !!el && el.getAnimations().some((a) => String(a.animationName || '').startsWith(prefix))
+
+// ---------- Datos ----------
+const A0 = ['Penicilina', 'Látex', 'Ibuprofeno', 'Sulfonamidas', 'Mariscos', 'Cacahuate', 'Aspirina', 'Yodo', 'Polen de gramíneas', 'Ácaros del polvo', 'Huevo', 'Leche de vaca', 'Soya', 'Trigo', 'Nuez', 'Pescado', 'Sésamo', 'Mostaza', 'Apio', 'Altramuz', 'Moluscos', 'Sulfitos', 'Níquel', 'Cobalto', 'Cromo', 'Picadura de abeja', 'Picadura de avispa', 'Epitelio de gato', 'Epitelio de perro', 'Moho Alternaria', 'Cefalosporinas', 'Codeína', 'Morfina', 'Naproxeno', 'Diclofenaco', 'Metamizol', 'Contraste yodado', 'Clorhexidina', 'Lidocaína', 'Amoxicilina', 'Eritromicina', 'Ciprofloxacino', 'Vancomicina', 'Heparina', 'Insulina animal']
+const ALLERGY = A0.map((l, i) => ({ value: i === 0 ? 'penicilina' : i === 1 ? 'latex' : i === 2 ? 'ibuprofeno' : i === 3 ? 'sulfonamidas' : 'a' + i, label: l }))
+const D = (code, label, cap) => ({ value: code, code, label, facts: [{ label: 'Capítulo', value: cap }, { label: 'Tipo', value: 'Diagnóstico' }] })
+const DX = [D('E11.9', 'Diabetes mellitus tipo 2 sin complicaciones', 'IV'), D('I10', 'Hipertensión esencial (primaria)', 'IX'), D('J45.9', 'Asma, no especificada', 'X'), D('K21.9', 'Enfermedad por reflujo gastroesofágico', 'XI'), D('E78.5', 'Hiperlipidemia, no especificada', 'IV'), D('M54.5', 'Lumbago no especificado', 'XIII'), D('F41.1', 'Trastorno de ansiedad generalizada', 'V'), D('N39.0', 'Infección de vías urinarias, sitio no especificado', 'XIV'), D('R51', 'Cefalea', 'XVIII'), D('J06.9', 'Infección aguda de las vías respiratorias superiores', 'X')]
+const DXL = [{ value: 'x1', label: 'Enfermedad pulmonar obstructiva crónica con exacerbación aguda' }, { value: 'x2', label: 'Hipertensión' }, { value: 'x3', label: 'Asma' }]
+const P = (v, label, area, ext) => ({ value: v, label, avatar: true, facts: [{ label: 'Área', value: area }, { label: 'Ext.', value: ext }] })
+const PEOPLE = [P('ana1', 'Ana López Ruiz', 'Urgencias', '2104'), P('ana2', 'Ana López Ruiz', 'Pediatría', '3310'), P('luis', 'Luis Ortega Pérez', 'Urgencias', '2108'), P('mar', 'Mariana Ríos Vela', 'Cardiología', '4120'), P('jor', 'Jorge Salas Núñez', 'Quirófano', '5002'), P('eli', 'Elisa Campos Mora', 'Pediatría', '3315'), P('raul', 'Raúl Medina Ochoa', 'Laboratorio', '6100')]
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+const summaryDiff = Grana.summaryDiff
+
+// Partes de la frase (Intl.ListFormat#formatToParts), con «N más» como último elemento si cede
+const LF = () => new Intl.ListFormat(document.documentElement.lang || 'es', { type: 'conjunction' })
+const REST = '\u0001'
+
+// ---------- Panel ----------
+const XOpt = defineComponent({
+  name: 'XOpt', props: { r: Object, active: String, armed: Boolean, ticking: Boolean, sel: Boolean, dis: Boolean, diff: Object, size: String },
+  emits: ['pick', 'hover', 'tickend'], setup: () => ({ svg }),
+  template: `<li :class="['g-combobox__option', { 'is-active': r.id === active, 'is-armed': armed }]" :id="r.id" role="option" :aria-selected="sel ? 'true' : 'false'" :aria-disabled="dis ? 'true' : undefined" @click="$emit('pick', r, $event.currentTarget)" @pointermove="$emit('hover', r)">
+    <span :class="['g-combobox__box', { 'is-ticking': ticking }]" aria-hidden="true" v-html="svg('check')" @animationend="$event.animationName.startsWith('g-combobox-tick') && $emit('tickend')" @animationcancel="$emit('tickend')"></span>
+    <g-summary layout="row" :lines="2" :size="size" :title="r.o.label" :code="r.o.code" :avatar="r.o.avatar || false" :facts="r.o.facts || []" :diff="diff"></g-summary>
+  </li>`
+})
+
+// ---------- Renglones (B y C) ----------
+const XRows = defineComponent({
+  name: 'XRows', props: { id: String, rows: Array, numbered: Boolean, editable: Boolean, label: String, basket: Boolean, expanded: Boolean, total: Number, diffs: Object },
+  emits: ['remove', 'undo', 'end', 'all'], setup: () => ({ svg, RM_ROWS }),
+  template: `<ul class="g-combobox__rows" :id="id + (basket ? '-basket-rows' : '-rows')" :aria-labelledby="basket ? id + '-basket-title' : id + '-label'">
+    <template v-for="(w, i) in rows" :key="w.key">
+      <li v-if="!w.trace" :class="['g-combobox__row', { 'is-fresh': w.fresh && !basket, 'is-armed': w.armed, 'is-custom': w.it.kind === 'c', 'is-entering': w.entering, 'is-leaving': w.leaving, 'is-arriving': w.arriving }]" :data-key="w.key"
+        @animationend="$emit('end', w, $event)" @animationcancel="$emit('end', w, $event)">
+        <span v-if="numbered" class="g-combobox__row-number">{{ w.n }}</span>
+        <g-summary layout="row" :lines="2" size="md" :title="w.it.label" :code="w.it.code" :avatar="w.it.avatar || false" :facts="w.it.facts || []" :diff="diffs && diffs[w.key]"></g-summary>
+        <span v-if="w.fresh && !basket" class="g-combobox__row-fresh">Nueva</span>
+        <button v-if="editable" type="button" class="g-combobox__remove" :aria-label="'Quitar ' + w.it.name" @click="$emit('remove', w)" v-html="svg('x')"></button>
+      </li>
+      <li v-else :class="['g-combobox__row', 'is-trace', { 'is-leaving': w.leaving }]" :data-key="w.key" @animationend="$emit('end', w, $event)" @animationcancel="$emit('end', w, $event)">
+        <span class="g-combobox__trace" :id="id + '-trace-' + w.key">{{ w.it.name }} quitada</span>
+        <button type="button" class="g-combobox__undo" :aria-describedby="id + '-trace-' + w.key" @click="$emit('undo', w)"><span v-html="svg('undo-2')" style="display:contents"></span>Deshacer</button>
+      </li>
+    </template>
+  </ul>`
+})
+
+// ---------- XMulti: lo que hará GCombobox.vue con multiple, solo lo que el estilo necesita ----------
+let uid = 0
+const XMulti = defineComponent({
+  name: 'XMulti', components: { XOpt, XRows, Teleport },
+  inheritAttrs: false,
+  props: {
+    case: String, options: { type: Array, default: () => [] }, value: { type: Array, default: () => [] }, custom: { type: Array, default: () => [] },
+    selection: { type: String, default: 'inline' }, appearance: { type: String, default: 'field' }, numbered: Boolean, max: Number,
+    label: String, hint: String, readonly: Boolean, disabled: Boolean, size: { type: String, default: 'md' }, clearable: Boolean, allowCustom: Boolean, placeholder: String,
+    fresh: { type: Array, default: () => [] }, traces: { type: Array, default: () => [] }, armedLast: Boolean
+  },
+  setup(props, { attrs }) {
+    const id = props.case
+    const root = ref(null), inputEl = ref(null), popEl = ref(null), sentEl = ref(null), qEl = ref(null)
+    const vals = ref([...props.value]), cust = ref([...props.custom])
+    const open = ref(false), q = ref(''), active = ref(null), auto = ref(true), up = ref(false), surfOpen = ref(false), narrow = ref(false)
+    const armed = ref(props.armedLast ? 'last' : null), undo = ref(null), snapshot = ref(null), showAllChosen = ref(false), rowsExpanded = ref(false)
+    const rolling = ref(false), ticking = ref(null), shown = ref(Infinity)
+    const ro = computed(() => props.readonly), dis = computed(() => props.disabled)
+    const surface = computed(() => props.appearance === 'palette' || narrow.value)
+    const byVal = (v) => props.options.find((o) => o.value === v)
+    const itemOf = (k) => {
+      if (k.startsWith('c:')) { const t = k.slice(2); return { kind: 'c', key: k, label: t, name: t + ' (texto libre)', text: t } }
+      const o = byVal(k.slice(2)) || { value: k.slice(2), label: String(k.slice(2)) }
+      return { kind: 'v', key: k, o, label: o.label, code: o.code, avatar: o.avatar, facts: o.facts, name: o.code ? o.code + ' ' + o.label : o.label, text: o.code || o.label }
+    }
+    const keys = computed(() => [...vals.value.map((v) => 'v:' + v), ...cust.value.map((t) => 'c:' + t)])
+    const items = computed(() => keys.value.map(itemOf))
+    const count = computed(() => items.value.length)
+    const full = computed(() => props.max != null && count.value >= props.max)
+    const armedKey = computed(() => (armed.value === 'last' ? keys.value[keys.value.length - 1] : armed.value))
+
+    // ---- Renglones (B y la cesta): vivos y rastros en su sitio ----
+    const rowState = reactive(new Map()) // key → { fresh, trace, entering, leaving, arriving }
+    for (const k of props.fresh) rowState.set('v:' + k, { fresh: true })
+    const traceKeys = ref(props.traces.map((v) => 'v:' + v)) // rastros iniciales (b-states)
+    const order = ref([...keys.value, ...traceKeys.value.filter((k) => !keys.value.includes(k))])
+    watch(keys, (ks) => { for (const k of ks) if (!order.value.includes(k)) order.value.push(k) })
+    const rows = computed(() => {
+      let n = 0
+      const all = order.value.filter((k) => keys.value.includes(k) || traceKeys.value.includes(k)).map((k) => {
+        const s = rowState.get(k) || {}
+        const trace = !keys.value.includes(k)
+        return { key: k, it: itemOf(k), trace, n: trace ? null : ++n, fresh: s.fresh, entering: s.entering, leaving: s.leaving, arriving: s.arriving, armed: k === armedKey.value }
+      })
+      if (rowsExpanded.value) return all
+      const cap = surface.value ? RM_CHOSEN : RM_ROWS
+      let live = 0
+      return all.filter((w) => w.trace || w.fresh || w.armed || ++live <= cap)
+    })
+    const hiddenRows = computed(() => count.value - rows.value.filter((w) => !w.trace).length)
+    const rowDiffs = computed(() => {
+      const live = rows.value.filter((w) => !w.trace && w.it.kind === 'v')
+      const d = live.length > 1 ? summaryDiff(live.map((w) => ({ title: w.it.label, facts: w.it.facts }))) : []
+      return Object.fromEntries(live.map((w, i) => [w.key, d[i] || undefined]))
+    })
+
+    // ---- Frase (A): cede por el final, medida por lotes ----
+    const parts = computed(() => {
+      if (props.selection !== 'inline' || !count.value) return []
+      const k = Math.min(shown.value, count.value), rest = count.value - k
+      // La marcada por Retroceso se saca a la vista aunque estuviera cedida (ocupa el último sitio visible)
+      const ai = items.value.findIndex((it) => it.key === armedKey.value)
+      const its = ai >= k ? [...items.value.slice(0, k - 1), items.value[ai]] : items.value.slice(0, k)
+      const list = its.map((it) => it.text)
+      if (rest) list.push(REST)
+      let ei = 0
+      return LF().formatToParts(list).map((p) => {
+        if (p.type !== 'element') return { t: 'sep', v: p.value }
+        if (p.value === REST) return { t: 'rest', n: rest }
+        const it = its[ei++]
+        return { t: 'item', it, armed: it.key === armedKey.value }
+      })
+    })
+    // Cesión por lotes: se pinta todo, se lee si cabe y se quita uno por paso (el .vue real lee una vez por cuadro)
+    let mToken = 0
+    async function measure() {
+      const t = ++mToken
+      shown.value = Infinity
+      await nextTick()
+      const s = sentEl.value
+      if (!s || t !== mToken) return
+      let k = count.value
+      while (k > 1 && s.scrollWidth > s.clientWidth + 0.5) { k--; shown.value = k; await nextTick(); if (t !== mToken) return }
+    }
+
+    // ---- Lista ----
+    const match = (o, query) => { const ws = norm(query).split(/\s+/).filter(Boolean); const hay = norm([o.label, o.code, ...(o.facts || []).map((f) => f.value)].join(' ')); return ws.every((w) => hay.includes(w)) }
+    const blocks = computed(() => {
+      const out = []
+      const chosenMode = !q.value && snapshot.value && (props.selection === 'inline' || surface.value) && !(surface.value && !narrow.value)
+      if (chosenMode) {
+        const snap = snapshot.value
+        const lim = showAllChosen.value ? snap.length : Math.min(snap.length, RM_CHOSEN)
+        out.push({ chosen: true, rows: snap.slice(0, lim).map((k, i) => ({ id: `${id}-opt-c${i}`, key: k, o: itemOf(k).o || { label: itemOf(k).label } })), more: snap.length > lim ? snap.length : 0 })
+      }
+      const skip = chosenMode ? new Set(snapshot.value) : new Set()
+      let n = 0
+      const rs = props.options.filter((o) => match(o, q.value) && !skip.has('v:' + o.value)).map((o) => ({ id: `${id}-opt-${n++}`, key: 'v:' + o.value, o }))
+      if (rs.length) out.push({ rows: rs })
+      return out
+    })
+    const flat = computed(() => blocks.value.flatMap((b) => [...b.rows, ...(b.more ? [{ id: `${id}-opt-all`, action: true }] : [])]))
+    const diffs = computed(() => { const list = flat.value.filter((r) => !r.action && r.o && r.o.facts); const d = list.length > 1 ? summaryDiff(list.map((r) => ({ title: r.o.label, facts: r.o.facts }))) : []; return Object.fromEntries(list.map((r, i) => [r.id, d[i] || undefined])) })
+    const isSel = (r) => keys.value.includes(r.key)
+    const isDis = (r) => full.value && !isSel(r)
+    const status = computed(() => (full.value ? { kind: 'max', icon: 'triangle-alert', text: `Puedes elegir hasta ${props.max}` } : (q.value && !flat.value.length ? { kind: 'empty', icon: 'search', text: `Sin resultados para «${q.value}»` } : null)))
+    const hasPanel = computed(() => Boolean(flat.value.length || status.value))
+    const optSize = computed(() => (props.size === 'xs' || props.size === 'sm' ? 'sm' : 'md'))
+
+    // ---- Cifras y casilla: solo tras un gesto ----
+    function gestureRoll() { rolling.value = false; nextTick(() => { rolling.value = true; nextTick(() => { if (![...document.querySelectorAll(`.xm-${id} .g-combobox__num.is-rolling, #${id}-surface .g-combobox__num.is-rolling`)].some((n) => hasAnim(n, 'g-combobox-roll'))) rolling.value = false }) }) }
+    const onNumEnd = (e) => { if (String(e.animationName).startsWith('g-combobox-roll')) rolling.value = false }
+    function tick(k) { ticking.value = k; nextTick(() => { const b = document.querySelector(`.g-combobox__box.is-ticking`); if (!b || !hasAnim(b.firstElementChild, 'g-combobox-tick')) ticking.value = null }) }
+
+    // ---- Gestos ----
+    function setModel(nextKeys) {
+      vals.value = nextKeys.filter((k) => k.startsWith('v:')).map((k) => byVal(k.slice(2))?.value ?? k.slice(2))
+      cust.value = nextKeys.filter((k) => k.startsWith('c:')).map((k) => k.slice(2))
+    }
+    function add(k, fromEl) {
+      if (full.value) return false
+      setModel([...keys.value, k])
+      undo.value = null; armed.value = null
+      const s = rowState.get(k) || {}
+      if (traceKeys.value.includes(k)) traceKeys.value = traceKeys.value.filter((x) => x !== k)
+      rowState.set(k, { ...s, fresh: true, entering: !surface.value || narrow.value, arriving: false })
+      tick(k); gestureRoll()
+      if (props.selection === 'list' && !surface.value) nextTick(() => settleRow(k, 'entering'))
+      if (surface.value && !narrow.value && fromEl) travel(k, fromEl)
+      return true
+    }
+    function remove(k, { trace = true } = {}) {
+      const idx = keys.value.indexOf(k)
+      if (idx < 0) return
+      setModel(keys.value.filter((x) => x !== k))
+      undo.value = { k, idx }; armed.value = null
+      if (trace && (props.selection === 'list' || (surface.value && !narrow.value))) traceKeys.value = [...traceKeys.value, k]
+      const s = rowState.get(k) || {}; rowState.set(k, { ...s, entering: false, arriving: false })
+      gestureRoll()
+    }
+    function restore() {
+      const u = undo.value; if (!u) return
+      if (props.max != null && count.value >= props.max) return
+      const ks = [...keys.value]; ks.splice(Math.min(u.idx, ks.length), 0, u.k); setModel(ks)
+      traceKeys.value = traceKeys.value.filter((x) => x !== u.k); undo.value = null; gestureRoll()
+    }
+    function settleRow(k, flag) { nextTick(() => { const el = document.querySelector(`[data-key="${CSS.escape(k)}"]`); if (!hasAnim(el, 'g-combobox-')) { const s = rowState.get(k); if (s) rowState.set(k, { ...s, [flag]: false }) } }) }
+    function onRowEnd(w, e) {
+      const n = String(e.animationName)
+      const s = rowState.get(w.key) || {}
+      if (n.startsWith('g-combobox-row-in')) rowState.set(w.key, { ...s, entering: false })
+      if (n.startsWith('g-combobox-arrive')) rowState.set(w.key, { ...s, arriving: false })
+      if (n.startsWith('g-combobox-row-out')) { traceKeys.value = traceKeys.value.filter((x) => x !== w.key); rowState.set(w.key, { ...s, leaving: false }) }
+    }
+    function newPass() {
+      for (const k of traceKeys.value) { const s = rowState.get(k) || {}; rowState.set(k, { ...s, leaving: true }) }
+      for (const [k, s] of rowState) if (s.fresh) rowState.set(k, { ...s, fresh: false })
+      nextTick(() => { for (const k of [...traceKeys.value]) { const el = document.querySelector(`.xm-${id} [data-key="${CSS.escape(k)}"]`); if (!hasAnim(el, 'g-combobox-row-out')) traceKeys.value = traceKeys.value.filter((x) => x !== k) } })
+    }
+    function travel(k, fromEl) {
+      const from = fromEl.getBoundingClientRect()
+      nextTick(() => {
+        const el = document.querySelector(`#${id}-surface [data-key="${CSS.escape(k)}"]`); if (!el) return
+        el.scrollIntoView({ block: 'nearest' })
+        const to = el.getBoundingClientRect()
+        el.style.setProperty('--_travel-x', (from.left - to.left) + 'px')
+        el.style.setProperty('--_travel-y', ((from.top + from.height / 2) - (to.top + to.height / 2)) + 'px')
+        const s = rowState.get(k) || {}; rowState.set(k, { ...s, arriving: true })
+        settleRow(k, 'arriving')
+      })
+    }
+    function toggle(r, el) {
+      if (!r) return
+      if (r.action) { showAllChosen.value = true; nextTick(() => { active.value = `${id}-opt-c${RM_CHOSEN}` }); return }
+      if (isSel(r)) remove(r.key)
+      else if (!add(r.key, el)) announce(`Puedes elegir hasta ${props.max}`)
+      inputEl.value && !surface.value && nextTick(() => inputEl.value.select())
+    }
+    const live = ref('')
+    const announce = (t) => { live.value = ''; nextTick(() => { live.value = t }) }
+
+    // ---- Abrir, colocar, teclado ----
+    function place() {
+      if (!open.value || surface.value || !popEl.value) return
+      const c = root.value.$el.querySelector('.g-input__control'); const r = c.getBoundingClientRect(); const p = popEl.value
+      const pad = 8, vh = window.innerHeight, below = vh - r.bottom - pad, above = r.top - pad
+      const natural = Math.min(p.querySelector('.g-combobox__panel')?.scrollHeight ?? 240, 384)
+      up.value = below < Math.min(natural, 240) && above > below
+      const s = p.style
+      s.setProperty('--_x', r.left + 'px'); s.setProperty('--_w', r.width + 'px'); s.setProperty('--_field-h', r.height + 'px')
+      s.setProperty('--_max', Math.max(96, up.value ? above : below) + 'px')
+      if (up.value) { s.setProperty('--_top', 'auto'); s.setProperty('--_bottom', (vh - r.bottom) + 'px') } else { s.setProperty('--_bottom', 'auto'); s.setProperty('--_top', r.top + 'px') }
+    }
+    function show() {
+      if (ro.value || dis.value) return
+      if (surface.value) { openSurface(); return }
+      if (!open.value) { snapshot.value = [...keys.value]; showAllChosen.value = false }
+      open.value = true
+      nextTick(() => { const p = popEl.value; if (p && !p.matches(':popover-open')) p.showPopover(); place() })
+    }
+    function hide() { open.value = false; snapshot.value = null; armed.value = null; const p = popEl.value; if (p && p.matches(':popover-open')) p.hidePopover() }
+    function openSurface() { if (ro.value || dis.value) return; q.value = ''; active.value = null; snapshot.value = [...keys.value]; surfOpen.value = true; nextTick(() => qEl.value?.focus()) }
+    function closeSurface() { surfOpen.value = false }
+    function onSurfClosed() { snapshot.value = null; traceKeys.value = []; inputEl.value?.focus() }
+    function move(d) {
+      const list = flat.value; if (!list.length) return
+      const i = list.findIndex((r) => r.id === active.value)
+      active.value = list[Math.min(list.length - 1, Math.max(0, i < 0 ? (d > 0 ? 0 : list.length - 1) : i + d))].id; auto.value = false
+      nextTick(() => document.getElementById(active.value)?.scrollIntoView({ block: 'nearest' }))
+    }
+    function onInput(e) {
+      const v = e.target.value
+      if (surface.value && e.target === inputEl.value) { e.target.value = ''; openSurface(); nextTick(() => { q.value = v }); return }
+      q.value = v; armed.value = null; undo.value = null
+      if (!surface.value) show()
+      auto.value = true; active.value = q.value && flat.value[0] ? flat.value[0].id : null
+      nextTick(place)
+    }
+    function onKey(e) {
+      if (e.isComposing) return
+      const inSurf = e.target === qEl.value
+      if (surface.value && !inSurf) { if (['Enter', 'ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); openSurface() } return }
+      const isOpen = inSurf ? surfOpen.value : open.value
+      if (e.key !== 'Backspace') armed.value = null
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!isOpen) show(); move(e.key === 'ArrowDown' ? 1 : -1) }
+      else if (e.key === 'Enter' && isOpen) {
+        e.preventDefault()
+        const r = flat.value.find((x) => x.id === active.value)
+        if (r && !r.action && isSel(r) && auto.value) { announce(r.o.label + ' ya está elegida'); e.target.select(); return }
+        if (r && isDis(r)) { announce(`Puedes elegir hasta ${props.max}`); return }
+        toggle(r, r && document.getElementById(r.id)); e.target.select()
+      } else if (e.key === 'Escape' && isOpen && !inSurf) { e.preventDefault(); e.stopPropagation(); hide() }
+      else if (e.key === 'Backspace' && !e.target.value && !e.repeat && count.value) {
+        e.preventDefault()
+        if (armed.value) { remove(armedKey.value, { trace: true }) } else { armed.value = keys.value[keys.value.length - 1] }
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && undo.value) { e.preventDefault(); restore() }
+    }
+    function onBlur() { if (!surfOpen.value) { hide(); q.value = '' } nextTick(measure) }
+    function onFocus() { nextTick(measure) }
+    function onClickField() { if (surface.value) { openSurface(); return } if (!open.value) show() }
+    function hover(r) { active.value = r.id; auto.value = false }
+    function clearAll() { const ks = [...keys.value]; setModel([]); undo.value = { all: ks }; if (props.selection === 'list') traceKeys.value = [...traceKeys.value, ...ks]; gestureRoll(); inputEl.value?.focus() }
+
+    const mq = matchMedia('(max-width: 520px)'); const onMq = () => { hide(); surfOpen.value = false; narrow.value = mq.matches }
+    const onMove = () => place()
+    let ro2 = null
+    onMounted(() => {
+      narrow.value = mq.matches
+      window.addEventListener('scroll', onMove, true); window.addEventListener('resize', onMove); mq.addEventListener('change', onMq)
+      ro2 = new ResizeObserver(() => measure()); const cell = root.value.$el.querySelector('.g-combobox__value'); if (cell) ro2.observe(cell)
+      document.fonts.ready.then(measure)
+      reg.items.set(id, {
+        root: () => root.value.$el, show, hide, openSurface, closeSurface, newPass, restore, measure,
+        set: (vs, cs = []) => { vals.value = [...vs]; cust.value = [...cs]; rowState.clear(); traceKeys.value = []; order.value = [...keys.value]; armed.value = null; undo.value = null; nextTick(measure) },
+        toggleIndex: (i) => { const r = flat.value[i]; toggle(r, r && document.getElementById(r.id)) },
+        add: (k) => add(k, null), removeKey: (k) => remove(k, { trace: true }), arm: () => { armed.value = keys.value[keys.value.length - 1] },
+        setActive: (i) => { active.value = flat.value[i]?.id ?? null; auto.value = false },
+        state: () => ({ count: count.value, keys: [...keys.value], shown: shown.value, traces: [...traceKeys.value] })
+      })
+    })
+    onBeforeUnmount(() => { window.removeEventListener('scroll', onMove, true); window.removeEventListener('resize', onMove); mq.removeEventListener('change', onMq); ro2 && ro2.disconnect(); reg.items.delete(id) })
+    watch([keys, armedKey], () => nextTick(measure))
+    watch(() => [flat.value.length, status.value], () => nextTick(place))
+    const rootClasses = computed(() => ['xm-' + id, 'g-combobox', 'g-combobox--appearance-' + props.appearance, 'g-combobox--multiple', 'g-combobox--selection-' + props.selection,
+      { 'has-chosen': count.value > 0, 'is-full': full.value, 'is-open': open.value && hasPanel.value && !surface.value, 'is-up': up.value && open.value, 'is-surface': surface.value }])
+    const aboutText = computed(() => (count.value ? `${count.value} seleccionadas: ${LF().format(items.value.map((it) => it.name))}` : ''))
+    const tally = computed(() => (props.max != null ? { n: count.value, suffix: ` de ${props.max}` } : { n: count.value, suffix: ' seleccionadas' }))
+    return { id, svg, root, inputEl, popEl, sentEl, qEl, rootClasses, parts, items, count, keys, full, open, q, active, blocks, flat, diffs, status, hasPanel, isSel, isDis, optSize, rows, hiddenRows, rowDiffs, rowsExpanded, surface, surfOpen, narrow, ro, dis, rolling, ticking, live, tally, aboutText, armedKey,
+      onInput, onKey, onBlur, onFocus, onClickField, hover, toggle, remove: (w) => { remove(w.key); nextTick(() => document.querySelector(`[data-key="${CSS.escape(w.key)}"] .g-combobox__undo`)?.focus()) }, undoRow: (w) => { undo.value = { k: w.key, idx: order.value.filter((k) => keys.value.includes(k) || k === w.key).indexOf(w.key) }; restore(); nextTick(() => document.querySelector(`[data-key="${CSS.escape(w.key)}"] .g-combobox__remove`)?.focus()) },
+      onRowEnd, onNumEnd, closeSurface, onSurfClosed, clearAll, attrs, RM_CHOSEN }
+  },
+  template: `
+  <g-input ref="root" :class="[rootClasses, attrs.class]" :style="attrs.style" :label="label" :hint="hint" :readonly="readonly || undefined" :disabled="disabled || undefined" :size="size" :placeholder="placeholder" :data-case="id">
+    <template #field="{ bind }">
+      <span class="g-combobox__value">
+        <span v-if="parts.length" ref="sentEl" class="g-combobox__sentence" aria-hidden="true"><template v-for="(p, i) in parts" :key="i"><span v-if="p.t === 'item'" :class="['g-combobox__sentence-item', { 'is-custom': p.it.kind === 'c', 'is-armed': p.armed }]"><span v-if="p.it.kind === 'c'" v-html="svg('pencil', 'g-combobox__sentence-icon')" style="display:contents"></span>{{ p.it.text }}</span><span v-else-if="p.t === 'rest'" class="g-combobox__sentence-rest"><span :key="'n' + p.n" :class="['g-combobox__num', { 'is-rolling': rolling }]" @animationend="onNumEnd">{{ p.n }}</span> más</span><span v-else class="g-combobox__sentence-sep">{{ p.v }}</span></template></span>
+        <input v-bind="bind" ref="inputEl" class="g-input__field g-combobox__field" type="text" role="combobox" :value="surface ? '' : q"
+          :aria-autocomplete="surface ? undefined : 'list'" :aria-haspopup="surface ? 'dialog' : 'listbox'" :aria-expanded="(surface ? surfOpen : open && hasPanel) ? 'true' : 'false'"
+          :aria-controls="surface ? id + '-surface' : id + '-list'" :aria-activedescendant="!surface && open && active ? active : undefined" :aria-describedby="count ? id + '-about' : undefined"
+          autocomplete="off" autocapitalize="none" spellcheck="false" @input="onInput" @keydown="onKey" @focus="onFocus" @blur="onBlur" @click="onClickField">
+        <span v-if="count" class="g-combobox__about" :id="id + '-about'">{{ aboutText }}</span>
+        <input v-for="it in items.filter((x) => x.kind === 'v')" :key="it.key" type="hidden" name="m" :value="it.o.value" :disabled="disabled || undefined">
+      </span>
+    </template>
+    <template #end>
+      <button v-if="clearable && count && !ro && !dis" type="button" class="g-combobox__clear" :aria-labelledby="id + '-clear-text ' + id + '-label'" @pointerdown.prevent @click="clearAll"><span class="g-combobox__clear-text" :id="id + '-clear-text'">Quitar todas</span><span v-html="svg('x')" style="display:contents"></span></button>
+      <span v-if="!ro && !dis" class="g-combobox__arrow" aria-hidden="true" @pointerdown.prevent="open ? $refs.inputEl.blur() : ($refs.inputEl.focus(), onClickField())" v-html="svg(surface ? 'chevrons-up-down' : 'chevron-down')"></span>
+    </template>
+  </g-input>
+  <teleport defer :to="'.xm-' + id">
+    <div class="g-combobox__live" role="status" aria-live="polite" aria-atomic="true">{{ surfOpen ? '' : live }}</div>
+    <div v-if="!surface" ref="popEl" :class="['g-combobox__popup', { 'is-empty': !hasPanel }]" popover="manual" @pointerdown.prevent>
+      <div class="g-combobox__popup-body">
+        <div class="g-combobox__panel">
+          <p v-if="status" :class="['g-combobox__status', 'g-combobox__status--' + status.kind]"><span v-html="svg(status.icon)" style="display:contents"></span><span>{{ status.text }}</span></p>
+          <ul class="g-combobox__list" :id="id + '-list'" role="listbox" aria-multiselectable="true" :aria-labelledby="id + '-label'" :hidden="!flat.length">
+            <template v-for="(b, bi) in blocks" :key="bi">
+              <li v-if="b.chosen" role="presentation"><ul class="g-combobox__group is-chosen" role="group" :aria-labelledby="id + '-grp-chosen'">
+                <li class="g-combobox__group-label" :id="id + '-grp-chosen'" role="presentation">Elegidas <span class="g-combobox__group-tally"><span :key="'t' + tally.n" :class="['g-combobox__num', { 'is-rolling': rolling }]" @animationend="onNumEnd">{{ tally.n }}</span>{{ max != null ? tally.suffix : '' }}</span></li>
+                <x-opt v-for="r in b.rows" :key="r.id" :r="r" :active="active" :sel="isSel(r)" :dis="false" :armed="r.key === armedKey" :ticking="ticking === r.key" :size="optSize" @pick="toggle" @hover="hover" @tickend="ticking = null"></x-opt>
+                <li v-if="b.more" :class="['g-combobox__option', 'g-combobox__action', 'g-combobox__action--all', { 'is-active': active === id + '-opt-all' }]" :id="id + '-opt-all'" role="option" aria-selected="false" @click="toggle({ action: true })"><span class="g-combobox__lead" aria-hidden="true" v-html="svg('chevron-down')"></span><span class="g-combobox__main"><span class="g-combobox__label">Ver las {{ b.more }}</span></span></li>
+              </ul></li>
+              <li v-else role="presentation"><ul class="g-combobox__group" role="group" :aria-label="'Catálogo'">
+                <x-opt v-for="r in b.rows" :key="r.id" :r="r" :active="active" :sel="isSel(r)" :dis="isDis(r)" :ticking="ticking === r.key" :diff="diffs[r.id]" :size="optSize" @pick="toggle" @hover="hover" @tickend="ticking = null"></x-opt>
+              </ul></li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <g-dialog v-if="surface" v-model="surfOpen" :id="id + '-surface'" :class="['g-combobox-surface', narrow ? 'g-combobox-surface--sheet' : 'g-combobox-surface--palette']" size="lg" mobile="sheet" :title="label" close-label="Cerrar" @closed="onSurfClosed">
+      <div class="g-combobox__search">
+        <span class="g-combobox__search-icon" aria-hidden="true" v-html="svg('search')"></span>
+        <input ref="qEl" class="g-combobox__search-field" type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" :aria-controls="id + '-list'" :aria-activedescendant="active || undefined"
+          :value="q" placeholder="Buscar…" autocomplete="off" spellcheck="false" @input="onInput" @keydown="onKey">
+      </div>
+      <div :class="['g-combobox__surface-body', { 'has-basket': !narrow }]">
+        <div class="g-combobox__panel">
+          <p v-if="status" :class="['g-combobox__status', 'g-combobox__status--' + status.kind]"><span v-html="svg(status.icon)" style="display:contents"></span><span>{{ status.text }}</span></p>
+          <ul class="g-combobox__list" :id="id + '-list'" role="listbox" aria-multiselectable="true" :aria-labelledby="id + '-label'" :hidden="!flat.length">
+            <template v-for="(b, bi) in blocks" :key="bi">
+              <li v-if="b.chosen" role="presentation"><ul class="g-combobox__group is-chosen" role="group" :aria-labelledby="id + '-grp-chosen'">
+                <li class="g-combobox__group-label" :id="id + '-grp-chosen'" role="presentation">Elegidas <span class="g-combobox__group-tally"><span :key="'t' + tally.n" :class="['g-combobox__num', { 'is-rolling': rolling }]" @animationend="onNumEnd">{{ tally.n }}</span>{{ max != null ? tally.suffix : '' }}</span></li>
+                <x-opt v-for="r in b.rows" :key="r.id" :r="r" :active="active" :sel="isSel(r)" :dis="false" :armed="r.key === armedKey" :ticking="ticking === r.key" :size="optSize" @pick="toggle" @hover="hover" @tickend="ticking = null"></x-opt>
+              </ul></li>
+              <li v-else role="presentation"><ul class="g-combobox__group" role="group" aria-label="Catálogo">
+                <x-opt v-for="r in b.rows" :key="r.id" :r="r" :active="active" :sel="isSel(r)" :dis="isDis(r)" :ticking="ticking === r.key" :diff="diffs[r.id]" :size="optSize" @pick="toggle" @hover="hover" @tickend="ticking = null"></x-opt>
+              </ul></li>
+            </template>
+          </ul>
+        </div>
+        <section v-if="!narrow" class="g-combobox__basket" :aria-labelledby="id + '-basket-title'">
+          <h3 class="g-combobox__basket-title" :id="id + '-basket-title'">Elegidas <span class="g-combobox__basket-tally"><span :key="'b' + tally.n" :class="['g-combobox__num', { 'is-rolling': rolling }]" @animationend="onNumEnd">{{ tally.n }}</span>{{ tally.suffix }}</span></h3>
+          <p v-if="!rows.length" class="g-combobox__basket-empty">Aún no hay nada elegido</p>
+          <x-rows v-else :id="id" :rows="rows" :numbered="numbered" editable basket :diffs="rowDiffs" @remove="remove" @undo="undoRow" @end="onRowEnd"></x-rows>
+          <button v-if="hiddenRows > 0 || rowsExpanded" type="button" class="g-combobox__rows-all" :aria-expanded="rowsExpanded ? 'true' : 'false'" :aria-controls="id + '-basket-rows'" @click="rowsExpanded = !rowsExpanded"><span v-html="svg('chevron-down')" style="display:contents"></span>{{ rowsExpanded ? 'Ver menos' : 'Ver las ' + count }}</button>
+        </section>
+      </div>
+      <div class="g-combobox__foot">
+        <span class="g-combobox__foot-tally"><span :key="'f' + tally.n" :class="['g-combobox__num', { 'is-rolling': rolling }]" @animationend="onNumEnd">{{ tally.n }}</span>{{ tally.suffix }}</span>
+        <g-btn class="g-combobox__done" :size="size" @click="closeSurface">Listo</g-btn>
+      </div>
+      <div class="g-combobox__live" role="status" aria-live="polite" aria-atomic="true">{{ surfOpen ? live : '' }}</div>
+    </g-dialog>
+  </teleport>
+  <teleport defer :to="'.xm-' + id + ' > .g-input__support'">
+    <div v-if="selection === 'list' && rows.length" class="g-combobox__chosen">
+      <x-rows :id="id" :rows="rows" :numbered="numbered" :editable="!readonly && !disabled" :diffs="rowDiffs" @remove="remove" @undo="undoRow" @end="onRowEnd"></x-rows>
+      <button v-if="hiddenRows > 0 || rowsExpanded" type="button" class="g-combobox__rows-all" :aria-expanded="rowsExpanded ? 'true' : 'false'" :aria-controls="id + '-rows'" @click="rowsExpanded = !rowsExpanded"><span v-html="svg('chevron-down')" style="display:contents"></span>{{ rowsExpanded ? 'Ver menos' : 'Ver los ' + count }}</button>
+    </div>
+  </teleport>`
+})
+
+const app = createApp({
+  setup() {
+    const slow = ref(false)
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    watch(slow, applySlow)
+    if (new URLSearchParams(location.search).get('slow')) slow.value = true
+    return { ALLERGY, DX, DXL, PEOPLE, SIZES, slow }
+  }
+})
+app.component('XMulti', XMulti)
+app.use(Grana)
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v === 'auditoria' ? 'auditoria-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const qs = new URLSearchParams(location.search)
+if (qs.get('theme')) { $('#t-theme').value = qs.get('theme'); setTheme(qs.get('theme')) }
+if (qs.get('dir')) document.documentElement.dir = qs.get('dir')
+document.documentElement.dataset.theme = qs.get('dark') ? 'dark' : 'light'
+raf2().then(() => document.fonts.ready).then(raf2).then(() => { for (const v of reg.items.values()) v.measure(); return raf2() }).then(() => { document.documentElement.dataset.ready = '1' })
+</script>
+</body>
+</html>

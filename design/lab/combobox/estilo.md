@@ -93,3 +93,87 @@ La regla provisional de dos líneas y las reglas de `__description`, `__facts`, 
 ## No verificado
 
 `forced-colors` real (solo emulado); lector de pantalla; teclado virtual real sobre la hoja; IME con el fantasma; Safari real; zoom 200/400 % real. La auditoría del componente real (paso 5) con tema distinto y oscuro está en `auditoria.md`.
+
+---
+
+# Fase 2 · `multiple` (coco)
+
+> Contrato: `design/contracts/combobox.md` «Fase 2 · Selección múltiple» (lima, #417 a #428; `tokens.md` §29.1, §29.6, §32; `input.md` N5). Estructura: `r03/` (kiwi; el usuario eligió A por defecto, B como `selection="list"`, C = `palette` + `multiple`). CSS: sección «FASE 2 · VARIAS» de `GCombobox.css` (sin tocar `GInput.css`, `GSummary.css` ni nada de la Fase 1). Banco: `estilo-multiple-banco.html` (componentes reales de `dist/` + marcado del contrato a mano; la receta entra al final de `g-input__support` con `<Teleport defer>`, donde la pondrá N5). Verificación: `GRANA_PW_PORT=4209 node design/lab/combobox/estilo-multiple-verificar.mjs` (con `GRANA_DIST=<copia de dist>` si bruno está compilando).
+
+## Qué le da personalidad (y lo que el CSS protege)
+
+1. **A · la frase.** Lo elegido se *escribe* en la línea del campo («Penicilina, Látex y 3 más»), con el ritmo de `Intl.ListFormat`: sin fichas, sin ×, sin insignia. Una sola línea con el alto de la del campo (**Δ0 medido de 0 a 8 y 40**, en la fila y lo de debajo). Cede **por texto**: «y N más» lleva peso de acción, y su cifra **rueda** desde abajo cuando cambia por un gesto (recortada a su propio hueco: `translate` y `clip-path` con la misma curva, nunca se pinta fuera). Con el foco la frase **se aparta** para el texto que se escribe (≤ 55 % de la celda) y se apaga a `text-muted`: lo elegido sigue ahí, pero el protagonista es la búsqueda.
+2. **La casilla salta.** Cada opción lleva una casilla con forma de control (la señal no cromática de «aquí se eligen varias»). Al marcar por un gesto, la marca entra **desde 0,4 con `--g-ease-bounce`** (segundo uso aprobado, §29.1; rebase medido 1,12 en los tres motores); al desmarcar, solo se funde. Es lo único que rebota: un control pequeño que responde con un golpe seco.
+3. **Quitar deja huella.** Retroceso marca antes de quitar con **tachado + selección** (en la frase, en «Elegidas» y en el renglón): se ve qué se va a ir y no depende del color. En B y C quitar no cierra el hueco: el renglón se convierte en un **rastro del mismo alto** (Δ0 medido) con el nombre tachado y **«Deshacer» como píldora de acento**, lo único con color del rastro, para que se encuentre sin buscarlo.
+4. **B · la receta registra la pasada.** Lo nuevo dice «Nueva» (etiqueta `accent-soft`) y lleva una **barra de acento al inicio** (lógica: a la derecha en RTL); el renglón nuevo **crece desde la línea anterior** (0fr → 1fr, sin medir alturas en JS) y lo de debajo baja con él, sin salto; en la pasada siguiente los rastros **se pliegan** igual, al revés.
+5. **C · lo marcado viaja a la cesta.** El renglón llega desde la fila marcada con el muelle de la ficha de la Fase 1 (el mismo uso de #336, vector acotado igual). La cesta es una columna de tarjetas sobre `surface-sunken` en el sitio de la vista previa (6 : 5); el rastro de la cesta es **el hueco de la tarjeta que se fue** (borde discontinuo).
+
+Todo el movimiento ocurre solo tras un gesto (bruno pone y retira las clases) y desaparece con `prefers-reduced-motion: reduce` (medido: ninguna animación `g-combobox-*` y ninguna clase pendiente; se quedan los fundidos de color y opacidad, como la marca de la casilla y la entrada del rastro).
+
+## Decisiones de estilo y desvíos del contrato (para lima)
+
+| Contrato | Ahora | Por qué (medido) |
+| --- | --- | --- |
+| Estado del tope `warning-soft` / **`warning-text`** | `warning-soft` / **`on-warning-soft`** | `warning-text` solo está garantizado sobre la superficie: sobre el tinte, **4,15:1 en el tema por defecto oscuro**. El par garantizado del tinte llega a 4,66 mínimo en 26 configuraciones |
+| Barra de «Nueva» en **`accent`** | **`accent-text`** | Regla transversal de #228: `accent` no es un trazo. Medido: spotify 1,29, amazon 2,14, stripe 2,64. Con `accent-text`: 4,52 mínimo |
+| «Deshacer» en **`accent-text`** | **Píldora `accent-soft` / `on-accent-soft`** (al pasar: `accent` / `on-accent`) | El rastro va sobre `surface-sunken`, donde `accent-text` no está garantizado: 4,19 a 4,32 en siete temas generados claros. El par del tinte: 4,51 mínimo, también en la cesta |
+| Casilla marcada `brand` / `on-brand` | Relleno `brand`, marca `on-brand`, **contorno `text`** (en la activa invertida de la paleta, contorno `surface`) | `brand` está garantizado como relleno con su par, no como forma ≥ 3:1 sobre la superficie: lustre 1,77 y spotify 1,92. Con el contorno de tinta, 15,18 mínimo; en el tema por defecto `text` y `brand` son casi el mismo tono (no cambia el aspecto) |
+| «Ver los N» (sin color fijado) | `text` con peso de acción | Como «Mostrar más» de la Fase 1; sobre `surface-sunken` (la cesta) `accent-text` tampoco estaría garantizado |
+
+Ninguno añade tokens; los cuatro usan pares que el motor ya garantiza.
+
+## Constantes y alias (no son tokens)
+
+- **Proporción frase/texto con el foco: 55 %** de la celda como máximo para la frase (la de kiwi en r03); el `<input>` toma el resto (base 0: no compite por su ancho intrínseco). Medido: con tres elegidas en 240px, la frase cede a «Penicilina y 2 más» y ocupa el 41 %.
+- **Casilla:** `space × 5` (× 4 con el campo `xs`/`sm`, cuando la ficha es `sm`), el tamaño de `GCheckbox md`/`sm`; marca al **0,72** de la casilla (la proporción de `GCheckbox`); centrada en la línea del título (`body-line`; `body-sm-line` con la ficha `sm`): Δ ≤ 1px medido. Alias `--_cb-box`, `--_cb-line`.
+- **Renglón (B y C):** alto mínimo `--_cb-rowh` = `body-line + body-sm-line + space × 2` (la `GSummary row` de dos líneas `md` + `space-1` arriba y abajo): **52px** en el tema por defecto (50px en el de auditoría). El rastro toma el mismo mínimo, por eso mide igual. Columnas fijas (número · ficha · «Nueva» · botón): una pieza ausente deja su pista en 0. Número en `space × 5` de ancho, cifras tabulares.
+- **Barra de «Nueva»:** `--g-focus-width` de ancho (la de la activa del prototipo).
+- **Cesta:** 6 : 5 frente a los resultados (la proporción de la vista previa que sustituye); medido 1,200.
+- **Cifras:** el hueco de la cifra (100 %) es la geometría del giro; escala 0,4 de la casilla (§29.6); cota del viaje `space × 2 / 0.038` (la de la Fase 1, alias `--_cb-tx/ty`).
+- Keyframes nuevos: `g-combobox-roll`, `g-combobox-tick`, `g-combobox-row-in`, `g-combobox-row-out` (el viaje reutiliza `g-combobox-arrive`). Ninguno empieza por `g-reject`.
+
+## Lo que el CSS espera del `.vue` (para bruno)
+
+- Raíz: `g-combobox--multiple`, `g-combobox--selection-{inline|list}`, `has-chosen`, `is-full` (además de las de la Fase 1; el tamaño por `g-input--size-*`).
+- **Frase:** `span.g-combobox__sentence` **hijo directo de `.g-combobox__value` y antes del `<input>`**; dentro, solo `__sentence-item` / `__sentence-sep` / `__sentence-rest` como hijos directos, en el orden de `formatToParts`. El icono del texto libre, un `GIcon` con clase `g-combobox__sentence-icon` dentro del elemento. **Medida:** el primero solo se recorta cuando va solo (o solo con «y N más»); mientras haya varios, ninguno encoge y **la frase desborda** (`scrollWidth > clientWidth`): esa es la lectura para ceder uno más. Observar con `ResizeObserver` **la propia frase** (su máximo cambia del 100 % al 55 % con el foco y al abrir), no solo la celda. La marcada por Retroceso se saca a la vista ocupando el último sitio visible. Con elegidos en `inline`, el placeholder se oculta por CSS (no hace falta quitarlo).
+- **Cifra:** `span.g-combobox__num` (es `inline-block`); `is-rolling` en ella; la animación corre **en la propia cifra**.
+- **Casilla:** `span.g-combobox__box` **hijo directo de la opción** y primero; la marca, un `GIcon` (`svg.g-icon`) **hijo directo** de la casilla. `is-ticking` en la casilla; la animación corre **en el icono** (su `animationend` sube a la casilla). Para saber si hay animación calculada, filtrar `getAnimations()` por `animationName` con el prefijo: el icono tiene además una **transición** de opacidad, que no cuenta.
+- **«Elegidas»:** `ul.g-combobox__group.is-chosen > li.g-combobox__group-label` con `span.g-combobox__group-tally` (la cifra dentro, en `__num`); la fila «Ver las N» es hija directa del grupo.
+- **Renglón:** `li.g-combobox__row` con hijos directos `__row-number`, la `GSummary` (o el contenido del slot `chosen`, sin envoltura o con una; va a la pista flexible), `__row-fresh`, `__remove`; rastro: `__trace` + `__undo`. **`--_travel-x/y` e `is-arriving` en el `li`** (la animación corre en él). `is-entering`/`is-leaving` también en el `li`; retirar por `animationend` de `g-combobox-row-in`/`-row-out`/`g-combobox-arrive`, o en el acto si no hay animación calculada con ese prefijo (con `reduce` no la hay). Un `li` con las dos clases (`is-entering` + `is-arriving`) anima las dos.
+- **Receta:** `div.g-combobox__chosen` como contenido del slot interno `below` (último hijo de `g-input__support`) con `ul.g-combobox__rows` y `button.g-combobox__rows-all` (el chevron, un `GIcon` dentro; gira con `aria-expanded="true"`).
+- **Cesta:** `section.g-combobox__basket` **hermana de `.g-combobox__panel` dentro de `.g-combobox__surface-body.has-basket`** (segunda columna), con `h3.g-combobox__basket-title` (y `__basket-tally` dentro), `__basket-empty` o `ul.g-combobox__rows`, y `__rows-all`.
+- **Pie:** `div.g-combobox__foot` como **último hijo del cuerpo del diálogo** (`.g-dialog__body`, columna flex sin relleno en la superficie), no en el `footer` de `GDialog` (pondría su propio relleno); `__foot-tally` y el `GBtn` con clase `g-combobox__done`.
+- Estado del tope: `p.g-combobox__status.g-combobox__status--max` en el panel, fuera del `listbox`, con el `GIcon` `triangle-alert`.
+- Con `multiple`, no pintar `__check` (no hay regla que lo oculte).
+
+## Medidas (banco, tres motores: 1389/1389 comprobaciones)
+
+| Medida | Resultado |
+| --- | --- |
+| A · Δ0 en una `GFormRow` de 0, 1, 2, 3, 5, 8 y 40 elegidas | caja, raíz, vecina y lo de debajo: **0,00px** en los tres motores; también 0 / 8 / 40 en los 26 temas medidos |
+| A · la frase | una línea (alto = el de la línea del campo), todos los trozos a la misma altura, dentro de la celda, sin desbordar tras ceder, «y N más» desde 5 |
+| A · con el foco | frase ≤ 55 % (41 % con tres en 240px), `text-muted`, el `<input>` ≥ 45 % |
+| A · cesión | 40 elegidas: «Penicilina, Látex y 38 más»; estrecho (200px) con el primero largo: solo el primero, con elipsis, + «y 2 más» |
+| A · tamaños | alto de la caja = `GInput` en `xs`…`xl` |
+| Casilla | `space × 5`, centrada en la línea del título (Δ ≤ 1px), marca 0,72 visible solo en la elegida; rebote: escala desde 0,4 hasta un pico de 1,12 en Chromium, Firefox y WebKit |
+| «Elegidas» | primer grupo, rótulo en `text`; 12 filas + «Ver las 13» dentro del grupo |
+| Tope | estado con icono fuera del `listbox`, `is-full`, casillas de las no elegibles con `border` |
+| B · receta | último hijo de `g-input__support`; en su columna sin pisar a la vecina; renglón 52px; agregar: caja, etiqueta y vecina Δ0, lo de debajo baja **52px** (= un renglón), con alturas intermedias; rastro **Δ 0,00px** de alto y de posición; pasada: el rastro se pliega con alturas intermedias y «Nueva» se retira; tope 6 y «Ver los 8» con el chevron girado |
+| B · áreas | «Quitar» 24 × 24, «Deshacer» y «Ver los N» ≥ 24 de alto; con puntero grueso (Chromium táctil) los tres ≥ 44 × 44 |
+| C · cesta | 6 : 5 (1,200), sin solapes ni desborde horizontal, pie dentro y bajo el cuerpo, «Listo» `GBtn`; homónimos marcados en la cesta; viaje con `g-combobox-arrive` y `--g-ease-spring` (posiciones intermedias), clases retiradas |
+| Hoja 375 y 320 | hoja común con «Elegidas», sin cesta, opciones ≥ 44px, sin desbordamiento, «Listo» a la vista |
+| RTL | la frase empieza en el borde de inicio (Δ < 0,6px); barra de «Nueva» a la derecha; número, casilla y cesta en espejo |
+| Movimiento reducido | ninguna animación `g-combobox-*` (casilla, cifras, renglón, pliegue, viaje), ninguna clase pendiente; el fundido de la marca se queda |
+| `forced-colors` (emulado en los tres motores, L42) | casilla `CanvasText`, marcada `Highlight` con la marca `HighlightText` (en la activa, invertida); Retroceso: `Highlight`/`HighlightText` + tachado (frase y renglón); «Nueva» por su texto con borde `CanvasText`; barra `CanvasText`; rastro `CanvasText` tachado |
+| Fase 1 intacta | estilos calculados de todos los elementos del combobox del playground real (reposo, `field` abierto, paleta abierta; 2083 elementos) con y sin la sección de la Fase 2: **0 diferencias** en los tres motores |
+
+**Contraste** (mínimo de 34 configuraciones: por defecto y tema del CLI de `auditoria-tema.json`, claro y oscuro, en los tres motores; los once temas generados claro y oscuro en Chromium): frase 15,18 · con el foco 7,94 · «y N más» 15,18 · marcada por Retroceso 13,65 · lápiz 7,38 · «Elegidas» 15,18 · recuento 7,38 · **casilla: borde 3,43, contorno marcada 15,18, marca 4,70, en la activa invertida 15,18** · tope 4,66 · número 7,38 · «Nueva» 4,51 · barra 4,52 · rastro 6,87 · «Deshacer» 4,51 (también en la cesta) · renglón marcado 13,65 · «Quitar» 7,38 · «Ver los N» 15,18 · cesta: título 16,06, recuento 6,87, vacía 6,87 · pie 7,38.
+
+## Pendientes
+
+- **lima:** registrar los cuatro desvíos de la tabla de arriba en `combobox.md` §«Tokens (Fase 2)» y `tokens.md` §32 (siguen sin tokens nuevos). **Hueco:** el rastro mide lo mismo que el renglón porque los dos toman el alto de la `GSummary` de dos líneas; un slot `chosen` más alto que dos líneas haría el rastro más bajo (Δ ≠ 0). Si se quiere garantizar con cualquier slot, el `.vue` tendría que escribir el alto medido del renglón en línea al convertirlo (p. ej. `--_row-h`, §29.5); hoy el contrato dice «sin interactivos» pero no limita el alto.
+- **bruno:** lo de «Lo que el CSS espera del `.vue`». Auditoría del componente real (paso 5): `design/lab/combobox/auditoria-multiple.md`.
+
+## No verificado
+
+`forced-colors` real (solo emulado), lector de pantalla, táctil real y teclado virtual sobre la hoja, Safari real, zoom 200/400 %. El banco no es el componente: la cesión, la pasada y el viaje los hace aquí un modelo mínimo; la medida por lotes real y la compuerta de rendimiento son de bruno.
