@@ -414,3 +414,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 - **Táctil real:** arrastre, tirador y hoja inferior con dedos.
 - **Cambio de horario de verano** en la fecha visible.
 - **Patrones de disponibilidad y bloqueo:** coco decide cómo se ven con los tokens nuevos y comprueba su contraste (el texto sobre el patrón ≥ 4.5:1).
+
+## Contraste de lo pulsado y de hoy (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+- **Botones de vista con `aria-pressed="true"`** (barra y tira): relleno `--g-color-primary` y texto `--g-color-on-primary` sin cambio; **contorno `--g-color-primary-text`** (borde en la barra; trazo interior en la tira, que no tiene borde; el anillo de foco no cambia).
+- **Hoy** (cabecera y celda de Mes, rellenos `primary`): trazo interior `--g-color-primary-text`. Hoy también lleva `aria-current="date"`.
+- Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

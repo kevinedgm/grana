@@ -8,7 +8,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 ## Principios
 
 - **Orientación primero.** El item activo (`aria-current="page"`) y su **rama** son reconocibles en los cuatro formatos; un solo estado de navegación (destino actual y ramas abiertas) se comparte entre ellos.
-- **El nombre vive en el DOM.** Las etiquetas del riel y de los items inactivos de la píldora se ocultan **visualmente**, no se quitan; el tooltip es ayuda visual y `aria-hidden`, **nunca la única fuente del nombre**. La pista del riel (`g-sidebar__tip`) pasará al motor interno de `GTooltip` en modo `none` (misma forma, mismos tiempos 350/600) en un encargo aparte (#392, `tooltip.md`).
+- **El nombre vive en el DOM.** Las etiquetas del riel y de los items inactivos de la píldora se ocultan **visualmente**, no se quitan; el tooltip es ayuda visual y `aria-hidden`, **nunca la única fuente del nombre**. La pista del riel es el motor interno de `GTooltip` en modo visual (§«Pista del riel», #436; `tooltip.md` §«Modo visual»; sustituye a `g-sidebar__tip`).
 - **No depende del puntero.** Un panel flotante se abre con clic, Enter, Espacio o →; el foco solo no lo abre; Esc lo cierra y devuelve el foco.
 - **Profundidad contenida:** grupos → items → **un nivel** de hijos.
 - **Presenta y emite intención.** El destino actual es un prop (`modelValue`); el componente emite `navigate` (con el evento nativo, cancelable) y `update:modelValue`. La navegación real (router, `href`) es de la aplicación.
@@ -122,7 +122,7 @@ El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario p
 | Item activo | Fondo, contorno y peso pasan de un item al otro con un fundido corto | Sin re-render |
 | Pulsación | Encogimiento mínimo (`scale`) de items y celdas del navbar | Suelta más rápido que aprieta |
 | Panel flotante | Nace de la muesca (`transform-origin`), con opacidad, escala y un desplazamiento corto; **también se anima al cerrar** | Persistente; sin `scale(0)` |
-| Pista | Solo un fundido; instantánea tras otra reciente | |
+| Pista | La de `GTooltip` (#436): fundido; relevo sin entrada tras otra reciente; **viaje** entre items de la navegación con `--g-duration-press` + `--g-ease-out` | Con movimiento reducido, el viaje salta |
 | Navbar | La barra **sube desde el borde** al pasar a este formato (`is-entering`); la celda actual **crece** y la etiqueta entra tras ella | La píldora se anima cambiando `is-current` en el mismo `<li>` |
 | Drawer | El panel **se desliza desde su borde de origen** (su propio ancho, sin píxeles; espejado en RTL) con el fondo fundiéndose; **también se anima al cerrar**; los grupos entran escalonados (~30ms) | `<dialog>` con `allow-discrete` |
 | Indicadores | Aparecen con un pequeño crecimiento | |
@@ -142,7 +142,7 @@ Cabecera (logo, botón de contraer, búsqueda opcional), región de navegación 
 Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (siguen en el DOM); iconos de **44px**; el estado activo se conserva; un contador o punto pasa a una marca sobre el icono. Un padre lleva `aria-haspopup="true"` y una marca de submenú.
 
 - **Panel flotante** (`popover="manual"`, `role="group"`, `aria-label` = etiqueta del padre): título visible con el nombre del padre y sus hijos, **pegado al item** con un hueco de 4px y una muesca que lo conecta; se abre con **clic, Enter, Espacio o →** y con el **puntero encima** (retardo de **150ms**); **el foco solo no lo abre**. Al abrir con teclado, el foco va al hijo actual (o al primero); ↑ ↓ Inicio Fin se mueven; **Esc o ←** cierran y devuelven el foco al padre; Tab hacia fuera lo cierra; clic fuera lo cierra. Con el puntero, salir del item o del panel da **220ms de gracia** para llegar al otro.
-- **Pista** (un solo elemento `popover`, `aria-hidden`): el nombre del item, junto a él; aparece con el puntero tras **350ms** y **sin retardo** con `:focus-visible`; **si ya se mostró otra hace menos de ~600ms, aparece al instante** (sin retardo ni fundido: clase `is-instant`); no aparece en padres (su panel ya lleva el nombre).
+- **Pista**: el nombre del control, junto a él, con la forma y el comportamiento de `GTooltip` (§«Pista del riel», #436): con el puntero tras **350ms**, al instante con el foco **por navegación**, al instante y sin entrada si otra se vio hace menos de **600ms**; también en los **padres** hasta que se abre su panel.
 - **Superpuesto (`overlay`):** la expansión ocurre encima del contenido.
 
 ### Navbar inferior («píldora activa»)
@@ -196,7 +196,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 
 <!-- Riel: el mismo marcado, con g-sidebar--mode-rail; el padre lleva aria-haspopup="true" y aria-expanded según su panel -->
 <div class="g-sidebar__fly" popover="manual" role="group" aria-label="Proyectos"><div class="g-sidebar__fly-title">Proyectos</div><ul>…<li><a class="g-sidebar__link" href="/p" aria-current="page">…</a></li></ul></div>
-<div class="g-sidebar__tip" popover="manual" aria-hidden="true">Inicio</div>
+<div class="g-tooltip" popover="manual" aria-hidden="true">…<span class="g-tooltip__text" dir="auto">Inicio</span>…</div>   <!-- uno por control del riel, al final de la raíz (#436) -->
 
 <!-- Navbar -->
 <nav class="g-sidebar g-sidebar--mode-navbar" aria-label="Principal">
@@ -212,7 +212,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 - **`<nav>` con solo enlaces y botones de submenú**: la cabecera y el pie van fuera de la región de navegación. En el navbar, el `<nav>` es la raíz.
 - **Nombre accesible = texto real.** Las etiquetas ocultas visualmente usan el patrón estándar de texto oculto; **no** se sustituyen por `aria-label`. Los indicadores visibles son `aria-hidden` y el texto para lectores es `g-sidebar__sr` (`badgeLabel`).
 - **Los grupos** son `<ul>` con `aria-labelledby` (título), también en el riel (título oculto visualmente, presente).
-- **Panel y pista:** `popover="manual"`; **son elementos persistentes** (uno por sidebar; el panel cambia de contenido y de nombre al abrirse para otro padre; la pista es una sola instancia): se muestran con `showPopover()` y se ocultan con `hidePopover()`, **sin quitarlos del DOM**, para que su salida se anime.
+- **Panel y pistas:** `popover="manual"`; **son elementos persistentes** (el panel, uno por sidebar, cambia de contenido y de nombre al abrirse para otro padre; las pistas, **una por control del riel**, #436): se muestran con `showPopover()` y se ocultan con `hidePopover()`, **sin quitarlos del DOM**, para que su salida se anime.
 
 ## Teclado
 
@@ -265,6 +265,36 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 
 **Nota para bruno:** los demás eventos (`click`, `keydown`…) no se declaran; llegan a la raíz. Al elegir en el drawer, el foco vuelve al botón que lo abrió **antes** de emitir. Un item de solo acción (sin `href` ni `children`) emite `navigate` y no cambia `modelValue` si se cancela.
 
+## Pista del riel (motor interno de `GTooltip`, modo visual; DECISIONS.md #436; cierra #113)
+
+Regla común en `tooltip.md` §«Modo visual» (#433); aquí, lo propio de `GSidebar`. **Sustituye** la lógica de `g-sidebar__tip` (un solo nodo, `showTip`/`hideTip`, `is-instant`). **Estado:** aprobado por lima; pendiente de **bruno** y **coco**.
+
+- **Cuándo aparece.** Solo con el formato resuelto **`rail`**, en los controles cuyo nombre se oculta visualmente en el riel: **cada item de la navegación** (enlaces, items de solo acción y **padres**), el disparador de **búsqueda** (`g-sidebar__search`) y el botón **contraer/expandir** (`g-sidebar__toggle`). **Padres** (cambia «no aparece en padres»): la pista los nombra hasta que su panel se abre; antes, quien llegaba con el teclado a un padre no veía su nombre (el foco no abre el panel). **No** en los hijos del panel flotante (tienen etiqueta visible), ni en `expanded`, `drawer` o `navbar`, ni en el slot `user` (es de la aplicación).
+- **De dónde sale el texto.** Items: `item.label` (el texto de `g-sidebar__label`, oculto en el riel y nombre real; sin `badgeLabel`, cuya marca se ve sobre el icono). Búsqueda: el texto de su `g-sidebar__label`. Contraer/expandir: el de su `aria-label` (`labels.expand` en el riel). Con el slot `item`, sigue siendo `item.label`.
+- **Nodos.** Uno por control de los anteriores, **al final de la raíz** (donde estaba `g-sidebar__tip`), en el orden del documento; existen en todos los formatos y solo se activan en el riel (`disabled()`), porque el sidebar no reconstruye su DOM al cambiar de formato. Al salir del riel, la pista abierta se cierra.
+- **Elemento y ancla.** El enlace o botón es a la vez enfocable y caja visible (sin `data-g-tooltip-box`); lleva `data-g-tooltip` mientras tenga nodo.
+- **Viaje en grupo.** Los items están dentro del `<nav>` (`g-sidebar__nav`), que es su grupo: la pista **viaja** de item en item, también entre grupos, con el puntero y con ↑ ↓ Inicio Fin. Búsqueda y contraer están en la cabecera, fuera del `<nav>`: su grupo es otro y entre ellos y los items no viaja (aparece al instante dentro de `SKIP`). **Lado:** `right` lógico (fin de línea; a la izquierda en RTL) pasado con `placement()`, sin añadir `aria-orientation` al `<nav>`; se voltea si no cabe (un riel en el borde final de la página).
+- **Tiempos.** Los del motor: `OPEN` 350 ms y `SKIP` 600 ms (los de antes), más `CLOSE` 100 ms de gracia. El foco abre al instante solo si es **por navegación** (antes bastaba `:focus-visible`).
+- **Con el panel flotante.** Un padre lleva `aria-expanded`: con el puntero, el panel abre a los 150 ms y la pista (350 ms) no llega a verse; si abrió al instante por `SKIP`, se cierra al abrirse el panel (`check()`). Con el teclado, Tab o ↑ ↓ hasta un padre muestran su pista; Intro, Espacio o → abren el panel y la cierran. Contraer/expandir lleva `aria-expanded="true"` en `expanded`, así que ahí nunca abre (y no hace falta: solo se activa en el riel).
+- **Esc.** Con una pista abierta, el primero la cierra sin mover el foco (`preventDefault()`); el sidebar ignora un Esc con `defaultPrevented` fuera del panel (dentro del panel no hay pista abierta: su padre está expandido).
+- **Táctil** (riel en una tableta). Pulsación larga sobre un item muestra el nombre y **no navega**: no se emiten `navigate` ni `update:modelValue`, el enlace no se sigue y el menú o la vista previa del enlace del sistema no aparecen (`-webkit-touch-callout: none` de `[data-g-tooltip]`); sobre un padre, no abre el panel. Un toque normal hace lo de siempre.
+- **Sin duplicar el anuncio:** nombre real de cada enlace y botón sin cambio (etiqueta oculta o `aria-label`, `g-sidebar__sr`); ningún `aria-*` nuevo.
+- **#383:** los nodos son hijos de la raíz: todo selector de `GSidebar.css` sobre los hijos de la raíz (`> *`, `:last-child`, `+`, `~`) lleva la exclusión `:where(.g-tooltip)`; ninguna medida del sidebar (umbrales del contenedor) los cuenta.
+- **Fuera de este encargo:** la **navbar** (sus items inactivos muestran solo el icono, «Límites conocidos»): la pulsación larga podría nombrarlos con el mismo motor; queda como **pregunta para el usuario**, no decidida aquí.
+
+### Encargo a bruno (Opus: se posiciona sobre otros) · `GSidebar.vue`, pruebas, `meta.json`
+
+1. Quitar `g-sidebar__tip`, `showTip`, `hideTip`, `tipT`, `tipLast` e `is-instant`; nodos del modo visual con `attach(ctrl, node, { placement: () => 'right', disabled: () => format !== 'rail' })` para items, padres, búsqueda y contraer; `check()` al abrir y cerrar el panel; cerrar al cambiar de formato; `destroy` al quitar items y al desmontar.
+2. Pulsación larga sin navegar ni abrir el panel.
+3. Pruebas: las comunes de `tooltip.md` §«Modo visual» más: solo en `rail`; padres con pista por teclado que se cierra al abrir el panel; viaje con ↑ ↓ y entre grupos; RTL a la izquierda; ningún `navigate` tras la pulsación larga; Esc cierra la pista y no el panel ni el drawer. Las pruebas de la pista vieja (350/600, `is-instant`) se reescriben contra el motor. Playwright en los tres motores (puerto propio).
+4. `GSidebar.meta.json`: la pista en la descripción del riel; peso medido.
+
+### Encargo a coco (Opus) · `GSidebar.css` y medida
+
+1. Quitar el estilo de `g-sidebar__tip` e `is-instant` (la pista usa `GTooltip.css`); #383 sobre los hijos de la raíz; Δ0 de rectángulos del sidebar en los cuatro formatos con y sin nodos.
+2. **Medir la pestaña contra cada control del riel** (a la derecha: Δ < 1px del alto y del borde del item), items de 44px, padres con su marca de submenú, búsqueda y contraer; densidades; RTL; `variant` `fixed` y `floating`; claro, oscuro y un tema distinto; `forced-colors`; movimiento reducido (el viaje salta). Comprobar que la pista y el panel flotante no se ven a la vez sobre el mismo padre.
+3. Táctil: `[data-g-tooltip]` con `pointer: coarse` en los enlaces del riel (sin vista previa del enlace ni selección).
+
 ## Espacio en el diseño
 
 La aplicación reserva el espacio del sidebar en su diseño; el componente no empuja el contenido:
@@ -311,11 +341,12 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__link` (+ `is-active`, `is-branch`), `__parent`, `__sub`, `__chevron` | Enlace y submenú | Según item |
 | `g-sidebar__icon`, `__label`, `__badge`, `__sr` | Partes del item | Según item |
 | `g-sidebar__foot` | Pie | Con el slot `user` |
-| `g-sidebar__fly`, `__fly-title`, `g-sidebar__tip` | Panel flotante y pista | Solo riel |
+| `g-sidebar__fly`, `__fly-title` | Panel flotante | Solo riel |
+| `g-tooltip` (`aria-hidden`, modo visual; `tooltip.md` §«Modo visual») | Pista de cada control del riel | Siempre presentes; activas solo en riel (#436). **`g-sidebar__tip` desaparece** |
 | `g-sidebar__bar`, `__tab` (+ `is-current` en el `li`), `__more`, `g-sidebar__label--hidden` | Navbar | Solo navbar |
 | `g-sidebar__drawer` | `<dialog>` | Drawer |
 | `is-open` | `g-sidebar__sub` | Submenú abierto (cerrado: sin la clase y con `inert`) |
-| `is-instant` | `g-sidebar__tip` | La pista aparece sin fundido (otra se mostró hace un momento) |
+| ~~`is-instant`~~ | — | Sustituida por `data-instant` del nodo de la pista (#436) |
 | `is-entering` | Raíz en `navbar` | Solo mientras la barra entra al pasar a este formato (bruno la pone y la quita al terminar la animación) |
 
 ## Resolución de hallazgos de r01

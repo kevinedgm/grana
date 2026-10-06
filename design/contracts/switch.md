@@ -107,6 +107,7 @@ Enter **no** alterna (comportamiento nativo del checkbox; dentro de un formulari
 | `--g-color-surface` | Fondo del riel apagado |
 | `--g-color-border-control` | Contorno del riel apagado (≥ 3:1) y pulgar apagado |
 | `--g-color-{color}`, `--g-color-on-{color}` | Relleno del riel encendido; pulgar y marca encendidos |
+| `--g-color-{color}-text` | **Contorno del riel encendido** (`tokens.md` §7.1, #431): el relleno solo no llega a 3:1 contra la superficie con una marca pálida |
 | `--g-color-surface-sunken` | Fondo de `readonly` |
 | `--g-color-border-strong` | Estado `disabled` |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiqueta; ayuda; estado `disabled` |
@@ -181,3 +182,12 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 **Advertencia (#169):** en el riel, borde **discontinuo de un solo trazo** (no doble).
 
 **Clases nuevas** (contrato bruno–coco): `g-switch__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-switch__error` desaparece).
+
+## Contraste del riel encendido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+**Estado:** aprobado por lima; pendiente de **coco**. Sin cambio de `.vue`, API ni tokens.
+
+- **Encendido:** relleno `{color}` (sin cambio) y **contorno `{color}-text`** (antes `{color}`). El pulgar (`on-{color}`) y sus marcas (`{color}` sobre el pulgar) no cambian: son pares garantizados. Apagado, `readonly`, `disabled` y `forced-colors`, sin cambio.
+- `GSwitch.css` no define hoy `--_text`: coco lo añade (`--g-color-{familia}-text`) al bloque base y a cada `.g-switch--color-*`, como `GCheckbox`.
+- En el tema por defecto, `brand` y `accent` sin cambio visible (`-text` = base).
+- Selectores, temas y medida: encargo único de coco en `checkbox.md` §«Contraste de lo marcado».

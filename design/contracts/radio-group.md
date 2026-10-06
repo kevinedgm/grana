@@ -79,7 +79,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 - **`modelValue`:** el `value` de la opción elegida, **con su tipo original** (número, booleano), comparado con `===`. `null` (o `undefined`) = sin selección: ningún radio `checked` y el grupo **no aparece** en `FormData`. Un valor que no está en `options` se trata como sin selección y avisa. **Nota para bruno:** `type: [String, Number, Boolean]` con `String` **antes** de `Boolean` (si no, Vue convierte `''` en `true`) y `default: null` (si no, Vue convierte la prop ausente en `false`).
 - **Controlado:** al elegir, el componente emite `update:modelValue` y **no** cambia nada por su cuenta; si el consumidor no actualiza el modelo, el `checked` del DOM se **vuelve a alinear** con `modelValue` (como `GCheckbox`).
 - **`appearance`:** estructura, no estilo (tabla «Apariencias»). Fija la **raíz** (#268): `inline` y `segmented` → `<div role="radiogroup">` con tres hijos (etiqueta · caja · pie), que **comparten línea** en una `GFormRow`; `list`, `chip` y `card` → `<fieldset role="radiogroup">` con `<legend>`, siempre en su propia fila. La raíz **no** cambia según dónde esté el componente (sin saltos de marcado; igual en SSR). Valores en **singular**, los de `GCheckbox`/`GCheckboxGroup` `layout` (#267).
-- **`labelMode`:** `full` (etiqueta visible) o `icon` (solo icono: la etiqueta **no sale del DOM**, se oculta con el patrón de texto oculto accesible y sigue siendo el nombre del radio; **sin pista visual hasta el encargo del motor interno de `GTooltip`**, #113, #392: pista `aria-hidden` con el nombre en el DOM, en un encargo aparte con su enmienda de este contrato). Solo en `segmented` y `chip`; en otra apariencia cuenta como `full` y avisa. Una opción que **no tiene icono** (regla de `GTabs`, #202: slot `icon` y `option.icon` con valor, o sin slot y `option.icon` cadena) conserva su etiqueta visible y avisa. Pensado para iconos inequívocos (formato, alineación, vista); en una pregunta de formulario se prefiere texto. Sin `auto`: un segmentado que no cabe se apila, no reduce etiquetas.
+- **`labelMode`:** `full` (etiqueta visible) o `icon` (solo icono: la etiqueta **no sale del DOM**, se oculta con el patrón de texto oculto accesible y sigue siendo el nombre del radio; con **pista visual** del motor interno de `GTooltip` en modo visual: `aria-hidden`, el nombre sigue en el DOM; §«Pista de solo icono», #435, `tooltip.md` §«Modo visual»; `title` nunca, #113). Solo en `segmented` y `chip`; en otra apariencia cuenta como `full` y avisa. Una opción que **no tiene icono** (regla de `GTabs`, #202: slot `icon` y `option.icon` con valor, o sin slot y `option.icon` cadena) conserva su etiqueta visible y avisa. Pensado para iconos inequívocos (formato, alineación, vista); en una pregunta de formulario se prefiere texto. Sin `auto`: un segmentado que no cabe se apila, no reduce etiquetas.
 - **`name`:** nombre común de los radios y clave del grupo en `errors`/`warnings` de `GForm` y en `FormData`. Sin `name`, el componente **genera** uno estable (`useId`), porque los radios lo necesitan para agruparse y para las flechas; dentro de un `<form>` sin `name` avisa (el envío llevaría una clave aleatoria y `GForm` no podría asociar errores).
 - **`label`:** el grupo necesita nombre. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby` (en `$attrs`), aviso en desarrollo. Con etiqueta visible, la raíz lleva `aria-labelledby="ID-label"` (gana a uno de `$attrs`); sin ella, el `aria-label`/`aria-labelledby` del consumidor va en la raíz y la pista de etiqueta queda vacía (form.md §4).
 - **`hint`:** ayuda del grupo, en el pie (`ID-hint`), en el `aria-describedby` de la raíz.
@@ -216,6 +216,34 @@ Nativo (APG *Radio Group*; medido por kiwi en los tres motores, `declaracion.md`
 - **Solo lectura homogéneo** (C7, #165, #186): contraste completo, fondo `neutral-soft`, borde **discontinuo**, cursor normal; distinto de `disabled` sin depender del color.
 - **`forced-colors`:** elegida con `SelectedItem`/`SelectedItemText`; tarjeta con borde más grueso; marco del segmentado con `outline` (no `box-shadow`). **`prefers-reduced-motion`:** sin transición.
 
+## Pista de solo icono (motor interno de `GTooltip`, modo visual; DECISIONS.md #435)
+
+Regla común en `tooltip.md` §«Modo visual» (#433); aquí, lo propio de `GRadioGroup`. **Estado:** aprobado por lima; pendiente de **bruno** y **coco**.
+
+- **Cuándo aparece.** En cada opción **`is-icon-only`**: `labelMode="icon"` efectivo (`segmented` y `chip`) y la opción tiene icono. No con el slot `option` (ahí `labelMode="icon"` no tiene efecto), ni en las opciones que conservan su etiqueta por no tener icono, ni en otras apariencias.
+- **De dónde sale el texto.** `option.label`: el texto de `__option-label` (`ID-i-label`), oculto visualmente, que es el nombre del radio.
+- **Nodos.** Uno por opción `is-icon-only`, **al final de `g-radio-group__options`**, después de la última opción y en su orden. **Nunca dentro del `<label>`** (pulsar el nodo elegiría el radio) ni como hijo de la raíz (en `inline` y `segmented` la raíz tiene exactamente tres hijos que comparten la fila de `GFormRow`).
+- **Elemento y ancla.** El elemento enfocable es el **`<input type="radio">`** (lleva `data-g-tooltip`); la caja visible es la **`__option`** (`<label>`: el segmento o el chip), que lleva **`data-g-tooltip-box`** y se pasa como `box`. La pestaña mide el segmento o el chip, no el radio.
+- **Viaje en grupo.** El grupo es la raíz `role="radiogroup"`: la pista viaja de opción en opción con el puntero y con las flechas. Lado: **`bottom`** en una línea (segmentado y chips, también cuando los chips pasan a otra línea); **`right` lógico** con el segmentado **`is-stacked`** (una opción por línea, como un grupo vertical): lo pasa el componente con `placement()`, sin añadir `aria-orientation` (el grupo no cambia de semántica).
+- **Teclado y foco.** Tab entra en la elegida (o en la primera) y la pista aparece al instante; las flechas **mueven el foco y eligen** (nativo) y la pista viaja con ellas. Espacio no navega. Con `readonly`, la pista funciona igual (el radio es enfocable). Esc cierra la pista sin mover el foco ni cambiar la elección.
+- **Táctil.** Pulsación larga sobre el segmento o el chip muestra el nombre y **no elige**: el clic de la `<label>` que sigue se cancela, `checked` no cambia y no se emiten `update:modelValue` ni `change`; tampoco cuenta para el momento de revelado de `GForm`. Un toque normal elige sin pista.
+- **Opción deshabilitada** (`disabled` nativo en el radio): la pista no abre (regla del motor). **Límite conocido** (README): con el puntero no se puede leer el nombre de una opción solo icono deshabilitada; para un valor que no se puede cambiar, el grupo es `readonly` (#270), y una opción imposible conviene que no sea solo icono.
+- **Sin duplicar el anuncio:** el nombre (`aria-labelledby` → `ID-i-label`) y la descripción no cambian; ningún `aria-*` nuevo en el radio.
+- **#383 y medida.** Los nodos son hijos de `__options` (la caja del segmentado): todo selector de `GRadioGroup.css` sobre sus hijos (`:last-child` de las esquinas, `+` de los separadores, `~`) lleva la exclusión `:where(.g-tooltip)`. La medida del **ancho natural** del segmentado (`setIntrinsicMin`, #271) y la decisión de **`is-stacked`** ignoran los nodos.
+
+### Encargo a bruno (Opus) · `GRadioGroup.vue`, pruebas, `meta.json`
+
+1. Nodos del modo visual con `attach(input, node, { box: option, placement, disabled })`; `data-g-tooltip-box` en la `__option` solo icono; `placement()` = `right` con `is-stacked`; `destroy` al quitar la opción o al salir de `labelMode="icon"`.
+2. La pulsación larga no elige (comprobar `checked`, eventos y `GForm`).
+3. Pruebas: las comunes de `tooltip.md` §«Modo visual» más: solo las `is-icon-only`; nodo fuera de la `<label>` y no hijo de la raíz (la raíz de `segmented` sigue con tres hijos); flechas que eligen y la pista que viaja; `is-stacked` a la derecha; opción `disabled` sin pista; ancho natural igual con y sin nodos. Playwright en los tres motores (puerto propio); la prueba obligatoria de distribución (`tests/form-distribution.spec.mjs`) sigue verde.
+4. `GRadioGroup.meta.json`: la pista en `labelMode`; peso medido.
+
+### Encargo a coco (Sonnet) · `GRadioGroup.css` y medida
+
+1. #383 sobre `__options` (ver arriba); Δ0 de rectángulos del segmentado y de los chips con y sin nodos, también `is-stacked`.
+2. **Medir la pestaña contra cada segmento y cada chip** (Δ < 1px de ancho y de borde; a los lados, de alto), en una línea, apilado y con chips en dos líneas; tamaños `xs` a `lg`; RTL; claro, oscuro y un tema distinto; `forced-colors`; movimiento reducido.
+3. Táctil: la regla `[data-g-tooltip-box]:has([data-g-tooltip])` con `pointer: coarse` cubre la `<label>` (sin selección ni lupa en la pulsación); comprobarlo.
+
 ## Contexto de formulario (`useFormField`, form.md §2)
 
 | Opción | Valor |
@@ -271,7 +299,7 @@ Una vez por instancia y mensaje; con `typeof process !== 'undefined' && process.
 | `--g-color-{color}`, `--g-color-on-{color}` | Punto del círculo; segmento y chip elegidos y su texto |
 | `--g-color-{color}-strong` | Hover de lo elegido (relleno del segmento y del chip) |
 | `--g-color-{color}-soft`, `--g-color-on-{color}-soft` | Fondo de la tarjeta elegida |
-| `--g-color-{color}-text` | Borde del círculo elegido; borde de la tarjeta y del chip elegidos; trazo interior del segmento elegido (garantiza 3:1 contra la caja aunque el relleno sea pálido) |
+| `--g-color-{color}-text` | Borde del círculo elegido; borde de la tarjeta y del chip elegidos; trazo interior del segmento elegido (garantiza 3:1 contra la caja aunque el relleno sea pálido). **Es la regla general de `tokens.md` §7.1** (#431): `GRadioGroup` ya la cumplía en sus cinco apariencias |
 | `--g-color-neutral-soft` | Fondo de `readonly` (#186) |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiquetas; ayuda y descripción; `disabled` |
 | `--g-color-danger-text`, `--g-color-warning-text`, `--g-color-success-text` | Mensajes, marca de obligatorio, caja del segmentado inválida |

@@ -169,3 +169,7 @@ Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface
 ## Abierto (no bloquea el paso siguiente)
 
 - Valores estéticos (tarjeta, categorías, marca de añadido, vista previa): los decide coco.
+
+## Contraste de la categoría elegida (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+La categoría elegida (`.g-widget-gallery__cat > input:checked + span`) conserva el relleno `--g-color-primary`, el texto `--g-color-on-primary` y su marca, y su **borde pasa a `--g-color-primary-text`**. Los botones `--primary` (con texto) están exentos. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

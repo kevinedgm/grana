@@ -254,6 +254,7 @@ Con el slot `trigger`, la aplicación es responsable del **nombre accesible y de
 | Token | Para qué |
 | --- | --- |
 | `--g-color-{color}`, `--g-color-on-{color}`, `--g-color-{color}-soft` | Círculo de selección, su texto y la franja |
+| `--g-color-{color}-text` | **Trazo interior del círculo elegido** y, si se pintan con el color como forma, aro y punto de hoy (`tokens.md` §7.1, #431) |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Días, encabezados de columna, atenuados (Outside Month, Inactive, Disabled) |
 | `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border`, `--g-color-border-control`, `--g-color-focus` | Superficie, campo y foco |
 | `--g-surface-inset`, `--g-surface-radius-inset`, `--g-surface-backdrop` | Superficie de la hoja móvil y `::backdrop` (sistema §11, como `GSelect` y `GDialog`) |
@@ -346,3 +347,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **Clases nuevas** (contrato bruno–coco): `g-datepicker__support`, `g-datepicker__output`, `g-datepicker--has-output` (r02), `g-datepicker__optional`, `g-datepicker__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-datepicker__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Contraste del día elegido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+El día elegido (fecha única, inicio y fin; `is-selected`) conserva el círculo `{color}` con texto `on-{color}` y gana un **trazo interior `{color}-text`** (`box-shadow: inset`, el patrón del segmento de `GRadioGroup`; no un anillo exterior: es del foco). coco añade `--_text` a `--_color`/`--_on` y a las `.g-datepicker--color-*`. El aro y el punto de hoy, si usan `--_color` como forma sobre `surface`, pasan a `--_text`. **La franja de rango** (`{color}-soft`) no entra en esta regla: coco la mide y, si no llega a 3:1, vuelve a lima. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

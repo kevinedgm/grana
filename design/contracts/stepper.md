@@ -214,3 +214,7 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 
 - Valores visuales, transición y contraste de cada estado: los decide coco (`GStepper.css`).
 - Nombre y contrato del progreso continuo: siguiente ronda de kiwi y lima.
+
+## Contraste del indicador (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+El indicador **completado** (relleno `--_base` = `{color}`, icono `on-{color}`) y el **actual** (anillo sobre `surface`) llevan el **borde en `{color}-text`** (`--_text`, que ya existe) en lugar de `{color}`. El conector (`--_stepper-fill`) no entra en esta regla: coco lo mide aparte. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

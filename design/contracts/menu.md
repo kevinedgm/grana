@@ -240,3 +240,7 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 ## Abierto (no bloquea el paso siguiente)
 
 - Valores estéticos (lista, marcas, sombra, movimiento, chevron espejado en RTL): los decide coco con los tokens listados.
+
+## Contraste de la marca marcada (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+La marca de `menuitemcheckbox` y `menuitemradio` con `aria-checked="true"` conserva el relleno `--g-color-primary` y la marca `--g-color-on-primary`, y su **borde pasa a `--g-color-primary-text`** (antes `primary`): con una marca pálida, `primary` como forma da 1,77:1 contra la superficie del menú. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

@@ -188,9 +188,9 @@ Igual que `GCheckbox`: Tab recorre maestra e hijas en el orden del documento; Es
 | `--g-color-surface` | Fondo del cuadro y de la tarjeta sin marcar |
 | `--g-color-border-control` | Borde del cuadro (≥ 3:1) |
 | `--g-color-border-strong` | Borde de la tarjeta y del chip sin marcar; estado `disabled` |
-| `--g-color-{color}`, `--g-color-on-{color}` | Relleno del cuadro marcado, y su marca |
+| `--g-color-{color}`, `--g-color-on-{color}` | Relleno del cuadro marcado e indeterminado y del chip marcado, y su marca y texto |
 | `--g-color-{color}-soft`, `--g-color-on-{color}-soft` | Fondo de la tarjeta seleccionada |
-| `--g-color-{color}-text` | Borde de la tarjeta y del chip seleccionados |
+| `--g-color-{color}-text` | **Contorno** del cuadro marcado e indeterminado y del chip marcado (`tokens.md` §7.1, #431); borde de la tarjeta seleccionada |
 | `--g-color-surface-sunken` | Fondo de `readonly` |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiqueta; ayuda y conteo; estado `disabled` |
 | `--g-color-danger-text` | Texto, marca y borde del error; marca de obligatorio |
@@ -306,3 +306,35 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 - **`GCheckboxGroup`** no cambia: su raíz es un `fieldset` (rol `group`, que no admite `aria-required`); la marca va en la `<legend>`.
 - **No se extiende** a `GInput`, `GTextarea` ni al `<select>` de `GInputGroupSelect` sin medirlo: kiwi solo midió radio y casilla. Pendiente (no bloquea): medir en Chromium si un texto o un `<select>` con `required` y vacío se expone como inválido antes de interactuar; si es así, la misma regla les aplica con otra decisión.
 
+## Contraste de lo marcado (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+**Origen:** medida de coco en `design/lab/combobox/estilo.md` (0a83801): el cuadro marcado (relleno y borde `primary` sobre `surface`) da **1,77:1** en lustre claro y **1,92:1** en spotify claro cuando `primary` = `brand`; WCAG 1.4.11 pide 3:1 para identificar el control y su estado. La marca `on-primary` sí se lee (~10:1). **Estado:** aprobado por lima; pendiente de **coco** (CSS y medida). Sin cambio de `.vue`, de API ni de tokens.
+
+| Estado | Antes | Ahora |
+| --- | --- | --- |
+| Cuadro marcado (`:checked`) | relleno y borde `{color}` | relleno `{color}`, **borde `{color}-text`** |
+| Cuadro indeterminado (`:indeterminate`) | relleno y borde `{color}` | relleno `{color}`, **borde `{color}-text`** |
+| Chip marcado (`layout="chip"`) | relleno y borde `{color}` | relleno `{color}`, **borde `{color}-text`** (ya lo decía la tabla de tokens; el CSS se había quedado en `{color}`) |
+| Tarjeta seleccionada | borde y trazo interior `{color}-text` | **sin cambio** (ya cumple) |
+
+Marca, hover (`{color}-strong` como relleno), foco, `readonly`, `disabled` y `forced-colors` no cambian. En el tema por defecto, con `color="brand"` y `"accent"`, `-text` = base: **Δ0 visible**; con una familia semántica aparece el filo más oscuro (el arreglo).
+
+### Encargo a coco (todos los componentes de §7.1; una sola entrega)
+
+1. **Cambiar** (solo el color del contorno o un trazo interior; nada de geometría):
+   - `GCheckbox.css`: `.g-checkbox__input:checked` y `:indeterminate` → `border-color: var(--_text)`; `.g-checkbox--layout-chip .g-checkbox__row:has(.g-checkbox__input:checked)` → `border-color: var(--_text)`.
+   - `GSwitch.css`: `.g-switch__input:checked` → `border-color` del riel en `-text` de su familia; **añadir `--_text`** (`--g-color-{familia}-text`) al bloque base y a las siete `.g-switch--color-*`, como en `GCheckbox`. El `color: var(--_c)` del propio `:checked` y las marcas sobre el pulgar (`__mark--on`, `__mark--busy`, `__icon--on`: `{color}` sobre `on-{color}`, par garantizado) no cambian.
+   - `GMenu.css`: `[aria-checked="true"] > .g-menu__mark` → `border-color: var(--g-color-primary-text)` (casilla y opción).
+   - `GTable.css`: `.g-table__select input[type="checkbox"]` → `accent-color: var(--g-color-primary-text)`; `.g-table--mode-cards .g-table__row.is-selected` → `border-color: var(--g-color-primary-text)`.
+   - `GFilterBar.css`: `.g-filter-bar__value input[type="checkbox"]` → `accent-color: var(--g-color-primary-text)`.
+   - `GCalendar.css`: `.g-calendar__toolbar button[aria-pressed="true"]` → `border-color: var(--g-color-primary-text)`; `.g-calendar__strip > button[aria-pressed="true"]` (sin borde) → trazo interior `primary-text`, **sin** tocar su anillo de foco (`outline`); hoy (`.g-calendar__head…is-today .g-calendar__head-title`, `.g-calendar__month td.is-today .g-calendar__day`) → trazo interior `primary-text`.
+   - `GDatePicker.css`: `.g-datepicker__day.is-selected` → trazo interior `-text` de su familia (añadir `--_text` a `--_color`/`--_on` y a las `.g-datepicker--color-*`); el aro y el punto de hoy, si se pintan con `--_color` como trazo o forma sobre `surface`, a `--_text`.
+   - `GStepper.css`: `.g-stepper__step.is-complete .g-stepper__indicator` y `.is-current .g-stepper__indicator` → `border-color: var(--_text)` (`--_text` ya existe).
+   - `GWidgetGallery.css`: `.g-widget-gallery__cat > input:checked + span` → `border-color: var(--g-color-primary-text)`.
+   - `GCombobox.css`: `.g-combobox__option[aria-selected="true"] > .g-combobox__box` → `border-color: var(--g-color-primary-text)` (era `text`, #429/#430; ahora una sola regla, #432); se conserva `surface` en la activa invertida de la paleta; actualizar el comentario.
+   - `GRadioGroup.css`: **nada** (ya cumple); solo se mide.
+2. **Repasar con `grep`** (`var(--_c)`, `var(--_color)`, `var(--_base)`, `var(--_fill)`, `var(--g-color-primary)`, `var(--g-color-accent)` y las demás familias en `background`/`border-color`/`accent-color`) por si queda algún estado relleno que esta lista no recoge; lo que encuentre lo anota en su `estilo.md` y, si no está claro si es estado de un control, lo devuelve a lima. **Exentos** (§7.1): `GBtn`, `GBadge`, `GCard`, `GAvatarMotion`, contadores de `GSidebar`, botones `--primary` de `GWidgetGallery`, `GWidgetConfig` y `GDatePicker`, la píldora del navbar de `GSidebar` (confirmar midiendo que la etiqueta visible y el ancho la distinguen).
+3. **Medir** el contorno contra la superficie adyacente (≥ 3:1; `surface`, `bg`, `surface-sunken` y, donde ocurra, `{color}-soft`: casilla en la fila seleccionada de `GTable`, día elegido dentro de la franja de `GDatePicker`) en **el tema por defecto, lustre, spotify y un tema con clave `primary` propia** (#107), **claro y oscuro**, con `color="brand"` y al menos `warning` (el peor semántico) en `GCheckbox`, `GSwitch` y `GRadioGroup`. Comprobar además **Δ0 visible en el tema por defecto** con `brand` y `accent` (mismo color calculado del borde antes y después). Script propio en `design/lab/contraste-marcado/` (nuevo, de coco) y resultados en su `estilo.md`.
+4. **Fuera de esta entrega, medir y anotar** (no cambiar): la franja de rango de `GDatePicker` (`{color}-soft` contra `surface`), el avance de `GProgress` contra su pista y el conector de `GStepper`. Si alguno no llega a 3:1, a lima.
+
+**bruno:** sin código. Si alguna prueba de instantánea fija el color del borde, se actualiza; ninguna prueba nueva obligatoria (el contraste lo mide coco en navegador). **mora-docs:** en los README afectados, una línea en «Accesibilidad» cuando coco haya medido.

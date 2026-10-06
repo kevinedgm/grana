@@ -84,3 +84,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 ## Límites conocidos
 
 Sin grupos Y/O anidados (constructor de reglas: ronda posterior), sin filtros guardados ni en la URL, sin operadores personalizados.
+
+## Contraste de las casillas del editor (`tokens.md` §7.1; DECISIONS.md #431 y #432)
+
+Las casillas nativas de valores (`.g-filter-bar__value input[type="checkbox"]`) pasan a `accent-color: var(--g-color-primary-text)` (antes `primary`). Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).

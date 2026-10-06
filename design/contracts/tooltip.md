@@ -313,11 +313,33 @@ Nueva prop de `GBtn` (`btn.md`): **`tooltip`** (String, sin valor por defecto). 
 
 Hoy `GHelper` deja los atributos que recibe en su raíz `span` (`helper.md`: «los `aria-*` del botón se controlan con las props»), así que un `GTooltip` sobre él caería en el `span`. **Enmienda de `helper.md`:** `aria-labelledby`, `aria-describedby`, `aria-keyshortcuts` y `data-g-tooltip` recibidos en `$attrs` van **al botón**; el resto sigue en la raíz. Un solo mecanismo (el reenvío de atributos), sin escribir en el DOM de otro componente. Con `aria-labelledby` recibido, el aviso de `ariaLabel` ausente no salta. El tooltip no aparece con el `GHelper` abierto (`aria-expanded="true"`).
 
-## Motor interno y clientes de Grana (#392; L17, L20)
+## Motor interno y clientes de Grana (#392; L17, L20; modo visual, #433)
 
-- **`utils/tooltip.js`** (interno, no público): tiempos, grupo, foco, Esc, puente, táctil, posición, viaje y segunda etapa. Lo usan `GTooltip` y, en **encargos aparte, uno por componente, tras `GTooltip` `candidate`**, los componentes cuyo nombre ya vive en su DOM: **`GTabs`** y **`GRadioGroup`** en `labelMode="icon"` (cierran el pendiente de #113) y el **riel de `GSidebar`** (sustituye la lógica de `g-sidebar__tip`, mismos tiempos 350/600).
-- En esos clientes la pista va en **modo `none`**: la misma forma A, `aria-hidden`, sin `role="tooltip"` ni referencias (regla de `sidebar.md`: el tooltip es ayuda visual y **nunca la única fuente del nombre**). `none` **no es un valor público** de `kind` en v0.1. Cada encargo enmienda su contrato (`tabs.md`, `radio-group.md`, `sidebar.md`) y revisa su CSS por #383.
-- Contratos que decían «sin tooltip propio en v0.1» (`card.md`, `tabs.md`, `radio-group.md`, `icons.md`): pasan a remitir aquí (hecho en esta entrega).
+- **`utils/tooltip.js`** (interno, no público): tiempos, grupo, foco, Esc, puente, táctil, posición, viaje y segunda etapa. Lo usan `GTooltip` y, en **encargos aparte, uno por componente** (`GTooltip` ya es `candidate`), los componentes cuyo nombre ya vive en su DOM: **`GTabs`** (`tabs.md` §«Pista de solo icono», #434) y **`GRadioGroup`** en `labelMode="icon"` (`radio-group.md` §«Pista de solo icono», #435), que cierran el pendiente de #113, y el **riel de `GSidebar`** (`sidebar.md` §«Pista del riel», #436; sustituye la lógica de `g-sidebar__tip`, mismos tiempos 350/600).
+- Contratos que decían «sin tooltip propio en v0.1» (`card.md`, `tabs.md`, `radio-group.md`, `icons.md`): remiten aquí (hecho en la entrega de #392).
+
+### Modo visual (#433; antes «modo `none`», L17)
+
+Para un control de Grana cuyo **nombre ya está en su DOM** como etiqueta **oculta visualmente** (patrón de texto oculto accesible): la pista solo **enseña** ese nombre a quien ve; no lo da. `none` **no es un valor público** de `kind` (sigue reservado, §«Fuera de v0.1»): el modo visual lo eligen los componentes internos, no la aplicación.
+
+```html
+<div class="g-tooltip" popover="manual" aria-hidden="true" data-side="bottom">   <!-- data-side solo abierto -->
+  <span class="g-tooltip__tab"></span>
+  <span class="g-tooltip__body"><span class="g-tooltip__text" dir="auto">Negrita</span></span>
+</div>
+```
+
+1. **Sin duplicar el anuncio.** El nodo lleva `aria-hidden="true"` en su raíz y **ningún** `role`, `id`, referencia (`aria-labelledby`/`aria-describedby`) ni región viva. El nombre y la descripción del control **no cambian**: con y sin pista, el árbol de accesibilidad es idéntico. Nunca `title` (#113).
+2. **Texto = la etiqueta oculta que ya da el nombre**, la misma cadena (la de los datos, `item.label` u `option.label`), **sin** estado, insignia ni contador (se ven como icono o `GBadge` y se leen en el nombre). Cambia cuando cambia la etiqueta. `dir="auto"` en el texto (aislamiento bidi, como `__option-label`, #282). Sin `detail`, sin atajo y sin segunda etapa.
+3. **Un nodo por control**, persistente y cerrado desde el montaje (también en SSR, sin escuchas fuera de `onMounted`): el viaje necesita el nodo saliente y el entrante (#388). Mientras la etiqueta del control está **visible**, la pista no se activa (opción `disabled()` de `attach`); el nodo no se crea ni se destruye al cambiar de modo, para no reconstruir el DOM (los componentes animan sus cambios de formato sobre el mismo DOM).
+4. **Mismas clases y el mismo CSS que `GTooltip`** (`g-tooltip`, `__tab`, `__body`, `__text`; `data-side`, `data-instant`, `data-travel`, `data-touch`, `--_x`, `--_y`, `--_yb`, `--_tooltip-a*`): forma A, superficie inversa, pestaña del ancho (o alto, a los lados) de la caja visible del control. Ningún CSS de tooltip nuevo; ningún token nuevo (`tokens.md` §36).
+5. **Marcas en el control.** El elemento enfocable lleva **`data-g-tooltip`** mientras tenga nodo (marca táctil de coco, §«Táctil»). Si el dibujo del control no coincide con el enfocable (un radio dentro de su `<label>`), la caja visible lleva **`data-g-tooltip-box`** y el componente la pasa como `box` a `attach`.
+6. **`attach(ctrl, node, { box, placement, disabled })`**: `ctrl` = elemento enfocable; `box` = caja visible (por defecto `ctrl`); `placement()` solo si el grupo no declara su orientación con `aria-orientation` (el riel); `disabled()` verdadero mientras la etiqueta esté visible. Cuando el componente cambia `aria-expanded` del control (abre su panel o su menú), llama a `check()` para que la pista se cierre.
+7. **El comportamiento es el de `GTooltip`, sin excepciones** (§«Comportamiento», §«Táctil», §«Posición», §«El viaje y el grupo»): **uno solo abierto en el documento**, compartido con los `GTooltip` de la aplicación; `OPEN` 350 ms, `CLOSE`, `SKIP` 600 ms; foco **por navegación** abre al instante, foco por clic o por programa no; **Esc** cierra en captura con `preventDefault()` sin mover el foco; pulsar es usar; `aria-expanded="true"` no abre; `disabled` nativo no abre (sin aviso: los avisos de desarrollo son de `GTooltip`); **pulsación larga** en táctil muestra el nombre y **soltar no activa**; desplazamiento y `anchorGone` (#358). Grupo: el ancestro con rol de grupo o `nav` (#388), que en los tres clientes existe.
+8. **Lugar del nodo:** dentro de la raíz del componente (así vive en el mismo `<dialog>` modal y no queda inerte), **nunca** dentro de un contenedor que exige hijos concretos (`tablist`) ni dentro de un `<label>` o de otro control (pulsar el nodo activaría el control). Cada contrato fija el sitio, y su CSS estructural sobre esos hijos lleva la exclusión `:where(.g-tooltip)` (#383).
+9. **Peso:** el motor y `GTooltip.css` ya van en `@grana/vue` y en `grana.css`; bruno mide el crecimiento del principal por cliente y lo anota en el `meta.json`.
+
+Pruebas comunes de los tres encargos (bruno): nombre accesible **igual** con y sin pista y ningún atributo ARIA añadido al control salvo `data-g-tooltip`; el nodo con `aria-hidden` y sin `role`; abre con puntero a los 350 ms y con foco por navegación al instante, no con clic ni foco por programa; viaja dentro del grupo; Esc la cierra y deja el foco; la pulsación larga muestra y no activa ni elige; un `GTooltip` de la aplicación abierto se cierra cuando abre una pista interna (y al revés); sin pista mientras la etiqueta está visible.
 
 ## Movimiento (resumen)
 
@@ -362,6 +384,8 @@ Existentes: `--g-color-text` (fondo de etiqueta y pestaña), `--g-color-surface`
 | `inline-size` (en línea) | Nodo | **Solo durante el viaje:** primero el ancho del saliente, luego el final, para que la etiqueta lo transicione junto con `translate` y la pestaña; se retira con `data-travel` al terminar, o un nombre largo quedaría recortado (#394) |
 | `data-g-tooltip` | Elemento resuelto del hijo | Siempre que el tooltip esté activo (marca para el CSS táctil) |
 | `data-g-tooltip-box` | Caja visible de un control cuyo enfocable no coincide con su dibujo (la pone **ese componente**, no `GTooltip`): `g-input__control`, `g-textarea__control`, `g-select__control`, `g-file-field__add` | Siempre (estático; ancla del tooltip, #395) |
+| `g-tooltip` con `aria-hidden="true"`, sin `role` ni `id` | Nodo del **modo visual** de un cliente interno (§«Modo visual», #433) | Lo pone `GTabs`, `GRadioGroup` o `GSidebar`; mismas clases y datos que la fila `g-tooltip` |
+| `data-g-tooltip-box` en `g-radio-group__option` | Caja visible del radio en solo icono (#435) | Mientras la opción tenga nodo |
 
 ## RTL
 
@@ -516,7 +540,7 @@ Desde `GTooltip.meta.json` y este contrato: cuándo `GTooltip` y cuándo `GHelpe
 
 ### Después de `candidate` (encargos aparte, #392)
 
-Motor interno en `GTabs` y `GRadioGroup` (`labelMode="icon"`) y en el riel de `GSidebar`, uno por componente, cada uno con su enmienda de contrato (lima) y su CSS (coco).
+Motor interno en `GTabs` y `GRadioGroup` (`labelMode="icon"`) y en el riel de `GSidebar`, uno por componente. **Enmiendas hechas** (lima, #433 a #436): §«Modo visual» aquí y los encargos de bruno y coco en `tabs.md` §«Pista de solo icono», `radio-group.md` §«Pista de solo icono» y `sidebar.md` §«Pista del riel».
 
 ## Dudas para el usuario
 

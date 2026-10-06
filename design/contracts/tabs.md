@@ -88,7 +88,7 @@ Campos **reservados y no publicados en v0.1** (`closable`, `closeLabel`) y el ev
   - `arrows`: lo anterior más botones anterior/siguiente en los bordes. **Solo puntero**: `aria-hidden`, `tabindex="-1"`; el teclado ya alcanza todas las pestañas.
   - `more`: las que no caben salen del `tablist` y pasan al menú «Más» (`GMenu`); la activa **siempre** entra en la barra y sale del menú.
   - La activa **siempre queda visible** (en `scroll` y `arrows` se desplaza a ella al activarla o enfocarla, sin mover la página). `combined` y `auto` se **difieren a una r03** (el validador los rechaza; ver «Fuera de v0.1»).
-- **`labelMode`:** `full` (etiqueta visible), `icon` (todas solo con icono) y `auto` (si **todas** las pestañas tienen `icon` y no caben, las inactivas pasan a solo icono y la activa conserva icono y etiqueta, como la píldora activa de `GSidebar`, #68). En solo icono la etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto estándar y es el nombre accesible. **Sin pista visual hasta el encargo del motor interno de `GTooltip`** (#113, #392; `tooltip.md` §«Motor interno»): la pista será `aria-hidden` con la forma de `GTooltip` y el nombre seguirá en el DOM; llega en un encargo aparte con su enmienda de este contrato. `title` nunca. Con `icon` o `auto`, si a alguna pestaña le falta `icon`, aviso en desarrollo y esa conserva su etiqueta visible. **Una pestaña «tiene icono»** si hay slot `icon` y `item.icon` tiene valor, o si **no** hay slot e `item.icon` es una cadena (#202).
+- **`labelMode`:** `full` (etiqueta visible), `icon` (todas solo con icono) y `auto` (si **todas** las pestañas tienen `icon` y no caben, las inactivas pasan a solo icono y la activa conserva icono y etiqueta, como la píldora activa de `GSidebar`, #68). En solo icono la etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto estándar y es el nombre accesible. **Pista visual** con el motor interno de `GTooltip` en modo visual (§«Pista de solo icono», #434; `tooltip.md` §«Modo visual»): `aria-hidden`, el nombre sigue en el DOM. `title` nunca. Con `icon` o `auto`, si a alguna pestaña le falta `icon`, aviso en desarrollo y esa conserva su etiqueta visible. **Una pestaña «tiene icono»** si hay slot `icon` y `item.icon` tiene valor, o si **no** hay slot e `item.icon` es una cadena (#202).
 - **`snap`:** `scroll-snap-type: x proximity` en la lista (móvil nativo). No cambia nada más.
 - **`lazy`:** por defecto los paneles están **montados y ocultos** (`hidden`), para no perder borradores ni estado (#78). Con `lazy`, un panel se monta la primera vez que se activa y **luego se conserva**. Sin `unmount` en v0.1.
 - **`detached`:** no renderiza paneles (versión **headless**): solo la cabecera; los paneles se pintan con `GTabPanel` donde el consumidor quiera (ver «Paneles separados»). Los atributos `aria-controls` se calculan igual.
@@ -237,6 +237,35 @@ Renderiza el mismo `<div class="g-tabs__panel" role="tabpanel" id="TABS-panel-VA
 - **`GIcon`** es **hijo directo** de `g-tabs__icon`, `g-tabs__status` y `g-tabs__edge`. `g-tabs__label` lleva `data-text` con la etiqueta (reserva de negrita).
 - **Movimiento:** solo `transform`, tamaño y opacidad; transiciones, no *keyframes* (#71), con los tokens existentes: **sin tokens de duración nuevos**. Marca y entrada del contenido: ver «Personalidad» (#302; la marca usa `--g-ease-spring`, #299). Con `prefers-reduced-motion: reduce`: la marca salta, el contenido solo se funde, sin giro del icono y desplazamiento programático instantáneo.
 
+## Pista de solo icono (motor interno de `GTooltip`, modo visual; DECISIONS.md #434)
+
+Regla común en `tooltip.md` §«Modo visual» (#433); aquí, lo propio de `GTabs`. **Estado:** aprobado por lima; pendiente de **bruno** y **coco**.
+
+- **Cuándo aparece.** En cada pestaña **`is-icon-only`**: todas con `labelMode="icon"`; con `auto` reducido, **las inactivas** (la activa conserva icono y etiqueta y no lleva pista). Y en el botón **«Más»** (`overflow="more"`), que siempre es solo icono. **No** en los botones de borde (`tabindex="-1"`, `aria-hidden`, solo puntero y con flecha evidente). Con `labelMode="full"`, ninguna.
+- **De dónde sale el texto.** `item.label`, el texto de `g-tabs__label` que ya está oculto visualmente y da el nombre; **sin** estado, insignia ni contador (se ven y forman parte del nombre). Con el slot `label`, sigue siendo `item.label` (el slot no cambia el nombre). En «Más», `labels.more` (sin `statusLabel`: la marca de icono lo muestra).
+- **Nodos.** Uno por pestaña **renderizada** con icono mientras `labelMode` sea `icon` o `auto` (la pista se activa solo con `is-icon-only`, `disabled()` de `attach`; cambiar entre reducido y no reducido no crea ni destruye nodos) y uno para «Más». **Fuera del `tablist`** (que solo contiene `tab`): al final de `g-tabs__header`, después de su último hijo, en el orden de las pestañas y «Más» el último. Las pestañas que `overflow="more"` saca del `tablist` no tienen nodo (están en el menú, que lleva sus etiquetas).
+- **Elemento y ancla.** El `button role="tab"` es a la vez el elemento enfocable y la caja visible (sin `data-g-tooltip-box`); lleva `data-g-tooltip` mientras tenga nodo. «Más», igual.
+- **Viaje en grupo.** El grupo es el **`tablist`** (`role="tablist"`): la pista viaja de pestaña en pestaña con el puntero, las flechas o Tab, con `--g-duration-press` + `--g-ease-out` (salta con movimiento reducido). Lado: `bottom` en horizontal y **`right` lógico** en vertical (`aria-orientation="vertical"` del `tablist`; el motor lo lee). «Más» está **fuera** del `tablist`: su grupo es su padre, así que entre una pestaña y «Más» no viaja (aparece al instante dentro de `SKIP`).
+- **Teclado y foco.** Tab a la activa solo icono la muestra al instante (foco por navegación); ← → (↑ ↓ en vertical), Inicio y Fin la llevan con el foco; con `activation="auto"` la pista viaja a la vez que la marca (T1, #302), cada una con su curva. Intro o Espacio son teclas que no navegan: el foco que el componente pone tras elegir en «Más» (por programa) **no** abre la pista. **Esc:** con la pista abierta, el primero la cierra (`preventDefault()`, el foco no se mueve) y el segundo llega al `GDialog` anfitrión; `GTabs` sigue sin interceptar Esc. Con el menú de «Más» abierto (`aria-expanded="true"`), su pista no abre o se cierra (`check()` al abrir).
+- **Táctil.** Pulsación larga (`LONG` 500 ms) muestra el nombre y **no activa** la pestaña: no se emite `change` ni `update:modelValue` y el valor, la marca y el foco no cambian (el clic que sigue se cancela). Un toque normal activa sin pista. Deslizar la lista (`MOVE`) cancela la pulsación.
+- **Pestaña deshabilitada** (`aria-disabled`, fuera de las flechas): con el puntero, la pista abre y nombra la pestaña (es como `GTooltip` con `aria-disabled`).
+- **La marca de `underline`.** Con la pista abierta, su pestaña cuelga del borde inferior de la pestaña y puede tapar la marca mientras dura; aceptado (es pasajero y la persona señala esa pestaña). coco lo mide y comprueba que la marca reaparece intacta al cerrar.
+- **Sin duplicar el anuncio:** el nombre de la pestaña (etiqueta + `statusLabel` + insignia + `countLabel`) no cambia; ningún `aria-*` nuevo.
+- **#383:** los nodos son hijos de `g-tabs__header`: todo selector de `GTabs.css` sobre los hijos de la cabecera (`> *`, `:last-child`, `+`, `~`) lleva la exclusión `:where(.g-tooltip)`. La medida del desbordamiento (`total()`, ancho de «Más») ignora los nodos (cerrados miden 0; abiertos están en la capa superior).
+
+### Encargo a bruno (Opus: teclado compuesto, CLAUDE.md) · `GTabs.vue`, pruebas, `meta.json`
+
+1. Nodos del modo visual (`tooltip.md` §«Modo visual») según lo anterior; `attach` del motor en `onMounted`, `destroy` al desmontar y al quitar la pestaña; `disabled()` = la pestaña no es `is-icon-only`; `check()` al abrir y cerrar «Más».
+2. Pulsación larga sin activar (también con `activation="auto"` y en `detached`).
+3. Pruebas: las comunes de `tooltip.md` §«Modo visual» más: solo las `is-icon-only` abren; la activa con etiqueta en `auto` no; nodos fuera del `tablist` (el `tablist` solo tiene `tab`); viaje con flechas y vertical a la derecha (RTL a la izquierda); «Más» con menú abierto no abre; ningún `change` tras la pulsación larga. Playwright en los tres motores (puerto propio).
+4. `GTabs.meta.json`: la pista en la descripción de `labelMode`; peso medido.
+
+### Encargo a coco (Opus: teclado compuesto) · `GTabs.css` y medida
+
+1. #383 sobre `g-tabs__header` (ver arriba); Δ0 de rectángulos de la cabecera con y sin nodos.
+2. **Medir la pestaña de la pista contra cada pestaña** (Δ de ancho y de borde < 1px, como `GTooltip`): `underline`, `pill`, `segmented` y `contained`; horizontal y vertical; tres densidades; RTL; «Más»; claro, oscuro y un tema distinto; `forced-colors` (pestaña y borde visibles); movimiento reducido (salta). Anotar si tapa la marca y que reaparece.
+3. Táctil: `[data-g-tooltip]` con `pointer: coarse` ya cubre las pestañas (sin selección ni menú del sistema en la pulsación); comprobarlo.
+
 ## Personalidad (DECISIONS.md #302; lenguaje común, #299 y `tokens.md` §29)
 
 Ronda de kiwi `design/lab/personalidad/r01/` §5 (T1 y T2, prototipadas sobre el componente real) y decisión del usuario 1 (el rebote vive en la marca de las pestañas). Ninguna prop, slot ni evento nuevo. Todo solo con `is-ready` (nunca el primer posicionamiento).
@@ -355,7 +384,7 @@ Una `GBadge` interna lleva sus propias clases (`g-badge…`); el `g-tabs__badge`
 
 - **Cerrables** (`closable`, `closeLabel`, evento `close`, `Supr`): se reservan los nombres; requieren validar con lector de pantalla la estructura con botón hermano en un contenedor `role="presentation"` y `aria-required-children`. Si falla: alternativa sin botón visible (Supr y control equivalente en el panel o el menú).
 - **`overflow="combined"` y `"auto"`:** en una **r03** de kiwi (qué hace `auto` con puntero táctil o fino).
-- **Tooltip** para solo iconos: el componente ya existe (`GTooltip`, `tooltip.md`); su motor interno en modo `none` (pista `aria-hidden`, nombre en el DOM) llega a `GTabs` en un **encargo aparte** tras `GTooltip` `candidate` (#392). `title` no se usa (#113).
+- ~~Tooltip para solo iconos~~: contratado en §«Pista de solo icono» (#434). `title` no se usa (#113).
 - **Swipe entre paneles** y `unmount` de paneles inactivos.
 - **`GWidgetConfig`** y otros con pestañas propias pueden migrar a `GTabs` más adelante.
 - **Preguntas de producto abiertas: ninguna.**
