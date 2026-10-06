@@ -1713,9 +1713,8 @@ describe('GCombobox · avisos de desarrollo (1 a 11)', () => {
     await mk({ allowCustom: true, name: 'x' })
     expect(warnings().some((t) => t.includes('no viaja en FormData'))).toBe(true)
   })
-  it('9 · multiple se ignora con aviso; slot preview con appearance="field"', async () => {
-    const w = await mk({}, { attrs: { multiple: true }, slots: { preview: () => 'x' } })
-    expect(warnings().some((t) => t.includes('multiple está reservado'))).toBe(true)
+  it('9 · slot preview con appearance="field"; `multiple` es prop desde la Fase 2 (#417) y nunca llega al <input>', async () => {
+    const w = await mk({}, { slots: { preview: () => 'x' } })
     expect(warnings().some((t) => t.includes('el slot preview solo se pinta'))).toBe(true)
     expect(field(w).attributes('multiple')).toBeUndefined()
   })

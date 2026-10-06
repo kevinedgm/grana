@@ -678,6 +678,87 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </div>
         </section>
 
+        <section class="pg-section" id="sec-combobox-multiple" data-pg-section>
+          <h2>GCombobox · multiple</h2>
+          <p class="pg-lead">Varias opciones de un catálogo (Fase 2, <code>multiple</code>; misma entrada <code>@grana/vue/combobox</code>). <b>A · la frase</b> (por defecto): lo elegido se escribe en la línea del campo con <code>Intl.ListFormat</code> y cede por el final («… y 3 más»); el campo nunca crece y al abrir, «Elegidas» va arriba. <b>B · la receta</b> (<code>selection="list"</code>): renglones completos debajo de la caja, numerables, con «Nueva» y un rastro con «Deshacer» al quitar. <b>C · la cesta</b> (<code>appearance="palette"</code>): resultados a un lado y lo elegido al otro. <kbd>Intro</kbd> marca o desmarca y la lista sigue; <kbd>Tab</kbd> nunca elige; <kbd>Retroceso</kbd> con el campo vacío quita en dos tiempos; <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> devuelve lo último quitado.</p>
+          <h3>A · La frase: alergias (catálogo agrupado, texto libre)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cm-alg" v-bind="cmMode('A')" multiple block v-model="cm.alg" v-model:custom="cm.algC" label="Alergias" hint="Medicamento, alimento, ambiental o material. Si no está, escríbela." placeholder="Buscar alergia" clearable allow-custom name="alergias" custom-name="alergias_libre" :delay="cb.delay" :labels="cm.la" :options="cm.allergens" @change="cmChange('alg', $event)">
+        <template #prepend><g-icon name="circle-alert"></g-icon></template>
+      </g-combobox>
+    </div>
+    <p class="log" id="cm-out-alg">alergias: {{ JSON.stringify(cm.alg) }} · libre: {{ JSON.stringify(cm.algC) }}</p>
+    <p class="log" id="cm-log">{{ cm.log }}</p>
+          </div>
+          <h3>B · La receta: diagnósticos secundarios (numerados, máximo 3)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cm-dx" v-bind="cmMode('B', true)" multiple :max="3" block v-model="cm.dx" label="Diagnósticos secundarios" hint="Hasta 3, en orden de importancia" placeholder="Código o descripción" name="dx_sec" :delay="cb.delay" :labels="cm.lo" :options="cb.dxOptions" @change="cmChange('dx', $event)">
+        <template #prepend><g-icon name="file-text"></g-icon></template>
+      </g-combobox>
+    </div>
+    <p class="log" id="cm-out-dx">dx: {{ JSON.stringify(cm.dx) }}</p>
+          </div>
+          <h3>C · La cesta: responsables (paleta, dos «Ana López Ruiz»)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cm-resp" v-bind="cmMode('C')" multiple block v-model="cm.resp" label="Responsables" placeholder="Nombre o área" :delay="cb.delay" :labels="cm.lo" :options="cm.people" @change="cmChange('resp', $event)">
+        <template #prepend><g-icon name="users"></g-icon></template>
+      </g-combobox>
+      <g-combobox id="cm-resp-b" multiple appearance="palette" selection="list" numbered block v-model="cm.respB" label="Responsables (paleta y receta)" placeholder="Nombre o área" :delay="cb.delay" :labels="cm.lo" :options="cm.people"></g-combobox>
+    </div>
+    <p class="log" id="cm-out-resp">responsables: {{ JSON.stringify(cm.resp) }} · con receta: {{ JSON.stringify(cm.respB) }}</p>
+          </div>
+          <h3>En una GFormRow y en el envío; solo lectura y deshabilitado</h3>
+          <div class="pg-panel">
+    <g-form id="cm-form" aria-label="Orden" :labels="fm.labels" @submit="cmSubmit">
+      <g-form-layout>
+        <g-form-row id="cm-row">
+          <g-input id="cm-f-folio" v-model="cm.folio" label="Folio" name="folio"></g-input>
+          <g-combobox id="cm-f-tags" v-bind="cmMode('A')" multiple v-model="cm.tags" label="Etiquetas" placeholder="Agregar etiqueta" name="etiquetas" :delay="cb.delay" :labels="cm.la" :options="cm.tagOptions"></g-combobox>
+          <g-combobox id="cm-f-serv" v-model="cm.serv" label="Servicio" name="servicio" :delay="cb.delay" :labels="cb.labels" :options="cm.servicios"></g-combobox>
+        </g-form-row>
+        <g-form-row id="cm-row-b">
+          <g-input id="cm-f-folio-b" v-model="cm.folio" label="Folio (receta)"></g-input>
+          <g-combobox id="cm-f-tags-b" multiple selection="list" v-model="cm.tagsB" label="Etiquetas (receta)" placeholder="Agregar etiqueta" name="etiquetas_b" :delay="cb.delay" :labels="cm.la" :options="cm.tagOptions"></g-combobox>
+        </g-form-row>
+        <g-input id="cm-f-notas" v-model="cm.notas" label="Notas" hint="La línea de debajo: ¿se mueve al elegir etiquetas?"></g-input>
+        <g-form-row id="cm-row2">
+          <g-combobox id="cm-f-ro" v-bind="cmMode('A')" multiple readonly v-model="cm.tagsRo" label="Etiquetas (solo lectura)" name="ro" :labels="cm.la" :options="cm.tagOptions"></g-combobox>
+          <g-combobox id="cm-f-dis" v-bind="cmMode('A')" multiple disabled v-model="cm.tagsDis" label="Etiquetas (deshabilitado)" name="dis" :labels="cm.la" :options="cm.tagOptions"></g-combobox>
+        </g-form-row>
+      </g-form-layout>
+      <p><g-btn id="cm-send" type="submit">Guardar</g-btn></p>
+    </g-form>
+    <p class="log" id="cm-out-sent">{{ cm.sent }}</p>
+          </div>
+          <h3>Muchos: 500 insumos con 40 elegidos (A, B y C)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-combobox id="cm-big" v-bind="cmMode('A')" multiple block v-model="cm.big" label="Insumos del carro" placeholder="Buscar insumo" :delay="cb.delay" :labels="cm.lo" :options="cb.bigOptions"></g-combobox>
+      <g-combobox id="cm-big-b" multiple selection="list" block v-model="cm.bigB" label="Insumos (receta)" placeholder="Buscar insumo" :delay="cb.delay" :labels="cm.lo" :options="cb.bigOptions"></g-combobox>
+      <g-combobox id="cm-big-c" multiple appearance="palette" block v-model="cm.bigC" label="Insumos (cesta)" placeholder="Buscar insumo" :delay="cb.delay" :labels="cm.lo" :options="cb.bigOptions"></g-combobox>
+    </div>
+          </div>
+          <h3>Dentro de un GDialog</h3>
+          <div class="pg-panel">
+    <g-btn id="cm-d-open" variant="outline" @click="cm.dlg = true">Abrir diálogo</g-btn>
+    <g-dialog id="cm-dlg" v-model="cm.dlg" title="Antecedentes" close-label="Cerrar">
+      <div class="col" style="max-width:none">
+        <g-combobox id="cm-d-alg" v-bind="cmMode('A')" multiple block v-model="cm.dlgAlg" label="Alergias" placeholder="Buscar alergia" :delay="cb.delay" :labels="cm.la" :options="cm.allergens"></g-combobox>
+        <g-combobox id="cm-d-resp" multiple appearance="palette" block v-model="cm.dlgResp" label="Responsables (paleta)" :delay="cb.delay" :labels="cm.lo" :options="cm.people"></g-combobox>
+      </div>
+    </g-dialog>
+          </div>
+          <h3>RTL</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px" dir="rtl" lang="ar">
+      <g-combobox id="cm-rtl" v-bind="cmMode('A')" multiple block v-model="cm.rtl" label="الأطباء" placeholder="ابحث" :delay="cb.delay" :labels="cm.lr" :options="cb.rtlOptions"></g-combobox>
+    </div>
+          </div>
+        </section>
+
         <section class="pg-section" id="sec-file-field" data-pg-section>
           <h2>GFileField</h2>
           <p class="pg-lead">Adjuntar archivos a un formulario, concepto A <b>«Línea de adjuntos»</b>: la caja mide lo que un <code>GInput</code> y los archivos son fichas dentro de ella; la última pieza, «Adjuntar», es el control (el <code>&lt;input type="file"&gt;</code> real). Se elige, se <b>arrastra</b> (al entrar arrastrando archivos en la ventana despiertan <b>todos</b> los campos alcanzables) o se <b>pega</b> con el foco en el campo. Va en su propia entrada, <code>@grana/vue/file-field</code> (aquí <code>dist/file-field.umd.js</code>, global <code>GranaFileField</code>). Sin red: la subida es el adaptador simulado de <code>@grana/vue/testing</code> (<code>createSimulatedUploader</code>); un nombre con «falla» falla al primer intento, con «lento» sube despacio. Con subidas pendientes o fallidas, <b>el envío se bloquea</b> y el resumen lleva al archivo.</p>
@@ -3067,7 +3148,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3283,6 +3364,50 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const cbFailNext = () => { window.__cbFailNext = true }
         window.__cb = cb
 
+        // ---------- GCombobox multiple (Fase 2, #417 a #428): dos arreglos por campo; los textos los pone la aplicación ----------
+        const cmLabels = (one, many, a) => {
+          const sel = (n) => (n === 1 ? `1 ${one}` : `${n} ${many}`)
+          return {
+            ...cb.labels, clear: `Quitar tod${a}s`, selected: sel, about: (n, list) => `${sel(n)}: ${list}`, customItem: '{text} (texto libre)',
+            added: (l, n) => `Se agregó ${l}. ${sel(n)}.`, removed: (l, n) => `Se quitó ${l}. ${sel(n)}.`, restored: (l, n) => `Se restauró ${l}. ${sel(n)}.`,
+            clearedAll: `Se quitaron tod${a}s`, restoredAll: (n) => `Se restauraron ${n}`, armed: 'Pulsa Retroceso otra vez para quitar {label}',
+            already: `{label} ya está elegid${a}`, max: `Máximo {max}: quita un${a === 'a' ? 'a' : 'o'} para elegir otr${a}`, ofMax: '{count} de {max}',
+            chosen: `Elegid${a}s`, rest: '{count} más', showAll: `Ver l${a}s {count}`, showLess: 'Ver menos', done: 'Listo', remove: 'Quitar {label}', undo: 'Deshacer',
+            trace: `{label} quitad${a}`, fresh: a === 'a' ? 'Nueva' : 'Nuevo', basketEmpty: `Aún no hay ningun${a}. L${a}s que marques aparecen aquí.`
+          }
+        }
+        const cm = reactive({
+          la: cmLabels('seleccionada', 'seleccionadas', 'a'), lo: cmLabels('seleccionado', 'seleccionados', 'o'),
+          lr: null,
+          allergens: CB.allergens, people: CB.people, tagOptions: CB.tags,
+          servicios: [{ value: 'urg', label: 'Urgencias' }, { value: 'ce', label: 'Consulta externa' }, { value: 'hosp', label: 'Hospitalización' }, { value: 'qx', label: 'Quirófano' }],
+          alg: ['penicilina', 'latex'], algC: [], dx: ['E11.9'], resp: [], respB: [], folio: 'R-2026-0418', tags: ['t0', 't1'], tagsB: ['t0', 't1'], serv: 'urg', notas: '',
+          tagsRo: ['t2', 't4', 't8'], tagsDis: ['t3'], big: CB.big.slice(0, 40).map((o) => o.value), bigB: CB.big.slice(0, 40).map((o) => o.value), bigC: CB.big.slice(0, 40).map((o) => o.value),
+          dlg: false, dlgAlg: ['huevo'], dlgResp: [], rtl: ['r0', 'r1'], sent: 'FormData: (envía el formulario)', log: 'change: —', changes: []
+        })
+        cm.lr = { ...cm.lo, ...cb.rtlLabels, selected: '{count} مختار', chosen: 'المختارون', done: 'تم', rest: '{count} أخرى', about: '{count}: {list}' }
+        const cmChange = (k, e) => {
+          const nm = (x) => (x.option ? x.option.label : x.custom || String(x.value))
+          cm.changes.unshift({ k, added: e.added.map(nm), removed: e.removed.map(nm), n: e.value.length + e.custom.length })
+          cm.changes.splice(8)
+          cm.log = `change: ${k} · +${e.added.map(nm).join(', ') || '—'} · −${e.removed.map(nm).join(', ') || '—'} · ${e.value.length + e.custom.length}`
+        }
+        const cmSubmit = () => {
+          const f = document.getElementById('cm-form')
+          const fd = new FormData(f.matches('form') ? f : f.querySelector('form'))
+          const o = {}
+          for (const [k, v] of fd) (o[k] = o[k] || []).push(v)
+          cm.sent = 'FormData: ' + JSON.stringify(o)
+        }
+        window.__cm = cm
+        // ?cm=A|B|C: la batería (alergias, diagnósticos, responsables, etiquetas, insumos, diálogo, solo lectura) toma ese
+        // concepto, como el ?c= de la ronda de kiwi (r03); sin él, cada caso enseña el suyo
+        const cmConcept = new URLSearchParams(location.search).get('cm')
+        const cmMode = (own, numbered) => {
+          const c = cmConcept || own
+          return { selection: c === 'B' ? 'list' : 'inline', appearance: c === 'C' ? 'palette' : 'field', numbered: Boolean(numbered) && c !== 'A' }
+        }
+
         // ---------- Formularios (GForm): la página calcula los errores; GForm decide cuándo se ven ----------
         const fmMedium = ref(null)
         const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
@@ -3426,7 +3551,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>

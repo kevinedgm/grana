@@ -177,6 +177,9 @@ const slotBind = computed(() => {
 function setControl(el) {
   field.value = el || null
 }
+// N5 (input.md, #426): slot interno `below` al final de g-input__support, después del mensaje; sin aria-hidden (lleva
+// botones) y fuera de aria-describedby; recibe readonly y disabled resueltos. Lo usa la receta de GCombobox multiple.
+// Sin el slot, nada cambia (el hueco vacío no deja marcado)
 const notifyInput = () => ff.handlers.onInput()
 const notifyChange = () => ff.notifyChange()
 
@@ -239,6 +242,7 @@ if (isDev) {
         <span v-if="showCounter" class="g-input__counter" aria-hidden="true">{{ modelValue.length }}/{{ maxlength }}</span>
       </div>
       <div :id="ff.messageId.value" class="g-input__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-input__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-input__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+      <slot name="below" :readonly="isReadonly" :disabled="isDisabled" />
     </div>
   </div>
 </template>

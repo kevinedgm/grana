@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCombobox multiple · banco de rendimiento (bruno)</title>
+<!-- Banco de bruno para la compuerta de rendimiento de GCombobox multiple (combobox.md «Fase 2 · Rendimiento», #428) sobre
+     el COMPONENTE REAL (dist/combobox.umd.js): 500 opciones locales y 40 elegidas con «Elegidas» (A, #big) y con la cesta
+     (C, #big-c), y la receta (B, #big-b), solos en una página ligera. En el playground completo, showModal (la superficie es
+     un GDialog real) recalcula el estilo de miles de elementos de las demás secciones y esa cifra es de la página, no del
+     componente. Lo mide design/lab/theme-playground/tests/combobox-multiple-perf.spec.mjs (un solo worker).
+     Requiere `npm run build`. Desde la raíz del repo: python3 -m http.server 4173 → /packages/vue/playground/combobox-multiple.html -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:420px;margin:0 auto;padding-block-end:60vh;display:grid;gap:24px}
+  h1{font-size:18px;margin:0}
+</style>
+</head>
+<body>
+<main id="app">
+  <h1>GCombobox multiple · 500 opciones y 40 elegidas</h1>
+  <g-combobox id="big" multiple block v-model="big" label="Insumos del carro (A · la frase)" placeholder="Buscar insumo" :delay="20" :labels="labels" :options="options"></g-combobox>
+  <g-combobox id="big-b" multiple selection="list" block v-model="bigB" label="Insumos (B · la receta)" placeholder="Buscar insumo" :delay="20" :labels="labels" :options="options"></g-combobox>
+  <g-combobox id="big-c" multiple appearance="palette" block v-model="bigC" label="Insumos (C · la cesta)" placeholder="Buscar insumo" :delay="20" :labels="labels" :options="options"></g-combobox>
+</main>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/combobox.umd.js"></script>
+<script>
+const { createApp, reactive, toRefs } = Vue
+const options = Array.from({ length: 500 }, (_, i) => ({ value: 'b' + i, label: `Insumo ${String(i + 1).padStart(3, '0')} · ${['gasas', 'jeringas', 'guantes', 'catéteres', 'vendas'][i % 5]}` }))
+const chosen = () => options.slice(0, 40).map((o) => o.value)
+const sel = (n) => (n === 1 ? '1 seleccionado' : `${n} seleccionados`)
+const labels = {
+  clear: 'Quitar todos', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', results: (n) => (n === 1 ? '1 resultado' : n + ' resultados'),
+  partial: '{count} de {total} resultados', more: 'Mostrar más ({shown} de {total})', retry: 'Reintentar', custom: 'Texto libre', surfaceTitle: 'Buscar',
+  selected: sel, about: (n, list) => `${sel(n)}: ${list}`, added: (l, n) => `Se agregó ${l}. ${sel(n)}.`, removed: (l, n) => `Se quitó ${l}. ${sel(n)}.`,
+  restored: (l, n) => `Se restauró ${l}. ${sel(n)}.`, clearedAll: 'Se quitaron todos', restoredAll: (n) => `Se restauraron ${n}`, armed: 'Pulsa Retroceso otra vez para quitar {label}',
+  already: '{label} ya está elegido', chosen: 'Elegidos', rest: '{count} más', showAll: 'Ver los {count}', showLess: 'Ver menos', done: 'Listo', remove: 'Quitar {label}',
+  undo: 'Deshacer', trace: '{label} quitado', fresh: 'Nuevo', basketEmpty: 'Aún no hay ninguno.'
+}
+const state = reactive({ big: chosen(), bigB: chosen(), bigC: chosen() })
+window.__bench = state
+createApp({ setup: () => ({ ...toRefs(state), labels, options }) }).use(Grana).use(GranaCombobox).mount('#app')
+</script>
+</body>
+</html>

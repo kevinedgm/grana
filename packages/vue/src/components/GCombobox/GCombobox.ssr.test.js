@@ -63,3 +63,27 @@ describe('SSR · GCombobox', () => {
     expect(html).not.toContain('g-combobox__popup')
   })
 })
+
+describe('SSR · GCombobox multiple (combobox.md «Fase 2 · SSR y RTL»)', () => {
+  const ML = { ...LABELS, selected: '{count} seleccionadas', chosen: 'Elegidas', done: 'Listo', rest: '{count} más', about: '{count}: {list}', remove: 'Quitar {label}', undo: 'Deshacer', trace: '{label} quitada', fresh: 'Nueva', customItem: '{text} (texto libre)', basketEmpty: 'Vacía' }
+  it('ocultos por valor y por texto libre, frase completa (sin cesión) e ID-about; nada animado; sin tocar window', async () => {
+    expect(typeof window).toBe('undefined')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const html = await render({ multiple: true, id: 'm', name: 'dx', customName: 'libre', allowCustom: true, modelValue: ['I10', 'p1'], custom: ['Gota'], labels: ML })
+    expect(html).toContain('<input type="hidden" name="dx" value="I10"><input type="hidden" name="dx" value="p1">')
+    expect(html).toContain('<input type="hidden" name="libre" value="Gota">')
+    expect(html).toMatch(/class="g-combobox__sentence" aria-hidden="true">.*I10.*Ana Ruiz.*Gota/)
+    expect(html).not.toContain('g-combobox__sentence-rest')
+    expect(html).toMatch(/id="m-about"[^>]*>3: I10 Hipertensión esencial, Ana Ruiz,? \S+ Gota \(texto libre\)</)
+    expect(html).toContain('g-combobox--multiple g-combobox--selection-inline has-chosen')
+    expect(html).not.toMatch(/is-(rolling|ticking|entering|arriving)/)
+    expect(warn.mock.calls.filter((c) => String(c[0]).includes('[Grana GCombobox]'))).toEqual([])
+  })
+  it('la receta (B) se pinta en el servidor, dentro de g-input__support', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const html = await render({ multiple: true, id: 'r', selection: 'list', numbered: true, modelValue: ['I10'], labels: ML })
+    expect(html).toMatch(/class="g-input__support">.*class="g-input__message".*<div class="g-combobox__chosen">(<!--\[-->)?<ul class="g-combobox__rows" id="r-rows" aria-labelledby="r-label"><li data-uid="\d+" class="g-combobox__row"[^>]*><span class="g-combobox__row-number">1<\/span>/s)
+    expect(html).toContain('aria-label="Quitar I10 Hipertensión esencial"')
+    expect(html).not.toContain('g-combobox__sentence')
+  })
+})

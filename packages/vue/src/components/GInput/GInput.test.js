@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, nextTick } from 'vue'
 import GInput from './GInput.vue'
 import GBtn from '../GBtn/GBtn.vue'
 
@@ -494,3 +494,24 @@ describe('GInput · slots internos (N1–N3)', () => {
     expect(scope).toEqual({ readonly: true, disabled: false })
   })
 })
+
+describe('GInput · slot interno below (N5, input.md; #426)', () => {
+  it('sin el slot, nada cambia (la instantánea de N1 lo vigila); con él: último hijo de g-input__support, después del mensaje, sin aria-hidden, fuera de aria-describedby, con readonly y disabled resueltos', async () => {
+    const seen = []
+    const w = mount(GInput, {
+      props: { label: 'Correo', id: 'c', hint: 'Ayuda', error: 'Falta', readonly: true },
+      slots: { below: (s) => { seen.push({ ...s }); return h('ul', { class: 'mine' }, [h('li', [h('button', 'Quitar')])]) } },
+      attachTo: document.body
+    })
+    await nextTick()
+    const sup = w.find('.g-input__support').element
+    expect(sup.lastElementChild.className).toBe('mine')
+    expect(sup.lastElementChild.previousElementSibling.classList.contains('g-input__message')).toBe(true)
+    expect(sup.lastElementChild.closest('[aria-hidden]')).toBeNull()
+    expect(w.find('input').attributes('aria-describedby')).toBe('c-hint c-message')
+    expect(seen.at(-1)).toEqual({ readonly: true, disabled: false })
+    expect(w.findAll('.g-input > *').length, 'tres hijos en flujo (C10)').toBe(3)
+    w.unmount()
+  })
+})
+

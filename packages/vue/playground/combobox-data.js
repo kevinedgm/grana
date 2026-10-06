@@ -72,5 +72,19 @@
     }
   }
 
-  window.PlaygroundCombobox = { patients, RECENT, dx, meds, clientes, big, medicos, rtl, server, PAGE }
+  // Fase 2 (`multiple`, #417 a #428): catálogos de la ronda r03 de kiwi (design/lab/combobox/r03/multi.js)
+  const A = (cat, list) => ({ label: cat, options: list.map(([label, description]) => ({ value: fold(label).replace(/[^a-z0-9]+/g, '-'), label, description })) })
+  const allergens = [
+    A('Medicamentos', [['Penicilina', 'Antibiótico betalactámico'], ['Amoxicilina', 'Antibiótico betalactámico'], ['Cefalosporinas', 'Antibiótico betalactámico'], ['Sulfonamidas', 'Antibiótico (sulfas)'], ['Ácido acetilsalicílico', 'AINE · aspirina'], ['Ibuprofeno', 'AINE'], ['Naproxeno', 'AINE'], ['Metamizol', 'Analgésico'], ['Codeína', 'Opioide'], ['Morfina', 'Opioide'], ['Lidocaína', 'Anestésico local'], ['Carbamazepina', 'Anticonvulsivo'], ['Fenitoína', 'Anticonvulsivo'], ['Alopurinol', 'Antigotoso'], ['Vancomicina', 'Antibiótico glucopéptido'], ['Ciprofloxacino', 'Antibiótico quinolona'], ['Medios de contraste yodados', 'Imagen']]),
+    A('Alimentos', [['Huevo', 'Alimento'], ['Leche de vaca', 'Alimento'], ['Cacahuate', 'Alimento'], ['Nueces', 'Alimento'], ['Mariscos', 'Alimento · crustáceos y moluscos'], ['Pescado', 'Alimento'], ['Trigo', 'Alimento'], ['Soya', 'Alimento'], ['Ajonjolí', 'Alimento'], ['Fresa', 'Alimento'], ['Kiwi', 'Alimento']]),
+    A('Ambientales', [['Polen de pasto', 'Estacional'], ['Ácaros del polvo', 'Perenne'], ['Pelo de gato', 'Animal'], ['Pelo de perro', 'Animal'], ['Picadura de abeja', 'Himenópteros'], ['Picadura de avispa', 'Himenópteros'], ['Moho', 'Perenne']]),
+    A('Materiales', [['Látex', 'Guantes, sondas'], ['Níquel', 'Metal'], ['Clorhexidina', 'Antiséptico'], ['Yodopovidona', 'Antiséptico'], ['Esparadrapo', 'Adhesivo']])
+  ]
+  const P = (label, area, ext, value) => ({ value, label, avatar: true, facts: [{ label: 'Área', value: area, priority: 1 }, { label: 'Ext.', value: ext }] })
+  const people = [P('Ana López Ruiz', 'Urgencias', '2104', 'u1'), P('Ana López Ruiz', 'Pediatría', '3310', 'u2'), P('Luis Hernández Cruz', 'Urgencias', '2108', 'u3'), P('Sofía Martínez Díaz', 'Laboratorio', '4402', 'u4'),
+    P('Carlos Gómez Reyes', 'Imagenología', '4510', 'u5'), P('Valeria Torres Ortiz', 'Enfermería', '2201', 'u6'), P('Jorge Ramírez Flores', 'Trabajo social', '1107', 'u7'), P('Regina Chávez Núñez', 'Farmacia', '1302', 'u8'),
+    P('Iván Juárez Velasco', 'Urgencias', '2112', 'u9'), P('Paola Santiago Zárate', 'Admisión', '1001', 'u10'), P('Héctor Aguilar Mendoza', 'Quirófano', '5101', 'u11'), P('Lucía Castillo Ruiz', 'Pediatría', '3302', 'u12')]
+  const tags = ['Urgente', 'Seguimiento', 'Interconsulta', 'Laboratorio', 'Imagen', 'Referencia', 'Contrarreferencia', 'Alta voluntaria', 'Crónico', 'Embarazo', 'Pediátrico', 'Geriátrico'].map((label, i) => ({ value: 't' + i, label }))
+
+  window.PlaygroundCombobox = { patients, RECENT, dx, meds, clientes, big, medicos, rtl, server, PAGE, allergens, people, tags }
 })()
