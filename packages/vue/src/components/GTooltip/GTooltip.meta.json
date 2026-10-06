@@ -57,8 +57,6 @@
     "GFormRow, GAdaptiveLayout (visibleChild y mutaciones), GInputGroup (aviso de partes), GFormSection (ancho de las acciones) y GFieldGroup saltan el nodo .g-tooltip al medir o recorrer hijos (#394)."
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5) con un tema distinto al por defecto",
-    "README (mora-docs) tras la auditoría",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack): nombre, descripción, aria-keyshortcuts y detail",
     "Táctil real (menú contextual de iOS con -webkit-touch-callout), Safari real con Tab por defecto y forced-colors real",
     "Motor interno en GTabs, GRadioGroup (labelMode=\"icon\") y el riel de GSidebar en modo none (#392, encargos aparte tras candidate)"
