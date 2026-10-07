@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Migas de pan · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./crumbs.css">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:var(--g-space-3)}
+.lab-links a{color:var(--g-color-accent-text)}
+.lab-links a[aria-current]{font-weight:var(--g-text-action-weight);color:var(--g-color-text)}
+.lab{display:grid;gap:var(--g-space-6);max-inline-size:72rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-12)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 var(--g-space-2);font-family:var(--g-font-title);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:46rem;color:var(--g-color-text-muted)}
+.lab-how{margin:var(--g-space-2) 0 0;max-inline-size:46rem;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.lab-case{display:grid;gap:var(--g-space-3)}
+.lab-case h2,.lab-cmp h2{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.lab-width{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2);font-size:var(--g-text-body-sm-size)}
+.lab-width input{inline-size:min(100%, 20rem)}
+.lab-btn{min-block-size:32px;padding:0 var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);color:var(--g-color-text);font:inherit;font-size:var(--g-text-body-sm-size);cursor:pointer}
+.lab-btn:focus-visible,.lab-width input:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.frame{inline-size:min(100%, var(--w, 1100px));padding:var(--g-space-3) var(--g-space-4) var(--g-space-4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-md);background:var(--g-color-surface)}
+.page-title{margin:var(--g-space-3) 0 0;font-family:var(--g-font-title);font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line);font-weight:var(--g-text-title-lg-weight);overflow-wrap:anywhere}
+.lab-log{padding:var(--g-space-3) var(--g-space-4);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size)}
+.lab-log ol{margin:var(--g-space-2) 0 0;padding-inline-start:var(--g-space-5)}
+.lab-cmp{display:grid;gap:var(--g-space-3)}
+.lab-cmp .scroll{overflow-x:auto}
+.lab-cmp table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);min-inline-size:44rem}
+.lab-cmp th,.lab-cmp td{padding:var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-cmp thead th{color:var(--g-color-text-muted);font-weight:var(--g-text-action-weight)}
+kbd{padding:0 var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xs);font:inherit;font-size:var(--g-text-caption-size);background:var(--g-color-surface)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Migas de pan · r01</span>
+  <nav class="lab-links" aria-label="Conceptos de la ronda">
+    <a href="?c=base">Base</a><a href="?c=A">A · Ruta líquida</a><a href="?c=B">B · Escalón</a><a href="?c=C">C · Puertas</a><a id="rtl-link" href="?dir=rtl">Ver en RTL</a>
+  </nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title" id="t-title"></h1>
+    <p class="lab-lead" id="t-lead"></p>
+    <p class="lab-how" id="t-how"></p>
+  </div>
+
+  <div class="lab-width" role="group" aria-labelledby="w-label">
+    <span id="w-label">Ancho del marco</span>
+    <input id="w" type="range" min="200" max="1100" step="10" aria-labelledby="w-label" aria-describedby="w-out">
+    <output id="w-out" for="w"></output>
+    <button type="button" class="lab-btn" data-w="1100">1100</button>
+    <button type="button" class="lab-btn" data-w="720">720</button>
+    <button type="button" class="lab-btn" data-w="480">480</button>
+    <button type="button" class="lab-btn" data-w="320">320</button>
+    <button type="button" class="lab-btn" data-w="240">240</button>
+  </div>
+
+  <section class="lab-case" id="case-1">
+    <h2 id="c1-title">1 · Seis niveles, uno sin página</h2>
+    <div class="frame"><div id="m1"></div><div class="page-title" aria-hidden="true">Muestra M-0007</div></div>
+  </section>
+
+  <section class="lab-case" id="case-2">
+    <h2 id="c2-title">2 · Ruta corta con un nombre largo</h2>
+    <div class="frame"><div id="m2"></div><div class="page-title" aria-hidden="true">Plantillas de informes de resultados para laboratorios externos</div></div>
+  </section>
+
+  <section class="lab-case" id="case-spa" hidden>
+    <h2>3 · Navegar dentro de la aplicación (la ruta se extiende y se recoge)</h2>
+    <div class="lab-width"><button type="button" class="lab-btn" id="spa-in">Bajar un nivel</button><button type="button" class="lab-btn" id="spa-up">Subir un nivel</button></div>
+    <div class="frame"><div id="m3"></div></div>
+  </section>
+
+  <section class="lab-case" id="case-rtl" lang="he" dir="rtl">
+    <h2 lang="es" dir="ltr">RTL fijo · hebreo</h2>
+    <div class="frame"><div id="m4"></div></div>
+  </section>
+
+  <section class="lab-log" aria-labelledby="log-title">
+    <strong id="log-title">Eventos <code>navigate</code></strong> (la aplicación cancela el evento nativo y navega con su router, como en <code>GSidebar</code>, #70)
+    <ol id="log"></ol>
+  </section>
+
+  <section class="lab-cmp" aria-labelledby="cmp-title">
+    <h2 id="cmp-title">Comparativa</h2>
+    <div class="scroll" role="region" aria-labelledby="cmp-title" tabindex="0">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Base</th><th scope="col">A · Ruta líquida</th><th scope="col">B · Escalón</th><th scope="col">C · Puertas</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Pregunta que contesta</th><td>¿Dónde estoy?</td><td>¿Dónde estoy, entero, en cualquier ancho?</td><td>¿Cómo subo?</td><td>¿Qué hay al lado?</td></tr>
+          <tr><th scope="row">Seis niveles a 560 / 400px</th><td>3 y +3 / 2 y +4</td><td><strong>6 de 6 / 6 de 6</strong> (pastillas); +N a 320</td><td>Subir + nombre; ruta a un toque</td><td>Como la base, con puertas</td></tr>
+          <tr><th scope="row">Lo cedido, para el lector</th><td>Dentro de +N (lista anidada)</td><td><strong>Todo en la lista</strong> mientras quepan pastillas</td><td>Dentro de la escalera</td><td>Como la base</td></tr>
+          <tr><th scope="row">Paradas de Tab (seis niveles, ancho)</th><td>5 enlaces</td><td>5 enlaces</td><td>2 (subir y ruta)</td><td>5 enlaces + 4 puertas</td></tr>
+          <tr><th scope="row">Datos de la aplicación</th><td><code>label</code>, <code>href</code>, <code>icon</code></td><td>Igual</td><td>Igual</td><td>+ <code>children</code> por nivel</td></tr>
+          <tr><th scope="row">Movimiento propio</th><td>Ninguno</td><td>La ruta se extiende y se recoge; la miga enfocada se despliega</td><td>La escalera baja escalón a escalón</td><td>La puerta gira y abre</td></tr>
+          <tr><th scope="row">Coste</th><td>Bajo</td><td>Medio (pesos y mínimos en CSS, medir por lotes)</td><td>Bajo</td><td>Medio (panel por nivel)</td></tr>
+          <tr><th scope="row">Riesgo</th><td>Genérico; los de en medio desaparecen</td><td>Pastillas de 2 o 3 letras poco legibles</td><td>Un clic más en escritorio para ver la ruta</td><td>Puertas poco descubribles; Tab casi doble</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lab-how"><strong>Recomendación de kiwi:</strong> A por defecto, con la cara de B como su última etapa en un teléfono (en lugar de «+N» cuando ni las pastillas caben), y las puertas de C como capacidad opcional que se enciende cuando la aplicación da <code>children</code>. Detalle en <code>declaracion.md</code>.</p>
+  </section>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script src="./crumbs.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const C = ['base', 'A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'base'
+  const rtl = q.get('dir') === 'rtl'
+  if (rtl) document.documentElement.dir = 'rtl'
+  const W = Math.max(200, Math.min(1100, Number(q.get('w')) || 1100))
+
+  // Enlaces de la barra: conservar dir y ancho
+  const keep = (c) => { const p = new URLSearchParams({ c }); if (rtl) p.set('dir', 'rtl'); p.set('w', W); return '?' + p }
+  const keepFinal = q.get('final') === 'B' && C === 'A'
+  document.querySelectorAll('.lab-links a').forEach((a) => {
+    const c = new URLSearchParams(a.getAttribute('href').slice(1)).get('c')
+    if (c) { a.href = keep(c); if (c === C) a.setAttribute('aria-current', 'page') }
+  })
+  const rl = document.getElementById('rtl-link')
+  { const p = new URLSearchParams({ c: C, w: W }); if (!rtl) p.set('dir', 'rtl'); if (keepFinal) p.set('final', 'B'); rl.href = '?' + p; rl.textContent = rtl ? 'Ver en LTR' : 'Ver en RTL' }
+
+  const TXT = {
+    base: ['Base funcional', 'La forma convencional, a propósito, con los neutros del tema: nav con nombre y una lista ordenada, la última miga con aria-current="page", separadores Lucide decorativos (espejados en RTL), cesión por prioridad y +N para recuperar lo cedido. Aquí no se decide la identidad.',
+      'Mueve el ancho: primero ceden los niveles de en medio (desde la raíz), luego el actual se acorta (repite el título), la raíz se queda en su icono, cede el padre y por último la raíz. Pulsa +N o, con el foco en él, <kbd>flecha abajo</kbd>; <kbd>Esc</kbd> cierra. Pasa el puntero (o tabula) sobre un nombre cortado.'],
+    A: ['A · Ruta líquida', 'Nada se esconde mientras quepa una pastilla. Al estrechar, los niveles de en medio se comprimen a pastillas con sus primeras letras, luego el padre, y el actual (marcado como «estás aquí») el último; la raíz se queda entera o en su icono, nunca a medias. Todos siguen en la lista y en el Tab. La miga que recibe el foco se despliega en su sitio. Solo cuando ni las pastillas caben se agrupan en +N. Al bajar un nivel la miga nueva sale de la anterior; al subir, se recoge.',
+      'Estrecha a 480 y tabula por la ruta: cada pastilla se abre al llegar. Con el puntero, la pista dice el nombre entero. En el caso 3, baja y sube niveles.'],
+    B: ['B · Escalón', 'La miga es una acción: subir. Una pastilla lleva al nivel de arriba (lo que más se hace con unas migas) y el nombre de la página abre la ruta completa como una escalera, cada nivel un escalón más adentro. Mide lo mismo en 240 que en 1100px y nunca cede.',
+      'Pulsa el nombre de la página o, con el foco en él, <kbd>flecha abajo</kbd>. <kbd>Esc</kbd> cierra y devuelve el foco.'],
+    C: ['C · Puertas', 'Los separadores dejan de ser decoración. Donde la aplicación da los hermanos de un nivel, el chevron es una puerta: abre la lista de páginas de ese nivel, con la de la ruta marcada. Del lote 0412 al 0413 sin subir y volver a bajar. Donde no hay datos, el separador sigue siendo decorativo.',
+      'Pulsa el chevron entre «2026» y el lote, o tabula hasta él y pulsa <kbd>flecha abajo</kbd>: el foco cae en el lote actual; <kbd>flecha arriba</kbd>/<kbd>abajo</kbd> recorren; <kbd>Esc</kbd> vuelve a la puerta.']
+  }
+  document.getElementById('t-title').textContent = TXT[C][0]
+  document.getElementById('t-lead').textContent = TXT[C][1]
+  document.getElementById('t-how').innerHTML = TXT[C][2]
+  if (C === 'A') {
+    const fin = q.get('final') === 'B'
+    const p = new URLSearchParams({ c: 'A', w: W }); if (rtl) p.set('dir', 'rtl'); if (!fin) p.set('final', 'B')
+    document.getElementById('t-how').insertAdjacentHTML('beforeend', fin
+      ? ` <strong>Recomendación:</strong> última etapa = la cara de B. <a href="?${p}">Ver A sola (con +N)</a>.`
+      : ` <a href="?${p}">Ver la recomendación: A con la cara de B como última etapa</a>.`)
+  }
+
+  const kids = (arr) => arr.map(([label, href]) => ({ label, href }))
+  const LOTE = 'Lote 2026-0412 · Hemograma completo de control trimestral'
+  const TRAIL = [
+    { label: 'Inicio', href: '#inicio', icon: 'house', children: kids([['Laboratorio central', '#lab'], ['Facturación', '#fact'], ['Configuración', '#conf']]) },
+    { label: 'Laboratorio central', href: '#lab', children: kids([['Muestras', '#muestras'], ['Equipos', '#equipos'], ['Reactivos', '#reactivos'], ['Personal', '#personal']]) },
+    { label: 'Muestras', href: '#muestras' },
+    { label: '2026', children: kids([['Lote 2026-0410', '#lote-0410'], ['Lote 2026-0411', '#lote-0411'], [LOTE, '#lote-0412'], ['Lote 2026-0413', '#lote-0413'], ['Lote 2026-0414', '#lote-0414']]) },
+    { label: LOTE, href: '#lote-0412', children: kids([['Muestra M-0005', '#m-0005'], ['Muestra M-0006', '#m-0006'], ['Muestra M-0007', '#m-0007'], ['Muestra M-0008', '#m-0008']]) },
+    { label: 'Muestra M-0007', href: '#m-0007' }
+  ]
+  const SHORT = [
+    { label: 'Inicio', href: '#inicio', icon: 'house' },
+    { label: 'Configuración', href: '#conf', children: kids([['Usuarios', '#usuarios'], ['Plantillas de informes de resultados para laboratorios externos', '#plantillas']]) },
+    { label: 'Plantillas de informes de resultados para laboratorios externos', href: '#plantillas' }
+  ]
+  const HE = [
+    { label: 'ראשי', href: '#he-0', icon: 'house' },
+    { label: 'מעבדה מרכזית', href: '#he-1' },
+    { label: 'דגימות', href: '#he-2', children: kids([['אצווה 2026-0411', '#he-a'], ['אצווה 2026-0412', '#he-3'], ['אצווה 2026-0413', '#he-b']]) },
+    { label: 'אצווה 2026-0412', href: '#he-3' },
+    { label: 'דגימה M-0007', href: '#he-4' }
+  ]
+  const LB = { nav: 'Ruta de navegación', more: '{count} niveles más', up: 'Subir a {label}', path: 'Ruta hasta {label}', children: 'Otras páginas en {label}' }
+  const LB_HE = { nav: 'נתיב ניווט', more: '{count} רמות נוספות', up: 'למעלה אל {label}', path: 'הנתיב אל {label}', children: 'דפים נוספים ב{label}' }
+
+  const log = document.getElementById('log')
+  const onNavigate = (d) => {
+    d.event.preventDefault()
+    const li = document.createElement('li')
+    li.textContent = `${d.id} · navigate · ${d.item.label} (${d.item.href}) · cancelado: navega la aplicación`
+    log.prepend(li)
+  }
+  const FINAL = C === 'A' && q.get('final') === 'B' ? 'B' : null
+  const mk = (el, items, id, labels = LB) => Crumbs.mount(document.getElementById(el), { items, concept: C, labels, onNavigate, id, final: FINAL })
+  mk('m1', TRAIL, 'bc-1')
+  mk('m2', SHORT, 'bc-2')
+  mk('m4', HE, 'bc-rtl', LB_HE)
+  if (C === 'A') {
+    document.getElementById('case-spa').hidden = false
+    const spa = mk('m3', TRAIL.slice(0, 3), 'bc-spa')
+    const deeper = [{ label: '2026' }, { label: LOTE, href: '#lote-0412' }, { label: 'Muestra M-0007', href: '#m-0007' }, { label: 'Resultado R-12', href: '#r-12' }]
+    document.getElementById('spa-in').addEventListener('click', () => { const n = spa.state.items.length; if (n - 3 < deeper.length) spa.push(deeper[n - 3]) })
+    document.getElementById('spa-up').addEventListener('click', () => spa.pop())
+  }
+
+  // Ancho de los marcos
+  const lab = document.getElementById('lab'), w = document.getElementById('w'), out = document.getElementById('w-out')
+  const setW = (v) => { lab.style.setProperty('--w', v + 'px'); w.value = v; out.textContent = v + 'px' }
+  w.addEventListener('input', () => setW(w.value))
+  document.querySelectorAll('[data-w]').forEach((b) => b.addEventListener('click', () => setW(b.dataset.w)))
+  setW(W)
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+/* Prototipo de migas de pan (kiwi r01): estructura y comportamiento, no el CSS del componente (ese es de coco).
+   Solo var(--g-*) del tema por defecto. Constantes de diseño del prototipo, a decidir por lima y coco:
+   tope de una miga 20ch, pastilla de A 3ch, suelo del actual ~10ch (medido en crumbs.js), sangría de B space × 4. */
+
+/* ---------- común ---------- */
+.bc{position:relative;contain:inline-size;font-family:var(--g-font-ui);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text-muted);--_dir:1}
+.bc:dir(rtl){--_dir:-1}
+.bc__list{display:flex;flex-wrap:nowrap;align-items:center;inline-size:100%;min-inline-size:0;margin:0;padding:0;list-style:none}
+.bc__measure{position:absolute;inset-block-start:0;inset-inline-start:0;visibility:hidden;pointer-events:none}
+.bc__item{position:relative;display:flex;align-items:center;flex:none;min-inline-size:0}
+.bc__sep{flex:none;margin-inline:var(--g-space-1);color:var(--g-color-text-subtle)}
+.bc__link{display:inline-flex;align-items:center;justify-content:center;gap:var(--g-space-1);min-inline-size:24px;min-block-size:24px;padding-inline:var(--g-space-1);border-radius:var(--g-radius-sm);color:inherit;text-decoration:none;white-space:nowrap}
+.bc__icon{flex:none}
+.bc__label{min-inline-size:0;max-inline-size:20ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.bc__link:hover .bc__label{text-decoration:underline;text-underline-offset:0.2em}
+a.bc__link:hover{color:var(--g-color-text)}
+.bc__link--text{color:var(--g-color-text-muted);cursor:default}
+.bc a:focus-visible,.bc button:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.bc__item.is-current > .bc__link{color:var(--g-color-text);font-weight:var(--g-text-action-weight)}
+.bc__item.is-current .bc__label{max-inline-size:none}
+.bc:not(.bc--A) .bc__list.is-shrink > .bc__item.is-current{flex:0 1 auto;min-inline-size:var(--_cur-min)}
+/* raíz solo con su icono: el nombre sigue en el árbol (patrón de texto oculto accesible) */
+.bc__item.is-icon .bc__label{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* +N: divulgación con los niveles cedidos (enlaces de verdad, no role=menu) */
+.bc__more{display:inline-flex;align-items:center;justify-content:center;min-inline-size:24px;min-block-size:24px;padding-inline:var(--g-space-2);border:0;border-radius:var(--g-radius-pill);background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);font:inherit;font-weight:var(--g-text-action-weight);cursor:pointer}
+.bc__more:hover,.bc__more[aria-expanded="true"]{background:var(--g-color-neutral-strong);color:var(--g-color-on-neutral)}
+.bc__pop{position:absolute;inset-block-start:calc(100% + var(--g-space-1));inset-inline-start:0;z-index:3;display:grid;min-inline-size:calc(var(--g-space-4) * 12);max-inline-size:min(calc(var(--g-space-4) * 20), calc(100vw - var(--g-space-4) * 2));margin:0;padding:var(--g-space-1);list-style:none;background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);box-shadow:var(--g-shadow-2)}
+.bc__pop[hidden]{display:none}
+.bc__pop.is-end{inset-inline-start:auto;inset-inline-end:0}
+.bc__pop .bc__link{display:flex;min-block-size:32px;padding:var(--g-space-1) var(--g-space-2);white-space:normal;color:var(--g-color-text)}
+.bc__pop .bc__label{max-inline-size:none;overflow:visible;white-space:normal}
+.bc__pop a.bc__link:hover{background:var(--g-color-neutral-soft)}
+
+/* pista visual: superficie inversa (#325), aria-hidden */
+.bc-tip{position:absolute;z-index:4;inline-size:max-content;max-inline-size:min(calc(var(--g-space-4) * 20), calc(100vw - var(--g-space-4) * 2));padding:var(--g-space-1) var(--g-space-2);border-radius:var(--g-radius-sm);background:var(--g-color-text);color:var(--g-color-surface);font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-action-weight);box-shadow:var(--g-shadow-2);pointer-events:none;white-space:normal}
+.bc-tip[hidden]{display:none}
+
+/* ---------- A · Ruta líquida ---------- */
+.bc--A .bc__link{padding-inline:var(--g-space-2);border-radius:var(--g-radius-pill);transition:background-color var(--g-duration-fast) var(--g-ease-out)}
+.bc--A .bc__sep{margin-inline:0}
+.bc--A .bc__item{flex:0 1 auto;flex-shrink:var(--_k);min-inline-size:var(--_min)}
+.bc--A .bc__item.is-mid{--_k:100000;--_min:calc(1em + var(--g-space-2) * 2 + 3ch)}
+.bc--A .bc__item.is-parent{--_k:30;--_min:calc(1em + var(--g-space-2) * 2 + 3ch)}
+.bc--A .bc__item.is-current{--_k:0;--_min:calc(1em + var(--g-space-2) * 2 + 8ch)}
+.bc--A .bc__list.is-shrink > .bc__item.is-current{--_k:1}
+.bc--A .bc__item.is-root{flex:none}
+.bc--A .bc__item.is-more{--_k:0;flex:none}
+.bc--A .bc__item.is-unfold{--_k:1}
+.bc--A .bc__item.is-unfold .bc__label{max-inline-size:none}
+.bc--A .bc__item.is-chip > .bc__link{background:var(--g-color-neutral-soft);color:var(--g-color-text)}
+.bc--A .bc__item.is-current > .bc__link{background:var(--g-color-accent-soft);color:var(--g-color-on-accent-soft)}
+@media (prefers-reduced-motion: no-preference){
+  .bc--A .bc__item.is-entering{animation:bc-enter var(--g-duration-slow) var(--g-ease-spring) both}
+  .bc--A .bc__item.is-leaving{animation:bc-leave var(--g-duration-press) var(--g-ease-out) both}
+}
+@keyframes bc-enter{from{opacity:0;translate:calc(var(--g-space-1) * -3 * var(--_dir)) 0}}
+@keyframes bc-leave{to{opacity:0;translate:calc(var(--g-space-1) * -3 * var(--_dir)) 0}}
+
+/* ---------- B · Escalón ---------- */
+.bcb{display:flex;align-items:center;gap:var(--g-space-1);min-inline-size:0}
+.bcb__up{display:inline-flex;align-items:center;gap:var(--g-space-1);flex:0 1 auto;min-inline-size:0;max-inline-size:55%;min-block-size:32px;padding-inline:var(--g-space-2) var(--g-space-3);border-radius:var(--g-radius-pill);background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);font-weight:var(--g-text-action-weight);text-decoration:none}
+.bcb__up:hover{background:var(--g-color-neutral-strong);color:var(--g-color-on-neutral)}
+.bcb__icon{flex:none}
+.bcb__toggle{display:inline-flex;align-items:center;gap:var(--g-space-1);flex:0 1 auto;min-inline-size:0;min-block-size:32px;padding-inline:var(--g-space-2);border:0;border-radius:var(--g-radius-pill);background:none;color:var(--g-color-text);font:inherit;cursor:pointer}
+.bcb__toggle:hover{background:var(--g-color-neutral-soft)}
+.bcb__toggle .bc__label,.bcb__up .bc__label{max-inline-size:none}
+.bcb__chev{flex:none;transition:rotate var(--g-duration-press) var(--g-ease-out)}
+.bcb__toggle[aria-expanded="true"] .bcb__chev{rotate:180deg}
+.bcb__stairs{position:absolute;inset-block-start:calc(100% + var(--g-space-1));inset-inline-start:0;z-index:3;display:grid;min-inline-size:calc(var(--g-space-4) * 14);max-inline-size:min(calc(var(--g-space-4) * 24), calc(100vw - var(--g-space-4) * 2));margin:0;padding:var(--g-space-2);list-style:none;background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);box-shadow:var(--g-shadow-2)}
+.bcb__stairs[hidden]{display:none}
+.bcb__stairs.is-end{inset-inline-start:auto;inset-inline-end:0}
+.bcb__step{position:relative;padding-inline-start:calc(var(--g-space-4) * var(--_d))}
+/* guía de la escalera: un borde en L desde el escalón anterior (estructura, como las guías de un árbol; no es un icono) */
+.bcb__step + .bcb__step::before{content:"";position:absolute;inset-block-start:0;inset-inline-start:calc(var(--g-space-4) * (var(--_d) - 1) + var(--g-space-3));block-size:50%;inline-size:var(--g-space-2);border-inline-start:var(--g-border-width) solid var(--g-color-border-strong);border-block-end:var(--g-border-width) solid var(--g-color-border-strong);border-end-start-radius:var(--g-radius-xs)}
+.bcb__step .bc__link{display:flex;min-block-size:32px;padding-inline:var(--g-space-2);border-inline-start:calc(var(--g-border-width) * 2) solid transparent;color:var(--g-color-text-muted)}
+.bcb__step .bc__label{max-inline-size:none;white-space:normal;overflow:visible}
+.bcb__step.is-current .bc__link{border-inline-start-color:var(--g-color-accent-text);color:var(--g-color-text);font-weight:var(--g-text-action-weight)}
+.bcb__step a.bc__link:hover{background:var(--g-color-neutral-soft)}
+@media (prefers-reduced-motion: no-preference){
+  .bcb__stairs:not([hidden]) .bcb__step{animation:bcb-step var(--g-duration-slow) var(--g-ease-out) both;animation-delay:calc(var(--g-duration-fast) * var(--_d) / 4)}
+}
+@keyframes bcb-step{from{opacity:0;translate:calc(var(--g-space-1) * -2 * var(--_dir)) 0}}
+
+/* ---------- C · Puertas ---------- */
+.bc__door{flex:none;display:inline-flex;align-items:center;justify-content:center;min-inline-size:24px;min-block-size:24px;margin-inline:calc(var(--g-space-1) / 2);padding:0;border:0;border-radius:var(--g-radius-sm);background:none;color:var(--g-color-text-muted);font:inherit;cursor:pointer}
+.bc__door:hover{background:var(--g-color-neutral-soft);color:var(--g-color-text)}
+.bc__door .g-icon{transition:rotate var(--g-duration-press) var(--g-ease-out)}
+.bc__door[aria-expanded="true"]{background:var(--g-color-accent-soft);color:var(--g-color-on-accent-soft)}
+.bc__door[aria-expanded="true"] .g-icon{rotate:90deg}
+.bc__door[aria-expanded="true"] .g-icon:dir(rtl){rotate:-90deg}
+.bc__pop .bc__link[aria-current="true"]{font-weight:var(--g-text-action-weight)}
+.bc__here{flex:none;margin-inline-start:auto;color:var(--g-color-accent-text)}
+
+/* ---------- objetivos y colores forzados (al final: ganan a las reglas de cada concepto) ---------- */
+@media (pointer: coarse){
+  .bc__link,.bc__more,.bc__door,.bcb__up,.bcb__toggle{min-block-size:44px}
+  .bc__link,.bc__more,.bc__door{min-inline-size:44px}
+  .bc--A .bc__item.is-mid,.bc--A .bc__item.is-parent{--_min:calc(1em + 44px)}
+}
+@media (forced-colors: active){
+  .bc__more,.bc__door,.bcb__toggle,.bcb__up{border:var(--g-border-width) solid ButtonText}
+  .bc__item.is-current > .bc__link{text-decoration:underline}
+}
