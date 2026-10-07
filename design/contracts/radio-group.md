@@ -341,12 +341,21 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 | `g-radio-group__option` | `<label>` | Por opción |
 | `is-disabled`, `is-icon-only` | `__option` | Opción deshabilitada; etiqueta oculta en solo icono |
 | `g-radio-group__input` | `<input type="radio">` | Por opción |
+| `data-g-key-focus` (atributo vacío, **interno**, #441) | `g-radio-group__input` | Mientras tiene el foco **y** la última entrada fue una tecla de navegación (flechas, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después; se quita en `blur` y con cualquier `pointerdown`. Ver «Foco visible por teclado» |
 | `g-radio-group__segment` | Bloque icono + texto | Solo `segmented` |
 | `g-radio-group__icon` | `span` `aria-hidden` | Opción con icono |
 | `g-radio-group__text`, `__option-label`, `__description` | Texto de la opción | `__description` solo `list`/`card` |
 | `g-radio-group__support` | Pie | Siempre con `field`; con `field: false`, solo si hay ayuda |
 | `g-radio-group__hint` | Ayuda | Con `hint` o slot `hint` |
 | `g-radio-group__message`, `__message-icon`, `__message-type` | Región de mensaje y sus partes | Siempre con `field` (C4) |
+
+### Foco visible por teclado (`data-g-key-focus`, #441)
+
+WebKit no marca `:focus-visible` en el radio al que llevan las flechas (WCAG 2.4.7; hallazgo 1 de `design/lab/tooltip/auditoria-pista.md`; #441). Chromium y Firefox lo marcan siempre; WebKit tampoco enfoca el radio con un clic de ratón, y Chromium y Firefox sí, sin `:focus-visible`, así que `:focus` solo no sirve (pintaría el anillo al hacer clic). Contrato:
+
+- **Quién.** El `.vue` escribe `data-g-key-focus` (atributo vacío) en el `<input type="radio">` (`g-radio-group__input`, las cinco apariencias) en su `focus`, **solo si** la última entrada del usuario en el documento fue una tecla de navegación (←↑→↓, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` posterior; lo quita en `blur` y con cualquier `pointerdown` sobre el grupo. Con foco por programa lo pone solo si la última entrada fue de teclado (lo que hace `:focus-visible` en Chromium). Es un dato **interno**: no es API (no hay prop ni evento), la aplicación no lo escribe ni lo lee.
+- **CSS.** El anillo se dibuja con `:is(:focus-visible, :where([data-g-key-focus]):focus)`, **sin subir la especificidad** respecto de `:focus-visible` solo (la parte con atributo va en `:where`). No usa `outline` propio ni valores nuevos: mismos `--g-color-focus`, `--g-focus-width` y `--g-focus-offset`. Sin tokens nuevos.
+- **Se verifica** (bruno): en WebKit, Tab + → deja el atributo en el radio de destino y el anillo visible (`outline-style: solid` en la opción); el clic de ratón no lo pone en ningún motor; `blur` y `pointerdown` lo quitan.
 
 ## Verificación
 

@@ -132,6 +132,10 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{count}`.
 | Enter / Espacio (Añadir) | Emite `add` |
 | Esc | Cierra (vía `GDialog`) |
 
+### Foco visible de las categorías (`data-g-key-focus`, #441)
+
+WebKit no marca `:focus-visible` en el radio al que llevan las flechas (WCAG 2.4.7; hallazgo 1 de `design/lab/tooltip/auditoria-pista.md`; #441). Las categorías son radios nativos (un solo tope de Tab, flechas para cambiar): el `.vue` escribe el atributo vacío `data-g-key-focus` en el `<input>` de `g-widget-gallery__cat` en su `focus` cuando la última entrada fue una tecla de navegación (←↑→↓, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después, y lo quita en `blur` y con `pointerdown`; el clic de ratón no lo pone. Dato interno, no API. El anillo del chip se dibuja con `:is(:focus-visible, :where([data-g-key-focus]):focus)`, sin subir la especificidad y sin tokens nuevos. Regla general en `docs/contract/api.md` §«Foco visible en controles que WebKit no marca».
+
 ## Tokens consumidos
 
 Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border`, `--g-color-border-control`, `--g-color-text*`, `--g-color-focus`, `--g-color-brand`, `--g-color-on-brand`, `--g-radius-*`, `--g-space-*`, `--g-text-*`, `--g-border-width`, `--g-focus-*`. **Sin tokens nuevos**: el ancho de la hoja sale de `size` de `GDialog`.
@@ -145,6 +149,7 @@ Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface
 | `g-widget-gallery__card`, `__category`, `__tag`, `__preview`, `__row` | Tarjeta y sus partes | Por widget |
 | `g-widget-gallery__btn` (+ `--primary`) | Botones propios (Añadir, Cerrar) | Siempre |
 | `is-added` | Tarjeta | Con `added[id] > 0` |
+| `data-g-key-focus` (atributo vacío, **interno**, #441) | El `<input type="radio">` de `g-widget-gallery__cat` (`__cat > input`) | Mientras tiene el foco **y** la última entrada fue una tecla de navegación (flechas, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después; se quita en `blur` y con `pointerdown`. Ver «Foco visible de las categorías» |
 
 ## Resolución de hallazgos de r02
 
