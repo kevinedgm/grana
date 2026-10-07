@@ -217,4 +217,32 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 
 ## Contraste del indicador (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 
-El indicador **completado** (relleno `--_base` = `{color}`, icono `on-{color}`) y el **actual** (anillo sobre `surface`) llevan el **borde en `{color}-text`** (`--_text`, que ya existe) en lugar de `{color}`. El conector (`--_stepper-fill`) no entra en esta regla: coco lo mide aparte. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+El indicador **completado** (relleno `--_base` = `{color}`, icono `on-{color}`) y el **actual** (anillo sobre `surface`) llevan el **borde en `{color}-text`** (`--_text`, que ya existe) en lugar de `{color}`. Sin cambio en el tema por defecto. **Hecho** por coco en 27a89a0 (≥ 4,21:1 en `number` y `dot`).
+
+### Formas de familia del paso (`tokens.md` §7.1, «Formas de familia sin par»; DECISIONS.md #440)
+
+**Origen:** medida de coco (`design/lab/contraste-marcado/estilo.md`): pintadas con `--_base` como forma, el anillo exterior del actual en `dot`, la raya de `line` y el tramo de `segment` dan **1,04 a 1,64:1**, y el conector hecho 1,12:1 (`brand`, tema por defecto oscuro, contra `border-strong`).
+
+**No son necesarias para entender el estado** (WCAG 1.4.11 no les exige 3:1): el estado se lee por otra vía en todas las variantes. El paso actual lleva la etiqueta en **peso de título** (siempre visible, también en «solo el actual»), `aria-current="step"` y el texto de estado; los completados son, por la regla del estado derivado, **los anteriores al actual**, y los pendientes, los posteriores. Error y advertencia tienen icono, trama o subrayado propios. En `number` e `icon` el indicador, además, lleva su contorno `-text`.
+
+**Aun así pasan a `--_text`** (la regla de las formas sin par, #439): no llevan nada `on-` encima, en el tema por defecto `-text` = base (**Δ0**) y en una marca pálida dejan de desaparecer contra la superficie (`-text` ≥ 4,21:1 contra `surface`, `bg` y `surface-sunken`). Lo que se pinta con `--_text`:
+
+| Parte | Selector (`GStepper.css`) | Antes | Ahora |
+| --- | --- | --- | --- |
+| Conector hecho y saliente | `.g-stepper__connector` (degradado) | `--_base` hasta `--_stepper-fill` | `--_text` hasta `--_stepper-fill`; lo pendiente sigue en `border-strong` |
+| Punto de `dot` completado y actual | `…indicator-dot… .is-complete .g-stepper__indicator`, `… .is-current …` | fondo `--_base` (borde ya `--_text`) | fondo `--_text`: un punto lleno contra uno hueco, también en una marca pálida |
+| Anillo exterior del actual en `dot` | `box-shadow` del actual | `--_base` | `--_text` (el anillo interior de separación sigue en `surface`) |
+| Raya de `line` | `border-block-end-color` de `.is-complete` y `.is-current` | `--_base` | `--_text` (el grosor doble del actual no cambia) |
+| Tramo de `segment` | degradado del indicador | `--_base` hasta `--_stepper-fill` | `--_text` hasta `--_stepper-fill`; lo pendiente sigue en `border-control` |
+| Barra del compacto | `.g-stepper__bar-seg` | `--_base` | `--_text` (es decorativa: el texto «Paso N de M» lo dice) |
+| Indicador completado de `number` e `icon` | `.is-complete .g-stepper__indicator` | relleno `--_base` | **sin cambio**: lleva el icono `on-{color}` encima (relleno con par) |
+
+**Límite conocido (se documenta, no se arregla):** dentro del tramo de `segment`, lo hecho (`-text`) contra lo pendiente (`border-control`) **no llega a 3:1** en varios temas, también en el de por defecto (calculado por lima: 1,65:1 `accent` claro, 1,06:1 `accent` oscuro; 1,32 a 1,89:1 en lustre y spotify claros). Ambos colores son de «forma» (≥ 3:1 contra la superficie) y por eso se parecen entre sí. Subir el contraste exigiría aclarar la pista pendiente, un cambio visible en el tema por defecto, para algo que ya se lee por la etiqueta del actual y el orden. Mismo caso para el conector hecho contra el pendiente.
+
+**Encargo a coco** (con el de `widget.md` §«Contraste del avance»; una sola entrega, Sonnet):
+
+1. `GStepper.css`: cambiar `--_base` por `--_text` en las seis filas de la tabla (ocho declaraciones) (conector; punto completado y actual de `dot`; anillo exterior de `dot`; raya completada y actual de `line`; tramo de `segment`; `__bar-seg`). **No** tocar el relleno del indicador completado de `number`/`icon` ni `forced-colors`. Actualizar los comentarios.
+2. **Volver a medir el conector en el tema por defecto oscuro.** El 1,12:1 de `estilo.md` coincide con `brand` #F2F2F2 contra `brand-strong` #FFFFFF; `border-strong` (`rgb(255 255 255 / 0.20)`) compuesto sobre `surface` #1C1C1C da ≈ #494949 y unos 8:1 contra #F2F2F2. Comprobar si se compuso la transparencia y corregir la cifra en `estilo.md`.
+3. **Medir** (informativo, no compuerta): cada forma de la tabla contra `surface` en el tema por defecto, lustre, spotify y `primary` propia, claro y oscuro, con `brand`, `accent` y `warning`; lo hecho contra lo pendiente en el conector y el tramo. **Δ0 píxel a píxel** en el tema por defecto con `brand` y `accent`, en las cinco variantes, horizontal, vertical y compacto. Resultado en `design/lab/contraste-marcado/estilo.md`.
+
+**bruno:** sin código. **mora-docs:** en el README de `GStepper`, «Accesibilidad»: el estado se lee por la etiqueta del actual, el orden y el texto de estado; las formas usan `{color}-text`; el límite del tramo.

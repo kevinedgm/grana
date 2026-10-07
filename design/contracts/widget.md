@@ -188,6 +188,23 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 
 `<div class="g-progress">` con la fila de texto (etiqueta y `valueText`) y `<div class="g-progress__bar" role="progressbar" aria-valuenow aria-valuemin="0" aria-valuemax aria-valuetext aria-label>`. El valor se recorta a `[0, max]`; sin `label`, avisa.
 
+#### Contraste del avance (`tokens.md` §7.1, «Formas de familia sin par»; DECISIONS.md #439)
+
+**Origen:** medida de coco (`design/lab/contraste-marcado/estilo.md`, 27a89a0): el relleno `{color}` contra la pista `surface-sunken` da **1,20:1** (`accent`, spotify claro) y **1,64:1** (`brand`, lustre claro). El avance **es** el valor que transmite el componente; con `showValue: false` es lo único visible (WCAG 1.4.11, objeto gráfico necesario para entender).
+
+**Decisión:** el relleno `g-progress__fill` se pinta **entero en `--g-color-{color}-text`** (`primary-text` con `color="brand"`). No lleva nada encima (ningún `on-{color}`), así que es una forma, no un relleno con par: ni contorno aparte ni pista distinta. En el tema por defecto `-text` = base: **Δ0**. Contra la pista y contra la superficie, ≥ 4,21:1 (la cifra de `-text` en los cuatro temas medidos). Un avance pequeño (2 %) se sigue viendo entero, cosa que un filo de un trazo sobre un relleno pálido no garantiza.
+
+**La pista no cambia** (`surface-sunken` con su contorno `border`): con el avance a ≥ 3:1 se lee dónde termina; el final de la pista lo da el ancho del componente y, por defecto, el valor en texto (`showValue`). **Límite conocido:** con `showValue: false` el 100 % se intuye por el ancho; quien oculte el valor debe darlo visible en otra parte. La ficha de `GFileField` **no cambia**: su `GProgress` es una capa con relleno `accent-soft` y borde de avance `on-accent-soft` (#379), un relleno con par.
+
+**Encargo a coco** (con el de `stepper.md`; una sola entrega, Sonnet):
+
+1. `GProgress.css`: `.g-progress__fill` → `background: var(--_text)`; **añadir `--_text`** (`--g-color-{familia}-text`; `brand` → `--g-color-primary-text`) al bloque base y a las siete `.g-progress--color-*`. Si `--_color` queda sin uso, quitarlo. `forced-colors`, transición y `translate` no cambian.
+2. **Corregir el comentario** de `.g-progress__bar`: dice que el carril llega a 3:1 con «contorno de borde de control», pero lee `--g-color-border` (`rgb(0 0 0 / 0.08)` en el claro). El comentario debe decir lo que hace; el valor no se toca.
+3. Comprobar que `.g-file-field__progress .g-progress__fill` sigue ganando (su relleno propio no debe pasar a `-text`).
+4. **Medir** (en `design/lab/contraste-marcado/verificar.mjs` o uno hermano): avance contra la pista y contra `surface` ≥ 3:1 en el tema por defecto, lustre, spotify y `primary` propia (#107), claro y oscuro, con `brand`, `accent` y `warning`; **Δ0 píxel a píxel** en el tema por defecto con `brand` y `accent`; la ficha de `GFileField` sin cambio. Resultado en `design/lab/contraste-marcado/estilo.md`.
+
+**bruno:** sin código. **mora-docs:** una línea en «Accesibilidad» del README de `GProgress` (si lo hay; si no, del de `GWidget`) cuando coco haya medido.
+
 ### GDataList
 
 | Prop | Tipo | Valores | Default |
