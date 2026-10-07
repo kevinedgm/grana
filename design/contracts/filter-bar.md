@@ -35,6 +35,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 
 - **Un filtro por campo** (aplicar sobre uno existente lo sustituye).
 - **Validación del editor:** no se aplica sin valor (un campo numérico vacío no es 0); `between` exige desde ≤ hasta; mensaje visible y anunciado.
+- **Reservado (#457):** el editor de `between` (`number`) puede adoptar `GSlider range` en una ronda propia; obligaría a decidir la entrada del paquete (`GSlider` vive en `@grana/vue/slider`, #455).
 
 ## Comportamiento
 
@@ -84,6 +85,8 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 ## Límites conocidos
 
 Sin grupos Y/O anidados (constructor de reglas: ronda posterior), sin filtros guardados ni en la URL, sin operadores personalizados.
+
+- **Chips aplicados internos.** Las etiquetas sueltas que se quitan o se alternan son `GTag`/`GTagGroup` (`tag.md`). Adoptar `GTag` para los chips aplicados queda reservado a una ronda propia (necesita un cuarto cuerpo «botón de acción» que abre el editor; #473).
 
 ## Contraste de las casillas del editor (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 

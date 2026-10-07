@@ -2,7 +2,7 @@
 
 **Dueño:** lima · **Estado:** aprobado (concepto **A «Huella»** como comportamiento de toda etiqueta quitable dentro de `GTagGroup` y **B «Racimo»** como opción del grupo; **C «Palabra»** reservada con su nombre; **alternar (`aria-pressed`) entra en `GTag`** para filtros de la vista que actúan en el acto: decisiones del usuario del 2026-10-07. El resto deriva de HTML, WAI-ARIA APG (*Button* con `aria-pressed`, *Disclosure*), WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/chip/r01/` (kiwi, commit `cf2f928`: `brief.md`, `declaracion.md` con las decisiones 1 a 22 de la base, los conceptos A/B/C y los hallazgos L1 a L12; `tag.js`, `tag.css`, `verificar.mjs` 223/223 en Chromium, Firefox y WebKit, puerto 4213)
 **Tags:** `g-tag`, `g-tag-group` · **Categoría:** datos y selección ligera · **Entrada del paquete:** `@grana/vue` (principal, con compuerta de peso, #472) · **Avisos:** `[Grana GTag]`, `[Grana GTagGroup]`
-**Decisiones:** DECISIONS.md #460 a #473 (redactadas en `design/contracts/tag.pendientes.md` hasta que se integren).
+**Decisiones:** DECISIONS.md #460 a #473 (integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/tag.pendientes.md`; tokens en `tokens.md` §39).
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GAvatar`, `GBtn`, `GIcon` y el motor del tooltip, y se solapa con `GBadge`, `GFilterBar`, `GCheckbox`/`GRadioGroup` chip y `GSummary`): **coco y bruno en Opus**.
 
 Una **etiqueta** es un elemento de un conjunto que **clasifica o resume una elección**: las alergias de un expediente, los filtros aplicados sobre una lista, los temas de un artículo que llevan a su página, el «Solo pendientes» de la cabecera de una tabla. Se **lee**, se **quita**, se **alterna** o se **sigue**. `GTag` es una etiqueta; `GTagGroup`, un conjunto dirigido por datos que añade lo que una etiqueta suelta no puede tener: la huella al quitar, los racimos por faceta, el tope, «Quitar todas» y el foco que nunca se pierde.
@@ -312,7 +312,7 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 
 ## Tokens y movimiento (#471)
 
-**Tokens nuevos: ninguno** (`tokens.md` §17.6: ningún existente se queda corto).
+**Tokens nuevos: ninguno** (`tokens.md` §17.6: ningún existente se queda corto; registro en `tokens.md` §39).
 
 | Token | Para qué |
 | --- | --- |

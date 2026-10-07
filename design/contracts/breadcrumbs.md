@@ -2,7 +2,7 @@
 
 **Dueño:** lima · **Estado:** aprobado (forma **A «Ruta líquida»** por defecto, con **la cara de B «Escalón»** como su última etapa y las **puertas de C** cuando la aplicación da `children`: decisión del usuario del 2026-10-07; el resto deriva de WAI-ARIA APG *Breadcrumb* y *Disclosure Navigation*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/breadcrumbs/r01/` (kiwi, commit `68a6ff2`: base funcional, conceptos A, B y C, hallazgos L1 a L16; `verificar.mjs` 324/324 en los tres motores, puerto 4215).
 **Tag:** `g-breadcrumbs` · **Categoría:** navegación · **Entrada del paquete:** `@grana/vue` (principal), con la salida a entrada propia ya decidida si supera el tope (§«Entrega y empaquetado»).
-**Decisiones:** #490 a #503 (redactadas en `design/contracts/breadcrumbs.pendientes.md` hasta que se integren en `DECISIONS.md`).
+**Decisiones:** #490 a #503 (integradas en `DECISIONS.md` el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/breadcrumbs.pendientes.md`; tokens en `tokens.md` §41).
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: paneles anclados sobre otros elementos y un motor de medida): **coco y bruno en Opus**.
 
 Dice **dónde está** la página dentro de una jerarquía y deja **subir** a cualquier nivel: Inicio · Laboratorio central · Muestras · 2026 · Lote 2026-0412 · Muestra M-0007. Donde la aplicación lo sabe, deja además **moverse de lado** (del lote 0412 al 0413) sin subir y volver a bajar.
@@ -220,7 +220,7 @@ Declarado en `emits` (lección del CLAUDE.md). Los demás eventos nativos llegan
 ## El foco despliega; la pista visual (#496)
 
 - **Despliegue por teclado (A):** el `li` cuyo enlace tiene `:focus-visible` toma peso `1` y su nombre pierde el tope (`max-inline-size: none`), de modo que se ve entero y las vecinas se aprietan. **En CSS** (`.g-breadcrumbs__item:has(> .g-breadcrumbs__link:focus-visible)`), sin clase de JS; se pliega al irse el foco. **Sin transición de tamaño** (instantáneo: es frecuente, #500). Con el **puntero**, nada se despliega (la fila se movería bajo él): la pista da el nombre.
-- **Pista visual** (modo visual del motor del tooltip, `tooltip.md` §«Modo visual», #433; **enmienda** en `breadcrumbs.pendientes.md`): `GBreadcrumbs` es el primer cliente cuyo nombre está **visible pero recortado** (no oculto). Un nodo `g-tooltip` (`aria-hidden`, sin rol, id ni referencias) **por destino que pueda recortarse**: cada nivel de la fila, «Subir» y la divulgación; y **uno por puerta**. Al final de la raíz `nav`, **nunca dentro del `ol`** (que solo admite `li`).
+- **Pista visual** (modo visual del motor del tooltip, `tooltip.md` §«Modo visual», #433; **enmienda** aplicada en `tooltip.md` §«Modo visual»): `GBreadcrumbs` es el primer cliente cuyo nombre está **visible pero recortado** (no oculto). Un nodo `g-tooltip` (`aria-hidden`, sin rol, id ni referencias) **por destino que pueda recortarse**: cada nivel de la fila, «Subir» y la divulgación; y **uno por puerta**. Al final de la raíz `nav`, **nunca dentro del `ol`** (que solo admite `li`).
   - **Texto:** el `label` del nivel (en «Subir» y la divulgación, el nombre visible, no el `aria-label`); en una puerta, su nombre (`labels.children` resuelto), como el `aria-label` del botón de contraer de `GSidebar` (#436).
   - **`disabled()`** verdadero mientras el nombre cabe entero: activa solo con `data-clipped` o con la raíz en solo icono; la puerta, siempre activa (es un control de solo icono: la pista **ayuda a descubrirla**, #498). Se mide al pedirlo (lectura síncrona: con el foco por teclado, el despliegue ya se aplicó y la pista solo sale si **ni desplegado** cabe).
   - **Comportamiento del motor sin excepciones:** `OPEN` 350 ms con puntero, al instante con foco por navegación, no con clic ni foco por programa; Esc la cierra sin mover el foco; **grupo `nav`**: viaja entre niveles y puertas (#388); lado `bottom`; pulsación larga en táctil muestra el nombre y **soltar no activa** (#385); se cierra al abrirse un panel (`check()` al cambiar `aria-expanded`).
@@ -293,7 +293,7 @@ En los paneles, el orden del DOM es el del Tab: el panel va **inmediatamente des
 
 ## Tokens consumidos (#501)
 
-**Ningún token nuevo** (§17.6: ningún existente se queda corto). Previstos (coco elige y mide; puede usar otros existentes justificándolo en `estilo.md`):
+**Ningún token nuevo** (`tokens.md` §17.6: ningún existente se queda corto; registro en `tokens.md` §41). Previstos (coco elige y mide; puede usar otros existentes justificándolo en `estilo.md`):
 
 - Texto: `--g-font-ui`, `--g-text-body-sm-{size|line|weight|tracking}` (todo el componente), `--g-text-action-weight` (actual, pastilla de acento, «Subir», escalón actual, hijo de la ruta); `--g-color-text` (actual, hover), `--g-color-text-muted` (niveles, nivel sin página, puerta en reposo; ≥ 4.5:1), `--g-color-text-subtle` (separador decorativo).
 - A: `--g-color-accent-soft` / `--g-color-on-accent-soft` (actual), `--g-color-neutral-soft` + `--g-color-text` u `--g-color-on-neutral-soft` (pastilla recortada), `--g-radius-pill`.
@@ -302,7 +302,7 @@ En los paneles, el orden del DOM es el del Tab: el panel va **inmediatamente des
 - Paneles: `--g-color-surface`, `--g-color-border`, `--g-radius-md`, `--g-shadow-2`, `--g-color-neutral-soft` (hover de un enlace).
 - Comunes: `--g-space-1` (todas las medidas), `--g-border-width`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`, `--g-ease-spring`. La pista usa los tokens de `GTooltip` (§36 de `tokens.md`), sin CSS propio.
 
-**No son tokens** (registro en `tokens.md`, texto en `breadcrumbs.pendientes.md`):
+**No son tokens** (registro en `tokens.md` §41):
 
 - **Literales de unidad** (amplían §7, #187, como `7ch`/`4ch` de `GSummary`): **`20ch`** (tope de nombre de un nivel), **`3ch`** (nombre mínimo de una pastilla), **`8ch`** (suelo del actual en `shrink`).
 - **Constantes de diseño:** pesos de `flex-shrink` **`100000` · `30` · `1` · `0`** (en medio, padre, actual en `shrink`, actual); sangría de la escalera **`space × 4`** por nivel; anchos de los paneles (coco, desde `space`).

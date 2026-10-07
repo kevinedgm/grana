@@ -26,6 +26,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 | Encender o apagar un ajuste que se aplica en el acto | `GSwitch` | Un Sí/No con radios |
 | Cada opción es una **entidad con contenido propio** (media, métricas, acciones, menú) | `GCard selectType="radio"` dentro de un `role="radiogroup"` del consumidor (#124, #133) | `appearance="card"` (es una opción de formulario: indicador, icono, etiqueta, descripción; sin `GSurface`, sin acciones, sin media) |
 | Cambiar **lo que se ve** (vistas, paneles) | `GTabs` (`segmented` incluido) | `GRadioGroup appearance="segmented"` |
+| Un filtro de la **vista** que actúa en el acto y **no se envía** | `GTag` de alternar (`tag.md`, #461). Frontera con `GTag`: si la elección **se envía con el formulario**, es `appearance="chip"` | `appearance="chip"` fuera de un formulario |
 | «Ninguna» es una respuesta válida | Una opción más («No sé», «Prefiero no decirlo») | Permitir deseleccionar (no existe en el nativo ni en APG) |
 
 ---
@@ -341,7 +342,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 | `g-radio-group__option` | `<label>` | Por opción |
 | `is-disabled`, `is-icon-only` | `__option` | Opción deshabilitada; etiqueta oculta en solo icono |
 | `g-radio-group__input` | `<input type="radio">` | Por opción |
-| `data-g-key-focus` (atributo vacío, **interno**, #441) | `g-radio-group__input` | Mientras tiene el foco **y** la última entrada fue una tecla de navegación (flechas, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después; se quita en `blur` y con cualquier `pointerdown`. Ver «Foco visible por teclado» |
+| `data-g-key-focus` (atributo vacío, **interno**, #441) | `g-radio-group__input` | Mientras tiene el foco **y** la **última entrada fue de teclado** (cualquier tecla que no es modificador, también Intro desde el enlace de `GErrorSummary`) sin un `pointerdown` después (regla de modalidad, #450; `api.md`); se quita en `blur` y con cualquier `pointerdown`. Ver «Foco visible por teclado» |
 | `g-radio-group__segment` | Bloque icono + texto | Solo `segmented` |
 | `g-radio-group__icon` | `span` `aria-hidden` | Opción con icono |
 | `g-radio-group__text`, `__option-label`, `__description` | Texto de la opción | `__description` solo `list`/`card` |
@@ -353,7 +354,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 
 WebKit no marca `:focus-visible` en el radio al que llevan las flechas (WCAG 2.4.7; hallazgo 1 de `design/lab/tooltip/auditoria-pista.md`; #441). Chromium y Firefox lo marcan siempre; WebKit tampoco enfoca el radio con un clic de ratón, y Chromium y Firefox sí, sin `:focus-visible`, así que `:focus` solo no sirve (pintaría el anillo al hacer clic). Contrato:
 
-- **Quién.** El `.vue` escribe `data-g-key-focus` (atributo vacío) en el `<input type="radio">` (`g-radio-group__input`, las cinco apariencias) en su `focus`, **solo si** la última entrada del usuario en el documento fue una tecla de navegación (←↑→↓, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` posterior; lo quita en `blur` y con cualquier `pointerdown` sobre el grupo. Con foco por programa lo pone solo si la última entrada fue de teclado (lo que hace `:focus-visible` en Chromium). Es un dato **interno**: no es API (no hay prop ni evento), la aplicación no lo escribe ni lo lee.
+- **Quién.** El `.vue` escribe `data-g-key-focus` (atributo vacío) en el `<input type="radio">` (`g-radio-group__input`, las cinco apariencias) en su `focus`, **solo si** la **última entrada fue de teclado** (cualquier tecla que no es modificador, también Intro desde el enlace de `GErrorSummary`) sin un `pointerdown` después (regla de modalidad, #450; `api.md`); lo quita en `blur` y con cualquier `pointerdown` sobre el grupo. Con foco por programa lo pone solo si la última entrada fue de teclado (lo que hace `:focus-visible` en Chromium). Es un dato **interno**: no es API (no hay prop ni evento), la aplicación no lo escribe ni lo lee.
 - **CSS.** El anillo se dibuja con `:is(:focus-visible, :where([data-g-key-focus]):focus)`, **sin subir la especificidad** respecto de `:focus-visible` solo (la parte con atributo va en `:where`). No usa `outline` propio ni valores nuevos: mismos `--g-color-focus`, `--g-focus-width` y `--g-focus-offset`. Sin tokens nuevos.
 - **Se verifica** (bruno): en WebKit, Tab + → deja el atributo en el radio de destino y el anillo visible (`outline-style: solid` en la opción); el clic de ratón no lo pone en ningún motor; `blur` y `pointerdown` lo quitan.
 

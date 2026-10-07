@@ -152,7 +152,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ## Límites conocidos
 
-- **Solo presentación:** ni chips pulsables ni cerrables en v0.1 (un componente aparte).
+- **Solo presentación:** ni pulsable ni cerrable. Una etiqueta que se quita, se alterna o se sigue, o una etiqueta de categoría, es **`GTag`** (`tag.md`, #461): `GBadge` dice el estado o la cantidad de otra cosa, con colores semánticos.
 - **Sin anuncios automáticos.**
 - **Avatar:** no es parte de `GBadge`; la **presencia** se compone con `GAvatar` en el slot `anchor` (#297, `avatar.md` «Presencia»). Sobre un **`.g-avatar--shape-circle`**, la insignia se centra en el **contorno a 45°** y no en la esquina de la caja (que queda 8,3px fuera del círculo `lg`): lo resuelve coco en `GBadge.css` con la constante geométrica `1 − 1/√2` del lado (sin token); sobre `square`, la esquina como siempre.
 - **`glass` depende de `backdrop-filter`:** sin él (o con transparencia reducida) se ve como `soft`. En Firefox y Safari por verificar.

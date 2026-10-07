@@ -26,7 +26,7 @@ Un campo para **un número que la persona escribe** (edad, peso, temperatura, po
 | Unidad **elegible** (°C/°F) | Hoy: `GNumberField` + `GSelect` «Unidad» en la misma `GFormRow` (dos preguntas) o `GInputGroup` con `GInputGroupInput inputmode` (receta, `form.md` §8). **`GInputGroupNumber` reservado** (#314) | Una prop `unit` |
 | Un identificador hecho de cifras (CP, folio, teléfono, tarjeta) | `GInput inputmode="numeric"` | `GNumberField` (no es una cantidad: ni formato, ni pasos, ni `Number`) |
 | Dinero | Ronda propia de moneda (Fase 4/5, #154) | `GNumberField prefix="$"` como sustituto del formato de moneda |
-| Elegir un valor de un rango continuo arrastrando | Deslizador (sin ronda) | `GNumberField` |
+| Elegir un valor acotado arrastrando, o un rango | `GSlider` (`slider.md`; juntos con el mismo `v-model` en una `GFormRow` cuando hacen falta la proporción y la cifra) | `GNumberField` |
 
 ---
 

@@ -201,6 +201,7 @@ function avatarCategory(key, n) {               // key: colorKey ?? name; n: cat
 
 - **Cambiar `n` reparte de nuevo** (inherente a un módulo): se documenta, y por eso existe `color` fijo.
 - **No se exporta** una función en v0.1 (sin consumidor); el algoritmo está aquí para reproducirlo fuera.
+- **Una sola copia** (#469): la función vive en `packages/vue/src/utils/categoryHash.js` (`categoryOf`, interna) y la comparten `GAvatar`, `GTag` y `GTagGroup`; los vectores de esta tabla son las pruebas de `categoryHash.test.js`. `GTag` usa la clave `colorKey ?? facet ?? label` (`tag.md` §«Color»).
 
 ## Imagen
 

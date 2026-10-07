@@ -1,6 +1,6 @@
 # Contrato · GAccordion + GAccordionItem
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #475 a #488, redactadas en `design/contracts/accordion.pendientes.md` hasta que se copien a `DECISIONS.md`) · pendiente de coco y bruno · **Basado en:** `design/lab/accordion/r01/` (kiwi, commit 5f90973: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `accordion.js`, `verificar.mjs` 184/184 en Chromium, Firefox y WebKit, puerto 4214)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #475 a #488, integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/accordion.pendientes.md`; tokens en `tokens.md` §40) · pendiente de coco y bruno · **Basado en:** `design/lab/accordion/r01/` (kiwi, commit 5f90973: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `accordion.js`, `verificar.mjs` 184/184 en Chromium, Firefox y WebKit, puerto 4214)
 **Tags:** `g-accordion`, `g-accordion-item` · **Categoría:** contenido (divulgación) · **Paquete:** `@grana/vue` (principal; #476)
 
 Un grupo de **secciones plegables de contenido** (preguntas frecuentes, paneles de detalles, ajustes que se aplican al momento) y su elemento, que también se usa **suelto** como sección plegable de una pieza (APG *Disclosure* con encabezado). No es una sección de formulario: plegar **preguntas de un formulario** es `GFormSection mode="collapsible"` (`form.md` §3).
@@ -328,7 +328,7 @@ Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`
 
 ## Tokens (#485)
 
-**Ningún token del tema nuevo.** Consumidos:
+**Ningún token del tema nuevo** (registro en `tokens.md` §40). Consumidos:
 
 | Token | Para qué |
 | --- | --- |
@@ -344,13 +344,13 @@ Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`
 | `--g-border-width` | Separadores |
 | `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out` | Altura y color; fundidos y giro |
 
-**Propiedad pública de entrada (no es del tema): `--g-accordion-sticky-top`** (#484). La pone la aplicación; `GAccordion.css` la registra con `@property` (`syntax: '<length>'`, **`inherits: true`** para que valga ponerla una vez en `:root`, `initial-value: 0px`), así el componente la lee sin respaldo. No va en `defaults.css` ni en `tokens.json`; excepción documentada en `levels.test.js`, como `--g-form-min` y `--g-form-actions-size`. Texto para `tokens.md` en el archivo de pendientes.
+**Propiedad pública de entrada (no es del tema): `--g-accordion-sticky-top`** (#484). La pone la aplicación; `GAccordion.css` la registra con `@property` (`syntax: '<length>'`, **`inherits: true`** para que valga ponerla una vez en `:root`, `initial-value: 0px`), así el componente la lee sin respaldo. No va en `defaults.css` ni en `tokens.json`; excepción documentada en `levels.test.js`, como `--g-form-min` y `--g-form-actions-size`. Registro en `tokens.md` §40.
 
 **No son tokens** (alias y constantes): `--_sticky-bg`, `--_head-size`, los retrasos del fundido del avance (derivados de `fast`/`slow`), el umbral de 6 regiones (APG), los 80 ms y 50 ms de respaldo (JS), el giro de 90°.
 
 ## Iconos
 
-`chevron-right` (GLibIcon interno; ya en la lista de la librería). Nada nuevo en la lista. Fila nueva para la tabla de `icons.md` §4 en el archivo de pendientes. B reservado usaría `plus`/`minus` (también en la lista).
+`chevron-right` (GLibIcon interno; ya en la lista de la librería). Nada nuevo en la lista. Fila en la tabla de `icons.md` §4. B reservado usaría `plus`/`minus` (también en la lista).
 
 ---
 
