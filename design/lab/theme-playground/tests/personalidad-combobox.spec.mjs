@@ -54,6 +54,29 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown') // una fila lejana: el viaje se ve
     await frames(page)
     const from = await page.evaluate(() => { const r = document.querySelector('#cb-dx-list .is-active .g-summary').getBoundingClientRect(); return { x: r.left, y: r.top } }) // el origen es la ficha de la fila (#356)
+    // La trayectoria, sin depender de los cuadros: WebKit sin cabeza pinta a ~15–30 cuadros/s y su primer cuadro tras Intro
+    // llega con la animación de 240 ms ya en ~90 ms, pasado su sitio por el muelle (ni el arranque ni ≥ 2 intermedias se
+    // ven). Al aparecer is-arriving, se pausa la animación real, se recorre su tiempo en 60 pasos leyendo la posición y se
+    // devuelve a donde estaba; los cuadros reales siguen probando que corre, termina en su sitio y retira la clase.
+    await page.evaluate(() => {
+      window.__cbPath = null
+      const root = document.getElementById('cb-dx').closest('.g-combobox')
+      const mo = new MutationObserver(() => {
+        const t = root.querySelector('.g-combobox__token.is-arriving')
+        const a = t && t.getAnimations().find((x) => /arrive/.test(x.animationName || ''))
+        if (!a) return
+        mo.disconnect()
+        const d = a.effect.getComputedTiming().duration
+        const was = a.currentTime
+        a.pause()
+        const path = []
+        for (let k = 0; k <= 60; k++) { a.currentTime = (d * k) / 60; path.push(t.getBoundingClientRect().top) }
+        a.currentTime = was
+        a.play()
+        window.__cbPath = { d, path }
+      })
+      mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] })
+    })
     const run = sample(page, () => {
       const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token')
       if (!t) return null
@@ -67,18 +90,21 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     const end = ps[ps.length - 1]
     expect(end.arriving, 'la clase se retira').toBe(false)
     expect(end.vars, 'y el vector también').toBe('')
-    expect(ps.some((p) => p.arriving)).toBe(true)
+    expect(ps.some((p) => p.arriving), 'la animación corre en cuadros reales').toBe(true)
     const travelY = from.y - end.y
     expect(Math.abs(travelY), 'la fila estaba lejos del campo').toBeGreaterThan(60)
-    const mid = distinct(ps.map((p) => p.y).filter((y) => Math.abs(y - end.y) > 1 && Math.abs(y - from.y) > 1))
+    const { d, path } = await page.evaluate(() => window.__cbPath)
+    expect(d, 'duración de la llegada').toBeGreaterThan(0)
+    const mid = distinct(path.filter((y) => Math.abs(y - end.y) > 1 && Math.abs(y - from.y) > 1))
     expect(mid.length, `posiciones intermedias ${mid.join(', ')}`).toBeGreaterThanOrEqual(2)
     // Empieza hacia su fila (acotado por coco) y termina exactamente en su sitio
-    expect(Math.sign(ps.find((p) => p.arriving).y - end.y)).toBe(Math.sign(travelY))
+    expect(Math.sign(path[0] - end.y), `arranque ${path[0]} frente a ${end.y}`).toBe(Math.sign(travelY))
+    expect(Math.abs(path[path.length - 1] - end.y)).toBeLessThan(0.5)
     const rest = await page.evaluate(() => { const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token'); const r = t.getBoundingClientRect(); return { x: r.left, y: r.top, anim: t.getAnimations().length } })
     expect(Math.abs(rest.y - end.y) + Math.abs(rest.x - end.x)).toBeLessThan(0.5)
     expect(rest.anim).toBe(0)
     // Rebase del muelle: lo que pasa de largo al otro lado de su sitio; cota de coco, space × 2 (8px con space 4)
-    const over = Math.max(0, ...ps.map((p) => (end.y - p.y) * Math.sign(travelY)))
+    const over = Math.max(0, ...path.map((y) => (end.y - y) * Math.sign(travelY)), ...ps.map((p) => (end.y - p.y) * Math.sign(travelY)))
     test.info().annotations.push({ type: 'rebase', description: `${over.toFixed(2)}px en un viaje de ${Math.abs(travelY).toFixed(0)}px` })
     expect(over, `rebase ${over.toFixed(2)}px`).toBeLessThanOrEqual(8.5)
     expect(await out(page, 'cb-out-dx')).toMatch(/^dx: [A-Z]/)

@@ -32,7 +32,13 @@ test.describe('GCombobox · A · el campo se abre', () => {
   test('una sola forma: el contorno abierto abraza campo y lista (Δ < 1px, costura < 1.5px); el campo se usa a través de ella; Δ0', async ({ page }) => {
     const errs = await watchConsole(page)
     await open(page)
+    // En WebKit, scrollIntoViewIfNeeded de la sección (más alta que el visor) deja #cb-pac 400px por encima del visor, y
+    // focus() lo trae a la vista con un desplazamiento nativo que a veces se aplica después de medir g0 (Δ 879px, la
+    // mitad de las veces con --repeat-each). No es el componente: se lleva el campo al visor y se espera a que el
+    // desplazamiento del foco se asiente (dos cuadros) antes de la primera medida; Δ0 sigue midiéndose desde ahí.
+    await page.locator('#cb-pac').scrollIntoViewIfNeeded()
     await page.focus('#cb-pac')
+    await frames(page)
     const g0 = await geo(page, 'cb-pac')
     await page.keyboard.type('mar', { delay: 15 })
     await page.waitForTimeout(300)
