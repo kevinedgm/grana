@@ -1,0 +1,144 @@
+/* Prototipo de la etiqueta · kiwi r01. Solo tokens del tema (grana.css, capa grana.defaults) y las categorías que el motor
+   genera (tema-cat8.css). Medidas literales: solo 24px y 44px (área táctil) y el patrón de texto oculto, como en la librería.
+   No es el CSS del componente (es de coco): fija geometría y estados para que se puedan medir. */
+
+.t-sr { position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ---------- Categoría: alias locales leídos del tema (tokens.md §16.3); sin categoría, neutro ---------- */
+.t-tag, .t-racimo { --_cat: var(--g-color-neutral); --_cat-soft: var(--g-color-neutral-soft); --_cat-text: var(--g-color-border-control); --_on-cat: var(--g-color-on-neutral); --_on-cat-soft: var(--g-color-text); }
+[data-cat="1"] { --_cat: var(--g-color-cat-1); --_cat-soft: var(--g-color-cat-1-soft); --_cat-text: var(--g-color-cat-1-text); --_on-cat: var(--g-color-on-cat-1); --_on-cat-soft: var(--g-color-on-cat-1-soft); }
+[data-cat="2"] { --_cat: var(--g-color-cat-2); --_cat-soft: var(--g-color-cat-2-soft); --_cat-text: var(--g-color-cat-2-text); --_on-cat: var(--g-color-on-cat-2); --_on-cat-soft: var(--g-color-on-cat-2-soft); }
+[data-cat="3"] { --_cat: var(--g-color-cat-3); --_cat-soft: var(--g-color-cat-3-soft); --_cat-text: var(--g-color-cat-3-text); --_on-cat: var(--g-color-on-cat-3); --_on-cat-soft: var(--g-color-on-cat-3-soft); }
+[data-cat="4"] { --_cat: var(--g-color-cat-4); --_cat-soft: var(--g-color-cat-4-soft); --_cat-text: var(--g-color-cat-4-text); --_on-cat: var(--g-color-on-cat-4); --_on-cat-soft: var(--g-color-on-cat-4-soft); }
+[data-cat="5"] { --_cat: var(--g-color-cat-5); --_cat-soft: var(--g-color-cat-5-soft); --_cat-text: var(--g-color-cat-5-text); --_on-cat: var(--g-color-on-cat-5); --_on-cat-soft: var(--g-color-on-cat-5-soft); }
+[data-cat="6"] { --_cat: var(--g-color-cat-6); --_cat-soft: var(--g-color-cat-6-soft); --_cat-text: var(--g-color-cat-6-text); --_on-cat: var(--g-color-on-cat-6); --_on-cat-soft: var(--g-color-on-cat-6-soft); }
+[data-cat="7"] { --_cat: var(--g-color-cat-7); --_cat-soft: var(--g-color-cat-7-soft); --_cat-text: var(--g-color-cat-7-text); --_on-cat: var(--g-color-on-cat-7); --_on-cat-soft: var(--g-color-on-cat-7-soft); }
+[data-cat="8"] { --_cat: var(--g-color-cat-8); --_cat-soft: var(--g-color-cat-8-soft); --_cat-text: var(--g-color-cat-8-text); --_on-cat: var(--g-color-on-cat-8); --_on-cat-soft: var(--g-color-on-cat-8-soft); }
+
+/* ---------- Común ---------- */
+.t-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--g-space-1) * 2); min-inline-size: 0; font-family: var(--g-font-ui); color: var(--g-color-text); }
+.t-list { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--g-space-1) * 2); margin: 0; padding: 0; list-style: none; min-inline-size: 0; max-inline-size: 100%; }
+.t-item, .t-val { display: flex; min-inline-size: 0; max-inline-size: 100%; }
+.t-item[hidden] { display: none; }
+.t-tag {
+  --_h: calc(var(--g-space-1) * 8); --_x: 24px;
+  position: relative; display: inline-flex; align-items: center; box-sizing: border-box;
+  min-block-size: var(--_h); min-inline-size: 0; max-inline-size: calc(var(--g-space-1) * 60);
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+}
+.t-tag--sm { --_h: calc(var(--g-space-1) * 6); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); }
+.t-body { display: inline-flex; align-items: center; gap: calc(var(--g-space-1) * 1.5); min-inline-size: 0; max-inline-size: 100%; align-self: stretch; box-sizing: border-box; padding: 0 calc(var(--g-space-1) * 3); margin: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; border-radius: inherit; }
+button.t-body, a.t-body { cursor: pointer; min-block-size: 24px; }
+.t-text { min-inline-size: 0; }
+/* Recortar solo lo que tiene un control enfocable (la pista muestra el texto entero); una etiqueta estática se parte en líneas */
+.t-tag:has(button, a) .t-text { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.t-tag:not(:has(button, a)) .t-text { overflow-wrap: anywhere; }
+.t-tag:not(:has(button, a)) { block-size: auto; padding-block: var(--g-space-1); }
+.t-check { display: inline-flex; inline-size: 0; overflow: hidden; margin-inline-end: calc(var(--g-space-1) * -1.5); transition: inline-size var(--g-duration-press) var(--g-ease-out), margin var(--g-duration-press) var(--g-ease-out); }
+.is-pressed .t-check { inline-size: 1em; margin-inline-end: 0; }
+.t-remove, .t-undo { position: relative; display: inline-grid; place-items: center; flex: none; inline-size: var(--_x); block-size: var(--_x); padding: 0; border: 0; border-radius: var(--g-radius-pill); background: none; color: inherit; font: inherit; cursor: pointer; }
+.t-remove .g-icon, .t-undo .g-icon { inline-size: calc(var(--g-space-1) * 4); block-size: calc(var(--g-space-1) * 4); }
+/* Área táctil: ≥ 44px con puntero grueso sin cambiar el dibujo (como GBtn) */
+@media (pointer: coarse) { .t-remove::after, .t-undo::after, button.t-body::after, a.t-body::after { content: ""; position: absolute; inset-block-start: 50%; inset-inline-start: 50%; inline-size: max(100%, 44px); block-size: 44px; translate: -50% -50%; } button.t-body, a.t-body { position: relative; } }
+:dir(rtl) .t-remove::after { translate: 50% -50%; }
+.t-body:focus-visible, .t-remove:focus-visible, .t-undo:focus-visible, .t-more:focus-visible, .t-clear:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.t-body:disabled, .t-remove:disabled { cursor: default; color: var(--g-color-text-subtle); }
+.t-tools { display: inline-flex; gap: calc(var(--g-space-1) * 2); }
+.t-more, .t-clear { display: inline-flex; align-items: center; gap: var(--g-space-1); min-block-size: calc(var(--g-space-1) * 8); padding: 0 calc(var(--g-space-1) * 2); border: 0; border-radius: var(--g-radius-sm); background: none; color: var(--g-color-link); font: inherit; font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); cursor: pointer; }
+.t-more:hover, .t-clear:hover { text-decoration: underline; }
+.t-empty { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+.t-avatar { margin-inline-start: calc(var(--g-space-1) * -1.5); }
+.t-tip { position: absolute; z-index: 10; max-inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - 16px)); padding: var(--g-space-1) calc(var(--g-space-1) * 2); border-radius: var(--g-radius-sm); background: var(--g-color-text); color: var(--g-color-surface); font: var(--g-text-caption-size) / var(--g-text-caption-line) var(--g-font-ui); overflow-wrap: anywhere; pointer-events: none; }
+
+/* =================== BASE · la convencional, a propósito (kit gris: neutros del tema) =================== */
+.t-group--base .t-tag { border-radius: var(--g-radius-pill); background: var(--_cat-soft); color: var(--_on-cat-soft); }
+.t-group--base .t-tag:not(:has(button, a)) { padding-inline: calc(var(--g-space-1) * 3); }
+.t-group--base .t-tag:not(:has(button, a)) .t-body { padding: 0; }
+.t-group--base .t-tag.is-removable .t-body { padding-inline-end: var(--g-space-1); }
+.t-group--base .t-tag.is-removable { padding-inline-end: var(--g-space-1); }
+.t-group--base .t-remove:hover { background: var(--g-color-border-strong); }
+.t-group--base .t-body--link:hover .t-text { text-decoration: underline; }
+.t-group--base .t-tag.is-toggle { background: var(--g-color-surface); color: var(--g-color-text); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control); }
+.t-group--base .t-tag.is-toggle.is-pressed { background: var(--g-color-primary); color: var(--g-color-on-primary); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-primary-text); }
+.t-group--base .t-tag.is-toggle:has(:disabled) { box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border); }
+
+/* =================== A · HUELLA: la etiqueta deja su hueco y el «Deshacer» aparece donde actuaste =================== */
+.t-group--A .t-tag { --_x: var(--_h); border-radius: var(--g-radius-shape); background: var(--_cat-soft); color: var(--_on-cat-soft); transition: background-color var(--g-duration-fast) var(--g-ease-standard), color var(--g-duration-fast) var(--g-ease-standard); }
+.t-group--A .t-tag:not(:has(button, a)) { padding-inline: calc(var(--g-space-1) * 3); }
+.t-group--A .t-tag:not(:has(button, a)) .t-body { padding: 0; }
+/* La tapa: toda la altura, separada por un filo; el blanco es la tapa entera (32 × 32 en md), no una × de 16px */
+.t-group--A .t-remove, .t-group--A .t-undo { border-radius: 0; border-start-end-radius: inherit; border-end-end-radius: inherit; box-shadow: inset calc(var(--g-border-width)) 0 0 var(--g-color-border-strong); }
+:dir(rtl) .t-group--A .t-remove, :dir(rtl) .t-group--A .t-undo { box-shadow: inset calc(var(--g-border-width) * -1) 0 0 var(--g-color-border-strong); }
+.t-group--A .t-remove:hover { background: var(--g-color-border-strong); }
+/* Vista previa: apuntar a la tapa tacha el texto antes de quitar (se ve CUÁL se va) */
+.t-group--A .t-tag:has(.t-remove:hover, .t-remove:focus-visible) .t-text { text-decoration: line-through; text-decoration-thickness: 2px; }
+/* La huella: mismo ancho, contorno discontinuo, texto tachado y atenuado; la tapa es ahora «Deshacer» */
+.t-group--A .t-tag { border: var(--g-border-width) solid transparent; }
+.t-group--A .t-tag.is-ghost { background: transparent; color: var(--g-color-text-muted); border-color: var(--g-color-border-control); border-style: dashed; }
+.t-group--A .t-tag.is-ghost .t-body { padding-inline-end: calc(var(--g-space-1) * 3); }
+.t-group--A .t-tag.is-ghost .t-text { text-decoration: line-through; }
+.t-group--A .t-undo { color: var(--g-color-text); }
+.t-group--A .t-undo:hover { background: var(--g-color-border-strong); }
+.t-group--A .t-item.is-collapsing { overflow: hidden; opacity: 0; inline-size: 0 !important; margin-inline-end: calc(var(--g-space-1) * -2); transition: inline-size var(--g-duration-fast) var(--g-ease-out), margin var(--g-duration-fast) var(--g-ease-out), opacity var(--g-duration-fast) var(--g-ease-out); }
+.t-group--A .t-tag.is-toggle { background: var(--g-color-surface); color: var(--g-color-text); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control); }
+.t-group--A .t-tag.is-toggle.is-pressed { background: var(--_cat); color: var(--_on-cat); box-shadow: inset 0 0 0 var(--g-border-width) var(--_cat-text); }
+.t-group--A .t-tag.is-toggle.is-pressed:not([data-cat]) { background: var(--g-color-primary); color: var(--g-color-on-primary); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-primary-text); }
+.t-group--A .t-body--link:hover .t-text { text-decoration: underline; }
+
+/* =================== B · RACIMO: una faceta, un lomo, sus valores =================== */
+.t-group--B .t-racimo { display: inline-flex; align-items: stretch; box-sizing: border-box; min-block-size: calc(var(--g-space-1) * 8); max-inline-size: 100%; min-inline-size: 0; border-radius: var(--g-radius-shape); background: var(--g-color-surface); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-strong); overflow: hidden; border-inline-start: calc(var(--g-space-1) * 0.75) solid var(--_cat-text); }
+.t-group--B .t-racimo.is-loose:not([data-cat]) { border-inline-start-color: var(--g-color-border-strong); }
+.t-group--B .t-facet { display: inline-flex; align-items: center; flex: none; padding-inline: calc(var(--g-space-1) * 2.5) calc(var(--g-space-1) * 2); color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); }
+.t-group--B .t-vals { display: flex; flex-wrap: wrap; align-items: stretch; min-inline-size: 0; margin: 0; padding: 0; list-style: none; }
+.t-group--B .t-val + .t-val { box-shadow: inset var(--g-border-width) 0 0 var(--g-color-border); }
+:dir(rtl) .t-group--B .t-val + .t-val { box-shadow: inset calc(var(--g-border-width) * -1) 0 0 var(--g-color-border); }
+.t-group--B .t-tag { max-inline-size: calc(var(--g-space-1) * 48); color: var(--g-color-text); }
+.t-group--B .t-tag:not(:has(button, a)) { padding-inline: calc(var(--g-space-1) * 2.5); }
+.t-group--B .t-tag:not(:has(button, a)) .t-body { padding: 0; }
+.t-group--B .t-tag.is-removable .t-body { padding-inline: calc(var(--g-space-1) * 2.5) 0; }
+.t-group--B .t-tag.is-removable { padding-inline-end: var(--g-space-1); }
+.t-group--B .t-remove { color: var(--g-color-text-muted); }
+.t-group--B .t-remove:hover { background: var(--g-color-border-strong); color: var(--g-color-text); }
+.t-group--B .t-tag.is-toggle .t-body { padding-inline: calc(var(--g-space-1) * 2.5); }
+.t-group--B .t-tag.is-toggle.is-pressed { background: var(--_cat-soft); color: var(--_on-cat-soft); box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--_cat-text); }
+.t-group--B .t-body--link:hover .t-text { text-decoration: underline; }
+.t-group--B .t-body:focus-visible, .t-group--B .t-remove:focus-visible { outline-offset: calc(var(--g-focus-width) * -1); }
+
+/* =================== C · PALABRA: sin caja en reposo; la acción cuelga en una pestaña =================== */
+.t-group--C { display: block; font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+span.t-group--C { display: inline; font-size: inherit; line-height: inherit; }
+.t-group--C .t-list { display: inline; }
+.t-group--C .t-item { display: inline; }
+.t-group--C .t-item + .t-item { margin-inline-start: calc(var(--g-space-1) * 1.5); }
+.t-group--C .t-tag { display: inline-block; position: relative; min-block-size: 0; max-inline-size: none; font-size: inherit; line-height: inherit; white-space: nowrap; color: var(--g-color-text); border-radius: var(--g-radius-sm); }
+.t-group--C .t-body { display: inline; padding: 0; align-self: auto; }
+.t-group--C .t-tag:has(button, a) .t-text { overflow: visible; }
+.t-group--C .t-mark { display: inline; color: var(--_cat-text); }
+.t-group--C .t-mark .g-icon { inline-size: 0.8em; block-size: 0.8em; vertical-align: -0.05em; margin-inline-end: var(--g-space-1); }
+.t-group--C .t-tag:not([data-cat]) .t-mark { color: var(--g-color-text-muted); }
+.t-group--C .t-body--link { text-decoration: underline; text-decoration-color: var(--_cat-text); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
+.t-group--C .t-body--toggle { text-decoration: underline dotted; text-decoration-color: var(--g-color-border-control); text-underline-offset: 0.2em; }
+/* «La caja significa encendido»: solo el pulsado tiene fondo; con sombra extendida, sin mover el texto (Δ0) */
+.t-group--C .t-tag.is-pressed { background: var(--_cat-soft); box-shadow: 0 0 0 calc(var(--g-space-1) * 0.75) var(--_cat-soft); }
+.t-group--C .t-tag.is-pressed .t-body--toggle { text-decoration: none; color: var(--_on-cat-soft); }
+.t-group--C .t-tag.is-pressed:not([data-cat]) { background: var(--g-color-selection); box-shadow: 0 0 0 calc(var(--g-space-1) * 0.75) var(--g-color-selection); }
+.t-group--C .t-body:focus-visible { outline-offset: calc(var(--g-space-1) * 0.75); border-radius: var(--g-radius-sm); }
+/* Quitable: al apuntar o enfocar, la palabra se marca y cuelga una pestaña «× Quitar» debajo (no al lado: no tapa la palabra vecina) */
+.t-group--C .t-tag.is-removable:is(:hover, :focus-within) { background: var(--g-color-surface-sunken); box-shadow: 0 0 0 calc(var(--g-space-1) * 0.75) var(--g-color-surface-sunken); z-index: 2; }
+.t-group--C .t-remove { position: absolute; inset-block-start: 100%; inset-inline-start: calc(var(--g-space-1) * -0.75); display: inline-flex; gap: var(--g-space-1); inline-size: auto; block-size: 24px; padding: 0 calc(var(--g-space-1) * 2) 0 calc(var(--g-space-1) * 1.5); border-radius: 0 0 var(--g-radius-sm) var(--g-radius-sm); background: var(--g-color-surface-sunken); color: var(--g-color-text); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); white-space: nowrap; opacity: 0; translate: 0 calc(var(--g-space-1) * -1); pointer-events: none; transition: opacity var(--g-duration-fast) var(--g-ease-out), translate var(--g-duration-press) var(--g-ease-out); }
+.t-group--C .t-remove .g-icon { inline-size: 1em; block-size: 1em; }
+.t-group--C .t-tag.is-removable:is(:hover, :focus-within) .t-remove { opacity: 1; translate: 0 0; pointer-events: auto; }
+.t-group--C .t-remove:hover { background: var(--g-color-border-strong); }
+.t-group--C .t-remove:focus-visible { outline-offset: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-check, .t-group--C .t-remove { transition-property: opacity, color, background-color; }
+  .t-group--C .t-remove { translate: 0 0; }
+  .t-group--A .t-item.is-collapsing { transition: none; }
+}
+@media (forced-colors: active) {
+  .t-tag, .t-racimo { border: 1px solid CanvasText; }
+  .t-group--C .t-tag { border: 0; }
+  .t-tag.is-pressed { outline: 2px solid Highlight; }
+  .t-group--A .t-tag.is-ghost { border-style: dashed; }
+}

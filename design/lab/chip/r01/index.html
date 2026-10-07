@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Etiqueta · r01 · base y conceptos</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./tema-cat8.css">
+<link rel="stylesheet" href="./tag.css">
+<style>
+  /* Marco del laboratorio (no es parte de la propuesta) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .lab-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 2) calc(var(--g-space-1) * 4); align-items: baseline; padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4); background: var(--g-color-surface); box-shadow: 0 var(--g-border-width) 0 var(--g-color-border); }
+  .lab-bar strong { font-weight: var(--g-text-action-weight); }
+  .lab-bar a { color: var(--g-color-link); }
+  main { max-inline-size: calc(var(--g-space-1) * 240); margin: 0 auto; padding: calc(var(--g-space-1) * 6) calc(var(--g-space-1) * 4) calc(var(--g-space-1) * 30); }
+  h1 { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); margin: 0 0 calc(var(--g-space-1) * 2); }
+  h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: calc(var(--g-space-1) * 14) 0 calc(var(--g-space-1) * 2); padding-block-start: calc(var(--g-space-1) * 6); border-block-start: var(--g-border-width) solid var(--g-color-border-strong); }
+  h3 { font-size: var(--g-text-body-size); margin: calc(var(--g-space-1) * 7) 0 calc(var(--g-space-1) * 2); }
+  p, li { max-inline-size: 75ch; }
+  .lead { color: var(--g-color-text-muted); }
+  .cap { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); margin: calc(var(--g-space-1) * 2) 0 0; }
+  .demo { padding: calc(var(--g-space-1) * 4); border-radius: var(--g-radius-lg); background: var(--g-color-surface); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border); display: grid; gap: calc(var(--g-space-1) * 3); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--g-space-1) * 3); }
+  .lbl { font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); }
+  .add { display: inline-flex; align-items: center; gap: var(--g-space-1); min-block-size: calc(var(--g-space-1) * 8); padding: 0 calc(var(--g-space-1) * 3); border: var(--g-border-width) dashed var(--g-color-border-control); border-radius: var(--g-radius-pill); background: none; color: var(--g-color-text); font: inherit; font-size: var(--g-text-body-sm-size); cursor: pointer; }
+  .add:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+  .add .g-icon { inline-size: 1em; block-size: 1em; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--g-space-1) * 64), 1fr)); gap: calc(var(--g-space-1) * 4); }
+  .card { padding: calc(var(--g-space-1) * 4); border-radius: var(--g-radius-lg); background: var(--g-color-surface); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-strong); display: grid; gap: calc(var(--g-space-1) * 3); align-content: start; min-inline-size: 0; }
+  .card h4 { margin: 0; font-size: var(--g-text-body-sm-size); }
+  table { border-collapse: collapse; inline-size: 100%; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  th, td { text-align: start; vertical-align: top; padding: calc(var(--g-space-1) * 2); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  th { font-weight: var(--g-text-action-weight); }
+  .tbl-wrap { overflow-x: auto; min-inline-size: 0; max-inline-size: 100%; }
+  .demo > * { min-inline-size: 0; }
+  .note { padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4); border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  code { font-size: 0.92em; }
+  .cell-line { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+</style>
+</head>
+<body>
+<header class="lab-bar"><strong>Etiqueta (GTag) · r01</strong>
+  <a href="#base">Base</a> <a href="#A">A · Huella</a> <a href="#B">B · Racimo</a> <a href="#C">C · Palabra</a> <a href="#comparar">Comparar</a>
+  <span class="cap" style="margin:0">Parámetros: <code>?dir=rtl</code>, <code>?theme=dark</code></span>
+</header>
+<main>
+  <h1>Etiqueta suelta · base funcional y tres conceptos</h1>
+  <p class="lead">Una etiqueta clasifica algo o resume una elección, y la persona puede quitarla, alternarla o seguirla. Si no se puede tocar y dice el estado o la cantidad de otra cosa, es <code>GBadge</code>. La base es la «píldora con x» convencional, a propósito; A, B y C la cuestionan con los tokens reales del tema por defecto (con 8 categorías generadas por el motor).</p>
+
+  <!-- ============================== BASE ============================== -->
+  <h2 id="base">Base funcional (kit gris)</h2>
+  <p class="cap">Semántica por caso, foco tras quitar, anuncio, tamaño táctil, color por categoría, recorte y RTL. Forma convencional: la identidad se decide entre A, B y C.</p>
+
+  <h3>1 · Estática: clasifica, no se toca</h3>
+  <div class="demo">
+    <div id="b-static"></div>
+    <div id="b-static-cat"></div>
+    <p class="cap"><code>&lt;ul role="list" aria-label&gt;</code> + <code>&lt;span&gt;</code>: sin foco, sin rol de control. Color por categoría con el hash de <code>GAvatar</code> sobre la etiqueta (la misma clave da el mismo color en las dos). Nunca semánticos: un «rojo» diría «peligro» (eso es <code>GBadge</code>). Texto largo: <b>se parte</b> en líneas (no hay foco para mostrar una pista).</p>
+  </div>
+
+  <h3>2 · Enlace: lleva a la página de esa etiqueta</h3>
+  <div class="demo">
+    <div id="b-link"></div>
+    <p class="cap">Toda la etiqueta es un <code>&lt;a href&gt;</code>; se lee «enlace, Vue». Sin «quitar» (no se mezclan dos destinos en una pieza sin necesidad); si además se quita, son dos controles hermanos.</p>
+  </div>
+
+  <h3>3 · Alternar: filtro rápido de la vista</h3>
+  <div class="demo">
+    <div id="b-toggle"></div>
+    <p class="cap"><code>&lt;div role="group" aria-label&gt;</code> + <code>&lt;button aria-pressed&gt;</code>. El estado no es solo color: aparece la marca <code>check</code> de Lucide y el relleno pasa a <code>primary</code> con contorno <code>primary-text</code> (§7.1, #431). Sin anuncio propio: el lector ya dice «activado». Si la elección es un <b>valor de formulario</b>, es <code>GCheckboxGroup layout="chip"</code> (o <code>GRadioGroup appearance="chip"</code>), no esto.</p>
+  </div>
+
+  <h3>4 · Quitable: lo aplicado o lo asignado</h3>
+  <div class="demo">
+    <div class="row"><div id="b-remove"></div><button class="add" id="b-add" type="button">Agregar filtro</button></div>
+    <p class="cap">Cuerpo de texto + <code>&lt;button aria-label="Quitar Pendiente"&gt;</code> con el icono <code>x</code> de 24 × 24 (44 × 44 con puntero grueso, sin cambiar el dibujo). <kbd>Supr</kbd>/<kbd>Retroceso</kbd> sobre la x: quitar. Foco tras quitar: el «Quitar» de la siguiente, si no la anterior, si no «Agregar filtro». Anuncio cortés «Pendiente quitada». «Quitar todas» se vuelve «Deshacer» en su sitio, con el foco.</p>
+    <div class="row"><span class="lbl">Con tope de 4:</span><div id="b-limit"></div></div>
+    <p class="cap">«Ver 3 más» es un botón de despliegue (<code>aria-expanded</code>, <code>aria-controls</code>); el foco se queda en él.</p>
+  </div>
+
+  <h3>5 · Personas y recorte</h3>
+  <div class="demo">
+    <div id="b-people"></div>
+    <div id="b-long"></div>
+    <div class="row"><span class="lbl">Pequeña (sm, 24px):</span><div id="b-sm"></div></div>
+    <p class="cap"><code>GAvatar size="xs"</code> en el hueco de inicio (adopta su caja, #295). Lo recortado se recorta <b>solo si hay un control enfocable</b>: el nombre accesible es el texto entero y la pista (modo visual del motor de <code>GTooltip</code>, <code>aria-hidden</code>, #433) lo enseña al apuntar o enfocar. Un botón de solo icono muestra su nombre como pista.</p>
+  </div>
+
+  <h3>6 · Color por categoría: el hash de GAvatar</h3>
+  <div class="demo">
+    <div class="tbl-wrap"><table id="hash-table"><thead><tr><th>Clave</th><th>n = 4</th><th>n = 8</th><th>n = 12</th><th>Contrato de GAvatar (n = 8)</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ============================== A ============================== -->
+  <h2 id="A">A · Huella</h2>
+  <p class="lead">La premisa que cuestiona: «quitar es instantáneo y las demás se recolocan». Con la píldora habitual, al quitar una etiqueta las siguientes saltan bajo el puntero y un segundo clic quita la que no era; el foco se pierde y no hay vuelta atrás sin un aviso aparte.</p>
+  <div class="demo">
+    <div class="row"><div id="a-remove"></div><button class="add" id="a-add" type="button">Agregar alergia</button></div>
+    <div id="a-toggle"></div>
+    <div id="a-link"></div>
+    <p class="cap"><b>Tapa entera</b> en vez de una x diminuta: toda la altura (32 × 32 en md), separada por un filo. <b>Vista previa:</b> al apuntar o enfocar la tapa, el texto se tacha antes de quitar (se ve cuál se va). <b>Huella:</b> al quitar, la etiqueta no desaparece: queda su contorno discontinuo con el texto tachado, del mismo ancho, y la tapa pasa a ser «Deshacer» <b>con el foco</b>. Nada se mueve mientras el puntero o el foco sigan en el grupo; al irse los dos, las huellas se recogen (<code>--g-duration-fast</code>, <code>--g-ease-out</code>; con movimiento reducido, sin animación). El modelo ya cambió en el acto: la huella es solo visual.</p>
+  </div>
+
+  <!-- ============================== B ============================== -->
+  <h2 id="B">B · Racimo</h2>
+  <p class="lead">La premisa que cuestiona: «cada etiqueta es una píldora suelta con su color». Diez píldoras de colores se leen como ruido; la categoría se adivina por el tono y se repite en cada una.</p>
+  <div class="demo">
+    <div class="row"><div id="b2-filters"></div><button class="add" id="b2-add" type="button">Agregar filtro</button></div>
+    <div id="b2-record"></div>
+    <div id="b2-toggle"></div>
+    <p class="cap">Las etiquetas de la misma <b>faceta</b> forman un racimo: el nombre de la faceta <b>una vez</b> (texto, no solo color), un <b>lomo</b> de su categoría (forma sin par en <code>cat-k-text</code>, #439) y sus valores en fila. Cada racimo es una lista con el nombre de la faceta (<code>aria-labelledby</code>); «Quitar Penicilina de Alergias». Al quitar, el foco va al vecino <b>del mismo racimo</b>; si era el último, el racimo se va. Con alternar, el racimo es un <code>role="group"</code>: un filtro de facetas.</p>
+  </div>
+
+  <!-- ============================== C ============================== -->
+  <h2 id="C">C · Palabra</h2>
+  <p class="lead">La premisa que cuestiona: «una etiqueta es una caja». En una fila de tabla o en la línea de una ficha, cinco cajas suben la altura y compiten con el dato. Aquí la etiqueta es una palabra con su marca; la caja solo aparece cuando significa algo.</p>
+  <div class="demo">
+    <div class="cell-line" id="c-line-wrap"><span class="lbl">Fila de tabla:</span> <span id="c-static" style="display:inline"></span></div>
+    <p id="c-para" class="cell-line">Paciente con antecedentes de <span id="c-inline" style="display:inline"></span> registrados en la última consulta.</p>
+    <div id="c-toggle"></div>
+    <div id="c-remove"></div>
+    <div id="c-link"></div>
+    <p class="cap">En reposo, <b>sin caja</b>: punto de su categoría + texto, en la línea (Δ0 de altura). <b>La caja significa encendido:</b> solo una etiqueta pulsada tiene fondo (la marca pasa de <code>circle</code> a <code>check</code>). Quitable: al apuntar o enfocar, la palabra se marca y <b>cuelga una pestaña «Quitar» con su icono <code>x</code></b> debajo (el idioma de la pestaña de <code>GTooltip</code>): texto visible, nunca encima de la palabra vecina. En táctil, el primer toque muestra la pestaña y el segundo quita.</p>
+  </div>
+
+  <!-- ============================== COMPARAR ============================== -->
+  <h2 id="comparar">Comparar: los mismos datos en A, B y C</h2>
+  <div class="grid3">
+    <section class="card" aria-labelledby="cmp-a"><h4 id="cmp-a">A · Huella</h4><div id="cmp-A"></div></section>
+    <section class="card" aria-labelledby="cmp-b"><h4 id="cmp-b">B · Racimo</h4><div id="cmp-B"></div></section>
+    <section class="card" aria-labelledby="cmp-c"><h4 id="cmp-c">C · Palabra</h4><div id="cmp-C"></div></section>
+  </div>
+  <div class="tbl-wrap" style="margin-top: calc(var(--g-space-1) * 6)"><table>
+    <thead><tr><th>Criterio</th><th>A · Huella</th><th>B · Racimo</th><th>C · Palabra</th></tr></thead>
+    <tbody>
+      <tr><td>Qué cambia</td><td>Comportamiento al quitar</td><td>Estructura del grupo</td><td>Forma en reposo</td></tr>
+      <tr><td>Quitar la equivocada</td><td>Imposible por salto: nada se mueve hasta que te vas; vista previa tachada</td><td>Se mueve solo dentro del racimo</td><td>Dos pasos (pestaña), pero se mueve el texto</td></tr>
+      <tr><td>Deshacer</td><td>En el sitio, con el foco</td><td>No (lo da la aplicación)</td><td>No (lo da la aplicación)</td></tr>
+      <tr><td>Leer por categoría</td><td>Color + texto de cada una</td><td>Nombre de la faceta una vez + lomo</td><td>Punto de color + palabra</td></tr>
+      <tr><td>Densidad</td><td>Como hoy (32px por fila)</td><td>Más por línea (faceta compartida)</td><td>Máxima; altura de línea de texto</td></tr>
+      <tr><td>Táctil</td><td>Tapa entera de 32px (44 con área)</td><td>x de 24 (44 con área)</td><td>Dos toques</td></tr>
+      <tr><td>Dónde brilla</td><td>Editar etiquetas, filtros aplicados</td><td>Filtros aplicados, fichas con muchas</td><td>Tablas, fichas de lectura</td></tr>
+      <tr><td>Riesgo</td><td>Huellas que se acumulan si el puntero no sale</td><td>Exige <code>facet</code> en los datos</td><td>Descubrir que se puede quitar</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Las tres comparten la base (semántica, foco, anuncio, área táctil, categorías, RTL). A es un comportamiento: vale para cualquier forma. B es una opción de grupo. C es una apariencia de lectura.</p>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script src="./tag.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark'
+  document.querySelectorAll('.add').forEach((b) => { b.innerHTML = lucide('plus') + b.textContent })
+  const T = (id, o) => Tag.group(document.getElementById(id), o)
+  const N = 8 // categorías del tema de esta ronda (tema-cat8.css)
+
+  // ---------- Base ----------
+  T('b-static', { label: 'Etiquetas del expediente', items: [{ id: 's1', label: 'Seguimiento' }, { id: 's2', label: 'Primera vez' }, { id: 's3', label: 'Referido por medicina interna desde la clínica del norte' }] })
+  T('b-static-cat', { label: 'Áreas', categories: N, items: ['Cardiología', 'Nutrición', 'Pediatría', 'Laboratorio', 'Grana Labs'].map((l, i) => ({ id: 'c' + i, label: l })) })
+  T('b-link', { label: 'Temas del artículo', items: ['Vue', 'Accesibilidad', 'Diseño'].map((l, i) => ({ id: 'l' + i, label: l, href: '#tema-' + l.toLowerCase() })) })
+  T('b-toggle', { kind: 'toggles', label: 'Filtrar por estado', items: [{ id: 't1', label: 'Pendientes', pressed: true }, { id: 't2', label: 'Urgentes', pressed: false }, { id: 't3', label: 'Míos', pressed: false }, { id: 't4', label: 'Archivados', pressed: false, disabled: true }] })
+  T('b-remove', { label: 'Filtros aplicados', clearAll: true, emptyFocus: '#b-add', items: ['Pendiente', 'Alta prioridad', 'Ana Martínez', 'Este mes'].map((l, i) => ({ id: 'r' + i, label: l, removable: true })) })
+  T('b-limit', { label: 'Destinatarios', limit: 4, items: ['Ana', 'Luis', 'Marta', 'Sofía', 'Diego', 'Inés', 'Raúl'].map((l, i) => ({ id: 'm' + i, label: l, removable: true })) })
+  T('b-people', { label: 'Responsables', categories: N, items: [{ id: 'p1', label: 'Ana María López', avatar: 'AL', colorKey: 'Ana María López', removable: true }, { id: 'p2', label: 'محمد علي', avatar: 'مع', removable: true }, { id: 'p3', label: 'Zoë', avatar: 'Z', removable: true }] })
+  T('b-long', { label: 'Diagnósticos', items: [{ id: 'g1', label: 'E11.9 Diabetes mellitus tipo 2 sin complicaciones', removable: true }, { id: 'g2', label: 'Hipertensión arterial esencial (primaria) controlada', href: '#dx' }, { id: 'g3', label: 'I10' , removable: true }] })
+  T('b-sm', { size: 'sm', label: 'Etiquetas pequeñas', items: [{ id: 'x1', label: 'Borrador', removable: true }, { id: 'x2', label: 'Interno' }, { id: 'x3', label: 'Revisar', pressed: false }] })
+  const keys = ['a', 'Ana María López', '李小龙', 'محمد علي', 'Grana Labs', 'u_8f3a2c', 'Zoë'], expect = { a: 4, 'Ana María López': 2, '李小龙': 1, 'محمد علي': 6, 'Grana Labs': 3, u_8f3a2c: 2, 'Zoë': 3 }
+  document.querySelector('#hash-table tbody').innerHTML = keys.map((k) => `<tr data-key="${k}"><td dir="auto">${k}</td><td>${Tag.category(k, 4)}</td><td>${Tag.category(k, 8)}</td><td>${Tag.category(k, 12)}</td><td>${expect[k]}</td></tr>`).join('')
+
+  // ---------- A ----------
+  const allergies = [{ id: 'a1', label: 'Penicilina', facet: 'Alergias' }, { id: 'a2', label: 'Látex', facet: 'Alergias' }, { id: 'a3', label: 'Ibuprofeno', facet: 'Alergias' }, { id: 'a4', label: 'Mariscos', facet: 'Alimentos' }, { id: 'a5', label: 'Polen de olivo', facet: 'Ambientales' }]
+  T('a-remove', { concept: 'A', label: 'Alergias del paciente', categories: N, clearAll: true, emptyFocus: '#a-add', items: allergies.map((x) => ({ ...x, colorKey: x.facet, removable: true })) })
+  T('a-toggle', { concept: 'A', kind: 'toggles', label: 'Filtrar por área', categories: N, items: ['Cardiología', 'Nutrición', 'Pediatría'].map((l, i) => ({ id: 'at' + i, label: l, pressed: i === 0 })) })
+  T('a-link', { concept: 'A', label: 'Temas', items: ['Vue', 'Accesibilidad'].map((l, i) => ({ id: 'al' + i, label: l, href: '#t' + i })) })
+
+  // ---------- B ----------
+  T('b2-filters', { concept: 'B', label: 'Filtros aplicados', categories: N, emptyFocus: '#b2-add', items: [{ id: 'f1', facet: 'Estado', label: 'Pendiente', removable: true }, { id: 'f2', facet: 'Estado', label: 'En curso', removable: true }, { id: 'f3', facet: 'Prioridad', label: 'Alta', removable: true }, { id: 'f4', facet: 'Responsable', label: 'Ana Martínez', avatar: 'AM', removable: true }, { id: 'f5', label: 'Con adjuntos', removable: true }] })
+  T('b2-record', { concept: 'B', label: 'Antecedentes', categories: N, items: [...allergies.map((x) => ({ ...x })), { id: 'k1', facet: 'Condición', label: 'Diabetes tipo 2' }, { id: 'k2', facet: 'Condición', label: 'Hipertensión' }] })
+  T('b2-toggle', { concept: 'B', label: 'Filtros rápidos', categories: N, items: [{ id: 'q1', facet: 'Estado', label: 'Pendiente', pressed: true }, { id: 'q2', facet: 'Estado', label: 'En curso', pressed: false }, { id: 'q3', facet: 'Estado', label: 'Cerrado', pressed: false }, { id: 'q4', facet: 'Área', label: 'Cardiología', pressed: false }, { id: 'q5', facet: 'Área', label: 'Nutrición', pressed: true }] })
+
+  // ---------- C ----------
+  T('c-static', { concept: 'C', label: 'Etiquetas', categories: N, items: ['Seguimiento', 'Cardiología', 'Primera vez'].map((l, i) => ({ id: 'cs' + i, label: l })) })
+  T('c-inline', { concept: 'C', label: 'Alergias', categories: N, items: allergies.slice(0, 3).map((x) => ({ ...x, colorKey: x.facet, removable: true })) })
+  T('c-toggle', { concept: 'C', kind: 'toggles', label: 'Filtrar por área', categories: N, items: ['Cardiología', 'Nutrición', 'Pediatría', 'Laboratorio'].map((l, i) => ({ id: 'ct' + i, label: l, pressed: i === 1 })) })
+  T('c-remove', { concept: 'C', label: 'Filtros aplicados', categories: N, items: ['Pendiente', 'Alta prioridad', 'Ana Martínez', 'Este mes'].map((l, i) => ({ id: 'cr' + i, label: l, removable: true })) })
+  T('c-link', { concept: 'C', label: 'Temas', categories: N, items: ['Vue', 'Accesibilidad', 'Diseño'].map((l, i) => ({ id: 'cl' + i, label: l, href: '#c' + i })) })
+
+  // ---------- Comparar ----------
+  const same = () => [...allergies.map((x) => ({ ...x, colorKey: x.facet, removable: true })), { id: 'k1', facet: 'Condición', colorKey: 'Condición', label: 'Diabetes tipo 2', removable: true }]
+  T('cmp-A', { concept: 'A', label: 'Antecedentes (A)', categories: N, items: same() })
+  T('cmp-B', { concept: 'B', label: 'Antecedentes (B)', categories: N, items: same() })
+  T('cmp-C', { concept: 'C', label: 'Antecedentes (C)', categories: N, items: same() })
+  window.__ready = true
+})()
+</script>
+</body>
+</html>
