@@ -86,6 +86,7 @@
       "name": "hourCycle",
       "type": "String",
       "default": null,
+      "values": ["h12", "h23"],
       "note": "h12 | h23; sin valor, el del idioma"
     },
     {
@@ -140,30 +141,35 @@
       "name": "size",
       "type": "String",
       "default": "md",
+      "values": ["xs", "sm", "md", "lg", "xl"],
       "note": "xs | sm | md | lg | xl"
     },
     {
       "name": "variant",
       "type": "String",
       "default": "outline",
+      "values": ["outline", "soft"],
       "note": "outline | soft"
     },
     {
       "name": "density",
       "type": "String",
       "default": null,
+      "values": ["default", "comfortable", "compact"],
       "note": "default | comfortable | compact (contexto)"
     },
     {
       "name": "color",
       "type": "String",
       "default": null,
+      "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"],
       "note": "Color del foco, como GInput"
     },
     {
       "name": "rounded",
       "type": "String",
       "default": null,
+      "values": ["none", "xs", "sm", "md", "lg", "xl", "pill"],
       "note": "Como GInput"
     },
     {

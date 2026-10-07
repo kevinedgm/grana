@@ -26,7 +26,7 @@ describe('@grana/vue/testing', () => {
 
   it('package.json declara la entrada y el build la construye aparte', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./testing']).toEqual({ import: './dist/testing.js' })
+    expect(pkg.exports['./testing']).toEqual({ types: './dist/testing.d.ts', import: './dist/testing.js', default: './dist/testing.js' })
     expect(pkg.scripts.build).toContain('vite.testing.config.js')
     const src = readFileSync(resolve(process.cwd(), 'src/index.js'), 'utf8')
     expect(src).not.toContain('simulatedAdapter')

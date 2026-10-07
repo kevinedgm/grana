@@ -1,7 +1,28 @@
 {
   "name": "@grana/cli",
-  "version": "0.0.0",
+  "version": "0.1.0-beta.0",
   "description": "Genera y valida el tema de Grana: deriva color en OKLCH y rechaza temas que rompan los mínimos de accesibilidad.",
+  "keywords": [
+    "grana",
+    "vue",
+    "design-tokens",
+    "theme",
+    "oklch",
+    "wcag",
+    "contrast",
+    "accessibility",
+    "cli",
+    "vite-plugin"
+  ],
+  "homepage": "https://github.com/kevinedgm/grana/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/kevinedgm/grana/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinedgm/grana.git",
+    "directory": "packages/cli"
+  },
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -9,12 +30,14 @@
   },
   "exports": {
     ".": "./src/index.js",
-    "./vite": "./src/vite.js"
+    "./vite": "./src/vite.js",
+    "./package.json": "./package.json"
   },
   "files": [
     "bin",
     "src"
   ],
+  "sideEffects": false,
   "engines": {
     "node": ">=22"
   },

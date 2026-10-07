@@ -1,48 +1,112 @@
 {
   "name": "@grana/vue",
-  "version": "0.0.0",
+  "version": "0.1.0-beta.0",
   "description": "Componentes Vue 3 con tema por tokens. The only bug you'll want in your UI.",
+  "keywords": [
+    "vue",
+    "vue3",
+    "components",
+    "component-library",
+    "ui",
+    "design-tokens",
+    "theming",
+    "accessibility",
+    "a11y",
+    "wcag"
+  ],
+  "homepage": "https://github.com/kevinedgm/grana/tree/main/packages/vue#readme",
+  "bugs": {
+    "url": "https://github.com/kevinedgm/grana/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinedgm/grana.git",
+    "directory": "packages/vue"
+  },
   "license": "MIT",
   "type": "module",
-  "files": [
-    "dist",
-    "THIRD-PARTY-NOTICES.md"
-  ],
+  "main": "./dist/grana.js",
   "module": "./dist/grana.js",
+  "types": "./dist/grana.d.ts",
   "unpkg": "./dist/grana.umd.js",
   "jsdelivr": "./dist/grana.umd.js",
   "exports": {
     ".": {
-      "import": "./dist/grana.js"
+      "types": "./dist/grana.d.ts",
+      "import": "./dist/grana.js",
+      "default": "./dist/grana.js"
     },
     "./speech": {
-      "import": "./dist/speech.js"
+      "types": "./dist/speech.d.ts",
+      "import": "./dist/speech.js",
+      "default": "./dist/speech.js"
     },
     "./status": {
-      "import": "./dist/status.js"
+      "types": "./dist/status.d.ts",
+      "import": "./dist/status.js",
+      "default": "./dist/status.js"
     },
     "./combobox": {
-      "import": "./dist/combobox.js"
+      "types": "./dist/combobox.d.ts",
+      "import": "./dist/combobox.js",
+      "default": "./dist/combobox.js"
     },
     "./file-field": {
-      "import": "./dist/file-field.js"
+      "types": "./dist/file-field.d.ts",
+      "import": "./dist/file-field.js",
+      "default": "./dist/file-field.js"
     },
     "./time-field": {
-      "import": "./dist/time-field.js"
+      "types": "./dist/time-field.d.ts",
+      "import": "./dist/time-field.js",
+      "default": "./dist/time-field.js"
     },
     "./testing": {
-      "import": "./dist/testing.js"
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
     },
     "./style.css": "./dist/grana.css",
-    "./fonts.css": "./dist/fonts.css"
+    "./fonts.css": "./dist/fonts.css",
+    "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "speech": [
+        "./dist/speech.d.ts"
+      ],
+      "status": [
+        "./dist/status.d.ts"
+      ],
+      "combobox": [
+        "./dist/combobox.d.ts"
+      ],
+      "file-field": [
+        "./dist/file-field.d.ts"
+      ],
+      "time-field": [
+        "./dist/time-field.d.ts"
+      ],
+      "testing": [
+        "./dist/testing.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "THIRD-PARTY-NOTICES.md"
+  ],
   "sideEffects": [
     "**/*.css"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs",
+    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.testing.config.js && node scripts/build-fonts.mjs && node scripts/build-types.mjs",
     "test": "vitest run",
-    "icons": "node scripts/build-icons.mjs"
+    "icons": "node scripts/build-icons.mjs",
+    "prepack": "npm run build"
   },
   "peerDependencies": {
     "lucide-static": "^1.49.0",
@@ -59,8 +123,10 @@
     "@vue/test-utils": "^2.4.0",
     "jsdom": "^25.0.0",
     "lucide-static": "^1.49.0",
+    "typescript": "~5.9.3",
     "vite": "^6.0.0",
     "vitest": "^4.1.11",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-tsc": "^3.3.12"
   }
 }

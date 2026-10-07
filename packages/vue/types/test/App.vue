@@ -1,0 +1,36 @@
+<script setup lang="ts">
+// Plantilla sin importar los componentes: se tipan por GlobalComponents tras `app.use` (main.ts importa las entradas).
+import { ref } from 'vue'
+import type { ComboboxOption, FileEntry } from '@grana/vue/combobox'
+
+const value = ref<string | number | null>(null)
+const files = ref<FileEntry[]>([])
+const options: ComboboxOption[] = [{ value: 'p1', label: 'María' }]
+const onClick = (e: MouseEvent) => e.clientX
+</script>
+
+<template>
+  <g-btn variant="soft" size="lg" @click="onClick">Guardar</g-btn>
+  <GBtn color="danger" :loading="false">Eliminar</GBtn>
+  <g-combobox v-model="value" :options="options" label="Paciente">
+    <template #option="{ option, active }">{{ option.label.toUpperCase() }} {{ active ? '·' : '' }}</template>
+  </g-combobox>
+  <g-file-field v-model="files" label="Adjuntos" />
+  <g-time-field model-value="09:30" label="Hora" />
+  <g-icon name="pencil" />
+  <g-datepicker label="Fecha" />
+  <g-tabs :items="[{ id: 'a', label: 'A' }]">
+    <template #panel-a="{ item }">{{ item.label }}</template>
+  </g-tabs>
+
+  <!-- @vue-expect-error variant fuera de la lista -->
+  <g-btn variant="nope">No</g-btn>
+  <g-combobox :options="options" label="X">
+    <template #option="{ option }">
+      <!-- @vue-expect-error option.label es texto: no tiene toFixed -->
+      {{ option.label.toFixed(2) }}
+    </template>
+  </g-combobox>
+  <!-- @vue-expect-error el manejador de click recibe un MouseEvent -->
+  <g-btn @click="(e: string) => e">X</g-btn>
+</template>

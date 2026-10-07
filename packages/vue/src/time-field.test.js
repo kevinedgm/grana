@@ -45,7 +45,7 @@ describe('@grana/vue/time-field · entrada propia (#400)', () => {
 
   it('package.json y configuración: exports ./time-field, global GranaTimeField, Vue y @grana/vue externos; timeInput es propio', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./time-field']).toEqual({ import: './dist/time-field.js' })
+    expect(pkg.exports['./time-field']).toEqual({ types: './dist/time-field.d.ts', import: './dist/time-field.js', default: './dist/time-field.js' })
     expect(pkg.scripts.build).toContain('vite build -c vite.time-field.config.js')
     expect(pkg.scripts.build.indexOf('vite.time-field.config.js')).toBeLessThan(pkg.scripts.build.indexOf('vite.testing.config.js'))
     const cfg = readFileSync(resolve(process.cwd(), 'vite.time-field.config.js'), 'utf8')

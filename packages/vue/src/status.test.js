@@ -41,7 +41,7 @@ describe('@grana/vue/status · entrada propia (#328)', () => {
 
   it('package.json, build y configuración: exports ./status, global GranaStatus, Vue y @grana/vue externos', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./status']).toEqual({ import: './dist/status.js' })
+    expect(pkg.exports['./status']).toEqual({ types: './dist/status.d.ts', import: './dist/status.js', default: './dist/status.js' })
     expect(pkg.scripts.build).toContain('vite build -c vite.status.config.js')
     const cfg = readFileSync(resolve(process.cwd(), 'vite.status.config.js'), 'utf8')
     expect(cfg).toContain("external: ['vue', '@grana/vue']")

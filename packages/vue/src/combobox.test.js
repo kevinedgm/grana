@@ -43,7 +43,7 @@ describe('@grana/vue/combobox · entrada propia (#337)', () => {
 
   it('package.json, build y configuración: exports ./combobox, global GranaCombobox, Vue y @grana/vue externos', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./combobox']).toEqual({ import: './dist/combobox.js' })
+    expect(pkg.exports['./combobox']).toEqual({ types: './dist/combobox.d.ts', import: './dist/combobox.js', default: './dist/combobox.js' })
     expect(pkg.scripts.build).toContain('vite build -c vite.combobox.config.js')
     const cfg = readFileSync(resolve(process.cwd(), 'vite.combobox.config.js'), 'utf8')
     expect(cfg).toContain("external: ['vue', '@grana/vue']")

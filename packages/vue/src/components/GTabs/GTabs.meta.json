@@ -252,12 +252,14 @@
         {
           "name": "tabs",
           "type": "String",
-          "default": null
+          "default": null,
+          "required": true
         },
         {
           "name": "value",
           "type": "String | Number",
-          "default": null
+          "default": null,
+          "required": true
         },
         {
           "name": "active",

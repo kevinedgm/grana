@@ -6,6 +6,7 @@
 // GAvatar, GDialog, GIcon ni de los útiles (anchor, liveRegion, template, oneOf).
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { pureComponents } from './scripts/pure-components.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -42,7 +43,7 @@ function sharedFromMain() {
 }
 
 export default defineConfig({
-  plugins: [sharedFromMain(), vue()],
+  plugins: [sharedFromMain(), vue(), pureComponents()],
   build: {
     emptyOutDir: false,
     lib: {

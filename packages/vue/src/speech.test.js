@@ -55,7 +55,7 @@ describe('@grana/vue/speech · entrada propia (#238)', () => {
 
   it('package.json declara ./speech y el build la construye aparte con @grana/vue y vue como externos', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./speech']).toEqual({ import: './dist/speech.js' })
+    expect(pkg.exports['./speech']).toEqual({ types: './dist/speech.d.ts', import: './dist/speech.js', default: './dist/speech.js' })
     expect(pkg.scripts.build).toContain('vite.speech.config.js')
     const cfg = readFileSync(resolve(process.cwd(), 'vite.speech.config.js'), 'utf8')
     expect(cfg).toContain("external: ['vue', '@grana/vue']")

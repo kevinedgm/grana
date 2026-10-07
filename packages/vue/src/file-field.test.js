@@ -49,7 +49,7 @@ describe('@grana/vue/file-field · entrada propia (#367)', () => {
 
   it('package.json, build y configuración: exports ./file-field, global GranaFileField, Vue y @grana/vue externos; fileDrag es propio', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
-    expect(pkg.exports['./file-field']).toEqual({ import: './dist/file-field.js' })
+    expect(pkg.exports['./file-field']).toEqual({ types: './dist/file-field.d.ts', import: './dist/file-field.js', default: './dist/file-field.js' })
     expect(pkg.scripts.build).toContain('vite build -c vite.file-field.config.js')
     expect(pkg.scripts.build.indexOf('vite.file-field.config.js')).toBeLessThan(pkg.scripts.build.indexOf('vite.testing.config.js'))
     const cfg = readFileSync(resolve(process.cwd(), 'vite.file-field.config.js'), 'utf8')
