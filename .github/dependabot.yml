@@ -1,0 +1,27 @@
+# Actualizaciones semanales de dependencias (npm y GitHub Actions).
+# Las menores y los parches se agrupan en un solo PR; las mayores van una a una para revisarlas.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories:
+      - "/" # raíz + workspaces packages/vue y packages/cli (un solo package-lock.json)
+      - "/design/lab/theme-playground" # laboratorio de Playwright (lockfile propio)
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        update-types: [minor, patch]
+    labels: [dependencies]

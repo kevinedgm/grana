@@ -1,0 +1,147 @@
+name: E2E completo
+
+# Pasada completa de Playwright (design/lab/theme-playground) en Chromium, Firefox y WebKit.
+# Nocturna (03:17 UTC, solo en la rama por defecto) y manual (Actions > E2E completo > Run workflow).
+# Con --workers=2: con más paralelismo, WebKit da fallos intermitentes por carga (CLAUDE.md).
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      browsers:
+        description: "Motores a ejecutar"
+        type: choice
+        default: all
+        options: [all, chromium, firefox, webkit]
+      specs:
+        description: "Opcional: archivos de prueba separados por espacios (p. ej. tests/tooltip.spec.mjs). Vacío = todos"
+        type: string
+        default: ""
+
+concurrency:
+  group: e2e-full-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      browsers: ${{ steps.plan.outputs.browsers }}
+    steps:
+      # La ejecución manual puede limitar los motores; la programada usa los tres.
+      # (el contexto matrix no existe en jobs.<id>.if, por eso la matriz sale de aquí)
+      - id: plan
+        env:
+          CHOICE: ${{ inputs.browsers }}
+        run: |
+          case "${CHOICE:-all}" in
+            all) echo 'browsers=["chromium","firefox","webkit"]' >> "$GITHUB_OUTPUT" ;;
+            *)   echo "browsers=[\"$CHOICE\"]" >> "$GITHUB_OUTPUT" ;;
+          esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: bash .github/scripts/gates.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: packages/vue/dist
+          retention-days: 1
+          if-no-files-found: error
+
+  e2e:
+    name: Playwright (${{ matrix.browser }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(needs.build.outputs.browsers) }}
+    env:
+      GRANA_PW_PORT: "4208"
+      PLAYWRIGHT_HTML_OPEN: never
+    defaults:
+      run:
+        working-directory: design/lab/theme-playground
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            design/lab/theme-playground/package-lock.json
+
+      - name: Instalar dependencias de la raíz
+        run: npm ci
+        working-directory: .
+
+      - name: Recuperar dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: packages/vue/dist
+
+      - name: Instalar dependencias del laboratorio
+        run: npm ci
+
+      - name: Fuentes del laboratorio (scripts/setup-fonts.mjs)
+        run: npm run setup
+
+      - name: Caché de navegadores de Playwright
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('design/lab/theme-playground/package-lock.json') }}
+
+      - name: Instalar ${{ matrix.browser }} (con dependencias del sistema)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Instalar solo dependencias del sistema (navegador en caché)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps ${{ matrix.browser }}
+
+      # Los perf van aparte y con un solo worker (speech-f2-perf lo exige, #264).
+      - name: Playwright (${{ matrix.browser }}, todas las pruebas salvo perf)
+        env:
+          SPECS: ${{ inputs.specs }}
+        run: |
+          if [ -n "$SPECS" ]; then files="$SPECS"; else files="$(ls tests/*.spec.mjs | grep -v -- '-perf\.spec\.mjs')"; fi
+          # shellcheck disable=SC2086
+          npx playwright test --project=${{ matrix.browser }} --workers=2 --retries=2 \
+            --reporter=list,html --trace=retain-on-failure $files
+
+      # Umbrales de tiempo dependientes de la máquina (WebKit < 200 ms, etc.): informativo.
+      - name: Playwright (${{ matrix.browser }}, perf con un worker, informativo)
+        if: always() && inputs.specs == ''
+        continue-on-error: true
+        run: |
+          npx playwright test --project=${{ matrix.browser }} --workers=1 \
+            --reporter=list --output=test-results-perf \
+            tests/speech-f2-perf.spec.mjs tests/combobox-multiple-perf.spec.mjs
+
+      - name: Informe de Playwright (solo si falla)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            design/lab/theme-playground/playwright-report
+            design/lab/theme-playground/test-results
+          retention-days: 14
+          if-no-files-found: ignore

@@ -1,0 +1,165 @@
+name: CI
+
+# Verificación en cada push y pull request a main:
+#   verify        pruebas (vitest), build, vigilante de iconos y compuertas del dist
+#   e2e-chromium  subconjunto rápido de Playwright en Chromium (design/lab/theme-playground)
+#   audit         npm audit, solo informativo
+# La pasada completa en Chromium, Firefox y WebKit está en e2e-full.yml (nocturna y manual).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Pruebas, build y compuertas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc # Node >= 22 (el mismo que usa el desarrollo local)
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas (vitest de @grana/vue y @grana/cli)
+        run: npm test
+
+      - name: Build (vite build de todas las entradas + fuentes)
+        run: npm run build
+
+      - name: Vigilante de iconos (Lucide es la única fuente)
+        run: node packages/vue/scripts/check-icons.mjs
+
+      - name: Compuertas del dist (lo que debe estar y lo que no)
+        run: bash .github/scripts/gates.sh
+
+      - name: Guardar dist para las pruebas de navegador
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: packages/vue/dist
+          retention-days: 1
+          if-no-files-found: error
+
+  e2e-chromium:
+    name: Playwright (Chromium, subconjunto)
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GRANA_PW_PORT: "4208"
+      PLAYWRIGHT_HTML_OPEN: never
+    defaults:
+      run:
+        working-directory: design/lab/theme-playground
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            design/lab/theme-playground/package-lock.json
+
+      # Las pruebas cargan /node_modules/vue de la raíz y el dist ya construido.
+      - name: Instalar dependencias de la raíz
+        run: npm ci
+        working-directory: .
+
+      - name: Recuperar dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: packages/vue/dist
+
+      - name: Instalar dependencias del laboratorio
+        run: npm ci
+
+      - name: Fuentes del laboratorio (scripts/setup-fonts.mjs)
+        run: npm run setup
+
+      - name: Caché de navegadores de Playwright
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('design/lab/theme-playground/package-lock.json') }}
+
+      - name: Instalar Chromium (con dependencias del sistema)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Instalar solo dependencias del sistema (navegador en caché)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Varias pruebas miden tiempos (tooltip 500/700 ms, cuadros de animación, Δ0px con movimiento):
+      # con --workers=2 y reintentos se evita el ruido por carga, como en la pasada completa.
+      # Subconjunto representativo: biblioteca, playground, distribución de formularios,
+      # paneles anclados, tooltip y los componentes de formulario. Los perf, el combobox y la voz
+      # quedan para la pasada nocturna. Archivos explícitos: el filtro de Playwright es una
+      # expresión regular sobre la ruta y «playground» coincidiría con todo el directorio.
+      - name: Playwright (Chromium)
+        run: |
+          npx playwright test --project=chromium --workers=2 --retries=2 \
+            --reporter=list,html --trace=retain-on-failure \
+            tests/library.spec.mjs \
+            tests/playground.spec.mjs \
+            tests/form-distribution.spec.mjs \
+            tests/panel-estable.spec.mjs \
+            tests/tooltip.spec.mjs \
+            tests/form-section.spec.mjs \
+            tests/form-reveal.spec.mjs \
+            tests/form-blur-click.spec.mjs \
+            tests/number-field.spec.mjs \
+            tests/time-field.spec.mjs \
+            tests/radio-group.spec.mjs \
+            tests/key-focus.spec.mjs \
+            tests/dialog-focus.spec.mjs
+
+      - name: Informe de Playwright (solo si falla)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-chromium
+          path: |
+            design/lab/theme-playground/playwright-report
+            design/lab/theme-playground/test-results
+          retention-days: 7
+          if-no-files-found: ignore
+
+  audit:
+    name: npm audit (informativo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true # no bloquea: avisa. Un fallo aquí no pone en rojo el flujo
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: npm audit de la raíz (@grana/vue y @grana/cli)
+        run: npm audit --audit-level=high
+
+      - name: npm audit (laboratorio de Playwright)
+        if: always()
+        run: npm audit --audit-level=high
+        working-directory: design/lab/theme-playground
