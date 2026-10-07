@@ -187,6 +187,7 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 - **Selección:** casilla con nombre por fila; «todo» con estado mixto.
 - **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga y anuncios](#carga-y-anuncios)); vacío real y vacío por filtros (con «Limpiar filtros»); recuento anunciado al filtrar.
 - **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px.
+- **Selección** (DECISIONS #431 y #432): la casilla nativa de fila y la de «todo» usan `accent-color: --g-color-primary-text`, y la tarjeta seleccionada pinta su borde en `--g-color-primary-text`. Sin cambio visible con el tema por defecto. Medido contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro: casilla **4.07:1 o más** (también sobre la fila `primary-soft`) y borde de tarjeta **4.21:1 o más**.
 
 ## Tema
 

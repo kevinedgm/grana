@@ -102,6 +102,7 @@ No pongas botones, enlaces ni campos dentro de la etiqueta, la ayuda ni el error
 - **Foco:** anillo de `--g-focus-width` alrededor del riel, con transición de apertura.
 - **Área táctil:** la fila completa (riel y texto) es el objetivo; con `pointer: coarse` mide al menos 44px reales y el riel queda centrado con la etiqueta.
 - **Contraste:** con el tema por defecto, el riel apagado, el pulgar y la marca llegan a 3.45:1 y el encendido a 5.33:1 o más; el texto, a 5.49:1 o más. Con el tema de prueba de la auditoría, 4.86:1 y 5.16:1 o más.
+- **Contorno del riel encendido** (DECISIONS #431 y #432): el riel encendido conserva su relleno `--g-color-{color}`, el pulgar y el hover `-strong`, y su **contorno** pasa a `--g-color-{color}-text` (el componente gana la variable interna `--_text`, que sigue a la prop `color`). Sin cambio visible con el tema por defecto en reposo. Contra la superficie, **4.21:1 o más** (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro, con `brand`, `accent` y `warning`. **Hover:** el contorno se queda en `-text` aunque el relleno pase a `-strong`: con el tema por defecto se ve, solo durante el hover, un filo de un trazo apenas perceptible (de 1.12:1 a 1.41:1 contra el relleno; #438).
 - **Texto largo:** la etiqueta y la ayuda saltan de línea, incluso una palabra larguísima sin espacios.
 
 ## Movimiento

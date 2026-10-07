@@ -278,6 +278,8 @@ Orden del DOM = orden de lectura = orden de foco: **[casilla] → título → me
 
 Una acción interna con foco **no** activa la principal; Enter en el título **no** abre el menú.
 
+**Foco visible con las flechas (`selectType="radio"`):** el anillo de la tarjeta se ve también en WebKit al moverse con las flechas. WebKit no marca `:focus-visible` en el radio al que llevan las flechas; por eso el componente marca el `<input>` con un atributo interno `data-g-key-focus` (no es API) cuando el foco llegó por una tecla de navegación (flechas, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después, y el CSS lo suma a `:focus-visible` (DECISIONS #441). Con un clic de ratón no aparece.
+
 ## Accesibilidad
 
 - **Estructura:** la raíz es una `GSurface` (`article` por defecto). Con título y **sin** acción principal lleva `aria-labelledby` → título; **con** acción principal no (el control ya da el nombre y se evita «artículo, Título… enlace, Título»); con `li`, `div` o `section` nunca. Esta omisión está pendiente de confirmar con lector de pantalla real.

@@ -61,6 +61,7 @@ Evento `update:filters` al aplicar, quitar o limpiar. Para aplicar los filtros f
 - Barra `role="group"` con nombre; el chip aplicado son **dos botones** con nombre completo («Editar filtro: …», «Quitar filtro: …»).
 - Editor: diálogo no modal con nombre («Filtrar por Total»); campos con nombre; error visible y anunciado, con `aria-invalid`.
 - Foco visible del tema; controles de 44px con `pointer: coarse`.
+- La casilla nativa del editor usa `accent-color: --g-color-primary-text` (DECISIONS #431 y #432): sin cambio visible con el tema por defecto; **4.21:1 o más** contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 
 ## Limitaciones conocidas
 

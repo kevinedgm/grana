@@ -19,7 +19,7 @@ createApp(App).use(Grana).mount('#app')   // registra <g-tooltip>
 // o, sin plugin: components: { GTooltip }
 ```
 
-Va en el principal (DECISIONS #380) porque [`GBtn`](../GBtn/README.md) lo usa con su prop `tooltip` y lo usarán, en entregas aparte, otros componentes con pista propia. **Peso:** según la construcción de bruno, `GTooltip` más su motor interno añaden **+5,3 KB gzip** al paquete principal, por debajo del tope de 8 KB que fija #328 y que #380 aplica a este componente (cifra de la construcción, **no remedida al documentar**; no puedo separar aquí el aporte de `GTooltip` del resto de `dist/grana.js`). El CSS va en `grana.css`. Sin empaquetador, `dist/grana.umd.js` lo trae junto con el resto (global `Grana`). En plantillas dentro del HTML (sin compilar), Vue no admite etiquetas de componente autocerradas: escribe `<g-tooltip ...></g-tooltip>`.
+Va en el principal (DECISIONS #380) porque [`GBtn`](../GBtn/README.md) lo usa con su prop `tooltip` y su motor interno también da la pista de solo icono de `GTabs`, `GRadioGroup` y el riel de `GSidebar` (ver «Modo visual»). **Peso:** según la construcción de bruno, `GTooltip` más su motor interno añaden **+5,3 KB gzip** al paquete principal, por debajo del tope de 8 KB que fija #328 y que #380 aplica a este componente (cifra de la construcción, **no remedida al documentar**; no puedo separar aquí el aporte de `GTooltip` del resto de `dist/grana.js`). El CSS va en `grana.css`. Sin empaquetador, `dist/grana.umd.js` lo trae junto con el resto (global `Grana`). En plantillas dentro del HTML (sin compilar), Vue no admite etiquetas de componente autocerradas: escribe `<g-tooltip ...></g-tooltip>`.
 
 ## Cuándo `GTooltip` y cuándo `GHelper`
 
@@ -436,6 +436,24 @@ Prefijo `[Grana GTooltip]`, **una vez por instancia y motivo**, solo con `proces
 
 El nodo y las referencias se renderizan en el servidor, con ids estables (`useId`) y `kind="auto"` como `label` hasta medir. Ninguna escucha ni lectura de `document` o `window` fuera de `onMounted`. `GTooltip.ssr.test.js` fija el marcado exacto y comprueba que dos renders consecutivos coinciden, que `GBtn tooltip` renderiza y que `data-g-tooltip-box` sale también del servidor (`GInput`, `GTextarea`).
 
+## Modo visual (clientes internos)
+
+El motor interno de `GTooltip` (`utils/tooltip.js`, no público) tiene un **modo visual** para controles de Grana cuyo **nombre ya está en su DOM** como etiqueta oculta visualmente (DECISIONS #433). Lo usan tres componentes, cada uno con su sección:
+
+| Cliente | Dónde sale la pista | Detalle |
+| --- | --- | --- |
+| [`GTabs`](../GTabs/README.md#pista-de-solo-icono) | Pestañas solo icono y «Más» | Viaja por el `tablist`; debajo, o a la derecha lógica en vertical (#434) |
+| [`GRadioGroup`](../GRadioGroup/README.md#pista-de-solo-icono) | Opciones solo icono de `segmented` y `chip` | La pestaña mide el segmento o el chip; viaja con las flechas (#435) |
+| [`GSidebar`](../GSidebar/README.md#riel) | Items, padres, búsqueda y contraer del riel | Viaja por el `<nav>`; a la derecha lógica; la navbar no lleva pista (#436 y #437) |
+
+Tiene la misma forma, el mismo CSS y el mismo comportamiento que `GTooltip` (tiempos, foco por navegación, Esc, pulsación larga que muestra y no activa, viaje en el grupo, una sola pista abierta en el documento, compartida con los `GTooltip` de tu aplicación). Se distingue en tres cosas:
+
+- **Es solo visual:** el nodo lleva `aria-hidden="true"` y **ningún** `role`, `id`, `aria-describedby` ni `aria-labelledby`. El nombre ya está en el DOM del control, así que con y sin pista el árbol de accesibilidad es el mismo (no se duplica el anuncio). En `GTooltip`, en cambio, el nodo es siempre `role="tooltip"` y no hay copia `aria-hidden` del texto.
+- **El texto es la etiqueta oculta** del control (`item.label`, `option.label`), sin estado, insignia ni contador, y no hay `detail`, atajo ni segunda etapa.
+- **Un nodo por control**, persistente y cerrado desde el montaje, que solo se activa mientras la etiqueta del control está oculta. Vive dentro de la raíz del componente, nunca dentro de un `tablist` ni de una `<label>`.
+
+Ninguno de los tres añade props, textos ni tokens. El peso lo mide cada `meta.json` (`GTabs` +884 B gzip en `grana.js`, `GRadioGroup` +253 B sobre `GTabs`, `GSidebar` −5 B). Auditoría de coco con el componente real: [`design/lab/tooltip/auditoria-pista.md`](../../../../../design/lab/tooltip/auditoria-pista.md), 31 347/31 347 en Chromium, Firefox y WebKit.
+
 ## Limitaciones conocidas
 
 - **La diagonal hacia la etiqueta pasa por los vecinos** (WCAG 1.4.13): en una barra, ir en diagonal hacia la etiqueta cruza controles vecinos, que toman el relevo. Sin «triángulo de seguridad» (retrasaría el relevo, que es lo que hace rápida la lectura de una barra) y el tooltip no tiene nada que pulsar: se alcanza en línea recta (medido: baja del control a la etiqueta cruzando la pestaña en 12 pasos sin cerrarse).
@@ -448,7 +466,7 @@ El nodo y las referencias se renderizan en el servidor, con ids estables (`useId
 - **Sin tooltip en el contenido no enfocable:** si necesitas explicar un texto, hazlo en un `GHelper` o en un `hint`.
 - **`GInputGroupInput` y `GInputGroupSelect` no se admiten como hijo.**
 - **Un control de tu aplicación sin `data-g-tooltip-box`** (o que no reenvía los atributos a su enfocable) tendrá la pestaña del tamaño del enfocable o no se activará: ver la receta.
-- **`GTabs`, `GRadioGroup` con `labelMode="icon"` y el riel de `GSidebar`** aún no usan el motor interno de `GTooltip`: son encargos aparte, uno por componente (DECISIONS #392). Hasta entonces, `GSidebar` conserva su pista propia.
+- **La pista visual de los componentes internos** (`GTabs`, `GRadioGroup` y el riel de `GSidebar`) no es API: no se configura ni hay `kind="none"` público. Ver «Modo visual».
 
 ## Reservado (fuera de 0.1)
 

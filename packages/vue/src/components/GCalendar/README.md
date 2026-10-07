@@ -209,6 +209,7 @@ Los umbrales son constantes literales de contenedor (DECISIONS.md #34 y #39): un
 - **Área táctil:** los controles miden 24px como mínimo y 44px con `pointer: coarse`; el evento nunca es menor que `max(24px, --g-space-1 × 6)` (44px en táctil) aunque su posición sea la real.
 - **Foco:** anillo de `--g-focus-width` en todo control y evento, siempre visible.
 - **Contraste:** con el tema por defecto y con el de prueba de la auditoría, todo texto llega a 4.5:1 o más.
+- **Contorno de lo pulsado** (DECISIONS #431 y #432): la vista pulsada de la barra y el día pulsado de la tira conservan el relleno `primary` con `on-primary` y su **borde** pasa a `--g-color-primary-text`; «hoy» (cabecera y vista Mes) lleva un trazo interior de `--g-border-width` en `--g-color-primary-text`, nunca un anillo exterior (ese lugar es del foco). Sin cambio visible con el tema por defecto (solo cambia el suavizado del filo de las formas redondas). Mínimo medido contra la superficie: **4.21:1** (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 - **Movimiento reducido** y **colores forzados** tienen su bloque de CSS.
 
 ## Tema

@@ -170,6 +170,7 @@ Spec `design/lab/theme-playground/tests/personalidad-menu.spec.mjs` sobre el `GM
 - `role="menu"` con nombre por el disparador (o `label`); `li role="none"`; `menuitem`, `menuitemcheckbox` y `menuitemradio`; los grupos con título que los nombra; los submenús con `aria-haspopup`, `aria-expanded` y el nombre del padre.
 - **El significado no depende solo del color:** casilla con `check`, opción con `circle`, peligroso con `triangle-alert` y negrita, deshabilitado tachado; todos iconos de Lucide decorativos.
 - Elementos de 36px (44px con puntero táctil); foco siempre visible.
+- **Marca de lo elegido** (DECISIONS #431 y #432): la casilla marcada de `menuitemcheckbox` y la opción marcada de `menuitemradio` conservan el relleno `primary` y la marca `on-primary`; su **contorno** pasa a `--g-color-primary-text`. Sin cambio visible con el tema por defecto; con una marca pálida aparece el filo que recorta la marca contra la superficie. Mínimo medido contra la superficie: **4.21:1** (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 
 ## Tema
 

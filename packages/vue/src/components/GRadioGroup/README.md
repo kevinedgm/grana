@@ -147,7 +147,7 @@ No hay `orientation`, `variant`, `rounded` ni `block`: la apariencia ya fija la 
 - **`readonly`:** `aria-readonly="true"` en el grupo e `is-readonly`. Los radios siguen **habilitados**, enfocables, legibles y dentro de `FormData`; se **cancelan el `keydown` de las cuatro flechas y el `click`** (también el de la etiqueta y el que dispara Espacio), así que ni la selección ni el foco cambian de opción. Nunca emite `update:modelValue`. Dentro de `GForm readonly` lo hereda, sin marca ni bloqueo (DECISIONS #266, #272). Se distingue de `disabled` sin depender del color: contraste completo, fondo `neutral-soft`, borde discontinuo y cursor normal.
 - **`disabled`:** en `list`, `chip` y `card`, el atributo nativo del `<fieldset>` (deshabilita en cascada); en `inline` y `segmented`, `disabled` en **cada** radio. Fuera del Tab y de `FormData`. Clase `is-disabled`.
 - **La opción elegida no puede estar deshabilitada.** Si lo está, se pinta como se pide pero **avisa**: con ella deshabilitada, una flecha elegiría otra y la elegida se perdería y no se enviaría (medido en Chromium y Firefox). Si el valor no se puede cambiar, usa `readonly`.
-- **`labelMode="icon"`:** solo en `segmented` y `chip`. La etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto accesible y sigue siendo el nombre del radio. **Sin tooltip propio.** Una opción **sin icono** conserva su etiqueta visible y avisa; con el slot `option` no tiene efecto (aviso); en otra apariencia cuenta como `full` (aviso). Pensado para iconos inequívocos (vista, alineación); en una pregunta de formulario se prefiere texto. No hay `auto`: un segmentado que no cabe se apila, no reduce etiquetas.
+- **`labelMode="icon"`:** solo en `segmented` y `chip`. La etiqueta **no sale del DOM**: se oculta con el patrón de texto oculto accesible y sigue siendo el nombre del radio. Con **pista visual** del nombre (ver [Pista de solo icono](#pista-de-solo-icono)). Una opción **sin icono** conserva su etiqueta visible y avisa; con el slot `option` no tiene efecto (aviso); en otra apariencia cuenta como `full` (aviso). Pensado para iconos inequívocos (vista, alineación); en una pregunta de formulario se prefiere texto. No hay `auto`: un segmentado que no cabe se apila, no reduce etiquetas.
 - **`size`:** en `inline` y `segmented`, la **caja** mide lo mismo que la caja de un `GInput` del mismo `size` (y `density`); en `list`, `chip` y `card`, el tamaño del indicador y del texto, como `GCheckbox`.
 - **`color`:** relleno de lo elegido (punto del círculo, segmento, chip; borde y fondo de la tarjeta). El error usa siempre `danger`.
 - **`field`:** con `true` (por defecto) el grupo es un **campo**: región de mensaje siempre presente y contexto de `GForm`. Con **`:field="false"`** es un **control suelto dentro de otro componente** (un selector de vista en una barra de herramientas): sin región de mensaje ni `aria-live`, sin leer el contexto de `GForm` (no se registra ni hereda densidad, solo lectura, deshabilitado, errores ni marcas) y sin marca; `error`, `warning`, `valid`, `required` y `mark` se **ignoran con aviso**. El pie solo existe si hay `hint`. Se lee al crear el grupo.
@@ -208,6 +208,21 @@ El segmentado **nunca recorta** una etiqueta. Mide su **ancho natural** (todas l
 - **Publica su ancho natural a la `GFormRow`** que lo contiene, que lo suma a su mínimo efectivo (el mayor entre el de `g-form-w-*`, `--g-form-min` y el del segmentado). Resultado: **la fila se parte en líneas antes de que el segmentado se apile**; en el banco real, a 480px «Sexo» pasa a su propia línea y cabe sin apilarse. Solo cuenta si el grupo es **hijo directo** de la fila. Al desmontarse o dejar de ser `segmented`, retira lo publicado.
 - **Sin medida** (render en servidor, entorno sin `ResizeObserver`): una sola línea, como se pidió, y no publica mínimo. El apilado se decide al montar en el cliente.
 
+## Pista de solo icono
+
+Con `labelMode="icon"` (solo `segmented` y `chip`) cada opción con icono lleva una **pista visual** con su nombre. Es el motor interno de [`GTooltip`](../GTooltip/README.md#modo-visual-clientes-internos) en modo visual (DECISIONS #433 y #435): no hay prop ni texto que configurar.
+
+- **Cuándo aparece:** en cada opción solo icono. No con el slot `option` (ahí `labelMode="icon"` no tiene efecto), ni en las opciones que conservan su etiqueta por no tener icono, ni en otra apariencia.
+- **Qué dice:** `option.label`, el mismo texto oculto que ya es el nombre del radio.
+- **No duplica el nombre accesible:** la pista es un nodo `aria-hidden`, sin `role`, `id` ni referencias; el nombre (`aria-labelledby` a la etiqueta) y la descripción no cambian y ningún `aria-*` se añade al radio. Los nodos van al final de `g-radio-group__options`: nunca dentro de la `<label>` (pulsarlos elegiría el radio) ni como hijo de la raíz (en `inline` y `segmented` la raíz tiene tres hijos que comparten la fila de `GFormRow`). La pestaña de la pista mide el segmento o el chip, no el radio: la `__option` lleva `data-g-tooltip-box`.
+- **Cuándo se abre:** con el puntero tras 350 ms; con el foco, al instante, solo si llegó por navegación (Tab o flechas); un clic no la abre. Solo hay una pista abierta en todo el documento.
+- **Viaje:** la pista viaja de opción en opción con el puntero y con las flechas (que además eligen), con movimiento reducido salta. Va debajo en una línea (también cuando los chips pasan a otra línea) y a la derecha lógica con el segmentado apilado (`is-stacked`). Con `readonly` funciona igual (el radio sigue siendo enfocable).
+- **Esc:** cierra la pista sin mover el foco ni cambiar lo elegido.
+- **Pulsación larga (táctil):** muestra el nombre y **no elige**: no cambia `checked`, no se emiten `update:modelValue` ni `change` y no cuenta para el momento de revelado de `GForm`. Un toque normal elige sin pista.
+- **Límite: opción `disabled` sin pista.** Un radio deshabilitado nativo no abre la pista, así que con el puntero no se puede leer el nombre de una opción solo icono deshabilitada. Para un valor que no se puede cambiar, usa `readonly` (#270), y una opción imposible conviene que no sea solo icono.
+- **Medido** (coco, [`design/lab/tooltip/auditoria-pista.md`](../../../../../design/lab/tooltip/auditoria-pista.md); Chromium, Firefox y WebKit; `segmented` y `chip` de `xs` a `xl`, dos densidades, apilado, chips en dos líneas y RTL): la pestaña coincide con el segmento o el chip con un máximo de 0,25 px; el nombre contra la página, 15,20:1 como mínimo; los nodos no cambian ninguna medida de las opciones (Δ0). Resultado de la auditoría completa de las tres pistas: 31 347/31 347.
+- **Peso:** +253 B gzip en `grana.js` y +220 B en `grana.umd.js` sobre `GTabs`, que ya cuenta el motor visual compartido (`GRadioGroup.meta.json`, medido por bruno el 2026-10-06).
+
 ## Teclado
 
 Nativo (patrón *Radio Group* de APG), **sin manejadores propios** salvo el bloqueo de `readonly`.
@@ -229,7 +244,7 @@ Nativo (patrón *Radio Group* de APG), **sin manejadores propios** salvo el bloq
 - **Nombre del radio = su etiqueta** (`aria-labelledby` a `ID-i-label`); la descripción, por `aria-describedby` (solo `list` y `card`); el icono, `aria-hidden`; `dir="auto"` en la etiqueta (aislamiento bidi: «A+» en una página RTL no se lee «+A»).
 - **Región de mensaje** `aria-live="polite"` siempre presente (con `field`); dentro de `GForm`, el valor de `live` lo da el formulario.
 - **Sin depender del color:** lo elegido lleva punto o relleno con texto en `on-{color}`; la tarjeta, además, borde doble; `readonly` se distingue de `disabled` por borde discontinuo; el error lleva icono y prefijo oculto.
-- **Foco por opción:** anillo visible por opción (dentro del segmento en `segmented`). La elegida de solo lectura enfocada conserva su marca y su anillo.
+- **Foco por opción:** anillo visible por opción (dentro del segmento en `segmented`). El anillo se ve también en WebKit al moverse con las flechas: el componente marca el radio con un atributo interno `data-g-key-focus` cuando el foco llegó por una tecla de navegación (flechas, Inicio, Fin, Re Pág, Av Pág, Tab, Mayús+Tab) sin un `pointerdown` después, y el CSS lo suma a `:focus-visible` (WebKit no marca `:focus-visible` en el radio al que llevan las flechas; DECISIONS #441). Con un clic de ratón el atributo no aparece. La elegida de solo lectura enfocada conserva su marca y su anillo.
 - **Tamaños:** con puntero fino toda opción mide ≥ 24×24; con `pointer: coarse`, ≥ 44×44 (también las cajas de `inline` y `segmented`).
 - **Contraste medido** (27 configuraciones por motor: tema por defecto, un tema de auditoría generado con `@grana/cli`, «Tema de prueba», Spotify y los once generados de Dark Color Presence, claro y oscuro): texto (etiquetas, opciones, descripción, ayuda, mensajes y `on-{color}` sobre lo elegido) ≥ 4.51:1; borde del círculo ≥ 3.02:1; contorno del chip y marco del segmentado ≥ 3.43:1; punto sobre el relleno ≥ 4.51:1; trazo de lo elegido ≥ 4.51:1; icono de solo icono ≥ 4.70:1; **hover** (puntero real, cinco apariencias): texto ≥ 4.52:1 y controles ≥ 4.07:1; anillo de foco ≥ 3:1 contra lo que tiene a los dos lados.
 - **Alturas:** la caja de `segmented` e `inline` mide lo que la de `GInput` (±0,5px) de `xs` a `xl` y en densidad compacta; en una `GFormRow` las cajas de una misma línea comparten `top` (±1px).
@@ -303,7 +318,7 @@ Las emite el componente y las estiliza `GRadioGroup.css`:
 - **Raíz:** `g-radio-group`, `g-radio-group--appearance-*` (siempre, también `list`), `--size-*`, `--density-*`, `--color-*`, `--icon-only`, `--measure` (interna: solo durante la medida síncrona del segmentado), `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid` e `is-stacked`.
 - **Elementos:** `__label` (con `__required` u `__optional`), `__options`, `__option` (con `is-disabled` e `is-icon-only`), `__input`, `__segment` (solo `segmented`), `__icon`, `__text`, `__option-label`, `__description` (solo `list` y `card`), `__support`, `__hint`, `__message`, `__message-icon` y `__message-type`.
 
-Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, sin clases propias.
+Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, sin clases propias. Datos internos que no son API: `data-g-key-focus` en `g-radio-group__input` (foco por teclado, #441) y, en solo icono, `data-g-tooltip` en el radio, `data-g-tooltip-box` en la `__option` y los nodos `g-tooltip` (con `aria-hidden`) al final de `__options`.
 
 ## Limitaciones conocidas
 
@@ -311,7 +326,7 @@ Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, 
 - **`<form>` externo no soportado en v0.1:** no se admite el atributo `form` para asociar los radios a un formulario fuera de su árbol.
 - **WebKit:** las flechas no envuelven ni invierten ←/→ en RTL, y en macOS Tab no llega a los radios sin «Acceso total por teclado» (DECISIONS #272).
 - **Ancho natural del segmentado medido en el cliente:** en render de servidor sale en una línea hasta montar.
-- **Sin tooltip propio** en `labelMode="icon"`.
+- **Opción solo icono `disabled` sin pista:** con el puntero no se lee su nombre (ver [Pista de solo icono](#pista-de-solo-icono)).
 - **Sin grupos de opciones**, sin deseleccionar, sin `GRadio` suelto.
 - **Chips de opción con `pill` fijo:** no siguen `--g-radius-shape`.
 - **Sin tema oscuro propio:** se verificó con los temas generados claro y oscuro, pero no hay tema oscuro opcional de Grana todavía.

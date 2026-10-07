@@ -95,7 +95,22 @@ const vistas = [
 <g-tabs v-model="vista" :items="vistas" :labels="textos" label="Vista" label-mode="auto" appearance="pill"></g-tabs>
 ```
 
-**Icono por nombre (#202):** un `icon` **cadena** sin slot `icon` dibuja un [`GIcon`](../GIcon/README.md) con ese nombre de Lucide en el hueco de la pestaña (decorativo, 1,15em del texto: 16px a 14px). Se busca en el registro de tu aplicación (`createIcons`) y luego en la lista de la librería; un nombre desconocido no dibuja nada y avisa en desarrollo. **Con slot `icon`, manda el slot** (para un logotipo u otro dibujo que no sea Lucide: `<template #icon="{ item }">…</template>`); un `icon` que no es cadena solo llega al slot. Una pestaña cuenta como «con icono» para `labelMode` si tiene `icon` cadena (sin slot) o slot e `icon` con valor. En solo icono la etiqueta **sigue en el DOM** (texto oculto) y es el nombre accesible. **No hay tooltip propio todavía** (ver «Limitaciones conocidas»). No pongas clases de tamaño al icono: ganan al hueco (ver el README de `GIcon`).
+**Icono por nombre (#202):** un `icon` **cadena** sin slot `icon` dibuja un [`GIcon`](../GIcon/README.md) con ese nombre de Lucide en el hueco de la pestaña (decorativo, 1,15em del texto: 16px a 14px). Se busca en el registro de tu aplicación (`createIcons`) y luego en la lista de la librería; un nombre desconocido no dibuja nada y avisa en desarrollo. **Con slot `icon`, manda el slot** (para un logotipo u otro dibujo que no sea Lucide: `<template #icon="{ item }">…</template>`); un `icon` que no es cadena solo llega al slot. Una pestaña cuenta como «con icono» para `labelMode` si tiene `icon` cadena (sin slot) o slot e `icon` con valor. En solo icono la etiqueta **sigue en el DOM** (texto oculto) y es el nombre accesible. La pista con el nombre de cada pestaña solo icono está en [Pista de solo icono](#pista-de-solo-icono). No pongas clases de tamaño al icono: ganan al hueco (ver el README de `GIcon`).
+
+### Pista de solo icono
+
+Cuando una pestaña muestra solo el icono, una **pista visual** con su nombre cuelga de ella. Es el motor interno de [`GTooltip`](../GTooltip/README.md#modo-visual-clientes-internos) en modo visual (DECISIONS #433 y #434): no hay prop ni texto que configurar.
+
+- **Cuándo aparece:** en cada pestaña solo icono (todas con `labelMode="icon"`; con `auto` reducido, las inactivas: la activa conserva icono y etiqueta y no lleva pista) y en el botón «Más». No en los botones de borde ni con `labelMode="full"`.
+- **Qué dice:** `item.label` (en «Más», `labels.more`), sin estado, contador ni insignia, que se ven aparte.
+- **No duplica el nombre accesible:** la pista es un nodo `aria-hidden`, sin `role`, `id` ni referencias, colocado fuera del `tablist` (al final de `g-tabs__header`, que solo contiene pestañas). El nombre de la pestaña (etiqueta, estado, insignia y contador) sigue siendo texto oculto y no cambia. Nunca `title`.
+- **Cuándo se abre:** con el puntero tras 350 ms; con el foco, al instante, solo si llegó por navegación (Tab, flechas, Inicio, Fin). Un clic o el foco que el componente pone al elegir en «Más» no la abren. Solo hay una pista abierta en todo el documento.
+- **Viaje:** dentro del `tablist` la pista viaja de pestaña en pestaña con el puntero, las flechas y Tab (`--g-duration-press` con `--g-ease-out`; con movimiento reducido, salta). «Más» es otro grupo: entre una pestaña y «Más» la pista aparece al instante. Va debajo en horizontal y a la derecha lógica en vertical (a la izquierda en RTL). Con el menú de «Más» abierto, su pista no se abre.
+- **Esc:** el primero cierra la pista sin mover el foco; el segundo llega al `GDialog` anfitrión.
+- **Pulsación larga (táctil):** muestra el nombre y **no activa** la pestaña: ni `change` ni `update:modelValue`, y el valor, la marca y el foco no cambian. Un toque normal activa sin pista.
+- **Pestaña deshabilitada:** con el puntero, la pista abre y la nombra (como `GTooltip` con `aria-disabled`); sigue fuera de las flechas.
+- **Medido** (coco, [`design/lab/tooltip/auditoria-pista.md`](../../../../../design/lab/tooltip/auditoria-pista.md); Chromium, Firefox y WebKit): la pestaña de la pista coincide con la pestaña en ancho y bordes con un máximo de 0,25 px; **no tapa la marca de `underline`** (0 %, en horizontal, RTL y vertical) y la marca reaparece intacta al cerrar; el nombre contra la página, 15,20:1 como mínimo; nunca hay dos etiquetas visibles a la vez; los hijos de la cabecera no cambian con ni sin los nodos (Δ0). Resultado de la auditoría completa de las tres pistas (`GTabs`, `GRadioGroup` y riel de `GSidebar`): 31 347/31 347.
+- **Peso:** +884 B gzip en `grana.js` y +703 B en `grana.umd.js`, con el motor visual que comparten `GRadioGroup` y `GSidebar` (`GTabs.meta.json`, medido por bruno el 2026-10-06).
 
 ### Cancelar un cambio
 
@@ -275,7 +290,7 @@ Con `detached` no hay slots `panel*`: los paneles son `GTabPanel`.
 | «Más» | Enter, Espacio o ↓ abren con el foco en la marcada; ↑, ↓, Inicio y Fin dentro; Esc cierra y devuelve el foco al botón; Tab cierra |
 
 - Las deshabilitadas se omiten. Enfocar o activar una pestaña la desplaza a la vista sin mover la página.
-- **Esc no se intercepta** en la lista: un `GDialog` anfitrión se cierra con Esc.
+- **Esc** no se intercepta en la lista, salvo para cerrar una pista abierta (el primero); un `GDialog` anfitrión se cierra con Esc.
 - Al elegir en «Más», la pestaña entra en la barra y **recibe el foco**.
 
 ## Accesibilidad
@@ -284,6 +299,7 @@ Con `detached` no hay slots `panel*`: los paneles son `GTabPanel`.
 - **Con pestañas ocultas** (`overflow="more"`): `aria-setsize` y `aria-posinset` en las renderizadas. Con `lazy`, un panel aún no montado no se renderiza y su pestaña no lleva `aria-controls`.
 - **Anuncios:** una región `role="status"` existe desde el montaje y anuncia el inicio y el fin de carga con `labels.loading` y `labels.loaded`.
 - **Sin depender del color:** la activa lleva marca, peso y color; el foco, un anillo distinto de la marca; los estados, icono y texto oculto.
+- **Pista de solo icono:** `aria-hidden`, sin `role` ni `id`, fuera del `tablist`; el árbol de accesibilidad es el mismo con y sin ella. La pulsación larga la muestra sin activar la pestaña. Detalle en [Pista de solo icono](#pista-de-solo-icono).
 - **Contraste medido** (tema por defecto, Spotify con marca pálida, Apple y un tema granate con serif, `space` 5 y borde de 2px; claro y oscuro): texto activo ≥ 5.1:1 (la píldora con marca pálida; ≥ 8.8:1 en el resto), inactivo ≥ 6.6:1, marca y línea de `contained` ≥ 3:1 (mínimo 4.16:1), contornos de píldora y segmento ≥ 3:1, anillo de foco ≥ 4:1. Excepción conocida: el contorno del segmento, **por su lado interior** en oscuro, queda en 2.59:1 (contra la pista, 3.8:1).
 - **Tamaños:** altura mínima 40, 35 y 30px según densidad (24px el piso, segmento compacto), y **44px** con `pointer: coarse` en todas las densidades, también en los botones de borde y en «Más».
 - **Movimiento:** la marca se estira solo con `prefers-reduced-motion: no-preference`; con `reduce` salta, el icono de carga no gira, el panel **solo se funde** (sin desplazamiento) y el desplazamiento programático es instantáneo. El primer posicionamiento no se anima. Detalle en [Personalidad](#personalidad).
@@ -367,19 +383,19 @@ La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutr
 Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPanel`):
 
 - **Raíz:** `g-tabs`, `g-tabs--appearance-*`, `--orientation-*`, `--color-*`, `--density-*`, `--align-*`, `--overflow-*`, `--icon-only`, `is-ready`, `is-scrollable-start|end` e `is-disabled`; atributos `data-direction` y `data-orientation` (ver [Personalidad](#personalidad)), que `GTabPanel` copia en su raíz.
-- **Elementos:** `__header`, `__scroller`, `__list`, `__tab` (con `is-active`, `is-attention`, `is-loading`), `__icon`, `__label` (con `data-text`), `__status`, `__sr`, `__mark`, `__edge` (`--prev`, `--next`), `__more`, `__panels`, `__panel` y `__live`.
+- **Elementos:** `__header`, `__scroller`, `__list`, `__tab` (con `is-active`, `is-attention`, `is-loading`), `__icon`, `__label` (con `data-text`), `__status`, `__sr`, `__mark`, `__edge` (`--prev`, `--next`), `__more`, `__panels`, `__panel` y `__live`; los nodos de la pista de solo icono son `g-tooltip` (con `aria-hidden`) y van al final de `__header`.
 - **Diálogo:** `.g-dialog__tabs` (en `GDialog.css`).
 
 ## Limitaciones conocidas
 
-- **Sin tooltip propio** para solo iconos, hasta que exista un componente de tooltip (el nombre accesible sí está).
+- **Pista en pestaña deshabilitada:** con el puntero abre y la nombra; con el teclado no se llega a ella (queda fuera de las flechas). Se acepta (es como `GTooltip` con `aria-disabled`).
 - **Pestañas cerrables** (`closable`, `close`): reservadas, **diferidas** a una versión posterior; el CSS no deja hueco todavía.
 - **`overflow="combined"` y `"auto"`** se difieren a una r03 (el validador los rechaza).
 - **Sin deslizar entre paneles** (*swipe*) ni desmontar los paneles inactivos: los paneles se conservan montados.
 - **La marca no se vuelve a medir** si una pestaña cambia de ancho sin que cambie la raíz ni el `scroller` (p. ej. al cambiar en caliente la familia tipográfica del tema): pendiente de bruno. Las fuentes que cargan por `@font-face` sí se cubren.
 - **Contorno del segmento en oscuro,** lado interior: 2.59:1 (excepción documentada).
 - **Personalidad:** WebKit no recorta el panel que entra (a sangre rebasa 16px ≤ 240ms), el recorte corta lo que se dibuje a más de 4px del borde de los paneles y la marca anima su ancho (ver [Límites de la personalidad](#límites-de-la-personalidad)).
-- **Sin verificar:** un lector de pantalla real (VoiceOver, NVDA, TalkBack: anuncio de estado y contador y el menú «Más»), un dispositivo táctil real (`snap` con dedo), zoom al 200%, `forced-colors` real de Windows (se probó emulado), rendimiento con decenas de pestañas y redimensionar con «Más» abierto.
+- **Sin verificar:** un lector de pantalla real (VoiceOver, NVDA, TalkBack: anuncio de estado y contador y el menú «Más»), un dispositivo táctil real (`snap` con dedo y la pulsación larga de la pista, que solo se probó con `pointer: coarse` emulado en Chromium y WebKit), zoom al 200%, `forced-colors` real de Windows (se probó emulado), rendimiento con decenas de pestañas y redimensionar con «Más» abierto.
 
 ## Fuentes
 

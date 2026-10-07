@@ -792,7 +792,8 @@ Con un slot `chosen` alto (cuatro líneas), el rastro sigue midiendo lo que el r
 | Frase con el foco, recuento, número, «Quitar», pie, lápiz | 7,38:1 |
 | Elemento marcado por Retroceso (frase) / renglón marcado | 14,51:1 / 14,60:1 |
 | Casilla: borde sin marcar (control, ≥ 3:1) | 3,43:1 |
-| Casilla marcada: contorno `text` / marca `on-primary` sobre `primary` (también en la activa invertida de la paleta) | 15,18:1 / 4,70:1 |
+| Casilla marcada: contorno `primary-text` contra la superficie (#432; medida de `design/lab/contraste-marcado/estilo.md`: tema por defecto, lustre, spotify y `primary` propia, claro y oscuro) / marca `on-primary` sobre `primary` | 4,21:1 / 4,70:1 |
+| Casilla marcada en la activa invertida de la paleta: contorno `surface` contra la fila `text` | 15,18:1 |
 | Estado del tope (y su icono) | 4,66:1 |
 | «Nueva» / su barra | 4,51:1 / 4,52:1 |
 | Rastro / «Deshacer» (también al pasar el puntero y en la cesta) | 6,87:1 / 4,51:1 |
@@ -824,7 +825,7 @@ Reservado (no adoptado): un resaltado único que viaja entre opciones, como el d
 
 | Token | Para qué |
 | --- | --- |
-| `--g-color-border-control`, `--g-color-primary`, `--g-color-on-primary`, `--g-color-text`, `--g-color-surface` | Casilla: borde (≥ 3:1); marcada con relleno `primary`, marca `on-primary` y contorno `text` (`surface` en la activa invertida de la paleta) |
+| `--g-color-border-control`, `--g-color-primary`, `--g-color-on-primary`, `--g-color-primary-text`, `--g-color-surface` | Casilla: borde (≥ 3:1); marcada con relleno `primary`, marca `on-primary` y contorno `primary-text` (`surface` en la activa invertida de la paleta) |
 | `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado) |
 | `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-accent`, `--g-color-on-accent` | «Deshacer» (píldora; al pasar, `accent` / `on-accent`) y «Nueva» |
 | `--g-color-accent-text`, `--g-focus-width` | Barra de «Nueva» |
@@ -834,7 +835,7 @@ Reservado (no adoptado): un resaltado único que viaja entre opciones, como el d
 | `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
 | `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | Movimiento (`--g-ease-bounce` y `--g-ease-spring` solo dentro de `@supports`; fuera, `--g-ease-out`) |
 
-- **La casilla marcada lee `primary`, no `brand`** (#430, y #429): es una selección, no la marca, y sigue al mismo token que `GCheckbox`; con un tema de clave `primary` propia las dos casillas siguen juntas. El contorno `text` sigue haciendo falta: `primary` solo como forma da 1,77 en `lustre` y 1,92 en `spotify`.
+- **La casilla marcada lee `primary`, no `brand`** (#430, y #429): es una selección, no la marca, y sigue al mismo token que `GCheckbox`; con un tema de clave `primary` propia las dos casillas siguen juntas. El **contorno** es `primary-text` (#431 y #432, que enmiendan el `text` de #429): la misma regla de todo control marcado y el mismo contorno que la casilla de `GCheckbox`. Hace falta: `primary` solo como forma da 1,77 en `lustre` y 1,92 en `spotify`, y `primary-text` llega a 4,21 o más; con el tema por defecto `primary-text` = `primary`, sin cambio visible.
 - «Nueva» y «Deshacer» usan el **par del tinte** (`accent-soft` / `on-accent-soft`) porque `accent-text` no está garantizado sobre `surface-sunken`; el tope usa `warning-soft` / `on-warning-soft` porque `warning-text` sobre el tinte da 4,15:1 en el tema por defecto oscuro. Lo mide el motor de tema, no el componente.
 - **Constantes de diseño (no son tema):** 12 (filas de «Elegidas» y de la cesta antes de «Ver las N») y 6 (renglones de la receta en reposo), en JS; 0,4 (escala de partida de la marca de la casilla); 55 % (ancho máximo de la frase con el foco); casilla de `space × 5` (`space × 4` con el campo `xs` o `sm`) con la marca al 0,72; renglón con alto mínimo `body-line + body-sm-line + space × 2` (52 px con el tema por defecto, 50 con `space` 3); 6 : 5 de la cesta; `--_travel-x` y `--_travel-y` (el vector del viaje) y `--_row-h` (el alto del rastro): variables en línea del componente, no tokens.
 

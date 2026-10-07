@@ -127,6 +127,8 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{count}`.
 
 - Hoja modal de `GDialog`: nombre por el título, foco atrapado, Esc, hoja inferior en móvil.
 - Categorías: radios nativos con **relleno y un icono `check` de Lucide** (no solo color). La marca de añadido es **texto**.
+- **Foco con flechas:** el anillo de la categoría se ve también en WebKit al moverse con las flechas. WebKit no marca `:focus-visible` en el radio al que llevan las flechas; el componente marca el radio con un atributo interno `data-g-key-focus` (no es API) cuando el foco llegó por una tecla de navegación sin un `pointerdown` después, y el CSS lo suma a `:focus-visible` (DECISIONS #441).
+- **Contorno de la categoría elegida** (DECISIONS #431 y #432): conserva su relleno y su texto, y su **contorno** pasa a `--g-color-primary-text`. Sin cambio visible con el tema por defecto; **4.21:1 o más** contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 - Cada tarjeta es un `<article>` con nombre y descripción; el botón lleva el título como texto oculto.
 - Campos nativos con etiqueta visible; controles de 36px (44px con puntero táctil).
 

@@ -145,7 +145,15 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 ## Riel
 
 - **Panel flotante** de un padre: se abre con **clic, Enter, Espacio o →** y con el **puntero encima** (150ms); **el foco solo no lo abre**. Al abrir con teclado el foco va al hijo actual o al primero; ↑ ↓ Inicio Fin se mueven; **Esc o ←** lo cierran y devuelven el foco al padre; Tab hacia fuera lo cierra. Está pegado al item, con el nombre del padre y una muesca que lo conecta.
-- **Pista** (`aria-hidden`) con el nombre del item: con el puntero tras 350ms y **sin retardo con foco visible**; si ya se mostró otra hace menos de ~600ms, aparece al instante. **Nunca es la única fuente del nombre**: las etiquetas siguen en el DOM.
+- **Pista** con el nombre del control (DECISIONS #433 y #436; es el motor interno de [`GTooltip`](../GTooltip/README.md#modo-visual-clientes-internos) en modo visual y sustituye a la pista propia de antes): solo con el formato resuelto `rail`, en cada item de la navegación (enlaces, items solo acción y **padres**), en la búsqueda y en contraer/expandir. Dice `item.label` (en la búsqueda y en contraer, el nombre del propio botón), sin insignia ni contador. **Nunca es la única fuente del nombre:** la pista es un nodo `aria-hidden`, sin `role` ni `id`, y las etiquetas siguen en el DOM.
+  - **Cuándo se abre:** con el puntero tras 350 ms; con el foco, al instante, solo si llegó por navegación; y al instante si otra se vio hace menos de 600 ms. Solo hay una abierta en todo el documento.
+  - **Viaje:** dentro del `<nav>` la pista viaja de item en item, también entre grupos, con el puntero y con ↑ ↓ Inicio Fin. La búsqueda y contraer están en la cabecera: son otro grupo, y entre ellos y los items aparece al instante. Va a la derecha lógica (a la izquierda en RTL) y se voltea si no cabe.
+  - **Padres:** la pista los nombra hasta que se abre su panel. Con el puntero, el panel abre a los 150 ms y la pista no llega a verse; si abrió al instante, se cierra cuando el panel abre. Con el teclado, Tab o ↑ ↓ hasta un padre muestran su pista, y Intro, Espacio o → abren el panel y la cierran. Pista y panel no se ven a la vez sobre el mismo padre (medido: 0 cuadros, en los tres motores).
+  - **Esc:** el primero cierra la pista sin mover el foco.
+  - **Pulsación larga (táctil):** muestra el nombre y **no navega** (ni `navigate` ni `update:modelValue`) ni abre el panel de un padre; sin menú ni vista previa del enlace del sistema. Un toque normal hace lo de siempre.
+  - **Dónde existen los nodos:** al final de la raíz, en `rail` y en `expanded` (mismo DOM; en `expanded` están presentes pero inactivos); **`navbar` y `drawer` no llevan nodos**. La pista abierta se cierra al salir del riel.
+  - **Navbar:** no lleva pista (DECISIONS #437). Sus items inactivos siguen mostrando solo el icono y la pulsación larga no los nombra; el nombre vive en el DOM como texto oculto.
+  - **Medido** (coco, [`design/lab/tooltip/auditoria-pista.md`](../../../../../design/lab/tooltip/auditoria-pista.md); Chromium, Firefox y WebKit; densidades, `fixed` y `floating`, RTL): la pestaña coincide con el control con un máximo de 0,25 px; el nombre contra la página, 15,20:1 como mínimo; los nodos no cambian ninguna medida del sidebar (Δ0, también con una pista abierta). Resultado de la auditoría completa de las tres pistas: 31 347/31 347. **Peso:** −5 B gzip en `grana.js` y −40 B en `grana.umd.js` (sustituye la pista propia; `GSidebar.meta.json`, medido por bruno el 2026-10-06).
 - **`overlay`:** el usuario puede expandir el riel encima del contenido (el evento `mode-change` trae `overlay: true`).
 
 ## Navbar («píldora activa»)
@@ -220,13 +228,13 @@ El componente solo lee tokens `--g-*`. La **carcasa** es `--g-surface-shell` y e
 
 ## Clases
 
-Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__tip` (con `is-instant`), `__bar`, `__tab`, `__more`, `__label--hidden` y `__drawer`.
+Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden` y `__drawer`. Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
 ## Limitaciones conocidas
 
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio** ni filtro: `search` solo dispara el evento. **Sin menú contextual del usuario** (será `GMenu`): el slot `user` lo pones tú.
 - **Grana no trae textos ni los iconos de tu navegación**: `labels` y los iconos de `icon`, `toggle-icon`, `search-icon` y `more-icon` son de la aplicación (por nombre de Lucide o con `GIcon` en el slot; los que no están en la lista de la librería, con `createIcons`).
-- **En la píldora activa, los items inactivos no muestran su nombre** (existe para lectores): un usuario nuevo no lo ve. Las etiquetas del navbar deben ser cortas.
+- **En la píldora activa, los items inactivos no muestran su nombre** (existe para lectores) y la navbar no lleva pista (#437): un usuario nuevo no lo ve. Las etiquetas del navbar deben ser cortas.
 - **El item activo se distingue poco por superficie** (1.08:1 frente a la carcasa con el tema por defecto): lo sostienen su contorno, el peso, el texto pleno y `aria-current`. Está pendiente decidir si se refuerza.
 - **Si tu contenedor tiene el ancho del visor**, la adaptación decide por él: da un `container` razonable. El primer instante tras montar se pinta expandido.
 - **El espacio lo reservas tú** (tokens y `mode-change`): el componente no empuja el contenido.
