@@ -1,0 +1,215 @@
+/* r01 (kiwi): prototipo del deslizador. Solo var(--g-*) y alias locales var(--_*); únicos literales: 24px/44px (área
+   táctil) y el texto oculto. La base usa neutros del tema (kit gris); A, B y C, los TOKENS DEL TEMA POR DEFECTO.
+   Clases x-sl*: de prototipo; el CSS definitivo es de coco. */
+
+.x-sl {
+  --_h: max(24px, calc(var(--g-space-1) * 9)); /* alto del área = la caja de GInput md: el riel se centra con sus vecinos */
+  --_tw: calc(var(--g-space-1) * 5);           /* asa */
+  --_track: var(--g-space-1);
+  --_fill: var(--g-color-text);
+  --_edge: var(--g-color-text);
+  --_dir: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  inline-size: 100%;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.x-sl:dir(rtl) { --_dir: -1; }
+@media (pointer: coarse) { .x-sl { --_h: max(44px, calc(var(--g-space-1) * 9)); } }
+
+.x-sl__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--g-space-3); margin-block-end: var(--g-space-1); }
+.x-sl__label { overflow-wrap: anywhere; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); font-weight: var(--g-text-action-weight); }
+.x-sl__req { margin-inline-start: var(--g-space-1); color: var(--g-color-danger-text); }
+.x-sl__opt { font-weight: var(--g-text-body-sm-weight); color: var(--g-color-text-muted); }
+.x-sl__value { flex: none; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); font-variant-numeric: tabular-nums; color: var(--g-color-text-muted); white-space: nowrap; }
+.x-sl.is-empty .x-sl__value { font-style: italic; }
+
+.x-sl__row { position: relative; display: grid; min-inline-size: 0; }
+.x-sl__area {
+  position: relative;
+  min-block-size: var(--_h);
+  margin-inline: calc(var(--_tw) / 2);
+  touch-action: pan-y;           /* el gesto vertical desplaza la página; el horizontal es del deslizador */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+.x-sl__track, .x-sl__fill { position: absolute; inset-block-start: 50%; block-size: var(--_track); margin-block-start: calc(var(--_track) / -2); border-radius: var(--g-radius-pill); }
+.x-sl__track { inset-inline: 0; background: var(--g-color-border-control); }
+.x-sl__fill { inset-inline-start: calc(var(--_a) * 100%); inline-size: calc((var(--_b) - var(--_a)) * 100%); background: var(--_fill); }
+
+.x-sl__thumb {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(var(--_f) * 100%);
+  inline-size: var(--_tw);
+  block-size: var(--_tw);
+  margin-inline-start: calc(var(--_tw) / -2);
+  margin-block-start: calc(var(--_tw) / -2);
+  box-sizing: border-box;
+  border: calc(var(--g-border-width) * 2) solid var(--_edge);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  cursor: grab;
+}
+/* Área de toque ≥ 24px (44px con puntero grueso), centrada en el asa */
+.x-sl__thumb::after { content: ""; position: absolute; left: 50%; top: 50%; inline-size: max(24px, 100%); block-size: max(24px, 100%); translate: -50% -50%; }
+@media (pointer: coarse) { .x-sl__thumb::after { inline-size: max(44px, 100%); block-size: max(44px, 100%); } }
+/* El <input type=range> nativo: invisible, del tamaño del asa (el foco de VoiceOver dibuja el asa), sin puntero */
+.x-sl__native { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; padding: 0; opacity: 0; pointer-events: none; appearance: none; -webkit-appearance: none; }
+/* Anillo solo por la marca de teclado (los tres motores marcan :focus-visible tras el foco por script de un clic) */
+.x-sl__thumb:has(> .x-sl__native:where([data-g-key-focus]):focus) { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.x-sl.is-jumping .x-sl__thumb, .x-sl.is-jumping .x-sl__fill { transition: inset-inline-start var(--g-duration-press) var(--g-ease-out), inline-size var(--g-duration-press) var(--g-ease-out); }
+
+/* Sin elegir: ningún asa ni relleno (sin anclar la respuesta); el nativo cubre todo el riel */
+.x-sl.is-empty .x-sl__thumb { inset-inline-start: 0; inline-size: 100%; margin-inline-start: 0; border: 0; background: none; border-radius: var(--g-radius-sm); }
+.x-sl.is-empty .x-sl__track { background: repeating-linear-gradient(to right, var(--g-color-border-control) 0 var(--g-space-2), transparent var(--g-space-2) var(--g-space-3)); }
+
+.x-sl.is-readonly { --_fill: var(--g-color-text-muted); --_edge: var(--g-color-text-muted); }
+.x-sl.is-readonly .x-sl__area, .x-sl.is-readonly .x-sl__thumb { cursor: default; }
+.x-sl.is-disabled { --_fill: var(--g-color-text-subtle); --_edge: var(--g-color-text-subtle); color: var(--g-color-text-subtle); }
+.x-sl.is-disabled .x-sl__area, .x-sl.is-disabled .x-sl__thumb { cursor: not-allowed; }
+.x-sl.is-disabled .x-sl__track { background: var(--g-color-border); }
+.x-sl.is-invalid { --_edge: var(--g-color-danger-text); }
+
+/* Marcas: rayas y nombres bajo el riel, alineados con el valor; los extremos no se salen */
+.x-sl__marks { position: relative; margin-inline: calc(var(--_tw) / 2); block-size: calc(var(--g-space-1) * 2); }
+.x-sl__marks:has(.has-label) { block-size: calc(var(--g-space-1) * 2 + var(--g-text-caption-line)); }
+.x-sl__mark { position: absolute; inset-block-start: 0; inset-inline-start: calc(var(--_f) * 100%); cursor: pointer; }
+.x-sl__mark::before { content: ""; position: absolute; inset-block-start: 0; inline-size: var(--g-border-width); block-size: calc(var(--g-space-1) * 1.5); background: var(--g-color-border-strong); }
+.x-sl__mark > span { position: absolute; inset-block-start: calc(var(--g-space-1) * 2); translate: calc(-50% * var(--_dir)); white-space: nowrap; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+.x-sl__mark:first-child > span { translate: 0; }
+.x-sl__mark:last-child > span { translate: calc(-100% * var(--_dir)); }
+
+.x-sl__support { min-inline-size: 0; }
+.x-sl__hint, .x-sl__count { margin: var(--g-space-1) 0 0; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); overflow-wrap: anywhere; }
+.x-sl__message { overflow-wrap: anywhere; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); color: var(--g-color-danger-text); }
+.x-sl__message:not(:empty) { margin-block-start: var(--g-space-1); }
+.x-sl__icon { margin-inline-end: var(--g-space-1); }
+.x-sl__icon > svg { inline-size: 1em; block-size: 1em; vertical-align: -0.125em; }
+.x-sl__sr { position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* En una GFormRow: tres pistas por subgrid (etiqueta · área · pie), como GInput (C12) */
+.g-form-row > .x-sl { display: grid; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr); inline-size: auto; }
+.g-form-row > .x-sl > * { grid-column: 1; }
+.g-form-row > .x-sl > .x-sl__head { grid-row: 1; align-self: end; }
+.g-form-row > .x-sl > .x-sl__row { grid-row: 2; align-self: start; }
+.g-form-row > .x-sl > .x-sl__support { grid-row: 3; }
+
+/* ============================ A · La cinta ============================ */
+.x-sl--A .x-sl__readout { display: grid; justify-items: center; gap: 0; margin-block-end: var(--g-space-1); }
+.x-sl--A .x-sl__big { font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); font-variant-numeric: tabular-nums; }
+.x-sl--A .x-sl__fine { position: absolute; inset-block-start: 0; inset-inline-end: 0; padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill); background: var(--g-color-accent-soft); color: var(--g-color-on-accent-soft); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); }
+.x-sl--A .x-sl__area {
+  margin-inline: 0;
+  block-size: calc(var(--g-space-1) * 14);
+  overflow: hidden;
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  cursor: grab;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
+}
+.x-sl--A .x-sl__area:active { cursor: grabbing; }
+.x-sl--A .x-sl__tape {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--_x);
+  inline-size: calc(var(--_len) + var(--g-border-width));
+  background: repeating-linear-gradient(to right, var(--g-color-border-strong) 0 var(--g-border-width), transparent var(--g-border-width) var(--_px)) top / 100% 28% no-repeat;
+}
+.x-sl--A:dir(rtl) .x-sl__tape { background-image: repeating-linear-gradient(to left, var(--g-color-border-strong) 0 var(--g-border-width), transparent var(--g-border-width) var(--_px)); }
+.x-sl--A.is-jumping .x-sl__tape { transition: inset-inline-start var(--g-duration-slow) var(--g-ease-out); }
+.x-sl__major { position: absolute; inset-block-start: 0; inset-inline-start: var(--_at); padding-block-start: calc(var(--g-space-1) * 7); translate: calc(-50% * var(--_dir)); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-variant-numeric: tabular-nums; color: var(--g-color-text-muted); white-space: nowrap; cursor: pointer; }
+.x-sl__major::before { content: ""; position: absolute; inset-block-start: 0; left: 50%; inline-size: var(--g-border-width); block-size: calc(var(--g-space-1) * 6); background: var(--g-color-text-muted); }
+.x-sl__needle { position: absolute; inset-block: 0; inset-inline-start: 50%; inline-size: calc(var(--g-border-width) * 2); margin-inline-start: calc(var(--g-border-width) * -1); background: var(--g-color-accent-text); pointer-events: none; }
+.x-sl--A .x-sl__thumb { inset: 0; inline-size: auto; block-size: auto; margin: 0; border: 0; background: none; border-radius: var(--g-radius-md); pointer-events: none; }
+.x-sl--A .x-sl__thumb::after { content: none; }
+.x-sl--A .x-sl__thumb:has(> .x-sl__native:where([data-g-key-focus]):focus) { outline-offset: calc(var(--g-focus-width) * -1); }
+.x-sl__overview { position: relative; block-size: calc(var(--g-space-1) * 0.75); margin: var(--g-space-2) 18% 0; border-radius: var(--g-radius-pill); background: var(--g-color-border); }
+.x-sl__overview > span { position: absolute; inset-block: 0; inset-inline-start: calc(var(--_f) * 100%); inline-size: var(--g-space-2); margin-inline-start: calc(var(--g-space-1) * -1); border-radius: var(--g-radius-pill); background: var(--g-color-accent-text); }
+.x-sl--A[data-bump="up"] .x-sl__tape { animation: x-sl-bump var(--g-duration-press) var(--g-ease-out); --_b: -1; }
+.x-sl--A[data-bump="down"] .x-sl__tape { animation: x-sl-bump var(--g-duration-press) var(--g-ease-out); --_b: 1; }
+@keyframes x-sl-bump { 50% { transform: translateX(calc(var(--g-space-1) * 0.5 * var(--_b) * var(--_dir))); } }
+
+/* ===================== B · El valor es el asa ===================== */
+.x-sl--B .x-sl__area, .x-sl--B .x-sl__marks { margin-inline: 0; }
+.x-sl--B .x-sl__track { background: var(--g-color-border-control); }
+.x-sl--B .x-sl__fill { background: var(--g-color-accent-text); cursor: grab; }
+/* El tramo entre dos píldoras se agarra: zona de toque ≥ 24px (44px gruesa) sobre la raya */
+.x-sl--B.is-range .x-sl__fill::after { content: ""; position: absolute; inset-inline: 0; top: 50%; block-size: 24px; translate: 0 -50%; }
+@media (pointer: coarse) { .x-sl--B.is-range .x-sl__fill::after { block-size: 44px; } }
+.x-sl--B .x-sl__thumb, .x-sl--B .x-sl__sizer {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums;
+  padding-inline: var(--g-space-3);
+}
+.x-sl--B .x-sl__thumb {
+  display: grid;
+  place-items: center;
+  block-size: max(24px, calc(var(--g-space-1) * 7));
+  margin: 0;
+  translate: 0 -50%;
+  border: var(--g-border-width) solid var(--g-color-accent-text);
+  background: var(--g-color-accent);
+  color: var(--g-color-on-accent);
+  box-shadow: var(--g-shadow-1);
+  white-space: nowrap;
+  transition: border-radius var(--g-duration-press) var(--g-ease-out), background-color var(--g-duration-fast) var(--g-ease-out), color var(--g-duration-fast) var(--g-ease-out);
+}
+.x-sl--B .x-sl__thumb::after { inline-size: max(44px, 100%); block-size: max(24px, 100%); }
+@media (pointer: coarse) { .x-sl--B .x-sl__thumb::after { block-size: max(44px, 100%); } }
+.x-sl--B.is-jumping .x-sl__thumb { transition: inset-inline-start var(--g-duration-press) var(--g-ease-out), border-radius var(--g-duration-press) var(--g-ease-out); }
+.x-sl--B .x-sl__sizer { position: absolute; inset-block-start: 0; inset-inline-start: 0; display: grid; visibility: hidden; pointer-events: none; border: var(--g-border-width) solid transparent; }
+.x-sl--B .x-sl__sizer > span { grid-area: 1 / 1; white-space: nowrap; }
+/* Las dos píldoras que se alcanzan se juntan en una: «20 € | 35 €» */
+.x-sl--B.is-merged .x-sl__thumb[data-thumb="0"] { border-start-end-radius: 0; border-end-end-radius: 0; }
+.x-sl--B.is-merged .x-sl__thumb[data-thumb="1"] { border-start-start-radius: 0; border-end-start-radius: 0; border-inline-start-color: var(--g-color-on-accent); }
+/* Escribiendo una cifra: la píldora se vuelve campo (superficie y texto), con un cursor fijo */
+.x-sl--B .x-sl__thumb.is-typing { background: var(--g-color-surface); color: var(--g-color-text); }
+.x-sl--B .x-sl__thumb.is-typing .x-sl__pilltext::after { content: ""; display: inline-block; inline-size: calc(var(--g-border-width) * 2); block-size: 1em; margin-inline-start: var(--g-space-1); vertical-align: -0.125em; background: currentColor; }
+.x-sl--B.is-readonly .x-sl__thumb { background: var(--g-color-surface); color: var(--g-color-text); border-color: var(--g-color-border-strong); box-shadow: none; }
+.x-sl--B.is-readonly .x-sl__fill { background: var(--g-color-text-muted); }
+.x-sl--B.is-disabled .x-sl__thumb { background: var(--g-color-surface-sunken); color: var(--g-color-text-subtle); border-color: var(--g-color-border); box-shadow: none; }
+.x-sl--B.is-disabled .x-sl__fill { background: var(--g-color-border-strong); }
+.x-sl--B.is-empty .x-sl__thumb { background: none; box-shadow: none; border: 0; }
+.x-sl--B .x-sl__mark > span { translate: calc(-50% * var(--_dir)); }
+.x-sl--B[data-bump] .x-sl__thumb:has(> .x-sl__native:focus) { animation: x-sl-bump var(--g-duration-press) var(--g-ease-out); }
+.x-sl--B[data-bump="up"] { --_b: 1; }
+.x-sl--B[data-bump="down"] { --_b: -1; }
+
+/* ===================== C · Escalones con datos ===================== */
+.x-sl--C .x-sl__area { margin-inline: 0; block-size: calc(var(--g-space-1) * 18); }
+.x-sl__cells { position: absolute; inset: 0 0 calc(var(--g-space-1) * 6) 0; display: grid; grid-template-columns: repeat(var(--_n), minmax(0, 1fr)); gap: calc(var(--g-space-1) * 0.5); align-items: end; }
+.x-sl__cell { block-size: calc(var(--_k) * 100%); border-start-start-radius: var(--g-radius-xs); border-start-end-radius: var(--g-radius-xs); background: var(--g-color-border-control); transition: background-color var(--g-duration-fast) var(--g-ease-out); }
+.x-sl__cell.is-on { background: var(--g-color-accent-text); }
+.x-sl--C .x-sl__thumb { inset-block-start: auto; inset-block-end: calc(var(--g-space-1) * 0.5); margin-block-start: 0; border-color: var(--g-color-text); }
+/* La raya que atraviesa las columnas: dónde está el valor */
+.x-sl--C .x-sl__thumb::before { content: ""; position: absolute; inset-block-end: 100%; left: 50%; inline-size: calc(var(--g-border-width) * 2); block-size: calc(var(--g-space-1) * 12); margin-inline-start: calc(var(--g-border-width) * -1); background: var(--g-color-text); pointer-events: none; }
+.x-sl--C.is-empty .x-sl__thumb::before { content: none; }
+.x-sl--C .x-sl__marks { margin-inline: 0; }
+.x-sl--C .x-sl__mark::before { content: none; }
+.x-sl--C .x-sl__mark > span { inset-block-start: 0; translate: calc(-50% * var(--_dir)); }
+.x-sl--C .x-sl__mark:first-child > span { translate: calc(-50% * var(--_dir) + var(--g-space-2) * var(--_dir)); }
+.x-sl--C .x-sl__count { margin: var(--g-space-1) 0 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); font-weight: var(--g-text-action-weight); color: var(--g-color-text); }
+.x-sl--C .x-sl__value { color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.x-sl--C.is-readonly .x-sl__cell.is-on { background: var(--g-color-text-muted); }
+.x-sl--C.is-disabled .x-sl__cell, .x-sl--C.is-disabled .x-sl__cell.is-on { background: var(--g-color-border); }
+
+@media (prefers-reduced-motion: reduce) {
+  .x-sl.is-jumping .x-sl__thumb, .x-sl.is-jumping .x-sl__fill, .x-sl--A.is-jumping .x-sl__tape, .x-sl--B .x-sl__thumb { transition: background-color var(--g-duration-fast), color var(--g-duration-fast); }
+  .x-sl--A[data-bump] .x-sl__tape, .x-sl--B[data-bump] .x-sl__thumb:has(> .x-sl__native:focus) { animation: none; }
+}
+@media (forced-colors: active) {
+  .x-sl__track, .x-sl__cell { background: GrayText; }
+  .x-sl__fill, .x-sl__cell.is-on, .x-sl__needle { background: Highlight; }
+  .x-sl__thumb { border-color: ButtonText; background: ButtonFace; color: ButtonText; forced-color-adjust: none; }
+}
+
+/* Cifras y nombres con su propia dirección dentro de una página RTL («24 a», no «a 24») */
+.x-sl__major, .x-sl__mark > span, .x-sl__sizer > span, .x-sl__pilltext { unicode-bidi: plaintext; }

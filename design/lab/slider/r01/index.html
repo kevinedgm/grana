@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deslizador · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./lab.css">
+<link rel="stylesheet" href="./slider.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./engine.js"></script>
+<script src="./slider.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, computed } = Vue
+  const q = new URLSearchParams(location.search)
+  const V = ['base', 'A', 'B', 'C', 'compare'].includes(q.get('v')) ? q.get('v') : 'base'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  const TXT = {
+    base: ['Base funcional', 'Lo que todo deslizador de Grana cumple, sea cual sea su forma: un <input type="range"> nativo por asa (invisible, del tamaño del asa) que da el rol, el foco y el ajuste de los lectores móviles; teclado propio igual en los tres motores; valor siempre a la vista; rango de dos asas que no se cruzan; «sin elegir» para escalas; envío canónico oculto; GForm y GFormRow reales.',
+      '<strong>Pruébalo.</strong> Flechas, <kbd>Mayús</kbd>+flecha, <kbd>Re Pág</kbd>/<kbd>Av Pág</kbd>, <kbd>Inicio</kbd>/<kbd>Fin</kbd>. Pulsa en el riel o en una marca. En el precio, junta las dos asas y arrastra: la dirección decide cuál se mueve. Envía sin elegir el dolor. <a href="?v=base&dir=rtl">RTL</a>.'],
+    A: ['A · La cinta', 'El riel con bolita esconde el valor bajo el dedo y reparte todo el recorrido en el ancho que haya: en 300 px, 1700 valores caben a 5 por píxel. Aquí el valor se queda quieto, grande, sobre una aguja; lo que se mueve es la escala, como una cinta métrica. Cada paso mide lo mismo en cualquier ancho, así que con el dedo se llega a cada valor; alejar el dedo de la cinta mientras se arrastra da el ajuste fino.',
+      '<strong>Pruébalo.</strong> Arrastra la cinta (hacia la izquierda sube). Mientras arrastras, baja el puntero lejos de la cinta: «Ajuste fino» mueve a ¼. Toca un número de la escala para llevarlo a la aguja. El teclado es el de la base.'],
+    B: ['B · El valor es el asa', 'El asa es el valor: una píldora con la cifra dentro, del ancho de su texto más largo, que nunca queda tapada por el dedo ni hace falta buscarla en otro sitio. En un rango, cuando las dos píldoras se alcanzan se juntan en una sola («20 | 35») en vez de montarse; el tramo entre las dos se arrastra entero conservando su anchura; y con el teclado se puede ir a un valor escribiéndolo.',
+      '<strong>Pruébalo.</strong> Acerca las dos edades hasta que se junten. Arrastra la raya azul del precio para mover el tramo entero. Con el foco en una píldora, teclea <kbd>3</kbd><kbd>5</kbd> y espera o pulsa <kbd>Intro</kbd>.'],
+    C: ['C · Escalones con datos', 'La raya del riel no dice nada de lo que se elige. Aquí el riel son los propios valores: una columna por escalón (una escala de dolor de 0 a 10 son once columnas que crecen) o, en un filtro, el reparto de los datos (cuántos productos hay a cada precio). Lo elegido se pinta, y debajo se dice la consecuencia: cuántos resultados quedan dentro. El lector de pantalla oye lo mismo al mover.',
+      '<strong>Pruébalo.</strong> Toca una columna del dolor. En el precio, mueve las asas y mira cambiar «N de 480 productos»; con un lector, el recuento va en el valor.'],
+    compare: ['Comparativa', 'La base es común; la forma se elige. Esta tabla resume lo medido en la declaración.', '']
+  }
+  const LBL = { start: 'mínimo', end: 'máximo', empty: 'Sin elegir', fine: 'Ajuste fino' }
+  const MXN = { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }
+  const PCT = { style: 'unit', unit: 'percent' }
+  const KG = { style: 'unit', unit: 'kilogram', minimumFractionDigits: 1, maximumFractionDigits: 1 }
+  const YEARS = { style: 'unit', unit: 'year', unitDisplay: 'short' }
+  const painMarks = [{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]
+  // Reparto de 480 productos por precio (24 tramos de 0 a 5000): datos de la aplicación
+  const DIST = [6, 14, 28, 40, 52, 48, 44, 38, 31, 26, 22, 20, 18, 15, 13, 11, 10, 9, 8, 7, 6, 5, 5, 4]
+  const DIST_T = DIST.reduce((s, c) => s + c, 0)
+  createApp({
+    components: { XSlider: window.XSlider },
+    setup() {
+      const m = reactive({ vol: 40, dolor: null, precio: [800, 2400], pag: 25, edad: [30, 45], brillo: 60, dosis: 250, vol2: 70 })
+      const a = reactive({ peso: 72.4, vol: 35 })
+      const b = reactive({ precio: [800, 2400], edad: [18, 24], vol: 40 })
+      const c = reactive({ dolor: null, precio: [500, 1800] })
+      const sent = ref('')
+      const log = ref([])
+      const onChange = (k) => (v) => { log.value = [`change ${k} = ${JSON.stringify(v)}`, ...log.value].slice(0, 40) }
+      const onSubmit = ({ data }) => { sent.value = [...data].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+      const errors = computed(() => (m.dolor === null ? { dolor: 'Indica la intensidad del dolor' } : {}))
+      const formLabels = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' }
+      const countText = (n, t) => `${n} de ${t} productos`
+      const pageMarks = [10, 25, 50, 100].map((v) => ({ value: v, label: String(v) }))
+      const model = computed(() => JSON.stringify(V === 'A' ? a : V === 'B' ? b : V === 'C' ? c : m))
+      window.__m = { m, a, b, c }
+      return { V, T: TXT[V], m, a, b, c, sent, log, onChange, onSubmit, errors, formLabels, LBL, MXN, PCT, KG, YEARS, painMarks, DIST, DIST_T, countText, pageMarks, model, rtl: q.get('dir') === 'rtl' }
+    },
+    template: `
+    <header class="lab-bar"><span class="lab-brand">Deslizador · r01</span>
+      <span class="lab-links"><a href="?v=base" :aria-current="V==='base' ? 'page' : null">Base</a> · <a href="?v=A" :aria-current="V==='A' ? 'page' : null">A · La cinta</a> · <a href="?v=B" :aria-current="V==='B' ? 'page' : null">B · El valor es el asa</a> · <a href="?v=C" :aria-current="V==='C' ? 'page' : null">C · Escalones con datos</a> · <a href="?v=compare" :aria-current="V==='compare' ? 'page' : null">Comparativa</a></span></header>
+    <main class="lab" :data-view="V">
+      <div><h1 class="lab-title">{{ T[0] }}</h1><p class="lab-lead">{{ T[1] }}</p><p v-if="T[2]" class="lab-how" v-html="T[2]"></p></div>
+
+      <template v-if="V === 'base'">
+        <section class="lab-case" id="case-form">
+          <h2>1 · Cinco deslizadores en un GForm</h2>
+          <g-form id="f-base" :errors="errors" :labels="formLabels" @submit="onSubmit">
+            <g-error-summary :labels="{ title: 'Revisa el formulario' }"></g-error-summary>
+            <g-form-layout>
+              <x-slider id="s-vol" v-model="m.vol" name="volumen" label="Volumen de los avisos" :min="0" :max="100" :step="5" :format="PCT" marks :labels="LBL" @change="onChange('volumen')($event)"></x-slider>
+              <x-slider id="s-dolor" v-model="m.dolor" name="dolor" label="Intensidad del dolor" :min="0" :max="10" :marks="painMarks" required hint="0 es sin dolor y 10 el peor imaginable" :labels="LBL" @change="onChange('dolor')($event)"></x-slider>
+              <x-slider id="s-precio" v-model="m.precio" range name="precio" label="Precio" :min="0" :max="5000" :step="50" :min-gap="100" :format="MXN" :labels="LBL" @change="onChange('precio')($event)"></x-slider>
+              <x-slider id="s-pag" v-model="m.pag" name="por_pagina" label="Resultados por página" :min="10" :max="100" :marks="pageMarks" snap="marks" :labels="LBL" @change="onChange('por_pagina')($event)"></x-slider>
+              <x-slider id="s-edad" v-model="m.edad" range name="edad" label="Edad del grupo" :min="18" :max="99" :format="YEARS" readonly :labels="LBL"></x-slider>
+              <x-slider id="s-brillo" v-model="m.brillo" name="brillo" label="Brillo" :min="0" :max="100" :format="PCT" disabled :labels="LBL"></x-slider>
+            </g-form-layout>
+            <g-form-actions><g-btn id="b-base" type="submit">Guardar</g-btn></g-form-actions>
+          </g-form>
+          <pre class="lab-out" id="out-sent">{{ sent || 'Envía para ver FormData' }}</pre>
+          <pre class="lab-out" id="out-model">{{ model }}</pre>
+          <pre class="lab-out" id="out-log">{{ log.join('\\n') || 'change: —' }}</pre>
+        </section>
+
+        <section class="lab-case" id="case-row">
+          <h2>2 · En una GFormRow, junto a GInput y GNumberField reales</h2>
+          <p class="lab-how">Frontera con <code>GNumberField</code>: el número exacto se escribe en el campo; el deslizador da la proporción. Los dos comparten el mismo <code>v-model</code>.</p>
+          <g-form id="f-row" :labels="formLabels">
+            <g-form-layout>
+              <g-form-row id="row-1">
+                <g-number-field id="n-dosis" class="g-form-w-sm" v-model="m.dosis" name="dosis_n" label="Dosis diaria" suffix="mg" :min="0" :max="1000" :step="25"></g-number-field>
+                <x-slider id="s-dosis" class="g-form-w-lg" v-model="m.dosis" label="Dosis diaria (aproximada)" :min="0" :max="1000" :step="25" :labels="LBL"></x-slider>
+              </g-form-row>
+              <g-form-row id="row-2">
+                <g-input id="i-nombre" label="Paciente" model-value="Daniela Cruz"></g-input>
+                <x-slider id="s-vol2" class="g-form-w-lg" v-model="m.vol2" label="Volumen" :format="PCT" :labels="LBL"></x-slider>
+              </g-form-row>
+            </g-form-layout>
+          </g-form>
+        </section>
+
+        <section class="lab-case lab-native" id="case-native">
+          <h2>3 · El nativo a secas (para medir)</h2>
+          <p class="lab-how">Un <code>input type="range"</code> sin nada: lo que hace cada motor con Re Pág, el clic en el riel o un rango. La verificación mide aquí por qué no basta.</p>
+          <label for="native">Nativo 0–1000</label>
+          <input id="native" type="range" min="0" max="1000" step="1" value="500">
+        </section>
+      </template>
+
+      <template v-else-if="V === 'A'">
+        <section class="lab-case" id="case-a">
+          <x-slider id="a-peso" concept="A" v-model="a.peso" name="peso" label="Peso" :min="30" :max="200" :step="0.1" :big-step="1" :px-per-step="10" :format="KG" :labels="LBL" @change="onChange('peso')($event)"></x-slider>
+          <x-slider id="a-vol" concept="A" v-model="a.vol" name="volumen" label="Volumen de los avisos" :min="0" :max="100" :format="PCT" :px-per-step="12" :labels="LBL" @change="onChange('volumen')($event)"></x-slider>
+          <pre class="lab-out" id="out-model">{{ model }}</pre>
+          <pre class="lab-out" id="out-log">{{ log.join('\\n') || 'change: —' }}</pre>
+        </section>
+      </template>
+
+      <template v-else-if="V === 'B'">
+        <section class="lab-case" id="case-b">
+          <x-slider id="b-edad" concept="B" v-model="b.edad" range name="edad" label="Edad" :min="0" :max="100" :format="YEARS" :labels="LBL" @change="onChange('edad')($event)"></x-slider>
+          <x-slider id="b-precio" concept="B" v-model="b.precio" range name="precio" label="Precio" :min="0" :max="5000" :step="50" :format="MXN" :labels="LBL" @change="onChange('precio')($event)"></x-slider>
+          <x-slider id="b-vol" concept="B" v-model="b.vol" name="volumen" label="Volumen de los avisos" :min="0" :max="100" :format="PCT" :marks="[{ value: 0, label: 'Silencio' }, { value: 100, label: 'Máximo' }]" :labels="LBL" @change="onChange('volumen')($event)"></x-slider>
+          <pre class="lab-out" id="out-model">{{ model }}</pre>
+          <pre class="lab-out" id="out-log">{{ log.join('\\n') || 'change: —' }}</pre>
+        </section>
+      </template>
+
+      <template v-else-if="V === 'C'">
+        <section class="lab-case" id="case-c">
+          <x-slider id="c-dolor" concept="C" v-model="c.dolor" name="dolor" label="Intensidad del dolor" :min="0" :max="10" profile="rise" :marks="painMarks" required :labels="LBL" @change="onChange('dolor')($event)"></x-slider>
+          <x-slider id="c-precio" concept="C" v-model="c.precio" range name="precio" label="Precio" :min="0" :max="5000" :step="50" :format="MXN" :distribution="DIST" :count-text="countText" :labels="LBL" @change="onChange('precio')($event)"></x-slider>
+          <pre class="lab-out" id="out-model">{{ model }}</pre>
+          <pre class="lab-out" id="out-log">{{ log.join('\\n') || 'change: —' }}</pre>
+        </section>
+      </template>
+
+      <template v-else>
+        <div class="lab-scroll"><table class="lab-table" id="compare">
+          <thead><tr><th></th><th>Base</th><th>A · La cinta</th><th>B · El valor es el asa</th><th>C · Escalones con datos</th></tr></thead>
+          <tbody>
+            <tr><th>Qué se mueve</th><td>El asa</td><td>La escala (el valor queda fijo)</td><td>El asa, que es el valor</td><td>La frontera de lo pintado</td></tr>
+            <tr><th>Valor a la vista</th><td>Junto a la etiqueta</td><td>Grande, sobre la aguja</td><td>Dentro del asa</td><td>Junto a la etiqueta + consecuencia</td></tr>
+            <tr><th>Rango de dos asas</th><td>Sí</td><td>No (un valor)</td><td>Sí, con fusión y tramo arrastrable</td><td>Sí, bloque de columnas</td></tr>
+            <tr><th>Precisión con el dedo</th><td>Ancho / pasos</td><td>Cada paso a un tamaño fijo + ajuste fino</td><td>Ancho / pasos + teclear la cifra</td><td>Una columna por paso (≤ 40)</td></tr>
+            <tr><th>Mejor para</th><td>—</td><td>Un valor con muchos pasos (peso, temperatura)</td><td>Cualquier escala, valor o rango</td><td>Escalas cortas y filtros con datos</td></tr>
+            <tr><th>Coste</th><td>—</td><td>Medio</td><td>Medio</td><td>Medio (necesita los datos de la aplicación)</td></tr>
+            <tr><th>Riesgo</th><td>Genérico</td><td>Arrastrar al revés sorprende con ratón</td><td>Ancho de la píldora en escalas con texto largo</td><td>Sin datos es solo una barra segmentada</td></tr>
+          </tbody></table></div>
+        <p class="lab-lead" id="compare-reco"><strong>Recomendación de kiwi:</strong> B como forma por defecto (valor único y rango) y C como apariencia para escalas cortas y filtros con datos, en una segunda entrega; A reservada para un valor con muchos pasos si un producto la pide.</p>
+        <p class="lab-lead"><strong>Pregunta:</strong> ¿qué forma tiene el deslizador por defecto: B, B + C, C o A?</p>
+      </template>
+    </main>`
+  }).use(Grana).mount('#app')
+  window.__ready = true
+})()
+</script>
+</body>
+</html>
