@@ -1,3 +1,5 @@
+> **Aplicado** el 2026-10-07 en `7678bd6` (lima). La sección nueva de `tokens.md` es **§41** (no §38: §38 a §40 son de `GSlider`, `GTag` y `GAccordion`); #501 cita §41. El «Ampliado en #501» de §7 va tras el de #313 (no había texto de `GSummary` en ese párrafo). En `tooltip.md` el modo visual con nombre recortado nombra también a `GTag` (#470), que usa el mismo caso: «primer cliente» de #496 se lee como «uno de los dos primeros». §8 (navigate de `GSidebar`) pasó a `PENDIENTES.md` §6, ampliado a `GCard` y `GTag`. **No aplicado:** §3.4 (`./breadcrumbs` solo si bruno mide más de 8 KB) y §7 `CLAUDE.md` (al cerrar el componente). Este archivo queda como rastro.
+
 # Pendientes compartidos de `GBreadcrumbs` (lima, 2026-10-07)
 
 Este encargo corrió en paralelo con otros contratos, así que **no se tocaron archivos compartidos**. Aquí va, ya redactado, lo que hay que integrar: las filas de `DECISIONS.md` (#490 a #503) y los cambios exactos en `docs/contract/tokens.md`, `docs/contract/api.md`, `docs/contract/icons.md`, `design/contracts/tooltip.md`, `PENDIENTES.md` y, al cerrar el componente, `CLAUDE.md`. Contrato: `design/contracts/breadcrumbs.md`.

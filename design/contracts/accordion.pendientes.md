@@ -1,3 +1,5 @@
+> **Aplicado** el 2026-10-07 en `7678bd6` (lima). La sección nueva de `tokens.md` es **§40** (no §38: §38 y §39 son de `GSlider` y `GTag`); #484 y #485 citan §40. **No aplicado:** §5 (`api.md` no tiene lista de oyentes de `OPEN_REQUEST` ni de propiedades públicas de entrada; la entrada `./accordion` solo si bruno mide más de 8 KB) y §7 `CLAUDE.md` (al cerrar el componente). Este archivo queda como rastro.
+
 # Pendientes del contrato de `GAccordion` para archivos compartidos
 
 > lima, 2026-10-07. Este encargo corre en paralelo con otros tres de lima: **no** se editaron `DECISIONS.md` ni archivos compartidos. Aquí van, ya redactados, las filas de decisiones (#475 a #488; **#489 no se usa**) y los cambios exactos que hay que aplicar en otros archivos. Quien integre los copia tal cual y borra este archivo (o lo deja como rastro, a elección del coordinador).

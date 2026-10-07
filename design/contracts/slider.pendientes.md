@@ -1,3 +1,5 @@
+> **Aplicado** el 2026-10-07 en `7678bd6` (lima). Todo salvo §2.11 (`CLAUDE.md`, se actualiza al cerrar el componente). La sección de `tokens.md` quedó en **§38** (sin cambio de número). En `form.md` la fila de frontera se añadió a la tabla «Frontera con otros componentes». Este archivo queda como rastro; no se aplica de nuevo.
+
 # GSlider · decisiones y cambios compartidos pendientes de aplicar
 
 > lima, 2026-10-07. Contrato: `design/contracts/slider.md`. Este encargo corre en paralelo con otros tres de lima, así que **no** se tocó `DECISIONS.md` ni ningún archivo compartido. Aquí van, ya redactadas, las filas de `DECISIONS.md` (**#445 a #457**; #458 y #459 no se usan) y los cambios exactos de los archivos compartidos, con su sitio. Quien integre (orquestador o lima en un remate) los pega tal cual; si otro encargo ocupó ya alguno de estos números, se renumeran en bloque y se corrigen las referencias de `slider.md` (`grep -n "#4[45][0-9]" design/contracts/slider.md`).
