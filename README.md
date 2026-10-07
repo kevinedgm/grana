@@ -63,12 +63,12 @@ Los componentes se exportan por nombre. El JavaScript es un único módulo ES co
 
 #### Tamaño e importación parcial
 
-Importar un componente no arrastra el resto. Cifras medidas por bruno en la Fase B (gzip, con Vue como dependencia externa):
+Importar un componente no arrastra el resto. Cifras medidas por bruno en la Fase B: es lo que **añade a tu aplicación** cada importación, con el JavaScript minificado por el empaquetador y comprimido con gzip, y con Vue como dependencia externa:
 
 | Qué importas | JavaScript (gzip) |
 | --- | --- |
 | Solo `GBtn` | ≈ 10,9 KB (Rollup), ≈ 11,1 KB (esbuild) |
-| Toda la librería | ≈ 155 KB |
+| Toda la librería (importar todo) | ≈ 155 KB |
 | La hoja de CSS (`style.css`, siempre entera) | ≈ 69 KB |
 
 Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB (Rollup) y 137,8 KB (esbuild). El resultado en tu aplicación depende de tu empaquetador y de qué más importes; el CSS no se parte por componente, así que su coste es fijo.
@@ -96,7 +96,7 @@ Cinco piezas **no viajan en el paquete principal**: cada una tiene su entrada y 
 | `@grana/vue/file-field` | `GFileField`, `formatFileSize` | Adjuntar archivos a un formulario | `GranaFileField` | ≈ 12 kB |
 | `@grana/vue/time-field` | `GTimeField` | Capturar una hora del reloj | `GranaTimeField` | ≈ 11 kB |
 
-**Por qué van aparte:** cada una añadiría más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)) y no todas las aplicaciones las necesitan. Tamaños medidos con `gzip` sobre el `dist/` del 2026-10-06; el paquete principal pesa ≈ 179 kB gzip de JavaScript y la hoja de CSS ≈ 69 kB gzip. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
+**Por qué van aparte:** cada una añadiría más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)) y no todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-06): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
 ```js
 import Grana from '@grana/vue'

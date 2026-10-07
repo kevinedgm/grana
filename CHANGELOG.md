@@ -73,6 +73,14 @@ Primera beta. Todos los componentes están en estado `candidate` (contrato, CSS,
 - Fase 1 (`createSpeech`, `useSpeech`, `GSpeechHost`, `GSpeechPill`, `GSpeechTrigger`): 13 estados, adaptador de tu aplicación (sin red en Grana), dictado al cursor con deshacer propio, panel, hoja móvil y traslado al modal (#207 a #238).
 - Fase 2 (`GTranscript`, `createTranscript`, `useSpeechTarget`, «Revisar»): rejilla de revisión con edición en la celda, hablantes y roles, destinos ligados al modelo del formulario con vista previa y deshacer (#241 a #264).
 
+#### Paquete, tipos e integración continua
+
+- Tipos de TypeScript incluidos: los `.d.ts` se generan desde los `meta.json` de cada componente y viajan en el paquete (campo `types` por entrada), sin escribirlos a mano (#443).
+- Paquete solo ESM (`"type": "module"`), con `exports` por entrada y sin build CommonJS; los UMD quedan solo para usar la librería con `<script>` desde una CDN (#442).
+- Importación parcial sin arrastrar el resto: los componentes están marcados como puros y `sideEffects` cubre solo el CSS, de modo que importar solo `GBtn` pasó de 66,4 KB a ≈ 10,9 KB gzip con Rollup; importar toda la librería añade ≈ 155 KB gzip (#444).
+- Integración continua en `.github/`: `ci.yml` (vitest, build, `check-icons`, compuertas del `dist/` y un subconjunto de Playwright en Chromium; `npm audit` informativo), `e2e-full.yml` (pasada completa en Chromium, Firefox y WebKit, nocturna y manual) y Dependabot semanal para npm y Actions.
+- `LICENSE` (MIT) dentro de los dos tarballs y aviso de la fuente Instrument Sans (SIL OFL 1.1, con su copyright) en `THIRD-PARTY-NOTICES.md` de `@grana/vue`.
+
 #### Accesibilidad y verificación
 
 - Contraste de lo marcado: todo control seleccionable relleno con una familia de color lleva contorno `{familia}-text` para llegar a 3:1 contra la superficie; formas de familia sin par en `{familia}-text` (#431 a #440).
@@ -83,7 +91,7 @@ Primera beta. Todos los componentes están en estado `candidate` (contrato, CSS,
 
 - La API puede cambiar entre betas.
 - Sin verificar en entorno real: lectores de pantalla, Safari real, táctil y móvil reales, `forced-colors` real, zoom real al 200 y 400 %, IME y teclado virtual.
-- Sin matriz de versiones mínimas de navegador, sin medida del tree-shaking del JavaScript y sin prueba de SSR con Nuxt ni de hidratación real.
+- Sin matriz de versiones mínimas de navegador y sin prueba de SSR con Nuxt ni de hidratación real.
 - La hoja de CSS es única y no se parte por componente.
 - Dark Color Presence (presencia del color en el tema oscuro) está investigada pero no adoptada.
 - Lo aplazado, con su origen y su dueño, está en [`PENDIENTES.md`](PENDIENTES.md).
