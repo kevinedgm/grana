@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTag · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/tag.md («Semántica por caso», «El grupo», «Clases y datos») con el CSS
+     real de GTag.css y GTagGroup.css cargado DENTRO de la capa grana.components (como lo registrará bruno en components.css),
+     y GAvatar, GBtn, GIcon y la pista (.g-tooltip) reales de dist/grana.css. El motor de abajo hace SOLO lo que el estilo
+     necesita (no es GTagGroup.vue): pintar el marcado, alternar, quitar → huella con --_ghost-w medido ANTES del cambio
+     (border-box), deshacer, y recoger (is-settling en el elemento, fuera del DOM al terminar la transición) cuando ni el
+     foco ni un puntero con hover están en el grupo.
+     Desde la raíz del repo:  python3 -m http.server 4213  →  /design/lab/chip/estilo-banco.html
+     Parámetros: ?theme=<default|lustre|spotify|propio>-cat<8|12> (estilo-temas/, generados con @grana/cli por
+     estilo-temas.mjs)  ?dark=1  ?dir=rtl
+     Verificación: GRANA_PW_PORT=4213 node design/lab/chip/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  @import url("../../../packages/vue/src/components/GTag/GTag.css") layer(grana.components);
+  @import url("../../../packages/vue/src/components/GTagGroup/GTagGroup.css") layer(grana.components);
+</style>
+<link id="theme" rel="stylesheet" href="estilo-temas/default-cat8.css">
+<script src="../lucide-icons.js"></script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 10px;max-width:100ch}
+  .k{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0;min-inline-size:9ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:var(--g-space-4);min-inline-size:0;display:grid;gap:var(--g-space-3)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2) var(--g-space-3);min-inline-size:0}
+  .w320{inline-size:320px;max-inline-size:100%}
+  .out{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>GTag + GTagGroup · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Huella» + B «Racimo». La tapa del alto entero se <b>invierte</b> al apuntarla mientras el texto se tacha; al quitar queda la <b>huella</b> del mismo ancho (contorno discontinuo, sin color) con «Deshacer» en el sitio; las huellas se recogen a la vez cuando ni el foco ni el puntero están en el grupo. El racimo dice la faceta una vez con un lomo de categoría; la elegida lleva la raya del mismo trazo.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <button type="button" id="t-dir">RTL</button>
+</div>
+
+<h2 class="b">1 · Casos y tamaños</h2>
+<div class="host" id="cases"></div>
+
+<h2 class="b">2 · Categorías (reposo, quitable, alternar, pulsada, pulsada quitable, racimo)</h2>
+<div class="host" id="matrix"></div>
+
+<h2 class="b">3 · Grupo (flow): huella, recogida, avatar, pulsada quitable</h2>
+<div class="host">
+  <div id="g-flow"></div>
+  <div id="g-flow-sm"></div>
+  <p class="out" id="g-log"></p>
+</div>
+
+<h2 class="b">4 · Racimo (layout="facets")</h2>
+<div class="host">
+  <div id="g-facets"></div>
+  <div id="g-facets-toggles"></div>
+  <div id="g-facets-sm"></div>
+</div>
+
+<h2 class="b">5 · Herramientas, vacío, suelta con pista</h2>
+<div class="host">
+  <div id="g-limit"></div>
+  <div id="g-clear"></div>
+  <div id="g-empty"></div>
+  <div class="row" id="lone"></div>
+</div>
+
+<h2 class="b">6 · 320px</h2>
+<div class="host w320"><div id="g-narrow"></div><div id="g-narrow-facets"></div></div>
+</main>
+
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const THEMES = ['default-cat8', 'default-cat12', 'lustre-cat8', 'lustre-cat12', 'spotify-cat8', 'spotify-cat12', 'propio-cat8', 'propio-cat12']
+  const theme = q.get('theme') || 'default-cat8'
+  const sel = document.getElementById('t-theme')
+  sel.innerHTML = THEMES.map((t) => `<option${t === theme ? ' selected' : ''}>${t}</option>`).join('')
+  document.getElementById('theme').href = `estilo-temas/${theme}.css`
+  const nav = (k, v) => { const u = new URL(location.href); v == null ? u.searchParams.delete(k) : u.searchParams.set(k, v); location.href = u }
+  sel.onchange = () => nav('theme', sel.value)
+  document.getElementById('t-dark').onclick = () => nav('dark', q.get('dark') ? null : '1')
+  document.getElementById('t-dir').onclick = () => nav('dir', q.get('dir') === 'rtl' ? null : 'rtl')
+  document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  const NCAT = Number(theme.split('cat')[1])
+  window.BENCH = { theme, NCAT, dark: !!q.get('dark'), log: [] }
+
+  const L = (n, cls) => window.lucide(n, cls || '')
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  // Hash de GAvatar (avatar.md «Hash», #294), solo para colorear el banco como lo hará el grupo
+  function categoryOf(key, n) {
+    const s = String(key).normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()
+    if (!s || !n) return null
+    let h = 0x811c9dc5
+    for (const b of new TextEncoder().encode(s)) { h ^= b; h = Math.imul(h, 0x01000193) }
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16
+    return ((h >>> 0) % n) + 1
+  }
+
+  // ---------- Marcado de GTag (tag.md «Semántica por caso» y «Clases y datos») ----------
+  const avatarHTML = (av, cat) => `<span class="g-avatar g-avatar--size-xs g-avatar--shape-circle g-avatar--content-initials"${cat ? ` data-cat="${cat}"` : ''} aria-hidden="true"><span class="g-avatar__initials" dir="auto" translate="no">${esc(av)}</span></span>`
+  function leadHTML(it, cat) {
+    if (it.avatar) return `<span class="g-tag__lead" aria-hidden="true">${avatarHTML(it.avatar, it.avatarCat ?? cat)}</span>`
+    if (it.icon) return `<span class="g-tag__lead" aria-hidden="true">${L(it.icon)}</span>`
+    return ''
+  }
+  function tagHTML(it, o = {}) {
+    const size = o.size || 'md', cat = it.cat ?? null
+    const toggle = it.pressed != null && !it.href
+    const cls = ['g-tag', `g-tag--size-${size}`, it.removable && 'is-removable', toggle && 'is-toggle', toggle && it.pressed && 'is-pressed', it.href && 'is-link', it.disabled && 'is-disabled', it.ghost && 'is-ghost', o.plain && 'is-plain'].filter(Boolean).join(' ')
+    const text = `<span class="g-tag__text" dir="auto">${esc(it.label)}</span>`
+    const lead = leadHTML(it, cat)
+    const attrs = `class="${cls}"${cat ? ` data-cat="${cat}"` : ''}${it.ghost ? ` style="--_ghost-w: ${it.ghostW}px"` : ''} data-test="${esc(it.test || it.id || '')}"`
+    const removeName = o.facet ? `Quitar ${it.label} de ${o.facet}` : `Quitar ${it.label}`
+    if (it.ghost) {
+      const check = toggle ? `<span class="g-tag__check" aria-hidden="true">${L('check')}</span>` : ''
+      return `<span ${attrs}><span class="g-tag__body" aria-hidden="true">${check}${lead}${text}</span><button type="button" class="g-tag__undo">${L('undo-2', 'g-icon--flip-rtl')}<span class="g-tag__sr">Deshacer: ${esc(removeName.replace('Quitar', 'quitar'))}</span></button></span>`
+    }
+    let body
+    if (it.href && it.disabled) body = `<a class="g-tag__body" role="link" aria-disabled="true">${lead}${text}</a>`
+    else if (it.href) body = `<a class="g-tag__body" href="${esc(it.href)}">${lead}${text}</a>`
+    else if (toggle) body = `<button type="button" class="g-tag__body" aria-pressed="${!!it.pressed}"${it.disabled ? ' disabled' : ''}><span class="g-tag__check" aria-hidden="true">${L('check')}</span>${lead}${text}</button>`
+    else body = `<span class="g-tag__body">${lead}${text}</span>`
+    const rm = it.removable ? `<button type="button" class="g-tag__remove" aria-keyshortcuts="Delete Backspace"${it.disabled ? ' disabled' : ''}>${L('x')}<span class="g-tag__sr">${esc(removeName)}</span></button>` : ''
+    const tip = o.tip ? '<div class="g-tooltip" popover="manual" aria-hidden="true"><span class="g-tooltip__label">pista</span></div>' : ''
+    return `<span ${attrs}>${body}${rm}${tip}</span>`
+  }
+  window.tagHTML = tagHTML
+
+  // ---------- 1 · Casos ----------
+  const CASES = [
+    { test: 'static', label: 'Penicilina' },
+    { test: 'link', label: 'Vue', href: '#vue' },
+    { test: 'toggle', label: 'Solo pendientes', pressed: false },
+    { test: 'pressed', label: 'Solo pendientes', pressed: true },
+    { test: 'rem', label: 'Látex', removable: true },
+    { test: 'link-rem', label: 'Diseño', href: '#d', removable: true },
+    { test: 'toggle-rem', label: 'Urgente', pressed: false, removable: true },
+    { test: 'pressed-rem', label: 'Urgente', pressed: true, removable: true },
+    { test: 'icon', label: 'Etiquetada', icon: 'tag' },
+    { test: 'avatar', label: 'Ana López', avatar: 'AL', removable: true, avatarCat: 3 },
+    { test: 'avatar-toggle', label: 'Luis Pérez', avatar: 'LP', pressed: false, avatarCat: 6 },
+    { test: 'avatar-pressed', label: 'Luis Pérez', avatar: 'LP', pressed: true, avatarCat: 6 },
+    { test: 'dis-static', label: 'Archivada', disabled: true, removable: true },
+    { test: 'dis-link', label: 'Enlace', href: '#x', disabled: true },
+    { test: 'dis-toggle', label: 'Inactiva', pressed: false, disabled: true },
+    { test: 'dis-pressed', label: 'Inactiva', pressed: true, disabled: true },
+    { test: 'long-rem', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos de uso tópico', removable: true },
+    { test: 'long-toggle', label: 'Solicitudes pendientes de revisión por el comité de ética', pressed: false },
+    { test: 'long-static', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos de uso tópico y sistémico' },
+    { test: 'mixed', label: 'שלום Grana 123', removable: true }
+  ]
+  document.getElementById('cases').innerHTML = ['md', 'sm'].map((s) => `<p class="k">size="${s}"</p><div class="row" data-size="${s}">${CASES.map((c) => tagHTML({ ...c, test: `${s}-${c.test}` }, { size: s })).join('')}</div>`).join('')
+    + `<p class="k">categoría 2</p><div class="row">${CASES.slice(0, 12).map((c) => tagHTML({ ...c, cat: 2, test: `c2-${c.test}` })).join('')}</div>`
+
+  // ---------- 2 · Matriz de categorías ----------
+  const ks = ['n', ...Array.from({ length: 12 }, (_, i) => i + 1)]
+  document.getElementById('matrix').innerHTML = ks.map((k) => {
+    const cat = k === 'n' ? null : k
+    const c = (o) => ({ ...o, cat })
+    return `<div class="row" data-k="${k}"><p class="k">${k === 'n' ? 'neutra' : 'cat ' + k}</p>`
+      + tagHTML(c({ label: 'Reposo', test: `m-${k}-static` }))
+      + tagHTML(c({ label: 'Quitable', removable: true, test: `m-${k}-rem` }))
+      + tagHTML(c({ label: 'Alternar', pressed: false, test: `m-${k}-tog` }))
+      + tagHTML(c({ label: 'Pulsada', pressed: true, test: `m-${k}-on` }))
+      + tagHTML(c({ label: 'Pulsada', pressed: true, removable: true, test: `m-${k}-on-rem` }))
+      + `<div class="g-tag-group g-tag-group--layout-facets g-tag-group--size-md"><ul class="g-tag-group__list" role="list"><li class="g-tag-group__facet"${cat ? ` data-cat="${cat}"` : ''} data-test="m-${k}-facet"><span class="g-tag-group__facet-name" dir="auto">Estado</span><span class="g-tag-group__values" role="group">`
+      + `<span class="g-tag-group__value">${tagHTML(c({ label: 'Elegida', pressed: true, test: `m-${k}-pick` }), { plain: true, facet: 'Estado' })}</span>`
+      + `<span class="g-tag-group__value">${tagHTML(c({ label: 'Libre', pressed: false, test: `m-${k}-free` }), { plain: true, facet: 'Estado' })}</span>`
+      + `<span class="g-tag-group__value">${tagHTML(c({ label: 'Quitar', removable: true, test: `m-${k}-vrem` }), { plain: true, facet: 'Estado' })}</span>`
+      + `</span></li></ul></div></div>`
+  }).join('')
+
+  // ---------- Motor mínimo del grupo ----------
+  const groups = {}
+  function group(id, o) {
+    const g = { id, root: document.getElementById(id), items: o.items.map((x) => ({ ...x })), size: o.size || 'md', layout: o.layout || 'flow', label: o.label, limit: o.limit, expanded: false, clearable: o.clearable, cleared: null, categories: o.categories ?? 0 }
+    groups[id] = g
+    const r = g.root
+    r.addEventListener('click', (e) => onClick(g, e))
+    r.addEventListener('keydown', (e) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return
+      const el = e.target.closest('.g-tag__body, .g-tag__remove'); const id = el && el.closest('[data-id]')?.dataset.id
+      const it = g.items.find((x) => String(x.id) === id); if (!it || !it.removable || it.ghost) return
+      e.preventDefault(); remove(g, it.id)
+    })
+    r.addEventListener('focusout', () => setTimeout(() => trySettle(g), 0))
+    r.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') setTimeout(() => trySettle(g, true), 0) })
+    document.addEventListener('pointerdown', (e) => { if (!r.contains(e.target)) setTimeout(() => trySettle(g, true), 0) })
+    render(g)
+    return g
+  }
+  const catOf = (g, it) => it.cat ?? (g.categories ? categoryOf(it.colorKey ?? it.facet ?? it.label, g.categories) : null)
+  function render(g) {
+    const r = g.root
+    r.className = `g-tag-group g-tag-group--layout-${g.layout} g-tag-group--size-${g.size}`
+    const allToggle = g.items.length && g.items.every((x) => x.pressed != null && !x.href)
+    const LIST = allToggle ? 'div' : 'ul', LI = allToggle ? 'span' : 'li', role = allToggle ? 'group' : 'list'
+    const one = (it, i, o = {}) => tagHTML({ ...it, cat: catOf(g, it), test: `${g.id}-${it.id}` }, { size: g.size, ...o })
+    let inner = ''
+    if (g.layout === 'facets') {
+      const order = [], by = new Map()
+      for (const it of g.items) { const f = (it.facet || '').trim(); const k = f || '\u0000' + it.id; if (!by.has(k)) { by.set(k, []); order.push(k) } by.get(k).push(it) }
+      inner = order.map((k, ri) => {
+        const its = by.get(k), f = (its[0].facet || '').trim()
+        if (!f) return `<${LI} class="g-tag-group__item${its[0].settling ? ' is-settling' : ''}" data-id="${its[0].id}">${one(its[0])}</${LI}>`
+        const cat = catOf(g, its[0]), fid = `${g.id}-f${ri}`
+        const tg = its.every((x) => x.pressed != null && !x.href)
+        const VL = tg ? 'span' : 'ul', VI = tg ? 'span' : 'li', vrole = tg ? 'group' : 'list'
+        return `<${LI} class="g-tag-group__facet"${cat ? ` data-cat="${cat}"` : ''} data-test="${g.id}-facet-${ri}"><span class="g-tag-group__facet-name" id="${fid}" dir="auto">${esc(f)}</span><${VL} class="g-tag-group__values" role="${vrole}" aria-labelledby="${fid}">${its.map((it) => `<${VI} class="g-tag-group__value${it.settling ? ' is-settling' : ''}" data-id="${it.id}">${one(it, 0, { plain: true, facet: f })}</${VI}>`).join('')}</${VL}></${LI}>`
+      }).join('')
+    } else {
+      const lim = g.limit && !g.expanded ? g.limit : Infinity
+      inner = g.items.map((it, i) => `<${LI} class="g-tag-group__item${it.settling ? ' is-settling' : ''}" data-id="${it.id}"${i >= lim ? ' hidden' : ''}>${one(it, i)}</${LI}>`).join('')
+    }
+    const tools = []
+    const bs = g.size === 'sm' ? 'xs' : 'sm'
+    const btn = (cls, label, extra = '', icon = '') => `<button type="button" class="g-btn g-btn--color-accent g-btn--variant-link g-btn--size-${bs} g-btn--density-default ${cls}"${extra}>${icon ? `<span class="g-btn__prepend" aria-hidden="true">${icon}</span>` : ''}<span class="g-btn__label">${label}</span></button>`
+    if (g.limit && g.items.length > g.limit) {
+      const hiddenN = g.items.filter((x, i) => i >= g.limit && !x.ghost).length
+      tools.push(btn('g-tag-group__more', g.expanded ? 'Ver menos' : `Ver ${hiddenN} más`, ` aria-expanded="${g.expanded}" aria-controls="${g.id}-list" data-part="more"`))
+    }
+    if (g.clearable && g.cleared) tools.push(btn('g-tag-group__clear is-undo', `Deshacer: volver a poner ${g.cleared.length}`, ' data-part="undo-all"', L('undo-2', 'g-icon--flip-rtl')))
+    else if (g.clearable && g.items.filter((x) => x.removable && !x.ghost && !x.disabled).length >= 2) tools.push(btn('g-tag-group__clear', 'Quitar todas', ' data-part="clear"'))
+    const empty = !g.items.length && !g.cleared
+    r.innerHTML = `<${LIST} class="g-tag-group__list" role="${role}" aria-label="${esc(g.label)}" id="${g.id}-list"${empty ? ` aria-describedby="${g.id}-empty"` : ''}>${inner}</${LIST}>`
+      + (empty ? `<p class="g-tag-group__empty" id="${g.id}-empty">Sin etiquetas</p>` : '')
+      + (tools.length ? `<span class="g-tag-group__tools">${tools.join('')}</span>` : '')
+      + `<span class="g-tag-group__live" role="status"></span>`
+      + `<div class="g-tooltip" popover="manual" aria-hidden="true"><span class="g-tooltip__label">pista</span></div>`
+  }
+  const tagEl = (g, id) => g.root.querySelector(`[data-id="${id}"] > .g-tag`)
+  function remove(g, id) {
+    const it = g.items.find((x) => String(x.id) === String(id)); if (!it || it.disabled) return
+    // Como hará el .vue: el ancho (border-box) se mide ANTES del cambio y se escribe en la huella (Δ0 por construcción)
+    it.ghostW = tagEl(g, id).getBoundingClientRect().width
+    it.ghost = true
+    render(g)
+    g.root.querySelector(`[data-id="${id}"] .g-tag__undo`).focus()
+    BENCH.log.push(`remove ${g.id}:${id}`)
+  }
+  function undo(g, id) {
+    const it = g.items.find((x) => String(x.id) === String(id)); if (!it) return
+    it.ghost = false; delete it.ghostW
+    render(g)
+    g.root.querySelector(`[data-id="${id}"] .g-tag__remove`)?.focus()
+    BENCH.log.push(`undo ${g.id}:${id}`)
+  }
+  function trySettle(g, pointerGone) {
+    const ghosts = g.items.filter((x) => x.ghost && !x.settling); if (!ghosts.length) return
+    if (g.root.contains(document.activeElement)) return
+    if (!pointerGone && g.root.matches(':hover')) return
+    for (const it of ghosts) it.settling = true
+    const lis = ghosts.map((it) => g.root.querySelector(`[data-id="${it.id}"]`)).filter(Boolean)
+    for (const li of lis) li.classList.add('is-settling')
+    const t = lis[0] && lis[0].querySelector('.g-tag')
+    const done = () => { g.items = g.items.filter((x) => !x.settling); render(g); BENCH.log.push(`settle ${g.id}:${ghosts.length}`) }
+    const dur = t ? Math.max(...getComputedStyle(t).transitionDuration.split(',').map(parseFloat)) * 1000 : 0
+    if (!t || dur === 0) return done()
+    let fired = false
+    t.addEventListener('transitionend', function h(e) { if (e.target === t && e.propertyName === 'inline-size' && !fired) { fired = true; t.removeEventListener('transitionend', h); done() } })
+    setTimeout(() => { if (!fired) { fired = true; done() } }, dur + 80)
+  }
+  function onClick(g, e) {
+    const el = e.target.closest('button, a'); if (!el || el.disabled) return
+    const id = el.closest('[data-id]')?.dataset.id
+    if (el.classList.contains('g-tag__remove')) remove(g, id)
+    else if (el.classList.contains('g-tag__undo')) undo(g, id)
+    else if (el.dataset.part === 'more') { g.expanded = !g.expanded; render(g); g.root.querySelector('[data-part="more"]').focus() }
+    else if (el.dataset.part === 'clear') { g.cleared = g.items.filter((x) => x.removable && !x.disabled); g.items = g.items.filter((x) => !(x.removable && !x.disabled)); render(g); g.root.querySelector('[data-part="undo-all"]').focus() }
+    else if (el.dataset.part === 'undo-all') { g.items = [...g.items, ...g.cleared]; g.cleared = null; render(g); g.root.querySelector('[data-part="clear"]').focus() }
+    else if (el.classList.contains('g-tag__body') && el.hasAttribute('aria-pressed')) {
+      const it = g.items.find((x) => String(x.id) === id); it.pressed = !it.pressed
+      el.setAttribute('aria-pressed', it.pressed); el.closest('.g-tag').classList.toggle('is-pressed', it.pressed)
+    } else if (el.tagName === 'A') e.preventDefault()
+  }
+  window.BENCH.groups = groups
+  window.BENCH.render = render
+
+  // ---------- 3 · flow ----------
+  const ALERGIAS = [
+    { id: 'pen', label: 'Penicilina', removable: true },
+    { id: 'lat', label: 'Látex', removable: true },
+    { id: 'ana', label: 'Ana López', avatar: 'AL', removable: true },
+    { id: 'urg', label: 'Urgente', pressed: true, removable: true },
+    { id: 'ibu', label: 'Ibuprofeno', removable: true, icon: 'tag' },
+    { id: 'pol', label: 'Polen de gramíneas', removable: true },
+    { id: 'vue', label: 'Vue', href: '#vue', removable: true },
+    { id: 'mar', label: 'Mariscos', removable: true }
+  ]
+  group('g-flow', { label: 'Alergias', items: ALERGIAS, categories: NCAT })
+  group('g-flow-sm', { label: 'Alergias sm', items: ALERGIAS, categories: NCAT, size: 'sm' })
+
+  // ---------- 4 · facets ----------
+  const FACETS = [
+    { id: 'p1', facet: 'Estado', label: 'Pendiente', removable: true },
+    { id: 'p2', facet: 'Estado', label: 'En curso', removable: true },
+    { id: 'a1', facet: 'Prioridad', label: 'Alta', removable: true },
+    { id: 'x1', label: 'Sin faceta', removable: true },
+    { id: 'e1', facet: 'Equipo', label: 'Ana López', avatar: 'AL', removable: true },
+    { id: 'e2', facet: 'Equipo', label: 'Luis Pérez', avatar: 'LP', removable: true }
+  ]
+  group('g-facets', { label: 'Filtros aplicados', layout: 'facets', items: FACETS, categories: NCAT })
+  group('g-facets-toggles', { label: 'Filtros rápidos', layout: 'facets', categories: NCAT, items: [
+    { id: 't1', facet: 'Estado', label: 'Pendiente', pressed: true }, { id: 't2', facet: 'Estado', label: 'En curso', pressed: false }, { id: 't3', facet: 'Estado', label: 'Cerrado', pressed: false },
+    { id: 't4', facet: 'Prioridad', label: 'Alta', pressed: true }, { id: 't5', facet: 'Prioridad', label: 'Baja', pressed: false },
+    { id: 't6', label: 'Solo míos', pressed: false }
+  ] })
+  group('g-facets-sm', { label: 'Filtros sm', layout: 'facets', items: FACETS, categories: NCAT, size: 'sm' })
+
+  // ---------- 5 · herramientas ----------
+  group('g-limit', { label: 'Temas', limit: 3, categories: NCAT, items: ['Vue', 'Accesibilidad', 'CSS', 'Diseño', 'Tokens', 'Pruebas'].map((l, i) => ({ id: 'l' + i, label: l, href: '#' + i })) })
+  group('g-clear', { label: 'Etiquetas', clearable: true, items: ['Rojo', 'Verde', 'Azul', 'Ámbar'].map((l, i) => ({ id: 'c' + i, label: l, removable: true })) })
+  group('g-empty', { label: 'Vacío', items: [] })
+  document.getElementById('lone').innerHTML = tagHTML({ label: 'Suelta con pista', removable: true, test: 'lone-tip' }, { tip: true }) + tagHTML({ label: 'Suelta', removable: true, test: 'lone' })
+
+  // ---------- 6 · 320 ----------
+  group('g-narrow', { label: 'Estrecho', categories: NCAT, items: ALERGIAS.concat([{ id: 'long', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos', removable: true }]) })
+  group('g-narrow-facets', { label: 'Estrecho racimos', layout: 'facets', categories: NCAT, items: FACETS.concat([{ id: 'p3', facet: 'Estado', label: 'Revisión del comité', removable: true }, { id: 'p4', facet: 'Estado', label: 'Cerrado', removable: true }]) })
+  window.BENCH.ready = true
+})()
+</script>
+</body>
+</html>

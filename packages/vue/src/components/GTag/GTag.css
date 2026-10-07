@@ -1,0 +1,550 @@
+/*
+  GTag · estilo
+  Dueño: coco. Contrato: design/contracts/tag.md (DECISIONS.md #460 a #473; A «Huella» #466, B «Racimo» #467; contraste
+  #470; tokens y movimiento #471). Estructura: design/lab/chip/r01/ (kiwi). Banco, medidas y contraste:
+  design/lab/chip/estilo-banco.html, estilo.md, estilo-verificar.mjs.
+  Reglas: solo var(--g-*) y alias locales var(--_*) (prefijo --_tag-, declarados en la raíz: la etiqueta vive en celdas,
+  tarjetas y grupos y no debe heredar alias ajenos); sin @layer (lo aplica el registro); sin valores de respaldo. Medidas
+  literales: solo 24px y 44px (área táctil) y el patrón de texto oculto. Constantes de diseño desde --g-space-1 (no son
+  tokens, #471): tope de recorte × 60, trazo de la raya × 0.75 (el del lomo del racimo), relleno × 3 / × 2, separación
+  interior × 1.5 / × 1. Proporciones: 1em (marca e icono del hueco), 0.125em (grosor del tachado), 0.5 (huella atenuada).
+  Excepción nombrada: lee la familia condicional --g-color-cat-K(-soft|-strong|-text) y --g-color-on-cat-K(-soft)
+  (K = 1 a 12) sin que exista en defaults.css (CAT_FAMILY_READERS de levels.test.js, #469). Una K que el tema no declara
+  deja el var() sin resolver: sin relleno y el texto en el color heredado (límite documentado en el contrato).
+
+  Del .vue (bruno), §«Clases y datos»: g-tag--size-{sm|md}; is-removable, is-toggle, is-pressed, is-link, is-disabled;
+  is-ghost + --_ghost-w (px, border-box medido ANTES de quitar); is-plain (valor de un racimo); data-cat="k".
+  Personalidad (estilo.md): la tapa se INVIERTE al apuntarla (la tinta de la etiqueta pasa a ser su fondo) mientras el texto
+  se tacha: la etiqueta «se arma» para irse; la huella pierde el color (contorno discontinuo, avatar desaturado); el avatar
+  del hueco queda concéntrico (misma distancia al borde arriba, abajo y al inicio); la marca del pulsado se abre.
+*/
+
+/* ---------- Raíz: alias de medida y de color (la categoría solo reapunta familias) ---------- */
+.g-tag {
+  /* Medida: md = space × 8, body-sm */
+  --_tag-h: calc(var(--g-space-1) * 8);
+  --_tag-px: calc(var(--g-space-1) * 3);
+  --_tag-gap: calc(var(--g-space-1) * 1.5);
+  --_tag-fs: var(--g-text-body-sm-size);
+  --_tag-lh: var(--g-text-body-sm-line);
+  --_tag-track: var(--g-text-body-sm-tracking);
+  --_tag-weight: var(--g-text-body-sm-weight);
+  /* Familias: reposo (par soft), pulsada (relleno con par y contorno -text, §7.1), elegida en un racimo (soft + raya) */
+  --_tag-soft: var(--g-color-neutral-soft);
+  --_tag-on-soft: var(--g-color-on-neutral-soft);
+  --_tag-fill: var(--g-color-primary);
+  --_tag-fill-strong: var(--g-color-primary-strong);
+  --_tag-on-fill: var(--g-color-on-primary);
+  --_tag-line: var(--g-color-primary-text);
+  --_tag-pick: var(--g-color-primary-soft);
+  --_tag-on-pick: var(--g-color-on-primary-soft);
+  /* Estado actual (los estados reasignan estos cinco) */
+  --_tag-bg: var(--_tag-soft);
+  --_tag-fg: var(--_tag-on-soft);
+  --_tag-edge: transparent;
+  /* La tapa: tinta en reposo; al apuntarla, la tinta es el fondo y el papel (lo que hay detrás) el icono */
+  --_tag-cap-ink: var(--_tag-fg);
+  --_tag-paper: var(--_tag-soft);
+
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+  box-sizing: border-box;
+  min-block-size: var(--_tag-h);
+  min-inline-size: 0;
+  max-inline-size: min(100%, calc(var(--g-space-1) * 60));
+  margin: 0;
+  /* El contorno existe siempre (transparente en reposo): pulsar, deshabilitar, la huella o forced-colors no cambian la caja */
+  border: var(--g-border-width) solid var(--_tag-edge);
+  border-radius: var(--g-radius-shape);
+  background-color: var(--_tag-bg);
+  color: var(--_tag-fg);
+  font-family: var(--g-font-ui);
+  font-size: var(--_tag-fs);
+  line-height: var(--_tag-lh);
+  letter-spacing: var(--_tag-track);
+  font-weight: var(--_tag-weight);
+  font-style: normal;
+  text-transform: none;
+  /* Huella que aparece y relleno al pulsar: color y fondo (§«Movimiento»). El ancho y la opacidad solo los anima la huella */
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-tag--size-sm {
+  --_tag-h: calc(var(--g-space-1) * 6);
+  --_tag-px: calc(var(--g-space-1) * 2);
+  --_tag-gap: var(--g-space-1);
+  --_tag-fs: var(--g-text-caption-size);
+  --_tag-lh: var(--g-text-caption-line);
+  --_tag-track: var(--g-text-caption-tracking);
+  --_tag-weight: var(--g-text-caption-weight);
+}
+
+/* ---------- Categoría (solo con data-cat; reposo = par soft garantizado ≥ 4.5:1) ---------- */
+.g-tag[data-cat="1"]  { --_tag-soft: var(--g-color-cat-1-soft);  --_tag-on-soft: var(--g-color-on-cat-1-soft);  --_tag-fill: var(--g-color-cat-1);  --_tag-fill-strong: var(--g-color-cat-1-strong);  --_tag-on-fill: var(--g-color-on-cat-1);  --_tag-line: var(--g-color-cat-1-text);  --_tag-pick: var(--g-color-cat-1-soft);  --_tag-on-pick: var(--g-color-on-cat-1-soft); }
+.g-tag[data-cat="2"]  { --_tag-soft: var(--g-color-cat-2-soft);  --_tag-on-soft: var(--g-color-on-cat-2-soft);  --_tag-fill: var(--g-color-cat-2);  --_tag-fill-strong: var(--g-color-cat-2-strong);  --_tag-on-fill: var(--g-color-on-cat-2);  --_tag-line: var(--g-color-cat-2-text);  --_tag-pick: var(--g-color-cat-2-soft);  --_tag-on-pick: var(--g-color-on-cat-2-soft); }
+.g-tag[data-cat="3"]  { --_tag-soft: var(--g-color-cat-3-soft);  --_tag-on-soft: var(--g-color-on-cat-3-soft);  --_tag-fill: var(--g-color-cat-3);  --_tag-fill-strong: var(--g-color-cat-3-strong);  --_tag-on-fill: var(--g-color-on-cat-3);  --_tag-line: var(--g-color-cat-3-text);  --_tag-pick: var(--g-color-cat-3-soft);  --_tag-on-pick: var(--g-color-on-cat-3-soft); }
+.g-tag[data-cat="4"]  { --_tag-soft: var(--g-color-cat-4-soft);  --_tag-on-soft: var(--g-color-on-cat-4-soft);  --_tag-fill: var(--g-color-cat-4);  --_tag-fill-strong: var(--g-color-cat-4-strong);  --_tag-on-fill: var(--g-color-on-cat-4);  --_tag-line: var(--g-color-cat-4-text);  --_tag-pick: var(--g-color-cat-4-soft);  --_tag-on-pick: var(--g-color-on-cat-4-soft); }
+.g-tag[data-cat="5"]  { --_tag-soft: var(--g-color-cat-5-soft);  --_tag-on-soft: var(--g-color-on-cat-5-soft);  --_tag-fill: var(--g-color-cat-5);  --_tag-fill-strong: var(--g-color-cat-5-strong);  --_tag-on-fill: var(--g-color-on-cat-5);  --_tag-line: var(--g-color-cat-5-text);  --_tag-pick: var(--g-color-cat-5-soft);  --_tag-on-pick: var(--g-color-on-cat-5-soft); }
+.g-tag[data-cat="6"]  { --_tag-soft: var(--g-color-cat-6-soft);  --_tag-on-soft: var(--g-color-on-cat-6-soft);  --_tag-fill: var(--g-color-cat-6);  --_tag-fill-strong: var(--g-color-cat-6-strong);  --_tag-on-fill: var(--g-color-on-cat-6);  --_tag-line: var(--g-color-cat-6-text);  --_tag-pick: var(--g-color-cat-6-soft);  --_tag-on-pick: var(--g-color-on-cat-6-soft); }
+.g-tag[data-cat="7"]  { --_tag-soft: var(--g-color-cat-7-soft);  --_tag-on-soft: var(--g-color-on-cat-7-soft);  --_tag-fill: var(--g-color-cat-7);  --_tag-fill-strong: var(--g-color-cat-7-strong);  --_tag-on-fill: var(--g-color-on-cat-7);  --_tag-line: var(--g-color-cat-7-text);  --_tag-pick: var(--g-color-cat-7-soft);  --_tag-on-pick: var(--g-color-on-cat-7-soft); }
+.g-tag[data-cat="8"]  { --_tag-soft: var(--g-color-cat-8-soft);  --_tag-on-soft: var(--g-color-on-cat-8-soft);  --_tag-fill: var(--g-color-cat-8);  --_tag-fill-strong: var(--g-color-cat-8-strong);  --_tag-on-fill: var(--g-color-on-cat-8);  --_tag-line: var(--g-color-cat-8-text);  --_tag-pick: var(--g-color-cat-8-soft);  --_tag-on-pick: var(--g-color-on-cat-8-soft); }
+.g-tag[data-cat="9"]  { --_tag-soft: var(--g-color-cat-9-soft);  --_tag-on-soft: var(--g-color-on-cat-9-soft);  --_tag-fill: var(--g-color-cat-9);  --_tag-fill-strong: var(--g-color-cat-9-strong);  --_tag-on-fill: var(--g-color-on-cat-9);  --_tag-line: var(--g-color-cat-9-text);  --_tag-pick: var(--g-color-cat-9-soft);  --_tag-on-pick: var(--g-color-on-cat-9-soft); }
+.g-tag[data-cat="10"] { --_tag-soft: var(--g-color-cat-10-soft); --_tag-on-soft: var(--g-color-on-cat-10-soft); --_tag-fill: var(--g-color-cat-10); --_tag-fill-strong: var(--g-color-cat-10-strong); --_tag-on-fill: var(--g-color-on-cat-10); --_tag-line: var(--g-color-cat-10-text); --_tag-pick: var(--g-color-cat-10-soft); --_tag-on-pick: var(--g-color-on-cat-10-soft); }
+.g-tag[data-cat="11"] { --_tag-soft: var(--g-color-cat-11-soft); --_tag-on-soft: var(--g-color-on-cat-11-soft); --_tag-fill: var(--g-color-cat-11); --_tag-fill-strong: var(--g-color-cat-11-strong); --_tag-on-fill: var(--g-color-on-cat-11); --_tag-line: var(--g-color-cat-11-text); --_tag-pick: var(--g-color-cat-11-soft); --_tag-on-pick: var(--g-color-on-cat-11-soft); }
+.g-tag[data-cat="12"] { --_tag-soft: var(--g-color-cat-12-soft); --_tag-on-soft: var(--g-color-on-cat-12-soft); --_tag-fill: var(--g-color-cat-12); --_tag-fill-strong: var(--g-color-cat-12-strong); --_tag-on-fill: var(--g-color-on-cat-12); --_tag-line: var(--g-color-cat-12-text); --_tag-pick: var(--g-color-cat-12-soft); --_tag-on-pick: var(--g-color-on-cat-12-soft); }
+
+/* ---------- Cuerpo: <span> (estática), <a> (enlace) o <button aria-pressed> (alternar) ---------- */
+.g-tag__body {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--_tag-gap);
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  /* El alto sale de la altura objetivo (lección del CLAUDE.md): una línea = space × n exacto; varias líneas, crece */
+  padding-block: calc((var(--_tag-h) - var(--_tag-lh)) / 2 - var(--g-border-width));
+  padding-inline: var(--_tag-px);
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: start;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Con tapa al final, las esquinas finales son de la tapa */
+.g-tag:is(.is-removable, .is-ghost) > .g-tag__body {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+/* El área de 24px (2.5.8) la da el ::after de abajo: el cuerpo de una sm mide 24 − 2 bordes y no debe empujar la caja */
+:is(a, button).g-tag__body {
+  position: relative;
+  cursor: pointer;
+}
+.g-tag.is-disabled :is(a, button).g-tag__body,
+.g-tag :is(a, button).g-tag__body:disabled,
+.g-tag a.g-tag__body[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Texto: solo se recorta el de una etiqueta con un control enfocable (la pista visual lo enseña entero); una estática
+   (y una deshabilitada: tampoco tiene foco) se parte en líneas para que se pueda leer sin foco (#470) */
+.g-tag__text {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.g-tag:is(.is-removable, .is-toggle, .is-link, .is-ghost):not(.is-disabled) .g-tag__text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+}
+
+/* ---------- Hueco: icono (1em) o GAvatar xs (20px) ---------- */
+.g-tag__lead {
+  order: -1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  transition:
+    margin-inline-start var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    filter var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-tag__lead > svg {
+  inline-size: 1em;
+  block-size: 1em;
+}
+/* Avatar concéntrico: misma distancia al borde exterior arriba, abajo y al inicio = (alto − lado del avatar xs) / 2.
+   El avatar mide space × 5 en los dos tamaños (#295: el avatar manda su caja y el hueco la adopta) */
+.g-tag__lead:has(> .g-avatar) {
+  margin-inline-start: calc((var(--_tag-h) - var(--g-space-1) * 5) / 2 - var(--g-border-width) - var(--_tag-px));
+  /* En bloque ocupa exactamente una línea de texto (margen negativo si el avatar es más alto que la línea): el alto de la
+     etiqueta no depende del avatar y el avatar queda centrado en ella */
+  margin-block: calc((var(--_tag-lh) - var(--g-space-1) * 5) / 2);
+}
+.g-tag.is-pressed .g-tag__lead:has(> .g-avatar) {
+  margin-inline-start: 0;
+}
+
+/* ---------- Marca del pulsado (alternar): siempre en el DOM, ancho 0 sin pulsar; pulsada se abre a 1em ---------- */
+.g-tag__check {
+  order: -2;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  overflow: hidden;
+  inline-size: 0;
+  /* Sin pulsar no deja hueco: cancela la separación que el flex pondría detrás */
+  margin-inline-end: calc(var(--_tag-gap) * -1);
+  opacity: 0;
+  transition:
+    inline-size var(--g-duration-press) var(--g-ease-out),
+    margin-inline-end var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-tag__check > svg {
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+}
+.g-tag.is-pressed .g-tag__check {
+  inline-size: 1em;
+  margin-inline-end: 0;
+  opacity: 1;
+}
+
+/* ---------- La tapa: «Quitar» y «Deshacer» del alto entero de la etiqueta, al final lógico (A, #466) ---------- */
+.g-tag__remove,
+.g-tag__undo {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  /* De borde a borde: tapa el contorno real en bloque y al final, así mide exactamente alto × alto */
+  inline-size: var(--_tag-h);
+  min-block-size: var(--_tag-h);
+  margin-block: calc(var(--g-border-width) * -1);
+  margin-inline: 0 calc(var(--g-border-width) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  border-start-end-radius: inherit;
+  border-end-end-radius: inherit;
+  background-color: transparent;
+  color: var(--_tag-cap-ink);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-tag__remove > svg,
+.g-tag__undo > svg {
+  inline-size: 1em;
+  block-size: 1em;
+  transition: scale var(--g-duration-fast) var(--g-ease-out);
+}
+/* El filo que separa la tapa del texto (decorativo: la tapa la identifica su icono) */
+.g-tag__remove::before,
+.g-tag__undo::before {
+  content: "";
+  position: absolute;
+  inset-block: var(--g-border-width);
+  inset-inline-start: 0;
+  inline-size: var(--g-border-width);
+  background-color: var(--g-color-border-strong);
+  pointer-events: none;
+}
+/* La tapa se invierte: la tinta de la etiqueta pasa a ser el fondo y el papel, el icono (el par garantizado del estado:
+   ≥ 4.5:1 en cualquier tema). Con puntero real al pasar; en táctil, mientras se pulsa */
+@media (hover: hover) {
+  .g-tag__remove:not(:disabled):hover,
+  .g-tag__undo:not(:disabled):hover {
+    background-color: var(--_tag-cap-ink);
+    color: var(--_tag-paper);
+  }
+}
+.g-tag__remove:not(:disabled):active,
+.g-tag__undo:not(:disabled):active {
+  background-color: var(--_tag-cap-ink);
+  color: var(--_tag-paper);
+}
+.g-tag__remove:not(:disabled):active > svg,
+.g-tag__undo:not(:disabled):active > svg {
+  scale: var(--g-press-scale);
+}
+.g-tag__remove:disabled {
+  cursor: not-allowed;
+}
+
+/* Vista previa: apuntar o enfocar con teclado la tapa tacha el texto antes de quitar (se ve cuál se va). Sin animar */
+@media (hover: hover) {
+  .g-tag:has(> .g-tag__remove:not(:disabled):hover) .g-tag__text {
+    text-decoration: line-through;
+    text-decoration-thickness: 0.125em;
+  }
+}
+.g-tag:has(> .g-tag__remove:focus-visible) .g-tag__text {
+  text-decoration: line-through;
+  text-decoration-thickness: 0.125em;
+}
+
+/* Área táctil: ≥ 24px siempre; ≥ 44px con puntero grueso sin cambiar el dibujo (como GBtn). Centrado con `left` físico y
+   translate: simétrico, no depende del sentido de lectura (lección de GBtn en RTL) */
+.g-tag__remove::after,
+.g-tag__undo::after,
+:is(a, button).g-tag__body::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  inline-size: max(100%, 24px);
+  block-size: max(100%, 24px);
+}
+@media (pointer: coarse) {
+  .g-tag__remove::after,
+  .g-tag__undo::after,
+  :is(a, button).g-tag__body::after {
+    inline-size: max(100%, 44px);
+    block-size: max(100%, 44px);
+  }
+}
+
+/* Texto oculto del nombre de «Quitar»/«Deshacer» (patrón estándar; es lo que enseña la pista visual) */
+.g-tag__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Foco visible en todos los controles ---------- */
+.g-tag__body:focus-visible,
+.g-tag__remove:focus-visible,
+.g-tag__undo:focus-visible {
+  z-index: 1;
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Enlace ---------- */
+@media (hover: hover) {
+  .g-tag.is-link:not(.is-disabled) > a.g-tag__body:hover .g-tag__text {
+    text-decoration: underline;
+    text-decoration-thickness: var(--g-border-width);
+    text-underline-offset: var(--g-focus-offset);
+  }
+}
+
+/* ---------- Alternar ---------- */
+/* Orden de las reglas de estado (misma especificidad gana la última): alternar → racimo → deshabilitada → huella.
+   Las pulsadas excluyen deshabilitada y huella para que esas dos manden siempre */
+/* Sin pulsar: superficie con contorno de control (WCAG 1.4.11) */
+.g-tag.is-toggle {
+  --_tag-bg: var(--g-color-surface);
+  --_tag-fg: var(--g-color-text);
+  --_tag-edge: var(--g-color-border-control);
+  --_tag-paper: var(--g-color-surface);
+}
+/* Pulsada: relleno de su familia, texto on-, contorno {familia}-text (§7.1, #431) */
+.g-tag.is-toggle.is-pressed:not(.is-disabled, .is-ghost) {
+  --_tag-bg: var(--_tag-fill);
+  --_tag-fg: var(--_tag-on-fill);
+  --_tag-edge: var(--_tag-line);
+  --_tag-paper: var(--_tag-fill);
+}
+@media (hover: hover) {
+  .g-tag.is-toggle:not(.is-pressed, .is-disabled, .is-ghost):has(> .g-tag__body:hover) {
+    --_tag-edge: var(--g-color-text-muted);
+  }
+  /* Pulsada al pasar: -strong y el contorno sigue en -text (#438) */
+  .g-tag.is-toggle.is-pressed:not(.is-disabled, .is-ghost):has(> .g-tag__body:hover) {
+    --_tag-bg: var(--_tag-fill-strong);
+  }
+}
+
+/* ---------- Valor de un racimo (B, #467): sin relleno propio, el racimo es la caja ---------- */
+.g-tag.is-plain {
+  --_tag-bg: transparent;
+  --_tag-fg: var(--g-color-text);
+  --_tag-edge: transparent;
+  --_tag-cap-ink: var(--g-color-text-muted);
+  --_tag-paper: var(--g-color-surface);
+  /* El marco es del racimo: el valor no tiene borde y mide el interior del racimo (alto − 2 bordes), así el racimo mide
+     exactamente space × n como una etiqueta suelta. Las esquinas finales del último valor las pone GTagGroup.css */
+  min-block-size: calc(var(--_tag-h) - var(--g-border-width) * 2);
+  border-width: 0;
+  border-radius: 0;
+}
+.g-tag.is-plain > :is(.g-tag__remove, .g-tag__undo) {
+  inline-size: calc(var(--_tag-h) - var(--g-border-width) * 2);
+  min-block-size: 0;
+  margin: 0;
+}
+/* Elegida en un racimo: soft de su familia + raya inferior -text (forma sin par, #439; el mismo trazo que el lomo) + marca */
+.g-tag.is-plain.is-pressed:not(.is-disabled, .is-ghost) {
+  --_tag-bg: var(--_tag-pick);
+  --_tag-fg: var(--_tag-on-pick);
+  --_tag-edge: transparent;
+  --_tag-cap-ink: var(--_tag-on-pick);
+  --_tag-paper: var(--_tag-pick);
+  box-shadow: inset 0 calc(var(--g-space-1) * -0.75) 0 var(--_tag-line);
+}
+@media (hover: hover) {
+  .g-tag.is-plain.is-toggle:not(.is-pressed, .is-disabled, .is-ghost):has(> .g-tag__body:hover) {
+    --_tag-bg: var(--g-color-surface-sunken);
+    --_tag-edge: transparent;
+  }
+  .g-tag.is-plain.is-toggle.is-pressed:not(.is-disabled, .is-ghost):has(> .g-tag__body:hover) {
+    --_tag-bg: var(--_tag-pick);
+  }
+}
+/* Dentro del racimo el anillo va hacia dentro: no lo tapa el valor vecino ni lo corta el marco */
+.g-tag.is-plain .g-tag__body:focus-visible,
+.g-tag.is-plain .g-tag__remove:focus-visible,
+.g-tag.is-plain .g-tag__undo:focus-visible {
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+/* ---------- Deshabilitada (1.4.11 excluye lo inactivo): sin relleno, texto subtle, contorno border ---------- */
+.g-tag.is-disabled {
+  --_tag-bg: transparent;
+  --_tag-fg: var(--g-color-text-subtle);
+  --_tag-edge: var(--g-color-border);
+  --_tag-cap-ink: var(--g-color-text-subtle);
+  --_tag-paper: var(--g-color-surface);
+}
+/* Pulsada y deshabilitada: el estado lo sigue diciendo la marca, sobre un relleno neutro */
+.g-tag.is-disabled.is-pressed {
+  --_tag-bg: var(--g-color-neutral-soft);
+  --_tag-paper: var(--g-color-neutral-soft);
+}
+.g-tag.is-plain.is-disabled {
+  --_tag-edge: transparent;
+}
+.g-tag.is-plain.is-disabled.is-pressed {
+  box-shadow: inset 0 calc(var(--g-space-1) * -0.75) 0 var(--g-color-border-strong);
+}
+
+/* ---------- Huella (A, #466): mismo ancho, contorno discontinuo, texto tachado y atenuado; la tapa es «Deshacer» ---------- */
+.g-tag.is-ghost {
+  --_tag-bg: transparent;
+  --_tag-fg: var(--g-color-text-muted);
+  --_tag-edge: var(--g-color-border-control);
+  --_tag-cap-ink: var(--g-color-text);
+  --_tag-paper: var(--g-color-surface);
+  flex: none;
+  inline-size: var(--_ghost-w);
+  min-inline-size: var(--_ghost-w);
+  max-inline-size: none;
+  border-style: dashed;
+  box-shadow: none;
+  /* La recogida (is-settling en el elemento del grupo) es una salida: ancho a 0 y opacidad, fast + ease-out */
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard),
+    inline-size var(--g-duration-fast) var(--g-ease-out),
+    min-inline-size var(--g-duration-fast) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-out);
+}
+.g-tag.is-ghost > .g-tag__body {
+  flex: 1 1 0;
+}
+/* En un racimo el valor no tiene borde: la huella se dibuja con un contorno interior del mismo trazo */
+.g-tag.is-plain.is-ghost {
+  outline: var(--g-border-width) dashed var(--_tag-edge);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-tag.is-ghost .g-tag__text {
+  text-decoration: line-through;
+  text-decoration-thickness: 0.125em;
+}
+/* La huella pierde el color: el avatar o el icono (y la marca) quedan en gris y a media tinta */
+.g-tag.is-ghost .g-tag__lead,
+.g-tag.is-ghost .g-tag__check {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+/* ---------- Movimiento reducido (tokens.md §29.3): solo color; la marca aparece sin abrirse, nada escala ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-tag__check {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-tag__lead {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      filter var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-tag__remove > svg,
+  .g-tag__undo > svg {
+    transition: none;
+  }
+  .g-tag__remove:not(:disabled):active > svg,
+  .g-tag__undo:not(:disabled):active > svg {
+    scale: none;
+  }
+  /* La recogida es instantánea */
+  .g-tag.is-ghost {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+/* ---------- Colores forzados: contorno CanvasText de --g-border-width en cada etiqueta (sin cambiar la caja) ---------- */
+@media (forced-colors: active) {
+  .g-tag {
+    border-color: CanvasText;
+  }
+  .g-tag.is-ghost {
+    border-color: GrayText;
+    border-style: dashed;
+  }
+  .g-tag.is-disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  .g-tag.is-plain:not(.is-ghost) {
+    border-color: transparent;
+  }
+  /* Pulsada: Highlight (la marca sigue diciendo el estado). Sin forced-color-adjust el fondo vuelve a Canvas */
+  .g-tag.is-toggle.is-pressed:not(.is-disabled, .is-ghost) {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background-color: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+  }
+  .g-tag__remove::before,
+  .g-tag__undo::before {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  .g-tag.is-toggle.is-pressed:not(.is-disabled, .is-ghost) :is(.g-tag__remove, .g-tag__undo)::before {
+    background-color: HighlightText;
+  }
+  @media (hover: hover) {
+    .g-tag__remove:not(:disabled):hover,
+    .g-tag__undo:not(:disabled):hover {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+  .g-tag__remove:not(:disabled):active,
+  .g-tag__undo:not(:disabled):active {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .g-tag__body:focus-visible,
+  .g-tag__remove:focus-visible,
+  .g-tag__undo:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-tag.is-toggle.is-pressed:not(.is-disabled, .is-ghost) :is(.g-tag__body, .g-tag__remove, .g-tag__undo):focus-visible {
+    outline-color: CanvasText;
+  }
+}
