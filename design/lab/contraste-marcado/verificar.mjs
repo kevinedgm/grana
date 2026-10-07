@@ -6,6 +6,10 @@
 //              defecto, lustre, spotify y primary propia (#107), claro y oscuro, brand, accent y warning; tres motores.
 //              Además, sin cambiar nada (informativo, para lima): franja de rango de GDatePicker, avance de GProgress,
 //              conector de GStepper, variantes dot/line/segment de GStepper y la píldora del navbar de GSidebar (#431)
+//            Formas de familia sin par (#439 y #440; escena `steps`): el avance de GProgress y las partes del paso (conector, punto y
+//              anillo de dot, raya de line, tramo de segment, barra del compacto) pintan {familia}-text; avance ≥ 3:1 contra su pista y
+//              la superficie (compuerta); las partes del paso, informativas. Hecho contra pendiente con la transparencia COMPUESTA
+//              (border-strong es translúcido: sin componer se tomaba por blanco y salía 1,12:1 en el tema por defecto oscuro)
 //   delta    · Δ0 visible en el tema por defecto (claro y oscuro): captura píxel a píxel de cada escena con el CSS anterior
 //              (GRANA_DIST_ANTES=<copia de dist previa>, servida en /__antes/) y con el actual; hover informativo aparte
 // Ejecutar desde la raíz (requiere `npm run build`): GRANA_PW_PORT=4209 node design/lab/contraste-marcado/verificar.mjs
@@ -86,6 +90,22 @@ if (run('static')) {
     ['GCombobox', '.g-combobox__option[aria-selected="true"] > .g-combobox__box', /border-color: var\(--g-color-primary-text\)/]
   ]
   for (const [c, sel, re] of expect) { const r = rule(await css(c), sel); ok(r && re.test(r), `${c}: ${sel} → ${re}`) }
+  // Formas de familia sin par (#439 y #440): GProgress y GStepper
+  {
+    const pg = await css('GProgress'), st = await css('GStepper')
+    ok(/\.g-progress__fill \{[^}]*background: var\(--_text\)/.test(pg), 'GProgress: el relleno pinta --_text')
+    ok(!/--_color/.test(pg), 'GProgress: sin --_color huérfano')
+    for (const [f, t] of [['brand', 'primary'], ['accent', 'accent'], ['neutral', 'neutral'], ['success', 'success'], ['warning', 'warning'], ['danger', 'danger'], ['info', 'info']])
+      ok(new RegExp(`\\.g-progress--color-${f} \\{[^}]*--_text: var\\(--g-color-${t}-text\\)`).test(pg), `GProgress: --color-${f} con --_text`)
+    ok(/^\.g-progress \{[^}]*--_text: var\(--g-color-primary-text\)/m.test(pg), 'GProgress: bloque base con --_text')
+    // GStepper: la única var(--_base) que queda es el relleno del completado de number/icon (lleva el icono on-{color} encima)
+    const bases = [...st.matchAll(/var\(--_base\)/g)]
+    ok(bases.length === 1 && /\.g-stepper__step\.is-complete \.g-stepper__indicator \{[^}]*background: var\(--_base\)/.test(st), `GStepper: solo queda var(--_base) en el completado de number/icon (${bases.length})`)
+    ok((st.match(/var\(--_text\)/g) || []).length === 3 + 8, 'GStepper: las ocho declaraciones de #440 en --_text')
+    // La ficha de GFileField conserva su relleno propio (más específico que .g-progress__fill)
+    const ff = await css('GFileField')
+    ok(/\.g-file-field__progress \.g-progress__fill \{[^}]*background: var\(--g-color-accent-soft\)/.test(ff), 'GFileField: el relleno de su ficha sigue en accent-soft')
+  }
   // Las familias de GSwitch y GDatePicker llevan --_text (siete colores y el bloque base)
   for (const [c, pre] of [['GSwitch', '.g-switch--color-'], ['GDatePicker', '.g-datepicker--color-']]) {
     const src = await css(c)
@@ -95,7 +115,7 @@ if (run('static')) {
     }
   }
   // Sin respaldo ni literales de color en los archivos tocados
-  for (const c of ['GCheckbox', 'GSwitch', 'GMenu', 'GTable', 'GFilterBar', 'GCalendar', 'GDatePicker', 'GStepper', 'GWidgetGallery', 'GCombobox']) {
+  for (const c of ['GProgress', 'GCheckbox', 'GSwitch', 'GMenu', 'GTable', 'GFilterBar', 'GCalendar', 'GDatePicker', 'GStepper', 'GWidgetGallery', 'GCombobox']) {
     const src = await css(c)
     ok(!/var\(\s*--g-[\w-]+\s*,/.test(src), `${c}: sin valores de respaldo en tokens`)
     ok(!/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch)\(/.test(src), `${c}: sin literales de color`)
@@ -112,10 +132,11 @@ const HELPERS = `
     inset(el) { const s = H.shadows(el).filter((x) => x.inset); return s.length ? s[0].c : null },
     fam(el) { const c = (el.closest('[data-color]') || {}).dataset?.color || 'brand'; return c === 'brand' ? 'primary' : c },
     all(dc, sel) { return [...new Set([...document.querySelectorAll('[data-case="' + dc + '"]')].flatMap((e) => e.matches(sel) ? [e] : e.querySelector(sel) ? [...e.querySelectorAll(sel)] : e.closest(sel) ? [e.closest(sel)] : []))] },
+    stop(el, i, prop = 'backgroundImage') { const m = getComputedStyle(el)[prop].match(/(rgba?\\([^)]*\\)|color\\([^)]*\\))/g); return m ? m[i] : null },
     vis(el) { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
   }
   const surf = () => ({ surface: H.tok('--g-color-surface'), bg: H.tok('--g-color-bg'), sunken: H.tok('--g-color-surface-sunken') })
-  const rec = (comp, kase, el, color, extra = {}, opt = {}) => ({ comp, kase, fam: opt.fam || H.fam(el), color, against: { ...surf(), real: H.bgOf(el), ...extra }, min: opt.min ?? 3, info: !!opt.info, expect: opt.expect ? H.tok(opt.expect.replace('{f}', opt.fam || H.fam(el))) : null })
+  const rec = (comp, kase, el, color, extra = {}, opt = {}) => ({ comp, kase, fam: opt.fam || H.fam(el), color, against: opt.only ? extra : { ...surf(), real: H.bgOf(el), ...extra }, base: H.bgOf(el), min: opt.min ?? 3, info: !!opt.info, expect: opt.expect ? H.tok(opt.expect.replace('{f}', opt.fam || H.fam(el))) : null })
 `
 const MEASURE = {
   controls: `
@@ -134,11 +155,6 @@ const MEASURE = {
       for (const el of H.all('st-' + k, '.g-stepper__step.is-complete .g-stepper__indicator')) out.push(rec('GStepper', k + ': completado', el, getComputedStyle(el).borderTopColor, {}, { expect: '--g-color-{f}-text' }))
       for (const el of H.all('st-' + k, '.g-stepper__step.is-current .g-stepper__indicator')) out.push(rec('GStepper', k + ': actual', el, getComputedStyle(el).borderTopColor, {}, { expect: '--g-color-{f}-text' }))
     }
-    // Fuera de la regla (informativo, para lima)
-    for (const el of H.all('st-dot', '.g-stepper__step.is-current .g-stepper__indicator')) { const s = H.shadows(el).filter((x) => !x.inset); if (s[1]) out.push(rec('GStepper', 'dot: anillo exterior del actual', el, s[1].c, {}, { info: true })) }
-    for (const el of H.all('st-line', '.g-stepper__step.is-complete .g-stepper__hit')) out.push(rec('GStepper', 'line: raya del completado', el, getComputedStyle(el).borderBottomColor, {}, { info: true }))
-    for (const el of H.all('st-segment', '.g-stepper__step.is-complete .g-stepper__indicator')) out.push(rec('GStepper', 'segment: tramo completado', el, H.tok('--g-color-' + H.fam(el)), { track: H.tok('--g-color-border-control') }, { info: true }))
-    for (const el of H.all('st-number', '.g-stepper__connector.is-done')) out.push(rec('GStepper', 'conector hecho', el, H.tok('--g-color-' + H.fam(el)), { track: H.tok('--g-color-border-strong') }, { info: true }))
     for (const el of H.all('dp-range', '.g-datepicker__day.is-selected')) out.push(rec('GDatePicker', 'día elegido (rango)', el, H.inset(el), soft(el), { expect: '--g-color-{f}-text' }))
     for (const el of H.all('dp-today', '.g-datepicker__day.is-selected.is-today')) {
       // Elegido y hoy: aro on-{color} en el borde; la forma es el aro o, si se funde con la superficie, el relleno
@@ -151,7 +167,32 @@ const MEASURE = {
     }
     for (const el of H.all('tb-table', '.g-table__select input:checked')) out.push(rec('GTable', 'casilla nativa (accent-color)', el, getComputedStyle(el).accentColor, { soft: H.tok('--g-color-primary-soft') }, { expect: '--g-color-primary-text', fam: 'primary' }))
     for (const el of H.all('tb-cards', '.g-table__row.is-selected')) out.push(rec('GTable', 'tarjeta seleccionada', el, getComputedStyle(el).borderTopColor, {}, { expect: '--g-color-primary-text', fam: 'primary' }))
-    for (const el of H.all('pg', '.g-progress__fill')) out.push(rec('GProgress', 'avance contra su pista', el, getComputedStyle(el).backgroundColor, { track: getComputedStyle(el.parentElement).backgroundColor }, { info: true }))
+    return out`,
+  steps: `const out = []
+    const pt = { expect: '--g-color-{f}-text' }
+    for (const [dc, kase] of [['pg', 'avance contra su pista'], ['pg-min', 'avance mínimo (2 %)'], ['pg-bare', 'avance sin valor']])
+      for (const el of H.all(dc, '.g-progress__fill')) out.push(rec('GProgress', kase, el, getComputedStyle(el).backgroundColor, { track: getComputedStyle(el.parentElement).backgroundColor }, pt))
+    // La ficha de GFileField: relleno accent-soft y frente on-accent-soft (#375, #379), sin cambio
+    for (const el of H.all('ff-progress', '.g-progress__fill')) { const cs = getComputedStyle(el); out.push({ comp: 'GFileField', kase: 'relleno propio de la ficha', fam: 'accent', eq: [[cs.backgroundColor, H.tok('--g-color-accent-soft')], [cs.borderRightColor, H.tok('--g-color-on-accent-soft')]] }) }
+    // Partes del paso (informativo contra las superficies; comprueba además que pintan {familia}-text)
+    const part = (comp, kase, el, color, extra = {}) => out.push(rec(comp, kase, el, color, extra, { info: true, ...pt }))
+    for (const el of H.all('sh-dot', '.g-stepper__step.is-complete .g-stepper__indicator')) part('GStepper', 'dot: punto completado', el, getComputedStyle(el).backgroundColor)
+    for (const el of H.all('sh-dot', '.g-stepper__step.is-current .g-stepper__indicator')) {
+      part('GStepper', 'dot: punto actual', el, getComputedStyle(el).backgroundColor)
+      const s = H.shadows(el).filter((x) => !x.inset); if (s[1]) part('GStepper', 'dot: anillo exterior del actual', el, s[1].c)
+    }
+    for (const el of H.all('sh-line', '.g-stepper__step.is-complete .g-stepper__hit')) part('GStepper', 'line: raya del completado', el, getComputedStyle(el).borderBottomColor)
+    for (const el of H.all('sh-line', '.g-stepper__step.is-current .g-stepper__hit')) part('GStepper', 'line: raya del actual', el, getComputedStyle(el).borderBottomColor)
+    for (const el of H.all('sh-segment', '.g-stepper__step.is-complete .g-stepper__indicator')) {
+      part('GStepper', 'segment: tramo completado', el, H.stop(el, 0))
+      out.push(rec('GStepper', 'segment: hecho contra pendiente', el, H.stop(el, 0), { track: H.tok('--g-color-border-control') }, { info: true, only: true }))
+    }
+    for (const [dc, kase] of [['sh-number', 'conector hecho'], ['sv-number', 'conector hecho (vertical)'], ['sh-dot', 'conector hecho (dot)']])
+      for (const el of H.all(dc, '.g-stepper__connector.is-done')) {
+        part('GStepper', kase, el, H.stop(el, 0))
+        out.push(rec('GStepper', kase.replace('hecho', 'hecho contra pendiente'), el, H.stop(el, 0), { track: H.tok('--g-color-border-strong') }, { info: true, only: true }))
+      }
+    for (const el of H.all('sc', '.g-stepper__bar-seg.is-done')) part('GStepper', 'compacto: barra', el, H.stop(el, 0))
     return out`,
   menu: `const out = []
     for (const el of document.querySelectorAll('[aria-checked="true"] > .g-menu__mark')) out.push(rec('GMenu', el.parentElement.getAttribute('role') === 'menuitemradio' ? 'marca de opción' : 'marca de casilla', el, getComputedStyle(el).borderTopColor, {}, { expect: '--g-color-primary-text', fam: 'primary' }))
@@ -193,6 +234,7 @@ const MEASURE = {
 }
 const SCENES = [
   { scene: 'controls', m: ['controls'] },
+  { scene: 'steps', m: ['steps'] },
   { scene: 'menu', m: ['menu'], prep: async (p) => { await p.locator('button', { hasText: 'Vista' }).click(); await p.waitForTimeout(300); await p.waitForSelector('[aria-checked="true"] > .g-menu__mark', { state: 'visible', timeout: 5000 }) } },
   { scene: 'calendar', m: ['calendar'] },
   { scene: 'week', m: ['week'] },
@@ -217,7 +259,7 @@ const open = async (page, s, t, dark, css) => {
 const REQUIRED = ['GCheckbox · cuadro marcado', 'GCheckbox · cuadro indeterminado', 'GCheckbox · chip marcado', 'GCheckbox · tarjeta seleccionada', 'GSwitch · riel encendido',
   'GRadioGroup · list: círculo elegido', 'GRadioGroup · chip elegido', 'GRadioGroup · segmento elegido', 'GRadioGroup · tarjeta elegida', 'GStepper · number: completado', 'GStepper · number: actual',
   'GStepper · dot: completado', 'GStepper · dot: actual', 'GDatePicker · día elegido (rango)', 'GDatePicker · día elegido y hoy (aro on o relleno)', 'GDatePicker · franja de rango: relleno soft',
-  'GDatePicker · franja de rango: filo border-control', 'GTable · casilla nativa (accent-color)', 'GTable · tarjeta seleccionada', 'GProgress · avance contra su pista', 'GStepper · conector hecho',
+  'GDatePicker · franja de rango: filo border-control', 'GTable · casilla nativa (accent-color)', 'GTable · tarjeta seleccionada', 'GProgress · avance contra su pista', 'GProgress · avance mínimo (2 %)', 'GProgress · avance sin valor', 'GFileField · relleno propio de la ficha', 'GStepper · conector hecho', 'GStepper · conector hecho (vertical)', 'GStepper · conector hecho (dot)', 'GStepper · conector hecho contra pendiente', 'GStepper · dot: punto completado', 'GStepper · dot: punto actual', 'GStepper · dot: anillo exterior del actual', 'GStepper · line: raya del completado', 'GStepper · line: raya del actual', 'GStepper · segment: tramo completado', 'GStepper · segment: hecho contra pendiente', 'GStepper · compacto: barra',
   'GMenu · marca de casilla', 'GMenu · marca de opción', 'GCalendar · vista pulsada (barra)', 'GCalendar · hoy en Mes', 'GCalendar · hoy en la cabecera', 'GCalendar · día pulsado (tira)',
   'GWidgetGallery · categoría elegida', 'GCombobox · casilla marcada (campo A)', 'GCombobox · casilla marcada (paleta)', 'GCombobox · casilla marcada (paleta, activa invertida: surface)',
   'GFilterBar · casilla nativa (accent-color)', 'GSidebar · píldora del navbar (exenta: etiqueta y ancho)']
@@ -242,14 +284,18 @@ if (run('contrast')) {
       ok(recs.length > 0, `${label}: hay elementos que medir`)
       for (const r of recs) {
         seen.add(`${r.comp} · ${r.kase}`)
+        if (r.eq) { for (const [a, b] of r.eq) ok(parse(a) && parse(b) && parse(a).every((v, i) => Math.abs(v - parse(b)[i]) < 0.01), `${label}: ${r.comp} · ${r.kase} pinta ${a}, se esperaba ${b}`); continue }
         const key = `${r.comp} · ${r.kase} · ${r.fam.replace('primary', 'brand')}`
-        const cells = Object.entries(r.against).map(([n, c]) => [n, ratio(r.color, c)])
+        // Una pista translúcida (border-strong) se compone sobre el fondo real antes de medir
+        const flat = (n, c) => { const B = parse(c); if (n !== 'track' || !B || B[3] >= 1) return c; const o = over(B, parse(r.base) || [1, 1, 1, 1]); return `color(srgb ${o[0]} ${o[1]} ${o[2]})` }
+        const cells = Object.entries(r.against).map(([n, c]) => [n, ratio(r.color, flat(n, c))])
         let min = Math.min(...cells.map((x) => x[1]))
         if (r.alt) { // forma = aro o relleno: el mejor de los dos contra cada superficie
           const alt = Object.entries(r.against).map(([n, c]) => Math.max(ratio(r.color, c), ratio(r.alt, c)))
           min = Math.min(...alt)
         }
         if (r.grow != null) note('GSidebar navbar', `${eng} ${t}${dark ? ' oscuro' : ''}: píldora ${r2(min)}:1 contra la barra · ancho ×${r2(r.grow)} · etiqueta visible ${r.labelShown} · etiquetas en las demás ${r.othersLabel}`)
+        if (r.info && r.expect) ok(parse(r.color) && parse(r.expect) && parse(r.color).every((v, i) => Math.abs(v - parse(r.expect)[i]) < 0.01), `${label}: ${key} pinta ${r.color}, se esperaba ${r.expect}`)
         if (r.info) { const k = `${r.comp} · ${r.kase} · ${r.fam.replace('primary', 'brand')}`; const w = (infos[k] ??= { min: 99, where: '', cells: {} }); for (const [n, v] of cells) w.cells[n] = Math.min(w.cells[n] ?? 99, r2(v)); if (min < w.min) { w.min = r2(min); w.where = `${t}${dark ? ' oscuro' : ' claro'} (${eng})` } continue }
         ok(min >= r.min, `${label}: ${key} ${r2(min)}:1 < ${r.min} (${cells.map(([n, v]) => n + ' ' + r2(v)).join(', ')})`)
         if (r.expect) ok(parse(r.color) && parse(r.expect) && parse(r.color).every((v, i) => Math.abs(v - parse(r.expect)[i]) < 0.01), `${label}: ${key} pinta ${r.color}, se esperaba ${r.expect}`)
@@ -277,8 +323,15 @@ if (run('delta')) {
     const shot = async (s, dark, css) => {
       await open(page, s, 'default', dark, css)
       if (s.between) await s.between(page)
-      await page.mouse.move(1, 1); await page.waitForTimeout(150)
-      const png = (await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })).toString('base64')
+      await page.mouse.move(1, 1); await page.waitForTimeout(900)
+      // Los iconos y el texto asientan unos cientos de ms tras `data-ready` (la primera carga tarda más): se toma la captura
+      // hasta que dos seguidas coinciden (así el Δ0 no mide el asentamiento, sino el CSS)
+      let png = '', prev = null
+      for (let i = 0; i < 8; i++) {
+        png = (await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })).toString('base64')
+        if (png === prev) break
+        prev = png; await page.waitForTimeout(250)
+      }
       // Formas redondas que ganan un trazo interior del mismo color que su relleno: solo puede cambiar su antialiasing
       const rects = await page.evaluate(() => [...document.querySelectorAll('.g-datepicker__day.is-selected, .g-calendar__month td.is-today .g-calendar__day, .g-calendar__month td[aria-current="date"] .g-calendar__day, .g-calendar__head-title')]
         .map((e) => { const r = e.getBoundingClientRect(); return [r.left + scrollX - 1, r.top + scrollY - 1, r.right + scrollX + 1, r.bottom + scrollY + 1] }))
@@ -288,28 +341,34 @@ if (run('delta')) {
     for (const dark of [false, true]) for (const s of SCENES) {
       const label = `defecto${dark ? ' oscuro' : ' claro'} · ${s.scene}`
       try {
-        const a = await shot(s, dark, 'antes'), b = await shot(s, dark)
-        const d = await cmp.evaluate(async ([{ png: a, rects }, { png: b }]) => {
-          const img = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + src })
-          const [A, B] = await Promise.all([img(a), img(b)])
-          if (A.width !== B.width || A.height !== B.height) return { size: [A.width, A.height, B.width, B.height] }
-          const c = document.querySelector('canvas'); c.width = A.width; c.height = A.height
-          const x = c.getContext('2d', { willReadFrequently: true })
-          x.drawImage(A, 0, 0); const pa = x.getImageData(0, 0, A.width, A.height).data
-          x.clearRect(0, 0, A.width, A.height); x.drawImage(B, 0, 0); const pb = x.getImageData(0, 0, A.width, A.height).data
-          // n: píxeles distintos (> 2/255, por encima del ruido del rasterizado); aa: los que caen en el filo de una forma
-          // redonda con trazo interior nuevo (antialiasing); out: los demás (un cambio visible de verdad)
-          let n = 0, aa = 0, max = 0; const out = []
-          const inRect = (x, y) => rects.some(([l, t, r, b]) => x >= l && x <= r && y >= t && y <= b)
-          for (let i = 0; i < pa.length; i += 4) {
-            const m = Math.max(Math.abs(pa[i] - pb[i]), Math.abs(pa[i + 1] - pb[i + 1]), Math.abs(pa[i + 2] - pb[i + 2]))
-            if (m <= 2) continue
-            n++; if (m > max) max = m
-            const p = i / 4, x = p % A.width, y = (p / A.width) | 0
-            if (inRect(x, y)) aa++; else if (out.length < 8) out.push(x + ',' + y)
-          }
-          return { n, aa, outside: n - aa, max, px: A.width * A.height, rects: rects.length, out }
-        }, [a, b])
+        // El icono de comprobación asienta con ruido de rasterizado (38 px, ≤ 37/255) que aparece también entre dos cargas del
+        // MISMO css: se repite hasta 3 veces y solo falla un Δ que persiste
+        let d
+        for (let intento = 0; intento < 3; intento++) {
+          const a = await shot(s, dark, 'antes'), b = await shot(s, dark)
+          d = await cmp.evaluate(async ([{ png: a, rects }, { png: b }]) => {
+            const img = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + src })
+            const [A, B] = await Promise.all([img(a), img(b)])
+            if (A.width !== B.width || A.height !== B.height) return { size: [A.width, A.height, B.width, B.height] }
+            const c = document.querySelector('canvas'); c.width = A.width; c.height = A.height
+            const x = c.getContext('2d', { willReadFrequently: true })
+            x.drawImage(A, 0, 0); const pa = x.getImageData(0, 0, A.width, A.height).data
+            x.clearRect(0, 0, A.width, A.height); x.drawImage(B, 0, 0); const pb = x.getImageData(0, 0, A.width, A.height).data
+            // n: píxeles distintos (> 2/255, por encima del ruido del rasterizado); aa: los que caen en el filo de una forma
+            // redonda con trazo interior nuevo (antialiasing); out: los demás (un cambio visible de verdad)
+            let n = 0, aa = 0, max = 0; const out = []
+            const inRect = (x, y) => rects.some(([l, t, r, b]) => x >= l && x <= r && y >= t && y <= b)
+            for (let i = 0; i < pa.length; i += 4) {
+              const m = Math.max(Math.abs(pa[i] - pb[i]), Math.abs(pa[i + 1] - pb[i + 1]), Math.abs(pa[i + 2] - pb[i + 2]))
+              if (m <= 2) continue
+              n++; if (m > max) max = m
+              const p = i / 4, x = p % A.width, y = (p / A.width) | 0
+              if (inRect(x, y)) aa++; else if (out.length < 8) out.push(x + ',' + y)
+            }
+            return { n, aa, outside: n - aa, max, px: A.width * A.height, rects: rects.length, out }
+          }, [a, b])
+          if (!d.size && d.outside === 0) break
+        }
         ok(!d.size && d.outside === 0, `${label}: Δ visible fuera del filo de las formas redondas ${JSON.stringify(d)}`)
         note('Δ0 píxel a píxel', `${eng} ${label}: ${d.size ? 'tamaño distinto' : d.n ? `${d.n} píxeles distintos de ${d.px}, todos en el filo (antialiasing) de ${d.rects} formas redondas con trazo interior; máx. ${d.max}/255` : '0 píxeles distintos'}`)
       } catch (e) { ok(false, `${label}: Δ0 no medible (${e.message.split('\n')[0]})`) }

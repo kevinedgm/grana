@@ -3,7 +3,7 @@
   Solo var(--g-*) y alias locales. Bruno da el avance con la variable dinámica --_value (porcentaje) en el relleno.
 */
 .g-progress {
-  --_color: var(--g-color-primary);
+  --_text: var(--g-color-primary-text);
   --_h: calc(var(--g-space-1) * 2);
   --_dir: 1;
 
@@ -31,7 +31,8 @@
   overflow: hidden;
   border-radius: var(--g-radius-pill);
   background: var(--g-color-surface-sunken);
-  /* El carril de una barra de progreso llega a 3:1 (WCAG 1.4.11): contorno de borde de control */
+  /* La pista (surface-sunken) lleva un contorno de 1 px en --g-color-border: es un trazo suave de ayuda (~1,2:1), no la
+     señal que se mide. Lo que debe llegar a 3:1 es el avance (el relleno, en {familia}-text; WCAG 1.4.11, #439) */
   outline: var(--g-border-width) solid var(--g-color-border);
   outline-offset: calc(var(--g-border-width) * -1);
 }
@@ -41,7 +42,8 @@
   inline-size: 100%;
   block-size: 100%;
   border-radius: var(--g-radius-pill);
-  background: var(--_color);
+  /* El avance es el valor del componente: forma sin par (nada on-{familia} encima), en {familia}-text (tokens.md §7.1, #439) */
+  background: var(--_text);
   translate: calc((var(--_value) - 100%) * var(--_dir)) 0;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -49,13 +51,13 @@
     transition: translate var(--g-duration-press) var(--g-ease-out);
   }
 }
-.g-progress--color-brand { --_color: var(--g-color-primary); }
-.g-progress--color-accent { --_color: var(--g-color-accent); }
-.g-progress--color-neutral { --_color: var(--g-color-neutral); }
-.g-progress--color-success { --_color: var(--g-color-success); }
-.g-progress--color-warning { --_color: var(--g-color-warning); }
-.g-progress--color-danger { --_color: var(--g-color-danger); }
-.g-progress--color-info { --_color: var(--g-color-info); }
+.g-progress--color-brand { --_text: var(--g-color-primary-text); }
+.g-progress--color-accent { --_text: var(--g-color-accent-text); }
+.g-progress--color-neutral { --_text: var(--g-color-neutral-text); }
+.g-progress--color-success { --_text: var(--g-color-success-text); }
+.g-progress--color-warning { --_text: var(--g-color-warning-text); }
+.g-progress--color-danger { --_text: var(--g-color-danger-text); }
+.g-progress--color-info { --_text: var(--g-color-info-text); }
 @media (forced-colors: active) {
   .g-progress__bar {
     border: var(--g-border-width) solid CanvasText;

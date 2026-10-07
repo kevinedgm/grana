@@ -227,6 +227,8 @@ button.g-stepper__hit:focus-visible {
 .g-stepper__step.is-disabled .g-stepper__description { color: var(--g-color-text-subtle); }
 
 /* ---------- Conector ---------- */
+/* Formas de familia sin par (conector, punto y anillo de dot, raya de line, tramo de segment y barra del compacto): se pintan
+   en {color}-text, no en {color} (tokens.md §7.1, #440). En el tema por defecto -text = base: sin cambio visible */
 .g-stepper__connector {
   --_stepper-fill: 0%;
   --_fill-angle: var(--_angle);
@@ -240,7 +242,7 @@ button.g-stepper__hit:focus-visible {
   /* La pista pendiente usa border-strong: con border (decorativo) casi no se ve en oscuro y el tramo hecho
      del conector saliente parecía un trazo suelto cuando el conector está en su mínimo.
      Siempre el mismo gradiente: solo se mueve la parada (--_stepper-fill), que sí se interpola */
-  background: linear-gradient(var(--_fill-angle), var(--_base) var(--_stepper-fill), var(--g-color-border-strong) var(--_stepper-fill));
+  background: linear-gradient(var(--_fill-angle), var(--_text) var(--_stepper-fill), var(--g-color-border-strong) var(--_stepper-fill));
 }
 .g-stepper__connector.is-done { --_stepper-fill: 100%; }
 /* Tramo hecho: 35 % del conector, nunca menos de la mitad del mínimo (legible con el conector en su mínimo) */
@@ -276,14 +278,14 @@ button.g-stepper__hit:focus-visible {
 }
 .g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__indicator .g-icon { display: none; }
 .g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__indicator {
-  background: var(--_base);
+  background: var(--_text);
 }
-/* El actual es un punto con anillo concéntrico: se distingue en escala de grises */
+/* El actual es un punto con anillo concéntrico: se distingue en escala de grises. Punto y anillo en --_text (#440) */
 .g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__indicator {
-  background: var(--_base);
+  background: var(--_text);
   box-shadow:
     0 0 0 var(--g-space-1) var(--g-color-surface),
-    0 0 0 calc(var(--g-space-1) + var(--_line)) var(--_base);
+    0 0 0 calc(var(--g-space-1) + var(--_line)) var(--_text);
 }
 .g-stepper--indicator-dot:not(.g-stepper--is-compact) .g-stepper__step.is-error .g-stepper__indicator {
   border-color: var(--g-color-danger);
@@ -314,9 +316,9 @@ button.g-stepper__hit:focus-visible {
   padding-block-end: var(--_pad);
   transition: border-color var(--g-duration-fast) var(--g-ease-standard);
 }
-.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__hit { border-block-end-color: var(--_base); }
+.g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-complete .g-stepper__hit { border-block-end-color: var(--_text); }
 .g-stepper--indicator-line:not(.g-stepper--is-compact) .g-stepper__step.is-current .g-stepper__hit {
-  border-block-end-color: var(--_base);
+  border-block-end-color: var(--_text);
   border-block-end-width: calc(var(--_line) * 2);
   padding-block-end: calc(var(--_pad) - var(--_line));
 }
@@ -359,7 +361,7 @@ button.g-stepper__hit:focus-visible {
   border: 0;
   border-radius: 0;
   --_stepper-fill: 0%;
-  background: linear-gradient(var(--_angle), var(--_base) var(--_stepper-fill), var(--g-color-border-control) var(--_stepper-fill));
+  background: linear-gradient(var(--_angle), var(--_text) var(--_stepper-fill), var(--g-color-border-control) var(--_stepper-fill));
   box-shadow: none;
   font-size: 0;
 }
@@ -450,7 +452,7 @@ button.g-stepper__hit:focus-visible {
   flex: 1 1 0;
   block-size: var(--g-space-1);
   --_stepper-fill: 0%;
-  background: linear-gradient(var(--_angle), var(--_base) var(--_stepper-fill), var(--g-color-border) var(--_stepper-fill));
+  background: linear-gradient(var(--_angle), var(--_text) var(--_stepper-fill), var(--g-color-border) var(--_stepper-fill));
 }
 .g-stepper__bar-seg:first-child { border-start-start-radius: var(--g-radius-pill); border-end-start-radius: var(--g-radius-pill); }
 .g-stepper__bar-seg:last-child { border-start-end-radius: var(--g-radius-pill); border-end-end-radius: var(--g-radius-pill); }

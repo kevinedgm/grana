@@ -6,7 +6,7 @@
 <title>Contraste de lo marcado · banco (coco)</title>
 <!-- Banco de coco para tokens.md §7.1 (DECISIONS.md #431 y #432): todo control marcado, elegido, pulsado o seleccionado
      con relleno de familia, sobre los COMPONENTES REALES (grana.css y grana.umd.js tal como se publican).
-     Parámetros: ?scene=controls|menu|calendar|week|strip|gallery|combobox|filter|navbar   ?theme=lustre|spotify|primary|<generated>
+     Parámetros: ?scene=controls|steps|menu|calendar|week|strip|gallery|combobox|filter|navbar   ?theme=lustre|spotify|primary|<generated>
                  ?dark=1   ?css=antes (sirve /__antes/grana.css: copia de dist anterior al cambio, para el Δ0)
      Servidor y medida: GRANA_PW_PORT=4209 node design/lab/contraste-marcado/verificar.mjs (--serve para abrirlo a mano). -->
 <style>
@@ -57,6 +57,38 @@
     <h2>GProgress</h2>
     <div class="row">
       <div v-for="c in colors" :key="'pg' + c" style="inline-size:240px" :data-color="c"><g-progress :color="c" :value="40" :label="'Avance ' + c" data-case="pg"></g-progress></div>
+    </div>
+  </template>
+
+  <template v-if="scene === 'steps'">
+    <!-- Formas de familia sin par (#439 y #440): avance de GProgress y partes del paso -->
+    <h2>GStepper horizontal</h2>
+    <div v-for="c in colors" :key="'sh' + c" :data-color="c">
+      <g-stepper v-for="i in ['number', 'icon', 'dot', 'line', 'segment']" :key="i" :indicator="i" :color="c" :steps="steps" model-value="pago" :labels="stepLabels" :aria-label="'Pasos ' + i" :data-case="'sh-' + i"></g-stepper>
+    </div>
+    <h2>GStepper vertical</h2>
+    <div class="row">
+      <div v-for="c in colors" :key="'sv' + c" :data-color="c" class="cell">
+        <g-stepper v-for="i in ['number', 'dot']" :key="i" orientation="vertical" :indicator="i" :color="c" :steps="steps" model-value="pago" :labels="stepLabels" :aria-label="'Pasos vertical ' + i" :data-case="'sv-' + i"></g-stepper>
+      </div>
+    </div>
+    <h2>GStepper compacto</h2>
+    <div class="row">
+      <div v-for="c in colors" :key="'sc' + c" :data-color="c" class="cell" style="inline-size:260px">
+        <g-stepper responsive="compact" :color="c" :steps="steps" model-value="pago" :labels="stepLabels" aria-label="Pasos compacto" data-case="sc"></g-stepper>
+      </div>
+    </div>
+    <h2>GProgress</h2>
+    <div class="row">
+      <div v-for="c in colors" :key="'pa' + c" style="inline-size:240px" :data-color="c">
+        <g-progress :color="c" :value="40" :label="'Avance ' + c" data-case="pg"></g-progress>
+        <g-progress :color="c" :value="2" :label="'Avance mínimo ' + c" data-case="pg-min"></g-progress>
+        <g-progress :color="c" size="sm" :value="70" :show-value="false" :label="'Avance sin valor ' + c" data-case="pg-bare"></g-progress>
+      </div>
+    </div>
+    <h2>Ficha de GFileField (su GProgress propio, #375 y #379)</h2>
+    <div style="position:relative;inline-size:320px;block-size:48px;border:1px solid var(--g-color-border);border-radius:var(--g-radius-md);overflow:hidden;isolation:isolate" data-case="ff-progress">
+      <g-progress class="g-file-field__progress" size="sm" color="accent" :value="60" label="Subiendo" :show-label="false" :show-value="false"></g-progress>
     </div>
   </template>
 
