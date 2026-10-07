@@ -928,3 +928,47 @@ describe('GRadioGroup · pista de solo icono (modo visual del motor del tooltip)
     expect(w.findAll('[data-g-tooltip], [data-g-tooltip-box]')).toHaveLength(0)
   })
 })
+
+// Auditoría de la pista, hallazgo 1 (WCAG 2.4.7): WebKit no marca :focus-visible en el radio al que llevan las flechas;
+// el .vue escribe data-g-key-focus y el CSS de coco dibuja el mismo anillo (utils/keyFocus.js)
+describe('data-g-key-focus', () => {
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }))
+  const pointer = (el) => el.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }))
+  beforeEach(() => resetEngine())
+
+  it.each(APPEARANCES)('%s: Tab y flecha lo ponen en el radio enfocado; blur lo quita', (appearance) => {
+    const w = make({ appearance, modelValue: 'F' })
+    const [a, b] = radios(w).map((r) => r.element)
+    key('Tab')
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(true)
+    key('ArrowRight')
+    b.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+    expect(b.hasAttribute('data-g-key-focus')).toBe(true)
+    b.blur()
+    expect(b.hasAttribute('data-g-key-focus')).toBe(false)
+  })
+
+  it('el clic (pointerdown antes del foco) no lo pone; un pointerdown lo quita', () => {
+    const w = make({ modelValue: 'F' })
+    const [a, b] = radios(w).map((r) => r.element)
+    key('Tab')
+    pointer(b)
+    b.focus()
+    expect(b.hasAttribute('data-g-key-focus')).toBe(false)
+    b.blur()
+    key('Tab')
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(true)
+    pointer(w.find('.g-radio-group__option').element)
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+  })
+
+  it('no toca la semántica: sin el atributo en el render ni en SSR', async () => {
+    const w = make({ modelValue: 'F' })
+    expect(w.html()).not.toContain('data-g-key-focus')
+    const html = await renderToString(createSSRApp({ render: () => h(GRadioGroup, { id: 'g', label: 'Sexo', options: SEXO, modelValue: 'F' }) }))
+    expect(html).not.toContain('data-g-key-focus')
+  })
+})

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick, h } from 'vue'
 import GWidgetGallery from './GWidgetGallery.vue'
+import { _track } from '../../utils/keyFocus.js'
 
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
@@ -262,5 +263,48 @@ describe('GWidgetGallery · datos inválidos y avisos', () => {
   it('validadores de size y density', () => {
     expect(GWidgetGallery.props.size.validator('xl')).toBe(false)
     expect(GWidgetGallery.props.density.validator('dense')).toBe(false)
+  })
+})
+
+// Auditoría de la pista, hallazgo 1 (WCAG 2.4.7): data-g-key-focus en las categorías (utils/keyFocus.js)
+describe('data-g-key-focus', () => {
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }))
+  const pointer = (el) => el.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }))
+
+  it('Tab y flecha lo ponen en la categoría enfocada; blur y pointerdown lo quitan; el clic no lo pone', async () => {
+    const before = _track.count
+    const w = mk()
+    await nextTick()
+    expect(_track.count).toBe(before + 1)
+    const [a, b] = w.findAll('.g-widget-gallery__cat > input').map((i) => i.element)
+    key('Tab')
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(true)
+    key('ArrowRight')
+    b.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+    expect(b.hasAttribute('data-g-key-focus')).toBe(true)
+    b.blur()
+    expect(b.hasAttribute('data-g-key-focus')).toBe(false)
+    pointer(a)
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+    key('Tab')
+    b.focus()
+    pointer(document.body)
+    expect(b.hasAttribute('data-g-key-focus')).toBe(false)
+    w.unmount()
+    expect(_track.count).toBe(before)
+  })
+
+  it('cerrada no escucha; al abrir escucha y al cerrar la suelta', async () => {
+    const before = _track.count
+    const w = mk({ modelValue: false })
+    expect(_track.count).toBe(before)
+    await w.setProps({ modelValue: true })
+    expect(_track.count).toBe(before + 1)
+    await w.setProps({ modelValue: false })
+    expect(_track.count).toBe(before)
+    w.unmount()
   })
 })

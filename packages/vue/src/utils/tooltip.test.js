@@ -2,6 +2,7 @@
 // §«Segunda etapa» (#384 a #389) y §«Caja visible» (#395). jsdom no tiene popover: showPopover/hidePopover se simulan con un atributo.
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
 import { attach, firstElement, nameOf, resolveBox, resolveKind, resolveTarget, readTime, _state, OPEN, CLOSE, SKIP, DWELL, LONG, LINGER, READ_MAX } from './tooltip.js'
+import { _track } from './keyFocus.js'
 
 beforeAll(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-test-open', '') }
@@ -596,11 +597,15 @@ describe('escuchas', () => {
     const add = vi.spyOn(document, 'addEventListener')
     const a = make()
     const b = make()
-    expect(add.mock.calls.filter(([t]) => t === 'keydown')).toHaveLength(1)
+    // Dos keydown en total, no dos por instancia: la navegación (compartida, utils/keyFocus.js) y Esc del motor
+    expect(add.mock.calls.filter(([t]) => t === 'keydown')).toHaveLength(2)
     expect(_state.count).toBe(2)
+    expect(_track.count).toBe(1)
     live.splice(0).forEach((i) => i.destroy())
     expect(_state.count).toBe(0)
     expect(_state.ac).toBe(null)
+    expect(_track.count).toBe(0)
+    expect(_track.ac).toBe(null)
     // Tras destroy, el control ya no reacciona
     vi.useFakeTimers()
     a.ctrl.dispatchEvent(ev('pointerenter'))

@@ -8,6 +8,7 @@
 // mismo). Puntero, pulsación, menú contextual, pulsar fuera, posición, pestaña y seguimiento van al ancla; foco, ARIA,
 // aria-expanded, disabled y kind, al elemento resuelto. El motor no conoce ninguna clase de ningún componente.
 import { anchorGone, followFrame, parsePlacement, placeAround, px, setVar } from './anchor.js'
+import { acquire as acquireNav, nav } from './keyFocus.js'
 
 // ---------- Tiempos (constantes de JS, no tokens; tooltip.md §«Tiempos», tokens.md §29.6) ----------
 export const OPEN = 350
@@ -24,8 +25,6 @@ export const READ_MAX = 6000
 /** Tiempo de lectura en táctil (#385) */
 export const readTime = (chars) => Math.min(READ_MAX, Math.max(LINGER, READ_BASE + READ_CHAR * chars))
 
-const MODIFIERS = new Set(['Shift', 'Alt', 'Control', 'Meta', 'AltGraph', 'CapsLock', 'Fn'])
-const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'F6'])
 /** Enfocable (#381): también `tabindex="-1"` (tabindex itinerante de una barra, APG) */
 export const FOCUSABLE = 'button, a[href], input, select, textarea, summary, [tabindex]'
 /** Marca de la caja visible de un control (#395; la pone cada componente, estática) */
@@ -44,20 +43,24 @@ const toPx = (v) => {
 }
 
 // ---------- Estado compartido: uno solo abierto en el documento ----------
-const state = { current: null, lastHide: -Infinity, navAt: -Infinity, navKey: '', blockClick: null, count: 0, ac: null }
+// La navegación por teclado (navAt, navKey) vive en utils/keyFocus.js, compartida con data-g-key-focus de los radios
+const state = {
+  current: null, lastHide: -Infinity, blockClick: null, count: 0, ac: null, releaseNav: null,
+  get navAt() { return nav.at }, set navAt(v) { nav.at = v },
+  get navKey() { return nav.key }, set navKey(v) { nav.key = v }
+}
 export const _state = state
 
 function install() {
   if (state.count++) return
+  // Teclas de navegación y puntero (navAt, navKey): la escucha compartida de keyFocus.js. Una tecla que no navega (Intro,
+  // Espacio, letras) anula la navegación: el foco que pone la interfaz después (un GDialog que se abre con Intro y enfoca
+  // su primer control) no es de la persona
+  state.releaseNav = acquireNav()
   state.ac = new AbortController()
   const o = { capture: true, signal: state.ac.signal }
-  // Una sola escucha de documento para todos: teclas de navegación, Esc, pulsar fuera y el clic tras la pulsación larga
+  // Una sola escucha de documento para todos: Esc, pulsar fuera y el clic tras la pulsación larga
   document.addEventListener('keydown', (e) => {
-    // Una tecla que no navega (Intro, Espacio, letras) anula la navegación: el foco que pone la interfaz después (un
-    // GDialog que se abre con Intro y enfoca su primer control) no es de la persona. Los modificadores no cuentan
-    // (Mayús+Tab, Opción+Tab en WebKit)
-    if (NAV_KEYS.has(e.key)) { state.navAt = now(); state.navKey = e.key }
-    else if (!MODIFIERS.has(e.key)) state.navAt = -Infinity
     const c = state.current
     // Esc en captura, solo con uno abierto: cierra sin mover el foco, preventDefault sin detener (GDialog lo respeta)
     if (e.key === 'Escape' && c && !e.isComposing && !e.defaultPrevented) {
@@ -66,7 +69,6 @@ function install() {
     }
   }, o)
   document.addEventListener('pointerdown', (e) => {
-    state.navAt = -Infinity
     const c = state.current
     if (c && !c.box.contains(e.target) && !c.node.contains(e.target)) c.hide('outside')
   }, o)
@@ -84,6 +86,8 @@ function uninstall() {
   if (--state.count) return
   state.ac.abort()
   state.ac = null
+  state.releaseNav()
+  state.releaseNav = null
   state.current = null
 }
 

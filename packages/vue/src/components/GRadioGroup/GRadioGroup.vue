@@ -12,6 +12,7 @@ import GAppIcon from '../GIcon/GIcon.vue'
 import { layoutKey, messageIcon, useFormField } from '../GForm/formContext.js'
 import { observeOptions } from './fitEngine.js'
 import { useVisualTips } from '../../utils/visualTip.js'
+import { useKeyFocus } from '../../utils/keyFocus.js'
 
 defineOptions({ name: 'GRadioGroup', inheritAttrs: false })
 
@@ -282,6 +283,10 @@ function onClick(event) {
 // ---------- Pista de solo icono (radio-group.md §«Pista de solo icono», #435) ----------
 // Un nodo por opción is-icon-only, al final de __options (nunca dentro de la <label> ni hijo de la raíz). Enfocable: el
 // radio (data-g-tooltip); caja visible: la __option (data-g-tooltip-box). Abajo en línea; a la derecha lógica apilado.
+// Foco por flechas en WebKit (auditoría de la pista, hallazgo 1; WCAG 2.4.7): data-g-key-focus en el radio enfocado con
+// una tecla de navegación; el CSS de coco dibuja el anillo con él además de :focus-visible (utils/keyFocus.js)
+const keyFocus = useKeyFocus()
+
 const tips = useVisualTips({
   find(key) {
     const input = rootEl.value && rootEl.value.ownerDocument.getElementById(key)
@@ -391,6 +396,8 @@ if (isDev) {
           :aria-labelledby="`${optId(i)}-label`"
           :aria-describedby="descOf(o) ? `${optId(i)}-description` : undefined"
           :data-g-tooltip="iconOnly(o) ? '' : undefined"
+          @focus="keyFocus.onFocus"
+          @blur="keyFocus.onBlur"
         >
         <Body :wrap="isSegmented">
           <span v-if="$slots.option" :id="`${optId(i)}-label`" class="g-radio-group__option-label" dir="auto"><slot name="option" v-bind="ctx(o, i)" /></span>

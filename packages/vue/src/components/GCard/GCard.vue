@@ -6,6 +6,7 @@
 // Presenta y emite intención: `modelValue` es el estado y la tarjeta no lo cambia sin emitir. Mide su propio ancho (#130).
 import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useKeyFocus } from '../../utils/keyFocus.js'
 import GSurface from '../GSurface/GSurface.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
@@ -122,6 +123,9 @@ export default defineComponent({
     const isCurrent = computed(() => props.current && interaction.value === 'link')
     const inert = computed(() => props.disabled || props.loading)
 
+    // Foco por flechas en WebKit (auditoría de la pista, hallazgo 1; WCAG 2.4.7): data-g-key-focus en el radio enfocado
+    // con una tecla de navegación; solo con selectType="radio" y casilla (utils/keyFocus.js)
+    const keyFocus = useKeyFocus(() => hasBox.value && isRadio.value)
     const inputEl = ref(null)
     const sync = () => { if (inputEl.value) inputEl.value.checked = selected.value }
     // El <input> nativo cambia solo; el modelo lo decide la aplicación: tras emitir se vuelve a alinear con `modelValue`
@@ -402,7 +406,9 @@ export default defineComponent({
             // Con select, el título es su <label>; con la casilla explícita, el nombre es el título
             'aria-labelledby': !isSelect.value && hasTitle() ? titleId.value : undefined,
             'aria-describedby': isSelect.value && hasDescription() ? descId.value : undefined,
-            onChange
+            onChange,
+            onFocus: isRadio.value ? keyFocus.onFocus : undefined,
+            onBlur: isRadio.value ? keyFocus.onBlur : undefined
           }),
           h('span', { class: 'g-card__tick', 'aria-hidden': 'true' }, [isRadio.value ? h(GIcon, { name: 'circle', filled: true }) : h(GIcon, { name: 'check' })])
         ])

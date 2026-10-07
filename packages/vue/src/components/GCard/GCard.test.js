@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick, h, ref } from 'vue'
 import GCard from './GCard.vue'
+import { _track } from '../../utils/keyFocus.js'
 import GBtn from '../GBtn/GBtn.vue'
 import GMetric from '../GMetric/GMetric.vue'
 import GSurface from '../GSurface/GSurface.vue'
@@ -1111,5 +1112,47 @@ describe('GCard · personalidad C1: la luz sigue al puntero (#303)', () => {
     expect(html).toContain('g-card')
     expect(html).not.toContain('--_pointer')
     expect(mq.queries).toEqual([])
+  })
+})
+
+// Auditoría de la pista, hallazgo 1 (WCAG 2.4.7): data-g-key-focus en el radio de selección (utils/keyFocus.js)
+describe('data-g-key-focus', () => {
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }))
+  const pointer = (el) => el.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }))
+
+  it('selectType="radio": Tab y flecha lo ponen; blur y pointerdown lo quitan; el clic no lo pone', async () => {
+    const Group = { render: () => h('div', { role: 'radiogroup', 'aria-label': 'Plan' }, ['a', 'b'].map((v) => h(GCard, { key: v, title: `Plan ${v}`, interaction: 'select', selectType: 'radio', name: 'plan', value: v, modelValue: 'a' }))) }
+    const before = _track.count
+    const w = mount(Group, { attachTo: document.body })
+    const [a, b] = w.findAll('input.g-card__select').map((i) => i.element)
+    expect(_track.count).toBe(before + 2)
+    key('Tab')
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(true)
+    key('ArrowDown')
+    b.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+    expect(b.hasAttribute('data-g-key-focus')).toBe(true)
+    pointer(document.body)
+    expect(b.hasAttribute('data-g-key-focus')).toBe(false)
+    b.blur()
+    pointer(a)
+    a.focus()
+    expect(a.hasAttribute('data-g-key-focus')).toBe(false)
+    w.unmount()
+    expect(_track.count).toBe(before)
+  })
+
+  it('casilla (checkbox) o sin casilla: ni escucha ni atributo', async () => {
+    const before = _track.count
+    const w = mk({ interaction: 'select', modelValue: false })
+    expect(_track.count).toBe(before)
+    key('Tab')
+    w.find('input').element.focus()
+    expect(w.find('input').element.hasAttribute('data-g-key-focus')).toBe(false)
+    await w.setProps({ selectType: 'radio', name: 'p', value: 'x' })
+    expect(_track.count).toBe(before + 1)
+    w.unmount()
+    expect(_track.count).toBe(before)
   })
 })

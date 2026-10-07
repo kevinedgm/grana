@@ -7,6 +7,7 @@ import GDialog from '../GDialog/GDialog.vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { fill } from '../../utils/template.js'
+import { useKeyFocus } from '../../utils/keyFocus.js'
 
 defineOptions({ name: 'GWidgetGallery', inheritAttrs: false })
 
@@ -28,6 +29,9 @@ const emit = defineEmits(['update:modelValue', 'add', 'search', 'open', 'closed'
 const attrs = useAttrs()
 const slots = useSlots()
 const uid = useId()
+// Foco por flechas en WebKit (auditoría de la pista, hallazgo 1; WCAG 2.4.7): data-g-key-focus en la categoría enfocada
+// con una tecla de navegación (utils/keyFocus.js); escucha solo con la galería abierta
+const keyFocus = useKeyFocus(() => props.modelValue)
 const rootId = computed(() => props.id || `g-widget-gallery-${uid}`)
 const L = computed(() => props.labels || {})
 
@@ -146,11 +150,11 @@ const cardId = (item, part) => `${rootId.value}-${String(item.id)}-${part}`
     <fieldset v-if="categoryList.length" class="g-widget-gallery__cats">
       <legend class="g-widget-gallery__sr">{{ L.categories }}</legend>
       <label class="g-widget-gallery__cat">
-        <input type="radio" :name="`${rootId}-cat`" value="all" :checked="category === 'all'" @change="category = 'all'">
+        <input type="radio" :name="`${rootId}-cat`" value="all" :checked="category === 'all'" @change="category = 'all'" @focus="keyFocus.onFocus" @blur="keyFocus.onBlur">
         <span><GIcon class="g-widget-gallery__cat-mark" name="check" />{{ L.all }}</span>
       </label>
       <label v-for="c in categoryList" :key="c.id" class="g-widget-gallery__cat">
-        <input type="radio" :name="`${rootId}-cat`" :value="c.id" :checked="category === c.id" @change="category = c.id">
+        <input type="radio" :name="`${rootId}-cat`" :value="c.id" :checked="category === c.id" @change="category = c.id" @focus="keyFocus.onFocus" @blur="keyFocus.onBlur">
         <span><GIcon class="g-widget-gallery__cat-mark" name="check" />{{ c.label }}</span>
       </label>
     </fieldset>
