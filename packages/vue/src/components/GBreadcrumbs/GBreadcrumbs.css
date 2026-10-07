@@ -1,0 +1,556 @@
+/*
+  GBreadcrumbs · migas de pan: A «Ruta líquida» + la cara de B «Escalón» como última etapa + las puertas de C con datos
+  Dueño: coco. Contrato: design/contracts/breadcrumbs.md (decisiones #490 a #503). Estructura: design/lab/breadcrumbs/r01/
+  (kiwi). Estética, constantes y medidas: design/lab/breadcrumbs/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*) (propios --_bc-*; --_depth, --_x, --_y y --_max los escribe bruno en
+  línea); sin @layer (lo aplica el registro); sin valores de respaldo. Literales: 24px y 44px (área táctil), 20ch, 3ch y 8ch
+  (tope, pastilla y suelo del actual; #501), los pesos de flex-shrink 100000 · 30 · 1 · 0 (#495), los giros 90deg y 180deg
+  (#500) y el patrón de texto oculto accesible. Nada más.
+  Carácter: la ruta es una fila de nombres sueltos que se aprietan por el medio; un nombre solo se vuelve pastilla cuando
+  esconde letras (la pastilla ES la señal «aquí hay más»), y el actual es la única pastilla de color, «estás aquí», que
+  sigue siendo el mismo objeto en la cara de B. Las puertas son el separador entornado: un chevron en un hueco redondo que
+  al abrirse gira hacia el panel y toma el acento. Al bajar, el nivel nuevo sale de detrás del anterior con el muelle.
+*/
+
+/* ---------- Raíz: el ancho lo da el contenedor, nunca el contenido (si dependiera de la etapa, la etapa se atascaría) ---------- */
+.g-breadcrumbs {
+  --_bc-dir: 1;
+  /* Alto de la fila Y de la cara de B: el mismo valor en las cuatro etapas (Δ0, #495) */
+  --_bc-h: max(24px, calc(var(--g-space-1) * 7));
+  --_bc-target: 24px;
+  --_bc-pad: calc(var(--g-space-1) * 2);
+  --_bc-gap: var(--g-space-1);
+  /* Separador: 1em de chevron + space × 0,5 a cada lado; puerta: un hueco redondo de space × 6 */
+  --_bc-sep: calc(1em + var(--g-space-1));
+  --_bc-door: max(24px, calc(var(--g-space-1) * 6));
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  contain: inline-size;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  letter-spacing: var(--g-text-body-sm-tracking);
+  color: var(--g-color-text-muted);
+}
+.g-breadcrumbs:dir(rtl) { --_bc-dir: -1; }
+
+/* ---------- Fila (etapas liquid, root-icon y shrink) y lista de medida ---------- */
+.g-breadcrumbs__list,
+.g-breadcrumbs__measure {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--_bc-h);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* El nivel que llega sale de DETRÁS del anterior: un contexto propio para su z-index */
+  isolation: isolate;
+}
+/* Primer pintado sin medir (SSR): la fila recorta su desbordamiento en línea hasta is-ready; después nada desborda */
+.g-breadcrumbs:not(.is-ready) > .g-breadcrumbs__list { overflow-x: clip; }
+/* Lista de medida de bruno (aria-hidden, inert): misma geometría, fuera de la vista y del puntero. Lleva su propio
+   data-stage (la etapa que se prueba), que no es la de la raíz */
+.g-breadcrumbs__measure {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ---------- Un nivel: su papel decide cuánto cede (pesos de #495) ---------- */
+.g-breadcrumbs__item {
+  --_bc-icn: 0;
+  --_bc-lead: var(--_bc-sep);
+  --_bc-k: 0;
+  --_bc-min: 0;
+  /* Pastilla mínima (en medio y padre): lo de delante + icono si lo hay + 3ch de nombre + relleno; ≥ el área táctil */
+  --_bc-chip: calc(var(--_bc-lead) + max(var(--_bc-target), var(--_bc-pad) * 2 + (1em + var(--_bc-gap)) * var(--_bc-icn) + 3ch));
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex: 0 var(--_bc-k) auto;
+  min-inline-size: var(--_bc-min);
+}
+.g-breadcrumbs__item:has(> .g-breadcrumbs__door) { --_bc-lead: calc(var(--_bc-door) + var(--g-space-1)); }
+.g-breadcrumbs__item:has(> .g-breadcrumbs__link > .g-breadcrumbs__icon) { --_bc-icn: 1; }
+.g-breadcrumbs__item.is-mid { --_bc-k: 100000; --_bc-min: var(--_bc-chip); }
+.g-breadcrumbs__item.is-parent { --_bc-k: 30; --_bc-min: var(--_bc-chip); }
+/* El actual no cede en liquid ni en root-icon; en shrink cede hasta 8ch de nombre. Con un nombre más corto que 8ch, shrink
+   no cabe nunca si no cupo la etapa anterior (el actual no tiene qué ceder), así que el suelo no llega a pintarse */
+.g-breadcrumbs__item.is-current { --_bc-k: 0; font-weight: var(--g-text-action-weight); }
+:where(.g-breadcrumbs[data-stage="shrink"]) > .g-breadcrumbs__list > .g-breadcrumbs__item.is-current,
+.g-breadcrumbs__measure[data-stage="shrink"] > .g-breadcrumbs__item.is-current {
+  --_bc-k: 1;
+  --_bc-min: calc(var(--_bc-lead) + max(var(--_bc-target), var(--_bc-pad) * 2 + (1em + var(--_bc-gap)) * var(--_bc-icn) + 8ch));
+}
+/* Un solo nivel: el actual se acorta sin suelo (también mientras sale la copia del que se fue, que va detrás) */
+.g-breadcrumbs__item.is-current:first-child { --_bc-k: 1; --_bc-min: var(--_bc-target); }
+/* La raíz, entera o en su icono, nunca a medias (manda sobre is-parent cuando hay dos niveles) */
+.g-breadcrumbs__item.is-root { flex: none; min-inline-size: 0; }
+
+/* Despliegue por teclado (#496): la miga con :focus-visible pierde el tope y casi no cede; sin transición de tamaño */
+.g-breadcrumbs__item:not(.is-current):has(> .g-breadcrumbs__link:focus-visible) { --_bc-k: 1; z-index: 2; }
+.g-breadcrumbs__item:has(> .g-breadcrumbs__link:focus-visible) > .g-breadcrumbs__link .g-breadcrumbs__label { max-inline-size: none; }
+
+/* ---------- Separador decorativo (Lucide chevron-right, flip-rtl, aria-hidden) ---------- */
+.g-breadcrumbs__sep {
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+  margin-inline: calc(var(--g-space-1) * 0.5);
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Destino: enlace o texto (fila, «Subir», escalera y paneles comparten esta base) ---------- */
+.g-breadcrumbs__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--_bc-gap);
+  box-sizing: border-box;
+  min-inline-size: var(--_bc-target);
+  min-block-size: var(--_bc-h);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--_bc-pad);
+  border-radius: var(--g-radius-pill);
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+/* En la fila el enlace llena su nivel (si el mínimo de la pastilla supera el nombre, el nombre queda centrado) y cede */
+.g-breadcrumbs__item > .g-breadcrumbs__link {
+  position: relative;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-inline-size: var(--_bc-target);
+}
+.g-breadcrumbs__link--text { cursor: default; }
+.g-breadcrumbs__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1em;
+  block-size: 1em;
+}
+.g-breadcrumbs__icon .g-icon { inline-size: 1em; block-size: 1em; }
+.g-breadcrumbs__label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Tope de nombre (#495): un nombre largo es pastilla también a 1100px; el actual no lo tiene */
+.g-breadcrumbs__item > .g-breadcrumbs__link .g-breadcrumbs__label,
+.g-breadcrumbs__up .g-breadcrumbs__label { max-inline-size: 20ch; }
+.g-breadcrumbs__item.is-current > .g-breadcrumbs__link .g-breadcrumbs__label { max-inline-size: none; }
+
+/* Pastilla: un nombre recortado (data-clipped, medido por bruno) toma fondo; un nombre entero es texto suelto */
+.g-breadcrumbs__item[data-clipped] > .g-breadcrumbs__link {
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-on-neutral-soft);
+}
+/* Actual: la única pastilla de color, «estás aquí», siempre (también entera y también recortada) */
+.g-breadcrumbs__item.is-current > .g-breadcrumbs__link {
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+}
+
+/* Raíz en solo su icono (root-icon y shrink): un círculo del alto de la fila; el nombre sigue en el árbol */
+.g-breadcrumbs__item.is-icon > .g-breadcrumbs__link {
+  inline-size: var(--_bc-h);
+  padding-inline: 0;
+  gap: 0;
+}
+.g-breadcrumbs__item.is-icon > .g-breadcrumbs__link .g-breadcrumbs__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Puerta (C, #498): el separador entornado ---------- */
+/* En reposo: el mismo chevron, en un hueco redondo neutral-soft y un tono más fuerte (text-muted frente a text-subtle).
+   Se distingue del separador por forma y tono; al pasar aparece el marco; abierta, gira hacia su panel y toma el acento */
+.g-breadcrumbs__door {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_bc-door);
+  block-size: var(--_bc-door);
+  margin-block: 0;
+  margin-inline: calc(var(--g-space-1) * 0.5);
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-text-muted);
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-breadcrumbs__door .g-icon { inline-size: 1em; block-size: 1em; }
+.g-breadcrumbs__door[aria-expanded="true"] {
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+}
+.g-breadcrumbs__door[aria-expanded="true"] .g-icon { rotate: calc(90deg * var(--_bc-dir)); }
+
+/* ---------- Cara de B (etapa step, #497): «Subir · página», del mismo alto que la fila ---------- */
+.g-breadcrumbs__face {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--_bc-h);
+}
+.g-breadcrumbs__up,
+.g-breadcrumbs__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--_bc-gap);
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  min-inline-size: var(--_bc-target);
+  min-block-size: var(--_bc-h);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--_bc-pad);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* «Subir»: la acción, en pastilla neutra con arrow-up (subir en la jerarquía no es «atrás») */
+.g-breadcrumbs__up {
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-on-neutral-soft);
+}
+.g-breadcrumbs__up .g-icon,
+.g-breadcrumbs__chevron {
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+}
+/* La divulgación es la misma pastilla de acento que el actual de la fila: «estás aquí» no cambia de forma con la etapa */
+.g-breadcrumbs__toggle {
+  min-inline-size: 0;
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  cursor: pointer;
+  appearance: none;
+}
+.g-breadcrumbs__toggle[aria-expanded="true"] .g-breadcrumbs__chevron { rotate: 180deg; }
+
+/* ---------- Paneles: escalera y puertas, en la capa superior (#499) ---------- */
+/* Coordenadas físicas del visor calculadas por bruno (placeBlock): por eso left/top, como GMenu y GHelper. Cerrados, el
+   display del agente de usuario ([popover]:not(:popover-open)); ninguna regla lo cambia fuera de :popover-open */
+.g-breadcrumbs__panel,
+.g-breadcrumbs__stairs {
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  inline-size: max-content;
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-1);
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  letter-spacing: var(--g-text-body-sm-tracking);
+  white-space: normal;
+  color: var(--g-color-text);
+  background: var(--g-color-surface);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  box-shadow: var(--g-shadow-2);
+  opacity: 0;
+}
+.g-breadcrumbs__panel {
+  min-inline-size: calc(var(--g-space-1) * 48);
+  max-inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - var(--g-space-1) * 4));
+}
+.g-breadcrumbs__stairs {
+  min-inline-size: calc(var(--g-space-1) * 56);
+  max-inline-size: min(calc(var(--g-space-1) * 90), calc(100vw - var(--g-space-1) * 4));
+  padding: var(--g-space-2);
+}
+.g-breadcrumbs__panel:popover-open,
+.g-breadcrumbs__stairs:popover-open {
+  display: block;
+  opacity: 1;
+}
+/* Destinos dentro de un panel: el nombre se parte en líneas (no se recorta), texto `text`, fondo al pasar */
+.g-breadcrumbs__panel .g-breadcrumbs__link,
+.g-breadcrumbs__stair .g-breadcrumbs__link {
+  display: flex;
+  gap: var(--g-space-2);
+  inline-size: 100%;
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-sm);
+  white-space: normal;
+  color: var(--g-color-text);
+}
+.g-breadcrumbs__panel .g-breadcrumbs__label,
+.g-breadcrumbs__stair .g-breadcrumbs__label {
+  max-inline-size: none;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.g-breadcrumbs__panel .g-breadcrumbs__link--text,
+.g-breadcrumbs__stair .g-breadcrumbs__link--text { color: var(--g-color-text-muted); }
+/* Puerta: el hijo de esta ruta, con peso y el check de Lucide al final */
+.g-breadcrumbs__panel .g-breadcrumbs__link[aria-current="true"] { font-weight: var(--g-text-action-weight); }
+.g-breadcrumbs__here {
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+  margin-inline-start: auto;
+  color: var(--g-color-accent-text);
+}
+
+/* Escalera: cada nivel space × 4 más adentro; guía en L de borde desde el anterior; el actual con barra accent-text */
+.g-breadcrumbs__stair {
+  position: relative;
+  padding-inline-start: calc(var(--g-space-1) * 4 * var(--_depth));
+}
+.g-breadcrumbs__stair .g-breadcrumbs__link {
+  border-inline-start: calc(var(--g-border-width) * 2) solid transparent;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.g-breadcrumbs__stair + .g-breadcrumbs__stair::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--g-space-1) * (4 * var(--_depth) - 2));
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 1.5);
+  block-size: 50%;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+  border-end-start-radius: var(--g-radius-xs);
+  pointer-events: none;
+}
+.g-breadcrumbs__stair.is-current .g-breadcrumbs__link {
+  border-inline-start-color: var(--g-color-accent-text);
+  font-weight: var(--g-text-action-weight);
+}
+
+/* ---------- Foco: siempre visible; dentro de un panel, por dentro (el panel se desplaza y recortaría el anillo) ---------- */
+.g-breadcrumbs :is(.g-breadcrumbs__link, .g-breadcrumbs__door, .g-breadcrumbs__up, .g-breadcrumbs__toggle):focus { outline: none; }
+.g-breadcrumbs :is(.g-breadcrumbs__link, .g-breadcrumbs__door, .g-breadcrumbs__up, .g-breadcrumbs__toggle):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-breadcrumbs :is(.g-breadcrumbs__panel, .g-breadcrumbs__stairs) .g-breadcrumbs__link:focus-visible {
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+/* ---------- Puntero ---------- */
+@media (hover: hover) {
+  .g-breadcrumbs__item > a.g-breadcrumbs__link:hover { color: var(--g-color-text); }
+  .g-breadcrumbs__item > a.g-breadcrumbs__link:hover .g-breadcrumbs__label,
+  .g-breadcrumbs__panel a.g-breadcrumbs__link:hover .g-breadcrumbs__label,
+  .g-breadcrumbs__stair a.g-breadcrumbs__link:hover .g-breadcrumbs__label {
+    text-decoration: underline;
+    text-decoration-thickness: var(--g-border-width);
+    text-underline-offset: var(--g-focus-offset);
+  }
+  /* El actual conserva su par de acento; la pastilla recortada, el suyo */
+  .g-breadcrumbs__item.is-current > a.g-breadcrumbs__link:hover { color: var(--g-color-on-accent-soft); }
+  .g-breadcrumbs__item[data-clipped]:not(.is-current) > a.g-breadcrumbs__link:hover { color: var(--g-color-on-neutral-soft); }
+  /* Raíz en solo icono: sin nombre que subrayar, aparece el círculo */
+  .g-breadcrumbs__item.is-icon > a.g-breadcrumbs__link:hover {
+    background: var(--g-color-neutral-soft);
+    color: var(--g-color-text);
+  }
+  .g-breadcrumbs__door:hover {
+    color: var(--g-color-text);
+    box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border-control);
+  }
+  .g-breadcrumbs__door[aria-expanded="true"]:hover { color: var(--g-color-on-accent-soft); }
+  .g-breadcrumbs__up:hover {
+    background: var(--g-color-neutral-strong);
+    color: var(--g-color-on-neutral);
+  }
+  .g-breadcrumbs__toggle:hover { box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-on-accent-soft); }
+  .g-breadcrumbs__panel a.g-breadcrumbs__link:hover,
+  .g-breadcrumbs__stair a.g-breadcrumbs__link:hover { background: var(--g-color-neutral-soft); }
+}
+
+/* ---------- Puntero grueso: cada destino ≥ 44 × 44 (la pastilla crece hasta ese mínimo; la fila y la cara, también) ---------- */
+@media (pointer: coarse) {
+  .g-breadcrumbs {
+    --_bc-h: max(44px, calc(var(--g-space-1) * 7));
+    --_bc-target: 44px;
+    --_bc-door: 44px;
+  }
+  .g-breadcrumbs__panel .g-breadcrumbs__link,
+  .g-breadcrumbs__stair .g-breadcrumbs__link { min-block-size: 44px; }
+}
+
+/* ---------- Movimiento (#500): nada al montar (is-ready), ni el despliegue por foco ni el cambio de etapa ---------- */
+/* Color y fondo: pastilla que aparece o se va, el acento que pasa de un nivel a otro, la puerta que se abre */
+.g-breadcrumbs.is-ready :is(.g-breadcrumbs__link, .g-breadcrumbs__door, .g-breadcrumbs__up, .g-breadcrumbs__toggle) {
+  transition:
+    color var(--g-duration-fast) var(--g-ease-out),
+    background-color var(--g-duration-fast) var(--g-ease-out),
+    box-shadow var(--g-duration-fast) var(--g-ease-out);
+}
+/* El que llega va debajo del anterior (sale de detrás); la copia del que se va, también (se recoge hacia él) */
+.g-breadcrumbs__item.is-entering,
+.g-breadcrumbs__item.is-leaving { z-index: 0; }
+/* Copia saliente (aria-hidden, inert, sin ids): no ocupa sitio en la fila ni recibe el puntero; mientras está, la fila
+   recorta en línea para que nunca asome fuera del nav */
+.g-breadcrumbs__item.is-leaving {
+  flex: 0 0 0;
+  min-inline-size: 0;
+  max-inline-size: 0;
+  pointer-events: none;
+}
+.g-breadcrumbs__item.is-leaving > .g-breadcrumbs__link,
+.g-breadcrumbs__item.is-leaving > .g-breadcrumbs__sep { flex: none; }
+.g-breadcrumbs__list:has(> .g-breadcrumbs__item.is-leaving) { overflow-x: clip; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Bajar: desplazamiento desde space × 3 hacia el inicio con el muelle (quinto uso, solo el translate) y opacidad con
+     press + ease-out */
+  .g-breadcrumbs.is-ready .g-breadcrumbs__item.is-entering {
+    animation:
+      g-breadcrumbs-enter var(--g-duration-slow) var(--g-ease-out) both,
+      g-breadcrumbs-enter-fade var(--g-duration-press) var(--g-ease-out) both;
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-breadcrumbs.is-ready .g-breadcrumbs__item.is-entering {
+      animation-timing-function: var(--g-ease-spring), var(--g-ease-out);
+    }
+  }
+  /* Subir: la copia se recoge hacia el anterior y desaparece (press + ease-out: salida más corta que la entrada) */
+  .g-breadcrumbs.is-ready .g-breadcrumbs__item.is-leaving {
+    animation: g-breadcrumbs-leave var(--g-duration-press) var(--g-ease-out) both;
+  }
+  /* La escalera baja escalón a escalón: retardo fast × min(i, 4) / 4 (toda ella ≤ slow + fast) */
+  .g-breadcrumbs__stairs:popover-open > .g-breadcrumbs__stair {
+    animation: g-breadcrumbs-stair var(--g-duration-slow) var(--g-ease-out) both;
+    animation-delay: calc(var(--g-duration-fast) * min(var(--_depth), 4) / 4);
+  }
+  /* Giros: la puerta 90° hacia su panel (−90° sobre el espejo en RTL); la divulgación 180° */
+  .g-breadcrumbs.is-ready .g-breadcrumbs__door .g-icon,
+  .g-breadcrumbs.is-ready .g-breadcrumbs__chevron {
+    transition: rotate var(--g-duration-press) var(--g-ease-out);
+  }
+  /* Paneles: entrada press + ease-out desde space × 1 hacia el disparador; salida fast (Chromium; Firefox y WebKit
+     cierran en el acto, #394) */
+  .g-breadcrumbs__panel,
+  .g-breadcrumbs__stairs {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-breadcrumbs__panel:popover-open,
+  .g-breadcrumbs__stairs:popover-open {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-breadcrumbs__panel:popover-open,
+    .g-breadcrumbs__stairs:popover-open {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+    .g-breadcrumbs__panel[data-side="top"]:popover-open,
+    .g-breadcrumbs__stairs[data-side="top"]:popover-open { translate: 0 var(--g-space-1); }
+  }
+}
+/* Movimiento reducido (patrón único, #299): nada se desplaza ni gira; el nivel nuevo aparece en su sitio con un fundido
+   fast; la copia saliente no existe (si existiera, no se pinta); la escalera aparece entera; los paneles, fundido */
+@media (prefers-reduced-motion: reduce) {
+  .g-breadcrumbs.is-ready .g-breadcrumbs__item.is-entering {
+    animation: g-breadcrumbs-enter-fade var(--g-duration-fast) var(--g-ease-out) both;
+  }
+  .g-breadcrumbs__item.is-leaving { display: none; }
+  .g-breadcrumbs__panel,
+  .g-breadcrumbs__stairs {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  @starting-style {
+    .g-breadcrumbs__panel:popover-open,
+    .g-breadcrumbs__stairs:popover-open { opacity: 0; }
+  }
+}
+@keyframes g-breadcrumbs-enter {
+  from { translate: calc(var(--g-space-1) * -3 * var(--_bc-dir)) 0; }
+}
+@keyframes g-breadcrumbs-enter-fade {
+  from { opacity: 0; }
+}
+@keyframes g-breadcrumbs-leave {
+  to { translate: calc(var(--g-space-1) * -3 * var(--_bc-dir)) 0; opacity: 0; }
+}
+@keyframes g-breadcrumbs-stair {
+  from { translate: calc(var(--g-space-1) * -2 * var(--_bc-dir)) 0; opacity: 0; }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  /* El actual, subrayado (la pastilla de color desaparece); en la escalera también */
+  .g-breadcrumbs__item.is-current > .g-breadcrumbs__link .g-breadcrumbs__label,
+  .g-breadcrumbs__toggle .g-breadcrumbs__label,
+  .g-breadcrumbs__stair.is-current .g-breadcrumbs__label { text-decoration: underline; }
+  /* Controles con forma: borde ButtonText (la puerta, «Subir» y la divulgación) */
+  .g-breadcrumbs__door,
+  .g-breadcrumbs__up,
+  .g-breadcrumbs__toggle {
+    border: var(--g-border-width) solid ButtonText;
+    color: ButtonText;
+  }
+  .g-breadcrumbs__door[aria-expanded="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+  .g-breadcrumbs__panel,
+  .g-breadcrumbs__stairs { border-color: CanvasText; }
+  .g-breadcrumbs__stair .g-breadcrumbs__link { border-inline-start-color: Canvas; }
+  .g-breadcrumbs__stair.is-current .g-breadcrumbs__link { border-inline-start-color: CanvasText; }
+  .g-breadcrumbs__stair + .g-breadcrumbs__stair::before { border-color: GrayText; }
+}
