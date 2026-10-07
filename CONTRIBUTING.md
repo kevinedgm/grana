@@ -61,7 +61,9 @@ grep -q "g-btn--variant-soft" packages/vue/dist/grana.css   # el estilo del comp
 ! grep -q "createApp" packages/vue/dist/grana.umd.js        # Vue no quedó empaquetado
 ```
 
-Además, `npm test` y `npm run build` en verde. Si añades un componente, añade al menos una compuerta `grep -q "<clase-del-componente>"` sobre `grana.css` (la lista completa está en `CLAUDE.md`, «Verificación»). Corrige primero lo que toca: una corrección pequeña se verifica con el archivo de pruebas afectado y se confirma que **fallaba antes y pasa después**; la pasada completa se hace una vez al cerrar el componente o el lote de cambios.
+Esas tres y el resto de compuertas están reunidas en `bash .github/scripts/gates.sh` (se ejecuta tras `npm run build`, informa de cada fallo y sale con 1 si falla alguna); la integración continua lo corre con las pruebas, el build y `check-icons` en [`.github/workflows/ci.yml`](.github/workflows/ci.yml), y la pasada completa de navegador en Chromium, Firefox y WebKit está en [`.github/workflows/e2e-full.yml`](.github/workflows/e2e-full.yml) (nocturna y manual). Además, `npm test` y `npm run build` en verde.
+
+**El `meta.json` es el contrato de los tipos de TypeScript:** `npm run build` genera `dist/<entrada>.d.ts` desde él, así que todo prop, evento o slot nuevo debe constar en el `meta.json` del componente o el build falla (lo que el `meta.json` no puede expresar va en `packages/vue/types/`). Si añades un componente, añade al menos una compuerta `grep -q "<clase-del-componente>"` sobre `grana.css` (la lista completa está en `CLAUDE.md`, «Verificación»). Corrige primero lo que toca: una corrección pequeña se verifica con el archivo de pruebas afectado y se confirma que **fallaba antes y pasa después**; la pasada completa se hace una vez al cerrar el componente o el lote de cambios.
 
 ## Las reglas que no se rompen
 

@@ -18,7 +18,7 @@ Esta es una **beta**. Qué significa:
 - **La API puede cambiar** entre betas. Las decisiones de diseño están registradas en [`DECISIONS.md`](DECISIONS.md) y los contratos en [`docs/contract/`](docs/contract/) y [`design/contracts/`](design/contracts/), pero ninguno está congelado como API estable.
 - **`candidate`** es el estado de todos los componentes: tienen contrato, CSS, pruebas, `meta.json`, README y una auditoría del componente real con un tema distinto al por defecto, sin defectos bloqueantes, en Chromium, Firefox y WebKit.
 - **Falta la verificación en entorno real:** lector de pantalla (VoiceOver, NVDA), Safari real, táctil y móvil reales, `forced-colors` real y zoom real al 200 y 400 %. Está listado en [`PENDIENTES.md`](PENDIENTES.md), sección 7. Si dependes de alguno de esos entornos, pruébalo antes de adoptar un componente.
-- **Todavía no está publicada en npm.** Mientras tanto se usa desde este repositorio (ver [Probarlo en este repositorio](#probarlo-en-este-repositorio)). Las instrucciones de instalación de abajo son las de la publicación.
+- **Todavía no está publicada en npm.** Se publicará como `0.1.0-beta.0` (la versión que ya llevan `@grana/vue`, `@grana/cli` y el `package.json` raíz). Mientras tanto se usa desde este repositorio (ver [Probarlo en este repositorio](#probarlo-en-este-repositorio)). Las instrucciones de instalación de abajo son las de la publicación.
 
 ## Instalación
 
@@ -59,7 +59,19 @@ import { GBtn, GInput } from '@grana/vue'
 import '@grana/vue/style.css'
 ```
 
-Los componentes se exportan por nombre. El JavaScript es un único módulo ES con exportaciones nombradas y `sideEffects` solo para CSS, de modo que tu empaquetador puede descartar lo que no importes; **no se ha medido el efecto real del tree-shaking**. La **hoja de CSS es una sola** y no se parte por componente.
+Los componentes se exportan por nombre. El JavaScript es un único módulo ES con exportaciones nombradas y `sideEffects` solo para CSS, y cada componente está marcado como puro (`packages/vue/scripts/pure-components.mjs`), de modo que tu empaquetador descarta lo que no importes. La **hoja de CSS es una sola** y no se parte por componente.
+
+#### Tamaño e importación parcial
+
+Importar un componente no arrastra el resto. Cifras medidas por bruno en la Fase B (gzip, con Vue como dependencia externa):
+
+| Qué importas | JavaScript (gzip) |
+| --- | --- |
+| Solo `GBtn` | ≈ 10,9 KB (Rollup), ≈ 11,1 KB (esbuild) |
+| Toda la librería | ≈ 155 KB |
+| La hoja de CSS (`style.css`, siempre entera) | ≈ 69 KB |
+
+Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB (Rollup) y 137,8 KB (esbuild). El resultado en tu aplicación depende de tu empaquetador y de qué más importes; el CSS no se parte por componente, así que su coste es fijo.
 
 ### CSS y fuentes
 
@@ -68,7 +80,9 @@ Los componentes se exportan por nombre. El JavaScript es un único módulo ES co
 | `@grana/vue/style.css` | `grana.css` | CSS de todos los componentes y el tema por defecto, en capas (`grana.defaults`, `grana.components`). **Obligatorio.** |
 | `@grana/vue/fonts.css` | `fonts.css` + `fonts/*.woff2` | Instrument Sans variable (licencia SIL OFL), en dos subconjuntos (`latin` y `latin-ext`). **Opcional**: si tu tema define otra fuente, omítelo. La fuente **no** va incrustada en `grana.css`: el empaquetador la copia como archivo. |
 
-Si el paquete se usa con `<script>`, los globales UMD son `dist/grana.umd.js` (global `Grana`, requiere `vue.global.js` antes) y los de cada entrada propia (abajo).
+#### ESM y UMD para CDN
+
+El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField` y `testing.umd.js` con `GranaTesting`).
 
 ### Entradas propias
 
@@ -93,6 +107,34 @@ createApp(App).use(Grana).use(Combobox).mount('#app')   // registra <g-combobox>
 ```
 
 **`@grana/vue/testing`** reúne ayudas **para probar tu aplicación**, no es para producción: `createSimulatedSpeechAdapter` (adaptador de voz sin red, con hablantes por guion) y `createSimulatedUploader` (adaptador de subida de `GFileField` sin red). No importa Vue ni se incluye en el paquete principal (global UMD `GranaTesting`).
+
+### TypeScript
+
+Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
+
+Tras `app.use(...)`, las etiquetas de los componentes quedan tipadas en las plantillas sin importar nada, gracias a `GlobalComponents` de Vue (una declaración por entrada, en PascalCase y en kebab-case):
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { ComboboxOption } from '@grana/vue/combobox'
+
+const value = ref<string | number | null>(null)
+const options: ComboboxOption[] = [{ value: 'p1', label: 'María' }]
+</script>
+
+<template>
+  <g-btn variant="soft" size="lg">Guardar</g-btn>
+  <g-combobox v-model="value" :options="options" label="Paciente" />
+</template>
+```
+
+Los tipos de datos se importan de la entrada a la que pertenecen. El uso correcto y 15 usos erróneos se comprueban con `vue-tsc` en `packages/vue/src/types.test.js`; el paquete declara `types` en `exports` y también `typesVersions`, para `moduleResolution: "node"`.
+
+**Límites:**
+
+- Sin `strictTemplates` (opción `vueCompilerOptions` de `vue-tsc`) la comprobación de plantillas es laxa: no se avisa de una prop obligatoria ausente. Actívalo en tu proyecto si quieres ese aviso.
+- Los tipos de opciones y elementos (`ComboboxOption`, grupos, entradas…) aceptan **campos propios** de tu aplicación (llevan una firma de índice) para que los conserves y los recibas en los slots; por eso un nombre de campo mal escrito no se marca como error.
 
 ### Iconos
 

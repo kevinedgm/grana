@@ -4,7 +4,7 @@ Componentes **Vue 3** con tema por tokens. Los componentes traen la **estructura
 
 > *The only bug you'll want in your UI.*
 
-**Estado: `0.1.0-beta`.** La API puede cambiar entre betas y falta la verificación en entorno real (lectores de pantalla, Safari real, móvil real). Todos los componentes están en `candidate`: con contrato, CSS, pruebas y auditoría en Chromium, Firefox y WebKit. Documentación completa, catálogo de componentes, tematización y contribución: [README del repositorio](https://github.com/kevinedgm/grana#readme).
+**Estado: `0.1.0-beta`** (se publicará como `0.1.0-beta.0`). La API puede cambiar entre betas y falta la verificación en entorno real (lectores de pantalla, Safari real, móvil real). Todos los componentes están en `candidate`: con contrato, CSS, pruebas y auditoría en Chromium, Firefox y WebKit. Documentación completa, catálogo de componentes, tematización y contribución: [README del repositorio](https://github.com/kevinedgm/grana#readme).
 
 ## Instalación
 
@@ -32,6 +32,26 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 También por componente: `import { GBtn } from '@grana/vue'`. En plantillas dentro del HTML sin compilar, escribe las etiquetas con cierre explícito (`<g-btn></g-btn>`).
+
+## Tamaño e importación parcial
+
+Importar un componente no arrastra el resto (los componentes están marcados como puros y el paquete solo declara `sideEffects` para CSS). Cifras medidas por bruno en la Fase B, gzip y con Vue externo: `GBtn` solo ≈ 10,9 KB (Rollup) o ≈ 11,1 KB (esbuild); toda la librería ≈ 155 KB. La hoja de CSS es una sola (`@grana/vue/style.css`, ≈ 69 KB gzip) y no se parte por componente. El resultado en tu aplicación depende de tu empaquetador.
+
+## ESM y CDN
+
+El paquete es **solo ESM** (sin CommonJS). Para usarlo con `<script>` desde una CDN, `unpkg` y `jsdelivr` sirven `dist/grana.umd.js` (global `Grana`, con `vue.global.js` antes); cada entrada propia tiene su UMD y su global: `GranaSpeech`, `GranaStatus`, `GranaCombobox`, `GranaFileField`, `GranaTimeField` y `GranaTesting`.
+
+## TypeScript
+
+Los tipos vienen incluidos: no hay `@types` que instalar. Cada entrada tiene su `.d.ts`, generado desde los `meta.json` de los componentes. Tras `app.use(Grana)` (y de cada entrada propia que registres), `<g-btn>` y el resto de etiquetas quedan tipadas en las plantillas por `GlobalComponents`. Los tipos de datos se importan de su entrada:
+
+```ts
+import type { ComboboxOption } from '@grana/vue/combobox'
+
+const options: ComboboxOption[] = [{ value: 'p1', label: 'María' }]
+```
+
+Límites: sin `strictTemplates` (de `vue-tsc`) no se avisa de una prop obligatoria ausente, y los tipos de opciones aceptan campos propios de tu aplicación (no se marca un nombre de campo mal escrito). Detalle en el [README del repositorio](https://github.com/kevinedgm/grana#typescript).
 
 ## Entradas del paquete
 
