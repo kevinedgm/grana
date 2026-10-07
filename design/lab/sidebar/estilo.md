@@ -50,7 +50,7 @@ Decisiones de criterio (con la guía de movimiento del repositorio):
 
 - **No reconstruyas el sidebar** al contraer, expandir, navegar ni abrir un submenú: alterna clases y atributos sobre el mismo DOM (si se recrea el nodo, la transición no corre). El banco lo hace así (`patch`, `syncSubs`, `syncActive`).
 - **Submenú:** `is-open` + `inert` + `aria-expanded` (sin `hidden`).
-- **Panel y pista persistentes:** `showPopover()` / `hidePopover()`, sin quitarlos del DOM; la pista lleva `is-instant` si se mostró otra hace menos de ~600ms (y sin retardo).
+- **Panel persistente:** `showPopover()` / `hidePopover()`, sin quitarlo del DOM. **La pista del riel** ya no es `g-sidebar__tip` (retirado de `GSidebar.css` con `is-instant`): es el motor de `GTooltip` en modo visual (#436), con `GTooltip.css` y ningún estilo propio del sidebar; auditada en `design/lab/tooltip/auditoria-pista.md`.
 - **is-ready** en la raíz (lateral, drawer y navbar) dos cuadros después de montar, e **is-expanding** al pasar de riel a expandida ya montada (600 ms): las insignias y las etiquetas no se animan al cargar.
 - **Navbar:** pon `is-entering` en la raíz al pasar a ese formato y quítala a los ~600ms; cambia `is-current` en el mismo `<li>` para animar la píldora.
 - **Drawer:** no lo desmontes al cerrar; `close()` y deja terminar la transición (~240ms) antes de cambiar de foco o quitar el nodo.
@@ -99,7 +99,7 @@ Colores y radios solo de tokens; medidas solo de `space` y de la altura del item
 
 ## Notas para bruno
 
-- **El panel flotante y la pista van dentro de la raíz `g-sidebar`** (heredan `--_color`, `--_item`, `--_sub`…). Variables dinámicas sobre el panel: `--_x` (distancia **inicial** al borde del visor: en RTL, medida desde la derecha), `--_top`, `--_bottom`, `--_max` y `--_notch` (posición de la muesca); sobre la pista: `--_x` y `--_top`.
+- **El panel flotante y los nodos de la pista van dentro de la raíz `g-sidebar`** (el panel hereda `--_color`, `--_item`, `--_sub`…). Variables dinámicas sobre el panel: `--_x` (distancia **inicial** al borde del visor: en RTL, medida desde la derecha), `--_top`, `--_bottom`, `--_max` y `--_notch` (posición de la muesca). Los nodos de la pista son del motor (#436): ningún selector sobre los hijos de la raíz los cuenta (#383, Δ0 medido).
 - **`g-sidebar--mode-*` decide el formato; `g-sidebar--contained`** posiciona el navbar dentro del contenedor (`absolute`), sin él es `fixed` al visor.
 - **La clase `is-current` va en el `<li>` del navbar** (no en el enlace); la etiqueta de los demás lleva `g-sidebar__label--hidden`. Para animar la píldora al navegar, cambia la clase sobre el mismo DOM (no lo reconstruyas).
 - **`floating`** añade el margen (`space × 3`) al propio sidebar: la aplicación reserva `--g-sidebar-width` (o `--g-sidebar-rail`) **más dos márgenes**.

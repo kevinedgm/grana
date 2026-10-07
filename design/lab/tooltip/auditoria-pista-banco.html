@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pista de solo icono · banco</title>
+<!-- Banco de la auditoría de coco (paso 5) de la pista de solo icono: el motor de GTooltip en modo visual (#433) en
+     GTabs (#434), GRadioGroup labelMode="icon" (#435) y el riel de GSidebar (#436), sobre el COMPONENTE REAL
+     (dist/grana.umd.js + dist/grana.css tal como se publican; el andamio solo coloca los componentes).
+     Requiere dist/ (npm run build). Desde la raíz: python3 -m http.server 4212 → /design/lab/tooltip/auditoria-pista-banco.html
+     Parámetros: ?theme=audit|<generado de dark-color-presence>  ?dark=1  ?part=tabs|radio|rail|all
+     Verificación: GRANA_PW_PORT=4212 node design/lab/tooltip/auditoria-pista-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<script>
+  const P = new URLSearchParams(location.search)
+  const th = P.get('theme')
+  if (th) document.write(`<link rel="stylesheet" href="${th === 'audit' ? './auditoria-tema.css' : `../tema-oscuro/dark-color-presence/generated/${th}.css`}">`)
+  document.documentElement.dataset.theme = P.get('dark') ? 'dark' : 'light'
+  window.PART = P.get('part') || 'all'
+</script>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{max-inline-size:1200px;margin:0 auto;padding-block-end:60vh}
+  h2{font-size:15px;margin:32px 0 8px}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:12px;padding:20px 20px 64px;display:flex;flex-wrap:wrap;gap:48px 40px;align-items:flex-start}
+  .rg{inline-size:300px}
+  .w190{max-inline-size:190px}
+  .w120{max-inline-size:120px}
+  .w170{max-inline-size:170px}
+  .rail{position:relative;display:flex;block-size:600px;inline-size:220px;background:var(--g-color-surface-sunken)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+
+<template v-if="on('tabs')">
+<h2>GTabs · labelMode="icon"</h2>
+<div class="host">
+  <g-tabs v-for="t in TABS" :key="t.id" :id="t.id" :data-case="t.id" :dir="t.dir" :class="t.cls" v-model="tab" :items="t.items || items" :labels="tLabels" label-mode="icon" :appearance="t.appearance" :orientation="t.orientation" :density="t.density" :overflow="t.overflow" responsive="never" :label="t.id"></g-tabs>
+</div>
+</template>
+
+<template v-if="on('radio')">
+<h2>GRadioGroup · labelMode="icon"</h2>
+<div class="host">
+  <div v-for="r in RADIOS" :key="r.id" :class="r.cls || 'rg'" :dir="r.dir">
+    <g-radio-group :id="r.id" :data-case="r.id" v-model="rv[r.opts]" :name="r.id" :appearance="r.appearance" label-mode="icon" :size="r.size" :density="r.density" :field="false" :label="r.id" :options="OPTS[r.opts]"></g-radio-group>
+  </div>
+</div>
+</template>
+
+<template v-if="on('rail')">
+<h2>GSidebar · riel</h2>
+<div class="host">
+  <div v-for="s in RAILS" :key="s.id" class="rail" :dir="s.dir">
+    <g-sidebar :id="s.id" :data-case="s.id" v-model="nav" :items="sbItems" :label="s.id" :labels="sbLabels" mode="rail" :density="s.density" :variant="s.variant" search contained style="flex:none" @navigate="$event.event.preventDefault()">
+      <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+      <template #search-icon><g-icon name="search"></g-icon></template>
+    </g-sidebar>
+  </div>
+</div>
+<h2>GSidebar · los otros tres formatos (#383: Δ0 con y sin nodos; la pista no se activa)</h2>
+<div class="host">
+  <div v-for="f in FORMATS" :key="f" class="rail" style="inline-size:340px" :data-case="f">
+    <g-sidebar :id="f" v-model="nav" :items="sbItems" :label="f" :labels="sbLabels" :mode="f.slice(2)" search contained style="flex:none" @navigate="$event.event.preventDefault()">
+      <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+      <template #search-icon><g-icon name="search"></g-icon></template>
+    </g-sidebar>
+  </div>
+</div>
+</template>
+
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script>
+  const { createApp, ref, reactive } = Vue
+  const app = createApp({
+    setup() {
+      const on = (p) => window.PART === 'all' || window.PART === p
+      const items = [{ id: 'general', label: 'General', icon: 'house' }, { id: 'msgs', label: 'Mensajes', icon: 'mail', count: 3, countLabel: '3 sin leer' }, { id: 'cal', label: 'Calendario', icon: 'calendar' }, { id: 'team', label: 'Equipo', icon: 'users', disabled: true }, { id: 'cfg', label: 'Ajustes', icon: 'settings' }]
+      const tLabels = { more: 'Más pestañas', menu: 'Todas las pestañas', loading: '{label}: cargando', loaded: '{label}: listo' }
+      const TABS = [
+        { id: 't-u', appearance: 'underline' },
+        { id: 't-p', appearance: 'pill' },
+        { id: 't-s', appearance: 'segmented' },
+        { id: 't-c', appearance: 'contained' },
+        { id: 't-u-compact', appearance: 'underline', density: 'compact' },
+        { id: 't-u-comfortable', appearance: 'underline', density: 'comfortable' },
+        { id: 't-s-compact', appearance: 'segmented', density: 'compact' },
+        { id: 't-p-comfortable', appearance: 'pill', density: 'comfortable' },
+        { id: 't-v', appearance: 'underline', orientation: 'vertical' },
+        { id: 't-vp', appearance: 'pill', orientation: 'vertical' },
+        { id: 't-v-compact', appearance: 'underline', orientation: 'vertical', density: 'compact' },
+        { id: 't-more', appearance: 'underline', overflow: 'more', cls: 'w190' },
+        { id: 't-rtl', appearance: 'underline', dir: 'rtl' },
+        { id: 't-s-rtl', appearance: 'segmented', dir: 'rtl' },
+        { id: 't-v-rtl', appearance: 'underline', orientation: 'vertical', dir: 'rtl' },
+        { id: 't-one', appearance: 'underline', items: items.slice(0, 1) }
+      ]
+      const OPTS = {
+        vistas: [{ value: 'lista', label: 'Lista', icon: 'menu' }, { value: 'grafica', label: 'Gráfica', icon: 'chart-column' }, { value: 'galeria', label: 'Galería', icon: 'image' }],
+        canales: [{ value: 'correo', label: 'Correo', icon: 'mail' }, { value: 'mensaje', label: 'Mensaje', icon: 'message-circle' }, { value: 'web', label: 'Web', icon: 'globe' }, { value: 'lugar', label: 'Lugar', icon: 'map-pin' }, { value: 'cal', label: 'Calendario', icon: 'calendar' }, { value: 'casa', label: 'Domicilio', icon: 'house' }]
+      }
+      const RADIOS = [
+        ...['xs', 'sm', 'md', 'lg', 'xl'].map((size) => ({ id: `r-s-${size}`, appearance: 'segmented', size, opts: 'vistas' })),
+        ...['xs', 'sm', 'md', 'lg', 'xl'].map((size) => ({ id: `r-c-${size}`, appearance: 'chip', size, opts: 'vistas' })),
+        { id: 'r-s-compact', appearance: 'segmented', density: 'compact', opts: 'vistas' },
+        { id: 'r-c-comfortable', appearance: 'chip', density: 'comfortable', opts: 'vistas' },
+        { id: 'r-stack', appearance: 'segmented', opts: 'vistas', cls: 'w120' },
+        { id: 'r-wrap', appearance: 'chip', opts: 'canales', cls: 'w170' },
+        { id: 'r-s-rtl', appearance: 'segmented', opts: 'vistas', dir: 'rtl' },
+        { id: 'r-c-rtl', appearance: 'chip', opts: 'canales', dir: 'rtl', cls: 'w170' },
+        { id: 'r-stack-rtl', appearance: 'segmented', opts: 'vistas', dir: 'rtl', cls: 'w120' }
+      ]
+      const rv = reactive({ vistas: 'lista', canales: 'correo' })
+      const sbItems = [
+        { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }, { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'message-circle', dot: true, badgeLabel: 'Hay mensajes nuevos' }] },
+        { label: 'Espacio de trabajo', items: [{ id: 'proj', label: 'Proyectos', icon: 'folder', children: [{ id: 'p1', label: 'Todos', href: '#p1' }, { id: 'p2', label: 'Archivados', href: '#p2' }] }, { id: 'team', label: 'Equipo', href: '#team', icon: 'users' }] },
+        { label: 'Ajustes', items: [{ id: 'set', label: 'Ajustes', href: '#set', icon: 'settings' }] }
+      ]
+      const sbLabels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+      const RAILS = [
+        { id: 's-def' },
+        { id: 's-compact', density: 'compact' },
+        { id: 's-comfortable', density: 'comfortable' },
+        { id: 's-float', variant: 'floating' },
+        { id: 's-rtl', dir: 'rtl' },
+        { id: 's-rtl-float', dir: 'rtl', variant: 'floating', density: 'compact' }
+      ]
+      return { on, items, tLabels, TABS, tab: ref('general'), OPTS, RADIOS, rv, sbItems, sbLabels, RAILS, FORMATS: ['f-expanded', 'f-navbar', 'f-drawer'], nav: ref('home') }
+    }
+  })
+  app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC))).mount('#app')
+  window.__ready = true
+</script>
+</body>
+</html>

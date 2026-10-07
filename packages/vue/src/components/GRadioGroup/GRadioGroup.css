@@ -219,7 +219,10 @@
       outline-offset var(--g-duration-press) var(--g-ease-out);
   }
 }
-:is(.g-radio-group--appearance-list, .g-radio-group--appearance-inline) .g-radio-group__input:focus-visible {
+/* Foco de teclado: :focus-visible y, además, [data-g-key-focus] mientras tenga :focus. WebKit no marca :focus-visible en el
+   radio al que llevan las flechas (auditoría de la pista, hallazgo 1; WCAG 2.4.7): el .vue escribe data-g-key-focus en el
+   radio que recibe el foco por teclado y lo quita al salir. :where() deja la especificidad igual que la de :focus-visible */
+:is(.g-radio-group--appearance-list, .g-radio-group--appearance-inline) .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus) {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
@@ -243,7 +246,7 @@
   opacity: 0;
   cursor: inherit;
 }
-:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-segmented) .g-radio-group__input:focus-visible {
+:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-segmented) .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus) {
   outline: none;
 }
 
@@ -338,7 +341,7 @@
   color: var(--_on);
 }
 /* El círculo de la tarjeta no lleva anillo propio: el anillo rodea la tarjeta */
-.g-radio-group--appearance-card .g-radio-group__input:focus-visible {
+.g-radio-group--appearance-card .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus) {
   outline: none;
 }
 
@@ -478,14 +481,14 @@
 }
 
 /* ---------- Foco por opción: chip y card alrededor de la opción; segmented dentro del segmento ---------- */
-:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-card) .g-radio-group__option:has(> .g-radio-group__input:focus-visible) {
+:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-card) .g-radio-group__option:has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
 /* Dentro del segmento, para que no lo tape el vecino ni lo recorte la caja: anillo separado del marco por
    border-width + focus-offset, con un halo de superficie a los dos lados (se ve igual sobre la elegida rellena).
    Mientras tiene el foco, el segmento redondea sus esquinas para que el anillo no se recorte en las de la caja */
-.g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:focus-visible) {
+.g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
   z-index: 1;
   border-radius: max(0px, calc(var(--g-radius-sm) - var(--g-border-width)));
   outline: var(--g-focus-width) solid var(--g-color-focus);
@@ -610,7 +613,7 @@
 /* Con foco, el anillo se separa del doble trazo lo mismo que de cualquier borde (--g-focus-offset), con el halo de
    superficie entre los dos: sin esto quedaba a un solo border-width del trazo y, con un foco oscuro como el texto,
    se fundían en una banda (auditoría, hallazgo 1) */
-.g-radio-group--appearance-segmented.is-readonly .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+.g-radio-group--appearance-segmented.is-readonly .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
   outline-offset: calc((var(--g-border-width) * 2 + var(--g-focus-offset) + var(--g-focus-width)) * -1);
   box-shadow:
     inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text),
@@ -786,16 +789,16 @@
     background-color: SelectedItemText;
     box-shadow: inset 0 0 0 var(--_ring) SelectedItem;
   }
-  :is(.g-radio-group--appearance-list, .g-radio-group--appearance-inline) .g-radio-group__input:focus-visible,
-  :is(.g-radio-group--appearance-chip, .g-radio-group--appearance-card, .g-radio-group--appearance-segmented) .g-radio-group__option:has(> .g-radio-group__input:focus-visible) {
+  :is(.g-radio-group--appearance-list, .g-radio-group--appearance-inline) .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus),
+  :is(.g-radio-group--appearance-chip, .g-radio-group--appearance-card, .g-radio-group--appearance-segmented) .g-radio-group__option:has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
     outline-color: Highlight;
   }
-  .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:focus-visible) {
+  .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
     box-shadow: none;
   }
   /* Segmento elegido con foco: el anillo Highlight va dentro, sobre el relleno SelectedItem (en muchos esquemas el mismo
      color): con el halo Canvas a los dos lados, como fuera de este modo (auditoría, hallazgo 2) */
-  .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+  .g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
     box-shadow: inset 0 0 0 calc(var(--g-border-width) + var(--g-focus-offset) * 2 + var(--g-focus-width)) Canvas;
   }
   /* Píldora, segmento y tarjeta */
@@ -850,12 +853,12 @@
   }
   /* Solo lectura elegida CON foco: la marca pasa a un trazo interior (lo elegido no se ajusta, forced-color-adjust: none)
      y el outline queda para el anillo Highlight; si no, la marca CanvasText tapaba el foco (auditoría, hallazgo 2) */
-  .g-radio-group.is-readonly:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-segmented) .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+  .g-radio-group.is-readonly:is(.g-radio-group--appearance-chip, .g-radio-group--appearance-segmented) .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
     outline: var(--g-focus-width) solid Highlight;
     outline-offset: var(--g-focus-offset);
     box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) CanvasText;
   }
-  .g-radio-group.is-readonly.g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:focus-visible) {
+  .g-radio-group.is-readonly.g-radio-group--appearance-segmented .g-radio-group__option:has(> .g-radio-group__input:checked):has(> .g-radio-group__input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
     outline-offset: calc((var(--g-border-width) * 2 + var(--g-focus-offset) + var(--g-focus-width)) * -1);
     box-shadow:
       inset 0 0 0 calc(var(--g-border-width) * 2) CanvasText,

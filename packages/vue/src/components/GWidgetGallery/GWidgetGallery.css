@@ -123,7 +123,8 @@
     background: var(--g-color-surface-sunken);
   }
 }
-.g-widget-gallery__cat > input:focus-visible + span {
+/* [data-g-key-focus]: foco por flechas en un radio, que WebKit no marca :focus-visible (lo escribe el .vue; ver GRadioGroup.css) */
+.g-widget-gallery__cat > input:is(:focus-visible, :where([data-g-key-focus]):focus) + span {
   outline: var(--_ring) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
@@ -277,5 +278,5 @@
   .g-widget-gallery__search input:focus-visible,
   .g-widget-gallery__row select:focus-visible,
   .g-widget-gallery__btn:focus-visible,
-  .g-widget-gallery__cat > input:focus-visible + span { outline-color: Highlight; }
+  .g-widget-gallery__cat > input:is(:focus-visible, :where([data-g-key-focus]):focus) + span { outline-color: Highlight; }
 }

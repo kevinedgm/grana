@@ -477,7 +477,10 @@
   max-inline-size: min(calc(var(--g-space-1) * 64), 50%);
   min-block-size: 0;
 }
-.g-tabs--orientation-vertical.g-tabs--icon-only .g-tabs__header { min-inline-size: 0; }
+/* Con solo icono, la columna mide lo que su pestaña más ancha (icono + insignia o contador), con el tope fijo de
+   space × 64 pero sin el del 50 %: en un contenedor que se ajusta a su contenido (fila flex, fit-content) ese 50 % se
+   resolvía contra el propio ancho del componente y recortaba el contador («3») a la mitad */
+.g-tabs--orientation-vertical.g-tabs--icon-only .g-tabs__header { min-inline-size: 0; max-inline-size: calc(var(--g-space-1) * 64); }
 .g-tabs--orientation-vertical .g-tabs__header::after {
   border-block-end: 0;
   border-inline-start: var(--g-border-width) solid var(--_line);

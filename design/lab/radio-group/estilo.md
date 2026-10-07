@@ -30,6 +30,7 @@ El contrato pide el marco «hacia dentro» y con `outline` (sobrevive en `forced
 | --- | --- |
 | `list`, `inline` | En el círculo, a `--g-focus-offset`; se abre desde el borde (transición de `outline-offset`, como `GCheckbox`) |
 | `chip`, `card` | Alrededor de la opción (`:has(> .g-radio-group__input:focus-visible)`) |
+| Todas | El mismo anillo con `[data-g-key-focus]:focus` además de `:focus-visible` (en `:where()`, sin subir la especificidad): WebKit no marca `:focus-visible` en el radio al que llevan las flechas (auditoría de la pista, hallazgo 1). El atributo lo escribe el `.vue` (pedido a bruno); el clic de ratón no lo pone |
 | `segmented` | **Dentro** del segmento, separado del marco por `border-width + focus-offset`, con un halo `surface` a los dos lados (`box-shadow` interior): se ve igual sobre la elegida rellena, no lo tapa el vecino (`z-index: 1`) y no lo recorta la caja. Mientras tiene el foco, el segmento redondea sus esquinas (`--g-radius-sm − border-width`) para que el anillo no se corte en las esquinas de la caja con radios grandes (spotify: 14px). **Solo lectura elegida:** el anillo se separa `--g-focus-offset` de su doble trazo, con el halo entre los dos (auditoría, hallazgo 1) |
 
 ### Estados (señal de forma además del color)

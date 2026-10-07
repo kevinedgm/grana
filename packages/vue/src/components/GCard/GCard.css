@@ -689,7 +689,8 @@
 }
 
 /* Foco: anillo sobre toda la tarjeta, hacia dentro (la raíz recorta); con halo para verse sobre cualquier media */
-.g-card:has(.g-card__primary:focus-visible, .g-card__select:focus-visible)::after {
+/* [data-g-key-focus]: foco por flechas en un radio, que WebKit no marca :focus-visible (lo escribe el .vue; ver GRadioGroup.css) */
+.g-card:has(.g-card__primary:focus-visible, .g-card__select:is(:focus-visible, :where([data-g-key-focus]):focus))::after {
   border-color: transparent;
   outline: var(--g-focus-width) solid var(--_ring);
   outline-offset: calc(-1 * var(--_inset));
@@ -891,7 +892,7 @@ li.g-card.g-card--orientation-horizontal.g-surface--level-flat.g-card--size-narr
   .g-card.g-surface:not(.g-surface--level-flat) { border-color: CanvasText; }
   .g-card::before { display: none; }
   .g-card.is-interactive:not(.g-card--media-background, .is-disabled, .is-loading) { background-image: none; }
-  .g-card:has(.g-card__primary:focus-visible, .g-card__select:focus-visible)::after { outline-color: Highlight; box-shadow: none; }
+  .g-card:has(.g-card__primary:focus-visible, .g-card__select:is(:focus-visible, :where([data-g-key-focus]):focus))::after { outline-color: Highlight; box-shadow: none; }
   .g-card.is-selected::after { border-color: Highlight; border-width: calc(var(--g-border-width) * 2); }
   .g-card.is-current:not(.is-selected)::after { border-color: Highlight; }
   .g-card__tick { forced-color-adjust: none; border-color: ButtonText; background: Canvas; color: Canvas; }

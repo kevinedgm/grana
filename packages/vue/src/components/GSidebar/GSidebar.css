@@ -520,7 +520,7 @@
   background: currentColor;
 }
 
-/* ---------- Panel flotante y pista (riel) ---------- */
+/* ---------- Panel flotante (riel); la pista del riel es la del motor de GTooltip, con GTooltip.css (#436) ---------- */
 .g-sidebar__fly {
   position: fixed;
   inset: auto;
@@ -613,44 +613,6 @@
   inset-inline-start: auto;
   inset-inline-end: calc(var(--g-space-1) * -1.5 - var(--g-border-width));
   rotate: -135deg;
-}
-.g-sidebar__tip {
-  position: fixed;
-  inset: auto;
-  inset-inline-start: var(--_x);
-  inset-block-start: var(--_top);
-  margin: 0;
-  padding: var(--g-space-1) var(--g-space-3);
-  border: 0;
-  border-radius: var(--g-radius-sm);
-  background: var(--g-color-text);
-  color: var(--g-color-surface);
-  font-family: var(--g-font-ui);
-  font-size: var(--g-text-caption-size);
-  line-height: var(--g-text-caption-line);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-}
-.g-sidebar__tip:popover-open {
-  opacity: 1;
-}
-/* Solo un fundido corto; si ya se mostró otra pista hace un momento (is-instant), aparece al instante */
-@media (prefers-reduced-motion: no-preference) {
-  .g-sidebar__tip {
-    transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
-  }
-  .g-sidebar__tip.is-instant {
-    transition-duration: 0s;
-  }
-}
-@starting-style {
-  .g-sidebar__tip:popover-open {
-    opacity: 0;
-  }
 }
 
 /* ---------- Navbar inferior · «píldora activa» ---------- */
@@ -915,9 +877,6 @@
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
-  .g-sidebar__tip {
-    transition: opacity var(--g-duration-fast) linear;
-  }
   .g-sidebar__drawer::backdrop {
     transition: opacity var(--g-duration-fast) linear, overlay var(--g-duration-fast) allow-discrete, display var(--g-duration-fast) allow-discrete;
   }
@@ -969,9 +928,6 @@
     border: calc(var(--g-border-width) * 2) solid CanvasText;
   }
   .g-sidebar__badge {
-    border: var(--g-border-width) solid CanvasText;
-  }
-  .g-sidebar__tip {
     border: var(--g-border-width) solid CanvasText;
   }
 }

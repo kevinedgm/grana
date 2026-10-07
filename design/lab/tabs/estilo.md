@@ -73,7 +73,7 @@ Medidas derivadas (alias locales, sin tokens): altura `space × 10 × densidad` 
 4. **Anillo de foco interior** (`outline-offset` negativo) porque el `scroller` recorta lo que sale de su caja. **Excepción en `segmented`:** el anillo cae fuera de la pestaña, en el relleno de la pista, porque dentro daba 2.3:1 sobre el segmento claro del tema oscuro (contra la pista: ≥ 3.6:1).
 5. **Antes de `is-ready` la marca no se ve y la pestaña activa dibuja la suya** (`::before` con la misma forma), para que SSR o un fallo de medición no dejen la activa sin marca. Con `is-ready` el `::before` desaparece. En `forced-colors` la marca es `Highlight` (y el texto de la activa en pill, segmented y contained, `HighlightText`), con especificidad alta a propósito.
 6. **`aria-selected="true"` y `is-active` se tratan igual** en todas las reglas: el CSS no depende de que bruno ponga la clase.
-7. **Vertical:** la columna de pestañas mide de `space × 40` a `space × 64` y **nunca más de la mitad del contenedor** (a 320px el panel quedaba de 32px y el texto se salía).
+7. **Vertical:** la columna de pestañas mide de `space × 40` a `space × 64` y **nunca más de la mitad del contenedor** (a 320px el panel quedaba de 32px y el texto se salía). **Con solo icono** (`g-tabs--icon-only`) no hay mínimo ni tope del 50 %, solo el de `space × 64`: en un contenedor que se ajusta a su contenido el 50 % se resolvía contra el propio componente y recortaba el contador («3») a la mitad (auditoría de la pista, hallazgo 2).
 
 ## Estados cubiertos
 
