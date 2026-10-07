@@ -1,0 +1,621 @@
+/*
+  GSlider · estilo · B «El valor es el asa»
+  Dueño: coco. Contrato: design/contracts/slider.md (DECISIONS.md #445 a #457; personalidad #452, tokens #454).
+  Estructura: design/lab/slider/r01/?v=B (kiwi). Banco: design/lab/slider/estilo-banco.html; medidas en estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo;
+  únicos literales de medida: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  `color="brand"` lee el rol `primary` (tokens.md §17.2, #95), como GSwitch, GCheckbox y GRadioGroup.
+  Datos del .vue (tokens.md §29.5): --_at (asa y marca), --_from/--_to (tramo), --_mid y --_pill-w (raíz), data-thumb,
+  data-bump, is-merged, is-jumping, is-dragging, is-typing, is-ready.
+  Keyframes: g-slider-bump-up/-down (tope, B5) y g-reject-shake-slider (I2 de GForm, #304). El tope NO empieza por
+  g-reject: GForm retira is-rejected filtrando su animationend por ese prefijo.
+*/
+
+/* ---------- Raíz ---------- */
+.g-slider {
+  /* Familia (se reasigna por --color-*); por defecto: brand → rol primary */
+  --_c: var(--g-color-primary);
+  --_c-strong: var(--g-color-primary-strong);
+  --_on: var(--g-color-on-primary);
+  --_text: var(--g-color-primary-text);
+
+  /* Medidas: el área mide la caja md de GInput con su densidad (así el riel se centra con sus vecinos de fila); la
+     píldora, space × 7 con la misma densidad. Piso de 24px en las dos (área táctil mínima) */
+  --_density: 1;
+  --_h: max(24px, calc(var(--g-space-1) * 9 * var(--_density)));
+  --_ph: max(24px, calc(var(--g-space-1) * 7 * var(--_density)));
+  /* Radio de la píldora: el de --g-radius-pill acotado a medio alto. Mismo dibujo que la píldora, pero con un valor que
+     se puede interpolar (999px → 0 no se vería cambiar hasta el último instante de la transición de la fusión) */
+  --_r: min(var(--g-radius-pill), calc(var(--_ph) / 2));
+  --_track: var(--g-space-1);
+  /* Sentido físico del inicio lógico (tope y nombres de marcas usan translate, que es físico) */
+  --_dir: 1;
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.g-slider:dir(rtl) {
+  --_dir: -1;
+}
+/* Con puntero grueso, el área (y con ella las zonas de toque de la píldora y del tramo) mide 44px */
+@media (pointer: coarse) {
+  .g-slider {
+    --_h: max(44px, calc(var(--g-space-1) * 9 * var(--_density)));
+  }
+}
+
+/* ---------- Cabecera: etiqueta y «sin elegir» ---------- */
+.g-slider__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  margin-block-end: var(--g-space-1);
+}
+/* Sin etiqueta visible (nombre por aria-label) y con valor: la cabecera no ocupa sitio */
+.g-slider__head:empty {
+  display: none;
+}
+.g-slider__label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-slider__required {
+  margin-inline-start: var(--g-space-1);
+  color: var(--g-color-danger-text);
+}
+/* «(opcional)» de GForm: parte del nombre, en voz baja (el espacio lo pone el texto, como GInput) */
+.g-slider__optional {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+}
+/* «Sin elegir» (solo con is-empty): dice que falta la respuesta, sin anclarla en ningún punto del riel */
+.g-slider__value {
+  flex: none;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- Fila y área de puntero ---------- */
+.g-slider__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 0;
+}
+.g-slider__area {
+  position: relative;
+  min-block-size: var(--_h);
+  /* El gesto vertical desplaza la página; el horizontal y el toque son del deslizador (#449) */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+/* ---------- Riel y tramo ---------- */
+.g-slider__track,
+.g-slider__fill {
+  position: absolute;
+  inset-block-start: calc(50% - var(--_track) / 2);
+  block-size: var(--_track);
+  border-radius: var(--g-radius-pill);
+}
+/* Riel: delimita el control (border-control ≥ 3:1) */
+.g-slider__track {
+  inset-inline: 0;
+  background: var(--g-color-border-control);
+}
+/* Tramo: forma sin par, entero en {color}-text (#439). Valor único: del inicio del riel al centro de la píldora.
+   El recorrido de los centros se recoge media píldora a cada lado: c(x) = pill-w/2 + x · (100% − pill-w).
+   Más grueso que el riel (× 1.5): {color}-text y border-control pasan los dos 3:1 contra la superficie pero entre sí
+   quedan cerca (1,04 a 1,9:1 medido; neutral y el oscuro se confunden): el grosor los distingue sin depender del color */
+.g-slider__fill {
+  inset-block-start: calc(50% - var(--_track) * 0.75);
+  block-size: calc(var(--_track) * 1.5);
+  inset-inline-start: 0;
+  inline-size: calc(var(--_pill-w) / 2 + var(--_to) * (100% - var(--_pill-w)));
+  background: var(--_text);
+}
+/* Rango: de centro a centro, y se agarra entero (B3) con una zona del alto del área (≥ 24px; 44px gruesa) */
+.g-slider--range .g-slider__fill {
+  inset-inline-start: calc(var(--_pill-w) / 2 + var(--_from) * (100% - var(--_pill-w)));
+  inline-size: calc((var(--_to) - var(--_from)) * (100% - var(--_pill-w)));
+  cursor: grab;
+}
+.g-slider--range .g-slider__fill::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc((100% - var(--_h)) / 2);
+  block-size: var(--_h);
+}
+
+/* ---------- Asa: posición, zona de toque y anillo ---------- */
+.g-slider__thumb {
+  /* Píldora (se reasigna por estado): relleno · texto · contorno (§7.1, #431) · sombra · raya de la cápsula fundida */
+  --_pill-bg: var(--_c);
+  --_pill-fg: var(--_on);
+  --_pill-edge: var(--_text);
+  --_pill-shadow: var(--g-shadow-1);
+  --_seam: var(--_on);
+  /* Esquinas del lado inicial y final (la fusión pone a 0 las interiores) */
+  --_rs: var(--_r);
+  --_re: var(--_r);
+
+  position: absolute;
+  inset-block-start: calc(50% - var(--_ph) / 2);
+  inset-inline-start: calc(var(--_at) * (100% - var(--_pill-w)));
+  display: grid;
+  box-sizing: border-box;
+  inline-size: max-content;
+  min-inline-size: var(--_pill-w);
+  block-size: var(--_ph);
+  border-start-start-radius: var(--_rs);
+  border-end-start-radius: var(--_rs);
+  border-start-end-radius: var(--_re);
+  border-end-end-radius: var(--_re);
+  cursor: grab;
+}
+/* Zona de toque: ≥ 44px de ancho y el alto del área (≥ 24px; 44px con puntero grueso), centrada en la píldora. Cubre
+   también la franja del área por encima y por debajo de la píldora, que así no cuenta como tramo ni como riel */
+.g-slider__thumb::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc((100% - max(44px, 100%)) / 2);
+  inset-block-start: calc((100% - var(--_h)) / 2);
+  inline-size: max(44px, 100%);
+  block-size: var(--_h);
+}
+/* Anillo SOLO con la marca de teclado (#450): los tres motores casan :focus-visible en el range enfocado por el
+   componente tras un clic, así que :focus-visible pintaría el anillo al hacer clic. Va en el asa (sigue las esquinas) */
+.g-slider__thumb:has(> .g-slider__native:where([data-g-key-focus]):focus) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Píldora: la cifra vive en el asa (B1) ---------- */
+.g-slider__pill {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding-inline: calc(var(--g-space-1) * 3);
+  border: var(--g-border-width) solid var(--_pill-edge);
+  border-start-start-radius: var(--_rs);
+  border-end-start-radius: var(--_rs);
+  border-start-end-radius: var(--_re);
+  border-end-end-radius: var(--_re);
+  background: var(--_pill-bg);
+  box-shadow: var(--_pill-shadow);
+  color: var(--_pill-fg);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Celda única: el texto a la vista y los de referencia (primer y último punto, medio, negativo, marcas) apilados e
+   invisibles. La píldora mide su texto más ancho y no baila al cambiar de valor */
+.g-slider__pill-text,
+.g-slider__pill-ref {
+  grid-area: 1 / 1;
+}
+.g-slider__pill-text {
+  position: relative;
+  unicode-bidi: plaintext;
+}
+.g-slider__pill-ref {
+  display: grid;
+  visibility: hidden;
+}
+.g-slider__pill-ref > span {
+  grid-area: 1 / 1;
+  unicode-bidi: plaintext;
+}
+
+/* El range nativo: invisible, del tamaño del interior de la píldora (el foco de VoiceOver y la exploración táctil
+   dibujan el asa), sin puntero (el área lo resuelve) */
+.g-slider__native {
+  position: absolute;
+  inset-block-start: var(--g-border-width);
+  inset-inline-start: var(--g-border-width);
+  box-sizing: border-box;
+  inline-size: calc(100% - var(--g-border-width) * 2);
+  block-size: calc(100% - var(--g-border-width) * 2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  opacity: 0;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ---------- Las píldoras se funden (B2) ---------- */
+/* La cápsula se centra en el punto medio de los centros (--_mid), acotada para no salirse: la mitad 0 termina en la
+   juntura J y la 1 empieza ahí. J = clamp(pill-w, pill-w/2 + mid · (100% − pill-w), 100% − pill-w) */
+.g-slider.is-merged .g-slider__thumb[data-thumb="0"] {
+  --_re: 0;
+  inset-inline-start: calc(clamp(var(--_pill-w), calc(var(--_pill-w) / 2 + var(--_mid) * (100% - var(--_pill-w))), 100% - var(--_pill-w)) - var(--_pill-w));
+}
+.g-slider.is-merged .g-slider__thumb[data-thumb="1"] {
+  --_rs: 0;
+  inset-inline-start: clamp(var(--_pill-w), calc(var(--_pill-w) / 2 + var(--_mid) * (100% - var(--_pill-w))), 100% - var(--_pill-w));
+}
+/* Una sola raya entre las mitades: el borde final de la primera toma su propio relleno y el inicial de la segunda,
+   on-{color} */
+.g-slider.is-merged .g-slider__thumb[data-thumb="0"] > .g-slider__pill {
+  border-inline-end-color: var(--_pill-bg);
+}
+.g-slider.is-merged .g-slider__thumb[data-thumb="1"] > .g-slider__pill {
+  border-inline-start-color: var(--_seam);
+}
+
+/* ---------- Estados de la píldora ---------- */
+/* Al pasar y mientras se arrastra: {color}-strong con el contorno en -text (#438). Lo que se agarra se levanta
+   (--g-shadow-2 mientras dura el gesto; color y sombra, no desplazamiento) */
+@media (hover: hover) {
+  .g-slider:not(.is-readonly):not(.is-disabled) .g-slider__thumb:not(.is-typing):hover {
+    --_pill-bg: var(--_c-strong);
+  }
+}
+.g-slider.is-dragging:not(.is-readonly):not(.is-disabled) .g-slider__thumb:not(.is-typing):has(> .g-slider__native:focus) {
+  --_pill-bg: var(--_c-strong);
+  --_pill-shadow: var(--g-shadow-2);
+}
+/* Error: contorno danger-text (además del mensaje con icono) */
+.g-slider.is-invalid .g-slider__thumb {
+  --_pill-edge: var(--g-color-danger-text);
+}
+/* Tecleando la cifra (B4): la píldora se vuelve campo (superficie, texto y contorno de la familia) con un cursor fijo
+   que no ocupa sitio (la píldora no cambia de ancho) */
+.g-slider .g-slider__thumb.is-typing {
+  --_pill-bg: var(--g-color-surface);
+  --_pill-fg: var(--g-color-text);
+  --_pill-edge: var(--_text);
+  --_pill-shadow: none;
+  --_seam: var(--_text);
+  cursor: text;
+}
+.g-slider__thumb.is-typing .g-slider__pill-text::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 100%;
+  inset-block-start: calc(50% - var(--g-text-body-sm-size) / 2);
+  inline-size: calc(var(--g-border-width) * 2);
+  block-size: var(--g-text-body-sm-size);
+  margin-inline-start: var(--g-border-width);
+  background: currentColor;
+}
+/* Solo lectura: un valor en otro estado, no inactivo (#266): superficie y texto, tramo en text-muted, sin sombra */
+.g-slider.is-readonly .g-slider__thumb {
+  --_pill-bg: var(--g-color-surface);
+  --_pill-fg: var(--g-color-text);
+  --_pill-edge: var(--g-color-border-strong);
+  --_pill-shadow: none;
+  --_seam: var(--g-color-border-strong);
+}
+.g-slider.is-readonly.is-invalid .g-slider__thumb {
+  --_pill-edge: var(--g-color-danger-text);
+}
+.g-slider.is-readonly .g-slider__fill {
+  background: var(--g-color-text-muted);
+}
+/* Deshabilitado */
+.g-slider.is-disabled {
+  color: var(--g-color-text-subtle);
+}
+.g-slider.is-disabled .g-slider__label,
+.g-slider.is-disabled .g-slider__value,
+.g-slider.is-disabled .g-slider__mark-label {
+  color: var(--g-color-text-subtle);
+}
+.g-slider.is-disabled .g-slider__thumb {
+  --_pill-bg: var(--g-color-surface-sunken);
+  --_pill-fg: var(--g-color-text-subtle);
+  --_pill-edge: var(--g-color-border);
+  --_pill-shadow: none;
+  --_seam: var(--g-color-border);
+}
+.g-slider.is-disabled .g-slider__track {
+  background: var(--g-color-border);
+}
+.g-slider.is-disabled .g-slider__fill {
+  background: var(--g-color-border-strong);
+}
+
+/* ---------- «Sin elegir» (valor único null) ---------- */
+/* Ni píldora ni tramo: el asa (y su nativo) cubre todo el riel, que va en trazos; el anillo de teclado rodea el área */
+.g-slider.is-empty .g-slider__thumb {
+  --_rs: var(--g-radius-pill);
+  --_re: var(--g-radius-pill);
+  inset: 0;
+  inline-size: auto;
+  min-inline-size: 0;
+  block-size: auto;
+  cursor: pointer;
+}
+.g-slider.is-empty .g-slider__thumb::after {
+  content: none;
+}
+.g-slider.is-empty .g-slider__track {
+  background: repeating-linear-gradient(to right, var(--g-color-border-control) 0 var(--g-space-2), transparent var(--g-space-2) var(--g-space-3));
+}
+/* Sin elegir con error (enviar sin responder una escala obligatoria): los trazos toman danger-text */
+.g-slider.is-empty.is-invalid .g-slider__track {
+  background: repeating-linear-gradient(to right, var(--g-color-danger-text) 0 var(--g-space-2), transparent var(--g-space-2) var(--g-space-3));
+}
+.g-slider.is-empty.is-disabled .g-slider__track {
+  background: repeating-linear-gradient(to right, var(--g-color-border) 0 var(--g-space-2), transparent var(--g-space-2) var(--g-space-3));
+}
+
+/* ---------- Cursores ---------- */
+.g-slider.is-dragging .g-slider__area,
+.g-slider.is-dragging .g-slider__thumb,
+.g-slider.is-dragging .g-slider__fill {
+  cursor: grabbing;
+}
+.g-slider.is-readonly .g-slider__area,
+.g-slider.is-readonly .g-slider__thumb,
+.g-slider.is-readonly .g-slider__fill,
+.g-slider.is-readonly .g-slider__mark-label {
+  cursor: default;
+}
+.g-slider.is-disabled .g-slider__area,
+.g-slider.is-disabled .g-slider__thumb,
+.g-slider.is-disabled .g-slider__fill,
+.g-slider.is-disabled .g-slider__mark-label {
+  cursor: not-allowed;
+}
+
+/* ---------- Marcas ---------- */
+/* Bajo el riel, alineadas con el centro de la píldora en ese valor. El contenedor es de consulta (cqi) para que el nombre
+   de los extremos se ajuste al borde sin conocer su propio ancho: translate = clamp(−c, −50%, 100cqi − c − 100%) */
+.g-slider__marks {
+  position: relative;
+  container-type: inline-size;
+  block-size: calc(var(--g-space-1) * 2);
+  min-inline-size: 0;
+}
+.g-slider__marks:has(.g-slider__mark-label) {
+  block-size: calc(var(--g-space-1) * 2 + var(--g-text-caption-line));
+}
+.g-slider__mark {
+  --_mc: calc(var(--_pill-w) / 2 + var(--_at) * (100cqi - var(--_pill-w)));
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--_mc);
+}
+.g-slider__mark::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--g-border-width) / -2);
+  inline-size: var(--g-border-width);
+  block-size: calc(var(--g-space-1) * 1.5);
+  background: var(--g-color-border-strong);
+}
+.g-slider__mark-label {
+  position: absolute;
+  inset-block-start: calc(var(--g-space-1) * 2);
+  inset-inline-start: 0;
+  translate: calc(var(--_dir) * clamp(calc(var(--_mc) * -1), -50%, calc(100cqi - var(--_mc) - 100%))) 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+  unicode-bidi: plaintext;
+  cursor: pointer;
+}
+
+/* ---------- Pie: ayuda y mensaje (como GInput y GSelect) ---------- */
+.g-slider__support {
+  min-inline-size: 0;
+}
+.g-slider__hint {
+  margin-block-start: var(--g-space-1);
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+/* Región viva siempre presente; vacía no ocupa sitio */
+.g-slider__message {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-slider__message:not(:empty) {
+  margin-block-start: var(--g-space-1);
+}
+.g-slider.is-warning .g-slider__message {
+  color: var(--g-color-warning-text);
+}
+.g-slider.is-valid .g-slider__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+/* Icono del mensaje (circle-alert · triangle-alert · circle-check, GLibIcon decorativo), como GInput y GSelect */
+.g-slider__message-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
+}
+/* Prefijo «Error: »… solo para lectores (patrón estándar de texto oculto) */
+.g-slider__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Color ---------- */
+.g-slider--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); --_text: var(--g-color-primary-text); }
+.g-slider--color-accent { --_c: var(--g-color-accent); --_c-strong: var(--g-color-accent-strong); --_on: var(--g-color-on-accent); --_text: var(--g-color-accent-text); }
+.g-slider--color-neutral { --_c: var(--g-color-neutral); --_c-strong: var(--g-color-neutral-strong); --_on: var(--g-color-on-neutral); --_text: var(--g-color-neutral-text); }
+.g-slider--color-success { --_c: var(--g-color-success); --_c-strong: var(--g-color-success-strong); --_on: var(--g-color-on-success); --_text: var(--g-color-success-text); }
+.g-slider--color-warning { --_c: var(--g-color-warning); --_c-strong: var(--g-color-warning-strong); --_on: var(--g-color-on-warning); --_text: var(--g-color-warning-text); }
+.g-slider--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); --_text: var(--g-color-danger-text); }
+.g-slider--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); --_text: var(--g-color-info-text); }
+
+/* ---------- Densidad (la de GInput: el área sigue a la caja md de la misma densidad) ---------- */
+.g-slider--density-default { --_density: 1; }
+.g-slider--density-comfortable { --_density: 0.875; }
+.g-slider--density-compact { --_density: 0.75; }
+
+/* ---------- Dentro de una GFormRow (form.md §4, #453): tres pistas compartidas por línea, como GInput ---------- */
+/* Cabecera · fila · pie por subgrid: el centro del riel coincide con el de las cajas vecinas. Solo clases propias
+   (ningún selector por estructura, #383). El ancho lo da la fila */
+.g-form-row > .g-slider {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
+}
+.g-form-row > .g-slider > .g-slider__head { grid-column: 1; grid-row: 1; align-self: end; }
+.g-form-row > .g-slider > .g-slider__row { grid-column: 1; grid-row: 2; align-self: start; }
+.g-form-row > .g-slider > .g-slider__support { grid-column: 1; grid-row: 3; }
+
+/* ---------- Movimiento (#452; tokens.md §29) ---------- */
+/* Nada se anima al montar (is-ready). Posición solo en el salto deslizado (is-jumping, B6): arrastrar y teclear van con
+   el dedo o la tecla. Esquinas de la fusión (B2) y tope (B5) con --g-duration-press + --g-ease-out; color y sombra con
+   --g-duration-fast + --g-ease-standard. Sin --g-ease-spring ni --g-ease-bounce */
+@media (prefers-reduced-motion: no-preference) {
+  .g-slider.is-ready .g-slider__thumb {
+    transition: border-radius var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-slider.is-ready .g-slider__pill {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      box-shadow var(--g-duration-fast) var(--g-ease-standard),
+      border-radius var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-slider.is-ready.is-jumping .g-slider__thumb {
+    transition:
+      inset-inline-start var(--g-duration-press) var(--g-ease-out),
+      border-radius var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-slider.is-ready.is-jumping .g-slider__fill {
+    transition:
+      inset-inline-start var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out);
+  }
+  /* B5 · tope: el asa enfocada (píldora y anillo juntos) se desplaza space × 0.5 hacia donde se pidió y vuelve, una vez */
+  .g-slider[data-bump="up"] .g-slider__thumb:has(> .g-slider__native:focus) {
+    animation: g-slider-bump-up var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-slider[data-bump="down"] .g-slider__thumb:has(> .g-slider__native:focus) {
+    animation: g-slider-bump-down var(--g-duration-press) var(--g-ease-out);
+  }
+  /* I2 · rechazo al enviar: se mueve la fila (riel, píldoras, marcas y el anillo con ellas), como GInput */
+  .g-slider.is-rejected .g-slider__row {
+    animation: g-reject-shake-slider var(--g-duration-slow) linear;
+  }
+}
+/* Movimiento reducido: nada se desplaza ni cambia de forma con transición; los colores siguen con su fundido */
+@media (prefers-reduced-motion: reduce) {
+  .g-slider.is-ready .g-slider__pill {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      box-shadow var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@keyframes g-slider-bump-up {
+  0%, 100% { translate: 0 0; }
+  45% { translate: calc(var(--g-space-1) * 0.5 * var(--_dir)) 0; }
+}
+@keyframes g-slider-bump-down {
+  0%, 100% { translate: 0 0; }
+  45% { translate: calc(var(--g-space-1) * -0.5 * var(--_dir)) 0; }
+}
+@keyframes g-reject-shake-slider {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
+/* ---------- Colores forzados ---------- */
+/* Riel GrayText, tramo Highlight, píldora de botón del sistema con borde, tecleando campo del sistema, anillo
+   Highlight, deshabilitado GrayText. forced-color-adjust: none donde el color del sistema lo pone el componente */
+@media (forced-colors: active) {
+  .g-slider__track,
+  .g-slider__fill,
+  .g-slider__pill,
+  .g-slider__mark::before,
+  .g-slider__thumb.is-typing .g-slider__pill-text::after {
+    forced-color-adjust: none;
+  }
+  .g-slider__track {
+    background: GrayText;
+  }
+  .g-slider.is-empty .g-slider__track,
+  .g-slider.is-empty.is-invalid .g-slider__track {
+    background: repeating-linear-gradient(to right, GrayText 0 var(--g-space-2), transparent var(--g-space-2) var(--g-space-3));
+  }
+  .g-slider__fill,
+  .g-slider.is-readonly .g-slider__fill {
+    background: Highlight;
+  }
+  /* Los valores van en la propia píldora: ganan a los del asa sea cual sea el estado que los puso */
+  .g-slider__pill {
+    --_pill-bg: ButtonFace;
+    --_pill-fg: ButtonText;
+    --_pill-edge: ButtonText;
+    --_pill-shadow: none;
+    --_seam: ButtonText;
+  }
+  .g-slider .g-slider__thumb.is-typing > .g-slider__pill {
+    --_pill-bg: Field;
+    --_pill-fg: FieldText;
+    --_pill-edge: FieldText;
+    --_seam: FieldText;
+  }
+  /* El error no puede ser un color: borde doble en la píldora (además del icono y el texto del mensaje) */
+  .g-slider.is-invalid .g-slider__pill {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+  .g-slider__thumb:has(> .g-slider__native:where([data-g-key-focus]):focus) {
+    outline-color: Highlight;
+  }
+  .g-slider__mark::before {
+    background: CanvasText;
+  }
+  .g-slider.is-disabled .g-slider__track,
+  .g-slider.is-disabled .g-slider__fill {
+    background: GrayText;
+  }
+  .g-slider.is-disabled .g-slider__pill {
+    --_pill-bg: Canvas;
+    --_pill-fg: GrayText;
+    --_pill-edge: GrayText;
+    --_seam: GrayText;
+  }
+}

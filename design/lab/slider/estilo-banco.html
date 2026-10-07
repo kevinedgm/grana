@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSlider · banco de estilo</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/slider.md («Estructura accesible» y «Clases y datos») con el CSS real
+     de GSlider.css (cargado DENTRO de la capa grana.components, como lo registrará bruno en components.css) y los
+     componentes reales de dist/ como vecinos (GInput, GNumberField, GSelect, GForm, GFormLayout, GFormRow). XSlider hace
+     lo que hará GSlider.vue y SOLO lo que el estilo necesita: --_pill-w medido (con --_pill-w: 0px se leen las píldoras),
+     posiciones por fracciones, fusión (is-merged + --_mid), salto (is-jumping), arrastre del asa y del tramo (is-dragging),
+     teclear la cifra (is-typing), tope (data-bump), anillo por modalidad (data-g-key-focus) e is-ready. El motor es el de
+     referencia de kiwi (../r01/engine.js, window.SL). No es documentación ni la implementación de bruno.
+     Requiere dist/ (el JS de los vecinos). Desde la raíz del repo:  python3 -m http.server 4212  →  /design/lab/slider/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=propio (estilo-tema.css, @grana/cli)  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4212 node design/lab/slider/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GSlider/GSlider.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .host.sunken{background:var(--g-color-surface-sunken)}
+  .host.bg{background:var(--g-color-bg)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .stack{display:grid;gap:var(--g-space-5)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GSlider · banco de estilo</h1>
+<p class="cap"><b>coco</b> · B «El valor es el asa». La cifra vive en una píldora de ancho fijo (su texto más ancho de referencia) que recorre el riel recogida media píldora a cada lado; el tramo en <code>{color}-text</code>; en un rango las píldoras se funden en una cápsula; el tramo se arrastra entero; con el foco, teclea la cifra (<kbd>3</kbd><kbd>5</kbd> e <kbd>Intro</kbd>); en el límite, el tope. Anillo solo por teclado.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="propio">Propio (@grana/cli, primary propia)</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <button type="button" @click="reject">Rechazar (I2)</button>
+</div>
+
+<h2 class="b">1 · Alto del área = caja md de GInput, por densidad (fila real)</h2>
+<div class="host stack">
+  <g-form-row v-for="d in densities" :key="d" :data-row="'d-' + d">
+    <g-input class="g-form-w-sm" :id="'in-' + d" :density="d" :label="'GInput ' + d" model-value="40"></g-input>
+    <x-slider :case="'d-' + d" :density="d" :label="'Volumen ' + d" :model-value="40" :format="PCT" :labels="LBL"></x-slider>
+  </g-form-row>
+</div>
+
+<h2 class="b">2 · Estados</h2>
+<div class="host"><div class="grid">
+  <x-slider case="s-rest" label="Volumen de los avisos" :model-value="40" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="s-min" label="En el mínimo" :model-value="0" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="s-max" label="En el máximo" :model-value="100" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="s-marks" label="Intensidad del dolor" :model-value="5" :min="0" :max="10" :marks="painMarks" hint="0 es sin dolor y 10 el peor imaginable" :labels="LBL"></x-slider>
+  <x-slider case="s-ticks" label="Con marcas sin nombre" :model-value="30" :step="10" marks :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="s-empty" label="Dolor (sin elegir)" :model-value="null" :min="0" :max="10" :marks="painMarks" :labels="LBL"></x-slider>
+  <x-slider case="s-empty-err" label="Dolor (sin elegir, con error)" :model-value="null" :min="0" :max="10" :marks="painMarks" required error="Indica la intensidad del dolor." :labels="LBL"></x-slider>
+  <x-slider case="s-typing" label="Tecleando «35»" :model-value="40" :format="PCT" typing-text="35" :labels="LBL"></x-slider>
+  <x-slider case="s-readonly" label="Solo lectura" :model-value="40" :format="PCT" readonly :labels="LBL"></x-slider>
+  <x-slider case="s-readonly-range" label="Edad (solo lectura)" range :model-value="[30, 45]" :min="18" :max="99" :format="YEARS" readonly :labels="LBL"></x-slider>
+  <x-slider case="s-disabled" label="Deshabilitado" :model-value="40" :format="PCT" disabled :labels="LBL"></x-slider>
+  <x-slider case="s-disabled-range" label="Precio (deshabilitado)" range :model-value="[800, 2400]" :max="5000" :step="50" :format="MXN" disabled :labels="LBL"></x-slider>
+  <x-slider case="s-invalid" label="Con error" :model-value="90" :format="PCT" error="Demasiado alto para la noche." :labels="LBL"></x-slider>
+  <x-slider case="s-warning" label="Con advertencia" :model-value="80" :format="PCT" warning="Puede molestar a los vecinos." :labels="LBL"></x-slider>
+  <x-slider case="s-valid" label="Válido" :model-value="30" :format="PCT" valid="Dentro de lo recomendado." :labels="LBL"></x-slider>
+  <x-slider case="s-reject" label="I2 · rechazo" :model-value="null" error="Elige un valor." :labels="LBL"></x-slider>
+  <x-slider case="s-noname" aria-label="Sin etiqueta visible" :model-value="60" :format="PCT" :labels="LBL"></x-slider>
+</div></div>
+
+<h2 class="b">3 · Familias de color</h2>
+<div class="host"><div class="grid">
+  <template v-for="c in colors" :key="c">
+    <x-slider :case="'c-' + c" :color="c" :label="'color ' + c" :model-value="60" :format="PCT" :labels="LBL"></x-slider>
+    <x-slider :case="'cr-' + c" :color="c" :label="'rango ' + c" range :model-value="[18, 24]" :min="18" :max="99" :format="YEARS" :labels="LBL"></x-slider>
+  </template>
+</div></div>
+<div class="host sunken" style="margin-block-start:12px"><x-slider case="sk-rest" label="Sobre surface-sunken" :model-value="40" :format="PCT" :labels="LBL"></x-slider></div>
+<div class="host bg" style="margin-block-start:12px"><x-slider case="bg-rest" label="Sobre bg" :model-value="40" :format="PCT" :labels="LBL"></x-slider></div>
+
+<h2 class="b">4 · Rango: separado, fundido, en los extremos, tramo</h2>
+<div class="host"><div class="grid">
+  <x-slider case="r-apart" label="Precio" range :model-value="[800, 2400]" :max="5000" :step="50" :min-gap="100" :format="MXN" :labels="LBL"></x-slider>
+  <x-slider case="r-merged" label="Edad del grupo" range :model-value="[18, 24]" :min="18" :max="99" :format="YEARS" :labels="LBL"></x-slider>
+  <x-slider case="r-same" label="Edad (las dos en 50)" range :model-value="[50, 50]" :min="18" :max="99" :format="YEARS" :labels="LBL"></x-slider>
+  <x-slider case="r-start" label="En el inicio" range :model-value="[0, 0]" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="r-end" label="En el final" range :model-value="[100, 100]" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="r-marks" label="Resultados por página" range :model-value="[25, 50]" :min="10" :max="100" :marks="pageMarks" snap="marks" :labels="LBL"></x-slider>
+</div></div>
+
+<h2 class="b">5 · En una fila (GFormRow real) a 1100 · 720 · 320: la receta con GNumberField</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'f-' + w" :labels="formLabels">
+    <g-form-layout>
+      <g-form-row :data-row="'a-' + w">
+        <x-slider class="g-form-w-lg" :case="'row-vol-' + w" label="Volumen" v-model="vol" :format="PCT" :labels="LBL"></x-slider>
+        <g-number-field class="g-form-w-xs" :id="'row-num-' + w" label="Exacto" v-model="vol" :min="0" :max="100" suffix="%"></g-number-field>
+        <g-input class="g-form-w-md" :id="'row-in-' + w" label="Nota" name="nota"></g-input>
+      </g-form-row>
+      <g-form-row :data-row="'b-' + w">
+        <x-slider class="g-form-w-lg" :case="'row-precio-' + w" label="Precio" range v-model="precio" :max="5000" :step="50" :format="MXN" hint="Arrastra la raya para mover el margen entero." :labels="LBL"></x-slider>
+        <g-select class="g-form-w-sm" :id="'row-sel-' + w" label="Orden" name="orden" :options="orders" v-model="orden"></g-select>
+        <g-input class="g-form-w-sm" :id="'row-err-' + w" label="Código" name="codigo" error="El código no existe."></g-input>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">6 · RTL (ar-EG) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <div class="stack">
+      <x-slider case="rtl-single" locale="ar-EG" label="مستوى الصوت" :model-value="40" :format="PCT" :labels="LBL_AR"></x-slider>
+      <x-slider case="rtl-range" locale="ar-EG" label="السعر" range :model-value="[800, 2400]" :max="5000" :step="50" :format="EGP" :labels="LBL_AR"></x-slider>
+      <x-slider case="rtl-merged" locale="ar-EG" label="العمر" range :model-value="[18, 24]" :min="18" :max="99" :format="YEARS" :labels="LBL_AR"></x-slider>
+      <x-slider case="rtl-marks" locale="ar-EG" label="شدة الألم" :model-value="5" :min="0" :max="10" :marks="painMarksAr" :labels="LBL_AR"></x-slider>
+    </div>
+  </div>
+  <div class="host w320">
+    <div class="stack">
+      <x-slider case="n320-marks" label="Intensidad del dolor" :model-value="10" :min="0" :max="10" :marks="painMarks" :labels="LBL"></x-slider>
+      <x-slider case="n320-range" label="Precio" range :model-value="[0, 5000]" :max="5000" :step="50" :format="MXN" :labels="LBL"></x-slider>
+    </div>
+  </div>
+</div>
+
+<h2 class="b">7 · Mínimo de referencia (#453): md, space 4</h2>
+<p class="cap">El mayor entre <code>space × 40</code>, <code>3 × --_pill-w</code> (valor único) o <code>4 × --_pill-w</code> (rango) y la suma de los nombres de marcas + <code>space × 2</code> entre cada dos. <span id="ref-out">{{ refText }}</span></p>
+<div class="host w320 stack">
+  <x-slider case="ref-pain" label="Dolor" :model-value="5" :min="0" :max="10" :marks="painMarks" :labels="LBL"></x-slider>
+  <x-slider case="ref-pct" label="Volumen" :model-value="40" :format="PCT" :labels="LBL"></x-slider>
+  <x-slider case="ref-mxn" label="Precio" range :model-value="[800, 2400]" :max="5000" :step="50" :format="MXN" :labels="LBL"></x-slider>
+</div>
+<div style="block-size:40vh"></div>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="r01/engine.js"></script>
+<script>
+const { createApp, defineComponent, ref, computed, watch, onMounted, onBeforeUnmount, nextTick } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const SL = window.SL
+const registry = window.__sl = new Map()
+const TAP = 10
+const TYPE_MS = 900
+// Modalidad (#450): la última entrada fue de teclado (tecla que no es modificador) o de puntero
+const MOD = new Set(['Shift', 'Alt', 'Control', 'Meta', 'AltGraph', 'CapsLock', 'Fn'])
+let byKey = false
+document.addEventListener('keydown', (e) => { if (!MOD.has(e.key)) byKey = true }, true)
+document.addEventListener('pointerdown', () => { byKey = false }, true)
+const ICONS = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' }
+
+// ---- XSlider: lo que hará GSlider.vue (bruno), solo lo que el estilo necesita ----
+const XSlider = defineComponent({
+  name: 'XSlider',
+  inheritAttrs: false,
+  props: {
+    case: String, modelValue: { type: [Number, Array], default: null }, range: Boolean,
+    min: { type: Number, default: 0 }, max: { type: Number, default: 100 }, step: { type: Number, default: 1 }, bigStep: Number,
+    minGap: { type: Number, default: 0 }, marks: { type: [Boolean, Array], default: false }, snap: { type: String, default: 'step' },
+    locale: { type: String, default: 'es-MX' }, format: Object, labels: { type: Object, default: () => ({}) },
+    label: String, hint: String, error: String, warning: String, valid: String, required: Boolean, readonly: Boolean, disabled: Boolean,
+    density: { type: String, default: 'default' }, color: { type: String, default: 'brand' }, typingText: String
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit, attrs }) {
+    const id = props.case
+    const root = ref(null), area = ref(null), natives = ref([])
+    const markList = computed(() => {
+      if (Array.isArray(props.marks)) return props.marks.map((m) => (typeof m === 'number' ? { value: m } : m))
+      if (!props.marks) return []
+      const out = []
+      for (let v = props.min; v <= props.max + 1e-9; v += props.step) out.push({ value: Number(v.toFixed(SL.dec(props.step))) })
+      return out
+    })
+    const o = computed(() => ({ min: props.min, max: props.max, step: props.step, bigStep: props.bigStep, minGap: props.minGap, marks: markList.value, snap: props.snap, locale: props.locale, format: props.format, emptyText: props.labels.empty || '' }))
+    const norm = (mv) => {
+      if (props.range) { const a = Array.isArray(mv) && mv.length === 2 ? mv : [SL.bottom(o.value), SL.top(o.value)]; return [Math.min(a[0], a[1]), Math.max(a[0], a[1])] }
+      return [typeof mv === 'number' && isFinite(mv) ? mv : null]
+    }
+    const vals = ref(norm(props.modelValue))
+    watch(() => props.modelValue, (mv) => { vals.value = norm(mv) }, { deep: true })
+    const empty = computed(() => !props.range && vals.value[0] === null)
+    const lim = (i) => SL.limits(vals.value, i, o.value)
+    const fmt = (v) => SL.format(v, o.value)
+    const frac = (v) => Math.min(1, Math.max(0, ((v ?? props.min) - props.min) / (props.max - props.min || 1)))
+    const refs = computed(() => {
+      const vs = [SL.bottom(o.value), SL.top(o.value), SL.snap((props.min + props.max) / 2, o.value)]
+      if (props.min < 0) vs.push(-Math.abs(SL.top(o.value)))
+      markList.value.forEach((m) => vs.push(m.value))
+      return [...new Set(vs.map(fmt))]
+    })
+    function set(i, v) {
+      if (vals.value[i] === v) return false
+      const n = vals.value.slice(); n[i] = v; vals.value = n
+      emit('update:modelValue', props.range ? n.slice() : n[0])
+      return true
+    }
+    // ---- geometría: --_pill-w medido, fusión ----
+    const pw = ref(0), tw = ref(0)
+    const merged = computed(() => props.range && pw.value > 0 && tw.value > 0 && (frac(vals.value[1]) - frac(vals.value[0])) * (tw.value - pw.value) < pw.value)
+    const mid = computed(() => (frac(vals.value[0]) + frac(vals.value[1])) / 2)
+    function measure() {
+      if (!root.value || !area.value) return
+      tw.value = area.value.getBoundingClientRect().width
+      const pills = root.value.querySelectorAll('.g-slider__pill')
+      if (!pills.length) return
+      root.value.style.setProperty('--_pill-w', '0px')
+      const w = Math.max(...[...pills].map((p) => p.getBoundingClientRect().width))
+      pw.value = w
+      root.value.style.setProperty('--_pill-w', w + 'px')
+    }
+    // ---- estados de gesto ----
+    const jumping = ref(false), dragging = ref(false), ready = ref(false), rejected = ref(false), bump = ref('')
+    const typing = ref(props.typingText != null ? { i: 0, text: props.typingText } : { i: -1, text: '' })
+    let typeTimer = 0
+    function doBump(dir) { bump.value = ''; requestAnimationFrame(() => { bump.value = dir > 0 ? 'up' : 'down' }) }
+    function commitTyping() {
+      clearTimeout(typeTimer)
+      const { i, text } = typing.value
+      typing.value = { i: -1, text: '' }
+      if (i < 0 || !text) return
+      const n = Number(text.replace(',', '.'))
+      if (!isFinite(n)) return
+      const [lo, hi] = lim(i)
+      const v = SL.snap(n, o.value, lo, hi)
+      if (!set(i, v) && v !== n) doBump(n > v ? 1 : -1)
+      else if (n > hi || n < lo) doBump(n > hi ? 1 : -1)
+    }
+    const rtl = () => getComputedStyle(root.value).direction === 'rtl'
+    function onKey(i, e) {
+      const el = e.currentTarget
+      if (!MOD.has(e.key)) el.setAttribute('data-g-key-focus', '')
+      if (props.readonly || e.ctrlKey || e.metaKey || e.altKey) { if (SL.keyAction(e, {})) e.preventDefault(); return }
+      const d = e.key.length === 1 ? SL.latin(e.key) : null
+      const sep = (e.key === '.' || e.key === ',') && typing.value.i === i && !/[.,]/.test(typing.value.text)
+      const minus = e.key === '-' && typing.value.i !== i && props.min < 0
+      if (d !== null || sep || minus) {
+        e.preventDefault()
+        typing.value = { i, text: (typing.value.i === i ? typing.value.text : '') + (d ?? (sep ? '.' : '-')) }
+        clearTimeout(typeTimer); typeTimer = setTimeout(commitTyping, TYPE_MS)
+        return
+      }
+      if (typing.value.i === i) {
+        if (e.key === 'Backspace') { e.preventDefault(); typing.value = { i, text: typing.value.text.slice(0, -1) }; return }
+        if (e.key === 'Enter') { e.preventDefault(); commitTyping(); return }
+        if (e.key === 'Escape') { e.preventDefault(); clearTimeout(typeTimer); typing.value = { i: -1, text: '' }; return }
+        commitTyping()
+      }
+      const a = SL.keyAction(e, { rtl: rtl() })
+      if (!a) return
+      e.preventDefault()
+      jumping.value = false
+      const [lo, hi] = lim(i)
+      const cur = vals.value[i]
+      const next = a.kind === 'home' ? lo : a.kind === 'end' ? hi : cur === null ? (a.dir > 0 ? lo : hi) : SL.move(cur, a.dir, a.kind, o.value, lo, hi)
+      if (!set(i, next) && !e.repeat) doBump(a.kind === 'home' ? -1 : a.kind === 'end' ? 1 : a.dir)
+    }
+    function onFocus(e) { if (byKey) e.currentTarget.setAttribute('data-g-key-focus', '') }
+    function onBlur(e) { e.currentTarget.removeAttribute('data-g-key-focus'); if (typing.value.i >= 0) commitTyping() }
+    // ---- puntero ----
+    let drag = null
+    function valueAt(e) {
+      const r = area.value.getBoundingClientRect()
+      let x = e.clientX - r.left
+      if (rtl()) x = r.width - x
+      return props.min + Math.min(1, Math.max(0, (x - pw.value / 2) / Math.max(1, r.width - pw.value))) * (props.max - props.min)
+    }
+    function focusThumb(i) { const el = natives.value[i]; if (el && document.activeElement !== el) el.focus({ preventScroll: true }) }
+    function onDown(e) {
+      if (e.button !== 0 || props.disabled) return
+      natives.value.forEach((n) => n && n.removeAttribute('data-g-key-focus'))
+      const thumbEl = e.target.closest('[data-thumb]')
+      const markEl = e.target.closest('[data-value]')
+      const onFill = props.range && e.target.closest('.g-slider__fill') && !merged.value
+      const v = markEl ? Number(markEl.dataset.value) : valueAt(e)
+      let i = thumbEl && !empty.value ? Number(thumbEl.dataset.thumb) : SL.pick(vals.value, SL.snap(v, o.value))
+      if (thumbEl && props.range && vals.value[0] === vals.value[1]) i = null
+      focusThumb(i ?? 1)
+      if (props.readonly) return
+      try { area.value.setPointerCapture(e.pointerId) } catch (_) {}
+      if (onFill) { drag = { mode: 'window', x0: e.clientX, y0: e.clientY, a0: vals.value[0], b0: vals.value[1], pending: true, v }; return }
+      const pending = (e.pointerType === 'touch' && !(thumbEl && !empty.value))
+      drag = { mode: 'thumb', i, x0: e.clientX, y0: e.clientY, pending, v }
+      if (thumbEl && !empty.value) dragging.value = true
+      if (!pending && i !== null && !(thumbEl && !empty.value)) jumpTo(i, v)
+    }
+    function jumpTo(i, v) {
+      const [lo, hi] = lim(i)
+      jumping.value = vals.value[i] !== null
+      set(i, SL.snap(v, o.value, lo, hi))
+    }
+    function onMove(e) {
+      if (!drag) return
+      const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0
+      if (drag.pending) {
+        if (Math.abs(dy) > TAP && Math.abs(dy) > Math.abs(dx)) { drag = null; return }
+        if (Math.abs(dx) <= TAP) return
+        drag.pending = false
+      }
+      jumping.value = false
+      dragging.value = true
+      if (drag.mode === 'window') {
+        const r = area.value.getBoundingClientRect()
+        const d = ((rtl() ? -dx : dx) / Math.max(1, r.width - pw.value)) * (props.max - props.min)
+        const width = drag.b0 - drag.a0
+        let a = SL.snap(drag.a0 + d, o.value)
+        a = Math.min(SL.top(o.value) - width, Math.max(SL.bottom(o.value), a))
+        vals.value = [a, Number((a + width).toFixed(SL.dec(props.step)))]
+        emit('update:modelValue', vals.value.slice())
+        return
+      }
+      if (drag.i === null) {
+        if (Math.abs(dx) < 2) return
+        drag.i = (rtl() ? dx < 0 : dx > 0) ? 1 : 0
+        focusThumb(drag.i)
+      }
+      const [lo, hi] = lim(drag.i)
+      set(drag.i, SL.snap(valueAt(e), o.value, lo, hi))
+    }
+    function onUp() {
+      if (drag && drag.pending) {
+        if (drag.mode === 'window') { const i = SL.pick(vals.value, SL.snap(drag.v, o.value)) ?? 1; focusThumb(i); jumpTo(i, drag.v) }
+        else if (drag.i !== null) jumpTo(drag.i, drag.v)
+      }
+      drag = null; dragging.value = false
+    }
+    const onCancel = () => { drag = null; dragging.value = false }
+    const onTransitionEnd = (e) => { if (e.target.classList.contains('g-slider__thumb')) jumping.value = false }
+    const onAnimationEnd = (e) => {
+      if (e.animationName.startsWith('g-slider-bump')) bump.value = ''
+      if (e.animationName.startsWith('g-reject')) rejected.value = false
+    }
+    // ---- textos ----
+    const message = computed(() => props.error ? { type: 'error', prefix: 'Error:', text: props.error } : props.warning ? { type: 'warning', prefix: 'Advertencia:', text: props.warning } : props.valid ? { type: 'valid', prefix: 'Correcto:', text: props.valid } : null)
+    const classes = computed(() => ['g-slider', 'g-slider--color-' + props.color, 'g-slider--density-' + props.density, attrs.class, {
+      'g-slider--range': props.range, 'is-empty': empty.value, 'is-readonly': props.readonly, 'is-disabled': props.disabled,
+      'is-invalid': props.error != null, 'is-warning': !props.error && props.warning != null, 'is-valid': !props.error && !props.warning && props.valid != null,
+      'is-ready': ready.value, 'is-dragging': dragging.value, 'is-jumping': jumping.value, 'is-merged': merged.value, 'is-rejected': rejected.value
+    }])
+    const rootStyle = computed(() => [attrs.style, { '--_pill-w': pw.value + 'px', '--_mid': merged.value ? mid.value : null }])
+    const vtext = (i) => SL.valueText(vals.value[i], { ...o.value, marks: markList.value })
+    let ro = null
+    onMounted(async () => {
+      measure()
+      ro = new ResizeObserver(measure); ro.observe(area.value)
+      if (document.fonts) document.fonts.ready.then(measure)
+      await raf2()
+      ready.value = true
+      registry.set(id, { vals, pw, tw, merged, typing, jumping, dragging, bump, rejected, measure, set })
+    })
+    watch([vals, typing, () => props.locale], () => nextTick(measure), { deep: true })
+    onBeforeUnmount(() => { ro && ro.disconnect(); clearTimeout(typeTimer) })
+    return { id, root, area, natives, vals, empty, fmt, frac, refs, markList, typing, lim, vtext, message, classes, rootStyle, bump, attrs,
+      onKey, onFocus, onBlur, onDown, onMove, onUp, onCancel, onTransitionEnd, onAnimationEnd, ICONS, LUCIDE: window.LUCIDE_ICONS }
+  },
+  template: `
+<div ref="root" :class="classes" :style="rootStyle" :data-bump="bump || null" :data-case="id" @animationend="onAnimationEnd" @transitionend="onTransitionEnd">
+  <div class="g-slider__head"><label v-if="label && !range" class="g-slider__label" :id="id + '-label'" :for="id">{{ label }}<span v-if="required" class="g-slider__required" aria-hidden="true">*</span></label><span v-else-if="label" class="g-slider__label" :id="id + '-label'">{{ label }}</span><span v-if="empty" class="g-slider__value" aria-hidden="true"><bdi>{{ labels.empty }}</bdi></span></div>
+  <div class="g-slider__row" :role="range ? 'group' : null" :aria-labelledby="range && label ? id + '-label' : null" :aria-label="range && !label ? attrs['aria-label'] : null">
+    <div ref="area" class="g-slider__area" @mousedown.prevent @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onCancel" @lostpointercapture="onCancel">
+      <span class="g-slider__track"></span>
+      <span v-if="!empty" class="g-slider__fill" :style="{ '--_from': range ? frac(vals[0]) : 0, '--_to': frac(vals[range ? 1 : 0]) }"></span>
+      <span v-for="(v, i) in vals" :key="i" class="g-slider__thumb" :class="{ 'is-typing': typing.i === i }" :data-thumb="i" :style="empty ? null : { '--_at': frac(v) }">
+        <span v-if="!empty" class="g-slider__pill" aria-hidden="true"><span class="g-slider__pill-text" dir="auto">{{ typing.i === i ? typing.text : fmt(v) }}</span><span class="g-slider__pill-ref"><span v-for="t in refs" :key="t">{{ t }}</span></span></span>
+        <input :ref="(el) => { if (el) natives[i] = el }" class="g-slider__native" type="range" step="any" :id="i === 0 ? id : id + '-end'"
+               :min="lim(i)[0]" :max="lim(i)[1]" :value="v === null ? (min + max) / 2 : v" :disabled="disabled"
+               :aria-labelledby="range ? (label ? id + '-label ' : '') + id + '-n' + i : null" :aria-label="!range && !label ? attrs['aria-label'] : null"
+               :aria-valuetext="vtext(i)" :aria-describedby="[hint ? id + '-hint' : '', id + '-message'].filter(Boolean).join(' ')"
+               :aria-invalid="error != null ? 'true' : null" :aria-readonly="readonly ? 'true' : null"
+               @keydown="onKey(i, $event)" @focus="onFocus" @blur="onBlur" @input.stop @change.stop>
+        <span v-if="range" class="g-slider__thumb-name" :id="id + '-n' + i" hidden>{{ i === 0 ? labels.start : labels.end }}</span>
+      </span>
+    </div>
+    <div v-if="markList.length" class="g-slider__marks" aria-hidden="true" @mousedown.prevent @pointerdown="onDown">
+      <span v-for="m in markList" :key="m.value" class="g-slider__mark" :class="{ 'has-label': m.label }" :data-value="m.value" :style="{ '--_at': frac(m.value) }"><span v-if="m.label" class="g-slider__mark-label">{{ m.label }}</span></span>
+    </div>
+    <input v-for="(v, i) in vals" :key="'h' + i" type="hidden" :name="id" :value="v === null ? '' : String(v)" :disabled="disabled">
+  </div>
+  <div class="g-slider__support">
+    <p v-if="hint" class="g-slider__hint" :id="id + '-hint'">{{ hint }}</p>
+    <div class="g-slider__message" :id="id + '-message'" aria-live="polite"><template v-if="message"><svg class="g-icon g-slider__message-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" v-html="LUCIDE[ICONS[message.type]]"></svg><span class="g-slider__sr">{{ message.prefix }}</span>{{ message.text }}</template></div>
+  </div>
+</div>`
+})
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+    applySlow(slow.value); watch(slow, applySlow)
+    const LBL = { start: 'mínimo', end: 'máximo', empty: 'Sin elegir' }
+    const LBL_AR = { start: 'الحد الأدنى', end: 'الحد الأقصى', empty: 'لم يتم الاختيار' }
+    const PCT = { style: 'unit', unit: 'percent' }
+    const MXN = { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }
+    const EGP = { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }
+    const YEARS = { style: 'unit', unit: 'year', unitDisplay: 'short' }
+    const painMarks = [{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]
+    const painMarksAr = [{ value: 0, label: 'لا ألم' }, { value: 5, label: 'متوسط' }, { value: 10, label: 'الأسوأ' }]
+    const pageMarks = [10, 25, 50, 100].map((v) => ({ value: v, label: String(v) }))
+    const colors = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
+    const densities = ['default', 'comfortable', 'compact']
+    const vol = ref(40), precio = ref([800, 2400]), orden = ref('rel')
+    const orders = [{ value: 'rel', label: 'Relevancia' }, { value: 'pre', label: 'Precio' }]
+    const formLabels = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' }
+    const refText = ref('…')
+    onMounted(async () => {
+      await document.fonts.ready; await raf2(); await raf2()
+      refText.value = Object.entries(window.__referenceMin()).map(([k, r]) => `${k}: ${r.min}px`).join(' · ')
+    })
+    const reject = () => { const r = registry.get('s-reject'); r.rejected.value = false; requestAnimationFrame(() => { r.rejected.value = true }) }
+    return { slow, LBL, LBL_AR, PCT, MXN, EGP, YEARS, painMarks, painMarksAr, pageMarks, colors, densities, vol, precio, orden, orders, formLabels, refText, reject }
+  }
+})
+app.component('XSlider', XSlider)
+app.use(Grana)
+app.mount('#app')
+
+// Mínimo de referencia (#453): mayor de space × 40, 3 (4 en rango) × --_pill-w y nombres de marcas + space × 2 entre cada dos
+window.__referenceMin = () => {
+  const space = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1'))
+  const out = {}
+  for (const c of ['ref-pain', 'ref-pct', 'ref-mxn']) {
+    const root = document.querySelector(`[data-case="${c}"]`)
+    const pw = parseFloat(root.style.getPropertyValue('--_pill-w'))
+    const range = root.classList.contains('g-slider--range')
+    const labels = [...root.querySelectorAll('.g-slider__mark-label')].map((l) => l.getBoundingClientRect().width)
+    const marks = labels.length ? labels.reduce((a, b) => a + b, 0) + space * 2 * (labels.length - 1) : 0
+    const parts = { space: space * 40, pills: (range ? 4 : 3) * pw, marks }
+    out[c] = { min: Math.ceil(Math.max(...Object.values(parts)) - 0.01), pw, ...parts }
+  }
+  return out
+}
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v === 'propio' ? 'estilo-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+const ready = () => document.fonts.ready.then(raf2).then(() => { for (const r of registry.values()) r.measure(); return raf2() }).then(() => { document.documentElement.dataset.ready = '1' })
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>
