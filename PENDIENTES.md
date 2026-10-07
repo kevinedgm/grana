@@ -92,7 +92,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | `GFormSection`: salto de 22px de lo de abajo al desaparecer la línea de resumen al abrir (aceptado, hallazgo 3) | lima |
 | `GRadioGroup`: «ЖШ» en `md` circular deja 0,1px de aire; tipografías más anchas podrían recortar | — |
 | `AGENTS.md` asigna `*.meta.json` a bruno pero el agente coco cambia `status` (unificar) | usuario |
-| `GSidebar` emite `navigate` también con Ctrl/⌘+clic; si la aplicación lo cancela para su router rompe abrir en pestaña nueva; enmendar #70 (y `sidebar.md` §«Eventos») con la guarda de `GBreadcrumbs` (#494: solo activación primaria sin modificadores). Mismo caso en `GCard` `interaction="link"` (`GCard.vue` emite sin guarda) y en el `navigate` contratado de `GTag`/`GTagGroup` (#462, «como `GCard`»): conviene una regla común en `api.md` antes de que bruno construya `GTag` | lima / bruno |
+| Regla fijada en #505 (`navigate` solo con activación primaria sin modificadores, `api.md` «Enlaces y `navigate`»); falta el cambio en `GCard.vue` y `GSidebar.vue` (bruno) | bruno |
 
 ## 7. Solo en entorno real (no automatizable)
 

@@ -293,7 +293,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `navigate` | `{ event, href }` | `interaction="link"`: el usuario activa el enlace. Se emite con el **evento nativo**; `event.preventDefault()` (síncrono) evita la navegación y permite un router (#70). No bloquea la apertura en pestaña con modificadores |
+| `navigate` | `{ event, href }` | `interaction="link"`: el usuario activa el enlace. Se emite con el **evento nativo**; `event.preventDefault()` (síncrono) evita la navegación y permite un router (#70). **Solo se emite con activación primaria sin modificadores** (regla común de `api.md` «Enlaces y `navigate`», #505, enmienda de #70): con Ctrl/⌘/Mayús/Alt+clic o botón central no se emite y el navegador abre la pestaña. Pendiente en `GCard.vue` (bruno) |
 | `activate` | `{ event }` | `interaction="button"`: el usuario activa el botón principal |
 | `update:modelValue` | según `selectType`/`value` (ver «Selección») | El usuario marca o desmarca (`select`, `toggle`, `selectable`). Con `navigate` y `selectable`, la casilla **no** emite `navigate` |
 | `action` | `{ id }` (y `checked`) | El usuario elige un elemento del menú (`GMenu`) |

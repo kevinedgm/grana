@@ -256,7 +256,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `navigate` | `{ item, event }` | El usuario elige un destino (clic o Enter en un enlace o botón sin hijos, o un hijo). `event` es el evento nativo: `event.preventDefault()` cancela la navegación del `href` (para un router) y también **impide** cerrar el drawer y emitir `update:modelValue` |
+| `navigate` | `{ item, event }` | El usuario elige un destino (clic primario sin modificadores o Enter en un enlace o botón sin hijos, o un hijo; con Ctrl/⌘/Mayús/Alt+clic o botón central no se emite: regla común de `api.md` «Enlaces y `navigate`», #505, enmienda de #70; pendiente en `GSidebar.vue`, bruno). `event` es el evento nativo: `event.preventDefault()` cancela la navegación del `href` (para un router) y también **impide** cerrar el drawer y emitir `update:modelValue` |
 | `update:modelValue` | `id` del destino | Tras `navigate` no cancelado |
 | `update:collapsed` | Boolean | El usuario contrae o expande con el botón |
 | `update:open` | Boolean | El drawer se abre o se cierra |

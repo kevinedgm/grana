@@ -70,7 +70,7 @@ Una **etiqueta** es un elemento de un conjunto que **clasifica o resume una elec
 | --- | --- | --- |
 | `update:pressed` | Boolean | El usuario alterna (clic, Espacio, Intro). No con `disabled` |
 | `remove` | `{ event, source: 'button' \| 'key' }` | El usuario pulsa «Quitar» o <kbd>Supr</kbd>/<kbd>Retroceso</kbd> sobre un control de la etiqueta. **Una `GTag` suelta no se quita sola ni deja huella**: la aplicación la quita y decide el foco (la huella exige un grupo, #466) |
-| `navigate` | `{ event, href }` | El usuario activa el enlace. Se emite con el evento nativo; `event.preventDefault()` (síncrono) evita la navegación y permite un router (como `GCard`, #70). **Sin prop `to`** |
+| `navigate` | `{ event, href }` | El usuario activa el enlace. Se emite con el evento nativo; `event.preventDefault()` (síncrono) evita la navegación y permite un router (como `GCard`, #70). **Solo se emite con activación primaria sin modificadores** (`api.md` «Enlaces y `navigate`», #505). **Sin prop `to`** |
 
 Todos en `emits` (lección de `CLAUDE.md`: si no, una escucha del consumidor llega por `$attrs` a la raíz y se dispara con cualquier clic interno). **Sin evento `click`** (aviso 7).
 
@@ -137,7 +137,7 @@ Una vez por gesto, **después** de `update:items` (como el `change` de `GCombobo
 | `restore` | `{ items, source: 'undo' \| 'undo-all' }` | «Deshacer» de una huella o de «Quitar todas» |
 | `clear` | `{ items }` | «Quitar todas» |
 | `toggle` | `{ item, pressed }` | El usuario alterna (`item` es el objeto nuevo) |
-| `navigate` | `{ event, href, item }` | Como `GTag` (`preventDefault()` para un router) |
+| `navigate` | `{ event, href, item }` | Como `GTag` (`preventDefault()` para un router; misma guarda de modificadores, #505) |
 | `settle` | `{ items }` | Lo quitado **deja de poder deshacerse**: las huellas se recogen o el «Deshacer» de «Quitar todas» se va (§«Huella»). Para la aplicación que prefiera confirmar el borrado en el servidor solo entonces. También al desmontar con huellas pendientes |
 
 ### Slots
