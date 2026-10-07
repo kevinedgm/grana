@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acordeón · r01 · base y conceptos</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../time-field/lab.css">
+<link rel="stylesheet" href="./accordion.css">
+<style>
+/* Solo la página del laboratorio */
+.lab { max-inline-size: 52rem }
+.lab-links { display: flex; flex-wrap: wrap; gap: var(--g-space-1) var(--g-space-3) }
+.lab-wide { max-inline-size: 64rem }
+.lab-case { scroll-margin-block-start: var(--g-space-6) }
+.lab-ctl { display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-4); align-items: center }
+.lab-note { margin: 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted) }
+.lab-pair { display: grid; gap: var(--g-space-6) }
+.lab-setting { display: grid; gap: var(--g-space-3); padding-block: var(--g-space-1) }
+.lab-input { display: grid; gap: var(--g-space-1); max-inline-size: 24rem }
+.lab-input input { min-block-size: 40px; padding: 0 var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-sm); font: inherit; background: var(--g-color-surface); color: var(--g-color-text) }
+.lab-input input:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+.lab-tall { block-size: 100vh }
+.slow .x-acc { --_t-slow: calc(var(--g-duration-slow) * 5); --_t-fast: calc(var(--g-duration-fast) * 5) }
+.lab-heavy { padding: var(--g-space-3); border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size) }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./accordion.js"></script>
+<script>
+(function () {
+  const { createApp, ref, reactive, onMounted } = Vue
+  const q = new URLSearchParams(location.search)
+  const C = ['base', 'A', 'B', 'C', 'all'].includes(q.get('c')) ? q.get('c') : 'base'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('slow')) document.documentElement.classList.add('slow')
+
+  // Preguntas frecuentes de una clínica (el mismo contenido en todos los conceptos). `first` es el primer párrafo:
+  // en A es también el avance, para que la línea que se lee cerrada sea la misma que se lee abierta.
+  const FAQ = [
+    { v: 'cambiar', t: '¿Puedo cambiar la fecha de mi cita?', first: 'Sí, hasta 24 horas antes desde «Mis citas» o llamando a recepción; después de ese plazo el cambio cuenta como cancelación tardía.', more: ['Si cambias la cita de un estudio con preparación, revisa de nuevo las indicaciones: algunas dependen del día de la semana.'] },
+    { v: 'documentos', t: '¿Qué documentos necesito el primer día?', first: 'Una identificación oficial, la credencial de tu seguro si tienes uno y la orden médica si te envía otra clínica.', more: ['Si vienes por un menor de edad, trae también su acta de nacimiento o CURP.'] },
+    { v: 'resultados', t: '¿Cuánto tardan los resultados?', first: 'Los estudios de laboratorio están listos en 48 horas hábiles; los de imagen, en cinco días hábiles.', more: ['Te avisamos por correo cuando estén disponibles en tu expediente en línea.', 'Algunos cultivos tardan hasta diez días: el día de la toma te dirán la fecha exacta.'] },
+    { v: 'pago', t: '¿Cómo puedo pagar?', first: 'Con tarjeta, transferencia o efectivo en recepción; con convenio de tu aseguradora solo pagas el deducible.', more: ['La factura se pide en las 72 horas siguientes al pago.'] },
+    { v: 'acompanante', t: '¿Puedo ir acompañado?', first: 'Sí, una persona por paciente en la sala de espera; en la toma de muestras, solo si el paciente es menor o lo necesita.', more: [] },
+    { v: 'urgencias', t: '¿Atienden urgencias?', first: 'No. Esta clínica atiende con cita; ante una urgencia llama al 911 o acude al hospital más cercano.', more: [] },
+    { v: 'estacionamiento', t: '¿Dónde me estaciono?', first: 'En el estacionamiento subterráneo del edificio; con tu comprobante de cita las dos primeras horas no tienen costo.', more: ['La entrada está sobre la calle lateral, a la izquierda de la farmacia.'] },
+    { v: 'cancelar', t: '¿Cómo cancelo una cita?', first: 'Desde «Mis citas», con el botón «Cancelar», o respondiendo «CANCELAR» al recordatorio que te llega por mensaje.', more: ['Cancelar con menos de 24 horas cuenta como cancelación tardía.'] }
+  ]
+  const PREP = [
+    'Preparación para el ultrasonido abdominal. Lee todo antes del día del estudio: algunas indicaciones empiezan 48 horas antes.',
+    'Dos días antes: evita bebidas con gas, chicle y alimentos que producen gases (frijoles, brócoli, coliflor, cebolla).',
+    'La noche anterior: cena ligera antes de las 21:00. Después, solo agua natural.',
+    'El día del estudio: ayuno de 8 horas. Si tomas medicamentos, tómalos con un sorbo de agua salvo que tu médico indique otra cosa.',
+    'Una hora antes: bebe un litro de agua y no orines hasta terminar el estudio; la vejiga llena ayuda a ver los órganos de la pelvis.',
+    'Qué llevar: la orden médica, estudios anteriores de la misma zona y una lista de tus medicamentos.',
+    'Durante el estudio: te pedirán recostarte y respirar hondo varias veces; el gel es frío, pero no duele.',
+    'Después: puedes comer con normalidad. Los resultados llegan a tu expediente en línea en cinco días hábiles.',
+    'Si estás embarazada o crees estarlo, avísalo al agendar: cambia la preparación.',
+    'Si no puedes cumplir el ayuno por una condición médica (diabetes, por ejemplo), llama antes a recepción para reprogramar en el primer turno.'
+  ]
+
+  const Heavy = {
+    props: ['id'],
+    setup(p) { onMounted(() => { window.__acc.mounts[p.id] = (window.__acc.mounts[p.id] || 0) + 1 }); return {} },
+    template: '<div class="lab-heavy" :data-heavy="id">Contenido pesado montado (un mapa, un iframe, una gráfica). Montajes: se cuentan en <code>__acc.mounts</code>.</div>'
+  }
+
+  const TXT = {
+    base: ['Base funcional', 'Lo que comparten los tres conceptos: <code>h3 &gt; button[aria-expanded]</code> + contenido <code>role="region"</code> (con la regla de APG), <code>hidden="until-found"</code> al plegar (la búsqueda de la página encuentra y abre), flechas entre encabezados, <code>v-model</code> de abiertos, carga diferida, <code>#hash</code>, impresión y el encabezado que tocas no se mueve. La forma es neutra a propósito.'],
+    A: ['A · Avance', 'Un encabezado cerrado no es mudo: debajo de la pregunta, la primera línea de la respuesta (o el estado de un grupo de ajustes). Al abrir, esa línea no se mueve: pierde los puntos suspensivos, gana el color del texto y lo demás se desenrolla debajo. Se lee de corrido, abierto o cerrado.'],
+    B: ['B · Hilo', 'Sin cajas: un eje vertical une las preguntas como capítulos y cada una cuelga de su nudo. Al abrir, el tramo de tinta baja por lo que vas a leer y llega con el muelle de Grana; mientras lees, el encabezado se queda arriba y cerrarlo te deja donde estabas.'],
+    C: ['C · Índice', 'Muchas preguntas cortas en columnas, como el índice de un libro: se recorren de un vistazo. La que abres se vuelve lectura a todo el ancho; las demás se apartan con el muelle y la pregunta tocada no cambia de altura en la pantalla.'],
+    all: ['Comparar', 'Las mismas ocho preguntas en A, B y C, al ancho de una columna de lectura.']
+  }
+
+  createApp({
+    components: { XAccordion, XAccordionItem, Heavy },
+    setup() {
+      const m = reactive({ faq: ['resultados'], excl: [], many: [], manyEx: [], misc: [], settings: [], aFaq: [], bPrep: [], bFaq: [], cFaq: [], allA: [], allB: [], allC: [] })
+      const solo = ref(false)
+      const compensate = ref(true)
+      const pickNotif = ref(true), pickWeekly = ref(true), pickPublic = ref(false)
+      function goToField() {
+        const input = document.getElementById('campo-ciudad')
+        const ev = new CustomEvent('g-open-request', { bubbles: true, cancelable: true })
+        input.dispatchEvent(ev) // el acordeón abre en el acto y cancela; quien pidió espera un parche y enfoca
+        Vue.nextTick(() => { input.focus({ preventScroll: true }); input.scrollIntoView({ block: 'center' }) })
+      }
+      return { C, TXT, FAQ, PREP, m, solo, compensate, goToField, pickNotif, pickWeekly, pickPublic, json: (x) => JSON.stringify(x) }
+    },
+    template: `
+<header class="lab-bar">
+  <span class="lab-brand">Acordeón · r01</span>
+  <nav class="lab-links" aria-label="Conceptos">
+    <a v-for="k in ['base','A','B','C','all']" :key="k" :href="'?c=' + k" :aria-current="C === k ? 'page' : undefined">{{ k === 'base' ? 'Base' : k === 'all' ? 'Comparar' : k }}</a>
+    <a :href="'?c=' + C + '&dir=rtl'">RTL</a> <a :href="'?c=' + C + '&slow=1'">Lento ×5</a>
+  </nav>
+</header>
+<main class="lab" :class="{ 'lab-wide': C === 'C' }">
+  <div>
+    <h1 class="lab-title">{{ TXT[C][0] }}</h1>
+    <p class="lab-lead" v-html="TXT[C][1]"></p>
+  </div>
+
+  <!-- ===================== BASE ===================== -->
+  <template v-if="C === 'base'">
+    <section class="lab-case" id="caso-faq">
+      <h2>1 · Preguntas frecuentes (varias abiertas)</h2>
+      <p class="lab-how">Tab pasa por cada encabezado; ↓/↑ saltan entre encabezados, Inicio/Fin a los extremos. Abrir no mueve el foco.</p>
+      <x-accordion id="g-faq" v-model="m.faq" :heading-level="3">
+        <x-accordion-item v-for="f in FAQ.slice(0, 4)" :key="f.v" :id="'faq-' + f.v" :value="f.v" :title="f.t">
+          <p>{{ f.first }}</p><p v-for="p in f.more">{{ p }}</p>
+        </x-accordion-item>
+      </x-accordion>
+      <pre class="lab-out" id="out-faq">v-model: {{ json(m.faq) }}</pre>
+    </section>
+
+    <section class="lab-case" id="caso-excl">
+      <h2>2 · Uno a la vez, y el encabezado que tocas no se mueve</h2>
+      <p class="lab-how">Abre «Resultados» y luego «Pago»: «Resultados» se cierra arriba y, sin compensar, «Pago» saltaría hacia arriba bajo tu dedo.</p>
+      <label class="lab-check"><input type="checkbox" v-model="compensate" id="ctl-compensate"> Compensar (Δ0 del encabezado)</label>
+      <x-accordion id="g-excl" v-model="m.excl" exclusive :compensate="compensate">
+        <x-accordion-item v-for="f in FAQ.slice(0, 5)" :key="f.v" :id="'ex-' + f.v" :value="f.v" :title="f.t">
+          <p>{{ f.first }}</p><p v-for="p in PREP.slice(0, 5)">{{ p }}</p>
+        </x-accordion-item>
+      </x-accordion>
+      <pre class="lab-out" id="out-excl">v-model: {{ json(m.excl) }}</pre>
+    </section>
+
+    <section class="lab-case" id="caso-region">
+      <h2>3 · Ocho preguntas: sin region si pueden abrirse todas</h2>
+      <p class="lab-how">APG: con más de ~6 paneles que pueden estar abiertos a la vez, el contenido no es <code>region</code> (proliferación de puntos de referencia). Con <code>exclusive</code> sí lo es (como mucho uno).</p>
+      <x-accordion id="g-many" v-model="m.many">
+        <x-accordion-item v-for="f in FAQ" :key="f.v" :id="'many-' + f.v" :value="f.v" :title="f.t"><p>{{ f.first }}</p></x-accordion-item>
+      </x-accordion>
+      <x-accordion id="g-many-ex" v-model="m.manyEx" exclusive>
+        <x-accordion-item v-for="f in FAQ" :key="f.v" :id="'mex-' + f.v" :value="f.v" :title="f.t"><p>{{ f.first }}</p></x-accordion-item>
+      </x-accordion>
+    </section>
+
+    <section class="lab-case" id="caso-misc">
+      <h2>4 · Deshabilitado, carga diferida y suelto</h2>
+      <x-accordion id="g-misc" v-model="m.misc">
+        <x-accordion-item id="misc-mapa" value="mapa" title="Mapa de la clínica (carga diferida)" lazy><heavy id="misc-mapa"></heavy></x-accordion-item>
+        <x-accordion-item id="misc-off" value="off" title="Historial de pagos" meta="Disponible tras tu primera cita" disabled><p>No debería verse.</p></x-accordion-item>
+        <x-accordion-item id="misc-campo" value="campo" title="Dirección de facturación">
+          <div class="lab-input"><label for="campo-ciudad">Ciudad</label><input id="campo-ciudad" name="ciudad" value="Oaxaca"></div>
+        </x-accordion-item>
+      </x-accordion>
+      <div class="lab-ctl"><button class="lab-btn" id="btn-goto" type="button" @click="goToField">Llevar a «Ciudad» (OPEN_REQUEST)</button></div>
+      <x-accordion-item id="solo" v-model:open="solo" title="Sección plegable suelta, sin grupo"><p>Un elemento solo es una sección con encabezado que se pliega (APG Disclosure con encabezado): mismo marcado, sin flechas.</p></x-accordion-item>
+      <pre class="lab-out" id="out-misc">v-model: {{ json(m.misc) }} · suelto: {{ solo }}</pre>
+    </section>
+
+    <section class="lab-case" id="caso-hash">
+      <h2>5 · Enlaces y búsqueda en la página</h2>
+      <p class="lab-how">Un <code>#id</code> del elemento lo abre y lo trae a la vista; un <code>#id</code> o un <code>#:~:text=</code> de algo de dentro lo abre el navegador (<code>beforematch</code>). Ctrl+F con una palabra de una respuesta plegada hace lo mismo.</p>
+      <div class="lab-ctl">
+        <a href="#many-pago" id="lnk-item">#many-pago</a>
+        <a href="#dato-entrada" id="lnk-deep">#dato-entrada (dentro)</a>
+      </div>
+      <x-accordion id="g-hash">
+        <x-accordion-item id="hash-estac" value="estac" :title="FAQ[6].t"><p>{{ FAQ[6].first }}</p><p id="dato-entrada">{{ FAQ[6].more[0] }}</p></x-accordion-item>
+      </x-accordion>
+      <div class="lab-tall"></div>
+    </section>
+  </template>
+
+  <!-- ===================== A · Avance ===================== -->
+  <template v-if="C === 'A' || C === 'all'">
+    <section class="lab-case" id="caso-a-faq">
+      <h2 v-if="C === 'all'">A · Avance</h2>
+      <h2 v-else>Preguntas frecuentes</h2>
+      <x-accordion id="g-a-faq" concept="A" v-model="m[C === 'all' ? 'allA' : 'aFaq']" :heading-level="3">
+        <x-accordion-item v-for="f in FAQ" :key="f.v" :id="'a-' + f.v" :value="f.v" :title="f.t" :peek="f.first">
+          <p>{{ f.first }}</p><p v-for="p in f.more">{{ p }}</p>
+        </x-accordion-item>
+      </x-accordion>
+    </section>
+    <section v-if="C === 'A'" class="lab-case" id="caso-a-ajustes">
+      <h2>Ajustes agrupados: el estado se lee sin abrir</h2>
+      <p class="lab-how">El avance es lo que la aplicación quiera decir del grupo. Las acciones del grupo van fuera del botón (nada interactivo dentro de un botón).</p>
+      <x-accordion id="g-a-set" concept="A" v-model="m.settings" :heading-level="3">
+        <x-accordion-item id="set-notif" value="notif" title="Notificaciones" :peek="(pickNotif ? 'Correo y push' : 'Solo correo') + (pickWeekly ? ' · resumen semanal' : '')">
+          <template #actions><g-btn variant="ghost" color="neutral" size="sm" @click="pickNotif = true; pickWeekly = true">Restablecer</g-btn></template>
+          <div class="lab-setting"><g-switch v-model="pickNotif" label="Avisos push en el teléfono"></g-switch><g-switch v-model="pickWeekly" label="Resumen semanal por correo"></g-switch></div>
+        </x-accordion-item>
+        <x-accordion-item id="set-priv" value="priv" title="Privacidad" :peek="pickPublic ? 'Perfil visible para pacientes' : 'Perfil visible solo para tu equipo'">
+          <div class="lab-setting"><g-switch v-model="pickPublic" label="Mostrar mi perfil a pacientes"></g-switch></div>
+        </x-accordion-item>
+        <x-accordion-item id="set-idioma" value="idioma" title="Idioma y región" peek="Español (México) · 24 horas · lunes primero">
+          <p>Idioma, formato de hora y primer día de la semana.</p>
+        </x-accordion-item>
+      </x-accordion>
+    </section>
+  </template>
+
+  <!-- ===================== B · Hilo ===================== -->
+  <template v-if="C === 'B' || C === 'all'">
+    <section class="lab-case" id="caso-b-faq">
+      <h2 v-if="C === 'all'">B · Hilo</h2>
+      <h2 v-else>Preguntas frecuentes</h2>
+      <x-accordion id="g-b-faq" concept="B" v-model="m[C === 'all' ? 'allB' : 'bFaq']" :heading-level="3">
+        <x-accordion-item v-for="f in FAQ" :key="f.v" :id="'b-' + f.v" :value="f.v" :title="f.t">
+          <p>{{ f.first }}</p><p v-for="p in f.more">{{ p }}</p>
+        </x-accordion-item>
+      </x-accordion>
+    </section>
+    <section v-if="C === 'B'" class="lab-case" id="caso-b-prep">
+      <h2>Detalles largos: el encabezado se queda arriba</h2>
+      <p class="lab-how">Abre «Preparación», baja leyendo y ciérralo desde arriba: te quedas donde estabas y la siguiente sección aparece debajo.</p>
+      <x-accordion id="g-b-prep" concept="B" v-model="m.bPrep" :heading-level="3">
+        <x-accordion-item id="b-prep" value="prep" title="Preparación para el estudio">
+          <p v-for="p in PREP">{{ p }}</p><p v-for="p in PREP">{{ p }}</p>
+        </x-accordion-item>
+        <x-accordion-item id="b-lugar" value="lugar" title="Cómo llegar"><p>{{ FAQ[6].first }}</p></x-accordion-item>
+        <x-accordion-item id="b-costos" value="costos" title="Costos"><p>{{ FAQ[3].first }}</p></x-accordion-item>
+      </x-accordion>
+      <div class="lab-tall"></div>
+    </section>
+  </template>
+
+  <!-- ===================== C · Índice ===================== -->
+  <template v-if="C === 'C' || C === 'all'">
+    <section class="lab-case" id="caso-c-faq">
+      <h2 v-if="C === 'all'">C · Índice</h2>
+      <h2 v-else>Preguntas frecuentes</h2>
+      <x-accordion id="g-c-faq" concept="C" v-model="m[C === 'all' ? 'allC' : 'cFaq']" :heading-level="3">
+        <x-accordion-item v-for="(f, i) in FAQ" :key="f.v" :id="'c-' + f.v" :value="f.v" :title="f.t" :index="i + 1">
+          <p>{{ f.first }}</p><p v-for="p in f.more">{{ p }}</p>
+        </x-accordion-item>
+      </x-accordion>
+      <div class="lab-tall"></div>
+    </section>
+  </template>
+</main>`
+  }).use(Grana).mount('#app')
+  window.__ready = true
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+/* XAccordion: CSS del PROTOTIPO de kiwi (r01). Solo tokens reales del tema por defecto (var(--g-*)) y alias locales
+   (--_*); las proporciones son de prototipo, no la propuesta de estilo de coco. Lo que sí es propuesta: la anatomía, los
+   estados, la rejilla 0fr → 1fr compartida con GFormSection/GFormReveal, hidden="until-found" asentado, la impresión,
+   el movimiento reducido y la forma de cada concepto (A avance, B hilo, C índice). */
+
+.x-acc { --_t-slow: var(--g-duration-slow); --_t-fast: var(--g-duration-fast); --_sticky-top: 0px;
+  display: grid; overflow-anchor: none; /* Δ0 lo hace el componente (keepInPlace), no el anclaje del navegador */ }
+.x-acc__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "head actions" "body body"; align-items: start; min-inline-size: 0 }
+.x-acc__heading { grid-area: head; margin: 0; font: inherit; min-inline-size: 0 }
+.x-acc__actions { grid-area: actions; align-self: center; display: flex; gap: var(--g-space-2); padding-inline-start: var(--g-space-3) }
+.x-acc__peek, .x-acc__panel { grid-area: body; min-inline-size: 0 }
+
+/* Botón: el encabezado entero; ≥ 44px (área táctil cómoda en todos los punteros: es la diana principal) */
+.x-acc__trigger { display: flex; align-items: flex-start; gap: var(--g-space-3); inline-size: 100%; min-block-size: 44px;
+  margin: 0; padding: var(--g-space-3) 0; border: 0; background: none; color: var(--g-color-text); cursor: pointer; text-align: start;
+  font-family: var(--g-font-title); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); font-weight: var(--g-text-action-weight);
+  border-radius: var(--g-radius-xs) }
+.x-acc__trigger:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: calc(var(--g-focus-width) * -1) }
+.x-acc__trigger[aria-disabled="true"] { color: var(--g-color-text-subtle); cursor: not-allowed }
+.x-acc__title { flex: 1 1 auto; min-inline-size: 0; overflow-wrap: anywhere }
+.x-acc__meta { flex: none; align-self: center; font-family: var(--g-font-ui); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); font-weight: var(--g-text-body-weight); color: var(--g-color-text-muted) }
+.x-acc__icon { flex: none; display: inline-flex; align-items: center; block-size: var(--g-text-body-line); color: var(--g-color-text-muted) }
+.x-acc__icon .g-icon { inline-size: 1.125em; block-size: 1.125em }
+.x-acc__chevron { transition: rotate var(--_t-slow) var(--g-ease-out) }
+.x-acc__item.is-open .x-acc__chevron { rotate: 90deg }
+.x-acc__chevron:dir(rtl) { scale: -1 1 }
+.x-acc__item.is-open .x-acc__chevron:dir(rtl) { rotate: -90deg }
+
+/* Panel: la rejilla de GFormSection/GFormReveal (#278): 0fr → 1fr sin medir alturas */
+/* SIN visibility: hidden en el panel (a diferencia de GFormSection): la búsqueda de la página no encuentra texto bajo un
+   antepasado con visibility: hidden aunque el contenido sea until-found (medido en r01). Durante el cierre manda inert;
+   asentado, hidden="until-found" (content-visibility: hidden) */
+.x-acc__panel { display: grid; grid-template-rows: 0fr }
+.x-acc__item.is-open > .x-acc__panel { grid-template-rows: 1fr }
+.x-acc__content { min-block-size: 0; overflow: hidden }
+.x-acc__item.is-open:not(.is-animating) > .x-acc__panel > .x-acc__content { overflow: visible } /* el foco y las sombras de dentro no se recortan */
+.x-acc__body { padding-block: 0 var(--g-space-4); padding-inline-start: calc(1.125em + var(--g-space-3)); color: var(--g-color-text) }
+.x-acc__body > :first-child { margin-block-start: 0 }
+.x-acc__body > :last-child { margin-block-end: 0 }
+.x-acc__body p { max-inline-size: 68ch }
+
+@media (prefers-reduced-motion: no-preference) {
+  .x-acc__item.is-ready:not(.is-instant) > .x-acc__panel { transition: grid-template-rows var(--_t-slow) var(--g-ease-out) }
+}
+@media (prefers-reduced-motion: reduce) { /* patrón único de Grana (#299): sin altura que se mueva; solo fundido */
+  .x-acc__chevron { transition: none }
+  .x-acc__item.is-ready:not(.is-instant) > .x-acc__panel > .x-acc__content { transition: opacity var(--_t-fast) linear }
+  .x-acc__item:not(.is-open) > .x-acc__panel > .x-acc__content { opacity: 0 }
+}
+.x-acc__item.is-instant .x-acc__chevron { transition: none }
+
+/* Impresión: todo abierto (el contenido está montado), sin iconos ni avances, sin pegado. Chromium y WebKit NO imprimen
+   un [hidden=until-found] (content-visibility: hidden): hay que forzarlo (medido en r01). */
+@media print {
+  .x-acc__panel { grid-template-rows: 1fr !important }
+  .x-acc__content[hidden] { content-visibility: visible; display: block }
+  .x-acc__icon, .x-acc__peek, .x-acc__rail, .x-acc__actions, .x-acc__num { display: none !important }
+  .x-acc__heading { position: static !important; break-after: avoid }
+  .x-acc__item { break-inside: avoid-page }
+}
+
+/* ======================= base: lista con línea de separación ======================= */
+.x-acc--base > .x-acc__item + .x-acc__item, .x-acc--base > .x-acc__item:first-child { border-block-start: var(--g-border-width) solid var(--g-color-border) }
+.x-acc--base > .x-acc__item:last-child { border-block-end: var(--g-border-width) solid var(--g-color-border) }
+
+/* ======================= A · Avance: el encabezado cerrado no es mudo ======================= */
+.x-acc--A > .x-acc__item { border-block-end: var(--g-border-width) solid var(--g-color-border); padding-block-end: var(--g-space-1) }
+.x-acc--A .x-acc__trigger { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); letter-spacing: var(--g-text-title-sm-tracking); font-weight: var(--g-text-title-sm-weight); padding-block: var(--g-space-4) var(--g-space-1) }
+.x-acc--A .x-acc__icon { block-size: var(--g-text-title-sm-line); order: 3 } /* el giro al final: el ojo empieza por la pregunta */
+.x-acc--A .x-acc__body { padding-inline-start: 0; padding-block-end: var(--g-space-4) }
+/* El avance ocupa la MISMA celda que el panel y el mismo tipo que el primer párrafo: al abrir, esa línea no se mueve;
+   pierde los puntos suspensivos, gana el color del texto y lo demás se desenrolla debajo */
+.x-acc__peek { align-self: start; margin: 0 0 var(--g-space-3); color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); max-inline-size: 68ch;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden; pointer-events: none }
+.x-acc--A .x-acc__item.is-open > .x-acc__peek { opacity: 0; visibility: hidden }
+@media (prefers-reduced-motion: no-preference) {
+  /* abrir: el avance se va cuando ya hay sitio para la primera línea; cerrar: vuelve cuando el panel ya casi se fue */
+  .x-acc--A .x-acc__item.is-ready:not(.is-instant).is-open > .x-acc__peek { transition: opacity var(--_t-fast) linear calc(var(--_t-fast) / 3), visibility 0s linear var(--_t-slow) }
+  .x-acc--A .x-acc__item.is-ready:not(.is-instant):not(.is-open) > .x-acc__peek { transition: opacity var(--_t-fast) linear calc(var(--_t-slow) - var(--_t-fast)) }
+  .x-acc--A .x-acc__item.has-peek.is-ready:not(.is-instant) > .x-acc__panel > .x-acc__content { transition: color var(--_t-slow) linear }
+}
+.x-acc--A .x-acc__item.has-peek:not(.is-open) > .x-acc__panel > .x-acc__content, .x-acc--A .x-acc__item.has-peek.is-animating:not(.is-open) > .x-acc__panel > .x-acc__content { color: var(--g-color-text-muted) }
+.x-acc--A .x-acc__item.has-peek > .x-acc__panel { min-block-size: 0 }
+
+/* ======================= B · Hilo: un eje en vez de cajas ======================= */
+.x-acc--B { --_rail: calc(var(--g-space-6) + var(--g-space-2)) }
+.x-acc--B > .x-acc__item { position: relative; grid-template-columns: var(--_rail) minmax(0, 1fr) auto; grid-template-areas: "rail head actions" "rail body body"; column-gap: var(--g-space-3) }
+.x-acc--B .x-acc__heading { grid-column: 1 / 3; grid-row: 1 }
+.x-acc--B .x-acc__trigger { gap: var(--g-space-3) }
+.x-acc--B .x-acc__icon { inline-size: var(--_rail); justify-content: center; block-size: var(--g-text-body-line) }
+.x-acc--B .x-acc__body { padding-inline-start: 0; padding-block-end: var(--g-space-6) }
+.x-acc__rail { grid-area: rail; grid-row: 1 / 3; position: relative; align-self: stretch; pointer-events: none }
+/* el eje (una pista, no un icono): pasa por todos los nudos; el primero empieza en su nudo y el último acaba en el suyo */
+.x-acc__rail::before { content: ""; position: absolute; inset-inline-start: calc(50% - var(--g-border-width) / 2); inline-size: var(--g-border-width); inset-block: 0; background: var(--g-color-border-strong) }
+.x-acc--B > .x-acc__item:first-child > .x-acc__rail::before { inset-block-start: calc(var(--g-space-3) + var(--g-text-body-line) / 2) }
+.x-acc--B > .x-acc__item:last-child:not(.is-open) > .x-acc__rail::before { inset-block-end: calc(100% - var(--g-space-3) - var(--g-text-body-line) / 2) }
+/* tramo abierto: crece desde su nudo hasta el final de lo que se lee, con el muelle de Grana (llega y asienta) */
+.x-acc__rail-fill { position: absolute; inset-inline-start: calc(50% - var(--g-border-width)); inline-size: calc(var(--g-border-width) * 2); inset-block: calc(var(--g-space-3) + var(--g-text-body-line) / 2) var(--g-space-2);
+  background: var(--g-color-brand); border-radius: var(--g-radius-pill); transform-origin: 50% 0; scale: 1 0 }
+.x-acc--B .x-acc__item.is-open > .x-acc__rail > .x-acc__rail-fill { scale: 1 1 }
+@media (prefers-reduced-motion: no-preference) {
+  .x-acc--B .x-acc__item.is-ready:not(.is-instant) > .x-acc__rail > .x-acc__rail-fill { transition: scale var(--_t-fast) var(--g-ease-out) }
+  .x-acc--B .x-acc__item.is-ready.is-open:not(.is-instant) > .x-acc__rail > .x-acc__rail-fill { transition: scale calc(var(--_t-slow) * 2) var(--g-ease-spring) }
+}
+/* nudo: un contorno de control (CSS) con el icono de Lucide dentro; abierto se rellena con la tinta de la marca */
+.x-acc__node { position: relative; display: inline-grid; place-items: center; inline-size: var(--g-space-6); block-size: var(--g-space-6); border-radius: var(--g-radius-pill);
+  border: var(--g-border-width) solid var(--g-color-border-control); background: var(--g-color-bg); color: var(--g-color-text) }
+.x-acc__node .g-icon { grid-area: 1 / 1; inline-size: var(--g-space-4); block-size: var(--g-space-4) }
+.x-acc__node-minus { opacity: 0 }
+.x-acc--B .x-acc__item.is-open .x-acc__node { background: var(--g-color-brand); border-color: var(--g-color-brand); color: var(--g-color-on-brand) }
+.x-acc--B .x-acc__item.is-open .x-acc__node-plus { opacity: 0; rotate: 90deg }
+.x-acc--B .x-acc__item.is-open .x-acc__node-minus { opacity: 1 }
+@media (prefers-reduced-motion: no-preference) {
+  .x-acc--B .x-acc__item.is-ready:not(.is-instant) .x-acc__node, .x-acc--B .x-acc__item.is-ready:not(.is-instant) .x-acc__node .g-icon { transition: background-color var(--_t-fast) linear, border-color var(--_t-fast) linear, color var(--_t-fast) linear, opacity var(--_t-fast) linear, rotate var(--_t-slow) var(--g-ease-spring) }
+}
+.x-acc--B .x-acc__trigger:hover .x-acc__node { border-color: var(--g-color-text) }
+/* el encabezado del que lees se queda arriba mientras lees su contenido (solo dentro de su elemento) */
+.x-acc.is-sticky > .x-acc__item.is-open > .x-acc__heading { position: sticky; inset-block-start: var(--_sticky-top); z-index: 1; background: var(--g-color-bg) }
+.x-acc.is-sticky > .x-acc__item.is-open > .x-acc__heading::after { content: ""; position: absolute; inset-inline: 0; inset-block-end: 0; block-size: var(--g-border-width); background: var(--g-color-border); opacity: 0 }
+
+/* ======================= C · Índice: las preguntas en columnas; la abierta se vuelve lectura ======================= */
+.x-acc--C { grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--g-space-16) * 4)), 1fr)); column-gap: var(--g-space-8); border-block-start: var(--g-border-width) solid var(--g-color-border) }
+.x-acc--C > .x-acc__item { border-block-end: var(--g-border-width) solid var(--g-color-border) }
+.x-acc--C > .x-acc__item.is-open { grid-column: 1 / -1; background: var(--g-color-surface-sunken); border-radius: var(--g-radius-lg); border-block-end-color: transparent; margin-block: var(--g-space-2); padding-inline: var(--g-space-4) }
+.x-acc--C .x-acc__trigger { padding-block: var(--g-space-3) }
+.x-acc--C .x-acc__num { flex: none; min-inline-size: 2ch; font-variant-numeric: tabular-nums lining-nums; color: var(--g-color-text-subtle); font-weight: var(--g-text-body-weight) }
+.x-acc--C .x-acc__icon { order: 3 }
+.x-acc--C .x-acc__item.is-open .x-acc__trigger { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); letter-spacing: var(--g-text-title-sm-tracking); padding-block-start: var(--g-space-4) }
+.x-acc--C .x-acc__item.is-open .x-acc__icon { block-size: var(--g-text-title-sm-line) }
+.x-acc--C .x-acc__body { padding-inline-start: calc(2ch + var(--g-space-3)) }
+.x-acc--C .x-acc__heading.is-flip { transition: translate calc(var(--_t-slow) * 2) var(--g-ease-spring); position: relative; z-index: 1 }
+
+/* forced-colors: el eje, el nudo y el tramo con colores del sistema */
+@media (forced-colors: active) {
+  .x-acc__rail::before { background: CanvasText }
+  .x-acc__rail-fill { background: Highlight }
+  .x-acc--B .x-acc__item.is-open .x-acc__node { background: Highlight; border-color: Highlight; color: HighlightText }
+  .x-acc--C > .x-acc__item.is-open { border: 1px solid CanvasText }
+}
