@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Reportar una vulnerabilidad de seguridad (privado)
+    url: https://github.com/kevinedgm/grana/security/advisories/new
+    about: No abras un issue público con los detalles de una vulnerabilidad; usa el reporte privado de GitHub.

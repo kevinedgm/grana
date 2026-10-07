@@ -1,0 +1,90 @@
+name: Error
+description: Algo no funciona como dice el README o el contrato de un componente.
+title: "[Error] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportarlo. Grana está en **beta** (`0.1.0-beta`). Antes de abrir el issue, mira si ya está en [`PENDIENTES.md`](https://github.com/kevinedgm/grana/blob/main/PENDIENTES.md) (defectos y límites conocidos).
+        **Si es una vulnerabilidad de seguridad, no uses este formulario:** usa el [reporte privado](https://github.com/kevinedgm/grana/security/advisories/new).
+  - type: input
+    id: componente
+    attributes:
+      label: Componente o paquete
+      description: Por ejemplo `GInput`, `GCombobox` (`@grana/vue/combobox`), `@grana/cli`.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de Grana
+      description: La de `@grana/vue` (y la de `@grana/cli` si el error es del tema).
+      placeholder: 0.1.0-beta.0
+    validations:
+      required: true
+  - type: textarea
+    id: que-pasa
+    attributes:
+      label: Qué ocurre
+      description: Describe lo que ves.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué esperabas
+      description: Si hay un contrato o un README que lo dice, enlázalo.
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Cómo reproducirlo
+      description: Pasos y, si puedes, un código mínimo o un enlace (StackBlitz, CodeSandbox o un repositorio).
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: entorno
+    attributes:
+      label: Entorno
+      description: Navegador y versión, sistema operativo, versión de Vue, empaquetador, y el lector de pantalla si es un error de accesibilidad.
+      placeholder: |
+        Navegador: Firefox 130
+        Sistema: macOS 15
+        Vue: 3.5.x
+        Lector de pantalla: VoiceOver
+    validations:
+      required: true
+  - type: dropdown
+    id: tema
+    attributes:
+      label: Tema
+      options:
+        - Tema por defecto
+        - Tema propio generado con @grana/cli
+        - Tema propio escrito a mano
+    validations:
+      required: true
+  - type: dropdown
+    id: esquema
+    attributes:
+      label: Esquema de color
+      options:
+        - Claro
+        - Oscuro
+        - Ambos
+        - No aplica
+    validations:
+      required: true
+  - type: checkboxes
+    id: tipo
+    attributes:
+      label: Tipo
+      options:
+        - label: Es un problema de accesibilidad (teclado, lector de pantalla, contraste, foco, zoom).
+        - label: Ocurre con `prefers-reduced-motion` activado.
+        - label: Ocurre solo en un motor (Chromium, Firefox o WebKit).

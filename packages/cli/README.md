@@ -2,6 +2,8 @@
 
 Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **rechaza temas que rompan los mínimos de accesibilidad**, explicando cuál y por qué. Sin dependencias; Node ≥ 22.
 
+**Estado: `0.1.0-beta`** (la API puede cambiar entre betas). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
+
 ```bash
 npx @grana/cli theme grana.config.json    # escribe tokens.css
 npx @grana/cli check grana.config.json    # solo valida

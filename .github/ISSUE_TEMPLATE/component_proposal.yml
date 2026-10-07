@@ -1,0 +1,68 @@
+name: Propuesta de componente
+description: Propón un componente nuevo para Grana.
+title: "[Componente] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Un componente nuevo no empieza con código: empieza por una **ronda de estructura** y un **contrato**. Lee antes [`CONTRIBUTING.md`](https://github.com/kevinedgm/grana/blob/main/CONTRIBUTING.md) y busca en el [catálogo](https://github.com/kevinedgm/grana#componentes) y en [`PENDIENTES.md`](https://github.com/kevinedgm/grana/blob/main/PENDIENTES.md) (sección 3, aplazados y reservados): puede que ya exista o esté reservado.
+  - type: input
+    id: nombre
+    attributes:
+      label: Nombre propuesto
+      description: Con el prefijo de la librería (`GAlgo`).
+    validations:
+      required: true
+  - type: textarea
+    id: problema
+    attributes:
+      label: El problema
+      description: Qué necesita hacer una persona y que hoy no puede, y quién la tiene.
+    validations:
+      required: true
+  - type: textarea
+    id: existentes
+    attributes:
+      label: Por qué no lo resuelve lo que ya existe
+      description: Qué componentes de Grana probaste (o su composición) y qué les falta.
+    validations:
+      required: true
+  - type: textarea
+    id: comportamiento
+    attributes:
+      label: Comportamiento y estados
+      description: Cómo funciona, sus estados (vacío, cargando, error, deshabilitado…) y cómo se usa con teclado.
+    validations:
+      required: true
+  - type: textarea
+    id: accesibilidad
+    attributes:
+      label: Accesibilidad
+      description: Patrón de referencia (APG de la W3C, HTML nativo) y qué debe leer un lector de pantalla.
+    validations:
+      required: true
+  - type: textarea
+    id: distinto
+    attributes:
+      label: Qué lo haría distinto
+      description: Grana pide que cada componente aporte algo propio de comportamiento, movimiento o forma, sin sacrificar accesibilidad ni rendimiento. ¿Qué propones?
+    validations:
+      required: false
+  - type: textarea
+    id: referencias
+    attributes:
+      label: Referencias
+      description: Ejemplos en otras librerías o productos, bocetos, enlaces.
+    validations:
+      required: false
+  - type: checkboxes
+    id: compromiso
+    attributes:
+      label: Compromiso
+      options:
+        - label: Revisé el catálogo, `PENDIENTES.md` y `DECISIONS.md`.
+          required: true
+        - label: Entiendo que la propuesta pasa por estructura y contrato antes de construirse.
+          required: true
+        - label: Puedo ayudar a probarla o a documentarla.
