@@ -4,7 +4,7 @@
   "tag": "g-sidebar",
   "status": "candidate",
   "since": "0.1.0",
-  "description": "Navegación lateral que se transforma con un solo sistema: expandida, riel de iconos, navbar inferior con píldora activa y drawer. Items por arreglo (grupos, un nivel de hijos), destino actual por modelValue, adaptación por el ancho del contenedor y movimiento con transiciones.",
+  "description": "Navegación lateral que se transforma con un solo sistema: expandida, riel de iconos, navbar inferior con píldora activa y drawer. Items por arreglo (grupos, un nivel de hijos), destino actual por modelValue, adaptación por el ancho del contenedor y movimiento con transiciones. En el riel, cada item de primer nivel (padres incluidos), la búsqueda y contraer/expandir llevan la pista del motor de GTooltip en modo visual (#436, sustituye g-sidebar__tip): nodos g-tooltip aria-hidden al final de la raíz, activos solo en rail, a la derecha lógica, que viajan dentro del <nav>; la del padre se cierra al abrir su panel; la pulsación larga muestra y no navega ni abre el panel.",
   "contract": "design/contracts/sidebar.md",
   "prototype": "design/lab/sidebar/r01/",
   "style": "packages/vue/src/components/GSidebar/GSidebar.css",
@@ -255,5 +255,8 @@
     "Táctil real y teclado virtual (navbar y drawer)",
     "La superficie del item activo es tenue (1.08:1 por defecto): decisión pendiente si se refuerza (ver auditoria.md)",
     "Formato inicial antes de medir el contenedor (se pinta expandido un instante)"
-  ]
+  ],
+  "weight": {
+    "tooltipVisualMode": "−5 B gzip en grana.js y −40 B en grana.umd.js (sustituye la pista propia), medido el 2026-10-06"
+  }
 }

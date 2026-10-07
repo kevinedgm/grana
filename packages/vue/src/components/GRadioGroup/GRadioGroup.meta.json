@@ -43,7 +43,7 @@
         "full",
         "icon"
       ],
-      "note": "icon solo en segmented y chip y sin slot option: is-icon-only en cada opción con icono; la etiqueta queda como texto oculto accesible (nombre del radio). Fuera de eso cuenta como full y avisa"
+      "note": "icon solo en segmented y chip y sin slot option: is-icon-only en cada opción con icono; la etiqueta queda como texto oculto accesible (nombre del radio). Fuera de eso cuenta como full y avisa · Pista de solo icono (#435): motor de GTooltip en modo visual; un nodo g-tooltip aria-hidden sin role ni id por opción is-icon-only, al final de __options (nunca dentro de la <label> ni hijo de la raíz); data-g-tooltip en el radio y data-g-tooltip-box en la __option (la pestaña mide el segmento o el chip); grupo = radiogroup (viaja con puntero y flechas); abajo en línea, derecha lógica con is-stacked; opción disabled sin pista (límite conocido: usar readonly); pulsación larga muestra y no elige. El nombre accesible no cambia"
     },
     {
       "name": "name",
@@ -301,6 +301,10 @@
   "pending": [
     "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): fieldset role=radiogroup frente a div; aria-required/aria-invalid/aria-readonly del grupo; descripción por opción; solo icono",
     "Safari real (Tab con Acceso total por teclado), táctil y forced-colors reales, zoom 200/400 %",
-    "form externo (atributo form) no admitido en v0.1"
-  ]
+    "form externo (atributo form) no admitido en v0.1",
+    "WebKit: el radio al que llevan las flechas no casa con :focus-visible; el motor acepta la flecha como navegación para la pista (#435), pero el anillo de foco de coco (:focus-visible) no se dibuja ahí (para coco)"
+  ],
+  "weight": {
+    "tooltipVisualMode": "+253 B gzip en grana.js y +220 B en grana.umd.js sobre GTabs (el motor visual compartido ya contado allí), medido el 2026-10-06"
+  }
 }

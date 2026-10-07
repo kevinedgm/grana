@@ -3,6 +3,9 @@ import { mount } from '@vue/test-utils'
 import { nextTick, h, ref } from 'vue'
 import GTabs from './GTabs.vue'
 import GTabPanel from './GTabPanel.vue'
+import GTooltip from '../GTooltip/GTooltip.vue'
+import { stubPopover, resetEngine, isOpen, openNodes, pev, press, ariaOf } from '../../utils/visualTipTestEnv.js'
+import { OPEN, LONG } from '../../utils/tooltip.js'
 
 beforeEach(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-open', '') }
@@ -1210,5 +1213,207 @@ describe('GTabs · avisos de desarrollo', () => {
     mount(Prod, { props: { items: [{ label: 'x' }] } }).unmount()
     expect(spy).not.toHaveBeenCalled()
     process.env.NODE_ENV = prev
+  })
+})
+
+// Pista de solo icono (tabs.md §«Pista de solo icono», #434; comunes de tooltip.md §«Modo visual», #433)
+describe('GTabs · pista de solo icono (modo visual del motor del tooltip)', () => {
+  const ICON_ITEMS = [{ id: 'a', label: 'Uno', icon: 'x' }, { id: 'b', label: 'Dos', icon: 'y' }, { id: 'c', label: 'Tres', icon: 'z', disabled: true }]
+  const mki = (props = {}, opts = {}) => mk({ items: ICON_ITEMS, modelValue: 'a', labelMode: 'icon', ...props }, { slots: { icon: () => 'i', panel: () => 'p' }, ...opts })
+  const nodeOf = (w, id) => {
+    const nodes = [...w.element.querySelectorAll('.g-tabs__header > .g-tooltip')]
+    return nodes.find((n) => n.textContent === ICON_ITEMS.find((x) => x.id === id)?.label)
+  }
+  beforeEach(() => { stubPopover(); resetEngine() })
+  afterEach(() => { resetEngine(); vi.useRealTimers() })
+
+  it('un nodo por pestaña con icono al final de g-tabs__header, fuera del tablist; aria-hidden, sin role, id ni referencias', async () => {
+    const w = mki()
+    await flush()
+    const hdr = w.find('.g-tabs__header').element
+    const kids = [...hdr.children]
+    const nodes = kids.filter((k) => k.classList.contains('g-tooltip'))
+    expect(nodes).toHaveLength(3)
+    expect(kids.slice(-3)).toEqual(nodes)
+    expect(nodes.map((n) => n.textContent)).toEqual(['Uno', 'Dos', 'Tres'])
+    expect([...w.find('[role="tablist"]').element.children].every((c) => c.getAttribute('role') === 'tab')).toBe(true)
+    for (const n of nodes) {
+      expect(n.getAttribute('aria-hidden')).toBe('true')
+      expect(n.getAttribute('popover')).toBe('manual')
+      expect(n.hasAttribute('role')).toBe(false)
+      expect(n.hasAttribute('id')).toBe(false)
+      expect(n.hasAttribute('aria-live')).toBe(false)
+      expect(n.querySelector('.g-tooltip__text').getAttribute('dir')).toBe('auto')
+      expect(n.querySelector('.g-tooltip__tab')).not.toBe(null)
+    }
+    expect(tabs(w).every((t) => t.attributes('data-g-tooltip') === '')).toBe(true)
+    expect(document.querySelectorAll('[aria-describedby], [aria-labelledby]').length).toBe(document.querySelectorAll('[role="tabpanel"]').length)
+    w.unmount()
+  })
+
+  it('el nombre accesible no cambia: mismos atributos ARIA con y sin pista (labelMode full)', async () => {
+    const withTip = mki()
+    await flush()
+    const a = tabs(withTip).map((t) => ariaOf(t.element))
+    withTip.unmount()
+    const plain = mki({ labelMode: 'full' })
+    await flush()
+    expect(plain.findAll('.g-tooltip')).toHaveLength(0)
+    expect(tabs(plain).map((t) => ariaOf(t.element))).toEqual(a)
+    expect(tabs(plain).every((t) => t.attributes('data-g-tooltip') === undefined)).toBe(true)
+    plain.unmount()
+  })
+
+  it('puntero: nada a 200 ms, abierta a OPEN; uno solo abierto; viaja en el grupo (relevo) y se cierra al salir', async () => {
+    const w = mki()
+    await flush()
+    vi.useFakeTimers()
+    tab(w, 'a').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(200)
+    expect(isOpen(nodeOf(w, 'a'))).toBe(false)
+    vi.advanceTimersByTime(OPEN - 200)
+    expect(openNodes()).toEqual([nodeOf(w, 'a')])
+    tab(w, 'a').element.dispatchEvent(pev('pointerleave', { relatedTarget: tab(w, 'b').element }))
+    tab(w, 'b').element.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 'b')])
+    // pestaña deshabilitada (aria-disabled): con el puntero la pista abre y la nombra
+    tab(w, 'b').element.dispatchEvent(pev('pointerleave'))
+    tab(w, 'c').element.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 'c')])
+    tab(w, 'c').element.dispatchEvent(pev('pointerleave'))
+    vi.advanceTimersByTime(150)
+    expect(openNodes()).toEqual([])
+    w.unmount()
+  })
+
+  it('foco por navegación abre al instante; por programa o clic no; Esc la cierra sin mover el foco', async () => {
+    const w = mki()
+    await flush()
+    tab(w, 'a').element.focus()
+    expect(openNodes()).toEqual([])
+    tab(w, 'a').element.blur()
+    press('Tab', document.body)
+    tab(w, 'a').element.focus()
+    expect(openNodes()).toEqual([nodeOf(w, 'a')])
+    const e = press('Escape', tab(w, 'a').element)
+    expect(e.defaultPrevented).toBe(true)
+    expect(openNodes()).toEqual([])
+    expect(document.activeElement).toBe(tab(w, 'a').element)
+    // Un segundo Esc ya no lo toma la pista (llega al anfitrión)
+    expect(press('Escape', tab(w, 'a').element).defaultPrevented).toBe(false)
+    w.unmount()
+  })
+
+  it('flechas: la pista viaja con el foco (activation auto)', async () => {
+    const w = mki()
+    await flush()
+    press('Tab', document.body)
+    tab(w, 'a').element.focus()
+    expect(openNodes()).toEqual([nodeOf(w, 'a')])
+    await key(w, 'a', 'ArrowRight')
+    await flush()
+    expect(document.activeElement).toBe(tab(w, 'b').element)
+    expect(openNodes()).toEqual([nodeOf(w, 'b')])
+    w.unmount()
+  })
+
+  it('pulsación larga: muestra el nombre y no activa (sin change ni update:modelValue)', async () => {
+    const w = mki()
+    await flush()
+    vi.useFakeTimers()
+    const t = tab(w, 'b').element
+    t.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(LONG)
+    expect(openNodes()).toEqual([nodeOf(w, 'b')])
+    expect(nodeOf(w, 'b').hasAttribute('data-touch')).toBe(true)
+    t.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    t.click()
+    expect(w.emitted('change')).toBeUndefined()
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    // Un toque normal activa sin pista
+    vi.advanceTimersByTime(500)
+    t.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(80)
+    t.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    t.click()
+    expect(w.emitted('update:modelValue').at(-1)).toEqual(['b'])
+    w.unmount()
+  })
+
+  it('auto reducido: solo las inactivas is-icon-only abren; la activa con etiqueta tiene nodo pero no abre', async () => {
+    const restore = stubLayout({ tabW: 100, headerW: 250 })
+    const w = mki({ labelMode: 'auto', modelValue: 'b' })
+    await flush()
+    expect(tab(w, 'b').classes()).not.toContain('is-icon-only')
+    expect(w.findAll('.g-tabs__header > .g-tooltip')).toHaveLength(3)
+    vi.useFakeTimers()
+    tab(w, 'b').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 10)
+    expect(openNodes()).toEqual([])
+    tab(w, 'b').element.dispatchEvent(pev('pointerleave'))
+    tab(w, 'a').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 10)
+    expect(openNodes()).toEqual([nodeOf(w, 'a')])
+    w.unmount(); restore()
+  })
+
+  it('«Más»: su nodo es el último (labels.more); con el menú abierto (aria-expanded) no abre', async () => {
+    const restore = stubLayout({ tabW: 100, headerW: 350 })
+    const list = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => ({ id, label: id.toUpperCase(), icon: 'x' }))
+    const w = mk({ items: list, modelValue: 'a', labelMode: 'icon', overflow: 'more' }, { slots: { icon: () => 'i' } })
+    await flush()
+    const more = w.find('.g-tabs__more').element
+    expect(more.hasAttribute('data-g-tooltip')).toBe(true)
+    const nodes = w.findAll('.g-tabs__header > .g-tooltip')
+    expect(nodes.at(-1).text()).toBe('Más pestañas')
+    // Solo las pestañas dentro del tablist tienen nodo (más «Más»)
+    expect(nodes).toHaveLength(tabs(w).length + 1)
+    await w.find('.g-tabs__more').trigger('click')
+    await flush()
+    expect(more.getAttribute('aria-expanded')).toBe('true')
+    vi.useFakeTimers()
+    more.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 10)
+    expect(isOpen(nodes.at(-1).element)).toBe(false)
+    vi.useRealTimers()
+    w.unmount(); restore()
+  })
+
+  it('labelMode full: sin nodos ni data-g-tooltip', async () => {
+    const w = mk({ items: ICON_ITEMS, modelValue: 'a' }, { slots: { icon: () => 'i' } })
+    await flush()
+    expect(w.findAll('.g-tooltip')).toHaveLength(0)
+    expect(w.findAll('[data-g-tooltip]')).toHaveLength(0)
+    w.unmount()
+  })
+
+  it('uno solo en el documento: un GTooltip de la aplicación se cierra al abrir la pista (y al revés)', async () => {
+    const app = mount({ components: { GTooltip }, template: '<GTooltip text="Copiar"><button id="app-btn" type="button">C</button></GTooltip>' }, { attachTo: document.body })
+    const w = mki()
+    await flush()
+    vi.useFakeTimers()
+    const appBtn = document.getElementById('app-btn')
+    const appNode = appBtn.nextElementSibling
+    appBtn.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(openNodes()).toEqual([appNode])
+    appBtn.dispatchEvent(pev('pointerleave'))
+    tab(w, 'a').element.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 'a')])
+    tab(w, 'a').element.dispatchEvent(pev('pointerleave'))
+    appBtn.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([appNode])
+    vi.useRealTimers()
+    w.unmount(); app.unmount()
+  })
+
+  it('quitar una pestaña destruye su nodo y su enganche; desmontar no deja escuchas', async () => {
+    const w = mki()
+    await flush()
+    await w.setProps({ items: ICON_ITEMS.slice(0, 2) })
+    await flush()
+    expect(w.findAll('.g-tabs__header > .g-tooltip')).toHaveLength(2)
+    w.unmount()
+    expect(document.querySelectorAll('.g-tooltip')).toHaveLength(0)
   })
 })

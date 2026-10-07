@@ -4,10 +4,12 @@
 // Patrón: disclosure navigation (WAI-ARIA APG). Un solo estado de navegación (destino actual y ramas abiertas)
 // compartido por los cuatro formatos. La raíz de cada formato es estable: al contraer, expandir, navegar o abrir un
 // submenú solo se alternan clases y atributos sobre el mismo DOM (así corren las transiciones de coco).
+// Pista del riel (#436, cierra #113): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
 import { Fragment, computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
+import { useVisualTips } from '../../utils/visualTip.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -201,17 +203,33 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       if (wasDrawer && props.closeOnNavigate) setDrawer(false)
     }
 
-    // ---------- Panel flotante y pista (riel) ----------
+    // ---------- Pista del riel (sidebar.md §«Pista del riel», #436) ----------
+    // Un nodo por control del riel (items de primer nivel, padres incluidos, búsqueda y contraer/expandir), al final de la
+    // raíz; existen en expandida y en riel (misma raíz) y solo se activan en el riel. Lado: derecha lógica.
+    const SEARCH_TIP = 'search'
+    const TOGGLE_TIP = 'toggle'
+    const itemTip = (item) => `i:${String(item.id)}`
+    const tips = useVisualTips({
+      find(key) {
+        const root = rootEl.value
+        if (!root || root.hidden) return null
+        if (key === SEARCH_TIP) { const b = root.querySelector(':scope > .g-sidebar__head .g-sidebar__search'); return b ? { ctrl: b } : null }
+        if (key === TOGGLE_TIP) { const b = root.querySelector(':scope > .g-sidebar__head .g-sidebar__toggle'); return b ? { ctrl: b } : null }
+        const el = [...root.querySelectorAll(':scope > .g-sidebar__nav .g-sidebar__item > .g-sidebar__link')].find((x) => `i:${x.dataset.id}` === key)
+        return el ? { ctrl: el } : null
+      },
+      disabled: () => format.value !== 'rail',
+      placement: () => 'right'
+    })
+
+    // ---------- Panel flotante (riel) ----------
     const flyEl = ref(null)
-    const tipEl = ref(null)
     const flyItem = ref(null)
     const flyOpen = ref(false)
     let flyBtn = null
     let flyPinned = false
     let hoverT = null
     let leaveT = null
-    let tipT = null
-    let tipLast = 0
     let outsideHandler = null
     const dirOf = (el) => (getComputedStyle(el).direction === 'rtl')
 
@@ -241,17 +259,19 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       if (outsideHandler) { document.removeEventListener('pointerdown', outsideHandler); outsideHandler = null }
       if (btn) { btn.setAttribute('aria-expanded', 'false') }
       flyBtn = null
+      tips.check()
       if (returnFocus && btn && typeof btn.focus === 'function') btn.focus()
     }
     const openFly = async (item, btn, byKey) => {
       if (format.value !== 'rail') return
       closeFly()
-      hideTip()
       flyItem.value = item
       flyBtn = btn
       flyPinned = byKey
       flyOpen.value = true
       btn.setAttribute('aria-expanded', 'true')
+      // La pista del padre se cierra al abrirse su panel (aria-expanded="true")
+      tips.check()
       await nextTick()
       const f = flyEl.value
       if (!f) return
@@ -264,48 +284,23 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       document.addEventListener('pointerdown', outsideHandler)
       if (byKey) (f.querySelector('[aria-current]') || f.querySelector('a, button'))?.focus()
     }
-    const hideTip = () => {
-      clearTimeout(tipT)
-      const t = tipEl.value
-      if (t && typeof t.hidePopover === 'function' && t.matches?.(':popover-open')) { t.hidePopover(); tipLast = Date.now() }
-    }
-    const showTip = (btn, delay = 350) => {
-      if (format.value !== 'rail') return
-      clearTimeout(tipT)
-      const recent = Date.now() - tipLast < 600
-      tipT = setTimeout(() => {
-        const t = tipEl.value
-        if (!t) return
-        t.classList.toggle('is-instant', recent)
-        t.textContent = btn.querySelector('.g-sidebar__label')?.textContent || ''
-        if (typeof t.showPopover === 'function') t.showPopover()
-        const r = btn.getBoundingClientRect()
-        const rtl = dirOf(btn)
-        const vw = document.documentElement.clientWidth || window.innerWidth
-        t.style.setProperty('--_top', `${r.top + r.height / 2 - t.offsetHeight / 2}px`)
-        t.style.setProperty('--_x', `${rtl ? vw - (r.left - 8) : r.right + 8}px`)
-        tipLast = Date.now()
-      }, recent ? 0 : delay)
-    }
+    // El panel por puntero: solo ratón o lápiz (una pulsación larga táctil sobre un padre muestra su pista y no abre el panel)
     const onLinkEnter = (item, e) => {
-      if (format.value !== 'rail') return
+      if (format.value !== 'rail' || e.pointerType === 'touch') return
       clearTimeout(leaveT)
       const btn = e.currentTarget
       if (item.children.length) {
         clearTimeout(hoverT)
         hoverT = setTimeout(() => openFly(item, btn, false), 150)
-      } else showTip(btn)
+      }
     }
-    const onLinkLeave = () => {
+    const onLinkLeave = (e) => {
+      if (e && e.pointerType === 'touch') return
       clearTimeout(hoverT)
-      hideTip()
       if (flyOpen.value) {
         clearTimeout(leaveT)
         leaveT = setTimeout(() => { if (!flyPinned) closeFly() }, 220)
       }
-    }
-    const onLinkFocus = (item, e) => {
-      if (e.currentTarget.matches?.(':focus-visible') && !item.children.length) showTip(e.currentTarget, 0)
     }
     const onFlyKeydown = (e) => {
       const f = flyEl.value
@@ -313,6 +308,8 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       const links = [...f.querySelectorAll('a, button')].filter((x) => x.getAttribute('aria-disabled') !== 'true')
       const i = links.indexOf(document.activeElement)
       const k = e.key
+      // Un Esc que ya cerró una pista (motor, en captura) no cierra además el panel
+      if (k === 'Escape' && e.defaultPrevented) return
       if (k === 'Escape' || k === 'ArrowLeft') {
         // Esc cierra solo el panel: no debe llegar a un GDialog ni a otro ancestro
         e.preventDefault()
@@ -328,7 +325,8 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       const f = flyEl.value
       if (r && f && !f.contains(r) && r !== flyBtn) closeFly()
     }
-    watch(format, (f) => { if (f !== 'rail') { closeFly(); hideTip() } })
+    // Al salir del riel se cierran el panel y la pista abierta
+    watch(format, (f) => { if (f !== 'rail') { closeFly(); tips.hide() } })
 
     // ---------- Teclado en la región de navegación ----------
     const onNavKeydown = (e) => {
@@ -411,7 +409,6 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       clearTimeout(expandT)
       ro?.disconnect()
       closeFly()
-      hideTip()
       clearTimeout(enterT)
       if (drawer.value && dlgRef.value?.open) dlgRef.value.close()
     })
@@ -452,10 +449,12 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
             h('span', { class: 'g-sidebar__label' }, item.label),
             ...badgeNodes(item)
           ]
-      // La pista y el panel por puntero solo aplican a los items del riel (no a los del panel ni a los del drawer)
+      // El panel por puntero solo aplica a los items del riel (no a los del panel ni a los del drawer); la pista, a los de
+      // primer nivel en la navegación en línea (#436)
       const events = kind === 'side'
-        ? { onPointerenter: (e) => onLinkEnter(item, e), onPointerleave: onLinkLeave, onFocus: (e) => onLinkFocus(item, e), onBlur: hideTip }
+        ? { onPointerenter: (e) => onLinkEnter(item, e), onPointerleave: onLinkLeave }
         : {}
+      const tip = kind === 'side' && level === 0 ? { 'data-g-tooltip': '' } : {}
       if (item.children.length) {
         const branch = isBranch(item)
         const expanded = rail ? flyOpen.value && flyItem.value?.id === item.id : openSet.value.has(item.id)
@@ -466,6 +465,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
           'aria-expanded': expanded ? 'true' : 'false',
           'aria-controls': rail ? undefined : `${baseId}-${kind}-${item.id}`,
           'aria-haspopup': rail ? 'true' : undefined,
+          ...tip,
           ...events,
           onClick: (e) => {
             e.preventDefault()
@@ -481,12 +481,13 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
         ])
       }
       if (item.disabled) {
-        return h('a', { class: 'g-sidebar__link', role: 'link', 'aria-disabled': 'true', 'data-id': String(item.id) }, content)
+        return h('a', { class: 'g-sidebar__link', role: 'link', 'aria-disabled': 'true', 'data-id': String(item.id), ...tip }, content)
       }
       const common = {
         class: cls('g-sidebar__link', cur && 'is-active'),
         'data-id': String(item.id),
         'aria-current': cur ? 'page' : undefined,
+        ...tip,
         ...events,
         onClick: (e) => {
           navigateTo(item, e)
@@ -526,6 +527,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
               class: 'g-sidebar__toggle',
               'aria-expanded': rail ? 'false' : 'true',
               'aria-label': rail ? L.value.expand : L.value.collapse,
+              'data-g-tooltip': '',
               onClick: toggleCollapsed
             }, slots['toggle-icon'] ? slots['toggle-icon'](scope) : null)
           : (L.value.close
@@ -536,7 +538,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       if (props.search || slots.search) {
         search = slots.search
           ? slots.search(scope)
-          : h('button', { type: 'button', class: 'g-sidebar__search', 'aria-haspopup': 'dialog', onClick: () => emit('search') }, [
+          : h('button', { type: 'button', class: 'g-sidebar__search', 'aria-haspopup': 'dialog', 'data-g-tooltip': kind === 'side' ? '' : undefined, onClick: () => emit('search') }, [
               h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, slots['search-icon'] ? slots['search-icon'](scope) : null),
               h('span', { class: 'g-sidebar__label' }, L.value.search),
               L.value.searchHint ? h('kbd', { class: 'g-sidebar__hint', 'aria-hidden': 'true' }, L.value.searchHint) : null
@@ -583,9 +585,14 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
                 h('div', { class: 'g-sidebar__fly-title' }, flyItem.value.label),
                 h('ul', {}, flyItem.value.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, 'fly')])))
               ]
-            : []),
-          h('div', { ref: tipEl, class: 'g-sidebar__tip', popover: 'manual', 'aria-hidden': 'true' })
+            : [])
         )
+      }
+      // Pistas del riel (#436): al final de la raíz, en el orden del documento (contraer, búsqueda y los items)
+      if (kind === 'side') {
+        children.push(tips.node(TOGGLE_TIP, rail ? L.value.expand : L.value.collapse))
+        if (props.search && !slots.search) children.push(tips.node(SEARCH_TIP, L.value.search))
+        for (const g of model.value) for (const item of g.items) children.push(tips.node(itemTip(item), item.label))
       }
       const own = kind === 'side' ? { ref: rootEl, ...rootAttrs() } : {}
       return h('div', { ...own, class: cls(...modeClasses(mode), ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)

@@ -9,6 +9,9 @@ import GFormLayout from '../GFormLayout/GFormLayout.vue'
 import GFormRow from '../GFormRow/GFormRow.vue'
 import GErrorSummary from '../GErrorSummary/GErrorSummary.vue'
 import GInput from '../GInput/GInput.vue'
+import GTooltip from '../GTooltip/GTooltip.vue'
+import { stubPopover, resetEngine, openNodes, pev, press, ariaOf } from '../../utils/visualTipTestEnv.js'
+import { OPEN, LONG } from '../../utils/tooltip.js'
 
 const SEXO = [{ value: 'F', label: 'Femenino' }, { value: 'M', label: 'Masculino' }, { value: 'X', label: 'Otro' }]
 const MODALIDAD = [
@@ -768,5 +771,160 @@ describe('GRadioGroup · avisos de desarrollo (una vez por instancia y mensaje)'
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const w = make({ options: [{ value: undefined, label: 'U' }, { value: 'a', label: 'A' }, { value: 'b', label: '' }, { value: 'c', label: 'C' }] })
     expect(radios(w).map((r) => [r.attributes('id'), r.element.value])).toEqual([['g-0', 'a'], ['g-1', 'c']])
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------
+// Pista de solo icono (radio-group.md §«Pista de solo icono», #435; comunes de tooltip.md §«Modo visual», #433)
+describe('GRadioGroup · pista de solo icono (modo visual del motor del tooltip)', () => {
+  const ICONS = [{ value: 'l', label: 'Lista', icon: 'circle' }, { value: 't', label: 'Tabla', icon: 'square' }, { value: 'g', label: 'Gráfica', icon: 'triangle' }, { value: 'x', label: 'Mapa', icon: 'map', disabled: true }]
+  const mki = (props = {}, opts = {}) => make({ appearance: 'segmented', labelMode: 'icon', options: ICONS, modelValue: 'l', ...props }, { slots: { icon: () => 'i' }, ...opts })
+  const nodeOf = (w, i) => [...w.element.querySelectorAll('.g-radio-group__options > .g-tooltip')].find((n) => n.textContent === ICONS[i].label)
+  const box = (w, i) => w.findAll('label.g-radio-group__option')[i].element
+  beforeEach(() => { stubPopover(); resetEngine() })
+  afterEach(() => { resetEngine(); vi.useRealTimers() })
+
+  it('un nodo por opción is-icon-only al final de __options, fuera de la <label>; la raíz de segmented sigue con tres hijos', async () => {
+    for (const appearance of ['segmented', 'chip']) {
+      const w = mki({ appearance })
+      await nextTick()
+      const opts = w.find('.g-radio-group__options').element
+      const kids = [...opts.children]
+      const nodes = kids.filter((k) => k.classList.contains('g-tooltip'))
+      expect(nodes).toHaveLength(4)
+      expect(kids.slice(-4)).toEqual(nodes)
+      expect(nodes.map((n) => n.textContent)).toEqual(['Lista', 'Tabla', 'Gráfica', 'Mapa'])
+      expect(nodes.every((n) => !n.closest('label'))).toBe(true)
+      for (const n of nodes) {
+        expect(n.getAttribute('aria-hidden')).toBe('true')
+        expect(n.hasAttribute('role')).toBe(false)
+        expect(n.hasAttribute('id')).toBe(false)
+        expect(n.querySelector('.g-tooltip__text').getAttribute('dir')).toBe('auto')
+      }
+      if (appearance === 'segmented') expect(root(w).element.children).toHaveLength(3)
+      expect(radios(w).every((r) => r.attributes('data-g-tooltip') === '')).toBe(true)
+      expect(w.findAll('label.g-radio-group__option').every((l) => l.attributes('data-g-tooltip-box') === '')).toBe(true)
+      w.unmount()
+    }
+  })
+
+  it('nombre accesible igual con y sin pista; solo las is-icon-only; nada en full ni en otras apariencias', async () => {
+    const w = mki()
+    await nextTick()
+    const a = radios(w).map((r) => ariaOf(r.element))
+    w.unmount()
+    const f = make({ appearance: 'segmented', options: ICONS, modelValue: 'l' }, { slots: { icon: () => 'i' } })
+    await nextTick()
+    expect(f.findAll('.g-tooltip')).toHaveLength(0)
+    expect(f.findAll('[data-g-tooltip], [data-g-tooltip-box]')).toHaveLength(0)
+    expect(radios(f).map((r) => ariaOf(r.element))).toEqual(a)
+    f.unmount()
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const mixed = mki({ options: [...ICONS.slice(0, 2), { value: 'n', label: 'Sin icono' }] })
+    await nextTick()
+    expect(mixed.findAll('.g-tooltip').map((n) => n.text())).toEqual(['Lista', 'Tabla'])
+    expect(radios(mixed)[2].attributes('data-g-tooltip')).toBeUndefined()
+    const list = mki({ appearance: 'list' })
+    expect(list.findAll('.g-tooltip')).toHaveLength(0)
+    spy.mockRestore()
+  })
+
+  it('puntero sobre el segmento: abre a OPEN; relevo entre opciones; la opción disabled no abre', async () => {
+    const w = mki()
+    await nextTick()
+    vi.useFakeTimers()
+    box(w, 0).dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(200)
+    expect(openNodes()).toEqual([])
+    vi.advanceTimersByTime(OPEN - 200)
+    expect(openNodes()).toEqual([nodeOf(w, 0)])
+    box(w, 0).dispatchEvent(pev('pointerleave', { relatedTarget: box(w, 1) }))
+    box(w, 1).dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 1)])
+    box(w, 1).dispatchEvent(pev('pointerleave'))
+    vi.advanceTimersByTime(700)
+    box(w, 3).dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 10)
+    expect(openNodes()).toEqual([])
+    w.unmount()
+  })
+
+  it('Tab entra y la pista aparece; las flechas eligen y la pista viaja; Esc cierra sin mover el foco ni la elección', async () => {
+    const model = ref('l')
+    const w = makeT('<GRadioGroup id="g" label="Vista" appearance="segmented" label-mode="icon" :options="opts" v-model="v"><template #icon>i</template></GRadioGroup>', () => ({ opts: ICONS, v: model }))
+    await nextTick()
+    const r = radios(w)
+    press('Tab', document.body)
+    r[0].element.focus()
+    expect(openNodes()).toEqual([nodeOf(w, 0)])
+    // La flecha (nativa) mueve el foco y elige: aquí se simula como hace el navegador
+    press('ArrowRight', r[0].element)
+    r[1].element.focus()
+    r[1].element.checked = true
+    r[1].element.dispatchEvent(new Event('change', { bubbles: true }))
+    await nextTick()
+    expect(model.value).toBe('t')
+    expect(openNodes()).toEqual([nodeOf(w, 1)])
+    const e = press('Escape', r[1].element)
+    expect(e.defaultPrevented).toBe(true)
+    expect(openNodes()).toEqual([])
+    expect(document.activeElement).toBe(r[1].element)
+    expect(model.value).toBe('t')
+    // Foco por programa no abre
+    r[1].element.blur()
+    resetEngine()
+    r[2].element.focus()
+    expect(openNodes()).toEqual([])
+  })
+
+  it('pulsación larga sobre el segmento: muestra el nombre y no elige (checked, update:modelValue y change sin cambio)', async () => {
+    const onChange = vi.fn()
+    const w = mki({ onChange })
+    await nextTick()
+    vi.useFakeTimers()
+    const lbl = box(w, 2)
+    lbl.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(LONG)
+    expect(openNodes()).toEqual([nodeOf(w, 2)])
+    lbl.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    lbl.click()
+    expect(radios(w)[2].element.checked).toBe(false)
+    expect(radios(w)[0].element.checked).toBe(true)
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    expect(onChange).not.toHaveBeenCalled()
+    // Un toque normal elige sin pista
+    vi.advanceTimersByTime(500)
+    lbl.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(80)
+    lbl.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    lbl.click()
+    expect(w.emitted('update:modelValue').at(-1)).toEqual(['g'])
+    w.unmount()
+  })
+
+  it('uno solo en el documento con un GTooltip de la aplicación', async () => {
+    const app = track(mount({ components: { GTooltip }, template: '<GTooltip text="Copiar"><button id="app-btn" type="button">C</button></GTooltip>' }, { attachTo: document.body }))
+    const w = mki()
+    await nextTick()
+    vi.useFakeTimers()
+    const appBtn = document.getElementById('app-btn')
+    appBtn.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(openNodes()).toEqual([appBtn.nextElementSibling])
+    appBtn.dispatchEvent(pev('pointerleave'))
+    box(w, 0).dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 0)])
+    app.unmount()
+    w.unmount()
+  })
+
+  it('salir de labelMode="icon" o quitar una opción destruye su nodo', async () => {
+    const w = mki()
+    await nextTick()
+    await w.setProps({ options: ICONS.slice(0, 2) })
+    expect(w.findAll('.g-radio-group__options > .g-tooltip')).toHaveLength(2)
+    await w.setProps({ labelMode: 'full' })
+    expect(w.findAll('.g-tooltip')).toHaveLength(0)
+    expect(w.findAll('[data-g-tooltip], [data-g-tooltip-box]')).toHaveLength(0)
   })
 })

@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick, h } from 'vue'
 import GSidebar from './GSidebar.vue'
+import GTooltip from '../GTooltip/GTooltip.vue'
+import { stubPopover, resetEngine, isOpen, openNodes, pev, press, ariaOf } from '../../utils/visualTipTestEnv.js'
+import { OPEN, LONG, SKIP } from '../../utils/tooltip.js'
 
 // jsdom no implementa <dialog> modal ni popover: se simulan con el mismo contrato (atributo open / :popover-open y evento close).
 beforeEach(() => {
@@ -310,31 +313,10 @@ describe('GSidebar · riel', () => {
     expect(w.find('.g-sidebar__fly').element.hasAttribute('data-popover-open')).toBe(false)
   })
 
-  it('la pista es un solo elemento aria-hidden con el nombre del item', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  it('la pista vieja (g-sidebar__tip) ya no existe: la sustituye el modo visual del motor (#436)', () => {
     const w = rail()
-    await byId(w, 'team').trigger('pointerenter')
-    vi.advanceTimersByTime(400); await nextTick()
-    const tip = w.find('.g-sidebar__tip')
-    expect(tip.attributes('aria-hidden')).toBe('true')
-    expect(tip.text()).toBe('Equipo')
-    expect(tip.element.hasAttribute('data-popover-open')).toBe(true)
-    await byId(w, 'team').trigger('pointerleave')
-    expect(tip.element.hasAttribute('data-popover-open')).toBe(false)
-    // otra pista poco después: instantánea
-    await byId(w, 'set').trigger('pointerenter')
-    vi.advanceTimersByTime(1); await nextTick()
-    expect(tip.classes()).toContain('is-instant')
-    vi.useRealTimers()
-  })
-
-  it('un padre en el riel no muestra pista (su panel ya lleva el nombre)', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    const w = rail()
-    await byId(w, 'proj').trigger('pointerenter')
-    vi.advanceTimersByTime(100)
-    expect(w.find('.g-sidebar__tip').element.hasAttribute('data-popover-open')).toBe(false)
-    vi.useRealTimers()
+    expect(w.find('.g-sidebar__tip').exists()).toBe(false)
+    expect(w.findAll(':scope > .g-tooltip').length).toBeGreaterThan(0)
   })
 })
 
@@ -674,5 +656,185 @@ describe('GSidebar · no animar al montar (plan 012)', () => {
     const w = mk({ mode: 'expanded' })
     await frames()
     expect(w.classes()).not.toContain('is-expanding')
+  })
+})
+
+// Pista del riel (sidebar.md §«Pista del riel», #436; comunes de tooltip.md §«Modo visual», #433)
+describe('GSidebar · pista del riel (modo visual del motor del tooltip)', () => {
+  const rail = (props = {}, opts = {}) => mk({ mode: 'rail', search: true, ...props }, opts)
+  const nodes = (w) => [...w.element.children].filter((c) => c.classList.contains('g-tooltip'))
+  const nodeOf = (w, text) => nodes(w).find((n) => n.textContent === text)
+  beforeEach(() => { stubPopover(); resetEngine() })
+  afterEach(() => { resetEngine(); vi.useRealTimers() })
+
+  it('un nodo por control del riel al final de la raíz (contraer, búsqueda, items de primer nivel con padres); aria-hidden, sin role ni id', () => {
+    const w = rail()
+    const kids = [...w.element.children]
+    const ns = nodes(w)
+    expect(kids.slice(-ns.length)).toEqual(ns)
+    expect(ns.map((n) => n.textContent)).toEqual(['Expandir la barra lateral', 'Buscar', 'Inicio', 'Bandeja', 'Mensajes', 'Proyectos', 'Equipo', 'Facturación', 'Ajustes'])
+    for (const n of ns) {
+      expect(n.getAttribute('aria-hidden')).toBe('true')
+      expect(n.getAttribute('popover')).toBe('manual')
+      expect(n.hasAttribute('role')).toBe(false)
+      expect(n.hasAttribute('id')).toBe(false)
+      expect(n.querySelector('.g-tooltip__text').getAttribute('dir')).toBe('auto')
+    }
+    // data-g-tooltip en los enfocables de primer nivel, búsqueda y contraer; no en los hijos
+    expect(w.findAll('.g-sidebar__nav .g-sidebar__item > .g-sidebar__link').every((l) => l.attributes('data-g-tooltip') === '')).toBe(true)
+    expect(w.findAll('.g-sidebar__sub .g-sidebar__link').every((l) => l.attributes('data-g-tooltip') === undefined)).toBe(true)
+    expect(w.find('.g-sidebar__search').attributes('data-g-tooltip')).toBe('')
+    expect(w.find('.g-sidebar__toggle').attributes('data-g-tooltip')).toBe('')
+    // Ningún aria-* nuevo: sin referencias a las pistas
+    expect(w.findAll('[aria-describedby]')).toHaveLength(0)
+    expect(ariaOf(byId(w, 'inbox').element)).toEqual({})
+  })
+
+  it('el nombre accesible es el mismo en riel que en expandida (mismos nodos, mismo DOM; solo aria-haspopup del padre)', async () => {
+    const w = mk({ mode: 'expanded', search: true })
+    const before = byId(w, 'team').element
+    const a = ariaOf(before)
+    await w.find('.g-sidebar__toggle').trigger('click'); await nextTick()
+    expect(w.classes()).toContain('g-sidebar--mode-rail')
+    expect(byId(w, 'team').element).toBe(before)
+    expect(ariaOf(before)).toEqual(a)
+    expect(nodes(w)).toHaveLength(9)
+  })
+
+  it('solo en el riel: en expandida no abre; al pasar a expandida la abierta se cierra', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const e = mk({ mode: 'expanded', search: true })
+    byId(e, 'team').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 10)
+    expect(openNodes()).toEqual([])
+    byId(e, 'team').element.dispatchEvent(pev('pointerleave'))
+    e.unmount()
+    const w = rail()
+    byId(w, 'team').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(200)
+    expect(openNodes()).toEqual([])
+    vi.advanceTimersByTime(OPEN - 200)
+    expect(openNodes()).toEqual([nodeOf(w, 'Equipo')])
+    await w.setProps({ mode: 'expanded' }); await nextTick()
+    expect(openNodes()).toEqual([])
+  })
+
+  it('viaja entre items y entre grupos (grupo = nav); tras cerrar, la siguiente dentro de SKIP abre al instante (data-instant)', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const w = rail()
+    byId(w, 'inbox').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(openNodes()).toEqual([nodeOf(w, 'Bandeja')])
+    byId(w, 'inbox').element.dispatchEvent(pev('pointerleave'))
+    byId(w, 'team').element.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 'Equipo')])
+    byId(w, 'team').element.dispatchEvent(pev('pointerleave'))
+    vi.advanceTimersByTime(150)
+    expect(openNodes()).toEqual([])
+    vi.advanceTimersByTime(SKIP - 300)
+    byId(w, 'set').element.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([nodeOf(w, 'Ajustes')])
+    expect(nodeOf(w, 'Ajustes').hasAttribute('data-instant')).toBe(true)
+  })
+
+  it('padre: Tab muestra su pista; abrir su panel (Intro o →) la cierra; con el puntero el panel gana', async () => {
+    const w = rail()
+    const p = byId(w, 'proj')
+    press('Tab', document.body)
+    p.element.focus()
+    expect(openNodes()).toEqual([nodeOf(w, 'Proyectos')])
+    await key(p, 'ArrowRight'); await nextTick()
+    expect(p.attributes('aria-expanded')).toBe('true')
+    expect(isOpen(nodeOf(w, 'Proyectos'))).toBe(false)
+    expect(openNodes()).toEqual([])
+    w.unmount()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const v = rail()
+    const q = byId(v, 'proj')
+    q.element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN + 50); await nextTick()
+    expect(q.attributes('aria-expanded')).toBe('true')
+    expect(openNodes()).toEqual([])
+  })
+
+  it('foco por programa no abre; Esc cierra la pista sin mover el foco y no cierra el panel', async () => {
+    const w = rail()
+    byId(w, 'home').element.focus()
+    expect(openNodes()).toEqual([])
+    // Panel abierto por teclado (foco en su primer hijo) y una pista abierta con el puntero en otro item
+    const p = byId(w, 'proj')
+    p.element.focus()
+    await key(p, 'ArrowRight'); await nextTick()
+    const fly = w.find('.g-sidebar__fly')
+    expect(fly.element.hasAttribute('data-vt-open')).toBe(true)
+    const inFly = document.activeElement
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    byId(w, 'team').element.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(isOpen(nodeOf(w, 'Equipo'))).toBe(true)
+    const e = press('Escape', inFly)
+    expect(e.defaultPrevented).toBe(true)
+    expect(isOpen(nodeOf(w, 'Equipo'))).toBe(false)
+    expect(fly.element.hasAttribute('data-vt-open')).toBe(true)
+    expect(document.activeElement).toBe(inFly)
+    // El segundo Esc cierra el panel (aria-expanded del padre; el stub de :popover-open de este archivo usa otro atributo)
+    expect(p.attributes('aria-expanded')).toBe('true')
+    press('Escape', inFly); await nextTick()
+    expect(p.attributes('aria-expanded')).toBe('false')
+  })
+
+  it('pulsación larga: muestra el nombre y no navega (sin navigate ni update:modelValue); sobre un padre no abre el panel', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const w = rail()
+    const t = byId(w, 'team').element
+    t.dispatchEvent(pev('pointerenter', { pointerType: 'touch' }))
+    t.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(LONG)
+    expect(openNodes()).toEqual([nodeOf(w, 'Equipo')])
+    t.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    t.click()
+    expect(w.emitted('navigate')).toBeUndefined()
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    vi.advanceTimersByTime(3000)
+    const p = byId(w, 'proj').element
+    p.dispatchEvent(pev('pointerenter', { pointerType: 'touch' }))
+    p.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(LONG)
+    expect(openNodes()).toEqual([nodeOf(w, 'Proyectos')])
+    p.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    p.click(); await nextTick()
+    expect(p.getAttribute('aria-expanded')).toBe('false')
+    expect(w.find('.g-sidebar__fly').element.hasAttribute('data-vt-open')).toBe(false)
+    // Un toque normal navega
+    vi.advanceTimersByTime(3000)
+    t.dispatchEvent(pev('pointerdown', { pointerType: 'touch' }))
+    vi.advanceTimersByTime(80)
+    t.dispatchEvent(pev('pointerup', { pointerType: 'touch' }))
+    t.click()
+    expect(last(w, 'update:modelValue')).toBe('team')
+  })
+
+  it('contraer/expandir: en el riel nombra «Expandir…»; uno solo abierto con un GTooltip de la aplicación', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const app = mount({ components: { GTooltip }, template: '<GTooltip text="Copiar"><button id="app-btn" type="button">C</button></GTooltip>' }, { attachTo: document.body })
+    const w = rail()
+    const tg = w.find('.g-sidebar__toggle').element
+    tg.dispatchEvent(pev('pointerenter'))
+    vi.advanceTimersByTime(OPEN)
+    expect(openNodes()).toEqual([nodeOf(w, 'Expandir la barra lateral')])
+    tg.dispatchEvent(pev('pointerleave'))
+    const appBtn = document.getElementById('app-btn')
+    appBtn.dispatchEvent(pev('pointerenter'))
+    expect(openNodes()).toEqual([appBtn.nextElementSibling])
+    w.unmount()
+    app.unmount()
+  })
+
+  it('quitar un item destruye su nodo; desmontar no deja nodos', async () => {
+    const w = rail()
+    await w.setProps({ items: ITEMS.slice(0, 1) })
+    expect(nodes(w).map((n) => n.textContent)).toEqual(['Expandir la barra lateral', 'Buscar', 'Inicio', 'Bandeja', 'Mensajes'])
+    w.unmount()
+    expect(document.querySelectorAll('.g-tooltip')).toHaveLength(0)
   })
 })

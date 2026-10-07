@@ -98,7 +98,7 @@
         "icon",
         "auto"
       ],
-      "note": "Una pestaña «tiene icono» con slot icon e item.icon con valor, o sin slot e item.icon cadena (#202)"
+      "note": "Una pestaña «tiene icono» con slot icon e item.icon con valor, o sin slot e item.icon cadena (#202) · Pista de solo icono (#434): motor de GTooltip en modo visual (utils/visualTip.js); un nodo g-tooltip aria-hidden sin role ni id por pestaña renderizada con icono (icon o auto) y uno para «Más», al final de g-tabs__header fuera del tablist; data-g-tooltip en la pestaña; activa solo con is-icon-only (la activa con etiqueta en auto reducido no); grupo = tablist (viaja con puntero, flechas y Tab); abajo en horizontal, derecha lógica en vertical; «Más» con el menú abierto no abre; pulsación larga muestra y no activa (sin change). El nombre accesible no cambia"
     },
     {
       "name": "snap",
@@ -319,8 +319,10 @@
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack): anuncio de estado y contador, menú «Más»",
     "Táctil real, snap con dedo y zoom al 200%",
     "Rendimiento con decenas de pestañas y redimensionar con «Más» abierto",
-    "Tooltip para solo iconos (hasta que exista un componente de tooltip)",
     "Fuera de v0.1: closable/close, overflow combined y auto, swipe entre paneles, unmount de paneles inactivos",
     "CLI: no emite todavía los --g-tabs-*"
-  ]
+  ],
+  "weight": {
+    "tooltipVisualMode": "+884 B gzip en grana.js y +703 B en grana.umd.js (incluye utils/visualTip.js, compartido con GRadioGroup y GSidebar), medido el 2026-10-06"
+  }
 }

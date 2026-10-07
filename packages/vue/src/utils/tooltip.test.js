@@ -234,6 +234,24 @@ describe('foco y Esc', () => {
     b.ctrl.focus()
     expect(isOpen(b.node)).toBe(true)
   })
+  it('radio al que llevan las flechas sin :focus-visible (WebKit, #435): abre; con Tab sin :focus-visible, no', () => {
+    const { ctrl, node } = make(document.body, { tag: 'input' })
+    ctrl.type = 'radio'
+    const orig = HTMLElement.prototype.matches
+    vi.spyOn(HTMLElement.prototype, 'matches').mockImplementation(function (sel) { return sel === ':focus-visible' ? false : orig.call(this, sel) })
+    key('Tab', document.body)
+    ctrl.focus()
+    expect(isOpen(node)).toBe(false)
+    ctrl.blur()
+    key('ArrowRight', document.body)
+    ctrl.focus()
+    expect(isOpen(node)).toBe(true)
+    const b = make()
+    ctrl.blur()
+    key('ArrowDown', document.body)
+    b.ctrl.focus()
+    expect(isOpen(b.node)).toBe(false)
+  })
   it('Intro tras Tab (un diálogo que se abre y enfoca su primer control) no cuenta como navegación; Mayús+Tab sí', () => {
     const a = make()
     const b = make()

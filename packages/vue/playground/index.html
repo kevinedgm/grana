@@ -926,6 +926,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <g-radio-group id="rg-icon-chip" v-model="rg.canal" name="rg-canal" appearance="chip" label-mode="icon" label="Canal" :options="rg.canales"></g-radio-group>
       <div class="rg-narrow"><g-radio-group id="rg-stack" v-model="rg.lado" name="rg-lado" appearance="segmented" label="Lado dominante (contenedor estrecho: se apila)" :options="rg.lados"></g-radio-group></div>
       <div dir="rtl" lang="ar"><g-radio-group id="rg-rtl" v-model="rg.rtl" name="rg-rtl" appearance="segmented" label="الجنس" :options="rg.rtlOpts"></g-radio-group></div>
+      <div style="max-inline-size:120px"><g-radio-group id="rg-icon-stack" v-model="rg.vista" name="rg-vista-stack" appearance="segmented" label-mode="icon" label="Vista (apilado)" :field="false" :options="rg.vistas"></g-radio-group></div>
+      <div dir="rtl" lang="ar"><g-radio-group id="rg-icon-rtl" v-model="rg.canal" name="rg-canal-rtl" appearance="chip" label-mode="icon" label="القناة" :options="rg.canales"></g-radio-group></div>
+      <g-radio-group id="rg-icon-dis" v-model="rg.vista" name="rg-vista-dis" appearance="segmented" label-mode="icon" label="Vista (una opción deshabilitada)" :field="false" :options="[...rg.vistas, { value: 'mapa', label: 'Mapa', icon: 'globe', disabled: true }]"></g-radio-group>
     </div>
     <p class="log">vista={{ String(rg.vista) }} · canal={{ String(rg.canal) }} · lado={{ String(rg.lado) }} · rtl={{ String(rg.rtl) }}</p>
           </div>
@@ -1479,6 +1482,21 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         </div>
       </div>
       <pre class="log" style="background:var(--g-color-surface);color:var(--g-color-text);border:var(--g-border-width) solid var(--g-color-border);padding:8px">{{ sbLog }}</pre>
+      <h4 style="margin:8px 0 0">Riel con pista (motor del tooltip en modo visual, #436)</h4>
+      <div class="row" id="sb-rail-demo" style="align-items:stretch;gap:24px">
+        <div style="position:relative;display:flex;block-size:640px;inline-size:360px;background:var(--g-color-surface-sunken)">
+          <g-sidebar id="sb-rail" v-model="sbRail" :items="sbItems" label="Principal (riel)" :labels="sbLabels" mode="rail" search contained style="flex:none" @navigate="sbRailLog = 'navigate → ' + $event.item.id; sbRail = $event.item.id; $event.event.preventDefault()" @search="sbRailLog = 'search'">
+            <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+            <template #search-icon><g-icon name="search"></g-icon></template>
+          </g-sidebar>
+        </div>
+        <div dir="rtl" style="position:relative;display:flex;block-size:640px;inline-size:360px;background:var(--g-color-surface-sunken)">
+          <g-sidebar id="sb-rail-rtl" v-model="sbRail" :items="sbItems" label="الرئيسية" :labels="sbLabels" mode="rail" contained style="flex:none" @navigate="$event.event.preventDefault()">
+            <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+          </g-sidebar>
+        </div>
+      </div>
+      <p class="log" id="sb-rail-log">actual={{ sbRail }} · {{ sbRailLog }}</p>
     </div>
 
           </div>
@@ -1512,6 +1530,15 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       <div style="max-width:340px"><g-tabs v-model="gtIcon" :items="gtIconItems" :labels="gtLabels" label-mode="auto" label="Etiquetas según el espacio" appearance="pill">
       </g-tabs></div>
       <div dir="rtl" style="max-width:520px"><g-tabs v-model="gtRtl" :items="gtRtlItems" :labels="gtLabels" label="الإعدادات" overflow="arrows"></g-tabs></div>
+      <h4 style="margin:8px 0 0">Solo icono con pista (motor del tooltip en modo visual, #434)</h4>
+      <div class="row" id="tb-icon-demo" style="align-items:flex-start;gap:24px">
+        <g-tabs id="tb-icon" v-model="gtIconOnly" :items="gtIconTipItems" :labels="gtLabels" label-mode="icon" label="Secciones (solo icono)" @change="gtIconLog = 'change → ' + $event.id"></g-tabs>
+        <g-tabs id="tb-icon-pill" v-model="gtIconOnly" :items="gtIconTipItems" :labels="gtLabels" label-mode="icon" appearance="segmented" label="Secciones (segmentado, solo icono)"></g-tabs>
+        <g-tabs id="tb-icon-v" v-model="gtIconOnly" :items="gtIconTipItems.slice(0, 4)" :labels="gtLabels" label-mode="icon" orientation="vertical" responsive="never" label="Secciones (vertical, solo icono)"></g-tabs>
+        <div dir="rtl"><g-tabs id="tb-icon-rtl" v-model="gtIconOnly" :items="gtIconTipItems.slice(0, 4)" :labels="gtLabels" label-mode="icon" orientation="vertical" responsive="never" label="الأقسام"></g-tabs></div>
+        <div style="max-width:190px"><g-tabs id="tb-icon-more" v-model="gtIconOnly" :items="gtIconTipItems" :labels="gtLabels" label-mode="icon" overflow="more" label="Secciones (con «Más»)"></g-tabs></div>
+      </div>
+      <p class="log" id="tb-icon-log">activa={{ gtIconOnly }} · {{ gtIconLog }}</p>
       <g-tabs v-model="gtDet" :items="gtSegItems" detached id="tb-detached" label="Paneles separados" appearance="pill"></g-tabs>
       <div class="row" style="border:1px dashed var(--g-color-border-strong);padding:8px">
         <g-tab-panel v-for="it in gtSegItems" :key="it.id" tabs="tb-detached" :value="it.id" :active="gtDet === it.id" lazy>Panel suelto de «{{ it.label }}».</g-tab-panel>
@@ -2821,6 +2848,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const gtLong = ref('general')
         const gtLongItems = [...gtItems.slice(0, 5), { id: 'bill', label: 'Facturación' }, { id: 'int', label: 'Integraciones' }, { id: 'team', label: 'Equipo' }, { id: 'audit', label: 'Auditoría' }, { id: 'tags', label: 'Etiquetas' }, gtItems[5]]
         const gtIcon = ref('general')
+        const gtIconOnly = ref('general')
+        const gtIconLog = ref('sin cambios')
+        const gtIconTipItems = [{ id: 'general', label: 'General', icon: 'house' }, { id: 'msgs', label: 'Mensajes', icon: 'mail', count: 3, countLabel: '3 sin leer' }, { id: 'cal', label: 'Calendario', icon: 'calendar' }, { id: 'team', label: 'Equipo', icon: 'users', disabled: true }, { id: 'cfg', label: 'Ajustes', icon: 'settings' }]
         const gtIconItems = [{ id: 'general', label: 'General', icon: 'house' }, { id: 'msgs', label: 'Mensajes', icon: 'mail' }, { id: 'cal', label: 'Calendario', icon: 'calendar' }, { id: 'team', label: 'Equipo', icon: 'users' }, { id: 'cfg', label: 'Ajustes', icon: 'settings' }]
         const gtRtl = ref('a')
         const gtRtlItems = [{ id: 'a', label: 'عام' }, { id: 'b', label: 'الرسائل' }, { id: 'c', label: 'الإعدادات' }, { id: 'd', label: 'الفواتير' }, { id: 'e', label: 'الفريق' }, { id: 'f', label: 'التكاملات' }, { id: 'g', label: 'التدقيق' }]
@@ -2985,6 +3015,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const sbMobile = ref('navbar')
         const sbMode = ref({ mode: 'expanded', overlay: false })
         const sbLog = ref('')
+        const sbRail = ref('home')
+        const sbRailLog = ref('sin navegar')
         const sbLabels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
         const sbItems = [
           { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }, { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'message-circle', dot: true, badgeLabel: 'Hay mensajes nuevos' }] },
@@ -3551,7 +3583,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>

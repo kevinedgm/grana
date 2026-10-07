@@ -44,7 +44,7 @@ const toPx = (v) => {
 }
 
 // ---------- Estado compartido: uno solo abierto en el documento ----------
-const state = { current: null, lastHide: -Infinity, navAt: -Infinity, blockClick: null, count: 0, ac: null }
+const state = { current: null, lastHide: -Infinity, navAt: -Infinity, navKey: '', blockClick: null, count: 0, ac: null }
 export const _state = state
 
 function install() {
@@ -56,7 +56,7 @@ function install() {
     // Una tecla que no navega (Intro, Espacio, letras) anula la navegación: el foco que pone la interfaz después (un
     // GDialog que se abre con Intro y enfoca su primer control) no es de la persona. Los modificadores no cuentan
     // (Mayús+Tab, Opción+Tab en WebKit)
-    if (NAV_KEYS.has(e.key)) state.navAt = now()
+    if (NAV_KEYS.has(e.key)) { state.navAt = now(); state.navKey = e.key }
     else if (!MODIFIERS.has(e.key)) state.navAt = -Infinity
     const c = state.current
     // Esc en captura, solo con uno abierto: cierra sin mover el foco, preventDefault sin detener (GDialog lo respeta)
@@ -412,9 +412,11 @@ export function attach(ctrl, node, opt = {}) {
     scheduleClose()
   })
 
-  // Solo el foco que la persona mueve abre (#384): :focus-visible y tecla de navegación hace menos de NAV sin puntero
+  // Solo el foco que la persona mueve abre (#384): :focus-visible y tecla de navegación hace menos de NAV sin puntero.
+  // WebKit no marca :focus-visible en el radio al que llevan las flechas (pista de GRadioGroup, #435): ahí basta la flecha.
+  const visible = () => is(ctrl, ':focus-visible') || (ctrl.type === 'radio' && /^Arrow/.test(state.navKey))
   on(ctrl, 'focus', () => {
-    if (now() - state.navAt >= NAV || !is(ctrl, ':focus-visible')) return
+    if (now() - state.navAt >= NAV || !visible()) return
     reasons.add('focus')
     if (!suppressed) inst.show('focus')
   })

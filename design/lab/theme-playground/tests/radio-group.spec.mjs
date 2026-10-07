@@ -118,7 +118,7 @@ test.describe('GRadioGroup · componente real (radio-group.md)', () => {
     // Nombres accesibles reales (los tres motores): radios por su etiqueta, también en solo icono
     await expect(page.getByRole('radiogroup', { name: 'Modalidad de consulta' })).toHaveCount(1)
     await expect(page.getByRole('radio', { name: 'En línea' }).first()).toHaveAttribute('id', 'rg-list-1')
-    await expect(page.getByRole('radio', { name: 'Gráfica', exact: true })).toHaveAttribute('id', 'rg-icon-1')
+    await expect(page.locator('#rg-icon').getByRole('radio', { name: 'Gráfica', exact: true })).toHaveAttribute('id', 'rg-icon-1')
     await expect(page.locator('#rg-list-1')).toHaveAccessibleDescription('Videollamada; el enlace llega por correo.')
     if (browserName === 'chromium') {
       const cdp = await page.context().newCDPSession(page)

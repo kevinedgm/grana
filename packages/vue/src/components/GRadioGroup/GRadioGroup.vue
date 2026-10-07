@@ -4,12 +4,14 @@
 // Estilo: GRadioGroup.css (coco). Referencia ejecutable del marcado: rg() en design/lab/radio-group/estilo-banco.html.
 // El navegador hace el trabajo: estado, teclado (una parada de Tab, flechas que mueven y eligen), envío y agrupación son
 // los del radio nativo. Único manejador propio de teclado: el bloqueo de solo lectura (#272).
+// Pista de solo icono (#435): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
 import { computed, defineComponent, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { layoutKey, messageIcon, useFormField } from '../GForm/formContext.js'
 import { observeOptions } from './fitEngine.js'
+import { useVisualTips } from '../../utils/visualTip.js'
 
 defineOptions({ name: 'GRadioGroup', inheritAttrs: false })
 
@@ -277,6 +279,19 @@ function onClick(event) {
   nextTick(sync)
 }
 
+// ---------- Pista de solo icono (radio-group.md §«Pista de solo icono», #435) ----------
+// Un nodo por opción is-icon-only, al final de __options (nunca dentro de la <label> ni hijo de la raíz). Enfocable: el
+// radio (data-g-tooltip); caja visible: la __option (data-g-tooltip-box). Abajo en línea; a la derecha lógica apilado.
+const tips = useVisualTips({
+  find(key) {
+    const input = rootEl.value && rootEl.value.ownerDocument.getElementById(key)
+    if (!input || !rootEl.value.contains(input)) return null
+    return { ctrl: input, box: input.closest('.g-radio-group__option') }
+  },
+  placement: () => (isSegmented.value && stacked.value ? 'right' : 'bottom')
+})
+const tipRef = tips.ref
+
 // ---------- Raíz ----------
 const describedBy = computed(() => {
   const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
@@ -364,7 +379,7 @@ if (isDev) {
   <component :is="isDiv ? 'div' : 'fieldset'" ref="rootEl" v-bind="rootBindings" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <component :is="isDiv ? 'span' : 'legend'" v-if="hasLabel" :id="labelId" class="g-radio-group__label"><span class="g-radio-group__label-text" dir="auto"><slot name="label">{{ label }}</slot></span><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-radio-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-radio-group__required" aria-hidden="true">*</span></component>
     <div class="g-radio-group__options">
-      <label v-for="(o, i) in items" :key="optId(i)" :class="['g-radio-group__option', { 'is-disabled': o.disabled, 'is-icon-only': iconOnly(o) }]" :for="optId(i)">
+      <label v-for="(o, i) in items" :key="optId(i)" :class="['g-radio-group__option', { 'is-disabled': o.disabled, 'is-icon-only': iconOnly(o) }]" :for="optId(i)" :data-g-tooltip-box="iconOnly(o) ? '' : undefined">
         <input
           :id="optId(i)"
           class="g-radio-group__input"
@@ -375,6 +390,7 @@ if (isDev) {
           :disabled="o.disabled || (isDiv && isDisabled) || undefined"
           :aria-labelledby="`${optId(i)}-label`"
           :aria-describedby="descOf(o) ? `${optId(i)}-description` : undefined"
+          :data-g-tooltip="iconOnly(o) ? '' : undefined"
         >
         <Body :wrap="isSegmented">
           <span v-if="$slots.option" :id="`${optId(i)}-label`" class="g-radio-group__option-label" dir="auto"><slot name="option" v-bind="ctx(o, i)" /></span>
@@ -384,6 +400,9 @@ if (isDev) {
           </template>
         </Body>
       </label>
+      <template v-for="(o, i) in items" :key="`${optId(i)}-tip`">
+        <div v-if="iconOnly(o)" :ref="tipRef(optId(i))" class="g-tooltip" popover="manual" aria-hidden="true"><span class="g-tooltip__tab"></span><span class="g-tooltip__body"><span class="g-tooltip__text" dir="auto">{{ o.label }}</span></span></div>
+      </template>
     </div>
     <div v-if="showSupport" class="g-radio-group__support">
       <div v-if="hasHint" :id="hintId" class="g-radio-group__hint"><slot name="hint">{{ hint }}</slot></div>

@@ -3,10 +3,12 @@
 // Contrato: design/contracts/tabs.md · Estructura: design/lab/tabs/r02/ · Estilo: GTabs.css (coco)
 // Patrón Tabs de APG. Presenta y emite intención: `modelValue` es la pestaña activa y nunca cambia por su cuenta.
 // Iconos: GIcon (Lucide). Contador e insignia: GBadge. Menú «Más»: GMenu.
+// Pista de solo icono (#434): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
 import { computed, defineComponent, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, onUpdated, provide, reactive, ref, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { TABS_NEST, hasFocusable, isRtl, panelDomId, tabDomId } from '../../utils/tabs.js'
+import { useVisualTips } from '../../utils/visualTip.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import GBadge from '../GBadge/GBadge.vue'
@@ -144,6 +146,26 @@ export default defineComponent({
       return all.filter((e) => visibleIds.value.has(e.id))
     })
     const hidden = computed(() => (moreWanted.value && !measuring.value && visibleIds.value ? entries.value.filter((e) => !visibleIds.value.has(e.id)) : []))
+
+    // ---------- Pista de solo icono (tabs.md §«Pista de solo icono», #434) ----------
+    // Un nodo por pestaña renderizada con icono mientras labelMode sea icon o auto, y uno para «Más»; activa solo con
+    // is-icon-only (la activa con etiqueta en auto reducido no). Los nodos van al final de g-tabs__header, fuera del tablist.
+    const MORE_TIP = 'more'
+    const tipKey = (id) => `t:${String(id)}`
+    const tipWanted = (e) => (props.labelMode === 'icon' || props.labelMode === 'auto') && tabHasIcon(e)
+    const tips = useVisualTips({
+      find(key) {
+        const hdr = headerEl()
+        if (!hdr) return null
+        if (key === MORE_TIP) { const b = hdr.querySelector('.g-tabs__more'); return b ? { ctrl: b } : null }
+        const e = rendered.value.find((x) => tipKey(x.id) === key)
+        const el = e && tabElOf(e.id)
+        return el ? { ctrl: el } : null
+      },
+      disabled: (key, ctrl) => key !== MORE_TIP && !ctrl.classList.contains('is-icon-only')
+    })
+    // Con el menú de «Más» abierto (aria-expanded="true") su pista no abre o se cierra
+    watch(moreOpen, () => nextTick(tips.check))
 
     // ---------- Avisos de validación ----------
     function validate() {
@@ -602,6 +624,7 @@ export default defineComponent({
         'aria-setsize': setsize ? entries.value.length : undefined,
         'aria-posinset': setsize ? index + 1 : undefined,
         tabindex: e.id === tabbableId.value ? 0 : -1,
+        'data-g-tooltip': tipWanted(e) ? '' : undefined,
         onClick: (ev) => onClick(ev, e),
         onFocus: (ev) => reveal(ev.currentTarget, false)
       }, children)
@@ -635,6 +658,7 @@ export default defineComponent({
           ...t,
           class: 'g-tabs__more',
           type: 'button',
+          'data-g-tooltip': '',
           'aria-label': flag && flagged.statusLabel ? `${L.more}, ${flagged.statusLabel}` : L.more
         }, [
           h(GIcon, { name: 'chevron-down' }),
@@ -709,7 +733,10 @@ export default defineComponent({
             h('span', { class: 'g-tabs__mark', 'aria-hidden': 'true' })
           ]),
           arrows ? renderEdge(1) : null,
-          moreWanted.value && (hidden.value.length > 0 || measuring.value) ? renderMore() : null
+          moreWanted.value && (hidden.value.length > 0 || measuring.value) ? renderMore() : null,
+          // Pistas del modo visual (#434): fuera del tablist, en el orden de las pestañas y «Más» la última
+          ...list.filter(tipWanted).map((e) => tips.node(tipKey(e.id), labelOf(e))),
+          moreWanted.value && (hidden.value.length > 0 || measuring.value) ? tips.node(MORE_TIP, (props.labels || {}).more) : null
         ]))
         if (!props.detached) out.push(renderPanels())
       }
