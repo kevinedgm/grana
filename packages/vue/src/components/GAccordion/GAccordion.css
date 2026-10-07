@@ -1,0 +1,503 @@
+/*
+  GAccordion + GAccordionItem · estilo del grupo y del elemento (un solo archivo, como GTabs con GTabPanel)
+  Dueño: coco. Contrato: design/contracts/accordion.md (DECISIONS.md #475 a #488). Estructura: design/lab/accordion/r01/
+  (kiwi). Estética y medidas: design/lab/accordion/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos; únicos literales de
+  medida: 44px (el botón es la diana principal de la pieza, en todos los punteros) y el 0px inicial de la propiedad pública
+  registrada --g-accordion-sticky-top (#484).
+
+  Carácter (A «Avance», #475 y #483): sin cajas. Una lista de preguntas separadas por una línea fina; el encabezado cerrado
+  enseña una línea de la respuesta, en el mismo sitio y con la misma letra que tendrá abierta: al abrir esa línea no se mueve,
+  solo pierde los puntos suspensivos y se enciende (text-muted → text) mientras lo demás se desenrolla debajo.
+
+  Marcado que espera (lo pinta bruno; accordion.md «Estructura accesible» y «Clases y datos»):
+    div.g-accordion[.g-accordion--exclusive][.g-accordion--sticky]
+      div.g-accordion-item#ID[.is-open][.is-animating][.is-instant][.is-ready][.is-disabled][.is-standalone][.has-peek][.has-actions]
+          (style="--_head-size: Npx" abierto en un grupo sticky)
+        hN.g-accordion-item__heading
+          button.g-accordion-item__toggle#ID-toggle[aria-expanded][aria-controls][aria-disabled][aria-describedby]
+            span.g-accordion-item__title[dir=auto] · span.g-accordion-item__meta[dir=auto] · span.g-accordion-item__chevron > svg.g-icon
+        div.g-accordion-item__actions                         (slot actions; fuera del hN)
+        div.g-accordion-item__peek#ID-peek[dir=auto]          (misma celda que el panel)
+        div.g-accordion-item__panel[inert mientras se cierra]
+          div.g-accordion-item__content#ID-content[role=region][hidden="until-found" plegado y asentado]
+            div.g-accordion-item__body                        (slot)
+*/
+
+/* ---------- Propiedad pública de entrada (#484): alto de la cabecera fija de la APLICACIÓN ----------
+   No es del tema: no va en defaults.css. Registrada para leerla sin respaldo; hereda para que baste ponerla en :root. */
+@property --g-accordion-sticky-top {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- Grupo ---------- */
+.g-accordion {
+  /* Fondo del encabezado pegado: la superficie sobre la que está el grupo (mapa de anfitrionas, abajo) */
+  --_sticky-bg: var(--g-color-bg);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+  /* Δ0 lo hace el componente (keepInPlace, #481): el anclaje del navegador no debe compensar otra vez */
+  overflow-anchor: none;
+}
+
+/* ---------- Mapa de anfitrionas de Grana (#484): el tono de la superficie MÁS CERCANA ----------
+   Cada anfitriona publica su tono a sus descendientes en un alias heredado (--_accordion-on); así gana la más cercana sin
+   depender del orden de las reglas (una GSurface dentro de un GDialog, o un GDialog escrito dentro de una GCard). Una
+   superficie flat (transparente) no publica nada: hereda el de fuera. Fuera de toda anfitriona, --g-color-bg. Dentro de un
+   contenedor de la APLICACIÓN con otro fondo, la aplicación pone el background de __heading (receta del README). */
+.g-surface:not(.g-surface--level-flat, .g-surface--level-inset) {
+  --_accordion-on: var(--g-color-surface);
+}
+.g-surface--tone-sunken:not(.g-surface--level-inset, .g-surface--level-flat) {
+  --_accordion-on: var(--g-surface-shell);
+}
+.g-surface--level-inset {
+  --_accordion-on: var(--g-color-surface-sunken);
+}
+.g-surface--tone-sunken:not(.g-surface--level-inset, .g-surface--level-flat) .g-surface--level-inset {
+  --_accordion-on: var(--g-surface-inset);
+}
+/* Tercer nivel (inset dentro de inset): GSurface lo deja transparente; hereda el tono de su inset */
+.g-surface--level-inset .g-surface--level-inset {
+  --_accordion-on: inherit;
+}
+.g-dialog {
+  --_accordion-on: var(--g-surface-shell);
+}
+.g-dialog__inset {
+  --_accordion-on: var(--g-surface-inset);
+}
+.g-tabs--appearance-contained .g-tabs__panel {
+  --_accordion-on: var(--g-tabs-panel);
+}
+/* Dentro de un GDialog el contenedor de desplazamiento es su cuerpo, al que no tapa la cabecera fija de la aplicación: el
+   encabezado se pega a su borde (la aplicación puede volver a ponerla en el diálogo si tiene una cabecera propia dentro) */
+.g-dialog__body {
+  --g-accordion-sticky-top: calc(var(--g-space-1) * 0);
+}
+:is(.g-surface:not(.g-surface--level-flat), .g-dialog, .g-tabs--appearance-contained .g-tabs__panel) .g-accordion {
+  --_sticky-bg: var(--_accordion-on);
+}
+
+/* ---------- Elemento ---------- */
+.g-accordion-item {
+  /* Sangría de lectura = lo que ocupa el anillo de foco hacia dentro (grosor + separación): el anillo nunca pisa la letra
+     y la línea separadora llega de borde a borde. La comparten título, avance, acciones y contenido */
+  --_inset: calc(var(--g-focus-width) + var(--g-focus-offset));
+  /* Aire del encabezado: arriba siempre; abajo, el mismo sin avance y una pizca con avance (pregunta y avance son un bloque) */
+  --_pad-start: var(--g-space-4);
+  --_pad-end: var(--g-space-4);
+  /* Aire después de lo último que se lee (avance o contenido) hasta la línea */
+  --_after: var(--g-space-4);
+  /* Movimiento (#280, accordion.md «Movimiento»): bloque y color con slow; fundidos y giro con fast */
+  --_t: var(--g-duration-slow);
+  --_t-fade: var(--g-duration-fast);
+  /* Chevron: 1em del texto del cuerpo, centrado en la PRIMERA línea del título */
+  --_chev: var(--g-text-body-size);
+
+  display: grid;
+  /* Las acciones nunca se comen más de un tercio (salvo su botón más ancho): el título conserva el resto y ellas se apilan */
+  grid-template-columns: minmax(0, 1fr) fit-content(34%);
+  grid-template-areas:
+    "head actions"
+    "body body";
+  align-items: start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.g-accordion-item.has-peek {
+  --_pad-end: var(--g-space-1);
+}
+/* Separador de A: una línea fina debajo de cada elemento del grupo (no del suelto). Por clase y no por «> *»: un envoltorio
+   de la aplicación entre el grupo y sus elementos no lo pierde */
+.g-accordion-item:not(.is-standalone) {
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* El suelto también se compensa a sí mismo (Δ0) */
+.g-accordion-item.is-standalone {
+  overflow-anchor: none;
+}
+/* Un grupo anidado que cierra el contenido de un elemento no dibuja su última línea: la del elemento de fuera ya está debajo */
+.g-accordion-item__body > .g-accordion:nth-last-child(1 of :not(:where(.g-tooltip))) > .g-accordion-item:nth-last-child(1 of .g-accordion-item) {
+  border-block-end-style: none;
+}
+
+/* ---------- Encabezado: hN > button (APG) ---------- */
+.g-accordion-item__heading {
+  grid-area: head;
+  min-inline-size: 0;
+  margin: 0;
+  font: inherit;
+  letter-spacing: normal;
+}
+.g-accordion-item__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  inline-size: 100%;
+  /* La diana principal de la pieza: ≥ 44px en TODOS los punteros (kiwi L19; accordion.md «Geometría») */
+  min-block-size: 44px;
+  margin: 0;
+  padding-block: var(--_pad-start) var(--_pad-end);
+  padding-inline: var(--_inset);
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+  text-align: start;
+  cursor: pointer;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* WCAG 2.4.11: Tab y un #id no dejan el encabezado bajo la cabecera fija de la aplicación (también sin sticky) */
+  scroll-margin-block-start: var(--g-accordion-sticky-top);
+}
+/* Foco hacia dentro: no lo recorta un contenedor y cae en la sangría, nunca sobre la letra */
+.g-accordion-item__toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-accordion-item__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  /* Parte una palabra solo si no cabe sola en la línea (break-word no rebaja el mínimo intrínseco como anywhere) */
+  overflow-wrap: break-word;
+}
+/* Dato corto dentro del nombre: más pequeño, tenue, centrado en la primera línea del título; se parte antes que empujar */
+.g-accordion-item__meta {
+  /* Mínimo = su palabra más larga: el título cede antes que partir «Disponible» */
+  flex: 0 1 auto;
+  margin-block-start: calc((var(--g-text-title-sm-line) - var(--g-text-body-sm-line)) / 2);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  letter-spacing: var(--g-text-body-sm-tracking);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+/* Chevron al FINAL (A: el ojo empieza por la pregunta): caja del interlineado del título, icono de 1em del cuerpo */
+.g-accordion-item__chevron {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--_chev);
+  block-size: var(--g-text-title-sm-line);
+  color: var(--g-color-text-muted);
+  transition: color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-accordion-item__chevron > .g-icon {
+  inline-size: var(--_chev);
+  block-size: var(--_chev);
+}
+/* Apunta al final de la línea; abierto, abajo. En RTL se espeja y abierto también apunta abajo (#71, como GFormSection) */
+.g-accordion-item__chevron:dir(rtl) > .g-icon {
+  scale: -1 1;
+}
+.g-accordion-item.is-open > .g-accordion-item__heading > .g-accordion-item__toggle > .g-accordion-item__chevron > .g-icon {
+  rotate: 90deg;
+}
+.g-accordion-item.is-open > .g-accordion-item__heading > .g-accordion-item__toggle > .g-accordion-item__chevron:dir(rtl) > .g-icon {
+  rotate: -90deg;
+}
+
+/* ---------- Acciones: en la fila del encabezado, fuera del hN, centradas en la primera línea del título ---------- */
+.g-accordion-item__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--g-text-title-sm-line);
+  margin-block-start: var(--_pad-start);
+  padding-inline: var(--g-space-2) var(--_inset);
+}
+
+/* ---------- A · Avance: una línea en la MISMA celda que el panel y con la letra del primer párrafo (#483) ---------- */
+.g-accordion-item__peek {
+  grid-area: body;
+  align-self: start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  margin: 0 0 var(--_after);
+  padding-inline: var(--_inset);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-body-tracking);
+  font-weight: var(--g-text-body-weight);
+  color: var(--g-color-text-muted);
+  /* Una línea con puntos suspensivos; el lector recibe el texto entero (el recorte es solo de pintura) */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  overflow: hidden;
+  /* Cerrado, el avance abre al clic como el botón (lo hace el .vue); la diana real es la aparente (Fitts) */
+  cursor: pointer;
+}
+/* Abierto, no se ve ni recibe clics (no es antepasado del contenido: la búsqueda de la página no se entera) */
+.g-accordion-item.is-open > .g-accordion-item__peek {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.g-accordion-item.is-disabled > .g-accordion-item__peek {
+  cursor: default;
+}
+
+/* ---------- Panel: la rejilla 0fr → 1fr de GFormSection/GFormReveal (#278), SIN visibility: hidden (#480) ----------
+   Con un antepasado visibility: hidden, #:~:text= no encuentra el texto aunque el contenido sea until-found (kiwi r01 §7).
+   Cerrándose manda inert; plegado y asentado, hidden="until-found" en __content (content-visibility: hidden). */
+.g-accordion-item__panel {
+  grid-area: body;
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: minmax(0, 1fr);
+  box-sizing: border-box;
+  min-inline-size: 0;
+}
+.g-accordion-item.is-open > .g-accordion-item__panel {
+  grid-template-rows: 1fr;
+}
+.g-accordion-item__content {
+  min-block-size: 0;
+  overflow: hidden;
+  color: var(--g-color-text);
+}
+/* Asentado y abierto: no recorta anillos de foco ni sombras de dentro */
+.g-accordion-item.is-open:not(.is-animating) > .g-accordion-item__panel > .g-accordion-item__content {
+  overflow: visible;
+}
+/* Con avance, el contenido plegado tiene el color del avance: al abrir, la primera línea es la misma letra en el mismo color
+   y se enciende hasta text mientras lo demás se desenrolla. Solo en pantalla: impreso, todo es contenido */
+@media screen {
+  .g-accordion-item.has-peek:not(.is-open) > .g-accordion-item__panel > .g-accordion-item__content {
+    color: var(--g-color-text-muted);
+  }
+}
+.g-accordion-item__body {
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding-block: 0 var(--_after);
+  padding-inline: var(--_inset);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-body-tracking);
+  font-weight: var(--g-text-body-weight);
+  /* Una palabra o un enlace más anchos que la columna se parten en vez de desbordar la página (como GDialog) */
+  overflow-wrap: break-word;
+}
+/* La primera línea del contenido cae exactamente donde estaba el avance; sin margen sobrante al final. Hijos de la
+   aplicación por estructura: se ignora el nodo hermano de GTooltip (#383, #394) */
+.g-accordion-item__body > :nth-child(1 of :not(:where(.g-tooltip))) {
+  margin-block-start: 0;
+}
+.g-accordion-item__body > :nth-last-child(1 of :not(:where(.g-tooltip))) {
+  margin-block-end: 0;
+}
+
+/* ---------- Deshabilitado (aria-disabled: enfocable, no cambia; #481) ---------- */
+.g-accordion-item.is-disabled > .g-accordion-item__heading > .g-accordion-item__toggle {
+  cursor: not-allowed;
+}
+.g-accordion-item.is-disabled > .g-accordion-item__heading > .g-accordion-item__toggle > :is(.g-accordion-item__title, .g-accordion-item__chevron) {
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Puntero: el chevron se asoma hacia donde irá ----------
+   Al pasar por el botón o por el avance de un cerrado, el chevron pasa a text y se inclina media unidad hacia donde irá el
+   contenido (abajo si abre, arriba si pliega); en un cerrado, su línea se marca (border-strong): la fila entera responde. */
+@media (hover: hover) {
+  .g-accordion-item:not(.is-disabled) > .g-accordion-item__heading > .g-accordion-item__toggle:hover > .g-accordion-item__chevron,
+  .g-accordion-item:not(.is-disabled, .is-open):has(> .g-accordion-item__peek:hover) > .g-accordion-item__heading > .g-accordion-item__toggle > .g-accordion-item__chevron {
+    color: var(--g-color-text);
+  }
+  .g-accordion-item:not(.is-standalone, .is-disabled, .is-open):has(> .g-accordion-item__heading > .g-accordion-item__toggle:hover, > .g-accordion-item__peek:hover) {
+    border-block-end-color: var(--g-color-border-strong);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .g-accordion-item__chevron {
+    transition:
+      color var(--g-duration-fast) var(--g-ease-standard),
+      translate var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-accordion-item:not(.is-disabled, .is-open) > .g-accordion-item__heading > .g-accordion-item__toggle:hover > .g-accordion-item__chevron,
+  .g-accordion-item:not(.is-disabled, .is-open):has(> .g-accordion-item__peek:hover) > .g-accordion-item__heading > .g-accordion-item__toggle > .g-accordion-item__chevron {
+    translate: 0 calc(var(--g-space-1) * 0.5);
+  }
+  .g-accordion-item.is-open:not(.is-disabled) > .g-accordion-item__heading > .g-accordion-item__toggle:hover > .g-accordion-item__chevron {
+    translate: 0 calc(var(--g-space-1) * -0.5);
+  }
+}
+
+/* ---------- Movimiento (accordion.md «Movimiento»; nada al montar: is-ready; nada con is-instant) ----------
+   Altura: rejilla en slow + ease-out. Chevron: giro en fast + ease-out. Contenido con avance: color en slow lineal.
+   Avance al ABRIR: se funde en fast lineal cuando la primera línea del contenido ya está entera (retraso fast / 3) y deja de
+   verse al terminar el movimiento. Al PLEGAR vuelve EN EL ACTO, sin fundido: queda DEBAJO de la primera línea del contenido
+   (mismo texto, misma letra, mismo sitio; el panel se pinta encima), así que no se ve volver: aparece a medida que el panel
+   recorta esa línea y la línea nunca desaparece (medido: con un fundido de fast, una respuesta de una línea se quedaba al
+   35 % a mitad del plegado). */
+@media (prefers-reduced-motion: no-preference) {
+  .g-accordion-item.is-ready:not(.is-instant) > .g-accordion-item__panel {
+    transition: grid-template-rows var(--_t) var(--g-ease-out);
+  }
+  .g-accordion-item.is-ready:not(.is-instant) > .g-accordion-item__heading > .g-accordion-item__toggle > .g-accordion-item__chevron > .g-icon {
+    transition: rotate var(--_t-fade) var(--g-ease-out);
+  }
+  .g-accordion-item.has-peek.is-ready:not(.is-instant) > .g-accordion-item__panel > .g-accordion-item__content {
+    transition: color var(--_t) linear;
+  }
+  .g-accordion-item.is-ready:not(.is-instant).is-open > .g-accordion-item__peek {
+    transition:
+      opacity var(--_t-fade) linear calc(var(--_t-fade) / 3),
+      visibility 0s linear var(--_t);
+  }
+}
+/* Movimiento reducido (patrón único, #299; tokens.md §29.3): sin altura que se mueva ni giro ni inclinación; se quedan los
+   fundidos. Abrir: el panel aparece entero y se funde. Plegar: el panel CONSERVA su alto mientras se funde (is-animating) y
+   después desaparece de una vez; asienta plegado igual (until-found al terminar). El fundido va en el panel: así el respaldo
+   del motor (transitionMs(panel) + 50) espera a que acabe. */
+@media (prefers-reduced-motion: reduce) {
+  .g-accordion-item:not(.is-open) > .g-accordion-item__panel {
+    opacity: 0;
+  }
+  .g-accordion-item.is-animating:not(.is-open) > .g-accordion-item__panel {
+    grid-template-rows: 1fr;
+  }
+  .g-accordion-item.is-ready:not(.is-instant) > .g-accordion-item__panel {
+    transition: opacity var(--_t-fade) linear;
+  }
+  .g-accordion-item.is-ready:not(.is-instant) > .g-accordion-item__peek {
+    transition: opacity var(--_t-fade) linear;
+  }
+  .g-accordion-item.is-ready:not(.is-instant).is-open > .g-accordion-item__peek {
+    transition:
+      opacity var(--_t-fade) linear,
+      visibility 0s linear var(--_t-fade);
+  }
+  .g-accordion-item.has-peek.is-ready:not(.is-instant) > .g-accordion-item__panel > .g-accordion-item__content {
+    transition: color var(--_t-fade) linear;
+  }
+}
+
+/* ---------- sticky: el encabezado que acompaña (de B; #484) ----------
+   Solo los elementos directos de un grupo sticky (un grupo anidado no pega lo suyo salvo que también sea sticky). El
+   encabezado y las acciones de un ABIERTO se quedan arriba, a --g-accordion-sticky-top del borde del contenedor de
+   desplazamiento, mientras se lee su contenido, con el fondo opaco de su anfitriona. */
+.g-accordion--sticky {
+  /* Relleno de inicio del contenedor de desplazamiento (px, lo escribe el .vue; «Para bruno»). position: sticky se pega al
+     borde del RELLENO: sin restarlo, el texto pasaría por encima del encabezado pegado en esa franja (cuerpo de GDialog) */
+  --_scroll-pad: calc(var(--g-space-1) * 0);
+}
+.g-accordion--sticky > .g-accordion-item {
+  /* Estimación del alto del encabezado pegado para una línea de título; el .vue escribe la medida real en línea (#484) */
+  --_head-size: calc(var(--_pad-start) + var(--g-text-title-sm-line) + var(--_pad-end));
+}
+/* Solo en pantalla: impreso no se pega nada */
+@media screen {
+  .g-accordion--sticky > .g-accordion-item.is-open > :is(.g-accordion-item__heading, .g-accordion-item__actions) {
+    position: sticky;
+    inset-block-start: calc(var(--g-accordion-sticky-top) - var(--_scroll-pad));
+    z-index: 1;
+    background: var(--_sticky-bg);
+  }
+  /* Las acciones ocupan el alto entero de la fila pegada (su fondo tapa lo que pasa por detrás); el mismo aire que el botón,
+     así siguen centradas en la línea del título */
+  .g-accordion--sticky > .g-accordion-item.is-open > .g-accordion-item__actions {
+    align-self: stretch;
+    margin-block-start: 0;
+    padding-block: var(--_pad-start) var(--_pad-end);
+  }
+}
+/* 2.4.11: lo que hay dentro (controles y destinos de un #id) no queda bajo el encabezado pegado ni bajo la cabecera de la
+   aplicación. En todos los elementos del grupo, no solo en el abierto: un #id de dentro llega antes de que el .vue lo abra */
+.g-accordion--sticky > .g-accordion-item > .g-accordion-item__panel > .g-accordion-item__content :not(:where(.g-tooltip)) {
+  scroll-margin-block-start: calc(var(--g-accordion-sticky-top) + var(--_head-size));
+}
+/* Se despega: solo mientras está pegado de verdad, la fila deja una línea y una sombra mínima debajo, de borde a borde
+   (encabezado y acciones). Mejora progresiva con consultas de estado de desplazamiento: el ::after de cada pieza consulta su
+   propia pieza; donde no existen, el fondo opaco basta. La línea aparece con un fundido (también con movimiento reducido) */
+@supports (container-type: scroll-state) {
+  .g-accordion--sticky > .g-accordion-item.is-open > :is(.g-accordion-item__heading, .g-accordion-item__actions) {
+    container: g-accordion-sticky / scroll-state;
+  }
+  .g-accordion--sticky > .g-accordion-item.is-open > :is(.g-accordion-item__heading, .g-accordion-item__actions)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow:
+      0 var(--g-border-width) 0 var(--g-color-border),
+      var(--g-shadow-1);
+    /* Solo hacia abajo: sin costura lateral entre el encabezado y las acciones */
+    clip-path: inset(0 0 calc(var(--g-space-2) * -1) 0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .g-accordion--sticky > .g-accordion-item.is-open.is-ready > :is(.g-accordion-item__heading, .g-accordion-item__actions)::after {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  @container g-accordion-sticky scroll-state(stuck: top) {
+    .g-accordion--sticky > .g-accordion-item.is-open > :is(.g-accordion-item__heading, .g-accordion-item__actions)::after {
+      opacity: 1;
+    }
+  }
+}
+
+/* ---------- Colores forzados: el chevron con el color del botón; separadores, fondo pegado y foco los fuerza el sistema ---------- */
+@media (forced-colors: active) {
+  .g-accordion-item__chevron {
+    color: ButtonText;
+  }
+  .g-accordion-item.is-disabled > .g-accordion-item__heading > .g-accordion-item__toggle > :is(.g-accordion-item__title, .g-accordion-item__chevron) {
+    color: GrayText;
+  }
+}
+
+/* ---------- Impresión: todo abierto, sin chevron, avance ni acciones, sin pegar (#480, L13) ----------
+   Chromium y WebKit no imprimen un [hidden=until-found] (content-visibility: hidden): se fuerza. Clase doble para ganar a
+   los estados sin !important. No se tocan el estado ni el modelo; lo lazy sin abrir no sale. */
+@media print {
+  .g-accordion-item.g-accordion-item > .g-accordion-item__panel {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .g-accordion-item.g-accordion-item > .g-accordion-item__panel > .g-accordion-item__content {
+    overflow: visible;
+  }
+  .g-accordion-item.g-accordion-item > .g-accordion-item__panel > .g-accordion-item__content[hidden] {
+    display: block;
+    content-visibility: visible;
+  }
+  .g-accordion-item.g-accordion-item :is(.g-accordion-item__chevron, .g-accordion-item__actions),
+  .g-accordion-item.g-accordion-item > .g-accordion-item__peek {
+    display: none;
+  }
+  .g-accordion-item.g-accordion-item > .g-accordion-item__heading {
+    break-after: avoid;
+  }
+  .g-accordion-item.g-accordion-item > :is(.g-accordion-item__heading, .g-accordion-item__actions)::after {
+    content: none;
+  }
+}

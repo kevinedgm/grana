@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAccordion · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/accordion.md («Estructura accesible» y «Clases y datos») con el CSS real
+     de GAccordion.css (cargado DENTRO de la capa grana.components, como lo registrará bruno) y los componentes reales de dist/
+     como anfitriones y contenido (GSurface, GCard, GDialog, GSwitch, GBtn, GInput). XAccordion/XAccordionItem hacen lo que
+     harán GAccordion.vue/GAccordionItem.vue y SOLO lo que el estilo necesita, con el motor de plegado tal como lo describe el
+     contrato («Motor de plegado compartido»: is-animating hasta el transitionend de grid-template-rows o el respaldo
+     transitionMs(panel) + 50, SIN mirar prefers-reduced-motion, como GFormSection; is-instant; is-ready tras dos cuadros;
+     hidden="until-found" al asentar plegado; inert solo mientras se cierra), el Δ0 (keepInPlace), beforematch, #id,
+     OPEN_REQUEST, el clic en el avance y --_head-size con un ResizeObserver. No es documentación ni la implementación de bruno.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4214  →  /design/lab/accordion/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=propio (estilo-tema.css, @grana/cli)  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4214 node design/lab/accordion/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GAccordion/GAccordion.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana). La barra de herramientas hace de «cabecera fija de la aplicación» (48px) */
+  :root{--g-accordion-sticky-top:48px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1100px;margin:0 auto;padding:16px clamp(12px,3vw,32px) 60vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;block-size:48px;display:flex;gap:6px 16px;flex-wrap:nowrap;overflow:hidden;align-items:center;padding:0 clamp(12px,3vw,32px);background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .col{max-inline-size:720px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px;align-items:start}
+  .w320{inline-size:320px;max-inline-size:100%;padding:16px;border:1px dashed var(--g-color-border-strong)}
+  .fake-tabs{padding:0}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .setting{display:grid;gap:12px}
+  .fields{display:grid;gap:12px;max-inline-size:28rem}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <b>GAccordion · banco</b>
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="propio">Propio (@grana/cli)</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" id="t-slow"> Lento (×5)</label>
+</div>
+<main id="app" v-cloak>
+<h1>GAccordion · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Avance». Sin cajas: una línea fina debajo de cada pregunta. El encabezado cerrado enseña la primera línea de la respuesta en <code>text-muted</code>; al abrir esa línea no se mueve: se queda bajo la primera línea del contenido (mismo texto, misma letra, mismo sitio), pierde los puntos suspensivos y se enciende hasta <code>text</code> mientras lo demás se desenrolla. Al pasar, el chevron se asoma media unidad hacia donde irá el contenido y la línea de la fila se marca. Con <code>sticky</code>, el encabezado del abierto acompaña la lectura y, pegado de verdad, se despega con una línea y una sombra mínima.</p>
+
+<h2 class="b">1 · Preguntas frecuentes (avance, meta, deshabilitado, título largo)</h2>
+<div class="col">
+  <x-accordion id="faq" v-model="faqOpen">
+    <x-accordion-item v-for="f in faq" :key="f.v" :id="'f-' + f.v" :value="f.v" :title="f.t" :peek="f.first" :meta="f.meta" :disabled="f.disabled">
+      <p>{{ f.first }}</p>
+      <p v-for="m in f.more">{{ m }}</p>
+    </x-accordion-item>
+  </x-accordion>
+</div>
+
+<h2 class="b">2 · Ajustes (el avance sigue al estado; acciones fuera del botón)</h2>
+<div class="col">
+  <x-accordion id="ajustes" :model-value="['notif']">
+    <x-accordion-item id="s-notif" value="notif" title="Notificaciones" :peek="notifPeek">
+      <template #actions><g-btn id="s-reset" size="sm" variant="ghost" @click="resetNotif">Restablecer</g-btn></template>
+      <div class="setting">
+        <g-switch id="s-mail" v-model="notif.mail" label="Correo"></g-switch>
+        <g-switch id="s-push" v-model="notif.push" label="Notificaciones push"></g-switch>
+        <g-switch id="s-weekly" v-model="notif.weekly" label="Resumen semanal"></g-switch>
+      </div>
+    </x-accordion-item>
+    <x-accordion-item id="s-priv" value="priv" title="Privacidad" meta="2 activas" peek="Perfil visible para tu equipo · historial guardado 90 días">
+      <div class="setting">
+        <g-switch id="s-prof" :model-value="true" label="Perfil visible para tu equipo"></g-switch>
+        <g-switch id="s-hist" :model-value="true" label="Guardar historial 90 días"></g-switch>
+      </div>
+    </x-accordion-item>
+  </x-accordion>
+</div>
+
+<h2 class="b">3 · Uno a la vez (exclusive), sin avance: el encabezado que tocas no se mueve</h2>
+<div class="col">
+  <x-accordion id="excl" exclusive :model-value="['e1']">
+    <x-accordion-item v-for="(g, i) in prepGroups" :key="i" :id="'e' + (i + 1)" :value="'e' + (i + 1)" :title="g.t">
+      <p v-for="l in g.lines">{{ l }}</p>
+    </x-accordion-item>
+  </x-accordion>
+</div>
+
+<h2 class="b">4 · Suelto (sección plegable de una pieza)</h2>
+<div class="col">
+  <x-accordion-item id="suelto" title="Ver condiciones del servicio" peek="Las citas se confirman por correo y se pueden cambiar hasta 24 horas antes.">
+    <p>Las citas se confirman por correo y se pueden cambiar hasta 24 horas antes.</p>
+    <p>Una cancelación tardía o una inasistencia se cobra como consulta. Los estudios con preparación se reprograman sin costo si avisas antes de las 20:00 del día anterior.</p>
+  </x-accordion-item>
+</div>
+
+<h2 class="b">5 · sticky bajo la cabecera fija (--g-accordion-sticky-top: 48px)</h2>
+<div class="col">
+  <x-accordion id="pegado" sticky :model-value="['p2']">
+    <x-accordion-item id="p1" value="p1" title="Antes del estudio" peek="Dos días antes: evita bebidas con gas, chicle y alimentos que producen gases.">
+      <p v-for="l in prep.slice(1, 4)">{{ l }}</p>
+    </x-accordion-item>
+    <x-accordion-item id="p2" value="p2" title="Preparación completa para el ultrasonido abdominal" :peek="prep[0]">
+      <template #actions><g-btn id="p2-print" size="sm" variant="ghost">Imprimir</g-btn></template>
+      <p v-for="l in prep">{{ l }}</p>
+      <div class="fields">
+        <g-input id="p2-name" label="Nombre del paciente"></g-input>
+        <g-input id="p2-phone" label="Teléfono"></g-input>
+      </div>
+      <p v-for="l in prep">{{ l }}</p>
+      <p id="p2-deep">Ancla de dentro: este párrafo es el destino de #p2-deep.</p>
+      <p v-for="l in prep.slice(0, 4)">{{ l }}</p>
+    </x-accordion-item>
+    <x-accordion-item id="p3" value="p3" title="Después del estudio" peek="Puedes comer con normalidad; los resultados llegan en cinco días hábiles.">
+      <p v-for="l in prep.slice(6)">{{ l }}</p>
+    </x-accordion-item>
+  </x-accordion>
+</div>
+
+<h2 class="b">6 · Anfitrionas: el encabezado pegado toma el fondo de la superficie más cercana</h2>
+<div class="grid">
+  <div><p class="cap">Página (<code>--g-color-bg</code>)</p>
+    <x-accordion id="h-page" sticky :model-value="['a']"><x-accordion-item id="h-page-a" value="a" title="En la página"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion></div>
+  <g-card id="h-card" title="GCard" level="outlined">
+    <x-accordion id="h-card-acc" sticky :model-value="['a']"><x-accordion-item id="h-card-a" value="a" title="En una GCard"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion>
+  </g-card>
+  <g-surface id="h-sunken" tone="sunken" level="outlined">
+    <x-accordion id="h-sunken-acc" sticky :model-value="['a']"><x-accordion-item id="h-sunken-a" value="a" title="En una GSurface sunken"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion>
+  </g-surface>
+  <g-surface id="h-shell" tone="sunken" level="outlined">
+    <g-surface id="h-inset" level="inset">
+      <x-accordion id="h-inset-acc" sticky :model-value="['a']"><x-accordion-item id="h-inset-a" value="a" title="En una inset dentro de sunken"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion>
+    </g-surface>
+  </g-surface>
+  <g-surface id="h-flat-host" level="raised">
+    <g-surface id="h-flat" level="flat" padding="none">
+      <x-accordion id="h-flat-acc" sticky :model-value="['a']"><x-accordion-item id="h-flat-a" value="a" title="En una flat dentro de raised"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion>
+    </g-surface>
+  </g-surface>
+  <div class="g-tabs g-tabs--appearance-contained fake-tabs"><div class="g-tabs__panel" id="h-tabs" style="padding:16px">
+    <x-accordion id="h-tabs-acc" sticky :model-value="['a']"><x-accordion-item id="h-tabs-a" value="a" title="En el panel de GTabs contained"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></x-accordion-item></x-accordion>
+  </div></div>
+</div>
+<p class="row" style="margin-top:16px"><g-btn id="open-dialog" variant="outline" @click="dlg = true">Abrir GDialog con acordeón</g-btn> <g-btn id="open-dialog-inset" variant="outline" @click="dlgInset = true">GDialog inset</g-btn></p>
+<g-dialog id="dlg" v-model="dlg" title="Preparación" size="md">
+  <x-accordion id="h-dialog-acc" sticky :model-value="['a']"><x-accordion-item id="h-dialog-a" value="a" title="En un GDialog" peek="Dos días antes: evita bebidas con gas."><p v-for="l in prep">{{ l }}</p><p v-for="l in prep">{{ l }}</p></x-accordion-item></x-accordion>
+</g-dialog>
+<g-dialog id="dlg-inset" v-model="dlgInset" title="Preparación (inset)" size="md" inset>
+  <x-accordion id="h-dinset-acc" sticky :model-value="['a']"><x-accordion-item id="h-dinset-a" value="a" title="En un GDialog inset"><p v-for="l in prep">{{ l }}</p><p v-for="l in prep">{{ l }}</p></x-accordion-item></x-accordion>
+</g-dialog>
+
+<h2 class="b">7 · RTL (ar) y 320px</h2>
+<div class="grid">
+  <div dir="rtl" lang="ar">
+    <x-accordion id="rtl" :model-value="['r2']">
+      <x-accordion-item id="r1" value="r1" title="هل يمكنني تغيير موعدي؟" meta="متاح" peek="نعم، حتى ٢٤ ساعة قبل الموعد من صفحة مواعيدي."><p>نعم، حتى ٢٤ ساعة قبل الموعد من صفحة مواعيدي.</p></x-accordion-item>
+      <x-accordion-item id="r2" value="r2" title="ما المستندات المطلوبة؟"><p>هوية رسمية وبطاقة التأمين إن وجدت.</p></x-accordion-item>
+    </x-accordion>
+  </div>
+  <div class="w320" id="w320">
+    <x-accordion id="narrow" :model-value="['n2']">
+      <x-accordion-item id="n1" value="n1" title="¿Qué pasa si llego tarde a una cita de laboratorio con ayuno de doce horas?" meta="Disponible tras tu primera cita" peek="Si llegas más de 15 minutos tarde, la toma se reprograma para el siguiente turno disponible."><p>Si llegas más de 15 minutos tarde, la toma se reprograma para el siguiente turno disponible.</p></x-accordion-item>
+      <x-accordion-item id="n2" value="n2" title="Notificaciones y avisos por correo electrónico" peek="Correo y push · resumen semanal">
+        <template #actions><g-btn size="sm" variant="ghost">Restablecer</g-btn><g-btn size="sm" variant="outline">Guardar</g-btn></template>
+        <p>Supercalifragilisticoespialidosoextraordinariamentelargo sin espacios para probar el corte.</p>
+      </x-accordion-item>
+    </x-accordion>
+  </div>
+</div>
+
+<h2 class="b">8 · Anidado (un grupo dentro de un panel)</h2>
+<div class="col">
+  <x-accordion id="outer" :model-value="['o1']">
+    <x-accordion-item id="o1" value="o1" title="Laboratorio" peek="Tres tipos de estudios con preparación distinta.">
+      <p>Tres tipos de estudios con preparación distinta.</p>
+      <x-accordion id="inner" :model-value="[]">
+        <x-accordion-item id="i1" value="i1" title="Química sanguínea" peek="Ayuno de 8 horas."><p>Ayuno de 8 horas.</p></x-accordion-item>
+        <x-accordion-item id="i2" value="i2" title="Orina de 24 horas" peek="Recolecta toda la orina de un día."><p>Recolecta toda la orina de un día.</p></x-accordion-item>
+      </x-accordion>
+    </x-accordion-item>
+    <x-accordion-item id="o2" value="o2" title="Imagen" peek="Ultrasonido, rayos X y tomografía."><p>Ultrasonido, rayos X y tomografía.</p></x-accordion-item>
+  </x-accordion>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const { createApp, defineComponent, ref, reactive, computed, provide, inject, watch, onMounted, onBeforeUnmount, nextTick } = Vue
+const $ = (s) => document.querySelector(s)
+const KEY = Symbol('x-accordion')
+const OPEN_REQUEST = 'g-open-request'
+const nextFrame = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
+function transitionMs(el) { // utils/motion.js
+  if (!el) return 0
+  const cs = getComputedStyle(el)
+  const list = (v) => String(v || '').split(',').map((x) => { const n = parseFloat(x); return Number.isFinite(n) ? (x.trim().endsWith('ms') ? n : n * 1000) : 0 })
+  const d = list(cs.transitionDuration), dl = list(cs.transitionDelay)
+  return d.reduce((m, v, i) => Math.max(m, v + (dl[i % dl.length] || 0)), 0)
+}
+window.__acc = { log: [] }
+const chev = window.lucide('chevron-right')
+
+// Δ0 (accordion.md «Teclado, deshabilitado y Δ0»): el contenedor de desplazamiento compensa lo que se movió el encabezado
+function scroller(el) {
+  for (let n = el.parentElement; n; n = n.parentElement) {
+    const o = getComputedStyle(n).overflowY
+    if ((o === 'auto' || o === 'scroll') && n.scrollHeight > n.clientHeight) return n
+  }
+  return document.scrollingElement
+}
+let keepRaf = 0, keepStop = null
+function keepInPlace(el, getMs) {
+  if (!el) return
+  const sc = scroller(el)
+  const y0 = el.getBoundingClientRect().top
+  let end = 0
+  cancelAnimationFrame(keepRaf); keepStop && keepStop()
+  const cancel = () => { cancelAnimationFrame(keepRaf); keepStop && keepStop() }
+  const keys = (e) => { if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key) && e.target === document.body) cancel() }
+  addEventListener('wheel', cancel, { passive: true }); addEventListener('touchstart', cancel, { passive: true }); addEventListener('keydown', keys)
+  keepStop = () => { removeEventListener('wheel', cancel); removeEventListener('touchstart', cancel); removeEventListener('keydown', keys); keepStop = null }
+  const step = () => {
+    if (!end) end = performance.now() + getMs() + 80
+    const d = el.getBoundingClientRect().top - y0
+    if (Math.abs(d) >= 0.5) sc.scrollBy({ top: d, left: 0, behavior: 'instant' })
+    if (performance.now() < end) keepRaf = requestAnimationFrame(step); else keepStop && keepStop()
+  }
+  keepRaf = requestAnimationFrame(step)
+}
+
+// Una sola escucha de hashchange compartida (#482)
+const hashItems = new Set()
+const onHash = () => hashItems.forEach((f) => f())
+
+const XAccordion = defineComponent({
+  name: 'XAccordion',
+  props: { modelValue: { type: Array, default: undefined }, exclusive: Boolean, headingLevel: { type: Number, default: 3 }, arrows: { type: Boolean, default: true }, sticky: Boolean },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const root = ref(null)
+    const local = ref(Array.isArray(props.modelValue) ? [...props.modelValue] : [])
+    watch(() => props.modelValue, (v) => { if (Array.isArray(v)) local.value = [...v] })
+    const items = reactive(new Map()) // value → { setInstant }
+    const regionOK = computed(() => props.exclusive || items.size <= 6)
+    const triggers = () => root.value ? [...root.value.querySelectorAll('.g-accordion-item__toggle')].filter((b) => b.closest('.g-accordion') === root.value) : []
+    function isOpen(v) { return local.value.includes(v) }
+    function set(v, open, { instant = false } = {}) {
+      let next = open ? (props.exclusive ? [v] : [...local.value.filter((x) => x !== v), v]) : local.value.filter((x) => x !== v)
+      if (instant && props.exclusive) for (const [k, it] of items) if (k !== v && isOpen(k)) it.setInstant()
+      const order = triggers().map((b) => b.closest('.g-accordion-item').dataset.value)
+      next.sort((a, b) => order.indexOf(a) - order.indexOf(b))
+      local.value = next
+      emit('update:modelValue', [...next])
+    }
+    function onKeydown(e) {
+      if (!props.arrows || e.altKey || e.ctrlKey || e.metaKey) return
+      const list = triggers(); const i = list.indexOf(e.target); if (i < 0) return
+      let j = -1
+      if (e.key === 'ArrowDown') j = Math.min(i + 1, list.length - 1); else if (e.key === 'ArrowUp') j = Math.max(i - 1, 0)
+      else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = list.length - 1; else return
+      e.preventDefault(); if (j !== i) list[j].focus()
+    }
+    // sticky: relleno de inicio del contenedor de desplazamiento (lo que hará el .vue; estilo.md «Para bruno»)
+    const scrollPad = ref(null)
+    const measurePad = () => { if (!props.sticky || !root.value) return; const sc = scroller(root.value); const v = sc === document.scrollingElement ? 0 : parseFloat(getComputedStyle(sc).paddingBlockStart) || 0; if (v !== scrollPad.value) scrollPad.value = v }
+    onMounted(() => nextFrame(measurePad))
+    // 2.4.11 en WebKit: el foco por teclado no desplaza un control que ya asoma bajo el encabezado pegado (Chromium y Firefox
+    // sí, con su scroll-margin). Si queda tapado, scrollIntoView({ block: 'nearest' }) lo trae respetando el scroll-margin
+    // del CSS (estilo.md «Para bruno»)
+    function onFocusin(e) {
+      if (!props.sticky) return
+      const item = e.target.closest('.g-accordion-item.is-open'), c = e.target.closest('.g-accordion-item__content')
+      if (!item || !c || item.parentElement !== root.value) return
+      const h = item.querySelector(':scope > .g-accordion-item__heading').getBoundingClientRect()
+      if (e.target.getBoundingClientRect().top < h.bottom - 0.5) e.target.scrollIntoView({ block: 'nearest' })
+    }
+    const rootStyle = computed(() => (props.sticky && scrollPad.value ? { '--_scroll-pad': scrollPad.value + 'px' } : undefined))
+    provide(KEY, { props, isOpen, set, regionOK, items, root, measurePad })
+    return { root, onKeydown, rootStyle, onFocusin }
+  },
+  template: `<div ref="root" class="g-accordion" :class="{ 'g-accordion--exclusive': exclusive, 'g-accordion--sticky': sticky }" :style="rootStyle" @keydown="onKeydown" @focusin="onFocusin"><slot /></div>`
+})
+
+let uid = 0
+const XAccordionItem = defineComponent({
+  name: 'XAccordionItem',
+  props: { value: [String, Number], id: String, title: String, meta: String, peek: String, disabled: Boolean, lazy: Boolean, headingLevel: Number, open: { type: Boolean, default: undefined } },
+  emits: ['update:open'],
+  setup(props, { emit, slots }) {
+    const g = inject(KEY, null)
+    provide(KEY, null) // un elemento suelto dentro de un panel no se une al grupo exterior
+    const baseId = props.id || `acc-${++uid}`
+    const val = props.value ?? baseId
+    const level = computed(() => props.headingLevel || (g ? g.props.headingLevel : 3))
+    const localOpen = ref(Boolean(props.open))
+    const isOpen = computed(() => (g ? g.isOpen(val) : localOpen.value))
+    const regionOK = computed(() => (g ? g.regionOK.value : true))
+    const hiddenUF = ref(!isOpen.value)
+    const everOpened = ref(isOpen.value)
+    const animating = ref(false), instant = ref(false), ready = ref(false)
+    const item = ref(null), btn = ref(null), panel = ref(null), content = ref(null), heading = ref(null)
+    const hasPeek = computed(() => Boolean(props.peek || slots.peek))
+    const sticky = computed(() => Boolean(g && g.props.sticky))
+    const headSize = ref(null)
+    if (g) g.items.set(val, { setInstant: () => { instant.value = true } })
+    let timer = 0
+    function settle() {
+      clearTimeout(timer); timer = 0
+      animating.value = false
+      if (!isOpen.value) hiddenUF.value = true
+      window.__acc.log.push({ id: baseId, settled: isOpen.value ? 'open' : 'closed', t: performance.now() })
+    }
+    function fallback() {
+      const p = panel.value
+      if (p && p.getAnimations().some((a) => a.transitionProperty === 'grid-template-rows' && a.playState === 'running')) { timer = setTimeout(fallback, 50); return }
+      settle()
+    }
+    function onEnd(e) { if (e.target === panel.value && e.propertyName === 'grid-template-rows') settle() }
+    watch(isOpen, (open) => {
+      if (open) { hiddenUF.value = false; everOpened.value = true }
+      else if (content.value && content.value.contains(document.activeElement)) btn.value && btn.value.focus({ preventScroll: true })
+      if (instant.value || !ready.value) {
+        clearTimeout(timer); animating.value = false
+        if (!open) nextTick(() => { hiddenUF.value = true })
+        nextFrame(() => { instant.value = false })
+        return
+      }
+      animating.value = true
+      nextTick(() => { clearTimeout(timer); timer = setTimeout(fallback, transitionMs(panel.value) + 50) })
+    })
+    function request(open, { inst = false, keep = true } = {}) {
+      const h = heading.value
+      // Cerrar desde el encabezado pegado (su elemento empieza por encima): instantáneo y sin moverse (#484)
+      const stuck = !open && sticky.value && item.value && h.getBoundingClientRect().top - item.value.getBoundingClientRect().top > 1
+      if (inst || stuck) instant.value = true
+      const getMs = () => (instant.value ? 0 : Math.max(...[...(g ? g.root.value : item.value).querySelectorAll('.g-accordion-item__panel')].map(transitionMs), 0))
+      if (keep) keepInPlace(h, getMs)
+      if (g) g.set(val, open, { instant: inst }); else { localOpen.value = open; emit('update:open', open) }
+      window.__acc.log.push({ id: baseId, request: open, instant: instant.value, t: performance.now() })
+    }
+    function onClick() { if (!props.disabled) request(!isOpen.value) }
+    function onPeek() { const s = getSelection(); if (!props.disabled && !isOpen.value && (!s || s.isCollapsed)) request(true) }
+    function onMatch() { if (!isOpen.value) request(true, { inst: true, keep: false }) }
+    function onOpenRequest(e) { if (!isOpen.value) { request(true, { inst: true, keep: false }); e.preventDefault() } }
+    function hash() {
+      if (location.hash && decodeURIComponent(location.hash.slice(1)) === baseId) {
+        if (!isOpen.value) request(true, { inst: true, keep: false })
+        nextTick(() => item.value && item.value.scrollIntoView({ block: 'start', behavior: 'instant' }))
+      }
+    }
+    let ro = null, raf = 0
+    function measureHead() {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => { if (!heading.value) return; const v = Math.round(heading.value.getBoundingClientRect().height * 100) / 100; if (v !== headSize.value) headSize.value = v })
+    }
+    watch([isOpen, sticky], ([o, s]) => {
+      if (o && s) { if (!ro) { ro = new ResizeObserver(measureHead); ro.observe(heading.value) } measureHead(); g.measurePad() }
+      else if (ro) { ro.disconnect(); ro = null; headSize.value = null }
+    }, { flush: 'post' })
+    onMounted(() => {
+      if (!hashItems.size) addEventListener('hashchange', onHash)
+      hashItems.add(hash); hash()
+      if (isOpen.value && sticky.value) { ro = new ResizeObserver(measureHead); ro.observe(heading.value); measureHead() }
+      nextFrame(() => { ready.value = true })
+    })
+    onBeforeUnmount(() => { hashItems.delete(hash); if (!hashItems.size) removeEventListener('hashchange', onHash); clearTimeout(timer); ro && ro.disconnect(); g && g.items.delete(val) })
+    const style = computed(() => (headSize.value != null && isOpen.value && sticky.value ? { '--_head-size': headSize.value + 'px' } : undefined))
+    return { g, baseId, val, level, isOpen, regionOK, hiddenUF, everOpened, animating, instant, ready, item, btn, panel, content, heading, hasPeek, style, onEnd, onClick, onPeek, onMatch, onOpenRequest, chev }
+  },
+  template: `
+<div ref="item" class="g-accordion-item" :id="baseId" :data-value="val" :style="style"
+  :class="{ 'is-open': isOpen, 'is-animating': animating, 'is-instant': instant, 'is-ready': ready, 'is-disabled': disabled, 'is-standalone': !g, 'has-peek': hasPeek, 'has-actions': !!$slots.actions }">
+  <component :is="'h' + level" ref="heading" class="g-accordion-item__heading">
+    <button ref="btn" type="button" class="g-accordion-item__toggle" :id="baseId + '-toggle'"
+      :aria-expanded="isOpen ? 'true' : 'false'" :aria-controls="baseId + '-content'" :aria-disabled="disabled ? 'true' : undefined"
+      :aria-describedby="hasPeek && !isOpen ? baseId + '-peek' : undefined" @click="onClick">
+      <span class="g-accordion-item__title" dir="auto"><slot name="title" :open="isOpen">{{ title }}</slot></span>
+      <span v-if="meta || $slots.meta" class="g-accordion-item__meta" dir="auto"><slot name="meta" :open="isOpen">{{ meta }}</slot></span>
+      <span class="g-accordion-item__chevron" aria-hidden="true" v-html="chev"></span>
+    </button>
+  </component>
+  <div v-if="$slots.actions" class="g-accordion-item__actions"><slot name="actions" :open="isOpen" /></div>
+  <div v-if="hasPeek" class="g-accordion-item__peek" :id="baseId + '-peek'" dir="auto" @click="onPeek"><slot name="peek" :open="isOpen">{{ peek }}</slot></div>
+  <div ref="panel" class="g-accordion-item__panel" :inert="!isOpen && !hiddenUF ? '' : undefined" @transitionend="onEnd" @g-open-request="onOpenRequest">
+    <div ref="content" class="g-accordion-item__content" :id="baseId + '-content'"
+      :role="regionOK ? 'region' : undefined" :aria-labelledby="regionOK ? baseId + '-toggle' : undefined"
+      :^hidden="hiddenUF ? 'until-found' : undefined" @beforematch="onMatch">
+      <div class="g-accordion-item__body"><slot v-if="!lazy || everOpened" /></div>
+    </div>
+  </div>
+</div>`
+})
+
+const FAQ = [
+  { v: 'cambiar', t: '¿Puedo cambiar la fecha de mi cita?', first: 'Sí, hasta 24 horas antes desde «Mis citas» o llamando a recepción; después de ese plazo el cambio cuenta como cancelación tardía.', more: ['Si cambias la cita de un estudio con preparación, revisa de nuevo las indicaciones: algunas dependen del día de la semana.'] },
+  { v: 'documentos', t: '¿Qué documentos necesito el primer día?', first: 'Una identificación oficial, la credencial de tu seguro si tienes uno y la orden médica si te envía otra clínica.', more: ['Si vienes por un menor de edad, trae también su acta de nacimiento o CURP.'] },
+  { v: 'resultados', t: '¿Cuánto tardan los resultados?', first: 'Los estudios de laboratorio están listos en 48 horas hábiles; los de imagen, en cinco días hábiles.', more: ['Te avisamos por correo cuando estén disponibles en tu expediente en línea.', 'Algunos cultivos tardan hasta diez días: el día de la toma te dirán la fecha exacta.'] },
+  { v: 'historial', t: 'Historial de pagos', meta: 'Disponible tras tu primera cita', disabled: true, first: 'Aquí verás tus pagos y facturas cuando tengas tu primera cita.', more: [] },
+  { v: 'pago', t: '¿Cómo puedo pagar?', first: 'Con tarjeta, transferencia o efectivo en recepción; con convenio de tu aseguradora solo pagas el deducible.', more: ['La factura se pide en las 72 horas siguientes al pago.'] },
+  { v: 'largo', t: '¿Qué pasa si no puedo cumplir el ayuno de ocho horas por una condición médica como la diabetes o un tratamiento que me obliga a comer?', first: 'Llama antes a recepción para reprogramar en el primer turno de la mañana; nunca suspendas un medicamento sin hablar con tu médico.', more: [] },
+  { v: 'urgencias', t: '¿Atienden urgencias?', first: 'No. Esta clínica atiende con cita; ante una urgencia llama al 911 o acude al hospital más cercano.', more: [] },
+  { v: 'cancelar', t: '¿Cómo cancelo una cita?', first: 'Desde «Mis citas», con el botón «Cancelar», o respondiendo «CANCELAR» al recordatorio que te llega por mensaje.', more: ['Cancelar con menos de 24 horas cuenta como cancelación tardía.'] }
+]
+const PREP = [
+  'Preparación para el ultrasonido abdominal. Lee todo antes del día del estudio: algunas indicaciones empiezan 48 horas antes.',
+  'Dos días antes: evita bebidas con gas, chicle y alimentos que producen gases (frijoles, brócoli, coliflor, cebolla).',
+  'La noche anterior: cena ligera antes de las 21:00. Después, solo agua natural.',
+  'El día del estudio: ayuno de 8 horas. Si tomas medicamentos, tómalos con un sorbo de agua salvo que tu médico indique otra cosa.',
+  'Una hora antes: bebe un litro de agua y no orines hasta terminar el estudio; la vejiga llena ayuda a ver los órganos de la pelvis.',
+  'Qué llevar: la orden médica, estudios anteriores de la misma zona y una lista de tus medicamentos.',
+  'Durante el estudio: te pedirán recostarte y respirar hondo varias veces; el gel es frío, pero no duele.',
+  'Después: puedes comer con normalidad. Los resultados llegan a tu expediente en línea en cinco días hábiles.',
+  'Si estás embarazada o crees estarlo, avísalo al agendar: cambia la preparación.',
+  'Si no puedes cumplir el ayuno por una condición médica (diabetes, por ejemplo), llama antes a recepción para reprogramar en el primer turno.'
+]
+
+const app = createApp({
+  setup() {
+    const notif = reactive({ mail: true, push: true, weekly: true })
+    const notifPeek = computed(() => [[notif.mail && 'Correo', notif.push && 'push'].filter(Boolean).join(' y ') || 'Sin avisos', notif.weekly ? 'resumen semanal' : 'sin resumen'].join(' · '))
+    const resetNotif = () => Object.assign(notif, { mail: true, push: true, weekly: true })
+    const prepGroups = [{ t: 'Dos días antes', lines: PREP.slice(0, 6) }, { t: 'La noche anterior', lines: PREP.slice(2, 8) }, { t: 'El día del estudio', lines: PREP.slice(3, 10) }, { t: 'Después', lines: PREP.slice(6, 10) }]
+    return { faq: FAQ, prep: PREP, prepGroups, faqOpen: ref(['resultados']), notif, notifPeek, resetNotif, dlg: ref(false), dlgInset: ref(false) }
+  }
+})
+app.component('XAccordion', XAccordion)
+app.component('XAccordionItem', XAccordionItem)
+app.use(Grana)
+
+const q = new URLSearchParams(location.search)
+const setTheme = (v) => { $('#gen').href = v === 'propio' ? 'estilo-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+for (const n of ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']) { const o = document.createElement('option'); o.value = o.textContent = n; $('#t-theme').append(o) }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+$('#t-slow').onchange = (e) => applySlow(e.target.checked)
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+if (q.get('slow')) { applySlow(true); $('#t-slow').checked = true }
+const th = q.get('theme')
+const ready = () => { app.mount('#app'); nextFrame(() => nextFrame(() => { window.__ready = true })) }
+if (th) { $('#t-theme').value = th; $('#gen').addEventListener('load', ready, { once: true }); setTheme(th) } else ready()
+</script>
+</body>
+</html>
