@@ -181,6 +181,9 @@
       --g-color-on-cat-8-soft: #BE71A9;
     }
   </style>
+  <!-- GTag y GTagGroup leen la familia completa de categorías (tag.md §«Color», #469): la salida de `grana theme` con
+       categories: 8 (mismos valores soft que arriba, más cat-K, -strong, -text y on-cat-K) -->
+  <link rel="stylesheet" href="./tag-categories.css">
   <style id="theme"></style>
 </head>
 <body>
@@ -1952,6 +1955,11 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </div>
           </div>
         </section>
+        <section class="pg-section" id="sec-tag" data-pg-section>
+          <h2>GTag y GTagGroup</h2>
+          <p class="pg-lead">Un elemento de un conjunto que clasifica o resume una elección: se lee, se quita, se alterna o se sigue. En un grupo, quitar deja una <b>huella</b> del mismo ancho con «Deshacer» en el sitio y con el foco, y nada se mueve hasta que el puntero y el foco salen del grupo (A); con <code>layout="facets"</code>, la categoría se dice una vez y con palabras (B). El tema de la aplicación declara <code>categories: 8</code>. Lo monta su propia aplicación de Vue (<code>window.tgApp</code>, eventos en <code>window.tgEvents</code>).</p>
+          <div id="tg-app"></div>
+        </section>
       </div>
       <div class="pg-group" id="cat-6">
         <p class="pg-cat">Diálogos y ayuda</p>
@@ -3180,7 +3188,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3586,6 +3594,165 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
+  </script>
+  <script>
+    // GTag y GTagGroup (design/contracts/tag.md): su propia aplicación de Vue montada en #tg-app (dentro de #sec-tag).
+    // Casos del contrato: flow con huella, avatares y pulsada, facets con quitar y con alternar, limit, clearable, enlaces
+    // (navigate cancelado), estáticas, sueltas, vacío y RTL. Cada evento queda en window.tgEvents (para las pruebas).
+    ;(function () {
+      const { createApp, ref, reactive } = Vue
+      window.tgEvents = []
+      const TG_LABELS = {
+        remove: 'Quitar {label}', removeIn: 'Quitar {label} de {facet}',
+        removed: '{label} quitada. Deshacer disponible', removedIn: '{label} quitada de {facet}. Deshacer disponible',
+        undo: 'Deshacer: quitar {label}', undoIn: 'Deshacer: quitar {label} de {facet}', restored: '{label} restaurada',
+        more: 'Ver {count} más', less: 'Ver menos', clearAll: 'Quitar todas', cleared: 'Se quitaron {count} etiquetas',
+        undoAll: 'Deshacer: volver a poner {count}', restoredAll: '{count} etiquetas restauradas', empty: 'Sin etiquetas'
+      }
+      const TG_LABELS_RTL = {
+        remove: 'إزالة {label}', removeIn: 'إزالة {label} من {facet}', removed: 'أزيلت {label}. يمكن التراجع', removedIn: 'أزيلت {label} من {facet}. يمكن التراجع',
+        undo: 'تراجع: إزالة {label}', undoIn: 'تراجع: إزالة {label} من {facet}', restored: 'أعيدت {label}', empty: 'لا توجد وسوم',
+        clearAll: 'إزالة الكل', cleared: 'أزيلت {count} وسوم', undoAll: 'تراجع: إعادة {count}', restoredAll: 'أعيدت {count} وسوم'
+      }
+      const alergias = () => [
+        { id: 'pen', label: 'Penicilina', removable: true },
+        { id: 'lat', label: 'Látex', removable: true },
+        { id: 'nue', label: 'Nueces', removable: true },
+        { id: 'pol', label: 'Polen', removable: true },
+        { id: 'asp', label: 'Ácido acetilsalicílico y otros antiinflamatorios no esteroideos', removable: true },
+        { id: 'mar', label: 'Mariscos', removable: true }
+      ]
+      const tg = reactive({
+        alergias: alergias(),
+        people: [
+          { id: 'ana', label: 'Ana María López', avatar: true, removable: true },
+          { id: 'luis', label: 'Luis Torres', avatar: { initials: 'LT', color: 4 }, removable: true },
+          { id: 'mia', label: 'Mía Ruiz', avatar: true, pressed: true, removable: true },
+          { id: 'cal', label: 'Agenda', icon: 'calendar', removable: true }
+        ],
+        filters: [
+          { id: 'e1', label: 'Pendiente', facet: 'Estado', removable: true },
+          { id: 'p1', label: 'Alta', facet: 'Prioridad', removable: true },
+          { id: 'e2', label: 'En curso', facet: 'Estado', removable: true },
+          { id: 'm1', label: 'Este mes', removable: true },
+          { id: 'i1', label: 'Alta', facet: 'Impacto', removable: true }
+        ],
+        facetToggles: [
+          { id: 'tp', label: 'Pendiente', facet: 'Estado', pressed: true },
+          { id: 'tc', label: 'En curso', facet: 'Estado', pressed: false },
+          { id: 'tx', label: 'Cerrado', facet: 'Estado', pressed: false },
+          { id: 'ta', label: 'Alta', facet: 'Prioridad', pressed: false },
+          { id: 'tb', label: 'Baja', facet: 'Prioridad', pressed: true }
+        ],
+        view: [
+          { id: 'v1', label: 'Solo pendientes', pressed: true },
+          { id: 'v2', label: 'Con adjuntos', pressed: false },
+          { id: 'v3', label: 'Asignadas a mí', pressed: false },
+          { id: 'v4', label: 'Archivadas', pressed: false, disabled: true }
+        ],
+        many: ['Vue', 'Accesibilidad', 'Diseño', 'Rendimiento', 'Pruebas', 'Tipos', 'Documentación', 'Seguridad'].map((label, i) => ({ id: 'm' + i, label, removable: true })),
+        links: [
+          { id: 'l1', label: 'Vue', href: '#tema-vue' },
+          { id: 'l2', label: 'Accesibilidad', href: '#tema-a11y', icon: 'tag' },
+          { id: 'l3', label: 'Hipertensión arterial esencial (primaria) controlada con tratamiento', href: '#tema-hta', removable: true },
+          { id: 'l4', label: 'Diseño', href: '#tema-diseno', disabled: true }
+        ],
+        statics: [
+          { id: 's1', label: 'Cardiología' }, { id: 's2', label: 'Urgencias' }, { id: 's3', label: 'Consulta externa' },
+          { id: 's4', label: 'E11.9 Diabetes mellitus tipo 2 sin complicaciones, en seguimiento trimestral' }, { id: 's5', label: 'Pediatría', color: 'neutral' }
+        ],
+        empty: [],
+        rtl: [
+          { id: 'r1', label: 'البنسلين', removable: true },
+          { id: 'r2', label: 'اللاتكس', removable: true },
+          { id: 'r3', label: 'قيد الانتظار', facet: 'الحالة', removable: true },
+          { id: 'r4', label: 'عالية', facet: 'الأولوية', removable: true }
+        ],
+        single: [{ id: 'q1', label: 'Penicilina' }, { id: 'q2', label: 'Látex' }],
+        pressed: false,
+        log: ''
+      })
+      const on = (name, group) => (p) => {
+        const e = { name, group, ...(p && typeof p === 'object' ? p : { value: p }) }
+        if (name === 'navigate') { p.event.preventDefault(); e.event = undefined }
+        const items = (x) => (x || []).map((i) => i.id)
+        window.tgEvents.push({ name, group, id: p && p.item ? p.item.id : undefined, ids: p && p.items ? items(p.items) : undefined, source: p && p.source, pressed: p && p.pressed, href: p && p.href })
+        tg.log = `${group} · ${name}${p && p.item ? ' · ' + p.item.label : ''}${p && p.items ? ' · ' + p.items.map((i) => i.label).join(', ') : ''}${p && p.source ? ' · ' + p.source : ''}`
+      }
+      window.tgApp = createApp({
+        setup() {
+          const resetAll = () => { tg.alergias = alergias() }
+          const addOne = () => { tg.alergias = [...tg.alergias, { id: 'n' + Date.now(), label: 'Nueva alergia ' + (tg.alergias.length + 1), removable: true }] }
+          const removeSingle = (id) => { tg.single = tg.single.filter((x) => x.id !== id) }
+          return { tg, TG_LABELS, TG_LABELS_RTL, on, resetAll, addOne, removeSingle }
+        },
+        template: `
+          <h3>Flow con huella (A) y «Quitar todas»</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-flow" label="Alergias" v-model:items="tg.alergias" :categories="8" clearable :labels="TG_LABELS" empty-focus="#tg-add"
+              @remove="on('remove', 'flow')($event)" @restore="on('restore', 'flow')($event)" @clear="on('clear', 'flow')($event)" @settle="on('settle', 'flow')($event)"></g-tag-group>
+            <p style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <g-btn size="sm" variant="outline" id="tg-add" @click="addOne">Agregar alergia</g-btn>
+              <g-btn size="sm" variant="outline" id="tg-reset" @click="resetAll">Restablecer</g-btn>
+            </p>
+          </div>
+          <h3>Avatares, icono y pulsada quitable</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-people" label="Responsables" v-model:items="tg.people" :categories="8" :labels="TG_LABELS"
+              @toggle="on('toggle', 'people')($event)" @remove="on('remove', 'people')($event)"></g-tag-group>
+          </div>
+          <h3>Racimos (B): filtros aplicados por faceta</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-facets" label="Filtros aplicados" layout="facets" v-model:items="tg.filters" :categories="8" clearable :labels="TG_LABELS"
+              @remove="on('remove', 'facets')($event)" @settle="on('settle', 'facets')($event)"></g-tag-group>
+          </div>
+          <h3>Racimos de alternar: un filtro de facetas en una línea</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-facet-toggles" label="Filtrar" layout="facets" v-model:items="tg.facetToggles" :categories="8" :labels="TG_LABELS"
+              @toggle="on('toggle', 'facet-toggles')($event)"></g-tag-group>
+          </div>
+          <h3>Alternar: filtros de la vista (role="group")</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-view" label="Vista" v-model:items="tg.view" :labels="TG_LABELS" @toggle="on('toggle', 'view')($event)"></g-tag-group>
+          </div>
+          <h3>Tope con «Ver N más» (sm)</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-limit" label="Temas" size="sm" :limit="3" v-model:items="tg.many" :labels="TG_LABELS"></g-tag-group>
+          </div>
+          <h3>Enlaces (navigate con router: preventDefault), recorte con pista</h3>
+          <div class="pg-panel" style="max-width:520px">
+            <g-tag-group id="tg-links" label="Temas del artículo" v-model:items="tg.links" :labels="TG_LABELS" @navigate="on('navigate', 'links')($event)"></g-tag-group>
+          </div>
+          <h3>Estáticas con categoría (la larga se parte en líneas)</h3>
+          <div class="pg-panel" style="max-width:420px">
+            <g-tag-group id="tg-static" label="Áreas" :items="tg.statics" :categories="8" :labels="TG_LABELS"></g-tag-group>
+          </div>
+          <h3>Vacío</h3>
+          <div class="pg-panel">
+            <g-tag-group id="tg-empty" label="Etiquetas del borrador" v-model:items="tg.empty" :labels="TG_LABELS"></g-tag-group>
+          </div>
+          <h3>Sueltas (GTag): estática, enlace, alternar, quitable (la aplicación la quita), deshabilitada, sm</h3>
+          <div class="pg-panel">
+            <div id="tg-single" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <g-tag label="Estática" data-test="s-static"></g-tag>
+              <g-tag label="Cardiología" :categories="8" data-test="s-cat"></g-tag>
+              <g-tag label="Vue" href="#tema-vue" data-test="s-link" @navigate="on('navigate', 'single')($event)"><template #lead><g-icon name="tag"></g-icon></template></g-tag>
+              <g-tag label="Solo pendientes" v-model:pressed="tg.pressed" data-test="s-toggle" @update:pressed="on('update:pressed', 'single')($event)"></g-tag>
+              <g-tag v-for="t in tg.single" :key="t.id" :label="t.label" removable :labels="TG_LABELS" :data-test="'s-rm-' + t.id" @remove="on('remove', 'single')($event); removeSingle(t.id)"></g-tag>
+              <g-tag label="Deshabilitada" removable disabled :labels="TG_LABELS" data-test="s-disabled"></g-tag>
+              <g-tag label="Ana López" size="sm" removable :labels="TG_LABELS" data-test="s-sm"><template #lead><g-avatar name="Ana López" size="xs" :categories="8"></g-avatar></template></g-tag>
+              <g-tag label="Pequeña" size="sm" :pressed="true" data-test="s-sm-toggle"></g-tag>
+            </div>
+          </div>
+          <h3>RTL</h3>
+          <div class="pg-panel" dir="rtl" lang="ar">
+            <g-tag-group id="tg-rtl" label="الحساسية" v-model:items="tg.rtl" layout="facets" :categories="8" :labels="TG_LABELS_RTL"></g-tag-group>
+          </div>
+          <p>Último evento: <b id="tg-log">{{ tg.log }}</b></p>
+        `
+      }).use(Grana).use(appIcons)
+      window.tgApp.mount('#tg-app')
+    })()
   </script>
 </body>
 </html>

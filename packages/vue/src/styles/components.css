@@ -80,3 +80,7 @@
 @import url("../components/GAdaptiveLayout/GAdaptiveLayout.css");
 /* GTooltip (tooltip.md, #380): su nodo es hermano del control y vive en la capa superior; no reasigna hojas de otros */
 @import url("../components/GTooltip/GTooltip.css");
+/* GTag + GTagGroup (tag.md, #460 a #473): componen GAvatar, GBtn y GIcon (van después de sus hojas); GTag antes que
+   GTagGroup (el grupo lee clases de la etiqueta) */
+@import url("../components/GTag/GTag.css");
+@import url("../components/GTagGroup/GTagGroup.css");

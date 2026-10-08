@@ -59,6 +59,13 @@ export const props = {
   'GTable.selected': 'GranaKey[]',
   'GTable.filters': 'Filter[]',
   'GTabs.items': 'TabItem[]',
+  'GTag.color': "'neutral' | GranaCategory | `${GranaCategory}` | null",
+  'GTag.categories': '0 | GranaCategory',
+  'GTag.labels': 'TagLabels',
+  'GTagGroup.items': 'TagItem[]',
+  'GTagGroup.categories': '0 | GranaCategory',
+  'GTagGroup.emptyFocus': 'TagEmptyFocus',
+  'GTagGroup.labels': 'TagGroupLabels',
   'GToaster.toaster': 'Toaster | null',
   'GTranscript.transcript': 'Transcript | null',
   'GTranscript.selected': 'string[]',
@@ -102,6 +109,15 @@ export const events = {
   'GTable.update:page': 'number',
   'GTabs.update:modelValue': 'GranaKey',
   'GTabs.change': "{ id: GranaKey; index: number; source: 'keyboard' | 'pointer' | 'menu'; preventDefault(): void }",
+  'GTag.remove': "{ event: Event; source: 'button' | 'key' }",
+  'GTag.navigate': '{ event: MouseEvent; href: string }',
+  'GTagGroup.update:items': 'TagItem[]',
+  'GTagGroup.remove': "{ item: TagItem; index: number; source: 'button' | 'key' }",
+  'GTagGroup.restore': "{ items: TagItem[]; source: 'undo' | 'undo-all' }",
+  'GTagGroup.clear': '{ items: TagItem[] }',
+  'GTagGroup.toggle': '{ item: TagItem; pressed: boolean }',
+  'GTagGroup.navigate': '{ event: MouseEvent; href: string; item: TagItem }',
+  'GTagGroup.settle': '{ items: TagItem[] }',
   'GTranscript.update:selected': 'string[]',
   'GTranscript.change': '{ kind: string; ids: string[] }',
   'GTranscript.insert': 'TranscriptDerived',
@@ -143,7 +159,9 @@ export const slots = {
   'GTabs.panel-{id}': '{ item: TabItem; active: boolean }',
   'GTabs.panel': '{ item: TabItem; active: boolean }',
   'GTabs.icon': '{ item: TabItem; index: number; active: boolean }',
-  'GTabs.label': '{ item: TabItem; index: number; active: boolean }'
+  'GTabs.label': '{ item: TabItem; index: number; active: boolean }',
+  'GTagGroup.label': '{ item: TagItem; index: number }',
+  'GTagGroup.lead': '{ item: TagItem }'
 }
 
 /** Lo que el componente expone por `ref` (defineExpose / expose). Los `methods` del meta.json deben estar aquí. */

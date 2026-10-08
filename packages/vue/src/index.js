@@ -56,6 +56,9 @@ import { formKey, useFormField } from './components/GForm/formContext.js'
 import { createToaster, useToast, toasterKey } from './components/GToast/toaster.js'
 import { createIcons, iconsKey } from './components/GIcon/registry.js'
 import { shared } from './shared.js'
+// GTag + GTagGroup (tag.md, #472): en el principal, con su compuerta de peso
+import GTag from './components/GTag/GTag.vue'
+import GTagGroup from './components/GTagGroup/GTagGroup.vue'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
@@ -72,9 +75,14 @@ export { summaryDiff }
 // La captura de voz (createSpeech, GSpeechHost…) NO está aquí: va en su propia entrada `@grana/vue/speech` (#238).
 // Uso INTERNO de esa entrada (no es API pública, puede cambiar sin aviso): las piezas que comparte con el principal (src/shared.js)
 export { shared as __shared }
+// Etiquetas (tag.md, #460 a #473)
+export { GTag, GTagGroup }
 
 
 const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GAdaptiveLayout, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary, GTooltip }
+
+components.GTag = GTag
+components.GTagGroup = GTagGroup
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

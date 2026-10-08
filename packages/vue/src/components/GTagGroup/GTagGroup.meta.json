@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "name": "GTagGroup",
+  "tag": "g-tag-group",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Conjunto de etiquetas dirigido por datos (v-model:items): A «Huella» (quitar deja una huella del mismo ancho con «Deshacer» en el sitio y con el foco; nada se mueve hasta que puntero y foco salen del grupo; el modelo cambia en el acto), B «Racimo» (layout=\"facets\": el nombre de la faceta una vez y un lomo de color), tope con «Ver N más», «Quitar todas» con deshacer y el foco que nunca se pierde.",
+  "contract": "design/contracts/tag.md",
+  "decisions": ["#460", "#461", "#463", "#464", "#465", "#466", "#467", "#468", "#469", "#470", "#471", "#472", "#473", "#505"],
+  "prototype": "design/lab/chip/r01/",
+  "style": "packages/vue/src/components/GTagGroup/GTagGroup.css",
+  "styleNotes": "design/lab/chip/estilo.md",
+  "entry": "@grana/vue (principal)",
+  "composes": ["GTag", "GBtn (variant link: «Ver N más», «Quitar todas»)", "GAvatar (item.avatar, xs)", "GIcon público (item.icon)", "motor del tooltip en modo visual (useVisualTips)", "utils/liveRegion.js (createLiveWriter)", "utils/categoryHash.js"],
+  "props": [
+    { "name": "items", "type": "Array", "required": true, "description": "v-model:items. TagItem[]: { id (obligatorio y único), label (obligatorio), href?, pressed?, removable?, disabled?, color?, colorKey?, facet?, icon?, avatar? } y campos propios. Toda acción emite un arreglo nuevo (referencias conservadas; el alternado, objeto nuevo). Funciona con o sin v-model." },
+    { "name": "label", "type": "String", "default": null, "description": "Nombre del grupo (aria-label del contenedor). Uno de label/labelledby es obligatorio (aviso G1)." },
+    { "name": "labelledby", "type": "String", "default": null, "description": "Id de un elemento visible que nombra el grupo (aria-labelledby del contenedor)." },
+    { "name": "layout", "type": "String", "default": "flow", "values": ["flow", "facets"], "description": "facets = B «Racimo» (#467): racimos por item.facet en orden de primera aparición; sueltas sin faceta en su lugar." },
+    { "name": "size", "type": "String", "default": "md", "values": ["sm", "md"], "description": "Se aplica a todas las etiquetas (y a las herramientas: GBtn sm con md, xs con sm)." },
+    { "name": "categories", "type": "Number", "default": 0, "values": ["0 … 12"], "description": "Categorías del tema; se aplica a todas (un item.color gana). Clave del color: colorKey ?? facet ?? label. Inválido: 0 (aviso G8)." },
+    { "name": "limit", "type": "Number", "default": null, "description": "Muestra las primeras N (las huellas cuentan) y «Ver N más» (APG Disclosure). Se ignora con layout=\"facets\" (aviso G6)." },
+    { "name": "clearable", "type": "Boolean", "default": false, "description": "«Quitar todas» con ≥ 2 etiquetas quitables y habilitadas; el mismo botón pasa a «Deshacer» hasta que el foco sale del grupo." },
+    { "name": "emptyFocus", "type": "String | Object | Function", "default": null, "description": "A dónde va el foco si el grupo se queda sin controles: selector CSS, elemento (o instancia con $el) o función que lo devuelve. Sin él (o si no se encuentra, aviso G10), el contenedor con tabindex=\"-1\"." },
+    { "name": "disabled", "type": "Boolean", "default": false, "description": "Deshabilita todos los controles del grupo." },
+    { "name": "labels", "type": "Object", "default": {}, "description": "Textos (cadena con marcadores o función), sin valores por defecto (#226): ver labels." }
+  ],
+  "attrs": "Los atributos van a la raíz <div>. El nombre del grupo va en el contenedor (label/labelledby), no en la raíz.",
+  "events": [
+    { "name": "update:items", "payload": "TagItem[]", "trigger": "Quitar, deshacer, quitar todas, deshacer todas, alternar. Siempre antes del evento específico." },
+    { "name": "remove", "payload": "{ item, index, source: 'button' | 'key' }", "trigger": "La persona quita una etiqueta (deja huella). index en items." },
+    { "name": "restore", "payload": "{ items, source: 'undo' | 'undo-all' }", "trigger": "«Deshacer» de una huella o de «Quitar todas»." },
+    { "name": "clear", "payload": "{ items }", "trigger": "«Quitar todas»." },
+    { "name": "toggle", "payload": "{ item, pressed }", "trigger": "La persona alterna; item es el objeto nuevo." },
+    { "name": "navigate", "payload": "{ event, href, item }", "trigger": "Como GTag: solo activación primaria sin modificadores (#505); preventDefault() para un router." },
+    { "name": "settle", "payload": "{ items }", "trigger": "Lo quitado deja de poder deshacerse: las huellas se recogen, el «Deshacer» de «Quitar todas» se va (con las huellas que recogió), o el grupo se desmonta con algo pendiente." }
+  ],
+  "slots": [
+    { "name": "label", "scope": "{ item, index }", "purpose": "Texto visible de cada etiqueta (no interactivo)." },
+    { "name": "lead", "scope": "{ item }", "purpose": "Hueco inicial de cada etiqueta; con el slot manda el slot (sobre item.avatar e item.icon)." }
+  ],
+  "labels": [
+    "remove {label}",
+    "removeIn {label} {facet}",
+    "removed {label}",
+    "removedIn {label} {facet}",
+    "undo {label}",
+    "undoIn {label} {facet}",
+    "restored {label}",
+    "more {count}",
+    "less",
+    "clearAll",
+    "cleared {count}",
+    "undoAll {count}",
+    "restoredAll {count}",
+    "empty"
+  ],
+  "announcements": "Una región viva role=\"status\" por grupo (g-tag-group__live), vacía al montar, con createLiveWriter: quitar, deshacer, quitar todas y deshacer todas (el último gesto manda). No se anuncian alternar, desplegar ni recoger.",
+  "keyboard": [
+    "Sin widget compuesto: cada control es una parada de Tab nativa",
+    "Supr / Retroceso sobre el cuerpo interactivo o «Quitar»: quita (huella)",
+    "Foco por programa: quitar → «Deshacer»; deshacer → su «Quitar»; «Quitar todas» → el mismo botón en modo «Deshacer»; deshacer todas → «Quitar todas»",
+    "Si el control con el foco desaparece por otra causa: equivalente de la siguiente (en facets, primero en su racimo) → anterior → emptyFocus → contenedor (tabindex=-1); nunca <body>",
+    "«Ver N más»: aria-expanded, aria-controls; el foco se queda en el botón"
+  ],
+  "classes": {
+    "root": "g-tag-group g-tag-group--layout-{flow|facets} g-tag-group--size-{sm|md}",
+    "state": ["is-disabled", "is-settling (en __item/__value mientras se recoge)", "is-undo (en __clear en modo deshacer)"],
+    "attributes": ["data-id en __item/__value", "data-cat=\"k\" en __facet (solo con categoría)"],
+    "parts": [
+      "g-tag-group__list (ul role=list | div role=group si todas alternan)",
+      "g-tag-group__item (li | span)",
+      "g-tag-group__facet (li) · __facet-name (span id dir=auto) · __values (ul role=list | span role=group, aria-labelledby) · __value (li | span)",
+      "g-tag-group__tools · __more · __clear (GBtn link accent)",
+      "g-tag-group__empty (p, con id; referenciada por aria-describedby mientras el grupo está vacío)",
+      "g-tag-group__live (span role=status)",
+      "g-tooltip (div aria-hidden popover=\"manual\", pista visual al final de la raíz)"
+    ]
+  },
+  "warnings": [
+    "G1 · sin label ni labelledby",
+    "G2 · item sin id o con id repetido (se omite)",
+    "G3 · item sin label (se omite)",
+    "G4 · dos etiquetas con control con el mismo texto y la misma faceta",
+    "G5 · falta una clave de labels que se va a usar (o la forma con faceta, que cae a la base)",
+    "G6 · limit con layout=\"facets\" (se ignora)",
+    "G7 · layout=\"facets\" sin ningún item.facet",
+    "G8 · item con href y pressed; color o categories inválidos",
+    "G9 · hijos en el slot por defecto",
+    "G10 · emptyFocus no se encuentra cuando hace falta"
+  ],
+  "tokens": [
+    "--g-space-1",
+    "--g-color-cat-{1…12}-text (familia condicional, CAT_FAMILY_READERS: lomo del racimo)",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-surface",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-radius-shape",
+    "--g-radius-sm",
+    "--g-border-width",
+    "--g-font-ui",
+    "--g-text-action-weight",
+    "--g-text-body-sm-{size|line}",
+    "--g-text-caption-{size|line|tracking}",
+    "--g-duration-fast",
+    "--g-ease-out"
+  ],
+  "states": ["flow", "facets", "toggles (role=group)", "ghost", "settling", "cleared (deshacer todas)", "limit collapsed/expanded", "empty", "disabled", "reduced-motion", "rtl"],
+  "tests": {
+    "unit": "packages/vue/src/components/GTagGroup/GTagGroup.test.js, GTag/GTag.ssr.test.js",
+    "browser": "design/lab/theme-playground/tests/tag.spec.mjs y personalidad-tag.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground #sec-tag)"
+  },
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5): design/lab/chip/auditoria.md",
+    "README (mora-docs, GTag/README.md)",
+    "Lectores de pantalla reales (huella, racimo, grupo vacío enfocado), táctil real, forced-colors real, cientos de etiquetas"
+  ]
+}

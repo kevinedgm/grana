@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "name": "GTag",
+  "tag": "g-tag",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Un elemento de un conjunto que clasifica o resume una elección: se lee, se quita, se alterna (aria-pressed) o se sigue (enlace). Neutro o de categoría, nunca semántico (para el estado de otra cosa, GBadge). No es un campo: no se envía ni se registra en GForm. Suelta, una etiqueta quitable solo emite remove; la huella y el foco los da GTagGroup.",
+  "contract": "design/contracts/tag.md",
+  "decisions": ["#460", "#461", "#462", "#464", "#465", "#466", "#469", "#470", "#471", "#472", "#505"],
+  "prototype": "design/lab/chip/r01/",
+  "style": "packages/vue/src/components/GTag/GTag.css",
+  "styleNotes": "design/lab/chip/estilo.md",
+  "entry": "@grana/vue (principal)",
+  "composes": ["GIcon (interno: x, check, undo-2)", "motor del tooltip en modo visual (useVisualTips, nodos <span>)", "utils/categoryHash.js (el hash de GAvatar)"],
+  "props": [
+    { "name": "label", "type": "String", "required": true, "description": "Texto de la etiqueta (salvo slot), base de los nombres de «Quitar» y clave del color sin colorKey. Vacía o solo espacios: no se pinta (aviso 8)." },
+    { "name": "href", "type": "String", "default": null, "description": "Con valor, el cuerpo es un <a href>. Gana a pressed (aviso 2). Deshabilitado: role=\"link\" aria-disabled=\"true\" sin href." },
+    { "name": "pressed", "type": "Boolean | null", "default": null, "description": "v-model:pressed. null = no alterna; true/false = botón de alternar (aria-pressed, marca check). Funciona con o sin v-model." },
+    { "name": "removable", "type": "Boolean", "default": false, "description": "Añade «Quitar» (botón hermano del cuerpo, tapa entera, aria-keyshortcuts=\"Delete Backspace\"). Necesita labels.remove (aviso 5)." },
+    { "name": "disabled", "type": "Boolean", "default": false, "description": "Deshabilita el cuerpo interactivo y «Quitar»; no emite." },
+    { "name": "size", "type": "String", "default": "md", "values": ["sm", "md"], "description": "Altura: sm = space × 6 (caption), md = space × 8 (body-sm)." },
+    { "name": "color", "type": "String | Number", "default": null, "values": ["neutral", "1 … 12"], "description": "'neutral' (gana a categories) o una categoría fija 1..12 (número o cadena numérica). Otro valor, semánticos incluidos, se ignora (aviso 3)." },
+    { "name": "categories", "type": "Number", "default": 0, "values": ["0 … 12"], "description": "Categorías del tema. Con n > 0 y sin color, la categoría se deriva de colorKey ?? label con el hash de GAvatar. Fuera de 0..12 o no entero: 0 (aviso 4)." },
+    { "name": "colorKey", "type": "String | Number", "default": null, "description": "Clave estable del color (como GAvatar)." },
+    { "name": "labels", "type": "Object", "default": {}, "description": "{ remove } con {label}; cadena con marcadores o función. Sin valores por defecto (#226)." }
+  ],
+  "attrs": "inheritAttrs: false. class, style, id, data-*, lang (y el resto) van a la raíz; con href, target, rel, download, hreflang y referrerpolicy van al <a>; aria-describedby va al control del cuerpo (enlace o botón de alternar; sin control se ignora). role, tabindex y el resto de aria-* se ignoran (aviso 1); una escucha onClick no se enlaza (aviso 7).",
+  "events": [
+    { "name": "update:pressed", "payload": "Boolean", "trigger": "La persona alterna (clic, Espacio, Intro). No con disabled." },
+    { "name": "remove", "payload": "{ event, source: 'button' | 'key' }", "trigger": "«Quitar» o Supr/Retroceso sobre un control de la etiqueta. Suelta no se quita sola ni deja huella: la aplicación la quita y decide el foco." },
+    { "name": "navigate", "payload": "{ event, href }", "trigger": "Activación del enlace, SOLO primaria sin modificadores (#505): clic con button 0 sin Ctrl/⌘/Mayús/Alt ni defaultPrevented, o Intro. event.preventDefault() (síncrono) evita la navegación (router)." }
+  ],
+  "slots": [
+    { "name": "default", "purpose": "Sustituye el texto visible dentro de g-tag__text (contenido de frase no interactivo, aviso 6). label sigue siendo obligatoria." },
+    { "name": "lead", "purpose": "Icono (<GIcon>) o <GAvatar size=\"xs\"> antes del texto; hueco decorativo (aria-hidden)." }
+  ],
+  "labels": ["remove {label}"],
+  "keyboard": [
+    "Tab: cada control (enlace, botón de alternar, «Quitar») es una parada nativa; la estática no tiene foco",
+    "Espacio / Intro: alterna (botón nativo); Intro sigue el enlace",
+    "Supr / Retroceso sobre el cuerpo interactivo o sobre «Quitar» de una etiqueta quitable y habilitada: remove con source 'key' (preventDefault)"
+  ],
+  "classes": {
+    "root": "g-tag g-tag--size-{sm|md}",
+    "state": ["is-removable", "is-toggle", "is-pressed", "is-link", "is-disabled", "is-ghost (solo en un grupo, con --_ghost-w en px)", "is-plain (valor de un racimo)"],
+    "attributes": ["data-cat=\"k\" (solo con categoría)"],
+    "parts": [
+      "g-tag__body (span | a | button)",
+      "g-tag__check (span aria-hidden con check; solo alternar, siempre en el DOM)",
+      "g-tag__lead (span aria-hidden)",
+      "g-tag__text (span dir=\"auto\")",
+      "g-tag__remove (button) · g-tag__undo (button, huella)",
+      "g-tag__sr (texto oculto del nombre de «Quitar»/«Deshacer»)",
+      "g-tooltip (span aria-hidden popover=\"manual\", pista visual al final de la raíz; solo suelta)"
+    ]
+  },
+  "warnings": [
+    "1 · role, tabindex o aria-* (salvo aria-describedby) como atributos",
+    "2 · href con pressed no null",
+    "3 · color que no es 'neutral' ni 1..12 (texto propio para los semánticos)",
+    "4 · categories fuera de 0..12 o no entero",
+    "5 · removable sin labels.remove",
+    "6 · contenido interactivo en el slot default (al montar)",
+    "7 · escucha onClick",
+    "8 · label ausente o vacía"
+  ],
+  "tokens": [
+    "--g-space-1",
+    "--g-color-neutral-soft",
+    "--g-color-on-neutral-soft",
+    "--g-color-cat-{1…12}-soft (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-on-cat-{1…12}-soft (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-cat-{1…12} (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-on-cat-{1…12} (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-cat-{1…12}-strong (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-cat-{1…12}-text (familia condicional, CAT_FAMILY_READERS)",
+    "--g-color-primary",
+    "--g-color-on-primary",
+    "--g-color-primary-strong",
+    "--g-color-primary-text",
+    "--g-color-primary-soft",
+    "--g-color-on-primary-soft",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-radius-shape",
+    "--g-border-width",
+    "--g-font-ui",
+    "--g-text-body-sm-{size|line|tracking|weight}",
+    "--g-text-caption-{size|line|tracking|weight}",
+    "--g-press-scale",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "icons": ["x", "check", "undo-2 (con g-icon--flip-rtl)"],
+  "states": ["static", "link", "link-disabled", "toggle", "pressed", "removable", "disabled", "ghost (grupo)", "plain (racimo)", "neutral", "category", "truncated (con pista)", "wrapped (estática)", "forced-colors", "reduced-motion", "rtl"],
+  "tests": {
+    "unit": "packages/vue/src/components/GTag/GTag.test.js, GTag.ssr.test.js",
+    "browser": "design/lab/theme-playground/tests/tag.spec.mjs y personalidad-tag.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground #sec-tag)"
+  },
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5): design/lab/chip/auditoria.md",
+    "README (mora-docs)",
+    "Lectores de pantalla reales (VoiceOver, NVDA), táctil real y forced-colors real"
+  ]
+}

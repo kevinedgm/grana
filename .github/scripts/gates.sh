@@ -60,6 +60,10 @@ for cls in \
 do
   must_have grana.css "$cls" "$CSS_MSG"
 done
+# GTag + GTagGroup (tag.md §«Paquete», #472): la huella y el racimo
+for cls in g-tag__undo g-tag-group__facet; do
+  must_have grana.css "$cls" "$CSS_MSG"
+done
 
 # --- Lo que NO debe estar -----------------------------------------------------------------------
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"
