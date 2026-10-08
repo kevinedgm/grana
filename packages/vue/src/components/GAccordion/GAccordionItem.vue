@@ -156,7 +156,7 @@ function onOpenRequest(event) {
   request(true, { inst: true, keep: false })
   event.preventDefault()
 }
-// #id del elemento (#482): al montar y en hashchange; abre sin animar y lo trae arriba (respeta el scroll-margin del botón).
+// #id del elemento (#482): al montar y en hashchange; abre sin animar y lo trae arriba (respeta el scroll-padding de la aplicación, #515).
 // Al montar durante la carga, otra vez en `load` (como el navegador con un fragmento: lo que se pinta encima, p. ej. las
 // fuentes, puede moverlo, y el grupo no participa del anclaje de desplazamiento, overflow-anchor: none)
 function bringIntoView() {
@@ -190,8 +190,19 @@ let offHead = null
 function measureHead() {
   const hd = headingEl.value
   if (!hd) return
-  const v = Math.round(hd.getBoundingClientRect().height * 100) / 100
+  const v = Math.round(layoutHeight(hd) * 100) / 100
   if (v && v !== headSize.value) headSize.value = v
+}
+// Alto de maquetación de la caja de borde (#517): getBoundingClientRect incluye transformaciones (la escala de entrada de
+// GDialog, #299) y offsetHeight redondea; el alto calculado conserva las fracciones
+function layoutHeight(el) {
+  const cs = getComputedStyle(el)
+  let h = parseFloat(cs.height)
+  if (!Number.isFinite(h)) return el.offsetHeight
+  if (cs.boxSizing !== 'border-box') {
+    for (const k of ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth']) h += parseFloat(cs[k]) || 0
+  }
+  return h
 }
 function syncHead() {
   const on = isOpen.value && sticky.value

@@ -501,6 +501,24 @@ test.describe('GAccordion · sticky (#484)', () => {
     expect(Math.abs(r.gap), `encabezado a ${r.gap}px del borde del cuerpo`).toBeLessThanOrEqual(1)
     expect(errs, errs.join('\n')).toEqual([])
   })
+
+  // Hallazgo 1 de design/lab/accordion/auditoria.md (#517): medido durante la escala de entrada del diálogo, el alto salía
+  // 0,6–1,7 px corto; debe ser el de maquetación
+  test('dentro de un GDialog que entra con escala, --_head-size es el alto de maquetación del encabezado', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await page.evaluate(() => document.getElementById('ac-dlg-open').scrollIntoView({ block: 'center' }))
+    await page.click('#ac-dlg-open')
+    await page.waitForSelector('#ac-dlg-prep.is-ready')
+    await page.waitForTimeout(700)
+    const r = await page.evaluate(() => {
+      const hd = document.querySelector('#ac-dlg-prep > .g-accordion-item__heading')
+      return { head: parseFloat(document.getElementById('ac-dlg-prep').style.getPropertyValue('--_head-size')), layout: parseFloat(getComputedStyle(hd).height), rect: hd.getBoundingClientRect().height }
+    })
+    expect(Math.abs(r.rect - r.layout), 'el diálogo ya terminó de entrar').toBeLessThanOrEqual(0.05)
+    expect(Math.abs(r.head - r.layout), JSON.stringify(r)).toBeLessThanOrEqual(0.05)
+    expect(errs, errs.join('\n')).toEqual([])
+  })
 })
 
 test.describe('GAccordion · en el playground (#sec-accordion)', () => {
