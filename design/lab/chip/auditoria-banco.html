@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTag · banco de auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GTag y GTagGroup de dist/tag.umd.js (la entrada propia
+     @grana/vue/tag, global GranaTag) con GAvatar, GIcon y GBtn de dist/grana.umd.js, y dist/grana.css + dist/fonts.css
+     (el CSS y la fuente tal como se publican). Los mismos casos que el banco de estilo (estilo-banco.html): una GTag suelta
+     lleva su caso en data-test (llega a la raíz por $attrs); en un grupo, la etiqueta es `#<grupo> [data-id="<id>"] > .g-tag`
+     (el verificador la llama «<grupo>-<id>»). Todo lo que el banco de estilo simulaba lo pone ahora el .vue: marcado,
+     huella con --_ghost-w, recogida (is-settling), foco, pista visual, racimos, data-cat. Secciones nuevas: «Ver N más» con
+     el grupo deshabilitado (#512), avatar con las categorías del grupo (#513) y recorte con pista.
+     Desde la raíz del repo:  python3 -m http.server 4213  →  /design/lab/chip/auditoria-banco.html
+     Parámetros: ?theme=<auditoria|default|lustre|spotify|propio>-cat<8|12> o el nombre de un tema de
+                 design/lab/tema-oscuro/dark-color-presence/generated/ (sin categorías)  ?dark=1  ?dir=rtl  ?text=200
+     Verificación: GRANA_PW_PORT=4213 node design/lab/chip/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="theme" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 10px;max-width:100ch}
+  .k{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0;min-inline-size:9ch}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg);padding:var(--g-space-4);min-inline-size:0;display:grid;gap:var(--g-space-3)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2) var(--g-space-3);min-inline-size:0}
+  .w320{inline-size:320px;max-inline-size:100%}
+  .out{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak></main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/tag.umd.js"></script>
+<script>
+(function () {
+  const { createApp, reactive } = Vue
+  const q = new URLSearchParams(location.search)
+  const theme = q.get('theme') || 'default-cat8'
+  const m = theme.match(/^(auditoria|default|lustre|spotify|propio)-cat(8|12)$/)
+  const NCAT = m ? Number(m[2]) : 0
+  const href = !m ? `../tema-oscuro/dark-color-presence/generated/${theme}.css` : m[1] === 'auditoria' ? `auditoria-tema-cat${NCAT}.css` : `estilo-temas/${theme}.css`
+  document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('text') === '200') document.documentElement.style.fontSize = '200%'
+  window.BENCH = { theme, NCAT, dark: !!q.get('dark'), ev: [] }
+
+  const LBL = {
+    remove: 'Quitar {label}', removeIn: 'Quitar {label} de {facet}',
+    removed: '{label} quitada. Deshacer disponible', removedIn: '{label} quitada de {facet}. Deshacer disponible',
+    undo: 'Deshacer: quitar {label}', undoIn: 'Deshacer: quitar {label} de {facet}', restored: '{label} restaurada',
+    more: 'Ver {count} más', less: 'Ver menos', clearAll: 'Quitar todas', cleared: 'Se quitaron {count} etiquetas',
+    undoAll: 'Deshacer: volver a poner {count}', restoredAll: '{count} etiquetas restauradas', empty: 'Sin etiquetas'
+  }
+  const CASES = [
+    { test: 'static', label: 'Penicilina' },
+    { test: 'link', label: 'Vue', href: '#vue' },
+    { test: 'toggle', label: 'Solo pendientes', pressed: false },
+    { test: 'pressed', label: 'Solo pendientes', pressed: true },
+    { test: 'rem', label: 'Látex', removable: true },
+    { test: 'link-rem', label: 'Diseño', href: '#d', removable: true },
+    { test: 'toggle-rem', label: 'Urgente', pressed: false, removable: true },
+    { test: 'pressed-rem', label: 'Urgente', pressed: true, removable: true },
+    { test: 'icon', label: 'Etiquetada', icon: 'tag' },
+    { test: 'avatar', label: 'Ana López', avatar: 3, removable: true },
+    { test: 'avatar-toggle', label: 'Luis Pérez', avatar: 6, pressed: false },
+    { test: 'avatar-pressed', label: 'Luis Pérez', avatar: 6, pressed: true },
+    { test: 'dis-static', label: 'Archivada', disabled: true, removable: true },
+    { test: 'dis-link', label: 'Enlace', href: '#x', disabled: true },
+    { test: 'dis-toggle', label: 'Inactiva', pressed: false, disabled: true },
+    { test: 'dis-pressed', label: 'Inactiva', pressed: true, disabled: true },
+    { test: 'long-rem', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos de uso tópico', removable: true },
+    { test: 'long-toggle', label: 'Solicitudes pendientes de revisión por el comité de ética', pressed: false },
+    { test: 'long-static', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos de uso tópico y sistémico' },
+    { test: 'mixed', label: 'שלום Grana 123', removable: true }
+  ]
+  const KS = ['n', ...Array.from({ length: 12 }, (_, i) => i + 1)]
+  const ALERGIAS = () => [
+    { id: 'pen', label: 'Penicilina', removable: true },
+    { id: 'lat', label: 'Látex', removable: true },
+    { id: 'ana', label: 'Ana López', avatar: { color: 3 }, removable: true },
+    { id: 'urg', label: 'Urgente', pressed: true, removable: true },
+    { id: 'ibu', label: 'Ibuprofeno', removable: true, icon: 'tag' },
+    { id: 'pol', label: 'Polen de gramíneas', removable: true },
+    { id: 'vue', label: 'Vue', href: '#vue', removable: true },
+    { id: 'mar', label: 'Mariscos', removable: true }
+  ]
+  const FACETS = () => [
+    { id: 'p1', facet: 'Estado', label: 'Pendiente', removable: true },
+    { id: 'p2', facet: 'Estado', label: 'En curso', removable: true },
+    { id: 'a1', facet: 'Prioridad', label: 'Alta', removable: true },
+    { id: 'x1', label: 'Sin faceta', removable: true },
+    { id: 'e1', facet: 'Equipo', label: 'Ana López', avatar: { color: 3 }, removable: true },
+    { id: 'e2', facet: 'Equipo', label: 'Luis Pérez', avatar: { color: 6 }, removable: true }
+  ]
+  const st = reactive({
+    matrix: Object.fromEntries(KS.map((k) => {
+      const color = k === 'n' ? 'neutral' : k
+      return [k, [
+        { id: 'pick', facet: 'Estado', label: 'Elegida', pressed: true, color },
+        { id: 'free', facet: 'Estado', label: 'Libre', pressed: false, color },
+        { id: 'vrem', facet: 'Estado', label: 'Quitar', removable: true, color }
+      ]]
+    })),
+    flow: ALERGIAS(),
+    flowSm: ALERGIAS(),
+    facets: FACETS(),
+    facetsSm: FACETS(),
+    toggles: [
+      { id: 't1', facet: 'Estado', label: 'Pendiente', pressed: true }, { id: 't2', facet: 'Estado', label: 'En curso', pressed: false }, { id: 't3', facet: 'Estado', label: 'Cerrado', pressed: false },
+      { id: 't4', facet: 'Prioridad', label: 'Alta', pressed: true }, { id: 't5', facet: 'Prioridad', label: 'Baja', pressed: false },
+      { id: 't6', label: 'Solo míos', pressed: false }
+    ],
+    limit: ['Vue', 'Accesibilidad', 'CSS', 'Diseño', 'Tokens', 'Pruebas'].map((l, i) => ({ id: 'l' + i, label: l, href: '#t' + i })),
+    clear: ['Rojo', 'Verde', 'Azul', 'Ámbar'].map((l, i) => ({ id: 'c' + i, label: l, removable: true })),
+    empty: [],
+    view: [{ id: 'v1', label: 'Solo pendientes', pressed: true }, { id: 'v2', label: 'Con adjuntos', pressed: false }, { id: 'v3', label: 'Asignadas a mí', pressed: false }],
+    dis: ['Vue', 'Accesibilidad', 'CSS', 'Diseño', 'Tokens'].map((l, i) => ({ id: 'd' + i, label: l, removable: true })),
+    av: [{ id: 'ana', label: 'Ana María López', avatar: true, removable: true }, { id: 'luis', label: 'Luis Torres', avatar: { initials: 'LT' }, removable: true }, { id: 'mia', label: 'Mía Ruiz', avatar: { color: 4 }, removable: true }],
+    cut: [
+      { id: 'k1', label: 'Hipertensión arterial esencial (primaria) controlada con tratamiento', removable: true },
+      { id: 'k2', label: 'Solicitudes pendientes de revisión por el comité de ética de la institución', href: '#k2' },
+      { id: 'k3', label: 'Corto', href: '#k3' }
+    ],
+    narrow: [...ALERGIAS(), { id: 'long', label: 'Hipersensibilidad a los antiinflamatorios no esteroideos', removable: true }],
+    narrowFacets: [...FACETS(), { id: 'p3', facet: 'Estado', label: 'Revisión del comité', removable: true }, { id: 'p4', facet: 'Estado', label: 'Cerrado', removable: true }],
+    lonePressed: false
+  })
+  const ev = (group, name) => (p) => {
+    if (name === 'navigate' && p && p.event) p.event.preventDefault()
+    BENCH.ev.push({ group, name, id: p && p.item ? p.item.id : undefined, ids: p && p.items ? p.items.map((i) => i.id) : undefined, source: p && p.source })
+  }
+  const G = (id, model, extra = '') => `<g-tag-group id="${id}" v-model:items="st.${model}" :labels="LBL" :categories="NCAT" ${extra}
+      @remove="ev('${id}','remove')($event)" @restore="ev('${id}','restore')($event)" @clear="ev('${id}','clear')($event)" @settle="ev('${id}','settle')($event)" @toggle="ev('${id}','toggle')($event)" @navigate="ev('${id}','navigate')($event)"></g-tag-group>`
+  const TAG = (size, prefix, extra = '') => `<g-tag v-for="c in CASES" :key="c.test" :data-test="'${prefix}' + c.test" size="${size}" :label="c.label" :href="c.href" :pressed="c.pressed ?? null" :removable="!!c.removable" :disabled="!!c.disabled" ${extra} :labels="{ remove: 'Quitar {label}' }" @navigate="(p) => p.event.preventDefault()">
+      <template v-if="c.icon || c.avatar" #lead><g-avatar v-if="c.avatar" size="xs" :name="c.label" :color="c.avatar"></g-avatar><g-icon v-else :name="c.icon"></g-icon></template>
+    </g-tag>`
+  const app = createApp({
+    setup: () => ({ st, LBL, CASES, KS, NCAT, ev }),
+    template: `
+<h1>GTag + GTagGroup · banco de auditoría</h1>
+<p class="cap"><b>coco</b> · paso 5 sobre el componente real (<code>dist/tag.umd.js</code>). Tema <code>${theme}</code>${NCAT ? ` con ${NCAT} categorías` : ' (sin categorías)'}.</p>
+
+<h2 class="b">1 · Casos y tamaños</h2>
+<div class="host" id="cases">
+  <p class="k">size="md"</p><div class="row" data-size="md">${TAG('md', 'md-')}</div>
+  <p class="k">size="sm"</p><div class="row" data-size="sm">${TAG('sm', 'sm-')}</div>
+  <p class="k">categoría 2</p><div class="row">${TAG('md', 'c2-', ':color="2"')}</div>
+</div>
+
+<h2 class="b">2 · Categorías (reposo, quitable, alternar, pulsada, pulsada quitable, racimo)</h2>
+<div class="host" id="matrix">
+  <div class="row" v-for="k in KS" :key="k" :data-k="k">
+    <p class="k">{{ k === 'n' ? 'neutra' : 'cat ' + k }}</p>
+    <g-tag :data-test="'m-' + k + '-static'" label="Reposo" :color="k === 'n' ? 'neutral' : k"></g-tag>
+    <g-tag :data-test="'m-' + k + '-rem'" label="Quitable" removable :labels="{ remove: 'Quitar {label}' }" :color="k === 'n' ? 'neutral' : k"></g-tag>
+    <g-tag :data-test="'m-' + k + '-tog'" label="Alternar" :pressed="false" :color="k === 'n' ? 'neutral' : k"></g-tag>
+    <g-tag :data-test="'m-' + k + '-on'" label="Pulsada" :pressed="true" :color="k === 'n' ? 'neutral' : k"></g-tag>
+    <g-tag :data-test="'m-' + k + '-on-rem'" label="Pulsada" :pressed="true" removable :labels="{ remove: 'Quitar {label}' }" :color="k === 'n' ? 'neutral' : k"></g-tag>
+    <g-tag-group :id="'m-' + k" :label="'Racimo ' + k" layout="facets" v-model:items="st.matrix[k]" :labels="LBL"></g-tag-group>
+  </div>
+</div>
+
+<h2 class="b">3 · Grupo (flow): huella, recogida, avatar, pulsada quitable</h2>
+<div class="host">
+  ${G('g-flow', 'flow', 'label="Alergias"')}
+  ${G('g-flow-sm', 'flowSm', 'label="Alergias sm" size="sm"')}
+</div>
+
+<h2 class="b">4 · Racimo (layout="facets")</h2>
+<div class="host">
+  ${G('g-facets', 'facets', 'label="Filtros aplicados" layout="facets"')}
+  ${G('g-facets-toggles', 'toggles', 'label="Filtros rápidos" layout="facets"')}
+  ${G('g-facets-sm', 'facetsSm', 'label="Filtros sm" layout="facets" size="sm"')}
+</div>
+
+<h2 class="b">5 · Herramientas, vacío, alternar, sueltas con pista</h2>
+<div class="host">
+  ${G('g-limit', 'limit', 'label="Temas" :limit="3"')}
+  ${G('g-clear', 'clear', 'label="Etiquetas" clearable')}
+  ${G('g-empty', 'empty', 'label="Vacío"')}
+  ${G('g-view', 'view', 'label="Vista"')}
+  <div class="row" id="lone">
+    <g-tag data-test="lone-tip" label="Suelta con un texto que se recorta porque es larguísimo, mucho más que el tope" removable :labels="{ remove: 'Quitar {label}' }"></g-tag>
+    <g-tag data-test="lone" label="Suelta" removable :labels="{ remove: 'Quitar {label}' }"></g-tag>
+    <g-tag data-test="lone-toggle" label="Suelta de alternar" v-model:pressed="st.lonePressed"></g-tag>
+  </div>
+</div>
+
+<h2 class="b">6 · Remates de contrato (#512, #513) y recorte con pista</h2>
+<div class="host">
+  ${G('g-dis', 'dis', 'label="Deshabilitado con límite" :limit="2" disabled clearable')}
+  ${G('g-av', 'av', 'label="Avatares con las categorías del grupo"')}
+  ${G('g-cut', 'cut', 'label="Recorte"')}
+</div>
+
+<h2 class="b">7 · 320px</h2>
+<div class="host w320">
+  ${G('g-narrow', 'narrow', 'label="Estrecho"')}
+  ${G('g-narrow-facets', 'narrowFacets', 'label="Estrecho racimos" layout="facets"')}
+</div>`
+  })
+  app.use(Grana).use(GranaTag)
+  const ready = () => { app.mount('#app'); document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => { BENCH.ready = true }))) }
+  const link = document.getElementById('theme')
+  link.addEventListener('load', ready, { once: true })
+  link.href = href
+})()
+</script>
+</body>
+</html>

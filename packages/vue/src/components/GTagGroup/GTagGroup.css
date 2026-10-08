@@ -18,7 +18,8 @@
 
 /* ---------- Raíz: la lista y las herramientas en una línea que se parte ---------- */
 .g-tag-group {
-  --_tgg-h: calc(var(--g-space-1) * 8);
+  /* El alto de una etiqueta (GTag.css): space × n, o su línea de texto más los dos bordes si es mayor (hallazgo 1) */
+  --_tgg-h: max(calc(var(--g-space-1) * 8), calc(var(--_tgg-lh) + var(--g-border-width) * 2));
   --_tgg-gap: calc(var(--g-space-1) * 2);
   --_tgg-spine-w: calc(var(--g-space-1) * 0.75);
   --_tgg-fs: var(--g-text-body-sm-size);
@@ -35,7 +36,7 @@
   color: var(--g-color-text);
 }
 .g-tag-group--size-sm {
-  --_tgg-h: calc(var(--g-space-1) * 6);
+  --_tgg-h: max(calc(var(--g-space-1) * 6), calc(var(--_tgg-lh) + var(--g-border-width) * 2));
   --_tgg-fs: var(--g-text-caption-size);
   --_tgg-lh: var(--g-text-caption-line);
 }
@@ -76,7 +77,10 @@
   display: flex;
   align-items: stretch;
   min-inline-size: 0;
-  max-inline-size: 100%;
+  /* El mismo tope de recorte que la etiqueta (GTag.css, space × 60): el porcentaje del tope de la etiqueta no limita el
+     ancho intrínseco de su elemento, que sin esto medía el texto entero y dejaba un hueco detrás de una etiqueta
+     recortada (auditoría, hallazgo 4) */
+  max-inline-size: min(100%, calc(var(--g-space-1) * 60));
   margin: 0;
   padding: 0;
 }

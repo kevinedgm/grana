@@ -21,8 +21,10 @@
 
 /* ---------- Raíz: alias de medida y de color (la categoría solo reapunta familias) ---------- */
 .g-tag {
-  /* Medida: md = space × 8, body-sm */
-  --_tag-h: calc(var(--g-space-1) * 8);
+  /* Medida: md = space × 8, body-sm. Nunca menos que su línea de texto más los dos bordes (como la caja de GInput): con
+     un espacio pequeño y texto grande (o el texto al 200 %) la etiqueta crece con su texto y la tapa sigue cuadrada
+     (auditoría, hallazgo 1) */
+  --_tag-h: max(calc(var(--g-space-1) * 8), calc(var(--_tag-lh) + var(--g-border-width) * 2));
   --_tag-px: calc(var(--g-space-1) * 3);
   --_tag-gap: calc(var(--g-space-1) * 1.5);
   --_tag-fs: var(--g-text-body-sm-size);
@@ -74,7 +76,7 @@
     color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-tag--size-sm {
-  --_tag-h: calc(var(--g-space-1) * 6);
+  --_tag-h: max(calc(var(--g-space-1) * 6), calc(var(--_tag-lh) + var(--g-border-width) * 2));
   --_tag-px: calc(var(--g-space-1) * 2);
   --_tag-gap: var(--g-space-1);
   --_tag-fs: var(--g-text-caption-size);

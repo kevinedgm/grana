@@ -35,6 +35,8 @@ Además: el **avatar del hueco es concéntrico** (misma distancia al borde exter
 | Valor dentro del racimo (alto − 2 bordes) | 30 | 22 | 36 · 26 (borde 2px) |
 | Texto | `body-sm` | `caption` (≥ 12px) | |
 
+- **Alto con texto grande** (auditoría, hallazgo 1): el alto es `max(space × n, línea + 2 × borde)`, en la etiqueta y en el grupo (racimo y herramientas), como la caja de `GInput`: con espacio pequeño y texto grande (o el texto al 200 %) la etiqueta crece con su texto y la tapa sigue cuadrada. Sin cambio en los temas del banco.
+- **Elemento del grupo con el tope de la etiqueta** (auditoría, hallazgo 4): `__item`/`__value` llevan `max-inline-size: min(100%, space × 60)`; sin él, el elemento medía el texto entero de una etiqueta recortada y dejaba un hueco detrás.
 - **Valor de un racimo (`is-plain`)**: sin borde propio y del alto interior del racimo, así el racimo mide exactamente lo que una etiqueta suelta; su huella se dibuja con un contorno interior (`outline` discontinuo, `outline-offset` negativo). El último valor lleva las esquinas finales del racimo (`radius-shape − borde`) para que la elegida y la tapa invertida no las rebasen.
 - **Etiqueta sin faceta en `layout="facets"`**: conserva su aspecto y lleva un **lomo neutro** (`border-control`, `space × 0.75`): todo trozo de la fila tiene lomo; el gris dice «sin faceta».
 - **Recorte**: una línea con `…` solo con un control enfocable (quitable, alternar, enlace, huella) **y habilitada**; la estática **y la deshabilitada** se parten en líneas (`overflow-wrap: anywhere`): sin foco no habría forma de leerlas con teclado.
