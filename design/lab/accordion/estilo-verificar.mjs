@@ -95,7 +95,9 @@ const note = (s) => notes.push(s)
   ok(hov.length >= 2 && hov.every((c) => /@media \(hover: hover\)/.test(c)), 'CSS: :hover fuera de @media (hover: hover)')
   ok(/@media \(forced-colors: active\)/.test(css) && /@media print/.test(css) && /@media \(prefers-reduced-motion: reduce\)/.test(css), 'CSS: falta forced-colors, print o reduce')
   ok(/@supports \(container-type: scroll-state\)/.test(css), 'CSS: la línea que se despega no va como mejora progresiva')
-  ok(/min-block-size: 44px/.test(css) && /scroll-margin-block-start: var\(--g-accordion-sticky-top\)/.test(css) && /calc\(var\(--g-accordion-sticky-top\) \+ var\(--_head-size\)\)/.test(css), 'CSS: 44px, scroll-margin del botón o del contenido')
+  // Receta (b), #515: la cabecera fija de la aplicación es de su scroll-padding; el único scroll-margin es el del contenido (--_head-size)
+  const sms = [...css.matchAll(/scroll-margin-block-start:\s*([^;]+);/g)].map((m) => m[1].trim())
+  ok(/min-block-size: 44px/.test(css) && sms.length === 1 && sms[0] === 'var(--_head-size)' && !/sticky-top\)\s*\+\s*var\(--_head-size/.test(css), 'CSS: 44px, único scroll-margin = var(--_head-size): ' + sms)
 }
 
 /* ---------- En la página ---------- */
@@ -402,9 +404,10 @@ for (const engine of ENGINES) {
   }
 
   /* ---------- 7 · sticky ---------- */
-  for (const qs of ['', 'theme=propio']) {
+  // Con la receta (#515): scroll-padding-block-start 48 en el documento (?pad=1)
+  for (const qs of ['pad=1', 'theme=propio&pad=1']) {
     const page = await open(browser, qs)
-    const tag = `${E} ${qs || 'defecto'}`
+    const tag = `${E} ${qs.replace('&pad=1', '').replace('pad=1', '') || 'defecto'}+receta`
     await page.evaluate(() => document.getElementById('p2-name').scrollIntoView({ block: 'center' }))
     await page.waitForTimeout(250)
     const s = await page.evaluate(() => {
@@ -421,8 +424,8 @@ for (const engine of ENGINES) {
     })
     ok(Math.abs(s.top - 48) <= 1 && Math.abs(s.atop - 48) <= 1 && Math.abs(s.abottom - s.hbottom) <= 1, `${tag} sticky: encabezado y acciones pegados a 48px (${s.top}, ${s.atop}) con el mismo alto`)
     ok(s.bg && s.abg, `${tag} sticky: fondo opaco de la página en encabezado y acciones`)
-    ok(s.smBtn === '48px' && s.smFaq === '48px', `${tag} scroll-margin del botón = --g-accordion-sticky-top (${s.smBtn}, también sin sticky ${s.smFaq})`)
-    ok(Math.abs(s.smIn - (48 + s.head)) <= 1 && Math.abs(s.headVar - s.head) <= 0.5, `${tag} scroll-margin del contenido = 48 + encabezado (${s.smIn} vs ${48 + s.head}; --_head-size ${s.headVar})`)
+    ok(s.smBtn === '0px' && s.smFaq === '0px', `${tag} sin scroll-margin en el botón (${s.smBtn}, sin sticky ${s.smFaq}; #515)`)
+    ok(Math.abs(s.smIn - s.head) <= 1 && Math.abs(s.headVar - s.head) <= 0.5, `${tag} scroll-margin del contenido = solo el encabezado (${s.smIn} vs ${s.head}; --_head-size ${s.headVar})`)
     if (s.support) ok(s.lift === 1, `${tag} se despega: línea y sombra con el encabezado pegado (${s.lift})`)
     else note(`${tag} sin container-type: scroll-state (la línea que se despega no aparece; fondo opaco)`)
     // Mayús+Tab dentro de un abierto: el control queda entero a la vista bajo el pegado

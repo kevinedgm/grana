@@ -17,6 +17,7 @@
      Verificación: GRANA_PW_PORT=4214 node design/lab/accordion/estilo-verificar.mjs -->
 <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
 <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style id="recipe-css"></style>
 <style>@import url("../../../packages/vue/src/components/GAccordion/GAccordion.css") layer(grana.components);</style>
 <link id="gen" rel="stylesheet" href="data:text/css,">
 <style id="slow-css"></style>
@@ -443,6 +444,8 @@ $('#t-theme').onchange = (e) => setTheme(e.target.value)
 $('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
 $('#t-slow').onchange = (e) => applySlow(e.target.checked)
 if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+// Receta (#515): el scroll-padding de la cabecera fija es de la aplicación, la misma medida que --g-accordion-sticky-top
+if (q.get('pad')) $('#recipe-css').textContent = 'html{scroll-padding-block-start:48px}'
 if (q.get('slow')) { applySlow(true); $('#t-slow').checked = true }
 const th = q.get('theme')
 const ready = () => { app.mount('#app'); nextFrame(() => nextFrame(() => { window.__ready = true })) }

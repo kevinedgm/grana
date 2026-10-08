@@ -80,8 +80,11 @@ if (run(0)) {
   const nums = [...css.matchAll(/\*\s*(-?\d*\.?\d+)\b(?!px|ms|%)/g)].map((m) => m[1])
   ok(nums.every((n) => ['-1', '0', '0.5', '-0.5'].includes(n)), 'CSS: factores fuera de −1, 0 y ±0,5: ' + nums)
   ok(!/@keyframes|animation\s*:/.test(css), 'CSS: keyframes o animation')
-  // Hallazgo 5: la raíz del elemento (lleva el id) también respeta la cabecera fija de la aplicación
-  ok(/\.g-accordion-item \{[^}]*scroll-margin-block-start: var\(--g-accordion-sticky-top\)/.test(css), 'CSS: la raíz del elemento sin scroll-margin-block-start (hallazgo 5)')
+  // Receta (b), #515: la cabecera fija de la aplicación es de su scroll-padding; ni el botón ni la raíz llevan scroll-margin, y el
+  // del contenido de un grupo sticky es solo --_head-size
+  const sms = [...css.matchAll(/scroll-margin-block-start:\s*([^;]+);/g)].map((m) => m[1].trim())
+  ok(sms.length === 1 && sms[0] === 'var(--_head-size)', 'CSS: único scroll-margin-block-start = var(--_head-size) (sin --g-accordion-sticky-top; #515): ' + sms)
+  ok(!/scroll-margin[^;]*sticky-top/.test(css) && /\.g-accordion-item__toggle \{(?![^}]*scroll-margin)/.test(css), 'CSS: ni el botón ni la raíz con scroll-margin (#515)')
   ok(!/ease-spring|ease-bounce|cubic-bezier|steps\(/.test(css), 'CSS: muelle, rebote o curva propia (#299, #483)')
   ok(!/\bvisibility\s*:\s*hidden/.test(css.replace(/\.g-accordion-item\.is-open > \.g-accordion-item__peek \{[^}]*\}/, '')), 'CSS: visibility: hidden fuera del avance abierto (#480)')
   ok(/\.g-accordion \{[^}]*overflow-anchor: none/.test(css) && /\.g-accordion-item\.is-standalone \{[^}]*overflow-anchor: none/.test(css), 'CSS: overflow-anchor: none (#481)')
@@ -536,26 +539,27 @@ for (const engine of ENGINES) {
       T(st.open && st.hidden === null && st.top >= 0 && st.top < st.vh, `#:~:text= abre lo plegado y queda a la vista (${JSON.stringify(st)})`)
       await done(page)
     }
-    // #id del elemento al cargar: abre sin animar, encabezado bajo la cabecera de 48 (scroll-margin), foco no se mueve
-    for (const qs of ['', 'theme=auditoria']) {
+    // #id del elemento al cargar: abre sin animar, foco no se mueve. Receta (#515): con scroll-padding 48 de la aplicación (?pad=1)
+    // el encabezado queda a 48 (la cabecera una sola vez); sin él, a 0 (es la cabecera de la aplicación)
+    for (const [qs, want] of [['', 0], ['pad=1', 48], ['theme=auditoria', 0], ['theme=auditoria&pad=1', 48]]) {
       const page = await open(browser, qs, { hash: '#f-pago' })
       await page.waitForTimeout(300)
       const st = await page.evaluate(() => ({ open: document.getElementById('f-pago').classList.contains('is-open'), top: document.getElementById('f-pago-toggle').getBoundingClientRect().top, focus: document.activeElement === document.body }))
-      T(st.open && Math.abs(st.top - 48) <= 1 && st.focus, `${qs || 'defecto'} #f-pago al cargar: abierto ${st.open}, botón a ${st.top.toFixed(1)}px (48), foco sin mover ${st.focus}`)
+      T(st.open && Math.abs(st.top - want) <= 1 && st.focus, `${qs || 'defecto'} #f-pago al cargar: abierto ${st.open}, botón a ${st.top.toFixed(1)}px (${want}), foco sin mover ${st.focus}`)
       // hashchange
       await page.evaluate(() => { location.hash = '#f-cancelar' })
       await page.waitForTimeout(300)
       const hc = await page.evaluate(() => ({ open: document.getElementById('f-cancelar').classList.contains('is-open'), top: document.getElementById('f-cancelar-toggle').getBoundingClientRect().top, keep: document.getElementById('f-pago').classList.contains('is-open') }))
-      T(hc.open && Math.abs(hc.top - 48) <= 1 && hc.keep, `${qs || 'defecto'} hashchange #f-cancelar: abierto, a ${hc.top.toFixed(1)}px; el anterior sigue abierto`)
+      T(hc.open && Math.abs(hc.top - want) <= 1 && hc.keep, `${qs || 'defecto'} hashchange #f-cancelar: abierto, a ${hc.top.toFixed(1)}px; el anterior sigue abierto`)
       await done(page)
     }
     // #id reaplicado en load: una imagen sin tamaño arriba llega 700 ms después de montar y empuja 200px
-    {
-      const page = await open(browser, 'late=700', { hash: '#f-pago' })
+    for (const [qs, want] of [['late=700', 0], ['late=700&pad=1', 48]]) {
+      const page = await open(browser, qs, { hash: '#f-pago' })
       await page.waitForTimeout(300)
       const st = await page.evaluate(() => ({ img: document.getElementById('late-img').getBoundingClientRect().height, top: document.getElementById('f-pago-toggle').getBoundingClientRect().top, open: document.getElementById('f-pago').classList.contains('is-open') }))
-      T(st.img >= 199 && st.open && Math.abs(st.top - 48) <= 1, `#id reaplicado en load: imagen de ${st.img}px llegó tarde, botón a ${st.top.toFixed(1)}px (48)`)
-      note(`${E} #id con una imagen que llega tarde (200px): botón a ${st.top.toFixed(1)}px`)
+      T(st.img >= 199 && st.open && Math.abs(st.top - want) <= 1, `#id reaplicado en load (${qs}): imagen de ${st.img}px llegó tarde, botón a ${st.top.toFixed(1)}px (${want})`)
+      note(`${E} #id con una imagen que llega tarde (200px), ${qs}: botón a ${st.top.toFixed(1)}px`)
       await done(page)
     }
     // Ancla de dentro de un plegado (beforematch): abre; sin receta queda bajo la cabecera de la aplicación, con ella a 48
@@ -563,7 +567,7 @@ for (const engine of ENGINES) {
       const page = await open(browser, qs, { hash: '#f-documentos-deep' })
       await page.waitForTimeout(300)
       const st = await page.evaluate(() => ({ open: document.getElementById('f-documentos').classList.contains('is-open'), top: document.getElementById('f-documentos-deep').getBoundingClientRect().top }))
-      T(st.open && st.top >= -1 && (!qs || st.top >= 47), `${qs || 'sin receta'} #f-documentos-deep: abre (${st.open}), párrafo a ${st.top.toFixed(1)}px`)
+      T(st.open && st.top >= -1 && (!qs || st.top >= 47) && st.top <= (qs ? 49 : 1), `${qs || 'sin receta'} #f-documentos-deep: abre (${st.open}), párrafo a ${st.top.toFixed(1)}px`)
       note(`${E} ancla de dentro (grupo sin sticky) ${qs || 'sin scroll-padding'}: párrafo a ${st.top.toFixed(1)}px`)
       await done(page)
     }
@@ -601,9 +605,10 @@ for (const engine of ENGINES) {
   }
 
   /* ---------- 7 · sticky (defecto y auditoría) ---------- */
-  if (run(7)) for (const qs of ['', 'theme=auditoria']) {
+  // Con la receta (#515): scroll-padding-block-start 48 en el documento, la misma medida que --g-accordion-sticky-top
+  if (run(7)) for (const qs of ['pad=1', 'theme=auditoria&pad=1']) {
     const page = await open(browser, qs)
-    const tag = qs.replace('theme=', '') || 'defecto'
+    const tag = (qs.replace('&pad=1', '').replace('theme=', '').replace('pad=1', '') || 'defecto') + '+receta'
     await page.evaluate(() => document.getElementById('p2-name').scrollIntoView({ block: 'center' }))
     await page.waitForTimeout(250)
     const s = await page.evaluate(() => {
@@ -620,8 +625,8 @@ for (const engine of ENGINES) {
     })
     T(Math.abs(s.top - 48) <= 1 && Math.abs(s.atop - 48) <= 1 && Math.abs(s.abottom - s.hbottom) <= 1, `${tag} sticky: encabezado y acciones pegados a 48px (${s.top}, ${s.atop}) con el mismo alto`)
     T(s.bg && s.abg, `${tag} sticky: fondo opaco de la página en encabezado y acciones`)
-    T(s.smBtn === '48px' && s.smFaq === '48px', `${tag} scroll-margin del botón = --g-accordion-sticky-top (${s.smBtn}, sin sticky ${s.smFaq})`)
-    T(Math.abs(s.smIn - (48 + s.head)) <= 1 && Math.abs(s.headVar - s.head) <= 0.5, `${tag} scroll-margin del contenido = 48 + encabezado (${s.smIn} vs ${48 + s.head}; --_head-size ${s.headVar})`)
+    T(s.smBtn === '0px' && s.smFaq === '0px', `${tag} sin scroll-margin en el botón (${s.smBtn}, sin sticky ${s.smFaq}; #515)`)
+    T(Math.abs(s.smIn - s.head) <= 1 && Math.abs(s.headVar - s.head) <= 0.5, `${tag} scroll-margin del contenido = solo el encabezado (${s.smIn} vs ${s.head}; --_head-size ${s.headVar})`)
     T(s.pad === '', `${tag} --_scroll-pad sin escribir con el documento (${s.pad})`)
     if (s.support) T(s.lift === 1, `${tag} se despega: línea y sombra con el encabezado pegado (${s.lift})`)
     else note(`${E} ${tag} sin container-type: scroll-state (la línea que se despega no aparece; fondo opaco)`)
@@ -658,7 +663,9 @@ for (const engine of ENGINES) {
     T(await page.evaluate(() => document.getElementById('p2-content').getAttribute('hidden') === 'until-found'), `${tag} cerrado desde el pegado asienta until-found`)
     // GDialog: pegado al borde del cuerpo, fondo del diálogo; Mayús+Tab dentro
     for (const [btn, id] of [['#open-dialog', 'h-dialog-a'], ['#open-dialog-inset', 'h-dinset-a']]) {
-      await page.click(btn); await page.waitForSelector('#' + id, { state: 'visible', timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400)
+      // El diálogo anterior se cierra con animación: si el clic llega antes (WebKit), no abre; se reintenta una vez
+      for (let k = 0; k < 2; k++) { await page.click(btn); if (await page.waitForSelector('#' + id, { state: 'visible', timeout: 3000 }).then(() => true, () => false)) break; await page.keyboard.press('Escape'); await page.waitForTimeout(500) }
+      await page.waitForTimeout(400)
       if (!(await page.$('#' + id))) { T(false, `${tag} ${id}: el GDialog no se abrió`); await page.keyboard.press('Escape'); continue }
       const d = await page.evaluate((id) => {
         const L = window.__lib, item = document.getElementById(id), body = item.closest('.g-dialog__body'), h = item.querySelector(':scope > .g-accordion-item__heading'), g = item.closest('.g-accordion')
@@ -684,8 +691,8 @@ for (const engine of ENGINES) {
       await page.evaluate(() => { location.hash = '#p2-deep' })
       await page.waitForTimeout(300)
       const b = await page.evaluate(() => ({ top: document.getElementById('p2-deep').getBoundingClientRect().top, hb: document.querySelector('#p2 > .g-accordion-item__heading').getBoundingClientRect().bottom }))
-      T(a >= 47 && b.top >= b.hb - 0.5, `receta scroll-padding: nada queda tapado (#f-pago a ${a.toFixed(1)}, #p2-deep a ${b.top.toFixed(1)} bajo ${b.hb.toFixed(1)})`)
-      note(`${E} HALLAZGO 2 · receta scroll-padding 48 + --g-accordion-sticky-top 48: #f-pago a ${a.toFixed(1)}px (sin la receta, 48), #p2-deep a ${b.top.toFixed(1)}px con el encabezado pegado hasta ${b.hb.toFixed(1)}px (hueco ${(b.top - b.hb).toFixed(1)}px)`)
+      T(Math.abs(a - 48) <= 1 && Math.abs(b.top - b.hb) <= 1.5, `receta scroll-padding (#515): la cabecera una sola vez (#f-pago a ${a.toFixed(1)}, #p2-deep a ${b.top.toFixed(1)} justo bajo ${b.hb.toFixed(1)})`)
+      note(`${E} receta (b) #515 · scroll-padding 48 + --g-accordion-sticky-top 48: #f-pago a ${a.toFixed(1)}px (antes 96), #p2-deep a ${b.top.toFixed(1)}px con el encabezado pegado hasta ${b.hb.toFixed(1)}px (hueco ${(b.top - b.hb).toFixed(1)}px, antes 48)`)
       await done(page)
     }
     // Estilo global de la aplicación sin capa: h3 { margin: 28px 0 }

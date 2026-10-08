@@ -113,10 +113,8 @@
   min-inline-size: 0;
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
-  /* El id del elemento está en la raíz: la navegación del navegador a #id (antes de hidratar o después de que el .vue lo
-     haya traído a la vista, como hace WebKit al terminar la carga) también deja el encabezado bajo la cabecera fija de la
-     aplicación (auditoría, hallazgo 5) */
-  scroll-margin-block-start: var(--g-accordion-sticky-top);
+  /* Sin scroll-margin (#515): la cabecera fija de la aplicación es de su scroll-padding-block-start; si el componente también
+     la sumara, se contaría dos veces */
 }
 .g-accordion-item.has-peek {
   --_pad-end: var(--g-space-1);
@@ -169,8 +167,6 @@
   appearance: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  /* WCAG 2.4.11: Tab y un #id no dejan el encabezado bajo la cabecera fija de la aplicación (también sin sticky) */
-  scroll-margin-block-start: var(--g-accordion-sticky-top);
 }
 /* Foco hacia dentro: no lo recorta un contenedor y cae en la sangría, nunca sobre la letra */
 .g-accordion-item__toggle:focus-visible {
@@ -438,7 +434,7 @@
 /* 2.4.11: lo que hay dentro (controles y destinos de un #id) no queda bajo el encabezado pegado ni bajo la cabecera de la
    aplicación. En todos los elementos del grupo, no solo en el abierto: un #id de dentro llega antes de que el .vue lo abra */
 .g-accordion--sticky > .g-accordion-item > .g-accordion-item__panel > .g-accordion-item__content :not(:where(.g-tooltip)) {
-  scroll-margin-block-start: calc(var(--g-accordion-sticky-top) + var(--_head-size));
+  scroll-margin-block-start: var(--_head-size);
 }
 /* Se despega: solo mientras está pegado de verdad, la fila deja una línea y una sombra mínima debajo, de borde a borde
    (encabezado y acciones). Mejora progresiva con consultas de estado de desplazamiento: el ::after de cada pieza consulta su
