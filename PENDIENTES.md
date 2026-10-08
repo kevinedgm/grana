@@ -9,6 +9,7 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 | Componente | Idea | Estado |
 | --- | --- | --- |
 | `GMenu` | M2 entrada escalonada de items con `linear()` | medida, fuera por frecuencia de apertura |
+| `GLoadRegion` | Revelado escalonado por elemento (retardo `fast × min(i, 4) / 4` por `[data-g-key]`, como la escalera de `GBreadcrumbs`; reservada en #549) | medida en idea, sin prototipo; necesita constante de coreografía (#187) |
 | `GMenu` | M3 (ver declaración) | sin prototipo |
 | `GCard` | C3 imagen que respira al pasar, C4 (ver declaración) | sin prototipo |
 | `GDialog` | D3, D4 (ver declaración); D2 para la hoja móvil (`sheet`) sigue abierto (#307) | sin prototipo |
@@ -103,7 +104,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | Inventario de carga: `GCalendar` pone `aria-label` en un `div` genérico (`g-calendar__skeleton`; nombre prohibido en `generic`) y su error es `role="alert"` | bruno |
 | Inventario de carga: pulsos infinitos `g-table-pulse` (primera entrega), `g-card-pulse`, `g-widget-pulse`, `g-calendar-pulse` y `g-dialog-pulse` (#299 §5, WCAG 2.2.2; #539); `widget.md` nombraba `duration-fast`/`press` para el pulso y `GWidget.css` usa `duration-spin` (se cierra al retirar el pulso) | coco |
 | Inventario de carga: tonos del marcador incoherentes (`surface-sunken` ≈ 1,08:1 en `GTable`, `GWidget`, `GCalendar`; `border-strong` con alfa en `GCard`, `GSummary`) y sin regla en `forced-colors` en `GTable`, `GWidget`, `GCalendar`: pasan a `--g-color-mold` y `GrayText` (#538, #540) | coco |
-| `--g-color-mold` en el CLI: emitirlo en `tokens.json` y diagnosticar ≥ 1,3:1 y < 3:1 frente a `surface` (informativo, como #228; #538) | bruno |
+| `--g-color-mold` en el CLI: **`@grana/cli` aún no lo emite** en `tokens.json` ni diagnostica ≥ 1,3:1 y < 3:1 frente a `surface` (informativo, como #228; #538). No bloqueante: el valor de `defaults.css` se calcula con el `text` y el `surface` del tema y cumple en los 26 temas medidos (coco, 1,46 a 1,71:1) | bruno |
 
 ## 7. Solo en entorno real (no automatizable)
 
