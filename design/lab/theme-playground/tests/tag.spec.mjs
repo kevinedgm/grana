@@ -128,14 +128,49 @@ test.describe('GTag y GTagGroup · componente real (tag.md)', () => {
     expect(await page.evaluate(() => [...document.querySelectorAll('#tg-flow .g-tag__text')].map((x) => x.textContent).join(','))).toBe('Penicilina,Látex,Nueces,Polen,Ácido acetilsalicílico y otros antiinflamatorios no esteroideos,Mariscos')
     expect(await page.evaluate(() => document.activeElement.classList.contains('g-tag-group__clear') && !document.activeElement.classList.contains('is-undo'))).toBe(true)
     expect(await live(page, '#tg-flow')).toBe('6 etiquetas restauradas')
-    // Quitar todas y salir: el «Deshacer» se va y se emite settle
+    // Quitar todas y salir (foco y puntero, #466.6): el «Deshacer» se va y se emite settle
     await page.click('#tg-flow .g-tag-group__clear')
     await page.focus('#tg-add')
+    await page.mouse.move(2, 2)
     await page.waitForTimeout(50)
     expect(await page.locator('#tg-flow .g-tag-group__clear').count()).toBe(0)
     expect(await page.locator('#tg-flow .g-tag-group__empty').textContent()).toBe('Sin etiquetas')
     const settle = (await tagEvents(page)).filter((e) => e.name === 'settle' && e.group === 'flow').pop()
     expect(settle.ids.length).toBe(6)
+  })
+
+  test('«Quitar todas» y «Deshacer» con CLIC: deshace en los tres motores (hallazgo 5 de la auditoría, #466.6)', async ({ page }) => {
+    await open(page)
+    const order = 'Penicilina,Látex,Nueces,Polen,Ácido acetilsalicílico y otros antiinflamatorios no esteroideos,Mariscos'
+    const texts = () => page.evaluate(() => [...document.querySelectorAll('#tg-flow .g-tag__text')].map((x) => x.textContent).join(','))
+    const flowEvents = async () => (await tagEvents(page)).filter((e) => e.group === 'flow').map((e) => e.name)
+    await page.click('#tg-flow .g-tag-group__clear')
+    expect(await page.locator('#tg-flow .g-tag-group__clear.is-undo').count()).toBe(1)
+    // El mousedown de WebKit saca el foco del botón: el puntero con hover retiene el «Deshacer» hasta el clic
+    await page.click('#tg-flow .g-tag-group__clear')
+    expect(await texts()).toBe(order)
+    expect(await flowEvents()).toEqual(['clear', 'restore'])
+    expect(await live(page, '#tg-flow')).toBe('6 etiquetas restauradas')
+    expect(await page.locator('#tg-flow .g-tag-group__clear:not(.is-undo)').count()).toBe(1)
+    // Otra vez, con el foco fuera del grupo antes del clic (lo que hace WebKit en el mousedown) y el puntero encima:
+    // sigue deshaciendo. (Tras «Quitar todas» el botón sube; el puntero vuelve a él para pulsar.)
+    await page.click('#tg-flow .g-tag-group__clear')
+    await page.hover('#tg-flow .g-tag-group__clear')
+    await page.evaluate(() => document.activeElement.blur())
+    await page.waitForTimeout(50)
+    expect(await page.locator('#tg-flow .g-tag-group__clear.is-undo').count()).toBe(1)
+    await page.click('#tg-flow .g-tag-group__clear')
+    expect(await texts()).toBe(order)
+    expect(await flowEvents()).toEqual(['clear', 'restore', 'clear', 'restore'])
+    // Sin foco dentro, al salir el puntero el «Deshacer» se va y se emite settle
+    await page.click('#tg-flow .g-tag-group__clear')
+    await page.evaluate(() => document.activeElement.blur())
+    await page.mouse.move(2, 2)
+    await page.waitForTimeout(50)
+    expect(await page.locator('#tg-flow .g-tag-group__clear').count()).toBe(0)
+    const ev = (await tagEvents(page)).filter((e) => e.group === 'flow')
+    expect(ev.map((e) => e.name)).toEqual(['clear', 'restore', 'clear', 'restore', 'clear', 'settle'])
+    expect(ev.pop().ids.length).toBe(6)
   })
 
   test('«Ver N más» (Disclosure): aria-expanded, aria-controls, ocultas fuera del árbol, foco en el botón', async ({ page }) => {

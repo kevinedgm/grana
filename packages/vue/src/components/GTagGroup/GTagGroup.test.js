@@ -114,6 +114,22 @@ describe('GTagGroup · marcado (tag.md §«El grupo», #464)', () => {
     expect(w.find('.g-tag-group').classes()).toContain('g-tag-group--size-sm')
     expect(w.findAll('.g-tag.g-tag--size-sm').length).toBe(4)
   })
+  it('item.avatar hereda las categories del grupo (#513); con color o categories propios manda lo suyo', () => {
+    const items = [
+      { id: 'a', label: 'Ana López', avatar: true },
+      { id: 'b', label: 'Bea', avatar: { initials: 'BT' } },
+      { id: 'c', label: 'Ceci', avatar: { initials: 'CC', color: 3 } },
+      { id: 'd', label: 'Dani', avatar: { initials: 'DD', categories: 0 } }
+    ]
+    const w = mk({ items, categories: 8 })
+    const cat = (id) => li(w, id).find('.g-tag__lead > .g-avatar').attributes('data-cat')
+    expect(cat('a')).toBe(String(categoryOf('Ana López', 8)))
+    expect(cat('b')).toBe(String(categoryOf('Bea', 8)))
+    expect(cat('c')).toBe('3')
+    expect(cat('d')).toBeUndefined()
+    const z = mk({ items })
+    expect(z.find('[data-id="a"] .g-tag__lead > .g-avatar').attributes('data-cat')).toBeUndefined()
+  })
   it('item.avatar → GAvatar xs decorativo en el hueco; item.icon → icono; el slot lead manda', () => {
     const items = [
       { id: 'a', label: 'Ana López', avatar: true },
@@ -411,6 +427,68 @@ describe('GTagGroup · «Quitar todas» (#466.9)', () => {
   })
 })
 
+describe('GTagGroup · «Deshacer» de «Quitar todas» caduca como las huellas (#466.6, hallazgo 5)', () => {
+  const pe = (root, type, pointerType = 'mouse') => { const e = new MouseEvent(type, { bubbles: false }); Object.defineProperty(e, 'pointerType', { value: pointerType }); root.dispatchEvent(e) }
+  it('con el puntero encima, perder el foco (mousedown de WebKit) no lo retira; el clic deshace', async () => {
+    const { w, model, events } = mkModel(ALERGIAS(), { clearable: true })
+    const root = w.find('.g-tag-group').element
+    pe(root, 'pointerenter')
+    await w.find('.g-tag-group__clear').trigger('click')
+    await nextTick()
+    // WebKit: el mousedown sobre el botón deja el foco en <body>
+    const undo = w.find('.g-tag-group__clear').element
+    undo.blur()
+    root.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }))
+    await wait(0)
+    await nextTick()
+    expect(w.find('.g-tag-group__clear').classes()).toContain('is-undo')
+    expect(events.some((e) => Array.isArray(e) && e[0] === 'settle')).toBe(false)
+    await w.find('.g-tag-group__clear').trigger('click')
+    await nextTick()
+    expect(model.value.map((x) => x.id)).toEqual(['pen', 'lat', 'nue', 'pol'])
+    expect(events).toContain('restore')
+  })
+  it('sin foco dentro, al salir el puntero se retira y emite settle', async () => {
+    const w = mk({ clearable: true })
+    const root = w.find('.g-tag-group').element
+    pe(root, 'pointerenter')
+    await w.find('.g-tag-group__clear').trigger('click')
+    await nextTick()
+    await leave(w)
+    expect(w.find('.g-tag-group__clear').classes()).toContain('is-undo')
+    pe(root, 'pointerleave')
+    await nextTick()
+    expect(w.find('.g-tag-group__clear').exists()).toBe(false)
+    expect(w.emitted('settle')[0][0].items.map((x) => x.id)).toEqual(['pen', 'lat', 'nue', 'pol'])
+  })
+  it('con el foco dentro, salir el puntero no lo retira', async () => {
+    const w = mk({ clearable: true })
+    const root = w.find('.g-tag-group').element
+    pe(root, 'pointerenter')
+    await w.find('.g-tag-group__clear').trigger('click')
+    await nextTick()
+    pe(root, 'pointerleave')
+    await nextTick()
+    expect(w.find('.g-tag-group__clear').classes()).toContain('is-undo')
+    expect(w.emitted('settle')).toBeUndefined()
+  })
+  it('un pointerdown fuera con el foco fuera lo retira', async () => {
+    const w = mk({ clearable: true })
+    const root = w.find('.g-tag-group').element
+    pe(root, 'pointerenter')
+    await w.find('.g-tag-group__clear').trigger('click')
+    await nextTick()
+    outside.focus()
+    await wait(0)
+    expect(w.find('.g-tag-group__clear').classes()).toContain('is-undo')
+    outside.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+    await wait(0)
+    await nextTick()
+    expect(w.find('.g-tag-group__clear').exists()).toBe(false)
+    expect(w.emitted('settle')).toHaveLength(1)
+  })
+})
+
 describe('GTagGroup · foco cuando el control desaparece por otra causa (#465)', () => {
   it('la aplicación quita la etiqueta enfocada → control equivalente de la siguiente', async () => {
     const { w, model } = mkModel(ALERGIAS())
@@ -547,6 +625,20 @@ describe('GTagGroup · B «Racimo» (layout="facets", #467)', () => {
     expect(f[0].findAll('.g-tag').map((t) => t.attributes('data-cat'))).toEqual([k, k])
     expect(w.find('[data-id="4"] .g-tag').attributes('data-cat')).toBe(String(categoryOf('Suelta', 8)))
   })
+  it('flow: la clave del color también es colorKey ?? facet ?? label (#469)', () => {
+    const items = [
+      { id: 1, label: 'Alta', facet: 'Prioridad' },
+      { id: 2, label: 'Baja', facet: 'Prioridad' },
+      { id: 3, label: 'Alta', facet: 'Riesgo', colorKey: 'fijo' },
+      { id: 4, label: 'Suelta' }
+    ]
+    const w = mk({ items, categories: 8 })
+    const cat = (id) => w.find(`[data-id="${id}"] .g-tag`).attributes('data-cat')
+    expect(cat(1)).toBe(String(categoryOf('Prioridad', 8)))
+    expect(cat(2)).toBe(cat(1))
+    expect(cat(3)).toBe(String(categoryOf('fijo', 8)))
+    expect(cat(4)).toBe(String(categoryOf('Suelta', 8)))
+  })
   it('nombres con faceta: «Quitar Alta de Prioridad» únicos aunque «Alta» esté en dos facetas', () => {
     const w = mk({ layout: 'facets', items: FIL() })
     const names = w.findAll('.g-tag__remove .g-tag__sr').map((x) => x.text())
@@ -614,6 +706,16 @@ describe('GTagGroup · vacío y deshabilitado', () => {
     expect(w.find('[data-id="t"] button').attributes('disabled')).toBeDefined()
     expect(w.find('[data-id="l"] a').attributes('aria-disabled')).toBe('true')
     expect(w.find('.g-tag-group__clear').attributes('disabled')).toBeDefined()
+  })
+  it('disabled: «Ver N más» sigue activo y despliega (#512)', async () => {
+    const w = mk({ disabled: true, limit: 2 })
+    const more = w.find('.g-tag-group__more')
+    expect(more.attributes('disabled')).toBeUndefined()
+    expect(more.attributes('aria-disabled')).toBeUndefined()
+    await more.trigger('click')
+    await nextTick()
+    expect(w.find('.g-tag-group__more').attributes('aria-expanded')).toBe('true')
+    expect(w.findAll('[data-id][hidden]').length).toBe(0)
   })
 })
 

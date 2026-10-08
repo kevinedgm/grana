@@ -281,6 +281,10 @@ export default defineComponent({
     function expireCleared() {
       const c = cleared.value
       if (!c) return
+      // Misma regla que las huellas (#466.6): ni foco ni un puntero con hover en el grupo.
+      // En WebKit el mousedown sobre «Deshacer» saca el foco antes del clic; el hover lo retiene.
+      if (root.value && root.value.isConnected && root.value.contains(document.activeElement)) return
+      if (hovering) return
       cleared.value = null
       emit('settle', { items: [...c.entries.map((x) => x.item), ...c.extra] })
     }
@@ -414,14 +418,19 @@ export default defineComponent({
     }
     const onPointerenter = (e) => { if (e.pointerType !== 'touch') hovering = true }
     const onPointermove = (e) => { if (e.pointerType !== 'touch') hovering = true }
-    const onPointerleave = () => { hovering = false; maybeSettle() }
+    const onPointerleave = () => {
+      hovering = false
+      maybeSettle()
+      // Si el foco está dentro, no caduca (expireCleared lo comprueba); sale en el focusout
+      expireCleared()
+    }
     let docAbort = null
     onMounted(() => {
       docAbort = new AbortController()
       document.addEventListener('pointerdown', (e) => {
         if (!root.value || root.value.contains(e.target)) return
         hovering = false
-        setTimeout(maybeSettle, 0)
+        setTimeout(() => { maybeSettle(); expireCleared() }, 0)
       }, { capture: true, signal: docAbort.signal })
       if (cut) cut.refresh(root.value)
       if (isDev() && slots.default && hasContent(slots.default())) warn('slot', 'no tiene slot por defecto: los hijos no se pintan. Pasa las etiquetas como datos en items.')
@@ -516,7 +525,9 @@ export default defineComponent({
           : it.avatar
             ? () => {
               const own = typeof it.avatar === 'object' && it.avatar ? it.avatar : {}
-              return h(GAvatar, { ...own, name: present(own.name) ?? present(it.label), size: 'xs', label: undefined })
+              // #513: sin color ni categories propios, el avatar hereda las categories del grupo
+              const inherit = own.color === undefined && own.categories === undefined ? { categories: categories.value } : {}
+              return h(GAvatar, { ...inherit, ...own, name: present(own.name) ?? present(it.label), size: 'xs', label: undefined })
             }
             : present(it.icon) && typeof it.icon === 'string' ? () => h(GAppIcon, { name: it.icon }) : undefined
         const tagSlots = {}
@@ -530,7 +541,8 @@ export default defineComponent({
           if ((href && !disabled) || (toggle && !href)) { const k = tipKey('b', e.id); tipMap.set(k, { id: e.id, kind: 'b' }); tipNodes.push(tips.node(k, present(it.label))) }
           if (removable) { const k = tipKey('r', e.id); tipMap.set(k, { id: e.id, kind: 'r' }); tipNodes.push(tips.node(k, c.removeName || '')) }
         }
-        const colorKey = present(it.colorKey) ?? (facets.value ? facetOf(it) : undefined)
+        // Clave del color en cualquier grupo: colorKey ?? facet ?? label (tag.md §«Color», #469)
+        const colorKey = present(it.colorKey) ?? facetOf(it)
         const ci = colorInfo(it.color)
         return h(TagItemProvider, { key: `p:${typeof e.id}:${String(e.id)}`, ctx: c }, () => [h(GTag, {
           label: present(it.label),
@@ -612,7 +624,7 @@ export default defineComponent({
             color: 'accent',
             size: btnSize,
             class: 'g-tag-group__more',
-            disabled: props.disabled,
+            // #512: la divulgación sigue activa con disabled en el grupo
             'aria-expanded': expanded.value ? 'true' : 'false',
             'aria-controls': listId,
             onClick: () => { expanded.value = !expanded.value; afterRender(() => focusTool('.g-tag-group__more')) }

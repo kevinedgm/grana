@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GTagGroup",
   "tag": "g-tag-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Conjunto de etiquetas dirigido por datos (v-model:items): A «Huella» (quitar deja una huella del mismo ancho con «Deshacer» en el sitio y con el foco; nada se mueve hasta que puntero y foco salen del grupo; el modelo cambia en el acto), B «Racimo» (layout=\"facets\": el nombre de la faceta una vez y un lomo de color), tope con «Ver N más», «Quitar todas» con deshacer y el foco que nunca se pierde.",
   "contract": "design/contracts/tag.md",
@@ -30,7 +30,7 @@
     { "name": "limit", "type": "Number", "default": null, "description": "Muestra las primeras N (las huellas cuentan) y «Ver N más» (APG Disclosure). Se ignora con layout=\"facets\" (aviso G6)." },
     { "name": "clearable", "type": "Boolean", "default": false, "description": "«Quitar todas» con ≥ 2 etiquetas quitables y habilitadas; el mismo botón pasa a «Deshacer» hasta que el foco sale del grupo." },
     { "name": "emptyFocus", "type": "String | Object | Function", "default": null, "description": "A dónde va el foco si el grupo se queda sin controles: selector CSS, elemento (o instancia con $el) o función que lo devuelve. Sin él (o si no se encuentra, aviso G10), el contenedor con tabindex=\"-1\"." },
-    { "name": "disabled", "type": "Boolean", "default": false, "description": "Deshabilita todos los controles del grupo." },
+    { "name": "disabled", "type": "Boolean", "default": false, "description": "Deshabilita los controles de las etiquetas (cuerpos, «Quitar», «Deshacer») y «Quitar todas». «Ver N más» sigue activo (#512): deshabilitar no esconde etiquetas sin forma de leerlas." },
     { "name": "labels", "type": "Object", "default": {}, "description": "Textos (cadena con marcadores o función), sin valores por defecto (#226): ver labels." }
   ],
   "attrs": "Los atributos van a la raíz <div>. El nombre del grupo va en el contenedor (label/labelledby), no en la raíz.",
@@ -124,7 +124,6 @@
     "browser": "design/lab/theme-playground/tests/tag.spec.mjs y personalidad-tag.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground #sec-tag)"
   },
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5): design/lab/chip/auditoria.md",
     "README (mora-docs, GTag/README.md)",
     "Lectores de pantalla reales (huella, racimo, grupo vacío enfocado), táctil real, forced-colors real, cientos de etiquetas"
   ]
