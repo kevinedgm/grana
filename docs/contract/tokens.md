@@ -913,6 +913,8 @@ Pendiente de integrar cuando el archivo no tenga otra sesión abierta: una fila 
 
 **No son tokens:** el tope de recorte `space × 60` y el grosor del lomo `space × 0.75` (constantes de diseño de coco desde `space`); `24px`/`44px` (§7); los datos de §29.5 (`--_ghost-w`, `is-ghost`, `is-settling`).
 
+**Remates de la auditoría (#524 a #528; siguen sin tokens nuevos).** (1) **Alto** = `max(space × n, línea + 2 × borde)` con `n` = 8 (`md`) o 6 (`sm`), la fórmula de la caja de `GInput`: lee solo `--g-space-1`, el rol de texto (§23) y `--g-border-width` (#524). (2) El tope de recorte `space × 60` va también en `__item`/`__value` del grupo (#524). (3) **Tapa al pasar**: se invierte sobre el par del estado (`soft`/`on-soft`, `fill`/`on-fill`, `pick`/`on-pick`, los de «Contraste»), sin combinación nueva (#525). (4) **Lomo neutro** de las sueltas en `facets`: `--g-color-border-control`; el lomo es un borde y se redondea a píxel entero con `space` fraccionario (#525). (5) La clave del color `colorKey ?? facet ?? label` vale con cualquier `layout` (#527). (6) El tope en px no crece con el texto: límite aceptado (#528).
+
 ## 40. Acordeón (`GAccordion`, `GAccordionItem`; sin tokens del tema nuevos)
 
 Consume solo tokens existentes (`design/contracts/accordion.md` «Tokens», DECISIONS.md #485): `--g-color-text`, `-text-muted`, `-text-subtle`, `-border`, `-bg`, `-focus`; `--g-focus-width`, `--g-border-width`; `--g-space-*`; `--g-radius-xs`; `--g-text-title-sm-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-font-title`, `--g-font-ui`; `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`. Sin muelle ni rebote (§29). B «Hilo» reservado pintaría su tramo en `brand-text` (§7.1, #439).
