@@ -2,7 +2,9 @@
   GTable · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/table.md. Estructura: design/lab/table/r01/ y r02/.
   Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px, 44px y el patrón de texto oculto.
-  Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional).
+  Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional); carga (#540): is-loading,
+  is-pending, is-slow, is-failed en la raíz; p.g-table__slow último hijo de __scroll; div.g-table__failed antes de
+  __scroll con __failed-icon y __failed-text; GEmpty en td.g-table__empty.
 */
 
 /* ---------- Raíz ---------- */
@@ -151,6 +153,8 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 @media (hover: hover) {
   .g-table__row:hover > td { background: var(--g-color-surface-sunken); }
   .g-table__row.is-selected:hover > td { background: var(--g-color-primary-soft); }
+  /* Una fila esqueleto no es una fila: sin fondo al pasar */
+  .g-table__row:has(> td > .g-table__skeleton):hover > td { background: none; }
   .g-table__sort:hover { color: var(--g-color-text); }
 }
 
@@ -223,24 +227,106 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   border-end-end-radius: var(--g-radius-lg);
 }
 
-/* ---------- Estados ---------- */
+/* ---------- Estados: carga con el motor común (table.md «Carga, vacío y error», #540) ---------- */
+/* El <table> recibe el foco por programa al empezar una carga con el foco dentro (#534): anillo por dentro, porque el
+   área desplazable lo recortaría */
+.g-table__table:focus { outline: none; }
+.g-table__table:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-table.is-loading .g-table__table { cursor: progress; }
+
+/* Filas esqueleto: quietas (sin pulso, #539), en el tono del molde (#538). Cada barra vive en la caja de línea de su celda
+   (la receta de GSummary, #352): una fila esqueleto mide lo que una fila de una línea. Largos distintos por columna y por
+   fila, como el texto que esperan; barras de puntas rectas, como la barra del molde de GLoadRegion */
 .g-table__skeleton {
   display: block;
   inline-size: 60%;
-  block-size: var(--g-space-3);
-  border-radius: var(--g-radius-pill);
-  background: var(--g-color-surface-sunken);
+  block-size: calc(1lh - var(--g-space-2));
+  margin-block: var(--g-space-1);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-mold);
 }
-@media (prefers-reduced-motion: no-preference) {
-  .g-table.is-loading .g-table__skeleton {
-    animation: g-table-pulse calc(var(--g-duration-spin) * 1.5) var(--g-ease-standard) infinite alternate;
-  }
+.g-table__cell--primary > .g-table__skeleton { inline-size: 80%; }
+.g-table__row:nth-child(3n + 2) > td:not(.g-table__cell--primary) > .g-table__skeleton { inline-size: 40%; }
+.g-table__row:nth-child(3n) > td:not(.g-table__cell--primary) > .g-table__skeleton { inline-size: 70%; }
+.g-table__row:nth-child(3n + 2) > .g-table__cell--primary > .g-table__skeleton { inline-size: 65%; }
+/* Una columna alineada al final (cifras, fechas) lleva su barra al final, como su texto */
+.g-table__cell--end > .g-table__skeleton { margin-inline-start: auto; }
+/* La casilla de una fila esqueleto: su caja en contorno, con la medida y la alineación de la casilla real (la fila esqueleto
+   mide lo mismo que una fila con casilla; la casilla real alarga la línea en algunos temas) */
+.g-table__row:has(> td > .g-table__skeleton) > td.g-table__select::before {
+  content: "";
+  box-sizing: border-box;
+  display: inline-block;
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
+  vertical-align: middle;
+  border: var(--g-border-width) solid var(--g-color-mold);
+  border-radius: var(--g-radius-xs);
 }
-@keyframes g-table-pulse { to { opacity: 0.45; } }
+/* Dentro del retraso de la primera carga, las filas esqueleto reservan su sitio sin verse */
+.g-table.is-pending .g-table__row:has(> td > .g-table__skeleton) { visibility: hidden; }
+
+/* Espera larga (5 s): una línea superpuesta al pie del área desplazable, sin mover nada. Último hijo de __scroll: el
+   margen negativo descuenta su propio alto (una línea + relleno + borde) y sticky la deja al pie de lo visible */
+.g-table__slow {
+  position: sticky;
+  z-index: 2;
+  inset-block-end: 0;
+  box-sizing: border-box;
+  margin: calc((var(--g-text-body-sm-line) + var(--g-space-2) * 2 + var(--g-border-width)) * -1) 0 0;
+  padding: var(--g-space-2) var(--_pad-inline);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-table:not(.is-slow) .g-table__slow { display: none; }
+
+/* Barra de fallo con filas a la vista: en flujo, encima del área desplazable; las filas de antes siguen usables */
+.g-table__failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2) var(--g-space-3);
+  margin-block-end: var(--g-space-2);
+  padding: var(--g-space-2) var(--g-space-3);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-danger-soft);
+  color: var(--g-color-text);
+}
+.g-table__failed-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  color: var(--g-color-on-danger-soft);
+  font-size: var(--g-text-body-size);
+}
+.g-table__failed-text {
+  flex: 1 1 calc(var(--g-space-1) * 48);
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--g-color-text);
+  overflow-wrap: break-word;
+}
+
+/* Vacío y error */
 .g-table__table td.g-table__empty {
   padding: calc(var(--g-space-1) * 10) var(--_pad-inline);
   text-align: center;
   color: var(--g-color-text-muted);
+}
+/* Con GEmpty (por defecto, #540): el primer hueco ocupa el sitio de la primera fila, a lo ancho y desde el inicio */
+.g-table__table td.g-table__empty:has(> .g-empty) {
+  padding: var(--g-space-2) 0;
+  text-align: start;
+  color: var(--g-color-text);
 }
 
 /* ---------- Modo tarjetas ---------- */
@@ -298,11 +384,13 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 
 /* ---------- Área táctil ---------- */
 @media (pointer: coarse) {
-  .g-table__select input[type="checkbox"] {
+  .g-table__select input[type="checkbox"],
+  .g-table__row:has(> td > .g-table__skeleton) > td.g-table__select::before {
     inline-size: 24px;
     block-size: 24px;
   }
   .g-table__sort { min-block-size: 44px; }
+  .g-table__failed { row-gap: var(--g-space-4); }
 }
 
 /* ---------- Colores forzados ---------- */
@@ -312,4 +400,14 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   .g-table__row.is-selected > td { outline: var(--g-focus-width) solid Highlight; outline-offset: calc(var(--g-focus-width) * -1); }
   .g-table--mode-cards .g-table__row { border-color: CanvasText; }
   .g-table--mode-cards .g-table__row.is-selected { outline: var(--g-focus-width) solid Highlight; }
+  /* Sin esto el sistema anula el fondo y el esqueleto desaparece */
+  .g-table__skeleton {
+    forced-color-adjust: none;
+    background: GrayText;
+  }
+  .g-table__row:has(> td > .g-table__skeleton) > td.g-table__select::before {
+    forced-color-adjust: none;
+    border-color: GrayText;
+  }
+  .g-table__failed { outline: var(--g-border-width) solid CanvasText; }
 }

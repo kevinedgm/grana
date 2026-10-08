@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEmpty y GLoadRegion · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/empty.md, load-region.md y table.md («Carga, vacío y error») con el
+     CSS real (GEmpty.css y GLoadRegion.css cargados DENTRO de la capa grana.components, como los registrará bruno) sobre
+     los estilos FUENTE de Grana (src/styles/grana.css: defaults.css con --g-color-mold y GTable.css nuevos, sin build) y
+     la fuente servida (dist/fonts.css). El motor del banco (estilo-banco.js) solo pone las clases de fase que el estilo
+     necesita: no es el motor de bruno (sin tiempos reales, sin anuncios, sin foco).
+     Las plantillas (lista, teselas, ficha) son de «la aplicación»: su CSS va SIN capa, como el de cualquier proyecto, para
+     comprobar que el molde gana (#535).
+     Desde la raíz del repo:  python3 -m http.server 4216  →  /design/lab/empty-skeleton/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=propio (estilo-tema.css, @grana/cli)  ?theme=<nombre de dark-color-presence/generated/*.css>
+     Verificación: GRANA_PW_PORT=4216 node design/lab/empty-skeleton/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/src/styles/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GEmpty/GEmpty.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GLoadRegion/GLoadRegion.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* ---------- Plantillas de «la aplicación» (sin capa: ganan a Grana, salvo al molde) ---------- */
+  .rows { list-style: none; margin: 0; padding: 0; display: grid }
+  .row {
+    position: relative;
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+    gap: var(--g-space-3);
+    padding: var(--g-space-3) var(--g-space-4);
+    border-block-end: var(--g-border-width) solid var(--g-color-border);
+    background: var(--g-color-surface);
+  }
+  .row:last-child { border-block-end-color: transparent }
+  .row-av {
+    display: grid; place-items: center;
+    inline-size: calc(var(--g-space-1) * 10); block-size: calc(var(--g-space-1) * 10);
+    border-radius: var(--g-radius-pill);
+    border: var(--g-border-width) solid transparent;
+    background: var(--g-color-accent-soft); color: var(--g-color-on-accent-soft);
+    font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight);
+  }
+  .row-main { min-inline-size: 0 }
+  .row-title { color: var(--g-color-text); font-weight: var(--g-text-action-weight); text-decoration: none }
+  .row-meta { display: block; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .row-status {
+    padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill);
+    border: var(--g-border-width) solid transparent;
+    background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft);
+    font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); white-space: nowrap;
+  }
+  .row-new { margin-inline-start: var(--g-space-2); color: var(--g-color-accent-text); font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight) }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--g-space-3) }
+  .tile-box { padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-surface); box-shadow: var(--g-shadow-1) }
+  .tile-label { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); display: flex; gap: var(--g-space-1); align-items: center }
+  .tile-value { margin: var(--g-space-1) 0 0; font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); font-variant-numeric: tabular-nums; color: var(--g-color-text) }
+  .tile-note { margin: var(--g-space-1) 0 0; color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line) }
+  .detail { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--g-space-4); padding: var(--g-space-4) }
+  .detail img { inline-size: calc(var(--g-space-1) * 16); block-size: calc(var(--g-space-1) * 16); border-radius: var(--g-radius-md); border: var(--g-border-width) solid var(--g-color-border) }
+  .detail h3 { margin: 0; font-family: var(--g-font-title); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); color: var(--g-color-text) }
+  .detail p { margin: var(--g-space-2) 0 0; max-inline-size: 60ch; color: var(--g-color-text) }
+  .detail dl { display: grid; grid-template-columns: auto 1fr; gap: var(--g-space-1) var(--g-space-4); margin: var(--g-space-3) 0 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+  .detail dt { color: var(--g-color-text-muted) }
+  .detail dd { margin: 0; color: var(--g-color-text) }
+  .swatches { display: flex; gap: var(--g-space-2); padding: var(--g-space-2) var(--g-space-4) }
+  .sw { display: block; inline-size: calc(var(--g-space-1) * 6); block-size: calc(var(--g-space-1) * 6) }
+
+  /* ---------- Andamio del banco (no es de Grana) ---------- */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:36px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:12px 0 4px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools select,.tools button,.ctl button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+  .ctl{display:flex;gap:6px;flex-wrap:wrap;margin-block:8px}
+  .narrow{max-inline-size:360px}
+  .after{margin:0;padding:var(--g-space-2) var(--g-space-4);font-size:13px;color:var(--g-color-text-muted);border-top:1px dotted var(--g-color-border-strong)}
+</style>
+</head>
+<body>
+<main id="app">
+<h1>GEmpty y GLoadRegion · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Molde» (la plantilla real sin tinta; la tinta llega a su sitio) + B «Lo último conocido» (lo de antes se apaga bajo un filo con su píldora; lo nuevo, marcado; el fallo no borra). El vacío es <b>el primer hueco</b> y, por filtro, <b>la salida con cuentas</b>. Tono del molde: <code>--g-color-mold</code>.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="propio">Propio (@grana/cli)</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+</div>
+
+<h2 class="b">1 · GEmpty: cuatro causas (el primer hueco)</h2>
+<p class="cap">Caja discontinua del alto de un elemento; círculo discontinuo donde irá el avatar; la causa la dice el texto. <code>none</code> sin icono (el hueco vacío).</p>
+<div class="grid2"><div class="host" id="s1"></div><div class="host narrow" id="s1n"></div></div>
+
+<h2 class="b">2 · GEmpty: la salida con cuentas (filtered, is-exit)</h2>
+<div class="grid2"><div class="host" id="s2"></div><div class="host narrow" id="s2n"></div></div>
+
+<h2 class="b">3 · RTL (bloque dir="rtl")</h2>
+<div class="host" id="s3" dir="rtl" lang="ar"></div>
+
+<h2 class="b">4 · GLoadRegion · lista (A molde, revelado; B refresco, lo nuevo, fallo; espera larga)</h2>
+<div class="ctl" id="c4"></div>
+<div class="host"><div id="s4"></div><p class="after" id="s4after">Lo de debajo (no debe moverse)</p></div>
+
+<h2 class="b">5 · GLoadRegion · teselas (data-g-known conserva su tinta)</h2>
+<div class="ctl" id="c5"></div>
+<div class="host"><div id="s5"></div><p class="after" id="s5after">Lo de debajo</p></div>
+
+<h2 class="b">6 · GLoadRegion · ficha en texto libre (Δ0 también en un párrafo)</h2>
+<div class="ctl" id="c6"></div>
+<div class="host"><div id="s6"></div><p class="after" id="s6after">Lo de debajo</p></div>
+
+<h2 class="b">7 · GLoadRegion · vacío dentro de la región (--_load-slot = alto de un elemento)</h2>
+<div class="host"><div id="s7"></div></div>
+
+<h2 class="b">8 · GLoadRegion en RTL (molde, filo, píldora, lo nuevo)</h2>
+<div class="host" dir="rtl" lang="ar"><div id="s8"></div></div>
+
+<h2 class="b">9 · GTable: carga con el motor común (#540)</h2>
+<div class="ctl" id="c9"></div>
+<div class="host"><div id="s9"></div><p class="after" id="s9after">Lo de debajo</p></div>
+
+<h2 class="b">10 · GTable: vacío con GEmpty, error sin filas, error con filas</h2>
+<div class="host" id="s10"></div>
+</main>
+<script src="../lucide-icons.js"></script>
+<script src="estilo-banco.js"></script>
+<script>
+const $ = (s) => document.querySelector(s)
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (v) => { $('#gen').href = v === 'propio' ? 'estilo-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+const ready = () => (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { window.XBench.build(); requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.dataset.ready = '1' })) })
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>
