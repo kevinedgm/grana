@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GAccordion",
   "tag": "g-accordion",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Grupo de secciones plegables de contenido (preguntas frecuentes, detalles, ajustes que se aplican al momento). Forma A «Avance» (#475): sin cajas, el encabezado cerrado enseña una línea de la respuesta que no se mueve al abrir; el encabezado que toca el usuario no se mueve (Δ0); lo plegado se encuentra (hidden=\"until-found\"), se enlaza (#id) y se imprime. Encabezado pegado opcional (sticky). APG Accordion: hN > button por elemento, Tab por todos los encabezados y flechas opcionales.",
   "contract": "design/contracts/accordion.md",

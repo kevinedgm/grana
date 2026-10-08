@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GAccordionItem",
   "tag": "g-accordion-item",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Elemento de GAccordion; suelto (sin grupo), sección plegable de una pieza con v-model:open (APG Disclosure con encabezado). hN > button con título y meta dentro, avance (A) debajo en la misma celda que el contenido, acciones fuera del hN. Contenido montado siempre (salvo lazy), plegado y asentado con hidden=\"until-found\".",
   "contract": "design/contracts/accordion.md",

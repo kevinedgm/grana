@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAccordion · auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GAccordion y GAccordionItem de dist/grana.umd.js (paquete principal,
+     #476) con dist/grana.css (el CSS dentro de @layer grana.components, como lo publica components.css) y dist/fonts.css.
+     Mismos casos y mismos id que estilo-banco.html (allí con XAccordion), más lo que solo existe con el real: lazy, Δ0 en
+     cadena dentro de un contenedor que se desplaza, ancla de dentro de un plegado (#f-documentos-deep), GFormSection
+     collapsible (motor compartido, utils/collapse.js) y dos recetas de la aplicación por parámetro.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4214  →  /design/lab/accordion/auditoria-banco.html
+     Parámetros: ?dark=1  ?theme=auditoria (auditoria-tema.css, @grana/cli)  ?theme=propio (estilo-tema.css)
+                 ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+                 ?pad=1 (receta: html { scroll-padding-block-start: 48px }, la misma medida que --g-accordion-sticky-top)
+                 ?h3=1 (estilo global de la aplicación SIN capa: h3 { margin: 28px 0 })
+                 ?late=<ms> (una imagen sin tamaño arriba que llega tarde, del servidor del verificador: el #id se reaplica en load)
+     Verificación: GRANA_PW_PORT=4214 node design/lab/accordion/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style id="recipe-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana). La barra de herramientas hace de «cabecera fija de la aplicación» (48px) */
+  :root{--g-accordion-sticky-top:48px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1100px;margin:0 auto;padding:16px clamp(12px,3vw,32px) 60vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;block-size:48px;display:flex;gap:6px 16px;flex-wrap:nowrap;overflow:hidden;align-items:center;padding:0 clamp(12px,3vw,32px);background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .col{max-inline-size:720px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px;align-items:start}
+  .w320{inline-size:320px;max-inline-size:100%;padding:16px;border:1px dashed var(--g-color-border-strong)}
+  .fake-tabs{padding:0}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .setting{display:grid;gap:12px}
+  .fields{display:grid;gap:12px;max-inline-size:28rem}
+  .box{block-size:360px;overflow:auto;border:1px dashed var(--g-color-border-strong);padding:0 12px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <b>GAccordion · auditoría</b>
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (@grana/cli)</option><option value="propio">Propio del estilo</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" id="t-slow"> Lento (×5)</label>
+</div>
+<img id="late-img" alt="" hidden>
+<main id="app" v-cloak>
+<h1>GAccordion · auditoría sobre el componente real</h1>
+<p class="cap"><b>coco</b> · paso 5. <code>GAccordion</code> y <code>GAccordionItem</code> de <code>dist/grana.umd.js</code> con <code>dist/grana.css</code>. Mismos casos que el banco de estilo; además <code>lazy</code>, Δ0 en cadena, un ancla dentro de un plegado y <code>GFormSection</code> plegable (comparte el motor).</p>
+
+<h2 class="b">1 · Preguntas frecuentes (avance, meta, deshabilitado, título largo)</h2>
+<div class="col">
+  <g-accordion id="faq" v-model="faqOpen">
+    <g-accordion-item v-for="f in faq" :key="f.v" :id="'f-' + f.v" :value="f.v" :title="f.t" :peek="f.first" :meta="f.meta" :disabled="f.disabled">
+      <p>{{ f.first }}</p>
+      <p v-for="(m, k) in f.more" :id="k === 0 ? 'f-' + f.v + '-deep' : undefined">{{ m }}</p>
+    </g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">2 · Ajustes (el avance sigue al estado; acciones fuera del botón)</h2>
+<div class="col">
+  <g-accordion id="ajustes" :model-value="['notif']">
+    <g-accordion-item id="s-notif" value="notif" title="Notificaciones" :peek="notifPeek">
+      <template #actions><g-btn id="s-reset" size="sm" variant="ghost" @click="resetNotif">Restablecer</g-btn></template>
+      <div class="setting">
+        <g-switch id="s-mail" v-model="notif.mail" label="Correo"></g-switch>
+        <g-switch id="s-push" v-model="notif.push" label="Notificaciones push"></g-switch>
+        <g-switch id="s-weekly" v-model="notif.weekly" label="Resumen semanal"></g-switch>
+      </div>
+    </g-accordion-item>
+    <g-accordion-item id="s-priv" value="priv" title="Privacidad" meta="2 activas" peek="Perfil visible para tu equipo · historial guardado 90 días">
+      <div class="setting">
+        <g-switch id="s-prof" :model-value="true" label="Perfil visible para tu equipo"></g-switch>
+        <g-switch id="s-hist" :model-value="true" label="Guardar historial 90 días"></g-switch>
+      </div>
+    </g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">3 · Uno a la vez (exclusive), sin avance: el encabezado que tocas no se mueve</h2>
+<div class="col">
+  <g-accordion id="excl" exclusive :model-value="['e1']">
+    <g-accordion-item v-for="(g, i) in prepGroups" :key="i" :id="'e' + (i + 1)" :value="'e' + (i + 1)" :title="g.t">
+      <p v-for="l in g.lines">{{ l }}</p>
+    </g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">4 · Suelto (sección plegable de una pieza)</h2>
+<div class="col">
+  <g-accordion-item id="suelto" title="Ver condiciones del servicio" peek="Las citas se confirman por correo y se pueden cambiar hasta 24 horas antes.">
+    <p>Las citas se confirman por correo y se pueden cambiar hasta 24 horas antes.</p>
+    <p>Una cancelación tardía o una inasistencia se cobra como consulta. Los estudios con preparación se reprograman sin costo si avisas antes de las 20:00 del día anterior.</p>
+  </g-accordion-item>
+</div>
+
+<h2 class="b">5 · sticky bajo la cabecera fija (--g-accordion-sticky-top: 48px)</h2>
+<div class="col">
+  <g-accordion id="pegado" sticky :model-value="['p2']">
+    <g-accordion-item id="p1" value="p1" title="Antes del estudio" peek="Dos días antes: evita bebidas con gas, chicle y alimentos que producen gases.">
+      <p v-for="l in prep.slice(1, 4)">{{ l }}</p>
+    </g-accordion-item>
+    <g-accordion-item id="p2" value="p2" title="Preparación completa para el ultrasonido abdominal" :peek="prep[0]">
+      <template #actions><g-btn id="p2-print" size="sm" variant="ghost">Imprimir</g-btn></template>
+      <p v-for="l in prep">{{ l }}</p>
+      <div class="fields">
+        <g-input id="p2-name" label="Nombre del paciente"></g-input>
+        <g-input id="p2-phone" label="Teléfono"></g-input>
+      </div>
+      <p v-for="l in prep">{{ l }}</p>
+      <p id="p2-deep">Ancla de dentro: este párrafo es el destino de #p2-deep.</p>
+      <p v-for="l in prep.slice(0, 4)">{{ l }}</p>
+    </g-accordion-item>
+    <g-accordion-item id="p3" value="p3" title="Después del estudio" peek="Puedes comer con normalidad; los resultados llegan en cinco días hábiles.">
+      <p v-for="l in prep.slice(6)">{{ l }}</p>
+    </g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">6 · Anfitrionas: el encabezado pegado toma el fondo de la superficie más cercana</h2>
+<div class="grid">
+  <div><p class="cap">Página (<code>--g-color-bg</code>)</p>
+    <g-accordion id="h-page" sticky :model-value="['a']"><g-accordion-item id="h-page-a" value="a" title="En la página"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion></div>
+  <g-card id="h-card" title="GCard" level="outlined">
+    <g-accordion id="h-card-acc" sticky :model-value="['a']"><g-accordion-item id="h-card-a" value="a" title="En una GCard"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion>
+  </g-card>
+  <g-surface id="h-sunken" tone="sunken" level="outlined">
+    <g-accordion id="h-sunken-acc" sticky :model-value="['a']"><g-accordion-item id="h-sunken-a" value="a" title="En una GSurface sunken"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion>
+  </g-surface>
+  <g-surface id="h-shell" tone="sunken" level="outlined">
+    <g-surface id="h-inset" level="inset">
+      <g-accordion id="h-inset-acc" sticky :model-value="['a']"><g-accordion-item id="h-inset-a" value="a" title="En una inset dentro de sunken"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion>
+    </g-surface>
+  </g-surface>
+  <g-surface id="h-flat-host" level="raised">
+    <g-surface id="h-flat" level="flat" padding="none">
+      <g-accordion id="h-flat-acc" sticky :model-value="['a']"><g-accordion-item id="h-flat-a" value="a" title="En una flat dentro de raised"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion>
+    </g-surface>
+  </g-surface>
+  <div class="g-tabs g-tabs--appearance-contained fake-tabs"><div class="g-tabs__panel" id="h-tabs" style="padding:16px">
+    <g-accordion id="h-tabs-acc" sticky :model-value="['a']"><g-accordion-item id="h-tabs-a" value="a" title="En el panel de GTabs contained"><p v-for="l in prep.slice(0, 5)">{{ l }}</p></g-accordion-item></g-accordion>
+  </div></div>
+</div>
+<p class="row" style="margin-top:16px"><g-btn id="open-dialog" variant="outline" @click="dlg = true">Abrir GDialog con acordeón</g-btn> <g-btn id="open-dialog-inset" variant="outline" @click="dlgInset = true">GDialog inset</g-btn></p>
+<g-dialog id="dlg" v-model="dlg" title="Preparación" size="md">
+  <g-accordion id="h-dialog-acc" sticky :model-value="['a']"><g-accordion-item id="h-dialog-a" value="a" title="En un GDialog" peek="Dos días antes: evita bebidas con gas."><p v-for="l in prep">{{ l }}</p><p v-for="l in prep">{{ l }}</p></g-accordion-item></g-accordion>
+</g-dialog>
+<g-dialog id="dlg-inset" v-model="dlgInset" title="Preparación (inset)" size="md" inset>
+  <g-accordion id="h-dinset-acc" sticky :model-value="['a']"><g-accordion-item id="h-dinset-a" value="a" title="En un GDialog inset"><p v-for="l in prep">{{ l }}</p><p v-for="l in prep">{{ l }}</p></g-accordion-item></g-accordion>
+</g-dialog>
+
+<h2 class="b">7 · RTL (ar) y 320px</h2>
+<div class="grid">
+  <div dir="rtl" lang="ar">
+    <g-accordion id="rtl" :model-value="['r2']">
+      <g-accordion-item id="r1" value="r1" title="هل يمكنني تغيير موعدي؟" meta="متاح" peek="نعم، حتى ٢٤ ساعة قبل الموعد من صفحة مواعيدي."><p>نعم، حتى ٢٤ ساعة قبل الموعد من صفحة مواعيدي.</p></g-accordion-item>
+      <g-accordion-item id="r2" value="r2" title="ما المستندات المطلوبة؟"><p>هوية رسمية وبطاقة التأمين إن وجدت.</p></g-accordion-item>
+    </g-accordion>
+  </div>
+  <div class="w320" id="w320">
+    <g-accordion id="narrow" :model-value="['n2']">
+      <g-accordion-item id="n1" value="n1" title="¿Qué pasa si llego tarde a una cita de laboratorio con ayuno de doce horas?" meta="Disponible tras tu primera cita" peek="Si llegas más de 15 minutos tarde, la toma se reprograma para el siguiente turno disponible."><p>Si llegas más de 15 minutos tarde, la toma se reprograma para el siguiente turno disponible.</p></g-accordion-item>
+      <g-accordion-item id="n2" value="n2" title="Notificaciones y avisos por correo electrónico" peek="Correo y push · resumen semanal">
+        <template #actions><g-btn size="sm" variant="ghost">Restablecer</g-btn><g-btn size="sm" variant="outline">Guardar</g-btn></template>
+        <p>Supercalifragilisticoespialidosoextraordinariamentelargo sin espacios para probar el corte.</p>
+      </g-accordion-item>
+    </g-accordion>
+  </div>
+</div>
+
+<h2 class="b">8 · Anidado (un grupo dentro de un panel)</h2>
+<div class="col">
+  <g-accordion id="outer" :model-value="['o1']">
+    <g-accordion-item id="o1" value="o1" title="Laboratorio" peek="Tres tipos de estudios con preparación distinta.">
+      <p>Tres tipos de estudios con preparación distinta.</p>
+      <g-accordion id="inner" :model-value="[]">
+        <g-accordion-item id="i1" value="i1" title="Química sanguínea" peek="Ayuno de 8 horas."><p>Ayuno de 8 horas.</p></g-accordion-item>
+        <g-accordion-item id="i2" value="i2" title="Orina de 24 horas" peek="Recolecta toda la orina de un día."><p>Recolecta toda la orina de un día.</p></g-accordion-item>
+      </g-accordion>
+    </g-accordion-item>
+    <g-accordion-item id="o2" value="o2" title="Imagen" peek="Ultrasonido, rayos X y tomografía."><p>Ultrasonido, rayos X y tomografía.</p></g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">9 · Δ0 en cadena: el grupo dentro de un contenedor que se desplaza</h2>
+<p class="cap">El contenedor está arriba del todo (no puede subir más): al abrir el último, el primero se cierra por encima y quien compensa es el documento.</p>
+<div class="col">
+  <div class="box" id="chain-box">
+    <g-accordion id="chain" exclusive :model-value="['c1']">
+      <g-accordion-item v-for="(g, i) in prepGroups" :key="i" :id="'c' + (i + 1)" :value="'c' + (i + 1)" :title="g.t">
+        <p v-for="l in g.lines">{{ l }}</p>
+      </g-accordion-item>
+    </g-accordion>
+  </div>
+</div>
+
+<h2 class="b">10 · lazy</h2>
+<div class="col">
+  <g-accordion id="lazy-acc">
+    <g-accordion-item id="lz" value="lz" title="Contenido que se monta al abrir" lazy peek="Se monta la primera vez que se abre y no se desmonta.">
+      <p id="lz-body">Se monta la primera vez que se abre y no se desmonta.</p>
+    </g-accordion-item>
+  </g-accordion>
+</div>
+
+<h2 class="b">11 · GFormSection plegable (comparte el motor de plegado)</h2>
+<div class="col">
+  <g-form-section id="fs" mode="collapsible" title="Datos de contacto" summary="Correo y teléfono" v-model:open="fsOpen">
+    <g-form-layout>
+      <g-input id="fs-mail" label="Correo"></g-input>
+      <g-input id="fs-phone" label="Teléfono"></g-input>
+    </g-form-layout>
+  </g-form-section>
+</div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const { createApp, ref, reactive, computed } = Vue
+const $ = (s) => document.querySelector(s)
+const nextFrame = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
+const FAQ = [
+  { v: 'cambiar', t: '¿Puedo cambiar la fecha de mi cita?', first: 'Sí, hasta 24 horas antes desde «Mis citas» o llamando a recepción; después de ese plazo el cambio cuenta como cancelación tardía.', more: ['Si cambias la cita de un estudio con preparación, revisa de nuevo las indicaciones: algunas dependen del día de la semana.'] },
+  { v: 'documentos', t: '¿Qué documentos necesito el primer día?', first: 'Una identificación oficial, la credencial de tu seguro si tienes uno y la orden médica si te envía otra clínica.', more: ['Si vienes por un menor de edad, trae también su acta de nacimiento o CURP.'] },
+  { v: 'resultados', t: '¿Cuánto tardan los resultados?', first: 'Los estudios de laboratorio están listos en 48 horas hábiles; los de imagen, en cinco días hábiles.', more: ['Te avisamos por correo cuando estén disponibles en tu expediente en línea.', 'Algunos cultivos tardan hasta diez días: el día de la toma te dirán la fecha exacta.'] },
+  { v: 'historial', t: 'Historial de pagos', meta: 'Disponible tras tu primera cita', disabled: true, first: 'Aquí verás tus pagos y facturas cuando tengas tu primera cita.', more: [] },
+  { v: 'pago', t: '¿Cómo puedo pagar?', first: 'Con tarjeta, transferencia o efectivo en recepción; con convenio de tu aseguradora solo pagas el deducible.', more: ['La factura se pide en las 72 horas siguientes al pago.'] },
+  { v: 'largo', t: '¿Qué pasa si no puedo cumplir el ayuno de ocho horas por una condición médica como la diabetes o un tratamiento que me obliga a comer?', first: 'Llama antes a recepción para reprogramar en el primer turno de la mañana; nunca suspendas un medicamento sin hablar con tu médico.', more: [] },
+  { v: 'urgencias', t: '¿Atienden urgencias?', first: 'No. Esta clínica atiende con cita; ante una urgencia llama al 911 o acude al hospital más cercano.', more: [] },
+  { v: 'cancelar', t: '¿Cómo cancelo una cita?', first: 'Desde «Mis citas», con el botón «Cancelar», o respondiendo «CANCELAR» al recordatorio que te llega por mensaje.', more: ['Cancelar con menos de 24 horas cuenta como cancelación tardía.'] }
+]
+const PREP = [
+  'Preparación para el ultrasonido abdominal. Lee todo antes del día del estudio: algunas indicaciones empiezan 48 horas antes.',
+  'Dos días antes: evita bebidas con gas, chicle y alimentos que producen gases (frijoles, brócoli, coliflor, cebolla).',
+  'La noche anterior: cena ligera antes de las 21:00. Después, solo agua natural.',
+  'El día del estudio: ayuno de 8 horas. Si tomas medicamentos, tómalos con un sorbo de agua salvo que tu médico indique otra cosa.',
+  'Una hora antes: bebe un litro de agua y no orines hasta terminar el estudio; la vejiga llena ayuda a ver los órganos de la pelvis.',
+  'Qué llevar: la orden médica, estudios anteriores de la misma zona y una lista de tus medicamentos.',
+  'Durante el estudio: te pedirán recostarte y respirar hondo varias veces; el gel es frío, pero no duele.',
+  'Después: puedes comer con normalidad. Los resultados llegan a tu expediente en línea en cinco días hábiles.',
+  'Si estás embarazada o crees estarlo, avísalo al agendar: cambia la preparación.',
+  'Si no puedes cumplir el ayuno por una condición médica (diabetes, por ejemplo), llama antes a recepción para reprogramar en el primer turno.'
+]
+
+const app = createApp({
+  setup() {
+    const notif = reactive({ mail: true, push: true, weekly: true })
+    const notifPeek = computed(() => [[notif.mail && 'Correo', notif.push && 'push'].filter(Boolean).join(' y ') || 'Sin avisos', notif.weekly ? 'resumen semanal' : 'sin resumen'].join(' · '))
+    const resetNotif = () => Object.assign(notif, { mail: true, push: true, weekly: true })
+    const prepGroups = [{ t: 'Dos días antes', lines: PREP.slice(0, 6) }, { t: 'La noche anterior', lines: PREP.slice(2, 8) }, { t: 'El día del estudio', lines: PREP.slice(3, 10) }, { t: 'Después', lines: PREP.slice(6, 10) }]
+    return { faq: FAQ, prep: PREP, prepGroups, faqOpen: ref(['resultados']), notif, notifPeek, resetNotif, dlg: ref(false), dlgInset: ref(false), fsOpen: ref(false) }
+  }
+})
+app.use(Grana)
+
+const q = new URLSearchParams(location.search)
+const setTheme = (v) => { $('#gen').href = v === 'auditoria' ? 'auditoria-tema.css' : v === 'propio' ? 'estilo-tema.css' : v ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,' }
+const applySlow = (v) => { $('#slow-css').textContent = v ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '' }
+if (q.get('late')) { const im = $('#late-img'); im.src = '/__slow/' + q.get('late') + '.svg'; im.hidden = false }
+$('#recipe-css').textContent = (q.get('pad') ? 'html{scroll-padding-block-start:48px}' : '') + (q.get('h3') ? 'h3{margin:28px 0}' : '')
+for (const n of ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']) { const o = document.createElement('option'); o.value = o.textContent = n; $('#t-theme').append(o) }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+$('#t-slow').onchange = (e) => applySlow(e.target.checked)
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+if (q.get('slow')) { applySlow(true); $('#t-slow').checked = true }
+const th = q.get('theme')
+const ready = () => { app.mount('#app'); nextFrame(() => nextFrame(() => { window.__ready = true })) }
+if (th) { $('#t-theme').value = th; $('#gen').addEventListener('load', ready, { once: true }); setTheme(th) } else ready()
+</script>
+</body>
+</html>

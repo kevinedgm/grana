@@ -113,6 +113,10 @@
   min-inline-size: 0;
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
+  /* El id del elemento está en la raíz: la navegación del navegador a #id (antes de hidratar o después de que el .vue lo
+     haya traído a la vista, como hace WebKit al terminar la carga) también deja el encabezado bajo la cabecera fija de la
+     aplicación (auditoría, hallazgo 5) */
+  scroll-margin-block-start: var(--g-accordion-sticky-top);
 }
 .g-accordion-item.has-peek {
   --_pad-end: var(--g-space-1);
