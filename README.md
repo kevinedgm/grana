@@ -263,6 +263,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GMenu`](packages/vue/src/components/GMenu/README.md) | Menú de acciones anclado a un botón (acciones, grupos, casillas, opciones, submenús) | principal |
 | [`GTabs`](packages/vue/src/components/GTabs/README.md) | Pestañas entre vistas del mismo nivel, con `GTabPanel` | principal |
 | [`GSidebar`](packages/vue/src/components/GSidebar/README.md) | Navegación lateral: expandida, riel, navbar inferior y drawer | principal |
+| [`GBreadcrumbs`](packages/vue/src/components/GBreadcrumbs/README.md) | Migas de pan: la ruta entera se aprieta por prioridad sin esconder niveles; al final, «Subir · página»; con `children`, puertas a los hermanos | principal |
 | [`GPagination`](packages/vue/src/components/GPagination/README.md) | Paginación de una colección | principal |
 | [`GStepper`](packages/vue/src/components/GStepper/README.md) | Avance por pasos discretos | principal |
 | [`GTooltip`](packages/vue/src/components/GTooltip/README.md) | Nombre visible, descripción y atajo de un control enfocable | principal |
