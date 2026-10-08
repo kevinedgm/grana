@@ -214,6 +214,27 @@ export interface SidebarItem extends GranaExtra {
   disabled?: boolean
 }
 
+/** Nivel de `GBreadcrumbs` (breadcrumbs.md «Modelo de `items`»). El último es la página actual. */
+export interface BreadcrumbItem extends GranaExtra {
+  label: string
+  href?: string
+  icon?: IconName | unknown
+  /** Hermanos del nivel SIGUIENTE: encienden una puerta delante de él. */
+  children?: BreadcrumbChild[]
+}
+/** Hijo de una puerta de `GBreadcrumbs`. */
+export interface BreadcrumbChild extends GranaExtra {
+  label: string
+  href?: string
+}
+/** `navigate` de `GBreadcrumbs` (#494, #505). */
+export interface BreadcrumbsNavigateEvent {
+  item: BreadcrumbItem | BreadcrumbChild
+  index: number
+  event: MouseEvent
+  from: 'path' | 'up' | 'stairs' | 'door'
+}
+
 /** Paso de `GStepper` (stepper.md «Pasos»). */
 export interface StepperStep extends GranaExtra {
   id?: GranaKey

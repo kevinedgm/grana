@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "name": "GBreadcrumbs",
+  "tag": "g-breadcrumbs",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Migas de pan: dicen dónde está la página en una jerarquía y dejan subir a cualquier nivel. Forma A «Ruta líquida» (todos los niveles en una fila que se aprieta por prioridad; un nombre recortado se vuelve pastilla y el actual es la pastilla de acento), con la cara de B «Escalón» como última etapa («Subir · página» con la ruta entera como escalera) y las puertas de C cuando la aplicación da children (el separador abre los hermanos del nivel siguiente). Enlaces de verdad (<a href>) con navigate cancelable y slot link para un router; pistas del motor del tooltip en modo visual sobre lo recortado.",
+  "contract": "design/contracts/breadcrumbs.md",
+  "prototype": "design/lab/breadcrumbs/r01/",
+  "style": "packages/vue/src/components/GBreadcrumbs/GBreadcrumbs.css",
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "required": true,
+      "note": "Niveles de la raíz a la página actual: { label, href?, icon?, children? }. Sin href el nivel es texto (span, sin foco). icon: nombre de Lucide (registro de la aplicación → librería, #202); con slot icon manda el slot. children en el nivel i − 1 enciende una puerta delante del nivel i con los hermanos { label, href? }; en el último nivel no se pinta. El último nivel es siempre la página actual (aria-current=\"page\"). Clave = índice; identidad para el movimiento = href o, sin él, label. Un nivel o un hijo sin label se ignora (aviso). Vacío o no arreglo: no se pinta nada."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "Sin valores por defecto. nav (aria-label del nav; un aria-labelledby en los atributos lo sustituye), up («Subir a {label}», con dos o más niveles), path («Ruta hasta {label}», con dos o más niveles), children («Otras páginas en {label}», si hay puertas). Cada uno, cadena con {label} o función ({ label }) => String; up y path deben contener {label} (2.5.3)."
+    }
+  ],
+  "labels": {
+    "nav": "Nombre del nav (aria-label). Siempre, salvo aria-labelledby en los atributos",
+    "up": "Nombre del enlace «Subir» de la última etapa; {label} = el nivel al que sube",
+    "path": "Nombre de la divulgación de la página; {label} = la página actual",
+    "children": "Nombre de cada puerta; {label} = el nivel cuyos hijos abre (i − 1)"
+  },
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ item, index, event, from }",
+      "trigger": "Activación primaria de un destino con página (clic con el botón 0 sin Ctrl, ⌘, Mayús ni Alt, o Intro; #505). item es el nivel, o el hijo si from es 'door'; index es la posición en items del nivel destino (con 'door', la del nivel delante del cual está la puerta); event es el evento nativo, cancelable (preventDefault deja la navegación a un router); from: 'path' (la fila), 'up' («Subir»), 'stairs' (la escalera) o 'door' (una puerta). Desde un panel, el panel se cierra y el foco vuelve a su disparador antes de emitir. Con el slot link se emite aunque el router ya haya cancelado (event.defaultPrevented verdadero)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "link",
+      "purpose": "Sustituye el <a> de cada destino con página (fila, «Subir», escalera y puertas), p. ej. RouterLink o NuxtLink. Un solo enfocable con v-bind=\"attrs\" (href, class, aria-current, aria-label en «Subir», onClick que emite navigate y cierra el panel) y <component :is=\"content\" /> como único contenido. Los niveles sin href no pasan por el slot.",
+      "scope": "{ item, index, current, from, attrs, content }"
+    },
+    {
+      "name": "icon",
+      "purpose": "Icono de un nivel dentro de g-breadcrumbs__icon (aria-hidden, decorativo); sustituye al GIcon por nombre de item.icon (#202). Solo en los niveles con icon.",
+      "scope": "{ item, index }"
+    }
+  ],
+  "tokens": [
+    "--g-font-ui",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-line",
+    "--g-text-body-sm-weight",
+    "--g-text-body-sm-tracking",
+    "--g-text-action-weight",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-accent-soft",
+    "--g-color-on-accent-soft",
+    "--g-color-accent-text",
+    "--g-color-neutral-soft",
+    "--g-color-on-neutral-soft",
+    "--g-color-neutral-strong",
+    "--g-color-on-neutral",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-surface",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-pill",
+    "--g-radius-xs",
+    "--g-radius-sm",
+    "--g-radius-md",
+    "--g-shadow-2",
+    "--g-space-1",
+    "--g-space-2",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-spring"
+  ],
+  "states": [
+    "liquid",
+    "root-icon",
+    "shrink",
+    "step",
+    "clipped",
+    "focus-visible (despliegue)",
+    "hover",
+    "door-open",
+    "stairs-open",
+    "entering",
+    "leaving",
+    "ready"
+  ],
+  "markup": {
+    "row": "nav.g-breadcrumbs[aria-label][data-stage][.is-ready] > ol.g-breadcrumbs__list > li.g-breadcrumbs__item.is-root|is-mid|is-parent|is-current[.is-icon][data-clipped][.is-entering] > (svg.g-breadcrumbs__sep.g-icon--flip-rtl | button.g-breadcrumbs__door[aria-expanded][aria-controls][aria-label] > svg.g-icon--flip-rtl + ul.g-breadcrumbs__panel[popover=manual][id][data-side] > li > a.g-breadcrumbs__link[aria-current=true?] > span.g-breadcrumbs__label + svg.g-breadcrumbs__here?) + (a.g-breadcrumbs__link[href] | span.g-breadcrumbs__link.g-breadcrumbs__link--text) > span.g-breadcrumbs__icon[aria-hidden]? + span.g-breadcrumbs__label[dir=auto]; el último con aria-current=\"page\"",
+    "step": "nav[data-stage=step] > div.g-breadcrumbs__face > a.g-breadcrumbs__up[href][aria-label] (arrow-up + __label) + button.g-breadcrumbs__toggle[aria-expanded][aria-controls][aria-label] (__label + svg.g-breadcrumbs__chevron); ol.g-breadcrumbs__stairs[popover=manual][id][data-side] > li.g-breadcrumbs__stair[.is-current][style=--_depth:i] > enlace o texto",
+    "measure": "ol.g-breadcrumbs__measure[aria-hidden][inert][data-stage] (solo en el cliente, sin ids ni slots; data-stage e is-icon los escribe la medida)",
+    "leaving": "li.g-breadcrumbs__item.is-current.is-leaving[aria-hidden][inert] al final de la lista, sin ids ni aria-controls ni panel, hasta animationend de g-breadcrumbs-leave (respaldo: --g-duration-press + 400 ms); no existe con movimiento reducido",
+    "tips": "div.g-tooltip[popover=manual][aria-hidden] al final del nav: uno por nivel de la fila y por puerta, o «Subir» y la divulgación en step"
+  },
+  "behavior": [
+    "Etapas por lotes (#495): la lista de medida prueba liquid → root-icon (si la raíz tiene icono y hay dos o más niveles) → shrink; cabe si la suma de los anchos de sus li ≤ ancho de la lista + 0,5px; si ninguna cabe, step (con dos o más niveles). Solo el ancho del nav decide (observeSize, cuadro siguiente); también al cambiar items y al cargar fuentes (document.fonts.ready y loadingdone). El DOM real solo cambia si cambia la etapa.",
+    "Al cambiar de etapa: se cierra lo abierto sin devolver el foco y el foco se conserva por nivel (fila ↔ «Subir» o la divulgación; puerta → divulgación en step; divulgación o escalera → enlace de ese nivel o el último enlace), con preventScroll.",
+    "data-clipped en cada li cuyo nombre está recortado (scrollWidth > clientWidth + 1; nunca con is-icon), tras cada medida, actualización y cambio de foco (cuadro siguiente).",
+    "is-ready un cuadro después de la primera etapa aplicada; antes, la lista recorta (CSS).",
+    "Paneles: popover=manual dentro del nav; uno abierto a la vez; data-side estimado antes de showPopover y --_x/--_y/--_max (px) con placeBlock (inicio del disparador o, si no cabe, su final; abajo o arriba), lado con histéresis (stickySide), --_max fijo durante el desplazamiento, cierre sin devolver el foco si el ancla sale del visor o de su contenedor (anchorGone). Cierran con Esc (preventDefault + stopPropagation, foco al disparador), el disparador, pulsar fuera, el foco que sale, el cambio de etapa y al elegir un destino.",
+    "Teclado: ↓ en una puerta abre y enfoca el hijo de la ruta (o el primero); ↓ en la divulgación abre y enfoca el primer escalón con enlace; ↑/↓ circulares, Inicio/Fin dentro del panel; abrir con clic no mueve el foco.",
+    "Movimiento (L13): con is-ready y en una etapa de fila, si los items nuevos son los anteriores más uno, el último lleva is-entering hasta que acaban todas sus animaciones (getAnimations; respaldo --g-duration-slow + 400 ms); si son los anteriores sin el último, una copia saliente inerte; cualquier otro cambio, sin animación. Nunca al montar ni en step.",
+    "Pistas: useVisualTips (#433, #496), grupo nav, lado bottom; disabled mientras el nombre cabe (medido al pedirlo), activas en la raíz en solo icono y siempre en la puerta; se cierran al abrir un panel (check)."
+  ],
+  "weight": {
+    "main": "+6,3 KB gzip en grana.js (179 506 → 185 840 B), +5,7 KB en grana.umd.js y +1,9 KB en grana.css; medido el 2026-10-07 en el mismo árbol. Bajo el tope de 8 KB (#490): va en el paquete principal"
+  },
+  "pending": [
+    "Auditoría de coco sobre el componente real (design/lab/breadcrumbs/auditoria.md)",
+    "README (mora-docs) tras la auditoría",
+    "Comprobación con VoiceOver de la lista dentro del nav con list-style: none (role=\"list\" solo si se pierde)"
+  ]
+}
