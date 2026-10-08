@@ -134,7 +134,7 @@
     {
       "name": "navigate",
       "payload": "{ item, event }",
-      "trigger": "El usuario elige un destino; event es el evento nativo (preventDefault cancela update:modelValue y el cierre del drawer)"
+      "trigger": "El usuario elige un destino; event es el evento nativo (preventDefault cancela update:modelValue y el cierre del drawer). En un enlace, solo con activación primaria (#505): con Ctrl/⌘/Mayús/Alt, botón central o ya cancelado no se emite ni cambia el actual"
     },
     {
       "name": "update:modelValue",

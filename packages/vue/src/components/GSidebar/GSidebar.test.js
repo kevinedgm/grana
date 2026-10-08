@@ -182,6 +182,23 @@ describe('GSidebar · navegar', () => {
     expect(w.emitted('update:modelValue')).toBeUndefined()
   })
 
+  it('navigate solo con activación primaria (#505): con modificadores, botón central o ya cancelado no emite ni cambia el actual', async () => {
+    const w = mk({ mode: 'expanded' })
+    const a = byId(w, 'team').element
+    const fire = (init) => a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ...init }))
+    for (const init of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }]) fire(init)
+    const stop = (e) => e.preventDefault()
+    a.addEventListener('click', stop, { capture: true })
+    fire({})
+    a.removeEventListener('click', stop, { capture: true })
+    expect(w.emitted('navigate')).toBeUndefined()
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    // Clic primario: se emite y cambia el actual
+    fire({})
+    expect(w.emitted('navigate')).toHaveLength(1)
+    expect(last(w, 'update:modelValue')).toBe('team')
+  })
+
   it('un item deshabilitado no navega ni emite', async () => {
     const w = mk({ mode: 'expanded', items: [{ id: 'x', label: 'X', href: '/x', disabled: true }] })
     await w.find('[data-id="x"]').trigger('click')
@@ -248,6 +265,21 @@ describe('GSidebar · riel', () => {
     const w = rail()
     expect(byId(w, 'inbox').text().replace(/\s+/g, ' ')).toContain('Bandeja')
     expect(byId(w, 'inbox').find('.g-sidebar__sr').text()).toContain('12 sin leer')
+  })
+
+  it('en el panel flotante del riel, Ctrl+clic en un hijo no navega ni cierra el panel', async () => {
+    const w = rail()
+    await byId(w, 'proj').trigger('click'); await nextTick(); await nextTick()
+    const fly = w.find('.g-sidebar__fly')
+    const link = fly.find('[data-id="p1"]').element
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }))
+    await nextTick()
+    expect(w.emitted('navigate')).toBeUndefined()
+    expect(fly.element.hasAttribute('data-popover-open')).toBe(true)
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    await nextTick()
+    expect(w.emitted('navigate')).toHaveLength(1)
+    expect(fly.element.hasAttribute('data-popover-open')).toBe(false)
   })
 
   it('clic en un padre abre el panel (nombre del padre, hijos) y aria-expanded; Esc lo cierra y devuelve el foco', async () => {

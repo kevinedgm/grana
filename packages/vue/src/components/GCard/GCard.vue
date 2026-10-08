@@ -12,6 +12,8 @@ import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GBtn from '../GBtn/GBtn.vue'
+// Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
+const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
@@ -144,6 +146,9 @@ export default defineComponent({
     }
     const onLink = (event) => {
       if (inert.value) { event.preventDefault(); return }
+      // Solo la activación primaria (#505, api.md «Enlaces y navigate»): con Ctrl/⌘/Mayús/Alt, otro botón o ya cancelado,
+      // el navegador abre la pestaña o ventana nueva por su cuenta y no se emite
+      if (!primaryActivation(event)) return
       // El evento nativo es cancelable: event.preventDefault() (síncrono) evita la navegación y deja paso a un router (#70)
       emit('navigate', { event, href: props.href })
     }

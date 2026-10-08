@@ -307,12 +307,26 @@ describe('GCard · acción principal', () => {
     expect(seen.href).toBe('/atlas')
     expect(seen.event).toBe(ev)
     expect(ev.defaultPrevented).toBe(true)
-    // Sin escucha que cancele, la tarjeta no bloquea el enlace (abrir en pestaña con modificadores, clic derecho…)
-    const w2 = mk({ href: '#atlas' })
-    const ev2 = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true })
-    w2.find('a').element.dispatchEvent(ev2)
-    expect(ev2.defaultPrevented).toBe(false)
-    expect(w2.emitted('navigate')).toHaveLength(1)
+  })
+
+  it('navigate solo con activación primaria (#505): con Ctrl, ⌘, Mayús, Alt, botón central o ya cancelado no se emite y el enlace sigue', async () => {
+    const w = mk({ href: '#atlas' })
+    const a = w.find('a.g-card__primary').element
+    const fire = (init) => { const ev = new MouseEvent('click', { bubbles: true, cancelable: true, ...init }); a.dispatchEvent(ev); return ev }
+    for (const init of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }]) {
+      const ev = fire(init)
+      expect(ev.defaultPrevented, JSON.stringify(init)).toBe(false)
+    }
+    expect(w.emitted('navigate')).toBeUndefined()
+    // Ya cancelado por la aplicación antes de llegar a la tarjeta
+    const stop = (e) => e.preventDefault()
+    a.addEventListener('click', stop, { capture: true })
+    fire({})
+    a.removeEventListener('click', stop, { capture: true })
+    expect(w.emitted('navigate')).toBeUndefined()
+    // Clic primario (y Intro, que llega como clic primario): se emite
+    fire({})
+    expect(w.emitted('navigate')).toHaveLength(1)
   })
 
   it('interaction="link" sin href avisa y cae a none; href con otra interaction avisa', () => {

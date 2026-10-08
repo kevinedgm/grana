@@ -318,7 +318,7 @@
     {
       "name": "navigate",
       "payload": "{ event, href }",
-      "trigger": "interaction=\"link\": el usuario activa el enlace principal; event.preventDefault() (síncrono) evita la navegación (router). No se emite con disabled ni loading"
+      "trigger": "interaction=\"link\": el usuario activa el enlace principal; event.preventDefault() (síncrono) evita la navegación (router). No se emite con disabled ni loading, ni sin activación primaria (#505: con Ctrl/⌘/Mayús/Alt, botón central o ya cancelado; el navegador abre la pestaña nueva)"
     },
     {
       "name": "activate",

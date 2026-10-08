@@ -10,6 +10,8 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { useVisualTips } from '../../utils/visualTip.js'
+// Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
+const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -194,13 +196,18 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
     const onDialogClick = (e) => { if (e.target === dlgRef.value) setDrawer(false) }
 
     // ---------- Navegar ----------
+    // Devuelve true si la navegación sigue en esta página (para cerrar el menú flotante)
     const navigateTo = (item, event) => {
-      if (item.disabled) { event.preventDefault(); return }
+      if (item.disabled) { event.preventDefault(); return false }
+      // Un enlace con Ctrl/⌘/Mayús/Alt, otro botón o ya cancelado (#505, api.md «Enlaces y navigate»): el navegador abre la
+      // pestaña o ventana nueva por su cuenta; no se emite ni cambia el elemento actual. Un elemento sin href (botón), igual
+      if (item.href && !primaryActivation(event)) return false
       emit('navigate', { item: item.raw, event })
-      if (event.defaultPrevented) return
+      if (event.defaultPrevented) return false
       const wasDrawer = drawer.value
       emit('update:modelValue', item.id)
       if (wasDrawer && props.closeOnNavigate) setDrawer(false)
+      return true
     }
 
     // ---------- Pista del riel (sidebar.md §«Pista del riel», #436) ----------
@@ -490,8 +497,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
         ...tip,
         ...events,
         onClick: (e) => {
-          navigateTo(item, e)
-          if (kind === 'fly' && !e.defaultPrevented) closeFly()
+          if (navigateTo(item, e) && kind === 'fly') closeFly()
         }
       }
       if (item.href) return h('a', { ...common, href: item.href }, content)
