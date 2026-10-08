@@ -864,3 +864,57 @@ export interface Transcript {
 export type ToasterKey = InjectionKey<Toaster>
 export type StatusKey = InjectionKey<Status>
 export type SpeechKey = InjectionKey<Speech>
+
+// ---------------------------------------------------------------------------------------------------------------------
+// GTag + GTagGroup (design/contracts/tag.md, #462, #463, #468)
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Texto de `labels`: cadena con `{marcas}` o función que recibe las mismas variables. */
+export type TagText<V extends object = {}> = string | ((vars: V) => string)
+
+/** Textos de `GTag` (sin valores por defecto, #226). */
+export interface TagLabels {
+  remove?: TagText<{ label: string }>
+}
+
+/** Textos de `GTagGroup` (tag.md §«Textos», #468). */
+export interface TagGroupLabels {
+  remove?: TagText<{ label: string }>
+  removeIn?: TagText<{ label: string; facet: string }>
+  removed?: TagText<{ label: string }>
+  removedIn?: TagText<{ label: string; facet: string }>
+  undo?: TagText<{ label: string }>
+  undoIn?: TagText<{ label: string; facet: string }>
+  restored?: TagText<{ label: string }>
+  more?: TagText<{ count: number }>
+  less?: TagText
+  clearAll?: TagText
+  cleared?: TagText<{ count: number }>
+  undoAll?: TagText<{ count: number }>
+  restoredAll?: TagText<{ count: number }>
+  empty?: TagText
+}
+
+/** Etiqueta de `GTagGroup` (tag.md «TagItem»). Los campos de más se conservan y llegan a los eventos y slots. */
+export interface TagItem extends GranaExtra {
+  /** Obligatorio y único en el grupo: la huella, el foco y el deshacer se apoyan en él. */
+  id: GranaKey
+  label: string
+  href?: string
+  /** Presente (`true`/`false`) = etiqueta de alternar. */
+  pressed?: boolean
+  removable?: boolean
+  disabled?: boolean
+  color?: 'neutral' | GranaCategory | `${GranaCategory}`
+  colorKey?: string | number
+  /** Nombre visible de la faceta: agrupa con `layout="facets"` y es parte de la clave del color. */
+  facet?: string
+  /** Nombre de Lucide (registro de la aplicación → librería). */
+  icon?: IconName
+  /** `true` = `GAvatar` con `name = label`; objeto = sus props (`size` y `label` se ignoran). Gana a `icon`. */
+  avatar?: boolean | AvatarSpec
+}
+
+/** A dónde va el foco si el grupo se queda sin controles (`GTagGroup.emptyFocus`). */
+export type TagEmptyFocusTarget = string | Element | { $el: Element } | null | undefined
+export type TagEmptyFocus = TagEmptyFocusTarget | (() => TagEmptyFocusTarget)

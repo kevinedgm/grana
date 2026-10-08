@@ -9,6 +9,7 @@ import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick
 import GIcon from '../GIcon/GLibIcon.js'       // icono propio (`user`): SOLO la lista de la librería (icons.md §4, #200)
 import GAppIcon from '../GIcon/GIcon.vue'      // prop `icon`: nombre de la aplicación (registro más cercano → librería, #296)
 import { iconsKey, lookupLibrary, lookupRegistry } from '../GIcon/registry.js'
+import { categoryOf } from '../../utils/categoryHash.js'
 
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
 const SHAPES = ['circle', 'square']
@@ -68,34 +69,7 @@ function explicitInitials(raw, small) {
 }
 
 // ---------- Color (avatar.md «Hash», #294): FNV-1a 32 bits sobre UTF-8 + fmix32, mod n + 1 ----------
-const utf8 = (s) => {
-  if (typeof TextEncoder === 'function') return new TextEncoder().encode(s)
-  const out = []
-  for (const ch of s) {
-    let c = ch.codePointAt(0)
-    if (c >= 0xd800 && c <= 0xdfff) c = 0xfffd // sustituto suelto → U+FFFD, como TextEncoder
-    if (c < 0x80) out.push(c)
-    else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63))
-    else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63))
-    else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63))
-  }
-  return out
-}
-function avatarCategory(key, n) {
-  const s = String(key).normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()
-  if (!s) return null
-  let h = 0x811c9dc5
-  for (const b of utf8(s)) {
-    h ^= b
-    h = Math.imul(h, 0x01000193)
-  }
-  h ^= h >>> 16
-  h = Math.imul(h, 0x85ebca6b)
-  h ^= h >>> 13
-  h = Math.imul(h, 0xc2b2ae35)
-  h ^= h >>> 16
-  return ((h >>> 0) % n) + 1
-}
+// Una sola copia, compartida con GTag y GTagGroup (#469): utils/categoryHash.js (categoryOf)
 
 // Atributos que no llegan a la raíz (aviso 5): romperían el contrato decorativo / con nombre o harían de un <span> un control
 const isA11yAttr = (k) => k === 'role' || /^aria[-A-Z]/.test(k) || k.toLowerCase() === 'tabindex'
@@ -179,7 +153,7 @@ export default defineComponent({
       if (c.kind === 'cat') return c.k
       if (c.kind === 'neutral' || categories.value === 0) return null
       const key = present(props.colorKey) ?? present(props.name)
-      return key === undefined ? null : avatarCategory(key, categories.value)
+      return key === undefined ? null : categoryOf(key, categories.value)
     })
 
     // Imagen: cargando → cargada (load) / fallida (error: se quita la <img>). Cambiar src vuelve a «cargando».

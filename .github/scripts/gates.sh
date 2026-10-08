@@ -68,6 +68,10 @@ done
 # GAccordion + GAccordionItem (#476): en el paquete principal (+5,7 KB gzip, bajo el tope de 8 KB)
 must_have grana.css "g-accordion-item__peek" "$CSS_MSG"
 must_have grana.js "g-accordion-item" "GAccordionItem no está en el paquete principal grana.js (#476: va en el principal)"
+# GTag + GTagGroup (tag.md §«Paquete», #472): la huella y el racimo
+for cls in g-tag__undo g-tag-group__facet; do
+  must_have grana.css "$cls" "$CSS_MSG"
+done
 
 # --- Lo que NO debe estar -----------------------------------------------------------------------
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"
@@ -82,6 +86,10 @@ must_not_have combobox.js "g-summary__" "GSummary quedó copiado en combobox.js;
 for entry in speech status combobox file-field time-field slider; do
   must_exist "$entry.js" "No se generó la entrada propia $entry.js (revisar vite.$entry.config.js y el script build de packages/vue)"
 done
+
+# GTag + GTagGroup: entrada propia `@grana/vue/tag` (#472)
+must_not_have grana.js "GTagGroup" "GTagGroup viajó en el paquete principal grana.js; debe vivir solo en su entrada propia tag.js"
+must_exist "tag.js" "No se generó la entrada propia tag.js (revisar vite.tag.config.js y el script build de packages/vue)"
 
 echo
 if [ "$failed" -eq 0 ]; then

@@ -37,4 +37,13 @@ const onClick = (e: MouseEvent) => e.clientX
   <g-slider model-value="40" label="X" />
   <!-- @vue-expect-error el manejador de click recibe un MouseEvent -->
   <g-btn @click="(e: string) => e">X</g-btn>
+
+  <!-- GTag + GTagGroup -->
+  <g-tag label="Vue" href="/vue" @navigate="(p) => p.event.preventDefault()" />
+  <g-tag-group :items="[{ id: 1, label: 'A', removable: true }]" label="Etiquetas" :labels="{ remove: 'Quitar {label}' }">
+    <template #label="{ item, index }">{{ item.label.toUpperCase() }} {{ index + 1 }}</template>
+    <template #lead="{ item }">{{ item.id }}</template>
+  </g-tag-group>
+  <!-- @vue-expect-error layout fuera de la lista -->
+  <g-tag-group :items="[]" label="X" layout="grid" />
 </template>

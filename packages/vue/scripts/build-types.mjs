@@ -28,7 +28,8 @@ export const ENTRIES = [
   { name: 'file-field', src: 'src/file-field.js' },
   { name: 'time-field', src: 'src/time-field.js' },
   { name: 'slider', src: 'src/slider.js' },
-  { name: 'testing', src: 'src/testing.js' }
+  { name: 'testing', src: 'src/testing.js' },
+  { name: 'tag', src: 'src/tag.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -16,11 +16,14 @@ import { createSpeech, createTranscript, useSpeech, useSpeechTarget, GTranscript
 import { createStatus, useStatus, GStatusIsland } from '@grana/vue/status'
 import { createSimulatedSpeechAdapter, createSimulatedUploader } from '@grana/vue/testing'
 import App from './App.vue'
+// GTag + GTagGroup (tag.md, #462, #463)
+import Tag, { GTag, GTagGroup } from '@grana/vue/tag'
+import type { TagItem, TagGroupLabels } from '@grana/vue/tag'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -102,3 +105,42 @@ h(GSlider, { density: 'tight' })
 const badProps: GBtnProps = { size: 'huge' }
 
 export { n, sizeText, diff, step, props, ok, badOption, badEntry, badProps }
+
+// ---- GTag + GTagGroup ----
+const tagItems: TagItem[] = [
+  { id: 'pen', label: 'Penicilina', removable: true, facet: 'Alergias', avatar: { initials: 'P' }, extra: 1 },
+  { id: 2, label: 'Solo pendientes', pressed: true, color: 3 },
+  { id: 3, label: 'Vue', href: '/temas/vue', icon: 'tag', color: 'neutral' }
+]
+const tagLabels: TagGroupLabels = {
+  remove: 'Quitar {label}',
+  removeIn: ({ label, facet }) => `Quitar ${label} de ${facet}`,
+  more: ({ count }) => `Ver ${count} más`,
+  empty: 'Sin etiquetas'
+}
+h(GTagGroup, {
+  items: tagItems,
+  label: 'Alergias',
+  layout: 'facets',
+  labels: tagLabels,
+  emptyFocus: () => document.body,
+  'onUpdate:items': (v: TagItem[]) => v.length,
+  onRemove: (p) => p.item.label + p.index + p.source,
+  onRestore: (p) => p.items.length + p.source,
+  onToggle: (p) => p.pressed && p.item.id,
+  onNavigate: (p) => { p.event.preventDefault(); return p.href + p.item.label },
+  onSettle: (p) => p.items.map((i) => i.id)
+})
+h(GTag, { label: 'Látex', removable: true, labels: { remove: ({ label }) => `Quitar ${label}` }, pressed: null, color: '12', onRemove: (p) => p.source, onNavigate: (p) => p.href, 'onUpdate:pressed': (v: boolean) => v })
+// @ts-expect-error un TagItem necesita id
+const badTag: TagItem = { label: 'Sin id' }
+// @ts-expect-error layout fuera de la lista
+h(GTagGroup, { items: [], label: 'X', layout: 'grid' })
+// @ts-expect-error la fuente de remove es 'button' o 'key'
+h(GTagGroup, { items: [], label: 'X', onRemove: (p: { source: 'mouse' }) => p })
+// @ts-expect-error color semántico: no es una categoría
+h(GTag, { label: 'X', color: 'danger' })
+// @ts-expect-error size fuera de la lista
+h(GTag, { label: 'X', size: 'lg' })
+
+export { tagItems, badTag }

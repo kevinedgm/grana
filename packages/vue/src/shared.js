@@ -15,6 +15,9 @@
 // El deslizador (`@grana/vue/slider`, #455: vite.slider.config.js y src/slider.test.js) toma de aquí useFormField con las
 // claves de contexto (layoutKey para publicar su mínimo en GFormRow), GLibIcon, oneOf, sizeObserver y utils/keyFocus.js (la
 // escucha única de documento con recuento y la regla de modalidad de #450); su motor (utils/slider.js) vive en la entrada.
+// Las etiquetas (`@grana/vue/tag`, #472: vite.tag.config.js y src/tag.test.js) toman de aquí GBtn, GAvatar, los dos GIcon,
+// liveRegion, template, el modo visual del motor del tooltip (visualTip: un solo estado del motor en la página) y el hash de
+// categorías (categoryHash, el mismo de GAvatar).
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -43,6 +46,8 @@ import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
 import { createTopModal } from './utils/topModal.js'
+import { useVisualTips } from './utils/visualTip.js'
+import { categoryOf } from './utils/categoryHash.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
 export const shared = {
@@ -68,5 +73,7 @@ export const shared = {
   'utils/keyFocus.js': { useKeyFocus },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },
-  'utils/topModal.js': { createTopModal }
+  'utils/topModal.js': { createTopModal },
+  'utils/visualTip.js': { useVisualTips },
+  'utils/categoryHash.js': { categoryOf }
 }
