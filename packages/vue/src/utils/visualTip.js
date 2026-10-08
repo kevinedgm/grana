@@ -10,7 +10,7 @@ import { attach } from './tooltip.js'
 /**
  * opt.find(key, node) → { ctrl, box? } | null: el elemento enfocable de esa pista (y su caja visible si es otra), leído
  * del DOM ya parcheado. opt.disabled(key, ctrl) → true mientras la etiqueta esté visible. opt.placement(key, ctrl) →
- * lado pedido (solo si el grupo no declara su orientación).
+ * lado pedido (solo si el grupo no declara su orientación). opt.as: 'span' crea los nodos como <span> (por defecto <div>).
  * Devuelve { ref(key), node(key, text), sync(), check(), hide(), instances }.
  */
 export function useVisualTips(opt) {
@@ -31,8 +31,10 @@ export function useVisualTips(opt) {
     return f
   }
 
-  /** Nodo del modo visual (render function). Texto = la etiqueta oculta que ya da el nombre */
-  const node = (key, text) => h('div', { key: `g-vtip-${key}`, ref: ref(key), class: 'g-tooltip', popover: 'manual', 'aria-hidden': 'true' }, [
+  /** Nodo del modo visual (render function). Texto = la etiqueta oculta que ya da el nombre. `opt.as: 'span'` lo crea
+   *  como <span> (contenido de frase: la raíz de GTag es un <span>, tag.md §«Pista visual», #470); por defecto <div> */
+  const tag = opt.as === 'span' ? 'span' : 'div'
+  const node = (key, text) => h(tag, { key: `g-vtip-${key}`, ref: ref(key), class: 'g-tooltip', popover: 'manual', 'aria-hidden': 'true' }, [
     h('span', { class: 'g-tooltip__tab' }),
     h('span', { class: 'g-tooltip__body' }, [h('span', { class: 'g-tooltip__text', dir: 'auto' }, text)])
   ])

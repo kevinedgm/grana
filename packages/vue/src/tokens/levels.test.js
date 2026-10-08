@@ -53,7 +53,9 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   // `cat-K-soft` y `on-cat-K-soft`, #294). Ninguna hoja la declara (ni siquiera estas).
   const CAT_FAMILY_READERS = {
     'GTranscript/GTranscript.css': 'marca de letra del hablante (speakerColors: n)',
-    'GAvatar/GAvatar.css': 'relleno del avatar por categoría (color / categories)'
+    'GAvatar/GAvatar.css': 'relleno del avatar por categoría (color / categories)',
+    'GTag/GTag.css': 'etiqueta por categoría: relleno, pulsada, contorno y raya (color / categories)',
+    'GTagGroup/GTagGroup.css': 'lomo del racimo (layout facets)'
   }
   const K = '(?:[1-9]|1[0-2])'
   const CAT_OK = new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`)
