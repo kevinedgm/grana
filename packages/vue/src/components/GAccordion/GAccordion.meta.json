@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "name": "GAccordion",
+  "tag": "g-accordion",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Grupo de secciones plegables de contenido (preguntas frecuentes, detalles, ajustes que se aplican al momento). Forma A «Avance» (#475): sin cajas, el encabezado cerrado enseña una línea de la respuesta que no se mueve al abrir; el encabezado que toca el usuario no se mueve (Δ0); lo plegado se encuentra (hidden=\"until-found\"), se enlaza (#id) y se imprime. Encabezado pegado opcional (sticky). APG Accordion: hN > button por elemento, Tab por todos los encabezados y flechas opcionales.",
+  "contract": "design/contracts/accordion.md",
+  "prototype": "design/lab/accordion/r01/",
+  "style": "packages/vue/src/components/GAccordion/GAccordion.css",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Array",
+      "default": null,
+      "note": "v-model: arreglo de los value abiertos, en orden del documento (no de apertura). Controlado y no controlado (estado local que parte de la prop y la sigue; sin v-model parte de []). null/undefined = [] sin aviso; otro valor que no es arreglo = [v] con aviso 1. Los valores sin elemento montado se conservan al final, en su orden (abrir con exclusive los quita)."
+    },
+    {
+      "name": "exclusive",
+      "type": "Boolean",
+      "default": false,
+      "note": "Uno a la vez: el modelo tiene 0 o 1 valores y el abierto se puede cerrar. Con más de un valor en el modelo se abre solo el primero en orden del documento, sin emitir (aviso 2)."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": 3,
+      "values": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "note": "Nivel por defecto de los encabezados de sus elementos (el del elemento gana)."
+    },
+    {
+      "name": "arrows",
+      "type": "Boolean",
+      "default": true,
+      "note": "↓/↑ (sin vuelta) e Inicio/Fin entre los encabezados de este grupo (APG, opcional; #481). Sin Alt, Ctrl ni ⌘; nunca dentro de un panel ni en un grupo anidado."
+    },
+    {
+      "name": "sticky",
+      "type": "Boolean",
+      "default": false,
+      "note": "El encabezado de un elemento abierto se queda pegado arriba mientras se lee su contenido (#484), a --g-accordion-sticky-top del borde del contenedor de desplazamiento. Cerrar desde el encabezado pegado es instantáneo y no lo mueve."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Array",
+      "trigger": "Cada vez que cambia lo abierto por el usuario (clic, Intro, Espacio, clic en el avance), por la búsqueda de la página (beforematch), por un #id y por OPEN_REQUEST. Copia nueva en orden del documento. No cuando el cambio llega desde modelValue."
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Los GAccordionItem (directos o dentro de v-for/<template>; un envoltorio de la aplicación entre medias funciona, pero el CSS de separadores puede no alcanzarlo)."
+    }
+  ],
+  "related": [
+    {
+      "name": "GAccordionItem",
+      "purpose": "Elemento del grupo; suelto, sección plegable de una pieza (meta propio: GAccordionItem.meta.json)."
+    }
+  ],
+  "tokens": [
+    "--g-border-width",
+    "--g-color-bg",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-focus",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-duration-fast",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-standard",
+    "--g-focus-offset",
+    "--g-focus-width",
+    "--g-font-title",
+    "--g-font-ui",
+    "--g-radius-xs",
+    "--g-shadow-1",
+    "--g-space-1",
+    "--g-space-2",
+    "--g-space-3",
+    "--g-space-4",
+    "--g-surface-inset",
+    "--g-surface-shell",
+    "--g-tabs-panel",
+    "--g-text-body-line",
+    "--g-text-body-size",
+    "--g-text-body-sm-line",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-tracking",
+    "--g-text-body-sm-weight",
+    "--g-text-body-tracking",
+    "--g-text-body-weight",
+    "--g-text-title-sm-line",
+    "--g-text-title-sm-size",
+    "--g-text-title-sm-tracking",
+    "--g-text-title-sm-weight"
+  ],
+  "publicProperties": [
+    {
+      "name": "--g-accordion-sticky-top",
+      "syntax": "<length>",
+      "inherits": true,
+      "initial": "0px",
+      "note": "Propiedad pública de entrada (no es del tema, #484): alto de la cabecera fija de la aplicación. La pone la aplicación en :root, un contenedor o el grupo; vale 0 dentro de .g-dialog__body (GAccordion.css). Da también el scroll-margin-block-start del botón de todo elemento."
+    }
+  ],
+  "states": [
+    "default",
+    "exclusive",
+    "sticky"
+  ],
+  "markup": {
+    "root": "div.g-accordion[.g-accordion--exclusive][.g-accordion--sticky][style=\"--_scroll-pad: Npx\" en un grupo sticky dentro de un contenedor de desplazamiento con relleno de inicio] (sin rol: APG no lo pone al conjunto)"
+  },
+  "behavior": [
+    "Registro: cada GAccordionItem se une al GAccordion más cercano sin otro elemento entre medias (cada elemento vuelve a proveer la clave como null).",
+    "Regla de region (#477): role=\"region\" en el contenido de cada elemento con exclusive o con ≤ 6 elementos; con 7 o más que pueden abrirse a la vez, sin rol. Se cuentan los GAccordionItem del slot en el render del grupo (antes de pintarse los elementos): sale igual en el servidor y en el cliente.",
+    "Flechas: ↓/↑ al encabezado siguiente/anterior sin vuelta (incluye los deshabilitados), Inicio/Fin al primero/último; preventDefault; solo con el foco en un botón de un elemento de este grupo.",
+    "OPEN_REQUEST en exclusive: dentro del mismo tick (microtarea) solo se atiende la primera petición que llega al grupo, aunque su elemento ya estuviera abierto; las siguientes no abren ni se cancelan (GForm enfoca el primer error sin cerrar su elemento).",
+    "En exclusive, abrir sin animar (búsqueda, #id, OPEN_REQUEST) cierra los otros sin animar también.",
+    "sticky: --_scroll-pad (px) = padding-block-start del contenedor de desplazamiento (overflow-y auto/scroll; 0 con el documento), medido en un cuadro al montar, al cambiar sticky y al abrir un elemento; se escribe solo si cambia (#173).",
+    "sticky y foco (2.4.11, WebKit): en focusin dentro del contenido de un abierto de este grupo, si el control queda por encima del borde inferior del encabezado pegado, scrollIntoView({ block: 'nearest' }) (respeta el scroll-margin del CSS)."
+  ],
+  "weight": {
+    "main": "GAccordion + GAccordionItem + utils/collapse.js: +5,7 KB gzip -9 en grana.js (184 424 → 190 270 B), +5,0 KB en grana.umd.js (162 896 → 168 054 B) y +1,5 KB en grana.css (71 966 → 73 528 B); medido el 2026-10-08 en el mismo árbol. Bajo el tope de 8 KB (#476): va en el paquete principal"
+  },
+  "pending": [
+    "Auditoría de coco sobre el componente real (design/lab/accordion/auditoria.md)",
+    "README (mora-docs) tras la auditoría",
+    "Lector de pantalla real sobre region y su regla, el avance por describedby y la navegación por encabezados"
+  ],
+  "warnings": [
+    "1 · modelValue que no es arreglo (ni null/undefined): se trata como [v]",
+    "2 · exclusive con más de un valor abierto: solo se abre el primero en orden del documento (sin emitir)",
+    "3 · dos elementos del grupo con el mismo value"
+  ]
+}

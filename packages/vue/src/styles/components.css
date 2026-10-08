@@ -85,3 +85,6 @@
 @import url("../components/GSlider/GSlider.css");
 /* GBreadcrumbs (breadcrumbs.md, #490): sus pistas usan el CSS de GTooltip (modo visual, #496) */
 @import url("../components/GBreadcrumbs/GBreadcrumbs.css");
+/* GAccordion + GAccordionItem (accordion.md, #476): un solo archivo para el grupo y el elemento, como GTabs con GTabPanel;
+   reapunta el fondo pegado en GSurface, GDialog y el panel de GTabs con selectores propios (va después de sus hojas) */
+@import url("../components/GAccordion/GAccordion.css");

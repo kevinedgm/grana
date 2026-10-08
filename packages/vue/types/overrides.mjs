@@ -5,6 +5,7 @@
 
 /** Props: tipo completo (sin `| undefined`; la opcionalidad sale del meta.json). */
 export const props = {
+  'GAccordion.modelValue': 'Array<string | number> | null',
   'GAvatar.color': "'neutral' | GranaCategory | `${GranaCategory}` | null",
   'GAvatar.categories': '0 | GranaCategory',
   'GBreadcrumbs.items': 'BreadcrumbItem[]',
@@ -76,6 +77,7 @@ export const props = {
 
 /** Eventos: tipo del argumento (`void` = sin argumento). */
 export const events = {
+  'GAccordion.update:modelValue': 'Array<string | number>',
   'GAvatarMotion.done': "'success' | 'warning' | 'error'",
   'GBreadcrumbs.navigate': 'BreadcrumbsNavigateEvent',
   'GCalendar.range-change': '{ start: Date; end: Date; view: string; timezone: string }',

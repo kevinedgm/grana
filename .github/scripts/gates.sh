@@ -65,6 +65,9 @@ done
 for cls in g-breadcrumbs__door g-breadcrumbs__stairs; do
   must_have grana.css "$cls" "$CSS_MSG"
 done
+# GAccordion + GAccordionItem (#476): en el paquete principal (+5,7 KB gzip, bajo el tope de 8 KB)
+must_have grana.css "g-accordion-item__peek" "$CSS_MSG"
+must_have grana.js "g-accordion-item" "GAccordionItem no está en el paquete principal grana.js (#476: va en el principal)"
 
 # --- Lo que NO debe estar -----------------------------------------------------------------------
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"

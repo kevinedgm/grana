@@ -21,7 +21,7 @@ import GIcon from '../GIcon/GLibIcon.js'
 import { formKey, isDev, nextFrame, revealKey, sectionKey, spaceUnit } from '../GForm/formContext.js'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
-import { transitionMs } from '../../utils/motion.js'
+import { useCollapse } from '../../utils/collapse.js'
 import { observeSize } from '../../utils/sizeObserver.js'
 
 defineOptions({ name: 'GFormSection', inheritAttrs: false })
@@ -69,9 +69,6 @@ const addedL = ref(props.added)
 const appAdded = ref(props.added) // la agregó la aplicación (al montar o por programa): confirma al quitar (#288)
 const edited = ref(false) // el usuario escribió desde que se agregó
 const gen = ref(0) // clave del cuerpo: cambia al descartar (lo no controlado se vacía)
-const animating = ref(false)
-const ready = ref(false)
-const instant = ref(false)
 const side = ref(false)
 const below = ref(false)
 const confirmOpen = ref(false)
@@ -132,7 +129,7 @@ watch(() => collapsed.value && errorCount.value > 0, (v) => {
   }
 }, { immediate: true })
 
-// ---------- Transición (la de §14 en __panel, #278) ----------
+// ---------- Transición (la de §14 en __panel, #278): motor de plegado compartido (utils/collapse.js, #486) ----------
 const root = ref(null)
 const header = ref(null)
 const actions = ref(null)
@@ -142,48 +139,26 @@ const toggleEl = ref(null)
 const titleEl = ref(null)
 const summaryEl = ref(null)
 
-let timer = null
 let pendingRemount = false
-function settle() {
-  clearTimeout(timer)
-  timer = null
-  if (animating.value) animating.value = false
+// is-ready lo pone onMounted tras la primera medida (#289): manualReady
+const { animating, ready, instant, start: startAnim, onTransitionend, openInstant, focusOut, markReady } = useCollapse({
+  panel,
+  toggle: toggleEl,
+  manualReady: true,
   // Descartar: el cuerpo se vuelve a montar al terminar la transición (sin vaciarse a la vista mientras se funde)
-  if (pendingRemount) {
-    pendingRemount = false
-    gen.value++
+  onSettle() {
+    if (pendingRemount) {
+      pendingRemount = false
+      gen.value++
+    }
   }
-}
-// Respaldo del transitionend: si la transición de altura sigue en curso (empezó tarde con el hilo ocupado), espera
-function fallback() {
-  const p = panel.value
-  const running = p && typeof p.getAnimations === 'function' && p.getAnimations().some((a) => a.transitionProperty === 'grid-template-rows' && a.playState === 'running')
-  if (running) {
-    timer = setTimeout(fallback, 50)
-    return
-  }
-  settle()
-}
-function startAnim() {
-  animating.value = true
-  clearTimeout(timer)
-  // Respaldo del transitionend (una transición de 0s no lo emite: movimiento reducido), con el DOM ya actualizado
-  nextTick(() => {
-    clearTimeout(timer)
-    timer = setTimeout(fallback, transitionMs(panel.value) + 50)
-  })
-}
-function onTransitionend(event) {
-  if (event.target === event.currentTarget && event.propertyName === 'grid-template-rows') settle()
-}
+})
 
 // ---------- collapsible ----------
 function setOpen(v, { silent = false } = {}) {
   if (v === openL.value) return
   // Plegar con el foco dentro (por programa): al botón ANTES de aplicar inert, sin desplazar (nunca a <body>, 2.4.3)
-  if (!v && panel.value && typeof document !== 'undefined' && panel.value.contains(document.activeElement)) {
-    toggleEl.value?.focus({ preventScroll: true })
-  }
+  if (!v) focusOut()
   openL.value = v
   if (!silent) emit('update:open', v)
   startAnim()
@@ -199,14 +174,10 @@ watch(() => props.open, (v) => {
 // Se escucha en __panel (`@g-open-request` = OPEN_REQUEST de formContext.js): una petición desde el encabezado no abre
 function onOpenRequest(event) {
   if (!isCollapsible.value || openL.value) return
-  clearTimeout(timer)
-  timer = null
-  animating.value = false
-  instant.value = true
+  openInstant()
   openL.value = true
   emit('update:open', true)
   event.preventDefault()
-  nextFrame(() => nextFrame(() => { instant.value = false }))
 }
 
 // ---------- addable ----------
@@ -389,13 +360,12 @@ onMounted(() => {
   // animaría su margen al cargar). Sin medida que hacer, is-ready tras el primer pintado
   nextFrame(() => {
     if (needsMeasure()) measure()
-    nextFrame(() => nextFrame(() => { ready.value = true }))
+    nextFrame(() => nextFrame(markReady))
   })
 })
 onBeforeUnmount(() => {
   offRoot?.()
   offActions?.()
-  clearTimeout(timer)
 })
 
 // ---------- Marcado ----------

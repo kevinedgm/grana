@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "name": "GAccordionItem",
+  "tag": "g-accordion-item",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Elemento de GAccordion; suelto (sin grupo), sección plegable de una pieza con v-model:open (APG Disclosure con encabezado). hN > button con título y meta dentro, avance (A) debajo en la misma celda que el contenido, acciones fuera del hN. Contenido montado siempre (salvo lazy), plegado y asentado con hidden=\"until-found\".",
+  "contract": "design/contracts/accordion.md",
+  "prototype": "design/lab/accordion/r01/",
+  "style": "packages/vue/src/components/GAccordion/GAccordion.css",
+  "props": [
+    {
+      "name": "value",
+      "type": "String | Number",
+      "default": null,
+      "note": "Identidad en el modelo del grupo; sin ella, el id efectivo (aviso 10 en un grupo con v-model si tampoco hay id). Dos elementos con el mismo value se abren y cierran juntos (aviso 3)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "id de la raíz (ancla #id, #482) y base de los internos: {id}-toggle, {id}-content, {id}-peek. Sin él, uno generado con useId(). Repetido en el documento: aviso 9."
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": null,
+      "note": "Texto del botón (o slot title). Nombre del botón = title + meta."
+    },
+    {
+      "name": "meta",
+      "type": "String",
+      "default": null,
+      "note": "Dato corto no interactivo dentro del botón, parte del nombre (o slot meta): «3 activas», «Disponible tras tu primera cita»."
+    },
+    {
+      "name": "peek",
+      "type": "String",
+      "default": null,
+      "note": "A «Avance» (#483): una línea debajo del encabezado cerrado (la primera de la respuesta o el estado del grupo; o slot peek). aria-describedby del botón solo cerrado; clic en él (cerrado, sin selección de texto) abre como el botón."
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-disabled (sin disabled nativo): enfocable, las flechas lo alcanzan, no abre ni cierra por clic, teclado ni avance. La búsqueda de la página, un #id y OPEN_REQUEST sí lo abren."
+    },
+    {
+      "name": "lazy",
+      "type": "Boolean",
+      "default": false,
+      "note": "El contenido se monta al abrir por primera vez (por cualquier vía) y no se desmonta al cerrar. Sin abrir no se encuentra, no se imprime, un #id de dentro no existe y no recibe OPEN_REQUEST."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": null,
+      "values": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "note": "Por defecto el del grupo; suelto, 3."
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "default": false,
+      "note": "Solo suelto: v-model:open, controlado y no controlado (estado local que parte de la prop y la sigue). Dentro de un grupo se ignora (aviso 5)."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:open",
+      "payload": "Boolean",
+      "trigger": "Solo suelto, en los mismos casos que update:modelValue del grupo (usuario, beforematch, #id, OPEN_REQUEST). Dentro de un grupo no se emite."
+    }
+  ],
+  "slots": [
+    {
+      "name": "title",
+      "purpose": "Título dentro del botón (sin interactivos, aviso 6).",
+      "scope": "{ open: Boolean }"
+    },
+    {
+      "name": "meta",
+      "purpose": "Dato corto dentro del botón (sin interactivos, aviso 6).",
+      "scope": "{ open: Boolean }"
+    },
+    {
+      "name": "peek",
+      "purpose": "Avance de A, debajo del encabezado y fuera del botón: texto en línea; la aplicación garantiza una línea con sentido (sin interactivos, aviso 7).",
+      "scope": "{ open: Boolean }"
+    },
+    {
+      "name": "actions",
+      "purpose": "Acciones en la fila del encabezado, fuera del hN («Restablecer»): GBtn u otros controles.",
+      "scope": "{ open: Boolean }"
+    },
+    {
+      "name": "default",
+      "purpose": "Lo que se pliega."
+    }
+  ],
+  "tokens": [
+    "--g-border-width",
+    "--g-color-bg",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-focus",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-duration-fast",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-standard",
+    "--g-focus-offset",
+    "--g-focus-width",
+    "--g-font-title",
+    "--g-font-ui",
+    "--g-radius-xs",
+    "--g-shadow-1",
+    "--g-space-1",
+    "--g-space-2",
+    "--g-space-3",
+    "--g-space-4",
+    "--g-surface-inset",
+    "--g-surface-shell",
+    "--g-tabs-panel",
+    "--g-text-body-line",
+    "--g-text-body-size",
+    "--g-text-body-sm-line",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-tracking",
+    "--g-text-body-sm-weight",
+    "--g-text-body-tracking",
+    "--g-text-body-weight",
+    "--g-text-title-sm-line",
+    "--g-text-title-sm-size",
+    "--g-text-title-sm-tracking",
+    "--g-text-title-sm-weight"
+  ],
+  "states": [
+    "closed (hidden=\"until-found\")",
+    "open",
+    "closing (inert)",
+    "animating",
+    "instant",
+    "ready",
+    "disabled",
+    "standalone",
+    "hover",
+    "focus-visible",
+    "sticky (pegado)",
+    "reduced-motion",
+    "print",
+    "forced-colors"
+  ],
+  "classes": {
+    "root": [
+      "g-accordion-item",
+      "is-open",
+      "is-animating",
+      "is-instant",
+      "is-ready",
+      "is-disabled",
+      "is-standalone",
+      "has-peek",
+      "has-actions"
+    ],
+    "parts": [
+      "__heading",
+      "__toggle",
+      "__title",
+      "__meta",
+      "__chevron",
+      "__actions",
+      "__peek",
+      "__panel",
+      "__content",
+      "__body"
+    ],
+    "data": [
+      "--_head-size (px, en línea en la raíz): abierto en un grupo sticky, alto del encabezado (observador de tamaño compartido, escritura en un cuadro y solo si cambia)"
+    ]
+  },
+  "markup": {
+    "item": "div.g-accordion-item#ID[...] > hN.g-accordion-item__heading > button.g-accordion-item__toggle#ID-toggle[type=button][aria-expanded][aria-controls=ID-content][aria-disabled?][aria-describedby=ID-peek solo cerrado con avance] > span.__title[dir=auto] + span.__meta[dir=auto]? + span.__chevron[aria-hidden] > svg.g-icon (chevron-right); div.__actions? ; div.__peek#ID-peek[dir=auto]? ; div.__panel[inert solo mientras se cierra] > div.__content#ID-content[role=region aria-labelledby=ID-toggle según la regla][hidden=\"until-found\" plegado y asentado] > div.__body (slot)"
+  },
+  "behavior": [
+    "Motor de plegado compartido con GFormSection (utils/collapse.js, #486): is-animating del cambio al transitionend de grid-template-rows del panel o al respaldo transitionMs(panel) + 50 ms (espera otros 50 ms si la transición sigue corriendo); al asentar plegado, hidden=\"until-found\". El motor no mira prefers-reduced-motion (el CSS cuenta con is-animating y el respaldo).",
+    "Abrir: hidden sale en el mismo parche que entra is-open; no mueve el foco. Plegar con el foco dentro (por programa): el foco va al botón con preventScroll antes de inert.",
+    "is-ready tras el primer pintado (dos cuadros): no se anima lo que ya viene abierto. is-instant (dos cuadros) al abrir por beforematch, #id u OPEN_REQUEST y al cerrar desde el encabezado pegado.",
+    "Δ0 (#481): con un cambio del usuario (clic en el botón o en el avance, Intro, Espacio), keepInPlace mide el borde superior del encabezado y en cada cuadro hasta la mayor duración de los paneles del grupo + 80 ms desplaza su contenedor de desplazamiento (el antepasado con overflow-y que desborda o el documento) lo que se movió (≥ 0,5 px); si ese contenedor ya no puede desplazarse más, o un antepasado se movió por su propio anclaje de desplazamiento al encogerse el de dentro, compensa el siguiente hacia fuera; se cancela con rueda, toque o teclas de desplazamiento no atendidas. Sin compensación con modelValue, beforematch, #id ni OPEN_REQUEST.",
+    "beforematch en __content (Ctrl+F, #:~:text=, #id de dentro): abre en el acto y emite; también deshabilitado.",
+    "OPEN_REQUEST (g-open-request) en __panel: plegado → abre sin animar, emite y cancela; no detiene la propagación (los anidados se abren todos).",
+    "#id del elemento (#482): al montar y en hashchange (una sola escucha compartida, se pone con el primer elemento y se quita con el último), si el fragmento decodificado es su id: abre sin animar y llama a scrollIntoView({ block: 'start', behavior: 'instant' }) en el botón (respeta su scroll-margin). Montado durante la carga, lo repite en load (y tras document.fonts.ready si la página no se desplazó), como el navegador con un fragmento. No mueve el foco; nunca escribe el fragmento.",
+    "Cerrar desde el encabezado pegado (sticky, el principio del elemento ya está por encima): cierre instantáneo con Δ0."
+  ],
+  "warnings": [
+    "4 · sin title, slot title, meta ni slot meta: el botón no tiene nombre",
+    "5 · open u onUpdate:open dentro de un grupo: se ignora",
+    "6 · algo interactivo en title o meta (al pintarse)",
+    "7 · algo interactivo en el avance",
+    "8 · dentro de un GForm con controles de formulario en su contenido (al montar y al montarse un lazy, #486)",
+    "9 · su id está repetido en el documento",
+    "10 · en un grupo con v-model, sin value ni id"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (design/lab/accordion/auditoria.md)",
+    "README (mora-docs) tras la auditoría"
+  ],
+  "weight": {
+    "main": "Medido junto con GAccordion (GAccordion.meta.json «weight»)"
+  }
+}
