@@ -412,3 +412,15 @@ describe('GLoadRegion · avisos de desarrollo (una vez cada uno, prefijo [Grana]
     expect(has(/repetidas/)).toBe(1)
   })
 })
+
+describe('GLoadRegion · lo nuevo cuando items y loading cambian en el mismo ciclo', () => {
+  it('la aplicación asigna items y pone loading en false a la vez: lo nuevo no se pierde', async () => {
+    const w = mk({ items: ALL.slice(0, 2) })
+    await w.setProps({ loading: true })
+    await at(900)
+    await w.setProps({ items: ALL, loading: false })
+    await at(60)
+    expect(w.findAll('[data-g-fresh]').map((n) => n.attributes('data-g-key'))).toEqual(['m9'])
+    expect(live()).toBe('3 muestras, 1 nuevas.')
+  })
+})

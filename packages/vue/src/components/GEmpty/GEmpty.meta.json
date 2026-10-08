@@ -160,5 +160,9 @@
     "README (mora-docs)",
     "Lector de pantalla real",
     "cause=\"done\" y appearance=\"phrase\" reservados (#543)"
-  ]
+  ],
+  "verification": {
+    "vitest": "GEmpty.test.js (17)",
+    "playwright": "design/lab/theme-playground/tests/empty.spec.mjs en Chromium, Firefox y WebKit (puerto 4216)"
+  }
 }

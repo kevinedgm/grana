@@ -118,6 +118,27 @@
       .pg-brand span, .pg-ctl-label { display: none; }
       .pg-bar { padding: 6px 12px; gap: 6px 10px; }
     }
+    /* GLoadRegion y GEmpty (banco del playground): la plantilla de «la aplicación» (lista, teselas y ficha) */
+    .lr-rows { list-style: none; margin: 0; padding: 0; display: grid; }
+    .lr-row { display: flex; align-items: center; gap: var(--g-space-3); padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+    .lr-av { flex: none; display: inline-grid; place-items: center; inline-size: calc(var(--g-space-1) * 10); block-size: calc(var(--g-space-1) * 10); border-radius: var(--g-radius-pill); background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft); font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight); }
+    .lr-main { flex: 1 1 auto; min-inline-size: 0; display: grid; gap: var(--g-space-1); }
+    .lr-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); }
+    .lr-title { color: var(--g-color-text); font-weight: var(--g-text-action-weight); text-decoration: none; }
+    .lr-title:hover { text-decoration: underline; }
+    .lr-meta, .lr-status { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+    .lr-status { flex: none; }
+    .lr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--g-space-3); }
+    .lr-tile { display: grid; gap: var(--g-space-1); padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-surface); box-shadow: var(--g-shadow-1); }
+    .lr-tile p, .lr-detail p, .lr-detail h4, .lr-detail dl, .lr-detail dd { margin: 0; }
+    .lr-tile-label, .lr-tile-note { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+    .lr-tile-value { font-size: var(--g-text-title-size); font-weight: var(--g-text-title-weight); font-variant-numeric: tabular-nums; }
+    .lr-detail { display: grid; gap: var(--g-space-3); max-inline-size: 60ch; padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); }
+    .lr-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--g-space-1) var(--g-space-3); font-size: var(--g-text-body-sm-size); }
+    .lr-detail dt { color: var(--g-color-text-muted); }
+    .lr-after { margin-block-start: var(--g-space-3); color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+    .lr-stack { display: grid; gap: var(--g-space-3); }
+    .lr-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); margin: 0 0 var(--g-space-3); }
   </style>
   <!-- Categorías del tema de la aplicación (tokens.md §16.3): la salida de `grana theme` con {"categories": 8}, solo la familia
        que lee GAvatar (cat-K-soft / on-cat-K-soft). Grana no la trae por defecto: la declara la aplicación, y por eso los
@@ -2153,7 +2174,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           <h3>Tabla (GTable, GFilterBar, GPagination)</h3>
           <div class="pg-panel">
     <div style="max-width:1100px">
-      <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" selectable :page-size="5" :labels="tbLabels" :loading="tbLoading"
+      <g-table :columns="tbColumns" :rows="tbRows" caption="Clientes" selectable :page-size="5" :labels="tbLabels" :loading="tbLoading" :error="tbError" @retry="tbRetry"
                v-model:sort="tbSort" v-model:selected="tbSelected" v-model:filters="tbFilters" v-model:page="tbPage">
         <template #leading-cliente="{ row }"><g-avatar :name="row.nombre" :src="row.foto" :color-key="row.id" size="md" :categories="8"></g-avatar></template>
         <template #cell-estado="{ value }"><g-badge variant="soft" :color="tbColors[value]" size="sm">{{ value }}</g-badge></template>
@@ -2163,10 +2184,15 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </g-menu>
         </template>
       </g-table>
-      <p><g-btn variant="outline" size="sm" id="tb-simulate" @click="tbSimulate">Simular carga</g-btn></p>
+      <p class="row"><g-btn variant="outline" size="sm" id="tb-simulate" @click="tbSimulate()">Simular carga</g-btn><g-btn variant="outline" size="sm" id="tb-simulate-slow" @click="tbSimulate(6000)">Carga lenta (6 s)</g-btn><g-btn variant="outline" size="sm" id="tb-simulate-fail" @click="tbSimulate(900, true)">Simular fallo</g-btn></p>
       <p>Última acción: <b>{{ tbLog }}</b> · Filtros: <code>{{ JSON.stringify(tbFilters) }}</code></p>
     </div>
           </div>
+        </section>
+        <section class="pg-section" id="sec-load-region" data-pg-section>
+          <h2>GLoadRegion y GEmpty</h2>
+          <p class="pg-lead">La región que carga: 200 ms antes de enseñar nada y 400 ms mínimos a la vista; en la primera carga, <b>el molde es la plantilla</b> sin tinta y la tinta llega a su sitio (A); al refrescar, <b>nada se borra</b>: lo de antes sigue, inerte, con filo y píldora, y lo nuevo llega marcado (B). Un canal cortés por página (<code>p.g-load-live</code>). El vacío dice por qué y cómo salir (<code>GEmpty</code>, en el principal); con un filtro, cuántas vuelven quitando cada uno. <code>GLoadRegion</code> va en su propia entrada, <code>@grana/vue/load-region</code> (aquí <code>dist/load-region.umd.js</code>, global <code>GranaLoadRegion</code>). Lo monta su propia aplicación de Vue (<code>window.lrApp</code>; estado en <code>window.lr</code>, anuncios en <code>window.lrLive</code>, eventos en <code>window.lrEvents</code>).</p>
+          <div id="lr-app"></div>
         </section>
         <section class="pg-section" id="sec-tag" data-pg-section>
           <h2>GTag y GTagGroup</h2>
@@ -2663,6 +2689,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/time-field.umd.js"></script>
   <script src="../dist/slider.umd.js"></script>
   <script src="../dist/tag.umd.js"></script>
+  <script src="../dist/load-region.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="./accordion-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
@@ -3008,7 +3035,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           { key: 'alta', label: 'Alta', sortable: true, format: (v) => new Date(v + 'T00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }), filter: { type: 'date', suggest: true } },
           { key: 'total', label: 'Total', align: 'end', sortable: true, format: (v) => '$' + v.toLocaleString('es-MX'), filter: { type: 'number', unit: '$', suggest: true } }
         ]
-        const tbLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', sortBy: 'Ordenar por', ascending: 'ascendente', descending: 'descendente', sorted: 'Ordenado por {label}, {direction}', loading: 'Cargando clientes…', empty: 'Sin clientes todavía.', emptyFiltered: 'Ningún cliente cumple estos filtros.', clearFilters: 'Limpiar filtros', results: '{count} resultados',
+        const tbLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', sortBy: 'Ordenar por', ascending: 'ascendente', descending: 'descendente', sorted: 'Ordenado por {label}, {direction}', loading: 'Cargando clientes…', empty: 'Sin clientes todavía.', emptyFiltered: 'Ningún cliente cumple estos filtros.', clearFilters: 'Limpiar filtros', results: '{count} resultados', slow: 'Sigue cargando clientes…', failed: 'No se pudieron actualizar los clientes. Lo que ves es lo último que llegó.', retry: 'Reintentar',
           filters: { group: 'Filtros de clientes', add: 'Agregar filtro', clear: 'Limpiar filtros', filterBy: 'Filtrar por {label}', edit: 'Editar filtro: {summary}', remove: 'Quitar filtro: {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Indica un valor para aplicar el filtro.', range: '«Desde» debe ser menor o igual que «hasta».', rule: 'Regla', value: 'Valor', from: 'Desde', to: 'Hasta', and: 'y', days: '{n} días', results: '{count} resultados', ops: { contains: 'contiene', is: 'es', starts: 'empieza por', gt: 'mayor que', lt: 'menor que', eq: 'igual a', between: 'entre', after: 'después de', before: 'antes de', last: 'últimos', in: 'es cualquiera de' } },
           pagination: { nav: 'Paginación de clientes', previous: 'Página anterior', next: 'Página siguiente', page: 'Página {page}', range: '{from}–{to} de {total}', compact: 'Página {page} de {pages}' } }
         const tbColors = { activo: 'success', pausado: 'warning', vencido: 'danger' }
@@ -3020,7 +3047,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         // GMenu se abre por v-model (menu.md): un estado por fila
         const tbMenu = reactive({})
         const tbLoading = ref(false)
-        const tbSimulate = () => { tbLoading.value = true; setTimeout(() => { tbLoading.value = false }, 1500) }
+        const tbError = ref(false)
+        // Carga simulada (#540): la aplicación pone error al terminar si falló; «Reintentar» vuelve a cargar
+        const tbSimulate = (ms = 1500, fail = false) => { tbError.value = false; tbLoading.value = true; setTimeout(() => { tbError.value = fail; tbLoading.value = false }, ms) }
+        const tbRetry = () => { tbLog.value = 'retry'; tbSimulate() }
         const avState = ref('idle')
         const avHelperState = ref('idle')
         const avHelper = (e) => { if (!e.open) { avHelperState.value = 'idle'; return } avHelperState.value = 'thinking'; setTimeout(() => { avHelperState.value = 'success' }, 1200) }
@@ -3453,7 +3483,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "accordion", "name": "GAccordion"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "accordion", "name": "GAccordion"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "load-region", "name": "GLoadRegion y GEmpty"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3869,7 +3899,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { bc, ac, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { bc, ac, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, tbError, tbRetry, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(GranaSlider).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
@@ -4030,6 +4060,269 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         `
       }).use(Grana).use(GranaTag).use(appIcons)
       window.tgApp.mount('#tg-app')
+    })()
+  </script>
+  <script>
+    // GLoadRegion y GEmpty (design/contracts/load-region.md, empty.md; tabla: table.md «Carga, vacío y error»): su propia
+    // aplicación de Vue montada en #lr-app (dentro de #sec-load-region). Casos del contrato (port de design/lab/
+    // empty-skeleton/r01/load.js): lista con molde de la muestra, lo último conocido (keep) o su molde (replace), lo nuevo,
+    // vacío con causa y salida con cuentas, fallo que conserva; grupo de teselas con rótulo conocido; ficha en texto libre;
+    // región dentro de un GDialog modal (el canal se traslada); RTL; una GTable con el motor común. La latencia y el
+    // resultado se eligen arriba (o por ?lat= y ?out=). Estado en window.lr, control en window.lrCtl, anuncios del canal de
+    // página en window.lrLive ({ t, text }), eventos en window.lrEvents.
+    ;(function () {
+      const { createApp, reactive, computed } = Vue
+      const Q = new URLSearchParams(location.search)
+      window.lrEvents = []
+      window.lrLive = []
+      const t0 = performance.now()
+      // Registro del canal de página: cada vez que pasa a tener texto
+      let lastLive = ''
+      new MutationObserver(() => {
+        const n = document.querySelector('.g-load-live')
+        const text = n ? n.textContent : ''
+        if (text && text !== lastLive) window.lrLive.push({ t: Math.round(performance.now() - t0), text })
+        lastLive = text
+      }).observe(document.body, { subtree: true, childList: true, characterData: true })
+
+      const ALL = [
+        { id: 'm7', code: 'M-0007', who: 'AR', name: 'Suero · Ana Ruiz', meta: 'Recibida el 7 oct · Lote 2026-0412', status: 'En análisis', urg: true, lot: '0412' },
+        { id: 'm8', code: 'M-0008', who: 'JP', name: 'Orina · Jorge Pérez', meta: 'Recibida el 7 oct · Lote 2026-0412', status: 'Pendiente', urg: false, lot: '0412' },
+        { id: 'm9', code: 'M-0009', who: 'LG', name: 'Plasma · Lucía Gómez Fernández', meta: 'Recibida el 8 oct · Lote 2026-0413', status: 'Validada', urg: true, lot: '0413' },
+        { id: 'm10', code: 'M-0010', who: 'IS', name: 'Sangre total · Iker Sanz', meta: 'Recibida el 8 oct · Lote 2026-0413', status: 'Pendiente', urg: false, lot: '0413', late: true }
+      ]
+      const SAMPLE = [
+        { id: 's1', code: 'M-0000', who: 'AA', name: 'Tipo · Nombre Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado' },
+        { id: 's2', code: 'M-0000', who: 'AA', name: 'Tipo · Nombre Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado largo' },
+        { id: 's3', code: 'M-0000', who: 'AA', name: 'Tipo largo · Nombre Apellido Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado' }
+      ]
+      const FILTERS = { urg: { label: 'Urgentes', test: (r) => r.urg }, closed: { label: 'Cerradas', test: () => false }, l13: { label: 'Lote 2026-0413', test: (r) => r.lot === '0413' } }
+      const TILES = {
+        t1: { label: 'Muestras hoy', value: '128', note: '12 más que ayer' },
+        t2: { label: 'Pendientes', value: '14', note: '3 urgentes' },
+        t3: { label: 'Tiempo medio', value: '3 h 20 min', note: 'Objetivo: 4 h' }
+      }
+      const DETAIL = {
+        id: 'd', title: 'Lote 2026-0412',
+        body: 'Doce muestras de suero y orina recibidas el 7 de octubre desde el Centro de Salud Norte. Dos llegaron fuera de la temperatura indicada y están en revisión.',
+        facts: [['Origen', 'Centro de Salud Norte'], ['Responsable', 'Laura Ortiz'], ['Estado', 'En análisis']]
+      }
+      const DETAIL_SAMPLE = {
+        id: 'd', title: 'Lote 0000-0000',
+        body: 'Texto de ejemplo con la longitud habitual de una descripción de lote, dos o tres líneas en una ficha de anchura media, sin datos de ninguna persona ni de ningún lote real.',
+        facts: [['Origen', 'Centro de ejemplo'], ['Responsable', 'Nombre Apellido'], ['Estado', 'Estado']]
+      }
+      const RTL_ALL = [{ id: 'r1', who: 'سع', name: 'مصل · سعاد علي', meta: 'استلمت في 7 أكتوبر', status: 'قيد التحليل' }, { id: 'r2', who: 'خم', name: 'بول · خالد محمود', meta: 'استلمت في 8 أكتوبر', status: 'معلقة' }]
+      const RTL_SAMPLE = [{ id: 'x1', who: 'اا', name: 'نوع · اسم عائلة', meta: 'استلمت في 0 أكتوبر', status: 'حالة' }, { id: 'x2', who: 'اا', name: 'نوع · اسم عائلة طويل', meta: 'استلمت في 0 أكتوبر', status: 'حالة' }]
+      const LIST_LABELS = {
+        loading: 'Cargando muestras.', slow: 'Sigue cargando muestras…', refreshing: 'Actualizando',
+        loaded: ({ count, fresh }) => `${count} ${count === 1 ? 'muestra' : 'muestras'}${fresh ? `, ${fresh} ${fresh === 1 ? 'nueva' : 'nuevas'}` : ''}.`,
+        failed: 'No se pudo actualizar. Lo que ves es lo último que llegó.', retry: 'Reintentar'
+      }
+      const TILE_LABELS = { loading: 'Cargando.', slow: 'Sigue cargando.', loaded: 'Cargada.', refreshing: 'Actualizando', failed: 'No se pudo actualizar.', retry: 'Reintentar' }
+      const DASH_LABELS = { loading: 'Cargando el panel.', slow: 'Sigue cargando el panel.', loaded: 'Panel actualizado.' }
+      const DETAIL_LABELS = { loading: 'Cargando el lote.', slow: 'Sigue cargando el lote…', loaded: 'Lote cargado.', refreshing: 'Actualizando', failed: 'No se pudo actualizar el lote.', retry: 'Reintentar' }
+      const DLG_LABELS = { loading: 'Cargando el historial.', slow: 'Sigue cargando el historial…', loaded: ({ count }) => `${count} movimientos.`, refreshing: 'Actualizando', failed: 'No se pudo actualizar.', retry: 'Reintentar' }
+      const RTL_LABELS = { loading: 'جار التحميل.', slow: 'لا يزال التحميل جاريا…', loaded: ({ count }) => `${count} عينات.`, refreshing: 'تحديث', failed: 'تعذر التحديث.', retry: 'إعادة المحاولة' }
+      const EXIT_LABELS = { relax: 'Quitar «{label}»', returns: '{count} vuelven', clear: 'Quitar todos', before: 'Antes había {total}; con {filters}, ninguna.' }
+      const EXIT_LABELS_RTL = { relax: 'إزالة «{label}»', returns: 'تعود {count}', clear: 'إزالة الكل', before: 'كان هناك {total}؛ مع {filters}، لا شيء.' }
+      // GTable con el motor común (#540)
+      const TB_COLUMNS = [
+        { key: 'nombre', label: 'Cliente' },
+        { key: 'plan', label: 'Plan' },
+        { key: 'total', label: 'Total', align: 'end', format: (v) => '$' + v.toLocaleString('es-MX') }
+      ]
+      const TB_ROWS = ['Ana Torres', 'Bruno Díaz', 'Carla Ruiz', 'Diego Mora', 'Elena Vega'].map((n, i) => ({ id: 'k' + i, nombre: n, correo: n.split(' ')[0].toLowerCase() + '@correo.com', ini: n.split(' ').map((x) => x[0]).join(''), plan: ['Básico', 'Pro', 'Equipo'][i % 3], total: 1200 + i * 731 }))
+      const TB_LABELS = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', loading: 'Cargando clientes…', slow: 'Sigue cargando clientes…', results: '{count} clientes', failed: 'No se pudieron cargar los clientes.', retry: 'Reintentar', empty: 'Aún no hay clientes.', emptyFiltered: 'Ningún cliente cumple estos filtros.', clearFilters: 'Limpiar filtros', actionsHeader: 'Acciones' }
+
+      const lr = reactive({
+        latency: Number(Q.get('lat')) || 900,
+        outcome: ['data', 'none', 'filtered', 'error', 'forbidden'].includes(Q.get('out')) ? Q.get('out') : 'data',
+        refresh: 'keep', filters: [], log: '—',
+        list: { loading: false, items: null, error: false, cause: 'none', pool: 0 },
+        tiles: { t1: { loading: false, items: null }, t2: { loading: false, items: null }, t3: { loading: false, items: null } },
+        detail: { loading: false, items: null, error: false },
+        dlgOpen: false, dlg: { loading: false, items: null },
+        rtl: { loading: false, items: null },
+        table: { loading: false, rows: [], error: false, announceError: true, outcome: 'data' }
+      })
+      window.lr = lr
+      const timers = {}
+      // La «petición» de la aplicación: la región no pide nada (sin fetch); aquí un temporizador hace de servidor
+      function run(key, target, ms, produce) {
+        clearTimeout(timers[key])
+        target.loading = true
+        timers[key] = setTimeout(() => { Object.assign(target, produce()); target.loading = false }, ms)
+      }
+      const pool = () => ALL.filter((r) => lr.list.items !== null || !r.late)
+      function listResult() {
+        if (lr.outcome === 'error') return { error: true }
+        if (lr.outcome === 'none') return { error: false, items: [], cause: 'none' }
+        if (lr.outcome === 'forbidden') return { error: false, items: [], cause: 'forbidden' }
+        const p = pool()
+        const items = p.filter((r) => lr.filters.every((f) => FILTERS[f].test(r)))
+        return { error: false, items, cause: items.length ? 'none' : 'filtered', pool: p.length }
+      }
+      const loadList = () => run('list', lr.list, lr.latency, listResult)
+      function loadAll() {
+        lr.list.items = null; lr.list.error = false
+        for (const t of Object.keys(TILES)) lr.tiles[t].items = null
+        lr.detail.items = null
+        loadList()
+        Object.keys(TILES).forEach((t, i) => run(t, lr.tiles[t], lr.latency * [0.5, 1, 1.6][i], () => ({ items: [{ id: t, ...TILES[t] }] })))
+        run('detail', lr.detail, lr.latency, () => ({ items: DETAIL }))
+      }
+      const refreshTiles = () => Object.keys(TILES).forEach((t, i) => run(t, lr.tiles[t], lr.latency * [0.5, 1, 1.6][i], () => ({ items: [{ id: t, ...TILES[t] }] })))
+      const exitFilters = computed(() => lr.filters.map((f) => ({
+        key: f, label: FILTERS[f].label,
+        count: pool().filter((r) => lr.filters.filter((g) => g !== f).every((g) => FILTERS[g].test(r))).length
+      })))
+      const toggleFilter = (f) => { lr.filters = lr.filters.includes(f) ? lr.filters.filter((x) => x !== f) : [...lr.filters, f]; loadList() }
+      const ev = (name, payload) => { window.lrEvents.push({ name, payload }); lr.log = name + (payload !== undefined ? ' · ' + payload : '') }
+      const relax = (k) => { ev('relax', k); lr.filters = lr.filters.filter((x) => x !== k); loadList() }
+      const clearFilters = () => { ev('clear'); lr.filters = []; loadList() }
+      const retryList = () => { ev('retry', 'list'); lr.outcome = 'data'; lr.list.error = false; loadList() }
+      const openDialog = () => { lr.dlgOpen = true; lr.dlg.items = null; run('dlg', lr.dlg, lr.latency, () => ({ items: ALL.slice(0, 3) })) }
+      const loadRtl = () => run('rtl', lr.rtl, lr.latency, () => ({ items: RTL_ALL }))
+      function loadTable(ms = lr.latency, outcome = lr.table.outcome) {
+        run('table', lr.table, ms, () => (outcome === 'error' ? { error: true } : outcome === 'empty' ? { error: false, rows: [] } : outcome === 'reorder' ? { error: false, rows: [TB_ROWS[1], TB_ROWS[0], ...TB_ROWS.slice(2)] } : { error: false, rows: TB_ROWS }))
+      }
+      lr.table.rows = TB_ROWS
+      window.lrCtl = {
+        loadAll, loadList, refreshTiles, openDialog, loadRtl, loadTable,
+        refresh: loadList,
+        setLatency: (v) => { lr.latency = v },
+        setOutcome: (v) => { lr.outcome = v },
+        setFilters: (f) => { lr.filters = f },
+        reset: () => { for (const k of Object.keys(timers)) clearTimeout(timers[k]); lr.list.loading = false; lr.list.items = null; lr.list.error = false }
+      }
+
+      window.lrApp = createApp({
+        setup: () => ({ lr, SAMPLE, FILTERS, TILES, DETAIL_SAMPLE, RTL_SAMPLE, LIST_LABELS, TILE_LABELS, DASH_LABELS, DETAIL_LABELS, DLG_LABELS, RTL_LABELS, EXIT_LABELS, EXIT_LABELS_RTL, TB_COLUMNS, TB_LABELS, exitFilters, toggleFilter, relax, clearFilters, retryList, loadAll, loadList, refreshTiles, openDialog, loadRtl, loadTable, ev }),
+        template: `
+          <div class="lr-ctl" role="group" aria-label="Latencia simulada">
+            <span>Latencia:</span>
+            <g-btn v-for="v in [100, 250, 900, 6000]" :key="v" size="sm" variant="outline" color="neutral" :data-lat="v" :aria-pressed="String(lr.latency === v)" @click="lr.latency = v">{{ v }} ms</g-btn>
+          </div>
+          <div class="lr-ctl">
+            <label>Resultado <select id="lr-out" v-model="lr.outcome"><option value="data">Datos</option><option value="none">Vacío (none)</option><option value="filtered">Vacío por filtro</option><option value="error">Fallo</option><option value="forbidden">Sin permiso</option></select></label>
+            <label>Refresco <select id="lr-refresh-mode" v-model="lr.refresh"><option value="keep">keep (B)</option><option value="replace">replace (molde)</option></select></label>
+            <g-btn size="sm" id="lr-load" @click="loadAll">Cargar todo (primera carga)</g-btn>
+            <g-btn size="sm" variant="outline" id="lr-go-refresh" @click="loadList">Refrescar la lista</g-btn>
+            <g-btn size="sm" variant="outline" id="lr-go-tiles" @click="refreshTiles">Refrescar el panel</g-btn>
+          </div>
+          <div class="lr-ctl" role="group" aria-label="Filtros de la lista">
+            <span>Filtros:</span>
+            <g-btn v-for="(f, k) in FILTERS" :key="k" size="sm" variant="outline" color="neutral" :data-f-toggle="k" :aria-pressed="String(lr.filters.includes(k))" @click="toggleFilter(k)">{{ f.label }}</g-btn>
+          </div>
+
+          <h3 id="lr-h-list">Muestras</h3>
+          <g-load-region id="lr-list" :loading="lr.list.loading" :items="lr.list.items" :sample="SAMPLE" :refresh="lr.refresh" :error="lr.list.error" labelledby="lr-h-list" :labels="LIST_LABELS" @retry="retryList">
+            <template #default="{ items, mold, fresh, itemAttrs }">
+              <ul v-if="items && items.length" class="lr-rows">
+                <li v-for="r in items" :key="r.id" class="lr-row" v-bind="itemAttrs(r)">
+                  <span class="lr-av" aria-hidden="true">{{ r.who }}</span>
+                  <span class="lr-main">
+                    <span class="lr-head"><a class="lr-title" :href="'#' + r.id" dir="auto">{{ r.name }}</a><g-badge v-if="fresh(r)" size="sm" variant="soft" color="accent">Nueva</g-badge></span>
+                    <span class="lr-meta" dir="auto">{{ r.code }} · {{ r.meta }}</span>
+                  </span>
+                  <span class="lr-status">{{ r.status }}</span>
+                </li>
+              </ul>
+              <g-empty v-else-if="!mold && lr.list.error" cause="error" title="No se pudieron cargar las muestras" description="El servidor no respondió (503).">
+                <template #actions><g-btn size="sm" variant="soft" color="neutral" class="lr-retry" @click="retryList">Reintentar</g-btn></template>
+              </g-empty>
+              <template v-else-if="items">
+                <g-empty v-if="lr.list.cause === 'forbidden'" cause="forbidden" title="No tienes permiso para ver estas muestras" description="Pídeselo a la responsable del laboratorio, Laura Ortiz.">
+                  <template #actions><g-btn size="sm" variant="outline" @click="ev('ask')">Pedir acceso</g-btn></template>
+                </g-empty>
+                <g-empty v-else-if="lr.list.cause === 'filtered'" cause="filtered" title="Ninguna muestra con estos filtros" :filters="exitFilters" :total="lr.list.pool" :labels="EXIT_LABELS" @relax="relax" @clear="clearFilters"></g-empty>
+                <g-empty v-else cause="none" title="Aún no hay muestras" description="Aparecen aquí al registrarlas o importarlas.">
+                  <template #icon><g-icon name="inbox"></g-icon></template>
+                  <template #actions><g-btn size="sm" @click="ev('new')">Registrar muestra</g-btn><g-btn size="sm" variant="ghost" @click="ev('import')">Importar CSV</g-btn></template>
+                </g-empty>
+              </template>
+            </template>
+          </g-load-region>
+          <p class="lr-after" id="lr-list-after">Debajo de la lista (no debe moverse al llegar los datos).</p>
+
+          <h3 id="lr-h-dash">Panel (grupo de teselas)</h3>
+          <g-load-region id="lr-dash" labelledby="lr-h-dash" :labels="DASH_LABELS">
+            <div class="lr-tiles">
+              <g-load-region v-for="(t, k) in TILES" :key="k" :id="'lr-' + k" :loading="lr.tiles[k].loading" :items="lr.tiles[k].items" :sample="[{ id: k, label: t.label, value: '000', note: 'Comparación con ayer' }]" :label="t.label" :labels="TILE_LABELS">
+                <template #default="{ items, itemAttrs }">
+                  <div v-if="items" class="lr-tile" v-bind="itemAttrs(items[0])">
+                    <p class="lr-tile-label" data-g-known>{{ items[0].label }}</p>
+                    <p class="lr-tile-value">{{ items[0].value }}</p>
+                    <p class="lr-tile-note">{{ items[0].note }}</p>
+                  </div>
+                </template>
+              </g-load-region>
+            </div>
+          </g-load-region>
+          <p class="lr-after" id="lr-dash-after">Debajo del panel.</p>
+
+          <h3 id="lr-h-detail">Ficha (texto libre)</h3>
+          <g-load-region id="lr-detail" :loading="lr.detail.loading" :items="lr.detail.items" :sample="DETAIL_SAMPLE" :error="lr.detail.error" labelledby="lr-h-detail" :labels="DETAIL_LABELS">
+            <template #default="{ items, itemAttrs }">
+              <article v-if="items" class="lr-detail" v-bind="itemAttrs(items)">
+                <h4 dir="auto">{{ items.title }}</h4>
+                <p dir="auto">{{ items.body }}</p>
+                <dl><template v-for="f in items.facts" :key="f[0]"><dt>{{ f[0] }}</dt><dd>{{ f[1] }}</dd></template></dl>
+              </article>
+            </template>
+          </g-load-region>
+          <p class="lr-after" id="lr-detail-after">Debajo de la ficha.</p>
+
+          <h3>Vacíos con causa (GEmpty sueltos)</h3>
+          <div class="lr-stack" id="lr-empties">
+            <g-empty id="lr-e-none" cause="none" title="Aún no hay muestras" description="Aparecen aquí al registrarlas o importarlas.">
+              <template #icon><g-icon name="inbox"></g-icon></template>
+              <template #actions><g-btn size="sm">Registrar muestra</g-btn><g-btn size="sm" variant="ghost">Importar CSV</g-btn></template>
+            </g-empty>
+            <g-empty id="lr-e-filtered" cause="filtered" title="Ninguna muestra con estos filtros" :filters="[{ key: 'hoy', label: 'Hoy', count: 12 }, { key: 'closed', label: 'Cerradas', count: 2 }, { key: 'urg', label: 'Urgentes', count: 0 }]" :total="14" :labels="EXIT_LABELS" @relax="ev('relax', $event)" @clear="ev('clear')"></g-empty>
+            <g-empty id="lr-e-error" cause="error" title="No se pudieron cargar las muestras" description="El servidor no respondió (503).">
+              <template #actions><g-btn size="sm" variant="soft" color="neutral">Reintentar</g-btn></template>
+            </g-empty>
+            <g-empty id="lr-e-forbidden" cause="forbidden" title="No tienes permiso para ver estas muestras" :heading-level="4" description="Pídeselo a la responsable del laboratorio, Laura Ortiz."></g-empty>
+          </div>
+
+          <h3>Región dentro de un diálogo modal</h3>
+          <p><g-btn size="sm" variant="outline" id="lr-open-dialog" @click="openDialog">Abrir el historial</g-btn></p>
+          <g-dialog v-model="lr.dlgOpen" title="Historial" size="sm" close-label="Cerrar">
+            <g-load-region id="lr-dlg-region" :loading="lr.dlg.loading" :items="lr.dlg.items" :sample="SAMPLE" label="Historial" :labels="DLG_LABELS">
+              <template #default="{ items, itemAttrs }">
+                <ul v-if="items" class="lr-rows"><li v-for="r in items" :key="r.id" class="lr-row" v-bind="itemAttrs(r)"><span class="lr-main"><span class="lr-title">{{ r.name }}</span><span class="lr-meta">{{ r.meta }}</span></span></li></ul>
+              </template>
+            </g-load-region>
+          </g-dialog>
+
+          <h3>RTL</h3>
+          <div class="pg-panel" dir="rtl" lang="ar" id="lr-rtl-panel">
+            <p><g-btn size="sm" variant="outline" id="lr-rtl-load" @click="loadRtl">تحميل</g-btn></p>
+            <g-load-region id="lr-rtl" :loading="lr.rtl.loading" :items="lr.rtl.items" :sample="RTL_SAMPLE" label="العينات" :labels="RTL_LABELS">
+              <template #default="{ items, itemAttrs }">
+                <ul v-if="items" class="lr-rows"><li v-for="r in items" :key="r.id" class="lr-row" v-bind="itemAttrs(r)"><span class="lr-av" aria-hidden="true">{{ r.who }}</span><span class="lr-main"><span class="lr-title" dir="auto">{{ r.name }}</span><span class="lr-meta" dir="auto">{{ r.meta }}</span></span><span class="lr-status">{{ r.status }}</span></li></ul>
+              </template>
+            </g-load-region>
+            <g-empty id="lr-e-rtl" cause="filtered" title="لا توجد عينات بهذه المرشحات" :filters="[{ key: 'a', label: 'عاجلة', count: 2 }, { key: 'b', label: 'مغلقة', count: 0 }]" :total="4" :labels="EXIT_LABELS_RTL" style="margin-block-start: 12px"></g-empty>
+          </div>
+
+          <h3 id="lr-h-table">GTable con el motor común</h3>
+          <div class="lr-ctl">
+            <label>Resultado <select id="lr-tb-out" v-model="lr.table.outcome"><option value="data">Datos</option><option value="reorder">Datos en otro orden</option><option value="empty">Sin filas</option><option value="error">Fallo</option></select></label>
+            <label><input type="checkbox" id="lr-tb-announce" v-model="lr.table.announceError"> announceError</label>
+            <g-btn size="sm" variant="outline" id="lr-tb-load" @click="loadTable()">Cargar la tabla</g-btn>
+          </div>
+          <g-table id="lr-table" :columns="TB_COLUMNS" :rows="lr.table.rows" caption="Clientes (motor común)" selectable :loading="lr.table.loading" :error="lr.table.error" :announce-error="lr.table.announceError" :labels="TB_LABELS" @retry="ev('retry', 'table'); lr.table.outcome = 'data'; loadTable()">
+            <template #cell-nombre="{ row }"><a :href="'#' + row.id" class="lr-tb-link">{{ row.nombre }}</a></template>
+          </g-table>
+          <p class="lr-after" id="lr-table-after">Debajo de la tabla.</p>
+          <p>Último evento: <b id="lr-log">{{ lr.log }}</b></p>
+        `
+      }).use(Grana).use(GranaLoadRegion).use(appIcons)
+      window.lrApp.mount('#lr-app')
+      if (!Q.has('lrmanual')) loadAll()
     })()
   </script>
 </body>

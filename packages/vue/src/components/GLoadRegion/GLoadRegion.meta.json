@@ -32,8 +32,8 @@
   "bundle": {
     "measured": "2026-10-08",
     "entry": "dist/load-region.js (GLoadRegion)",
-    "gzip": 4178,
-    "umdGzip": 3865,
+    "gzip": 4187,
+    "umdGzip": 3872,
     "global": "GranaLoadRegion",
     "note": "gzip -9, medido el 2026-10-08. Vue y @grana/vue externos; GEmpty, GBtn, el GIcon interno, el motor (loadPhase con loadRegionKey), el canal de página, oneOf y template llegan de __shared, sin copia. El CSS va en grana.css."
   },
@@ -189,5 +189,9 @@
     "README (mora-docs)",
     "Lector de pantalla real",
     "appearance=\"phrase\", delay/minimum, cancel y moldLimit reservados (#543)"
-  ]
+  ],
+  "verification": {
+    "vitest": "GLoadRegion.test.js (29), GLoadRegion.ssr.test.js, loadPhase.test.js, liveRegion.test.js, load-region.test.js",
+    "playwright": "design/lab/theme-playground/tests/load-region.spec.mjs y personalidad-load-region.spec.mjs en Chromium, Firefox y WebKit (puerto 4216)"
+  }
 }

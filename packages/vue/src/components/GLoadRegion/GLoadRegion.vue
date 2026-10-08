@@ -303,7 +303,8 @@ export default defineComponent({
       else phase.stop()
     })
     // Fuera de una carga, items y error se aplican al cambiar
-    watch(() => props.items, (v) => { if (!ph.busy) { painted.value = v; freshKeys.value = new Set() } })
+    // (la llegada ya lo aplicó si este cambio llegó con el fin de la carga: lo nuevo no se pierde)
+    watch(() => props.items, (v) => { if (!ph.busy && v !== painted.value) { painted.value = v; freshKeys.value = new Set() } })
     watch(() => props.error, (v) => { if (!ph.busy) appliedError.value = v })
     watch(stale, (on) => { if (on && !L().refreshing) warn('refreshing', 'refresco keep a la vista sin labels.refreshing (texto de la píldora).') })
 
