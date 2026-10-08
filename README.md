@@ -11,6 +11,41 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 - **58 componentes documentados**, todos en estado `candidate`: formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
 
+## Qué es Grana
+
+Grana es un **sistema de interfaz para aplicaciones de producto hechas con Vue 3**: paneles de administración, sistemas internos, herramientas de captura de datos, flujos con formularios largos, tablas y filtros. Son dos piezas que trabajan juntas:
+
+- **`@grana/vue`**, la librería de componentes: botones, campos, formularios completos, tablas con filtros y paginación, calendario, diálogos, menús, avisos, tooltips, captura de voz y más.
+- **`@grana/cli`**, el motor de tema: a partir de unos pocos datos de tu marca (color principal, neutros, colores de categoría, modo oscuro) deriva en OKLCH todos los tokens que leen los componentes y **rechaza las combinaciones que no cumplen el contraste mínimo**.
+
+### El problema que resuelve
+
+Los frameworks de componentes suelen obligar a elegir entre dos extremos:
+
+- **Traen su propia estética.** Funcionan desde el primer día, pero la aplicación acaba pareciéndose a todas las que usan el mismo framework, y cambiar su identidad significa pelear contra sus estilos.
+- **No traen ninguna (headless).** Dan libertad total, pero cada equipo vuelve a resolver la estructura, el foco, el teclado, los estados y la accesibilidad de cada componente.
+
+Grana separa las dos responsabilidades. **La librería decide la estructura**: anatomía, estados, teclado, semántica ARIA, foco y comportamiento en móvil. **Cada proyecto decide el color**: paleta, tipografía, radios, espaciado y densidad, todo con variables `--g-*`. Como los componentes no llevan ningún valor de tema escrito en su CSS, un tema nuevo los cambia por completo sin dejar restos del anterior.
+
+### Cómo funciona
+
+1. **Los componentes** solo leen variables `--g-*`, sin valores de respaldo.
+2. **El tema por defecto** (neutro, sobrio, con Instrument Sans) vive en una capa CSS de baja prioridad, `grana.defaults`, así que la aplicación funciona y se ve bien sin configurar nada.
+3. **Tu tema**, escrito a mano o generado con `@grana/cli`, va fuera de esa capa y **siempre gana**, sin `!important` ni selectores más específicos.
+
+### Qué lo distingue
+
+- **La accesibilidad no es opcional ni depende del tema.** Área táctil de al menos 24px (44px en pantallas táctiles), texto de al menos 12px, contraste de al menos 4.5:1 (3:1 en controles) y foco siempre visible. No se configuran desde el tema, y `@grana/cli` no genera un tema que baje de ellos.
+- **Personalidad sin sacrificar lo anterior.** Cada componente explora un comportamiento, una forma o un movimiento propios en lugar de copiar el patrón común: el tooltip que viaja de control en control, la hora que se escribe como se dice, la selección múltiple que se lee como una frase. Siempre con `prefers-reduced-motion` respetado.
+- **Formularios de verdad.** Filas que siempre llenan el ancho, campos fusionados, secciones plegables y agregables, campos condicionales que salen del envío al ocultarse, resumen de errores y validación integrada.
+- **Sin red dentro de los componentes.** Grana no hace `fetch`: la aplicación pone los datos y, donde hace falta un servicio (subir archivos, transcribir voz), lo conecta con un adaptador propio.
+- **Peso bajo control.** Cada componente está marcado como puro, así que importar uno no arrastra el resto, y los más pesados (voz, isla de estado, combobox, archivos, hora, deslizador) viven en entradas propias.
+- **Decisiones a la vista.** Cada componente tiene su contrato público y cada decisión de diseño está registrada con su porqué en [`DECISIONS.md`](DECISIONS.md), para que el sistema no cambie por capricho.
+
+### Para quién es
+
+Para equipos que construyen **aplicaciones de uso diario**, donde la gente trabaja horas capturando, revisando y decidiendo, y que quieren un sistema coherente y accesible **con su propia identidad**. No es un kit para páginas de marketing, y no incluye router ni capa de datos: se integra con los que ya uses (por ejemplo, `RouterLink` o `NuxtLink` en los enlaces).
+
 ## Estado: `0.1.0-beta`
 
 Esta es una **beta**. Qué significa:
@@ -82,11 +117,11 @@ Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB 
 
 #### ESM y UMD para CDN
 
-El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField` y `testing.umd.js` con `GranaTesting`).
+El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField`, `slider.umd.js` con `GranaSlider` y `testing.umd.js` con `GranaTesting`).
 
 ### Entradas propias
 
-Cinco piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
+Seis piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
 
 | Entrada | Qué trae | Cuándo usarla | Global UMD | Tamaño (gzip) |
 | --- | --- | --- | --- | --- |
@@ -95,6 +130,7 @@ Cinco piezas **no viajan en el paquete principal**: cada una tiene su entrada y 
 | `@grana/vue/combobox` | `GCombobox` | Elegir de un catálogo grande escribiendo (pacientes, diagnósticos, medicamentos) | `GranaCombobox` | ≈ 22 kB |
 | `@grana/vue/file-field` | `GFileField`, `formatFileSize` | Adjuntar archivos a un formulario | `GranaFileField` | ≈ 12 kB |
 | `@grana/vue/time-field` | `GTimeField` | Capturar una hora del reloj | `GranaTimeField` | ≈ 11 kB |
+| `@grana/vue/slider` | `GSlider` | Elegir un valor acotado o un rango por posición (volumen, intensidad, precio) | `GranaSlider` | ≈ 11 kB |
 
 **Por qué van aparte:** cada una añadiría más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)) y no todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-06): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -110,7 +146,7 @@ createApp(App).use(Grana).use(Combobox).mount('#app')   // registra <g-combobox>
 
 ### TypeScript
 
-Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
+Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts`, `slider.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
 
 Tras `app.use(...)`, las etiquetas de los componentes quedan tipadas en las plantillas sin importar nada, gracias a `GlobalComponents` de Vue (una declaración por entrada, en PascalCase y en kebab-case):
 
@@ -242,6 +278,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GSelect`](packages/vue/src/components/GSelect/README.md) | Selector de una opción con lista propia | principal |
 | [`GCombobox`](packages/vue/src/components/GCombobox/README.md) | Elegir de un catálogo grande escribiendo; con `multiple` | **propia** |
 | [`GTimeField`](packages/vue/src/components/GTimeField/README.md) | Hora del reloj que se escribe como se dice | **propia** |
+| [`GSlider`](packages/vue/src/components/GSlider/README.md) | Valor acotado o rango de dos extremos donde el asa es el valor | **propia** |
 | [`GDatePicker`](packages/vue/src/components/GDatePicker/README.md) | Fecha o rango, con popover u hoja inferior en móvil | principal |
 | [`GFileField`](packages/vue/src/components/GFileField/README.md) | Adjuntar archivos, con subida por adaptador de tu aplicación | **propia** |
 | [`GCheckbox`](packages/vue/src/components/GCheckbox/README.md), [`GCheckboxGroup`](packages/vue/src/components/GCheckboxGroup/README.md) | Casilla y grupo de casillas con casilla maestra | principal |

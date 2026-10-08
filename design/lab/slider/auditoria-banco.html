@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSlider · banco de auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GSlider de dist/slider.umd.js (global GranaSlider, la entrada
+     propia @grana/vue/slider) con GInput, GNumberField, GSelect, GForm, GFormLayout, GFormRow, GErrorSummary y GBtn de
+     dist/grana.umd.js, y dist/grana.css + dist/fonts.css (el CSS y la fuente tal como se publican). Mismos casos que el
+     banco de estilo (estilo-banco.html), con el caso en `data-case` (llega a la raíz por $attrs) y en `id` (el primer
+     nativo). El marcado, --_pill-w, la fusión, el salto, el tope, is-typing, is-ready y data-g-key-focus los pone
+     GSlider.vue; el mínimo lo publica el .vue a la GFormRow; is-rejected lo pone GForm al enviar; el foco llega desde
+     GErrorSummary. Secciones nuevas respecto del banco: valores de la aplicación (fuera de límites, negativos, valueText),
+     mínimo publicado con barrido (7) y envío con GForm (8). No es documentación.
+     Desde la raíz del repo:  python3 -m http.server 4212  →  /design/lab/slider/auditoria-banco.html
+     Parámetros: ?dark=1  ?theme=auditoria (auditoria-tema.css, @grana/cli)  ?theme=propio (estilo-tema.css)
+                 ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)  ?text=200
+     Verificación: GRANA_PW_PORT=4212 node design/lab/slider/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 6px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-5);min-inline-size:0}
+  .host.sunken{background:var(--g-color-surface-sunken)}
+  .host.bg{background:var(--g-color-bg)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--g-space-6);align-items:start}
+  .w1100{inline-size:1100px;max-inline-size:100%}
+  .w720{inline-size:720px;max-inline-size:100%}
+  .w320{inline-size:320px;max-inline-size:100%;padding:var(--g-space-4)}
+  .sweep{inline-size:700px;max-inline-size:100%}
+  .stack{display:grid;gap:var(--g-space-5)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GSlider · banco de auditoría</h1>
+<p class="cap"><b>coco</b> · paso 5 sobre el componente real (<code>dist/slider.umd.js</code>). Con el foco en una píldora, teclea la cifra (<kbd>3</kbd><kbd>5</kbd> e <kbd>Intro</kbd>); arrastra el tramo de un rango; en el límite, el tope.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (@grana/cli)</option><option value="propio">Propio del estilo</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+</div>
+
+<h2 class="b">1 · Alto del área = caja md de GInput, por densidad (fila real)</h2>
+<div class="host stack">
+  <g-form-row v-for="d in densities" :key="d" :data-row="'d-' + d">
+    <g-input class="g-form-w-sm" :id="'in-' + d" :density="d" :label="'GInput ' + d" model-value="40"></g-input>
+    <g-slider :id="'d-' + d" :data-case="'d-' + d" :density="d" :label="'Volumen ' + d" v-model="v['d-' + d]" :format="PCT" :labels="LBL"></g-slider>
+  </g-form-row>
+</div>
+
+<h2 class="b">2 · Estados</h2>
+<div class="host"><div class="grid">
+  <g-slider id="s-rest" data-case="s-rest" label="Volumen de los avisos" v-model="v['s-rest']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-min" data-case="s-min" label="En el mínimo" v-model="v['s-min']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-max" data-case="s-max" label="En el máximo" v-model="v['s-max']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-marks" data-case="s-marks" label="Intensidad del dolor" v-model="v['s-marks']" :min="0" :max="10" :marks="painMarks" hint="0 es sin dolor y 10 el peor imaginable" :labels="LBL"></g-slider>
+  <g-slider id="s-ticks" data-case="s-ticks" label="Con marcas sin nombre" v-model="v['s-ticks']" :step="10" marks :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-empty" data-case="s-empty" label="Dolor (sin elegir)" v-model="v['s-empty']" :min="0" :max="10" :marks="painMarks" :labels="LBL"></g-slider>
+  <g-slider id="s-empty-err" data-case="s-empty-err" label="Dolor (sin elegir, con error)" v-model="v['s-empty-err']" :min="0" :max="10" :marks="painMarks" required error="Indica la intensidad del dolor." :labels="LBL"></g-slider>
+  <g-slider id="s-typing" data-case="s-typing" label="Para teclear «35»" v-model="v['s-typing']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-readonly" data-case="s-readonly" label="Solo lectura" v-model="v['s-readonly']" :format="PCT" readonly :labels="LBL"></g-slider>
+  <g-slider id="s-readonly-range" data-case="s-readonly-range" label="Edad (solo lectura)" range v-model="v['s-readonly-range']" :min="18" :max="99" :format="YEARS" readonly :labels="LBL"></g-slider>
+  <g-slider id="s-readonly-err" data-case="s-readonly-err" label="Solo lectura con error" v-model="v['s-readonly-err']" :format="PCT" readonly error="Valor heredado fuera de norma." :labels="LBL"></g-slider>
+  <g-slider id="s-disabled" data-case="s-disabled" label="Deshabilitado" v-model="v['s-disabled']" :format="PCT" disabled :labels="LBL"></g-slider>
+  <g-slider id="s-disabled-range" data-case="s-disabled-range" label="Precio (deshabilitado)" range v-model="v['s-disabled-range']" :max="5000" :step="50" :format="MXN" disabled :labels="LBL"></g-slider>
+  <g-slider id="s-invalid" data-case="s-invalid" label="Con error" v-model="v['s-invalid']" :format="PCT" error="Demasiado alto para la noche." :labels="LBL"></g-slider>
+  <g-slider id="s-warning" data-case="s-warning" label="Con advertencia" v-model="v['s-warning']" :format="PCT" warning="Puede molestar a los vecinos." :labels="LBL"></g-slider>
+  <g-slider id="s-valid" data-case="s-valid" label="Válido" v-model="v['s-valid']" :format="PCT" valid="Dentro de lo recomendado." :labels="LBL"></g-slider>
+  <g-slider id="s-noname" data-case="s-noname" aria-label="Sin etiqueta visible" v-model="v['s-noname']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-outside" data-case="s-outside" label="Fuera de límites (140 en 0–100)" v-model="v['s-outside']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="s-neg" data-case="s-neg" label="Temperatura del agua" v-model="v['s-neg']" :min="-20" :max="40" :step="0.5" :format="CEL" :labels="LBL"></g-slider>
+  <g-slider id="s-vt" data-case="s-vt" label="Duración de la sesión" v-model="v['s-vt']" :min="15" :max="480" :step="5" :value-text="dur" color="accent" :labels="LBL"></g-slider>
+</div></div>
+
+<h2 class="b">3 · Familias de color</h2>
+<div class="host"><div class="grid">
+  <template v-for="c in colors" :key="c">
+    <g-slider :id="'c-' + c" :data-case="'c-' + c" :color="c" :label="'color ' + c" v-model="v['c-' + c]" :format="PCT" :labels="LBL"></g-slider>
+    <g-slider :id="'cr-' + c" :data-case="'cr-' + c" :color="c" :label="'rango ' + c" range v-model="v['cr-' + c]" :min="18" :max="99" :format="YEARS" :labels="LBL"></g-slider>
+  </template>
+</div></div>
+<div class="host sunken" style="margin-block-start:12px"><g-slider id="sk-rest" data-case="sk-rest" label="Sobre surface-sunken" v-model="v['sk-rest']" :format="PCT" :labels="LBL"></g-slider></div>
+<div class="host bg" style="margin-block-start:12px"><g-slider id="bg-rest" data-case="bg-rest" label="Sobre bg" v-model="v['bg-rest']" :format="PCT" :labels="LBL"></g-slider></div>
+
+<h2 class="b">4 · Rango: separado, fundido, en los extremos, tramo</h2>
+<div class="host"><div class="grid">
+  <g-slider id="r-apart" data-case="r-apart" label="Precio" range v-model="v['r-apart']" :max="5000" :step="50" :min-gap="100" :format="MXN" :labels="LBL"></g-slider>
+  <g-slider id="r-merged" data-case="r-merged" label="Edad del grupo" range v-model="v['r-merged']" :min="18" :max="99" :format="YEARS" :labels="LBL"></g-slider>
+  <g-slider id="r-same" data-case="r-same" label="Edad (las dos en 50)" range v-model="v['r-same']" :min="18" :max="99" :format="YEARS" :labels="LBL"></g-slider>
+  <g-slider id="r-start" data-case="r-start" label="En el inicio" range v-model="v['r-start']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="r-end" data-case="r-end" label="En el final" range v-model="v['r-end']" :format="PCT" :labels="LBL"></g-slider>
+  <g-slider id="r-marks" data-case="r-marks" label="Resultados por página" range v-model="v['r-marks']" :min="10" :max="100" :marks="pageMarks" snap="marks" :labels="LBL"></g-slider>
+</div></div>
+
+<h2 class="b">5 · En una fila (GFormRow real) a 1100 · 720 · 320: la receta con GNumberField</h2>
+<div v-for="w in [1100, 720, 320]" :key="w" :class="['host', 'w' + w]" style="margin-block-end:16px">
+  <p class="tag">{{ w }}px</p>
+  <g-form :id="'f-' + w" :labels="formLabels">
+    <g-form-layout>
+      <g-form-row :data-row="'a-' + w">
+        <g-slider class="g-form-w-lg" :id="'row-vol-' + w" :data-case="'row-vol-' + w" label="Volumen" v-model="vol" :format="PCT" :labels="LBL"></g-slider>
+        <g-number-field class="g-form-w-xs" :id="'row-num-' + w" label="Exacto" v-model="vol" :min="0" :max="100" suffix="%"></g-number-field>
+        <g-input class="g-form-w-md" :id="'row-in-' + w" label="Nota" name="nota"></g-input>
+      </g-form-row>
+      <g-form-row :data-row="'b-' + w">
+        <g-slider class="g-form-w-lg" :id="'row-precio-' + w" :data-case="'row-precio-' + w" label="Precio" range v-model="precio" :max="5000" :step="50" :format="MXN" hint="Arrastra la raya para mover el margen entero." :labels="LBL"></g-slider>
+        <g-select class="g-form-w-sm" :id="'row-sel-' + w" label="Orden" name="orden" :options="orders" v-model="orden"></g-select>
+        <g-input class="g-form-w-sm" :id="'row-err-' + w" label="Código" name="codigo" error="El código no existe."></g-input>
+      </g-form-row>
+      <g-form-row :data-row="'c-' + w">
+        <g-input class="g-form-w-sm" :id="'row-c-in-' + w" label="Paciente" name="paciente"></g-input>
+        <g-slider class="g-form-w-lg" :id="'row-dolor-' + w" :data-case="'row-dolor-' + w" label="Dolor" v-model="v['row-dolor-' + w]" :max="10" :marks="painMarks" :labels="LBL"></g-slider>
+      </g-form-row>
+    </g-form-layout>
+  </g-form>
+</div>
+
+<h2 class="b">6 · RTL (ar-EG) y 320</h2>
+<div class="grid">
+  <div class="host" dir="rtl" lang="ar-EG">
+    <div class="stack">
+      <g-slider id="rtl-single" data-case="rtl-single" label="مستوى الصوت" v-model="v['rtl-single']" :format="PCT" :labels="LBL_AR"></g-slider>
+      <g-slider id="rtl-range" data-case="rtl-range" label="السعر" range v-model="v['rtl-range']" :max="5000" :step="50" :format="EGP" :labels="LBL_AR"></g-slider>
+      <g-slider id="rtl-merged" data-case="rtl-merged" label="العمر" range v-model="v['rtl-merged']" :min="18" :max="99" :format="YEARS" :labels="LBL_AR"></g-slider>
+      <g-slider id="rtl-marks" data-case="rtl-marks" label="شدة الألم" v-model="v['rtl-marks']" :min="0" :max="10" :marks="painMarksAr" :labels="LBL_AR"></g-slider>
+    </div>
+  </div>
+  <div class="host w320">
+    <div class="stack">
+      <g-slider id="n320-marks" data-case="n320-marks" label="Intensidad del dolor" v-model="v['n320-marks']" :min="0" :max="10" :marks="painMarks" :labels="LBL"></g-slider>
+      <g-slider id="n320-range" data-case="n320-range" label="Precio" range v-model="v['n320-range']" :max="5000" :step="50" :format="MXN" :labels="LBL"></g-slider>
+    </div>
+  </div>
+</div>
+
+<h2 class="b">7 · Mínimo publicado (#453) en una GFormRow real</h2>
+<p class="cap">Cada deslizador con <code>g-form-w-xs</code> junto a un <code>GInput</code> <code>xs</code>; el verificador barre el ancho del contenedor. Bloquear: <label><input type="checkbox" id="mn-lock" v-model="lock"> solo lectura</label></p>
+<div class="host sweep" id="mn-host">
+  <g-form-layout>
+    <g-form-row id="mn-pain">
+      <g-slider class="g-form-w-xs" id="mn-pain-s" data-case="mn-pain-s" label="Dolor" v-model="v['mn-pain-s']" :max="10" :marks="painMarks" :readonly="lock" :labels="LBL"></g-slider>
+      <g-input class="g-form-w-xs" id="mn-pain-n" label="Nota" model-value="1"></g-input>
+    </g-form-row>
+    <g-form-row id="mn-pct">
+      <g-slider class="g-form-w-xs" id="mn-pct-s" data-case="mn-pct-s" label="Volumen" v-model="v['mn-pct-s']" :format="PCT" :readonly="lock" :labels="LBL"></g-slider>
+      <g-input class="g-form-w-xs" id="mn-pct-n" label="Nota" model-value="1"></g-input>
+    </g-form-row>
+    <g-form-row id="mn-mxn">
+      <g-slider class="g-form-w-xs" id="mn-mxn-s" data-case="mn-mxn-s" label="Precio" range v-model="v['mn-mxn-s']" :max="5000" :step="50" :format="MXN" :readonly="lock" :labels="LBL"></g-slider>
+      <g-input class="g-form-w-xs" id="mn-mxn-n" label="Nota" model-value="1"></g-input>
+    </g-form-row>
+  </g-form-layout>
+</div>
+
+<h2 class="b">8 · Envío con GForm y GErrorSummary (sin elegir, obligatorio)</h2>
+<div class="host">
+  <g-form id="ef-form" :labels="formLabels" :errors="efErrors" @submit="efLog = 'submit ' + [...$event.data.entries()].map(([k, x]) => k + '=' + x).join(' ')" @invalid="efLog = 'invalid ' + $event.errors.map((x) => x.name).join(',')">
+    <g-error-summary :labels="{ title: 'Revisa estos campos' }"></g-error-summary>
+    <g-form-layout>
+      <g-form-row>
+        <g-slider id="s-reject" data-case="s-reject" class="g-form-w-lg" name="dolor" label="Intensidad del dolor" v-model="v['s-reject']" :max="10" :marks="painMarks" required :labels="LBL"></g-slider>
+        <g-input id="ef-nom" name="nombre" label="Nombre" model-value="Ana"></g-input>
+      </g-form-row>
+    </g-form-layout>
+    <g-form-actions><g-btn id="ef-send" type="submit">Enviar</g-btn></g-form-actions>
+  </g-form>
+  <p class="tag" id="ef-log">{{ efLog }}</p>
+</div>
+<div style="block-size:40vh"></div>
+</main>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/slider.umd.js"></script>
+<script>
+const { createApp, ref, reactive, computed, watch } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const init = {
+  'd-default': 40, 'd-comfortable': 40, 'd-compact': 40,
+  's-rest': 40, 's-min': 0, 's-max': 100, 's-marks': 5, 's-ticks': 30, 's-empty': null, 's-empty-err': null, 's-typing': 40, 's-readonly': 40,
+  's-readonly-range': [30, 45], 's-readonly-err': 90, 's-disabled': 40, 's-disabled-range': [800, 2400], 's-invalid': 90, 's-warning': 80, 's-valid': 30,
+  's-noname': 60, 's-outside': 140, 's-neg': -12.5, 's-vt': 200, 'sk-rest': 40, 'bg-rest': 40,
+  'r-apart': [800, 2400], 'r-merged': [18, 24], 'r-same': [50, 50], 'r-start': [0, 0], 'r-end': [100, 100], 'r-marks': [25, 50],
+  'rtl-single': 40, 'rtl-range': [800, 2400], 'rtl-merged': [18, 24], 'rtl-marks': 5, 'n320-marks': 10, 'n320-range': [0, 5000],
+  'mn-pain-s': 5, 'mn-pct-s': 40, 'mn-mxn-s': [800, 2400], 's-reject': null
+}
+for (const c of ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) { init['c-' + c] = 60; init['cr-' + c] = [18, 24] }
+for (const w of [1100, 720, 320]) init['row-dolor-' + w] = 5
+const v = window.__v = reactive(init)
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (x) => { $('#slow-css').textContent = (x ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '') + (q.get('text') ? `html{font-size:${q.get('text')}%}` : '') }
+    applySlow(slow.value); watch(slow, applySlow)
+    const LBL = { start: 'mínimo', end: 'máximo', empty: 'Sin elegir' }
+    const LBL_AR = { start: 'الحد الأدنى', end: 'الحد الأقصى', empty: 'لم يتم الاختيار' }
+    const PCT = { style: 'unit', unit: 'percent' }
+    const MXN = { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }
+    const EGP = { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }
+    const YEARS = { style: 'unit', unit: 'year', unitDisplay: 'short' }
+    const CEL = { style: 'unit', unit: 'celsius' }
+    const dur = (m) => `${Math.floor(m / 60)} h ${m % 60} min`
+    const painMarks = [{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]
+    const painMarksAr = [{ value: 0, label: 'لا ألم' }, { value: 5, label: 'متوسط' }, { value: 10, label: 'الأسوأ' }]
+    const pageMarks = [10, 25, 50, 100].map((x) => ({ value: x, label: String(x) }))
+    const colors = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
+    const densities = ['default', 'comfortable', 'compact']
+    const vol = ref(40), precio = ref([800, 2400]), orden = ref('rel')
+    const orders = [{ value: 'rel', label: 'Relevancia' }, { value: 'pre', label: 'Precio' }]
+    const formLabels = { error: 'Error:', warning: 'Advertencia:', valid: 'Correcto:', optional: '(opcional)' }
+    const lock = ref(false), efLog = ref('—')
+    window.__lock = lock
+    const efErrors = computed(() => (v['s-reject'] === null ? { dolor: 'Indica la intensidad del dolor.' } : {}))
+    return { slow, LBL, LBL_AR, PCT, MXN, EGP, YEARS, CEL, dur, painMarks, painMarksAr, pageMarks, colors, densities, vol, precio, orden, orders, formLabels, v, lock, efLog, efErrors }
+  }
+})
+app.use(Grana).use(GranaSlider)
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (x) => { $('#gen').href = x === 'auditoria' ? 'auditoria-tema.css' : x === 'propio' ? 'estilo-tema.css' : x ? '../tema-oscuro/dark-color-presence/generated/' + x + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+// Listo: fuentes, tema y todas las raíces con is-ready (el .vue mide y lo pone a los dos cuadros)
+const ready = () => document.fonts.ready.then(raf2).then(raf2).then(async () => {
+  for (let k = 0; k < 60 && [...document.querySelectorAll('.g-slider')].some((r) => !r.classList.contains('is-ready')); k++) await raf2()
+  await raf2()
+  document.documentElement.dataset.ready = '1'
+})
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>

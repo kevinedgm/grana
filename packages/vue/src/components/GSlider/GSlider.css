@@ -20,10 +20,13 @@
   --_text: var(--g-color-primary-text);
 
   /* Medidas: el área mide la caja md de GInput con su densidad (así el riel se centra con sus vecinos de fila); la
-     píldora, space × 7 con la misma densidad. Piso de 24px en las dos (área táctil mínima) */
+     píldora, space × 7 con la misma densidad. Piso de 24px en las dos (área táctil mínima). Las dos crecen con su texto
+     como la caja de GInput (una línea de body-sm + los dos bordes): con un espacio pequeño y texto grande, o con el
+     texto al 200 %, la píldora no se desborda de su asa y el área sigue a la caja vecina (auditoría, hallazgo 2) */
   --_density: 1;
-  --_h: max(24px, calc(var(--g-space-1) * 9 * var(--_density)));
-  --_ph: max(24px, calc(var(--g-space-1) * 7 * var(--_density)));
+  --_text-box: calc(var(--g-text-body-sm-line) + var(--g-border-width) * 2);
+  --_h: max(24px, calc(var(--g-space-1) * 9 * var(--_density)), var(--_text-box));
+  --_ph: max(24px, calc(var(--g-space-1) * 7 * var(--_density)), var(--_text-box));
   /* Radio de la píldora: el de --g-radius-pill acotado a medio alto. Mismo dibujo que la píldora, pero con un valor que
      se puede interpolar (999px → 0 no se vería cambiar hasta el último instante de la transición de la fusión) */
   --_r: min(var(--g-radius-pill), calc(var(--_ph) / 2));
@@ -45,7 +48,7 @@
 /* Con puntero grueso, el área (y con ella las zonas de toque de la píldora y del tramo) mide 44px */
 @media (pointer: coarse) {
   .g-slider {
-    --_h: max(44px, calc(var(--g-space-1) * 9 * var(--_density)));
+    --_h: max(44px, calc(var(--g-space-1) * 9 * var(--_density)), var(--_text-box));
   }
 }
 
@@ -302,13 +305,18 @@
   margin-inline-start: var(--g-border-width);
   background: currentColor;
 }
-/* Solo lectura: un valor en otro estado, no inactivo (#266): superficie y texto, tramo en text-muted, sin sombra */
+/* Solo lectura: un valor en otro estado, no inactivo (#266). Lo de GInput de solo lectura: relleno neutral-soft, texto,
+   contorno border-control (≥ 3:1, delimita el control) en trazo discontinuo; tramo en text-muted, sin sombra.
+   (Auditoría, hallazgo 1: border-strong es translúcido y quedaba a ≈ 1,5:1) */
 .g-slider.is-readonly .g-slider__thumb {
-  --_pill-bg: var(--g-color-surface);
+  --_pill-bg: var(--g-color-neutral-soft);
   --_pill-fg: var(--g-color-text);
-  --_pill-edge: var(--g-color-border-strong);
+  --_pill-edge: var(--g-color-border-control);
   --_pill-shadow: none;
-  --_seam: var(--g-color-border-strong);
+  --_seam: var(--g-color-border-control);
+}
+.g-slider.is-readonly .g-slider__pill {
+  border-style: dashed;
 }
 .g-slider.is-readonly.is-invalid .g-slider__thumb {
   --_pill-edge: var(--g-color-danger-text);

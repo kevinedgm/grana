@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
-import { ATTR, acquire, fromNavKey, nav, onKeyBlur, onKeyFocus, useKeyFocus, _track } from './keyFocus.js'
+import { ATTR, acquire, fromKeyboard, fromNavKey, markKey, modality, nav, onKeyBlur, onKeyFocus, useKeyFocus, _track } from './keyFocus.js'
 
 const releases = []
 const take = () => { const r = acquire(); releases.push(r); return r }
@@ -22,6 +22,7 @@ afterEach(() => {
   document.body.innerHTML = ''
   nav.at = -Infinity
   nav.key = ''
+  modality.keyboard = false
   vi.restoreAllMocks()
 })
 
@@ -103,19 +104,41 @@ describe('data-g-key-focus', () => {
     expect(document.activeElement).toBe(a)
   })
 
-  it('foco por programa: solo si la última entrada fue una tecla de navegación', () => {
+  it('foco por programa: solo si la última entrada fue de teclado (regla de modalidad, #450: también Intro)', () => {
     take()
     const a = radio()
     a.focus()
-    expect(a.hasAttribute(ATTR)).toBe(false)
+    expect(a.hasAttribute(ATTR), 'sin entrada previa no marca').toBe(false)
     a.blur()
     key('Enter')
     a.focus()
-    expect(a.hasAttribute(ATTR)).toBe(false)
+    expect(a.hasAttribute(ATTR), 'Intro en el enlace de GErrorSummary marca (#450)').toBe(true)
+    a.blur()
+    key('a')
+    a.focus()
+    expect(a.hasAttribute(ATTR), 'una letra también').toBe(true)
+    a.blur()
+    pointer()
+    a.focus()
+    expect(a.hasAttribute(ATTR), 'tras un pointerdown no').toBe(false)
     a.blur()
     key('Tab')
     a.focus()
     expect(a.hasAttribute(ATTR)).toBe(true)
+  })
+
+  it('los modificadores no cambian la modalidad (Opción+Tab de WebKit, Mayús+Tab)', () => {
+    take()
+    const a = radio()
+    pointer()
+    for (const k of ['Shift', 'Alt', 'Control', 'Meta', 'AltGraph', 'CapsLock', 'Fn']) key(k)
+    expect(fromKeyboard()).toBe(false)
+    a.focus()
+    expect(a.hasAttribute(ATTR)).toBe(false)
+    a.blur()
+    key('Tab')
+    key('Shift')
+    expect(fromKeyboard()).toBe(true)
   })
 
   it('sin escucha instalada no marca; liberar la última quita la marca', () => {
@@ -154,5 +177,78 @@ describe('useKeyFocus', () => {
     expect(_track.count).toBe(1)
     a.unmount()
     expect(_track.count).toBe(0)
+  })
+})
+
+describe('dos señales (#450): la modalidad del anillo y la navegación del tooltip', () => {
+  it('Intro, Espacio o una letra: modalidad de teclado SIN navegación (#396 sigue protegiendo Tab + Intro)', () => {
+    take()
+    key('Tab')
+    expect(fromNavKey()).toBe(true)
+    expect(fromKeyboard()).toBe(true)
+    key('Enter')
+    expect(fromNavKey(), 'la señal del tooltip se anula con Intro').toBe(false)
+    expect(fromKeyboard(), 'la modalidad sigue en teclado').toBe(true)
+    key(' ')
+    expect(fromNavKey()).toBe(false)
+    expect(fromKeyboard()).toBe(true)
+    pointer()
+    expect(fromNavKey()).toBe(false)
+    expect(fromKeyboard()).toBe(false)
+  })
+
+  it('liberar la última escucha vuelve a «puntero»', () => {
+    const r = take()
+    key('a')
+    expect(fromKeyboard()).toBe(true)
+    r()
+    expect(fromKeyboard()).toBe(false)
+  })
+})
+
+describe('markKey (GSlider, #450)', () => {
+  const slider = () => {
+    const el = document.createElement('input')
+    el.type = 'range'
+    el.addEventListener('focus', onKeyFocus)
+    el.addEventListener('blur', onKeyBlur)
+    el.addEventListener('keydown', markKey)
+    document.body.append(el)
+    return el
+  }
+  it('tras un clic (sin marca), la primera tecla que no es modificador marca; los modificadores no', () => {
+    take()
+    const a = slider()
+    pointer(a)
+    a.focus()
+    expect(a.hasAttribute(ATTR)).toBe(false)
+    key('Shift', a)
+    expect(a.hasAttribute(ATTR)).toBe(false)
+    key('ArrowRight', a)
+    expect(a.hasAttribute(ATTR)).toBe(true)
+    pointer(document.body)
+    expect(a.hasAttribute(ATTR), 'un pointerdown la quita').toBe(false)
+    key('5', a)
+    expect(a.hasAttribute(ATTR), 'una cifra (teclear la cifra) también marca').toBe(true)
+    a.blur()
+    expect(a.hasAttribute(ATTR)).toBe(false)
+  })
+
+  it('marca uno solo: marcar otro control quita la marca del anterior', () => {
+    take()
+    const a = slider()
+    const b = slider()
+    a.focus()
+    key('ArrowUp', a)
+    expect(a.hasAttribute(ATTR)).toBe(true)
+    key('ArrowUp', b)
+    expect(a.hasAttribute(ATTR)).toBe(false)
+    expect(b.hasAttribute(ATTR)).toBe(true)
+  })
+
+  it('sin escucha instalada no marca', () => {
+    const a = slider()
+    key('ArrowUp', a)
+    expect(a.hasAttribute(ATTR)).toBe(false)
   })
 })

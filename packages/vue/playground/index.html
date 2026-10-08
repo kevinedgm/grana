@@ -541,6 +541,69 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     <p class="log" id="tf-r-joined">{{ tf.rFecha && tf.rHora ? tf.rFecha + 'T' + tf.rHora : '—' }}</p>
           </div>
         </section>
+        <section class="pg-section" id="sec-slider" data-pg-section>
+          <h2>GSlider</h2>
+          <p class="pg-lead">Un valor acotado donde manda la <b>posición</b> (volumen, intensidad, una edad aproximada) o un <b>rango</b> de dos extremos. Forma B <b>«El valor es el asa»</b>: la cifra vive dentro de la píldora que se arrastra, del ancho de su texto más largo; las dos píldoras de un rango <b>se funden</b> en una cápsula en vez de montarse; el <b>tramo se arrastra entero</b> (un toque estrecha el rango); con el foco en una píldora <b>se teclea la cifra</b> («3 5» e Intro); en el límite, un <b>tope</b>. <code>null</code> es «sin elegir» de verdad: una escala no empieza en 5. En el móvil, el gesto vertical desplaza la página. Va en su propia entrada, <code>@grana/vue/slider</code> (aquí <code>dist/slider.umd.js</code>, global <code>GranaSlider</code>).</p>
+          <h3>Valor único, marcas con nombre y «sin elegir» en un GForm</h3>
+          <div class="pg-panel">
+    <g-form id="sl-form" aria-label="Encuesta" :labels="fm.labels" :errors="sl.errors" @submit="slSubmit" @invalid="slInvalid">
+      <g-error-summary :labels="{ title: fm.summaryTitle }"></g-error-summary>
+      <g-form-layout>
+        <g-slider id="sl-vol" v-model="sl.vol" name="volumen" label="Volumen de los avisos" locale="es-MX" :format="{ style: 'unit', unit: 'percent' }" hint="Del silencio al máximo" @change="slChange('vol', $event)"></g-slider>
+        <g-slider id="sl-dolor" v-model="sl.dolor" name="dolor" label="Intensidad del dolor" locale="es-MX" :max="10" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]" :labels="{ empty: 'Sin elegir' }" required hint="0 es sin dolor; 10, el peor imaginable" @change="slChange('dolor', $event)"></g-slider>
+        <g-slider id="sl-res" v-model="sl.res" name="res" label="Resultados por página" locale="es-MX" :min="10" :max="100" :marks="[10, 25, 50, 100]" snap="marks"></g-slider>
+        <g-slider id="sl-temp" v-model="sl.temp" name="temp" label="Temperatura del agua" locale="es-MX" :min="-20" :max="40" :step="0.5" :format="{ style: 'unit', unit: 'celsius' }"></g-slider>
+        <g-slider id="sl-dur" v-model="sl.dur" name="dur" label="Duración de la sesión" locale="es-MX" :min="15" :max="480" :step="5" :value-text="slDur" color="accent"></g-slider>
+      </g-form-layout>
+      <g-form-actions><g-btn type="submit" id="sl-send">Enviar</g-btn></g-form-actions>
+    </g-form>
+    <p class="log" id="sl-model">{{ JSON.stringify(slModel) }}</p>
+    <p class="log" id="sl-fd">{{ sl.fd }}</p>
+    <p class="log"><span id="sl-log">{{ sl.log }}</span> · changes: <span id="sl-changes">{{ sl.changes }}</span> <span id="sl-cc">{{ JSON.stringify(sl.cc) }}</span> · <span id="sl-invalid">{{ sl.invalid }}</span></p>
+          </div>
+          <h3>Rango de precio (es-MX): fusión, tramo entero y límites que se detienen</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:520px">
+      <g-slider id="sl-precio" range v-model="sl.precio" name="precio" label="Precio" locale="es-MX" :max="5000" :step="50" :format="{ style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }" :labels="{ start: 'mínimo', end: 'máximo' }" hint="Arrastra el tramo para moverlo entero" @change="slChange('precio', $event)"></g-slider>
+      <g-slider id="sl-edad" range v-model="sl.edad" name="edad" label="Edad" locale="es-MX" :min="18" :max="99" :labels="{ start: 'desde', end: 'hasta' }" color="neutral" @change="slChange('edad', $event)"></g-slider>
+      <g-slider id="sl-gap" range v-model="sl.gap" name="gap" label="Precio con separación mínima" locale="es-MX" :max="5000" :step="50" :min-gap="100" :format="{ style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }" :labels="{ start: 'mínimo', end: 'máximo' }"></g-slider>
+    </div>
+          </div>
+          <h3>ar-EG (RTL): ← sube, el mínimo a la derecha</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px" lang="ar-EG" dir="rtl">
+      <g-slider id="sl-ar" v-model="sl.ar" label="مستوى الصوت" :format="{ style: 'unit', unit: 'percent' }"></g-slider>
+      <g-slider id="sl-ar-r" range v-model="sl.arR" label="السعر" :max="5000" :step="50" :labels="{ start: 'الأدنى', end: 'الأقصى' }"></g-slider>
+    </div>
+          </div>
+          <h3>Receta: GSlider y GNumberField con el mismo v-model en una GFormRow</h3>
+          <div class="pg-panel">
+    <g-form id="sl-recipe" aria-label="Avisos" :labels="fm.labels" @submit="slSubmit">
+      <g-form-layout>
+        <g-form-row id="sl-row">
+          <g-input id="sl-r-nombre" v-model="sl.rNombre" label="Nombre del aviso" name="aviso"></g-input>
+          <g-slider id="sl-r-vol" v-model="sl.rVol" class="g-form-w-lg" label="Volumen" name="rvol" locale="es-MX" :format="{ style: 'unit', unit: 'percent' }"></g-slider>
+          <g-number-field id="sl-r-num" v-model="sl.rVol" class="g-form-w-xs" label="Exacto" :min="0" :max="100" suffix="%" locale="es-MX"></g-number-field>
+        </g-form-row>
+        <g-form-row id="sl-row2">
+          <g-input id="sl-r2-nota" v-model="sl.rNota" label="Nota" name="nota"></g-input>
+          <g-slider id="sl-r2-dolor" v-model="sl.rDolor" class="g-form-w-sm" label="Dolor" name="rdolor" locale="es-MX" :max="10" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]" :labels="{ empty: 'Sin elegir' }"></g-slider>
+          <g-slider id="sl-r2-precio" range v-model="sl.rPrecio" class="g-form-w-sm" label="Precio" name="rprecio" locale="es-MX" :max="5000" :step="50" :format="{ style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }" :labels="{ start: 'mínimo', end: 'máximo' }"></g-slider>
+        </g-form-row>
+      </g-form-layout>
+    </g-form>
+          </div>
+          <h3>Estados</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:420px">
+      <g-slider id="sl-ro" :model-value="60" label="Solo lectura" name="ro" locale="es-MX" readonly :format="{ style: 'unit', unit: 'percent' }"></g-slider>
+      <g-slider id="sl-dis" :model-value="30" label="Deshabilitado" name="dis" locale="es-MX" disabled></g-slider>
+      <g-slider id="sl-err" v-model="sl.err" label="Con error" locale="es-MX" error="Elige un valor de 20 o más" :max="50"></g-slider>
+      <g-slider id="sl-warn" v-model="sl.warnV" label="Con advertencia" locale="es-MX" warning="Por encima de lo habitual" color="warning"></g-slider>
+      <g-slider id="sl-ok" v-model="sl.ok" label="Válido" locale="es-MX" valid="Dentro del rango recomendado" color="success" density="compact"></g-slider>
+    </div>
+          </div>
+        </section>
         <section class="pg-section" id="sec-textarea" data-pg-section>
           <h2>GTextarea</h2>
           <p class="pg-lead">Texto de varias líneas con contador, autoajuste y estados.</p>
@@ -1557,6 +1620,46 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </g-dialog>
           </div>
         </section>
+        <section class="pg-section" id="sec-breadcrumbs" data-pg-section>
+          <h2>GBreadcrumbs</h2>
+          <p class="pg-lead">Migas de pan: <b>A «Ruta líquida»</b> (todos los niveles en una fila que se aprieta por el medio; un nombre recortado se vuelve pastilla y el actual es la pastilla de acento), la cara de <b>B</b> como última etapa («Subir · página» con la ruta como escalera) y las <b>puertas de C</b> donde el nivel anterior trae <code>children</code>. Cambia el ancho para ver las etapas; la pista del motor del tooltip nombra lo recortado.</p>
+          <h3>Ruta con puertas (GBreadcrumbs)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:1100px">
+      <div class="row" style="align-items:center">
+        <label>Ancho del contenedor <input type="range" id="bc-range" v-model.number="bc.w" min="200" max="1100"> {{ bc.w }}px</label>
+        <label><input type="checkbox" v-model="bc.cancel"> cancelar la navegación (router)</label>
+      </div>
+      <div id="bc-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-main" :items="bc.items" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">La misma ruta sin puertas</h4>
+      <div id="bc-plain-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-plain" :items="bc.plain" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">En un bloque dir="rtl" (con una puerta)</h4>
+      <div dir="rtl" id="bc-rtl-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-rtl" :items="bc.rtlItems" :labels="bc.rtlLabels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">Aplicación de una sola página: la ruta se extiende y se recoge</h4>
+      <div class="row" style="align-items:center">
+        <g-btn size="sm" variant="outline" id="bc-down" :disabled="bc.spa.length >= bc.spaAll.length" @click="bc.down">Bajar un nivel</g-btn>
+        <g-btn size="sm" variant="outline" id="bc-up" :disabled="bc.spa.length <= 1" @click="bc.up">Subir un nivel</g-btn>
+      </div>
+      <g-breadcrumbs id="bc-spa" :items="bc.spa" :labels="bc.labels" @navigate="bc.spaNavigate"></g-breadcrumbs>
+      <h4 style="margin:8px 0 0">Cabecera con overflow: hidden y dentro de un diálogo</h4>
+      <div id="bc-header" style="overflow:hidden;border:1px dashed var(--g-color-border-strong);padding:4px 8px">
+        <g-breadcrumbs id="bc-head" :items="bc.items.slice(0, 4).concat([bc.items[4]])" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <div class="row"><g-btn variant="outline" id="bc-dlg-open" @click="bc.dlg = true">Diálogo con migas</g-btn></div>
+      <p class="log" id="bc-log">{{ bc.log }}</p>
+    </div>
+    <g-dialog v-model="bc.dlg" title="Muestra M-0007" description="Las migas viven en el diálogo: Esc cierra la puerta abierta y no el diálogo." close-label="Cerrar" size="md">
+      <g-breadcrumbs id="bc-dlg" :items="bc.items" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      <template #footer="{ close }"><g-btn @click="close">Cerrar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
         <section class="pg-section" id="sec-stepper" data-pg-section>
           <h2>GStepper</h2>
           <p class="pg-lead">Pasos de un proceso con navegación hacia atrás.</p>
@@ -2448,6 +2551,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/combobox.umd.js"></script>
   <script src="../dist/file-field.umd.js"></script>
   <script src="../dist/time-field.umd.js"></script>
+  <script src="../dist/slider.umd.js"></script>
   <script src="../dist/tag.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
@@ -2839,6 +2943,53 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP', photo: avPhotos[2] }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
         // El router de la aplicación cancela la navegación del enlace real (evento cancelable, #70)
         const cdNavigate = ({ event, href }) => { event.preventDefault(); cdLog.value = 'navigate: ' + href }
+        // GBreadcrumbs (breadcrumbs.md): ruta con una puerta (los lotes de 2026), RTL y una SPA simulada que baja y sube
+        const BC_LOTES = [{ label: 'Lote 2026-0411', href: '#lote-0411' }, { label: 'Lote 2026-0412', href: '#lote-0412' }, { label: 'Lote 2026-0413', href: '#lote-0413' }, { label: 'Lote 2026-0414 (sin página)' }]
+        const bc = reactive({
+          w: 1100, cancel: true, dlg: false, log: '',
+          labels: { nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}', children: 'Otras páginas en {label}' },
+          rtlLabels: { nav: 'مسار التنقل', up: 'الصعود إلى {label}', path: 'المسار حتى {label}', children: 'صفحات أخرى في {label}' },
+          items: [
+            { label: 'Inicio', href: '#inicio', icon: 'house' },
+            { label: 'Laboratorio central', href: '#lab', children: [{ label: 'Laboratorio central', href: '#lab' }, { label: 'Laboratorio norte', href: '#lab-norte' }] },
+            { label: 'Muestras', href: '#muestras' },
+            { label: '2026', children: BC_LOTES },
+            { label: 'Lote 2026-0412', href: '#lote-0412' },
+            { label: 'Muestra M-0007', href: '#m-0007' }
+          ],
+          rtlItems: [
+            { label: 'الرئيسية', href: '#ar-home', icon: 'house' },
+            { label: 'المختبر المركزي', href: '#ar-lab' },
+            { label: 'العينات', href: '#ar-samples' },
+            { label: '2026', children: [{ label: 'الدفعة 2026-0411', href: '#ar-lot-11' }, { label: 'الدفعة 2026-0412', href: '#ar-lot' }] },
+            { label: 'الدفعة 2026-0412', href: '#ar-lot' },
+            { label: 'العينة M-0007', href: '#ar-m7' }
+          ],
+          spaAll: [
+            { label: 'Inicio', href: '#spa-inicio', icon: 'house' },
+            { label: 'Laboratorio central', href: '#spa-lab' },
+            { label: 'Muestras', href: '#spa-muestras' },
+            { label: '2026', href: '#spa-2026' },
+            { label: 'Lote 2026-0412', href: '#spa-lote' },
+            { label: 'Muestra M-0007', href: '#spa-m7' }
+          ],
+          spa: [], plain: [],
+          navigate: ({ item, index, from, event }) => {
+            if (bc.cancel) event.preventDefault()
+            bc.log = 'navigate · ' + from + ' · ' + item.label + ' (índice ' + index + ')' + (bc.cancel ? ' · cancelado' : '')
+          },
+          // El router simulado: cancela la navegación y deja la ruta hasta el destino
+          spaNavigate: ({ item, index, from, event }) => {
+            event.preventDefault()
+            const k = bc.spaAll.findIndex((x) => x.href === item.href)
+            if (k >= 0) bc.spa = bc.spaAll.slice(0, k + 1)
+            bc.log = 'navigate (SPA) · ' + from + ' · ' + item.label + ' (índice ' + index + ')'
+          },
+          down: () => { if (bc.spa.length < bc.spaAll.length) bc.spa = bc.spaAll.slice(0, bc.spa.length + 1) },
+          up: () => { if (bc.spa.length > 1) bc.spa = bc.spaAll.slice(0, bc.spa.length - 1) }
+        })
+        bc.spa = bc.spaAll.slice(0, 3)
+        bc.plain = bc.items.map(({ children, ...x }) => x)
         const gtTab = ref('general')
         const gtBlock = ref(false)
         const gtLog = ref('—')
@@ -3189,7 +3340,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3265,6 +3416,19 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const tfSubmit = (e) => { tf.fd = 'FormData: ' + [...e.data.entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
         const tfInvalid = (e) => { tf.invalid = 'invalid: ' + e.errors.map((x) => x.name).join(',') }
         const tfChange = (k, v) => { tf.changes++; tf.log = `change: ${k}=${JSON.stringify(v)}` }
+        // ---------- GSlider (@grana/vue/slider → GranaSlider) ----------
+        const sl = reactive({
+          vol: 40, dolor: null, res: 25, temp: 21.5, dur: 200, precio: [800, 2400], edad: [30, 32], gap: [800, 2400], ar: 40, arR: [800, 2400],
+          rNombre: 'Recordatorio', rVol: 40, rNota: '', rDolor: null, rPrecio: [800, 2400], err: 10, warnV: 85, ok: 50,
+          fd: 'FormData: (envía el formulario)', log: 'change: —', changes: 0, cc: {}, invalid: 'invalid: —',
+          get errors() { return { dolor: sl.dolor === null ? 'Elige la intensidad del dolor' : '' } }
+        })
+        const slModel = computed(() => ['vol', 'dolor', 'res', 'temp', 'dur', 'precio', 'edad', 'gap', 'ar', 'arR', 'rVol', 'rDolor', 'rPrecio', 'err'].reduce((o, k) => ({ ...o, [k]: sl[k] }), {}))
+        const slSubmit = (e) => { sl.fd = 'FormData: ' + [...e.data.entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
+        const slInvalid = (e) => { sl.invalid = 'invalid: ' + e.errors.map((x) => x.name).join(',') }
+        const slChange = (k, v) => { sl.changes++; sl.cc[k] = (sl.cc[k] || 0) + 1; sl.log = `change: ${k}=${JSON.stringify(v)}` }
+        window.__sl = sl // las pruebas (tests/slider.spec.mjs) fijan modelos desde aquí
+        const slDur = (m) => (m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`)
         const nf = reactive({ lock: false, edad: null, peso: 72.5, temp: null, pct: 10, qty: 1, pob: 12345, out: 150, max: 9, neg: -18, big: 1234.5, ar: -4.5, he: 72.5, fd: 'FormData: (envía el formulario)', log: 'change: —' })
         const nfModel = computed(() => ['edad', 'peso', 'temp', 'pct', 'qty', 'pob'].map((k) => `${k}: ${JSON.stringify(nf[k])} (${nf[k] === null ? 'null' : typeof nf[k]})`).join(' · '))
         const nfSubmit = (e) => { nf.fd = 'FormData: ' + [...new FormData(e.target).entries()].map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ') }
@@ -3592,9 +3756,9 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { bc, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
-    }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
+    }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(GranaSlider).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
   <script>
     // GTag y GTagGroup (design/contracts/tag.md): su propia aplicación de Vue montada en #tg-app (dentro de #sec-tag).

@@ -17,13 +17,14 @@ import * as statusEntry from './status.js'
 import * as comboboxEntry from './combobox.js'
 import * as fileFieldEntry from './file-field.js'
 import * as timeFieldEntry from './time-field.js'
+import * as sliderEntry from './slider.js'
 import * as testingEntry from './testing.js'
 import * as tagEntry from './tag.js'
 import { ENTRIES, buildTypes, metaProps, readMetas } from '../scripts/build-types.mjs'
 
 const ROOT = resolve(process.cwd())
 const OUT = join(ROOT, 'node_modules/.cache/grana-types-test')
-const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, testing: testingEntry, tag: tagEntry }
+const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry }
 const metas = readMetas(ROOT)
 const isComponent = (c) => Boolean(c && typeof c === 'object' && ('setup' in c || 'render' in c || 'props' in c))
 

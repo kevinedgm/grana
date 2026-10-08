@@ -12,6 +12,9 @@
 // El campo de hora (`@grana/vue/time-field`, #400: vite.time-field.config.js y src/time-field.test.js) toma de aquí GInput,
 // useFormField con las claves de contexto (incluida ownFieldKey, el añadido N4 de GInput, #409), oneOf y el observador de
 // tamaño compartido (sizeObserver); su motor (utils/timeInput.js) vive en la entrada.
+// El deslizador (`@grana/vue/slider`, #455: vite.slider.config.js y src/slider.test.js) toma de aquí useFormField con las
+// claves de contexto (layoutKey para publicar su mínimo en GFormRow), GLibIcon, oneOf, sizeObserver y utils/keyFocus.js (la
+// escucha única de documento con recuento y la regla de modalidad de #450); su motor (utils/slider.js) vive en la entrada.
 // Las etiquetas (`@grana/vue/tag`, #472: vite.tag.config.js y src/tag.test.js) toman de aquí GBtn, GAvatar, los dos GIcon,
 // liveRegion, template, el modo visual del motor del tooltip (visualTip: un solo estado del motor en la página) y el hash de
 // categorías (categoryHash, el mismo de GAvatar).
@@ -38,6 +41,7 @@ import { placeBlock } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { createLiveWriter } from './utils/liveRegion.js'
 import { observeSize } from './utils/sizeObserver.js'
+import { useKeyFocus } from './utils/keyFocus.js'
 import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
@@ -66,6 +70,7 @@ export const shared = {
   'utils/liveRegion.js': { createLiveWriter },
   'utils/match.js': { fold, parts, tokens },
   'utils/sizeObserver.js': { observeSize },
+  'utils/keyFocus.js': { useKeyFocus },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },
   'utils/topModal.js': { createTopModal },

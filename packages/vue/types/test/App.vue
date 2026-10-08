@@ -17,6 +17,8 @@ const onClick = (e: MouseEvent) => e.clientX
   </g-combobox>
   <g-file-field v-model="files" label="Adjuntos" />
   <g-time-field model-value="09:30" label="Hora" />
+  <g-slider :model-value="40" label="Volumen" :marks="true" />
+  <g-slider range :model-value="[800, 2400]" label="Precio" :labels="{ start: 'mínimo', end: 'máximo' }" />
   <g-icon name="pencil" />
   <g-datepicker label="Fecha" />
   <g-tabs :items="[{ id: 'a', label: 'A' }]">
@@ -31,6 +33,8 @@ const onClick = (e: MouseEvent) => e.clientX
       {{ option.label.toFixed(2) }}
     </template>
   </g-combobox>
+  <!-- @vue-expect-error el modelo de GSlider no es una cadena -->
+  <g-slider model-value="40" label="X" />
   <!-- @vue-expect-error el manejador de click recibe un MouseEvent -->
   <g-btn @click="(e: string) => e">X</g-btn>
 

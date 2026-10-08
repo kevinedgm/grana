@@ -1,0 +1,356 @@
+{
+  "schemaVersion": 1,
+  "name": "GSlider",
+  "tag": "g-slider",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Deslizador de un valor acotado donde manda la posición relativa (volumen, intensidad del dolor, una edad aproximada) o de un rango de dos extremos (precio mínimo y máximo). Forma B «El valor es el asa»: la cifra vive dentro de la píldora que se arrastra. Modelo Number o null («sin elegir») o, con range, [inicio, fin]; nunca una cadena.",
+  "contract": "design/contracts/slider.md",
+  "decisions": [
+    "#445",
+    "#446",
+    "#447",
+    "#448",
+    "#449",
+    "#450",
+    "#451",
+    "#452",
+    "#453",
+    "#454",
+    "#455",
+    "#456",
+    "#457"
+  ],
+  "prototype": "design/lab/slider/r01/ (concepto B; engine.js como referencia del motor)",
+  "style": "packages/vue/src/components/GSlider/GSlider.css",
+  "entry": "@grana/vue/slider",
+  "exports": [
+    "GSlider",
+    "install",
+    "default (plugin)"
+  ],
+  "bundle": {
+    "measured": "2026-10-07",
+    "entry": "dist/slider.js",
+    "gzip": 11286,
+    "umdGzip": 10280,
+    "umdGlobal": "GranaSlider",
+    "main": "dist/grana.js +95 B gzip (179 497 → 179 592): la regla de modalidad de utils/keyFocus.js (#450) y la clave utils/keyFocus.js de __shared; GSlider no está en el principal. dist/grana.css +1 991 B gzip (GSlider.css)",
+    "note": "Medido con node zlib sobre dist/ (Vite: 11,29 kB gzip la entrada ESM). Por encima del tope de 8 KB del principal (#328): entrada propia decidida antes de construir (#455). Vue y @grana/vue externos; formContext (useFormField, layoutKey, messageIcon, nextFrame, spaceUnit: un solo Symbol(GForm)), GLibIcon, oneOf, sizeObserver y utils/keyFocus.js (una escucha de documento con recuento) llegan de __shared, sin copia. utils/slider.js va en la entrada. El CSS va en grana.css."
+  },
+  "engine": "packages/vue/src/utils/slider.js (interno, no exportado; en la entrada slider, #456)",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Number | null | Array",
+      "default": null,
+      "note": "Número finito o null («sin elegir»); con range, [inicio, fin]. undefined = null; NaN/±Infinity o un arreglo sin range = null con aviso; con range, null/undefined se dibuja como el recorrido entero sin emitir, mal formado o desordenado con aviso. Fuera de la rejilla o de [min, max] se conserva (#157). Cada emisión es un número, null o un arreglo nuevo; nunca una cadena"
+    },
+    {
+      "name": "range",
+      "type": "Boolean",
+      "default": false,
+      "note": "Dos asas; explícita (no se deduce del modelo)"
+    },
+    {
+      "name": "min",
+      "type": "Number",
+      "default": 0,
+      "note": "La rejilla cuenta desde min; min ≥ max deja el control sin recorrido (aviso)"
+    },
+    {
+      "name": "max",
+      "type": "Number",
+      "default": 100,
+      "note": "Un max fuera de la rejilla no se alcanza: el último punto es el mayor ≤ max"
+    },
+    {
+      "name": "step",
+      "type": "Number",
+      "default": 1,
+      "note": "> 0 (validador); otro valor avisa y se usa 1; decimales sin error de coma flotante"
+    },
+    {
+      "name": "bigStep",
+      "type": "Number",
+      "default": null,
+      "note": "Mayús+flecha, Re Pág, Av Pág; múltiplo positivo de step; sin valor (o no múltiplo, con aviso), una décima del recorrido en pasos enteros; con snap=\"marks\", dos marcas"
+    },
+    {
+      "name": "minGap",
+      "type": "Number",
+      "default": 0,
+      "note": "Distancia mínima entre las asas de un rango; negativo o mayor que el recorrido avisa y se usa 0; sin range se ignora"
+    },
+    {
+      "name": "marks",
+      "type": "Boolean | Array",
+      "default": false,
+      "note": "true: una raya por punto (≤ 25) o por paso grande; arreglo de Number | { value, label? }: rayas y nombres pulsables bajo el riel (aria-hidden); fuera de [min, max] o repetidos avisan"
+    },
+    {
+      "name": "snap",
+      "type": "String",
+      "default": "step",
+      "values": [
+        "step",
+        "marks"
+      ],
+      "note": "marks: las marcas son la rejilla (requiere marks en arreglo; si no, avisa y usa step)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "note": "prop › lang del ancestro más cercano › navigator.language (al montar); inválido avisa. Sin locale, SSR y primer render escriben el canónico"
+    },
+    {
+      "name": "format",
+      "type": "Object",
+      "default": null,
+      "note": "Opciones de Intl.NumberFormat (moneda, unidad, decimales); un porcentaje es { style: 'unit', unit: 'percent' }; style 'percent' con max > 1 avisa; lo que Intl rechaza avisa y se usa {}"
+    },
+    {
+      "name": "valueText",
+      "type": "Function",
+      "default": null,
+      "note": "(value: number) => string: el texto de la píldora y aria-valuetext a la vez; si no da una cadena no vacía, avisa y se usa el texto por defecto"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "{ start?, end?, empty? }: nombres de las asas de un rango (aviso sin ellos) y el texto de «sin elegir» (aviso sin él con valor null). Sin textos propios (#226)"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "note": "Va a los ocultos (uno por asa, mismo name, orden inicio, fin) y registra el campo en GForm; el nativo no lleva name"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "note": "Valor único: <label for>; rango: span con id que nombra el grupo (pulsarlo enfoca el inicio)"
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null,
+      "note": "Ayuda (aria-describedby)"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de error (form.md C4)"
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "Advertencia (form.md C5)"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Mensaje de válido (form.md C5)"
+    },
+    {
+      "name": "required",
+      "type": "Boolean",
+      "default": false,
+      "note": "Marca según GForm; sin aria-required (no admitido en slider) ni required nativo"
+    },
+    {
+      "name": "mark",
+      "type": "Boolean",
+      "default": null,
+      "note": "false: sin marca de obligatorio u opcional (form.md §2)"
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "note": "aria-readonly en cada nativo; enfocable; nada cambia el valor; se envía"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null,
+      "note": "disabled en cada nativo y en los ocultos (no se envía)"
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "note": "El alto del área es el de la caja de GInput md con la misma densidad; sin valor, contexto o default"
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "accent",
+        "neutral",
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ],
+      "note": "Familia de la píldora y del tramo; brand lee el rol primary"
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "note": "id del primer nativo (el del inicio en un rango); el fin lleva id-end. Generado si falta"
+    }
+  ],
+  "attrs": "inheritAttrs: false. class y style a la raíz; aria-label y aria-labelledby dan el nombre (grupo y asas en un rango); aria-describedby se añade a cada nativo; autofocus al primer nativo; form a cada oculto; el resto (data-*, escuchas) a la raíz. Los nombres reservados (appearance, distribution, countText, pxPerStep, orientation, clearable, size) avisan y no se aplican",
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Number | null | Array",
+      "trigger": "Cada cambio del valor: cada paso de teclado (también al repetir), cada movimiento de puntero que cambia de punto, cada confirmación de la cifra tecleada, cada ajuste del lector. Un arreglo nuevo con range. Un cambio desde la aplicación no emite"
+    },
+    {
+      "name": "change",
+      "payload": "Number | null | Array",
+      "trigger": "Una vez por gesto que cambió el valor (#448): keyup de la tecla, pointerup/pointercancel/lostpointercapture, la confirmación de la cifra, cada ajuste del lector y la pérdida del foco con un gesto abierto. Sin cambio, ninguno. Los input/change del nativo no burbujean"
+    }
+  ],
+  "slots": [
+    {
+      "name": "label",
+      "purpose": "Etiqueta con contenido rico (dentro del <label for> o del span con id en un rango), sin interactivos"
+    },
+    {
+      "name": "hint",
+      "purpose": "Ayuda con contenido rico (conserva ID-hint)"
+    },
+    {
+      "name": "error",
+      "purpose": "Error con contenido rico, dentro de la región g-slider__message"
+    }
+  ],
+  "keyboard": {
+    "ArrowRight/ArrowUp, ArrowLeft/ArrowDown": "± step (con snap=\"marks\", la marca siguiente); en RTL ← sube y → baja; ↑/↓ igual",
+    "Shift+flecha, PageUp/PageDown": "± bigStep (con marcas, dos marcas)",
+    "Home/End": "Los límites del asa (en un rango, el inicio llega hasta fin − minGap)",
+    "En un límite": "Nada cambia; tope (data-bump) si la pulsación no es autorrepetición",
+    "Desde «sin elegir»": "Una tecla que sube da el primer punto; una que baja, el último; Inicio y Fin, los extremos",
+    "Cifras, separador, «-»": "Teclear la cifra (B4): la píldora se vuelve campo; Intro, pausa de 900 ms, otra tecla o salir confirman (al punto más cercano dentro de los límites; fuera, al límite con el tope); Esc anula; Retroceso borra",
+    "Tab/Mayús+Tab": "Una parada por asa, inicio → fin",
+    "Alt/Ctrl/Meta + tecla, rueda, composición": "No se interceptan"
+  },
+  "pointer": {
+    "Ratón y lápiz sobre el riel": "El asa más cercana va ahí deslizándose (is-jumping) y el arrastre sigue",
+    "Sobre una píldora": "El arrastre empieza en el acto (también en táctil)",
+    "Sobre el nombre de una marca": "Su valor exacto",
+    "Táctil sobre el riel": "Solo un toque (≤ 10 px) salta; un gesto vertical desplaza la página; uno horizontal arrastra el asa más cercana",
+    "Asas juntas": "La dirección del primer movimiento (> 2 px) decide cuál se mueve",
+    "El tramo (rango sin fundir)": "En suspenso hasta 10 px: un toque lleva el asa más cercana (WCAG 2.5.7); el arrastre horizontal mueve las dos conservando la anchura",
+    "Solo lectura / deshabilitado": "Pulsar enfoca el asa y no cambia nada / nada"
+  },
+  "classes": {
+    "root": [
+      "g-slider",
+      "g-slider--color-{color}",
+      "g-slider--density-{density}",
+      "g-slider--range",
+      "is-empty",
+      "is-readonly",
+      "is-disabled",
+      "is-invalid",
+      "is-warning",
+      "is-valid",
+      "is-rejected",
+      "is-ready",
+      "is-dragging",
+      "is-jumping",
+      "is-merged",
+      "data-bump=\"up|down\"",
+      "--_pill-w",
+      "--_mid"
+    ],
+    "elements": [
+      "g-slider__head",
+      "g-slider__label",
+      "g-slider__optional",
+      "g-slider__required",
+      "g-slider__value",
+      "g-slider__row",
+      "g-slider__area",
+      "g-slider__track",
+      "g-slider__fill (--_from, --_to)",
+      "g-slider__thumb (data-thumb, --_at, is-typing)",
+      "g-slider__pill",
+      "g-slider__pill-text",
+      "g-slider__pill-ref",
+      "g-slider__native (data-g-key-focus, interno)",
+      "g-slider__thumb-name",
+      "g-slider__marks",
+      "g-slider__mark (has-label, data-value, --_at)",
+      "g-slider__mark-label",
+      "g-slider__support",
+      "g-slider__hint",
+      "g-slider__message",
+      "g-slider__message-icon",
+      "g-slider__sr"
+    ]
+  },
+  "formSystem": {
+    "contract": "design/contracts/form.md §1, §2, §4 y §7; slider.md «Integración con GForm»",
+    "notes": [
+      "useFormField con trigger 'change' (el error se revela al cambiar, como GSelect y GRadioGroup); control = el primer nativo; root = la raíz",
+      "notifyChange al acabar cada gesto (el mismo momento que change), nunca notifyInput; retira is-rejected",
+      "GErrorSummary enlaza al primer nativo (#ID, también en un rango); con la regla de modalidad (#450) el anillo aparece con Intro",
+      "Publica su mínimo intrínseco a GFormRow con setIntrinsicMin (#453): el mayor entre space × 40, 3 × --_pill-w (4 × con range) y los nombres de las marcas + space × 2 entre cada dos; retira con 0 al desmontar. Receta: g-form-w-lg"
+    ]
+  },
+  "warnings": [
+    "1 sin nombre accesible",
+    "2 range sin labels.start o labels.end",
+    "3 valor null sin labels.empty",
+    "4 modelValue no válido (NaN, ±Infinity, arreglo sin range; con range mal formado o desordenado)",
+    "5 modelValue fuera de [min, max]",
+    "6 min ≥ max",
+    "7 step ≤ 0 o no finito",
+    "8 bigStep que no es múltiplo positivo de step",
+    "9 minGap negativo o mayor que el recorrido",
+    "10 marks fuera de [min, max] o repetidas; snap=\"marks\" sin arreglo",
+    "11 locale o format que Intl rechaza",
+    "12 format.style 'percent' con max > 1",
+    "13 valueText que no devuelve una cadena no vacía",
+    "14 nombres reservados en $attrs"
+  ],
+  "verification": {
+    "vitest": "utils/slider.test.js, utils/keyFocus.test.js (regla de modalidad #450), GSlider.test.js, GSlider.ssr.test.js, src/slider.test.js, src/types.test.js",
+    "playwright": "design/lab/theme-playground/tests/slider.spec.mjs, personalidad-slider.spec.mjs y key-focus.spec.mjs (ampliado), en Chromium, Firefox y WebKit",
+    "playground": "packages/vue/playground/index.html#sec-slider"
+  },
+  "limits": [
+    "Safari y Tab: el range se salta con Tab sin la preferencia del sistema; Opción+Tab llega (#451)",
+    "Teclear la cifra no se anuncia mientras se escribe y no se descubre sola",
+    "aria-readonly en un range puede no exponerse en Chromium",
+    "Valor fuera de [min, max]: el nativo acota su value (aria-valuenow); aria-valuetext dice el valor real",
+    "<form @change> de la aplicación no ve el deslizador: usar @change del componente",
+    "SSR: pasar locale para que el HTML llegue formateado",
+    "Un cambio de lang de un ancestro tras montar no se observa",
+    "Sin vertical (orientation reservado) ni volver a «sin elegir» desde la interfaz (clearable reservado)"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (paso 5): design/lab/slider/auditoria.md",
+    "README (mora-docs) tras la auditoría",
+    "Lector de pantalla, táctil, IME y forced-colors reales (entorno real)"
+  ]
+}

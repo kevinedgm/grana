@@ -7,6 +7,7 @@
 export const props = {
   'GAvatar.color': "'neutral' | GranaCategory | `${GranaCategory}` | null",
   'GAvatar.categories': '0 | GranaCategory',
+  'GBreadcrumbs.items': 'BreadcrumbItem[]',
   'GCalendar.events': 'CalendarEvent[]',
   'GCalendar.resources': 'Array<{ id: GranaKey; label?: string; [key: string]: unknown }> | null',
   'GCalendar.availability': 'Array<Record<string, unknown>>',
@@ -39,6 +40,11 @@ export const props = {
   'GRadioGroup.options': 'RadioOption[]',
   'GSelect.options': 'Array<SelectOption | SelectOptionGroup>',
   'GSidebar.items': 'SidebarItem[]',
+  'GSlider.modelValue': 'number | null | [number, number]',
+  'GSlider.valueText': '((value: number) => string)',
+  'GSlider.marks': 'boolean | Array<number | { value: number; label?: string }>',
+  'GSlider.labels': '{ start?: string; end?: string; empty?: string }',
+  'GSlider.format': 'Intl.NumberFormatOptions',
   'GSpeechHost.speech': 'Speech | null',
   'GSpeechPill.speech': 'Speech | null',
   'GSpeechTrigger.speech': 'Speech | null',
@@ -78,6 +84,7 @@ export const props = {
 /** Eventos: tipo del argumento (`void` = sin argumento). */
 export const events = {
   'GAvatarMotion.done': "'success' | 'warning' | 'error'",
+  'GBreadcrumbs.navigate': 'BreadcrumbsNavigateEvent',
   'GCalendar.range-change': '{ start: Date; end: Date; view: string; timezone: string }',
   'GCard.update:modelValue': 'boolean | unknown[] | string | number',
   'GCard.action': '{ id: GranaKey; checked?: boolean }',
@@ -101,6 +108,8 @@ export const events = {
   'GPagination.update:page': 'number',
   'GRadioGroup.update:modelValue': 'string | number | boolean',
   'GSidebar.update:modelValue': 'GranaKey',
+  'GSlider.update:modelValue': 'number | null | [number, number]',
+  'GSlider.change': 'number | null | [number, number]',
   'GStatus.remove': 'StatusRemoveReason',
   'GStepper.update:modelValue': 'GranaKey',
   'GTable.update:sort': 'TableSort',
@@ -129,6 +138,8 @@ export const events = {
 
 /** Slots: tipo del alcance. */
 export const slots = {
+  'GBreadcrumbs.link': "{ item: BreadcrumbItem | BreadcrumbChild; index: number; current: boolean; from: BreadcrumbsNavigateEvent['from']; attrs: Record<string, any>; content: () => GranaSlotContent }",
+  'GBreadcrumbs.icon': '{ item: BreadcrumbItem; index: number }',
   'GCombobox.option': '{ option: ComboboxOption; active: boolean; selected: boolean; query: string }',
   'GCombobox.lead': '{ option: ComboboxOption }',
   'GCombobox.value': '{ option: ComboboxOption | null; custom: string }',

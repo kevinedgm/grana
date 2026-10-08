@@ -8,7 +8,7 @@
 //   - types/api/<entrada>.d.ts: funciones, claves y plugin de cada entrada.
 //
 // Salida (una por entrada de package.json `exports`): dist/grana.d.ts, dist/speech.d.ts, dist/status.d.ts,
-// dist/combobox.d.ts, dist/file-field.d.ts, dist/time-field.d.ts y dist/testing.d.ts, más dist/types/ (copias de shared y
+// dist/combobox.d.ts, dist/file-field.d.ts, dist/time-field.d.ts, dist/slider.d.ts y dist/testing.d.ts, más dist/types/ (copias de shared y
 // de api). Cada componente es un `DefineComponent` tipado (GranaComponent) y cada entrada amplía `GlobalComponents` de Vue
 // con los que registra su `install`, para que <g-btn> se tipe en las plantillas.
 //
@@ -27,6 +27,7 @@ export const ENTRIES = [
   { name: 'combobox', src: 'src/combobox.js' },
   { name: 'file-field', src: 'src/file-field.js' },
   { name: 'time-field', src: 'src/time-field.js' },
+  { name: 'slider', src: 'src/slider.js' },
   { name: 'testing', src: 'src/testing.js' },
   { name: 'tag', src: 'src/tag.js' }
 ]

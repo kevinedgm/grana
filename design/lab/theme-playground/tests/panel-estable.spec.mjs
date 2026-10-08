@@ -357,3 +357,79 @@ test.describe('panel estable al desplazar la página (GSelect, GMenu, GDatePicke
     })
   }
 })
+
+// GBreadcrumbs (breadcrumbs.md §«Paneles», #499): la escalera de la cara de B y el panel de una puerta siguen las mismas
+// reglas (placeBlock + stickySide, --_max fijo, anchorGone), en el playground (#sec-breadcrumbs).
+test.describe('panel estable al desplazar la página (GBreadcrumbs: escalera y puerta)', () => {
+  const PANELS = [
+    { name: 'escalera', width: 320, trigger: '#bc-main .g-breadcrumbs__toggle' },
+    { name: 'puerta', width: 1100, trigger: '#bc-main > .g-breadcrumbs__list > li:nth-child(5) > .g-breadcrumbs__door' }
+  ]
+  const setW = async (page, w) => {
+    await page.waitForSelector('#bc-main.is-ready')
+    await page.evaluate((w) => { const r = document.getElementById('bc-range'); r.value = w; r.dispatchEvent(new Event('input')) }, w)
+    await frames(page, 4)
+  }
+  const readOf = (page, trigger) => () => page.evaluate((s) => {
+    const t = document.querySelector(s)
+    const l = document.getElementById(t.getAttribute('aria-controls'))
+    const a = t.getBoundingClientRect()
+    const p = l.getBoundingClientRect()
+    const top = l.dataset.side === 'top'
+    const gap = Math.round((top ? a.top - p.bottom : p.top - a.bottom) * 10) / 10
+    return { open: l.matches(':popover-open'), side: l.dataset.side, h: Math.round(p.height * 2) / 2, max: l.style.getPropertyValue('--_max'), gap }
+  }, trigger)
+  const closeAll = async (page, trigger) => {
+    if ((await page.getAttribute(trigger, 'aria-expanded')) === 'true') await page.click(trigger)
+    await frames(page)
+  }
+  for (const c of PANELS) {
+    test(`GBreadcrumbs (${c.name}) · 0 cambios de lado y alto constante en el vaivén`, async ({ page }) => {
+      const errs = await watchConsole(page)
+      await ready(page)
+      await setW(page, c.width)
+      await anchorAt(page, c.trigger, 'top', 120)
+      await page.click(c.trigger)
+      await frames(page, 3)
+      const m = await page.evaluate((s) => {
+        const t = document.querySelector(s)
+        const l = document.getElementById(t.getAttribute('aria-controls'))
+        const v = getComputedStyle(t).getPropertyValue('--g-space-1').trim()
+        const u = /rem$/.test(v) ? parseFloat(v) * parseFloat(getComputedStyle(document.documentElement).fontSize) : parseFloat(v)
+        return { natural: l.scrollHeight, side: l.dataset.side, u }
+      }, c.trigger)
+      expect(m.side).toBe('bottom')
+      await closeAll(page, c.trigger)
+      // Cruce del criterio de apertura: debajo quedan natural − 2px (se abre arriba; sin histéresis, el vaivén lo volvería abajo)
+      await anchorAt(page, c.trigger, 'bottom', 900 - m.u * 3 - m.natural + 2)
+      await page.click(c.trigger)
+      await frames(page, 3)
+      const trace = await sway(page, readOf(page, c.trigger))
+      expect(trace[0].side).toBe('top')
+      expectStable(trace)
+      await closeAll(page, c.trigger)
+      expect(errs, errs.join('\n')).toEqual([])
+    })
+    test(`GBreadcrumbs (${c.name}) · si el ancla sale del visor, el panel se cierra (en el borde aún no) y el foco no desplaza la página`, async ({ page }) => {
+      const errs = await watchConsole(page)
+      await ready(page)
+      await setW(page, c.width)
+      await anchorAt(page, c.trigger, 'top', 120)
+      await page.click(c.trigger)
+      await frames(page, 3)
+      const isOpen = () => page.evaluate((s) => document.getElementById(document.querySelector(s).getAttribute('aria-controls')).matches(':popover-open'), c.trigger)
+      expect(await isOpen(), 'abierto').toBe(true)
+      const bottom = await page.evaluate((s) => document.querySelector(s).getBoundingClientRect().bottom, c.trigger)
+      await page.evaluate((d) => new Promise((r) => { scrollBy(0, d); requestAnimationFrame(() => requestAnimationFrame(r)) }), bottom - 2)
+      expect(await isOpen(), 'con el ancla a 2px de salir sigue abierto').toBe(true)
+      await page.evaluate(() => new Promise((r) => { scrollBy(0, 8); requestAnimationFrame(() => requestAnimationFrame(r)) }))
+      await frames(page, 2)
+      expect(await isOpen(), 'con el ancla fuera del visor se cierra').toBe(false)
+      expect(await page.getAttribute(c.trigger, 'aria-expanded')).toBe('false')
+      const y = await page.evaluate(() => scrollY)
+      await frames(page, 4)
+      expect(await page.evaluate(() => scrollY), 'cerrar no devuelve el foco ni desplaza la página').toBe(y)
+      expect(errs, errs.join('\n')).toEqual([])
+    })
+  }
+})
