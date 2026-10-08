@@ -83,3 +83,5 @@
 /* GSlider (slider.md, entrada @grana/vue/slider, #455): campo de tres hijos con subgrid en GFormRow, como GInput; va
    después de GFormRow.css (sus reglas de hijo de la fila ganan por orden además de por especificidad) */
 @import url("../components/GSlider/GSlider.css");
+/* GBreadcrumbs (breadcrumbs.md, #490): sus pistas usan el CSS de GTooltip (modo visual, #496) */
+@import url("../components/GBreadcrumbs/GBreadcrumbs.css");

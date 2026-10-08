@@ -7,6 +7,7 @@
 export const props = {
   'GAvatar.color': "'neutral' | GranaCategory | `${GranaCategory}` | null",
   'GAvatar.categories': '0 | GranaCategory',
+  'GBreadcrumbs.items': 'BreadcrumbItem[]',
   'GCalendar.events': 'CalendarEvent[]',
   'GCalendar.resources': 'Array<{ id: GranaKey; label?: string; [key: string]: unknown }> | null',
   'GCalendar.availability': 'Array<Record<string, unknown>>',
@@ -76,6 +77,7 @@ export const props = {
 /** Eventos: tipo del argumento (`void` = sin argumento). */
 export const events = {
   'GAvatarMotion.done': "'success' | 'warning' | 'error'",
+  'GBreadcrumbs.navigate': 'BreadcrumbsNavigateEvent',
   'GCalendar.range-change': '{ start: Date; end: Date; view: string; timezone: string }',
   'GCard.update:modelValue': 'boolean | unknown[] | string | number',
   'GCard.action': '{ id: GranaKey; checked?: boolean }',
@@ -120,6 +122,8 @@ export const events = {
 
 /** Slots: tipo del alcance. */
 export const slots = {
+  'GBreadcrumbs.link': "{ item: BreadcrumbItem | BreadcrumbChild; index: number; current: boolean; from: BreadcrumbsNavigateEvent['from']; attrs: Record<string, any>; content: () => GranaSlotContent }",
+  'GBreadcrumbs.icon': '{ item: BreadcrumbItem; index: number }',
   'GCombobox.option': '{ option: ComboboxOption; active: boolean; selected: boolean; query: string }',
   'GCombobox.lead': '{ option: ComboboxOption }',
   'GCombobox.value': '{ option: ComboboxOption | null; custom: string }',

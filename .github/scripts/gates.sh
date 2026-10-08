@@ -61,6 +61,10 @@ for cls in \
 do
   must_have grana.css "$cls" "$CSS_MSG"
 done
+# GBreadcrumbs (#490): en el paquete principal (+6,3 KB gzip, bajo el tope de 8 KB)
+for cls in g-breadcrumbs__door g-breadcrumbs__stairs; do
+  must_have grana.css "$cls" "$CSS_MSG"
+done
 
 # --- Lo que NO debe estar -----------------------------------------------------------------------
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"
