@@ -1,0 +1,50 @@
+{
+  "claro": {
+    "carmin": {
+      "hex": "#a3123a",
+      "oklch": "oklch(46.2% 0.175 13.9)"
+    },
+    "nopal": {
+      "hex": "#2f6a3d",
+      "oklch": "oklch(47.2% 0.095 149.3)"
+    },
+    "cera": {
+      "hex": "#f7f2ea",
+      "oklch": "oklch(96.3% 0.012 79.8)"
+    },
+    "tinta": {
+      "hex": "#1d1517",
+      "oklch": "oklch(20.7% 0.014 1.7)"
+    },
+    "contraste": {
+      "carmin sobre fondo": 6.97,
+      "nopal sobre fondo": 5.8,
+      "tinta sobre fondo": 16.08,
+      "cera sobre carmín (texto en botón)": 6.97
+    }
+  },
+  "oscuro": {
+    "carmin": {
+      "hex": "#d74b63",
+      "oklch": "oklch(61.1% 0.175 13.9)"
+    },
+    "nopal": {
+      "hex": "#4e895a",
+      "oklch": "oklch(57.7% 0.095 149.2)"
+    },
+    "cera": {
+      "hex": "#151012",
+      "oklch": "oklch(18.0% 0.009 352.0)"
+    },
+    "tinta": {
+      "hex": "#efe7dd",
+      "oklch": "oklch(93.2% 0.016 73.7)"
+    },
+    "contraste": {
+      "carmin sobre fondo": 4.55,
+      "nopal sobre fondo": 4.53,
+      "tinta sobre fondo": 15.38,
+      "cera sobre carmín (texto en botón)": 4.55
+    }
+  }
+}

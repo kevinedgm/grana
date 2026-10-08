@@ -1,0 +1,21 @@
+/* Grana · marca. Paleta propia de Grana (docs, README, sitio). No es el tema por defecto de @grana/vue:
+   cada proyecto pone su color en --g-color-brand y el logo lo sigue. */
+:root {
+  --grana-carmin: #a3123a;   /* oklch(46.2% 0.175 13.9) · 6.97:1 sobre cera */
+  --grana-nopal:  #2f6a3d;   /* oklch(47.2% 0.095 149.3) · 5.80:1 sobre cera */
+  --grana-cera:   #f7f2ea;   /* oklch(96.3% 0.012 79.8) · fondo */
+  --grana-tinta:  #1d1517;   /* oklch(20.7% 0.014 1.7) · 16.08:1 sobre cera */
+  --g-color-brand: var(--grana-carmin);
+  color-scheme: light dark;
+}
+@supports (color: color(display-p3 1 0 0)) {
+  :root { --grana-carmin: color(display-p3 .62 .05 .2); }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grana-carmin: #d74b63;   /* oklch(61.1% 0.175 13.9) · 4.55:1 sobre noche */
+    --grana-nopal:  #4e895a;   /* oklch(57.7% 0.095 149.2) · 4.53:1 */
+    --grana-cera:   #151012;   /* noche · oklch(18.0% 0.009 352.0) */
+    --grana-tinta:  #efe7dd;   /* oklch(93.2% 0.016 73.7) · 15.38:1 */
+  }
+}
