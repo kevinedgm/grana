@@ -1554,6 +1554,46 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </g-dialog>
           </div>
         </section>
+        <section class="pg-section" id="sec-breadcrumbs" data-pg-section>
+          <h2>GBreadcrumbs</h2>
+          <p class="pg-lead">Migas de pan: <b>A «Ruta líquida»</b> (todos los niveles en una fila que se aprieta por el medio; un nombre recortado se vuelve pastilla y el actual es la pastilla de acento), la cara de <b>B</b> como última etapa («Subir · página» con la ruta como escalera) y las <b>puertas de C</b> donde el nivel anterior trae <code>children</code>. Cambia el ancho para ver las etapas; la pista del motor del tooltip nombra lo recortado.</p>
+          <h3>Ruta con puertas (GBreadcrumbs)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:1100px">
+      <div class="row" style="align-items:center">
+        <label>Ancho del contenedor <input type="range" id="bc-range" v-model.number="bc.w" min="200" max="1100"> {{ bc.w }}px</label>
+        <label><input type="checkbox" v-model="bc.cancel"> cancelar la navegación (router)</label>
+      </div>
+      <div id="bc-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-main" :items="bc.items" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">La misma ruta sin puertas</h4>
+      <div id="bc-plain-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-plain" :items="bc.plain" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">En un bloque dir="rtl" (con una puerta)</h4>
+      <div dir="rtl" id="bc-rtl-box" :style="{ width: bc.w + 'px', maxWidth: '100%' }">
+        <g-breadcrumbs id="bc-rtl" :items="bc.rtlItems" :labels="bc.rtlLabels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <h4 style="margin:8px 0 0">Aplicación de una sola página: la ruta se extiende y se recoge</h4>
+      <div class="row" style="align-items:center">
+        <g-btn size="sm" variant="outline" id="bc-down" :disabled="bc.spa.length >= bc.spaAll.length" @click="bc.down">Bajar un nivel</g-btn>
+        <g-btn size="sm" variant="outline" id="bc-up" :disabled="bc.spa.length <= 1" @click="bc.up">Subir un nivel</g-btn>
+      </div>
+      <g-breadcrumbs id="bc-spa" :items="bc.spa" :labels="bc.labels" @navigate="bc.spaNavigate"></g-breadcrumbs>
+      <h4 style="margin:8px 0 0">Cabecera con overflow: hidden y dentro de un diálogo</h4>
+      <div id="bc-header" style="overflow:hidden;border:1px dashed var(--g-color-border-strong);padding:4px 8px">
+        <g-breadcrumbs id="bc-head" :items="bc.items.slice(0, 4).concat([bc.items[4]])" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      </div>
+      <div class="row"><g-btn variant="outline" id="bc-dlg-open" @click="bc.dlg = true">Diálogo con migas</g-btn></div>
+      <p class="log" id="bc-log">{{ bc.log }}</p>
+    </div>
+    <g-dialog v-model="bc.dlg" title="Muestra M-0007" description="Las migas viven en el diálogo: Esc cierra la puerta abierta y no el diálogo." close-label="Cerrar" size="md">
+      <g-breadcrumbs id="bc-dlg" :items="bc.items" :labels="bc.labels" @navigate="bc.navigate"></g-breadcrumbs>
+      <template #footer="{ close }"><g-btn @click="close">Cerrar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
         <section class="pg-section" id="sec-stepper" data-pg-section>
           <h2>GStepper</h2>
           <p class="pg-lead">Pasos de un proceso con navegación hacia atrás.</p>
@@ -2830,6 +2870,53 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP', photo: avPhotos[2] }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
         // El router de la aplicación cancela la navegación del enlace real (evento cancelable, #70)
         const cdNavigate = ({ event, href }) => { event.preventDefault(); cdLog.value = 'navigate: ' + href }
+        // GBreadcrumbs (breadcrumbs.md): ruta con una puerta (los lotes de 2026), RTL y una SPA simulada que baja y sube
+        const BC_LOTES = [{ label: 'Lote 2026-0411', href: '#lote-0411' }, { label: 'Lote 2026-0412', href: '#lote-0412' }, { label: 'Lote 2026-0413', href: '#lote-0413' }, { label: 'Lote 2026-0414 (sin página)' }]
+        const bc = reactive({
+          w: 1100, cancel: true, dlg: false, log: '',
+          labels: { nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}', children: 'Otras páginas en {label}' },
+          rtlLabels: { nav: 'مسار التنقل', up: 'الصعود إلى {label}', path: 'المسار حتى {label}', children: 'صفحات أخرى في {label}' },
+          items: [
+            { label: 'Inicio', href: '#inicio', icon: 'house' },
+            { label: 'Laboratorio central', href: '#lab', children: [{ label: 'Laboratorio central', href: '#lab' }, { label: 'Laboratorio norte', href: '#lab-norte' }] },
+            { label: 'Muestras', href: '#muestras' },
+            { label: '2026', children: BC_LOTES },
+            { label: 'Lote 2026-0412', href: '#lote-0412' },
+            { label: 'Muestra M-0007', href: '#m-0007' }
+          ],
+          rtlItems: [
+            { label: 'الرئيسية', href: '#ar-home', icon: 'house' },
+            { label: 'المختبر المركزي', href: '#ar-lab' },
+            { label: 'العينات', href: '#ar-samples' },
+            { label: '2026', children: [{ label: 'الدفعة 2026-0411', href: '#ar-lot-11' }, { label: 'الدفعة 2026-0412', href: '#ar-lot' }] },
+            { label: 'الدفعة 2026-0412', href: '#ar-lot' },
+            { label: 'العينة M-0007', href: '#ar-m7' }
+          ],
+          spaAll: [
+            { label: 'Inicio', href: '#spa-inicio', icon: 'house' },
+            { label: 'Laboratorio central', href: '#spa-lab' },
+            { label: 'Muestras', href: '#spa-muestras' },
+            { label: '2026', href: '#spa-2026' },
+            { label: 'Lote 2026-0412', href: '#spa-lote' },
+            { label: 'Muestra M-0007', href: '#spa-m7' }
+          ],
+          spa: [], plain: [],
+          navigate: ({ item, index, from, event }) => {
+            if (bc.cancel) event.preventDefault()
+            bc.log = 'navigate · ' + from + ' · ' + item.label + ' (índice ' + index + ')' + (bc.cancel ? ' · cancelado' : '')
+          },
+          // El router simulado: cancela la navegación y deja la ruta hasta el destino
+          spaNavigate: ({ item, index, from, event }) => {
+            event.preventDefault()
+            const k = bc.spaAll.findIndex((x) => x.href === item.href)
+            if (k >= 0) bc.spa = bc.spaAll.slice(0, k + 1)
+            bc.log = 'navigate (SPA) · ' + from + ' · ' + item.label + ' (índice ' + index + ')'
+          },
+          down: () => { if (bc.spa.length < bc.spaAll.length) bc.spa = bc.spaAll.slice(0, bc.spa.length + 1) },
+          up: () => { if (bc.spa.length > 1) bc.spa = bc.spaAll.slice(0, bc.spa.length - 1) }
+        })
+        bc.spa = bc.spaAll.slice(0, 3)
+        bc.plain = bc.items.map(({ children, ...x }) => x)
         const gtTab = ref('general')
         const gtBlock = ref(false)
         const gtLog = ref('—')
@@ -3180,7 +3267,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3583,7 +3670,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { bc, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
