@@ -28,13 +28,13 @@ Lo que **no** hace (a propósito): ni `--g-ease-spring` ni `--g-ease-bounce` (#4
 
 | Medida | default | comfortable | compact | `pointer: coarse` |
 | --- | --- | --- | --- | --- |
-| Alto del área (= caja md de `GInput`, `space × 9 × densidad`, piso 24) | 36 | 31,5 | 27 | 44 |
-| Alto de la píldora (`space × 7 × densidad`, piso 24) | 28 | 24,5 | 24 | 28 (zona de toque 44 × 44) |
+| Alto del área (= caja md de `GInput`, `space × 9 × densidad`, piso 24; crece con su texto como la caja) | 36 | 31,5 | 27 | 44 |
+| Alto de la píldora (`space × 7 × densidad`, piso 24; crece con su texto) | 28 | 24,5 | 24 | 28 (zona de toque 44 × 44) |
 | Riel / tramo | 4 / 6 | 4 / 6 | 4 / 6 | 4 / 6 |
 | Zona de toque del asa (ancho × alto) | ≥ 44 × 36 | ≥ 44 × 31,5 | ≥ 44 × 27 | ≥ 44 × 44 |
 | Zona agarrable del tramo (rango) | 36 | 31,5 | 27 | 44 |
 
-Con el tema propio (`space` 5): área 45 · 39,4 · 33,8; píldora 35 · 30,6 · 26,3. Relleno en línea de la píldora `space × 3`; rayas de marca `space × 1.5` de alto y `--g-border-width` de grosor; nombres a `space × 2` bajo el borde del área.
+Con el tema propio (`space` 5): área 45 · 39,4 · 33,8; píldora 35 · 30,6 · 26,3. **Área y píldora crecen con su texto** (auditoría, hallazgo 2): las dos son el mayor entre lo de la tabla y una línea de `body-sm` + los dos bordes (`--_text-box`), como la caja de `GInput`. Con el tema de la auditoría (`space` 3, texto 19, Georgia) área 27 · 26 · 26 y píldora 26 en las tres densidades; con el texto al 200 %, 42 y 42 (= `GInput`). Relleno en línea de la píldora `space × 3`; rayas de marca `space × 1.5` de alto y `--g-border-width` de grosor; nombres a `space × 2` bajo el borde del área.
 
 - **Fila real:** el centro del área coincide con el de la caja de `GInput`, `GNumberField` y `GSelect` de la misma línea (Δ ≤ 1px, alturas iguales) a 1100 y 720 y en ventanas de 720/480/360/320, en las tres densidades, con el tema por defecto, oscuro, lustre y el propio.
 - **La píldora en reposo** (`es-MX`, «40 %»): `--_pill-w` 59,6px; «$2,400» (rango MXN de 0 a 5000) 72,0px; «5» (dolor) 42,8px.
@@ -64,6 +64,8 @@ kiwi estimó ≈ 144px por las marcas del dolor sin la fuente servida; con ella 
 | Propio oscuro | 4,87 | 6,16 | 4,58 | 4,58 | 4,32 | 6,57 | 8,60 | 4,68 | 8,60 |
 | **Mínimo** | **4,81** | **5,11** | **4,20** | **4,20** | **3,19** | **4,20** | **6,87** | **4,52** | **7,38** |
 
+**Solo lectura tras la auditoría** (hallazgo 1, `auditoria.md`): texto sobre `neutral-soft` ≥ 13,83 y contorno `border-control` ≥ 3,18 en las 28 configuraciones medidas; la columna «Solo lectura» de arriba es la del texto con el diseño anterior.
+
 Texto ≥ 4.5:1 (on-{color} sobre {color} y sobre {color}-strong, el par que garantiza el motor); contorno, tramo y riel ≥ 3:1 contra `surface`, `bg` y `surface-sunken` (cada uno medido contra los tres); «tecleando» es el peor de texto (≥ 15) y contorno (`-text` contra `surface`). El mínimo de contorno y tramo (4,20, propio claro con la `primary` pálida) es el de §7.1 en `GCheckbox` (4,21 spotify claro). **Informativo:** tramo contra riel 1,04–1,9:1 según familia y tema (por eso el grosor, arriba); la raya de la cápsula, ≥ 4,81 (es el par `on`/relleno).
 
 ## Decisiones de CSS
@@ -76,6 +78,7 @@ Texto ≥ 4.5:1 (on-{color} sobre {color} y sobre {color}-strong, el par que gar
 - **Zona de toque del asa = alto del área** (`::after`, ≥ 44 de ancho): la franja del área por encima y por debajo de la píldora cuenta como píldora, no como tramo ni como riel.
 - **Nombres de marcas en los extremos** sin conocer su ancho: el contenedor de marcas es de consulta (`container-type: inline-size`) y el nombre se coloca con `translate: calc(--_dir × clamp(−c, −50%, 100cqi − c − 100%))`. Centrado bajo su raya mientras cabe; pegado al borde cuando no. Medido dentro en LTR, RTL y a 320.
 - **Cabecera vacía** (sin etiqueta visible y con valor): `:empty { display: none }`, no deja el margen de la etiqueta.
+- **Solo lectura** (auditoría, hallazgo 1): lo de `GInput` de solo lectura, relleno `neutral-soft`, texto `text` y contorno **`border-control` en trazo discontinuo** (≥ 3:1; `border-strong` es translúcido y quedaba a ≈ 1,5:1). La raya de la cápsula, `border-control`.
 - **Solo lectura con error:** contorno `danger-text` (la píldora de solo lectura con error no puede perder la señal).
 - **`forced-colors`:** riel `GrayText`, tramo `Highlight` (también en solo lectura), píldora `ButtonFace`/`ButtonText` con borde `ButtonText` y raya `ButtonText`, tecleando `Field`/`FieldText`, deshabilitado `GrayText` sobre `Canvas`, anillo `Highlight`, rayas de marca `CanvasText`; **error con borde doble** (sin color no hay otra señal en el control); `forced-color-adjust: none` en riel, tramo, píldora y rayas.
 - **#383:** ningún selector toma hijos por estructura; la única combinación de hijo es `.g-slider__pill-ref > span` (las referencias que pinta el propio componente) y los tres hijos de la raíz en `GFormRow` por su clase.
@@ -102,7 +105,7 @@ Además de «Clases y datos» del contrato:
 3. **Píldora por densidad:** el contrato dice `max(24px, space × 7)`; la entrega la multiplica por la densidad como el área (28 · 24,5 · 24). Sin ello, en `compact` la píldora (28) sería más alta que el área (27).
 4. **Tope en el asa, no en la píldora** (punto 3 de bruno): `slider.md` B5 dice «coco anima la píldora del nativo enfocado»; anima el asa (píldora + anillo).
 5. **Trazos con error en «sin elegir»** (`danger-text`): no está en el contrato; es la única señal del error en el propio control cuando no hay píldora.
-6. **Contorno de la píldora en solo lectura:** `border-strong` es translúcido (≈ 1,5:1 sobre `surface` en el tema por defecto). Lo dejo como dice el contrato porque la píldora de solo lectura se identifica por su texto (≥ 6,87) y el riel sigue a 3:1, pero si se quiere el contorno a 3:1, `border-control` (y entonces, como `GInput` de solo lectura, trazo discontinuo).
+6. **Contorno de la píldora en solo lectura:** aplicado en la auditoría (hallazgo 1), derivado del estándar de `GInput`: `border-control` discontinuo sobre `neutral-soft` en vez de `border-strong` (≈ 1,5:1). `slider.md` «Tokens consumidos» debe cambiar `border-strong` → `border-control` para el contorno en `readonly` y añadir `neutral-soft`.
 7. Tabla «Clases y datos»: añadir `g-slider--density-*`, `is-warning`, `is-valid` y `g-slider__message-icon`.
 
 ## Lo que NO se verificó

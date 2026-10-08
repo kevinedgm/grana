@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSlider",
   "tag": "g-slider",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Deslizador de un valor acotado donde manda la posición relativa (volumen, intensidad del dolor, una edad aproximada) o de un rango de dos extremos (precio mínimo y máximo). Forma B «El valor es el asa»: la cifra vive dentro de la píldora que se arrastra. Modelo Number o null («sin elegir») o, con range, [inicio, fin]; nunca una cadena.",
   "contract": "design/contracts/slider.md",
