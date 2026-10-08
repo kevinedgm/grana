@@ -223,9 +223,18 @@ La combinación `selected` + `current` + `disabled` es válida; coco decide la p
 3. **Slot `loading`:** sustituye **solo el cuerpo** del esqueleto (la tarjeta conserva su superficie, `aria-busy` y la región `role="status"`); recibe `{ size, layout }`. Debe ser decorativo (`aria-hidden`) y conservar el tamaño esperado.
 4. **Sin ninguna de las anteriores** (tarjeta sin props ni slots declarados): forma mínima (título + dos líneas).
 
-Con `loading` no se renderizan principal, menú, acciones ni controles enfocables (`inert` si el consumidor los dejó en slots). El esqueleto **no promete** la misma altura que la tarjeta cargada (la altura real depende de los datos): kiwi la verificó construyéndola desde las mismas props; con `skeleton` declarado con fidelidad el salto es mínimo, pero **no hay prueba con datos reales** (pendiente; ver «Verificación»). Sin animación con `prefers-reduced-motion`. **Tono del esqueleto: `--g-color-border-strong`** (#136), no `--g-color-surface-sunken` como `GWidget`: este da 1.07:1 sobre blanco (invisible) y es justo el fondo de una `inset`.
+Con `loading` no se renderizan principal, menú, acciones ni controles enfocables (`inert` si el consumidor los dejó en slots). El esqueleto **no promete** la misma altura que la tarjeta cargada (la altura real depende de los datos): kiwi la verificó construyéndola desde las mismas props; con `skeleton` declarado con fidelidad el salto es mínimo, pero **no hay prueba con datos reales** (pendiente; ver «Verificación»). Sin animación con `prefers-reduced-motion`. **Tono del esqueleto: `--g-color-border-strong`** (#136; pasa a **`--g-color-mold`** con #538, segunda entrega de #540), no `--g-color-surface-sunken` como `GWidget`: este da 1.07:1 sobre blanco (invisible) y es justo el fondo de una `inset`.
 
 **Marcado del esqueleto:** `g-card__skeleton` sustituye a `g-card__body` (con `aria-hidden="true"`) y usa **dentro las clases reales de región** (`g-card__header`, `__meta`, `__actions`…) para conservar la colocación; cada forma es `g-card__sk` con un modificador `--eyebrow`, `--title`, `--meta`, `--footer`, `--btn` o `--circle` (sin modificador: línea de texto). El ancho de cada línea va en la variable dinámica `--_sk-w` (en línea; excepción justificada como las `--_mark-*` de `GTabs`).
+
+## Carga y vacío con el motor común (#540; segunda entrega)
+
+Adopción de `design/contracts/load-region.md`, contratada el 2026-10-08 y **pendiente** (bruno y coco, tras cerrar la primera entrega). Sin cambio de API salvo `labels.slow`.
+
+- **Motor** dentro de `loading` (`utils/loadPhase.js`, #532): retraso de 200 ms (lo que había sigue, inerte; en la primera carga el esqueleto se pinta invisible y reserva el sitio), mínimo de 400 ms a la vista, espera larga a los 5 s con **`labels.slow`** (clave nueva, opcional: línea visible al pie del cuerpo, superpuesta, y anuncio en la región `role="status"` de la tarjeta, una vez). `labels.loading` se escribe cuando el esqueleto se ve.
+- **Sin pulso** (`g-card-pulse` fuera, #539) y **tono `--g-color-mold`** en las formas `g-card__sk` (enmienda de #136, #538); en `forced-colors`, `forced-color-adjust: none` y `GrayText`.
+- **Foco** (#534): con el foco dentro de lo que pasa a esqueleto, a la raíz de la tarjeta (si es enfocable) o al primer ancestro enfocable; nunca a `body`.
+- Slot `empty`: **`GEmpty`** como receta (sin API nueva).
 
 ## Adaptación al contenedor (un solo sistema; #130)
 
