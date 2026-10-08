@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "name": "GEmpty",
+  "tag": "g-empty",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "El vacío con causa: lo que una región enseña cuando no tiene nada que enseñar, diciendo por qué y cómo salir. A «el primer hueco» (un elemento en el sitio y del tamaño del primero que llegará; dentro de una GLoadRegion lee su --_load-slot) y B «la salida con cuentas» (cause=\"filtered\" con filters: cuántas había, qué filtro quitar y cuántas vuelven, de más a menos).",
+  "contract": "design/contracts/empty.md",
+  "decisions": [
+    "#529",
+    "#530",
+    "#533",
+    "#534",
+    "#537",
+    "#540",
+    "#541",
+    "#542",
+    "#543",
+    "#547"
+  ],
+  "prototype": "design/lab/empty-skeleton/r01/",
+  "style": "packages/vue/src/components/GEmpty/GEmpty.css",
+  "styleNotes": "design/lab/empty-skeleton/estilo.md",
+  "entry": "@grana/vue",
+  "bundle": {
+    "measured": "2026-10-08",
+    "main": "GEmpty + utils/loadPhase.js + canal de página (utils/liveRegion.js) + claves de __shared: +3,1 KB gzip -9 en grana.js (190 617 → 193 723 B); con la adopción de GTable (#540), +4,1 KB (190 617 → 194 706 B); grana.umd.js 168 392 → 171 968 B; grana.css 76 446 → 77 539 B (el CSS de coco ya estaba). Acumulado de la Fase C sobre 179 506 B (antes de GBreadcrumbs): +15 200 B (≈ 15,2 kB; 14,8 KiB): en el umbral de revisión de #506 (+15 KB), anotado para lima"
+  },
+  "props": [
+    {
+      "name": "cause",
+      "type": "String",
+      "required": true,
+      "values": [
+        "none",
+        "filtered",
+        "error",
+        "forbidden"
+      ],
+      "note": "Elige el icono propio, el modificador g-empty--cause-* y, con filtered, la salida. No cambia el texto"
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "note": "El nombre del vacío y lo que se anuncia dentro de una GLoadRegion (#533). p sin headingLevel; hN con él"
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null,
+      "note": "La causa o el paso siguiente; el slot por defecto la sustituye"
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": null,
+      "values": [
+        "2 … 6"
+      ],
+      "note": "Sin valor, el título es un párrafo"
+    },
+    {
+      "name": "filters",
+      "type": "Array",
+      "default": [],
+      "note": "Solo con cause=\"filtered\": { key, label, count? }; count = cuántos vuelven quitando solo ese filtro (lo calcula la aplicación)"
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "default": null,
+      "note": "Solo con cause=\"filtered\": cuántos había antes de los filtros (la traza)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "note": "prop › lang del ancestro más cercano › navigator.language (al montar); Intl.ListFormat y Intl.NumberFormat"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "relax {label}, returns {count}, clear, before {total} {filters}; sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "relax",
+      "payload": "String | Number",
+      "trigger": "Pulsa «Quitar «…»» de un filtro de la salida (la key del filtro)"
+    },
+    {
+      "name": "clear",
+      "payload": "—",
+      "trigger": "Pulsa «Quitar todos»"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Descripción rica; sustituye a description"
+    },
+    {
+      "name": "icon",
+      "purpose": "Sustituye al icono propio (un GIcon de la aplicación, p. ej. inbox para none); decorativo, dentro del hueco aria-hidden. Alcance: { cause }"
+    },
+    {
+      "name": "actions",
+      "purpose": "Acciones (GBtn): crear, importar, reintentar, pedir acceso; con la salida, van después de ella. Alcance: { cause }"
+    }
+  ],
+  "tokens": [
+    "--g-color-border-strong",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-danger-text",
+    "--g-color-neutral-soft",
+    "--g-color-on-neutral-soft",
+    "--g-border-width",
+    "--g-radius-md",
+    "--g-radius-pill",
+    "--g-space-1..4",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-action-weight",
+    "--g-font-ui"
+  ],
+  "states": [
+    "none",
+    "filtered",
+    "filtered-exit",
+    "error",
+    "forbidden",
+    "in-region"
+  ],
+  "labels": [
+    "relax {label}",
+    "returns {count}",
+    "clear",
+    "before {total} {filters}"
+  ],
+  "composes": [
+    "GBtn (size sm: la salida)",
+    "GIcon interno (search, circle-alert, lock)"
+  ],
+  "icons": {
+    "none": null,
+    "filtered": "search",
+    "error": "circle-alert",
+    "forbidden": "lock"
+  },
+  "announcements": "Ninguna región viva propia: dentro de una GLoadRegion la región anuncia su title al terminar la carga (registro por loadRegionKey); en GTable, labels.results (#265). Suelto, no se anuncia.",
+  "focus": "Nunca toma el foco (sin tabindex). Al desmontarse con el foco dentro de una GLoadRegion, avisa a la región para que lo recoja (#534); suelto, la aplicación decide.",
+  "attrs": "Los atributos van a la raíz <div>.",
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real",
+    "cause=\"done\" y appearance=\"phrase\" reservados (#543)"
+  ]
+}

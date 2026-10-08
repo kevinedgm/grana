@@ -54,6 +54,7 @@ import GSummary from './components/GSummary/GSummary.vue'
 import GBreadcrumbs from './components/GBreadcrumbs/GBreadcrumbs.vue'
 import GAccordion from './components/GAccordion/GAccordion.vue'
 import GAccordionItem from './components/GAccordion/GAccordionItem.vue'
+import GEmpty from './components/GEmpty/GEmpty.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
 import { formKey, useFormField } from './components/GForm/formContext.js'
 import { createToaster, useToast, toasterKey } from './components/GToast/toaster.js'
@@ -62,7 +63,7 @@ import { shared } from './shared.js'
 
 // Registro de componentes (lo mantiene bruno).
 // Al agregar uno: importarlo, exportarlo por nombre y añadirlo a `components`.
-export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GAdaptiveLayout, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary, GTooltip, GBreadcrumbs, GAccordion, GAccordionItem }
+export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GAdaptiveLayout, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary, GTooltip, GBreadcrumbs, GAccordion, GAccordionItem, GEmpty }
 // Formularios: composable para campos (de Grana y propios) y clave del contexto para `provide` manual (form.md §2)
 export { useFormField, formKey }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
@@ -74,12 +75,13 @@ export { summaryDiff }
 // El campo de hora (GTimeField) NO está aquí: va en su propia entrada `@grana/vue/time-field` (más de 8 KB gzip, criterio de #328).
 // El deslizador (GSlider) tampoco: va en su propia entrada `@grana/vue/slider` (#455; quien no lo usa no lo paga).
 // Las etiquetas (GTag, GTagGroup) NO están aquí: van en su propia entrada `@grana/vue/tag` (+9,2 KB gzip, supera los 8 KB de #472).
+// La región que carga (GLoadRegion) NO está aquí: va en su propia entrada `@grana/vue/load-region` (#530; GEmpty y el motor sí).
 // La captura de voz (createSpeech, GSpeechHost…) NO está aquí: va en su propia entrada `@grana/vue/speech` (#238).
 // Uso INTERNO de esa entrada (no es API pública, puede cambiar sin aviso): las piezas que comparte con el principal (src/shared.js)
 export { shared as __shared }
 
 
-const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GAdaptiveLayout, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary, GTooltip, GBreadcrumbs, GAccordion, GAccordionItem }
+const components = { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCalendar, GDialog, GSwitch, GTextarea, GSelect, GBadge, GDatePicker, GSidebar, GWidget, GMetric, GProgress, GDataList, GWidgetGrid, GWidgetGallery, GWidgetConfig, GMenu, GStepper, GSurface, GHelper, GHelperScope, GAvatarMotion, GAvatar, GTable, GPagination, GFilterBar, GTabs, GTabPanel, GCard, GToaster, GForm, GFormSection, GFormLayout, GFormRow, GAdaptiveLayout, GFormReveal, GInputGroup, GInputGroupInput, GInputGroupSelect, GInputGroupText, GFieldGroup, GFormActions, GErrorSummary, GDivider, GIcon, GSummary, GTooltip, GBreadcrumbs, GAccordion, GAccordionItem, GEmpty }
 
 export function install(app) {
   for (const [name, component] of Object.entries(components)) {

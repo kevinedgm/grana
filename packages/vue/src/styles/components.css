@@ -92,3 +92,7 @@
    GTagGroup (el grupo lee clases de la etiqueta) */
 @import url("../components/GTag/GTag.css");
 @import url("../components/GTagGroup/GTagGroup.css");
+/* GEmpty (empty.md, principal) y GLoadRegion (load-region.md, entrada @grana/vue/load-region, #530; su CSS sigue en
+   grana.css): componen GBtn y GIcon, van después de sus hojas (estilo.md «Para bruno», 8) */
+@import url("../components/GEmpty/GEmpty.css");
+@import url("../components/GLoadRegion/GLoadRegion.css");

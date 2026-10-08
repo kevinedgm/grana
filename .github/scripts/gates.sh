@@ -72,6 +72,11 @@ must_have grana.js "g-accordion-item" "GAccordionItem no está en el paquete pri
 for cls in g-tag__undo g-tag-group__facet; do
   must_have grana.css "$cls" "$CSS_MSG"
 done
+# GEmpty (principal) y GLoadRegion (entrada propia, CSS en grana.css; #530): la cuenta de la salida y la píldora de B.
+# (#530 nombra g-empty__relax, pero GEmpty.css no tiene regla para esa clase —es solo marcado—: la señal es __count)
+for cls in g-empty__count g-load-region__pill; do
+  must_have grana.css "$cls" "$CSS_MSG"
+done
 
 # --- Lo que NO debe estar -----------------------------------------------------------------------
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"
@@ -90,6 +95,11 @@ done
 # GTag + GTagGroup: entrada propia `@grana/vue/tag` (#472)
 must_not_have grana.js "GTagGroup" "GTagGroup viajó en el paquete principal grana.js; debe vivir solo en su entrada propia tag.js"
 must_exist "tag.js" "No se generó la entrada propia tag.js (revisar vite.tag.config.js y el script build de packages/vue)"
+
+# GLoadRegion: entrada propia `@grana/vue/load-region` (#530); GEmpty, el motor y el canal llegan por __shared, sin copia
+must_not_have grana.js "GLoadRegion" "GLoadRegion viajó en el paquete principal grana.js; debe vivir solo en su entrada propia load-region.js"
+must_exist "load-region.js" "No se generó la entrada propia load-region.js (revisar vite.load-region.config.js y el script build de packages/vue)"
+must_not_have load-region.js "g-empty__" "GEmpty quedó copiado en load-region.js; debe llegar por __shared sin copia"
 
 echo
 if [ "$failed" -eq 0 ]; then

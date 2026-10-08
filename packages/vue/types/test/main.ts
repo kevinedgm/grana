@@ -19,11 +19,15 @@ import App from './App.vue'
 // GTag + GTagGroup (tag.md, #462, #463)
 import Tag, { GTag, GTagGroup } from '@grana/vue/tag'
 import type { TagItem, TagGroupLabels } from '@grana/vue/tag'
+// GEmpty (principal) + GLoadRegion (entrada propia, #530)
+import { GEmpty } from '@grana/vue'
+import LoadRegion, { GLoadRegion } from '@grana/vue/load-region'
+import type { EmptyFilter, LoadRegionLabels } from '@grana/vue/load-region'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -144,3 +148,28 @@ h(GTag, { label: 'X', color: 'danger' })
 h(GTag, { label: 'X', size: 'lg' })
 
 export { tagItems, badTag }
+
+// ---- GEmpty + GLoadRegion ----
+const emptyFilters: EmptyFilter[] = [{ key: 'urg', label: 'Urgentes', count: 2 }, { key: 3, label: 'Cerradas' }]
+h(GEmpty, {
+  cause: 'filtered',
+  title: 'Ninguna muestra con estos filtros',
+  filters: emptyFilters,
+  total: 4,
+  headingLevel: 3,
+  labels: { relax: 'Quitar «{label}»', returns: ({ count }) => `${count} vuelven`, clear: 'Quitar todos', before: ({ total, filters }) => `Antes había ${total}; con ${filters}, ninguna.` },
+  onRelax: (k: string | number) => k,
+  onClear: () => undefined
+})
+const regionLabels: LoadRegionLabels = { loading: 'Cargando', slow: 'Sigue', loaded: ({ count, fresh }) => `${count}, ${fresh} nuevas`, refreshing: 'Actualizando', failed: 'Falló', retry: 'Reintentar' }
+h(GLoadRegion, { loading: true, items: null, sample: [{ id: 's1' }], keyBy: (i: { id: string }) => i.id, refresh: 'replace', error: 'Sin red', announceError: false, label: 'Muestras', labels: regionLabels, onRetry: () => undefined })
+// @ts-expect-error GEmpty: cause fuera de la lista
+h(GEmpty, { cause: 'done', title: 'Al día' })
+// @ts-expect-error GEmpty: title es obligatoria
+h(GEmpty, { cause: 'none' })
+// @ts-expect-error GLoadRegion: refresh fuera de la lista
+h(GLoadRegion, { refresh: 'clear' })
+// @ts-expect-error GLoadRegion: loaded recibe { count, fresh }
+const badRegionLabels: LoadRegionLabels = { loaded: ({ total }: { total: number }) => String(total) }
+
+export { emptyFilters, regionLabels, badRegionLabels }

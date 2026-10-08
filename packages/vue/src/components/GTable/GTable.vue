@@ -3,13 +3,19 @@
 // Contrato: design/contracts/table.md · Estilo: GTable.css (coco) · Estructura: design/lab/table/r01/ y r02/.
 // Campos ≠ columnas: una columna puede componer varios campos (leading + title + subtitle). Un solo <table> con roles
 // explícitos se dibuja como tabla o como tarjetas según el ancho del contenedor (DECISIONS.md #109 a #111).
-import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUnmount, provide } from 'vue'
+// Carga, vacío y error con el motor común (table.md «Carga, vacío y error con el motor común», #540): retraso de 200 ms
+// (filas de antes inertes o esqueleto invisible), mínimo de 400 ms, espera larga a los 5 s, esqueleto quieto con las filas
+// que había a la vista, `error` con barra de fallo o GEmpty cause="error", vacío por defecto con GEmpty y foco por rowKey.
+import { defineComponent, h, ref, shallowRef, computed, watch, nextTick, onMounted, onBeforeUnmount, provide } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { applyFilters } from '../../utils/filters.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GFilterBar from '../GFilterBar/GFilterBar.vue'
 import GPagination from '../GPagination/GPagination.vue'
+import GBtn from '../GBtn/GBtn.vue'
+import GEmpty from '../GEmpty/GEmpty.vue'
+import { createLoadPhase, rememberFocus, restoreFocus } from '../../utils/loadPhase.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const toPx = (value) => {
@@ -44,9 +50,11 @@ export default defineComponent({
     maxHeight: { type: String, default: undefined },
     loading: Boolean,
     loadingRows: { type: Number, default: 3, validator: (v) => v >= 1 },
+    error: Boolean,
+    announceError: { type: Boolean, default: true },
     labels: { type: Object, default: () => ({}) }
   },
-  emits: ['update:sort', 'update:selected', 'update:filters', 'update:page'],
+  emits: ['update:sort', 'update:selected', 'update:filters', 'update:page', 'retry'],
   setup(props, { emit, slots, attrs }) {
     if (isDev && !props.caption && !attrs['aria-label'] && !attrs['aria-labelledby']) {
       console.warn('[Grana] <GTable> necesita caption, aria-label o aria-labelledby (nombre de la tabla).')
@@ -72,25 +80,21 @@ export default defineComponent({
       console.warn('[Grana] <GTable> con selección: define labels.selectedCount para anunciar cuántas filas hay seleccionadas.')
     }
 
-    // ---- Carga (#265): la región viva única anuncia «cargando» y, al terminar, el recuento ----
+    // ---- Carga (#265, #540): la región viva única anuncia «cargando» al VERSE la carga y, al terminar, el recuento ----
     // Marca de «orden escrito en este ciclo»: si la carga empieza en el mismo ciclo, el anuncio del orden no se pisa.
     // Se limpia con una tarea (no con un microtask): el watcher de `loading` corre en el vaciado de Vue, después de los microtasks ya encolados.
     let sortedThisTick = false
     let warnedLoading = false
     let warnedResults = false
+    const warned = new Set()
+    const warnOnce = (id, msg) => {
+      if (!isDev || warned.has(id)) return
+      warned.add(id)
+      console.warn(`[Grana] <GTable> ${msg}`)
+    }
     const markSorted = () => {
       sortedThisTick = true
       setTimeout(() => { sortedThisTick = false }, 0)
-    }
-    const announceLoad = (keepSorted) => {
-      nextTick(() => {
-        if (props.loading) {
-          if (keepSorted || !props.labels.loading) return
-          live.value = props.labels.loading
-        } else {
-          live.value = props.labels.results ? fill(props.labels.results, { count: totalCount.value }) : ''
-        }
-      })
     }
     const warnLoadStart = () => {
       if (isDev && !warnedLoading && !props.labels.loading) {
@@ -98,18 +102,71 @@ export default defineComponent({
         console.warn('[Grana] <GTable> con loading: define labels.loading para anunciar la carga (aria-busy solo no lo anuncia la mayoría de lectores).')
       }
     }
+
+    // La tabla pinta SU COPIA de las filas: las nuevas esperan a la llegada (retraso y mínimo incluidos, #540 punto 3)
+    const paintedRows = shallowRef(props.rows)
+    const appliedError = ref(props.error) // el error se aplica al terminar la carga (punto 7)
+    const keepRows = ref(false) // dentro del retraso, las filas que había siguen a la vista (inertes)
+    const skeletonRows = ref(props.loadingRows) // tantas como había a la vista, o loadingRows en la primera carga
+    let mounted = false
+    let startSorted = false
+    let focusMem = null
+    const phase = createLoadPhase({
+      onShow() {
+        // Enmienda de #265: «cargando» se escribe cuando el esqueleto se ve; una carga que no se ve solo anuncia su fin
+        if (!startSorted && props.labels.loading) live.value = props.labels.loading
+      },
+      onSlow() {
+        if (props.labels.slow) live.value = props.labels.slow
+      },
+      onArrive() {
+        paintedRows.value = props.rows
+        appliedError.value = props.error
+        if (appliedError.value && !slots.error) {
+          if (!props.labels.failed) warnOnce('failed', 'con error: define labels.failed (texto del fallo, visible y anunciado) o el slot error.')
+          if (!props.labels.retry) warnOnce('retry', 'con error: define labels.retry («Reintentar») o el slot error.')
+        }
+        // En el ciclo siguiente: el recuento (o el fallo) ya actualizado y el foco de vuelta a su fila (#534)
+        nextTick(() => {
+          if (appliedError.value) live.value = props.announceError ? props.labels.failed || '' : ''
+          else live.value = props.labels.results ? fill(props.labels.results, { count: totalCount.value }) : ''
+          if (focusMem) {
+            const mem = focusMem
+            focusMem = null
+            restoreFocus(tableEl.value, mem, findRow)
+          }
+        })
+      }
+    })
+    const ph = phase.state
+    const begin = (arm) => {
+      // Filas a la vista ahora (antes de montar no se ha visto nada: primera carga)
+      const shown = mounted && !ph.busy && !appliedErrorRow() ? visible.value.length : 0
+      const kind = phase.start({ arm })
+      if (kind !== 'new') return
+      startSorted = sortedThisTick
+      keepRows.value = shown > 0
+      skeletonRows.value = shown > 0 ? (props.pageSize ? Math.min(shown, props.pageSize) : shown) : props.loadingRows
+      warnLoadStart()
+      captureFocus()
+    }
     watch(() => props.loading, (now) => {
-      if (now) warnLoadStart()
-      else if (isDev && !warnedResults && !props.labels.results) {
+      if (now) { begin(true); return }
+      if (isDev && !warnedResults && !props.labels.results) {
         warnedResults = true
         console.warn('[Grana] <GTable> terminó de cargar: define labels.results para anunciar cuántas filas hay.')
       }
-      announceLoad(now && sortedThisTick)
+      phase.stop()
     })
+    // Fuera de una carga, filas y error se aplican al cambiar
+    watch(() => props.rows, (v) => { if (!ph.busy) paintedRows.value = v })
+    watch(() => props.error, (v) => { if (!ph.busy) appliedError.value = v })
     onMounted(() => {
-      // Montada ya cargando: la región existe vacía y el texto llega en el ciclo siguiente (#14)
-      if (props.loading) { warnLoadStart(); announceLoad(false) }
+      mounted = true
+      // Montada ya cargando: la región existe vacía desde el montaje (#14) y el texto llega al verse la carga
+      if (props.loading) phase.arm()
     })
+    onBeforeUnmount(() => phase.dispose())
 
     // ---- Columnas ----
     const cols = computed(() => props.columns)
@@ -120,7 +177,7 @@ export default defineComponent({
     const keyOf = (row) => row[props.rowKey]
 
     // ---- Datos: filtrar → ordenar → paginar ----
-    const filtered = computed(() => (props.filterMode === 'local' ? applyFilters(props.rows, cols.value, filtersState.value) : props.rows))
+    const filtered = computed(() => (props.filterMode === 'local' ? applyFilters(paintedRows.value, cols.value, filtersState.value) : paintedRows.value))
     const collator = computed(() => new Intl.Collator(locale(), { numeric: true, sensitivity: 'base' }))
     const sorted = computed(() => {
       const s = sortState.value
@@ -184,6 +241,36 @@ export default defineComponent({
     }
     // Filtros cambiados desde fuera: también vuelven a la página 1
     watch(() => props.filters, () => { if (pageState.value !== 1) setPage(1) })
+
+    // ---- Foco durante la carga (#534): del <tbody> (o de la barra de fallo) al <table>, y de vuelta por rowKey ----
+    const tableEl = ref(null)
+    const tbodyEl = ref(null)
+    const failedEl = ref(null)
+    const findRow = (key) => {
+      const i = visible.value.findIndex((r) => keyOf(r) === key)
+      const body = tbodyEl.value
+      return i >= 0 && body && !ph.busy ? body.rows[i] || null : null
+    }
+    function captureFocus() {
+      const t = tableEl.value
+      if (!t || typeof document === 'undefined') return
+      const a = document.activeElement
+      const inBody = tbodyEl.value && tbodyEl.value.contains(a)
+      const inBar = failedEl.value && failedEl.value.contains(a)
+      if (!a || (!inBody && !inBar)) return
+      focusMem = { key: null, index: 0 }
+      const tr = inBody ? a.closest('tr') : null
+      const i = tr ? [...tbodyEl.value.rows].indexOf(tr) : -1
+      const row = i >= 0 && tr.classList.contains('g-table__row') ? visible.value[i] : null
+      if (row) focusMem = rememberFocus(tr, keyOf(row), a)
+      t.focus({ preventScroll: true })
+    }
+    // ¿Se ve la fila de error (fallo sin filas)?
+    function appliedErrorRow() { return Boolean(appliedError.value) && !visible.value.length }
+    const failedBar = computed(() => !ph.busy && Boolean(appliedError.value) && visible.value.length > 0)
+    const retry = () => emit('retry')
+    // Montada ya cargando: primera carga (estado en setup, temporizadores al montar; nada en el servidor)
+    if (props.loading) begin(false)
 
     // ---- Modo tabla / tarjetas por el ancho del contenedor ----
     const root = ref(null)
@@ -275,22 +362,37 @@ export default defineComponent({
       return h('thead', { role: 'rowgroup' }, [h('tr', { role: 'row' }, cells)])
     }
     const colCount = () => cols.value.length + (props.selectable ? 1 : 0) + (slots['row-actions'] ? 1 : 0)
+    const skeleton = () => Array.from({ length: skeletonRows.value }, (_, i) => h('tr', { role: 'row', class: 'g-table__row', 'aria-hidden': 'true', key: `sk-${i}` }, [
+      props.selectable ? h('td', { role: 'cell', class: 'g-table__select' }) : null,
+      ...cols.value.map((c) => h('td', {
+        role: 'cell', key: c.key,
+        class: ['g-table__cell', { 'g-table__cell--primary': c === primary.value, 'g-table__cell--end': c.align === 'end' }]
+      }, [h('span', { class: 'g-table__skeleton' })])),
+      slots['row-actions'] ? h('td', { role: 'cell', class: 'g-table__actions' }) : null
+    ]))
+    const stateRow = (key, content) => [h('tr', { role: 'row', key }, [h('td', { role: 'cell', class: 'g-table__empty', colspan: colCount() }, content)])]
     const body = () => {
-      if (props.loading) {
-        return Array.from({ length: props.loadingRows }, (_, i) => h('tr', { role: 'row', class: 'g-table__row', 'aria-hidden': 'true', key: `sk-${i}` }, [
-          props.selectable ? h('td', { role: 'cell', class: 'g-table__select' }) : null,
-          ...cols.value.map((c) => h('td', { role: 'cell', class: ['g-table__cell', { 'g-table__cell--primary': c === primary.value }], key: c.key }, [h('span', { class: 'g-table__skeleton' })])),
-          slots['row-actions'] ? h('td', { role: 'cell', class: 'g-table__actions' }) : null
-        ]))
-      }
+      // Cargando: dentro del retraso, las filas de antes (inertes, en el <tbody>); si no había, el esqueleto invisible
+      // (is-pending); desde que se ve, el esqueleto con las filas que había a la vista. Nunca el texto de vacío.
+      if (ph.busy && !(ph.pending && keepRows.value)) return skeleton()
       if (!visible.value.length) {
+        if (appliedError.value) {
+          // Fallo sin filas (enmienda de #327): el slot error o GEmpty cause="error" con «Reintentar»
+          return stateRow('error', slots.error
+            ? slots.error({ retry })
+            : [h(GEmpty, { cause: 'error', title: L().failed || '' }, {
+                actions: () => h(GBtn, { size: 'sm', variant: 'soft', color: 'neutral', onClick: retry }, () => L().retry)
+              })])
+        }
         const filteredEmpty = filtersState.value.length > 0
-        const content = slots.empty
+        // Vacío por defecto con GEmpty (#540 punto 8); con el slot, manda el slot
+        return stateRow('empty', slots.empty
           ? slots.empty({ filtered: filteredEmpty, clear: clearFilters })
           : filteredEmpty
-            ? [L().emptyFiltered, ' ', h('button', { type: 'button', class: 'g-filter-bar__clear', onClick: clearFilters }, L().clearFilters)]
-            : L().empty
-        return [h('tr', { role: 'row', key: 'empty' }, [h('td', { role: 'cell', class: 'g-table__empty', colspan: colCount() }, content)])]
+            ? [h(GEmpty, { cause: 'filtered', title: L().emptyFiltered || '' }, {
+                actions: () => h(GBtn, { size: 'sm', variant: 'outline', onClick: clearFilters }, () => L().clearFilters)
+              })]
+            : [h(GEmpty, { cause: 'none', title: L().empty || '' })])
       }
       return visible.value.map((row) => {
         const k = keyOf(row)
@@ -351,19 +453,32 @@ export default defineComponent({
     return () => h('div', {
       ...rootAttrs(),
       ref: root,
-      class: [attrs.class, 'g-table', `g-table--mode-${mode.value}`, `g-table--appearance-${props.appearance}`, `g-table--density-${props.density}`, { 'is-loading': props.loading }]
+      class: [attrs.class, 'g-table', `g-table--mode-${mode.value}`, `g-table--appearance-${props.appearance}`, `g-table--density-${props.density}`, {
+        'is-loading': props.loading,
+        'is-pending': ph.pending,
+        'is-slow': ph.slow,
+        'is-failed': failedBar.value
+      }]
     }, [
       hasFilters.value ? h(GFilterBar, {
         fields: cols.value, filters: filtersState.value, count: totalCount.value, labels: L().filters || {},
         'onUpdate:filters': onFilters
       }) : null,
       bar(),
+      // Barra de fallo con filas a la vista: en flujo, antes del área desplazable; las filas de antes siguen usables
+      failedBar.value ? h('div', { ref: failedEl, class: 'g-table__failed' }, [
+        h('span', { class: 'g-table__failed-icon', 'aria-hidden': 'true' }, [h(GIcon, { name: 'circle-alert' })]),
+        h('p', { class: 'g-table__failed-text' }, L().failed),
+        h(GBtn, { size: 'sm', variant: 'soft', color: 'neutral', onClick: retry }, () => L().retry)
+      ]) : null,
       h('div', { class: 'g-table__scroll', style: props.maxHeight ? { '--_max-height': props.maxHeight } : undefined }, [
-        h('table', { class: 'g-table__table', role: 'table', 'aria-busy': props.loading ? 'true' : 'false', ...tableAttrs() }, [
+        h('table', { ref: tableEl, class: 'g-table__table', role: 'table', tabindex: '-1', 'aria-busy': ph.busy || props.loading ? 'true' : 'false', ...tableAttrs() }, [
           props.caption ? h('caption', { class: 'g-table__caption' }, props.caption) : null,
           header(),
-          h('tbody', { role: 'rowgroup' }, body())
-        ])
+          h('tbody', { ref: tbodyEl, role: 'rowgroup', inert: ph.busy ? '' : undefined }, body())
+        ]),
+        // Espera larga (5 s): último hijo del área desplazable, superpuesto al pie (el CSS lo oculta fuera de is-slow)
+        L().slow ? h('p', { class: 'g-table__slow' }, L().slow) : null
       ]),
       props.pageSize ? h(GPagination, {
         page: currentPage.value, total: totalCount.value, pageSize: props.pageSize, labels: L().pagination || {},
