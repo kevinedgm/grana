@@ -42,7 +42,14 @@ const generateDark = (config, generated, derived) => {
   if (opt === false) return { enabled: false, generated: {}, tokens: null }
   const cfg = typeof opt === 'object' ? opt : {}
   const overrides = cfg.overrides ?? {}
-  const surface = overrides['--g-color-surface'] ?? DARK['--g-color-surface']
+  const d = derived
+  // Neutros teñidos (§16.2) antes que los colores: cambian la superficie oscura (p. ej. #1C1C1C → #1A1D1B) y cada `-text`
+  // se deriva contra la superficie real; con la de por defecto, un `cat-k-text` quedaba en 4,49:1 y el motor no pasaba su
+  // propia validación (12 categorías en oscuro)
+  const tinted = d && d.neutralsBrand
+    ? tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true, hueHex: d.neutralsHue === 'accent' ? cfg.accent ?? d.neutralsHueHex : cfg.brand ?? d.neutralsBrand })
+    : null
+  const surface = overrides['--g-color-surface'] ?? (tinted && tinted['--g-color-surface']) ?? DARK['--g-color-surface']
   const out = {}
   const brand = cfg.brand ?? config.brand
   if (brand) Object.assign(out, darkColorTokens('brand', brand, surface))
@@ -54,11 +61,10 @@ const generateDark = (config, generated, derived) => {
     if (isColorGroup(k) && !(k in out) && k in DARK) out[k] = DARK[k]
   }
   // Derivación de paleta (tokens.md §16): los mismos semánticos ajustados, neutros teñidos y categorías, en su variante oscura
-  const d = derived
   if (d) {
     for (const [name, r] of Object.entries(d.applied)) Object.assign(out, darkColorTokens(name, r.hex, surface))
     if (d.neutralsBrand) {
-      Object.assign(out, tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true, hueHex: d.neutralsHue === 'accent' ? cfg.accent ?? d.neutralsHueHex : cfg.brand ?? d.neutralsBrand }))
+      Object.assign(out, tinted)
       const nb = lightNeutral(cfg.brand ?? d.neutralsBrand, d.neutralsHueHex)
       if (nb) Object.assign(out, darkColorTokens('neutral', nb, surface))
     }

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildTheme, categoryBases, contrast, distance, parseHex, semanticAdjustments, separate, tintedNeutrals, toOklch, usageOf, MIN_DISTANCE } from '../src/index.js'
 import { readConfig } from '../src/config.js'
+import { DARK } from '../src/defaults.js'
 import { run } from '../src/cli.js'
 
 const lch = (hex) => toOklch(parseHex(hex))
@@ -116,6 +117,22 @@ describe('categorías', () => {
     expect(r.generated['--g-color-cat-6']).toBeUndefined()
     expect(r.issues.filter((i) => i.severity === 'error')).toEqual([])
     expect(r.issues.some((i) => i.id === 'unknown-token')).toBe(false)
+  })
+
+  it('12 categorías en oscuro con neutros teñidos: cada cat-k-text llega a 4.5:1 sobre la superficie oscura real (teñida)', () => {
+    // Antes se derivaban contra la superficie oscura por defecto (#1C1C1C) y la teñida (#1A1D1B) dejaba cat-2-text en
+    // 4,49:1 (#2F4B3A) y cat-10-text en 4,49:1 (#0F4C5C): el motor no pasaba su propia validación y no escribía nada
+    for (const brand of ['#2F4B3A', '#0F4C5C', '#171560', '#81AF14']) {
+      const r = buildTheme({ brand, categories: 12, dark: true })
+      const surface = parseHex(r.dark.tokens['--g-color-surface'])
+      expect(r.dark.tokens['--g-color-surface']).not.toBe(DARK['--g-color-surface'])
+      for (let k = 1; k <= 12; k++) {
+        const ratio = contrast(parseHex(r.dark.generated[`--g-color-cat-${k}-text`]), surface)
+        expect(ratio, `${brand} cat-${k}-text ${ratio.toFixed(3)}`).toBeGreaterThanOrEqual(4.5)
+      }
+      expect(r.issues.filter((i) => i.severity === 'error' && /cat-/.test(i.message)), brand).toEqual([])
+      expect(r.ok, brand).toBe(true)
+    }
   })
 
   it('valida la configuración: 0 a 12, entero', () => {
