@@ -79,6 +79,11 @@
   --g-color-border: rgb(0 0 0 / 0.08);
   --g-color-border-strong: rgb(0 0 0 / 0.16);
   --g-color-border-control: #8A8A8A;
+  /* Tono del marcador de carga (tokens.md §42, #538): opaco, derivado de text y surface del tema que lo lea, así que
+     un tema propio no tiene que declararlo. Regla: ≥ 1,3:1 y < 3:1 frente a surface (medido 1,46:1 en el claro de los
+     trece temas del banco). Se redeclara en cada bloque que redeclara text y surface: con un var() se resuelve donde se
+     declara, y un [data-theme] anidado lo necesita para recalcularse */
+  --g-color-mold: color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface));
   --g-color-focus: var(--g-color-accent-text);
   /* Roles de interfaz (tokens.md §17): alias de brand y accent; los componentes migrarán a ellos */
   --g-color-primary: var(--g-color-brand);
@@ -323,6 +328,8 @@
     --g-color-border: rgb(255 255 255 / 0.10);
     --g-color-border-strong: rgb(255 255 255 / 0.20);
     --g-color-border-control: #808080;
+    /* Tono del marcador de carga (§42): la misma mezcla; 1,71:1 frente al surface oscuro */
+    --g-color-mold: color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface));
     --g-color-focus: var(--g-color-accent-text);
     /* Roles de interfaz (tokens.md §17): alias de brand y accent; los componentes migrarán a ellos */
     --g-color-primary: var(--g-color-brand);
@@ -441,6 +448,8 @@
   --g-color-border: rgb(255 255 255 / 0.10);
   --g-color-border-strong: rgb(255 255 255 / 0.20);
   --g-color-border-control: #808080;
+  /* Tono del marcador de carga (§42): la misma mezcla; 1,71:1 frente al surface oscuro */
+  --g-color-mold: color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface));
   --g-color-focus: var(--g-color-accent-text);
   /* Roles de interfaz (tokens.md §17): alias de brand y accent; los componentes migrarán a ellos */
   --g-color-primary: var(--g-color-brand);

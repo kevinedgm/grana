@@ -626,7 +626,9 @@ for (const engine of ENGINES) {
     for (const room of [140, 185, 230]) {
       const low = await lowAt(room)
       OK(low.inView && ((low.side === 'top' && low.above) || (low.side === 'bottom' && low.below)), T('panel al pie del visor fuera de la vista o del lado equivocado ' + JSON.stringify(low)))
-      notes.push(`[${engine}] ${low.fromOk ? '' : 'HALLAZGO 3 · '}Panel al pie del visor (hijos de varias líneas, ${room}px bajo la puerta): ` + JSON.stringify(low))
+      // Hallazgo 3 (resuelto en c6e4283): la entrada del panel viene siempre del lado real del disparador
+      OK(low.fromOk, T('el panel entra desde el lado contrario al que se abre ' + JSON.stringify(low)))
+      notes.push(`[${engine}] Panel al pie del visor (hijos de varias líneas, ${room}px bajo la puerta): ` + JSON.stringify(low))
     }
   }
 

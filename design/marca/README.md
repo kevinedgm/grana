@@ -1,6 +1,6 @@
 # Marca de Grana
 
-Identidad aprobada por el usuario el 2026-10-08 (DECISIONS #544). Guía visual completa en `guia-marca.html`: ábrela en el navegador.
+Identidad aprobada por el usuario el 2026-10-08 (DECISIONS #550). Guía visual completa en `guia-marca.html`: ábrela en el navegador.
 
 **Tesis:** estructura fija, color tuyo. El símbolo es la grana cochinilla en dos capas:
 - **El armazón**, en tinta, fijo. Usa `currentColor`.

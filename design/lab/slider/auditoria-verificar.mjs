@@ -314,8 +314,22 @@ const SWEEP = async ([rowId, hi, lo]) => {
     const pills = [...sl.querySelectorAll('.g-slider__pill')].map((p) => p.getBoundingClientRect().width)
     const labels = [...sl.querySelectorAll('.g-slider__mark-label')].map((l) => l.getBoundingClientRect())
     const range = sl.classList.contains('g-slider--range')
-    const marks = labels.length ? labels.reduce((s, l) => s + l.width, 0) + space * 2 * (labels.length - 1) : 0
-    const expected = Math.ceil(Math.max(space * 40, (range ? 4 : 3) * Math.max(...pills), marks) - 0.001)
+    // #509: el menor ancho C en que cada par de nombres vecinos por valor deja space × 2, con cada nombre centrado en la
+    // píldora de su valor (x = p/2 + f · (C − p)) y ajustado al borde como en el CSS; se publica el entero por encima + 0,5
+    // de la tolerancia de GFormRow, redondeado hacia arriba. Calculado aquí aparte, por bisección de 0,01px
+    const pillW = Math.max(...pills)
+    const named = [...new Map([...sl.querySelectorAll('.g-slider__mark-label')].map((l) => [parseFloat(l.parentElement.style.getPropertyValue('--_at')), l.getBoundingClientRect().width])).entries()].filter(([f]) => Number.isFinite(f)).sort((x, y) => x[0] - y[0])
+    const fitsAt = (C) => { let pr = -Infinity; for (const [f, w] of named) { const left = Math.min(Math.max(pillW / 2 + f * (C - pillW) - w / 2, 0), C - w); if (left - pr < space * 2 - 0.01) return false; pr = left + w } return true }
+    let marksMin = 0
+    if (named.length) {
+      let lo = Math.max(pillW, ...named.map(([, w]) => w)), hi = lo * 2 + space * 2 * named.length
+      while (!fitsAt(hi)) hi *= 2
+      if (fitsAt(lo)) hi = lo
+      else while (hi - lo > 0.01) { const m = (lo + hi) / 2; if (fitsAt(m)) hi = m; else lo = m }
+      marksMin = hi
+    }
+    const marks = marksMin ? Math.ceil(marksMin - 0.001) + 0.5 : 0
+    const expected = Math.ceil(Math.max(space * 40, (range ? 4 : 3) * pillW, marks) - 0.001)
     const a = sl.querySelector('.g-slider__area').getBoundingClientRect()
     const sorted = labels.slice().sort((x, y) => x.left - y.left)
     last = { w, expected, sl: +sl.getBoundingClientRect().width.toFixed(2), other: +other.getBoundingClientRect().width.toFixed(2), parts: { space: space * 40, pills: +((range ? 4 : 3) * Math.max(...pills)).toFixed(2), marks: +marks.toFixed(2) },
@@ -454,8 +468,11 @@ for (const engine of ENGINES) {
     for (const r of await page.evaluate(rowsOf)) for (const l of r.lines) if (l.length > 1) OK(l.every((k) => near(k.cy, l[0].cy, 1) && near(k.h, l[0].h, 0.5)), t(`fila ${r.row}: ${JSON.stringify(l)}`))
     const ins = await page.evaluate(inside)
     OK(!ins.out.length, t(`fuera del riel ${ins.out}`))
-    // Hallazgo 3 (abierto, lima → bruno): con el texto al 200 % el mínimo publicado no cubre los nombres de un dolor asimétrico
-    if (/text=200/.test(qs)) { if (ins.overlap.length) notes.push(`${engine} ?${qs} HALLAZGO 3: nombres solapados en fila ${ins.overlap}`) } else OK(!ins.overlap.length, t(`nombres solapados en fila ${ins.overlap}`))
+    // Hallazgo 3 (resuelto, #509): también con el texto al 200 % los nombres no se solapan en una fila
+    // Salvo la fila fija de 320px al 200 %: ahí la fila no llega al mínimo publicado (límite del contenedor, no del mínimo)
+    const lim = /text=200/.test(qs) ? ins.overlap.filter((o) => o.startsWith('row-dolor-320')) : []
+    OK(ins.overlap.length === lim.length, t(`nombres solapados en fila ${ins.overlap.filter((o) => !lim.includes(o))}`))
+    if (lim.length) notes.push(`${engine} ?${qs} límite del contenedor (no del mínimo): ${lim} en una fila fija de 320px por debajo del mínimo publicado`)
     OK(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), t('desborde horizontal'))
     if (engine === 'chromium') notes.push(`?${qs || 'defecto'} --_pill-w: «40 %» ${g.pw.toFixed(1)}px · «$2,400» ${G['r-apart'].pw.toFixed(1)}px · dolor ${G['s-marks'].pw.toFixed(1)}px`)
   }
@@ -494,12 +511,12 @@ for (const engine of ENGINES) {
       OK(L.sl >= L.expected - 0.51, t(`mide ${L.sl} por debajo del mínimo por posiciones ${L.expected} ${JSON.stringify(L.parts)}`))
       const binds = L.sl <= L.expected + 0.01
       OK(!L.out, t(`en el mínimo, píldoras o nombres fuera del riel ${JSON.stringify(L)}`))
-      // Hallazgo 3: el mínimo de las marcas suma anchos + space × 2, pero el nombre del medio va centrado y los de los extremos
-      // pegados al borde: con extremos asimétricos el hueco baja de space × 2 y, al 200 %, se solapan
+      // Hallazgo 3 (resuelto, #509 en 6129b74): el mínimo de las marcas se resuelve por pares de nombres vecinos (nombre
+      // centrado en la píldora, ajustado al borde): el hueco en el mínimo no baja de space × 2, también con extremos
+      // asimétricos y con el texto al 200 %
       if (L.gap !== null) {
-        if (/text=200/.test(qs)) notes.push(`${engine} ?${qs} HALLAZGO 3: ${row} en el mínimo, hueco entre nombres ${L.gap}px (space × 2 = ${L.parts.space / 20}px)`)
-        else OK(L.gap >= -0.5, t(`en el mínimo, nombres solapados (${L.gap}px)`))
-        if (!/text=200/.test(qs)) notes.push(`${engine} ?${qs || 'defecto'} ${row}: hueco mínimo entre nombres en el mínimo ${L.gap}px (space × 2 = ${L.parts.space / 20}px)`)
+        OK(L.gap >= L.parts.space / 20 - 0.01, t(`en el mínimo, hueco entre nombres ${L.gap}px < space × 2 (${L.parts.space / 20}px)`))
+        notes.push(`${engine} ?${qs || 'defecto'} ${row}: hueco mínimo entre nombres en el mínimo ${L.gap}px (space × 2 = ${L.parts.space / 20}px)`)
       }
       notes.push(`${engine} ?${qs || 'defecto'} ${row}: ${L.sl}px en el último ancho de una línea (por posiciones ${L.expected}px: ${JSON.stringify(L.parts)})${binds ? '' : '; manda la clase de la fila'}`)
       const { a, b, c } = r.lock

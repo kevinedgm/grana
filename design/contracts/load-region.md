@@ -108,7 +108,7 @@ Declarado en `emits`. No hay eventos de fase: la aplicación ya sabe cuándo car
 | --- | --- | --- | --- | --- | --- | --- |
 | reposo | sin carga | — | contenido (o vacío) | ídem | `false` | — |
 | pendiente | de `loading: true` a 200 ms | molde **invisible** (`visibility: hidden`): reserva el sitio | lo de antes a la vista, **inerte** desde el primer instante | ídem | `true` | `is-busy` `is-pending` (+ `is-mold` en la primera) |
-| a la vista | desde 200 ms | molde visible | lo de antes, inerte, sin saturación, **filo** y **píldora** | molde de lo último conocido | `true` | `is-busy` + `is-mold` o `is-stale` |
+| a la vista | desde 200 ms | molde visible | lo de antes, inerte (sin cambio de color), **filo** y **píldora** | molde de lo último conocido | `true` | `is-busy` + `is-mold` o `is-stale` |
 | espera larga | desde 5000 ms (desde el inicio) | + texto `labels.slow` | ídem | ídem | `true` | + `is-slow` |
 | llegada | `loading: false` y, si se vio, ≥ 400 ms a la vista | datos (con revelado), vacío o error | datos nuevos (lo nuevo marcado) o barra de fallo | datos (con revelado) | `false` | `is-revealing` mientras dura el revelado; `is-failed` con la barra |
 
@@ -126,11 +126,11 @@ Declarado en `emits`. No hay eventos de fase: la aplicación ya sabe cuándo car
 - **barra solo en las hojas** (elementos sin hijos, `:not(:has(*))`): `text-decoration-line: line-through` en el tono del molde con grosor **`0.72em`** y `text-decoration-skip-ink: none` (en un contenedor la decoración se propagaría a todo su texto y ningún descendiente podría quitarla);
 - `img`, `svg`, `video`, `canvas`: `visibility: hidden` (conservan su caja);
 - **`[data-g-known]` conserva su tinta** (en `--g-color-text-muted`), sin barra;
-- **Excepción a la regla de capas: el molde usa `!important`** (y solo él). La aplicación va sin capa y gana siempre (#4): sin `!important`, el `color` de su plantilla pintaría el texto de la muestra **como si fuera un dato**. Las declaraciones importantes en capa ganan a las importantes sin capa, así que el molde gana sin depender del orden (#535). La aplicación no tiene que tocar nada.
+- **Excepción a la regla de capas: el molde usa `!important`** (y solo él). La aplicación va sin capa y gana siempre (#4): sin `!important`, el `color` de su plantilla pintaría el texto de la muestra **como si fuera un dato**. Las declaraciones importantes en capa ganan a las importantes sin capa, así que el molde gana sin depender del orden (#535). **El revelado forma parte del molde** (`is-mold` + `is-revealing`, mismo `!important` limitado a reglas con `.is-mold`, #545): si no, una plantilla con su propio `text-decoration: none` (los enlaces casi siempre) o su propia `transition` cortaría el fundido. La aplicación no tiene que tocar nada.
 
 **Δ0 por construcción:** es el mismo elemento con la misma fuente, así que un párrafo se parte en las mismas líneas (medido por kiwi: la ficha, Δ 0 donde la forma convencional movía 48 px). **Δ0 del total:** el alto de una lista depende de cuántos elementos lleguen; con `sample` del tamaño de una respuesta típica, lo de debajo no se mueve; con más o menos elementos, cambia **por elementos enteros**, nunca por un salto dentro de un elemento (límite honesto, README).
 
-**La tinta llega a su sitio (revelado):** si el molde estaba a la vista al llegar datos, el contenido real se pinta **un cuadro en molde** y pasa a tinta por **transición** de `color`, `text-decoration-color`, `background-color` y `border-color`, con `--g-duration-slow` + `--g-ease-out` (con movimiento reducido, `--g-duration-fast`): las barras se convierten en el texto **sin desplazarse ni escalar**. Ningún keyframe, ninguna curva nueva (#539). La clase `is-revealing` dura lo que la transición y se quita después.
+**La tinta llega a su sitio (revelado):** si el molde estaba a la vista al llegar datos, el contenido real se pinta **un cuadro en molde** y pasa a tinta por **transición** de `color`, `text-decoration-color`, `background-color` y `border-color`, con `--g-duration-slow` + `--g-ease-out` (con movimiento reducido, `--g-duration-fast`): las barras se convierten en el texto **sin desplazarse ni escalar**. Ningún keyframe, ninguna curva nueva (#539). La clase `is-revealing` dura lo que la transición y se quita después. **Las fases son tres: `is-mold` → `is-mold` + `is-revealing` → ninguna** (nunca `is-revealing` sin `is-mold`: sin la primera no hay fundido). En el cuadro de `is-mold` + `is-revealing` el cuerpo ya está sin `aria-hidden` ni `inert` (son los datos) y la transición, la barra transparente del revelado y la vuelta de la tinta están bajo el mismo `!important` limitado del molde (#545).
 
 **Primer hueco:** la región mide el alto del primer `[data-g-key]` de su molde (o de lo último conocido) y lo escribe en línea como `--_load-slot` en su raíz (variable dinámica justificada, como `--_sk-w` de `GCard`); `GEmpty` lo lee como alto mínimo (`empty.md`).
 
@@ -138,9 +138,9 @@ Declarado en `emits`. No hay eventos de fase: la aplicación ya sabe cuándo car
 
 ## B · Lo último conocido (#536)
 
-- **Refresco `keep`:** lo de antes sigue a la vista e **inerte** desde el inicio (nadie actúa sobre datos que se van; `inert` lo saca también del árbol de accesibilidad). A los 200 ms: `is-stale`, **filo de acento** en el borde superior de la región, **píldora** con `refresh-cw` y `labels.refreshing` sobre ese filo (sin tapar contenido, `aria-hidden`) y lo viejo **sin saturación** (el texto conserva su contraste).
+- **Refresco `keep`:** lo de antes sigue a la vista e **inerte** desde el inicio (nadie actúa sobre datos que se van; `inert` lo saca también del árbol de accesibilidad). A los 200 ms: `is-stale`, **filo de acento** en el borde superior de la región, **píldora** con `refresh-cw` y `labels.refreshing` sobre ese filo (sin tapar contenido, `aria-hidden`) y lo viejo **sin cambio de color**: no se desatura, para que su texto conserve el contraste que tenía (#544). B se dice con el filo, la píldora, el cursor `progress`, `aria-busy` y el anuncio.
 - **Llegada con datos:** lo nuevo (clave que no estaba en la carga anterior) lleva `data-g-fresh` por `itemAttrs` (marca de acento al inicio lógico, **sin cambiar su caja**) y `fresh(item)` para que la aplicación pinte «Nueva» con texto; la marca se queda **hasta la siguiente carga**. El anuncio lo cuenta (`{fresh}`). Lo nuevo se calcula en cualquier carga con contenido conocido antes (también con `replace`); nunca en la primera.
-- **Llegada con fallo (`error`) y contenido conocido:** lo conocido **se queda**, vuelve a ser usable (sin `inert`) y lleva la **barra de fallo** (`g-load-region__failed`, `is-failed`) **en flujo, antes del cuerpo**, con `circle-alert` decorativo, el texto y «Reintentar» (`GBtn`, `labels.retry`). La barra empuja el contenido una vez (límite aceptado: un fallo es información nueva que no debe tapar datos). Se anuncia el texto del fallo (salvo `announceError: false`). Mientras corre la siguiente carga, la barra no se pinta.
+- **Llegada con fallo (`error`) y contenido conocido:** lo conocido **se queda**, vuelve a ser usable (sin `inert`) y lleva la **barra de fallo** (`g-load-region__failed`, `is-failed`) **en flujo, antes del cuerpo**, con `circle-alert` decorativo, el texto y «Reintentar» (`GBtn size="sm" variant="soft" color="neutral"`, `labels.retry`; #548). La barra empuja el contenido una vez (límite aceptado: un fallo es información nueva que no debe tapar datos). Se anuncia el texto del fallo (salvo `announceError: false`). Mientras corre la siguiente carga, la barra no se pinta.
 - **Vacío por filtro:** la salida con cuentas es de `GEmpty` (`empty.md`), dentro de la plantilla.
 
 ## Anuncios (#533)
@@ -181,9 +181,9 @@ p.g-load-live  aria-live="polite" aria-atomic="true"               ← canal de 
 div.g-load-region  [role="group" aria-labelledby|aria-label]  tabindex="-1"  aria-busy="true|false"
      class: is-busy is-pending is-mold is-stale is-slow is-revealing is-failed   style: --_load-slot
 ├─ div.g-load-region__failed                         ← barra de fallo (B; solo con contenido conocido y error)
-│  ├─ span aria-hidden > icono circle-alert
+│  ├─ span.g-load-region__failed-icon aria-hidden > icono circle-alert
 │  ├─ p.g-load-region__failed-text                   ← o el slot failed
-│  └─ GBtn «Reintentar»
+│  └─ GBtn sm soft neutral «Reintentar»
 ├─ div.g-load-region__body  [aria-hidden="true"] [inert]   ← la plantilla (molde: aria-hidden + inert; refresco keep: inert)
 ├─ p.g-load-region__slow                             ← labels.slow, visible desde 5 s (en el árbol)
 └─ span.g-load-region__pill aria-hidden="true"       ← icono refresh-cw + labels.refreshing (solo is-stale)
@@ -213,7 +213,7 @@ Los esqueletos de los frameworks son un segundo dibujo de cada pantalla, manteni
 
 ## Tokens consumidos (§42)
 
-`--g-color-mold` (**nuevo**), `--g-color-accent-text`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-danger-soft`, `--g-color-on-danger-soft`, `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-md`, `--g-radius-pill`, `--g-space-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`; los de `GBtn` y `GIcon` por composición. **No son tokens:** `0.72em` (grosor de la barra, constante de la técnica, #187), `DELAY`/`MINIMUM`/`SLOW`, `--_load-slot` (dato del `.vue` al CSS, §29.5).
+`--g-color-mold` (**nuevo**), `--g-color-accent-text`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-danger-soft`, `--g-color-on-danger-soft`, `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-md`, `--g-radius-pill`, `--g-space-*`, `--g-text-body-size`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`; los de `GBtn` y `GIcon` por composición. **No son tokens:** `0.72em` (grosor de la barra, constante de la técnica, #187), `DELAY`/`MINIMUM`/`SLOW`, `--_load-slot` (dato del `.vue` al CSS, §29.5).
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -225,9 +225,9 @@ Los esqueletos de los frameworks son un segundo dibujo de cada pantalla, manteni
 | `is-mold` | Raíz | Se pinta el molde (primera carga o `replace`), también invisible dentro del retraso |
 | `is-stale` | Raíz | Refresco `keep` a la vista |
 | `is-slow` | Raíz | Desde 5 s hasta la llegada |
-| `is-revealing` | Raíz | Durante el revelado |
+| `is-revealing` | Raíz | Durante el revelado, **siempre junto a `is-mold`** (#545) |
 | `is-failed` | Raíz | Barra de fallo a la vista |
-| `g-load-region__body`, `__failed`, `__failed-text`, `__slow`, `__pill` | Partes | Según la fase |
+| `g-load-region__body`, `__failed`, `__failed-icon`, `__failed-text`, `__slow`, `__pill` | Partes | Según la fase (`__failed-icon` es el `span aria-hidden` del icono de la barra, #546) |
 | `g-load-live` | Canal de página | Siempre que haya un consumidor montado |
 | `data-g-key`, `data-g-fresh`, `data-g-known` | Elementos de la aplicación | Ver «Slots» |
 
@@ -235,7 +235,7 @@ Las clases `is-*` son **estado reactivo del render** (#352: lo que el render esc
 
 ## Iconos (solo Lucide; `icons.md` v0.9)
 
-Propios, de la lista de la librería, con `GLibIcon`, decorativos: **`refresh-cw`** (píldora de B) y **`circle-alert`** (barra de fallo). **Ninguno nuevo.** «Reintentar» es un `GBtn` de texto.
+Propios, de la lista de la librería, con `GLibIcon`, decorativos: **`refresh-cw`** (píldora de B) y **`circle-alert`** (barra de fallo). **Ninguno nuevo.** «Reintentar» es un `GBtn` de texto, `size="sm" variant="soft" color="neutral"` (#548).
 
 ## Avisos de desarrollo
 
@@ -332,7 +332,7 @@ El **canal de página** (§«Anuncios») es otra pieza interna (`utils/liveRegio
 
 ### Playwright (`design/lab/theme-playground/`, puerto propio; las de `verificar.mjs` como base, L14)
 
-`tests/load-region.spec.mjs` y `tests/personalidad-load-region.spec.mjs`, en los tres motores: tiempos reales (100/250/900/6000 ms); **Δ0** (lista, teselas y ficha en texto libre; molde de lo último conocido con el mismo alto); revelado sin desplazamiento ni escala y que termina; **0 animaciones en curso a 5,2 s**; anuncios y fusión leyendo el canal; canal dentro de un `GDialog` modal abierto; foco por clave; refresco `keep` (filo, píldora, sin saturación, inerte), error que conserva; movimiento reducido (revelado en `--g-duration-fast`); RTL; `forced-colors` en Chromium (molde en `GrayText`, la muestra sin tinta); tono ≥ 1,3:1 en claro y oscuro con el tema por defecto y otro; 390 px con `pointer: coarse` (`GBtn` ≥ 44 × 44); consola limpia. Para `GTable`: `tests/table-load.spec.mjs` (retraso, mínimo, filas del esqueleto = filas a la vista, sin pulso, error con filas, vacío con `GEmpty`, foco por `rowKey`).
+`tests/load-region.spec.mjs` y `tests/personalidad-load-region.spec.mjs`, en los tres motores: tiempos reales (100/250/900/6000 ms); **Δ0** (lista, teselas y ficha en texto libre; molde de lo último conocido con el mismo alto); revelado sin desplazamiento ni escala y que termina; **0 animaciones en curso a 5,2 s**; anuncios y fusión leyendo el canal; canal dentro de un `GDialog` modal abierto; foco por clave; refresco `keep` (filo, píldora, inerte, cursor `progress` y **contraste de lo de antes sin cambio**, medido por píxeles), error que conserva; movimiento reducido (revelado en `--g-duration-fast`); RTL; `forced-colors` en Chromium (molde en `GrayText`, la muestra sin tinta); tono ≥ 1,3:1 en claro y oscuro con el tema por defecto y otro; 390 px con `pointer: coarse` (`GBtn` ≥ 44 × 44); consola limpia. Para `GTable`: `tests/table-load.spec.mjs` (retraso, mínimo, filas del esqueleto = filas a la vista, sin pulso, error con filas, vacío con `GEmpty`, foco por `rowKey`).
 
 ### coco (CSS y auditoría, Opus)
 

@@ -143,7 +143,7 @@ div.g-empty.g-empty--cause-{cause}  [is-exit]
 
 ## Tokens consumidos (§42; sin tokens nuevos de componente)
 
-`--g-color-border-strong`, `--g-color-text`, `--g-color-text-muted`, `--g-color-danger-text`, `--g-border-width`, `--g-radius-md`, `--g-space-1`…`--g-space-4`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-action-weight`, `--g-font-ui`; los de `GBtn` y `GIcon` por composición. Alias local `--_load-slot` (lo escribe `GLoadRegion` en línea, variable dinámica justificada como `--_sk-w` de `GCard`); sin valor de respaldo: fuera de una región la propiedad vuelve a su inicial (`auto`).
+`--g-color-border-strong`, `--g-color-text`, `--g-color-text-muted`, `--g-color-danger-text`, **`--g-color-neutral-soft`** y **`--g-color-on-neutral-soft`** (ficha de la cuenta de la salida, #547), `--g-border-width`, `--g-radius-md`, **`--g-radius-pill`** (la ficha), `--g-space-1`…`--g-space-4`, `--g-text-body-*`, `--g-text-body-sm-*`, **`--g-text-caption-*`** (la cifra), `--g-text-action-weight`, `--g-font-ui`; los de `GBtn` y `GIcon` por composición. Alias local `--_load-slot` (lo escribe `GLoadRegion` en línea, variable dinámica justificada como `--_sk-w` de `GCard`); sin valor de respaldo: fuera de una región la propiedad vuelve a su inicial (`auto`).
 
 ## Clases y datos (contrato bruno ↔ coco)
 

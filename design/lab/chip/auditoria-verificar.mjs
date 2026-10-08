@@ -8,7 +8,7 @@
 // real (Δ0, --_ghost-w, foco a «Deshacer» tras un clic, deshacer a su sitio con el foco en «Quitar», doble clic, Supr),
 // vista previa, tapa invertida, recogida y settle, marca, nada al montar, movimiento reducido, «Quitar todas» y su deshacer
 // con el foco, «Ver N más», alternar (clic, Espacio, Intro), recorte con pista, RTL, 320px, forced-colors (Chromium),
-// puntero grueso (Chromium y WebKit), consola limpia; y deja como notas los remates de bruno (#512, #513).
+// puntero grueso (Chromium y WebKit), consola limpia; y los remates cerrados por bruno en d585178 (#512, #513 y el «Deshacer» con clic de «Quitar todas», hallazgos 2, 3 y 5), que ahora fallan si vuelven.
 // Ejecutar desde la raíz del repo:  GRANA_PW_PORT=4213 node design/lab/chip/auditoria-verificar.mjs
 // Opcional: GRANA_DIST=<copia de dist/>  --engines=chromium,firefox,webkit  --verbose  --only=0,1,2,…
 import http from 'node:http'
@@ -472,7 +472,7 @@ async function tools(page) {
   if (u.gone) {
     // WebKit no deja el foco en un botón al pulsarlo: el mousedown saca el foco del grupo, el focusout retira el «Deshacer»
     // de «Quitar todas» (y emite settle) antes del clic. Defecto del .vue (bruno): se anota y se prueba con Intro
-    notes.add(`HALLAZGO 5 (bruno, bloqueante) ${ENGINE}: un clic en «Deshacer: volver a poner 4» no deshace: el botón se va en el mousedown (eventos ${JSON.stringify(u.ev.map((e) => e.name))})`)
+    ok(false, `HALLAZGO 5 (cerrado en d585178) ${ENGINE}: un clic en «Deshacer: volver a poner 4» no deshace: el botón se va en el mousedown (eventos ${JSON.stringify(u.ev.map((e) => e.name))})`)
     await open(page, 'theme=auditoria-cat12')
     await page.click('#g-clear .g-tag-group__clear')
     await page.keyboard.press('Enter')
@@ -621,7 +621,7 @@ async function coarse(browser, engine) {
   await p.tap('#g-flow [data-id="lat"] .g-tag__undo')
   await p.waitForTimeout(400)
   const back = await p.evaluate(() => ({ el: !!$t('g-flow-lat'), ghost: $t('g-flow-lat')?.classList.contains('is-ghost'), ev: BENCH.ev.map((e) => e.name) }))
-  if (!back.el || back.ghost) notes.add(`HALLAZGO 5 (bruno, bloqueante) ${engine} táctil: un toque en «Deshacer» de la huella no la devuelve (${JSON.stringify(back)})`)
+  if (!back.el || back.ghost) ok(false, `HALLAZGO 5 (cerrado en d585178) ${engine} táctil: un toque en «Deshacer» de la huella no la devuelve (${JSON.stringify(back)})`)
   else ok(true, '')
   // «Deshacer» de «Quitar todas» con el dedo
   await p.tap('#g-clear .g-tag-group__clear')
@@ -630,13 +630,13 @@ async function coarse(browser, engine) {
     await p.tap('#g-clear .g-tag-group__clear')
     await p.waitForTimeout(200)
     const n = await p.evaluate(() => document.querySelectorAll('#g-clear .g-tag').length)
-    if (n !== 4) notes.add(`HALLAZGO 5 (bruno, bloqueante) ${engine} táctil: un toque en «Deshacer» de «Quitar todas» no las devuelve (${n})`)
+    if (n !== 4) ok(false, `HALLAZGO 5 (cerrado en d585178) ${engine} táctil: un toque en «Deshacer» de «Quitar todas» no las devuelve (${n})`)
     else ok(true, '')
   } else ok(false, `${engine} táctil: «Quitar todas» no pasa a «Deshacer»`)
   await ctx.close()
 }
 
-/* ---------- 8 · Remates contratados para bruno (#512, #513): se anotan, no fallan ---------- */
+/* ---------- 8 · Remates contratados para bruno (#512, #513): cerrados en d585178, fallan si vuelven ---------- */
 async function remates(page) {
   await open(page, 'theme=default-cat8')
   const r = await page.evaluate(() => {
@@ -645,9 +645,9 @@ async function remates(page) {
     return { moreDisabled: more ? more.disabled : 'sin botón', clearDisabled: document.querySelector('#g-dis .g-tag-group__clear')?.disabled, removes: [...document.querySelectorAll('#g-dis .g-tag__remove')].every((b) => b.disabled), av }
   })
   ok(r.clearDisabled === true && r.removes, `#512: «Quitar todas» o «Quitar» habilitados con disabled ${JSON.stringify(r)}`)
-  if (r.moreDisabled !== false) notes.add(`HALLAZGO 2 (bruno, #512): con disabled en el grupo, «Ver N más» sigue deshabilitado (disabled=${r.moreDisabled}); las etiquetas ocultas no se pueden leer`)
+  if (r.moreDisabled !== false) ok(false, `HALLAZGO 2 (#512, cerrado en d585178): con disabled en el grupo, «Ver N más» sigue deshabilitado (disabled=${r.moreDisabled}); las etiquetas ocultas no se pueden leer`)
   const inherit = r.av.find(([id]) => id === 'ana')?.[1], init = r.av.find(([id]) => id === 'luis')?.[1], own = r.av.find(([id]) => id === 'mia')?.[1]
-  if (!inherit || !init) notes.add(`HALLAZGO 3 (bruno, #513): item.avatar no hereda las categories del grupo (avatar: true → data-cat ${inherit}; { initials } → ${init}; con color propio → ${own})`)
+  if (!inherit || !init) ok(false, `HALLAZGO 3 (#513, cerrado en d585178): item.avatar no hereda las categories del grupo (avatar: true → data-cat ${inherit}; { initials } → ${init}; con color propio → ${own})`)
   ok(own === '4', `#513: un avatar con color propio pierde su color (${own})`)
 }
 

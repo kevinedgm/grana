@@ -1,0 +1,233 @@
+/*
+  GLoadRegion · estilo (la región que carga: A «Molde» + B «Lo último conocido»)
+  Dueño: coco. Contrato: design/contracts/load-region.md (DECISIONS.md #529, #531 a #539, #542; tokens.md §42).
+  Estructura: design/lab/empty-skeleton/r01/ (kiwi). Banco, medidas y contraste: design/lab/empty-skeleton/estilo-banco.html,
+  estilo.md, estilo-verificar.mjs.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
+  Medidas literales: ninguna. Constante de la técnica del molde (#535, no es token): 0.72em, grosor de la barra.
+  Constantes de diseño desde --g-space-1 y --g-border-width (no son tokens): filo de B × 2 el borde; marca de lo nuevo × 3
+  el borde y space × 2 desde arriba y abajo; base del texto de la barra de fallo × 48.
+  ÚNICA EXCEPCIÓN A LA REGLA DE CAPAS EN GRANA (#535): las reglas del molde (y solo ellas, bajo .is-mold) llevan
+  !important. La aplicación va sin capa y gana siempre (#4): sin !important, el color de su plantilla pintaría el texto de
+  la muestra como si fuera un dato. Una declaración importante en capa gana a una importante sin capa, así que el molde
+  gana sin depender del orden. Fuera del molde, nada lleva !important.
+  #383: lo que toca la plantilla de la aplicación ignora .g-tooltip y lo que hay dentro.
+
+  Del .vue (bruno), §«Clases y datos»: en la raíz is-busy, is-pending, is-mold, is-stale, is-slow, is-revealing,
+  is-failed y --_load-slot (en línea, px; lo lee GEmpty); partes __body, __failed (> __failed-icon, __failed-text o el
+  slot failed, y el GBtn), __slow, __pill (> icono + texto); en la plantilla, data-g-key, data-g-fresh, data-g-known.
+  Personalidad (estilo.md): el molde ES la plantilla sin tinta (cada hoja de texto, una barra de su largo; las cajas, en
+  contorno); la tinta llega a su sitio (las barras se funden en el texto sin moverse un píxel); al refrescar, lo de antes
+  sigue quieto e inerte bajo un filo de acento con su píldora; lo nuevo llega con una marca al inicio.
+*/
+
+/* ---------- Raíz ---------- */
+.g-load-region {
+  /* El tono del molde; en colores forzados, GrayText (abajo) */
+  --_mold: var(--g-color-mold);
+
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-inline-size: 0;
+}
+.g-load-region.is-busy { cursor: progress; }
+/* tabindex="-1": recibe el foco por programa (#534); el anillo se ve cuando llega tras el teclado */
+.g-load-region:focus { outline: none; }
+.g-load-region:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+.g-load-region__body { display: block; }
+
+/* ========== A · Molde: la plantilla real sin tinta (única zona con !important, #535) ==========
+   Fases del molde en la raíz: is-mold (sin tinta) → is-mold + is-revealing (la tinta llega) → nada.
+   Sin tinta: */
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body,
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body :where(*):not(:where(.g-tooltip, .g-tooltip *)),
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body :where(*):not(:where(.g-tooltip, .g-tooltip *))::before,
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body :where(*):not(:where(.g-tooltip, .g-tooltip *))::after {
+  color: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: var(--_mold) !important;
+  outline-color: var(--_mold) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  caret-color: transparent !important;
+}
+/* Ningún contenedor lleva decoración: se propagaría a todo su texto */
+.g-load-region.is-mold > .g-load-region__body,
+.g-load-region.is-mold > .g-load-region__body :where(:has(*)):not(:where(.g-tooltip, .g-tooltip *)) { text-decoration-line: none !important; }
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body ::placeholder { color: transparent !important; }
+/* La barra solo en las hojas: una decoración puesta en un contenedor se propaga a todo su texto y ningún descendiente
+   puede quitarla. Va después de la regla general (misma especificidad): gana. Sigue durante el revelado (abajo) */
+.g-load-region.is-mold > .g-load-region__body :where(:not(:has(*))):not(:where(.g-tooltip, .g-tooltip *)) {
+  text-decoration-line: line-through !important;
+  text-decoration-style: solid !important;
+  text-decoration-color: var(--_mold) !important;
+  text-decoration-thickness: 0.72em !important;
+  text-decoration-skip-ink: none !important;
+}
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body :where(img, svg, video, canvas, picture, iframe) { visibility: hidden !important; }
+/* Lo que ya se sabe (el rótulo de una tesela) conserva su tinta, sin barra: el molde solo cubre lo que falta */
+.g-load-region.is-mold > .g-load-region__body [data-g-known],
+.g-load-region.is-mold > .g-load-region__body [data-g-known] :where(*) { text-decoration-line: none !important; }
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body [data-g-known],
+.g-load-region.is-mold:not(.is-revealing) > .g-load-region__body [data-g-known] :where(*) { color: var(--g-color-text-muted) !important; }
+.g-load-region.is-mold:not(.is-revealing, .is-pending) > .g-load-region__body [data-g-known] :where(svg) { visibility: visible !important; }
+/* Dentro del retraso de la primera carga, el molde reserva su sitio sin verse (también lo que la plantilla declare
+   visible: va después de la regla anterior, con la misma especificidad) */
+.g-load-region.is-pending.is-mold > .g-load-region__body,
+.g-load-region.is-pending.is-mold > .g-load-region__body :where(*) { visibility: hidden !important; }
+
+/* ---------- La tinta llega a su sitio (revelado: is-mold + is-revealing) ----------
+   El cuadro anterior es el molde con los datos reales. Ahora la regla «sin tinta» deja de aplicarse: el color, los fondos y
+   los bordes de la plantilla vuelven por transición, y cada hoja conserva su barra, que pasa del tono a transparente: las
+   barras se funden en el texto. Solo color: nada se desplaza ni escala; ningún keyframe. La transición también es del
+   molde (!important): una transición propia de la plantilla haría que esa pieza pasara a tinta de golpe */
+.g-load-region.is-mold.is-revealing > .g-load-region__body :where(*):not(:where(.g-tooltip, .g-tooltip *)) {
+  transition:
+    color var(--g-duration-slow) var(--g-ease-out),
+    text-decoration-color var(--g-duration-slow) var(--g-ease-out),
+    background-color var(--g-duration-slow) var(--g-ease-out),
+    border-color var(--g-duration-slow) var(--g-ease-out),
+    outline-color var(--g-duration-slow) var(--g-ease-out),
+    box-shadow var(--g-duration-slow) var(--g-ease-out) !important;
+}
+.g-load-region.is-mold.is-revealing > .g-load-region__body :where(:not(:has(*))):not(:where(.g-tooltip, .g-tooltip *)) {
+  text-decoration-color: transparent !important;
+}
+
+/* ========== B · Lo último conocido ========== */
+/* Lo de antes sigue tal cual, inerte, bajo el filo y la píldora. Sin filtro de saturación: medido, saturate(0) baja
+   pares en el límite por debajo de 4,5:1 (accent-text 4,58 → 3,97 en el oscuro por defecto; estilo.md, «Para lima») */
+
+/* El filo: borde superior de la región en accent-text (forma de familia sin par, §7.1) */
+.g-load-region.is-stale::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: calc(var(--g-border-width) * 2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-text);
+  pointer-events: none;
+}
+
+/* La píldora «Actualizando»: sobre el filo, al final lógico, sin tapar contenido (aria-hidden) */
+.g-load-region__pill {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 0;
+  inset-inline-end: var(--g-space-4);
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.g-load-region:not(.is-stale) > .g-load-region__pill { display: none; }
+
+/* Lo nuevo: una marca al inicio lógico, sin cambiar la caja (el texto «Nueva» lo pinta la aplicación con fresh()) */
+.g-load-region__body [data-g-fresh]:not(:where(.g-tooltip, .g-tooltip *)) { position: relative; }
+.g-load-region__body [data-g-fresh]:not(:where(.g-tooltip, .g-tooltip *))::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-block: var(--g-space-2);
+  inset-inline-start: 0;
+  inline-size: calc(var(--g-border-width) * 3);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-text);
+  pointer-events: none;
+}
+
+/* La barra de fallo: en flujo, antes del cuerpo; lo conocido se queda debajo, usable */
+.g-load-region__failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2) var(--g-space-3);
+  margin-block-end: var(--g-space-2);
+  padding: var(--g-space-2) var(--g-space-3);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-danger-soft);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-load-region__failed-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  color: var(--g-color-on-danger-soft);
+  font-size: var(--g-text-body-size);
+}
+.g-load-region__failed-text {
+  flex: 1 1 calc(var(--g-space-1) * 48);
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--g-color-text);
+  overflow-wrap: break-word;
+}
+
+/* ---------- Espera larga (5 s): texto real, superpuesto al pie, sin mover nada ---------- */
+.g-load-region__slow {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  inset-block-end: 0;
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-muted);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-load-region:not(.is-slow) > .g-load-region__slow { display: none; }
+
+/* ---------- Movimiento reducido (patrón único, #299): el revelado sigue siendo un fundido, más corto ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-load-region.is-mold.is-revealing > .g-load-region__body :where(*):not(:where(.g-tooltip, .g-tooltip *)) {
+    transition-duration: var(--g-duration-fast) !important;
+  }
+}
+
+/* ---------- Puntero grueso: el área de 44 del GBtn de la barra no se sale hacia el contenido ---------- */
+@media (pointer: coarse) {
+  .g-load-region__failed { row-gap: var(--g-space-4); }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  /* Sin esto el sistema anula los fondos (el molde desaparece) o fuerza color (la muestra se leería como dato real) */
+  .g-load-region { --_mold: GrayText; }
+  .g-load-region.is-mold > .g-load-region__body,
+  .g-load-region.is-mold > .g-load-region__body :where(*),
+  .g-load-region.is-mold > .g-load-region__body :where(*)::before,
+  .g-load-region.is-mold > .g-load-region__body :where(*)::after { forced-color-adjust: none; }
+  .g-load-region.is-mold:not(.is-revealing) > .g-load-region__body [data-g-known],
+  .g-load-region.is-mold:not(.is-revealing) > .g-load-region__body [data-g-known] :where(*) { color: CanvasText !important; }
+  .g-load-region.is-stale::before,
+  .g-load-region__body [data-g-fresh]:not(:where(.g-tooltip, .g-tooltip *))::before {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  .g-load-region__pill,
+  .g-load-region__failed { outline: var(--g-border-width) solid CanvasText; }
+}

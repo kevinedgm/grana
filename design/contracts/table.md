@@ -119,8 +119,8 @@ Adopción del motor de `design/contracts/load-region.md` (#531 a #539). **Primer
 5. **Anuncios (enmienda de #265):** `labels.loading` se escribe en la región **cuando el esqueleto se ve** (200 ms), no en el ciclo siguiente a `loading: true`; una carga que no se ve solo anuncia su fin. El fin sigue siendo `labels.results` con `{count}`, salvo con `error` (punto 7). Las demás filas de la tabla de «Carga y anuncios» no cambian.
 6. **Sin pulso** (`g-table-pulse` fuera, #539): el esqueleto es quieto; tono **`--g-color-mold`** (#538) en lugar de `--g-color-surface-sunken`; en `forced-colors`, `forced-color-adjust: none` y `GrayText`.
 7. **`error` (Boolean; enmienda de #327):** se aplica al terminar la carga.
-   - **Con filas a la vista** (las de antes): **se quedan** y vuelven a ser usables; encima del área desplazable, en flujo, la barra **`g-table__failed`** (`circle-alert` decorativo, `labels.failed`, `GBtn` `labels.retry` → `retry`; `is-failed`). La región anuncia `labels.failed` **en lugar de** `labels.results`.
-   - **Sin filas:** la fila de estado pinta el slot **`error`** (`{ retry }`) o, sin él, **`GEmpty cause="error"`** con `title` = `labels.failed` y un `GBtn` `labels.retry` en `actions`; la región anuncia `labels.failed`.
+   - **Con filas a la vista** (las de antes): **se quedan** y vuelven a ser usables; encima del área desplazable, en flujo, la barra **`g-table__failed`** (`circle-alert` decorativo, `labels.failed`, `GBtn size="sm" variant="soft" color="neutral"` `labels.retry` → `retry`; `is-failed`; partes `g-table__failed-icon` —el `span aria-hidden` del icono— y `g-table__failed-text`, #546, #548). La región anuncia `labels.failed` **en lugar de** `labels.results`.
+   - **Sin filas:** la fila de estado pinta el slot **`error`** (`{ retry }`) o, sin él, **`GEmpty cause="error"`** con `title` = `labels.failed` y un `GBtn` `labels.retry` en `actions` (`size="sm" variant="soft" color="neutral"`, #548); la región anuncia `labels.failed`.
    - Mientras corre la carga siguiente, la barra no se pinta. Con la isla de estado anunciando el mismo fallo, la aplicación pone **`announceError: false`**: la barra o el vacío de error se pintan igual, pero la región **no anuncia nada** al terminar (ni `results` ni `failed`); sin filas, el slot `error` puede llevar una `GStatusMark` (#327, #541).
 8. **Vacío por defecto con `GEmpty`:** sin slot `empty`, la fila de vacío pinta `GEmpty cause="none"` con `title` = `labels.empty`, o `cause="filtered"` con `title` = `labels.emptyFiltered` y un `GBtn` `labels.clearFilters` en `actions` (sustituye al botón `g-filter-bar__clear` de hoy; mismo `clear`). Con el slot, manda el slot (`{ filtered, clear }`; un `GEmpty` con `filters` y cuentas es receta del README).
 9. **Foco (#534):** el `<table>` lleva `tabindex="-1"` (con su nombre de `caption` o `aria-label`). Al empezar, si el foco está en el `<tbody>`, pasa al `<table>`; al llegar, vuelve a la fila con el mismo `rowKey` y al enfocable del mismo índice dentro de ella; si no existe, se queda en el `<table>`; nunca en `body`. La vuelta tras «Limpiar filtros» de hoy se conserva.
@@ -198,7 +198,7 @@ El foco **permanece** en el control tras ordenar, seleccionar o paginar (la tabl
 
 Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-focus`, `--g-color-primary-soft`, `--g-surface-*` (filas `surface`), `--g-radius-{sm|md|lg|pill}`, `--g-shadow-1`, `--g-space-1`, `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line|weight}`, `--g-text-title-weight`, `--g-border-width`, `--g-focus-{width|offset}`, `--g-duration-fast`, `--g-ease-standard`. **Sin tokens nuevos.**
 
-**Desde #540:** `--g-color-mold` (tono del esqueleto, en lugar de `--g-color-surface-sunken`; `tokens.md` §42), `--g-color-danger-soft` / `--g-color-on-danger-soft` (barra de fallo) y los de `GEmpty` y `GBtn` por composición. Sin tokens nuevos de componente.
+**Desde #540:** `--g-color-mold` (tono del esqueleto, en lugar de `--g-color-surface-sunken`; `tokens.md` §42), `--g-color-danger-soft` / `--g-color-on-danger-soft` (barra de fallo) y los de `GEmpty` y `GBtn` por composición. Sin tokens nuevos de componente. La barra de fallo usa además `--g-font-ui`, `--g-radius-md` y `--g-text-body-sm-*` (#547).
 
 ## Clases (contrato entre bruno y coco)
 
@@ -208,15 +208,18 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `
 | `g-table--mode-{table\|cards}` | Raíz | Medido o por `responsive` |
 | `g-table--appearance-{lines\|surface}`, `--density-*` | Raíz | Siempre |
 | `is-loading` | Raíz | Con `loading` |
-| `is-pending`, `is-slow`, `is-failed` | Raíz | Dentro del retraso · desde 5 s · barra de fallo a la vista (#540) |
+| `is-pending`, `is-slow`, `is-failed` | Raíz | Dentro del retraso (filas esqueleto invisibles) · desde 5 s · barra de fallo a la vista (#540, #546) |
 | `g-table__bar`, `__scroll`, `__table`, `__caption`, `__sr` | Partes | Siempre |
 | `g-table__select`, `g-table__actions` | `th`/`td` | Con `selectable` / slot `row-actions` |
 | `g-table__sort`, `__sort-icon` | Botón de orden | Columnas `sortable` |
 | `g-table__row`, `is-selected` | `tr` | Por fila |
-| `g-table__cell`, `--composite`, `--primary`, `--end` | `td` | Por celda |
+| `g-table__cell`, `--composite`, `--primary`, `--end` | `td` | Por celda; `--end` también en las **celdas esqueleto** de una columna `align: 'end'` (#546) |
 | `g-table__label`, `__composite`, `__leading`, `__text`, `__title`, `__subtitle` | Contenido | Según columna |
 | `g-table__skeleton`, `g-table__empty` | Estados | Cargando / vacío |
-| `g-table__slow`, `g-table__failed` | Espera larga (superpuesta al pie del área desplazable) · barra de fallo (en flujo, antes del área) | #540 |
+| `g-table__slow`, `g-table__failed` | Espera larga (`p`, **último hijo de `__scroll`**, después del `<table>`, superpuesta al pie) · barra de fallo (`div`, en flujo, antes de `__scroll`) | #540, #546 |
+| `g-table__failed-icon`, `g-table__failed-text` | Dentro de la barra de fallo: `span[aria-hidden]` del icono · `p` del texto | #546 |
+
+Atributo: `tabindex="-1"` en el `<table>` (foco por programa, #534; el anillo se dibuja por dentro).
 
 Variable en línea: `--_max-height`.
 
