@@ -1969,6 +1969,116 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </div>
           </div>
         </section>
+        <section class="pg-section" id="sec-accordion" data-pg-section>
+          <h2>GAccordion</h2>
+          <p class="pg-lead">Secciones plegables de contenido. <b>A «Avance»</b>: sin cajas; el encabezado cerrado enseña una línea de la respuesta (<code>peek</code>) que no se mueve al abrir. <b>El encabezado que tocas no se mueve</b> (Δ0, también en «uno a la vez»). <b>Lo plegado se encuentra</b> (Ctrl+F, <code>#:~:text=</code>, un <code>#id</code> de dentro), <b>se enlaza</b> (<code>#faq-pago</code>) y <b>se imprime</b>. Con <code>sticky</code>, el encabezado del abierto acompaña mientras se lee y cerrarlo desde arriba te deja donde estabas. Tab pasa por todos los encabezados; ↓/↑, Inicio y Fin son un atajo.</p>
+          <h3>Preguntas frecuentes (avance, meta, deshabilitado, título largo; 8 elementos: sin region)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-faq" v-model="ac.faq">
+        <g-accordion-item v-for="q in ac.questions" :key="q.v" :id="'faq-' + q.v" :value="q.v" :title="q.t" :meta="q.meta" :disabled="q.disabled" :peek="q.first">
+          <p>{{ q.first }}</p>
+          <p v-for="(m, k) in q.more" :key="k" :id="q.anchor && k === 0 ? q.anchor : undefined">{{ m }}</p>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-faq-log" style="overflow-wrap:anywhere">v-model: {{ JSON.stringify(ac.faq) }}</p>
+      <p style="display:flex;flex-wrap:wrap;gap:4px 12px;overflow-wrap:anywhere"><a id="ac-link-pago" href="#faq-pago">Enlace a «¿Cómo puedo pagar?» (#faq-pago)</a> <a id="ac-link-dentro" href="#ac-dato-entrada">Enlace a un párrafo plegado (#ac-dato-entrada)</a></p>
+    </div>
+          </div>
+          <h3>Ajustes: el avance sigue al estado; acciones fuera del botón</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-settings">
+        <g-accordion-item id="set-notif" value="notif" title="Notificaciones" :meta="ac.notifCount" :peek="ac.notifPeek">
+          <template #actions><g-btn id="set-notif-reset" size="sm" variant="ghost" color="neutral" @click="ac.resetNotif">Restablecer</g-btn></template>
+          <div class="col" style="gap:8px">
+            <g-switch id="set-mail" v-model="ac.notif.mail" label="Correo"></g-switch>
+            <g-switch id="set-push" v-model="ac.notif.push" label="Notificaciones push"></g-switch>
+            <g-switch id="set-weekly" v-model="ac.notif.weekly" label="Resumen semanal"></g-switch>
+          </div>
+        </g-accordion-item>
+        <g-accordion-item id="set-privacy" value="privacy" title="Privacidad" :peek="ac.notif.public ? 'Perfil público' : 'Perfil privado'">
+          <g-switch id="set-public" v-model="ac.notif.public" label="Perfil público"></g-switch>
+        </g-accordion-item>
+      </g-accordion>
+    </div>
+          </div>
+          <h3>Uno a la vez (exclusive), sin avance</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-excl" v-model="ac.excl" exclusive>
+        <g-accordion-item v-for="q in ac.questions.slice(0, 5)" :key="q.v" :id="'ex-' + q.v" :value="q.v" :title="q.t" :meta="q.meta" :disabled="q.disabled">
+          <p>{{ q.first }}</p>
+          <p v-for="(m, k) in q.more" :key="k">{{ m }}</p>
+          <template v-if="q.v === 'resultados'"><p v-for="(m, k) in ac.prep" :key="'p' + k">{{ m }}</p></template>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-excl-log" style="overflow-wrap:anywhere">v-model: {{ JSON.stringify(ac.excl) }}</p>
+    </div>
+          </div>
+          <h3>Encabezado pegado (sticky) bajo una cabecera fija de la aplicación (--g-accordion-sticky-top: 48px)</h3>
+          <div id="ac-sticky-scroller" style="block-size:440px;overflow:auto;border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-lg);background:var(--g-color-bg);--g-accordion-sticky-top:48px">
+            <div id="ac-app-header" style="position:sticky;inset-block-start:0;z-index:2;block-size:48px;box-sizing:border-box;display:flex;align-items:center;padding:0 16px;background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border-strong);font-weight:600">Cabecera fija de la aplicación (48px)</div>
+            <div style="padding:0 12px">
+              <g-accordion id="ac-sticky" sticky :model-value="['prep']">
+                <g-accordion-item id="st-intro" value="intro" title="Antes de empezar" peek="Lee todo antes del día del estudio.">
+                  <p>Lee todo antes del día del estudio: algunas indicaciones empiezan 48 horas antes.</p>
+                </g-accordion-item>
+                <g-accordion-item id="st-prep" value="prep" title="Preparación para el ultrasonido abdominal" peek="Algunas indicaciones empiezan 48 horas antes.">
+                  <template v-for="(g, gi) in ac.prepGroups" :key="gi">
+                    <p><strong>{{ g.t }}</strong></p>
+                    <p v-for="(m, k) in g.lines" :key="k">{{ m }}</p>
+                    <p><g-btn :id="'st-btn-' + gi" size="sm" variant="outline" color="neutral">Guardar «{{ g.t }}»</g-btn></p>
+                  </template>
+                </g-accordion-item>
+                <g-accordion-item id="st-lugar" value="lugar" title="Lugar y estacionamiento" peek="Estacionamiento con acceso por la calle de atrás.">
+                  <p>Estacionamiento con acceso por la calle de atrás.</p>
+                </g-accordion-item>
+                <g-accordion-item id="st-despues" value="despues" title="Después del estudio">
+                  <p>Puedes comer con normalidad.</p>
+                </g-accordion-item>
+              </g-accordion>
+              <div style="block-size:240px"></div>
+            </div>
+          </div>
+          <h3>Suelto (v-model:open), carga diferida (lazy), RTL y dentro de un diálogo</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion-item id="ac-solo" title="Ver condiciones del servicio" peek="La cita se puede cambiar hasta 24 horas antes." v-model:open="ac.solo">
+        <p>La cita se puede cambiar hasta 24 horas antes. Después cuenta como cancelación tardía.</p>
+      </g-accordion-item>
+      <p class="log" id="ac-solo-log" style="overflow-wrap:anywhere">v-model:open: {{ ac.solo }}</p>
+      <g-accordion id="ac-lazy-group">
+        <g-accordion-item id="ac-lazy" value="mapa" title="Mapa del consultorio" meta="carga al abrir" lazy>
+          <p id="ac-lazy-text" @vue:mounted="ac.lazyMounted">Planta baja, consultorio 4, junto a la farmacia.</p>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-lazy-log" style="overflow-wrap:anywhere">montajes del contenido lazy: {{ ac.lazyMounts }}</p>
+      <div dir="rtl" lang="ar">
+        <g-accordion id="ac-rtl">
+          <g-accordion-item id="ac-rtl-1" value="r1" title="هل يمكنني تغيير موعدي؟" meta="٣ أيام" peek="نعم، حتى ٢٤ ساعة قبل الموعد.">
+            <p>نعم، حتى ٢٤ ساعة قبل الموعد.</p>
+          </g-accordion-item>
+          <g-accordion-item id="ac-rtl-2" value="r2" title="ما الوثائق التي أحتاجها؟">
+            <p>هوية رسمية.</p>
+          </g-accordion-item>
+        </g-accordion>
+      </div>
+      <div class="row"><g-btn id="ac-dlg-open" variant="outline" @click="ac.dlg = true">Diálogo con un acordeón pegado</g-btn></div>
+    </div>
+    <g-dialog v-model="ac.dlg" title="Preparación" description="El encabezado se pega al borde del cuerpo del diálogo." close-label="Cerrar" size="md">
+      <g-accordion id="ac-dlg" sticky :model-value="['d-prep']">
+        <g-accordion-item id="ac-dlg-prep" value="d-prep" title="Preparación para el ultrasonido">
+          <p v-for="(m, k) in ac.prep.concat(ac.prep)" :key="k">{{ m }}</p>
+        </g-accordion-item>
+        <g-accordion-item id="ac-dlg-after" value="d-after" title="Después del estudio">
+          <p>Puedes comer con normalidad.</p>
+        </g-accordion-item>
+      </g-accordion>
+      <template #footer="{ close }"><g-btn @click="close">Cerrar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
         <section class="pg-section" id="sec-widget" data-pg-section>
           <h2>GWidget, GWidgetGrid, GMetric, GProgress y GDataList</h2>
           <p class="pg-lead">Widgets de panel con rejilla editable, galería y configuración; incluye métrica, progreso y lista de datos.</p>
@@ -2545,6 +2655,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/time-field.umd.js"></script>
   <script src="../dist/slider.umd.js"></script>
   <script src="./combobox-data.js"></script>
+  <script src="./accordion-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./speech-adapters.js"></script>
   <script src="./lucide-icons.js"></script>
@@ -2934,6 +3045,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         const cdPeople = [{ name: 'Ana Pérez', team: 'Diseño', ini: 'AP', photo: avPhotos[2] }, { name: 'Luis Torres', team: 'Ingeniería', ini: 'LT' }, { name: 'Marta Gil', team: 'Operaciones con un cargo largo que obliga a pensar el recorte', ini: 'MG' }]
         // El router de la aplicación cancela la navegación del enlace real (evento cancelable, #70)
         const cdNavigate = ({ event, href }) => { event.preventDefault(); cdLog.value = 'navigate: ' + href }
+        // GAccordion (accordion.md): datos compartidos con el banco accordion.html (accordion-data.js)
+        const ac = window.granaAccordionDemo(reactive)
         // GBreadcrumbs (breadcrumbs.md): ruta con una puerta (los lotes de 2026), RTL y una SPA simulada que baja y sube
         const BC_LOTES = [{ label: 'Lote 2026-0411', href: '#lote-0411' }, { label: 'Lote 2026-0412', href: '#lote-0412' }, { label: 'Lote 2026-0413', href: '#lote-0413' }, { label: 'Lote 2026-0414 (sin página)' }]
         const bc = reactive({
@@ -3331,7 +3444,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "accordion", "name": "GAccordion"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -3747,7 +3860,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.m.nombre, () => { fm.server = '' })
         // update:added(false) ES «el usuario quitó la sección»: la aplicación vacía su modelo de esa sección (form.md §3)
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
-        return { bc, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
+        return { bc, ac, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
     }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(GranaSlider).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>

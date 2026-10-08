@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAccordion · banco del componente real (bruno)</title>
+<!-- Banco ligero de GAccordion + GAccordionItem con el componente real de dist/ (dueño: bruno). El mismo marcado y los mismos
+     datos (accordion-data.js) que la sección #sec-accordion del playground, sin el resto de componentes: las medidas por
+     cuadro (Δ0, continuidad del avance, cierre desde el encabezado pegado) no dependen de una página pesada (en WebKit, el
+     playground entero da cuadros de ~300 ms). Lo verifican design/lab/theme-playground/tests/accordion.spec.mjs y
+     personalidad-accordion.spec.mjs. Parámetros: ?dark=1 · ?slow=1 (duraciones ×5) -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  html{scroll-padding-top:76px}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:60vh}
+  #sec-accordion > h2{font-size:20px;margin:0 0 4px}
+  #sec-accordion > h3{font-size:15px;margin:28px 0 8px}
+  .pg-lead{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .pg-panel{padding:20px;min-inline-size:0;position:relative;overflow-x:auto;background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-lg)}
+  .col{display:grid;gap:16px;max-width:320px}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 20px}
+  .log{font-family:ui-monospace,monospace;font-size:12px;color:var(--g-color-text-muted);margin:0}
+  @media (max-width: 600px){ body{padding:16px} .pg-panel{padding:12px} }
+</style>
+</head>
+<body>
+<main id="app">
+        <section id="sec-accordion">
+          <h2>GAccordion</h2>
+          <p class="pg-lead">Secciones plegables de contenido. <b>A «Avance»</b>: sin cajas; el encabezado cerrado enseña una línea de la respuesta (<code>peek</code>) que no se mueve al abrir. <b>El encabezado que tocas no se mueve</b> (Δ0, también en «uno a la vez»). <b>Lo plegado se encuentra</b> (Ctrl+F, <code>#:~:text=</code>, un <code>#id</code> de dentro), <b>se enlaza</b> (<code>#faq-pago</code>) y <b>se imprime</b>. Con <code>sticky</code>, el encabezado del abierto acompaña mientras se lee y cerrarlo desde arriba te deja donde estabas. Tab pasa por todos los encabezados; ↓/↑, Inicio y Fin son un atajo.</p>
+          <h3>Preguntas frecuentes (avance, meta, deshabilitado, título largo; 8 elementos: sin region)</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-faq" v-model="ac.faq">
+        <g-accordion-item v-for="q in ac.questions" :key="q.v" :id="'faq-' + q.v" :value="q.v" :title="q.t" :meta="q.meta" :disabled="q.disabled" :peek="q.first">
+          <p>{{ q.first }}</p>
+          <p v-for="(m, k) in q.more" :key="k" :id="q.anchor && k === 0 ? q.anchor : undefined">{{ m }}</p>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-faq-log" style="overflow-wrap:anywhere">v-model: {{ JSON.stringify(ac.faq) }}</p>
+      <p style="display:flex;flex-wrap:wrap;gap:4px 12px;overflow-wrap:anywhere"><a id="ac-link-pago" href="#faq-pago">Enlace a «¿Cómo puedo pagar?» (#faq-pago)</a> <a id="ac-link-dentro" href="#ac-dato-entrada">Enlace a un párrafo plegado (#ac-dato-entrada)</a></p>
+    </div>
+          </div>
+          <h3>Ajustes: el avance sigue al estado; acciones fuera del botón</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-settings">
+        <g-accordion-item id="set-notif" value="notif" title="Notificaciones" :meta="ac.notifCount" :peek="ac.notifPeek">
+          <template #actions><g-btn id="set-notif-reset" size="sm" variant="ghost" color="neutral" @click="ac.resetNotif">Restablecer</g-btn></template>
+          <div class="col" style="gap:8px">
+            <g-switch id="set-mail" v-model="ac.notif.mail" label="Correo"></g-switch>
+            <g-switch id="set-push" v-model="ac.notif.push" label="Notificaciones push"></g-switch>
+            <g-switch id="set-weekly" v-model="ac.notif.weekly" label="Resumen semanal"></g-switch>
+          </div>
+        </g-accordion-item>
+        <g-accordion-item id="set-privacy" value="privacy" title="Privacidad" :peek="ac.notif.public ? 'Perfil público' : 'Perfil privado'">
+          <g-switch id="set-public" v-model="ac.notif.public" label="Perfil público"></g-switch>
+        </g-accordion-item>
+      </g-accordion>
+    </div>
+          </div>
+          <h3>Uno a la vez (exclusive), sin avance</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion id="ac-excl" v-model="ac.excl" exclusive>
+        <g-accordion-item v-for="q in ac.questions.slice(0, 5)" :key="q.v" :id="'ex-' + q.v" :value="q.v" :title="q.t" :meta="q.meta" :disabled="q.disabled">
+          <p>{{ q.first }}</p>
+          <p v-for="(m, k) in q.more" :key="k">{{ m }}</p>
+          <template v-if="q.v === 'resultados'"><p v-for="(m, k) in ac.prep" :key="'p' + k">{{ m }}</p></template>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-excl-log" style="overflow-wrap:anywhere">v-model: {{ JSON.stringify(ac.excl) }}</p>
+    </div>
+          </div>
+          <h3>Encabezado pegado (sticky) bajo una cabecera fija de la aplicación (--g-accordion-sticky-top: 48px)</h3>
+          <div id="ac-sticky-scroller" style="block-size:440px;overflow:auto;border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-lg);background:var(--g-color-bg);--g-accordion-sticky-top:48px">
+            <div id="ac-app-header" style="position:sticky;inset-block-start:0;z-index:2;block-size:48px;box-sizing:border-box;display:flex;align-items:center;padding:0 16px;background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border-strong);font-weight:600">Cabecera fija de la aplicación (48px)</div>
+            <div style="padding:0 12px">
+              <g-accordion id="ac-sticky" sticky :model-value="['prep']">
+                <g-accordion-item id="st-intro" value="intro" title="Antes de empezar" peek="Lee todo antes del día del estudio.">
+                  <p>Lee todo antes del día del estudio: algunas indicaciones empiezan 48 horas antes.</p>
+                </g-accordion-item>
+                <g-accordion-item id="st-prep" value="prep" title="Preparación para el ultrasonido abdominal" peek="Algunas indicaciones empiezan 48 horas antes.">
+                  <template v-for="(g, gi) in ac.prepGroups" :key="gi">
+                    <p><strong>{{ g.t }}</strong></p>
+                    <p v-for="(m, k) in g.lines" :key="k">{{ m }}</p>
+                    <p><g-btn :id="'st-btn-' + gi" size="sm" variant="outline" color="neutral">Guardar «{{ g.t }}»</g-btn></p>
+                  </template>
+                </g-accordion-item>
+                <g-accordion-item id="st-lugar" value="lugar" title="Lugar y estacionamiento" peek="Estacionamiento con acceso por la calle de atrás.">
+                  <p>Estacionamiento con acceso por la calle de atrás.</p>
+                </g-accordion-item>
+                <g-accordion-item id="st-despues" value="despues" title="Después del estudio">
+                  <p>Puedes comer con normalidad.</p>
+                </g-accordion-item>
+              </g-accordion>
+              <div style="block-size:240px"></div>
+            </div>
+          </div>
+          <h3>Suelto (v-model:open), carga diferida (lazy), RTL y dentro de un diálogo</h3>
+          <div class="pg-panel">
+    <div class="col" style="max-width:720px">
+      <g-accordion-item id="ac-solo" title="Ver condiciones del servicio" peek="La cita se puede cambiar hasta 24 horas antes." v-model:open="ac.solo">
+        <p>La cita se puede cambiar hasta 24 horas antes. Después cuenta como cancelación tardía.</p>
+      </g-accordion-item>
+      <p class="log" id="ac-solo-log" style="overflow-wrap:anywhere">v-model:open: {{ ac.solo }}</p>
+      <g-accordion id="ac-lazy-group">
+        <g-accordion-item id="ac-lazy" value="mapa" title="Mapa del consultorio" meta="carga al abrir" lazy>
+          <p id="ac-lazy-text" @vue:mounted="ac.lazyMounted">Planta baja, consultorio 4, junto a la farmacia.</p>
+        </g-accordion-item>
+      </g-accordion>
+      <p class="log" id="ac-lazy-log" style="overflow-wrap:anywhere">montajes del contenido lazy: {{ ac.lazyMounts }}</p>
+      <div dir="rtl" lang="ar">
+        <g-accordion id="ac-rtl">
+          <g-accordion-item id="ac-rtl-1" value="r1" title="هل يمكنني تغيير موعدي؟" meta="٣ أيام" peek="نعم، حتى ٢٤ ساعة قبل الموعد.">
+            <p>نعم، حتى ٢٤ ساعة قبل الموعد.</p>
+          </g-accordion-item>
+          <g-accordion-item id="ac-rtl-2" value="r2" title="ما الوثائق التي أحتاجها؟">
+            <p>هوية رسمية.</p>
+          </g-accordion-item>
+        </g-accordion>
+      </div>
+      <div class="row"><g-btn id="ac-dlg-open" variant="outline" @click="ac.dlg = true">Diálogo con un acordeón pegado</g-btn></div>
+    </div>
+    <g-dialog v-model="ac.dlg" title="Preparación" description="El encabezado se pega al borde del cuerpo del diálogo." close-label="Cerrar" size="md">
+      <g-accordion id="ac-dlg" sticky :model-value="['d-prep']">
+        <g-accordion-item id="ac-dlg-prep" value="d-prep" title="Preparación para el ultrasonido">
+          <p v-for="(m, k) in ac.prep.concat(ac.prep)" :key="k">{{ m }}</p>
+        </g-accordion-item>
+        <g-accordion-item id="ac-dlg-after" value="d-after" title="Después del estudio">
+          <p>Puedes comer con normalidad.</p>
+        </g-accordion-item>
+      </g-accordion>
+      <template #footer="{ close }"><g-btn @click="close">Cerrar</g-btn></template>
+    </g-dialog>
+          </div>
+        </section>
+</main>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="./accordion-data.js"></script>
+<script>
+const { createApp, reactive } = Vue
+const q = new URLSearchParams(location.search)
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+if (q.get('slow')) document.getElementById('slow-css').textContent = ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}'
+createApp({ setup: () => ({ ac: window.granaAccordionDemo(reactive) }) }).use(Grana).mount('#app')
+</script>
+</body>
+</html>
