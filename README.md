@@ -11,6 +11,41 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 - **58 componentes documentados**, todos en estado `candidate`: formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
 
+## Qué es Grana
+
+Grana es un **sistema de interfaz para aplicaciones de producto hechas con Vue 3**: paneles de administración, sistemas internos, herramientas de captura de datos, flujos con formularios largos, tablas y filtros. Son dos piezas que trabajan juntas:
+
+- **`@grana/vue`**, la librería de componentes: botones, campos, formularios completos, tablas con filtros y paginación, calendario, diálogos, menús, avisos, tooltips, captura de voz y más.
+- **`@grana/cli`**, el motor de tema: a partir de unos pocos datos de tu marca (color principal, neutros, colores de categoría, modo oscuro) deriva en OKLCH todos los tokens que leen los componentes y **rechaza las combinaciones que no cumplen el contraste mínimo**.
+
+### El problema que resuelve
+
+Los frameworks de componentes suelen obligar a elegir entre dos extremos:
+
+- **Traen su propia estética.** Funcionan desde el primer día, pero la aplicación acaba pareciéndose a todas las que usan el mismo framework, y cambiar su identidad significa pelear contra sus estilos.
+- **No traen ninguna (headless).** Dan libertad total, pero cada equipo vuelve a resolver la estructura, el foco, el teclado, los estados y la accesibilidad de cada componente.
+
+Grana separa las dos responsabilidades. **La librería decide la estructura**: anatomía, estados, teclado, semántica ARIA, foco y comportamiento en móvil. **Cada proyecto decide el color**: paleta, tipografía, radios, espaciado y densidad, todo con variables `--g-*`. Como los componentes no llevan ningún valor de tema escrito en su CSS, un tema nuevo los cambia por completo sin dejar restos del anterior.
+
+### Cómo funciona
+
+1. **Los componentes** solo leen variables `--g-*`, sin valores de respaldo.
+2. **El tema por defecto** (neutro, sobrio, con Instrument Sans) vive en una capa CSS de baja prioridad, `grana.defaults`, así que la aplicación funciona y se ve bien sin configurar nada.
+3. **Tu tema**, escrito a mano o generado con `@grana/cli`, va fuera de esa capa y **siempre gana**, sin `!important` ni selectores más específicos.
+
+### Qué lo distingue
+
+- **La accesibilidad no es opcional ni depende del tema.** Área táctil de al menos 24px (44px en pantallas táctiles), texto de al menos 12px, contraste de al menos 4.5:1 (3:1 en controles) y foco siempre visible. No se configuran desde el tema, y `@grana/cli` no genera un tema que baje de ellos.
+- **Personalidad sin sacrificar lo anterior.** Cada componente explora un comportamiento, una forma o un movimiento propios en lugar de copiar el patrón común: el tooltip que viaja de control en control, la hora que se escribe como se dice, la selección múltiple que se lee como una frase. Siempre con `prefers-reduced-motion` respetado.
+- **Formularios de verdad.** Filas que siempre llenan el ancho, campos fusionados, secciones plegables y agregables, campos condicionales que salen del envío al ocultarse, resumen de errores y validación integrada.
+- **Sin red dentro de los componentes.** Grana no hace `fetch`: la aplicación pone los datos y, donde hace falta un servicio (subir archivos, transcribir voz), lo conecta con un adaptador propio.
+- **Peso bajo control.** Cada componente está marcado como puro, así que importar uno no arrastra el resto, y los más pesados (voz, isla de estado, combobox, archivos, hora, deslizador) viven en entradas propias.
+- **Decisiones a la vista.** Cada componente tiene su contrato público y cada decisión de diseño está registrada con su porqué en [`DECISIONS.md`](DECISIONS.md), para que el sistema no cambie por capricho.
+
+### Para quién es
+
+Para equipos que construyen **aplicaciones de uso diario**, donde la gente trabaja horas capturando, revisando y decidiendo, y que quieren un sistema coherente y accesible **con su propia identidad**. No es un kit para páginas de marketing, y no incluye router ni capa de datos: se integra con los que ya uses (por ejemplo, `RouterLink` o `NuxtLink` en los enlaces).
+
 ## Estado: `0.1.0-beta`
 
 Esta es una **beta**. Qué significa:
