@@ -918,3 +918,50 @@ export interface TagItem extends GranaExtra {
 /** A dónde va el foco si el grupo se queda sin controles (`GTagGroup.emptyFocus`). */
 export type TagEmptyFocusTarget = string | Element | { $el: Element } | null | undefined
 export type TagEmptyFocus = TagEmptyFocusTarget | (() => TagEmptyFocusTarget)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Vacío y carga (empty.md, load-region.md; #529 a #548)
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Texto de `labels` con marcadores: cadena con `{marca}` o función que recibe las mismas variables (#51). */
+export type GranaText<V extends object = {}> = string | ((vars: V) => string)
+
+/** Causa de un `GEmpty` (empty.md «Props»). */
+export type EmptyCause = 'none' | 'filtered' | 'error' | 'forbidden'
+
+/** Filtro activo de la salida de `GEmpty` (`cause="filtered"`): `count` = cuántos volverían quitando solo ese. */
+export interface EmptyFilter {
+  key: string | number
+  label: string
+  count?: number
+}
+
+/** Textos de la salida de `GEmpty` (sin valores por defecto, #226). */
+export interface EmptyLabels {
+  relax?: GranaText<{ label: string }>
+  returns?: GranaText<{ count: number }>
+  clear?: string
+  before?: GranaText<{ total: number; filters: string }>
+}
+
+/** Textos de `GLoadRegion` (load-region.md «Textos»; sin valores por defecto). */
+export interface LoadRegionLabels {
+  loading?: string
+  slow?: string
+  loaded?: GranaText<{ count: number; fresh: number }>
+  refreshing?: string
+  failed?: string
+  retry?: string
+}
+
+/** Alcance del slot por defecto de `GLoadRegion` (la plantilla de la aplicación). */
+export interface LoadRegionSlotProps {
+  /** Lo que hay que pintar: la muestra en el molde de la primera carga, lo último conocido con `replace`, los datos el resto. */
+  items: any
+  /** `true` mientras se pinta como molde. */
+  mold: boolean
+  /** `true` si el elemento llegó en esta carga y no estaba en la anterior. */
+  fresh: (item: any) => boolean
+  /** Atributos del elemento de cada dato (`data-g-key`, `data-g-fresh`), con `v-bind`. */
+  itemAttrs: (item: any) => Record<string, string | undefined>
+}

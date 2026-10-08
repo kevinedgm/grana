@@ -1,6 +1,6 @@
 # Contrato · GEmpty
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #529 a #543, 2026-10-08; cambios en archivos compartidos aplicados en `api.md`, `tokens.md` §42, `icons.md` v0.9 y `PENDIENTES.md`) · **Basado en:** `design/lab/empty-skeleton/r01/` (kiwi, commit bdcbe69: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `load.js`, `load.css`, `verificar.mjs` 577/577 en Chromium, Firefox y WebKit, puerto 4212)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #529 a #543 y enmiendas #550 a #555, 2026-10-08; cambios en archivos compartidos aplicados en `api.md`, `tokens.md` §42, `icons.md` v0.9 y `PENDIENTES.md`) · **Basado en:** `design/lab/empty-skeleton/r01/` (kiwi, commit bdcbe69: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `load.js`, `load.css`, `verificar.mjs` 577/577 en Chromium, Firefox y WebKit, puerto 4212)
 **Tag:** `g-empty` · **Categoría:** contenido (estado) · **Paquete:** `@grana/vue` (principal; #530)
 
 El **vacío con causa**: lo que una región enseña cuando no tiene nada que enseñar, diciendo **por qué** y **cómo salir**. Su compañera es la región que carga (`GLoadRegion`, `design/contracts/load-region.md`): las dos nacen de la misma ronda y comparten el motor de anuncios, pero son componentes distintos (#529: el vacío es contenido; el marcador de carga es decorativo).
@@ -55,13 +55,13 @@ El **vacío con causa**: lo que una región enseña cuando no tiene nada que ens
 
 Qué se ofrece, en este orden (declaración, B; medido por kiwi: quitar «Cerradas» devuelve las 2 anunciadas):
 
-1. **La traza** (`g-empty__trace`, con `total`): `labels.before` con `{total}` y `{filters}` («Antes había 4; con «Urgentes» y «Cerradas», ninguna.»).
+1. **La traza** (`g-empty__trace`, con `total`): `labels.before` con `{total}` y `{filters}` («Antes había 4; con Urgentes y Cerradas, ninguna.»). `{filters}` es **una sola cadena**: los nombres unidos con `Intl.ListFormat` (`conjunction`, en el `locale`), **sin comillas** (una plantilla no puede ponerlas a cada nombre; cada nombre va aislado en un `<bdi>`, #553). La aplicación escribe la frase para que se lea sin ellas.
 2. **Un botón por filtro que devuelve algo**: solo los que traen `count > 0`, **de más a menos** (orden estable ante empates: el de `filters`). Texto `labels.relax` con `{label}` («Quitar «{label}»»), seguido de la cuenta visible (`g-empty__count`, `aria-hidden="true"`, cifras tabulares) y de la cuenta para el lector (`g-empty__sr`, texto oculto accesible con `labels.returns`, «{count} vuelven»). El nombre accesible empieza por el texto visible (WCAG 2.5.3). Emite **`relax`** con la `key`.
 3. **«Quitar todos»** (`labels.clear`): si hay **más de un filtro** o si **ningún** botón del punto 2 se ofrece. Emite **`clear`**.
 4. El slot `actions`, si lo hay, **después** de lo anterior.
 
 - **Sin ninguna `count`** (la aplicación no sabe cuántas vuelven): solo «Quitar todos». Un filtro sin `count` entre otros con `count` no se ofrece suelto (no se sabe qué devuelve).
-- **Jerarquía:** botones `GBtn` `size="sm"`; los del punto 2 `variant="outline"`; «Quitar todos» `variant="ghost"` si hay botones del punto 2 y `outline` si va solo. Como mucho una acción principal (la primera del punto 2).
+- **Jerarquía:** botones `GBtn` `size="sm"`; los del punto 2 `variant="outline"` y **`color="brand"` explícito**; «Quitar todos» `variant="ghost"` y **`color="neutral"`** si hay botones del punto 2, y `outline` con `color="brand"` si va solo (entonces es la acción principal). Como mucho una acción principal en `brand` (la primera del punto 2; si no hay ninguna, «Quitar todos»). El color se fija en `GEmpty`, no se hereda del valor por defecto de `GBtn` (#555).
 - **Foco:** al quitar un filtro el `GEmpty` desaparece con el foco dentro. Dentro de una `GLoadRegion`, la región lo recoge (#534); en `GTable`, la tabla (su `clear` ya lo resuelve). Suelto, la aplicación decide a dónde va (README).
 
 ## Slots
@@ -92,7 +92,7 @@ Solo los usa la salida. Cada clave admite String con marcadores o Function con u
 | `relax` | `{label}` | Texto visible del botón de un filtro | Sí, si se ofrece algún filtro suelto |
 | `returns` | `{count}` | Cuenta para el lector, oculta, dentro del mismo botón | Sí, si algún filtro trae `count` |
 | `clear` | | «Quitar todos» | Sí, con `filters` |
-| `before` | `{total}`, `{filters}` | La traza | Sí, con `total` |
+| `before` | `{total}`, `{filters}` | La traza; `{filters}` llega ya unido con `Intl.ListFormat` y sin comillas (#553) | Sí, con `total` |
 
 ## Iconos (solo Lucide; `icons.md` v0.9)
 
@@ -166,7 +166,7 @@ div.g-empty.g-empty--cause-{cause}  [is-exit]
 
 ## Paquete, `meta.json` y tipos
 
-- **Paquete principal** `@grana/vue` (#530): exportado desde `src/index.js` y registrado en el plugin; `GEmpty.css` en `components.css`. **Compuerta de 8 KB gzip** por componente (#238 y siguientes); estimación de kiwi ≈ 1 KB. `GTable` lo usa por defecto (#540), así que tiene que estar en el principal. Compuerta de `dist`: `grep -q "g-empty__relax" packages/vue/dist/grana.css`.
+- **Paquete principal** `@grana/vue` (#530): exportado desde `src/index.js` y registrado en el plugin; `GEmpty.css` en `components.css`. **Compuerta de 8 KB gzip** por componente (#238 y siguientes); estimación de kiwi ≈ 1 KB. `GTable` lo usa por defecto (#540), así que tiene que estar en el principal. Compuerta de `dist`: `grep -q "g-empty__count" packages/vue/dist/grana.css` (la cuenta de la salida tiene regla en `GEmpty.css`; `g-empty__relax` es solo marcado y no tiene regla, así que no sirve de señal; corrige #530 por #551).
 - **`GEmpty.meta.json`** (#443): las ocho props con tipo, valores y default (`cause` y `title` obligatorias), `relax` con su payload, `clear`, los tres slots con su alcance. En `packages/vue/types/overrides.mjs`: `GEmpty.filters: Array<{ key: string | number; label: string; count?: number }>` y `GEmpty.labels: { relax?: Label<{ label: string }>; returns?: Label<{ count: number }>; clear?: string; before?: Label<{ total: number; filters: string }> }` (forma de `Label` como en los demás `labels` con marcadores).
 
 ## Personalidad (#542)
@@ -197,6 +197,7 @@ Los vacíos de los frameworks son un póster igual para «aún no hay nada», «
 
 - Suelto (fuera de `GLoadRegion` y de un anfitrión) no se anuncia y no recoge el foco al desaparecer: la aplicación decide.
 - Las cuentas por filtro las calcula la aplicación; sin ellas, la salida se reduce a «Quitar todos».
+- `{filters}` de la traza no lleva comillas ni formato por nombre (una plantilla no puede ponerlos a cada uno): se redacta la frase para que se lea sin ellos (#553).
 - `forbidden` sin a quién pedir: sin acción (nunca un botón deshabilitado); la aplicación no debe poner uno.
 - Fuera de una región, el alto mínimo es el del contenido (no hay elemento que medir).
 

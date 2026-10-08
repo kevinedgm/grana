@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "name": "GLoadRegion",
+  "tag": "g-load-region",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Región cuyo contenido llega tarde: envuelve la plantilla de la aplicación y decide cuándo se ve la espera (200 ms), cuánto se queda (400 ms), qué se anuncia (canal cortés de página), qué pasa con el foco y que la página no se mueva. A «Molde» (la plantilla real sin tinta; la tinta llega a su sitio) y B «Lo último conocido» (al refrescar, nada se borra; lo nuevo, marcado; si falla, lo conocido se queda).",
+  "contract": "design/contracts/load-region.md",
+  "decisions": [
+    "#529",
+    "#530",
+    "#531",
+    "#532",
+    "#533",
+    "#534",
+    "#535",
+    "#536",
+    "#538",
+    "#539",
+    "#541",
+    "#542",
+    "#543",
+    "#544",
+    "#545",
+    "#546",
+    "#548"
+  ],
+  "prototype": "design/lab/empty-skeleton/r01/",
+  "style": "packages/vue/src/components/GLoadRegion/GLoadRegion.css",
+  "styleNotes": "design/lab/empty-skeleton/estilo.md",
+  "entry": "@grana/vue/load-region",
+  "bundle": {
+    "measured": "2026-10-08",
+    "entry": "dist/load-region.js (GLoadRegion)",
+    "gzip": 4187,
+    "umdGzip": 3872,
+    "global": "GranaLoadRegion",
+    "note": "gzip -9, medido el 2026-10-08. Vue y @grana/vue externos; GEmpty, GBtn, el GIcon interno, el motor (loadPhase con loadRegionKey), el canal de página, oneOf y template llegan de __shared, sin copia. El CSS va en grana.css."
+  },
+  "props": [
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "default": false,
+      "note": "aria-busy en la raíz desde el inicio; fases del motor (200/400/5000 ms)"
+    },
+    {
+      "name": "items",
+      "type": "Array | Object | null",
+      "default": null,
+      "note": "null = aún no se sabe (primera carga: molde); [] = respondió vacío. Se sustituye, no se muta. Lo pintado cambia solo al terminar la carga"
+    },
+    {
+      "name": "sample",
+      "type": "Array | Object | null",
+      "default": null,
+      "note": "Muestra del molde de la primera carga: los mismos campos que un elemento real, del tamaño de una respuesta típica"
+    },
+    {
+      "name": "keyBy",
+      "type": "String | Function",
+      "default": "id",
+      "note": "Nombre de campo o (item) => clave: data-g-key, foco por clave, lo nuevo"
+    },
+    {
+      "name": "refresh",
+      "type": "String",
+      "default": "keep",
+      "values": [
+        "keep",
+        "replace"
+      ],
+      "note": "keep (B): lo de antes a la vista, inerte, con filo y píldora; replace: molde de lo último conocido"
+    },
+    {
+      "name": "error",
+      "type": "Boolean | String",
+      "default": false,
+      "note": "Se aplica al terminar la carga; con contenido conocido, barra de fallo (texto = la cadena o labels.failed); sin él, la aplicación pinta su GEmpty cause=\"error\""
+    },
+    {
+      "name": "announceError",
+      "type": "Boolean",
+      "default": true,
+      "note": "false: el fallo lo anuncia otro (la isla de estado)"
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "note": "Nombre del role=\"group\""
+    },
+    {
+      "name": "labelledby",
+      "type": "String",
+      "default": null,
+      "note": "Id del nombre del role=\"group\" (normalmente el encabezado de la sección)"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "loading, slow, loaded {count} {fresh}, refreshing, failed, retry; sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "retry",
+      "payload": "—",
+      "trigger": "Pulsa «Reintentar» en la barra de fallo (o retry() del slot failed)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "La plantilla de la aplicación (y su GEmpty con v-if). Alcance: { items, mold, fresh, itemAttrs }"
+    },
+    {
+      "name": "failed",
+      "purpose": "Sustituye el interior de la barra de fallo (p. ej. una GStatusMark de la isla). Alcance: { retry, text }"
+    }
+  ],
+  "tokens": [
+    "--g-color-mold",
+    "--g-color-accent-text",
+    "--g-color-accent-soft",
+    "--g-color-on-accent-soft",
+    "--g-color-danger-soft",
+    "--g-color-on-danger-soft",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-surface",
+    "--g-color-border",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-md",
+    "--g-radius-pill",
+    "--g-space-*",
+    "--g-text-body-size",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-duration-slow",
+    "--g-duration-fast",
+    "--g-ease-out"
+  ],
+  "states": [
+    "idle",
+    "pending",
+    "mold",
+    "stale",
+    "slow",
+    "revealing",
+    "failed"
+  ],
+  "classes": [
+    "is-busy",
+    "is-pending",
+    "is-mold",
+    "is-stale",
+    "is-slow",
+    "is-revealing (siempre con is-mold)",
+    "is-failed",
+    "--_load-slot (en línea, px)"
+  ],
+  "labels": [
+    "loading",
+    "slow",
+    "loaded {count} {fresh}",
+    "refreshing",
+    "failed",
+    "retry"
+  ],
+  "composes": [
+    "GBtn (sm soft neutral: «Reintentar», #548)",
+    "GIcon interno (refresh-cw, circle-alert)",
+    "GEmpty (en la plantilla de la aplicación, registrado por loadRegionKey)",
+    "utils/loadPhase.js",
+    "utils/liveRegion.js (canal de página)"
+  ],
+  "announcements": "Canal cortés de página p.g-load-live (uno por documento, fusión, sin repetir, trasladado al <dialog> modal superior). Como mucho tres por carga: labels.loading al verse (200 ms), labels.slow a los 5 s, y al terminar: fallo con contenido → error o labels.failed; un GEmpty registrado → su title; si no, labels.loaded {count} {fresh}. Solo habla la región más externa con labels.loading; una sin carga propia que contiene regiones que cargan es grupo (habla al verse la primera y al terminar la última).",
+  "focus": "Raíz tabindex=\"-1\". Si al empezar el foco está dentro, se recuerda clave (data-g-key) e índice y pasa a la raíz; al llegar vuelve al mismo enfocable del elemento con la misma clave, o a su primero, o se queda en la raíz. Nunca <body>, también fuera de una carga.",
+  "attrs": "Los atributos van a la raíz <div>.",
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "README (mora-docs)",
+    "Lector de pantalla real",
+    "appearance=\"phrase\", delay/minimum, cancel y moldLimit reservados (#543)"
+  ],
+  "verification": {
+    "vitest": "GLoadRegion.test.js (29), GLoadRegion.ssr.test.js, loadPhase.test.js, liveRegion.test.js, load-region.test.js",
+    "playwright": "design/lab/theme-playground/tests/load-region.spec.mjs y personalidad-load-region.spec.mjs en Chromium, Firefox y WebKit (puerto 4216)"
+  }
+}

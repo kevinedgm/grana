@@ -18,6 +18,9 @@
 // Las etiquetas (`@grana/vue/tag`, #472: vite.tag.config.js y src/tag.test.js) toman de aquí GBtn, GAvatar, los dos GIcon,
 // liveRegion, template, el modo visual del motor del tooltip (visualTip: un solo estado del motor en la página) y el hash de
 // categorías (categoryHash, el mismo de GAvatar).
+// La región que carga (`@grana/vue/load-region`, #530: vite.load-region.config.js y src/load-region.test.js) toma de aquí
+// GEmpty, GBtn, el GIcon interno, el motor de carga (utils/loadPhase.js) con la clave loadRegionKey —una copia crearía
+// otro Symbol y el GEmpty del principal no vería su región—, el canal de página (liveRegion), oneOf y template.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -33,13 +36,15 @@ import GInput from './components/GInput/GInput.vue'
 import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
+import GEmpty from './components/GEmpty/GEmpty.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
 import { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
-import { createLiveWriter } from './utils/liveRegion.js'
+import { acquirePageLive, announcePage, createLiveWriter } from './utils/liveRegion.js'
+import { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus } from './utils/loadPhase.js'
 import { observeSize } from './utils/sizeObserver.js'
 import { useKeyFocus } from './utils/keyFocus.js'
 import { fold, parts, tokens } from './utils/match.js'
@@ -62,12 +67,14 @@ export const shared = {
   'components/GIcon/GIcon.vue': { default: GIcon },
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
+  'components/GEmpty/GEmpty.vue': { default: GEmpty },
   'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },
   'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve },
-  'utils/liveRegion.js': { createLiveWriter },
+  'utils/liveRegion.js': { acquirePageLive, announcePage, createLiveWriter },
+  'utils/loadPhase.js': { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus },
   'utils/match.js': { fold, parts, tokens },
   'utils/sizeObserver.js': { observeSize },
   'utils/keyFocus.js': { useKeyFocus },

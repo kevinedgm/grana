@@ -71,6 +71,11 @@
       "import": "./dist/tag.js",
       "default": "./dist/tag.js"
     },
+    "./load-region": {
+      "types": "./dist/load-region.d.ts",
+      "import": "./dist/load-region.js",
+      "default": "./dist/load-region.js"
+    },
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js",
@@ -105,6 +110,9 @@
       ],
       "tag": [
         "./dist/tag.d.ts"
+      ],
+      "load-region": [
+        "./dist/load-region.d.ts"
       ]
     }
   },
@@ -119,7 +127,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && node scripts/build-fonts.mjs && node scripts/build-types.mjs",
+    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && vite build -c vite.load-region.config.js && node scripts/build-fonts.mjs && node scripts/build-types.mjs",
     "test": "vitest run",
     "icons": "node scripts/build-icons.mjs",
     "prepack": "npm run build"

@@ -46,4 +46,17 @@ const onClick = (e: MouseEvent) => e.clientX
   </g-tag-group>
   <!-- @vue-expect-error layout fuera de la lista -->
   <g-tag-group :items="[]" label="X" layout="grid" />
+
+  <!-- GEmpty + GLoadRegion -->
+  <g-load-region :loading="true" :items="null" :sample="[{ id: 1, name: 'Tipo' }]" label="Muestras" :labels="{ loading: 'Cargando' }">
+    <template #default="{ items, mold, fresh, itemAttrs }">
+      <ul v-if="items"><li v-for="it in items" :key="it.id" v-bind="itemAttrs(it)">{{ it.name }} {{ mold }} {{ fresh(it) }}</li></ul>
+      <g-empty v-else cause="none" title="Aún no hay muestras">
+        <template #actions="{ cause }">{{ cause }}</template>
+      </g-empty>
+    </template>
+    <template #failed="{ retry, text }"><button @click="retry">{{ text }}</button></template>
+  </g-load-region>
+  <!-- @vue-expect-error GEmpty: cause fuera de la lista -->
+  <g-empty cause="done" title="Al día" />
 </template>

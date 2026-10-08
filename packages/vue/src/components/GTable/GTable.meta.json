@@ -120,12 +120,25 @@
       "name": "loading",
       "type": "Boolean",
       "default": false,
-      "note": "aria-busy y filas esqueleto; anuncia labels.loading en la región viva y, al terminar, labels.results (#265)"
+      "note": "aria-busy y filas esqueleto con el motor común (#540): retraso de 200 ms (filas de antes inertes o esqueleto invisible), mínimo de 400 ms, espera larga a los 5 s; anuncia labels.loading al verse y, al terminar, labels.results (o labels.failed con error)"
     },
     {
       "name": "loadingRows",
       "type": "Number",
-      "default": 3
+      "default": 3,
+      "note": "Filas esqueleto de la primera carga; al refrescar, tantas como había a la vista (tope pageSize)"
+    },
+    {
+      "name": "error",
+      "type": "Boolean",
+      "default": false,
+      "note": "Se aplica al terminar la carga (enmienda de #327, #540): con filas, se quedan con la barra de fallo; sin filas, el slot error o GEmpty cause=\"error\""
+    },
+    {
+      "name": "announceError",
+      "type": "Boolean",
+      "default": true,
+      "note": "false: el fallo lo anuncia otro (la isla de estado); la región no anuncia nada al terminar"
     },
     {
       "name": "labels",
@@ -154,6 +167,11 @@
       "name": "update:page",
       "payload": "número",
       "trigger": "Cambia de página (o vuelve a 1 al filtrar)"
+    },
+    {
+      "name": "retry",
+      "payload": "—",
+      "trigger": "Pulsa «Reintentar» del fallo (barra o vacío de error por defecto; #540)"
     }
   ],
   "slots": [
@@ -171,7 +189,11 @@
     },
     {
       "name": "empty",
-      "purpose": "Estado vacío. Alcance: { filtered, clear }"
+      "purpose": "Estado vacío propio (recomendado GEmpty); sin él, GEmpty por defecto (none con labels.empty, filtered con labels.emptyFiltered y «Limpiar filtros»). Alcance: { filtered, clear }"
+    },
+    {
+      "name": "error",
+      "purpose": "Fallo sin filas que enseñar (enmienda de #327, #540); sin él, GEmpty cause=\"error\" con labels.failed y «Reintentar». Alcance: { retry }"
     },
     {
       "name": "toolbar",
@@ -197,8 +219,12 @@
     "--g-text-action-weight",
     "--g-border-width",
     "--g-focus-{width|offset}",
-    "--g-duration-{fast|spin}",
-    "--g-ease-standard"
+    "--g-duration-fast",
+    "--g-ease-standard",
+    "--g-color-mold",
+    "--g-color-danger-soft",
+    "--g-color-on-danger-soft",
+    "--g-radius-md"
   ],
   "states": [
     "table",
@@ -212,7 +238,11 @@
     "filtered",
     "empty",
     "empty-filtered",
-    "loading"
+    "loading",
+    "pending",
+    "slow",
+    "failed",
+    "error-empty"
   ],
   "labels": [
     "selectAll",
@@ -229,6 +259,9 @@
     "emptyFiltered",
     "clearFilters",
     "results",
+    "slow",
+    "failed",
+    "retry",
     "filters",
     "pagination"
   ],
@@ -237,5 +270,14 @@
     "Firefox y Safari",
     "Táctil real y zoom al 200%",
     "Selección de todas las páginas, columnas fijas, virtualización, edición en celda (fuera de v0.1)"
-  ]
+  ],
+  "composes": [
+    "GFilterBar",
+    "GPagination",
+    "GEmpty (vacío y error por defecto, #540)",
+    "GBtn (sm: «Limpiar filtros», «Reintentar» soft neutral)",
+    "GIcon interno (circle-alert de la barra de fallo)",
+    "utils/loadPhase.js (motor común de carga)"
+  ],
+  "load": "Motor común (#540): DELAY 200 ms, MINIMUM 400 ms, SLOW 5 s (utils/loadPhase.js). La tabla pinta su copia de rows hasta la llegada. Clases is-pending, is-slow, is-failed; tbody inert mientras carga; <table tabindex=\"-1\">; foco del tbody (o de la barra de fallo) al <table> al empezar y de vuelta por rowKey e índice al llegar; nunca body. Sin pulso (#539)."
 }
