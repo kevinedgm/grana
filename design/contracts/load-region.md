@@ -1,6 +1,6 @@
 # Contrato · GLoadRegion (región que carga) y motor de carga
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #529 a #543, 2026-10-08; cambios en archivos compartidos aplicados en `api.md`, `tokens.md` §42, `icons.md` v0.9, `PENDIENTES.md` y en los contratos de los anfitriones: `table.md`, `card.md`, `widget.md`, `calendar.md`, `dialog.md`) · **Basado en:** `design/lab/empty-skeleton/r01/` (kiwi, commit bdcbe69: `declaracion.md` con hallazgos L1 a L14, `load.js`, `load.css`, `verificar.mjs` 577/577 en Chromium, Firefox y WebKit, puerto 4212)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #529 a #543 y enmiendas #550 a #555, 2026-10-08; cambios en archivos compartidos aplicados en `api.md`, `tokens.md` §42, `icons.md` v0.9, `PENDIENTES.md` y en los contratos de los anfitriones: `table.md`, `card.md`, `widget.md`, `calendar.md`, `dialog.md`) · **Basado en:** `design/lab/empty-skeleton/r01/` (kiwi, commit bdcbe69: `declaracion.md` con hallazgos L1 a L14, `load.js`, `load.css`, `verificar.mjs` 577/577 en Chromium, Firefox y WebKit, puerto 4212)
 **Tag:** `g-load-region` · **Categoría:** contenido (estado) · **Paquete:** entrada propia **`@grana/vue/load-region`** (global UMD `GranaLoadRegion`; #530). El motor (`utils/loadPhase.js`) y el canal de página son internos y viven en el principal.
 
 Una **región cuyo contenido llega tarde**: envuelve la plantilla de la aplicación (lista, rejilla de teselas, ficha) y se ocupa de **cuándo** se ve la espera, **cuánto** se queda, **qué** se anuncia, **qué pasa con el foco** y de que **la página no se mueva**. No pide datos (sin `fetch`): la aplicación le dice si carga (`loading`), qué hay (`items`) y si falló (`error`).
@@ -55,7 +55,7 @@ Una **región cuyo contenido llega tarde**: envuelve la plantilla de la aplicaci
 
 ### Reglas de props
 
-- **`items`: `null` = aún no se sabe; `[]` = respondió vacío.** La aplicación pasa `null` hasta la primera respuesta. Es la diferencia entre la primera carga (molde) y un vacío conocido que se refresca. Una primera carga con `[]` avisa en desarrollo (aviso 6). Un `Object` (una ficha) vale igual que un arreglo de uno; las cuentas (`{count}`) solo existen con un arreglo.
+- **`items`: `null` = aún no se sabe; `[]` = respondió vacío.** La aplicación pasa `null` hasta la primera respuesta. Es la diferencia entre la primera carga (molde) y un vacío conocido que se refresca. Una primera carga con `[]` **se toma como «respondió vacío»**: no pinta el molde de la primera carga (la región no cree que no sepa nada) y avisa en desarrollo (aviso 6, #554); la aplicación pasa `null` hasta la primera respuesta. Un `Object` (una ficha) vale igual que un arreglo de uno; las cuentas (`{count}`) solo existen con un arreglo.
 - **Lo que se pinta cambia solo al terminar.** La región pinta **su copia**: el valor de `items` que tenía al empezar la carga, hasta que la carga termina (retraso y mínimo incluidos). Si la aplicación sustituye `items` antes de poner `loading` a `false`, el cambio espera al final de la fase. **La aplicación sustituye el arreglo, no lo muta en el sitio** (como `v-model:items` de `GTagGroup`, #463): una mutación en el sitio la vería Vue en la copia y rompería la fase.
 - **`sample`** es la muestra del molde: los **mismos campos** que un elemento real, con textos de largo típico y sin datos de personas reales («Tipo · Nombre Apellido», «Lote 0000-0000»). Debe tener **tantos elementos como una respuesta típica a la vista** (la de una página): de eso depende el Δ0 del total (ver «Δ0»). Sin `sample`, la primera carga no tiene forma (aviso 5).
 - **`keyBy`** da la clave de cada elemento: la usan las marcas de lo nuevo (`fresh`), la vuelta del foco y la medida del primer hueco. La aplicación la escribe en el elemento de cada uno con `itemAttrs(item)` (slot). Claves repetidas o `undefined` avisan (aviso 8).
@@ -157,12 +157,13 @@ Declarado en `emits`. No hay eventos de fase: la aplicación ya sabe cuándo car
 | --- | --- | --- |
 | Al **verse** la carga (200 ms) | `labels.loading` | Una carga que no se ve no se oye (medido: a 100 ms no se anuncia) |
 | A los 5 s | `labels.slow` | Una vez |
-| Al terminar, **siempre** | en este orden: fallo con contenido conocido → `error` (String) o `labels.failed`; un `GEmpty` registrado en la plantilla → **su `title`**; si no, `labels.loaded` con `{count}` y `{fresh}` | Lo que se ve al final es lo que se oye. Con `announceError: false`, el fallo (barra o `GEmpty cause="error"`) no se anuncia |
+| Al terminar, **siempre** (se haya visto la espera o no) | en este orden: 1) fallo con contenido conocido → `error` (String) o `labels.failed`; 2) un `GEmpty` registrado en la plantilla → **su `title`**; 3) `error` sin contenido conocido y **sin `GEmpty` registrado** (el caso en que la aplicación no puso el vacío de error, o no está en el principal) → el mismo texto del fallo (`error` String o `labels.failed`; si no hay ninguno, no se dice nada, y nunca `loaded`); 4) si no, `labels.loaded` con `{count}` y `{fresh}` | Lo que se ve al final es lo que se oye. Con `announceError: false`, el fallo (barra, `GEmpty cause="error"` o el texto del punto 3) no se anuncia (#552) |
 
 **Anidación y grupos (solo habla la más externa):**
 
 - Una región dentro de otra que tenga `labels.loading` **no anuncia** (hace todo lo demás: fases, molde, foco).
-- **Grupo:** una región **sin carga propia** (`loading: false`) que contiene regiones que cargan habla por ellas: `labels.loading` cuando la **primera** se ve, `labels.loaded` (sin `{count}`) cuando termina la **última** (medido por kiwi: tres teselas → «Cargando el panel» al ver la primera, «Panel actualizado» al terminar la última; ninguna tesela habla). No lleva `aria-busy` por las suyas (lo llevan ellas).
+- **Grupo:** una región **sin carga propia** (`loading: false`) que contiene regiones que cargan habla por ellas: `labels.loading` cuando la **primera** se ve, `labels.loaded` (sin `{count}`) cuando termina la **última** (**siempre**, aunque ninguna llegara a verse, igual que una región suelta: «Al terminar, siempre»; sin `{count}` ni `{fresh}`; #552) (medido por kiwi: tres teselas → «Cargando el panel» al ver la primera, «Panel actualizado» al terminar la última; ninguna tesela habla). No lleva `aria-busy` por las suyas (lo llevan ellas).
+- **El grupo no anuncia `labels.slow`:** no tiene temporizador propio y las hijas, que sí lo tienen, callan (hablan por el grupo). El texto visible de espera larga de cada hija (`g-load-region__slow`) se queda; que el grupo hable a los 5 s se reserva (límite para el README, #552).
 - Un anfitrión con región propia (`GTable`) dentro de una `GLoadRegion` habla por la suya (límite: no se coordinan; README).
 
 ## Foco (#534)
@@ -265,10 +266,10 @@ El **canal de página** (§«Anuncios») es otra pieza interna (`utils/liveRegio
 ## Paquete y peso (#530)
 
 - **Entrada propia `@grana/vue/load-region`** (global UMD `GranaLoadRegion`): exporta `GLoadRegion` y un plugin que lo registra. Llegan por `__shared` (#240, sin copias): `GEmpty`, `GBtn`, `GLibIcon`, el motor `loadPhase`, el canal de página y la clave `loadRegionKey` (una copia propia crearía otro `Symbol` y el `GEmpty` del principal no vería su región). El CSS sigue en `grana.css`.
-- **Por qué no el principal:** criterio de peso de siempre (#238, #328, #337, #415, #510) con la cuenta conjunta de #506: el principal ya creció ≈ 12 KB gzip en la Fase C (tope de revisión: +15 KB); `GEmpty`, el motor y la adopción de `GTable` tienen que ir en el principal (los anfitriones los usan), y la región completa (molde, revelado, lo nuevo, foco por clave, grupos, barra de fallo) no cabe además en el margen.
+- **Por qué no el principal:** criterio de peso de siempre (#238, #328, #337, #415, #510) con la cuenta conjunta de #506: el principal ya creció ≈ 12 KiB gzip en la Fase C (tope de revisión: +15 KiB, #550); `GEmpty`, el motor y la adopción de `GTable` tienen que ir en el principal (los anfitriones los usan), y la región completa (molde, revelado, lo nuevo, foco por clave, grupos, barra de fallo) no cabe además en el margen.
 - Se declara en `exports` (`./load-region`), `typesVersions`, `ENTRIES` de `scripts/build-types.mjs` y `src/types.test.js` (#442, #443).
 - **Compuertas de `dist`:** `! grep -q "GLoadRegion" packages/vue/dist/grana.js`, `test -f packages/vue/dist/load-region.js`, `grep -q "g-load-region__pill" packages/vue/dist/grana.css`, `! grep -q "g-empty__" packages/vue/dist/load-region.js` (`GEmpty` por `__shared`, sin copia).
-- bruno mide y registra (en el `meta.json`, `CHANGELOG.md` y `CLAUDE.md`) el peso gzip de la entrada y el crecimiento del principal; si el principal pasa de **+15 KB** sobre `0.1.0-beta.0`, vuelve a lima (#506).
+- bruno mide y registra (en el `meta.json`, `CHANGELOG.md` y `CLAUDE.md`) el peso gzip de la entrada y el crecimiento del principal; si el principal pasa de **+15 KB** sobre `0.1.0-beta.0`, vuelve a lima (#506). **Unidad (#550):** KiB (1024 B), como el resto de cifras de peso; el acumulado de la Fase C con esta entrega es +15 200 B = **14,8 KiB**, dentro del tope, y el margen queda agotado.
 
 ## `meta.json` y tipos (#443)
 
