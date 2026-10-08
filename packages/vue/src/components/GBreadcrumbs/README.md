@@ -312,7 +312,7 @@ Etapas de fila:
 </nav>
 ```
 
-- **`nav` con nombre** (`labels.nav` o `aria-labelledby`); un solo punto de referencia por instancia. **`ol` con un `li` por nivel** (APG *Breadcrumb*): el lector dice «lista, N elementos» y solo lee los niveles. Los separadores **no son `li` ni texto**: un `svg` de Lucide `aria-hidden` dentro del `li` (nada de `›` ni `content:`).
+- **`nav` con nombre** (`labels.nav` o `aria-labelledby`); un solo punto de referencia por instancia. **`ol` con un `li` por nivel** (APG *Breadcrumb*): el lector dice «lista, N elementos» y solo lee los niveles. Los separadores **no son `li` ni texto**: un `svg` de Lucide `aria-hidden` dentro del `li` (nada de caracteres de flecha ni `content:`).
 - **`aria-current="page"` una sola vez, en el último nivel**, sea `a` o `span`; en la escalera, en su escalón. El actual se distingue por peso y color, no solo por color, y en `forced-colors` por subrayado.
 - **En una puerta**, el hijo de la ruta lleva `aria-current="true"` con un `check` decorativo.
 - **El nombre entero siempre en el DOM:** lo recortado sigue entero en el árbol; la pista visual es `aria-hidden`. **Sin `title`.**
