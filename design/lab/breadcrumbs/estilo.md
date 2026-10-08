@@ -37,11 +37,11 @@ Abierta: `accent-soft` / `on-accent-soft` (chevron ≥ 4,51:1) + giro de 90°. E
 
 | Medida | Valor | Por defecto (`space` 4) | Propio (`space` 5) |
 | --- | --- | --- | --- |
-| Alto de la fila **y** de la cara de B (Δ0) | `max(24px, space × 7)`; `max(44px, space × 7)` con `pointer: coarse` | 28 (44) | 35 (44) |
+| Alto de la fila **y** de la cara de B (Δ0) | `max(24px, space × 7, body-sm-line)`; `max(44px, space × 7, body-sm-line)` con `pointer: coarse` (la línea, desde la auditoría, hallazgo 1) | 28 (44) | 35 (44) |
 | Relleno en línea de una pastilla | `space × 2` | 8 | 10 |
 | Icono–nombre | `space × 1` | 4 | 5 |
 | Separador | chevron `1em` + `space × 0.5` a cada lado | 14 + 4 | 14 + 5 |
-| Puerta | `max(24px, space × 6)` redonda + `space × 0.5` a cada lado; `44px` con `pointer: coarse` | 24 | 30 |
+| Puerta | `max(24px, space × 6, 1em + space × 2)` redonda + `space × 0.5` a cada lado; `max(44px, 1em + space × 2)` con `pointer: coarse` (el `1em`, desde la auditoría, hallazgo 1) | 24 | 30 |
 | Mínimo de una pastilla (en medio, padre) | lo de delante + `max(objetivo, relleno × 2 + icono + 3ch)` | ≈ 62 (medido) | ≈ 62 (calculado: el separador y el relleno crecen, 3ch no) |
 | Suelo del actual en `shrink` | lo de delante + `max(objetivo, relleno × 2 + icono + 8ch)` | — | — |
 | Tope de nombre (salvo el actual) | `20ch` (también el nombre de «Subir») | — | — |
@@ -96,6 +96,7 @@ Abierta: `accent-soft` / `on-accent-soft` (chevron ≥ 4,51:1) + giro de 90°. E
 - **Paneles:** `position: fixed` con `left`/`top` físicos (`--_x`, `--_y`, como `GMenu` y `GHelper`), `max-block-size: var(--_max)` con desplazamiento propio, `display` **solo** bajo `:popover-open` (cerrados, el del agente de usuario). Entrada `press` + `ease-out` desde `space × 1` hacia el disparador según `data-side`; salida `fast` con `overlay`/`display` discretos (Chromium; Firefox y WebKit cierran en el acto, #394). El foco dentro de un panel va por dentro (`outline-offset` negativo): el panel se desplaza y recortaría el anillo.
 - **Copia saliente:** `flex: 0 0 0`, `max-inline-size: 0` (no ocupa sitio en la fila; su contenido asoma detrás del nuevo actual), `pointer-events: none`, `z-index: 0`; mientras está, la lista recorta en línea (`:has(> .is-leaving)`), así nunca asoma fuera del `nav`.
 - **Primer pintado:** sin `is-ready`, la lista recorta en línea (`overflow-x: clip`) y ninguna transición existe.
+- **Lista de medida con `overflow: clip`** (auditoría, hallazgo 2): sus niveles en sus mínimos desbordan cuando la etapa probada no cabe, y ese desbordamiento invisible ensanchaba la página (scroll horizontal a 320px). El recorte no cambia los anchos que mide bruno.
 - **`forced-colors`:** actual subrayado (fila, divulgación y escalera); puerta, «Subir» y divulgación con borde `ButtonText`; puerta abierta `Highlight`/`HighlightText` con `forced-color-adjust: none`; paneles con borde `CanvasText`; barra del escalón actual `CanvasText` sobre las demás `Canvas`; guías `GrayText`.
 - **#383:** ningún selector toma hijos por estructura; los `:has(> …)` y `>` nombran siempre clases propias. `:first-child` solo entre los `li` de la lista (las pistas van fuera del `ol`).
 
@@ -135,6 +136,6 @@ Además de «Clases y datos» del contrato:
 
 ## Lo que NO se verificó
 
-- El **componente real** (`GBreadcrumbs.vue` aún no existe): lo hará la auditoría (paso 5) en `design/lab/breadcrumbs/auditoria.md`, con la medida por lotes de bruno, la pista visual del motor real, el slot `link` y `panel-estable.spec.mjs`.
+- El **componente real**: hecho en la auditoría (paso 5), `design/lab/breadcrumbs/auditoria.md`, con la medida por lotes de bruno, la pista visual del motor real y el slot `link`.
 - La **pista visual** (modo visual de `GTooltip`) sobre lo recortado, la raíz en solo icono, «Subir», la divulgación y la puerta: no se emula en el banco.
 - `forced-colors` en Firefox y WebKit (Playwright no los emula); Windows con contraste alto real; Safari e iOS/Android reales (toque, pulsación larga); lector de pantalla; nombres CJK e IME; texto agrandado por el usuario (no zoom) con `space` en px.

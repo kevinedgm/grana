@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBreadcrumbs · banco de auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre el COMPONENTE REAL: GBreadcrumbs, GBadge y GDialog de dist/grana.umd.js (global Grana,
+     paquete principal, #490) con dist/grana.css + dist/fonts.css (el CSS y la fuente tal como se publican). Mismos casos que
+     el banco de estilo (estilo-banco.html), ahora con la medida por lotes, data-clipped, is-ready, la cara de B, los paneles
+     (placeBlock, #358), la pista visual del motor del tooltip y la regla de subir o bajar de GBreadcrumbs.vue. El caso va en
+     `id` (llega a la raíz nav por $attrs). Secciones nuevas respecto del banco de estilo: barrido de ancho (sustituye a las
+     etapas forzadas, que el real no admite), slot link con un RouterLink simulado, dentro de un GDialog y una puerta al pie
+     del visor con hijos largos (lado del panel). Iconos: createIcons con las cadenas de lucide-static del playground.
+     Desde la raíz del repo:  python3 -m http.server 4215  →  /design/lab/breadcrumbs/auditoria-banco.html
+     Parámetros: ?dark=1  ?theme=auditoria (auditoria-tema.css, @grana/cli)  ?theme=propio (estilo-tema.css)
+                 ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)  ?text=200
+     Verificación: GRANA_PW_PORT=4215 node design/lab/breadcrumbs/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:36px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tag{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--g-color-text-muted);margin:0 0 2px}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools label{display:inline-flex;gap:4px;align-items:center}
+  .tools select,.tools button,.spa button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4) var(--g-space-5);min-inline-size:0}
+  .frame{max-inline-size:100%;margin-block-end:12px}
+  .frame > .box{outline:1px dotted var(--g-color-border-strong);outline-offset:2px}
+  .on-bg{background:none;border:0;padding:0}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .hdr{display:flex;align-items:center;gap:var(--g-space-3);overflow:hidden;block-size:56px;padding-inline:var(--g-space-4);background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-lg)}
+  .hdr .g-breadcrumbs{flex:1 1 0}
+  .spa{display:flex;gap:8px;margin-block:8px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GBreadcrumbs · banco de auditoría</h1>
+<p class="cap"><b>coco</b> · paso 5 sobre el componente real (<code>dist/grana.umd.js</code>). Tabula para ver el despliegue por foco y la pista de lo recortado; pasa el puntero por una pastilla o una puerta (350 ms).</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (@grana/cli)</option><option value="propio">Propio del estilo</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label><input type="checkbox" v-model="slow"> Lento (×5)</label>
+  <span class="tag" id="nav-log">{{ log }}</span>
+</div>
+
+<h2 class="b">1 · Etapas por ancho, sin puertas</h2>
+<div class="host">
+  <div class="frame" v-for="w in [1100, 720, 560, 480, 400, 320, 260, 240]" :key="w" :style="{ inlineSize: w + 'px' }"><p class="tag">p{{ w }} · {{ w }}px</p><div class="box"><g-breadcrumbs :id="'p' + w" :items="PLAIN" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">2 · Etapas por ancho, con puertas</h2>
+<div class="host">
+  <div class="frame" v-for="w in [1100, 720, 560, 400, 320]" :key="w" :style="{ inlineSize: w + 'px' }"><p class="tag">d{{ w }} · {{ w }}px</p><div class="box"><g-breadcrumbs :id="'d' + w" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">3 · La puerta en reposo, al pasar y abierta</h2>
+<div class="host">
+  <div class="frame" style="inline-size:1100px"><p class="tag">door</p><div class="box"><g-breadcrumbs id="door" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:1100px"><p class="tag">door-open</p><div class="box"><g-breadcrumbs id="door-open" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">4 · Pastillas frente a GBadge</h2>
+<div class="host"><div class="row">
+  <div class="frame" style="inline-size:400px"><div class="box"><g-breadcrumbs id="chip" :items="PLAIN" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+  <div class="row" id="badges"><g-badge color="neutral" variant="soft">Laborat…</g-badge><g-badge color="accent" variant="soft">Muestra M-0007</g-badge><g-badge color="neutral">Borrador</g-badge></div>
+</div></div>
+
+<h2 class="b">5 · La cara de B y la escalera</h2>
+<div class="host">
+  <div class="frame" style="inline-size:260px"><p class="tag">face260</p><div class="box"><g-breadcrumbs id="face260" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:240px"><p class="tag">face240</p><div class="box"><g-breadcrumbs id="face240" :items="PLAIN" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:260px"><p class="tag">face-noup</p><div class="box"><g-breadcrumbs id="face-noup" :items="NOUP" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">6 · RTL (bloque dir="rtl" en página LTR)</h2>
+<div class="host" dir="rtl" lang="he">
+  <div class="frame" v-for="w in [720, 320, 260]" :key="w" :style="{ inlineSize: w + 'px' }"><div class="box"><g-breadcrumbs :id="'rtl' + w" :items="HEB" :labels="LH" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">7 · Bajar y subir (SPA)</h2>
+<div class="host">
+  <div class="spa"><button type="button" id="spa-down" @click="down">Bajar un nivel</button><button type="button" id="spa-up" @click="up">Subir un nivel</button></div>
+  <div class="frame" style="inline-size:720px"><div class="box"><g-breadcrumbs id="spa" :items="spa" :labels="L" @navigate="nav"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">8 · En una cabecera con overflow: hidden</h2>
+<div class="hdr"><g-breadcrumbs id="hdr" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs><button type="button">Menú</button></div>
+
+<h2 class="b">9 · Un nivel, dos niveles, nombres largos, sobre el fondo de la página</h2>
+<div class="host">
+  <div class="frame" style="inline-size:720px"><div class="box"><g-breadcrumbs id="one" :items="[{ label: 'Panel de control de muestras', href: '#panel' }]" :labels="L"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:720px"><div class="box"><g-breadcrumbs id="two" :items="PLAIN.slice(0, 2)" :labels="L"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:1100px"><div class="box"><g-breadcrumbs id="long" :items="LONG" :labels="L"></g-breadcrumbs></div></div>
+  <div class="frame" style="inline-size:120px"><div class="box"><g-breadcrumbs id="one-narrow" :items="[{ label: 'Panel de control de muestras', href: '#panel' }]" :labels="L"></g-breadcrumbs></div></div>
+</div>
+<div class="host on-bg" style="margin-top:12px"><div class="frame" style="inline-size:720px"><div class="box"><g-breadcrumbs id="bg720" :items="DOORS" :labels="L"></g-breadcrumbs></div></div></div>
+
+<h2 class="b">10 · Barrido de ancho (alto Δ0 entre etapas)</h2>
+<div class="host">
+  <div class="frame" id="sweep-frame" style="inline-size:1100px"><div class="box"><g-breadcrumbs id="sweep" :items="DOORS" :labels="L"></g-breadcrumbs></div></div>
+  <div class="frame" id="sweep-p-frame" style="inline-size:1100px"><div class="box"><g-breadcrumbs id="sweep-p" :items="PLAIN" :labels="L"></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">11 · Slot link (RouterLink simulado)</h2>
+<div class="host">
+  <div class="frame" style="inline-size:560px"><div class="box"><g-breadcrumbs id="slot" :items="DOORS" :labels="L" @navigate="nav"><template #link="{ item, attrs, content }"><fake-link :to="item.href" v-bind="attrs"><component :is="content"></component></fake-link></template></g-breadcrumbs></div></div>
+</div>
+
+<h2 class="b">12 · Dentro de un GDialog</h2>
+<div class="host"><button type="button" id="dlg-open" @click="dlg = true">Abrir diálogo</button></div>
+<g-dialog v-model="dlg" title="Muestra M-0007" description="Esc cierra la puerta abierta y no el diálogo." close-label="Cerrar" size="md">
+  <g-breadcrumbs id="dlg" :items="DOORS" :labels="L" @navigate="nav"></g-breadcrumbs>
+</g-dialog>
+
+<h2 class="b">13 · Una puerta al pie del visor con hijos largos (lado del panel)</h2>
+<div class="host"><div class="frame" style="inline-size:720px"><div class="box"><g-breadcrumbs id="low" :items="LOW" :labels="L" @navigate="nav"></g-breadcrumbs></div></div></div>
+<div style="block-size:60vh"></div>
+</main>
+
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const { createApp, ref, reactive, watch, h } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const L = { nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}', children: 'Otras páginas en {label}' }
+const LH = { nav: 'נתיב ניווט', up: 'למעלה אל {label}', path: 'הנתיב עד {label}', children: 'דפים נוספים ב{label}' }
+const lotes = ['0409', '0410', '0411', '0412', '0413', '0414'].map((n) => ({ label: 'Lote 2026-' + n, href: '#lote-' + n }))
+const muestras = ['M-0006', 'M-0007', 'M-0008'].map((n) => ({ label: 'Muestra ' + n, href: '#' + n.toLowerCase() }))
+const PLAIN = [
+  { label: 'Inicio', href: '#inicio', icon: 'house' },
+  { label: 'Laboratorio central', href: '#lab' },
+  { label: 'Muestras', href: '#muestras' },
+  { label: '2026' },
+  { label: 'Lote 2026-0412', href: '#lote-0412' },
+  { label: 'Muestra M-0007', href: '#m-0007' }
+]
+const DOORS = [
+  { ...PLAIN[0], children: [{ label: 'Laboratorio central', href: '#lab' }, { label: 'Laboratorio norte', href: '#norte' }, { label: 'Archivo histórico de muestras y expedientes clínicos', href: '#archivo' }, { label: 'Sin página' }] },
+  { ...PLAIN[1], children: [{ label: 'Muestras', href: '#muestras' }, { label: 'Equipos', href: '#equipos' }, { label: 'Personal', href: '#personal' }] },
+  { ...PLAIN[2] },
+  { ...PLAIN[3], children: lotes },
+  { ...PLAIN[4], children: muestras },
+  { ...PLAIN[5] }
+]
+const HEB = [
+  { label: 'בית', href: '#bait', icon: 'house', children: [{ label: 'מעבדה מרכזית', href: '#lab' }, { label: 'מעבדה צפונית', href: '#north' }] },
+  { label: 'מעבדה מרכזית', href: '#lab' },
+  { label: 'דגימות', href: '#samples' },
+  { label: '2026', children: lotes.slice(2, 5) },
+  { label: 'אצווה 2026-0412', href: '#lote-0412' },
+  { label: 'דגימה M-0007', href: '#m-0007' }
+]
+const LONG = [
+  { label: 'Inicio', href: '#inicio', icon: 'house' },
+  { label: 'Expedientes clínicos de pacientes del programa regional de vigilancia', href: '#exp' },
+  { label: 'Paciente 00412 · Hernández de la Garza, María Guadalupe', href: '#p' },
+  { label: 'Estudio de seguimiento posterior al tratamiento con anticoagulantes orales', href: '#e' }
+]
+const NOUP = [{ label: 'Archivo' }, { label: 'Carpeta sin página' }, { label: 'Documento final', href: '#doc' }]
+// Hijos con nombres que se parten en varias líneas: el alto previsto (un enlace por hijo) se queda corto
+const LONGKIDS = ['Expedientes clínicos del programa regional de vigilancia epidemiológica', 'Protocolos de seguimiento posteriores al tratamiento con anticoagulantes', 'Bitácora de calibración de los equipos de cromatografía y espectrometría', 'Archivo histórico de lotes rechazados por control de calidad externo']
+const LOW = [{ label: 'Inicio', href: '#inicio', icon: 'house', children: LONGKIDS.map((l, i) => ({ label: l, href: '#k' + i })) }, { label: 'Expedientes', href: '#k0' }, { label: 'Paciente 00412', href: '#p412' }]
+const EXTRA = [...PLAIN, { label: 'Alícuota A-3', href: '#a3' }]
+
+// RouterLink simulado: recibe attrs (href, class, aria-*, onClick) y navega en su propio onClick
+const FakeLink = { inheritAttrs: false, props: { to: String }, setup(p, { slots, attrs }) { return () => h('a', { ...attrs, href: p.to, 'data-fake-router': '', onClick: (e) => { e.preventDefault(); attrs.onClick && attrs.onClick(e) } }, slots.default && slots.default()) } }
+
+const app = createApp({
+  setup() {
+    const q = new URLSearchParams(location.search)
+    const slow = ref(q.has('slow'))
+    const applySlow = (x) => { $('#slow-css').textContent = (x ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '') + (q.get('text') ? `html{font-size:${q.get('text')}%}` : '') }
+    applySlow(slow.value); watch(slow, applySlow)
+    const spa = ref(PLAIN.slice(0, 4))
+    const down = () => { const n = spa.value.length; if (EXTRA[n]) spa.value = [...spa.value, EXTRA[n]] }
+    const up = () => { if (spa.value.length > 1) spa.value = spa.value.slice(0, -1) }
+    const log = ref('—')
+    window.__navs = []
+    const nav = (p) => { p.event.preventDefault(); window.__navs.push({ from: p.from, index: p.index, label: p.item.label, prevented: p.event.defaultPrevented }); log.value = `${p.from} → ${p.item.label}` }
+    const dlg = ref(false)
+    window.__spa = { down, up, set: (v) => { spa.value = v }, get: () => spa.value }
+    window.__dlg = dlg
+    return { slow, L, LH, PLAIN, DOORS, HEB, LONG, NOUP, LOW, spa, down, up, nav, log, dlg }
+  }
+})
+app.component('fake-link', FakeLink)
+app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (x) => { $('#gen').href = x === 'auditoria' ? 'auditoria-tema.css' : x === 'propio' ? 'estilo-tema.css' : x ? '../tema-oscuro/dark-color-presence/generated/' + x + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const q = new URLSearchParams(location.search)
+const th = q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = q.get('dark') ? 'dark' : 'light'
+// Listo: fuentes, tema y todas las raíces con is-ready (el .vue mide y lo pone un cuadro después)
+const ready = () => document.fonts.ready.then(raf2).then(raf2).then(async () => {
+  for (let k = 0; k < 60 && [...document.querySelectorAll('.g-breadcrumbs')].some((r) => !r.classList.contains('is-ready')); k++) await raf2()
+  await raf2()
+  document.documentElement.dataset.ready = '1'
+})
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>

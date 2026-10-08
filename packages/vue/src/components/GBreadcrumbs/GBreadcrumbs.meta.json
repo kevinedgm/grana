@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GBreadcrumbs",
   "tag": "g-breadcrumbs",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Migas de pan: dicen dónde está la página en una jerarquía y dejan subir a cualquier nivel. Forma A «Ruta líquida» (todos los niveles en una fila que se aprieta por prioridad; un nombre recortado se vuelve pastilla y el actual es la pastilla de acento), con la cara de B «Escalón» como última etapa («Subir · página» con la ruta entera como escalera) y las puertas de C cuando la aplicación da children (el separador abre los hermanos del nivel siguiente). Enlaces de verdad (<a href>) con navigate cancelable y slot link para un router; pistas del motor del tooltip en modo visual sobre lo recortado.",
   "contract": "design/contracts/breadcrumbs.md",

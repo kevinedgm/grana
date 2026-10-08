@@ -250,7 +250,7 @@ for (const engine of ENGINES) {
         o[id] = { stage: n.dataset.stage, n: n.querySelectorAll('.g-breadcrumbs__list > .g-breadcrumbs__item').length, tab: [...n.querySelectorAll('.g-breadcrumbs__list a[href], .g-breadcrumbs__list button, .g-breadcrumbs__face a, .g-breadcrumbs__face button')].filter((x) => !x.closest('[popover]')).length, out: out.length, h: r.height, rootHalf: !!(rl && !root.classList.contains('is-icon') && rl.scrollWidth > rl.clientWidth + 1), minTarget: Math.min(...targets), ready: n.classList.contains('is-ready'), overflowX: getComputedStyle(n.querySelector('.g-breadcrumbs__list, .g-breadcrumbs__face')).overflowX }
       }
       o.forced = ['f-liquid', 'f-root-icon', 'f-shrink', 'f-step'].map((id) => R(nav(id)).height)
-      o.hExpect = px('max(24px, calc(var(--g-space-1) * 7))')
+      o.hExpect = px('max(24px, calc(var(--g-space-1) * 7), var(--g-text-body-sm-line))')
       // Pastillas: fondo solo si recorta; actual de acento
       const chip = ['chip', 'p560', 'p720', 'd1100'].map(nav).find((n) => n.querySelector('.g-breadcrumbs__item[data-clipped]:not(.is-current)'))
       o.chips = [...chip.querySelectorAll('.g-breadcrumbs__list > .g-breadcrumbs__item')].map((li) => ({ clipped: li.hasAttribute('data-clipped'), cur: li.classList.contains('is-current'), icon: li.classList.contains('is-icon'), bg: getComputedStyle(li.querySelector('.g-breadcrumbs__link')).backgroundColor }))

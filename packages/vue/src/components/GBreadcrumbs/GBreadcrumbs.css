@@ -15,14 +15,16 @@
 /* ---------- Raíz: el ancho lo da el contenedor, nunca el contenido (si dependiera de la etapa, la etapa se atascaría) ---------- */
 .g-breadcrumbs {
   --_bc-dir: 1;
-  /* Alto de la fila Y de la cara de B: el mismo valor en las cuatro etapas (Δ0, #495) */
-  --_bc-h: max(24px, calc(var(--g-space-1) * 7));
+  /* Alto de la fila Y de la cara de B: el mismo valor en las cuatro etapas (Δ0, #495). Crece con su línea de texto
+     (texto agrandado, temas de espacio pequeño): así la raíz en solo icono sigue siendo un círculo (auditoría, hallazgo 1) */
+  --_bc-h: max(24px, calc(var(--g-space-1) * 7), var(--g-text-body-sm-line));
   --_bc-target: 24px;
   --_bc-pad: calc(var(--g-space-1) * 2);
   --_bc-gap: var(--g-space-1);
-  /* Separador: 1em de chevron + space × 0,5 a cada lado; puerta: un hueco redondo de space × 6 */
+  /* Separador: 1em de chevron + space × 0,5 a cada lado; puerta: un hueco redondo de space × 6 que nunca es más pequeño
+     que su chevron + space a cada lado (con el texto agrandado el chevron de 1em crece; auditoría, hallazgo 1) */
   --_bc-sep: calc(1em + var(--g-space-1));
-  --_bc-door: max(24px, calc(var(--g-space-1) * 6));
+  --_bc-door: max(24px, calc(var(--g-space-1) * 6), calc(1em + var(--g-space-1) * 2));
   position: relative;
   display: block;
   box-sizing: border-box;
@@ -58,11 +60,14 @@
 /* Primer pintado sin medir (SSR): la fila recorta su desbordamiento en línea hasta is-ready; después nada desborda */
 .g-breadcrumbs:not(.is-ready) > .g-breadcrumbs__list { overflow-x: clip; }
 /* Lista de medida de bruno (aria-hidden, inert): misma geometría, fuera de la vista y del puntero. Lleva su propio
-   data-stage (la etapa que se prueba), que no es la de la raíz */
+   data-stage (la etapa que se prueba), que no es la de la raíz. Recorta lo que no cabe: sus niveles en sus mínimos
+   desbordan cuando la etapa no cabe, y un desbordamiento invisible también ensancha la página (scroll horizontal a 320px,
+   1.4.10; auditoría, hallazgo 2). El recorte no cambia los anchos que mide */
 .g-breadcrumbs__measure {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
+  overflow: clip;
   visibility: hidden;
   pointer-events: none;
 }
@@ -414,9 +419,9 @@
 /* ---------- Puntero grueso: cada destino ≥ 44 × 44 (la pastilla crece hasta ese mínimo; la fila y la cara, también) ---------- */
 @media (pointer: coarse) {
   .g-breadcrumbs {
-    --_bc-h: max(44px, calc(var(--g-space-1) * 7));
+    --_bc-h: max(44px, calc(var(--g-space-1) * 7), var(--g-text-body-sm-line));
     --_bc-target: 44px;
-    --_bc-door: 44px;
+    --_bc-door: max(44px, calc(1em + var(--g-space-1) * 2));
   }
   .g-breadcrumbs__panel .g-breadcrumbs__link,
   .g-breadcrumbs__stair .g-breadcrumbs__link { min-block-size: 44px; }
