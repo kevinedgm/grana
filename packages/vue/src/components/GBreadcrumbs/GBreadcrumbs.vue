@@ -229,11 +229,27 @@ export default defineComponent({
       const u = spaceUnit(root.value)
       const below = window.innerHeight - a.bottom - u * 3
       const guess = panel.children.length * Math.max(24, u * 8) + u * 4
-      panel.setAttribute('data-side', guess > below && a.top - u * 3 > below ? 'top' : 'bottom')
+      const guessed = guess > below && a.top - u * 3 > below ? 'top' : 'bottom'
+      panel.setAttribute('data-side', guessed)
       setVar(panel, '--_x', px(a.left))
       setVar(panel, '--_y', px(a.bottom + u))
       try { panel.showPopover() } catch { /* sin popover o ya abierto */ }
       place(true)
+      // Si la estimación falló, @starting-style ya se resolvió con el lado estimado y cambiar data-side no reinicia la
+      // transición: se cierra y se vuelve a abrir en la misma tarea (sin cuadro intermedio, sin parpadeo) con el lado
+      // medido. El cierre va sin transición (la de display/overlay mantendría el estilo calculado) y la lectura de
+      // offsetWidth fuerza el estilo cerrado, para que la nueva entrada parta de @starting-style con el lado real
+      if (cur && cur.panel === panel && cur.side !== guessed) {
+        const prev = panel.style.transition
+        try {
+          panel.style.transition = 'none'
+          panel.hidePopover()
+          void panel.offsetWidth
+          panel.style.transition = prev
+          panel.showPopover()
+        } catch { panel.style.transition = prev }
+        place(true)
+      }
       listen()
     }
     function close(back) {

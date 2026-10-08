@@ -311,6 +311,50 @@ test.describe('GBreadcrumbs · puertas y escalera', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
+  // Hallazgo 3 de design/lab/breadcrumbs/auditoria.md: con hijos de varias líneas el alto previsto se queda corto; si el
+  // lado medido difiere del estimado, la entrada (@starting-style) debe partir del lado real, no del estimado
+  test('al pie del visor con hijos de varias líneas, el panel entra desde el lado del disparador', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { motion: 'no-preference' })
+    await page.evaluate(() => {
+      const KIDS = ['Expedientes clínicos del programa regional de vigilancia epidemiológica', 'Protocolos de seguimiento posteriores al tratamiento con anticoagulantes', 'Bitácora de calibración de los equipos de cromatografía y espectrometría', 'Archivo histórico de lotes rechazados por control de calidad externo']
+      const items = [{ label: 'Inicio', href: '#inicio', children: KIDS.map((l, i) => ({ label: l, href: '#k' + i })) }, { label: 'Expedientes', href: '#k0' }, { label: 'Paciente 00412', href: '#p412' }]
+      const host = document.createElement('div')
+      host.style.cssText = 'inline-size:720px;margin-block:1200px 2400px'
+      document.body.append(host)
+      const labels = { nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}', children: 'Otras páginas en {label}' }
+      Vue.createApp({ render: () => Vue.h(Grana.GBreadcrumbs, { id: 'bc-low', items, labels, onNavigate: (e) => e.preventDefault() }) }).use(Grana).mount(host)
+    })
+    await page.waitForSelector('#bc-low.is-ready')
+    const at = (room) => page.evaluate(async (room) => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+      const d = document.querySelector('#bc-low .g-breadcrumbs__door')
+      scrollBy(0, d.getBoundingClientRect().bottom - innerHeight + room)
+      await wait(120)
+      const p = document.getElementById(d.getAttribute('aria-controls'))
+      d.click()
+      const tr = p.getAnimations().find((a) => a.transitionProperty === 'translate')
+      const from = tr ? String(tr.effect.getKeyframes()[0].translate) : ''
+      await wait(400)
+      const pr = p.getBoundingClientRect(), dr = d.getBoundingClientRect()
+      const o = { room, side: p.dataset.side, from, placed: p.dataset.side === 'top' ? pr.bottom <= dr.top + 0.5 : pr.top >= dr.bottom - 0.5, inView: pr.top >= -0.5 && pr.bottom <= innerHeight + 0.5, open: p.matches(':popover-open') }
+      // Debajo, entra desde arriba (−space); encima, desde abajo (+space)
+      o.fromOk = !!from && (o.side === 'top' ? !/-/.test(from) : /-/.test(from))
+      d.click()
+      await wait(250)
+      return o
+    }, room)
+    const sides = []
+    for (const room of [140, 185, 230]) {
+      const o = await at(room)
+      sides.push(o.side)
+      expect(o, JSON.stringify(o)).toMatchObject({ open: true, placed: true, inView: true, fromOk: true })
+    }
+    // 185px es el caso en que la estimación falla (previsto bajo, real arriba): debe ir arriba
+    expect(sides[1]).toBe('top')
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+
   test('panel en la capa superior dentro de una cabecera con overflow: hidden', async ({ page }) => {
     const errs = await watchConsole(page)
     await open(page)
