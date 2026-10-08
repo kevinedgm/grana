@@ -1,0 +1,191 @@
+/* Prototipo de kiwi (empty-skeleton r01): geometría y estados con tokens del tema por defecto.
+   No es el CSS de coco: sirve para juzgar estructura, tiempos y forma. Solo var(--g-*) y alias --_*. */
+
+/* ───────────── Plantillas reales (lo que pinta la aplicación) ───────────── */
+.rows { list-style: none; margin: 0; padding: 0; display: grid }
+.row {
+  position: relative;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  gap: var(--g-space-3);
+  padding: var(--g-space-3) var(--g-space-4);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+}
+.row:last-child { border-block-end-color: transparent }
+.row-av {
+  display: grid; place-items: center;
+  inline-size: calc(var(--g-space-1) * 10); block-size: calc(var(--g-space-1) * 10);
+  border-radius: var(--g-radius-pill);
+  border: var(--g-border-width) solid transparent;
+  background: var(--g-color-accent-soft); color: var(--g-color-on-accent-soft);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight);
+}
+.row-main { min-inline-size: 0 }
+.row-title { color: var(--g-color-text); font-weight: var(--g-text-action-weight); text-decoration: none; border-radius: var(--g-radius-xs) }
+.row-title:hover { text-decoration: underline }
+.row-title:focus-visible, .ld:focus-visible, .e-act:focus-visible, .lab-btn:focus-visible, .lab-toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset)
+}
+.row-meta { display: block; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.row-status {
+  padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill);
+  border: var(--g-border-width) solid transparent;
+  background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); white-space: nowrap;
+}
+.row-new { margin-inline-start: var(--g-space-2); color: var(--g-color-accent-text); font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight) }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--g-space-3) }
+.tile-box { padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-surface) }
+.tile-label { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.tile-value { margin: var(--g-space-1) 0 0; font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); font-variant-numeric: tabular-nums }
+.tile-note { margin: var(--g-space-1) 0 0; color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line) }
+
+.detail h3 { margin: 0; font-family: var(--g-font-title); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight) }
+.detail p { margin: var(--g-space-2) 0 0; max-inline-size: 60ch }
+.detail dl { display: grid; grid-template-columns: auto 1fr; gap: var(--g-space-1) var(--g-space-4); margin: var(--g-space-3) 0 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.detail dt { color: var(--g-color-text-muted) }
+.detail dd { margin: 0 }
+
+/* ───────────── La región que carga (común) ───────────── */
+.ld { position: relative; display: block; border-radius: var(--g-radius-md) }
+.ld:focus { outline: none }
+.ld[data-phase="pending"] .ld-ghost { visibility: hidden } /* reserva el sitio, aún no se ve (retraso) */
+.ld-live, .sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+.ld [inert] { cursor: progress }
+
+/* ───────────── Base: rectángulos convencionales, quietos ───────────── */
+/* Tono opaco derivado del tema: con un color con alfa, las decoraciones que se solapan se oscurecen */
+.ld { --_tone: color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface)) }
+.sk { display: block; inline-size: var(--w); block-size: var(--g-space-3); border-radius: var(--g-radius-pill); background: var(--_tone) }
+.sk-row { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--g-space-3); padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid transparent }
+/* Cada barra vive en una caja de línea real (como GSummary): el esqueleto mide lo que medirá el texto */
+.sk-line { display: block; font-size: var(--g-text-body-size); line-height: var(--g-text-body-line) }
+.sk-line > .sk { block-size: calc(1lh - var(--g-space-2)); margin-block: var(--g-space-1) }
+.sk-line--sm { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.sk-line--cap { font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line) }
+.sk-line--lg { font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line) }
+.sk-line--title { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line) }
+.sk-circle { inline-size: calc(var(--g-space-1) * 10); block-size: calc(var(--g-space-1) * 10) }
+.sk-lines { display: grid }
+.sk-tile { display: grid; gap: var(--g-space-1) }
+.sk-card { display: grid; gap: var(--g-space-1) }
+
+/* Vacío convencional: icono + título + texto + botón, centrado */
+.e-poster { display: grid; justify-items: center; gap: var(--g-space-2); padding: var(--g-space-8) var(--g-space-4); text-align: center }
+.e-poster .e-icon { display: grid; place-items: center; inline-size: calc(var(--g-space-1) * 12); block-size: calc(var(--g-space-1) * 12); border-radius: var(--g-radius-pill); background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft); font-size: var(--g-space-6) }
+.e-title { margin: 0; font-weight: var(--g-text-action-weight) }
+.e-desc { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 46ch }
+.e-actions { display: flex; flex-wrap: wrap; gap: var(--g-space-2); justify-content: center; margin-block-start: var(--g-space-2) }
+
+/* Espera larga, común: texto visible (quien dice «cargando» con contraste) */
+.ld-slow { display: none; position: absolute; z-index: 2; inset-inline: 0; inset-block-end: 0; margin: 0; padding: var(--g-space-2) var(--g-space-4); border-block-start: var(--g-border-width) solid var(--g-color-border); border-end-start-radius: var(--g-radius-md); border-end-end-radius: var(--g-radius-md); background: var(--g-color-surface); color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.ld[data-slow] .ld-slow { display: block }
+[data-c="C"] .ld-slow { display: none !important } /* en C lo dice la propia frase */
+
+/* ───────────── A · Molde: la plantilla real sin tinta ───────────── */
+.mold :where(*), .mold {
+  color: transparent !important;
+  background-color: transparent !important;
+  border-color: var(--_tone) !important;
+  box-shadow: none !important;
+  text-decoration-line: none !important;
+  text-shadow: none !important;
+  cursor: progress;
+}
+/* La barra solo en las hojas (elementos sin hijos): una decoración puesta en un contenedor se propaga a todo
+   su texto y ningún descendiente puede quitarla */
+.mold :where(:not(:has(*))) {
+  text-decoration-line: line-through !important;
+  text-decoration-color: var(--_tone) !important;
+  text-decoration-thickness: 0.72em !important;
+  text-decoration-skip-ink: none !important;
+}
+.mold :where(img, svg, video, canvas) { visibility: hidden }
+/* Lo que ya se sabe (el rótulo de una tesela) conserva la tinta: el molde solo cubre lo que falta */
+.mold .known { color: var(--g-color-text-muted) !important; text-decoration-line: none !important }
+.say .tile-label + .say-line { padding: var(--g-space-1) 0 0 }
+.mold .row { border-block-end-color: var(--g-color-border) !important }
+.reveal :where(:not(:has(*))) { text-decoration-line: line-through; text-decoration-thickness: 0.72em; text-decoration-skip-ink: none; text-decoration-color: transparent }
+.reveal :where(*) {
+  transition: color var(--g-duration-slow) var(--g-ease-out), text-decoration-color var(--g-duration-slow) var(--g-ease-out),
+              background-color var(--g-duration-slow) var(--g-ease-out), border-color var(--g-duration-slow) var(--g-ease-out);
+}
+
+/* Vacío de A: el primer hueco, con la forma de un elemento */
+.e-slot {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--g-space-3);
+  min-block-size: var(--_slot, auto);
+  margin: var(--g-space-2);
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) dashed var(--g-color-border-strong); border-radius: var(--g-radius-md);
+}
+.e-slot .e-icon { display: grid; place-items: center; inline-size: calc(var(--g-space-1) * 10); block-size: calc(var(--g-space-1) * 10); border-radius: var(--g-radius-pill); border: var(--g-border-width) dashed var(--g-color-border-strong); color: var(--g-color-text-muted); font-size: var(--g-space-5) }
+.e-slot .e-actions { margin: 0; justify-content: flex-end }
+.e-slot[data-cause="error"] .e-icon { color: var(--g-color-danger-text); border-color: currentColor }
+.tiles .e-slot { margin: 0 }
+
+/* ───────────── B · Lo último conocido ───────────── */
+.ld[data-phase="stale"] > .ld-content { filter: saturate(0) }
+.ld[data-phase="stale"]::before {
+  content: ""; position: absolute; z-index: 1; inset-inline: 0; inset-block-start: 0;
+  block-size: calc(var(--g-border-width) * 2); border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent);
+}
+.b-pill {
+  position: absolute; z-index: 2; inset-block-start: 0; inset-inline-end: var(--g-space-4); translate: 0 -50%; /* sobre el filo, sin tapar contenido */
+  display: inline-flex; align-items: center; gap: var(--g-space-1);
+  padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-soft); color: var(--g-color-on-accent-soft);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight);
+}
+.ld:not([data-phase="stale"]) > .b-pill { display: none }
+.row[data-new]::before {
+  content: ""; position: absolute; inset-block: var(--g-space-2); inset-inline-start: 0;
+  inline-size: calc(var(--g-border-width) * 3); border-radius: var(--g-radius-pill); background: var(--g-color-accent);
+}
+.b-fail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); margin: var(--g-space-2); padding: var(--g-space-2) var(--g-space-3); border-radius: var(--g-radius-md); background: var(--g-color-danger-soft); color: var(--g-color-on-danger-soft); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.b-fail p { margin: 0; flex: 1 1 16rem; color: var(--g-color-text) }
+.b-exit { display: grid; gap: var(--g-space-2); padding: var(--g-space-5) var(--g-space-4) }
+.b-exit .e-title { font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line) }
+.b-trace { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+.b-trace s { color: var(--g-color-text-subtle) }
+.b-exit .e-actions { justify-content: flex-start; margin: 0 }
+.b-count { margin-inline-start: var(--g-space-1); font-variant-numeric: tabular-nums; opacity: 1; color: inherit }
+
+/* ───────────── C · La frase ───────────── */
+.say { min-block-size: var(--_reserve, auto) }
+.say-line, .e-say {
+  margin: 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-1) var(--g-space-2);
+  padding: var(--g-space-3) var(--g-space-4);
+  color: var(--g-color-text-muted);
+}
+.say-icon { display: inline-grid; place-items: center; color: var(--g-color-accent-text) }
+.say-icon .g-icon { animation: ld-spin var(--g-duration-spin) linear 6 } /* finito: 4,8 s < 5 s (WCAG 2.2.2) */
+.ld[data-slow] .say-icon .g-icon { animation: none }
+.say-text { color: var(--g-color-text) }
+.e-say .e-tile { display: inline-grid; place-items: center; inline-size: calc(var(--g-space-1) * 8); block-size: calc(var(--g-space-1) * 8); border-radius: var(--g-radius-sm); background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft); font-size: var(--g-space-4) }
+.e-say[data-cause="error"] .e-tile { background: var(--g-color-danger-soft); color: var(--g-color-on-danger-soft) }
+.e-say p { margin: 0; flex: 1 1 18rem; color: var(--g-color-text) }
+.e-say .e-desc { display: inline; margin-inline-start: var(--g-space-1) }
+.e-say .e-actions { margin: 0 }
+@keyframes ld-spin { to { rotate: 1turn } }
+
+/* ───────────── Movimiento reducido (patrón único #299) ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal :where(*) { transition-duration: var(--g-duration-fast) }
+  .say-icon .g-icon { animation-duration: calc(var(--g-duration-spin) * 2.5); animation-iteration-count: 2 }
+}
+
+/* ───────────── Colores forzados ───────────── */
+@media (forced-colors: active) {
+  /* Sin esto, el sistema fuerza `color` y la muestra del molde se leería como texto real */
+  .mold, .mold :where(*) { forced-color-adjust: none }
+  .mold :where(*), .mold { color: transparent !important; border-color: GrayText !important }
+  .mold :where(:not(:has(*))) { text-decoration-color: GrayText !important }
+  .mold .known { color: CanvasText !important }
+  .sk { forced-color-adjust: none; background: GrayText }
+  .ld[data-phase="stale"]::before { forced-color-adjust: none; background: Highlight }
+  .row[data-new]::before { forced-color-adjust: none; background: Highlight }
+  .e-slot, .e-slot .e-icon { border-color: CanvasText }
+}

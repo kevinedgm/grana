@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vacío y carga · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./load.css">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:var(--g-space-3)}
+.lab-links a{color:var(--g-color-accent-text)}
+.lab-links a[aria-current]{font-weight:var(--g-text-action-weight);color:var(--g-color-text)}
+.lab{display:grid;gap:var(--g-space-6);max-inline-size:72rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-12)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 var(--g-space-2);font-family:var(--g-font-title);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:52rem;color:var(--g-color-text-muted)}
+.lab-how{margin:var(--g-space-2) 0 0;max-inline-size:52rem;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.lab-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2);font-size:var(--g-text-body-sm-size)}
+.lab-ctl .sep{inline-size:var(--g-space-4)}
+.lab-btn,.lab-toggle,.lab-ctl select{min-block-size:32px;padding:0 var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);color:var(--g-color-text);font:inherit;font-size:var(--g-text-body-sm-size);cursor:pointer}
+.lab-btn[aria-pressed="true"],.lab-toggle[aria-pressed="true"]{background:var(--g-color-accent-soft);color:var(--g-color-on-accent-soft);border-color:var(--g-color-accent-text);font-weight:var(--g-text-action-weight)}
+.lab-case{display:grid;gap:var(--g-space-3)}
+.case-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--g-space-2)}
+.lab-case h2,.lab-cmp h2{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.filters{display:flex;flex-wrap:wrap;gap:var(--g-space-2)}
+.frame{border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);background:var(--g-color-surface)}
+.frame--pad{padding:var(--g-space-4)}
+.after{margin:0;padding:var(--g-space-2) 0 0;color:var(--g-color-text-subtle);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line)}
+.lab-log{padding:var(--g-space-3) var(--g-space-4);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size)}
+.lab-log ol{margin:var(--g-space-2) 0 0;padding-inline-start:var(--g-space-5)}
+.lab-cmp{display:grid;gap:var(--g-space-3)}
+.lab-cmp .scroll{overflow-x:auto}
+.lab-cmp table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);min-inline-size:48rem}
+.lab-cmp th,.lab-cmp td{padding:var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-cmp thead th{color:var(--g-color-text-muted);font-weight:var(--g-text-action-weight)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Vacío y carga · r01</span>
+  <nav class="lab-links" aria-label="Conceptos de la ronda">
+    <a href="?c=base">Base</a><a href="?c=A">A · Molde</a><a href="?c=B">B · Lo último conocido</a><a href="?c=C">C · La frase</a><a id="rtl-link" href="?dir=rtl">Ver en RTL</a><a id="dark-link" href="?theme=dark">Tema oscuro</a>
+  </nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title" id="t-title"></h1>
+    <p class="lab-lead" id="t-lead"></p>
+    <p class="lab-how" id="t-how"></p>
+  </div>
+
+  <div class="lab-ctl" role="group" aria-label="Simulación">
+    <span>Latencia</span>
+    <button type="button" class="lab-btn" data-lat="100" aria-pressed="false">100 ms</button>
+    <button type="button" class="lab-btn" data-lat="250" aria-pressed="false">250 ms</button>
+    <button type="button" class="lab-btn" data-lat="900" aria-pressed="false">900 ms</button>
+    <button type="button" class="lab-btn" data-lat="6000" aria-pressed="false">6 s</button>
+    <span class="sep"></span>
+    <label for="out">La lista responde</label>
+    <select id="out">
+      <option value="data">con datos</option>
+      <option value="none">vacía (aún no hay datos)</option>
+      <option value="error">con error</option>
+      <option value="forbidden">sin permiso</option>
+    </select>
+    <span class="sep"></span>
+    <button type="button" class="lab-btn" id="go-load">Cargar todo de nuevo</button>
+    <button type="button" class="lab-btn" id="go-refresh">Refrescar la lista</button>
+    <button type="button" class="lab-btn" id="go-auto">Refresco automático en 1 s</button>
+  </div>
+
+  <section class="lab-case" aria-labelledby="c1-h">
+    <div class="case-head">
+      <h2 id="c1-h">1 · Muestras</h2>
+      <div class="filters" role="group" aria-label="Filtros de muestras">
+        <button type="button" class="lab-toggle" data-f-toggle="urg" aria-pressed="false">Urgentes</button>
+        <button type="button" class="lab-toggle" data-f-toggle="l13" aria-pressed="false">Lote 2026-0413</button>
+        <button type="button" class="lab-toggle" data-f-toggle="closed" aria-pressed="false">Cerradas</button>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="ld" id="list" role="group" aria-labelledby="c1-h" tabindex="-1"></div>
+    </div>
+    <p class="after" id="list-after">Pie de la sección (referencia para medir Δ)</p>
+  </section>
+
+  <section class="lab-case" aria-labelledby="c2-h">
+    <h2 id="c2-h">2 · Panel: tres teselas que cargan juntas (un anuncio)</h2>
+    <div class="tiles" role="group" aria-labelledby="c2-h">
+      <div class="ld tile-box" id="t1" role="group" aria-label="Muestras hoy" tabindex="-1"></div>
+      <div class="ld tile-box" id="t2" role="group" aria-label="Pendientes" tabindex="-1"></div>
+      <div class="ld tile-box" id="t3" role="group" aria-label="Tiempo medio" tabindex="-1"></div>
+    </div>
+    <p class="after" id="dash-after">Pie del panel</p>
+  </section>
+
+  <section class="lab-case" aria-labelledby="c3-h">
+    <h2 id="c3-h">3 · Ficha con texto libre</h2>
+    <div class="frame frame--pad">
+      <div class="ld" id="detail" role="group" aria-labelledby="c3-h" tabindex="-1"></div>
+    </div>
+    <p class="after" id="detail-after">Pie de la ficha</p>
+  </section>
+
+  <section class="lab-log" aria-labelledby="log-h">
+    <strong id="log-h">Lo que oye el lector (canal cortés compartido, últimos 8)</strong>
+    <ol id="log-list"></ol>
+  </section>
+
+  <section class="lab-cmp" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Comparativa</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Base</th><th scope="col">A · Molde</th><th scope="col">B · Lo último conocido</th><th scope="col">C · La frase</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Primera carga</th><td>Barras dibujadas por componente</td><td>La plantilla real sin tinta</td><td>Como la base</td><td>Una línea con la frase; alto reservado</td></tr>
+          <tr><th scope="row">Refresco</th><td>Lo de antes, luego barras</td><td>Lo de antes, luego su molde exacto</td><td><strong>Lo de antes sigue</strong>, inerte, con filo y «Actualizando»</td><td>Lo de antes, luego la frase</td></tr>
+          <tr><th scope="row">Llegada</th><td>Sustitución</td><td>La tinta aparece en las barras</td><td>Las nuevas, marcadas «Nueva»</td><td>Sustitución</td></tr>
+          <tr><th scope="row">Vacío</th><td>Póster centrado</td><td>El primer hueco, del tamaño de un elemento</td><td>La salida: cuántas había y cuántas vuelven por filtro</td><td>Una frase con acciones dentro</td></tr>
+          <tr><th scope="row">Error al refrescar</th><td>Vacío de error</td><td>Hueco de error</td><td><strong>Lo conocido se queda</strong>, con el fallo encima</td><td>Frase de error</td></tr>
+          <tr><th scope="row">Escribir un esqueleto</th><td>Sí, por plantilla</td><td><strong>No</strong>: lo da la plantilla</td><td>Solo para la primera carga</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<p id="ld-live" class="ld-live" aria-live="polite" aria-atomic="true"></p>
+<script src="../../lucide-icons.js"></script>
+<script>
+  // Página del laboratorio: textos por concepto, RTL y tema
+  const q = new URLSearchParams(location.search)
+  const c = ['base','A','B','C'].includes(q.get('c')) ? q.get('c') : 'base'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark'
+  const keep = (k, v) => { const p = new URLSearchParams(location.search); p.set(k, v); return '?' + p }
+  document.querySelectorAll('.lab-links a').forEach((a) => {
+    const t = new URLSearchParams(a.getAttribute('href'))
+    if (t.has('c')) { const p = new URLSearchParams(location.search); p.set('c', t.get('c')); a.href = '?' + p; if (t.get('c') === c) a.setAttribute('aria-current', 'page') }
+  })
+  document.getElementById('rtl-link').href = keep('dir', q.get('dir') === 'rtl' ? 'ltr' : 'rtl')
+  document.getElementById('rtl-link').textContent = q.get('dir') === 'rtl' ? 'Ver en LTR' : 'Ver en RTL'
+  document.getElementById('dark-link').href = keep('theme', q.get('theme') === 'dark' ? 'light' : 'dark')
+  const TXT = {
+    base: ['Base funcional', 'La forma convencional, a propósito: barras quietas dentro de cajas de línea reales y un vacío centrado. Lleva todo lo que no se discute: retraso de 200 ms, 400 ms mínimos a la vista, aria-busy, un canal cortés compartido, foco que nunca cae en body, Δ0 en lo de forma conocida y vacío con causa.', 'Prueba 100 ms (no se ve nada ni se anuncia «cargando»), 250 ms (se ve 400 ms) y 6 s (a los 5 s aparece el texto «Sigue cargando»). Cambia la respuesta de la lista y usa los filtros.'],
+    A: ['A · Molde', 'No hay esqueleto que dibujar: la región pinta la plantilla real de la aplicación con datos de muestra (o con los últimos que llegaron) y le quita la tinta. Cada línea de texto es una barra de su largo real, las cajas quedan en contorno, lo que ya se sabe conserva la tinta. Al llegar, la tinta aparece sobre las barras.', 'Fíjate en la ficha: el párrafo se parte en las mismas líneas que el texto. El vacío no es un póster: es el primer hueco de la lista, del tamaño de un elemento.'],
+    B: ['B · Lo último conocido', 'Nada se queda en blanco si ya se vio algo: al refrescar, lo de antes sigue a la vista, inerte, con un filo de acento y «Actualizando». Lo nuevo llega marcado. Si falla, lo conocido se queda con el fallo encima. El vacío por filtro dice cuántas había y cuántas vuelven al quitar cada filtro.', 'Pulsa «Refrescar la lista» con 900 ms, activa «Cerradas» para vaciarla, y elige «con error» y refresca.'],
+    C: ['C · La frase', 'Sin formas inventadas: la carga se dice con una línea en las palabras de la aplicación, en el sitio del primer elemento, con el alto reservado. El giro se para a los 5 s y la frase cambia a «Sigue cargando». El vacío es una frase con sus acciones dentro: lo que se ve es lo que se oye.', 'Prueba 6 s y los cuatro vacíos con el selector.']
+  }
+  document.getElementById('t-title').textContent = TXT[c][0]
+  document.getElementById('t-lead').textContent = TXT[c][1]
+  document.getElementById('t-how').textContent = TXT[c][2]
+</script>
+<script src="./load.js"></script>
+</body>
+</html>
