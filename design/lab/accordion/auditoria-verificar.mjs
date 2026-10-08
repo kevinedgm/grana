@@ -670,12 +670,13 @@ for (const engine of ENGINES) {
       const d = await page.evaluate((id) => {
         const L = window.__lib, item = document.getElementById(id), body = item.closest('.g-dialog__body'), h = item.querySelector(':scope > .g-accordion-item__heading'), g = item.closest('.g-accordion')
         body.scrollTop = 300
-        return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r({ top: h.getBoundingClientRect().top - body.getBoundingClientRect().top - parseFloat(getComputedStyle(body).borderTopWidth), v: getComputedStyle(item).getPropertyValue('--g-accordion-sticky-top').trim(), pad: g.style.getPropertyValue('--_scroll-pad'), bpad: getComputedStyle(body).paddingTop, bg: L.same(L.parse(getComputedStyle(h).backgroundColor), L.bgOf(body)), hb: getComputedStyle(h).backgroundColor, b: L.bgOf(body).map(Math.round).join(), sm: parseFloat(getComputedStyle(item.querySelector('.g-accordion-item__body p')).scrollMarginBlockStart), hh: h.getBoundingClientRect().height }))))
+        return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r({ top: h.getBoundingClientRect().top - body.getBoundingClientRect().top - parseFloat(getComputedStyle(body).borderTopWidth), v: getComputedStyle(item).getPropertyValue('--g-accordion-sticky-top').trim(), pad: g.style.getPropertyValue('--_scroll-pad'), bpad: getComputedStyle(body).paddingTop, bg: L.same(L.parse(getComputedStyle(h).backgroundColor), L.bgOf(body)), hb: getComputedStyle(h).backgroundColor, b: L.bgOf(body).map(Math.round).join(), sm: parseFloat(getComputedStyle(item.querySelector('.g-accordion-item__body p')).scrollMarginBlockStart), hh: h.getBoundingClientRect().height, lh: parseFloat(getComputedStyle(h).height), hv: parseFloat(item.style.getPropertyValue('--_head-size')) }))))
       }, id)
       T(Math.abs(d.top) <= 1 && d.v === '0px' && d.bg && d.pad === d.bpad, `${tag} ${id}: pegado al borde del cuerpo (${d.top.toFixed(1)}, ${d.v}, --_scroll-pad ${d.pad} = ${d.bpad}) con su fondo (${d.hb} / ${d.b})`)
-      // --_head-size medido durante la entrada con escala del GDialog (getBoundingClientRect con transformación): hallazgo 1
-      T(Math.abs(d.sm - d.hh) <= 3, `${tag} ${id}: scroll-margin del contenido ≈ encabezado (${d.sm} / ${d.hh})`)
-      if (Math.abs(d.sm - d.hh) > 0.5) note(`${E} HALLAZGO 1 · ${tag} ${id}: --_head-size ${d.sm}px frente a un encabezado de ${d.hh}px (−${(d.hh - d.sm).toFixed(2)}px)`)
+      // Hallazgo 1 (resuelto en 4343069, #517): --_head-size es el alto de maquetación del encabezado, aunque se mida durante
+      // la entrada con escala del GDialog (antes getBoundingClientRect: 58,2 para 60)
+      T(Math.abs(d.sm - d.lh) <= 0.05 && Math.abs(d.hv - d.lh) <= 0.05, `${tag} ${id}: --_head-size = alto de maquetación del encabezado (${d.hv} / scroll-margin ${d.sm} / maquetación ${d.lh} / caja ${d.hh.toFixed(2)})`)
+      note(`${E} ${tag} ${id}: --_head-size ${d.hv}px frente a un encabezado de ${d.lh}px de maquetación (caja ${d.hh.toFixed(2)}px)`)
       await page.keyboard.press('Escape'); await page.waitForTimeout(350)
     }
     await done(page)
