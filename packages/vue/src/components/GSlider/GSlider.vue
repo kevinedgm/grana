@@ -342,6 +342,46 @@ function measure() {
 }
 
 // ---------- Mínimo en una GFormRow (#453) ----------
+// Marcas con nombre (#509): cada nombre va centrado en el centro de la píldora en su valor, x = p/2 + f · (C − p), y el CSS
+// lo ajusta al borde del área cuando no cabe (borde izquierdo = clamp(x − w/2, 0, C − w)); entre nombres vecinos por valor
+// debe quedar `gap`. Se resuelve por posiciones (los intermedios también pueden tocar el borde): el menor ancho C que
+// cumple todos los pares, por bisección (la separación crece con el ancho)
+function marksMin(root, p, gap) {
+  const seen = new Set()
+  const list = []
+  for (const l of root.querySelectorAll('.g-slider__mark-label')) {
+    const f = parseFloat(l.parentElement && l.parentElement.style.getPropertyValue('--_at'))
+    if (!Number.isFinite(f) || seen.has(f)) continue
+    seen.add(f)
+    list.push({ f, w: l.getBoundingClientRect().width })
+  }
+  if (!list.length) return 0
+  list.sort((a, b) => a.f - b.f)
+  const widest = Math.max(...list.map((m) => m.w))
+  const fits = (C) => {
+    let prevRight = -Infinity
+    for (const m of list) {
+      const left = Math.min(Math.max(p / 2 + m.f * (C - p) - m.w / 2, 0), C - m.w)
+      if (left - prevRight < gap - 0.01) return false
+      prevRight = left + m.w
+    }
+    return true
+  }
+  let lo = Math.max(widest, p)
+  if (fits(lo)) return lo
+  let hi = lo * 2 + gap * list.length
+  for (let k = 0; k < 20 && !fits(hi); k++) hi *= 2
+  if (!fits(hi)) return hi
+  while (hi - lo > 0.5) {
+    const mid = (lo + hi) / 2
+    if (fits(mid)) hi = mid
+    else lo = mid
+  }
+  // El menor entero que cumple (se publica redondeado hacia arriba)
+  let c = Math.ceil(lo)
+  while (c < hi && !fits(c)) c++
+  return Math.min(c, Math.ceil(hi))
+}
 let published = 0
 function publishMin() {
   if (!layout || typeof layout.setIntrinsicMin !== 'function') return
@@ -350,12 +390,10 @@ function publishMin() {
   const unit = spaceUnit(root)
   let px = unit * 40
   if (pw.value) px = Math.max(px, (props.range ? 4 : 3) * pw.value)
-  const named = root.querySelectorAll('.g-slider__mark-label')
-  if (named.length) {
-    let sum = unit * 2 * (named.length - 1)
-    for (const l of named) sum += l.getBoundingClientRect().width
-    px = Math.max(px, sum)
-  }
+  // GFormRow admite 0,5px por debajo del mínimo publicado (TOL de formRowPlan): se suma para que el hueco entre nombres
+  // no baje de space × 2 en el ancho que la fila le dé
+  const marks = marksMin(root, pw.value, unit * 2)
+  if (marks) px = Math.max(px, marks + 0.5)
   px = Math.ceil(px)
   if (Math.abs(px - published) < 0.5) return
   published = px

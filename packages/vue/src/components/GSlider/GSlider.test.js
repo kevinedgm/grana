@@ -665,7 +665,36 @@ describe('GSlider · medida y fusión (B1, B2)', () => {
     const m = mount(defineComponent({ components: { Row, GSlider }, template: `<Row><GSlider label="D" :model-value="5" :max="10" locale="es" :marks="[{ value: 0, label: 'a' }, { value: 5, label: 'b' }, { value: 10, label: 'c' }]" /></Row>` }), { attachTo: document.body })
     mounted.push(m)
     await settle()
-    expect(calls.at(-1)[1]).toBe(Math.max(160, 3 * 50 + 2 * 8))
+    expect(calls.at(-1)[1]).toBe(Math.max(160, 3 * 50 + 2 * 8 + 1)) // + 0,5 de la tolerancia de GFormRow, hacia arriba
+  })
+
+  it('marcas con nombres desiguales: mínimo por pares vecinos (#509), no por suma; extremos pegados al borde', async () => {
+    // «Sin dolor» 80, «Moderado» 60, «El peor» 50, píldora 20, space 4 (gap 8): la suma daría 80 + 60 + 50 + 16 = 206 y
+    // dejaría 0px entre «Sin dolor» (pegado al inicio, 0–80) y «Moderado» (centrado en C/2). Por pares:
+    // C/2 − 30 − 80 ≥ 8 → C ≥ 236; (C − 50) − (C/2 + 30) ≥ 8 → C ≥ 176. Se publica + 0,5 (GFormRow admite 0,5px por debajo)
+    const W = { 'Sin dolor': 80, Moderado: 60, 'El peor': 50 }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      const w = this.classList?.contains('g-slider__area') ? 400 : this.classList?.contains('g-slider__pill') ? 20 : this.classList?.contains('g-slider__mark-label') ? W[this.textContent] : 0
+      return { left: 0, right: w, width: w, top: 0, bottom: 36, height: 36, x: 0, y: 0 }
+    })
+    const calls = []
+    const Row = defineComponent({ setup(_, { slots }) { provide(layoutKey, { block: true, setIntrinsicMin: (el, px) => calls.push([el, px]) }); return () => slots.default() } })
+    const m = mount(defineComponent({ components: { Row, GSlider }, template: `<Row><GSlider label="D" :model-value="5" :max="10" locale="es" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 5, label: 'Moderado' }, { value: 10, label: 'El peor' }]" /></Row>` }), { attachTo: document.body })
+    mounted.push(m)
+    await settle()
+    expect(calls.at(-1)[1]).toBe(237) // 236 + 0,5 (tolerancia de GFormRow), hacia arriba
+    // Una marca sin nombre no cuenta: «Sin dolor» (0–80) y «El peor» (C − 50) → C ≥ 138, por debajo de space × 40 = 160.
+    // Un intermedio cerca del final (0,9) con el último pegado: (C − 50) − (0,9·C + 22) ≥ 8 → C ≥ 800
+    calls.length = 0
+    const n = mount(defineComponent({ components: { Row, GSlider }, template: `<Row><GSlider label="D" :model-value="5" :max="10" locale="es" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 5 }, { value: 10, label: 'El peor' }]" /></Row>` }), { attachTo: document.body })
+    mounted.push(n)
+    await settle()
+    expect(calls.at(-1)[1]).toBe(160)
+    calls.length = 0
+    const o = mount(defineComponent({ components: { Row, GSlider }, template: `<Row><GSlider label="D" :model-value="5" :max="10" locale="es" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 9, label: 'Moderado' }, { value: 10, label: 'El peor' }]" /></Row>` }), { attachTo: document.body })
+    mounted.push(o)
+    await settle()
+    expect(calls.at(-1)[1]).toBe(801)
   })
 })
 

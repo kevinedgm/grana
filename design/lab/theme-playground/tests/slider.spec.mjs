@@ -260,27 +260,26 @@ test.describe('GSlider · componente real (slider.md)', () => {
       for (const s of row.querySelectorAll('.g-slider')) {
         const pw = parseFloat(getComputedStyle(s).getPropertyValue('--_pill-w')) || 0
         const labels = [...s.querySelectorAll('.g-slider__mark-label')]
-        const marks = labels.reduce((a, l) => a + l.getBoundingClientRect().width, 0) + (labels.length ? unit * 2 * (labels.length - 1) : 0)
-        const need = Math.max(unit * 40, pw * (s.classList.contains('g-slider--range') ? 4 : 3), marks)
+        const need = Math.max(unit * 40, pw * (s.classList.contains('g-slider--range') ? 4 : 3))
         const shared = kids.filter((k) => k.dataset.line === s.dataset.line).length > 1
-        // Nombres de marcas que se tocan
-        const r = labels.map((l) => l.getBoundingClientRect())
-        let touch = false
-        for (let k = 1; k < r.length; k++) if (r[k].left < r[k - 1].right - 0.5) touch = true
-        out.push({ w: s.getBoundingClientRect().width, need, shared, touch })
+        // Hueco entre nombres de marcas vecinos (#509: por pares, nunca menos de space × 2 en el ancho que da la fila)
+        const r = labels.map((l) => l.getBoundingClientRect()).sort((a, b) => a.left - b.left)
+        let gap = Infinity
+        for (let k = 1; k < r.length; k++) gap = Math.min(gap, r[k].left - r[k - 1].right)
+        out.push({ w: s.getBoundingClientRect().width, need, shared, gap, space2: unit * 2 })
       }
       return { lines: row.dataset.lines, out }
     })
     const bad = []
     let lastLines = null
     let split = false
-    for (let w = 1000; w >= 300; w -= 25) {
+    for (let w = 1000; w >= 300; w -= 5) {
       await page.evaluate((px) => { document.getElementById('sl-row2').closest('.g-form-layout').style.inlineSize = px + 'px' }, w)
       await settle(page)
       const p = await probe()
       for (const s of p.out) {
         if (s.shared && s.w < s.need - 1) bad.push(`${w}: ${s.w.toFixed(1)} < ${s.need.toFixed(1)} compartiendo línea`)
-        if (s.touch && w >= 340) bad.push(`${w}: nombres de marcas que se tocan`)
+        if (s.gap < s.space2 - 0.05 && w >= 340) bad.push(`${w}: hueco entre nombres ${s.gap.toFixed(2)} < space × 2 = ${s.space2}`)
       }
       if (lastLines && p.lines !== lastLines) split = true
       lastLines = p.lines
