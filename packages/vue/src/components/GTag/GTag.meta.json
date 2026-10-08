@@ -10,7 +10,7 @@
   "prototype": "design/lab/chip/r01/",
   "style": "packages/vue/src/components/GTag/GTag.css",
   "styleNotes": "design/lab/chip/estilo.md",
-  "entry": "@grana/vue (principal)",
+  "entry": "@grana/vue/tag",
   "composes": ["GIcon (interno: x, check, undo-2)", "motor del tooltip en modo visual (useVisualTips, nodos <span>)", "utils/categoryHash.js (el hash de GAvatar)"],
   "props": [
     { "name": "label", "type": "String", "required": true, "description": "Texto de la etiqueta (salvo slot), base de los nombres de «Quitar» y clave del color sin colorKey. Vacía o solo espacios: no se pinta (aviso 8)." },

@@ -16,13 +16,13 @@ import { createStatus, useStatus, GStatusIsland } from '@grana/vue/status'
 import { createSimulatedSpeechAdapter, createSimulatedUploader } from '@grana/vue/testing'
 import App from './App.vue'
 // GTag + GTagGroup (tag.md, #462, #463)
-import { GTag, GTagGroup } from '@grana/vue'
-import type { TagItem, TagGroupLabels } from '@grana/vue'
+import Tag, { GTag, GTagGroup } from '@grana/vue/tag'
+import type { TagItem, TagGroupLabels } from '@grana/vue/tag'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Tag).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })

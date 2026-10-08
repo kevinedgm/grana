@@ -1957,7 +1957,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         </section>
         <section class="pg-section" id="sec-tag" data-pg-section>
           <h2>GTag y GTagGroup</h2>
-          <p class="pg-lead">Un elemento de un conjunto que clasifica o resume una elección: se lee, se quita, se alterna o se sigue. En un grupo, quitar deja una <b>huella</b> del mismo ancho con «Deshacer» en el sitio y con el foco, y nada se mueve hasta que el puntero y el foco salen del grupo (A); con <code>layout="facets"</code>, la categoría se dice una vez y con palabras (B). El tema de la aplicación declara <code>categories: 8</code>. Lo monta su propia aplicación de Vue (<code>window.tgApp</code>, eventos en <code>window.tgEvents</code>).</p>
+          <p class="pg-lead">Un elemento de un conjunto que clasifica o resume una elección: se lee, se quita, se alterna o se sigue. En un grupo, quitar deja una <b>huella</b> del mismo ancho con «Deshacer» en el sitio y con el foco, y nada se mueve hasta que el puntero y el foco salen del grupo (A); con <code>layout="facets"</code>, la categoría se dice una vez y con palabras (B). El tema de la aplicación declara <code>categories: 8</code>. Van en su propia entrada, <code>@grana/vue/tag</code> (aquí <code>dist/tag.umd.js</code>, global <code>GranaTag</code>). Lo monta su propia aplicación de Vue (<code>window.tgApp</code>, eventos en <code>window.tgEvents</code>).</p>
           <div id="tg-app"></div>
         </section>
       </div>
@@ -2448,6 +2448,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/combobox.umd.js"></script>
   <script src="../dist/file-field.umd.js"></script>
   <script src="../dist/time-field.umd.js"></script>
+  <script src="../dist/tag.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
   <script src="./speech-adapters.js"></script>
@@ -3750,7 +3751,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           </div>
           <p>Último evento: <b id="tg-log">{{ tg.log }}</b></p>
         `
-      }).use(Grana).use(appIcons)
+      }).use(Grana).use(GranaTag).use(appIcons)
       window.tgApp.mount('#tg-app')
     })()
   </script>

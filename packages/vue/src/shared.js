@@ -12,6 +12,9 @@
 // El campo de hora (`@grana/vue/time-field`, #400: vite.time-field.config.js y src/time-field.test.js) toma de aquí GInput,
 // useFormField con las claves de contexto (incluida ownFieldKey, el añadido N4 de GInput, #409), oneOf y el observador de
 // tamaño compartido (sizeObserver); su motor (utils/timeInput.js) vive en la entrada.
+// Las etiquetas (`@grana/vue/tag`, #472: vite.tag.config.js y src/tag.test.js) toman de aquí GBtn, GAvatar, los dos GIcon,
+// liveRegion, template, el modo visual del motor del tooltip (visualTip: un solo estado del motor en la página) y el hash de
+// categorías (categoryHash, el mismo de GAvatar).
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -39,6 +42,8 @@ import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
 import { fill } from './utils/template.js'
 import { createTopModal } from './utils/topModal.js'
+import { useVisualTips } from './utils/visualTip.js'
+import { categoryOf } from './utils/categoryHash.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
 export const shared = {
@@ -63,5 +68,7 @@ export const shared = {
   'utils/sizeObserver.js': { observeSize },
   'utils/oneOf.js': { oneOf },
   'utils/template.js': { fill },
-  'utils/topModal.js': { createTopModal }
+  'utils/topModal.js': { createTopModal },
+  'utils/visualTip.js': { useVisualTips },
+  'utils/categoryHash.js': { categoryOf }
 }

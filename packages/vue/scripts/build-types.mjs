@@ -27,7 +27,8 @@ export const ENTRIES = [
   { name: 'combobox', src: 'src/combobox.js' },
   { name: 'file-field', src: 'src/file-field.js' },
   { name: 'time-field', src: 'src/time-field.js' },
-  { name: 'testing', src: 'src/testing.js' }
+  { name: 'testing', src: 'src/testing.js' },
+  { name: 'tag', src: 'src/tag.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------
