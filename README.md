@@ -318,6 +318,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | --- | --- | --- |
 | [`GSurface`](packages/vue/src/components/GSurface/README.md) | Superficie visual genérica en cinco niveles | principal |
 | [`GCard`](packages/vue/src/components/GCard/README.md) | Tarjeta con regiones opcionales (compone `GSurface`) | principal |
+| [`GAccordion`](packages/vue/src/components/GAccordion/README.md), `GAccordionItem` | Secciones plegables con avance de la primera línea; el encabezado que tocas no se mueve; lo plegado se busca, se enlaza y se imprime; `sticky` opcional | principal |
 | [`GDialog`](packages/vue/src/components/GDialog/README.md) | Diálogo modal: simple, con pie, formulario, pantalla completa | principal |
 | [`GDivider`](packages/vue/src/components/GDivider/README.md) | Línea de separación, horizontal o vertical | principal |
 | [`GAdaptiveLayout`](packages/vue/src/components/GAdaptiveLayout/README.md) | Reparte a sus hijos según lo que necesitan, sin filas ni columnas | principal |
