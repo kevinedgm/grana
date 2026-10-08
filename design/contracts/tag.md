@@ -1,8 +1,8 @@
 # Contrato · GTag + GTagGroup
 
 **Dueño:** lima · **Estado:** aprobado (concepto **A «Huella»** como comportamiento de toda etiqueta quitable dentro de `GTagGroup` y **B «Racimo»** como opción del grupo; **C «Palabra»** reservada con su nombre; **alternar (`aria-pressed`) entra en `GTag`** para filtros de la vista que actúan en el acto: decisiones del usuario del 2026-10-07. El resto deriva de HTML, WAI-ARIA APG (*Button* con `aria-pressed`, *Disclosure*), WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/chip/r01/` (kiwi, commit `cf2f928`: `brief.md`, `declaracion.md` con las decisiones 1 a 22 de la base, los conceptos A/B/C y los hallazgos L1 a L12; `tag.js`, `tag.css`, `verificar.mjs` 223/223 en Chromium, Firefox y WebKit, puerto 4213)
-**Tags:** `g-tag`, `g-tag-group` · **Categoría:** datos y selección ligera · **Entrada del paquete:** `@grana/vue` (principal, con compuerta de peso, #472) · **Avisos:** `[Grana GTag]`, `[Grana GTagGroup]`
-**Decisiones:** DECISIONS.md #460 a #473 (integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/tag.pendientes.md`; tokens en `tokens.md` §39).
+**Tags:** `g-tag`, `g-tag-group` · **Categoría:** datos y selección ligera · **Entrada del paquete:** **`@grana/vue/tag`** (global UMD `GranaTag`; **#510**, enmienda de #472: la compuerta de 8 KB gzip del principal se superó, +9,2 KB medidos) · **Avisos:** `[Grana GTag]`, `[Grana GTagGroup]`
+**Decisiones:** DECISIONS.md #460 a #473 (integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/tag.pendientes.md`; tokens en `tokens.md` §39) y **#510 a #514** (remates con la construcción de coco y bruno, 2026-10-08: entrada propia, tokens leídos, `disabled` y «Ver N más», avatar con las categorías del grupo, anuncios por último gesto).
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GAvatar`, `GBtn`, `GIcon` y el motor del tooltip, y se solapa con `GBadge`, `GFilterBar`, `GCheckbox`/`GRadioGroup` chip y `GSummary`): **coco y bruno en Opus**.
 
 Una **etiqueta** es un elemento de un conjunto que **clasifica o resume una elección**: las alergias de un expediente, los filtros aplicados sobre una lista, los temas de un artículo que llevan a su página, el «Solo pendientes» de la cabecera de una tabla. Se **lee**, se **quita**, se **alterna** o se **sigue**. `GTag` es una etiqueta; `GTagGroup`, un conjunto dirigido por datos que añade lo que una etiqueta suelta no puede tener: la huella al quitar, los racimos por faceta, el tope, «Quitar todas» y el foco que nunca se pierde.
@@ -102,7 +102,7 @@ Todos en `emits` (lección de `CLAUDE.md`: si no, una escucha del consumidor lle
 | `limit` | Number | entero ≥ 1 | sin valor | propia: muestra las primeras N y «Ver N más» |
 | `clearable` | Boolean | | `false` | compartida en espíritu con `GSelect`/`GCombobox`: «Quitar todas» con ≥ 2 quitables |
 | `emptyFocus` | String \| Object \| Function | selector CSS, elemento (o instancia con `$el`) o función que lo devuelve | sin valor | propia: a dónde va el foco si el grupo se queda sin controles |
-| `disabled` | Boolean | | `false` | compartida: deshabilita todos los controles del grupo |
+| `disabled` | Boolean | | `false` | compartida: deshabilita **los controles de las etiquetas** (cuerpos interactivos, «Quitar», «Deshacer») y «Quitar todas». **«Ver N más» (divulgación) sigue activo** (#512) |
 | `labels` | Object | §«Textos» | `{}` | compartida (sin valores por defecto, #226) |
 
 **`TagItem`** (cada elemento de `items`; un objeto de datos):
@@ -118,7 +118,7 @@ Todos en `emits` (lección de `CLAUDE.md`: si no, una escucha del consumidor lle
 | `color`, `colorKey` | como `GTag` | Color de la etiqueta (o del racimo, #467) |
 | `facet` | String | Nombre visible de la faceta («Estado», «Alergias»). Agrupa con `layout="facets"` y es parte de la clave del color (#469) |
 | `icon` | String | Nombre de Lucide («dato → nombre», #202): `GIcon` público en el hueco `lead` |
-| `avatar` | Boolean \| Object | `true` = `GAvatar` con `name = label`; objeto = props de `GAvatar` (`src`, `name`, `initials`, `icon`, `color`, `categories`, `colorKey`, `shape`; `size` y `label` se ignoran: siempre `xs` y decorativo). Gana a `icon` (como `GCombobox`, #335) |
+| `avatar` | Boolean \| Object | `true` = `GAvatar` con `name = label`; objeto = props de `GAvatar` (`src`, `name`, `initials`, `icon`, `color`, `categories`, `colorKey`, `shape`; `size` y `label` se ignoran: siempre `xs` y decorativo). Gana a `icon` (como `GCombobox`, #335). **Hereda las `categories` del grupo** (#513): un avatar que no trae `color` ni `categories` propios usa el `categories` del grupo (la clave sigue siendo la de `GAvatar`: `colorKey ?? name`, con `name = label` por defecto, así que `avatar: true` en un grupo con `categories` ya colorea las iniciales); si el objeto trae `color` o `categories`, manda lo suyo. El grupo con `categories: 0` no cambia nada |
 
 Otros campos se conservan tal cual (la aplicación los recibe en los eventos y en los slots).
 
@@ -207,7 +207,7 @@ Una vez por gesto, **después** de `update:items` (como el `change` de `GCombobo
   3. si no queda ninguno, a `emptyFocus` (resuelto en ese momento; si no se encuentra, aviso G10 y sigue);
   4. sin él, al **contenedor** del grupo con `tabindex="-1"` (se quita al salir), que lee su nombre y, vacío, `labels.empty`.
   Las etiquetas estáticas se saltan.
-- **«Ver N más»** (`limit`; APG *Disclosure*): `aria-expanded`, `aria-controls` al contenedor; las ocultas con `hidden` (fuera del árbol). Al desplegar o plegar, **el foco se queda en el botón**, que pasa a `labels.less`. No es un «+3» sin texto.
+- **«Ver N más»** (`limit`; APG *Disclosure*): `aria-expanded`, `aria-controls` al contenedor; las ocultas con `hidden` (fuera del árbol). Al desplegar o plegar, **el foco se queda en el botón**, que pasa a `labels.less`. No es un «+3» sin texto. **Con `disabled` en el grupo sigue activo** (#512): deshabilitar no debe esconder etiquetas sin forma de leerlas (WCAG 1.3.1, 4.1.2); el botón lleva `aria-expanded` y despliega igual, mientras los controles de las etiquetas y «Quitar todas» quedan `disabled`.
 - **Esc** no hace nada propio (no hay nada abierto; la pista visual la cierra el motor).
 
 ## Personalidad A · Huella (#466; decisión del usuario del 2026-10-07)
@@ -269,6 +269,7 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 
 - **Una región viva cortés por grupo** (`g-tag-group__live`, `role="status"`, oculta visualmente), **vacía al montar** y escrita con `createLiveWriter` de `utils/liveRegion.js` (vaciar y escribir en el ciclo siguiente; se vacía sola). Se anuncian quitar, deshacer, quitar todas y deshacer todas. **No** se anuncian alternar (lo dice `aria-pressed`), desplegar (lo dice `aria-expanded`) ni recoger.
 - Una `GTag` suelta **no anuncia** (la aplicación quita la etiqueta y sabe qué decir).
+- **Manda el último gesto** (#514): la región viva es una sola y se escribe con `createLiveWriter` (vaciar y escribir en el ciclo siguiente), así que un anuncio nuevo **sustituye** al anterior si aún no se leyó. Quitar y deshacer seguidos (o dos quitar rápidos) anuncian lo último («restaurada»), no una cola de mensajes. Es el comportamiento aceptado: una cola retrasaría el estado actual detrás de uno ya caduco, y el estado real está en el árbol (la huella con su «Deshacer», o la etiqueta devuelta).
 
 ## Color por categoría (#469)
 
@@ -321,6 +322,9 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 | `--g-color-cat-k-soft`, `-on-cat-k-soft`, `-cat-k`, `-on-cat-k`, `-cat-k-strong`, `-cat-k-text` (k = 1 a 12) | Categoría (familia condicional, `CAT_FAMILY_READERS`) |
 | `--g-color-primary`, `-on-primary`, `-primary-strong`, `-primary-text`, `-primary-soft`, `-on-primary-soft` | Alternar pulsada neutra (§7.1) y valor pulsado de un racimo neutro |
 | `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Alternar sin pulsar, huella, faceta, deshabilitada |
+| `--g-color-surface-sunken` | Valor de alternar **sin pulsar** de un racimo al pasar (`is-plain`, `@media (hover: hover)`; #511) |
+| `--g-press-scale` | `scale` del icono de «Quitar» y «Deshacer» mientras se pulsan (#511; con `1` se desactiva; no es movimiento de posición, §29) |
+| `--g-radius-sm` | Radio del anillo de foco del contenedor del grupo cuando el foco llega por programa (`tabindex="-1"`, #465) y del grupo vacío (#511) |
 | `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control` | Filos, filo de la tapa, contorno de alternar, huella, lomo neutro |
 | `--g-color-focus`, `--g-focus-width`, `--g-focus-offset` | Foco |
 | `--g-radius-shape` | Forma de la etiqueta y del racimo (la forma de las acciones del tema, #8, #23; no la píldora fija) |
@@ -402,17 +406,18 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 | G9 | Hijos en el slot por defecto | No los pinta; remite a `items` |
 | G10 | `emptyFocus` no se encuentra cuando hace falta | Foco al contenedor del grupo |
 
-## Paquete, `meta.json` y tipos (#472)
+## Paquete, `meta.json` y tipos (#472, enmendado por #510)
 
-- **`GTag` y `GTagGroup` van en el paquete principal `@grana/vue`** (global UMD `Grana`): piezas sin motor propio; reutilizan lo que ya está en el principal (`GAvatar`, `GBtn`, `GIcon`, motor del tooltip y `useVisualTips`, `liveRegion`, el hash). **Compuerta de peso** (criterio de #238, #328, #337, #415): bruno mide el incremento del principal con los dos; **si supera 8 KB gzip, vuelve a lima** antes de seguir (se pasaría a una entrada propia `@grana/vue/tag`, global `GranaTag`, por el mismo mecanismo `__shared`, y se enmendaría esta decisión). El CSS va en `grana.css`. Importación parcial (#444): ningún efecto en el nivel superior de sus módulos.
-- **`GTag.meta.json` y `GTagGroup.meta.json`** (#443) declaran todas las props (con tipos, valores, default y obligatoriedad: `label` y `items` obligatorias; `pressed` `boolean | null`), los eventos con su carga, los slots con su alcance, los `labels` y los tokens (la familia condicional anotada «`CAT_FAMILY_READERS`», como `GAvatar.meta.json`). Lo que el JSON no expresa (la forma de `TagItem`, la carga de los eventos, `labels` como cadena o función, `emptyFocus`) va en `packages/vue/types/` (`overrides.mjs` por `GTagGroup.items`, `GTagGroup.labels`, `GTag.labels`…; `TagItem` en `shared.d.ts`). `GlobalComponents` gana `GTag` y `GTagGroup`.
-- **Compuertas de build** (bruno las añade a `.github/scripts/gates.sh`): `grep -q "g-tag__undo" packages/vue/dist/grana.css` y `grep -q "g-tag-group__facet" packages/vue/dist/grana.css`.
+- **`GTag` y `GTagGroup` van en la entrada propia `@grana/vue/tag`** (`dist/tag.js` y `dist/tag.umd.js`, global UMD **`GranaTag`**, requiere `Vue` y `Grana`; **#510**). #472 los puso en el principal con una compuerta de 8 KB gzip; bruno midió **+9,2 KB** (más que el tope de #238, #328, #337, #380, #415), así que la compuerta mandó la decisión a esta entrada: *quien no las usa no las paga*. `@grana/vue` **no** las exporta ni las registra. La entrada exporta `GTag`, `GTagGroup` y, por defecto, un plugin que solo registra los dos (`app.use(Tag)`); el CSS sigue en `grana.css`. Lo que ya está en el principal llega por **`__shared`** sin duplicarse (una copia propia crearía otro `Symbol` o duplicaría el motor): `GAvatar`, `GBtn`, `GLibIcon` y el `GIcon` público, `useVisualTips` (`utils/visualTip.js`), `createLiveWriter` (`utils/liveRegion.js`), `fill` (`utils/template.js`) y `categoryOf` (`utils/categoryHash.js`); bruno añade a `src/shared.js` lo que falte. El motor de las huellas, el foco y la agrupación viaja **solo** en esta entrada. `GTagInput` (#338), cuando exista, irá en la misma entrada o en una que componga esta por `__shared`. `GFilterBar` no las usa (adopción reservada, #473): si lo hace, su ronda decide si pasan a `__shared`.
+- **Paquete y tipos** (#442, #443): `./tag` en `exports` (`types`/`import`/`default`), `typesVersions`, `ENTRIES` de `scripts/build-types.mjs` y `src/types.test.js`; `GlobalComponents` gana `GTag` y `GTagGroup` desde el `install` de la entrada. `GTag.meta.json` y `GTagGroup.meta.json` declaran todas las props (tipos, valores, default y obligatoriedad: `label` y `items` obligatorias; `pressed` `boolean | null`), los eventos con su carga, los slots con su alcance, los `labels` y los tokens (la familia condicional anotada «`CAT_FAMILY_READERS`», como `GAvatar.meta.json`) y el **peso gzip de la entrada**. Lo que el JSON no expresa (la forma de `TagItem`, la carga de los eventos, `labels` como cadena o función, `emptyFocus`) va en `packages/vue/types/` (`overrides.mjs` por `GTagGroup.items`, `GTagGroup.labels`, `GTag.labels`…; `TagItem` en `api/tag.d.ts`). Importación parcial (#444): ningún efecto en el nivel superior de sus módulos.
+- **Compuertas de build** (bruno las añade a `.github/scripts/gates.sh`): `grep -q "g-tag__undo" packages/vue/dist/grana.css`, `grep -q "g-tag-group__facet" packages/vue/dist/grana.css`, **`! grep -q "GTag" packages/vue/dist/grana.js`** (cubre también `GTagGroup`) y **`test -f packages/vue/dist/tag.js`**; el bucle `for entry in …` de `gates.sh` gana `tag`.
+- **Efecto en el peso conjunto de la Fase C** (#506): `GTag`/`GTagGroup` dejan de sumar al `grana.js` del principal; la medida conjunta de #506 cuenta solo `GAccordion` y `GBreadcrumbs` (y lo que `GTag` haya movido a `__shared`, que sí crece).
 
 ## Resolución de hallazgos (kiwi r01)
 
 | # | Hallazgo | Resolución | Base |
 | --- | --- | --- | --- |
-| L1 | Nombre y entrega | **Confirmado:** `GTag` + `GTagGroup` en `@grana/vue`, con compuerta de 8 KB | #461, #472 |
+| L1 | Nombre y entrega | **Confirmado el nombre:** `GTag` + `GTagGroup`. **Entrega enmendada:** entrada propia `@grana/vue/tag` (la compuerta de 8 KB del principal se superó, +9,2 KB) | #461, #472, #510 |
 | L2 | API de `GTag` | **Confirmada con cambios:** sin `icon`/`avatar` (slot `lead`, #202); `pressed` con `default: null`; evento `navigate`; slot `default` para el texto; atributos repartidos | #462 |
 | L3 | API de `GTagGroup` | **Confirmada con cambios:** `items` con `v-model:items` (las etiquetas presentes son el modelo; sin `modelValue`), `layout` `flow`/`facets` en vez de `groupBy`, `as="inline"` reservado con C, eventos `remove`/`restore`/`clear`/`toggle`/`navigate`/`settle`, slots `label` y `lead` en vez de `tag` (la anatomía no se cede) | #463 |
 | L4 | `labels` | **Confirmados**, con `undoIn`; el anuncio con huella es `removed` (no hay `removedUndo`: con A siempre hay deshacer); cadena o función | #468 |
@@ -432,6 +437,8 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 - **Una `GTag` suelta quitable** no gestiona el foco ni anuncia: es de la aplicación; para eso existe el grupo.
 - **Categoría inexistente en el tema** (`k` > `categories` real): sin relleno y sin aviso. **Cambiar `categories`** reparte los colores de nuevo.
 - **Rendimiento con cientos de etiquetas** sin medir (un nodo de pista por control); `limit` lo acota.
+- **`disabled` en el grupo** deja «Ver N más» activo (#512): se puede leer todo lo que hay aunque no se pueda tocar; «Quitar todas» y los controles de las etiquetas sí se deshabilitan.
+- **Anuncios:** manda el último gesto (#514); dos acciones muy seguidas no se leen juntas.
 - Táctil real (el área de 44px con dedo) y `forced-colors` real, sin verificar.
 
 ## Fuera de v1 (reservado con nombre)
@@ -473,7 +480,7 @@ Estética según §«Contraste», §«Tokens y movimiento» y §«Clases»; la t
 1. `utils/categoryHash.js` (`categoryOf`) con sus pruebas; `GAvatar.vue` pasa a usarlo sin cambio de resultado.
 2. `GTag.vue` y `GTagGroup.vue` según este contrato (clave interna de contexto; `useVisualTips` con opción `span`; `createLiveWriter`; huella con `--_ghost-w`; foco por programa).
 3. `CAT_FAMILY_READERS` en `levels.test.js` (dos entradas, §«Color»).
-4. `GTag.meta.json`, `GTagGroup.meta.json`, tipos en `packages/vue/types/`, registro en `src/index.js` y `components.css`, compuertas en `gates.sh`, medida del peso (§«Paquete»).
+4. `GTag.meta.json`, `GTagGroup.meta.json`, tipos en `packages/vue/types/`, **entrada propia `@grana/vue/tag`** (`src/tag.js`, configuración de Vite, global `GranaTag`, lo compartido por `src/shared.js`; `exports`, `typesVersions`, `ENTRIES`, `types.test.js`; `src/index.js` **no** los exporta, #510), CSS en `components.css`, compuertas en `gates.sh`, medida del peso (§«Paquete»).
 5. Playground `#sec-tag` (flow con huella, facets con alternar, `limit`, `clearable`, categorías con el tema de 8, RTL) y specs de Playwright con puerto propio.
 
 ### mora-docs · `GTag/README.md` (tras la auditoría)

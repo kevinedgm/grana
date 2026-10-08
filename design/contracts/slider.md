@@ -1,6 +1,6 @@
 # Contrato · GSlider
 
-**Dueño:** lima · **Estado:** aprobado (forma **B «El valor es el asa»** por defecto, para valor único y rango: **decisión del usuario del 2026-10-07**; **C «Escalones con datos»** reservada para una segunda entrega y **A «La cinta»** reservada, con sus nombres; el resto deriva de HTML, WAI-ARIA APG *Slider* y *Multi-Thumb Slider*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/slider/r01/` (kiwi; `brief.md`, `declaracion.md` con 31 decisiones de base, los conceptos A, B y C y los hallazgos L1 a L17; `engine.js` como referencia de comportamiento del motor; `slider.js` con `XSlider`; `verificar.mjs` 228/228 en los tres motores, puerto 4212; commit `301702c`) · **Decisiones:** DECISIONS.md **#445 a #457** (integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/slider.pendientes.md`; tokens en `tokens.md` §38) · **Convive con:** `form.md` (contexto, `useFormField`, `GFormRow` §4, `GErrorSummary` §7), `number-field.md` (frontera y receta conjunta; mismas reglas de idioma, `change` por gesto y canónico oculto), `radio-group.md` (frontera; foco visible por teclado), `api.md` §«Foco visible en controles que WebKit no marca» (#441, ampliado por #450) y §«Paquete, entradas y tipos» (#442 a #444), `tokens.md` §7.1 (#431, #439) y §29, `icons.md`
+**Dueño:** lima · **Estado:** aprobado (forma **B «El valor es el asa»** por defecto, para valor único y rango: **decisión del usuario del 2026-10-07**; **C «Escalones con datos»** reservada para una segunda entrega y **A «La cinta»** reservada, con sus nombres; el resto deriva de HTML, WAI-ARIA APG *Slider* y *Multi-Thumb Slider*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/slider/r01/` (kiwi; `brief.md`, `declaracion.md` con 31 decisiones de base, los conceptos A, B y C y los hallazgos L1 a L17; `engine.js` como referencia de comportamiento del motor; `slider.js` con `XSlider`; `verificar.mjs` 228/228 en los tres motores, puerto 4212; commit `301702c`) · **Decisiones:** DECISIONS.md **#445 a #457** (integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/slider.pendientes.md`; tokens en `tokens.md` §38) y **#507 a #509** (remate tras la auditoría de coco, `design/lab/slider/auditoria.md`, 2026-10-08: solo lectura, piso de texto, tokens medidos, reglas de bruno y fórmula del mínimo; **`status: "candidate"`**) · **Convive con:** `form.md` (contexto, `useFormField`, `GFormRow` §4, `GErrorSummary` §7), `number-field.md` (frontera y receta conjunta; mismas reglas de idioma, `change` por gesto y canónico oculto), `radio-group.md` (frontera; foco visible por teclado), `api.md` §«Foco visible en controles que WebKit no marca» (#441, ampliado por #450) y §«Paquete, entradas y tipos» (#442 a #444), `tokens.md` §7.1 (#431, #439) y §29, `icons.md`
 **Tag:** `g-slider` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/slider` (#455) · **Fase C del plan de v1**
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: teclado compuesto de dos asas, motor propio y gestos de puntero propios): **coco y bruno en Opus**.
 
@@ -69,7 +69,7 @@ Un control para **un valor acotado donde manda la posición relativa** (el volum
 - **`modelValue` sin `range`:** `Number` finito o `null` («sin elegir», ver abajo). `undefined` se lee como `null` sin aviso (un `ref()` sin valor inicial). `NaN`, `±Infinity` o un arreglo se leen como `null` con aviso. **Nunca se emite una cadena.**
 - **`modelValue` con `range`:** `[inicio, fin]`, dos números finitos. `null`/`undefined` se **dibujan** como `[primer punto, último punto]` (el recorrido entero: «sin restricción») **sin aviso y sin emitir**; un valor mal formado (longitud ≠ 2, no finito, un número suelto) se dibuja igual **con aviso**; un arreglo desordenado (`[2400, 800]`) se dibuja ordenado **con aviso**. El modelo no se toca hasta el primer gesto, que emite ya ordenado. Cada emisión es un **arreglo nuevo** (nunca se muta el de la aplicación). **Un rango no tiene «sin elegir».**
 - **`range`** es explícita (como `multiple` en `GCombobox`, #417), no se deduce del tipo del modelo.
-- **Fuera de la rejilla** (#157): un valor de la aplicación que no cae en la rejilla se **conserva** y se dibuja en su sitio; el primer paso cae en el punto de la rejilla siguiente **en esa dirección** (`move` del motor). **Fuera de `[min, max]`:** se dibuja en el extremo, el modelo no se toca (el oculto envía el valor real) y se avisa; el primer paso hacia dentro entra al límite. `aria-valuetext` dice el valor real (el nativo, que acota su `value`, no).
+- **Fuera de la rejilla** (#157): un valor de la aplicación que no cae en la rejilla se **conserva** y se dibuja en su sitio; el primer paso cae en el punto de la rejilla siguiente **en esa dirección** (`move` del motor). **Fuera de `[min, max]`:** se dibuja en el extremo, el modelo no se toca (el oculto envía el valor real) y se avisa; el primer paso hacia dentro entra al límite. **Una flecha (o Re Pág/Av Pág) hacia fuera sobre un valor que ya está fuera no lo mueve y da el tope** (#508): el valor sigue siendo el de la aplicación y la pulsación se lee como «no hay más en esa dirección»; **Inicio/Fin sí lo llevan al límite** (son «ve al extremo», no «un paso»). `aria-valuetext` dice el valor real (el nativo, que acota su `value`, no).
 - **`min`, `max`:** `min ≥ max` avisa y deja el control **sin recorrido**: la píldora en el inicio, ni teclado ni puntero cambian el valor (el modelo no se toca). Un `max` fuera de la rejilla **no se alcanza**: el último punto es el mayor ≤ `max` (como el nativo).
 - **`step`:** la rejilla cuenta desde `min` (fijo; nunca desde el límite dinámico de un asa: la rejilla no se mueve, #446). Aritmética sin error de coma flotante (se fija a los decimales de `step` y `min`). Un `step` ≤ 0 o no finito lo rechaza el validador, avisa y se usa `1`.
 - **`bigStep`:** Mayús+flecha, Re Pág y Av Pág. Sin valor: una décima del recorrido redondeada a pasos enteros, al menos un paso. Un valor que no es múltiplo positivo de `step` avisa y se usa la regla sin valor. Con `snap="marks"`, el paso grande son **dos marcas**.
@@ -81,9 +81,9 @@ Un control para **un valor acotado donde manda la posición relativa** (el volum
 - **`labels.start` y `labels.end`:** con `range`, el nombre de cada asa se compone con la etiqueta («Precio mínimo», «Precio máximo»). **Sin ellos las dos asas se llamarían igual:** aviso. **`labels.empty`:** el texto de «sin elegir» (a la vista y en `aria-valuetext`); con un valor único `null` y sin él, aviso.
 - **`name`:** va a los ocultos y registra el campo en `GForm` (clave de `errors`). Prop (como `GNumberField` y `GSelect`, form.md C10), no atributo; **el nativo no lleva `name`**.
 - **`required`:** marca según la convención de `GForm` y nada más: **sin `aria-required`** (no está admitido en el rol `slider`) y **nunca `required` nativo**. Solo tiene sentido con «sin elegir»: lo que la falta bloquea es un `errors[name]` de la aplicación.
-- **`readonly`:** `aria-readonly="true"` en cada nativo; enfocable; ni teclado, ni puntero, ni el ajuste del lector cambian el valor; **se envía** (#266, C7).
+- **`readonly`:** `aria-readonly="true"` en cada nativo; enfocable; ni teclado, ni puntero, ni el ajuste del lector cambian el valor; **se envía** (#266, C7). **Se ve como el solo lectura de `GInput`** (#507): píldora con relleno `neutral-soft`, texto `text` y contorno `border-control` en **trazo discontinuo** (≥ 3:1; en `forced-colors` el trazo discontinuo sigue, así que se distingue sin color); sin sombra.
 - **`disabled`:** `disabled` en cada nativo (fuera del Tab) y en los ocultos (no se envía).
-- **`density`:** el alto del área es el de la **caja de `GInput` `md` con la misma densidad** (así el riel se centra con sus vecinos de fila); con `pointer: coarse`, 44px. Sin `size` en v0.1: un deslizador no tiene texto escrito que escalar y su alto debe coincidir con el de un campo `md`; `size` queda reservado.
+- **`density`:** el alto del área es el de la **caja de `GInput` `md` con la misma densidad** (así el riel se centra con sus vecinos de fila); con `pointer: coarse`, 44px. **Área y píldora crecen con su texto** (#507): las dos son el mayor entre su medida de `space` por densidad y **una línea de `body-sm` más los dos bordes** (`--_text-box`), como la caja de `GInput`; con `space` pequeño o el texto al 200 % (WCAG 1.4.4) el riel sigue centrado con sus vecinos y el texto cabe en la píldora. Sin `size` en v0.1: un deslizador no tiene texto escrito que escalar y su alto debe coincidir con el de un campo `md`; `size` queda reservado.
 - **`color`:** familia de la píldora (`{color}` / `on-{color}`, contorno `{color}-text`) y del tramo (`{color}-text`). Por defecto **`brand`**, como los demás controles de elección (`GCheckbox`, `GSwitch`, `GRadioGroup`, `GDatePicker`, `GStepper`): convención de `api.md`, no decisión estética nueva (el prototipo de kiwi pintó `accent`; `color="accent"` lo reproduce).
 - **Sin `block`:** la raíz ocupa el ancho de su contenedor; en una fila se dimensiona con `g-form-w-*` como cualquier campo (receta: `g-form-w-lg`).
 - **Atributos** (`inheritAttrs: false`): `class` y `style` a la raíz; `aria-label`/`aria-labelledby` dan el nombre (ver «Estructura»); `aria-describedby` se añade a la descripción de cada nativo; `autofocus` al primer nativo; `form` a cada oculto; el resto (`data-*`, escuchas) a la raíz. Los nombres reservados, si llegan por `$attrs`, avisan y no se aplican.
@@ -103,7 +103,7 @@ Importar y renderizar en el servidor no toca `document`, `window`, `navigator`, 
 Valor único:
 
 ```html
-<div class="g-slider g-slider--color-brand [is-empty] [is-readonly] [is-disabled] [is-invalid] [is-dragging] [is-jumping]"
+<div class="g-slider g-slider--color-brand g-slider--density-default [is-empty] [is-readonly] [is-disabled] [is-invalid|is-warning|is-valid] [is-dragging] [is-jumping]"
      [data-bump="up|down"] style="--_pill-w: 52px">                       <!-- class/style del consumidor a la raíz -->
   <div class="g-slider__head">
     <label class="g-slider__label" id="ID-label" for="ID">Volumen de los avisos<span class="g-slider__optional"> (opcional)</span></label>
@@ -179,7 +179,7 @@ Rango (lo que cambia):
 
 Para **escalas y encuestas**: una píldora en el 5 por defecto ancla la respuesta y se envía sin que nadie la haya elegido (base, punto 9).
 
-- **Sin píldora ni tramo**; el riel en **trazos**; `labels.empty` a la vista en la cabecera (`g-slider__value`, `aria-hidden`, solo en este estado) y en `aria-valuetext`.
+- **Sin píldora ni tramo**; el riel en **trazos** `border-control`, que **pasan a `danger-text` con error** (#507: sin píldora, es la única señal del error en el propio control además del mensaje; ≥ 4,5:1, medido); `labels.empty` a la vista en la cabecera (`g-slider__value`, `aria-hidden`, solo en este estado) y en `aria-valuetext`.
 - El nativo **cubre todo el riel** (el lector lo encuentra y el toque llega a él).
 - **El primer toque o clic** pone el valor en ese punto (aparece en su sitio, sin deslizarse). **Teclado desde vacío:** una tecla que sube (↑, → en LTR, ← en RTL, Re Pág) da el **primer punto**; una que baja da el **último**; Inicio y Fin, los extremos (como el arco de `GTimeField`).
 - Enviar sin elegir con un `errors[name]` de la aplicación: bloquea, el resumen enlaza al asa, ↑ da el mínimo y el error se va (medido por kiwi).
@@ -228,6 +228,7 @@ Para **escalas y encuestas**: una píldora en el 5 por defecto ancla la respuest
 | Mayús + flecha, Re Pág / Av Pág | ± `bigStep` (con marcas, dos marcas) |
 | Inicio / Fin | Los **límites del asa** (en un rango, el inicio llega hasta `fin − minGap`) |
 | En un límite | Nada cambia; **tope** si la pulsación no es autorrepetición (#452) |
+| Valor **fuera** de `[min, max]` (de la aplicación) | Flecha, Re Pág o Av Pág **hacia fuera**: el valor no cambia y da el **tope** (si no es autorrepetición); **hacia dentro**: entra al límite. **Inicio/Fin**: llevan al límite del asa (#508) |
 | Cifras, separador, «-» (B) | **Teclear la cifra** (abajo) |
 | Tab / Mayús+Tab | Una parada por asa, en orden inicio → fin sea cual sea su posición |
 | Rueda | Nada (desplaza la página) |
@@ -250,10 +251,10 @@ Con el foco en una píldora y sin `readonly`:
 - **Constante `TAP` = 10px** (neutra de JS): por debajo, un toque; por encima, un gesto.
 - **Ratón y lápiz sobre el riel:** el asa **más cercana** al punto va ahí (se desliza, `is-jumping`, con `--g-duration-press` + `--g-ease-out`; desde «sin elegir» aparece en su sitio) y el arrastre sigue. **Sobre una píldora:** el arrastre empieza en el acto (sin salto). **Sobre el nombre de una marca:** su valor exacto.
 - **Táctil sobre la píldora:** el arrastre empieza en el acto. **Táctil sobre el riel:** el valor salta **solo con un toque** (movimiento ≤ `TAP`); un gesto vertical **desplaza la página** (`touch-action: pan-y`; el componente abandona el gesto); uno horizontal > `TAP` empieza a arrastrar el asa más cercana. Medido por kiwi: un gesto vertical sobre el riel no cambia el 40; un toque lo lleva al 20.
-- **Asas juntas** (mismo valor, rango): un puntero que las agarra mueve **la que pide la dirección del primer movimiento** (> 2px; hacia arriba, el fin; hacia abajo, el inicio). Fuera del empate, la más cercana; con distancias iguales y valores distintos, la del lado pulsado.
+- **Asas juntas** (mismo valor, rango): un puntero que las agarra mueve **la que pide la dirección del primer movimiento** (> 2px; hacia arriba, el fin; hacia abajo, el inicio). Fuera del empate, la más cercana; con distancias iguales y valores distintos, la del lado pulsado. **Una pulsación sobre el riel** (clic o toque, sin movimiento) **con las dos asas juntas mueve la del lado pulsado** (#508): si el punto pulsado queda por encima del valor del par, el fin; por debajo, el inicio (por **valor**, así que en RTL el inicio queda a la derecha del par sin regla aparte). Es un gesto de un toque, sin esperar a que el puntero se mueva.
 - **El tramo se arrastra entero** (B, rango sin fundir): sobre el tramo entre las dos píldoras, el gesto **queda en suspenso** hasta `TAP` (con cualquier puntero): si se suelta antes, es un **toque** y el asa más cercana va a ese punto (alternativa de un solo puntero sin arrastre, **WCAG 2.5.7**: así se puede estrechar un rango sin arrastrar); si se mueve en horizontal más de `TAP`, **mueven las dos asas conservando la anchura** (medido por kiwi: 1600 antes y después), acotado al recorrido; en táctil, un gesto vertical desplaza la página. **Corrige el prototipo** (allí el tramo arrastraba en el acto y el toque no hacía nada).
 - **Foco:** al pulsar, el foco va al asa que se mueve, con `preventScroll`; `mousedown` se anula en el área (el foco no salta al cuerpo) **sin** anular `pointerdown`. Captura del puntero en el área. `is-dragging` en la raíz mientras dura un gesto de puntero que mueve.
-- **Áreas:** píldora `max(24px, space × 7)` de alto; área de toque ≥ **44 × 24** (≥ 44 × 44 con `pointer: coarse`); tramo agarrable con zona de ≥ 24px de alto (44px gruesa); alto del área = caja de `GInput` `md` (44px gruesa).
+- **Áreas:** píldora `max(24px, space × 7 × densidad, texto)` de alto (**por densidad**, #507: sin ello, en `compact` la píldora sería más alta que el área; «texto» = una línea de `body-sm` + los bordes); área de toque ≥ **44 × 24** (≥ 44 × 44 con `pointer: coarse`); tramo agarrable con zona de ≥ 24px de alto (44px gruesa); alto del área = caja de `GInput` `md` con su densidad y su texto (44px gruesa).
 - **Solo lectura:** pulsar enfoca el asa y no cambia nada. **Deshabilitado:** nada.
 - **WCAG 2.5.7:** todo lo que se arrastra tiene un gesto de un toque (riel, marca, tramo) y teclado.
 
@@ -284,12 +285,16 @@ Ver «Teclear la cifra»: «3 5» e Intro lleva al 35 sin un segundo control.
 
 ### B5 · El tope
 
-- Una pulsación **no repetida** que no cambia el valor por estar en el límite (flecha, Re Pág/Av Pág, Inicio/Fin ya en él), o una cifra tecleada fuera de los límites, hace que **la píldora enfocada** se desplace **`--g-space-1 × 0.5`** en esa dirección (inline, siguiendo la dirección de la página) y vuelva, una vez. El valor no cambia.
-- **Mecánica** (como P3 de `GNumberField`, #313): la raíz recibe **`data-bump="up|down"`**; coco anima la píldora del nativo enfocado con keyframes **`g-slider-bump…`** (`--g-duration-press`, `--g-ease-out`, solo con `no-preference`); bruno quita el dato en `animationend`/`animationcancel` cuyo nombre empieza por `g-slider-bump`, **o en el acto** si en el cuadro siguiente la píldora no tiene animación calculada (movimiento reducido o sin CSS). Una pulsación nueva lo quita y lo vuelve a poner en el cuadro siguiente. En `readonly` no hay tope.
+- Una pulsación **no repetida** que no cambia el valor por estar en el límite (flecha, Re Pág/Av Pág, Inicio/Fin ya en él, o una flecha hacia fuera sobre un valor ya fuera de `[min, max]`, #508), o una cifra tecleada fuera de los límites, hace que **el asa enfocada** (píldora y anillo juntos, #507) se desplace **`--g-space-1 × 0.5`** en esa dirección (inline, siguiendo la dirección de la página) y vuelva, una vez. El valor no cambia.
+- **Mecánica** (como P3 de `GNumberField`, #313): la raíz recibe **`data-bump="up|down"`**; coco anima el **asa** del nativo enfocado (no la píldora sola: el anillo debe acompañarla) con keyframes **`g-slider-bump…`** (`--g-duration-press`, `--g-ease-out`, solo con `no-preference`); bruno quita el dato en `animationend`/`animationcancel` cuyo nombre empieza por `g-slider-bump`, **o en el acto** si en el cuadro siguiente la píldora no tiene animación calculada (movimiento reducido o sin CSS). Una pulsación nueva lo quita y lo vuelve a poner en el cuadro siguiente. En `readonly` no hay tope.
 
 ### B6 · El salto se desliza
 
 Un clic o toque en el riel (o en una marca) desliza la píldora y el tramo hasta el punto con `--g-duration-press` + `--g-ease-out` (`is-jumping`, que el `.vue` quita en `transitionend` o al empezar a arrastrar). Arrastrar, teclear y el teclado **no** se deslizan (el valor va con el dedo o la tecla). Desde «sin elegir» la píldora aparece en su sitio.
+
+### B7 · Lo que se agarra se levanta (#507; coco, medido en la auditoría)
+
+Mientras dura el arrastre (`is-dragging`), la píldora enfocada pasa a `{color}-strong` **y a `--g-shadow-2`** (la sombra de un elemento elevado), con un fundido de `--g-duration-fast` + `--g-ease-standard`. Es **color y sombra, no desplazamiento**: con `prefers-reduced-motion: reduce` sigue igual (#299 (3)). Sin sombra en `readonly`, deshabilitado ni tecleando.
 
 ### Qué lo hace distinto (regla del usuario)
 
@@ -332,10 +337,15 @@ WebKit (como Safari sin «Pulsar Tab para resaltar cada elemento») **salta el r
 
 El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(raíz, px)` (#271) cuando el sub‑contexto lo provee:
 
-- **Mínimo (px)** = el mayor entre **`space × 40`**, **la píldora** (`3 × --_pill-w` con valor único; `4 × --_pill-w` con `range`: dos píldoras separadas y recorrido para moverlas) y **las marcas con nombre** (la suma de sus anchos medidos + `space × 2` entre cada dos). Redondeado hacia arriba.
+- **Mínimo (px)** = el mayor entre **`space × 40`**, **la píldora** (`3 × --_pill-w` con valor único; `4 × --_pill-w` con `range`: dos píldoras separadas y recorrido para moverlas) y **las marcas con nombre** (fórmula por pares de nombres vecinos, abajo). Redondeado hacia arriba.
+- **Marcas con nombre: por pares vecinos, no por suma** (#509; corrige la fórmula original de #453, hallazgo 3 de la auditoría). Sumar los anchos supone nombres seguidos, pero cada nombre va **centrado en el centro de su píldora** (`x(f) = pill-w/2 + f · (ancho − pill-w)`) y solo los de los extremos van **pegados al borde** cuando no caben centrados; el hueco entre un extremo ancho y el del medio es menor que el que da la suma (medido: 2,8px con el tema por defecto en lugar de 8; −0,1px con el de la auditoría y −2,1px con el texto al 200 %, es decir, se tocan o se solapan). Para cada par de nombres contiguos por valor *(i, j)*, con fracciones `fᵢ < fⱼ` (`f = (valor − min) / (max − min)`), el ancho del área debe cumplir
+  `ancho ≥ pill-w + (derᵢ − izqⱼ + gap) / (fⱼ − fᵢ)`, con `gap = space × 2`,
+  donde `izq` y `der` son los **bordes del nombre medidos desde su punto de anclaje** (el centro de la píldora en ese valor), con signo: `izq` negativo hacia el inicio, `der` positivo hacia el final. Centrado: `izq = −w/2`, `der = +w/2`. **Primer nombre** (`f = 0`) si `w > pill-w`: pegado al inicio, `izq = −pill-w/2`, `der = w − pill-w/2` (si `w ≤ pill-w` cabe centrado). **Último nombre** (`f = 1`) si `w > pill-w`: pegado al final, `der = +pill-w/2`, `izq = −(w − pill-w/2)`. Los intermedios, centrados. El mínimo de las marcas es el **mayor** de los pares. Caso habitual (0, ½, 1) con extremos pegados: `medio + 2 × max(primero, último) + 2 × gap` (323,8px en lugar de 303,8px con el texto al 200 % en la referencia de coco). Una marca sin nombre no cuenta; dos marcas con nombre en el mismo valor se tratan como una (se usa la primera, como en «Reglas de props»).
+  Si un intermedio queda a menos de la mitad de su ancho del borde, el CSS lo ajusta a él y su `izq`/`der` dependen del ancho: bruno lo resuelve **por posiciones** (como el campo de hora, #410), tomando el menor ancho que cumple todos los pares (la separación crece con el ancho, así que vale avanzar o bisecar) en lugar de despejar la fórmula.
 - **Cuándo:** al montar, al cargar las fuentes, cuando cambian `min`, `max`, `step`, `marks`, `format`, `valueText`, `locale`, `range` o `density`, y con un `ResizeObserver` sobre una píldora y las marcas; publica solo si cambia ≥ 0,5px y retira con `0` al desmontar.
 - **Mínimo efectivo** (form.md §4) = el mayor entre el de su clase `g-form-w-*`, `--g-form-min` × `space` y este. Receta: **`g-form-w-lg`**. Valor de referencia (no normativo; coco lo mide en `estilo.md` y mora-docs lo lleva al README): «Sin dolor · Moderado · El peor» ≈ 144px por las marcas (kiwi, base).
 - **Fuera de una fila:** nada; la raíz ocupa el ancho de su contenedor (a la aplicación le toca no dejarla por debajo de su mínimo; límite para el README, con los nombres de marcas pocos y cortos).
+- **Límite del contenedor** (auditoría, hallazgo 3): con el texto al 200 % en una fila de 320px el contenedor no llega al mínimo (−10,9px con el tema por defecto; −32,8px con el de la auditoría): ningún componente puede crecer más que su contenedor, como el 12 h de `GTimeField`. Los nombres son `aria-hidden` (el de la marca va en `aria-valuetext`), por eso no bloquea la lectura; README: pocos nombres y cortos, y `g-form-w-lg`.
 
 ---
 
@@ -346,25 +356,27 @@ El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(
 | Token | Para qué |
 | --- | --- |
 | `--g-color-{color}` / `--g-color-on-{color}` | **Píldora:** relleno y texto (par ≥ 4.5:1 garantizado por el motor) |
-| `--g-color-{color}-text` | **Contorno de la píldora** (§7.1: control con relleno de familia, ≥ 3:1 contra la superficie) y **tramo** (forma de familia sin par, #439: entero en `-text`) |
+| `--g-color-{color}-text` | **Contorno de la píldora** (§7.1: control con relleno de familia, ≥ 3:1 contra la superficie) y **tramo** (forma de familia sin par, #439: entero en `-text`; **grosor × 1,5 el del riel**, abajo) |
 | `--g-color-{color}-strong` | Píldora al pasar (`@media (hover: hover)`) y mientras se arrastra; el contorno sigue en `-text` (#438) |
 | `--g-color-on-{color}` | Raya entre las dos mitades de la cápsula fundida (B2) |
-| `--g-color-border-control` | **Riel** (≥ 3:1: delimita el control) y sus trazos en «sin elegir» |
-| `--g-color-border-strong` | Rayas de las marcas; contorno de la píldora en `readonly`; tramo deshabilitado |
+| `--g-color-border-control` | **Riel** (≥ 3:1: delimita el control), sus trazos en «sin elegir» y, en `readonly`, el **contorno discontinuo** de la píldora y la raya de la cápsula (#507; antes `border-strong`, ≈ 1,5:1) |
+| `--g-color-border-strong` | Rayas de las marcas; tramo deshabilitado |
 | `--g-color-border` | Riel y contorno de la píldora deshabilitados |
-| `--g-color-surface` / `--g-color-text` | Píldora **tecleando** (`is-typing`: se vuelve campo; contorno `{color}-text`) y en `readonly` |
+| `--g-color-surface` / `--g-color-text` | Píldora **tecleando** (`is-typing`: se vuelve campo; contorno `{color}-text`) |
+| `--g-color-neutral-soft` / `--g-color-text` | Píldora en **`readonly`** (#507): relleno y texto, como el solo lectura de `GInput` |
 | `--g-color-surface-sunken` / `--g-color-text-subtle` | Píldora deshabilitada; etiqueta y nombres deshabilitados |
 | `--g-color-text-muted` | Nombres de las marcas, «sin elegir», tramo en `readonly` |
-| `--g-color-danger-text` | Contorno de la píldora con error (además del mensaje con icono) |
+| `--g-color-danger-text` | Contorno de la píldora con error (además del mensaje con icono) y **trazos del riel de «sin elegir» con error** (#507) |
 | `--g-shadow-1` | Sombra de la píldora en reposo (sin ella en `readonly`, deshabilitado y tecleando) |
+| `--g-shadow-2` | Píldora **mientras se arrastra** (B7, #507): color y sombra, sin desplazamiento; sigue con movimiento reducido |
 | `--g-radius-pill` | Píldora, riel y tramo |
-| `--g-space-1` | Alto del área (`× 9`, la caja `md` de `GInput` con su densidad), alto de la píldora (`× 7`), relleno en línea de la píldora (`× 3`), grosor del riel (`× 1`), rayas de marca (`× 1.5`), separación de los nombres (`× 2`), tope (`× 0.5`, §29.6), mínimo en fila (`× 40`, `× 2`) |
+| `--g-space-1` | Alto del área (`× 9`, la caja `md` de `GInput` con su densidad y su piso de texto), alto de la píldora (`× 7` por densidad, con el mismo piso; #507), relleno en línea de la píldora (`× 3`), grosor del riel (`× 1`) y del **tramo (`× 1,5`, #507: `{color}-text` y `border-control` quedan entre sí a 1,04–1,9:1, así que el grosor los separa sin depender del color, WCAG 1.4.1)**, rayas de marca (`× 1.5`), separación de los nombres (`× 2`), tope (`× 0.5`, §29.6), mínimo en fila (`× 40`, `× 2`) |
 | `--g-border-width` | Contorno de la píldora, raya de la cápsula, rayas de marca, cursor de la píldora tecleando (`× 2`) |
-| `--g-text-body-sm-*`, `--g-text-action-weight` | Texto de la píldora y de la etiqueta (la de `GInput`) |
+| `--g-text-body-sm-*`, `--g-text-action-weight` | Texto de la píldora y de la etiqueta (la de `GInput`); `--g-text-body-sm-line` + `2 × --g-border-width` es el **piso de texto** de área y píldora (`--_text-box`, #507) |
 | `--g-text-caption-*` | Nombres de las marcas, ayuda y mensaje |
 | `--g-focus-width`, `--g-color-focus`, `--g-focus-offset` | Anillo en la píldora (solo con `data-g-key-focus`) |
 | `--g-duration-press`, `--g-ease-out` | Salto (B6), esquinas de la fusión (B2), tope (B5) |
-| `--g-duration-fast`, `--g-ease-standard` | Color y fondo de la píldora (hover, tecleando) |
+| `--g-duration-fast`, `--g-ease-standard` | Color, fondo y sombra de la píldora (hover, arrastre, tecleando) |
 
 **Contraste de lo marcado** (§7.1, «Componente nuevo»): la píldora es un **relleno de familia con par** que identifica el control y su valor → contorno `{color}-text`; el tramo es la **forma sin par** que dice el valor → entero `{color}-text` (≥ 3:1 contra `surface`, `bg` y `surface-sunken`); el riel `border-control` ≥ 3:1. coco mide en el tema por defecto, lustre, spotify y un tema con clave `primary` propia (#107), claro y oscuro. En el tema por defecto, Δ0 frente al prototipo salvo la familia (`brand` en vez de `accent`).
 
@@ -378,7 +390,8 @@ El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(
 | `g-slider--color-{color}` | Raíz | Siempre (`brand` por defecto) |
 | `g-slider--range` | Raíz | Con `range` |
 | `is-empty` | Raíz | Valor único `null` |
-| `is-readonly`, `is-disabled`, `is-invalid` | Raíz | Estado resuelto con el contexto |
+| `g-slider--density-{default\|comfortable\|compact}` | Raíz | Siempre (densidad resuelta con el contexto; alto del área y de la píldora, #507) |
+| `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid` | Raíz | Estado resuelto con el contexto (`is-warning` e `is-valid` con `warning`/`valid`, como `GInput`) |
 | `is-rejected` | Raíz | I2 de `GForm` (sacudida `g-reject…` de `GInput`, #304; la mueve coco sobre `g-slider__row`) |
 | `is-ready` | Raíz | Tras montar (las transiciones solo bajo él, #299 (4)) |
 | `is-dragging` | Raíz | Gesto de puntero que mueve un asa o el tramo |
@@ -400,6 +413,7 @@ El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(
 | `g-slider__thumb-name` | `span` `hidden` | Con `range` |
 | `g-slider__marks`, `__mark` (+ `has-label`, `data-value`, `--_at`), `__mark-label` | Bajo el riel, `aria-hidden` | Con `marks` |
 | `g-slider__support`, `__hint`, `__message`, `__sr` | Pie | Siempre (`__hint` con ayuda) |
+| `g-slider__message-icon` | Icono `GLibIcon` del mensaje | Con `error`, `warning` o `valid` (#507) |
 
 **Para coco:** la raíz en flujo de tres hijos y, dentro de `.g-form-row > .g-slider`, subgrid de tres pistas como `GInput` (cabecera `align-self: end`, fila `start`, pie); el área de alto `--_h` de la caja `md` de `GInput` con su densidad (44px con `pointer: coarse`), `touch-action: pan-y`, sin selección ni menú de toque largo, `cursor: pointer` (`grab` en la píldora, `grabbing` con `is-dragging`, `default` en `readonly`, `not-allowed` deshabilitado); el centro de la píldora en `calc(var(--_pill-w) / 2 + var(--_at) * (100% - var(--_pill-w)))` y el tramo de centro a centro; con `is-merged`, la cápsula en `clamp(var(--_pill-w), calc(var(--_pill-w) / 2 + var(--_mid) * (100% - var(--_pill-w))), 100% - var(--_pill-w))` (la mitad 0 termina ahí, la 1 empieza ahí); la píldora con su celda única (texto visible + referencias apiladas, `min-inline-size: var(--_pill-w)`), el nativo `position: absolute; inset: 0; opacity: 0; pointer-events: none; appearance: none`; con `is-empty` el asa cubre el riel y el riel va en trazos; las marcas alineadas al centro de la píldora con los extremos ajustados al borde; transiciones de posición **solo** con `is-jumping` (nunca al arrastrar) y bajo `is-ready`; keyframes `g-slider-bump…`; `prefers-reduced-motion: reduce` sin desplazamiento ni transición de esquinas (colores con `--g-duration-fast`); **`forced-colors`**: riel `GrayText`, tramo `Highlight`, píldora `ButtonFace`/`ButtonText` con borde `ButtonText` y `forced-color-adjust: none`, tecleando `Field`/`FieldText`, anillo `Highlight`, deshabilitado `GrayText`; **todo selector que toque hijos ignora `.g-tooltip`** con `:not(:where(.g-tooltip))` (#383) si los selecciona por posición.
 
@@ -464,6 +478,17 @@ Utilidad interna **`packages/vue/src/utils/slider.js`** (no se exporta; con `sli
 | L17 | Reservas | `appearance` (`steps`, `tape`), `distribution`, `countText`, `pxPerStep`, `orientation`, `clearable`, `size`; editor `between` de `GFilterBar`; arrastre de extremos en `GTimeField` C | #457 |
 | — | B sin «sin elegir» visible (prototipo: en B el texto vacío no se veía en ningún sitio) | `labels.empty` en la cabecera (`g-slider__value`) solo con `is-empty` | #447 |
 | — | Tramo que no se podía tocar (prototipo: el toque en el tramo no hacía nada; 2.5.7) | Gesto en suspenso hasta `TAP`: toque = asa más cercana; arrastre = tramo entero | #449 |
+
+### Auditoría de coco (paso 5, `design/lab/slider/auditoria.md`, 2026-10-08)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| H1 | Solo lectura: contorno de la píldora con `border-strong` ≈ 1,5:1 | `border-control` discontinuo sobre `neutral-soft`, como `GInput` (corregido en `GSlider.css`; contorno ≥ 3,18:1, texto ≥ 13,83:1 en 28 configuraciones) | #507 |
+| H2 | Área y píldora no crecían con su texto (píldora de 26px en un asa de 24; con el texto al 200 %, 42 en 28) | `--_text-box` como suelo de `--_h` y `--_ph`; sin cambio con el tema por defecto | #507 |
+| H3 | Mínimo publicado con nombres de marcas desiguales (hueco de 2,8px, 0 o negativo) | Fórmula por pares vecinos en «Mínimo en una `GFormRow`»; bruno la aplica en `publishMin` (`PENDIENTES.md`) | #509 |
+| H4 | Contrato desfasado respecto al CSS: tramo × 1,5, `--g-shadow-2`, píldora por densidad, tope en el asa, trazos `danger-text`, `g-slider--density-*`, `is-warning`, `is-valid`, `g-slider__message-icon` | Reflejados en «Tokens consumidos», B5, B7, «Sin elegir» y «Clases y datos» | #507 |
+| H5 | Dos reglas del `.vue` medidas y conformes (valor fuera de límites, asas juntas) | «Reglas de props», «Teclado» y «Puntero y táctil» | #508 |
+| H6 | Con movimiento reducido `GForm` pone `is-rejected` sin animación y la clase queda (igual que `GInput`) | Sin efecto visible; sin cambio de contrato | — |
 
 ## Límites conocidos (para el README)
 
