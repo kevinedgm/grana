@@ -227,7 +227,7 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 | `--g-space-1..8` | Relleno, separaciones y umbrales de nivel (`space × 60`, `space × 110`, `space × 80`) |
 | `--g-font-ui`, `--g-text-{caption|body-sm|body|title-sm|title}-{size|line|weight}`, `--g-text-action-weight` | Texto y valores (el valor de una métrica usa una escala de título) |
 | `--g-border-width`, `--g-focus-width`, `--g-focus-offset` | Bordes y foco |
-| `--g-duration-fast`, `--g-duration-press`, `--g-ease-out` | Fundidos y pulso del esqueleto |
+| `--g-duration-fast`, `--g-duration-press`, `--g-ease-out` | Fundidos (el pulso del esqueleto se retira con #539; hasta entonces `GWidget.css` usaba `--g-duration-spin`, no estos) |
 
 **Tokens nuevos:** ninguno para `GWidget` y las primitivas (los tokens de rejilla están en `widget-grid.md` y `tokens.md` §14).
 
@@ -246,6 +246,18 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-metric` (+ `__label`, `__value`, `__unit`, `__trend`, `--size-*`, `--trend-{color}`) | Métrica | Siempre (`--trend-*` sale de `trendColor`) |
 | `g-progress` (+ `__row`, `__bar`, `__fill`, `--color-*`, `--size-*`) | Progreso | Siempre; bruno da el avance al relleno con la variable dinámica `--_value` (porcentaje) |
 | `g-data-list` (+ `__swatch` con `data-swatch="0"` a `"3"`, `__label`, `__value`) | Lista de datos | Siempre |
+
+## Carga, vacío y error con el motor común (#540; segunda entrega)
+
+Adopción de `design/contracts/load-region.md`, contratada el 2026-10-08 y **pendiente** (bruno y coco, tras cerrar la primera entrega). Sin cambio de API.
+
+- **Motor** dentro de `state="loading"` (#532): retraso de 200 ms, mínimo de 400 ms, espera larga a los 5 s (con `labels.slow`, clave nueva opcional: línea visible y anuncio).
+- **Anuncios por el canal de página** (`g-load-live`, #533) **desde el montaje**: sustituye a `g-widget__sr role="status"`, que hoy nace **con** el esqueleto y puede no anunciarse (#14; hallazgo del inventario de kiwi). Un panel con seis widgets que cargan dice una frase (fusión).
+- **El error deja de ser `role="alert"`:** se anuncia cortés por el canal (nunca `assertive`; lo que deba interrumpir es de la isla, #541).
+- **Vacío y error por defecto con `GEmpty`:** `empty` → `GEmpty cause="none"` con `title` = `labels.empty`; `error` → `GEmpty cause="error"` con `title` = `labels.error` y `GBtn` `labels.retry` (emite `retry`). Los slots `empty` y `error` siguen mandando.
+- **Sin pulso** (`g-widget-pulse` fuera, #539; cierra el desajuste entre este contrato, que nombraba `duration-fast`/`press` para el pulso, y `GWidget.css`, que usaba `duration-spin`); **tono `--g-color-mold`** en `g-widget__line` y `__block` (#538); `forced-colors` con `GrayText`.
+- `stale` se queda como está (es B en pequeño).
+- `GWidgetGrid` y `GWidgetGallery`: `GEmpty` en sus slots `empty` como receta.
 
 ## Resolución de hallazgos de r01
 

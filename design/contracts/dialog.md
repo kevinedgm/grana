@@ -235,6 +235,7 @@ Sin tokens nuevos: `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`, `-
 - **Lector de pantalla:** cómo se anuncian el título, la descripción y el cuerpo desplazable está por verificar con lectores reales.
 - **Teclado virtual en móvil:** el visor se reduce y una hoja alta puede tapar campos; por verificar en dispositivo real.
 - **Navegadores:** exige `<dialog>` con `showModal()` y `:has()` (bloqueo del scroll de la página): todos los actuales.
+- **Pulso de `is-loading` (#539; segunda entrega de #540, solo coco):** el pulso infinito (`g-dialog-pulse`) choca con #299 §5 y con WCAG 2.2.2 pasados 5 s. Pasa a **finito, que termina antes de 5 s**, o a quieto; con movimiento reducido, quieto. Sin cambio de API.
 
 ## Abierto (no bloquea el paso siguiente)
 

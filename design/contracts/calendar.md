@@ -380,6 +380,16 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ---
 
+## Carga y vacío con el motor común (#540; segunda entrega)
+
+Adopción de `design/contracts/load-region.md`, contratada el 2026-10-08 y **pendiente** (bruno y coco). Sin cambio de API salvo `labels.slow` (opcional).
+
+- **Motor** dentro de `loading` (#532): retraso de 200 ms, mínimo de 400 ms, espera larga a los 5 s con `labels.slow`.
+- **Esqueleto `aria-hidden`** y **sin `aria-label`**: hoy `g-calendar__skeleton` es un `div` genérico con `aria-label` (nombre prohibido en `generic`; hallazgo del inventario de kiwi) y repite `aria-busy`. `labels.loading` pasa a escribirse en una **región cortés presente desde el montaje**, fuera del elemento con `aria-busy` (patrón de #265), cuando el esqueleto se ve.
+- **El error deja de ser `role="alert"`:** anuncio cortés en esa región (#533, #541).
+- **Sin pulso** (`g-calendar-pulse` fuera, #539); **tono `--g-color-mold`** (#538) en lugar de `--g-color-surface-sunken`; `forced-colors` con `GrayText`.
+- Slot `empty`: **`GEmpty`** como receta.
+
 ## Resolución de hallazgos de r01
 
 | # | Hallazgo | Resolución | Base |

@@ -51,7 +51,7 @@ Valores iniciales (0.08, 0.955, 0.3): validados con los colores del tema por def
 
 ### Neutros (fijos por defecto)
 
-`bg`, `surface`, `surface-sunken`, `text`, `text-muted`, `text-subtle`, `border`, `border-strong`, `border-control` (≥ 3:1 sobre `surface`), `focus` (= `accent-text`).
+`bg`, `surface`, `surface-sunken`, `text`, `text-muted`, `text-subtle`, `border`, `border-strong`, `border-control` (≥ 3:1 sobre `surface`), `focus` (= `accent-text`), `mold` (tono único y opaco del marcador de carga: ≥ 1,3:1 y < 3:1 frente a `surface`; §42, DECISIONS.md #538).
 
 ### Uso
 
@@ -116,7 +116,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 ```
 --g-color-{brand|accent|success|warning|danger|info}[-strong|-soft|-text]
 --g-color-on-{…}[-soft]
---g-color-{bg|surface|surface-sunken|text|text-muted|text-subtle|border|border-strong|border-control|focus}
+--g-color-{bg|surface|surface-sunken|text|text-muted|text-subtle|border|border-strong|border-control|focus|mold}
 --g-radius-{none|xs|sm|md|lg|xl|pill}
 --g-space-{1|2|3|4|5|6|8|12|16}
 --g-font-{ui|title|display}
@@ -320,6 +320,7 @@ Lo demás (radios, espaciado, tipografía, movimiento, bordes, estructura) **no 
 | `text`, `text-muted`, `text-subtle` | ≥ 4.5:1 sobre `bg`, `surface` y `surface-sunken` |
 | `border-control` | ≥ 3:1 sobre `surface` y `surface-sunken`; **pendiente (#186):** también sobre `neutral-soft` (relleno de solo lectura de los campos; 3.02:1 en el tema por defecto) |
 | `border`, `border-strong` | Blanco translúcido (mismo principio que el claro) |
+| `mold` | Opaco, derivado de `text` y `surface` del oscuro con la misma regla que en el claro: ≥ 1,3:1 y < 3:1 frente a `surface` (§42; medido por kiwi con el valor propuesto: 1,71:1) |
 | `surface-backdrop` | Negro con alfa ≥ 0.5 |
 | Sombras | Las del claro con el alfa duplicado aproximadamente (sobre oscuro se ven menos); el tema sigue prefiriendo bordes |
 | Cristal | `tint` oscuro y opacidad tal que el peor caso (sobre blanco) dé ≥ 4.5:1 con `text` (más alta que la del claro) |
@@ -537,7 +538,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 | `--g-card-scrim` | Velo sobre la media de fondo | Con `--g-card-on-scrim`, el texto cumple ≥ 4.5:1 sobre el peor caso del velo; se redeclara en el oscuro |
 | `--g-card-on-scrim` | Color del texto e iconos sobre el velo | |
 
-**No son tokens** (reglas o alias locales `--_*`, §17.6): grosor doble del borde de selected (`2 × --g-border-width`), anillo de foco hacia dentro (`calc(-1 * var(--g-focus-offset))`), línea del pie (`--g-color-border`, separador decorativo sin 3:1), tono del esqueleto (`--g-color-border-strong`; #136), ancho de la media lateral (derivado de `space` y `density`) y caja de `lead` (`space × 10`). Los umbrales de adaptación (`space × 130` y `space × 80`) tampoco: los mide bruno.
+**No son tokens** (reglas o alias locales `--_*`, §17.6): grosor doble del borde de selected (`2 × --g-border-width`), anillo de foco hacia dentro (`calc(-1 * var(--g-focus-offset))`), línea del pie (`--g-color-border`, separador decorativo sin 3:1), tono del esqueleto (`--g-color-border-strong`; #136; pasa a `--g-color-mold` con #538 en la segunda entrega de #540), ancho de la media lateral (derivado de `space` y `density`) y caja de `lead` (`space × 10`). Los umbrales de adaptación (`space × 130` y `space × 80`) tampoco: los mide bruno.
 
 **Propiedad pública de `GSurface`: `--g-surface-padding`** (`design/contracts/surface.md`, «Cambio aparte»; #131). La declara `GSurface.css` en cada `.g-surface` con el relleno **ya resuelto** (escala de `padding` × `density`) para que una región a sangre de un componente que la compone (`GCard`) pueda calcular su margen negativo. **Solo lectura**: no es del tema, el usuario no la sobrescribe y no se emite en `tokens.json`; la superficie más cercana gana. Excepción documentada a `levels.test.js` (un componente puede leerla sin declararla; es el caso inverso de `--g-tabs-inset`, que el anfitrión escribe).
 
@@ -938,3 +939,27 @@ Consume solo tokens existentes (`design/contracts/accordion.md` «Tokens», DECI
 - **Constantes de coreografía** (§29.6).
 - **Datos del `.vue` al CSS** (§29.5).
 - `24px` / `44px` (§7) como suelo de cada destino.
+
+## 42. Vacío y región que carga (`GEmpty`, `GLoadRegion`; un token global nuevo, ninguno de componente)
+
+**Token nuevo: `--g-color-mold`** (`design/contracts/load-region.md`, DECISIONS.md #538). Neutro **semántico** (§17.1, nivel 3: «dónde irá el contenido que aún no llegó»), en el grupo de color que redeclara el oscuro (§15). Coco fija el valor en `defaults.css` (capa `grana.defaults`), en claro y en oscuro; valor propuesto por kiwi: `color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface))`.
+
+| Regla | Valor |
+| --- | --- |
+| Opacidad | **Opaco** (sin alfa: las formas que se solapan no se oscurecen) |
+| Contraste frente a `surface` | **≥ 1,3:1 y < 3:1** en claro y oscuro. No es un mínimo de WCAG: el relleno es decorativo y redundante (`aria-busy` + anuncio + texto visible a los 5 s); el suelo es que se perciba la forma y el techo que nunca se lea como texto ni como control. Medido por kiwi con el valor propuesto: 1,46:1 claro, 1,71:1 oscuro |
+| Uso | Molde de `GLoadRegion` (barras y bordes) y esqueletos de `GTable`, `GCard`, `GWidget`, `GCalendar` y los huesos de `GSummary` (#540); sustituye a `surface-sunken` (≈ 1,08:1) y a `border-strong` (con alfa) en ese papel |
+| Colores forzados | `GrayText` con `forced-color-adjust: none` |
+| CLI | **Pendiente no bloqueante (bruno):** emitirlo en `tokens.json` y diagnosticar la regla (informativo, como #228). Hasta entonces, el valor de `defaults.css` sigue cualquier tema porque se calcula con su `text` y su `surface` |
+
+**Tokens que consumen** (existentes): `GEmpty` — `--g-color-border-strong` (contorno discontinuo del hueco, decorativo), `--g-color-text`, `--g-color-text-muted`, `--g-color-danger-text`, `--g-border-width`, `--g-radius-md`, `--g-space-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-action-weight`. `GLoadRegion` — `--g-color-mold`, `--g-color-accent-text` (filo de B y marca de lo nuevo: forma de familia sin par, §7.1), `--g-color-accent-soft`/`--g-color-on-accent-soft` (píldora), `--g-color-danger-soft`/`--g-color-on-danger-soft` (barra de fallo), `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-*`, `--g-radius-md`, `--g-radius-pill`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`.
+
+**Movimiento** (amplía §29, DECISIONS.md #539): el único movimiento es el **revelado** del molde, una transición de `color`, `text-decoration-color`, `background-color` y `border-color` con `--g-duration-slow` + `--g-ease-out` (reducido: `--g-duration-fast`); nada se desplaza ni escala. **Sin keyframes ni pulsos de carga**; regla para toda Grana: **ninguna animación de carga pasa de 5 s** (WCAG 2.2.2), lo que retira `g-table-pulse`, `g-card-pulse`, `g-widget-pulse`, `g-calendar-pulse` y deja `g-dialog-pulse` finito por debajo de 5 s o quieto.
+
+**No son tokens:**
+
+- **Constantes de diseño** del motor `utils/loadPhase.js` (#532, como #187 y `HOVER_MS` de #308): retraso **200 ms**, mínimo a la vista **400 ms**, espera larga **5000 ms**.
+- **Constante de la técnica del molde** (#535, amplía §7 y #187): grosor de la barra **`0.72em`** (`text-decoration-thickness`).
+- **Dato del `.vue` al CSS** (§29.5): `--_load-slot`, alto de un elemento medido por la región, que lee `GEmpty` como alto mínimo (en línea, sin respaldo: fuera de una región la propiedad vuelve a `auto`).
+- **`!important` del molde** (#535): única excepción a la regla de capas en Grana; limitado a las reglas del molde.
+

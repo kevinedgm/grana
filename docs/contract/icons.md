@@ -1,6 +1,6 @@
-# Contrato de iconos · v0.8
+# Contrato de iconos · v0.9
 
-**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203, #204 a #206, #224, #253, #296, #336 y #377 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
+**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203, #204 a #206, #224, #253, #296, #336, #377 y #537 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
 
 **Cambios respecto a la v0.1:** `GIcon` pasa a ser **público** (§2; #197, #199) con registro de iconos **por aplicación** (`createIcons`, §5; #200); la validación «solo Lucide» se impone a la aplicación por la forma del dato (§5.3; #198); la lista de la librería es **API pública** (§4; #201); convención de huecos «dato → nombre; plantilla → slot» (§5.8, `api.md`; #202); hueco `lead` en `GFormSection` (#203). Sin tokens nuevos.
 
@@ -15,6 +15,8 @@
 **Cambios respecto a la v0.6:** la lista crece (cambio menor, #201) con **`search`**, el icono propio del campo de búsqueda de la superficie y de los estados del panel de `GCombobox` (`design/contracts/combobox.md`; #336). `maximize-2` queda **reservado** (ampliar a la paleta, #338) y **no** entra todavía. Sin tokens nuevos ni cambios de API de `GIcon`.
 
 **Cambios respecto a la v0.7:** la lista crece (cambio menor, #201) con **`file-text`** e **`image`**, los iconos de la ficha de un archivo sin miniatura en `GFileField` (`design/contracts/file-field.md`; #377). `inbox` (la cara de la zona de la base r01) **no** entra: el concepto A no lo usa. «Reintentar» de un archivo usa `rotate-ccw`, como `GCombobox` y la captura de voz. Sin tokens nuevos ni cambios de API de `GIcon`.
+
+**Cambios respecto a la v0.8:** sin iconos nuevos. `GEmpty` usa `search`, `circle-alert` y `lock` (ya en la lista) como icono propio de sus causas y deja vacío el de `none`; **`inbox` no entra** (lo registra la aplicación y lo pone en el slot `icon`, #201, #537). `GLoadRegion` usa `refresh-cw` y `circle-alert` (ya en la lista). Sin tokens nuevos ni cambios de API de `GIcon`.
 
 ## 1. Qué es un icono (y qué no)
 
@@ -160,6 +162,8 @@ Nombre de Lucide entre comillas.
 | `GTag`, `GTagGroup` (`tag.md`; #471) | Quitar · pulsada · deshacer (de una huella y de «Quitar todas»; con `flip-rtl`) | `x` · `check` · `undo-2` (**ninguno nuevo**; `circle` rellena queda para C «Palabra», reservada) |
 | `GAccordionItem` (`accordion.md`; #485) | Chevron del encabezado (gira abierto, se espeja en RTL) | `chevron-right` (gira; **ninguno nuevo**) |
 | `GBreadcrumbs` (`breadcrumbs.md`; #492, #497, #498) | Separador · puerta (gira) · subir · divulgación de la página (gira) · el de la ruta en una puerta | `chevron-right` (espejado en RTL) · `chevron-right` (espejado en RTL) · `arrow-up` · `chevron-down` · `check` (**ninguno nuevo**; el de puntos suspensivos no se usa) |
+| `GEmpty` (`empty.md`; #537) | Causa `filtered` · `error` · `forbidden` (decorativo; `none` sin icono propio; el slot `icon` lo sustituye) | `search` · `circle-alert` · `lock` (**ninguno nuevo**) |
+| `GLoadRegion` (`load-region.md`; #536) | Píldora «Actualizando» · barra de fallo (decorativos) | `refresh-cw` · `circle-alert` (**ninguno nuevo**) |
 
 **Alias de compatibilidad (#206):** `circle-help` estaba en la lista de la v0.2 con el nombre de un **archivo de alias** de `lucide-static` (`icons/circle-help.svg`, marca `lucide-circle-help`), no con el canónico: en `lucide-static` 1.49.0 `CircleHelp`, `HelpCircle` y `CircleQuestionMark` exportan el mismo módulo, `circle-question-mark`. Desde la v0.3 la lista usa el canónico **`circle-question-mark`** y **conserva `circle-help`** como alias del mismo dibujo (sin bytes duplicados en el paquete), sin aviso, hasta la siguiente versión mayor (#201: quitar un nombre es cambio mayor); está **obsoleto**: la documentación y los componentes usan el canónico. Es el único alias; uno nuevo solo entra por una decisión de lima cuando Lucide renombre un icono de la lista (§7, prueba 9).
 
