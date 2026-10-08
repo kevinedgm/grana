@@ -117,11 +117,11 @@ Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB 
 
 #### ESM y UMD para CDN
 
-El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField` y `testing.umd.js` con `GranaTesting`).
+El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField`, `slider.umd.js` con `GranaSlider` y `testing.umd.js` con `GranaTesting`).
 
 ### Entradas propias
 
-Cinco piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
+Seis piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
 
 | Entrada | Qué trae | Cuándo usarla | Global UMD | Tamaño (gzip) |
 | --- | --- | --- | --- | --- |
@@ -130,6 +130,7 @@ Cinco piezas **no viajan en el paquete principal**: cada una tiene su entrada y 
 | `@grana/vue/combobox` | `GCombobox` | Elegir de un catálogo grande escribiendo (pacientes, diagnósticos, medicamentos) | `GranaCombobox` | ≈ 22 kB |
 | `@grana/vue/file-field` | `GFileField`, `formatFileSize` | Adjuntar archivos a un formulario | `GranaFileField` | ≈ 12 kB |
 | `@grana/vue/time-field` | `GTimeField` | Capturar una hora del reloj | `GranaTimeField` | ≈ 11 kB |
+| `@grana/vue/slider` | `GSlider` | Elegir un valor acotado o un rango por posición (volumen, intensidad, precio) | `GranaSlider` | ≈ 11 kB |
 
 **Por qué van aparte:** cada una añadiría más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)) y no todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-06): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -145,7 +146,7 @@ createApp(App).use(Grana).use(Combobox).mount('#app')   // registra <g-combobox>
 
 ### TypeScript
 
-Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
+Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts`, `slider.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
 
 Tras `app.use(...)`, las etiquetas de los componentes quedan tipadas en las plantillas sin importar nada, gracias a `GlobalComponents` de Vue (una declaración por entrada, en PascalCase y en kebab-case):
 
@@ -277,6 +278,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GSelect`](packages/vue/src/components/GSelect/README.md) | Selector de una opción con lista propia | principal |
 | [`GCombobox`](packages/vue/src/components/GCombobox/README.md) | Elegir de un catálogo grande escribiendo; con `multiple` | **propia** |
 | [`GTimeField`](packages/vue/src/components/GTimeField/README.md) | Hora del reloj que se escribe como se dice | **propia** |
+| [`GSlider`](packages/vue/src/components/GSlider/README.md) | Valor acotado o rango de dos extremos donde el asa es el valor | **propia** |
 | [`GDatePicker`](packages/vue/src/components/GDatePicker/README.md) | Fecha o rango, con popover u hoja inferior en móvil | principal |
 | [`GFileField`](packages/vue/src/components/GFileField/README.md) | Adjuntar archivos, con subida por adaptador de tu aplicación | **propia** |
 | [`GCheckbox`](packages/vue/src/components/GCheckbox/README.md), [`GCheckboxGroup`](packages/vue/src/components/GCheckboxGroup/README.md) | Casilla y grupo de casillas con casilla maestra | principal |
