@@ -2,7 +2,7 @@
 
 **Dueño:** lima · **Estado:** aprobado (forma **A «Ruta líquida»** por defecto, con **la cara de B «Escalón»** como su última etapa y las **puertas de C** cuando la aplicación da `children`: decisión del usuario del 2026-10-07; el resto deriva de WAI-ARIA APG *Breadcrumb* y *Disclosure Navigation*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/breadcrumbs/r01/` (kiwi, commit `68a6ff2`: base funcional, conceptos A, B y C, hallazgos L1 a L16; `verificar.mjs` 324/324 en los tres motores, puerto 4215).
 **Tag:** `g-breadcrumbs` · **Categoría:** navegación · **Entrada del paquete:** `@grana/vue` (principal), con la salida a entrada propia ya decidida si supera el tope (§«Entrega y empaquetado»).
-**Decisiones:** #490 a #503 (integradas en `DECISIONS.md` el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/breadcrumbs.pendientes.md`; tokens en `tokens.md` §41).
+**Decisiones:** #490 a #503 (integradas en `DECISIONS.md` el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/breadcrumbs.pendientes.md`; tokens en `tokens.md` §41) y **#520 a #523** (remates tras la auditoría de coco, `design/lab/breadcrumbs/auditoria.md`: medidas de diseño, teclado, «Para lima» de `estilo.md`, límite de la métrica de la fuente y excepción de `navigate` con el slot `link`).
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: paneles anclados sobre otros elementos y un motor de medida): **coco y bruno en Opus**.
 
 Dice **dónde está** la página dentro de una jerarquía y deja **subir** a cualquier nivel: Inicio · Laboratorio central · Muestras · 2026 · Lote 2026-0412 · Muestra M-0007. Donde la aplicación lo sabe, deja además **moverse de lado** (del lote 0412 al 0413) sin subir y volver a bajar.
@@ -166,7 +166,7 @@ nav.g-breadcrumbs  aria-label="{labels.nav}"  data-stage="step"
 - **Slot `link`** (para `RouterLink`/`NuxtLink`), **uno para todos los `<a>` del componente** (fila, «Subir», escalera y puertas). Alcance `{ item, index, current, from, attrs, content }`:
   - `attrs`: lo que el elemento debe recibir con `v-bind="attrs"`: `href`, `class` (las de §«Clases»), `aria-current` cuando toca, `aria-label` en «Subir», `onClick` (emite `navigate` y cierra el panel) y lo que necesite el motor de la pista.
   - `content`: un **componente** sin props que pinta el interior que corresponde (hueco de icono + `__label` con `dir="auto"`; en «Subir», `arrow-up` + nombre del padre; en una puerta, el `check` del de la ruta). La aplicación lo pinta con `<component :is="content" />`.
-  - **Reglas:** un solo elemento enfocable, que recibe `v-bind="attrs"` y lleva `content` como único contenido; nada visible añadido (la medida no ve el slot: la lista de medida pinta el `<a>` por defecto con las mismas clases). Con el slot, la navegación la hace el elemento (el `RouterLink` navega en su propio `onClick`); `navigate` se sigue emitiendo, con `event.defaultPrevented` ya verdadero si el router lo canceló. Si el elemento del slot no aplica `attrs`, aviso 9.
+  - **Reglas:** un solo elemento enfocable, que recibe `v-bind="attrs"` y lleva `content` como único contenido; nada visible añadido (la medida no ve el slot: la lista de medida pinta el `<a>` por defecto con las mismas clases). Con el slot, la navegación la hace el elemento (el `RouterLink` navega en su propio `onClick`); `navigate` se sigue emitiendo, con `event.defaultPrevented` ya verdadero si el router lo canceló. **Es la única excepción a la guarda de `defaultPrevented` de `api.md` «Enlaces y `navigate`» (#523):** sin el slot, un clic ya cancelado antes de llegar al componente no emite; con el slot, sí, porque el router siempre llega primero y cancelaría todos los clics. Los modificadores y el botón central siguen sin emitir en ambos casos. Si el elemento del slot no aplica `attrs`, aviso 9.
   - Los niveles **sin `href`** nunca pasan por el slot.
 
 ```html
@@ -219,7 +219,7 @@ Declarado en `emits` (lección del CLAUDE.md). Los demás eventos nativos llegan
 
 ## El foco despliega; la pista visual (#496)
 
-- **Despliegue por teclado (A):** el `li` cuyo enlace tiene `:focus-visible` toma peso `1` y su nombre pierde el tope (`max-inline-size: none`), de modo que se ve entero y las vecinas se aprietan. **En CSS** (`.g-breadcrumbs__item:has(> .g-breadcrumbs__link:focus-visible)`), sin clase de JS; se pliega al irse el foco. **Sin transición de tamaño** (instantáneo: es frecuente, #500). Con el **puntero**, nada se despliega (la fila se movería bajo él): la pista da el nombre.
+- **Despliegue por teclado (A):** el `li` cuyo enlace tiene `:focus-visible` toma peso `1` y su nombre pierde el tope (`max-inline-size: none`), de modo que se ve **entero o casi** (#521: con peso `1` frente al `30` del padre, Flexbox reparte el déficit en proporción a peso × base, así que el padre no llega a su mínimo antes de que la miga desplegada ceda algo; medido 97,5 % del nombre a 560px y la pista visual completa el resto cuando ni desplegado cabe) y las vecinas se aprietan. Un peso `0` lo dejaría siempre entero pero haría desbordar la fila cuando de verdad no cabe. **En CSS** (`.g-breadcrumbs__item:has(> .g-breadcrumbs__link:focus-visible)`), sin clase de JS; se pliega al irse el foco. **Sin transición de tamaño** (instantáneo: es frecuente, #500). Con el **puntero**, nada se despliega (la fila se movería bajo él): la pista da el nombre.
 - **Pista visual** (modo visual del motor del tooltip, `tooltip.md` §«Modo visual», #433; **enmienda** aplicada en `tooltip.md` §«Modo visual»): `GBreadcrumbs` es el primer cliente cuyo nombre está **visible pero recortado** (no oculto). Un nodo `g-tooltip` (`aria-hidden`, sin rol, id ni referencias) **por destino que pueda recortarse**: cada nivel de la fila, «Subir» y la divulgación; y **uno por puerta**. Al final de la raíz `nav`, **nunca dentro del `ol`** (que solo admite `li`).
   - **Texto:** el `label` del nivel (en «Subir» y la divulgación, el nombre visible, no el `aria-label`); en una puerta, su nombre (`labels.children` resuelto), como el `aria-label` del botón de contraer de `GSidebar` (#436).
   - **`disabled()`** verdadero mientras el nombre cabe entero: activa solo con `data-clipped` o con la raíz en solo icono; la puerta, siempre activa (es un control de solo icono: la pista **ayuda a descubrirla**, #498). Se mide al pedirlo (lectura síncrona: con el foco por teclado, el despliegue ya se aplicó y la pista solo sale si **ni desplegado** cabe).
@@ -230,7 +230,7 @@ Declarado en `emits` (lección del CLAUDE.md). Los demás eventos nativos llegan
 ## Última etapa: la cara de B (#497)
 
 - **«Subir»** = `a.g-breadcrumbs__up` al **antepasado más cercano con `href`** (normalmente el padre), con `arrow-up` (no `chevron-left`: subir en la jerarquía no es «atrás» en el historial) y el nombre de ese nivel visible y recortable; nombre accesible `labels.up` con `{label}` = ese nivel. Emite `navigate` con `from: 'up'`. Si ningún antepasado tiene `href`, no se pinta.
-- **La divulgación** = `button.g-breadcrumbs__toggle` con el **nombre de la página** visible (recortable) y `chevron-down`; nombre `labels.path` con `{label}` = la página. Controla `ol.g-breadcrumbs__stairs`.
+- **La divulgación** = `button.g-breadcrumbs__toggle` con el **nombre de la página** visible (recortable) y `chevron-down`; nombre `labels.path` con `{label}` = la página. Controla `ol.g-breadcrumbs__stairs`. **Es la pastilla de acento** (#521): `accent-soft` / `on-accent-soft` y `--g-text-action-weight`, como el actual de la fila («estás aquí»), no un botón transparente; al pasar, marco interior `on-accent-soft`; ningún token nuevo.
 - **La escalera:** todos los niveles en orden, uno por `li.__stair`, cada uno más adentro (`--_depth` = índice; sangría `space × 4` por nivel), una guía en L de borde entre escalones (estructura, como las guías de un árbol; no es un icono), el actual marcado (`aria-current="page"` y barra `accent-text`, como la barra activa de `GSidebar`, #228). Los nombres **se parten en líneas** (no se recortan). Niveles sin página, texto. **Sin puertas en la escalera** (reservado, #503).
 - **Dos paradas de Tab**, a cualquier ancho; la cara no cede (solo recorta los dos nombres).
 - **Teclado:** §«Teclado».
@@ -245,6 +245,7 @@ Declarado en `emits` (lección del CLAUDE.md). Los demás eventos nativos llegan
   2. **Puntero:** al pasar, se distingue del separador decorativo (estado hover propio, `cursor: pointer`) y la pista la nombra a los 350 ms.
   3. **3:1 como control** (WCAG 1.4.11): el chevron (y el contorno o fondo si coco le da forma) contra lo adyacente, en claro, oscuro y un tema distinto. Kiwi midió 5,00:1 con `text-muted`.
   4. Si en reposo puerta y separador se ven iguales, coco lo justifica en `estilo.md` y lo mide en la auditoría (descubrimiento por puntero y teclado).
+- **En reposo, como quedó (decisión de coco, registrada en #521 con el §41):** la **puerta entornada**: el mismo chevron en un **hueco redondo `neutral-soft`** de `max(24px, space × 6, 1em + space × 2)` (`max(44px, 1em + space × 2)` con `pointer: coarse`; #520), en `text-muted`, con `cursor: pointer`; al pasar, marco interior `border-control` y chevron en `text`. Se distingue del separador decorativo por forma (hueco), tono (`text-muted` frente a `text-subtle`) y cursor. Medido ≥ 6,49:1 en reposo y ≥ 3,43:1 de marco al pasar (mínimo en 28 configuraciones).
 - **Abierta:** el chevron gira hacia abajo (90°; −90° sobre el espejo en RTL) y la puerta toma `accent-soft` / `on-accent-soft` (§«Movimiento»).
 - Con `pointer: coarse` cada puerta suma 44px a la fila: la fila cede antes; es el precio aceptado.
 
@@ -269,7 +270,7 @@ Declarado en `emits` (lección del CLAUDE.md). Los demás eventos nativos llegan
 | ↑ / ↓ | Dentro del panel | Enlace anterior / siguiente (circular) |
 | Inicio / Fin | Dentro del panel | Primer / último enlace |
 | Esc | Disparador o panel | Cierra y devuelve el foco al disparador; si solo hay pista abierta, la cierra (motor) |
-| Tab | Dentro del panel | Sale en el orden del documento y cierra |
+| Tab | Dentro del panel | **Recorre los enlaces del panel** en el orden del documento y, **desde el último**, sale y cierra (APG *Disclosure Navigation*; #520). |
 
 En los paneles, el orden del DOM es el del Tab: el panel va **inmediatamente después** de su disparador (la puerta, dentro de su `li`; la escalera, después de la cara).
 
@@ -280,9 +281,9 @@ En los paneles, el orden del DOM es el del Tab: el panel va **inmediatamente des
 | **Bajar un nivel** (la ruta se extiende): el nivel nuevo sale de detrás del anterior | `translate` desde `space × 3` hacia el inicio (reflejado en RTL) con **`--g-duration-slow` + `--g-ease-spring`**; opacidad con `--g-duration-press` + `--g-ease-out` | Sin desplazamiento; aparece en su sitio (como mucho, fundido `--g-duration-fast`) |
 | **Subir un nivel** (la ruta se recoge): el último se recoge hacia el anterior y desaparece | `translate` hacia el anterior y opacidad con **`--g-duration-press` + `--g-ease-out`** (salida más corta que la entrada, #152) | Desaparece sin desplazarse (sin copia saliente) |
 | **Escalera** que se abre | Cada escalón entra desde su sangría (`space × 2`) con `--g-duration-slow` + `--g-ease-out`, con retardo `--g-duration-fast × min(i, 4) / 4` (acotado: la escalera entera nunca tarda más de `slow + fast`); el chevron de la divulgación gira 180° con `--g-duration-press` + `--g-ease-out` | Aparece entera; el chevron cambia sin girar |
-| **Puerta** que se abre | El chevron gira 90° (−90° en RTL) con `--g-duration-press` + `--g-ease-out`; fondo con `--g-duration-fast` | Sin giro; el color, con fundido |
+| **Puerta** que se abre | El chevron gira 90° (−90° en RTL) con `--g-duration-press` + `--g-ease-out`; fondo con `--g-duration-fast` + `--g-ease-out` | Sin giro; el color, con fundido |
 | Panel (aparecer / cerrar) | Como los popovers de Grana: entrada `--g-duration-press` + `--g-ease-out`, salida `--g-duration-fast` (en Firefox y WebKit, cierre en el acto, #394) | Fundido |
-| Pastilla que cambia (`data-clipped`, actual que pasa a otro nivel) | Color y fondo con `--g-duration-fast` | Igual |
+| Pastilla que cambia (`data-clipped`, actual que pasa a otro nivel) | Color y fondo con `--g-duration-fast` + **`--g-ease-out`** (#521) | Igual |
 | Despliegue por foco | **Sin transición** de tamaño | Igual |
 | Cambio de etapa | **Nunca** se anima | Igual |
 
@@ -305,7 +306,11 @@ En los paneles, el orden del DOM es el del Tab: el panel va **inmediatamente des
 **No son tokens** (registro en `tokens.md` §41):
 
 - **Literales de unidad** (amplían §7, #187, como `7ch`/`4ch` de `GSummary`): **`20ch`** (tope de nombre de un nivel), **`3ch`** (nombre mínimo de una pastilla), **`8ch`** (suelo del actual en `shrink`).
-- **Constantes de diseño:** pesos de `flex-shrink` **`100000` · `30` · `1` · `0`** (en medio, padre, actual en `shrink`, actual); sangría de la escalera **`space × 4`** por nivel; anchos de los paneles (coco, desde `space`).
+- **Constantes de diseño:** pesos de `flex-shrink` **`100000` · `30` · `1` · `0`** (en medio, padre, actual en `shrink`, actual); sangría de la escalera **`space × 4`** por nivel; anchos de los paneles (coco, desde `space`); y las **medidas de la tabla «Medidas» de `estilo.md`** (#520, #521), todas derivadas de `--g-space-1` y de la línea de texto, ninguna es token:
+  - **Alto de la fila y de la cara de B (Δ0): `--_bc-h` = `max(24px, space × 7, body-sm-line)`** (`max(44px, space × 7, body-sm-line)` con `pointer: coarse`). La línea de texto entra para que crezca con el texto al 200 % (WCAG 1.4.4); sin cambio con el tema por defecto (28), el propio (35) ni el de la auditoría a texto normal (24).
+  - **Puerta: `--_bc-door` = `max(24px, space × 6, 1em + space × 2)`** (`max(44px, 1em + space × 2)` con `pointer: coarse`), redonda, con `space × 0.5` a cada lado; el `1em` hace que el chevron (de `1em`) quepa siempre. La raíz en solo icono es un círculo de `--_bc-h`.
+  - Márgenes del separador y de la puerta `space × 0.5`; relleno en línea de una pastilla `space × 2`; icono–nombre `space × 1`; anchos de los paneles `space × 48` a `min(space × 80, 100vw − space × 4)` (puerta) y `space × 56` a `min(space × 90, 100vw − space × 4)` (escalera); relleno del panel `space × 1` y de la escalera `space × 2`; enlace de un panel `max(24px, space × 8)` (44 con puntero grueso); guía en L a `space × (4·d − 2)` del inicio con brazo `space × 1.5`; entrada de un panel `space × 1` hacia el disparador (la de `GHelper`).
+  - **Lista de medida con `overflow: clip`** (`.g-breadcrumbs__measure`): sus niveles en sus mínimos desbordan cuando ni la última etapa probada cabe, y ese desbordamiento invisible ensanchaba la página (458px de ancho a 320px, WCAG 1.4.10); el recorte no cambia lo que mide bruno.
 - **Constantes de coreografía** (amplían §29.6): **`--g-space-1 × 3`** (desplazamiento del nivel que llega o se va, reflejado en RTL), **`--g-space-1 × 2`** (entrada de un escalón), retardo **`--g-duration-fast × min(i, 4) / 4`**, giros **`90°`** (puerta) y **`180°`** (divulgación).
 - `24px` / `44px` (§7) como suelo de cada destino.
 - **Datos del `.vue` al CSS** (amplían §29.5): `data-stage`, `data-clipped`, `is-ready`, `is-entering`, `is-leaving`, `--_depth`, `--_x`/`--_y`/`--_max` de los paneles, `data-side` del panel.
@@ -407,7 +412,8 @@ Del resto de la base de kiwi: los puntos 9 a 11 («+N» y su orden de cesión) *
 - Las puertas casi duplican las paradas de Tab; con `pointer: coarse` la fila cede antes.
 - En `step`, ver la ruta cuesta un toque.
 - Las pastillas comparten lenguaje con `GBadge` y los chips: coco debe distinguirlas (son enlaces).
-- Con el slot `link`, `navigate` llega con `event.defaultPrevented` ya verdadero si el router canceló en su propio manejador.
+- Con el slot `link`, `navigate` llega con `event.defaultPrevented` ya verdadero si el router canceló en su propio manejador (la excepción de #523 a la guarda común de `api.md`).
+- **La etapa a un ancho dado depende de la métrica de la fuente** (#522): con una fuente del sistema distinta (o una de la aplicación que cargue tarde) la misma ruta puede estar en `liquid` en un motor y en `root-icon` en otro al mismo ancho (medido: Georgia a 480px, `liquid` en Chromium y `root-icon` en Firefox y WebKit). El **orden** de las etapas, el alto Δ0 y que nada salga del `nav` no dependen de ello; sí lo hace *a qué ancho* ocurre cada cambio. Una aplicación no debe fijar anchos de cabecera esperando una etapa concreta.
 
 ## Verificación (cómo se da por hecho)
 
@@ -434,6 +440,7 @@ Lector de pantalla real (VoiceOver, NVDA, TalkBack): la lista dentro del `nav` c
 - **`children` cargados al abrir** (evento de petición + estado de carga, sin `fetch`) y búsqueda dentro de una puerta larga.
 - **Puerta al final** (los hijos de la página actual, «bajar») y **puertas en la escalera**.
 - `density` / `size`; exponer la etapa (`stage`) como evento o slot.
+- **Personalidad aplazada: el chevron que «se asoma»** (#521): al pasar por una puerta, el chevron gira un tercio hacia abajo anunciando que abre un panel y no navega. Necesitaría una constante de coreografía nueva (§29.6, #187) y decisión; reserva para la segunda tanda de personalidad (`PENDIENTES.md`). No se implementa.
 - **Nunca:** separador configurable, prop `to`/router propio, `role="menu"` para los niveles, `title`, partir la fila en dos líneas.
 
 ## Encargos
