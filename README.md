@@ -1,6 +1,11 @@
-# Grana
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="design/marca/svg/readme-cabecera-oscuro.svg">
+    <img src="design/marca/svg/readme-cabecera-claro.svg" alt="Grana: the only bug you'll want in your UI." width="560">
+  </picture>
+</p>
 
-> *The only bug you'll want in your UI.*
+# Grana
 
 Librería de componentes **Vue 3** con tema por tokens. Los componentes traen la **estructura**; tu tema les da el **color**.
 

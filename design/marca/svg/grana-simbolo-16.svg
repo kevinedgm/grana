@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Grana" class="grana-a516">
+  <!-- Grana · 16 px: óvalo, una banda, trazo grueso, sin antenas -->
+  <path class="grana__tinte" d="M23 7.5C30.51 7.5 39.00 15.11 39.00 24.50C39.00 33.89 31.84 41.5 23 41.5C14.16 41.5 7.00 33.89 7.00 24.50C7.00 15.11 15.49 7.5 23 7.5Z" transform="translate(3.6 3.6)" fill="var(--g-color-brand,#a3123a)"/>
+  <g class="grana__armazon" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7.5C30.51 7.5 39.00 15.11 39.00 24.50C39.00 33.89 31.84 41.5 23 41.5C14.16 41.5 7.00 33.89 7.00 24.50C7.00 15.11 15.49 7.5 23 7.5Z"/><path d="M7.33 25.50Q23 28.50 38.67 25.50"/></g>
+</svg>
