@@ -125,7 +125,7 @@
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "lucide-static": "^1.49.0",
+    "lucide-static": "^1.52.0",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
@@ -138,7 +138,7 @@
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/test-utils": "^2.4.0",
     "jsdom": "^25.0.0",
-    "lucide-static": "^1.49.0",
+    "lucide-static": "^1.52.0",
     "typescript": "~5.9.3",
     "vite": "^6.0.0",
     "vitest": "^4.1.11",
