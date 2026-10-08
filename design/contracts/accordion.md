@@ -1,6 +1,6 @@
 # Contrato · GAccordion + GAccordionItem
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #475 a #488, integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/accordion.pendientes.md`; tokens en `tokens.md` §40) · pendiente de coco y bruno · **Basado en:** `design/lab/accordion/r01/` (kiwi, commit 5f90973: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `accordion.js`, `verificar.mjs` 184/184 en Chromium, Firefox y WebKit, puerto 4214)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #475 a #488, integradas el 2026-10-07; cambios en archivos compartidos aplicados, rastro en `design/contracts/accordion.pendientes.md`; tokens en `tokens.md` §40) · hecho y `candidate` (auditoría de coco, `design/lab/accordion/auditoria.md`); remates del contrato tras la auditoría en #515 a #519 (2026-10-08, «Remates tras la auditoría» al final) · **Basado en:** `design/lab/accordion/r01/` (kiwi, commit 5f90973: `brief.md`, `declaracion.md` con hallazgos L1 a L14, `accordion.js`, `verificar.mjs` 184/184 en Chromium, Firefox y WebKit, puerto 4214)
 **Tags:** `g-accordion`, `g-accordion-item` · **Categoría:** contenido (divulgación) · **Paquete:** `@grana/vue` (principal; #476)
 
 Un grupo de **secciones plegables de contenido** (preguntas frecuentes, paneles de detalles, ajustes que se aplican al momento) y su elemento, que también se usa **suelto** como sección plegable de una pieza (APG *Disclosure* con encabezado). No es una sección de formulario: plegar **preguntas de un formulario** es `GFormSection mode="collapsible"` (`form.md` §3).
@@ -186,7 +186,8 @@ Contenido **montado siempre** (búsqueda, anclas, impresión, estado de lo que h
 
 ### `#id` del elemento (#482)
 
-- Al montar y en `hashchange`, si el fragmento (decodificado) es el `id` de un elemento: lo abre **sin animar** (sin Δ0) y lo trae a la vista con el encabezado arriba (`scrollIntoView({ block: 'start' })`, que respeta su `scroll-margin-block-start`). **No mueve el foco** (la navegación a fragmento ya fija el punto de partida de Tab). Un `#id` de **dentro** lo resuelve el navegador por `beforematch`.
+- Al montar y en `hashchange`, si el fragmento (decodificado) es el `id` de un elemento: lo abre **sin animar** (sin Δ0) y lo trae a la vista con el encabezado arriba (`scrollIntoView({ block: 'start' })`, que respeta el `scroll-padding` de la aplicación, #515). **No mueve el foco** (la navegación a fragmento ya fija el punto de partida de Tab). Un `#id` de **dentro** lo resuelve el navegador por `beforematch`.
+- **Reaplicado en `load`** (#519): si el elemento se montó durante la carga (`document.readyState !== 'complete'`), se trae a la vista **otra vez** en `load` y, si las fuentes aún no han cargado, una vez más al resolverse `document.fonts.ready` **solo si la persona no ha desplazado** (`scrollY` igual). Como hace el navegador con un fragmento: lo que se pinta encima (una imagen sin tamaño, la fuente) lo mueve, y el grupo no participa del anclaje de desplazamiento (`overflow-anchor: none`). Medido con una imagen de 200 px que llega 700 ms tarde: el botón queda a 47,7 / 47,7 / 48,3 px de una cabecera de 48 px.
 - El componente **lee** el fragmento, nunca lo escribe; para tener el estado en la URL, la aplicación usa `v-model`.
 - **Una sola escucha de `hashchange`** compartida por todos los elementos, que se pone con el primer elemento montado y se quita con el último (sin efectos en el nivel superior del módulo, #444).
 
@@ -218,12 +219,13 @@ Las flechas solo actúan con el foco **en un botón de un elemento de este grupo
 Comportamiento del componente, no opcional, en grupo y suelto:
 
 1. Cuando el usuario cambia un elemento (clic en el botón o en el avance, Intro, Espacio), el componente mide el borde superior del **encabezado tocado** antes del cambio y, en cada cuadro mientras dura el movimiento (duración calculada del panel con el cambio aplicado + 80 ms), desplaza **su contenedor de desplazamiento** lo que se haya movido (≥ 0,5 px), en el mismo cuadro, antes de pintar. Criterio: **≤ 1 px por cuadro** en los tres motores (kiwi: 0,5 px Chromium y Firefox, 0,9 px WebKit; sin compensar, 336 px).
-2. **Contenedor de desplazamiento:** el antepasado desplazable más cercano en el eje de bloque o, sin él, `document.scrollingElement`.
+2. **Contenedor de desplazamiento y cadena** (#519): el antepasado desplazable más cercano en el eje de bloque o, sin él, `document.scrollingElement`. Si ese contenedor **no puede desplazarse más** en el sentido que hace falta (está en su tope), o un antepasado se movió por su propio anclaje al encogerse el de dentro, la compensación **sigue con el siguiente contenedor hacia fuera** hasta el documento, recalculando lo que falta tras cada uno. Medido con el contenedor arriba del todo y el documento compensando 360 px: Δ ≤ 0,92 px en los tres motores.
 3. El grupo (y el elemento suelto) llevan **`overflow-anchor: none`** para que el navegador no compense dos veces (coco).
 4. **Se cancela** si el usuario desplaza durante el movimiento (`wheel`, `touchstart`, teclas de desplazamiento): no se pelea con quien desplaza.
 5. **Sin compensación** cuando el cambio no lo tocó el usuario: `modelValue` desde la aplicación, `beforematch`, `#id`, `OPEN_REQUEST`.
 6. **Cerrar con el principio del elemento por encima de la vista** (solo puede ocurrir con `sticky`): cierre **instantáneo** y el encabezado se queda donde estaba (#484).
 7. **Límite** (README, como `form.md` §14): sin página debajo para conservar el desplazamiento, el navegador lo recorta.
+8. **Límite aceptado: un desplazamiento ajeno dentro de la ventana** (#519, hallazgo 6 de la auditoría). Durante la ventana (duración + 80 ms, ≈ 320 ms) la compensación deshace un desplazamiento que **no** llegue por rueda, toque ni teclas de desplazamiento: **arrastrar la barra de desplazamiento** (no emite `wheel`) o un `scrollTo` de la aplicación justo después del clic. No se corrige en v0.1: es corto y raro, y cancelar por `pointerdown` no es fiable entre motores (la barra no siempre emite eventos de puntero en el elemento). Mejora opcional para bruno si alguien lo reporta: cancelar cuando la posición observada no es la que dejó la propia compensación. Va a los límites del README.
 
 La compensación es una función del motor compartido (`keepInPlace`, «Motor de plegado compartido»), la usa solo el acordeón en esta entrega.
 
@@ -239,13 +241,14 @@ La compensación es una función del motor compartido (`keepInPlace`, «Motor de
 
 ### A2 · La línea que no se mueve
 
-- El avance ocupa **la misma celda** que el panel y la misma tipografía que el primer párrafo del contenido (`body`). Al abrir: el contenido nace en esa celda, la primera línea ya está entera antes de la mitad del fundido, el avance se funde **encima** (mismo texto, mismo sitio; solo se van los puntos suspensivos) y el resto se desenrolla debajo; el color del contenido pasa de `text-muted` a `text` durante la altura. Al cerrar, a la inversa (el avance vuelve cuando el panel casi se fue).
-- **Criterio:** la línea del avance y la primera línea del contenido, **Δ ≤ 1 px** durante toda la apertura y el cierre en los tres motores; primera línea entera antes de la mitad del fundido (kiwi: 30–49 ms).
+- El avance ocupa **la misma celda** que el panel y la misma tipografía que el primer párrafo del contenido (`body`). Al abrir: el contenido nace en esa celda, la primera línea ya está entera antes de la mitad del fundido, el avance se funde **encima** (mismo texto, mismo sitio; solo se van los puntos suspensivos) y el resto se desenrolla debajo; el color del contenido pasa de `text-muted` a `text` durante la altura. Al cerrar, **la línea no desaparece** (#518): el avance vuelve **en el acto**, por debajo del contenido que se funde (fundido cruzado), en vez de esperar a que el panel casi se haya ido (a mitad del plegado la respuesta de una línea quedaba al 35 %).
+- **Criterio:** la línea del avance y la primera línea del contenido, **Δ ≤ 1 px** durante toda la apertura y el cierre en los tres motores; primera línea entera antes de la mitad del fundido (kiwi: 30–49 ms); **presencia de la línea ≥ 0,9 al abrir y ≥ 0,6 al plegar** en todos los cuadros (coco midió 0,92 a 0,97 en los dos sentidos; #518).
 - El primer hijo de `__body` no lleva margen superior (coco; con la regla de nodos hermanos de `GTooltip`, #383: el selector ignora `.g-tooltip`).
 
 ### Movimiento
 
 - **Altura:** rejilla `0fr → 1fr` en `--g-duration-slow` con `--g-ease-out` (#278, #280), sin medir alturas. **Avance:** opacidad en `--g-duration-fast` lineal con retrasos derivados de `fast`/`slow`. **Color del contenido:** `--g-duration-slow` lineal. **Chevron:** giro en `--g-duration-fast` con `--g-ease-out`, como `GFormSection` (mismo disparador).
+- **Chevron al pasar el puntero** (con `(hover: hover)`): se asoma `--g-space-1 × 0.5` hacia el lado al que va (abajo cerrado, arriba abierto) en `--g-duration-fast` con `--g-ease-out`, y toma `text`; es la constante de coreografía existente de §29.6 (tope de `GNumberField`, #313), **sin valor nuevo** (#518). Con movimiento reducido, solo el color.
 - **Sin muelle ni rebote** en A (#299: nunca en paneles ni desplazamientos de bloques).
 - **`is-ready`** tras el primer pintado (no se anima lo que ya viene abierto, plan 012); **`is-instant`** para abrir por búsqueda, `#id` u `OPEN_REQUEST` y para el cierre instantáneo de `sticky` (se retira tras dos cuadros).
 - **Movimiento reducido** (patrón único, #299): sin altura que se mueva ni giro; **solo fundido** del contenido (`--g-duration-fast`) y del avance; asienta plegado igual (`until-found` al terminar).
@@ -254,9 +257,13 @@ La compensación es una función del motor compartido (`keepInPlace`, «Motor de
 ## `sticky`: el encabezado que acompaña (de B; #484)
 
 - Con **`sticky`** en el grupo, el encabezado (`__heading`) de un elemento **abierto** se queda pegado arriba mientras se lee su contenido (`position: sticky` dentro de su elemento; deja de pegarse al terminar el elemento). Solo con la prop; sin ella, nunca.
-- **Alto de la cabecera fija de la aplicación:** propiedad pública de entrada **`--g-accordion-sticky-top`** (longitud; la aplicación la pone en `:root`, en un contenedor o en el grupo; **no es del tema**). El encabezado se pega a esa distancia del borde superior del contenedor de desplazamiento. Receta del README: la misma variable de la aplicación para `scroll-padding-block-start` del documento y para esta propiedad.
+- **Distancia de pegado: `--g-accordion-sticky-top`** (propiedad pública de entrada; longitud; la aplicación la pone en `:root`, en un contenedor o en el grupo; **no es del tema**). El encabezado y las acciones se pegan a esa distancia del borde superior del contenedor de desplazamiento. **Es solo eso** (#515): el componente no la usa para ningún `scroll-margin`.
+- **La cabecera fija de la aplicación se cuenta una sola vez, y es de la aplicación** (#515, enmienda de #484): Tab, un `#id`, `scrollIntoView` y la búsqueda de la página respetan el `scroll-padding-block-start` del contenedor de desplazamiento y **suman** el `scroll-margin` del elemento; si el componente también lo pusiera, la cabecera se contaría dos veces (medido: `#f-pago` a 96 px con una cabecera de 48, y 48 px de hueco sobre `#p2-deep`). Por eso **ni el botón ni la raíz del elemento llevan `scroll-margin-block-start`** (con o sin `sticky`), y la aplicación pone **una vez** el alto de su cabecera con la misma variable en las dos propiedades. Receta del README: `:root { --app-header: 56px; --g-accordion-sticky-top: var(--app-header); scroll-padding-block-start: var(--app-header); }`; sin `sticky`, basta el `scroll-padding` (como para cualquier ancla de la aplicación). Dentro de un contenedor propio con desplazamiento, las dos en ese contenedor. Sin esa receta, un `#id` o el foco pueden quedar bajo la cabecera de la aplicación: es su cabecera.
 - **Cerrar desde el encabezado pegado** (el principio del elemento ya está por encima de la vista): cierre **instantáneo**, el encabezado no se mueve (Δ ≤ 1 px) y lo siguiente aparece debajo: cerrar no te manda al final de lo que leías.
-- **Foco no tapado (WCAG 2.4.11):** el botón de **todo** elemento lleva `scroll-margin-block-start: var(--g-accordion-sticky-top)` (también sin `sticky`: un `#id` y Tab no dejan el encabezado bajo la cabecera de la aplicación). Con `sticky`, lo enfocable del contenido de un abierto lleva `scroll-margin-block-start` = `--g-accordion-sticky-top` + alto del encabezado pegado (`--_head-size`, px, que el `.vue` escribe en el elemento abierto con el `ResizeObserver` compartido, escrituras en rAF y solo si cambian, #173). Criterio: con Mayús+Tab hacia arriba dentro de un abierto, el control enfocado queda entero a la vista.
+- **Foco no tapado (WCAG 2.4.11):** con `sticky`, lo enfocable del contenido de un abierto (y un `#id` de dentro, en **todos** los elementos del grupo `sticky`, no solo en el abierto: el destino llega antes de que el `.vue` abra el elemento por `beforematch`) lleva `scroll-margin-block-start: var(--_head-size)`: el alto del encabezado pegado propio (px, que el `.vue` escribe en el elemento abierto con el `ResizeObserver` compartido, escrituras en rAF y solo si cambian, #173; el CSS pone antes una estimación de una línea de título). Sumado al `scroll-padding` de la aplicación, el control queda justo bajo el encabezado pegado. Criterio: con Mayús+Tab hacia arriba dentro de un abierto, el control enfocado queda entero a la vista en los tres motores.
+- **Receta de `focusin` (2.4.11 en WebKit, #517):** WebKit **no** desplaza un control que ya asoma por debajo del encabezado pegado (Chromium y Firefox sí, con el `scroll-margin`). El `.vue` lo resuelve en el grupo `sticky`: `focusin` en el contenido de un abierto de **este** grupo → si `target.top < encabezado.bottom`, `target.scrollIntoView({ block: 'nearest' })` (WebKit sí respeta `scroll-margin` y `scroll-padding` ahí). Medido en los tres motores: de 83,7 a 95,7 px con el encabezado acabando en 96 px.
+- **Dentro de un contenedor de desplazamiento que no es el documento** (#517): `position: sticky` se pega al borde del **relleno** de su contenedor. El `.vue` escribe en la raíz del grupo `sticky` el dato **`--_scroll-pad`** (px: `padding-block-start` calculado del contenedor de desplazamiento, el mismo antepasado que usa `keepInPlace`; `0` o sin escribir si es el documento; al montar y al abrir un elemento; rAF y solo si cambia, #173) y el CSS lo resta de la distancia de pegado (`sticky-top − --_scroll-pad`), así el encabezado se pega al borde del contenedor y el texto no pasa por encima en la franja del relleno (medido en `GDialog`: 0 px). **Dentro de `.g-dialog__body`, `GAccordion.css` pone `--g-accordion-sticky-top` a 0**: el cuerpo es otro contenedor de desplazamiento y la cabecera fija de la aplicación no lo tapa. Si el diálogo tiene su propia cabecera dentro del cuerpo, la aplicación vuelve a ponerla (sobre el grupo, que está más cerca que el cuerpo).
+- **`sticky` anidado** (un grupo `sticky` dentro del contenido de otro `sticky`): **límite**, no soportado en v0.1. Los dos se pegan a la misma distancia y el de dentro tapa al de fuera; si hace falta, que el de dentro sume el `--_head-size` del de fuera es una ronda futura (#517). Receta: no anidar grupos `sticky`.
 - **Fondo del encabezado pegado:** opaco, del color de la superficie que lo contiene (alias local `--_sticky-bg` de coco: `--g-color-bg` por defecto y un mapa de anfitrionas de Grana —`GCard`, `GSurface`, `GDialog`— con su token de superficie). Dentro de un contenedor de la aplicación con otro fondo, la aplicación pone el `background` de `.g-accordion-item__heading` con su CSS (receta del README; límite conocido).
 - Impresión: sin pegar.
 
@@ -311,7 +318,8 @@ Un acordeón dentro de un `GForm` funciona (`OPEN_REQUEST` abre lo que haga falt
 | `is-standalone` | Raíz del elemento | Sin grupo |
 | `has-peek` | Raíz del elemento | Con `peek` o slot `peek` |
 | `has-actions` | Raíz del elemento | Con slot `actions` |
-| `--_head-size` (px, en línea) | Raíz del elemento | Abierto en un grupo `sticky`: alto del encabezado (2.4.11) |
+| `--_head-size` (px, en línea) | Raíz del elemento | Abierto en un grupo `sticky`: alto del encabezado (2.4.11); **medido con el tamaño de maquetación**, sin transformaciones (hallazgo 1 de la auditoría, pendiente de bruno) |
+| `--_scroll-pad` (px, en línea) | Raíz del grupo | Grupo `sticky`: `padding-block-start` del contenedor de desplazamiento (#517) |
 | `__heading`, `__toggle`, `__title`, `__meta`, `__chevron`, `__actions`, `__peek`, `__panel`, `__content`, `__body` | Ver «Estructura accesible» | |
 
 Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`. **Reservadas** (no se emiten): `g-accordion--layout-{list|index|thread}`, `__num` (C), `__rail`, `__rail-fill`, `__node` (B), `__lead` (slot reservado).
@@ -321,7 +329,7 @@ Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`
 - **Botón ≥ 44 px de alto en todos los punteros** (es la diana principal de la pieza; kiwi L19); texto ≥ 12 px (`meta` en `body-sm`); título y `meta` ≥ 4,5:1, chevron ≥ 3:1; foco visible con `--g-focus-width` **hacia dentro** (no lo recorta un contenedor).
 - `__content` con `overflow: hidden` solo mientras anima; asentado abierto, `overflow: visible` (no recorta anillos de foco ni sombras de dentro).
 - **A:** título en `title-sm`, separador de 1 px (`--g-color-border`) entre elementos, avance en `body` `text-muted` con `line-clamp: 1`, chevron al final.
-- A 320 px, sin desplazamiento horizontal (título que se parte, `overflow-wrap: anywhere`; acciones que no empujan el título por debajo de un mínimo: coco puede llevarlas a su línea como `GFormSection` L9 si lo mide necesario, sin API).
+- A 320 px, sin desplazamiento horizontal (título que se parte con `overflow-wrap: break-word` —no `anywhere`, que rebaja el mínimo intrínseco y parte «Disponi-ble»—; las acciones ocupan como mucho un tercio de la fila). **Acciones** (#518): se quedan en la línea del título también a anchos estrechos (a 320 px caben dos acciones y un título de palabras normales). Si una aplicación necesita que bajen de línea, sería una clase `is-actions-below` medida por el `.vue`, como `GFormSection` (#289): ronda futura, sin API hoy. **Límite:** un control de acción **más alto que la línea del título** (`GBtn sm` de 35 px frente a 32 px) queda por debajo del centro la mitad del exceso (1,5 px medidos).
 - **RTL:** propiedades lógicas; chevron espejado (gira a −90° abierto); `dir="auto"` en título, `meta` y avance.
 - **`forced-colors`:** separadores y chevron en colores del sistema; el foco del sistema manda.
 - CSS que selecciona hijos de la aplicación en `__body` ignora `.g-tooltip` (`:not(:where(.g-tooltip))`, #383).
@@ -344,9 +352,9 @@ Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`
 | `--g-border-width` | Separadores |
 | `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out` | Altura y color; fundidos y giro |
 
-**Propiedad pública de entrada (no es del tema): `--g-accordion-sticky-top`** (#484). La pone la aplicación; `GAccordion.css` la registra con `@property` (`syntax: '<length>'`, **`inherits: true`** para que valga ponerla una vez en `:root`, `initial-value: 0px`), así el componente la lee sin respaldo. No va en `defaults.css` ni en `tokens.json`; excepción documentada en `levels.test.js`, como `--g-form-min` y `--g-form-actions-size`. Registro en `tokens.md` §40.
+**Propiedad pública de entrada (no es del tema): `--g-accordion-sticky-top`** (#484, enmienda #515: solo distancia de pegado, ya no `scroll-margin`). La pone la aplicación; `GAccordion.css` la registra con `@property` (`syntax: '<length>'`, **`inherits: true`** para que valga ponerla una vez en `:root`, `initial-value: 0px`), así el componente la lee sin respaldo. No va en `defaults.css` ni en `tokens.json`; excepción documentada en `levels.test.js`, como `--g-form-min` y `--g-form-actions-size`. Registro en `tokens.md` §40.
 
-**No son tokens** (alias y constantes): `--_sticky-bg`, `--_head-size`, los retrasos del fundido del avance (derivados de `fast`/`slow`), el umbral de 6 regiones (APG), los 80 ms y 50 ms de respaldo (JS), el giro de 90°.
+**No son tokens** (alias y constantes): `--_sticky-bg`, `--_head-size`, `--_scroll-pad` (§29.5), la inclinación del chevron `--g-space-1 × 0.5` (§29.6, constante existente, #518), los retrasos del fundido del avance (derivados de `fast`/`slow`), el umbral de 6 regiones (APG), los 80 ms y 50 ms de respaldo (JS), el giro de 90°.
 
 ## Iconos
 
@@ -395,7 +403,7 @@ Ninguno cambia el comportamiento.
 | L5 | `until-found` y `visibility` | El acordeón sin `visibility: hidden`; #291 reabierto con condición para `GFormSection` | #480, #487 |
 | L6 | Regla de `region` | Automática (≤ 6 o `exclusive`; suelto, siempre), sin prop | #477 |
 | L7 | Δ0 | Del componente, no opcional; cancelable por el usuario; sin compensar lo que no tocó el usuario | #481 |
-| L8 | `sticky` bajo cabecera fija | Propiedad pública de entrada `--g-accordion-sticky-top` (`@property`, hereda, 0px); también `scroll-margin` del botón | #484 |
+| L8 | `sticky` bajo cabecera fija | Propiedad pública de entrada `--g-accordion-sticky-top` (`@property`, hereda, 0px), solo distancia de pegado; la cabecera de la aplicación es de su `scroll-padding` (receta) | #484, #515 |
 | L9 | Tokens | Ninguno del tema nuevo; el tramo de B, cuando entre, en `brand-text` por #439 (forma de familia sin par), no en `brand` | #485, #475 |
 | L10 | Iconos | `chevron-right`; nada nuevo | #485 |
 | L11 | Dentro de `GForm` | Aviso 9 por DOM, sin tocar `useFormField` | #486 |
@@ -417,7 +425,30 @@ Ninguno cambia el comportamiento.
 - Navegador sin `hidden="until-found"`: lo plegado no se encuentra (cae en `hidden`).
 - Si el servidor serializa `hidden` como booleano (ver «Estructura accesible», SSR): antes de hidratar, lo plegado no se encuentra.
 - Encabezado pegado dentro de un contenedor de la aplicación con fondo propio: la aplicación pone el fondo.
+- La cabecera fija de la aplicación es de su `scroll-padding-block-start` (#515): sin él, un `#id` o el foco pueden quedar bajo ella. La receta pone la misma variable en `--g-accordion-sticky-top` y en `scroll-padding-block-start`.
+- Un estilo de elemento de la aplicación sin capa (`h3 { margin: 28px 0 }`) gana al `margin: 0` del encabezado del componente (#4; se resuelve con una capa anterior, `api.md` «Estilos de elemento de la aplicación», #516): el encabezado baja ese margen dentro de su elemento y se pega más abajo.
+- `sticky` anidado no soportado (#517); no anidar grupos `sticky`.
+- Un desplazamiento ajeno (arrastrar la barra, un `scrollTo` de la aplicación) en los ≈ 320 ms posteriores a un clic se deshace por Δ0 (#519).
+- Acciones con un control más alto que la línea del título quedan bajo el centro la mitad del exceso (#518).
+- La línea que se despega del encabezado pegado solo existe donde hay consultas `scroll-state` (Chromium); en los demás, fondo opaco sin línea.
+- Ajustes con avance distinto del contenido: al abrir, el avance y el primer renglón coinciden en el sitio durante el fundido y, al plegar, el avance asoma por debajo del contenido que se va; con el mismo texto no se nota.
 - Avance duplicado para el lector en modo exploración (lo lee como descripción del botón y como texto), igual que el resumen de `GFormSection`; sin verificar con lector real.
+
+---
+
+## Remates tras la auditoría de coco (2026-10-08; #515 a #519)
+
+Auditoría: `design/lab/accordion/auditoria.md` (1602/1602 en los tres motores, `candidate`). Lo decidido, y a quién le toca:
+
+| Hallazgo | Decisión | Le toca |
+| --- | --- | --- |
+| 2 · receta que suma la cabecera dos veces | **(b)** (#515): el componente solo suma lo suyo; la cabecera de la aplicación es de su `scroll-padding` | coco: quitar `scroll-margin-block-start: var(--g-accordion-sticky-top)` del botón (`.g-accordion-item__toggle`) y de la raíz `.g-accordion-item` (el del hallazgo 5), y dejar en el contenido `var(--_head-size)` a secas; el verificador mide `#id` y foco con `?pad=1` y sin él (sin él, 0 px es lo esperado). bruno: ajustar el comentario de `bringIntoView` y sus specs a la receta con `scroll-padding` |
+| 3 · estilo de elemento sin capa | Regla general en `api.md` (#516) | mora-docs: receta en el README |
+| 5 · `#id` al cargar bajo la cabecera | Resuelto por #515: el `scroll-padding` de la aplicación vale para la navegación nativa y para `scrollIntoView`; el `scroll-margin` de la raíz que añadió coco se retira | coco (ver arriba) |
+| 6 · Δ0 y desplazamiento ajeno | Límite aceptado (#519) | mora-docs: README |
+| 1 · `--_head-size` corto en `GDialog` | Medir el tamaño de maquetación (`offsetHeight` o `parseFloat(getComputedStyle(hd).height)`), no `getBoundingClientRect`, que incluye la escala de entrada del diálogo (#299) | bruno (`PENDIENTES.md`) |
+| «Para lima» 1 a 7 de `estilo.md` | Registrados en este contrato (#517, #518) | — |
+| Δ0 en cadena y `#id` en `load` | Registrados (#519) | — |
 
 ---
 
@@ -461,7 +492,7 @@ Lector de pantalla (VoiceOver, NVDA) sobre `region` y su regla, el avance por `d
 ### coco (`GAccordion.css` / `GAccordionItem.css`, banco y `estilo.md`)
 
 1. CSS de las clases de «Clases y datos»: A (título `title-sm`, separador, avance en la celda del panel con `line-clamp: 1`, chevron al final), rejilla `0fr → 1fr` **sin `visibility: hidden`**, `overflow` según `is-animating`, `is-instant`, movimiento reducido, impresión, `forced-colors`, RTL, `overflow-anchor: none`.
-2. `sticky`: `@property --g-accordion-sticky-top`, encabezado pegado con `--_sticky-bg` y su mapa de anfitrionas, `scroll-margin-block-start` del botón y de lo enfocable del contenido con `--_head-size`.
+2. `sticky`: `@property --g-accordion-sticky-top`, encabezado pegado con `--_sticky-bg` y su mapa de anfitrionas, `scroll-margin-block-start: var(--_head-size)` en lo enfocable del contenido (el botón y la raíz no llevan `scroll-margin`, #515), `--_scroll-pad` restado de la distancia de pegado y `--g-accordion-sticky-top` a 0 en `.g-dialog__body` (#517).
 3. Banco de estilo en `design/lab/accordion/` y `estilo.md` con las medidas (alto del botón, contrastes, continuidad del avance).
 4. Auditoría del componente real con un tema distinto (paso 5): `design/lab/accordion/auditoria.md`.
 

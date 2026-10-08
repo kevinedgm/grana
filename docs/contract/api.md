@@ -110,6 +110,22 @@ WebKit no marca `:focus-visible` en el **radio** al que llevan las flechas (WCAG
 
 Regla común (comportamiento estándar de los enlaces, como `RouterLink`): un componente que emite `navigate` cancelable sobre un `<a href>` lo emite **solo** con clic primario (`button === 0`) **sin** `ctrlKey`, `metaKey`, `shiftKey` ni `altKey` y con `event.defaultPrevented` falso, o con Intro. Con modificadores o botón central **no se emite**: el navegador abre la pestaña o ventana nueva, o descarga, por su cuenta. El evento lleva siempre el evento nativo y `event.preventDefault()` (síncrono) evita la navegación y permite un router; no hay prop `to` (#70). Lo cumplen `GBreadcrumbs` (#494), `GTag`/`GTagGroup` (#462), `GCard` (`interaction="link"`) y `GSidebar`; los dos últimos lo adoptan como enmienda de #70 y falta el cambio en su `.vue` (bruno). Todo `navigate` nuevo la cita y bruno la prueba (clic primario emite; Ctrl, ⌘, Mayús, Alt y botón central no).
 
+## Estilos de elemento de la aplicación y encabezados propios (#516)
+
+**Límite general, consecuencia de #4 y #204.** El CSS de Grana va en `grana.components`; el de la aplicación, sin capa, gana siempre. Eso incluye un **estilo de elemento** de la aplicación (`h1`–`h6`, `p`, `button`, `a`…) sobre cualquier pieza interna de un componente que use ese elemento: `h3 { margin: 28px 0 }` sin capa gana al `margin: 0` de `.g-accordion-item__heading` (medido por coco: el encabezado baja 28 px dentro de su elemento y se pega 28 px más abajo, en los tres motores). Grana **no lo resuelve con `!important`** (quitaría a la aplicación la salida que #4 le da y #204 descartó) ni con `display: contents` en el encabezado (anula el margen pero rompe `position: sticky` y tiene historial de perder la semántica de encabezado).
+
+**Regla para todos los componentes con su propio `hN`, `p`, `button`… (hoy `GAccordionItem`, `GCard`, `GDialog`, `GFormSection`, `GWidget`):** los contratos remiten aquí y no prometen más.
+
+**Receta de la aplicación (va en cada README que lo cite):** declarar los estilos de elemento (también un reinicio de terceros) **en una capa anterior a las de Grana**, con el mismo orden que declara `grana.css`:
+
+```css
+@layer base, grana.defaults, grana.components;
+@layer base { h1, h2, h3, h4, h5, h6 { margin-block: 1.5em 0.5em; } }
+/* un reinicio de terceros: @import url("reset.css") layer(base); */
+```
+
+Así el estilo de elemento pierde frente a `grana.components` y el encabezado del componente conserva su `margin: 0`; las reglas de la aplicación con clase o dentro de un componente propio siguen sin capa y ganando. Alternativa sin capas: excluir las piezas de Grana en el selector (`h3:not([class*="g-"])`). Este límite **no** es un defecto de un componente: no se abre uno por él.
+
 ## Paquete, entradas y tipos (#442 a #444)
 
 - **Solo ESM** (#442): `@grana/vue` es `"type": "module"` y cada entrada de `exports` lleva `types`, `import` y `default` (`.`, `./speech`, `./status`, `./combobox`, `./file-field`, `./time-field`, `./slider`, `./tag`, `./testing`), más `./style.css`, `./fonts.css` y `./package.json`. **No hay condición `require`**: el `.umd.js` queda para CDN (`unpkg`, `jsdelivr`) y, en un paquete ESM, `require` lo leería como ESM y daría un módulo vacío; en Node ≥ 22.12 `require()` funciona por `default`. Versión inicial `0.1.0-beta.0`. Una entrada nueva se añade a `exports`, a `typesVersions`, a `ENTRIES` de `scripts/build-types.mjs` y a `src/types.test.js`.
