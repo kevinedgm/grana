@@ -56,7 +56,8 @@ for cls in \
   g-transcript__orig g-radio-group__segment g-form-reveal__body g-form-section__panel \
   g-avatar--shape-square g-reject-shake g-menu__highlight g-number-field \
   g-status-island__shape g-summary__more g-adaptive-layout g-file-field__chip \
-  g-tooltip__tab g-time-field__reading g-combobox__sentence g-combobox__trace g-combobox__ghost
+  g-tooltip__tab g-time-field__reading g-combobox__sentence g-combobox__trace g-combobox__ghost \
+  g-slider__pill
 do
   must_have grana.css "$cls" "$CSS_MSG"
 done
@@ -65,13 +66,13 @@ done
 must_not_have grana.css "data:font" "La fuente quedó incrustada en base64 en grana.css (Vite incrusta todo recurso que el CSS referencie; debe copiarla scripts/build-fonts.mjs)"
 must_not_have grana.umd.js "createApp" "Vue quedó empaquetado en grana.umd.js (debe estar externalizado: external: ['vue'])"
 # Las entradas propias no viajan en el paquete principal (#238, #328, #337 y siguientes)
-for sym in createSpeech createTranscript createStatus GCombobox GFileField GTimeField; do
+for sym in createSpeech createTranscript createStatus GCombobox GFileField GTimeField GSlider; do
   must_not_have grana.js "$sym" "$sym viajó en el paquete principal grana.js; debe vivir solo en su entrada propia"
 done
 must_not_have combobox.js "g-summary__" "GSummary quedó copiado en combobox.js; debe llegar por __shared sin copia"
 
 # --- Entradas propias generadas -----------------------------------------------------------------
-for entry in speech status combobox file-field time-field; do
+for entry in speech status combobox file-field time-field slider; do
   must_exist "$entry.js" "No se generó la entrada propia $entry.js (revisar vite.$entry.config.js y el script build de packages/vue)"
 done
 

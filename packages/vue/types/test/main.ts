@@ -11,6 +11,7 @@ import type { ComboboxChange, ComboboxOption } from '@grana/vue/combobox'
 import FileField, { GFileField, formatFileSize } from '@grana/vue/file-field'
 import type { FileEntry, FileUploader } from '@grana/vue/file-field'
 import TimeField, { GTimeField } from '@grana/vue/time-field'
+import Slider, { GSlider } from '@grana/vue/slider'
 import { createSpeech, createTranscript, useSpeech, useSpeechTarget, GTranscript } from '@grana/vue/speech'
 import { createStatus, useStatus, GStatusIsland } from '@grana/vue/status'
 import { createSimulatedSpeechAdapter, createSimulatedUploader } from '@grana/vue/testing'
@@ -19,7 +20,7 @@ import App from './App.vue'
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -42,6 +43,9 @@ h(GBtn, { variant: 'outline', onClick: (e: MouseEvent) => e.clientX })
 h(GCombobox, { options: [option], modelValue: 'p1', 'onUpdate:modelValue': (v) => v })
 h(GFileField, { modelValue: [entry], uploader })
 h(GTimeField, { modelValue: '09:30' })
+h(GSlider, { modelValue: 40, valueText: (v: number) => `${v} %`, marks: [0, { value: 50, label: 'Medio' }], labels: { empty: 'Sin elegir' } })
+h(GSlider, { range: true, modelValue: [800, 2400], labels: { start: 'mínimo', end: 'máximo' }, 'onUpdate:modelValue': (v) => v })
+h(GSlider, { modelValue: null, format: { style: 'unit', unit: 'percent' } })
 h(GTable, { columns: [{ key: 'name', label: 'Nombre', sortable: true }], rows: [] })
 h(GSelect, { options: select })
 
@@ -88,6 +92,12 @@ createSimulatedUploader().then
 useFormField({ trigger: 'input' })
 // @ts-expect-error GIcon necesita name
 h(GIcon, {})
+// @ts-expect-error GSlider: el modelo es un número, null o [inicio, fin]; nunca una cadena
+h(GSlider, { modelValue: '40' })
+// @ts-expect-error GSlider: valueText devuelve una cadena
+h(GSlider, { valueText: (v: number) => v })
+// @ts-expect-error GSlider: density fuera de la lista
+h(GSlider, { density: 'tight' })
 // @ts-expect-error props de GBtn: size fuera de la lista
 const badProps: GBtnProps = { size: 'huge' }
 

@@ -80,3 +80,6 @@
 @import url("../components/GAdaptiveLayout/GAdaptiveLayout.css");
 /* GTooltip (tooltip.md, #380): su nodo es hermano del control y vive en la capa superior; no reasigna hojas de otros */
 @import url("../components/GTooltip/GTooltip.css");
+/* GSlider (slider.md, entrada @grana/vue/slider, #455): campo de tres hijos con subgrid en GFormRow, como GInput; va
+   después de GFormRow.css (sus reglas de hijo de la fila ganan por orden además de por especificidad) */
+@import url("../components/GSlider/GSlider.css");
