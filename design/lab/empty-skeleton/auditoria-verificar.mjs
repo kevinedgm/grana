@@ -432,12 +432,12 @@ for (const engine of ENGINES) {
       ck(R_.mid <= 0.5 && R_.end <= 0.5 && R_.endDetail <= 0.5, `${tag}: revelado: piezas movidas ${R_.mid} / ${R_.end} / ${R_.endDetail}`)
       ck(R_.midInk > 0 && R_.midInk < 1 && R_.tr.length > 0 && R_.tr.every((p) => ['color', 'text-decoration-color', 'background-color', 'border-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color', 'box-shadow', 'border-block-start-color', 'border-block-end-color', 'border-inline-start-color', 'border-inline-end-color'].includes(p)), `${tag}: revelado intermedio ${R_.midInk} con transiciones ${R_.tr}`)
       ck(R_.finalInk === 1 && R_.anims === 0 && R_.tail <= 400, `${tag}: revelado no termina en tinta plena o deja animaciones (${R_.anims}, cola ${R_.tail} ms)`)
-      if (R_.leftAtEnd) notes.push(`[${engine}] HALLAZGO 8 (bruno): ${tag}: al quitar is-revealing siguen ${R_.leftAtEnd} transiciones de color durante ${R_.tail} ms (fin por el primer transitionend)`)
+      ck(R_.leftAtEnd === 0, `${tag}: hallazgo 8: al quitar is-revealing siguen ${R_.leftAtEnd} transiciones de color durante ${R_.tail} ms (el revelado terminó con el primer transitionend)`)
     }
     // Hallazgo 6: items null y loading true en el mismo ciclo (lo natural al cambiar de entidad)
     const st = await ev(async () => { const { sleep, $, settle } = window.__lib; window.A.sameTick(900); await sleep(400); const c = $('#r-list').className, aria = $('#r-list .g-load-region__body').getAttribute('aria-hidden'); await settle($('#r-list')); return { c, aria } })
     data.sameTick = st
-    if (!/is-mold/.test(st.c)) notes.push(`[${engine}] HALLAZGO 6 (bruno): items null y loading true en el mismo ciclo → «${st.c.replace('g-load-region ', '')}» (refresco B con lo anterior a la vista, sin molde)`)
+    ck(/is-mold/.test(st.c) && !/is-stale/.test(st.c) && st.aria === 'true', `hallazgo 6: items null y loading true en el mismo ciclo debe dar el molde de la muestra (A), no un refresco B con lo anterior → «${st.c.replace('g-load-region ', '')}»`)
     await load(page, '?theme=auditoria')
   }
 
@@ -686,8 +686,8 @@ for (const engine of ENGINES) {
     data.Tb = Tb
     ck(Tb.fast.inert && Tb.fast.rows === 5 && Tb.fast.busy === 'true' && !Tb.fast.sawSk, `tabla 150 ms: filas inertes ${Tb.fast.inert} (${Tb.fast.rows}), esqueleto visto ${Tb.fast.sawSk}`)
     // Hallazgo 7: una recarga que no se ve y acaba con el mismo recuento no cambia el texto de la región viva de la tabla
-    if (Tb.fast.muts === 0) notes.push(`[${engine}] HALLAZGO 7 (bruno): GTable, recarga de 150 ms con el mismo recuento: la región viva no cambia («${Tb.fast.text}», 0 mutaciones) y no se anuncia el final`)
-    else ck(Tb.fast.live.join('|') === '5 clientes', 'tabla 150 ms: anuncios ' + Tb.fast.live)
+    ck(Tb.fast.muts > 0, `hallazgo 7: GTable, recarga de 150 ms con el mismo recuento: la región viva no cambia («${Tb.fast.text}», ${Tb.fast.muts} mutaciones) y no se anuncia el final`)
+    ck(Tb.fast.live.join('|') === '5 clientes', 'tabla 150 ms: anuncios ' + Tb.fast.live)
     ck(Tb.min.on >= 185 && Tb.min.on <= 300 && Tb.min.off - Tb.min.on >= 390, `tabla 250 ms: esqueleto de ${Math.round(Tb.min.on)} a ${Math.round(Tb.min.off)}`)
     ck(Tb.sk && Tb.sk.n === 15 && Tb.sk.h.length === 5 && Tb.sk.h.every((x, i) => near(x, Tb.realH[i], 0.6)), `tabla: esqueleto ${Tb.sk && Tb.sk.n} barras, filas ${Tb.sk && Tb.sk.h} frente a ${Tb.realH}`)
     ck(Tb.sk && near(Tb.sk.tableH, 0, 0.6) && near(Tb.sk.after, 0, 0.6) && Tb.sk.anims === 0, `tabla: el esqueleto mueve ${Tb.sk && Tb.sk.tableH} / ${Tb.sk && Tb.sk.after} o anima (${Tb.sk && Tb.sk.anims})`)
