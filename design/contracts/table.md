@@ -246,6 +246,7 @@ Variable en línea: `--_max-height`.
 ## Límites conocidos
 
 - ~~**Sin estado de error** (#327)~~: **contratado por #540** («Carga, vacío y error con el motor común»). Mientras bruno no lo implemente, sigue el límite de #327: el fallo es de la isla y la región anuncia «0 resultados» junto a su error.
+- **Esqueleto frente a fila compuesta (#543, #558):** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (medido en la auditoría, tema de `space 3` y letra 18): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44 (Δ0). Lo cierra el molde de `GTable` desde una muestra de filas, reservado; mientras, va al README.
 - Sin selección de **todas** las páginas, sin columnas fijas ni desplazamiento horizontal, sin virtualización (cientos de filas), sin edición en celda, sin redimensionar ni reordenar columnas.
 - Lector de pantalla real en tarjetas: por verificar (VoiceOver con `display: grid` en filas).
 

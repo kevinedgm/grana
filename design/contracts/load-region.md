@@ -115,7 +115,7 @@ Declarado en `emits`. No hay eventos de fase: la aplicación ya sabe cuándo car
 - **Si termina antes de 200 ms**, no se enseña nada ni se anuncia el inicio: se pasa a la llegada (sin revelado: el molde no llegó a verse).
 - **Si se vio**, el estado visible se queda **al menos 400 ms** (medido por kiwi: a 250 ms aparece a los ~200 y el contenido llega a los ≥ 600). Coste máximo: 400 ms sobre una respuesta de 201 ms.
 - **Una carga que empieza mientras otra se ve** hereda la fase visible (sin volver a esconder ni a esperar el retraso; el mínimo cuenta desde que se vio); el anuncio de inicio no se repite.
-- **A los 5 s**: texto visible (`g-load-region__slow`, al pie de la región, superpuesto, sin mover nada; ≥ 4,5:1) y **ninguna animación en curso** en la región (2.2.2). Es también quien dice «cargando» con contraste a quien no distingue el molde (§42).
+- **A los 5 s**: texto visible (`g-load-region__slow`: una **ficha** a `space × 2` del inicio lógico y del pie de la región, con `max-inline-size: 100 % − space × 4`, relleno `space × 1` / `space × 3`, borde `border-strong` y radio `md`, superpuesta y sin mover nada, que queda dentro de cualquier marco de hasta `space × 2` de borde; ≥ 4,5:1; #556) y **ninguna animación en curso** en la región (2.2.2). Es también quien dice «cargando» con contraste a quien no distingue el molde (§42).
 - `aria-busy="true"` en la **raíz de la región** (el elemento cuyo contenido se sustituye) desde el inicio de la carga, aunque aún no se vea nada; `false` en la llegada.
 
 ## A · Molde (#535)
@@ -214,7 +214,7 @@ Los esqueletos de los frameworks son un segundo dibujo de cada pantalla, manteni
 
 ## Tokens consumidos (§42)
 
-`--g-color-mold` (**nuevo**), `--g-color-accent-text`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-danger-soft`, `--g-color-on-danger-soft`, `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-md`, `--g-radius-pill`, `--g-space-*`, `--g-text-body-size`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`; los de `GBtn` y `GIcon` por composición. **No son tokens:** `0.72em` (grosor de la barra, constante de la técnica, #187), `DELAY`/`MINIMUM`/`SLOW`, `--_load-slot` (dato del `.vue` al CSS, §29.5).
+`--g-color-mold` (**nuevo**), `--g-color-accent-text`, `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-danger-soft`, `--g-color-on-danger-soft`, `--g-color-text`, `--g-color-text-muted`, `--g-color-surface`, `--g-color-border`, **`--g-color-border-strong`** (borde de la ficha de espera larga, decorativo; #556), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-md`, `--g-radius-pill`, `--g-space-*`, `--g-text-body-size`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-duration-slow`, `--g-duration-fast`, `--g-ease-out`; los de `GBtn` y `GIcon` por composición. **No son tokens:** `0.72em` (grosor de la barra, constante de la técnica, #187), `DELAY`/`MINIMUM`/`SLOW`, `--_load-slot` (dato del `.vue` al CSS, §29.5).
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -229,7 +229,7 @@ Los esqueletos de los frameworks son un segundo dibujo de cada pantalla, manteni
 | `is-revealing` | Raíz | Durante el revelado, **siempre junto a `is-mold`** (#545) |
 | `is-failed` | Raíz | Barra de fallo a la vista |
 | `g-load-region__body`, `__failed`, `__failed-icon`, `__failed-text`, `__slow`, `__pill` | Partes | Según la fase (`__failed-icon` es el `span aria-hidden` del icono de la barra, #546) |
-| `g-load-live` | Canal de página | Siempre que haya un consumidor montado |
+| `g-load-live` | Canal de página | Siempre que haya un consumidor montado. Su regla de texto oculto accesible vive en `GLoadRegion.css` (no en línea en `utils/liveRegion.js`; #557) |
 | `data-g-key`, `data-g-fresh`, `data-g-known` | Elementos de la aplicación | Ver «Slots» |
 
 Las clases `is-*` son **estado reactivo del render** (#352: lo que el render escribe es clase; nada se escribe fuera del render).
@@ -324,6 +324,7 @@ El **canal de página** (§«Anuncios») es otra pieza interna (`utils/liveRegio
 - **`items` se sustituye, no se muta** en el sitio.
 - `inert` en el refresco `keep` saca lo de antes del árbol de accesibilidad mientras dura la carga: quien usa lector no lee datos que se van (decidido), pero tampoco puede releerlos hasta la llegada.
 - Un anfitrión con región propia dentro de una `GLoadRegion` habla por la suya (no se coordinan).
+- **`GTable` con celdas compuestas (avatar):** el esqueleto mide 44 px frente a 60 de la fila (tema de la auditoría); la tabla encoge durante la carga y vuelve a crecer. En la tabla simple, 44 = 44. Se cierra con el molde desde una muestra de filas, reservado (#543, #558).
 
 ## Verificación (cómo se da por hecho)
 

@@ -135,8 +135,8 @@ div.g-empty.g-empty--cause-{cause}  [is-exit]
 
 - Contorno de la caja y del hueco del icono: `--g-border-width` discontinuo en `--g-color-border-strong` (decorativo: la información la lleva el texto); radio `--g-radius-md`; hueco del icono `space × 10` (el lado del avatar de la fila de la plantilla de kiwi) con el icono en `--g-color-text-muted`; en `error`, icono y su círculo en `--g-color-danger-text`.
 - Título en el rol de la línea principal de una fila (`body`, `--g-text-action-weight`), `--g-color-text`; descripción y traza `body-sm` en `--g-color-text-muted` (≥ 4,5:1 en claro y oscuro); cuentas con `font-variant-numeric: tabular-nums`.
-- Relleno `space × 3` / `space × 4` (el de una fila); sin margen exterior propio (lo pone el anfitrión).
-- `GBtn` reales: área ≥ 24 × 24 y ≥ 44 × 44 con `pointer: coarse` (la del propio `GBtn`).
+- Relleno de bloque **`space × 3 − --g-border-width`** y de inicio `space × 4` (el de una fila: el borde de arriba y abajo cuenta, la fila solo tiene uno); **sin hueco entre título y descripción** (se apilan como título y meta de una fila; la traza conserva `space × 1` encima): el vacío mide exactamente **un elemento** de la plantilla. Con acciones que bajan (poco ancho) o con la salida, crece por su contenido. Sin margen exterior propio (lo pone el anfitrión). #556.
+- `GBtn` reales: área ≥ 24 × 24 y ≥ 44 × 44 con `pointer: coarse` (la del propio `GBtn`). Separación entre filas de acciones con `pointer: coarse`: **`max(space × 4, 44px − 24px)`** (44 menos el alto mínimo de un `GBtn`), de modo que dos áreas de 44 no se solapan con ningún `space`; `space × 2` entre botones de la misma fila (#556).
 - **Colores forzados:** contorno y hueco en `CanvasText`; el icono sigue `currentColor`.
 - **RTL:** todo con propiedades lógicas; el hueco del icono queda al inicio lógico.
 - **Movimiento reducido:** nada que cambiar (no hay movimiento).
