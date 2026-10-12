@@ -132,7 +132,7 @@ export default defineComponent({
       const visible = label('relax', { label: f.label }, { label: h('bdi', null, f.label) })
       const sr = typeof props.labels.returns === 'function' ? props.labels.returns({ count: f.count }) : label('returns', { count })
       return h(GBtn, {
-        key: `relax-${f.key}`, class: 'g-empty__relax', size: 'sm', variant: 'outline',
+        key: `relax-${f.key}`, class: 'g-empty__relax', size: 'sm', variant: 'outline', color: 'brand', // #555
         onClick: () => emit('relax', f.key)
       }, () => [
         visible,
@@ -156,7 +156,8 @@ export default defineComponent({
         for (const f of relaxing.value) actions.push(relaxBtn(f))
         if (showClear.value) {
           actions.push(h(GBtn, {
-            key: 'clear', size: 'sm', variant: relaxing.value.length ? 'ghost' : 'outline',
+            // #555: con botones de filtro, secundaria (ghost neutral); sola, la acción principal (outline brand)
+            key: 'clear', size: 'sm', variant: relaxing.value.length ? 'ghost' : 'outline', color: relaxing.value.length ? 'neutral' : 'brand',
             onClick: () => emit('clear')
           }, () => label('clear', {})))
         }

@@ -43,6 +43,26 @@ test.describe('GTable · motor común: tiempos (#540)', () => {
     expectClean(errs)
   })
 
+  test('una recarga que no se ve y acaba con el mismo recuento se vuelve a anunciar (hallazgo 7)', async ({ page }) => {
+    await openLR(page, { target: '#lr-h-table' })
+    await load(page, 100)
+    await tableIdle(page)
+    expect(await region(page)).toBe('5 clientes')
+    await page.evaluate((s) => {
+      const p = document.querySelector(`${s} > p.g-table__sr[aria-live]`)
+      window.__tw = []
+      window.__tmo = new MutationObserver(() => window.__tw.push(p.textContent))
+      window.__tmo.observe(p, { childList: true, characterData: true, subtree: true })
+    }, T)
+    await load(page, 100)
+    await tableIdle(page)
+    const writes = await page.evaluate(() => { window.__tmo.disconnect(); return window.__tw })
+    expect(writes.at(-1)).toBe('5 clientes')
+    expect(writes.filter((x) => x === '5 clientes').length).toBeGreaterThanOrEqual(1) // el fin se escribe de nuevo
+    expect(writes.indexOf('')).toBeGreaterThanOrEqual(0)
+    expect(writes.indexOf('')).toBeLessThan(writes.lastIndexOf('5 clientes'))
+  })
+
   test('250 ms: el esqueleto aparece hacia los 200 y las filas vuelven a los ≥ 600', async ({ page }) => {
     await openLR(page, { target: '#lr-h-table' })
     const stop = await sample(page)

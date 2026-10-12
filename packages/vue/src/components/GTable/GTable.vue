@@ -145,6 +145,9 @@ export default defineComponent({
       const kind = phase.start({ arm })
       if (kind !== 'new') return
       startSorted = sortedThisTick
+      // La región viva se vacía al empezar (#14): una recarga que no se ve y acaba con el mismo recuento vuelve a
+      // anunciarse (hallazgo 7). El orden escrito en este mismo ciclo no se pisa
+      if (!startSorted) live.value = ''
       keepRows.value = shown > 0
       skeletonRows.value = shown > 0 ? (props.pageSize ? Math.min(shown, props.pageSize) : shown) : props.loadingRows
       warnLoadStart()
@@ -390,7 +393,7 @@ export default defineComponent({
           ? slots.empty({ filtered: filteredEmpty, clear: clearFilters })
           : filteredEmpty
             ? [h(GEmpty, { cause: 'filtered', title: L().emptyFiltered || '' }, {
-                actions: () => h(GBtn, { size: 'sm', variant: 'outline', onClick: clearFilters }, () => L().clearFilters)
+                actions: () => h(GBtn, { size: 'sm', variant: 'outline', color: 'brand', onClick: clearFilters }, () => L().clearFilters)
               })]
             : [h(GEmpty, { cause: 'none', title: L().empty || '' })])
       }

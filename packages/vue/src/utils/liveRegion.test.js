@@ -38,6 +38,8 @@ describe('canal de página (#533)', () => {
     expect(p.getAttribute('aria-atomic')).toBe('true')
     expect(p.parentElement).toBe(document.body)
     expect(p.textContent).toBe('')
+    // Sin estilo en línea: el texto oculto lo pone la regla .g-load-live de GLoadRegion.css (coco; hallazgo 1)
+    expect(p.getAttribute('style')).toBe(null)
     r1(); r1()
     expect(document.querySelectorAll('p.g-load-live')).toHaveLength(1)
     r2()

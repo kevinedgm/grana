@@ -18,6 +18,34 @@ function phases(tr) {
   return { start: start?.t, shown: shown ? shown.t - start.t : null, end: end ? end.t - start.t : null }
 }
 
+test.describe('GLoadRegion · cambiar de entidad (hallazgo 6, #531)', () => {
+  test('segundo «Cargar todo» (items = null y loading en el mismo ciclo): el molde A de la muestra, no un refresco B con lo anterior', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await openLR(page)
+    await loadAll(page, 250)
+    await idle(page)
+    expect(await page.locator('#lr-list .lr-row').count()).toBeGreaterThan(0)
+    const before = await page.evaluate(() => [...document.querySelectorAll('#lr-list .lr-row')].map((n) => n.textContent))
+    const stop = await trace(page, '#lr-list')
+    await loadAll(page, 900)
+    await page.waitForTimeout(400)
+    const now = await page.evaluate(() => {
+      const r = document.querySelector('#lr-list')
+      return { cls: r.className, pill: Boolean(r.querySelector('.g-load-region__pill')), hidden: r.querySelector('.g-load-region__body').getAttribute('aria-hidden'), rows: [...r.querySelectorAll('.lr-row')].map((n) => n.textContent) }
+    })
+    expect(now.cls).toMatch(/\bis-mold\b/)
+    expect(now.cls).not.toMatch(/\bis-stale\b/)
+    expect(now.pill).toBe(false)
+    expect(now.hidden).toBe('true')
+    expect(now.rows).not.toEqual(before) // la muestra, no los datos de la carga anterior
+    await idle(page)
+    const tr = await stop()
+    expect(tr.some((x) => /\bis-stale\b/.test(x.v || ''))).toBe(false)
+    expect(tr.some((x) => /\bis-revealing\b/.test(x.v || ''))).toBe(true)
+    expectClean(errs)
+  })
+})
+
 test.describe('GLoadRegion · tiempos reales (#532)', () => {
   test('100 ms: el molde nunca se ve ni se anuncia el inicio; sí el fin', async ({ page }) => {
     const errs = await watchConsole(page)
