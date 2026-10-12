@@ -30,7 +30,9 @@
   /* El primer hueco: dentro de una GLoadRegion mide lo que un elemento de su plantilla (borde incluido) */
   min-block-size: var(--_load-slot);
   min-inline-size: 0;
-  padding: var(--g-space-3) var(--g-space-4);
+  /* El relleno de una fila menos el borde: con dos líneas (título y descripción), la caja con borde mide lo que una fila de
+     la plantilla (avatar o dos líneas + space × 3 arriba y abajo) y el vacío no estira la región (auditoría, hallazgo 3) */
+  padding: calc(var(--g-space-3) - var(--g-border-width)) var(--g-space-4);
   border: var(--g-border-width) dashed var(--g-color-border-strong);
   border-radius: var(--g-radius-md);
   font-family: var(--g-font-ui);
@@ -67,7 +69,8 @@
 .g-empty__text {
   flex: 1 1 calc(var(--g-space-1) * 36);
   display: grid;
-  gap: var(--g-space-1);
+  /* Las líneas se apilan como las de una fila (título y meta), sin hueco: lo separa su interlineado */
+  gap: 0;
   min-inline-size: 0;
   overflow-wrap: break-word;
 }
@@ -87,7 +90,10 @@
   line-height: var(--g-text-body-sm-line);
   color: var(--g-color-text-muted);
 }
-.g-empty__trace { font-variant-numeric: tabular-nums; }
+.g-empty__trace {
+  margin-block-start: var(--g-space-1);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Acciones: al final de la fila; bajan solas cuando el texto no cabe ---------- */
 .g-empty__actions {
@@ -130,9 +136,11 @@
   white-space: nowrap;
 }
 
-/* ---------- Puntero grueso: el área de 44 del GBtn sm no se solapa con la fila de abajo ---------- */
+/* ---------- Puntero grueso: el área de 44 del GBtn sm no se solapa con la fila de abajo ----------
+   Entre dos filas de botones caben 44 − alto del botón; un GBtn nunca mide menos de 24, así que 44 − 24 basta con cualquier
+   tema (con space 3, space × 4 = 12 dejaba 4px de solape entre áreas: auditoría, hallazgo 5) */
 @media (pointer: coarse) {
-  .g-empty__actions { gap: var(--g-space-4) var(--g-space-2); }
+  .g-empty__actions { gap: max(var(--g-space-4), calc(44px - 24px)) var(--g-space-2); }
 }
 
 /* ---------- Colores forzados: contorno y hueco en CanvasText; el icono sigue currentColor ---------- */

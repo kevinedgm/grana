@@ -184,22 +184,45 @@
   overflow-wrap: break-word;
 }
 
-/* ---------- Espera larga (5 s): texto real, superpuesto al pie, sin mover nada ---------- */
+/* ---------- Espera larga (5 s): texto real en una ficha al pie, superpuesta, sin mover nada ----------
+   Hermana de la píldora de B: una ficha metida space × 2 desde el inicio lógico y el pie, no una banda de lado a lado. La
+   banda tapaba el pie de la plantilla, borde y esquinas incluidos, en una tesela con marco (auditoría, hallazgo 4); la
+   ficha queda dentro de cualquier marco de hasta space × 2 de borde y su radio md cabe dentro de la esquina md de la
+   plantilla. Se parte en líneas si no cabe */
 .g-load-region__slow {
   position: absolute;
   z-index: 2;
-  inset-inline: 0;
-  inset-block-end: 0;
+  inset-inline-start: var(--g-space-2);
+  inset-block-end: var(--g-space-2);
+  box-sizing: border-box;
+  max-inline-size: calc(100% - var(--g-space-2) * 2);
   margin: 0;
-  padding: var(--g-space-2) var(--g-space-4);
-  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  padding: var(--g-space-1) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
   background: var(--g-color-surface);
   color: var(--g-color-text-muted);
   font-family: var(--g-font-ui);
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
+  overflow-wrap: break-word;
 }
 .g-load-region:not(.is-slow) > .g-load-region__slow { display: none; }
+
+/* ---------- Canal cortés de página (utils/liveRegion.js, #533): texto oculto accesible ----------
+   Un p.g-load-live por documento, al final de <body> o dentro del <dialog> modal superior. Lo comparten GLoadRegion y los
+   anfitriones que adopten el motor (#540); su CSS vive aquí porque grana.css lo lleva siempre (#530) */
+.g-load-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* ---------- Movimiento reducido (patrón único, #299): el revelado sigue siendo un fundido, más corto ---------- */
 @media (prefers-reduced-motion: reduce) {

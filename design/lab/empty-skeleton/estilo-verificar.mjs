@@ -86,8 +86,8 @@ const near = (a, b, t = 0.5) => Math.abs(a - b) <= t
   ok(em.length >= 1 && em.every((e) => e === '0.72em'), 'GLoadRegion: medidas en em distintas de 0.72em: ' + em)
   ok([...files.empty.matchAll(/(\d*\.?\d+)em\b/g)].every((m) => m[0] === '1em'), 'GEmpty: medidas en em distintas de 1em')
   const pxOf = (css) => [...css.matchAll(/(-?\d*\.?\d+)px\b/g)].map((m) => m[0])
-  ok(pxOf(files.region).length === 0, 'GLoadRegion: medidas en px ' + pxOf(files.region))
-  ok(pxOf(files.empty).every((p) => ['1px', '-1px'].includes(p)), 'GEmpty: medidas en px fuera del texto oculto ' + pxOf(files.empty))
+  ok(pxOf(files.region).every((p) => ['1px', '-1px'].includes(p)), 'GLoadRegion: medidas en px fuera del texto oculto del canal ' + pxOf(files.region))
+  ok(pxOf(files.empty).every((p) => ['1px', '-1px', '24px', '44px'].includes(p)), 'GEmpty: medidas en px fuera del texto oculto y del área táctil ' + pxOf(files.empty))
   ok(pxOf(files.table).every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'GTable: medidas en px no permitidas ' + pxOf(files.table))
   const tr = [...files.region.matchAll(/transition(?:-property)?:\s*([^;]+);/g)].map((m) => m[1])
   const props = tr.flatMap((t) => t.split(',').map((x) => x.trim().split(/\s+/)[0]))
@@ -282,7 +282,7 @@ for (const engine of ENGINES) {
         r.slow(); await raf2()
         const sl = r.root.querySelector('.g-load-region__slow')
         o[id + ' espera Δh'] = R(r.root).height - h0
-        o[id + ' espera al pie'] = Math.abs(R(sl).bottom - R(r.root).bottom)
+        o[id + ' espera al pie'] = Math.abs(R(r.root).bottom - R(sl).bottom - window.__lib.len('var(--g-space-2)')) + Math.abs(R(sl).left - R(r.root).left - window.__lib.len('var(--g-space-2)')) // ficha a space × 2 del pie y del inicio (auditoría, hallazgo 4)
         r.idle()
       }
       // Molde: hojas, tinta, medios, conocido, bordes
