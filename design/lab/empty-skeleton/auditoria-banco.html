@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEmpty y GLoadRegion · banco de auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) sobre los COMPONENTES REALES: GEmpty, GTable, GBtn, GBadge, GAvatar y GDialog de
+     dist/grana.umd.js (global Grana) y GLoadRegion de dist/load-region.umd.js (global GranaLoadRegion, entrada propia #530),
+     con dist/grana.css + dist/fonts.css tal como se publican. Las fases, los tiempos (200/400/5000 ms), el revelado, lo
+     nuevo, la barra de fallo, los anuncios y el foco los pone el .vue y el motor (utils/loadPhase.js); el banco solo hace de
+     «servidor» con temporizadores (sin fetch), como la aplicación del playground.
+     Las plantillas (lista con GAvatar y GBadge, teselas con rótulo conocido, ficha en texto libre) son de «la aplicación»:
+     su CSS va SIN capa, para comprobar que el molde gana (#535).
+     Desde la raíz del repo:  python3 -m http.server 4216  →  /design/lab/empty-skeleton/auditoria-banco.html
+     Parámetros: ?dark=1  ?theme=auditoria (auditoria-tema.css, @grana/cli)  ?theme=propio (estilo-tema.css)
+                 ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?manual=1 (sin primera carga)
+     Control: window.A (estado en A.s; A.first(), A.refresh('list', ms, outcome), A.table(ms, outcome)…); anuncios del canal
+     de página en window.__live ({ t, text }); de GTable en window.__tlive; eventos en window.__ev.
+     Verificación: GRANA_DIST=<copia de dist> GRANA_PW_PORT=4216 node design/lab/empty-skeleton/auditoria-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* ---------- Plantillas de «la aplicación» (sin capa: ganan a Grana, salvo al molde) ---------- */
+  .rows { list-style: none; margin: 0; padding: 0; display: grid }
+  .row { display: flex; align-items: center; gap: var(--g-space-3); padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); background: var(--g-color-surface) }
+  .row-main { flex: 1 1 auto; min-inline-size: 0; display: grid }
+  .row-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2) }
+  .row-title { color: var(--g-color-text); font-weight: var(--g-text-action-weight); text-decoration: none }
+  .row-title:hover { text-decoration: underline }
+  .row-meta { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .row-status { flex: none }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--g-space-3) }
+  .tile { display: grid; gap: var(--g-space-1); padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-surface); box-shadow: var(--g-shadow-1) }
+  .tile p { margin: 0 }
+  .tile-label, .tile-note { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+  .tile-label { display: flex; gap: var(--g-space-1); align-items: center }
+  .tile-value { color: var(--g-color-text); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); font-variant-numeric: tabular-nums }
+  .detail { display: grid; gap: var(--g-space-3); padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md) }
+  .detail h4, .detail p, .detail dl, .detail dd { margin: 0 }
+  .detail h4 { color: var(--g-color-text); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight) }
+  .detail p { color: var(--g-color-text); max-inline-size: 60ch }
+  .detail dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--g-space-1) var(--g-space-3); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line) }
+  .detail dt { color: var(--g-color-text-muted) }
+
+  /* ---------- Andamio del banco (no es de Grana) ---------- */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:36px 0 6px;padding-top:14px;border-top:1px dashed var(--g-color-border-strong)}
+  h3{font-size:15px;margin:16px 0 6px}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools select,.tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .ctl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-block:8px}
+  .after{margin:var(--g-space-3) 0 0;font-size:13px;color:var(--g-color-text-muted);border-top:1px dotted var(--g-color-border-strong)}
+  .stack{display:grid;gap:var(--g-space-3)}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GEmpty y GLoadRegion · banco de auditoría</h1>
+<p class="cap"><b>coco</b> · paso 5 sobre los componentes reales (<code>dist/grana.umd.js</code> + <code>dist/load-region.umd.js</code>). Latencia y resultado abajo; los anuncios del canal de página se registran en <code>window.__live</code>.</p>
+<div class="tools" role="group" aria-label="Controles del banco">
+  <label>Tema <select id="t-theme"><option value="">Por defecto</option><option value="auditoria">Auditoría (@grana/cli)</option><option value="propio">Propio del estilo</option></select></label>
+  <button type="button" id="t-dark">Oscuro</button>
+  <label>Latencia <select v-model.number="s.lat"><option :value="100">100 ms</option><option :value="250">250 ms</option><option :value="900">900 ms</option><option :value="6000">6000 ms</option></select></label>
+  <label>Resultado <select v-model="s.out"><option value="data">Datos</option><option value="none">Vacío</option><option value="filtered">Por filtro</option><option value="error">Fallo</option><option value="forbidden">Sin permiso</option></select></label>
+  <label>Refresco <select v-model="s.refresh"><option value="keep">keep (B)</option><option value="replace">replace</option></select></label>
+  <button type="button" id="go-first" @click="first()">Primera carga</button>
+  <button type="button" id="go-refresh" @click="refresh('list')">Refrescar la lista</button>
+  <button type="button" id="go-tiles" @click="refreshTiles()">Refrescar el panel</button>
+  <span id="ev-log">{{ s.log }}</span>
+</div>
+
+<h2 class="b">1 · Lista (A molde → revelado; B refresco, «Nueva», fallo que conserva; vacíos con causa)</h2>
+<div class="host">
+  <h3 id="h-list">Muestras</h3>
+  <g-load-region id="r-list" :loading="s.list.loading" :items="s.list.items" :sample="SAMPLE" :refresh="s.refresh" :error="s.list.error" labelledby="h-list" :labels="LIST_L" @retry="retry('list')">
+    <template #default="{ items, mold, fresh, itemAttrs }">
+      <ul v-if="items && items.length" class="rows">
+        <li v-for="r in items" :key="r.id" class="row" v-bind="itemAttrs(r)">
+          <g-avatar :name="r.name" size="md"></g-avatar>
+          <span class="row-main">
+            <span class="row-head"><a class="row-title" :href="'#' + r.id" dir="auto">{{ r.name }}</a><g-badge v-if="fresh(r)" size="sm" variant="soft" color="accent">Nueva</g-badge></span>
+            <span class="row-meta" dir="auto">{{ r.code }} · {{ r.meta }}</span>
+          </span>
+          <g-badge class="row-status" size="sm" variant="soft">{{ r.status }}</g-badge>
+        </li>
+      </ul>
+      <g-empty v-else-if="!mold && s.list.error" id="le-error" cause="error" title="No se pudieron cargar las muestras" description="El servidor no respondió (503).">
+        <template #actions><g-btn size="sm" variant="soft" color="neutral" class="le-retry" @click="retry('list')">Reintentar</g-btn></template>
+      </g-empty>
+      <template v-else-if="items">
+        <g-empty v-if="s.list.cause === 'forbidden'" id="le-forbidden" cause="forbidden" title="No tienes permiso para ver estas muestras" description="Pídeselo a la responsable del laboratorio, Laura Ortiz."></g-empty>
+        <g-empty v-else-if="s.list.cause === 'filtered'" id="le-filtered" cause="filtered" title="Ninguna muestra con estos filtros" :filters="exitFilters" :total="s.list.pool" :labels="EXIT_L" @relax="relax" @clear="clearFilters"></g-empty>
+        <g-empty v-else id="le-none" cause="none" title="Aún no hay muestras" description="Aparecen aquí al registrarlas o importarlas.">
+          <template #icon><g-icon name="inbox"></g-icon></template>
+          <template #actions><g-btn size="sm" @click="ev('new')">Registrar muestra</g-btn><g-btn size="sm" variant="ghost" color="neutral" @click="ev('import')">Importar CSV</g-btn></template>
+        </g-empty>
+      </template>
+    </template>
+  </g-load-region>
+  <p class="after" id="r-list-after">Debajo de la lista (no debe moverse).</p>
+</div>
+
+<h2 class="b">2 · Panel: grupo de teselas (data-g-known conserva su tinta; solo habla el grupo)</h2>
+<div class="host">
+  <h3 id="h-dash">Panel</h3>
+  <g-load-region id="r-dash" labelledby="h-dash" :labels="DASH_L">
+    <div class="tiles">
+      <g-load-region v-for="(t, k) in TILES" :key="k" :id="'r-' + k" :loading="s.tiles[k].loading" :items="s.tiles[k].items" :sample="[{ id: k, icon: t.icon, label: t.label, value: '000', note: 'Comparación con ayer' }]" :label="t.label" :labels="TILE_L">
+      <template #default="{ items, itemAttrs }">
+        <div v-if="items" class="tile" v-bind="itemAttrs(items[0])">
+          <p class="tile-label" data-g-known><g-icon :name="items[0].icon"></g-icon><span>{{ items[0].label }}</span></p>
+          <p class="tile-value">{{ items[0].value }}</p>
+          <p class="tile-note">{{ items[0].note }}</p>
+        </div>
+      </template>
+      </g-load-region>
+    </div>
+  </g-load-region>
+  <p class="after" id="r-dash-after">Debajo del panel.</p>
+</div>
+
+<h2 class="b">3 · Ficha en texto libre (Δ0 también en un párrafo)</h2>
+<div class="host">
+  <h3 id="h-detail">Lote</h3>
+  <g-load-region id="r-detail" :loading="s.detail.loading" :items="s.detail.items" :sample="DETAIL_SAMPLE" :refresh="s.refresh" :error="s.detail.error" labelledby="h-detail" :labels="DETAIL_L" @retry="retry('detail')">
+    <template #default="{ items, itemAttrs }">
+      <article v-if="items" class="detail" v-bind="itemAttrs(items)">
+        <h4 dir="auto">{{ items.title }}</h4>
+        <p dir="auto">{{ items.body }}</p>
+        <dl><template v-for="f in items.facts" :key="f[0]"><dt>{{ f[0] }}</dt><dd>{{ f[1] }}</dd></template></dl>
+      </article>
+    </template>
+  </g-load-region>
+  <p class="after" id="r-detail-after">Debajo de la ficha.</p>
+</div>
+
+<h2 class="b">4 · GEmpty sueltos: cuatro causas y la salida con cuentas</h2>
+<div class="host stack" id="empties">
+  <g-empty id="e-none" cause="none" title="Aún no hay muestras" description="Aparecen aquí al registrarlas o importarlas.">
+    <template #icon><g-icon name="inbox"></g-icon></template>
+    <template #actions><g-btn size="sm" variant="outline" @click="ev('new')">Registrar muestra</g-btn><g-btn size="sm" variant="ghost" color="neutral">Importar CSV</g-btn></template>
+  </g-empty>
+  <g-empty id="e-filtered" cause="filtered" title="Ninguna muestra con estos filtros" :filters="[{ key: 'hoy', label: 'Hoy', count: 12 }, { key: 'closed', label: 'Cerradas', count: 2 }, { key: 'urg', label: 'Urgentes', count: 0 }]" :total="14" :labels="EXIT_L" @relax="ev('relax', $event)" @clear="ev('clear')"></g-empty>
+  <g-empty id="e-error" cause="error" title="No se pudieron cargar las muestras" description="El servidor no respondió (503).">
+    <template #actions><g-btn size="sm" variant="soft" color="neutral">Reintentar</g-btn></template>
+  </g-empty>
+  <g-empty id="e-forbidden" cause="forbidden" title="No tienes permiso para ver estas muestras" :heading-level="4" description="Pídeselo a la responsable del laboratorio, Laura Ortiz."></g-empty>
+  <g-empty id="e-long" cause="filtered" title="Ningún expediente con estos filtros" :filters="[{ key: 'a', label: 'Pendientes de validación por la responsable del laboratorio', count: 1234 }, { key: 'b', label: 'Centro de Salud Norte', count: 3 }]" :total="1240" :labels="EXIT_L"></g-empty>
+  <g-empty id="e-only" cause="filtered" title="Ninguna muestra hoy" :filters="[{ key: 'hoy', label: 'Hoy' }]" :labels="EXIT_L"></g-empty>
+  <p class="ctl"><span>Jerarquía de #555:</span>
+    <g-btn id="b-outline-brand" size="sm" variant="outline" color="brand">Quitar «Hoy»</g-btn>
+    <g-btn id="b-ghost-neutral" size="sm" variant="ghost" color="neutral">Quitar todos</g-btn>
+    <g-btn id="b-ghost-brand" size="sm" variant="ghost">Quitar todos (actual)</g-btn>
+  </p>
+</div>
+
+<h2 class="b">5 · Dentro de un diálogo modal (el canal se traslada)</h2>
+<p><g-btn size="sm" variant="outline" id="open-dlg" @click="openDialog">Abrir el historial</g-btn></p>
+<g-dialog v-model="s.dlgOpen" title="Historial" size="sm" close-label="Cerrar">
+  <g-load-region id="r-dlg" :loading="s.dlg.loading" :items="s.dlg.items" :sample="SAMPLE.slice(0, 3)" label="Historial" :labels="DLG_L">
+    <template #default="{ items, itemAttrs }">
+      <ul v-if="items" class="rows"><li v-for="r in items" :key="r.id" class="row" v-bind="itemAttrs(r)"><span class="row-main"><span class="row-title">{{ r.name }}</span><span class="row-meta">{{ r.meta }}</span></span></li></ul>
+    </template>
+  </g-load-region>
+</g-dialog>
+
+<h2 class="b">6 · RTL</h2>
+<div class="host" dir="rtl" lang="ar" id="rtl-host">
+  <g-load-region id="r-rtl" :loading="s.rtl.loading" :items="s.rtl.items" :sample="RTL_SAMPLE" label="العينات" :labels="RTL_L">
+    <template #default="{ items, fresh, itemAttrs }">
+      <ul v-if="items" class="rows"><li v-for="r in items" :key="r.id" class="row" v-bind="itemAttrs(r)"><g-avatar :name="r.name" size="md"></g-avatar><span class="row-main"><span class="row-head"><span class="row-title" dir="auto">{{ r.name }}</span><g-badge v-if="fresh(r)" size="sm" color="accent">جديدة</g-badge></span><span class="row-meta" dir="auto">{{ r.meta }}</span></span><g-badge class="row-status" size="sm">{{ r.status }}</g-badge></li></ul>
+    </template>
+  </g-load-region>
+  <g-empty id="e-rtl" cause="filtered" title="لا توجد عينات بهذه المرشحات" :filters="[{ key: 'a', label: 'عاجلة', count: 2 }, { key: 'b', label: 'مغلقة', count: 0 }]" :total="4" :labels="EXIT_RTL" style="margin-block-start: 12px"></g-empty>
+</div>
+
+<h2 class="b">7 · GTable con el motor común (#540)</h2>
+<div class="ctl">
+  <button type="button" id="tb-go" @click="table()">Cargar la tabla</button>
+  <label><input type="checkbox" v-model="s.tb.announceError"> announceError</label>
+</div>
+<div class="host">
+  <g-table id="t-main" :columns="TB_COLS" :rows="s.tb.rows" caption="Clientes" selectable :loading="s.tb.loading" :error="s.tb.error" :announce-error="s.tb.announceError" :labels="TB_L" @retry="ev('retry', 'table'); table(s.lat, 'data')">
+    <template #cell-total="{ row }">{{ '$' + row.total.toLocaleString('es-MX') }}</template>
+  </g-table>
+  <p class="after" id="t-main-after">Debajo de la tabla.</p>
+</div>
+<div class="host" style="margin-block-start:12px">
+  <g-table id="t-comp" :columns="TB_COMP" :rows="s.tc.rows" caption="Pacientes (columna compuesta con avatar)" :loading="s.tc.loading" :labels="TB_L">
+    <template #leading-nombre="{ row }"><g-avatar :name="row.nombre" size="md"></g-avatar></template>
+  </g-table>
+</div>
+</main>
+
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/load-region.umd.js"></script>
+<script>
+const { createApp, reactive, computed } = Vue
+const $ = (s) => document.querySelector(s)
+const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+const Q = new URLSearchParams(location.search)
+const t0 = performance.now()
+window.__ev = []
+window.__live = []
+window.__tlive = []
+// Registro de los canales: el de página (p.g-load-live, dondequiera que esté) y el de GTable
+{
+  let last = '', lastT = ''
+  new MutationObserver(() => {
+    const n = document.querySelector('.g-load-live')
+    const text = n ? n.textContent : ''
+    if (text && text !== last) window.__live.push({ t: Math.round(performance.now() - t0), text, inDialog: Boolean(n.closest('dialog')) })
+    last = text
+    const tn = document.querySelector('#t-main .g-table__sr[aria-live]')
+    const tt = tn ? tn.textContent : ''
+    if (tt && tt !== lastT) window.__tlive.push({ t: Math.round(performance.now() - t0), text: tt })
+    lastT = tt
+  }).observe(document.body, { subtree: true, childList: true, characterData: true })
+}
+
+const ALL = [
+  { id: 'm7', code: 'M-0007', name: 'Suero · Ana Ruiz', meta: 'Recibida el 7 oct · Lote 2026-0412', status: 'En análisis', urg: true, lot: '0412' },
+  { id: 'm8', code: 'M-0008', name: 'Orina · Jorge Pérez', meta: 'Recibida el 7 oct · Lote 2026-0412', status: 'Pendiente', urg: false, lot: '0412' },
+  { id: 'm9', code: 'M-0009', name: 'Plasma · Lucía Gómez Fernández', meta: 'Recibida el 8 oct · Lote 2026-0413', status: 'Validada', urg: true, lot: '0413' },
+  { id: 'm10', code: 'M-0010', name: 'Sangre total · Iker Sanz', meta: 'Recibida el 8 oct · Lote 2026-0413', status: 'Pendiente', urg: false, lot: '0413' }
+]
+const NEW = { id: 'm11', code: 'M-0011', name: 'Coagulación · Carlos Sanz', meta: 'Recibida el 8 oct · Lote 2026-0414', status: 'Pendiente', urg: false, lot: '0414' }
+const SAMPLE = [
+  { id: 's1', code: 'M-0000', name: 'Tipo · Nombre Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado' },
+  { id: 's2', code: 'M-0000', name: 'Tipo · Nombre Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado largo' },
+  { id: 's3', code: 'M-0000', name: 'Tipo largo · Nombre Apellido Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado' },
+  { id: 's4', code: 'M-0000', name: 'Tipo · Nombre Apellido', meta: 'Recibida el 0 oct · Lote 0000-0000', status: 'Estado' }
+]
+const FILTERS = { urg: { label: 'Urgentes', test: (r) => r.urg }, closed: { label: 'Cerradas', test: () => false }, l13: { label: 'Lote 2026-0413', test: (r) => r.lot === '0413' } }
+const TILES = {
+  t1: { icon: 'inbox', label: 'Muestras hoy', value: '128', note: '12 más que ayer' },
+  t2: { icon: 'calendar', label: 'Pendientes', value: '14', note: '3 urgentes' },
+  t3: { icon: 'chart-column', label: 'Tiempo medio', value: '3 h 20 min', note: 'Objetivo: 4 h' }
+}
+const DETAIL = { id: 'd', title: 'Lote 2026-0412', body: 'Doce muestras de suero y orina recibidas el 7 de octubre desde el Centro de Salud Norte. Dos llegaron fuera de la temperatura indicada y están en revisión.', facts: [['Origen', 'Centro de Salud Norte'], ['Responsable', 'Laura Ortiz'], ['Estado', 'En análisis']] }
+const DETAIL_SAMPLE = { id: 'd', title: 'Lote 0000-0000', body: 'Texto de ejemplo con la longitud habitual de una descripción de lote, dos o tres líneas en una ficha de anchura media, sin datos de ninguna persona real.', facts: [['Origen', 'Centro de ejemplo'], ['Responsable', 'Nombre Apellido'], ['Estado', 'Estado']] }
+const RTL_ALL = [{ id: 'r1', name: 'مصل · سعاد علي', meta: 'استلمت في 7 أكتوبر', status: 'قيد التحليل' }, { id: 'r2', name: 'بول · خالد محمود', meta: 'استلمت في 8 أكتوبر', status: 'معلقة' }]
+const RTL_NEW = { id: 'r3', name: 'دم · ليلى حسن', meta: 'استلمت في 9 أكتوبر', status: 'معلقة' }
+const RTL_SAMPLE = [{ id: 'x1', name: 'نوع · اسم عائلة', meta: 'استلمت في 0 أكتوبر', status: 'حالة' }, { id: 'x2', name: 'نوع · اسم عائلة طويل', meta: 'استلمت في 0 أكتوبر', status: 'حالة' }]
+const LIST_L = { loading: 'Cargando muestras.', slow: 'Sigue cargando muestras…', refreshing: 'Actualizando', loaded: ({ count, fresh }) => `${count} ${count === 1 ? 'muestra' : 'muestras'}${fresh ? `, ${fresh} ${fresh === 1 ? 'nueva' : 'nuevas'}` : ''}.`, failed: 'No se pudo actualizar. Lo que ves es lo último que llegó.', retry: 'Reintentar' }
+const TILE_L = { loading: 'Cargando.', slow: 'Sigue cargando.', loaded: 'Cargada.', refreshing: 'Actualizando', failed: 'No se pudo actualizar.', retry: 'Reintentar' }
+const DASH_L = { loading: 'Cargando el panel.', slow: 'Sigue cargando el panel.', loaded: 'Panel actualizado.' }
+const DETAIL_L = { loading: 'Cargando el lote.', slow: 'Sigue cargando el lote…', loaded: 'Lote cargado.', refreshing: 'Actualizando', failed: 'No se pudo actualizar el lote.', retry: 'Reintentar' }
+const DLG_L = { loading: 'Cargando el historial.', slow: 'Sigue cargando el historial…', loaded: ({ count }) => `${count} movimientos.`, refreshing: 'Actualizando', failed: 'No se pudo actualizar.', retry: 'Reintentar' }
+const RTL_L = { loading: 'جار التحميل.', slow: 'لا يزال التحميل جاريا…', loaded: ({ count }) => `${count} عينات.`, refreshing: 'تحديث', failed: 'تعذر التحديث.', retry: 'إعادة المحاولة' }
+const EXIT_L = { relax: 'Quitar «{label}»', returns: '{count} vuelven', clear: 'Quitar todos', before: 'Antes había {total}; con {filters}, ninguna.' }
+const EXIT_RTL = { relax: 'إزالة «{label}»', returns: 'تعود {count}', clear: 'إزالة الكل', before: 'كان هناك {total}؛ مع {filters}، لا شيء.' }
+const TB_COLS = [{ key: 'nombre', label: 'Cliente' }, { key: 'plan', label: 'Plan' }, { key: 'total', label: 'Total', align: 'end' }]
+const TB_COMP = [{ key: 'nombre', label: 'Paciente', title: 'nombre', subtitle: 'correo' }, { key: 'plan', label: 'Plan' }]
+const TB_ROWS = ['Ana Torres', 'Bruno Díaz', 'Carla Ruiz', 'Diego Mora', 'Elena Vega'].map((n, i) => ({ id: 'k' + i, nombre: n, correo: n.split(' ')[0].toLowerCase() + '@correo.com', plan: ['Básico', 'Pro', 'Equipo'][i % 3], total: 1200 + i * 731 }))
+const TB_L = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', loading: 'Cargando clientes…', slow: 'Sigue cargando clientes…', results: '{count} clientes', failed: 'No se pudieron cargar los clientes.', retry: 'Reintentar', empty: 'Aún no hay clientes.', emptyFiltered: 'Ningún cliente cumple estos filtros.', clearFilters: 'Limpiar filtros' }
+
+const s = reactive({
+  lat: Number(Q.get('lat')) || 900, out: 'data', refresh: 'keep', filters: [], log: '—', withNew: false,
+  list: { loading: false, items: null, error: false, cause: 'none', pool: 0 },
+  tiles: { t1: { loading: false, items: null }, t2: { loading: false, items: null }, t3: { loading: false, items: null } },
+  detail: { loading: false, items: null, error: false },
+  dlgOpen: false, dlg: { loading: false, items: null },
+  rtl: { loading: false, items: null },
+  tb: { loading: false, rows: TB_ROWS, error: false, announceError: true },
+  tc: { loading: false, rows: TB_ROWS.slice(0, 3) }
+})
+const timers = {}
+// La «petición» de la aplicación (sin fetch): un temporizador hace de servidor
+function run(key, target, ms, produce) {
+  clearTimeout(timers[key])
+  target.loading = true
+  timers[key] = setTimeout(() => { Object.assign(target, produce()); target.loading = false }, ms)
+}
+const pool = () => (s.withNew ? [NEW, ...ALL] : ALL)
+function listResult(out) {
+  if (out === 'error') return { error: true }
+  if (out === 'none') return { error: false, items: [], cause: 'none' }
+  if (out === 'forbidden') return { error: false, items: [], cause: 'forbidden' }
+  const p = pool()
+  const items = p.filter((r) => s.filters.every((f) => FILTERS[f].test(r)))
+  return { error: false, items, cause: items.length ? 'none' : 'filtered', pool: p.length }
+}
+const ev = (name, payload) => { window.__ev.push({ name, payload }); s.log = name + (payload !== undefined ? ' · ' + payload : '') }
+const exitFilters = computed(() => s.filters.map((f) => ({ key: f, label: FILTERS[f].label, count: pool().filter((r) => s.filters.filter((g) => g !== f).every((g) => FILTERS[g].test(r))).length })))
+function refresh(key, ms = s.lat, out = s.out) {
+  if (key === 'list') return run('list', s.list, ms, () => listResult(out))
+  if (key === 'detail') return run('detail', s.detail, ms, () => (out === 'error' ? { error: true } : { error: false, items: DETAIL }))
+  if (key === 'rtl') return run('rtl', s.rtl, ms, () => ({ items: s.withNew ? [RTL_NEW, ...RTL_ALL] : RTL_ALL }))
+  if (key === 'dlg') return run('dlg', s.dlg, ms, () => ({ items: ALL.slice(0, 3) }))
+}
+const tileMs = (i, ms) => ms * [0.5, 1, 1.6][i]
+function refreshTiles(ms = s.lat) { Object.keys(TILES).forEach((t, i) => run(t, s.tiles[t], tileMs(i, ms), () => ({ items: [{ id: t, ...TILES[t] }] }))) }
+// «No sé nada» (items: null) en un ciclo y la carga en el siguiente: en el mismo ciclo, la región lo toma por un refresco B
+// con lo anterior (auditoría, hallazgo 6; A.sameTick() lo reproduce)
+function first(ms = s.lat, out = s.out) {
+  s.list.items = null; s.list.error = false; s.detail.items = null; s.detail.error = false; s.rtl.items = null
+  for (const t of Object.keys(TILES)) s.tiles[t].items = null
+  return Vue.nextTick(() => { refresh('list', ms, out); refresh('detail', ms, out === 'error' ? 'error' : 'data'); refresh('rtl', ms); refreshTiles(ms) })
+}
+function sameTick(ms = s.lat) { s.list.items = null; refresh('list', ms, 'data') }
+const relax = (k) => { ev('relax', k); s.filters = s.filters.filter((x) => x !== k); s.list.cause = 'none'; Object.assign(s.list, listResult('data')) }
+const clearFilters = () => { ev('clear'); s.filters = []; Object.assign(s.list, listResult('data')) }
+const retry = (k) => { ev('retry', k); refresh(k, s.lat, 'data') }
+const openDialog = () => { s.dlgOpen = true; s.dlg.items = null; refresh('dlg') }
+function table(ms = s.lat, out = 'data') {
+  run('tb', s.tb, ms, () => (out === 'error' ? { error: true } : out === 'empty' ? { error: false, rows: [] } : out === 'reorder' ? { error: false, rows: [TB_ROWS[1], TB_ROWS[0], ...TB_ROWS.slice(2)] } : { error: false, rows: TB_ROWS }))
+}
+const tableComp = (ms = s.lat) => run('tc', s.tc, ms, () => ({ rows: TB_ROWS.slice(0, 3) }))
+window.A = { s, first, sameTick, refresh, refreshTiles, table, tableComp, openDialog, ALL, NEW, TB_ROWS, timers, setFilters: (f) => { s.filters = f } }
+
+const app = createApp({ setup: () => ({ s, SAMPLE, TILES, DETAIL_SAMPLE, RTL_SAMPLE, LIST_L, TILE_L, DASH_L, DETAIL_L, DLG_L, RTL_L, EXIT_L, EXIT_RTL, TB_COLS, TB_COMP, TB_L, exitFilters, relax, clearFilters, retry, ev, first, refresh, refreshTiles, openDialog, table }) })
+app.use(Grana).use(GranaLoadRegion).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+app.mount('#app')
+
+// ---- Tema ----
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify', 'stripe']
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'))
+const setTheme = (x) => { $('#gen').href = x === 'auditoria' ? 'auditoria-tema.css' : x === 'propio' ? 'estilo-tema.css' : x ? '../tema-oscuro/dark-color-presence/generated/' + x + '.css' : 'data:text/css,' }
+$('#t-theme').onchange = (e) => setTheme(e.target.value)
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' }
+const th = Q.get('theme') || ''
+if (th) { $('#t-theme').value = th; setTheme(th) }
+document.documentElement.dataset.theme = Q.get('dark') ? 'dark' : 'light'
+const ready = () => document.fonts.ready.then(raf2).then(raf2).then(() => {
+  if (!Q.has('manual')) { first(100); table(100); tableComp(100) }
+  // Con 100 ms ninguna carga se ve: llegan sin molde ni revelado
+  setTimeout(() => raf2().then(() => { document.documentElement.dataset.ready = '1' }), 400)
+})
+if (th) $('#gen').addEventListener('load', ready, { once: true }); else ready()
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick, h } from 'vue'
 import GTable from './GTable.vue'
+import GBtn from '../GBtn/GBtn.vue'
 
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
@@ -449,6 +450,36 @@ describe('GTable · motor común de carga (#540)', () => {
     w.unmount()
   })
 
+  it('una recarga que no se ve y acaba con el mismo recuento se vuelve a anunciar (hallazgo 7): la región se vacía al empezar', async () => {
+    const w = mk({ labels: all })
+    await w.setProps({ loading: true })
+    await at(150)
+    await w.setProps({ loading: false })
+    await flush()
+    expect(region(w).text()).toBe('3 resultados')
+    const writes = []
+    const mo = new MutationObserver(() => writes.push(region(w).element.textContent))
+    mo.observe(region(w).element, { childList: true, characterData: true, subtree: true })
+    await w.setProps({ loading: true })
+    await at(100)
+    expect(region(w).text()).toBe('') // vacía al empezar: el mismo texto al final es un cambio
+    await w.setProps({ loading: false })
+    await flush()
+    expect(region(w).text()).toBe('3 resultados')
+    mo.disconnect()
+    expect(writes).toEqual(['', '3 resultados'])
+    w.unmount()
+  })
+
+  it('el anuncio del orden escrito en el mismo ciclo que empieza la carga no se vacía', async () => {
+    const w = mk({ labels: all, sortMode: 'external' })
+    await w.findAll('th button')[0].trigger('click')
+    await w.setProps({ loading: true })
+    await flush()
+    expect(region(w).text()).toMatch(/^Ordenado por/)
+    w.unmount()
+  })
+
   it('mínimo de 400 ms a la vista; la tabla pinta su copia hasta el final de la fase', async () => {
     const w = mk({ labels: all })
     await w.setProps({ loading: true })
@@ -577,6 +608,9 @@ describe('GTable · motor común de carga (#540)', () => {
     expect(fil.find('.g-empty__title').text()).toBe('Ningún cliente cumple')
     const b = fil.find('.g-empty__actions button.g-btn')
     expect(b.text()).toBe('Limpiar filtros')
+    // #555: la única acción del vacío, outline con color="brand" explícito (no el valor por defecto de GBtn)
+    expect(b.classes()).toEqual(expect.arrayContaining(['g-btn--variant-outline', 'g-btn--color-brand']))
+    expect(fil.findComponent(GBtn).vm.$.vnode.props?.color).toBe('brand')
     await b.trigger('click')
     expect(f.emitted('update:filters').at(-1)[0]).toEqual([])
     expect(f.find('.g-filter-bar__clear').exists()).toBe(false)

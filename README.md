@@ -13,7 +13,7 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 
 - **Estructura fija, color tuyo.** Los componentes solo leen variables `--g-*`, sin valores de respaldo ni colores escritos en su CSS. Cambiar el tema no deja ningún valor fijo atrás.
 - **Accesibilidad como restricción, no como extra.** Área táctil, tamaño de texto, contraste y foco tienen mínimos que no son tema: el generador de temas rechaza lo que los rompa.
-- **58 componentes documentados**, todos en estado `candidate`: formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
+- **64 componentes documentados**, todos en estado `candidate`: formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
 
 ## Qué es Grana
@@ -122,11 +122,11 @@ Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB 
 
 #### ESM y UMD para CDN
 
-El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField`, `slider.umd.js` con `GranaSlider`, `tag.umd.js` con `GranaTag` y `testing.umd.js` con `GranaTesting`).
+El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` y `default` por entrada). No hay build CommonJS. Los archivos UMD existen solo para usar la librería con `<script>` desde una CDN (`unpkg` y `jsdelivr` apuntan a `dist/grana.umd.js`): el global es `Grana` y requiere `vue.global.js` antes. Cada entrada propia tiene su UMD y su global (`dist/speech.umd.js` con `GranaSpeech`, `status.umd.js` con `GranaStatus`, `combobox.umd.js` con `GranaCombobox`, `file-field.umd.js` con `GranaFileField`, `time-field.umd.js` con `GranaTimeField`, `slider.umd.js` con `GranaSlider`, `tag.umd.js` con `GranaTag`, `load-region.umd.js` con `GranaLoadRegion` y `testing.umd.js` con `GranaTesting`).
 
 ### Entradas propias
 
-Siete piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
+Ocho piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
 
 | Entrada | Qué trae | Cuándo usarla | Global UMD | Tamaño (gzip) |
 | --- | --- | --- | --- | --- |
@@ -137,6 +137,7 @@ Siete piezas **no viajan en el paquete principal**: cada una tiene su entrada y 
 | `@grana/vue/time-field` | `GTimeField` | Capturar una hora del reloj | `GranaTimeField` | ≈ 11 kB |
 | `@grana/vue/slider` | `GSlider` | Elegir un valor acotado o un rango por posición (volumen, intensidad, precio) | `GranaSlider` | ≈ 11 kB |
 | `@grana/vue/tag` | `GTag`, `GTagGroup` | Etiquetas de un conjunto (alergias, filtros aplicados, temas) con huella al quitar y racimos por faceta | `GranaTag` | ≈ 10 kB |
+| `@grana/vue/load-region` | `GLoadRegion` | Una lista, un grupo de teselas o una ficha que esperan datos: la plantilla sin tinta mientras llega, lo de antes a la vista al refrescar, anuncios y foco (`GEmpty`, su vacío, sí va en el principal) | `GranaLoadRegion` | ≈ 4 kB |
 
 **Por qué van aparte:** cada una añadiría más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)) y no todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-06): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -152,7 +153,7 @@ createApp(App).use(Grana).use(Combobox).mount('#app')   // registra <g-combobox>
 
 ### TypeScript
 
-Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts`, `slider.d.ts`, `tag.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
+Los tipos **vienen incluidos** en el paquete: no hay `@types/...` que instalar. Cada entrada tiene su propio `.d.ts` (`dist/grana.d.ts`, `speech.d.ts`, `status.d.ts`, `combobox.d.ts`, `file-field.d.ts`, `time-field.d.ts`, `slider.d.ts`, `tag.d.ts`, `load-region.d.ts` y `testing.d.ts`), generado desde los `*.meta.json` de los componentes (props con valores, por defecto y obligatoriedad; eventos con su payload; slots con alcance; lo expuesto por `ref`). Lo que un `meta.json` no puede expresar (la forma de las opciones, los elementos y los gestores como `createToaster`) está escrito a mano en `packages/vue/types/`.
 
 Tras `app.use(...)`, las etiquetas de los componentes quedan tipadas en las plantillas sin importar nada, gracias a `GlobalComponents` de Vue (una declaración por entrada, en PascalCase y en kebab-case):
 
@@ -346,6 +347,8 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | --- | --- | --- |
 | [`GToast`](packages/vue/src/components/GToast/README.md) (`createToaster`, `useToast`, `GToaster`) | Avisos breves y no modales, como servicio | principal |
 | [`GStatusIsland`](packages/vue/src/components/GStatusIsland/README.md), [`GStatusMark`](packages/vue/src/components/GStatusMark/README.md), [`GStatus`](packages/vue/src/components/GStatus/README.md) | Isla de estado: aviso persistente de la aplicación | **propia** (`status`) |
+| [`GEmpty`](packages/vue/src/components/GEmpty/README.md) | El vacío con causa (`none`, `filtered`, `error`, `forbidden`): del tamaño de un elemento, dice por qué y cómo salir; por filtro, cuántas había y cuántas vuelven al quitar cada uno | principal |
+| [`GLoadRegion`](packages/vue/src/components/GLoadRegion/README.md) | La región cuyo contenido llega tarde: tu plantilla sin tinta como molde que recibe la tinta en su sitio, lo último conocido al refrescar, nada antes de 200 ms, anuncios y foco que no se pierde | **propia** (`load-region`) |
 
 ### Captura de voz
 

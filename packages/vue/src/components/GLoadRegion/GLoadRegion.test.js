@@ -424,3 +424,78 @@ describe('GLoadRegion · lo nuevo cuando items y loading cambian en el mismo cic
     expect(live()).toBe('3 muestras, 1 nuevas.')
   })
 })
+
+describe('GLoadRegion · cambiar de entidad: items = null y loading en el mismo ciclo (hallazgo 6, #531)', () => {
+  it('va al molde A de la muestra, no a un refresco B con los datos de la entidad anterior', async () => {
+    seen.length = 0
+    const w = mk({ items: ALL })
+    await w.setProps({ items: null, loading: true })
+    // Dentro del retraso: el molde invisible de la muestra (nada de lo anterior)
+    expect(cls(w)).toEqual(['is-busy', 'is-mold', 'is-pending'])
+    expect(names(w)).toEqual(SAMPLE.map((i) => i.name))
+    await at(400)
+    expect(cls(w)).toEqual(['is-busy', 'is-mold'])
+    expect(w.find('.g-load-region__pill').exists()).toBe(false)
+    expect(names(w)).toEqual(SAMPLE.map((i) => i.name))
+    expect(seen.at(-1).mold).toBe(true)
+    // Llega la entidad nueva: revelado del molde, sin «nuevas» (no hay nada conocido con que comparar)
+    await w.setProps({ items: ALL.slice(1), loading: false })
+    await at(400)
+    expect(names(w)).toEqual(ALL.slice(1).map((i) => i.name))
+    expect(w.findAll('[data-g-fresh]').length).toBe(0)
+    await at(20) // un cuadro: la tinta llega
+    expect(cls(w)).toEqual(['is-mold', 'is-revealing'])
+    await at(300)
+    expect(cls(w)).toEqual([])
+    expect(live()).toBe('2 muestras.')
+  })
+  it('con refresh="replace" también: el molde de la muestra, no el de lo anterior', async () => {
+    const w = mk({ items: ALL, refresh: 'replace' })
+    await w.setProps({ items: null, loading: true })
+    await at(250)
+    expect(cls(w)).toEqual(['is-busy', 'is-mold'])
+    expect(names(w)).toEqual(SAMPLE.map((i) => i.name))
+  })
+})
+
+describe('GLoadRegion · el revelado termina con la última transición (hallazgo 8)', () => {
+  const toReveal = async () => {
+    const w = mk({ loading: true, items: null })
+    await at(250)
+    await w.setProps({ loading: false, items: ALL })
+    await at(400)
+    await at(20)
+    expect(cls(w)).toEqual(['is-mold', 'is-revealing'])
+    return w
+  }
+  const fire = async (w) => {
+    const ev = new Event('transitionend', { bubbles: true })
+    ev.propertyName = 'color'
+    w.find('.g-load-region__body .title').element.dispatchEvent(ev)
+    await flush()
+  }
+  it('un transitionend con otras transiciones en curso no lo termina; el de la última, sí', async () => {
+    const w = await toReveal()
+    const body = w.find('.g-load-region__body').element
+    let left = [{ transitionProperty: 'color', playState: 'running', finish: vi.fn() }, { transitionProperty: 'color', playState: 'finished', finish: vi.fn() }]
+    body.getAnimations = () => left
+    await fire(w)
+    expect(cls(w)).toEqual(['is-mold', 'is-revealing'])
+    left = [{ transitionProperty: 'color', playState: 'finished', finish: vi.fn() }]
+    await fire(w)
+    expect(cls(w)).toEqual([])
+  })
+  it('el respaldo de tiempo lleva a su final lo que quede (sin cola tras la fase) y quita la fase', async () => {
+    const w = await toReveal()
+    const body = w.find('.g-load-region__body').element
+    const tr = { transitionProperty: 'color', playState: 'running', finish: vi.fn() }
+    const kf = { animationName: 'spin', playState: 'running', finish: vi.fn() } // una animación propia de la plantilla no se toca
+    body.getAnimations = () => [tr, kf]
+    await fire(w)
+    expect(cls(w)).toEqual(['is-mold', 'is-revealing'])
+    await at(400)
+    expect(tr.finish).toHaveBeenCalledTimes(1)
+    expect(kf.finish).not.toHaveBeenCalled()
+    expect(cls(w)).toEqual([])
+  })
+})

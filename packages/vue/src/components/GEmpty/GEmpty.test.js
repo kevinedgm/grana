@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { h, nextTick, provide, defineComponent, ref } from 'vue'
 import GEmpty from './GEmpty.vue'
+import GBtn from '../GBtn/GBtn.vue'
 import { loadRegionKey } from '../../utils/loadPhase.js'
 
 afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = '' })
@@ -80,6 +81,18 @@ describe('GEmpty · la salida con cuentas (B)', () => {
     expect(relax.every((b) => b.find('.g-empty__count').attributes('aria-hidden') === 'true')).toBe(true)
     expect(relax.every((b) => b.classes().includes('g-btn--size-sm') && b.classes().includes('g-btn--variant-outline'))).toBe(true)
     expect(btns.at(-1).classes()).toContain('g-btn--variant-ghost')
+  })
+
+  it('color fijado, no heredado (#555): la salida en brand; «Quitar todos» ghost en neutral, solo (outline) en brand', () => {
+    // El color que pasa GEmpty (no el valor por defecto de GBtn): cambiar ese valor no cambia la salida
+    const passed = (w) => w.findAllComponents(GBtn).map((c) => c.vm.$.vnode.props?.color)
+    const w = exit()
+    expect(passed(w)).toEqual(['brand', 'brand', 'brand', 'neutral'])
+    expect(w.findAll('.g-empty__relax').every((b) => b.classes().includes('g-btn--color-brand'))).toBe(true)
+    expect(w.findAll('.g-empty__actions button').at(-1).classes()).toContain('g-btn--color-neutral')
+    const alone = exit({ filters: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] })
+    expect(passed(alone)).toEqual(['brand'])
+    expect(alone.find('.g-empty__actions button').classes()).toEqual(expect.arrayContaining(['g-btn--variant-outline', 'g-btn--color-brand']))
   })
 
   it('nombre accesible = texto visible + la cuenta para el lector (con un espacio delante)', () => {

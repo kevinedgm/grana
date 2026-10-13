@@ -29,7 +29,8 @@ const FIXED = {
   border: 'Divisores y contorno de tarjetas en reposo.',
   'border-strong': 'Contorno en hover, botón de línea y chips.',
   'border-control': 'Contorno de campos de texto, casillas y selectores (3:1 sobre la superficie y sobre el relleno de solo lectura, neutral-soft).',
-  focus: 'Anillo de foco de teclado; siempre visible.'
+  focus: 'Anillo de foco de teclado; siempre visible.',
+  mold: 'Tono del molde de carga (GLoadRegion, GTable): la forma de lo que aún no llegó; opaco, entre 1,3:1 y 3:1 sobre la superficie, nunca para texto.'
 }
 
 /** @param {string} name nombre sin el prefijo `--g-color-` (p. ej. «brand-soft», «on-danger», «cat-2-text») */

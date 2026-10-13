@@ -51,8 +51,8 @@ export function createLiveWriter(live, { delay, clear, unique = false }) {
 // ---------- Canal de página (#533) ----------
 export const PAGE_LIVE_DELAY = 50
 export const PAGE_LIVE_CLEAR = 5000
-// Texto oculto accesible (el patrón permitido): el canal lo crea el script, no una plantilla con clase de coco
-const SR_ONLY = 'position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap'
+// El texto oculto accesible lo pone la regla .g-load-live de GLoadRegion.css (coco), que grana.css lleva siempre (#530):
+// el estilo tiene un solo dueño y el nodo no lleva estilo en línea
 let page = null
 
 /** Registra un consumidor del canal de página (lo crea el primero). Devuelve la función que lo retira. Solo en el cliente. */
@@ -63,7 +63,6 @@ export function acquirePageLive() {
     el.className = 'g-load-live'
     el.setAttribute('aria-live', 'polite')
     el.setAttribute('aria-atomic', 'true')
-    el.style.cssText = SR_ONLY
     const live = {
       get polite() { return el.textContent },
       set polite(v) { el.textContent = v },

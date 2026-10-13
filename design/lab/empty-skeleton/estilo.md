@@ -26,6 +26,7 @@ Por defecto: 1,46 claro y 1,71 oscuro (lo medido por kiwi). En `forced-colors`, 
 | --- | --- | --- |
 | **El molde es la plantilla** (A) | Bajo `is-mold`, toda la tinta de la plantilla de la aplicación se vuelve transparente; **cada hoja de texto** es una barra `line-through` de `0.72em` en `--g-color-mold`, del largo de su texto real; las cajas con borde quedan en contorno del tono (el avatar es un círculo, la insignia una píldora, la tesela su marco sin sombra); imágenes, `svg`, vídeo ocultos con su caja; lo que lleva `data-g-known` conserva su tinta en `text-muted` (con su icono) | No hay un segundo dibujo: la espera **es** la pantalla sin tinta. Medido: Δ 0 en lista, teselas y ficha en texto libre, y 0 piezas que se mueven entre contenido y molde |
 | **La tinta llega a su sitio** (A) | `is-mold + is-revealing`: la regla «sin tinta» se retira y el color, los fondos y los bordes vuelven por **transición** (`--g-duration-slow` + `--g-ease-out`), mientras cada barra pasa del tono a transparente: **las barras se funden en el texto** | Ningún keyframe, nada se desplaza ni escala (medido: intermedio a 60 ms, 0 piezas movidas, termina en tinta plena y sin transiciones) |
+| **La espera larga es una ficha** | A los 5 s, el texto va en una ficha al pie, metida `space × 2` desde el inicio lógico y el pie, hermana de la píldora de B: nunca tapa el marco de la plantilla (una banda de lado a lado tapaba el pie de una tesela con su borde y sus esquinas) | La espera se dice con texto, quieta, sin mover nada ni tapar la forma de lo que espera |
 | **Nada se borra** (B) | Lo de antes sigue tal cual, inerte, con cursor `progress`; un **filo** de `border-width × 2` en `accent-text` corona la región y la **píldora** «Actualizando» (`accent-soft`, `refresh-cw`) cabalga sobre él al final lógico, sin tapar contenido; lo nuevo lleva una **marca** de `border-width × 3` al inicio lógico (no cambia su caja) | El estado se dice en el borde, no encima de los datos |
 | **El primer hueco** (vacío) | Caja discontinua `border-strong` con el **alto de un elemento** (`--_load-slot`), un **círculo discontinuo** de `space × 10` donde irá el avatar (vacío en `none`; en `error`, círculo e icono en `danger-text`), texto en medio y acciones al final que bajan solas sin consultas | Ocupa el sitio del primero que llegará, no un póster centrado |
 | **La salida con cuentas** (vacío por filtro) | Con `is-exit`, las salidas van **debajo del texto y alineadas con él**; cada «Quitar «…»» lleva su cuenta como una **ficha** de cifras tabulares (`neutral-soft` / `on-neutral-soft`, `caption`) | La cuenta se lee de un vistazo y no salta al cambiar de cifra |
@@ -40,14 +41,16 @@ Lo que **no** hace (a propósito): ningún pulso ni barrido (#539), nada se muev
 | --- | --- | --- | --- |
 | Hueco del icono de `GEmpty` | `space × 10` (el avatar de una fila) | 40 | 50 |
 | Icono dentro del hueco | `space × 5` | 20 | 25 |
-| Relleno de `GEmpty` | `space × 3` / `space × 4` (el de una fila) | 12 / 16 | 15 / 20 |
+| Relleno de `GEmpty` | `space × 3 − borde` / `space × 4` (la caja con borde mide lo que una fila; auditoría, hallazgo 3) | 11 / 16 | 13 / 20 |
+| Hueco entre título y descripción de `GEmpty` | 0 (las líneas se apilan como las de una fila); la traza, `space × 1` encima | 0 | 0 |
 | Base del texto de `GEmpty` | `space × 36` (las acciones bajan cuando no caben junto a ella) | 144 | 180 |
 | Sangría de la salida (`is-exit`) | hueco + `space × 3` | 52 | 65 |
-| Separación de acciones con puntero grueso | fila `space × 4` (las áreas de 44 de un `GBtn` sm no se solapan) | 16 | 20 |
+| Separación de acciones con puntero grueso | fila `max(space × 4, 44px − 24px)` (44 menos el alto mínimo de un `GBtn`: las áreas de 44 no se solapan en ningún tema; auditoría, hallazgo 5) | 20 | 20 |
 | Grosor de la barra del molde | `0.72em` (constante de la técnica, #535) | — | — |
 | Filo de B | `border-width × 2` | 2 | 4 |
 | Marca de lo nuevo | `border-width × 3`, `space × 2` desde arriba y abajo | 3 | 6 |
 | Píldora | `space × 4` desde el final lógico, centrada sobre el filo | 16 | 20 |
+| Espera larga (ficha) | a `space × 2` del inicio lógico y del pie; relleno `space × 1` / `space × 3`; borde `border-strong`, radio md; ancho máximo `100 % − space × 4` (auditoría, hallazgo 4) | 8 | 10 |
 | Base del texto de la barra de fallo | `space × 48` | 192 | 240 |
 | Barra del esqueleto de `GTable` | `1lh − space × 2` en la caja de línea (receta de `GSummary`) | 12 | 10 |
 | Largos del esqueleto de `GTable` | 60 % (80 % la principal); filas 3n+2 40 % (65 %), 3n 70 % | — | — |
@@ -84,6 +87,10 @@ Lo que **no** hace (a propósito): ningún pulso ni barrido (#539), nada se muev
 - **La marca de lo nuevo** es un `::before` absoluto en el elemento con `data-g-fresh`, que recibe `position: relative` desde la capa (si la plantilla ya lo posiciona, sigue sirviendo). Alternativas descartadas: sombra interior o degradado (la plantilla las pisa sin capa con `box-shadow` o `background`).
 - **`GEmpty`**: fila con `flex-wrap` (sin `@media` ni `@container`); `min-block-size: var(--_load-slot)` sin respaldo (fuera de una región vuelve a `auto`, medido); `box-sizing: border-box` para que el alto con borde sea el del elemento medido (Δ ≤ 0,5px en los tres motores).
 - **`GTable`**: el esqueleto pierde el pulso (`g-table-pulse` fuera) y `surface-sunken`; barras de puntas rectas (`radius-xs`, como la barra del molde) en la caja de línea; la columna final lleva su barra al final; la fila esqueleto **dibuja la casilla en contorno** con la medida de la real, porque la casilla alarga la fila (medido: con el tema propio, 52 frente a 54,7px sin ella; con ella, Δ 0); sin fondo al pasar por una fila esqueleto; el `<table>` recibe el foco por programa con el anillo **por dentro** (el área desplazable lo recortaría); la espera larga es el último hijo de `__scroll`, `sticky` al pie con un margen negativo igual a su alto (una línea con elipsis: no mueve nada, medido); la barra de fallo en flujo antes de `__scroll`; con `GEmpty` en `td.g-table__empty`, relleno `space × 2` sin relleno lateral y alineado al inicio.
+
+## Cambios tras la auditoría (paso 5)
+
+Ver `auditoria.md`: relleno de `GEmpty` sin el borde y sin hueco entre líneas (el vacío mide un elemento), separación táctil `44px − 24px`, espera larga en ficha y regla `.g-load-live` (el canal de página) con el texto oculto accesible en `GLoadRegion.css`.
 
 ## Para bruno (lo que el CSS espera del `.vue`)
 

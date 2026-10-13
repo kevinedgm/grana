@@ -59,6 +59,30 @@ test.describe('GLoadRegion · A «la tinta llega a su sitio» (#535, #545)', () 
     expect(end.tp).not.toMatch(/color/)
   })
 
+  test('el revelado termina con la última transición: al quitar is-mold no queda ninguna en curso (hallazgo 8, WebKit)', async ({ page }) => {
+    await openLR(page)
+    for (const sel of ['#lr-list', '#lr-detail']) {
+      await page.evaluate((s) => {
+        const r = document.querySelector(s)
+        window.__left = window.__left || {}
+        const mo = new MutationObserver(() => {
+          if (window.__left[s] === undefined && r.classList.contains('is-revealing')) window.__left[s] = null
+          if (window.__left[s] === null && !r.classList.contains('is-mold')) {
+            window.__left[s] = r.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').map((a) => a.transitionProperty || a.animationName)
+            mo.disconnect()
+          }
+        })
+        mo.observe(r, { attributes: true, attributeFilter: ['class'] })
+      }, sel)
+    }
+    await loadAll(page, 900)
+    await idle(page)
+    await idle(page, '#lr-detail')
+    const left = await page.evaluate(() => window.__left)
+    expect(left['#lr-list']).toEqual([])
+    expect(left['#lr-detail']).toEqual([])
+  })
+
   test('movimiento reducido: el revelado sigue siendo un fundido, en --g-duration-fast', async ({ page }) => {
     await openLR(page, { motion: 'reduce' })
     // Observador de clases (no por cuadros: con movimiento reducido el revelado dura ~200 ms y un cuadro lento lo saltaría)

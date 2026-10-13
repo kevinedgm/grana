@@ -199,8 +199,26 @@ export default defineComponent({
       revealTimer = 0
       revealing.value = 0
     }
-    const onTransitionEnd = (e) => {
-      if (revealing.value === 2 && e.propertyName === 'color') stopReveal()
+    // Las transiciones del revelado que siguen en curso dentro del cuerpo (null sin la API de animaciones web). Durante el
+    // revelado la hoja de coco fija la transición de todo el cuerpo con !important: las CSSTransition de ahí son suyas.
+    const revealTransitions = () => {
+      const b = body.value
+      if (!b || typeof b.getAnimations !== 'function') return null
+      return b.getAnimations({ subtree: true }).filter((a) => 'transitionProperty' in a && a.playState === 'running')
+    }
+    // El revelado termina cuando acaba la ÚLTIMA transición, no la primera (hallazgo 8: en WebKit, al quitar is-revealing
+    // con transiciones aún en curso, estas no se cancelan y siguen ≈ 200 ms tras la fase)
+    const onTransitionEnd = () => {
+      if (revealing.value !== 2) return
+      const left = revealTransitions()
+      if (!left || left.length === 0) stopReveal()
+    }
+    // Respaldo de tiempo (duración + margen): lo que quede se lleva a su final antes de quitar la fase, en todos los motores
+    const endReveal = () => {
+      revealTimer = 0
+      if (revealing.value !== 2) return
+      for (const a of revealTransitions() || []) { try { a.finish() } catch { /* sin efecto: se cancela al quitar la fase */ } }
+      stopReveal()
     }
     function startReveal() {
       stopReveal()
@@ -220,7 +238,7 @@ export default defineComponent({
               d = Math.max(0, ...String(cs.transitionDuration || '').split(',').map(ms))
               d += Math.max(0, ...String(cs.transitionDelay || '').split(',').map(ms))
             }
-            revealTimer = setTimeout(stopReveal, d + REVEAL_MARGIN)
+            revealTimer = setTimeout(endReveal, d + REVEAL_MARGIN)
           })
         })
       })
@@ -262,6 +280,11 @@ export default defineComponent({
     function begin(arm) {
       const kind = phase.start({ arm })
       if (kind !== 'new') return
+      // items y error cambiados fuera de una carga en el mismo ciclo que loading (cambiar de entidad: items = null): el
+      // watch de loading corre antes que el de items, así que la copia se toma aquí; si no, la carga empezaría con lo de
+      // la entidad anterior (B) en vez del molde de la muestra (A). «La copia es el valor de items al empezar» (#531)
+      if (props.items !== painted.value) { painted.value = props.items; freshKeys.value = new Set() }
+      if (props.error !== appliedError.value) appliedError.value = props.error
       startedFirst.value = painted.value === null
       stopReveal()
       captureFocus()

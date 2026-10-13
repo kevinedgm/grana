@@ -4,7 +4,7 @@ Tabla de datos con **personalidad**: columnas compuestas (varios campos en una c
 
 **Etiqueta:** `<g-table>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`.
 
 ## Uso
 
@@ -89,7 +89,9 @@ La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma 
 | `appearance` | String | `lines` `surface` | `lines` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
 | `maxHeight` | String | longitud CSS (cabecera pegajosa) | sin valor |
-| `loading`, `loadingRows` | Boolean, Number | filas esqueleto; anuncia `labels.loading` y, al terminar, `labels.results` | `false`, `3` |
+| `loading`, `loadingRows` | Boolean, Number | carga con el motor común (ver «Carga, error y vacío»); `loadingRows`: filas esqueleto de la **primera** carga | `false`, `3` |
+| `error` | Boolean | el resultado de la última carga fue un fallo; se aplica **al terminar** la carga | `false` |
+| `announceError` | Boolean | `false`: el fallo lo anuncia otro (la isla de estado) y la región no anuncia nada al terminar | `true` |
 | `labels` | Object | textos (abajo) | `{}` |
 
 - **Datos del servidor:** con `sortMode`/`filterMode` `external`, la tabla solo emite; tú consultas y le pasas la página de filas y `total`.
@@ -99,7 +101,7 @@ La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma 
 
 ## Textos (`labels`)
 
-Grana no trae textos. Las 16 claves de `labels`:
+Grana no trae textos. Las 19 claves de `labels`:
 
 | Clave | Uso |
 | --- | --- |
@@ -108,28 +110,82 @@ Grana no trae textos. Las 16 claves de `labels`:
 | `selectedCount` | Plantilla con `{count}` |
 | `sortBy`, `ascending`, `descending` | Controles de orden en tarjetas |
 | `sorted` | Anuncio del orden (`{label}`, `{direction}`) |
-| `loading` | Texto que se anuncia mientras `loading` es `true` («Cargando clientes…»); sin plantilla |
-| `empty`, `emptyFiltered`, `clearFilters` | Vacío real, vacío por filtros y su acción |
+| `loading` | Texto que se anuncia cuando la carga **se ve** (a los 200 ms: «Cargando clientes…»); sin plantilla |
+| `slow` | Texto visible y anuncio, una vez, a los 5 s de carga («Sigue cargando clientes…»). Opcional |
+| `failed` | Texto del fallo (visible y anunciado en lugar de `results`) y título del `GEmpty` de error por defecto |
+| `retry` | Botón «Reintentar» del fallo (barra y vacío de error por defecto) |
+| `empty`, `emptyFiltered`, `clearFilters` | Título del vacío real, título del vacío por filtros y el texto de su botón (los usa el `GEmpty` por defecto) |
 | `results` | Plantilla con `{count}`: recuento al filtrar y al terminar una carga |
 | `filters` | Objeto con los textos de [`GFilterBar`](../GFilterBar/README.md) |
 | `pagination` | Objeto con los textos de [`GPagination`](../GPagination/README.md) |
 
-## Carga y anuncios
+## Carga, error y vacío
 
-`aria-busy` por sí solo no se anuncia en la mayoría de lectores de pantalla, así que la tabla escribe el estado de la carga en su **región viva** (cortés, una sola, siempre presente desde el montaje y **fuera** del `<table aria-busy>`, hermana del área desplazable):
+La tabla adopta el **motor de carga común** de Grana (el mismo de [`GLoadRegion`](../GLoadRegion/README.md), DECISIONS #540): su dibujo (las filas esqueleto con celdas) y su región viva se quedan, pero los tiempos, el tono, la quietud, el vacío y el foco son los comunes. El vacío y el fallo los dibuja [`GEmpty`](../GEmpty/README.md).
 
-| Momento | Qué se anuncia |
+### Cambios de comportamiento (si ya usabas `GTable`)
+
+| Antes | Ahora |
 | --- | --- |
-| `loading` pasa a `true`, o la tabla se monta ya con `loading` | `labels.loading`, en el ciclo siguiente (nunca en el mismo render del montaje). Se conserva mientras dure la carga |
-| `loading` pasa a `false` | `labels.results` con el recuento ya actualizado en `{count}` (`total` si lo das; si no, las filas tras filtrar), **también con 0**. Sin `labels.results`, la región se vacía |
+| Con `loading: true` las filas se sustituían en el acto por filas esqueleto | **Retraso de 200 ms:** si había filas, **siguen a la vista** (con el `<tbody>` **inerte**) hasta los 200 ms; en la primera carga el esqueleto se pinta **invisible** (reserva el sitio). Una carga que acaba antes de 200 ms no enseña esqueleto ni anuncia el inicio |
+| El esqueleto desaparecía en cuanto llegaban las filas | **Mínimo de 400 ms** a la vista, si llegó a verse. Las filas nuevas esperan al final de la fase |
+| El esqueleto latía con un pulso sin fin | **Quieto** (sin pulso) y con el tono `--g-color-mold`; en `forced-colors`, `GrayText` |
+| `labels.loading` se escribía en el ciclo siguiente a `loading: true` | Se escribe **cuando el esqueleto se ve** (a los 200 ms): una carga que no se ve solo anuncia su fin |
+| Sin aviso de espera larga | **A los 5 s**, con `labels.slow`: una línea visible al pie del área desplazable y un anuncio, una vez |
+| Sin estado de error: el fallo era de la isla y la región anunciaba «0 resultados» junto a su error | **`error`**: ver abajo |
+| **El slot `empty` valía también de respaldo del error** | **Ya no:** el fallo sin filas pinta el slot `error` o su `GEmpty cause="error"`; el slot `empty` es solo para el vacío |
+| Vacío por defecto: un texto (y el botón de limpiar filtros de la barra de filtros, `g-filter-bar__clear`) | Vacío por defecto con **`GEmpty`**; el botón de limpiar filtros es ahora un **`GBtn`** (`outline`, `brand`) **dentro del `GEmpty`**. Mismo evento `clear`; cambian el marcado y la clase, así que si tu CSS o tus pruebas apuntaban a `g-filter-bar__clear` en el vacío, ya no existe ahí |
+| Al empezar una carga la región viva **conservaba el texto anterior** | Se **vacía** al empezar (salvo que el anuncio del orden se haya escrito en ese mismo ciclo): una recarga que no se ve y acaba con el mismo recuento se vuelve a oír |
+| Sin gestión del foco durante la carga | **Por `rowKey`** (ver abajo); el `<table>` lleva `tabindex="-1"`. Solo se conservaba la vuelta tras «Limpiar filtros» |
 
-- **Orden externo:** si el orden se escribe en el mismo ciclo en que empieza la carga, su anuncio (`sorted`) **no se pisa** con el de carga; el fin de la carga anuncia el recuento.
+### Fases
+
+1. **Retraso 200 ms, mínimo 400 ms, espera larga 5 s** (constantes de diseño del motor, no props).
+2. **Filas esqueleto:** **tantas como había a la vista** al empezar (con tope `pageSize`) o `loadingRows` en la primera carga: el alto no salta al refrescar. Cada barra vive en la caja de línea de su celda, de modo que una fila esqueleto mide lo que una fila de una línea. Siguen `aria-hidden`.
+3. **Espera larga:** con `labels.slow`, `g-table__slow` se superpone al pie del área desplazable sin mover nada, y se anuncia una vez.
+4. **La tabla pinta su copia de las filas**: las nuevas no se ven hasta el final de la fase.
+
+### `error`, `announceError`, slot `error` y `retry`
+
+`error` (Boolean) es el resultado de la **última carga**; se aplica **al terminar**.
+
+- **Con filas a la vista** (las de antes): **se quedan** y vuelven a ser usables; encima del área desplazable, en flujo, la **barra de fallo** (`g-table__failed`: icono `circle-alert`, `labels.failed` y «Reintentar» —`GBtn` `sm`, `soft`, `neutral`— con `labels.retry`). La región anuncia `labels.failed` **en lugar de** `labels.results`. Mientras corre la siguiente carga, la barra no se pinta.
+- **Sin filas:** la fila de estado pinta el slot **`error`** (`{ retry }`) o, sin él, un **`GEmpty cause="error"`** con `title` = `labels.failed` y «Reintentar» (`labels.retry`). La región anuncia `labels.failed`.
+- **`retry`** se emite al pulsar «Reintentar» (de la barra o del vacío de error por defecto) o al llamar a `retry()` del slot. Tú pones `error` a `false` y cargas otra vez.
+- **`announceError: false`:** si la isla de estado ya anuncia el fallo, la barra o el vacío de error se pintan igual pero la región **no anuncia nada** al terminar (ni `results` ni `failed`). Sin filas, el slot `error` puede llevar una marca de la isla.
+- **Avisos de desarrollo** (una vez cada uno): `error` sin `labels.failed` ni slot `error`; `error` sin `labels.retry` ni slot `error`.
+
+```vue
+<g-table :columns="columns" :rows="filas" caption="Clientes" :loading="cargando" :error="fallo" :labels="textos" @retry="cargar" />
+<!-- textos: loading, slow, failed, retry, results, empty, emptyFiltered, clearFilters… -->
+```
+
+### Vacío por defecto con `GEmpty`
+
+Sin slot `empty`, la fila de vacío pinta [`GEmpty`](../GEmpty/README.md): `cause="none"` con `labels.empty` como título, o `cause="filtered"` con `labels.emptyFiltered` y un botón `labels.clearFilters` (`outline`, `brand`) que emite el mismo `clear`. Con el slot `empty` (`{ filtered, clear }`), manda el slot; para una salida con cuentas por filtro, pon tu propio `GEmpty` con `filters` ahí (ver el README de `GEmpty`). La salida con cuentas calculada por la tabla en `filterMode: 'local'` está reservada.
+
+### Foco por `rowKey`
+
+El `<table>` lleva `tabindex="-1"` (con el nombre de su `caption` o `aria-label`). Al empezar una carga, si el foco está en el `<tbody>`, pasa al `<table>`; al llegar, vuelve **a la fila con el mismo `rowKey` y al control del mismo índice dentro de ella**; si esa fila ya no existe, se queda en el `<table>`. Nunca en `body`. Medido: la casilla de la tercera fila, la tabla durante la carga y la misma casilla tras reordenar las filas. La vuelta tras «Limpiar filtros» se conserva.
+
+### Anuncios
+
+La tabla tiene **una** región viva (`<p class="g-table__sr" aria-live="polite">`), **hermana** del área desplazable y **fuera** del `<table aria-busy>` (dentro de un elemento ocupado, algunos lectores retienen los cambios hasta que deja de estarlo). Existe desde el montaje y siempre. El texto va ahí: las filas esqueleto siguen `aria-hidden` y no se añade fila ni celda con texto oculto.
+
+| Momento | Texto de la región |
+| --- | --- |
+| Empieza la carga | Se **vacía** (para que el anuncio del fin se oiga aunque el recuento no cambie); no si el anuncio del orden se escribió en ese ciclo |
+| El esqueleto **se ve** (200 ms) | `labels.loading` (permanece mientras dure la carga). Una carga que no se ve no lo escribe |
+| A los 5 s | `labels.slow`, una vez |
+| `loading` pasa a `false`, sin error | `labels.results` con `{count}` = el recuento **ya actualizado** (`total` si se da; si no, las filas tras filtrar), **también con 0**. Sin `labels.results`, la región se vacía |
+| `loading` pasa a `false`, con `error` | `labels.failed` en lugar de `results` (nada con `announceError: false`) |
+
+- **Orden externo:** si el orden se escribe en el mismo ciclo en que empieza la carga, su anuncio (`sorted`) **no se pisa**; el fin de la carga anuncia el recuento.
 - **Filtro externo:** el recuento que se escribe tras filtrar **no se anuncia si la tabla ya está cargando** (sería el viejo); el fin de la carga anuncia el nuevo.
-- **Sin `labels.loading`:** al empezar una carga la región **conserva el texto anterior** (no se vacía).
-- **Con 0 filas**, el fin de la carga anuncia `results` con `{count}` en 0; el texto de vacío (`empty`, `emptyFiltered` o el slot `empty`) ya está dentro de la tabla y no se repite.
-- `aria-busy` se conserva en el `<table>` y las filas esqueleto siguen `aria-hidden`: no se añade fila ni celda con texto oculto, ni otro `role="status"`.
+- **Con 0 filas**, el fin de la carga anuncia `results` con `{count}` en 0; el texto de vacío ya está dentro de la tabla y no se repite.
+- `aria-busy` se conserva en el `<table>` y `is-loading` sigue a la prop.
 - **Mientras carga** el orden, los filtros y la paginación siguen operables; si quieres bloquearlos, hazlo en tu aplicación.
-- **Avisos de desarrollo** (una vez cada uno): `loading` en `true` sin `labels.loading`, y fin de carga sin `labels.results`. Sin esos textos la tabla funciona, pero solo con `aria-busy`.
+- **Avisos de desarrollo:** `loading` en `true` sin `labels.loading`, y fin de carga sin `labels.results`. Sin esos textos la tabla funciona, pero solo con `aria-busy`.
 
 ### Ejemplo: carga desde el servidor
 
@@ -171,13 +227,15 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 | `update:selected` | claves |
 | `update:filters` | filtros |
 | `update:page` | número |
+| `retry` | — (pulsa «Reintentar» del fallo, barra o vacío de error por defecto) |
 
 | Slot | Alcance | Para qué |
 | --- | --- | --- |
 | `cell-{key}` | `{ row, value, column }` | Celdas ricas: [`GBadge`](../GBadge/README.md), [`GProgress`](../GProgress/README.md), [`GMetric`](../GMetric/README.md)… |
 | `leading-{key}` | `{ row }` | Avatar o icono de una compuesta (decorativo) |
 | `row-actions` | `{ row }` | Acciones de la fila (por ejemplo [`GMenu`](../GMenu/README.md)) |
-| `empty` | `{ filtered, clear }` | Estado vacío propio |
+| `empty` | `{ filtered, clear }` | Estado vacío propio; sin él, `GEmpty` por defecto. **Ya no sirve de respaldo del error** |
+| `error` | `{ retry }` | Fallo sin filas que enseñar; sin él, `GEmpty cause="error"` con `labels.failed` y «Reintentar» |
 | `toolbar` | | Acciones extra en la barra |
 
 ## Accesibilidad
@@ -185,19 +243,21 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 - `<table>` real con `caption`, encabezados `scope="col"` y roles explícitos; **tabla de datos, no `grid`**: Tab recorre los controles, sin flechas entre celdas.
 - **Orden:** `aria-sort` en el encabezado; el foco se queda en el botón; se anuncia («Ordenado por Total, descendente»).
 - **Selección:** casilla con nombre por fila; «todo» con estado mixto.
-- **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga y anuncios](#carga-y-anuncios)); vacío real y vacío por filtros (con «Limpiar filtros»); recuento anunciado al filtrar.
+- **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga, error y vacío](#carga-error-y-vacío)); vacío real y vacío por filtros (con «Limpiar filtros») con `GEmpty`; fallo con barra o vacío de error; recuento anunciado al filtrar. El `<table>` lleva `tabindex="-1"` para recoger el foco durante una carga.
 - **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px.
 - **Selección** (DECISIONS #431 y #432): la casilla nativa de fila y la de «todo» usan `accent-color: --g-color-primary-text`, y la tarjeta seleccionada pinta su borde en `--g-color-primary-text`. Sin cambio visible con el tema por defecto. Medido contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro: casilla **4.07:1 o más** (también sobre la fila `primary-soft`) y borde de tarjeta **4.21:1 o más**.
 
 ## Tema
 
-Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color-border`, hover `--g-color-surface-sunken`, selección `--g-color-primary-soft`, filas `surface` con `--g-radius-lg`; tamaños desde `--g-space-1`.
+Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color-border`, hover `--g-color-surface-sunken`, selección `--g-color-primary-soft`, filas `surface` con `--g-radius-lg`; tamaños desde `--g-space-1`. El esqueleto de carga usa `--g-color-mold` (el tono único del marcador de carga, DECISIONS #538; medido ≥ 1,46:1 frente a la superficie en 28 configuraciones) y `GrayText` en `forced-colors`; la barra de fallo y la espera larga reutilizan los tokens de [`GLoadRegion`](../GLoadRegion/README.md).
 
 ## Limitaciones conocidas
 
+- **Esqueleto frente a fila compuesta:** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (tema de la auditoría, `space` 3 y letra de 18 px): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44. Lo cerraría un molde de `GTable` desde una muestra de filas, reservado (DECISIONS #543 y #558).
+- **Reservado:** B completo en la tabla (`refresh` `keep`/`replace`: filas que siguen a la vista tras el retraso, filo y marcas de lo nuevo) y la salida con cuentas por filtro calculada por la tabla en `filterMode: 'local'`.
 - Sin selección de todas las páginas, columnas fijas, desplazamiento horizontal, virtualización, edición en celda, ni redimensionar o reordenar columnas.
-- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading` y el recuento final, y en qué orden frente a un `sorted`).
+- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` pasan en Chromium (ejecutados al documentar, 45 de 45 junto a los de `GEmpty` y `GLoadRegion`); `GTable.test.js` 57 de 57 en jsdom.
 
 ## Fuentes
 
-- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría: [`auditoria.md`](../../../../../design/lab/table/auditoria.md)
+- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría: [`auditoria.md`](../../../../../design/lab/table/auditoria.md) · Carga, vacío y error (DECISIONS #540, #548, #555 y #558; contrato `table.md` «Carga, vacío y error con el motor común»): [`GEmpty`](../GEmpty/README.md), [`GLoadRegion`](../GLoadRegion/README.md), [`auditoria de la carga`](../../../../../design/lab/empty-skeleton/auditoria.md)

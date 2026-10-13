@@ -100,6 +100,7 @@ La tabla tiene **una** región viva: `<p class="g-table__sr" aria-live="polite">
 | --- | --- | --- |
 | `loading` pasa a `true` (o la tabla se monta con `loading`) | `labels.loading` | Se escribe en el **ciclo siguiente** (`nextTick`), nunca en el mismo render del montaje (#14, como `loadingText` de `GBtn`). **Permanece** mientras dure la carga: quien recorre la página con el cursor virtual lo encuentra tras la tabla |
 | `loading` pasa a `false` | `labels.results` con `{count}` = el recuento **ya actualizado** (`total` si se da; si no, las filas tras filtrar) | En el ciclo siguiente, para leer `rows`/`total` nuevos. **Con 0 filas se anuncia igual** (`{count: 0}`), como al filtrar: el texto de `empty`/`emptyFiltered` (o el slot `empty`) ya está **dentro** de la tabla y no se repite por la región. Sin `labels.results`, la región se **vacía** |
+| Empieza la carga (`loading` pasa a `true`) | La región se **vacía** antes de escribir `labels.loading` (#559) | Así el anuncio de fin se oye aunque el recuento no cambie; **excepción:** si el anuncio del orden se escribió en ese mismo ciclo, no se vacía (siguiente fila) |
 | Orden escrito en el mismo ciclo en que empieza la carga (`sortMode: 'external'`) | Se conserva `sorted`; **`loading` no lo pisa** | La acción del usuario es lo que espera oír; el fin de la carga anuncia el recuento |
 | Anuncio de `results` tras filtrar (se escribe en `nextTick`) con la tabla ya en `loading` (`filterMode: 'external'`) | **No se escribe**: queda `labels.loading` | El recuento sería el viejo; el fin de la carga anuncia el nuevo |
 
@@ -246,6 +247,7 @@ Variable en línea: `--_max-height`.
 ## Límites conocidos
 
 - ~~**Sin estado de error** (#327)~~: **contratado por #540** («Carga, vacío y error con el motor común»). Mientras bruno no lo implemente, sigue el límite de #327: el fallo es de la isla y la región anuncia «0 resultados» junto a su error.
+- **Esqueleto frente a fila compuesta (#543, #558):** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (medido en la auditoría, tema de `space 3` y letra 18): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44 (Δ0). Lo cierra el molde de `GTable` desde una muestra de filas, reservado; mientras, va al README.
 - Sin selección de **todas** las páginas, sin columnas fijas ni desplazamiento horizontal, sin virtualización (cientos de filas), sin edición en celda, sin redimensionar ni reordenar columnas.
 - Lector de pantalla real en tarjetas: por verificar (VoiceOver con `display: grid` en filas).
 

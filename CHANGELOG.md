@@ -8,7 +8,47 @@ Los números `#NNN` remiten a [`DECISIONS.md`](DECISIONS.md), el registro de dec
 
 ## [Sin publicar]
 
-Nada todavía.
+Fase C del plan de v1: seis componentes nuevos, la carga común y varias reglas compartidas. Todo en estado `candidate` (contrato, CSS, pruebas, `meta.json`, README y auditoría de coco sobre el componente real sin defectos bloqueantes). Sin versión nueva todavía: sigue siendo `0.1.0-beta.0`, sin publicar.
+
+### Añadido
+
+#### Componentes nuevos
+
+- `GSlider` (entrada propia `@grana/vue/slider`, global UMD `GranaSlider`, ≈ 11 KB gzip): valor acotado o rango de dos extremos donde el asa es el valor, una píldora con la cifra dentro; modelo `Number` o `null`, o `[inicio, fin]` con `range`; comparte fila con `GInput` en `GFormRow` (#445 a #457, #509).
+- `GTag` y `GTagGroup` (entrada propia `@grana/vue/tag`, global UMD `GranaTag`, ≈ 10 KB gzip): etiquetas de un conjunto, estáticas, enlace, de alternar o quitables. Al quitar queda una **huella** del mismo ancho con «Deshacer» en el sitio y con el foco; racimos por faceta (`layout="facets"`), tope «Ver N más», «Quitar todas» y color de categoría con el mismo hash que `GAvatar` (#460 a #473, #510 a #514, #524 a #526).
+- `GAccordion` y `GAccordionItem` (en el principal): secciones plegables donde el encabezado cerrado enseña la primera línea de la respuesta (`peek`) y el que tocas no se mueve; lo plegado se encuentra con Ctrl+F, se enlaza con `#id` y se imprime abierto; `exclusive`, `lazy` y encabezado pegado opcional (`sticky`) (#475 a #488, #515 a #519).
+- `GBreadcrumbs` (en el principal): migas de pan cuya ruta entera se aprieta por prioridad sin esconder niveles; al final, «Subir · página»; con `children`, puertas a los hermanos (#490 a #503, #520 a #523).
+- `GEmpty` (en el principal): el vacío con causa (`none`, `filtered`, `error`, `forbidden`), del tamaño de un elemento; con un filtro, dice cuántas había y ofrece quitar cada filtro con las cuentas que devuelve (#529 a #543, #547, #551 a #556).
+- `GLoadRegion` (entrada propia `@grana/vue/load-region`, global UMD `GranaLoadRegion`, ≈ 4 KB gzip; su CSS va en `grana.css`): la región cuyo contenido llega tarde. En la primera carga, la plantilla de tu aplicación sin tinta como molde que recibe la tinta en su sitio; al refrescar, lo de antes sigue a la vista, inerte y marcado, y un fallo no lo borra. Nada antes de 200 ms, mínimo de 400 ms a la vista, aviso de espera larga a los 5 s sin ninguna animación en curso, un canal cortés por página con fusión y foco que vuelve por clave y nunca cae en `body`. Token nuevo `--g-color-mold` (#529 a #548, #552 a #559).
+
+#### Carga común en `GTable`
+
+- `GTable` adopta el motor de carga común: retraso de 200 ms, mínimo de 400 ms y espera larga de 5 s (`labels.slow`); esqueleto quieto, con el tono `--g-color-mold`; props `error` y `announceError`, evento `retry`, slot `error` y textos `failed` y `retry`; vacío y fallo por defecto con `GEmpty`; foco que vuelve por `rowKey` (#540, #548, #555, #558, #559).
+
+#### Tema y CLI
+
+- Token `--g-color-mold`: el tono único del marcador de carga, en el tema por defecto (claro y oscuro) y en `@grana/cli` (#538).
+- `@grana/cli` deriva los colores del tema oscuro contra la superficie oscura real, teñida por los neutros del tema, y no contra la de por defecto.
+
+### Cambiado
+
+- **Regla de modalidad del foco (#450):** el anillo de foco que WebKit no marca (`data-g-key-focus`) sigue la modalidad de la última entrada: aparece con cualquier tecla que no sea un modificador y se quita con el puntero. Los radios de `GRadioGroup`, `GCard` y `GWidgetGallery` pasan a esta regla.
+- **`navigate` solo con activación primaria (#505):** `GCard` (`interaction="link"`) y `GSidebar` emiten `navigate` solo con el clic principal sin Ctrl, ⌘, Mayús ni Alt (o con Intro); con modificadores o clic central el navegador abre la pestaña nueva y el evento no se emite. `GTag`, `GTagGroup` y `GBreadcrumbs` nacen con la misma regla.
+
+### Cambios de comportamiento en `GTable`
+
+Quien ya usaba `GTable` verá estos cambios al actualizar:
+
+- **El slot `empty` ya no es el respaldo del error.** Un fallo sin filas pinta el slot `error` o su `GEmpty cause="error"` con `labels.failed` y «Reintentar»; si tenías un `empty` que también cubría el fallo, ponle un slot `error`.
+- **El botón de limpiar filtros del vacío por defecto es ahora un `GBtn` dentro de `GEmpty`**, en lugar del botón `g-filter-bar__clear`. Mismo evento `clear`; cambian el marcado y la clase.
+- **Con `loading: true`, las filas de antes siguen a la vista (inertes) durante 200 ms y el esqueleto se queda al menos 400 ms**; el esqueleto ya no late y `labels.loading` se anuncia cuando el esqueleto se ve, no al empezar.
+- **La región viva se vacía al empezar una carga**, para que el anuncio del fin se oiga aunque el recuento no cambie.
+- **El `<table>` lleva `tabindex="-1"`** y recoge el foco durante una carga.
+- **Límite conocido:** con celdas compuestas con avatar, el esqueleto mide 44 px frente a 60 de la fila y la tabla encoge mientras carga (en la tabla simple, 44 = 44); lo cerraría un molde de `GTable` desde una muestra de filas, reservado (#543, #558).
+
+### Peso
+
+- El paquete principal crece **+15 200 B gzip (14,8 KiB) sobre 179 506 B** en la fase (`grana.js`), por `GBreadcrumbs`, `GAccordion` y `GEmpty` con el motor de carga y la adopción de `GTable` (cada uno se midió por separado sobre un árbol distinto, así que las cifras individuales no suman la total). Está dentro del tope de +15 KiB de la valoración conjunta (#506, #550) y **el margen está agotado**: todo componente nuevo que entre al principal abre esa valoración. Lo más pesado de la fase va en entradas propias (`slider`, `tag`, `load-region`) y, importados uno a uno, los componentes del principal son puros: no los paga quien no los usa.
 
 ## [0.1.0-beta.0] - fecha por fijar al publicar
 
