@@ -386,7 +386,10 @@ export default defineComponent({
       })
     }
     watch(root, (el) => { if (mounted.value) observe(el) }, { flush: 'post' })
-    watch(model, () => measure(), { flush: 'post' })
+    // Se mide cuando cambia lo que la lista de medida pinta, no la identidad del modelo: `:items` en línea (un arreglo nuevo
+    // en cada render del padre) forzaría hasta tres layouts del documento por render
+    const measureKey = computed(() => model.value.levels.map((l) => [l.label, l.href ? 1 : 0, hasIcon(l) ? 1 : 0, l.children.length].join('\u0001')).join('\u0000'))
+    watch(measureKey, () => measure(), { flush: 'post' })
     const onFonts = () => nextFrame(measure)
 
     // ---------- Subir o bajar (L13, #500): entra el último o sale una copia inerte ----------

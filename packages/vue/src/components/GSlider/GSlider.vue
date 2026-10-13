@@ -734,7 +734,9 @@ function observe() {
 function onFonts() {
   scheduleMeasure()
 }
-watch(() => [refTexts.value.join('|'), empty.value, props.range, ff.density.value, markInfo.value.list.length, locale.value], () => nextTick(() => {
+// Fuentes por separado (se comparan valor a valor): un getter que devuelve un arreglo nuevo dispararía en cada render del
+// padre con props en línea (`:format="{…}"`, `:marks="[…]"`), y cada medida fuerza un layout del documento entero
+watch([() => refTexts.value.join('|'), empty, () => props.range, () => ff.density.value, () => markInfo.value.list.length, locale], () => nextTick(() => {
   observe()
   scheduleMeasure()
 }))

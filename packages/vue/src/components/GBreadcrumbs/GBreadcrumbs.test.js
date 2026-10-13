@@ -511,13 +511,18 @@ describe('GBreadcrumbs · etapas', () => {
     const orig = Element.prototype.getBoundingClientRect
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
       const r = orig.call(this)
-      if (this.classList?.contains('g-breadcrumbs__measure')) return { ...r, width: list }
+      if (this.classList?.contains('g-breadcrumbs__measure') || this.classList?.contains('g-breadcrumbs')) return { ...r, width: list }
       if (this.parentElement?.classList?.contains('g-breadcrumbs__measure')) {
         const st = this.parentElement.dataset.stage
         return { ...r, width: st === 'liquid' ? 30 : st === 'root-icon' ? 15 : 10 }
       }
       return r
     })
+    // El ancho cambia como en un navegador: el observador de tamaño avisa (sin volver a pasar items)
+    const RO = globalThis.ResizeObserver
+    const ros = []
+    globalThis.ResizeObserver = class { constructor(cb) { this.cb = cb; this.els = new Set(); ros.push(this) } observe(el) { this.els.add(el) } unobserve(el) { this.els.delete(el) } disconnect() { this.els.clear() } }
+    const resize = async () => { for (const o of ros) if (o.els.size) o.cb([...o.els].map((target) => ({ target }))); await settle() }
     list = 100 // 6 × 30 = 180 > 100; 6 × 15 = 90 ≤ 100 → root-icon
     const w = await mk()
     expect(w.find('nav').attributes('data-stage')).toBe('root-icon')
@@ -525,26 +530,22 @@ describe('GBreadcrumbs · etapas', () => {
     // El foco en «Lote» (nivel 4) pasa a «Subir» en step y vuelve al nivel 4 en la fila
     rowLinks(w)[4].element.focus()
     list = 30
-    w.vm.$forceUpdate()
-    await w.setProps({ items: ITEMS().map((x) => ({ ...x })) })
-    await settle()
+    await resize()
     expect(w.find('nav').attributes('data-stage')).toBe('step')
     expect(document.activeElement).toBe(w.find('.g-breadcrumbs__up').element)
     list = 1000
-    await w.setProps({ items: ITEMS().map((x) => ({ ...x })) })
-    await settle()
+    await resize()
     expect(w.find('nav').attributes('data-stage')).toBe('liquid')
     expect(document.activeElement).toBe(rowLinks(w)[4].element)
     // Desde la divulgación vuelve al actual
     list = 30
-    await w.setProps({ items: ITEMS().map((x) => ({ ...x })) })
-    await settle()
+    await resize()
     w.find('.g-breadcrumbs__toggle').element.focus()
     list = 1000
-    await w.setProps({ items: ITEMS().map((x) => ({ ...x })) })
-    await settle()
+    await resize()
     expect(document.activeElement).toBe(rowLinks(w)[5].element)
     w.unmount()
+    globalThis.ResizeObserver = RO
   })
   it('is-ready un cuadro después de la primera etapa', async () => {
     const w = mount(GBreadcrumbs, { props: { items: ITEMS(), labels: LABELS }, attachTo: document.body })
@@ -670,6 +671,21 @@ describe('GBreadcrumbs · reactividad', () => {
     st.items = st.items.slice(0, 2)
     await settle()
     expect(w.findAll('.g-breadcrumbs__list > li:not(.is-leaving)')).toHaveLength(2)
+    w.unmount()
+  })
+})
+
+describe('GBreadcrumbs · rendimiento', () => {
+  it('`:items` en línea con el mismo contenido no vuelve a medir en cada render del padre', async () => {
+    const st = reactive({ tick: 0 })
+    const w = mount({ render: () => h('div', [h('span', String(st.tick)), h(GBreadcrumbs, { items: ITEMS(), labels: LABELS })]) }, { attachTo: document.body })
+    await settle()
+    const ol = w.find('.g-breadcrumbs__measure').element
+    const set = vi.spyOn(ol, 'setAttribute')
+    st.tick++
+    await settle()
+    expect(w.text()).toContain('1')
+    expect(set.mock.calls.filter(([a]) => a === 'data-stage'), 'sin medir de nuevo').toEqual([])
     w.unmount()
   })
 })

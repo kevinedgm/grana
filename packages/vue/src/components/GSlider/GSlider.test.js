@@ -798,3 +798,20 @@ describe('GSlider · avisos de desarrollo (1 a 14)', () => {
     expect(w.attributes('data-x')).toBe('1')
   })
 })
+
+describe('GSlider · rendimiento', () => {
+  it('un render del padre con props en línea (format, marks, labels) no vuelve a medir ni a observar', async () => {
+    const tick = ref(0)
+    const w = host(`<div><span>{{ tick }}</span><GSlider v-model="v" label="Dolor" locale="es" :max="10" :format="{ style: 'unit', unit: 'percent' }" :marks="[{ value: 0, label: 'Sin dolor' }, { value: 10, label: 'El peor' }]" :labels="{ empty: 'Sin elegir' }" /></div>`, () => ({ v: ref(3), tick }))
+    await settle()
+    const root = w.find('.g-slider').element
+    const all = vi.spyOn(root, 'querySelectorAll')
+    const one = vi.spyOn(root, 'querySelector')
+    tick.value++
+    await nextTick()
+    await settle()
+    expect(w.text()).toContain('1')
+    expect(all.mock.calls.filter(([s]) => s === '.g-slider__pill'), 'sin medir las píldoras de nuevo').toEqual([])
+    expect(one.mock.calls.filter(([s]) => s === '.g-slider__pill'), 'sin volver a observar').toEqual([])
+  })
+})
