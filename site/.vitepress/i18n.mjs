@@ -118,6 +118,7 @@ export const UI = {
     groups: { guide: 'Guide', other: 'Other' },
     // Las categorías del índice de componentes salen de los `###` de «Componentes» del README.
     categories: {
+      'Estructura de página': 'Page structure',
       'Acciones y navegación': 'Actions and navigation',
       'Campos de entrada': 'Input fields',
       'Estructura de formularios': 'Form structure',

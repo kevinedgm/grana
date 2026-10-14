@@ -259,6 +259,12 @@ Reglas y límites: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Ve
 
 Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.
 
+### Estructura de página
+
+| Componente | Qué es | Entrada |
+| --- | --- | --- |
+| [`GPageHeader`](packages/vue/src/components/GPageHeader/README.md) | Encabezado de página pegado con zócalo: al desplazar, el encabezado se hunde hasta que asoma el zócalo con pestañas y acciones; en estrecho y pegado, las acciones bajan al muelle con `--g-ease-spring` | **propia** (`page-header`) |
+
 ### Acciones y navegación
 
 | Componente | Qué es | Entrada |
@@ -298,6 +304,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GFormSection`](packages/vue/src/components/GFormSection/README.md) | Sección fija, plegable o agregable | principal |
 | [`GFormLayout`](packages/vue/src/components/GFormLayout/README.md), [`GFormRow`](packages/vue/src/components/GFormRow/README.md) | Pila de filas y filas de campos que se reparten el ancho | principal |
 | [`GFormReveal`](packages/vue/src/components/GFormReveal/README.md) | Campos condicionales con `when` | principal |
+| [`GFormFold`](packages/vue/src/components/GFormFold/README.md) | Pliegue para crear lo que falta en su sitio: se abre debajo del campo que lo pide, con su propio confirmar; abierto, bloquea el envío del formulario exterior | **propia** (`form-fold`) |
 | [`GInputGroup`](packages/vue/src/components/GInputGroup/README.md) | Campo fusionado: un dato en varias partes | principal |
 | [`GFieldGroup`](packages/vue/src/components/GFieldGroup/README.md) | Una pregunta compuesta con partes etiquetadas | principal |
 | [`GFormActions`](packages/vue/src/components/GFormActions/README.md) | Pie de acciones con jerarquía | principal |
