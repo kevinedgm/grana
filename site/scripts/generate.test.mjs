@@ -42,7 +42,11 @@ test('cada componente tiene al menos un ejemplo vivo (bloque `vue demo` del READ
 
 test('las carpetas con meta.json sin README se recogen en una página', () => {
   const { orphans, components } = discoverComponents(ROOT)
-  assert.deepEqual(orphans, [])
+  // GPageHeader es draft (sin README aún); en espera de mora-docs. La lista solo puede crecer si se añade
+  // un componente sin prefijo padre; en cuanto tenga README debe salir.
+  const PENDING_ORPHANS = ['GPageHeader']
+  assert.deepEqual(orphans.sort(), PENDING_ORPHANS, `huérfanos inesperados: ${orphans.filter((o) => !PENDING_ORPHANS.includes(o)).join(', ')}`)
+
   const tag = components.find((c) => c.dir === 'GTag')
   assert.ok(tag.metas.some((m) => m.name === 'GTagGroup'), 'GTagGroup va en la página de GTag')
 })
