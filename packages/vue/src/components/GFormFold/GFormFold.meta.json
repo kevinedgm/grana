@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GFormFold",
   "tag": "g-form-fold",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/form-fold",
   "description": "Crear lo que falta en su sitio (niveles anidados, concepto C «En su sitio»): un pliegue bajo el campo (o la fila) que lo pide, con su título, su propósito y su propio confirmar. Es un formulario propio sin <form>: sus campos no viajan en el envío de fuera y, abierto, bloquea ese envío con «Termina o cancela …».",
@@ -80,6 +80,6 @@
     "[Grana GFormFold] for o from con un id que no existe al abrir"
   ],
   "pending": [
-    "Auditoría de coco; lector de pantalla real (role=group con nombre al recibir el foco, anuncio tras la llegada); táctil y zoom 200 % reales"
+    "Playwright (tres motores) según §15 «Verificación · Playwright» (bruno); lector de pantalla real (role=group con nombre al recibir el foco, anuncio tras la llegada); táctil y zoom 200 % reales; README (mora-docs)"
   ]
 }

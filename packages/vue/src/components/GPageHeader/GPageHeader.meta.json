@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GPageHeader",
   "tag": "g-page-header",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Encabezado de página: dónde estoy (ruta), qué es (hN, antetítulo, descripción, estado), qué puedo hacer (acciones), cómo va (contenido) y qué secciones tiene (pestañas). B · Zócalo: las pestañas y las acciones viven en la última fila; al desplazar, el encabezado entero se hunde hasta que solo asoma el zócalo, con un título compacto ligado al desplazamiento. En estrecho y pegado, las mismas acciones bajan a un muelle en la zona del pulgar.",
   "contract": "design/contracts/page-header.md",
@@ -143,7 +143,8 @@
     "10 · zone fuera de lista, o zone=\"brand\" con data-theme en la raíz"
   ],
   "pending": [
-    "Auditoría de coco del componente real (contraste en el tema por defecto, NisaNabani y la zona; forced-colors)",
-    "README (mora-docs) tras la auditoría"
+    "lima: decidir si añadir borde en reposo para GPageHeader en zona oscura (H1 de auditoria.md; contraste 1,12:1 sin pegar)",
+    "coco: sustituir la zona inyectada del banco por el bloque real de defaults.css cuando esté disponible",
+    "README (mora-docs)"
   ]
 }
