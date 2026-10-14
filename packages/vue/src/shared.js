@@ -17,10 +17,19 @@
 // escucha única de documento con recuento y la regla de modalidad de #450); su motor (utils/slider.js) vive en la entrada.
 // Las etiquetas (`@grana/vue/tag`, #472: vite.tag.config.js y src/tag.test.js) toman de aquí GBtn, GAvatar, los dos GIcon,
 // liveRegion, template, el modo visual del motor del tooltip (visualTip: un solo estado del motor en la página) y el hash de
-// categorías (categoryHash, el mismo de GAvatar).
+// categorías (categoryHash, el mismo de GAvatar) y la guarda de `target` de navigate (utils/link.js, #574).
 // La región que carga (`@grana/vue/load-region`, #530: vite.load-region.config.js y src/load-region.test.js) toma de aquí
 // GEmpty, GBtn, el GIcon interno, el motor de carga (utils/loadPhase.js) con la clave loadRegionKey —una copia crearía
 // otro Symbol y el GEmpty del principal no vería su región—, el canal de página (liveRegion), oneOf y template.
+// El pliegue de formulario (`@grana/vue/form-fold`, #590: vite.form-fold.config.js y src/form-fold.test.js) toma de aquí el
+// motor de formulario (formEngine.js, el mismo de GForm, #588), useFormField y las claves de contexto (incluida foldKey), la
+// clave interna de pliegues de GDialog (dialogFoldKey), el motor de plegado (collapse.js), la llegada y el foco de los
+// niveles (landing.js), el canal de página (liveRegion) y template.
+// El grupo de tarjetas que filtran (`@grana/vue/card-group`, #610: vite.card-group.config.js y src/card-group.test.js) toma
+// de aquí la clave del contexto (utils/cardGroup.js, el mismo Symbol que lee GCard) y transitionMs (utils/motion.js).
+// El encabezado de página (`@grana/vue/page-header`, #633: vite.page-header.config.js y src/page-header.test.js) toma de
+// aquí el registro de reservas de borde (edgeReserve con EDGE_ORDER.pageHeader: un solo registro por documento, o la isla y
+// los avisos no verían el zócalo ni el muelle), sizeObserver, spaceUnit y nextFrame (formContext) y transitionMs.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -38,7 +47,12 @@ import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
 import GEmpty from './components/GEmpty/GEmpty.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
-import { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
+import { fieldGroupKey, foldKey, formKey, isDev, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
+import { createFormEngine } from './components/GForm/formEngine.js'
+import { dialogFoldKey } from './components/GDialog/dialogContext.js'
+import { useCollapse } from './utils/collapse.js'
+import { observeParent, rowGapOf } from './components/GFormReveal/revealGap.js'
+import { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable } from './utils/landing.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { placeBlock } from './utils/anchor.js'
@@ -53,6 +67,10 @@ import { fill } from './utils/template.js'
 import { createTopModal } from './utils/topModal.js'
 import { useVisualTips } from './utils/visualTip.js'
 import { categoryOf } from './utils/categoryHash.js'
+import { otherContext } from './utils/link.js'
+import { cardGroupKey } from './utils/cardGroup.js'
+import { transitionMs } from './utils/motion.js'
+import { warnMissingCategory } from './utils/categoryToken.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
 export const shared = {
@@ -68,7 +86,12 @@ export const shared = {
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
   'components/GEmpty/GEmpty.vue': { default: GEmpty },
-  'components/GForm/formContext.js': { fieldGroupKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
+  'components/GForm/formContext.js': { fieldGroupKey, foldKey, formKey, isDev, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
+  'components/GForm/formEngine.js': { createFormEngine },
+  'components/GDialog/dialogContext.js': { dialogFoldKey },
+  'utils/collapse.js': { useCollapse },
+  'components/GFormReveal/revealGap.js': { observeParent, rowGapOf },
+  'utils/landing.js': { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
   'utils/anchor.js': { placeBlock },
@@ -82,5 +105,9 @@ export const shared = {
   'utils/template.js': { fill },
   'utils/topModal.js': { createTopModal },
   'utils/visualTip.js': { useVisualTips },
-  'utils/categoryHash.js': { categoryOf }
+  'utils/categoryHash.js': { categoryOf },
+  'utils/link.js': { otherContext },
+  'utils/cardGroup.js': { cardGroupKey },
+  'utils/motion.js': { transitionMs },
+  'utils/categoryToken.js': { warnMissingCategory }
 }

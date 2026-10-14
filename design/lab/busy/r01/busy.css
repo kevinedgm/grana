@@ -1,0 +1,186 @@
+/* Prototipo de kiwi (busy r01): operación en curso sobre una superficie. NO es CSS de componente (eso es de coco).
+   Solo tokens reales del tema por defecto (packages/vue/dist/grana.css). Literales permitidos: 24px/44px y el texto oculto.
+   Movimiento reducido: @media (prefers-reduced-motion: reduce) y la emulación :root.reduce (?motion=reduce) */
+
+/* ---------- Canal de página (texto oculto accesible) ---------- */
+.bz-sr {
+  position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ---------- Común: superficie ocupada ---------- */
+.bz-surface:not(dialog) { position: relative; }
+.bz-surface.is-busy, .bz-surface.is-busy * { cursor: progress; }
+.bz-status { outline: none; }
+.bz-status:focus-visible, .bz-status.is-key-focus {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* fase pendiente (0 a 200 ms): ya bloquea, aún no se ve */
+.bz-surface.is-pending .bz-visual { opacity: 0; }
+.bz-visual { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+.bz-cancel { white-space: nowrap; }
+.bz-line .bz-cancel, .inline-cap .bz-cancel {
+  flex: none; min-block-size: 24px; padding: 0 var(--g-space-1); border: 0; border-radius: var(--g-radius-sm);
+  background: transparent; color: var(--g-color-link); font: inherit; text-decoration: underline; cursor: pointer;
+}
+.bz-line .bz-cancel:focus-visible, .inline-cap .bz-cancel:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+
+/* Leyenda de la fila en línea: hueco reservado siempre (Δ0) */
+.inline-cap {
+  min-block-size: var(--g-text-caption-line);
+  margin-block-start: var(--g-space-1);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+
+/* =====================================================================================
+   A · El contorno: el borde de la superficie es el indicador; nada se tapa
+   ===================================================================================== */
+.bz-edge {
+  position: absolute; inset: 0; inline-size: 100%; block-size: 100%;
+  pointer-events: none; overflow: visible;
+  color: var(--g-color-accent-text);
+}
+.bz-edge rect {
+  fill: none; stroke: currentColor;
+  stroke-width: calc(var(--g-border-width) * 2);
+  stroke-dasharray: 18 82; stroke-linecap: round;
+  animation: bz-travel calc(var(--g-duration-spin) * 2) linear infinite;
+}
+[dir="rtl"] .bz-edge rect { animation-direction: reverse; }
+@keyframes bz-travel { to { stroke-dashoffset: -100; } }
+/* espera larga: el contorno se cierra entero y se queda quieto (2.2.2) */
+.is-slow .bz-edge rect { animation: none; stroke-dasharray: none; }
+/* pantalla completa: el bloqueo es total (excepción «esencial» de 2.2.2); a los 5 s solo se ralentiza */
+.bz-full.is-slow .bz-edge rect { animation: bz-travel calc(var(--g-duration-spin) * 5) linear infinite; stroke-dasharray: 18 82; }
+
+.bz-tab {
+  position: absolute; inset-block-start: 0; inset-inline-end: var(--g-space-1);
+  max-inline-size: calc(100% - var(--g-space-1) * 2);
+  display: flex; align-items: center; gap: var(--g-space-1);
+  padding: 0 calc(var(--g-space-1) * 2.5);
+  min-block-size: 24px;
+  border-end-start-radius: var(--g-radius-md); border-end-end-radius: var(--g-radius-md);
+  background: var(--g-color-accent-text); color: var(--g-color-on-accent);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+}
+.bz-tab__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-inline-size: 0; }
+.bz-tab .bz-cancel {
+  min-block-size: 24px; padding: 0 var(--g-space-1); border: 0; border-radius: var(--g-radius-sm);
+  background: transparent; color: inherit; font: inherit; text-decoration: underline; cursor: pointer;
+}
+.bz-tab .bz-cancel:focus-visible { outline: var(--g-focus-width) solid var(--g-color-on-accent); outline-offset: calc(var(--g-focus-width) * -1); }
+/* pantalla completa: la pestaña cuelga del borde superior del visor, centrada */
+.bz-full .bz-tab {
+  inset-inline: 0; margin-inline: auto; inline-size: max-content;
+  min-block-size: 44px; padding: 0 calc(var(--g-space-1) * 4);
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+}
+
+/* =====================================================================================
+   B · En firme: lo que se envía se queda a la vista, congelado; la fila de acciones lo dice
+   ===================================================================================== */
+.bz-sent { position: relative; }
+.bz-sent::before {
+  content: ""; position: absolute; inset-block: 0; inset-inline-start: calc(var(--g-space-1) * -2.5);
+  inline-size: var(--g-space-1); border-radius: var(--g-radius-pill); background: var(--g-color-accent-text);
+}
+.bz-line {
+  position: absolute; inset-block: 0; inset-inline-start: 0;
+  display: flex; align-items: center; gap: calc(var(--g-space-1) * 2);
+  min-inline-size: 0;
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text);
+}
+.bz-line__icon { flex: none; display: inline-flex; color: var(--g-color-accent-text); }
+.bz-line__icon .g-icon { inline-size: 1.15em; block-size: 1.15em; }
+.bz-line__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-inline-size: 0; }
+.bz-line__what { color: var(--g-color-text-muted); }
+.bz-line.is-done .bz-line__icon { color: var(--g-color-success-text); }
+.bz-spin { animation: bz-spin var(--g-duration-spin) linear infinite; }
+@keyframes bz-spin { to { rotate: 1turn; } }
+.is-slow .bz-spin { animation: none; }
+.bz-hide { visibility: hidden; }
+/* pantalla completa: banda en el borde superior con la superficie inversa (como la isla, #325) */
+.bz-band {
+  position: absolute; inset-block-start: 0; inset-inline: 0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--g-space-1) * 3);
+  min-block-size: 44px; padding: calc(var(--g-space-1) * 2) calc(var(--g-space-1) * 4);
+  background: var(--g-color-text); color: var(--g-color-bg);
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+}
+.bz-band .bz-line__icon { color: inherit; }
+.bz-band__from { opacity: 1; text-decoration: line-through; text-decoration-thickness: var(--g-border-width); }
+.bz-band__to { font-weight: var(--g-text-action-weight); }
+.bz-band__note { color: inherit; }
+.bz-band .bz-cancel { min-block-size: 24px; border: 0; background: transparent; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.bz-band .bz-cancel:focus-visible { outline: var(--g-focus-width) solid var(--g-color-bg); }
+
+/* =====================================================================================
+   C · Las etapas: una hoja que sube desde la zona de acciones y narra lo que pasa
+   ===================================================================================== */
+.bz-sheet {
+  position: absolute; inset-inline: 0; inset-block-end: 0;
+  max-block-size: 70%; overflow: auto;
+  display: grid; gap: calc(var(--g-space-1) * 2);
+  padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4);
+  background: var(--g-color-surface);
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  border-end-start-radius: inherit; border-end-end-radius: inherit;
+  box-shadow: var(--g-shadow-2);
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+  translate: 0 100%;
+  transition: translate var(--g-duration-slow) var(--g-ease-out), opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.bz-surface:not(.is-pending) > .bz-sheet { translate: 0 0; }
+.bz-surface.is-pending > .bz-sheet { opacity: 0; }
+.bz-sheet__head { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--g-space-1) * 2); }
+.bz-sheet__title { margin: 0; font-weight: var(--g-text-action-weight); color: var(--g-color-text); }
+.bz-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--g-space-1); }
+.bz-step { display: flex; align-items: center; gap: calc(var(--g-space-1) * 2); color: var(--g-color-text-muted); }
+.bz-step .g-icon { inline-size: 1.1em; block-size: 1.1em; flex: none; }
+.bz-step[data-s="done"] { color: var(--g-color-text); }
+.bz-step[data-s="done"] .g-icon { color: var(--g-color-success-text); }
+.bz-step[data-s="now"] { color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.bz-step[data-s="now"] .g-icon { color: var(--g-color-accent-text); }
+.bz-slow { margin: 0; color: var(--g-color-text); }
+.bz-full--C .bz-sheet {
+  inset: 0; margin: auto; inline-size: min(100% - var(--g-space-1) * 8, calc(var(--g-space-1) * 100)); block-size: max-content;
+  border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-lg);
+  translate: 0 0; max-block-size: calc(100% - var(--g-space-1) * 8);
+  padding: calc(var(--g-space-1) * 5);
+}
+.bz-full--C.is-pending .bz-sheet { opacity: 0; }
+
+/* ---------- Pantalla completa: un <dialog> modal propio (capa superior, inert nativo del resto) ---------- */
+.bz-full {
+  position: fixed; inset: 0; inline-size: 100%; block-size: 100%; max-inline-size: none; max-block-size: none;
+  margin: 0; padding: 0; border: 0; background: transparent; color: var(--g-color-text); overflow: hidden;
+}
+.bz-full::backdrop { background: transparent; }
+.bz-full--C:not(.is-pending)::backdrop { background: var(--g-surface-backdrop); }
+.bz-full .bz-edge { position: fixed; }
+.bz-full.is-pending .bz-visual { opacity: 0; }
+
+/* pantalla completa: el giro sigue, más lento, pasados 5 s (bloqueo total: excepción «esencial» de 2.2.2) */
+.bz-full.is-slow .bz-spin { animation: bz-spin calc(var(--g-duration-spin) * 2.5) linear infinite; }
+
+/* ---------- Movimiento reducido: nada viaja ni sube; solo fundidos ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bz-edge rect, .bz-full.is-slow .bz-edge rect { animation: none; stroke-dasharray: none; }
+  .bz-spin, .bz-full.is-slow .bz-spin { animation: none; }
+  .bz-sheet { translate: 0 0; transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+}
+:root.reduce .bz-edge rect, :root.reduce .bz-full.is-slow .bz-edge rect { animation: none; stroke-dasharray: none; }
+:root.reduce .bz-spin, :root.reduce .bz-full.is-slow .bz-spin { animation: none; }
+:root.reduce .bz-sheet { translate: 0 0; transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .bz-edge { color: Highlight; }
+  .bz-tab, .bz-band { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .bz-sent::before { forced-color-adjust: none; background: Highlight; }
+  .bz-sheet { border: var(--g-border-width) solid CanvasText; }
+}

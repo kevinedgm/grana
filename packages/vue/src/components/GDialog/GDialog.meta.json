@@ -112,7 +112,7 @@
     {
       "name": "dismiss",
       "payload": "{ reason, preventDefault() }",
-      "trigger": "Esc, clic en el fondo o botón de cierre; reason: escape | backdrop | close. Cancelable"
+      "trigger": "Esc (no con la tecla repetida), clic en el fondo (solo sin is-stacked) o botón de cierre; reason: escape | backdrop | close. Cancelable"
     },
     {
       "name": "open",
@@ -197,7 +197,8 @@
     "fullscreen",
     "mobile-sheet",
     "origin",
-    "pinned"
+    "pinned",
+    "stacked"
   ],
   "classes": {
     "personality": [
@@ -205,6 +206,12 @@
       "is-pinned + style --_pin-top (px, offsetTop): borde superior fijado tras abrir y poner el foco, en el cuadro siguiente; se rehace al redimensionar la ventana y se retira al terminar la salida; solo placement=\"center\" sin fullscreen (D2, #301)",
       "Disparador de D1 = document.activeElement al abrir, si está fuera del diálogo y no es body; en WebKit un clic no enfoca el botón y el diálogo solo se funde (límite conocido, #307 (1))",
       "Umbral móvil (min-width: 521px) solo en el CSS: el .vue no lo conoce y escribe has-origin, is-pinned y sus variables también bajo 521px, donde quedan inertes (#307 (4)); is-pinned no exige [open] y se quita tras la salida (#307 (3))"
+    ],
+    "stacking": [
+      "is-stacked: en la raíz cuando al abrir hay otro modal de Grana debajo (otro GDialog abierto, u otro <dialog> modal con clase g-*); escrita antes de showModal(); se recalcula al abrir o cerrar cualquier nivel (el nivel más bajo abierto nunca la lleva) y el que sale la conserva durante su salida (L3 de design/lab/dialog/r02; utils/dialogStack.js)",
+      "Con is-stacked, el clic en el fondo no emite dismiss: solo el nivel 1 cierra con el fondo, si closeOnBackdrop lo permite (L4)",
+      "Esc mantenida: un keydown con event.repeat se cancela y no pide el cierre; el cancel nativo (sin repeat) que siga a una repetición se ignora con una escucha de keydown en captura sobre el documento mientras haya algún GDialog abierto (L2)",
+      "Corta el contexto de formulario: provide(null) de formKey, layoutKey, sectionKey, revealKey, fieldGroupKey, inputGroupKey y ownFieldKey; un GForm dentro es siempre <form> propio y GForm/GFormSection ignoran submit, reset, input, change y focusin que burbujean desde un <dialog> interior (L1)"
     ]
   },
   "pending": [

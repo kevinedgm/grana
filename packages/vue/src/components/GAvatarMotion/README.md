@@ -4,11 +4,12 @@ Avatar ilustrado que **responde a estados**: tú dices qué está ocurriendo (`s
 
 **Etiqueta:** `<g-avatar-motion>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/avatar-motion/auditoria.md`](../../../../../design/lab/avatar-motion/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `estado`, `alAbrir` y `estadoAsistente` son de tu aplicación -->
 <!-- Ilustración suelta con nombre -->
 <g-avatar-motion v-model:state="estado" size="xl" label="Asistente"></g-avatar-motion>
 

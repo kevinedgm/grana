@@ -1,6 +1,6 @@
 # Contrato · GSurface
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/surface/r01/` (kiwi)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/surface/r01/` (kiwi); zona de marca: `design/lab/surface/r02/` (contrato nuevo, pendiente de coco y bruno)
 **Tag:** `g-surface` · **Categoría:** primitivas de layout
 
 Superficie visual genérica sobre la que vive cualquier contenido. **No tiene significado funcional ni rol:** es la base del lenguaje de profundidad de Grana, que después reutilizarán `GPanel`, `GSheet`, `GDialog`, `GMenu`, `GWidget` y el resto. Alcance decidido por el usuario: **solo la primitiva** (DECISIONS.md #99, que reabre #43); la migración de los componentes existentes queda para rondas propias.
@@ -25,6 +25,7 @@ Superficie visual genérica sobre la que vive cualquier contenido. **No tiene si
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` | compartida |
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
 | `as` | String | etiqueta HTML | `div` | propia |
+| `zone` | String | `none` `brand` | `none` | propia (§«Zona de marca») |
 
 ### Reglas de props
 
@@ -116,6 +117,85 @@ Una región **a sangre** (la media y el pie de `GCard`) necesita conocer el rell
 - No cambia ningún valor, prop, clase ni el `.vue`. El radio concéntrico sigue calculándose con `--_pad`.
 - Quién: **coco** (`GSurface.css`, auditoría de que no cambia nada visible), **bruno** (`levels.test.js` debe aceptar que un componente lea una propiedad `--g-*` que **declara la superficie que compone**; registro en `tokens.md` §19). Sin cambios en `GSurface.vue`.
 - Alternativa descartada: `padding="none"` con relleno propio por región (rompe el radio concéntrico de las `inset` hijas).
+
+## Zona de marca (`zone`, DECISIONS.md #620 a #625)
+
+**Basado en:** `design/lab/surface/r02/` (kiwi; hallazgos 4, 7, 15 y 22 de la integración real). **Decisión del usuario (2026-10-13):** C «Plano de tinta» + marca profunda en oscuro. Tokens y reglas: `tokens.md` §44. Regla común para otros componentes: `api.md` §«Zona de marca».
+
+### Prop
+
+| Prop | Tipo | Valores | Default | Origen |
+| --- | --- | --- | --- | --- |
+| `zone` | String | `none` `brand` | `none` | propia |
+
+- **`zone="brand"`** pone `data-g-zone="brand"` en la raíz: la superficie se pinta con la marca (`--g-color-bg` de la zona) y **todos sus descendientes** reciben el grupo de color de la zona (`tokens.md` §44.5). Los componentes de dentro no cambian.
+- **Por qué no `tone="brand"`:** `tone` ya elige el fondo de la propia superficie (`surface`/`sunken`) y se ignora en `inset`; la zona cambia el ámbito de tokens de **todo el subárbol** y debe pintar en cualquier `level`, también en `flat`. Son ejes distintos. **Por qué no `data-theme`:** significa claro/oscuro y se combina con la zona (una zona dentro de una sección oscura).
+- **`level` dentro de la zona:** la raíz de la zona **siempre pinta** la marca, también con `flat` (sin borde ni sombra: es una banda, el caso de `GPageHeader`). `outlined`, `raised` y `floating` conservan su borde y su sombra con los valores de la zona. Con `inset` y `zone` a la vez, gana la zona (fondo de marca; radio concéntrico igual).
+- **`tone` se ignora con `zone="brand"`** (el fondo es la marca). Aviso de desarrollo W3.
+- **Superficies anidadas dentro de la zona** (C, «Plano de tinta»): una `GSurface` (o `GCard`) dentro lee `surface` = la marca y queda como **trazo**; `inset` toma el `surface-sunken` de la zona (velo de tinta ≤ 8 %); sin segundo tono.
+- **`inverse`: reservado** (DECISIONS.md #621). Pasar `zone="inverse"` cae en W1.
+
+### Atributo y clase (contrato entre bruno y coco)
+
+| Marca | Elemento | Cuándo |
+| --- | --- | --- |
+| `data-g-zone="brand"` | Raíz | Con `zone="brand"`. Es el **mecanismo** (el bloque de `defaults.css` lo selecciona) |
+| `g-surface--zone-brand` | Raíz | Con `zone="brand"`. Para lo propio de `GSurface.css` (pintar en `flat`, filo, `forced-colors`) |
+
+El atributo es **público**: la aplicación lo puede poner en cualquier elemento propio y **en la raíz de cualquier componente** (Z2 de `design/lab/page-header/r01/`: los atributos van a la raíz). Un componente que ofrezca la zona como prop la llama `zone` con los mismos valores y pone el atributo en su raíz (`api.md`).
+
+### Avisos de desarrollo (`console.warn`, patrón de CLAUDE.md)
+
+| # | Cuándo | Texto (idea) | Resultado |
+| --- | --- | --- | --- |
+| W1 | `zone` con un valor que no es `none` ni `brand` (también `inverse`) | «`zone` admite `none` y `brand`; `inverse` está reservado» | Sin zona |
+| W2 | `zone="brand"` y `data-theme` en la misma raíz (por `$attrs`) | «La zona y `data-theme` no van en el mismo elemento: pon `data-theme` en un ancestro o en un descendiente» | Se renderiza igual (el tema del CLI ganaría a la zona en ese elemento, `tokens.md` §44.6) |
+| W3 | `zone="brand"` con `tone="sunken"` | «Con `zone`, el fondo es la marca: `tone` se ignora» | Se ignora `tone` |
+
+Se avisa una vez por instancia y valor. Sin aviso por zonas anidadas (inocuas).
+
+**Límites de la zona (#637):**
+- **No en `<html>`.** Con un tema del CLI, el tema sin capa en `:root` gana en ese elemento al bloque de la zona (la misma razón que W2); la zona no se aplicaría. Receta: poner `zone="brand"` / `data-g-zone="brand"` en un **hijo** de `<html>` (`<body>` o un contenedor de la aplicación). No hay aviso de desarrollo propio: `GSurface` nunca es la raíz del documento.
+- **`--g-glass-filter` no se redeclara en la zona** (no es color; el valor del tema del usuario sigue valiendo dentro). Lo demás de §12 sí: tinte, filo, brillo y opacidad (`tokens.md` §44.5).
+- **Sombras de la zona:** `--g-shadow-1..3` valen los literales de coco; un tema con sombras propias no las ve dentro de la zona. Es un efecto aceptado (C · plano de tinta no cambia); quien necesite sombras propias dentro escribe su propio `[data-g-zone="brand"] { --g-shadow-…: … }` sin capa.
+
+### Tokens consumidos (además de los de arriba)
+
+`--g-color-bg` (fondo de la zona, ya redeclarado), `--g-color-text` (color de la raíz) y **`--g-color-zone-edge`** (filo de la raíz frente a la página, `--g-border-width`; nuevo, `tokens.md` §44.2). **No** lee las demás fuentes de la zona: las lee el bloque `[data-g-zone="brand"]` de `defaults.css`.
+
+### Para coco
+
+1. **`defaults.css`:** las fuentes de §44.2 en los tres bloques de esquema (valores del tema por defecto de §44.8, iguales en los tres; `zone-edge: var(--g-color-border-strong)` en cada uno) y el bloque `[data-g-zone="brand"]` **después** de `[data-theme="dark"]` con la lista completa de §44.5, `color-scheme: dark`, `background-color: var(--g-color-bg)` y `color: var(--g-color-text)`. Tus valores: hundido (≤ 8 %), bordes, `mold`, mezclas `-strong`, cristal, `tabs-*`, `card-*`, sombras. Correr `sync-defaults.mjs`.
+2. **`GSurface.css`:** `.g-surface--zone-brand` pinta `--g-color-bg` en todos los niveles (incluido `flat`) y dibuja el filo `--g-color-zone-edge` sin cambiar el tamaño (en `flat` como trazo interior; en los demás niveles, el borde del nivel queda dentro de la zona). En `forced-colors`, borde `CanvasText` en la raíz de la zona (el fondo desaparece). Los alias `--_*` que la superficie publica a sus hijas no cambian.
+3. **Auditoría** (`design/lab/surface/auditoria-zona.md`): los 28 pares de r02 y además `hover`, `active`, seleccionado y deshabilitado de `GBtn` (cinco variantes × `brand`, `accent`, `neutral`), `GTabs`, `GSlider`, `GSelect` abierto, `GDatePicker`, `GTooltip`, `GStatusMark`, `GAvatar`, `GProgress`, `GCheckbox` marcado y un `GMenu` abierto **dentro** de la zona (§44.6: hereda la zona); temas por defecto, NisaNabani, hallazgo 15 y marca pálida (`#F5B940`), claro y oscuro; `forced-colors` emulado; 320 px. Mínimos: texto 4,5:1, contornos y foco 3:1, `mold` ≥ 1,3:1 y < 3:1.
+
+### Para bruno
+
+1. **`GSurface.vue` y `GSurface.meta.json`:** prop `zone` (`'none' | 'brand'`), atributo y clase de la tabla, W1 a W3. Pruebas: atributo y clase presentes solo con `brand`; W1/W2/W3; `$attrs` siguen en la raíz.
+2. **CLI** (`packages/cli/`): derivación de §44.2 a §44.4 en los tres bloques (mismo valor; `dark.overrides` lo cambia solo en el oscuro), el bloque `[data-g-zone="brand"]` sin capa solo con `color-scheme` (zona clara) y `cat-k-text`, validación y `tokens.json` de §44.7. Pruebas: los cuatro temas de §44.8 reproducen la tabla; 2000 temas aleatorios sin un par de §44.7 bajo el mínimo; estados `kept`/`adjusted`/`fallback`/`lost` con un caso cada uno (`lost`: zona `#768ECA` con acento `#C1D324`); `defaults.js` sincronizado.
+3. **`levels.test.js`:** todo token del bloque claro de `defaults.css` está en el bloque de la zona o en la lista «no se redeclaran» de §44.5; ningún componente lee las fuentes salvo `GSurface.css` con `zone-edge`.
+4. **Playwright** (`tests/zone.spec.mjs`, puerto propio): la base de `design/lab/surface/r02/verificar.mjs` con C y marca profunda (3 temas × claro/oscuro/`data-theme="dark"` × 28 pares, 0 bajo el mínimo); foco visible en todas las paradas de Tab de la zona; un `GMenu` abierto dentro hereda la zona y cumple; `data-theme="light"` dentro de la zona vuelve a la página; fuera de la zona, Δ0 frente a una página sin zona; 320 px sin desplazamiento horizontal.
+5. **Compuerta** en `gates.sh`: `grep -q 'data-g-zone="brand"' packages/vue/dist/grana.css` (o la forma sin comillas que deje el minificador) y `grep -q "g-surface--zone-brand"`.
+
+### Para mora-docs (README de `GSurface`, y la receta que citen los demás)
+
+- Qué es la zona y que **no hay que reasignar tokens**; el atributo `data-g-zone="brand"` para elementos propios y raíces de componentes.
+- **`GBtn` dentro de la zona:** acción principal `variant="solid"` con el `color` por defecto (`brand`): sale **en tinta invertida** (blanca con texto de la marca en una zona oscura). Secundaria: `variant="outline"` o `variant="soft" color="neutral"` (velo de tinta). Terciaria: `ghost` o `link` (enlace en el acento de la zona). `color="accent" solid` solo para un acento puntual que no compita con la principal; si el CLI informa `zone-accent-lost` o `-fallback`, el acento **es** la tinta y ese botón sería igual que la principal: no usarlo. Los semánticos (`danger`…) en `outline` o `ghost` (leen `{sem}-text` de la zona); en `solid` o `soft` conservan su par de página (legibles, pero llamativos sobre la marca).
+- **No** pintar la banda aparte ni redeclarar `text`, `text-muted` o `focus` a mano (el arreglo de la integración real); **no** poner `data-theme` en el mismo elemento; un menú o diálogo abierto en su sitio se verá como la zona (para que se vea como la página, `data-theme` en él).
+- Documenta solo lo que coco y bruno verifiquen.
+
+### Resolución de hallazgos (r02 §9)
+
+| # | Hallazgo | Resolución |
+| --- | --- | --- |
+| 1 | API de la zona | `zone="brand"` + `data-g-zone="brand"` público; no `tone`, no `data-theme`; `inverse` reservado (#620, #621) |
+| 2 | Tokens nuevos | Once fuentes (`tokens.md` §44.2); estados en `tokens.json` (§44.7) (#622, #625) |
+| 3 | Lista del grupo | `tokens.md` §44.5, con `brand*` y `primary*` invertidos y la regla para tokens futuros (#623) |
+| 4 | Regla «soft» | §44.4, del 20 al 0 %, tinta plena encima (#622) |
+| 5 | Personalidad | C + marca profunda (#620) |
+| 6 | Solo si gana B | No aplica (ganó C) |
+| 7 | «Un sólido de `brand` por vista» | `tokens.md` §2: la zona es ese sólido; dentro, la principal es la tinta invertida (#623) |
+| — | §1.7 de r02 (menús y diálogos «vuelven a la página») | **Corregido:** `popover` y `<dialog>` en su sitio heredan la zona; solo `<Teleport>` fuera sale (#624) |
 
 ## Límites conocidos
 

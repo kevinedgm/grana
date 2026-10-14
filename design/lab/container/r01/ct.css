@@ -1,0 +1,216 @@
+/* Prototipo de GContainer (kiwi r01). No es el CSS del componente (es de coco): solo tokens del tema, sin valores de respaldo.
+   Literales: 24px/44px (área táctil), 56px (alto de la barra de la APLICACIÓN del laboratorio) y las constantes de diseño
+   propuestas que lima debe registrar (L3): pendiente del margen fluido (2 / 4 / 6 cqi), medida de lectura (66ch, 45ch–90ch).
+   100cqi, 50 % y 1ch son literales de unidad (#187). */
+
+/* ======================================================================
+   El componente (prototipo): .ct (raíz) > .ct__body (la columna)
+   ====================================================================== */
+
+/* Propiedades registradas: se calculan a px donde se declaran (cqi incluido) y se heredan ya resueltas */
+@property --g-container-inset-start { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --g-container-inset-end { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --_ct-measure { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --_ct-g { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+.ct {
+  /* La raíz es la caja que se mide: contenedor de consultas en línea. Sin layout/paint containment (no atrapa lo fijo, medido) */
+  container-type: inline-size;
+  /* #562: contención en línea ⇒ ancho intrínseco declarado (el máximo pedido) */
+  contain-intrinsic-inline-size: var(--_ct-max);
+  --_ct-max: calc(var(--g-space-1) * 192);
+  display: block;
+  min-inline-size: 0;
+}
+.ct--w-sm { --_ct-max: calc(var(--g-space-1) * 160) }   /* 640 */
+.ct--w-md { --_ct-max: calc(var(--g-space-1) * 192) }   /* 768 */
+.ct--w-lg { --_ct-max: calc(var(--g-space-1) * 256) }   /* 1024 */
+.ct--w-xl { --_ct-max: calc(var(--g-space-1) * 320) }   /* 1280 */
+.ct--w-2xl { --_ct-max: calc(var(--g-space-1) * 384) }  /* 1536 */
+.ct--w-full { --_ct-max: calc(var(--g-space-1) * 4096) } /* sin límite práctico: la columna es la caja menos el margen */
+
+.ct__body {
+  /* Margen lateral fluido (md): crece con la caja medida (cqi = la raíz), entre space-4 y space-12, y respeta el área segura */
+  --_ct-g: max(clamp(var(--g-space-4), 4cqi, var(--g-space-12)), env(safe-area-inset-left), env(safe-area-inset-right));
+  --_ct-w: min(100cqi - 2 * var(--_ct-g), var(--_ct-max));
+  /* Centrado (por defecto): lo que sobra se reparte; con start, el margen al inicio y el resto al final */
+  --g-container-inset-start: calc((100cqi - var(--_ct-w)) / 2);
+  --g-container-inset-end: calc((100cqi - var(--_ct-w)) / 2);
+  --_ct-measure: 66ch;
+  box-sizing: border-box;
+  inline-size: var(--_ct-w);
+  margin-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+  /* Reflow (1.4.10): una palabra o URL larga se parte antes de desbordar; break-word no cambia el mínimo intrínseco */
+  overflow-wrap: break-word;
+}
+.ct--h-start > .ct__body {
+  --g-container-inset-start: var(--_ct-g);
+  --g-container-inset-end: calc(100cqi - var(--_ct-w) - var(--_ct-g));
+}
+.ct--g-none > .ct__body { --_ct-g: calc(var(--g-space-1) * 0) }
+.ct--g-sm > .ct__body { --_ct-g: max(clamp(var(--g-space-3), 2cqi, var(--g-space-6)), env(safe-area-inset-left), env(safe-area-inset-right)) }
+.ct--g-lg > .ct__body { --_ct-g: max(clamp(var(--g-space-6), 6cqi, var(--g-space-16)), env(safe-area-inset-left), env(safe-area-inset-right)) }
+/* Anidado sin acumular: dentro de otro contenedor o de una superficie con relleno propio, «auto» no añade margen.
+   Mapa de anfitrionas (como --_sticky-bg, #484): las superficies de Grana que ya dejan aire contra su borde. */
+:where(.ct__body, .g-surface, .g-dialog__body, .lab-host) .ct--g-auto > .ct__body { --_ct-g: calc(var(--g-space-1) * 0) }
+
+/* ---------- A · Medida: la prosa se queda en su medida; lo ancho usa la columna ---------- */
+/* A cualquier profundidad dentro de la columna, salvo dentro de un componente de Grana, una tabla o lo marcado como ancho
+   (la prosa del interior de una tarjeta o una celda no es de la página). Especificidad 0 (:where): la aplicación siempre gana. */
+.ct--prose .ct__body :where(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6, figcaption, address):where(:not([class^="g-"] *, [class*=" g-"] *, table *, .ct-wide *)) {
+  max-inline-size: var(--_ct-measure);
+}
+/* width="reading": la columna entera es la medida (para un artículo sin nada ancho) */
+.ct--w-reading > .ct__body { --_ct-w: min(100cqi - 2 * var(--_ct-g), var(--_ct-measure)) }
+
+/* ---------- B · Sangrado alineado: un descendiente cuya caja ocupa la columna llega al borde de la raíz ----------
+   Los márgenes publicados son px ya resueltos y heredados: sirven a cualquier profundidad mientras la caja empiece y
+   termine en los bordes de la columna (una sección, un div). Dentro de una superficie con relleno, no (aviso, L7). */
+.ct__body :where(.ct-bleed, .ct-bleed-raw) {
+  margin-inline: calc(-1 * var(--g-container-inset-start)) calc(-1 * var(--g-container-inset-end));
+}
+/* Alineado: el fondo llega al borde y el contenido vuelve a la columna (también un desplazable: empieza alineado y llega al borde) */
+.ct__body :where(.ct-bleed) {
+  padding-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+  scroll-padding-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+}
+
+/* ---------- C · Medida a la mano: asa en el margen ---------- */
+.ct--adjust > .ct__body { --_ct-w: min(100cqi - 2 * var(--_ct-g), var(--_ct-measure)) }
+.ct__grips {
+  /* Fila de alto 0, último hijo de la columna, pegada al centro del visor mientras la página pasa: el asa siempre a mano y después del contenido en el DOM */
+  position: sticky;
+  inset-block-end: 50vh;
+  block-size: 0;
+  pointer-events: none;
+}
+.ct__grip {
+  position: absolute;
+  inset-block-start: calc(var(--g-space-8) * -1);
+  inline-size: max(24px, var(--g-space-6));
+  block-size: var(--g-space-16);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  cursor: ew-resize;
+  pointer-events: auto;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity var(--g-duration-fast) var(--g-ease-out), background-color var(--g-duration-fast) var(--g-ease-out);
+}
+.ct__grip::before { content: ""; inline-size: var(--g-border-width); block-size: 100%; background: currentColor; border-radius: var(--g-radius-pill) }
+.ct__grip svg { position: absolute; inline-size: var(--g-space-4); block-size: var(--g-space-4); background: var(--g-color-bg) }
+.ct__grip--start { inset-inline-end: calc(100% + var(--g-space-2)) }
+.ct__grip--end { inset-inline-start: calc(100% + var(--g-space-2)) }
+/* Se descubre al acercarse al margen, con el foco y mientras se arrastra; con puntero grueso, siempre */
+.ct--adjust:hover .ct__grip, .ct__grip:focus-visible, .ct.is-dragging .ct__grip { opacity: 1 }
+.ct__grip:hover, .ct.is-dragging .ct__grip { color: var(--g-color-accent-text); background: var(--g-color-accent-soft) }
+.ct__grip:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+@media (pointer: coarse) { .ct__grip { opacity: 1; inline-size: 44px } }
+/* Sin holgura (la columna ya no cabe más ancha ni hay sitio en el margen): no hay asa */
+.ct.is-tight .ct__grips { display: none }
+/* Guías del arrastre: la columna NO cambia mientras se arrastra (sin reflujo por cuadro); al soltar, se aplica */
+.ct__guide {
+  position: fixed;
+  inset-block: 0;
+  inline-size: 0;
+  border-inline-start: var(--g-border-width) dashed var(--g-color-accent-text);
+  pointer-events: none;
+  z-index: 5;
+}
+.ct__count {
+  position: absolute;
+  inset-block-start: calc(var(--g-space-8) + var(--g-space-2));
+  inset-inline-start: calc(100% + var(--g-space-2));
+  translate: -50% 0;
+  padding: var(--g-space-1) var(--g-space-2);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-text);
+  color: var(--g-color-bg);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) { .ct__grip { transition: none } }
+@media (forced-colors: active) { .ct__grip::before { background: CanvasText } .ct__guide { border-color: Highlight } }
+
+/* ======================================================================
+   Página del laboratorio (la aplicación, no el componente)
+   ====================================================================== */
+*, *::before, *::after { box-sizing: border-box }
+[hidden] { display: none !important }
+:root { --lab-app-h: 56px; --lab-side: var(--g-sidebar-width); scroll-padding-block-start: calc(var(--lab-app-h) + max(var(--g-space-12), 44px)) }
+:root[data-side="rail"] { --lab-side: var(--g-sidebar-rail) }
+:root[data-side="none"] { --lab-side: calc(var(--g-space-1) * 0) }
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line) }
+:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+.lab-skip { position: absolute; inset-inline-start: var(--g-space-2); inset-block-start: calc(-1 * var(--g-space-16)); z-index: 30; padding: var(--g-space-2) var(--g-space-3); background: var(--g-color-surface); color: var(--g-color-text) }
+.lab-skip:focus { inset-block-start: var(--g-space-2) }
+
+.app-bar { position: sticky; inset-block-start: 0; z-index: 20; display: flex; align-items: center; gap: var(--g-space-4); block-size: var(--lab-app-h); padding: 0 var(--g-space-4); background: var(--g-color-surface); border-block-end: var(--g-border-width) solid var(--g-color-border-strong) }
+.app-brand { flex: none; font-weight: var(--g-text-action-weight); white-space: nowrap }
+.app-lab { display: flex; align-items: center; gap: var(--g-space-3); min-inline-size: 0; overflow-x: auto; font-size: var(--g-text-body-sm-size) }
+.app-lab__group { display: flex; gap: var(--g-space-2); white-space: nowrap; align-items: center }
+.app-lab a { color: var(--g-color-accent-text) }
+.app-lab a[aria-current] { color: var(--g-color-text); font-weight: var(--g-text-action-weight) }
+
+.app { display: grid; grid-template-columns: var(--lab-side) minmax(0, 1fr) }
+.app-side { position: sticky; inset-block-start: var(--lab-app-h); align-self: start; block-size: calc(100vh - var(--lab-app-h)); overflow: hidden; padding: var(--g-space-3); border-inline-end: var(--g-border-width) solid var(--g-color-border); background: var(--g-color-surface-sunken) }
+:root[data-side="none"] .app-side { display: none }
+.app-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--g-space-1) }
+.app-side a { display: flex; align-items: center; gap: var(--g-space-2); padding: var(--g-space-2); border-radius: var(--g-radius-sm); color: var(--g-color-text); text-decoration: none; white-space: nowrap }
+.app-side a[aria-current] { background: var(--g-color-neutral-soft); font-weight: var(--g-text-action-weight) }
+.app-side svg { flex: none; inline-size: var(--g-space-5); block-size: var(--g-space-5) }
+:root[data-side="rail"] .app-side .lab-side-text { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+.app-col { grid-column: 2; min-inline-size: 0 }
+.app-col > main:focus, .app-col main:focus { outline: none }
+
+/* Encabezado simulado (forma de GPageHeader B: cabecera + zócalo pegado); el real lo pone la aplicación */
+.lab-ph { padding-block: var(--g-space-6) var(--g-space-4) }
+.lab-ph__eyebrow { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size) }
+.lab-ph h1 { margin: var(--g-space-1) 0 var(--g-space-2); font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); letter-spacing: var(--g-text-title-lg-tracking) }
+.lab-ph p { margin: 0 }
+.lab-ph__actions { display: flex; flex-wrap: wrap; gap: var(--g-space-2); margin-block-start: var(--g-space-4) }
+.lab-base { position: sticky; inset-block-start: var(--lab-app-h); z-index: 4; display: flex; align-items: center; gap: var(--g-space-4); block-size: max(var(--g-space-12), 44px); background: var(--g-color-bg); border-block-end: var(--g-border-width) solid var(--g-color-border) }
+.lab-base a { display: inline-flex; align-items: center; min-block-size: 44px; color: var(--g-color-text-muted); text-decoration: none; font-weight: var(--g-text-action-weight) }
+.lab-base a[aria-current] { color: var(--g-color-text); box-shadow: inset 0 calc(-2 * var(--g-border-width)) 0 var(--g-color-accent) }
+[data-g-zone="brand"] .lab-base, .lab-base[data-g-zone="brand"] { background: var(--g-color-bg) }
+
+.lab-sec { padding-block: var(--g-space-8) }
+.lab-sec h2 { margin: 0 0 var(--g-space-3); font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight) }
+.lab-p { margin: 0 0 var(--g-space-4) }
+.lab-muted { color: var(--g-color-text-muted) }
+.lab-sec a, .lab-p a { color: var(--g-color-link) }
+
+.lab-fields { display: grid; gap: var(--g-space-4) }
+.lab-field { display: grid; gap: var(--g-space-1) }
+.lab-field label { font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight) }
+.lab-field input { min-block-size: calc(var(--g-space-1) * 9); padding: 0 var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-md); background: var(--g-color-surface); color: var(--g-color-text); font: inherit }
+
+.lab-scroll { overflow-x: auto }
+.lab-table { border-collapse: collapse; font-size: var(--g-text-body-sm-size); white-space: nowrap }
+.lab-table th, .lab-table td { padding: var(--g-space-2) var(--g-space-3); border-block-end: var(--g-border-width) solid var(--g-color-border); text-align: start }
+.lab-table th { color: var(--g-color-text-muted); font-weight: var(--g-text-action-weight) }
+
+.lab-band { padding-block: var(--g-space-8) }
+.lab-band h2 { margin-block-start: 0 }
+.lab-media { display: grid; place-items: center; block-size: calc(var(--g-space-16) * 3); background: var(--g-color-surface-sunken); color: var(--g-color-text-muted) }
+.lab-media svg { inline-size: var(--g-space-12); block-size: var(--g-space-12) }
+.lab-rule { block-size: 0; margin-block: var(--g-space-6); border: 0; border-block-start: var(--g-border-width) solid var(--g-color-border-strong) }
+
+/* Anfitriona con relleno propio (GSurface outlined real del tema) */
+.lab-host-wrap { margin-block: var(--g-space-6) }
+
+/* Muelle fijo simulado (como el de GPageHeader C): comprueba que el contenedor no atrapa lo fijo */
+.lab-dock { position: fixed; inset-block-end: 0; inset-inline-start: 0; inline-size: var(--g-space-6); block-size: var(--g-space-2); background: transparent; pointer-events: none }
+
+/* Guías del laboratorio: bordes de la columna y del sangrado (no son del componente) */
+:root[data-guides="1"] .ct__body { box-shadow: inset var(--g-border-width) 0 0 var(--g-color-danger), inset calc(-1 * var(--g-border-width)) 0 0 var(--g-color-danger) }
+.lab-readout { position: fixed; inset-block-end: var(--g-space-3); inset-inline-end: var(--g-space-3); z-index: 25; padding: var(--g-space-2) var(--g-space-3); border-radius: var(--g-radius-md); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-strong); box-shadow: var(--g-shadow-2); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-variant-numeric: tabular-nums }
+@media (max-width: 700px) { :root { --lab-side: calc(var(--g-space-1) * 0) } .app-side { display: none } .lab-readout { display: none } }
+.lab-band:not(.ct-bleed) { padding-inline: var(--g-space-6) }

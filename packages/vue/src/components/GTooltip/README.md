@@ -4,7 +4,7 @@ El **nombre visible** de un control que solo tiene icono (un `GBtn icon` en una 
 
 **Etiqueta:** `<g-tooltip>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/tooltip/auditoria.md`](../../../../../design/lab/tooltip/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** el paquete principal `@grana/vue` (global UMD `Grana`)
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTooltip`, `#sec-tooltip`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `popover` (`popover="manual"`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTooltip`, `#sec-tooltip`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `popover` (`popover="manual"`).
 
 ## Registro
 

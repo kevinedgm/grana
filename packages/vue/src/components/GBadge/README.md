@@ -4,7 +4,7 @@ Insignia **no interactiva** para señalar un estado, una categoría o una cantid
 
 **Etiqueta:** `<g-badge>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/badge/auditoria.md`](../../../../../design/lab/badge/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. La variante `glass` usa `backdrop-filter` y `color-mix()`; sin `backdrop-filter` (o con transparencia reducida) se ve como `soft`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. La variante `glass` usa `backdrop-filter` y `color-mix()`; sin `backdrop-filter` (o con transparencia reducida) se ve como `soft`.
 
 ## Uso
 
@@ -73,6 +73,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. `ghost` y `lin
 ## Anclada a otro elemento
 
 ```vue
+<!-- Fragmento: `mensajes` es de tu aplicación -->
 <g-badge :count="mensajes" :label="`${mensajes} mensajes sin leer`" variant="solid" color="danger" size="sm">
   <template #anchor>
     <g-btn icon variant="outline" aria-label="Bandeja de entrada"><MailIcon /></g-btn>
@@ -128,7 +129,7 @@ Las emite el componente y las estiliza `GBadge.css`: `g-badge`, `g-badge--varian
 - **El velo mínimo se valida contra el texto del tema:** un tema con texto claro sobre velo blanco no cumple.
 - **Una insignia sin icono entre insignias con icono** no reserva espacio (por diseño): da icono a todas o a ninguna para que el texto quede alineado.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `span` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (insignia sin texto y anclada junto a su destino), `prefers-reduced-transparency` real (los bloques se comprobaron aplicados sin condición) y el cristal sobre fotografías reales.
 
 ## Fuentes

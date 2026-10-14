@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visor de documentos · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./doc.css">
+</head>
+<body>
+<header class="lab-top"><strong>Visor de documentos (GDocumentPreview, nombre de trabajo) · r01</strong>
+  <a href="#base">Base</a> <a href="#estados">Estados</a> <a href="#A">A · Lomo</a> <a href="#B">B · Crece desde la ficha</a> <a href="#C">C · La frase</a> <a href="#comparar">Comparar</a>
+  <span class="cap" style="margin:0">Parámetros: <code>?dir=rtl</code>, <code>?theme=dark</code>, <code>?env=noshare</code>, <code>?native=force</code></span>
+</header>
+<main id="app">
+  <h1>Ver, recorrer y usar un archivo sin salir de la página</h1>
+  <p class="lead">Un contrato de 12 páginas, el plano de una casa, un PDF que solo el navegador sabe pintar y una hoja de cálculo que no tiene vista previa. Todo lo que se ve es <code>GBtn</code>, <code>GMenu</code>, <code>GDialog</code>, <code>GEmpty</code>, <code>GSummary</code>, <code>GProgress</code> y <code>GInput</code> reales de <code>dist/</code> con el tema por defecto. Lo de laboratorio: el motor del visor, tres renderizadores (un <b>PDF simulado</b> con las capacidades que daría un adaptador de pdf.js, una <b>imagen real</b> desde un <code>File</code> y el <b>visor PDF nativo</b> del navegador en un <code>&lt;iframe&gt;</code>) y la geometría de la base y de A, B y C.</p>
+
+  <div class="lab-controls" role="group" aria-label="Controles del laboratorio">
+    <strong>Laboratorio:</strong>
+    <label><input type="checkbox" v-model="LAB.failNext"> La próxima acción de la aplicación falla</label>
+    <label><input type="checkbox" v-model="LAB.offline"> Sin conexión (las acciones de red se deshabilitan con motivo)</label>
+    <label><input type="checkbox" v-model="LAB.noShare"> Navegador sin «compartir»</label>
+  </div>
+
+  <!-- ============================== BASE ============================== -->
+  <h2 id="base">Base funcional</h2>
+  <p class="cap">Forma de hoy, a propósito: barra de herramientas arriba, documento debajo, metadatos al pie. Lo que decide la base: regiones y nombres, <b>una parada de Tab</b> por barra (<code>role="toolbar"</code>, flechas), el campo de página como <code>spinbutton</code>, el escenario enfocable que se desplaza con el teclado, zoom que <b>no pierde el sitio</b> (ancla en la página y su fracción), anuncios solo por gesto explícito y acciones que nunca dicen «hecho» sin confirmación. Elige otro archivo con las fichas de arriba: la barra enseña solo lo que el renderizador declara.</p>
+  <h3>Integrado en la página (<code>embedded</code>)</h3>
+  <lab-viewer concept="base" src="contrato" vid="v-base"></lab-viewer>
+  <h3>En un panel delimitado (<code>panel</code>)</h3>
+  <div class="mock-panel">
+    <div class="mock-panel__list" aria-hidden="true"><span>Expediente 7731 · Arrendamiento local 4</span><span>Contrato de arrendamiento.pdf</span><span>Plano planta baja.png</span><span>Presupuesto 2026.xlsx</span></div>
+    <lab-viewer concept="base" src="plano" variant="panel" vid="v-panel"></lab-viewer>
+  </div>
+  <p class="cap">«Ampliar» abre la profundidad siguiente: un <code>GDialog</code> real (<code>size="lg"</code>, <code>mobile="fullscreen"</code>) con <b>el mismo estado</b> (página, zoom, giro, documento ya cargado: no se vuelve a pedir). Dentro, «Pantalla completa» cambia <code>fullscreen</code> del mismo diálogo, sin cerrar ni recargar. Al cerrar, el visor en línea vuelve a la página donde lo dejaste.</p>
+
+  <h3 id="estados">Estados en el sitio</h3>
+  <p class="cap">Cada estado vive en el área afectada (nunca una pantalla aparte) y ofrece una salida. Carga: el molde de la página aparece a los 200 ms (antes, nada), con progreso si el renderizador lo da y texto con «Cancelar» a los 5 s (motor de <code>GLoadRegion</code>). Errores con <code>GEmpty</code>; sin vista previa, la ficha del archivo con lo que sí se puede hacer.</p>
+  <div class="grid-states">
+    <figure><figcaption>Cargando (molde)</figcaption><lab-viewer concept="base" src="contrato" fail="hang" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Carga progresiva</figcaption><lab-viewer concept="base" src="contrato" fail="hang-progress" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Espera larga (≥ 5 s, con Cancelar)</figcaption><lab-viewer concept="base" src="contrato" fail="long" variant="small" :picker="false" vid="v-long"></lab-viewer></figure>
+    <figure><figcaption>Sin conexión (se reintenta al volver)</figcaption><lab-viewer concept="base" src="contrato" fail="network" variant="small" :picker="false" vid="v-net"></lab-viewer></figure>
+    <figure><figcaption>No encontrado</figcaption><lab-viewer concept="base" src="contrato" fail="not-found" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Requiere autorización</figcaption><lab-viewer concept="base" src="contrato" fail="forbidden" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Protegido con contraseña (prueba «grana»)</figcaption><lab-viewer concept="base" src="contrato" fail="password" variant="small" :picker="false" vid="v-pass"></lab-viewer></figure>
+    <figure><figcaption>Tipo sin vista previa</figcaption><lab-viewer concept="base" src="hoja" variant="small" :picker="false" vid="v-unsup"></lab-viewer></figure>
+    <figure><figcaption>Demasiado grande para este modo</figcaption><lab-viewer concept="base" src="contrato" fail="too-large" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Dañado</figcaption><lab-viewer concept="base" src="contrato" fail="corrupt" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>Vacío (0 bytes)</figcaption><lab-viewer concept="base" src="contrato" fail="empty" variant="small" :picker="false"></lab-viewer></figure>
+    <figure><figcaption>El navegador no pinta PDF en la página</figcaption><lab-viewer concept="base" src="nativo" fail="no-inline" variant="small" :picker="false"></lab-viewer></figure>
+  </div>
+
+  <!-- ============================== A ============================== -->
+  <h2 id="A">A · Lomo: la navegación es el lomo del documento; quién es y qué hacer, en un sello</h2>
+  <p class="cap">Sin barra arriba: el documento empieza en el borde. A la izquierda (al inicio en RTL), un <b>lomo</b> con una muesca por página y la marca de la actual, que se arrastra, se pulsa o se recorre con las flechas (<code>role="slider"</code> vertical: ↓ siguiente, ↑ anterior, Re Pág/Av Pág, Inicio, Fin); al pasar o al enfocarlo, <b>asoma la página</b> que vas a ver. El lomo se abre en miniaturas y lleva el zoom al pie. Abajo, un <b>sello</b> flotante une identidad y acciones: nombre, tipo, páginas y tamaño, y Descargar, Imprimir, Más y Ampliar; el acuse de una acción ocupa el sitio de los datos del sello.</p>
+  <lab-viewer concept="A" src="contrato" vid="v-A"></lab-viewer>
+
+  <!-- ============================== B ============================== -->
+  <h2 id="B">B · Crece desde la ficha: el archivo es un objeto con profundidades</h2>
+  <p class="cap">Cuestiona que el visor sea un sitio. En reposo (página o panel) el archivo es una <b>ficha</b>: su portada es la página donde ibas, con el folio, y debajo nombre, datos y acciones. Abrir hace <b>crecer</b> esa ficha hasta el lector (el <code>GDialog</code> ya nace desde su disparador, #301) con las herramientas <b>abajo</b>, al alcance del pulgar; «Pantalla completa» es la tercera profundidad del mismo diálogo. Al cerrar, la portada <b>se asienta</b> en la página donde lo dejaste y dice «Ibas en la página 7 · Volver al inicio».</p>
+  <lab-viewer concept="B" src="contrato" vid="v-B"></lab-viewer>
+  <h3>B en un panel</h3>
+  <div class="mock-panel">
+    <div class="mock-panel__list" aria-hidden="true"><span>Expediente 7731 · Arrendamiento local 4</span><span>Contrato de arrendamiento.pdf</span><span>Plano planta baja.png</span></div>
+    <lab-viewer concept="B" src="plano" variant="panel" vid="v-B-panel"></lab-viewer>
+  </div>
+
+  <!-- ============================== C ============================== -->
+  <h2 id="C">C · La frase: sin iconos, una línea que dice dónde estás y cuyos valores se pulsan</h2>
+  <p class="cap">Cuestiona la barra de iconos: el pie del documento es una <b>frase</b> — «‹ Página <u>3</u> de 12 › · vista <u>al ancho</u> · <u>Contrato de arrendamiento.pdf</u> PDF, 2,4 MB · <u>Descargar</u> · <u>Imprimir</u> · <u>más</u> · <u>ampliar</u>». Cada valor subrayado con puntos es su propio control: la página se escribe en el sitio, la vista abre sus opciones, el nombre despliega los detalles. El acuse se añade al final de la frase («· Enlace copiado»), así nada se mueve bajo el puntero. Se parte como texto en móvil.</p>
+  <lab-viewer concept="C" src="contrato" vid="v-C"></lab-viewer>
+
+  <!-- ============================== COMPARAR ============================== -->
+  <h2 id="comparar">Comparativa</h2>
+  <div class="tbl-wrap">
+  <table class="cmp">
+    <thead><tr><th scope="col"></th><th scope="col">Base (barra arriba)</th><th scope="col">A · Lomo</th><th scope="col">B · Crece desde la ficha</th><th scope="col">C · La frase</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Qué cuestiona</th><td>Nada (referencia)</td><td>Que la navegación sea un número en una barra</td><td>Que el visor sea un sitio: es un objeto con profundidades</td><td>Que las herramientas sean iconos</td></tr>
+      <tr><th scope="row">Espacio para el documento</th><td>Pierde una fila arriba</td><td>Gana la fila; pierde una columna estrecha y el sello tapa el pie (se compensa con relleno)</td><td>En reposo, solo la portada; leído, gana todo menos el pie</td><td>Pierde una línea de texto abajo</td></tr>
+      <tr><th scope="row">Documentos largos (expedientes)</th><td>Número + miniaturas</td><td><b>Lo mejor</b>: ves dónde estás en el todo y saltas arrastrando</td><td>Bien en el lector; la ficha recuerda dónde ibas</td><td>Número escrito; sin vista del todo salvo miniaturas</td></tr>
+      <tr><th scope="row">Gestores de archivos y paneles</th><td>Barra apretada</td><td>Lomo y sello caben en panel; aprieta en 375 px</td><td><b>Lo mejor</b>: muchas fichas por pantalla, abrir es crecer</td><td>Bien: la frase se parte</td></tr>
+      <tr><th scope="row">Móvil (375 px)</th><td>La barra se parte en dos filas</td><td>El sello pierde los datos; el lomo sigue</td><td>Ficha compacta; lector a pantalla completa con herramientas abajo</td><td>La frase ocupa dos o tres líneas</td></tr>
+      <tr><th scope="row">Descubrir las herramientas</th><td>Iconos conocidos con nombre en el tooltip</td><td>El lomo se aprende; el sello, conocido</td><td>Conocido (pie de diálogo)</td><td>Palabras: se leen; el subrayado de puntos dice «se pulsa»</td></tr>
+      <tr><th scope="row">Movimiento propio</th><td>—</td><td>La marca llega a la página con muelle; la página asoma</td><td>Crecer desde la portada y asentarse al volver</td><td>Ninguno (todo es texto que cambia en el sitio)</td></tr>
+      <tr><th scope="row">Riesgo</th><td>Genérico</td><td>Slider vertical con ↓ = siguiente (se aparta del orden de APG; hay que medirlo con lectores)</td><td>Dos pasos para ver el contenido en página; no sirve si el documento debe leerse en el sitio</td><td>Idiomas: orden y plurales de la frase son de la aplicación; menos espacio para el nombre</td></tr>
+      <tr><th scope="row">Semántica, teclado, estados y acciones</th><td colspan="4">Iguales en todos: misma máquina de estados, mismo campo de página, mismas reglas de foco, anuncios y acuses, misma matriz de acciones. Lo que cambia es dónde vive cada pieza y cómo se mueve.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note"><b>Pregunta de elección:</b> ¿qué forma quieres por defecto para <code>GDocumentPreview</code>: <b>A · Lomo</b>, <b>B · Crece desde la ficha</b> o <b>C · La frase</b>? Recomendación de kiwi: <b>A por defecto</b> (el caso fuerte del brief son expedientes y documentos largos), con <b>B</b> como <code>appearance="card"</code> para gestores de archivos y paneles (comparte el lector de A al abrir) y C reservada. Detalle en <code>declaracion.md</code>.</p>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="./doc.js"></script>
+</body>
+</html>

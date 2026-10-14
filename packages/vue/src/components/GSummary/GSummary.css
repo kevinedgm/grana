@@ -28,6 +28,9 @@
   min-inline-size: 0;
   max-inline-size: 100%;
   contain: inline-size;
+  /* Tamaño intrínseco con contención (banco design/lab/contencion/): sin él, en un padre que se ajusta al contenido la
+     ficha medía 0. Con un padre que da ancho no cambia nada: el ancho lo sigue dando el contenedor (inline-size: 100%) */
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 60);
   font-family: var(--g-font-ui);
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);

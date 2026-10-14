@@ -4,7 +4,7 @@ Selector de **una** opción con lista propia, completo: etiqueta, ayuda, mensaje
 
 **Etiqueta:** `<g-select>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/select/auditoria.md`](../../../../../design/lab/select/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`) y un navegador con `popover`, `::backdrop` de popover, `:popover-open` y `:has()`: los actuales.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`) y un navegador con `popover`, `::backdrop` de popover, `:popover-open` y `:has()`: los actuales.
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `pais` y `paises` son de tu aplicación -->
 <g-select v-model="pais" :options="paises" label="País" placeholder="Elige un país" name="pais" hint="Escribe para saltar." />
 ```
 
@@ -63,6 +64,9 @@ Los atributos nativos (`aria-*`, `data-*`, escuchas como `@focus`) van al **bot�
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` («(opcional)» o asterisco) | sin valor (la marca la decide `GForm`) |
 | `required` | Boolean | | `false` |
 | `name` | String | | sin valor |
 | `id` | String | | generado (es el `id` del botón) |
@@ -82,6 +86,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. `variant` solo
 ## Agregar una opción que no está en el catálogo
 
 ```vue
+<!-- Fragmento: `cliente`, `clientes` y `abrirNuevoCliente` son de tu aplicación -->
 <g-select v-model="cliente" :options="clientes" label="Cliente" placeholder="Elige un cliente"
           create-label="Agregar nuevo cliente…" @create="abrirNuevoCliente" />
 ```
@@ -96,6 +101,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. `variant` solo
 ## Prefijo e iconos
 
 ```vue
+<!-- Fragmento: `cliente` y `clientes` son de tu aplicación -->
 <g-select v-model="cliente" :options="clientes" label="Cliente">
   <template #prepend><UserIcon /></template>
   <template #icon="{ option }"><component :is="option.icon" /></template>
@@ -184,12 +190,13 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 
 ## Limitaciones conocidas
 
+- **Ancho en un padre que se ajusta al contenido (#563, abierto).** `GSelect` no tiene contención en línea, así que en una celda `auto`, una rejilla centrada o un flex con `fit-content` mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`. Dale ancho al padre o al componente. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
 - **Sin virtualización:** listas de miles de opciones pueden ser lentas.
 - **Lectores de pantalla táctiles en móvil:** `aria-activedescendant` puede no exponer las opciones de la hoja inferior; por verificar. Si falla, la alternativa prevista es mover el foco real a la lista en móvil.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `label`, `ul` o `li` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (incluido cómo anuncia la fila «Agregar nuevo…» y los iconos), la hoja inferior con el teclado virtual, un dispositivo táctil real, las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), y Firefox y Safari (`popover`, `::backdrop`, `:popover-open`, `:has()`).
 
 ## Fuentes

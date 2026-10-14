@@ -1,0 +1,194 @@
+/*
+  GFormFold · crear lo que falta en su sitio (r02 de GDialog, concepto C «En su sitio»)
+  Dueño: coco. Contrato: design/contracts/form.md §15 (DECISIONS.md #586 a #589). Estructura: design/lab/dialog/r02/ (C).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin literales de tema.
+  Constantes de coreografía (#299): sangría space × 3 + space × 4 por nivel, raíl border-width × 2, distancia al campo
+  space × 2. Sin --g-ease-spring ni --g-ease-bounce (#299).
+
+  Carácter: no es una tarjeta ni un diálogo. Es el campo que se abre hacia abajo. Un raíl de acento (accent-text, forma
+  ≥ 3:1, tokens.md §7.1) nace justo bajo el campo que lo pide y se tiende hacia abajo mientras el pliegue se abre; el
+  contenido se funde cuando el raíl ya ha llegado. Al cerrar con resultado, el contenido se apaga primero y el raíl se
+  recoge hacia el campo, que aterriza (data-g-landed, GDialog.css «La llegada»). Anidado, cada nivel suma su raíl y su
+  sangría: los raíles paralelos son el hilo de lo que se está creando dentro de qué.
+
+  Marcado que espera (lo pinta bruno):
+    div.g-form-fold.g-form-fold--density-{d}[.is-open][.is-animating][.is-ready][hidden] style="--_d: N; --_fold-gap: Npx"
+      div.g-form-fold__panel
+        div.g-form-fold__head > h{n}.g-form-fold__title + p.g-form-fold__description
+        fieldset.g-form-fold__body[role=none]
+        div.g-form-fold__actions
+
+  Altura: rejilla de una pista 0fr → 1fr (sin medir alturas), como GFormReveal (#278). El panel no lleva relleno ni borde
+  de bloque (con la pista a 0 se verían): el aire vertical va dentro. Cerrado y asentado: hidden (sin contenido).
+  --_fold-gap (px, en línea, como --_reveal-gap de GFormReveal): el row-gap de la pila que lo contiene. Cerrado no deja
+  hueco (margen = −gap); abierto queda a space × 2 del campo, sea cual sea el gap de la pila. Sin él (0px), el pliegue
+  queda a gap + space × 2.
+  --_d (profundidad): la sangría se acumula por estructura (cada pliegue va dentro del cuerpo del anterior), así que el
+  CSS no la multiplica; queda disponible para el tema.
+*/
+
+.g-form-fold {
+  --_fold-gap: 0px;
+  --_density: 1;
+  /* Movimiento grande (altura, margen) y fundido corto */
+  --_t: var(--g-duration-slow);
+  --_t-fade: var(--g-duration-fast);
+  --_rail: calc(var(--g-border-width) * 2);
+  --_attach: var(--g-space-2);
+
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: minmax(0, 1fr);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+.g-form-fold[hidden] {
+  display: none;
+}
+.g-form-fold--density-default { --_density: 1; }
+.g-form-fold--density-comfortable { --_density: 0.875; }
+.g-form-fold--density-compact { --_density: 0.75; }
+
+/* Dos clases para ganar a `.g-form-layout > * { margin: 0 }` sin !important; abierto y cerrado con el mismo peso para
+   que la transición vaya entre las dos reglas */
+.g-form-fold:not(.is-open) {
+  margin-block-start: calc(var(--_fold-gap) * -1);
+  margin-inline-start: var(--g-space-3);
+}
+.g-form-fold.is-open {
+  grid-template-rows: 1fr;
+  margin-block-start: calc(var(--_attach) - var(--_fold-gap));
+  margin-inline-start: var(--g-space-3);
+}
+
+/* ---------- Panel: raíl, sangría y la pila del pliegue ---------- */
+.g-form-fold__panel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-form-gap) * var(--_density));
+  box-sizing: border-box;
+  min-inline-size: 0;
+  /* Recortado mientras no está asentado y abierto: la pista puede llegar a 0 */
+  min-block-size: 0;
+  overflow: hidden;
+  padding-inline-start: calc(var(--g-space-4) * var(--_density));
+  /* El raíl une el pliegue al campo. Un borde (sobrevive a forced-colors); propiedades lógicas: en RTL, a la derecha */
+  border-inline-start: var(--_rail) solid var(--g-color-accent-text);
+}
+.g-form-fold.is-open:not(.is-animating) > .g-form-fold__panel {
+  /* Asentado: no recorta anillos de foco ni sombras */
+  overflow: visible;
+}
+.g-form-fold__panel > * {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.g-form-fold__head {
+  display: grid;
+  gap: calc(var(--g-space-1) * 0.5);
+  padding-block-start: var(--g-space-1);
+}
+.g-form-fold__title {
+  margin: 0;
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: anywhere;
+}
+.g-form-fold__description {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Cuerpo: pila como GFormLayout (hijos a lo ancho; otros pliegues dentro suman su sangría) */
+.g-form-fold__body {
+  /* Reinicio del fieldset del agente de usuario (min-inline-size: min-content desborda en estrecho) */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--g-form-gap) * var(--_density));
+}
+.g-form-fold__body > * {
+  min-inline-size: 0;
+  margin: 0;
+}
+/* Un pliegue dentro de otro: su margen lo pone él (dos clases); aquí solo se respeta */
+
+/* Acciones: como GFormActions (secundarias antes, primaria la última, al final); aire inferior dentro del panel */
+.g-form-fold__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--g-space-2);
+  padding-block-end: var(--g-space-1);
+}
+
+/* ---------- Movimiento (#586; el motor de plegado de GFormReveal) ----------
+   Sin is-ready (primer pintado) no hay transición: no se anima lo que ya viene abierto. Abrir: el raíl (la pista) se
+   tiende en slow + ease-out desde el campo y el contenido se funde al final; cerrar: el contenido se apaga en fast y el
+   raíl se recoge hacia el campo. @starting-style cubre que bruno quite hidden y ponga is-open en el mismo cuadro. */
+.g-form-fold__panel > * {
+  opacity: 0;
+}
+.g-form-fold.is-open > .g-form-fold__panel > * {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-form-fold.is-ready {
+    transition:
+      grid-template-rows var(--_t) var(--g-ease-out),
+      margin-block-start var(--_t) var(--g-ease-out);
+  }
+  .g-form-fold.is-ready > .g-form-fold__panel > * {
+    transition: opacity var(--_t-fade) var(--g-ease-standard);
+  }
+  .g-form-fold.is-ready.is-open > .g-form-fold__panel > * {
+    transition: opacity var(--_t-fade) var(--g-ease-standard) calc(var(--_t) - var(--_t-fade));
+  }
+  @starting-style {
+    .g-form-fold.is-ready.is-open {
+      grid-template-rows: 0fr;
+      margin-block-start: calc(var(--_fold-gap) * -1);
+    }
+    .g-form-fold.is-ready.is-open > .g-form-fold__panel > * {
+      opacity: 0;
+    }
+  }
+}
+/* Movimiento reducido (patrón único: menos, no cero): la altura y el margen en un cuadro; el contenido se funde */
+@media (prefers-reduced-motion: reduce) {
+  /* Al cerrar, la pista y el margen esperan a que el contenido se apague y cambian en un cuadro (si no, el fundido
+     ocurriría ya recortado); así también hay transitionend de grid-template-rows para el motor de plegado */
+  .g-form-fold.is-ready:not(.is-open) {
+    transition:
+      grid-template-rows 0s linear var(--_t-fade),
+      margin-block-start 0s linear var(--_t-fade);
+  }
+  .g-form-fold.is-ready > .g-form-fold__panel > * {
+    transition: opacity var(--_t-fade) var(--g-ease-standard);
+  }
+  @starting-style {
+    .g-form-fold.is-ready.is-open > .g-form-fold__panel > * {
+      opacity: 0;
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  /* El raíl es un borde: Highlight, el color de lo que está activo */
+  .g-form-fold__panel {
+    border-inline-start-color: Highlight;
+  }
+}

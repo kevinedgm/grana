@@ -70,9 +70,9 @@ describe('generateTheme', () => {
 
   it('brand genera sus 6 tokens; sin accent, accent se deriva del text de brand', () => {
     const { generated } = generateTheme({ brand: '#F5B940' })
-    expect(Object.keys(generated).filter((k) => k.includes('brand'))).toHaveLength(6)
+    expect(Object.keys(generated).filter((k) => /^--g-color-(on-)?brand(-strong|-soft|-text)?$/.test(k))).toHaveLength(6)
     expect(generated['--g-color-accent']).toBe(generated['--g-color-brand-text'])
-    expect(Object.keys(generated).filter((k) => k.includes('accent'))).toHaveLength(6)
+    expect(Object.keys(generated).filter((k) => /^--g-color-(on-)?accent(-strong|-soft|-text)?$/.test(k))).toHaveLength(6)
   })
 
   it('con accent explícito, accent no depende de brand', () => {

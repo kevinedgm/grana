@@ -4,11 +4,12 @@ Rejilla adaptable para dashboards: coloca [`GWidget`](../GWidget/README.md) (u o
 
 **Etiqueta:** `<g-widget-grid>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria.md`](../../../../../design/lab/widget/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `widgetLabels` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const layout = ref([

@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSidebar · r02 · el item actual con identidad</title>
+<!-- Tokens REALES: el tema por defecto desde la fuente (defaults.css) y el tema del proyecto de integración generado con el CLI
+     (theme-nisa.css, acotado a .t-nisa). No se carga dist/: coco y bruno pueden estar reconstruyéndolo. -->
+<link rel="stylesheet" href="../../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="./theme-nisa.css">
+<style>
+/* r02 (kiwi): tres conceptos de cómo marcar el item actual (A ficha que viaja, B asiento, C lengüeta), con las tres ranuras
+   propuestas del activo (--g-sidebar-active-bg / -text / -border, nombres provisionales del reporte; los decide lima), más las
+   propuestas de los hallazgos 10 (cortes de adaptación) y 11 (hueco del icono). Las clases sb-*, xa-*, xb-*, xc-* son de
+   prototipo; el CSS definitivo es de coco. Únicos literales: los de la maqueta (anchos del escenario), nunca del sidebar. */
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--g-font-ui);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text);background:var(--g-color-bg)}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.g-icon{inline-size:1em;block-size:1em;flex:none}
+main{max-inline-size:90rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-16)}
+h1{font-size:1.5rem;line-height:2rem;margin:0 0 var(--g-space-2)}
+h2{font-size:1.125rem;line-height:1.5rem;margin:var(--g-space-12) 0 var(--g-space-2)}
+h3{font-size:var(--g-text-body-size);margin:0 0 var(--g-space-2)}
+p.lead{color:var(--g-color-text-muted);max-inline-size:80ch;margin:0 0 var(--g-space-4)}
+.ctl{position:sticky;inset-block-start:0;z-index:30;display:flex;flex-wrap:wrap;gap:var(--g-space-2) var(--g-space-6);align-items:center;padding:var(--g-space-3) var(--g-space-4);background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.ctl fieldset{display:flex;flex-wrap:wrap;gap:var(--g-space-1);align-items:center;margin:0;padding:0;border:0}
+.ctl legend{float:inline-start;margin-inline-end:var(--g-space-2);font-weight:600}
+.ctl label{display:inline-flex;align-items:center;gap:var(--g-space-1);min-block-size:32px;padding-inline:var(--g-space-2);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);cursor:pointer}
+.ctl label:has(input:checked){background:var(--g-color-brand);color:var(--g-color-on-brand);border-color:var(--g-color-brand)}
+.ctl label:has(input:focus-visible){outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.ctl input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+.concept{margin-block-start:var(--g-space-10);padding-block-start:var(--g-space-6);border-block-start:var(--g-border-width) solid var(--g-color-border-strong)}
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,27rem),1fr));gap:var(--g-space-4)}
+/* Escenario: cada uno lleva su tema y esquema; el fondo del escenario es --g-color-bg (el «contenido» de la página) */
+.stage{padding:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg);background:var(--g-color-bg);color:var(--g-color-text);min-inline-size:0}
+.stage > h3{display:flex;justify-content:space-between;gap:var(--g-space-2);font-size:var(--g-text-body-sm-size)}
+.stage > h3 small{font-weight:400;color:var(--g-color-text-muted)}
+.row{display:flex;gap:var(--g-space-3);align-items:stretch}
+.frame{display:flex;block-size:calc(var(--g-space-1) * 92);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);overflow:hidden;min-inline-size:0}
+.frame .page{flex:1;min-inline-size:calc(var(--g-space-1) * 6);background:var(--g-color-bg);padding:var(--g-space-2);color:var(--g-color-text-subtle);font-size:var(--g-text-caption-size)}
+.navwrap{margin-block-start:var(--g-space-3);display:flex;justify-content:center}
+.meas{margin-block-start:var(--g-space-3);inline-size:100%;border-collapse:collapse;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-variant-numeric:tabular-nums}
+.meas th,.meas td{padding:2px var(--g-space-1);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start}
+.meas td:nth-child(3){text-align:end;white-space:nowrap}
+.ok{color:var(--g-color-success-text)} .ko{color:var(--g-color-danger-text);font-weight:600}
+.note{padding:var(--g-space-3) var(--g-space-4);border-inline-start:calc(var(--g-border-width)*3) solid var(--g-color-border-control);background:var(--g-color-surface-sunken);margin:var(--g-space-3) 0;max-inline-size:90ch}
+table.cmp{border-collapse:collapse;inline-size:100%;margin-block:var(--g-space-3)}
+table.cmp th,table.cmp td{padding:var(--g-space-2);border:var(--g-border-width) solid var(--g-color-border);vertical-align:top;text-align:start}
+table.cmp thead th{background:var(--g-color-surface-sunken)}
+.wide{overflow-x:auto}
+
+/* ============ Sidebar del prototipo (común a los tres conceptos) ============ */
+.sb{
+  /* Ranuras del activo: valores por PRESET (abajo). Nombres provisionales del reporte; lima los fija. */
+  --_item:max(24px,calc(var(--g-space-1)*10));
+  --_px:var(--g-space-3);
+  --_ico:var(--g-sidebar-icon-size);
+  --g-sidebar-icon-size:calc(var(--g-space-1)*5); /* H11: hoy alias privado --_ico; aquí ya como token (valor por defecto = el actual) */
+  position:relative;display:flex;flex-direction:column;flex:none;
+  inline-size:calc(var(--g-space-1)*56);block-size:100%;
+  background:var(--g-surface-shell);color:var(--g-color-text);
+  /* El filo del sidebar va en una sombra interior (y no en border) para que la lengüeta de C pueda taparlo */
+  box-shadow:inset calc(var(--g-border-width) * -1) 0 0 var(--g-color-border);
+  overflow:hidden;
+}
+[dir=rtl] .sb{box-shadow:inset var(--g-border-width) 0 0 var(--g-color-border)}
+.sb--rail{inline-size:var(--g-sidebar-rail)}
+.sb nav{position:relative;flex:1;padding:var(--g-space-2);overflow:hidden}
+.sb ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(var(--g-space-1)*.5)}
+.sb .gt{display:block;padding:var(--g-space-2) var(--g-space-2) var(--g-space-1);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-action-weight);color:var(--g-color-text-subtle)}
+.lk{position:relative;z-index:1;display:flex;align-items:center;gap:var(--g-space-3);inline-size:100%;min-block-size:var(--_item);padding:0 var(--_px);
+  border:0;border-radius:var(--g-radius-md);background:transparent;color:var(--g-color-text-muted);font:inherit;text-align:start;text-decoration:none;cursor:pointer;
+  transition:background-color var(--g-duration-fast) var(--g-ease-standard),color var(--g-duration-fast) var(--g-ease-standard)}
+.lk .ic{flex:none;display:inline-grid;place-items:center;inline-size:var(--_ico);block-size:var(--_ico);font-size:var(--_ico);position:relative}
+.lk .lb{flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk .bd{flex:none;min-inline-size:calc(var(--g-space-1)*5);padding-inline:var(--g-space-1);border-radius:var(--g-radius-pill);background:var(--g-color-surface);color:var(--g-color-text);font-size:var(--g-text-caption-size);line-height:calc(var(--g-space-1)*5);text-align:center;box-shadow:0 0 0 var(--g-border-width) var(--g-color-border-strong)}
+.lk .chev{flex:none;font-size:calc(var(--g-space-1)*4);transition:rotate var(--g-duration-press) var(--g-ease-out)}
+.lk[aria-expanded=true] .chev{rotate:90deg}
+.sub{padding-inline-start:0;margin-block:calc(var(--g-space-1)*.5) 0}
+.sb .sub .lk{min-block-size:max(24px,calc(var(--g-space-1)*9));padding-inline-start:calc(var(--_px) + var(--_ico) + var(--g-space-3));border-radius:var(--g-radius-md)}
+.sub{position:relative}
+.sub::before{content:"";position:absolute;inset-block:var(--g-space-1);inset-inline-start:calc(var(--_px) + var(--_ico)/2);border-inline-start:var(--g-border-width) solid var(--g-color-border-strong)}
+.lk.is-branch{color:var(--g-color-text);font-weight:var(--g-text-action-weight)}
+@media (hover:hover){.lk:hover:not([aria-current=page],.is-rep){background:var(--g-color-border);color:var(--g-color-text)}}
+.lk:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset);z-index:3}
+/* Riel: etiquetas y títulos ocultos visualmente (siguen en el DOM); los hijos no se ven (viven en el panel flotante) */
+.sb--rail nav{padding-inline:calc((var(--g-sidebar-rail) - 44px)/2)}
+.sb--rail .lk{justify-content:center;padding:0;min-block-size:44px}
+.sb--rail .lb,.sb--rail .gt,.sb--rail .chev{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.sb--rail .bd{position:absolute;inset-block-start:calc(var(--g-space-1)*.5);inset-inline-end:calc(var(--g-space-1)*.5);min-inline-size:calc(var(--g-space-1)*4);line-height:calc(var(--g-space-1)*4);font-size:var(--g-text-caption-size)}
+.sb--rail .sub{display:none}
+
+/* Navbar (píldora activa, #68): la píldora es el item actual o su representante; aquí ya lee las ranuras del activo */
+.bar{display:flex;gap:var(--g-space-1);list-style:none;margin:0;padding:var(--g-space-1);inline-size:min(100%,calc(var(--g-space-1)*84));border-radius:var(--g-radius-pill);background:var(--g-color-surface);box-shadow:var(--g-shadow-2),0 0 0 var(--g-border-width) var(--g-color-border)}
+.bar li{flex:1 1 0;display:flex;min-inline-size:0;transition:flex-grow var(--g-duration-slow) var(--g-ease-standard)}
+.bar li.is-current{flex-grow:3}
+.tab{position:relative;display:flex;text-decoration:none;align-items:center;justify-content:center;gap:var(--g-space-2);inline-size:100%;min-block-size:48px;padding-inline:var(--g-space-2);border:0;border-radius:var(--g-radius-pill);background:transparent;color:var(--g-color-text-muted);font:inherit;font-weight:var(--g-text-action-weight);cursor:pointer;overflow:hidden;
+  transition:background-color var(--g-duration-press) var(--g-ease-standard),color var(--g-duration-press) var(--g-ease-standard)}
+.tab .ic{font-size:calc(var(--g-space-1)*5.5);display:inline-grid;place-items:center;flex:none}
+.tab .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar li:not(.is-current) .tab .lb{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)}
+.tab:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.bar li.is-current .tab{background:var(--g-sidebar-active-bg);color:var(--g-sidebar-active-text);box-shadow:inset 0 0 0 calc(var(--g-border-width)*2) var(--g-sidebar-active-border)}
+
+/* ============ PRESETS de las ranuras (lo que pondría el tema) ============ */
+/* quiet = Δ0: lo que hoy pinta GSidebar.css (superficie inset, texto pleno, barra accent-text) */
+.p-quiet .stage{--g-sidebar-active-bg:var(--g-surface-inset);--g-sidebar-active-text:var(--g-color-text);--g-sidebar-active-border:var(--g-color-accent-text)}
+/* brand = relleno con su par del motor (primary / on-primary); el filo en on-primary (el par garantizado ≥ 4.5:1) */
+.p-brand .stage{--g-sidebar-active-bg:var(--g-color-primary);--g-sidebar-active-text:var(--g-color-on-primary);--g-sidebar-active-border:var(--g-color-on-primary)}
+/* integ = el caso real escrito con ROLES: relleno de marca + tinta de acento («marino + lima») en claro y oscuro */
+.p-integ .stage{--g-sidebar-active-bg:var(--g-color-primary);--g-sidebar-active-text:var(--g-color-accent);--g-sidebar-active-border:var(--g-color-accent)}
+/* integ + corrección del oscuro (propuesta de derivación para el CLI): en oscuro el relleno pasa al tinte suave de marca y la tinta a accent-text */
+.p-integ.fixdark .stage[data-theme=dark]{--g-sidebar-active-bg:var(--g-color-primary-soft);--g-sidebar-active-text:var(--g-color-accent-text);--g-sidebar-active-border:var(--g-color-accent-text)}
+/* C quiere fundirse con la página: en «quiet» su relleno es el de la página (--g-color-bg), no la inset */
+.p-quiet .stage .xc{--g-sidebar-active-bg:var(--g-color-bg)}
+
+/* ============ A · Ficha que viaja ============ */
+/* Una sola ficha por <nav> (no una por item): se desplaza al item actual; el borde que va delante llega primero y el de atrás
+   lo alcanza (se estira en la dirección del viaje y se recoge). La tinta del destino cambia cuando la ficha ya lo cubre. */
+.xa .thumb{position:absolute;z-index:0;inset-inline:var(--g-space-2);inset-block-start:var(--_t,0);inset-block-end:var(--_b,100%);border-radius:var(--g-radius-md);
+  background:var(--g-sidebar-active-bg);box-shadow:0 0 0 var(--g-border-width) var(--g-color-border-strong),var(--g-shadow-1);opacity:0;pointer-events:none}
+.xa .thumb.on{opacity:1}
+.xa.sb--rail .thumb{inset-inline:calc((var(--g-sidebar-rail) - 44px)/2)}
+.xa .thumb::before{content:"";position:absolute;inset-inline-start:0;inset-block:20%;inline-size:calc(var(--g-border-width)*2);border-radius:var(--g-radius-pill);background:var(--g-sidebar-active-border)}
+.xa .lk[aria-current=page],.xa .lk.is-rep{color:var(--g-sidebar-active-text);font-weight:var(--g-text-action-weight)}
+@media (prefers-reduced-motion:no-preference){
+  body:not(.rm) .xa .thumb.ready{transition:inset-block-start var(--_dt) var(--g-ease-out),inset-block-end var(--_db) var(--g-ease-out),opacity var(--g-duration-fast) linear}
+  body:not(.rm) .xa .lk[aria-current=page],body:not(.rm) .xa .lk.is-rep{transition:color var(--g-duration-fast) var(--g-ease-standard) var(--g-duration-press)}
+}
+/* Movimiento reducido: sin viaje; la ficha aparece en su sitio con un fundido */
+.rm .xa .thumb.ready{transition:opacity var(--g-duration-fast) linear}
+
+/* ============ B · Asiento ============ */
+/* La marca no es la fila: es el ASIENTO del icono. Lleno = «aquí estás»; hueco (solo filo) = «dentro hay lo actual» (rama).
+   El asiento es idéntico en expandida y riel, y en el navbar es el que crece hasta la píldora. Los hijos (sin icono) llevan
+   un NODO en la línea de conexión, que se enciende desde el asiento del padre: la ruta. */
+.xb{--_seat:calc(var(--_ico) + var(--g-space-1)*3)}
+.xb .lk{gap:var(--g-space-2);padding-inline-start:calc(var(--_px) - (var(--_seat) - var(--_ico))/2)}
+.xb .lk .ic{inline-size:var(--_seat);block-size:var(--_seat);border-radius:var(--g-radius-pill);isolation:isolate}
+.xb .lk .ic > svg{position:relative;z-index:1;inline-size:var(--_ico);block-size:var(--_ico)}
+.xb .lk .ic::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--g-sidebar-active-bg);clip-path:circle(0 at 50% 50%)}
+.xb .lk .ic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 calc(var(--g-border-width)*2) var(--g-sidebar-active-border);opacity:0}
+.xb .lk[aria-current=page] .ic::before,.xb .lk.is-rep .ic::before{clip-path:circle(75% at 50% 50%)}
+.xb .lk[aria-current=page] .ic::after,.xb .lk.is-rep .ic::after,.xb .lk.is-branch .ic::after{opacity:1}
+.xb .lk[aria-current=page] .ic,.xb .lk.is-rep .ic{color:var(--g-sidebar-active-text)}
+.xb .lk[aria-current=page],.xb .lk.is-rep{color:var(--g-color-text);font-weight:var(--g-text-action-weight)}
+.xb .sub .lk[aria-current=page]::before{content:"";position:absolute;inset-inline-start:calc(var(--_px) + var(--_ico)/2 + var(--g-border-width)/2);inset-block-start:50%;inline-size:calc(var(--g-space-1)*2.5);block-size:calc(var(--g-space-1)*2.5);translate:-50% -50%;border-radius:var(--g-radius-pill);background:var(--g-sidebar-active-bg);box-shadow:0 0 0 calc(var(--g-border-width)*2) var(--g-sidebar-active-border)}
+[dir=rtl] .xb .sub .lk[aria-current=page]::before{translate:50% -50%}
+.xb .sub.has-cur::before{border-color:var(--g-sidebar-active-border);inset-block-end:var(--_route,50%)}
+.xb.sb--rail .lk .ic{inline-size:40px;block-size:40px}
+@media (prefers-reduced-motion:no-preference){
+  body:not(.rm) .xb .lk .ic::before{transition:clip-path var(--g-duration-slow) var(--g-ease-spring)}
+  body:not(.rm) .xb .lk .ic::after{transition:opacity var(--g-duration-fast) linear}
+  body:not(.rm) .xb .lk .ic{transition:color var(--g-duration-fast) var(--g-ease-standard) calc(var(--g-duration-fast)*.5)}
+}
+.rm .xb .lk .ic::before{transition:none}
+
+/* ============ C · Lengüeta ============ */
+/* El item actual no es una caja dentro del sidebar: es una LENGÜETA que sale de la página y la toca. Rompe el filo del sidebar
+   y lo une con el contenido con dos esquinas cóncavas. Al navegar, la página «recoge» la lengüeta hacia su borde y la saca en el
+   destino. Solo con un filo compartido (variant=fixed); en floating no hay borde que tocar y queda como ficha. */
+.xc nav{padding-inline-end:0}
+.xc .tongue{--_r:var(--g-radius-md);position:absolute;z-index:0;inset-inline-start:var(--g-space-2);inset-inline-end:0;inset-block-start:var(--_t,0);block-size:var(--_h,0);
+  background:var(--g-sidebar-active-bg);border-start-start-radius:var(--_r);border-end-start-radius:var(--_r);opacity:0;pointer-events:none;clip-path:inset(calc(var(--_r)*-1) 0 calc(var(--_r)*-1) 0)}
+.xc.sb--rail .tongue{inset-inline-start:calc((var(--g-sidebar-rail) - 44px)/2)}
+.xc .tongue.on{opacity:1}
+.xc .tongue::before,.xc .tongue::after{content:"";position:absolute;inset-inline-end:0;inline-size:var(--_r);block-size:var(--_r);
+  background:radial-gradient(circle at 0 0,transparent calc(var(--_r) - .5px),var(--g-sidebar-active-bg) var(--_r))}
+.xc .tongue::before{inset-block-end:100%;background:radial-gradient(circle at 0 0,transparent calc(var(--_r) - .5px),var(--g-sidebar-active-bg) var(--_r))}
+.xc .tongue::after{inset-block-start:100%;background:radial-gradient(circle at 0 100%,transparent calc(var(--_r) - .5px),var(--g-sidebar-active-bg) var(--_r))}
+[dir=rtl] .xc .tongue::before{background:radial-gradient(circle at 100% 0,transparent calc(var(--_r) - .5px),var(--g-sidebar-active-bg) var(--_r))}
+[dir=rtl] .xc .tongue::after{background:radial-gradient(circle at 100% 100%,transparent calc(var(--_r) - .5px),var(--g-sidebar-active-bg) var(--_r))}
+.xc .tongue > i{position:absolute;inset-inline-start:0;inset-block:20%;inline-size:calc(var(--g-border-width)*2);border-radius:var(--g-radius-pill);background:var(--g-sidebar-active-border)}
+.xc .tongue.out{clip-path:inset(calc(var(--_r)*-1) 0 calc(var(--_r)*-1) 100%)}
+[dir=rtl] .xc .tongue.out{clip-path:inset(calc(var(--_r)*-1) 100% calc(var(--_r)*-1) 0)}
+.xc .lk[aria-current=page],.xc .lk.is-rep{color:var(--g-sidebar-active-text);font-weight:var(--g-text-action-weight)}
+.xc .lk{margin-inline-end:var(--g-space-2);inline-size:calc(100% - var(--g-space-2))}
+.xc.sb--rail .lk{margin-inline-end:0;inline-size:100%}
+@media (prefers-reduced-motion:no-preference){
+  body:not(.rm) .xc .tongue.ready{transition:clip-path var(--g-duration-press) var(--g-ease-out),opacity var(--g-duration-fast) linear}
+}
+.rm .xc .tongue.ready{transition:opacity var(--g-duration-fast) linear}
+.rm .xc .tongue.out{clip-path:inset(calc(var(--_r)*-1) 0 calc(var(--_r)*-1) 0);opacity:0}
+
+/* ============ Colores forzados (los tres) ============ */
+@media (forced-colors:active){
+  .sb{box-shadow:none;border-inline-end:1px solid CanvasText}
+  .xa .thumb,.xc .tongue,.xc .tongue::before,.xc .tongue::after{forced-color-adjust:none;background:Highlight;box-shadow:none}
+  .xc .tongue::before{background:radial-gradient(circle at 0 0,transparent calc(var(--_r) - .5px),Highlight var(--_r))}
+  .xc .tongue::after{background:radial-gradient(circle at 0 100%,transparent calc(var(--_r) - .5px),Highlight var(--_r))}
+  .xa .thumb::before,.xc .tongue > i{display:none}
+  .xa .lk[aria-current=page],.xa .lk.is-rep,.xc .lk[aria-current=page],.xc .lk.is-rep{forced-color-adjust:none;color:HighlightText}
+  .xb .lk .ic::before{forced-color-adjust:none;background:Highlight}
+  .xb .lk .ic::after{forced-color-adjust:none;box-shadow:inset 0 0 0 2px CanvasText}
+  .xb .lk[aria-current=page] .ic,.xb .lk.is-rep .ic{forced-color-adjust:none;color:HighlightText}
+  .xb .sub .lk[aria-current=page]::before{forced-color-adjust:none;background:Highlight;box-shadow:0 0 0 2px CanvasText}
+  .bar li.is-current .tab{forced-color-adjust:none;background:Highlight;color:HighlightText;box-shadow:inset 0 0 0 2px CanvasText}
+  .lk:focus-visible,.tab:focus-visible{outline-color:Highlight}
+}
+
+/* ============ H10 · cortes de adaptación ============ */
+.h10{display:grid;gap:var(--g-space-4)}
+.h10 .inputs{display:flex;flex-wrap:wrap;gap:var(--g-space-3) var(--g-space-6);align-items:end}
+.h10 label.f{display:grid;gap:var(--g-space-1);font-weight:500}
+.h10 input[type=number]{inline-size:8rem;min-block-size:36px;padding-inline:var(--g-space-2);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);font:inherit;background:var(--g-color-surface);color:var(--g-color-text)}
+.h10 input[type=range]{inline-size:min(100%,40rem)}
+.ruler{min-inline-size:min(60vw,22rem);position:relative;block-size:calc(var(--g-space-1)*10);border-radius:var(--g-radius-md);overflow:hidden;display:flex;border:var(--g-border-width) solid var(--g-color-border-control)}
+.ruler span{display:grid;place-items:center;font-size:var(--g-text-caption-size);color:var(--g-color-text);overflow:hidden;white-space:nowrap}
+.ruler .m-exp{background:var(--g-color-surface)} .ruler .m-rail{background:var(--g-color-surface-sunken)} .ruler .m-mob{background:var(--g-color-border-strong)}
+.ruler .cur{position:absolute;inset-block:0;inline-size:2px;background:var(--g-color-text)}
+.verdict{font-weight:600}
+.h10 table.cmp td:first-child{white-space:nowrap}
+/* ============ H11 · hueco del icono ============ */
+.h11{--g-sidebar-active-bg:var(--g-color-primary);--g-sidebar-active-text:var(--g-color-on-primary);--g-sidebar-active-border:var(--g-color-primary);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));gap:var(--g-space-4)}
+.h11 .frame{block-size:auto}
+.appdot{display:inline-grid;place-items:center;inline-size:calc(var(--g-space-1)*7);block-size:calc(var(--g-space-1)*7);border-radius:var(--g-radius-pill);background:var(--g-color-accent);color:var(--g-color-on-accent);font-size:calc(var(--g-space-1)*4)}
+.h11 .o1 .sb{--g-sidebar-icon-size:calc(var(--g-space-1)*5)}
+.h11 .o2 .sb{--g-sidebar-icon-size:var(--h11-size)}
+.h11 .o2 .lk{min-block-size:max(var(--_item),calc(var(--_ico) + var(--g-space-1)*3))}
+.h11 .o3 .lk .ic:has(> .appdot){inline-size:auto;block-size:auto;font-size:inherit}
+.h11 .o3 .lk{min-block-size:max(var(--_item),calc(var(--g-space-1)*7 + var(--g-space-1)*3))}
+.h11 .o4 .sb{--g-sidebar-icon-size:var(--h11-size)}
+.h11 .sb{block-size:auto}
+.h11 .o1 .appdot,.h11 .o2 .appdot{inline-size:calc(var(--g-space-1)*7);block-size:calc(var(--g-space-1)*7)}
+.h11 .o2 .appdot{inline-size:var(--_ico);block-size:var(--_ico);font-size:calc(var(--_ico)*.6)}
+.ovf{outline:2px dashed var(--g-color-danger-text);outline-offset:1px}
+</style>
+</head>
+<body class="p-quiet">
+<div class="ctl" role="region" aria-label="Controles del prototipo">
+  <fieldset><legend>Valores del activo</legend>
+    <label><input type="radio" name="preset" value="p-quiet" checked> Δ0 silencioso</label>
+    <label><input type="radio" name="preset" value="p-brand"> Relleno con su par</label>
+    <label><input type="radio" name="preset" value="p-integ"> Caso real: marca + tinta de acento</label>
+  </fieldset>
+  <label><input type="checkbox" id="fixdark"> Corrección del oscuro (derivada)</label>
+  <label><input type="checkbox" id="rm"> Simular movimiento reducido</label>
+  <label><input type="checkbox" id="rtl"> RTL</label>
+</div>
+<main>
+  <h1>GSidebar · r02 · el item actual con identidad</h1>
+  <p class="lead">Hallazgo 2 (P1) de una integración real: el activo no puede tener tinta propia. Base común: tres ranuras del activo
+    (relleno, tinta, filo), leídas por los cuatro formatos. Encima, tres conceptos de <strong>forma y movimiento</strong> del item actual.
+    Cada escenario lleva el tema por defecto o el tema del proyecto (marca #24366B, acento #C1D324, generado con el CLI), en claro y en oscuro.
+    Pulsa cualquier item para cambiar la página actual (es la misma en expandida, riel y navbar del escenario). Las cifras se miden en vivo de los estilos calculados.</p>
+  <div class="note"><strong>Presets.</strong> «Δ0 silencioso» = lo que pinta hoy <code>GSidebar.css</code> (inset, texto, barra <code>accent-text</code>; en C, el relleno es la página).
+    «Relleno con su par» = <code>primary</code> / <code>on-primary</code>, el par que el motor garantiza. «Caso real» = <code>primary</code> + tinta <code>accent</code>
+    escrito con roles (marino + lima); en oscuro se rompe, y «Corrección del oscuro» enseña la derivación propuesta para el CLI (<code>primary-soft</code> + <code>accent-text</code>).</div>
+
+  <section class="concept" id="cA" aria-labelledby="hA"><h2 id="hA">A · Ficha que viaja</h2>
+    <p class="lead">Una sola ficha por navegación, no una por item. Al cambiar de página <strong>viaja</strong> del item anterior al nuevo: el borde de delante llega primero y el de atrás lo alcanza, así el ojo ve de dónde viene y a dónde va. La tinta del destino cambia cuando la ficha ya lo cubre (nunca hay tinta de acento sobre la carcasa). En el riel, la misma ficha de 44px. Con un relleno que llega a 3:1 frente a la carcasa, la ficha es el indicador; la barra queda como filo de identidad.</p>
+    <div class="stages" data-concept="xa"></div></section>
+
+  <section class="concept" id="cB" aria-labelledby="hB"><h2 id="hB">B · Asiento</h2>
+    <p class="lead">La fila no se rellena: el relleno es el <strong>asiento del icono</strong>. Lleno = estás aquí; solo el filo = dentro está lo actual (rama). Los hijos no tienen icono: llevan un <strong>nodo</strong> en la línea de conexión, y la línea se enciende desde el asiento del padre hasta el nodo (la ruta). El asiento es <strong>idéntico</strong> en expandida y riel, y en el navbar es él el que crece hasta la píldora: una sola marca en los cuatro formatos. La tinta propia va en el icono; la etiqueta queda en <code>text</code>, legible con cualquier relleno. Resuelve de paso el «icono con círculo» del hallazgo 11.</p>
+    <div class="stages" data-concept="xb"></div></section>
+
+  <section class="concept" id="cC" aria-labelledby="hC"><h2 id="hC">C · Lengüeta</h2>
+    <p class="lead">El item actual no es una caja <em>dentro</em> del sidebar: es una <strong>lengüeta que sale de la página</strong>, rompe el filo del sidebar y se une al contenido con dos esquinas cóncavas. Dice «esta página es este item». Al navegar, la página <strong>recoge</strong> la lengüeta hacia su borde y la saca en el destino. Con el relleno de la página (Δ0) se funde; con un relleno de marca es un conector sólido. Solo existe con un filo compartido (<code>variant="fixed"</code>); en <code>floating</code> queda como la ficha de A sin viaje.</p>
+    <div class="stages" data-concept="xc"></div></section>
+
+  <section class="concept" aria-labelledby="hCmp"><h2 id="hCmp">Comparativa · hallazgo 2</h2>
+    <div class="wide"><table class="cmp">
+      <thead><tr><th scope="col"></th><th scope="col">A · Ficha que viaja</th><th scope="col">B · Asiento</th><th scope="col">C · Lengüeta</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Qué marca</th><td>La fila entera</td><td>El icono (y un nodo en los hijos)</td><td>La fila, unida a la página</td></tr>
+        <tr><th scope="row">Qué cuenta el movimiento</th><td>De dónde vienes y a dónde vas (continuidad espacial)</td><td>Se llena el asiento; la ruta se enciende hasta el hijo</td><td>La página recoge el item y lo saca en el destino</td></tr>
+        <tr><th scope="row">Caso real (marino + lima)</th><td>Sí, tal cual (fila marina, texto lima)</td><td>Sí, en el asiento (icono lima); la etiqueta no se tiñe</td><td>Sí, lengüeta marina; se pierde la fusión con la página</td></tr>
+        <tr><th scope="row">Δ en el tema por defecto</th><td>Ninguno en reposo; se añade el viaje</td><td>Visible: desaparece la superficie de la fila</td><td>Visible: el activo rompe el filo y toma el color de la página</td></tr>
+        <tr><th scope="row">Riel</th><td>Ficha de 44px</td><td>El mismo asiento (sin cambio de forma)</td><td>Lengüeta de 44px hasta el filo</td></tr>
+        <tr><th scope="row">Navbar</th><td>Píldora con las ranuras</td><td>El asiento crece hasta la píldora</td><td>Píldora con las ranuras (no hay filo que tocar)</td></tr>
+        <tr><th scope="row">Rama (hijo actual)</th><td>Peso + texto pleno en el padre; en el riel la ficha va al padre</td><td>Asiento hueco en el padre, nodo en el hijo, ruta encendida</td><td>Peso + texto pleno; en el riel la lengüeta va al padre</td></tr>
+        <tr><th scope="row">Contraste que exige</th><td>tinta/relleno ≥ 4.5; relleno/carcasa ≥ 3 o filo/relleno ≥ 3</td><td>icono/asiento ≥ 3; asiento/carcasa ≥ 3 o filo/carcasa ≥ 3; la etiqueta ya cumple</td><td>como A; y el relleno debería ser el de la página</td></tr>
+        <tr><th scope="row">Coste</th><td>Un elemento por nav y su posición (patrón de <code>GTabs</code> <code>--_mark-*</code>)</td><td>Solo CSS sobre el hueco del icono</td><td>Un elemento por nav, filo en sombra interior, dependencia de <code>variant</code></td></tr>
+        <tr><th scope="row">Riesgo</th><td>Un viaje largo con scroll (se recorta: más de un visor = fundido)</td><td>Con iconos muy finos el asiento pesa más que la etiqueta</td><td>Con contenido de otro color que <code>bg</code> la fusión se ve como un parche</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <section class="concept" id="h10" aria-labelledby="hH10"><h2 id="hH10">Hallazgo 10 · cortes de adaptación</h2>
+    <p class="lead">Hoy: expandida ≥ <code>space × 240</code> (960px), riel ≥ <code>space × 150</code> (600px), móvil por debajo, medido sobre el contenedor (#69). El caso real quería <em>drawer por debajo de 1024px y sin riel</em> y lo resolvió con <code>matchMedia</code> desde fuera. Tres propuestas; prueba el caso real en cada una.</p>
+    <div class="h10">
+      <div class="inputs">
+        <label class="f">Ancho del contenedor <output id="wOut">1000</output><input id="w" type="range" min="280" max="1600" step="4" value="1000"></label>
+        <label class="f">mobile <select id="mob"><option>navbar</option><option selected>drawer</option></select></label>
+      </div>
+      <div class="wide"><table class="cmp">
+        <thead><tr><th scope="col">Propuesta</th><th scope="col">Configuración</th><th scope="col">Bandas</th><th scope="col">Formato a este ancho</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">10-A · <code>breakpoints</code> (prop)</th>
+            <td><label class="f">expanded <input id="aE" type="number" value="1024" min="0"></label><label class="f">rail <input id="aR" type="number" value="1024" min="0"></label></td>
+            <td><div class="ruler" id="rA" aria-hidden="true"></div></td><td class="verdict" id="vA"></td></tr>
+          <tr><th scope="row">10-B · tokens <code>--g-sidebar-expanded-min</code> / <code>-rail-min</code></th>
+            <td><label class="f">expanded-min <input id="bE" type="number" value="1024" min="0"></label><label class="f">rail-min <input id="bR" type="number" value="1024" min="0"></label></td>
+            <td><div class="ruler" id="rB" aria-hidden="true"></div></td><td class="verdict" id="vB"></td></tr>
+          <tr><th scope="row">10-C · <code>contentMin</code> (el sidebar cede para proteger el contenido)</th>
+            <td><label class="f">contentMin <input id="cMin" type="number" value="760" min="0"></label><label class="f">rail <select id="cRail"><option value="1">permitido</option><option value="0" selected>nunca</option></select></label></td>
+            <td><div class="ruler" id="rC" aria-hidden="true"></div></td><td class="verdict" id="vC"></td></tr>
+        </tbody></table></div>
+      <p id="h10live" class="sr" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="concept" id="h11" aria-labelledby="hH11"><h2 id="hH11">Hallazgo 11 · hueco del icono</h2>
+    <p class="lead">Hoy el hueco es <code>--_ico</code> = <code>space × 5</code> (20px), privado. Un icono de la aplicación con fondo (un círculo de acento de 28px) desborda la fila y el riel. Contorno discontinuo = desborda su hueco.
+      <label>Tamaño propuesto <output id="sOut">28</output>px <input id="s" type="range" min="16" max="32" step="2" value="28"></label></p>
+    <div class="h11" id="h11g"></div>
+  </section>
+
+  <section class="concept" aria-labelledby="hQ"><h2 id="hQ">Preguntas para el usuario</h2>
+    <ol>
+      <li><strong>Hallazgo 2:</strong> ¿cómo se marca el item actual: <strong>A</strong> (ficha que viaja), <strong>B</strong> (asiento) o <strong>C</strong> (lengüeta)? Y ¿el tema por defecto sigue silencioso (Δ0) o pasa a un relleno con su par?</li>
+      <li><strong>Hallazgo 10:</strong> ¿cortes por <strong>10-A</strong> (prop por instancia), <strong>10-B</strong> (tokens del tema) o <strong>10-C</strong> (<code>contentMin</code>: el sidebar cede para proteger el contenido)?</li>
+      <li><strong>Hallazgo 11:</strong> ¿hueco del icono por <strong>11-A</strong> (token de tamaño), <strong>11-B</strong> (el hueco adopta su hijo, como el avatar #295) u <strong>11-C</strong> (solo el asiento de B, sin token)?</li>
+    </ol>
+  </section>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+const I = (n) => window.lucide(n)
+const ITEMS = [
+  { group: 'General', items: [
+    { id: 'home', label: 'Inicio', icon: 'house' },
+    { id: 'inbox', label: 'Bandeja', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' },
+    { id: 'proj', label: 'Proyectos', icon: 'folder', children: [ { id: 'p-all', label: 'Todos' }, { id: 'p-arch', label: 'Archivados' } ] },
+  ] },
+  { group: 'Equipo', items: [
+    { id: 'team', label: 'Equipo', icon: 'users' },
+    { id: 'set', label: 'Ajustes', icon: 'settings' },
+  ] },
+]
+const parentOf = {}
+ITEMS.forEach(g => g.items.forEach(it => (it.children || []).forEach(c => { parentOf[c.id] = it.id })))
+const STAGES = [
+  { t: 'grana', s: 'light', name: 'Tema por defecto · claro' },
+  { t: 'grana', s: 'dark', name: 'Tema por defecto · oscuro' },
+  { t: 'nisa', s: 'light', name: 'Tema del proyecto · claro' },
+  { t: 'nisa', s: 'dark', name: 'Tema del proyecto · oscuro' },
+]
+let uid = 0
+function sidebar (concept, rail, cur, label) {
+  const shape = concept === 'xa' ? '<span class="thumb" aria-hidden="true"></span>' : concept === 'xc' ? '<span class="tongue" aria-hidden="true"><i></i></span>' : ''
+  let h = `<aside class="sb ${concept}${rail ? ' sb--rail' : ''}"><nav aria-label="${label}">${shape}`
+  ITEMS.forEach(g => {
+    const gid = 'g' + (++uid)
+    h += `<span class="gt" id="${gid}">${g.group}</span><ul aria-labelledby="${gid}">`
+    g.items.forEach(it => {
+      const branch = parentOf[cur] === it.id
+      if (it.children) {
+        const sid = 's' + (++uid)
+        h += `<li><button type="button" class="lk${branch ? ' is-branch' : ''}${branch && rail ? ' is-rep' : ''}" aria-expanded="true" aria-controls="${sid}" data-id="${it.id}"><span class="ic" aria-hidden="true">${I(it.icon)}</span><span class="lb">${it.label}</span><span class="chev" aria-hidden="true">${I('chevron-right')}</span></button>`
+        h += `<ul class="sub${branch ? ' has-cur' : ''}" id="${sid}">` + it.children.map(c => `<li><a href="#" class="lk" data-id="${c.id}"${c.id === cur ? ' aria-current="page"' : ''}><span class="lb">${c.label}</span></a></li>`).join('') + '</ul></li>'
+      } else {
+        h += `<li><a href="#" class="lk" data-id="${it.id}"${it.id === cur ? ' aria-current="page"' : ''}><span class="ic" aria-hidden="true">${I(it.icon)}</span><span class="lb">${it.label}</span>${it.badge ? `<span class="bd" aria-hidden="true">${it.badge}</span><span class="sr">, ${it.badgeLabel}</span>` : ''}</a></li>`
+      }
+    })
+    h += '</ul>'
+  })
+  return h + '</nav></aside>'
+}
+function navbar (cur, label) {
+  const inBar = ['home', 'inbox', 'proj', 'team']
+  const top = parentOf[cur] || cur
+  const curKey = inBar.includes(top) ? top : 'more'
+  const all = ITEMS.flatMap(g => g.items)
+  let h = `<nav aria-label="${label}"><ul class="bar">`
+  inBar.forEach(id => {
+    const it = all.find(x => x.id === id)
+    const isCur = curKey === id
+    const attrs = it.children ? `type="button" aria-haspopup="dialog"` : `href="#"${it.id === cur ? ' aria-current="page"' : ''}`
+    const tag = it.children ? 'button' : 'a'
+    h += `<li${isCur ? ' class="is-current"' : ''}><${tag} class="tab" data-id="${it.children ? it.children[0].id : it.id}" ${attrs}><span class="ic" aria-hidden="true">${I(it.icon)}</span><span class="lb">${it.label}</span>${isCur && it.children ? '<span class="sr">, contiene la página actual</span>' : ''}</${tag}></li>`
+  })
+  h += `<li${curKey === 'more' ? ' class="is-current"' : ''}><button class="tab" type="button" aria-haspopup="dialog" data-id="set"><span class="ic" aria-hidden="true">${I('menu')}</span><span class="lb">Más</span>${curKey === 'more' ? '<span class="sr">, contiene la página actual</span>' : ''}</button></li>`
+  return h + '</ul></nav>'
+}
+
+// ---------- Contraste (WCAG 2.x) leído de los estilos calculados ----------
+const cvs = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+function rgba (css) {
+  cvs.clearRect(0, 0, 1, 1); cvs.fillStyle = '#000'; cvs.fillStyle = css; cvs.fillRect(0, 0, 1, 1)
+  const m = css.match(/rgba?\(([^)]+)\)/)
+  if (m) { const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p[3] === undefined ? 1 : p[3]] }
+  const d = cvs.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]
+}
+const over = (fg, bg) => [0, 1, 2].map(i => fg[i] * fg[3] + bg[i] * (1 - fg[3])).concat(1)
+const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]) }
+const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+function tok (el, name) { return getComputedStyle(el).getPropertyValue(name).trim() }
+function resolve (el, name) { const p = document.createElement('i'); p.style.color = `var(${name})`; el.appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c }
+
+function measure (stage, concept) {
+  const sb = stage.querySelector('.sb:not(.sb--rail)')
+  const shell = over(rgba(getComputedStyle(sb).backgroundColor), [255, 255, 255, 1])
+  const bg = over(rgba(resolve(sb, '--g-sidebar-active-bg')), shell)
+  const ink = over(rgba(resolve(sb, '--g-sidebar-active-text')), bg)
+  const edge = over(rgba(resolve(sb, '--g-sidebar-active-border')), shell)
+  const text = over(rgba(resolve(sb, '--g-color-text')), shell)
+  const focus = over(rgba(resolve(sb, '--g-color-focus')), shell)
+  const rows = []
+  const r2 = (x) => Math.round(x * 100) / 100
+  const add = (k, v, min) => rows.push([k, r2(v), min])
+  if (concept === 'xb') {
+    add('icono / asiento', ratio(ink, bg), 3)
+    add('asiento / carcasa', ratio(bg, shell), 3)
+    add('filo del asiento / carcasa', ratio(edge, shell), 3)
+    add('etiqueta (text) / carcasa', ratio(text, shell), 4.5)
+    rows.push(['indicador ≥ 3:1 (asiento o filo)', r2(Math.max(ratio(bg, shell), ratio(edge, shell))), 3])
+  } else {
+    add('tinta / relleno', ratio(ink, bg), 4.5)
+    add('relleno / carcasa', ratio(bg, shell), 3)
+    add('filo (barra) / relleno', ratio(over(rgba(resolve(sb, '--g-sidebar-active-border')), bg), bg), 3)
+    rows.push(['indicador ≥ 3:1 (relleno o barra)', r2(Math.max(ratio(bg, shell), ratio(over(rgba(resolve(sb, '--g-sidebar-active-border')), bg), bg))), 3])
+  }
+  add('foco / carcasa', ratio(focus, shell), 3)
+  const t = stage.querySelector('.meas tbody')
+  t.innerHTML = rows.map(([k, v, min]) => `<tr><td>${k}</td><td>≥ ${min}</td><td class="${v >= min ? 'ok' : 'ko'}">${v.toFixed(2)}:1 ${v >= min ? 'cumple' : 'no cumple'}</td></tr>`).join('')
+  stage.dataset.meas = JSON.stringify(rows)
+}
+
+// ---------- Posición de la ficha (A) y la lengüeta (C) ----------
+function place (sb, animate) {
+  const nav = sb.querySelector('nav')
+  const shape = nav.querySelector('.thumb, .tongue')
+  if (!shape) return
+  const rail = sb.classList.contains('sb--rail')
+  // Expandida: el item actual (también un hijo). Riel: el representante visible (padre de la rama) o el actual de primer nivel
+  const vis = rail ? (nav.querySelector('.lk.is-rep') || nav.querySelector('ul:not(.sub) > li > .lk[aria-current=page]')) : nav.querySelector('.lk[aria-current=page]')
+  if (!vis) { shape.classList.remove('on'); return }
+  const nr = nav.getBoundingClientRect(), r = vis.getBoundingClientRect()
+  const top = r.top - nr.top + nav.scrollTop, h = r.height
+  const prev = parseFloat(shape.style.getPropertyValue('--_t')) || top
+  if (shape.classList.contains('thumb')) {
+    // El borde de delante va rápido y el de atrás lento: la ficha se estira en la dirección del viaje y se recoge
+    const down = top > prev
+    shape.style.setProperty('--_dt', down ? 'var(--g-duration-slow)' : 'var(--g-duration-press)')
+    shape.style.setProperty('--_db', down ? 'var(--g-duration-press)' : 'var(--g-duration-slow)')
+    if (Math.abs(top - prev) > nav.clientHeight) shape.classList.remove('ready') // viaje de más de un visor: sin viaje
+    shape.style.setProperty('--_t', top + 'px'); shape.style.setProperty('--_b', (nav.clientHeight - top - h) + 'px')
+    shape.classList.add('on')
+    requestAnimationFrame(() => shape.classList.add('ready'))
+  } else {
+    const go = () => { shape.style.setProperty('--_t', top + 'px'); shape.style.setProperty('--_h', h + 'px'); shape.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => shape.classList.remove('out'))) }
+    if (animate && shape.classList.contains('on') && Math.abs(top - prev) > 1) {
+      shape.classList.add('out')
+      const d = document.body.classList.contains('rm') || matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 160
+      setTimeout(go, d)
+    } else { go(); requestAnimationFrame(() => shape.classList.add('ready')) }
+  }
+}
+
+function setCurrent (stage, id, animate) {
+  stage.dataset.cur = id
+  stage.querySelectorAll('.sb').forEach(sb => {
+    sb.querySelectorAll('.lk').forEach(l => {
+      const lid = l.dataset.id
+      if (l.tagName === 'A') { if (lid === id) l.setAttribute('aria-current', 'page'); else l.removeAttribute('aria-current') }
+      const branch = parentOf[id] === lid
+      l.classList.toggle('is-branch', branch)
+      l.classList.toggle('is-rep', branch && sb.classList.contains('sb--rail'))
+    })
+    sb.querySelectorAll('.sub').forEach(s => {
+      const c = s.querySelector('[aria-current=page]')
+      s.classList.toggle('has-cur', !!c)
+      // B: la ruta se enciende desde el asiento del padre hasta el nodo del hijo actual
+      if (c) s.style.setProperty('--_route', (s.clientHeight - (c.offsetTop + c.offsetHeight / 2)) + 'px')
+    })
+    place(sb, animate)
+  })
+  const nb = stage.querySelector('.navwrap')
+  nb.innerHTML = navbar(id, nb.dataset.label)
+  measure(stage, stage.dataset.concept)
+}
+
+document.querySelectorAll('.stages').forEach(box => {
+  const concept = box.dataset.concept
+  const L = { xa: 'A', xb: 'B', xc: 'C' }[concept]
+  STAGES.forEach((st, i) => {
+    const el = document.createElement('section')
+    el.className = 'stage' + (st.t === 'nisa' ? ' t-nisa' : '')
+    el.dataset.theme = st.s; el.dataset.concept = concept; el.dataset.key = `${L}-${st.t}-${st.s}`
+    el.setAttribute('aria-label', `${L} · ${st.name}`)
+    const cur = i % 2 ? 'p-all' : 'inbox'
+    el.innerHTML = `<h3>${st.name} <small>${L}</small></h3>
+      <div class="row"><div class="frame" style="flex:1">${sidebar(concept, false, cur, `Principal ${L} ${i + 1}`)}<div class="page">contenido</div></div>
+      <div class="frame">${sidebar(concept, true, cur, `Riel ${L} ${i + 1}`)}<div class="page"></div></div></div>
+      <div class="navwrap" data-label="Barra ${L} ${i + 1}"></div>
+      <table class="meas"><caption class="sr">Contraste medido, ${L}, ${st.name}</caption><thead><tr><th scope="col">Par</th><th scope="col">Mínimo</th><th scope="col">Medido</th></tr></thead><tbody></tbody></table>`
+    box.appendChild(el)
+    el.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-id]'); if (!a) return
+      e.preventDefault()
+      let id = a.dataset.id
+      if (a.tagName === 'BUTTON' && a.classList.contains('lk')) id = (ITEMS.flatMap(g => g.items).find(x => x.id === id).children[0]).id
+      setCurrent(el, id, true)
+    })
+  })
+})
+const all = () => document.querySelectorAll('.stage')
+const refresh = () => all().forEach(s => setCurrent(s, s.dataset.cur || 'inbox', false))
+requestAnimationFrame(() => { all().forEach((s, i) => setCurrent(s, (i % 4) % 2 ? 'p-all' : 'inbox', false)) })
+document.querySelectorAll('input[name=preset]').forEach(r => r.addEventListener('change', () => {
+  document.body.classList.remove('p-quiet', 'p-brand', 'p-integ'); document.body.classList.add(r.value); refresh()
+}))
+document.getElementById('fixdark').addEventListener('change', (e) => { document.body.classList.toggle('fixdark', e.target.checked); refresh() })
+document.getElementById('rm').addEventListener('change', (e) => document.body.classList.toggle('rm', e.target.checked))
+document.getElementById('rtl').addEventListener('change', (e) => { document.documentElement.dir = e.target.checked ? 'rtl' : 'ltr'; refresh() })
+window.addEventListener('resize', refresh)
+
+// ---------- H10 ----------
+const SPACE = 4, W_EXP = 66 * SPACE, W_RAIL = 16 * SPACE
+const $ = (id) => document.getElementById(id)
+function bands (ruler, cuts, max) {
+  // cuts: [{from, mode}] ordenados ascendentes
+  ruler.innerHTML = cuts.map((c, i) => { const to = i + 1 < cuts.length ? cuts[i + 1].from : max; const w = Math.max(0, to - c.from) / max * 100; return w ? `<span class="m-${c.mode === 'expanded' ? 'exp' : c.mode === 'rail' ? 'rail' : 'mob'}" style="inline-size:${w}%">${c.label}</span>` : '' }).join('') + `<i class="cur" style="inset-inline-start:${$('w').value / max * 100}%"></i>`
+}
+function resolveCuts (e, r) {
+  // Regla propuesta: rail > expanded se recorta a expanded (aviso de desarrollo); rail == expanded = sin riel
+  const warn = r > e
+  const rr = Math.min(r, e)
+  return { e, r: rr, warn }
+}
+function h10 () {
+  const w = +$('w').value, mob = $('mob').value, max = 1600
+  $('wOut').textContent = w
+  const pick = (e, r) => w >= e ? 'expanded' : w >= r ? 'rail' : mob
+  const A = resolveCuts(+$('aE').value, +$('aR').value)
+  bands($('rA'), [{ from: 0, mode: mob, label: mob }, { from: A.r, mode: 'rail', label: 'rail' }, { from: A.e, mode: 'expanded', label: 'expanded' }], max)
+  $('vA').textContent = pick(A.e, A.r) + (A.warn ? ' · aviso: rail > expanded, se recorta' : '') + (A.r === A.e ? ' · sin riel' : '')
+  const B = resolveCuts(+$('bE').value, +$('bR').value)
+  bands($('rB'), [{ from: 0, mode: mob, label: mob }, { from: B.r, mode: 'rail', label: 'rail' }, { from: B.e, mode: 'expanded', label: 'expanded' }], max)
+  $('vB').textContent = pick(B.e, B.r) + (B.warn ? ' · aviso: rail > expanded, se recorta' : '') + (B.r === B.e ? ' · sin riel' : '')
+  // C: expandida si queda contentMin junto al ancho expandido; riel si queda junto al riel (y está permitido); si no, móvil
+  const cm = +$("cMin").value, railOk = $('cRail').value === '1'
+  const ce = W_EXP + cm, cr = railOk ? W_RAIL + cm : ce
+  bands($('rC'), [{ from: 0, mode: mob, label: mob }, { from: cr, mode: 'rail', label: 'rail' }, { from: ce, mode: 'expanded', label: 'expanded' }], max)
+  $('vC').textContent = pick(ce, cr) + ` · cortes derivados: expanded ≥ ${ce}, ${railOk ? `rail ≥ ${cr}` : 'sin riel'}`
+  $('h10live').textContent = `A ${$('vA').textContent}; B ${$('vB').textContent}; C ${$('vC').textContent}`
+}
+;['w', 'mob', 'aE', 'aR', 'bE', 'bR', 'cMin', 'cRail'].forEach(id => $(id).addEventListener('input', h10))
+h10()
+
+// ---------- H11 ----------
+function h11 () {
+  const s = +$('s').value; $('sOut').textContent = s
+  document.documentElement.style.setProperty('--h11-size', s + 'px')
+  const dot = `<span class="appdot">${I('target')}</span>`
+  const mini = (id, rail) => `<aside class="sb${rail ? ' sb--rail' : ''}"><nav aria-label="${id}"><ul>
+      <li><a href="#" class="lk"><span class="ic" aria-hidden="true">${dot}</span><span class="lb">Laboratorio</span></a></li>
+      <li><a href="#" class="lk"><span class="ic" aria-hidden="true">${I('inbox')}</span><span class="lb">Bandeja</span></a></li></ul></nav></aside>`
+  const O = [
+    ['o1', 'Hoy', 'Hueco fijo de 20px (<code>--_ico</code>, privado): el círculo de 28px de la aplicación desborda la fila y el riel.'],
+    ['o2', '11-A · token <code>--g-sidebar-icon-size</code>', 'Un token de estructura (como <code>--g-sidebar-width</code>): el hueco y la fila crecen con él (fila = máx(alto del item, icono + <code>space × 3</code>)); el riel no crece: el token tiene techo = celda del riel (44px). Todos los iconos del sidebar cambian a la vez.'],
+    ['o3', '11-B · el hueco adopta su hijo', 'Sin token: si el hijo del hueco no es un <code>svg</code> (un <code>GAvatar</code>, un círculo propio), el hueco toma su caja (precedente #295 del avatar) y la fila crece; los iconos Lucide siguen a 20px. Techo: 44px.'],
+    ['o4', '11-C · solo el asiento de B', 'Sin token ni slot nuevo: el círculo lo pone el componente (asiento del concepto B) y la aplicación pasa un icono normal. Solo vale si se elige B.'],
+  ]
+  $('h11g').innerHTML = O.map(([k, t, d]) => `<div class="${k}"><h3>${t}</h3><p>${d}</p><div class="row"><div class="frame" style="flex:1">${k === 'o4' ? `<aside class="sb xb"><nav aria-label="${k}"><ul><li><a href="#" class="lk" aria-current="page"><span class="ic" aria-hidden="true">${I('target')}</span><span class="lb">Laboratorio</span></a></li><li><a href="#" class="lk"><span class="ic" aria-hidden="true">${I('inbox')}</span><span class="lb">Bandeja</span></a></li></ul></nav></aside>` : mini(k, false)}</div><div class="frame">${k === 'o4' ? `<aside class="sb xb sb--rail"><nav aria-label="${k} riel"><ul><li><a href="#" class="lk" aria-current="page"><span class="ic" aria-hidden="true">${I('target')}</span><span class="lb">Laboratorio</span></a></li></ul></nav></aside>` : mini(k + ' riel', true)}</div></div></div>`).join('')
+  document.querySelectorAll('#h11g .lk .ic').forEach(ic => {
+    const kid = ic.firstElementChild; if (!kid) return
+    const a = ic.getBoundingClientRect(), b = kid.getBoundingClientRect(), row = ic.closest('.lk').getBoundingClientRect()
+    const o = b.width > a.width + 0.5 || b.height > row.height + 0.5
+    ic.classList.toggle('ovf', o); ic.dataset.ovf = o ? '1' : '0'
+  })
+}
+$('s').addEventListener('input', h11)
+h11()
+</script>
+</body>
+</html>

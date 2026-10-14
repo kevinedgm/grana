@@ -4,7 +4,7 @@ Campo para **adjuntar archivos a un formulario**: la receta escaneada, las fotos
 
 **Etiqueta:** `<g-file-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/file-field/auditoria.md`](../../../../../design/lab/file-field/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/file-field` (global UMD `GranaFileField`)
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFileField`, `#sec-file-field`, con el adaptador simulado). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `DataTransfer` construible (para reescribir `input.files`) y `:has()`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFileField`, `#sec-file-field`, con el adaptador simulado). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `DataTransfer` construible (para reescribir `input.files`) y `:has()`.
 
 ## Instalación: entrada propia
 
@@ -47,6 +47,7 @@ Soltar un archivo fuera de un campo **no abre el archivo encima de tu formulario
 Sin `uploader`, los archivos quedan en estado `ready` y **viajan con el envío**: el `<input type="file">` real del campo lleva siempre los `File` que están en la lista. Con `name`, un `<form>` nativo o `new FormData(form)` los recibe sin código tuyo.
 
 ```vue
+<!-- Fragmento: `formLabels` y `enviar` son de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 import { formatFileSize } from '@grana/vue/file-field'
@@ -121,6 +122,7 @@ function xhrUploader(url) {
 ```
 
 ```vue
+<!-- Fragmento: `fotos`, `xhrUploader` y `labels` son de tu aplicación -->
 <g-file-field v-model="fotos" name="fotos" label="Fotos de la lesión" multiple :max="5"
               accept="image/*" :max-size="8000000" :uploader="xhrUploader('/api/adjuntos')" :labels="labels"></g-file-field>
 ```

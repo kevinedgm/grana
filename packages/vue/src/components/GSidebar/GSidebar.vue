@@ -28,6 +28,8 @@ export default defineComponent({
     collapsed: Boolean,
     open: Boolean,
     container: { type: [String, Object], default: undefined },
+    // Cortes de `auto` en px de ancho del contenedor (#618): { expanded?, rail? }; null = space × 240 / × 150
+    breakpoints: { type: Object, default: null },
     contained: Boolean,
     variant: { type: String, default: 'fixed', validator: oneOf(['fixed', 'floating']) },
     overlay: Boolean,
@@ -107,11 +109,36 @@ export default defineComponent({
     const unit = ref(4)
     let ro = null
     let containerEl = null
+    // Cortes resueltos (sidebar.md §«Cortes de adaptación», #618). Una clave no válida o desconocida se ignora (aviso B1);
+    // `rail` > `expanded` se recorta (aviso B2 solo si la aplicación dio las dos claves).
+    const BP_KEYS = ['expanded', 'rail']
+    const cuts = computed(() => {
+      const bp = props.breakpoints
+      const given = {}
+      if (bp && typeof bp === 'object') {
+        for (const k of Object.keys(bp)) {
+          const v = bp[k]
+          if (!BP_KEYS.includes(k)) { warnOnce(`bp-key-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`); continue }
+          if (v === undefined) continue
+          if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) { warnOnce(`bp-val-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`); continue }
+          given[k] = v
+        }
+      }
+      const expanded = 'expanded' in given ? given.expanded : unit.value * 240
+      let rail = 'rail' in given ? given.rail : unit.value * 150
+      if (rail > expanded) {
+        if ('rail' in given && 'expanded' in given) warnOnce('bp-clip', `breakpoints.rail (${rail}) es mayor que breakpoints.expanded (${expanded}): se recorta a ${expanded}.`)
+        rail = expanded
+      }
+      return { expanded, rail }
+    })
     const klass = computed(() => {
+      if (props.mode !== 'auto') return null
       if (containerW.value === null) return 'expanded'
       const w = containerW.value
-      if (w >= unit.value * 240) return 'expanded'
-      if (w >= unit.value * 150) return 'rail'
+      const { expanded, rail } = cuts.value
+      if (w >= expanded) return 'expanded'
+      if (w >= rail) return 'rail'
       return 'mobile'
     })
     const base = computed(() => (props.mode === 'auto' ? (klass.value === 'mobile' ? props.mobile : klass.value) : props.mode))
@@ -121,7 +148,7 @@ export default defineComponent({
     const collapsedNow = computed(() => format.value === 'rail')
 
     // Un cambio de clase de ancho (solo en `auto`) o de `mode` descarta la elección manual
-watch(klass, () => { if (props.mode === 'auto') manual.value = null })
+    watch(klass, () => { if (props.mode === 'auto') manual.value = null })
     watch(() => props.mode, () => { manual.value = null })
     watch(() => props.collapsed, (v) => {
       if (base.value !== 'expanded' && base.value !== 'rail') return
@@ -467,7 +494,8 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
         const expanded = rail ? flyOpen.value && flyItem.value?.id === item.id : openSet.value.has(item.id)
         return h('button', {
           type: 'button',
-          class: cls('g-sidebar__link g-sidebar__parent', branch && 'is-branch'),
+          // `is-rep` (#616): en el riel el padre representa al hijo actual (asiento lleno, sin aria-current)
+          class: cls('g-sidebar__link g-sidebar__parent', branch && 'is-branch', branch && rail && 'is-rep'),
           'data-id': String(item.id),
           'aria-expanded': expanded ? 'true' : 'false',
           'aria-controls': rail ? undefined : `${baseId}-${kind}-${item.id}`,
@@ -509,7 +537,7 @@ watch(klass, () => { if (props.mode === 'auto') manual.value = null })
       const list = h('ul', { class: 'g-sidebar__list', 'aria-labelledby': g.label ? titleId : undefined }, g.items.map((item) => {
         const children = item.children.length
           ? h('ul', {
-              class: cls('g-sidebar__sub', kind === 'side' && format.value === 'rail' ? '' : openSet.value.has(item.id) && 'is-open'),
+              class: cls('g-sidebar__sub', kind === 'side' && format.value === 'rail' ? '' : openSet.value.has(item.id) && 'is-open', isBranch(item) && 'has-current'),
               id: `${baseId}-${kind}-${item.id}`,
               inert: kind === 'side' && format.value === 'rail' ? '' : !openSet.value.has(item.id) ? '' : undefined
             }, item.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, kind)])))

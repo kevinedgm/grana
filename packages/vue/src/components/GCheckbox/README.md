@@ -4,7 +4,7 @@ Casilla de verificación. Usa el `<input type="checkbox">` nativo, con estado mi
 
 **Etiqueta:** `<g-checkbox>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/checkbox/auditoria.md`](../../../../../design/lab/checkbox/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `acepto` y `errorTerminos` son de tu aplicación -->
 <g-checkbox v-model="acepto" label="Acepto los términos" required :error="errorTerminos" />
 ```
 
@@ -41,6 +42,9 @@ Los atributos nativos (`name`, `form`, `aria-*`, `data-*`, escuchas como `@chang
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` («(opcional)» o asterisco) | sin valor (la marca la decide `GForm`) |
 | `id` | String | | generado |
 | `field` | Boolean | | `true` |
 
@@ -57,6 +61,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 - **`field`** (DECISIONS #262): con `true` (por defecto) la casilla es un **campo**: región de mensaje siempre presente y contexto de `GForm`. Con **`:field="false"`** es un **control suelto dentro de otro componente** (la casilla de cada fila de una colección): **sin región `g-checkbox__message`** (ni `aria-live`), sin leer el contexto de `GForm` (no hereda densidad, solo lectura, deshabilitado, errores ni marcas) y sin marca de obligatorio; `error`, `warning`, `valid`, `required` y `mark` se ignoran con aviso en desarrollo. Todo lo demás es igual. Úsalo solo cuando la casilla no es un campo del formulario: una vista que repite una casilla por elemento evita así cientos de regiones vivas vacías (`GTranscript` lo usa en sus filas, «Seleccionar todo» y «Con hablantes»).
 
 ```vue
+<!-- Fragmento: `todas`, `algunas` y `extras` son de tu aplicación -->
 <!-- estado mixto controlado -->
 <g-checkbox v-model="todas" :indeterminate="algunas" label="Todas las opciones" @update:indeterminate="algunas = $event" />
 
@@ -72,6 +77,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay prop `v
 - **`chip`:** un chip con forma de píldora. Marcado, muestra un icono `check` de Lucide que se desliza desde la izquierda y se rellena. Sigue siendo una casilla: Espacio la alterna.
 
 ```vue
+<!-- Fragmento: `extras` y `filtros` son de tu aplicación -->
 <g-checkbox v-model="extras" value="express" layout="card" label="Envío express" hint="Llega en 24 horas.">
   <template #icon><g-icon name="truck"></g-icon></template>   <!-- truck: regístralo con createIcons (ver GIcon) -->
   <template #meta>$99</template>
@@ -156,7 +162,7 @@ Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbo
 - **Sin detalle condicional** (una casilla que revela un bloque al marcarla): se compone con `v-if` y tu propio bloque. Ver DECISIONS.md #36.
 - **Sin interruptor** (`GSwitch`) ni árbol de casillas anidadas.
 - **Tarjeta:** el nombre es título + dato destacado y la descripción es aparte; el orden en que la anuncia cada lector varía.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (estado mixto, conteo del grupo, error, nombre de la tarjeta), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), el zoom al 200% y un dispositivo táctil real.
 
 ## Fuentes

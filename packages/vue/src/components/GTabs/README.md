@@ -4,7 +4,7 @@ Pestañas para navegar **entre vistas del mismo nivel dentro de una misma vista*
 
 **Etiquetas:** `<g-tabs>` y `<g-tab-panel>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/tabs/auditoria.md`](../../../../../design/lab/tabs/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú «Más» usa la API `popover`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú «Más» usa la API `popover`.
 
 > **No es navegación entre páginas ni un árbol.** No se anidan: un `GTabs` dentro del panel de otro avisa en desarrollo. Para pasos de un proceso usa `GStepper`.
 
@@ -47,6 +47,7 @@ const activa = ref('general')
 ### Apariencias y orientación
 
 ```vue
+<!-- Fragmento: `activa`, `pestanas`, `textos`, `periodo` y `periodos` son de tu aplicación -->
 <g-tabs v-model="activa" :items="pestanas" :labels="textos" label="Cuenta"></g-tabs>                                   <!-- underline (por defecto) -->
 <g-tabs v-model="activa" :items="pestanas" :labels="textos" label="Cuenta" appearance="pill" color="accent"></g-tabs>
 <g-tabs v-model="periodo" :items="periodos" label="Periodo" appearance="segmented" activation="manual"></g-tabs>
@@ -70,6 +71,7 @@ const activa = ref('general')
 ### Desbordamiento
 
 ```vue
+<!-- Fragmento: `activa`, `muchas` y `textos` son de tu aplicación -->
 <g-tabs v-model="activa" :items="muchas" :labels="textos" label="Secciones"></g-tabs>                          <!-- scroll, con degradado -->
 <g-tabs v-model="activa" :items="muchas" :labels="textos" label="Secciones" overflow="arrows"></g-tabs>      <!-- + botones en los bordes -->
 <g-tabs v-model="activa" :items="muchas" :labels="textos" label="Secciones" overflow="more"></g-tabs>        <!-- las que no caben van a «Más» -->
@@ -84,6 +86,7 @@ const activa = ref('general')
 ### Solo iconos
 
 ```vue
+<!-- Fragmento: `vista` y `textos` son de tu aplicación -->
 <script setup>
 const vistas = [
   { id: 'perfil', label: 'Perfil', icon: 'user' },        // icon cadena: nombre de Lucide
@@ -115,6 +118,7 @@ Cuando una pestaña muestra solo el icono, una **pista visual** con su nombre cu
 ### Cancelar un cambio
 
 ```vue
+<!-- Fragmento: `activa`, `pestanas`, `textos` y `hayCambiosSinGuardar` son de tu aplicación -->
 <g-tabs v-model="activa" :items="pestanas" :labels="textos" label="Cuenta"
   @change="(e) => { if (hayCambiosSinGuardar) e.preventDefault() }"></g-tabs>
 ```
@@ -124,6 +128,7 @@ Llama a `preventDefault()` de forma síncrona: no cambian el valor, ni la marca,
 ### Diálogo con pestañas (slot `tabs` de `GDialog`)
 
 ```vue
+<!-- Fragmento: `secciones`, `abierto` y `seccion` son de tu aplicación -->
 <g-dialog v-model="abierto" title="Ajustes del equipo" close-label="Cerrar" size="md">
   <template #tabs>
     <g-tabs v-model="seccion" :items="secciones" detached id="ajustes" label="Ajustes del equipo" density="compact"></g-tabs>
@@ -141,6 +146,7 @@ La cabecera de pestañas queda **fija**, a sangre, entre el encabezado y el cuer
 Con `detached`, `GTabs` pinta solo la cabecera y **los paneles los pones tú** con `GTabPanel`, donde quieras (otra rama del árbol, otra zona de la página). El enlace es por `id`, sin `provide/inject`, y el estado es explícito:
 
 ```vue
+<!-- Fragmento: `pestanas` y `activa` son de tu aplicación -->
 <g-tabs v-model="activa" :items="pestanas" detached id="mis-tabs" label="Cuenta"></g-tabs>
 
 <g-tab-panel v-for="p in pestanas" :key="p.id" tabs="mis-tabs" :value="p.id" :active="activa === p.id" lazy>
@@ -155,6 +161,7 @@ Pasa el **mismo `id`** a `GTabs` y a cada `GTabPanel` (`tabs`). `busy` pone `ari
 `GTabs` solo expone `v-model` y el evento: **no conoce rutas ni la URL**. La sincronización es tuya y opcional.
 
 ```vue
+<!-- Fragmento: `pestanas` y `textos` son de tu aplicación -->
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 const ids = pestanas.filter((p) => !p.disabled).map((p) => p.id)

@@ -4,7 +4,9 @@
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil), 0px en max() y los umbrales de
   consulta de medios (~900px y ~520px, excepción DECISIONS.md #42; @media no admite var()).
-  Constantes de coreografía (sin unidad, #299 y #301): la fracción 0.25 y el tope × 8 del origen desde el disparador.
+  Constantes de coreografía (sin unidad, #299, #301 y #586): la fracción 0.25 y el tope × 8 del origen desde el disparador;
+  el desplazamiento space × 6 de un paso que entra; la llegada (#589) en slow × 3. Sin --g-ease-spring ni
+  --g-ease-bounce en todo el diálogo (#299). space × 9: lo mínimo que enseña el nombre del padre en el hilo (unos 4 caracteres).
   Carácter propio: una carcasa y, dentro, una superficie inset a poca distancia con radio
   concéntrico. La profundidad sale de diferencias mínimas de fondo, bordes finos y sombras suaves.
   El botón de cierre lleva el x de Lucide (GIcon).
@@ -21,6 +23,8 @@
   --_ring: var(--g-focus-width);
   --_ctl: max(24px, calc(var(--g-space-1) * 9));
   --_inset-radius: max(0px, calc(var(--g-surface-radius-inset) + var(--g-surface-gap) - var(--_gap) - var(--g-border-width)));
+  /* Sentido del eje en línea (1 en LTR, -1 en RTL): los pasos y el hilo se mueven hacia el final o hacia el inicio */
+  --_flow: 1;
 
   box-sizing: border-box;
   inline-size: min(var(--_w), calc(100vw - var(--g-space-8)));
@@ -42,8 +46,13 @@
   display: flex;
   flex-direction: column;
 }
+.g-dialog:dir(rtl) { --_flow: -1; }
 .g-dialog::backdrop {
   background: var(--g-surface-backdrop);
+}
+/* Un solo fondo (L3): un nivel con otro modal debajo no suma el suyo; el fondo es el del nivel 1. */
+.g-dialog.is-stacked::backdrop {
+  background: transparent;
 }
 html:has(.g-dialog[open]) {
   overflow: hidden;
@@ -92,8 +101,10 @@ html:has(.g-dialog[open]) {
   background: var(--g-surface-inset);
 }
 
-/* Cierre: botón con el x de Lucide (GIcon, docs/contract/icons.md) */
-.g-dialog__close {
+/* Cierre: botón con el x de Lucide (GIcon, docs/contract/icons.md). «Volver» (modo pasos, §«Niveles anidados» B) es el
+   mismo botón al inicio del encabezado, con chevron-left (flip-rtl) */
+.g-dialog__close,
+.g-dialog__back {
   position: relative;
   flex: none;
   display: grid;
@@ -115,19 +126,23 @@ html:has(.g-dialog[open]) {
     color var(--g-duration-fast) var(--g-ease-standard),
     scale var(--g-duration-press) var(--g-ease-out);
 }
-.g-dialog__close > .g-icon {
+.g-dialog__close > .g-icon,
+.g-dialog__back > .g-icon {
   inline-size: 55%;
   block-size: 55%;
 }
 @media (hover: hover) {
-  .g-dialog__close:hover {
+  .g-dialog__close:hover,
+  .g-dialog__back:hover {
     background: var(--g-surface-inset);
     border-color: var(--g-color-border);
     color: var(--g-color-text);
   }
 }
-.g-dialog__close:active { scale: var(--g-press-scale); }
-.g-dialog__close:focus-visible {
+.g-dialog__close:active,
+.g-dialog__back:active { scale: var(--g-press-scale); }
+.g-dialog__close:focus-visible,
+.g-dialog__back:focus-visible {
   outline: var(--_ring) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
@@ -147,6 +162,239 @@ html:has(.g-dialog[open]) {
 .g-dialog--inset > .g-dialog__tabs .g-tabs__header::after { display: none; }
 /* Sin inset, el cuerpo vive en la carcasa y necesita aire bajo la línea base */
 .g-dialog:not(.g-dialog--inset) > .g-dialog__tabs + .g-dialog__body { padding-block-start: var(--g-space-4); }
+
+/* ---------- Niveles anidados · B «El hilo» (dialog.md §«Niveles anidados», #580 a #586) ----------
+   Un solo <dialog> con un historial de pasos. Bajo el encabezado, el hilo: los pasos lejanos son solo su número, el
+   padre (adonde lleva «Volver») enseña número y nombre, y el actual, número y nombre en acento, unido al padre por un
+   tramo de hilo en acento que se tiende al ir más hondo. Lo visible cede así en estrecho (375px, sin desborde):
+   1) el nombre del actual (ya está en el h2) y 2) el del padre, hasta space × 9 (unos 4 caracteres) con puntos
+   suspensivos, cediendo antes el actual (el padre toma primero el espacio libre); 3) solo entonces la lista parte
+   línea. Todo nombre sigue en el árbol (texto oculto, nunca display:none). */
+.g-dialog__trail {
+  --_chip: calc(var(--g-space-1) * 5);
+  --_link: var(--g-space-3);
+  --_title-min: calc(var(--g-space-1) * 9);
+  flex: none;
+  min-inline-size: 0;
+  margin-block: calc(var(--g-space-1) * -1) var(--g-space-3);
+  padding-inline: calc(var(--_pad) - var(--_gap));
+}
+.g-dialog__trail-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--g-space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-dialog__trail-item {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+/* El tramo entre dos pasos: un borde (sobrevive a forced-colors), no un fondo */
+.g-dialog__trail-item + .g-dialog__trail-item::before {
+  content: "";
+  flex: none;
+  inline-size: var(--_link);
+  margin-inline: var(--g-space-1);
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  transform-origin: left center;
+}
+.g-dialog__trail-item:dir(rtl)::before { transform-origin: right center; }
+/* Padre y actual reparten el espacio libre con base 0: el padre lo toma primero (crecimiento 100:1) hasta su ancho
+   natural y el actual se queda con lo que sobra; así parte línea solo cuando ni los mínimos caben. El mínimo es
+   explícito (tramo + número + space × 9 de nombre): el mínimo automático sería el nombre entero (nowrap) */
+.g-dialog__trail-item.is-parent,
+.g-dialog__trail-item.is-current {
+  --_lead: calc(var(--_link) + var(--g-space-1) * 2);
+  flex: 1 1 0;
+  min-inline-size: calc(var(--_lead) + var(--_chip) + var(--g-space-1) * 1.5 + var(--_title-min) + var(--g-space-2) + var(--g-border-width) * 2);
+  max-inline-size: max-content;
+}
+.g-dialog__trail-item:first-child { --_lead: calc(var(--g-space-1) * 0); }
+.g-dialog__trail-item.is-parent { flex-grow: 100; }
+
+.g-dialog__trail-step {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-inline-size: 24px;
+  min-block-size: 24px;
+  max-inline-size: 100%;
+  margin: 0;
+  padding-block: calc(var(--g-space-1) * 0.5);
+  padding-inline: calc(var(--g-space-1) * 0.5) var(--g-space-2);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-pill);
+  background: none;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  text-align: start;
+  -webkit-tap-highlight-color: transparent;
+}
+button.g-dialog__trail-step {
+  cursor: pointer;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  button.g-dialog__trail-step:hover {
+    background: var(--g-surface-inset);
+    border-color: var(--g-color-border);
+    color: var(--g-color-text);
+  }
+}
+button.g-dialog__trail-step:focus-visible {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (pointer: coarse) {
+  .g-dialog__trail { --_link: var(--g-space-2); }
+  button.g-dialog__trail-step {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    justify-content: center;
+  }
+}
+.g-dialog__trail-number {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_chip);
+  block-size: var(--_chip);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-on-neutral-soft);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.g-dialog__trail-title {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* Lejanos: solo el número; el nombre queda como texto oculto accesible */
+.g-dialog__trail-item:not(.is-parent, .is-current) .g-dialog__trail-title,
+.g-dialog__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.g-dialog__trail-item:not(.is-parent, .is-current) .g-dialog__trail-step {
+  padding-inline-end: calc(var(--g-space-1) * 0.5);
+}
+.g-dialog__trail-item.is-parent .g-dialog__trail-title,
+.g-dialog__trail-item.is-current .g-dialog__trail-title {
+  min-inline-size: var(--_title-min);
+}
+.g-dialog__trail-item.is-parent .g-dialog__trail-title {
+  color: var(--g-color-text);
+}
+/* Actual: una píldora de acento suave (par accent-soft / on-accent-soft, el texto con su par garantizado: accent-text
+   como texto solo llega a 4.5:1 sobre surface, y el hilo vive en la carcasa, surface-sunken: 4,22:1 medido) con el
+   número relleno de acento y contorno accent-text (tokens.md §7.1); el tramo que llega a él, en accent-text (forma sin
+   par, #439). No es un botón */
+.g-dialog__trail-item.is-current::before {
+  border-block-start-color: var(--g-color-accent-text);
+}
+.g-dialog__trail-item.is-current .g-dialog__trail-step {
+  background: var(--g-color-accent-soft);
+  color: var(--g-color-on-accent-soft);
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-dialog__trail-item.is-current .g-dialog__trail-number {
+  border-color: var(--g-color-accent-text);
+  background: var(--g-color-accent);
+  color: var(--g-color-on-accent);
+}
+
+/* Paneles de los pasos: los que no son el actual llevan hidden + inert (montados, base 6) */
+.g-dialog__step {
+  min-inline-size: 0;
+}
+.g-dialog__step[hidden] {
+  display: none;
+}
+/* Mientras dura un cambio de paso, el desplazamiento en línea no abre una barra horizontal en el cuerpo */
+.g-dialog--steps:is(.is-forward, .is-back) > .g-dialog__body,
+.g-dialog--steps:is(.is-forward, .is-back) > .g-dialog__inset > .g-dialog__body {
+  overflow-x: hidden;
+}
+
+/* Alto entre pasos (#586): el .vue mide el alto de la carcasa antes y después del cambio y lo escribe como
+   --_step-from-h / --_step-to-h (px) con is-resizing; el borde superior no se mueve porque D2 (is-pinned) sigue
+   fijándolo (la hoja móvil, anclada abajo, sube o se queda por --_sheet-hold). Durante el cambio el cuerpo no
+   enseña barra de desplazamiento. La animación (g-dialog-resize) está en «Movimiento»; con reduce no hay. */
+.g-dialog--steps.is-resizing > .g-dialog__body,
+.g-dialog--steps.is-resizing > .g-dialog__inset > .g-dialog__body {
+  overflow: hidden;
+}
+
+/* ---------- La llegada (data-g-landed, dialog.md «La llegada», #589) ----------
+   Una sola regla para todo componente que devuelve un valor (GDialog al bajar de paso, GFormFold al cerrar con
+   resultado). Marca la caja visible (data-g-tooltip-box) o el propio destino. Anillo de --g-focus-width en
+   --g-color-accent-text (forma ≥ 3:1, §7.1) que nace un poco fuera y se recoge hasta quedar justo por fuera del anillo
+   de foco (offset + 2 × focus-width), y se desvanece al tocarlo. Va en ::before (GBtn usa ::after para su área táctil;
+   ninguna caja de destino usa ::before). `position: relative` con especificidad 0 (:where): si el destino ya está
+   posicionado por su componente, gana su regla. El .vue la retira con el animationend de un nombre g-landed…. */
+:where([data-g-landed]) {
+  position: relative;
+}
+[data-g-landed]::before {
+  --_land-near: calc(var(--g-focus-offset) + var(--g-focus-width) * 2);
+  --_land-far: calc(var(--_land-near) + var(--g-space-2));
+  content: "";
+  position: absolute;
+  inset: calc(var(--_land-near) * -1);
+  z-index: 1;
+  box-sizing: border-box;
+  border: var(--g-focus-width) solid var(--g-color-accent-text);
+  border-radius: calc(var(--g-radius-md) + var(--_land-near));
+  pointer-events: none;
+  opacity: 0;
+  animation: g-landed calc(var(--g-duration-slow) * 3) var(--g-ease-out) both;
+}
+@keyframes g-landed {
+  0% {
+    inset: calc(var(--_land-far) * -1);
+    border-radius: calc(var(--g-radius-md) + var(--_land-far));
+    opacity: 0;
+  }
+  20% { opacity: 1; }
+  70% {
+    inset: calc(var(--_land-near) * -1);
+    border-radius: calc(var(--g-radius-md) + var(--_land-near));
+    opacity: 1;
+  }
+  100% {
+    inset: calc(var(--_land-near) * -1);
+    border-radius: calc(var(--g-radius-md) + var(--_land-near));
+    opacity: 0;
+  }
+}
+@keyframes g-landed-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
 
 /* ---------- Superficie inset ---------- */
 .g-dialog__inset {
@@ -315,6 +563,13 @@ html:has(.g-dialog[open]) {
   .g-dialog--mobile-sheet:not(.g-dialog--fullscreen) .g-dialog__footer {
     padding-block-end: calc(var(--g-space-3) * var(--_d) + env(safe-area-inset-bottom));
   }
+  /* Hoja durante un recorrido de pasos (#586, L11): no encoge. El .vue guarda el alto máximo alcanzado desde que se
+     abrió en --_sheet-hold (px) con has-sheet-hold; aquí es su alto mínimo, con el mismo tope que max-block-size
+     (min-block-size ganaría al máximo). Su borde superior sube al ir más hondo y no baja al volver. Solo bajo el
+     umbral: por encima, la clase y la variable quedan inertes (como D1/D2, #307) */
+  .g-dialog--mobile-sheet.has-sheet-hold:not(.g-dialog--fullscreen) {
+    min-block-size: min(var(--_sheet-hold), calc(100dvh - var(--g-space-12)));
+  }
   .g-dialog--mobile-full-width:not(.g-dialog--fullscreen) {
     inline-size: calc(100vw - var(--g-space-4));
   }
@@ -428,6 +683,69 @@ html:has(.g-dialog[open]) {
       }
     }
   }
+  /* Niveles anidados · B (#586; sin muelle, #299). El paso que entra llega de su lado: desde el final al ir más
+     hondo (is-forward), desde el inicio al volver o saltar (is-back), space × 6 en el eje en línea (espejado en RTL
+     por --_flow) con un fundido, en --g-duration-slow + --g-ease-out. Un salto anima una vez, al destino. El paso que
+     sale no se anima: se oculta en el mismo cuadro. El .vue retira is-entering e is-forward/is-back con el
+     animationend de un nombre g-dialog-step… del panel (los demás nombres de aquí no empiezan así). */
+  .g-dialog--steps.is-forward .g-dialog__step.is-entering {
+    animation: g-dialog-step-from-end var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-dialog--steps.is-back .g-dialog__step.is-entering {
+    animation: g-dialog-step-from-start var(--g-duration-slow) var(--g-ease-out);
+  }
+  /* El título, la descripción y el pie del paso nuevo se funden en press (nodos nuevos por paso; el pie, en su caja) */
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__titles > *,
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__footer {
+    animation: g-dialog-retitle var(--g-duration-press) var(--g-ease-out);
+  }
+  /* «Volver» aparece deslizándose hacia el inicio, adonde apunta; al pasar el puntero, el chevron se adelanta medio
+     paso hacia allí */
+  .g-dialog--steps .g-dialog__back {
+    animation: g-dialog-back-in var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-dialog__back > .g-icon {
+    transition: translate var(--g-duration-fast) var(--g-ease-out);
+  }
+  @media (hover: hover) {
+    .g-dialog__back:hover > .g-icon {
+      translate: calc(var(--_flow) * var(--g-space-1) * -0.5) 0;
+    }
+  }
+  /* El hilo se tiende: al ir más hondo, el tramo hacia el paso nuevo crece desde el padre (inicio) y el número del
+     actual aparece cuando el tramo llega */
+  .g-dialog--steps.is-forward .g-dialog__trail-item.is-current::before {
+    animation: g-dialog-thread var(--g-duration-slow) var(--g-ease-out) both;
+  }
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__trail-item.is-current .g-dialog__trail-step {
+    animation: g-dialog-retitle var(--g-duration-press) var(--g-ease-out) both;
+  }
+  .g-dialog--steps.is-forward .g-dialog__trail-item.is-current .g-dialog__trail-step {
+    animation-delay: calc(var(--g-duration-slow) - var(--g-duration-press));
+  }
+  /* Alto de la carcasa entre pasos (ver «Alto entre pasos»): de un alto medido al otro, con el borde superior fijo */
+  .g-dialog--steps.is-resizing {
+    animation: g-dialog-resize var(--g-duration-slow) var(--g-ease-out);
+  }
+  @keyframes g-dialog-step-from-end {
+    from { opacity: 0; translate: calc(var(--_flow) * var(--g-space-1) * 6) 0; }
+  }
+  @keyframes g-dialog-step-from-start {
+    from { opacity: 0; translate: calc(var(--_flow) * var(--g-space-1) * -6) 0; }
+  }
+  @keyframes g-dialog-retitle {
+    from { opacity: 0; }
+  }
+  @keyframes g-dialog-back-in {
+    from { opacity: 0; translate: calc(var(--_flow) * var(--g-space-2)) 0; }
+  }
+  @keyframes g-dialog-thread {
+    from { scale: 0 1; }
+  }
+  @keyframes g-dialog-resize {
+    from { block-size: var(--_step-from-h); }
+    to { block-size: var(--_step-to-h); }
+  }
   .g-dialog.is-loading .g-dialog__inset::before,
   .g-dialog:not(.g-dialog--inset).is-loading::after {
     animation: g-dialog-pulse var(--g-duration-spin) var(--g-ease-standard) infinite alternate;
@@ -438,7 +756,8 @@ html:has(.g-dialog[open]) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-dialog__close {
+  .g-dialog__close,
+  .g-dialog__back {
     transition:
       background-color var(--g-duration-fast) var(--g-ease-standard),
       border-color var(--g-duration-fast) var(--g-ease-standard),
@@ -457,6 +776,31 @@ html:has(.g-dialog[open]) {
     .g-dialog[open],
     .g-dialog[open]::backdrop { opacity: 0; }
   }
+  /* Niveles anidados (#586): solo fundidos entre pasos; sin desplazamiento, sin tramo que se tiende y sin animación
+     del alto (cambia de golpe con el borde fijo; is-resizing no anima). Los nombres siguen empezando por
+     g-dialog-step… para que el .vue retire las clases con el mismo animationend */
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__step.is-entering {
+    animation: g-dialog-step-fade var(--g-duration-fast) linear;
+  }
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__titles > *,
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__footer,
+  .g-dialog--steps:is(.is-forward, .is-back) .g-dialog__trail-item.is-current .g-dialog__trail-step,
+  .g-dialog--steps .g-dialog__back {
+    animation: g-dialog-retitle var(--g-duration-fast) linear;
+  }
+  .g-dialog__back:active { scale: none; }
+  /* La llegada: el mismo anillo, quieto en su sitio, se funde en fast tras sostenerse un momento (sin crecer ni
+     recogerse); 2 × slow + fast < los 1000 ms de respaldo del .vue */
+  [data-g-landed]::before {
+    opacity: 1;
+    animation: g-landed-fade var(--g-duration-fast) linear calc(var(--g-duration-slow) * 2) both;
+  }
+  @keyframes g-dialog-step-fade {
+    from { opacity: 0; }
+  }
+  @keyframes g-dialog-retitle {
+    from { opacity: 0; }
+  }
 }
 
 /* ---------- Colores forzados ---------- */
@@ -468,11 +812,29 @@ html:has(.g-dialog[open]) {
   .g-dialog__well {
     border-color: CanvasText;
   }
-  .g-dialog__close { border-color: ButtonText; }
+  .g-dialog__close,
+  .g-dialog__back { border-color: ButtonText; }
   .g-dialog__close:focus-visible,
-  .g-dialog__body:focus-visible {
+  .g-dialog__back:focus-visible,
+  .g-dialog__body:focus-visible,
+  button.g-dialog__trail-step:focus-visible {
     outline-color: Highlight;
   }
+  /* Hilo: tramos y números con el color del texto; el actual (y su tramo) en Highlight */
+  .g-dialog__trail-item + .g-dialog__trail-item::before,
+  .g-dialog__trail-number {
+    border-color: CanvasText;
+  }
+  .g-dialog__trail-item.is-current::before,
+  .g-dialog__trail-item.is-current .g-dialog__trail-number {
+    border-color: Highlight;
+  }
+  .g-dialog__trail-item.is-current .g-dialog__trail-step,
+  .g-dialog__trail-item.is-current .g-dialog__trail-number {
+    color: Highlight;
+  }
+  .g-dialog__trail-item.is-current .g-dialog__trail-step { border-color: Highlight; }
+  [data-g-landed]::before { border-color: Highlight; }
   .g-dialog.is-loading .g-dialog__inset::before,
   .g-dialog:not(.g-dialog--inset).is-loading::after {
     border-color: Highlight;

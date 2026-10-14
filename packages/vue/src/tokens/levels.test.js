@@ -44,6 +44,29 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
     }
   })
 
+  // Propiedades públicas de ENTRADA (api.md «Cabecera fija de la aplicación: una variable», #484, #629): longitudes que pone
+  // la aplicación con el alto de su cabecera fija. No son del tema: no están en defaults.css; las registra su hoja con
+  // @property (<length>, hereda, 0px) y su hoja las pone a 0 dentro de .g-dialog__body (#517). Excepción acotada y nombrada.
+  const PUBLIC_INPUTS = {
+    'GAccordion/GAccordion.css': ['--g-accordion-sticky-top'],
+    'GPageHeader/GPageHeader.css': ['--g-page-header-top']
+  }
+
+  it('las propiedades públicas de entrada las registra su hoja con @property y no son tokens del tema', () => {
+    for (const [sheet, names] of Object.entries(PUBLIC_INPUTS)) {
+      const s = sheets.find((x) => x.name === sheet)
+      expect(s, sheet).toBeTruthy()
+      for (const n of names) {
+        expect(defined.has(n), `${n} no es un token de defaults.css`).toBe(false)
+        const reg = s.css.match(new RegExp(`@property\\s+${n}\\s*\\{([^}]*)\\}`))
+        expect(reg, `${sheet} registra ${n} con @property`).toBeTruthy()
+        expect(reg[1]).toMatch(/syntax:\s*["']<length>["']/)
+        expect(reg[1]).toMatch(/inherits:\s*true/)
+        expect(s.css, `${sheet} pone ${n} a 0 en .g-dialog__body`).toMatch(new RegExp(`\\.g-dialog__body\\s*\\{[^}]*${n}\\s*:`))
+      }
+    }
+  })
+
   // Familia condicional de categorías (tokens.md §16.3 y §24; speech.md §23.6 y §28.1; DECISIONS.md #247): `--g-color-cat-K`,
   // `-strong`, `-soft`, `-text`, `--g-color-on-cat-K` y `--g-color-on-cat-K-soft` (K = 1 a 12) solo los emite el tema cuando su
   // configuración trae `categories: N`; defaults.css NO los define (por defecto `categories: 0`) y no debe definirlos. Por eso
@@ -118,5 +141,60 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
       }
     }
     expect(Object.fromEntries(Object.entries(bad).map(([k, v]) => [k, [...v]]))).toEqual({})
+  })
+})
+
+// Zona de marca (tokens.md §44.5, DECISIONS.md #623): todo token del bloque claro de defaults.css se redeclara en el
+// bloque [data-g-zone="brand"] o está en la lista de «no se redeclaran». Un token nuevo del grupo de color que falte en
+// los dos se resolvería en :root dentro de la zona (el fallo de la integración real).
+describe('zona de marca · lista del grupo (tokens.md §44.5)', () => {
+  const block = (re) => { const m = re.exec(strip(defaults)); return m ? m[1] : '' }
+  const light = block(/:root,\s*\[data-theme="light"\]\s*\{([\s\S]*?)\n\}/)
+  const zone = block(/\[data-g-zone="brand"\]\s*\{([\s\S]*?)\n\}/)
+  const names = (css) => new Set([...css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
+  const SOURCES = ['brand-zone', 'on-brand-zone', 'on-brand-muted', 'on-brand-accent', 'on-brand-success', 'on-brand-warning', 'on-brand-danger', 'on-brand-info', 'on-brand-veil', 'on-brand-accent-veil', 'zone-edge'].map((n) => `--g-color-${n}`)
+  // Rellenos con su propio par (§44.5) y velo modal y media; --g-glass-filter no es color (el del tema del usuario sigue valiendo)
+  const KEPT = [
+    ...['success', 'warning', 'danger', 'info'].flatMap((s) => [s, `${s}-strong`, `${s}-soft`, `on-${s}`, `on-${s}-soft`].map((n) => `--g-color-${n}`)),
+    '--g-surface-backdrop', '--g-card-scrim', '--g-card-on-scrim', '--g-glass-filter',
+    ...SOURCES
+  ]
+
+  it('hay bloque claro y bloque de la zona', () => {
+    expect(names(light).size).toBeGreaterThan(80)
+    expect(names(zone).size).toBeGreaterThan(50)
+  })
+
+  it('todo token del bloque claro está en la zona o en «no se redeclaran»', () => {
+    const z = names(zone)
+    expect([...names(light)].filter((n) => !z.has(n) && !KEPT.includes(n))).toEqual([])
+  })
+
+  it('la zona no redeclara lo que no debe (las fuentes, los rellenos con su par, el velo modal)', () => {
+    const z = names(zone)
+    expect(KEPT.filter((n) => z.has(n))).toEqual([])
+  })
+
+  it('la zona solo redeclara tokens que existen en el bloque claro', () => {
+    const l = names(light)
+    expect([...names(zone)].filter((n) => !l.has(n))).toEqual([])
+  })
+
+  it('las fuentes están en los tres bloques de esquema', () => {
+    const media = block(/@media \(prefers-color-scheme: dark\)\s*\{([\s\S]*?)\n\}/)
+    const dark = block(/\n\[data-theme="dark"\]\s*\{([\s\S]*?)\n\}/)
+    for (const css of [light, media, dark]) expect(SOURCES.filter((n) => !names(css).has(n))).toEqual([])
+  })
+
+  it('ningún componente lee las fuentes de la zona, salvo GSurface.css con --g-color-zone-edge', () => {
+    const bad = []
+    for (const s of sheets) {
+      for (const m of s.css.matchAll(/var\((--g-color-[a-z0-9-]+)/g)) {
+        if (!SOURCES.includes(m[1])) continue
+        if (s.name === 'GSurface/GSurface.css' && m[1] === '--g-color-zone-edge') continue
+        bad.push(`${s.name}: ${m[1]}`)
+      }
+    }
+    expect(bad).toEqual([])
   })
 })

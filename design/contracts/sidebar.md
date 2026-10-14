@@ -1,6 +1,6 @@
 # Contrato · GSidebar
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619)
 **Tag:** `g-sidebar` · **Categoría:** navegación
 
 Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante) y, en móvil, **navbar inferior** con la «píldora activa» o **drawer**. Alcance decidido por el usuario (DECISIONS.md #67 a #70): navegación por arreglo `items` y slots, búsqueda que solo dispara un evento, adaptación por el ancho del contenedor con `mode` manual, navbar inferior con los primeros N items y «Más», estilo «píldora activa».
@@ -26,13 +26,14 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 | `collapsed` | Boolean | | `false` | propia (con `update:collapsed`) |
 | `open` | Boolean | | `false` | propia (drawer; con `update:open`) |
 | `container` | String \| Element | selector CSS o elemento | el elemento padre | propia |
+| `breakpoints` | Object \| null | `{ expanded?, rail? }` en px de ancho del contenedor | `null` (`space × 240` / `space × 150`) | propia (cortes de `auto`; #618) |
 | `contained` | Boolean | | `false` | propia |
 | `variant` | String | `fixed` `floating` | `fixed` | propia (no es la lista compartida) |
 | `overlay` | Boolean | | `false` | propia |
 | `barCount` | Number | 3, 4 o 5 | `4` | propia |
 | `search` | Boolean | | `false` | propia |
 | `closeOnNavigate` | Boolean | | `true` | propia (drawer) |
-| `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (relleno de la píldora) |
+| `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (contadores y puntos; **ya no** la píldora, #615) |
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
 
@@ -43,6 +44,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **`label`:** nombre accesible del `<nav>`. **Obligatorio**: sin `label` (ni `aria-label` en `$attrs`) avisa en desarrollo. Sin valor por defecto.
 - **`mode`:** con `auto` decide la adaptación por el ancho (ver «Adaptación»); los demás lo fijan. `mode="navbar"` o `"drawer"` fijan el formato móvil aunque el contenedor sea ancho.
 - **`mobile`:** en `auto`, por debajo del umbral del riel: `navbar` (barra inferior con «Más») o `drawer` (sin barra; el botón de menú lo pone la aplicación y abre con `open`).
+- **`breakpoints`:** ver «Cortes de adaptación». Solo actúa con `mode="auto"`.
 - **`collapsed`:** el usuario contrae y expande con el botón de la cabecera; **esa elección se conserva mientras el ancho del contenedor no cambie de clase** (expandida / riel / móvil): al cambiar de clase se descarta y vuelve a decidir el ancho. Con `mode` distinto de `auto`, `collapsed` solo actúa en `expanded` y `rail` (`collapsed` = `rail`). Emite `update:collapsed`.
 - **`open`:** abre y cierra el drawer (`<dialog>` modal): el del modo `drawer` y el «Más» del navbar. Emite `update:open`.
 - **`container`:** el elemento cuyo **ancho** decide el modo `auto`; por defecto, el elemento padre de la raíz (el contenedor del diseño). Se observa con un observador de tamaño.
@@ -52,7 +54,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **`barCount`:** cuántos items van en la barra (además de «Más»).
 - **`search`:** muestra el disparador de búsqueda en la cabecera (campo compacto expandido, botón de icono en riel; en el navbar vive en el drawer). El texto y el atajo salen de `labels`. Solo emite `search`.
 - **`closeOnNavigate`:** el drawer se cierra al elegir un destino (`navigate` no cancelado).
-- **`color`:** relleno de la píldora activa del navbar y de los indicadores (`--g-color-{color}` y `on-`); **el estado activo del sidebar es neutro** (superficie elevada), no colorido.
+- **`color`:** relleno de los **contadores y puntos** (`--g-color-{color}` y `on-`) en todos los formatos. **No pinta el item actual ni la píldora del navbar**: los dos leen las ranuras del item actual (`--g-sidebar-current*`, §«Item actual: el asiento»; #615, cambia el uso de #68). Quien usaba `color` para teñir la píldora pasa a `--g-sidebar-current` en el tema.
 - **`density`:** multiplica la altura del item (1×, 0.875×, 0.75×) con piso de 24px, como el resto; el navbar no la usa (objetivos táctiles).
 - **Atributos:** `class`, `style`, `data-*` y `aria-*` (salvo `aria-label`, que es `label`) van a la **raíz**.
 
@@ -97,19 +99,41 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 
 ## Adaptación (`mode="auto"`)
 
-Se decide por el **ancho del contenedor** (`container`), medido con un observador de tamaño; **sin literales**: los umbrales derivan de `--g-space-1`:
+Se decide por el **ancho del contenedor** (`container`), medido con un observador de tamaño. Sin `breakpoints`, **sin literales**: los umbrales derivan de `--g-space-1`; con `breakpoints`, los pone la aplicación (§«Cortes de adaptación»):
 
 | Ancho del contenedor | Formato |
 | --- | --- |
-| ≥ `--g-space-1 × 240` (960px con `space` 4) | **Expandida** |
-| ≥ `--g-space-1 × 150` (600px) y menor que el anterior | **Riel** |
-| menor que `--g-space-1 × 150` | **Móvil**: `navbar` o `drawer` según `mobile` |
+| ≥ `breakpoints.expanded` (por defecto `--g-space-1 × 240`, 960px con `space` 4) | **Expandida** |
+| ≥ `breakpoints.rail` (por defecto `--g-space-1 × 150`, 600px) y menor que el anterior | **Riel** |
+| menor que `breakpoints.rail` | **Móvil**: `navbar` o `drawer` según `mobile` |
 
 - **No usa el número de items** (el scroll de la región central lo resuelve) ni el tipo de puntero: `pointer: coarse` solo sube los objetivos a 44px y en un riel táctil el panel se abre con toque.
 - **La elección manual del usuario** (contraer o expandir) se conserva mientras la **clase de ancho** no cambie.
 - El componente emite **`mode-change`** con `{ mode }` (`expanded` `rail` `navbar` `drawer`) cada vez que el formato resuelto cambia, **para que la aplicación reserve el espacio** (ver «Espacio en el diseño»).
 - **Un solo estado de navegación:** el destino actual y las ramas abiertas se conservan al cambiar de formato.
 - **Consulta de medios:** no hay ninguna; `pointer: coarse` y `prefers-reduced-motion` son preferencias del navegador, no umbrales de tema.
+
+### Cortes de adaptación (`breakpoints`; r02 hallazgo 10, elección del usuario 10-A; DECISIONS.md #618)
+
+`breakpoints` es un objeto `{ expanded?, rail? }` con dos números en **px de ancho del contenedor** (el mismo ancho que ya mide `auto`, no el visor). Es configuración **de la instancia**, no del tema: cada sidebar puede tener los suyos (una navegación secundaria con cortes distintos de la principal).
+
+| Regla | Comportamiento |
+| --- | --- |
+| Sin prop, `null` o `{}` | Los cortes de hoy: `expanded` = `--g-space-1 × 240`, `rail` = `--g-space-1 × 150` (siguen a `space`) |
+| Una sola clave | La otra conserva su valor por defecto (`{ expanded: 1024 }` → riel desde 600px) |
+| Valor no numérico, no finito o negativo | Esa clave se ignora (valor por defecto) y avisa una vez en desarrollo (aviso B1) |
+| Clave desconocida | Se ignora y avisa una vez (aviso B1) |
+| `rail` > `expanded` | `rail` **se recorta** a `expanded`. Avisa una vez (aviso B2) solo si la aplicación dio **las dos** claves; si `rail` es el valor por defecto (`{ expanded: 500 }`), se recorta sin aviso (no hay riel) |
+| `rail` = `expanded` | **No hay riel** en `auto`: expandida desde el corte, móvil por debajo |
+| `rail: 0` | Nunca móvil en `auto`: riel por debajo de `expanded` |
+| `expanded: 0` | Siempre expandida en `auto` (el `rail` por defecto se recorta a 0 sin aviso) |
+| `mode` distinto de `auto` | La prop no actúa (sin aviso) |
+| Cambio de la prop | Se vuelve a decidir **al momento**, sin esperar a un cambio de tamaño; si la clase de ancho cambia, se descarta la elección manual de `collapsed` como en un cambio de tamaño y se emite `mode-change` |
+
+- **Caso real del hallazgo** (drawer por debajo de 1024px, sin riel): `:breakpoints="{ expanded: 1024, rail: 1024 }" mobile="drawer"` (medido por kiwi en r02: 1000px → drawer, 1100px → expandida).
+- **Límite asumido:** unos px de la aplicación **no siguen a `space`** si el integrador lo cambia; es el precio de que el corte sea explícito y por instancia (10-B, tokens leídos con `getComputedStyle`, y 10-C, `contentMin`, quedan descartados en #618).
+- **Comparación:** `≥` en los dos cortes, como hoy; sin histéresis nueva.
+- **Avisos** (`[Grana] GSidebar`, una vez por instancia y causa, con el patrón de `typeof process`): **B1** `breakpoints.{clave}` no válido o desconocido, se usa el valor por defecto; **B2** `breakpoints.rail` (N) es mayor que `breakpoints.expanded` (M), se recorta a M.
 
 ## Movimiento
 
@@ -119,7 +143,7 @@ El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario p
 | --- | --- | --- |
 | Expandir y contraer | Ancho de la raíz; las etiquetas, títulos y atajo **entran** un instante después, ya con sitio | La raíz es la misma en `expanded` y `rail` (cambia solo la clase `--mode-*`); el icono del botón se voltea |
 | Submenú en línea | Altura y opacidad (`is-open`) | `interpolate-size`; sin soporte, abre sin animar |
-| Item activo | Fondo, contorno y peso pasan de un item al otro con un fundido corto | Sin re-render |
+| Item actual (asiento) | El asiento del destino **se llena desde el centro**; el del origen se vacía con un fundido; el aro, la ruta y el nodo con fundido (§«Item actual: el asiento», «Movimiento») | Sin re-render; con movimiento reducido, solo fundidos |
 | Pulsación | Encogimiento mínimo (`scale`) de items y celdas del navbar | Suelta más rápido que aprieta |
 | Panel flotante | Nace de la muesca (`transform-origin`), con opacidad, escala y un desplazamiento corto; **también se anima al cerrar** | Persistente; sin `scale(0)` |
 | Pista | La de `GTooltip` (#436): fundido; relevo sin entrada tras otra reciente; **viaje** entre items de la navegación con `--g-duration-press` + `--g-ease-out` | Con movimiento reducido, el viaje salta |
@@ -131,6 +155,67 @@ El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario p
 - **Movimiento reducido:** se conservan los **fundidos** y se quitan los desplazamientos, las escalas y los escalonados (menos y más suave, no cero).
 - **Frecuencia:** el hover de un item es solo color (sin movimiento); nada anima al navegar con el teclado más allá del cambio de estado.
 
+## Item actual: el asiento (r02 hallazgos 2 y 11; DECISIONS.md #612 a #617 y #619)
+
+**Elección del usuario: B · Asiento**, con relleno en el tema por defecto (no Δ0). **La fila no se rellena**: la marca es el **asiento del icono**, un círculo detrás del icono de un item de primer nivel. **Lleno = estás aquí. Hueco (solo aro) = la página actual está dentro (rama).** Es la **misma marca** en expandida, riel, drawer y navbar, donde el asiento **crece hasta la píldora**. Sustituye a la superficie `inset` + contorno `border-strong` + barra de acento del activo (#89 y #239 quedan enmendadas para `GSidebar` en #612).
+
+### Ranuras (tokens de componente, `tokens.md` §43)
+
+| Token | Pinta | Por defecto (claro y oscuro; los escribe coco) |
+| --- | --- | --- |
+| `--g-sidebar-current` | **Relleno**: el asiento lleno, el nodo del hijo actual y la píldora del navbar | `var(--g-color-primary)` |
+| `--g-sidebar-on-current` | **Tinta sobre el relleno**: el icono dentro del asiento lleno; icono y etiqueta de la píldora | `var(--g-color-on-primary)` |
+| `--g-sidebar-current-edge` | **Filo**: aro del asiento (lleno y hueco), aro del nodo, ruta encendida, trazo interior de la píldora | `var(--g-color-primary-text)` |
+
+- Son **tokens de componente** (§17.6): ningún semántico expresa «relleno del item actual de la navegación» sin teñir con `primary` toda la interfaz, y la identidad del actual es **de tema**, no de instancia (por eso no es una prop). Precedente: `--g-card-selected` (#134).
+- **Por qué esos valores:** el asiento lleno es un relleno de familia **marcado** (§7.1, #431): relleno `{familia}`, marca `on-{familia}`, contorno `{familia}-text`. En el tema por defecto `primary-text` = `primary` (claro y oscuro): el aro no se ve aparte; con una marca pálida, es el filo que da el 3:1.
+- **La etiqueta de una fila no lee las ranuras:** queda en `--g-color-text` con `--g-text-action-weight` (actual, rama y representante). Solo en la píldora del navbar, donde está sobre el relleno, va en `--g-sidebar-on-current`.
+- Se redeclaran en los bloques oscuros de `defaults.css` (un `var()` se resuelve donde se declara, §10; como `--g-surface-inset`). Un tema acotado a una clase (`.t-nisa`) debe redeclararlas igual que los alias de rol.
+
+### Pares (regla del contrato; coco los mide, el CLI los diagnostica)
+
+| # | Par | Mínimo | Por qué | En el tema por defecto |
+| --- | --- | --- | --- | --- |
+| P1 | `on-current` / `current` | **4.5:1** | La píldora del navbar lleva **texto** sobre el relleno (1.4.3). En el asiento bastaría 3:1 (icono, 1.4.11), pero una sola ranura sirve a los dos | Garantizado: `on-primary` / `primary` (§2) |
+| P2 | `current-edge` / `--g-surface-shell` | **3:1** | El asiento hueco de la rama, el aro del nodo y la ruta **son solo filo** (1.4.11). Con el aro siempre dibujado, el asiento lleno también llega a 3:1 frente a la carcasa aunque su relleno no llegue | Garantizado: `primary-text` ≥ 4.5:1 sobre `surface` (§2); medido ≥ 4.21:1 sobre `surface-sunken` (§7.1) |
+| P3 | `current-edge` / `--g-color-surface` | **3:1** | La píldora vive sobre la superficie del navbar; el nodo del hijo actual en el panel flotante, sobre la del panel | Garantizado (§2) |
+
+- **Sin P4 relleno/carcasa:** no se exige (P2 es la señal). La identidad «marino relleno» del caso real pasa con su propio aro.
+- **1.4.1:** además del color, la forma (lleno / hueco / nodo), el peso de la etiqueta y `aria-current` (o su ausencia en la rama).
+
+### Anatomía (sin DOM nuevo)
+
+- **Asiento:** la caja `g-sidebar__icon` de un **enlace o padre de primer nivel** de la navegación (`g-sidebar__link > .g-sidebar__icon`; ni la búsqueda, ni contraer, ni las celdas inactivas del navbar) crece al **asiento**: alias local `--_seat` = `--_ico + --g-space-1 × 3` (32px con `space` 4), con el glifo a `--_ico` en su centro. Relleno y aro en pseudo-elementos de la caja (`aria-hidden` ya). **El mismo tamaño en expandida, drawer y riel** (no cambia de forma al contraer; la celda del riel sigue siendo de 44px). Con `density` el asiento nunca desborda la fila: coco decide el valor de `compact` (fila 30px) midiendo; en `default`, el alto de la fila no cambia.
+- **Item de primer nivel sin icono:** la caja `g-sidebar__icon` ya se dibuja vacía (`GSidebar.vue`); su asiento lleno es un disco (la marca no depende del icono).
+- **Hijo actual:** **nodo** (círculo pequeño, relleno `current`, aro `current-edge`) sobre la línea de conexión, a la altura del hijo; la línea se **enciende** en `current-edge` desde el asiento del padre hasta el nodo (la ruta). Pseudo-elementos del enlace hijo y de `g-sidebar__sub` (clase nueva **`has-current`** en el `<ul>`, la pone bruno).
+- **Panel flotante del riel:** el hijo actual lleva el **nodo** al inicio lógico de su fila, sin línea (el panel no la tiene).
+- **Slot `item`:** sustituye icono y etiqueta, así que **no hay asiento**; el slot recibe `active` y la marca es de la aplicación (`aria-current` sigue). Límite documentado, sin aviso.
+
+### Estados
+
+| Estado | Expandida y drawer | Riel | Navbar |
+| --- | --- | --- | --- |
+| Actual (`aria-current="page"`, `is-active`) | Asiento **lleno** + aro; icono `on-current`; etiqueta `text` con peso | Asiento lleno + aro | Píldora (el asiento crecido) |
+| Hijo actual | Nodo + ruta encendida; etiqueta `text` con peso | El hijo vive en el panel: nodo al abrirlo | — (el padre o «Más» es la píldora) |
+| Rama (`is-branch`: padre con hijo actual) | Asiento **hueco** (solo aro); etiqueta `text` con peso; sin `aria-current` | El padre **representa** al actual: `is-branch` **+ `is-rep`** = asiento **lleno**, sin `aria-current` | Píldora en el padre o en «Más» (#68, como hoy) |
+| Hover | Solo en las filas que no son el actual ni su representante: `:not([aria-current="page"], .is-active, .is-rep)` (#564 ampliada en #616); la rama hueca sí recibe hover | Igual | Sin cambio |
+| Foco | Anillo `--g-color-focus` **fuera** de la fila, con `--g-focus-offset` de carcasa entre anillo y asiento (no depende del relleno) | Igual | Igual |
+| Pulsado | El encogimiento de siempre | Igual | Igual |
+| Deshabilitado | Nunca es actual ni rama | | |
+
+- **`is-rep`** (nueva): la pone bruno en el **padre** cuyo hijo es el actual **solo mientras el formato resuelto es `rail`** (expandida y riel comparten DOM: se alterna al cambiar de formato, sin re-render). No añade `aria-*`: `aria-current` sigue solo en el hijo, dentro del panel (4.1.2).
+- **Movimiento** (§29; #617): el asiento del destino **se llena desde el centro** (`clip-path` circular) con `--g-duration-slow` + **`--g-ease-spring`** (sexto uso; aprobado por el usuario en #635, que amplía #299 y #617; `tokens.md` §29.1); el del origen se vacía con un **fundido** `--g-duration-fast`; aro, nodo y ruta con fundido `--g-duration-fast`. **La tinta del destino cambia cuando el relleno ya la cubre** (retardo): nunca, ni un cuadro, `on-current` sobre la carcasa. La píldora del navbar conserva su crecimiento (240ms). **Con `prefers-reduced-motion: reduce`: solo fundidos** (`--g-duration-fast`), sin llenado, sin crecimiento de la píldora, sin dibujar la ruta. Nada se anima al montar.
+- **`forced-colors`:** asiento lleno, nodo y píldora con `forced-color-adjust: none`: relleno **`Highlight`**, icono (y etiqueta de la píldora) **`HighlightText`**; aro del asiento (lleno y hueco), del nodo y trazo de la píldora en **`CanvasText`**; ruta encendida en `Highlight`; foco `Highlight`. La etiqueta de la fila sigue en `CanvasText` (sin ajuste).
+- **RTL:** propiedades lógicas; el nodo y la ruta se espejan con el inicio lógico.
+
+### Hueco del icono (hallazgo 11: 11-C, recomendación de kiwi; #619)
+
+**El asiento resuelve el hueco:** el círculo de fondo lo pone el componente, así que la aplicación pasa **un icono normal** (1em, `currentColor`; `item.icon` por nombre o slot `icon`), no un icono con fondo propio. El hueco del glifo sigue en `--_ico` (privado, `space × 5`). Un hijo del slot `icon` mayor que `--_ico` no está soportado (límite documentado, sin aviso). **Reservado (11-A):** `--g-sidebar-icon-size` como token de tamaño del glifo, sin valor ni uso hasta que un caso real lo pida; 11-B (el hueco adopta su hijo) descartado.
+
+### CLI
+
+Diagnóstico informativo de P1 a P3 en claro y oscuro y **derivación del oscuro** cuando el tema declara las ranuras: `tokens.md` §43 y DECISIONS.md #614.
+
 ## Formatos
 
 ### Expandida
@@ -139,7 +224,7 @@ Cabecera (logo, botón de contraer, búsqueda opcional), región de navegación 
 
 ### Riel
 
-Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (siguen en el DOM); iconos de **44px**; el estado activo se conserva; un contador o punto pasa a una marca sobre el icono. Un padre lleva `aria-haspopup="true"` y una marca de submenú.
+Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (siguen en el DOM); iconos de **44px**; el estado activo se conserva con **el mismo asiento** que en expandida y, si el actual es un hijo, el **padre lo representa** (`is-rep`, asiento lleno; §«Item actual: el asiento»); un contador o punto pasa a una marca sobre el icono. Un padre lleva `aria-haspopup="true"` y una marca de submenú.
 
 - **Panel flotante** (`popover="manual"`, `role="group"`, `aria-label` = etiqueta del padre): título visible con el nombre del padre y sus hijos, **pegado al item** con un hueco de 4px y una muesca que lo conecta; se abre con **clic, Enter, Espacio o →** y con el **puntero encima** (retardo de **150ms**); **el foco solo no lo abre**. Al abrir con teclado, el foco va al hijo actual (o al primero); ↑ ↓ Inicio Fin se mueven; **Esc o ←** cierran y devuelven el foco al padre; Tab hacia fuera lo cierra; clic fuera lo cierra. Con el puntero, salir del item o del panel da **220ms de gracia** para llegar al otro.
 - **Pista**: el nombre del control, junto a él, con la forma y el comportamiento de `GTooltip` (§«Pista del riel», #436): con el puntero tras **350ms**, al instante con el foco **por navegación**, al instante y sin entrada si otra se vio hace menos de **600ms**; también en los **padres** hasta que se abre su panel.
@@ -149,7 +234,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 
 `<nav aria-label>` flotante en el borde inferior: superficie de esquinas amplias con sombra suave y margen; contiene un `<ul>` con **`barCount` items** y un botón final **«Más»**.
 
-- **Píldora activa:** el item actual (o la rama, o «Más» si la página actual no está en la barra) se **expande** en una píldora rellena con `--g-color-{color}` que muestra **icono y etiqueta**; los demás items muestran **solo el icono** (etiqueta oculta visualmente, **siempre en el DOM**). El ancho de la píldora se anima al cambiar de página (transición corta); con `prefers-reduced-motion: reduce` el cambio es inmediato.
+- **Píldora activa:** el item actual (o la rama, o «Más» si la página actual no está en la barra) se **expande** en una píldora que es **el asiento crecido** (§«Item actual: el asiento»): relleno `--g-sidebar-current`, icono y etiqueta en `--g-sidebar-on-current` y trazo interior `--g-sidebar-current-edge` (ya no `--g-color-{color}`, #615); muestra **icono y etiqueta**; los demás items muestran **solo el icono** (etiqueta oculta visualmente, **siempre en el DOM**). El ancho de la píldora se anima al cambiar de página (transición corta); con `prefers-reduced-motion: reduce` el cambio es inmediato.
 - **Objetivos:** cada celda de al menos **44×48px**; la etiqueta visible de la píldora de al menos 12px y **corta** (el desborde se recorta con elipsis). Relleno inferior con el área segura (`env(safe-area-inset-bottom)`).
 - **Items de la barra:** los `primary` o los primeros `barCount`. Un **padre** en la barra es un botón `aria-haspopup="dialog"` que **abre el drawer con su rama abierta**. **«Más»** (`aria-haspopup="dialog"`) abre el drawer completo (grupos, búsqueda, usuario).
 - **Orientación:** si el destino actual **no** está en la barra, «Más» (o el padre) queda como **rama activa** con el texto oculto `labels.moreActive`; nunca lleva `aria-current`.
@@ -194,7 +279,8 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
   <div class="g-sidebar__foot">…slot user…</div>
 </div>
 
-<!-- Riel: el mismo marcado, con g-sidebar--mode-rail; el padre lleva aria-haspopup="true" y aria-expanded según su panel -->
+<!-- Riel: el mismo marcado, con g-sidebar--mode-rail; el padre lleva aria-haspopup="true" y aria-expanded según su panel;
+     si su hijo es el actual, is-branch + is-rep (asiento lleno, sin aria-current). Expandida: el <ul> de hijos con el actual lleva has-current -->
 <div class="g-sidebar__fly" popover="manual" role="group" aria-label="Proyectos"><div class="g-sidebar__fly-title">Proyectos</div><ul>…<li><a class="g-sidebar__link" href="/p" aria-current="page">…</a></li></ul></div>
 <div class="g-tooltip" popover="manual" aria-hidden="true">…<span class="g-tooltip__text" dir="auto">Inicio</span>…</div>   <!-- uno por control del riel, al final de la raíz (#436) -->
 
@@ -314,7 +400,8 @@ La aplicación reserva el espacio del sidebar en su diseño; el componente no em
 | --- | --- |
 | `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border`, `--g-color-border-strong`, `--g-color-focus` | Superficie, borde y foco |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiquetas, iconos y títulos de grupo |
-| `--g-color-{color}`, `--g-color-on-{color}` | Píldora activa y contadores del navbar |
+| `--g-color-{color}`, `--g-color-on-{color}` | Contadores y puntos (#615: ya no la píldora) |
+| `--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge` | Item actual: asiento, nodo, ruta y píldora (§«Item actual: el asiento») |
 | `--g-surface-inset`, `--g-surface-radius`, `--g-surface-radius-inset`, `--g-surface-backdrop` | Superficie flotante, navbar y drawer (sistema §11) |
 | `--g-shadow-2`, `--g-shadow-3` | Superficie flotante, panel, navbar |
 | `--g-radius-*` | Radios de item, panel y píldora |
@@ -322,9 +409,10 @@ La aplicación reserva el espacio del sidebar en su diseño; el componente no em
 | `--g-font-ui`, `--g-text-{caption|body-sm|body}-{size|line}`, `--g-text-action-weight` | Texto |
 | `--g-border-width`, `--g-focus-width`, `--g-focus-offset` | Bordes y foco |
 | `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard`, `--g-ease-out` | Transiciones cortas (ancho, etiquetas, panel, píldora, drawer) |
+| `--g-duration-slow`, `--g-ease-spring` | Llenado del asiento (#617) |
 | `--g-glass-*` | **No** se usan |
 
-**Tokens nuevos** (`tokens.md` §13): `--g-sidebar-width`, `--g-sidebar-rail`, `--g-sidebar-bar`.
+**Tokens nuevos** (`tokens.md` §13): `--g-sidebar-width`, `--g-sidebar-rail`, `--g-sidebar-bar`; r02 (`tokens.md` §43): `--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge`. **Reservado:** `--g-sidebar-icon-size` (sin valor ni uso, #619). **Dejan de leerse para el actual:** `--g-surface-inset`, `--g-color-border-strong` y `--g-color-accent-text` (barra de #89/#239) en `.g-sidebar__link[aria-current]`.
 
 ## Clases (contrato entre bruno y coco)
 
@@ -338,7 +426,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__head`, `__top`, `__logo`, `__toggle` | Cabecera | Expandida, riel y drawer |
 | `g-sidebar__search`, `__hint` | Disparador de búsqueda | Con `search` |
 | `g-sidebar__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item` | Región de navegación | Siempre |
-| `g-sidebar__link` (+ `is-active`, `is-branch`), `__parent`, `__sub`, `__chevron` | Enlace y submenú | Según item |
+| `g-sidebar__link` (+ `is-active`, `is-branch`, **`is-rep`**), `__parent`, `__sub` (+ **`has-current`**), `__chevron` | Enlace y submenú | Según item. `is-rep`: padre de la rama **solo en `rail`**; `has-current`: el `<ul>` de hijos que contiene al actual (ruta encendida); r02 |
 | `g-sidebar__icon`, `__label`, `__badge`, `__sr` | Partes del item | Según item |
 | `g-sidebar__foot` | Pie | Con el slot `user` |
 | `g-sidebar__fly`, `__fly-title` | Panel flotante | Solo riel |
@@ -371,17 +459,50 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | 16 | Padres en el navbar | Un padre en la barra abre el drawer con su rama abierta; sin submenús en la barra | Kiwi 24 |
 | 17 | Estilos del navbar | **Solo «píldora activa»** (decisión del usuario); indicador deslizante y acción central descartados | DECISIONS.md #68 |
 
+## Resolución de hallazgos de r02 (`design/lab/sidebar/r02/declaracion.md`)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L1 | Ranuras del activo | `--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge`; por defecto `primary` / `on-primary` / `primary-text` (con relleno, no Δ0: elección del usuario) | #613 |
+| L2 | Pares | P1 4.5:1, P2 y P3 3:1 (§«Pares»); sin exigir relleno/carcasa | #613 |
+| L3 | CLI | Diagnóstico informativo de P1 a P3 y derivación del oscuro con respaldo `on-primary-soft` (`tokens.md` §43) | #614 |
+| L4 | Navbar y `color` | (a): la píldora lee las ranuras; `color` solo contadores y puntos | #615 |
+| L5 | Rama en el riel | `is-rep`: el padre representa al actual con el asiento lleno | #616 |
+| L6 | H10 | Prop `breakpoints` (10-A) | #618 |
+| L7 | H11 | 11-C: el asiento; `--g-sidebar-icon-size` reservado | #619 |
+| L8 | Personalidad | B · Asiento | #612 |
+| L9 | Para coco | El hover excluye también `.is-rep` (#564 ampliada); C no se eligió: el filo de la raíz sigue en `border-inline-end` | #616 |
+
+### Encargos de r02
+
+**coco (`GSidebar.css`, `defaults.css`; Opus: se solapa con la píldora y el riel):**
+1. Las tres ranuras en `defaults.css` (claro, consulta oscura y `[data-theme="dark"]`, como `--g-surface-inset`).
+2. Retirar del actual la superficie `inset`, el contorno `border-strong`, la sombra y la barra `::before` en `accent-text`; asiento, nodo, ruta (`has-current`) y representante (`is-rep`) según «Item actual: el asiento»; píldora con las ranuras y trazo interior `current-edge`.
+3. **Hover (#564 ampliada, L9):** el selector de hover excluye también `.is-rep`: `:not([aria-disabled="true"], [aria-current="page"], .is-active, .is-rep)`; no tocar la rama hueca.
+4. Movimiento, movimiento reducido (solo fundidos) y `forced-colors` (`Highlight`/`HighlightText`, aros `CanvasText`).
+5. Medir P1 a P3 en el tema por defecto, lustre, spotify, el tema del integrador (`design/lab/sidebar/r02/theme-nisa.css`) y uno con `primary` propia, claro y oscuro; tamaño del asiento en las tres densidades (sin desborde; `default` sin cambio de alto); foco frente a la carcasa; RTL; `fixed` y `floating`; tres motores.
+
+**bruno (`GSidebar.vue`, pruebas, `meta.json`, `types/overrides.mjs`, `packages/cli/`):**
+1. `breakpoints` (reglas y avisos B1, B2) en el cálculo de `auto` (hoy `unit × 240` / `unit × 150`); `meta.json`: `{ "name": "breakpoints", "type": "Object", "default": null }` y en `types/overrides.mjs` `'GSidebar.breakpoints': '{ expanded?: number; rail?: number } | null'`; descripción de `color` (contadores y puntos); los tres tokens en `tokens`.
+2. `is-rep` en el padre de la rama solo con formato `rail` (se alterna al cambiar de formato, mismo DOM); `has-current` en el `g-sidebar__sub` que contiene al actual.
+3. Pruebas: cortes (por defecto, una clave, `rail` = `expanded` sin riel, recorte con y sin aviso, `rail: 0`, valores no válidos, cambio de la prop sin redimensionar); `is-rep` y `has-current`; `aria-current` solo en el hijo.
+4. CLI: las tres ranuras en `cli/src/defaults.js` regenerado con `node packages/cli/scripts/sync-defaults.mjs` tras el `defaults.css` de coco (claro y oscuro: sin ellas, `overrides` las marca como `unknown-token`); diagnóstico y derivación de `tokens.md` §43; pruebas con el caso real (`{"brand":"#24366B","accent":"#C1D324"}` + ranuras `primary`/`accent`) y con el tema por defecto.
+5. `CHANGELOG.md`: cambio visible del actual (asiento con relleno) y de `color` (ya no la píldora).
+
+**mora-docs (`GSidebar/README.md`, después de la auditoría de coco):** el asiento y sus tres estados; las ranuras con un ejemplo de identidad propia (y su oscuro); `color` solo para contadores; `breakpoints` con el caso real; el icono va sin fondo (11-C).
+
 ## Límites conocidos
 
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni anclar favoritos.
 - **Sin buscador propio** ni filtro de items: la aplicación decide qué abre `search`.
 - **Sin menú contextual del usuario** (será `GMenu`): el slot `user` lo pone la aplicación.
-- **Sin tema oscuro** todavía.
+- **Slot `item`:** sin asiento; la marca del actual es de la aplicación (r02).
+- **`breakpoints` en px:** no siguen a `space` (r02, #618).
 - **En la píldora activa, los items inactivos no muestran su nombre:** un usuario nuevo no lo ve (el nombre existe para lectores). Etiquetas de la píldora **cortas**.
 - **La adaptación mide el contenedor**: si la aplicación no da un `container` razonable (el padre es del ancho del visor), decide por el ancho del padre.
 - **Lector de pantalla:** cómo se anuncian el riel, las ramas, los contadores, el panel y la píldora está por verificar con lectores reales; Firefox, Safari, RTL con un idioma RTL real y táctil real por verificar.
 
 ## Abierto (no bloquea el paso siguiente)
 
-- Valores estéticos (superficie elevada del activo, proporciones de la píldora, sombra, muesca del panel): los decide coco con los tokens listados.
+- Valores estéticos (tamaño del asiento en `compact`, nodo, grosor del aro y de la ruta, proporciones de la píldora, sombra, muesca del panel): los decide coco con los tokens listados.
 - **Fuera de v0.1:** estado persistido, atajos de teclado globales (⌘K lo gestiona la aplicación), reordenar.

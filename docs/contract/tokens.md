@@ -55,7 +55,7 @@ Valores iniciales (0.08, 0.955, 0.3): validados con los colores del tema por def
 
 ### Uso
 
-- `brand`: un solo elemento sólido de `brand` por vista.
+- `brand`: un solo elemento sólido de `brand` por vista. **Una zona de marca** (§44) cuenta como ese sólido: dentro, la acción principal es la tinta invertida.
 - `accent`: señala; nunca es el relleno de la acción principal.
 
 ## 3. Radios
@@ -117,6 +117,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-color-{brand|accent|success|warning|danger|info}[-strong|-soft|-text]
 --g-color-on-{…}[-soft]
 --g-color-{bg|surface|surface-sunken|text|text-muted|text-subtle|border|border-strong|border-control|focus|mold}
+--g-color-brand-zone · --g-color-on-brand-{zone|muted|accent|veil|accent-veil|success|warning|danger|info} · --g-color-zone-edge   (zona de marca, §44)
 --g-radius-{none|xs|sm|md|lg|xl|pill}
 --g-space-{1|2|3|4|5|6|8|12|16}
 --g-font-{ui|title|display}
@@ -231,7 +232,7 @@ Modo principal: en build (`npx @grana/cli theme grana.config.json` o plugin de V
 
 ## 10. Límites conocidos
 
-- Los derivados se resuelven en `:root`. Si alguien cambia `--g-color-brand` solo dentro de una sección, sus derivados no lo siguen.
+- Los derivados se resuelven en `:root`. Si alguien cambia `--g-color-brand` solo dentro de una sección, sus derivados no lo siguen. **Para pintar una sección con la marca, la zona de marca** (`data-g-zone="brand"`, §44) redeclara el grupo entero con pares garantizados.
 
 ## 11. Superficies (sistema `--g-surface-*`)
 
@@ -271,6 +272,8 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 **Límite:** los tokens se resuelven en `:root` (§10): si alguien cambia `--g-space-1` solo dentro de una sección, los tokens de sidebar no lo siguen.
 
+**Item actual** (`--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge`; tokens de componente, no de estructura): §43. **Cortes por instancia:** la prop `breakpoints` de `GSidebar` sustituye estos umbrales cuando la aplicación la pasa (DECISIONS.md #618); sin ella, rigen los de arriba.
+
 ## 14. Widgets (`--g-widget-*`)
 
 **Tokens de estructura** de `GWidgetGrid` (la rejilla del dashboard), para que la aplicación pueda alinear su propio diseño con la celda. Derivan de `--g-space-1`. *(Agregados con el contrato del sistema de widgets; los valores por defecto los escribe coco en `defaults.css`.)*
@@ -305,7 +308,7 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 Los tokens que cambian con el tema, **todos** (incluidos los que se definen con `var()`: se resuelven donde se declaran, así que una sección no los hereda):
 
-`--g-color-*` (marca, semánticos, neutros, foco) · `--g-surface-shell`, `--g-surface-inset`, `--g-surface-backdrop` · `--g-shadow-1..3` · `--g-glass-*` · `--g-calendar-*-color`.
+`--g-color-*` (marca, semánticos, neutros, foco; también las fuentes de la zona de marca, §44.2, con el mismo valor en los tres bloques) · `--g-surface-shell`, `--g-surface-inset`, `--g-surface-backdrop` · `--g-shadow-1..3` · `--g-glass-*` · `--g-calendar-*-color`.
 
 Lo demás (radios, espaciado, tipografía, movimiento, bordes, estructura) **no cambia** y no se repite.
 
@@ -345,12 +348,14 @@ Lo demás (radios, espaciado, tipografía, movimiento, bordes, estructura) **no 
 /* defaults.css, capa grana.defaults (coco) */
 :root, [data-theme="light"] { color-scheme: light; /* grupo de color, claro */ }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { color-scheme: dark; /* grupo de color, oscuro */ }
+  :root:where(:not([data-theme="light"])) { color-scheme: dark; /* grupo de color, oscuro */ }
 }
 [data-theme="dark"] { color-scheme: dark; /* grupo de color, oscuro */ }
 ```
 
 El `:root` de los tokens no relacionados con el color no cambia. **Orden obligatorio:** claro, consulta oscura, `[data-theme="dark"]` (con igual especificidad, el último gana).
+
+**Por qué `:where()` (#561):** los selectores de la consulta oscura (`:root:where(:not([data-theme="light"]))` y, con `dark: false`, `:root:where(:not([data-theme="dark"]))`) valen **(0,1,0)**, igual que `:root, [data-theme="light"]` y `[data-theme="dark"]`. Sin `:where()`, `:root:not([...])` valía (0,2,0) y, al cargar un segundo tema después (cambio en caliente) con el sistema en oscuro, el primero ganaba por especificidad. Con todo en (0,1,0), gana el que se carga **después**, también con el sistema en oscuro. Un tema solo se comporta igual y `[data-theme="dark"]` explícito no cambia.
 
 ### Lo que emite el CLI (sin capa)
 
@@ -358,12 +363,12 @@ El `tokens.css` del usuario va **sin capa y gana siempre** (§8): si define `bra
 
 ```css
 :root, [data-theme="light"] { /* derivados claros (hoy solo :root) */ }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { /* derivados oscuros */ } }
+@media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) { /* derivados oscuros */ } }
 [data-theme="dark"] { /* derivados oscuros */ }
 ```
 
 - **`dark: { brand, accent }`** sustituye a los derivados automáticos (colores explícitos del oscuro, derivados con las mismas reglas). **`dark.overrides`** se aplica solo al oscuro y se valida igual.
-- **`dark: false`:** no hay tema oscuro. El CLI emite, dentro de la consulta oscura y con `:root:not([data-theme="dark"])`, el **grupo de color claro completo** (defaults y derivados), para que el sistema oscuro no active el oscuro de los defaults. `data-theme="dark"` sigue funcionando (oscuro de los defaults, con los avisos del CLI).
+- **`dark: false`:** no hay tema oscuro. El CLI emite, dentro de la consulta oscura y con `:root:where(:not([data-theme="dark"]))`, el **grupo de color claro completo** (defaults y derivados), para que el sistema oscuro no active el oscuro de los defaults. `data-theme="dark"` sigue funcionando (oscuro de los defaults, con los avisos del CLI).
 - **`check` valida los dos esquemas** con los mínimos de §7 (texto 4.5:1, controles 3:1): un tema cuyo oscuro no los cumpla se rechaza igual que uno claro.
 - El tema oscuro **no** cambia `radius`, `space`, `font`, `fontSize` ni `typeScale` (valen para ambos).
 
@@ -728,7 +733,7 @@ Ronda transversal de kiwi (`design/lab/personalidad/r01/`, §2) y decisiones del
 
 | Token | Para qué | Uso aprobado | Nunca |
 | --- | --- | --- | --- |
-| `--g-ease-spring` | Desplazamientos que **llegan** con masa: rebasa 3,8 % y asienta antes del 70 % del tiempo | Borde de atrás de la marca de `GTabs` (#302); **cambio de forma (punto ↔ compacta ↔ abierta) y toque de `GStatusIsland`** (#324, decisión del usuario del 2026-10-04: tercer uso, sutil); **la ficha elegida que llega al campo en `GCombobox`** (#336: cuarto uso; el despliegue de su lista **no**, va con `--g-ease-out`); con `multiple`, el renglón que llega a la cesta de la paleta es **ese mismo uso** (#427), no uno nuevo; **el nivel que llega al bajar en `GBreadcrumbs`** (#500: quinto uso, solo el `translate`, desde detrás del nivel anterior; la opacidad va con `--g-ease-out`) | Entradas, diálogos, menús, paneles, bloques (la isla **nace** con `--g-ease-out`, no con el muelle) |
+| `--g-ease-spring` | Desplazamientos que **llegan** con masa: rebasa 3,8 % y asienta antes del 70 % del tiempo | Borde de atrás de la marca de `GTabs` (#302); **cambio de forma (punto ↔ compacta ↔ abierta) y toque de `GStatusIsland`** (#324, decisión del usuario del 2026-10-04: tercer uso, sutil); **la ficha elegida que llega al campo en `GCombobox`** (#336: cuarto uso; el despliegue de su lista **no**, va con `--g-ease-out`); con `multiple`, el renglón que llega a la cesta de la paleta es **ese mismo uso** (#427), no uno nuevo; **el nivel que llega al bajar en `GBreadcrumbs`** (#500: quinto uso, solo el `translate`, desde detrás del nivel anterior; la opacidad va con `--g-ease-out`); **el asiento del item actual de `GSidebar` que se llena desde el centro** (#617: sexto uso, `clip-path` circular de un asiento de 32px; el vaciado del origen es un fundido; **aprobado por el usuario**, #635); **la entrada del muelle de acciones de `GPageHeader` en estrecho** (#632, aprobado en #635: séptimo uso, solo el `translate` desde abajo; la opacidad va con `--g-ease-out`); **la marca del lomo de `GDocumentPreview` que llega a su página en un salto explícito** (#639: octavo uso, solo el `translate`; al seguir el desplazamiento o el arrastre, sin transición; aprobado con la elección del usuario de A tal como se prototipó, confirmación no bloqueante) | Entradas, diálogos, menús, paneles, bloques (la isla **nace** con `--g-ease-out`, no con el muelle) |
 | `--g-ease-bounce` | Escalas **pequeñas**: rebasa 20 % de un cambio de `1 − --g-press-scale` (pico 1,006 con 0,97) | Soltar `GBtn` (#300); **la marca de la casilla de `GCombobox multiple` al marcar por un gesto**, desde la escala `0.4` (#427: segundo uso; una marca de 1em, rebase ≈ 12 %) | Desplazamientos (en 200px serían 40px), superficies grandes |
 
 - **Valores:** los de §6, como valor por defecto; coco los escribe en `defaults.css` (capa `grana.defaults`) y bruno regenera `packages/cli/src/defaults.js` (`node packages/cli/scripts/sync-defaults.mjs`). No son de color: no se redeclaran en el oscuro (§15). El CLI no valida curvas; un tema puede escribir cualquier `<easing-function>`.
@@ -765,7 +770,7 @@ Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un 
 
 ### 29.5 Datos del `.vue` al CSS (no son tokens)
 
-Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; se retiran al quitar las escuchas, no en `pointerleave`; `--_select-x`/`--_select-y` reservados **sin uso**: C2 sale por anclaje CSS), `--_active-y`/`--_active-h` (`GMenu`). `data-direction` en la capa de P2 y `data-bump` en P3 (`GNumberField`, #313). `--_island-w`/`--_island-h` (px del tamaño natural de la forma actual), `--_status-offset-top`, `data-form` e `is-nudge` (`GStatusIsland`, #324). `--_x`, `--_top`, `--_bottom`, `--_w`, `--_max` y `--_field-h` (colocación de la lista de `GCombobox`), `--_travel-x`/`--_travel-y` e `is-arriving` (llegada de su ficha, #336). `--_x`, `--_y`, `--_yb`, `--_tooltip-ax`/`-ay`/`-aw`/`-ah` (geometría de la pestaña) y `data-side`, `data-instant`, `data-travel`, `data-dwell`, `data-touch` (`GTooltip`, #388, #389). `is-entering` en la palabra de la lectura y `data-compact` en las dos lecturas (`GTimeField`, #407). `--_at`, `--_from`, `--_to`, `--_mid`, `--_pill-w`, `data-thumb`, `data-bump` (`GSlider`, #452, #454). `--_ghost-w` (px: ancho medido de la etiqueta al quitarla) e `is-ghost` en la `GTag`, `is-settling` en el elemento del grupo mientras se recoge (`GTagGroup`, #466, #471). `data-stage`, `data-clipped`, `is-entering`, `is-leaving`, `--_depth` y `--_x`/`--_y`/`--_max` y `data-side` de sus paneles (`GBreadcrumbs`, #495, #499, #500). `--_head-size` (px, alto del encabezado pegado, en el elemento abierto) y `--_scroll-pad` (px, relleno del contenedor de desplazamiento, en la raíz del grupo `sticky`) en `GAccordion`/`GAccordionItem` (#484, #517). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`, `is-rolling` e `is-bumping` de `GNumberField`, `is-merged`, `is-jumping`, `is-dragging` e `is-typing` de `GSlider`) se fijan en cada contrato.
+Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; se retiran al quitar las escuchas, no en `pointerleave`; `--_select-x`/`--_select-y` reservados **sin uso**: C2 sale por anclaje CSS), `--_active-y`/`--_active-h` (`GMenu`). `data-direction` en la capa de P2 y `data-bump` en P3 (`GNumberField`, #313). `--_island-w`/`--_island-h` (px del tamaño natural de la forma actual), `--_status-offset-top`, `data-form` e `is-nudge` (`GStatusIsland`, #324). `--_x`, `--_top`, `--_bottom`, `--_w`, `--_max` y `--_field-h` (colocación de la lista de `GCombobox`), `--_travel-x`/`--_travel-y` e `is-arriving` (llegada de su ficha, #336). `--_x`, `--_y`, `--_yb`, `--_tooltip-ax`/`-ay`/`-aw`/`-ah` (geometría de la pestaña) y `data-side`, `data-instant`, `data-travel`, `data-dwell`, `data-touch` (`GTooltip`, #388, #389). `is-entering` en la palabra de la lectura y `data-compact` en las dos lecturas (`GTimeField`, #407). `--_at`, `--_from`, `--_to`, `--_mid`, `--_pill-w`, `data-thumb`, `data-bump` (`GSlider`, #452, #454). `--_ghost-w` (px: ancho medido de la etiqueta al quitarla) e `is-ghost` en la `GTag`, `is-settling` en el elemento del grupo mientras se recoge (`GTagGroup`, #466, #471). `data-stage`, `data-clipped`, `is-entering`, `is-leaving`, `--_depth` y `--_x`/`--_y`/`--_max` y `data-side` de sus paneles (`GBreadcrumbs`, #495, #499, #500). `--_head-size` (px, alto del encabezado pegado, en el elemento abierto) y `--_scroll-pad` (px, relleno del contenedor de desplazamiento, en la raíz del grupo `sticky`) en `GAccordion`/`GAccordionItem` (#484, #517). `--_height` (longitud de la prop `height`, en la raíz), `--_seal-size` (px, alto del sello que el escenario reserva), `--_y` (% de la marca y de la página que asoma en el riel), `--_w`/`--_h` (px de cada página) y `data-phase`, `is-arriving`, `is-typing`, `is-dense`, `is-thumbs` (`GDocumentPreview`, #639, #642, #644). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`, `is-rolling` e `is-bumping` de `GNumberField`, `is-merged`, `is-jumping`, `is-dragging` e `is-typing` de `GSlider`) se fijan en cada contrato.
 
 ### 29.6 Constantes de coreografía (neutras, #187)
 
@@ -787,6 +792,7 @@ Variables dinámicas en línea (excepción justificada a «sin estilos en línea
 | `600ms` (retardo del anuncio de resultados) y `10` (filas de Av Pág / Re Pág), constantes de **JS** | `GCombobox` (#334, #336); `delay` (250 ms) es una **prop**, no una constante |
 | `400ms` y `60ms` (constantes de **JS**: primera repetición y cadencia) | −/+ de `GNumberField` mantenidos (#313); como `HOVER_MS`, no son tema |
 | `180ms` (`HOVER_MS`, constante de **JS**, no un token ni un valor del tema) | Pausa del puntero: abre un submenú al pasar y, en M4, cambia el elemento si el puntero se **detiene** dentro del triángulo (`GMenu.vue`, #305 y #308) |
+| `ZOOM_STEPS` (0,25 · 0,5 · 0,75 · 1 · 1,25 · 1,5 · 2 · 3 · 4), límites [0,25; 4], `RECEIPT_MS` 4000 ms, el 30 % del escenario que fija la página actual, ±10 % de Av Pág y DPR acotada a 2 (constantes de **JS**); `TYPE_MS` 900 ms es el de `GSlider` | `GDocumentPreview` (`document-preview.md`, #643, #644) |
 | `OPEN` 350 · `CLOSE` 100 · `SKIP` 600 · `NAV` 1000 · `DWELL` 700 · `LONG` 500 · `LINGER` 1500 ms, `MOVE` 10px y lectura en táctil `min(6000, max(1500, 1000 + 50 × caracteres))` ms (constantes de **JS**) | Motor de `GTooltip` (`utils/tooltip.js`; `tooltip.md`, #384, #385, #389); 350 y 600 son los de la pista de `GSidebar` |
 
 **No son constantes:** `0.97` es `--g-press-scale`; `1.006` es un resultado **medido** (criterio de verificación de #300), no un valor escrito; `32px`, `±16px` y `4px` se escriben siempre como múltiplos de `--g-space-1` y siguen a `space`.
@@ -965,3 +971,201 @@ Consume solo tokens existentes (`design/contracts/accordion.md` «Tokens», DECI
 - **Constantes de la auditoría** (#556): relleno de bloque de `GEmpty` `space × 3 − --g-border-width` sin hueco entre líneas; separación táctil de sus filas de acciones `max(space × 4, 44px − 24px)`; ficha de espera larga de `GLoadRegion` a `space × 2` del inicio y del pie. Todas derivan de tokens existentes y de las medidas literales admitidas (`24px`, `44px`); ninguna es token. La regla de `.g-load-live` es texto oculto accesible y vive en `GLoadRegion.css` (#557).
 - **`!important` del molde** (#535): única excepción a la regla de capas en Grana; limitado a las reglas del molde.
 
+
+## 43. Item actual de `GSidebar` (`--g-sidebar-current*`; tres tokens de componente)
+
+**Tokens de componente** (§17.6) del item actual de `GSidebar` en sus cuatro formatos (`design/contracts/sidebar.md` §«Item actual: el asiento»; ronda `design/lab/sidebar/r02/`; DECISIONS.md #612 a #614). Se crean porque la identidad del actual es **de tema** (no de instancia: no es una prop) y ningún semántico la expresa sin teñir con `primary` toda la interfaz. Los **valores** los escribe coco en `defaults.css` (capa `grana.defaults`) en claro, consulta oscura y `[data-theme="dark"]` (un `var()` se resuelve donde se declara, §10).
+
+| Token | Pinta | Por defecto |
+| --- | --- | --- |
+| `--g-sidebar-current` | Relleno: asiento lleno, nodo del hijo actual, píldora del navbar | `var(--g-color-primary)` |
+| `--g-sidebar-on-current` | Tinta sobre el relleno: icono del asiento; icono y etiqueta de la píldora | `var(--g-color-on-primary)` |
+| `--g-sidebar-current-edge` | Filo: aro del asiento (lleno y hueco), aro del nodo, ruta, trazo interior de la píldora | `var(--g-color-primary-text)` |
+
+**Pares** (regla del contrato; los mide coco y los diagnostica el CLI):
+
+| # | Par | Mínimo | Garantía en el tema por defecto |
+| --- | --- | --- | --- |
+| P1 | `--g-sidebar-on-current` / `--g-sidebar-current` | 4.5:1 (la píldora lleva texto) | `on-primary` / `primary` (§2) |
+| P2 | `--g-sidebar-current-edge` / `--g-surface-shell` | 3:1 (la rama hueca y la ruta son solo filo) | `primary-text`: ≥ 4.5:1 sobre `surface` (§2), ≥ 4.21:1 medido sobre `surface-sunken` (§7.1) |
+| P3 | `--g-sidebar-current-edge` / `--g-color-surface` | 3:1 (píldora en el navbar, nodo en el panel) | §2 |
+
+No se exige relleno/carcasa: el aro siempre está (P2). En `forced-colors` las ranuras no se leen: relleno `Highlight`, tinta `HighlightText`, filo `CanvasText`.
+
+**Lo que hace el CLI** (bruno; **diagnóstico, no rechazo**, como #228):
+
+1. **Solo si el tema declara alguna ranura** en `overrides` o `dark.overrides`. Sin declararlas no mide ni emite nada: los valores por defecto cumplen por §2.
+2. **Mide P1 a P3 en claro y en oscuro** con los valores resueltos (`var(--g-color-*)` y hexadecimales; un valor que no sabe resolver, como un `color-mix()`, se informa como «no medido»).
+3. **Claro:** si un par falla, diagnóstico informativo `sidebar-current-contrast` con el par, el valor medido y el mínimo. **No ajusta** lo que el usuario escribió.
+4. **Oscuro, ranura declarada en `dark.overrides`:** como en el claro, solo diagnostica.
+5. **Oscuro, ranura heredada del claro** (declarada solo en `overrides`) **y algún par falla en el oscuro:** el CLI **deriva** el oscuro de las ranuras no declaradas en `dark.overrides` y las emite en los bloques oscuros (§15), con diagnóstico `sidebar-current-dark` (estado `derived`, medidas antes y después):
+   - **Relleno:** el tinte suave de la familia del relleno claro (`var(--g-color-{f}-soft)` si el claro es `var(--g-color-{f})`, `{f}-strong` o `{f}-text` de una familia); si no es una referencia a una familia, `var(--g-color-primary-soft)`.
+   - **Tinta:** la primera que llegue a 4.5:1 sobre ese relleno oscuro: (a) `var(--g-color-{g}-text)`, si la tinta clara es una referencia a la familia `g` (`{g}`, `{g}-text`, `{g}-strong`); (b) **respaldo** `var(--g-color-on-{f}-soft)`, garantizado ≥ 4.5:1 sobre `{f}-soft` (§15, regla de `on-soft`).
+   - **Filo:** el filo claro si cumple P2 y P3 en el oscuro; si no, la tinta elegida si los cumple; si no, `var(--g-color-{f}-text)`.
+   - Si aun así un par falla, se añade el informativo del punto 3.
+6. **Medido por kiwi en r02** (caso real, claro con `primary` de relleno y `accent` de tinta): tinta/relleno 1.94:1 en el oscuro del tema del integrador → con la derivación (`primary-soft` + `accent-text`) **9.31:1**; con las mismas ranuras sobre el tema por defecto, `accent-text` sobre `primary-soft` da 3.86:1 y entra el **respaldo** `on-primary-soft`. Por eso el respaldo es obligatorio.
+7. **Pendiente no bloqueante:** emitir las tres ranuras en `tokens.json` (como `--g-card-*`, §19).
+
+**Reservado (DECISIONS.md #619):** `--g-sidebar-icon-size` (tamaño del glifo del item, opción 11-A de r02). Sin valor ni uso: el asiento resuelve el hueco del icono (11-C). Se abre si un caso real necesita iconos mayores en toda la navegación.
+
+**No son tokens:** el tamaño del asiento (`--_seat` = `--_ico + --g-space-1 × 3`, alias local; coco ajusta `compact`), el nodo, el grosor del aro y de la ruta (derivados de `--g-border-width`), y los cortes de `breakpoints` (px de la instancia, DECISIONS.md #618; los umbrales por defecto siguen en §13). **Movimiento:** llenado del asiento con `--g-duration-slow` + `--g-ease-spring` (§29.1, sexto uso, #617); el resto con fundidos de `--g-duration-fast`; con movimiento reducido, solo fundidos (§29.3).
+
+## 44. Zona de marca (`data-g-zone="brand"`; once tokens globales nuevos, ninguno de componente)
+
+**Dueño:** lima (reglas) · coco (valores de `defaults.css`, `GSurface.css`) · bruno (derivación y validación en el CLI, `GSurface.vue`). DECISIONS.md #620 a #625. Ronda: `design/lab/surface/r02/` (kiwi; hallazgos 4, 7, 15 y 22 de la integración real en NisaNabani). **Decisión del usuario (2026-10-13):** concepto **C «Plano de tinta»** y **marca profunda en oscuro**. API: `surface.md` §«Zona de marca»; regla común: `api.md` §«Zona de marca».
+
+**Qué es.** Un **ámbito de tokens**, no un componente: el elemento que lleva `data-g-zone="brand"` (o `GSurface zone="brand"`) se pinta con la marca y **redeclara para sí y sus descendientes el grupo de color completo** (§15), como hace `[data-theme]`. Ningún componente sabe que está en una zona: todos leen los mismos `var(--g-*)` y reciben valores que el CLI garantiza contra la marca. Resuelve el límite de §10 para el caso de la marca: cambiar `--g-color-brand` (o tres tokens a mano) en una sección **no** funciona; la zona sí.
+
+### 44.1 C · Plano de tinta (la forma elegida)
+
+- **Las superficies propias se funden con la marca:** dentro de la zona `bg` = `surface` = la marca. Una `GCard outlined` es un **trazo de tinta** sobre la banda, `raised` conserva su sombra, un campo es contorno sobre la marca. La profundidad dentro de la zona se dice **solo con líneas y velos de tinta**: nunca hay un segundo tono de marca ni una isla blanca.
+- **La tinta** (`on-brand-zone`) es el texto; la **tinta secundaria** (`on-brand-muted`) el texto apagado y los contornos de control; el **acento de la zona** (`on-brand-accent`) el foco, los enlaces y lo activo.
+- **La acción principal es la tinta invertida** (relleno = tinta, texto = la marca): la zona ya es el sólido de `brand` de la vista (§2). `brand*` y `primary*` se invierten juntos (Z1 de `design/lab/page-header/r01/`): un `GBtn color="brand"` dentro no puede ser marca sobre marca.
+- **El neutro `soft` es un velo de tinta** (`on-brand-veil`) con la tinta plena encima (hallazgo 22: el `GBtn neutral soft` ya no parece deshabilitado).
+- **Rellenos con su propio par se quedan** (`{sem}`, `{sem}-soft`, `cat-k`, `on-*`): no dependen del fondo. Solo cambia lo que se pinta **directamente** sobre la marca: `*-text`, `link`, `focus`, contornos.
+
+### 44.2 Las fuentes de la zona (tokens globales nuevos)
+
+Once tokens del **grupo de color** (§15), declarados donde se declaran los esquemas (`:root, [data-theme="light"]`, la consulta oscura y `[data-theme="dark"]`) y **nunca redeclarados dentro de la zona**: son la materia de la que la zona saca sus valores. Nivel **Reference** (§17.1): **los componentes no los leen** (los lee el bloque de la zona de `defaults.css`), con una excepción, `zone-edge`, que lee `GSurface.css`. `roles.test.js` ya impide leer `--g-color-on-brand*` y `--g-color-brand*` en un componente; se mantiene.
+
+| Token | Qué es | Regla (OKLCH / OKLab; Z = `brand-zone`, I = `on-brand-zone`) | Garantía |
+| --- | --- | --- | --- |
+| `--g-color-brand-zone` | Fondo de la zona | Claro: = `brand`. **Oscuro: la marca profunda**, el mismo valor que en el claro (no el `brand` reflejado de §15) | — |
+| `--g-color-on-brand-zone` | Tinta | Claro: = `on-brand`. Oscuro: la del claro | ≥ 4,5:1 frente a Z y al hundido máximo (H) |
+| `--g-color-on-brand-muted` | Tinta secundaria (hallazgo 7) | Mezcla OKLab de I con un **18 %** de Z; si no da ≥ 4,5:1 frente a Z y a H, la parte de Z baja en pasos de 0,01 (en 0 es I) | ≥ 4,5:1 frente a Z y H |
+| `--g-color-on-brand-accent` | Acento de la zona (hallazgo 15; Z3) | Regla de guarda (§44.3) sobre `accent` (la base del claro, no `accent-text`) | ≥ 4,5:1 frente a Z y H |
+| `--g-color-on-brand-success` · `-warning` · `-danger` · `-info` | Semánticos como texto sobre la zona | Regla de guarda (§44.3) sobre la base clara de cada semántico | ≥ 4,5:1 frente a Z y H |
+| `--g-color-on-brand-veil` | Velo de tinta (`soft` neutro y de la acción) | Regla «soft» (§44.4) con la tinta I | I ≥ 4,5:1 sobre el velo |
+| `--g-color-on-brand-accent-veil` | Velo de acento (`accent-soft`, `selection`) | Regla «soft» (§44.4) con `on-brand-accent` | I ≥ 4,5:1 sobre el velo |
+| `--g-color-zone-edge` | Filo de la zona frente a la página | `var(--g-color-border-strong)` **declarado en cada bloque de esquema** (se resuelve ahí: es el de la página, no el de la zona). Lo escribe coco en `defaults.css`; el CLI no lo emite | Decorativo (separa la banda en el oscuro del tema por defecto, `#1F1F1F` sobre `#141414`, 1,12:1) |
+
+- **H, el hundido máximo** = Z con un **8 %** de I (mezcla OKLab). Es el tope del `surface-sunken` de la zona (§44.5): coco elige su porcentaje entre 0 y 8 %, y el CLI valida contra el 8 % para que cualquier valor de coco quede cubierto.
+- **Misma zona en claro y en oscuro** (marca profunda): las once fuentes valen lo mismo en los tres bloques salvo `zone-edge` (el filo de cada página). Se emiten en los tres para que una sección `data-theme` y `dark.overrides` funcionen como con cualquier token del grupo. Consecuencia aceptada por el usuario: con el tema por defecto, en oscuro la zona es casi negra sobre una página casi negra y se separa por su filo.
+- **Polaridad:** la zona es **oscura** si L(I) > L(Z). Todas las búsquedas se mueven **hacia el lado de la tinta**.
+
+### 44.3 Regla de guarda (acento y semánticos sobre la zona)
+
+Para un color de entrada X (`accent`, `success`, `warning`, `danger`, `info`, bases del claro):
+
+1. **`kept`:** si X está **del lado de la tinta** (L(X) > L(Z) en una zona oscura; < en una clara) y da ≥ 4,5:1 frente a Z y a H, se usa tal cual. (NisaNabani: lima `#C1D324` sobre navy `#24366B`, 6,95:1.)
+2. **`adjusted`:** si no, se mueve **solo L** en pasos de 0,01 hacia el lado de la tinta, con el mismo H (si sale de la gama sRGB, se reduce C, §2), hasta cumplir el punto 1. (Teal `#0F766E` → ≈ `#4FA79E` sobre `#0B1F4D`; azul por defecto `#0B63CE` → ≈ `#4D96FF` sobre `#1F1F1F`.)
+3. **`fallback`:** si ninguna L llega, el token vale **I** (la tinta).
+4. **`lost`:** si llega pero ya no se reconoce —|ΔL| frente a X > **0,35**, o C final < **0,04** con C de X ≥ 0,04—, el token vale **I**. (Caso medido por kiwi: lima sobre la marca clara del oscuro, `#768ECA`, acababa en `#1D1D00`; con la marca profunda no ocurre.)
+
+`fallback` y `lost` dan el mismo valor (la tinta) y se distinguen solo en el diagnóstico: el primero dice «no hay arreglo», el segundo «lo hay, pero ya no es tu color». **El lado de la tinta** es lo que hace convexas las mezclas de §44.5: dos colores del mismo lado de Z con ≥ 4,5:1 dan una mezcla OKLab que sigue cumpliendo.
+
+### 44.4 Regla «soft» (velo con par garantizado)
+
+Velo de T (I o `on-brand-accent`) = Z con un s % de T (mezcla OKLab), **s del 20 al 0 en pasos de 1**: el primero en que **I** dé ≥ 4,5:1 sobre el velo. La tinta encima de un velo es **siempre I** (`on-*-soft` de la zona = I). Si s < 8 (velo casi imperceptible), el CLI lo informa (`zone-veil-flat`); en 0 el velo es la marca y el `soft` se lee como `ghost`, pero nunca ilegible (I frente a Z ya está garantizado). Sin esta regla, kiwi midió 4,39:1 y 3,90:1 en una zona clara (r02 §3).
+
+### 44.5 Lo que la zona redeclara (lista completa del grupo)
+
+Bloque `[data-g-zone="brand"]` de `defaults.css` (capa `grana.defaults`, coco), **después** de los tres bloques de esquema. «Coco» = valor de coco dentro de la condición indicada; las mezclas son **OKLab** (`color-mix(in oklab, …)`) entre fuentes que ya cumplen frente a Z por el mismo lado (§44.3), así que cumplen por convexidad; coco lo mide igual.
+
+| Token de la página | Valor en la zona | Condición |
+| --- | --- | --- |
+| `--g-color-bg`, `--g-color-surface` | `brand-zone` | C: las superficies se funden |
+| `--g-color-surface-sunken` | Z con 0 a 8 % de I (coco) | ≤ 8 % (H) |
+| `--g-color-text` | `on-brand-zone` | — |
+| `--g-color-text-muted`, `--g-color-text-subtle` | `on-brand-muted` | Dos niveles de tinta sobre la marca bastan |
+| `--g-color-border`, `--g-color-border-strong` | I translúcida (coco) | Decorativas, como en la página |
+| `--g-color-border-control` | `on-brand-muted` | ≥ 3:1 (cumple 4,5:1) |
+| `--g-color-mold` | Mezcla de I y Z (coco) | §42: ≥ 1,3:1 y < 3:1 frente a la `surface` de la zona |
+| `--g-color-focus`, `--g-color-link`, `--g-color-active` | `on-brand-accent` | Foco ≥ 3:1 (cumple 4,5:1) |
+| `--g-color-selection` | `on-brand-accent-veil` | — |
+| `--g-color-primary`, `--g-color-brand` | `on-brand-zone` | Tinta invertida |
+| `--g-color-primary-strong`, `--g-color-brand-strong` | Mezcla de `on-brand-zone` con `on-brand-muted` (coco) | `on-primary` encima ≥ 4,5:1 |
+| `--g-color-primary-soft`, `--g-color-brand-soft` | `on-brand-veil` | — |
+| `--g-color-primary-text`, `--g-color-brand-text` | `on-brand-zone` | Contorno de lo marcado (§7.1) = la tinta |
+| `--g-color-on-primary`, `--g-color-on-brand` | `brand-zone` | ≥ 4,5:1 por definición |
+| `--g-color-on-primary-soft`, `--g-color-on-brand-soft` | `on-brand-zone` | §44.4 |
+| `--g-color-accent`, `--g-color-accent-text` | `on-brand-accent` | — |
+| `--g-color-accent-strong` | Mezcla de `on-brand-accent` con `on-brand-muted` (coco) | `on-accent` encima ≥ 4,5:1; cambia también con `lost`/`fallback` |
+| `--g-color-accent-soft` | `on-brand-accent-veil` | — |
+| `--g-color-on-accent` | `brand-zone` | El par del acento es la propia marca (≥ 4,5:1 por la guarda): sin un `pickOn` más |
+| `--g-color-on-accent-soft` | `on-brand-zone` | §44.4 |
+| `--g-color-neutral`, `--g-color-neutral-text` | `on-brand-muted` | — |
+| `--g-color-neutral-strong` | `on-brand-zone` | — |
+| `--g-color-neutral-soft` | `on-brand-veil` | Hallazgo 22 |
+| `--g-color-on-neutral` | `brand-zone` | — |
+| `--g-color-on-neutral-soft` | `on-brand-zone` | — |
+| `--g-color-{success\|warning\|danger\|info}-text` | `on-brand-{sem}` | Tendencias de `GMetric`, mensajes, contornos de §7.1 |
+| `--g-color-{sem}`, `-strong`, `-soft`, `on-{sem}`, `on-{sem}-soft` | **No se redeclaran** | Rellenos con su par |
+| `--g-color-cat-k-text` (k = 1 a N) | `on-brand-zone` | Los emite el CLI (§44.6); `cat-k` y su par no cambian |
+| `--g-surface-shell` | = `surface-sunken` de la zona | — |
+| `--g-surface-inset` | `brand-zone` | — |
+| `--g-glass-tint`, `-edge`, `-sheen`, `-opacity` | Tinte = Z; filo y brillo de I; opacidad (coco) | §12 con la tinta de la zona |
+| `--g-tabs-track`, `--g-tabs-band`, `--g-tabs-thumb`, `--g-tabs-panel` | Velos y trazo de I (coco) | Ninguna superficie blanca dentro |
+| `--g-card-hover`, `--g-card-pressed`, `--g-card-selected` | I translúcida (coco) | — |
+| `--g-shadow-1..3` | Coco (más densas sobre una zona oscura, como el oscuro) | Valores **literales** de coco: un tema con sombras propias no las ve dentro de la zona (efecto aceptado, #637) |
+| `--g-calendar-grid-color`, `--g-calendar-unavailable-color` | `border`, `border-strong` de la zona | — |
+| `--g-calendar-now-color` | `on-brand-danger` | ≥ 3:1 frente a la zona |
+| `--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge` (§43) | **La misma expresión** que en `:root` (`var(--g-color-primary)`, `var(--g-color-on-primary)`, `var(--g-color-primary-text)`), redeclarada en la zona para que se resuelva con los valores de la zona; si el tema las fija con `overrides`, el CLI no las repite en la zona (el valor del usuario es suyo) | Regla de alias (abajo) |
+| `color-scheme` | `dark` si la zona es oscura; `light` si es clara | El CLI lo emite cuando difiere del tema por defecto (§44.6) |
+| **No se redeclaran** | `--g-surface-backdrop`, `--g-card-scrim`, `--g-card-on-scrim`, las fuentes de §44.2, **`--g-glass-filter`** | Velo modal y media: su propio par. `--g-glass-filter` no es color (§12): si se redeclarara, el valor del tema del usuario dejaría de valer dentro de la zona (#637) |
+
+**Regla para tokens futuros:** todo token nuevo del grupo de color que un componente pinte **sobre su superficie** entra en esta lista en el mismo contrato que lo crea; si no, se resolvería en `:root` y rompería la zona (es el fallo de la integración). **Regla de alias:** un token de componente cuyo valor por defecto es un `var()` de un token de color (`--g-sidebar-current`, `--g-calendar-*-color`, `--g-surface-shell`…) se repite en el bloque de la zona **con la misma expresión**; así sigue a la zona sin valor propio. `levels.test.js` (bruno) lo comprueba: todo token del bloque claro de `defaults.css` está en el bloque de la zona o en la lista de «no se redeclaran».
+
+### 44.6 Mecanismo, capas y CLI
+
+```css
+/* defaults.css, capa grana.defaults (coco). Orden: claro, consulta oscura, [data-theme="dark"], zona */
+:root, [data-theme="light"] { /* … */ --g-color-brand-zone: …; --g-color-on-brand-zone: …; /* fuentes */ --g-color-zone-edge: var(--g-color-border-strong); }
+@media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) { /* las mismas fuentes */ } }
+[data-theme="dark"] { /* las mismas fuentes */ }
+[data-g-zone="brand"] { color-scheme: dark; /* §44.5, todo con var() de las fuentes */ background-color: var(--g-color-bg); color: var(--g-color-text); }
+```
+
+- **Por qué funciona:** el bloque de la zona redeclara los tokens **en el elemento de la zona** con `var()` de las fuentes, que se heredan ya resueltas desde el esquema. Un `var()` se resuelve donde se declara (§10): aquí eso es lo que se quiere. Sin ciclos: ninguna fuente se redeclara en la zona.
+- **Capas:** el tema del usuario va sin capa en `:root` y en `[data-theme]` (§8, §15); el bloque de la zona está en `grana.defaults` pero se declara **en otro elemento**, así que gana por herencia sin pelear en la cascada. Por eso **la zona y `data-theme` no van en el mismo elemento**: el `[data-theme="dark"]` sin capa del CLI ganaría a la zona en ese elemento (aviso de desarrollo de `GSurface`; en un ancestro o un descendiente, sí).
+- **Pinta:** el bloque pone fondo y color en el elemento de la zona para que un `data-g-zone` suelto (en la raíz de un componente, Z2) nunca deje tinta blanca sobre blanco. Un componente que pinta su raíz (`GSurface`, `GPageHeader`) lo hace con los mismos tokens y da lo mismo.
+- **Límite: la zona no va en `<html>` (`:root`) con un tema del CLI** (#637). El tema sin capa en `:root` gana, en ese mismo elemento, al bloque `grana.defaults` de la zona (misma razón que W2): la zona no se aplicaría. Receta: poner `data-g-zone="brand"` en un **hijo** de `<html>` (`<body>` o un contenedor de la aplicación). Sin tema del CLI funciona, pero no se garantiza.
+- **Anidación:** una zona dentro de una zona recalcula lo mismo (las fuentes no cambian): inocuo. Un `data-theme` dentro de una zona **vuelve** a ese esquema de página (es la forma explícita de sacar un bloque de la zona). Una zona dentro de una sección `data-theme="dark"` toma las fuentes de ese esquema.
+- **El CLI emite** (sin capa): las diez fuentes derivadas (todas salvo `zone-edge`) en los tres bloques de esquema, con el mismo valor salvo `dark.overrides`; y, solo si hace falta, un bloque `[data-g-zone="brand"]` con `color-scheme` (si la zona del tema es clara: marca pálida) y `--g-color-cat-k-text: var(--g-color-on-brand-zone)` para k = 1 a N. **Con `dark: false`**, las fuentes ya son iguales: nada cambia. **`overrides`** de una fuente se aplica al claro y, si no hay `dark.overrides`, también al oscuro (es la misma zona); se valida igual.
+- **Capas superiores dentro de la zona:** un `popover` o un `<dialog>` que se abre **en su sitio** del DOM (menús, listas de `GSelect`, `GDatePicker`, `GHelper`, el editor de `GFilterBar`, `GDialog`, `GTooltip`) **hereda la zona**: el top layer no corta la herencia de CSS. Se pinta como un panel de tinta sobre la marca, con todos los pares garantizados. Corrige la premisa de la ronda (r02 §1.7): no «vuelve a la página». Solo sale lo que se traslada con `<Teleport>` fuera del elemento de la zona. Quien quiera un panel de página dentro de una zona pone `data-theme` en él (punto anterior); un restablecimiento «al esquema de la página» sin forzar claro u oscuro queda **reservado** (DECISIONS.md #624).
+
+### 44.7 Validación (CLI) y `tokens.json`
+
+- **`check` valida en cada esquema** (§7, §15): I, `on-brand-muted`, `on-brand-accent` y los cuatro `on-brand-{sem}` ≥ 4,5:1 frente a Z y H; I ≥ 4,5:1 frente a los dos velos; `on-brand-accent` y los `on-brand-{sem}` del lado de la tinta. Un `overrides` que no cumpla es **error** (como cualquier par). La derivación nunca emite una zona que no cumpla (§17.17): en el peor caso, todo es la tinta.
+- **`tokens.json`** (§16.5, §17.18): cada fuente con `level: "reference"`, `source` (`brand`, `on-brand`, `accent`, el semántico…), `value: { light, dark }`, `usage` y `contrast: { against: "brand-zone", light, dark }`. **`on-brand-accent` y los cuatro `on-brand-{sem}` añaden `zone`** con su estado: `"kept"`, `"adjusted"`, `"fallback"` o `"lost"`, más `input` (el color de partida) y, en `lost`, `moved` (el color que habría cumplido). `status` (§17.13) sigue igual: `derived`, `override`.
+- **`diagnostics`** (§17.13): `zone-accent-adjusted` (informativo: «el acento se aclaró/oscureció para leerse sobre la marca»), `zone-accent-fallback` y `zone-accent-lost` (aviso: «sobre la marca el acento es la tinta»; `lost` dice además qué color habría cumplido), los mismos `zone-{sem}-*` y `zone-veil-flat` (informativo). Ninguno bloquea.
+
+### 44.8 Valores de referencia (calculados por lima con estas reglas y las funciones de `packages/cli/src/color.js`)
+
+| Tema | Z / I | `muted` | `accent` (estado) | `veil` / `accent-veil` | `success` · `warning` · `danger` · `info` |
+| --- | --- | --- | --- | --- | --- |
+| Defecto | `#1F1F1F` / `#FFFFFF` | `#D2D2D2` | `#4D96FF` (adjusted) | `#454545` / `#2A3546` | `#52A871` · `#C28B43` · `#FA664F` · `#4D96FF` |
+| NisaNabani (`#24366B`, `#C1D324`) | `#24366B` / `#FFFFFF` | `#D3D8E4` | `#C1D324` (kept, 6,95:1) | `#4A5C88` / `#3D566D` | `#72C88F` · `#E3AA63` · `#FF9D8C` · `#88B9FF` |
+| Hallazgo 15 (`#0B1F4D`, `#0F766E`) | `#0B1F4D` / `#FFFFFF` | `#CDD3DE` | `#4FA79E` (adjusted) | `#35486F` / `#14395E` | `#56AB74` · `#C58E46` · `#FD6952` · `#549AFF` |
+| Marca pálida (`#F5B940`, `#5B3FE0`) | `#F5B940` / `#17151A` | `#382F26` | `#4618C1` (adjusted) | `#C3953E` / `#CBA275` | `#004F27` · `#633D00` · `#8E0E00` · `#004393` |
+
+Son la referencia de las pruebas de bruno, no valores de `defaults.css` escritos a mano: coco toma los del tema por defecto de la función del CLI (o de esta tabla si coinciden). Peores pares medidos con H al 8 %: acento 4,58:1 (hallazgo 15), `muted` 6,26:1 (marca pálida), velo 6,61:1 (NisaNabani). Difieren de r02 (`#4290FB`) porque kiwi validó contra un hundido del 6 %.
+
+### 44.9 Límites
+
+- **Una sola zona: `brand`.** `inverse` (la superficie inversa de la isla #325, el tooltip #387 y los botones de `GToast`) usaría el mismo mecanismo con otras fuentes; queda **reservado** (DECISIONS.md #621).
+- La zona **no** se anima al entrar ni al salir, y no hay transición de tokens.
+- `forced-colors`: la zona conserva un borde `CanvasText` (coco), porque el fondo desaparece.
+- Estados `hover`, `active`, seleccionado y deshabilitado dentro de la zona, y `GTabs`, `GSlider`, `GSelect`, `GDatePicker`, `GTooltip`, `GStatusMark`, `GAvatar` y `GProgress` dentro: los mide coco en su auditoría (la ronda solo midió reposo y foco).
+- Imágenes e iconos de la aplicación dentro de la zona no se adaptan solos (§15).
+
+## 45. Encabezado de página (`GPageHeader`; sin tokens del tema nuevos)
+
+**`GPageHeader` no añade tokens** (`design/contracts/page-header.md`, DECISIONS.md #629 y #632; L13 de `design/lab/page-header/r01/`). Consume: `--g-color-bg` (fondo opaco de la raíz, también pegada; alias local `--_bg` con mapa de anfitrionas de coco si va sobre otra superficie, como `--_sticky-bg` de §40), `--g-color-surface` (muelle), `--g-color-text`, `--g-color-text-muted`, `--g-color-border` (borde del zócalo pegado), `--g-color-border-strong` (borde del muelle), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-shadow-2` (pegado), `--g-shadow-3` (muelle, si coco la elige), `--g-text-title-lg-*` (`h1`), `--g-text-title-sm-*` (título compacto), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-title`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`. Dentro de la zona de marca (§44) todos los del grupo de color que lee están en la lista de §44.5; no lee `--g-color-zone-edge` (la excepción de §44.2 sigue siendo solo de `GSurface.css`).
+
+**Propiedad pública de entrada: `--g-page-header-top`** (#629). Longitud que pone la aplicación (en `:root`, en un contenedor o en el encabezado) con el alto de su cabecera fija: el zócalo pegado se queda a esa distancia. coco la registra con `@property` (`syntax: '<length>'`, `inherits: true`, `initial-value: 0px`); dentro de `.g-dialog__body` el componente la pone a 0 (como #517). **No es del tema**: no va en `defaults.css` ni se emite en `tokens.json`; excepción documentada en `levels.test.js`, como `--g-accordion-sticky-top` (§40) y `--g-form-min` (§21). Receta de una sola variable: `api.md` §«Cabecera fija de la aplicación».
+
+**Movimiento** (amplía §29, #632): hundirse y pegarse no se animan (el desplazamiento es el movimiento); el título compacto va ligado a `--_p` por cuadro (`opacity` y `translate` de `space × 4` como máximo); borde y sombra del pegado con `--g-duration-fast` + `--g-ease-out`; el muelle sale con `--g-duration-press` + `--g-ease-out` y entra con `--g-duration-slow` + **`--g-ease-spring`** (solo el `translate`; la opacidad con `--g-duration-fast`; #635 enmienda #632, §29.1 séptimo uso). **Sin `--g-ease-bounce`.** Con movimiento reducido, nada se desliza (§29.3).
+
+**No son tokens:**
+
+- **Constante de contrato:** alto del zócalo **`max(var(--g-space-12), 44px)`** (`block-size` fijo con el borde incluido): la aplicación la suma en su `scroll-padding-block-start`, así que cambiarla es una decisión de lima.
+- **Constantes de diseño:** umbral de estrecho `space × 150` (medido por el `.vue` con `ResizeObserver`, como #130); regla del cuarto (25 % del alto del visor); tolerancia de medio píxel de `is-stuck`; umbral 0,5 de `--_p` con movimiento reducido.
+- **Datos del `.vue` al CSS** (§29.5): `--_lift`, `--_p`, `--_dock-left`, `--_dock-right`, `--_dock-offset`.
+- `24px` / `44px` (§7).
+
+## 46. Visor de documentos (`GDocumentPreview`; sin tokens nuevos)
+
+**`GDocumentPreview` no añade tokens** (`design/contracts/document-preview.md`, DECISIONS.md #638 a #649; L8 y L14 de `design/lab/document-preview/r01/`). Consume: `--g-color-surface-sunken` (escenario), `--g-color-surface` (lomo, sello; raíz en `panel`), `--g-color-bg`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong` (muescas), `--g-color-primary`/`--g-color-on-primary` (la marca, si coco la rellena; contorno `--g-color-primary-text` por §7.1 si el contraste lo pide), `--g-color-mold` (molde, §42), `--g-color-success-text` y `--g-color-danger-text` (icono del acuse), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-shadow-1` (páginas), `--g-shadow-2` (sello flotante), `--g-shadow-3` (página que asoma), `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out` y `--g-ease-spring` (§29.1, octavo uso, #639). **Las páginas son píxeles del documento** (papel y tinta del PDF o de la imagen), no del tema. Dentro de la zona de marca (§44) todos los del grupo de color que lee están en la lista de §44.5.
+
+**No son tokens:** alto por defecto del cuerpo (coco, múltiplo de `space`, nunca mayor que el visor dinámico; la prop `height` lo cambia en línea, #648); ancho del lomo `space × 12` y abierto `space × 30`; umbral de estrecho `space × 120`; las constantes de JS de §29.6; `24px`/`44px` (§7). **Datos del `.vue` al CSS:** §29.5.

@@ -154,7 +154,7 @@ export default defineComponent({
       captureFocus()
     }
     watch(() => props.loading, (now) => {
-      if (now) { begin(true); return }
+      if (now) { pendingCount = false; begin(true); return }
       if (isDev && !warnedResults && !props.labels.results) {
         warnedResults = true
         console.warn('[Grana] <GTable> terminó de cargar: define labels.results para anunciar cuántas filas hay.')
@@ -230,11 +230,33 @@ export default defineComponent({
 
     // ---- Filtros ----
     const hasFilters = computed(() => cols.value.some((c) => c.filter))
+    // Recuento tras un cambio de filtros (#265 + L3 de card-group): el mismo canal y el mismo texto venga el cambio de la
+    // barra o de la prop `filters` (tarjetas, búsqueda propia, URL). Nunca en la carga inicial (el watcher no es inmediato).
+    // Con la tabla cargando, el fin de la carga anuncia el nuevo (#540). Con filterMode 'external' el recuento es de los
+    // datos que trae la aplicación: espera a que lleguen (fin de la carga, o filas o total nuevos sin carga).
+    let ownFilters = null // el último valor emitido por la barra: su eco por v-model no se anuncia otra vez
+    let pendingCount = false // filtro externo cambiado y datos aún sin llegar
+    let rowsFresh = false // filas o total cambiados en este mismo ciclo (pueden llegar junto al filtro)
+    const announceCount = () => { if (props.labels.results) live.value = fill(props.labels.results, { count: totalCount.value }) }
+    const filtersChanged = () => {
+      if (props.filterMode !== 'external') {
+        nextTick(() => { if (!props.loading) announceCount() })
+        return
+      }
+      const rowsAt = props.rows
+      const totalAt = props.total
+      pendingCount = true
+      nextTick(() => {
+        if (!pendingCount) return
+        if (props.loading || ph.busy) { pendingCount = false; return } // la llegada anuncia
+        if (rowsFresh || props.rows !== rowsAt || props.total !== totalAt) { pendingCount = false; announceCount() }
+      })
+    }
     const onFilters = (f) => {
+      ownFilters = f
       setFilters(f)
       if (pageState.value !== 1) setPage(1)
-      // Con la tabla ya cargando (filterMode: 'external') el recuento sería el viejo: el fin de la carga anuncia el nuevo (#265)
-      nextTick(() => { if (props.labels.results && !props.loading) live.value = fill(props.labels.results, { count: totalCount.value }) })
+      filtersChanged()
     }
     const clearFilters = () => {
       const lost = root.value && root.value.querySelector('.g-table__empty')?.contains(document.activeElement)
@@ -243,7 +265,20 @@ export default defineComponent({
       if (lost) nextTick(() => (root.value?.querySelector('.g-filter-bar button') || root.value?.querySelector('table'))?.focus?.())
     }
     // Filtros cambiados desde fuera: también vuelven a la página 1
-    watch(() => props.filters, () => { if (pageState.value !== 1) setPage(1) })
+    watch(() => props.filters, (f) => {
+      if (pageState.value !== 1) setPage(1)
+      if (f === ownFilters) return // eco del v-model de la barra: ya anunciado
+      ownFilters = null
+      filtersChanged()
+    })
+    // filterMode 'external' sin carga: el recuento se anuncia cuando llegan las filas (o el total) del filtro nuevo
+    watch([() => props.rows, () => props.total], () => {
+      rowsFresh = true
+      setTimeout(() => { rowsFresh = false }, 0)
+      if (!pendingCount || props.loading || ph.busy) return
+      pendingCount = false
+      nextTick(announceCount)
+    })
 
     // ---- Foco durante la carga (#534): del <tbody> (o de la barra de fallo) al <table>, y de vuelta por rowKey ----
     const tableEl = ref(null)

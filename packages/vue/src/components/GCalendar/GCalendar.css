@@ -43,6 +43,11 @@
   --_gridpxx: calc(var(--_grid) * var(--_ppmx));
 
   container-type: inline-size;
+  /* Tamaño intrínseco con contención (banco design/lab/contencion/): sin él, en un padre que se ajusta al contenido el
+     calendario medía 2 px (sus bordes). 320 px con los bordes: la disposición compacta, que no obliga a desplazar en
+     horizontal en un visor de 320 px (WCAG 1.4.10). Es el tamaño del contenido (sin los bordes). Con un padre que da
+     ancho no cambia nada */
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 80 - var(--g-border-width) * 2);
   position: relative;
   display: flex;
   flex-direction: column;

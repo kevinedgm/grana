@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contención en padres que se ajustan</title>
+<!-- Banco de coco (hallazgo de integración real, NisaNabani, «bug 3»): los componentes con contención de tamaño en línea
+     (`container-type: inline-size` o `contain: inline-size`) aportaban 0 px al tamaño intrínseco de su padre; en un padre que
+     se ajusta al contenido (celda `auto`, rejilla con `justify-items: center`, item flex, `<form>` hijo de flex) medían 0 y la
+     etiqueta se partía letra a letra. Componentes REALES (dist/). Requiere `npm run build`.
+     Lo verifica: node design/lab/contencion/verificar.mjs (sirve la raíz del repo). A mano:
+     python3 -m http.server 4173 → http://localhost:4173/design/lab/contencion/banco.html -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  h2{font-size:15px;margin:28px 0 8px}
+  .case{margin-block-end:16px;padding:8px;outline:1px dashed var(--g-color-border-strong)}
+  .case > p{margin:0 0 6px;font-size:12px;color:var(--g-color-text-muted)}
+  .host{inline-size:900px;max-inline-size:100%}
+  .p-table{border-collapse:collapse}
+  .p-table td{padding:4px;border:1px solid var(--g-color-border)}
+  /* Rejilla y flex que se ajustan al contenido (inline-size: fit-content), como una barra de herramientas o una tarjeta
+     centrada: si el padre tuviera ancho definido, el porcentaje del componente se resolvería contra él y no habría caso */
+  .p-grid{display:grid;justify-items:center;inline-size:fit-content}
+  .p-flex{display:flex;align-items:flex-start;inline-size:fit-content}
+  .p-block{display:block}
+  .p-narrow{display:block;inline-size:180px}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1 style="font-size:18px">Contención de tamaño en padres que se ajustan al contenido</h1>
+  <section v-for="c in comps" :key="c.id" :data-comp="c.id">
+    <h2>{{ c.id }}</h2>
+    <div v-for="p in parents" :key="p" class="case host" :data-parent="p">
+      <p>{{ p }}</p>
+      <table v-if="p === 'table'" class="p-table"><tbody><tr><td><component :is="c.tag" v-bind="c.props" data-probe /></td><td>vecina</td></tr></tbody></table>
+      <div v-else-if="p === 'grid'" class="p-grid"><component :is="c.tag" v-bind="c.props" data-probe /></div>
+      <div v-else-if="p === 'flex'" class="p-flex"><component :is="c.tag" v-bind="c.props" data-probe /></div>
+      <div v-else-if="p === 'form'" class="p-flex"><form @submit.prevent><component :is="c.tag" v-bind="c.props" data-probe /></form></div>
+      <div v-else-if="p === 'block'" class="p-block"><component :is="c.tag" v-bind="c.props" data-probe /></div>
+      <div v-else-if="p === 'narrow'" class="p-narrow"><component :is="c.tag" v-bind="c.props" data-probe /></div>
+    </div>
+  </section>
+</div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../../packages/vue/dist/time-field.umd.js"></script>
+<script src="../../../packages/vue/dist/slider.umd.js"></script>
+<script>
+const { createApp, markRaw } = Vue
+const LABEL = 'Nombre completo del paciente'
+const opts = [{ value: 'a', label: 'Consulta general' }, { value: 'b', label: 'Laboratorio' }]
+const comps = [
+  { id: 'input', tag: 'g-input', props: { label: LABEL } },
+  { id: 'input-action', tag: 'input-action', props: { label: LABEL } },
+  { id: 'textarea', tag: 'g-textarea', props: { label: LABEL } },
+  { id: 'select', tag: 'g-select', props: { label: LABEL, options: opts } },
+  { id: 'date-picker', tag: 'g-date-picker', props: { label: LABEL } },
+  { id: 'number-field', tag: 'g-number-field', props: { label: LABEL } },
+  { id: 'time-field', tag: 'g-time-field', props: { label: LABEL } },
+  { id: 'combobox', tag: 'g-combobox', props: { label: LABEL, options: opts } },
+  { id: 'calendar', tag: 'g-calendar', props: { events: [] } },
+  { id: 'summary', tag: 'g-summary', props: { title: 'María García López', facts: [{ label: 'Expediente', value: '004417', priority: 1 }, { label: 'Edad', value: '47 años', priority: 2 }] } },
+  { id: 'slider', tag: 'g-slider', props: { label: LABEL, marks: [{ value: 0, label: 'Mín.' }, { value: 100, label: 'Máx.' }] } },
+]
+const parents = ['table', 'grid', 'flex', 'form', 'block', 'narrow']
+const app = createApp({ data: () => ({ comps, parents }) })
+// GInput con botón de acción (slot `action`, como en una aplicación)
+app.component('input-action', { inheritAttrs: false, render() { return Vue.h(Grana.GInput, this.$attrs, { action: () => Vue.h(Grana.GBtn, null, () => 'Buscar') }) } })
+app.use(Grana).use(GranaCombobox).use(GranaTimeField).use(GranaSlider)
+app.mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

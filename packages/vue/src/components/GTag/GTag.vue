@@ -11,6 +11,8 @@ import { computed, defineComponent, h, inject, onBeforeUnmount, onMounted, onUpd
 import GIcon from '../GIcon/GLibIcon.js' // iconos propios (x, check, undo-2): SOLO la lista de la librería (icons.md §4)
 import { useVisualTips } from '../../utils/visualTip.js'
 import { categoryOf } from '../../utils/categoryHash.js'
+import { warnMissingCategory } from '../../utils/categoryToken.js'
+import { otherContext } from '../../utils/link.js'
 import { INTERACTIVE, colorInfo, colorWarning, createCutWatcher, hasContent, isDev, present, say, tagItemKey, validCategories } from './tagShared.js'
 
 const SIZES = ['sm', 'md']
@@ -97,7 +99,8 @@ export default defineComponent({
     }
     const onLinkClick = (e) => {
       if (props.disabled) return
-      if (!primary(e)) return
+      // Con `target` de otro contexto no se emite (#574): el destino no pasa por el router (como RouterLink)
+      if (!primary(e) || otherContext(e.currentTarget?.getAttribute?.('target'))) return
       emit('navigate', { event: e, href: href.value })
     }
 
@@ -120,8 +123,8 @@ export default defineComponent({
       const text = root.value.querySelector('.g-tag__text')
       if (text && text.querySelector(INTERACTIVE)) warn('slot', `«${label.value}»: el slot por defecto lleva contenido interactivo (a, button, input…), que no cabe en una etiqueta. Usa href (enlace), pressed (alternar) o un GBtn aparte.`)
     }
-    onMounted(() => { refreshCut(); checkSlot() })
-    onUpdated(refreshCut)
+    onMounted(() => { refreshCut(); checkSlot(); warnMissingCategory(root.value, cat.value, 'GTag') })
+    onUpdated(() => { refreshCut(); warnMissingCategory(root.value, cat.value, 'GTag') })
     onBeforeUnmount(() => { if (cut) cut.dispose() })
 
     return () => {

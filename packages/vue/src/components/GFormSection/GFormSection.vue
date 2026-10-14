@@ -254,7 +254,10 @@ watch(() => props.added, (v) => {
   }
 })
 // «Editado»: input/change nativos que burbujean desde el cuerpo (los de notifyChange() llegan por sectionKey)
-function onEditEvent() {
+function onEditEvent(event) {
+  // Lo que se edita en un GDialog escrito dentro de la sección es otro contexto (L1 de design/lab/dialog/r02)
+  const d = event && event.target && typeof event.target.closest === 'function' ? event.target.closest('dialog') : null
+  if (d && root.value && root.value.contains(d)) return
   if (isAddable.value && addedL.value) edited.value = true
 }
 

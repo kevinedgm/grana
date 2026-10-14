@@ -2,7 +2,7 @@
 // erróneo que DEBE fallar: si los tipos dejaran de detectarlo, vue-tsc avisaría de una directiva sin error.
 import { createApp, h, ref } from 'vue'
 import Grana, {
-  GBtn, GForm, GIcon, GInput, GSelect, GTable,
+  GBtn, GForm, GIcon, GInput, GMenu, GSelect, GTable,
   createIcons, createToaster, formKey, summaryDiff, useFormField, useToast
 } from '@grana/vue'
 import type { GBtnProps, SelectOption, Toaster } from '@grana/vue'
@@ -23,11 +23,15 @@ import type { TagItem, TagGroupLabels } from '@grana/vue/tag'
 import { GEmpty } from '@grana/vue'
 import LoadRegion, { GLoadRegion } from '@grana/vue/load-region'
 import type { EmptyFilter, LoadRegionLabels } from '@grana/vue/load-region'
+// GCardGroup (entrada propia, #610)
+import CardGroup, { GCardGroup } from '@grana/vue/card-group'
+// GPageHeader (entrada propia, #633)
+import PageHeader, { GPageHeader } from '@grana/vue/page-header'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -173,3 +177,32 @@ h(GLoadRegion, { refresh: 'clear' })
 const badRegionLabels: LoadRegionLabels = { loaded: ({ total }: { total: number }) => String(total) }
 
 export { emptyFilters, regionLabels, badRegionLabels }
+
+// ---- GCardGroup ----
+h(GCardGroup, { modelValue: 'vencida', label: 'Filtrar por estado', controls: 't-facturas', 'onUpdate:modelValue': (v: string | number | null | Array<string | number>) => v, onChange: (e: { value: string | number; pressed: boolean }) => e.pressed })
+h(GCardGroup, { modelValue: ['pendiente', 4], multiple: true, labelledby: 'h-estado' })
+h(GCardGroup, { modelValue: null, label: 'Estado' })
+// @ts-expect-error GCardGroup: modelValue no es un booleano
+h(GCardGroup, { modelValue: true, label: 'Estado' })
+// @ts-expect-error GCardGroup: change lleva { value, pressed }
+h(GCardGroup, { label: 'Estado', onChange: (e: { checked: boolean }) => e.checked })
+
+// ---- GPageHeader ----
+h(GPageHeader, { title: 'Muestra M-0007', headingLevel: 1, eyebrow: 'Hematología', description: 'Hemograma', sticky: false, zone: 'none', labels: { actions: 'Acciones' }, id: 'muestra' })
+// @ts-expect-error GPageHeader: title es obligatoria
+h(GPageHeader, { headingLevel: 2 })
+// @ts-expect-error GPageHeader: headingLevel fuera de 1–3
+h(GPageHeader, { title: 'X', headingLevel: 4 })
+// @ts-expect-error GPageHeader: labels.actions es texto
+h(GPageHeader, { title: 'X', labels: { actions: 3 } })
+
+// ---- GMenu · elementos-enlace (menu.md «Elementos-enlace», #572 a #577) ----
+h(GMenu, {
+  items: [{ id: 'docs', label: 'Documentación', href: 'https://example.org', target: '_blank', rel: 'external', external: true }, { id: 'perfil', label: 'Perfil', href: '/perfil', current: true }],
+  labels: { external: ', otro sitio', newTab: ', pestaña nueva', destExternal: 'Otro sitio', destNewTab: 'Pestaña nueva', opened: 'Abierta', openedLive: '{label} abierta', copied: 'Enlace copiado', copiedLive: ({ label }) => `Enlace de ${label} copiado` },
+  onNavigate: (e) => { e.event.preventDefault(); return e.item.href }
+})
+// @ts-expect-error GMenu: current es booleano
+h(GMenu, { items: [{ id: 'a', label: 'A', href: '/a', current: 'sí' }] })
+// @ts-expect-error GMenu: labels.external es texto
+h(GMenu, { labels: { external: 3 } })

@@ -178,6 +178,35 @@ export interface MenuItem extends GranaExtra {
   danger?: boolean
   checked?: boolean
   items?: MenuItem[]
+  /** Con valor, el elemento es un enlace `<a role="menuitem">` y emite `navigate` (menu.md «Elementos-enlace», #572). Solo en `item` sin `items`. */
+  href?: string
+  /** Atributo del `<a>`; solo con `href`. `_blank` o un nombre = otra pestaña; con valor distinto de `_self`, sin `navigate` (#574). */
+  target?: string
+  /** Atributo del `<a>` tal cual; solo con `href` (Grana no añade nada). */
+  rel?: string
+  /** El destino es otro sitio (marca «sale de aquí» y texto oculto); solo con `href`. */
+  external?: boolean
+  /** Página actual (`aria-current="page"`); solo con `href`; como mucho uno por menú (#576). */
+  current?: boolean
+}
+/** `navigate` de `GMenu` (elemento-enlace, #573). `event.preventDefault()` deja la navegación al router y no impide el cierre. */
+export interface MenuNavigateEvent {
+  id: GranaKey
+  item: MenuItem
+  event: MouseEvent
+}
+/** Texto de `GMenu` con `{label}`: cadena o función (menu.md «Textos»). */
+export type MenuText = string | ((ctx: { label: string; item: MenuItem }) => string)
+/** Textos de los elementos-enlace de `GMenu` (menu.md «Textos», sin valores por defecto, #226). */
+export interface MenuLabels {
+  external?: string
+  newTab?: string
+  destExternal?: string
+  destNewTab?: string
+  opened?: MenuText
+  openedLive?: MenuText
+  copied?: MenuText
+  copiedLive?: MenuText
 }
 /** `select` de `GMenu`. */
 export interface MenuSelectEvent {
@@ -287,6 +316,70 @@ export interface FormError {
   name?: string
   id?: string | null
   message: string
+}
+
+/** Destino del foco o disparador de un nivel: `id` o elemento (api.md «Niveles que devuelven un valor», #583). */
+export type LevelTarget = string | HTMLElement
+
+/** Bajar un nivel con resultado (base 7 de dialog.md «Niveles anidados»): foco, llegada y anuncio. */
+export interface LevelReturn {
+  focus?: LevelTarget
+  announce?: string
+}
+
+/** `dismiss` de `GDialog` (cancelable, #582). */
+export interface DialogDismissEvent {
+  reason: 'escape' | 'backdrop' | 'close'
+  depth: number
+  preventDefault(): void
+  readonly defaultPrevented: boolean
+}
+
+/** `step` de `GDialog` (dialog.md §B, #584). */
+export interface DialogStepEvent {
+  from: string | null
+  to: string
+  direction: 'forward' | 'back'
+  reason: 'push' | 'back' | 'escape' | 'trail'
+  result?: unknown
+}
+
+/** Textos de `GDialog` en modo pasos (sin valores por defecto). */
+export interface DialogLabels {
+  back?: string | ((title: string) => string)
+  trail?: string
+}
+
+/** Operaciones de los pasos de `GDialog` (alcance de los slots, `useDialogSteps()` y la instancia). */
+export interface DialogStepsActions {
+  push(name: string, options?: { from?: LevelTarget }): void
+  back(options?: LevelReturn & { result?: unknown }): void
+  backTo(name: string, options?: LevelReturn): void
+}
+
+/** Alcance de los slots `default` y `footer` de `GDialog` y `GDialogStep`. */
+export interface DialogSlotScope extends DialogStepsActions {
+  close(): void
+  steps: string[]
+}
+
+/** `useDialogSteps()`: los pasos del `GDialog` más cercano. */
+export interface DialogSteps extends DialogStepsActions {
+  readonly steps: Readonly<Ref<readonly string[]>>
+  readonly current: Readonly<Ref<string | null>>
+  readonly depth: Readonly<Ref<number>>
+}
+
+/** Alcance de los slots de `GFormFold` y lo que expone (form.md §15). */
+export interface FormFoldActions {
+  confirm(): void
+  close(options?: LevelReturn): void
+  cancel(): void
+}
+
+/** Textos de `GFormFold`. */
+export interface FormFoldLabels {
+  pending?: string | ((title: string) => string)
 }
 
 /** Rango de `GDatePicker` (ISO `yyyy-mm-dd`). */

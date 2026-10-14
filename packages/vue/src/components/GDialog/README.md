@@ -4,7 +4,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 
 **Etiqueta:** `<g-dialog>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/dialog/auditoria.md`](../../../../../design/lab/dialog/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con `<dialog>` (`showModal()`), `::backdrop` que herede variables y `:has()`: los actuales.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con `<dialog>` (`showModal()`), `::backdrop` que herede variables y `:has()`: los actuales.
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `abierto` y `guardar` son de tu aplicación -->
 <g-dialog v-model="abierto" title="Guardar cambios" description="Se aplicarán a todo el equipo." close-label="Cerrar">
   <p>Contenido del diálogo.</p>
   <template #footer="{ close }">
@@ -86,6 +87,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 **`dismiss` es cancelable:** llama a `preventDefault()` de forma síncrona para mantenerlo abierto (por ejemplo, con cambios sin guardar). Esc funciona igual con y sin `preventDefault`, también en la segunda pulsación seguida.
 
 ```vue
+<!-- Fragmento: `abierto` y `sinGuardar` son de tu aplicación -->
 <g-dialog v-model="abierto" title="Editar" close-label="Cerrar" @dismiss="(e) => { if (sinGuardar && e.reason !== 'close') e.preventDefault() }">
   …
 </g-dialog>
@@ -119,6 +121,7 @@ Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `c
 - **Adaptativo:** escritorio centrado, tableta (≤ ~900px) con relleno menor y móvil (≤ ~520px) según `mobile`.
 
 ```vue
+<!-- Fragmento: `abierto` es de tu aplicación -->
 <g-dialog v-model="abierto" title="Preferencias" close-label="Cerrar" size="lg">
   <section class="g-dialog__section">General…</section>
   <section class="g-dialog__section"><div class="g-dialog__well">Avisos…</div></section>
@@ -129,6 +132,7 @@ Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `c
 ## Confirmaciones (`role="alertdialog"`)
 
 ```vue
+<!-- Fragmento: `abierto` y `eliminar` son de tu aplicación -->
 <g-dialog v-model="abierto" role="alertdialog" size="sm" title="¿Eliminar el proyecto?" description="Esta acción no se puede deshacer.">
   <template #footer="{ close }">
     <g-btn variant="outline" autofocus @click="close">Cancelar</g-btn>
@@ -228,7 +232,7 @@ Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--siz
 - **Personalidad:** en WebKit un clic no da `has-origin` (solo fundido), el borde superior fijo puede moverse hasta 0,5px con bordes fraccionarios, y ambos detalles se limitan a visores de más de 520px.
 - **`::backdrop` con variables:** hereda `--g-surface-backdrop` de la raíz `<dialog>` en navegadores de 2024 en adelante; en uno anterior, el fondo quedaría transparente.
 - **Heading fijo:** el título es un `h2`; el nivel no se cambia en v0.1.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (nombre, descripción, `alertdialog` y cuerpo desplazable), el teclado virtual en móvil (el visor se reduce y una hoja alta puede tapar campos), un dispositivo táctil real, las preferencias reales de `prefers-reduced-motion` y `forced-colors` (los bloques se comprobaron aplicados sin condición), Firefox y Safari, y `dvh` en Safari móvil.
 
 ## Fuentes

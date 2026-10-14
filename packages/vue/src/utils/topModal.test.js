@@ -73,7 +73,7 @@ describe('edgeReserve', () => {
   it('order y before (#322): voz → isla → avisos por prioridad, no por montaje', () => {
     const speech = Symbol('speech')
     const island = Symbol('island')
-    expect(EDGE_ORDER).toEqual({ speech: 10, status: 20 })
+    expect(EDGE_ORDER).toEqual({ speech: 10, pageHeader: 15, status: 20 }) // #631: el encabezado de página entre la voz y la isla
     // La isla publica ANTES que la voz (orden de montaje inverso): el resultado no cambia
     setEdgeReserve(island, 'top', 56, { order: EDGE_ORDER.status })
     setEdgeReserve(speech, 'top', 60, { order: EDGE_ORDER.speech })

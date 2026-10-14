@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick, h } from 'vue'
+import { nextTick, h, defineComponent } from 'vue'
 import GDialog from './GDialog.vue'
+import GForm from '../GForm/GForm.vue'
+import GFormSection from '../GFormSection/GFormSection.vue'
+import GFormLayout from '../GFormLayout/GFormLayout.vue'
+import GInput from '../GInput/GInput.vue'
+import { resetDialogStack } from '../../utils/dialogStack.js'
 import GTabs from '../GTabs/GTabs.vue'
 import GTabPanel from '../GTabs/GTabPanel.vue'
 
@@ -14,7 +19,7 @@ beforeEach(() => {
     this.dispatchEvent(new Event('close'))
   }
 })
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => { vi.restoreAllMocks(); resetDialogStack() })
 
 const base = { modelValue: true, title: 'Título', closeLabel: 'Cerrar' }
 const mountOpen = (props = {}, opts = {}) => mount(GDialog, { attachTo: document.body, props: { ...base, ...props }, ...opts })
@@ -826,5 +831,202 @@ describe('GDialog · personalidad: D1 origen en el disparador y D2 borde superio
     expect(document.activeElement).toBe(w.find('.g-dialog__close').element)
     expect(frames.length).toBe(1)
     w.unmount()
+  })
+})
+
+// ---------- Defectos medidos en design/lab/dialog/r02 (L1 a L4) ----------
+const frame = () => new Promise((r) => setTimeout(r, 40))
+
+describe('GDialog · L1: corta el contexto de GForm', () => {
+  const components = { GDialog, GForm, GFormSection, GFormLayout, GInput }
+  const make = (template, setup) => mount(defineComponent({ components, setup, template }), { attachTo: document.body })
+
+  it('un GForm dentro de un diálogo escrito dentro de otro GForm es un <form> propio y envía solo sus campos', async () => {
+    const onOuter = vi.fn()
+    const onInner = vi.fn()
+    const w = make(`
+      <GForm id="outer" @submit="onOuter">
+        <GInput label="Fuera" name="fuera" model-value="F" />
+        <GDialog :model-value="true" title="Nuevo" close-label="Cerrar">
+          <GForm id="inner" @submit="onInner">
+            <GInput label="Dentro" name="dentro" model-value="D" />
+            <button type="submit" id="go">Crear</button>
+          </GForm>
+        </GDialog>
+      </GForm>`, () => ({ onOuter, onInner }))
+    await nextTick()
+    const inner = w.find('#inner').element
+    expect(inner.tagName).toBe('FORM')
+    expect(w.find('#outer').element.tagName).toBe('FORM')
+    inner.requestSubmit(w.find('#go').element)
+    await frame()
+    expect(onInner).toHaveBeenCalledTimes(1)
+    expect(onOuter).not.toHaveBeenCalled()
+    const data = onInner.mock.calls[0][0].data
+    expect(data.get('dentro')).toBe('D')
+    expect(data.has('fuera')).toBe(false)
+    w.unmount()
+  })
+
+  it('el formulario de fuera no registra ni valida los campos del diálogo, ni se marca editado por ellos', async () => {
+    const onOuter = vi.fn()
+    const onInvalid = vi.fn()
+    const onDirty = vi.fn()
+    const w = make(`
+      <GForm id="outer" :errors="{ dentro: 'Falta' }" @submit="onOuter" @invalid="onInvalid" @update:dirty="onDirty">
+        <GInput label="Fuera" name="fuera" model-value="F" />
+        <GDialog :model-value="true" title="Nuevo" close-label="Cerrar">
+          <GInput label="Dentro" name="dentro" model-value="" id="dentro" />
+        </GDialog>
+      </GForm>`, () => ({ onOuter, onInvalid, onDirty }))
+    await nextTick()
+    const field = w.find('input#dentro')
+    // Sin el corte, el campo del diálogo vería el error del formulario de fuera
+    expect(field.attributes('aria-invalid')).not.toBe('true')
+    field.element.dispatchEvent(new Event('input', { bubbles: true }))
+    field.element.dispatchEvent(new Event('change', { bubbles: true }))
+    expect(onDirty).not.toHaveBeenCalled()
+    // Al enviar, el campo del diálogo no se revela con el error de fuera (no está registrado en ese formulario)
+    w.find('#outer').element.requestSubmit()
+    await frame()
+    expect(field.attributes('aria-invalid')).not.toBe('true')
+    expect(w.find('.g-dialog .g-input__message').text()).toBe('')
+    w.unmount()
+  })
+
+  it('la distribución de fuera (readonly, disabled) no cruza el diálogo', async () => {
+    const w = make(`
+      <GForm disabled>
+        <GFormLayout>
+          <GInput label="Fuera" name="fuera" id="fuera" />
+          <GDialog :model-value="true" title="Nuevo" close-label="Cerrar">
+            <GInput label="Dentro" name="dentro" id="dentro" />
+          </GDialog>
+        </GFormLayout>
+      </GForm>`, () => ({}))
+    await nextTick()
+    expect(w.find('input#fuera').attributes('disabled')).toBeDefined()
+    expect(w.find('input#dentro').attributes('disabled')).toBeUndefined()
+    w.unmount()
+  })
+})
+
+describe('GDialog · L2: Esc mantenida baja un solo nivel', () => {
+  const esc = (el, repeat = false) => {
+    const ev = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true, repeat })
+    el.dispatchEvent(ev)
+    return ev
+  }
+  it('un keydown de Esc con repeat no pide el cierre, pero sí cancela el nativo', () => {
+    const w = mountOpen()
+    const ev = esc(dlg(w), true)
+    expect(ev.defaultPrevented).toBe(true)
+    expect(w.emitted('dismiss')).toBeFalsy()
+    // El cancel nativo que siga a esa pulsación tampoco cierra
+    dlg(w).dispatchEvent(new Event('cancel', { cancelable: true }))
+    expect(w.emitted('dismiss')).toBeFalsy()
+    w.unmount()
+  })
+  it('un cancel nativo provocado por una Esc repetida fuera del diálogo (foco en body) se ignora', () => {
+    const w = mountOpen()
+    esc(document.body, true)
+    const ev = new Event('cancel', { cancelable: true })
+    dlg(w).dispatchEvent(ev)
+    expect(ev.defaultPrevented).toBe(true)
+    expect(w.emitted('dismiss')).toBeFalsy()
+    w.unmount()
+  })
+  it('con dos niveles, la primera Esc cierra el de arriba y las repeticiones no tocan el de abajo', async () => {
+    const lower = mountOpen({ title: 'Uno' })
+    const upper = mountOpen({ title: 'Dos' })
+    esc(dlg(upper))
+    expect(upper.emitted('dismiss')).toHaveLength(1)
+    await upper.setProps({ modelValue: false })
+    for (let i = 0; i < 5; i++) esc(dlg(lower), true)
+    expect(lower.emitted('dismiss')).toBeFalsy()
+    // Una pulsación nueva (sin repeat) sí baja el siguiente
+    await new Promise((r) => setTimeout(r, 0))
+    esc(dlg(lower))
+    expect(lower.emitted('dismiss')).toHaveLength(1)
+    lower.unmount(); upper.unmount()
+  })
+})
+
+describe('GDialog · L3 y L4: diálogos apilados', () => {
+  const backdrop = (w) => {
+    const el = dlg(w)
+    el.getBoundingClientRect = () => ({ left: 100, right: 300, top: 100, bottom: 300, width: 200, height: 200 })
+    el.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 10, clientY: 10 }))
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 10, clientY: 10 }))
+  }
+  it('el primero no lleva is-stacked; el que se abre encima sí, ya antes de showModal()', async () => {
+    const lower = mountOpen({ title: 'Uno' })
+    expect(dlg(lower).classList.contains('is-stacked')).toBe(false)
+    let atShow = null
+    const real = HTMLDialogElement.prototype.showModal
+    HTMLDialogElement.prototype.showModal = function () { atShow = this.classList.contains('is-stacked'); real.call(this) }
+    const upper = mountOpen({ title: 'Dos' })
+    await nextTick()
+    expect(atShow).toBe(true)
+    expect(dlg(upper).classList.contains('is-stacked')).toBe(true)
+    expect(dlg(lower).classList.contains('is-stacked')).toBe(false)
+    lower.unmount(); upper.unmount()
+  })
+  it('se mantiene al abrir y cerrar niveles; si el de abajo cierra, el de arriba pasa a ser el nivel 1', async () => {
+    const a = mountOpen({ title: 'Uno' })
+    const b = mountOpen({ title: 'Dos' })
+    const c = mountOpen({ title: 'Tres' })
+    await nextTick()
+    expect([a, b, c].map((w) => dlg(w).classList.contains('is-stacked'))).toEqual([false, true, true])
+    await c.setProps({ modelValue: false })
+    await nextTick()
+    expect(dlg(b).classList.contains('is-stacked')).toBe(true)
+    await c.setProps({ modelValue: true })
+    await nextTick()
+    expect(dlg(c).classList.contains('is-stacked')).toBe(true)
+    await a.setProps({ modelValue: false })
+    await nextTick()
+    expect(dlg(b).classList.contains('is-stacked')).toBe(false)
+    expect(dlg(c).classList.contains('is-stacked')).toBe(true)
+    a.unmount(); b.unmount(); c.unmount()
+  })
+  it('el que sale conserva is-stacked durante su salida (su fondo no reaparece)', async () => {
+    const a = mountOpen({ title: 'Uno' })
+    const b = mountOpen({ title: 'Dos' })
+    await nextTick()
+    await b.setProps({ modelValue: false })
+    expect(dlg(b).classList.contains('is-stacked')).toBe(true)
+    a.unmount(); b.unmount()
+  })
+  it('otro modal de la librería (no GDialog) debajo también cuenta; un <dialog> ajeno no', async () => {
+    const own = document.createElement('dialog')
+    own.className = 'g-speech-sheet'
+    document.body.appendChild(own)
+    own.showModal()
+    own.matches = (sel) => sel === ':modal' || Element.prototype.matches.call(own, sel) // jsdom no conoce :modal
+    const w = mountOpen()
+    await nextTick()
+    expect(dlg(w).classList.contains('is-stacked')).toBe(true)
+    w.unmount(); own.remove()
+    const app = document.createElement('dialog')
+    app.className = 'app-modal'
+    document.body.appendChild(app)
+    app.showModal()
+    app.matches = (sel) => sel === ':modal' || Element.prototype.matches.call(app, sel)
+    const v = mountOpen()
+    await nextTick()
+    expect(dlg(v).classList.contains('is-stacked')).toBe(false)
+    v.unmount(); app.remove()
+  })
+  it('L4: con otro modal debajo, el clic en el fondo no cierra; en el nivel 1 sí', async () => {
+    const lower = mountOpen({ title: 'Uno' })
+    const upper = mountOpen({ title: 'Dos' })
+    await nextTick()
+    backdrop(upper)
+    expect(upper.emitted('dismiss')).toBeFalsy()
+    await upper.setProps({ modelValue: false })
+    backdrop(lower)
+    expect(lower.emitted('dismiss')[0][0].reason).toBe('backdrop')
+    lower.unmount(); upper.unmount()
   })
 })

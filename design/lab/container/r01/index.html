@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contenedor de página · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./ct.css">
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<a class="lab-skip" href="#main">Saltar al contenido</a>
+
+<!-- La barra de la APLICACIÓN (no es del componente): fija arriba, 56px -->
+<header class="app-bar">
+  <span class="app-brand">Contenedor · laboratorio de kiwi</span>
+  <nav class="app-lab" aria-label="Laboratorio">
+    <span class="app-lab__group" id="lab-concepts"></span>
+    <span class="app-lab__group" id="lab-widths"></span>
+    <span class="app-lab__group" id="lab-side"></span>
+  </nav>
+</header>
+
+<div class="app">
+  <!-- Barra lateral de la APLICACIÓN: reserva --g-sidebar-width o --g-sidebar-rail (tokens reales de GSidebar) -->
+  <nav class="app-side" aria-label="Secciones del sistema">
+    <ul>
+      <li><a href="#main"><span data-icon="house"></span><span class="lab-side-text">Tablero</span></a></li>
+      <li><a href="#main"><span data-icon="table"></span><span class="lab-side-text">Resultados</span></a></li>
+      <li><a href="#main" aria-current="page"><span data-icon="settings"></span><span class="lab-side-text">Configuración</span></a></li>
+      <li><a href="#main"><span data-icon="users"></span><span class="lab-side-text">Personal</span></a></li>
+    </ul>
+  </nav>
+  <!-- Aquí ct.js monta la página del concepto: <main class="ct"> (A, B, C) o <main> con contenedores (base) -->
+  <div class="app-col" id="col"></div>
+</div>
+
+<div class="lab-readout" id="readout" aria-hidden="true"></div>
+<script src="./ct.js"></script>
+</body>
+</html>

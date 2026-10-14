@@ -4,7 +4,7 @@ Interruptor de efecto inmediato: activa o desactiva una opción. Usa el `<input 
 
 **Etiqueta:** `<g-switch>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/switch/auditoria.md`](../../../../../design/lab/switch/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `notificaciones` es de tu aplicación -->
 <g-switch v-model="notificaciones" label="Notificaciones" hint="Te avisamos por correo." />
 ```
 
@@ -43,6 +44,8 @@ Un interruptor **aplica el cambio al instante** (un ajuste, una función). Si la
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
 | `id` | String | | generado |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `variant` (la estructura del interruptor no es un botón) ni `required` (un interruptor de efecto inmediato no se "rellena"; si una opción debe estar encendida para continuar, usa `error`).
@@ -57,6 +60,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 - **El rol es siempre `switch`:** un `role` que pases como atributo no lo cambia.
 
 ```vue
+<!-- Fragmento: `auto`, `guardando`, `guardar`, `cookies` y `error` son de tu aplicación -->
 <!-- guardado asíncrono: el interruptor no se bloquea y el consumidor decide -->
 <g-switch v-model="auto" :loading="guardando" label="Guardado automático" @change="guardar" />
 
@@ -85,6 +89,7 @@ Los demás eventos (`focus`, `blur`, `change`, `keydown`…) no se declaran: tus
 Sin iconos, el pulgar lleva un icono de Lucide (`check` encendido, `minus` apagado; `loader-circle` mientras carga). Con `icon-on` o `icon-off`, el icono sustituye a la marca de **su** estado. Los iconos se dimensionan al pulgar (`1em` de un SVG funciona bien). Grana no trae iconos; el playground usa SVG de [Lucide](https://lucide.dev).
 
 ```vue
+<!-- Fragmento: `bloqueado` es de tu aplicación -->
 <g-switch v-model="bloqueado" label="Bloqueo" size="lg">
   <template #icon-on><LockIcon /></template>
   <template #icon-off><UnlockIcon /></template>
@@ -147,7 +152,7 @@ Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--siz
 - **Marca y pulgar solo verificados en Chromium.** Son pseudo-elementos del `<input>` con `appearance: none` (mismo patrón que `GCheckbox`); conviene revisarlos en Firefox y Safari, junto con `:dir()` y `:has()`.
 - **Sin tarjeta ni grupo** de interruptores, y valor solo booleano en v0.1.
 - **`loading` no bloquea:** si quieres impedir cambios mientras guarda, usa `disabled` o ignora el evento.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (rol `switch`, "activado", ayuda, error y `aria-busy`), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), el zoom al 200% y un dispositivo táctil real.
 
 ## Fuentes

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Encabezado de página · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<script>
+  // Tema del proyecto que pidió el componente (NisaNabani: brand #24366B, accent #C1D324), derivado con @grana/cli.
+  if (new URLSearchParams(location.search).get('theme') === 'nsa') document.write('<link rel="stylesheet" href="./nsa-tokens.css">')
+</script>
+<link rel="stylesheet" href="./ph.css">
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<a class="lab-skip" href="#main">Saltar al contenido</a>
+
+<!-- La barra de la APLICACIÓN (no es del componente): fija arriba, 56px. Simula la cabecera fija de NisaNabani. -->
+<header class="app-bar" id="app-bar">
+  <span class="app-brand">NisaNabani · laboratorio de kiwi</span>
+  <nav class="app-lab" aria-label="Laboratorio">
+    <span class="app-lab__group" id="lab-concepts"></span>
+    <span class="app-lab__group" id="lab-toggles"></span>
+    <button type="button" class="lab-btn" id="lab-toast-btn">Aviso de prueba</button>
+  </nav>
+</header>
+
+<div class="app">
+  <nav class="app-side" aria-label="Secciones del sistema">
+    <ul>
+      <li><a href="#main">Tablero</a></li>
+      <li><a href="#main" aria-current="page">Muestras</a></li>
+      <li><a href="#main">Lotes</a></li>
+      <li><a href="#main">Pacientes</a></li>
+      <li><a href="#main">Reportes</a></li>
+    </ul>
+  </nav>
+
+  <main id="main" class="app-main" tabindex="-1">
+    <!-- ===================== El componente (prototipo de GPageHeader) ===================== -->
+    <header class="ph" id="ph">
+      <!-- Ruta: aquí iría <GBreadcrumbs> real; simplificada en el prototipo (mismo árbol: nav > ol > li > a, aria-current) -->
+      <nav class="ph-trail" aria-label="Ruta de navegación">
+        <ol>
+          <li><a href="#inicio" data-up="0">Inicio</a></li>
+          <li><span class="ph-trail__sep" data-icon="chevron-right"></span><a href="#lab">Laboratorio central</a></li>
+          <li><span class="ph-trail__sep" data-icon="chevron-right"></span><a href="#muestras">Muestras</a></li>
+          <li><span class="ph-trail__sep" data-icon="chevron-right"></span><a href="#lote-0412" data-parent>Lote 2026-0412</a></li>
+          <li><span class="ph-trail__sep" data-icon="chevron-right"></span><a href="#m-0007" aria-current="page">Muestra M-0007</a></li>
+        </ol>
+      </nav>
+
+      <div class="ph__head">
+        <div class="ph__titles">
+          <p class="ph__eyebrow">Hematología · Ambulatorio</p>
+          <h1 class="ph__title" id="ph-title" tabindex="-1" dir="auto">Muestra M-0007</h1>
+          <p class="ph__desc">Hemograma completo. Recibida el 12 de octubre de 2026 a las 08:14; tres analitos fuera de rango pendientes de validación.</p>
+          <p class="ph__meta"><span class="lab-chip lab-chip--info">En análisis</span><span class="lab-chip">Prioridad normal</span><span class="ph__meta-text">Actualizado hace 3 min</span></p>
+        </div>
+        <!-- El hueco de las acciones: guarda su tamaño cuando las acciones se van a la franja o al muelle -->
+        <div class="ph__actions-slot">
+          <div class="ph__actions" role="group" aria-label="Acciones de la página">
+            <button type="button" class="g-btn g-btn--color-neutral g-btn--variant-ghost g-btn--size-md g-btn--density-default g-btn--icon ph__secondary" aria-label="Compartir"><span class="g-btn__label" data-icon="share-2"></span><span class="g-btn__loader" aria-hidden="true"></span></button>
+            <button type="button" class="g-btn g-btn--color-neutral g-btn--variant-outline g-btn--size-md g-btn--density-default ph__secondary"><span class="g-btn__prepend" data-icon="pencil"></span><span class="g-btn__label">Editar</span><span class="g-btn__loader" aria-hidden="true"></span></button>
+            <button type="button" class="g-btn g-btn--color-brand g-btn--variant-solid g-btn--size-md g-btn--density-default ph__primary"><span class="g-btn__prepend" data-icon="check"></span><span class="g-btn__label">Validar resultados</span><span class="g-btn__loader" aria-hidden="true"></span></button>
+            <button type="button" class="g-btn g-btn--color-neutral g-btn--variant-ghost g-btn--size-md g-btn--density-default g-btn--icon" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><span class="g-btn__label" data-icon="ellipsis-vertical"></span><span class="g-btn__loader" aria-hidden="true"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Relevo: franja de arriba (después de la cabecera en el DOM: el orden de lectura de las acciones no cambia al moverse) -->
+      <div class="ph__band" id="ph-band" hidden>
+        <a class="ph__band-up" href="#lote-0412"><span data-icon="arrow-up"></span><span class="ph__band-up-text">Subir a <span dir="auto">Lote 2026-0412</span></span></a>
+        <a class="ph__band-title" href="#ph-title" dir="auto">Muestra M-0007</a>
+        <div class="ph__band-host"></div>
+      </div>
+
+      <!-- C · Muelle: abajo, en la zona del pulgar -->
+      <div class="ph__dock" id="ph-dock" hidden>
+        <a class="ph__dock-title" href="#ph-title" dir="auto">Muestra M-0007</a>
+        <div class="ph__dock-host"></div>
+      </div>
+
+      <!-- Contenido: métricas de la aplicación (GMetric real: mismas clases) -->
+      <div class="ph__content">
+        <div class="g-metric g-metric--size-sm"><span class="g-metric__label">Analitos</span><span class="g-metric__value">18</span></div>
+        <div class="g-metric g-metric--size-sm g-metric--trend-danger"><span class="g-metric__label">Fuera de rango</span><span class="g-metric__value">3</span><span class="g-metric__trend" data-direction="up"><span data-icon="arrow-up" class="g-metric__trend-icon"></span>+2<small> vs. toma anterior</small></span></div>
+        <div class="g-metric g-metric--size-sm"><span class="g-metric__label">En laboratorio</span><span class="g-metric__value">2 h 40<span class="g-metric__unit">min</span></span></div>
+        <div class="g-metric g-metric--size-sm"><span class="g-metric__label">Validación</span><span class="g-metric__value">2 de 3</span></div>
+      </div>
+
+      <!-- Zócalo: la última fila (pestañas; en B también las acciones y el título compacto) -->
+      <div class="ph__base" id="ph-base">
+        <span class="ph__base-title" aria-hidden="true" dir="auto">Muestra M-0007</span>
+        <div class="ph-tabs" role="tablist" aria-label="Secciones de la muestra">
+          <button type="button" role="tab" id="t1" aria-controls="p1" aria-selected="true">Resumen</button>
+          <button type="button" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1">Resultados</button>
+          <button type="button" role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1">Historial</button>
+          <button type="button" role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1">Archivos</button>
+        </div>
+        <div class="ph__base-host"></div>
+      </div>
+    </header>
+    <!-- ===================== Fin del componente ===================== -->
+
+    <div class="page-body" id="contenido">
+      <section role="tabpanel" id="p1" aria-labelledby="t1" tabindex="0" class="panel"></section>
+      <section role="tabpanel" id="p2" aria-labelledby="t2" tabindex="0" class="panel" hidden></section>
+      <section role="tabpanel" id="p3" aria-labelledby="t3" tabindex="0" class="panel" hidden></section>
+      <section role="tabpanel" id="p4" aria-labelledby="t4" tabindex="0" class="panel" hidden></section>
+      <aside class="lab-note" id="lab-note"></aside>
+    </div>
+  </main>
+</div>
+
+<div class="lab-toast" id="lab-toast" role="status" hidden></div>
+
+<script src="./ph.js"></script>
+</body>
+</html>

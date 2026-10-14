@@ -392,6 +392,7 @@ edgeReserve(edge, { doc, except, before } = {})                // before: solo s
 - El cuarto parámetro posicional `doc` de `setEdgeReserve` pasa a quinto: bruno revisa las llamadas (hoy ninguna lo pasa) y `__shared`.
 - Por **borde**, sin mirar la alineación (la isla abierta ocupa el centro y en visores estrechos todo se solapa).
 - La isla **no** cambia de borde (`data-flipped` no existe aquí). Si la pill de voz aparece o cambia de borde, la isla se recoloca con una transición de `--g-duration-press` (sin muelle).
+- **Tercer cliente: `GPageHeader`** (`page-header.md` «Bordes compartidos», DECISIONS.md #631). `EDGE_ORDER` pasa a `{ speech: 10, pageHeader: 15, status: 20 }`. El zócalo pegado publica su alto en `top` (no lee: es `sticky`), así que la isla, que lee `before: EDGE_ORDER.status`, queda **debajo** del zócalo sin cambiar su llamada; el muelle (solo en estrecho) publica en `bottom` y lee la voz. La isla no cambia.
 
 Cambios mínimos anotados en `speech.md` §6.7 y en `toast.md` «Convivencia» (ningún comportamiento de la voz ni de los avisos cambia).
 

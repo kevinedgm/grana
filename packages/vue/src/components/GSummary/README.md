@@ -6,7 +6,7 @@ No es una tarjeta: no tiene superficie, selección, enlace ni media. Es **conten
 
 **Etiqueta:** `<g-summary>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/summary/auditoria.md`](../../../../../design/lab/summary/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** paquete principal `@grana/vue`
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSummary`, y el banco `summary.html`). Exige Vue `^3.5.0` y un navegador actual: la ficha usa la unidad `lh` y `:has()`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSummary`, y el banco `summary.html`). Exige Vue `^3.5.0` y un navegador actual: la ficha usa la unidad `lh` y `:has()`.
 
 ## Qué la hace distinta: prioridad líquida
 
@@ -82,6 +82,7 @@ El anfitrión decide el `layout` (conoce su fila); **la ficha nunca lo cambia so
 `stack` no es la identidad de la ficha: es **la vista completa**. Existe porque la corriente es menos escaneable cuando sobra sitio y porque la ficha recortada nunca es la única fuente de un dato.
 
 ```vue
+<!-- Fragmento: `datos` es de tu aplicación -->
 <!-- inline: dentro de un campo, el alto del campo no cambia -->
 <g-summary layout="inline" title="María García López" code="001000" avatar></g-summary>
 
@@ -166,6 +167,7 @@ Precedencia del hueco inicial: **slot `lead`, luego `avatar`, luego `icon`**.
 - El slot `lead` recibe `{ size }`. Un hijo directo `.g-avatar` manda su caja (el hueco pierde su marco, como en los demás componentes).
 
 ```vue
+<!-- Fragmento: `datos`, `foto` y `p` son de tu aplicación -->
 <!-- «building-complex» debe estar registrado con createIcons (ver GAvatar) -->
 <g-summary title="Grana Labs" :avatar="{ icon: 'building-complex', shape: 'square' }" :facts="datos"></g-summary>
 <g-summary title="María García López" :avatar="{ src: foto, colorKey: p.id, categories: 8 }"></g-summary>
@@ -182,6 +184,7 @@ Precedencia del hueco inicial: **slot `lead`, luego `avatar`, luego `icon`**.
 Cuando una lista de resultados trae varias fichas con el mismo título, `summaryDiff` compara y la ficha pinta: el valor **único** en el grupo **pesa** (peso de título) y el que **comparten** se apaga (`text-subtle`). Las fichas sin homónimos no llevan marcas.
 
 ```vue
+<!-- Fragmento: `visibles` es de tu aplicación -->
 <script setup>
 import { summaryDiff } from '@grana/vue'
 import { computed } from 'vue'
@@ -207,6 +210,7 @@ const diffs = computed(() => summaryDiff(visibles.value))   // [{ Edad: 'same', 
 Con texto, la ficha marca con `<mark class="g-summary__mark">` la **primera aparición de cada palabra** (sin acentos ni mayúsculas) en `title`, `code`, `subtitle` y los **valores** de los datos (no en los rótulos). La marca es **peso de título y subrayado**, no color. Si la forma sin acentos no mide lo mismo que el texto, no se marca. No busca ni filtra: solo pinta.
 
 ```vue
+<!-- Fragmento: `resultados` y `texto` son de tu aplicación -->
 <g-summary v-for="o in resultados" :key="o.id" v-bind="o" :highlight="texto"></g-summary>
 ```
 
@@ -368,11 +372,12 @@ Con `NODE_ENV` distinto de `production`, `console.warn` con el prefijo `[Grana G
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) la ficha toma su ancho por defecto (`--g-space-1 × 60`) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **La ficha recortada nunca es la única fuente de un dato:** el anfitrión debe ofrecer la vista completa (vista previa, detalle, `stack`). El `title` nativo de lo cortado solo sirve al puntero.
 - **El estado es de lo primero que cede.** Si es crítico, va como dato con `priority` alta.
 - **`bare` mal marcado** deja un valor sin rótulo a la vista (el lector siempre recibe el rótulo).
 - **`diff`** exige que las fichas vecinas traigan los mismos rótulos; en listas heterogéneas casi todo sale `diff`.
-- **Un anfitrión de ancho automático** (celda de tabla, fila flex) debe dar ancho a la ficha: la raíz lleva `contain: inline-size` y no aporta ancho. Dale `min` a la columna de `GTable`, o `min-inline-size` o `flex: 1` en una fila flex (si no, aviso 8).
+- **Un anfitrión de ancho automático** (celda de tabla, fila flex): la raíz lleva `contain: inline-size` y desde #562 toma su ancho por defecto (`--g-space-1 × 60`) en lugar de medir 0. Para otro ancho, dale `min` a la columna de `GTable`, o `min-inline-size` o `flex: 1` en una fila flex (el aviso 8 sigue vigente).
 - **`stack` a muy poco ancho:** el estado puede llevar la elipsis propia de `GBadge` (antes que desbordar) y un `GBtn` del slot `action` (`white-space: nowrap`) puede desbordar: es contenido de la aplicación, que le da sitio.
 - **Por debajo de 160 px con `code` e icono** el código puede llevar elipsis; el barrido garantizado del contrato es de 160 a 720 px. Fuera de ese rango (se midió a 120 y 140 px, informativo) la identidad y el código no ceden y puede haber desbordes esperables en una ficha más estrecha que su identidad (por ejemplo, la identidad `xl` con `space` 5 mide 80 px).
 - **«+N» no se localiza** (cifras latinas).

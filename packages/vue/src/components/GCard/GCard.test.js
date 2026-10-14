@@ -329,6 +329,21 @@ describe('GCard · acción principal', () => {
     expect(w.emitted('navigate')).toHaveLength(1)
   })
 
+  it('con target de otro contexto (_blank, nombre, _parent, _top) no emite navigate; vacío y _self sí (#574)', () => {
+    for (const target of ['_blank', 'ficha', '_parent', '_top']) {
+      const w = mk({ href: '#atlas', target })
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
+      w.find('a.g-card__primary').element.dispatchEvent(ev)
+      expect(w.emitted('navigate'), target).toBeUndefined()
+      expect(ev.defaultPrevented, target).toBe(false)
+    }
+    for (const target of ['', '_self']) {
+      const w = mk({ href: '#atlas', target })
+      w.find('a.g-card__primary').element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+      expect(w.emitted('navigate'), target).toHaveLength(1)
+    }
+  })
+
   it('interaction="link" sin href avisa y cae a none; href con otra interaction avisa', () => {
     const warn = warnings()
     const w = mount(GCard, { props: { ...base, interaction: 'link' } })

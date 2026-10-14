@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operación en curso · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./busy.css">
+<link rel="icon" href="data:,">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{background:var(--g-color-bg)}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:calc(var(--g-space-1)*2);padding:calc(var(--g-space-1)*3) calc(var(--g-space-1)*4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:calc(var(--g-space-1)*3)}
+.lab-links a{color:var(--g-color-link)}
+.lab{display:grid;gap:calc(var(--g-space-1)*8);max-inline-size:78rem;margin:0 auto;padding:calc(var(--g-space-1)*6) calc(var(--g-space-1)*4) calc(var(--g-space-1)*16)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 calc(var(--g-space-1)*2);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:56rem;color:var(--g-color-text-muted)}
+.lab-ctl{position:sticky;top:0;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:calc(var(--g-space-1)*3);padding:calc(var(--g-space-1)*3);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-md);background:var(--g-color-surface);font-size:var(--g-text-body-sm-size)}
+.lab-ctl label{display:inline-flex;align-items:center;gap:var(--g-space-1)}
+.lab-ctl select{min-block-size:32px;padding:0 calc(var(--g-space-1)*2);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);color:var(--g-color-text);font:inherit}
+.lab-case{display:grid;gap:calc(var(--g-space-1)*4)}
+.lab-case > h2{margin:0;font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.lab-case > p{margin:0;max-inline-size:56rem;color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));gap:calc(var(--g-space-1)*6)}
+.col{display:grid;align-content:start;gap:calc(var(--g-space-1)*3);min-inline-size:0}
+.col > h3{margin:0;font-size:var(--g-text-body-size);font-weight:var(--g-text-action-weight)}
+.col > .how{margin:0;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text-muted)}
+.inline-row{display:flex;align-items:end;gap:calc(var(--g-space-1)*2)}
+.inline-row .g-input{flex:1;min-inline-size:0}
+.card{display:block}
+.card-h{margin:0;font-size:var(--g-text-body-size);font-weight:var(--g-text-action-weight);outline:none}
+.card-d{margin:var(--g-space-1) 0 calc(var(--g-space-1)*4);color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size)}
+.card-body{display:grid;gap:calc(var(--g-space-1)*3);margin:0}
+.card-foot{display:flex;justify-content:flex-end;gap:calc(var(--g-space-1)*2);margin-block-start:calc(var(--g-space-1)*5);min-block-size:40px}
+.after{margin:0;color:var(--g-color-text-subtle);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line)}
+.app-msg{margin:0;min-block-size:var(--g-text-caption-line);font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.app-msg.is-error{color:var(--g-color-danger-text)}
+.bz-dialog .g-dialog__body{display:grid;gap:calc(var(--g-space-1)*3)}
+.bz-dialog .g-dialog__title{outline:none}
+.full-shot{display:grid;gap:calc(var(--g-space-1)*2);padding:calc(var(--g-space-1)*4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-md)}
+.lab-log{padding:calc(var(--g-space-1)*3) calc(var(--g-space-1)*4);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size)}
+.lab-log ol{margin:calc(var(--g-space-1)*2) 0 0;padding-inline-start:calc(var(--g-space-1)*5)}
+.lab-src{display:inline-block;min-inline-size:6.5em;color:var(--g-color-text-muted)}
+.lab-cmp .scroll{overflow-x:auto}
+.lab-cmp table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);min-inline-size:44rem}
+.lab-cmp th,.lab-cmp td{padding:calc(var(--g-space-1)*2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-cmp thead th{color:var(--g-color-text-muted);font-weight:var(--g-text-action-weight)}
+.lab-q{padding:calc(var(--g-space-1)*4);border-inline-start:var(--g-space-1) solid var(--g-color-accent-text);background:var(--g-color-accent-soft);color:var(--g-color-text);border-radius:var(--g-radius-sm)}
+.lab-q p{margin:0 0 calc(var(--g-space-1)*2)}
+.lab-q ol{margin:0;padding-inline-start:calc(var(--g-space-1)*5)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Operación en curso · busy r01 (kiwi)</span>
+  <nav class="lab-links" aria-label="Vistas del laboratorio">
+    <a id="rtl-link" href="?dir=rtl">Ver en RTL</a><a id="dark-link" href="?theme=dark">Tema oscuro</a><a id="motion-link" href="?motion=reduce">Movimiento reducido</a><a href="./declaracion.md">Declaración</a>
+  </nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title">Una operación en curso sobre lo que ya está a la vista</h1>
+    <p class="lab-lead">La propuesta pedía «spinner + capa que atenúa y centra un indicador». Aquí la base es común (bloqueo real con <code>inert</code>, tiempos 200/400/5000 ms, un solo canal cortés, foco que nunca cae en <code>body</code>, Esc = cancelar) y cambia la forma: <strong>A · El contorno</strong> (el borde es el indicador, nada se tapa), <strong>B · En firme</strong> (lo enviado se congela a la vista y la fila de acciones dice qué se guarda) y <strong>C · Las etapas</strong> (una hoja sube desde las acciones y narra las etapas reales). Los tres, con los tokens reales del tema por defecto.</p>
+  </div>
+
+  <div class="lab-ctl" role="group" aria-label="Simulación">
+    <label>Duración <select id="dur"><option value="100">100 ms</option><option value="900" selected>900 ms</option><option value="2500">2,5 s</option><option value="7000">7 s (espera larga)</option></select></label>
+    <label>Resultado <select id="out"><option value="ok">Bien</option><option value="fail">Falla</option></select></label>
+    <label><input type="checkbox" id="cancelable"> Cancelable</label>
+    <label><input type="checkbox" id="steps"> Etapas</label>
+  </div>
+
+  <section class="lab-case" aria-labelledby="s1">
+    <h2 id="s1">1 · En línea: un campo y su «Guardar»</h2>
+    <p>Hoy lo resuelve <code>GBtn loading</code>. B y C lo usan tal cual (el giro sustituye a la etiqueta); A propone que la etiqueta se quede y el contorno del propio botón sea el indicador. El campo queda inerte; el botón conserva el foco con <code>aria-disabled</code> (#17).</p>
+    <div class="cols" id="cols-inline"></div>
+  </section>
+
+  <section class="lab-case" aria-labelledby="s2">
+    <h2 id="s2">2 · Tarjeta de ajustes: «Guardando cambios»</h2>
+    <p>Una escritura sobre una superficie, no una lectura («Actualizando datos» es de <code>GLoadRegion</code>). Pulsa «Guardar cambios», o Intro en un campo (el foco pasa entonces a la capa, con nombre).</p>
+    <div class="cols" id="cols-card"></div>
+  </section>
+
+  <section class="lab-case" aria-labelledby="s3">
+    <h2 id="s3">3 · Dentro de un diálogo, sin abrir otro</h2>
+    <p>Marcado real de <code>GDialog</code>. Mientras guarda, Esc, el fondo y «Cerrar» no cierran: Esc cancela si la operación lo permite y, si no, no hace nada. El canal de anuncios se traslada dentro del modal.</p>
+    <div class="cols" id="cols-dialog"></div>
+  </section>
+
+  <section class="lab-case" aria-labelledby="s4">
+    <h2 id="s4">4 · Toda la aplicación: «Cambiando a Laboratorio Norte»</h2>
+    <p>Un <code>&lt;dialog&gt;</code> modal propio en la capa superior (el resto queda inerte de forma nativa, sin <code>z-index</code>). No es un <code>GDialog</code>: no tiene cabecera ni cierre. La carga inicial de la aplicación, antes de que monte Vue, no puede ser un componente.</p>
+    <div class="cols" id="cols-full"></div>
+  </section>
+
+  <section class="lab-log" aria-labelledby="log-h">
+    <strong id="log-h">Lo anunciado (últimos 8)</strong>
+    <ol id="log"></ol>
+  </section>
+
+  <section class="lab-cmp lab-case" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Comparativa</h2>
+    <div class="scroll"><table>
+      <thead><tr><th></th><th>A · El contorno</th><th>B · En firme</th><th>C · Las etapas</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Pregunta que contesta</th><td>¿Qué está bloqueado?</td><td>¿Qué se está enviando?</td><td>¿Qué está pasando y por dónde va?</td></tr>
+        <tr><th scope="row">¿Tapa contenido?</th><td>No (una pestaña de una línea en la esquina final)</td><td>No</td><td>La zona de acciones y su borde</td></tr>
+        <tr><th scope="row">Indicador</th><td>Un tramo que recorre el borde; a los 5 s, el borde entero y quieto</td><td>Campos en solo lectura + línea con giro finito</td><td>Lista de etapas con la actual marcada</td></tr>
+        <tr><th scope="row">Foco del disparador</th><td>Se queda (<code>aria-disabled</code>)</td><td>Se queda</td><td>Pasa a la hoja (taparía el foco, 2.4.11)</td></tr>
+        <tr><th scope="row">Sirve fuera de formularios</th><td>Sí, a cualquier superficie</td><td>Sobre todo a formularios</td><td>Sí, mejor en operaciones largas</td></tr>
+        <tr><th scope="row">Pantalla completa</th><td>El marco del visor; la aplicación a la vista</td><td>Banda «Sur → Norte»</td><td>Hoja centrada sobre el fondo de modal</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="lab-q" aria-labelledby="q-h">
+    <p><strong id="q-h">Pregunta para el usuario.</strong> ¿Qué forma tiene una operación en curso en Grana?</p>
+    <ol>
+      <li><strong>A + las etapas de C (recomendada):</strong> el borde de la superficie es el indicador, nada se tapa; con <code>steps</code>, la pestaña dice la etapa.</li>
+      <li><strong>Solo A.</strong></li>
+      <li><strong>B:</strong> lo enviado se congela a la vista y la fila de acciones dice qué se guarda (centrado en formularios).</li>
+      <li><strong>C:</strong> la hoja de etapas que sube desde las acciones.</li>
+    </ol>
+  </section>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script src="./busy.js"></script>
+<script>
+(function () {
+  const { Busy, icon, btn, field, say, syncLive, Q } = window.__BZ
+  const NAMES = { A: 'A · El contorno', B: 'B · En firme', C: 'C · Las etapas' }
+  const keep = (k, v) => { const q = new URLSearchParams(location.search); q.set(k, v); return '?' + q.toString() }
+  document.getElementById('rtl-link').href = keep('dir', Q.get('dir') === 'rtl' ? 'ltr' : 'rtl')
+  document.getElementById('dark-link').href = keep('theme', Q.get('theme') === 'dark' ? 'light' : 'dark')
+  document.getElementById('motion-link').href = keep('motion', Q.get('motion') === 'reduce' ? 'full' : 'reduce')
+  const lab = window.__lab = { ready: false, spoken: window.__BZ.spoken }
+  let over = {}
+  const opts = () => ({ dur: Number(document.getElementById('dur').value), outcome: document.getElementById('out').value, cancelable: document.getElementById('cancelable').checked, steps: document.getElementById('steps').checked, ...over })
+  // para la verificación: fija valores aunque no estén en los controles (p. ej. 1500 ms); un cambio manual los suelta
+  document.querySelector('.lab-ctl').addEventListener('change', () => { over = {} })
+  lab.setOpts = (o) => { over = { ...over, ...o }; if (o.dur != null) document.getElementById('dur').value = String(o.dur); if (o.outcome) document.getElementById('out').value = o.outcome; if (o.cancelable != null) document.getElementById('cancelable').checked = o.cancelable; if (o.steps != null) document.getElementById('steps').checked = o.steps }
+  const TEXT = { label: 'Guardando cambios', slowLabel: 'Sigue guardando. Tarda más de lo normal.', cancelLabel: 'Cancelar', cancelingLabel: 'Cancelando…', doneText: 'Cambios guardados', slowShort: 'Sigue guardando…', countLabel: (n) => (n === 1 ? 'Guardando 1 cambio' : `Guardando ${n} cambios`), steps: ['Comprobando los datos', 'Guardando', 'Avisando al equipo'] }
+  // reacción de la aplicación al terminar: el resultado lo dicen otros (GToast, GForm, isla), nunca la capa
+  function appEnd (msgEl, okText, failText) {
+    return (outcome) => {
+      if (outcome === 'ok') { say(okText, 'app'); msgEl.className = 'app-msg'; msgEl.textContent = 'Aplicación → aviso (GToast): ' + okText }
+      else if (outcome === 'fail') { say(failText, 'app'); msgEl.className = 'app-msg is-error'; msgEl.textContent = 'Aplicación → error (GForm / isla): ' + failText }
+      else { msgEl.className = 'app-msg'; msgEl.textContent = 'Aplicación: operación cancelada; nada cambió.' }
+    }
+  }
+
+  for (const c of ['A', 'B', 'C']) {
+    // ---------- 1 · En línea ----------
+    const ci = document.createElement('div'); ci.className = 'col'
+    ci.innerHTML = `<h3>${NAMES[c]}</h3><div><div class="inline-row" id="inline-${c}">${field(`inline-${c}-name`, 'Nombre del lote', 'Lote 2026-0412', true)}${btn('Guardar', { attrs: `data-trigger="inline-${c}"` })}</div><div class="inline-cap" id="inline-${c}-cap"></div></div><p class="app-msg" id="inline-${c}-msg"></p>`
+    document.getElementById('cols-inline').appendChild(ci)
+    const row = ci.querySelector('.inline-row')
+    lab[`inline-${c}`] = new Busy({ ...TEXT, id: `inline-${c}`, label: 'Guardando el nombre', steps: ['Comprobando el nombre', 'Guardando'], concept: c, scope: 'inline', surface: row, lockRoot: row, cap: ci.querySelector('.inline-cap'), home: row.querySelector('.g-btn'), onEnd: appEnd(ci.querySelector('.app-msg'), 'Nombre guardado.', 'No se pudo guardar el nombre.') })
+
+    // ---------- 2 · Tarjeta ----------
+    const cc = document.createElement('div'); cc.className = 'col'
+    cc.innerHTML = `<h3>${NAMES[c]}</h3>
+      <article class="g-surface g-surface--level-outlined g-surface--tone-surface g-surface--padding-md g-surface--density-default bz-surface card" id="card-${c}" aria-labelledby="card-${c}-h">
+        <div class="bz-content">
+          <h4 class="card-h" id="card-${c}-h" tabindex="-1">Avisos del lote</h4>
+          <p class="card-d">Quién recibe los avisos cuando un lote cambia de estado.</p>
+          <form class="card-body" novalidate>${field(`card-${c}-mail`, 'Correo de aviso', 'calidad@lab-sur.example', true)}${field(`card-${c}-freq`, 'Frecuencia', 'Cada cambio de estado', true)}${field(`card-${c}-owner`, 'Responsable', 'Turno de mañana', false)}</form>
+          <div class="card-foot">${btn('Descartar', { variant: 'outline', color: 'neutral' })}${btn('Guardar cambios', { attrs: `data-trigger="card-${c}"` })}</div>
+        </div>
+      </article>
+      <p class="after" data-after="card-${c}">Lo que sigue a la tarjeta no se mueve (Δ0).</p><p class="app-msg" id="card-${c}-msg"></p>`
+    document.getElementById('cols-card').appendChild(cc)
+    const card = cc.querySelector('article')
+    lab[`card-${c}`] = new Busy({ ...TEXT, id: `card-${c}`, concept: c, scope: 'container', surface: card, content: card.querySelector('.bz-content'), busyTarget: card.querySelector('.card-body'), foot: card.querySelector('.card-foot'), home: card.querySelector('.card-h'), onEnd: appEnd(cc.querySelector('.app-msg'), 'Cambios guardados.', 'No se pudieron guardar los cambios.') })
+
+    // ---------- 3 · Diálogo ----------
+    const cd = document.createElement('div'); cd.className = 'col'
+    cd.innerHTML = `<h3>${NAMES[c]}</h3><p class="how">${c === 'A' ? 'El marco del diálogo recorre su borde; la pestaña tapa «Cerrar», que no funciona mientras guarda.' : c === 'B' ? 'Los campos se congelan; el pie dice qué se guarda.' : 'La hoja sube desde el pie del diálogo.'}</p>
+      <div>${btn('Editar muestra M-0008', { variant: 'outline', color: 'neutral', attrs: `data-open="dlg-${c}"` })}</div><p class="app-msg" id="dlg-${c}-msg"></p>
+      <dialog class="g-dialog g-dialog--size-md g-dialog--placement-center g-dialog--mobile-sheet g-dialog--inset g-dialog--density-default bz-dialog bz-surface" id="dlg-${c}" aria-labelledby="dlg-${c}-title" aria-describedby="dlg-${c}-desc">
+        <div class="g-dialog__header"><div class="g-dialog__titles"><h2 class="g-dialog__title" id="dlg-${c}-title" tabindex="-1">Editar muestra M-0008</h2><p class="g-dialog__description" id="dlg-${c}-desc">Los cambios se aplican a todo el lote.</p></div><button class="g-dialog__close" type="button" aria-label="Cerrar">${icon('x')}</button></div>
+        <div class="g-dialog__inset"><div class="g-dialog__body">${field(`dlg-${c}-type`, 'Tipo de muestra', 'Sangre total', true)}${field(`dlg-${c}-loc`, 'Ubicación', 'Congelador 3 · Estante B', true)}${field(`dlg-${c}-note`, 'Nota', 'Sin incidencias', false)}</div>
+        <div class="g-dialog__footer">${btn('Cancelar', { variant: 'outline', color: 'neutral', attrs: 'data-close' })}${btn('Guardar cambios', { attrs: `data-trigger="dlg-${c}"` })}</div></div>
+      </dialog>`
+    document.getElementById('cols-dialog').appendChild(cd)
+    const dlg = cd.querySelector('dialog')
+    lab[`dlg-${c}`] = new Busy({ ...TEXT, id: `dlg-${c}`, concept: c, scope: 'dialog', surface: dlg, lockRoot: dlg, dialog: dlg, busyTarget: dlg.querySelector('.g-dialog__body'), foot: dlg.querySelector('.g-dialog__footer'), home: dlg.querySelector('.g-dialog__title'),
+      onEnd: (o) => { appEnd(cd.querySelector('.app-msg'), 'Muestra guardada.', 'No se pudo guardar la muestra.')(o); if (o === 'ok') { setTimeout(() => { dlg.close() }, c === 'B' ? 700 : 0) } } })
+    // como GDialog (#583 `from`): al cerrar, el foco vuelve a quien lo abrió (WebKit no lo restaura solo)
+    dlg.addEventListener('close', () => { setTimeout(syncLive); const o = document.querySelector(`[data-open="${dlg.id}"]`); if (o && (document.activeElement === document.body || dlg.contains(document.activeElement))) o.focus({ preventScroll: true }) })
+    dlg.addEventListener('click', (e) => { if (e.target.closest('.g-dialog__close, [data-close]') && !dlg.dataset.busy) dlg.close() })
+
+    // ---------- 4 · Pantalla completa ----------
+    const cf = document.createElement('div'); cf.className = 'col'
+    cf.innerHTML = `<h3>${NAMES[c]}</h3><div class="full-shot"><p class="how">${c === 'A' ? 'El marco del visor recorre su borde; la aplicación sigue a la vista, quieta.' : c === 'B' ? 'Una banda dice el cambio: de dónde a dónde, y que lo visible aún es lo anterior.' : 'Las etapas en una hoja centrada sobre el fondo de modal.'}</p>${btn('Cambiar a Laboratorio Norte', { variant: 'outline', color: 'neutral', attrs: `data-trigger="full-${c}"` })}</div><p class="app-msg" id="full-${c}-msg"></p>`
+    document.getElementById('cols-full').appendChild(cf)
+    lab[`full-${c}`] = new Busy({ ...TEXT, id: `full-${c}`, concept: c, scope: 'full', appRoot: document.getElementById('lab'), label: c === 'B' ? 'Cambiando de laboratorio' : 'Cambiando a Laboratorio Norte', slowLabel: 'Sigue cambiando de laboratorio. Tarda más de lo normal.', from: 'Laboratorio Sur', to: 'Laboratorio Norte', note: 'Lo que ves sigue siendo de Laboratorio Sur.', steps: ['Cerrando Laboratorio Sur', 'Abriendo Laboratorio Norte', 'Cargando permisos'], home: cf.querySelector('.g-btn'), onEnd: appEnd(cf.querySelector('.app-msg'), 'Estás en Laboratorio Norte.', 'No se pudo cambiar de laboratorio. Sigues en Laboratorio Sur.') })
+  }
+
+  // disparadores: un segundo clic durante la operación no hace nada (se cuenta para la verificación)
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-trigger]'); if (t) { lab[t.dataset.trigger].start(opts()); return }
+    const o = e.target.closest('[data-open]'); if (o) { const d = document.getElementById(o.dataset.open); d.showModal(); syncLive(); d.querySelector('.g-dialog__body input').focus() }
+  })
+  // Intro en un campo de la tarjeta o del diálogo = enviar (el foco no está en un botón: pasa a la capa)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || !e.target.matches('.g-input__field')) return
+    const host = e.target.closest('.card, dialog, .inline-row'); if (!host) return
+    e.preventDefault()
+    const id = host.id; lab[id].start(opts())
+  })
+  lab.ready = true
+})()
+</script>
+</body>
+</html>

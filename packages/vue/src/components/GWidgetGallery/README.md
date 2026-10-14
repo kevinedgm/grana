@@ -4,11 +4,12 @@ Galería para **añadir widgets a un panel**: una **hoja lateral modal** (sobre 
 
 **Etiqueta:** `<g-widget-gallery>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria-2.md`](../../../../../design/lab/widget/auditoria-2.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `widgetLabels` es de tu aplicación -->
 <script setup>
 import { computed, ref } from 'vue'
 const abierta = ref(false)

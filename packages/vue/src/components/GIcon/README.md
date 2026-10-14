@@ -4,7 +4,7 @@ Icono de [Lucide](https://lucide.dev) en línea: un `<svg>` de **1em** que toma 
 
 **Etiqueta:** `<g-icon>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/icons/auditoria.md`](../../../../../design/lab/icons/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver la sección «Iconos» del playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver la sección «Iconos» del playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
@@ -117,6 +117,7 @@ Cada entrada se valida **por texto** (sin `DOMParser`: funciona en SSR) y **igua
 Los componentes cuyo contenido llega en un arreglo (`GTabs`, `GMenu`, `GSidebar`) aceptan `icon` **cadena** en cada item: sin slot `icon`, dibujan un `GIcon` con ese nombre en su hueco (decorativo). Se resuelve como un `GIcon` de tu plantilla (tu registro y luego la librería). **Con slot `icon`, manda el slot**; un `icon` que no es cadena sigue llegando solo al slot.
 
 ```vue
+<!-- Fragmento: `vista`, `abierto`, `actual` y `textos` son de tu aplicación -->
 <g-tabs v-model="vista" :items="[{ id: 'perfil', label: 'Perfil', icon: 'user' }, { id: 'acceso', label: 'Acceso', icon: 'lock-open' }]" label="Cuenta"></g-tabs>
 
 <g-menu v-model="abierto" :items="[{ id: 'unlock', label: 'Desbloquear', icon: 'lock-open' }, { id: 'del', label: 'Eliminar', icon: 'trash', danger: true }]" label="Acciones">

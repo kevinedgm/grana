@@ -1,0 +1,433 @@
+/*
+  GPageHeader · estilo del encabezado de página
+  Dueño: coco. Contrato: design/contracts/page-header.md (DECISIONS.md #626 a #634; tokens.md §45). Estructura:
+  design/lab/page-header/r01/ (kiwi). Estética y medidas: design/lab/page-header/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos; únicos literales de
+  medida: 44px (alto mínimo del zócalo y dianas táctiles) y el 0px inicial de la propiedad pública registrada
+  --g-page-header-top (#629).
+
+  Carácter (B «Zócalo» con el muelle de C en estrecho, #626): el encabezado no encoge ni se copia, SE HUNDE. La raíz es
+  sticky con un top negativo (--_lift) y baja bajo el borde hasta que solo asoma su última fila, el zócalo, que es el
+  suelo de la cabecera: las pestañas apoyan en él (su línea de selección toca el suelo) y las acciones se centran a su
+  altura. Al pegarse, el suelo gana su línea y la raíz su sombra; el título sube al zócalo al ritmo de la mano (--_p).
+  En estrecho, las mismas acciones bajan a un muelle de borde a borde que llega con --g-ease-spring (decisión del
+  usuario del 2026-10-13, amplía #299 y corrige #632).
+
+  Marcado que espera (lo pinta bruno; page-header.md «Anatomía» y «Clases y datos»):
+    header.g-page-header[.is-narrow][.has-base][.has-tabs][.has-actions][.is-sticky][.is-stuck][.is-docked]
+        [data-g-zone="brand"]  (style="--_lift: Npx; --_p: 0..1" con is-sticky)
+      [slot trail] GBreadcrumbs
+      div.g-page-header__head > div.g-page-header__titles
+        p.g-page-header__eyebrow · hN.g-page-header__title#{id}-title[tabindex=-1] · p.g-page-header__desc
+        div.g-page-header__meta
+      div.g-page-header__content
+      div.g-page-header__base
+        span.g-page-header__base-title[aria-hidden] · div.g-page-header__tabs · div.g-page-header__actions-home
+          > div.g-page-header__actions[role=group]
+      div.g-page-header__dock[.is-open][hidden][inert]  (style="--_dock-left/-right/-offset: Npx" abierto)
+        a.g-page-header__dock-title · div.g-page-header__dock-host
+
+  Regla 7 del contrato: ni la raíz ni nada que la envuelva lleva transform, translate, scale, filter, backdrop-filter,
+  perspective, contain, container-type ni will-change de eso (el muelle es position: fixed DENTRO de la raíz).
+*/
+
+/* ---------- Propiedad pública de entrada (#629): alto de la cabecera fija de la APLICACIÓN ----------
+   No es del tema: no va en defaults.css ni en tokens.json. Registrada para leerla sin respaldo; hereda para que baste
+   ponerla en :root (receta de una variable de page-header.md). */
+@property --g-page-header-top {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* Dentro de un GDialog el contenedor de desplazamiento es su cuerpo, al que no tapa la cabecera de la aplicación */
+.g-dialog__body {
+  --g-page-header-top: calc(var(--g-space-1) * 0);
+}
+
+/* ---------- Mapa de anfitrionas: el fondo opaco de la raíz es el de la superficie MÁS CERCANA ----------
+   Pegado, el encabezado tapa la página que pasa por debajo: su fondo tiene que ser el de su anfitriona. Cada anfitriona
+   publica su tono en --_page-header-on (heredado; gana la más cercana). Fuera de toda anfitriona, --g-color-bg. */
+.g-surface:not(.g-surface--level-flat, .g-surface--level-inset) {
+  --_page-header-on: var(--g-color-surface);
+}
+.g-surface--level-inset {
+  --_page-header-on: var(--g-color-surface-sunken);
+}
+.g-dialog {
+  --_page-header-on: var(--g-surface-shell);
+}
+
+/* ---------- Raíz ---------- */
+.g-page-header {
+  /* Relleno lateral: el zócalo sangra hasta el borde de la raíz y lo devuelve a las pestañas con --g-tabs-inset */
+  --_pad: calc(var(--g-space-1) * 6);
+  --_gap: var(--g-space-4);
+  /* Alto del zócalo: constante de CONTRATO (#629), con el borde incluido; la aplicación la suma en su scroll-padding */
+  --_base-h: max(var(--g-space-12), 44px);
+  --_bg: var(--g-color-bg);
+  /* Datos del .vue (§29.5); sin is-sticky valen cero */
+  --_lift: calc(var(--g-space-1) * 0);
+  --_p: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding: var(--g-space-6) var(--_pad);
+  background-color: var(--_bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  letter-spacing: var(--g-text-body-tracking);
+}
+:is(.g-surface, .g-dialog) .g-page-header {
+  --_bg: var(--_page-header-on);
+}
+/* Zona de marca en la raíz (#634): el fondo se resuelve AQUÍ, con los tokens de la zona, no el que trae la anfitriona */
+.g-page-header[data-g-zone="brand"] {
+  --_bg: var(--g-color-bg);
+}
+/* Con zócalo, el zócalo es el suelo: sin relleno debajo */
+.g-page-header.has-base {
+  padding-block-end: calc(var(--g-space-1) * 0);
+}
+.g-page-header.is-narrow {
+  --_pad: var(--g-space-4);
+  padding-block-start: var(--g-space-4);
+}
+.g-page-header.is-narrow .g-page-header__actions-home {
+  padding-inline-start: var(--g-space-2);
+}
+.g-page-header.is-narrow:not(.has-base) {
+  padding-block-end: var(--g-space-4);
+}
+
+/* ---------- Pegado: se hunde (#628, #629) ----------
+   Hundirse y pegarse no se animan: el desplazamiento es el movimiento. */
+.g-page-header.is-sticky {
+  position: sticky;
+  z-index: 2;
+  inset-block-start: calc(var(--g-page-header-top) - var(--_lift));
+}
+
+/* ---------- Cabecera ---------- */
+.g-page-header__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--g-space-4) var(--g-space-6);
+  min-inline-size: 0;
+}
+.g-page-header__titles {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+.g-page-header__eyebrow {
+  margin: 0 0 var(--g-space-1);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-weight: var(--g-text-action-weight);
+}
+/* El nivel (h1, h2, h3) es semántico: la jerarquía visual de la página la da el encabezado, que es uno por vista */
+.g-page-header__title {
+  margin: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-lg-size);
+  line-height: var(--g-text-title-lg-line);
+  letter-spacing: var(--g-text-title-lg-tracking);
+  font-weight: var(--g-text-title-lg-weight);
+  overflow-wrap: anywhere;
+  /* El enlace del muelle y focus() lo traen a la vista: que no quede pegado al borde del zócalo */
+  border-radius: var(--g-radius-xs);
+}
+.g-page-header__title:focus {
+  outline: none;
+}
+.g-page-header__title:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-page-header__desc {
+  margin: var(--g-space-2) 0 0;
+  max-inline-size: calc(var(--g-space-1) * 170);
+  color: var(--g-color-text-muted);
+}
+.g-page-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  margin-block-start: var(--g-space-3);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-page-header__meta > :not(:where(.g-tooltip)) {
+  min-inline-size: 0;
+}
+
+/* ---------- Contenido (GMetric, GAdaptiveLayout…) ---------- */
+.g-page-header__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--g-space-4) calc(var(--g-space-1) * 10);
+  min-inline-size: 0;
+}
+.g-page-header__content > :not(:where(.g-tooltip)) {
+  min-inline-size: 0;
+}
+/* Una distribución automática ocupa la fila entera */
+.g-page-header__content > :where(.g-adaptive-layout) {
+  flex: 1 1 100%;
+}
+
+/* ---------- Zócalo: el suelo de la cabecera (alto fijo de contrato, #629) ---------- */
+.g-page-header__base {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--_base-h);
+  min-inline-size: 0;
+  /* Sangra hasta los bordes de la raíz: las pestañas recuperan la alineación con el título por --g-tabs-inset */
+  margin-inline: calc(var(--_pad) * -1);
+  /* El relleno del principio crece con el título compacto (va en el zócalo, no en el título: el título lleva
+     dir="auto" y sus propiedades lógicas seguirían a su texto, no a la página) */
+  padding-inline: calc(var(--_pad) * var(--_p)) var(--_pad);
+  --g-tabs-inset: var(--_pad);
+  /* La línea del suelo: solo pegado (se funde); dibujada por dentro para no sumar alto */
+  box-shadow: inset 0 calc(var(--g-border-width) * -1) 0 0 transparent;
+}
+
+/* Título compacto (B): sube al zócalo ligado al desplazamiento (--_p, 0 a 1). Con 0 no ocupa ni un píxel. Sin
+   transiciones: el ritmo es el de la mano. */
+.g-page-header__base-title {
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: calc(var(--g-space-1) * 64 * var(--_p));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--g-color-text);
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  opacity: var(--_p);
+  translate: 0 calc((1 - var(--_p)) * var(--g-space-4));
+  pointer-events: none;
+  user-select: none;
+}
+.g-page-header.is-narrow .g-page-header__base-title {
+  display: none;
+}
+
+/* Pestañas: apoyadas en el suelo (la marca de la seleccionada toca la línea del zócalo pegado) y a todo el ancho que
+   dejen el título y las acciones; el desbordamiento es el de GTabs */
+.g-page-header__tabs {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  align-items: flex-end;
+  min-inline-size: 0;
+  /* Opaco con el fondo de la raíz: tapa la línea del suelo bajo las pestañas, donde ya está la línea base de GTabs (el
+     mismo --g-color-border). Sin esto, las dos líneas translúcidas se suman y el suelo sale más oscuro bajo las pestañas. */
+  background-color: var(--_bg);
+}
+.g-page-header__tabs > :not(:where(.g-tooltip)) {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+/* Sin pestañas, la primera pieza del zócalo recupera el relleno de la raíz */
+.g-page-header:not(.has-tabs) .g-page-header__base {
+  padding-inline-start: var(--_pad);
+}
+
+.g-page-header__actions-home {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  padding-inline-start: var(--g-space-4);
+}
+.g-page-header__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+.g-page-header__actions > :not(:where(.g-tooltip)) {
+  flex: none;
+}
+
+/* ---------- Pegado ahora: el suelo gana su línea y la raíz su sombra ---------- */
+.g-page-header.is-stuck {
+  box-shadow: var(--g-shadow-2);
+}
+.g-page-header.is-stuck .g-page-header__base {
+  box-shadow: inset 0 calc(var(--g-border-width) * -1) 0 0 var(--g-color-border);
+}
+.g-page-header.is-sticky,
+.g-page-header.is-sticky .g-page-header__base {
+  transition: box-shadow var(--g-duration-fast) var(--g-ease-out);
+}
+
+/* ---------- Muelle (estrecho y pegado, #630) ----------
+   Barra de borde a borde de la CAJA del encabezado (física: --_dock-left/--_dock-right las escribe el .vue y valen en
+   RTL), pegada al borde inferior con el área segura, encima de la reserva anterior (--_dock-offset: la voz). */
+.g-page-header__dock {
+  --_dock-left: calc(var(--g-space-1) * 0);
+  --_dock-right: calc(var(--g-space-1) * 0);
+  --_dock-offset: calc(var(--g-space-1) * 0);
+
+  position: fixed;
+  z-index: 3;
+  left: var(--_dock-left);
+  right: var(--_dock-right);
+  bottom: var(--_dock-offset);
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding: var(--g-space-2) var(--g-space-4) calc(var(--g-space-2) + env(safe-area-inset-bottom));
+  background-color: var(--g-color-surface);
+  color: var(--g-color-text);
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  /* La sombra larga sube unos píxeles sobre el contenido que pasa por debajo: el muelle flota, no tapa */
+  box-shadow: var(--g-shadow-3);
+  /* Cerrado (o saliendo): abajo y transparente; la salida es más corta que la entrada (#152) */
+  translate: 0 100%;
+  opacity: 0;
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-press) var(--g-ease-out);
+}
+/* Bajo el muelle, un faldón de su mismo fondo: el rebase del muelle (3,8 %) nunca enseña una rendija sobre el borde.
+   Se anula solo si hay algo debajo (la voz: --_dock-offset ≥ space). */
+.g-page-header__dock::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: max(calc(var(--g-space-1) * 0), calc(var(--g-space-2) - var(--_dock-offset)));
+  background-color: inherit;
+  pointer-events: none;
+}
+.g-page-header__dock.is-open {
+  translate: 0 0;
+  opacity: 1;
+  transition:
+    translate var(--g-duration-slow) var(--g-ease-out),
+    opacity var(--g-duration-fast) var(--g-ease-out);
+}
+/* El muelle LLEGA con masa: --g-ease-spring (decisión del usuario del 2026-10-13). Regla de soporte de §29.1: con var(),
+   una curva no soportada invalidaría toda la transición; fuera de @supports queda --g-ease-out. */
+@supports (transition-timing-function: linear(0, 1)) {
+  .g-page-header__dock.is-open {
+    transition:
+      translate var(--g-duration-slow) var(--g-ease-spring),
+      opacity var(--g-duration-fast) var(--g-ease-out);
+  }
+}
+/* El .vue quita hidden y pone is-open en el mismo cuadro: el punto de partida de la entrada */
+@starting-style {
+  .g-page-header__dock.is-open {
+    translate: 0 100%;
+    opacity: 0;
+  }
+}
+
+.g-page-header__dock-title {
+  /* Bloque (no flex): text-overflow solo recorta el texto de un contenedor de bloque; align-content lo centra */
+  display: block;
+  flex: 1 1 auto;
+  align-content: center;
+  min-inline-size: 0;
+  min-block-size: 24px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: var(--g-radius-xs);
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: none;
+}
+.g-page-header__dock-title:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (hover: hover) {
+  .g-page-header__dock-title:hover {
+    text-decoration: underline;
+  }
+}
+.g-page-header__dock-host {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+/* ---------- Táctil: todo lo que se pulsa ≥ 44 × 44 (GBtn, GTabs y GBreadcrumbs traen el suyo) ---------- */
+@media (pointer: coarse) {
+  .g-page-header__dock-title {
+    min-block-size: 44px;
+  }
+}
+
+/* ---------- Movimiento reducido (§29.3): nada se desliza; queda el fundido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-page-header__base-title {
+    translate: none;
+  }
+  .g-page-header__dock,
+  .g-page-header__dock.is-open {
+    translate: none;
+    transition: opacity var(--g-duration-fast) var(--g-ease-out);
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-page-header__dock.is-open {
+      transition: opacity var(--g-duration-fast) var(--g-ease-out);
+    }
+  }
+  @starting-style {
+    .g-page-header__dock.is-open {
+      translate: none;
+      opacity: 0;
+    }
+  }
+}
+
+/* ---------- Colores forzados: el fondo y la sombra desaparecen; los filos no ---------- */
+@media (forced-colors: active) {
+  .g-page-header.is-stuck .g-page-header__base {
+    border-block-end: var(--g-border-width) solid CanvasText;
+  }
+  .g-page-header__dock {
+    border-block-start-color: CanvasText;
+  }
+  .g-page-header__dock::after {
+    display: none;
+  }
+}
+
+/* ---------- Impresión: nada pegado ni flotante ---------- */
+@media print {
+  .g-page-header.is-sticky {
+    position: static;
+    box-shadow: none;
+  }
+  .g-page-header__dock {
+    display: none;
+  }
+}

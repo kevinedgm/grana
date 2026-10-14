@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "name": "GFormFold",
+  "tag": "g-form-fold",
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/form-fold",
+  "description": "Crear lo que falta en su sitio (niveles anidados, concepto C «En su sitio»): un pliegue bajo el campo (o la fila) que lo pide, con su título, su propósito y su propio confirmar. Es un formulario propio sin <form>: sus campos no viajan en el envío de fuera y, abierto, bloquea ese envío con «Termina o cancela …».",
+  "contract": "design/contracts/form.md",
+  "contractSection": "§15 GFormFold; dialog.md §«Niveles anidados» (base, C y «La llegada»)",
+  "decisions": [581, 583, 587, 588, 589, 590, 591],
+  "prototype": "design/lab/dialog/r02/",
+  "style": "packages/vue/src/components/GFormFold/GFormFold.css",
+  "props": [
+    { "name": "open", "type": "Boolean", "default": false, "note": "v-model:open. Lo pone a true la aplicación (normalmente en el `create` del campo); el pliegue emite update:open(false) al cancelar o al cerrar con resultado. Cerrar desde fuera no mueve el foco salvo que estuviera dentro" },
+    { "name": "title", "type": "String", "default": null, "note": "Nombre del pliegue y de su error pendiente. Sin él, aviso" },
+    { "name": "description", "type": "String", "default": null, "note": "Propósito: adónde va su resultado" },
+    { "name": "headingLevel", "type": "Number", "default": null, "values": [2, 3, 4, 5, 6], "note": "Sin valor: el del pliegue padre + 1; si no hay, el headingLevel del GForm de fuera; si no, 3 (máximo 6)" },
+    { "name": "for", "type": "String", "default": null, "note": "id del control que recibe el valor: destino por defecto del foco y de la llegada al cerrar con resultado, y el de vuelta si `from` no sirve" },
+    { "name": "from", "type": "String | HTMLElement", "default": null, "note": "El disparador (id o elemento). Sin él, document.activeElement al abrir si está fuera del pliegue y no es body" },
+    { "name": "errors", "type": "Object", "default": "{}", "note": "Errores del pliegue, name → mensaje (semántica de GForm; el pliegue no valida)" },
+    { "name": "warnings", "type": "Object", "default": "{}", "note": "Advertencias del pliegue, como GForm" },
+    { "name": "labels", "type": "Object", "default": "{}", "note": "{ pending }: String con {title} o Function (title) => String. El error que bloquea el envío de fuera mientras está abierto" }
+  ],
+  "events": [
+    { "name": "update:open", "payload": "Boolean", "trigger": "Al cancelar o al cerrar con resultado (siempre false)" },
+    { "name": "confirm", "payload": "{ close(options) }", "trigger": "Se pidió confirmar (confirm() o Enter en un campo de texto de una línea del pliegue) y no hay errores que bloqueen" },
+    { "name": "invalid", "payload": "{ errors: [{ name, message, id }] }", "trigger": "Se pidió confirmar con errores: los revela, marca is-rejected en los campos y enfoca el primero" },
+    { "name": "cancel", "payload": "{ reason: 'escape' | 'cancel' }", "trigger": "Esc con el foco dentro (recoge solo este pliegue) o cancel()" }
+  ],
+  "slots": [
+    { "name": "default", "purpose": "Campos del pliegue en una pila (GFormRow, GFieldGroup, GInputGroup y otros GFormFold). Nunca GFormSection ni GForm. Alcance: { confirm, close, cancel }" },
+    { "name": "actions", "purpose": "Botones del pliegue (type=\"button\"): Cancelar con cancel(), Crear y elegir con confirm(). Alcance: { confirm, close, cancel }" }
+  ],
+  "exposed": [
+    { "name": "confirm", "purpose": "Revela los campos del pliegue y emite confirm o invalid" },
+    { "name": "close", "purpose": "Cierra con resultado: close({ focus, announce }) → foco a focus › for › from, llegada (data-g-landed) y anuncio en el canal de página" },
+    { "name": "cancel", "purpose": "Cierra sin resultado: cancel (reason 'cancel') + update:open(false); foco a from › for" }
+  ],
+  "attrs": "id, class, style, data-* y escuchas van a la raíz (inheritAttrs: false)",
+  "structure": "div.g-form-fold.g-form-fold--density-{d}[.is-open][.is-animating][.is-ready][role=group][aria-labelledby][aria-describedby] style=\"--_d: N\" > div.g-form-fold__panel > (div.g-form-fold__head > hN.g-form-fold__title + p.g-form-fold__description) + fieldset.g-form-fold__body[role=none][disabled al cerrarse] + div.g-form-fold__actions. Cerrado y asentado: [hidden], sin rol y sin contenido",
+  "classes": [
+    "g-form-fold",
+    "g-form-fold--density-{default|comfortable|compact}",
+    "is-open",
+    "is-animating",
+    "is-ready",
+    "g-form-fold__panel",
+    "g-form-fold__head",
+    "g-form-fold__title",
+    "g-form-fold__description",
+    "g-form-fold__body",
+    "g-form-fold__actions"
+  ],
+  "inlineVariables": [
+    { "name": "--_d", "note": "Profundidad del pliegue: 1 el primero; dentro de otro, +1 (sangría y raíl, coco)" }
+  ],
+  "context": {
+    "provides": [
+      "formKey propio (motor de GForm compartido, formEngine.js): sus campos se registran en el pliegue; presentación heredada del de fuera (density, marks, readonly, disabled, showErrorsOn, labels, live)",
+      "foldKey (interno): { depth, level }",
+      "layoutKey re-provisto como pila (block: true); sectionKey, revealKey, fieldGroupKey y ownFieldKey cortados"
+    ],
+    "formRegistry": "Abierto, se registra en el contexto de fuera (GForm o pliegue padre) con error propio: nombre interno g-fold:{id}, ownError = labels.pending, ownTarget = primer control usable del pliegue, ownReveal 'submit', excludeFromData = su cuerpo (GForm construye FormData sin él, también con formnovalidate). Abierto dentro de un GDialog, se registra en él (el fondo no cierra)"
+  },
+  "keyboard": [
+    { "key": "Enter", "action": "En un campo de texto de una línea del pliegue (no textarea, no con composición, no si ya está defaultPrevented): confirm() sin envío implícito del <form> de fuera" },
+    { "key": "Escape", "action": "Con el foco dentro: recoge solo este pliegue (cancel, reason 'escape') y la consume (preventDefault). event.repeat se ignora" }
+  ],
+  "focus": "Al abrir: orden de #292 dentro del pliegue, con preventScroll; al asentarse, scrollIntoView block 'nearest'. close: focus › for › from › #292 del contenedor; cancel y Esc: from › for › #292 del contenedor; cerrado desde fuera con el foco dentro: from › for",
+  "tokens": [],
+  "states": ["cerrado", "abriendo", "abierto", "cerrando", "anidado", "con errores", "movimiento reducido", "RTL", "forced-colors"],
+  "warnings": [
+    "[Grana GFormFold] sin title",
+    "[Grana GFormFold] sin slot actions",
+    "[Grana GFormFold] sin labels.pending con el pliegue abierto dentro de un GForm o de otro pliegue",
+    "[Grana GFormFold] dentro de una GFormRow",
+    "[Grana GFormFold] GForm o GFormSection dentro",
+    "[Grana GFormFold] más de tres pliegues anidados",
+    "[Grana GFormFold] for o from con un id que no existe al abrir"
+  ],
+  "pending": [
+    "Auditoría de coco; lector de pantalla real (role=group con nombre al recibir el foco, anuncio tras la llegada); táctil y zoom 200 % reales"
+  ]
+}

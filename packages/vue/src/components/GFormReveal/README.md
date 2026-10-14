@@ -6,13 +6,14 @@ Es una pieza del [sistema de formularios](../GForm/README.md) (Fase 3). Fuera de
 
 **Etiqueta:** `<g-form-reveal>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/form-reveal/auditoria.md`](../../../../../design/lab/form-reveal/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», panel «Bloque condicional (GFormReveal)»).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», panel «Bloque condicional (GFormReveal)»).
 
 > **En plantillas dentro del HTML** (sin compilar), Vue no admite etiquetas de componente autocerradas: escribe `<g-form-reveal ...></g-form-reveal>`.
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `guardar` es de tu aplicación -->
 <script setup>
 import { reactive, computed } from 'vue'
 
@@ -75,6 +76,7 @@ La condición la calcula **tu aplicación** con su modelo (`:when="m.factura ===
 Los bloques pueden anidarse; cada uno va justo después de **su** pregunta, dentro del bloque padre. Varios bloques excluyentes de la misma pregunta van seguidos: el cerrado no ocupa nada.
 
 ```vue
+<!-- Fragmento: `m` y `sino` son de tu aplicación -->
 <g-radio-group v-model="m.factura" name="factura" appearance="inline" label="¿Requiere factura?" :options="sino"></g-radio-group>
 
 <g-form-reveal :when="m.factura === 'si'">
@@ -108,6 +110,7 @@ Verificado en el componente real (`#fr-form` del playground): «Sí» → Físic
 `GFormSection` **contiene** la pregunta y el bloque, nunca al revés. Si el bloque merece un título, ponlo en la sección que envuelve a ambos.
 
 ```vue
+<!-- Fragmento: `m` y `sino` son de tu aplicación -->
 <g-form-section title="Antecedentes">
   <g-form-layout>
     <g-radio-group v-model="m.alergias" name="alergias" appearance="inline" label="¿Tiene alergias?" :options="sino"></g-radio-group>
@@ -155,6 +158,7 @@ Si las partes del bloque forman **una pregunta** con título propio, es un `GFie
 **Ninguno.** Tu aplicación ya sabe cuándo cambia `when`. Quien necesite el final de la animación escucha el `transitionend` **nativo** en la raíz, filtrando `event.target === event.currentTarget` (con movimiento reducido solo hay transición de `opacity`):
 
 ```vue
+<!-- Fragmento: `abierto` y `alTerminar` son de tu aplicación -->
 <g-form-reveal :when="abierto" @transitionend="(e) => e.target === e.currentTarget && alTerminar()">…</g-form-reveal>
 ```
 
@@ -193,6 +197,7 @@ Esto no depende de que los campos sean de Grana: un campo tuyo hecho con `useFor
 El `FormData` excluye solo lo que el `fieldset disabled` ya saca. Si tu aplicación envía **su modelo** (un objeto reactivo, no el `FormData`), recibirá también los valores **conservados** de bloques cerrados: es tu modelo y Grana no lo limpia. Filtra con **la misma condición que pasas a `when`**, declarada una sola vez como `computed`:
 
 ```vue
+<!-- Fragmento: `api` es de tu aplicación -->
 <script setup>
 import { reactive, computed } from 'vue'
 

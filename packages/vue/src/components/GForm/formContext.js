@@ -21,6 +21,9 @@ export const revealKey = Symbol('GFormReveal')
 // que revela el error propio sin GForm (Enter). Solo el GInput hijo directo la consume (la anula para sus descendientes).
 // Interna: NO se exporta desde src/index.js
 export const ownFieldKey = Symbol('GInputOwn')
+// GFormFold (form.md §15, #587, #588): { depth, level } del pliegue más cercano, para la sangría (--_d) y el nivel de
+// encabezado de un pliegue anidado. Interna: NO se exporta desde src/index.js (llega a @grana/vue/form-fold por __shared)
+export const foldKey = Symbol('GFormFold')
 
 export const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 

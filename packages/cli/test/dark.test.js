@@ -99,7 +99,7 @@ describe('generateTheme · oscuro', () => {
 
   it('brand genera sus 6 tokens oscuros; accent sin valor sale del text oscuro de brand', () => {
     const { dark } = generateTheme({ brand: '#0B1F4D' })
-    expect(Object.keys(dark.generated).filter((k) => k.includes('brand'))).toHaveLength(6)
+    expect(Object.keys(dark.generated).filter((k) => /^--g-color-(on-)?brand(-strong|-soft|-text)?$/.test(k))).toHaveLength(6)
     expect(dark.generated['--g-color-accent']).toBe(dark.generated['--g-color-brand-text'])
   })
 
@@ -145,7 +145,7 @@ describe('toCss · bloques del tema oscuro', () => {
     const c = css({ brand: '#F5B940', space: 5 })
     expect(c).toContain(':root {\n  --g-space-1: 5px;')
     expect(c).toContain(':root,\n[data-theme="light"] {\n  --g-color-brand: #F5B940;')
-    expect(c).toContain('@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n    color-scheme: dark;')
+    expect(c).toContain('@media (prefers-color-scheme: dark) {\n  :root:where(:not([data-theme="light"])) {\n    color-scheme: dark;')
     expect(c).toContain('[data-theme="dark"] {\n  color-scheme: dark;')
     expect(at(c, '[data-theme="light"] {')).toBeLessThan(at(c, '@media (prefers-color-scheme: dark)'))
     expect(at(c, '@media (prefers-color-scheme: dark)')).toBeLessThan(at(c, '[data-theme="dark"] {'))
@@ -168,7 +168,7 @@ describe('toCss · bloques del tema oscuro', () => {
 
   it('dark: false restablece el grupo de color claro completo dentro de la consulta oscura', () => {
     const c = css({ brand: '#F5B940', dark: false })
-    expect(c).toContain('@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="dark"]) {\n    color-scheme: light;')
+    expect(c).toContain('@media (prefers-color-scheme: dark) {\n  :root:where(:not([data-theme="dark"])) {\n    color-scheme: light;')
     expect(c).not.toMatch(/^\s*color-scheme: dark;/m)
     expect(c).toContain('--g-color-surface: #FFFFFF;')
     expect(c).toContain('--g-color-brand: #F5B940;')
@@ -177,7 +177,45 @@ describe('toCss · bloques del tema oscuro', () => {
 
   it('dark: false sin colores propios también restablece el claro (el sistema oscuro no activa el oscuro de los defaults)', () => {
     const c = css({ font: 'Inter', dark: false })
-    expect(c).toContain(':root:not([data-theme="dark"])')
+    expect(c).toContain(':root:where(:not([data-theme="dark"]))')
+  })
+})
+
+describe('toCss · especificidad de la consulta oscura (cambio de tema en caliente)', () => {
+  const css = (config) => { const t = generateTheme(config); return toCss(t.generated, { source: 'x.json', dark: t.dark }) }
+  // Especificidad máxima de los selectores de cada bloque de color: debe ser (0,1,0), la del bloque claro, para que un
+  // segundo tema cargado después gane por orden
+  const spec = (sel) => {
+    const noWhere = sel.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '')
+    const ids = (noWhere.match(/#[\w-]+/g) || []).length
+    const cls = (noWhere.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+(?!\()/g) || []).length
+    const el = (noWhere.replace(/\[[^\]]*\]|[.#:][\w-]+/g, ' ').match(/[a-z][\w-]*/gi) || []).length
+    return [ids, cls, el].join(',')
+  }
+  const mediaSelector = (c) => c.match(/@media \(prefers-color-scheme: dark\) \{\n\s*([^{]+)\{/)[1].trim()
+
+  it('dark: false: el bloque de restauración vale (0,1,0) y excluye data-theme="dark"', () => {
+    const sel = mediaSelector(css({ brand: '#F5B940', dark: false }))
+    expect(sel).toBe(':root:where(:not([data-theme="dark"]))')
+    expect(spec(sel)).toBe('0,1,0')
+  })
+
+  it('dark: true: el bloque oscuro de la consulta vale (0,1,0) y excluye data-theme="light"', () => {
+    const sel = mediaSelector(css({ brand: '#F5B940' }))
+    expect(sel).toBe(':root:where(:not([data-theme="light"]))')
+    expect(spec(sel)).toBe('0,1,0')
+  })
+
+  it('el bloque claro y el de la consulta oscura tienen la misma especificidad (gana el orden)', () => {
+    for (const dark of [true, false]) {
+      const c = css({ brand: '#F5B940', dark })
+      expect(spec(mediaSelector(c))).toBe(spec(':root'))
+    }
+  })
+
+  it('el orden se conserva: claro, consulta oscura, [data-theme="dark"]', () => {
+    const c = css({ brand: '#F5B940' })
+    expect(c.indexOf('[data-theme="light"] {')).toBeLessThan(c.indexOf('@media (prefers-color-scheme: dark)'))
   })
 })
 

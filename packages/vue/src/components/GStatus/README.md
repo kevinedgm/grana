@@ -5,6 +5,7 @@ Condición **declarativa** de la isla de estado, **sin pintura**: mientras el co
 **Etiqueta:** `<g-status>` · **Entrada:** `@grana/vue/status` (la registra `app.use(status)`) · **Estado:** `candidate` · **Desde:** 0.1.0
 
 ```vue
+<!-- Fragmento: `loadFailed` y `reload` son de tu aplicación -->
 <GStatus v-if="loadFailed" id="invoices" type="error" title="No se pudieron cargar las facturas"
          description="El servidor tardó demasiado en responder."
          :action="{ label: 'Reintentar', busyLabel: 'Cargando…', onClick: reload }"

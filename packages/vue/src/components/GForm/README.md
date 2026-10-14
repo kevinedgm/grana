@@ -8,11 +8,12 @@ Este es el README principal del sistema. Cada pieza tiene un README breve que re
 
 **Etiquetas:** `<g-form>`, `<g-form-section>`, `<g-form-layout>`, `<g-form-row>`, `<g-input-group>` (+ `<g-input-group-input>`, `<g-input-group-select>`, `<g-input-group-text>`), `<g-field-group>`, `<g-form-actions>`, `<g-error-summary>` · **Estado:** `candidate` (revisión r02; auditoría de coco aprobada, ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», con un banco de anchos, mensajes, etiquetas largas y densidad).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», con un banco de anchos, mensajes, etiquetas largas y densidad).
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `guardar` y `avisar` son de tu aplicación -->
 <script setup>
 import { reactive, computed } from 'vue'
 const m = reactive({ nombre: '', apellido: '', correo: '', lada: '+52', tel: '', ext: '' })
@@ -112,6 +113,7 @@ Cada línea de una fila tiene tres pistas compartidas: **etiqueta · caja · pie
 Una caja con varias **partes**: `GInputGroupInput` (texto), `GInputGroupSelect` (**`<select>` nativo**, para que el navegador pueda autocompletarlo) y `GInputGroupText` (texto fijo: «/», «a», «mmHg», «años»). Cada parte tiene **su foco** (un anillo por parte, dentro de la caja) y **su nombre accesible** = etiqueta + nombre de la parte («Teléfono Código de país»). La parte `principal` recibe el `<label for>`.
 
 ```vue
+<!-- Fragmento: `tel`, `paises`, `v` y `pago` son de tu aplicación -->
 <!-- Teléfono: país + número; la extensión es otro campo de la misma fila -->
 <GInputGroup label="Teléfono" name="telefono" required style="--g-form-min: 50">
   <GInputGroupSelect v-model="tel.pais" name="tel-pais" part-label="Código de país" :options="paises" autocomplete="tel-country-code" />
@@ -184,6 +186,7 @@ Un solo mensaje (el del grupo o el primero de sus partes); las partes inválidas
 Un dato que **calcula tu aplicación** a partir de un campo (la edad desde la fecha, el IMC desde el peso) no es un campo: va en la prop **`output`** de `GInput` o `GDatePicker`. Se pinta como `<output>` al final de la caja, con cifras tabulares y separado del valor por una línea fina; se anuncia de forma cortés al cambiar y **no se envía**.
 
 ```vue
+<!-- Fragmento: `nac`, `edad` y `sexos` son de tu aplicación -->
 <GFormRow>
   <GDatePicker v-model="nac" class="g-form-w-sm" style="--g-form-min: 44" label="Fecha de nacimiento" name="nacimiento"
                hint="La edad se calcula sola." :output="edad ? `${edad} años` : ''" required />
@@ -281,6 +284,7 @@ Dentro de un `GForm`, colócalo al principio. Tras un envío con errores aparece
 Secundarias antes y **una primaria al final** (`GBtn` `solid`); la región de estado (`status` o slot `status`, `role="status"`) va al inicio. En un ancho propio menor que `space × 104` el pie se **apila**: la primaria sube sola a su línea, a ancho completo, y las demás comparten la línea de debajo si caben (si no, una por línea). En ese apilado el Tab recorre las secundarias y llega a la primaria al final.
 
 ```vue
+<!-- Fragmento: `sucio` y `guardadoA` son de tu aplicación -->
 <GFormActions sticky :status="sucio ? 'Cambios sin guardar' : guardadoA">
   <GBtn type="reset" variant="ghost">Restablecer</GBtn>
   <GBtn type="submit" variant="outline" formnovalidate name="intent" value="draft">Guardar borrador</GBtn>
@@ -321,6 +325,7 @@ Una sección por **idea** (Información básica, Contacto, Dirección), separada
 Un formulario de captura **ya guardado** (un expediente, una orden, una ficha) que se abre **bloqueado** para evitar ediciones y envíos por error, y se desbloquea con un interruptor «Permitir edición». No es una vista de consulta. **Es una receta con la API actual, no un componente ni una prop**: no existe `locked` ni `v-model:locked` en `GForm`. `readonly` ya da todo lo que el bloqueo necesita del formulario, y lo demás (la copia guardada, la confirmación, los permisos) es estado de tu aplicación: `GForm` no posee los valores. Ejemplo completo y verificado en [`design/lab/migraciones/analisis/`](../../../../../design/lab/migraciones/analisis/) (`index.html` y `notas.md`).
 
 ```vue
+<!-- Fragmento: `bloqueado`, `alternar`, `errores`, `sucio`, `guardar`, `estado`, `cerrar` y `cancelar` son de tu aplicación -->
 <div class="ficha__estado">
   <!-- Fuera del <form> y antes de él: dentro heredaría readonly y su cambio marcaría dirty -->
   <GSwitch id="permitir" label="Permitir edición" :model-value="!bloqueado" @update:model-value="alternar" />
@@ -372,6 +377,7 @@ function bloquear(mensaje) {
 ## Receta: dirección con autocompletado
 
 ```vue
+<!-- Fragmento: `estados` es de tu aplicación -->
 <GFormSection title="Dirección">
   <GFormLayout>
     <GFormRow>
@@ -486,6 +492,7 @@ Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-l
 | `variant` | String | `outline` | `outline` · `soft` |
 | `density` | String | del contexto | |
 | `block` | Boolean | `true` en un layout | |
+| `id` | String | generado | Id del grupo y base de los ids internos (etiqueta, ayuda, mensaje) |
 
 | Prop de parte | `Input` | `Select` | `Text` | Qué es |
 | --- | --- | --- | --- | --- |
@@ -515,6 +522,7 @@ Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-l
 | `keep` | Boolean | `false` | Las partes nunca se parten |
 | `disabled` · `readonly` | Boolean | del contexto | |
 | `density` | String | del contexto | |
+| `id` | String | generado | Id del `fieldset` y base de los ids internos |
 
 ### `GFormSection`
 

@@ -870,3 +870,214 @@ describe('GSidebar · pista del riel (modo visual del motor del tooltip)', () =>
     expect(document.querySelectorAll('.g-tooltip')).toHaveLength(0)
   })
 })
+
+describe('GSidebar · cortes de adaptación (breakpoints, #618)', () => {
+  let width
+  let observers
+  beforeEach(() => {
+    width = 1000
+    observers = []
+    globalThis.ResizeObserver = class { constructor(cb) { this.cb = cb; observers.push(this) } observe() {} disconnect() {} }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.closest?.('[data-host]') ? width : 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 } })
+  })
+  afterEach(() => { delete globalThis.ResizeObserver })
+  const auto = async (props = {}) => {
+    const host = document.createElement('div')
+    host.dataset.host = '1'
+    document.body.append(host)
+    const w = mount(GSidebar, { attachTo: host, props: { ...base, ...props } })
+    await nextTick()
+    return w
+  }
+  const resize = async (w) => { observers.forEach((o) => o.cb()); await nextTick(); await nextTick() }
+  // El formato en línea es la raíz div.g-sidebar fuera del <dialog>; en drawer, la raíz es un span oculto y solo queda el <dialog>
+  const fmt = (w) => {
+    if (w.find('nav.g-sidebar--mode-navbar').exists()) return 'navbar'
+    const side = w.findAll('div.g-sidebar').find((d) => !d.element.closest('dialog'))
+    return side ? side.attributes('data-mode') : 'drawer'
+  }
+  const at = async (w, px) => { width = px; await resize(w); return fmt(w) }
+  const warns = () => vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const bpWarns = (spy) => spy.mock.calls.map((c) => c[0]).filter((m) => m.includes('breakpoints'))
+
+  it('sin prop, null o {}: los cortes de siempre (space × 240 / × 150)', async () => {
+    for (const breakpoints of [undefined, null, {}]) {
+      const w = await auto(breakpoints === undefined ? {} : { breakpoints })
+      expect(await at(w, 960)).toBe('expanded')
+      expect(await at(w, 959)).toBe('rail')
+      expect(await at(w, 600)).toBe('rail')
+      expect(await at(w, 599)).toBe('navbar')
+      w.unmount()
+    }
+  })
+
+  it('caso real: { expanded: 1024, rail: 1024 } + mobile="drawer" → drawer por debajo de 1024, sin riel', async () => {
+    const spy = warns()
+    const w = await auto({ breakpoints: { expanded: 1024, rail: 1024 }, mobile: 'drawer' })
+    expect(await at(w, 1000)).toBe('drawer')
+    expect(w.find('dialog.g-sidebar__drawer').exists()).toBe(true)
+    expect(last(w, 'mode-change').mode).toBe('drawer')
+    expect(await at(w, 1023)).toBe('drawer')
+    expect(await at(w, 1024)).toBe('expanded')
+    expect(await at(w, 1100)).toBe('expanded')
+    expect(await at(w, 700)).toBe('drawer')
+    expect(bpWarns(spy)).toHaveLength(0)
+  })
+
+  it('una sola clave: la otra conserva su valor por defecto', async () => {
+    const w = await auto({ breakpoints: { expanded: 1024 } })
+    expect(await at(w, 1000)).toBe('rail')
+    expect(await at(w, 600)).toBe('rail')
+    expect(await at(w, 599)).toBe('navbar')
+    const w2 = await auto({ breakpoints: { rail: 300 } })
+    expect(await at(w2, 960)).toBe('expanded')
+    expect(await at(w2, 400)).toBe('rail')
+    expect(await at(w2, 299)).toBe('navbar')
+  })
+
+  it('rail > expanded con las dos claves: se recorta a expanded y avisa una vez (B2)', async () => {
+    const spy = warns()
+    const w = await auto({ breakpoints: { expanded: 800, rail: 900 } })
+    expect(await at(w, 850)).toBe('expanded')
+    expect(await at(w, 799)).toBe('navbar')
+    await at(w, 1200)
+    const b2 = bpWarns(spy)
+    expect(b2).toHaveLength(1)
+    expect(b2[0]).toMatch(/\[Grana\].*breakpoints\.rail \(900\).*breakpoints\.expanded \(800\).*800/)
+  })
+
+  it('rail por defecto mayor que expanded dado: se recorta sin aviso; expanded: 0 = siempre expandida', async () => {
+    const spy = warns()
+    const w = await auto({ breakpoints: { expanded: 500 } })
+    expect(await at(w, 550)).toBe('expanded')
+    expect(await at(w, 499)).toBe('navbar')
+    const w2 = await auto({ breakpoints: { expanded: 0 } })
+    expect(await at(w2, 10)).toBe('expanded')
+    expect(bpWarns(spy)).toHaveLength(0)
+  })
+
+  it('rail: 0 nunca es móvil: riel por debajo de expanded', async () => {
+    const w = await auto({ breakpoints: { rail: 0 } })
+    expect(await at(w, 100)).toBe('rail')
+    expect(await at(w, 960)).toBe('expanded')
+  })
+
+  it('valores no válidos y claves desconocidas: se ignoran (valor por defecto) y avisan una vez por causa (B1)', async () => {
+    const spy = warns()
+    const w = await auto({ breakpoints: { expanded: 'ancho', rail: -5, mobile: 400 } })
+    expect(await at(w, 960)).toBe('expanded')
+    expect(await at(w, 700)).toBe('rail')
+    expect(await at(w, 599)).toBe('navbar')
+    await w.setProps({ breakpoints: { expanded: 'ancho', rail: -5, mobile: 400 } })
+    const b1 = bpWarns(spy)
+    expect(b1).toHaveLength(3)
+    expect(b1.some((m) => m.includes('breakpoints.expanded'))).toBe(true)
+    expect(b1.some((m) => m.includes('breakpoints.rail'))).toBe(true)
+    expect(b1.some((m) => m.includes('breakpoints.mobile'))).toBe(true)
+    for (const v of [NaN, Infinity]) {
+      const s2 = warns()
+      s2.mockClear()
+      const w2 = await auto({ breakpoints: { expanded: v } })
+      expect(await at(w2, 960)).toBe('expanded')
+      expect(bpWarns(s2)).toHaveLength(1)
+      w2.unmount()
+    }
+  })
+
+  it('el cambio de la prop decide al momento (sin redimensionar), emite mode-change y descarta la elección manual', async () => {
+    const w = await auto()
+    width = 1000; await resize(w)
+    expect(fmt(w)).toBe('expanded')
+    await w.find('.g-sidebar__toggle').trigger('click')
+    expect(fmt(w)).toBe('rail')
+    await w.setProps({ breakpoints: { expanded: 1024, rail: 1024 }, mobile: 'drawer' })
+    await nextTick()
+    expect(fmt(w)).toBe('drawer')
+    expect(last(w, 'mode-change').mode).toBe('drawer')
+    await w.setProps({ breakpoints: { expanded: 900 } })
+    await nextTick()
+    expect(fmt(w)).toBe('expanded')
+    expect(last(w, 'mode-change').mode).toBe('expanded')
+  })
+
+  it('con mode distinto de auto la prop no actúa y no avisa', async () => {
+    const spy = warns()
+    const w = await auto({ mode: 'rail', breakpoints: { expanded: 'x', rail: 99999 } })
+    expect(await at(w, 2000)).toBe('rail')
+    expect(bpWarns(spy)).toHaveLength(0)
+  })
+})
+
+describe('GSidebar · item actual: asiento (r02, #616)', () => {
+  it('expandida: rama con is-branch sin is-rep ni aria-current; su <ul> de hijos lleva has-current; el hijo lleva aria-current', () => {
+    const w = mk({ mode: 'expanded', modelValue: 'p2' })
+    const p = byId(w, 'proj')
+    expect(p.classes()).toContain('is-branch')
+    expect(p.classes()).not.toContain('is-rep')
+    expect(p.attributes('aria-current')).toBeUndefined()
+    const sub = w.find('.g-sidebar__sub')
+    expect(sub.classes()).toEqual(expect.arrayContaining(['is-open', 'has-current']))
+    const child = sub.find('[data-id="p2"]')
+    expect(child.attributes('aria-current')).toBe('page')
+    expect(child.classes()).toContain('is-active')
+    expect(w.findAll('[aria-current="page"]')).toHaveLength(1)
+  })
+
+  it('sin hijo actual, ningún <ul> de hijos lleva has-current ni ningún padre is-rep', () => {
+    const w = mk({ mode: 'rail', modelValue: 'home' })
+    expect(w.findAll('.has-current')).toHaveLength(0)
+    expect(w.findAll('.is-rep')).toHaveLength(0)
+    expect(w.findAll('.is-branch')).toHaveLength(0)
+  })
+
+  it('riel: el padre representa al actual (is-branch + is-rep) sin aria-current; aria-current sigue solo en el hijo del panel', async () => {
+    const w = mk({ mode: 'rail', modelValue: 'p1' })
+    const p = byId(w, 'proj')
+    expect(p.classes()).toEqual(expect.arrayContaining(['is-branch', 'is-rep']))
+    expect(p.attributes('aria-current')).toBeUndefined()
+    await p.trigger('click'); await nextTick(); await nextTick()
+    const fly = w.find('.g-sidebar__fly')
+    expect(fly.find('[data-id="p1"]').attributes('aria-current')).toBe('page')
+    expect(w.findAll('[aria-current="page"]').every((el) => el.attributes('data-id') === 'p1')).toBe(true)
+    expect(fly.findAll('.is-rep')).toHaveLength(0)
+  })
+
+  it('is-rep se alterna al contraer y expandir sobre el mismo DOM (sin reconstruir el padre)', async () => {
+    const w = mk({ mode: 'expanded', modelValue: 'p1' })
+    const el = byId(w, 'proj').element
+    expect(el.classList.contains('is-rep')).toBe(false)
+    await w.find('.g-sidebar__toggle').trigger('click')
+    expect(w.find('.g-sidebar').classes()).toContain('g-sidebar--mode-rail')
+    expect(byId(w, 'proj').element).toBe(el)
+    expect(el.classList.contains('is-rep')).toBe(true)
+    await w.find('.g-sidebar__toggle').trigger('click')
+    expect(byId(w, 'proj').element).toBe(el)
+    expect(el.classList.contains('is-rep')).toBe(false)
+    expect(el.classList.contains('is-branch')).toBe(true)
+  })
+
+  it('is-rep sigue al modelo: al navegar a un item de primer nivel desaparece, al volver a un hijo reaparece', async () => {
+    const w = mk({ mode: 'rail', modelValue: 'p1' })
+    expect(byId(w, 'proj').classes()).toContain('is-rep')
+    await w.setProps({ modelValue: 'team' })
+    expect(byId(w, 'proj').classes()).not.toContain('is-rep')
+    expect(byId(w, 'proj').classes()).not.toContain('is-branch')
+    await w.setProps({ modelValue: 'p2' })
+    expect(byId(w, 'proj').classes()).toContain('is-rep')
+  })
+
+  it('drawer: rama sin is-rep (contenido expandido) y has-current en sus hijos', async () => {
+    const w = mk({ mode: 'drawer', open: true, modelValue: 'p2' })
+    await nextTick()
+    const dlg = w.find('dialog.g-sidebar__drawer')
+    expect(dlg.find('[data-id="proj"]').classes()).toContain('is-branch')
+    expect(dlg.find('[data-id="proj"]').classes()).not.toContain('is-rep')
+    expect(dlg.find('.g-sidebar__sub').classes()).toContain('has-current')
+  })
+
+  it('navbar: ni is-rep ni has-current en la barra (la píldora es is-current en el li)', () => {
+    const w = mk({ mode: 'navbar', modelValue: 'p1' })
+    expect(w.find('.g-sidebar__bar').findAll('.is-rep')).toHaveLength(0)
+    expect(w.find('.g-sidebar__bar').findAll('.has-current')).toHaveLength(0)
+  })
+})

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "name": "GDialogStep",
+  "tag": "g-dialog-step",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Un paso de GDialog con historial (niveles anidados, concepto B «El hilo»): se declara como hijo del diálogo; su panel solo existe mientras el paso está en el historial (los de debajo siguen montados, ocultos e inertes). El encabezado, el nombre del diálogo y el pie son los del paso actual.",
+  "contract": "design/contracts/dialog.md",
+  "contractSection": "§«Niveles anidados» B · GDialogStep",
+  "decisions": [581, 584, 585, 586, 590],
+  "prototype": "design/lab/dialog/r02/",
+  "style": "packages/vue/src/components/GDialog/GDialog.css",
+  "props": [
+    { "name": "name", "type": "String", "required": true, "note": "Único entre los pasos del diálogo (aviso si se repite). Es lo que lleva el historial `steps`" },
+    { "name": "title", "type": "String", "default": null, "note": "Nombre del paso: h2 del encabezado, nombre del panel y del hilo. Sin él, aviso" },
+    { "name": "description", "type": "String", "default": null, "note": "Propósito (adónde va su resultado): descripción del diálogo mientras es el actual" },
+    { "name": "summary", "type": "String", "default": null, "note": "Lo que el paso espera o lleva, en corto: se lee en el hilo tras el título (texto oculto accesible); no se pinta" }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "default", "purpose": "Contenido del paso, en su panel (g-dialog__step) dentro de g-dialog__body. Alcance: { close, push, back, backTo, steps }" },
+    { "name": "footer", "purpose": "Acciones del paso: GDialog lo pinta en g-dialog__footer cuando el paso es el actual. Alcance: { close, push, back, backTo, steps }" }
+  ],
+  "attrs": "class, data-* y escuchas van al panel <section> (inheritAttrs: false)",
+  "structure": "section.g-dialog__step[role=group][aria-labelledby=ID-step-{name}-title][hidden][inert][.is-current][.is-entering] > slot (solo mientras el paso está en el historial)",
+  "classes": ["g-dialog__step", "is-current", "is-entering"],
+  "warnings": [
+    "[Grana GDialogStep] fuera de un GDialog (no pinta nada)",
+    "[Grana GDialog] un paso sin title",
+    "[Grana GDialog] dos GDialogStep con el mismo name"
+  ],
+  "pending": [
+    "Lector de pantalla real: cambio de nombre del <dialog> por paso y role=group al recibir el foco"
+  ]
+}

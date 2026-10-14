@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTable · filas por página y activación de fila (banco de bruno)</title>
+<!-- Banco de bruno para el COMPONENTE REAL (dist/grana.umd.js): filas por página con la fila ancla y el pie acoplado
+     (#592 a #596, base: design/lab/pagination/r02/) y la activación y el estado de fila (#597 a #600, base:
+     design/lab/table/r03/). Lo verifican design/lab/theme-playground/tests/table-page-size.spec.mjs y table-rows.spec.mjs.
+     Requiere `npm run build`. Desde la raíz del repo: python3 -m http.server 4173 → /packages/vue/playground/table-rows.html
+     Parámetros:
+       ?c=size (por defecto) · &server=1 (servidor simulado: 700 ms; ?lat=<ms>) · &h=1 (maxHeight 22rem) · &bar=1 (barra fija
+       inferior de la aplicación, receta scroll-padding-block-end)
+       ?c=A (la puerta: rowHref, navigate cancelado → diálogo de detalle) · ?c=B (despliegue: slot detail)
+       · ?c=status (rowStatus con sello en la causa) · &dark=1 · &dir=rtl -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1100px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .intro{min-block-size:40vh}
+  .after{min-block-size:120vh;padding-block-start:24px;color:var(--g-color-text-muted);font-size:13px}
+  .appbar{position:fixed;inset-inline:0;inset-block-end:0;block-size:56px;background:var(--g-color-surface-sunken);border-block-start:1px solid var(--g-color-border);z-index:5}
+  html.has-appbar{scroll-padding-block-end:56px}
+  dialog{border:1px solid var(--g-color-border);border-radius:8px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .ficha{display:grid;gap:8px;padding:8px 0}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <h1>{{ title }}</h1>
+  <p class="cap">Banco del componente real. Eventos: <output id="log">{{ events.slice(-4).map((e) => e.join(' ')).join(' · ') }}</output></p>
+  <div class="intro"><button type="button" id="before">Antes de la tabla</button></div>
+
+  <g-table
+    id="tb"
+    :columns="columns" :rows="rows" row-key="id" caption="Lotes en inventario" :labels="labels"
+    :total="server ? total : undefined" :loading="loading" :filter-mode="server ? 'external' : 'local'"
+    :page-sizes="c === 'size' ? [10, 25, 50, 100] : undefined"
+    v-model:page="page" v-model:page-size="size" v-model:filters="filters" v-model:last-opened="last" v-model:expanded="expanded"
+    :max-height="limited ? '22rem' : undefined"
+    :row-href="c === 'A' || c === 'B' ? (r) => '#lote/' + r.code : undefined"
+    :row-status="c === 'A' || c === 'B' || c === 'status' ? rowStatus : undefined"
+    selectable
+    @update:page-size="log('update:pageSize', $event)" @update:page="log('update:page', $event)"
+    @navigate="onNavigate" @update:last-opened="log('update:lastOpened', $event)" @update:expanded="log('update:expanded', $event)"
+  >
+    <template v-if="c !== 'size'" #row-actions="{ row }"><button type="button" class="mas" :aria-label="'Acciones de ' + row.code">Más</button></template>
+    <template v-if="c === 'B'" #detail="{ row, href, close }">
+      <div class="ficha">
+        <span>{{ row.product }} · {{ row.place }}</span>
+        <a :href="href + '/ficha'" class="abrir">Abrir ficha completa</a>
+        <button type="button" class="baja" @click="log('baja', row.id)">Registrar baja</button>
+        <button type="button" class="cerrar" @click="close">Cerrar</button>
+      </div>
+    </template>
+  </g-table>
+  <div class="after">Fin de la página <button type="button" id="after">Después de la tabla</button></div>
+  <div v-if="appbar" class="appbar" aria-hidden="true"></div>
+  <dialog id="dlg" @close="onClose"><p>Lote {{ opened && opened.code }}</p><form method="dialog"><button id="dlg-close">Cerrar</button></form></dialog>
+</main>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+const { createApp, ref, watch, computed } = Vue
+const Q = new URLSearchParams(location.search)
+const C = ['size', 'A', 'B', 'status'].includes(Q.get('c')) ? Q.get('c') : 'size'
+if (Q.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+if (Q.get('bar') === '1') document.documentElement.classList.add('has-appbar')
+const LAT = Q.has('lat') ? Number(Q.get('lat')) : 700
+const N = C === 'size' ? 240 : 23
+const PRODUCTS = ['Reactivo de Biuret', 'Agar MacConkey', 'Tubo EDTA 4 ml', 'Puntas 200 µl', 'Solución salina', 'Kit PCR', 'Guantes nitrilo M', 'Etanol 70 %']
+const DATA = Array.from({ length: N }, (_, i) => ({
+  id: `LT-${String(i + 1).padStart(4, '0')}`, code: `LT-${String(i + 1).padStart(4, '0')}`,
+  product: PRODUCTS[(i * 7) % PRODUCTS.length], place: i === 7 ? 'Cuarentena · R2' : `Anaquel ${1 + (i % 6)}`,
+  expiry: [-12, 140, 9, 320, -3, 25, 410, 60, 18, 210][i % 10], stock: (i * 53) % 480
+}))
+const rowStatus = (r) => (r.expiry < 0 ? { status: 'error', text: 'Caducado', key: C === 'status' ? 'expiry' : undefined }
+  : r.expiry <= 30 ? { status: 'warning', text: `Caduca en ${r.expiry} días`, key: 'expiry' }
+    : r.place.startsWith('Cuarentena') ? { status: 'info', text: 'En cuarentena', key: 'place' } : null)
+const app = createApp({
+  setup() {
+    const server = Q.get('server') === '1'
+    const page = ref(1)
+    const size = ref(C === 'size' ? 10 : 8)
+    const filters = ref([])
+    const last = ref(Q.get('last') || null)
+    const expanded = ref([])
+    const loading = ref(false)
+    const events = ref([])
+    const opened = ref(null)
+    const all = computed(() => (filters.value.length ? DATA.filter((r) => r.place.toLowerCase().includes(String(filters.value[0].value).toLowerCase())) : DATA))
+    const rows = ref(server ? all.value.slice(0, size.value) : DATA)
+    const total = ref(all.value.length)
+    const log = (...e) => { events.value.push(e) }
+    let token = 0
+    // Receta del README (modo servidor): un solo watch([page, pageSize]) que pide UNA vez y pone loading en el mismo watch
+    if (server) {
+      watch([page, size, filters], () => {
+        const t = ++token
+        loading.value = true
+        log('fetch', page.value, size.value)
+        setTimeout(() => {
+          if (t !== token) return
+          rows.value = all.value.slice((page.value - 1) * size.value, page.value * size.value)
+          total.value = all.value.length
+          loading.value = false
+        }, LAT)
+      })
+    } else watch(filters, () => { rows.value = DATA })
+    const columns = [
+      { key: 'lote', label: 'Lote', title: 'code', subtitle: 'product', min: 40, filter: undefined },
+      { key: 'place', label: 'Ubicación', filter: C === 'size' ? { type: 'text' } : undefined },
+      { key: 'expiry', label: 'Caducidad (días)', align: 'end' },
+      { key: 'stock', label: 'Existencias', align: 'end' }
+    ]
+    const labels = {
+      selectAll: 'Seleccionar todos los lotes de la página', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados',
+      results: '{count} lotes', loading: 'Cargando lotes…', range: 'Filas {from}–{to} de {total}', detail: 'Lote {title}',
+      empty: 'Sin lotes', emptyFiltered: 'Ningún lote cumple los filtros', clearFilters: 'Limpiar filtros',
+      filters: { group: 'Filtros', add: 'Agregar filtro', clear: 'Limpiar', filterBy: 'Filtrar por {label}', edit: 'Editar {summary}', remove: 'Quitar {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Falta', ops: { contains: 'contiene' } },
+      pagination: { nav: 'Paginación de lotes', previous: 'Página anterior', next: 'Página siguiente', page: 'Página {page}', range: '{from}–{to} de {total}', compact: 'Página {page} de {pages}', pageSize: 'Filas por página' }
+    }
+    const onNavigate = ({ row, key, href, event }) => {
+      log('navigate', key, href)
+      if (C !== 'A') return
+      event.preventDefault() // la «aplicación» abre su detalle en un diálogo
+      opened.value = row
+      document.getElementById('dlg').showModal()
+    }
+    const onClose = () => {
+      const tr = [...document.querySelectorAll('#tb tbody tr.g-table__row')].find((x) => x.textContent.includes(opened.value.code))
+      tr && tr.querySelector('.g-table__door').focus()
+    }
+    const title = { size: 'Filas por página (B · pie que acompaña)', A: 'A · La puerta', B: 'B · Despliegue', status: 'Estado de fila' }[C]
+    window.__tb = { page, size, filters, loading, events, last, expanded, rows, total, DATA, ready: true, server }
+    return { c: C, server, page, size, filters, last, expanded, loading, rows, total, columns, labels, rowStatus, events, log, onNavigate, onClose, opened, title, limited: Q.get('h') === '1', appbar: Q.get('bar') === '1' }
+  }
+})
+app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+app.mount('#app')
+</script>
+</body>
+</html>

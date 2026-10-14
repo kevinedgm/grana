@@ -5,6 +5,7 @@ Disparador de la captura de voz: **dictado** a un campo (botón de solo icono, c
 **Etiqueta:** `<g-speech-trigger>` · **Entrada:** `@grana/vue/speech` (lo registra `app.use(speech)`) · **Estado:** `candidate` · **Desde:** 0.1.0
 
 ```vue
+<!-- Fragmento: `form` es de tu aplicación -->
 <!-- Dictado: el disparador va JUSTO DESPUÉS del campo, como hermano (no dentro) -->
 <GTextarea id="obs" v-model="form.obs" label="Observaciones" />
 <GSpeechTrigger for="obs" />

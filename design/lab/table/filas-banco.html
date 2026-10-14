@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de filas de GTable</title>
+<!-- Banco de coco: filas por página (B · pie que acompaña), puerta (A), despliegue (B) y estado de fila de GTable con el
+     marcado del contrato (table.md «Clases», pagination.md «Estructura») inyectado, sobre el CSS fuente (src/styles/grana.css).
+     Parámetros: ?v=A|B · mode=cards · ap=surface · dir=rtl · dark=1 · theme=<nombre de dark-color-presence/generated> -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/src/styles/grana.css">
+<script src="../lucide-icons.js"></script>
+<style>
+  body { margin: 0; padding: var(--g-space-4); background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .bench-note { max-inline-size: 60rem; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+  .bench-after { block-size: 40vh; }
+</style>
+</head>
+<body>
+<p class="bench-note">Banco de coco · GTable filas: puerta, despliegue, estado, ancla y pie acoplado. Marcado del contrato inyectado.</p>
+<div id="host"></div>
+<div class="bench-after"></div>
+<script>
+  const q = new URLSearchParams(location.search)
+  const V = q.get('v') || 'A'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('dark')) document.documentElement.dataset.theme = 'dark'
+  if (q.get('theme')) {
+    const l = document.createElement('link')
+    l.rel = 'stylesheet'
+    l.href = `../tema-oscuro/dark-color-presence/generated/${q.get('theme')}.css`
+    document.head.append(l)
+  }
+  const icon = (name, flip) => `<svg class="g-icon${flip ? ' g-icon--flip-rtl' : ''}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">${window.LUCIDE_ICONS[name]}</svg>`
+  const ST = { error: ['danger', 'circle-alert', 'Caducado'], warning: ['warning', 'triangle-alert', 'Por caducar'], info: ['info', 'info', 'En cuarentena'], success: ['success', 'circle-check', 'Liberado'] }
+  const badge = (s, id) => { const [c, i, t] = ST[s]; return `<span class="g-table__status"><span class="g-badge g-badge--variant-soft g-badge--color-${c} g-badge--size-sm g-badge--kind-text"><span class="g-badge__icon" aria-hidden="true">${icon(i)}</span><span class="g-badge__text" id="${id}">${t}</span></span></span>` }
+  const statusOf = (i) => ({ 1: 'error', 3: 'warning', 5: 'info', 7: 'success', 12: 'error', 14: 'warning' })[i] || null
+  const causeOf = (i) => (i === 12 || i === 14 ? 'exp' : null)
+  const rows = []
+  for (let i = 0; i < 30; i++) {
+    const key = `L-${2040 + i}`
+    const st = statusOf(i)
+    const cause = causeOf(i)
+    const cls = ['g-table__row']
+    if (i === 2 || i === 3) cls.push('is-selected')
+    if (i === 4) cls.push('is-last-opened')
+    if (V === 'B' && i === 3) cls.push('is-expanded')
+    const door = V === 'A'
+      ? `<a class="g-table__door" href="#${key}" ${st ? `aria-describedby="s-${i}"` : ''}>${key}</a>`
+      : `<button type="button" class="g-table__door" aria-expanded="${V === 'B' && i === 3}" ${st ? `aria-describedby="s-${i}"` : ''}><span class="g-table__door-chevron" aria-hidden="true">${icon('chevron-right', true)}</span>${key}</button>`
+    const title = `<td class="g-table__cell g-table__cell--composite g-table__cell--primary"><span class="g-table__label" aria-hidden="true">Lote</span><span class="g-table__composite"><span class="g-table__leading" aria-hidden="true">LT</span><span class="g-table__text"><span class="g-table__title">${door}</span><span class="g-table__subtitle">Paracetamol 500 mg · caja ${i + 1}</span></span>${V === 'A' ? `<span class="g-table__door-arrow" aria-hidden="true">${icon('arrow-right', true)}</span>` : ''}${st && !cause ? badge(st, `s-${i}`) : ''}</span></td>`
+    const exp = `<td class="g-table__cell g-table__cell--end${cause ? ' g-table__cell--cause' : ''}"${cause ? ` data-status="${st}"` : ''}><span class="g-table__label" aria-hidden="true">Caducidad</span>2026-1${i % 3}-0${(i % 9) + 1}${cause ? badge(st, `s-${i}`) : ''}</td>`
+    rows.push(`<tr class="${cls.join(' ')}" data-key="${key}"${st ? ` data-status="${st}"` : ''}><td class="g-table__select"><input type="checkbox" aria-label="Seleccionar ${key}"${cls.includes('is-selected') ? ' checked' : ''}></td>${title}<td class="g-table__cell"><span class="g-table__label" aria-hidden="true">Ubicación</span>Estante B-${i}</td>${exp}<td class="g-table__actions"><button type="button" aria-label="Acciones de ${key}">…</button></td></tr>`)
+    if (V === 'B' && i === 3) rows.push(`<tr class="g-table__detail"><td class="g-table__detail-cell" colspan="5"><div class="g-table__detail-body" role="group" aria-label="Lote ${key}" id="d-3"><div><p style="margin:0">Ficha del lote ${key}: 240 unidades, proveedor Farma S. A.</p><p style="margin:0"><a href="#full">Abrir ficha completa</a></p></div></div></td></tr>`)
+  }
+  const sizes = [10, 25, 50, 100].map((n) => `<label class="g-pagination__size-option"><input class="g-pagination__size-input" type="radio" name="g-1-size" value="${n}"${n === 25 ? ' checked' : ''} data-g-key-focus><span class="g-pagination__size-text">${n}</span></label>`).join('')
+  const root = ['g-table', `g-table--mode-${q.get('mode') === 'cards' ? 'cards' : 'table'}`, `g-table--appearance-${q.get('ap') === 'surface' ? 'surface' : 'lines'}`, 'g-table--density-default', 'has-row-status', V === 'A' ? 'has-door' : 'has-detail'].join(' ')
+  document.getElementById('host').innerHTML = `<div class="${root}" id="t" style="--_dock-size: 0px">
+    <div class="g-table__bar"><span class="g-table__count">30 lotes</span></div>
+    <div class="g-table__scroll"><table class="g-table__table" role="table" tabindex="-1"><caption class="g-table__caption">Lotes</caption>
+      <thead role="rowgroup"><tr role="row"><th class="g-table__select" scope="col"><input type="checkbox" aria-label="Seleccionar todo"></th><th scope="col">Lote</th><th scope="col">Ubicación</th><th scope="col" class="g-table__cell--end">Caducidad</th><th class="g-table__actions" scope="col"><span class="g-table__sr">Acciones</span></th></tr></thead>
+      <tbody role="rowgroup">${rows.join('')}</tbody></table></div>
+    <nav class="g-pagination g-pagination--dock" aria-label="Paginación de lotes">
+      <div class="g-pagination__meta"><div class="g-pagination__size" role="radiogroup" aria-labelledby="g-1-size"><span class="g-pagination__size-label" id="g-1-size">Filas por página</span><span class="g-pagination__sizes">${sizes}</span></div><span class="g-pagination__range">1–25 de 240</span></div>
+      <div class="g-pagination__controls"><button class="g-pagination__step" type="button" aria-label="Página anterior" disabled>${icon('chevron-left', true)}</button><ol class="g-pagination__pages"><li><button class="g-pagination__page" type="button" aria-current="page">1</button></li><li><button class="g-pagination__page" type="button">2</button></li></ol><button class="g-pagination__step" type="button" aria-label="Página siguiente">${icon('chevron-right', true)}</button></div>
+    </nav>
+    <p class="g-table__sr" aria-live="polite"></p>
+  </div>`
+  // El alto del pie acoplado (lo publica bruno con ResizeObserver); is-stuck por centinela
+  const t = document.getElementById('t')
+  const nav = t.querySelector('.g-pagination')
+  new ResizeObserver(() => t.style.setProperty('--_dock-size', nav.offsetHeight + 'px')).observe(nav)
+  const sentinel = document.createElement('div')
+  t.append(sentinel)
+  new IntersectionObserver(([e]) => nav.classList.toggle('is-stuck', !e.isIntersecting)).observe(sentinel)
+  window.__bench = { ready: true }
+</script>
+</body>
+</html>

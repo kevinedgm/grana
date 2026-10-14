@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCardGroup · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/card-group.md («Estructura accesible» y «Clases y datos») con el CSS real
+     de GCardGroup.css (cargado DENTRO de la capa grana.components, como lo registrará bruno) y GCard, GMetric y GTable reales de
+     dist/. XCardGroup hace lo que hará GCardGroup.vue y SOLO lo que el estilo necesita: estado único o múltiple, el puente
+     (--_bridge-x/--_bridge-w en px desde el borde de inicio de la caja de relleno de la tira; en RTL desde el derecho),
+     is-ready tras el primer posicionamiento, is-leaving durante --g-duration-fast al soltar. Sin teclado de barra (es de bruno).
+     No es documentación ni la implementación de bruno. Requiere dist/.
+     Desde la raíz del repo: python3 -m http.server 4224 → /design/lab/card-group/estilo-banco.html
+     Parámetros: ?dark=1  ?dir=rtl  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4224 node design/lab/card-group/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GCardGroup/GCardGroup.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1200px;margin:0 auto;padding:16px 16px 40vh}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<main id="app" v-cloak>
+<h1>GCardGroup · banco de estilo</h1>
+<p class="cap"><b>coco</b> · A «Lengüeta». Las tarjetas se apoyan en el marco de la tabla con las esquinas de abajo rectas y una ranura de space × 2. Al pulsar, el borde de abajo de la tarjeta se abre, sus dos lados bajan por el puente hasta el marco y el marco toma <code>primary-text</code>. Al cambiar de tarjeta el puente viaja; al soltar, se recoge. Sin muelle.</p>
+
+<h2 class="b">1 · Lengüeta, una sola (con panel)</h2>
+<x-card-group id="g-one" v-model="one" label="Filtrar facturas por estado" :items="ITEMS">
+  <template #panel><g-table id="t-one" :columns="COLUMNS" :rows="rowsOf(one)" caption="Facturas" :page-size="30" :labels="TABLE_LABELS"></g-table></template>
+</x-card-group>
+
+<h2 class="b">2 · Lengüeta, varias (multiple)</h2>
+<x-card-group id="g-multi" v-model="multi" multiple label="Filtrar facturas por estado" :items="ITEMS">
+  <template #panel><g-table id="t-multi" :columns="COLUMNS" :rows="rowsOf(multi)" caption="Facturas" :page-size="30" :labels="TABLE_LABELS"></g-table></template>
+</x-card-group>
+
+<h2 class="b">3 · Rejilla (sin panel), con una estática «Total»</h2>
+<x-card-group id="g-grid" v-model="grid" label="Filtrar facturas por estado" :items="ITEMS" with-total></x-card-group>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+;(function () {
+  const { h, ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch, defineComponent } = Vue
+  const { GCard, GMetric } = Grana
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark')) document.documentElement.dataset.theme = 'dark'
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  if (Q.get('slow')) document.getElementById('slow-css').textContent = ':root{--g-duration-fast:600ms;--g-duration-press:800ms}'
+
+  const ESTADOS = ['pendiente','pendiente','pagada','vencida','pagada','pendiente','pagada','en disputa','pagada','vencida','pendiente','pagada','pendiente','pagada','vencida','pagada','pendiente','pagada','en disputa','pendiente','pagada','vencida','pendiente','pagada']
+  const NOMBRES = ['Ana Torres','Luis Pérez','Marta Ruiz','Diego Sanz','Sofía León','Raúl Gil']
+  const ROWS = ESTADOS.map((estado, i) => ({ id: `F-${1041 + i}`, folio: `F-${1041 + i}`, cliente: NOMBRES[i % 6], estado, total: 1200 + ((i * 3779) % 14000) }))
+  const count = (e) => ROWS.filter((r) => r.estado === e).length
+  const ITEMS = [
+    { value: 'pendiente', title: 'Pendientes', trend: '+2', direction: 'up', trendColor: 'neutral', context: 'desde ayer' },
+    { value: 'vencida', title: 'Vencidas', trend: '+1', direction: 'up', trendColor: 'danger', context: 'desde ayer' },
+    { value: 'pagada', title: 'Pagadas', trend: '+3', direction: 'up', trendColor: 'success', context: 'esta semana' },
+    { value: 'en disputa', title: 'En disputa', trend: '0', direction: 'flat', trendColor: 'neutral', context: 'sin cambios' }
+  ].map((it) => ({ ...it, count: count(it.value) }))
+  const COLUMNS = [
+    { key: 'cliente', label: 'Cliente' }, { key: 'folio', label: 'Folio' }, { key: 'estado', label: 'Estado' },
+    { key: 'total', label: 'Total', align: 'end', format: (v) => `$${v.toLocaleString('es-MX')}` }
+  ]
+  const TABLE_LABELS = { loading: 'Cargando…', empty: 'Sin facturas.', emptyFiltered: 'Ninguna factura.', clearFilters: 'Limpiar', results: '{count} facturas', slow: 'Sigue cargando…', failed: 'Error.', retry: 'Reintentar', actionsHeader: 'Acciones' }
+  const CARD_LABELS = { menu: 'Acciones de', loading: 'Cargando', loaded: 'Cargado' }
+  const fastMs = () => { const v = getComputedStyle(document.documentElement).getPropertyValue('--g-duration-fast').trim(); return parseFloat(v) * (v.endsWith('ms') ? 1 : 1000) || 120 }
+
+  let uid = 0
+  const XCardGroup = defineComponent({
+    props: { items: Array, modelValue: { default: null }, multiple: Boolean, label: String, withTotal: Boolean },
+    emits: ['update:modelValue'],
+    setup(props, { emit, slots }) {
+      const id = `xcg-${++uid}`
+      const strip = ref(null)
+      const ready = ref(false)
+      const bridges = ref([])  // { k, x, w, leaving }
+      const isOn = (v) => (props.multiple ? (props.modelValue || []).includes(v) : props.modelValue === v)
+      const filtered = computed(() => props.items.some((it) => isOn(it.value)))
+      function toggle(v) {
+        if (props.multiple) {
+          const cur = new Set(props.modelValue || []); cur.has(v) ? cur.delete(v) : cur.add(v)
+          emit('update:modelValue', props.items.map((i) => i.value).filter((x) => cur.has(x)))
+        } else emit('update:modelValue', isOn(v) ? null : v)
+      }
+      const timers = new Map()
+      function place() {
+        const s = strip.value
+        if (!s || !slots.panel) return
+        const rtl = getComputedStyle(s).direction === 'rtl'
+        const cards = [...s.querySelectorAll(':scope > .g-card')]
+        const live = []
+        props.items.forEach((it, i) => {
+          if (!isOn(it.value) || !cards[i]) return
+          const c = cards[i]
+          const x = rtl ? s.clientWidth - c.offsetLeft - c.offsetWidth : c.offsetLeft
+          live.push({ k: props.multiple ? it.value : 'one', x, w: c.offsetWidth, leaving: false })
+        })
+        const keys = new Set(live.map((b) => b.k))
+        const leaving = bridges.value.filter((b) => !keys.has(b.k)).map((b) => ({ ...b, leaving: true }))
+        leaving.forEach((b) => {
+          if (timers.has(b.k)) return
+          timers.set(b.k, setTimeout(() => { timers.delete(b.k); bridges.value = bridges.value.filter((x) => !(x.k === b.k && x.leaving)) }, ready.value ? fastMs() : 0))
+        })
+        live.forEach((b) => { if (timers.has(b.k)) { clearTimeout(timers.get(b.k)); timers.delete(b.k) } })
+        const next = [...live, ...leaving]
+        if (JSON.stringify(next) !== JSON.stringify(bridges.value)) bridges.value = next
+      }
+      let ro
+      onMounted(() => {
+        place()
+        ro = new ResizeObserver(() => place()); ro.observe(strip.value)
+        document.fonts.ready.then(place)
+        requestAnimationFrame(() => requestAnimationFrame(() => { ready.value = true }))
+      })
+      onBeforeUnmount(() => ro && ro.disconnect())
+      watch(() => props.multiple ? (props.modelValue || []).join('|') : props.modelValue, () => nextTick(place))
+      return () => {
+        const cards = props.items.map((it) => h(GCard, {
+          key: it.value, as: 'div', interaction: 'toggle', title: it.title, headingLevel: 3, density: 'compact', labels: CARD_LABELS,
+          modelValue: isOn(it.value), 'onUpdate:modelValue': () => toggle(it.value), 'data-value': it.value
+        }, { default: () => h(GMetric, { label: 'Facturas', value: String(it.count), trend: it.trend, direction: it.direction, trendColor: it.trendColor, context: it.context }) }))
+        if (props.withTotal) cards.unshift(h(GCard, { key: 'total', as: 'div', title: 'Total', headingLevel: 3, density: 'compact', labels: CARD_LABELS }, { default: () => h(GMetric, { label: 'Facturas', value: String(ROWS.length) }) }))
+        const kids = [h('div', { ref: strip, class: 'g-card-group__strip', role: 'toolbar', 'aria-label': props.label, tabindex: slots.panel ? -1 : undefined }, [
+          ...cards,
+          ...bridges.value.map((b) => h('span', { key: 'br-' + b.k, class: ['g-card-group__bridge', b.leaving && 'is-leaving'], 'aria-hidden': 'true', 'data-for': b.k, style: { '--_bridge-x': b.x + 'px', '--_bridge-w': b.w + 'px' } }))
+        ])]
+        if (slots.panel) kids.push(h('div', { class: ['g-card-group__panel', filtered.value && 'is-filtered'], id: id + '-panel' }, slots.panel({ filtered: filtered.value })))
+        return h('div', { class: ['g-card-group', slots.panel && 'has-panel', filtered.value && 'is-filtered', props.multiple && 'is-multiple', ready.value && 'is-ready'] }, kids)
+      }
+    }
+  })
+
+  const app = Vue.createApp({
+    setup() {
+      const one = ref(Q.get('seed') ? 'vencida' : null)
+      const multi = ref([])
+      const grid = ref(null)
+      const rowsOf = (m) => { const set = Array.isArray(m) ? m : m == null ? [] : [m]; return set.length ? ROWS.filter((r) => set.includes(r.estado)) : ROWS }
+      window.__bench = { one, multi, grid }
+      onMounted(() => nextTick(() => requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true }))))
+      return { one, multi, grid, ITEMS, COLUMNS, TABLE_LABELS, rowsOf }
+    }
+  })
+  app.use(Grana.default)
+  app.component('x-card-group', XCardGroup)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

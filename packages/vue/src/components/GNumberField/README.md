@@ -4,7 +4,7 @@ Campo para **un número que se escribe** (edad, peso, temperatura, porcentaje, c
 
 **Etiqueta:** `<g-number-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/number-field/auditoria.md`](../../../../../design/lab/number-field/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GNumberField` y los signos vitales de «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GNumberField` y los signos vitales de «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 
@@ -52,6 +52,7 @@ Un identificador hecho de cifras (código postal, folio, teléfono, tarjeta) **n
 Grana no valida (DECISIONS #157). Lo escrito o pegado fuera de `min`/`max` **no se recorta** y el modelo lo conserva; el error de rango lo calcula tu aplicación y lo pasa en `error` (o en `errors` de `GForm`).
 
 ```vue
+<!-- Fragmento: `edad` es de tu aplicación -->
 <g-number-field v-model="edad" label="Edad" name="edad" :min="0" :max="120" :precision="0" suffix="años"
                 :error="edad != null && (edad < 0 || edad > 120) ? 'La edad debe estar entre 0 y 120 años.' : undefined"></g-number-field>
 ```
@@ -118,6 +119,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 - **Pegar:** se interpreta con una regla propia. Dos tipos de separador: el último es el decimal («1,234.5» → 1234,5). Uno repetido: miles. Uno solo seguido de exactamente tres cifras y que es el de miles del idioma: miles («12.345» en `es` → 12345). Si no, decimal. Lo que no es número no entra. Se inserta el texto crudo del número ya redondeado.
 
 ```vue
+<!-- Fragmento: `anio` y `poblacion` son de tu aplicación -->
 <g-number-field v-model="anio" label="Año" :grouping="false" :precision="0" :min="1900"></g-number-field>
 <g-number-field v-model="poblacion" label="Población" :precision="0" placeholder="0"></g-number-field>
 ```
@@ -128,6 +130,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 - **Separadores, miles y cifras** salen de `Intl.NumberFormat`. Se muestran las **cifras del sistema del idioma**: con `ar-EG`, arábigo-índicas («-٤٫٥»); al escribir se aceptan las del idioma **y** las latinas. Las marcas bidi que `Intl` antepone (U+200E, U+200F, U+061C) se quitan del texto y de `aria-valuetext`.
 
 ```vue
+<!-- Fragmento: `grados` y `importe` son de tu aplicación -->
 <div lang="ar-EG" dir="rtl">
   <g-number-field v-model="grados" label="درجة الحرارة" :precision="1" suffix="°C"></g-number-field>
 </div>
@@ -139,6 +142,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 `name` es una **prop** (como en `GSelect` y `GDatePicker`) y va a un `<input type="hidden">` con el valor canónico: punto decimal, sin miles ni exponente (`72.5`, `12345`, o `''` si está vacío). **El `<input>` visible no lleva `name`.** El oculto se deshabilita con el campo (no se envía), **sigue presente en solo lectura** (se envía) y copia el atributo `form` del consumidor. `name` también registra el campo en `GForm` (clave de `errors`).
 
 ```vue
+<!-- Fragmento: `enviar` y `m` son de tu aplicación -->
 <form @submit.prevent="enviar">
   <g-number-field v-model="m.peso" label="Peso" name="peso" :precision="1" suffix="kg"></g-number-field>
   <g-btn type="submit">Enviar</g-btn>
@@ -158,6 +162,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 - Los demás eventos (`focus`, `blur`, `keydown`, `input`, `paste`…) no se declaran: llegan nativos al `<input>` visible, **después** de los manejadores propios (una escucha `@input` tuya ya ve el `v-model` actualizado).
 
 ```vue
+<!-- Fragmento: `cantidad` y `guardar` son de tu aplicación -->
 <g-number-field v-model="cantidad" label="Cantidad" :min="1" :max="99" :precision="0"
                 steppers decrement-label="Restar" increment-label="Sumar"
                 @change="guardar"></g-number-field>
@@ -179,6 +184,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 `prefix` y `suffix` son texto visible **dentro de la caja** (`kg`, `°C`, `%`, `×`), no interactivo: pulsarlo enfoca el campo. Con `prefixLabel`/`suffixLabel` el texto visible se oculta a los lectores y se lee la expansión («kilogramos»). Entran en `aria-describedby` antes de ayuda y mensaje. La unidad **no** entra en `aria-valuetext` (se leería dos veces). Regla idéntica a la de `GInput`.
 
 ```vue
+<!-- Fragmento: `temp` es de tu aplicación -->
 <g-number-field v-model="temp" label="Temperatura" :min="30" :max="45" :step="0.1" :precision="1"
                 suffix="°C" suffix-label="grados Celsius"></g-number-field>
 ```
@@ -190,6 +196,7 @@ Un valor fuera de la lista de `size`, `variant`, `density`, `color` o `rounded` 
 No hay prop `unit`. Una unidad **fija** es un `suffix`; una **elegible** es otra pregunta: un `GSelect` «Unidad» en la misma `GFormRow` (dos preguntas, dos etiquetas). Es una composición de props ya verificadas, pero el conjunto no está en el playground ni en las pruebas.
 
 ```vue
+<!-- Fragmento: `temp` y `unidad` son de tu aplicación -->
 <g-form-row>
   <g-number-field v-model="temp" class="g-form-w-sm" label="Temperatura" name="temp"
                   :precision="1" :suffix="unidad === 'C' ? '°C' : '°F'"></g-number-field>
@@ -205,6 +212,7 @@ La alternativa es un `GInputGroup` (una sola pregunta, un solo mensaje) con `GIn
 `steppers` pinta −/+ **dentro de la caja**, al final, solo si das **`decrementLabel` y `incrementLabel`**. No tienen valor por defecto porque Grana es internacional (un texto fijo estaría en el idioma equivocado); sin ellos no se pintan y se avisa en desarrollo.
 
 ```vue
+<!-- Fragmento: `qty` es de tu aplicación -->
 <g-number-field v-model="qty" label="Cantidad" :min="1" :max="99" :precision="0"
                 steppers decrement-label="Restar" increment-label="Sumar"></g-number-field>
 ```
@@ -275,6 +283,7 @@ Depende de la fuente, por eso se mide y no se tabula: la cifra de referencia de 
 Unidad **fija** → `suffix` de `GNumberField`; unidad **elegible** → `GInputGroup` (Temperatura). Es la fila del playground («Alta de paciente», `#fm-vitals`) y de la prueba de distribución obligatoria: 1 línea a 1280 y 960px, 2 a 720 (Temperatura · Presión / Frecuencia · Saturación · Peso · Estatura) y 3 a 360.
 
 ```vue
+<!-- Fragmento: `v` es de tu aplicación -->
 <g-form-row>
   <g-input-group class="g-form-w-sm" label="Temperatura" name="temp" required>
     <g-input-group-input v-model="v.temp" name="temp" principal inputmode="decimal" placeholder="36.5" />
@@ -375,6 +384,7 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **WebKit desplaza 1px el número enfocado** con el cursor al final (P1), con la fuente de serie servida por `dist/fonts.css`: WebKit redondea hacia arriba el ancho del texto y reserva además el cursor, y el hueco de 1px del espejo no alcanza. Medido: 27 de 63 campos del banco se desplazan 1px (el número se corre 1px y pierde 1px del lado inicial del primer glifo); lo mismo, al final de P2. Chromium y Firefox, 0 de 63. Con el hueco a 2px, en WebKit, 0 de 63. **Abierto** (hallazgo 1 de la auditoría): es una constante de la decisión #313 y la enmienda lima; el arreglo sube 1px el mínimo publicado.
 - **Un número que no cabe, sin el foco, se recorta con elipsis** («1.234.567.890.12…»), la de `GInput`. Con el foco se desplaza y la unidad sigue visible. La elipsis avisa de que faltan cifras (un recorte limpio mostraría otro número sin avisar); otro tratamiento (por ejemplo alinear al final) sería una decisión de estructura (hallazgo 4).
 - **Un cambio de `lang` de un ancestro después de montar no se observa.** Una aplicación que cambia de idioma en caliente pasa `locale` reactivo (o vuelve a montar el campo).

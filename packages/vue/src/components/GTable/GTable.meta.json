@@ -56,7 +56,8 @@
     {
       "name": "filters",
       "type": "Array",
-      "default": []
+      "default": [],
+      "note": "Un cambio de filtros anuncia labels.results por la región de la tabla venga de su barra o de la prop (tarjetas, búsqueda propia, URL), una sola vez y nunca en la carga inicial; con loading, al terminar la carga; con filterMode 'external', cuando llegan las filas o el total nuevos (L3 de design/lab/card-group/r01, enmienda de #265)"
     },
     {
       "name": "filterMode",

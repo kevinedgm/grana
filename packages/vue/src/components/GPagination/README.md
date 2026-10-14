@@ -5,6 +5,7 @@ Paginación de una colección: rango («11–20 de 120»), anterior/siguiente y 
 **Etiqueta:** `<g-pagination>` · **Estado:** `candidate` (ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 0.1.0
 
 ```vue
+<!-- Fragmento: `pagina` es de tu aplicación -->
 <g-pagination v-model:page="pagina" :total="120" :page-size="10" :labels="{
   nav: 'Paginación de resultados', previous: 'Página anterior', next: 'Página siguiente',
   page: 'Página {page}', range: '{from}–{to} de {total}', compact: 'Página {page} de {pages}' }"></g-pagination>

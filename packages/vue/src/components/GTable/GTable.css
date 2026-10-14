@@ -151,10 +151,9 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 /* Filas */
 .g-table__row.is-selected > td { background: var(--g-color-primary-soft); }
 @media (hover: hover) {
-  .g-table__row:hover > td { background: var(--g-color-surface-sunken); }
-  .g-table__row.is-selected:hover > td { background: var(--g-color-primary-soft); }
-  /* Una fila esqueleto no es una fila: sin fondo al pasar */
-  .g-table__row:has(> td > .g-table__skeleton):hover > td { background: none; }
+  /* El hover excluye en el propio selector la seleccionada (#564: conserva su superficie) y la fila esqueleto (no es una
+     fila). Con puertas (A, #597) la fila no se pulsa: el fondo va solo a la celda principal y a la casilla, más abajo */
+  .g-table:not(.has-door, .has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td { background: var(--g-color-surface-sunken); }
   .g-table__sort:hover { color: var(--g-color-text); }
 }
 
@@ -199,6 +198,12 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   text-overflow: ellipsis;
 }
 .g-table__title {
+  /* El recorte no corta el anillo de foco de un control dentro del título: `clip` más un colchón del ancho del anillo
+     (foco + desfase) compensado con margen negativo. Sin `overflow-clip-margin` (WebKit no lo admite); la elipsis se conserva. */
+  --_ring: calc(var(--g-focus-width) + var(--g-focus-offset));
+  overflow: clip;
+  padding: var(--_ring);
+  margin: calc(-1 * var(--_ring));
   font-weight: var(--g-text-title-weight);
   color: var(--g-color-text);
 }
@@ -329,6 +334,232 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   color: var(--g-color-text);
 }
 
+/* ---------- Activación de fila (table.md «Activación de fila», #597 a #599) ---------- */
+/* La puerta: un <a href> o <button> real dentro de g-table__title. Conserva el color y el peso del título (no
+   --g-color-link): lo que la delata es el subrayado, la flecha y el área. Caja en línea con su propia elipsis (un
+   <button> es atómico y la elipsis del título no entraría en él) */
+.g-table__door {
+  display: inline-block;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--g-radius-xs);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+  cursor: pointer;
+  appearance: none;
+}
+.g-table__door:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* A · la puerta cubre su celda: la celda principal es el contenedor posicionado y el ::after de la puerta la cubre
+   entera (clic central, «copiar dirección» y arrastrar funcionan en toda la celda). El anillo rodea la celda: es el
+   área real de la puerta. El resto de la fila es texto para leer y copiar */
+.g-table:is(.has-door, .has-detail) .g-table__cell--primary { position: relative; }
+/* En B también: el clic de fila llega a la puerta, pero el área real (≥ 24px, 2.5.8) es la celda, no la línea del título */
+.g-table:is(.has-door, .has-detail) .g-table__door::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.g-table.has-door:not(.has-detail) .g-table__door:focus-visible { outline: none; }
+.g-table.has-door:not(.has-detail) .g-table__cell--primary:has(.g-table__door:focus-visible) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Se delata: subrayado del título y la flecha que asoma desde dentro (hacia donde lleva) */
+.g-table__door-arrow {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  color: var(--g-color-text-muted);
+  opacity: 0;
+  translate: calc(var(--g-space-1) * -2) 0;
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-out),
+    translate var(--g-duration-fast) var(--g-ease-out),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-table__door-arrow:dir(rtl) { translate: calc(var(--g-space-1) * 2) 0; }
+.g-table.has-door:not(.has-detail) .g-table__row:is(:focus-within, .is-last-opened) .g-table__door {
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+}
+.g-table__row:is(:focus-within, .is-last-opened) .g-table__door-arrow {
+  opacity: 1;
+  translate: 0 0;
+  color: var(--g-color-text);
+}
+@media (hover: hover) {
+  .g-table.has-door:not(.has-detail) .g-table__row:hover .g-table__door {
+    text-decoration: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.2em;
+  }
+  .g-table__row:hover .g-table__door-arrow {
+    opacity: 1;
+    translate: 0 0;
+    color: var(--g-color-text);
+  }
+  /* Solo la celda principal y la casilla reaccionan: la fila no promete lo que no hace (excluye la seleccionada, #564) */
+  .g-table.has-door:not(.has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td:is(.g-table__cell--primary, .g-table__select) {
+    background: var(--g-color-surface-sunken);
+  }
+}
+
+/* B · despliegue: la puerta es un botón de divulgación con un chevron que gira hacia la ficha; la fila entera reenvía el
+   clic a la puerta (cursor de puntero), salvo la casilla y las acciones, que son suyas */
+.g-table.has-detail .g-table__row:not(:has(> td > .g-table__skeleton)) { cursor: pointer; }
+.g-table.has-detail .g-table__row > :is(.g-table__select, .g-table__actions) { cursor: auto; }
+@media (hover: hover) {
+  .g-table.has-detail .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td { background: var(--g-color-surface-sunken); }
+}
+.g-table__door-chevron {
+  flex: none;
+  display: inline-block;
+  line-height: 0;
+  vertical-align: middle;
+  color: var(--g-color-text-muted);
+  transition:
+    rotate var(--g-duration-slow) var(--g-ease-spring),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-table__row.is-expanded .g-table__door-chevron {
+  rotate: 90deg;
+  color: var(--g-color-text);
+}
+/* El chevron va pegado a su texto: delante dentro de la puerta o detrás de ella */
+.g-table__door > .g-table__door-chevron:first-child { margin-inline-end: var(--g-space-1); }
+.g-table__door + .g-table__door-chevron { margin-inline-start: var(--g-space-1); }
+/* En RTL el icono ya se espeja (flip-rtl) y apunta al inicio: abierto también apunta abajo */
+.g-table__row.is-expanded .g-table__door-chevron:dir(rtl) { rotate: -90deg; }
+/* La fila desplegada y su ficha son una pieza: sin separador entre ellas */
+.g-table__row.is-expanded > td { border-block-end-color: transparent; }
+.g-table__table td.g-table__detail-cell {
+  padding: 0 var(--_pad-inline);
+  cursor: auto;
+}
+/* La ficha: rejilla 0fr → 1fr (sin medir alturas; motor utils/collapse.js con --g-ease-spring). Se monta plegada y se
+   despliega desde @starting-style; al plegar vuelve a 0fr y bruno la desmonta al terminar. Relleno y margen se pliegan
+   con ella, para que no quede una franja. Su hijo directo (un único envoltorio del slot) es el que se recorta */
+.g-table__detail-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-block: 0;
+  padding: 0 var(--g-space-4);
+  overflow: hidden;
+  border-inline-start: calc(var(--g-space-1) * 0.5) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  transition:
+    grid-template-rows var(--g-duration-slow) var(--g-ease-spring),
+    padding-block-start var(--g-duration-slow) var(--g-ease-spring),
+    padding-block-end var(--g-duration-slow) var(--g-ease-spring),
+    margin-block-end var(--g-duration-slow) var(--g-ease-spring);
+}
+.g-table__detail-body > * { min-block-size: 0; }
+.g-table__row.is-expanded + .g-table__detail .g-table__detail-body {
+  grid-template-rows: 1fr;
+  margin-block: 0 var(--g-space-3);
+  padding-block: var(--g-space-3);
+}
+@starting-style {
+  .g-table__row.is-expanded + .g-table__detail .g-table__detail-body {
+    grid-template-rows: 0fr;
+    margin-block-end: 0;
+    padding-block-start: 0;
+    padding-block-end: 0;
+  }
+}
+.g-table__detail.is-instant .g-table__detail-body { transition: none; }
+
+/* ---------- Estado de fila (table.md «Estado de fila», #600): lomo con forma por valor + etiqueta; nunca se tiñe la fila ---------- */
+/* Tono por valor (error lee danger, como GCard) */
+:is(.g-table__row, .g-table__cell--cause)[data-status="error"],
+.g-table__row[data-status="error"] + .g-table__detail { --_status: var(--g-color-danger-text); --_status-style: solid; }
+:is(.g-table__row, .g-table__cell--cause)[data-status="warning"],
+.g-table__row[data-status="warning"] + .g-table__detail { --_status: var(--g-color-warning-text); --_status-style: dashed; }
+:is(.g-table__row, .g-table__cell--cause)[data-status="info"],
+.g-table__row[data-status="info"] + .g-table__detail { --_status: var(--g-color-info-text); --_status-style: dotted; }
+:is(.g-table__row, .g-table__cell--cause)[data-status="success"],
+.g-table__row[data-status="success"] + .g-table__detail { --_status: var(--g-color-success-text); --_status-style: double; }
+/* Lomo: borde de inicio del primer <td> (y del <th>) reservado en TODAS las filas: las columnas no se mueven. Ancho
+   space × 1,5 (6px en el tema por defecto): con 4px el doble de success se lee macizo en WebKit a 1x y el punteado de
+   Firefox queda ralo; con 6px las cuatro formas se distinguen en los tres motores */
+.g-table.has-row-status { --_spine: calc(var(--g-space-1) * 1.5); }
+.g-table.has-row-status .g-table__table :is(th, td):first-child {
+  border-inline-start: var(--_spine) solid transparent;
+}
+.g-table.has-row-status .g-table__row[data-status] > td:first-child {
+  border-inline-start-color: var(--_status);
+  border-inline-start-style: var(--_status-style);
+}
+/* La ficha desplegada sigue el lomo de su fila */
+.g-table.has-row-status .g-table__row[data-status].is-expanded + .g-table__detail > td:first-child {
+  border-inline-start-color: var(--_status);
+  border-inline-start-style: var(--_status-style);
+}
+/* Superficie: el primer <td> ya tiene su borde de 1px; sin estado lo conserva y el resto del lomo va en el relleno */
+.g-table--appearance-surface.has-row-status .g-table__table td:first-child {
+  border-inline-start-width: var(--g-border-width);
+  border-inline-start-color: var(--g-color-border);
+  padding-inline-start: calc(var(--_pad-inline) + var(--_spine) - var(--g-border-width));
+}
+.g-table--appearance-surface.has-row-status .g-table__row[data-status] > td:first-child {
+  border-inline-start-width: var(--_spine);
+  padding-inline-start: var(--_pad-inline);
+}
+/* La etiqueta (GBadge soft sm): junto al título de la compuesta o junto al valor en la celda de la causa */
+.g-table__status {
+  flex: none;
+  display: inline-flex;
+  vertical-align: middle;
+}
+.g-table__cell--cause .g-table__status { margin-inline-start: var(--g-space-2); }
+/* Sello en la causa: filo inferior en el tono del estado, sin teñir la celda ni la fila */
+.g-table__table td.g-table__cell--cause[data-status] {
+  box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--_status);
+}
+/* Superficie: la ficha no es otra superficie; cuelga de la de su fila (la separación entre filas sigue) */
+.g-table--appearance-surface .g-table__table .g-table__detail > td.g-table__detail-cell {
+  padding-inline-start: var(--_pad-inline);
+  border-color: transparent;
+  background: none;
+}
+
+/* ---------- La fila ancla y las filas nuevas (#594) y el rastro que vuelve (#598) ---------- */
+/* El anclaje nativo no compensa: lo hace la tabla por rowKey (WebKit no lo tiene; dos compensaciones serían un salto) */
+.g-table__table tbody { overflow-anchor: none; }
+/* «Aquí estabas»: la fila se tiñe de accent-soft y se apaga hacia su propio fondo (sin «to»: vuelve al de la fila, también
+   seleccionada o en superficie). accent-soft y no primary-soft: sobre una fila seleccionada no desaparece */
+.g-table__row.is-here > td {
+  animation: g-table-here calc(var(--g-duration-slow) * 4) var(--g-ease-out) backwards;
+}
+.g-table__row.is-new > td {
+  animation: g-table-new var(--g-duration-slow) var(--g-ease-out) backwards;
+}
+@keyframes g-table-here {
+  from, 40% { background-color: var(--g-color-accent-soft); }
+}
+@keyframes g-table-new {
+  from { opacity: 0; }
+}
+
+/* ---------- Pie acoplado (#595): lo enfocable del área desplazable no queda nunca bajo el pie ---------- */
+/* --_dock-size lo publica bruno en la raíz solo con el pie acoplado; sin él, la declaración no vale y queda 0 */
+.g-table__scroll * { scroll-margin-block-end: var(--_dock-size); }
+
 /* ---------- Modo tarjetas ---------- */
 .g-table--mode-cards .g-table__bar .g-table__bar-cards { display: inline-flex; }
 .g-table--mode-cards .g-table__scroll { max-block-size: none; overflow: visible; }
@@ -381,6 +612,56 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 .g-table--mode-cards .g-table__title,
 .g-table--mode-cards .g-table__subtitle { white-space: normal; }
 .g-table--mode-cards .g-table__table td.g-table__empty { display: block; }
+/* Puerta en tarjetas: el título del encabezado de la tarjeta; parte líneas como el título */
+.g-table--mode-cards .g-table__door { white-space: normal; }
+/* La etiqueta de estado no aprieta el título: si no caben juntos, baja a su propia línea */
+.g-table--mode-cards .g-table__composite { flex-wrap: wrap; row-gap: var(--g-space-1); }
+.g-table--mode-cards .g-table__composite > .g-table__text { flex: 1 1 calc(var(--g-space-1) * 24); }
+/* Lomo en tarjetas: el borde de inicio de la tarjeta; sin estado conserva su borde y el resto va en el relleno */
+.g-table--mode-cards.has-row-status .g-table__table td:first-child {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+.g-table--mode-cards.has-row-status .g-table__row {
+  padding-inline-start: calc(var(--g-space-4) + var(--_spine) - var(--g-border-width));
+}
+.g-table--mode-cards.has-row-status .g-table__row[data-status] {
+  padding-inline-start: var(--g-space-4);
+  border-inline-start: var(--_spine) var(--_status-style) var(--_status);
+}
+/* «Aquí estabas» y filas nuevas: la tarjeta entera (sus celdas no tienen fondo) */
+.g-table--mode-cards .g-table__row.is-here > td,
+.g-table--mode-cards .g-table__row.is-new > td { animation: none; }
+.g-table--mode-cards .g-table__row.is-here { animation: g-table-here calc(var(--g-duration-slow) * 4) var(--g-ease-out) backwards; }
+.g-table--mode-cards .g-table__row.is-new { animation: g-table-new var(--g-duration-slow) var(--g-ease-out) backwards; }
+/* La ficha forma parte de su tarjeta: la tarjeta pierde su pie y la ficha lo continúa */
+.g-table--mode-cards .g-table__row.is-expanded {
+  margin-block-end: 0;
+  border-block-end-color: transparent;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.g-table--mode-cards .g-table__detail {
+  display: block;
+  margin-block-end: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-block-start: 0;
+  border-end-start-radius: var(--g-radius-lg);
+  border-end-end-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+}
+.g-table--mode-cards .g-table__row.is-selected.is-expanded + .g-table__detail {
+  border-color: var(--g-color-primary-text);
+  background: var(--g-color-primary-soft);
+}
+.g-table--mode-cards.has-row-status .g-table__row[data-status].is-expanded + .g-table__detail {
+  border-inline-start: var(--_spine) var(--_status-style) var(--_status);
+}
+.g-table--mode-cards .g-table__table td.g-table__detail-cell {
+  display: block;
+  padding: 0 var(--g-space-4);
+}
+.g-table--mode-cards .g-table__detail-body { border-inline-start: 0; }
 
 /* ---------- Área táctil ---------- */
 @media (pointer: coarse) {
@@ -410,4 +691,47 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
     border-color: GrayText;
   }
   .g-table__failed { outline: var(--g-border-width) solid CanvasText; }
+  /* Lomo: un borde que conserva su forma; las filas sin estado lo pintan del fondo (reservado, invisible) */
+  .g-table.has-row-status .g-table__table :is(th, td):first-child { border-inline-start-color: Canvas; }
+  .g-table.has-row-status .g-table__row[data-status] > td:first-child,
+  .g-table.has-row-status .g-table__row[data-status].is-expanded + .g-table__detail > td:first-child,
+  .g-table--mode-cards.has-row-status .g-table__row[data-status] { border-inline-start-color: CanvasText; }
+  .g-table--appearance-surface.has-row-status .g-table__row:not([data-status]) > td:first-child { border-inline-start-color: GrayText; }
+  /* Sello en la causa: el filo (sombra) desaparece; un contorno marca la celda */
+  .g-table__table td.g-table__cell--cause[data-status] {
+    outline: calc(var(--g-border-width) * 2) var(--_status-style) CanvasText;
+    outline-offset: calc(var(--g-border-width) * -2);
+  }
+  /* «Aquí estabas»: contorno discontinuo (la selección es continuo) */
+  .g-table__row.is-here > td {
+    outline: var(--g-focus-width) dashed Highlight;
+    outline-offset: calc(var(--g-focus-width) * -1);
+  }
+  .g-table--mode-cards .g-table__row.is-here > td { outline: none; }
+  .g-table--mode-cards .g-table__row.is-here { outline: var(--g-focus-width) dashed Highlight; }
+  .g-table__detail-body { outline: var(--g-border-width) solid GrayText; }
+}
+
+/* ---------- Movimiento reducido: la flecha aparece sin desplazarse, el chevron y la ficha sin transición, «aquí estabas»
+   quieta (se quita sin fundido) y las filas nuevas sin fundido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-table__table td { transition: none; }
+  .g-table__door-arrow,
+  .g-table__door-arrow:dir(rtl) {
+    translate: 0 0;
+    transition: none;
+  }
+  .g-table__door-chevron,
+  .g-table__detail-body { transition: none; }
+  .g-table__row.is-new > td,
+  .g-table--mode-cards .g-table__row.is-new { animation: none; }
+  .g-table__row.is-here > td {
+    animation: none;
+    background-color: var(--g-color-accent-soft);
+  }
+  .g-table--mode-cards .g-table__row.is-here > td { background-color: transparent; }
+  .g-table--mode-cards .g-table__row.is-here {
+    animation: none;
+    background-color: var(--g-color-accent-soft);
+  }
 }

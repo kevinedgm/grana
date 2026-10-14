@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "name": "GPageHeader",
+  "tag": "g-page-header",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Encabezado de página: dónde estoy (ruta), qué es (hN, antetítulo, descripción, estado), qué puedo hacer (acciones), cómo va (contenido) y qué secciones tiene (pestañas). B · Zócalo: las pestañas y las acciones viven en la última fila; al desplazar, el encabezado entero se hunde hasta que solo asoma el zócalo, con un título compacto ligado al desplazamiento. En estrecho y pegado, las mismas acciones bajan a un muelle en la zona del pulgar.",
+  "contract": "design/contracts/page-header.md",
+  "decisions": ["#626", "#627", "#628", "#629", "#630", "#631", "#632", "#633", "#634", "#635"],
+  "prototype": "design/lab/page-header/r01/",
+  "style": "packages/vue/src/components/GPageHeader/GPageHeader.css",
+  "entry": "@grana/vue/page-header",
+  "bundle": {
+    "measured": "2026-10-14",
+    "entry": "dist/page-header.js (GPageHeader)",
+    "gzip": 5672,
+    "umdGzip": 5274,
+    "global": "GranaPageHeader",
+    "note": "gzip -9. Vue y @grana/vue externos; edgeReserve (con EDGE_ORDER.pageHeader), sizeObserver, spaceUnit/nextFrame (formContext) y transitionMs llegan de __shared, sin copia. El CSS va en grana.css. En el principal solo crece EDGE_ORDER.pageHeader."
+  },
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Texto del hN, del título compacto (aria-hidden) y del enlace del muelle. Vacío o solo espacios cuenta como ausente (aviso 1). El slot title sustituye el contenido del hN, nunca el de las copias."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "values": [1, 2, 3],
+      "default": 1,
+      "description": "Nivel del encabezado (h1 por defecto; 2 o 3 en una vista anidada). Fuera de lista: aviso 3 y se usa 1. En vivo cambia la etiqueta y conserva el id."
+    },
+    {
+      "name": "eyebrow",
+      "type": "String",
+      "default": null,
+      "description": "Antetítulo, antes del hN (el slot eyebrow lo sustituye)."
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null,
+      "description": "Párrafo bajo el título (el slot description lo sustituye)."
+    },
+    {
+      "name": "sticky",
+      "type": "Boolean",
+      "default": true,
+      "description": "Pegado de serie cuando hay zócalo (#628). false: el encabezado se va con la página, sin muelle; en vivo, las acciones vuelven al zócalo (con la regla del foco) y se retiran las reservas."
+    },
+    {
+      "name": "zone",
+      "type": "String",
+      "values": ["none", "brand"],
+      "default": "none",
+      "description": "Zona de marca: brand pone data-g-zone=\"brand\" en la raíz (Z2; nunca un envoltorio). Fuera de lista: aviso 10 y none; con data-theme en la misma raíz, aviso 10."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": "{}",
+      "description": "{ actions }: nombre del grupo de acciones (role=\"group\"). Sin valores por defecto (#226); obligatorio si hay acciones (aviso 4)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de ids (generada, SSR-segura, si falta): {id}-title es el hN y el destino del enlace del muelle. Si se da, va también en la raíz."
+    }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "trail", "purpose": "La ruta (GBreadcrumbs). Primer hijo de la raíz" },
+    { "name": "eyebrow", "purpose": "Antetítulo en línea (sustituye a la prop)" },
+    { "name": "title", "purpose": "Contenido en línea del hN (p. ej. un código con <bdi>); nunca elementos interactivos. Las copias usan la prop title" },
+    { "name": "description", "purpose": "Descripción (sustituye a la prop)" },
+    { "name": "meta", "purpose": "Estado de la página: GBadge, GTag, GSummary, texto" },
+    { "name": "default", "purpose": "Contenido (GMetric, GAdaptiveLayout); no va al zócalo" },
+    { "name": "tabs", "purpose": "Un GTabs con detached (los GTabPanel van en el cuerpo de la página, #118; con paneles integrados, aviso 9)" },
+    {
+      "name": "actions",
+      "purpose": "GBtn y GMenu, en el grupo role=\"group\" del zócalo; en estrecho y pegado, los mismos nodos se mudan al muelle. Lo que depende de docked cambia props, no instancias. Alcance: { narrow, docked }",
+      "scope": "{ narrow: Boolean, docked: Boolean }"
+    }
+  ],
+  "methods": [
+    { "name": "focus", "signature": "focus(options?: FocusOptions): void", "purpose": "Enfoca el hN (tabindex=\"-1\"), pasando options a HTMLElement.focus. Dónde llevar el foco al cambiar de ruta; cuándo, lo decide la aplicación" }
+  ],
+  "labels": ["actions"],
+  "tokens": [
+    "--g-page-header-top (propiedad pública de entrada, no del tema)",
+    "--g-color-bg",
+    "--g-color-surface",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-focus",
+    "--g-shadow-2",
+    "--g-space-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-spring (entrada del muelle, #635)"
+  ],
+  "states": ["default", "narrow", "sticky", "stuck", "docked", "dock-open", "in-dialog"],
+  "classes": [
+    "g-page-header (raíz header, sin role)",
+    "has-base, has-tabs, has-actions",
+    "is-narrow (ancho de la raíz < space × 150)",
+    "is-sticky (sticky, zócalo, medido y regla del cuarto)",
+    "is-stuck (llegó a la posición pegada, ±0,5 px)",
+    "is-docked (acciones en el muelle)",
+    "data-g-zone=\"brand\" (con zone=\"brand\")",
+    "--_lift, --_p (en línea en la raíz, con is-sticky; --_p ∈ {0, 1} con movimiento reducido)",
+    "g-page-header__head, __titles, __eyebrow, __title, __desc, __meta, __content",
+    "g-page-header__base, __base-title (aria-hidden; no se pinta en estrecho), __tabs, __actions-home, __actions (role=\"group\")",
+    "g-page-header__dock (hidden + inert cerrado; no se pinta dentro de un <dialog>), __dock-title, __dock-host",
+    "is-open (en __dock, abierto)",
+    "--_dock-left, --_dock-right, --_dock-offset (en línea en __dock, px)"
+  ],
+  "composes": [
+    "Ninguno por importación: GBreadcrumbs, GTabs, GBtn, GMenu y GMetric llegan por slots",
+    "utils/edgeReserve.js (dos dueños: zócalo arriba y muelle abajo, EDGE_ORDER.pageHeader = 15; el muelle lee la voz)",
+    "utils/sizeObserver.js, formContext (spaceUnit, nextFrame), utils/motion.js (transitionMs)"
+  ],
+  "announcements": "Ninguno: pegarse, hundirse y abrir el muelle son consecuencia del desplazamiento del usuario (4.1.3 no aplica).",
+  "focus": "No mueve el foco por su cuenta. Lo enfocado no se muda: la mudanza al muelle (o de vuelta) espera al focusout de las acciones y al cierre de cualquier aria-expanded=\"true\" dentro. El enlace del muelle (clic primario sin modificadores o Intro) lleva el hN al inicio y lo enfoca con preventScroll. focus() al hN.",
+  "warnings": [
+    "1 · falta title o está vacío",
+    "2 · headingLevel 1 y ya hay otro h1 al montar",
+    "3 · headingLevel fuera de 1–3 (se usa 1)",
+    "4 · hay acciones y falta labels.actions",
+    "5 · con is-sticky, el padre mide lo mismo que la raíz (envoltorio)",
+    "6 · contenido del zócalo más alto que el zócalo",
+    "7 · más de una acción solid de color brand",
+    "8 · el muelle abierto no llega al borde inferior del visor (ancestro que atrapa lo fijo)",
+    "9 · GTabs con paneles integrados en el slot tabs",
+    "10 · zone fuera de lista, o zone=\"brand\" con data-theme en la raíz"
+  ],
+  "pending": [
+    "Auditoría de coco del componente real (contraste en el tema por defecto, NisaNabani y la zona; forced-colors)",
+    "README (mora-docs) tras la auditoría"
+  ]
+}

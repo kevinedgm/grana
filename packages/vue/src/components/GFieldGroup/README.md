@@ -18,7 +18,7 @@ Una **pregunta compuesta cuyas partes necesitan su propia etiqueta** (contacto d
 
 ## API en breve
 
-`label`, `hint`, `name`, `error`, `warning`, `valid`, `required`, `keep`, `disabled`, `readonly`, `density`, `id`; slots `label`, `hint` y por defecto. Detalle en [`GForm/README.md` · API](../GForm/README.md#api) y en [`GFieldGroup.meta.json`](./GFieldGroup.meta.json).
+`label`, `hint`, `name`, `error`, `warning`, `valid`, `required`, `keep`, `disabled`, `readonly`, `density`, `id` (base de los ids internos; generado si falta); slots `label`, `hint` y por defecto. Detalle en [`GForm/README.md` · API](../GForm/README.md#api) y en [`GFieldGroup.meta.json`](./GFieldGroup.meta.json).
 
 ## Fuentes
 

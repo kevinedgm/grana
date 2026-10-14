@@ -4,7 +4,7 @@
   "tag": "g-surface",
   "status": "candidate",
   "since": "0.1.0",
-  "description": "Superficie visual genérica, sin rol ni estructura: niveles flat, outlined, raised, floating e inset; la inset da un paso de tono respecto a su superficie padre y toma su radio concéntrico.",
+  "description": "Superficie visual genérica, sin rol ni estructura: niveles flat, outlined, raised, floating e inset; la inset da un paso de tono respecto a su superficie padre y toma su radio concéntrico. Con zone=\"brand\" abre una zona de marca: la superficie se pinta con la marca y sus descendientes reciben el grupo de color de la zona.",
   "contract": "design/contracts/surface.md",
   "prototype": "design/lab/surface/r01/",
   "style": "packages/vue/src/components/GSurface/GSurface.css",
@@ -70,6 +70,15 @@
       "name": "as",
       "type": "String",
       "default": "div"
+    },
+    {
+      "name": "zone",
+      "type": "String",
+      "default": "none",
+      "values": [
+        "none",
+        "brand"
+      ]
     }
   ],
   "events": [],
@@ -79,6 +88,15 @@
       "purpose": "Contenido libre"
     }
   ],
+  "classes": {
+    "root": "g-surface g-surface--level-{flat|outlined|raised|floating|inset} g-surface--tone-{surface|sunken} g-surface--padding-{none|xs|sm|md|lg} g-surface--density-{default|comfortable|compact} g-surface--rounded-{…}",
+    "state": [
+      "g-surface--zone-brand (con zone=\"brand\"; tone se emite como surface)"
+    ],
+    "attributes": [
+      "data-g-zone=\"brand\" (con zone=\"brand\"; atributo público del mecanismo de la zona, tokens.md §44)"
+    ]
+  },
   "tokens": [
     "--g-color-surface",
     "--g-color-surface-sunken",
@@ -88,6 +106,8 @@
     "--g-color-border",
     "--g-color-border-strong",
     "--g-color-text",
+    "--g-color-bg",
+    "--g-color-zone-edge",
     "--g-radius-{none|xs|sm|md|lg|xl|pill}",
     "--g-shadow-1",
     "--g-shadow-2",
@@ -101,7 +121,8 @@
     "floating",
     "inset",
     "inset-on-sunken",
-    "inset-nested"
+    "inset-nested",
+    "zone-brand"
   ],
   "pending": [
     "Superficie no-inset dentro de una inset (no diseñado en r01)",

@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Navegación lateral que se transforma con un solo sistema: expandida, riel de iconos, navbar inferior con píldora activa y drawer. Items por arreglo (grupos, un nivel de hijos), destino actual por modelValue, adaptación por el ancho del contenedor y movimiento con transiciones. En el riel, cada item de primer nivel (padres incluidos), la búsqueda y contraer/expandir llevan la pista del motor de GTooltip en modo visual (#436, sustituye g-sidebar__tip): nodos g-tooltip aria-hidden al final de la raíz, activos solo en rail, a la derecha lógica, que viajan dentro del <nav>; la del padre se cierra al abrir su panel; la pulsación larga muestra y no navega ni abre el panel.",
   "contract": "design/contracts/sidebar.md",
-  "prototype": "design/lab/sidebar/r01/",
+  "prototype": "design/lab/sidebar/r01/ · design/lab/sidebar/r02/ (asiento, breakpoints)",
   "style": "packages/vue/src/components/GSidebar/GSidebar.css",
   "props": [
     {
@@ -62,6 +62,12 @@
       "default": null
     },
     {
+      "name": "breakpoints",
+      "type": "Object",
+      "default": null,
+      "note": "Cortes de mode=\"auto\" en px de ancho del contenedor: { expanded?, rail? }. null o {} = space × 240 / space × 150; una clave sola conserva la otra; un valor no numérico, no finito o negativo, o una clave desconocida, se ignora con aviso (B1); rail > expanded se recorta a expanded (aviso B2 solo si se dieron las dos); rail = expanded = sin riel; solo actúa con mode=\"auto\" y su cambio decide al momento (#618)"
+    },
+    {
       "name": "contained",
       "type": "Boolean",
       "default": false
@@ -112,7 +118,8 @@
         "warning",
         "danger",
         "info"
-      ]
+      ],
+      "note": "Relleno de los contadores y puntos (--g-color-{color} y on-) en todos los formatos. No pinta el item actual ni la píldora del navbar: los dos leen las ranuras --g-sidebar-current* (#615)"
     },
     {
       "name": "density",
@@ -204,6 +211,9 @@
     "--g-sidebar-width",
     "--g-sidebar-rail",
     "--g-sidebar-bar",
+    "--g-sidebar-current",
+    "--g-sidebar-on-current",
+    "--g-sidebar-current-edge",
     "--g-surface-shell",
     "--g-surface-inset",
     "--g-surface-radius",
@@ -223,7 +233,9 @@
     "--g-duration-fast",
     "--g-duration-press",
     "--g-ease-standard",
-    "--g-ease-out"
+    "--g-ease-out",
+    "--g-duration-slow",
+    "--g-ease-spring"
   ],
   "states": [
     "expanded",
@@ -238,8 +250,10 @@
     "item-focus-visible",
     "item-active",
     "item-branch",
+    "item-rep",
     "item-disabled",
     "parent-open",
+    "sub-has-current",
     "flyout-open",
     "tooltip",
     "pill-current",
@@ -253,7 +267,6 @@
     "Lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer)",
     "Firefox y Safari (popover, <dialog>, @starting-style, interpolate-size)",
     "Táctil real y teclado virtual (navbar y drawer)",
-    "La superficie del item activo es tenue (1.08:1 por defecto): decisión pendiente si se refuerza (ver auditoria.md)",
     "Formato inicial antes de medir el contenedor (se pinta expandido un instante)"
   ],
   "weight": {

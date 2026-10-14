@@ -49,6 +49,7 @@ El deslizador habitual esconde el valor (bajo el dedo o en un globo que aparece 
 ### Un valor con marcas y «sin elegir»
 
 ```vue
+<!-- Fragmento: `guardar` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const dolor = ref(null)          // Number o null («sin elegir»), nunca una cadena
@@ -69,6 +70,7 @@ Con `null`, la cabecera dice «Sin elegir» (de `labels.empty`) y no hay píldor
 ### Un porcentaje
 
 ```vue
+<!-- Fragmento: `volumen` es de tu aplicación -->
 <g-slider v-model="volumen" name="volumen" label="Volumen de los avisos" locale="es-MX"
           :format="{ style: 'unit', unit: 'percent' }"
           hint="Del silencio al máximo"></g-slider>
@@ -98,6 +100,7 @@ const precio = ref([800, 2400])   // [inicio, fin]
 ### Un texto propio en la píldora
 
 ```vue
+<!-- Fragmento: `minutos` es de tu aplicación -->
 <g-slider v-model="minutos" label="Duración de la sesión" locale="es-MX"
           :min="15" :max="480" :step="5" color="accent"
           :value-text="m => `${Math.floor(m / 60)} h ${m % 60} min`"></g-slider>
@@ -108,6 +111,7 @@ const precio = ref([800, 2400])   // [inicio, fin]
 ### Solo marcas como rejilla
 
 ```vue
+<!-- Fragmento: `porPagina` es de tu aplicación -->
 <g-slider v-model="porPagina" label="Resultados por página" locale="es-MX"
           :min="10" :max="100" :marks="[10, 25, 50, 100]" snap="marks"></g-slider>
 ```
@@ -117,6 +121,7 @@ Con `snap="marks"` las marcas son la rejilla: las flechas van de marca en marca 
 ## Dentro de un formulario
 
 ```vue
+<!-- Fragmento: `enviar` y `aviso` son de tu aplicación -->
 <g-form aria-label="Aviso" @submit="enviar">
   <g-form-layout>
     <g-form-row>
@@ -139,6 +144,7 @@ Con `snap="marks"` las marcas son la rejilla: las flechas van de marca en marca 
 Cuando importan las dos cosas a la vez, un `GSlider` y un [`GNumberField`](../GNumberField/README.md) con **el mismo `v-model`** en una fila:
 
 ```vue
+<!-- Fragmento: `volumen` es de tu aplicación -->
 <g-form-row>
   <g-slider v-model="volumen" name="volumen" label="Volumen" class="g-form-w-lg"
             locale="es-MX" :format="{ style: 'unit', unit: 'percent' }"></g-slider>

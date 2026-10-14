@@ -29,6 +29,12 @@
 
   /* Contenedor de la consulta que apila el botón de acción en anchos estrechos */
   container-type: inline-size;
+  /* La contención en línea anula la aportación del contenido al tamaño intrínseco: en un padre que se ajusta (celda
+     `auto`, rejilla o flex con fit-content, <form> hijo de flex) el porcentaje no se resuelve y el campo medía 0 con la
+     etiqueta partida letra a letra (integración real, NisaNabani). Su tamaño intrínseco es su ancho por defecto; con un
+     padre que da ancho no cambia nada (min(100%, …) manda), y en una fila (container-type: normal) no se aplica.
+     Banco: design/lab/contencion/ */
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 60);
   display: inline-flex;
   flex-direction: column;
   vertical-align: top;
@@ -63,6 +69,7 @@
 /* Con botón de acción, el ancho por defecto es mayor: con 240px quedaría siempre bajo el umbral
    de apilado y el botón nunca iría junto al campo */
 .g-input--has-action {
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 90);
   inline-size: min(100%, calc(var(--g-space-1) * 90));
 }
 

@@ -4,6 +4,7 @@ import { contrast, parseHex } from './color.js'
 import { DEFAULTS } from './defaults.js'
 import { SEMANTIC } from './palette.js'
 import { usageOf } from './usage.js'
+import { zoneDiagnostics, zoneDocToken } from './zone.js'
 
 const resolveVar = (tokens, value, depth = 0) => {
   const m = /^var\((--[a-z0-9-]+)\)$/.exec(String(value).trim())
@@ -75,13 +76,16 @@ const sourceOf = (name, { tinted, hue = 'brand', primaryOwn = false }) => {
  *   light/dark: tema completo (defaults + generado); `dark` es null con `dark: false` (entonces el oscuro repite el claro).
  *   generated: lo que la configuración cambió (estado «derived»); overrides: «override»; derived/collisions: de la derivación de paleta.
  */
-export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [] }) => {
+export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [], zone = null }) => {
   const dk = dark ?? light
   const adjusted = new Set(Object.keys(derived?.applied ?? {}).flatMap((n) => Object.keys(light).filter((k) => family(k.slice('--g-color-'.length)) === n && k.startsWith('--g-color-'))))
   const tinted = Boolean(derived?.neutralsBrand)
   const names = [...new Set([...Object.keys(DEFAULTS), ...Object.keys(light)])].filter((k) => k.startsWith('--g-color-')).map((k) => k.slice('--g-color-'.length))
   const color = names.map((n) => {
     const key = `--g-color-${n}`
+    // Fuentes de la zona de marca (tokens.md §44.7): nivel reference, contraste contra la zona y estado de la regla de guarda
+    const zt = zoneDocToken(n, { light, dark: dk, status: key in overrides ? 'override' : key in generated ? 'derived' : 'default', zone: zone?.derivation })
+    if (zt) return zt
     const value = { light: resolveVar(light, light[key]), dark: resolveVar(dk, dk[key]) }
     const tok = { name: n, cssVar: key, level: levelOf(n), value, usage: usageOf(n) }
     const src = sourceOf(n, { tinted, hue: derived?.neutralsHue ?? 'brand', primaryOwn: Boolean(derived?.primary) })
@@ -108,7 +112,7 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
     color: { themes: [{ id: 'light', name: 'Claro' }, { id: 'dark', name: 'Oscuro' }], tokens: color },
     radius: { tokens: scale('--g-radius-').filter((t) => /-(xs|sm|md|lg|xl|shape)$/.test(t.cssVar)) },
     spacing: { tokens: scale('--g-space-') },
-    diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean)],
+    diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean), ...zoneDiagnostics(zone, { overrides })],
     meta: { source: '@grana/cli', generatedFrom: source, categories: 'Los colores cat-* son colores categóricos de interfaz (iconos, etiquetas), no una paleta de visualización de datos.' }
   }
 }

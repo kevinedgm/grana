@@ -44,6 +44,12 @@ jobs:
       - name: Vigilante de iconos (Lucide es la única fuente)
         run: node packages/vue/scripts/check-icons.mjs
 
+      - name: README al día con los meta.json (props)
+        run: node packages/vue/scripts/check-readme-props.mjs
+
+      - name: README con ejemplos montables o marcados como fragmento
+        run: node packages/vue/scripts/check-readme-fragments.mjs
+
       - name: Compuertas del dist (lo que debe estar y lo que no)
         run: bash .github/scripts/gates.sh
 
@@ -112,7 +118,10 @@ jobs:
       # Varias pruebas miden tiempos (tooltip 500/700 ms, cuadros de animación, Δ0px con movimiento):
       # con --workers=2 y reintentos se evita el ruido por carga, como en la pasada completa.
       # Subconjunto representativo: biblioteca, playground, distribución de formularios,
-      # paneles anclados, tooltip y los componentes de formulario. Los perf, el combobox y la voz
+      # paneles anclados, tooltip y los componentes de formulario, más la Fase C (slider, tag,
+      # acordeón, migas, vacío, región de carga y carga de la tabla; las pruebas de «rendimiento» de
+      # bd888df viven en slider y breadcrumbs y son relativas, fiables con 2 workers). Los
+      # personalidad-* (cuadros de animación), los -perf (un worker), el combobox y la voz
       # quedan para la pasada nocturna. Archivos explícitos: el filtro de Playwright es una
       # expresión regular sobre la ruta y «playground» coincidiría con todo el directorio.
       - name: Playwright (Chromium)
@@ -131,7 +140,21 @@ jobs:
             tests/time-field.spec.mjs \
             tests/radio-group.spec.mjs \
             tests/key-focus.spec.mjs \
-            tests/dialog-focus.spec.mjs
+            tests/dialog-focus.spec.mjs \
+            tests/slider.spec.mjs \
+            tests/tag.spec.mjs \
+            tests/accordion.spec.mjs \
+            tests/breadcrumbs.spec.mjs \
+            tests/empty.spec.mjs \
+            tests/load-region.spec.mjs \
+            tests/table-load.spec.mjs \
+            tests/sidebar-activo.spec.mjs
+
+      # Contención de tamaño en padres que se ajustan (hallazgo 3 de la integración real): 3 s en Chromium;
+      # los tres motores van en la pasada completa.
+      - name: Contención de tamaño (Chromium)
+        working-directory: .
+        run: node design/lab/contencion/verificar.mjs --engines=chromium
 
       - name: Informe de Playwright (solo si falla)
         if: failure()

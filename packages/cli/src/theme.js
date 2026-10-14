@@ -4,6 +4,8 @@ import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
 import { fontStack, radii, spacing, typography } from './scales.js'
 import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
+import { applyZone } from './zone.js'
+import { sidebarCurrentDark } from './sidebarCurrent.js'
 
 // Superficie contra la que se calcula `text` (el tema claro por defecto; con `overrides` de surface se respeta)
 const surfaceOf = (overrides = {}) => overrides['--g-color-surface'] ?? DEFAULTS['--g-color-surface']
@@ -70,9 +72,12 @@ const generateDark = (config, generated, derived) => {
     }
     d.categories.forEach((hex, k) => Object.assign(out, darkColorTokens(`cat-${k + 1}`, hex, surface)))
   }
-  Object.assign(out, overrides)
   const { other } = splitColorGroup(generated)
-  return { enabled: true, generated: out, tokens: { ...DEFAULTS, ...other, ...DARK, ...out } }
+  // Ranuras del item actual de GSidebar (tokens.md §43, #614): heredadas del claro o, si un par falla, derivadas
+  const sidebarCurrent = sidebarCurrentDark(config, { ...DEFAULTS, ...other, ...DARK, ...out, ...overrides })
+  Object.assign(out, sidebarCurrent.values)
+  Object.assign(out, overrides)
+  return { enabled: true, generated: out, tokens: { ...DEFAULTS, ...other, ...DARK, ...out }, sidebarCurrent }
 }
 
 /**
@@ -127,11 +132,14 @@ export const generateTheme = (config = {}) => {
     Object.assign(generated, typography(config.fontSize ?? 16, config.typeScale ?? 1.25))
   }
   Object.assign(generated, overrides)
-  return { generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }
+  // Zona de marca (tokens.md §44): las fuentes se derivan del claro ya resuelto y valen lo mismo en los dos esquemas
+  return applyZone({ generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }, config)
 }
 
+// Especificidad: los dos selectores de la consulta oscura valen (0,1,0), igual que `:root, [data-theme="light"]`, para que
+// un segundo tema cargado después (cambio en caliente) gane por orden; con `:not()` pasarían a (0,2,0) y el primero ganaría siempre.
 /** tokens.css: sin capa (el tema del usuario gana siempre, contrato §8). Con tema oscuro, tres bloques (contrato §15). */
-export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} } } = {}) => {
+export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} }, zone = null } = {}) => {
   const decls = (o, indent = '  ') => Object.entries(o).map(([k, v]) => `${indent}${k}: ${v};`)
   const { color, other } = splitColorGroup(generated)
   const out = [
@@ -145,7 +153,7 @@ export const toCss = (generated, { source = 'grana.config.json', dark = { enable
       const body = ['color-scheme: dark;', ...decls(dark.generated, '').map((l) => l)]
       out.push(
         '@media (prefers-color-scheme: dark) {',
-        '  :root:not([data-theme="light"]) {',
+        '  :root:where(:not([data-theme="light"])) {',
         ...body.map((l) => `    ${l}`),
         '  }',
         '}',
@@ -160,13 +168,15 @@ export const toCss = (generated, { source = 'grana.config.json', dark = { enable
     out.push(
       '/* dark: false · el tema claro completo dentro de la consulta oscura */',
       '@media (prefers-color-scheme: dark) {',
-      '  :root:not([data-theme="dark"]) {',
+      '  :root:where(:not([data-theme="dark"])) {',
       '    color-scheme: light;',
       ...decls(light, '    '),
       '  }',
       '}'
     )
   }
+  // Zona de marca (tokens.md §44.6): solo lo que depende del tema (color-scheme de una zona clara, cat-k-text)
+  if (zone && Object.keys(zone).length) out.push('[data-g-zone="brand"] {', ...decls(zone), '}')
   out.push('')
   return out.join('\n')
 }

@@ -65,6 +65,12 @@
       ]
     },
     {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "note": "Textos de los elementos-enlace (menu.md «Elementos-enlace», sin valores por defecto, #226): external, newTab, destExternal, destNewTab, opened, openedLive, copied, copiedLive; openedLive y copiedLive admiten {label} o una función ({ label, item }) => string"
+    },
+    {
       "name": "id",
       "type": "String",
       "default": null
@@ -75,6 +81,11 @@
       "name": "select",
       "payload": "{ id, item, type, checked?, group?, event }",
       "trigger": "El usuario activa un elemento (no un padre de submenú ni uno deshabilitado); event.preventDefault() impide el cierre"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ id, item, event }",
+      "trigger": "Un elemento-enlace se activa con clic primario, Intro o Espacio sin modificadores y sin target de otro contexto (#505 con #574); nunca select. event.preventDefault() deja la navegación al router y no impide el cierre"
     },
     {
       "name": "update:modelValue",
