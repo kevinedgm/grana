@@ -39,3 +39,28 @@
 ## Sin verificar (no bloquea `candidate`)
 
 Lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer); `forced-colors` y `prefers-reduced-motion` reales; RTL con datos en un idioma RTL real (solo se invirtió la dirección); Firefox y Safari (`popover`, `<dialog>`, `@starting-style`, `interpolate-size`, `rotate` y `translate` individuales); el navbar y el drawer en un dispositivo táctil real y con el teclado virtual; cientos de items; tema oscuro (no existe).
+
+---
+
+## Addendum · Item actual (asiento, #612–#619 + #635)
+
+**Fecha:** 2026-10-14  
+**Alcance:** `is-rep` en el padre del item actual en modo riel; ranuras `--g-sidebar-current` / `--g-sidebar-on-current` / `--g-sidebar-current-edge`; `breakpoints`; animación spring del asiento (`clip-path: circle(0%)→50%`, `--g-ease-spring` + `--g-duration-slow`); `has-current` en `<ul>` de submenú; `aria-current="page"` heredado; colores forzados del asiento; `#635` como sexto uso de `--g-ease-spring`.  
+**Método:** `GSidebar.css` revisado línea a línea en los bloques de asiento (líneas 331–405, 519–545, 727–729, 831–905). Spec `sidebar-asiento.spec.mjs` (4 pruebas) y `sidebar-activo.spec.mjs` (1 prueba) en `GRANA_PW_PORT=4229 npx playwright test --project=chromium`. Verificación de `defaults.css` para las tres ranuras en claro, oscuro (media + atributo) y bloque `[data-g-zone="brand"]`.
+
+### Resultado: aprobado, sin correcciones
+
+| Prueba | Resultado |
+| --- | --- |
+| Token-only | Todos los bloques del asiento usan `var(--g-*)` y `var(--_*)`; las tres ranuras `--g-sidebar-current*` las declara `defaults.css` en `@layer grana.defaults` y la hoja de `GSidebar.css` solo las lee vía `--_seat`; sin literales de tema ni valores de respaldo |
+| `defaults.css` · ranuras | Declaradas en claro (líneas 153–155), en `@media (prefers-color-scheme: dark)` (415–417) y en `[data-theme="dark"]` (554–556), y re-declaradas dentro de `[data-g-zone="brand"]` (666–668) con los valores de la zona |
+| Asiento — relleno y aro | `::before` rellena con `--_seat` desde `clip-path: circle(0%)` → `circle(50%)` con `--g-ease-spring --g-duration-slow`; `::after` dibuja el aro con `--g-color-focus` como `box-shadow` |
+| Asiento — retraso `on-current` | El color `--_seat` se activa con un `transition-delay` del 35% de `--g-duration-slow` para que el aro no tape el relleno al inicio |
+| `prefers-reduced-motion` | El bloque con `clip-path: circle()` está dentro de `@media (prefers-reduced-motion: no-preference)` (líneas 386–402); en movimiento reducido el asiento aparece sin animación |
+| `forced-colors` | El asiento pasa a `outline: 2px solid Highlight` y `color: HighlightText` en el bloque `@media (forced-colors: active)` (verificado en la hoja) |
+| `#635` — sexto spring | La transición `clip-path var(--g-duration-slow) var(--g-ease-spring)` es efectivamente la sexta vez que aparece `--g-ease-spring` en el CSS del componente, cumpliendo el límite de DECISIONS.md #635 |
+| Specs Playwright | `sidebar-asiento.spec.mjs` 4/4 · `sidebar-activo.spec.mjs` 1/1 — todos pasan |
+
+### Sin verificar
+
+Lector de pantalla real con `aria-current` en el riel; `breakpoints` en un dispositivo real con cambio de ancho; `has-current` en submenús de más de dos niveles de profundidad.

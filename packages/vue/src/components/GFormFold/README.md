@@ -234,8 +234,8 @@ En un `GFormFold` con un solo campo de texto de una línea, pulsar Enter en ese 
 | Método | Qué hace |
 | --- | --- |
 | `confirm()` | Revela los campos del pliegue y emite `confirm` o `invalid` |
-| `close(options)` | Cierra con resultado: foco a `options.focus` › `for` › `from`, llegada (`data-g-landed`) y anuncio en el canal de página si `options.announce` |
-| `cancel()` | Cierra sin resultado: emite `cancel` con `reason: 'cancel'` y `update:open(false)`; foco a `from` › `for` |
+| `close(options)` | Cierra con resultado: foco a `options.focus` → `for` → `from`, llegada (`data-g-landed`) y anuncio en el canal de página si `options.announce` |
+| `cancel()` | Cierra sin resultado: emite `cancel` con `reason: 'cancel'` y `update:open(false)`; foco a `from` → `for` |
 
 ## Teclado y foco
 
@@ -246,11 +246,11 @@ En un `GFormFold` con un solo campo de texto de una línea, pulsar Enter en ese 
 
 **Al abrir:** el foco va al primer control del pliegue (orden de `#292` dentro del pliegue, con `preventScroll`); al asentarse, `scrollIntoView block: 'nearest'`.
 
-**Al cerrar con resultado (`close`):** foco a `options.focus` › `for` › `from` › primer control del contenedor.
+**Al cerrar con resultado (`close`):** foco a `options.focus` → `for` → `from` → primer control del contenedor.
 
-**Al cancelar o Escape:** foco a `from` › `for` › primer control del contenedor.
+**Al cancelar o Escape:** foco a `from` → `for` → primer control del contenedor.
 
-**Cerrado desde fuera con el foco dentro:** foco a `from` › `for`.
+**Cerrado desde fuera con el foco dentro:** foco a `from` → `for`.
 
 ## Accesibilidad
 
